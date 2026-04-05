@@ -1,0 +1,167 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Build.Believe Fit — Elite Strength & Movement</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+--black: #0a0a0a;
+--purple: #6a0dad;
+--yellow: #f5c800;
+--white: #f9f5ff;
+--grey: #111111;
+--mid: #1e1e1e;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; }
+
+nav {
+position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+background: rgba(10,10,10,0.95); backdrop-filter: blur(10px);
+padding: 1.2rem 2rem; display: flex; justify-content: space-between; align-items: center;
+border-bottom: 1px solid rgba(106,10,173,0.2);
+}
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; font-weight: 900; letter-spacing: 3px; }
+.logo-part-box { color: var(--purple); background: var(--yellow); padding: 0.2rem 0.6rem; }
+.logo-dot-sep { color: var(--yellow); }
+.logo-part-fit { color: var(--yellow); }
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a { text-decoration: none; color: var(--white); font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: var(--yellow); }
+.nav-cta-link { background: var(--yellow); color: var(--black); padding: 0.6rem 1.4rem; border-radius: 2px; font-weight: 700; }
+
+.hero {
+margin-top: 60px; padding: 6rem 2rem; background: linear-gradient(135deg, rgba(106,10,173,0.1), rgba(245,200,0,0.05)); text-align: center;
+}
+.hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 1rem; line-height: 1.2; }
+.hero .tagline { font-size: 1.1rem; color: var(--yellow); margin-bottom: 2rem; font-weight: 500; }
+.btn-yellow { display: inline-block; background: var(--yellow); color: var(--black); padding: 1rem 2.2rem; font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; border-radius: 2px; transition: background 0.2s; cursor: pointer; border: none; }
+.btn-yellow:hover { background: #ffe033; }
+
+section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+.sec-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--yellow); }
+.sec-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; font-weight: 900; letter-spacing: 1px; margin: 0.5rem 0 2rem; }
+
+#services { background: var(--grey); }
+.service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 3rem; }
+.service-card { background: var(--mid); padding: 2rem; border-left: 3px solid var(--yellow); }
+.service-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.8rem; color: var(--yellow); }
+
+#about { background: var(--black); }
+.about-content { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; margin-top: 2rem; }
+.about-img { width: 100%; max-width: 400px; border-radius: 4px; }
+
+#contact { background: linear-gradient(135deg, var(--purple), var(--purple)); text-align: center; padding: 4rem 2rem; }
+.contact-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem; }
+.contact-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0; max-width: 500px; margin-left: auto; margin-right: auto; }
+.contact-card { background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 4px; text-decoration: none; color: var(--white); transition: background 0.2s; }
+.contact-card:hover { background: rgba(255,255,255,0.2); }
+
+footer { background: var(--grey); padding: 2rem; text-align: center; border-top: 1px solid rgba(106,10,173,0.2); }
+.footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; margin-bottom: 0.5rem; }
+</style>
+</head>
+<body>
+<nav>
+<div class="logo">
+<span class="logo-part-box">Build<span class="logo-dot-sep">.</span>Believe</span>
+<span class="logo-part-fit">Fit</span>
+</div>
+<ul class="nav-links">
+<li><a href="#services">Services</a></li>
+<li><a href="#about">About</a></li>
+<li><a href="#contact">Contact</a></li>
+<li><a href="bbf-progress-tracker.html" class="nav-cta-link">Client Login</a></li>
+</ul>
+</nav>
+
+<div class="hero">
+<h1>Ready to Build a Stronger, Healthier You?</h1>
+<div class="tagline">Elite Strength & Movement Coaching</div>
+<p style="margin-bottom: 2rem; font-size: 1rem; color: #ccc;">Built on science. Driven by results. Focused on longevity.</p>
+<a href="#contact" class="btn-yellow">Book Free Consultation</a>
+</div>
+
+<section id="services">
+<div class="sec-label">What We Do</div>
+<h2 class="sec-title">Our Services</h2>
+<div class="service-grid">
+<div class="service-card">
+<h3>1-on-1 Coaching</h3>
+<p>Personalized strength programs designed for you — no cookie-cutter workouts.</p>
+</div>
+<div class="service-card">
+<h3>Nutrition Coaching</h3>
+<p>Data-driven nutrition using macros & TDEE for real body composition change.</p>
+</div>
+<div class="service-card">
+<h3>Movement Optimization</h3>
+<p>Learn how to move better, feel better, and perform better — pain-free.</p>
+</div>
+<div class="service-card">
+<h3>Progress Tracking</h3>
+<p>Real-time body composition, strength, and wellness metrics you can trust.</p>
+</div>
+<div class="service-card">
+<h3>Accountability</h3>
+<p>Weekly check-ins, video form feedback, and round-the-clock support.</p>
+</div>
+<div class="service-card">
+<h3>NASM Certified</h3>
+<p>Certified through the National Academy of Sports Medicine — science-backed coaching.</p>
+</div>
+</div>
+</section>
+
+<section id="about">
+<div class="sec-label">About Akeem</div>
+<h2 class="sec-title">Meet Your Coach</h2>
+<div class="about-content">
+<div>
+<p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 1rem;">
+I'm <strong>Akeem Brown, NASM Certified Personal Trainer</strong>. For over 6 years, I've been helping people transform their bodies, their confidence, and their lives through elite strength coaching and data-driven nutrition.
+</p>
+<p style="font-size: 1rem; color: #aaa; line-height: 1.7;">
+My clients don't just lose weight — they build lasting habits, move pain-free, and discover what their bodies are truly capable of. Every program is built on science, driven by results, and focused on longevity.
+</p>
+<p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--yellow); font-weight: 700;">✓ Certified through NASM<br>✓ 200+ transformations<br>✓ 6+ years of experience<br>✓ 98% client retention</p>
+</div>
+<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23333' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' font-size='18' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3EYour photo here%3C/text%3E%3C/svg%3E" alt="Akeem Brown" class="about-img"/>
+</div>
+</section>
+
+<section id="contact">
+<div class="contact-pill" style="display: inline-block; background: rgba(0,0,0,0.3); padding: 0.5rem 1.5rem; border-radius: 20px; margin-bottom: 2rem; font-size: 0.9rem;">⚡ Limited Spots Available</div>
+<h2 class="contact-title">Your Free Session Starts Here</h2>
+<p style="margin-bottom: 2rem; font-size: 1rem;">Message "START" to book your free consultation & assessment. No commitment, no pressure — just a conversation to show you what's possible.</p>
+
+<div class="contact-cards">
+<a href="tel:6233409254" class="contact-card">
+<div style="font-size: 1.2rem; margin-bottom: 0.5rem;">📞</div>
+<div style="font-weight: 700;">Call / Text</div>
+<div style="font-size: 0.9rem;">623-340-9254</div>
+</a>
+<a href="mailto:buildbelievefitllc@buildbelievefit.fitness" class="contact-card">
+<div style="font-size: 1.2rem; margin-bottom: 0.5rem;">✉️</div>
+<div style="font-weight: 700;">Email</div>
+<div style="font-size: 0.9rem;">buildbelievefitllc@buildbelievefit.fitness</div>
+</a>
+</div>
+
+<p style="margin-top: 2rem; font-size: 0.9rem; font-style: italic; color: rgba(255,255,255,0.8);">Lose Weight. Build Muscle. Move Pain-Free. — This Is Where It Starts.</p>
+</section>
+
+<footer>
+<div class="footer-logo">
+<span class="logo-part-box">Build<span class="logo-dot-sep">.</span>Believe</span>
+<span class="logo-part-fit">Fit</span>
+</div>
+<p style="font-size: 0.8rem; color: #666; margin-top: 1rem;">© 2026 Build.Believe Fit · Akeem Brown, NASM CPT</p>
+</footer>
+</body>
+</html>
+```
