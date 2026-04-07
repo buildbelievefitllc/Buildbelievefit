@@ -1,0 +1,50 @@
+{
+  "name": "Build Believe Fit",
+  "short_name": "BBF",
+  "description": "Elite Strength & Movement \u2014 NASM-certified personal training, workout tracking, and nutrition plans.",
+  "start_url": "/bbf-app.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#6a0dad",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "bbf-icon.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "bbf-icon.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "health",
+    "fitness",
+    "lifestyle"
+  ],
+  "shortcuts": [
+    {
+      "name": "My Program",
+      "short_name": "Program",
+      "description": "View today's workout program",
+      "url": "/bbf-app.html"
+    },
+    {
+      "name": "Nutrition Plan",
+      "short_name": "Nutrition",
+      "description": "View your 7-day meal plan",
+      "url": "/bbf-app.html"
+    },
+    {
+      "name": "Book Session",
+      "short_name": "Book",
+      "description": "Book a session with Akeem",
+      "url": "/bbf-app.html"
+    }
+  ]
+}
