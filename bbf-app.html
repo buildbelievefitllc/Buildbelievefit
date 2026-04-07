@@ -781,62 +781,137 @@ function doLogout(){
   switchTab("home");showScreen("auth");
 }
 
-// ALL EVENT LISTENERS — attached after full page load
-window.addEventListener("load",function(){
-  // SPLASH
-  document.getElementById("enter-btn").addEventListener("click",function(){showScreen("auth");});
-  // AUTH TABS
-  document.getElementById("t-signin").addEventListener("click",function(){
-    document.getElementById("t-signin").classList.add("on");
-    document.getElementById("t-new").classList.remove("on");
-    document.getElementById("pane-signin").style.display="";
-    document.getElementById("pane-new").style.display="none";
+// ALL EVENT LISTENERS — Attached directly since the script is at the bottom of the body.
+// This prevents caching issues where 'load' might not fire on mobile home screens.
+
+// SPLASH
+document.getElementById("enter-btn").addEventListener("click", function(){ showScreen("auth"); });
+
+// Handle global Enter key for the splash screen
+document.addEventListener("keydown", function(e) {
+  if ((e.key === "Enter" || e.keyCode === 13) && document.getElementById("splash").classList.contains("active")) {
+    e.preventDefault();
+    showScreen("auth");
+  }
+});
+
+// AUTH TABS
+document.getElementById("t-signin").addEventListener("click",function(){
+  document.getElementById("t-signin").classList.add("on");
+  document.getElementById("t-new").classList.remove("on");
+  document.getElementById("pane-signin").style.display="";
+  document.getElementById("pane-new").style.display="none";
+});
+document.getElementById("t-new").addEventListener("click",function(){
+  document.getElementById("t-new").classList.add("on");
+  document.getElementById("t-signin").classList.remove("on");
+  document.getElementById("pane-new").style.display="";
+  document.getElementById("pane-signin").style.display="none";
+});
+
+// SIGN IN
+document.getElementById("btn-signin").addEventListener("click", doLogin);
+
+document.getElementById("l-user").addEventListener("keydown", function(e){
+  if(e.key === "Enter" || e.keyCode === 13){
+    e.preventDefault(); // Stop mobile keyboard default behavior
+    document.getElementById("l-pin").focus();
+  }
+});
+
+document.getElementById("l-pin").addEventListener("keydown", function(e){
+  if(e.key === "Enter" || e.keyCode === 13){
+    e.preventDefault(); // Stop mobile keyboard default behavior
+    doLogin();
+  }
+});
+
+// REGISTER
+document.getElementById("btn-register").addEventListener("click", doRegister);
+
+// Auto-advance through registration fields with Enter key
+var rFields = ["r-name", "r-user", "r-pin", "r-type", "r-goal"];
+rFields.forEach(function(id, idx) {
+  var el = document.getElementById(id);
+  if(el) {
+    el.addEventListener("keydown", function(e) {
+      if(e.key === "Enter" || e.keyCode === 13) {
+        e.preventDefault();
+        if (idx < rFields.length - 1) {
+          document.getElementById(rFields[idx + 1]).focus();
+        } else {
+          doRegister();
+        }
+      }
+    });
+  }
+});
+
+// NAV
+document.querySelectorAll(".nv").forEach(function(b){
+  b.addEventListener("click",function(){ switchTab(b.dataset.tab); });
+});
+
+// QUICK ACTIONS
+document.getElementById("qa-w").addEventListener("click",function(){ switchTab("workout"); });
+document.getElementById("qa-l").addEventListener("click",function(){ switchTab("log"); });
+document.getElementById("qa-b").addEventListener("click",function(){ switchTab("book"); });
+document.getElementById("qa-p").addEventListener("click",function(){ switchTab("profile"); });
+document.getElementById("tb-av").addEventListener("click",function(){ switchTab("profile"); });
+
+// LOG
+document.getElementById("btn-save-log").addEventListener("click", saveLog);
+document.getElementById("btn-add-ex").addEventListener("click", addEx);
+document.getElementById("ex-inp").addEventListener("keydown",function(e){
+  if(e.key === "Enter" || e.keyCode === 13){
+    e.preventDefault();
+    addEx();
+  }
+});
+document.querySelectorAll(".tchip").forEach(function(c){
+  c.addEventListener("click",function(){
+    document.querySelectorAll(".tchip").forEach(function(x){ x.classList.remove("on"); });
+    c.classList.add("on");
+    TYPE = c.dataset.type;
   });
-  document.getElementById("t-new").addEventListener("click",function(){
-    document.getElementById("t-new").classList.add("on");
-    document.getElementById("t-signin").classList.remove("on");
-    document.getElementById("pane-new").style.display="";
-    document.getElementById("pane-signin").style.display="none";
+});
+document.querySelectorAll(".mchip").forEach(function(c){
+  c.addEventListener("click",function(){
+    document.querySelectorAll(".mchip").forEach(function(x){ x.classList.remove("on"); });
+    c.classList.add("on");
+    MOOD = c.dataset.mood;
   });
-  // SIGN IN
-  document.getElementById("btn-signin").addEventListener("click",doLogin);
-  document.getElementById("l-pin").addEventListener("keydown",function(e){if(e.key==="Enter")doLogin();});
-  document.getElementById("l-user").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("l-pin").focus();});
-  // REGISTER
-  document.getElementById("btn-register").addEventListener("click",doRegister);
-  // NAV
-  document.querySelectorAll(".nv").forEach(function(b){b.addEventListener("click",function(){switchTab(b.dataset.tab);});});
-  // QUICK ACTIONS
-  document.getElementById("qa-w").addEventListener("click",function(){switchTab("workout");});
-  document.getElementById("qa-l").addEventListener("click",function(){switchTab("log");});
-  document.getElementById("qa-b").addEventListener("click",function(){switchTab("book");});
-  document.getElementById("qa-p").addEventListener("click",function(){switchTab("profile");});
-  document.getElementById("tb-av").addEventListener("click",function(){switchTab("profile");});
-  // LOG
-  document.getElementById("btn-save-log").addEventListener("click",saveLog);
-  document.getElementById("btn-add-ex").addEventListener("click",addEx);
-  document.getElementById("ex-inp").addEventListener("keydown",function(e){if(e.key==="Enter")addEx();});
-  document.querySelectorAll(".tchip").forEach(function(c){c.addEventListener("click",function(){document.querySelectorAll(".tchip").forEach(function(x){x.classList.remove("on");});c.classList.add("on");TYPE=c.dataset.type;});});
-  document.querySelectorAll(".mchip").forEach(function(c){c.addEventListener("click",function(){document.querySelectorAll(".mchip").forEach(function(x){x.classList.remove("on");});c.classList.add("on");MOOD=c.dataset.mood;});});
-  // TRAINER NOTE
-  document.getElementById("btn-save-note").addEventListener("click",saveNote);
-  // PROFILE
-  document.getElementById("btn-goal-edit").addEventListener("click",function(){
-    var d=D();var uid=VC||CU;var u=d.u[uid]||{};
-    document.getElementById("g-goal").value=u.goal||"";document.getElementById("g-gw").value=u.gw||"";
-    document.getElementById("goal-modal").classList.add("open");
-  });
-  document.getElementById("btn-signout").addEventListener("click",doLogout);
-  document.getElementById("btn-goal-save").addEventListener("click",function(){
-    var uid=VC||CU;var d=D();
-    d.u[uid].goal=document.getElementById("g-goal").value.trim();
-    d.u[uid].gw=document.getElementById("g-gw").value.trim();
-    S(d);document.getElementById("goal-modal").classList.remove("open");toast("Goal updated ✓");renderAll();
-  });
-  document.getElementById("btn-goal-cancel").addEventListener("click",function(){document.getElementById("goal-modal").classList.remove("open");});
-  document.getElementById("goal-modal").addEventListener("click",function(e){if(e.target===this)this.classList.remove("open");});
-  // DATE
-  document.getElementById("lf-date").value=today();
+});
+
+// TRAINER NOTE
+document.getElementById("btn-save-note").addEventListener("click", saveNote);
+
+// PROFILE
+document.getElementById("btn-goal-edit").addEventListener("click",function(){
+  var d = D(); var uid = VC || CU; var u = d.u[uid] || {};
+  document.getElementById("g-goal").value = u.goal || "";
+  document.getElementById("g-gw").value = u.gw || "";
+  document.getElementById("goal-modal").classList.add("open");
+});
+document.getElementById("btn-signout").addEventListener("click", doLogout);
+document.getElementById("btn-goal-save").addEventListener("click",function(){
+  var uid = VC || CU; var d = D();
+  d.u[uid].goal = document.getElementById("g-goal").value.trim();
+  d.u[uid].gw = document.getElementById("g-gw").value.trim();
+  S(d);
+  document.getElementById("goal-modal").classList.remove("open");
+  toast("Goal updated ✓");
+  renderAll();
+});
+document.getElementById("btn-goal-cancel").addEventListener("click",function(){
+  document.getElementById("goal-modal").classList.remove("open");
+});
+document.getElementById("goal-modal").addEventListener("click",function(e){
+  if(e.target === this) this.classList.remove("open");
+});
+
+// DATE
+document.getElementById("lf-date").value = today();
 });
 
 if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(function(){});}
