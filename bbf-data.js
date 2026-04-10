@@ -1050,7 +1050,7 @@ var PREHAB = [
       {
         en_lbl: 'Band External Rotation',
         es_lbl: 'Rotación Externa con Banda',
-        en_txt: 'Elbow at 90°, pinned to your side. Rotate forearm outward against resistance. This trains the infraspinatus — your rotator cuff's workhorse. Critical for anyone pressing heavy overhead or reaching across a production line.',
+        en_txt: 'Elbow at 90°, pinned to your side. Rotate forearm outward against resistance. This trains the infraspinatus — your rotator cuff workhorse. Critical for anyone pressing heavy overhead or reaching across a production line.',
         es_txt: 'Codo a 90°, pegado al costado. Rota el antebrazo hacia afuera. Entrena el infraespinoso — esencial para quien levanta o alcanza sobre la línea de producción.'
       }
     ],
@@ -1088,7 +1088,7 @@ var PREHAB = [
       {
         en_lbl: 'Single Leg Balance Progression',
         es_lbl: 'Progresión de Equilibrio en Una Pierna',
-        en_txt: 'Stand on one foot. Eyes open 30s → eyes closed 30s → on foam/unstable surface 30s. Concrete floors destroy proprioception over time. This rebuilds the joint's awareness system. Do this daily — takes 90 seconds total.',
+        en_txt: 'Stand on one foot. Eyes open 30s → eyes closed 30s → on foam/unstable surface 30s. Concrete floors destroy proprioception over time. This rebuilds joints awareness system. Do this daily — takes 90 seconds total.',
         es_txt: 'Párate en un pie. Ojos abiertos 30s → ojos cerrados 30s → en superficie inestable 30s. Los pisos de concreto destruyen la propiocepción. Esto reconstruye el sistema articular.'
       },
       {
