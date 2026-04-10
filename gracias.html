@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estás Dentro — Build Believe Fit</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+      background: #0f0e17; color: #f7f4ff; min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 24px; text-align: center;
+    }
+    .card {
+      background: #1a1828; border: 1px solid #2a2640;
+      border-top: 3px solid #f5c800;
+      max-width: 520px; width: 100%; padding: 48px 40px;
+    }
+    .badge { background:#6a0dad; color:#f5c800; font-family:'Bebas Neue',sans-serif; font-size:10px; letter-spacing:3px; padding:4px 14px; display:inline-block; margin-bottom:20px; }
+    .headline { font-family:'Bebas Neue',sans-serif; font-size:clamp(36px,8vw,56px); color:#f5c800; letter-spacing:3px; line-height:1; margin-bottom:16px; }
+    .sub { font-size:15px; color:#c8c0e8; line-height:1.7; margin-bottom:32px; }
+    .check { font-size:48px; margin-bottom:20px; display:block; }
+    .btn { display:inline-block; background:#f5c800; color:#000; font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:3px; padding:14px 32px; text-decoration:none; transition:opacity .15s; margin-bottom:14px; }
+    .btn:hover { opacity:.88; }
+    .btn-ghost { display:inline-block; background:transparent; color:#6a0dad; font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:2px; padding:10px 24px; text-decoration:none; border:1.5px solid #6a0dad; transition:all .15s; margin-left:10px; }
+    .btn-ghost:hover { background:#6a0dad; color:#f5c800; }
+    .footer-note { margin-top:28px; font-size:11px; color:#4a4570; letter-spacing:1px; }
+    .lang-toggle { position:fixed; top:16px; right:16px; }
+    .lang-glass { display:flex; align-items:center; background:rgba(106,13,173,.15); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(106,13,173,.5); border-radius:2px; padding:3px; }
+    .lang-btn { background:transparent; color:rgba(200,192,232,.6); border:none; padding:5px 12px; font-family:'Bebas Neue',sans-serif; font-size:12px; letter-spacing:2px; cursor:pointer; border-radius:1px; transition:all .2s; }
+    .lang-btn.active { background:linear-gradient(135deg,#6a0dad,#8b1fcf); color:#f5c800; }
+    .lang-divider { width:1px; height:14px; background:rgba(106,13,173,.5); }
+  </style>
+</head>
+<body>
+  <nav class="lang-toggle" aria-label="Selector de idioma">
+    <div class="lang-glass">
+      <button class="lang-btn" data-lang="en" onclick="BBF.setLang('en')">EN</button>
+      <div class="lang-divider"></div>
+      <button class="lang-btn active" data-lang="es" onclick="BBF.setLang('es')">ES</button>
+      <div class="lang-divider"></div>
+      <button class="lang-btn" data-lang="pt" onclick="BBF.setLang('pt')">PT</button>
+    </div>
+  </nav>
+
+  <div class="card">
+    <div class="badge">BUILD BELIEVE FIT LLC</div>
+    <span class="check">✅</span>
+    <h1 class="headline">ESTÁS DENTRO.</h1>
+    <p class="sub">
+      Tus números Pathfinder están en camino.<br>
+      Revisa tu bandeja de entrada — el camino de 7 días comienza ahora.
+    </p>
+    <div>
+      <a href="/bbf-app.html" class="btn">ABRIR LA APP BBF</a>
+      <a href="/" class="btn-ghost">INICIO</a>
+    </div>
+    <p class="footer-note">buildbelievefit.fitness &nbsp;·&nbsp; NASM-CPT &nbsp;·&nbsp; EN · ES · PT</p>
+  </div>
+
+  <script src="/bbf-lang.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      localStorage.setItem("bbf_lang", "es");
+    });
+  </script>
+</body>
+</html>

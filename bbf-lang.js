@@ -1,100 +1,258 @@
-// ═══════════════════════════════════════════════════════════════════
-// BBF-LANG.JS — Build Believe Fit LLC
-// Trilingual Engine: English | Español | Português (BR)
-// ═══════════════════════════════════════════════════════════════════
-(function() {
-  'use strict';
-  var LANG = localStorage.getItem('bbf_lang') || 'en';
-  var REDIRECTS = { en:'thank-you', es:'gracias', pt:'obrigado' };
+/* ============================================================
+   BBF-LANG.JS — Build Believe Fit LLC
+   Language Toggle + localStorage Bridge + Training Mode
+   Formspree ID: mwvwjokw
+   Include in: index.html AND bbf-app.html
+   <script src="/bbf-lang.js" defer></script>
+   ============================================================ */
 
-  var T = {
-    'nav-services': { en:'Services',  es:'Servicios', pt:'Serviços'  },
-    'nav-programs': { en:'Programs',  es:'Programas', pt:'Programas' },
-    'nav-results':  { en:'Results',   es:'Resultados',pt:'Resultados'},
-    'nav-about':    { en:'About',     es:'Sobre mí',  pt:'Sobre mim' },
-    'nav-start':    { en:'Start',     es:'Empezar',   pt:'Começar'   },
-    'nav-mystory':  { en:'My Story',  es:'Mi Historia',pt:'Minha História'},
-    'sec-path-lbl':     { en:'Start Your Journey', es:'Comienza Tu Viaje', pt:'Comece Sua Jornada'},
-    'prog-section-h':{ en:'Spectrum of <span class="y">Success</span>', es:'Espectro del <span class="y">Éxito</span>', pt:'Espectro do <span class="y">Sucesso</span>'},
-    'hero-sub':{
-      en:'Elite performance for the <strong>high-demand life.</strong> Whether you\'re on the factory floor, in the boardroom, or on the front lines &mdash; <strong>your body deserves a system built for how you actually live.</strong>',
-      es:'Rendimiento élite para la <strong>vida de alta demanda.</strong> Ya sea en la línea de producción, en la sala de juntas, o en la primera línea &mdash; <strong>tu cuerpo merece un sistema construido para tu realidad.</strong>',
-      pt:'Performance de elite para a <strong>vida de alta demanda.</strong> Seja no chão de fábrica, na sala de reuniões ou na linha de frente &mdash; <strong>seu corpo merece um sistema construído para sua realidade.</strong>'
+const BBF = (() => {
+
+  // ── Translation Data ────────────────────────────────────────
+  const T = {
+    en: {
+      hero_headline:    "BUILD THE BODY YOUR CAREER DEMANDS.",
+      hero_sub:         "OT-Informed Training for High-Output Lives.",
+      hero_cta:         "START YOUR FREE PATHFINDER CALC",
+      pf_q1:            "What is your current weight? (lbs)",
+      pf_q2:            "What is your primary fitness goal?",
+      pf_q3:            "How many days per week can you train?",
+      pf_q4:            "What is your daily activity level?",
+      pf_q5:            "What is your occupation type?",
+      pf_opt_fat:       "Fat Loss",
+      pf_opt_muscle:    "Muscle Gain",
+      pf_opt_recomp:    "Body Recomp",
+      pf_opt_perf:      "Performance",
+      pf_submit:        "GET MY NUMBERS",
+      nav_programs:     "Programs",
+      nav_about:        "About",
+      nav_app:          "The App",
+      nav_apply:        "Apply",
+      about_badge:      "FOUNDER · NASM-CPT · OT STUDIES",
+      why_hook:         "Whether you're in the boardroom or on the floor, your time and money are assets. We don't waste either.",
+      pricing_community:"Community Blueprint",
+      pricing_elite:    "Elite Challenge",
+      pricing_legacy:   "Legacy Protocol",
     },
-    'prog-section-sub':{
-      en:'We respect every dollar you invest. Whether it\'s $67 or $2,500, you receive a clinical, OT-informed return on that investment.',
-      es:'Respetamos cada dólar que inviertes. Ya sea $67 o $2,500, recibes un retorno clínico e informado por TO en esa inversión.',
-      pt:'Respeitamos cada dólar que você investe. Seja $67 ou $2.500, você recebe um retorno clínico e baseado em TO nesse investimento.'
+    es: {
+      hero_headline:    "CONSTRUYE EL CUERPO QUE TU CARRERA EXIGE.",
+      hero_sub:         "Entrenamiento OT-Informado para Vidas de Alto Rendimiento.",
+      hero_cta:         "INICIA TU CALCULADORA PATHFINDER GRATIS",
+      pf_q1:            "¿Cuál es tu peso actual? (lbs)",
+      pf_q2:            "¿Cuál es tu objetivo principal de fitness?",
+      pf_q3:            "¿Cuántos días por semana puedes entrenar?",
+      pf_q4:            "¿Cuál es tu nivel de actividad diaria?",
+      pf_q5:            "¿Cuál es tu tipo de ocupación?",
+      pf_opt_fat:       "Pérdida de Grasa",
+      pf_opt_muscle:    "Ganancia Muscular",
+      pf_opt_recomp:    "Recomposición Corporal",
+      pf_opt_perf:      "Rendimiento",
+      pf_submit:        "OBTENER MIS NÚMEROS",
+      nav_programs:     "Programas",
+      nav_about:        "Sobre",
+      nav_app:          "La App",
+      nav_apply:        "Aplicar",
+      about_badge:      "FUNDADOR · NASM-CPT · ESTUDIOS DE TO",
+      why_hook:         "Ya sea que estés en la sala de juntas o en el piso de trabajo, tu tiempo y dinero son activos. No desperdiciamos ninguno.",
+      pricing_community:"Proyecto Comunitario",
+      pricing_elite:    "Desafío Élite",
+      pricing_legacy:   "Protocolo Legado",
     },
-    'path-h':{en:'The <span class="y">Pathfinder</span>',es:'El <span class="y">Buscador</span>',pt:'O <span class="y">Explorador</span>'},
-    'path-sub':{
-      en:'4 quick steps. We\'ll calculate your personalized targets and Akeem will reach out within 24 hours.',
-      es:'4 pasos rápidos. Calcularemos tus objetivos personalizados y Akeem se comunicará contigo en 24 horas.',
-      pt:'4 passos rápidos. Calcularemos seus objetivos e Akeem entrará em contato em 24 horas.'
-    },
-    'path-submit':{en:'Calculate My Path &amp; Submit &#x2192;',es:'Calcular Mi Camino y Enviar &#x2192;',pt:'Calcular Meu Caminho e Enviar &#x2192;'},
-    'trans-section-h':{en:'This Is Why <span class="y">BBF Exists</span>',es:'Por Eso Existe <span class="y">BBF</span>',pt:'Por Isso Existe o <span class="y">BBF</span>'},
-    'contact-h':{en:"Let's Build.",es:'Construyamos.',pt:'Vamos Construir.'},
-    'modal-close':{en:"Close &mdash; I'll check my email",es:'Cerrar &mdash; Revisaré mi correo',pt:'Fechar &mdash; Verei meu e-mail'},
-    'app-prehab-sub':{
-      en:'OT-Informed joint health for high-demand athletes',
-      es:'Salud articular informada por TO para atletas de alta demanda',
-      pt:'Saúde articular baseada em TO para atletas de alta demanda'
-    },
-    'app-ot-advantage':{
-      en:'Your coach is an <strong>Exercise Science student and future Occupational Therapist.</strong> Every recovery cue is grounded in OT principles — joint mechanics, movement longevity, and occupation-specific load patterns. Clinical-level precision most trainers cannot offer.',
-      es:'Tu entrenador es <strong>estudiante de Ciencias del Ejercicio y futuro Terapeuta Ocupacional.</strong> Cada señal de recuperación se basa en principios de TO — mecánica articular, longevidad del movimiento y patrones de carga específicos de tu ocupación.',
-      pt:'Seu treinador é <strong>estudante de Ciências do Exercício e futuro Terapeuta Ocupacional.</strong> Cada indicação de recuperação é baseada em princípios de TO — mecânica articular, longevidade do movimento e padrões de carga específicos da sua ocupação.'
+    pt: {
+      hero_headline:    "CONSTRUA O CORPO QUE SUA CARREIRA EXIGE.",
+      hero_sub:         "Treinamento Baseado em TO para Vidas de Alta Performance.",
+      hero_cta:         "INICIE SUA CALCULADORA PATHFINDER GRÁTIS",
+      pf_q1:            "Qual é o seu peso atual? (lbs)",
+      pf_q2:            "Qual é o seu objetivo principal de fitness?",
+      pf_q3:            "Quantos dias por semana você pode treinar?",
+      pf_q4:            "Qual é o seu nível de atividade diária?",
+      pf_q5:            "Qual é o seu tipo de ocupação?",
+      pf_opt_fat:       "Perda de Gordura",
+      pf_opt_muscle:    "Ganho Muscular",
+      pf_opt_recomp:    "Recomposição Corporal",
+      pf_opt_perf:      "Performance",
+      pf_submit:        "OBTER MEUS NÚMEROS",
+      nav_programs:     "Programas",
+      nav_about:        "Sobre",
+      nav_app:          "O App",
+      nav_apply:        "Aplicar",
+      about_badge:      "FUNDADOR · NASM-CPT · ESTUDOS DE TO",
+      why_hook:         "Seja na sala de reuniões ou no chão de fábrica, seu tempo e dinheiro são ativos. Não desperdiçamos nenhum.",
+      pricing_community:"Projeto Comunitário",
+      pricing_elite:    "Desafio Elite",
+      pricing_legacy:   "Protocolo Legado",
     }
   };
 
-  function apply() {
-    // Translate by data-lang-key attribute
-    document.querySelectorAll('[data-lang-key]').forEach(function(el) {
-      var key = el.getAttribute('data-lang-key');
-      if (T[key] && T[key][LANG]) el.innerHTML = T[key][LANG];
-    });
-    // Translate by ID
-    Object.keys(T).forEach(function(key) {
-      var el = document.getElementById(key);
-      if (el && T[key][LANG]) el.innerHTML = T[key][LANG];
-    });
-    // Update nav toggle buttons
-    ['en','es','pt'].forEach(function(l) {
-      var b1 = document.getElementById('lt-'+l);
-      if (b1) b1.className = (l===LANG) ? 'lang-on' : '';
-      var b2 = document.getElementById('mob-lt-'+l);
-      if (b2) { b2.style.background=(l===LANG)?'rgba(245,200,0,.3)':'transparent'; b2.style.color=(l===LANG)?'#f5c800':'rgba(255,255,255,.45)'; }
-    });
-    document.documentElement.lang = LANG==='pt'?'pt-BR':LANG;
-    // Update Formspree redirect
-    var nf = document.getElementById('_next');
-    if (nf) nf.value = window.location.origin+'/'+(REDIRECTS[LANG]||'thank-you');
-  }
-
-  function setLang(l) {
-    if (!['en','es','pt'].includes(l)) return;
-    LANG = l;
-    localStorage.setItem('bbf_lang', l);
-    apply();
-  }
-
-  function init() {
-    if (!localStorage.getItem('bbf_lang')) {
-      var nav = (navigator.language||'en').toLowerCase();
-      if (nav.startsWith('es')) LANG='es';
-      else if (nav.startsWith('pt')) LANG='pt';
-      else LANG='en';
-      localStorage.setItem('bbf_lang', LANG);
+  // ── Exercise Cue Translations (Training Mode) ───────────────
+  const CUES = {
+    en: {
+      core_tight:       "Core tight.",
+      drive_heels:      "Drive through your heels.",
+      chest_up:         "Chest up, proud posture.",
+      squeeze_top:      "Squeeze hard at the top.",
+      control_descent:  "Control the descent — own it.",
+      full_rom:         "Full range of motion.",
+      breathe_exertion: "Exhale on exertion.",
+      hinge_hip:        "Hinge at the hip, not the spine.",
+      neutral_spine:    "Neutral spine throughout.",
+      pull_elbows:      "Pull your elbows, not your hands.",
+      push_floor:       "Push the floor away from you.",
+      brace_core:       "Brace like you're about to take a punch.",
+    },
+    es: {
+      core_tight:       "Core firme.",
+      drive_heels:      "Empuja con los talones.",
+      chest_up:         "Pecho arriba, postura orgullosa.",
+      squeeze_top:      "Aprieta fuerte en la cima.",
+      control_descent:  "Controla la bajada — domínala.",
+      full_rom:         "Rango completo de movimiento.",
+      breathe_exertion: "Exhala en el esfuerzo.",
+      hinge_hip:        "Bisagra en la cadera, no en la columna.",
+      neutral_spine:    "Columna neutra en todo momento.",
+      pull_elbows:      "Jala con los codos, no con las manos.",
+      push_floor:       "Empuja el suelo lejos de ti.",
+      brace_core:       "Contrae como si fueras a recibir un golpe.",
+    },
+    pt: {
+      core_tight:       "Core firme.",
+      drive_heels:      "Empurre pelos calcanhares.",
+      chest_up:         "Peito para cima, postura orgulhosa.",
+      squeeze_top:      "Contraia forte no topo.",
+      control_descent:  "Controle a descida — domine-a.",
+      full_rom:         "Amplitude total de movimento.",
+      breathe_exertion: "Expire no esforço.",
+      hinge_hip:        "Dobre no quadril, não na coluna.",
+      neutral_spine:    "Coluna neutra o tempo todo.",
+      pull_elbows:      "Puxe pelos cotovelos, não pelas mãos.",
+      push_floor:       "Empurre o chão para longe de você.",
+      brace_core:       "Contraia como se fosse levar uma pancada.",
     }
-    apply();
+  };
+
+  // ── Formspree Redirects ─────────────────────────────────────
+  const REDIRECTS = {
+    en: "https://buildbelievefit.fitness/thank-you.html",
+    es: "https://buildbelievefit.fitness/gracias.html",
+    pt: "https://buildbelievefit.fitness/obrigado.html"
+  };
+
+  // ── State (read from localStorage on load) ──────────────────
+  let _lang  = localStorage.getItem("bbf_lang")     || "en";
+  let _train = localStorage.getItem("bbf_train")    === "true";
+  let _cue   = localStorage.getItem("bbf_cue_lang") || "es";
+
+  // ── setLang ─────────────────────────────────────────────────
+  function setLang(lang) {
+    if (!T[lang]) return;
+    _lang = lang;
+    localStorage.setItem("bbf_lang", lang);
+    document.querySelectorAll(".lang-btn").forEach(b => {
+      const isActive = b.dataset.lang === lang;
+      b.classList.toggle("active",   isActive);
+      b.classList.toggle("lang-on",  isActive);  // index.html CSS hook
+    });
+    applyTranslations();
+    updateFormspreeRedirect(lang);
+    // If Training Mode is on, sync cue language to new lang
+    if (_train && lang !== "en") {
+      _cue = lang;
+      localStorage.setItem("bbf_cue_lang", _cue);
+      applyCueLanguage(_cue);
+    }
+    document.documentElement.setAttribute("lang", lang);
   }
 
-  window.BBF_LANG = { set:setLang, get:function(){return LANG;}, init:init, apply:apply };
-
-  if (document.readyState==='loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+  // ── applyTranslations ───────────────────────────────────────
+  function applyTranslations() {
+    const t = T[_lang] || T.en;
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.dataset.i18n;
+      if (t[key] !== undefined) el.textContent = t[key];
+    });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+      const key = el.dataset.i18nPh;
+      if (t[key] !== undefined) el.placeholder = t[key];
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach(el => {
+      const key = el.dataset.i18nHtml;
+      if (t[key] !== undefined) el.innerHTML = t[key];
+    });
   }
+
+  // ── Training Mode ───────────────────────────────────────────
+  function toggleTrainingMode(active) {
+    _train = active;
+    localStorage.setItem("bbf_train", String(active));
+    if (active) {
+      // Use current UI language if not English, else fall back to saved cue lang
+      _cue = (_lang !== "en") ? _lang : _cue;
+      applyCueLanguage(_cue);
+    } else {
+      applyCueLanguage("en");
+    }
+    // Update label
+    const label = document.getElementById("trainingLabel");
+    if (label) label.textContent = active ? "TRAINING MODE ON" : "TRAINING MODE";
+  }
+
+  // ── applyCueLanguage ────────────────────────────────────────
+  function applyCueLanguage(lang) {
+    const cues = CUES[lang] || CUES.en;
+    document.querySelectorAll("[data-cue]").forEach(el => {
+      const key = el.dataset.cue;
+      if (cues[key] !== undefined) el.textContent = cues[key];
+    });
+  }
+
+  // ── Formspree _next field ───────────────────────────────────
+  function updateFormspreeRedirect(lang) {
+    document.querySelectorAll("input[name='_next']").forEach(input => {
+      input.value = REDIRECTS[lang] || REDIRECTS.en;
+    });
+    // Also sync hidden language field
+    document.querySelectorAll("input[name='language']").forEach(input => {
+      input.value = lang;
+    });
+  }
+
+  // ── init ────────────────────────────────────────────────────
+  function init() {
+    const isApp = !!document.getElementById("bbfApp") || !!document.querySelector("[data-bbf-app]");
+
+    // Restore language
+    applyTranslations();
+    updateFormspreeRedirect(_lang);
+    document.querySelectorAll(".lang-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.lang === _lang);
+    });
+    document.documentElement.setAttribute("lang", _lang);
+
+    // Restore training mode (app only)
+    if (isApp) {
+      const wrap  = document.getElementById("trainingModeWrap");
+      const check = document.getElementById("trainingModeCheck");
+      const label = document.getElementById("trainingLabel");
+      if (wrap)  wrap.style.display  = "flex";
+      if (check) check.checked       = _train;
+      if (label) label.textContent   = _train ? "TRAINING MODE ON" : "TRAINING MODE";
+      if (_train) applyCueLanguage(_cue);
+    }
+  }
+
+  // ── Public API ───────────────────────────────────────────────
+  return {
+    setLang,
+    toggleTrainingMode,
+    init,
+    get lang()  { return _lang;  },
+    get train() { return _train; },
+    T,
+    CUES,
+    REDIRECTS,
+  };
+
 })();
+
+// ── Auto-init on DOM ready ───────────────────────────────────
+document.addEventListener("DOMContentLoaded", BBF.init);
