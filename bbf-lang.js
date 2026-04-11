@@ -187,7 +187,58 @@
 
     // ── FOOTER ────────────────────────────────────────────────────────
     'ft-about':  { en:'About Akeem', es:'Sobre Akeem', pt:'Sobre Akeem' },
-    'ft-start':  { en:'Start My Path', es:'Comienza Tu Camino', pt:'Comece Sua Jornada' }
+    'ft-start':  { en:'Start My Path', es:'Comienza Tu Camino', pt:'Comece Sua Jornada' },
+
+    // ── PATHFINDER CHIPS ──────────────────────────────────────────────
+    'chip-fatloss':      { en:'&#x1F525; Fat Loss', es:'&#x1F525; Pérdida de Grasa', pt:'&#x1F525; Perda de Gordura' },
+    'chip-muscle':       { en:'&#x1F4AA; Build Muscle', es:'&#x1F4AA; Ganar Músculo', pt:'&#x1F4AA; Ganho Muscular' },
+    'chip-recomp':       { en:'&#x2696; Body Recomp', es:'&#x2696; Recomposición Corporal', pt:'&#x2696; Recomposição Corporal' },
+    'chip-strength':     { en:'&#x1F3CB; Pure Strength', es:'&#x1F3CB; Fuerza Pura', pt:'&#x1F3CB; Força Pura' },
+    'chip-endurance':    { en:'&#x1F3C3; Endurance', es:'&#x1F3C3; Resistencia', pt:'&#x1F3C3; Resistência' },
+    'chip-beginner':     { en:'Beginner', es:'Principiante', pt:'Iniciante' },
+    'chip-intermediate': { en:'Intermediate', es:'Intermedio', pt:'Intermediário' },
+    'chip-advanced':     { en:'Advanced', es:'Avanzado', pt:'Avançado' },
+    'chip-returning':    { en:'Returning After Break', es:'Regresando Después de un Descanso', pt:'Voltando Após Pausa' },
+    'chip-postinjury':   { en:'Post-Injury / Rehab', es:'Post-Lesión / Rehabilitación', pt:'Pós-Lesão / Reabilitação' },
+    'chip-standard':     { en:'Standard Hours', es:'Horario Estándar', pt:'Horário Padrão' },
+    'chip-9to5':         { en:'9-to-5 / Everyday Athlete', es:'9 a 5 / Atleta Cotidiano', pt:'9 às 5 / Atleta do Dia a Dia' },
+    'chip-8hr':          { en:'8-Hour Shifts', es:'Turnos de 8 Horas', pt:'Turnos de 8 Horas' },
+    'chip-12hr':         { en:'12-Hour Shifts', es:'Turnos de 12 Horas', pt:'Turnos de 12 Horas' },
+    'chip-overnight':    { en:'Overnight / Rotating', es:'Nocturno / Rotativo', pt:'Noturno / Rotativo' },
+    'chip-executive':    { en:'Executive / Corporate', es:'Ejecutivo / Corporativo', pt:'Executivo / Corporativo' },
+    'chip-medical':      { en:'Medical / Healthcare', es:'Médico / Salud', pt:'Médico / Saúde' },
+    'chip-firstresponder':{ en:'First Responder', es:'Primer Respondedor', pt:'Primeiro Respondedor' },
+    'chip-parent':       { en:'Full-Time Parent', es:'Padre/Madre a Tiempo Completo', pt:'Pai/Mãe em Tempo Integral' },
+    // ── TDEE WIDGET LABELS ────────────────────────────────────────────
+    'tdee-cal-lbl':  { en:'Calories / Day', es:'Calorías / Día', pt:'Calorias / Dia' },
+    'mac-protein':   { en:'Protein', es:'Proteína', pt:'Proteína' },
+    'mac-carbs':     { en:'Carbs', es:'Carbos', pt:'Carbos' },
+    'mac-fats':      { en:'Fats', es:'Grasas', pt:'Gorduras' },
+    // ── MODAL LABELS ──────────────────────────────────────────────────
+    'modal-cal-lbl': { en:'Daily Calorie Target', es:'Objetivo Calórico Diario', pt:'Meta Calórica Diária' },
+    'modal-protein': { en:'Protein (g)', es:'Proteína (g)', pt:'Proteína (g)' },
+    'modal-carbs':   { en:'Carbs (g)', es:'Carbos (g)', pt:'Carbos (g)' },
+    'modal-fats':    { en:'Fats (g)', es:'Grasas (g)', pt:'Gorduras (g)' },
+    'modal-close':   { en:'Close &mdash; I\'ll check my email', es:'Cerrar &mdash; Revisaré mi correo', pt:'Fechar &mdash; Verei meu e-mail' },
+
+    // ── SELECT OPTIONS ────────────────────────────────────────────────
+    'opt-male':             { en:'Male', es:'Masculino', pt:'Masculino' },
+    'opt-female':           { en:'Female', es:'Femenino', pt:'Feminino' },
+    'opt-sedentary':        { en:'Sedentary', es:'Sedentario', pt:'Sedentário' },
+    'opt-lightly':          { en:'Lightly Active (1-3x/week)', es:'Poco Activo (1-3x/semana)', pt:'Levemente Ativo (1-3x/semana)' },
+    'opt-moderate':         { en:'Moderately Active (3-5x/week)', es:'Moderadamente Activo (3-5x/semana)', pt:'Moderadamente Ativo (3-5x/semana)' },
+    'opt-veryactive':       { en:'Very Active (6-7x/week)', es:'Muy Activo (6-7x/semana)', pt:'Muito Ativo (6-7x/semana)' },
+    'opt-extreme':          { en:'Extremely Active / Physical Job', es:'Extremadamente Activo / Trabajo Físico', pt:'Extremamente Ativo / Trabalho Físico' },
+    'opt-prog-foundation':  { en:'Foundation &mdash; Getting Started', es:'Fundamento &mdash; Empezando', pt:'Fundação &mdash; Começando' },
+    'opt-prog-elite':       { en:'Elite Transformation &mdash; Full Commitment', es:'Transformación Élite &mdash; Compromiso Total', pt:'Transformação Elite &mdash; Compromisso Total' },
+    'opt-prog-remote':      { en:'Remote Coaching &mdash; Anywhere', es:'Coaching Remoto &mdash; En Cualquier Lugar', pt:'Coaching Remoto &mdash; Em Qualquer Lugar' },
+    'opt-ref-select':       { en:'Select...', es:'Seleccionar...', pt:'Selecionar...' },
+    'opt-ref-instagram':    { en:'Instagram', es:'Instagram', pt:'Instagram' },
+    'opt-ref-friend':       { en:'Referral from a friend', es:'Referido por un amigo', pt:'Indicação de um amigo' },
+    'opt-ref-qr':           { en:'QR Code / Business Card', es:'Código QR / Tarjeta de Presentación', pt:'QR Code / Cartão de Visita' },
+    'opt-ref-google':       { en:'Google Search', es:'Búsqueda en Google', pt:'Busca no Google' },
+    'opt-ref-tiktok':       { en:'TikTok', es:'TikTok', pt:'TikTok' },
+    'opt-ref-other':        { en:'Other', es:'Otro', pt:'Outro' }
   };
 
   // ── Apply Translations ────────────────────────────────────────────
@@ -198,9 +249,16 @@
         el.innerHTML = T[key][lang];
       }
     });
-    // Update globe button label
-    var globe = document.getElementById('lang-current');
-    if (globe) globe.textContent = lang.toUpperCase();
+    // Update active toggle buttons
+    ['en','es','pt'].forEach(function(l) {
+      var b1 = document.getElementById('lt-'+l);
+      if (b1) b1.className = (l===lang) ? 'lang-on' : '';
+      var b2 = document.getElementById('mob-lt-'+l);
+      if (b2) {
+        b2.style.background = (l===lang) ? 'rgba(245,200,0,.3)' : 'transparent';
+        b2.style.color = (l===lang) ? '#f5c800' : 'rgba(255,255,255,.45)';
+      }
+    });
     document.documentElement.lang = (lang==='pt') ? 'pt-BR' : lang;
   }
 
@@ -229,54 +287,3 @@
     init();
   }
 })();
-
-    // ── PATHFINDER CHIPS ──────────────────────────────────────────────
-    ,'chip-fatloss':      { en:'&#x1F525; Fat Loss', es:'&#x1F525; Pérdida de Grasa', pt:'&#x1F525; Perda de Gordura' }
-    ,'chip-muscle':       { en:'&#x1F4AA; Build Muscle', es:'&#x1F4AA; Ganar Músculo', pt:'&#x1F4AA; Ganho Muscular' }
-    ,'chip-recomp':       { en:'&#x2696; Body Recomp', es:'&#x2696; Recomposición Corporal', pt:'&#x2696; Recomposição Corporal' }
-    ,'chip-strength':     { en:'&#x1F3CB; Pure Strength', es:'&#x1F3CB; Fuerza Pura', pt:'&#x1F3CB; Força Pura' }
-    ,'chip-endurance':    { en:'&#x1F3C3; Endurance', es:'&#x1F3C3; Resistencia', pt:'&#x1F3C3; Resistência' }
-    ,'chip-beginner':     { en:'Beginner', es:'Principiante', pt:'Iniciante' }
-    ,'chip-intermediate': { en:'Intermediate', es:'Intermedio', pt:'Intermediário' }
-    ,'chip-advanced':     { en:'Advanced', es:'Avanzado', pt:'Avançado' }
-    ,'chip-returning':    { en:'Returning After Break', es:'Regresando Después de un Descanso', pt:'Voltando Após Pausa' }
-    ,'chip-postinjury':   { en:'Post-Injury / Rehab', es:'Post-Lesión / Rehabilitación', pt:'Pós-Lesão / Reabilitação' }
-    ,'chip-standard':     { en:'Standard Hours', es:'Horario Estándar', pt:'Horário Padrão' }
-    ,'chip-9to5':         { en:'9-to-5 / Everyday Athlete', es:'9 a 5 / Atleta Cotidiano', pt:'9 às 5 / Atleta do Dia a Dia' }
-    ,'chip-8hr':          { en:'8-Hour Shifts', es:'Turnos de 8 Horas', pt:'Turnos de 8 Horas' }
-    ,'chip-12hr':         { en:'12-Hour Shifts', es:'Turnos de 12 Horas', pt:'Turnos de 12 Horas' }
-    ,'chip-overnight':    { en:'Overnight / Rotating', es:'Nocturno / Rotativo', pt:'Noturno / Rotativo' }
-    ,'chip-executive':    { en:'Executive / Corporate', es:'Ejecutivo / Corporativo', pt:'Executivo / Corporativo' }
-    ,'chip-medical':      { en:'Medical / Healthcare', es:'Médico / Salud', pt:'Médico / Saúde' }
-    ,'chip-firstresponder':{ en:'First Responder', es:'Primer Respondedor', pt:'Primeiro Respondedor' }
-    ,'chip-parent':       { en:'Full-Time Parent', es:'Padre/Madre a Tiempo Completo', pt:'Pai/Mãe em Tempo Integral' }
-    // ── TDEE WIDGET LABELS ────────────────────────────────────────────
-    ,'tdee-cal-lbl':  { en:'Calories / Day', es:'Calorías / Día', pt:'Calorias / Dia' }
-    ,'mac-protein':   { en:'Protein', es:'Proteína', pt:'Proteína' }
-    ,'mac-carbs':     { en:'Carbs', es:'Carbos', pt:'Carbos' }
-    ,'mac-fats':      { en:'Fats', es:'Grasas', pt:'Gorduras' }
-    // ── MODAL LABELS ──────────────────────────────────────────────────
-    ,'modal-cal-lbl': { en:'Daily Calorie Target', es:'Objetivo Calórico Diario', pt:'Meta Calórica Diária' }
-    ,'modal-protein': { en:'Protein (g)', es:'Proteína (g)', pt:'Proteína (g)' }
-    ,'modal-carbs':   { en:'Carbs (g)', es:'Carbos (g)', pt:'Carbos (g)' }
-    ,'modal-fats':    { en:'Fats (g)', es:'Grasas (g)', pt:'Gorduras (g)' }
-    ,'modal-close':   { en:'Close &mdash; I\'ll check my email', es:'Cerrar &mdash; Revisaré mi correo', pt:'Fechar &mdash; Verei meu e-mail' }
-
-    // ── SELECT OPTIONS ────────────────────────────────────────────────
-    ,'opt-male':             { en:'Male', es:'Masculino', pt:'Masculino' }
-    ,'opt-female':           { en:'Female', es:'Femenino', pt:'Feminino' }
-    ,'opt-sedentary':        { en:'Sedentary', es:'Sedentario', pt:'Sedentário' }
-    ,'opt-lightly':          { en:'Lightly Active (1-3x/week)', es:'Poco Activo (1-3x/semana)', pt:'Levemente Ativo (1-3x/semana)' }
-    ,'opt-moderate':         { en:'Moderately Active (3-5x/week)', es:'Moderadamente Activo (3-5x/semana)', pt:'Moderadamente Ativo (3-5x/semana)' }
-    ,'opt-veryactive':       { en:'Very Active (6-7x/week)', es:'Muy Activo (6-7x/semana)', pt:'Muito Ativo (6-7x/semana)' }
-    ,'opt-extreme':          { en:'Extremely Active / Physical Job', es:'Extremadamente Activo / Trabajo Físico', pt:'Extremamente Ativo / Trabalho Físico' }
-    ,'opt-prog-foundation':  { en:'Foundation &mdash; Getting Started', es:'Fundamento &mdash; Empezando', pt:'Fundação &mdash; Começando' }
-    ,'opt-prog-elite':       { en:'Elite Transformation &mdash; Full Commitment', es:'Transformación Élite &mdash; Compromiso Total', pt:'Transformação Elite &mdash; Compromisso Total' }
-    ,'opt-prog-remote':      { en:'Remote Coaching &mdash; Anywhere', es:'Coaching Remoto &mdash; En Cualquier Lugar', pt:'Coaching Remoto &mdash; Em Qualquer Lugar' }
-    ,'opt-ref-select':       { en:'Select...', es:'Seleccionar...', pt:'Selecionar...' }
-    ,'opt-ref-instagram':    { en:'Instagram', es:'Instagram', pt:'Instagram' }
-    ,'opt-ref-friend':       { en:'Referral from a friend', es:'Referido por un amigo', pt:'Indicação de um amigo' }
-    ,'opt-ref-qr':           { en:'QR Code / Business Card', es:'Código QR / Tarjeta de Presentación', pt:'QR Code / Cartão de Visita' }
-    ,'opt-ref-google':       { en:'Google Search', es:'Búsqueda en Google', pt:'Busca no Google' }
-    ,'opt-ref-tiktok':       { en:'TikTok', es:'TikTok', pt:'TikTok' }
-    ,'opt-ref-other':        { en:'Other', es:'Otro', pt:'Outro' }
