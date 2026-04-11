@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="Build Believe Fit LLC — NASM-certified personal training for shift workers and industrial athletes. Elite transformation, custom meal plans, and online coaching."/>
+<meta name="theme-color" content="#6a0dad"/>
+<title>Build Believe Fit LLC — Elite Strength &amp; Movement</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pur:#6a0dad;--purl:#8b1abf;--purd:#4a0880;--purp:#1e0338;--purx:#0d0118;
+  --yel:#f5c800;--blk:#060606;--wht:#f9f5ff;
+  --gry:#0e0e0e;--gry2:#141414;--gry3:#1e1e1e;
+  --mut:#555;--mut2:#888;
+  --hb:'Bebas Neue',sans-serif;
+  --bd:'Barlow Condensed',Arial,sans-serif
+}
+html{scroll-behavior:smooth}
+body{background:var(--blk);color:var(--wht);font-family:var(--bd);font-weight:600;line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:var(--bd)}
+section{display:block;width:100%}
+
+/* SCROLL ANIMATIONS — content always visible, animation is progressive enhancement */
+.reveal{opacity:1;transform:none;transition:opacity .65s ease,transform .65s ease}
+.js-ready .reveal{opacity:0;transform:translateY(32px)}
+.js-ready .reveal.vis{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:.9rem 2rem;background:rgba(6,6,6,.88);border-bottom:1px solid rgba(106,13,173,.2);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .3s}
+#nav.scrolled{background:rgba(6,6,6,.98);border-color:rgba(106,13,173,.4)}
+.nb{font-family:var(--hb);font-size:1.4rem;letter-spacing:3px}.nb .y{color:var(--yel)}
+.nl{display:flex;gap:1.8rem;list-style:none}
+.nl a{font-size:.7rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mut2);transition:color .2s}
+.nl a:hover{color:var(--yel)}
+.nc{background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:.85rem;letter-spacing:2px;padding:.5rem 1.3rem;border-radius:6px;border:none;transition:box-shadow .2s}
+.nc:hover{box-shadow:0 4px 20px rgba(245,200,0,.4)}
+.hbg{display:none;flex-direction:column;gap:5px;background:none;border:none;padding:.3rem}
+
+/* ─── TRILINGUAL TOGGLE ──────────────────────────────── */
+#bbf-lang-placeholder{display:flex;align-items:center}
+#bbf-lang-toggle{display:flex;background:rgba(106,13,173,.2);border:1px solid rgba(106,13,173,.4);border-radius:8px;overflow:hidden;backdrop-filter:blur(8px)}
+#bbf-lang-toggle button{padding:.35rem .6rem;font-family:'Barlow Condensed',Arial,sans-serif;font-size:.72rem;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.45);background:transparent;border:none;cursor:pointer;transition:all .2s;border-right:1px solid rgba(106,13,173,.3)}
+#bbf-lang-toggle button:last-child{border-right:none}
+#bbf-lang-toggle button.lang-active{background:var(--pur);color:var(--yel)}
+#bbf-lang-toggle button:hover:not(.lang-active){background:rgba(106,13,173,.3);color:var(--wht)}
+
+/* ─── LANGUAGE TOGGLE — HARDCODED ─────────────── */
+.lang-toggle{display:flex;align-items:center;gap:0;background:rgba(0,0,0,.6);border:2px solid var(--yel);border-radius:8px;overflow:hidden;flex-shrink:0;box-shadow:0 0 12px rgba(245,200,0,.2)}
+.lang-toggle button{padding:.45rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;color:rgba(255,255,255,.6);background:transparent;border:none;cursor:pointer;transition:all .2s;border-right:1px solid rgba(245,200,0,.25)}
+.lang-toggle button:last-child{border-right:none}
+.lang-toggle button.lang-on{background:var(--yel);color:var(--blk);font-weight:900;text-shadow:none}
+.lang-toggle button:hover:not(.lang-on){background:rgba(245,200,0,.15);color:var(--wht)}
+.hbg span{display:block;width:24px;height:2px;background:var(--wht);border-radius:2px}
+.mnav{display:none;flex-direction:column;position:fixed;top:60px;left:0;right:0;background:rgba(6,6,6,.98);border-bottom:1px solid var(--gry3);padding:1.5rem 2rem;gap:1rem;z-index:99}
+.mnav.open{display:flex}
+.mnav a{font-size:.95rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);padding:.5rem 0;border-bottom:1px solid var(--gry3)}
+
+/* MARQUEE */
+.mq{overflow:hidden;background:var(--pur);padding:.65rem 0;border-top:2px solid rgba(245,200,0,.25);border-bottom:2px solid rgba(245,200,0,.25);margin-top:60px}
+.mq-t{display:flex;width:max-content;animation:mq 24s linear infinite}
+.mq-t:hover{animation-play-state:paused}
+.mq-i{font-family:var(--hb);font-size:.95rem;letter-spacing:4px;color:var(--yel);white-space:nowrap;padding:0 2rem}
+.mq-d{color:rgba(255,255,255,.35);padding:0 .4rem;line-height:1}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;background:radial-gradient(ellipse 80% 80% at 15% 50%,var(--purp) 0%,var(--purx) 60%,var(--blk) 100%);padding:5rem 2rem 4rem}
+.hero-bg{position:absolute;font-family:var(--hb);font-size:clamp(8rem,20vw,22rem);letter-spacing:.05em;color:rgba(106,13,173,.07);top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;animation:drift 20s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(-52%,-50%)}to{transform:translate(-48%,-50%)}}
+.hero-in{max-width:1100px;width:100%;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(106,13,173,.25);border:1px solid rgba(106,13,173,.5);border-radius:20px;padding:.3rem .9rem;font-size:.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--purl);margin-bottom:1.2rem}
+.hero-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--yel);animation:pulse 2s ease infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+h1{font-family:var(--hb);font-size:clamp(3rem,5.5vw,5.2rem);letter-spacing:3px;line-height:.95;margin-bottom:1.2rem}
+h1 .y{color:var(--yel)}
+h1 .ol{-webkit-text-stroke:2px var(--yel);color:transparent}
+.hero-sub{font-size:1rem;color:rgba(255,255,255,.5);line-height:1.75;max-width:460px;margin-bottom:2rem}
+.hero-sub strong{color:var(--wht)}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2.5rem}
+.btn-y{background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:1rem;letter-spacing:3px;padding:.85rem 2rem;border:none;border-radius:8px;display:inline-block;transition:box-shadow .2s,transform .15s;box-shadow:0 4px 24px rgba(245,200,0,.2)}
+.btn-y:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(245,200,0,.4)}
+.btn-o{background:transparent;color:var(--wht);font-family:var(--hb);font-size:1rem;letter-spacing:3px;padding:.85rem 2rem;border:1px solid rgba(255,255,255,.2);border-radius:8px;display:inline-block;transition:all .2s}
+.btn-o:hover{border-color:var(--yel);color:var(--yel)}
+.hero-stats{display:flex;gap:2.5rem}
+.hs-n{font-family:var(--hb);font-size:2rem;color:var(--yel);line-height:1}
+.hs-l{font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);margin-top:.15rem}
+.hero-img-wrap{position:relative}
+.hero-img{border-radius:18px;overflow:hidden;border:2px solid rgba(106,13,173,.4);box-shadow:0 0 50px rgba(106,13,173,.25);aspect-ratio:4/5;background:linear-gradient(135deg,var(--purp),var(--purd))}
+.hero-img img{width:100%;height:100%;object-fit:cover;object-position:top center}
+.hero-accent{position:absolute;bottom:-16px;right:-16px;width:130px;height:130px;background:var(--yel);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:var(--hb);font-size:.68rem;letter-spacing:2px;color:var(--blk);text-align:center;padding:.8rem;box-shadow:0 6px 28px rgba(245,200,0,.3)}
+
+/* LAYOUT */
+.wrap{max-width:1100px;margin:0 auto;padding:6rem 2rem}
+.sec-lbl{font-size:.65rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--purl);margin-bottom:.5rem}
+.sec-h{font-family:var(--hb);font-size:clamp(2.4rem,4.5vw,3.8rem);letter-spacing:3px;line-height:1;margin-bottom:1rem}
+.sec-h .y{color:var(--yel)}
+.sec-s{font-size:.95rem;color:var(--mut2);max-width:540px;line-height:1.7}
+.divider{width:36px;height:3px;background:var(--yel);margin:1rem 0 2.5rem}
+
+/* SERVICES */
+#services{background:var(--blk)}
+.svc-g{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:3rem}
+.svc-c{background:var(--gry2);border:1px solid var(--gry3);border-radius:16px;padding:1.8rem;position:relative;overflow:hidden;transition:border-color .3s,transform .3s}
+.svc-c::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--pur),var(--purl))}
+.svc-c:hover{border-color:rgba(106,13,173,.5);transform:translateY(-4px)}
+.svc-icon{font-size:1.8rem;margin-bottom:1rem}
+.svc-n{font-family:var(--hb);font-size:1.3rem;letter-spacing:2px;margin-bottom:.6rem}
+.svc-d{font-size:.86rem;color:var(--mut2);line-height:1.7}
+
+/* FOUNDER */
+#founder{background:linear-gradient(135deg,var(--purx) 0%,var(--purp) 100%);padding:6rem 2rem;position:relative;overflow:hidden}
+#founder::before{content:"AKEEM";position:absolute;font-family:var(--hb);font-size:clamp(8rem,18vw,20rem);color:rgba(106,13,173,.07);top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none}
+.found-in{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1.4fr;gap:5rem;align-items:center;position:relative;z-index:2}
+.glass{background:rgba(106,13,173,.15);border:1px solid rgba(106,13,173,.3);border-radius:22px;padding:2.5rem;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.cred{display:flex;flex-direction:column;gap:.9rem}
+.cr{display:flex;align-items:center;gap:.8rem;background:rgba(0,0,0,.3);border-radius:10px;padding:.75rem 1rem;border:1px solid rgba(255,255,255,.05)}
+.cr-i{font-size:1.3rem;flex-shrink:0}
+.cr-t{font-size:.82rem;font-weight:700;color:var(--wht)}
+.cr-s{font-size:.68rem;font-weight:600;color:var(--mut2)}
+.qm{font-family:var(--hb);font-size:5rem;color:var(--yel);line-height:.8;margin-bottom:.7rem;opacity:.8}
+.story{font-size:1rem;color:rgba(255,255,255,.72);line-height:1.85;margin-bottom:1.3rem}
+.story strong{color:var(--yel)}
+.sig{font-family:var(--hb);font-size:1.7rem;letter-spacing:2px;border-top:1px solid rgba(106,13,173,.35);padding-top:1.2rem;margin-top:1.2rem}
+.sig span{color:var(--yel)}
+.sig small{display:block;font-family:var(--bd);font-size:.75rem;font-weight:600;letter-spacing:1px;color:var(--mut2);margin-top:.3rem}
+
+/* PROGRAMS */
+#programs{background:var(--gry)}
+.prog-g{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+.prog-c{background:var(--gry2);border:2px solid var(--gry3);border-radius:20px;padding:2rem;display:flex;flex-direction:column;position:relative;cursor:pointer;transition:all .3s}
+.prog-c:hover{border-color:rgba(106,13,173,.5);transform:translateY(-3px)}
+.prog-c.sel{border-color:var(--yel);box-shadow:0 0 40px rgba(245,200,0,.12);transform:translateY(-4px)}
+.prog-c.dim{opacity:.4;transform:scale(.98)}
+.prog-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:.72rem;letter-spacing:2px;padding:.25rem .9rem;border-radius:20px;white-space:nowrap}
+.prog-t{font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--purl);margin-bottom:.4rem}
+.prog-n{font-family:var(--hb);font-size:1.9rem;letter-spacing:2px;margin-bottom:.3rem}
+.prog-p{font-size:.85rem;font-weight:700;color:var(--yel);margin-bottom:1.2rem}
+.prog-f{list-style:none;flex:1;display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem}
+.prog-f li{display:flex;gap:.6rem;font-size:.85rem;font-weight:600;color:var(--mut2)}
+.prog-f li::before{content:"✓";color:var(--yel);font-weight:900;flex-shrink:0}
+.prog-f li.no{color:var(--gry3)}
+.prog-f li.no::before{content:"–";color:var(--gry3)}
+.prog-cta{display:block;text-align:center;background:transparent;border:1px solid var(--gry3);color:var(--mut2);font-family:var(--hb);font-size:.92rem;letter-spacing:2px;padding:.8rem;border-radius:10px;transition:all .2s}
+.prog-c.sel .prog-cta,.prog-cta:hover{background:var(--yel);color:var(--blk);border-color:var(--yel)}
+
+/* NUTRITION */
+#nutrition{background:var(--blk);padding:6rem 2rem;position:relative;overflow:hidden}
+#nutrition::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 30% 50%,rgba(106,13,173,.09) 0%,transparent 70%);pointer-events:none}
+.nutr-in{max-width:1100px;margin:0 auto;position:relative;z-index:2}
+.nutr-g{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+.nutr-c{border-radius:18px;padding:2rem;display:flex;flex-direction:column}
+.nutr-c.lite{background:var(--gry2);border:1px solid var(--gry3);border-top:4px solid var(--mut)}
+.nutr-c.ess{background:linear-gradient(160deg,var(--purp),rgba(13,1,26,.95));border:1px solid rgba(106,13,173,.4);border-top:4px solid var(--pur)}
+.nutr-c.plat{background:linear-gradient(160deg,rgba(10,8,0,.95),rgba(20,16,0,.95));border:1px solid rgba(245,200,0,.28);border-top:4px solid var(--yel);position:relative}
+.plat-badge{position:absolute;top:.9rem;right:.9rem;background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:.58rem;letter-spacing:2px;padding:.2rem .55rem;border-radius:20px}
+.nutr-t{font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mut2);margin-bottom:.4rem}
+.nutr-n{font-family:var(--hb);font-size:1.8rem;letter-spacing:2px;margin-bottom:.4rem}
+.nutr-c.plat .nutr-n{color:var(--yel)}
+.nutr-d{font-size:.83rem;color:var(--mut2);line-height:1.6;margin-bottom:1.2rem;flex:1}
+.nutr-l{list-style:none;display:flex;flex-direction:column;gap:.45rem;margin-bottom:1.5rem}
+.nutr-l li{display:flex;gap:.55rem;font-size:.82rem;font-weight:600;color:#aaa}
+.nutr-c.lite .nutr-l li::before{content:"✓";color:var(--mut);font-weight:900;flex-shrink:0}
+.nutr-c.ess .nutr-l li::before{content:"✓";color:var(--purl);font-weight:900;flex-shrink:0}
+.nutr-c.plat .nutr-l li::before{content:"✓";color:var(--yel);font-weight:900;flex-shrink:0}
+.nutr-btn{display:block;text-align:center;padding:.82rem;border-radius:10px;font-family:var(--hb);font-size:.9rem;letter-spacing:2px;border:none;transition:all .2s}
+.nb-lite{border:1px solid var(--gry3);color:var(--mut2);background:transparent}
+.nb-lite:hover{border-color:var(--mut2);color:var(--wht)}
+.nb-ess{background:var(--purd);color:var(--wht)}
+.nb-ess:hover{background:var(--pur)}
+.nb-plat{background:var(--yel);color:var(--blk)}
+.nb-plat:hover{background:#ffe033}
+
+/* TDEE WIDGET */
+.tdee-w{background:var(--gry2);border:1px solid var(--gry3);border-radius:20px;padding:2rem;max-width:680px;margin:3rem auto 0}
+.tdee-hd{text-align:center;margin-bottom:1.5rem}
+.tdee-lbl{font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--yel)}
+.tdee-hd h3{font-family:var(--hb);font-size:1.6rem;letter-spacing:2px;margin-top:.3rem}
+.tdee-g{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem}
+.tf label{font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);display:block;margin-bottom:.35rem}
+.tf input,.tf select{width:100%;background:var(--gry);border:1px solid var(--gry3);color:var(--wht);padding:.8rem 1rem;font-family:var(--bd);font-size:.95rem;font-weight:600;border-radius:8px;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .2s}
+.tf input:focus,.tf select:focus{border-color:var(--pur)}
+.goal-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.goal-b{padding:.45rem .85rem;border-radius:20px;border:1px solid var(--gry3);background:transparent;color:var(--mut2);font-family:var(--bd);font-size:.78rem;font-weight:700;letter-spacing:1px;transition:all .2s}
+.goal-b.on{border-color:var(--yel);background:rgba(245,200,0,.08);color:var(--wht)}
+.calc-btn{width:100%;padding:1rem;background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:1.1rem;letter-spacing:3px;border:none;border-radius:10px;transition:box-shadow .2s,transform .15s}
+.calc-btn:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(245,200,0,.35)}
+.tdee-res{display:none;margin-top:1.2rem;background:var(--blk);border:1px solid var(--gry3);border-radius:12px;padding:1.5rem;text-align:center}
+.tdee-big{font-family:var(--hb);font-size:3.5rem;letter-spacing:2px;color:var(--yel);line-height:1}
+.tdee-sub{font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2)}
+.mac-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin:.9rem 0}
+.mac-c{background:var(--gry2);border-radius:8px;padding:.7rem}
+.mac-v{font-family:var(--hb);font-size:1.4rem;line-height:1}
+.mac-l{font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mut2);margin-top:.1rem}
+.tdee-note{font-size:.76rem;font-weight:600;color:var(--mut2);line-height:1.6;margin:.8rem 0}
+.tdee-cta{display:inline-block;background:var(--purd);color:var(--wht);font-family:var(--hb);font-size:.88rem;letter-spacing:2px;padding:.7rem 1.6rem;border-radius:8px;border:none;transition:background .2s}
+.tdee-cta:hover{background:var(--pur)}
+
+/* TESTIMONIALS */
+#testimonials{background:var(--gry);padding:6rem 2rem}
+.testi-in{max-width:1100px;margin:0 auto}
+.testi-g{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem}
+.tc{background:var(--gry2);border:1px solid var(--gry3);border-top:3px solid var(--pur);border-radius:14px;padding:2rem;position:relative;overflow:hidden}
+.tc::before{content:'"';position:absolute;top:-1.5rem;right:1.2rem;font-family:var(--hb);font-size:10rem;color:rgba(106,13,173,.07);line-height:1;pointer-events:none}
+.t-stars{color:var(--yel);font-size:.85rem;margin-bottom:1rem;letter-spacing:3px}
+.t-q{font-size:.9rem;color:#bbb;line-height:1.75;font-style:italic;margin-bottom:1.3rem}
+.t-a{display:flex;align-items:center;gap:.75rem}
+.t-av{width:40px;height:40px;border-radius:50%;background:var(--purd);border:2px solid var(--yel);display:flex;align-items:center;justify-content:center;font-family:var(--hb);font-size:.9rem;color:var(--yel);flex-shrink:0}
+.t-n{font-family:var(--bd);font-weight:700;font-size:.85rem;letter-spacing:1px;text-transform:uppercase}
+.t-m{font-size:.72rem;color:var(--mut2)}
+
+/* PATHFINDER */
+#pathfinder{background:var(--blk);padding:6rem 2rem;position:relative;overflow:hidden}
+#pathfinder::before{content:"BBF";position:absolute;font-family:var(--hb);font-size:clamp(10rem,24vw,22rem);color:rgba(106,13,173,.045);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.path-in{max-width:780px;margin:0 auto;position:relative;z-index:2}
+.path-card{background:rgba(14,14,14,.85);border:1px solid rgba(106,13,173,.22);border-radius:22px;padding:2.5rem;backdrop-filter:blur(8px)}
+.steps-ind{display:flex;gap:.5rem;justify-content:center;margin-bottom:2rem}
+.si{width:8px;height:8px;border-radius:50%;background:var(--gry3);transition:all .3s}
+.si.act{background:var(--yel);width:24px;border-radius:4px}
+.si.don{background:var(--pur)}
+.fs{display:none}.fs.on{display:block}
+.sh-n{font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--purl);margin-bottom:.3rem}
+.sh-t{font-family:var(--hb);font-size:1.7rem;letter-spacing:2px;margin-bottom:.25rem}
+.sh-s{font-size:.87rem;font-weight:600;color:var(--mut2);margin-bottom:1.4rem}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem}
+.ff{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.8rem}
+.ff label{font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2)}
+.ff input,.ff select,.ff textarea{background:var(--gry);border:1px solid var(--gry3);color:var(--wht);padding:.82rem 1rem;font-family:var(--bd);font-size:.95rem;font-weight:600;border-radius:10px;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .2s;resize:vertical}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:var(--pur)}
+.ff textarea{min-height:90px}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{padding:.42rem .85rem;border-radius:20px;border:1px solid var(--gry3);background:transparent;color:var(--mut2);font-family:var(--bd);font-size:.78rem;font-weight:700;letter-spacing:1px;transition:all .2s}
+.chip.on{border-color:var(--yel);background:rgba(245,200,0,.08);color:var(--wht)}
+.fnav{display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;gap:.8rem}
+.btn-back{background:transparent;border:1px solid var(--gry3);color:var(--mut2);font-family:var(--hb);font-size:.88rem;letter-spacing:2px;padding:.8rem 1.8rem;border-radius:8px;transition:all .2s}
+.btn-back:hover{border-color:var(--mut2);color:var(--wht)}
+.btn-next,.btn-sub{background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:.95rem;letter-spacing:3px;padding:.82rem 2rem;border:none;border-radius:8px;transition:box-shadow .2s,transform .15s}
+.btn-next:hover,.btn-sub:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(245,200,0,.35)}
+.btn-sub{width:100%}
+.fmsg{margin-top:.8rem;font-size:.8rem;font-weight:700;text-align:center;min-height:1.1rem;color:var(--purl)}
+.fmsg.err{color:#ef4444}.fmsg.ok{color:#22c55e}
+
+/* APP DOWNLOAD */
+#app-download{background:linear-gradient(135deg,var(--purp),var(--purx));padding:6rem 2rem;text-align:center;position:relative;overflow:hidden}
+.app-in{max-width:680px;margin:0 auto;position:relative;z-index:2}
+.app-url{background:rgba(0,0,0,.4);border:1px solid rgba(106,13,173,.4);border-radius:10px;padding:.9rem 1.5rem;font-family:var(--hb);font-size:1.2rem;letter-spacing:2px;color:var(--yel);display:inline-block;margin:1.5rem 0;word-break:break-all}
+.inst-s{display:flex;justify-content:center;gap:3rem;margin-top:2.5rem;flex-wrap:wrap}
+.ist{text-align:center;max-width:140px}
+.ist-n{font-family:var(--hb);font-size:2rem;color:var(--yel);line-height:1;margin-bottom:.3rem}
+.ist-t{font-size:.76rem;font-weight:600;color:rgba(255,255,255,.45);line-height:1.5}
+
+/* CONTACT */
+#contact{background:var(--pur);padding:6rem 2rem;text-align:center;position:relative;overflow:hidden}
+#contact::before{content:"BBF";position:absolute;font-family:var(--hb);font-size:22rem;letter-spacing:15px;color:rgba(0,0,0,.14);top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none}
+.con-in{max-width:680px;margin:0 auto;position:relative;z-index:2}
+.con-links{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:2rem}
+.con-l{display:flex;align-items:center;gap:.6rem;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:.75rem 1.3rem;font-family:var(--bd);font-size:.88rem;font-weight:700;letter-spacing:1px;transition:all .2s}
+.con-l:hover{background:rgba(0,0,0,.5);border-color:var(--yel);color:var(--yel)}
+
+/* FOOTER */
+footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
+.ft-in{max-width:1100px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:3rem;flex-wrap:wrap}
+.ft-b{font-family:var(--hb);font-size:1.5rem;letter-spacing:3px;margin-bottom:.5rem}.ft-b .y{color:var(--yel)}
+.ft-tag{font-size:.76rem;font-weight:600;color:var(--mut2);max-width:230px;line-height:1.6}
+.ft-links{display:flex;flex-direction:column;gap:.45rem}
+.ft-links a{font-size:.8rem;font-weight:700;letter-spacing:1px;color:var(--mut2);transition:color .2s}
+.ft-links a:hover{color:var(--yel)}
+.ft-copy{font-size:.7rem;color:var(--mut);margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--gry3);text-align:center;width:100%}
+
+/* SUCCESS MODAL */
+#smodal{display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;padding:1.5rem;background:rgba(0,0,0,.92);backdrop-filter:blur(8px)}
+#smodal.on{display:flex}
+.sm-box{background:linear-gradient(160deg,var(--purp),var(--purx));border:1px solid rgba(106,13,173,.5);border-radius:24px;padding:2.5rem;max-width:510px;width:100%;position:relative;box-shadow:0 0 70px rgba(106,13,173,.28);animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.sm-x{position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.08);border:none;color:var(--wht);width:30px;height:30px;border-radius:50%;font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.sm-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(245,200,0,.1);border:1px solid rgba(245,200,0,.28);border-radius:20px;padding:.28rem .8rem;font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-bottom:.9rem}
+.sm-title{font-family:var(--hb);font-size:2rem;letter-spacing:2px;margin-bottom:.25rem}
+.sm-name{color:var(--yel)}
+.sm-sub{font-size:.85rem;color:rgba(255,255,255,.45);margin-bottom:1.4rem}
+.sm-cal{text-align:center;background:rgba(0,0,0,.4);border-radius:14px;padding:1.2rem;margin-bottom:1.1rem;border:1px solid rgba(245,200,0,.14)}
+.sm-cal-n{font-family:var(--hb);font-size:3.8rem;letter-spacing:2px;color:var(--yel);line-height:1}
+.sm-cal-l{font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:.15rem}
+.sm-mac{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:1.1rem}
+.sm-m{background:rgba(0,0,0,.35);border-radius:10px;padding:.75rem;text-align:center;border:1px solid rgba(255,255,255,.05)}
+.sm-m-v{font-family:var(--hb);font-size:1.5rem;line-height:1}
+.sm-m.p .sm-m-v{color:#ef4444}.sm-m.c .sm-m-v{color:#3b82f6}.sm-m.f .sm-m-v{color:#f59e0b}
+.sm-m-l{font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:.15rem}
+.sm-note{font-size:.78rem;font-weight:600;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:1.4rem}
+.sm-app{display:block;text-align:center;background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:.95rem;letter-spacing:3px;padding:.85rem;border-radius:10px;border:none;margin-bottom:.6rem;transition:transform .15s}
+.sm-app:hover{transform:translateY(-1px)}
+
+.next-steps-lbl{font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:.7rem}
+.next-step-item{display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.55rem}
+.ns-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;margin-top:.05rem}
+.ns-icon.done{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4);color:#22c55e}
+.ns-icon.next{background:rgba(245,200,0,.15);border:1px solid rgba(245,200,0,.3);color:#f5c800}
+.ns-icon.soon{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3)}
+.ns-text{font-size:.8rem;font-weight:600;line-height:1.5}
+.ns-text.done{color:rgba(255,255,255,.7)}
+.ns-text.next{color:var(--wht);font-weight:700}
+.ns-text.soon{color:rgba(255,255,255,.35)}
+.sm-cls{display:block;text-align:center;background:transparent;color:rgba(255,255,255,.35);font-family:var(--bd);font-size:.8rem;font-weight:700;padding:.6rem;border-radius:10px;border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;width:100%}
+.sm-cls:hover{color:var(--wht);border-color:rgba(255,255,255,.2)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .hero-in{grid-template-columns:1fr;gap:2.5rem}
+  .hero-img-wrap{max-width:380px;margin:0 auto}
+  .svc-g,.prog-g,.testi-g,.nutr-g{grid-template-columns:1fr}
+  .found-in{grid-template-columns:1fr;gap:2.5rem}
+  .fr{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  #nav .nl,#nav .nc{display:none}
+  .hbg{display:flex}
+  h1{font-size:3rem}
+  .hero-stats{gap:1.5rem}
+  .con-links{flex-direction:column;align-items:center}
+  .sm-box{padding:1.7rem}
+  .tdee-g{grid-template-columns:1fr}
+}
+@media(max-width:420px){
+  #nav{padding:.8rem 1.2rem}
+  .wrap{padding:4rem 1.2rem}
+  .hero-btns{flex-direction:column}
+  .btn-y,.btn-o{text-align:center}
+  .path-card{padding:1.5rem}
+}
+</style>
+<script src="bbf-lang.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="nb" href="#">Build<span class="y">Believe</span>Fit</a>
+  <ul class="nl">
+    <li><a href="#services" id="nav-services">Services</a></li>
+    <li><a href="#programs" id="nav-programs">Programs</a></li>
+    <li><a href="#nutrition" id="nav-nutrition">Nutrition</a></li>
+    <li><a href="#testimonials" id="nav-results">Results</a></li>
+    <li><a href="#transformation" id="nav-mystory">My Story</a></li>
+    <li><a href="#founder" id="nav-about">About</a></li>
+    <li><a href="#pathfinder" id="nav-start">Start</a></li>
+  </ul>
+  <a href="bbf-app.html" class="nc">&#x1F4F2; Get the App</a>
+  <div class="lang-toggle" id="lang-toggle">
+    <button onclick="BBF_LANG.set('en')" id="lt-en" class="lang-on">EN</button>
+    <button onclick="BBF_LANG.set('es')" id="lt-es">ES</button>
+    <button onclick="BBF_LANG.set('pt')" id="lt-pt">PT</button>
+  </div>
+  <button class="hbg" id="hbg" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mnav" id="mnav">
+  <a href="#services" data-lang-key="nav-services">Services</a>
+  <a href="#programs" data-lang-key="nav-programs">Programs</a>
+  <a href="#nutrition" data-lang-key="nav-nutrition">Nutrition</a>
+  <a href="#testimonials" data-lang-key="nav-results">Results</a>
+  <a href="#founder" data-lang-key="nav-about">About</a>
+  <a href="#pathfinder" data-lang-key="nav-start">Start My Journey</a>
+  <a href="bbf-app.html">&#x1F4F2; Client App</a>
+  <div style="display:flex;gap:0;margin-top:.5rem">
+    <button onclick="BBF_LANG.set('en')" style="flex:1;padding:.6rem;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;background:rgba(245,200,0,.15);border:1px solid rgba(245,200,0,.3);color:var(--wht);cursor:pointer" id="mob-lt-en">EN</button>
+    <button onclick="BBF_LANG.set('es')" style="flex:1;padding:.6rem;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;background:transparent;border:1px solid rgba(245,200,0,.3);color:var(--mut2);cursor:pointer" id="mob-lt-es">ES</button>
+    <button onclick="BBF_LANG.set('pt')" style="flex:1;padding:.6rem;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;background:transparent;border:1px solid rgba(245,200,0,.3);color:var(--mut2);cursor:pointer" id="mob-lt-pt">PT</button>
+  </div>
+</div>
+
+<!-- MARQUEE -->
+<div class="mq">
+  <div class="mq-t">
+    <span class="mq-i">BUILT FOR HIGH-DEMAND LIVES</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">BUILD BELIEVE FIT</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">ELITE TRANSFORMATION</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">LINEMAN STRENGTH PROTOCOL</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">NASM CERTIFIED</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">INDUSTRIAL ATHLETE</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">12-HOUR SHIFT SPECIALISTS</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">BUILD BELIEVE FIT</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">ELITE TRANSFORMATION</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">LINEMAN STRENGTH PROTOCOL</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">NASM CERTIFIED</span><span class="mq-d">&bull;</span>
+    <span class="mq-i">INDUSTRIAL ATHLETE</span><span class="mq-d">&bull;</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg">BBF</div>
+  <div class="hero-in">
+    <div>
+      <div class="hero-badge">&#x26A1; NASM-Certified &bull; Industrial Athlete Specialist</div>
+      <h1>Build<br><span class="y">Believe</span><br><span class="ol">Fit</span></h1>
+      <p class="hero-sub" id="hero-sub" data-lang-key="hero-sub">Elite performance for the <strong>high-demand life.</strong> Whether you're on the factory floor, in the boardroom, or on the front lines &mdash; <strong>your body deserves a system built for how you actually live.</strong></p>
+      <div class="hero-btns">
+        <a href="#pathfinder" class="btn-y">Start My Path &#x2192;</a>
+        <a href="bbf-app.html" class="btn-o">&#x1F4F2; Client Portal</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hs-n">5+</div><div class="hs-l">Active Clients</div></div>
+        <div><div class="hs-n">NASM</div><div class="hs-l">Certified CPT</div></div>
+        <div><div class="hs-n">100%</div><div class="hs-l">Custom Plans</div></div>
+      </div>
+    </div>
+    <div class="hero-img-wrap">
+      <div class="hero-img">
+        <img src="bbf-photo.jpg" alt="Akeem Brown — Build Believe Fit" loading="eager"/>
+      </div>
+      <div class="hero-accent">&#x1F4AA;<br>ELITE<br>STRENGTH &amp;<br>MOVEMENT</div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-lbl" id="svc-lbl" data-lang-key="svc-lbl">What We Offer</div>
+      <h2 class="sec-h" id="svc-h" data-lang-key="svc-h">How We Get<br>You <span class="y">There</span></h2>
+      <div class="divider"></div>
+    </div>
+    <div class="svc-g">
+      <div class="svc-c reveal d1">
+        <div class="svc-icon">&#x1F3CB;</div>
+        <div class="svc-n" id="svc-n1" data-lang-key="svc-n1">Strength Coaching</div>
+        <div class="svc-d" id="svc-d1" data-lang-key="svc-d1">Progressive overload programming built around your schedule, recovery capacity, and goals. Not a template &mdash; a system designed for you.</div>
+      </div>
+      <div class="svc-c reveal d2">
+        <div class="svc-icon">&#x1F957;</div>
+        <div class="svc-n" id="svc-n2" data-lang-key="svc-n2">Nutrition Coaching</div>
+        <div class="svc-d" id="svc-d2" data-lang-key="svc-d2">Custom meal plans calibrated to your TDEE, your training intensity, and your real life &mdash; not a generic macro split from the internet.</div>
+      </div>
+      <div class="svc-c reveal d3">
+        <div class="svc-icon">&#x1F4CB;</div>
+        <div class="svc-n" id="svc-n3" data-lang-key="svc-n3">Program Design</div>
+        <div class="svc-d" id="svc-d3" data-lang-key="svc-d3">Day-by-day periodized programs designed for real people with real jobs. Recovery built in. Progress guaranteed when you follow the plan.</div>
+      </div>
+      <div class="svc-c reveal d1">
+        <div class="svc-icon">&#x1F31F;</div>
+        <div class="svc-n" id="svc-n4" data-lang-key="svc-n4">Elite Transformation</div>
+        <div class="svc-d" id="svc-d4" data-lang-key="svc-d4">Full 90-day overhaul &mdash; body composition, movement quality, and habit architecture. The complete package for serious, lasting results.</div>
+      </div>
+      <div class="svc-c reveal d2">
+        <div class="svc-icon">&#x1F4F1;</div>
+        <div class="svc-n" id="svc-n5" data-lang-key="svc-n5">Remote Coaching</div>
+        <div class="svc-d" id="svc-d5" data-lang-key="svc-d5">Full access to your custom app portal, weekly check-ins, meal plan updates, and direct coach access &mdash; wherever you train.</div>
+      </div>
+      <div class="svc-c reveal d3">
+        <div class="svc-icon">&#x23F0;</div>
+        <div class="svc-n" id="svc-n6" data-lang-key="svc-n6">High-Demand Life Protocol</div>
+        <div class="svc-d" id="svc-d6" data-lang-key="svc-d6">Programming built around YOUR reality — rotating shifts, executive travel, hospital floors, emergency calls, or raising kids full-time. Train smarter, not just harder.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOUNDER -->
+<section id="founder">
+  <div class="found-in">
+    <div class="reveal">
+      <div class="glass">
+        <div class="cred">
+          <div class="cr"><div class="cr-i">&#x1F4AA;</div><div><div class="cr-t">NASM Certified Personal Trainer</div><div class="cr-s">National Academy of Sports Medicine — Exercise Science</div></div></div>
+          <div class="cr"><div class="cr-i">&#x1F3ED;</div><div><div class="cr-t">12-Hour Manufacturing Shifts</div><div class="cr-s">Industrial athlete &amp; high-demand life specialist</div></div></div>
+          <div class="cr"><div class="cr-i">&#x1F3C6;</div><div><div class="cr-t">Competitive Bodybuilder</div><div class="cr-s">Active physique athlete &amp; coach</div></div></div>
+          <div class="cr"><div class="cr-i">&#x1F393;</div><div><div class="cr-t">Business &amp; Marketing Student</div><div class="cr-s">Chandler-Gilbert Community College</div></div></div>
+          <div class="cr"><div class="cr-i">&#x1F46A;</div><div><div class="cr-t">Father of 4</div><div class="cr-s">Coaches his son who plays football</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal d2">
+      <div class="sec-lbl">The Founder</div>
+      <h2 class="sec-h" id="founder-h" data-lang-key="founder-h">The Story<br>Behind <span class="y">BBF</span></h2>
+      <div class="divider"></div>
+      <div class="qm">&ldquo;</div>
+      <p class="story" id="founder-p1" data-lang-key="founder-p1">I run <strong>12-hour shifts on the manufacturing floor.</strong> I come home tired, feet sore, body taxed. And then I train. Not because I have to &mdash; because I <strong>choose to.</strong> Because I refuse to let the grind define my ceiling.</p>
+      <p class="story" id="founder-p2" data-lang-key="founder-p2">Build Believe Fit wasn't born in a fancy gym with unlimited time and energy. It was built between shifts, in parking lots, in the 45 minutes I carved out when everyone else was resting. I'm a <strong>NASM-certified trainer, a competitive bodybuilder, a father of 4</strong>, and an industrial athlete who understands what it actually costs to change your body when life doesn't pause.</p>
+      <p class="story" id="founder-p3" data-lang-key="founder-p3">My clients aren't influencers. They're <strong>workers. Grinders. People who show up.</strong> I build systems that work for real lives &mdash; because mine is one of them.</p>
+      <div style="background:rgba(245,200,0,.06);border-left:3px solid var(--yel);border-radius:0 8px 8px 0;padding:.8rem 1rem;margin-bottom:1.2rem;font-size:.82rem;font-weight:600;color:rgba(255,255,255,.65);line-height:1.7">
+        <strong style="color:var(--yel)">The OT Advantage:</strong> My occupational therapy education means every program I build accounts for joint mechanics, movement longevity, and the physical demands of your specific occupation — not just aesthetics. This is clinical-level precision that most personal trainers simply cannot offer.
+      </div>
+      <div class="sig">&mdash; <span>Akeem Brown</span><small>Owner, BBF LLC &bull; NASM-CPT &bull; Exercise Science &bull; Future OT</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRAMS -->
+<section id="programs">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center">
+      <div class="sec-lbl" data-bbf-key="sec.prog.lbl">Choose Your Path</div>
+      <h2 class="sec-h" data-bbf-key="sec.prog.h"><span id="prog-section-h">Spectrum of <span class="y">Success</span></span></h2>
+      <p class="sec-s" style="margin:0 auto" id="prog-section-sub" data-lang-key="prog-section-sub">We respect every dollar you invest. Whether it&rsquo;s $67 or $2,500, you receive a clinical, OT-informed return on that investment.</p>
+    </div>
+    <div class="prog-g" id="prog-g" style="margin-top:3rem">
+
+      <!-- TIER 1 — Community Blueprint $67 -->
+      <div class="prog-c reveal d1" onclick="selProg(this,'community')">
+        <div class="prog-t" data-bbf-key="prog.t1.tier">Community Tier</div>
+        <div class="prog-n" id="prog-n1" data-lang-key="prog-n1">Community<br>Blueprint</div>
+        <div class="prog-p" data-bbf-key="prog.t1.price">$67 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">one-time</span></div>
+        <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:.6rem .8rem;margin-bottom:1rem;font-size:.78rem;font-weight:700;color:#22c55e">🌱 Self-Guided Roadmap — High Value, Zero Fluff</div>
+        <ul class="prog-f">
+          <li>Full self-guided 8-week training plan</li>
+          <li>TDEE calculator + macro blueprint</li>
+          <li>BBF App access (workout tracking)</li>
+          <li>Community Resource video modules</li>
+          <li>OT-informed joint health guide (PDF)</li>
+          <li class="no">Live coaching sessions</li>
+          <li class="no">Custom meal plan</li>
+        </ul>
+        <a href="#pathfinder" class="prog-cta">Start for $67 →</a>
+      </div>
+
+      <!-- TIER 2 — Elite 8-Week Challenge $497 -->
+      <div class="prog-c reveal d2" onclick="selProg(this,'elite')">
+        <div class="prog-badge">Most Popular</div>
+        <div class="prog-t" data-bbf-key="prog.t2.tier">Flagship Program</div>
+        <div class="prog-n" id="prog-n2" data-lang-key="prog-n2">Elite 8-Week<br>Challenge</div>
+        <div class="prog-p" data-bbf-key="prog.t2.price">$497</div>
+        <div style="background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.2);border-radius:8px;padding:.6rem .8rem;margin-bottom:1rem;font-size:.78rem;font-weight:700;color:var(--yel)">⚡ Group + Hybrid — The Flagship Transformation</div>
+        <ul class="prog-f">
+          <li>Everything in Community Blueprint</li>
+          <li>Custom 7-day meal plan (yours specifically)</li>
+          <li>Full BBF App — all features unlocked</li>
+          <li>Bi-weekly group coaching sessions</li>
+          <li>Progressive overload tracking built in</li>
+          <li>Masterclass Vault — all 6 modules</li>
+          <li>Trilingual support (EN / ES / PT)</li>
+        </ul>
+        <a href="#pathfinder" class="prog-cta">Start Elite →</a>
+      </div>
+
+      <!-- TIER 3 — Legacy Performance Protocol $1,500-$2,500 -->
+      <div class="prog-c reveal d3" onclick="selProg(this,'legacy')">
+        <div class="prog-t" data-bbf-key="prog.t3.tier">Executive &amp; Clinical</div>
+        <div class="prog-n" id="prog-n3" data-lang-key="prog-n3">Legacy Performance<br>Protocol</div>
+        <div class="prog-p" data-bbf-key="prog.t3.price">$1,500 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">– $2,500</span></div>
+        <div style="background:rgba(106,13,173,.12);border:1px solid rgba(106,13,173,.3);border-radius:8px;padding:.6rem .8rem;margin-bottom:1rem;font-size:.78rem;font-weight:700;color:var(--purl)">🏛 1-on-1 Bespoke — Clinical OT-Informed Coaching</div>
+        <ul class="prog-f">
+          <li>Everything in Elite Challenge</li>
+          <li>Fully bespoke weekly program design</li>
+          <li>OT-clinical movement &amp; longevity assessment</li>
+          <li>Weekly 1-on-1 coaching sessions with Akeem</li>
+          <li>Executive travel &amp; schedule adaptation</li>
+          <li>Priority 24-hour direct access</li>
+          <li>Multi-language sessions available</li>
+        </ul>
+        <a href="#pathfinder" class="prog-cta">Apply for Legacy →</a>
+      </div>
+
+    </div>
+    <!-- Clinical Trust Line -->
+    <div style="text-align:center;margin-top:2rem;padding:1.2rem;background:rgba(106,13,173,.06);border:1px solid rgba(106,13,173,.15);border-radius:14px;max-width:700px;margin-left:auto;margin-right:auto">
+      <div id="fin-title" data-lang-key="fin-title" style="font-size:.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--purl);margin-bottom:.4rem">The BBF Financial Integrity Promise</div>
+      <div id="fin-quote" data-lang-key="fin-quote" style="font-size:.9rem;font-weight:600;color:rgba(255,255,255,.65);line-height:1.7">&ldquo;Whether you invest $67 or $2,500 — you receive the same clinical-level OT-informed attention to your joint safety, your recovery, and your long-term mobility. The price reflects access. The standard never changes.&rdquo;</div>
+      <div style="font-size:.75rem;font-weight:700;color:var(--yel);margin-top:.6rem">— Akeem Brown, NASM-CPT | Exercise Science Student | Future OT</div>
+    </div>
+  </div>
+</section>
+
+<!-- NUTRITION -->
+<section id="nutrition">
+  <div class="nutr-in">
+    <div class="reveal" style="text-align:center">
+      <div class="sec-lbl" id="nut-lbl" data-lang-key="nut-lbl">Nutrition Coaching</div>
+      <h2 class="sec-h" id="nut-h" data-lang-key="nut-h">Fuel The <span class="y">Right Way</span></h2>
+      <p class="sec-s" style="margin:0 auto" id="nut-sub">NASM-certified nutrition coaching. Personalized meal plans aligned with your training, lifestyle, and physique goals.</p>
+    </div>
+    <div class="nutr-g">
+      <div class="nutr-c lite reveal d1">
+        <div class="nutr-t">Tier 1</div>
+        <div class="nutr-n" id="nut-n1" data-lang-key="nut-n1">Lite</div>
+        <div class="nutr-d">Self-starters who need a solid baseline. Use our free TDEE calculator and get your macro targets instantly.</div>
+        <ul class="nutr-l">
+          <li>TDEE &amp; Calorie Target</li>
+          <li>Macro breakdown (P/C/F)</li>
+          <li>General food guidance</li>
+          <li>One-time setup consultation</li>
+        </ul>
+        <a href="#tdee-calc" class="nutr-btn nb-lite">Calculate Your TDEE &#x2192;</a>
+      </div>
+      <div class="nutr-c ess reveal d2">
+        <div class="nutr-t">Tier 2 &mdash; Most Popular</div>
+        <div class="nutr-n" id="nut-n2" data-lang-key="nut-n2">Essentials</div>
+        <div class="nutr-d">Full nutrition system built around your training. Tracked inside your personalized client portal.</div>
+        <ul class="nutr-l">
+          <li>Everything in Lite</li>
+          <li>Custom 7-day meal plan</li>
+          <li>Food swap guide by portion</li>
+          <li>Nutrition portal access</li>
+          <li>Bi-weekly plan updates</li>
+        </ul>
+        <a href="bbf-app.html" class="nutr-btn nb-ess">Access Client Portal &#x2192;</a>
+      </div>
+      <div class="nutr-c plat reveal d3">
+        <div class="plat-badge">Premium</div>
+        <div class="nutr-t">Tier 3</div>
+        <div class="nutr-n" id="nut-n3" data-lang-key="nut-n3">Platinum</div>
+        <div class="nutr-d">Full-service. Training and nutrition fully integrated. Akeem manages and adjusts everything.</div>
+        <ul class="nutr-l">
+          <li>Everything in Essentials</li>
+          <li>Weekly adaptive meal updates</li>
+          <li>Training + Nutrition synced</li>
+          <li>Priority daily messaging</li>
+          <li>Weekly progress reviews</li>
+        </ul>
+        <a href="#pathfinder" class="nutr-btn nb-plat">Apply for Platinum &#x2192;</a>
+      </div>
+    </div>
+    <!-- TDEE CALCULATOR -->
+    <div id="tdee-calc" class="tdee-w reveal">
+      <div class="tdee-hd">
+        <div class="tdee-lbl">Free Tool &mdash; Lite Tier</div>
+        <h3 id="tdee-h" data-lang-key="tdee-h">Calculate Your TDEE</h3>
+      </div>
+      <div class="tdee-g">
+        <div class="tf"><label data-lang-key="lbl-age">Age</label><input type="number" id="t-age" placeholder="28" min="16" max="80" inputmode="numeric"/></div>
+        <div class="tf"><label data-lang-key="lbl-sex">Sex</label><select id="t-sex"><option value="male">Male</option><option value="female">Female</option></select></div>
+        <div class="tf"><label data-lang-key="lbl-weight">Weight (lbs)</label><input type="number" id="t-wt" placeholder="185" inputmode="decimal"/></div>
+        <div class="tf"><label data-lang-key="lbl-height">Height (ft / in)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><input type="number" id="t-ft" placeholder="ft" min="4" max="7" inputmode="numeric"/><input type="number" id="t-in" placeholder="in" min="0" max="11" inputmode="numeric"/></div></div>
+      </div>
+      <div class="tf" style="margin-bottom:.8rem"><label data-lang-key="lbl-activity">Activity Level</label><select id="t-act"><option value="1.2">Sedentary</option><option value="1.375">Lightly Active (1-3x/week)</option><option value="1.55" selected>Moderately Active (3-5x/week)</option><option value="1.725">Very Active (6-7x/week)</option><option value="1.9">Extremely Active / Physical Job</option></select></div>
+      <div class="tf" style="margin-bottom:1rem"><label data-lang-key="lbl-goal">Goal</label>
+        <div class="goal-row" id="grow">
+          <button class="goal-b on" data-adj="-500">&#x1F525; Lose Fat</button>
+          <button class="goal-b" data-adj="0">&#x2696; Maintain</button>
+          <button class="goal-b" data-adj="300">&#x1F4AA; Build Muscle</button>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="calcWidget()">Calculate My Targets &#x2192;</button>
+      <div class="tdee-res" id="tres">
+        <div class="tdee-big" id="tw-cal">—</div>
+        <div class="tdee-sub">Calories / Day</div>
+        <div class="mac-g">
+          <div class="mac-c"><div class="mac-v" id="tw-p" style="color:#ef4444">—</div><div class="mac-l">Protein</div></div>
+          <div class="mac-c"><div class="mac-v" id="tw-c" style="color:#3b82f6">—</div><div class="mac-l">Carbs</div></div>
+          <div class="mac-c"><div class="mac-v" id="tw-f" style="color:#f59e0b">—</div><div class="mac-l">Fats</div></div>
+        </div>
+        <div class="tdee-note" id="tw-note"></div>
+        <a href="#pathfinder" class="tdee-cta">Get a Custom Meal Plan &#x2192;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="testi-in">
+    <div class="reveal" style="text-align:center">
+      <div class="sec-lbl" id="testi-lbl" data-lang-key="testi-lbl" data-lang-key="testi-lbl">Client Results</div>
+      <h2 class="sec-h" id="testi-h" data-lang-key="testi-h">Real People. <span class="y">Real Work.</span></h2>
+    </div>
+    <div class="testi-g">
+      <div class="tc reveal d1">
+        <div class="t-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div>
+        <div class="t-q">"Akeem built my program around my factory schedule. I'm training 5 days a week, down 22 lbs, and hitting PRs I never thought possible. He knows what it actually takes."</div>
+        <div class="t-a"><div class="t-av">M</div><div><div class="t-n">Marcus T.</div><div class="t-m">Lost 22 lbs &bull; 6 months</div></div></div>
+      </div>
+      <div class="tc reveal d2">
+        <div class="t-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div>
+        <div class="t-q">"The app is insane &mdash; I can see my meal plan, log my workouts, and track my progress all in one place. But it's the coaching that makes the difference. Akeem is locked in."</div>
+        <div class="t-a"><div class="t-av">D</div><div><div class="t-n">Darius W.</div><div class="t-m">Body recomposition &bull; 4 months</div></div></div>
+      </div>
+      <div class="tc reveal d3">
+        <div class="t-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div>
+        <div class="t-q">"I was skeptical at first but the results don't lie. Down 18 lbs, my energy is through the roof, and I finally feel confident in the gym. Akeem knows exactly how to push you without burning you out."</div>
+        <div class="t-a"><div class="t-av">R</div><div><div class="t-n">Renee C.</div><div class="t-m">Strength &bull; 3 months</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PATHFINDER FORM -->
+<!-- TRANSFORMATION SECTION -->
+<section id="transformation" style="background:var(--blk);padding:6rem 2rem;position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(106,13,173,.07) 0%,transparent 70%);pointer-events:none"></div>
+  <div style="max-width:1100px;margin:0 auto;position:relative;z-index:2">
+
+    <div style="text-align:center;margin-bottom:3.5rem" class="reveal">
+      <div class="sec-lbl">The Proof Is In The Work</div>
+      <h2 class="sec-h" id="trans-section-h" data-lang-key="trans-section-h">This Is Why <span class="y">BBF Exists</span></h2>
+      <p class="sec-s" style="margin:0 auto">Not a program built from a textbook. Built from rock bottom &mdash; and back.</p>
+    </div>
+
+    <!-- 3-PANEL RIPPLE EFFECT STORY -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;align-items:end;margin-bottom:3rem" class="reveal">
+
+      <!-- PANEL 1 — BEFORE -->
+      <div style="position:relative">
+        <div style="position:absolute;top:1rem;left:1rem;z-index:3;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.3rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:3px;color:rgba(255,255,255,.55)">STEP 1</div>
+        <div style="border-radius:16px;overflow:hidden;border:2px solid var(--gry3);aspect-ratio:3/4;background:var(--gry2)">
+          <img src="akeem-before.png" alt="Akeem Brown — before the journey" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(30%) brightness(.85)"/>
+        </div>
+        <div style="margin-top:.9rem;padding:.75rem .9rem;background:var(--gry2);border:1px solid var(--gry3);border-radius:10px;border-left:3px solid rgba(255,255,255,.2)">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:.2rem" id="panel-feeling">The Feeling</div>
+          <div style="font-size:.8rem;font-weight:600;color:var(--mut2);line-height:1.6;font-style:italic">&ldquo;Lost. Depressed. No time for myself. Running out of chances to become who I knew I could be.&rdquo;</div>
+        </div>
+      </div>
+
+      <!-- PANEL 2 — THE CRAFT (NASM) -->
+      <div style="position:relative;transform:translateY(-12px)">
+        <div style="position:absolute;top:1rem;left:1rem;z-index:3;background:rgba(59,130,246,.9);border-radius:8px;padding:.3rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:3px;color:#fff">STEP 2</div>
+        <div style="border-radius:16px;overflow:hidden;border:2px solid rgba(59,130,246,.5);box-shadow:0 0 40px rgba(59,130,246,.15);aspect-ratio:3/4;background:var(--gry2)">
+          <img src="akeem-nasm.jpg" alt="Akeem Brown — NASM Certified Personal Trainer" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top center"/>
+        </div>
+        <div style="margin-top:.9rem;padding:.75rem .9rem;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(29,78,216,.08));border:1px solid rgba(59,130,246,.3);border-radius:10px;border-left:3px solid rgba(59,130,246,.6)">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:#60a5fa;margin-bottom:.2rem" id="panel-craft">Learning The Craft</div>
+          <div style="font-size:.8rem;font-weight:600;color:rgba(255,255,255,.65);line-height:1.6;font-style:italic">&ldquo;I decided to go all in. NASM Certified. Exercise Science. The discipline to learn became as important as the discipline to train.&rdquo;</div>
+        </div>
+        <!-- Center connector dots -->
+        <div style="position:absolute;top:50%;left:-18px;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:4">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
+        </div>
+        <div style="position:absolute;top:50%;right:-18px;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:4">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
+        </div>
+      </div>
+
+      <!-- PANEL 3 — AFTER -->
+      <div style="position:relative">
+        <div style="position:absolute;top:1rem;left:1rem;z-index:3;background:rgba(245,200,0,.92);border-radius:8px;padding:.3rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:3px;color:#060606">STEP 3</div>
+        <div style="border-radius:16px;overflow:hidden;border:2px solid rgba(245,200,0,.4);box-shadow:0 0 40px rgba(245,200,0,.12);aspect-ratio:3/4;background:var(--gry2)">
+          <img src="akeem-after.png" alt="Akeem Brown — after transformation" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top center"/>
+        </div>
+        <div style="margin-top:.9rem;padding:.75rem .9rem;background:linear-gradient(135deg,rgba(106,13,173,.15),rgba(74,8,128,.08));border:1px solid rgba(106,13,173,.3);border-radius:10px;border-left:3px solid var(--yel)">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:var(--yel);margin-bottom:.2rem" id="panel-ripple">The Ripple Effect</div>
+          <div style="font-size:.8rem;font-weight:600;color:rgba(255,255,255,.7);line-height:1.6;font-style:italic">&ldquo;One decision changed everything. My body. My career. My family&rsquo;s future. Now that ripple reaches every client I coach.&rdquo;</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Journey label -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:2.5rem" class="reveal">
+      <div style="height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--gry3))"></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:.75rem;letter-spacing:4px;color:var(--mut2);text-transform:uppercase;white-space:nowrap" id="journey-lbl">The Full Journey</div>
+      <div style="height:1px;flex:1;background:linear-gradient(90deg,var(--gry3),transparent)"></div>
+    </div>
+
+    <div class="reveal" style="max-width:780px;margin:0 auto;text-align:center">
+      <div style="width:50px;height:3px;background:var(--yel);margin:0 auto 2rem"></div>
+
+      <p id="trans-p1" data-lang-key="trans-p1" style="font-size:1.05rem;color:rgba(255,255,255,.7);line-height:1.9;margin-bottom:1.3rem;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:600">
+        I know what it feels like to look in the mirror and not recognize yourself. To feel like time is the enemy &mdash; like between the job, the kids, the shifts, and just surviving &mdash; there&rsquo;s nothing left for <em>you.</em>
+      </p>
+
+      <p id="trans-p2" data-lang-key="trans-p2" style="font-size:1.05rem;color:rgba(255,255,255,.7);line-height:1.9;margin-bottom:1.3rem;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:600">
+        That picture on the left is not just a body. That&rsquo;s someone who had stopped believing the window was still open. Someone who felt <strong style="color:var(--wht)">alone in the journey.</strong>
+      </p>
+
+      <p id="trans-p3" data-lang-key="trans-p3" style="font-size:1.05rem;color:rgba(255,255,255,.7);line-height:1.9;margin-bottom:2rem;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:600">
+        Build Believe Fit exists because of that feeling. Because <strong style="color:var(--yel)">nobody should feel like there isn&rsquo;t enough time, enough energy, or enough support to become who they&rsquo;re meant to be.</strong> The window is always open. You just need the right system and someone who actually gets it.
+      </p>
+
+      <div style="background:linear-gradient(135deg,rgba(106,13,173,.2),rgba(74,8,128,.1));border:1px solid rgba(106,13,173,.4);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--yel);line-height:.8;margin-bottom:.6rem;opacity:.7">&ldquo;</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--wht);line-height:1.4" id="enough-quote">Enough Is Enough Was The Most Powerful Decision I Ever Made. Now I Help Others Make It Too.</div>
+        <div style="font-size:.75rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);margin-top:.8rem">&mdash; Akeem Brown &bull; Owner, BBF LLC &bull; NASM-CPT &bull; Future OT</div>
+      </div>
+
+      <a href="#pathfinder" class="btn-y" style="display:inline-block">Start Your Transformation &#x2192;</a>
+    </div>
+
+  </div>
+</section>
+
+<section id="pathfinder">
+  <div class="path-in">
+    <div style="text-align:center;margin-bottom:2rem" class="reveal">
+      <div class="sec-lbl" id="sec-path-lbl" data-lang-key="sec-path-lbl" data-legacy="path-lbl">Start Your Journey</div>
+      <h2 class="sec-h" id="path-h">The <span class="y">Pathfinder</span></h2>
+      <p class="sec-s" style="margin:0 auto" id="path-sub" data-lang-key="path-sub">4 quick steps. We'll calculate your personalized targets and Akeem will reach out within 24 hours.</p>
+    </div>
+    <div class="path-card reveal">
+      <div class="steps-ind">
+        <div class="si act" id="si0"></div>
+        <div class="si" id="si1"></div>
+        <div class="si" id="si2"></div>
+        <div class="si" id="si3"></div>
+      </div>
+      <div class="fs on" id="fs0">
+        <div class="sh-n">Step 1 of 4</div>
+        <div class="sh-t" id="fs0-title">Who Are You?</div>
+        <div class="sh-s" id="fs0-sub">Tell us about yourself &mdash; we'll personalize everything.</div>
+        <div class="fr">
+          <div class="ff"><label data-lang-key="lbl-firstname">First Name</label><input type="text" id="f-fn" placeholder="Marcus" autocomplete="given-name"/></div>
+          <div class="ff"><label data-lang-key="lbl-lastname">Last Name</label><input type="text" id="f-ln" placeholder="Johnson" autocomplete="family-name"/></div>
+        </div>
+        <div class="ff"><label data-lang-key="lbl-email">Email Address</label><input type="email" id="f-em" placeholder="marcus@email.com" autocomplete="email" inputmode="email"/></div>
+        <div class="ff"><label data-lang-key="lbl-phone">Phone (optional)</label><input type="tel" id="f-ph" placeholder="602-555-0100" autocomplete="tel" inputmode="tel"/></div>
+        <div class="fnav" style="justify-content:flex-end">
+          <button class="btn-next" onclick="nxt(0)">Next: Your Stats &#x2192;</button>
+        </div>
+      </div>
+      <div class="fs" id="fs1">
+        <div class="sh-n">Step 2 of 4</div>
+        <div class="sh-t" id="fs1-title">Your Stats</div>
+        <div class="sh-s" id="fs1-sub">Used to calculate your personalized TDEE and calorie targets.</div>
+        <div class="fr">
+          <div class="ff"><label>Age</label><input type="number" id="f-age" placeholder="28" min="16" max="80" inputmode="numeric"/></div>
+          <div class="ff"><label>Sex</label><select id="f-sex"><option value="male">Male</option><option value="female">Female</option></select></div>
+        </div>
+        <div class="fr">
+          <div class="ff"><label>Weight (lbs)</label><input type="number" id="f-wt" placeholder="185" inputmode="decimal"/></div>
+          <div class="ff"><label>Height (ft / in)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><input type="number" id="f-ft" placeholder="ft" min="4" max="7" inputmode="numeric"/><input type="number" id="f-in" placeholder="in" min="0" max="11" inputmode="numeric"/></div></div>
+        </div>
+        <div class="ff"><label>Activity Level</label><select id="f-act"><option value="1.2">Sedentary</option><option value="1.375">Lightly Active (1-3x/week)</option><option value="1.55" selected>Moderately Active (3-5x/week)</option><option value="1.725">Very Active (6-7x/week)</option><option value="1.9">Extremely Active / Physical Job</option></select></div>
+        <div class="fnav">
+          <button class="btn-back" onclick="prv(1)">&#x2190; Back</button>
+          <button class="btn-next" onclick="nxt(1)">Next: Your Goal &#x2192;</button>
+        </div>
+      </div>
+      <div class="fs" id="fs2">
+        <div class="sh-n">Step 3 of 4</div>
+        <div class="sh-t" id="fs2-title">Your Goal</div>
+        <div class="sh-s" id="fs2-sub">What are you training for?</div>
+        <div class="ff"><label data-lang-key="lbl-primgoal">Primary Goal</label>
+          <div class="chips" id="gc">
+            <button class="chip" data-v="fat-loss">&#x1F525; Fat Loss</button>
+            <button class="chip" data-v="muscle">&#x1F4AA; Build Muscle</button>
+            <button class="chip" data-v="recomp">&#x2696; Body Recomp</button>
+            <button class="chip" data-v="strength">&#x1F3CB; Pure Strength</button>
+            <button class="chip" data-v="endurance">&#x1F3C3; Endurance</button>
+          </div>
+        </div>
+        <div class="ff"><label data-lang-key="lbl-experience">Training Experience</label>
+          <div class="chips" id="ec">
+            <button class="chip" data-v="beginner">Beginner</button>
+            <button class="chip" data-v="intermediate">Intermediate</button>
+            <button class="chip" data-v="advanced">Advanced</button>
+            <button class="chip" data-v="returning">Returning After Break</button>
+            <button class="chip" data-v="post-injury">Post-Injury / Rehab</button>
+          </div>
+        </div>
+        <div class="ff"><label data-lang-key="lbl-schedule">Work Schedule</label>
+          <div class="chips" id="sc">
+            <button class="chip" data-v="standard">Standard Hours</button>
+            <button class="chip" data-v="9to5">9-to-5 / Everyday Athlete</button>
+            <button class="chip" data-v="shifts">8-Hour Shifts</button>
+            <button class="chip" data-v="12hr">12-Hour Shifts</button>
+            <button class="chip" data-v="overnight">Overnight / Rotating</button>
+            <button class="chip" data-v="executive">Executive / Corporate</button>
+            <button class="chip" data-v="medical">Medical / Healthcare</button>
+            <button class="chip" data-v="first-responder">First Responder</button>
+            <button class="chip" data-v="parent">Full-Time Parent</button>
+          </div>
+        </div>
+        <div class="fnav">
+          <button class="btn-back" onclick="prv(2)">&#x2190; Back</button>
+          <button class="btn-next" onclick="nxt(2)">Next: Final Step &#x2192;</button>
+        </div>
+      </div>
+      <div class="fs" id="fs3">
+        <div class="sh-n">Step 4 of 4</div>
+        <div class="sh-t" id="fs3-title">Final Details</div>
+        <div class="sh-s" id="fs3-sub">Almost there. This helps Akeem prepare before reaching out.</div>
+        <div class="ff"><label data-lang-key="lbl-program">Program Interest</label><select id="f-prog"><option value="foundation">Foundation &mdash; Getting Started</option><option value="elite">Elite Transformation &mdash; Full Commitment</option><option value="remote">Remote Coaching &mdash; Anywhere</option></select></div>
+        <div class="ff"><label data-lang-key="lbl-health">Health Notes &amp; Injuries</label><textarea id="f-health" placeholder="Any injuries, limitations, or health conditions we should know about?"></textarea></div>
+        <div class="ff"><label data-lang-key="lbl-referral">How did you hear about us?</label><select id="f-ref"><option value="">Select...</option><option>Instagram</option><option>Referral from a friend</option><option>QR Code / Business Card</option><option>Google Search</option><option>TikTok</option><option>Other</option></select></div>
+        <div class="fnav" style="flex-direction:column;gap:.8rem">
+          <button class="btn-sub" id="sbtn" onclick="doSubmit()">Calculate My Path &amp; Submit &#x2192;</button>
+          <button class="btn-back" onclick="prv(3)" style="text-align:center">&#x2190; Back</button>
+        </div>
+        <div class="fmsg" id="fmsg"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APP DOWNLOAD -->
+<section id="app-download">
+  <div class="app-in">
+    <div class="reveal">
+      <div class="sec-lbl" id="app-lbl" data-lang-key="app-lbl">Client Portal</div>
+      <h2 class="sec-h" id="app-h" data-lang-key="app-h">Your Program.<br><span class="y">In Your Pocket.</span></h2>
+      <p class="sec-s" style="margin:0 auto;color:rgba(255,255,255,.45)" id="app-sub">Access your personalized workout program, meal plan, progress tracking, and coach notes &mdash; all in one mobile app that works offline.</p>
+      <div class="app-url">buildbelievefit.fitness/bbf-app.html</div>
+      <a href="bbf-app.html" class="btn-y">&#x1F4F2; Open Client App</a>
+      <div class="inst-s">
+        <div class="ist"><div class="ist-n">1</div><div class="ist-t" id="app-step1" data-lang-key="app-step1">Open the link in your browser</div></div>
+        <div class="ist"><div class="ist-n">2</div><div class="ist-t" id="app-step2" data-lang-key="app-step2">Tap menu then "Add to Home Screen"</div></div>
+        <div class="ist"><div class="ist-n">3</div><div class="ist-t" id="app-step3" data-lang-key="app-step3">Use like a real app &mdash; works offline too</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="con-in">
+    <div class="sec-lbl" style="color:rgba(255,255,255,.55)">Direct Contact</div>
+    <h2 class="sec-h" id="contact-h" data-lang-key="contact-h" style="margin-bottom:.8rem">Let's Build.<br><span style="color:rgba(255,255,255,.35)">Today.</span></h2>
+    <p id="contact-sub" data-lang-key="contact-sub" style="font-size:1rem;color:rgba(255,255,255,.5);max-width:500px;margin:0 auto 1.5rem">Ready to start? Have questions? Reach out directly &mdash; Akeem responds fast.</p>
+    <div class="con-links">
+      <a href="sms:6233409254?body=Hey Akeem, I want to get started with Build Believe Fit!" class="con-l">&#x1F4AC; Text Akeem</a>
+      <a href="tel:6233409254" class="con-l">&#x1F4DE; 623-340-9254</a>
+      <a href="/cdn-cgi/l/email-protection#6e0c1b07020a0c0b02070b180b08071a02020d2e0c1b07020a0c0b02070b180b08071a4008071a000b1d1d" class="con-l">&#x1F4E7; Email</a>
+    </div>
+    <a href="#pathfinder" class="btn-y" style="display:inline-block;margin-top:2.5rem">Start My Journey &#x2192;</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-in">
+    <div>
+      <div class="ft-b">Build<span class="y">Believe</span>Fit</div>
+      <div class="ft-tag">NASM-certified personal training for industrial athletes. Built for shift workers. Built for real results.</div>
+    </div>
+    <div class="ft-links">
+      <a href="#services" id="mob-nav-services" data-lang-key="nav-services">Services</a>
+      <a href="#programs" id="mob-nav-programs" data-lang-key="nav-programs">Programs</a>
+      <a href="#nutrition" id="mob-nav-nutrition" data-lang-key="nav-nutrition">Nutrition</a>
+      <a href="#testimonials" id="mob-nav-results" data-lang-key="nav-results">Results</a>
+      <a href="#founder" id="ft-about" data-lang-key="ft-about">About Akeem</a>
+      <a href="#pathfinder" id="ft-start" data-lang-key="ft-start">Start My Path</a>
+      <a href="bbf-app.html">&#x1F4F2; Client App</a>
+    </div>
+    <div class="ft-links">
+      <a href="sms:6233409254">Text: 623-340-9254</a>
+      <a href="tel:6233409254">Call: 623-340-9254</a>
+      <a href="/cdn-cgi/l/email-protection#f496819d98909691989d918291929d80989897b496819d98909691989d918291929d80da929d809a918787">Email Akeem</a>
+      <a href="#tdee-calc">TDEE Calculator</a>
+    </div>
+    <div class="ft-copy">&copy; 2026 Build Believe Fit LLC &bull; All Rights Reserved &bull; NASM Certified &bull; buildbelievefit.fitness</div>
+  </div>
+</footer>
+
+<!-- SUCCESS MODAL -->
+<div id="smodal">
+  <div class="sm-box">
+    <button class="sm-x" onclick="closeMod()">&#x2715;</button>
+    <div class="sm-badge">&#x26A1; Your Personalized BBF Path</div>
+    <div class="sm-title" id="m-title">Your Path,<br><span class="sm-name" id="m-name">Built.</span></div>
+    <div class="sm-sub">Based on your stats, here are your daily targets:</div>
+    <div class="sm-cal">
+      <div class="sm-cal-n" id="m-cal">—</div>
+      <div class="sm-cal-l">Daily Calorie Target</div>
+    </div>
+    <div class="sm-mac">
+      <div class="sm-m p"><div class="sm-m-v" id="m-p">—</div><div class="sm-m-l">Protein (g)</div></div>
+      <div class="sm-m c"><div class="sm-m-v" id="m-c">—</div><div class="sm-m-l">Carbs (g)</div></div>
+      <div class="sm-m f"><div class="sm-m-v" id="m-f">—</div><div class="sm-m-l">Fats (g)</div></div>
+    </div>
+    <div id="m-checklist" style="margin-bottom:1.2rem"></div>
+    <a href="bbf-app.html" class="sm-app" id="m-cta-btn">&#x1F4F2; Open Your Client Portal &#x2192;</a>
+    <button class="sm-cls" onclick="closeMod()"><span id="modal-close">Close &mdash; I'll check my email</span></button>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// NAV
+var navEl=document.getElementById('nav');
+var hbg=document.getElementById('hbg');
+var mnav=document.getElementById('mnav');
+window.addEventListener('scroll',function(){navEl.classList.toggle('scrolled',window.scrollY>40);});
+hbg.onclick=function(){mnav.classList.toggle('open');};
+mnav.querySelectorAll('a').forEach(function(a){a.onclick=function(){mnav.classList.remove('open');};});
+
+// SCROLL ANIMATIONS
+(function(){
+  document.body.classList.add('js-ready');
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');obs.unobserve(e.target);}});
+  },{threshold:0.08,rootMargin:'0px 0px -20px 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){
+    if(el.getBoundingClientRect().top<window.innerHeight){el.classList.add('vis');}
+    else{obs.observe(el);}
+  });
+})();
+
+// PROGRAM CARDS
+function selProg(card,id){
+  document.querySelectorAll('.prog-c').forEach(function(c){c.classList.remove('sel','dim');});
+  card.classList.add('sel');
+  document.querySelectorAll('.prog-c').forEach(function(c){if(c!==card)c.classList.add('dim');});
+  var s=document.getElementById('f-prog');
+  if(s){for(var i=0;i<s.options.length;i++){if(s.options[i].value===id){s.selectedIndex=i;break;}}}
+}
+
+// CHIPS
+function setupChips(id){
+  var c=document.getElementById(id);if(!c)return;
+  c.querySelectorAll('.chip').forEach(function(b){
+    b.onclick=function(){c.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on');});b.classList.add('on');};
+  });
+}
+setupChips('gc');setupChips('ec');setupChips('sc');
+document.querySelectorAll('#grow .goal-b').forEach(function(b){
+  b.onclick=function(){document.querySelectorAll('#grow .goal-b').forEach(function(x){x.classList.remove('on');});b.classList.add('on');};
+});
+
+// TDEE ENGINE
+function calcTDEE(age,sex,wt,ft,ins,act){
+  var kg=wt*0.453592;var cm=((ft*12)+ins)*2.54;
+  var bmr=sex==='male'?(10*kg)+(6.25*cm)-(5*age)+5:(10*kg)+(6.25*cm)-(5*age)-161;
+  return Math.round(bmr*act);
+}
+function calcMacros(cal,wt,adj){
+  var p=Math.round(wt*(adj>0?1.0:0.9));
+  var f=Math.round(cal*0.25/9);
+  var c=Math.max(0,Math.round((cal-(p*4)-(f*9))/4));
+  return{p:p,c:c,f:f};
+}
+
+// TDEE WIDGET
+function calcWidget(){
+  var age=parseInt(document.getElementById('t-age').value)||0;
+  var sex=document.getElementById('t-sex').value;
+  var wt=parseFloat(document.getElementById('t-wt').value)||0;
+  var ft=parseInt(document.getElementById('t-ft').value)||0;
+  var ins=parseInt(document.getElementById('t-in').value)||0;
+  var act=parseFloat(document.getElementById('t-act').value)||1.55;
+  var gb=document.querySelector('#grow .goal-b.on');
+  var adj=gb?parseInt(gb.dataset.adj):-500;
+  if(!age||!wt||!ft){alert('Please fill in all fields.');return;}
+  var base=calcTDEE(age,sex,wt,ft,ins,act);
+  var tgt=base+adj;
+  var mac=calcMacros(tgt,wt,adj);
+  document.getElementById('tw-cal').textContent=tgt.toLocaleString();
+  document.getElementById('tw-p').textContent=mac.p+'g';
+  document.getElementById('tw-c').textContent=mac.c+'g';
+  document.getElementById('tw-f').textContent=mac.f+'g';
+  var gl=adj<0?'fat loss':adj>0?'muscle building':'maintenance';
+  document.getElementById('tw-note').textContent='Maintenance TDEE: '+base.toLocaleString()+' cal/day. Adjusted for '+gl+'. These are starting targets \u2014 Akeem will fine-tune based on your progress.';
+  var res=document.getElementById('tres');res.style.display='block';
+  res.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+
+// ─── PERSONA-DRIVEN NEXT STEPS ────────────────────────────────────
+var NEXT_STEPS = {
+  'fat-loss': {
+    headline: 'Your Fat Loss Roadmap is Ready.',
+    cta: '&#x1F525; Start Your Fat Loss Protocol &#x2192;',
+    steps: [
+      { state:'done', icon:'&#x2713;', text:'TDEE calculated — ' + '{CAL}' + ' cal/day target locked in' },
+      { state:'done', icon:'&#x2713;', text:'Macro split generated — P/C/F aligned to your goal' },
+      { state:'next', icon:'&#x2192;', text:'Open the app — your custom meal plan is waiting' },
+      { state:'soon', icon:'&#x25CB;', text:'Akeem reviews your submission within 24 hours' },
+      { state:'soon', icon:'&#x25CB;', text:'8-Week challenge enrollment opens on your call' }
+    ]
+  },
+  'muscle': {
+    headline: 'Your Muscle Building Blueprint is Set.',
+    cta: '&#x1F4AA; Open Your Training Portal &#x2192;',
+    steps: [
+      { state:'done', icon:'&#x2713;', text:'Caloric surplus calculated — {CAL} cal/day for growth' },
+      { state:'done', icon:'&#x2713;', text:'High-protein macro split ready — ' + '{PROT}' + 'g protein target' },
+      { state:'next', icon:'&#x2192;', text:'Access your progressive overload program in the app' },
+      { state:'soon', icon:'&#x25CB;', text:'Akeem assigns your personalized lifting split' },
+      { state:'soon', icon:'&#x25CB;', text:'Masterclass: Progressive Overload for Real Life — unlocked' }
+    ]
+  },
+  'executive': {
+    headline: 'Your High-Efficiency Roadmap is Being Generated.',
+    cta: '&#x1F454; Open Your Executive Protocol &#x2192;',
+    steps: [
+      { state:'done', icon:'&#x2713;', text:'Executive performance targets calculated — {CAL} cal/day' },
+      { state:'done', icon:'&#x2713;', text:'High-demand lifestyle macros optimized for cognitive output' },
+      { state:'next', icon:'&#x2192;', text:'Access your 45-min Executive Protocol in the app' },
+      { state:'soon', icon:'&#x25CB;', text:'Desk/travel recovery cues pre-loaded to your Prehab tab' },
+      { state:'soon', icon:'&#x25CB;', text:'Priority onboarding call scheduled within 24 hours' }
+    ]
+  },
+  'first-responder': {
+    headline: 'Your Tactical Longevity Plan is Ready.',
+    cta: '&#x1F6A8; Open Your Tactical Protocol &#x2192;',
+    steps: [
+      { state:'done', icon:'&#x2713;', text:'Tactical athlete targets set — {CAL} cal/day fuel strategy' },
+      { state:'done', icon:'&#x2713;', text:'First responder macros calibrated for on-call demands' },
+      { state:'next', icon:'&#x2192;', text:'Load your Tactical Athlete Protocol in the app now' },
+      { state:'soon', icon:'&#x25CB;', text:'Joint longevity prehab (hip, knee, shoulder) pre-loaded' },
+      { state:'soon', icon:'&#x25CB;', text:'Akeem contacts you within 24 hours — priority queue' }
+    ]
+  },
+  'medical': {
+    headline: 'Your Healthcare Professional Plan is Active.',
+    cta: '&#x1FA7A; Open Your Healthcare Protocol &#x2192;',
+    steps: [
+      { state:'done', icon:'&#x2713;', text:'Healthcare professional targets set — {CAL} cal/day' },
+      { state:'done', icon:'&#x2713;', text:'Mixed-load recovery protocol selected for your schedule' },
+      { state:'next', icon:'&#x2192;', text:'Open the app — your protocol is waiting' },
+      { state:'soon', icon:'&#x25CB;', text:'Grip, wrist & standing recovery cues pre-loaded' },
+      { state:'soon', icon:'&#x25CB;', text:'Compassion fatigue training adjustments built in' }
+    ]
+  },
+  'parent': {
+    headline: 'Your Family Warrior Plan is Ready.',
+    cta: '&#x1F46A; Open Your Family Warrior Protocol &#x2192;',
+    steps: [
+      { state:'done', icon:'&#x2713;', text:'Realistic targets set — {CAL} cal/day around your schedule' },
+      { state:'done', icon:'&#x2713;', text:'Full-body efficiency macros — no 2-hour gym sessions needed' },
+      { state:'next', icon:'&#x2192;', text:'45-min Family Warrior workouts loaded in the app' },
+      { state:'soon', icon:'&#x25CB;', text:'Flexible scheduling options set for your availability' },
+      { state:'soon', icon:'&#x25CB;', text:'Akeem reaches out within 24 hours' }
+    ]
+  },
+  '12hr': {
+    headline: 'Your Industrial Athlete Protocol is Live.',
+    cta: '&#x26A1; Open Your Shift Protocol &#x2192;',
+    steps: [
+      { state:'done', icon:'&#x2713;', text:'Industrial athlete targets locked — {CAL} cal/day' },
+      { state:'done', icon:'&#x2713;', text:'Shift-optimized macros calibrated for 12-hour recovery' },
+      { state:'next', icon:'&#x2192;', text:'Load your Shift Protocol — built for your exact schedule' },
+      { state:'soon', icon:'&#x25CB;', text:'Post-shift decompression cues pre-loaded in Prehab tab' },
+      { state:'soon', icon:'&#x25CB;', text:'Akeem — also on 12-hour shifts — connects within 24 hrs' }
+    ]
+  },
+  'overnight': {
+    headline: 'Your Overnight Specialist Protocol is Set.',
+    cta: '&#x1F319; Open Your Night Shift Protocol &#x2192;',
+    steps: [
+      { state:'done', icon:'&#x2713;', text:'Overnight schedule targets set — {CAL} cal/day' },
+      { state:'done', icon:'&#x2713;', text:'Circadian-aware nutrition timing built into your plan' },
+      { state:'next', icon:'&#x2192;', text:'Open the app — rotating shift program is ready' },
+      { state:'soon', icon:'&#x25CB;', text:'Sleep architecture cues loaded for recovery optimization' },
+      { state:'soon', icon:'&#x25CB;', text:'Akeem reviews and contacts you within 24 hours' }
+    ]
+  }
+};
+
+function getPersonaFromGoalAndSchedule(goal, schedule) {
+  // Schedule takes priority for persona-specific messaging
+  var scheduleMap = {
+    'executive':'executive','medical':'medical',
+    'first-responder':'first-responder','parent':'parent',
+    '12hr':'12hr','overnight':'overnight'
+  };
+  if (scheduleMap[schedule]) return scheduleMap[schedule];
+  return goal || 'fat-loss';
+}
+
+function buildChecklist(personaKey, cal, prot) {
+  var data = NEXT_STEPS[personaKey] || NEXT_STEPS['fat-loss'];
+  var html = '<div class="next-steps-lbl">Your Next Steps</div>';
+  data.steps.forEach(function(step) {
+    var txt = step.text.replace('{CAL}', cal.toLocaleString()).replace('{PROT}', prot);
+    html += '<div class="next-step-item">' +
+      '<div class="ns-icon ' + step.state + '">' + step.icon + '</div>' +
+      '<div class="ns-text ' + step.state + '">' + txt + '</div>' +
+    '</div>';
+  });
+  return { html: html, headline: data.headline, cta: data.cta };
+}
+
+// MULTI-STEP FORM
+function showStep(n){
+  document.querySelectorAll('.fs').forEach(function(s){s.classList.remove('on');});
+  document.querySelectorAll('.si').forEach(function(s,i){s.classList.remove('act','don');if(i<n)s.classList.add('don');if(i===n)s.classList.add('act');});
+  document.getElementById('fs'+n).classList.add('on');
+  document.getElementById('pathfinder').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function nxt(from){
+  if(from===0){
+    var fn=document.getElementById('f-fn').value.trim();
+    var em=document.getElementById('f-em').value.trim();
+    if(!fn||!em){flash('Please enter your name and email.','err');return;}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){flash('Please enter a valid email.','err');return;}
+  }
+  if(from===1){
+    if(!document.getElementById('f-age').value||!document.getElementById('f-wt').value||!document.getElementById('f-ft').value){flash('Please fill in your stats.','err');return;}
+  }
+  showStep(from+1);
+}
+function prv(from){showStep(from-1);}
+function flash(msg,type){
+  var el=document.getElementById('fmsg');if(!el)return;
+  el.textContent=msg;el.className='fmsg '+(type||'');
+  setTimeout(function(){el.textContent='';el.className='fmsg';},3500);
+}
+
+// SUBMIT
+function doSubmit(){
+  var btn=document.getElementById('sbtn');
+  var fn=document.getElementById('f-fn').value.trim();
+  var ln=document.getElementById('f-ln').value.trim();
+  var em=document.getElementById('f-em').value.trim();
+  var ph=document.getElementById('f-ph').value.trim();
+  var age=parseInt(document.getElementById('f-age').value)||0;
+  var sex=document.getElementById('f-sex').value;
+  var wt=parseFloat(document.getElementById('f-wt').value)||0;
+  var ft=parseInt(document.getElementById('f-ft').value)||0;
+  var ins=parseInt(document.getElementById('f-in').value)||0;
+  var act=parseFloat(document.getElementById('f-act').value)||1.55;
+  var prog=document.getElementById('f-prog').value;
+  var hlth=document.getElementById('f-health').value.trim();
+  var ref=document.getElementById('f-ref').value;
+  var gc=document.querySelector('#gc .chip.on');
+  var ec=document.querySelector('#ec .chip.on');
+  var sc=document.querySelector('#sc .chip.on');
+  var goal=gc?gc.dataset.v:'not specified';
+  var exp=ec?ec.dataset.v:'not specified';
+  var sch=sc?sc.dataset.v:'not specified';
+  var base=(age&&wt&&ft)?calcTDEE(age,sex,wt,ft,ins,act):0;
+  var adjMap={'fat-loss':-500,'recomp':-200,'muscle':300,'strength':0,'endurance':0};
+  var adj=adjMap[goal]!==undefined?adjMap[goal]:-300;
+  var tgt=base+adj;
+  var mac=tgt>0?calcMacros(tgt,wt,adj):{p:0,c:0,f:0};
+  btn.textContent='Calculating & Sending...';btn.disabled=true;
+  try{localStorage.setItem('bbf_pathfinder',JSON.stringify({email:em,name:fn+' '+ln,goal:goal,weight:wt,schedule:sch,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,program:prog,ts:Date.now()}));}catch(e){}
+  fetch('https://formspree.io/f/mwvwjokw',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify({name:fn+' '+ln,email:em,phone:ph,age:age,sex:sex,weight_lbs:wt,height:ft+"'"+ins+'"',activity:act,goal:goal,experience:exp,schedule:sch,program:prog,health_notes:hlth,referral:ref,tdee_base:base+' cal/day',daily_target:tgt+' cal/day',macros:'P:'+mac.p+'g C:'+mac.c+'g F:'+mac.f+'g'})
+  }).finally(function(){
+    btn.textContent='Calculate My Path & Submit \u2192';btn.disabled=false;
+    openMod(fn,tgt,mac,goal,sch);
+  });
+}
+function openMod(fn,tgt,mac,goal,schedule){
+  document.getElementById('m-name').textContent=fn+'.';
+  document.getElementById('m-cal').textContent=tgt>0?tgt.toLocaleString():'\u2014';
+  document.getElementById('m-p').textContent=mac.p>0?mac.p+'g':'\u2014';
+  document.getElementById('m-c').textContent=mac.c>0?mac.c+'g':'\u2014';
+  document.getElementById('m-f').textContent=mac.f>0?mac.f+'g':'\u2014';
+  // Persona-driven next steps
+  var personaKey = getPersonaFromGoalAndSchedule(goal, schedule||'standard');
+  var cl = buildChecklist(personaKey, tgt>0?tgt:0, mac.p||0);
+  var clEl = document.getElementById('m-checklist');
+  var ctaEl = document.getElementById('m-cta-btn');
+  var titleEl = document.getElementById('m-title');
+  if (clEl) clEl.innerHTML = cl.html;
+  if (ctaEl) ctaEl.innerHTML = cl.cta;
+  if (titleEl) titleEl.textContent = cl.headline;
+  document.getElementById('smodal').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closeMod(){document.getElementById('smodal').classList.remove('on');document.body.style.overflow='auto';}
+</script>
+</body>
+</html>
