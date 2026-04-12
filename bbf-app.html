@@ -602,15 +602,15 @@ window.onload=function(){
     </div>
     <!-- NUTRITION -->
     <div class="tp" id="tp-nutrition">
-      <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px">Nutrition Plan</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem">Your personalized 7-day meal plan</div></div>
+      <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-nutr-title">Nutrition Plan</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-nutr-sub">Your personalized 7-day meal plan</div></div>
       <div id="ncon"><div class="emp"><div class="ei">&#x1F957;</div><div class="et">Loading...</div></div></div>
     </div>
     <!-- LOG -->
     <div class="tp" id="tp-log">
-      <div style="margin-bottom:1.2rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px">Log a Session</div></div>
+      <div style="margin-bottom:1.2rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-log-title">Log a Session</div></div>
       <div class="lf2">
-        <div><label class="lfl">Date</label><input class="lfi" type="date" id="ld"/></div>
-        <div><label class="lfl">Session Type</label><div class="tcs" id="tchips">
+        <div><label class="lfl" data-lang-key="app-log-date">Date</label><input class="lfi" type="date" id="ld"/></div>
+        <div><label class="lfl" data-lang-key="app-log-type">Session Type</label><div class="tcs" id="tchips">
           <button class="tc3 on" data-t="strength">&#x1F4AA; Strength</button>
           <button class="tc3" data-t="cardio">&#x1F3C3; Cardio</button>
           <button class="tc3" data-t="hiit">&#x1F525; HIIT</button>
@@ -618,8 +618,8 @@ window.onload=function(){
           <button class="tc3" data-t="rest">&#x1F634; Rest</button>
         </div></div>
         <div class="lfr">
-          <div><label class="lfl">Duration (mins)</label><input class="lfi" type="number" id="ldur" placeholder="45" inputmode="numeric"/></div>
-          <div><label class="lfl">Intensity (1-10)</label><input class="lfi" type="number" id="lint" placeholder="7" min="1" max="10" inputmode="numeric"/></div>
+          <div><label class="lfl" data-lang-key="app-log-duration">Duration (mins)</label><input class="lfi" type="number" id="ldur" placeholder="45" inputmode="numeric"/></div>
+          <div><label class="lfl" data-lang-key="app-log-intensity">Intensity (1-10)</label><input class="lfi" type="number" id="lint" placeholder="7" min="1" max="10" inputmode="numeric"/></div>
         </div>
         <div class="lfr">
           <div><label class="lfl">Weight (lbs)</label><input class="lfi" type="number" id="lwt" placeholder="185" inputmode="decimal"/></div>
@@ -629,39 +629,29 @@ window.onload=function(){
           <div class="exl2" id="exl"></div>
           <div class="ear"><input class="eai" type="text" id="exi" placeholder="e.g. Bench Press 3x10 @ 185lbs"/><button class="eab" id="addex-btn">+ Add</button></div>
         </div>
-        <div><label class="lfl">How did you feel?</label><div class="mcs" id="mchips">
+        <div><label class="lfl" data-lang-key="app-log-feel">How did you feel?</label><div class="mcs" id="mchips">
           <button class="mc2" data-m="Strong">&#x1F4AA; Strong</button>
           <button class="mc2" data-m="Great">&#x1F60A; Great</button>
           <button class="mc2" data-m="Pushed">&#x1F624; Pushed</button>
           <button class="mc2" data-m="Average">&#x1F610; Average</button>
           <button class="mc2" data-m="Tough">&#x1F629; Tough Day</button>
         </div></div>
-        <div><label class="lfl">Notes</label><textarea class="lfta" id="lnotes" placeholder="What did you work on? Any PRs?"></textarea></div>
-        <button class="lbtn" id="savelog-btn">Save Session &#x2713;</button>
+        <div><label class="lfl" data-lang-key="app-log-notes">Notes</label><textarea class="lfta" id="lnotes" placeholder="What did you work on? Any PRs?"></textarea></div>
+        <button class="lbtn" id="savelog-btn" data-lang-key="app-log-save">Save Session &#x2713;</button>
       </div>
     </div>
     <!-- PREHAB & RECOVERY -->
     <div class="tp" id="tp-prehab">
       <div style="margin-bottom:1rem">
-        <div style="font-family:var(--hb);font-size:2rem;letter-spacing:2px">Prehab &amp; Recovery</div>
-        <div style="font-size:.8rem;font-weight:600;color:var(--mut2);margin-top:.2rem">OT-Informed joint health for high-demand athletes</div>
+        <div style="font-family:var(--hb);font-size:2rem;letter-spacing:2px" data-lang-key="app-prehab-title">Prehab &amp; Recovery</div>
+        <div style="font-size:.8rem;font-weight:600;color:var(--mut2);margin-top:.2rem" data-lang-key="app-prehab-sub">OT-Informed joint health for high-demand athletes</div>
       </div>
       <div style="background:linear-gradient(135deg,rgba(106,13,173,.15),rgba(74,8,128,.1));border:1px solid rgba(106,13,173,.3);border-radius:14px;padding:1rem;margin-bottom:1rem">
         <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-bottom:.4rem">&#x1F9E0; The OT Advantage</div>
         <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.75);line-height:1.65">Your coach is an <strong style="color:var(--wht)">Exercise Science student and future Occupational Therapist.</strong> Every prehab cue in this section is grounded in OT principles — joint mechanics, movement longevity, and occupation-specific load patterns. This is clinical-level precision that most personal trainers cannot offer.</div>
       </div>
 
-      <!-- Bilingual Toggle -->
-      <div style="display:flex;align-items:center;gap:.8rem;background:var(--gry2);border:1px solid var(--gry3);border-radius:12px;padding:.8rem 1rem;margin-bottom:1rem">
-        <div style="font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);flex:1">Language / Idioma</div>
-        <div style="display:flex;background:var(--gry);border-radius:8px;overflow:hidden;border:1px solid var(--gry3)">
-          <button id="lang-en" class="lang-btn on" onclick="setLang('en')">EN</button>
-          <button id="lang-es" class="lang-btn" onclick="setLang('es')">ES</button>
-          <button id="lang-pt" class="lang-btn" onclick="setLang('pt')">PT</button>
-        </div>
-      </div>
-
-      <!-- OT Joint Health Cues -->
+      <!-- OT Joint Health Cues (language controlled by global header toggle) -->
       <div id="prehab-cues"></div>
 
       <!-- Daily Routine -->
@@ -674,8 +664,8 @@ window.onload=function(){
     <!-- BOOK -->
     <div class="tp" id="tp-book">
       <div class="bkh"><div class="bkt" data-lang-key="app-book-title">Book a Session</div><div class="bks" data-lang-key="app-book-sub">Reach out to Akeem directly.</div></div>
-      <a href="sms:6233409254?body=START" class="co"><div class="coi g">&#x1F4AC;</div><div><div class="col2">Text to Book</div><div class="cov">623-340-9254</div></div><div class="coa">&#x203A;</div></a>
-      <a href="tel:6233409254" class="co"><div class="coi p">&#x1F4DE;</div><div><div class="col2">Call</div><div class="cov">623-340-9254</div></div><div class="coa">&#x203A;</div></a>
+      <a href="sms:6233409254?body=START" class="co"><div class="coi g">&#x1F4AC;</div><div><div class="col2" data-lang-key="app-book-text">Text to Book</div><div class="cov">623-340-9254</div></div><div class="coa">&#x203A;</div></a>
+      <a href="tel:6233409254" class="co"><div class="coi p">&#x1F4DE;</div><div><div class="col2" data-lang-key="app-book-call">Call</div><div class="cov">623-340-9254</div></div><div class="coa">&#x203A;</div></a>
       <a href="/cdn-cgi/l/email-protection#3456415d58505651585d514251525d405858577456415d58505651585d514251525d401a525d405a514747" class="co"><div class="coi b">&#x1F4E7;</div><div><div class="col2">Email</div><div class="cov"><span class="__cf_email__" data-cfemail="3250475b5e5650575e5b574457545b465e5e517250475b5e5650575e5b574457545b461c545b465c574141">[email&#160;protected]</span></div></div><div class="coa">&#x203A;</div></a>
     </div>
     <!-- PROFILE -->
@@ -803,17 +793,17 @@ window.onload=function(){
       <div id="pt-settings-wrap">
       <div class="sh" style="margin-top:1rem"><span class="stt" data-lang-key="app-settings">Settings</span></div>
       <div class="psl">
-        <div class="psr" id="goal-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F3AF;</span><div><div class="psrn">My Goal</div><div class="psrs" id="gsub">Tap to set</div></div></div><span class="psra">&#x203A;</span></div>
-        <div class="psr" id="persona-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F4CC;</span><div><div class="psrn">My Profession / Schedule</div><div class="psrs" id="persona-sub">Tap to update</div></div></div><span class="psra">&#x203A;</span></div>
-        <div class="psr" onclick="toggleStressMode()"><div class="psrl"><span style="font-size:1.1rem">&#x1F9E0;</span><div><div class="psrn">Recovery Mode</div><div class="psrs" id="stress-mode-lbl">Tap to set your recovery protocol</div></div></div>
+        <div class="psr" id="goal-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F3AF;</span><div><div class="psrn" data-lang-key="app-set-goal">My Goal</div><div class="psrs" id="gsub" data-lang-key="app-set-goal-sub">Tap to set</div></div></div><span class="psra">&#x203A;</span></div>
+        <div class="psr" id="persona-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F4CC;</span><div><div class="psrn" data-lang-key="app-set-profession">My Profession / Schedule</div><div class="psrs" id="persona-sub" data-lang-key="app-set-profession-sub">Tap to update</div></div></div><span class="psra">&#x203A;</span></div>
+        <div class="psr" onclick="toggleStressMode()"><div class="psrl"><span style="font-size:1.1rem">&#x1F9E0;</span><div><div class="psrn" data-lang-key="app-set-recovery">Recovery Mode</div><div class="psrs" id="stress-mode-lbl" data-lang-key="app-set-recovery-sub">Tap to set your recovery protocol</div></div></div>
           <div id="stress-toggle-wrap" style="display:flex;background:var(--gry);border-radius:8px;overflow:hidden;border:1px solid var(--gry3)">
             <div id="st-desk" style="padding:.3rem .7rem;font-family:var(--hb);font-size:.75rem;letter-spacing:1px;cursor:pointer;transition:all .2s">DESK</div>
             <div id="st-stand" style="padding:.3rem .7rem;font-family:var(--hb);font-size:.75rem;letter-spacing:1px;cursor:pointer;transition:all .2s">SHIFT</div>
             <div id="st-mixed" style="padding:.3rem .7rem;font-family:var(--hb);font-size:.75rem;letter-spacing:1px;cursor:pointer;transition:all .2s">MIXED</div>
           </div>
         </div>
-        <div class="psr" onclick="window.open('liability-waiver.pdf','_blank')"><div class="psrl"><span style="font-size:1.1rem">&#x1F4C4;</span><div><div class="psrn">Liability Waiver</div><div class="psrs">View &amp; download PDF</div></div></div><span class="psra">&#x203A;</span></div>
-        <div class="psr" id="logout-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F6AA;</span><div><div class="psrn">Sign Out</div><div class="psrs">Log out of your account</div></div></div><span class="psra">&#x203A;</span></div>
+        <div class="psr" onclick="window.open('liability-waiver.pdf','_blank')"><div class="psrl"><span style="font-size:1.1rem">&#x1F4C4;</span><div><div class="psrn" data-lang-key="app-set-waiver">Liability Waiver</div><div class="psrs" data-lang-key="app-set-waiver-sub">View &amp; download PDF</div></div></div><span class="psra">&#x203A;</span></div>
+        <div class="psr" id="logout-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F6AA;</span><div><div class="psrn" data-lang-key="app-set-signout">Sign Out</div><div class="psrs" data-lang-key="app-set-signout-sub">Log out of your account</div></div></div><span class="psra">&#x203A;</span></div>
       </div>
     </div>
   </div>
@@ -1905,14 +1895,10 @@ function closeVideoPlayer() {
 var LANG = 'en';
 function setLang(l) {
   LANG = l;
-  document.getElementById('lang-en').classList.toggle('on', l === 'en');
-  document.getElementById('lang-es').classList.toggle('on', l === 'es');
-  var ptBtn = document.getElementById('lang-pt');
-  if (ptBtn) ptBtn.classList.toggle('on', l === 'pt');
   // Sync with global BBF lang engine — translate all data-lang-key elements
   if (window.BBF_LANG && window.BBF_LANG.get() !== l) window.BBF_LANG.set(l);
   else if (window.BBF_LANG) window.BBF_LANG.apply();
-  // Re-render active tab to refresh dynamic trilingual content
+  // Re-render prehab and active tab to refresh dynamic trilingual content
   renderPrehab();
   var activeTab = document.querySelector('.tp.on');
   if (activeTab) {
