@@ -180,7 +180,31 @@ var D = {
 'app-tab-sessions':     { en:'Sessions', es:'Sesiones', pt:'Sess\u00f5es' },
 'app-tab-strength':     { en:'Strength', es:'Fuerza', pt:'For\u00e7a' },
 'app-tab-body':         { en:'Body', es:'Cuerpo', pt:'Corpo' },
-'app-settings':         { en:'Settings', es:'Configuraci\u00f3n', pt:'Configura\u00e7\u00f5es' }
+'app-settings':         { en:'Settings', es:'Configuraci\u00f3n', pt:'Configura\u00e7\u00f5es' },
+'app-set-goal':         { en:'My Goal', es:'Mi Objetivo', pt:'Meu Objetivo' },
+'app-set-goal-sub':     { en:'Tap to set', es:'Toca para configurar', pt:'Toque para configurar' },
+'app-set-profession':   { en:'My Profession / Schedule', es:'Mi Profesi\u00f3n / Horario', pt:'Minha Profiss\u00e3o / Hor\u00e1rio' },
+'app-set-profession-sub': { en:'Tap to update', es:'Toca para actualizar', pt:'Toque para atualizar' },
+'app-set-recovery':     { en:'Recovery Mode', es:'Modo de Recuperaci\u00f3n', pt:'Modo de Recupera\u00e7\u00e3o' },
+'app-set-recovery-sub': { en:'Tap to set your recovery protocol', es:'Toca para configurar tu protocolo', pt:'Toque para configurar seu protocolo' },
+'app-set-waiver':       { en:'Liability Waiver', es:'Exoneraci\u00f3n de Responsabilidad', pt:'Termo de Responsabilidade' },
+'app-set-waiver-sub':   { en:'View & download PDF', es:'Ver y descargar PDF', pt:'Ver e baixar PDF' },
+'app-set-signout':      { en:'Sign Out', es:'Cerrar Sesi\u00f3n', pt:'Sair' },
+'app-set-signout-sub':  { en:'Log out of your account', es:'Cerrar tu cuenta', pt:'Sair da sua conta' },
+'app-nutr-title':       { en:'Nutrition Plan', es:'Plan Nutricional', pt:'Plano Nutricional' },
+'app-nutr-sub':         { en:'Your personalized 7-day meal plan', es:'Tu plan alimenticio personalizado de 7 d\u00edas', pt:'Seu plano alimentar personalizado de 7 dias' },
+'app-log-title':        { en:'Log a Session', es:'Registrar una Sesi\u00f3n', pt:'Registrar uma Sess\u00e3o' },
+'app-log-date':         { en:'Date', es:'Fecha', pt:'Data' },
+'app-log-type':         { en:'Session Type', es:'Tipo de Sesi\u00f3n', pt:'Tipo de Sess\u00e3o' },
+'app-log-duration':     { en:'Duration (mins)', es:'Duraci\u00f3n (min)', pt:'Dura\u00e7\u00e3o (min)' },
+'app-log-intensity':    { en:'Intensity (1-10)', es:'Intensidad (1-10)', pt:'Intensidade (1-10)' },
+'app-log-feel':         { en:'How did you feel?', es:'\u00bfC\u00f3mo te sentiste?', pt:'Como se sentiu?' },
+'app-log-notes':        { en:'Notes', es:'Notas', pt:'Notas' },
+'app-log-save':         { en:'Save Session \u2713', es:'Guardar Sesi\u00f3n \u2713', pt:'Salvar Sess\u00e3o \u2713' },
+'app-prehab-title':     { en:'Prehab & Recovery', es:'Prehab & Recuperaci\u00f3n', pt:'Prehab & Recupera\u00e7\u00e3o' },
+'app-prehab-sub':       { en:'OT-Informed joint health for high-demand athletes', es:'Salud articular con base en TO para atletas de alta demanda', pt:'Sa\u00fade articular com base em TO para atletas de alta demanda' },
+'app-book-text':        { en:'Text to Book', es:'Enviar Mensaje', pt:'Enviar Mensagem' },
+'app-book-call':        { en:'Call', es:'Llamar', pt:'Ligar' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
