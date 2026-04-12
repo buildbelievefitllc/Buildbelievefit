@@ -119,8 +119,32 @@ var D = {
 'trans-section-h': { en:'The System <span class="y">Was Born Here</span>', es:'El Sistema <span class="y">Naci\u00f3 Aqu\u00ed</span>', pt:'O Sistema <span class="y">Nasceu Aqui</span>' },
 'trans-sub':       { en:'Not theory. Not a textbook protocol. A system discovered through lived experience and refined through science.', es:'No es teor\u00eda. No es un protocolo de libro. Un sistema descubierto a trav\u00e9s de la experiencia vivida y refinado por la ciencia.', pt:'N\u00e3o \u00e9 teoria. N\u00e3o \u00e9 um protocolo de livro. Um sistema descoberto atrav\u00e9s da experi\u00eancia vivida e refinado pela ci\u00eancia.' },
 
-// ═══ PLACEHOLDER — more keys injected below ═══
-'_end': { en:'', es:'', pt:'' }
+// ═══ PATHFINDER ═══
+'path-lbl':        { en:'Start Your Journey', es:'Inicia Tu Camino', pt:'Inicie Sua Jornada' },
+'path-h':          { en:'The <span class="y">Pathfinder</span>', es:'El <span class="y">Pathfinder</span>', pt:'O <span class="y">Pathfinder</span>' },
+'path-sub':        { en:'4 quick steps. We\u2019ll calculate your personalized targets and Akeem will reach out within 24 hours.', es:'4 pasos r\u00e1pidos. Calcularemos tus metas personalizadas y Akeem te contactar\u00e1 en 24 horas.', pt:'4 passos r\u00e1pidos. Calcularemos suas metas personalizadas e Akeem entrar\u00e1 em contato em 24 horas.' },
+'path-s1-t':       { en:'Who Are You?', es:'\u00bfQui\u00e9n Eres?', pt:'Quem \u00c9 Voc\u00ea?' },
+'path-s1-s':       { en:'Tell us about yourself \u2014 we\u2019ll personalize everything.', es:'Cu\u00e9ntanos sobre ti \u2014 personalizaremos todo.', pt:'Conte-nos sobre voc\u00ea \u2014 personalizaremos tudo.' },
+'path-s2-t':       { en:'Your Stats', es:'Tus Datos', pt:'Seus Dados' },
+'path-s2-s':       { en:'Used to calculate your personalized TDEE and calorie targets.', es:'Usados para calcular tu TDEE personalizado y metas cal\u00f3ricas.', pt:'Usados para calcular seu TDEE personalizado e metas cal\u00f3ricas.' },
+'path-s3-t':       { en:'Your Goal', es:'Tu Objetivo', pt:'Seu Objetivo' },
+'path-s3-s':       { en:'What are you training for?', es:'\u00bfPara qu\u00e9 entrenas?', pt:'Para que voc\u00ea treina?' },
+'path-s4-t':       { en:'Final Details', es:'Detalles Finales', pt:'Detalhes Finais' },
+'path-s4-s':       { en:'Almost there. This helps Akeem prepare before reaching out.', es:'Casi listo. Esto ayuda a Akeem a prepararse antes de contactarte.', pt:'Quase l\u00e1. Isso ajuda Akeem a se preparar antes de entrar em contato.' },
+'path-submit':     { en:'Calculate My Path & Submit \u2192', es:'Calcular Mi Camino y Enviar \u2192', pt:'Calcular Meu Caminho e Enviar \u2192' },
+
+// ═══ APP DOWNLOAD ═══
+'app-lbl':         { en:'Client Portal', es:'Portal del Cliente', pt:'Portal do Cliente' },
+'app-h':           { en:'Your Program. In Your <span class="y">Pocket.</span>', es:'Tu Programa. En Tu <span class="y">Bolsillo.</span>', pt:'Seu Programa. No Seu <span class="y">Bolso.</span>' },
+'app-sub':         { en:'Access your personalized workout program, meal plan, progress tracking, and coach notes \u2014 all in one mobile app that works offline.', es:'Accede a tu programa de entrenamiento personalizado, plan alimenticio, seguimiento de progreso y notas del coach \u2014 todo en una app m\u00f3vil que funciona sin conexi\u00f3n.', pt:'Acesse seu programa de treino personalizado, plano alimentar, acompanhamento de progresso e notas do coach \u2014 tudo em um app m\u00f3vel que funciona offline.' },
+
+// ═══ CONTACT ═══
+'contact-h':       { en:'Let\u2019s Build. Today.', es:'Construyamos. Hoy.', pt:'Vamos Construir. Hoje.' },
+'contact-sub':     { en:'Ready to start? Have questions? Reach out directly \u2014 Akeem responds fast.', es:'\u00bfListo para comenzar? \u00bfTienes preguntas? Contacta directamente \u2014 Akeem responde r\u00e1pido.', pt:'Pronto para come\u00e7ar? Tem perguntas? Entre em contato diretamente \u2014 Akeem responde r\u00e1pido.' },
+
+// ═══ FOOTER ═══
+'footer-tag':      { en:'Universal Human Performance Architecture. Elite coaching for the high-demand life. Built for real results.', es:'Arquitectura Universal de Rendimiento Humano. Coaching de \u00e9lite para la vida de alta demanda. Construido para resultados reales.', pt:'Arquitetura Universal de Performance Humana. Coaching de elite para a vida de alta demanda. Constru\u00eddo para resultados reais.' },
+'footer-copy':     { en:'\u00a9 2026 Build Believe Fit LLC \u2022 All Rights Reserved \u2022 NASM Certified \u2022 buildbelievefit.fitness', es:'\u00a9 2026 Build Believe Fit LLC \u2022 Todos los Derechos Reservados \u2022 Certificado NASM \u2022 buildbelievefit.fitness', pt:'\u00a9 2026 Build Believe Fit LLC \u2022 Todos os Direitos Reservados \u2022 Certificado NASM \u2022 buildbelievefit.fitness' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
