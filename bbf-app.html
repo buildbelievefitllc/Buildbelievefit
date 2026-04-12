@@ -1342,13 +1342,22 @@ function renderTrainerDashboard(d) {
   rosterWrap.innerHTML = html;
 }
 
+// ─── TRILINGUAL UI HELPER ─────────────────────────────────
+function _t(key, fallback) {
+  if (window.BBF_LANG && window.BBF_LANG.D && window.BBF_LANG.D[key]) {
+    var L = LANG || 'en';
+    return window.BBF_LANG.D[key][L] || window.BBF_LANG.D[key].en || fallback;
+  }
+  return fallback;
+}
+
 // ─── WORKOUT ──────────────────────────────────────────────
 function RW() {
   var nav = document.getElementById('dnav');
   var con = document.getElementById('wcon');
   if (!PLAN) {
     nav.innerHTML = '';
-    con.innerHTML = '<div class="rdc"><div class="rdi">&#x1F4CB;</div><div class="rdt">No Program</div><div class="rds">Akeem will assign your workout plan.</div></div>';
+    con.innerHTML = '<div class="rdc"><div class="rdi">&#x1F4CB;</div><div class="rdt">' + _t('app-wo-noprogram','No Program') + '</div><div class="rds">' + _t('app-wo-noprogram-sub','Akeem will assign your workout plan.') + '</div></div>';
     return;
   }
   nav.innerHTML = PLAN.map(function(day, i) {
@@ -1374,12 +1383,12 @@ function RDW() {
   var saved = wl[dk] || {};
   var partner = d.u[uid] && d.u[uid].partner ? d.u[uid].partner : null;
   if (day.isRest) {
-    con.innerHTML = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">Rest Day</div></div>' +
-      '<div class="rdc"><div class="rdi">&#x1F634;</div><div class="rdt">Rest & Recover</div><div class="rds">' + (day.restNote || 'Active recovery, stretch, hydrate.') + '</div></div>';
+    con.innerHTML = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + _t('app-wo-restday','Rest Day') + '</div></div>' +
+      '<div class="rdc"><div class="rdi">&#x1F634;</div><div class="rdt">' + _t('app-wo-restrecover','Rest & Recover') + '</div><div class="rds">' + (day.restNote || _t('app-wo-restdefault','Active recovery, stretch, hydrate.')) + '</div></div>';
     return;
   }
   var h = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
-    '<div class="df2">' + day.exercises.length + ' exercises' + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>';
+    '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>';
   day.exercises.forEach(function(ex, ei) {
     var ek = 'ex_' + ei;
     var sv = saved[ek] || [];
@@ -1412,7 +1421,7 @@ function RDW() {
           '</div>';
       }
     } else {
-      h += '<div class="slbs"><div class="slb">Set</div><div class="slb">Target</div><div class="slb">Reps Done</div><div class="slb">Weight (lbs)</div></div>';
+      h += '<div class="slbs"><div class="slb">' + _t('app-wo-set','Set') + '</div><div class="slb">' + _t('app-wo-target','Target') + '</div><div class="slb">' + _t('app-wo-repsdone','Reps Done') + '</div><div class="slb">' + _t('app-wo-weightlbs','Weight (lbs)') + '</div></div>';
       for (var s = 0; s < ns; s++) {
         var sv1 = sv[s] || {};
         h += '<div class="srow2"><div class="snum">' + (s+1) + '</div><div class="stgt">' + ex.reps + '</div>' +
@@ -1422,7 +1431,7 @@ function RDW() {
     }
     h += '</div></div>';
   });
-  h += '<button class="dbtn" data-dk="' + dk + '">&#x2713; Mark Session Complete</button>';
+  h += '<button class="dbtn" data-dk="' + dk + '">&#x2713; ' + _t('app-wo-complete','Mark Session Complete') + '</button>';
   con.innerHTML = h;
   con.querySelectorAll('.eh').forEach(function(hdr) {
     hdr.onclick = function() { TEX(hdr); };
@@ -1472,7 +1481,7 @@ function CWO(day, dk) {
   wlogs.forEach(function(l){if(!seen[l.date]){seen[l.date]=1;dates2.push(l.date);}});
   dates2.sort().reverse(); var stk=0; var cur2=new Date();
   for(var i=0;i<dates2.length;i++){var dd2=new Date(dates2[i]+'T12:00:00');if(Math.round((cur2-dd2)/86400000)<=1){stk++;cur2=dd2;}else break;}
-  showVictory('CRUSHED IT!', day.focus + ' Complete', day.exercises.length + ' exercises • Great work!');
+  showVictory(_t('app-victory-title','CRUSHED IT!'), day.focus + ' ' + _t('app-victory-complete','Complete'), day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + ' \u2022 ' + _t('app-victory-great','Great work!'));
   setTimeout(function(){ checkStreakMilestone(stk); checkProgressiveOverload(); }, 600);
   RH();
 }
@@ -1483,8 +1492,8 @@ function RN() {
   var uid = VC || CU;
   var plan = MP[uid];
   if (!plan) {
-    con.innerHTML = '<div class="emp"><div class="ei">&#x1F957;</div><div class="et">No meal plan assigned yet</div>' +
-      '<div style="font-size:.8rem;color:var(--mut);margin-top:.5rem">Contact Akeem to get your plan set up.</div></div>';
+    con.innerHTML = '<div class="emp"><div class="ei">&#x1F957;</div><div class="et">' + _t('app-nutr-noplan','No meal plan assigned yet') + '</div>' +
+      '<div style="font-size:.8rem;color:var(--mut);margin-top:.5rem">' + _t('app-nutr-contact','Contact Akeem to get your plan set up.') + '</div></div>';
     return;
   }
   var todayIdx = new Date().getDay();
