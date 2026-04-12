@@ -229,7 +229,23 @@ var D = {
 'app-coach-notes':      { en:'\ud83d\udccb Coach Notes', es:'\ud83d\udccb Notas del Coach', pt:'\ud83d\udccb Notas do Coach' },
 'app-add-note':         { en:'Add Coach Note', es:'Agregar Nota del Coach', pt:'Adicionar Nota do Coach' },
 'app-save-note':        { en:'Save Note', es:'Guardar Nota', pt:'Salvar Nota' },
-'app-recent-sessions':  { en:'Recent Sessions', es:'Sesiones Recientes', pt:'Sess\u00f5es Recentes' }
+'app-recent-sessions':  { en:'Recent Sessions', es:'Sesiones Recientes', pt:'Sess\u00f5es Recentes' },
+'app-wo-noprogram':     { en:'No Program', es:'Sin Programa', pt:'Sem Programa' },
+'app-wo-noprogram-sub': { en:'Akeem will assign your workout plan.', es:'Akeem te asignar\u00e1 tu plan de entrenamiento.', pt:'Akeem vai atribuir seu plano de treino.' },
+'app-wo-restday':       { en:'Rest Day', es:'D\u00eda de Descanso', pt:'Dia de Descanso' },
+'app-wo-restrecover':   { en:'Rest & Recover', es:'Descanso & Recuperaci\u00f3n', pt:'Descanso & Recupera\u00e7\u00e3o' },
+'app-wo-restdefault':   { en:'Active recovery, stretch, hydrate.', es:'Recuperaci\u00f3n activa, estira, hidrata.', pt:'Recupera\u00e7\u00e3o ativa, alongue, hidrate.' },
+'app-wo-exercises':     { en:'exercises', es:'ejercicios', pt:'exerc\u00edcios' },
+'app-wo-set':           { en:'Set', es:'Serie', pt:'S\u00e9rie' },
+'app-wo-target':        { en:'Target', es:'Meta', pt:'Meta' },
+'app-wo-repsdone':      { en:'Reps Done', es:'Reps Hechas', pt:'Reps Feitas' },
+'app-wo-weightlbs':     { en:'Weight (lbs)', es:'Peso (lbs)', pt:'Peso (lbs)' },
+'app-wo-complete':      { en:'Mark Session Complete', es:'Marcar Sesi\u00f3n Completada', pt:'Marcar Sess\u00e3o Conclu\u00edda' },
+'app-nutr-noplan':      { en:'No meal plan assigned yet', es:'Sin plan alimenticio asignado', pt:'Nenhum plano alimentar atribu\u00eddo' },
+'app-nutr-contact':     { en:'Contact Akeem to get your plan set up.', es:'Contacta a Akeem para configurar tu plan.', pt:'Contacte Akeem para configurar seu plano.' },
+'app-victory-title':    { en:'CRUSHED IT!', es:'\u00a1LO LOGRASTE!', pt:'ARRASOU!' },
+'app-victory-complete': { en:'Complete', es:'Completado', pt:'Conclu\u00eddo' },
+'app-victory-great':    { en:'Great work!', es:'\u00a1Gran trabajo!', pt:'\u00d3timo trabalho!' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
