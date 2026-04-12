@@ -144,7 +144,43 @@ var D = {
 
 // ═══ FOOTER ═══
 'footer-tag':      { en:'Universal Human Performance Architecture. Elite coaching for the high-demand life. Built for real results.', es:'Arquitectura Universal de Rendimiento Humano. Coaching de \u00e9lite para la vida de alta demanda. Construido para resultados reales.', pt:'Arquitetura Universal de Performance Humana. Coaching de elite para a vida de alta demanda. Constru\u00eddo para resultados reais.' },
-'footer-copy':     { en:'\u00a9 2026 Build Believe Fit LLC \u2022 All Rights Reserved \u2022 NASM Certified \u2022 buildbelievefit.fitness', es:'\u00a9 2026 Build Believe Fit LLC \u2022 Todos los Derechos Reservados \u2022 Certificado NASM \u2022 buildbelievefit.fitness', pt:'\u00a9 2026 Build Believe Fit LLC \u2022 Todos os Direitos Reservados \u2022 Certificado NASM \u2022 buildbelievefit.fitness' }
+'footer-copy':     { en:'\u00a9 2026 Build Believe Fit LLC \u2022 All Rights Reserved \u2022 NASM Certified \u2022 buildbelievefit.fitness', es:'\u00a9 2026 Build Believe Fit LLC \u2022 Todos los Derechos Reservados \u2022 Certificado NASM \u2022 buildbelievefit.fitness', pt:'\u00a9 2026 Build Believe Fit LLC \u2022 Todos os Direitos Reservados \u2022 Certificado NASM \u2022 buildbelievefit.fitness' },
+
+// ═══ BBF CLIENT APP (bbf-app.html) ═══
+'app-splash-tag':       { en:'Elite Strength & Movement', es:'Fuerza & Movimiento de \u00c9lite', pt:'For\u00e7a & Movimento de Elite' },
+'app-splash-enter':     { en:'ENTER \u2192', es:'ENTRAR \u2192', pt:'ENTRAR \u2192' },
+'app-nav-home':         { en:'Home', es:'Inicio', pt:'In\u00edcio' },
+'app-nav-program':      { en:'Program', es:'Programa', pt:'Programa' },
+'app-nav-nutrition':    { en:'Nutrition', es:'Nutrici\u00f3n', pt:'Nutri\u00e7\u00e3o' },
+'app-nav-log':          { en:'Log', es:'Registro', pt:'Registro' },
+'app-nav-prehab':       { en:'Prehab', es:'Prehab', pt:'Prehab' },
+'app-nav-book':         { en:'Book', es:'Reservar', pt:'Agendar' },
+'app-nav-profile':      { en:'Profile', es:'Perfil', pt:'Perfil' },
+'app-welcome':          { en:'Welcome back', es:'Bienvenido de vuelta', pt:'Bem-vindo de volta' },
+'app-total-sessions':   { en:'Total Sessions', es:'Sesiones Totales', pt:'Sess\u00f5es Totais' },
+'app-this-week':        { en:'This Week', es:'Esta Semana', pt:'Esta Semana' },
+'app-current-weight':   { en:'Current Weight', es:'Peso Actual', pt:'Peso Atual' },
+'app-today-focus':      { en:"Today's Focus", es:'Enfoque de Hoy', pt:'Foco de Hoje' },
+'app-quick-actions':    { en:'Quick Actions', es:'Acciones R\u00e1pidas', pt:'A\u00e7\u00f5es R\u00e1pidas' },
+'app-qa-plan':          { en:"Today's Plan", es:'Plan de Hoy', pt:'Plano de Hoje' },
+'app-qa-plan-sub':      { en:'Follow your program', es:'Sigue tu programa', pt:'Siga seu programa' },
+'app-qa-log':           { en:'Free Log', es:'Registro Libre', pt:'Registro Livre' },
+'app-qa-log-sub':       { en:'Log any workout', es:'Registra cualquier sesi\u00f3n', pt:'Registre qualquer treino' },
+'app-qa-nutrition':     { en:'Nutrition', es:'Nutrici\u00f3n', pt:'Nutri\u00e7\u00e3o' },
+'app-qa-nutrition-sub': { en:'Your meal plan', es:'Tu plan alimenticio', pt:'Seu plano alimentar' },
+'app-qa-progress':      { en:'My Progress', es:'Mi Progreso', pt:'Meu Progresso' },
+'app-qa-progress-sub':  { en:'View stats', es:'Ver estad\u00edsticas', pt:'Ver estat\u00edsticas' },
+'app-book-title':       { en:'Book a Session', es:'Reservar una Sesi\u00f3n', pt:'Agendar uma Sess\u00e3o' },
+'app-book-sub':         { en:'Reach out to Akeem directly.', es:'Contacta a Akeem directamente.', pt:'Contacte Akeem diretamente.' },
+'app-wo-title':         { en:"Today's Program", es:'Programa de Hoy', pt:'Programa de Hoje' },
+'app-wo-sub':           { en:'Log your sets, reps & weight', es:'Registra tus series, reps y peso', pt:'Registre suas s\u00e9ries, reps e peso' },
+'app-progress-title':   { en:'My Progress', es:'Mi Progreso', pt:'Meu Progresso' },
+'app-progress-sub':     { en:'Track your fitness journey', es:'Sigue tu camino fitness', pt:'Acompanhe sua jornada fitness' },
+'app-tab-overview':     { en:'Overview', es:'Resumen', pt:'Resumo' },
+'app-tab-sessions':     { en:'Sessions', es:'Sesiones', pt:'Sess\u00f5es' },
+'app-tab-strength':     { en:'Strength', es:'Fuerza', pt:'For\u00e7a' },
+'app-tab-body':         { en:'Body', es:'Cuerpo', pt:'Corpo' },
+'app-settings':         { en:'Settings', es:'Configuraci\u00f3n', pt:'Configura\u00e7\u00f5es' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────

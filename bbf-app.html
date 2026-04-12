@@ -317,8 +317,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <div class="scr on" id="splash">
   <div class="sring"><div class="sinn">BBF</div></div>
   <div class="sw">Build<span class="y">Believe</span>Fit</div>
-  <div class="stag">Elite Strength &amp; Movement</div>
-  <button id="ebtn" onclick="SS('auth')">ENTER &#8594;</button>
+  <div class="stag" data-lang-key="app-splash-tag">Elite Strength &amp; Movement</div>
+  <button id="ebtn" onclick="SS('auth')" data-lang-key="app-splash-enter">ENTER &#8594;</button>
 </div>
 
 
@@ -479,7 +479,7 @@ window.onload=function(){
         </div>
       </div>
       <div class="hero">
-        <div class="hg">Welcome back</div>
+        <div class="hg" data-lang-key="app-welcome">Welcome back</div>
         <div class="hn" id="hname">&#8212;</div>
         <div id="protocol-badge" style="display:none;align-items:center;gap:.4rem;background:rgba(245,200,0,.1);border:1px solid rgba(245,200,0,.25);border-radius:20px;padding:.28rem .8rem;margin:.35rem 0;width:fit-content">
           <span id="protocol-icon" style="font-size:.8rem"></span>
@@ -489,18 +489,18 @@ window.onload=function(){
         <div class="stk"><div class="stn" id="hstreak">0</div><div class="stl">Streak &#x1F525;</div></div>
       </div>
       <div class="sg">
-        <div class="sc"><div class="sv" id="qtot">0</div><div class="sl">Total Sessions</div></div>
-        <div class="sc y"><div class="sv" id="qwk">0</div><div class="sl">This Week</div></div>
-        <div class="sc g"><div class="sv" id="qwt">&#8212;</div><div class="sl">Current Weight</div></div>
-        <div class="sc"><div class="sv" id="qfoc">&#8212;</div><div class="sl">Today&apos;s Focus</div></div>
+        <div class="sc"><div class="sv" id="qtot">0</div><div class="sl" data-lang-key="app-total-sessions">Total Sessions</div></div>
+        <div class="sc y"><div class="sv" id="qwk">0</div><div class="sl" data-lang-key="app-this-week">This Week</div></div>
+        <div class="sc g"><div class="sv" id="qwt">&#8212;</div><div class="sl" data-lang-key="app-current-weight">Current Weight</div></div>
+        <div class="sc"><div class="sv" id="qfoc">&#8212;</div><div class="sl" data-lang-key="app-today-focus">Today&apos;s Focus</div></div>
       </div>
       <div id="levelup-wrap"></div>
-      <div class="sh"><span class="stt">Quick Actions</span></div>
+      <div class="sh"><span class="stt" data-lang-key="app-quick-actions">Quick Actions</span></div>
       <div class="qg">
-        <button class="qa" id="qa-w"><div class="qi">&#x1F4CB;</div><div class="ql">Today&apos;s Plan</div><div class="qs2">Follow your program</div></button>
-        <button class="qa" id="qa-l"><div class="qi">&#x1F4AA;</div><div class="ql">Free Log</div><div class="qs2">Log any workout</div></button>
-        <button class="qa" id="qa-n"><div class="qi">&#x1F957;</div><div class="ql">Nutrition</div><div class="qs2">Your meal plan</div></button>
-        <button class="qa" id="qa-p"><div class="qi">&#x1F4CA;</div><div class="ql">My Progress</div><div class="qs2">View stats</div></button>
+        <button class="qa" id="qa-w"><div class="qi">&#x1F4CB;</div><div class="ql" data-lang-key="app-qa-plan">Today&apos;s Plan</div><div class="qs2" data-lang-key="app-qa-plan-sub">Follow your program</div></button>
+        <button class="qa" id="qa-l"><div class="qi">&#x1F4AA;</div><div class="ql" data-lang-key="app-qa-log">Free Log</div><div class="qs2" data-lang-key="app-qa-log-sub">Log any workout</div></button>
+        <button class="qa" id="qa-n"><div class="qi">&#x1F957;</div><div class="ql" data-lang-key="app-qa-nutrition">Nutrition</div><div class="qs2" data-lang-key="app-qa-nutrition-sub">Your meal plan</div></button>
+        <button class="qa" id="qa-p"><div class="qi">&#x1F4CA;</div><div class="ql" data-lang-key="app-qa-progress">My Progress</div><div class="qs2" data-lang-key="app-qa-progress-sub">View stats</div></button>
       </div>
       <div id="cnwrap" style="display:none">
         <div class="sh"><span class="stt">&#x1F4CB; Coach Notes</span></div>
@@ -562,7 +562,7 @@ window.onload=function(){
     </div>
     <!-- WORKOUT -->
     <div class="tp" id="tp-workout">
-      <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px">Today&apos;s Program</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem">Log your sets, reps &amp; weight</div></div>
+      <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-wo-title">Today&apos;s Program</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-wo-sub">Log your sets, reps &amp; weight</div></div>
       <!-- PROGRAM PANE -->
       <div id="vault-program-pane">
         <div class="dnav" id="dnav"></div>
@@ -673,7 +673,7 @@ window.onload=function(){
 
     <!-- BOOK -->
     <div class="tp" id="tp-book">
-      <div class="bkh"><div class="bkt">Book a Session</div><div class="bks">Reach out to Akeem directly.</div></div>
+      <div class="bkh"><div class="bkt" data-lang-key="app-book-title">Book a Session</div><div class="bks" data-lang-key="app-book-sub">Reach out to Akeem directly.</div></div>
       <a href="sms:6233409254?body=START" class="co"><div class="coi g">&#x1F4AC;</div><div><div class="col2">Text to Book</div><div class="cov">623-340-9254</div></div><div class="coa">&#x203A;</div></a>
       <a href="tel:6233409254" class="co"><div class="coi p">&#x1F4DE;</div><div><div class="col2">Call</div><div class="cov">623-340-9254</div></div><div class="coa">&#x203A;</div></a>
       <a href="/cdn-cgi/l/email-protection#3456415d58505651585d514251525d405858577456415d58505651585d514251525d401a525d405a514747" class="co"><div class="coi b">&#x1F4E7;</div><div><div class="col2">Email</div><div class="cov"><span class="__cf_email__" data-cfemail="3250475b5e5650575e5b574457545b465e5e517250475b5e5650575e5b574457545b461c545b465c574141">[email&#160;protected]</span></div></div><div class="coa">&#x203A;</div></a>
@@ -683,16 +683,16 @@ window.onload=function(){
 
       <!-- PROGRESS ANALYTICS -->
       <div style="margin-bottom:1rem">
-        <div style="font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.2rem">My Progress</div>
-        <div style="font-size:.83rem;color:var(--mut)">Track your fitness journey</div>
+        <div style="font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.2rem" data-lang-key="app-progress-title">My Progress</div>
+        <div style="font-size:.83rem;color:var(--mut)" data-lang-key="app-progress-sub">Track your fitness journey</div>
       </div>
 
       <!-- Sub-tabs -->
       <div class="progress-tab-btns">
-        <button class="ptb on" onclick="PTAB('overview')">Overview</button>
-        <button class="ptb" onclick="PTAB('sessions')">Sessions</button>
-        <button class="ptb" onclick="PTAB('strength')">Strength</button>
-        <button class="ptb" onclick="PTAB('body')">Body</button>
+        <button class="ptb on" onclick="PTAB('overview')" data-lang-key="app-tab-overview">Overview</button>
+        <button class="ptb" onclick="PTAB('sessions')" data-lang-key="app-tab-sessions">Sessions</button>
+        <button class="ptb" onclick="PTAB('strength')" data-lang-key="app-tab-strength">Strength</button>
+        <button class="ptb" onclick="PTAB('body')" data-lang-key="app-tab-body">Body</button>
       </div>
 
       <!-- OVERVIEW -->
@@ -801,7 +801,7 @@ window.onload=function(){
         <canvas id="wChart" height="110"></canvas>
       </div>
       <div id="pt-settings-wrap">
-      <div class="sh" style="margin-top:1rem"><span class="stt">Settings</span></div>
+      <div class="sh" style="margin-top:1rem"><span class="stt" data-lang-key="app-settings">Settings</span></div>
       <div class="psl">
         <div class="psr" id="goal-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F3AF;</span><div><div class="psrn">My Goal</div><div class="psrs" id="gsub">Tap to set</div></div></div><span class="psra">&#x203A;</span></div>
         <div class="psr" id="persona-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F4CC;</span><div><div class="psrn">My Profession / Schedule</div><div class="psrs" id="persona-sub">Tap to update</div></div></div><span class="psra">&#x203A;</span></div>
@@ -819,13 +819,13 @@ window.onload=function(){
   </div>
   <!-- NAV -->
   <div class="bn">
-    <button class="nv on" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
-    <button class="nv" data-tab="workout"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><line x1="6" y1="7" x2="6" y2="17"/><line x1="18" y1="7" x2="18" y2="17"/></svg><span>Program</span></button>
-    <button class="nv" data-tab="nutrition"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg><span>Nutrition</span></button>
-    <button class="nv" data-tab="log"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>Log</span></button>
-    <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span>Prehab</span></button>
-    <button class="nv" data-tab="book"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Book</span></button>
-    <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></button>
+    <button class="nv on" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-lang-key="app-nav-home">Home</span></button>
+    <button class="nv" data-tab="workout"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><line x1="6" y1="7" x2="6" y2="17"/><line x1="18" y1="7" x2="18" y2="17"/></svg><span data-lang-key="app-nav-program">Program</span></button>
+    <button class="nv" data-tab="nutrition"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg><span data-lang-key="app-nav-nutrition">Nutrition</span></button>
+    <button class="nv" data-tab="log"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span data-lang-key="app-nav-log">Log</span></button>
+    <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span data-lang-key="app-nav-prehab">Prehab</span></button>
+    <button class="nv" data-tab="book"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-lang-key="app-nav-book">Book</span></button>
+    <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-lang-key="app-nav-profile">Profile</span></button>
   </div>
 </div>
 
@@ -1910,7 +1910,8 @@ function setLang(l) {
   var ptBtn = document.getElementById('lang-pt');
   if (ptBtn) ptBtn.classList.toggle('on', l === 'pt');
   // Sync with global BBF lang engine if loaded
-  if (window.BBF && window.BBF.getLang() !== l) window.BBF.setLang(l);
+  if (window.BBF_LANG && window.BBF_LANG.get() !== l) window.BBF_LANG.set(l);
+  else if (window.BBF_LANG) window.BBF_LANG.apply();
   renderPrehab();
 }
 
