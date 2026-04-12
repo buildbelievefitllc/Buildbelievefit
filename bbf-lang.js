@@ -277,6 +277,7 @@ function t(key) {
 }
 
 function updateToggles(l) {
+  // Index.html toggles (desktop + mobile)
   var ids = [
     ['lt-en','lt-es','lt-pt'],
     ['mob-lt-en','mob-lt-es','mob-lt-pt']
@@ -297,8 +298,9 @@ function updateToggles(l) {
       }
     });
   });
+  // bbf-app.html toggle (rendered into #bbf-lang-placeholder)
   var placeholder = document.getElementById('bbf-lang-placeholder');
-  if (placeholder && !placeholder.querySelector('#bbf-lang-toggle')) {
+  if (placeholder) {
     placeholder.innerHTML =
       '<div id="bbf-lang-toggle">' +
       '<button onclick="BBF_LANG.set(\'en\')" class="' + (l === 'en' ? 'lang-active' : '') + '">EN</button>' +
