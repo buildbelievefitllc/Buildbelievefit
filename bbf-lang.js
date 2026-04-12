@@ -204,7 +204,32 @@ var D = {
 'app-prehab-title':     { en:'Prehab & Recovery', es:'Prehab & Recuperaci\u00f3n', pt:'Prehab & Recupera\u00e7\u00e3o' },
 'app-prehab-sub':       { en:'OT-Informed joint health for high-demand athletes', es:'Salud articular con base en TO para atletas de alta demanda', pt:'Sa\u00fade articular com base em TO para atletas de alta demanda' },
 'app-book-text':        { en:'Text to Book', es:'Enviar Mensaje', pt:'Enviar Mensagem' },
-'app-book-call':        { en:'Call', es:'Llamar', pt:'Ligar' }
+'app-book-call':        { en:'Call', es:'Llamar', pt:'Ligar' },
+'app-an-alltime':       { en:'\ud83d\udcca All-Time Stats', es:'\ud83d\udcca Estad\u00edsticas Totales', pt:'\ud83d\udcca Estat\u00edsticas Gerais' },
+'app-an-total':         { en:'Total Sessions', es:'Sesiones Totales', pt:'Sess\u00f5es Totais' },
+'app-an-streak':        { en:'Day Streak', es:'Racha de D\u00edas', pt:'Sequ\u00eancia de Dias' },
+'app-an-thisweek':      { en:'This Week', es:'Esta Semana', pt:'Esta Semana' },
+'app-an-month':         { en:'This Month', es:'Este Mes', pt:'Este M\u00eas' },
+'app-an-best':          { en:'Best Streak', es:'Mejor Racha', pt:'Melhor Sequ\u00eancia' },
+'app-an-avg':           { en:'Avg/Week', es:'Prom/Semana', pt:'M\u00e9d/Semana' },
+'app-an-last10':        { en:'\ud83d\udcc5 Last 10 Sessions', es:'\ud83d\udcc5 \u00daltimas 10 Sesiones', pt:'\ud83d\udcc5 \u00daltimas 10 Sess\u00f5es' },
+'app-an-heatmap':       { en:'\ud83d\udd25 Activity Heatmap \u2014 Last 30 Days', es:'\ud83d\udd25 Mapa de Actividad \u2014 \u00daltimos 30 D\u00edas', pt:'\ud83d\udd25 Mapa de Atividade \u2014 \u00daltimos 30 Dias' },
+'app-an-logged':        { en:'Logged', es:'Registrado', pt:'Registrado' },
+'app-an-today':         { en:'Today', es:'Hoy', pt:'Hoje' },
+'app-an-muscles':       { en:'\ud83d\udcaa Most Trained Muscle Groups', es:'\ud83d\udcaa Grupos Musculares M\u00e1s Entrenados', pt:'\ud83d\udcaa Grupos Musculares Mais Treinados' },
+'app-an-history':       { en:'\ud83d\udccb Session History', es:'\ud83d\udccb Historial de Sesiones', pt:'\ud83d\udccb Hist\u00f3rico de Sess\u00f5es' },
+'app-an-strength':      { en:'\ud83c\udfcb Workout Log Progress', es:'\ud83c\udfcb Progreso de Entrenamiento', pt:'\ud83c\udfcb Progresso de Treino' },
+'app-an-weight':        { en:'\u2696\ufe0f Weight Progress', es:'\u2696\ufe0f Progreso de Peso', pt:'\u2696\ufe0f Progresso de Peso' },
+'app-an-current':       { en:'Current', es:'Actual', pt:'Atual' },
+'app-an-starting':      { en:'Starting', es:'Inicial', pt:'Inicial' },
+'app-an-change':        { en:'Change', es:'Cambio', pt:'Mudan\u00e7a' },
+'app-an-bodyfat':       { en:'\ud83d\udcc8 Body Fat % History', es:'\ud83d\udcc8 Historial de % Grasa', pt:'\ud83d\udcc8 Hist\u00f3rico de % Gordura' },
+'app-an-logmetrics':    { en:'\ud83e\uddae Log Body Metrics', es:'\ud83e\uddae Registrar M\u00e9tricas Corporales', pt:'\ud83e\uddae Registrar M\u00e9tricas Corporais' },
+'app-an-savemetrics':   { en:'Save Metrics', es:'Guardar M\u00e9tricas', pt:'Salvar M\u00e9tricas' },
+'app-coach-notes':      { en:'\ud83d\udccb Coach Notes', es:'\ud83d\udccb Notas del Coach', pt:'\ud83d\udccb Notas do Coach' },
+'app-add-note':         { en:'Add Coach Note', es:'Agregar Nota del Coach', pt:'Adicionar Nota do Coach' },
+'app-save-note':        { en:'Save Note', es:'Guardar Nota', pt:'Salvar Nota' },
+'app-recent-sessions':  { en:'Recent Sessions', es:'Sesiones Recientes', pt:'Sess\u00f5es Recentes' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────

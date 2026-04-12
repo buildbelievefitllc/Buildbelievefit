@@ -503,61 +503,18 @@ window.onload=function(){
         <button class="qa" id="qa-p"><div class="qi">&#x1F4CA;</div><div class="ql" data-lang-key="app-qa-progress">My Progress</div><div class="qs2" data-lang-key="app-qa-progress-sub">View stats</div></button>
       </div>
       <div id="cnwrap" style="display:none">
-        <div class="sh"><span class="stt">&#x1F4CB; Coach Notes</span></div>
+        <div class="sh"><span class="stt" data-lang-key="app-coach-notes">&#x1F4CB; Coach Notes</span></div>
         <div id="cnlist"></div>
       </div>
-      <!-- 3:12 FOUNDER ROADMAP — Trainer only -->
-      <div id="founder-roadmap-wrap" style="display:none;margin-bottom:1rem">
-        <div style="background:var(--gry2);border:1px solid var(--gry3);border-radius:14px;overflow:hidden">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem;cursor:pointer;background:linear-gradient(90deg,rgba(106,13,173,.2),transparent)" onclick="this.nextElementSibling.classList.toggle('on');this.querySelector('.ec').classList.toggle('on')">
-            <div>
-              <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--yel)">90-Day Execution Roadmap</div>
-              <div style="font-size:.9rem;font-weight:800;color:var(--wht);margin-top:.2rem">3:12 Founder Schedule (Fri-Sun Shifts)</div>
-            </div>
-            <div class="ec">&#x25be;</div>
-          </div>
-          <div style="display:none;padding:1rem;border-top:1px solid var(--gry3)" class="ebody on">
-            <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--purl);margin-bottom:.8rem">YOUR WEEK STRUCTURE</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem">
-              <div style="background:var(--gry);border-radius:10px;padding:.8rem;border-left:3px solid var(--yel)">
-                <div style="font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--yel)">MON–THU CEO WINDOW</div>
-                <div style="font-size:.78rem;font-weight:600;color:#ccc;margin-top:.4rem;line-height:1.6">Content creation · Client check-ins · Course recording · Email marketing · School (OT prereqs) · Language immersion (ES/PT audio during 2hr gym sessions)</div>
-              </div>
-              <div style="background:var(--gry);border-radius:10px;padding:.8rem;border-left:3px solid var(--purl)">
-                <div style="font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--purl)">FRI–SUN SHIFT DAYS</div>
-                <div style="font-size:.78rem;font-weight:600;color:#ccc;margin-top:.4rem;line-height:1.6">Async client monitoring via app · Formspree lead review · Pre-scheduled email sequences fire · App data syncs · Rest &amp; recovery priority</div>
-              </div>
-            </div>
-            <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--purl);margin-bottom:.6rem">90-DAY MILESTONES</div>
-            <div style="display:flex;flex-direction:column;gap:.5rem">
-              <div style="background:var(--gry);border-radius:8px;padding:.7rem .9rem;display:flex;gap:.8rem;align-items:flex-start">
-                <div style="font-family:var(--hb);font-size:1rem;color:var(--yel);flex-shrink:0">D01-30</div>
-                <div style="font-size:.78rem;font-weight:600;color:#ccc;line-height:1.6"><strong style="color:var(--wht)">Foundation:</strong> Publish 2 PDF guides · Launch Community Blueprint at $67 · Build email list to 500 · Record Masterclass Module 1-2 · Grow Spanish + Portuguese content</div>
-              </div>
-              <div style="background:var(--gry);border-radius:8px;padding:.7rem .9rem;display:flex;gap:.8rem;align-items:flex-start">
-                <div style="font-family:var(--hb);font-size:1rem;color:var(--yel);flex-shrink:0">D31-60</div>
-                <div style="font-size:.78rem;font-weight:600;color:#ccc;line-height:1.6"><strong style="color:var(--wht)">Momentum:</strong> Launch Elite 8-Week Challenge ($497) · First cohort of 15-20 clients · Email list to 2,500 · Record Modules 3-4 · First bilingual Instagram Reels series</div>
-              </div>
-              <div style="background:var(--gry);border-radius:8px;padding:.7rem .9rem;display:flex;gap:.8rem;align-items:flex-start">
-                <div style="font-family:var(--hb);font-size:1rem;color:var(--yel);flex-shrink:0">D61-90</div>
-                <div style="font-size:.78rem;font-weight:600;color:#ccc;line-height:1.6"><strong style="color:var(--wht)">Scale:</strong> Legacy Protocol first 2 executive clients · Full Masterclass Vault live · Email list 5,000+ · Q2 Challenge cohort open · Passive income floor: $8K/mo</div>
-              </div>
-            </div>
-            <div style="margin-top:.8rem;background:rgba(245,200,0,.06);border:1px solid rgba(245,200,0,.15);border-radius:8px;padding:.7rem .9rem">
-              <div style="font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--yel);margin-bottom:.3rem">&#x1F3A7; Subconscious Language Immersion</div>
-              <div style="font-size:.78rem;font-weight:600;color:#ccc;line-height:1.6">During your 2-hour gym sessions (Mon-Thu): Play Spanish or Portuguese audio content — podcasts, lessons, or client call recordings. Your CNS is in a high-plasticity state during moderate-intensity training. This is the optimal window for language acquisition. Rotate ES one week, PT the next.</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Founder Roadmap removed — clean client environment -->
       <div id="tnfwrap" style="display:none;margin-bottom:1rem">
         <div class="tnf">
-          <div class="tnfl">Add Coach Note</div>
+          <div class="tnfl" data-lang-key="app-add-note">Add Coach Note</div>
           <textarea class="lfta" id="tnote" placeholder="e.g. Great progress! Focus on hip mobility..."></textarea>
-          <button class="lbtn" style="margin-top:.8rem" id="note-btn">Save Note</button>
+          <button class="lbtn" style="margin-top:.8rem" id="note-btn" data-lang-key="app-save-note">Save Note</button>
         </div>
       </div>
-      <div class="sh"><span class="stt">Recent Sessions</span></div>
+      <div class="sh"><span class="stt" data-lang-key="app-recent-sessions">Recent Sessions</span></div>
       <div class="rl" id="rlist"><div class="emp"><div class="ei">&#x1F3CB;</div><div class="et">No sessions yet</div></div></div>
     </div>
     <!-- WORKOUT -->
@@ -688,37 +645,37 @@ window.onload=function(){
       <!-- OVERVIEW -->
       <div id="pt-overview">
         <div class="analytics-section">
-          <div class="analytics-title">&#x1F4CA; All-Time Stats</div>
+          <div class="analytics-title" data-lang-key="app-an-alltime">&#x1F4CA; All-Time Stats</div>
           <div class="analytics-stats">
-            <div class="ast"><div class="ast-v" id="an-total">0</div><div class="ast-l">Total Sessions</div></div>
-            <div class="ast g"><div class="ast-v" id="an-streak">0</div><div class="ast-l">Day Streak</div></div>
-            <div class="ast b"><div class="ast-v" id="an-week">0</div><div class="ast-l">This Week</div></div>
+            <div class="ast"><div class="ast-v" id="an-total">0</div><div class="ast-l" data-lang-key="app-an-total">Total Sessions</div></div>
+            <div class="ast g"><div class="ast-v" id="an-streak">0</div><div class="ast-l" data-lang-key="app-an-streak">Day Streak</div></div>
+            <div class="ast b"><div class="ast-v" id="an-week">0</div><div class="ast-l" data-lang-key="app-an-thisweek">This Week</div></div>
           </div>
           <div class="analytics-stats" style="margin-bottom:0">
-            <div class="ast"><div class="ast-v" id="an-month">0</div><div class="ast-l">This Month</div></div>
-            <div class="ast r"><div class="ast-v" id="an-best">0</div><div class="ast-l">Best Streak</div></div>
-            <div class="ast g"><div class="ast-v" id="an-avg">0</div><div class="ast-l">Avg/Week</div></div>
+            <div class="ast"><div class="ast-v" id="an-month">0</div><div class="ast-l" data-lang-key="app-an-month">This Month</div></div>
+            <div class="ast r"><div class="ast-v" id="an-best">0</div><div class="ast-l" data-lang-key="app-an-best">Best Streak</div></div>
+            <div class="ast g"><div class="ast-v" id="an-avg">0</div><div class="ast-l" data-lang-key="app-an-avg">Avg/Week</div></div>
           </div>
         </div>
 
         <div class="analytics-section">
-          <div class="analytics-title">&#x1F4C5; Last 10 Sessions</div>
+          <div class="analytics-title" data-lang-key="app-an-last10">&#x1F4C5; Last 10 Sessions</div>
           <div id="an-barchart">
             <div class="emp" style="padding:1rem"><div class="et">Log sessions to see your chart</div></div>
           </div>
         </div>
 
         <div class="analytics-section">
-          <div class="analytics-title">&#x1F525; Activity Heatmap — Last 30 Days</div>
+          <div class="analytics-title" data-lang-key="app-an-heatmap">&#x1F525; Activity Heatmap — Last 30 Days</div>
           <div class="streak-row" id="an-heatmap"></div>
           <div style="display:flex;gap:.5rem;align-items:center;margin-top:.3rem">
-            <div class="streak-dot done" style="width:12px;height:12px"></div><span style="font-size:.65rem;color:var(--mut)">Logged</span>
-            <div class="streak-dot today" style="width:12px;height:12px;margin-left:.5rem"></div><span style="font-size:.65rem;color:var(--mut)">Today</span>
+            <div class="streak-dot done" style="width:12px;height:12px"></div><span style="font-size:.65rem;color:var(--mut)" data-lang-key="app-an-logged">Logged</span>
+            <div class="streak-dot today" style="width:12px;height:12px;margin-left:.5rem"></div><span style="font-size:.65rem;color:var(--mut)" data-lang-key="app-an-today">Today</span>
           </div>
         </div>
 
         <div class="analytics-section">
-          <div class="analytics-title">&#x1F4AA; Most Trained Muscle Groups</div>
+          <div class="analytics-title" data-lang-key="app-an-muscles">&#x1F4AA; Most Trained Muscle Groups</div>
           <div class="muscle-grid" id="an-muscles">
             <div class="emp" style="padding:.5rem;grid-column:span 2"><div class="et" style="font-size:.72rem">Log sessions to see breakdown</div></div>
           </div>
@@ -728,7 +685,7 @@ window.onload=function(){
       <!-- SESSIONS -->
       <div id="pt-sessions" style="display:none">
         <div class="analytics-section">
-          <div class="analytics-title">&#x1F4CB; Session History</div>
+          <div class="analytics-title" data-lang-key="app-an-history">&#x1F4CB; Session History</div>
           <div id="an-session-list">
             <div class="emp"><div class="ei">&#x1F3CB;</div><div class="et">No sessions logged yet</div></div>
           </div>
@@ -738,7 +695,7 @@ window.onload=function(){
       <!-- STRENGTH -->
       <div id="pt-strength" style="display:none">
         <div class="analytics-section">
-          <div class="analytics-title">&#x1F3CB; Workout Log Progress</div>
+          <div class="analytics-title" data-lang-key="app-an-strength">&#x1F3CB; Workout Log Progress</div>
           <div id="an-strength-content">
             <div class="emp"><div class="ei">&#x1F4AA;</div><div class="et">Log workouts with weights to track strength progress</div></div>
           </div>
@@ -749,28 +706,28 @@ window.onload=function(){
       <div id="pt-body" style="display:none">
 
         <div class="analytics-section">
-          <div class="analytics-title">&#x2696;&#xFE0F; Weight Progress</div>
+          <div class="analytics-title" data-lang-key="app-an-weight">&#x2696;&#xFE0F; Weight Progress</div>
           <div class="analytics-stats">
-            <div class="wwi"><div class="wwv" id="wsc">&#8212;</div><div class="wwl">Current</div></div>
-            <div class="wwi"><div class="wwv" id="wss">&#8212;</div><div class="wwl">Starting</div></div>
-            <div class="wwi"><div class="wwv" id="wsch" style="font-size:1rem">&#8212;</div><div class="wwl">Change</div></div>
+            <div class="wwi"><div class="wwv" id="wsc">&#8212;</div><div class="wwl" data-lang-key="app-an-current">Current</div></div>
+            <div class="wwi"><div class="wwv" id="wss">&#8212;</div><div class="wwl" data-lang-key="app-an-starting">Starting</div></div>
+            <div class="wwi"><div class="wwv" id="wsch" style="font-size:1rem">&#8212;</div><div class="wwl" data-lang-key="app-an-change">Change</div></div>
           </div>
           <canvas id="wChart" height="110"></canvas>
         </div>
         <div class="analytics-section">
-          <div class="analytics-title">&#x1F4C8; Body Fat % History</div>
+          <div class="analytics-title" data-lang-key="app-an-bodyfat">&#x1F4C8; Body Fat % History</div>
           <canvas id="bfChart" height="110"></canvas>
           <div id="bf-empty" style="display:none">
             <div class="emp" style="padding:.5rem"><div class="et" style="font-size:.72rem">Log body fat % to see your trend</div></div>
           </div>
         </div>
         <div class="analytics-section">
-          <div class="analytics-title">&#x1F9AE; Log Body Metrics</div>
+          <div class="analytics-title" data-lang-key="app-an-logmetrics">&#x1F9AE; Log Body Metrics</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.8rem">
             <div><label class="lfl">Weight (lbs)</label><input class="lfi" type="number" id="metric-wt" placeholder="185" inputmode="decimal"/></div>
             <div><label class="lfl">Body Fat %</label><input class="lfi" type="number" id="metric-bf" placeholder="18" inputmode="decimal"/></div>
           </div>
-          <button class="lbtn" onclick="SAVEMETRICS()">Save Metrics</button>
+          <button class="lbtn" onclick="SAVEMETRICS()" data-lang-key="app-an-savemetrics">Save Metrics</button>
         </div>
       </div>
 
@@ -1273,8 +1230,6 @@ function SETUP_TRAINER() {
   // Only show client switcher when viewing a specific client, not on roster view
   document.getElementById('trswitch').style.display = (VC && VC !== CU) ? 'block' : 'none';
   document.getElementById('tnfwrap').style.display = 'block';
-  var roadmap = document.getElementById('founder-roadmap-wrap');
-  if (roadmap) roadmap.style.display = 'block';
   var chips = document.getElementById('cchips');
   chips.innerHTML = '';
   if (!clients.length) {
