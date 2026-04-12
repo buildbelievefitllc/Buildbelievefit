@@ -91,6 +91,34 @@ var D = {
 'prog-t3-price':   { en:'$1,500 \u2013 $2,500', es:'$1,500 \u2013 $2,500', pt:'$1.500 \u2013 $2.500' },
 'prog-t3-cta':     { en:'Apply for Legacy \u2192', es:'Solicitar Legacy \u2192', pt:'Solicitar Legacy \u2192' },
 
+// ═══ NUTRITION ═══
+'nut-lbl':         { en:'Nutrition Coaching', es:'Coaching Nutricional', pt:'Coaching Nutricional' },
+'nut-h':           { en:'Fuel The <span class="y">Right Way</span>', es:'Alimenta De La <span class="y">Forma Correcta</span>', pt:'Alimente Da <span class="y">Forma Certa</span>' },
+'nut-sub':         { en:'NASM-certified nutrition coaching. Personalized meal plans aligned with your training, lifestyle, and physique goals.', es:'Coaching nutricional certificado NASM. Planes alimenticios personalizados alineados con tu entrenamiento, estilo de vida y objetivos f\u00edsicos.', pt:'Coaching nutricional certificado NASM. Planos alimentares personalizados alinhados com seu treino, estilo de vida e objetivos f\u00edsicos.' },
+'nut-n1':          { en:'Lite', es:'Lite', pt:'Lite' },
+'nut-d1':          { en:'Self-starters who need a solid baseline. Use our free TDEE calculator and get your macro targets instantly.', es:'Para quienes inician solos y necesitan una base s\u00f3lida. Usa nuestra calculadora TDEE gratuita y obt\u00e9n tus metas de macros al instante.', pt:'Para quem inicia sozinho e precisa de uma base s\u00f3lida. Use nossa calculadora TDEE gratuita e obtenha suas metas de macros instantaneamente.' },
+'nut-cta1':        { en:'Calculate Your TDEE \u2192', es:'Calcula Tu TDEE \u2192', pt:'Calcule Seu TDEE \u2192' },
+'nut-n2':          { en:'Essentials', es:'Esenciales', pt:'Essenciais' },
+'nut-d2':          { en:'Full nutrition system built around your training. Tracked inside your personalized client portal.', es:'Sistema nutricional completo construido alrededor de tu entrenamiento. Rastreado dentro de tu portal personalizado.', pt:'Sistema nutricional completo constru\u00eddo ao redor do seu treino. Rastreado dentro do seu portal personalizado.' },
+'nut-cta2':        { en:'Access Client Portal \u2192', es:'Acceder al Portal \u2192', pt:'Acessar o Portal \u2192' },
+'nut-n3':          { en:'Platinum', es:'Platinum', pt:'Platinum' },
+'nut-d3':          { en:'Full-service. Training and nutrition fully integrated. Akeem manages and adjusts everything.', es:'Servicio completo. Entrenamiento y nutrici\u00f3n totalmente integrados. Akeem gestiona y ajusta todo.', pt:'Servi\u00e7o completo. Treino e nutri\u00e7\u00e3o totalmente integrados. Akeem gerencia e ajusta tudo.' },
+'nut-cta3':        { en:'Apply for Platinum \u2192', es:'Solicitar Platinum \u2192', pt:'Solicitar Platinum \u2192' },
+'tdee-h':          { en:'Calculate Your TDEE', es:'Calcula Tu TDEE', pt:'Calcule Seu TDEE' },
+'tdee-btn':        { en:'Calculate My Targets \u2192', es:'Calcular Mis Metas \u2192', pt:'Calcular Minhas Metas \u2192' },
+
+// ═══ TESTIMONIALS ═══
+'testi-lbl':       { en:'Client Results', es:'Resultados de Clientes', pt:'Resultados de Clientes' },
+'testi-h':         { en:'Real People. <span class="y">Real Work.</span>', es:'Personas Reales. <span class="y">Trabajo Real.</span>', pt:'Pessoas Reais. <span class="y">Trabalho Real.</span>' },
+'testi-q1':        { en:'Akeem built my program around my high-demand schedule. I\u2019m training 5 days a week, down 22 lbs, and hitting PRs I never thought possible. The system adapts to my life, not the other way around.', es:'Akeem construy\u00f3 mi programa alrededor de mi horario de alta demanda. Entreno 5 d\u00edas a la semana, baj\u00e9 22 lbs, y estoy logrando marcas que nunca cre\u00ed posibles. El sistema se adapta a mi vida, no al rev\u00e9s.', pt:'Akeem construiu meu programa ao redor da minha agenda de alta demanda. Treino 5 dias por semana, perdi 22 lbs, e estou batendo recordes que nunca achei poss\u00edveis. O sistema se adapta \u00e0 minha vida, n\u00e3o o contr\u00e1rio.' },
+'testi-q2':        { en:'The app is insane \u2014 I can see my meal plan, log my workouts, and track my progress all in one place. But it\u2019s the coaching that makes the difference. Akeem is locked in.', es:'La app es incre\u00edble \u2014 puedo ver mi plan alimenticio, registrar mis entrenamientos y seguir mi progreso todo en un lugar. Pero es el coaching lo que marca la diferencia. Akeem est\u00e1 comprometido al 100%.', pt:'O app \u00e9 incr\u00edvel \u2014 posso ver meu plano alimentar, registrar meus treinos e acompanhar meu progresso tudo em um lugar. Mas \u00e9 o coaching que faz a diferen\u00e7a. Akeem \u00e9 100% comprometido.' },
+'testi-q3':        { en:'I was skeptical at first but the results don\u2019t lie. Down 18 lbs, my energy is through the roof, and I finally feel confident in the gym. Akeem knows exactly how to push you without burning you out.', es:'Al principio era esc\u00e9ptico pero los resultados no mienten. Baj\u00e9 18 lbs, mi energ\u00eda est\u00e1 por los cielos, y finalmente me siento seguro en el gimnasio. Akeem sabe exactamente c\u00f3mo empujarte sin quemarte.', pt:'No in\u00edcio era c\u00e9tico mas os resultados n\u00e3o mentem. Perdi 18 lbs, minha energia est\u00e1 nas alturas, e finalmente me sinto confiante na academia. Akeem sabe exatamente como te empurrar sem te esgotar.' },
+
+// ═══ TRANSFORMATION ═══
+'trans-lbl':       { en:'The Origin of the System', es:'El Origen del Sistema', pt:'A Origem do Sistema' },
+'trans-section-h': { en:'The System <span class="y">Was Born Here</span>', es:'El Sistema <span class="y">Naci\u00f3 Aqu\u00ed</span>', pt:'O Sistema <span class="y">Nasceu Aqui</span>' },
+'trans-sub':       { en:'Not theory. Not a textbook protocol. A system discovered through lived experience and refined through science.', es:'No es teor\u00eda. No es un protocolo de libro. Un sistema descubierto a trav\u00e9s de la experiencia vivida y refinado por la ciencia.', pt:'N\u00e3o \u00e9 teoria. N\u00e3o \u00e9 um protocolo de livro. Um sistema descoberto atrav\u00e9s da experi\u00eancia vivida e refinado pela ci\u00eancia.' },
+
 // ═══ PLACEHOLDER — more keys injected below ═══
 '_end': { en:'', es:'', pt:'' }
 };
