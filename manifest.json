@@ -1,7 +1,7 @@
 {
   "name": "Build Believe Fit",
   "short_name": "BBF",
-  "description": "Elite Strength & Movement — NASM-certified personal training, workout tracking, and nutrition plans for high-demand athletes.",
+  "description": "Universal Human Performance Architecture — NASM-certified training, habit engineering, and nutrition optimization for every professional.",
   "start_url": "/bbf-app.html",
   "scope": "/",
   "display": "standalone",
@@ -56,7 +56,7 @@
     {
       "name": "Masterclass Vault",
       "short_name": "Masterclass",
-      "description": "Industrial Athlete Masterclass modules",
+      "description": "Human Performance Masterclass modules",
       "url": "/bbf-app.html",
       "icons": [{ "src": "bbf-icon.jpeg", "sizes": "192x192" }]
     },

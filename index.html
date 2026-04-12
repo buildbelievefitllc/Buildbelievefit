@@ -340,15 +340,15 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 <nav id="nav">
   <a class="nb" href="#">Build<span class="y">Believe</span>Fit</a>
   <ul class="nl">
-    <li><a href="#services" id="nav-services">Services</a></li>
-    <li><a href="#programs" id="nav-programs">Programs</a></li>
-    <li><a href="#nutrition" id="nav-nutrition">Nutrition</a></li>
-    <li><a href="#testimonials" id="nav-results">Results</a></li>
-    <li><a href="#transformation" id="nav-mystory">My Story</a></li>
-    <li><a href="#founder" id="nav-about">About</a></li>
-    <li><a href="#pathfinder" id="nav-start">Start</a></li>
+    <li><a href="#services" id="nav-services" data-lang-key="nav-services">Services</a></li>
+    <li><a href="#programs" id="nav-programs" data-lang-key="nav-programs">Programs</a></li>
+    <li><a href="#nutrition" id="nav-nutrition" data-lang-key="nav-nutrition">Nutrition</a></li>
+    <li><a href="#testimonials" id="nav-results" data-lang-key="nav-results">Results</a></li>
+    <li><a href="#transformation" id="nav-mystory" data-lang-key="nav-mystory">My Story</a></li>
+    <li><a href="#founder" id="nav-about" data-lang-key="nav-about">About</a></li>
+    <li><a href="#pathfinder" id="nav-start" data-lang-key="nav-start">Start</a></li>
   </ul>
-  <a href="bbf-app.html" class="nc">&#x1F4F2; Get the App</a>
+  <a href="bbf-app.html" class="nc" data-lang-key="nav-cta">&#x1F4F2; Get the App</a>
   <div class="lang-toggle" id="lang-toggle">
     <button onclick="BBF_LANG.set('en')" id="lt-en" class="lang-on">EN</button>
     <button onclick="BBF_LANG.set('es')" id="lt-es">ES</button>
@@ -359,13 +359,13 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
   </button>
 </nav>
 <div class="mnav" id="mnav">
-  <a href="#services">Services</a>
-  <a href="#programs">Programs</a>
-  <a href="#nutrition">Nutrition</a>
-  <a href="#testimonials">Results</a>
-  <a href="#founder">About</a>
-  <a href="#pathfinder">Start My Journey</a>
-  <a href="bbf-app.html">&#x1F4F2; Client App</a>
+  <a href="#services" data-lang-key="mnav-services">Services</a>
+  <a href="#programs" data-lang-key="mnav-programs">Programs</a>
+  <a href="#nutrition" data-lang-key="mnav-nutrition">Nutrition</a>
+  <a href="#testimonials" data-lang-key="mnav-results">Results</a>
+  <a href="#founder" data-lang-key="mnav-about">About</a>
+  <a href="#pathfinder" data-lang-key="mnav-start">Start My Journey</a>
+  <a href="bbf-app.html" data-lang-key="mnav-app">&#x1F4F2; Client App</a>
   <div style="display:flex;gap:0;margin-top:.5rem">
     <button onclick="BBF_LANG.set('en')" style="flex:1;padding:.6rem;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;background:rgba(245,200,0,.15);border:1px solid rgba(245,200,0,.3);color:var(--wht);cursor:pointer" id="mob-lt-en">EN</button>
     <button onclick="BBF_LANG.set('es')" style="flex:1;padding:.6rem;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;background:transparent;border:1px solid rgba(245,200,0,.3);color:var(--mut2);cursor:pointer" id="mob-lt-es">ES</button>
@@ -396,24 +396,24 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
   <div class="hero-bg">BBF</div>
   <div class="hero-in">
     <div>
-      <div class="hero-badge">&#x26A1; NASM-Certified &bull; Human Performance Architect</div>
+      <div class="hero-badge"><span data-lang-key="hero-badge">&#x26A1; NASM-Certified &bull; Human Performance Architect</span></div>
       <h1>Build<br><span class="y">Believe</span><br><span class="ol">Fit</span></h1>
       <p class="hero-sub" id="hero-sub" data-lang-key="hero-sub">Universal performance for the <strong>high-demand human.</strong> We optimize the habit architecture of everyday athletes, executives, and first responders. <strong>Your schedule is the context. Your potential is the focus.</strong></p>
       <div class="hero-btns">
-        <a href="#pathfinder" class="btn-y">Start My Path &#x2192;</a>
-        <a href="bbf-app.html" class="btn-o">&#x1F4F2; Client Portal</a>
+        <a href="#pathfinder" class="btn-y" data-lang-key="hero-cta">Start My Path &#x2192;</a>
+        <a href="bbf-app.html" class="btn-o" data-lang-key="hero-portal">&#x1F4F2; Client Portal</a>
       </div>
       <div class="hero-stats">
-        <div><div class="hs-n">5+</div><div class="hs-l">Active Clients</div></div>
-        <div><div class="hs-n">NASM</div><div class="hs-l">Certified CPT</div></div>
-        <div><div class="hs-n">100%</div><div class="hs-l">Custom Plans</div></div>
+        <div><div class="hs-n">5+</div><div class="hs-l" data-lang-key="stat-clients">Active Clients</div></div>
+        <div><div class="hs-n">NASM</div><div class="hs-l" data-lang-key="stat-cert">Certified CPT</div></div>
+        <div><div class="hs-n">100%</div><div class="hs-l" data-lang-key="stat-plans">Custom Plans</div></div>
       </div>
     </div>
     <div class="hero-img-wrap">
       <div class="hero-img">
         <img src="bbf-photo.jpg" alt="Akeem Brown — Build Believe Fit" loading="eager"/>
       </div>
-      <div class="hero-accent">&#x1F4AA;<br>ELITE<br>STRENGTH &amp;<br>MOVEMENT</div>
+      <div class="hero-accent" data-lang-key="hero-accent">&#x1F4AA;<br>ELITE<br>STRENGTH &amp;<br>MOVEMENT</div>
     </div>
   </div>
 </section>
@@ -422,40 +422,40 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 <section id="services">
   <div class="wrap">
     <div class="reveal">
-      <div class="sec-lbl">What We Offer</div>
-      <h2 class="sec-h">How We Get<br>You <span class="y">There</span></h2>
+      <div class="sec-lbl" data-lang-key="svc-lbl">What We Offer</div>
+      <h2 class="sec-h" data-lang-key="svc-h">How We Get<br>You <span class="y">There</span></h2>
       <div class="divider"></div>
     </div>
     <div class="svc-g">
       <div class="svc-c reveal d1">
         <div class="svc-icon">&#x1F3CB;</div>
-        <div class="svc-n">Strength Coaching</div>
-        <div class="svc-d">Progressive overload programming built around your schedule, recovery capacity, and goals. Not a template &mdash; a system designed for you.</div>
+        <div class="svc-n" data-lang-key="svc-n1">Strength Coaching</div>
+        <div class="svc-d" data-lang-key="svc-d1">Progressive overload programming built around your schedule, recovery capacity, and goals. Not a template &mdash; a system designed for you.</div>
       </div>
       <div class="svc-c reveal d2">
         <div class="svc-icon">&#x1F957;</div>
-        <div class="svc-n">Nutrition Coaching</div>
-        <div class="svc-d">Custom meal plans calibrated to your TDEE, your training intensity, and your real life &mdash; not a generic macro split from the internet.</div>
+        <div class="svc-n" data-lang-key="svc-n2">Nutrition Coaching</div>
+        <div class="svc-d" data-lang-key="svc-d2">Custom meal plans calibrated to your TDEE, your training intensity, and your real life &mdash; not a generic macro split from the internet.</div>
       </div>
       <div class="svc-c reveal d3">
         <div class="svc-icon">&#x1F4CB;</div>
-        <div class="svc-n">Program Design</div>
-        <div class="svc-d">Day-by-day periodized programs designed for real people with real jobs. Recovery built in. Progress guaranteed when you follow the plan.</div>
+        <div class="svc-n" data-lang-key="svc-n3">Program Design</div>
+        <div class="svc-d" data-lang-key="svc-d3">Day-by-day periodized programs designed for real people with real jobs. Recovery built in. Progress guaranteed when you follow the plan.</div>
       </div>
       <div class="svc-c reveal d1">
         <div class="svc-icon">&#x1F31F;</div>
-        <div class="svc-n">Elite Transformation</div>
-        <div class="svc-d">Full 90-day overhaul &mdash; body composition, movement quality, and habit architecture. The complete package for serious, lasting results.</div>
+        <div class="svc-n" data-lang-key="svc-n4">Elite Transformation</div>
+        <div class="svc-d" data-lang-key="svc-d4">Full 90-day overhaul &mdash; body composition, movement quality, and habit architecture. The complete package for serious, lasting results.</div>
       </div>
       <div class="svc-c reveal d2">
         <div class="svc-icon">&#x1F4F1;</div>
-        <div class="svc-n">Remote Coaching</div>
-        <div class="svc-d">Full access to your custom app portal, weekly check-ins, meal plan updates, and direct coach access &mdash; wherever you train.</div>
+        <div class="svc-n" data-lang-key="svc-n5">Remote Coaching</div>
+        <div class="svc-d" data-lang-key="svc-d5">Full access to your custom app portal, weekly check-ins, meal plan updates, and direct coach access &mdash; wherever you train.</div>
       </div>
       <div class="svc-c reveal d3">
         <div class="svc-icon">&#x23F0;</div>
-        <div class="svc-n">Human Performance Protocol</div>
-        <div class="svc-d">Performance architecture engineered around your life — your schedule, your recovery window, your occupation. Habit systems that compound over time.</div>
+        <div class="svc-n" data-lang-key="svc-n6">Human Performance Protocol</div>
+        <div class="svc-d" data-lang-key="svc-d6">Performance architecture engineered around your life — your schedule, your recovery window, your occupation. Habit systems that compound over time.</div>
       </div>
     </div>
   </div>
@@ -467,26 +467,26 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
     <div class="reveal">
       <div class="glass">
         <div class="cred">
-          <div class="cr"><div class="cr-i">&#x1F4AA;</div><div><div class="cr-t">NASM Certified Personal Trainer</div><div class="cr-s">National Academy of Sports Medicine — Exercise Science</div></div></div>
-          <div class="cr"><div class="cr-i">&#x1F3ED;</div><div><div class="cr-t">12-Hour Manufacturing Shifts</div><div class="cr-s">Human Performance Architect &bull; Habit System Designer</div></div></div>
-          <div class="cr"><div class="cr-i">&#x1F3C6;</div><div><div class="cr-t">Fitness Enthusiast &amp; Lifter</div><div class="cr-s">Dedicated to the craft of human performance</div></div></div>
-          <div class="cr"><div class="cr-i">&#x1F393;</div><div><div class="cr-t">Business &amp; Marketing Student</div><div class="cr-s">Chandler-Gilbert Community College</div></div></div>
-          <div class="cr"><div class="cr-i">&#x1F46A;</div><div><div class="cr-t">Father of 4</div><div class="cr-s">Coaches his son who plays football</div></div></div>
+          <div class="cr"><div class="cr-i">&#x1F4AA;</div><div><div class="cr-t" data-lang-key="cred-t1">NASM Certified Personal Trainer</div><div class="cr-s" data-lang-key="cred-s1">National Academy of Sports Medicine — Exercise Science</div></div></div>
+          <div class="cr"><div class="cr-i">&#x1F3ED;</div><div><div class="cr-t" data-lang-key="cred-t2">12-Hour Manufacturing Shifts</div><div class="cr-s" data-lang-key="cred-s2">Human Performance Architect &bull; Habit System Designer</div></div></div>
+          <div class="cr"><div class="cr-i">&#x1F3C6;</div><div><div class="cr-t" data-lang-key="cred-t3">Fitness Enthusiast &amp; Lifter</div><div class="cr-s" data-lang-key="cred-s3">Dedicated to the craft of human performance</div></div></div>
+          <div class="cr"><div class="cr-i">&#x1F393;</div><div><div class="cr-t" data-lang-key="cred-t4">Business &amp; Marketing Student</div><div class="cr-s" data-lang-key="cred-s4">Chandler-Gilbert Community College</div></div></div>
+          <div class="cr"><div class="cr-i">&#x1F46A;</div><div><div class="cr-t" data-lang-key="cred-t5">Father of 4</div><div class="cr-s" data-lang-key="cred-s5">Coaches his son who plays football</div></div></div>
         </div>
       </div>
     </div>
     <div class="reveal d2">
-      <div class="sec-lbl">The Founder</div>
-      <h2 class="sec-h">The Story<br>Behind <span class="y">BBF</span></h2>
+      <div class="sec-lbl" data-lang-key="founder-lbl">The Founder</div>
+      <h2 class="sec-h" data-lang-key="founder-h">The Story<br>Behind <span class="y">BBF</span></h2>
       <div class="divider"></div>
       <div class="qm">&ldquo;</div>
-      <p class="story">I discovered these protocols navigating 12-hour shifts and a family of four. I didn&rsquo;t build this system for a factory &mdash; <strong>I built it to solve the Human Habit Equation.</strong> My life was the laboratory. The results became the blueprint.</p>
-      <p class="story">Build Believe Fit was born between obligations &mdash; in the windows of time most people overlook. I&rsquo;m a <strong>NASM-certified trainer, a passionate lifter, a father of 4</strong>, and an Exercise Science student becoming an Occupational Therapist. I understand the human body and the human schedule. That&rsquo;s the combination that makes this system work.</p>
-      <p class="story">My clients aren&rsquo;t defined by their occupation. They&rsquo;re defined by their refusal to let their schedule become their ceiling. <strong>Executives. First responders. Parents. Everyday athletes.</strong> Every one of them runs on the same system because human performance architecture doesn&rsquo;t discriminate.</p>
+      <p class="story" data-lang-key="founder-p1">I discovered these protocols navigating 12-hour shifts and a family of four. I didn&rsquo;t build this system from theory &mdash; <strong>I built it to solve the Human Habit Equation.</strong> My life was the laboratory. The results became the blueprint.</p>
+      <p class="story" data-lang-key="founder-p2">Build Believe Fit was born between obligations &mdash; in the windows of time most people overlook. I&rsquo;m a <strong>NASM-certified trainer, a passionate lifter, a father of 4</strong>, and an Exercise Science student becoming an Occupational Therapist. I understand the human body and the human schedule. That&rsquo;s the combination that makes this system work.</p>
+      <p class="story" data-lang-key="founder-p3">My clients aren&rsquo;t defined by their occupation. They&rsquo;re defined by their refusal to let their schedule become their ceiling. <strong>Executives. First responders. Parents. Everyday athletes.</strong> Every one of them runs on the same system because human performance architecture doesn&rsquo;t discriminate.</p>
       <div style="background:rgba(245,200,0,.06);border-left:3px solid var(--yel);border-radius:0 8px 8px 0;padding:.8rem 1rem;margin-bottom:1.2rem;font-size:.82rem;font-weight:600;color:rgba(255,255,255,.65);line-height:1.7">
-        <strong style="color:var(--yel)">The System Advantage:</strong> My occupational therapy education and exercise science training allow me to engineer performance systems around your actual life — your schedule, your recovery, your joint health, and your long-term mobility. This is human performance architecture. Not just training.
+        <strong style="color:var(--yel)" data-lang-key="founder-adv-title">The System Advantage:</strong> <span data-lang-key="founder-adv-text">My occupational therapy education and exercise science training allow me to engineer performance systems around your actual life — your schedule, your recovery, your joint health, and your long-term mobility. This is human performance architecture. Not just training.</span>
       </div>
-      <div class="sig">&mdash; <span>Akeem Brown</span><small>Owner, BBF LLC &bull; NASM-CPT &bull; Exercise Science &bull; Future OT</small></div>
+      <div class="sig" data-lang-key="founder-sig">&mdash; <span>Akeem Brown</span><small>Owner, BBF LLC &bull; NASM-CPT &bull; Exercise Science &bull; Future OT</small></div>
     </div>
   </div>
 </section>
@@ -495,18 +495,18 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 <section id="programs">
   <div class="wrap">
     <div class="reveal" style="text-align:center">
-      <div class="sec-lbl" data-bbf-key="sec.prog.lbl">Choose Your Path</div>
-      <h2 class="sec-h" data-bbf-key="sec.prog.h"><span id="prog-section-h">Spectrum of <span class="y">Success</span></span></h2>
+      <div class="sec-lbl" data-lang-key="prog-lbl">Choose Your Path</div>
+      <h2 class="sec-h" data-lang-key="prog-h"><span id="prog-section-h">Spectrum of <span class="y">Success</span></span></h2>
       <p class="sec-s" style="margin:0 auto" id="prog-section-sub" data-lang-key="prog-section-sub">We respect every dollar you invest. Whether it&rsquo;s $67 or $2,500, you receive a clinical, OT-informed return on that investment.</p>
     </div>
     <div class="prog-g" id="prog-g" style="margin-top:3rem">
 
       <!-- TIER 1 — Community Blueprint $67 -->
       <div class="prog-c reveal d1" onclick="selProg(this,'community')">
-        <div class="prog-t" data-bbf-key="prog.t1.tier">Community Tier</div>
-        <div class="prog-n">Community<br>Blueprint</div>
+        <div class="prog-t" data-lang-key="prog-t1-tier">Community Tier</div>
+        <div class="prog-n" data-lang-key="prog-t1-name">Community<br>Blueprint</div>
         <div style="font-size:.72rem;font-weight:700;letter-spacing:1px;color:#22c55e;margin-bottom:.3rem">FOUNDATIONAL HABIT LOGIC</div>
-        <div class="prog-p" data-bbf-key="prog.t1.price">$67 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">one-time</span></div>
+        <div class="prog-p" data-lang-key="prog-t1-price">$67 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">one-time</span></div>
         <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:.6rem .8rem;margin-bottom:1rem;font-size:.78rem;font-weight:700;color:#22c55e">🌱 Self-Guided Roadmap — High Value, Zero Fluff</div>
         <ul class="prog-f">
           <li>Full self-guided Habit Architecture system</li>
@@ -517,16 +517,16 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
           <li class="no">Live coaching sessions</li>
           <li class="no">Custom meal plan</li>
         </ul>
-        <a href="#pathfinder" class="prog-cta">Start for $67 →</a>
+        <a href="#pathfinder" class="prog-cta" data-lang-key="prog-t1-cta">Start for $67 →</a>
       </div>
 
       <!-- TIER 2 — Elite 8-Week Challenge $497 -->
       <div class="prog-c reveal d2" onclick="selProg(this,'elite')">
         <div class="prog-badge">Most Popular</div>
-        <div class="prog-t" data-bbf-key="prog.t2.tier">Flagship Program</div>
-        <div class="prog-n">Elite 8-Week<br>Challenge</div>
+        <div class="prog-t" data-lang-key="prog-t2-tier">Flagship Program</div>
+        <div class="prog-n" data-lang-key="prog-t2-name">Elite 8-Week<br>Challenge</div>
         <div style="font-size:.72rem;font-weight:700;letter-spacing:1px;color:var(--yel);margin-bottom:.3rem">HIGH-PERFORMANCE SYNC</div>
-        <div class="prog-p" data-bbf-key="prog.t2.price">$497</div>
+        <div class="prog-p" data-lang-key="prog-t2-price">$497</div>
         <div style="background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.2);border-radius:8px;padding:.6rem .8rem;margin-bottom:1rem;font-size:.78rem;font-weight:700;color:var(--yel)">⚡ Group + Hybrid — The Flagship Transformation</div>
         <ul class="prog-f">
           <li>Everything in Community Blueprint</li>
@@ -537,15 +537,15 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
           <li>Masterclass Vault — all 6 modules</li>
           <li>Trilingual support (EN / ES / PT)</li>
         </ul>
-        <a href="#pathfinder" class="prog-cta">Start Elite →</a>
+        <a href="#pathfinder" class="prog-cta" data-lang-key="prog-t2-cta">Start Elite →</a>
       </div>
 
       <!-- TIER 3 — Legacy Performance Protocol $1,500-$2,500 -->
       <div class="prog-c reveal d3" onclick="selProg(this,'legacy')">
-        <div class="prog-t" data-bbf-key="prog.t3.tier">Executive &amp; Clinical</div>
-        <div class="prog-n">Legacy Performance<br>Protocol</div>
+        <div class="prog-t" data-lang-key="prog-t3-tier">Executive &amp; Clinical</div>
+        <div class="prog-n" data-lang-key="prog-t3-name">Legacy Performance<br>Protocol</div>
         <div style="font-size:.72rem;font-weight:700;letter-spacing:1px;color:var(--purl);margin-bottom:.3rem">BESPOKE EXECUTIVE PROTOCOL</div>
-        <div class="prog-p" data-bbf-key="prog.t3.price">$1,500 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">– $2,500</span></div>
+        <div class="prog-p" data-lang-key="prog-t3-price">$1,500 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">– $2,500</span></div>
         <div style="background:rgba(106,13,173,.12);border:1px solid rgba(106,13,173,.3);border-radius:8px;padding:.6rem .8rem;margin-bottom:1rem;font-size:.78rem;font-weight:700;color:var(--purl)">🏛 1-on-1 Bespoke — Clinical OT-Informed Coaching</div>
         <ul class="prog-f">
           <li>Everything in Elite Challenge</li>
@@ -556,7 +556,7 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
           <li>Priority 24-hour direct access</li>
           <li>Multi-language sessions available</li>
         </ul>
-        <a href="#pathfinder" class="prog-cta">Apply for Legacy →</a>
+        <a href="#pathfinder" class="prog-cta" data-lang-key="prog-t3-cta">Apply for Legacy →</a>
       </div>
 
     </div>
@@ -573,27 +573,27 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 <section id="nutrition">
   <div class="nutr-in">
     <div class="reveal" style="text-align:center">
-      <div class="sec-lbl">Nutrition Coaching</div>
-      <h2 class="sec-h">Fuel The <span class="y">Right Way</span></h2>
-      <p class="sec-s" style="margin:0 auto">NASM-certified nutrition coaching. Personalized meal plans aligned with your training, lifestyle, and physique goals.</p>
+      <div class="sec-lbl" data-lang-key="nut-lbl">Nutrition Coaching</div>
+      <h2 class="sec-h" data-lang-key="nut-h">Fuel The <span class="y">Right Way</span></h2>
+      <p class="sec-s" style="margin:0 auto" data-lang-key="nut-sub">NASM-certified nutrition coaching. Personalized meal plans aligned with your training, lifestyle, and physique goals.</p>
     </div>
     <div class="nutr-g">
       <div class="nutr-c lite reveal d1">
         <div class="nutr-t">Tier 1</div>
-        <div class="nutr-n">Lite</div>
-        <div class="nutr-d">Self-starters who need a solid baseline. Use our free TDEE calculator and get your macro targets instantly.</div>
+        <div class="nutr-n" data-lang-key="nut-n1">Lite</div>
+        <div class="nutr-d" data-lang-key="nut-d1">Self-starters who need a solid baseline. Use our free TDEE calculator and get your macro targets instantly.</div>
         <ul class="nutr-l">
           <li>TDEE &amp; Calorie Target</li>
           <li>Macro breakdown (P/C/F)</li>
           <li>General food guidance</li>
           <li>One-time setup consultation</li>
         </ul>
-        <a href="#tdee-calc" class="nutr-btn nb-lite">Calculate Your TDEE &#x2192;</a>
+        <a href="#tdee-calc" class="nutr-btn nb-lite" data-lang-key="nut-cta1">Calculate Your TDEE &#x2192;</a>
       </div>
       <div class="nutr-c ess reveal d2">
         <div class="nutr-t">Tier 2 &mdash; Most Popular</div>
-        <div class="nutr-n">Essentials</div>
-        <div class="nutr-d">Full nutrition system built around your training. Tracked inside your personalized client portal.</div>
+        <div class="nutr-n" data-lang-key="nut-n2">Essentials</div>
+        <div class="nutr-d" data-lang-key="nut-d2">Full nutrition system built around your training. Tracked inside your personalized client portal.</div>
         <ul class="nutr-l">
           <li>Everything in Lite</li>
           <li>Custom 7-day meal plan</li>
@@ -601,13 +601,13 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
           <li>Nutrition portal access</li>
           <li>Bi-weekly plan updates</li>
         </ul>
-        <a href="bbf-app.html" class="nutr-btn nb-ess">Access Client Portal &#x2192;</a>
+        <a href="bbf-app.html" class="nutr-btn nb-ess" data-lang-key="nut-cta2">Access Client Portal &#x2192;</a>
       </div>
       <div class="nutr-c plat reveal d3">
         <div class="plat-badge">Premium</div>
         <div class="nutr-t">Tier 3</div>
-        <div class="nutr-n">Platinum</div>
-        <div class="nutr-d">Full-service. Training and nutrition fully integrated. Akeem manages and adjusts everything.</div>
+        <div class="nutr-n" data-lang-key="nut-n3">Platinum</div>
+        <div class="nutr-d" data-lang-key="nut-d3">Full-service. Training and nutrition fully integrated. Akeem manages and adjusts everything.</div>
         <ul class="nutr-l">
           <li>Everything in Essentials</li>
           <li>Weekly adaptive meal updates</li>
@@ -615,14 +615,14 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
           <li>Priority daily messaging</li>
           <li>Weekly progress reviews</li>
         </ul>
-        <a href="#pathfinder" class="nutr-btn nb-plat">Apply for Platinum &#x2192;</a>
+        <a href="#pathfinder" class="nutr-btn nb-plat" data-lang-key="nut-cta3">Apply for Platinum &#x2192;</a>
       </div>
     </div>
     <!-- TDEE CALCULATOR -->
     <div id="tdee-calc" class="tdee-w reveal">
       <div class="tdee-hd">
         <div class="tdee-lbl">Free Tool &mdash; Lite Tier</div>
-        <h3>Calculate Your TDEE</h3>
+        <h3 data-lang-key="tdee-h">Calculate Your TDEE</h3>
       </div>
       <div class="tdee-g">
         <div class="tf"><label>Age</label><input type="number" id="t-age" placeholder="28" min="16" max="80" inputmode="numeric"/></div>
@@ -638,7 +638,7 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
           <button class="goal-b" data-adj="300">&#x1F4AA; Build Muscle</button>
         </div>
       </div>
-      <button class="calc-btn" onclick="calcWidget()">Calculate My Targets &#x2192;</button>
+      <button class="calc-btn" onclick="calcWidget()" data-lang-key="tdee-btn">Calculate My Targets &#x2192;</button>
       <div class="tdee-res" id="tres">
         <div class="tdee-big" id="tw-cal">—</div>
         <div class="tdee-sub">Calories / Day</div>
@@ -658,23 +658,23 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 <section id="testimonials">
   <div class="testi-in">
     <div class="reveal" style="text-align:center">
-      <div class="sec-lbl">Client Results</div>
-      <h2 class="sec-h">Real People. <span class="y">Real Work.</span></h2>
+      <div class="sec-lbl" data-lang-key="testi-lbl">Client Results</div>
+      <h2 class="sec-h" data-lang-key="testi-h">Real People. <span class="y">Real Work.</span></h2>
     </div>
     <div class="testi-g">
       <div class="tc reveal d1">
         <div class="t-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div>
-        <div class="t-q">"Akeem built my program around my high-demand schedule. I'm training 5 days a week, down 22 lbs, and hitting PRs I never thought possible. The system adapts to my life, not the other way around."</div>
+        <div class="t-q" data-lang-key="testi-q1">"Akeem built my program around my high-demand schedule. I'm training 5 days a week, down 22 lbs, and hitting PRs I never thought possible. The system adapts to my life, not the other way around."</div>
         <div class="t-a"><div class="t-av">M</div><div><div class="t-n">Marcus T.</div><div class="t-m">Lost 22 lbs &bull; 6 months</div></div></div>
       </div>
       <div class="tc reveal d2">
         <div class="t-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div>
-        <div class="t-q">"The app is insane &mdash; I can see my meal plan, log my workouts, and track my progress all in one place. But it's the coaching that makes the difference. Akeem is locked in."</div>
+        <div class="t-q" data-lang-key="testi-q2">"The app is insane &mdash; I can see my meal plan, log my workouts, and track my progress all in one place. But it's the coaching that makes the difference. Akeem is locked in."</div>
         <div class="t-a"><div class="t-av">D</div><div><div class="t-n">Darius W.</div><div class="t-m">Body recomposition &bull; 4 months</div></div></div>
       </div>
       <div class="tc reveal d3">
         <div class="t-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div>
-        <div class="t-q">"I was skeptical at first but the results don't lie. Down 18 lbs, my energy is through the roof, and I finally feel confident in the gym. Akeem knows exactly how to push you without burning you out."</div>
+        <div class="t-q" data-lang-key="testi-q3">"I was skeptical at first but the results don't lie. Down 18 lbs, my energy is through the roof, and I finally feel confident in the gym. Akeem knows exactly how to push you without burning you out."</div>
         <div class="t-a"><div class="t-av">R</div><div><div class="t-n">Renee C.</div><div class="t-m">Strength &bull; 3 months</div></div></div>
       </div>
     </div>
@@ -688,9 +688,9 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
   <div style="max-width:1100px;margin:0 auto;position:relative;z-index:2">
 
     <div style="text-align:center;margin-bottom:3.5rem" class="reveal">
-      <div class="sec-lbl">The Origin of the System</div>
+      <div class="sec-lbl" data-lang-key="trans-lbl">The Origin of the System</div>
       <h2 class="sec-h" id="trans-section-h" data-lang-key="trans-section-h">The System <span class="y">Was Born Here</span></h2>
-      <p class="sec-s" style="margin:0 auto">Not theory. Not a textbook protocol. A system discovered through lived experience and refined through science.</p>
+      <p class="sec-s" style="margin:0 auto" data-lang-key="trans-sub">Not theory. Not a textbook protocol. A system discovered through lived experience and refined through science.</p>
     </div>
 
     <!-- 3-PANEL RIPPLE EFFECT STORY -->
@@ -755,7 +755,7 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
       <div style="width:50px;height:3px;background:var(--yel);margin:0 auto 2rem"></div>
 
       <p style="font-size:1.05rem;color:rgba(255,255,255,.7);line-height:1.9;margin-bottom:1.3rem;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:600">
-        I discovered these protocols while navigating the demands of 12-hour shifts and a family of four. I didn&rsquo;t build this for a factory &mdash; I built it to solve the Human Habit Equation. The laboratory was my own life, and the results became the blueprint.
+        I discovered these protocols while navigating the demands of 12-hour shifts and a family of four. I didn&rsquo;t build this from theory &mdash; I built it to solve the Human Habit Equation. The laboratory was my own life, and the results became the blueprint.
       </p>
 
       <p style="font-size:1.05rem;color:rgba(255,255,255,.7);line-height:1.9;margin-bottom:1.3rem;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:600">
@@ -781,9 +781,9 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 <section id="pathfinder">
   <div class="path-in">
     <div style="text-align:center;margin-bottom:2rem" class="reveal">
-      <div class="sec-lbl" id="sec-path-lbl" data-legacy="path-lbl">Start Your Journey</div>
-      <h2 class="sec-h" id="path-h">The <span class="y">Pathfinder</span></h2>
-      <p class="sec-s" style="margin:0 auto" id="path-sub">4 quick steps. We'll calculate your personalized targets and Akeem will reach out within 24 hours.</p>
+      <div class="sec-lbl" id="sec-path-lbl" data-lang-key="path-lbl">Start Your Journey</div>
+      <h2 class="sec-h" id="path-h" data-lang-key="path-h">The <span class="y">Pathfinder</span></h2>
+      <p class="sec-s" style="margin:0 auto" id="path-sub" data-lang-key="path-sub">4 quick steps. We'll calculate your personalized targets and Akeem will reach out within 24 hours.</p>
     </div>
     <div class="path-card reveal">
       <div class="steps-ind">
@@ -794,8 +794,8 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
       </div>
       <div class="fs on" id="fs0">
         <div class="sh-n">Step 1 of 4</div>
-        <div class="sh-t">Who Are You?</div>
-        <div class="sh-s">Tell us about yourself &mdash; we'll personalize everything.</div>
+        <div class="sh-t" data-lang-key="path-s1-t">Who Are You?</div>
+        <div class="sh-s" data-lang-key="path-s1-s">Tell us about yourself &mdash; we'll personalize everything.</div>
         <div class="fr">
           <div class="ff"><label>First Name</label><input type="text" id="f-fn" placeholder="Marcus" autocomplete="given-name"/></div>
           <div class="ff"><label>Last Name</label><input type="text" id="f-ln" placeholder="Johnson" autocomplete="family-name"/></div>
@@ -808,8 +808,8 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
       </div>
       <div class="fs" id="fs1">
         <div class="sh-n">Step 2 of 4</div>
-        <div class="sh-t">Your Stats</div>
-        <div class="sh-s">Used to calculate your personalized TDEE and calorie targets.</div>
+        <div class="sh-t" data-lang-key="path-s2-t">Your Stats</div>
+        <div class="sh-s" data-lang-key="path-s2-s">Used to calculate your personalized TDEE and calorie targets.</div>
         <div class="fr">
           <div class="ff"><label>Age</label><input type="number" id="f-age" placeholder="28" min="16" max="80" inputmode="numeric"/></div>
           <div class="ff"><label>Sex</label><select id="f-sex"><option value="male">Male</option><option value="female">Female</option></select></div>
@@ -826,8 +826,8 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
       </div>
       <div class="fs" id="fs2">
         <div class="sh-n">Step 3 of 4</div>
-        <div class="sh-t">Your Goal</div>
-        <div class="sh-s">What are you training for?</div>
+        <div class="sh-t" data-lang-key="path-s3-t">Your Goal</div>
+        <div class="sh-s" data-lang-key="path-s3-s">What are you training for?</div>
         <div class="ff"><label>Primary Goal</label>
           <div class="chips" id="gc">
             <button class="chip" data-v="fat-loss">&#x1F525; Fat Loss</button>
@@ -866,13 +866,13 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
       </div>
       <div class="fs" id="fs3">
         <div class="sh-n">Step 4 of 4</div>
-        <div class="sh-t">Final Details</div>
-        <div class="sh-s">Almost there. This helps Akeem prepare before reaching out.</div>
+        <div class="sh-t" data-lang-key="path-s4-t">Final Details</div>
+        <div class="sh-s" data-lang-key="path-s4-s">Almost there. This helps Akeem prepare before reaching out.</div>
         <div class="ff"><label>Program Interest</label><select id="f-prog"><option value="foundation">Foundation &mdash; Getting Started</option><option value="elite">Elite Transformation &mdash; Full Commitment</option><option value="remote">Remote Coaching &mdash; Anywhere</option></select></div>
         <div class="ff"><label>Health Notes &amp; Injuries</label><textarea id="f-health" placeholder="Any injuries, limitations, or health conditions we should know about?"></textarea></div>
         <div class="ff"><label>How did you hear about us?</label><select id="f-ref"><option value="">Select...</option><option>Instagram</option><option>Referral from a friend</option><option>QR Code / Business Card</option><option>Google Search</option><option>TikTok</option><option>Other</option></select></div>
         <div class="fnav" style="flex-direction:column;gap:.8rem">
-          <button class="btn-sub" id="sbtn" onclick="doSubmit()">Calculate My Path &amp; Submit &#x2192;</button>
+          <button class="btn-sub" id="sbtn" onclick="doSubmit()" data-lang-key="path-submit">Calculate My Path &amp; Submit &#x2192;</button>
           <button class="btn-back" onclick="prv(3)" style="text-align:center">&#x2190; Back</button>
         </div>
         <div class="fmsg" id="fmsg"></div>
@@ -885,9 +885,9 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 <section id="app-download">
   <div class="app-in">
     <div class="reveal">
-      <div class="sec-lbl">Client Portal</div>
-      <h2 class="sec-h">Your Program.<br><span class="y">In Your Pocket.</span></h2>
-      <p class="sec-s" style="margin:0 auto;color:rgba(255,255,255,.45)">Access your personalized workout program, meal plan, progress tracking, and coach notes &mdash; all in one mobile app that works offline.</p>
+      <div class="sec-lbl" data-lang-key="app-lbl">Client Portal</div>
+      <h2 class="sec-h" data-lang-key="app-h">Your Program.<br><span class="y">In Your Pocket.</span></h2>
+      <p class="sec-s" style="margin:0 auto;color:rgba(255,255,255,.45)" data-lang-key="app-sub">Access your personalized workout program, meal plan, progress tracking, and coach notes &mdash; all in one mobile app that works offline.</p>
       <div class="app-url">buildbelievefit.fitness/bbf-app.html</div>
       <a href="bbf-app.html" class="btn-y">&#x1F4F2; Open Client App</a>
       <div class="inst-s">
@@ -903,8 +903,8 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 <section id="contact">
   <div class="con-in">
     <div class="sec-lbl" style="color:rgba(255,255,255,.55)">Direct Contact</div>
-    <h2 class="sec-h" id="contact-h" style="margin-bottom:.8rem">Let's Build.<br><span style="color:rgba(255,255,255,.35)">Today.</span></h2>
-    <p style="font-size:1rem;color:rgba(255,255,255,.5);max-width:500px;margin:0 auto 1.5rem">Ready to start? Have questions? Reach out directly &mdash; Akeem responds fast.</p>
+    <h2 class="sec-h" id="contact-h" style="margin-bottom:.8rem" data-lang-key="contact-h">Let's Build.<br><span style="color:rgba(255,255,255,.35)">Today.</span></h2>
+    <p style="font-size:1rem;color:rgba(255,255,255,.5);max-width:500px;margin:0 auto 1.5rem" data-lang-key="contact-sub">Ready to start? Have questions? Reach out directly &mdash; Akeem responds fast.</p>
     <div class="con-links">
       <a href="sms:6233409254?body=Hey Akeem, I want to get started with Build Believe Fit!" class="con-l">&#x1F4AC; Text Akeem</a>
       <a href="tel:6233409254" class="con-l">&#x1F4DE; 623-340-9254</a>
@@ -919,7 +919,7 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
   <div class="ft-in">
     <div>
       <div class="ft-b">Build<span class="y">Believe</span>Fit</div>
-      <div class="ft-tag">NASM-certified personal training and Human Habit Architecture. Built for the high-demand human. Built for real results.</div>
+      <div class="ft-tag" data-lang-key="footer-tag">NASM-certified personal training and Human Habit Architecture. Built for the high-demand human. Built for real results.</div>
     </div>
     <div class="ft-links">
       <a href="#services" id="mob-nav-services">Services</a>
@@ -936,7 +936,7 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
       <a href="/cdn-cgi/l/email-protection#f496819d98909691989d918291929d80989897b496819d98909691989d918291929d80da929d809a918787">Email Akeem</a>
       <a href="#tdee-calc">TDEE Calculator</a>
     </div>
-    <div class="ft-copy">&copy; 2026 Build Believe Fit LLC &bull; All Rights Reserved &bull; NASM Certified &bull; buildbelievefit.fitness</div>
+    <div class="ft-copy" data-lang-key="footer-copy">&copy; 2026 Build Believe Fit LLC &bull; All Rights Reserved &bull; NASM Certified &bull; buildbelievefit.fitness</div>
   </div>
 </footer>
 
@@ -1111,10 +1111,10 @@ var NEXT_STEPS = {
     ]
   },
   '12hr': {
-    headline: 'Your Industrial Athlete Protocol is Live.',
+    headline: 'Your High-Demand Athlete Protocol is Live.',
     cta: '&#x26A1; Open Your Shift Protocol &#x2192;',
     steps: [
-      { state:'done', icon:'&#x2713;', text:'Industrial athlete targets locked — {CAL} cal/day' },
+      { state:'done', icon:'&#x2713;', text:'High-demand athlete targets locked — {CAL} cal/day' },
       { state:'done', icon:'&#x2713;', text:'Shift-optimized macros calibrated for 12-hour recovery' },
       { state:'next', icon:'&#x2192;', text:'Load your Shift Protocol — built for your exact schedule' },
       { state:'soon', icon:'&#x25CB;', text:'Post-shift decompression cues pre-loaded in Prehab tab' },

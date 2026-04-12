@@ -578,7 +578,7 @@ window.onload=function(){
         </div>
         <div class="vault-hero">
           <div class="vault-hero-lbl">Build Believe Fit LLC</div>
-          <div class="vault-hero-title">Industrial Athlete<br>Masterclass</div>
+          <div class="vault-hero-title">Human Performance<br>Masterclass</div>
           <div class="vault-hero-sub">6 modules &bull; DJI Osmo footage &bull; NASM-backed science</div>
           <div class="vault-progress">
             <div class="vault-prog-bar"><div class="vault-prog-fill" id="vault-fill" style="width:0%"></div></div>
@@ -1705,8 +1705,8 @@ function LOGOUT() {
 var PROTOCOLS = {
   '9to5':            { icon:'&#x1F4BC;', label:"WORKING MAN'S PROTOCOL ACTIVE", color:'#22c55e' },
   'standard':        { icon:'&#x1F4CB;', label:'STANDARD PROTOCOL ACTIVE',   color:'#f5c800' },
-  'shifts':          { icon:'&#x26A1;',  label:'INDUSTRIAL ATHLETE ACTIVE',   color:'#f5c800' },
-  '12hr':            { icon:'&#x26A1;',  label:'INDUSTRIAL ATHLETE ACTIVE',   color:'#f5c800' },
+  'shifts':          { icon:'&#x26A1;',  label:'HIGH-DEMAND ATHLETE ACTIVE',  color:'#f5c800' },
+  '12hr':            { icon:'&#x26A1;',  label:'HIGH-DEMAND ATHLETE ACTIVE',  color:'#f5c800' },
   'overnight':       { icon:'&#x1F319;', label:'SHIFT SPECIALIST ACTIVE',     color:'#8b1abf' },
   'executive':       { icon:'&#x1F454;', label:'EXECUTIVE PROTOCOL ACTIVE',   color:'#f5c800' },
   'medical':         { icon:'&#x1FA7A;', label:'HEALTHCARE PROTOCOL ACTIVE',  color:'#3b82f6' },
@@ -1733,8 +1733,8 @@ function renderProtocolBadge(uid) {
 var VAULT_MODULES = [
   {
     id: 1,
-    title: 'The Industrial Athlete Foundation',
-    desc: 'Who this program is built for and why standard fitness advice fails high-demand workers.',
+    title: 'The Human Performance Foundation',
+    desc: 'Who this program is built for and why standard fitness advice fails high-demand professionals.',
     duration: '18 min',
     locked: false,
     tag: 'Mindset',
@@ -2046,8 +2046,8 @@ var PREHAB = [
     icon: '&#x1F9B4;',
     en_title: 'Shoulder & Rotator Cuff Health',
     es_title: 'Salud del Hombro y Manguito Rotador',
-    en_focus: 'Overhead reach restoration for production line athletes',
-    es_focus: 'Restauración de alcance para atletas de línea de producción',
+    en_focus: 'Overhead reach restoration for high-demand professionals',
+    es_focus: 'Restauración de alcance para profesionales de alta demanda',
     cues: [
       {
         en_lbl: 'Wall Slides',
@@ -2058,8 +2058,8 @@ var PREHAB = [
       {
         en_lbl: 'Band External Rotation',
         es_lbl: 'Rotación Externa con Banda',
-        en_txt: 'Elbow at 90°, pinned to your side. Rotate forearm outward against resistance. This trains the infraspinatus — your rotator cuff workhorse. Critical for anyone pressing heavy overhead or reaching across a production line.',
-        es_txt: 'Codo a 90°, pegado al costado. Rota el antebrazo hacia afuera. Entrena el infraespinoso — esencial para quien levanta o alcanza sobre la línea de producción.'
+        en_txt: 'Elbow at 90°, pinned to your side. Rotate forearm outward against resistance. This trains the infraspinatus — your rotator cuff workhorse. Critical for anyone pressing heavy overhead or reaching in high-demand environments.',
+        es_txt: 'Codo a 90°, pegado al costado. Rota el antebrazo hacia afuera. Entrena el infraespinoso — esencial para quien levanta o alcanza en entornos de alta demanda.'
       }
     ],
     sets: ['3 sets', '15 reps', 'Light resistance']
@@ -2090,8 +2090,8 @@ var PREHAB = [
     icon: '&#x1F9B6;',
     en_title: 'Ankle & Knee Stability',
     es_title: 'Estabilidad de Tobillo y Rodilla',
-    en_focus: 'Concrete floor fatigue recovery — lineman & factory floor athletes',
-    es_focus: 'Recuperación de fatiga por piso de concreto — atletas de fábrica',
+    en_focus: 'Concrete floor fatigue recovery — high-demand standing professionals',
+    es_focus: 'Recuperación de fatiga por piso de concreto — profesionales de alta demanda',
     cues: [
       {
         en_lbl: 'Single Leg Balance Progression',
@@ -2112,8 +2112,8 @@ var PREHAB = [
     icon: '&#x1F91F;',
     en_title: 'Wrist & Grip Recovery',
     es_title: 'Recuperación de Muñeca y Agarre',
-    en_focus: 'Repetitive grip strain relief — production line & heavy lifting',
-    es_focus: 'Alivio de tensión repetitiva — línea de producción y levantamiento pesado',
+    en_focus: 'Repetitive grip strain relief — high-demand work & heavy lifting',
+    es_focus: 'Alivio de tensión repetitiva — trabajo de alta demanda y levantamiento pesado',
     cues: [
       {
         en_lbl: 'Prayer Stretch & Reverse Prayer',
@@ -2177,8 +2177,8 @@ function togglePrehab(i) {
 var PERSONAS = {
   '9to5':            { label:'9-to-5 / Everyday Athlete', icon:'&#x1F4BC;', type:'desk', tag:'Working Man Protocol' },
   'standard':       { label:'Standard Schedule',     icon:'&#x1F4CB;', type:'desk',    tag:'General Population' },
-  'shifts':         { label:'8-Hour Shift Worker',   icon:'&#x1F3ED;', type:'standing', tag:'Industrial Athlete' },
-  '12hr':           { label:'12-Hour Shift Worker',  icon:'&#x26A1;',  type:'standing', tag:'Industrial Athlete' },
+  'shifts':         { label:'8-Hour Shift Worker',   icon:'&#x1F3ED;', type:'standing', tag:'High-Demand Athlete' },
+  '12hr':           { label:'12-Hour Shift Worker',  icon:'&#x26A1;',  type:'standing', tag:'High-Demand Athlete' },
   'overnight':      { label:'Overnight / Rotating',  icon:'&#x1F319;', type:'standing', tag:'Shift Specialist' },
   'executive':      { label:'Executive / Corporate', icon:'&#x1F454;', type:'desk',    tag:'Corporate Athlete' },
   'medical':        { label:'Medical / Healthcare',  icon:'&#x1FA7A;', type:'mixed',   tag:'Healthcare Professional' },
