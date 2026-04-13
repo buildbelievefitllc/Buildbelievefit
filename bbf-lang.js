@@ -262,7 +262,37 @@ var D = {
 'app-nutr-contact':     { en:'Contact Akeem to get your plan set up.', es:'Contacta a Akeem para configurar tu plan.', pt:'Contacte Akeem para configurar seu plano.' },
 'app-victory-title':    { en:'CRUSHED IT!', es:'\u00a1LO LOGRASTE!', pt:'ARRASOU!' },
 'app-victory-complete': { en:'Complete', es:'Completado', pt:'Conclu\u00eddo' },
-'app-victory-great':    { en:'Great work!', es:'\u00a1Gran trabajo!', pt:'\u00d3timo trabalho!' }
+'app-victory-great':    { en:'Great work!', es:'\u00a1Gran trabajo!', pt:'\u00d3timo trabalho!' },
+
+// ═══ BUSY PARENT TRANSFORMATION ═══
+'bpt-stamp':        { en:'Build Believe Fit LLC \u00b7 Family Performance Series', es:'Build Believe Fit LLC \u00b7 Serie de Rendimiento Familiar', pt:'Build Believe Fit LLC \u00b7 S\u00e9rie de Performance Familiar' },
+'bpt-h1':           { en:'The Busy<br><span>Parent</span><br>Transformation', es:'La Transformaci\u00f3n<br>del <span>Padre</span><br>Ocupado', pt:'A Transforma\u00e7\u00e3o<br>do <span>Pai</span><br>Ocupado' },
+'bpt-sub':          { en:'Elite Fitness Engineered for the Fullest Life', es:'Fitness de \u00c9lite Dise\u00f1ado para la Vida M\u00e1s Plena', pt:'Fitness de Elite Projetado para a Vida Mais Plena' },
+'bpt-lead':         { en:'You are running kids to practice, managing a household, holding down a career, and somewhere in between all of it \u2014 <strong>you lost yourself in the schedule.</strong> This is how you take that back without dropping a single ball.', es:'Llevas ni\u00f1os a entrenar, manejas un hogar, mantienes una carrera, y en alg\u00fan punto \u2014 <strong>te perdiste en el horario.</strong> As\u00ed es como lo recuperas sin soltar ninguna responsabilidad.', pt:'Voc\u00ea leva crian\u00e7as para treinar, gerencia um lar, mant\u00e9m uma carreira, e em algum ponto \u2014 <strong>voc\u00ea se perdeu na agenda.</strong> \u00c9 assim que voc\u00ea recupera isso sem largar nenhuma responsabilidade.' },
+'bpt-cta':          { en:'Claim Your Copy \u2014 $47', es:'Obt\u00e9n Tu Copia \u2014 $47', pt:'Garanta Sua C\u00f3pia \u2014 $47' },
+'bpt-ghost':        { en:'See What\u2019s Inside \u2193', es:'Ver Contenido \u2193', pt:'Ver Conte\u00fado \u2193' },
+'bpt-pain-tag':     { en:'Sound Familiar?', es:'\u00bfTe Suena Familiar?', pt:'Parece Familiar?' },
+'bpt-pain-h':       { en:'Your Schedule Is<br><span class="yellow">Running You</span>', es:'Tu Horario Te Est\u00e1<br><span class="yellow">Controlando</span>', pt:'Sua Agenda Est\u00e1<br><span class="yellow">Te Controlando</span>' },
+'bpt-pain-sub':     { en:'The fitness industry was designed for people without kids, without car pools, and without a second full-time job called parenting. This program was not.', es:'La industria del fitness fue dise\u00f1ada para personas sin hijos, sin viajes compartidos y sin un segundo trabajo llamado crianza. Este programa no.', pt:'A ind\u00fastria fitness foi projetada para pessoas sem filhos, sem caronas e sem um segundo trabalho chamado pater/maternidade. Este programa n\u00e3o.' },
+'bpt-guide-tag':    { en:'Inside the Guide', es:'Dentro de la Gu\u00eda', pt:'Dentro do Guia' },
+'bpt-guide-h':      { en:'Everything Built<br><span class="yellow">Around Your Life,</span><br>Not Despite It', es:'Todo Construido<br><span class="yellow">Alrededor de Tu Vida,</span><br>No a Pesar de Ella', pt:'Tudo Constru\u00eddo<br><span class="yellow">Ao Redor da Sua Vida,</span><br>N\u00e3o Apesar Dela' },
+'bpt-guide-sub':    { en:'No 5am wake-up mandates. No 2-hour sessions. No meal-prep Sundays that require a second kitchen. Just an intelligent system that fits inside the life you already have.', es:'Sin mandatos de despertar a las 5am. Sin sesiones de 2 horas. Sin domingos de preparaci\u00f3n que requieren una segunda cocina. Solo un sistema inteligente que cabe en la vida que ya tienes.', pt:'Sem obriga\u00e7\u00e3o de acordar \u00e0s 5h. Sem sess\u00f5es de 2 horas. Sem domingos de prepara\u00e7\u00e3o que exigem uma segunda cozinha. Apenas um sistema inteligente que cabe na vida que voc\u00ea j\u00e1 tem.' },
+'bpt-prog-tag':     { en:'The 4-Week Blueprint', es:'El Plan de 4 Semanas', pt:'O Plano de 4 Semanas' },
+'bpt-prog-h':       { en:'One Month.<br><span class="yellow">Four Phases.</span><br>Zero Fluff.', es:'Un Mes.<br><span class="yellow">Cuatro Fases.</span><br>Cero Relleno.', pt:'Um M\u00eas.<br><span class="yellow">Quatro Fases.</span><br>Zero Enrola\u00e7\u00e3o.' },
+'bpt-split-tag':    { en:'3-Day Minimum Effective Dose Split (Split MED de 3 D\u00edas / Split MED de 3 Dias)', es:'Split MED de 3 D\u00edas \u2014 Dosis M\u00ednima Efectiva', pt:'Split MED de 3 Dias \u2014 Dose M\u00ednima Efetiva' },
+'bpt-split-h':      { en:'Three Sessions.<br><span class="yellow">Every Muscle.</span><br>Under 60 Minutes.', es:'Tres Sesiones.<br><span class="yellow">Cada M\u00fasculo.</span><br>Menos de 60 Minutos.', pt:'Tr\u00eas Sess\u00f5es.<br><span class="yellow">Cada M\u00fasculo.</span><br>Menos de 60 Minutos.' },
+'bpt-if-tag':       { en:'Nutrition Protocol (Protocolo Nutricional)', es:'Protocolo Nutricional', pt:'Protocolo Nutricional' },
+'bpt-if-h':         { en:'16/8 Designed for<br><span class="yellow">Real Mornings,</span><br>Not Instagram Ones', es:'16/8 Dise\u00f1ado para<br><span class="yellow">Ma\u00f1anas Reales,</span><br>No de Instagram', pt:'16/8 Projetado para<br><span class="yellow">Manh\u00e3s Reais,</span><br>N\u00e3o de Instagram' },
+'bpt-mind-tag':     { en:'The Psychology', es:'La Psicolog\u00eda', pt:'A Psicologia' },
+'bpt-mind-h':       { en:'The Caregiver<br>Mindset', es:'La Mentalidad<br>del Cuidador', pt:'A Mentalidade<br>do Cuidador' },
+'bpt-mind-quote':   { en:'\u201cYou cannot pour from an empty cup. But nobody told you that rebuilding the cup is part of the job description.\u201d', es:'\u201cNo puedes servir de una taza vac\u00eda. Pero nadie te dijo que reconstruir la taza es parte de la descripci\u00f3n del trabajo.\u201d', pt:'\u201cVoc\u00ea n\u00e3o pode servir de um copo vazio. Mas ningu\u00e9m te disse que reconstruir o copo faz parte da descri\u00e7\u00e3o do trabalho.\u201d' },
+'bpt-proof-tag':    { en:'From Parents Who Did It', es:'De Padres Que Lo Lograron', pt:'De Pais Que Conseguiram' },
+'bpt-proof-h':      { en:'Real Schedules.<br><span class="yellow">Real Results.</span><br>Real Families.', es:'Horarios Reales.<br><span class="yellow">Resultados Reales.</span><br>Familias Reales.', pt:'Agendas Reais.<br><span class="yellow">Resultados Reais.</span><br>Fam\u00edlias Reais.' },
+'bpt-del-tag':      { en:'What\u2019s Included', es:'Qu\u00e9 Incluye', pt:'O Que Inclui' },
+'bpt-del-h':        { en:'Everything You<br><span class="yellow">Actually Need.</span><br>Nothing You Don\u2019t.', es:'Todo Lo Que<br><span class="yellow">Realmente Necesitas.</span><br>Nada Que No.', pt:'Tudo Que Voc\u00ea<br><span class="yellow">Realmente Precisa.</span><br>Nada Que N\u00e3o.' },
+'bpt-purchase-h':   { en:'Your Schedule Is<br>Not an Excuse<br><span class="yellow">Anymore.</span>', es:'Tu Horario Ya<br>No Es una Excusa<br><span class="yellow">M\u00e1s.</span>', pt:'Sua Agenda N\u00e3o<br>\u00c9 Mais uma Desculpa<br><span class="yellow">Agora.</span>' },
+'bpt-faq-tag':      { en:'FAQ', es:'Preguntas Frecuentes', pt:'Perguntas Frequentes' },
+'bpt-faq-h':        { en:'Questions<br><span class="yellow">Parents Ask</span>', es:'Preguntas Que<br><span class="yellow">Hacen los Padres</span>', pt:'Perguntas Que<br><span class="yellow">os Pais Fazem</span>' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
