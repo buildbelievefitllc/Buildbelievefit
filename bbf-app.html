@@ -555,6 +555,16 @@ window.onload=function(){
         </div>
         <!-- MODULE GRID -->
         <div class="vault-grid" id="vault-grid"></div>
+        <!-- SPECIALIZED PROTOCOL — Busy Parent -->
+        <div id="parent-guide-card" style="background:var(--gry);border:1px solid #1a1a1a;border-radius:14px;padding:1.2rem;margin-top:1rem;display:flex;align-items:center;gap:1rem">
+          <div style="font-size:1.8rem;flex-shrink:0">&#x1F46A;</div>
+          <div style="flex:1">
+            <div style="font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--purl);margin-bottom:.2rem">Specialized Protocol</div>
+            <div style="font-size:.95rem;font-weight:800;color:var(--wht)">Busy Parent Transformation</div>
+            <div style="font-size:.72rem;color:var(--mut);margin-top:.15rem" id="parent-guide-status"></div>
+          </div>
+          <div id="parent-guide-action" style="flex-shrink:0"></div>
+        </div>
       </div>
     </div>
     <!-- NUTRITION -->
@@ -1812,6 +1822,20 @@ function renderVaultGrid() {
       '</div>' +
     '</div>';
   }).join('');
+  // Render Busy Parent guide card based on tier
+  var statusEl = document.getElementById('parent-guide-status');
+  var actionEl = document.getElementById('parent-guide-action');
+  if (statusEl && actionEl) {
+    var tier = (d.u[uid] && d.u[uid].type) || 'Essentials';
+    var isUnlocked = (tier === 'Platinum' || tier === 'Trainer' || uid === 'akeem');
+    if (isUnlocked) {
+      statusEl.textContent = 'Included with your ' + tier + ' tier';
+      actionEl.innerHTML = '<a href="busy-parent-transformation.html" style="font-family:var(--hb);font-size:.75rem;letter-spacing:2px;background:var(--yel);color:var(--blk);padding:.45rem 1rem;border-radius:8px;text-decoration:none">OPEN</a>';
+    } else {
+      statusEl.textContent = 'Upgrade to Elite or Legacy to unlock';
+      actionEl.innerHTML = '<span style="font-size:1.2rem">&#x1F512;</span>';
+    }
+  }
 }
 
 function openModule(id) {
