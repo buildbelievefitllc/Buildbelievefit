@@ -1033,11 +1033,11 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
         <div class="sh-t" data-lang-key="path-s1-t">Who Are You?</div>
         <div class="sh-s" data-lang-key="path-s1-s">Tell us about yourself &mdash; we'll personalize everything.</div>
         <div class="fr">
-          <div class="ff"><label>First Name</label><input type="text" id="f-fn" placeholder="Marcus" autocomplete="given-name"/></div>
-          <div class="ff"><label>Last Name</label><input type="text" id="f-ln" placeholder="Johnson" autocomplete="family-name"/></div>
+          <div class="ff"><label>First Name</label><input type="text" id="f-fn" name="first_name" placeholder="Marcus" autocomplete="given-name"/></div>
+          <div class="ff"><label>Last Name</label><input type="text" id="f-ln" name="last_name" placeholder="Johnson" autocomplete="family-name"/></div>
         </div>
-        <div class="ff"><label>Email Address</label><input type="email" id="f-em" placeholder="marcus@email.com" autocomplete="email" inputmode="email"/></div>
-        <div class="ff"><label>Phone (optional)</label><input type="tel" id="f-ph" placeholder="602-555-0100" autocomplete="tel" inputmode="tel"/></div>
+        <div class="ff"><label>Email Address</label><input type="email" id="f-em" name="email" placeholder="marcus@email.com" autocomplete="email" inputmode="email"/></div>
+        <div class="ff"><label>Phone (optional)</label><input type="tel" id="f-ph" name="phone" placeholder="602-555-0100" autocomplete="tel" inputmode="tel"/></div>
         <div class="fnav" style="justify-content:flex-end">
           <button class="btn-next" onclick="nxt(0)">Next: Your Stats &#x2192;</button>
         </div>
@@ -1047,14 +1047,14 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
         <div class="sh-t" data-lang-key="path-s2-t">Your Stats</div>
         <div class="sh-s" data-lang-key="path-s2-s">Used to calculate your personalized TDEE and calorie targets.</div>
         <div class="fr">
-          <div class="ff"><label>Age</label><input type="number" id="f-age" placeholder="28" min="16" max="80" inputmode="numeric"/></div>
-          <div class="ff"><label>Sex</label><select id="f-sex"><option value="male">Male</option><option value="female">Female</option></select></div>
+          <div class="ff"><label>Age</label><input type="number" id="f-age" name="age" placeholder="28" min="16" max="80" inputmode="numeric"/></div>
+          <div class="ff"><label>Sex</label><select id="f-sex" name="sex"><option value="male">Male</option><option value="female">Female</option></select></div>
         </div>
         <div class="fr">
-          <div class="ff"><label>Weight (lbs)</label><input type="number" id="f-wt" placeholder="185" inputmode="decimal"/></div>
+          <div class="ff"><label>Weight (lbs)</label><input type="number" id="f-wt" name="weight" placeholder="185" inputmode="decimal"/></div>
           <div class="ff"><label>Height (ft / in)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><input type="number" id="f-ft" placeholder="ft" min="4" max="7" inputmode="numeric"/><input type="number" id="f-in" placeholder="in" min="0" max="11" inputmode="numeric"/></div></div>
         </div>
-        <div class="ff"><label>Activity Level</label><select id="f-act"><option value="1.2">Sedentary</option><option value="1.375">Lightly Active (1-3x/week)</option><option value="1.55" selected>Moderately Active (3-5x/week)</option><option value="1.725">Very Active (6-7x/week)</option><option value="1.9">Extremely Active / Physical Job</option></select></div>
+        <div class="ff"><label>Activity Level</label><select id="f-act" name="activity_level"><option value="1.2">Sedentary</option><option value="1.375">Lightly Active (1-3x/week)</option><option value="1.55" selected>Moderately Active (3-5x/week)</option><option value="1.725">Very Active (6-7x/week)</option><option value="1.9">Extremely Active / Physical Job</option></select></div>
         <div class="fnav">
           <button class="btn-back" onclick="prv(1)">&#x2190; Back</button>
           <button class="btn-next" onclick="nxt(1)">Next: Your Goal &#x2192;</button>
@@ -1104,9 +1104,9 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
         <div class="sh-n">Step 4 of 4</div>
         <div class="sh-t" data-lang-key="path-s4-t">Final Details</div>
         <div class="sh-s" data-lang-key="path-s4-s">Almost there. This helps Akeem prepare before reaching out.</div>
-        <div class="ff"><label>Program Interest</label><select id="f-prog"><option value="foundation">Foundation &mdash; Getting Started</option><option value="elite">Elite Transformation &mdash; Full Commitment</option><option value="remote">Remote Coaching &mdash; Anywhere</option></select></div>
-        <div class="ff"><label>Health Notes &amp; Injuries</label><textarea id="f-health" placeholder="Any injuries, limitations, or health conditions we should know about?"></textarea></div>
-        <div class="ff"><label>How did you hear about us?</label><select id="f-ref"><option value="">Select...</option><option>Instagram</option><option>Referral from a friend</option><option>QR Code / Business Card</option><option>Google Search</option><option>TikTok</option><option>Other</option></select></div>
+        <div class="ff"><label>Program Interest</label><select id="f-prog" name="program"><option value="foundation">Foundation &mdash; Getting Started</option><option value="elite">Elite Transformation &mdash; Full Commitment</option><option value="remote">Remote Coaching &mdash; Anywhere</option></select></div>
+        <div class="ff"><label>Health Notes &amp; Injuries</label><textarea id="f-health" name="health_notes" placeholder="Any injuries, limitations, or health conditions we should know about?"></textarea></div>
+        <div class="ff"><label>How did you hear about us?</label><select id="f-ref" name="referral"><option value="">Select...</option><option>Instagram</option><option>Referral from a friend</option><option>QR Code / Business Card</option><option>Google Search</option><option>TikTok</option><option>Other</option></select></div>
         <div class="fnav" style="flex-direction:column;gap:.8rem">
           <button class="btn-sub" id="sbtn" onclick="doSubmit()" data-lang-key="path-submit">Calculate My Path &amp; Submit &#x2192;</button>
           <button class="btn-back" onclick="prv(3)" style="text-align:center">&#x2190; Back</button>
@@ -1453,10 +1453,10 @@ function doSubmit(){
     fetch('https://hooks.zapier.com/hooks/catch/27190846/u7l7ixc/', {
       method:'POST',
       body:JSON.stringify({
-        first_name:fn, last_name:ln, email:em, phone:ph,
-        goal:goal, schedule:sch, program:prog,
+        first_name:fn, last_name:ln, full_name:fn+' '+ln, email:em, phone:ph,
+        fitness_goal:goal, schedule:sch, program:prog,
         tdee_target:tgt, macro_p:mac.p, macro_c:mac.c, macro_f:mac.f,
-        weight:wt, language:localStorage.getItem('bbf_lang')||'en',
+        weight:wt, language_preference:localStorage.getItem('bbf_lang')||'en',
         source:'BBF Pathfinder Form', timestamp:new Date().toISOString()
       })
     }).catch(function(){});
@@ -1464,7 +1464,7 @@ function doSubmit(){
   fetch('https://formspree.io/f/mwvwjokw',{
     method:'POST',
     headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body:JSON.stringify({name:fn+' '+ln,email:em,phone:ph,age:age,sex:sex,weight_lbs:wt,height:ft+"'"+ins+'"',activity:act,goal:goal,experience:exp,schedule:sch,program:prog,health_notes:hlth,referral:ref,tdee_base:base+' cal/day',daily_target:tgt+' cal/day',macros:'P:'+mac.p+'g C:'+mac.c+'g F:'+mac.f+'g'})
+    body:JSON.stringify({_subject:'New BBF Pathfinder Lead',first_name:fn,last_name:ln,full_name:fn+' '+ln,email:em,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,language_preference:localStorage.getItem('bbf_lang')||'en',source:'BBF Pathfinder Form',timestamp:new Date().toISOString()})
   }).finally(function(){
     btn.textContent='Calculate My Path & Submit \u2192';btn.disabled=false;
     openMod(fn,tgt,mac,goal,sch);
