@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Payment Confirmed — Build Believe Fit</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="bbf-lang.js"></script>
+<style>
+:root{--pur:#6a0dad;--purl:#8b1abf;--yel:#f5c800;--blk:#060606;--card:#111;--brd:#1e1e1e;--mut:#888}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden;position:relative}
+body::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(106,13,173,.2) 0%,transparent 70%);pointer-events:none}
+.wrap{max-width:640px;width:100%;text-align:center;position:relative;z-index:2}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:20px;padding:.3rem 1rem;font-size:.7rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#22c55e;margin-bottom:1.5rem}
+.badge::before{content:'';width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.icon{font-size:4.5rem;margin-bottom:1rem;animation:popIn .5s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes popIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,7vw,4.5rem);letter-spacing:3px;color:#fff;margin-bottom:.3rem;line-height:1}
+h1 span{color:var(--yel)}
+.sub{font-size:1.05rem;color:var(--mut);line-height:1.7;max-width:500px;margin:0 auto 2rem}
+.anchor{background:linear-gradient(135deg,rgba(106,13,173,.2),rgba(74,8,128,.1));border:1px solid rgba(106,13,173,.4);border-radius:14px;padding:1.5rem 2rem;margin-bottom:2rem;text-align:left}
+.anchor-lbl{font-family:'Bebas Neue',sans-serif;font-size:.75rem;letter-spacing:4px;color:var(--purl);margin-bottom:.5rem}
+.anchor-msg{font-size:1rem;color:rgba(255,255,255,.8);line-height:1.7}
+.anchor-msg strong{color:var(--yel)}
+.steps{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:1.5rem 2rem;margin-bottom:2rem;text-align:left}
+.steps-t{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--yel);margin-bottom:1rem}
+.step{display:flex;gap:1rem;align-items:flex-start;margin-bottom:.8rem}
+.step-n{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--pur);min-width:28px}
+.step-t{font-size:.9rem;color:#ccc;line-height:1.6}.step-t strong{color:var(--yel)}
+.countdown{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;color:var(--mut);margin-bottom:1.5rem}
+.countdown span{color:var(--yel);font-size:1.4rem}
+.btn{display:inline-block;background:var(--yel);color:var(--blk);font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:3px;padding:.9rem 2.5rem;border-radius:8px;text-decoration:none;transition:all .2s}.btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(245,200,0,.3)}
+.note{font-size:.78rem;color:var(--mut);margin-top:2rem;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<div class="badge" data-lang-key="ps-badge">TRANSACTION VERIFIED</div>
+<div class="icon">&#x2705;</div>
+<h1 data-lang-key="ps-h1">Welcome to<br>the <span>Laboratory.</span></h1>
+<p class="sub" data-lang-key="ps-sub">Your investment is confirmed. The system is now yours. Check your email for your Day 1 Roadmap and full access credentials.</p>
+
+<div class="anchor">
+<div class="anchor-lbl" data-lang-key="ps-anchor-lbl">THE 175 LB STANDARD</div>
+<p class="anchor-msg" data-lang-key="ps-anchor-msg">You are now training with the same system I used to reach <strong>175 lbs of clean muscle mass.</strong> This isn't a template — it's the architecture that changed my body, my career, and my family's future. <strong>Now it's yours. Let's work.</strong></p>
+</div>
+
+<div class="steps">
+<div class="steps-t" data-lang-key="ps-steps-t">WHAT HAPPENS NEXT</div>
+<div class="step"><div class="step-n">1</div><div class="step-t" data-lang-key="ps-step1"><strong>Email confirmation</strong> — Your receipt and access credentials are being sent now. Check your inbox (and spam).</div></div>
+<div class="step"><div class="step-n">2</div><div class="step-t" data-lang-key="ps-step2"><strong>Day 1 Roadmap</strong> — Akeem sends your personalized starting plan within 24 hours.</div></div>
+<div class="step"><div class="step-n">3</div><div class="step-t" data-lang-key="ps-step3"><strong>App access</strong> — Open the BBF Client App to start logging workouts immediately.</div></div>
+</div>
+
+<div class="countdown" data-lang-key="ps-countdown">REDIRECTING TO YOUR DASHBOARD IN <span id="timer">5</span></div>
+<a href="bbf-app.html" class="btn" data-lang-key="ps-cta">&#x1F4F2; OPEN CLIENT APP NOW</a>
+
+<p class="note" data-lang-key="ps-note">Questions? Text Akeem at <strong>623-340-9254</strong> or email through buildbelievefit.fitness.</p>
+</div>
+
+<script>
+var c=5;var el=document.getElementById('timer');
+var iv=setInterval(function(){c--;if(el)el.textContent=c;if(c<=0){clearInterval(iv);window.location.href='bbf-app.html';}},1000);
+</script>
+</body>
+</html>

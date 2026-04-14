@@ -6,6 +6,9 @@
 /gracias        /gracias.html        200
 /obrigado       /obrigado.html       200
 
+# Payment success
+/payment-success  /payment-success.html  200
+
 # Clean URL for app (no .html)
 /app            /bbf-app.html        200
 /portal         /bbf-app.html        200
