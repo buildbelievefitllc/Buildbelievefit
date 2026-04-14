@@ -1550,10 +1550,10 @@ var expSport=null;
 function initExplorer(){
   var wrap=document.getElementById('exp-sports');if(!wrap)return;
   wrap.innerHTML=EXP_SPORTS.map(function(s){
-    return '<button onclick="selectExpSport(\''+s.id+'\')" id="exp-s-'+s.id+'" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.8rem 1.2rem;background:'+
-    (expSport===s.id?'rgba(106,13,173,.3)':'#141414')+';border:'+(expSport===s.id?'2px solid #6a0dad':'1px solid #1e1e1e')+
-    ';border-radius:12px;cursor:pointer;transition:all .2s;min-width:80px"><span style="font-size:2rem">'+s.icon+
-    '</span><span style="font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:2px;color:'+(expSport===s.id?'#f5c800':'#888')+'">'+s.name+'</span></button>';
+    return '<button onclick="selectExpSport(\''+s.id+'\')" id="exp-s-'+s.id+'" style="display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:1rem 1.5rem;background:'+
+    (expSport===s.id?'rgba(106,13,173,.35)':'rgba(20,20,20,.9)')+';border:'+(expSport===s.id?'2px solid #f5c800':'2px solid #2a2a2a')+
+    ';border-radius:14px;cursor:pointer;transition:all .25s;min-width:90px"><span style="font-size:2.5rem">'+s.icon+
+    '</span><span style="font-family:\'Bebas Neue\',sans-serif;font-size:.85rem;letter-spacing:2px;color:'+(expSport===s.id?'#f5c800':'#aaa')+'">'+s.name+'</span></button>';
   }).join('');
 }
 function selectExpSport(id){
@@ -1593,7 +1593,7 @@ function selectExpPos(sportId,pos){
     '</div>';
   card.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-initExplorer();
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initExplorer);}else{initExplorer();}
 </script>
 </body>
 </html>
