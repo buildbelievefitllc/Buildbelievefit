@@ -333,6 +333,7 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 }
 </style>
 <script src="bbf-lang.js"></script>
+<script src="workout-data.js"></script>
 </head>
 <body>
 
@@ -682,6 +683,27 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
       </div>
     </div>
   </div>
+</section>
+
+<!-- VALUE EXPLORER — Interactive Sport/Position Drill-Down -->
+<section id="explorer" style="background:#0a0a0a;padding:5rem 2rem;position:relative;overflow:hidden;border-top:1px solid rgba(106,13,173,.3);border-bottom:1px solid rgba(106,13,173,.3)">
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:400px;background:radial-gradient(ellipse,rgba(106,13,173,.15) 0%,transparent 70%);pointer-events:none;filter:blur(60px)"></div>
+<div style="max-width:1100px;margin:0 auto;position:relative;z-index:2">
+<div style="text-align:center;margin-bottom:2.5rem" class="reveal">
+<div class="sec-lbl">Position Intelligence</div>
+<h2 class="sec-h">Explore Your <span class="y">Position</span></h2>
+<p class="sec-s" style="margin:0 auto">Select a sport. Choose a position. See the science behind every drill in the BBF Laboratory.</p>
+</div>
+
+<!-- SPORT ICONS -->
+<div id="exp-sports" style="display:flex;justify-content:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap"></div>
+
+<!-- POSITION CHIPS -->
+<div id="exp-positions" style="display:flex;justify-content:center;gap:.6rem;margin-bottom:2rem;flex-wrap:wrap;min-height:48px"></div>
+
+<!-- SCOUT CARD -->
+<div id="exp-card" style="display:none;max-width:680px;margin:0 auto"></div>
+</div>
 </section>
 
 <!-- FREE PLAYBOOKS SECTION -->
@@ -1490,6 +1512,88 @@ function openMod(fn,tgt,mac,goal,schedule){
   document.body.style.overflow='hidden';
 }
 function closeMod(){document.getElementById('smodal').classList.remove('on');document.body.style.overflow='auto';}
+
+// ─── VALUE EXPLORER ─────────────────────────────────────────
+var EXP_SPORTS=[
+  {id:'football',icon:'\uD83C\uDFC8',name:'Football',positions:['QB','RB','WR','TE','OL','DL','LB','S']},
+  {id:'basketball',icon:'\uD83C\uDFC0',name:'Basketball',positions:['PG','SG','SF','PF','C']},
+  {id:'soccer',icon:'\u26BD',name:'Soccer',positions:['FW','MF','DEF','GK']},
+  {id:'baseball',icon:'\u26BE',name:'Baseball',positions:['P','C','IF','OF']},
+  {id:'volleyball',icon:'\uD83C\uDFD0',name:'Volleyball',positions:['S','OH','LIB','MB']}
+];
+var EXP_KPI={
+  QB:['Rotational Torque','Pocket Maneuverability','Throwing Velocity'],
+  RB:['Lateral Agility','Triple Extension Power','Ball Security'],
+  WR:['Linear Acceleration','Change of Direction','Grip Strength'],
+  TE:['Triple Extension Power','Blocking Leverage','Versatility Endurance'],
+  OL:['Static Strength','Lateral Displacement','Core Stability'],
+  DL:['Peak Explosive Power','Shedding Torque','First-Step Velocity'],
+  LB:['Lateral Tracking','Tackling Force','Reactive Agility'],
+  S:['Top-End Speed','Transition Velocity','Vertical Displacement'],
+  PG:['Repeat Sprint Ability','Ball Handling Precision','Peripheral Vision'],
+  SG:['Shooting Velocity','Transition Speed','Lateral Flow'],
+  SF:['Vertical Displacement','Multi-Directional Quickness','Triple-Threat Torque'],
+  PF:['Triple Extension Power','Rebounding Force','Post-Stability'],
+  C:['Rim Protection Power','Static Strength','Pivot Speed'],
+  FW:['Sprint Velocity','Shot Conversion Rate','Off-Ball Acceleration'],
+  MF:['Total Distance','Pass Completion','Interception Anticipation'],
+  DEF:['Aerial Duel Win%','Recovery Sprint Speed','Tackling Efficiency'],
+  GK:['Reaction Time','Lateral Displacement Power','Distribution Accuracy'],
+  P:['Pitch Velocity','Scapular Deceleration','Kinetic Sequencing'],
+  IF:['Lateral Agility','Ball Exchange Speed','Rotational Throw Force'],
+  OF:['Linear Acceleration','Drop-Step Efficiency','Arm Strength'],
+  OH:['Vertical Jump Height','Spike Velocity','Explosive Acceleration'],
+  LIB:['Agility / Reaction Speed','Dig Accuracy','Low-Center Stability'],
+  MB:['Block Reach Height','Lateral Closing Speed','Triple Extension Power']
+};
+var expSport=null;
+function initExplorer(){
+  var wrap=document.getElementById('exp-sports');if(!wrap)return;
+  wrap.innerHTML=EXP_SPORTS.map(function(s){
+    return '<button onclick="selectExpSport(\''+s.id+'\')" id="exp-s-'+s.id+'" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.8rem 1.2rem;background:'+
+    (expSport===s.id?'rgba(106,13,173,.3)':'#141414')+';border:'+(expSport===s.id?'2px solid #6a0dad':'1px solid #1e1e1e')+
+    ';border-radius:12px;cursor:pointer;transition:all .2s;min-width:80px"><span style="font-size:2rem">'+s.icon+
+    '</span><span style="font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:2px;color:'+(expSport===s.id?'#f5c800':'#888')+'">'+s.name+'</span></button>';
+  }).join('');
+}
+function selectExpSport(id){
+  expSport=id;initExplorer();
+  var sport=EXP_SPORTS.find(function(s){return s.id===id;});
+  var wrap=document.getElementById('exp-positions');
+  document.getElementById('exp-card').style.display='none';
+  wrap.innerHTML=sport.positions.map(function(p){
+    return '<button onclick="selectExpPos(\''+id+'\',\''+p+'\')" style="font-family:\'Bebas Neue\',sans-serif;font-size:.85rem;letter-spacing:2px;padding:.5rem 1.2rem;background:rgba(106,13,173,.15);border:1px solid rgba(106,13,173,.4);color:#f5c800;border-radius:20px;cursor:pointer;transition:all .2s" onmouseover="this.style.background=\'rgba(106,13,173,.4)\'" onmouseout="this.style.background=\'rgba(106,13,173,.15)\'">'+p+'</button>';
+  }).join('');
+}
+function selectExpPos(sportId,pos){
+  var card=document.getElementById('exp-card');
+  var kpis=EXP_KPI[pos]||['Performance','Speed','Power'];
+  var sport=EXP_SPORTS.find(function(s){return s.id===sportId;});
+  var drillName='';
+  if(typeof WORKOUT_CATALOG!=='undefined'&&WORKOUT_CATALOG[sportId]&&WORKOUT_CATALOG[sportId][pos]&&WORKOUT_CATALOG[sportId][pos][0]){
+    var L=(typeof BBF_LANG!=='undefined'&&BBF_LANG.get)?BBF_LANG.get():'en';
+    var d0=WORKOUT_CATALOG[sportId][pos][0];
+    drillName=d0.name[L]||d0.name.en;
+  }
+  card.style.display='block';
+  card.innerHTML='<div style="background:#111;border:2px solid rgba(106,13,173,.5);border-radius:16px;padding:2rem;position:relative;overflow:hidden">'+
+    '<div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#6a0dad,#f5c800)"></div>'+
+    '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem"><span style="font-size:2.5rem">'+sport.icon+'</span>'+
+    '<div><div style="font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#8b1abf">'+sport.name+' Position Analysis</div>'+
+    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:2rem;letter-spacing:2px;color:#fff">'+pos+'</div></div></div>'+
+    '<div style="font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#f5c800;margin-bottom:.8rem">PRIMARY KPIs</div>'+
+    '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem">'+kpis.map(function(k){
+      return '<span style="font-size:.78rem;font-weight:700;padding:.35rem .8rem;background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.2);border-radius:20px;color:#f5c800">'+k+'</span>';
+    }).join('')+'</div>'+
+    (drillName?'<div style="background:#0a0a0a;border:1px solid #1e1e1e;border-left:3px solid #6a0dad;border-radius:0 8px 8px 0;padding:.8rem 1rem;margin-bottom:1.5rem">'+
+    '<div style="font-size:.6rem;font-weight:700;letter-spacing:3px;color:#8b1abf;margin-bottom:.3rem">LABORATORY VERIFIED DRILL</div>'+
+    '<div style="font-size:1rem;font-weight:700;color:#fff">'+drillName+'</div></div>':'')+
+    '<a href="#pathfinder" style="display:block;text-align:center;background:#f5c800;color:#060606;font-family:\'Bebas Neue\',sans-serif;font-size:1rem;letter-spacing:3px;padding:.85rem;border-radius:8px;text-decoration:none;transition:all .2s">UNLOCK FULL PLAYBOOK \u2192</a>'+
+    '<div style="text-align:center;font-size:.65rem;color:#555;margin-top:1rem;font-style:italic">This isn\u2019t theory. This is the math of the 175 LB Milestone. Professional standards for every athlete.</div>'+
+    '</div>';
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+initExplorer();
 </script>
 </body>
 </html>
