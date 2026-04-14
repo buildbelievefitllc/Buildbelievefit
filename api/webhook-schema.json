@@ -1,0 +1,67 @@
+{
+  "_documentation": "BBF Stripe → Zapier → Brevo Webhook Schema",
+  "_version": "1.0",
+  "_updated": "2026-04-14",
+  "_flow": "Stripe Payment → Zapier Webhook → Brevo Transactional Email",
+
+  "stripe_to_zapier": {
+    "_trigger": "Stripe: New Payment (or Checkout Session Completed)",
+    "fields": {
+      "customer_email": "{{stripe.customer_email}}",
+      "customer_name": "{{stripe.customer_name}}",
+      "amount_paid": "{{stripe.amount / 100}}",
+      "currency": "{{stripe.currency}}",
+      "payment_id": "{{stripe.payment_intent}}",
+      "product_name": "{{stripe.line_items[0].description}}",
+      "tier": "{{stripe.metadata.tier || derived from amount: 67=community, 497=elite, 1500+=legacy}}",
+      "timestamp": "{{stripe.created}}"
+    }
+  },
+
+  "zapier_to_brevo": {
+    "_action": "Brevo: Send Transactional Email (Template)",
+    "contact_creation": {
+      "email": "{{customer_email}}",
+      "attributes": {
+        "FIRSTNAME": "{{customer_name.split(' ')[0]}}",
+        "LASTNAME": "{{customer_name.split(' ')[1] || ''}}",
+        "TIER": "{{tier}}",
+        "LANGUAGE": "{{language_preference || 'en'}}",
+        "PAYMENT_DATE": "{{timestamp}}",
+        "AMOUNT_PAID": "{{amount_paid}}"
+      },
+      "listIds": [1],
+      "updateEnabled": true
+    },
+    "email_trigger": {
+      "templateId_by_tier": {
+        "community": 1,
+        "elite": 2,
+        "legacy": 3
+      },
+      "to": [{"email": "{{customer_email}}", "name": "{{customer_name}}"}],
+      "params": {
+        "FIRSTNAME": "{{FIRSTNAME}}",
+        "TIER": "{{tier}}",
+        "TIER_LABEL_EN": "{{tier === 'community' ? 'Community Blueprint' : tier === 'elite' ? 'Elite 8-Week Challenge' : 'Legacy Performance Protocol'}}",
+        "TIER_LABEL_ES": "{{tier === 'community' ? 'Plan Comunitario' : tier === 'elite' ? 'Desafío Elite de 8 Semanas' : 'Protocolo de Rendimiento Legacy'}}",
+        "TIER_LABEL_PT": "{{tier === 'community' ? 'Plano Comunitário' : tier === 'elite' ? 'Desafio Elite de 8 Semanas' : 'Protocolo de Performance Legacy'}}",
+        "APP_URL": "https://buildbelievefit.fitness/bbf-app.html",
+        "AMOUNT": "{{amount_paid}}"
+      }
+    }
+  },
+
+  "tier_mapping": {
+    "community": {"price_usd": 67, "stripe_link": "buy.stripe.com/cNidRb...", "brevo_template": 1},
+    "elite": {"price_usd": 497, "stripe_link": "buy.stripe.com/6oU9AV...", "brevo_template": 2},
+    "legacy": {"price_usd": 1500, "stripe_link": "buy.stripe.com/eVqaEZ...", "brevo_template": 3}
+  },
+
+  "language_detection": {
+    "_note": "Language is passed from the Pathfinder form via localStorage('bbf_lang') and included in both Zapier and Formspree payloads as 'language_preference'. If not available, default to 'en'.",
+    "field": "language_preference",
+    "values": ["en", "es", "pt"],
+    "default": "en"
+  }
+}

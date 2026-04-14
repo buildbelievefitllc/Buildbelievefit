@@ -306,7 +306,8 @@ var D = {
 'ps-step3':         { en:'<strong>App access</strong> \u2014 Open the BBF Client App to start logging workouts immediately.', es:'<strong>Acceso a la app</strong> \u2014 Abre la app BBF para comenzar a registrar entrenamientos de inmediato.', pt:'<strong>Acesso ao app</strong> \u2014 Abra o app BBF para come\u00e7ar a registrar treinos imediatamente.' },
 'ps-countdown':     { en:'REDIRECTING TO YOUR DASHBOARD IN', es:'REDIRIGIENDO A TU PANEL EN', pt:'REDIRECIONANDO PARA SEU PAINEL EM' },
 'ps-cta':           { en:'\ud83d\udcf2 OPEN CLIENT APP NOW', es:'\ud83d\udcf2 ABRIR APP AHORA', pt:'\ud83d\udcf2 ABRIR APP AGORA' },
-'ps-note':          { en:'Questions? Text Akeem at <strong>623-340-9254</strong> or email through buildbelievefit.fitness.', es:'\u00bfPreguntas? Env\u00eda un mensaje a Akeem al <strong>623-340-9254</strong> o por email en buildbelievefit.fitness.', pt:'Perguntas? Envie mensagem para Akeem no <strong>623-340-9254</strong> ou por email em buildbelievefit.fitness.' }
+'ps-note':          { en:'Questions? Text Akeem at <strong>623-340-9254</strong> or email through buildbelievefit.fitness.', es:'\u00bfPreguntas? Env\u00eda un mensaje a Akeem al <strong>623-340-9254</strong> o por email en buildbelievefit.fitness.', pt:'Perguntas? Envie mensagem para Akeem no <strong>623-340-9254</strong> ou por email em buildbelievefit.fitness.' },
+'ps-download':      { en:'\ud83d\udce5 DOWNLOAD BLUEPRINT', es:'\ud83d\udce5 DESCARGAR PLAN', pt:'\ud83d\udce5 BAIXAR PLANO' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
