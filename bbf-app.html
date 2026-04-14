@@ -476,6 +476,23 @@ window.onload=function(){
   </div>
 </div>
 
+<!-- ═══ RESTRICTED ACCESS ═══ -->
+<div class="scr" id="restricted">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:linear-gradient(180deg,var(--purp),var(--blk))">
+    <div style="max-width:420px;text-align:center">
+      <div style="font-size:4rem;margin-bottom:1rem">&#x1F512;</div>
+      <div style="font-family:var(--hb);font-size:2.5rem;letter-spacing:3px;color:var(--yel);margin-bottom:.5rem" data-lang-key="app-gate-title">ACCESS PAUSED</div>
+      <div style="font-size:.95rem;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:2rem" data-lang-key="app-gate-msg">Your session access is currently paused. Contact the Founder to reactivate your spot in the Laboratory.</div>
+      <div style="background:rgba(106,13,173,.15);border:1px solid rgba(106,13,173,.3);border-radius:12px;padding:1.2rem;margin-bottom:2rem">
+        <div style="font-family:var(--hb);font-size:.75rem;letter-spacing:3px;color:var(--purl);margin-bottom:.4rem">THE 175 LB STANDARD</div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.6" data-lang-key="app-gate-anchor">This system was built at 175 lbs of verified muscle mass. When your access is restored, you rejoin a system with a proven track record. The architecture is waiting for you.</div>
+      </div>
+      <a href="sms:6233409254?body=Hey Akeem, I need to reactivate my BBF access." style="display:inline-block;background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:1rem;letter-spacing:3px;padding:.85rem 2rem;border-radius:8px;text-decoration:none;margin-bottom:.8rem" data-lang-key="app-gate-contact">&#x1F4AC; TEXT AKEEM</a>
+      <div><button onclick="exitRestricted()" style="background:none;border:1px solid rgba(255,255,255,.15);color:var(--mut);font-family:var(--hb);font-size:.85rem;letter-spacing:2px;padding:.6rem 1.5rem;border-radius:6px;cursor:pointer" data-lang-key="app-gate-signout">SIGN OUT</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ APP ═══ -->
 <div class="scr" id="app">
   <div class="tbar">
@@ -1254,6 +1271,25 @@ function ENTER() {
   if (CU === 'akeem') {
     SETUP_TRAINER();
   } else {
+    // ─── GATEKEEPER: Check access status ─────────────
+    var accessD = GD();
+    var accessU = accessD.u[CU] || {};
+    var accessStatus = accessU.access_status || 'unlocked';
+    // Check auto-lock expiry
+    if (accessStatus === 'unlocked' && accessU.lock_expiry && accessU.lock_expiry < Date.now()) {
+      accessD.u[CU].access_status = 'locked';
+      accessD.u[CU].lock_expiry = null;
+      SD(accessD);
+      accessStatus = 'locked';
+    }
+    if (accessStatus === 'locked') {
+      showRestrictedScreen();
+      return;
+    }
+    if (accessStatus === 'recovery') {
+      showRecoveryNotice();
+    }
+    // ─── END GATEKEEPER ──────────────────────────────
     VC = CU;
     LP();
     RA();
@@ -1432,6 +1468,21 @@ function _t(key, fallback) {
     return window.BBF_LANG.D[key][L] || window.BBF_LANG.D[key].en || fallback;
   }
   return fallback;
+}
+
+// ─── ACCESS GATEKEEPER ────────────────────────────────────
+function showRestrictedScreen() {
+  SS('restricted');
+  if (window.BBF_LANG) window.BBF_LANG.apply();
+}
+
+function showRecoveryNotice() {
+  TOAST('&#x1FA79; ' + _t('app-gate-recovery-toast', 'Recovery Mode Active. Heavy lifting modules locked. Mobility protocol only.'));
+}
+
+function exitRestricted() {
+  CU = null; VC = null;
+  SS('auth');
 }
 
 // ─── READINESS ENGINE ─────────────────────────────────────

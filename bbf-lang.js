@@ -327,7 +327,15 @@ var D = {
 'app-ready-god':        { en:'CNS Peak Detected. Add 5% to your primary lifts today. Go for the PR.', es:'Pico del SNC Detectado. A\u00f1ade 5% a tus levantamientos principales hoy. Ve por el r\u00e9cord.', pt:'Pico do SNC Detectado. Adicione 5% aos seus levantamentos principais hoje. V\u00e1 pelo recorde.' },
 'app-ready-standard':   { en:'Laboratory Protocol Active. Execute the session as written.', es:'Protocolo del Laboratorio Activo. Ejecuta la sesi\u00f3n como est\u00e1 escrita.', pt:'Protocolo do Laborat\u00f3rio Ativo. Execute a sess\u00e3o como escrita.' },
 'app-ready-recovery':   { en:'Fatigue Detected. Cap intensity at 70%. Prioritize longevity.', es:'Fatiga Detectada. Limita la intensidad al 70%. Prioriza la longevidad.', pt:'Fadiga Detectada. Limite a intensidade a 70%. Priorize a longevidade.' },
-'app-ready-seal':       { en:'Architecture by Akeem. 175 LB Milestone Met. This system protects your gains.', es:'Arquitectura por Akeem. Meta de 175 LBS Alcanzada. Este sistema protege tus ganancias.', pt:'Arquitetura por Akeem. Meta de 175 LBS Alcan\u00e7ada. Este sistema protege seus ganhos.' }
+'app-ready-seal':       { en:'Architecture by Akeem. 175 LB Milestone Met. This system protects your gains.', es:'Arquitectura por Akeem. Meta de 175 LBS Alcanzada. Este sistema protege tus ganancias.', pt:'Arquitetura por Akeem. Meta de 175 LBS Alcan\u00e7ada. Este sistema protege seus ganhos.' },
+
+// ═══ ACCESS GATEKEEPER ═══
+'app-gate-title':       { en:'ACCESS PAUSED', es:'ACCESO PAUSADO', pt:'ACESSO PAUSADO' },
+'app-gate-msg':         { en:'Your session access is currently paused. Contact the Founder to reactivate your spot in the Laboratory.', es:'Tu acceso est\u00e1 actualmente pausado. Contacta al Fundador para reactivar tu lugar en el Laboratorio.', pt:'Seu acesso est\u00e1 atualmente pausado. Contacte o Fundador para reativar seu lugar no Laborat\u00f3rio.' },
+'app-gate-anchor':      { en:'This system was built at 175 lbs of verified muscle mass. When your access is restored, you rejoin a system with a proven track record.', es:'Este sistema fue construido a 175 lbs de masa muscular verificada. Cuando tu acceso sea restaurado, te reincorporas a un sistema con resultados comprobados.', pt:'Este sistema foi constru\u00eddo a 175 lbs de massa muscular verificada. Quando seu acesso for restaurado, voc\u00ea retorna a um sistema com resultados comprovados.' },
+'app-gate-contact':     { en:'\ud83d\udcac TEXT AKEEM', es:'\ud83d\udcac MENSAJE A AKEEM', pt:'\ud83d\udcac MENSAGEM PARA AKEEM' },
+'app-gate-signout':     { en:'SIGN OUT', es:'CERRAR SESI\u00d3N', pt:'SAIR' },
+'app-gate-recovery-toast': { en:'Recovery Mode Active. Heavy lifting modules locked. Mobility protocol only.', es:'Modo Recuperaci\u00f3n Activo. M\u00f3dulos de levantamiento pesado bloqueados. Solo protocolo de movilidad.', pt:'Modo Recupera\u00e7\u00e3o Ativo. M\u00f3dulos de levantamento pesado bloqueados. Apenas protocolo de mobilidade.' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
