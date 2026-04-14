@@ -77,18 +77,18 @@ var D = {
 // ═══ PROGRAMS ═══
 'prog-lbl':        { en:'Choose Your Path', es:'Elige Tu Camino', pt:'Escolha Seu Caminho' },
 'prog-h':          { en:'Spectrum of <span class="y">Success</span>', es:'Espectro del <span class="y">\u00c9xito</span>', pt:'Espectro do <span class="y">Sucesso</span>' },
-'prog-section-sub': { en:'We respect every dollar you invest. Whether it\u2019s $67 or $2,500, you receive a clinical, OT-informed return on that investment.', es:'Respetamos cada d\u00f3lar que inviertes. Sea $67 o $2,500, recibes un retorno cl\u00ednico e informado por TO sobre esa inversi\u00f3n.', pt:'Respeitamos cada d\u00f3lar que voc\u00ea investe. Seja $67 ou $2.500, voc\u00ea recebe um retorno cl\u00ednico e informado por TO sobre esse investimento.' },
+'prog-section-sub': { en:'We respect every dollar you invest. Whether it\u2019s $147 or $2,997, you receive a clinical, OT-informed return backed by the same system that produced 175 lbs of verified results.', es:'Respetamos cada d\u00f3lar que inviertes. Sea $147 o $2,997, recibes un retorno cl\u00ednico respaldado por el mismo sistema que produjo 175 lbs de resultados verificados.', pt:'Respeitamos cada d\u00f3lar que voc\u00ea investe. Seja $147 ou $2.997, voc\u00ea recebe um retorno cl\u00ednico respaldado pelo mesmo sistema que produziu 175 lbs de resultados verificados.' },
 'prog-t1-tier':    { en:'Community Tier', es:'Nivel Comunidad', pt:'N\u00edvel Comunidade' },
 'prog-t1-name':    { en:'Community Blueprint', es:'Plan Comunitario', pt:'Plano Comunit\u00e1rio' },
-'prog-t1-price':   { en:'$67', es:'$67', pt:'$67' },
-'prog-t1-cta':     { en:'Start for $67 \u2192', es:'Comienza por $67 \u2192', pt:'Comece por $67 \u2192' },
+'prog-t1-price':   { en:'$147', es:'$147', pt:'$147' },
+'prog-t1-cta':     { en:'Start for $147 \u2192', es:'Comienza por $147 \u2192', pt:'Comece por $147 \u2192' },
 'prog-t2-tier':    { en:'Flagship Program', es:'Programa Insignia', pt:'Programa Principal' },
 'prog-t2-name':    { en:'Elite 8-Week Challenge', es:'Desaf\u00edo Elite de 8 Semanas', pt:'Desafio Elite de 8 Semanas' },
-'prog-t2-price':   { en:'$497', es:'$497', pt:'$497' },
+'prog-t2-price':   { en:'$697', es:'$697', pt:'$697' },
 'prog-t2-cta':     { en:'Start Elite \u2192', es:'Iniciar Elite \u2192', pt:'Iniciar Elite \u2192' },
 'prog-t3-tier':    { en:'Executive & Clinical', es:'Ejecutivo & Cl\u00ednico', pt:'Executivo & Cl\u00ednico' },
 'prog-t3-name':    { en:'Legacy Performance Protocol', es:'Protocolo de Rendimiento Legacy', pt:'Protocolo de Performance Legacy' },
-'prog-t3-price':   { en:'$1,500 \u2013 $2,500', es:'$1,500 \u2013 $2,500', pt:'$1.500 \u2013 $2.500' },
+'prog-t3-price':   { en:'$2,997', es:'$2,997', pt:'$2.997' },
 'prog-t3-cta':     { en:'Apply for Legacy \u2192', es:'Solicitar Legacy \u2192', pt:'Solicitar Legacy \u2192' },
 
 // ═══ NUTRITION ═══

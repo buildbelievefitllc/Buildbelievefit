@@ -13,7 +13,7 @@
       "currency": "{{stripe.currency}}",
       "payment_id": "{{stripe.payment_intent}}",
       "product_name": "{{stripe.line_items[0].description}}",
-      "tier": "{{stripe.metadata.tier || derived from amount: 67=community, 497=elite, 1500+=legacy}}",
+      "tier": "{{stripe.metadata.tier || derived from amount: 147=community, 697=elite, 2997=legacy}}",
       "timestamp": "{{stripe.created}}"
     }
   },
@@ -53,9 +53,9 @@
   },
 
   "tier_mapping": {
-    "community": {"price_usd": 67, "stripe_link": "buy.stripe.com/cNidRb...", "brevo_template": 1},
-    "elite": {"price_usd": 497, "stripe_link": "buy.stripe.com/6oU9AV...", "brevo_template": 2},
-    "legacy": {"price_usd": 1500, "stripe_link": "buy.stripe.com/eVqaEZ...", "brevo_template": 3}
+    "community": {"price_usd": 147, "stripe_link": "buy.stripe.com/7sYfZjfnharV5Vg7UZaZi04", "brevo_template": 1},
+    "elite": {"price_usd": 697, "stripe_link": "buy.stripe.com/8x26oJ8YT43x6Zka37aZi05", "brevo_template": 2},
+    "legacy": {"price_usd": 2997, "stripe_link": "buy.stripe.com/eVqaEZ2AveIberM8Z3aZi06", "brevo_template": 3}
   },
 
   "language_detection": {
