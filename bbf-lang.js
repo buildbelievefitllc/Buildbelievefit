@@ -307,7 +307,27 @@ var D = {
 'ps-countdown':     { en:'REDIRECTING TO YOUR DASHBOARD IN', es:'REDIRIGIENDO A TU PANEL EN', pt:'REDIRECIONANDO PARA SEU PAINEL EM' },
 'ps-cta':           { en:'\ud83d\udcf2 OPEN CLIENT APP NOW', es:'\ud83d\udcf2 ABRIR APP AHORA', pt:'\ud83d\udcf2 ABRIR APP AGORA' },
 'ps-note':          { en:'Questions? Text Akeem at <strong>623-340-9254</strong> or email through buildbelievefit.fitness.', es:'\u00bfPreguntas? Env\u00eda un mensaje a Akeem al <strong>623-340-9254</strong> o por email en buildbelievefit.fitness.', pt:'Perguntas? Envie mensagem para Akeem no <strong>623-340-9254</strong> ou por email em buildbelievefit.fitness.' },
-'ps-download':      { en:'\ud83d\udce5 DOWNLOAD BLUEPRINT', es:'\ud83d\udce5 DESCARGAR PLAN', pt:'\ud83d\udce5 BAIXAR PLANO' }
+'ps-download':      { en:'\ud83d\udce5 DOWNLOAD BLUEPRINT', es:'\ud83d\udce5 DESCARGAR PLAN', pt:'\ud83d\udce5 BAIXAR PLANO' },
+
+// ═══ READINESS ENGINE ═══
+'app-ready-title':      { en:'\ud83e\uddea Morning Lab Audit', es:'\ud83e\uddea Auditor\u00eda Matutina del Laboratorio', pt:'\ud83e\uddea Auditoria Matinal do Laborat\u00f3rio' },
+'app-ready-sub':        { en:'Rate your current state. The system adapts your training intensity automatically.', es:'Eval\u00faa tu estado actual. El sistema adapta tu intensidad de entrenamiento autom\u00e1ticamente.', pt:'Avalie seu estado atual. O sistema adapta sua intensidade de treino automaticamente.' },
+'app-ready-sleep':      { en:'Sleep Quality', es:'Calidad del Sue\u00f1o', pt:'Qualidade do Sono' },
+'app-ready-sleep-lo':   { en:'Restless', es:'Inquieto', pt:'Inquieto' },
+'app-ready-sleep-hi':   { en:'Deep Rest', es:'Descanso Profundo', pt:'Descanso Profundo' },
+'app-ready-stress':     { en:'Stress Level', es:'Nivel de Estr\u00e9s', pt:'N\u00edvel de Estresse' },
+'app-ready-stress-lo':  { en:'Calm', es:'Tranquilo', pt:'Tranquilo' },
+'app-ready-stress-hi':  { en:'High Pressure', es:'Alta Presi\u00f3n', pt:'Alta Press\u00e3o' },
+'app-ready-energy':     { en:'Physical Energy', es:'Energ\u00eda F\u00edsica', pt:'Energia F\u00edsica' },
+'app-ready-energy-lo':  { en:'Exhausted', es:'Agotado', pt:'Esgotado' },
+'app-ready-energy-hi':  { en:'Fresh', es:'Fresco', pt:'Descansado' },
+'app-ready-coefficient': { en:'Readiness Coefficient', es:'Coeficiente de Preparaci\u00f3n', pt:'Coeficiente de Prontid\u00e3o' },
+'app-ready-skip':       { en:'Skip', es:'Omitir', pt:'Pular' },
+'app-ready-lock':       { en:'Lock In \ud83d\udd12', es:'Confirmar \ud83d\udd12', pt:'Confirmar \ud83d\udd12' },
+'app-ready-god':        { en:'CNS Peak Detected. Add 5% to your primary lifts today. Go for the PR.', es:'Pico del SNC Detectado. A\u00f1ade 5% a tus levantamientos principales hoy. Ve por el r\u00e9cord.', pt:'Pico do SNC Detectado. Adicione 5% aos seus levantamentos principais hoje. V\u00e1 pelo recorde.' },
+'app-ready-standard':   { en:'Laboratory Protocol Active. Execute the session as written.', es:'Protocolo del Laboratorio Activo. Ejecuta la sesi\u00f3n como est\u00e1 escrita.', pt:'Protocolo do Laborat\u00f3rio Ativo. Execute a sess\u00e3o como escrita.' },
+'app-ready-recovery':   { en:'Fatigue Detected. Cap intensity at 70%. Prioritize longevity.', es:'Fatiga Detectada. Limita la intensidad al 70%. Prioriza la longevidad.', pt:'Fadiga Detectada. Limite a intensidade a 70%. Priorize a longevidade.' },
+'app-ready-seal':       { en:'Architecture by Akeem. 175 LB Milestone Met. This system protects your gains.', es:'Arquitectura por Akeem. Meta de 175 LBS Alcanzada. Este sistema protege tus ganancias.', pt:'Arquitetura por Akeem. Meta de 175 LBS Alcan\u00e7ada. Este sistema protege seus ganhos.' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────

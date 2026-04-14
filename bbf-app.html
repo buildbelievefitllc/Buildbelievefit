@@ -285,6 +285,26 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ptb.on{border-color:var(--yel);background:rgba(245,200,0,.08);color:var(--wht)}
 
 
+/* ═══ READINESS ENGINE ══════════════════════════════════════ */
+.ready-row{margin-bottom:1.2rem}
+.ready-lbl{font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center}
+.ready-val{font-family:var(--hb);font-size:1.6rem;color:var(--yel);min-width:32px;text-align:right}
+.ready-range{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:#1e1e1e;outline:none;margin-top:.3rem}
+.ready-range::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--yel);cursor:pointer;border:3px solid var(--pur);box-shadow:0 0 8px rgba(245,200,0,.3)}
+.ready-range::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--yel);cursor:pointer;border:3px solid var(--pur)}
+.ready-score{text-align:center;margin:1.2rem 0 .8rem;padding:1rem;background:rgba(106,13,173,.1);border:1px solid rgba(106,13,173,.3);border-radius:12px}
+.ready-score-n{font-family:var(--hb);font-size:3rem;line-height:1}.ready-score-l{font-size:.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mut);margin-top:.2rem}
+.ready-score.god .ready-score-n{color:#22c55e}.ready-score.std .ready-score-n{color:var(--yel)}.ready-score.rec .ready-score-n{color:#ef4444}
+.ready-banner{border-radius:10px;padding:.8rem 1rem;margin-bottom:.8rem;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:.6rem}
+.ready-banner.god{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);color:#22c55e}
+.ready-banner.std{background:rgba(106,13,173,.08);border:1px solid rgba(106,13,173,.25);color:var(--purl)}
+.ready-banner.rec{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);color:#ef4444}
+.ready-banner .rb-icon{font-size:1.2rem;flex-shrink:0}
+.ready-seal{font-size:.65rem;color:var(--mut);text-align:center;margin-top:.6rem;font-style:italic}
+.dh.god-glow{box-shadow:0 0 30px rgba(245,200,0,.12);border:1px solid rgba(245,200,0,.25)}
+.home-ready{display:inline-flex;align-items:center;gap:.4rem;background:rgba(106,13,173,.1);border:1px solid rgba(106,13,173,.25);border-radius:20px;padding:.2rem .7rem;font-size:.7rem;font-weight:700;letter-spacing:1px;margin-top:.3rem}
+.home-ready.god{border-color:rgba(34,197,94,.3);color:#22c55e}.home-ready.std{color:var(--yel)}.home-ready.rec{border-color:rgba(239,68,68,.2);color:#ef4444}
+
 /* ═══ VICTORY MODAL ══════════════════════════════════════════ */
 #victory-modal{display:none;position:fixed;inset:0;z-index:999;align-items:center;justify-content:center;background:rgba(0,0,0,.92);backdrop-filter:blur(8px)}
 #victory-modal.on{display:flex}
@@ -487,6 +507,7 @@ window.onload=function(){
           <span id="protocol-label" style="font-family:var(--hb);font-size:.72rem;letter-spacing:2px;color:var(--yel)"></span>
         </div>
         <div class="hm" id="hmeta"></div>
+        <div class="home-ready" id="home-readiness" style="display:none"></div>
         <div class="stk"><div class="stn" id="hstreak">0</div><div class="stl">Streak &#x1F525;</div></div>
       </div>
       <div class="sg">
@@ -825,6 +846,38 @@ window.onload=function(){
   </div>
 </div>
 
+
+<!-- READINESS MODAL -->
+<div class="modal" id="readiness-modal">
+  <div class="msh">
+    <div class="mhd"></div>
+    <div class="mt" data-lang-key="app-ready-title">&#x1F9EA; Morning Lab Audit</div>
+    <div style="font-size:.82rem;font-weight:600;color:var(--mut2);margin-bottom:1.2rem" data-lang-key="app-ready-sub">Rate your current state. The system adapts your training intensity automatically.</div>
+    <div class="ready-row">
+      <div class="ready-lbl"><span data-lang-key="app-ready-sleep">Sleep Quality</span><span class="ready-val" id="rv-sleep">5</span></div>
+      <input type="range" class="ready-range" id="ready-sleep" min="1" max="10" value="5" oninput="document.getElementById('rv-sleep').textContent=this.value;updateReadinessPreview()">
+      <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--mut);margin-top:.2rem"><span data-lang-key="app-ready-sleep-lo">Restless</span><span data-lang-key="app-ready-sleep-hi">Deep Rest</span></div>
+    </div>
+    <div class="ready-row">
+      <div class="ready-lbl"><span data-lang-key="app-ready-stress">Stress Level</span><span class="ready-val" id="rv-stress">5</span></div>
+      <input type="range" class="ready-range" id="ready-stress" min="1" max="10" value="5" oninput="document.getElementById('rv-stress').textContent=this.value;updateReadinessPreview()">
+      <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--mut);margin-top:.2rem"><span data-lang-key="app-ready-stress-lo">Calm</span><span data-lang-key="app-ready-stress-hi">High Pressure</span></div>
+    </div>
+    <div class="ready-row">
+      <div class="ready-lbl"><span data-lang-key="app-ready-energy">Physical Energy</span><span class="ready-val" id="rv-energy">5</span></div>
+      <input type="range" class="ready-range" id="ready-energy" min="1" max="10" value="5" oninput="document.getElementById('rv-energy').textContent=this.value;updateReadinessPreview()">
+      <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--mut);margin-top:.2rem"><span data-lang-key="app-ready-energy-lo">Exhausted</span><span data-lang-key="app-ready-energy-hi">Fresh</span></div>
+    </div>
+    <div class="ready-score std" id="ready-preview">
+      <div class="ready-score-n" id="ready-preview-n">50%</div>
+      <div class="ready-score-l" id="ready-preview-l" data-lang-key="app-ready-coefficient">Readiness Coefficient</div>
+    </div>
+    <div class="ma">
+      <button class="mc3" onclick="skipReadiness()" data-lang-key="app-ready-skip">Skip</button>
+      <button class="ms" onclick="saveReadiness()" data-lang-key="app-ready-lock">Lock In &#x1F512;</button>
+    </div>
+  </div>
+</div>
 
 <!-- CONFETTI -->
 <div id="cf-wrap" style="position:fixed;inset:0;pointer-events:none;z-index:997"></div>
@@ -1204,6 +1257,10 @@ function ENTER() {
     VC = CU;
     LP();
     RA();
+    // Morning Readiness check — once per day for clients
+    if (!hasReadinessToday(CU)) {
+      setTimeout(function() { showReadinessModal(); }, 600);
+    }
   }
 }
 
@@ -1296,6 +1353,18 @@ function RH() {
   document.getElementById('hname').textContent = (displayUser.name || displayUid || '').split(' ')[0] || '—';
   document.getElementById('hmeta').textContent = (u.goal || '').substring(0, 50);
   document.getElementById('hstreak').textContent = STREAK(logs);
+  // Readiness badge on home
+  var readyEl = document.getElementById('home-readiness');
+  if (readyEl) {
+    var rs = getTodayReadiness(uid);
+    if (rs !== null) {
+      var rt = rs >= 90 ? 'god' : rs >= 70 ? 'std' : 'rec';
+      var rl = rt === 'god' ? 'GOD MODE' : rt === 'std' ? 'READY' : 'RECOVERY';
+      readyEl.className = 'home-ready ' + rt;
+      readyEl.innerHTML = '&#x1F9EA; ' + rs + '% ' + rl;
+      readyEl.style.display = 'inline-flex';
+    } else { readyEl.style.display = 'none'; }
+  }
   document.getElementById('qtot').textContent = logs.filter(function(l) { return l.type !== 'note'; }).length;
   document.getElementById('qwk').textContent = TWKL(logs);
   var lw = LWT(logs);
@@ -1365,6 +1434,81 @@ function _t(key, fallback) {
   return fallback;
 }
 
+// ─── READINESS ENGINE ─────────────────────────────────────
+function hasReadinessToday(uid) {
+  var d = GD(); var u = d.u[uid] || {};
+  return u.readiness_last_check === today();
+}
+
+function showReadinessModal() {
+  document.getElementById('ready-sleep').value = 5;
+  document.getElementById('ready-stress').value = 5;
+  document.getElementById('ready-energy').value = 5;
+  document.getElementById('rv-sleep').textContent = '5';
+  document.getElementById('rv-stress').textContent = '5';
+  document.getElementById('rv-energy').textContent = '5';
+  updateReadinessPreview();
+  document.getElementById('readiness-modal').classList.add('on');
+}
+
+function closeReadinessModal() {
+  document.getElementById('readiness-modal').classList.remove('on');
+}
+
+function skipReadiness() {
+  var d = GD(); var uid = VC || CU;
+  if (d.u[uid]) { d.u[uid].readiness_last_check = today(); SD(d); }
+  closeReadinessModal();
+}
+
+function updateReadinessPreview() {
+  var s = parseInt(document.getElementById('ready-sleep').value) || 5;
+  var st = parseInt(document.getElementById('ready-stress').value) || 5;
+  var e = parseInt(document.getElementById('ready-energy').value) || 5;
+  var score = Math.round(((s + (10 - st) + e) / 30) * 100);
+  var el = document.getElementById('ready-preview-n');
+  var wrap = document.getElementById('ready-preview');
+  if (el) el.textContent = score + '%';
+  if (wrap) { wrap.className = 'ready-score ' + (score >= 90 ? 'god' : score >= 70 ? 'std' : 'rec'); }
+}
+
+function saveReadiness() {
+  var sleep = parseInt(document.getElementById('ready-sleep').value) || 5;
+  var stress = parseInt(document.getElementById('ready-stress').value) || 5;
+  var energy = parseInt(document.getElementById('ready-energy').value) || 5;
+  var score = Math.round(((sleep + (10 - stress) + energy) / 30) * 100);
+  var d = GD(); var uid = VC || CU;
+  if (!d.u[uid]) return;
+  if (!d.u[uid].daily_readiness) d.u[uid].daily_readiness = {};
+  d.u[uid].daily_readiness[today()] = { sleep: sleep, stress: stress, energy: energy, score: score };
+  d.u[uid].readiness_last_check = today();
+  SD(d);
+  closeReadinessModal();
+  var tier = score >= 90 ? 'god-mode' : score >= 70 ? 'standard' : 'recovery';
+  var msg = tier === 'god-mode' ? _t('app-ready-god', 'CNS Peak Detected. Go for the PR.') :
+            tier === 'standard' ? _t('app-ready-standard', 'Protocol Active. Execute as written.') :
+            _t('app-ready-recovery', 'Fatigue Detected. Cap intensity at 70%.');
+  TOAST('&#x1F9EA; ' + score + '% \u2014 ' + msg);
+  RH(); RW();
+}
+
+function getTodayReadiness(uid) {
+  var d = GD(); var u = d.u[uid] || {};
+  var r = u.daily_readiness && u.daily_readiness[today()];
+  return r ? r.score : null;
+}
+
+function getReadinessBannerHTML(score) {
+  if (score === null) return '';
+  var tier = score >= 90 ? 'god' : score >= 70 ? 'std' : 'rec';
+  var icon = tier === 'god' ? '&#x26A1;' : tier === 'std' ? '&#x1F9EA;' : '&#x26A0;';
+  var msg = tier === 'god' ? _t('app-ready-god', 'CNS Peak Detected. Add 5% to your primary lifts today. Go for the PR.') :
+            tier === 'std' ? _t('app-ready-standard', 'Laboratory Protocol Active. Execute the session as written.') :
+            _t('app-ready-recovery', 'Fatigue Detected. Cap intensity at 70%. Prioritize longevity.');
+  var seal = _t('app-ready-seal', 'Architecture by Akeem. 175 LB Milestone Met. This system protects your gains.');
+  return '<div class="ready-banner ' + tier + '"><span class="rb-icon">' + icon + '</span><div><div>' + score + '% \u2014 ' + msg + '</div><div class="ready-seal">' + seal + '</div></div></div>';
+}
+
 // ─── WORKOUT ──────────────────────────────────────────────
 function RW() {
   var nav = document.getElementById('dnav');
@@ -1401,8 +1545,12 @@ function RDW() {
       '<div class="rdc"><div class="rdi">&#x1F634;</div><div class="rdt">' + _t('app-wo-restrecover','Rest & Recover') + '</div><div class="rds">' + (day.restNote || _t('app-wo-restdefault','Active recovery, stretch, hydrate.')) + '</div></div>';
     return;
   }
-  var h = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
+  var readyScore = getTodayReadiness(uid);
+  var readyTier = readyScore !== null ? (readyScore >= 90 ? 'god' : readyScore >= 70 ? 'std' : 'rec') : null;
+  var dhClass = readyTier === 'god' ? ' god-glow' : '';
+  var h = '<div class="dh' + dhClass + '"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
     '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>';
+  h += getReadinessBannerHTML(readyScore);
   day.exercises.forEach(function(ex, ei) {
     var ek = 'ex_' + ei;
     var sv = saved[ek] || [];
