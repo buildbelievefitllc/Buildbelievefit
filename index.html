@@ -345,7 +345,7 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
     <li><a href="#programs" id="nav-programs" data-lang-key="nav-programs">Programs</a></li>
     <li><a href="#nutrition" id="nav-nutrition" data-lang-key="nav-nutrition">Nutrition</a></li>
     <li><a href="#testimonials" id="nav-results" data-lang-key="nav-results">Results</a></li>
-    <li><a href="playbooks.html" id="nav-playbooks">&#x1F4DA; Playbooks</a></li>
+    <li><a href="#playbooks" id="nav-playbooks">&#x1F4DA; Playbooks</a></li>
     <li><a href="#transformation" id="nav-mystory" data-lang-key="nav-mystory">My Story</a></li>
     <li><a href="#founder" id="nav-about" data-lang-key="nav-about">About</a></li>
     <li><a href="#pathfinder" id="nav-start" data-lang-key="nav-start">Start</a></li>
@@ -365,7 +365,7 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
   <a href="#programs" data-lang-key="mnav-programs">Programs</a>
   <a href="#nutrition" data-lang-key="mnav-nutrition">Nutrition</a>
   <a href="#testimonials" data-lang-key="mnav-results">Results</a>
-  <a href="playbooks.html">&#x1F4DA; Free Playbooks</a>
+  <a href="#playbooks">&#x1F4DA; Playbooks</a>
   <a href="sports-hub.html">&#x1F3C6; Scouting Hub</a>
   <a href="#founder" data-lang-key="mnav-about">About</a>
   <a href="#pathfinder" data-lang-key="mnav-start">Start My Journey</a>
@@ -706,208 +706,35 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
 </div>
 </section>
 
-<!-- FREE PLAYBOOKS SECTION -->
-<section id="playbooks" style="
-  background: #0e0e0e;
-  padding: 100px 24px;
-  position: relative;
-  overflow: hidden;
-  border-top: 1px solid rgba(106,13,173,0.3);
-  border-bottom: 1px solid rgba(106,13,173,0.3);
-">
+<!-- ELITE PLAYBOOKS SECTION -->
+<section id="playbooks" style="background:#0e0e0e;padding:80px 24px;position:relative;overflow:hidden;border-top:1px solid rgba(106,13,173,.3);border-bottom:1px solid rgba(106,13,173,.3)">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(106,13,173,.18) 0%,transparent 70%);pointer-events:none;filter:blur(60px)"></div>
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(106,13,173,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(106,13,173,.04) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 90% 80% at 50% 50%,black 30%,transparent 100%);pointer-events:none"></div>
 
-  <!-- Background glow -->
-  <div style="
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 800px; height: 400px;
-    background: radial-gradient(ellipse, rgba(106,13,173,0.2) 0%, transparent 70%);
-    pointer-events: none;
-    filter: blur(60px);
-  "></div>
+  <div style="position:relative;max-width:1100px;margin:0 auto;z-index:2">
 
-  <!-- Grid overlay -->
-  <div style="
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(106,13,173,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(106,13,173,0.05) 1px, transparent 1px);
-    background-size: 60px 60px;
-    mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 30%, transparent 100%);
-    pointer-events: none;
-  "></div>
-
-  <div style="
-    position: relative;
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: center;
-  " class="bbf-playbooks-inner">
-
-    <!-- LEFT — TEXT -->
-    <div>
-      <p style="
-        font-family: 'Barlow Condensed', sans-serif;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 4px;
-        text-transform: uppercase;
-        color: #f5c800;
-        margin-bottom: 16px;
-      ">Free Resources</p>
-
-      <h2 style="
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: clamp(2.8rem, 6vw, 5rem);
-        line-height: 0.92;
-        letter-spacing: 2px;
-        color: #ffffff;
-        margin-bottom: 24px;
-      ">
-        YOUR POSITION.<br/>
-        <span style="color: #f5c800;">YOUR PLAYBOOK.</span>
-      </h2>
-
-      <p style="
-        font-family: 'Barlow Condensed', sans-serif;
-        font-size: 1.15rem;
-        font-weight: 300;
-        color: rgba(232,232,232,0.7);
-        line-height: 1.55;
-        max-width: 440px;
-        margin-bottom: 32px;
-      ">
-        7 position-specific performance playbooks — built by a NASM-certified trainer.
-        Strength cues, 5-day training splits, nutrition guides, and recruitment strategy.
-        Free. No catch.
-      </p>
-
-      <!-- Position pills -->
-      <div style="
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 36px;
-      ">
-        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:5px 12px; background:rgba(106,13,173,0.25); border:1px solid rgba(106,13,173,0.5); border-radius:2px; color:#f5c800;">QB</span>
-        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:5px 12px; background:rgba(106,13,173,0.25); border:1px solid rgba(106,13,173,0.5); border-radius:2px; color:#f5c800;">RB</span>
-        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:5px 12px; background:rgba(106,13,173,0.25); border:1px solid rgba(106,13,173,0.5); border-radius:2px; color:#f5c800;">WR</span>
-        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:5px 12px; background:rgba(106,13,173,0.25); border:1px solid rgba(106,13,173,0.5); border-radius:2px; color:#f5c800;">TE</span>
-        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:5px 12px; background:rgba(106,13,173,0.25); border:1px solid rgba(106,13,173,0.5); border-radius:2px; color:#f5c800;">LB</span>
-        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:5px 12px; background:rgba(106,13,173,0.25); border:1px solid rgba(106,13,173,0.5); border-radius:2px; color:#f5c800;">Safety</span>
-        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:5px 12px; background:rgba(106,13,173,0.25); border:1px solid rgba(106,13,173,0.5); border-radius:2px; color:#f5c800;">OL/DL</span>
-      </div>
-
-      <!-- CTA Button -->
-      <a href="playbooks.html" style="
-        display: inline-block;
-        background: #f5c800;
-        color: #0e0e0e;
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 1.2rem;
-        letter-spacing: 3px;
-        padding: 18px 40px;
-        border-radius: 2px;
-        text-decoration: none;
-        transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-      "
-      onmouseover="this.style.background='#c9a200'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 30px rgba(245,200,0,0.2)'"
-      onmouseout="this.style.background='#f5c800'; this.style.transform='translateY(0)'; this.style.boxShadow='none'"
-      >
-        GET YOUR FREE PLAYBOOK &rarr;
-      </a>
+    <!-- HEADER -->
+    <div style="text-align:center;margin-bottom:3rem">
+      <p style="font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#f5c800;margin-bottom:12px">Positional Blueprints</p>
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5.5vw,4.5rem);line-height:.92;letter-spacing:2px;color:#fff;margin-bottom:16px">ELITE POSITION.<br><span style="color:#f5c800">YOUR PLAYBOOK.</span></h2>
+      <p style="font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;font-weight:400;color:rgba(232,232,232,.6);line-height:1.6;max-width:560px;margin:0 auto">Professional-grade programming, nutrition protocols, and recruitment targets for the high-performance household. 5 sports. 25 positions. Built in the Laboratory.</p>
     </div>
 
-    <!-- RIGHT — STACKED CARDS VISUAL -->
-    <div style="position: relative; display: flex; justify-content: center; align-items: center;">
-      <div style="position: relative; width: 300px; height: 380px;">
-        <!-- Back cards (decorative) -->
-        <div style="
-          position: absolute;
-          top: 24px; left: -20px;
-          width: 260px; height: 340px;
-          background: rgba(106,13,173,0.12);
-          border: 1px solid rgba(106,13,173,0.3);
-          border-radius: 4px;
-          transform: rotate(-4deg);
-        "></div>
-        <div style="
-          position: absolute;
-          top: 12px; left: -8px;
-          width: 268px; height: 348px;
-          background: rgba(106,13,173,0.18);
-          border: 1px solid rgba(106,13,173,0.35);
-          border-radius: 4px;
-          transform: rotate(-2deg);
-        "></div>
-        <!-- Front card -->
-        <div style="
-          position: absolute;
-          top: 0; left: 0;
-          width: 276px; height: 356px;
-          background: linear-gradient(145deg, #1a0a2e 0%, #160820 100%);
-          border: 1px solid rgba(106,13,173,0.6);
-          border-radius: 4px;
-          padding: 28px 24px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,200,0,0.08);
-        ">
-          <div style="height: 4px; background: linear-gradient(90deg, #6a0dad, #f5c800); border-radius: 2px; margin-bottom: 20px;"></div>
-          <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: rgba(245,200,0,0.6); margin-bottom: 8px;">Build Believe Fit</p>
-          <p style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1; letter-spacing: 2px; color: #ffffff; margin-bottom: 4px;">POSITION</p>
-          <p style="font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; line-height: 1; letter-spacing: 2px; color: #f5c800; margin-bottom: 20px;">PLAYBOOK</p>
-          <div style="height:1px; background:rgba(245,200,0,0.2); margin-bottom:16px;"></div>
-          <div style="display:flex; flex-direction:column; gap:10px;">
-            <div style="display:flex; align-items:flex-start; gap:10px;">
-              <span style="color:#f5c800; font-size:0.8rem; margin-top:1px;">&#x2714;</span>
-              <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.85rem; color:rgba(232,232,232,0.8); line-height:1.3;">Strength &amp; technique cues</span>
-            </div>
-            <div style="display:flex; align-items:flex-start; gap:10px;">
-              <span style="color:#f5c800; font-size:0.8rem; margin-top:1px;">&#x2714;</span>
-              <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.85rem; color:rgba(232,232,232,0.8); line-height:1.3;">5-day performance split</span>
-            </div>
-            <div style="display:flex; align-items:flex-start; gap:10px;">
-              <span style="color:#f5c800; font-size:0.8rem; margin-top:1px;">&#x2714;</span>
-              <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.85rem; color:rgba(232,232,232,0.8); line-height:1.3;">Position nutrition guide</span>
-            </div>
-            <div style="display:flex; align-items:flex-start; gap:10px;">
-              <span style="color:#f5c800; font-size:0.8rem; margin-top:1px;">&#x2714;</span>
-              <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.85rem; color:rgba(232,232,232,0.8); line-height:1.3;">Parent recruitment playbook</span>
-            </div>
-            <div style="display:flex; align-items:flex-start; gap:10px;">
-              <span style="color:#f5c800; font-size:0.8rem; margin-top:1px;">&#x2714;</span>
-              <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.85rem; color:rgba(232,232,232,0.8); line-height:1.3;">100% free download</span>
-            </div>
-          </div>
-          <div style="position: absolute; bottom: 20px; right: 20px; font-family: 'Bebas Neue', sans-serif; font-size: 0.7rem; letter-spacing: 2px; color: rgba(245,200,0,0.35);">NASM CERTIFIED</div>
-        </div>
-      </div>
-    </div>
+    <!-- SOVEREIGN SPORT BAR -->
+    <div id="pb-sport-bar" style="display:flex;justify-content:center;gap:10px;margin-bottom:2rem;flex-wrap:wrap"></div>
 
+    <!-- DYNAMIC POSITION CARDS -->
+    <div id="pb-position-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:2rem"></div>
+
+    <!-- CTA -->
+    <div style="text-align:center;margin-top:1rem">
+      <a href="#pathfinder" style="display:inline-block;background:#f5c800;color:#0e0e0e;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;padding:16px 40px;border-radius:4px;text-decoration:none;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(245,200,0,.25)'" onmouseout="this.style.transform='';this.style.boxShadow=''">UNLOCK YOUR FULL PLAYBOOK &rarr;</a>
+    </div>
   </div>
 
   <style>
-    @media (max-width: 768px) {
-      .bbf-playbooks-inner {
-        grid-template-columns: 1fr !important;
-        gap: 48px !important;
-        text-align: center;
-      }
-      .bbf-playbooks-inner > div:first-child p,
-      .bbf-playbooks-inner > div:first-child div {
-        margin-left: auto;
-        margin-right: auto;
-        justify-content: center;
-      }
-      .bbf-playbooks-inner > div:last-child {
-        display: none !important;
-      }
-    }
+    @media(max-width:600px){#pb-position-grid{grid-template-columns:1fr !important}}
   </style>
-
 </section>
 
 <!-- SPECIALIZED PROTOCOLS -->
@@ -1593,7 +1420,45 @@ function selectExpPos(sportId,pos){
     '</div>';
   card.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initExplorer);}else{initExplorer();}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){initExplorer();initPlaybookBar();});}else{initExplorer();initPlaybookBar();}
+
+// ─── PLAYBOOK SPORT BAR ────────────────────────────────────
+var pbActiveSport='football';
+function initPlaybookBar(){
+  var bar=document.getElementById('pb-sport-bar');if(!bar)return;
+  var sports=[
+    {id:'football',icon:'\uD83C\uDFC8',name:'Football'},
+    {id:'basketball',icon:'\uD83C\uDFC0',name:'Basketball'},
+    {id:'soccer',icon:'\u26BD',name:'Soccer'},
+    {id:'baseball',icon:'\u26BE',name:'Baseball'},
+    {id:'volleyball',icon:'\uD83C\uDFD0',name:'Volleyball'}
+  ];
+  bar.innerHTML=sports.map(function(s){
+    var active=s.id===pbActiveSport;
+    return '<button onclick="pbSelectSport(\''+s.id+'\')" style="display:flex;align-items:center;gap:.5rem;padding:.7rem 1.3rem;background:'+(active?'rgba(106,13,173,.35)':'rgba(20,20,20,.9)')+';border:'+(active?'2px solid #f5c800':'2px solid #2a2a2a')+';border-radius:10px;cursor:pointer;transition:all .25s;font-family:\'Bebas Neue\',sans-serif;font-size:.9rem;letter-spacing:2px;color:'+(active?'#f5c800':'#aaa')+'"><span style="font-size:1.5rem">'+s.icon+'</span>'+s.name+'</button>';
+  }).join('');
+  pbRenderPositions();
+}
+function pbSelectSport(id){pbActiveSport=id;initPlaybookBar();}
+function pbRenderPositions(){
+  var grid=document.getElementById('pb-position-grid');if(!grid)return;
+  if(typeof WORKOUT_CATALOG==='undefined'||!WORKOUT_CATALOG[pbActiveSport]){grid.innerHTML='';return;}
+  var L=(typeof BBF_LANG!=='undefined'&&BBF_LANG.get)?BBF_LANG.get():'en';
+  var positions=Object.keys(WORKOUT_CATALOG[pbActiveSport]);
+  grid.innerHTML=positions.map(function(pos){
+    var drills=WORKOUT_CATALOG[pbActiveSport][pos];
+    var kpis=EXP_KPI[pos]||[];
+    var firstDrill=drills[0]?(drills[0].name[L]||drills[0].name.en):'';
+    var firstFocus=drills[0]?(drills[0].focus[L]||drills[0].focus.en):'';
+    return '<div style="background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:1.5rem;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;cursor:default" onmouseover="this.style.borderColor=\'#6a0dad\';this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.borderColor=\'#2a2a2a\';this.style.transform=\'\'">'+
+      '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6a0dad,#f5c800)"></div>'+
+      '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.6rem;letter-spacing:2px;color:#fff;margin-bottom:.5rem">'+pos+'</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.8rem">'+kpis.slice(0,3).map(function(k){return '<span style="font-size:.6rem;font-weight:700;letter-spacing:1px;padding:2px 6px;background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.15);border-radius:10px;color:#f5c800">'+k+'</span>';}).join('')+'</div>'+
+      (firstDrill?'<div style="background:#0a0a0a;border-left:3px solid #6a0dad;border-radius:0 6px 6px 0;padding:.6rem .8rem;margin-bottom:.8rem"><div style="font-size:.55rem;font-weight:700;letter-spacing:2px;color:#8b1abf;margin-bottom:.2rem">LAB-VERIFIED DRILL</div><div style="font-size:.85rem;font-weight:700;color:#ddd">'+firstDrill+'</div><div style="font-size:.7rem;color:#888;margin-top:.2rem;line-height:1.4">'+firstFocus.substring(0,80)+'</div></div>':'')+
+      '<div style="font-size:.58rem;color:#555;font-style:italic;text-align:center">Engineered on the math of the 175 LB Milestone. Built for the Sovereign Athlete.</div>'+
+    '</div>';
+  }).join('');
+}
 </script>
 </body>
 </html>
