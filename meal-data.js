@@ -1,0 +1,47 @@
+// ═══════════════════════════════════════════════════════════════
+// MEAL-DATA.JS — BBF Smart Kitchen
+// Laboratory Generated — Pending Founder Audit
+// Built on the 175 LB Blueprint. Data-driven, Athlete-tested.
+// ═══════════════════════════════════════════════════════════════
+var MEAL_VAULT = [
+  {id:1,name:{en:'Grilled Chicken & Jasmine Rice Bowl',es:'Bowl de Pollo a la Parrilla con Arroz Jazmín',pt:'Bowl de Frango Grelhado com Arroz Jasmine'},
+   type:'home',tags:['chicken','rice','broccoli'],allergens:[],
+   parent:{cal:420,p:'35g',c:'45g',f:'10g',portion:'4 oz chicken, 3/4 cup rice, 1 cup broccoli'},
+   athlete:{cal:680,p:'55g',c:'72g',f:'14g',portion:'7 oz chicken, 1.5 cups rice, 1 cup broccoli'}},
+  {id:2,name:{en:'Salmon & Sweet Potato Power Plate',es:'Plato Potente de Salmón y Camote',pt:'Prato Potente de Salmão e Batata-Doce'},
+   type:'home',tags:['salmon','sweet-potato','asparagus'],allergens:['fish'],
+   parent:{cal:450,p:'38g',c:'40g',f:'16g',portion:'5 oz salmon, 4 oz sweet potato, 1 cup asparagus'},
+   athlete:{cal:720,p:'58g',c:'65g',f:'22g',portion:'8 oz salmon, 8 oz sweet potato, 1 cup asparagus'}},
+  {id:3,name:{en:'Turkey Meatball Whole-Wheat Pasta',es:'Pasta Integral con Albóndigas de Pavo',pt:'Massa Integral com Almôndegas de Peru'},
+   type:'home',tags:['turkey','pasta','marinara'],allergens:['gluten'],
+   parent:{cal:440,p:'36g',c:'48g',f:'12g',portion:'4 oz turkey, 1 cup pasta, 1/2 cup marinara'},
+   athlete:{cal:700,p:'54g',c:'76g',f:'18g',portion:'6 oz turkey, 1.5 cups pasta, 3/4 cup marinara'}},
+  {id:4,name:{en:'Lean Beef Stir-Fry with Brown Rice',es:'Salteado de Carne Magra con Arroz Integral',pt:'Stir-Fry de Carne Magra com Arroz Integral'},
+   type:'home',tags:['beef','rice','bell-pepper','zucchini'],allergens:[],
+   parent:{cal:430,p:'38g',c:'42g',f:'12g',portion:'4 oz 93/7 beef, 3/4 cup rice, 1 cup mixed veggies'},
+   athlete:{cal:690,p:'58g',c:'68g',f:'18g',portion:'7 oz beef, 1.5 cups rice, 1.5 cups veggies'}},
+  {id:5,name:{en:'Greek Yogurt Protein Parfait',es:'Parfait de Yogur Griego con Proteína',pt:'Parfait de Iogurte Grego com Proteína'},
+   type:'home',tags:['yogurt','berries','granola','honey'],allergens:['dairy'],
+   parent:{cal:320,p:'28g',c:'38g',f:'8g',portion:'1 cup Greek yogurt, 1/2 cup berries, 1/4 cup granola'},
+   athlete:{cal:520,p:'42g',c:'58g',f:'12g',portion:'1.5 cups yogurt, 1 cup berries, 1/2 cup granola, 1 scoop whey'}},
+  {id:6,name:{en:'Chipotle-Style Burrito Bowl (Road)',es:'Bowl Tipo Chipotle (Viaje)',pt:'Bowl Estilo Chipotle (Viagem)'},
+   type:'road',tags:['chicken','rice','beans','salsa'],allergens:[],
+   parent:{cal:480,p:'38g',c:'52g',f:'14g',portion:'Chicken, white rice, black beans, salsa, lettuce — no sour cream/cheese'},
+   athlete:{cal:750,p:'56g',c:'82g',f:'18g',portion:'Double chicken, white rice, black beans, fajita veggies, salsa'}},
+  {id:7,name:{en:'Subway Protein Bowl (Road)',es:'Bowl de Proteína Subway (Viaje)',pt:'Bowl de Proteína Subway (Viagem)'},
+   type:'road',tags:['turkey','chicken','veggies'],allergens:[],
+   parent:{cal:350,p:'32g',c:'28g',f:'10g',portion:'Double meat, all veggies, oil & vinegar — no bread/cheese'},
+   athlete:{cal:560,p:'52g',c:'42g',f:'16g',portion:'Triple meat, all veggies, extra olive oil, add avocado'}},
+  {id:8,name:{en:'Overnight Oats Fuel Pack',es:'Avena Nocturna de Combustible',pt:'Aveia Overnight de Combustível'},
+   type:'home',tags:['oats','milk','banana','peanut-butter'],allergens:['dairy','nuts'],
+   parent:{cal:380,p:'22g',c:'52g',f:'12g',portion:'1/2 cup oats, 1 cup milk, 1/2 banana, 1 tbsp PB'},
+   athlete:{cal:620,p:'38g',c:'78g',f:'18g',portion:'1 cup oats, 1.5 cups milk, 1 banana, 2 tbsp PB, 1 scoop whey'}},
+  {id:9,name:{en:'Egg White Veggie Scramble',es:'Revuelto de Claras con Vegetales',pt:'Mexido de Claras com Vegetais'},
+   type:'home',tags:['eggs','spinach','bell-pepper','tomato'],allergens:['eggs'],
+   parent:{cal:280,p:'30g',c:'12g',f:'10g',portion:'5 egg whites, 1 whole egg, 1 cup mixed veggies'},
+   athlete:{cal:460,p:'48g',c:'18g',f:'18g',portion:'6 egg whites, 2 whole eggs, 1.5 cups veggies, 1 slice wheat toast'}},
+  {id:10,name:{en:'Grilled Chicken Caesar Wrap (Road)',es:'Wrap César de Pollo a la Parrilla (Viaje)',pt:'Wrap Caesar de Frango Grelhado (Viagem)'},
+   type:'road',tags:['chicken','lettuce','wrap'],allergens:['gluten','dairy'],
+   parent:{cal:410,p:'34g',c:'36g',f:'14g',portion:'Grilled chicken, romaine, light dressing, whole-wheat wrap'},
+   athlete:{cal:640,p:'52g',c:'54g',f:'20g',portion:'Double chicken, romaine, dressing, add avocado, whole-wheat wrap'}}
+];
