@@ -525,6 +525,7 @@ window.onload=function(){
         </div>
         <div class="hm" id="hmeta"></div>
         <div class="home-ready" id="home-readiness" style="display:none"></div>
+        <div style="display:flex;align-items:center;gap:.4rem;margin-top:.3rem"><div style="width:6px;height:6px;border-radius:50%;background:#22c55e"></div><span style="font-size:.6rem;font-weight:700;letter-spacing:1px;color:var(--mut)" data-lang-key="app-sync-status">Data Secured in the Lab</span></div>
         <div class="stk"><div class="stn" id="hstreak">0</div><div class="stl">Streak &#x1F525;</div></div>
       </div>
       <div class="sg">
@@ -1201,7 +1202,11 @@ function TOAST(msg) {
   setTimeout(function() { t.classList.remove('on'); }, 2800);
 }
 
-function today() { return new Date().toISOString().slice(0, 10); }
+function today() {
+  // Use local date (not UTC) to prevent timezone shift
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 
 function FMT(dt) {
   if (!dt) return '';
@@ -1225,12 +1230,28 @@ function STREAK(logs) {
   logs.forEach(function(l) { if (l.type !== 'note' && !seen[l.date]) { seen[l.date] = 1; dates.push(l.date); } });
   dates.sort().reverse();
   if (!dates.length) return 0;
-  var s = 0, cur = new Date();
+  // Use local date string comparison to avoid timezone issues
+  var todayStr = today();
+  var s = 0;
+  // Check if most recent date is today or yesterday
+  var prev = todayStr;
   for (var i = 0; i < dates.length; i++) {
-    var dd = new Date(dates[i] + 'T12:00:00');
-    if (Math.round((cur - dd) / 86400000) <= 1) { s++; cur = dd; } else break;
+    var d = dates[i];
+    var gap = dateDiffDays(d, prev);
+    if (gap === 0) { if (i === 0) { s = 1; } continue; }
+    if (gap === 1) { s++; prev = d; }
+    else break;
   }
+  // If first date IS today, we already counted it
+  if (dates[0] === todayStr && s === 0) s = 1;
   return s;
+}
+
+function dateDiffDays(dateStr1, dateStr2) {
+  // Returns number of calendar days between two YYYY-MM-DD strings
+  var a = new Date(dateStr1 + 'T00:00:00');
+  var b = new Date(dateStr2 + 'T00:00:00');
+  return Math.abs(Math.round((b - a) / 86400000));
 }
 
 function TWKL(logs) {
@@ -1689,11 +1710,7 @@ function CWO(day, dk) {
   d.l[uid].push({date:today(), type:'strength', notes:'Completed: ' + day.focus, loggedAt:new Date().toISOString(), loggedBy:CU});
   SD(d);
   try { if(dk) sessionStorage.removeItem('bbf_wo_' + dk); } catch(e) {}
-  var wlogs = (d.l[uid]||[]).filter(function(l){return l.type!=='note';});
-  var seen = {}; var dates2 = [];
-  wlogs.forEach(function(l){if(!seen[l.date]){seen[l.date]=1;dates2.push(l.date);}});
-  dates2.sort().reverse(); var stk=0; var cur2=new Date();
-  for(var i=0;i<dates2.length;i++){var dd2=new Date(dates2[i]+'T12:00:00');if(Math.round((cur2-dd2)/86400000)<=1){stk++;cur2=dd2;}else break;}
+  var stk = STREAK((d.l[uid]||[]).filter(function(l){return l.type!=='note';}));
   showVictory(_t('app-victory-title','CRUSHED IT!'), day.focus + ' ' + _t('app-victory-complete','Complete'), day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + ' \u2022 ' + _t('app-victory-great','Great work!'));
   setTimeout(function(){ checkStreakMilestone(stk); checkProgressiveOverload(); }, 600);
   RH();
@@ -2845,7 +2862,7 @@ function closeVictory(){document.getElementById('victory-modal').classList.remov
 function checkStreakMilestone(streak){
   var M={3:{i:'&#x1F525;',t:'3-DAY STREAK!',s:"You're building momentum!"},
          5:{i:'&#x1F31F;',t:'5-DAY STREAK!',s:'Consistency is your superpower!'},
-         7:{i:'&#x1F451;',t:'7-DAY STREAK!',s:'A full week. Legendary.'},
+         7:{i:'&#x1F451;',t:'7-DAY STREAK!',s:'Consistency is the currency of the Lab. You\u2019re following the 175 LB Blueprint.'},
          10:{i:'&#x1F3C6;',t:'10-DAY STREAK!',s:'Elite level consistency!'},
          14:{i:'&#x1F48E;',t:'14-DAY STREAK!',s:'Two weeks straight. Unstoppable!'},
          21:{i:'&#x1F680;',t:'21-DAY STREAK!',s:"3 weeks. You're a machine!"},

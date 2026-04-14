@@ -335,7 +335,8 @@ var D = {
 'app-gate-anchor':      { en:'This system was built at 175 lbs of verified muscle mass. When your access is restored, you rejoin a system with a proven track record.', es:'Este sistema fue construido a 175 lbs de masa muscular verificada. Cuando tu acceso sea restaurado, te reincorporas a un sistema con resultados comprobados.', pt:'Este sistema foi constru\u00eddo a 175 lbs de massa muscular verificada. Quando seu acesso for restaurado, voc\u00ea retorna a um sistema com resultados comprovados.' },
 'app-gate-contact':     { en:'\ud83d\udcac TEXT AKEEM', es:'\ud83d\udcac MENSAJE A AKEEM', pt:'\ud83d\udcac MENSAGEM PARA AKEEM' },
 'app-gate-signout':     { en:'SIGN OUT', es:'CERRAR SESI\u00d3N', pt:'SAIR' },
-'app-gate-recovery-toast': { en:'Recovery Mode Active. Heavy lifting modules locked. Mobility protocol only.', es:'Modo Recuperaci\u00f3n Activo. M\u00f3dulos de levantamiento pesado bloqueados. Solo protocolo de movilidad.', pt:'Modo Recupera\u00e7\u00e3o Ativo. M\u00f3dulos de levantamento pesado bloqueados. Apenas protocolo de mobilidade.' }
+'app-gate-recovery-toast': { en:'Recovery Mode Active. Heavy lifting modules locked. Mobility protocol only.', es:'Modo Recuperaci\u00f3n Activo. M\u00f3dulos de levantamiento pesado bloqueados. Solo protocolo de movilidad.', pt:'Modo Recupera\u00e7\u00e3o Ativo. M\u00f3dulos de levantamento pesado bloqueados. Apenas protocolo de mobilidade.' },
+'app-sync-status':      { en:'Data Secured in the Lab', es:'Datos Asegurados en el Laboratorio', pt:'Dados Seguros no Laborat\u00f3rio' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
