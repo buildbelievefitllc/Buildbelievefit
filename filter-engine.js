@@ -83,15 +83,12 @@ function generateDailyBlueprint(intake, protocol, lang) {
 
   // Build household meal plan
   blueprint.meals = data.meals.map(function(m) {
-    var portion = m[protocol] || m.parent;
     return {
       name: m.name[L] || m.name.en,
       type: m.type,
-      calories: portion.cal,
-      protein: portion.p,
-      carbs: portion.c,
-      fats: portion.f,
-      portion: portion.portion
+      protocol: m.protocol,
+      tags: m.tags,
+      allergens: m.allergens
     };
   });
 
