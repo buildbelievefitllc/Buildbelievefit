@@ -337,6 +337,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="bbf-sync.js"></script>
 <script src="auditor-engine.js"></script>
 <script src="prehab-auditor.js"></script>
+<script src="rpe-commander.js"></script>
 <script src="bbf-data.js"></script>
 </head>
 <body>
@@ -1669,6 +1670,14 @@ function RDW() {
       '<div class="em">' + ex.equipment + ' &middot; ' + ex.sets + ' sets &times; ' + ex.reps + '</div></div>' +
       '<div class="ec">&#9662;</div></div><div class="ebody">';
     h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){TOAST(\'&#x1F9EA; Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
+    // RPE Commander — Sovereign Target Banner
+    if (typeof BBF_RPE !== 'undefined' && sv.length > 0 && sv[0].w) {
+      var lastW = parseFloat(sv[0].w) || 0;
+      var lastRPE = 7; // default if no RPE data
+      var est1RM = Math.round(lastW / 0.85); // rough estimate
+      var rpeResult = BBF_RPE.calculate(lastW, lastRPE, est1RM);
+      h += BBF_RPE.render(rpeResult);
+    }
     if (ex.notes) h += '<div class="enote">&#x1F4A1; ' + ex.notes + '</div>';
     if (partner) {
       var pd = d.w[partner] || {};

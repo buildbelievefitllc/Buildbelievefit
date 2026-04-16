@@ -177,6 +177,27 @@ var BBF_SYNC = (function() {
   // ─── ONLINE STATUS ───────────────────────────────────────
   function isOnline() { return navigator.onLine; }
 
+  // ─── FETCH: HISTORICAL RPE FOR EXERCISE ───────────────────
+  function fetchHistoricalRPE(uid, exerciseName) {
+    // Query bbf_logs for the most recent audit/strength entry matching this exercise
+    return supa('GET', 'bbf_logs', null,
+      '?user_id=eq.' + uid +
+      '&notes=like.*' + encodeURIComponent(exerciseName) + '*' +
+      '&order=logged_at.desc&limit=1'
+    ).then(function(data) {
+      if (data && data.length > 0) {
+        var entry = data[0];
+        return {
+          weight: entry.weight || '',
+          rpe: entry.intensity || '',
+          notes: entry.notes || '',
+          date: entry.date
+        };
+      }
+      return null;
+    });
+  }
+
   // ─── PUBLIC API ──────────────────────────────────────────
   return {
     syncUser: syncUser,
@@ -184,6 +205,7 @@ var BBF_SYNC = (function() {
     syncSet: syncSet,
     syncReadiness: syncReadiness,
     logAuditRequest: logAuditRequest,
+    fetchHistoricalRPE: fetchHistoricalRPE,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,
     fetchAllUsers: fetchAllUsers,
