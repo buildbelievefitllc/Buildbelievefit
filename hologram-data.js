@@ -69,6 +69,33 @@ var KINETIC_MAPPINGS = {
       es: 'Mantiene una bisagra de torso a 45 grados. Inicia la tracci\u00f3n con retracci\u00f3n escapular, no los b\u00edceps. Tira hacia la cadera para m\u00e1ximo reclutamiento dorsal.',
       pt: 'Mantenha uma dobradi\u00e7a de torso a 45 graus. Inicie a tra\u00e7\u00e3o com retra\u00e7\u00e3o escapular, n\u00e3o os b\u00edceps. Puxe para o quadril para m\u00e1ximo recrutamento dorsal.'
     }
+  },
+
+  'Hamstring Curl': {
+    primaryVector: { x1: 0.5, y1: 0.35, x2: 0.5, y2: 0.75, label: 'Pivot Axis' },
+    jointAngles: [
+      { joint: 'knee', optimal: 'Aligned with pivot', x: 0.5, y: 0.55, warn: 'Misalignment = meniscus shear' }
+    ],
+    focalPoint: { x: 0.5, y: 0.55, radius: 0.07, label: { en:'Knee Joint', es:'Articulaci\u00f3n de Rodilla', pt:'Articula\u00e7\u00e3o do Joelho' } },
+    clinicalCues: {
+      en: 'Ensure the machine\u2019s pivot point aligns directly with your knee joint. Keep your hips driven into the pad to prevent lumbar compensation. Control the eccentric \u2014 3 seconds on the return.',
+      es: 'Aseg\u00farate de que el punto de pivote de la m\u00e1quina se alinee directamente con tu articulaci\u00f3n de rodilla. Mant\u00e9n las caderas contra el coj\u00edn para prevenir compensaci\u00f3n lumbar. Controla la exc\u00e9ntrica \u2014 3 segundos en el retorno.',
+      pt: 'Certifique-se de que o ponto de piv\u00f4 da m\u00e1quina esteja alinhado diretamente com sua articula\u00e7\u00e3o do joelho. Mantenha os quadris contra o apoio para prevenir compensa\u00e7\u00e3o lombar. Controle a exc\u00eantrica \u2014 3 segundos no retorno.'
+    }
+  },
+
+  'Leg Extension': {
+    primaryVector: { x1: 0.5, y1: 0.3, x2: 0.5, y2: 0.8, label: 'Force Line' },
+    jointAngles: [
+      { joint: 'knee', optimal: 'Full extension', x: 0.5, y: 0.55, warn: 'Pad on ankle = joint stress' },
+      { joint: 'ankle', optimal: 'Dorsiflexion', x: 0.5, y: 0.75, warn: 'Relaxed foot = quad disengagement' }
+    ],
+    focalPoint: { x: 0.5, y: 0.72, radius: 0.06, label: { en:'Pad Placement', es:'Colocaci\u00f3n del Coj\u00edn', pt:'Posicionamento do Apoio' } },
+    clinicalCues: {
+      en: 'Secure the pad directly above the ankle joint. Pull toes toward your shins (dorsiflexion) to maximize quad engagement and protect the patellar tendon. Squeeze at full extension for 1 second.',
+      es: 'Asegura el coj\u00edn directamente sobre la articulaci\u00f3n del tobillo. Tira los dedos hacia las espinillas (dorsiflexin) para maximizar la activaci\u00f3n del cu\u00e1driceps y proteger el tend\u00f3n patelar. Aprieta en extensi\u00f3n completa por 1 segundo.',
+      pt: 'Posicione o apoio diretamente acima da articula\u00e7\u00e3o do tornozelo. Puxe os dedos em dire\u00e7\u00e3o \u00e0s canelas (dorsiflex\u00e3o) para maximizar a ativa\u00e7\u00e3o do quadr\u00edceps e proteger o tend\u00e3o patelar. Aperte em extens\u00e3o completa por 1 segundo.'
+    }
   }
 
 };

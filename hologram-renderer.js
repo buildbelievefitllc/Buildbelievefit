@@ -82,7 +82,7 @@ var BBF_HOLOGRAM = (function() {
     }
 
     // ─── FOCAL POINT (glowing circle) ──────────────────────
-    var fp = mapping.focalPoint;
+    var fp = mapping._overrideFocal || mapping.focalPoint;
     if (fp) {
       ctx.save();
       // Outer glow

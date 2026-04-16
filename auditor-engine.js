@@ -142,7 +142,32 @@ var BBF_AUDITOR = (function() {
         '<div style="font-size:.65rem;font-weight:700;letter-spacing:3px;color:#D4AF37;margin-bottom:.5rem">FOUNDER-VERIFIED \u2022 ' + currentExercise.toUpperCase() + '</div>' +
         '<div style="font-size:.92rem;color:#ddd;line-height:1.7">' + cue + '</div>' +
         '</div>' +
+        '<div id="audit-holo-viewport" style="grid-column:span 2;position:relative;width:100%;height:160px;background:#060606;border:1px solid #1e1e1e;border-radius:8px;margin-top:.5rem;overflow:hidden"></div>' +
         '<button onclick="BBF_AUDITOR.close()" style="grid-column:span 2;margin-top:.5rem;padding:.8rem;background:#D4AF37;color:#0a0a0a;font-family:\'Bebas Neue\',sans-serif;font-size:.9rem;letter-spacing:2px;border:none;border-radius:6px;cursor:pointer">' + (ackLabel[L] || ackLabel.en) + '</button>';
+      // Trigger hologram with dynamic focal point shift
+      setTimeout(function() {
+        try {
+          if (typeof BBF_HOLOGRAM !== 'undefined' && typeof KINETIC_MAPPINGS !== 'undefined') {
+            var viewport = document.getElementById('audit-holo-viewport');
+            if (viewport) {
+              var mapping = BBF_HOLOGRAM.findMapping(currentExercise);
+              if (mapping) {
+                // Shift focal point to selected tension area
+                var areaCoords = {
+                  'lower-back': { x: 0.5, y: 0.45 },
+                  'knees': { x: 0.45, y: 0.72 },
+                  'shoulders': { x: 0.42, y: 0.28 },
+                  'target-muscle': mapping.focalPoint ? { x: mapping.focalPoint.x, y: mapping.focalPoint.y } : { x: 0.5, y: 0.5 }
+                };
+                var shifted = areaCoords[areaId] || { x: 0.5, y: 0.5 };
+                mapping._overrideFocal = { x: shifted.x, y: shifted.y, radius: 0.09, label: { en: areaLabel, es: areaDisplay, pt: areaDisplay } };
+              }
+              BBF_HOLOGRAM.toggle('audit-holo-viewport', currentExercise);
+              if (mapping) delete mapping._overrideFocal;
+            }
+          }
+        } catch (e) { console.error('Hologram bridge error:', e); }
+      }, 100);
     } else {
       closeModal();
     }
