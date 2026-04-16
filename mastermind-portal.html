@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mastermind Portal — Build Believe Fit</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="bbf-sync.js"></script>
+<script src="portal-engine.js"></script>
+<style>
+:root{--pur:#6a0dad;--yel:#f5c800;--gold:#D4AF37;--blk:#060606;--card:#111;--brd:#1e1e1e;--mut:#888;--grn:#22c55e;--red:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-serif;min-height:100vh}
+.hdr{background:linear-gradient(135deg,#0a0a0a 0%,#1a0030 60%,#0a0a0a 100%);border-bottom:2px solid var(--gold);padding:24px;text-align:center;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:-60px;right:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(106,13,173,.2) 0%,transparent 70%);pointer-events:none}
+.hdr-badge{font-size:.6rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.hdr-t{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:3px;color:#fff;line-height:1}.hdr-t span{color:var(--gold)}
+.hdr-s{font-size:.78rem;color:var(--mut);margin-top:4px;letter-spacing:2px}
+.nav-bar{display:flex;background:#0d0d0d;border-bottom:1px solid var(--brd);overflow-x:auto;scrollbar-width:none}
+.nav-bar::-webkit-scrollbar{display:none}
+.nav-btn{flex-shrink:0;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:2px;padding:12px 20px;background:none;border:none;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}.nav-btn:hover{color:#ccc}.nav-btn.on{color:var(--gold);border-bottom-color:var(--gold);background:rgba(212,175,55,.05)}
+.cnt{max-width:900px;margin:0 auto;padding:24px 20px}
+.panel{display:none}.panel.on{display:block}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:2rem}
+.stat{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:1rem;text-align:center}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold);line-height:1}
+.stat-l{font-size:.62rem;font-weight:700;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-top:2px}
+.seal{text-align:center;font-size:.65rem;color:var(--mut);margin-top:3rem;padding-top:1rem;border-top:1px solid var(--brd);font-style:italic}
+</style>
+</head>
+<body>
+
+<script>
+if (!BBF_PORTAL.verify()) { BBF_PORTAL.redirect(); }
+</script>
+
+<div class="hdr">
+<div class="hdr-badge">FOUNDER ACCESS ONLY</div>
+<div class="hdr-t">SOVEREIGN <span>COMMAND CENTER</span></div>
+<div class="hdr-s">Audit Triage &bull; Client Intelligence &bull; Performance Oversight</div>
+</div>
+
+<div class="nav-bar">
+<button class="nav-btn on" onclick="showPanel('triage')">&#x1F6A8; Audit Triage</button>
+<button class="nav-btn" onclick="showPanel('roster')">&#x1F465; Roster</button>
+<button class="nav-btn" onclick="showPanel('metrics')">&#x1F4CA; Metrics</button>
+<button class="nav-btn" onclick="window.location.href='admin.html'">&#x1F6E1; Admin Controls</button>
+<button class="nav-btn" onclick="window.location.href='bbf-app.html'">&#x2190; Back to App</button>
+</div>
+
+<div class="cnt">
+
+<!-- TRIAGE PANEL -->
+<div class="panel on" id="panel-triage">
+<div class="stat-row">
+<div class="stat"><div class="stat-n" id="stat-pending">—</div><div class="stat-l">Pending Audits</div></div>
+<div class="stat"><div class="stat-n" id="stat-clients">—</div><div class="stat-l">Active Clients</div></div>
+<div class="stat"><div class="stat-n" id="stat-logs">—</div><div class="stat-l">Total Logs</div></div>
+</div>
+<div id="audit-triage-board"></div>
+</div>
+
+<!-- ROSTER PANEL -->
+<div class="panel" id="panel-roster">
+<div id="roster-list" style="font-size:.85rem;color:var(--mut)">Loading roster...</div>
+</div>
+
+<!-- METRICS PANEL -->
+<div class="panel" id="panel-metrics">
+<div style="text-align:center;padding:3rem;color:var(--mut);font-size:.85rem;letter-spacing:2px">Metrics dashboard — coming in the next Titan Build.</div>
+</div>
+
+</div>
+
+<div class="seal">Sovereign Gold Standard &bull; Est. 2021 &bull; Build Believe Fit LLC</div>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('panel-'+id).classList.add('on');
+  event.target.classList.add('on');
+  if (id === 'triage') BBF_PORTAL.load();
+  if (id === 'roster') loadRoster();
+}
+
+function loadRoster() {
+  try {
+    var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+    var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
+    var wrap = document.getElementById('roster-list');
+    wrap.innerHTML = clients.map(function(e) {
+      var uid = e[0], u = e[1];
+      var status = u.access_status || 'unlocked';
+      var sColor = status==='locked'?'#ef4444':status==='recovery'?'#f59e0b':'#22c55e';
+      var logs = (d.l[uid] || []).filter(function(l){return l.type!=='note';}).length;
+      return '<div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:1rem;margin-bottom:.6rem;display:flex;align-items:center;gap:1rem">' +
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+sColor+'"></div>' +
+        '<div style="flex:1"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:1rem;letter-spacing:2px;color:#fff">'+(u.name||uid)+'</div><div style="font-size:.72rem;color:#888">'+(u.type||'Client')+' • '+(u.goal||'No goal')+' • '+logs+' sessions</div></div>' +
+        '<div style="font-size:.65rem;font-weight:700;letter-spacing:1px;color:'+sColor+';text-transform:uppercase">'+status+'</div></div>';
+    }).join('');
+  } catch(e) {}
+}
+
+// Init
+BBF_PORTAL.load();
+try {
+  var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+  var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
+  var totalLogs = 0;
+  for (var uid in (d.l || {})) { totalLogs += (d.l[uid] || []).length; }
+  document.getElementById('stat-clients').textContent = clients.length;
+  document.getElementById('stat-logs').textContent = totalLogs;
+  setTimeout(function() {
+    var stats = BBF_PORTAL.stats();
+    document.getElementById('stat-pending').textContent = stats.total;
+  }, 500);
+} catch(e) {}
+</script>
+</body>
+</html>
