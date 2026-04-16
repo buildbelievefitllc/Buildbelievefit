@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sovereign Admin — Build Believe Fit</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="bbf-sync.js"></script>
 <style>
 :root{--pur:#6a0dad;--yel:#f5c800;--blk:#060606;--card:#111;--brd:#1e1e1e;--mut:#888;--grn:#22c55e;--red:#ef4444;--orn:#f59e0b}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -143,6 +144,7 @@ function setStatus(uid,status){
   else{d.u[uid].lock_expiry=null;}
   if(status!=='recovery'){d.u[uid].recovery_note='';}
   SD(d);renderClients();
+  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncUser(uid,d.u[uid]);
   var labels={unlocked:'&#x2705; ACTIVATED',locked:'&#x1F512; LOCKED',recovery:'&#x1FA79; RECOVERY MODE'};
   toast((d.u[uid].name||uid)+' \u2014 '+(labels[status]||status)+'<br><span style="font-size:.7rem;color:rgba(255,255,255,.5)">The Laboratory Standard is maintained.</span>');
 }
@@ -162,6 +164,7 @@ function saveRecoveryNote(){
   d.u[noteTarget].recovery_note=note;
   d.u[noteTarget].lock_expiry=null;
   SD(d);closeNoteModal();renderClients();
+  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncUser(noteTarget,d.u[noteTarget]);
   toast((d.u[noteTarget].name||noteTarget)+' \u2014 &#x1FA79; RECOVERY MODE<br><span style="font-size:.7rem;color:rgba(255,255,255,.5)">'+(note||'No note added')+'</span>');
 }
 
