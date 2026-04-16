@@ -51,10 +51,10 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .tbr{display:flex;align-items:center;gap:.7rem}
 .tbu{font-size:.75rem;font-weight:700;color:var(--mut);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tbav{width:32px;height:32px;border-radius:50%;background:var(--purd);border:2px solid var(--yel);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:900;color:var(--yel);cursor:pointer;flex-shrink:0}
-.tc{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--sb) + 5rem)}
+.tc{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--sb) + 6.5rem)}
 .tc::-webkit-scrollbar{width:0}
 .tp{display:none;padding:1rem}.tp.on{display:block}
-.bn{display:flex;background:rgba(8,8,8,.97);border-top:1px solid #1a1a1a;padding-bottom:var(--sb);flex-shrink:0;position:sticky;bottom:0;z-index:50}
+.bn{display:flex;background:rgba(8,8,8,.92);border-top:1px solid #D4AF37;padding-bottom:env(safe-area-inset-bottom,0px);flex-shrink:0;position:fixed;bottom:0;left:0;right:0;z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .nv{flex:1;display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.6rem .2rem;background:none;border:none;cursor:pointer;position:relative}
 .nv svg{width:20px;height:20px;stroke:var(--mut);fill:none;stroke-width:1.8}
 .nv span{font-size:.5rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
