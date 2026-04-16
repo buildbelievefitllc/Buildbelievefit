@@ -229,6 +229,23 @@ var BBF_SYNC = (function() {
     }).catch(function(e) { console.error('BBF_SYNC logPreHabNeed error:', e); return null; });
   }
 
+  // ─── TOGGLE: SOVEREIGN TRIAL ──────────────────────────────
+  function toggleSovereignTrial(userId, isTrialActive) {
+    if (!userId) return Promise.resolve(null);
+    var payload = {
+      id: userId,
+      updated_at: new Date().toISOString()
+    };
+    if (isTrialActive) {
+      payload.trial_status = 'active';
+      payload.trial_start_date = new Date().toISOString();
+    } else {
+      payload.trial_status = 'inactive';
+    }
+    return supa('POST', 'bbf_users', payload)
+      .catch(function(e) { console.error('BBF_SYNC toggleSovereignTrial error:', e); return null; });
+  }
+
   // ─── PUBLIC API ──────────────────────────────────────────
   return {
     syncUser: syncUser,
@@ -239,6 +256,7 @@ var BBF_SYNC = (function() {
     fetchPendingAudits: fetchPendingAudits,
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
+    toggleSovereignTrial: toggleSovereignTrial,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,
     fetchAllUsers: fetchAllUsers,
