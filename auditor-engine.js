@@ -48,12 +48,22 @@ var BBF_AUDITOR = (function() {
 
   function select(areaId) {
     var area = TENSION_AREAS.find(function(a) { return a.id === areaId; });
+    var areaLabel = area ? area.en : areaId;
     closeModal();
+    // Push to Supabase cloud
+    try {
+      if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.logAuditRequest) {
+        var uid = (typeof CU !== 'undefined' && CU) ? CU : (typeof VC !== 'undefined' && VC) ? VC : 'unknown';
+        BBF_SYNC.logAuditRequest(uid, currentExercise, areaLabel)
+          .then(function() { console.log('BBF_AUDITOR: Synced to cloud — ' + currentExercise + ' / ' + areaLabel); })
+          .catch(function(e) { console.error('BBF_AUDITOR: Cloud sync failed —', e); });
+      }
+    } catch (e) { console.error('BBF_AUDITOR: Sync error —', e); }
     if (currentCallback) {
       currentCallback({
         exercise: currentExercise,
         tensionArea: areaId,
-        areaLabel: area ? area.en : areaId,
+        areaLabel: areaLabel,
         timestamp: new Date().toISOString()
       });
     }

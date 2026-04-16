@@ -161,6 +161,19 @@ var BBF_SYNC = (function() {
     }
   }
 
+  // ─── SYNC: AUDIT REQUEST ──────────────────────────────────
+  function logAuditRequest(uid, exerciseName, tensionArea) {
+    if (!uid || !exerciseName) return Promise.resolve();
+    return supa('POST', 'bbf_logs', {
+      user_id: uid,
+      date: new Date().toISOString().slice(0, 10),
+      type: 'audit',
+      notes: 'Audit: ' + exerciseName + ' — Tension: ' + tensionArea,
+      logged_at: new Date().toISOString(),
+      logged_by: uid
+    });
+  }
+
   // ─── ONLINE STATUS ───────────────────────────────────────
   function isOnline() { return navigator.onLine; }
 
@@ -170,6 +183,7 @@ var BBF_SYNC = (function() {
     syncLog: syncLog,
     syncSet: syncSet,
     syncReadiness: syncReadiness,
+    logAuditRequest: logAuditRequest,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,
     fetchAllUsers: fetchAllUsers,
