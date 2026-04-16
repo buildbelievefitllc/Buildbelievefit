@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
 // MEAL-DATA.JS — BBF Culinary Performance Engine
 // Laboratory Generated — Pending Founder Audit
-// Built on the 175 LB Blueprint. Data-driven, Athlete-tested.
+// Built on the Sovereign Gold Standard Blueprint. Data-driven, Athlete-tested.
 // ═══════════════════════════════════════════════════════════════
 // Parent Protocol: 16/8 Fasting · Protein >= 1.6g/kg · Lean mass maintenance
 // Athlete Protocol: Carbs 7-10g/kg · High-glycemic recovery · Insulin-mediated uptake

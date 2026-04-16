@@ -2,7 +2,7 @@
 // WORKOUT-DATA.JS — BBF Global Scouting Hub
 // Laboratory Generated — Pending Founder Audit
 // NASM-CPT Biomechanical Principles · KPI-Targeted Drills
-// Built on the 175 LB Blueprint. Data-driven, Athlete-tested.
+// Built on the Sovereign Gold Standard Blueprint. Data-driven, Athlete-tested.
 // ═══════════════════════════════════════════════════════════════
 var WORKOUT_CATALOG = {
 football: {

@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
 // FILTER-ENGINE.JS — BBF Smart Kitchen & Position Router
-// Built on the 175 LB Blueprint. Data-driven, Athlete-tested.
+// Built on the Sovereign Gold Standard. Data-driven, Athlete-tested.
 // ═══════════════════════════════════════════════════════════════
 
 // ─── FAMILY INTAKE PROCESSOR ───────────────────────────────
@@ -59,7 +59,7 @@ function generateDailyBlueprint(intake, protocol, lang) {
   var L = lang || 'en';
   var data = processIntake(intake);
   var blueprint = {
-    seal: '175 LB Blueprint Verified. Data-driven, Athlete-tested.',
+    seal: 'Sovereign Gold Standard Verified. Data-driven, Athlete-tested.',
     status: 'Laboratory Generated — Pending Founder Audit',
     members: {}
   };
