@@ -192,7 +192,7 @@ var BBF_SYNC = (function() {
           logged_at: entry.logged_at
         };
       });
-    });
+    }).catch(function(e) { console.error('BBF_SYNC fetchPendingAudits error:', e); return []; });
   }
 
   // ─── FETCH: HISTORICAL RPE FOR EXERCISE ───────────────────
@@ -213,7 +213,20 @@ var BBF_SYNC = (function() {
         };
       }
       return null;
-    });
+    }).catch(function(e) { console.error('BBF_SYNC fetchHistoricalRPE error:', e); return null; });
+  }
+
+  // ─── SYNC: PRE-HAB NEED ──────────────────────────────────
+  function logPreHabNeed(uid, stiffnessArea) {
+    if (!uid) return Promise.resolve();
+    return supa('POST', 'bbf_logs', {
+      user_id: uid,
+      date: new Date().toISOString().slice(0, 10),
+      type: 'prehab',
+      notes: 'Pre-Hab: Stiffness — ' + stiffnessArea,
+      logged_at: new Date().toISOString(),
+      logged_by: uid
+    }).catch(function(e) { console.error('BBF_SYNC logPreHabNeed error:', e); return null; });
   }
 
   // ─── PUBLIC API ──────────────────────────────────────────
@@ -225,6 +238,7 @@ var BBF_SYNC = (function() {
     logAuditRequest: logAuditRequest,
     fetchPendingAudits: fetchPendingAudits,
     fetchHistoricalRPE: fetchHistoricalRPE,
+    logPreHabNeed: logPreHabNeed,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,
     fetchAllUsers: fetchAllUsers,
