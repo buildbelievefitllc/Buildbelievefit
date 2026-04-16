@@ -336,7 +336,11 @@ var D = {
 'app-gate-contact':     { en:'\ud83d\udcac TEXT AKEEM', es:'\ud83d\udcac MENSAJE A AKEEM', pt:'\ud83d\udcac MENSAGEM PARA AKEEM' },
 'app-gate-signout':     { en:'SIGN OUT', es:'CERRAR SESI\u00d3N', pt:'SAIR' },
 'app-gate-recovery-toast': { en:'Recovery Mode Active. Heavy lifting modules locked. Mobility protocol only.', es:'Modo Recuperaci\u00f3n Activo. M\u00f3dulos de levantamiento pesado bloqueados. Solo protocolo de movilidad.', pt:'Modo Recupera\u00e7\u00e3o Ativo. M\u00f3dulos de levantamento pesado bloqueados. Apenas protocolo de mobilidade.' },
-'app-sync-status':      { en:'Data Secured in the Lab', es:'Datos Asegurados en el Laboratorio', pt:'Dados Seguros no Laborat\u00f3rio' }
+'app-sync-status':      { en:'Data Secured in the Lab', es:'Datos Asegurados en el Laboratorio', pt:'Dados Seguros no Laborat\u00f3rio' },
+'app-tournament-on':    { en:'TOURNAMENT MODE: ON \u2014 Road-Ready Meals Only', es:'MODO TORNEO: ON \u2014 Solo Comidas de Viaje', pt:'MODO TORNEIO: ON \u2014 Apenas Refei\u00e7\u00f5es de Viagem' },
+'app-tournament-off':   { en:'TOURNAMENT MODE: OFF \u2014 All Meals', es:'MODO TORNEO: OFF \u2014 Todas las Comidas', pt:'MODO TORNEIO: OFF \u2014 Todas as Refei\u00e7\u00f5es' },
+'app-tournament-label': { en:'Tournament Mode', es:'Modo Torneo', pt:'Modo Torneio' },
+'app-road-badge':       { en:'ROAD', es:'VIAJE', pt:'VIAGEM' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────

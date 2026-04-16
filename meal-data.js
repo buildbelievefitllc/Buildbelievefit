@@ -58,5 +58,15 @@ var MEAL_VAULT = [
 {id:47,name:{en:'Beef Stew with Root Vegetables',es:'Estofado de Res con Raíces',pt:'Ensopado de Carne com Raízes'},protocol:'athlete',type:'home',tags:['beef','potato','carrot'],allergens:[]},
 {id:48,name:{en:'Buckwheat Pancakes with Syrup',es:'Panqueques de Alforfón con Almíbar',pt:'Panquecas de Trigo Sarraceno com Xarope'},protocol:'athlete',type:'home',tags:['buckwheat','syrup'],allergens:[]},
 {id:49,name:{en:'Gnocchi with Pesto & Chicken',es:'Ñoquis con Pesto y Pollo',pt:'Gnocchi com Pesto e Frango'},protocol:'athlete',type:'home',tags:['gnocchi','pesto','chicken'],allergens:['gluten','dairy','nuts']},
-{id:50,name:{en:'Rice Cakes with Almond Butter',es:'Tortitas de Arroz con Crema de Almendras',pt:'Bolachas de Arroz com Manteiga de Amêndoa'},protocol:'athlete',type:'road',tags:['rice-cakes','almond-butter'],allergens:['nuts']}
+{id:50,name:{en:'Rice Cakes with Almond Butter',es:'Tortitas de Arroz con Crema de Almendras',pt:'Bolachas de Arroz com Manteiga de Amêndoa'},protocol:'athlete',type:'road',tags:['rice-cakes','almond-butter'],allergens:['nuts']},
+
+// ─── TOURNAMENT MODE: ROAD-READY EXPANSION ─────────────────
+{id:51,name:{en:'Chick-fil-A Grilled Nuggets & Fruit Cup',es:'Nuggets a la Parrilla y Fruta Chick-fil-A',pt:'Nuggets Grelhados e Copa de Frutas Chick-fil-A'},protocol:'athlete',type:'road',tags:['chicken','fruit'],allergens:[]},
+{id:52,name:{en:'Wawa Turkey Gobbler (No Bread)',es:'Pavo Wawa sin Pan',pt:'Peru Wawa sem Pão'},protocol:'parent',type:'road',tags:['turkey','lettuce'],allergens:[]},
+{id:53,name:{en:'Gas Station Jerky & Mixed Nuts',es:'Cecina y Nueces Mixtas de Gasolinera',pt:'Jerky e Nozes Mistas de Posto'},protocol:'parent',type:'road',tags:['jerky','nuts'],allergens:['nuts']},
+{id:54,name:{en:'Panera Bread Power Bowl',es:'Bowl de Proteína Panera Bread',pt:'Bowl de Proteína Panera Bread'},protocol:'athlete',type:'road',tags:['chicken','rice','greens'],allergens:[]},
+{id:55,name:{en:'Wendy\'s Grilled Chicken Wrap',es:'Wrap de Pollo a la Parrilla Wendy\'s',pt:'Wrap de Frango Grelhado Wendy\'s'},protocol:'parent',type:'road',tags:['chicken','wrap'],allergens:['gluten']},
+{id:56,name:{en:'Panda Express Teriyaki Chicken & Veggies',es:'Pollo Teriyaki y Vegetales Panda Express',pt:'Frango Teriyaki e Vegetais Panda Express'},protocol:'athlete',type:'road',tags:['chicken','veggies','rice'],allergens:['soy','gluten']},
+{id:57,name:{en:'Starbucks Egg White Bites & Black Coffee',es:'Bocados de Clara de Huevo y Café Negro Starbucks',pt:'Bites de Clara de Ovo e Café Preto Starbucks'},protocol:'parent',type:'road',tags:['eggs','coffee'],allergens:['eggs','dairy']},
+{id:58,name:{en:'Whole Foods Hot Bar Grilled Chicken Plate',es:'Plato de Pollo a la Parrilla Whole Foods',pt:'Prato de Frango Grelhado Whole Foods'},protocol:'athlete',type:'road',tags:['chicken','sweet-potato','broccoli'],allergens:[]}
 ];

@@ -96,6 +96,40 @@ function generateDailyBlueprint(intake, protocol, lang) {
   return blueprint;
 }
 
+// ─── TOURNAMENT MODE ──────────────────────────────────────
+function toggleTournamentMode(state) {
+  // state: true (road only) or false (all meals)
+  if (state === undefined) {
+    // Toggle current state
+    state = localStorage.getItem('bbf_tournament_mode') !== 'on';
+  }
+  localStorage.setItem('bbf_tournament_mode', state ? 'on' : 'off');
+  return state;
+}
+
+function isTournamentMode() {
+  return localStorage.getItem('bbf_tournament_mode') === 'on';
+}
+
+function getTournamentMeals() {
+  if (typeof MEAL_VAULT === 'undefined') return [];
+  return MEAL_VAULT.filter(function(m) { return m.type === 'road'; });
+}
+
+function getFilteredMeals(dislikes, allergens) {
+  var meals = isTournamentMode() ? getTournamentMeals() : MEAL_VAULT;
+  if (!meals) return [];
+  return meals.filter(function(meal) {
+    for (var i = 0; i < (meal.tags || []).length; i++) {
+      if (dislikes.indexOf(meal.tags[i].toLowerCase()) > -1) return false;
+    }
+    for (var j = 0; j < (meal.allergens || []).length; j++) {
+      if (allergens.indexOf(meal.allergens[j].toLowerCase()) > -1) return false;
+    }
+    return true;
+  });
+}
+
 // ─── UTILITY ───────────────────────────────────────────────
 function arrayUnique(arr) {
   var seen = {};
