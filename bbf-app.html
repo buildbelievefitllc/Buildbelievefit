@@ -338,6 +338,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="auditor-engine.js"></script>
 <script src="prehab-auditor.js"></script>
 <script src="rpe-commander.js"></script>
+<script src="hologram-data.js"></script>
+<script src="hologram-renderer.js"></script>
 <script src="bbf-data.js"></script>
 </head>
 <body>
@@ -1670,6 +1672,8 @@ function RDW() {
       '<div class="em">' + ex.equipment + ' &middot; ' + ex.sets + ' sets &times; ' + ex.reps + '</div></div>' +
       '<div class="ec">&#9662;</div></div><div class="ebody">';
     h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){TOAST(\'&#x1F9EA; Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
+    h += ' <button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_HOLOGRAM!==\'undefined\')BBF_HOLOGRAM.toggle(\'holo-' + ei + '\',\'' + ex.name.replace(/'/g,"\\'") + '\')">&#x1F4D0; KINETIC HOLOGRAM</button>';
+    h += '<div id="holo-' + ei + '" style="position:relative;width:100%;height:180px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;margin-top:.5rem;overflow:hidden;display:flex;align-items:center;justify-content:center"><span style="font-size:.7rem;color:#333;letter-spacing:2px">HOLOGRAM VIEWPORT</span></div>';
     // RPE Commander — Sovereign Target Banner
     if (typeof BBF_RPE !== 'undefined' && sv.length > 0 && sv[0].w) {
       var lastW = parseFloat(sv[0].w) || 0;
