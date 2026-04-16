@@ -329,6 +329,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 
 </style>
 <script src="bbf-lang.js"></script>
+<script src="bbf-sync.js"></script>
 <script src="bbf-data.js"></script>
 </head>
 <body>
@@ -1315,6 +1316,8 @@ function ENTER() {
     VC = CU;
     LP();
     RA();
+    // Cloud sync — push localStorage to Supabase on login
+    if(typeof BBF_SYNC!=='undefined'&&BBF_SYNC.isOnline()){BBF_SYNC.pushAll().then(function(n){if(n>0)console.log('BBF: Synced '+n+' records to cloud');});}
     // Morning Readiness check — once per day for clients
     if (!hasReadinessToday(CU)) {
       setTimeout(function() { showReadinessModal(); }, 600);
@@ -1558,6 +1561,7 @@ function saveReadiness() {
   d.u[uid].daily_readiness[today()] = { sleep: sleep, stress: stress, energy: energy, score: score };
   d.u[uid].readiness_last_check = today();
   SD(d);
+  if(typeof BBF_SYNC!=='undefined'){BBF_SYNC.syncReadiness(uid,today(),{sleep:sleep,stress:stress,energy:energy,score:score});BBF_SYNC.syncUser(uid,d.u[uid]);}
   closeReadinessModal();
   var tier = score >= 90 ? 'god-mode' : score >= 70 ? 'standard' : 'recovery';
   var msg = tier === 'god-mode' ? _t('app-ready-god', 'CNS Peak Detected. Go for the PR.') :
@@ -1702,6 +1706,7 @@ function SVS(inp) {
   while (d.w[uid][dk][ek].length <= s) d.w[uid][dk][ek].push({});
   d.w[uid][dk][ek][s][f] = v;
   SD(d);
+  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncSet(uid,dk,ek,s,f,v);
   inp.classList.add('done');
   saveSetToSession(inp.dataset.dk, inp.dataset.ek, parseInt(inp.dataset.s), inp.dataset.f, v);
   queueSync({uid:uid, dk:inp.dataset.dk, ek:inp.dataset.ek, s:parseInt(inp.dataset.s), f:inp.dataset.f, v:v});
@@ -1712,6 +1717,7 @@ function CWO(day, dk) {
   if (!d.l[uid]) d.l[uid] = [];
   d.l[uid].push({date:today(), type:'strength', notes:'Completed: ' + day.focus, loggedAt:new Date().toISOString(), loggedBy:CU});
   SD(d);
+  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncLog(uid,d.l[uid][d.l[uid].length-1]);
   try { if(dk) sessionStorage.removeItem('bbf_wo_' + dk); } catch(e) {}
   var stk = STREAK((d.l[uid]||[]).filter(function(l){return l.type!=='note';}));
   showVictory(_t('app-victory-title','CRUSHED IT!'), day.focus + ' ' + _t('app-victory-complete','Complete'), day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + ' \u2022 ' + _t('app-victory-great','Great work!'));
@@ -1779,6 +1785,7 @@ function SAVELOG() {
     loggedAt:new Date().toISOString(), loggedBy:CU
   });
   SD(d);
+  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncLog(uid,d.l[uid][d.l[uid].length-1]);
   EX = []; MOOD = '';
   ['lnotes','ldur','lint','lwt','lbf'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('exl').innerHTML = '';
@@ -1812,6 +1819,7 @@ function SAVENOTE() {
   if (!d.l[uid]) d.l[uid] = [];
   d.l[uid].push({date:today(), type:'note', notes:text, loggedBy:'akeem', loggedAt:new Date().toISOString()});
   SD(d);
+  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncLog(uid,d.l[uid][d.l[uid].length-1]);
   document.getElementById('tnote').value = '';
   TOAST('Coach note saved &#x2713;');
   RH();
@@ -2827,6 +2835,7 @@ function SAVEMETRICS() {
   if (!d.l[uid]) d.l[uid] = [];
   d.l[uid].push({date:today(), type:'metrics', wt:wt||'', bf:bf||'', notes:'Body metrics logged', loggedAt:new Date().toISOString(), loggedBy:uid});
   SD(d);
+  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncLog(uid,d.l[uid][d.l[uid].length-1]);
   document.getElementById('metric-wt').value = '';
   document.getElementById('metric-bf').value = '';
   TOAST('Metrics saved! \u2713');
