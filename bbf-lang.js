@@ -34,7 +34,7 @@ var D = {
 'hero-cta':        { en:'Start My Path', es:'Iniciar Mi Camino', pt:'Iniciar Meu Caminho' },
 'hero-portal':     { en:'Client Portal', es:'Portal del Cliente', pt:'Portal do Cliente' },
 'hero-accent':     { en:'ELITE STRENGTH & MOVEMENT', es:'FUERZA & MOVIMIENTO DE \u00c9LITE', pt:'FOR\u00c7A & MOVIMENTO DE ELITE' },
-'stat-clients':    { en:'Active Clients', es:'Clientes Activos', pt:'Clientes Ativos' },
+'stat-clients':    { en:'Est. \u2022 Founded', es:'Est. \u2022 Fundado', pt:'Est. \u2022 Fundado em' },
 'stat-cert':       { en:'Certified CPT', es:'CPT Certificado', pt:'CPT Certificado' },
 'stat-plans':      { en:'Custom Plans', es:'Planes Personalizados', pt:'Planos Personalizados' },
 
@@ -161,7 +161,7 @@ var D = {
 
 // ═══ FOOTER ═══
 'footer-tag':      { en:'Sovereign Performance Architecture. Metabolic efficiency for executives, first responders, and high-demand parents. Founder-Verified Protocols.', es:'Arquitectura Soberana de Rendimiento. Eficiencia metab\u00f3lica para ejecutivos, socorristas y padres de alta demanda. Protocolos Verificados por el Fundador.', pt:'Arquitetura Soberana de Performance. Efici\u00eancia metab\u00f3lica para executivos, socorristas e pais de alta demanda. Protocolos Verificados pelo Fundador.' },
-'footer-copy':     { en:'\u00a9 2026 Build Believe Fit LLC \u2022 All Rights Reserved \u2022 NASM Certified \u2022 buildbelievefit.fitness', es:'\u00a9 2026 Build Believe Fit LLC \u2022 Todos los Derechos Reservados \u2022 Certificado NASM \u2022 buildbelievefit.fitness', pt:'\u00a9 2026 Build Believe Fit LLC \u2022 Todos os Direitos Reservados \u2022 Certificado NASM \u2022 buildbelievefit.fitness' },
+'footer-copy':     { en:'\u00a9 2021\u20132026 Build Believe Fit LLC \u2022 Est. 2021 \u2022 Performance Architecture & Movement Science \u2022 buildbelievefit.fitness', es:'\u00a9 2021\u20132026 Build Believe Fit LLC \u2022 Est. 2021 \u2022 Arquitectura de Rendimiento & Ciencia del Movimiento \u2022 buildbelievefit.fitness', pt:'\u00a9 2021\u20132026 Build Believe Fit LLC \u2022 Fundado em 2021 \u2022 Arquitetura de Performance & Ci\u00eancia do Movimento \u2022 buildbelievefit.fitness' },
 
 // ═══ BBF CLIENT APP (bbf-app.html) ═══
 'app-splash-tag':       { en:'Elite Strength & Movement', es:'Fuerza & Movimiento de \u00c9lite', pt:'For\u00e7a & Movimento de Elite' },
