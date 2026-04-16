@@ -340,7 +340,8 @@ var D = {
 'app-tournament-on':    { en:'TOURNAMENT MODE: ON \u2014 Road-Ready Meals Only', es:'MODO TORNEO: ON \u2014 Solo Comidas de Viaje', pt:'MODO TORNEIO: ON \u2014 Apenas Refei\u00e7\u00f5es de Viagem' },
 'app-tournament-off':   { en:'TOURNAMENT MODE: OFF \u2014 All Meals', es:'MODO TORNEO: OFF \u2014 Todas las Comidas', pt:'MODO TORNEIO: OFF \u2014 Todas as Refei\u00e7\u00f5es' },
 'app-tournament-label': { en:'Tournament Mode', es:'Modo Torneo', pt:'Modo Torneio' },
-'app-road-badge':       { en:'ROAD', es:'VIAJE', pt:'VIAGEM' }
+'app-road-badge':       { en:'ROAD', es:'VIAJE', pt:'VIAGEM' },
+'app-prehab-audit-btn': { en:'\ud83e\uddea PRE-HAB AUDIT \u2014 START HERE', es:'\ud83e\uddea AUDITOR\u00cdA PRE-HAB \u2014 EMPIEZA AQU\u00cd', pt:'\ud83e\uddea AUDITORIA PRE-HAB \u2014 COMECE AQUI' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────

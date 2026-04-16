@@ -336,6 +336,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="bbf-lang.js"></script>
 <script src="bbf-sync.js"></script>
 <script src="auditor-engine.js"></script>
+<script src="prehab-auditor.js"></script>
 <script src="bbf-data.js"></script>
 </head>
 <body>
@@ -568,6 +569,7 @@ window.onload=function(){
     <!-- WORKOUT -->
     <div class="tp" id="tp-workout">
       <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-wo-title">Today&apos;s Program</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-wo-sub">Log your sets, reps &amp; weight</div></div>
+      <button onclick="if(typeof BBF_PREHAB!=='undefined')BBF_PREHAB.trigger(function(r){TOAST('&#x1F9EA; Pre-Hab complete: '+r.area)})" style="width:100%;padding:.75rem;margin-bottom:1rem;background:transparent;border:2px solid #D4AF37;color:#D4AF37;font-family:var(--hb);font-size:.9rem;letter-spacing:3px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(212,175,55,.1)'" onmouseout="this.style.background='transparent'" data-lang-key="app-prehab-audit-btn">&#x1F9EA; PRE-HAB AUDIT &mdash; START HERE</button>
       <!-- PROGRAM PANE -->
       <div id="vault-program-pane">
         <div class="dnav" id="dnav"></div>
@@ -902,6 +904,17 @@ window.onload=function(){
       <button class="mc3" onclick="skipReadiness()" data-lang-key="app-ready-skip">Skip</button>
       <button class="ms" onclick="saveReadiness()" data-lang-key="app-ready-lock">Lock In &#x1F512;</button>
     </div>
+  </div>
+</div>
+
+<!-- PRE-HAB AUDIT MODAL -->
+<div class="modal" id="prehab-audit-modal">
+  <div class="msh">
+    <div class="mhd"></div>
+    <div class="mt" id="prehab-audit-title">Sovereign System Check</div>
+    <div style="font-size:.82rem;color:var(--mut2);margin-bottom:1.2rem" id="prehab-audit-sub">Identify your primary area of stiffness today.</div>
+    <div id="prehab-audit-options" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem"></div>
+    <div style="text-align:center;margin-top:1rem"><button class="mc3" onclick="BBF_PREHAB.close()">Cancel</button></div>
   </div>
 </div>
 
@@ -2262,18 +2275,22 @@ var PREHAB = [
     icon: '&#x1F9B5;',
     en_title: 'Lumbar Spine Decompression',
     es_title: 'Descompresión Lumbar',
+    pt_title: 'Descompressão Lombar',
     en_focus: 'Low back relief after prolonged standing',
     es_focus: 'Alivio lumbar después de estar parado',
+    pt_focus: 'Alívio lombar após ficar muito tempo em pé',
     cues: [
       {
         en_lbl: 'Cat-Cow Mobilization',
         es_lbl: 'Movilización Gato-Vaca',
+        pt_lbl: 'Mobilização Gato-Vaca',
         en_txt: 'On hands and knees: inhale, drop belly, lift chest (Cow). Exhale, round spine toward ceiling (Cat). Move slow — this is not a stretch race. 10 controlled reps, feel each vertebra move.',
         es_txt: 'En cuatro puntos: inhala, baja el vientre, levanta el pecho (Vaca). Exhala, redondea la columna (Gato). Movimiento lento — 10 repeticiones controladas.'
       },
       {
         en_lbl: 'Childs Pose Hold',
         es_lbl: 'Postura del Niño',
+        pt_lbl: 'Postura da Criança',
         en_txt: 'Kneel, sit back on heels, extend arms forward. Hold 30-60 seconds. Breathe into your lower back — feel the expansion. This decompresses L4-L5 where 12-hour standing loads accumulate.',
         es_txt: 'Arrodíllate, siéntate sobre los talones, extiende los brazos. Mantén 30-60 segundos. Respira hacia la espalda baja.'
       }
@@ -2284,18 +2301,22 @@ var PREHAB = [
     icon: '&#x1F9B4;',
     en_title: 'Shoulder & Rotator Cuff Health',
     es_title: 'Salud del Hombro y Manguito Rotador',
+    pt_title: 'Saúde do Ombro e Manguito Rotador',
     en_focus: 'Overhead reach restoration for high-demand professionals',
     es_focus: 'Restauración de alcance para profesionales de alta demanda',
+    pt_focus: 'Restauração de alcance para profissionais de alta demanda',
     cues: [
       {
         en_lbl: 'Wall Slides',
         es_lbl: 'Deslizamientos en Pared',
+        pt_lbl: 'Deslizamentos na Parede',
         en_txt: 'Stand with back flat against wall. Press forearms and wrists to the wall. Slide arms overhead slowly — keep contact the whole way. If you lose contact, that is your mobility limit. Work to that point, not through it.',
         es_txt: 'Espalda plana contra la pared. Presiona antebrazos y muñecas. Desliza brazos hacia arriba lentamente — mantén contacto. Trabaja hasta tu límite, no más allá.'
       },
       {
         en_lbl: 'Band External Rotation',
         es_lbl: 'Rotación Externa con Banda',
+        pt_lbl: 'Rotação Externa com Faixa',
         en_txt: 'Elbow at 90°, pinned to your side. Rotate forearm outward against resistance. This trains the infraspinatus — your rotator cuff workhorse. Critical for anyone pressing heavy overhead or reaching in high-demand environments.',
         es_txt: 'Codo a 90°, pegado al costado. Rota el antebrazo hacia afuera. Entrena el infraespinoso — esencial para quien levanta o alcanza en entornos de alta demanda.'
       }
@@ -2306,18 +2327,22 @@ var PREHAB = [
     icon: '&#x1F9CE;',
     en_title: 'Hip Flexor & Glute Activation',
     es_title: 'Flexor de Cadera y Activación de Glúteos',
+    pt_title: 'Flexor do Quadril e Ativação de Glúteos',
     en_focus: 'Counter sitting and prolonged standing — shift worker priority',
     es_focus: 'Contrarrestar estar sentado y parado — prioridad para trabajadores por turnos',
+    pt_focus: 'Contrabalançar sentar e ficar em pé — prioridade para trabalhadores por turno',
     cues: [
       {
         en_lbl: '90/90 Hip Stretch',
         es_lbl: 'Estiramiento 90/90 de Cadera',
+        pt_lbl: 'Alongamento 90/90 do Quadril',
         en_txt: 'Sit on floor with front and back leg at 90° angles. Lean forward over front shin — keep chest tall. Hold 45-60 seconds per side. This targets the hip capsule directly. Most valuable stretch you can do after a 12-hour shift.',
         es_txt: 'Siéntate con ambas piernas a 90°. Inclínate sobre la espinilla delantera — pecho erguido. Mantén 45-60 segundos por lado. El estiramiento más valioso después de un turno de 12 horas.'
       },
       {
         en_lbl: 'Glute Bridge Activation',
         es_lbl: 'Activación del Puente de Glúteos',
+        pt_lbl: 'Ativação da Ponte de Glúteos',
         en_txt: 'Lie on back, feet flat, hip-width apart. Drive through heels — squeeze glutes hard at the top. If you feel this in your hamstrings instead of glutes, your glutes are inhibited. Pause 2 seconds at top to force the connection.',
         es_txt: 'Acostado boca arriba, pies planos. Empuja con los talones — aprieta glúteos arriba. Pausa 2 segundos en la cima. Si sientes los isquiotibiales en vez de los glúteos, activa más fuerte.'
       }
@@ -2328,18 +2353,22 @@ var PREHAB = [
     icon: '&#x1F9B6;',
     en_title: 'Ankle & Knee Stability',
     es_title: 'Estabilidad de Tobillo y Rodilla',
+    pt_title: 'Estabilidade de Tornozelo e Joelho',
     en_focus: 'Concrete floor fatigue recovery — high-demand standing professionals',
     es_focus: 'Recuperación de fatiga por piso de concreto — profesionales de alta demanda',
+    pt_focus: 'Recuperação de fadiga de piso de concreto — profissionais de alta demanda',
     cues: [
       {
         en_lbl: 'Single Leg Balance Progression',
         es_lbl: 'Progresión de Equilibrio en Una Pierna',
+        pt_lbl: 'Progressão de Equilíbrio em Uma Perna',
         en_txt: 'Stand on one foot. Eyes open 30s → eyes closed 30s → on foam/unstable surface 30s. Concrete floors destroy proprioception over time. This rebuilds joints awareness system. Do this daily — takes 90 seconds total.',
         es_txt: 'Párate en un pie. Ojos abiertos 30s → ojos cerrados 30s → en superficie inestable 30s. Los pisos de concreto destruyen la propiocepción. Esto reconstruye el sistema articular.'
       },
       {
         en_lbl: 'Calf Raise with Pause',
         es_lbl: 'Elevación de Talones con Pausa',
+        pt_lbl: 'Elevação de Panturrilha com Pausa',
         en_txt: 'Full range: lower heel below step level, rise all the way to toes, pause 2 seconds. This loads the soleus — the forgotten muscle that protects your Achilles and knees during prolonged standing. Non-negotiable for 12-hour shift workers.',
         es_txt: 'Rango completo: baja el talón, sube hasta las puntas, pausa 2 segundos. Carga el sóleo — protege el tendón de Aquiles y rodillas. Obligatorio para turnos de 12 horas.'
       }
@@ -2350,18 +2379,22 @@ var PREHAB = [
     icon: '&#x1F91F;',
     en_title: 'Wrist & Grip Recovery',
     es_title: 'Recuperación de Muñeca y Agarre',
+    pt_title: 'Recuperação de Punho e Pegada',
     en_focus: 'Repetitive grip strain relief — high-demand work & heavy lifting',
     es_focus: 'Alivio de tensión repetitiva — trabajo de alta demanda y levantamiento pesado',
+    pt_focus: 'Alívio de tensão repetitiva — trabalho de alta demanda e levantamento pesado',
     cues: [
       {
         en_lbl: 'Prayer Stretch & Reverse Prayer',
         es_lbl: 'Estiramiento de Rezo y Rezo Inverso',
+        pt_lbl: 'Alongamento de Oração e Oração Invertida',
         en_txt: 'Prayer: palms together, fingers up, push down to feel forearm stretch. Reverse Prayer: backs of hands together, fingers down. Hold 20-30s each. Do this between every working set if your grip tires during rows or deadlifts.',
         es_txt: 'Rezo: palmas juntas, dedos arriba, empuja hacia abajo. Rezo inverso: dorsos de manos juntos, dedos abajo. Mantén 20-30s cada uno. Hazlo entre series si el agarre falla.'
       },
       {
         en_lbl: 'Finger Extension with Band',
         es_lbl: 'Extensión de Dedos con Banda',
+        pt_lbl: 'Extensão de Dedos com Faixa',
         en_txt: 'Wrap a light rubber band around your fingers. Open hand against resistance — spread fingers wide. 20 reps. This trains the extensors that get zero work from gripping. Prevents tendinitis and keeps your grip strong through hour 11 of your shift.',
         es_txt: 'Enrolla una banda elástica en los dedos. Abre la mano contra resistencia — extiende los dedos. 20 repeticiones. Previene tendinitis y mantiene el agarre fuerte hasta la hora 11 del turno.'
       }
@@ -2377,13 +2410,13 @@ function renderPrehab() {
   var con = document.getElementById('prehab-cues');
   var dp  = document.getElementById('daily-protocol');
   if (!con || !dp) return;
-  dp.innerHTML = LANG === 'en' ? DAILY_EN : DAILY_ES;
+  dp.innerHTML = LANG === 'pt' ? (typeof DAILY_PT!=='undefined'?DAILY_PT:DAILY_EN) : LANG === 'es' ? DAILY_ES : DAILY_EN;
   con.innerHTML = PREHAB.map(function(p, pi) {
-    var title = LANG === 'en' ? p.en_title : p.es_title;
-    var focus = LANG === 'en' ? p.en_focus : p.es_focus;
+    var title = LANG === 'pt' ? (p.pt_title||p.en_title) : LANG === 'es' ? p.es_title : p.en_title;
+    var focus = LANG === 'pt' ? (p.pt_focus||p.en_focus) : LANG === 'es' ? p.es_focus : p.en_focus;
     var cuesHtml = p.cues.map(function(c) {
-      var lbl = LANG === 'en' ? c.en_lbl : c.es_lbl;
-      var txt = LANG === 'en' ? c.en_txt : c.es_txt;
+      var lbl = LANG === 'pt' ? (c.pt_lbl||c.en_lbl) : LANG === 'es' ? c.es_lbl : c.en_lbl;
+      var txt = LANG === 'pt' ? (c.pt_txt||c.en_txt) : LANG === 'es' ? c.es_txt : c.en_txt;
       return '<div class="prehab-cue"><div class="prehab-cue-lbl">' + lbl + '</div><div class="prehab-cue-txt">' + txt + '</div></div>';
     }).join('');
     var setsHtml = p.sets.map(function(s) { return '<div class="pset">' + s + '</div>'; }).join('');
