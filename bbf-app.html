@@ -963,62 +963,62 @@ window.onload=function(){
       <!-- BIOMECHANICAL HEAT MAP — Kinematic Auditor (Phase 1) -->
       <div id="biomech-heatmap" class="bhm-widget" style="display:none">
         <div class="bhm-head">
-          <div class="bhm-label">&#x1F9EC; Biomechanical Heat Map</div>
-          <div class="bhm-window">4-Week Axial Load</div>
+          <div class="bhm-label" data-lang-key="bhm-label">&#x1F9EC; Biomechanical Heat Map</div>
+          <div class="bhm-window" data-lang-key="bhm-window">4-Week Axial Load</div>
         </div>
         <div class="bhm-score-row">
           <div class="bhm-score-n" id="bhm-score-n">&mdash;</div>
           <div class="bhm-score-meta">
             <div class="bhm-score-bar"><div class="bhm-score-fill" id="bhm-score-fill" style="width:0%"></div><div class="bhm-score-threshold"></div></div>
-            <div class="bhm-score-label" id="bhm-score-label">Friction Score &nbsp;&middot;&nbsp; threshold 100</div>
+            <div class="bhm-score-label" id="bhm-score-label" data-lang-key="bhm-score-label">Friction Score &nbsp;&middot;&nbsp; threshold 100</div>
           </div>
         </div>
         <div class="bhm-grid-wrap">
           <div class="bhm-grid-labels"><div></div><div>W1</div><div>W2</div><div>W3</div><div>W4</div></div>
-          <div class="bhm-row"><div class="bhm-rlabel">SQUAT</div><div class="bhm-cell" data-lift="squat" data-w="0"></div><div class="bhm-cell" data-lift="squat" data-w="1"></div><div class="bhm-cell" data-lift="squat" data-w="2"></div><div class="bhm-cell" data-lift="squat" data-w="3"></div></div>
-          <div class="bhm-row"><div class="bhm-rlabel">DEADLIFT</div><div class="bhm-cell" data-lift="deadlift" data-w="0"></div><div class="bhm-cell" data-lift="deadlift" data-w="1"></div><div class="bhm-cell" data-lift="deadlift" data-w="2"></div><div class="bhm-cell" data-lift="deadlift" data-w="3"></div></div>
-          <div class="bhm-row"><div class="bhm-rlabel">OHP</div><div class="bhm-cell" data-lift="ohp" data-w="0"></div><div class="bhm-cell" data-lift="ohp" data-w="1"></div><div class="bhm-cell" data-lift="ohp" data-w="2"></div><div class="bhm-cell" data-lift="ohp" data-w="3"></div></div>
+          <div class="bhm-row"><div class="bhm-rlabel" data-lang-key="bhm-lift-squat">SQUAT</div><div class="bhm-cell" data-lift="squat" data-w="0"></div><div class="bhm-cell" data-lift="squat" data-w="1"></div><div class="bhm-cell" data-lift="squat" data-w="2"></div><div class="bhm-cell" data-lift="squat" data-w="3"></div></div>
+          <div class="bhm-row"><div class="bhm-rlabel" data-lang-key="bhm-lift-deadlift">DEADLIFT</div><div class="bhm-cell" data-lift="deadlift" data-w="0"></div><div class="bhm-cell" data-lift="deadlift" data-w="1"></div><div class="bhm-cell" data-lift="deadlift" data-w="2"></div><div class="bhm-cell" data-lift="deadlift" data-w="3"></div></div>
+          <div class="bhm-row"><div class="bhm-rlabel" data-lang-key="bhm-lift-ohp">OHP</div><div class="bhm-cell" data-lift="ohp" data-w="0"></div><div class="bhm-cell" data-lift="ohp" data-w="1"></div><div class="bhm-cell" data-lift="ohp" data-w="2"></div><div class="bhm-cell" data-lift="ohp" data-w="3"></div></div>
         </div>
         <div class="bhm-foot-stats">
-          <span>Sets <b id="bhm-stat-sets">0</b></span>
-          <span>Sessions <b id="bhm-stat-sessions">0</b></span>
-          <span>Tier <b id="bhm-stat-tier">&mdash;</b></span>
+          <span><span data-lang-key="bhm-stat-sets">Sets</span> <b id="bhm-stat-sets">0</b></span>
+          <span><span data-lang-key="bhm-stat-sessions">Sessions</span> <b id="bhm-stat-sessions">0</b></span>
+          <span><span data-lang-key="bhm-stat-tier">Tier</span> <b id="bhm-stat-tier">&mdash;</b></span>
         </div>
         <div class="bhm-mobility-wrap" id="bhm-mobility-wrap">
-          <div class="bhm-warn-text" id="bhm-warn-text">&#x26A0; CNS friction elevated. Progressive axial loading exceeds safe tonnage for this 4-week block.</div>
-          <button class="bhm-mobility-btn" id="bhm-mobility-btn" type="button">&#x1F9B5; Prescribed Occupational Mobility</button>
+          <div class="bhm-warn-text" id="bhm-warn-text" data-lang-key="bhm-warn-text">&#x26A0; CNS friction elevated. Progressive axial loading exceeds safe tonnage for this 4-week block.</div>
+          <button class="bhm-mobility-btn" id="bhm-mobility-btn" type="button" data-lang-key="bhm-mobility-btn">&#x1F9B5; Prescribed Occupational Mobility</button>
         </div>
       </div>
       <!-- SOMATIC MAP — Somatic Sync (Phase 2) -->
       <div id="somatic-map" class="som-widget" style="display:none">
         <div class="som-head">
-          <div class="som-label">&#x1F9A0; Somatic Map</div>
-          <div class="som-window">Today &middot; Readiness Sync</div>
+          <div class="som-label" data-lang-key="som-label">&#x1F9A0; Somatic Map</div>
+          <div class="som-window" data-lang-key="som-window">Today &middot; Readiness Sync</div>
         </div>
         <div class="som-score-row">
           <div class="som-dot" id="som-dot" title="Readiness indicator"></div>
           <div class="som-score-n"><span id="som-score-n">&mdash;</span><span class="som-score-unit">%</span></div>
           <div class="som-score-meta">
             <div class="som-score-bar"><div class="som-score-fill" id="som-score-fill" style="width:0%"></div><div class="som-score-threshold"></div></div>
-            <div class="som-score-label" id="som-score-label">Somatic Readiness &middot; threshold 60%</div>
+            <div class="som-score-label" id="som-score-label" data-lang-key="som-score-label">Somatic Readiness &middot; threshold 60%</div>
           </div>
         </div>
         <div class="som-inputs">
           <div class="som-input-row">
-            <div class="som-input-lbl"><span>Sleep Quality</span><b id="som-val-sleep">5</b></div>
+            <div class="som-input-lbl"><span data-lang-key="som-lbl-sleep">Sleep Quality</span><b id="som-val-sleep">5</b></div>
             <input type="range" class="som-range" id="som-sleep" min="1" max="10" step="1" value="5">
           </div>
           <div class="som-input-row">
-            <div class="som-input-lbl"><span>Cognitive Load</span><b id="som-val-cog">5</b></div>
+            <div class="som-input-lbl"><span data-lang-key="som-lbl-cog">Cognitive Load</span><b id="som-val-cog">5</b></div>
             <input type="range" class="som-range" id="som-cog" min="1" max="10" step="1" value="5">
           </div>
           <div class="som-input-row full">
-            <div class="som-input-lbl"><span>Fasting Window</span><b><span id="som-val-fast">0</span>h</b></div>
+            <div class="som-input-lbl"><span data-lang-key="som-lbl-fast">Fasting Window</span><b><span id="som-val-fast">0</span>h</b></div>
             <input type="number" class="som-fast-input" id="som-fast" min="0" max="48" step="0.5" value="0" inputmode="decimal" placeholder="e.g. 16">
           </div>
         </div>
-        <button class="som-save-btn" id="som-save-btn" type="button">&#x269B; Sync Somatic Readiness</button>
-        <div class="som-override-banner" id="som-override-banner">
+        <button class="som-save-btn" id="som-save-btn" type="button" data-lang-key="som-save-btn">&#x269B; Sync Somatic Readiness</button>
+        <div class="som-override-banner" id="som-override-banner" data-lang-key="som-override-banner">
           <b>&#x26A1; Somatic Override Active</b> &mdash; intensity capped at 70% 1RM (from 85%), volume down-regulated by 1 set per exercise to protect CNS.
         </div>
       </div>
@@ -1423,51 +1423,51 @@ window.onload=function(){
 
     <!-- STEP 1: Age & Goal -->
     <div class="si-step on" id="sis0">
-      <div class="si-tag">STEP 1 OF 3</div>
-      <div class="si-h">YOUR FOUNDATION</div>
-      <div class="si-sub">We calibrate every protocol to your biology. This takes 30 seconds.</div>
-      <label class="si-label">Age</label>
+      <div class="si-tag" data-lang-key="intake-step1-tag">STEP 1 OF 3</div>
+      <div class="si-h" data-lang-key="intake-step1-h">YOUR FOUNDATION</div>
+      <div class="si-sub" data-lang-key="intake-step1-sub">We calibrate every protocol to your biology. This takes 30 seconds.</div>
+      <label class="si-label" data-lang-key="intake-lbl-age">Age</label>
       <input class="si-input" type="number" id="si-age" placeholder="28" inputmode="numeric" min="14" max="80">
-      <label class="si-label">Primary Goal</label>
+      <label class="si-label" data-lang-key="intake-lbl-goal">Primary Goal</label>
       <div class="si-chips" id="si-goal-chips">
-        <button class="si-chip" data-v="hypertrophy" onclick="siChip(this,'si-goal-chips')">&#x1F4AA; Hypertrophy</button>
-        <button class="si-chip" data-v="fat-loss" onclick="siChip(this,'si-goal-chips')">&#x1F525; Fat Loss</button>
-        <button class="si-chip" data-v="longevity" onclick="siChip(this,'si-goal-chips')">&#x1F9EC; Longevity</button>
-        <button class="si-chip" data-v="performance" onclick="siChip(this,'si-goal-chips')">&#x26A1; Performance</button>
-        <button class="si-chip" data-v="recomp" onclick="siChip(this,'si-goal-chips')">&#x2696; Recomposition</button>
+        <button class="si-chip" data-v="hypertrophy" data-lang-key="intake-chip-hypertrophy" onclick="siChip(this,'si-goal-chips')">&#x1F4AA; Hypertrophy</button>
+        <button class="si-chip" data-v="fat-loss"    data-lang-key="intake-chip-fatloss"     onclick="siChip(this,'si-goal-chips')">&#x1F525; Fat Loss</button>
+        <button class="si-chip" data-v="longevity"   data-lang-key="intake-chip-longevity"   onclick="siChip(this,'si-goal-chips')">&#x1F9EC; Longevity</button>
+        <button class="si-chip" data-v="performance" data-lang-key="intake-chip-performance" onclick="siChip(this,'si-goal-chips')">&#x26A1; Performance</button>
+        <button class="si-chip" data-v="recomp"      data-lang-key="intake-chip-recomp"      onclick="siChip(this,'si-goal-chips')">&#x2696; Recomposition</button>
       </div>
-      <div class="si-nav" style="justify-content:flex-end"><button class="si-next" onclick="siNext(0)">NEXT: EXPERIENCE &#x2192;</button></div>
+      <div class="si-nav" style="justify-content:flex-end"><button class="si-next" data-lang-key="intake-next-exp" onclick="siNext(0)">NEXT: EXPERIENCE &#x2192;</button></div>
     </div>
 
     <!-- STEP 2: Experience -->
     <div class="si-step" id="sis1">
-      <div class="si-tag">STEP 2 OF 3</div>
-      <div class="si-h">YOUR EXPERIENCE</div>
-      <div class="si-sub">This determines your starting intensity and progression speed.</div>
-      <label class="si-label">Training Experience</label>
+      <div class="si-tag" data-lang-key="intake-step2-tag">STEP 2 OF 3</div>
+      <div class="si-h" data-lang-key="intake-step2-h">YOUR EXPERIENCE</div>
+      <div class="si-sub" data-lang-key="intake-step2-sub">This determines your starting intensity and progression speed.</div>
+      <label class="si-label" data-lang-key="intake-lbl-exp">Training Experience</label>
       <div class="si-chips" id="si-exp-chips">
-        <button class="si-chip" data-v="beginner" onclick="siChip(this,'si-exp-chips')">&#x1F331; Beginner (0-1 yr)</button>
-        <button class="si-chip" data-v="intermediate" onclick="siChip(this,'si-exp-chips')">&#x1F4CA; Intermediate (1-3 yr)</button>
-        <button class="si-chip" data-v="allpro" onclick="siChip(this,'si-exp-chips')">&#x1F451; All-Pro (3+ yr)</button>
+        <button class="si-chip" data-v="beginner"     data-lang-key="intake-chip-beginner"     onclick="siChip(this,'si-exp-chips')">&#x1F331; Beginner (0-1 yr)</button>
+        <button class="si-chip" data-v="intermediate" data-lang-key="intake-chip-intermediate" onclick="siChip(this,'si-exp-chips')">&#x1F4CA; Intermediate (1-3 yr)</button>
+        <button class="si-chip" data-v="allpro"       data-lang-key="intake-chip-allpro"       onclick="siChip(this,'si-exp-chips')">&#x1F451; All-Pro (3+ yr)</button>
       </div>
-      <div class="si-nav"><button class="si-back" onclick="siPrev(1)">&#x2190; BACK</button><button class="si-next" onclick="siNext(1)">NEXT: FRICTION &#x2192;</button></div>
+      <div class="si-nav"><button class="si-back" data-lang-key="intake-back" onclick="siPrev(1)">&#x2190; BACK</button><button class="si-next" data-lang-key="intake-next-friction" onclick="siNext(1)">NEXT: FRICTION &#x2192;</button></div>
     </div>
 
     <!-- STEP 3: Biomechanical Friction -->
     <div class="si-step" id="sis2">
-      <div class="si-tag">STEP 3 OF 3</div>
-      <div class="si-h">BIOMECHANICAL FRICTION</div>
-      <div class="si-sub">Select any current joint issues. This protects you from day one.</div>
-      <label class="si-label">Current Issues (select all that apply)</label>
+      <div class="si-tag" data-lang-key="intake-step3-tag">STEP 3 OF 3</div>
+      <div class="si-h" data-lang-key="intake-step3-h">BIOMECHANICAL FRICTION</div>
+      <div class="si-sub" data-lang-key="intake-step3-sub">Select any current joint issues. This protects you from day one.</div>
+      <label class="si-label" data-lang-key="intake-lbl-friction">Current Issues (select all that apply)</label>
       <div class="si-chips" id="si-friction-chips">
-        <button class="si-chip multi" data-v="none" onclick="siMulti(this,'si-friction-chips')">&#x2705; None</button>
-        <button class="si-chip multi" data-v="knee" onclick="siMulti(this,'si-friction-chips')">&#x1F9B5; Knee</button>
-        <button class="si-chip multi" data-v="lower-back" onclick="siMulti(this,'si-friction-chips')">&#x1F9B4; Lower Back</button>
-        <button class="si-chip multi" data-v="shoulder" onclick="siMulti(this,'si-friction-chips')">&#x1F9B6; Shoulder</button>
-        <button class="si-chip multi" data-v="hip" onclick="siMulti(this,'si-friction-chips')">&#x1F9CE; Hip</button>
-        <button class="si-chip multi" data-v="ankle" onclick="siMulti(this,'si-friction-chips')">&#x1F9B6; Ankle</button>
+        <button class="si-chip multi" data-v="none"       data-lang-key="intake-chip-fric-none"      onclick="siMulti(this,'si-friction-chips')">&#x2705; None</button>
+        <button class="si-chip multi" data-v="knee"       data-lang-key="intake-chip-fric-knee"      onclick="siMulti(this,'si-friction-chips')">&#x1F9B5; Knee</button>
+        <button class="si-chip multi" data-v="lower-back" data-lang-key="intake-chip-fric-lowerback" onclick="siMulti(this,'si-friction-chips')">&#x1F9B4; Lower Back</button>
+        <button class="si-chip multi" data-v="shoulder"   data-lang-key="intake-chip-fric-shoulder"  onclick="siMulti(this,'si-friction-chips')">&#x1F9B6; Shoulder</button>
+        <button class="si-chip multi" data-v="hip"        data-lang-key="intake-chip-fric-hip"       onclick="siMulti(this,'si-friction-chips')">&#x1F9CE; Hip</button>
+        <button class="si-chip multi" data-v="ankle"      data-lang-key="intake-chip-fric-ankle"     onclick="siMulti(this,'si-friction-chips')">&#x1F9B6; Ankle</button>
       </div>
-      <div class="si-nav"><button class="si-back" onclick="siPrev(2)">&#x2190; BACK</button><button class="si-next" id="si-submit-btn" type="button">GENERATE SOVEREIGN BLUEPRINT &#x2192;</button></div>
+      <div class="si-nav"><button class="si-back" data-lang-key="intake-back" onclick="siPrev(2)">&#x2190; BACK</button><button class="si-next" id="si-submit-btn" type="button" data-lang-key="intake-generate">GENERATE SOVEREIGN BLUEPRINT &#x2192;</button></div>
     </div>
   </div>
 </div>
@@ -1475,10 +1475,10 @@ window.onload=function(){
 <!-- GHOST PROTOCOL INTERCEPT — High-priority CNS de-conditioning intervention -->
 <div class="gp-overlay" id="ghost-protocol-intercept" role="dialog" aria-modal="true" aria-labelledby="gp-headline">
   <div class="gp-box">
-    <div class="gp-badge">&#x26A0; Mastermind Alert</div>
-    <div class="gp-h" id="gp-headline">CNS De-conditioning Detected</div>
-    <div class="gp-body">Mastermind Alert: CNS De-conditioning detected. Your progressive overload has been temporarily paused to protect joint integrity. Tap below to initiate a Sovereign Recovery protocol and restore your baseline.</div>
-    <button class="gp-cta" id="gp-restore-btn" type="button">&#x26A1; Restore Sovereign Baseline</button>
+    <div class="gp-badge" data-lang-key="gp-badge">&#x26A0; Mastermind Alert</div>
+    <div class="gp-h" id="gp-headline" data-lang-key="gp-headline">CNS De-conditioning Detected</div>
+    <div class="gp-body" data-lang-key="gp-body">Mastermind Alert: CNS De-conditioning detected. Your progressive overload has been temporarily paused to protect joint integrity. Tap below to initiate a Sovereign Recovery protocol and restore your baseline.</div>
+    <button class="gp-cta" id="gp-restore-btn" type="button" data-lang-key="gp-cta">&#x26A1; Restore Sovereign Baseline</button>
   </div>
 </div>
 
@@ -1492,13 +1492,13 @@ window.onload=function(){
       <div class="hts-crest-mark">&#x2726;&nbsp;BBF&nbsp;&#x2726;</div>
       <div class="hts-crest-line r"></div>
     </div>
-    <div class="hts-badge">Private Invitation</div>
+    <div class="hts-badge" data-lang-key="hts-badge">Private Invitation</div>
     <div class="hts-h" id="hts-headline">Mastermind Protocol Complete</div>
     <div class="hts-sub" id="hts-sub">The Laboratory &middot; By Invitation Only</div>
     <div class="hts-body" id="hts-body">You have outgrown the automated blueprint. Tap below to apply for Akeem&rsquo;s Private 1-on-1 Clinical Roster.</div>
-    <div class="hts-sig">&mdash; Akeem, Head Coach</div>
-    <button class="hts-cta" id="hts-apply-btn" type="button">Apply for Mastermind Roster</button>
-    <button class="hts-dismiss" id="hts-dismiss-btn" type="button">Dismiss</button>
+    <div class="hts-sig" data-lang-key="hts-sig">&mdash; Akeem, Head Coach</div>
+    <button class="hts-cta" id="hts-apply-btn" type="button" data-lang-key="hts-cta">Apply for Mastermind Roster</button>
+    <button class="hts-dismiss" id="hts-dismiss-btn" type="button" data-lang-key="hts-dismiss">Dismiss</button>
   </div>
 </div>
 
@@ -2329,31 +2329,38 @@ function closeGhostIntercept() {
   if (el) el.classList.remove('on');
 }
 // ─── HIGH-TICKET SNIPER INVITATION ───────────────────────
-// Dynamic copy driven by evaluateSniperCriteria's `reason`.
-var HTS_COPY = {
-  graduate: {
-    headline: 'Mastermind Protocol Complete',
-    sub:      'The Laboratory \u00B7 By Invitation Only',
-    body:     'Mastermind Protocol Complete. You have outgrown the automated blueprint. Tap below to apply for Akeem\u2019s Private 1-on-1 Clinical Roster.'
-  },
-  plateau: {
-    headline: 'Biomechanical Plateau Detected',
-    sub:      'Clinical Intervention Required',
-    body:     'Mastermind Alert: Biomechanical plateau detected. Automated programming is no longer sufficient. Tap below to apply for clinical 1-on-1 intervention.'
-  }
-};
+// Dynamic copy driven by evaluateSniperCriteria's `reason`. Sources
+// per-language strings from BBF_LANG so the invitation updates live
+// on language toggle.
+function _htsLookup(key, fallback) {
+  try {
+    if (window.BBF_LANG && window.BBF_LANG.D && window.BBF_LANG.D[key]) {
+      var L = LANG || (window.BBF_LANG.get && window.BBF_LANG.get()) || 'en';
+      return window.BBF_LANG.D[key][L] || window.BBF_LANG.D[key].en || fallback;
+    }
+  } catch(_) {}
+  return fallback;
+}
 function openSniperModal(reason) {
   var el = document.getElementById('high-ticket-sniper-modal');
   if (!el) return;
-  var copy = HTS_COPY[reason] || HTS_COPY.graduate;
+  el.dataset.reason = reason || 'graduate';
+  _htsRefreshCopy();
+  el.classList.add('on');
+}
+function _htsRefreshCopy() {
+  var el = document.getElementById('high-ticket-sniper-modal');
+  if (!el) return;
+  var reason = el.dataset.reason || 'graduate';
+  var prefix = reason === 'plateau' ? 'hts-plateau-' : 'hts-graduate-';
   var h = document.getElementById('hts-headline');
   var s = document.getElementById('hts-sub');
   var b = document.getElementById('hts-body');
-  if (h) h.textContent = copy.headline;
-  if (s) s.textContent = copy.sub;
-  if (b) b.textContent = copy.body;
-  el.dataset.reason = reason || 'graduate';
-  el.classList.add('on');
+  if (h) h.textContent = _htsLookup(prefix + 'h',    reason === 'plateau' ? 'Biomechanical Plateau Detected' : 'Mastermind Protocol Complete');
+  if (s) s.textContent = _htsLookup(prefix + 'sub',  reason === 'plateau' ? 'Clinical Intervention Required' : 'The Laboratory \u00B7 By Invitation Only');
+  if (b) b.textContent = _htsLookup(prefix + 'body', reason === 'plateau'
+    ? 'Mastermind Alert: Biomechanical plateau detected. Automated programming is no longer sufficient. Tap below to apply for clinical 1-on-1 intervention.'
+    : 'Mastermind Protocol Complete. You have outgrown the automated blueprint. Tap below to apply for Akeem\u2019s Private 1-on-1 Clinical Roster.');
 }
 function closeSniperModal() {
   var el = document.getElementById('high-ticket-sniper-modal');
@@ -2380,7 +2387,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       // Defensive fallback: at least close the modal.
       closeGhostIntercept();
-      if (typeof TOAST === 'function') TOAST('\u26A0 Recovery engine offline.');
+      if (typeof TOAST === 'function') TOAST(_t('render-recovery-offline', '\u26A0 Recovery engine offline.'));
       p = Promise.resolve({ ok: false });
     }
     Promise.resolve(p).then(function() {
@@ -2400,7 +2407,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (applyBtn) applyBtn.addEventListener('click', function() {
     applyBtn.disabled  = true;
     var original       = applyBtn.innerHTML;
-    applyBtn.innerHTML = 'Submitting\u2026';
+    applyBtn.innerHTML = _t('render-submitting', 'Submitting\u2026');
     var p;
     if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.applyForMastermindRoster) {
       p = RENDER_ENGINE.applyForMastermindRoster();
@@ -2507,6 +2514,10 @@ function setSovereignLang(lang) {
   }
   updateLangButtons(lang);
   renderPrehab();
+  // Refresh any modal whose copy is injected dynamically by JS
+  // (BBF_LANG.apply() only handles elements with data-lang-key attrs).
+  if (typeof _htsRefreshCopy === 'function') _htsRefreshCopy();
+  if (typeof _somApplyCached === 'function') _somApplyCached();
   var activeTab = document.querySelector('.tp.on');
   if (activeTab) {
     var tabId = activeTab.id.replace('tp-', '');
@@ -2761,7 +2772,24 @@ function _somPaint(state) {
   var lbl = document.getElementById('som-score-label');
   if (lbl) {
     var tier = state.tier || (score >= 80 ? 'optimal' : score >= 60 ? 'ready' : score >= 40 ? 'caution' : 'depleted');
-    lbl.textContent = 'Somatic Readiness \u00B7 ' + tier.toUpperCase() + ' \u00B7 threshold 60%';
+    var tierLabel = _t('som-tier-' + tier, tier.toUpperCase());
+    var base = _t('som-score-label', 'Somatic Readiness \u00B7 threshold 60%');
+    // Splice the tier label into the base: "... \u00B7 <TIER> \u00B7 threshold ..."
+    lbl.textContent = base.replace(/\s*\u00B7\s*/, ' \u00B7 ' + tierLabel + ' \u00B7 ');
+  }
+  // Bubble state back to RDW so its somatic override banner reflects new state.
+  var uid = VC || CU;
+  if (uid) {
+    try {
+      var d = GD();
+      if (d.u[uid]) {
+        d.u[uid].somatic_readiness_score = state.score;
+        d.u[uid].somatic_override_active = !!(state.override_active || warn);
+        d.u[uid].somatic_override_date   = state.override_date || (warn ? today() : null);
+        d.u[uid].somatic_tier            = state.tier;
+        SD(d);
+      }
+    } catch(e) {}
   }
 }
 function _somApplyCached() {
@@ -2804,7 +2832,7 @@ function _somSubmit() {
   var uid = VC || CU; if (!uid) return;
   var btn = document.getElementById('som-save-btn');
   var orig = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '\u26A1 Syncing...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = _t('render-syncing', '\u26A1 Syncing...'); }
   var inputs = {
     sleep_quality:  parseInt(document.getElementById('som-sleep').value, 10) || 5,
     cognitive_load: parseInt(document.getElementById('som-cog').value, 10) || 5,
@@ -2818,13 +2846,15 @@ function _somSubmit() {
     if (btn) { btn.disabled = false; btn.innerHTML = orig; }
     if (typeof TOAST === 'function') {
       var s = state && Math.round((state.score||0));
-      TOAST('\u269B Somatic ' + (state && state.tier ? state.tier.toUpperCase() : 'SYNCED') + ' \u00B7 ' + s + '%');
+      var tierKey = state && state.tier ? ('som-tier-' + state.tier) : null;
+      var tierLabel = tierKey ? _t(tierKey, state.tier.toUpperCase()) : _t('som-toast-synced', 'SYNCED').replace(/^[^A-Za-z]+/, '');
+      TOAST('\u269B Somatic ' + tierLabel + ' \u00B7 ' + s + '%');
     }
     // Repaint today's workout so the override banner/prescription reflects new state.
     if (typeof RDW === 'function') { try { RDW(); } catch(_) {} }
   }).catch(function(){
     if (btn) { btn.disabled = false; btn.innerHTML = orig; }
-    if (typeof TOAST === 'function') TOAST('\u26A0 Somatic sync failed.');
+    if (typeof TOAST === 'function') TOAST(_t('som-sync-failed', '\u26A0 Somatic sync failed.'));
   });
 }
 document.addEventListener('DOMContentLoaded', function() {
@@ -3090,8 +3120,8 @@ function RDW() {
   if (somOverride) {
     var somScore = Math.round(((d.u[uid] || {}).somatic_readiness_score || 0));
     h += '<div class="som-rdw-banner">' +
-      '<div class="srh"><span>\u269B</span><span>SOMATIC OVERRIDE \u00B7 ' + somScore + '%</span></div>' +
-      '<div class="srt">CNS-protective cap: intensity prescriptions capped at 70% 1RM today (from 85%). Drop 1 working set per exercise. Resume full protocol when Somatic Readiness &#x2265; 60%.</div>' +
+      '<div class="srh"><span>\u269B</span><span>' + _t('som-rdw-h', 'SOMATIC OVERRIDE') + ' \u00B7 ' + somScore + '%</span></div>' +
+      '<div class="srt">' + _t('som-rdw-body', 'CNS-protective cap: intensity prescriptions capped at 70% 1RM today (from 85%). Drop 1 working set per exercise. Resume full protocol when Somatic Readiness &#x2265; 60%.') + '</div>' +
       '</div>';
   }
   // Sovereign Shift Protocol — intercept exercises if CNS depleted

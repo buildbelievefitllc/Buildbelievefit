@@ -10,15 +10,27 @@ var RENDER_ENGINE = (function() {
   var FADE_OUT_MS      = 450;
   var WELCOME_MESSAGE  = 'Mastermind Diagnostic Complete. Your 12-Week Sovereign Blueprint has been deployed.';
 
+  // Localised copy lookup — falls back to English if BBF_LANG is absent.
+  function L(key, fallback) {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_LANG && window.BBF_LANG.D && window.BBF_LANG.D[key]) {
+        var lang = (window.BBF_LANG.get && window.BBF_LANG.get()) ||
+                   (typeof LANG !== 'undefined' ? LANG : 'en');
+        return window.BBF_LANG.D[key][lang] || window.BBF_LANG.D[key].en || fallback;
+      }
+    } catch(_) {}
+    return fallback;
+  }
+
   function captureIntakeForm() {
     var ageEl      = document.getElementById('si-age');
     var goalEl     = document.querySelector('#si-goal-chips .si-chip.on');
     var expEl      = document.querySelector('#si-exp-chips .si-chip.on');
     var frictionEls = document.querySelectorAll('#si-friction-chips .si-chip.multi.on');
 
-    if (!ageEl || !ageEl.value)           return { error: 'Enter your age' };
-    if (!goalEl)                          return { error: 'Select a goal' };
-    if (!expEl)                           return { error: 'Select your experience level' };
+    if (!ageEl || !ageEl.value)           return { error: L('intake-need-age',  'Enter your age') };
+    if (!goalEl)                          return { error: L('intake-need-goal', 'Select a goal') };
+    if (!expEl)                           return { error: L('intake-need-exp',  'Select your experience level') };
 
     var friction = [];
     for (var i = 0; i < frictionEls.length; i++) friction.push(frictionEls[i].dataset.v);
@@ -78,10 +90,10 @@ var RENDER_ENGINE = (function() {
     if (captured.error) { toast(captured.error); return Promise.resolve(null); }
 
     var uid = resolveUserId();
-    if (!uid) { toast('\u26A0 No active user. Sign in to deploy blueprint.'); return Promise.resolve(null); }
+    if (!uid) { toast(L('render-no-user', '\u26A0 No active user. Sign in to deploy blueprint.')); return Promise.resolve(null); }
 
     if (typeof BBF_SYNC === 'undefined' || typeof BBF_SYNC.generateBespokeBlueprint !== 'function') {
-      toast('\u26A0 Blueprint engine offline.');
+      toast(L('render-engine-offline', '\u26A0 Blueprint engine offline.'));
       return Promise.resolve(null);
     }
 
@@ -94,7 +106,7 @@ var RENDER_ENGINE = (function() {
       blueprint = BBF_SYNC.generateBespokeBlueprint(captured.intake);
     } catch(e) {
       console.error('[RENDER_ENGINE] generate error:', e);
-      toast('\u26A0 Blueprint generation failed.');
+      toast(L('render-generate-failed', '\u26A0 Blueprint generation failed.'));
       return Promise.resolve(null);
     }
 
@@ -107,7 +119,7 @@ var RENDER_ENGINE = (function() {
       // STEP 4 — fade the intake matrix away, revealing the customized dashboard.
       return fadeOutModal().then(function() {
         // STEP 5 — welcome notification.
-        toast('\uD83C\uDFAF ' + WELCOME_MESSAGE);
+        toast(L('render-welcome-toast', '\uD83C\uDFAF ' + WELCOME_MESSAGE));
 
         // Repaint dashboard widgets that depend on blueprint/intake, if present.
         if (typeof repaintDashboard === 'function') {
@@ -207,9 +219,9 @@ var RENDER_ENGINE = (function() {
   // protocol instead of today's standard blueprint).
   async function restoreSovereignBaseline() {
     var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
-    if (!uid) { toast('\u26A0 No active user.'); return { ok: false, reason: 'no uid' }; }
+    if (!uid) { toast(L('render-no-user', '\u26A0 No active user.')); return { ok: false, reason: 'no uid' }; }
     if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.clearGhostIntervention) {
-      toast('\u26A0 Sync engine offline.');
+      toast(L('render-sync-offline', '\u26A0 Sync engine offline.'));
       return { ok: false, reason: 'no sync' };
     }
 
@@ -232,7 +244,7 @@ var RENDER_ENGINE = (function() {
       try { SELDAY(0); } catch(_) {}
     }
 
-    toast('\u26A1 Sovereign Recovery active. Today is Mobility + Pre-Hab.');
+    toast(L('render-recovery-toast', '\u26A1 Sovereign Recovery active. Today is Mobility + Pre-Hab.'));
     return { ok: true, result: result };
   }
 
@@ -275,19 +287,19 @@ var RENDER_ENGINE = (function() {
 
   async function applyForMastermindRoster() {
     var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
-    if (!uid) { toast('\u26A0 No active user.'); return { ok: false, reason: 'no uid' }; }
+    if (!uid) { toast(L('render-no-user', '\u26A0 No active user.')); return { ok: false, reason: 'no uid' }; }
 
     var modal  = document.getElementById(SNIPER_MODAL_ID);
     var reason = (modal && modal.dataset && modal.dataset.reason) || 'graduate';
 
     if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.submitMastermindApplication) {
-      toast('\u26A0 Application engine offline.');
+      toast(L('render-app-offline', '\u26A0 Application engine offline.'));
       return { ok: false, reason: 'no sync' };
     }
 
     var result = await BBF_SYNC.submitMastermindApplication(uid, reason);
     if (typeof closeSniperModal === 'function') closeSniperModal();
-    toast('\u2728 Application received. The Mastermind will review your clinical data.');
+    toast(L('render-application-toast', '\u2728 Application received. The Mastermind will review your clinical data.'));
     return { ok: result.ok !== false, result: result };
   }
 
