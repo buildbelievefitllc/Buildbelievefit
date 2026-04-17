@@ -470,6 +470,27 @@ var BBF_SYNC = (function() {
     }).catch(function(e) { console.error('BBF_SYNC sendHouseholdReaction error:', e); return null; });
   }
 
+  // ─── USER LANGUAGE PREFERENCE ─────────────────────────────
+  function updateUserLanguage(userId, languageCode) {
+    if (!userId || !languageCode) return Promise.resolve(null);
+    var valid = ['en', 'es', 'pt'];
+    var lang = languageCode.toLowerCase();
+    if (valid.indexOf(lang) === -1) lang = 'en';
+    // Save locally
+    try {
+      localStorage.setItem('bbf_lang', lang);
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (d.u[userId]) { d.u[userId].language = lang; localStorage.setItem('bbf_v7', JSON.stringify(d)); }
+    } catch(e) {}
+    // Sync to Supabase
+    return supa('POST', 'bbf_users', {
+      id: userId,
+      language: lang,
+      updated_at: new Date().toISOString()
+    }).then(function() { console.log('BBF_SYNC: Language set to ' + lang); return lang; })
+      .catch(function(e) { console.error('BBF_SYNC updateUserLanguage error:', e); return lang; });
+  }
+
   // ─── PUBLIC API ──────────────────────────────────────────
   return {
     syncUser: syncUser,
@@ -490,6 +511,7 @@ var BBF_SYNC = (function() {
     logMorningReadiness: logMorningReadiness,
     evaluateBlueprint: evaluateBlueprint,
     SOVEREIGN_SHIFTS: SOVEREIGN_SHIFTS,
+    updateUserLanguage: updateUserLanguage,
     fetchHouseholdActivity: fetchHouseholdActivity,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,

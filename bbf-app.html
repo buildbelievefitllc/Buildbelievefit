@@ -355,6 +355,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="rpe-commander.js"></script>
 <script src="hologram-data.js"></script>
 <script src="hologram-renderer.js"></script>
+<script src="bbf-translator.js"></script>
 <script src="bbf-data.js"></script>
 </head>
 <body>
@@ -883,6 +884,14 @@ window.onload=function(){
             <div id="st-desk" style="padding:.3rem .7rem;font-family:var(--hb);font-size:.75rem;letter-spacing:1px;cursor:pointer;transition:all .2s">DESK</div>
             <div id="st-stand" style="padding:.3rem .7rem;font-family:var(--hb);font-size:.75rem;letter-spacing:1px;cursor:pointer;transition:all .2s">SHIFT</div>
             <div id="st-mixed" style="padding:.3rem .7rem;font-family:var(--hb);font-size:.75rem;letter-spacing:1px;cursor:pointer;transition:all .2s">MIXED</div>
+          </div>
+        </div>
+        <div class="psr" style="flex-direction:column;align-items:stretch">
+          <div class="psrl" style="margin-bottom:.6rem"><span style="font-size:1.1rem">&#x1F310;</span><div><div class="psrn">Sovereign Linguistics</div><div class="psrs" id="lang-pref-label">Select your language</div></div></div>
+          <div style="display:flex;gap:6px" id="settings-lang-bar">
+            <button onclick="setSovereignLang('en')" id="sl-en" style="flex:1;padding:.5rem;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid #2a2a2a;background:transparent;color:var(--mut)">ENGLISH</button>
+            <button onclick="setSovereignLang('es')" id="sl-es" style="flex:1;padding:.5rem;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid #2a2a2a;background:transparent;color:var(--mut)">ESPA&Ntilde;OL</button>
+            <button onclick="setSovereignLang('pt')" id="sl-pt" style="flex:1;padding:.5rem;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid #2a2a2a;background:transparent;color:var(--mut)">PORTUGU&Ecirc;S</button>
           </div>
         </div>
         <div class="psr" onclick="window.open('liability-waiver.pdf','_blank')"><div class="psrl"><span style="font-size:1.1rem">&#x1F4C4;</span><div><div class="psrn" data-lang-key="app-set-waiver">Liability Waiver</div><div class="psrs" data-lang-key="app-set-waiver-sub">View &amp; download PDF</div></div></div><span class="psra">&#x203A;</span></div>
@@ -1555,6 +1564,7 @@ function RH() {
   checkIncomingReactions();
   renderPlayerCard();
   renderSweatContract();
+  updateLangButtons(LANG);
 }
 
 function renderTrainerDashboard(d) {
@@ -1688,6 +1698,42 @@ function renderCNSHeatmap() {
     document.getElementById('cns-zone-depleted').className = 'cns-depleted';
     if (textEl) { textEl.textContent = 'DEPLETED — SHIFT ACTIVE'; textEl.style.color = '#ef4444'; }
   }
+}
+
+// ─── SOVEREIGN LINGUISTICS ────────────────────────────────
+function setSovereignLang(lang) {
+  LANG = lang;
+  if (typeof BBF_LANG !== 'undefined') BBF_LANG.set(lang);
+  var uid = VC || CU;
+  if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.updateUserLanguage) {
+    BBF_SYNC.updateUserLanguage(uid, lang);
+  }
+  updateLangButtons(lang);
+  renderPrehab();
+  var activeTab = document.querySelector('.tp.on');
+  if (activeTab) {
+    var tabId = activeTab.id.replace('tp-', '');
+    if (tabId === 'home') RH();
+    if (tabId === 'workout') RW();
+    if (tabId === 'nutrition') RN();
+  }
+  TOAST('\uD83C\uDF10 Language: ' + {en:'English',es:'Espa\u00f1ol',pt:'Portugu\u00eas'}[lang]);
+}
+
+function updateLangButtons(lang) {
+  ['en','es','pt'].forEach(function(l) {
+    var btn = document.getElementById('sl-' + l);
+    if (!btn) return;
+    if (l === lang) {
+      btn.style.background = '#D4AF37';
+      btn.style.color = '#0a0a0a';
+      btn.style.borderColor = '#D4AF37';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = '#888';
+      btn.style.borderColor = '#2a2a2a';
+    }
+  });
 }
 
 // ─── SWEAT EQUITY CONTRACT ────────────────────────────────
