@@ -1543,6 +1543,50 @@ function _t(key, fallback) {
   return fallback;
 }
 
+// ─── SOVEREIGN UPGRADE ────────────────────────────────────
+function executeSovereignUpgrade() {
+  var uid = VC || CU;
+  if (!uid) return;
+  if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.processTierUpgrade) {
+    BBF_SYNC.processTierUpgrade(uid).then(function() {
+      // Remove paywall from DOM
+      var blur = document.querySelector('.sovereign-blur-lock');
+      var overlay = document.querySelector('.paywall-overlay');
+      if (blur) blur.classList.remove('sovereign-blur-lock');
+      if (overlay) overlay.remove();
+      // Show dopamine modal
+      showUpgradeModal();
+      // Re-render the workout
+      setTimeout(function() { RDW(); }, 1500);
+    });
+  } else {
+    // Fallback: just update localStorage
+    var d = GD();
+    if (d.u[uid]) { d.u[uid].type = 'All-Pro'; d.u[uid].trial_status = 'completed'; SD(d); }
+    showUpgradeModal();
+    setTimeout(function() { RDW(); }, 1500);
+  }
+}
+
+function showUpgradeModal() {
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .3s ease';
+  modal.innerHTML = '<div style="background:#111;border:2px solid #D4AF37;border-radius:16px;padding:2.5rem;max-width:420px;width:100%;text-align:center;position:relative">' +
+    '<div style="font-size:3rem;margin-bottom:1rem">&#x1F3C6;</div>' +
+    '<div style="font-family:var(--hb);font-size:1.8rem;letter-spacing:3px;color:#D4AF37;margin-bottom:.5rem">MASTERMIND UPGRADE COMPLETE</div>' +
+    '<div style="font-size:.9rem;color:#ccc;line-height:1.7;margin-bottom:1.5rem">As a welcome to the Enterprise, Akeem has unlocked the <strong style="color:#D4AF37">Sovereign 16:8 Fasting Blueprint & Supplement Guide</strong> in your vault.</div>' +
+    '<div style="background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:.8rem;margin-bottom:1.5rem;text-align:left">' +
+    '<div style="font-size:.6rem;font-weight:700;letter-spacing:2px;color:#D4AF37;margin-bottom:.5rem">UNLOCKED BONUSES</div>' +
+    '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span>&#x2705;</span><span style="font-size:.82rem;color:#ddd">Sovereign 16:8 Fasting Blueprint</span></div>' +
+    '<div style="display:flex;align-items:center;gap:.5rem"><span>&#x2705;</span><span style="font-size:.82rem;color:#ddd">Full Dynamic Programming Access</span></div>' +
+    '</div>' +
+    '<button onclick="this.closest(\'div[style]\').parentElement.remove();RDW()" style="width:100%;background:#D4AF37;color:#0a0a0a;font-family:var(--hb);font-size:1rem;letter-spacing:3px;padding:.85rem;border:none;border-radius:8px;cursor:pointer">BEGIN TRAINING &#x2192;</button>' +
+    '<div style="font-size:.6rem;color:#555;margin-top:1rem;font-style:italic">Sovereign Gold Standard &bull; Est. 2021 &bull; BBF LLC</div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) { modal.remove(); RDW(); } };
+  document.body.appendChild(modal);
+}
+
 // ─── ACCESS GATEKEEPER ────────────────────────────────────
 function showRestrictedScreen() {
   SS('restricted');
@@ -1680,7 +1724,7 @@ function RDW() {
       '<div class="pw-icon">&#x1F512;</div>' +
       '<div class="pw-title">SOVEREIGN ACCESS REQUIRED</div>' +
       '<div class="pw-sub">Your Central Nervous System requires adaptation. Upgrade to the Sovereign Tier to access dynamic programming beyond Day 2.</div>' +
-      '<a href="#pathfinder" class="sovereign-upgrade-btn" onclick="if(typeof TAB!==\'undefined\')TAB(\'book\')">UPGRADE TO UNLOCK INTELLIGENCE</a>' +
+      '<button class="sovereign-upgrade-btn" onclick="executeSovereignUpgrade()">UPGRADE TO UNLOCK INTELLIGENCE</button>' +
       '</div></div>';
     return;
   }

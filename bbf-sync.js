@@ -246,6 +246,31 @@ var BBF_SYNC = (function() {
       .catch(function(e) { console.error('BBF_SYNC toggleSovereignTrial error:', e); return null; });
   }
 
+  // ─── PROCESS: TIER UPGRADE ────────────────────────────────
+  function processTierUpgrade(userId) {
+    if (!userId) return Promise.resolve(null);
+    // Update localStorage
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (d.u[userId]) {
+        d.u[userId].type = 'All-Pro';
+        d.u[userId].trial_status = 'completed';
+        if (!d.u[userId].unlocked_bonuses) d.u[userId].unlocked_bonuses = [];
+        if (d.u[userId].unlocked_bonuses.indexOf('Sovereign 16:8 Fasting Blueprint') === -1) {
+          d.u[userId].unlocked_bonuses.push('Sovereign 16:8 Fasting Blueprint');
+        }
+        localStorage.setItem('bbf_v7', JSON.stringify(d));
+      }
+    } catch(e) { console.error('BBF_SYNC processTierUpgrade localStorage error:', e); }
+    // Sync to Supabase
+    return supa('POST', 'bbf_users', {
+      id: userId,
+      type: 'All-Pro',
+      trial_status: 'completed',
+      updated_at: new Date().toISOString()
+    }).catch(function(e) { console.error('BBF_SYNC processTierUpgrade cloud error:', e); return null; });
+  }
+
   // ─── PUBLIC API ──────────────────────────────────────────
   return {
     syncUser: syncUser,
@@ -257,6 +282,7 @@ var BBF_SYNC = (function() {
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
     toggleSovereignTrial: toggleSovereignTrial,
+    processTierUpgrade: processTierUpgrade,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,
     fetchAllUsers: fetchAllUsers,
