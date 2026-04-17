@@ -381,6 +381,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 </style>
 <script src="bbf-lang.js"></script>
 <script src="bbf-sync.js"></script>
+<script src="render-engine.js"></script>
 <script src="auditor-engine.js"></script>
 <script src="prehab-auditor.js"></script>
 <script src="rpe-commander.js"></script>
@@ -1038,7 +1039,7 @@ window.onload=function(){
         <button class="si-chip multi" data-v="hip" onclick="siMulti(this,'si-friction-chips')">&#x1F9CE; Hip</button>
         <button class="si-chip multi" data-v="ankle" onclick="siMulti(this,'si-friction-chips')">&#x1F9B6; Ankle</button>
       </div>
-      <div class="si-nav"><button class="si-back" onclick="siPrev(2)">&#x2190; BACK</button><button class="si-next" onclick="siSubmitIntake()">GENERATE SOVEREIGN BLUEPRINT &#x2192;</button></div>
+      <div class="si-nav"><button class="si-back" onclick="siPrev(2)">&#x2190; BACK</button><button class="si-next" id="si-submit-btn" type="button">GENERATE SOVEREIGN BLUEPRINT &#x2192;</button></div>
     </div>
   </div>
 </div>
@@ -1831,28 +1832,11 @@ function siNext(from) {
 }
 function siPrev(from) { siShowStep(from - 1); }
 function siSubmitIntake() {
-  var age = document.getElementById('si-age').value;
-  var goalEl = document.querySelector('#si-goal-chips .si-chip.on');
-  var expEl = document.querySelector('#si-exp-chips .si-chip.on');
-  var frictionEls = document.querySelectorAll('#si-friction-chips .si-chip.multi.on');
-  var friction = [];
-  frictionEls.forEach(function(f) { friction.push(f.dataset.v); });
-  var intakeData = {
-    age: parseInt(age) || 0,
-    goal: goalEl ? goalEl.dataset.v : '',
-    experience: expEl ? expEl.dataset.v : '',
-    friction: friction,
-    completed: new Date().toISOString()
-  };
-  // Save to user profile
-  var uid = VC || CU;
-  var d = GD();
-  if (d.u[uid]) { d.u[uid].intake = intakeData; d.u[uid].intake_complete = true; SD(d); }
-  // Close overlay
-  document.getElementById('sovereign-intake').classList.remove('on');
-  TOAST('\uD83C\uDFAF Sovereign Blueprint generated. Welcome to the Laboratory.');
-  // Sync to cloud
-  if (typeof BBF_SYNC !== 'undefined') BBF_SYNC.syncUser(uid, d.u[uid]);
+  // Sprint 3 delegates the full capture → generate → deploy → fade → toast
+  // sequence to RENDER_ENGINE. Kept as a back-compat alias for any stale callers.
+  if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.submitSovereignIntake) {
+    return RENDER_ENGINE.submitSovereignIntake();
+  }
 }
 function checkIntakeNeeded() {
   var uid = VC || CU;

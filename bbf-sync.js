@@ -565,6 +565,38 @@ var BBF_SYNC = (function() {
     return blueprint;
   }
 
+  // ─── VAULT SAVE: DEPLOY ONBOARDING BLUEPRINT ─────────────
+  function deploySovereignOnboarding(userId, blueprintData) {
+    if (!userId || !blueprintData) return Promise.resolve(null);
+    var now = new Date().toISOString();
+
+    // 1. Mirror to localStorage so the dashboard renders instantly, even offline.
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!d.u) d.u = {};
+      if (!d.u[userId]) d.u[userId] = {};
+      d.u[userId].blueprint           = blueprintData;
+      d.u[userId].onboarding_complete = true;
+      d.u[userId].onboarded_at        = now;
+      d.u[userId].intake_complete     = true;
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(e) { console.warn('BBF_SYNC deploySovereignOnboarding local cache error:', e.message); }
+
+    // 2. Persist to Supabase user profile.
+    return supa('PATCH', 'bbf_users', {
+      blueprint:           blueprintData,
+      intake:              blueprintData.intake || null,
+      onboarding_complete: true,
+      onboarded_at:        now,
+      updated_at:          now
+    }, '?id=eq.' + encodeURIComponent(userId)).then(function(res) {
+      return { ok: true, userId: userId, onboarded_at: now, remote: res };
+    }).catch(function(e) {
+      console.warn('BBF_SYNC deploySovereignOnboarding remote error:', e && e.message);
+      return { ok: false, userId: userId, onboarded_at: now, error: e && e.message };
+    });
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -721,6 +753,7 @@ var BBF_SYNC = (function() {
     logMorningReadiness: logMorningReadiness,
     evaluateBlueprint: evaluateBlueprint,
     generateBespokeBlueprint: generateBespokeBlueprint,
+    deploySovereignOnboarding: deploySovereignOnboarding,
     SOVEREIGN_SHIFTS: SOVEREIGN_SHIFTS,
     FRICTION_SHIFT_MAP: FRICTION_SHIFT_MAP,
     EXPERIENCE_VOLUME: EXPERIENCE_VOLUME,

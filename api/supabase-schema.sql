@@ -18,9 +18,19 @@ CREATE TABLE IF NOT EXISTS bbf_users (
   recovery_note TEXT DEFAULT '',
   auto_lock_enabled BOOLEAN DEFAULT false,
   lock_expiry BIGINT,
+  intake JSONB,
+  blueprint JSONB,
+  onboarding_complete BOOLEAN DEFAULT false,
+  onboarded_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Idempotent column adds for existing deployments
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS intake JSONB;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS blueprint JSONB;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS onboarded_at TIMESTAMPTZ;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (
