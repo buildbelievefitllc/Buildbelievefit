@@ -332,6 +332,19 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .si-dots{display:flex;justify-content:center;gap:.4rem;margin-bottom:1.5rem}
 .si-dot{width:8px;height:8px;border-radius:50%;background:#2a2a2a;transition:all .3s}.si-dot.on{background:#D4AF37;width:20px;border-radius:4px}
 
+/* ═══ GHOST PROTOCOL INTERCEPT ═══════════════════════════════ */
+.gp-overlay{position:fixed;inset:0;background:rgba(4,4,4,.97);z-index:9999;display:none;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+.gp-overlay.on{display:flex;animation:gpFade .28s ease-out}
+@keyframes gpFade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.gp-box{background:#0a0a0a;border:2px solid #FF9500;border-radius:16px;padding:2.5rem;max-width:460px;width:100%;position:relative;box-shadow:0 0 48px rgba(255,149,0,.35)}
+.gp-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#FF9500,#ef4444);border-radius:16px 16px 0 0}
+.gp-badge{display:inline-block;background:rgba(255,149,0,.15);border:1px solid rgba(255,149,0,.45);color:#FF9500;font-family:var(--hb);font-size:.6rem;letter-spacing:3px;padding:.35rem .7rem;border-radius:6px;margin-bottom:1.1rem;text-transform:uppercase}
+.gp-h{font-family:var(--hb);font-size:1.35rem;letter-spacing:1.5px;color:#FF9500;margin-bottom:1rem;text-transform:uppercase;line-height:1.25}
+.gp-body{font-size:.88rem;line-height:1.6;color:#d9d9d9;margin-bottom:1.6rem}
+.gp-cta{width:100%;padding:.95rem 1.1rem;background:linear-gradient(90deg,#FF9500,#FFB347);color:#0a0a0a;border:none;border-radius:8px;font-family:var(--hb);font-size:.82rem;font-weight:700;letter-spacing:2.5px;cursor:pointer;transition:transform .15s,box-shadow .2s;box-shadow:0 4px 14px rgba(255,149,0,.4);text-transform:uppercase}
+.gp-cta:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,149,0,.55)}
+.gp-cta:active{transform:translateY(0)}
+
 /* ═══ GOLD SEEKER ════════════════════════════════════════════ */
 .gs-wrap{position:relative;margin-bottom:1rem}
 .gs-input{width:100%;background:#0a0a0a;border:1px solid rgba(212,175,55,.3);color:#fff;padding:.8rem 1rem .8rem 2.5rem;font-family:var(--bd);font-size:.88rem;font-weight:600;border-radius:10px;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
@@ -1041,6 +1054,16 @@ window.onload=function(){
       </div>
       <div class="si-nav"><button class="si-back" onclick="siPrev(2)">&#x2190; BACK</button><button class="si-next" id="si-submit-btn" type="button">GENERATE SOVEREIGN BLUEPRINT &#x2192;</button></div>
     </div>
+  </div>
+</div>
+
+<!-- GHOST PROTOCOL INTERCEPT — High-priority CNS de-conditioning intervention -->
+<div class="gp-overlay" id="ghost-protocol-intercept" role="dialog" aria-modal="true" aria-labelledby="gp-headline">
+  <div class="gp-box">
+    <div class="gp-badge">&#x26A0; Mastermind Alert</div>
+    <div class="gp-h" id="gp-headline">CNS De-conditioning Detected</div>
+    <div class="gp-body">Mastermind Alert: CNS De-conditioning detected. Your progressive overload has been temporarily paused to protect joint integrity. Tap below to initiate a Sovereign Recovery protocol and restore your baseline.</div>
+    <button class="gp-cta" id="gp-restore-btn" type="button">&#x26A1; Restore Sovereign Baseline</button>
   </div>
 </div>
 
@@ -1847,6 +1870,24 @@ function checkIntakeNeeded() {
     setTimeout(function() { document.getElementById('sovereign-intake').classList.add('on'); }, 800);
   }
 }
+
+// ─── GHOST PROTOCOL INTERCEPT ────────────────────────────
+function openGhostIntercept() {
+  var el = document.getElementById('ghost-protocol-intercept');
+  if (el) el.classList.add('on');
+}
+function closeGhostIntercept() {
+  var el = document.getElementById('ghost-protocol-intercept');
+  if (el) el.classList.remove('on');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var gpBtn = document.getElementById('gp-restore-btn');
+  if (gpBtn) gpBtn.addEventListener('click', function() {
+    // Sprint 3 will wire this to the Sovereign Recovery protocol.
+    if (typeof TOAST === 'function') TOAST('\u26A1 Sovereign Recovery protocol initiating...');
+    closeGhostIntercept();
+  });
+});
 
 // ─── GOLD SEEKER ─────────────────────────────────────────
 function goldSeekSubmit(e) {
