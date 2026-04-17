@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mastermind Portal — Build Believe Fit</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/bbf-tokens.css"/>
 <script src="bbf-sync.js"></script>
 <script src="portal-engine.js"></script>
 <style>
@@ -103,6 +104,33 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 .nav-bar {
   background: rgba(13,13,13,.6) !important;
   position: sticky; top: 0; z-index: 20;
+}
+
+/* ═══ SOVEREIGN VAULT ATMOSPHERE — extended into Mastermind Portal ═══ */
+body {
+  background:
+    conic-gradient(from 165deg at 88% -2%, rgba(245, 200, 0, 0.06) 0deg, rgba(245, 200, 0, 0) 95deg, rgba(245, 200, 0, 0) 360deg),
+    radial-gradient(ellipse 130% 95% at 50% 24%, var(--bbf-purple-800) 0%, var(--bbf-purple-950) 65%, var(--bbf-purple-950) 100%),
+    var(--bbf-purple-950) !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat;
+  position: relative;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
+}
+.hdr, .nav-bar, .stat, .ent-row, main, section { position: relative; z-index: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { display: none; }
 }
 </style>
 </head>

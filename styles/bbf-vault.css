@@ -618,3 +618,103 @@ body::after { display: none !important; }
   #auth.on .vault-forgot,
   #auth.on .vault-status  { opacity: 1; animation: none !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   DASHBOARD ATMOSPHERE EXTENSION
+   Extend the Sovereign Vault atmosphere from the auth threshold
+   into the private dashboard (#app) — home / workout (Daily
+   Blueprint) / nutrition / profile all inherit the stack. The body
+   stays flat --blk for the remaining screens (#restricted etc).
+   ═══════════════════════════════════════════════════════════════════ */
+#app {
+  background:
+    conic-gradient(from 165deg at 88% -2%, rgba(245, 200, 0, 0.055) 0deg, rgba(245, 200, 0, 0) 95deg, rgba(245, 200, 0, 0) 360deg),
+    radial-gradient(ellipse 130% 95% at 50% 28%, var(--bbf-purple-800) 0%, var(--bbf-purple-950) 68%, var(--bbf-purple-950) 100%),
+    var(--bbf-purple-950) !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+/* Film grain over #app — same 320×320 SVG turbulence tile, 3.5%
+   opacity (a hair lighter than #auth so it doesn't compete with
+   dashboard card shadows). Scoped pseudo so the rest of the DOM
+   isn't touched. */
+#app::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
+}
+
+/* The tab panes and top bar need to read above the atmosphere. */
+#app > .tbar,
+#app > .bn,
+#app > .tp { position: relative; z-index: 2; }
+
+/* Subtle intensification on the Daily Blueprint view — a softer
+   gold halo from the top centre so the workout card commands
+   visual focus as the reader's eye enters the pane. */
+#app #tp-workout {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(245, 200, 0, 0.045) 0%, transparent 55%),
+    transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PRIMARY DASHBOARD CTAs — full victory-gold upgrade
+   .lbtn (SAVE NOTE / SAVE SESSION / SAVE METRICS)
+   .dbtn (MARK SESSION COMPLETE)
+   The legacy cascade in bbf-app.html inline <style> already painted
+   these a brushed Laboratory Gold, but the user audit reads it as
+   too subtle on the dark dashboard. This override layers the
+   reserved victory-gold at the top of the gradient, adds a breathing
+   shadow pulse, and tightens the border so the buttons read as the
+   single Ferrari-yellow accent in the viewport.
+   ═══════════════════════════════════════════════════════════════════ */
+#app .lbtn,
+#app .dbtn,
+#app .calc-btn {
+  background: linear-gradient(180deg,
+    var(--bbf-gold-victory) 0%,
+    #EDD266  18%,
+    var(--bbf-gold-500)  45%,
+    var(--bbf-gold-550)  70%,
+    var(--bbf-gold-600) 100%) !important;
+  border: 1.5px solid var(--bbf-gold-victory) !important;
+  color: var(--bbf-purple-950) !important;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 8px 26px rgba(245, 200, 0, 0.50),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22) !important;
+  animation: bbfCtaBreathe 3s ease-in-out infinite;
+  transition:
+    transform 180ms var(--ease-sovereign),
+    filter    200ms var(--ease-sovereign);
+}
+#app .lbtn:hover,
+#app .dbtn:hover,
+#app .calc-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+#app .lbtn:active,
+#app .dbtn:active,
+#app .calc-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app .lbtn, #app .dbtn, #app .calc-btn { animation: none; }
+}
