@@ -597,6 +597,69 @@ var BBF_SYNC = (function() {
     });
   }
 
+  // ─── GHOST PROTOCOL SCANNER ──────────────────────────────
+  // Flags any user whose last activity is older than the inactivity window
+  // (default 72h) so downstream interventions can be triggered. Reads
+  // last_active_timestamp when present, falling back to updated_at then
+  // created_at for forward-compat with older rows.
+  var GHOST_INACTIVITY_MS = 72 * 60 * 60 * 1000;
+
+  async function runGhostProtocolScan(options) {
+    options = options || {};
+    var cutoffMs   = options.inactivity_ms || GHOST_INACTIVITY_MS;
+    var cutoffIso  = new Date(Date.now() - cutoffMs).toISOString();
+    var cutoffTime = Date.now() - cutoffMs;
+    var now        = new Date().toISOString();
+
+    try {
+      var users = await supa(
+        'GET',
+        'bbf_users',
+        null,
+        '?select=id,name,last_active_timestamp,updated_at,created_at,ghost_intervention_needed'
+      );
+      if (!Array.isArray(users)) users = [];
+
+      var ghosts = users.filter(function(u) {
+        var iso = u.last_active_timestamp || u.updated_at || u.created_at;
+        if (!iso) return false;
+        var t = Date.parse(iso);
+        return !isNaN(t) && t < cutoffTime;
+      });
+
+      var results = [];
+      for (var i = 0; i < ghosts.length; i++) {
+        var u = ghosts[i];
+        try {
+          await supa('PATCH', 'bbf_users', {
+            ghost_intervention_needed: true,
+            ghost_flagged_at:          now,
+            updated_at:                now
+          }, '?id=eq.' + encodeURIComponent(u.id));
+          results.push({ id: u.id, name: u.name || u.id, flagged: true });
+        } catch (err) {
+          console.warn('BBF_SYNC runGhostProtocolScan patch error for ' + u.id + ':', err && err.message);
+          results.push({ id: u.id, name: u.name || u.id, flagged: false, error: err && err.message });
+        }
+      }
+
+      var flaggedCount = 0;
+      for (var j = 0; j < results.length; j++) if (results[j].flagged) flaggedCount++;
+
+      return {
+        scanned:   users.length,
+        flagged:   flaggedCount,
+        cutoff:    cutoffIso,
+        inactivity_hours: cutoffMs / (60 * 60 * 1000),
+        users:     results,
+        scanned_at: now
+      };
+    } catch (e) {
+      console.error('BBF_SYNC runGhostProtocolScan fatal:', e && e.message);
+      return { scanned: 0, flagged: 0, cutoff: cutoffIso, error: e && e.message, scanned_at: now };
+    }
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -754,6 +817,8 @@ var BBF_SYNC = (function() {
     evaluateBlueprint: evaluateBlueprint,
     generateBespokeBlueprint: generateBespokeBlueprint,
     deploySovereignOnboarding: deploySovereignOnboarding,
+    runGhostProtocolScan: runGhostProtocolScan,
+    GHOST_INACTIVITY_MS: GHOST_INACTIVITY_MS,
     SOVEREIGN_SHIFTS: SOVEREIGN_SHIFTS,
     FRICTION_SHIFT_MAP: FRICTION_SHIFT_MAP,
     EXPERIENCE_VOLUME: EXPERIENCE_VOLUME,
