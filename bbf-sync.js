@@ -322,6 +322,46 @@ var BBF_SYNC = (function() {
       .catch(function(e) { console.error('BBF_SYNC fetchHouseholdActivity error:', e); return []; });
   }
 
+  // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
+  function initYouthAttributes(uid) {
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (d.u[uid] && !d.u[uid].attributes) {
+        d.u[uid].attributes = { power: 70, agility: 70, discipline: 70 };
+        localStorage.setItem('bbf_v7', JSON.stringify(d));
+      }
+    } catch(e) {}
+  }
+
+  function processAthleteEvolution(uid, workoutType) {
+    if (!uid) return;
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (!d.u[uid]) return;
+      if (!d.u[uid].attributes) d.u[uid].attributes = { power: 70, agility: 70, discipline: 70 };
+      var a = d.u[uid].attributes;
+      var wt = (workoutType || '').toLowerCase();
+      if (wt.indexOf('agility') > -1 || wt.indexOf('trench') > -1 || wt.indexOf('lateral') > -1 || wt.indexOf('speed') > -1) {
+        a.agility = Math.min(99, parseFloat((a.agility + 0.5).toFixed(1)));
+      }
+      if (wt.indexOf('strength') > -1 || wt.indexOf('power') > -1 || wt.indexOf('squat') > -1 || wt.indexOf('press') > -1 || wt.indexOf('deadlift') > -1) {
+        a.power = Math.min(99, parseFloat((a.power + 0.5).toFixed(1)));
+      }
+      d.u[uid].attributes = a;
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(e) { console.error('BBF_SYNC processAthleteEvolution error:', e); }
+  }
+
+  function incrementDiscipline(uid) {
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (!d.u[uid]) return;
+      if (!d.u[uid].attributes) d.u[uid].attributes = { power: 70, agility: 70, discipline: 70 };
+      d.u[uid].attributes.discipline = Math.min(99, d.u[uid].attributes.discipline + 1);
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(e) {}
+  }
+
   // ─── HOUSEHOLD REACTION ──────────────────────────────────
   function sendHouseholdReaction(senderId, receiverId, reactionType) {
     if (!senderId || !receiverId) return Promise.resolve(null);
@@ -367,6 +407,9 @@ var BBF_SYNC = (function() {
     processTierUpgrade: processTierUpgrade,
     linkHouseholdAccounts: linkHouseholdAccounts,
     sendHouseholdReaction: sendHouseholdReaction,
+    initYouthAttributes: initYouthAttributes,
+    processAthleteEvolution: processAthleteEvolution,
+    incrementDiscipline: incrementDiscipline,
     fetchHouseholdActivity: fetchHouseholdActivity,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,

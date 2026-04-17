@@ -538,6 +538,20 @@ window.onload=function(){
           <div class="cps" id="cchips"></div>
         </div>
       </div>
+      <!-- PLAYER CARD -->
+      <div id="player-card" style="display:none;background:linear-gradient(135deg,#0d0015,#1a0030);border:2px solid #D4AF37;border-radius:14px;padding:1.2rem;margin-bottom:1rem;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6a0dad,#D4AF37)"></div>
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+          <div style="width:48px;height:48px;border-radius:50%;background:#6a0dad;border:2px solid #D4AF37;display:flex;align-items:center;justify-content:center;font-family:var(--hb);font-size:1.2rem;color:#D4AF37" id="pc-avatar">?</div>
+          <div><div style="font-family:var(--hb);font-size:1.2rem;letter-spacing:2px;color:#fff" id="pc-name">ATHLETE</div><div style="font-size:.6rem;font-weight:700;letter-spacing:3px;color:#D4AF37">SOVEREIGN PLAYER CARD</div></div>
+          <div style="margin-left:auto;font-family:var(--hb);font-size:1.8rem;color:#D4AF37" id="pc-overall">70</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:.25rem"><span style="font-size:.6rem;font-weight:700;letter-spacing:2px;color:#ef4444">POWER</span><span style="font-family:var(--hb);font-size:.85rem;color:#ef4444" id="pc-power">70</span></div><div style="height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden"><div id="pc-power-bar" style="height:100%;background:#ef4444;border-radius:2px;width:70%;transition:width .5s"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:.25rem"><span style="font-size:.6rem;font-weight:700;letter-spacing:2px;color:#22c55e">AGILITY</span><span style="font-family:var(--hb);font-size:.85rem;color:#22c55e" id="pc-agility">70</span></div><div style="height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden"><div id="pc-agility-bar" style="height:100%;background:#22c55e;border-radius:2px;width:70%;transition:width .5s"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:.25rem"><span style="font-size:.6rem;font-weight:700;letter-spacing:2px;color:#3b82f6">DISCIPLINE</span><span style="font-family:var(--hb);font-size:.85rem;color:#3b82f6" id="pc-discipline">70</span></div><div style="height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden"><div id="pc-discipline-bar" style="height:100%;background:#3b82f6;border-radius:2px;width:70%;transition:width .5s"></div></div></div>
+        </div>
+      </div>
       <div class="hero">
         <div class="hg" data-lang-key="app-welcome">Welcome back</div>
         <div class="hn" id="hname">&#8212;</div>
@@ -1504,6 +1518,7 @@ function RH() {
   }
   renderHouseholdFeed();
   checkIncomingReactions();
+  renderPlayerCard();
 }
 
 function renderTrainerDashboard(d) {
@@ -1607,6 +1622,30 @@ function showRecoveryNotice() {
 function exitRestricted() {
   CU = null; VC = null;
   SS('auth');
+}
+
+// ─── PLAYER CARD RENDER ──────────────────────────────────
+function renderPlayerCard() {
+  var uid = VC || CU;
+  var d = GD();
+  var u = d.u[uid] || {};
+  var card = document.getElementById('player-card');
+  if (!card) return;
+  // Only show for youth athletes with household_role or attributes
+  if (!u.attributes && u.household_role !== 'youth') { card.style.display = 'none'; return; }
+  if (!u.attributes) { if (typeof BBF_SYNC !== 'undefined') BBF_SYNC.initYouthAttributes(uid); u.attributes = { power: 70, agility: 70, discipline: 70 }; }
+  card.style.display = 'block';
+  var a = u.attributes;
+  var overall = Math.round((a.power + a.agility + a.discipline) / 3);
+  document.getElementById('pc-avatar').textContent = (u.name || '?')[0].toUpperCase();
+  document.getElementById('pc-name').textContent = (u.name || uid).toUpperCase();
+  document.getElementById('pc-overall').textContent = overall;
+  document.getElementById('pc-power').textContent = a.power;
+  document.getElementById('pc-agility').textContent = a.agility;
+  document.getElementById('pc-discipline').textContent = a.discipline;
+  document.getElementById('pc-power-bar').style.width = a.power + '%';
+  document.getElementById('pc-agility-bar').style.width = a.agility + '%';
+  document.getElementById('pc-discipline-bar').style.width = a.discipline + '%';
 }
 
 // ─── HOUSEHOLD REACTIONS ─────────────────────────────────
@@ -1936,6 +1975,11 @@ function CWO(day, dk) {
   var stk = STREAK((d.l[uid]||[]).filter(function(l){return l.type!=='note';}));
   showVictory(_t('app-victory-title','CRUSHED IT!'), day.focus + ' ' + _t('app-victory-complete','Complete'), day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + ' \u2022 ' + _t('app-victory-great','Great work!'));
   setTimeout(function(){ checkStreakMilestone(stk); checkProgressiveOverload(); }, 600);
+  // Athlete Evolution — update attributes based on workout type
+  if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.processAthleteEvolution) {
+    BBF_SYNC.processAthleteEvolution(uid, day.focus || '');
+    if (stk > 0 && stk % 7 === 0) BBF_SYNC.incrementDiscipline(uid);
+  }
   RH();
 }
 
