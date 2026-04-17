@@ -608,7 +608,7 @@ window.onload=function(){
       <!-- GOLD SEEKER SEARCH -->
       <div class="gs-wrap">
         <span class="gs-icon">&#x1F50D;</span>
-        <input class="gs-input" type="text" id="gs-input" placeholder="Enter biomechanical friction (e.g., knee tightness, shoulder pain)..." oninput="goldSeek(this.value)">
+        <input class="gs-input" type="text" id="gs-input" placeholder="Enter biomechanical friction (e.g., knee tightness, shoulder pain)..." oninput="goldSeek(this.value)" onkeydown="goldSeekSubmit(event)">
         <div class="gs-result" id="gs-result"></div>
       </div>
       <div class="sh"><span class="stt" data-lang-key="app-quick-actions">Quick Actions</span></div>
@@ -1721,6 +1721,51 @@ function renderCNSHeatmap() {
 }
 
 // ─── GOLD SEEKER ─────────────────────────────────────────
+function goldSeekSubmit(e) {
+  if (e.key !== 'Enter') return;
+  var query = document.getElementById('gs-input').value.trim();
+  if (!query || query.length < 3) return;
+  if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.seekSovereignGold) return;
+  var match = BBF_SYNC.seekSovereignGold(query);
+  if (!match) { TOAST('\u26A0 No protocol matched. Try: knee, shoulder, back, hip, ankle, wrist, neck'); return; }
+  showGoldDiagnostic(match);
+}
+
+function showGoldDiagnostic(match) {
+  var L = LANG || 'en';
+  var focus = match.focus ? (match.focus[L] || match.focus.en) : '';
+  var movesHtml = (match.movements || []).map(function(m, i) {
+    var txt = m[L] || m.en;
+    return '<div style="display:flex;gap:.8rem;align-items:flex-start;margin-bottom:.6rem">' +
+      '<span style="font-family:var(--hb);font-size:1.4rem;color:#D4AF37;min-width:28px">' + (i + 1) + '</span>' +
+      '<span style="font-size:.95rem;color:#ddd;line-height:1.5">' + txt + '</span></div>';
+  }).join('');
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .3s ease';
+  modal.innerHTML = '<div style="background:#111;border:2px solid #D4AF37;border-radius:16px;padding:2.5rem;max-width:480px;width:100%;position:relative;overflow:hidden">' +
+    '<div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#6a0dad,#D4AF37)"></div>' +
+    '<div style="text-align:center;margin-bottom:1.5rem">' +
+    '<div style="font-size:2.5rem;margin-bottom:.8rem">&#x1F3AF;</div>' +
+    '<div style="font-family:var(--hb);font-size:.7rem;letter-spacing:4px;color:#D4AF37;margin-bottom:.4rem">MASTERMIND DIAGNOSTIC COMPLETE</div>' +
+    '<div style="font-size:.82rem;color:#888">Recommended Pre-Hab Protocol:</div>' +
+    '</div>' +
+    '<div style="font-family:var(--hb);font-size:1.5rem;letter-spacing:2px;color:#fff;text-align:center;margin-bottom:.5rem">' + match.protocol + '</div>' +
+    '<div style="font-size:.8rem;color:#888;text-align:center;line-height:1.5;margin-bottom:1.5rem">' + focus + '</div>' +
+    '<div style="background:#0a0a0a;border:1px solid #1e1e1e;border-radius:10px;padding:1rem;margin-bottom:1.5rem">' +
+    '<div style="font-size:.6rem;font-weight:700;letter-spacing:3px;color:#D4AF37;margin-bottom:.8rem">CORRECTIVE SEQUENCE</div>' +
+    movesHtml +
+    '</div>' +
+    '<!-- TODO: Wire to Biomechanical Hologram drawKineticHologram() for visual overlay -->' +
+    '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;background:#D4AF37;color:#0a0a0a;font-family:var(--hb);font-size:1rem;letter-spacing:3px;padding:.85rem;border:none;border-radius:8px;cursor:pointer;transition:all .2s">ACKNOWLEDGE &amp; IMPLEMENT</button>' +
+    '<div style="font-size:.58rem;color:#555;text-align:center;margin-top:.8rem;font-style:italic">' + _ts('sovereign-gold') + ' \u2022 Est. 2021 \u2022 BBF LLC</div>' +
+    '</div>';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+  // Clear search
+  document.getElementById('gs-input').value = '';
+  document.getElementById('gs-result').classList.remove('on');
+}
+
 function goldSeek(query) {
   var result = document.getElementById('gs-result');
   if (!result) return;
