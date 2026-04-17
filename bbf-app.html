@@ -311,6 +311,16 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .cns-depleted{background:#ef4444 !important;box-shadow:0 0 12px rgba(239,68,68,.5);animation:cns-pulse 1.5s ease infinite}
 @keyframes cns-pulse{0%,100%{opacity:1}50%{opacity:.6}}
 
+/* ═══ GOLD SEEKER ════════════════════════════════════════════ */
+.gs-wrap{position:relative;margin-bottom:1rem}
+.gs-input{width:100%;background:#0a0a0a;border:1px solid rgba(212,175,55,.3);color:#fff;padding:.8rem 1rem .8rem 2.5rem;font-family:var(--bd);font-size:.88rem;font-weight:600;border-radius:10px;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+.gs-input:focus{border-color:#D4AF37;box-shadow:0 0 20px rgba(212,175,55,.12)}
+.gs-input::placeholder{color:rgba(212,175,55,.35);font-weight:600;letter-spacing:.5px}
+.gs-icon{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);font-size:1rem;color:rgba(212,175,55,.5);pointer-events:none;animation:gs-glow 3s ease infinite}
+@keyframes gs-glow{0%,100%{opacity:.5}50%{opacity:1}}
+.gs-result{background:#0a0a0a;border:1px solid rgba(212,175,55,.25);border-left:3px solid #D4AF37;border-radius:0 10px 10px 0;padding:1rem;margin-top:.6rem;display:none}
+.gs-result.on{display:block}
+
 /* ═══ SOVEREIGN PAYWALL ══════════════════════════════════════ */
 .sovereign-blur-lock{filter:blur(6px);user-select:none;pointer-events:none;opacity:.85;transition:filter .3s,opacity .3s}
 .paywall-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,6,6,.7);backdrop-filter:blur(2px);z-index:20;border-radius:inherit;gap:.8rem;padding:1.5rem;text-align:center}
@@ -595,6 +605,12 @@ window.onload=function(){
         <div class="sc"><div class="sv" id="qfoc">&#8212;</div><div class="sl" data-lang-key="app-today-focus">Today&apos;s Focus</div></div>
       </div>
       <div id="levelup-wrap"></div>
+      <!-- GOLD SEEKER SEARCH -->
+      <div class="gs-wrap">
+        <span class="gs-icon">&#x1F50D;</span>
+        <input class="gs-input" type="text" id="gs-input" placeholder="Enter biomechanical friction (e.g., knee tightness, shoulder pain)..." oninput="goldSeek(this.value)">
+        <div class="gs-result" id="gs-result"></div>
+      </div>
       <div class="sh"><span class="stt" data-lang-key="app-quick-actions">Quick Actions</span></div>
       <div class="qg">
         <button class="qa" id="qa-w"><div class="qi">&#x1F4CB;</div><div class="ql" data-lang-key="app-qa-plan">Today&apos;s Plan</div><div class="qs2" data-lang-key="app-qa-plan-sub">Follow your program</div></button>
@@ -1702,6 +1718,32 @@ function renderCNSHeatmap() {
     document.getElementById('cns-zone-depleted').className = 'cns-depleted';
     if (textEl) { textEl.textContent = 'DEPLETED — SHIFT ACTIVE'; textEl.style.color = '#ef4444'; }
   }
+}
+
+// ─── GOLD SEEKER ─────────────────────────────────────────
+function goldSeek(query) {
+  var result = document.getElementById('gs-result');
+  if (!result) return;
+  if (!query || query.length < 3) { result.classList.remove('on'); return; }
+  if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.seekSovereignGold) { result.classList.remove('on'); return; }
+  var match = BBF_SYNC.seekSovereignGold(query);
+  if (!match) {
+    result.classList.remove('on');
+    return;
+  }
+  var L = LANG || 'en';
+  var focus = match.focus ? (match.focus[L] || match.focus.en) : '';
+  var movesHtml = (match.movements || []).map(function(m, i) {
+    var txt = m[L] || m.en;
+    return '<div style="display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.4rem"><span style="font-family:var(--hb);font-size:1rem;color:#D4AF37;min-width:20px">' + (i + 1) + '</span><span style="font-size:.82rem;color:#ddd;line-height:1.4">' + txt + '</span></div>';
+  }).join('');
+  result.innerHTML =
+    '<div style="font-family:var(--hb);font-size:.65rem;letter-spacing:3px;color:#D4AF37;margin-bottom:.5rem">SOVEREIGN PROTOCOL MATCHED</div>' +
+    '<div style="font-family:var(--hb);font-size:1.1rem;letter-spacing:2px;color:#fff;margin-bottom:.6rem">' + match.protocol + '</div>' +
+    '<div style="font-size:.75rem;color:#888;margin-bottom:.8rem;line-height:1.5">' + focus + '</div>' +
+    movesHtml +
+    '<div style="font-size:.58rem;color:#555;margin-top:.6rem;font-style:italic;text-align:center">' + _ts('sovereign-gold') + ' \u2022 Est. 2021</div>';
+  result.classList.add('on');
 }
 
 // ─── SOVEREIGN LINGUISTICS ────────────────────────────────
