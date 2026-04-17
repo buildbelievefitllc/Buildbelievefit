@@ -64,6 +64,12 @@ ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS dominant_axial_lift TEXT;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_stress_level INT;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_flow_state BOOLEAN DEFAULT false;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS system_emergency_deload BOOLEAN DEFAULT false;
+-- Phantom Eye — video check-in state + coach critique pins
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_status TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_uploaded_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_exercise TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_rx_lift TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS video_critique_pins JSONB;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (

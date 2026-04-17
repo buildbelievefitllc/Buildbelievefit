@@ -832,6 +832,272 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 }
 .som-rdw-banner .srt { font-size: .78rem; color: #ccc; line-height: 1.5 }
 
+/* ═══ PHANTOM EYE — video check-in viewport (Titan 3) ═══════════ */
+.pe-widget {
+  background: rgba(10,10,14,.58);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(212,175,55,.22);
+  border-radius: 14px;
+  padding: 1.1rem 1.1rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow:
+    0 18px 40px -18px rgba(0,0,0,.75),
+    0 4px 12px -2px rgba(0,0,0,.55),
+    0 1px 0 rgba(255,255,255,.04) inset;
+  position: relative;
+  transition: border-color .35s ease, box-shadow .4s ease;
+}
+.pe-widget.is-pending {
+  border-color: rgba(212,175,55,.7);
+  box-shadow:
+    0 22px 52px -18px rgba(212,175,55,.45),
+    0 0 0 1px rgba(212,175,55,.55) inset,
+    0 1px 0 rgba(255,255,255,.05) inset;
+  animation: peBorderPulse 2.4s ease-in-out infinite;
+}
+@keyframes peBorderPulse {
+  0%,100% { box-shadow:
+    0 22px 52px -18px rgba(212,175,55,.35),
+    0 0 0 1px rgba(212,175,55,.45) inset,
+    0 1px 0 rgba(255,255,255,.05) inset; }
+  50% { box-shadow:
+    0 26px 60px -14px rgba(212,175,55,.6),
+    0 0 0 1.5px rgba(242,215,105,.7) inset,
+    0 1px 0 rgba(255,255,255,.08) inset; }
+}
+.pe-widget.is-cleared {
+  border-color: rgba(106,13,173,.65);
+  box-shadow:
+    0 22px 52px -18px rgba(106,13,173,.45),
+    0 0 22px rgba(106,13,173,.3),
+    0 0 0 1px rgba(106,13,173,.5) inset,
+    0 1px 0 rgba(255,255,255,.05) inset;
+}
+.pe-widget.is-revision {
+  border-color: rgba(255,122,26,.65);
+  box-shadow:
+    0 22px 52px -18px rgba(255,122,26,.45),
+    0 0 0 1px rgba(255,122,26,.55) inset,
+    0 1px 0 rgba(255,255,255,.05) inset;
+}
+.pe-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.85rem; gap:.8rem }
+.pe-label { font-family:var(--hb); font-size:.64rem; letter-spacing:3.5px; color:#D4AF37; text-transform:uppercase }
+.pe-widget.is-cleared .pe-label { color: #b87aff }
+.pe-status-badge {
+  font-family: var(--hb);
+  font-size: .58rem;
+  letter-spacing: 2.5px;
+  padding: .28rem .6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  color: var(--mut2);
+  white-space: nowrap;
+}
+.pe-widget.is-pending  .pe-status-badge { background: rgba(212,175,55,.15); border-color: rgba(212,175,55,.55); color: #D4AF37 }
+.pe-widget.is-cleared  .pe-status-badge { background: rgba(106,13,173,.2); border-color: rgba(106,13,173,.55); color: #b87aff }
+.pe-widget.is-cleared  .pe-status-badge::before { content:'\2713\00a0'; color:#22c55e; font-weight:700 }
+.pe-widget.is-revision .pe-status-badge { background: rgba(255,122,26,.15); border-color: rgba(255,122,26,.55); color: #FF9500 }
+
+/* 16:9 viewport frame with gold viewfinder brackets + scanline */
+.pe-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background:
+    radial-gradient(ellipse 100% 80% at 50% 50%, rgba(106,13,173,.25) 0%, rgba(17,1,40,.88) 72%),
+    var(--bbf-purple-950, #110128);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.05);
+}
+.pe-frame > video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  background: #000;
+  border-radius: 12px;
+}
+/* Viewfinder brackets — L-shapes that breathe inward in a slow scan */
+.pe-bracket {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border: 2px solid #D4AF37;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(212,175,55,.45));
+  animation: peBracketScan 4.2s var(--ease-glide, cubic-bezier(.25,.46,.45,.94)) infinite;
+}
+.pe-bracket--tl { top: 12px;    left: 12px;   border-right: none; border-bottom: none; border-top-left-radius: 4px;  animation-name: peBracketTL; }
+.pe-bracket--tr { top: 12px;    right: 12px;  border-left: none;  border-bottom: none; border-top-right-radius: 4px; animation-name: peBracketTR; }
+.pe-bracket--bl { bottom: 12px; left: 12px;   border-right: none; border-top: none;    border-bottom-left-radius: 4px;  animation-name: peBracketBL; }
+.pe-bracket--br { bottom: 12px; right: 12px;  border-left: none;  border-top: none;    border-bottom-right-radius: 4px; animation-name: peBracketBR; }
+@keyframes peBracketTL { 0%,100% { transform: translate(0,0); } 50% { transform: translate(4px, 4px); } }
+@keyframes peBracketTR { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-4px, 4px); } }
+@keyframes peBracketBL { 0%,100% { transform: translate(0,0); } 50% { transform: translate(4px, -4px); } }
+@keyframes peBracketBR { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-4px, -4px); } }
+
+/* Horizontal scan line — slow sweep top to bottom */
+.pe-scanline {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,.35) 30%, rgba(245,200,0,.8) 50%, rgba(212,175,55,.35) 70%, transparent 100%);
+  top: 0;
+  opacity: 0.55;
+  animation: peScan 6s linear infinite;
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(245,200,0,.4);
+}
+@keyframes peScan {
+  0%   { top: 0%;    opacity: 0; }
+  10%  { opacity: .5; }
+  90%  { opacity: .5; }
+  100% { top: 100%;  opacity: 0; }
+}
+
+/* Empty state — shown when no video uploaded; surfaces the Rx. */
+.pe-empty {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.2rem 1.4rem;
+  gap: .4rem;
+  color: rgba(255,255,255,.7);
+}
+.pe-empty-eye {
+  font-size: 2.4rem;
+  opacity: .6;
+  filter: drop-shadow(0 0 18px rgba(212,175,55,.4));
+}
+.pe-empty-label {
+  font-family: var(--hb);
+  font-size: .92rem;
+  letter-spacing: .12em;
+  color: #D4AF37;
+  text-transform: uppercase;
+}
+.pe-empty-sub {
+  font-size: .78rem;
+  color: rgba(255,255,255,.55);
+  line-height: 1.45;
+  max-width: 340px;
+}
+.pe-empty-rx {
+  margin-top: .6rem;
+  padding: .55rem .8rem;
+  font-size: .72rem;
+  line-height: 1.45;
+  color: #FBE3A0;
+  background: rgba(106,13,173,.28);
+  border: 1px solid rgba(212,175,55,.35);
+  border-left: 3px solid var(--bbf-gold-victory, #F5C800);
+  border-radius: 8px;
+  max-width: 380px;
+}
+
+/* Critique overlay — coach's pinned note that appears as the video
+   plays through each pin timestamp. */
+.pe-critique {
+  position: absolute;
+  left: 10%; right: 10%;
+  bottom: 14%;
+  padding: .7rem 1rem;
+  background: rgba(10,0,20,.88);
+  border: 1px solid rgba(212,175,55,.6);
+  border-left: 3px solid var(--bbf-gold-victory, #F5C800);
+  border-radius: 8px;
+  color: #FBE3A0;
+  font-size: .82rem;
+  line-height: 1.45;
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+  z-index: 4;
+}
+.pe-critique.on { opacity: 1; transform: translateY(0); }
+
+/* Timeline with pin markers */
+.pe-timeline { margin-top: .8rem; position: relative; }
+.pe-timeline-track {
+  height: 4px; background: rgba(255,255,255,.08); border-radius: 2px;
+  overflow: hidden; position: relative;
+}
+.pe-timeline-progress {
+  position: absolute; inset: 0 auto 0 0;
+  width: 0%;
+  background: linear-gradient(90deg, #D4AF37 0%, #F5C800 100%);
+  transition: width .18s linear;
+}
+.pe-pins {
+  position: absolute;
+  left: 0; right: 0; top: -4px; height: 12px;
+}
+.pe-pin {
+  position: absolute;
+  top: 0; transform: translateX(-50%);
+  width: 12px; height: 12px;
+  background: radial-gradient(circle at 30% 30%, #F5C800 0%, #D4AF37 55%, #8a6c1c 100%);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(245,200,0,.55), 0 0 0 2px rgba(10,1,24,.85);
+  transition: transform .18s ease;
+  padding: 0;
+}
+.pe-pin:hover { transform: translateX(-50%) scale(1.2); }
+
+/* Action row */
+.pe-actions {
+  display: flex;
+  gap: .6rem;
+  margin-top: .9rem;
+  flex-wrap: wrap;
+}
+.pe-btn {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .75rem 1rem;
+  font-family: var(--hb);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform .18s ease, filter .2s ease, box-shadow .25s ease;
+  text-align: center;
+}
+.pe-btn--primary {
+  background: linear-gradient(180deg, #F2D769 0%, #E6C24F 35%, #D4AF37 70%, #A8862A 100%);
+  border: 1px solid #F2D769;
+  color: #0a0a0a;
+  box-shadow: 0 6px 18px rgba(212,175,55,.38), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.pe-btn--primary:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.pe-btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(212,175,55,.35);
+  color: rgba(212,175,55,.85);
+}
+.pe-btn--ghost:hover { background: rgba(212,175,55,.08); color: #F5C800; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pe-bracket { animation: none; }
+  .pe-scanline { animation: none; opacity: 0; }
+  .pe-widget.is-pending { animation: none; }
+}
+
+
 /* ═══ SOMATIC READINESS MATRIX — circular gauge + flow state ═══ */
 .som-gauge-wrap {
   display: flex;
@@ -1375,6 +1641,37 @@ window.onload=function(){
           </div>
           <button class="seq-cta" id="seq-initiate-btn" type="button" data-lang-key="seq-cta">Initialise Mobility + Recovery Protocol</button>
           <button class="seq-dismiss" id="seq-dismiss-btn" type="button" data-lang-key="seq-dismiss">Acknowledge &amp; Continue with Caution</button>
+        </div>
+      </div>
+      <!-- PHANTOM EYE — video check-in viewport (Titan 3) -->
+      <div id="phantom-eye" class="pe-widget" style="display:none">
+        <div class="pe-head">
+          <div class="pe-label" data-lang-key="pe-label">&#x1F441; Phantom Eye Viewport</div>
+          <div class="pe-status-badge" id="pe-status-badge" data-lang-key="pe-badge-idle">Idle</div>
+        </div>
+        <div class="pe-frame" id="pe-frame">
+          <span class="pe-bracket pe-bracket--tl" aria-hidden="true"></span>
+          <span class="pe-bracket pe-bracket--tr" aria-hidden="true"></span>
+          <span class="pe-bracket pe-bracket--bl" aria-hidden="true"></span>
+          <span class="pe-bracket pe-bracket--br" aria-hidden="true"></span>
+          <div class="pe-scanline" aria-hidden="true"></div>
+          <video id="pe-video" playsinline controls preload="metadata" style="display:none"></video>
+          <div class="pe-empty" id="pe-empty">
+            <div class="pe-empty-eye" aria-hidden="true">&#x1F441;</div>
+            <div class="pe-empty-label" data-lang-key="pe-empty-label">Awaiting Form Submission</div>
+            <div class="pe-empty-sub"  data-lang-key="pe-empty-sub">Film your working set. Sovereign review in &lt;24h.</div>
+            <div class="pe-empty-rx"   id="pe-empty-rx"></div>
+          </div>
+          <div class="pe-critique" id="pe-critique" role="status" aria-live="polite"></div>
+        </div>
+        <div class="pe-timeline" id="pe-timeline" style="display:none">
+          <div class="pe-timeline-track"><div class="pe-timeline-progress" id="pe-timeline-progress"></div></div>
+          <div class="pe-pins" id="pe-pins"></div>
+        </div>
+        <div class="pe-actions">
+          <label class="pe-btn pe-btn--primary" for="pe-file-input" data-lang-key="pe-upload">&#x1F4F9; Upload Form Check</label>
+          <input type="file" id="pe-file-input" accept="video/*" style="display:none">
+          <button class="pe-btn pe-btn--ghost" id="pe-pin-btn" type="button" style="display:none" data-lang-key="pe-pin">&#x1F4CC; Pin Critique</button>
         </div>
       </div>
       <!-- PLAYER CARD -->
@@ -2482,6 +2779,7 @@ function RH() {
   renderCNSHeatmap();
   renderBiomechHeatMap();
   renderSomaticMap();
+  renderPhantomEye();
   renderHouseholdFeed();
   checkIncomingReactions();
   renderPlayerCard();
@@ -3387,6 +3685,79 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   if (seqDismiss) seqDismiss.addEventListener('click', closeSeq);
+});
+
+// ─── PHANTOM EYE (Titan 3 — video check-in viewport) ─────
+function renderPhantomEye() {
+  var uid = VC || CU;
+  if (!uid) return;
+  if (CU === 'akeem' && VC === null) return; // trainer view: skip
+  if (typeof BBF_HOLOGRAM === 'undefined' || !BBF_HOLOGRAM.initializeVision) return;
+  BBF_HOLOGRAM.initializeVision(uid).catch(function(e){
+    console.warn('Phantom Eye init error:', e && e.message);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var fileInput = document.getElementById('pe-file-input');
+  var pinBtn    = document.getElementById('pe-pin-btn');
+  var video     = document.getElementById('pe-video');
+  var progress  = document.getElementById('pe-timeline-progress');
+
+  if (fileInput) fileInput.addEventListener('change', function(e){
+    var f = e.target && e.target.files && e.target.files[0];
+    if (!f) return;
+    if (typeof BBF_HOLOGRAM !== 'undefined' && BBF_HOLOGRAM.uploadVideo) {
+      BBF_HOLOGRAM.uploadVideo(f, { exercise_name: null });
+      if (typeof TOAST === 'function') {
+        TOAST((typeof _t === 'function' ? _t('pe-uploaded', '\uD83D\uDCF9 Form check uploaded. Awaiting Sovereign review.') : '\uD83D\uDCF9 Form check uploaded.'));
+      }
+    }
+    try { e.target.value = ''; } catch(_) {}
+  });
+
+  if (pinBtn) pinBtn.addEventListener('click', function(){
+    if (!video) return;
+    var ts = video.currentTime || 0;
+    var msg = (typeof _t === 'function')
+      ? _t('pe-prompt-note', 'Coach critique at ' + ts.toFixed(1) + 's:')
+      : 'Coach critique at ' + ts.toFixed(1) + 's:';
+    var note = (typeof prompt === 'function') ? prompt(msg) : null;
+    if (!note) return;
+    if (typeof BBF_HOLOGRAM !== 'undefined' && BBF_HOLOGRAM.pinCritique) {
+      BBF_HOLOGRAM.pinCritique(ts, note);
+      if (typeof TOAST === 'function') {
+        TOAST((typeof _t === 'function' ? _t('pe-pinned', '\uD83D\uDCCC Critique pinned.') : '\uD83D\uDCCC Pinned.'));
+      }
+    }
+  });
+
+  if (video && progress) {
+    video.addEventListener('timeupdate', function(){
+      var d = video.duration || 0;
+      if (!isFinite(d) || d <= 0) { progress.style.width = '0%'; return; }
+      progress.style.width = ((video.currentTime / d) * 100).toFixed(2) + '%';
+    });
+    // Surface pinned critiques as playback reaches each timestamp.
+    video.addEventListener('timeupdate', function(){
+      if (typeof BBF_HOLOGRAM === 'undefined' || !BBF_HOLOGRAM.getVisionState) return;
+      var pins = (BBF_HOLOGRAM.getVisionState().pins || []);
+      var now = video.currentTime || 0;
+      pins.forEach(function(pin){
+        var delta = now - (pin.timestamp_sec || 0);
+        if (delta >= 0 && delta < 0.25 && !pin._shown) {
+          pin._shown = true;
+          var box = document.getElementById('pe-critique');
+          if (!box) return;
+          box.textContent = pin['note_' + (typeof LANG !== 'undefined' ? LANG : 'en')] || pin.note_en || pin.note || '';
+          box.classList.add('on');
+          clearTimeout(pin._to);
+          pin._to = setTimeout(function(){ box.classList.remove('on'); }, 5500);
+        }
+        if (delta > 4) pin._shown = false; // reset for scrubs back
+      });
+    });
+  }
 });
 
 // ─── HOUSEHOLD FEED ──────────────────────────────────────
