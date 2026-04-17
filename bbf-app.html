@@ -1665,6 +1665,25 @@ function RDW() {
   var dk = today() + '_d' + SDAY;
   var saved = wl[dk] || {};
   var partner = d.u[uid] && d.u[uid].partner ? d.u[uid].partner : null;
+  // Sovereign Paywall — trial users see Days 1-2 only
+  var userObj = d.u[uid] || {};
+  var isTrial = userObj.trial_status === 'active';
+  var isTrainer = (CU === 'akeem');
+  if (isTrial && !isTrainer && SDAY >= 2) {
+    con.innerHTML = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div></div>' +
+      '<div style="position:relative;border-radius:14px;overflow:hidden;margin-top:.5rem">' +
+      '<div style="padding:1.5rem" class="sovereign-blur-lock">' +
+      '<div class="eb" style="margin-bottom:.8rem"><div class="eh"><div><div class="en">Exercise Preview</div><div class="em">' + day.exercises.length + ' exercises locked</div></div></div></div>' +
+      '<div class="eb"><div class="eh"><div><div class="en">Progressive Overload Data</div><div class="em">Sets, reps, and weight tracking</div></div></div></div>' +
+      '</div>' +
+      '<div class="paywall-overlay">' +
+      '<div class="pw-icon">&#x1F512;</div>' +
+      '<div class="pw-title">SOVEREIGN ACCESS REQUIRED</div>' +
+      '<div class="pw-sub">Your Central Nervous System requires adaptation. Upgrade to the Sovereign Tier to access dynamic programming beyond Day 2.</div>' +
+      '<a href="#pathfinder" class="sovereign-upgrade-btn" onclick="if(typeof TAB!==\'undefined\')TAB(\'book\')">UPGRADE TO UNLOCK INTELLIGENCE</a>' +
+      '</div></div>';
+    return;
+  }
   if (day.isRest) {
     con.innerHTML = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + _t('app-wo-restday','Rest Day') + '</div></div>' +
       '<div class="rdc"><div class="rdi">&#x1F634;</div><div class="rdt">' + _t('app-wo-restrecover','Rest & Recover') + '</div><div class="rds">' + (day.restNote || _t('app-wo-restdefault','Active recovery, stretch, hydrate.')) + '</div></div>';
