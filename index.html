@@ -331,6 +331,82 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
   .btn-y,.btn-o{text-align:center}
   .path-card{padding:1.5rem}
 }
+
+/* ═══ LABORATORY GOLD CTA — v2 ═══════════════════════════════ */
+.btn-y, .nc, .lbtn, .dbtn, .submit-btn, .pathfinder-cta {
+  background: linear-gradient(180deg,#F2D769 0%,#E6C24F 25%,#D4AF37 55%,#A8862A 100%) !important;
+  border: 1px solid #F2D769 !important;
+  color: #0a0a0a !important;
+  box-shadow:
+    0 6px 22px rgba(212,175,55,.38),
+    0 1px 0 rgba(255,255,255,.25) inset,
+    0 -1px 0 rgba(0,0,0,.25) inset !important;
+  letter-spacing: 2.5px;
+  transition: transform .18s cubic-bezier(.2,.8,.25,1),
+              box-shadow .25s ease, filter .2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-y::after, .nc::after, .lbtn::after, .dbtn::after,
+.submit-btn::after, .pathfinder-cta::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%);
+  transform: translateX(-100%); transition: transform .55s ease;
+  pointer-events:none;
+}
+.btn-y:hover, .nc:hover, .lbtn:hover, .dbtn:hover,
+.submit-btn:hover, .pathfinder-cta:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 12px 34px rgba(212,175,55,.55),
+    0 0 0 1px rgba(242,215,105,.35),
+    0 1px 0 rgba(255,255,255,.35) inset !important;
+  filter: brightness(1.05);
+}
+.btn-y:hover::after, .nc:hover::after, .lbtn:hover::after,
+.dbtn:hover::after, .submit-btn:hover::after, .pathfinder-cta:hover::after {
+  transform: translateX(100%);
+}
+.btn-y:active, .nc:active, .lbtn:active, .dbtn:active,
+.submit-btn:active, .pathfinder-cta:active {
+  transform: translateY(0) scale(.995);
+  filter: brightness(.97);
+}
+
+/* ═══ GLASSMORPHISM — LANDING NAV ════════════════════════════ */
+#nav, nav {
+  background: rgba(6,6,6,.55) !important;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid rgba(212,175,55,.18);
+  box-shadow: 0 8px 28px -12px rgba(0,0,0,.55);
+}
+
+/* ═══ LANDING GRID POLISH ════════════════════════════════════ */
+[data-grid="howwe"], .how-we-grid, .grid-3 {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.4rem !important; padding: 2rem 0 !important;
+}
+[data-grid="howwe"] > *, .how-we-grid > *, .grid-3 > * {
+  background: linear-gradient(180deg,#121212 0%,#080808 100%);
+  border: 1px solid rgba(212,175,55,.15);
+  border-radius: 14px;
+  padding: 1.6rem 1.4rem;
+  box-shadow:
+    0 12px 28px -14px rgba(0,0,0,.7),
+    0 0 0 1px rgba(212,175,55,.06) inset;
+  transition: transform .22s, border-color .25s, box-shadow .3s;
+}
+[data-grid="howwe"] > *:hover, .how-we-grid > *:hover, .grid-3 > *:hover {
+  transform: translateY(-3px);
+  border-color: rgba(212,175,55,.35);
+  box-shadow:
+    0 20px 44px -18px rgba(212,175,55,.22),
+    0 0 0 1px rgba(212,175,55,.2) inset;
+}
+footer .col, footer ul { line-height: 2; }
+footer a { letter-spacing: .5px; transition: color .2s; }
+footer a:hover { color: #D4AF37; }
 </style>
 <script src="bbf-lang.js"></script>
 <script src="workout-data.js"></script>

@@ -32,6 +32,78 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 .ent-toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}.ent-toggle.on::after{transform:translateX(20px)}
 .ent-lbl{font-size:.65rem;font-weight:700;letter-spacing:1px;color:var(--mut);text-transform:uppercase}
 .ent-status{font-size:.65rem;font-weight:700;letter-spacing:1px;min-width:60px;text-align:right}
+
+/* ═══ LABORATORY GOLD CTA — v2 ═══════════════════════════════ */
+.btn-y, .nc, .lbtn, .dbtn, .submit-btn, .pathfinder-cta {
+  background: linear-gradient(180deg,#F2D769 0%,#E6C24F 25%,#D4AF37 55%,#A8862A 100%) !important;
+  border: 1px solid #F2D769 !important;
+  color: #0a0a0a !important;
+  box-shadow:
+    0 6px 22px rgba(212,175,55,.38),
+    0 1px 0 rgba(255,255,255,.25) inset,
+    0 -1px 0 rgba(0,0,0,.25) inset !important;
+  letter-spacing: 2.5px;
+  transition: transform .18s cubic-bezier(.2,.8,.25,1),
+              box-shadow .25s ease, filter .2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-y::after, .nc::after, .lbtn::after, .dbtn::after,
+.submit-btn::after, .pathfinder-cta::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%);
+  transform: translateX(-100%); transition: transform .55s ease;
+  pointer-events:none;
+}
+.btn-y:hover, .nc:hover, .lbtn:hover, .dbtn:hover,
+.submit-btn:hover, .pathfinder-cta:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 12px 34px rgba(212,175,55,.55),
+    0 0 0 1px rgba(242,215,105,.35),
+    0 1px 0 rgba(255,255,255,.35) inset !important;
+  filter: brightness(1.05);
+}
+.btn-y:hover::after, .nc:hover::after, .lbtn:hover::after,
+.dbtn:hover::after, .submit-btn:hover::after, .pathfinder-cta:hover::after {
+  transform: translateX(100%);
+}
+.btn-y:active, .nc:active, .lbtn:active, .dbtn:active,
+.submit-btn:active, .pathfinder-cta:active {
+  transform: translateY(0) scale(.995);
+  filter: brightness(.97);
+}
+
+/* ═══ DEPTH — SOVEREIGN COMMAND CENTER ═══════════════════════ */
+.stat, .ent-row {
+  background: linear-gradient(180deg,#141414 0%,#0b0b0b 100%);
+  border: 1px solid #222;
+  box-shadow:
+    0 12px 30px -14px rgba(0,0,0,.8),
+    0 2px 8px -2px rgba(0,0,0,.55),
+    0 1px 0 rgba(255,255,255,.04) inset;
+  transition: transform .2s ease, box-shadow .25s ease, border-color .25s;
+}
+.stat:hover, .ent-row:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212,175,55,.35);
+  box-shadow:
+    0 18px 42px -14px rgba(212,175,55,.25),
+    0 0 0 1px rgba(212,175,55,.2) inset;
+}
+.hdr {
+  box-shadow: 0 24px 48px -24px rgba(106,13,173,.55), 0 0 0 1px rgba(212,175,55,.18) inset;
+}
+
+/* ═══ GLASSMORPHISM — STICKY HEADER + NAV BAR ════════════════ */
+.hdr, .nav-bar {
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+.nav-bar {
+  background: rgba(13,13,13,.6) !important;
+  position: sticky; top: 0; z-index: 20;
+}
 </style>
 </head>
 <body>
