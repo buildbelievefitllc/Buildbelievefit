@@ -1538,14 +1538,25 @@ function ENTER() {
     // ─── END GATEKEEPER ──────────────────────────────
     VC = CU;
     LP();
-    RA();
-    // Sovereign Intake — check if onboarding needed
-    checkIntakeNeeded();
-    // Cloud sync — push localStorage to Supabase on login
-    if(typeof BBF_SYNC!=='undefined'&&BBF_SYNC.isOnline()){BBF_SYNC.pushAll().then(function(n){if(n>0)console.log('BBF: Synced '+n+' records to cloud');});}
-    // Morning Readiness check — once per day for clients
-    if (!hasReadinessToday(CU)) {
-      setTimeout(function() { showReadinessModal(); }, 600);
+    // Ghost Protocol app-load intercept — if flagged, block the dashboard
+    // and show the intervention modal instead. Otherwise render normally.
+    function _bbfProceedAfterGhostCheck() {
+      RA();
+      // Sovereign Intake — check if onboarding needed
+      checkIntakeNeeded();
+      // Cloud sync — push localStorage to Supabase on login
+      if(typeof BBF_SYNC!=='undefined'&&BBF_SYNC.isOnline()){BBF_SYNC.pushAll().then(function(n){if(n>0)console.log('BBF: Synced '+n+' records to cloud');});}
+      // Morning Readiness check — once per day for clients
+      if (!hasReadinessToday(CU)) {
+        setTimeout(function() { showReadinessModal(); }, 600);
+      }
+    }
+    if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.checkGhostAndMaybeIntercept) {
+      RENDER_ENGINE.checkGhostAndMaybeIntercept(VC).then(function(intercepted) {
+        if (!intercepted) _bbfProceedAfterGhostCheck();
+      }).catch(function(){ _bbfProceedAfterGhostCheck(); });
+    } else {
+      _bbfProceedAfterGhostCheck();
     }
   }
 }
@@ -1882,10 +1893,27 @@ function closeGhostIntercept() {
 }
 document.addEventListener('DOMContentLoaded', function() {
   var gpBtn = document.getElementById('gp-restore-btn');
-  if (gpBtn) gpBtn.addEventListener('click', function() {
-    // Sprint 3 will wire this to the Sovereign Recovery protocol.
-    if (typeof TOAST === 'function') TOAST('\u26A1 Sovereign Recovery protocol initiating...');
-    closeGhostIntercept();
+  if (!gpBtn) return;
+  gpBtn.addEventListener('click', function() {
+    gpBtn.disabled = true;
+    var originalLabel = gpBtn.innerHTML;
+    gpBtn.innerHTML = '\u26A1 Restoring...';
+    var p;
+    if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.restoreSovereignBaseline) {
+      p = RENDER_ENGINE.restoreSovereignBaseline();
+    } else {
+      // Defensive fallback: at least close the modal.
+      closeGhostIntercept();
+      if (typeof TOAST === 'function') TOAST('\u26A0 Recovery engine offline.');
+      p = Promise.resolve({ ok: false });
+    }
+    Promise.resolve(p).then(function() {
+      gpBtn.disabled = false;
+      gpBtn.innerHTML = originalLabel;
+    }).catch(function() {
+      gpBtn.disabled = false;
+      gpBtn.innerHTML = originalLabel;
+    });
   });
 });
 
@@ -2290,12 +2318,59 @@ function SELDAY(i) {
   RDW();
 }
 
+// Sovereign Mobility / Pre-Hab day — rendered after Ghost Protocol restoration.
+// Sources 3 low-friction protocols from the PREHAB catalogue so the user has
+// a tangible recovery session for the day without progressive overload.
+function renderSovereignMobilityDay(con) {
+  if (!con) con = document.getElementById('wcon');
+  if (!con) return;
+  var L = (typeof LANG !== 'undefined' && LANG) || 'en';
+  var catalog = (typeof PREHAB !== 'undefined' && Array.isArray(PREHAB)) ? PREHAB : [];
+  var picks = catalog.slice(0, 3);
+  var h = '<div class="dh" style="border-left:3px solid #FF9500"><div class="dl" style="color:#FF9500">&#x26A1; ' +
+    'Sovereign Mobility</div><div class="dn2">Pre-Hab Recovery Day</div>' +
+    '<div class="df2">' + picks.length + ' low-friction protocols &nbsp;&#x2022;&nbsp; Progressive overload paused</div></div>';
+  h += '<div style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.25);border-left:3px solid #FF9500;border-radius:0 10px 10px 0;padding:.8rem 1rem;margin-bottom:.8rem">' +
+    '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="font-size:1rem">&#x26A1;</span><span style="font-family:var(--hb);font-size:.75rem;letter-spacing:2px;color:#FF9500">SOVEREIGN RECOVERY</span></div>' +
+    '<div style="font-size:.78rem;color:#ccc;line-height:1.5">Today is a mobility and joint-integrity day. Your blueprint resumes tomorrow.</div>' +
+    '</div>';
+  if (!picks.length) {
+    h += '<div class="eb"><div class="eh"><div><div class="en">Active recovery</div><div class="em">Walk 20 min. Hydrate. Sleep 8h.</div></div></div></div>';
+  } else {
+    picks.forEach(function(p) {
+      var title = (L === 'es' && p.es_title) ? p.es_title : p.en_title;
+      var focus = (L === 'es' && p.es_focus) ? p.es_focus : p.en_focus;
+      var setsLine = (p.sets || []).join(' &nbsp;&#x2022;&nbsp; ');
+      h += '<div class="eb" style="border-left:2px solid rgba(255,149,0,.4)">' +
+        '<div class="eh"><div>' +
+        '<div class="en">' + (p.icon || '') + ' ' + title + '</div>' +
+        '<div class="em">' + focus + (setsLine ? ' &nbsp;&#x2022;&nbsp; ' + setsLine : '') + '</div>' +
+        '</div></div>';
+      (p.cues || []).forEach(function(c) {
+        var lbl = (L === 'es' && c.es_lbl) ? c.es_lbl : c.en_lbl;
+        var txt = (L === 'es' && c.es_txt) ? c.es_txt : c.en_txt;
+        h += '<div style="padding:.55rem .2rem;border-top:1px solid #1a1a1a;font-size:.78rem;line-height:1.5;color:#d0d0d0">' +
+          '<div style="font-weight:700;color:#fff;margin-bottom:.2rem">' + lbl + '</div>' + txt + '</div>';
+      });
+      h += '</div>';
+    });
+  }
+  con.innerHTML = h;
+}
+
 function RDW() {
   var con = document.getElementById('wcon');
-  if (!PLAN) return;
-  var day = PLAN[SDAY];
   var d = GD();
   var uid = VC || CU;
+  var userObjEarly = d.u[uid] || {};
+  // Ghost Protocol: if Sovereign Baseline was just restored, render the
+  // Sovereign Mobility / Pre-Hab day instead of the standard blueprint.
+  if (userObjEarly.mobility_override_date === today()) {
+    renderSovereignMobilityDay(con);
+    return;
+  }
+  if (!PLAN) return;
+  var day = PLAN[SDAY];
   var wl = d.w[uid] || {};
   var dk = today() + '_d' + SDAY;
   var saved = wl[dk] || {};

@@ -31,6 +31,12 @@ ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS intake JSONB;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS blueprint JSONB;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN DEFAULT false;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS onboarded_at TIMESTAMPTZ;
+-- Ghost Protocol columns
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_active_timestamp TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS ghost_intervention_needed BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS ghost_flagged_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS ghost_cleared_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS mobility_override_date DATE;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (

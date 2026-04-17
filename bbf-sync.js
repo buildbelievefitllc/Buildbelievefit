@@ -660,6 +660,70 @@ var BBF_SYNC = (function() {
     }
   }
 
+  // Fetch a single user profile row from Supabase (ghost flag, blueprint, onboarding status).
+  async function fetchUserProfile(uid) {
+    if (!uid) return null;
+    try {
+      var rows = await supa(
+        'GET',
+        'bbf_users',
+        null,
+        '?id=eq.' + encodeURIComponent(uid) +
+          '&select=id,name,ghost_intervention_needed,ghost_flagged_at,ghost_cleared_at,mobility_override_date,onboarding_complete,blueprint,intake,last_active_timestamp,updated_at&limit=1'
+      );
+      if (!Array.isArray(rows) || !rows.length) return null;
+      var profile = rows[0];
+      // Mirror flags to localStorage so the dashboard can fall back offline.
+      try {
+        var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+        if (!d.u) d.u = {};
+        if (!d.u[uid]) d.u[uid] = {};
+        d.u[uid].ghost_intervention_needed = !!profile.ghost_intervention_needed;
+        if (profile.mobility_override_date) d.u[uid].mobility_override_date = profile.mobility_override_date;
+        if (profile.blueprint) d.u[uid].blueprint = profile.blueprint;
+        if (profile.onboarding_complete) d.u[uid].onboarding_complete = true;
+        localStorage.setItem('bbf_v7', JSON.stringify(d));
+      } catch(_) {}
+      return profile;
+    } catch(e) {
+      console.warn('BBF_SYNC fetchUserProfile error:', e && e.message);
+      return null;
+    }
+  }
+
+  // Clear the ghost intervention flag and stamp today as a mobility override day.
+  async function clearGhostIntervention(uid) {
+    if (!uid) return { ok: false, error: 'no uid' };
+    var now = new Date().toISOString();
+    var todayKey = now.slice(0, 10);
+
+    // Local mirror first — dashboard reacts instantly.
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!d.u) d.u = {};
+      if (!d.u[uid]) d.u[uid] = {};
+      d.u[uid].ghost_intervention_needed = false;
+      d.u[uid].ghost_cleared_at          = now;
+      d.u[uid].mobility_override_date    = todayKey;
+      d.u[uid].last_active_timestamp     = now;
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(_) {}
+
+    try {
+      await supa('PATCH', 'bbf_users', {
+        ghost_intervention_needed: false,
+        ghost_cleared_at:          now,
+        mobility_override_date:    todayKey,
+        last_active_timestamp:     now,
+        updated_at:                now
+      }, '?id=eq.' + encodeURIComponent(uid));
+      return { ok: true, uid: uid, mobility_override_date: todayKey, cleared_at: now };
+    } catch(e) {
+      console.warn('BBF_SYNC clearGhostIntervention error:', e && e.message);
+      return { ok: false, uid: uid, mobility_override_date: todayKey, cleared_at: now, error: e && e.message };
+    }
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -818,6 +882,8 @@ var BBF_SYNC = (function() {
     generateBespokeBlueprint: generateBespokeBlueprint,
     deploySovereignOnboarding: deploySovereignOnboarding,
     runGhostProtocolScan: runGhostProtocolScan,
+    fetchUserProfile: fetchUserProfile,
+    clearGhostIntervention: clearGhostIntervention,
     GHOST_INACTIVITY_MS: GHOST_INACTIVITY_MS,
     SOVEREIGN_SHIFTS: SOVEREIGN_SHIFTS,
     FRICTION_SHIFT_MAP: FRICTION_SHIFT_MAP,

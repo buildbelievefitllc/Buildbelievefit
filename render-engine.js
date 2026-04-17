@@ -134,6 +134,108 @@ var RENDER_ENGINE = (function() {
     return true;
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // GHOST PROTOCOL — app-load intercept + Sovereign Baseline restore
+  // ═══════════════════════════════════════════════════════════════
+
+  var GHOST_MODAL_ID = 'ghost-protocol-intercept';
+
+  function localGhostFlag(uid) {
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      return !!((d.u && d.u[uid] && d.u[uid].ghost_intervention_needed));
+    } catch(_) { return false; }
+  }
+
+  function showGhostIntercept() {
+    var el = document.getElementById(GHOST_MODAL_ID);
+    if (el) el.classList.add('on');
+  }
+
+  function hideGhostIntercept() {
+    var el = document.getElementById(GHOST_MODAL_ID);
+    if (!el) return Promise.resolve();
+    el.style.transition = 'opacity 380ms ease-out';
+    el.style.opacity    = '0';
+    return new Promise(function(resolve) {
+      setTimeout(function() {
+        el.classList.remove('on');
+        el.style.opacity    = '';
+        el.style.transition = '';
+        resolve();
+      }, 380);
+    });
+  }
+
+  // Called from the post-login sequence BEFORE RA()/dashboard render.
+  // Resolves `true` if we intercepted (caller must not render dashboard).
+  async function checkGhostAndMaybeIntercept(uid) {
+    if (!uid) return false;
+    var intercepted = false;
+
+    // Fast path: local cache. Show the modal immediately if flagged.
+    if (localGhostFlag(uid)) {
+      showGhostIntercept();
+      intercepted = true;
+    }
+
+    // Freshen from Supabase in parallel. If the cloud disagrees with the
+    // cache, sync the UI accordingly.
+    if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.fetchUserProfile) {
+      try {
+        var profile = await BBF_SYNC.fetchUserProfile(uid);
+        if (profile) {
+          var cloudFlag = !!profile.ghost_intervention_needed;
+          if (cloudFlag && !intercepted) {
+            showGhostIntercept();
+            intercepted = true;
+          } else if (!cloudFlag && intercepted) {
+            // Cloud says cleared — drop the modal and let the caller render.
+            await hideGhostIntercept();
+            intercepted = false;
+          }
+        }
+      } catch(_) {}
+    }
+
+    return intercepted;
+  }
+
+  // Wire: close ghost modal, flip Supabase flag, stamp today as mobility day,
+  // then re-render the dashboard (the host page's RA() + RDW() pipeline
+  // picks up the mobility_override_date and renders the Sovereign Mobility
+  // protocol instead of today's standard blueprint).
+  async function restoreSovereignBaseline() {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) { toast('\u26A0 No active user.'); return { ok: false, reason: 'no uid' }; }
+    if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.clearGhostIntervention) {
+      toast('\u26A0 Sync engine offline.');
+      return { ok: false, reason: 'no sync' };
+    }
+
+    // STEP 1 — flip the flag (Supabase + localStorage) and stamp today.
+    var result = await BBF_SYNC.clearGhostIntervention(uid);
+
+    // STEP 2 — fade the intercept modal away.
+    await hideGhostIntercept();
+
+    // STEP 3 — re-render the dashboard. RA() is the host-page repaint hook;
+    // its downstream RDW() checks mobility_override_date === today() and
+    // renders the Sovereign Mobility day instead of the standard blueprint.
+    if (typeof RA === 'function') {
+      try { RA(); } catch(_) {}
+    }
+    if (typeof SS === 'function') {
+      try { SS('app'); } catch(_) {}
+    }
+    if (typeof SELDAY === 'function') {
+      try { SELDAY(0); } catch(_) {}
+    }
+
+    toast('\u26A1 Sovereign Recovery active. Today is Mobility + Pre-Hab.');
+    return { ok: true, result: result };
+  }
+
   // Auto-wire on DOM ready; also expose init() for late-rendered DOM.
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') {
@@ -144,11 +246,15 @@ var RENDER_ENGINE = (function() {
   }
 
   return {
-    init:                   init,
-    submitSovereignIntake:  submitSovereignIntake,
-    captureIntakeForm:      captureIntakeForm,
-    fadeOutModal:           fadeOutModal,
-    WELCOME_MESSAGE:        WELCOME_MESSAGE
+    init:                         init,
+    submitSovereignIntake:        submitSovereignIntake,
+    captureIntakeForm:            captureIntakeForm,
+    fadeOutModal:                 fadeOutModal,
+    checkGhostAndMaybeIntercept:  checkGhostAndMaybeIntercept,
+    restoreSovereignBaseline:     restoreSovereignBaseline,
+    showGhostIntercept:           showGhostIntercept,
+    hideGhostIntercept:           hideGhostIntercept,
+    WELCOME_MESSAGE:              WELCOME_MESSAGE
   };
 
 })();
