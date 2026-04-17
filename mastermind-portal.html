@@ -126,7 +126,7 @@ function renderEntitlements() {
       return '<div class="ent-row">' +
         '<div class="ent-name">' + (u.name || uid) + '</div>' +
         '<div class="ent-lbl">Sovereign Trial</div>' +
-        '<div class="ent-toggle' + (trial ? ' on' : '') + '" onclick="toggleTrial(\'' + uid + '\',this)"></div>' +
+        '<div class="ent-toggle' + (trial ? ' on' : '') + '" onclick="BBF_PORTAL.toggleTrial(\'' + uid + '\',this)"></div>' +
         '<span class="ent-status" id="trial-status-' + uid + '" style="color:' + (trial ? '#D4AF37' : '#555') + '">' + (trial ? 'ACTIVE' : 'OFF') + '</span>' +
         '</div>';
     }).join('');
