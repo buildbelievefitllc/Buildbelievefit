@@ -322,6 +322,83 @@ var BBF_SYNC = (function() {
       .catch(function(e) { console.error('BBF_SYNC fetchHouseholdActivity error:', e); return []; });
   }
 
+  // ─── CNS READINESS MAP ──────────────────────────────────
+  var SOVEREIGN_SHIFTS = {
+    'Barbell Back Squat': 'Leg Press',
+    'Barbell Squat': 'Leg Press',
+    'Squat': 'Leg Press',
+    'Conventional Deadlift': 'Seated Hamstring Curl / Back Extension',
+    'Deadlift': 'Seated Hamstring Curl / Back Extension',
+    'Romanian Deadlift': 'Lying Hamstring Curl',
+    'Overhead Barbell Press': 'Seated Dumbbell Press',
+    'Overhead Press': 'Seated Dumbbell Press',
+    'Barbell Row': 'Seated Cable Row',
+    'Bench Press': 'Machine Chest Press',
+    'Power Clean': 'Lat Pulldown + DB Shrug',
+    'Hang Clean': 'Lat Pulldown + DB Shrug',
+    'Walking Lunges': 'Leg Extension + Leg Curl',
+    'Bulgarian Split Squats': 'Single-Leg Press'
+  };
+
+  function logMorningReadiness(userId, sleepHours, stressLevel) {
+    if (!userId) return Promise.resolve(null);
+    var sleep = parseFloat(sleepHours) || 0;
+    var stress = (stressLevel || '').toLowerCase();
+    var cns_status = 'FRICTION';
+    if (sleep >= 7 && (stress === 'low' || stress === 'calm')) {
+      cns_status = 'TITAN';
+    } else if (sleep < 5 || stress === 'high' || stress === 'severe') {
+      cns_status = 'DEPLETED';
+    }
+    // Save to localStorage
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (d.u[userId]) {
+        d.u[userId].cns_status = cns_status;
+        d.u[userId].cns_date = new Date().toISOString().slice(0, 10);
+        d.u[userId].cns_sleep = sleep;
+        d.u[userId].cns_stress = stressLevel;
+        localStorage.setItem('bbf_v7', JSON.stringify(d));
+      }
+    } catch(e) {}
+    // Sync to Supabase
+    return supa('POST', 'bbf_logs', {
+      user_id: userId,
+      date: new Date().toISOString().slice(0, 10),
+      type: 'cns-readiness',
+      notes: 'CNS: ' + cns_status + ' | Sleep: ' + sleep + 'h | Stress: ' + stressLevel,
+      logged_at: new Date().toISOString(),
+      logged_by: userId
+    }).then(function() { return cns_status; })
+      .catch(function(e) { console.error('BBF_SYNC logMorningReadiness error:', e); return cns_status; });
+  }
+
+  function evaluateBlueprint(dailyWorkoutArray, cnsStatus) {
+    if (!dailyWorkoutArray || !dailyWorkoutArray.length) return dailyWorkoutArray;
+    if (cnsStatus !== 'DEPLETED') return dailyWorkoutArray;
+    return dailyWorkoutArray.map(function(exercise) {
+      var name = exercise.name || '';
+      var shifted = false;
+      var replacement = name;
+      for (var key in SOVEREIGN_SHIFTS) {
+        if (name.toLowerCase().indexOf(key.toLowerCase()) > -1) {
+          replacement = SOVEREIGN_SHIFTS[key];
+          shifted = true;
+          break;
+        }
+      }
+      return {
+        name: shifted ? replacement : name,
+        original_name: shifted ? name : undefined,
+        is_shifted: shifted,
+        sets: exercise.sets,
+        reps: exercise.reps,
+        equipment: exercise.equipment,
+        notes: shifted ? 'CNS Sovereign Shift: ' + name + ' \u2192 ' + replacement : (exercise.notes || '')
+      };
+    });
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -410,6 +487,9 @@ var BBF_SYNC = (function() {
     initYouthAttributes: initYouthAttributes,
     processAthleteEvolution: processAthleteEvolution,
     incrementDiscipline: incrementDiscipline,
+    logMorningReadiness: logMorningReadiness,
+    evaluateBlueprint: evaluateBlueprint,
+    SOVEREIGN_SHIFTS: SOVEREIGN_SHIFTS,
     fetchHouseholdActivity: fetchHouseholdActivity,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,
