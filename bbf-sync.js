@@ -399,6 +399,172 @@ var BBF_SYNC = (function() {
     });
   }
 
+  // ─── SOVEREIGN BLUEPRINT GENERATOR ───────────────────────
+  // Which friction types activate which exercise substitutions.
+  var FRICTION_SHIFT_MAP = {
+    'knee':       ['Barbell Back Squat', 'Barbell Squat', 'Squat', 'Walking Lunges', 'Bulgarian Split Squats'],
+    'lower-back': ['Conventional Deadlift', 'Deadlift', 'Romanian Deadlift', 'Barbell Row', 'Power Clean', 'Hang Clean'],
+    'shoulder':   ['Overhead Barbell Press', 'Overhead Press', 'Bench Press'],
+    'hip':        ['Walking Lunges', 'Bulgarian Split Squats', 'Barbell Back Squat'],
+    'ankle':      ['Barbell Back Squat', 'Walking Lunges', 'Bulgarian Split Squats']
+  };
+
+  // Volume/intensity envelope keyed to training experience.
+  var EXPERIENCE_VOLUME = {
+    'beginner':     { days_per_week: 3, sets: 3, reps: '10-12', rpe: 6, progression_pct: 2.5 },
+    'intermediate': { days_per_week: 4, sets: 4, reps: '8-10',  rpe: 7, progression_pct: 5.0 },
+    'allpro':       { days_per_week: 5, sets: 5, reps: '5-8',   rpe: 8, progression_pct: 7.5 }
+  };
+
+  // Goal-driven rep range, rest, and working intensity.
+  var GOAL_PROFILE = {
+    'hypertrophy': { rep_range: '8-12',  rest_sec: 75,  intensity_pct: 70 },
+    'fat-loss':    { rep_range: '12-15', rest_sec: 45,  intensity_pct: 60 },
+    'longevity':   { rep_range: '10-12', rest_sec: 60,  intensity_pct: 65 },
+    'performance': { rep_range: '3-6',   rest_sec: 180, intensity_pct: 85 },
+    'recomp':      { rep_range: '8-10',  rest_sec: 60,  intensity_pct: 72 }
+  };
+
+  // 5 base day templates; truncated to days_per_week by experience tier.
+  var BASE_DAY_TEMPLATES = [
+    { label: 'Lower — Quad Dominant', exercises: [
+      { name: 'Barbell Back Squat',   equipment: 'Barbell' },
+      { name: 'Romanian Deadlift',    equipment: 'Barbell' },
+      { name: 'Walking Lunges',       equipment: 'DB'      },
+      { name: 'Leg Extension',        equipment: 'Machine' },
+      { name: 'Standing Calf Raise',  equipment: 'Machine' }
+    ]},
+    { label: 'Upper — Push', exercises: [
+      { name: 'Bench Press',            equipment: 'Barbell' },
+      { name: 'Overhead Barbell Press', equipment: 'Barbell' },
+      { name: 'Incline DB Press',       equipment: 'DB'      },
+      { name: 'Lateral Raise',          equipment: 'DB'      },
+      { name: 'Triceps Pushdown',       equipment: 'Cable'   }
+    ]},
+    { label: 'Lower — Posterior', exercises: [
+      { name: 'Conventional Deadlift',  equipment: 'Barbell' },
+      { name: 'Bulgarian Split Squats', equipment: 'DB'      },
+      { name: 'Hip Thrust',             equipment: 'Barbell' },
+      { name: 'Lying Hamstring Curl',   equipment: 'Machine' },
+      { name: 'Seated Calf Raise',      equipment: 'Machine' }
+    ]},
+    { label: 'Upper — Pull', exercises: [
+      { name: 'Barbell Row',   equipment: 'Barbell' },
+      { name: 'Pull-Up',       equipment: 'BW'      },
+      { name: 'Lat Pulldown',  equipment: 'Cable'   },
+      { name: 'Face Pull',     equipment: 'Cable'   },
+      { name: 'Biceps Curl',   equipment: 'DB'      }
+    ]},
+    { label: 'Power / Conditioning', exercises: [
+      { name: 'Power Clean',     equipment: 'Barbell' },
+      { name: 'Box Jump',        equipment: 'Box'     },
+      { name: 'Med-Ball Slam',   equipment: 'Med Ball'},
+      { name: 'Sled Push',       equipment: 'Sled'    },
+      { name: 'Farmer Carry',    equipment: 'DB/KB'   }
+    ]}
+  ];
+
+  function applyFrictionShifts(exerciseName, frictionList) {
+    if (!frictionList || !frictionList.length) return null;
+    for (var i = 0; i < frictionList.length; i++) {
+      var f = frictionList[i];
+      if (!f || f === 'none') continue;
+      var targets = FRICTION_SHIFT_MAP[f];
+      if (!targets) continue;
+      for (var j = 0; j < targets.length; j++) {
+        if (exerciseName === targets[j] && SOVEREIGN_SHIFTS[targets[j]]) {
+          return { replacement: SOVEREIGN_SHIFTS[targets[j]], friction: f };
+        }
+      }
+    }
+    return null;
+  }
+
+  function generateBespokeBlueprint(intakeData) {
+    intakeData = intakeData || {};
+    var goal     = intakeData.goal || 'hypertrophy';
+    var exp      = intakeData.experience || 'beginner';
+    var friction = Array.isArray(intakeData.friction) ? intakeData.friction : [];
+    var age      = parseInt(intakeData.age, 10) || 30;
+
+    var volume   = EXPERIENCE_VOLUME[exp]  || EXPERIENCE_VOLUME.beginner;
+    var profile  = GOAL_PROFILE[goal]      || GOAL_PROFILE.hypertrophy;
+    var templates = BASE_DAY_TEMPLATES.slice(0, volume.days_per_week);
+
+    var phases = [
+      { name: 'Accumulation',    weeks: [1,2,3,4],    set_mod: 0,  intensity_mod: 0    },
+      { name: 'Intensification', weeks: [5,6,7,8],    set_mod: 0,  intensity_mod: 7.5  },
+      { name: 'Realization',     weeks: [9,10,11,12], set_mod: -1, intensity_mod: 12.0 }
+    ];
+
+    var blueprint = {
+      generated_at: new Date().toISOString(),
+      intake: { age: age, goal: goal, experience: exp, friction: friction.slice() },
+      profile: {
+        goal_rep_range:         profile.rep_range,
+        rest_seconds:           profile.rest_sec,
+        base_intensity_pct:     profile.intensity_pct,
+        base_sets:              volume.sets,
+        base_reps:              volume.reps,
+        target_rpe:             volume.rpe,
+        days_per_week:          volume.days_per_week,
+        weekly_progression_pct: volume.progression_pct
+      },
+      weeks: []
+    };
+
+    for (var w = 1; w <= 12; w++) {
+      var phase = phases[0];
+      for (var p = 0; p < phases.length; p++) {
+        if (phases[p].weeks.indexOf(w) > -1) { phase = phases[p]; break; }
+      }
+      var weekSets      = Math.max(2, volume.sets + phase.set_mod);
+      var weekInPhase   = ((w - 1) % 4) + 1;
+      var weekIntensity = profile.intensity_pct + phase.intensity_mod + (weekInPhase - 1) * (volume.progression_pct / 4);
+      weekIntensity     = Math.min(95, Math.round(weekIntensity * 10) / 10);
+
+      var days = [];
+      for (var di = 0; di < templates.length; di++) {
+        var tmpl = templates[di];
+        var exercises = [];
+        for (var e = 0; e < tmpl.exercises.length; e++) {
+          var ex = tmpl.exercises[e];
+          var shift = applyFrictionShifts(ex.name, friction);
+          var finalName = shift ? shift.replacement : ex.name;
+          var entry = {
+            name:           finalName,
+            is_shifted:     !!shift,
+            sets:           weekSets,
+            reps:           profile.rep_range,
+            rest_seconds:   profile.rest_sec,
+            intensity_pct:  weekIntensity,
+            rpe_target:     volume.rpe,
+            equipment:      ex.equipment,
+            notes:          shift
+              ? 'Biomechanical Friction (' + shift.friction + '): ' + ex.name + ' \u2192 ' + shift.replacement
+              : ''
+          };
+          if (shift) {
+            entry.original_name  = ex.name;
+            entry.friction_cause = shift.friction;
+          }
+          exercises.push(entry);
+        }
+        days.push({ day: di + 1, label: tmpl.label, exercises: exercises });
+      }
+
+      blueprint.weeks.push({
+        week:          w,
+        phase:         phase.name,
+        intensity_pct: weekIntensity,
+        sets:          weekSets,
+        days:          days
+      });
+    }
+
+    return blueprint;
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -554,7 +720,11 @@ var BBF_SYNC = (function() {
     incrementDiscipline: incrementDiscipline,
     logMorningReadiness: logMorningReadiness,
     evaluateBlueprint: evaluateBlueprint,
+    generateBespokeBlueprint: generateBespokeBlueprint,
     SOVEREIGN_SHIFTS: SOVEREIGN_SHIFTS,
+    FRICTION_SHIFT_MAP: FRICTION_SHIFT_MAP,
+    EXPERIENCE_VOLUME: EXPERIENCE_VOLUME,
+    GOAL_PROFILE: GOAL_PROFILE,
     SOVEREIGN_PROTOCOLS: SOVEREIGN_PROTOCOLS,
     seekSovereignGold: seekSovereignGold,
     updateUserLanguage: updateUserLanguage,
