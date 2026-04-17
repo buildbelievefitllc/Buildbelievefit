@@ -567,7 +567,7 @@ window.onload=function(){
         <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6a0dad,#D4AF37)"></div>
         <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
           <div style="width:48px;height:48px;border-radius:50%;background:#6a0dad;border:2px solid #D4AF37;display:flex;align-items:center;justify-content:center;font-family:var(--hb);font-size:1.2rem;color:#D4AF37" id="pc-avatar">?</div>
-          <div><div style="font-family:var(--hb);font-size:1.2rem;letter-spacing:2px;color:#fff" id="pc-name">ATHLETE</div><div style="font-size:.6rem;font-weight:700;letter-spacing:3px;color:#D4AF37">SOVEREIGN PLAYER CARD</div></div>
+          <div><div style="font-family:var(--hb);font-size:1.2rem;letter-spacing:2px;color:#fff" id="pc-name">ATHLETE</div><div style="font-size:.6rem;font-weight:700;letter-spacing:3px;color:#D4AF37" id="pc-label">SOVEREIGN PLAYER CARD</div></div>
           <div style="margin-left:auto;font-family:var(--hb);font-size:1.8rem;color:#D4AF37" id="pc-overall">70</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem">
@@ -1530,7 +1530,7 @@ function RH() {
     var rs = getTodayReadiness(uid);
     if (rs !== null) {
       var rt = rs >= 90 ? 'god' : rs >= 70 ? 'std' : 'rec';
-      var rl = rt === 'god' ? 'GOD MODE' : rt === 'std' ? 'READY' : 'RECOVERY';
+      var rl = rt === 'god' ? _ts('cns-titan').split(': ')[1] || 'TITAN' : rt === 'std' ? _ts('cns-friction').split(': ')[1] || 'READY' : _ts('cns-depleted').split(': ')[1] || 'DEPLETED';
       readyEl.className = 'home-ready ' + rt;
       readyEl.innerHTML = '&#x1F9EA; ' + rs + '% ' + rl;
       readyEl.style.display = 'inline-flex';
@@ -1609,6 +1609,10 @@ function _t(key, fallback) {
     return window.BBF_LANG.D[key][L] || window.BBF_LANG.D[key].en || fallback;
   }
   return fallback;
+}
+function _ts(key) {
+  if (typeof BBF_TRANSLATOR !== 'undefined') return BBF_TRANSLATOR.t(key, LANG || 'en');
+  return key;
 }
 
 // ─── SOVEREIGN UPGRADE ────────────────────────────────────
@@ -1835,6 +1839,8 @@ function renderPlayerCard() {
   var overall = Math.round((a.power + a.agility + a.discipline) / 3);
   document.getElementById('pc-avatar').textContent = (u.name || '?')[0].toUpperCase();
   document.getElementById('pc-name').textContent = (u.name || uid).toUpperCase();
+  var pcLabel = document.getElementById('pc-label');
+  if (pcLabel) pcLabel.textContent = _ts('player-card');
   document.getElementById('pc-overall').textContent = overall;
   document.getElementById('pc-power').textContent = a.power;
   document.getElementById('pc-agility').textContent = a.agility;
@@ -2080,8 +2086,8 @@ function RDW() {
       shiftActive = true;
       renderExercises = shifted;
       h += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-left:3px solid #ef4444;border-radius:0 10px 10px 0;padding:.8rem 1rem;margin-bottom:.8rem">' +
-        '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="font-size:1rem">\u26A0</span><span style="font-family:var(--hb);font-size:.75rem;letter-spacing:2px;color:#ef4444">MASTERMIND OVERRIDE</span></div>' +
-        '<div style="font-size:.78rem;color:#ccc;line-height:1.5">High CNS strain detected. The Sovereign Shift Protocol has been engaged. Axial loading removed to protect lumbar and joint integrity while maintaining 85% efficiency.</div>' +
+        '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="font-size:1rem">\u26A0</span><span style="font-family:var(--hb);font-size:.75rem;letter-spacing:2px;color:#ef4444">' + _ts('mastermind-override') + '</span></div>' +
+        '<div style="font-size:.78rem;color:#ccc;line-height:1.5">' + _ts('sovereign-shift') + '. ' + _ts('axial-loading') + ' ' + _t('app-ready-recovery','removed to protect lumbar and joint integrity while maintaining 85% efficiency.') + '</div>' +
         '</div>';
     }
   }
@@ -2109,7 +2115,7 @@ function RDW() {
       var rpeResult = BBF_RPE.calculate(lastW, lastRPE, est1RM);
       h += BBF_RPE.render(rpeResult);
     }
-    if (ex.is_shifted && ex.original_name) h += '<div class="enote" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)">&#x26A0; Sovereign Shift: <strong>' + ex.original_name + '</strong> \u2192 <strong>' + exName + '</strong></div>';
+    if (ex.is_shifted && ex.original_name) h += '<div class="enote" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)">&#x26A0; ' + _ts('sovereign-shift') + ': <strong>' + ex.original_name + '</strong> \u2192 <strong>' + exName + '</strong></div>';
     else if (exNotes) h += '<div class="enote">&#x1F4A1; ' + exNotes + '</div>';
     if (partner) {
       var pd = d.w[partner] || {};
