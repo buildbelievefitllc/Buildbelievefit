@@ -271,6 +271,57 @@ var BBF_SYNC = (function() {
     }).catch(function(e) { console.error('BBF_SYNC processTierUpgrade cloud error:', e); return null; });
   }
 
+  // ─── HOUSEHOLD SYNC ──────────────────────────────────────
+  function linkHouseholdAccounts(parentId, youthId) {
+    if (!parentId || !youthId) return Promise.resolve(null);
+    var householdId = parentId + '_household';
+    // Update both users with the same household_id
+    var p1 = supa('POST', 'bbf_users', {
+      id: parentId,
+      household_id: householdId,
+      household_role: 'parent',
+      updated_at: new Date().toISOString()
+    });
+    var p2 = supa('POST', 'bbf_users', {
+      id: youthId,
+      household_id: householdId,
+      household_role: 'youth',
+      updated_at: new Date().toISOString()
+    });
+    // Also save to localStorage
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (d.u[parentId]) { d.u[parentId].household_id = householdId; d.u[parentId].household_role = 'parent'; }
+      if (d.u[youthId]) { d.u[youthId].household_id = householdId; d.u[youthId].household_role = 'youth'; }
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(e) { console.error('BBF_SYNC linkHousehold localStorage error:', e); }
+    return Promise.all([p1, p2])
+      .then(function() { console.log('BBF_SYNC: Household linked — ' + householdId); return householdId; })
+      .catch(function(e) { console.error('BBF_SYNC linkHouseholdAccounts error:', e); return null; });
+  }
+
+  function fetchHouseholdActivity(householdId) {
+    if (!householdId) return Promise.resolve([]);
+    // Get all users in this household
+    return supa('GET', 'bbf_users', null, '?household_id=eq.' + householdId + '&select=id,name')
+      .then(function(members) {
+        if (!members || !members.length) return [];
+        var memberIds = members.map(function(m) { return m.id; });
+        // Fetch last 48 hours of logs for all household members
+        var cutoff = new Date(Date.now() - 48 * 3600000).toISOString();
+        return supa('GET', 'bbf_logs', null,
+          '?user_id=in.(' + memberIds.join(',') + ')&logged_at=gte.' + cutoff + '&order=logged_at.desc&limit=50'
+        ).then(function(logs) {
+          return {
+            household_id: householdId,
+            members: members,
+            activity: logs || []
+          };
+        });
+      })
+      .catch(function(e) { console.error('BBF_SYNC fetchHouseholdActivity error:', e); return []; });
+  }
+
   // ─── PUBLIC API ──────────────────────────────────────────
   return {
     syncUser: syncUser,
@@ -283,6 +334,8 @@ var BBF_SYNC = (function() {
     logPreHabNeed: logPreHabNeed,
     toggleSovereignTrial: toggleSovereignTrial,
     processTierUpgrade: processTierUpgrade,
+    linkHouseholdAccounts: linkHouseholdAccounts,
+    fetchHouseholdActivity: fetchHouseholdActivity,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,
     fetchAllUsers: fetchAllUsers,
