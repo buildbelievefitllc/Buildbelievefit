@@ -2022,12 +2022,35 @@ function RDW() {
   var h = '<div class="dh' + dhClass + '"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
     '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>';
   h += getReadinessBannerHTML(readyScore);
-  day.exercises.forEach(function(ex, ei) {
+  // Sovereign Shift Protocol — intercept exercises if CNS depleted
+  var userCNS = (d.u[uid] || {}).cns_status;
+  var cnsToday = (d.u[uid] || {}).cns_date === today();
+  var shiftActive = false;
+  var renderExercises = day.exercises;
+  if (cnsToday && userCNS === 'DEPLETED' && typeof BBF_SYNC !== 'undefined' && BBF_SYNC.evaluateBlueprint) {
+    var shifted = BBF_SYNC.evaluateBlueprint(day.exercises, 'DEPLETED');
+    var hasShifts = shifted.some(function(e) { return e.is_shifted; });
+    if (hasShifts) {
+      shiftActive = true;
+      renderExercises = shifted;
+      h += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-left:3px solid #ef4444;border-radius:0 10px 10px 0;padding:.8rem 1rem;margin-bottom:.8rem">' +
+        '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="font-size:1rem">\u26A0</span><span style="font-family:var(--hb);font-size:.75rem;letter-spacing:2px;color:#ef4444">MASTERMIND OVERRIDE</span></div>' +
+        '<div style="font-size:.78rem;color:#ccc;line-height:1.5">High CNS strain detected. The Sovereign Shift Protocol has been engaged. Axial loading removed to protect lumbar and joint integrity while maintaining 85% efficiency.</div>' +
+        '</div>';
+    }
+  }
+  renderExercises.forEach(function(ex, ei) {
     var ek = 'ex_' + ei;
     var sv = saved[ek] || [];
-    var ns = (ex.reps.indexOf('min') > -1 || ex.reps.indexOf('sec') > -1) ? 1 : ex.sets;
-    h += '<div class="eb"><div class="eh" onclick="TEX(this)"><div><div class="en">' + ex.name + '</div>' +
-      '<div class="em">' + ex.equipment + ' &middot; ' + ex.sets + ' sets &times; ' + ex.reps + '</div></div>' +
+    var exName = ex.name || '';
+    var exEquip = ex.equipment || '';
+    var exSets = ex.sets || 0;
+    var exReps = ex.reps || '';
+    var exNotes = ex.notes || '';
+    var ns = (exReps.indexOf('min') > -1 || exReps.indexOf('sec') > -1) ? 1 : exSets;
+    var shiftBadge = ex.is_shifted ? ' <span style="font-size:.55rem;font-weight:700;letter-spacing:1px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:1px 6px;border-radius:3px;vertical-align:middle">SHIFTED</span>' : '';
+    h += '<div class="eb"><div class="eh" onclick="TEX(this)"><div><div class="en">' + exName + shiftBadge + '</div>' +
+      '<div class="em">' + exEquip + ' &middot; ' + exSets + ' sets &times; ' + exReps + '</div></div>' +
       '<div class="ec">&#9662;</div></div><div class="ebody">';
     h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){TOAST(\'&#x1F9EA; Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
     h += ' <button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_HOLOGRAM!==\'undefined\')BBF_HOLOGRAM.toggle(\'holo-' + ei + '\',\'' + ex.name.replace(/'/g,"\\'") + '\')">&#x1F4D0; KINETIC HOLOGRAM</button>';
@@ -2040,7 +2063,8 @@ function RDW() {
       var rpeResult = BBF_RPE.calculate(lastW, lastRPE, est1RM);
       h += BBF_RPE.render(rpeResult);
     }
-    if (ex.notes) h += '<div class="enote">&#x1F4A1; ' + ex.notes + '</div>';
+    if (ex.is_shifted && ex.original_name) h += '<div class="enote" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)">&#x26A0; Sovereign Shift: <strong>' + ex.original_name + '</strong> \u2192 <strong>' + exName + '</strong></div>';
+    else if (exNotes) h += '<div class="enote">&#x1F4A1; ' + exNotes + '</div>';
     if (partner) {
       var pd = d.w[partner] || {};
       var pdk2 = pd[dk] || {};
