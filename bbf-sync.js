@@ -724,6 +724,201 @@ var BBF_SYNC = (function() {
     }
   }
 
+  // ─── HIGH-TICKET SNIPER ──────────────────────────────────
+  // Canonical core axial lifts: loaded-spine compound barbell movements.
+  // Names chosen to match the Sovereign blueprint's BASE_DAY_TEMPLATES.
+  // Friction-shifted alternatives (Leg Press, Machine Chest Press, etc.) are
+  // intentionally EXCLUDED — a plateau on a substitute is not the same signal.
+  var AXIAL_LIFTS_EXACT = {
+    'Barbell Back Squat':     'squat',
+    'Barbell Squat':          'squat',
+    'Squat':                  'squat',
+    'Front Squat':            'squat',
+    'Conventional Deadlift':  'deadlift',
+    'Deadlift':               'deadlift',
+    'Sumo Deadlift':          'deadlift',
+    'Bench Press':            'bench',
+    'Barbell Bench Press':    'bench',
+    'Overhead Barbell Press': 'ohp',
+    'Overhead Press':         'ohp',
+    'Military Press':         'ohp',
+    'Strict Press':           'ohp'
+  };
+
+  function classifyAxialLift(name) {
+    if (!name) return null;
+    if (AXIAL_LIFTS_EXACT[name]) return AXIAL_LIFTS_EXACT[name];
+    var l = String(name).toLowerCase();
+    // Defensive substring match — excludes variants that are NOT axial
+    if (/\b(barbell |back |front )?squat\b/.test(l) &&
+        l.indexOf('split') === -1 && l.indexOf('goblet') === -1 &&
+        l.indexOf('single-leg') === -1 && l.indexOf('leg press') === -1 &&
+        l.indexOf('hack') === -1) return 'squat';
+    if (/\bdeadlift\b/.test(l) &&
+        l.indexOf('romanian') === -1 && l.indexOf('stiff') === -1 &&
+        l.indexOf('single') === -1 && l.indexOf('trap bar') === -1) return 'deadlift';
+    if (/\bbench press\b/.test(l) &&
+        l.indexOf('machine') === -1 && l.indexOf('dumbbell') === -1 &&
+        l.indexOf(' db ') === -1) return 'bench';
+    if (/(overhead|military|strict)\s+(barbell\s+)?press\b/.test(l) &&
+        l.indexOf('dumbbell') === -1 && l.indexOf('seated') === -1 &&
+        l.indexOf('machine') === -1 && l.indexOf(' db ') === -1) return 'ohp';
+    return null;
+  }
+
+  // Diagnostic for the High-Ticket Sniper. Returns one of:
+  //   { trigger_upsell: true,  reason: 'graduate', diagnostic: {...} }
+  //   { trigger_upsell: true,  reason: 'plateau',  diagnostic: {...} }
+  //   { trigger_upsell: false, reason: null,       diagnostic: {...} }
+  //
+  // Graduate wins over Plateau when both fire — graduation is the higher-
+  // value narrative for the 1-on-1 pitch.
+  async function evaluateSniperCriteria(userId) {
+    if (!userId) return { trigger_upsell: false, reason: null, diagnostic: { error: 'no uid' } };
+    var nowMs   = Date.now();
+    var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+    // Load profile — cloud preferred, merge with localStorage for offline resilience.
+    var profile = null;
+    try { profile = await fetchUserProfile(userId); } catch(_) {}
+    try {
+      var cached = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (cached.u && cached.u[userId]) {
+        profile = Object.assign({}, cached.u[userId], profile || {});
+      }
+    } catch(_) {}
+    if (!profile) return { trigger_upsell: false, reason: null, diagnostic: { error: 'no profile' } };
+
+    var onboardedAt = profile.onboarded_at ? Date.parse(profile.onboarded_at) : null;
+    var blueprint   = profile.blueprint || null;
+    var daysPerWeek = (blueprint && blueprint.profile && blueprint.profile.days_per_week) || 3;
+
+    // ── TRIGGER A: GRADUATE ─────────────────────────────────
+    // Requires: 12-week blueprint exists, ≥ 84 days since onboarded_at,
+    // and workout-session adherence ≥ 75% of expected (days_per_week × 12).
+    var graduate = null;
+    if (blueprint && Array.isArray(blueprint.weeks) && blueprint.weeks.length >= 12 &&
+        onboardedAt && isFinite(onboardedAt)) {
+      var elapsedMs   = nowMs - onboardedAt;
+      var weeksElapsed = Math.floor(elapsedMs / WEEK_MS);
+      if (elapsedMs >= 12 * WEEK_MS) {
+        var logs = [];
+        try { logs = await fetchLogs(userId) || []; } catch(_) {}
+        var onboardedIso = new Date(onboardedAt).toISOString().slice(0, 10);
+        var seenDates = {};
+        for (var i = 0; i < logs.length; i++) {
+          var L = logs[i];
+          if (!L || !L.date) continue;
+          if (L.type && L.type !== 'strength') continue;
+          if (L.date < onboardedIso) continue;
+          seenDates[L.date] = true;
+        }
+        var completedSessions = Object.keys(seenDates).length;
+        var expectedSessions  = Math.max(1, Math.floor(daysPerWeek * 12 * 0.75));
+        if (completedSessions >= expectedSessions) {
+          graduate = {
+            weeks_elapsed:      weeksElapsed,
+            completed_sessions: completedSessions,
+            expected_sessions:  expectedSessions,
+            days_per_week:      daysPerWeek,
+            adherence_pct:      Math.round((completedSessions / (daysPerWeek * 12)) * 1000) / 10
+          };
+        }
+      }
+    }
+    if (graduate) return { trigger_upsell: true, reason: 'graduate', diagnostic: graduate };
+
+    // ── TRIGGER B: PLATEAU ──────────────────────────────────
+    // Per axial lift, build { week_number: max_weight } over the user's
+    // training history. If the most recent 3 CONSECUTIVE training weeks for
+    // that lift show non-increasing max weight (zero progression across
+    // both week-to-week transitions), flag plateau on that lift.
+    if (!blueprint || !onboardedAt) {
+      return { trigger_upsell: false, reason: null, diagnostic: { graduate_checked: true, plateau_checkable: false, cause: 'missing blueprint or onboarded_at' } };
+    }
+
+    var sets = [];
+    try { sets = await fetchSets(userId) || []; } catch(_) {}
+    if (!sets.length) {
+      return { trigger_upsell: false, reason: null, diagnostic: { graduate_checked: true, plateau_checked: true, cause: 'no set history' } };
+    }
+
+    var weeklyMax = {}; // { axialId: { weekNum: maxWeight } }
+    for (var k = 0; k < sets.length; k++) {
+      var S = sets[k];
+      if (!S || !S.day_key || S.weight == null) continue;
+      var w = parseFloat(S.weight);
+      if (!isFinite(w) || w <= 0) continue;
+
+      var m = /^(\d{4}-\d{2}-\d{2})_d(\d+)$/.exec(S.day_key);
+      if (!m) continue;
+      var dateIso = m[1];
+      var dayIdx  = parseInt(m[2], 10);
+      var dateMs  = Date.parse(dateIso);
+      if (!isFinite(dateMs)) continue;
+      var weekNum = Math.floor((dateMs - onboardedAt) / WEEK_MS) + 1;
+      if (weekNum < 1) continue;
+
+      // Map exercise_key -> exercise name via the bespoke blueprint.
+      var bpWeekIdx = Math.min(weekNum, blueprint.weeks.length) - 1;
+      var bpWeek    = blueprint.weeks[bpWeekIdx];
+      if (!bpWeek || !bpWeek.days) continue;
+      var bpDay = bpWeek.days[dayIdx];
+      if (!bpDay || !bpDay.exercises) continue;
+      var exMatch = /^ex_(\d+)$/.exec(S.exercise_key || '');
+      if (!exMatch) continue;
+      var exIdx = parseInt(exMatch[1], 10);
+      var ex    = bpDay.exercises[exIdx];
+      if (!ex || !ex.name) continue;
+
+      var axialId = classifyAxialLift(ex.name);
+      // Honor original_name when the lift was friction-shifted — we still
+      // want to see plateau on the *canonical* movement the user would have
+      // trained without friction.
+      if (!axialId && ex.original_name) axialId = classifyAxialLift(ex.original_name);
+      if (!axialId) continue;
+
+      if (!weeklyMax[axialId]) weeklyMax[axialId] = {};
+      if (!(weekNum in weeklyMax[axialId]) || w > weeklyMax[axialId][weekNum]) {
+        weeklyMax[axialId][weekNum] = w;
+      }
+    }
+
+    var plateauDetail = null;
+    var axialIds = Object.keys(weeklyMax);
+    for (var a = 0; a < axialIds.length; a++) {
+      var id       = axialIds[a];
+      var weeksMap = weeklyMax[id];
+      var weekNums = Object.keys(weeksMap).map(Number).sort(function(x, y){ return x - y; });
+      // Scan from most-recent backwards, looking for 3 consecutive training
+      // weeks (delta === 1) with non-increasing max weight.
+      for (var n = weekNums.length - 1; n >= 2; n--) {
+        var w3 = weekNums[n], w2 = weekNums[n-1], w1 = weekNums[n-2];
+        if (w3 - w2 !== 1 || w2 - w1 !== 1) continue;
+        var m3 = weeksMap[w3], m2 = weeksMap[w2], m1 = weeksMap[w1];
+        if (m2 <= m1 && m3 <= m2) {
+          plateauDetail = {
+            lift:    id,
+            weeks:   [w1, w2, w3],
+            weights: [m1, m2, m3]
+          };
+          break;
+        }
+      }
+      if (plateauDetail) break;
+    }
+
+    if (plateauDetail) {
+      return { trigger_upsell: true, reason: 'plateau', diagnostic: plateauDetail };
+    }
+
+    return {
+      trigger_upsell: false,
+      reason:         null,
+      diagnostic:     { graduate_checked: true, plateau_checked: true, axial_lifts_observed: axialIds }
+    };
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -884,6 +1079,9 @@ var BBF_SYNC = (function() {
     runGhostProtocolScan: runGhostProtocolScan,
     fetchUserProfile: fetchUserProfile,
     clearGhostIntervention: clearGhostIntervention,
+    evaluateSniperCriteria: evaluateSniperCriteria,
+    classifyAxialLift: classifyAxialLift,
+    AXIAL_LIFTS_EXACT: AXIAL_LIFTS_EXACT,
     GHOST_INACTIVITY_MS: GHOST_INACTIVITY_MS,
     SOVEREIGN_SHIFTS: SOVEREIGN_SHIFTS,
     FRICTION_SHIFT_MAP: FRICTION_SHIFT_MAP,
