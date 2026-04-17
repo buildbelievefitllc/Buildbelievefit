@@ -893,6 +893,7 @@ window.onload=function(){
       </div>
       <button class="abtn" id="signin-btn" onclick="LOGIN()">Sign In &#8594;</button>
       <div class="amsg" id="lmsg"></div>
+      <a class="vault-forgot" href="mailto:akeem@buildbelievefit.fitness?subject=PIN%20Reset%20Request">Forgot PIN?</a>
     </div>
     <div id="pane-nc" style="display:none">
       <div class="af"><label>Full Name</label><input type="text" id="rn" placeholder="e.g. Marcus Johnson"/></div>
@@ -903,6 +904,10 @@ window.onload=function(){
       <button class="abtn" id="register-btn" onclick="REGISTER()">Create Profile &#8594;</button>
       <div class="amsg" id="rmsg"></div>
     </div>
+  </div>
+  <div class="vault-status" role="status" aria-live="polite">
+    <span class="vs-left"><span class="vs-dot" aria-hidden="true"></span><span>Encrypted &nbsp;//&nbsp; Sovereign Protocol</span></span>
+    <span class="vs-ver">v1.0 &mdash; BBF LLC</span>
   </div>
 </div>
 
@@ -4543,6 +4548,48 @@ window.onload = function() {
     tabs.classList.add('on-nc');
     flashPane('pane-nc');
   });
+
+  // Vault Phase 5 — submit-state choreography for SIGN IN / CREATE PROFILE.
+  // Additional click listener only. The legacy onclick="LOGIN()" /
+  // onclick="REGISTER()" handlers fire simultaneously; this script
+  // just paints the loading state and restores it on error.
+  function wrapAuthBtn(btnId, msgId){
+    var btn = document.getElementById(btnId);
+    var msg = document.getElementById(msgId);
+    if (!btn) return;
+    var dotsHtml = '<span class="abtn-dot"></span><span class="abtn-dot"></span><span class="abtn-dot"></span>';
+    btn.addEventListener('click', function(){
+      if (btn.classList.contains('is-submitting')) return; // debounce
+      btn.dataset._origHtml = btn.innerHTML;
+      btn.innerHTML = dotsHtml;
+      btn.classList.add('is-submitting');
+
+      var cleared = false;
+      function restore(){
+        if (cleared) return;
+        cleared = true;
+        btn.classList.remove('is-submitting');
+        btn.innerHTML = btn.dataset._origHtml || btn.innerHTML;
+        if (observer) observer.disconnect();
+      }
+      // If LOGIN/REGISTER surfaces an error message, the legacy code
+      // writes into #lmsg / #rmsg. Watch for that and restore the
+      // button so the user can correct and retry.
+      var observer = null;
+      if (msg && typeof MutationObserver !== 'undefined') {
+        observer = new MutationObserver(function(){
+          if ((msg.textContent || '').trim()) restore();
+        });
+        observer.observe(msg, { childList: true, characterData: true, subtree: true });
+      }
+      // Safety-net: if nothing happens within 3.5s (e.g. network stall
+      // or silent success with delayed SS('app') transition), unlock
+      // the button so the user isn't stranded.
+      setTimeout(restore, 3500);
+    });
+  }
+  wrapAuthBtn('signin-btn',   'lmsg');
+  wrapAuthBtn('register-btn', 'rmsg');
 })();
 </script>
 </body>
