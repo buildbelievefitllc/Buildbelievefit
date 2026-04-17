@@ -54,6 +54,12 @@ ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_override_active BOOLEAN D
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_override_date DATE;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_tier TEXT;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_last_logged TIMESTAMPTZ;
+-- Kinematic Auditor Intelligence Layer — redline flag + recovery math
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS biomechanical_redline BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS biomechanical_redline_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS recovery_capacity NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS recovery_debt NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS dominant_axial_lift TEXT;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (

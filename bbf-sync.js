@@ -1454,7 +1454,25 @@ var BBF_SYNC = (function() {
   }
 
   // ─── PUBLIC API ──────────────────────────────────────────
+  // Generic user-row PATCH helper for auditor-engine.js / render-engine
+  // to persist arbitrary columns without re-implementing the REST
+  // wiring. Mirrors the same offline-safe semantics as the scoped
+  // helpers above — a best-effort cloud PATCH that swallows errors
+  // and returns { ok, uid, error? } for the caller.
+  async function patchUserFields(uid, fields) {
+    if (!uid || !fields) return { ok: false, error: 'no uid or fields' };
+    var body = Object.assign({}, fields, { updated_at: new Date().toISOString() });
+    try {
+      await supa('PATCH', 'bbf_users', body, '?id=eq.' + encodeURIComponent(uid));
+      return { ok: true, uid: uid };
+    } catch(e) {
+      console.warn('BBF_SYNC patchUserFields error:', e && e.message);
+      return { ok: false, uid: uid, error: e && e.message };
+    }
+  }
+
   return {
+    patchUserFields: patchUserFields,
     syncUser: syncUser,
     syncLog: syncLog,
     syncSet: syncSet,

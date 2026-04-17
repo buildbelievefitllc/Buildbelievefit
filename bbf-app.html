@@ -616,6 +616,91 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   box-shadow: 0 10px 28px rgba(255,149,0,.6), 0 1px 0 rgba(255,255,255,.35) inset; }
 .bhm-mobility-btn:active { transform: translateY(0); filter: brightness(.97) }
 
+/* ═══ BIOMECHANICAL HEALTH MATRIX — Intelligence Layer ═══════ */
+/* Recovery-capacity readout. Sits inside the existing .bhm-widget
+   under the tonnage grid, reading the cross-referenced signal
+   written by BBF_AUDITOR.runKinematicAudit. */
+.bhm-recovery-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: .55rem;
+  margin: .55rem 0 .7rem;
+  padding: .7rem .8rem;
+  border-radius: 10px;
+  background: rgba(10,10,14,.4);
+  border: 1px solid rgba(212,175,55,.12);
+}
+.bhm-rec-cell { display:flex; flex-direction:column; gap:.18rem; min-width:0 }
+.bhm-rec-lbl  { font-family:var(--hb); font-size:.54rem; letter-spacing:2px; color:var(--mut2); text-transform:uppercase }
+.bhm-rec-val  { font-family:var(--hb); font-size:1rem; letter-spacing:.5px; color:#D4AF37; line-height:1 }
+.bhm-widget.redline .bhm-rec-val { color:#FFB347 }
+.bhm-rec-bar  {
+  position:relative; height:4px; margin-top:.3rem; border-radius:2px;
+  background: rgba(255,255,255,.05); overflow:hidden;
+  border: 1px solid rgba(255,255,255,.04);
+}
+.bhm-rec-fill {
+  position:absolute; inset:0 auto 0 0;
+  width: var(--rec-pct, 0%);
+  background: linear-gradient(90deg, #22c55e 0%, #D4AF37 100%);
+  transition: width .55s cubic-bezier(.2,.8,.25,1);
+}
+.bhm-widget.redline .bhm-rec-fill { background: linear-gradient(90deg, #FF9500 0%, #ef4444 100%); }
+
+/* REDLINE — deeper amber glow, aggressive pulse, bigger shadow.
+   Inherits .warn tint on cells/score via the existing selectors and
+   LAYERS an additional redline-specific intensification on top. */
+.bhm-widget.redline {
+  border-color: rgba(255,149,0,.8);
+  box-shadow:
+    0 26px 62px -18px rgba(255,149,0,.48),
+    0 8px 22px -4px rgba(255,149,0,.38),
+    0 0 0 1.5px rgba(255,149,0,.65) inset,
+    0 1px 0 rgba(255,255,255,.06) inset;
+  animation: bhmRedlinePulse 1.8s ease-in-out infinite;
+}
+@keyframes bhmRedlinePulse {
+  0%,100% { box-shadow:
+    0 26px 62px -18px rgba(255,149,0,.40),
+    0 8px 22px -4px rgba(255,149,0,.32),
+    0 0 0 1.5px rgba(255,149,0,.55) inset,
+    0 1px 0 rgba(255,255,255,.06) inset; }
+  50% { box-shadow:
+    0 32px 72px -14px rgba(255,149,0,.62),
+    0 10px 28px -4px rgba(255,149,0,.45),
+    0 0 0 1.5px rgba(255,149,0,.8)  inset,
+    0 1px 0 rgba(255,255,255,.08) inset; }
+}
+.bhm-widget.redline .bhm-mobility-wrap { display:block }
+.bhm-widget.redline .bhm-label {
+  color:#FF7A1A;
+  text-shadow: 0 0 12px rgba(255,149,0,.4);
+}
+/* Redline-specific warn copy sits next to the standard warn text.
+   .warn copy hides when .redline fires so we don't double-up. */
+.bhm-widget.redline .bhm-warn-text { display:none; }
+.bhm-redline-text {
+  display:none;
+  font-size:.82rem; color:#FFB347; margin-bottom:.65rem; line-height:1.5;
+  font-weight:700;
+}
+.bhm-widget.redline .bhm-redline-text { display:block; }
+
+/* Dynamic mobility CTA — swaps content based on dominant axial lift.
+   Keeps the same .bhm-mobility-btn visual chassis; auditor-engine
+   writes the prescription label into #bhm-mobility-btn at render. */
+.bhm-widget.redline .bhm-mobility-btn {
+  background: linear-gradient(180deg, #FFC36E 0%, #FF9500 50%, #B86500 100%);
+  border-color: #FFD89A;
+  box-shadow:
+    0 10px 28px rgba(255,149,0,.62),
+    0 1px 0 rgba(255,255,255,.35) inset;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bhm-widget.redline { animation: none; }
+}
+
 /* ═══ SOMATIC SYNC — readiness + override widget ═════════════ */
 .som-widget {
   background: rgba(10,10,14,.58);
@@ -970,10 +1055,10 @@ window.onload=function(){
           <div style="font-size:.5rem;font-weight:700;letter-spacing:1px;color:#555;text-align:center">DEPLETED</div>
         </div>
       </div>
-      <!-- BIOMECHANICAL HEAT MAP — Kinematic Auditor (Phase 1) -->
+      <!-- BIOMECHANICAL HEALTH MATRIX — Kinematic Auditor Intelligence Layer -->
       <div id="biomech-heatmap" class="bhm-widget" style="display:none">
         <div class="bhm-head">
-          <div class="bhm-label" data-lang-key="bhm-label">&#x1F9EC; Biomechanical Heat Map</div>
+          <div class="bhm-label" data-lang-key="bhm-label">&#x1F9EC; Biomechanical Health Matrix</div>
           <div class="bhm-window" data-lang-key="bhm-window">4-Week Axial Load</div>
         </div>
         <div class="bhm-score-row">
@@ -994,8 +1079,25 @@ window.onload=function(){
           <span><span data-lang-key="bhm-stat-sessions">Sessions</span> <b id="bhm-stat-sessions">0</b></span>
           <span><span data-lang-key="bhm-stat-tier">Tier</span> <b id="bhm-stat-tier">&mdash;</b></span>
         </div>
+        <!-- Recovery Capacity readout — Intelligence Layer (auditor-engine.js) -->
+        <div class="bhm-recovery-row" id="bhm-recovery-row">
+          <div class="bhm-rec-cell">
+            <div class="bhm-rec-lbl" data-lang-key="bhm-rec-sleep">Sleep 7d</div>
+            <div class="bhm-rec-val" id="bhm-rec-sleep">&mdash;</div>
+          </div>
+          <div class="bhm-rec-cell">
+            <div class="bhm-rec-lbl" data-lang-key="bhm-rec-cns">CNS Depleted</div>
+            <div class="bhm-rec-val"><span id="bhm-rec-cns">0</span>/7</div>
+          </div>
+          <div class="bhm-rec-cell">
+            <div class="bhm-rec-lbl" data-lang-key="bhm-rec-capacity">Recovery</div>
+            <div class="bhm-rec-val"><span id="bhm-rec-cap">&mdash;</span>%</div>
+            <div class="bhm-rec-bar"><div class="bhm-rec-fill" id="bhm-rec-fill" style="--rec-pct:0%"></div></div>
+          </div>
+        </div>
         <div class="bhm-mobility-wrap" id="bhm-mobility-wrap">
           <div class="bhm-warn-text" id="bhm-warn-text" data-lang-key="bhm-warn-text">&#x26A0; CNS friction elevated. Progressive axial loading exceeds safe tonnage for this 4-week block.</div>
+          <div class="bhm-redline-text" id="bhm-redline-text" data-lang-key="bhm-redline-text">&#x26A0; Biomechanical Redline: high tonnage accumulated without the recovery capacity to absorb it. Mobility prescribed for the dominant axial load.</div>
           <button class="bhm-mobility-btn" id="bhm-mobility-btn" type="button" data-lang-key="bhm-mobility-btn">&#x1F9B5; Prescribed Occupational Mobility</button>
         </div>
       </div>
@@ -2738,15 +2840,79 @@ function _bhmPaint(audit) {
     cell.title = lift.toUpperCase() + ' W' + (w+1) + ' — ' + Math.round(v) + ' lb-reps';
   });
 }
+function _bhmPaintIntelligence(intel) {
+  // Painted by the BBF_AUDITOR Intelligence Layer on top of the raw
+  // Friction Score. Expects { biomechanical_redline, tonnage_load,
+  // recovery_capacity, sleep_7d_avg, cns_depleted_days_7d,
+  // dominant_axial_lift, mobility_prescription }.
+  var wrap = document.getElementById('biomech-heatmap');
+  if (!wrap || !intel) return;
+  // Redline supersedes plain .warn — keeps .warn visual for moderate
+  // friction, LAYERS .redline for the high-tonnage + low-recovery case.
+  wrap.classList.toggle('redline', !!intel.biomechanical_redline);
+
+  var recSleep = document.getElementById('bhm-rec-sleep');
+  var recCns   = document.getElementById('bhm-rec-cns');
+  var recCap   = document.getElementById('bhm-rec-cap');
+  var recFill  = document.getElementById('bhm-rec-fill');
+  if (recSleep) recSleep.textContent = (intel.sleep_7d_avg != null ? intel.sleep_7d_avg : '—');
+  if (recCns)   recCns.textContent   = (intel.cns_depleted_days_7d != null ? intel.cns_depleted_days_7d : 0);
+  var recPct = Math.round((intel.recovery_capacity || 0) * 100);
+  if (recCap)  recCap.textContent = recPct;
+  if (recFill) recFill.style.setProperty('--rec-pct', recPct + '%');
+
+  // Dynamic Mobility prescription — swap the button label to the
+  // specific protocol for the dominant axial load. Falls through to
+  // the translated default when the intelligence layer returns 'mixed'.
+  var mob = document.getElementById('bhm-mobility-btn');
+  if (mob && intel.mobility_prescription) {
+    var L = (typeof LANG !== 'undefined' && LANG) ? LANG : 'en';
+    var rx = intel.mobility_prescription;
+    var label = rx[L] || rx.en;
+    if (intel.biomechanical_redline && label && rx.lift !== 'mixed') {
+      // Redline + dominant lift → dynamic prescription.
+      // Detach the data-lang-key so BBF_LANG.apply() doesn't overwrite.
+      mob.removeAttribute('data-lang-key');
+      mob.dataset._dominantLift = rx.lift || '';
+      mob.dataset._rxArea       = rx.area || '';
+      mob.textContent = label;
+    } else {
+      // Fall back to the translated default Occupational Mobility label.
+      mob.setAttribute('data-lang-key', 'bhm-mobility-btn');
+      if (typeof _t === 'function') {
+        mob.innerHTML = _t('bhm-mobility-btn', '\uD83E\uDDB5 Prescribed Occupational Mobility');
+      }
+    }
+  }
+}
+
 function renderBiomechHeatMap() {
   var uid = VC || CU;
   if (!uid) return;
   if (CU === 'akeem' && VC === null) return; // trainer view: skip
   // Paint from cache first (instant), then refresh from Supabase.
   _bhmApplyCached(uid);
+  // Paint intelligence-layer cache too, if any exists.
+  try {
+    var dCache = GD();
+    var cachedIntel = (dCache.u[uid] || {}).kinematic_audit_intelligence;
+    if (cachedIntel) _bhmPaintIntelligence(cachedIntel);
+  } catch(_) {}
+
   if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.runKinematicAudit) return;
+  // Chain: raw Friction Score first (paints heat grid), then
+  // Intelligence Layer (paints recovery capacity + redline state +
+  // dynamic mobility prescription). The intelligence layer itself
+  // calls BBF_SYNC.runKinematicAudit internally, so we could call
+  // it directly — but we want the grid to paint as soon as the raw
+  // audit resolves, not wait for recovery data too.
   BBF_SYNC.runKinematicAudit(uid).then(function(audit){
     if (audit) _bhmPaint(audit);
+    if (typeof BBF_AUDITOR !== 'undefined' && BBF_AUDITOR.runKinematicAudit) {
+      return BBF_AUDITOR.runKinematicAudit(uid);
+    }
+  }).then(function(intel){
+    if (intel) _bhmPaintIntelligence(intel);
   }).catch(function(e){ console.warn('BHM audit error:', e && e.message); });
 }
 document.addEventListener('DOMContentLoaded', function() {

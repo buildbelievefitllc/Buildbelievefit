@@ -400,7 +400,11 @@ var D = {
 'hts-plateau-body':  { en:'Mastermind Alert: Biomechanical plateau detected. Automated programming is no longer sufficient. Tap below to apply for clinical 1-on-1 intervention.',                           es:'Alerta Mastermind: Meseta biomec\u00e1nica detectada. La programaci\u00f3n automatizada ya no es suficiente. Pulsa abajo para aplicar a la intervenci\u00f3n cl\u00ednica 1-a-1.', pt:'Alerta Mastermind: Plat\u00f4 biomec\u00e2nico detectado. A programa\u00e7\u00e3o automatizada n\u00e3o \u00e9 mais suficiente. Toque abaixo para candidatar-se \u00e0 interven\u00e7\u00e3o cl\u00ednica 1-a-1.' },
 
 // ═══ BIOMECHANICAL HEAT MAP (Kinematic Auditor) ══════════════
-'bhm-label':       { en:'\ud83e\uddec Biomechanical Heat Map', es:'\ud83e\uddec Mapa Biomec\u00e1nico de Calor', pt:'\ud83e\uddec Mapa Biomec\u00e2nico de Calor' },
+'bhm-label':       { en:'\ud83e\uddec Biomechanical Health Matrix', es:'\ud83e\uddec Matriz de Salud Biomec\u00e1nica', pt:'\ud83e\uddec Matriz de Sa\u00fade Biomec\u00e2nica' },
+'bhm-rec-sleep':   { en:'Sleep 7d',       es:'Sue\u00f1o 7d',          pt:'Sono 7d' },
+'bhm-rec-cns':     { en:'CNS Depleted',   es:'SNC Agotado',            pt:'SNC Esgotado' },
+'bhm-rec-capacity':{ en:'Recovery',       es:'Recuperaci\u00f3n',      pt:'Recupera\u00e7\u00e3o' },
+'bhm-redline-text':{ en:'\u26A0 Biomechanical Redline: high tonnage accumulated without the recovery capacity to absorb it. Mobility prescribed for the dominant axial load.', es:'\u26A0 L\u00ednea Roja Biomec\u00e1nica: tonelaje alto acumulado sin la capacidad de recuperaci\u00f3n para absorberlo. Movilidad prescrita para la carga axial dominante.', pt:'\u26A0 Linha Vermelha Biomec\u00e2nica: tonelagem alta acumulada sem a capacidade de recupera\u00e7\u00e3o para absorv\u00ea-la. Mobilidade prescrita para a carga axial dominante.' },
 'bhm-window':      { en:'4-Week Axial Load', es:'Carga Axial \u00b7 4 Semanas', pt:'Carga Axial \u00b7 4 Semanas' },
 'bhm-score-label': { en:'Friction Score \u00a0\u00b7\u00a0 threshold 100', es:'Puntaje de Fricci\u00f3n \u00a0\u00b7\u00a0 umbral 100', pt:'Pontua\u00e7\u00e3o de Fric\u00e7\u00e3o \u00a0\u00b7\u00a0 limite 100' },
 'bhm-lift-squat':    { en:'SQUAT',    es:'SENTADILLA',    pt:'AGACHAMENTO' },
