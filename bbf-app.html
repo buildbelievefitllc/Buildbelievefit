@@ -564,6 +564,11 @@ window.onload=function(){
         <button class="qa" id="qa-n"><div class="qi">&#x1F957;</div><div class="ql" data-lang-key="app-qa-nutrition">Nutrition</div><div class="qs2" data-lang-key="app-qa-nutrition-sub">Your meal plan</div></button>
         <button class="qa" id="qa-p"><div class="qi">&#x1F4CA;</div><div class="ql" data-lang-key="app-qa-progress">My Progress</div><div class="qs2" data-lang-key="app-qa-progress-sub">View stats</div></button>
       </div>
+      <!-- HOUSEHOLD SYNC FEED -->
+      <div id="household-feed" style="display:none;margin-bottom:1rem">
+        <div class="sh"><span class="stt" style="color:#D4AF37">&#x1F3E0; Household Feed</span></div>
+        <div id="household-alerts"></div>
+      </div>
       <div id="cnwrap" style="display:none">
         <div class="sh"><span class="stt" data-lang-key="app-coach-notes">&#x1F4CB; Coach Notes</span></div>
         <div id="cnlist"></div>
@@ -1497,6 +1502,7 @@ function RH() {
     renderTrainerDashboard(d);
     return;
   }
+  renderHouseholdFeed();
 }
 
 function renderTrainerDashboard(d) {
@@ -1600,6 +1606,57 @@ function showRecoveryNotice() {
 function exitRestricted() {
   CU = null; VC = null;
   SS('auth');
+}
+
+// ─── HOUSEHOLD FEED ──────────────────────────────────────
+function renderHouseholdFeed() {
+  var uid = VC || CU;
+  var d = GD();
+  var u = d.u[uid] || {};
+  var feedWrap = document.getElementById('household-feed');
+  var alertsWrap = document.getElementById('household-alerts');
+  if (!feedWrap || !alertsWrap || !u.household_id) return;
+
+  feedWrap.style.display = 'block';
+  var myRole = u.household_role || 'parent';
+
+  // Find household partner from localStorage
+  var partnerLogs = [];
+  var partnerName = '';
+  for (var k in (d.u || {})) {
+    if (k !== uid && d.u[k].household_id === u.household_id) {
+      partnerName = d.u[k].name || k;
+      partnerLogs = (d.l[k] || []).filter(function(l) {
+        if (l.type === 'note') return false;
+        var logTime = new Date(l.loggedAt || l.date + 'T12:00:00');
+        return (Date.now() - logTime.getTime()) < 48 * 3600000;
+      }).slice(-3).reverse();
+      break;
+    }
+  }
+
+  if (!partnerLogs.length) {
+    alertsWrap.innerHTML = '<div style="font-size:.8rem;color:#555;padding:.5rem">No recent activity from your household partner.</div>';
+    return;
+  }
+
+  var isParent = myRole === 'parent';
+  alertsWrap.innerHTML = partnerLogs.map(function(log) {
+    var icon = isParent ? '\uD83C\uDFC6' : '\uD83D\uDCAA';
+    var prefix = isParent ? 'Legacy Built' : 'Role Model Action';
+    var msg = isParent
+      ? 'Your athlete just completed: ' + (log.notes || log.type)
+      : 'Your parent just completed their Sovereign Target: ' + (log.notes || log.type);
+    return '<div style="background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.2);border-left:3px solid #D4AF37;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin-bottom:.4rem">' +
+      '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem"><span style="font-size:1rem">' + icon + '</span><span style="font-family:var(--hb);font-size:.72rem;letter-spacing:2px;color:#D4AF37">' + prefix + '</span></div>' +
+      '<div style="font-size:.82rem;color:#ccc;line-height:1.5">' + msg + '</div>' +
+      '<div style="font-size:.6rem;color:#555;margin-top:.2rem">' + partnerName + ' \u2022 ' + (log.date || '') + '</div></div>';
+  }).join('');
+
+  // Also try cloud fetch for fresher data
+  if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.fetchHouseholdActivity) {
+    BBF_SYNC.fetchHouseholdActivity(u.household_id).catch(function() {});
+  }
 }
 
 // ─── READINESS ENGINE ─────────────────────────────────────
