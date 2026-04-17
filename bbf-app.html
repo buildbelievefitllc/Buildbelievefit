@@ -578,6 +578,17 @@ window.onload=function(){
         <button class="qa" id="qa-n"><div class="qi">&#x1F957;</div><div class="ql" data-lang-key="app-qa-nutrition">Nutrition</div><div class="qs2" data-lang-key="app-qa-nutrition-sub">Your meal plan</div></button>
         <button class="qa" id="qa-p"><div class="qi">&#x1F4CA;</div><div class="ql" data-lang-key="app-qa-progress">My Progress</div><div class="qs2" data-lang-key="app-qa-progress-sub">View stats</div></button>
       </div>
+      <!-- SWEAT EQUITY CONTRACT -->
+      <div id="sweat-contract" style="display:none;background:var(--gry);border:1px solid #1e1e1e;border-radius:14px;padding:1.2rem;margin-bottom:1rem;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#D4AF37,#6a0dad)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+          <div><div style="font-size:.6rem;font-weight:700;letter-spacing:3px;color:#D4AF37;text-transform:uppercase">Legacy Reward Contract</div><div style="font-family:var(--hb);font-size:1.1rem;letter-spacing:2px;color:#fff" id="sc-target">Set a target...</div></div>
+          <button id="sc-edit-btn" style="display:none;font-family:var(--hb);font-size:.6rem;letter-spacing:2px;background:transparent;border:1px solid #D4AF37;color:#D4AF37;padding:3px 10px;border-radius:4px;cursor:pointer" onclick="editSweatContract()">EDIT</button>
+        </div>
+        <div style="height:10px;background:#1e1e1e;border-radius:5px;overflow:hidden;margin-bottom:.5rem"><div id="sc-bar" style="height:100%;background:linear-gradient(90deg,#D4AF37,#6a0dad);border-radius:5px;width:0%;transition:width .6s ease"></div></div>
+        <div style="display:flex;justify-content:space-between"><div style="font-size:.65rem;color:#555" id="sc-progress">0 / 0 weeks</div><div style="font-size:.65rem;color:#D4AF37" id="sc-reward"></div></div>
+        <div id="sc-shatter" style="display:none;text-align:center;padding:.5rem;margin-top:.5rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:6px"><span style="font-size:1.2rem">&#x1F4A5;</span> <span style="font-size:.75rem;color:#ef4444;font-weight:700">STREAK BROKEN — Contract reset.</span></div>
+      </div>
       <!-- HOUSEHOLD SYNC FEED -->
       <div id="household-feed" style="display:none;margin-bottom:1rem">
         <div class="sh"><span class="stt" style="color:#D4AF37">&#x1F3E0; Household Feed</span></div>
@@ -1519,6 +1530,7 @@ function RH() {
   renderHouseholdFeed();
   checkIncomingReactions();
   renderPlayerCard();
+  renderSweatContract();
 }
 
 function renderTrainerDashboard(d) {
@@ -1622,6 +1634,90 @@ function showRecoveryNotice() {
 function exitRestricted() {
   CU = null; VC = null;
   SS('auth');
+}
+
+// ─── SWEAT EQUITY CONTRACT ────────────────────────────────
+function renderSweatContract() {
+  var uid = VC || CU;
+  var d = GD();
+  var u = d.u[uid] || {};
+  var wrap = document.getElementById('sweat-contract');
+  if (!wrap || !u.household_id) return;
+  wrap.style.display = 'block';
+
+  var contract = u.sweat_contract || null;
+  var editBtn = document.getElementById('sc-edit-btn');
+  var shatter = document.getElementById('sc-shatter');
+
+  if (!contract) {
+    // No contract set — show setup prompt for parent
+    if (u.household_role === 'parent' || CU === 'akeem') {
+      document.getElementById('sc-target').textContent = 'Tap EDIT to set a family target';
+      if (editBtn) editBtn.style.display = 'inline-block';
+    } else {
+      document.getElementById('sc-target').textContent = 'Waiting for parent to set a target...';
+    }
+    document.getElementById('sc-progress').textContent = '';
+    document.getElementById('sc-reward').textContent = '';
+    document.getElementById('sc-bar').style.width = '0%';
+    if (shatter) shatter.style.display = 'none';
+    return;
+  }
+
+  var target = contract.target_weeks || 4;
+  var reward = contract.reward || '';
+  var logs = (d.l[uid] || []).filter(function(l) { return l.type !== 'note'; });
+  var currentStreak = STREAK(logs);
+  var weeksComplete = Math.floor(currentStreak / 7);
+  var pct = Math.min(100, Math.round((weeksComplete / target) * 100));
+
+  document.getElementById('sc-target').textContent = 'Target: ' + target + '-Week Streak';
+  document.getElementById('sc-reward').textContent = reward ? '\uD83C\uDFC6 ' + reward : '';
+  document.getElementById('sc-progress').textContent = weeksComplete + ' / ' + target + ' weeks';
+  document.getElementById('sc-bar').style.width = pct + '%';
+  if (editBtn && (u.household_role === 'parent' || CU === 'akeem')) editBtn.style.display = 'inline-block';
+
+  // Check for shatter (streak broken while contract active)
+  if (contract.last_known_streak && currentStreak < contract.last_known_streak && currentStreak === 0) {
+    if (shatter) shatter.style.display = 'block';
+    document.getElementById('sc-bar').style.width = '0%';
+    document.getElementById('sc-bar').style.background = '#ef4444';
+    setTimeout(function() { document.getElementById('sc-bar').style.background = 'linear-gradient(90deg,#D4AF37,#6a0dad)'; }, 2000);
+  } else {
+    if (shatter) shatter.style.display = 'none';
+  }
+  // Update last known streak
+  d.u[uid].sweat_contract.last_known_streak = currentStreak;
+  SD(d);
+
+  // Check completion
+  if (weeksComplete >= target) {
+    document.getElementById('sc-bar').style.background = '#22c55e';
+    document.getElementById('sc-target').textContent = '\uD83C\uDFC6 CONTRACT COMPLETE!';
+    TOAST('\uD83C\uDFC6 Legacy Reward Earned: ' + reward);
+  }
+}
+
+function editSweatContract() {
+  var uid = VC || CU;
+  var d = GD();
+  var u = d.u[uid] || {};
+  var weeks = prompt('How many weeks for the family streak target?', '4');
+  if (!weeks) return;
+  var reward = prompt('What is the reward? (e.g. New Cleats, Movie Night)', '');
+  weeks = parseInt(weeks) || 4;
+  d.u[uid].sweat_contract = { target_weeks: weeks, reward: reward || '', last_known_streak: 0, created: new Date().toISOString() };
+  SD(d);
+  // Also set on household partner
+  for (var k in (d.u || {})) {
+    if (k !== uid && d.u[k].household_id === u.household_id) {
+      d.u[k].sweat_contract = d.u[uid].sweat_contract;
+    }
+  }
+  SD(d);
+  if (typeof BBF_SYNC !== 'undefined') BBF_SYNC.syncUser(uid, d.u[uid]);
+  renderSweatContract();
+  TOAST('\uD83D\uDCDD Contract set: ' + weeks + '-week streak for ' + (reward || 'the legacy'));
 }
 
 // ─── PLAYER CARD RENDER ──────────────────────────────────
