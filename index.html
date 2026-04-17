@@ -8,7 +8,7 @@
 <title>Build Believe Fit LLC — Universal Human Performance</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -409,6 +409,7 @@ footer a { letter-spacing: .5px; transition: color .2s; }
 footer a:hover { color: #D4AF37; }
 </style>
 <link rel="stylesheet" href="styles/bbf-tokens.css"/>
+<link rel="stylesheet" href="styles/bbf-hero.css"/>
 <script src="bbf-lang.js"></script>
 <script src="workout-data.js"></script>
 </head>
@@ -478,16 +479,20 @@ footer a:hover { color: #D4AF37; }
   <div class="hero-in">
     <div>
       <div class="hero-badge"><span data-lang-key="hero-badge">&#x26A1; Performance Architect &bull; Sovereign Gold Standard</span></div>
-      <h1>Build<br><span class="y">Believe</span><br><span class="ol">Fit</span></h1>
+      <h1 class="hero-stack" aria-label="Build Believe Fit">
+        <span class="hs-word hs-word--build">Build</span>
+        <span class="hs-word hs-word--believe">Believe</span>
+        <span class="hs-word hs-word--fit">Fit</span>
+      </h1>
       <p class="hero-sub" id="hero-sub" data-lang-key="hero-sub">Universal performance for the <strong>high-demand human.</strong> We optimize the habit architecture of everyday athletes, executives, and first responders. <strong>Your schedule is the context. Your potential is the focus.</strong></p>
       <div class="hero-btns">
         <a href="#pathfinder" class="btn-y" data-lang-key="hero-cta">Start My Path &#x2192;</a>
         <a href="bbf-app.html" class="btn-o" data-lang-key="hero-portal">&#x1F4F2; Client Portal</a>
       </div>
       <div class="hero-stats">
-        <div><div class="hs-n">2021</div><div class="hs-l" data-lang-key="stat-clients">Est. &bull; Founded</div></div>
+        <div><div class="hs-n" data-countup="2021">2021</div><div class="hs-l" data-lang-key="stat-clients">Est. &bull; Founded</div></div>
         <div><div class="hs-n">&#x1F6E1;</div><div class="hs-l" data-lang-key="stat-cert">Sovereign Standard</div></div>
-        <div><div class="hs-n">100%</div><div class="hs-l" data-lang-key="stat-plans">Custom Plans</div></div>
+        <div><div class="hs-n" data-countup="100" data-suffix="%">100%</div><div class="hs-l" data-lang-key="stat-plans">Custom Plans</div></div>
       </div>
     </div>
     <div class="hero-img-wrap">
@@ -1536,6 +1541,51 @@ function pbRenderPositions(){
     '</div>';
   }).join('');
 }
+</script>
+
+<!-- Phase 2 — hero stat count-up. Vanilla IntersectionObserver, ~1.3 KB. -->
+<script>
+(function(){
+  var nodes = document.querySelectorAll('[data-countup]');
+  if (!nodes.length) return;
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Cache final text then zero each target out so the observer can animate to it.
+  for (var i = 0; i < nodes.length; i++) {
+    var el = nodes[i];
+    el.dataset._final = el.textContent;
+    if (!reduceMotion) el.textContent = '0' + (el.dataset.suffix || '');
+  }
+  if (reduceMotion) return;
+
+  function countUp(el) {
+    var target = parseInt(el.dataset.countup, 10);
+    if (!isFinite(target)) { el.textContent = el.dataset._final; return; }
+    var suffix   = el.dataset.suffix || '';
+    var duration = 1600;
+    var t0 = null;
+    function tick(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / duration);
+      var eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+      el.textContent = Math.round(target * eased) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = el.dataset._final;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  if (!('IntersectionObserver' in window)) {
+    for (var j = 0; j < nodes.length; j++) nodes[j].textContent = nodes[j].dataset._final;
+    return;
+  }
+  var io = new IntersectionObserver(function(entries, obs){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) { countUp(entry.target); obs.unobserve(entry.target); }
+    });
+  }, { threshold: 0.4, rootMargin: '0px 0px -5% 0px' });
+  for (var k = 0; k < nodes.length; k++) io.observe(nodes[k]);
+})();
 </script>
 </body>
 </html>
