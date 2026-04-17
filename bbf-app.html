@@ -305,6 +305,12 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .home-ready{display:inline-flex;align-items:center;gap:.4rem;background:rgba(106,13,173,.1);border:1px solid rgba(106,13,173,.25);border-radius:20px;padding:.2rem .7rem;font-size:.7rem;font-weight:700;letter-spacing:1px;margin-top:.3rem}
 .home-ready.god{border-color:rgba(34,197,94,.3);color:#22c55e}.home-ready.std{color:var(--yel)}.home-ready.rec{border-color:rgba(239,68,68,.2);color:#ef4444}
 
+/* ═══ CNS HEATMAP ════════════════════════════════════════════ */
+.cns-titan{background:#22c55e !important;box-shadow:0 0 12px rgba(34,197,94,.5)}
+.cns-friction{background:#f59e0b !important;box-shadow:0 0 12px rgba(245,158,11,.5)}
+.cns-depleted{background:#ef4444 !important;box-shadow:0 0 12px rgba(239,68,68,.5);animation:cns-pulse 1.5s ease infinite}
+@keyframes cns-pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
 /* ═══ SOVEREIGN PAYWALL ══════════════════════════════════════ */
 .sovereign-blur-lock{filter:blur(6px);user-select:none;pointer-events:none;opacity:.85;transition:filter .3s,opacity .3s}
 .paywall-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,6,6,.7);backdrop-filter:blur(2px);z-index:20;border-radius:inherit;gap:.8rem;padding:1.5rem;text-align:center}
@@ -536,6 +542,23 @@ window.onload=function(){
             <button onclick="VC=null;LP();RA();" style="font-family:var(--hb);font-size:.72rem;letter-spacing:1px;background:rgba(245,200,0,.15);border:1px solid rgba(245,200,0,.3);color:var(--yel);padding:.3rem .8rem;border-radius:8px;cursor:pointer">&#x2190; Roster</button>
           </div>
           <div class="cps" id="cchips"></div>
+        </div>
+      </div>
+      <!-- CNS HEATMAP -->
+      <div id="cns-heatmap" style="display:none;background:var(--gry);border:1px solid #1e1e1e;border-radius:12px;padding:1rem;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+          <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;color:var(--mut);text-transform:uppercase">Nervous System Status</div>
+          <span style="font-size:.7rem;font-weight:700;letter-spacing:2px" id="cns-status-text"></span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;height:8px;border-radius:4px;overflow:hidden">
+          <div id="cns-zone-titan" style="background:#1e1e1e;border-radius:4px 0 0 4px;transition:all .4s"></div>
+          <div id="cns-zone-friction" style="background:#1e1e1e;transition:all .4s"></div>
+          <div id="cns-zone-depleted" style="background:#1e1e1e;border-radius:0 4px 4px 0;transition:all .4s"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin-top:.3rem">
+          <div style="font-size:.5rem;font-weight:700;letter-spacing:1px;color:#555;text-align:center">TITAN</div>
+          <div style="font-size:.5rem;font-weight:700;letter-spacing:1px;color:#555;text-align:center">FRICTION</div>
+          <div style="font-size:.5rem;font-weight:700;letter-spacing:1px;color:#555;text-align:center">DEPLETED</div>
         </div>
       </div>
       <!-- PLAYER CARD -->
@@ -1527,6 +1550,7 @@ function RH() {
     renderTrainerDashboard(d);
     return;
   }
+  renderCNSHeatmap();
   renderHouseholdFeed();
   checkIncomingReactions();
   renderPlayerCard();
@@ -1634,6 +1658,36 @@ function showRecoveryNotice() {
 function exitRestricted() {
   CU = null; VC = null;
   SS('auth');
+}
+
+// ─── CNS HEATMAP RENDER ──────────────────────────────────
+function renderCNSHeatmap() {
+  var uid = VC || CU;
+  var d = GD();
+  var u = d.u[uid] || {};
+  var wrap = document.getElementById('cns-heatmap');
+  if (!wrap) return;
+  var status = u.cns_status || null;
+  var statusDate = u.cns_date || '';
+  var todayStr = today();
+  if (!status || statusDate !== todayStr) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  // Reset zones
+  ['cns-zone-titan','cns-zone-friction','cns-zone-depleted'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.className = ''; el.style.background = '#1e1e1e'; el.style.boxShadow = 'none'; el.style.animation = 'none'; }
+  });
+  var textEl = document.getElementById('cns-status-text');
+  if (status === 'TITAN') {
+    document.getElementById('cns-zone-titan').className = 'cns-titan';
+    if (textEl) { textEl.textContent = 'TITAN MODE'; textEl.style.color = '#22c55e'; }
+  } else if (status === 'FRICTION') {
+    document.getElementById('cns-zone-friction').className = 'cns-friction';
+    if (textEl) { textEl.textContent = 'FRICTION ZONE'; textEl.style.color = '#f59e0b'; }
+  } else if (status === 'DEPLETED') {
+    document.getElementById('cns-zone-depleted').className = 'cns-depleted';
+    if (textEl) { textEl.textContent = 'DEPLETED — SHIFT ACTIVE'; textEl.style.color = '#ef4444'; }
+  }
 }
 
 // ─── SWEAT EQUITY CONTRACT ────────────────────────────────
