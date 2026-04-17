@@ -9,6 +9,9 @@
 <meta name="theme-color" content="#6a0dad"/>
 <title>Build Believe Fit</title>
 <link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -872,7 +875,7 @@ window.onload=function(){
 <div class="scr" id="auth">
   <div class="atop">
     <div class="alo">Build<span class="y">Believe</span>Fit</div>
-    <div class="asu">Client Portal</div>
+    <div class="asu">[ CLIENT PORTAL // SECURE ACCESS ]</div>
   </div>
   <div class="abox">
     <div class="atabs">
@@ -4507,5 +4510,40 @@ window.onload = function() {
 };
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- Vault Phase 3 — tab indicator class sync + pane cross-fade retrigger.
+     Supplementary listener only. The legacy onclick handlers (above)
+     still own the tab-switch logic (add/remove .on, toggle pane
+     display) — this script just paints the slide indicator state
+     and replays the pane slide animation on each click. -->
+<script>
+(function(){
+  var tabs  = document.querySelector('#auth .atabs');
+  var tabSi = document.getElementById('tab-si');
+  var tabNc = document.getElementById('tab-nc');
+  if (!tabs || !tabSi || !tabNc) return;
+
+  // Seed the indicator position to match the initial .on tab state.
+  tabs.classList.add(tabNc.classList.contains('on') ? 'on-nc' : 'on-si');
+
+  function flashPane(paneId){
+    var p = document.getElementById(paneId);
+    if (!p) return;
+    p.classList.remove('is-entering');
+    void p.offsetWidth;   // force reflow so the animation restarts cleanly
+    p.classList.add('is-entering');
+  }
+
+  tabSi.addEventListener('click', function(){
+    tabs.classList.remove('on-nc');
+    tabs.classList.add('on-si');
+    flashPane('pane-si');
+  });
+  tabNc.addEventListener('click', function(){
+    tabs.classList.remove('on-si');
+    tabs.classList.add('on-nc');
+    flashPane('pane-nc');
+  });
+})();
+</script>
 </body>
 </html>

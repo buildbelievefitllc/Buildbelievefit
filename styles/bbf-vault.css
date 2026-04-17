@@ -145,7 +145,182 @@ body::after { display: none !important; }
   }
 }
 
+/* ═══ PHASE 2 — HEADER POLISH ═══════════════════════════════════ */
+
+/* Wordmark: brand display font, tight letterspacing, victory-gold
+   accent. Anton is the heaviest condensed display in the stack;
+   Bebas Neue is the legacy fallback. */
+#auth .atop {
+  padding-top: calc(var(--st) + 2.25rem);
+  padding-bottom: 0;   /* hairline divider below provides the breathing room */
+}
+#auth .alo {
+  font-family: 'Anton', 'Bebas Neue', 'Druk Wide', Impact, sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.85rem, 6.5vw, 2.35rem);
+  letter-spacing: 0.035em;
+  line-height: 1;
+}
+#auth .alo .y { color: var(--bbf-gold-victory); }
+
+/* Gold-bracketed system label — "[ CLIENT PORTAL // SECURE ACCESS ]"
+   rendered in gold at 70% alpha, tight monospace-friendly tracking
+   so the forward slashes read as a terminal separator. */
+#auth .asu {
+  font-family: 'Bebas Neue', 'Barlow Condensed', ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.70);
+  margin-top: 0.55rem;
+  /* Prevent long strings on very narrow screens from wrapping mid-token */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Gold hairline divider beneath the header. Drawn via .atop::after
+   so no DOM change is required. transform-origin: center scaleX(0→1). */
+#auth .atop::after {
+  content: '';
+  display: block;
+  margin: 1.1rem auto 0;
+  height: 1px;
+  width: min(360px, 78%);
+  background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.55) 50%, transparent 100%);
+  transform: scaleX(0);
+  transform-origin: center;
+}
+
+/* ── HEADER STAGGER — fires when #auth becomes visible (gains .on) ──
+   Ties the animations to the .on class so they replay every time the
+   auth screen is entered (e.g. via the splash ENTER button, not just
+   initial DOM load). */
+#auth .alo,
+#auth .asu {
+  opacity: 0;
+  transform: translateY(14px);
+}
+#auth.on .alo {
+  animation: bbfVaultHeaderRise 720ms var(--ease-sovereign) 120ms forwards;
+}
+#auth.on .asu {
+  animation: bbfVaultHeaderRise 680ms var(--ease-sovereign) 320ms forwards;
+}
+#auth.on .atop::after {
+  animation: bbfHairlineDraw 700ms var(--ease-sovereign) 520ms forwards;
+}
+@keyframes bbfVaultHeaderRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes bbfHairlineDraw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+
+/* ═══ PHASE 3 — TAB TOGGLE REFINEMENT ═══════════════════════════ */
+
+/* Segmented pill container. Replaces the legacy 8px radius + hard
+   purple fill with a dark capsule, low-alpha gold-tinted border,
+   and a sliding gold indicator that crossfades between positions. */
+#auth .atabs {
+  position: relative;
+  display: flex;
+  gap: 0;
+  padding: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  background: rgba(0, 0, 0, 0.32);
+  border-radius: var(--bbf-radius-pill);
+  overflow: visible;             /* override legacy hidden for the indicator */
+  margin-bottom: 1.5rem;
+  box-shadow:
+    inset 0 1px 0 rgba(0,0,0,.4),
+    inset 0 -1px 0 rgba(255,255,255,.03);
+}
+
+/* Sliding gold indicator — absolutely positioned inside .atabs,
+   animates translateX between the two tab positions. Defaults to the
+   Sign In (left) position via .on-si; flips right via .on-nc. */
+#auth .atabs::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: linear-gradient(180deg, var(--bbf-gold-400) 0%, var(--bbf-gold-500) 45%, var(--bbf-gold-550) 100%);
+  border-radius: var(--bbf-radius-pill);
+  box-shadow:
+    0 4px 14px rgba(212, 175, 55, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  transform: translateX(0);
+  transition: transform 420ms var(--ease-sovereign);
+  z-index: 0;
+  pointer-events: none;
+}
+#auth .atabs.on-nc::before { transform: translateX(100%); }
+/* :has() path for browsers that expose it — keeps the indicator in
+   sync if anything other than the supplementary JS sets .on. */
+@supports selector(:has(*)) {
+  #auth .atabs:has(#tab-nc.on)::before { transform: translateX(100%); }
+}
+
+/* Buttons sit above the indicator. The active tab gets deep-purple
+   text on the gold fill; idle tab is muted white. */
+#auth .atab {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  padding: 0.78rem 0.8rem;
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+  background: transparent !important;
+  border: none;
+  border-radius: var(--bbf-radius-pill);
+  color: rgba(255, 255, 255, 0.58);
+  cursor: pointer;
+  transition:
+    color 260ms var(--ease-sovereign),
+    transform 180ms var(--ease-sovereign);
+}
+#auth .atab.on {
+  color: var(--bbf-purple-950);
+  font-weight: 900;
+}
+#auth .atab:not(.on):hover { color: rgba(255, 255, 255, 0.85); }
+#auth .atab:active { transform: scale(0.98); }
+
+/* ── PANE CROSS-FADE — gentle translateY + opacity on show ──── */
+/* Initial pane-si fade-in tied to #auth.on so it flows with the
+   header stagger. Switching triggers are re-played by the
+   supplementary script via .is-entering (reflow restart). */
+#pane-si, #pane-nc {
+  transform-origin: top center;
+}
+#auth.on #pane-si {
+  animation: bbfPaneSlide 420ms var(--ease-sovereign) 540ms both;
+}
+#pane-si.is-entering,
+#pane-nc.is-entering {
+  animation: bbfPaneSlide 380ms var(--ease-sovereign) both;
+}
+@keyframes bbfPaneSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ── REDUCED-MOTION FALLBACK ─────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  /* Nothing animates in Phase 1; this block is scaffold for
-     Phases 2-7 which will introduce stagger, pulse, shake, etc. */
+  #auth .alo,
+  #auth .asu       { opacity: 1; transform: none; animation: none !important; }
+  #auth .atop::after { transform: scaleX(1); animation: none !important; }
+  #auth .atabs::before { transition: none; }
+  #pane-si, #pane-nc { animation: none !important; }
 }
