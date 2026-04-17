@@ -60,6 +60,10 @@ ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS biomechanical_redline_at TIMESTAM
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS recovery_capacity NUMERIC;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS recovery_debt NUMERIC;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS dominant_axial_lift TEXT;
+-- Somatic Sync Intelligence Layer — stress input + flow/emergency flags
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_stress_level INT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_flow_state BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS system_emergency_deload BOOLEAN DEFAULT false;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (
