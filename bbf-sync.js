@@ -322,6 +322,37 @@ var BBF_SYNC = (function() {
       .catch(function(e) { console.error('BBF_SYNC fetchHouseholdActivity error:', e); return []; });
   }
 
+  // ─── HOUSEHOLD REACTION ──────────────────────────────────
+  function sendHouseholdReaction(senderId, receiverId, reactionType) {
+    if (!senderId || !receiverId) return Promise.resolve(null);
+    var validReactions = ['FIRE', 'FLEX', 'SILVERBACK'];
+    if (validReactions.indexOf(reactionType) === -1) reactionType = 'FIRE';
+    // Save to localStorage for immediate display
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (!d.reactions) d.reactions = [];
+      d.reactions.push({
+        from: senderId,
+        to: receiverId,
+        type: reactionType,
+        timestamp: new Date().toISOString(),
+        seen: false
+      });
+      // Keep last 50 reactions
+      if (d.reactions.length > 50) d.reactions = d.reactions.slice(-50);
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(e) { console.error('BBF_SYNC reaction localStorage error:', e); }
+    // Sync to cloud
+    return supa('POST', 'bbf_logs', {
+      user_id: receiverId,
+      date: new Date().toISOString().slice(0, 10),
+      type: 'reaction',
+      notes: 'Reaction: ' + reactionType + ' from ' + senderId,
+      logged_at: new Date().toISOString(),
+      logged_by: senderId
+    }).catch(function(e) { console.error('BBF_SYNC sendHouseholdReaction error:', e); return null; });
+  }
+
   // ─── PUBLIC API ──────────────────────────────────────────
   return {
     syncUser: syncUser,
@@ -335,6 +366,7 @@ var BBF_SYNC = (function() {
     toggleSovereignTrial: toggleSovereignTrial,
     processTierUpgrade: processTierUpgrade,
     linkHouseholdAccounts: linkHouseholdAccounts,
+    sendHouseholdReaction: sendHouseholdReaction,
     fetchHouseholdActivity: fetchHouseholdActivity,
     fetchLogs: fetchLogs,
     fetchSets: fetchSets,

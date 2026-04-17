@@ -1503,6 +1503,7 @@ function RH() {
     return;
   }
   renderHouseholdFeed();
+  checkIncomingReactions();
 }
 
 function renderTrainerDashboard(d) {
@@ -1608,6 +1609,34 @@ function exitRestricted() {
   SS('auth');
 }
 
+// ─── HOUSEHOLD REACTIONS ─────────────────────────────────
+function sendReaction(receiverId, reactionType) {
+  var uid = VC || CU;
+  if (!uid || !receiverId) return;
+  var emojis = { FIRE: '\uD83D\uDD25', FLEX: '\uD83D\uDCAA', SILVERBACK: '\uD83E\uDD8D' };
+  var emoji = emojis[reactionType] || '\uD83D\uDD25';
+  if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.sendHouseholdReaction) {
+    BBF_SYNC.sendHouseholdReaction(uid, receiverId, reactionType);
+  }
+  TOAST(emoji + ' Reaction sent!');
+}
+
+function checkIncomingReactions() {
+  var uid = VC || CU;
+  try {
+    var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+    var reactions = (d.reactions || []).filter(function(r) { return r.to === uid && !r.seen; });
+    if (!reactions.length) return;
+    var emojis = { FIRE: '\uD83D\uDD25', FLEX: '\uD83D\uDCAA', SILVERBACK: '\uD83E\uDD8D' };
+    reactions.forEach(function(r) { r.seen = true; });
+    localStorage.setItem('bbf_v7', JSON.stringify(d));
+    var last = reactions[reactions.length - 1];
+    var emoji = emojis[last.type] || '\uD83D\uDD25';
+    var senderName = (d.u[last.from] && d.u[last.from].name) || last.from;
+    TOAST(emoji + ' ' + senderName + ' acknowledges the Sovereign Standard: ' + emoji);
+  } catch(e) {}
+}
+
 // ─── HOUSEHOLD FEED ──────────────────────────────────────
 function renderHouseholdFeed() {
   var uid = VC || CU;
@@ -1623,8 +1652,10 @@ function renderHouseholdFeed() {
   // Find household partner from localStorage
   var partnerLogs = [];
   var partnerName = '';
+  var partnerId = '';
   for (var k in (d.u || {})) {
     if (k !== uid && d.u[k].household_id === u.household_id) {
+      partnerId = k;
       partnerName = d.u[k].name || k;
       partnerLogs = (d.l[k] || []).filter(function(l) {
         if (l.type === 'note') return false;
@@ -1650,7 +1681,13 @@ function renderHouseholdFeed() {
     return '<div style="background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.2);border-left:3px solid #D4AF37;border-radius:0 8px 8px 0;padding:.7rem 1rem;margin-bottom:.4rem">' +
       '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem"><span style="font-size:1rem">' + icon + '</span><span style="font-family:var(--hb);font-size:.72rem;letter-spacing:2px;color:#D4AF37">' + prefix + '</span></div>' +
       '<div style="font-size:.82rem;color:#ccc;line-height:1.5">' + msg + '</div>' +
-      '<div style="font-size:.6rem;color:#555;margin-top:.2rem">' + partnerName + ' \u2022 ' + (log.date || '') + '</div></div>';
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.4rem">' +
+      '<div style="font-size:.6rem;color:#555">' + partnerName + ' \u2022 ' + (log.date || '') + '</div>' +
+      '<div style="display:flex;gap:.3rem">' +
+      '<button onclick="sendReaction(\'' + partnerId + '\',\'FIRE\')" style="background:none;border:1px solid rgba(212,175,55,.3);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:.9rem;transition:all .15s" onmouseover="this.style.background=\'rgba(212,175,55,.15)\'" onmouseout="this.style.background=\'none\'">\uD83D\uDD25</button>' +
+      '<button onclick="sendReaction(\'' + partnerId + '\',\'FLEX\')" style="background:none;border:1px solid rgba(212,175,55,.3);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:.9rem;transition:all .15s" onmouseover="this.style.background=\'rgba(212,175,55,.15)\'" onmouseout="this.style.background=\'none\'">\uD83D\uDCAA</button>' +
+      '<button onclick="sendReaction(\'' + partnerId + '\',\'SILVERBACK\')" style="background:none;border:1px solid rgba(212,175,55,.3);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:.9rem;transition:all .15s" onmouseover="this.style.background=\'rgba(212,175,55,.15)\'" onmouseout="this.style.background=\'none\'">\uD83E\uDD8D</button>' +
+      '</div></div></div>';
   }).join('');
 
   // Also try cloud fetch for fresher data
