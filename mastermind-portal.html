@@ -26,6 +26,12 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 .stat-n{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold);line-height:1}
 .stat-l{font-size:.62rem;font-weight:700;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-top:2px}
 .seal{text-align:center;font-size:.65rem;color:var(--mut);margin-top:3rem;padding-top:1rem;border-top:1px solid var(--brd);font-style:italic}
+.ent-row{display:flex;align-items:center;gap:1rem;padding:.8rem;background:#0a0a0a;border:1px solid var(--brd);border-radius:8px;margin-bottom:.5rem}
+.ent-name{flex:1;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:#fff}
+.ent-toggle{width:42px;height:22px;background:var(--brd);border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}.ent-toggle.on{background:#D4AF37}
+.ent-toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}.ent-toggle.on::after{transform:translateX(20px)}
+.ent-lbl{font-size:.65rem;font-weight:700;letter-spacing:1px;color:var(--mut);text-transform:uppercase}
+.ent-status{font-size:.65rem;font-weight:700;letter-spacing:1px;min-width:60px;text-align:right}
 </style>
 </head>
 <body>
@@ -58,6 +64,12 @@ if (!BBF_PORTAL.verify()) { BBF_PORTAL.redirect(); }
 <div class="stat"><div class="stat-n" id="stat-logs">—</div><div class="stat-l">Total Logs</div></div>
 </div>
 <div id="audit-triage-board"></div>
+
+<!-- ENTITLEMENTS PANEL -->
+<div style="background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:1.2rem;margin-top:1.5rem">
+<div style="font-family:'Bebas Neue',sans-serif;font-size:.75rem;letter-spacing:3px;color:#D4AF37;margin-bottom:1rem">ENTITLEMENTS CONTROL</div>
+<div id="entitlements-list"></div>
+</div>
 </div>
 
 <!-- ROSTER PANEL -->
@@ -102,8 +114,45 @@ function loadRoster() {
   } catch(e) {}
 }
 
+function renderEntitlements() {
+  try {
+    var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+    var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
+    var wrap = document.getElementById('entitlements-list');
+    if (!wrap) return;
+    wrap.innerHTML = clients.map(function(e) {
+      var uid = e[0], u = e[1];
+      var trial = u.trial_status === 'active';
+      return '<div class="ent-row">' +
+        '<div class="ent-name">' + (u.name || uid) + '</div>' +
+        '<div class="ent-lbl">Sovereign Trial</div>' +
+        '<div class="ent-toggle' + (trial ? ' on' : '') + '" onclick="toggleTrial(\'' + uid + '\',this)"></div>' +
+        '<span class="ent-status" id="trial-status-' + uid + '" style="color:' + (trial ? '#D4AF37' : '#555') + '">' + (trial ? 'ACTIVE' : 'OFF') + '</span>' +
+        '</div>';
+    }).join('');
+  } catch(e) {}
+}
+
+function toggleTrial(uid, el) {
+  try {
+    var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+    if (!d.u[uid]) return;
+    var isNowActive = d.u[uid].trial_status !== 'active';
+    d.u[uid].trial_status = isNowActive ? 'active' : 'inactive';
+    if (isNowActive) d.u[uid].trial_start_date = new Date().toISOString();
+    localStorage.setItem('bbf_v7', JSON.stringify(d));
+    el.classList.toggle('on', isNowActive);
+    var status = document.getElementById('trial-status-' + uid);
+    if (status) { status.textContent = isNowActive ? 'ACTIVE' : 'OFF'; status.style.color = isNowActive ? '#D4AF37' : '#555'; }
+    if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.toggleSovereignTrial) {
+      BBF_SYNC.toggleSovereignTrial(uid, isNowActive);
+    }
+  } catch(e) { console.error('Toggle trial error:', e); }
+}
+
 // Init
 BBF_PORTAL.load();
+renderEntitlements();
 try {
   var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
   var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
