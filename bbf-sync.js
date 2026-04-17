@@ -951,6 +951,198 @@ var BBF_SYNC = (function() {
     }
   }
 
+  // ─── KINEMATIC AUDITOR ───────────────────────────────────
+  // Biomechanical Friction Score — 4-week rolling analysis of axial load
+  // (back squat, conventional/sumo deadlift, strict OHP). Score 0–100+
+  // with a threshold of 100 (exceeding the user's tier budget). A
+  // progression ramp or OHP-heavy distribution adds further pressure.
+  //
+  // Tier budgets (lb-reps per 4-week block):
+  //   beginner     30,000
+  //   intermediate 75,000
+  //   allpro       150,000
+  var KINEMATIC_TIER_BUDGET = {
+    beginner:     30000,
+    intermediate: 75000,
+    allpro:       150000
+  };
+  var KINEMATIC_THRESHOLD = 100;
+  var KINEMATIC_WINDOW_MS = 28 * 24 * 60 * 60 * 1000;
+
+  async function runKinematicAudit(userId) {
+    if (!userId) return { friction_score: 0, warning: false, error: 'no uid' };
+
+    var nowMs  = Date.now();
+    var start  = new Date(nowMs - KINEMATIC_WINDOW_MS);
+    var endIso = new Date(nowMs).toISOString();
+
+    // Load profile (cloud + local fallback).
+    var profile = null;
+    try { profile = await fetchUserProfile(userId); } catch(_) {}
+    try {
+      var cached = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (cached.u && cached.u[userId]) profile = Object.assign({}, cached.u[userId], profile || {});
+    } catch(_) {}
+    if (!profile) return { friction_score: 0, warning: false, error: 'no profile' };
+
+    var blueprint = profile.blueprint || null;
+    var experience = (blueprint && blueprint.profile && blueprint.intake && blueprint.intake.experience) ||
+                     (blueprint && blueprint.intake && blueprint.intake.experience) ||
+                     (profile.intake && profile.intake.experience) ||
+                     'intermediate';
+    var tierBudget = KINEMATIC_TIER_BUDGET[experience] || KINEMATIC_TIER_BUDGET.intermediate;
+
+    var sets = [];
+    try { sets = await fetchSets(userId) || []; } catch(_) {}
+
+    var byLift = { squat: { tonnage: 0, sets: 0 }, deadlift: { tonnage: 0, sets: 0 }, ohp: { tonnage: 0, sets: 0 } };
+    var byWeek = [0, 0, 0, 0]; // index 0 = oldest week, 3 = newest
+    var byWeekLift = {
+      squat:    [0,0,0,0],
+      deadlift: [0,0,0,0],
+      ohp:      [0,0,0,0]
+    };
+    var sessionKeys = {};
+    var axialWorkingSets = 0;
+    var onboardedMs = profile.onboarded_at ? Date.parse(profile.onboarded_at) : null;
+
+    for (var i = 0; i < sets.length; i++) {
+      var S = sets[i];
+      if (!S || !S.day_key || S.weight == null) continue;
+      var w = parseFloat(S.weight);
+      var r = parseFloat(S.reps || 0);
+      if (!isFinite(w) || w <= 0 || !isFinite(r) || r <= 0) continue;
+
+      var m = /^(\d{4}-\d{2}-\d{2})_d(\d+)$/.exec(S.day_key);
+      if (!m) continue;
+      var dateMs = Date.parse(m[1]);
+      if (!isFinite(dateMs)) continue;
+      if (dateMs < nowMs - KINEMATIC_WINDOW_MS) continue; // outside 4-week window
+      if (dateMs > nowMs) continue;
+
+      // Map exercise_key -> exercise name. Prefer blueprint.weeks[week-1].days[d].exercises[e].
+      var dayIdx = parseInt(m[2], 10);
+      var exMatch = /^ex_(\d+)$/.exec(S.exercise_key || '');
+      if (!exMatch) continue;
+      var exIdx = parseInt(exMatch[1], 10);
+
+      var exName = null;
+      if (blueprint && Array.isArray(blueprint.weeks) && onboardedMs) {
+        var wkNum = Math.floor((dateMs - onboardedMs) / (7 * 24 * 60 * 60 * 1000)) + 1;
+        var bpWeek = blueprint.weeks[Math.min(Math.max(wkNum, 1), blueprint.weeks.length) - 1];
+        var bpDay  = bpWeek && bpWeek.days && bpWeek.days[dayIdx];
+        var ex     = bpDay && bpDay.exercises && bpDay.exercises[exIdx];
+        if (ex) exName = ex.original_name || ex.name;
+      }
+      if (!exName) continue;
+
+      var axialId = classifyAxialLift(exName);
+      if (axialId === 'bench') continue; // bench is sagittal, not axial for this audit
+      if (!axialId) continue;
+      if (!byLift[axialId]) continue;
+
+      // Heavy-OHP gate: only count OHP sets at >= 40 lb (filters warm-up / band work).
+      if (axialId === 'ohp' && w < 40) continue;
+
+      var tonnage = w * r;
+      byLift[axialId].tonnage += tonnage;
+      byLift[axialId].sets    += 1;
+      axialWorkingSets        += 1;
+      sessionKeys[S.day_key]   = true;
+
+      // Bucket into 4 equal 7-day windows from oldest→newest.
+      var ageMs = nowMs - dateMs;
+      var weekBucket = 3 - Math.min(3, Math.floor(ageMs / (7 * 24 * 60 * 60 * 1000)));
+      if (weekBucket < 0 || weekBucket > 3) continue;
+      byWeek[weekBucket]           += tonnage;
+      byWeekLift[axialId][weekBucket] += tonnage;
+    }
+
+    var totalTonnage = byLift.squat.tonnage + byLift.deadlift.tonnage + byLift.ohp.tonnage;
+    var sessionsWithAxial = Object.keys(sessionKeys).length;
+
+    // Base Friction Score — share of the tier's axial budget consumed.
+    var score = (totalTonnage / tierBudget) * 100;
+
+    // Progression-ramp bump: recent half vs earlier half tonnage.
+    var earlier = byWeek[0] + byWeek[1];
+    var recent  = byWeek[2] + byWeek[3];
+    var rampApplied = false;
+    if (earlier > 0 && recent > earlier * 1.15) {
+      score *= 1.15;
+      rampApplied = true;
+    }
+
+    // Heavy-OHP distribution bump — pressing-dominant weeks strain CNS disproportionately.
+    var ohpHeavy = false;
+    if (totalTonnage > 0 && (byLift.ohp.tonnage / totalTonnage) > 0.20) {
+      score *= 1.08;
+      ohpHeavy = true;
+    }
+
+    score = Math.round(score * 10) / 10;
+    var warning = score >= KINEMATIC_THRESHOLD;
+    var nowIso = new Date(nowMs).toISOString();
+
+    // Mirror to localStorage first so the heat-map UI can paint without a round-trip.
+    try {
+      var dLocal = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!dLocal.u) dLocal.u = {};
+      if (!dLocal.u[userId]) dLocal.u[userId] = {};
+      dLocal.u[userId].cns_friction_warning    = !!warning;
+      dLocal.u[userId].cns_friction_score      = score;
+      dLocal.u[userId].cns_friction_updated_at = nowIso;
+      dLocal.u[userId].kinematic_audit = {
+        friction_score: score,
+        warning:        warning,
+        threshold:      KINEMATIC_THRESHOLD,
+        by_lift:        byLift,
+        by_week:        byWeek,
+        by_week_lift:   byWeekLift,
+        sessions_with_axial: sessionsWithAxial,
+        axial_working_sets:  axialWorkingSets,
+        tier_budget:    tierBudget,
+        experience:     experience,
+        ramp_applied:   rampApplied,
+        ohp_heavy:      ohpHeavy,
+        window_start:   start.toISOString(),
+        window_end:     endIso,
+        computed_at:    nowIso
+      };
+      localStorage.setItem('bbf_v7', JSON.stringify(dLocal));
+    } catch(_) {}
+
+    // Persist warning state to Supabase (always write so stale warnings clear).
+    try {
+      await supa('PATCH', 'bbf_users', {
+        cns_friction_warning:    !!warning,
+        cns_friction_score:      score,
+        cns_friction_updated_at: nowIso,
+        updated_at:              nowIso
+      }, '?id=eq.' + encodeURIComponent(userId));
+    } catch(e) {
+      console.warn('BBF_SYNC runKinematicAudit patch error:', e && e.message);
+    }
+
+    return {
+      friction_score:      score,
+      warning:             warning,
+      threshold:           KINEMATIC_THRESHOLD,
+      by_lift:             byLift,
+      by_week:             byWeek,
+      by_week_lift:        byWeekLift,
+      sessions_with_axial: sessionsWithAxial,
+      axial_working_sets:  axialWorkingSets,
+      tier_budget:         tierBudget,
+      experience:          experience,
+      ramp_applied:        rampApplied,
+      ohp_heavy:           ohpHeavy,
+      window_start:        start.toISOString(),
+      window_end:          endIso,
+      computed_at:         nowIso
+    };
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -1113,6 +1305,9 @@ var BBF_SYNC = (function() {
     clearGhostIntervention: clearGhostIntervention,
     evaluateSniperCriteria: evaluateSniperCriteria,
     submitMastermindApplication: submitMastermindApplication,
+    runKinematicAudit: runKinematicAudit,
+    KINEMATIC_TIER_BUDGET: KINEMATIC_TIER_BUDGET,
+    KINEMATIC_THRESHOLD: KINEMATIC_THRESHOLD,
     classifyAxialLift: classifyAxialLift,
     AXIAL_LIFTS_EXACT: AXIAL_LIFTS_EXACT,
     GHOST_INACTIVITY_MS: GHOST_INACTIVITY_MS,

@@ -41,6 +41,10 @@ ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS mobility_override_date DATE;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_status" TEXT;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_reason" TEXT;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_submitted_at" TIMESTAMPTZ;
+-- Kinematic Auditor — biomechanical friction score
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS cns_friction_warning BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS cns_friction_score NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS cns_friction_updated_at TIMESTAMPTZ;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (

@@ -507,6 +507,112 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   -webkit-backdrop-filter: blur(14px) saturate(135%);
 }
 
+/* ═══ BIOMECHANICAL HEAT MAP — KINEMATIC AUDITOR ═════════════ */
+.bhm-widget {
+  background: rgba(12,12,12,.55);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(212,175,55,.22);
+  border-radius: 14px;
+  padding: 1.1rem 1.1rem 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  box-shadow:
+    0 18px 40px -18px rgba(0,0,0,.75),
+    0 4px 12px -2px rgba(0,0,0,.55),
+    0 1px 0 rgba(255,255,255,.04) inset;
+  transition: border-color .3s ease, box-shadow .35s ease;
+}
+.bhm-widget.warn {
+  border-color: rgba(255,149,0,.55);
+  box-shadow:
+    0 22px 52px -18px rgba(255,149,0,.35),
+    0 6px 18px -4px rgba(255,149,0,.25),
+    0 0 0 1px rgba(255,149,0,.45) inset,
+    0 1px 0 rgba(255,255,255,.05) inset;
+  animation: bhmPulse 2.8s ease-in-out infinite;
+}
+@keyframes bhmPulse {
+  0%,100% { box-shadow:
+    0 22px 52px -18px rgba(255,149,0,.3),
+    0 6px 18px -4px rgba(255,149,0,.22),
+    0 0 0 1px rgba(255,149,0,.45) inset,
+    0 1px 0 rgba(255,255,255,.05) inset; }
+  50% { box-shadow:
+    0 26px 60px -16px rgba(255,149,0,.5),
+    0 8px 22px -4px rgba(255,149,0,.32),
+    0 0 0 1px rgba(255,149,0,.6) inset,
+    0 1px 0 rgba(255,255,255,.07) inset; }
+}
+.bhm-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.85rem }
+.bhm-label { font-family:var(--hb); font-size:.64rem; letter-spacing:3.5px; color:#D4AF37; text-transform:uppercase }
+.bhm-widget.warn .bhm-label { color:#FF9500 }
+.bhm-window { font-size:.58rem; letter-spacing:2px; color:var(--mut2); text-transform:uppercase; font-weight:700 }
+.bhm-score-row { display:flex; align-items:center; gap:.95rem; margin-bottom:.95rem }
+.bhm-score-n { font-family:var(--hb); font-size:2.15rem; line-height:1; color:#D4AF37; min-width:72px; text-align:left }
+.bhm-widget.warn .bhm-score-n { color:#FF9500 }
+.bhm-score-meta { flex:1; display:flex; flex-direction:column; gap:.3rem }
+.bhm-score-bar {
+  position:relative; height:6px; border-radius:3px; overflow:hidden;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.06);
+}
+.bhm-score-fill {
+  height:100%; border-radius:3px; transition: width .55s cubic-bezier(.2,.8,.25,1), background .4s;
+  background: linear-gradient(90deg,#6a0dad 0%,#D4AF37 100%);
+}
+.bhm-widget.warn .bhm-score-fill { background: linear-gradient(90deg,#D4AF37 0%,#FF9500 100%) }
+.bhm-score-threshold {
+  position:absolute; top:-2px; bottom:-2px; width:2px;
+  background: rgba(255,149,0,.6); left:66.66%;
+  box-shadow: 0 0 6px rgba(255,149,0,.5);
+}
+.bhm-score-label { font-size:.58rem; letter-spacing:2px; color:var(--mut2); text-transform:uppercase; font-weight:700 }
+.bhm-grid-wrap { margin-bottom:.6rem }
+.bhm-grid-labels {
+  display:grid; grid-template-columns:64px repeat(4,1fr); gap:4px; margin-bottom:.3rem;
+  padding-left:2px; font-size:.52rem; letter-spacing:1.5px; color:var(--mut); text-transform:uppercase; font-weight:700;
+}
+.bhm-grid-labels > div:first-child { visibility:hidden }
+.bhm-grid-labels > div { text-align:center }
+.bhm-row { display:grid; grid-template-columns:64px repeat(4,1fr); gap:4px; margin-bottom:4px; align-items:stretch }
+.bhm-rlabel { font-family:var(--hb); font-size:.6rem; letter-spacing:1.5px; color:#aaa; display:flex; align-items:center; padding-left:2px }
+.bhm-cell {
+  height: 22px; border-radius:4px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.04);
+  transition: background .4s, border-color .4s, transform .2s;
+}
+.bhm-cell:hover { transform: scale(1.03); border-color: rgba(212,175,55,.35) }
+.bhm-cell.h1 { background: rgba(106,13,173,.18); border-color: rgba(106,13,173,.25) }
+.bhm-cell.h2 { background: rgba(106,13,173,.40); border-color: rgba(106,13,173,.45) }
+.bhm-cell.h3 { background: rgba(212,175,55,.32); border-color: rgba(212,175,55,.45) }
+.bhm-cell.h4 { background: rgba(212,175,55,.60); border-color: rgba(242,215,105,.7); box-shadow: 0 0 12px rgba(212,175,55,.3) }
+.bhm-widget.warn .bhm-cell.h3 { background: rgba(255,149,0,.35); border-color: rgba(255,149,0,.55) }
+.bhm-widget.warn .bhm-cell.h4 { background: rgba(255,149,0,.6); border-color: rgba(255,179,71,.75); box-shadow: 0 0 14px rgba(255,149,0,.45) }
+.bhm-foot-stats {
+  display:flex; justify-content:space-between; gap:.6rem; font-size:.58rem;
+  letter-spacing:1.5px; color:var(--mut2); text-transform:uppercase; font-weight:700;
+  padding-top:.55rem; border-top: 1px dashed rgba(255,255,255,.06);
+}
+.bhm-foot-stats span b { color:#D4AF37; font-weight:700 }
+.bhm-widget.warn .bhm-foot-stats span b { color:#FF9500 }
+.bhm-mobility-wrap { display:none; margin-top:.9rem; padding-top:.9rem; border-top: 1px solid rgba(255,149,0,.25) }
+.bhm-widget.warn .bhm-mobility-wrap { display:block }
+.bhm-warn-text { font-size:.78rem; color:#FFCB7A; margin-bottom:.65rem; line-height:1.5 }
+.bhm-mobility-btn {
+  display:block; width:100%; padding:.9rem 1rem;
+  background: linear-gradient(180deg,#FFB347 0%,#FF9500 50%,#C97200 100%);
+  color: #0a0a0a; border: 1px solid #FFC98C; border-radius: 10px;
+  font-family: var(--hb); font-size: .78rem; letter-spacing: 2.5px;
+  font-weight: 700; text-transform: uppercase; cursor: pointer;
+  box-shadow: 0 6px 20px rgba(255,149,0,.45), 0 1px 0 rgba(255,255,255,.25) inset;
+  transition: transform .18s, box-shadow .25s, filter .2s;
+}
+.bhm-mobility-btn:hover { transform: translateY(-1px); filter: brightness(1.06);
+  box-shadow: 0 10px 28px rgba(255,149,0,.6), 0 1px 0 rgba(255,255,255,.35) inset; }
+.bhm-mobility-btn:active { transform: translateY(0); filter: brightness(.97) }
+
 </style>
 <script src="bbf-lang.js"></script>
 <script src="bbf-sync.js"></script>
@@ -721,6 +827,35 @@ window.onload=function(){
           <div style="font-size:.5rem;font-weight:700;letter-spacing:1px;color:#555;text-align:center">TITAN</div>
           <div style="font-size:.5rem;font-weight:700;letter-spacing:1px;color:#555;text-align:center">FRICTION</div>
           <div style="font-size:.5rem;font-weight:700;letter-spacing:1px;color:#555;text-align:center">DEPLETED</div>
+        </div>
+      </div>
+      <!-- BIOMECHANICAL HEAT MAP — Kinematic Auditor (Phase 1) -->
+      <div id="biomech-heatmap" class="bhm-widget" style="display:none">
+        <div class="bhm-head">
+          <div class="bhm-label">&#x1F9EC; Biomechanical Heat Map</div>
+          <div class="bhm-window">4-Week Axial Load</div>
+        </div>
+        <div class="bhm-score-row">
+          <div class="bhm-score-n" id="bhm-score-n">&mdash;</div>
+          <div class="bhm-score-meta">
+            <div class="bhm-score-bar"><div class="bhm-score-fill" id="bhm-score-fill" style="width:0%"></div><div class="bhm-score-threshold"></div></div>
+            <div class="bhm-score-label" id="bhm-score-label">Friction Score &nbsp;&middot;&nbsp; threshold 100</div>
+          </div>
+        </div>
+        <div class="bhm-grid-wrap">
+          <div class="bhm-grid-labels"><div></div><div>W1</div><div>W2</div><div>W3</div><div>W4</div></div>
+          <div class="bhm-row"><div class="bhm-rlabel">SQUAT</div><div class="bhm-cell" data-lift="squat" data-w="0"></div><div class="bhm-cell" data-lift="squat" data-w="1"></div><div class="bhm-cell" data-lift="squat" data-w="2"></div><div class="bhm-cell" data-lift="squat" data-w="3"></div></div>
+          <div class="bhm-row"><div class="bhm-rlabel">DEADLIFT</div><div class="bhm-cell" data-lift="deadlift" data-w="0"></div><div class="bhm-cell" data-lift="deadlift" data-w="1"></div><div class="bhm-cell" data-lift="deadlift" data-w="2"></div><div class="bhm-cell" data-lift="deadlift" data-w="3"></div></div>
+          <div class="bhm-row"><div class="bhm-rlabel">OHP</div><div class="bhm-cell" data-lift="ohp" data-w="0"></div><div class="bhm-cell" data-lift="ohp" data-w="1"></div><div class="bhm-cell" data-lift="ohp" data-w="2"></div><div class="bhm-cell" data-lift="ohp" data-w="3"></div></div>
+        </div>
+        <div class="bhm-foot-stats">
+          <span>Sets <b id="bhm-stat-sets">0</b></span>
+          <span>Sessions <b id="bhm-stat-sessions">0</b></span>
+          <span>Tier <b id="bhm-stat-tier">&mdash;</b></span>
+        </div>
+        <div class="bhm-mobility-wrap" id="bhm-mobility-wrap">
+          <div class="bhm-warn-text" id="bhm-warn-text">&#x26A0; CNS friction elevated. Progressive axial loading exceeds safe tonnage for this 4-week block.</div>
+          <button class="bhm-mobility-btn" id="bhm-mobility-btn" type="button">&#x1F9B5; Prescribed Occupational Mobility</button>
         </div>
       </div>
       <!-- PLAYER CARD -->
@@ -1826,6 +1961,7 @@ function RH() {
     return;
   }
   renderCNSHeatmap();
+  renderBiomechHeatMap();
   renderHouseholdFeed();
   checkIncomingReactions();
   renderPlayerCard();
@@ -2369,6 +2505,81 @@ function checkIncomingReactions() {
     TOAST(emoji + ' ' + senderName + ' acknowledges the Sovereign Standard: ' + emoji);
   } catch(e) {}
 }
+
+// ─── BIOMECHANICAL HEAT MAP (Kinematic Auditor — Phase 1) ──────
+function _bhmApplyCached(uid) {
+  try {
+    var d = GD();
+    var u = d.u[uid] || {};
+    var cached = u.kinematic_audit;
+    if (cached) _bhmPaint(cached);
+  } catch(e) {}
+}
+function _bhmPaint(audit) {
+  var wrap = document.getElementById('biomech-heatmap');
+  if (!wrap || !audit) return;
+  wrap.style.display = 'block';
+  wrap.classList.toggle('warn', !!audit.warning);
+  var score = Math.round((audit.friction_score || 0) * 10) / 10;
+  var sn = document.getElementById('bhm-score-n');
+  if (sn) sn.textContent = score;
+  var fill = document.getElementById('bhm-score-fill');
+  if (fill) fill.style.width = Math.max(2, Math.min(100, score * (100 / 150))) + '%';
+  var setsEl = document.getElementById('bhm-stat-sets');
+  if (setsEl) setsEl.textContent = audit.axial_working_sets || 0;
+  var sessEl = document.getElementById('bhm-stat-sessions');
+  if (sessEl) sessEl.textContent = audit.sessions_with_axial || 0;
+  var tierEl = document.getElementById('bhm-stat-tier');
+  if (tierEl) tierEl.textContent = (audit.experience || '').toUpperCase();
+  // Shade the 12 cells — normalize per-cell tonnage against the max cell in grid.
+  var byWeekLift = audit.by_week_lift || { squat:[0,0,0,0], deadlift:[0,0,0,0], ohp:[0,0,0,0] };
+  var all = [];
+  ['squat','deadlift','ohp'].forEach(function(k){
+    (byWeekLift[k] || []).forEach(function(v){ all.push(v); });
+  });
+  var maxCell = Math.max.apply(null, all.concat([1]));
+  wrap.querySelectorAll('.bhm-cell').forEach(function(cell){
+    var lift = cell.dataset.lift;
+    var w    = parseInt(cell.dataset.w, 10);
+    var v    = (byWeekLift[lift] && byWeekLift[lift][w]) || 0;
+    cell.classList.remove('h1','h2','h3','h4');
+    if (v <= 0) return;
+    var intensity = v / maxCell;
+    if      (intensity > 0.75) cell.classList.add('h4');
+    else if (intensity > 0.50) cell.classList.add('h3');
+    else if (intensity > 0.25) cell.classList.add('h2');
+    else                       cell.classList.add('h1');
+    cell.title = lift.toUpperCase() + ' W' + (w+1) + ' — ' + Math.round(v) + ' lb-reps';
+  });
+}
+function renderBiomechHeatMap() {
+  var uid = VC || CU;
+  if (!uid) return;
+  if (CU === 'akeem' && VC === null) return; // trainer view: skip
+  // Paint from cache first (instant), then refresh from Supabase.
+  _bhmApplyCached(uid);
+  if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.runKinematicAudit) return;
+  BBF_SYNC.runKinematicAudit(uid).then(function(audit){
+    if (audit) _bhmPaint(audit);
+  }).catch(function(e){ console.warn('BHM audit error:', e && e.message); });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var mob = document.getElementById('bhm-mobility-btn');
+  if (!mob) return;
+  mob.addEventListener('click', function(){
+    // Route into the existing Pre-Hab Auditor if available — the clinical
+    // intervention for occupational mobility is already wired there.
+    if (typeof BBF_PREHAB !== 'undefined' && BBF_PREHAB.trigger) {
+      BBF_PREHAB.trigger(function(r){
+        if (typeof TOAST === 'function') TOAST('\uD83D\uDC85 Pre-Hab complete: ' + (r && r.area ? r.area : 'mobility'));
+      });
+    } else if (typeof SS === 'function') {
+      SS('prehab');
+    } else if (typeof TOAST === 'function') {
+      TOAST('\u26A1 Mobility protocol queued.');
+    }
+  });
+});
 
 // ─── HOUSEHOLD FEED ──────────────────────────────────────
 function renderHouseholdFeed() {
