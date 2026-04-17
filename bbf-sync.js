@@ -471,6 +471,50 @@ var BBF_SYNC = (function() {
   }
 
   // ─── USER LANGUAGE PREFERENCE ─────────────────────────────
+  // ─── SOVEREIGN GOLD SEEKER ───────────────────────────────
+  var SOVEREIGN_PROTOCOLS = [
+    { keywords:['knee','patella','squat pain','vmo','patellar','knee cave','valgus'],
+      protocol:'Sovereign VMO Activation & Hamstring Bridge',
+      movements:[{en:'Terminal Knee Extension — 3x15',es:'Extensi\u00f3n Terminal de Rodilla — 3x15',pt:'Extens\u00e3o Terminal de Joelho — 3x15'},{en:'Single-Leg Glute Bridge — 3x12/side',es:'Puente de Gl\u00fateo Unilateral — 3x12/lado',pt:'Ponte de Gl\u00fateo Unilateral — 3x12/lado'},{en:'Wall Sit ISO Hold — 3x30s',es:'Sentadilla en Pared — 3x30s',pt:'Agachamento na Parede — 3x30s'}],
+      focus:{en:'Quad dominance correction and patellar tracking stabilization',es:'Correcci\u00f3n de dominancia de cu\u00e1driceps y estabilizaci\u00f3n patelar',pt:'Corre\u00e7\u00e3o de domin\u00e2ncia de quadr\u00edceps e estabiliza\u00e7\u00e3o patelar'} },
+    { keywords:['shoulder','rotator','stiff','ac joint','impingement','overhead pain'],
+      protocol:'Sovereign AC Joint Decompression',
+      movements:[{en:'Band Pull-Apart — 3x20',es:'Separaci\u00f3n con Banda — 3x20',pt:'Separa\u00e7\u00e3o com Faixa — 3x20'},{en:'Wall Slide to Overhead — 3x10',es:'Deslizamiento en Pared — 3x10',pt:'Deslizamento na Parede — 3x10'},{en:'Side-Lying External Rotation — 3x15/arm',es:'Rotaci\u00f3n Externa Acostado — 3x15/brazo',pt:'Rota\u00e7\u00e3o Externa Deitado — 3x15/bra\u00e7o'}],
+      focus:{en:'Scapular rhythm restoration and subacromial space recovery',es:'Restauraci\u00f3n del ritmo escapular y recuperaci\u00f3n subacromial',pt:'Restaura\u00e7\u00e3o do ritmo escapular e recupera\u00e7\u00e3o subacromial'} },
+    { keywords:['lower back','lumbar','spine','disc','back pain','deadlift pain','hinge'],
+      protocol:'Sovereign Lumbar Decompression Sequence',
+      movements:[{en:'Cat-Cow Flow — 2x10 slow reps',es:'Flujo Gato-Vaca — 2x10 reps lentas',pt:'Fluxo Gato-Vaca — 2x10 reps lentas'},{en:'Child\'s Pose Breathing — 60s',es:'Postura del Ni\u00f1o — 60s',pt:'Postura da Crian\u00e7a — 60s'},{en:'Dead Bug — 3x8/side',es:'Dead Bug — 3x8/lado',pt:'Dead Bug — 3x8/lado'}],
+      focus:{en:'L4-L5 decompression and intra-abdominal pressure restoration',es:'Descompresi\u00f3n L4-L5 y restauraci\u00f3n de presi\u00f3n intraabdominal',pt:'Descompress\u00e3o L4-L5 e restaura\u00e7\u00e3o de press\u00e3o intra-abdominal'} },
+    { keywords:['hip','flexor','tight hips','groin','adductor','sitting','desk'],
+      protocol:'Sovereign Hip Capsule Liberation',
+      movements:[{en:'90/90 Hip Stretch — 45s/side',es:'Estiramiento 90/90 de Cadera — 45s/lado',pt:'Alongamento 90/90 do Quadril — 45s/lado'},{en:'Lateral Band Walk — 2x10/direction',es:'Caminata Lateral con Banda — 2x10/direcci\u00f3n',pt:'Caminhada Lateral com Faixa — 2x10/dire\u00e7\u00e3o'},{en:'Pigeon Stretch — 30s/side',es:'Estiramiento de Paloma — 30s/lado',pt:'Alongamento do Pombo — 30s/lado'}],
+      focus:{en:'Hip flexor lengthening and glute reactivation for seated professionals',es:'Elongaci\u00f3n del flexor de cadera y reactivaci\u00f3n gl\u00fatea para profesionales sedentarios',pt:'Alongamento do flexor do quadril e reativa\u00e7\u00e3o gl\u00fatea para profissionais sedent\u00e1rios'} },
+    { keywords:['ankle','calf','achilles','shin','plantar','foot','standing'],
+      protocol:'Sovereign Ankle Mobility Restoration',
+      movements:[{en:'Ankle Circles — 10 each direction/foot',es:'C\u00edrculos de Tobillo — 10 cada direcci\u00f3n/pie',pt:'C\u00edrculos de Tornozelo — 10 cada dire\u00e7\u00e3o/p\u00e9'},{en:'Calf Raise with 2s Pause — 2x15',es:'Elevaci\u00f3n de Talones con Pausa — 2x15',pt:'Eleva\u00e7\u00e3o de Panturrilha com Pausa — 2x15'},{en:'Banded Dorsiflexion — 2x12/ankle',es:'Dorsiflexsi\u00f3n con Banda — 2x12/tobillo',pt:'Dorsiflex\u00e3o com Faixa — 2x12/tornozelo'}],
+      focus:{en:'Proprioception rebuilding and Achilles load tolerance for shift workers',es:'Reconstrucci\u00f3n proprioceptiva y tolerancia del Aquiles para trabajadores por turnos',pt:'Reconstru\u00e7\u00e3o proprioceptiva e toler\u00e2ncia do Aquiles para trabalhadores por turno'} },
+    { keywords:['wrist','grip','forearm','typing','carpal','tendinitis'],
+      protocol:'Sovereign Grip Recovery Protocol',
+      movements:[{en:'Prayer Stretch — 2x20s',es:'Estiramiento de Rezo — 2x20s',pt:'Alongamento de Ora\u00e7\u00e3o — 2x20s'},{en:'Finger Extension with Band — 2x20',es:'Extensi\u00f3n de Dedos con Banda — 2x20',pt:'Extens\u00e3o de Dedos com Faixa — 2x20'},{en:'Wrist Curl + Reverse Curl — 2x15',es:'Curl de Mu\u00f1eca + Inverso — 2x15',pt:'Rosca de Punho + Inversa — 2x15'}],
+      focus:{en:'Extensor/flexor balance restoration for grip-intensive or desk-bound athletes',es:'Restauraci\u00f3n del equilibrio extensor/flexor para atletas de agarre o escritorio',pt:'Restaura\u00e7\u00e3o do equil\u00edbrio extensor/flexor para atletas de pegada ou escrit\u00f3rio'} },
+    { keywords:['neck','trap','headache','cervical','text neck','posture'],
+      protocol:'Sovereign Cervical Reset',
+      movements:[{en:'Chin Tucks — 3x10 (2s hold)',es:'Retracci\u00f3n de Barbilla — 3x10 (2s pausa)',pt:'Retra\u00e7\u00e3o de Queixo — 3x10 (2s pausa)'},{en:'Neck Lateral Tilts — 20s each side',es:'Inclinaciones Laterales de Cuello — 20s cada lado',pt:'Inclina\u00e7\u00f5es Laterais de Pesco\u00e7o — 20s cada lado'},{en:'Upper Trap Release — Lacrosse Ball 60s/side',es:'Liberaci\u00f3n de Trap Superior — Pelota 60s/lado',pt:'Libera\u00e7\u00e3o de Trap Superior — Bola 60s/lado'}],
+      focus:{en:'Upper cross syndrome correction and cervicogenic tension relief',es:'Correcci\u00f3n del s\u00edndrome cruzado superior y alivio de tensi\u00f3n cervicog\u00e9nica',pt:'Corre\u00e7\u00e3o da s\u00edndrome cruzada superior e al\u00edvio de tens\u00e3o cervicog\u00eanica'} }
+  ];
+
+  function seekSovereignGold(searchQuery) {
+    if (!searchQuery) return null;
+    var q = searchQuery.toLowerCase().trim();
+    for (var i = 0; i < SOVEREIGN_PROTOCOLS.length; i++) {
+      var p = SOVEREIGN_PROTOCOLS[i];
+      for (var j = 0; j < p.keywords.length; j++) {
+        if (q.indexOf(p.keywords[j]) > -1) return p;
+      }
+    }
+    return null;
+  }
+
   function updateUserLanguage(userId, languageCode) {
     if (!userId || !languageCode) return Promise.resolve(null);
     var valid = ['en', 'es', 'pt'];
@@ -511,6 +555,8 @@ var BBF_SYNC = (function() {
     logMorningReadiness: logMorningReadiness,
     evaluateBlueprint: evaluateBlueprint,
     SOVEREIGN_SHIFTS: SOVEREIGN_SHIFTS,
+    SOVEREIGN_PROTOCOLS: SOVEREIGN_PROTOCOLS,
+    seekSovereignGold: seekSovereignGold,
     updateUserLanguage: updateUserLanguage,
     fetchHouseholdActivity: fetchHouseholdActivity,
     fetchLogs: fetchLogs,
