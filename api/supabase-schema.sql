@@ -37,6 +37,10 @@ ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS ghost_intervention_needed BOOLEAN
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS ghost_flagged_at TIMESTAMPTZ;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS ghost_cleared_at TIMESTAMPTZ;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS mobility_override_date DATE;
+-- High-Ticket Sniper — 1-on-1 Mastermind lead capture
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_status" TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_reason" TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_submitted_at" TIMESTAMPTZ;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (

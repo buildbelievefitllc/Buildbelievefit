@@ -236,6 +236,77 @@ var RENDER_ENGINE = (function() {
     return { ok: true, result: result };
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // HIGH-TICKET SNIPER — end-of-workout evaluation + lead capture
+  // ═══════════════════════════════════════════════════════════════
+  var SNIPER_MODAL_ID = 'high-ticket-sniper-modal';
+
+  // Called from CWO() after a workout is completed. Runs the diagnostic
+  // and, if a trigger fires, shows the Mastermind Roster invitation with
+  // the correct dynamic copy. Rate-limited per-user to avoid badgering
+  // someone who's already dismissed today.
+  async function checkSniperAtWorkoutComplete(uid) {
+    uid = uid || (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return null;
+    if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.evaluateSniperCriteria) return null;
+
+    // Don't re-pitch a user who already has a pending / accepted lead,
+    // or who has dismissed within the last 7 days.
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      var u = (d.u && d.u[uid]) || {};
+      if (u['1on1_lead_status'] === 'pending' || u['1on1_lead_status'] === 'accepted') return null;
+      var dismissedAt = u['sniper_dismissed_at'] ? Date.parse(u['sniper_dismissed_at']) : 0;
+      if (dismissedAt && (Date.now() - dismissedAt) < 7 * 24 * 60 * 60 * 1000) return null;
+    } catch(_) {}
+
+    var verdict = null;
+    try { verdict = await BBF_SYNC.evaluateSniperCriteria(uid); } catch(_) {}
+    if (!verdict || !verdict.trigger_upsell) return verdict;
+
+    // Defer the modal by 600ms so the Victory/achievement animation has
+    // time to breathe before the VIP invitation lands.
+    setTimeout(function() {
+      if (typeof openSniperModal === 'function') openSniperModal(verdict.reason);
+    }, 600);
+
+    return verdict;
+  }
+
+  async function applyForMastermindRoster() {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) { toast('\u26A0 No active user.'); return { ok: false, reason: 'no uid' }; }
+
+    var modal  = document.getElementById(SNIPER_MODAL_ID);
+    var reason = (modal && modal.dataset && modal.dataset.reason) || 'graduate';
+
+    if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.submitMastermindApplication) {
+      toast('\u26A0 Application engine offline.');
+      return { ok: false, reason: 'no sync' };
+    }
+
+    var result = await BBF_SYNC.submitMastermindApplication(uid, reason);
+    if (typeof closeSniperModal === 'function') closeSniperModal();
+    toast('\u2728 Application received. The Mastermind will review your clinical data.');
+    return { ok: result.ok !== false, result: result };
+  }
+
+  function dismissSniperInvitation() {
+    // Soft-dismiss — records a timestamp so the invitation is suppressed
+    // for a week rather than re-firing every completed workout.
+    try {
+      var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+      if (uid) {
+        var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+        if (!d.u) d.u = {};
+        if (!d.u[uid]) d.u[uid] = {};
+        d.u[uid]['sniper_dismissed_at'] = new Date().toISOString();
+        localStorage.setItem('bbf_v7', JSON.stringify(d));
+      }
+    } catch(_) {}
+    if (typeof closeSniperModal === 'function') closeSniperModal();
+  }
+
   // Auto-wire on DOM ready; also expose init() for late-rendered DOM.
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') {
@@ -254,6 +325,9 @@ var RENDER_ENGINE = (function() {
     restoreSovereignBaseline:     restoreSovereignBaseline,
     showGhostIntercept:           showGhostIntercept,
     hideGhostIntercept:           hideGhostIntercept,
+    checkSniperAtWorkoutComplete: checkSniperAtWorkoutComplete,
+    applyForMastermindRoster:     applyForMastermindRoster,
+    dismissSniperInvitation:      dismissSniperInvitation,
     WELCOME_MESSAGE:              WELCOME_MESSAGE
   };
 

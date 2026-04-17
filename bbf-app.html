@@ -345,6 +345,34 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .gp-cta:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,149,0,.55)}
 .gp-cta:active{transform:translateY(0)}
 
+/* ═══ HIGH-TICKET SNIPER — MASTERMIND ROSTER INVITATION ═══ */
+.hts-overlay{position:fixed;inset:0;background:rgba(0,0,0,.985);z-index:10000;display:none;align-items:center;justify-content:center;padding:24px;overflow-y:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.hts-overlay.on{display:flex;animation:htsReveal .55s cubic-bezier(.2,.8,.25,1)}
+@keyframes htsReveal{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.hts-box{background:linear-gradient(180deg,#050505 0%,#0a0a0a 50%,#050505 100%);border:1px solid rgba(212,175,55,.55);border-radius:18px;padding:3rem 2.5rem 2.5rem;max-width:520px;width:100%;position:relative;box-shadow:0 0 80px rgba(212,175,55,.22),inset 0 1px 0 rgba(212,175,55,.2)}
+.hts-box::before{content:'';position:absolute;top:-1px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,#D4AF37 50%,transparent)}
+.hts-box::after{content:'';position:absolute;bottom:-1px;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.4) 50%,transparent)}
+.hts-corner{position:absolute;width:22px;height:22px;border:1px solid #D4AF37;opacity:.8}
+.hts-corner.tl{top:14px;left:14px;border-right:none;border-bottom:none}
+.hts-corner.tr{top:14px;right:14px;border-left:none;border-bottom:none}
+.hts-corner.bl{bottom:14px;left:14px;border-right:none;border-top:none}
+.hts-corner.br{bottom:14px;right:14px;border-left:none;border-top:none}
+.hts-crest{display:flex;align-items:center;justify-content:center;gap:.55rem;margin-bottom:1.3rem}
+.hts-crest-line{flex:1;max-width:60px;height:1px;background:linear-gradient(90deg,transparent,#D4AF37)}
+.hts-crest-line.r{background:linear-gradient(90deg,#D4AF37,transparent)}
+.hts-crest-mark{font-family:var(--hb);font-size:.58rem;letter-spacing:4px;color:#D4AF37;text-transform:uppercase}
+.hts-badge{display:block;text-align:center;font-family:var(--hb);font-size:.62rem;letter-spacing:5px;color:#D4AF37;text-transform:uppercase;margin-bottom:.35rem}
+.hts-h{font-family:var(--hb);font-size:1.55rem;letter-spacing:2.5px;color:#fff;margin-bottom:.55rem;text-transform:uppercase;text-align:center;line-height:1.25;background:linear-gradient(180deg,#fff 0%,#D4AF37 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hts-sub{font-size:.68rem;letter-spacing:3px;color:rgba(212,175,55,.75);text-transform:uppercase;text-align:center;margin-bottom:1.6rem;font-family:var(--hb)}
+.hts-body{font-size:.92rem;line-height:1.65;color:#e6e6e6;margin-bottom:.4rem;text-align:center}
+.hts-sig{font-size:.7rem;letter-spacing:1.5px;color:rgba(212,175,55,.6);text-align:center;margin-bottom:1.8rem;font-style:italic}
+.hts-cta{width:100%;padding:1.05rem 1.2rem;background:linear-gradient(180deg,#E6C24F 0%,#D4AF37 50%,#A8862A 100%);color:#0a0a0a;border:1px solid #F2D769;border-radius:10px;font-family:var(--hb);font-size:.82rem;font-weight:700;letter-spacing:3px;cursor:pointer;transition:transform .18s,box-shadow .25s,filter .2s;box-shadow:0 6px 22px rgba(212,175,55,.38),inset 0 1px 0 rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:.9rem}
+.hts-cta:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(212,175,55,.55),inset 0 1px 0 rgba(255,255,255,.35);filter:brightness(1.04)}
+.hts-cta:active{transform:translateY(0)}
+.hts-cta:disabled{opacity:.6;cursor:wait;filter:none}
+.hts-dismiss{display:block;width:100%;background:transparent;border:none;color:rgba(212,175,55,.45);font-family:var(--bd);font-size:.72rem;letter-spacing:1.5px;cursor:pointer;padding:.5rem;transition:color .2s;text-transform:uppercase}
+.hts-dismiss:hover{color:rgba(212,175,55,.85)}
+
 /* ═══ GOLD SEEKER ════════════════════════════════════════════ */
 .gs-wrap{position:relative;margin-bottom:1rem}
 .gs-input{width:100%;background:#0a0a0a;border:1px solid rgba(212,175,55,.3);color:#fff;padding:.8rem 1rem .8rem 2.5rem;font-family:var(--bd);font-size:.88rem;font-weight:600;border-radius:10px;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
@@ -1064,6 +1092,26 @@ window.onload=function(){
     <div class="gp-h" id="gp-headline">CNS De-conditioning Detected</div>
     <div class="gp-body">Mastermind Alert: CNS De-conditioning detected. Your progressive overload has been temporarily paused to protect joint integrity. Tap below to initiate a Sovereign Recovery protocol and restore your baseline.</div>
     <button class="gp-cta" id="gp-restore-btn" type="button">&#x26A1; Restore Sovereign Baseline</button>
+  </div>
+</div>
+
+<!-- HIGH-TICKET SNIPER — Mastermind Roster invitation -->
+<div class="hts-overlay" id="high-ticket-sniper-modal" role="dialog" aria-modal="true" aria-labelledby="hts-headline">
+  <div class="hts-box">
+    <span class="hts-corner tl"></span><span class="hts-corner tr"></span>
+    <span class="hts-corner bl"></span><span class="hts-corner br"></span>
+    <div class="hts-crest">
+      <div class="hts-crest-line"></div>
+      <div class="hts-crest-mark">&#x2726;&nbsp;BBF&nbsp;&#x2726;</div>
+      <div class="hts-crest-line r"></div>
+    </div>
+    <div class="hts-badge">Private Invitation</div>
+    <div class="hts-h" id="hts-headline">Mastermind Protocol Complete</div>
+    <div class="hts-sub" id="hts-sub">The Laboratory &middot; By Invitation Only</div>
+    <div class="hts-body" id="hts-body">You have outgrown the automated blueprint. Tap below to apply for Akeem&rsquo;s Private 1-on-1 Clinical Roster.</div>
+    <div class="hts-sig">&mdash; Akeem, Head Coach</div>
+    <button class="hts-cta" id="hts-apply-btn" type="button">Apply for Mastermind Roster</button>
+    <button class="hts-dismiss" id="hts-dismiss-btn" type="button">Dismiss</button>
   </div>
 </div>
 
@@ -1891,6 +1939,45 @@ function closeGhostIntercept() {
   var el = document.getElementById('ghost-protocol-intercept');
   if (el) el.classList.remove('on');
 }
+// ─── HIGH-TICKET SNIPER INVITATION ───────────────────────
+// Dynamic copy driven by evaluateSniperCriteria's `reason`.
+var HTS_COPY = {
+  graduate: {
+    headline: 'Mastermind Protocol Complete',
+    sub:      'The Laboratory \u00B7 By Invitation Only',
+    body:     'Mastermind Protocol Complete. You have outgrown the automated blueprint. Tap below to apply for Akeem\u2019s Private 1-on-1 Clinical Roster.'
+  },
+  plateau: {
+    headline: 'Biomechanical Plateau Detected',
+    sub:      'Clinical Intervention Required',
+    body:     'Mastermind Alert: Biomechanical plateau detected. Automated programming is no longer sufficient. Tap below to apply for clinical 1-on-1 intervention.'
+  }
+};
+function openSniperModal(reason) {
+  var el = document.getElementById('high-ticket-sniper-modal');
+  if (!el) return;
+  var copy = HTS_COPY[reason] || HTS_COPY.graduate;
+  var h = document.getElementById('hts-headline');
+  var s = document.getElementById('hts-sub');
+  var b = document.getElementById('hts-body');
+  if (h) h.textContent = copy.headline;
+  if (s) s.textContent = copy.sub;
+  if (b) b.textContent = copy.body;
+  el.dataset.reason = reason || 'graduate';
+  el.classList.add('on');
+}
+function closeSniperModal() {
+  var el = document.getElementById('high-ticket-sniper-modal');
+  if (!el) return;
+  el.style.transition = 'opacity 320ms ease-out';
+  el.style.opacity    = '0';
+  setTimeout(function() {
+    el.classList.remove('on');
+    el.style.opacity    = '';
+    el.style.transition = '';
+  }, 320);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   var gpBtn = document.getElementById('gp-restore-btn');
   if (!gpBtn) return;
@@ -1914,6 +2001,39 @@ document.addEventListener('DOMContentLoaded', function() {
       gpBtn.disabled = false;
       gpBtn.innerHTML = originalLabel;
     });
+  });
+});
+
+// Sniper modal buttons — Apply for Mastermind Roster + Dismiss.
+document.addEventListener('DOMContentLoaded', function() {
+  var applyBtn   = document.getElementById('hts-apply-btn');
+  var dismissBtn = document.getElementById('hts-dismiss-btn');
+  if (applyBtn) applyBtn.addEventListener('click', function() {
+    applyBtn.disabled  = true;
+    var original       = applyBtn.innerHTML;
+    applyBtn.innerHTML = 'Submitting\u2026';
+    var p;
+    if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.applyForMastermindRoster) {
+      p = RENDER_ENGINE.applyForMastermindRoster();
+    } else {
+      closeSniperModal();
+      if (typeof TOAST === 'function') TOAST('\u26A0 Application engine offline.');
+      p = Promise.resolve({ ok: false });
+    }
+    Promise.resolve(p).then(function() {
+      applyBtn.disabled  = false;
+      applyBtn.innerHTML = original;
+    }).catch(function() {
+      applyBtn.disabled  = false;
+      applyBtn.innerHTML = original;
+    });
+  });
+  if (dismissBtn) dismissBtn.addEventListener('click', function() {
+    if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.dismissSniperInvitation) {
+      RENDER_ENGINE.dismissSniperInvitation();
+    } else {
+      closeSniperModal();
+    }
   });
 });
 
@@ -2538,6 +2658,12 @@ function CWO(day, dk) {
     if (stk > 0 && stk % 7 === 0) BBF_SYNC.incrementDiscipline(uid);
   }
   RH();
+  // High-Ticket Sniper — run the Mastermind-Roster diagnostic after the
+  // victory flow settles. If graduate or plateau fires, the VIP modal is
+  // shown (rate-limited per-user inside render-engine).
+  if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.checkSniperAtWorkoutComplete) {
+    setTimeout(function() { RENDER_ENGINE.checkSniperAtWorkoutComplete(uid); }, 3500);
+  }
 }
 
 // ─── NUTRITION ────────────────────────────────────────────

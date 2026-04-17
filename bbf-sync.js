@@ -919,6 +919,38 @@ var BBF_SYNC = (function() {
     };
   }
 
+  // Lead capture for the High-Ticket Sniper. Updates the user's bbf_users
+  // row with 1on1_lead_status='pending' plus the trigger reason. Local
+  // mirror first so the UI reflects the pending state instantly.
+  async function submitMastermindApplication(userId, reason) {
+    if (!userId) return { ok: false, error: 'no uid' };
+    var now        = new Date().toISOString();
+    var safeReason = (reason === 'graduate' || reason === 'plateau') ? reason : (reason || 'unspecified');
+
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!d.u) d.u = {};
+      if (!d.u[userId]) d.u[userId] = {};
+      d.u[userId]['1on1_lead_status']       = 'pending';
+      d.u[userId]['1on1_lead_reason']       = safeReason;
+      d.u[userId]['1on1_lead_submitted_at'] = now;
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(_) {}
+
+    try {
+      await supa('PATCH', 'bbf_users', {
+        '1on1_lead_status':       'pending',
+        '1on1_lead_reason':       safeReason,
+        '1on1_lead_submitted_at': now,
+        updated_at:               now
+      }, '?id=eq.' + encodeURIComponent(userId));
+      return { ok: true, uid: userId, reason: safeReason, submitted_at: now };
+    } catch(e) {
+      console.warn('BBF_SYNC submitMastermindApplication error:', e && e.message);
+      return { ok: false, uid: userId, reason: safeReason, submitted_at: now, error: e && e.message };
+    }
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -1080,6 +1112,7 @@ var BBF_SYNC = (function() {
     fetchUserProfile: fetchUserProfile,
     clearGhostIntervention: clearGhostIntervention,
     evaluateSniperCriteria: evaluateSniperCriteria,
+    submitMastermindApplication: submitMastermindApplication,
     classifyAxialLift: classifyAxialLift,
     AXIAL_LIFTS_EXACT: AXIAL_LIFTS_EXACT,
     GHOST_INACTIVITY_MS: GHOST_INACTIVITY_MS,
