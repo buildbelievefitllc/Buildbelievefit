@@ -613,6 +613,137 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   box-shadow: 0 10px 28px rgba(255,149,0,.6), 0 1px 0 rgba(255,255,255,.35) inset; }
 .bhm-mobility-btn:active { transform: translateY(0); filter: brightness(.97) }
 
+/* ═══ SOMATIC SYNC — readiness + override widget ═════════════ */
+.som-widget {
+  background: rgba(10,10,14,.58);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border: 1px solid rgba(34,197,94,.25);
+  border-radius: 14px;
+  padding: 1.1rem 1.1rem 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  box-shadow:
+    0 18px 40px -18px rgba(0,0,0,.75),
+    0 4px 12px -2px rgba(0,0,0,.55),
+    0 1px 0 rgba(255,255,255,.04) inset;
+  transition: border-color .35s ease, box-shadow .4s ease;
+}
+.som-widget.warn {
+  border-color: rgba(255,149,0,.5);
+  box-shadow:
+    0 22px 52px -18px rgba(255,149,0,.3),
+    0 6px 18px -4px rgba(255,149,0,.22),
+    0 0 0 1px rgba(255,149,0,.4) inset,
+    0 1px 0 rgba(255,255,255,.05) inset;
+}
+.som-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.85rem }
+.som-label { font-family:var(--hb); font-size:.64rem; letter-spacing:3.5px; color:#22c55e; text-transform:uppercase }
+.som-widget.warn .som-label { color:#FF9500 }
+.som-window { font-size:.58rem; letter-spacing:2px; color:var(--mut2); text-transform:uppercase; font-weight:700 }
+.som-score-row { display:flex; align-items:center; gap:1rem; margin-bottom:1rem }
+.som-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #86efac 0%, #22c55e 55%, #14833b 100%);
+  box-shadow: 0 0 0 4px rgba(34,197,94,.12), 0 0 22px rgba(34,197,94,.45);
+  flex-shrink: 0;
+  animation: somPulseGreen 2.4s ease-in-out infinite;
+}
+.som-widget.warn .som-dot {
+  background: radial-gradient(circle at 35% 35%, #FFCB7A 0%, #FF9500 55%, #A85E00 100%);
+  box-shadow: 0 0 0 4px rgba(255,149,0,.14), 0 0 24px rgba(255,149,0,.55);
+  animation: somPulseAmber 1.8s ease-in-out infinite;
+}
+@keyframes somPulseGreen {
+  0%,100% { box-shadow: 0 0 0 4px rgba(34,197,94,.1), 0 0 18px rgba(34,197,94,.35); transform: scale(1); }
+  50%     { box-shadow: 0 0 0 6px rgba(34,197,94,.22), 0 0 28px rgba(34,197,94,.6);  transform: scale(1.06); }
+}
+@keyframes somPulseAmber {
+  0%,100% { box-shadow: 0 0 0 4px rgba(255,149,0,.12), 0 0 20px rgba(255,149,0,.45); transform: scale(1); }
+  50%     { box-shadow: 0 0 0 6px rgba(255,149,0,.28), 0 0 32px rgba(255,149,0,.7);  transform: scale(1.1);  }
+}
+.som-score-n {
+  font-family: var(--hb); font-size: 2.15rem; line-height: 1;
+  color: #22c55e; min-width: 92px;
+}
+.som-widget.warn .som-score-n { color: #FF9500 }
+.som-score-unit { font-family: var(--hb); font-size: .9rem; color: inherit; letter-spacing: 1px; margin-left: 2px; opacity: .75 }
+.som-score-meta { flex: 1; display: flex; flex-direction: column; gap: .3rem }
+.som-score-bar { position:relative; height:6px; border-radius:3px; overflow:hidden; background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.06) }
+.som-score-fill { height:100%; border-radius:3px; background: linear-gradient(90deg,#86efac,#22c55e); transition: width .55s cubic-bezier(.2,.8,.25,1), background .4s }
+.som-widget.warn .som-score-fill { background: linear-gradient(90deg,#FFCB7A,#FF9500) }
+.som-score-threshold { position:absolute; top:-2px; bottom:-2px; width:2px; left:60%; background: rgba(255,149,0,.55); box-shadow: 0 0 6px rgba(255,149,0,.5) }
+.som-score-label { font-size:.58rem; letter-spacing:2px; color:var(--mut2); text-transform:uppercase; font-weight:700 }
+.som-inputs {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .9rem .8rem;
+  padding-top: .9rem; border-top: 1px dashed rgba(255,255,255,.06);
+}
+.som-input-row { display: flex; flex-direction: column; gap: .32rem }
+.som-input-row.full { grid-column: 1 / -1 }
+.som-input-lbl {
+  display: flex; justify-content: space-between;
+  font-size: .58rem; letter-spacing: 2px; color: var(--mut2);
+  text-transform: uppercase; font-weight: 700;
+}
+.som-input-lbl b { color: #D4AF37; font-family: var(--hb); font-size: .78rem; letter-spacing: 1px }
+.som-range {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+  background: linear-gradient(90deg, #6a0dad 0%, #D4AF37 100%);
+  border-radius: 3px; outline: none;
+}
+.som-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
+  border-radius: 50%; background: #fff; cursor: pointer;
+  border: 2px solid #D4AF37;
+  box-shadow: 0 0 10px rgba(212,175,55,.55);
+}
+.som-range::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%; background: #fff; cursor: pointer;
+  border: 2px solid #D4AF37; box-shadow: 0 0 10px rgba(212,175,55,.55);
+}
+.som-fast-input {
+  width: 100%; background: rgba(0,0,0,.35);
+  border: 1px solid rgba(212,175,55,.3);
+  color: #fff; font-family: var(--bd); font-size: .92rem; font-weight: 600;
+  padding: .55rem .75rem; border-radius: 8px; outline: none;
+  text-align: center;
+}
+.som-fast-input:focus { border-color: #D4AF37; box-shadow: 0 0 0 3px rgba(212,175,55,.15) }
+.som-save-btn {
+  display: block; width: 100%; margin-top: .9rem; padding: .85rem 1rem;
+  background: linear-gradient(180deg,#F2D769 0%,#E6C24F 25%,#D4AF37 55%,#A8862A 100%);
+  border: 1px solid #F2D769; color: #0a0a0a;
+  border-radius: 10px; font-family: var(--hb); font-size: .78rem;
+  letter-spacing: 2.5px; font-weight: 700; cursor: pointer; text-transform: uppercase;
+  box-shadow: 0 6px 20px rgba(212,175,55,.4), 0 1px 0 rgba(255,255,255,.25) inset;
+  transition: transform .18s, box-shadow .25s, filter .2s;
+}
+.som-save-btn:hover { transform: translateY(-1px); filter: brightness(1.05);
+  box-shadow: 0 10px 28px rgba(212,175,55,.55), 0 1px 0 rgba(255,255,255,.35) inset; }
+.som-save-btn:active { transform: translateY(0); filter: brightness(.97) }
+.som-save-btn:disabled { opacity: .6; cursor: wait }
+.som-override-banner {
+  display: none; margin-top: .9rem; padding: .85rem 1rem;
+  background: linear-gradient(180deg, rgba(255,149,0,.12), rgba(255,149,0,.04));
+  border: 1px solid rgba(255,149,0,.4); border-left: 3px solid #FF9500;
+  border-radius: 10px;
+  font-size: .78rem; line-height: 1.55; color: #FFCB7A;
+}
+.som-widget.warn .som-override-banner { display: block }
+.som-override-banner b { color: #FF9500; font-family: var(--hb); letter-spacing: 1.5px }
+
+/* Somatic override banner inside RDW (today's workout) */
+.som-rdw-banner {
+  background: linear-gradient(180deg, rgba(255,149,0,.1), rgba(255,149,0,.02));
+  border: 1px solid rgba(255,149,0,.4); border-left: 3px solid #FF9500;
+  border-radius: 0 10px 10px 0; padding: .8rem 1rem; margin-bottom: .8rem;
+}
+.som-rdw-banner .srh {
+  display: flex; align-items: center; gap: .5rem; margin-bottom: .3rem;
+  font-family: var(--hb); font-size: .72rem; letter-spacing: 2.5px; color: #FF9500; text-transform: uppercase;
+}
+.som-rdw-banner .srt { font-size: .78rem; color: #ccc; line-height: 1.5 }
+
 </style>
 <script src="bbf-lang.js"></script>
 <script src="bbf-sync.js"></script>
@@ -856,6 +987,39 @@ window.onload=function(){
         <div class="bhm-mobility-wrap" id="bhm-mobility-wrap">
           <div class="bhm-warn-text" id="bhm-warn-text">&#x26A0; CNS friction elevated. Progressive axial loading exceeds safe tonnage for this 4-week block.</div>
           <button class="bhm-mobility-btn" id="bhm-mobility-btn" type="button">&#x1F9B5; Prescribed Occupational Mobility</button>
+        </div>
+      </div>
+      <!-- SOMATIC MAP — Somatic Sync (Phase 2) -->
+      <div id="somatic-map" class="som-widget" style="display:none">
+        <div class="som-head">
+          <div class="som-label">&#x1F9A0; Somatic Map</div>
+          <div class="som-window">Today &middot; Readiness Sync</div>
+        </div>
+        <div class="som-score-row">
+          <div class="som-dot" id="som-dot" title="Readiness indicator"></div>
+          <div class="som-score-n"><span id="som-score-n">&mdash;</span><span class="som-score-unit">%</span></div>
+          <div class="som-score-meta">
+            <div class="som-score-bar"><div class="som-score-fill" id="som-score-fill" style="width:0%"></div><div class="som-score-threshold"></div></div>
+            <div class="som-score-label" id="som-score-label">Somatic Readiness &middot; threshold 60%</div>
+          </div>
+        </div>
+        <div class="som-inputs">
+          <div class="som-input-row">
+            <div class="som-input-lbl"><span>Sleep Quality</span><b id="som-val-sleep">5</b></div>
+            <input type="range" class="som-range" id="som-sleep" min="1" max="10" step="1" value="5">
+          </div>
+          <div class="som-input-row">
+            <div class="som-input-lbl"><span>Cognitive Load</span><b id="som-val-cog">5</b></div>
+            <input type="range" class="som-range" id="som-cog" min="1" max="10" step="1" value="5">
+          </div>
+          <div class="som-input-row full">
+            <div class="som-input-lbl"><span>Fasting Window</span><b><span id="som-val-fast">0</span>h</b></div>
+            <input type="number" class="som-fast-input" id="som-fast" min="0" max="48" step="0.5" value="0" inputmode="decimal" placeholder="e.g. 16">
+          </div>
+        </div>
+        <button class="som-save-btn" id="som-save-btn" type="button">&#x269B; Sync Somatic Readiness</button>
+        <div class="som-override-banner" id="som-override-banner">
+          <b>&#x26A1; Somatic Override Active</b> &mdash; intensity capped at 70% 1RM (from 85%), volume down-regulated by 1 set per exercise to protect CNS.
         </div>
       </div>
       <!-- PLAYER CARD -->
@@ -1962,6 +2126,7 @@ function RH() {
   }
   renderCNSHeatmap();
   renderBiomechHeatMap();
+  renderSomaticMap();
   renderHouseholdFeed();
   checkIncomingReactions();
   renderPlayerCard();
@@ -2581,6 +2746,101 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+// ─── SOMATIC MAP (Somatic Sync — Phase 2) ──────────────────────
+function _somPaint(state) {
+  var wrap = document.getElementById('somatic-map');
+  if (!wrap || !state) return;
+  wrap.style.display = 'block';
+  var warn = !!state.override_active || (state.score != null && state.score < 60);
+  wrap.classList.toggle('warn', warn);
+  var score = Math.round((state.score || 0) * 10) / 10;
+  var n = document.getElementById('som-score-n');
+  if (n) n.textContent = score;
+  var fill = document.getElementById('som-score-fill');
+  if (fill) fill.style.width = Math.max(2, Math.min(100, score)) + '%';
+  var lbl = document.getElementById('som-score-label');
+  if (lbl) {
+    var tier = state.tier || (score >= 80 ? 'optimal' : score >= 60 ? 'ready' : score >= 40 ? 'caution' : 'depleted');
+    lbl.textContent = 'Somatic Readiness \u00B7 ' + tier.toUpperCase() + ' \u00B7 threshold 60%';
+  }
+}
+function _somApplyCached() {
+  try {
+    var uid = VC || CU; if (!uid) return;
+    var d = GD(); var u = d.u[uid] || {};
+    // Pre-fill sliders from stored values or today's readiness modal sleep.
+    var sleep = (u.somatic_sleep_quality != null) ? u.somatic_sleep_quality
+              : ((u.daily_readiness && u.daily_readiness[today()]) || {}).sleep || 5;
+    var cog   = (u.somatic_cognitive_load != null) ? u.somatic_cognitive_load : 5;
+    var fast  = (u.somatic_fasting_hours != null) ? u.somatic_fasting_hours : 0;
+    var sEl = document.getElementById('som-sleep');
+    var cEl = document.getElementById('som-cog');
+    var fEl = document.getElementById('som-fast');
+    if (sEl) { sEl.value = sleep; document.getElementById('som-val-sleep').textContent = sleep; }
+    if (cEl) { cEl.value = cog;   document.getElementById('som-val-cog').textContent   = cog; }
+    if (fEl) { fEl.value = fast;  document.getElementById('som-val-fast').textContent  = fast; }
+    if (u.somatic_readiness_score != null) {
+      _somPaint({ score: u.somatic_readiness_score, override_active: u.somatic_override_active, tier: u.somatic_tier });
+    } else {
+      document.getElementById('somatic-map').style.display = 'block';
+    }
+  } catch(e) {}
+}
+function renderSomaticMap() {
+  var uid = VC || CU;
+  if (!uid) return;
+  if (CU === 'akeem' && VC === null) return;
+  _somApplyCached();
+  // On first render, quietly recompute from current cached inputs so the
+  // score reflects any CNS-friction or activity changes since the last
+  // save. No PATCH-storm: calculate uses cached slider values as-is.
+  if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.calculateSomaticReadiness) {
+    BBF_SYNC.calculateSomaticReadiness(uid).then(function(state){
+      if (state) _somPaint(state);
+    }).catch(function(){});
+  }
+}
+function _somSubmit() {
+  var uid = VC || CU; if (!uid) return;
+  var btn = document.getElementById('som-save-btn');
+  var orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '\u26A1 Syncing...'; }
+  var inputs = {
+    sleep_quality:  parseInt(document.getElementById('som-sleep').value, 10) || 5,
+    cognitive_load: parseInt(document.getElementById('som-cog').value, 10) || 5,
+    fasting_hours:  parseFloat(document.getElementById('som-fast').value) || 0
+  };
+  var p = (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.calculateSomaticReadiness)
+    ? BBF_SYNC.calculateSomaticReadiness(uid, inputs)
+    : Promise.resolve(null);
+  Promise.resolve(p).then(function(state){
+    if (state) _somPaint(state);
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    if (typeof TOAST === 'function') {
+      var s = state && Math.round((state.score||0));
+      TOAST('\u269B Somatic ' + (state && state.tier ? state.tier.toUpperCase() : 'SYNCED') + ' \u00B7 ' + s + '%');
+    }
+    // Repaint today's workout so the override banner/prescription reflects new state.
+    if (typeof RDW === 'function') { try { RDW(); } catch(_) {} }
+  }).catch(function(){
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    if (typeof TOAST === 'function') TOAST('\u26A0 Somatic sync failed.');
+  });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var sSleep = document.getElementById('som-sleep');
+  var sCog   = document.getElementById('som-cog');
+  var sFast  = document.getElementById('som-fast');
+  var vSleep = document.getElementById('som-val-sleep');
+  var vCog   = document.getElementById('som-val-cog');
+  var vFast  = document.getElementById('som-val-fast');
+  if (sSleep && vSleep) sSleep.addEventListener('input', function(){ vSleep.textContent = this.value; });
+  if (sCog   && vCog)   sCog.addEventListener('input',   function(){ vCog.textContent   = this.value; });
+  if (sFast  && vFast)  sFast.addEventListener('input',  function(){ vFast.textContent  = this.value; });
+  var btn = document.getElementById('som-save-btn');
+  if (btn) btn.addEventListener('click', _somSubmit);
+});
+
 // ─── HOUSEHOLD FEED ──────────────────────────────────────
 function renderHouseholdFeed() {
   var uid = VC || CU;
@@ -2824,6 +3084,16 @@ function RDW() {
   var h = '<div class="dh' + dhClass + '"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
     '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>';
   h += getReadinessBannerHTML(readyScore);
+  // Somatic Override banner — triggered when today's Somatic Readiness < 60%
+  var somOverride = (d.u[uid] || {}).somatic_override_active === true &&
+                    (d.u[uid] || {}).somatic_override_date === today();
+  if (somOverride) {
+    var somScore = Math.round(((d.u[uid] || {}).somatic_readiness_score || 0));
+    h += '<div class="som-rdw-banner">' +
+      '<div class="srh"><span>\u269B</span><span>SOMATIC OVERRIDE \u00B7 ' + somScore + '%</span></div>' +
+      '<div class="srt">CNS-protective cap: intensity prescriptions capped at 70% 1RM today (from 85%). Drop 1 working set per exercise. Resume full protocol when Somatic Readiness &#x2265; 60%.</div>' +
+      '</div>';
+  }
   // Sovereign Shift Protocol — intercept exercises if CNS depleted
   var userCNS = (d.u[uid] || {}).cns_status;
   var cnsToday = (d.u[uid] || {}).cns_date === today();

@@ -1143,6 +1143,180 @@ var BBF_SYNC = (function() {
     };
   }
 
+  // ─── SOMATIC SYNC ────────────────────────────────────────
+  // Cross-reference lifestyle inputs (sleep, cognitive load, fasting
+  // window) with the Kinematic Auditor's CNS-friction state and the
+  // user's recent session cadence. Produces a 0–100 Somatic Readiness
+  // Score. If < 60, somatic_override_active is flipped, prescribing a
+  // 70% (vs 85%) intensity cap and a -1 set volume cut for the day.
+  //
+  // Component weights (sum 100):
+  //   sleep_quality   1–10  → 30 pts
+  //   cognitive_load  1–10  → 25 pts  (inverted; 1=best)
+  //   fasting_hours   0–36+ → 20 pts  (bell curve, peak 14–16h)
+  //   CNS friction                → 15 pts (0 if Phase 1 warning active)
+  //   7-day adherence             → 10 pts
+  var SOMATIC_OVERRIDE_THRESHOLD = 60;
+  var SOMATIC_ONE_RM_OVERRIDE_PCT = 70; // caps 85% prescription
+  var SOMATIC_VOLUME_DELTA = -1;        // drop 1 working set per exercise
+
+  function somaticFastingQuality(h) {
+    if (!(h > 0)) return 0.6;
+    if (h <= 12) return 0.6 + (h / 12) * 0.3;       // 0.6 → 0.9
+    if (h <= 16) return 0.9 + ((h - 12) / 4) * 0.1; // 0.9 → 1.0
+    if (h <= 20) return 1.0 - ((h - 16) / 4) * 0.15; // 1.0 → 0.85
+    if (h <= 36) return 0.85 - ((h - 20) / 16) * 0.35; // 0.85 → 0.50
+    return 0.30;
+  }
+
+  async function calculateSomaticReadiness(userId, inputs) {
+    if (!userId) return { score: 0, override_active: false, error: 'no uid' };
+    inputs = inputs || {};
+    var nowIso   = new Date().toISOString();
+    var todayKey = nowIso.slice(0, 10);
+
+    // Load profile (cloud + localStorage merge).
+    var profile = null;
+    try { profile = await fetchUserProfile(userId); } catch(_) {}
+    try {
+      var cached = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (cached.u && cached.u[userId]) profile = Object.assign({}, cached.u[userId], profile || {});
+    } catch(_) {}
+    profile = profile || {};
+
+    // Coalesce inputs: explicit > cached > today's readiness sleep > defaults.
+    var existingReadiness = (profile.daily_readiness || {})[todayKey] || {};
+    var fastingHours    = numOrNull(inputs.fasting_hours);
+    var cognitiveLoad   = numOrNull(inputs.cognitive_load);
+    var sleepQuality    = numOrNull(inputs.sleep_quality);
+    if (fastingHours  === null) fastingHours  = numOrNull(profile.somatic_fasting_hours);
+    if (cognitiveLoad === null) cognitiveLoad = numOrNull(profile.somatic_cognitive_load);
+    if (sleepQuality  === null) sleepQuality  = numOrNull(profile.somatic_sleep_quality);
+    if (sleepQuality  === null) sleepQuality  = numOrNull(existingReadiness.sleep);
+    if (fastingHours  === null) fastingHours  = 0;
+    if (cognitiveLoad === null) cognitiveLoad = 5;
+    if (sleepQuality  === null) sleepQuality  = 5;
+
+    fastingHours  = Math.max(0, Math.min(48, fastingHours));
+    cognitiveLoad = Math.max(1, Math.min(10, cognitiveLoad));
+    sleepQuality  = Math.max(1, Math.min(10, sleepQuality));
+
+    // Component scoring.
+    var sleepComp = (sleepQuality / 10) * 30;
+    var cogComp   = ((11 - cognitiveLoad) / 10) * 25;
+    var fastComp  = somaticFastingQuality(fastingHours) * 20;
+    var cnsComp   = profile.cns_friction_warning ? 0 : 15;
+
+    // 7-day adherence component.
+    var sessions7d = 0;
+    try {
+      var logs = await fetchLogs(userId) || [];
+      var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      var seenDates = {};
+      for (var i = 0; i < logs.length; i++) {
+        var L = logs[i];
+        if (!L || !L.date) continue;
+        if (L.type && L.type !== 'strength') continue;
+        var ms = Date.parse(L.date);
+        if (!isFinite(ms) || ms < cutoff) continue;
+        seenDates[L.date] = true;
+      }
+      sessions7d = Object.keys(seenDates).length;
+    } catch(_) {}
+    var activityComp = Math.max(0, Math.min(1, sessions7d / 4)) * 10;
+
+    var score = sleepComp + cogComp + fastComp + cnsComp + activityComp;
+    score = Math.round(score * 10) / 10;
+    if (score > 100) score = 100;
+    if (score < 0)   score = 0;
+
+    var overrideActive = score < SOMATIC_OVERRIDE_THRESHOLD;
+    var tier = score >= 80 ? 'optimal'
+             : score >= 60 ? 'ready'
+             : score >= 40 ? 'caution'
+             : 'depleted';
+
+    // Mirror to localStorage for instant UI repaint.
+    try {
+      var dLocal = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!dLocal.u) dLocal.u = {};
+      if (!dLocal.u[userId]) dLocal.u[userId] = {};
+      dLocal.u[userId].somatic_fasting_hours   = fastingHours;
+      dLocal.u[userId].somatic_cognitive_load  = cognitiveLoad;
+      dLocal.u[userId].somatic_sleep_quality   = sleepQuality;
+      dLocal.u[userId].somatic_readiness_score = score;
+      dLocal.u[userId].somatic_override_active = overrideActive;
+      dLocal.u[userId].somatic_override_date   = overrideActive ? todayKey : null;
+      dLocal.u[userId].somatic_tier            = tier;
+      dLocal.u[userId].somatic_last_logged     = nowIso;
+      dLocal.u[userId].somatic_components      = {
+        sleep: sleepComp, cognition: cogComp, fasting: fastComp,
+        cns: cnsComp, activity: activityComp
+      };
+      localStorage.setItem('bbf_v7', JSON.stringify(dLocal));
+    } catch(_) {}
+
+    // Persist to Supabase.
+    try {
+      await supa('PATCH', 'bbf_users', {
+        somatic_fasting_hours:   fastingHours,
+        somatic_cognitive_load:  cognitiveLoad,
+        somatic_sleep_quality:   sleepQuality,
+        somatic_readiness_score: score,
+        somatic_override_active: overrideActive,
+        somatic_override_date:   overrideActive ? todayKey : null,
+        somatic_tier:            tier,
+        somatic_last_logged:     nowIso,
+        updated_at:              nowIso
+      }, '?id=eq.' + encodeURIComponent(userId));
+    } catch(e) {
+      console.warn('BBF_SYNC calculateSomaticReadiness patch error:', e && e.message);
+    }
+
+    // Also log a history row in bbf_logs for longitudinal analysis.
+    try {
+      await supa('POST', 'bbf_logs', {
+        user_id:   userId,
+        date:      todayKey,
+        type:      'somatic',
+        intensity: String(score),
+        notes:     'Somatic ' + tier.toUpperCase() + ' | sleep=' + sleepQuality + ' cog=' + cognitiveLoad + ' fast=' + fastingHours + 'h',
+        logged_at: nowIso,
+        logged_by: userId
+      });
+    } catch(_) {}
+
+    return {
+      score:             score,
+      override_active:   overrideActive,
+      override_date:     overrideActive ? todayKey : null,
+      threshold:         SOMATIC_OVERRIDE_THRESHOLD,
+      tier:              tier,
+      one_rm_override_pct: SOMATIC_ONE_RM_OVERRIDE_PCT,
+      volume_delta:      SOMATIC_VOLUME_DELTA,
+      inputs: {
+        fasting_hours:   fastingHours,
+        cognitive_load:  cognitiveLoad,
+        sleep_quality:   sleepQuality
+      },
+      components: {
+        sleep:     sleepComp,
+        cognition: cogComp,
+        fasting:   fastComp,
+        cns:       cnsComp,
+        activity:  activityComp
+      },
+      sessions_7d:       sessions7d,
+      computed_at:       nowIso
+    };
+  }
+
+  function numOrNull(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = parseFloat(v);
+    return isFinite(n) ? n : null;
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -1306,8 +1480,13 @@ var BBF_SYNC = (function() {
     evaluateSniperCriteria: evaluateSniperCriteria,
     submitMastermindApplication: submitMastermindApplication,
     runKinematicAudit: runKinematicAudit,
+    calculateSomaticReadiness: calculateSomaticReadiness,
+    somaticFastingQuality: somaticFastingQuality,
     KINEMATIC_TIER_BUDGET: KINEMATIC_TIER_BUDGET,
     KINEMATIC_THRESHOLD: KINEMATIC_THRESHOLD,
+    SOMATIC_OVERRIDE_THRESHOLD: SOMATIC_OVERRIDE_THRESHOLD,
+    SOMATIC_ONE_RM_OVERRIDE_PCT: SOMATIC_ONE_RM_OVERRIDE_PCT,
+    SOMATIC_VOLUME_DELTA: SOMATIC_VOLUME_DELTA,
     classifyAxialLift: classifyAxialLift,
     AXIAL_LIFTS_EXACT: AXIAL_LIFTS_EXACT,
     GHOST_INACTIVITY_MS: GHOST_INACTIVITY_MS,

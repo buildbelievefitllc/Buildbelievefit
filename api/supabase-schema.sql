@@ -45,6 +45,15 @@ ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_submitted_at" TIMESTAM
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS cns_friction_warning BOOLEAN DEFAULT false;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS cns_friction_score NUMERIC;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS cns_friction_updated_at TIMESTAMPTZ;
+-- Somatic Sync — lifestyle/readiness inputs + CNS override
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_fasting_hours NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_cognitive_load INT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_sleep_quality INT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_readiness_score NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_override_active BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_override_date DATE;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_tier TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_last_logged TIMESTAMPTZ;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (
