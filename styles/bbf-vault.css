@@ -1,0 +1,151 @@
+/* ═══════════════════════════════════════════════════════════════════
+   BBF-VAULT.CSS — Phase 1 of the Private App Vault Mode.
+   Atmosphere + vertical gold light-beam + vault-card frame for the
+   #auth screen in bbf-app.html. All styles are SCOPED to #auth so
+   no other screen (home/workout/nutrition/profile/trainer views)
+   is affected. Zero DOM changes — targets existing IDs + classes
+   so form actions, name attributes, and submit handlers remain
+   exactly as shipped.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── GLOBAL BODY RESET for bbf-app.html ───────────────────────────
+   bbf-tokens.css globally paints body with the Track 1 atmosphere +
+   4% film grain body::after. That's correct for the public landing
+   page but would bleed across every screen of the private app
+   (home/workout/nutrition/profile/trainer roster). We suppress it
+   here and then re-apply the atmosphere ONLY to #auth via the
+   scoped rules below. bbf-vault.css is only linked from bbf-app.html,
+   so this reset is contained to the app context. */
+html, body {
+  background: var(--blk) !important;        /* preserves the legacy flat-black appearance of every non-auth screen */
+  background-attachment: initial !important;
+  min-height: 0;
+}
+body::after { display: none !important; }
+
+/* ── ATMOSPHERE — scoped to the auth screen only ──────────────── */
+#auth {
+  /* Replace the legacy flat background (var(--blk)) with the
+     three-layer atmospheric stack from Track 1 Phase 1. Scoped by
+     #auth selector so bbf-app.html's other screens stay untouched. */
+  background:
+    conic-gradient(from 165deg at 88% -2%, rgba(245, 200, 0, 0.07) 0deg, rgba(245, 200, 0, 0) 95deg, rgba(245, 200, 0, 0) 360deg),
+    radial-gradient(ellipse 130% 95% at 50% 28%, var(--bbf-purple-800) 0%, var(--bbf-purple-950) 68%, var(--bbf-purple-950) 100%),
+    var(--bbf-purple-950) !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+/* ── VERTICAL GOLD LIGHT-BEAM — behind the vault card ─────────── */
+/* A soft, wide gold column bloom sitting centred behind the form
+   box. Reads as "sovereign light cast on the clearance terminal."
+   8% alpha at the core, 85px blur, zero pointer interaction. */
+#auth::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 380px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(180deg,
+      rgba(245,200,0,0)   0%,
+      rgba(245,200,0,.08) 28%,
+      rgba(245,200,0,.08) 72%,
+      rgba(245,200,0,0)   100%);
+  filter: blur(85px);
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── FILM GRAIN — scoped to #auth, 4% overlay ─────────────────── */
+/* Inline SVG turbulence, identical technique to the global
+   bbf-tokens.css body::after grain but constrained to the auth
+   screen so the rest of the app stays un-textured. */
+#auth::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
+}
+
+/* Make sure the atop + abox sit above the atmospheric pseudo-layers. */
+#auth .atop,
+#auth .abox { position: relative; z-index: 2; }
+
+/* The existing .atop has its own purple-to-black gradient that
+   fights the new atmosphere. Drop it back to transparent so the
+   atmosphere reads through. (Phase 2 will restyle this header
+   block — for now we just stop it from blocking the gradient.) */
+#auth .atop {
+  background: transparent !important;
+  padding-bottom: 1.5rem;
+}
+
+/* ── VAULT CARD — the .abox upgrade ───────────────────────────── */
+/* We STYLE the existing .abox instead of wrapping it in a new
+   element, so every id and handler inside it stays exactly as
+   shipped. .abox wraps the tab row + both form panes. */
+#auth .abox {
+  background: linear-gradient(160deg, var(--bbf-purple-800) 0%, var(--bbf-purple-900) 60%, var(--bbf-purple-950) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: var(--bbf-radius-2xl);
+  padding: 2.25rem 1.75rem 2rem;
+  box-shadow:
+    /* Soft outer shadow — weight without harshness */
+    0 30px 70px -24px rgba(0, 0, 0, 0.7),
+    0 12px 28px -8px rgba(0, 0, 0, 0.55),
+    /* Faint inner gold glow — the vault is warm on the inside */
+    inset 0 0 48px rgba(245, 200, 0, 0.06),
+    /* Top hairline highlight — suggests bevelled metal edge */
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    /* Gold inner rim (1px equivalent via inset shadow) */
+    inset 0 0 0 1px rgba(212, 175, 55, 0.08);
+  max-width: 440px;
+  margin: 0 auto 2.5rem;
+  width: calc(100% - 2rem);
+  position: relative;
+}
+/* Gold micro-sheen along the top edge — reads as clearance-terminal
+   crown light. Drawn via an inset top hairline that fades at the
+   edges so it doesn't look like a hard border. */
+#auth .abox::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 16%;
+  right: 16%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,.55) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ── REDUCED-MOTION / LOW-END GPU CONSIDERATION ─────────────── */
+/* The 85px filter-blur on ::before is the most expensive rule in
+   this file. On screens under 480px we drop it significantly to
+   protect paint performance on low-end mobile (Phase 8 will extend
+   this; for Phase 1 we ship the defensive version now). */
+@media (max-width: 480px) {
+  #auth::before {
+    width: 280px;
+    filter: blur(55px);
+    opacity: 0.85;
+  }
+  #auth .abox {
+    padding: 1.75rem 1.25rem 1.6rem;
+    border-radius: var(--bbf-radius-xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing animates in Phase 1; this block is scaffold for
+     Phases 2-7 which will introduce stagger, pulse, shake, etc. */
+}
