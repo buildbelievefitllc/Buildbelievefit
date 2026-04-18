@@ -213,6 +213,20 @@ h1.megah .slash{color:var(--violet2)}
 .sig-role{font-family:var(--mn);font-size:.7rem;color:#6b5291;letter-spacing:.1em;margin-top:.2rem;text-transform:uppercase}
 .sig-stamp{background:var(--violet);color:var(--volt);font-family:var(--hd);font-size:.7rem;letter-spacing:.08em;padding:.55rem .85rem;border-radius:8px;text-transform:uppercase}
 
+/* VALIDATION PAYLOAD — Before / After */
+.coach-photo-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;z-index:2;border-radius:inherit}
+.transform-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.8rem 0 1.4rem;max-width:560px}
+.xform-frame{position:relative;background:var(--ink);border:1.5px solid var(--ink);border-radius:14px;overflow:hidden;aspect-ratio:3/4;box-shadow:0 8px 24px rgba(6,6,6,.45), inset 0 0 0 1px rgba(245,200,0,.06);transition:border-color .3s, box-shadow .3s, transform .3s}
+.xform-frame::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(245,200,0,.08);z-index:3}
+.xform-frame:hover{border-color:var(--volt);box-shadow:0 12px 36px rgba(6,6,6,.55), 0 0 32px rgba(245,200,0,.22), inset 0 0 0 1px rgba(245,200,0,.28);transform:translateY(-3px)}
+.xform-frame img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;filter:grayscale(18%) brightness(.92);transition:filter .4s}
+.xform-frame.xform-after img{filter:grayscale(0%) brightness(1)}
+.xform-frame:hover img{filter:grayscale(0%) brightness(1)}
+.xform-label{position:absolute;top:.7rem;left:.7rem;z-index:4;font-family:var(--mn);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--volt);background:rgba(6,6,6,.72);border:1px solid rgba(245,200,0,.35);padding:.28rem .55rem;border-radius:999px;backdrop-filter:blur(4px)}
+.xform-frame.xform-after .xform-label{color:var(--ink);background:var(--volt);border-color:var(--volt)}
+.xform-cap{position:absolute;bottom:.6rem;left:.7rem;right:.7rem;z-index:4;font-family:var(--mn);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(246,242,234,.75);background:linear-gradient(180deg,transparent,rgba(6,6,6,.85));padding:.55rem .55rem .45rem;border-radius:0 0 12px 12px;text-align:center;line-height:1.3}
+@media(max-width:480px){.transform-grid{grid-template-columns:1fr}}
+
 /* TIERS */
 #tiers{background:var(--ink);padding-top:7rem}
 .tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
@@ -356,6 +370,17 @@ h1.megah .slash{color:var(--violet2)}
 .c-link{display:inline-flex;align-items:center;gap:.6rem;background:rgba(18,8,33,.35);border:1px solid rgba(242,255,62,.25);color:var(--paper);font-family:var(--hd);font-size:.8rem;letter-spacing:.08em;padding:.9rem 1.3rem;border-radius:12px;transition:background .2s,border-color .2s;text-transform:uppercase}
 .c-link:hover{background:rgba(18,8,33,.6);border-color:var(--volt);color:var(--volt)}
 .c-link .glyph{font-family:var(--mn);font-size:.9rem}
+.contact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-top:2.5rem;max-width:900px;margin-left:auto;margin-right:auto}
+.c-channel{display:flex;flex-direction:column;gap:.45rem;padding:1.3rem 1.1rem;background:rgba(6,6,6,.55);border:1px solid rgba(245,200,0,.22);border-radius:14px;text-align:left;transition:border-color .25s, background .25s, transform .2s, box-shadow .25s;backdrop-filter:blur(8px)}
+.c-channel:hover{border-color:var(--volt);background:rgba(6,6,6,.75);transform:translateY(-2px);box-shadow:0 14px 40px rgba(245,200,0,.18)}
+.c-channel-glyph{font-size:1.3rem;line-height:1}
+.c-channel-lbl{font-family:var(--mn);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--volt)}
+.c-channel-val{font-family:var(--hd);font-size:.95rem;letter-spacing:.02em;line-height:1.25;color:var(--paper);text-transform:none;word-break:break-word}
+.c-channel-cta{background:var(--volt);border-color:var(--volt)}
+.c-channel-cta .c-channel-lbl,.c-channel-cta .c-channel-val{color:var(--ink)}
+.c-channel-cta:hover{background:var(--volt);box-shadow:0 16px 46px rgba(245,200,0,.35)}
+@media(max-width:860px){.contact-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.contact-grid{grid-template-columns:1fr}}
 
 /* FOOTER */
 footer{background:var(--ink);padding:3rem 2rem 2rem;border-top:1px solid var(--line)}
@@ -1278,29 +1303,39 @@ body{transition:background .3s}
     <div class="reveal">
       <div class="coach-card">
         <div class="coach-photo">
-          <div class="coach-placeholder">
-            <strong>Coach portrait</strong>
-            replace /assets/jordan.jpg<br>3:4 crop, clinical<br>lab / studio daylight
-          </div>
+          <img src="akeem-nasm.jpg" alt="Akeem Brown — NASM Certified Personal Trainer" loading="lazy" class="coach-photo-img"/>
         </div>
         <div class="coach-meta">
-          <div class="cm-cell"><div class="cm-k">Years coaching</div><div class="cm-v">04<small>full-time</small></div></div>
-          <div class="cm-cell"><div class="cm-k">Credentials</div><div class="cm-v">CSCS<small>NSCA · PN L1</small></div></div>
-          <div class="cm-cell"><div class="cm-k">Active clients</div><div class="cm-v">42<small>capped at 50</small></div></div>
-          <div class="cm-cell"><div class="cm-k">Background</div><div class="cm-v">ER Nurse<small>before coaching</small></div></div>
+          <div class="cm-cell"><div class="cm-k">Architect</div><div class="cm-v">Akeem<small>founder · BBF</small></div></div>
+          <div class="cm-cell"><div class="cm-k">Credentials</div><div class="cm-v">NASM-CPT<small>PN L1 · OT-informed</small></div></div>
+          <div class="cm-cell"><div class="cm-k">Established</div><div class="cm-v">2021<small>sovereign standard</small></div></div>
+          <div class="cm-cell"><div class="cm-k">Background</div><div class="cm-v">Medical Mfg.<small>12hr shifts · trenches</small></div></div>
         </div>
       </div>
     </div>
     <div class="coach-right reveal d2">
-      <div class="eyebrow">The coach</div>
-      <h2 class="coach-head">I built this because <span class="outline-ink">nothing</span> else fit my <span class="violet">people.</span></h2>
-      <p class="big-quote">For seven years I worked twelve-hour ER shifts, then tried to train on everyone else's programs. None of them fit.</p>
-      <p class="coach-body">The good ones assumed I had eight hours of sleep and no back pain. The bad ones handed me a PDF and called it coaching. So I built the practice I wished existed — <strong>evidence-based, human-paced, built for the friction of an actual life.</strong></p>
-      <p class="coach-body">BBF-Lab clients aren't looking for transformation photos. They're looking for a shoulder that works at 50. A lift they can still run at 60. A system that keeps showing up when the week punches back.</p>
+      <div class="eyebrow">The architect</div>
+      <h2 class="coach-head">I built BBF because <span class="outline-ink">nothing</span> fit the <span class="violet">trenches.</span></h2>
+      <p class="big-quote">I'm Akeem — architect of Build Believe Fit. I worked 12-hour shifts in medical manufacturing, then tried to train on everyone else's standard programs. None of them fit.</p>
+      <p class="coach-body">For seven years I ran the same failed experiment: clock out of a shift with wrecked legs and depleted CNS, then try to follow a program written for someone with eight hours of sleep and zero back fatigue. The templates assumed I was fresh. The gurus assumed I was lying. <strong>Neither was true. I was just working.</strong></p>
+      <p class="coach-body">So I stopped waiting for someone else's protocol and started architecting my own — built for shift recovery, joint longevity, and the reality of a working professional's week. That system became BBF-Lab. <strong>Everything I teach, I stress-tested in the trenches first.</strong></p>
+      <!-- VALIDATION PAYLOAD — Before / After transformation -->
+      <div class="transform-grid reveal d3">
+        <figure class="xform-frame">
+          <div class="xform-label">Before · 2020</div>
+          <img src="akeem-before.png" alt="Akeem Brown — before the BBF protocol" loading="lazy"/>
+          <figcaption class="xform-cap">Pre-architect · off-the-shelf programs</figcaption>
+        </figure>
+        <figure class="xform-frame xform-after">
+          <div class="xform-label">After · Sovereign Standard</div>
+          <img src="akeem-after.png" alt="Akeem Brown — after BBF transformation" loading="lazy"/>
+          <figcaption class="xform-cap">Post-protocol · trenches-tested</figcaption>
+        </figure>
+      </div>
       <div class="sig-row">
         <div>
-          <div class="sig-name">Jordan Marsh</div>
-          <div class="sig-role">Lead Clinician · CSCS · Former RN</div>
+          <div class="sig-name">Akeem Brown</div>
+          <div class="sig-role">Performance Architect · NASM-CPT · BBF-Lab Founder</div>
         </div>
         <div class="sig-stamp">Est. 2021</div>
       </div>
@@ -1680,16 +1715,33 @@ body{transition:background .3s}
   </div>
 </section>
 
-<!-- CONTACT -->
+<!-- CONTACT — Direct routing to Akeem -->
 <section id="contact">
   <div class="contact-in">
-    <div class="eyebrow">Direct line</div>
+    <div class="eyebrow">Direct line · Akeem responds</div>
     <h2 class="contact-h">Rather just <span class="volt">talk?</span></h2>
-    <p class="contact-p">Questions about fit, timing, or whether this is even the right room for you — reach out. Real reply within one business day.</p>
-    <div class="contact-row">
-      <a href="mailto:hello@bbflab.co" class="c-link"><span class="glyph">@</span>hello@bbflab.co</a>
-      <a href="tel:5555550100" class="c-link"><span class="glyph">#</span>(555) 555-0100</a>
-      <a href="#intake" class="c-link"><span class="glyph">→</span>Start intake</a>
+    <p class="contact-p">Questions about fit, timing, or whether this is even the right room for you — reach out direct. Real reply within one business day.</p>
+    <div class="contact-grid">
+      <a href="tel:6233409254" class="c-channel">
+        <div class="c-channel-glyph">📞</div>
+        <div class="c-channel-lbl">Call Akeem</div>
+        <div class="c-channel-val">623-340-9254</div>
+      </a>
+      <a href="sms:6233409254?body=Hey Akeem, I want to get started with Build Believe Fit!" class="c-channel">
+        <div class="c-channel-glyph">💬</div>
+        <div class="c-channel-lbl">Text Akeem</div>
+        <div class="c-channel-val">623-340-9254</div>
+      </a>
+      <a href="mailto:buildbelievefitllc@buildbelievefit.fitness" class="c-channel">
+        <div class="c-channel-glyph">📧</div>
+        <div class="c-channel-lbl">Email BBF</div>
+        <div class="c-channel-val">buildbelievefitllc@<br>buildbelievefit.fitness</div>
+      </a>
+      <a href="#intake" class="c-channel c-channel-cta">
+        <div class="c-channel-glyph">→</div>
+        <div class="c-channel-lbl">Or skip the chat</div>
+        <div class="c-channel-val">Start Pathfinder intake</div>
+      </a>
     </div>
   </div>
 </section>
@@ -1713,9 +1765,10 @@ body{transition:background .3s}
     <div>
       <div class="ft-col-h">Direct</div>
       <div class="ft-col-links">
-        <a href="mailto:hello@bbflab.co">hello@bbflab.co</a>
-        <a href="tel:5555550100">(555) 555-0100</a>
-        <a href="#intake">Start intake</a>
+        <a href="mailto:buildbelievefitllc@buildbelievefit.fitness">buildbelievefitllc@buildbelievefit.fitness</a>
+        <a href="tel:6233409254">Call · 623-340-9254</a>
+        <a href="sms:6233409254">Text · 623-340-9254</a>
+        <a href="#intake">Start Pathfinder intake</a>
       </div>
     </div>
     <div>
