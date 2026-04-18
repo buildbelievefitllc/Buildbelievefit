@@ -327,9 +327,21 @@ h1.megah .slash{color:var(--violet2)}
 .pb-modal-drill-l{font-family:var(--mn);font-size:.58rem;font-weight:700;letter-spacing:.2em;color:var(--cyan);margin-bottom:.35rem;text-transform:uppercase}
 .pb-modal-drill-n{font-family:var(--hd);font-size:1.1rem;letter-spacing:.01em;color:var(--paper);text-transform:uppercase;line-height:1.15}
 .pb-modal-drill-f{font-size:.82rem;color:var(--mute2);margin-top:.4rem;line-height:1.55}
-.pb-modal-cta{display:block;text-align:center;background:var(--volt);color:var(--ink);font-family:var(--hd);font-size:.88rem;letter-spacing:.1em;padding:1.05rem;border-radius:12px;text-transform:uppercase;text-decoration:none;transition:transform .15s, box-shadow .2s;margin-bottom:.7rem}
+.pb-modal-head-meta{min-width:0;flex:1}
+.pb-modal-pos{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;line-height:1}
+.pb-modal-pos #pb-modal-pos-code{font-family:var(--hd);font-size:2rem;letter-spacing:-.01em;color:var(--paper);text-transform:uppercase;line-height:1}
+.pb-modal-pos small{font-family:var(--mn);font-size:.7rem;color:var(--mute2);letter-spacing:.12em;text-transform:uppercase;font-weight:400}
+.pb-modal-lede{font-family:var(--bd);font-size:.92rem;line-height:1.6;color:rgba(246,242,234,.78);margin-bottom:1.2rem;padding:.9rem 1rem;background:rgba(6,6,6,.45);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:0 10px 10px 0}
+.pb-modal-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1.2rem}
+.pb-modal-metric{background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:.7rem .75rem;text-align:center}
+.pb-modal-metric-k{font-family:var(--mn);font-size:.55rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.25rem}
+.pb-modal-metric-v{font-family:var(--hd);font-size:1rem;color:var(--volt);line-height:1;text-transform:uppercase}
+.pb-modal-cta{display:block;text-align:center;background:var(--volt);color:var(--ink);font-family:var(--hd);font-size:.88rem;letter-spacing:.1em;padding:1.05rem;border-radius:12px;text-transform:uppercase;text-decoration:none;transition:transform .15s, box-shadow .2s;margin-bottom:.55rem}
 .pb-modal-cta:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(245,200,0,.3)}
+.pb-modal-dismiss{display:block;width:100%;background:transparent;color:var(--mute2);font-family:var(--mn);font-size:.72rem;letter-spacing:.14em;padding:.75rem;border:1px solid var(--line);border-radius:10px;cursor:pointer;margin-bottom:.7rem;text-transform:uppercase;transition:border-color .2s, color .2s}
+.pb-modal-dismiss:hover{border-color:var(--volt);color:var(--volt)}
 .pb-modal-seal{font-family:var(--mn);font-size:.62rem;color:var(--mute);letter-spacing:.12em;text-align:center;text-transform:uppercase;font-style:italic}
+@media(max-width:520px){.pb-modal-metrics{grid-template-columns:1fr 1fr}}
 
 /* TIERS */
 #tiers{background:var(--ink);padding-top:7rem}
@@ -1595,17 +1607,21 @@ body{transition:background .3s}
 </section>
 
 <!-- PLAYBOOK MODAL — Matte Black vault w/ Laboratory Gold glow -->
-<div id="playbook-modal" role="dialog" aria-modal="true" aria-labelledby="pb-modal-pos">
+<div id="playbook-modal" role="dialog" aria-modal="true" aria-labelledby="pb-modal-pos-code">
   <div class="pb-modal-vault">
-    <button type="button" class="pb-modal-close" onclick="closePlaybookModal()" aria-label="Close">×</button>
+    <button type="button" class="pb-modal-close" onclick="window.closePlaybookModal&&window.closePlaybookModal()" aria-label="Close">×</button>
     <div class="pb-modal-tag" id="pb-modal-tag">Laboratory · Positional Blueprint</div>
     <div class="pb-modal-head">
       <div class="pb-modal-ico" id="pb-modal-ico">🏈</div>
-      <div>
+      <div class="pb-modal-head-meta">
         <div class="pb-modal-sport" id="pb-modal-sport">Football · Position Analysis</div>
-        <div class="pb-modal-pos" id="pb-modal-pos">—<small id="pb-modal-pos-name">Full name</small></div>
+        <div class="pb-modal-pos">
+          <span id="pb-modal-pos-code">—</span>
+          <small id="pb-modal-pos-name">Select a position</small>
+        </div>
       </div>
     </div>
+    <div class="pb-modal-lede" id="pb-modal-lede">Pick a sport above, then tap a position to reveal its clinical blueprint.</div>
     <div class="pb-modal-kpi-h">Primary KPIs · Founder-Verified</div>
     <div class="pb-modal-kpis" id="pb-modal-kpis"></div>
     <div class="pb-modal-drill" id="pb-modal-drill">
@@ -1613,7 +1629,9 @@ body{transition:background .3s}
       <div class="pb-modal-drill-n" id="pb-modal-drill-n">Signature movement</div>
       <div class="pb-modal-drill-f" id="pb-modal-drill-f">Focus and progression notes land here.</div>
     </div>
-    <a href="#intake" class="pb-modal-cta" onclick="closePlaybookModal()">Unlock the full playbook →</a>
+    <div class="pb-modal-metrics" id="pb-modal-metrics"></div>
+    <a href="#intake" class="pb-modal-cta" onclick="window.closePlaybookModal&&window.closePlaybookModal()">Unlock the full playbook →</a>
+    <button type="button" class="pb-modal-dismiss" onclick="window.closePlaybookModal&&window.closePlaybookModal()">Close blueprint</button>
     <div class="pb-modal-seal">Founder-Verified Biomechanical Protocols · Sovereign Gold Standard</div>
   </div>
 </div>
@@ -2166,76 +2184,174 @@ function closeMod(){document.getElementById('smodal').classList.remove('on');doc
 
 /* ═══ PARENT PLAYBOOK — Youth Athlete Selector + Modal ═══════ */
 var PP_SPORTS = [
-  {id:'football',   ico:'🏈', name:'Football',   positions:[
-    {code:'QB', full:'Quarterback',     drill:{n:'Rotational Pocket Pivot',  f:'Hip-shoulder dissociation for pocket maneuverability and torque transfer under duress.'}},
-    {code:'RB', full:'Running Back',    drill:{n:'Triple Extension Sled',    f:'Hip/knee/ankle triple extension under load — acceleration out of contact.'}},
-    {code:'WR', full:'Wide Receiver',   drill:{n:'Linear Turnover Sprint',   f:'Stride frequency ceiling work paired with reactive change-of-direction.'}},
-    {code:'TE', full:'Tight End',       drill:{n:'Iso-Hold Block Drive',     f:'Isometric hold → concentric drive. Builds blocking leverage without CNS debt.'}},
-    {code:'OL', full:'Offensive Line',  drill:{n:'Static Lateral Displace',  f:'Pillar stability + lateral displacement under band resistance.'}},
-    {code:'DL', full:'Defensive Line',  drill:{n:'First-Step Plyo Shed',     f:'Peak power off the snap — shed mechanics layered on CNS-primed plyos.'}},
-    {code:'LB', full:'Linebacker',      drill:{n:'Reactive Tackle Tracking', f:'Lateral pursuit + contact readiness. Tempo matched to game rhythm.'}},
-    {code:'S',  full:'Safety',          drill:{n:'Transition Velocity Drop', f:'Back-pedal → hip-flip → top-end sprint. Field-coverage conditioning.'}}
+  {id:'football', ico:'🏈', name:'Football', positions:[
+    {code:'QB', full:'Quarterback',
+      head:'Rotational torque and pocket command.',
+      focus:'Programmed for hip-shoulder dissociation under compressed timelines. The QB blueprint blocks drop-step mechanics, anti-rotation core, and scapular stability so arm velocity is bought from the ground up — not from the shoulder.',
+      drill:{n:'Rotational Pocket Pivot', f:'Banded split-stance rotations paired with medicine-ball scoop throws. Cadence matched to a 3-step drop.'},
+      kpis:['Rotational Torque','Pocket Maneuverability','Throwing Velocity'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'4×/wk'},{k:'Arm care',v:'Daily'}]},
+    {code:'RB', full:'Running Back',
+      head:'Triple-extension power with contact durability.',
+      focus:'Built for the runner who has to accelerate, absorb, and re-accelerate inside the same play. Sled-drive progressions, iso-contact holds, and single-leg landing mechanics stack to protect the knee while the hips keep firing.',
+      drill:{n:'Triple Extension Sled', f:'Heavy sled marches into open-field sprint-outs. Ankle/knee/hip extension checked every rep.'},
+      kpis:['Lateral Agility','Triple-Ext Power','Ball Security'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'4×/wk'},{k:'Contact',v:'Progressive'}]},
+    {code:'WR', full:'Wide Receiver',
+      head:'Stride frequency ceiling meets reactive cut discipline.',
+      focus:'Linear top-end speed work layered with lateral and rotational change-of-direction drills. Grip strength and eccentric hamstring loading anchor the hit-and-reach mechanics at maximum velocity.',
+      drill:{n:'Linear Turnover Sprint', f:'Wicket runs feeding into reactive cone cuts. Top speed logged; change-of-direction angle charted weekly.'},
+      kpis:['Linear Accel','Change of Direction','Grip Strength'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'4×/wk'},{k:'Speed test',v:'Weekly'}]},
+    {code:'TE', full:'Tight End',
+      head:'Blocking leverage without burying aerobic capacity.',
+      focus:'Hybrid program that respects both the line-of-scrimmage demand and the route-tree demand. Isometric holds transition into concentric drives; conditioning is intervals, not mileage.',
+      drill:{n:'Iso-Hold Block Drive', f:'8-second iso-hold into explosive sled drive. Repeats timed to route-call rhythm.'},
+      kpis:['Triple-Ext Power','Block Leverage','Versatility'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'4×/wk'},{k:'Hybrid',v:'2:1 ratio'}]},
+    {code:'OL', full:'Offensive Line',
+      head:'Pillar stability under lateral displacement.',
+      focus:'Anchored on static strength with band-resisted lateral displacement. Anti-rotation and anti-extension trunk work runs through every session so the mid-section holds when the double-team hits.',
+      drill:{n:'Static Lateral Displace', f:'Band-resisted shuffle holds into explosive finish. Hip width and knee tracking audited each rep.'},
+      kpis:['Static Strength','Lateral Displace','Core Stability'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'4×/wk'},{k:'Load',v:'Heavy iso'}]},
+    {code:'DL', full:'Defensive Line',
+      head:'First-step velocity with shed mechanics layered on.',
+      focus:'Peak power off the snap is the primary engine. Plyos are CNS-primed, not grinded. Lat-pulldown variants and hip-rotation drills build the shed pattern so the athlete disengages without burning shoulder capacity.',
+      drill:{n:'First-Step Plyo Shed', f:'Reactive get-offs on audible cue; finish with a controlled shed pattern. Two reps per minute, no more.'},
+      kpis:['Peak Power','Shedding Torque','First-Step Velocity'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'3×/wk'},{k:'CNS',v:'Primed, short'}]},
+    {code:'LB', full:'Linebacker',
+      head:'Lateral tracking meshed with contact readiness.',
+      focus:'Change-of-direction under reactive load, paired with tackling-angle rehearsal against foam pads. Tempo is matched to in-game play rhythm so the conditioning transfers directly.',
+      drill:{n:'Reactive Tackle Tracking', f:'Mirror drills into angle-tackle pad work. Reaction cue randomized every rep.'},
+      kpis:['Lateral Tracking','Tackling Force','Reactive Agility'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'4×/wk'},{k:'Contact',v:'Pad-graded'}]},
+    {code:'S',  full:'Safety',
+      head:'Transition velocity from back-pedal to top-end sprint.',
+      focus:'The safety blueprint rehearses the exact back-pedal → hip-flip → sprint sequence of real coverage. Vertical displacement is trained to close windows deep; recovery mechanics protect the hamstrings.',
+      drill:{n:'Transition Velocity Drop', f:'Back-pedal 10 yards, hip-flip on cue, sprint-out 20. Timed; form graded on the flip angle.'},
+      kpis:['Top-End Speed','Transition Velocity','Vertical'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'4×/wk'},{k:'Recovery',v:'72hr'}]}
   ]},
   {id:'basketball', ico:'🏀', name:'Basketball', positions:[
-    {code:'PG', full:'Point Guard',     drill:{n:'Repeat Sprint Handle',     f:'Ball-handling precision under tachycardic load. Court-rhythm anchor.'}},
-    {code:'SG', full:'Shooting Guard',  drill:{n:'Transition Flow Sequence', f:'Lateral flow drills with shot prep — sustainable shooting velocity.'}},
-    {code:'SF', full:'Small Forward',   drill:{n:'Multi-Directional Quick',  f:'Triple-threat torque + vertical displacement combo lifts.'}},
-    {code:'PF', full:'Power Forward',   drill:{n:'Rebound Drive Extension',  f:'Post-stability + triple extension for rebounding force.'}},
-    {code:'C',  full:'Center',          drill:{n:'Pivot + Rim Protect',      f:'Static strength with fast pivot off the spot. Rim-defense chassis.'}}
+    {code:'PG', full:'Point Guard',
+      head:'Ball-handling precision at tachycardic load.',
+      focus:'Repeat-sprint programming with handle work stacked on top. Peripheral-vision drills and reactive decision cues build the court-rhythm anchor so decision quality survives fatigue.',
+      drill:{n:'Repeat Sprint Handle', f:'5×200m sprints, each followed by 30-second handle sequence against reactive cues. Errors charted.'},
+      kpis:['Repeat Sprint','Handle Precision','Court Vision'],
+      metrics:[{k:'Block',v:'6 wk'},{k:'Cadence',v:'4×/wk'},{k:'Decisions',v:'Tracked'}]},
+    {code:'SG', full:'Shooting Guard',
+      head:'Transition flow and sustainable shooting velocity.',
+      focus:'Lateral flow work layered with shot prep. Rotator-cuff, scap, and mid-back strength runs through every session so the shooting shoulder does not degrade over the season.',
+      drill:{n:'Transition Flow Sequence', f:'Coast-to-coast transition into pull-up shot. Shot mechanics filmed; velocity logged.'},
+      kpis:['Shot Velocity','Transition Speed','Lateral Flow'],
+      metrics:[{k:'Block',v:'6 wk'},{k:'Cadence',v:'4×/wk'},{k:'Shot film',v:'Weekly'}]},
+    {code:'SF', full:'Small Forward',
+      head:'Triple-threat torque with multi-directional quickness.',
+      focus:'Hybrid build. Vertical displacement work feeds dunk/rebound capacity; triple-threat torque builds the face-up attack. Multi-directional COD seals the versatility demand of the position.',
+      drill:{n:'Multi-Directional Quick', f:'5-way reactive COD drill into finish. Ankle/knee tracking audited each rep.'},
+      kpis:['Vertical','Multi-Dir Quickness','Triple-Threat Torque'],
+      metrics:[{k:'Block',v:'6 wk'},{k:'Cadence',v:'4×/wk'},{k:'Hybrid',v:'3-way'}]},
+    {code:'PF', full:'Power Forward',
+      head:'Rebound force built on post-stability.',
+      focus:'Triple extension under load, layered with pillar-stability work for post defense. Hip and low-back prehab runs every session — the PF blueprint refuses to trade longevity for vertical.',
+      drill:{n:'Rebound Drive Extension', f:'Counter-movement jump into box-out hold. Force plate verified when available.'},
+      kpis:['Triple-Ext Power','Rebound Force','Post-Stability'],
+      metrics:[{k:'Block',v:'6 wk'},{k:'Cadence',v:'4×/wk'},{k:'Prehab',v:'Hip/low-back'}]},
+    {code:'C',  full:'Center',
+      head:'Rim protection, pivot speed, and sustained static strength.',
+      focus:'Heavy static strength anchors the rim. Pivot speed is drilled in small planes so the big can close without giving up the post. Calf/ankle loading protects the jumper and the landing.',
+      drill:{n:'Pivot + Rim Protect', f:'Iso-stance holds into lateral pivot-close drill. Ankle rocker and knee tracking scored.'},
+      kpis:['Rim Protection','Static Strength','Pivot Speed'],
+      metrics:[{k:'Block',v:'6 wk'},{k:'Cadence',v:'4×/wk'},{k:'Ankle care',v:'Daily'}]}
   ]},
-  {id:'soccer',     ico:'⚽', name:'Soccer',     positions:[
-    {code:'FW',  full:'Forward',        drill:{n:'Off-Ball Accel Repeats',   f:'Sprint velocity + shot conversion mechanics through fatigue.'}},
-    {code:'MF',  full:'Midfielder',     drill:{n:'Total-Distance Tempo',     f:'High aerobic ceiling + interception anticipation under load.'}},
-    {code:'DEF', full:'Defender',       drill:{n:'Recovery Sprint Aerial',   f:'Aerial-duel win % + recovery-sprint repeatability.'}},
-    {code:'GK',  full:'Goalkeeper',     drill:{n:'Reaction Lateral Power',   f:'Lateral displacement power + distribution accuracy.'}}
+  {id:'soccer', ico:'⚽', name:'Soccer', positions:[
+    {code:'FW',  full:'Forward',
+      head:'Sprint velocity and shot conversion through fatigue.',
+      focus:'Repeated-sprint capacity layered on top of shot-mechanics work. Off-ball acceleration is drilled into the pattern so the forward can make the run on the last rep.',
+      drill:{n:'Off-Ball Accel Repeats', f:'8×30m repeats on reactive cue, each finishing with a shot at goal. Rest:work 1:4.'},
+      kpis:['Sprint Velocity','Shot Conversion','Off-Ball Accel'],
+      metrics:[{k:'Block',v:'6 wk'},{k:'Cadence',v:'4×/wk'},{k:'Repeats',v:'RSA-tracked'}]},
+    {code:'MF',  full:'Midfielder',
+      head:'Aerobic ceiling married to interception anticipation.',
+      focus:'High-output aerobic programming with pass-completion drills baked in. Decision-speed work under load ensures the midfielder reads the play at minute 88 the same as minute 8.',
+      drill:{n:'Total-Distance Tempo', f:'4×8-min tempo runs with 4-way pass execution at every interval. HR zone 4 target.'},
+      kpis:['Total Distance','Pass Completion','Interception'],
+      metrics:[{k:'Block',v:'6 wk'},{k:'Cadence',v:'4×/wk'},{k:'HR zones',v:'4 primary'}]},
+    {code:'DEF', full:'Defender',
+      head:'Aerial duel wins with recovery-sprint repeatability.',
+      focus:'Vertical jump loading for aerial contests. Recovery-sprint capacity so the defender can make the second and third run without capacity loss. Hip mobility anchors the tackling angle.',
+      drill:{n:'Recovery Sprint Aerial', f:'5×40m recovery sprints into aerial header on rebounder. Tackling-angle drill closes the set.'},
+      kpis:['Aerial Win%','Recovery Sprint','Tackling Efficiency'],
+      metrics:[{k:'Block',v:'6 wk'},{k:'Cadence',v:'4×/wk'},{k:'Hip mob',v:'Daily'}]},
+    {code:'GK',  full:'Goalkeeper',
+      head:'Reaction time, lateral power, and distribution accuracy.',
+      focus:'Reactive plyos programmed for fast-twitch recruitment. Lateral displacement power and shoulder/hip rotator work anchor the distribution kick.',
+      drill:{n:'Reaction Lateral Power', f:'Cued lateral broad jumps into save reps. Kick-distribution accuracy charted.'},
+      kpis:['Reaction Time','Lateral Power','Distribution'],
+      metrics:[{k:'Block',v:'6 wk'},{k:'Cadence',v:'4×/wk'},{k:'Rotator care',v:'Daily'}]}
   ]},
-  {id:'baseball',   ico:'⚾', name:'Baseball',   positions:[
-    {code:'P',  full:'Pitcher',         drill:{n:'Kinetic Sequencing Drop',  f:'Scapular deceleration drills; velocity ceiling without shoulder tax.'}},
-    {code:'C',  full:'Catcher',         drill:{n:'Pop-Time Rotational',      f:'Hip-shoulder pop + rotational throw force from the squat.'}},
-    {code:'IF', full:'Infielder',       drill:{n:'Ball Exchange Speed',      f:'Lateral agility + rotational throw force under short reaction.'}},
-    {code:'OF', full:'Outfielder',      drill:{n:'Drop-Step Efficiency',     f:'Linear acceleration + drop-step mechanics. Arm strength capstone.'}}
+  {id:'baseball', ico:'⚾', name:'Baseball', positions:[
+    {code:'P',  full:'Pitcher',
+      head:'Velocity ceiling without shoulder tax.',
+      focus:'Scapular deceleration is the first block, not the last. Kinetic sequencing drills build the chain from ground to release. Arm care is non-negotiable and runs every session.',
+      drill:{n:'Kinetic Sequencing Drop', f:'Banded hip-turn into controlled release rehearsals. Velocity logged; pain/discomfort scored.'},
+      kpis:['Pitch Velocity','Scapular Decel','Kinetic Sequence'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'3×/wk'},{k:'Arm care',v:'Non-negotiable'}]},
+    {code:'C',  full:'Catcher',
+      head:'Pop-time rotational throw from a squat.',
+      focus:'Hip-shoulder pop trained from the loaded squat position. Rotational throw force paired with mobility work so the knees and hips survive the position over a full season.',
+      drill:{n:'Pop-Time Rotational', f:'Loaded-squat rotational throws on reactive cue. Pop-time logged via stopwatch.'},
+      kpis:['Pop Time','Rotational Throw','Block Mechanics'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'3×/wk'},{k:'Knee/hip mob',v:'Daily'}]},
+    {code:'IF', full:'Infielder',
+      head:'Lateral agility feeding rotational throw force.',
+      focus:'Short-reaction drills chained into ball-exchange speed reps. Rotational force trained so the off-balance throw still lands with intent.',
+      drill:{n:'Ball Exchange Speed', f:'Reactive glove-work into turn-and-throw. Exchange timed; accuracy scored.'},
+      kpis:['Lateral Agility','Ball Exchange','Rotational Throw'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'3×/wk'},{k:'Exchange',v:'Timed daily'}]},
+    {code:'OF', full:'Outfielder',
+      head:'Linear acceleration with drop-step discipline.',
+      focus:'Route-running mechanics built on drop-step efficiency. Arm strength capstone protects the throw without overuse. Eccentric hamstring loading anchors the deep chase.',
+      drill:{n:'Drop-Step Efficiency', f:'Reactive drop-step into full-out pursuit. Arm accuracy drill closes the set.'},
+      kpis:['Linear Accel','Drop-Step','Arm Strength'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'3×/wk'},{k:'Hamstring',v:'Eccentric loaded'}]}
   ]},
   {id:'volleyball', ico:'🏐', name:'Volleyball', positions:[
-    {code:'S',   full:'Setter',         drill:{n:'Agility Reaction Grid',    f:'Agility ceiling + dig-accuracy reaction training.'}},
-    {code:'OH',  full:'Outside Hitter', drill:{n:'Vertical Spike Sequence',  f:'Vertical jump height paired with spike-approach rhythm.'}},
-    {code:'LIB', full:'Libero',         drill:{n:'Low-Center Dig Flow',      f:'Low-center stability + fast directional change.'}},
-    {code:'MB',  full:'Middle Blocker', drill:{n:'Block-Reach Extension',    f:'Block-reach height + lateral closing speed on the net.'}}
+    {code:'S',   full:'Setter',
+      head:'Agility ceiling with dig-accuracy reaction training.',
+      focus:'Agility drills chained into short-range reactive set reps. Shoulder and scapular stability so the setter can execute under late-ball pressure without losing accuracy.',
+      drill:{n:'Agility Reaction Grid', f:'Reactive grid footwork into controlled set reps. Accuracy charted per block.'},
+      kpis:['Agility Reaction','Dig Accuracy','Low-Center'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'3×/wk'},{k:'Scap care',v:'Daily'}]},
+    {code:'OH',  full:'Outside Hitter',
+      head:'Vertical jump meshed with spike-approach rhythm.',
+      focus:'Plyometric loading for repeatable vertical. Approach footwork drilled to match live tempo. Shoulder-care block is mandatory for the hitting side.',
+      drill:{n:'Vertical Spike Sequence', f:'Approach-jump sequences with spike on cue. Vertical logged; approach angle audited.'},
+      kpis:['Vertical Jump','Spike Velocity','Explosive Accel'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'3×/wk'},{k:'Shoulder care',v:'Mandatory'}]},
+    {code:'LIB', full:'Libero',
+      head:'Low-center stability with fast directional change.',
+      focus:'Low-center COD reactive work. Dig-accuracy paired with hip/ankle mobility so the libero can absorb contact without winging the spine.',
+      drill:{n:'Low-Center Dig Flow', f:'Low-posture COD drills chained into reactive digs. Spine alignment scored.'},
+      kpis:['Reaction Speed','Dig Accuracy','Low-Center'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'3×/wk'},{k:'Spine cue',v:'Every rep'}]},
+    {code:'MB',  full:'Middle Blocker',
+      head:'Block-reach height with lateral closing speed.',
+      focus:'Plyometric block-reach loading and lateral closing drills. Triple-extension power trains the block jump from a slide-close position.',
+      drill:{n:'Block-Reach Extension', f:'Lateral slide-close into vertical block jump. Reach height measured.'},
+      kpis:['Block Reach','Lateral Closing','Triple-Ext Power'],
+      metrics:[{k:'Block',v:'4 wk'},{k:'Cadence',v:'3×/wk'},{k:'Reach test',v:'Weekly'}]}
   ]}
 ];
-var PP_KPI = {
-  QB:['Rotational Torque','Pocket Maneuverability','Throwing Velocity'],
-  RB:['Lateral Agility','Triple-Ext Power','Ball Security'],
-  WR:['Linear Accel','Change of Direction','Grip Strength'],
-  TE:['Triple-Ext Power','Block Leverage','Versatility'],
-  OL:['Static Strength','Lateral Displace','Core Stability'],
-  DL:['Peak Power','Shedding Torque','First-Step Velocity'],
-  LB:['Lateral Tracking','Tackling Force','Reactive Agility'],
-  S:['Top-End Speed','Transition Velocity','Vertical'],
-  PG:['Repeat Sprint','Handle Precision','Court Vision'],
-  SG:['Shot Velocity','Transition Speed','Lateral Flow'],
-  SF:['Vertical','Multi-Dir Quickness','Triple-Threat Torque'],
-  PF:['Triple-Ext Power','Rebound Force','Post-Stability'],
-  C:['Rim Protection','Static Strength','Pivot Speed'],
-  FW:['Sprint Velocity','Shot Conversion','Off-Ball Accel'],
-  MF:['Total Distance','Pass Completion','Interception'],
-  DEF:['Aerial Win%','Recovery Sprint','Tackling Efficiency'],
-  GK:['Reaction Time','Lateral Power','Distribution'],
-  P:['Pitch Velocity','Scapular Decel','Kinetic Sequence'],
-  IF:['Lateral Agility','Ball Exchange','Rotational Throw'],
-  OF:['Linear Accel','Drop-Step','Arm Strength'],
-  OH:['Vertical Jump','Spike Velocity','Explosive Accel']
-};
-PP_KPI['S'] = PP_KPI['S']; // football Safety vs volleyball Setter share 'S' code, disambiguated by sport context
-var PP_KPI_VBS = {S:['Agility Reaction','Dig Accuracy','Low-Center'], LIB:['Reaction Speed','Dig Accuracy','Low-Center'], MB:['Block Reach','Lateral Closing','Triple-Ext Power']};
-var PP_KPI_BBC = {C:['Pop Time','Rotational Throw','Block Mechanics']};
-
-function ppKpisFor(sportId, code){
-  if(sportId==='volleyball' && PP_KPI_VBS[code]) return PP_KPI_VBS[code];
-  if(sportId==='baseball' && code==='C') return PP_KPI_BBC[code];
-  return PP_KPI[code] || ['Performance','Speed','Power'];
-}
-
+// KPIs now live per-position on PP_SPORTS[i].positions[j].kpis — no lookup table required.
 var ppActiveSport = 'football';
+
+// Helpers — always resolve via window, safe text setter, safe HTML setter.
+function _pbSet(id, txt){ var el = document.getElementById(id); if(el) el.textContent = (txt == null ? '' : txt); }
+function _pbSetHTML(id, html){ var el = document.getElementById(id); if(el) el.innerHTML = (html == null ? '' : html); }
+function _pbEscape(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
 
 function ppRenderSportBar(){
   var bar = document.getElementById('pp-sport-bar');
@@ -2257,11 +2373,11 @@ function ppRenderPositions(){
   var sport = PP_SPORTS.find(function(s){ return s.id === ppActiveSport; });
   if(!sport){ grid.innerHTML = ''; return; }
   grid.innerHTML = sport.positions.map(function(p){
-    var kpis = ppKpisFor(sport.id, p.code);
-    return '<button type="button" class="pp-pos" data-sport="'+sport.id+'" data-pos="'+p.code+'" aria-label="View '+p.full+' blueprint">'+
+    var kpis = (p.kpis || []).slice(0,3);
+    return '<button type="button" class="pp-pos" data-sport="'+sport.id+'" data-pos="'+p.code+'" aria-label="View '+_pbEscape(p.full)+' blueprint">'+
       '<div class="pp-pos-code">'+p.code+'<span class="pp-pos-arrow">→</span></div>'+
-      '<div class="pp-pos-name">'+p.full+'</div>'+
-      '<div class="pp-pos-kpis">'+kpis.slice(0,3).map(function(k){ return '<span class="pp-pos-kpi">'+k+'</span>'; }).join('')+'</div>'+
+      '<div class="pp-pos-name">'+_pbEscape(p.full)+'</div>'+
+      '<div class="pp-pos-kpis">'+kpis.map(function(k){ return '<span class="pp-pos-kpi">'+_pbEscape(k)+'</span>'; }).join('')+'</div>'+
     '</button>';
   }).join('');
   Array.prototype.forEach.call(grid.querySelectorAll('.pp-pos'), function(btn){
@@ -2269,51 +2385,73 @@ function ppRenderPositions(){
   });
 }
 
+/* Hardened modal opener — every slot write wrapped in a try/catch so a
+   single failing lookup can NEVER leave the page body.style.overflow
+   locked at 'hidden'. Functions are explicitly bound to window so
+   inline onclick handlers resolve even if the script runs in a
+   non-global scope. */
 function openPlaybookModal(sportId, posCode){
   var modal = document.getElementById('playbook-modal');
   if(!modal) return;
-  var sport, position;
-  if(sportId === 'parent'){
-    // Adult Parent Playbook summary
-    document.getElementById('pb-modal-tag').textContent = 'Laboratory · Parent Transformation';
-    document.getElementById('pb-modal-ico').textContent = '👨‍👩‍👧‍👦';
-    document.getElementById('pb-modal-sport').textContent = 'Family Performance Series';
-    var posEl = document.getElementById('pb-modal-pos');
-    posEl.firstChild.nodeValue = 'Busy Parent';
-    document.getElementById('pb-modal-pos-name').textContent = 'Adaptive metabolic tiers · 12:12 / 14:10 / 16:8';
-    var kpiWrap = document.getElementById('pb-modal-kpis');
-    kpiWrap.innerHTML = ['Sleep-Debt Aware','Joint Longevity','Adaptive Tiers','Youth Athlete Bonus'].map(function(k){ return '<span class="pb-modal-kpi">'+k+'</span>'; }).join('');
-    document.getElementById('pb-modal-drill-n').textContent = 'Sovereign Cadence Anchor';
-    document.getElementById('pb-modal-drill-f').textContent = 'Four-week on-ramp that meets you at your worst week, not your best. Metabolic recalibration, prehab layering, and a session template built for the parent whose schedule changes without notice.';
-  } else {
-    sport = PP_SPORTS.find(function(s){ return s.id === sportId; });
-    if(!sport) return;
-    position = sport.positions.find(function(p){ return p.code === posCode; });
-    if(!position) return;
-    document.getElementById('pb-modal-tag').textContent = 'Laboratory · Positional Blueprint';
-    document.getElementById('pb-modal-ico').textContent = sport.ico;
-    document.getElementById('pb-modal-sport').textContent = sport.name + ' · Position Analysis';
-    var posEl2 = document.getElementById('pb-modal-pos');
-    posEl2.firstChild.nodeValue = position.code;
-    document.getElementById('pb-modal-pos-name').textContent = position.full;
-    var kpis = ppKpisFor(sport.id, position.code);
-    var kpiWrap2 = document.getElementById('pb-modal-kpis');
-    kpiWrap2.innerHTML = kpis.map(function(k){ return '<span class="pb-modal-kpi">'+k+'</span>'; }).join('');
-    document.getElementById('pb-modal-drill-n').textContent = position.drill.n;
-    document.getElementById('pb-modal-drill-f').textContent = position.drill.f;
+  try {
+    if(sportId === 'parent'){
+      _pbSet('pb-modal-tag', 'Laboratory · Parent Transformation');
+      _pbSet('pb-modal-ico', '👨‍👩‍👧‍👦');
+      _pbSet('pb-modal-sport', 'Family Performance Series');
+      _pbSet('pb-modal-pos-code', 'Busy Parent');
+      _pbSet('pb-modal-pos-name', 'Adaptive metabolic tiers · 12:12 / 14:10 / 16:8');
+      _pbSet('pb-modal-lede', 'The Sovereign protocol for parents. A four-week on-ramp that meets you at your worst week, not your best — metabolic recalibration, prehab layering, and a session template built for a schedule that changes without notice.');
+      _pbSetHTML('pb-modal-kpis', ['Sleep-Debt Aware','Joint Longevity','Adaptive Tiers','Youth Athlete Bonus'].map(function(k){ return '<span class="pb-modal-kpi">'+_pbEscape(k)+'</span>'; }).join(''));
+      _pbSet('pb-modal-drill-n', 'Sovereign Cadence Anchor');
+      _pbSet('pb-modal-drill-f', 'Adaptive session template that shifts between 12:12, 14:10, and 16:8 metabolic tiers as the week dictates. Prehab and recovery are non-negotiable across all three.');
+      _pbSetHTML('pb-modal-metrics', [
+        {k:'Weeks',v:'4 + roll'},
+        {k:'Cadence',v:'Adaptive'},
+        {k:'Tier switch',v:'Weekly OK'}
+      ].map(function(m){ return '<div class="pb-modal-metric"><div class="pb-modal-metric-k">'+_pbEscape(m.k)+'</div><div class="pb-modal-metric-v">'+_pbEscape(m.v)+'</div></div>'; }).join(''));
+    } else {
+      var sport = PP_SPORTS.find(function(s){ return s.id === sportId; });
+      if(!sport) throw new Error('unknown sport: '+sportId);
+      var position = sport.positions.find(function(p){ return p.code === posCode; });
+      if(!position) throw new Error('unknown position: '+posCode+' in '+sportId);
+      _pbSet('pb-modal-tag', 'Laboratory · Positional Blueprint');
+      _pbSet('pb-modal-ico', sport.ico);
+      _pbSet('pb-modal-sport', sport.name + ' · Position Analysis');
+      _pbSet('pb-modal-pos-code', position.code);
+      _pbSet('pb-modal-pos-name', position.full);
+      _pbSet('pb-modal-lede', position.head ? position.head+' '+(position.focus||'') : (position.focus || ''));
+      var kpiArr = position.kpis || [];
+      _pbSetHTML('pb-modal-kpis', kpiArr.map(function(k){ return '<span class="pb-modal-kpi">'+_pbEscape(k)+'</span>'; }).join(''));
+      if(position.drill){
+        _pbSet('pb-modal-drill-n', position.drill.n);
+        _pbSet('pb-modal-drill-f', position.drill.f);
+      }
+      var metricsArr = position.metrics || [];
+      _pbSetHTML('pb-modal-metrics', metricsArr.map(function(m){ return '<div class="pb-modal-metric"><div class="pb-modal-metric-k">'+_pbEscape(m.k)+'</div><div class="pb-modal-metric-v">'+_pbEscape(m.v)+'</div></div>'; }).join(''));
+    }
+    modal.classList.add('on');
+    document.body.style.overflow = 'hidden';
+  } catch(err){
+    // Never leave the body locked if population threw mid-write.
+    try { document.body.style.overflow = 'auto'; } catch(e){}
+    if(window.console && console.error) console.error('[playbook-modal] open failed:', err);
   }
-  modal.classList.add('on');
-  document.body.style.overflow = 'hidden';
 }
+
 function closePlaybookModal(){
   var modal = document.getElementById('playbook-modal');
-  if(!modal) return;
-  modal.classList.remove('on');
-  document.body.style.overflow = 'auto';
+  if(modal) modal.classList.remove('on');
+  try { document.body.style.overflow = 'auto'; } catch(e){}
 }
+
+// Expose on window so inline onclick handlers resolve even if this script
+// is ever hoisted into a module/IIFE scope by a downstream tool.
+window.openPlaybookModal  = openPlaybookModal;
+window.closePlaybookModal = closePlaybookModal;
+
 (function ppInit(){
-  ppRenderSportBar();
-  ppRenderPositions();
+  try { ppRenderSportBar(); } catch(e){}
+  try { ppRenderPositions(); } catch(e){}
   var modal = document.getElementById('playbook-modal');
   if(modal){
     modal.addEventListener('click', function(e){ if(e.target === modal) closePlaybookModal(); });
@@ -2321,6 +2459,13 @@ function closePlaybookModal(){
   document.addEventListener('keydown', function(e){
     if(e.key === 'Escape' && modal && modal.classList.contains('on')) closePlaybookModal();
   });
+  // Absolute safety net: if anything else nukes body overflow, never let
+  // the page soft-lock for more than a frame after the modal is hidden.
+  if(modal){
+    modal.addEventListener('transitionend', function(){
+      if(!modal.classList.contains('on')) document.body.style.overflow = 'auto';
+    });
+  }
 })();
 
 /* ═══ TRILINGUAL TOGGLE — EN | ES | PT ═══════════════════════
