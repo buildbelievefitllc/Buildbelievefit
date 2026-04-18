@@ -2838,9 +2838,9 @@ function RDW() {
   var readyScore = getTodayReadiness(uid);
   var readyTier = readyScore !== null ? (readyScore >= 90 ? 'god' : readyScore >= 70 ? 'std' : 'rec') : null;
   var dhClass = readyTier === 'god' ? ' god-glow' : '';
-  var h = '<div class="dh' + dhClass + '"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
-    '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>';
-  h += getReadinessBannerHTML(readyScore);
+  var h = ['<div class="dh' + dhClass + '"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
+    '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>'];
+  h.push(getReadinessBannerHTML(readyScore));
   // Sovereign Shift Protocol — intercept exercises if CNS depleted
   var userCNS = (d.u[uid] || {}).cns_status;
   var cnsToday = (d.u[uid] || {}).cns_date === today();
@@ -2852,10 +2852,10 @@ function RDW() {
     if (hasShifts) {
       shiftActive = true;
       renderExercises = shifted;
-      h += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-left:3px solid #ef4444;border-radius:0 10px 10px 0;padding:.8rem 1rem;margin-bottom:.8rem">' +
+      h.push('<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-left:3px solid #ef4444;border-radius:0 10px 10px 0;padding:.8rem 1rem;margin-bottom:.8rem">' +
         '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="font-size:1rem">\u26A0</span><span style="font-family:var(--hb);font-size:.75rem;letter-spacing:2px;color:#ef4444">' + _ts('mastermind-override') + '</span></div>' +
         '<div style="font-size:.78rem;color:#ccc;line-height:1.5">' + _ts('sovereign-shift') + '. ' + _ts('axial-loading') + ' ' + _t('app-ready-recovery','removed to protect lumbar and joint integrity while maintaining 85% efficiency.') + '</div>' +
-        '</div>';
+        '</div>');
     }
   }
   renderExercises.forEach(function(ex, ei) {
@@ -2868,58 +2868,58 @@ function RDW() {
     var exNotes = ex.notes || '';
     var ns = (exReps.indexOf('min') > -1 || exReps.indexOf('sec') > -1) ? 1 : exSets;
     var shiftBadge = ex.is_shifted ? ' <span style="font-size:.55rem;font-weight:700;letter-spacing:1px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:1px 6px;border-radius:3px;vertical-align:middle">SHIFTED</span>' : '';
-    h += '<div class="eb"><div class="eh" onclick="TEX(this)"><div><div class="en">' + exName + shiftBadge + '</div>' +
+    h.push('<div class="eb"><div class="eh" onclick="TEX(this)"><div><div class="en">' + exName + shiftBadge + '</div>' +
       '<div class="em">' + exEquip + ' &middot; ' + exSets + ' sets &times; ' + exReps + '</div></div>' +
-      '<div class="ec">&#9662;</div></div><div class="ebody">';
-    h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){TOAST(\'&#x1F9EA; Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
-    h += ' <button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_HOLOGRAM!==\'undefined\')BBF_HOLOGRAM.toggle(\'holo-' + ei + '\',\'' + ex.name.replace(/'/g,"\\'") + '\')">&#x1F4D0; KINETIC HOLOGRAM</button>';
-    h += '<div id="holo-' + ei + '" style="position:relative;width:100%;height:180px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;margin-top:.5rem;overflow:hidden;display:flex;align-items:center;justify-content:center"><span style="font-size:.7rem;color:#333;letter-spacing:2px">HOLOGRAM VIEWPORT</span></div>';
+      '<div class="ec">&#9662;</div></div><div class="ebody">');
+    h.push('<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){TOAST(\'&#x1F9EA; Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>');
+    h.push(' <button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_HOLOGRAM!==\'undefined\')BBF_HOLOGRAM.toggle(\'holo-' + ei + '\',\'' + ex.name.replace(/'/g,"\\'") + '\')">&#x1F4D0; KINETIC HOLOGRAM</button>');
+    h.push('<div id="holo-' + ei + '" style="position:relative;width:100%;height:180px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;margin-top:.5rem;overflow:hidden;display:flex;align-items:center;justify-content:center"><span style="font-size:.7rem;color:#333;letter-spacing:2px">HOLOGRAM VIEWPORT</span></div>');
     // RPE Commander — Sovereign Target Banner
     if (typeof BBF_RPE !== 'undefined' && sv.length > 0 && sv[0].w) {
       var lastW = parseFloat(sv[0].w) || 0;
       var lastRPE = 7; // default if no RPE data
       var est1RM = Math.round(lastW / 0.85); // rough estimate
       var rpeResult = BBF_RPE.calculate(lastW, lastRPE, est1RM);
-      h += BBF_RPE.render(rpeResult);
+      h.push(BBF_RPE.render(rpeResult));
     }
-    if (ex.is_shifted && ex.original_name) h += '<div class="enote" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)">&#x26A0; ' + _ts('sovereign-shift') + ': <strong>' + ex.original_name + '</strong> \u2192 <strong>' + exName + '</strong></div>';
-    else if (exNotes) h += '<div class="enote">&#x1F4A1; ' + exNotes + '</div>';
+    if (ex.is_shifted && ex.original_name) h.push('<div class="enote" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)">&#x26A0; ' + _ts('sovereign-shift') + ': <strong>' + ex.original_name + '</strong> \u2192 <strong>' + exName + '</strong></div>');
+    else if (exNotes) h.push('<div class="enote">&#x1F4A1; ' + exNotes + '</div>');
     if (partner) {
       var pd = d.w[partner] || {};
       var pdk2 = pd[dk] || {};
       var psv = pdk2[ek] || [];
       var mn = (d.u[uid] && d.u[uid].name || uid).split(' ')[0];
       var pn = (d.u[partner] && d.u[partner].name || partner).split(' ')[0];
-      h += '<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.8rem">' +
+      h.push('<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.8rem">' +
         '<div></div><div style="grid-column:2/4;text-align:center;font-weight:900;font-size:.85rem;color:var(--yel);border-bottom:2px solid var(--yel);padding-bottom:.2rem">' + mn + '</div>' +
-        '<div></div><div style="grid-column:5/7;text-align:center;font-weight:900;font-size:.85rem;color:#8b1abf;border-bottom:2px solid #8b1abf;padding-bottom:.2rem">' + pn + '</div></div>';
-      h += '<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.3rem">' +
-        '<div class="slb">Set</div><div class="slb">Reps</div><div class="slb">Wt</div><div></div><div class="slb">Reps</div><div class="slb">Wt</div></div>';
+        '<div></div><div style="grid-column:5/7;text-align:center;font-weight:900;font-size:.85rem;color:#8b1abf;border-bottom:2px solid #8b1abf;padding-bottom:.2rem">' + pn + '</div></div>');
+      h.push('<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.3rem">' +
+        '<div class="slb">Set</div><div class="slb">Reps</div><div class="slb">Wt</div><div></div><div class="slb">Reps</div><div class="slb">Wt</div></div>');
       for (var s = 0; s < ns; s++) {
         var sv1 = sv[s] || {};
         var psv1 = psv[s] || {};
-        h += '<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.4rem;align-items:center">' +
+        h.push('<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.4rem;align-items:center">' +
           '<div class="snum">' + (s+1) + '</div>' +
           '<input class="sinp' + (sv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (sv1.r||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r"/>' +
           '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/>' +
           '<div style="text-align:center;color:#333">|</div>' +
           '<input class="sinp' + (psv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (psv1.r||'') + '" data-uid="' + partner + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r" style="border-color:' + (psv1.r ? '#8b1abf' : '') + '"/>' +
           '<input class="sinp' + (psv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (psv1.w||'') + '" data-uid="' + partner + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w" style="border-color:' + (psv1.w ? '#8b1abf' : '') + '"/>' +
-          '</div>';
+          '</div>');
       }
     } else {
-      h += '<div class="slbs"><div class="slb">' + _t('app-wo-set','Set') + '</div><div class="slb">' + _t('app-wo-target','Target') + '</div><div class="slb">' + _t('app-wo-repsdone','Reps Done') + '</div><div class="slb">' + _t('app-wo-weightlbs','Weight (lbs)') + '</div></div>';
+      h.push('<div class="slbs"><div class="slb">' + _t('app-wo-set','Set') + '</div><div class="slb">' + _t('app-wo-target','Target') + '</div><div class="slb">' + _t('app-wo-repsdone','Reps Done') + '</div><div class="slb">' + _t('app-wo-weightlbs','Weight (lbs)') + '</div></div>');
       for (var s = 0; s < ns; s++) {
         var sv1 = sv[s] || {};
-        h += '<div class="srow2"><div class="snum">' + (s+1) + '</div><div class="stgt">' + ex.reps + '</div>' +
+        h.push('<div class="srow2"><div class="snum">' + (s+1) + '</div><div class="stgt">' + ex.reps + '</div>' +
           '<input class="sinp' + (sv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (sv1.r||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r"/>' +
-          '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/></div>';
+          '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/></div>');
       }
     }
-    h += '</div></div>';
+    h.push('</div></div>');
   });
-  h += '<button class="dbtn" data-dk="' + dk + '">&#x2713; ' + _t('app-wo-complete','Mark Session Complete') + '</button>';
-  con.innerHTML = h;
+  h.push('<button class="dbtn" data-dk="' + dk + '">&#x2713; ' + _t('app-wo-complete','Mark Session Complete') + '</button>');
+  con.innerHTML = h.join('');
   con.querySelectorAll('.eh').forEach(function(hdr) {
     hdr.onclick = function() { TEX(hdr); };
   });
@@ -2989,24 +2989,26 @@ function RN() {
   var todayIdx = new Date().getDay();
   todayIdx = todayIdx === 0 ? 6 : todayIdx - 1;
   if (todayIdx >= plan.days.length) todayIdx = 0;
-  var h = '<div class="dh"><div class="dl">' + plan.name + "'s Plan</div>" +
+  var h = ['<div class="dh"><div class="dl">' + plan.name + "'s Plan</div>" +
     '<div class="dn2" style="font-size:1.3rem">' + plan.cal + '</div>' +
-    '<div class="df2">&#x1F3AF; ' + plan.goal + '</div></div>';
-  h += '<div class="dnav" id="nnav">' + plan.days.map(function(day, i) {
+    '<div class="df2">&#x1F3AF; ' + plan.goal + '</div></div>'];
+  h.push('<div class="dnav" id="nnav">' + plan.days.map(function(day, i) {
     return '<button class="dbn' + (i === todayIdx ? ' on' : '') + '" onclick="SNDAY(' + i + ')">' + day.day + '</button>';
-  }).join('') + '</div>';
-  h += '<div id="ndaycon">' + RNDAY(plan, todayIdx) + '</div>';
-  con.innerHTML = h;
+  }).join('') + '</div>');
+  h.push('<div id="ndaycon">' + RNDAY(plan, todayIdx) + '</div>');
+  con.innerHTML = h.join('');
 }
 
 function RNDAY(plan, idx) {
   var day = plan.days[idx];
-  return day.meals.map(function(m) {
+  var h = [];
+  day.meals.forEach(function(m) {
     var isSnack = m.m.toLowerCase().indexOf('snack') > -1 || m.m.toLowerCase().indexOf('merienda') > -1;
-    return '<div class="nutr-card' + (isSnack ? ' nutr-snack' : '') + '">' +
+    h.push('<div class="nutr-card' + (isSnack ? ' nutr-snack' : '') + '">' +
       '<div class="nutr-ml">' + m.m + '</div>' +
-      '<div class="nutr-mi">' + m.i + '</div></div>';
-  }).join('');
+      '<div class="nutr-mi">' + m.i + '</div></div>');
+  });
+  return h.join('');
 }
 
 function SNDAY(i) {

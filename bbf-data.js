@@ -486,52 +486,52 @@ function RDW() {
       '<div class="rdc"><div class="rdi">&#x1F634;</div><div class="rdt">Rest & Recover</div><div class="rds">' + (day.restNote || 'Active recovery, stretch, hydrate.') + '</div></div>';
     return;
   }
-  var h = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
-    '<div class="df2">' + day.exercises.length + ' exercises' + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>';
+  var h = ['<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
+    '<div class="df2">' + day.exercises.length + ' exercises' + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>'];
   day.exercises.forEach(function(ex, ei) {
     var ek = 'ex_' + ei;
     var sv = saved[ek] || [];
     var ns = (ex.reps.indexOf('min') > -1 || ex.reps.indexOf('sec') > -1) ? 1 : ex.sets;
-    h += '<div class="eb"><div class="eh" onclick="TEX(this)"><div><div class="en">' + ex.name + '</div>' +
+    h.push('<div class="eb"><div class="eh" onclick="TEX(this)"><div><div class="en">' + ex.name + '</div>' +
       '<div class="em">' + ex.equipment + ' &middot; ' + ex.sets + ' sets &times; ' + ex.reps + '</div></div>' +
-      '<div class="ec">&#9662;</div></div><div class="ebody">';
-    if (ex.notes) h += '<div class="enote">&#x1F4A1; ' + ex.notes + '</div>';
+      '<div class="ec">&#9662;</div></div><div class="ebody">');
+    if (ex.notes) h.push('<div class="enote">&#x1F4A1; ' + ex.notes + '</div>');
     if (partner) {
       var pd = d.w[partner] || {};
       var pdk2 = pd[dk] || {};
       var psv = pdk2[ek] || [];
       var mn = (d.u[uid] && d.u[uid].name || uid).split(' ')[0];
       var pn = (d.u[partner] && d.u[partner].name || partner).split(' ')[0];
-      h += '<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.8rem">' +
+      h.push('<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.8rem">' +
         '<div></div><div style="grid-column:2/4;text-align:center;font-weight:900;font-size:.85rem;color:var(--yel);border-bottom:2px solid var(--yel);padding-bottom:.2rem">' + mn + '</div>' +
-        '<div></div><div style="grid-column:5/7;text-align:center;font-weight:900;font-size:.85rem;color:#8b1abf;border-bottom:2px solid #8b1abf;padding-bottom:.2rem">' + pn + '</div></div>';
-      h += '<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.3rem">' +
-        '<div class="slb">Set</div><div class="slb">Reps</div><div class="slb">Wt</div><div></div><div class="slb">Reps</div><div class="slb">Wt</div></div>';
+        '<div></div><div style="grid-column:5/7;text-align:center;font-weight:900;font-size:.85rem;color:#8b1abf;border-bottom:2px solid #8b1abf;padding-bottom:.2rem">' + pn + '</div></div>');
+      h.push('<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.3rem">' +
+        '<div class="slb">Set</div><div class="slb">Reps</div><div class="slb">Wt</div><div></div><div class="slb">Reps</div><div class="slb">Wt</div></div>');
       for (var s = 0; s < ns; s++) {
         var sv1 = sv[s] || {};
         var psv1 = psv[s] || {};
-        h += '<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.4rem;align-items:center">' +
+        h.push('<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.4rem;align-items:center">' +
           '<div class="snum">' + (s+1) + '</div>' +
           '<input class="sinp' + (sv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (sv1.r||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r"/>' +
           '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/>' +
           '<div style="text-align:center;color:#333">|</div>' +
           '<input class="sinp' + (psv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (psv1.r||'') + '" data-uid="' + partner + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r" style="border-color:' + (psv1.r ? '#8b1abf' : '') + '"/>' +
           '<input class="sinp' + (psv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (psv1.w||'') + '" data-uid="' + partner + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w" style="border-color:' + (psv1.w ? '#8b1abf' : '') + '"/>' +
-          '</div>';
+          '</div>');
       }
     } else {
-      h += '<div class="slbs"><div class="slb">Set</div><div class="slb">Target</div><div class="slb">Reps Done</div><div class="slb">Weight (lbs)</div></div>';
+      h.push('<div class="slbs"><div class="slb">Set</div><div class="slb">Target</div><div class="slb">Reps Done</div><div class="slb">Weight (lbs)</div></div>');
       for (var s = 0; s < ns; s++) {
         var sv1 = sv[s] || {};
-        h += '<div class="srow2"><div class="snum">' + (s+1) + '</div><div class="stgt">' + ex.reps + '</div>' +
+        h.push('<div class="srow2"><div class="snum">' + (s+1) + '</div><div class="stgt">' + ex.reps + '</div>' +
           '<input class="sinp' + (sv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (sv1.r||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r"/>' +
-          '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/></div>';
+          '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/></div>');
       }
     }
-    h += '</div></div>';
+    h.push('</div></div>');
   });
-  h += '<button class="dbtn" data-dk="' + dk + '">&#x2713; Mark Session Complete</button>';
-  con.innerHTML = h;
+  h.push('<button class="dbtn" data-dk="' + dk + '">&#x2713; Mark Session Complete</button>');
+  con.innerHTML = h.join('');
   con.querySelectorAll('.eh').forEach(function(hdr) {
     hdr.onclick = function() { TEX(hdr); };
   });
@@ -598,24 +598,26 @@ function RN() {
   var todayIdx = new Date().getDay();
   todayIdx = todayIdx === 0 ? 6 : todayIdx - 1;
   if (todayIdx >= plan.days.length) todayIdx = 0;
-  var h = '<div class="dh"><div class="dl">' + plan.name + "'s Plan</div>" +
+  var h = ['<div class="dh"><div class="dl">' + plan.name + "'s Plan</div>" +
     '<div class="dn2" style="font-size:1.3rem">' + plan.cal + '</div>' +
-    '<div class="df2">&#x1F3AF; ' + plan.goal + '</div></div>';
-  h += '<div class="dnav" id="nnav">' + plan.days.map(function(day, i) {
+    '<div class="df2">&#x1F3AF; ' + plan.goal + '</div></div>'];
+  h.push('<div class="dnav" id="nnav">' + plan.days.map(function(day, i) {
     return '<button class="dbn' + (i === todayIdx ? ' on' : '') + '" onclick="SNDAY(' + i + ')">' + day.day + '</button>';
-  }).join('') + '</div>';
-  h += '<div id="ndaycon">' + RNDAY(plan, todayIdx) + '</div>';
-  con.innerHTML = h;
+  }).join('') + '</div>');
+  h.push('<div id="ndaycon">' + RNDAY(plan, todayIdx) + '</div>');
+  con.innerHTML = h.join('');
 }
 
 function RNDAY(plan, idx) {
   var day = plan.days[idx];
-  return day.meals.map(function(m) {
+  var h = [];
+  day.meals.forEach(function(m) {
     var isSnack = m.m.toLowerCase().indexOf('snack') > -1 || m.m.toLowerCase().indexOf('merienda') > -1;
-    return '<div class="nutr-card' + (isSnack ? ' nutr-snack' : '') + '">' +
+    h.push('<div class="nutr-card' + (isSnack ? ' nutr-snack' : '') + '">' +
       '<div class="nutr-ml">' + m.m + '</div>' +
-      '<div class="nutr-mi">' + m.i + '</div></div>';
-  }).join('');
+      '<div class="nutr-mi">' + m.i + '</div></div>');
+  });
+  return h.join('');
 }
 
 function SNDAY(i) {
