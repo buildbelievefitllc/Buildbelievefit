@@ -152,7 +152,6 @@ var BBF_SYNC = (function() {
       }
 
       return Promise.all(promises).then(function() {
-        console.log('BBF_SYNC: Full push complete (' + promises.length + ' operations)');
         return promises.length;
       });
     } catch (e) {
