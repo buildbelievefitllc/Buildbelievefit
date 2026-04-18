@@ -358,6 +358,28 @@ h1.megah .slash{color:var(--violet2)}
 .tier{background:var(--ink2);border:1px solid var(--line);border-radius:22px;padding:2rem 1.8rem;display:flex;flex-direction:column;position:relative;transition:transform .25s,border-color .25s}
 .tier:hover{transform:translateY(-4px);border-color:var(--violet2)}
 .tier.flag{background:linear-gradient(180deg,#0d0118 0%, var(--ink2) 55%);border-color:var(--volt);box-shadow:0 0 0 1px rgba(245,200,0,.25), 0 30px 80px rgba(245,200,0,.08), 0 0 0 1px rgba(0,229,255,.05)}
+
+/* SOVEREIGN / BESPOKE TIER — maximum Promethean vault treatment */
+.tier.sovereign{position:relative;background:radial-gradient(120% 120% at 50% 0%, #1a0338 0%, #0d0118 45%, #060606 100%);border:1.5px solid var(--volt);border-radius:24px;padding:2.2rem 1.8rem 2rem;overflow:hidden;box-shadow:0 0 0 1px rgba(245,200,0,.45), 0 0 56px rgba(245,200,0,.22), 0 40px 100px rgba(6,6,6,.7), inset 0 0 0 1px rgba(245,200,0,.12);transform-origin:center bottom}
+.tier.sovereign::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(135deg, var(--volt) 0%, var(--cyan) 45%, var(--volt) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.7;animation:sovereignGlow 5s linear infinite}
+.tier.sovereign::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg, transparent 0 18px, rgba(245,200,0,.035) 18px 19px);mix-blend-mode:screen;pointer-events:none}
+@keyframes sovereignGlow{0%,100%{opacity:.55;filter:hue-rotate(0deg)}50%{opacity:.9;filter:hue-rotate(-8deg)}}
+.tier.sovereign:hover{transform:translateY(-6px);box-shadow:0 0 0 1px rgba(245,200,0,.6), 0 0 72px rgba(245,200,0,.35), 0 48px 120px rgba(6,6,6,.8), inset 0 0 0 1px rgba(245,200,0,.2)}
+.tier.sovereign .tier-ribbon{background:linear-gradient(135deg,var(--volt),#ffd420);color:var(--ink);box-shadow:0 6px 24px rgba(245,200,0,.4), inset 0 0 0 1px rgba(245,200,0,.6);font-family:var(--hd);letter-spacing:.14em}
+.tier.sovereign .tier-num{color:var(--volt);text-shadow:0 0 12px rgba(245,200,0,.3)}
+.tier.sovereign .tier-n{font-family:var(--hd);color:var(--paper);letter-spacing:-.015em;line-height:1;background:linear-gradient(180deg,var(--paper) 0%,var(--volt) 120%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.tier.sovereign .tier-sub{color:var(--cyan);letter-spacing:.18em}
+.tier.sovereign .tier-price .n{font-family:var(--hd);color:var(--volt);text-shadow:0 0 28px rgba(245,200,0,.45);letter-spacing:-.02em}
+.tier.sovereign .tier-price .u{color:var(--volt);opacity:.8}
+.tier.sovereign .tier-flavor{color:rgba(246,242,234,.86)}
+.tier.sovereign .tier-feats{border-top-color:rgba(245,200,0,.3)}
+.tier.sovereign .tier-feats li{color:var(--paper)}
+.tier.sovereign .tier-feats li::before{content:"\u2726";color:var(--volt);text-shadow:0 0 8px rgba(245,200,0,.5);font-size:.85rem;line-height:1.2}
+.tier.sovereign .tier-btn{background:linear-gradient(135deg,var(--volt),#ffd420);color:var(--ink);border-color:var(--volt);font-family:var(--hd);letter-spacing:.14em;box-shadow:0 10px 36px rgba(245,200,0,.35), inset 0 0 0 1px rgba(245,200,0,.5)}
+.tier.sovereign .tier-btn:hover{transform:translateY(-2px);box-shadow:0 16px 48px rgba(245,200,0,.55), inset 0 0 0 1px rgba(245,200,0,.7)}
+.tier.sovereign > *{position:relative;z-index:2}
+.sovereign-seal{position:absolute;top:1rem;right:1rem;font-family:var(--mn);font-size:.58rem;letter-spacing:.22em;color:var(--volt);text-transform:uppercase;opacity:.75;z-index:3;display:inline-flex;align-items:center;gap:.4rem;pointer-events:none}
+.sovereign-seal::before{content:"\u25C8";color:var(--cyan);font-size:.7rem;animation:blink 2s ease-in-out infinite}
 .tier-ribbon{position:absolute;top:-12px;left:1.8rem;background:var(--volt);color:var(--ink);font-family:var(--hd);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .7rem;border-radius:6px}
 .tier-num{font-family:var(--mn);font-size:.7rem;color:var(--violet2);letter-spacing:.12em;margin-bottom:.6rem}
 .tier.flag .tier-num{color:var(--volt)}
@@ -1242,20 +1264,20 @@ body{transition:background .3s}
         <a href="#tiers" class="btn-ghost" data-lang-key="p-hero-btn-2">See the tiers</a>
       </div>
       <div class="hstats">
-        <div><div class="hstat-n"><em>4yr</em></div><div class="hstat-l" data-lang-key="p-hero-stat-1">Coaching practice</div></div>
-        <div><div class="hstat-n">180+</div><div class="hstat-l" data-lang-key="p-hero-stat-2">Clients coached</div></div>
-        <div><div class="hstat-n">CSCS</div><div class="hstat-l" data-lang-key="p-hero-stat-3">Certified, Pn. L1</div></div>
+        <div><div class="hstat-n"><em>AI·OT</em></div><div class="hstat-l" data-lang-key="p-hero-stat-1">Integrated architecture</div></div>
+        <div><div class="hstat-n">11</div><div class="hstat-l" data-lang-key="p-hero-stat-2">Clinical markers / intake</div></div>
+        <div><div class="hstat-n">NASM</div><div class="hstat-l" data-lang-key="p-hero-stat-3">Clinician-led protocol</div></div>
       </div>
       <div class="live-stats reveal d3">
-        <div class="ls" style="--d:0s"><div class="ls-k">HRV · cohort avg</div><div class="ls-v" data-live="hrv">68</div><div class="ls-d">ms · <span class="pulse-dot cy" style="width:4px;height:4px"></span> live</div></div>
-        <div class="ls" style="--d:1s"><div class="ls-k">Adherence · 90d</div><div class="ls-v" data-live="adh">94.2</div><div class="ls-d">% · rolling</div></div>
-        <div class="ls" style="--d:2s"><div class="ls-k">Queue · april</div><div class="ls-v" data-live="q">7</div><div class="ls-d">/ 12 slots</div></div>
+        <div class="ls" style="--d:0s"><div class="ls-k">Session HRV target</div><div class="ls-v" data-live="hrv">68</div><div class="ls-d">ms · <span class="pulse-dot cy" style="width:4px;height:4px"></span> adaptive</div></div>
+        <div class="ls" style="--d:1s"><div class="ls-k">Autoregulation</div><div class="ls-v" data-live="adh">94.2</div><div class="ls-d">% · precision</div></div>
+        <div class="ls" style="--d:2s"><div class="ls-k">AI signals / session</div><div class="ls-v" data-live="q">7</div><div class="ls-d">· live mesh</div></div>
       </div>
       <div class="hero-readout reveal d3">
         <div class="hero-readout-r"><span class="k">Assessment depth</span><span class="v">11 markers • <em>VO2 / HRV / sleep</em></span></div>
-        <div class="hero-readout-r"><span class="k">Programming cycle</span><span class="v">4wk • <span class="cy">adaptive</span></span></div>
+        <div class="hero-readout-r"><span class="k">Programming cycle</span><span class="v">4wk • <span class="cy">AI-assisted</span></span></div>
         <div class="hero-readout-r"><span class="k">Clinician review</span><span class="v"><em>Every intake</em> • &lt; 48hr</span></div>
-        <div class="hero-readout-r"><span class="k">Attrition rate</span><span class="v">8.2% <span class="cy">/ industry 73%</span></span></div>
+        <div class="hero-readout-r"><span class="k">System integration</span><span class="v">OT-informed <span class="cy">/ capability-first</span></span></div>
       </div>
     </div>
     <div class="hero-art reveal d2">
@@ -1285,10 +1307,10 @@ body{transition:background .3s}
     </div>
     <div class="spec-strip reveal">
       <span>PRAC-001 / 2026</span>
-      <span class="cy">Evidence-based</span>
+      <span class="cy">Advanced clinical periodization</span>
       <span>6 disciplines</span>
-      <span class="cy">Referenced: 412 studies</span>
-      <span>Last audit: 02.28.26</span>
+      <span class="cy">AI-assisted architecture</span>
+      <span>OT-informed movement logic</span>
     </div>
     <div class="svc-grid">
       <div class="svc featured reveal d1">
@@ -1357,10 +1379,10 @@ body{transition:background .3s}
         <span>It is a system to be <em>understood</em>, measured across months, and guided — not hacked, not optimized into a trend, not shamed into submission.</span>
       </div>
       <div class="rup-ledger">
-        <div><span class="k">Clients who finished year one</span><span class="v">94%</span></div>
-        <div><span class="k">Median strength gain · 12mo</span><span class="v">+38%</span></div>
-        <div><span class="k">Average injury days · 12mo</span><span class="v">&lt; 3</span></div>
-        <div><span class="k">Protocols thrown out and rebuilt</span><span class="v">127</span></div>
+        <div><span class="k">Autoregulation tolerance</span><span class="v">±0.5 RPE</span></div>
+        <div><span class="k">Clinical markers captured / intake</span><span class="v">11</span></div>
+        <div><span class="k">AI-assisted session authoring</span><span class="v">Every week</span></div>
+        <div><span class="k">Protocols stress-tested in the trenches</span><span class="v">&infin;</span></div>
       </div>
     </div>
   </div>
@@ -1378,7 +1400,7 @@ body{transition:background .3s}
       <span>PROTO-BBF/04</span>
       <span class="cy">Clinically progressive</span>
       <span>12wk minimum</span>
-      <span class="cy">n = 180 observed</span>
+      <span class="cy">Trenches-tested &amp; founder-authored</span>
     </div>
     <div class="pt-timeline">
       <div class="pt-step reveal d1">
@@ -1484,7 +1506,7 @@ body{transition:background .3s}
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="sec-num">/ 03</div>
-      <h2 class="sec-title" data-lang-key="p-tiers-title">Two <span class="volt">Tiers</span>. <span class="outline">One Standard.</span></h2>
+      <h2 class="sec-title" data-lang-key="p-tiers-title">Three <span class="volt">Tiers</span>. <span class="outline">One Standard.</span></h2>
       <div class="sec-meta" data-lang-key="p-tiers-meta">Founder-Verified.<br>Sovereign Gold Standard.</div>
     </div>
     <div class="spec-strip reveal">
@@ -1493,7 +1515,7 @@ body{transition:background .3s}
       <span>Adaptive metabolic tiers</span>
       <span class="cy">12-month access</span>
     </div>
-    <div class="tier-grid" style="grid-template-columns:repeat(2,1fr);max-width:880px;margin:0 auto">
+    <div class="tier-grid">
       <div class="tier reveal d1" onclick="selTier(this,'dual-threat')">
         <div class="tier-num" data-lang-key="p-dt-num">tier / 01 · dual-threat</div>
         <div class="tier-n" data-lang-key="p-dt-name">Dual-Threat</div>
@@ -1529,10 +1551,29 @@ body{transition:background .3s}
         </ul>
         <a href="#intake" class="tier-btn" data-lang-key="p-ap-cta">Apply for All-Pro →</a>
       </div>
+      <div class="tier sovereign reveal d3" onclick="selTier(this,'bespoke')">
+        <div class="tier-ribbon" data-lang-key="p-bp-ribbon">Bespoke Protocol</div>
+        <div class="sovereign-seal" data-lang-key="p-bp-seal">Sovereign · 003</div>
+        <div class="tier-num" data-lang-key="p-bp-num">tier / 03 · bespoke</div>
+        <div class="tier-n" data-lang-key="p-bp-name">The Bespoke Protocol</div>
+        <div class="tier-sub" data-lang-key="p-bp-sub">Total ecosystem integration · ongoing</div>
+        <div class="tier-price"><span class="n">$1,500</span><span class="u">–&nbsp;$2,500&nbsp;/&nbsp;mo</span></div>
+        <div class="tier-flavor" data-lang-key="p-bp-flavor">Architected for the operator who demands complete system integration. AI-assisted authoring, advanced clinical periodization, and a 1-on-1 line that does not queue.</div>
+        <ul class="tier-feats">
+          <li data-lang-key="p-bp-f1">Total ecosystem integration — portal, calendar, biometrics, vault</li>
+          <li data-lang-key="p-bp-f2">Custom AI-assisted programming architecture, authored weekly</li>
+          <li data-lang-key="p-bp-f3">Advanced clinical periodization &amp; OT-informed movement audit</li>
+          <li data-lang-key="p-bp-f4">Direct 1-on-1 app access — Akeem, not a queue</li>
+          <li data-lang-key="p-bp-f5">Quarterly bloodwork &amp; MD-partner consult integration</li>
+          <li data-lang-key="p-bp-f6">Travel &amp; schedule re-authoring on demand</li>
+          <li data-lang-key="p-bp-f7">Elevated human-experience architecture across life, not just training</li>
+        </ul>
+        <a href="#intake" class="tier-btn" data-lang-key="p-bp-cta">Request the Bespoke →</a>
+      </div>
     </div>
     <div class="tier-ledger">
       <div class="tier-ledger-l" data-lang-key="p-tiers-ledger-l">// BBF Financial Integrity Promise</div>
-      <div class="tier-ledger-q" data-lang-key="p-tiers-ledger-q">Whether you invest $247 or $497, you receive the same Founder-Verified attention to your joint safety, recovery, and long-term mobility. The price reflects access and depth. The Sovereign Gold Standard never changes.</div>
+      <div class="tier-ledger-q" data-lang-key="p-tiers-ledger-q">Whether you invest $247, $497, or the $1,500–$2,500 Bespoke, you receive the same Founder-Verified attention to your joint safety, recovery, and long-term mobility. The price reflects access, depth, and AI-assisted architecture. The Sovereign Gold Standard never changes.</div>
     </div>
   </div>
 </section>

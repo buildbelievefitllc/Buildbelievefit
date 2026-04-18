@@ -483,7 +483,36 @@ var D = {
 
 // Mandate
 'p-md-eye':        { en:'Codex \u00b7 Article I', es:'C\u00f3dice \u00b7 Art\u00edculo I', pt:'C\u00f3dice \u00b7 Artigo I' },
-'p-md-sub':        { en:'BBF-Lab exists for people who plan to be operational in thirty years. No aesthetics-first marketing. No platitudes. A clinical practice with an appetite for proof and a refusal to confuse motion with progress.', es:'BBF-Lab existe para personas que planean estar operativas en treinta a\u00f1os. Sin marketing centrado en la est\u00e9tica. Sin trivialidades. Una pr\u00e1ctica cl\u00ednica con apetito por la prueba y el rechazo a confundir movimiento con progreso.', pt:'BBF-Lab existe para pessoas que planejam estar operacionais em trinta anos. Sem marketing focado em est\u00e9tica. Sem trivialidades. Uma pr\u00e1tica cl\u00ednica com apetite por provas e a recusa em confundir movimento com progresso.' }
+'p-md-sub':        { en:'BBF-Lab exists for people who plan to be operational in thirty years. No aesthetics-first marketing. No platitudes. A clinical practice with an appetite for proof and a refusal to confuse motion with progress.', es:'BBF-Lab existe para personas que planean estar operativas en treinta a\u00f1os. Sin marketing centrado en la est\u00e9tica. Sin trivialidades. Una pr\u00e1ctica cl\u00ednica con apetito por la prueba y el rechazo a confundir movimiento con progreso.', pt:'BBF-Lab existe para pessoas que planejam estar operacionais em trinta anos. Sem marketing focado em est\u00e9tica. Sem trivialidades. Uma pr\u00e1tica cl\u00ednica com apetite por provas e a recusa em confundir movimento com progresso.' },
+
+// ═══════════════════════════════════════════════════════════════
+// AUDIT-9: Authority copy (capability + AI architecture framing)
+// ═══════════════════════════════════════════════════════════════
+// Hero stats rewritten to capability statements (no headcount)
+'p-hero-stat-1':   { en:'Integrated architecture', es:'Arquitectura integrada', pt:'Arquitetura integrada' },
+'p-hero-stat-2':   { en:'Clinical markers / intake', es:'Marcadores cl\u00ednicos / evaluaci\u00f3n', pt:'Marcadores cl\u00ednicos / avalia\u00e7\u00e3o' },
+'p-hero-stat-3':   { en:'Clinician-led protocol', es:'Protocolo dirigido por cl\u00ednico', pt:'Protocolo dirigido por cl\u00ednico' },
+
+// ═══════════════════════════════════════════════════════════════
+// AUDIT-9: The Bespoke Protocol — Sovereign Tier
+// ═══════════════════════════════════════════════════════════════
+'p-bp-ribbon':     { en:'Bespoke Protocol', es:'Protocolo a Medida', pt:'Protocolo Sob Medida' },
+'p-bp-seal':       { en:'Sovereign \u00b7 003', es:'Soberano \u00b7 003', pt:'Soberano \u00b7 003' },
+'p-bp-num':        { en:'tier / 03 \u00b7 bespoke', es:'nivel / 03 \u00b7 bespoke', pt:'n\u00edvel / 03 \u00b7 bespoke' },
+'p-bp-name':       { en:'The Bespoke Protocol', es:'El Protocolo a Medida', pt:'O Protocolo Sob Medida' },
+'p-bp-sub':        { en:'Total ecosystem integration \u00b7 ongoing', es:'Integraci\u00f3n total del ecosistema \u00b7 continuo', pt:'Integra\u00e7\u00e3o total do ecossistema \u00b7 cont\u00ednuo' },
+'p-bp-flavor':     { en:'Architected for the operator who demands complete system integration. AI-assisted authoring, advanced clinical periodization, and a 1-on-1 line that does not queue.', es:'Arquitectado para el operador que exige integraci\u00f3n total del sistema. Autor\u00eda asistida por IA, periodizaci\u00f3n cl\u00ednica avanzada y una l\u00ednea 1-on-1 que no espera en cola.', pt:'Arquitetado para o operador que exige integra\u00e7\u00e3o total do sistema. Autoria assistida por IA, periodiza\u00e7\u00e3o cl\u00ednica avan\u00e7ada e uma linha 1-on-1 que n\u00e3o entra em fila.' },
+'p-bp-f1':         { en:'Total ecosystem integration \u2014 portal, calendar, biometrics, vault', es:'Integraci\u00f3n total del ecosistema \u2014 portal, calendario, biom\u00e9tricos, b\u00f3veda', pt:'Integra\u00e7\u00e3o total do ecossistema \u2014 portal, calend\u00e1rio, biom\u00e9tricos, cofre' },
+'p-bp-f2':         { en:'Custom AI-assisted programming architecture, authored weekly', es:'Arquitectura de programaci\u00f3n personalizada asistida por IA, autorizada semanalmente', pt:'Arquitetura de programa\u00e7\u00e3o personalizada assistida por IA, autorada semanalmente' },
+'p-bp-f3':         { en:'Advanced clinical periodization & OT-informed movement audit', es:'Periodizaci\u00f3n cl\u00ednica avanzada & auditor\u00eda de movimiento informada por TO', pt:'Periodiza\u00e7\u00e3o cl\u00ednica avan\u00e7ada & auditoria de movimento informada por TO' },
+'p-bp-f4':         { en:'Direct 1-on-1 app access \u2014 Akeem, not a queue', es:'Acceso directo 1-on-1 a la app \u2014 Akeem, no una cola', pt:'Acesso direto 1-on-1 ao app \u2014 Akeem, n\u00e3o uma fila' },
+'p-bp-f5':         { en:'Quarterly bloodwork & MD-partner consult integration', es:'An\u00e1lisis de sangre trimestrales e integraci\u00f3n de consulta con m\u00e9dico aliado', pt:'Exames de sangue trimestrais & integra\u00e7\u00e3o de consulta com m\u00e9dico parceiro' },
+'p-bp-f6':         { en:'Travel & schedule re-authoring on demand', es:'Reautor\u00eda de viaje & horario bajo demanda', pt:'Reautoria de viagem & agenda sob demanda' },
+'p-bp-f7':         { en:'Elevated human-experience architecture across life, not just training', es:'Arquitectura elevada de experiencia humana en toda la vida, no solo el entrenamiento', pt:'Arquitetura elevada de experi\u00eancia humana em toda a vida, n\u00e3o apenas no treino' },
+'p-bp-cta':        { en:'Request the Bespoke \u2192', es:'Solicitar el Bespoke \u2192', pt:'Solicitar o Bespoke \u2192' },
+// Updated tiers title + ledger for 3-tier structure
+'p-tiers-title':   { en:'Three <span class="volt">Tiers</span>. <span class="outline">One Standard.</span>', es:'Tres <span class="volt">Niveles</span>. <span class="outline">Un Est\u00e1ndar.</span>', pt:'Tr\u00eas <span class="volt">N\u00edveis</span>. <span class="outline">Um Padr\u00e3o.</span>' },
+'p-tiers-ledger-q': { en:'Whether you invest $247, $497, or the $1,500\u2013$2,500 Bespoke, you receive the same Founder-Verified attention to your joint safety, recovery, and long-term mobility. The price reflects access, depth, and AI-assisted architecture. The Sovereign Gold Standard never changes.', es:'Ya sea que inviertas $247, $497 o el Bespoke de $1,500\u2013$2,500, recibes la misma atenci\u00f3n Verificada por el Fundador a la seguridad de tus articulaciones, recuperaci\u00f3n y movilidad a largo plazo. El precio refleja acceso, profundidad y arquitectura asistida por IA. El Est\u00e1ndar Soberano de Oro nunca cambia.', pt:'Seja voc\u00ea investindo $247, $497 ou o Bespoke de $1.500\u2013$2.500, voc\u00ea recebe a mesma aten\u00e7\u00e3o Verificada pelo Fundador \u00e0 seguran\u00e7a de suas articula\u00e7\u00f5es, recupera\u00e7\u00e3o e mobilidade a longo prazo. O pre\u00e7o reflete acesso, profundidade e arquitetura assistida por IA. O Padr\u00e3o Soberano de Ouro nunca muda.' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
