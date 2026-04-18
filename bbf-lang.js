@@ -468,6 +468,25 @@ var D = {
 
 // ═══ ROI SYNTHESIS — Weekly Executive Yield Brief ═══════════
 'roi-locked':      { en:'SYSTEM NOTIFICATION: Biomarkers actively compiling. Next Executive Yield Brief unlocks on Sunday.', es:'NOTIFICACI\u00d3N DEL SISTEMA: Biomarcadores compilando activamente. El pr\u00f3ximo Informe Ejecutivo de Rendimiento se desbloquea el domingo.', pt:'NOTIFICA\u00c7\u00c3O DO SISTEMA: Biomarcadores compilando ativamente. O pr\u00f3ximo Relat\u00f3rio Executivo de Rendimento desbloqueia no domingo.' },
+
+// ═══ PHANTOM COMLINK — Client SOS + Architect Intercept ═══
+'cl-launch':        { en:'Comlink the Architect',                    es:'Comlink al Arquitecto',                          pt:'Comlink ao Arquiteto' },
+'cl-launch-sub':    { en:'Secure uplink \u00b7 Async video drop reply within 24h', es:'Uplink seguro \u00b7 Respuesta en video en menos de 24h', pt:'Uplink seguro \u00b7 Resposta em v\u00eddeo em at\u00e9 24h' },
+'cl-badge':         { en:'\uD83D\uDD12 Secure Channel',              es:'\uD83D\uDD12 Canal Seguro',                     pt:'\uD83D\uDD12 Canal Seguro' },
+'cl-title':         { en:'Secure Uplink',                            es:'Uplink Seguro',                                  pt:'Uplink Seguro' },
+'cl-sub':           { en:'Transmit a 30-second biological state report. The Architect responds with a clinical video directive within 24 hours.', es:'Transmite un reporte de 30 segundos sobre tu estado biol\u00f3gico. El Arquitecto responder\u00e1 con una directiva cl\u00ednica en video en menos de 24 horas.', pt:'Transmita um relato de 30 segundos sobre seu estado biol\u00f3gico. O Arquiteto responder\u00e1 com uma diretiva cl\u00ednica em v\u00eddeo em at\u00e9 24 horas.' },
+'cl-record-lbl':    { en:'Voice Note (Optional)',                    es:'Nota de Voz (Opcional)',                         pt:'Nota de Voz (Opcional)' },
+'cl-rec-live':      { en:'Recording \u2026 tap to stop',             es:'Grabando \u2026 toca para detener',              pt:'Gravando \u2026 toque para parar' },
+'cl-rec-captured':  { en:'Voice Note Captured',                      es:'Nota de Voz Capturada',                          pt:'Nota de Voz Capturada' },
+'cl-rec-unsupported': { en:'\u26A0 Voice recording not supported on this device. Use the text field.', es:'\u26A0 Grabaci\u00f3n de voz no soportada en este dispositivo. Usa el campo de texto.', pt:'\u26A0 Grava\u00e7\u00e3o de voz n\u00e3o suportada neste dispositivo. Use o campo de texto.' },
+'cl-rec-denied':    { en:'\u26A0 Microphone access denied.',         es:'\u26A0 Acceso al micr\u00f3fono denegado.',      pt:'\u26A0 Acesso ao microfone negado.' },
+'cl-cancel':        { en:'Cancel',                                   es:'Cancelar',                                       pt:'Cancelar' },
+'cl-send':          { en:'Transmit \u2192',                          es:'Transmitir \u2192',                             pt:'Transmitir \u2192' },
+'cl-sent':          { en:'\uD83D\uDCE1 Signal transmitted to the Architect.', es:'\uD83D\uDCE1 Se\u00f1al transmitida al Arquitecto.', pt:'\uD83D\uDCE1 Sinal transmitido ao Arquiteto.' },
+'hi-title':         { en:'\u26A1 Incoming Directive: The Architect', es:'\u26A1 Directiva Entrante: El Arquitecto',       pt:'\u26A1 Diretiva Recebida: O Arquiteto' },
+'hi-subtitle':      { en:'Decrypted \u00b7 Sovereign Channel',       es:'Descifrado \u00b7 Canal Soberano',               pt:'Descriptografado \u00b7 Canal Soberano' },
+'hi-note-lbl':      { en:'Architect Note',                           es:'Nota del Arquitecto',                            pt:'Nota do Arquiteto' },
+'hi-ack':           { en:'Acknowledged',                             es:'Reconocido',                                     pt:'Reconhecido' },
 'som-window':      { en:'Today \u00b7 Readiness Sync', es:'Hoy \u00b7 Sincronizaci\u00f3n de Preparaci\u00f3n', pt:'Hoje \u00b7 Sincroniza\u00e7\u00e3o de Prontid\u00e3o' },
 'som-score-label': { en:'Somatic Readiness \u00b7 threshold 60%', es:'Preparaci\u00f3n Som\u00e1tica \u00b7 umbral 60%', pt:'Prontid\u00e3o Som\u00e1tica \u00b7 limite 60%' },
 'som-lbl-sleep':   { en:'Sleep Quality', es:'Calidad del Sue\u00f1o', pt:'Qualidade do Sono' },
