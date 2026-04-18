@@ -141,6 +141,8 @@ h1.megah .slash{color:var(--violet2)}
 }
 .ha-label{position:absolute;top:1.2rem;left:1.2rem;right:1.2rem;display:flex;justify-content:space-between;align-items:center;font-family:var(--mn);font-size:.65rem;letter-spacing:.14em;color:var(--mute2);text-transform:uppercase;z-index:3}
 .ha-label .pill{background:rgba(18,8,33,.55);border:1px solid var(--line);padding:.25rem .55rem;border-radius:999px}
+.ha-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;z-index:1;border-radius:inherit}
+.hero-art::after{display:none}
 .ha-placeholder{position:absolute;inset:5rem 1.5rem 6.5rem;border:1.5px dashed rgba(242,255,62,.35);border-radius:18px;display:grid;place-items:center;text-align:center;padding:2rem;font-family:var(--mn);font-size:.75rem;letter-spacing:.1em;color:var(--mute2);line-height:1.7;background:
   repeating-linear-gradient(45deg, transparent 0 18px, rgba(242,255,62,.04) 18px 19px);
   z-index:2}
@@ -1100,19 +1102,13 @@ body{transition:background .3s}
         <span>COACH · 001</span>
         <span class="pill">LIVE</span>
       </div>
-      <div class="ha-placeholder">
-        <div>
-          <div class="big">Coach portrait</div>
-          replace /assets/coach.jpg<br>
-          crop: waist-up, 4:5, warm key light
-        </div>
-      </div>
+      <img src="bbf-photo.jpg" alt="Akeem Brown — Build Believe Fit" loading="eager" class="ha-img"/>
       <div class="ha-stamp">
         <div>
-          <div class="name">Jordan Marsh</div>
-          <div class="role">Lead Clinician · CSCS</div>
+          <div class="name">Akeem Brown</div>
+          <div class="role">Performance Architect · NASM-CPT</div>
         </div>
-        <div class="badge">Taking<br>April<br>Cohort</div>
+        <div class="badge">Founder<br>Verified<br>Protocols</div>
       </div>
     </div>
   </div>
@@ -1312,71 +1308,132 @@ body{transition:background .3s}
   </div>
 </section>
 
-<!-- TIERS -->
+<!-- TIERS — Sovereign packages -->
 <section id="tiers">
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="sec-num">/ 03</div>
-      <h2 class="sec-title">Three <span class="volt">Tiers</span>. <span class="outline">One Standard.</span></h2>
-      <div class="sec-meta">Pricing honest.<br>Quality flat.</div>
+      <h2 class="sec-title">Two <span class="volt">Tiers</span>. <span class="outline">One Standard.</span></h2>
+      <div class="sec-meta">Founder-Verified.<br>Sovereign Gold Standard.</div>
     </div>
-    <div class="tier-grid">
-      <div class="tier reveal d1" onclick="selTier(this,'foundation')">
-        <div class="tier-num">tier / 01</div>
-        <div class="tier-n">Foundation</div>
-        <div class="tier-sub">Self-guided · 8 weeks</div>
-        <div class="tier-price"><span class="n">$79</span><span class="u">one-time</span></div>
-        <div class="tier-flavor">A complete starting system. Not watered down — just self-directed.</div>
+    <div class="spec-strip reveal">
+      <span>SOVEREIGN-002</span>
+      <span class="cy">Stripe-secured checkout</span>
+      <span>Adaptive metabolic tiers</span>
+      <span class="cy">12-month access</span>
+    </div>
+    <div class="tier-grid" style="grid-template-columns:repeat(2,1fr);max-width:880px;margin:0 auto">
+      <div class="tier reveal d1" onclick="selTier(this,'dual-threat')">
+        <div class="tier-num">tier / 01 · dual-threat</div>
+        <div class="tier-n">Dual-Threat</div>
+        <div class="tier-sub">Hybrid programming · 8 weeks</div>
+        <div class="tier-price"><span class="n">$247</span><span class="u">one-time</span></div>
+        <div class="tier-flavor">The dual-engine build. Strength + conditioning periodized for the everyday athlete.</div>
         <ul class="tier-feats">
-          <li>8-week structured training block</li>
-          <li>TDEE + macro calibration sheet</li>
-          <li>Movement-quality video library</li>
+          <li>8-week dual-threat block (strength + conditioning)</li>
+          <li>TDEE + macro calibration to your physiology</li>
+          <li>Movement-quality video library access</li>
           <li>Prehab routines for knees, hips, shoulders</li>
-          <li>Private cohort community</li>
-          <li class="dim">Direct coach feedback</li>
-          <li class="dim">Custom meal plan</li>
+          <li>BBF Client Portal access (workout tracking)</li>
+          <li>Trilingual support (EN / ES / PT)</li>
+          <li class="dim">1-on-1 weekly coaching calls</li>
         </ul>
-        <a href="#intake" class="tier-btn">Start Foundation →</a>
+        <a href="#intake" class="tier-btn">Start Dual-Threat →</a>
       </div>
-      <div class="tier flag reveal d2" onclick="selTier(this,'core')">
-        <div class="tier-ribbon">Most chosen</div>
-        <div class="tier-num">tier / 02</div>
-        <div class="tier-n">Core</div>
-        <div class="tier-sub">Hybrid coaching · 12 weeks</div>
-        <div class="tier-price"><span class="n">$549</span><span class="u">per block</span></div>
-        <div class="tier-flavor">The flagship. Custom program, custom nutrition, async coaching. Where most of our practice lives.</div>
+      <div class="tier flag reveal d2" onclick="selTier(this,'all-pro')">
+        <div class="tier-ribbon">Sovereign Pick</div>
+        <div class="tier-num">tier / 02 · all-pro</div>
+        <div class="tier-n">All-Pro</div>
+        <div class="tier-sub">Bespoke clinical coaching · 12 weeks</div>
+        <div class="tier-price"><span class="n">$497</span><span class="u">per block</span></div>
+        <div class="tier-flavor">The flagship. Custom program, custom nutrition, OT-clinical assessment, direct line to Akeem.</div>
         <ul class="tier-feats">
-          <li>Everything in Foundation</li>
-          <li>12-week custom periodized program</li>
+          <li>Everything in Dual-Threat</li>
+          <li>12-week custom periodized program design</li>
           <li>Personalized 7-day meal framework</li>
-          <li>Weekly async video review</li>
-          <li>Twice-monthly live video call</li>
-          <li>Direct coach messaging (M–F)</li>
-          <li>Bloodwork & sleep integration</li>
+          <li>Weekly async video form review</li>
+          <li>OT-informed joint longevity assessment</li>
+          <li>Direct coach messaging (M–F · 24hr response)</li>
+          <li>Parent Playbook + Youth Athlete bonus included</li>
         </ul>
-        <a href="#intake" class="tier-btn">Apply for Core →</a>
-      </div>
-      <div class="tier reveal d3" onclick="selTier(this,'atelier')">
-        <div class="tier-num">tier / 03</div>
-        <div class="tier-n">Atelier</div>
-        <div class="tier-sub">1:1 bespoke · ongoing</div>
-        <div class="tier-price"><span class="n">$1,850</span><span class="u">per month</span></div>
-        <div class="tier-flavor">Fully bespoke. Clinical-level attention. Capped at six clients at a time.</div>
-        <ul class="tier-feats">
-          <li>Everything in Core</li>
-          <li>Weekly 1:1 coaching call (60 min)</li>
-          <li>In-person assessment (or traveling)</li>
-          <li>Program rebuilt weekly to your state</li>
-          <li>Priority same-day response window</li>
-          <li>Quarterly bloodwork review with MD partner</li>
-          <li>Travel / schedule integration</li>
-        </ul>
-        <a href="#intake" class="tier-btn">Request an invitation →</a>
+        <a href="#intake" class="tier-btn">Apply for All-Pro →</a>
       </div>
     </div>
     <div class="tier-ledger">
-      <div class="tier-ledger-l">// the practice standard</div>
-      <div class="tier-ledger-q">Whether you bring $79 or $1,850, the precision of the programming doesn't move. The price buys access and frequency. The standard stays flat.</div>
+      <div class="tier-ledger-l">// BBF Financial Integrity Promise</div>
+      <div class="tier-ledger-q">Whether you invest $247 or $497, you receive the same Founder-Verified attention to your joint safety, recovery, and long-term mobility. The price reflects access and depth. The Sovereign Gold Standard never changes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PARENT PLAYBOOK — Family Performance Series -->
+<section id="parent-playbook" style="background:var(--ink);padding:7rem 2rem;position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background:
+    radial-gradient(700px 420px at 15% 30%, rgba(0,229,255,.06), transparent 65%),
+    radial-gradient(800px 500px at 85% 75%, rgba(245,200,0,.05), transparent 70%);
+    pointer-events:none"></div>
+  <div style="position:absolute;top:-2rem;right:-2rem;font-family:var(--hd);font-size:14rem;color:rgba(245,200,0,.025);letter-spacing:-.02em;pointer-events:none;line-height:.8;text-transform:uppercase">PARENT</div>
+  <div class="wrap" style="max-width:1100px;padding:0;position:relative;z-index:2">
+    <div class="sec-head reveal">
+      <div class="sec-num">/ 04</div>
+      <h2 class="sec-title">The <span class="volt">Parent</span> Playbook</h2>
+      <div class="sec-meta">Family performance<br>Engineered protocol</div>
+    </div>
+    <div class="spec-strip reveal">
+      <span>FAMILY-PERF/01</span>
+      <span class="cy">Adaptive metabolic tiers</span>
+      <span>12:12 · 14:10 · 16:8</span>
+      <span class="cy">Youth athlete bonus included</span>
+    </div>
+    <div class="reveal d1" style="display:grid;grid-template-columns:1.05fr .95fr;gap:2.5rem;align-items:stretch;margin-top:2rem">
+      <div style="background:linear-gradient(170deg,var(--violet) 0%,var(--violet-soft) 75%);border:1px solid var(--violet2);border-radius:22px;padding:2.4rem;display:flex;flex-direction:column;gap:1.2rem;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--volt),var(--cyan))"></div>
+        <div style="display:inline-flex;align-items:center;gap:.5rem;font-family:var(--mn);font-size:.65rem;letter-spacing:.18em;color:var(--volt);text-transform:uppercase">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--volt);box-shadow:0 0 10px var(--volt)"></span>
+          Family Performance Series
+        </div>
+        <h3 style="font-family:var(--hd);font-size:clamp(2rem,3.6vw,2.8rem);line-height:.98;letter-spacing:-.02em;text-transform:uppercase;color:var(--paper)">The Busy Parent<br><span style="color:var(--volt)">Transformation</span></h3>
+        <p style="font-size:1rem;line-height:1.7;color:rgba(246,242,234,.8);max-width:480px">Adaptive Metabolic Tiers (12:12, 14:10, 16:8) engineered for the high-demand reality. The Laboratory's primary protocol for sustainable parent transformation — backed by the Sovereign Gold Standard. Includes Youth Athlete Performance bonus.</p>
+        <div style="display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;padding:1rem 0;border-top:1px dashed rgba(245,200,0,.25);border-bottom:1px dashed rgba(245,200,0,.25)">
+          <div style="font-family:var(--hd);font-size:2.6rem;color:var(--volt);line-height:1;letter-spacing:-.02em">$147</div>
+          <div style="font-family:var(--mn);font-size:.7rem;color:var(--mute2);letter-spacing:.12em;text-transform:uppercase">standalone</div>
+          <div style="margin-left:auto;background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.35);border-radius:999px;padding:.35rem .8rem;font-family:var(--mn);font-size:.62rem;font-weight:700;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase">Free with All-Pro</div>
+        </div>
+        <div style="display:flex;gap:.7rem;flex-wrap:wrap;margin-top:.4rem">
+          <a href="busy-parent-transformation.html" class="btn-primary" style="background:var(--volt);color:var(--ink)">View the Playbook <span class="arrow">→</span></a>
+          <a href="playbooks.html" class="btn-ghost">All Positional Blueprints</a>
+        </div>
+      </div>
+      <div style="background:var(--ink2);border:1px solid var(--line);border-radius:22px;padding:1.8rem;display:flex;flex-direction:column;gap:1rem">
+        <div style="font-family:var(--mn);font-size:.62rem;letter-spacing:.18em;color:var(--cyan);text-transform:uppercase">Why this protocol exists</div>
+        <div style="font-family:var(--hd);font-size:1.3rem;line-height:1.18;letter-spacing:-.005em;text-transform:uppercase;color:var(--paper)">Built for the parent whose week never lands the same way twice.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.4rem">
+          <div style="background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1rem">
+            <div style="font-family:var(--mn);font-size:.58rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.3rem">Tier 12:12</div>
+            <div style="font-family:var(--hd);font-size:1.1rem;color:var(--volt);line-height:1.1;text-transform:uppercase">Survival cadence</div>
+            <div style="font-size:.78rem;color:var(--mute2);margin-top:.4rem;line-height:1.5">Sleep-debt aware. 30-min sessions. Anchor weeks for chaos.</div>
+          </div>
+          <div style="background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1rem">
+            <div style="font-family:var(--mn);font-size:.58rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.3rem">Tier 14:10</div>
+            <div style="font-family:var(--hd);font-size:1.1rem;color:var(--volt);line-height:1.1;text-transform:uppercase">Recovery build</div>
+            <div style="font-size:.78rem;color:var(--mute2);margin-top:.4rem;line-height:1.5">Metabolic re-anchor. 45-min sessions. Joint-longevity blocks.</div>
+          </div>
+          <div style="background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1rem">
+            <div style="font-family:var(--mn);font-size:.58rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.3rem">Tier 16:8</div>
+            <div style="font-family:var(--hd);font-size:1.1rem;color:var(--volt);line-height:1.1;text-transform:uppercase">Performance push</div>
+            <div style="font-size:.78rem;color:var(--mute2);margin-top:.4rem;line-height:1.5">Full hybrid load. 60-min sessions. Compound progression.</div>
+          </div>
+          <div style="background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1rem">
+            <div style="font-family:var(--mn);font-size:.58rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.3rem">Bonus</div>
+            <div style="font-family:var(--hd);font-size:1.1rem;color:var(--cyan);line-height:1.1;text-transform:uppercase">Youth Athlete</div>
+            <div style="font-size:.78rem;color:var(--mute2);margin-top:.4rem;line-height:1.5">Companion module for kids 8-17. Sport-specific positions.</div>
+          </div>
+        </div>
+        <div style="margin-top:auto;padding-top:1rem;border-top:1px dashed var(--line);font-family:var(--mn);font-size:.62rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;display:flex;justify-content:space-between;gap:.8rem">
+          <span>Standalone <em style="color:var(--volt);font-style:normal">$147</em></span>
+          <span>Bundle savings <em style="color:var(--cyan);font-style:normal">100%</em> with All-Pro</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -1843,29 +1900,51 @@ var NEXT_STEPS={
 };
 function persona(g,s){return NEXT_STEPS[s]||NEXT_STEPS['standard'];}
 
-// SUBMIT
+// SUBMIT — Pathfinder CRM (Zapier + Formspree)
 function doSubmit(){
   var btn=document.getElementById('sbtn');
   var fn=document.getElementById('f-fn').value.trim();
+  var ln=document.getElementById('f-ln').value.trim();
   var em=document.getElementById('f-em').value.trim();
+  var ph=(document.getElementById('f-ph')||{}).value||'';
   var age=parseInt(document.getElementById('f-age').value)||0;
   var sex=document.getElementById('f-sex').value;
   var wt=parseFloat(document.getElementById('f-wt').value)||0;
   var ft=parseInt(document.getElementById('f-ft').value)||0;
   var ins=parseInt(document.getElementById('f-in').value)||0;
   var act=parseFloat(document.getElementById('f-act').value)||1.55;
-  var gc=document.querySelector('#gc .chip.on');var sc=document.querySelector('#sc .chip.on');
-  var goal=gc?gc.dataset.v:'lean';var sch=sc?sc.dataset.v:'standard';
+  var gc=document.querySelector('#gc .chip.on');var ec=document.querySelector('#ec .chip.on');var sc=document.querySelector('#sc .chip.on');
+  var goal=gc?gc.dataset.v:'lean';var exp=ec?ec.dataset.v:'not specified';var sch=sc?sc.dataset.v:'standard';
+  var prog=(document.getElementById('f-prog')||{}).value||'';
+  var hlth=(document.getElementById('f-health')||{}).value||'';
+  var ref=(document.getElementById('f-ref')||{}).value||'';
   var base=(age&&wt&&ft)?calcTDEE(age,sex,wt,ft,ins,act):0;
   var adjMap={'lean':-450,'recomp':-180,'build':280,'strength':0,'endurance':0,'return':-150};
   var adj=adjMap[goal]!==undefined?adjMap[goal]:-300;
   var tgt=base+adj;
   var mac=tgt>0?calcMacros(tgt,wt,adj):{p:0,c:0,f:0};
-  btn.textContent='Sending…';btn.disabled=true;
-  setTimeout(function(){
+  btn.textContent='Calculating & sending…';btn.disabled=true;
+  try{localStorage.setItem('bbf_pathfinder',JSON.stringify({email:em,name:fn+' '+ln,goal:goal,weight:wt,schedule:sch,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,program:prog,ts:Date.now()}));}catch(e){}
+  try {
+    fetch('https://hooks.zapier.com/hooks/catch/27190846/u7l7ixc/', {
+      method:'POST',
+      body:JSON.stringify({
+        first_name:fn, last_name:ln, full_name:fn+' '+ln, email:em, phone:ph,
+        fitness_goal:goal, schedule:sch, program:prog,
+        tdee_target:tgt, macro_p:mac.p, macro_c:mac.c, macro_f:mac.f,
+        weight:wt, language_preference:(localStorage.getItem('bbf_lang')||'en'),
+        source:'BBF Pathfinder Form', timestamp:new Date().toISOString()
+      })
+    }).catch(function(){});
+  } catch(e) {}
+  fetch('https://formspree.io/f/mwvwjokw',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify({_subject:'New BBF Pathfinder Lead',first_name:fn,last_name:ln,full_name:fn+' '+ln,email:em,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,language_preference:(localStorage.getItem('bbf_lang')||'en'),source:'BBF Pathfinder Form',timestamp:new Date().toISOString()})
+  }).finally(function(){
     btn.textContent='Calibrate & submit →';btn.disabled=false;
     openMod(fn,tgt,mac,sch);
-  },700);
+  });
 }
 function openMod(fn,tgt,mac,sch){
   document.getElementById('m-name').textContent=fn?fn+'.':'starting line.';
