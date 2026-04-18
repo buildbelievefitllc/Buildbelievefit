@@ -71,6 +71,10 @@ ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_uploaded_at TIME
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_exercise TEXT;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_rx_lift TEXT;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS video_critique_pins JSONB;
+-- Phantom Comlink — async SOS + Architect reply intercept
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS sos_outbox JSONB;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_sos_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS architect_comlink_intercept JSONB;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (

@@ -1513,6 +1513,379 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   .byr-readout-body { font-size: .72rem; }
 }
 
+/* ═══ PHANTOM COMLINK — Client SOS + Architect Intercept (Phase 4) ═══ */
+
+/* ── Comlink launcher button (dashboard, below other widgets) ── */
+.comlink-launcher {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+  border: 1px solid rgba(245,200,0,0.35);
+  border-left: 3px solid var(--volt, #F5C800);
+  border-radius: 12px;
+  color: var(--volt, #F5C800);
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-size: .78rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 22px -8px rgba(245,200,0,0.25);
+  transition: transform .18s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.comlink-launcher:hover {
+  transform: translateY(-1px);
+  border-color: var(--volt, #F5C800);
+  box-shadow: 0 12px 28px -8px rgba(245,200,0,0.45);
+}
+.comlink-launcher .cl-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: .55rem;
+  vertical-align: middle;
+  background: var(--volt, #F5C800);
+  box-shadow: 0 0 10px rgba(245,200,0,0.75);
+  animation: clPulse 2s ease-in-out infinite;
+}
+.comlink-launcher b {
+  display: block;
+  margin-top: .25rem;
+  font-family: var(--bd, 'Barlow Condensed'), sans-serif;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: none;
+  color: rgba(255,255,255,0.55);
+}
+@keyframes clPulse {
+  0%,100% { opacity: 1;   transform: scale(1);    box-shadow: 0 0 10px rgba(245,200,0,.75); }
+  50%     { opacity: 0.55; transform: scale(.9);   box-shadow: 0 0 16px rgba(245,200,0,.35); }
+}
+
+/* ── SECURE UPLINK modal (matte black, gold accents) ── */
+.cl-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10080;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0,0,0,.92);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+.cl-overlay.on { display: flex; animation: clFadeIn .35s var(--ease-sovereign, ease-out); }
+@keyframes clFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.cl-modal {
+  max-width: 460px;
+  width: 100%;
+  background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+  border: 1.5px solid rgba(245,200,0,.45);
+  border-radius: 16px;
+  padding: 2rem 1.4rem 1.5rem;
+  position: relative;
+  box-shadow:
+    0 30px 70px -20px rgba(0,0,0,.8),
+    0 0 0 1px rgba(245,200,0,.2) inset,
+    inset 0 0 40px rgba(245,200,0,.04);
+}
+.cl-modal::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--volt, #F5C800) 50%, transparent);
+}
+.cl-badge {
+  display: inline-block;
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-size: .58rem;
+  letter-spacing: .38em;
+  color: var(--volt, #F5C800);
+  padding: .3rem .7rem;
+  border: 1px solid rgba(245,200,0,.45);
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+.cl-title {
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-size: 1.55rem;
+  letter-spacing: .12em;
+  color: #fff;
+  text-transform: uppercase;
+  margin-bottom: .4rem;
+}
+.cl-sub {
+  font-family: var(--bd, 'Barlow Condensed'), sans-serif;
+  font-size: .82rem;
+  line-height: 1.55;
+  color: rgba(255,255,255,.55);
+  margin-bottom: 1.3rem;
+}
+.cl-textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: .8rem .9rem;
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(245,200,0,.25);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--bd, 'Barlow Condensed'), sans-serif;
+  font-size: .92rem;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.cl-textarea:focus {
+  border-color: var(--volt, #F5C800);
+  box-shadow: 0 0 0 3px rgba(245,200,0,.18);
+}
+.cl-char-count {
+  text-align: right;
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-size: .58rem;
+  letter-spacing: .2em;
+  color: rgba(245,200,0,.55);
+  margin-top: .3rem;
+  margin-bottom: .9rem;
+}
+.cl-record-row {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: .7rem .8rem;
+  background: rgba(245,200,0,.04);
+  border: 1px dashed rgba(245,200,0,.25);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+.cl-record-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(245,200,0,.55);
+  background: rgba(0,0,0,.6);
+  color: var(--volt, #F5C800);
+  font-size: 1.05rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .2s, box-shadow .25s, transform .18s;
+  display: flex; align-items: center; justify-content: center;
+}
+.cl-record-btn:hover { background: rgba(245,200,0,.1); }
+.cl-record-btn.is-recording {
+  background: #dc143c;
+  color: #fff;
+  border-color: #ff4b6f;
+  box-shadow: 0 0 18px rgba(220,20,60,.55);
+  animation: clRecPulse 1.1s ease-in-out infinite;
+}
+@keyframes clRecPulse {
+  0%,100% { box-shadow: 0 0 16px rgba(220,20,60,.5); }
+  50%     { box-shadow: 0 0 28px rgba(220,20,60,.85); }
+}
+.cl-record-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+}
+.cl-record-lbl {
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-size: .6rem;
+  letter-spacing: .24em;
+  color: var(--volt, #F5C800);
+  text-transform: uppercase;
+}
+.cl-record-timer {
+  font-family: 'Menlo', ui-monospace, monospace;
+  font-size: .72rem;
+  color: #fff;
+  letter-spacing: .04em;
+}
+.cl-actions { display: flex; gap: .6rem; margin-top: .4rem; }
+.cl-btn {
+  flex: 1 1 auto;
+  padding: .85rem 1rem;
+  border-radius: 10px;
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform .18s ease, filter .2s ease, box-shadow .25s ease;
+}
+.cl-btn--primary {
+  background: linear-gradient(180deg, #F2D769 0%, #E6C24F 35%, #D4AF37 70%, #A8862A 100%);
+  color: #0a0a0a;
+  border: 1px solid #F2D769;
+  box-shadow: 0 8px 22px rgba(212,175,55,.4), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.cl-btn--primary:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.cl-btn--primary:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+.cl-btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(245,200,0,.3);
+  color: rgba(245,200,0,.8);
+}
+.cl-btn--ghost:hover { background: rgba(245,200,0,.08); color: var(--volt, #F5C800); }
+
+/* ── HOLOGRAPHIC INTERCEPT — full-screen takeover ── */
+.hi-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10090;
+  display: none;
+  background: #000;
+  overflow-y: auto;
+}
+.hi-overlay.on { display: block; }
+.hi-stage {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4.5rem 1.25rem 2.5rem;
+  max-width: 520px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+/* Kinetic scan-line descent (borrows BYR pattern) */
+.hi-scanline {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(245,200,0,.2) 20%, var(--volt, #F5C800) 50%, rgba(245,200,0,.2) 80%, transparent 100%);
+  box-shadow: 0 0 22px rgba(245,200,0,.7), 0 0 40px rgba(245,200,0,.35);
+  animation: hiScan 1.6s linear forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes hiScan {
+  0%   { top: 0%;    opacity: 0;   }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { top: 100%;  opacity: 0;   }
+}
+/* Title reveal */
+.hi-title {
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-size: clamp(1.5rem, 5vw, 1.9rem);
+  letter-spacing: .18em;
+  color: var(--volt, #F5C800);
+  text-transform: uppercase;
+  text-align: center;
+  text-shadow: 0 0 18px rgba(245,200,0,.5);
+  margin-bottom: .6rem;
+  opacity: 0;
+  animation: hiTitleIn .7s var(--ease-sovereign, ease-out) 1.4s forwards;
+}
+.hi-subtitle {
+  font-family: 'Menlo', ui-monospace, monospace;
+  font-size: .7rem;
+  letter-spacing: .24em;
+  color: rgba(245,200,0,.65);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 1.6rem;
+  opacity: 0;
+  animation: hiTitleIn .6s var(--ease-sovereign, ease-out) 1.6s forwards;
+}
+@keyframes hiTitleIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Architect note card (above video, makes pre-recorded feel bespoke) */
+.hi-note {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  background: linear-gradient(180deg, rgba(22,22,22,.8) 0%, rgba(10,10,10,.85) 100%);
+  border: 1px solid rgba(245,200,0,.25);
+  border-left: 3px solid var(--volt, #F5C800);
+  border-radius: 10px;
+  box-shadow: 0 14px 34px -14px rgba(245,200,0,.15);
+  opacity: 0;
+  animation: hiTitleIn .6s var(--ease-sovereign, ease-out) 1.85s forwards;
+}
+.hi-note-lbl {
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-size: .58rem;
+  letter-spacing: .34em;
+  color: var(--volt, #F5C800);
+  text-transform: uppercase;
+  margin-bottom: .35rem;
+}
+.hi-note-body {
+  font-family: var(--bd, 'Barlow Condensed'), sans-serif;
+  font-size: .92rem;
+  line-height: 1.6;
+  color: #f2f2f2;
+}
+
+/* Custom video player wrapper */
+.hi-video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(245,200,0,.3);
+  box-shadow: 0 22px 52px -18px rgba(245,200,0,.22), 0 0 0 1px rgba(245,200,0,.22) inset;
+  margin-bottom: 1rem;
+  opacity: 0;
+  animation: hiTitleIn .7s var(--ease-sovereign, ease-out) 2.1s forwards;
+}
+.hi-video {
+  width: 100%; height: 100%;
+  background: #000;
+  display: block;
+}
+.hi-video-meta {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: .65rem .9rem;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.88) 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .6rem;
+  pointer-events: none;
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-size: .66rem;
+  letter-spacing: .22em;
+  color: rgba(255,255,255,.85);
+  text-transform: uppercase;
+}
+.hi-video-meta .hi-duration { color: var(--volt, #F5C800); }
+
+.hi-actions {
+  width: 100%;
+  display: flex;
+  gap: .6rem;
+  opacity: 0;
+  animation: hiTitleIn .6s var(--ease-sovereign, ease-out) 2.3s forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comlink-launcher .cl-dot,
+  .cl-record-btn.is-recording { animation: none; }
+  .hi-scanline { display: none; }
+  .hi-title, .hi-subtitle, .hi-note, .hi-video-wrap, .hi-actions {
+    opacity: 1; animation: none;
+  }
+}
 
 /* ═══ SOMATIC READINESS MATRIX — circular gauge + flow state ═══ */
 .som-gauge-wrap {
@@ -1738,6 +2111,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="auditor-engine.js"></script>
 <script src="somatic-engine.js"></script>
 <script src="roi-synthesis-engine.js"></script>
+<script src="comlink-engine.js"></script>
 <script src="prehab-auditor.js"></script>
 <script src="rpe-commander.js"></script>
 <script src="hologram-data.js"></script>
@@ -2091,6 +2465,11 @@ window.onload=function(){
           <button class="pe-btn pe-btn--ghost" id="pe-pin-btn" type="button" style="display:none" data-lang-key="pe-pin">&#x1F4CC; Pin Critique</button>
         </div>
       </div>
+      <!-- PHANTOM COMLINK launcher (Phase 4) — opens the SECURE UPLINK SOS modal -->
+      <button class="comlink-launcher" id="comlink-launch-btn" type="button" onclick="openSecureUplink()">
+        <span class="cl-dot" aria-hidden="true"></span><span data-lang-key="cl-launch">Comlink the Architect</span>
+        <b data-lang-key="cl-launch-sub">Secure uplink &middot; Async video drop reply within 24h</b>
+      </button>
       <!-- PLAYER CARD -->
       <div id="player-card" style="display:none;background:linear-gradient(135deg,#0d0015,#1a0030);border:2px solid #D4AF37;border-radius:14px;padding:1.2rem;margin-bottom:1rem;position:relative;overflow:hidden">
         <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6a0dad,#D4AF37)"></div>
@@ -2488,6 +2867,51 @@ window.onload=function(){
           <div class="byr-readout-lbl" data-lang-key="byr-sys">System Notification</div>
           <div class="byr-readout-body" id="byr-readout-body">&mdash;<span class="byr-readout-caret"></span></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PHANTOM COMLINK — SECURE UPLINK modal (Client SOS) ═══ -->
+  <div class="cl-overlay" id="secure-uplink-modal" role="dialog" aria-modal="true" aria-labelledby="cl-title">
+    <div class="cl-modal">
+      <div class="cl-badge" data-lang-key="cl-badge">&#x1F512; Secure Channel</div>
+      <div class="cl-title" id="cl-title" data-lang-key="cl-title">Secure Uplink</div>
+      <div class="cl-sub" data-lang-key="cl-sub">Transmit a 30-second biological state report. The Architect responds with a clinical video directive within 24 hours.</div>
+      <textarea class="cl-textarea" id="cl-textarea" maxlength="280" placeholder="e.g. Sharp lumbar tension on my deadlift warm-ups today. Sleep was 4 hours. Requesting protocol adjustment."></textarea>
+      <div class="cl-char-count"><span id="cl-char-count">0</span> / 280</div>
+      <div class="cl-record-row">
+        <button class="cl-record-btn" id="cl-record-btn" type="button" aria-label="Record voice note">&#x1F3A4;</button>
+        <div class="cl-record-meta">
+          <div class="cl-record-lbl" id="cl-record-lbl" data-lang-key="cl-record-lbl">Voice Note (Optional)</div>
+          <div class="cl-record-timer" id="cl-record-timer">00:00 / 00:30</div>
+        </div>
+      </div>
+      <div class="cl-actions">
+        <button class="cl-btn cl-btn--ghost" id="cl-cancel-btn" type="button" data-lang-key="cl-cancel">Cancel</button>
+        <button class="cl-btn cl-btn--primary" id="cl-send-btn" type="button" data-lang-key="cl-send">Transmit &#x2192;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PHANTOM COMLINK — HOLOGRAPHIC INTERCEPT takeover (Architect reply) ═══ -->
+  <div class="hi-overlay" id="holographic-intercept" role="dialog" aria-modal="true" aria-labelledby="hi-title">
+    <div class="hi-stage">
+      <div class="hi-scanline" aria-hidden="true"></div>
+      <div class="hi-title" id="hi-title" data-lang-key="hi-title">&#x26A1; Incoming Directive: The Architect</div>
+      <div class="hi-subtitle" data-lang-key="hi-subtitle">Decrypted &middot; Sovereign Channel</div>
+      <div class="hi-note">
+        <div class="hi-note-lbl" data-lang-key="hi-note-lbl">Architect Note</div>
+        <div class="hi-note-body" id="hi-note-body">&mdash;</div>
+      </div>
+      <div class="hi-video-wrap">
+        <video class="hi-video" id="hi-video" playsinline controls preload="metadata"></video>
+        <div class="hi-video-meta">
+          <span class="hi-video-title" id="hi-video-title">&mdash;</span>
+          <span class="hi-duration" id="hi-duration">&mdash;</span>
+        </div>
+      </div>
+      <div class="hi-actions">
+        <button class="cl-btn cl-btn--primary" id="hi-ack-btn" type="button" data-lang-key="hi-ack">Acknowledged</button>
       </div>
     </div>
   </div>
@@ -3244,6 +3668,7 @@ function RH() {
   renderBiomechHeatMap();
   renderSomaticMap();
   renderPhantomEye();
+  checkComlinkIntercept();
   renderHouseholdFeed();
   checkIncomingReactions();
   renderPlayerCard();
@@ -4531,6 +4956,198 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.key === 'Escape') {
       var m = document.getElementById('biometric-yield-modal');
       if (m && m.classList.contains('on')) closeBiometricYield();
+    }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// PHANTOM COMLINK — Client SOS + Holographic Intercept
+// UI controller. Engine (BBF_COMLINK) does persistence.
+// ═══════════════════════════════════════════════════════════
+var _clRecorder = null;
+var _clRecordChunks = [];
+var _clRecordStart = 0;
+var _clRecordTimer = null;
+var _clRecordedMeta = null;    // { url, duration_sec }
+
+function openSecureUplink() {
+  var uid = VC || CU;
+  if (!uid) return;
+  var overlay = document.getElementById('secure-uplink-modal');
+  if (!overlay) return;
+  // Reset state
+  var ta = document.getElementById('cl-textarea');
+  if (ta) ta.value = '';
+  _updateCharCount();
+  _resetRecording();
+  overlay.classList.add('on');
+  setTimeout(function(){ if (ta) ta.focus(); }, 250);
+}
+
+function closeSecureUplink() {
+  var overlay = document.getElementById('secure-uplink-modal');
+  if (overlay) overlay.classList.remove('on');
+  _resetRecording();
+}
+
+function _updateCharCount() {
+  var ta = document.getElementById('cl-textarea');
+  var cc = document.getElementById('cl-char-count');
+  if (ta && cc) cc.textContent = ta.value.length;
+}
+
+function _resetRecording() {
+  try { if (_clRecorder && _clRecorder.state !== 'inactive') _clRecorder.stop(); } catch(_) {}
+  if (_clRecordTimer) { clearInterval(_clRecordTimer); _clRecordTimer = null; }
+  if (_clRecordedMeta && _clRecordedMeta.url) {
+    try { URL.revokeObjectURL(_clRecordedMeta.url); } catch(_) {}
+  }
+  _clRecorder = null;
+  _clRecordChunks = [];
+  _clRecordedMeta = null;
+  var btn = document.getElementById('cl-record-btn');
+  var tmr = document.getElementById('cl-record-timer');
+  var lbl = document.getElementById('cl-record-lbl');
+  if (btn) { btn.classList.remove('is-recording'); btn.innerHTML = '&#x1F3A4;'; }
+  if (tmr) tmr.textContent = '00:00 / 00:30';
+  if (lbl) lbl.textContent = (typeof _t === 'function' ? _t('cl-record-lbl', 'Voice Note (Optional)') : 'Voice Note (Optional)');
+}
+
+function _toggleRecording() {
+  var btn = document.getElementById('cl-record-btn');
+  var tmr = document.getElementById('cl-record-timer');
+  var lbl = document.getElementById('cl-record-lbl');
+  if (!btn) return;
+  // If recording — stop
+  if (_clRecorder && _clRecorder.state === 'recording') {
+    try { _clRecorder.stop(); } catch(_) {}
+    return;
+  }
+  // Start
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia ||
+      typeof MediaRecorder === 'undefined') {
+    if (typeof TOAST === 'function') TOAST((typeof _t === 'function' ? _t('cl-rec-unsupported', '\u26A0 Voice recording not supported on this device. Use the text field.') : '\u26A0 Voice recording unsupported.'));
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream){
+    try {
+      _clRecorder = new MediaRecorder(stream);
+    } catch(e) {
+      if (typeof TOAST === 'function') TOAST('\u26A0 ' + e.message);
+      return;
+    }
+    _clRecordChunks = [];
+    _clRecordStart = Date.now();
+    _clRecorder.ondataavailable = function(e){ if (e.data && e.data.size > 0) _clRecordChunks.push(e.data); };
+    _clRecorder.onstop = function(){
+      var dur = Math.round((Date.now() - _clRecordStart) / 100) / 10;
+      var blob = new Blob(_clRecordChunks, { type: 'audio/webm' });
+      var url  = URL.createObjectURL(blob);
+      _clRecordedMeta = { url: url, duration_sec: dur };
+      if (btn) { btn.classList.remove('is-recording'); btn.innerHTML = '&#x1F3A4;'; }
+      if (lbl) lbl.textContent = (typeof _t === 'function' ? _t('cl-rec-captured', 'Voice Note Captured') : 'Voice Note Captured');
+      if (tmr) tmr.textContent = _fmtTime(dur) + ' / 00:30';
+      if (_clRecordTimer) { clearInterval(_clRecordTimer); _clRecordTimer = null; }
+      stream.getTracks().forEach(function(t){ t.stop(); });
+    };
+    _clRecorder.start();
+    if (btn) { btn.classList.add('is-recording'); btn.innerHTML = '&#x25A0;'; }
+    if (lbl) lbl.textContent = (typeof _t === 'function' ? _t('cl-rec-live', 'Recording \u2026 tap to stop') : 'Recording \u2026 tap to stop');
+    // Tick timer + enforce 30s cap
+    _clRecordTimer = setInterval(function(){
+      var elapsed = (Date.now() - _clRecordStart) / 1000;
+      if (tmr) tmr.textContent = _fmtTime(elapsed) + ' / 00:30';
+      if (elapsed >= 30) {
+        try { _clRecorder.stop(); } catch(_) {}
+        clearInterval(_clRecordTimer); _clRecordTimer = null;
+      }
+    }, 100);
+  }).catch(function(){
+    if (typeof TOAST === 'function') TOAST((typeof _t === 'function' ? _t('cl-rec-denied', '\u26A0 Microphone access denied.') : '\u26A0 Microphone access denied.'));
+  });
+}
+
+function _fmtTime(sec) {
+  if (!isFinite(sec) || sec < 0) sec = 0;
+  sec = Math.min(30, sec);
+  var m = Math.floor(sec / 60);
+  var s = Math.floor(sec % 60);
+  return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function _sendSOS() {
+  if (typeof BBF_COMLINK === 'undefined' || !BBF_COMLINK.sendSOS) return;
+  var ta = document.getElementById('cl-textarea');
+  var text = ta ? ta.value : '';
+  var result = BBF_COMLINK.sendSOS(text, _clRecordedMeta);
+  if (!result.ok) {
+    if (typeof TOAST === 'function') TOAST('\u26A0 ' + result.error);
+    return;
+  }
+  if (typeof TOAST === 'function') {
+    TOAST((typeof _t === 'function' ? _t('cl-sent', '\uD83D\uDCE1 Signal transmitted to the Architect.') : '\uD83D\uDCE1 Transmitted.'));
+  }
+  closeSecureUplink();
+}
+
+function checkComlinkIntercept() {
+  if (typeof BBF_COMLINK === 'undefined' || !BBF_COMLINK.peekIntercept) return;
+  if (CU === 'akeem' && VC === null) return; // trainer view: skip
+  var uid = VC || CU;
+  if (!uid) return;
+  var intercept = BBF_COMLINK.peekIntercept(uid);
+  if (!intercept) return;
+  _renderHolographicIntercept(intercept);
+}
+
+function _renderHolographicIntercept(intercept) {
+  var overlay  = document.getElementById('holographic-intercept');
+  var noteBody = document.getElementById('hi-note-body');
+  var video    = document.getElementById('hi-video');
+  var vTitle   = document.getElementById('hi-video-title');
+  var vDur     = document.getElementById('hi-duration');
+  if (!overlay) return;
+  if (noteBody) noteBody.textContent = intercept.note || '—';
+  if (vTitle)   vTitle.textContent   = intercept.video_title || '—';
+  if (vDur)     vDur.textContent     = intercept.video_duration || '';
+  if (video) {
+    // Real video source would land here in the cloud-storage sprint.
+    // Until then the poster carries the protocol title; the <video>
+    // element stays empty but plays back the poster frame.
+    video.poster = intercept.video_poster || '';
+    video.removeAttribute('src');
+    video.load();
+  }
+  overlay.classList.add('on');
+}
+
+function _acknowledgeIntercept() {
+  var uid = VC || CU;
+  if (uid && typeof BBF_COMLINK !== 'undefined' && BBF_COMLINK.dismissIntercept) {
+    BBF_COMLINK.dismissIntercept(uid);
+  }
+  var overlay = document.getElementById('holographic-intercept');
+  if (overlay) overlay.classList.remove('on');
+  var video = document.getElementById('hi-video');
+  if (video) { try { video.pause(); } catch(_) {} }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var ta      = document.getElementById('cl-textarea');
+  var sendBtn = document.getElementById('cl-send-btn');
+  var cancel  = document.getElementById('cl-cancel-btn');
+  var recBtn  = document.getElementById('cl-record-btn');
+  var ackBtn  = document.getElementById('hi-ack-btn');
+  if (ta)     ta.addEventListener('input', _updateCharCount);
+  if (sendBtn) sendBtn.addEventListener('click', _sendSOS);
+  if (cancel)  cancel.addEventListener('click', closeSecureUplink);
+  if (recBtn)  recBtn.addEventListener('click', _toggleRecording);
+  if (ackBtn)  ackBtn.addEventListener('click', _acknowledgeIntercept);
+  // Escape key closes the uplink modal
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') {
+      var m = document.getElementById('secure-uplink-modal');
+      if (m && m.classList.contains('on')) closeSecureUplink();
     }
   });
 });
