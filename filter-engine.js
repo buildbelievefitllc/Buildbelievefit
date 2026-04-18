@@ -130,6 +130,17 @@ function getFilteredMeals(dislikes, allergens) {
   });
 }
 
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    toggleTournamentMode: toggleTournamentMode,
+    isTournamentMode: isTournamentMode,
+    getTournamentMeals: getTournamentMeals,
+    getFilteredMeals: getFilteredMeals,
+    processIntake: processIntake,
+    generateDailyBlueprint: generateDailyBlueprint
+  };
+}
+
 // ─── UTILITY ───────────────────────────────────────────────
 function arrayUnique(arr) {
   var seen = {};
