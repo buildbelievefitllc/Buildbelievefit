@@ -227,6 +227,93 @@ h1.megah .slash{color:var(--violet2)}
 .xform-cap{position:absolute;bottom:.6rem;left:.7rem;right:.7rem;z-index:4;font-family:var(--mn);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(246,242,234,.75);background:linear-gradient(180deg,transparent,rgba(6,6,6,.85));padding:.55rem .55rem .45rem;border-radius:0 0 12px 12px;text-align:center;line-height:1.3}
 @media(max-width:480px){.transform-grid{grid-template-columns:1fr}}
 
+/* ═══ PARENT PLAYBOOK ═══════════════════════════════════════ */
+#parent-playbook{position:relative;overflow:hidden;background:var(--ink);padding:7rem 2rem;isolation:isolate}
+#parent-playbook::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(700px 420px at 15% 30%, rgba(0,229,255,.06), transparent 65%),radial-gradient(800px 500px at 85% 75%, rgba(245,200,0,.05), transparent 70%);z-index:0}
+#parent-playbook::after{content:"PARENT";position:absolute;top:-2rem;right:-2rem;font-family:var(--hd);font-size:14rem;color:rgba(245,200,0,.025);letter-spacing:-.02em;pointer-events:none;line-height:.8;text-transform:uppercase;z-index:0}
+.pp-wrap{max-width:1100px;margin:0 auto;position:relative;z-index:2}
+.pp-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:2.5rem;align-items:stretch;margin-top:2rem}
+.pp-card{position:relative;overflow:hidden;padding:2.4rem;border-radius:22px;display:flex;flex-direction:column;gap:1.2rem;transition:transform .35s cubic-bezier(.2,.8,.3,1), box-shadow .35s}
+.pp-card-hero{background:linear-gradient(170deg,var(--violet) 0%,var(--violet-soft) 75%);border:1px solid var(--violet2);box-shadow:0 20px 50px rgba(6,6,6,.5)}
+.pp-card-tiers{background:var(--ink2);border:1px solid var(--line);padding:1.8rem;gap:1rem}
+.pp-card-hero::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--volt),var(--cyan))}
+.pp-eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--mn);font-size:.65rem;letter-spacing:.18em;color:var(--volt);text-transform:uppercase}
+.pp-eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--volt);box-shadow:0 0 10px var(--volt);animation:blink 1.8s ease-in-out infinite}
+.pp-eyebrow.cy{color:var(--cyan)}
+.pp-eyebrow.cy::before{background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.pp-h{font-family:var(--hd);font-size:clamp(2rem,3.6vw,2.8rem);line-height:.98;letter-spacing:-.02em;text-transform:uppercase;color:var(--paper)}
+.pp-h .volt{color:var(--volt)}
+.pp-lede{font-size:1rem;line-height:1.7;color:rgba(246,242,234,.8);max-width:480px}
+.pp-price-row{display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;padding:1rem 0;border-top:1px dashed rgba(245,200,0,.25);border-bottom:1px dashed rgba(245,200,0,.25)}
+.pp-price-n{font-family:var(--hd);font-size:2.6rem;color:var(--volt);line-height:1;letter-spacing:-.02em}
+.pp-price-u{font-family:var(--mn);font-size:.7rem;color:var(--mute2);letter-spacing:.12em;text-transform:uppercase}
+.pp-price-badge{margin-left:auto;background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.35);border-radius:999px;padding:.35rem .8rem;font-family:var(--mn);font-size:.62rem;font-weight:700;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase}
+.pp-cta-row{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:.4rem}
+.pp-cta-ghost{background:transparent;border:1px solid var(--line);color:var(--paper);font-family:var(--hd);font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;padding:1rem 1.4rem;border-radius:12px;cursor:pointer;transition:border-color .2s, color .2s}
+.pp-cta-ghost:hover{border-color:var(--volt);color:var(--volt)}
+.pp-tiers-h{font-family:var(--hd);font-size:1.3rem;line-height:1.18;letter-spacing:-.005em;text-transform:uppercase;color:var(--paper)}
+.pp-tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.4rem}
+.pp-tier{background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1rem;transition:border-color .25s, transform .25s, box-shadow .25s}
+.pp-tier:hover{border-color:var(--volt);transform:translateY(-2px);box-shadow:0 12px 32px rgba(245,200,0,.1)}
+.pp-tier-k{font-family:var(--mn);font-size:.58rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.3rem}
+.pp-tier-n{font-family:var(--hd);font-size:1.1rem;color:var(--volt);line-height:1.1;text-transform:uppercase}
+.pp-tier-n.cy{color:var(--cyan)}
+.pp-tier-d{font-size:.78rem;color:var(--mute2);margin-top:.4rem;line-height:1.5}
+.pp-ledger{margin-top:auto;padding-top:1rem;border-top:1px dashed var(--line);font-family:var(--mn);font-size:.62rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;display:flex;justify-content:space-between;gap:.8rem}
+.pp-ledger em{font-style:normal;color:var(--volt)}
+.pp-ledger em.cy{color:var(--cyan)}
+@media(max-width:860px){.pp-grid{grid-template-columns:1fr}}
+
+/* Youth Athlete Selector */
+.pp-youth{margin-top:3rem;background:var(--ink2);border:1px solid var(--line);border-radius:22px;padding:2rem;position:relative;overflow:hidden}
+.pp-youth::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--volt),var(--cyan))}
+.pp-youth-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1.5rem;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px dashed var(--line)}
+.pp-youth-title{font-family:var(--hd);font-size:clamp(1.4rem,2.4vw,1.9rem);letter-spacing:-.01em;text-transform:uppercase;color:var(--paper);line-height:1.1}
+.pp-youth-title .volt{color:var(--volt)}
+.pp-youth-sub{font-family:var(--mn);font-size:.68rem;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;text-align:right;white-space:nowrap}
+.pp-sport-bar{display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.pp-sport-btn{display:inline-flex;align-items:center;gap:.55rem;padding:.75rem 1.2rem;background:var(--ink);border:1.5px solid var(--line);color:var(--mute2);font-family:var(--hd);font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;border-radius:12px;cursor:pointer;transition:border-color .25s, color .25s, background .25s, transform .2s}
+.pp-sport-btn:hover{color:var(--paper);border-color:var(--violet2);transform:translateY(-1px)}
+.pp-sport-btn.on{color:var(--volt);border-color:var(--volt);background:rgba(245,200,0,.06);box-shadow:0 0 24px rgba(245,200,0,.15)}
+.pp-sport-btn .pp-sport-ico{font-size:1.2rem;line-height:1}
+.pp-position-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.7rem;margin-top:1rem}
+.pp-pos{background:var(--ink);border:1px solid var(--line);border-left:3px solid var(--violet2);border-radius:0 12px 12px 0;padding:1rem 1.1rem;cursor:pointer;transition:border-left-color .25s, background .25s, transform .2s, box-shadow .25s;display:flex;flex-direction:column;gap:.4rem;text-align:left;font-family:inherit;color:inherit}
+.pp-pos:hover{border-left-color:var(--volt);background:linear-gradient(180deg,var(--ink),var(--ink3));transform:translateY(-2px);box-shadow:0 10px 28px rgba(245,200,0,.08)}
+.pp-pos-code{font-family:var(--hd);font-size:1.5rem;line-height:1;letter-spacing:.02em;color:var(--paper);text-transform:uppercase}
+.pp-pos-name{font-family:var(--mn);font-size:.62rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
+.pp-pos-kpis{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.3rem}
+.pp-pos-kpi{font-family:var(--mn);font-size:.55rem;font-weight:700;letter-spacing:.08em;padding:.18rem .45rem;background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.2);border-radius:999px;color:var(--volt);text-transform:uppercase}
+.pp-pos-arrow{margin-left:auto;font-family:var(--mn);font-size:.75rem;color:var(--violet2);align-self:flex-end}
+.pp-pos:hover .pp-pos-arrow{color:var(--volt)}
+
+/* Playbook Modal — Matte Black vault w/ glowing gold border */
+#playbook-modal{display:none;position:fixed;inset:0;z-index:400;align-items:center;justify-content:center;padding:1.5rem;background:rgba(6,2,14,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:pbModalBg .35s ease both}
+#playbook-modal.on{display:flex}
+@keyframes pbModalBg{from{opacity:0}to{opacity:1}}
+.pb-modal-vault{position:relative;background:var(--ink);border:1px solid var(--volt);border-radius:22px;padding:2.2rem;max-width:620px;width:100%;max-height:86vh;overflow-y:auto;box-shadow:0 0 0 1px rgba(245,200,0,.35), 0 0 48px rgba(245,200,0,.28), 0 40px 120px rgba(0,0,0,.7);animation:pbModalPop .45s cubic-bezier(.2,.9,.3,1.1) both}
+.pb-modal-vault::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(135deg,var(--volt),var(--cyan),var(--volt));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.55;animation:pbBorderGlow 4s linear infinite}
+@keyframes pbBorderGlow{0%,100%{opacity:.35}50%{opacity:.75}}
+@keyframes pbModalPop{from{transform:scale(.92) translateY(14px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.pb-modal-close{position:absolute;top:1rem;right:1rem;width:36px;height:36px;background:var(--ink2);border:1px solid var(--line);border-radius:50%;color:var(--paper);font-size:1rem;display:grid;place-items:center;cursor:pointer;transition:border-color .2s, color .2s;z-index:2}
+.pb-modal-close:hover{border-color:var(--volt);color:var(--volt)}
+.pb-modal-tag{display:inline-flex;align-items:center;gap:.45rem;font-family:var(--mn);font-size:.6rem;font-weight:700;letter-spacing:.2em;color:var(--volt);text-transform:uppercase;margin-bottom:1rem}
+.pb-modal-tag::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--volt);box-shadow:0 0 10px var(--volt);animation:blink 1.6s ease-in-out infinite}
+.pb-modal-head{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:1px dashed var(--line)}
+.pb-modal-ico{font-size:2.4rem;line-height:1}
+.pb-modal-sport{font-family:var(--mn);font-size:.62rem;font-weight:700;letter-spacing:.18em;color:var(--violet2);text-transform:uppercase}
+.pb-modal-pos{font-family:var(--hd);font-size:2rem;letter-spacing:-.01em;color:var(--paper);text-transform:uppercase;line-height:1}
+.pb-modal-pos small{display:block;font-family:var(--mn);font-size:.68rem;color:var(--mute2);letter-spacing:.12em;margin-top:.2rem;text-transform:uppercase}
+.pb-modal-kpi-h{font-family:var(--mn);font-size:.62rem;font-weight:700;letter-spacing:.2em;color:var(--volt);text-transform:uppercase;margin-bottom:.8rem}
+.pb-modal-kpis{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.4rem}
+.pb-modal-kpi{font-family:var(--mn);font-size:.72rem;font-weight:700;padding:.45rem .85rem;background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.25);border-radius:20px;color:var(--volt)}
+.pb-modal-drill{background:var(--ink2);border:1px solid var(--line);border-left:3px solid var(--volt);border-radius:0 10px 10px 0;padding:1rem 1.1rem;margin-bottom:1.4rem}
+.pb-modal-drill-l{font-family:var(--mn);font-size:.58rem;font-weight:700;letter-spacing:.2em;color:var(--cyan);margin-bottom:.35rem;text-transform:uppercase}
+.pb-modal-drill-n{font-family:var(--hd);font-size:1.1rem;letter-spacing:.01em;color:var(--paper);text-transform:uppercase;line-height:1.15}
+.pb-modal-drill-f{font-size:.82rem;color:var(--mute2);margin-top:.4rem;line-height:1.55}
+.pb-modal-cta{display:block;text-align:center;background:var(--volt);color:var(--ink);font-family:var(--hd);font-size:.88rem;letter-spacing:.1em;padding:1.05rem;border-radius:12px;text-transform:uppercase;text-decoration:none;transition:transform .15s, box-shadow .2s;margin-bottom:.7rem}
+.pb-modal-cta:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(245,200,0,.3)}
+.pb-modal-seal{font-family:var(--mn);font-size:.62rem;color:var(--mute);letter-spacing:.12em;text-align:center;text-transform:uppercase;font-style:italic}
+
 /* TIERS */
 #tiers{background:var(--ink);padding-top:7rem}
 .tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
@@ -1402,13 +1489,8 @@ body{transition:background .3s}
 </section>
 
 <!-- PARENT PLAYBOOK — Family Performance Series -->
-<section id="parent-playbook" style="background:var(--ink);padding:7rem 2rem;position:relative;overflow:hidden">
-  <div style="position:absolute;inset:0;background:
-    radial-gradient(700px 420px at 15% 30%, rgba(0,229,255,.06), transparent 65%),
-    radial-gradient(800px 500px at 85% 75%, rgba(245,200,0,.05), transparent 70%);
-    pointer-events:none"></div>
-  <div style="position:absolute;top:-2rem;right:-2rem;font-family:var(--hd);font-size:14rem;color:rgba(245,200,0,.025);letter-spacing:-.02em;pointer-events:none;line-height:.8;text-transform:uppercase">PARENT</div>
-  <div class="wrap" style="max-width:1100px;padding:0;position:relative;z-index:2">
+<section id="parent-playbook">
+  <div class="pp-wrap">
     <div class="sec-head reveal">
       <div class="sec-num">/ 04</div>
       <h2 class="sec-title">The <span class="volt">Parent</span> Playbook</h2>
@@ -1420,58 +1502,93 @@ body{transition:background .3s}
       <span>12:12 · 14:10 · 16:8</span>
       <span class="cy">Youth athlete bonus included</span>
     </div>
-    <div class="reveal d1" style="display:grid;grid-template-columns:1.05fr .95fr;gap:2.5rem;align-items:stretch;margin-top:2rem">
-      <div style="background:linear-gradient(170deg,var(--violet) 0%,var(--violet-soft) 75%);border:1px solid var(--violet2);border-radius:22px;padding:2.4rem;display:flex;flex-direction:column;gap:1.2rem;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--volt),var(--cyan))"></div>
-        <div style="display:inline-flex;align-items:center;gap:.5rem;font-family:var(--mn);font-size:.65rem;letter-spacing:.18em;color:var(--volt);text-transform:uppercase">
-          <span style="width:6px;height:6px;border-radius:50%;background:var(--volt);box-shadow:0 0 10px var(--volt)"></span>
-          Family Performance Series
+
+    <div class="pp-grid reveal d1">
+      <div class="pp-card pp-card-hero">
+        <div class="pp-eyebrow">Family Performance Series</div>
+        <h3 class="pp-h">The Busy Parent<br><span class="volt">Transformation</span></h3>
+        <p class="pp-lede">Adaptive Metabolic Tiers (12:12, 14:10, 16:8) engineered for the high-demand reality. The Laboratory's primary protocol for sustainable parent transformation — backed by the Sovereign Gold Standard. Includes Youth Athlete Performance bonus.</p>
+        <div class="pp-price-row">
+          <div class="pp-price-n">$147</div>
+          <div class="pp-price-u">standalone</div>
+          <div class="pp-price-badge">Free with All-Pro</div>
         </div>
-        <h3 style="font-family:var(--hd);font-size:clamp(2rem,3.6vw,2.8rem);line-height:.98;letter-spacing:-.02em;text-transform:uppercase;color:var(--paper)">The Busy Parent<br><span style="color:var(--volt)">Transformation</span></h3>
-        <p style="font-size:1rem;line-height:1.7;color:rgba(246,242,234,.8);max-width:480px">Adaptive Metabolic Tiers (12:12, 14:10, 16:8) engineered for the high-demand reality. The Laboratory's primary protocol for sustainable parent transformation — backed by the Sovereign Gold Standard. Includes Youth Athlete Performance bonus.</p>
-        <div style="display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;padding:1rem 0;border-top:1px dashed rgba(245,200,0,.25);border-bottom:1px dashed rgba(245,200,0,.25)">
-          <div style="font-family:var(--hd);font-size:2.6rem;color:var(--volt);line-height:1;letter-spacing:-.02em">$147</div>
-          <div style="font-family:var(--mn);font-size:.7rem;color:var(--mute2);letter-spacing:.12em;text-transform:uppercase">standalone</div>
-          <div style="margin-left:auto;background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.35);border-radius:999px;padding:.35rem .8rem;font-family:var(--mn);font-size:.62rem;font-weight:700;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase">Free with All-Pro</div>
-        </div>
-        <div style="display:flex;gap:.7rem;flex-wrap:wrap;margin-top:.4rem">
-          <a href="busy-parent-transformation.html" class="btn-primary" style="background:var(--volt);color:var(--ink)">View the Playbook <span class="arrow">→</span></a>
-          <a href="playbooks.html" class="btn-ghost">All Positional Blueprints</a>
+        <div class="pp-cta-row">
+          <button type="button" class="btn-primary" onclick="openPlaybookModal('parent')">View the Plan <span class="arrow">→</span></button>
+          <button type="button" class="pp-cta-ghost" onclick="document.getElementById('pp-youth-selector').scrollIntoView({behavior:'smooth',block:'start'})">Explore Youth Blueprints</button>
         </div>
       </div>
-      <div style="background:var(--ink2);border:1px solid var(--line);border-radius:22px;padding:1.8rem;display:flex;flex-direction:column;gap:1rem">
-        <div style="font-family:var(--mn);font-size:.62rem;letter-spacing:.18em;color:var(--cyan);text-transform:uppercase">Why this protocol exists</div>
-        <div style="font-family:var(--hd);font-size:1.3rem;line-height:1.18;letter-spacing:-.005em;text-transform:uppercase;color:var(--paper)">Built for the parent whose week never lands the same way twice.</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.4rem">
-          <div style="background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1rem">
-            <div style="font-family:var(--mn);font-size:.58rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.3rem">Tier 12:12</div>
-            <div style="font-family:var(--hd);font-size:1.1rem;color:var(--volt);line-height:1.1;text-transform:uppercase">Survival cadence</div>
-            <div style="font-size:.78rem;color:var(--mute2);margin-top:.4rem;line-height:1.5">Sleep-debt aware. 30-min sessions. Anchor weeks for chaos.</div>
+
+      <div class="pp-card pp-card-tiers">
+        <div class="pp-eyebrow cy">Why this protocol exists</div>
+        <div class="pp-tiers-h">Built for the parent whose week never lands the same way twice.</div>
+        <div class="pp-tier-grid">
+          <div class="pp-tier">
+            <div class="pp-tier-k">Tier 12:12</div>
+            <div class="pp-tier-n">Survival cadence</div>
+            <div class="pp-tier-d">Sleep-debt aware. 30-min sessions. Anchor weeks for chaos.</div>
           </div>
-          <div style="background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1rem">
-            <div style="font-family:var(--mn);font-size:.58rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.3rem">Tier 14:10</div>
-            <div style="font-family:var(--hd);font-size:1.1rem;color:var(--volt);line-height:1.1;text-transform:uppercase">Recovery build</div>
-            <div style="font-size:.78rem;color:var(--mute2);margin-top:.4rem;line-height:1.5">Metabolic re-anchor. 45-min sessions. Joint-longevity blocks.</div>
+          <div class="pp-tier">
+            <div class="pp-tier-k">Tier 14:10</div>
+            <div class="pp-tier-n">Recovery build</div>
+            <div class="pp-tier-d">Metabolic re-anchor. 45-min sessions. Joint-longevity blocks.</div>
           </div>
-          <div style="background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1rem">
-            <div style="font-family:var(--mn);font-size:.58rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.3rem">Tier 16:8</div>
-            <div style="font-family:var(--hd);font-size:1.1rem;color:var(--volt);line-height:1.1;text-transform:uppercase">Performance push</div>
-            <div style="font-size:.78rem;color:var(--mute2);margin-top:.4rem;line-height:1.5">Full hybrid load. 60-min sessions. Compound progression.</div>
+          <div class="pp-tier">
+            <div class="pp-tier-k">Tier 16:8</div>
+            <div class="pp-tier-n">Performance push</div>
+            <div class="pp-tier-d">Full hybrid load. 60-min sessions. Compound progression.</div>
           </div>
-          <div style="background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:1rem">
-            <div style="font-family:var(--mn);font-size:.58rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:.3rem">Bonus</div>
-            <div style="font-family:var(--hd);font-size:1.1rem;color:var(--cyan);line-height:1.1;text-transform:uppercase">Youth Athlete</div>
-            <div style="font-size:.78rem;color:var(--mute2);margin-top:.4rem;line-height:1.5">Companion module for kids 8-17. Sport-specific positions.</div>
+          <div class="pp-tier">
+            <div class="pp-tier-k">Bonus</div>
+            <div class="pp-tier-n cy">Youth Athlete</div>
+            <div class="pp-tier-d">Companion module for kids 8-17. Sport-specific positions.</div>
           </div>
         </div>
-        <div style="margin-top:auto;padding-top:1rem;border-top:1px dashed var(--line);font-family:var(--mn);font-size:.62rem;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;display:flex;justify-content:space-between;gap:.8rem">
-          <span>Standalone <em style="color:var(--volt);font-style:normal">$147</em></span>
-          <span>Bundle savings <em style="color:var(--cyan);font-style:normal">100%</em> with All-Pro</span>
+        <div class="pp-ledger">
+          <span>Standalone <em>$147</em></span>
+          <span>Bundle savings <em class="cy">100%</em> with All-Pro</span>
         </div>
       </div>
     </div>
+
+    <!-- YOUTH ATHLETE SELECTOR — Sport → Position → Modal -->
+    <div class="pp-youth reveal d2" id="pp-youth-selector">
+      <div class="pp-youth-head">
+        <div>
+          <div class="pp-eyebrow">Youth Athlete · Positional Blueprints</div>
+          <div class="pp-youth-title">Pick the <span class="volt">sport.</span> Pick the <span class="volt">position.</span> Get the plan.</div>
+        </div>
+        <div class="pp-youth-sub">5 sports<br>25 positions</div>
+      </div>
+      <div class="pp-sport-bar" id="pp-sport-bar" role="tablist" aria-label="Select sport"></div>
+      <div class="pp-position-grid" id="pp-position-grid" aria-live="polite"></div>
+    </div>
   </div>
 </section>
+
+<!-- PLAYBOOK MODAL — Matte Black vault w/ Laboratory Gold glow -->
+<div id="playbook-modal" role="dialog" aria-modal="true" aria-labelledby="pb-modal-pos">
+  <div class="pb-modal-vault">
+    <button type="button" class="pb-modal-close" onclick="closePlaybookModal()" aria-label="Close">×</button>
+    <div class="pb-modal-tag" id="pb-modal-tag">Laboratory · Positional Blueprint</div>
+    <div class="pb-modal-head">
+      <div class="pb-modal-ico" id="pb-modal-ico">🏈</div>
+      <div>
+        <div class="pb-modal-sport" id="pb-modal-sport">Football · Position Analysis</div>
+        <div class="pb-modal-pos" id="pb-modal-pos">—<small id="pb-modal-pos-name">Full name</small></div>
+      </div>
+    </div>
+    <div class="pb-modal-kpi-h">Primary KPIs · Founder-Verified</div>
+    <div class="pb-modal-kpis" id="pb-modal-kpis"></div>
+    <div class="pb-modal-drill" id="pb-modal-drill">
+      <div class="pb-modal-drill-l">Lab-Verified Drill</div>
+      <div class="pb-modal-drill-n" id="pb-modal-drill-n">Signature movement</div>
+      <div class="pb-modal-drill-f" id="pb-modal-drill-f">Focus and progression notes land here.</div>
+    </div>
+    <a href="#intake" class="pb-modal-cta" onclick="closePlaybookModal()">Unlock the full playbook →</a>
+    <div class="pb-modal-seal">Founder-Verified Biomechanical Protocols · Sovereign Gold Standard</div>
+  </div>
+</div>
 
 <!-- FUEL / TDEE -->
 <section id="fuel">
@@ -2018,6 +2135,165 @@ function openMod(fn,tgt,mac,sch){
   document.body.style.overflow='hidden';
 }
 function closeMod(){document.getElementById('smodal').classList.remove('on');document.body.style.overflow='auto';}
+
+/* ═══ PARENT PLAYBOOK — Youth Athlete Selector + Modal ═══════ */
+var PP_SPORTS = [
+  {id:'football',   ico:'🏈', name:'Football',   positions:[
+    {code:'QB', full:'Quarterback',     drill:{n:'Rotational Pocket Pivot',  f:'Hip-shoulder dissociation for pocket maneuverability and torque transfer under duress.'}},
+    {code:'RB', full:'Running Back',    drill:{n:'Triple Extension Sled',    f:'Hip/knee/ankle triple extension under load — acceleration out of contact.'}},
+    {code:'WR', full:'Wide Receiver',   drill:{n:'Linear Turnover Sprint',   f:'Stride frequency ceiling work paired with reactive change-of-direction.'}},
+    {code:'TE', full:'Tight End',       drill:{n:'Iso-Hold Block Drive',     f:'Isometric hold → concentric drive. Builds blocking leverage without CNS debt.'}},
+    {code:'OL', full:'Offensive Line',  drill:{n:'Static Lateral Displace',  f:'Pillar stability + lateral displacement under band resistance.'}},
+    {code:'DL', full:'Defensive Line',  drill:{n:'First-Step Plyo Shed',     f:'Peak power off the snap — shed mechanics layered on CNS-primed plyos.'}},
+    {code:'LB', full:'Linebacker',      drill:{n:'Reactive Tackle Tracking', f:'Lateral pursuit + contact readiness. Tempo matched to game rhythm.'}},
+    {code:'S',  full:'Safety',          drill:{n:'Transition Velocity Drop', f:'Back-pedal → hip-flip → top-end sprint. Field-coverage conditioning.'}}
+  ]},
+  {id:'basketball', ico:'🏀', name:'Basketball', positions:[
+    {code:'PG', full:'Point Guard',     drill:{n:'Repeat Sprint Handle',     f:'Ball-handling precision under tachycardic load. Court-rhythm anchor.'}},
+    {code:'SG', full:'Shooting Guard',  drill:{n:'Transition Flow Sequence', f:'Lateral flow drills with shot prep — sustainable shooting velocity.'}},
+    {code:'SF', full:'Small Forward',   drill:{n:'Multi-Directional Quick',  f:'Triple-threat torque + vertical displacement combo lifts.'}},
+    {code:'PF', full:'Power Forward',   drill:{n:'Rebound Drive Extension',  f:'Post-stability + triple extension for rebounding force.'}},
+    {code:'C',  full:'Center',          drill:{n:'Pivot + Rim Protect',      f:'Static strength with fast pivot off the spot. Rim-defense chassis.'}}
+  ]},
+  {id:'soccer',     ico:'⚽', name:'Soccer',     positions:[
+    {code:'FW',  full:'Forward',        drill:{n:'Off-Ball Accel Repeats',   f:'Sprint velocity + shot conversion mechanics through fatigue.'}},
+    {code:'MF',  full:'Midfielder',     drill:{n:'Total-Distance Tempo',     f:'High aerobic ceiling + interception anticipation under load.'}},
+    {code:'DEF', full:'Defender',       drill:{n:'Recovery Sprint Aerial',   f:'Aerial-duel win % + recovery-sprint repeatability.'}},
+    {code:'GK',  full:'Goalkeeper',     drill:{n:'Reaction Lateral Power',   f:'Lateral displacement power + distribution accuracy.'}}
+  ]},
+  {id:'baseball',   ico:'⚾', name:'Baseball',   positions:[
+    {code:'P',  full:'Pitcher',         drill:{n:'Kinetic Sequencing Drop',  f:'Scapular deceleration drills; velocity ceiling without shoulder tax.'}},
+    {code:'C',  full:'Catcher',         drill:{n:'Pop-Time Rotational',      f:'Hip-shoulder pop + rotational throw force from the squat.'}},
+    {code:'IF', full:'Infielder',       drill:{n:'Ball Exchange Speed',      f:'Lateral agility + rotational throw force under short reaction.'}},
+    {code:'OF', full:'Outfielder',      drill:{n:'Drop-Step Efficiency',     f:'Linear acceleration + drop-step mechanics. Arm strength capstone.'}}
+  ]},
+  {id:'volleyball', ico:'🏐', name:'Volleyball', positions:[
+    {code:'S',   full:'Setter',         drill:{n:'Agility Reaction Grid',    f:'Agility ceiling + dig-accuracy reaction training.'}},
+    {code:'OH',  full:'Outside Hitter', drill:{n:'Vertical Spike Sequence',  f:'Vertical jump height paired with spike-approach rhythm.'}},
+    {code:'LIB', full:'Libero',         drill:{n:'Low-Center Dig Flow',      f:'Low-center stability + fast directional change.'}},
+    {code:'MB',  full:'Middle Blocker', drill:{n:'Block-Reach Extension',    f:'Block-reach height + lateral closing speed on the net.'}}
+  ]}
+];
+var PP_KPI = {
+  QB:['Rotational Torque','Pocket Maneuverability','Throwing Velocity'],
+  RB:['Lateral Agility','Triple-Ext Power','Ball Security'],
+  WR:['Linear Accel','Change of Direction','Grip Strength'],
+  TE:['Triple-Ext Power','Block Leverage','Versatility'],
+  OL:['Static Strength','Lateral Displace','Core Stability'],
+  DL:['Peak Power','Shedding Torque','First-Step Velocity'],
+  LB:['Lateral Tracking','Tackling Force','Reactive Agility'],
+  S:['Top-End Speed','Transition Velocity','Vertical'],
+  PG:['Repeat Sprint','Handle Precision','Court Vision'],
+  SG:['Shot Velocity','Transition Speed','Lateral Flow'],
+  SF:['Vertical','Multi-Dir Quickness','Triple-Threat Torque'],
+  PF:['Triple-Ext Power','Rebound Force','Post-Stability'],
+  C:['Rim Protection','Static Strength','Pivot Speed'],
+  FW:['Sprint Velocity','Shot Conversion','Off-Ball Accel'],
+  MF:['Total Distance','Pass Completion','Interception'],
+  DEF:['Aerial Win%','Recovery Sprint','Tackling Efficiency'],
+  GK:['Reaction Time','Lateral Power','Distribution'],
+  P:['Pitch Velocity','Scapular Decel','Kinetic Sequence'],
+  IF:['Lateral Agility','Ball Exchange','Rotational Throw'],
+  OF:['Linear Accel','Drop-Step','Arm Strength'],
+  OH:['Vertical Jump','Spike Velocity','Explosive Accel']
+};
+PP_KPI['S'] = PP_KPI['S']; // football Safety vs volleyball Setter share 'S' code, disambiguated by sport context
+var PP_KPI_VBS = {S:['Agility Reaction','Dig Accuracy','Low-Center'], LIB:['Reaction Speed','Dig Accuracy','Low-Center'], MB:['Block Reach','Lateral Closing','Triple-Ext Power']};
+var PP_KPI_BBC = {C:['Pop Time','Rotational Throw','Block Mechanics']};
+
+function ppKpisFor(sportId, code){
+  if(sportId==='volleyball' && PP_KPI_VBS[code]) return PP_KPI_VBS[code];
+  if(sportId==='baseball' && code==='C') return PP_KPI_BBC[code];
+  return PP_KPI[code] || ['Performance','Speed','Power'];
+}
+
+var ppActiveSport = 'football';
+
+function ppRenderSportBar(){
+  var bar = document.getElementById('pp-sport-bar');
+  if(!bar) return;
+  bar.innerHTML = PP_SPORTS.map(function(s){
+    var on = s.id === ppActiveSport ? ' on' : '';
+    return '<button type="button" role="tab" aria-selected="'+(on?'true':'false')+'" class="pp-sport-btn'+on+'" data-sport="'+s.id+'">'+
+      '<span class="pp-sport-ico" aria-hidden="true">'+s.ico+'</span>'+s.name+
+    '</button>';
+  }).join('');
+  Array.prototype.forEach.call(bar.querySelectorAll('.pp-sport-btn'), function(btn){
+    btn.addEventListener('click', function(){ ppActiveSport = btn.dataset.sport; ppRenderSportBar(); ppRenderPositions(); });
+  });
+}
+
+function ppRenderPositions(){
+  var grid = document.getElementById('pp-position-grid');
+  if(!grid) return;
+  var sport = PP_SPORTS.find(function(s){ return s.id === ppActiveSport; });
+  if(!sport){ grid.innerHTML = ''; return; }
+  grid.innerHTML = sport.positions.map(function(p){
+    var kpis = ppKpisFor(sport.id, p.code);
+    return '<button type="button" class="pp-pos" data-sport="'+sport.id+'" data-pos="'+p.code+'" aria-label="View '+p.full+' blueprint">'+
+      '<div class="pp-pos-code">'+p.code+'<span class="pp-pos-arrow">→</span></div>'+
+      '<div class="pp-pos-name">'+p.full+'</div>'+
+      '<div class="pp-pos-kpis">'+kpis.slice(0,3).map(function(k){ return '<span class="pp-pos-kpi">'+k+'</span>'; }).join('')+'</div>'+
+    '</button>';
+  }).join('');
+  Array.prototype.forEach.call(grid.querySelectorAll('.pp-pos'), function(btn){
+    btn.addEventListener('click', function(){ openPlaybookModal(btn.dataset.sport, btn.dataset.pos); });
+  });
+}
+
+function openPlaybookModal(sportId, posCode){
+  var modal = document.getElementById('playbook-modal');
+  if(!modal) return;
+  var sport, position;
+  if(sportId === 'parent'){
+    // Adult Parent Playbook summary
+    document.getElementById('pb-modal-tag').textContent = 'Laboratory · Parent Transformation';
+    document.getElementById('pb-modal-ico').textContent = '👨‍👩‍👧‍👦';
+    document.getElementById('pb-modal-sport').textContent = 'Family Performance Series';
+    var posEl = document.getElementById('pb-modal-pos');
+    posEl.firstChild.nodeValue = 'Busy Parent';
+    document.getElementById('pb-modal-pos-name').textContent = 'Adaptive metabolic tiers · 12:12 / 14:10 / 16:8';
+    var kpiWrap = document.getElementById('pb-modal-kpis');
+    kpiWrap.innerHTML = ['Sleep-Debt Aware','Joint Longevity','Adaptive Tiers','Youth Athlete Bonus'].map(function(k){ return '<span class="pb-modal-kpi">'+k+'</span>'; }).join('');
+    document.getElementById('pb-modal-drill-n').textContent = 'Sovereign Cadence Anchor';
+    document.getElementById('pb-modal-drill-f').textContent = 'Four-week on-ramp that meets you at your worst week, not your best. Metabolic recalibration, prehab layering, and a session template built for the parent whose schedule changes without notice.';
+  } else {
+    sport = PP_SPORTS.find(function(s){ return s.id === sportId; });
+    if(!sport) return;
+    position = sport.positions.find(function(p){ return p.code === posCode; });
+    if(!position) return;
+    document.getElementById('pb-modal-tag').textContent = 'Laboratory · Positional Blueprint';
+    document.getElementById('pb-modal-ico').textContent = sport.ico;
+    document.getElementById('pb-modal-sport').textContent = sport.name + ' · Position Analysis';
+    var posEl2 = document.getElementById('pb-modal-pos');
+    posEl2.firstChild.nodeValue = position.code;
+    document.getElementById('pb-modal-pos-name').textContent = position.full;
+    var kpis = ppKpisFor(sport.id, position.code);
+    var kpiWrap2 = document.getElementById('pb-modal-kpis');
+    kpiWrap2.innerHTML = kpis.map(function(k){ return '<span class="pb-modal-kpi">'+k+'</span>'; }).join('');
+    document.getElementById('pb-modal-drill-n').textContent = position.drill.n;
+    document.getElementById('pb-modal-drill-f').textContent = position.drill.f;
+  }
+  modal.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closePlaybookModal(){
+  var modal = document.getElementById('playbook-modal');
+  if(!modal) return;
+  modal.classList.remove('on');
+  document.body.style.overflow = 'auto';
+}
+(function ppInit(){
+  ppRenderSportBar();
+  ppRenderPositions();
+  var modal = document.getElementById('playbook-modal');
+  if(modal){
+    modal.addEventListener('click', function(e){ if(e.target === modal) closePlaybookModal(); });
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && modal && modal.classList.contains('on')) closePlaybookModal();
+  });
+})();
 
 // === TWEAKS HOST INTEGRATION ===
 (function(){
