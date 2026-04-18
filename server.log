@@ -1,0 +1,25 @@
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /bbf-app.html HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /bbf-lang.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /rpe-commander.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /auditor-engine.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /hologram-data.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /prehab-auditor.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /bbf-sync.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /hologram-renderer.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /bbf-translator.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /bbf-data.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:26:16] code 404, message File not found
+127.0.0.1 - - [18/Apr/2026 19:26:16] "GET /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js HTTP/1.1" 404 -
+127.0.0.1 - - [18/Apr/2026 19:27:03] "HEAD /bbf-app.html HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /bbf-app.html HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /hologram-data.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /auditor-engine.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /bbf-sync.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /bbf-lang.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /prehab-auditor.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /rpe-commander.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /bbf-translator.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /bbf-data.js HTTP/1.1" 200 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] code 404, message File not found
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js HTTP/1.1" 404 -
+127.0.0.1 - - [18/Apr/2026 19:27:32] "GET /hologram-renderer.js HTTP/1.1" 200 -

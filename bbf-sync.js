@@ -46,6 +46,7 @@ var BBF_SYNC = (function() {
       stress_mode: userData.stress_mode || 'desk',
       access_status: userData.access_status || 'unlocked',
       recovery_note: userData.recovery_note || '',
+      pin_hash: userData.pin_hash || null,
       auto_lock_enabled: userData.auto_lock_enabled || false,
       lock_expiry: userData.lock_expiry || null,
       updated_at: new Date().toISOString()
@@ -107,6 +108,11 @@ var BBF_SYNC = (function() {
   // ─── FETCH: ALL USERS (TRAINER VIEW) ─────────────────────
   function fetchAllUsers() {
     return supa('GET', 'bbf_users', null, '?order=name.asc');
+  }
+
+  // ─── FETCH: SINGLE USER ──────────────────────────────────
+  function fetchUser(uid) {
+    return supa('GET', 'bbf_users', null, '?id=eq.' + uid + '&limit=1');
   }
 
   // ─── FETCH: ALL LOGS (TRAINER VIEW) ──────────────────────
@@ -564,6 +570,7 @@ var BBF_SYNC = (function() {
     fetchAllUsers: fetchAllUsers,
     fetchAllLogs: fetchAllLogs,
     fetchReadiness: fetchReadiness,
+    fetchUser: fetchUser,
     pushAll: pushAll,
     isOnline: isOnline
   };
