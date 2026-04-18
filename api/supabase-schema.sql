@@ -98,3 +98,33 @@ INSERT INTO bbf_users (id, name, role, type, goal, plan, schedule, pin_hash) VAL
   ('jordan_bbf', 'Jordan', 'client', 'Platinum', 'Weight Loss', 'jordan_wayne', '9to5', '0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c'),
   ('wayne_bbf', 'Wayne', 'client', 'Platinum', 'Lean Muscle', 'jordan_wayne', 'shifts', 'edee29f882543b956620b26d0ee0e7e950399b1c4222f5de05e06425b4c995e9')
 ON CONFLICT (id) DO NOTHING;
+
+-- 8. CLINICAL YIELD LOG
+CREATE TABLE IF NOT EXISTS clinical_yield_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  marker_01_cns_readiness NUMERIC,
+  marker_02_grip_strength NUMERIC,
+  marker_03_rpe_tolerance NUMERIC,
+  marker_04_hrv NUMERIC,
+  marker_05_sleep_efficiency NUMERIC,
+  marker_06_joint_mobility NUMERIC,
+  marker_07_hydration NUMERIC,
+  marker_08_cortisol_trend NUMERIC,
+  marker_09_muscle_soreness NUMERIC,
+  marker_10_resting_hr NUMERIC,
+  marker_11_blood_pressure NUMERIC,
+  phase_unlocked BOOLEAN DEFAULT false
+);
+
+ALTER TABLE clinical_yield_log ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Client Read/Write" ON clinical_yield_log
+FOR ALL
+USING (auth.uid() = client_id)
+WITH CHECK (auth.uid() = client_id);
+
+CREATE POLICY "Architect Read" ON clinical_yield_log
+FOR SELECT
+USING ((auth.jwt() ->> 'role') = 'admin');
