@@ -1421,8 +1421,37 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   font-size: .76rem;
   line-height: 1.55;
   color: #fff;
+  max-height: 32vh;          /* scroll once the weekly brief populates */
+  overflow-y: auto;
+  cursor: pointer;            /* signals the 3-tap dev bypass target */
 }
 .byr-readout-body .byr-rd-sep { color: var(--volt); letter-spacing: .1em; margin: 0 .4rem; }
+
+/* ROI Synthesis — weekly executive brief (3 sections) */
+.byr-readout-body.roi-unlocked {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .82rem;
+  line-height: 1.6;
+  letter-spacing: .01em;
+}
+.roi-sec {
+  display: block;
+  padding: .45rem 0;
+  border-top: 1px dashed rgba(245,200,0,.18);
+}
+.roi-sec:first-child { border-top: none; padding-top: 0; }
+.roi-sec-tag {
+  display: block;
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: .56rem;
+  letter-spacing: .28em;
+  color: var(--volt);
+  text-transform: uppercase;
+  margin-bottom: .25rem;
+}
+.roi-sec--directive .roi-sec-tag { color: #22d3ee; text-shadow: 0 0 8px rgba(34,211,238,.5); }
+.roi-sec-body { color: #f2f2f2; }
+.roi-sec--directive .roi-sec-body { color: #fff; font-weight: 700; }
 .byr-readout-caret {
   display: inline-block;
   width: 8px;
@@ -1708,6 +1737,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="render-engine.js"></script>
 <script src="auditor-engine.js"></script>
 <script src="somatic-engine.js"></script>
+<script src="roi-synthesis-engine.js"></script>
 <script src="prehab-auditor.js"></script>
 <script src="rpe-commander.js"></script>
 <script src="hologram-data.js"></script>
@@ -4461,7 +4491,17 @@ function openBiometricYield() {
 
     _byrDrawRadar(values);
     _byrRenderClusters(values);
-    _byrWriteReadout(values, profile);
+    // ROI Synthesis (Weekly Executive Brief) takes the readout slot
+    // when available. It gates to Sundays + architect override; on
+    // non-unlock days it writes the lock-state notification itself.
+    // Fall back to the legacy single-line synthesis if the engine
+    // module fails to load.
+    if (typeof BBF_ROI !== 'undefined' && BBF_ROI.injectIntoReadout) {
+      BBF_ROI.injectIntoReadout(uid);
+      BBF_ROI.wireTapBypass();
+    } else {
+      _byrWriteReadout(values, profile);
+    }
 
     // Hand off to content
     setTimeout(function(){

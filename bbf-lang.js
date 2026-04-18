@@ -465,6 +465,9 @@ var D = {
 'byr-m-overload':  { en:'Progressive Overload',  es:'Sobrecarga Progresiva',           pt:'Sobrecarga Progressiva' },
 'byr-m-fast':      { en:'Fasting Adaptation',    es:'Adaptaci\u00f3n al Ayuno',        pt:'Adapta\u00e7\u00e3o ao Jejum' },
 'byr-m-neural':    { en:'Neural Drive',          es:'Impulso Neural',                  pt:'Impulso Neural' },
+
+// ═══ ROI SYNTHESIS — Weekly Executive Yield Brief ═══════════
+'roi-locked':      { en:'SYSTEM NOTIFICATION: Biomarkers actively compiling. Next Executive Yield Brief unlocks on Sunday.', es:'NOTIFICACI\u00d3N DEL SISTEMA: Biomarcadores compilando activamente. El pr\u00f3ximo Informe Ejecutivo de Rendimiento se desbloquea el domingo.', pt:'NOTIFICA\u00c7\u00c3O DO SISTEMA: Biomarcadores compilando ativamente. O pr\u00f3ximo Relat\u00f3rio Executivo de Rendimento desbloqueia no domingo.' },
 'som-window':      { en:'Today \u00b7 Readiness Sync', es:'Hoy \u00b7 Sincronizaci\u00f3n de Preparaci\u00f3n', pt:'Hoje \u00b7 Sincroniza\u00e7\u00e3o de Prontid\u00e3o' },
 'som-score-label': { en:'Somatic Readiness \u00b7 threshold 60%', es:'Preparaci\u00f3n Som\u00e1tica \u00b7 umbral 60%', pt:'Prontid\u00e3o Som\u00e1tica \u00b7 limite 60%' },
 'som-lbl-sleep':   { en:'Sleep Quality', es:'Calidad del Sue\u00f1o', pt:'Qualidade do Sono' },
