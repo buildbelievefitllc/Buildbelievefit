@@ -8,17 +8,17 @@
 <script src="bbf-sync.js"></script>
 <script src="portal-engine.js"></script>
 <style>
-:root{--pur:#6a0dad;--yel:#f5c800;--gold:#D4AF37;--blk:#060606;--card:#111;--brd:#1e1e1e;--mut:#888;--grn:#22c55e;--red:#ef4444}
+:root{--pur:#1a0338;--yel:#f5c800;--gold:#f5c800;--blk:#060606;--card:#0d0118;--brd:#1f1530;--mut:#888;--grn:#22c55e;--red:#ef4444}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-serif;min-height:100vh}
-.hdr{background:linear-gradient(135deg,#0a0a0a 0%,#1a0030 60%,#0a0a0a 100%);border-bottom:2px solid var(--gold);padding:24px;text-align:center;position:relative;overflow:hidden}
-.hdr::before{content:'';position:absolute;top:-60px;right:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(106,13,173,.2) 0%,transparent 70%);pointer-events:none}
+.hdr{background:linear-gradient(135deg,#060606 0%,#1a0030 60%,#060606 100%);border-bottom:2px solid var(--gold);padding:24px;text-align:center;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:-60px;right:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(42,10,85,.2) 0%,transparent 70%);pointer-events:none}
 .hdr-badge{font-size:.6rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
 .hdr-t{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:3px;color:#fff;line-height:1}.hdr-t span{color:var(--gold)}
 .hdr-s{font-size:.78rem;color:var(--mut);margin-top:4px;letter-spacing:2px}
 .nav-bar{display:flex;background:#0d0d0d;border-bottom:1px solid var(--brd);overflow-x:auto;scrollbar-width:none}
 .nav-bar::-webkit-scrollbar{display:none}
-.nav-btn{flex-shrink:0;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:2px;padding:12px 20px;background:none;border:none;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}.nav-btn:hover{color:#ccc}.nav-btn.on{color:var(--gold);border-bottom-color:var(--gold);background:rgba(212,175,55,.05)}
+.nav-btn{flex-shrink:0;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:2px;padding:12px 20px;background:none;border:none;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}.nav-btn:hover{color:#ccc}.nav-btn.on{color:var(--gold);border-bottom-color:var(--gold);background:rgba(245,200,0,.05)}
 .cnt{max-width:900px;margin:0 auto;padding:24px 20px}
 .panel{display:none}.panel.on{display:block}
 .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:2rem}
@@ -26,9 +26,9 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 .stat-n{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold);line-height:1}
 .stat-l{font-size:.62rem;font-weight:700;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-top:2px}
 .seal{text-align:center;font-size:.65rem;color:var(--mut);margin-top:3rem;padding-top:1rem;border-top:1px solid var(--brd);font-style:italic}
-.ent-row{display:flex;align-items:center;gap:1rem;padding:.8rem;background:#0a0a0a;border:1px solid var(--brd);border-radius:8px;margin-bottom:.5rem}
+.ent-row{display:flex;align-items:center;gap:1rem;padding:.8rem;background:#060606;border:1px solid var(--brd);border-radius:8px;margin-bottom:.5rem}
 .ent-name{flex:1;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:#fff}
-.ent-toggle{width:42px;height:22px;background:var(--brd);border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}.ent-toggle.on{background:#D4AF37}
+.ent-toggle{width:42px;height:22px;background:var(--brd);border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}.ent-toggle.on{background:#f5c800}
 .ent-toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}.ent-toggle.on::after{transform:translateX(20px)}
 .ent-lbl{font-size:.65rem;font-weight:700;letter-spacing:1px;color:var(--mut);text-transform:uppercase}
 .ent-status{font-size:.65rem;font-weight:700;letter-spacing:1px;min-width:60px;text-align:right}

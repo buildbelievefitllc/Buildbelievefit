@@ -6,16 +6,16 @@
 <title>Coach Lab — Build Believe Fit</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--pur:#6a0dad;--purl:#8b1fd4;--yel:#f5c800;--blk:#0a0a0a;--card:#111;--brd:#1e1e1e;--mut:#888;--cyan:#22d3ee}
+:root{--pur:#1a0338;--purl:#2a0a55;--yel:#f5c800;--blk:#060606;--card:#0d0118;--brd:#1f1530;--mut:#888;--cyan:#00e5ff}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-serif;min-height:100vh}
-.hdr{background:linear-gradient(135deg,#0a0a0a 0%,#1a0030 60%,#0a0a0a 100%);border-bottom:2px solid var(--yel);padding:32px 24px 20px;position:relative;overflow:hidden}
-.hdr::before{content:'';position:absolute;top:-40px;right:-60px;width:320px;height:320px;background:radial-gradient(circle,rgba(106,13,173,.25) 0%,transparent 70%);pointer-events:none}
+.hdr{background:linear-gradient(135deg,#060606 0%,#1a0030 60%,#060606 100%);border-bottom:2px solid var(--yel);padding:32px 24px 20px;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:-40px;right:-60px;width:320px;height:320px;background:radial-gradient(circle,rgba(42,10,85,.25) 0%,transparent 70%);pointer-events:none}
 .hdr-b{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:6px;color:var(--yel);margin-bottom:6px;opacity:.9}
 .hdr-t{font-family:'Bebas Neue',sans-serif;font-size:clamp(38px,6vw,64px);line-height:1;color:#fff}.hdr-t span{color:var(--yel)}
 .hdr-s{font-size:15px;font-weight:500;letter-spacing:3px;color:#aaa;margin-top:8px;text-transform:uppercase}
 .hdr-badges{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-.badge{background:rgba(106,13,173,.3);border:1px solid var(--pur);color:var(--yel);font-size:12px;font-weight:700;letter-spacing:2px;padding:4px 12px;border-radius:2px;text-transform:uppercase}
+.badge{background:rgba(42,10,85,.3);border:1px solid var(--pur);color:var(--yel);font-size:12px;font-weight:700;letter-spacing:2px;padding:4px 12px;border-radius:2px;text-transform:uppercase}
 .nav{display:flex;overflow-x:auto;background:#0d0d0d;border-bottom:1px solid var(--brd);scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
 .nav-btn{flex-shrink:0;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;padding:14px 20px;background:none;border:none;color:#666;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}.nav-btn:hover{color:#ccc}.nav-btn.on{color:var(--yel);border-bottom-color:var(--yel);background:rgba(245,200,0,.05)}
 .cnt{padding:24px 20px;max-width:900px;margin:0 auto}
@@ -43,10 +43,10 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 .rpt-t{font-family:'Bebas Neue',sans-serif;font-size:30px;color:#fff}
 .sc{background:#0f0f0f;border:1px solid #222;border-radius:4px;padding:18px;margin-bottom:12px;cursor:pointer;transition:border-color .2s}.sc:hover{border-color:var(--yel)}.sc.sel{border-color:var(--yel);background:#141400}
 .sc-t{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--yel)}.sc-d{font-size:14px;color:var(--mut);margin-top:4px}
-.sc-p{font-size:15px;color:#ccc;background:#1a1a1a;border-left:3px solid var(--yel);padding:12px 14px;border-radius:2px;margin-top:10px;line-height:1.6}
+.sc-p{font-size:15px;color:#ccc;background:#0d0118;border-left:3px solid var(--yel);padding:12px 14px;border-radius:2px;margin-top:10px;line-height:1.6}
 .corr{background:#1a0a00;border:1px solid #f5a500;border-radius:3px;padding:12px 14px;margin-top:10px}
 .corr-l{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:#f5a500;margin-bottom:6px}.corr-t{font-size:14px;color:#ddd;line-height:1.6}
-.ic{background:linear-gradient(135deg,#0f0020 0%,#0a0a0a 100%);border:1px solid var(--pur);border-radius:4px;padding:22px;margin-bottom:16px}
+.ic{background:linear-gradient(135deg,#0f0020 0%,#060606 100%);border:1px solid var(--pur);border-radius:4px;padding:22px;margin-bottom:16px}
 .ic-w{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:4px;color:var(--pur);margin-bottom:6px}
 .ic-th{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--yel);margin-bottom:14px}
 .ic-lg{font-size:13px;letter-spacing:3px;font-weight:700;text-transform:uppercase;margin-bottom:4px}.ic-es{color:#a855f7}.ic-pt{color:var(--cyan)}
@@ -65,7 +65,7 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 .st-n{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--yel);line-height:1}.st-l{font-size:12px;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-top:2px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .tab{display:none}.tab.on{display:block}
-.catb{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;padding:7px 14px;background:#1a1a1a;color:#888;border:1px solid #2a2a2a;border-radius:3px;cursor:pointer;transition:all .2s}.catb.on{background:var(--pur);color:var(--yel);border-color:var(--pur)}
+.catb{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;padding:7px 14px;background:#0d0118;color:#888;border:1px solid #1f1530;border-radius:3px;cursor:pointer;transition:all .2s}.catb.on{background:var(--pur);color:var(--yel);border-color:var(--pur)}
 @media(max-width:600px){.two{grid-template-columns:1fr}.dg{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
