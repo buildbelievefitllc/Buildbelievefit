@@ -1097,6 +1097,393 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   .pe-widget.is-pending { animation: none; }
 }
 
+/* ═══ BIOMETRIC YIELD REPORT — Promethean UI (Matte Black × Gold) ═══
+   Project Biometric Yield front-end architecture. Full-screen modal
+   with 4 phases: decrypt loading → radar web → cluster bars → locked
+   architect's readout. Scoped --volt and --ink-2 token aliases for
+   the Promethean palette requested in the brief. */
+:root {
+  --volt: var(--bbf-gold-victory, #F5C800);
+  --ink-2: #262626;
+}
+.byr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  display: none;
+  background: #000;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.byr-overlay.on { display: block; animation: byrFade .35s ease-out; }
+@keyframes byrFade { from { opacity: 0; } to { opacity: 1; } }
+.byr-box {
+  max-width: 480px;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 1.4rem 1rem 7.5rem;   /* bottom padding leaves room for the locked readout */
+  position: relative;
+  background: linear-gradient(180deg, #060606 0%, #0a0a0a 45%, #050505 100%);
+  color: #eee;
+  box-sizing: border-box;
+}
+
+/* ── PHASE 1 — DECRYPT LOADING OVERLAY ────────────────────────── */
+.byr-loading {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  overflow: hidden;
+}
+.byr-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(245,200,0,.2) 15%, var(--volt) 50%, rgba(245,200,0,.2) 85%, transparent 100%);
+  box-shadow: 0 0 18px rgba(245,200,0,.55), 0 0 32px rgba(245,200,0,.3);
+  animation: byrScan 1.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes byrScan {
+  from { top: 0%; }
+  to   { top: 100%; }
+}
+.byr-terminal {
+  font-family: 'Menlo', 'Courier New', ui-monospace, monospace;
+  font-size: .9rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--volt);
+  text-transform: uppercase;
+  margin-bottom: .9rem;
+  text-shadow: 0 0 12px rgba(245,200,0,.55), 0 0 24px rgba(245,200,0,.3);
+  animation: byrFlicker 1.4s ease-in-out infinite;
+}
+@keyframes byrFlicker {
+  0%,100% { opacity: 1; }
+  45%     { opacity: 0.65; }
+  55%     { opacity: 1; }
+}
+.byr-hex {
+  font-family: 'Menlo', 'Courier New', ui-monospace, monospace;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  color: rgba(245,200,0,.75);
+  line-height: 1.85;
+  max-width: 320px;
+  word-break: break-all;
+  text-shadow: 0 0 8px rgba(245,200,0,.35);
+}
+
+/* ── PHASE 2 + 3 — CONTENT FRAME ──────────────────────────────── */
+.byr-content { opacity: 0; transition: opacity .5s ease; }
+.byr-content.on { opacity: 1; }
+.byr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  padding-bottom: .9rem;
+  border-bottom: 1px solid rgba(245,200,0,.18);
+}
+.byr-title {
+  font-family: var(--hb);
+  font-size: 1.05rem;
+  letter-spacing: .22em;
+  color: var(--volt);
+  text-transform: uppercase;
+}
+.byr-title b {
+  display: block;
+  font-size: .58rem;
+  letter-spacing: .35em;
+  color: rgba(245,200,0,.5);
+  margin-bottom: .2rem;
+  font-weight: 400;
+}
+.byr-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(245,200,0,.35);
+  background: transparent;
+  color: var(--volt);
+  border-radius: 50%;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .2s;
+}
+.byr-close:hover { background: rgba(245,200,0,.12); }
+
+/* ── PHASE 2 — RADAR WEB ──────────────────────────────────────── */
+.byr-radar-wrap {
+  position: relative;
+  padding: .5rem 0 1rem;
+  cursor: pointer;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.byr-radar-wrap.fade-out { opacity: 0; transform: scale(.96); pointer-events: none; }
+.byr-radar {
+  width: 100%;
+  height: auto;
+  max-width: 320px;
+  margin: 0 auto;
+  display: block;
+  overflow: visible;
+}
+.byr-radar .byr-web,
+.byr-radar .byr-axis {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1;
+}
+.byr-radar .byr-axis { stroke: rgba(38,38,38,.9); }
+.byr-radar .byr-poly {
+  fill: rgba(245,200,0,.28);
+  stroke: var(--volt);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 10px rgba(245,200,0,.45)) drop-shadow(0 0 22px rgba(245,200,0,.25));
+  transition: d .6s ease;
+}
+.byr-radar .byr-vertex {
+  fill: var(--volt);
+  stroke: #000;
+  stroke-width: 1;
+  r: 2.4;
+}
+.byr-radar .byr-label {
+  fill: rgba(255,255,255,.72);
+  font-family: var(--hb);
+  font-size: 8.2px;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+.byr-radar-hint {
+  text-align: center;
+  margin-top: .6rem;
+  font-family: var(--hb);
+  font-size: .56rem;
+  letter-spacing: .28em;
+  color: rgba(245,200,0,.55);
+  text-transform: uppercase;
+}
+.byr-radar-hint::before,
+.byr-radar-hint::after { content: '\00a0\2022\00a0'; color: rgba(245,200,0,.3); }
+
+/* ── PHASE 3 — CLUSTER BARS ───────────────────────────────────── */
+.byr-clusters {
+  display: none;
+  flex-direction: column;
+  gap: 1rem;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .45s ease, transform .45s ease;
+}
+.byr-clusters.on { display: flex; opacity: 1; transform: translateY(0); }
+.byr-cluster {
+  background: linear-gradient(180deg, rgba(22,22,22,.8), rgba(10,10,10,.85));
+  border: 1px solid rgba(245,200,0,.12);
+  border-radius: 12px;
+  padding: 1rem .95rem;
+}
+.byr-cluster-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: .75rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px dashed rgba(245,200,0,.18);
+}
+.byr-cluster-name {
+  font-family: var(--hb);
+  font-size: .75rem;
+  letter-spacing: .22em;
+  color: var(--volt);
+  text-transform: uppercase;
+}
+.byr-cluster-avg {
+  font-family: var(--hb);
+  font-size: .88rem;
+  color: #fff;
+  letter-spacing: .05em;
+}
+.byr-cluster-avg b { color: rgba(245,200,0,.55); font-weight: 400; font-size: .58rem; letter-spacing: .2em; text-transform: uppercase; margin-right: .4rem }
+.byr-bar { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .7rem; }
+.byr-bar:last-child { margin-bottom: 0; }
+.byr-bar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .72rem;
+  color: #cfcfcf;
+}
+.byr-bar-name { font-family: var(--bd); font-weight: 700; letter-spacing: .04em; }
+.byr-bar-val {
+  font-family: var(--hb);
+  font-size: .85rem;
+  color: var(--volt);
+  letter-spacing: .04em;
+}
+.byr-bar-track {
+  position: relative;
+  height: 6px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.byr-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(212,175,55,.4) 0%, var(--volt) 100%);
+  border-radius: 3px;
+  transition: width .9s cubic-bezier(.2,.8,.25,1);
+}
+/* Capability Unlock — >85% marker pulses cyan */
+.byr-bar.unlock .byr-bar-name::after {
+  content: '\00a0\00a0\25C6 UNLOCK';
+  color: #22d3ee;
+  font-size: .6rem;
+  letter-spacing: .2em;
+  font-family: var(--hb);
+  text-shadow: 0 0 8px rgba(34,211,238,.55);
+}
+.byr-bar.unlock .byr-bar-val { color: #22d3ee; text-shadow: 0 0 10px rgba(34,211,238,.55); }
+.byr-bar.unlock .byr-bar-fill {
+  background: linear-gradient(90deg, rgba(34,211,238,.5) 0%, #22d3ee 100%);
+  animation: byrCyanPulse 1.8s ease-in-out infinite;
+}
+@keyframes byrCyanPulse {
+  0%,100% { box-shadow: 0 0 8px rgba(34,211,238,.5); }
+  50%     { box-shadow: 0 0 18px rgba(34,211,238,.9), 0 0 34px rgba(34,211,238,.45); }
+}
+
+.byr-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: .8rem;
+  background: transparent;
+  border: 1px solid rgba(245,200,0,.3);
+  color: rgba(245,200,0,.8);
+  font-family: var(--hb);
+  font-size: .65rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  padding: .45rem .85rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.byr-back-btn:hover { background: rgba(245,200,0,.08); color: var(--volt); }
+
+/* ── PHASE 4 — ARCHITECT'S READOUT (locked to viewport bottom) ─── */
+.byr-readout {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10061;
+  background: radial-gradient(ellipse at center, rgba(106,13,173,.18) 0%, #050505 70%), #000;
+  border-top: 2px solid var(--volt);
+  box-shadow: 0 -14px 40px -10px rgba(245,200,0,.25), 0 -2px 0 rgba(245,200,0,.35) inset;
+  padding: .9rem 1rem calc(.9rem + env(safe-area-inset-bottom, 0px));
+  display: none;
+}
+.byr-overlay.on .byr-readout { display: block; }
+.byr-readout-inner {
+  max-width: 480px;
+  margin: 0 auto;
+}
+.byr-readout-lbl {
+  font-family: var(--hb);
+  font-size: .55rem;
+  letter-spacing: .35em;
+  color: var(--volt);
+  text-transform: uppercase;
+  margin-bottom: .3rem;
+}
+.byr-readout-body {
+  font-family: 'Menlo', ui-monospace, monospace;
+  font-size: .76rem;
+  line-height: 1.55;
+  color: #fff;
+}
+.byr-readout-body .byr-rd-sep { color: var(--volt); letter-spacing: .1em; margin: 0 .4rem; }
+.byr-readout-caret {
+  display: inline-block;
+  width: 8px;
+  height: 1.05em;
+  vertical-align: -3px;
+  margin-left: 3px;
+  background: var(--volt);
+  animation: byrCaret 1.1s steps(2) infinite;
+}
+@keyframes byrCaret { 50% { opacity: 0; } }
+
+/* Launcher button for the Biometric Yield — placed in the Profile tab */
+.byr-launch {
+  display: block;
+  width: 100%;
+  padding: .85rem 1rem;
+  background: linear-gradient(180deg, #151515 0%, #080808 100%);
+  border: 1px solid rgba(245,200,0,.35);
+  border-left: 3px solid var(--volt);
+  border-radius: 12px;
+  color: var(--volt);
+  font-family: var(--hb);
+  font-size: .82rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  transition: background .2s, box-shadow .25s, transform .18s;
+  box-shadow: 0 6px 18px -6px rgba(245,200,0,.2);
+}
+.byr-launch:hover {
+  background: linear-gradient(180deg, #1c1c1c 0%, #0a0a0a 100%);
+  box-shadow: 0 10px 26px -6px rgba(245,200,0,.35);
+  transform: translateY(-1px);
+}
+.byr-launch b {
+  display: block;
+  font-family: var(--bd);
+  font-size: .68rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  letter-spacing: .06em;
+  text-transform: none;
+  margin-top: .25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .byr-scanline   { animation: none; top: 50%; }
+  .byr-terminal   { animation: none; }
+  .byr-bar.unlock .byr-bar-fill { animation: none; }
+  .byr-readout-caret { animation: none; }
+}
+
+@media (max-width: 360px) {
+  .byr-title     { font-size: .92rem; }
+  .byr-radar     { max-width: 280px; }
+  .byr-box       { padding: 1rem .75rem 7rem; }
+  .byr-readout   { padding: .75rem .85rem calc(.75rem + env(safe-area-inset-bottom, 0px)); }
+  .byr-readout-body { font-size: .72rem; }
+}
+
 
 /* ═══ SOMATIC READINESS MATRIX — circular gauge + flow state ═══ */
 .som-gauge-wrap {
@@ -1873,6 +2260,12 @@ window.onload=function(){
     <!-- PROFILE -->
     <div class="tp" id="tp-profile">
 
+      <!-- BIOMETRIC YIELD launcher — opens Sovereign Clinical Yield modal -->
+      <button class="byr-launch" type="button" id="byr-launch-btn" onclick="openBiometricYield()">
+        <span data-lang-key="byr-launch">&#x1F9EC; View Clinical Yield</span>
+        <b data-lang-key="byr-launch-sub">11 biomarkers &middot; Sovereign Radar synthesis</b>
+      </button>
+
       <!-- PROGRESS ANALYTICS -->
       <div style="margin-bottom:1rem">
         <div style="font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.2rem" data-lang-key="app-progress-title">My Progress</div>
@@ -2026,6 +2419,47 @@ window.onload=function(){
     <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span data-lang-key="app-nav-prehab">Prehab</span></button>
     <button class="nv" data-tab="book"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-lang-key="app-nav-book">Book</span></button>
     <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-lang-key="app-nav-profile">Profile</span></button>
+  </div>
+
+  <!-- ═══ BIOMETRIC YIELD REPORT — Sovereign Clinical Synthesis ═══ -->
+  <div class="byr-overlay" id="biometric-yield-modal" role="dialog" aria-modal="true" aria-labelledby="byr-title">
+    <div class="byr-box">
+      <!-- PHASE 1 — decrypt loading -->
+      <div class="byr-loading" id="byr-loading">
+        <div class="byr-scanline" aria-hidden="true"></div>
+        <div class="byr-terminal" id="byr-terminal" data-lang-key="byr-decrypt">Decrypting Clinical Yield...</div>
+        <div class="byr-hex" id="byr-hex">0000 0000 0000 0000</div>
+      </div>
+      <!-- PHASE 2 + 3 — content -->
+      <div class="byr-content" id="byr-content">
+        <div class="byr-head">
+          <div class="byr-title" id="byr-title">
+            <b data-lang-key="byr-tag">Sovereign &middot; Clinical Yield</b>
+            <span data-lang-key="byr-heading">Biometric Yield Report</span>
+          </div>
+          <button class="byr-close" id="byr-close-btn" type="button" aria-label="Close">&times;</button>
+        </div>
+
+        <!-- PHASE 2 — Radar Web (macro) -->
+        <div class="byr-radar-wrap" id="byr-radar-wrap" role="button" tabindex="0" aria-label="Tap to expand cluster view">
+          <svg class="byr-radar" id="byr-radar" viewBox="-150 -150 300 300" aria-hidden="true">
+            <!-- axes + web + polygon + vertices + labels injected by JS -->
+          </svg>
+          <div class="byr-radar-hint" data-lang-key="byr-tap-hint">Tap for Cluster View</div>
+        </div>
+
+        <!-- PHASE 3 — Cluster Bars (micro) -->
+        <div class="byr-clusters" id="byr-clusters" aria-hidden="true"></div>
+      </div>
+
+      <!-- PHASE 4 — locked Architect's Readout -->
+      <div class="byr-readout" role="status" aria-live="polite">
+        <div class="byr-readout-inner">
+          <div class="byr-readout-lbl" data-lang-key="byr-sys">System Notification</div>
+          <div class="byr-readout-body" id="byr-readout-body">&mdash;<span class="byr-readout-caret"></span></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3758,6 +4192,307 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+});
+
+// ═══════════════════════════════════════════════════════════
+// BIOMETRIC YIELD REPORT — Sovereign Clinical Synthesis
+// 4-phase modal: decrypt loading → radar web → cluster bars →
+// locked architect's readout. Pulls from the three Titan brains
+// (BBF_AUDITOR, BBF_SOMATIC, BBF_HOLOGRAM) + daily_readiness.
+// ═══════════════════════════════════════════════════════════
+var BYR_MARKERS = [
+  // AUTONOMIC
+  { id:'hrv',       cluster:'autonomic',     key:'byr-m-hrv',       en:'HRV Index',              es:'\u00cdndice HRV',              pt:'\u00cdndice HRV' },
+  { id:'sleep',     cluster:'autonomic',     key:'byr-m-sleep',     en:'Sleep Quality',          es:'Calidad del Sue\u00f1o',       pt:'Qualidade do Sono' },
+  { id:'cns',       cluster:'autonomic',     key:'byr-m-cns',       en:'CNS Readiness',          es:'Preparaci\u00f3n del SNC',     pt:'Prontid\u00e3o do SNC' },
+  { id:'stress',    cluster:'autonomic',     key:'byr-m-stress',    en:'Stress Tolerance',       es:'Tolerancia al Estr\u00e9s',    pt:'Toler\u00e2ncia ao Estresse' },
+  // BIOMECHANICAL
+  { id:'rom',       cluster:'biomechanical', key:'byr-m-rom',       en:'Joint ROM',              es:'Amplitud Articular',           pt:'Amplitude Articular' },
+  { id:'recovery',  cluster:'biomechanical', key:'byr-m-recovery',  en:'Recovery Capacity',      es:'Capacidad de Recuperaci\u00f3n', pt:'Capacidade de Recupera\u00e7\u00e3o' },
+  { id:'movement',  cluster:'biomechanical', key:'byr-m-movement',  en:'Movement Quality',       es:'Calidad de Movimiento',        pt:'Qualidade de Movimento' },
+  { id:'axial',     cluster:'biomechanical', key:'byr-m-axial',     en:'Axial Load Tolerance',   es:'Tolerancia a Carga Axial',     pt:'Toler\u00e2ncia \u00e0 Carga Axial' },
+  // PERFORMANCE
+  { id:'overload',  cluster:'performance',   key:'byr-m-overload',  en:'Progressive Overload',   es:'Sobrecarga Progresiva',        pt:'Sobrecarga Progressiva' },
+  { id:'fast',      cluster:'performance',   key:'byr-m-fast',      en:'Fasting Adaptation',     es:'Adaptaci\u00f3n al Ayuno',     pt:'Adapta\u00e7\u00e3o ao Jejum' },
+  { id:'neural',    cluster:'performance',   key:'byr-m-neural',    en:'Neural Drive',           es:'Impulso Neural',               pt:'Impulso Neural' }
+];
+var BYR_CLUSTERS = [
+  { id:'autonomic',     key:'byr-cluster-autonomic',     en:'Autonomic' },
+  { id:'biomechanical', key:'byr-cluster-biomechanical', en:'Biomechanical' },
+  { id:'performance',   key:'byr-cluster-performance',   en:'Performance' }
+];
+
+function _byrClamp(v){ if (!isFinite(v)) return 0; return Math.max(0, Math.min(100, v)); }
+function _byrFastingQ(h) {
+  if (!(h > 0)) return 60;
+  if (h <= 12) return 60 + (h/12) * 30;
+  if (h <= 16) return 90 + ((h-12)/4) * 10;
+  if (h <= 20) return 100 - ((h-16)/4) * 15;
+  if (h <= 36) return 85 - ((h-20)/16) * 35;
+  return 30;
+}
+
+function _byrComputeMarkers(uid) {
+  var profile = {};
+  try {
+    var d = GD();
+    profile = (d.u && d.u[uid]) ? d.u[uid] : {};
+  } catch(_) {}
+
+  // 7-day sleep + stress from daily_readiness
+  var dr = profile.daily_readiness || {};
+  var nowMs = Date.now(), cutoff = nowMs - 7*24*3600*1000;
+  var sleepSum = 0, sleepCount = 0, stressSum = 0, stressCount = 0;
+  for (var k in dr) {
+    if (!Object.prototype.hasOwnProperty.call(dr, k)) continue;
+    var ts = Date.parse(k);
+    if (!isFinite(ts) || ts < cutoff) continue;
+    var row = dr[k] || {};
+    if (isFinite(row.sleep))  { sleepSum  += parseFloat(row.sleep);  sleepCount++; }
+    if (isFinite(row.stress)) { stressSum += parseFloat(row.stress); stressCount++; }
+  }
+  var sleepAvg  = sleepCount  ? sleepSum  / sleepCount  : 6;
+  var stressAvg = stressCount ? stressSum / stressCount : 5;
+
+  var intel = profile.kinematic_audit_intelligence || {};
+  var somatic = profile.somatic_readiness_score;
+  if (!isFinite(somatic)) somatic = 60;
+
+  return {
+    // Autonomic
+    hrv:       _byrClamp(70 + (sleepAvg - 5) * 3),
+    sleep:     _byrClamp(sleepAvg * 10),
+    cns:       _byrClamp(somatic),
+    stress:    _byrClamp((11 - stressAvg) * 10),
+    // Biomechanical
+    rom:       _byrClamp(72 + (sleepAvg - 5) * 2),
+    recovery:  _byrClamp((intel.recovery_capacity || 0.65) * 100),
+    movement:  _byrClamp(profile.biomechanical_redline ? 55 : 78),
+    axial:     _byrClamp(100 - Math.min(100, intel.friction_score || 50)),
+    // Performance
+    overload:  _byrClamp((intel.tonnage_load || 0.55) * 60),
+    fast:      _byrClamp(_byrFastingQ(profile.somatic_fasting_hours || 0)),
+    neural:    _byrClamp(somatic)
+  };
+}
+
+function _byrHexTick() {
+  var hexEl = document.getElementById('byr-hex');
+  if (!hexEl) return;
+  var HEX = '0123456789ABCDEF';
+  var groups = [];
+  for (var g = 0; g < 4; g++) {
+    var s = '';
+    for (var i = 0; i < 4; i++) s += HEX[Math.floor(Math.random() * 16)];
+    groups.push(s);
+  }
+  hexEl.textContent = groups.join(' ');
+}
+
+function _byrDrawRadar(values) {
+  var svg = document.getElementById('byr-radar');
+  if (!svg) return;
+  // Clear children
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  var NS = 'http://www.w3.org/2000/svg';
+  var N  = BYR_MARKERS.length;          // 11
+  var R  = 110;
+  var L  = (typeof LANG !== 'undefined') ? LANG : 'en';
+
+  // 5 concentric web rings
+  [0.2, 0.4, 0.6, 0.8, 1.0].forEach(function(scale){
+    var pts = [];
+    for (var i = 0; i < N; i++) {
+      var theta = -Math.PI/2 + (2*Math.PI * i)/N;
+      pts.push((Math.cos(theta)*R*scale).toFixed(2) + ',' + (Math.sin(theta)*R*scale).toFixed(2));
+    }
+    var web = document.createElementNS(NS, 'polygon');
+    web.setAttribute('points', pts.join(' '));
+    web.setAttribute('class', 'byr-web');
+    svg.appendChild(web);
+  });
+
+  // Axes + labels
+  for (var i = 0; i < N; i++) {
+    var theta = -Math.PI/2 + (2*Math.PI * i)/N;
+    var x = Math.cos(theta)*R, y = Math.sin(theta)*R;
+    var axis = document.createElementNS(NS, 'line');
+    axis.setAttribute('x1','0'); axis.setAttribute('y1','0');
+    axis.setAttribute('x2', x.toFixed(2)); axis.setAttribute('y2', y.toFixed(2));
+    axis.setAttribute('class', 'byr-axis');
+    svg.appendChild(axis);
+    // Label outside the axis tip
+    var lx = Math.cos(theta)*(R+22), ly = Math.sin(theta)*(R+22);
+    var lbl = document.createElementNS(NS, 'text');
+    lbl.setAttribute('x', lx.toFixed(2));
+    lbl.setAttribute('y', (ly + 3).toFixed(2));
+    lbl.setAttribute('text-anchor', x > 8 ? 'start' : x < -8 ? 'end' : 'middle');
+    lbl.setAttribute('class', 'byr-label');
+    var m = BYR_MARKERS[i];
+    lbl.textContent = (_t ? _t(m.key, m.en) : m.en).toUpperCase();
+    svg.appendChild(lbl);
+  }
+
+  // Data polygon
+  var dataPts = [], vertices = [];
+  for (var j = 0; j < N; j++) {
+    var theta2 = -Math.PI/2 + (2*Math.PI * j)/N;
+    var v = (values[BYR_MARKERS[j].id] || 0) / 100;
+    var px = Math.cos(theta2)*R*v, py = Math.sin(theta2)*R*v;
+    dataPts.push(px.toFixed(2) + ',' + py.toFixed(2));
+    vertices.push([px, py]);
+  }
+  var poly = document.createElementNS(NS, 'polygon');
+  poly.setAttribute('points', dataPts.join(' '));
+  poly.setAttribute('class', 'byr-poly');
+  svg.appendChild(poly);
+  vertices.forEach(function(pt){
+    var dot = document.createElementNS(NS, 'circle');
+    dot.setAttribute('cx', pt[0].toFixed(2));
+    dot.setAttribute('cy', pt[1].toFixed(2));
+    dot.setAttribute('r', '2.4');
+    dot.setAttribute('class', 'byr-vertex');
+    svg.appendChild(dot);
+  });
+}
+
+function _byrRenderClusters(values) {
+  var wrap = document.getElementById('byr-clusters');
+  if (!wrap) return;
+  var L = (typeof LANG !== 'undefined') ? LANG : 'en';
+  var html = '';
+  html += '<button class="byr-back-btn" type="button" onclick="_byrShowRadar()">&#x2190; ' + (_t ? _t('byr-back', 'Radar Web') : 'Radar Web') + '</button>';
+  BYR_CLUSTERS.forEach(function(cluster){
+    var markers = BYR_MARKERS.filter(function(m){ return m.cluster === cluster.id; });
+    var sum = 0; var count = 0;
+    markers.forEach(function(m){ sum += (values[m.id] || 0); count++; });
+    var avg = count ? Math.round(sum / count) : 0;
+    var cname = _t ? _t(cluster.key, cluster.en) : cluster.en;
+    html += '<div class="byr-cluster">';
+    html += '<div class="byr-cluster-head"><div class="byr-cluster-name">' + cname + '</div><div class="byr-cluster-avg"><b>Cluster Avg</b>' + avg + '%</div></div>';
+    markers.forEach(function(m){
+      var val = Math.round(values[m.id] || 0);
+      var mname = _t ? _t(m.key, m.en) : m.en;
+      var unlock = val >= 85 ? 'unlock' : '';
+      html += '<div class="byr-bar ' + unlock + '">';
+      html += '<div class="byr-bar-head"><span class="byr-bar-name">' + mname + '</span><span class="byr-bar-val">' + val + '%</span></div>';
+      html += '<div class="byr-bar-track"><div class="byr-bar-fill" style="width:0%" data-target="' + val + '"></div></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  wrap.innerHTML = html;
+  // Animate fills in on next frame.
+  requestAnimationFrame(function(){
+    wrap.querySelectorAll('.byr-bar-fill').forEach(function(fill){
+      fill.style.width = fill.getAttribute('data-target') + '%';
+    });
+  });
+}
+
+function _byrShowRadar() {
+  var rw = document.getElementById('byr-radar-wrap');
+  var cl = document.getElementById('byr-clusters');
+  if (rw) { rw.classList.remove('fade-out'); rw.style.display = 'block'; }
+  if (cl) { cl.classList.remove('on'); cl.style.display = 'none'; cl.setAttribute('aria-hidden','true'); }
+}
+
+function _byrShowClusters() {
+  var rw = document.getElementById('byr-radar-wrap');
+  var cl = document.getElementById('byr-clusters');
+  if (rw) rw.classList.add('fade-out');
+  if (cl) {
+    cl.style.display = 'flex';
+    cl.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function(){ cl.classList.add('on'); });
+  }
+  // Hide the radar AFTER the fade completes so the click region
+  // doesn't block tappable bars during the transition.
+  setTimeout(function(){ if (rw) rw.style.display = 'none'; }, 380);
+}
+
+function _byrWriteReadout(values, profile) {
+  var body = document.getElementById('byr-readout-body');
+  if (!body) return;
+  var cns      = Math.round(values.cns);
+  var recovery = Math.round(values.recovery);
+  var unlocks  = BYR_MARKERS.filter(function(m){ return (values[m.id]||0) >= 85; }).length;
+  var phase    = profile.biomechanical_redline ? 'Phase 2 Deload Protocol' :
+                 (cns >= 85 && recovery >= 75) ? 'Phase 4 Explosive Load' :
+                 (cns >= 70) ? 'Phase 3 Hypertrophy Block' : 'Phase 2 Recovery Block';
+  var lines = [
+    '<b style="color:var(--volt)">CNS Readiness ' + cns + '%</b>',
+    'Recovery ' + recovery + '%',
+    unlocks + ' Capability Unlock' + (unlocks === 1 ? '' : 's'),
+    'Proceeding to <b style="color:var(--volt)">' + phase + '</b>'
+  ];
+  body.innerHTML = lines.join('<span class="byr-rd-sep">&middot;</span>') + '<span class="byr-readout-caret"></span>';
+}
+
+function openBiometricYield() {
+  var overlay = document.getElementById('biometric-yield-modal');
+  if (!overlay) return;
+  var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+
+  // Reset view state
+  overlay.classList.add('on');
+  var loading = document.getElementById('byr-loading');
+  var content = document.getElementById('byr-content');
+  if (loading) loading.style.display = 'flex';
+  if (content) content.classList.remove('on');
+  _byrShowRadar();
+
+  // Phase 1 — decrypt loading
+  var hexInterval = setInterval(_byrHexTick, 55);
+  _byrHexTick();
+  setTimeout(function(){
+    clearInterval(hexInterval);
+    // Resolve to final "valid" hex signature so the last frame doesn't
+    // look chaotic — reads as "payload locked".
+    var hexEl = document.getElementById('byr-hex');
+    if (hexEl) hexEl.textContent = 'BBF7 C0DE F1T4 10CK';
+
+    var values = _byrComputeMarkers(uid);
+    var profile = {};
+    try {
+      var d = GD();
+      profile = (d.u && d.u[uid]) ? d.u[uid] : {};
+    } catch(_) {}
+
+    _byrDrawRadar(values);
+    _byrRenderClusters(values);
+    _byrWriteReadout(values, profile);
+
+    // Hand off to content
+    setTimeout(function(){
+      if (loading) loading.style.display = 'none';
+      if (content) content.classList.add('on');
+    }, 320);
+  }, 1500);
+}
+
+function closeBiometricYield() {
+  var overlay = document.getElementById('biometric-yield-modal');
+  if (overlay) overlay.classList.remove('on');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var closeBtn = document.getElementById('byr-close-btn');
+  if (closeBtn) closeBtn.addEventListener('click', closeBiometricYield);
+  var radarWrap = document.getElementById('byr-radar-wrap');
+  if (radarWrap) {
+    radarWrap.addEventListener('click', _byrShowClusters);
+    radarWrap.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _byrShowClusters(); }
+    });
+  }
+  // Close on Escape for desktop testers
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') {
+      var m = document.getElementById('biometric-yield-modal');
+      if (m && m.classList.contains('on')) closeBiometricYield();
+    }
+  });
 });
 
 // ─── HOUSEHOLD FEED ──────────────────────────────────────
