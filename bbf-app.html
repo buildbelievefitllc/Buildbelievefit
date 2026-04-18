@@ -744,6 +744,176 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;back
 /* SAFETY — guarantee Promethean text color wins against any legacy white-on-light */
 .en,.ql,.rt2,.cov,.psrn,.nutr-mi,.si-h,.mt,.vsub,.module-title{color:var(--paper)}
 
+/* ═══════════════════════════════════════════════════════════
+   POCKET VAULT — Mobile Compression Overlay
+   No horizontal scroll · Fluid widths · One-handed thumb UX
+═══════════════════════════════════════════════════════════ */
+
+/* 1. Eradicate horizontal scroll on every containing block */
+html,body{overflow-x:hidden;max-width:100vw}
+body{width:100%;position:relative}
+.scr{overflow-x:hidden;max-width:100vw}
+.tc{overflow-x:hidden;max-width:100%}
+.tp{max-width:100%;overflow-x:hidden}
+
+/* 2. Force every card/modal/widget to respect the viewport */
+.hero,.dh,.bkh,.ph,.ww,.analytics-section,.vault-hero,.cn2,.rdc,.prehab-card,.eb,.module-card,.sc,.qa,.co,.psr,.csw,.tnf,.nutr-card,.ri,.ready-score,.ready-banner{max-width:100%;box-sizing:border-box}
+.modal,.msh{max-width:100vw;box-sizing:border-box}
+.sg,.qg,.wws,.mac-grid,.analytics-stats,.muscle-grid,.vault-grid,.tier-grid,.svc-grid{max-width:100%;box-sizing:border-box}
+.abox,.bkh,.vbox{width:100%;max-width:min(460px,100%);box-sizing:border-box}
+
+/* Headline / header containers: never lock wider than the viewport */
+img,video,canvas{max-width:100%;height:auto}
+
+/* 3a. Tablet compression — ≤ 768px */
+@media (max-width:768px){
+  .tbar{padding:calc(var(--st) + .6rem) .8rem .6rem}
+  .tbl{font-size:1.1rem;letter-spacing:.05em}
+  .tbu{font-size:.7rem;max-width:90px}
+  .tbav{width:30px;height:30px;font-size:.78rem}
+  .tp{padding:.85rem}
+  .hero,.dh,.bkh,.vault-hero,.ph{padding:1.2rem;border-radius:14px}
+  .hn{font-size:1.7rem}
+  .dn2{font-size:1.55rem}
+  .bkt{font-size:1.7rem}
+  .pn2{font-size:1.55rem}
+  .stk{padding:.4rem .65rem}
+  .stn{font-size:1.5rem}
+  .stt{font-size:.68rem}
+  .sg,.qg{gap:.55rem}
+  .sc,.qa{padding:.85rem;border-radius:10px}
+  .sv{font-size:1.6rem}
+  .ql{font-size:.78rem}
+  .eb{border-radius:12px}
+  .eh{padding:.85rem}
+  .en{font-size:.95rem}
+  .em{font-size:.7rem}
+  .ebody{padding:0 .85rem .85rem}
+  .dbtn,.lbtn,.abtn,.calc-btn{padding:.9rem;font-size:.92rem;letter-spacing:.1em}
+  .modal{padding-bottom:calc(var(--sb) + .5rem)}
+  .msh{padding:1.2rem;border-radius:18px 18px 0 0}
+  .mt{font-size:1.35rem}
+  .ma{flex-direction:column;gap:.55rem}
+  .ma .mc3,.ma .ms{flex:unset;width:100%;padding:.9rem}
+  .analytics-section{padding:1rem;border-radius:14px}
+  .analytics-title{font-size:.66rem;letter-spacing:.2em}
+  .ast{padding:.55rem .3rem}
+  .ast-v{font-size:1.2rem}
+  .ww{padding:1rem;border-radius:14px}
+  .wwt{font-size:.66rem;letter-spacing:.2em}
+  .wwv{font-size:1.15rem}
+  .nutr-card{padding:.85rem}
+  .vault-tabs{padding:2px}
+  .vtab{padding:.45rem;font-size:.72rem;letter-spacing:.14em}
+  .module-card{border-radius:12px}
+  .module-info{padding:.65rem}
+  .module-title{font-size:.85rem}
+  .module-desc{font-size:.66rem}
+  .vault-hero-title{font-size:1.45rem}
+  .vault-hero-sub{font-size:.74rem}
+  .vault-hero-lbl{font-size:.58rem;letter-spacing:.22em}
+  .coi{width:40px;height:40px;font-size:1.25rem}
+  .cov{font-size:.88rem}
+  .si-box{padding:1.8rem 1.4rem;border-radius:16px;max-width:100%}
+  .si-h{font-size:1.35rem}
+  .si-sub{font-size:.78rem}
+  .vbox{padding:1.6rem 1.2rem;max-width:300px}
+  .vtitle{font-size:2.4rem;letter-spacing:.1em}
+  .vsub{font-size:.88rem}
+  #stk-toast{max-width:90vw;padding:.7rem 1rem}
+  .stk-txt{font-size:1rem}
+  .stk-sub{font-size:.62rem}
+}
+
+/* 3b. Phone compression — ≤ 480px (iPhone Standard / iPhone SE) */
+@media (max-width:480px){
+  .tp{padding:.7rem .7rem calc(var(--sb) + 6rem)}
+  .hero,.dh,.bkh,.vault-hero,.ph{padding:1rem;border-radius:12px}
+  .hn{font-size:1.45rem}
+  .dn2{font-size:1.4rem}
+  .bkt{font-size:1.45rem}
+  .pn2{font-size:1.4rem}
+  .hg{font-size:.56rem;letter-spacing:.2em}
+  .hm{font-size:.74rem}
+  .df2{font-size:.76rem}
+  .bks{font-size:.76rem}
+  .stn{font-size:1.3rem}
+  .stl{font-size:.5rem}
+  .sg,.qg,.wws,.mac-grid{grid-template-columns:1fr 1fr;gap:.5rem}
+  .sc,.qa{padding:.75rem;border-radius:10px}
+  .sv{font-size:1.35rem}
+  .sl{font-size:.56rem;letter-spacing:.14em}
+  .qi{font-size:1.2rem}
+  .ql{font-size:.72rem}
+  .qs2{font-size:.66rem}
+  .analytics-stats{grid-template-columns:1fr 1fr 1fr;gap:.35rem}
+  .ast{padding:.5rem .25rem}
+  .ast-v{font-size:1.05rem}
+  .ast-l{font-size:.5rem;letter-spacing:.1em}
+  .muscle-grid{grid-template-columns:1fr 1fr;gap:.4rem}
+  .vault-grid{grid-template-columns:1fr 1fr;gap:.6rem}
+  .module-title{font-size:.78rem;letter-spacing:.02em}
+  .module-desc{font-size:.62rem}
+  .eb{border-radius:10px}
+  .eh{padding:.75rem}
+  .en{font-size:.9rem}
+  .ebody{padding:0 .75rem .75rem}
+  .slbs,.srow2{grid-template-columns:30px 1fr 1fr 1fr;gap:.4rem}
+  .slb{font-size:.56rem}
+  .snum{font-size:.9rem}
+  .stgt,.sinp{padding:.5rem .4rem;font-size:.82rem}
+  .dbtn,.lbtn,.abtn,.calc-btn{padding:.85rem;font-size:.88rem}
+  .lfi,.lfs,.lfta{padding:.75rem .85rem;font-size:.9rem}
+  .msh{padding:1rem;max-height:82vh}
+  .mt{font-size:1.2rem}
+  .si-box{padding:1.4rem 1.1rem}
+  .si-h{font-size:1.2rem}
+  .vtitle{font-size:2rem}
+  .vsub{font-size:.8rem}
+  .vdets{font-size:.74rem}
+  .vbtn{padding:.8rem 1.8rem;font-size:.95rem}
+  #stk-toast{top:calc(env(safe-area-inset-top,0px) + 60px);padding:.6rem .9rem}
+  .stk-txt{font-size:.92rem}
+  .stk-icon{font-size:1.25rem}
+}
+
+/* 3c. Narrow phone — ≤ 380px (iPhone SE 1st gen / older Androids) */
+@media (max-width:380px){
+  .tbl{font-size:1rem;letter-spacing:.04em}
+  .tbu{max-width:70px;font-size:.64rem}
+  .hn{font-size:1.3rem}
+  .dn2{font-size:1.25rem}
+  .sc,.qa{padding:.65rem}
+  .sv{font-size:1.2rem}
+  .qi{font-size:1.05rem}
+  .ql{font-size:.68rem}
+  .tp{padding:.6rem .6rem calc(var(--sb) + 6rem)}
+  .ast-v{font-size:.95rem}
+  .module-card{border-radius:10px}
+  .vault-grid,.sg,.qg,.wws{gap:.4rem}
+}
+
+/* 4. Bottom nav — one-handed thumb reach */
+.bn{z-index:100;min-height:calc(56px + env(safe-area-inset-bottom,0px))}
+.nv{min-height:48px;padding:.55rem .2rem;touch-action:manipulation}
+.nv svg{width:22px;height:22px}
+.nv.on svg{stroke:var(--volt);filter:drop-shadow(0 0 6px rgba(245,200,0,.5))}
+.nv.on::before{width:32px;height:2px;border-radius:0 0 3px 3px}
+@media (max-width:480px){
+  .bn{padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nv{padding:.5rem .15rem;gap:.22rem}
+  .nv svg{width:21px;height:21px}
+  .nv span{font-size:.5rem;letter-spacing:.12em}
+}
+@media (max-width:380px){
+  .nv span{font-size:.48rem;letter-spacing:.1em}
+  .nv svg{width:20px;height:20px}
+}
+
+/* 5. Language toggle in bbf-app.html — always visible, z-lifted */
+#bbf-lang-placeholder{position:relative;z-index:99999}
+#bbf-lang-toggle{z-index:99999}
+
 </style>
 <script src="bbf-lang.js"></script>
 <script src="bbf-sync.js"></script>
