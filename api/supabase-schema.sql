@@ -19,9 +19,58 @@ CREATE TABLE IF NOT EXISTS bbf_users (
   pin_hash TEXT,
   auto_lock_enabled BOOLEAN DEFAULT false,
   lock_expiry BIGINT,
+  intake JSONB,
+  blueprint JSONB,
+  onboarding_complete BOOLEAN DEFAULT false,
+  onboarded_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Idempotent column adds for existing deployments
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS intake JSONB;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS blueprint JSONB;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS onboarded_at TIMESTAMPTZ;
+-- Ghost Protocol columns
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_active_timestamp TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS ghost_intervention_needed BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS ghost_flagged_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS ghost_cleared_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS mobility_override_date DATE;
+-- High-Ticket Sniper — 1-on-1 Mastermind lead capture
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_status" TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_reason" TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS "1on1_lead_submitted_at" TIMESTAMPTZ;
+-- Kinematic Auditor — biomechanical friction score
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS cns_friction_warning BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS cns_friction_score NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS cns_friction_updated_at TIMESTAMPTZ;
+-- Somatic Sync — lifestyle/readiness inputs + CNS override
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_fasting_hours NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_cognitive_load INT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_sleep_quality INT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_readiness_score NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_override_active BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_override_date DATE;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_tier TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_last_logged TIMESTAMPTZ;
+-- Kinematic Auditor Intelligence Layer — redline flag + recovery math
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS biomechanical_redline BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS biomechanical_redline_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS recovery_capacity NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS recovery_debt NUMERIC;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS dominant_axial_lift TEXT;
+-- Somatic Sync Intelligence Layer — stress input + flow/emergency flags
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_stress_level INT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS somatic_flow_state BOOLEAN DEFAULT false;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS system_emergency_deload BOOLEAN DEFAULT false;
+-- Phantom Eye — video check-in state + coach critique pins
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_status TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_uploaded_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_exercise TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_video_check_rx_lift TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS video_critique_pins JSONB;
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (

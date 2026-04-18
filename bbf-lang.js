@@ -57,7 +57,7 @@ var D = {
 // ═══ FOUNDER ═══
 'founder-lbl':     { en:'The Founder', es:'El Fundador', pt:'O Fundador' },
 'founder-h':       { en:'The Story Behind <span class="y">BBF</span>', es:'La Historia Detr\u00e1s de <span class="y">BBF</span>', pt:'A Hist\u00f3ria Por Tr\u00e1s do <span class="y">BBF</span>' },
-'cred-t1':         { en:'Clinical Biomechanics \u00b7 Founder-Led', es:'Biomec\u00e1nica Cl\u00ednica \u00b7 Dirigido por el Fundador', pt:'Biomec\u00e2nica Cl\u00ednica \u00b7 Dirigido pelo Fundador' },
+'cred-t1':         { en:'NASM Certified Personal Trainer', es:'Entrenador Personal Certificado NASM', pt:'Personal Trainer Certificado NASM' },
 'cred-s1':         { en:'National Academy of Sports Medicine \u2014 Exercise Science', es:'Academia Nacional de Medicina Deportiva \u2014 Ciencias del Ejercicio', pt:'Academia Nacional de Medicina Esportiva \u2014 Ci\u00eancias do Exerc\u00edcio' },
 'cred-t2':         { en:'12-Hour Manufacturing Shifts', es:'Turnos de Manufactura de 12 Horas', pt:'Turnos de Manufatura de 12 Horas' },
 'cred-s2':         { en:'Human Performance Architect \u2022 Habit System Designer', es:'Arquitecto de Rendimiento Humano \u2022 Dise\u00f1ador de Sistemas de H\u00e1bitos', pt:'Arquiteto de Performance Humana \u2022 Designer de Sistemas de H\u00e1bitos' },
@@ -343,174 +343,157 @@ var D = {
 'app-road-badge':       { en:'ROAD', es:'VIAJE', pt:'VIAGEM' },
 'app-prehab-audit-btn': { en:'\ud83e\uddea PRE-HAB AUDIT \u2014 START HERE', es:'\ud83e\uddea AUDITOR\u00cdA PRE-HAB \u2014 EMPIEZA AQU\u00cd', pt:'\ud83e\uddea AUDITORIA PRE-HAB \u2014 COMECE AQUI' },
 
-// ═══════════════════════════════════════════════════════════════
-// PROMETHEAN — added during Audit-7 trilingual restoration
-// ═══════════════════════════════════════════════════════════════
+// ═══ SOVEREIGN INTAKE MATRIX ═════════════════════════════════
+'intake-step1-tag': { en:'STEP 1 OF 3', es:'PASO 1 DE 3', pt:'ETAPA 1 DE 3' },
+'intake-step1-h':   { en:'YOUR FOUNDATION', es:'TU FUNDAMENTO', pt:'SUA FUNDA\u00c7\u00c3O' },
+'intake-step1-sub': { en:'We calibrate every protocol to your biology. This takes 30 seconds.', es:'Calibramos cada protocolo a tu biolog\u00eda. Esto toma 30 segundos.', pt:'Calibramos cada protocolo \u00e0 sua biologia. Isso leva 30 segundos.' },
+'intake-lbl-age':   { en:'Age', es:'Edad', pt:'Idade' },
+'intake-lbl-goal':  { en:'Primary Goal', es:'Objetivo Principal', pt:'Objetivo Principal' },
+'intake-chip-hypertrophy': { en:'\ud83d\udcaa Hypertrophy', es:'\ud83d\udcaa Hipertrofia', pt:'\ud83d\udcaa Hipertrofia' },
+'intake-chip-fatloss':     { en:'\ud83d\udd25 Fat Loss', es:'\ud83d\udd25 P\u00e9rdida de Grasa', pt:'\ud83d\udd25 Perda de Gordura' },
+'intake-chip-longevity':   { en:'\ud83e\uddec Longevity', es:'\ud83e\uddec Longevidad', pt:'\ud83e\uddec Longevidade' },
+'intake-chip-performance': { en:'\u26a1 Performance', es:'\u26a1 Rendimiento', pt:'\u26a1 Desempenho' },
+'intake-chip-recomp':      { en:'\u2696 Recomposition', es:'\u2696 Recomposici\u00f3n', pt:'\u2696 Recomposi\u00e7\u00e3o' },
+'intake-next-exp':    { en:'NEXT: EXPERIENCE \u2192', es:'SIGUIENTE: EXPERIENCIA \u2192', pt:'PR\u00d3XIMO: EXPERI\u00caNCIA \u2192' },
+'intake-step2-tag':   { en:'STEP 2 OF 3', es:'PASO 2 DE 3', pt:'ETAPA 2 DE 3' },
+'intake-step2-h':     { en:'YOUR EXPERIENCE', es:'TU EXPERIENCIA', pt:'SUA EXPERI\u00caNCIA' },
+'intake-step2-sub':   { en:'This determines your starting intensity and progression speed.', es:'Esto determina tu intensidad inicial y velocidad de progresi\u00f3n.', pt:'Isto determina sua intensidade inicial e velocidade de progress\u00e3o.' },
+'intake-lbl-exp':     { en:'Training Experience', es:'Experiencia de Entrenamiento', pt:'Experi\u00eancia de Treinamento' },
+'intake-chip-beginner':     { en:'\ud83c\udf31 Beginner (0-1 yr)',     es:'\ud83c\udf31 Principiante (0-1 a\u00f1o)', pt:'\ud83c\udf31 Iniciante (0-1 ano)' },
+'intake-chip-intermediate': { en:'\ud83d\udcca Intermediate (1-3 yr)', es:'\ud83d\udcca Intermedio (1-3 a\u00f1os)', pt:'\ud83d\udcca Intermedi\u00e1rio (1-3 anos)' },
+'intake-chip-allpro':       { en:'\ud83d\udc51 All-Pro (3+ yr)',       es:'\ud83d\udc51 \u00c9lite (3+ a\u00f1os)',     pt:'\ud83d\udc51 Elite (3+ anos)' },
+'intake-back':              { en:'\u2190 BACK', es:'\u2190 ATR\u00c1S', pt:'\u2190 VOLTAR' },
+'intake-next-friction':     { en:'NEXT: FRICTION \u2192', es:'SIGUIENTE: FRICCI\u00d3N \u2192', pt:'PR\u00d3XIMO: FRIC\u00c7\u00c3O \u2192' },
+'intake-step3-tag':         { en:'STEP 3 OF 3', es:'PASO 3 DE 3', pt:'ETAPA 3 DE 3' },
+'intake-step3-h':           { en:'BIOMECHANICAL FRICTION', es:'FRICCI\u00d3N BIOMEC\u00c1NICA', pt:'FRIC\u00c7\u00c3O BIOMEC\u00c2NICA' },
+'intake-step3-sub':         { en:'Select any current joint issues. This protects you from day one.', es:'Selecciona cualquier problema articular actual. Esto te protege desde el primer d\u00eda.', pt:'Selecione quaisquer problemas articulares atuais. Isso o protege desde o primeiro dia.' },
+'intake-lbl-friction':      { en:'Current Issues (select all that apply)', es:'Problemas Actuales (selecciona todos los que apliquen)', pt:'Problemas Atuais (selecione todos os aplic\u00e1veis)' },
+'intake-chip-fric-none':      { en:'\u2705 None',        es:'\u2705 Ninguno',       pt:'\u2705 Nenhum' },
+'intake-chip-fric-knee':      { en:'\ud83e\uddb5 Knee',  es:'\ud83e\uddb5 Rodilla', pt:'\ud83e\uddb5 Joelho' },
+'intake-chip-fric-lowerback': { en:'\ud83e\uddb4 Lower Back', es:'\ud83e\uddb4 Zona Lumbar', pt:'\ud83e\uddb4 Lombar' },
+'intake-chip-fric-shoulder':  { en:'\ud83e\uddb6 Shoulder',   es:'\ud83e\uddb6 Hombro',      pt:'\ud83e\uddb6 Ombro' },
+'intake-chip-fric-hip':       { en:'\ud83e\uddce Hip',        es:'\ud83e\uddce Cadera',      pt:'\ud83e\uddce Quadril' },
+'intake-chip-fric-ankle':     { en:'\ud83e\uddb6 Ankle',      es:'\ud83e\uddb6 Tobillo',     pt:'\ud83e\uddb6 Tornozelo' },
+'intake-generate':            { en:'GENERATE SOVEREIGN BLUEPRINT \u2192', es:'GENERAR PLANO SOBERANO \u2192', pt:'GERAR PLANO SOBERANO \u2192' },
+'intake-need-age':  { en:'Enter your age', es:'Ingresa tu edad', pt:'Insira sua idade' },
+'intake-need-goal': { en:'Select a goal', es:'Selecciona un objetivo', pt:'Selecione um objetivo' },
+'intake-need-exp':  { en:'Select your experience level', es:'Selecciona tu nivel de experiencia', pt:'Selecione seu n\u00edvel de experi\u00eancia' },
+'intake-toast-blueprint': { en:'\ud83c\udfaf Sovereign Blueprint generated. Welcome to the Laboratory.', es:'\ud83c\udfaf Plano Soberano generado. Bienvenido al Laboratorio.', pt:'\ud83c\udfaf Plano Soberano gerado. Bem-vindo ao Laborat\u00f3rio.' },
 
-// Command Header / Nav
-'nav-protocol':    { en:'protocol',      es:'protocolo',       pt:'protocolo' },
-'nav-tiers':       { en:'tiers',         es:'niveles',         pt:'n\u00edveis' },
-'nav-fuel':        { en:'fuel',          es:'nutrici\u00f3n',  pt:'nutri\u00e7\u00e3o' },
-'nav-voices':      { en:'voices',        es:'voces',           pt:'vozes' },
-'nav-portal':      { en:'Access Vault',  es:'Acceder al Portal', pt:'Acessar Portal' },
-'nav-intake':      { en:'Start Intake',  es:'Iniciar Evaluaci\u00f3n', pt:'Iniciar Avalia\u00e7\u00e3o' },
+// ═══ GHOST PROTOCOL INTERCEPT ════════════════════════════════
+'gp-badge':    { en:'\u26a0 Mastermind Alert', es:'\u26a0 Alerta Mastermind', pt:'\u26a0 Alerta Mastermind' },
+'gp-headline': { en:'CNS De-conditioning Detected', es:'Desacondicionamiento del SNC Detectado', pt:'Descondicionamento do SNC Detectado' },
+'gp-body':     { en:'Mastermind Alert: CNS De-conditioning detected. Your progressive overload has been temporarily paused to protect joint integrity. Tap below to initiate a Sovereign Recovery protocol and restore your baseline.', es:'Alerta Mastermind: Desacondicionamiento del SNC detectado. Tu sobrecarga progresiva ha sido pausada temporalmente para proteger la integridad articular. Pulsa abajo para iniciar un protocolo de Recuperaci\u00f3n Soberana y restaurar tu l\u00ednea base.', pt:'Alerta Mastermind: Descondicionamento do SNC detectado. Sua sobrecarga progressiva foi temporariamente pausada para proteger a integridade articular. Toque abaixo para iniciar um protocolo de Recupera\u00e7\u00e3o Soberana e restaurar sua linha de base.' },
+'gp-cta':      { en:'\u26a1 Restore Sovereign Baseline', es:'\u26a1 Restaurar L\u00ednea Base Soberana', pt:'\u26a1 Restaurar Linha de Base Soberana' },
 
-// Hero
-'p-hero-eyebrow':  { en:'Now taking April cohort', es:'Aceptando la cohorte de abril', pt:'Aceitando a coorte de abril' },
-'p-hero-h-1':      { en:'Movement', es:'Movimiento', pt:'Movimento' },
-'p-hero-h-2':      { en:'science &', es:'ciencia y', pt:'ci\u00eancia e' },
-'p-hero-h-3':      { en:'clinical', es:'adaptaci\u00f3n', pt:'adapta\u00e7\u00e3o' },
-'p-hero-h-4':      { en:'adaptation', es:'cl\u00ednica', pt:'cl\u00ednica' },
-'p-hero-lede':     { en:'BBF-Lab is a coaching practice for adults with <strong>real jobs, unpredictable weeks, and bodies that need to last.</strong> Assessment-driven programming that adapts to your physiology \u2014 not a template pulled from someone else\u2019s highlight reel.', es:'BBF-Lab es una pr\u00e1ctica de coaching para adultos con <strong>trabajos reales, semanas impredecibles y cuerpos que necesitan durar.</strong> Programaci\u00f3n guiada por evaluaci\u00f3n que se adapta a tu fisiolog\u00eda \u2014 no una plantilla sacada del carrete de logros de otra persona.', pt:'BBF-Lab \u00e9 uma pr\u00e1tica de coaching para adultos com <strong>trabalhos reais, semanas imprevis\u00edveis e corpos que precisam durar.</strong> Programa\u00e7\u00e3o guiada por avalia\u00e7\u00e3o que se adapta \u00e0 sua fisiologia \u2014 n\u00e3o um modelo tirado do carretel de conquistas de outra pessoa.' },
-'p-hero-btn-1':    { en:'Start Intake',   es:'Iniciar Evaluaci\u00f3n', pt:'Iniciar Avalia\u00e7\u00e3o' },
-'p-hero-btn-2':    { en:'See the tiers',  es:'Ver los niveles',  pt:'Ver os n\u00edveis' },
-// p-hero-stat-1/2/3 defined below with capability/authority framing — no duplicates.
+// ═══ HIGH-TICKET SNIPER (static labels) ══════════════════════
+'hts-badge':     { en:'Private Invitation', es:'Invitaci\u00f3n Privada', pt:'Convite Privado' },
+'hts-sig':       { en:'\u2014 Akeem, Head Coach', es:'\u2014 Akeem, Entrenador Principal', pt:'\u2014 Akeem, Treinador-Chefe' },
+'hts-cta':       { en:'Apply for Mastermind Roster', es:'Aplicar al Roster Mastermind', pt:'Candidatar-se ao Roster Mastermind' },
+'hts-dismiss':   { en:'Dismiss', es:'Descartar', pt:'Dispensar' },
+// Dynamic copy keys (consumed by openSniperModal)
+'hts-graduate-h':    { en:'Mastermind Protocol Complete',                                                                                                                                                   es:'Protocolo Mastermind Completo',                                                                                                                                             pt:'Protocolo Mastermind Conclu\u00eddo' },
+'hts-graduate-sub':  { en:'The Laboratory \u00b7 By Invitation Only',                                                                                                                                        es:'El Laboratorio \u00b7 Solo por Invitaci\u00f3n',                                                                                                                              pt:'O Laborat\u00f3rio \u00b7 Somente por Convite' },
+'hts-graduate-body': { en:'Mastermind Protocol Complete. You have outgrown the automated blueprint. Tap below to apply for Akeem\u2019s Private 1-on-1 Clinical Roster.',                                    es:'Protocolo Mastermind Completo. Has superado el plano automatizado. Pulsa abajo para aplicar al Roster Cl\u00ednico Privado 1-a-1 de Akeem.',                                    pt:'Protocolo Mastermind Conclu\u00eddo. Voc\u00ea superou o plano automatizado. Toque abaixo para candidatar-se ao Roster Cl\u00ednico Privado 1-a-1 do Akeem.' },
+'hts-plateau-h':     { en:'Biomechanical Plateau Detected',                                                                                                                                                  es:'Meseta Biomec\u00e1nica Detectada',                                                                                                                                          pt:'Plat\u00f4 Biomec\u00e2nico Detectado' },
+'hts-plateau-sub':   { en:'Clinical Intervention Required',                                                                                                                                                  es:'Intervenci\u00f3n Cl\u00ednica Requerida',                                                                                                                                    pt:'Interven\u00e7\u00e3o Cl\u00ednica Necess\u00e1ria' },
+'hts-plateau-body':  { en:'Mastermind Alert: Biomechanical plateau detected. Automated programming is no longer sufficient. Tap below to apply for clinical 1-on-1 intervention.',                           es:'Alerta Mastermind: Meseta biomec\u00e1nica detectada. La programaci\u00f3n automatizada ya no es suficiente. Pulsa abajo para aplicar a la intervenci\u00f3n cl\u00ednica 1-a-1.', pt:'Alerta Mastermind: Plat\u00f4 biomec\u00e2nico detectado. A programa\u00e7\u00e3o automatizada n\u00e3o \u00e9 mais suficiente. Toque abaixo para candidatar-se \u00e0 interven\u00e7\u00e3o cl\u00ednica 1-a-1.' },
 
-// Services section
-'p-svc-title':     { en:'The <span class="volt">Practice</span>', es:'La <span class="volt">Pr\u00e1ctica</span>', pt:'A <span class="volt">Pr\u00e1tica</span>' },
-'p-svc-meta':      { en:'Six disciplines<br>One system', es:'Seis disciplinas<br>Un sistema', pt:'Seis disciplinas<br>Um sistema' },
+// ═══ BIOMECHANICAL HEAT MAP (Kinematic Auditor) ══════════════
+'bhm-label':       { en:'\ud83e\uddec Biomechanical Health Matrix', es:'\ud83e\uddec Matriz de Salud Biomec\u00e1nica', pt:'\ud83e\uddec Matriz de Sa\u00fade Biomec\u00e2nica' },
+'bhm-rec-sleep':   { en:'Sleep 7d',       es:'Sue\u00f1o 7d',          pt:'Sono 7d' },
+'bhm-rec-cns':     { en:'CNS Depleted',   es:'SNC Agotado',            pt:'SNC Esgotado' },
+'bhm-rec-capacity':{ en:'Recovery',       es:'Recuperaci\u00f3n',      pt:'Recupera\u00e7\u00e3o' },
+'bhm-redline-text':{ en:'\u26A0 Biomechanical Redline: high tonnage accumulated without the recovery capacity to absorb it. Mobility prescribed for the dominant axial load.', es:'\u26A0 L\u00ednea Roja Biomec\u00e1nica: tonelaje alto acumulado sin la capacidad de recuperaci\u00f3n para absorberlo. Movilidad prescrita para la carga axial dominante.', pt:'\u26A0 Linha Vermelha Biomec\u00e2nica: tonelagem alta acumulada sem a capacidade de recupera\u00e7\u00e3o para absorv\u00ea-la. Mobilidade prescrita para a carga axial dominante.' },
+'bhm-window':      { en:'4-Week Axial Load', es:'Carga Axial \u00b7 4 Semanas', pt:'Carga Axial \u00b7 4 Semanas' },
+'bhm-score-label': { en:'Friction Score \u00a0\u00b7\u00a0 threshold 100', es:'Puntaje de Fricci\u00f3n \u00a0\u00b7\u00a0 umbral 100', pt:'Pontua\u00e7\u00e3o de Fric\u00e7\u00e3o \u00a0\u00b7\u00a0 limite 100' },
+'bhm-lift-squat':    { en:'SQUAT',    es:'SENTADILLA',    pt:'AGACHAMENTO' },
+'bhm-lift-deadlift': { en:'DEADLIFT', es:'PESO MUERTO',   pt:'LEVANTAMENTO' },
+'bhm-lift-ohp':      { en:'OHP',      es:'PRESS MILITAR', pt:'DESENVOLVIMENTO' },
+'bhm-stat-sets':     { en:'Sets',      es:'Series',   pt:'S\u00e9ries' },
+'bhm-stat-sessions': { en:'Sessions',  es:'Sesiones', pt:'Sess\u00f5es' },
+'bhm-stat-tier':     { en:'Tier',      es:'Nivel',    pt:'N\u00edvel' },
+'bhm-warn-text':     { en:'\u26a0 CNS friction elevated. Progressive axial loading exceeds safe tonnage for this 4-week block.', es:'\u26a0 Fricci\u00f3n del SNC elevada. La carga axial progresiva excede el tonelaje seguro para este bloque de 4 semanas.', pt:'\u26a0 Fric\u00e7\u00e3o do SNC elevada. A carga axial progressiva excede a tonelagem segura para este bloco de 4 semanas.' },
+'bhm-mobility-btn':  { en:'\ud83e\uddb5 Prescribed Occupational Mobility', es:'\ud83e\uddb5 Movilidad Ocupacional Prescrita', pt:'\ud83e\uddb5 Mobilidade Ocupacional Prescrita' },
 
-// Parent Playbook section
-'p-pp-title':      { en:'The <span class="volt">Parent</span> Playbook', es:'El Manual <span class="volt">Para Padres</span>', pt:'O Manual <span class="volt">Para Pais</span>' },
-'p-pp-meta':       { en:'Family performance<br>Engineered protocol', es:'Rendimiento familiar<br>Protocolo ingeniado', pt:'Performance familiar<br>Protocolo engenhado' },
-'p-pp-eyebrow':    { en:'Family Performance Series', es:'Serie de Rendimiento Familiar', pt:'S\u00e9rie de Performance Familiar' },
-'p-pp-headline':   { en:'The Busy Parent<br><span class="volt">Transformation</span>', es:'La Transformaci\u00f3n del<br><span class="volt">Padre Ocupado</span>', pt:'A Transforma\u00e7\u00e3o do<br><span class="volt">Pai Ocupado</span>' },
-'p-pp-lede':       { en:'Adaptive Metabolic Tiers (12:12, 14:10, 16:8) engineered for the high-demand reality. The Laboratory\u2019s primary protocol for sustainable parent transformation \u2014 backed by the Sovereign Gold Standard. Includes Youth Athlete Performance bonus.', es:'Niveles Metab\u00f3licos Adaptativos (12:12, 14:10, 16:8) dise\u00f1ados para la realidad de alta demanda. El protocolo principal del Laboratorio para la transformaci\u00f3n sostenible de padres \u2014 respaldado por el Est\u00e1ndar Soberano de Oro. Incluye bono de Rendimiento de Atleta Juvenil.', pt:'N\u00edveis Metab\u00f3licos Adaptativos (12:12, 14:10, 16:8) projetados para a realidade de alta demanda. O protocolo principal do Laborat\u00f3rio para a transforma\u00e7\u00e3o sustent\u00e1vel de pais \u2014 respaldado pelo Padr\u00e3o Soberano de Ouro. Inclui b\u00f4nus de Performance de Atleta Jovem.' },
-'p-pp-price-u':    { en:'standalone', es:'individual', pt:'individual' },
-'p-pp-price-badge':{ en:'Free with All-Pro', es:'Gratis con All-Pro', pt:'Gr\u00e1tis com All-Pro' },
-'p-pp-cta-1':      { en:'View the Plan', es:'Ver el Plan', pt:'Ver o Plano' },
-'p-pp-cta-2':      { en:'Explore Youth Blueprints', es:'Explorar Planes Juveniles', pt:'Explorar Planos Juvenis' },
-'p-pp-why':        { en:'Why this protocol exists', es:'Por qu\u00e9 existe este protocolo', pt:'Por que este protocolo existe' },
-'p-pp-why-h':      { en:'Built for the parent whose week never lands the same way twice.', es:'Dise\u00f1ado para el padre cuya semana nunca cae igual dos veces.', pt:'Feito para o pai cuja semana nunca cai igual duas vezes.' },
-'p-pp-t1-k':       { en:'Tier 12:12', es:'Nivel 12:12', pt:'N\u00edvel 12:12' },
-'p-pp-t1-n':       { en:'Survival cadence', es:'Cadencia de supervivencia', pt:'Cad\u00eancia de sobreviv\u00eancia' },
-'p-pp-t1-d':       { en:'Sleep-debt aware. 30-min sessions. Anchor weeks for chaos.', es:'Consciente de la deuda de sue\u00f1o. Sesiones de 30 min. Semanas ancla para el caos.', pt:'Ciente da d\u00edvida de sono. Sess\u00f5es de 30 min. Semanas \u00e2ncora para o caos.' },
-'p-pp-t2-k':       { en:'Tier 14:10', es:'Nivel 14:10', pt:'N\u00edvel 14:10' },
-'p-pp-t2-n':       { en:'Recovery build', es:'Construcci\u00f3n de recuperaci\u00f3n', pt:'Constru\u00e7\u00e3o de recupera\u00e7\u00e3o' },
-'p-pp-t2-d':       { en:'Metabolic re-anchor. 45-min sessions. Joint-longevity blocks.', es:'Re-anclaje metab\u00f3lico. Sesiones de 45 min. Bloques de longevidad articular.', pt:'Re-ancoragem metab\u00f3lica. Sess\u00f5es de 45 min. Blocos de longevidade articular.' },
-'p-pp-t3-k':       { en:'Tier 16:8', es:'Nivel 16:8', pt:'N\u00edvel 16:8' },
-'p-pp-t3-n':       { en:'Performance push', es:'Empuje de rendimiento', pt:'Empurr\u00e3o de performance' },
-'p-pp-t3-d':       { en:'Full hybrid load. 60-min sessions. Compound progression.', es:'Carga h\u00edbrida completa. Sesiones de 60 min. Progresi\u00f3n compuesta.', pt:'Carga h\u00edbrida completa. Sess\u00f5es de 60 min. Progress\u00e3o composta.' },
-'p-pp-t4-k':       { en:'Bonus', es:'Bono', pt:'B\u00f4nus' },
-'p-pp-t4-n':       { en:'Youth Athlete', es:'Atleta Juvenil', pt:'Atleta Jovem' },
-'p-pp-t4-d':       { en:'Companion module for kids 8-17. Sport-specific positions.', es:'M\u00f3dulo complementario para ni\u00f1os de 8-17 a\u00f1os. Posiciones espec\u00edficas del deporte.', pt:'M\u00f3dulo complementar para crian\u00e7as de 8-17 anos. Posi\u00e7\u00f5es espec\u00edficas do esporte.' },
+// ═══ SOMATIC MAP (Somatic Sync) ══════════════════════════════
+'som-label':       { en:'\ud83e\uddA0 Somatic Readiness Matrix', es:'\ud83e\uddA0 Matriz de Preparaci\u00f3n Som\u00e1tica', pt:'\ud83e\uddA0 Matriz de Prontid\u00e3o Som\u00e1tica' },
+'som-lbl-stress':  { en:'Stress Level',    es:'Nivel de Estr\u00e9s',   pt:'N\u00edvel de Estresse' },
+'som-tier-flow':   { en:'FLOW',            es:'FLUJO',                  pt:'FLUXO' },
+'som-flow-banner': { en:'<b>\uD83D\uDD25 FLOW STATE</b> \u2014 Every biomarker aligned. Push for a personal record today \u2014 the CNS is ready to adapt.', es:'<b>\uD83D\uDD25 ESTADO DE FLUJO</b> \u2014 Todos los biomarcadores alineados. Busca un r\u00e9cord personal hoy \u2014 el SNC est\u00e1 listo para adaptarse.', pt:'<b>\uD83D\uDD25 ESTADO DE FLUXO</b> \u2014 Todos os biomarcadores alinhados. Busque um recorde pessoal hoje \u2014 o SNC est\u00e1 pronto para se adaptar.' },
+'seq-badge':       { en:'\u26A0 System Emergency', es:'\u26A0 Emergencia del Sistema', pt:'\u26A0 Emerg\u00eancia do Sistema' },
+'seq-h':           { en:'System Emergency Deload', es:'Descarga de Emergencia del Sistema', pt:'Descarga de Emerg\u00eancia do Sistema' },
+'seq-body':        { en:'<b>Biomechanical Redline</b> and <b>low Somatic Readiness</b> have fired simultaneously. Accumulated axial tonnage has outpaced your recovery capacity, and today\u2019s biomarkers confirm the CNS cannot safely absorb progressive overload. The system is halting prescriptive load and routing you to a protected mobility protocol.', es:'<b>L\u00ednea Roja Biomec\u00e1nica</b> y <b>Preparaci\u00f3n Som\u00e1tica baja</b> se han activado simult\u00e1neamente. El tonelaje axial acumulado ha superado tu capacidad de recuperaci\u00f3n, y los biomarcadores de hoy confirman que el SNC no puede absorber la sobrecarga progresiva de forma segura. El sistema est\u00e1 deteniendo la carga prescrita y te dirige a un protocolo de movilidad protegido.', pt:'<b>Linha Vermelha Biomec\u00e2nica</b> e <b>baixa Prontid\u00e3o Som\u00e1tica</b> dispararam simultaneamente. A tonelagem axial acumulada superou sua capacidade de recupera\u00e7\u00e3o, e os biomarcadores de hoje confirmam que o SNC n\u00e3o pode absorver a sobrecarga progressiva com seguran\u00e7a. O sistema est\u00e1 interrompendo a carga prescrita e direcionando voc\u00ea a um protocolo de mobilidade protegido.' },
+'seq-cta':         { en:'Initialise Mobility + Recovery Protocol', es:'Iniciar Protocolo de Movilidad + Recuperaci\u00f3n', pt:'Iniciar Protocolo de Mobilidade + Recupera\u00e7\u00e3o' },
+'seq-dismiss':     { en:'Acknowledge \u0026 Continue with Caution', es:'Reconocer y Continuar con Precauci\u00f3n', pt:'Reconhecer e Continuar com Cautela' },
 
-// Youth Athlete Selector
-'p-youth-eyebrow': { en:'Youth Athlete \u00b7 Positional Blueprints', es:'Atleta Juvenil \u00b7 Planes Posicionales', pt:'Atleta Jovem \u00b7 Planos Posicionais' },
-'p-youth-title':   { en:'Pick the <span class="volt">sport.</span> Pick the <span class="volt">position.</span> Get the plan.', es:'Elige el <span class="volt">deporte.</span> Elige la <span class="volt">posici\u00f3n.</span> Obt\u00e9n el plan.', pt:'Escolha o <span class="volt">esporte.</span> Escolha a <span class="volt">posi\u00e7\u00e3o.</span> Pegue o plano.' },
-'p-youth-sub':     { en:'5 sports<br>25 positions', es:'5 deportes<br>25 posiciones', pt:'5 esportes<br>25 posi\u00e7\u00f5es' },
+// ═══ PHANTOM EYE — Titan 3 video check-in viewport ═══════════
+'pe-label':         { en:'\uD83D\uDC41 Phantom Eye Viewport', es:'\uD83D\uDC41 Viewport del Ojo Fantasma', pt:'\uD83D\uDC41 Viewport do Olho Fantasma' },
+'pe-badge-idle':    { en:'Idle',                es:'En Reposo',            pt:'Em Repouso' },
+'pe-badge-pending': { en:'Pending Review',      es:'En Revisi\u00f3n',     pt:'Em Revis\u00e3o' },
+'pe-badge-cleared': { en:'Cleared',             es:'Aprobado',             pt:'Aprovado' },
+'pe-badge-needs_revision': { en:'Needs Revision', es:'Requiere Revisi\u00f3n', pt:'Requer Revis\u00e3o' },
+'pe-empty-label':   { en:'Awaiting Form Submission', es:'Esperando Env\u00edo de T\u00e9cnica', pt:'Aguardando Envio de T\u00e9cnica' },
+'pe-empty-sub':     { en:'Film your working set. Sovereign review in &lt;24h.', es:'Graba tu serie de trabajo. Revisi\u00f3n Soberana en &lt;24h.', pt:'Grave sua s\u00e9rie de trabalho. Revis\u00e3o Soberana em &lt;24h.' },
+'pe-upload':        { en:'\uD83D\uDCF9 Upload Form Check',   es:'\uD83D\uDCF9 Subir Chequeo de T\u00e9cnica', pt:'\uD83D\uDCF9 Enviar Verifica\u00e7\u00e3o de T\u00e9cnica' },
+'pe-pin':           { en:'\uD83D\uDCCC Pin Critique',        es:'\uD83D\uDCCC Fijar Cr\u00edtica',            pt:'\uD83D\uDCCC Fixar Cr\u00edtica' },
+'pe-uploaded':      { en:'\uD83D\uDCF9 Form check uploaded. Awaiting Sovereign review.', es:'\uD83D\uDCF9 Chequeo de t\u00e9cnica subido. Esperando revisi\u00f3n Soberana.', pt:'\uD83D\uDCF9 Verifica\u00e7\u00e3o de t\u00e9cnica enviada. Aguardando revis\u00e3o Soberana.' },
+'pe-pinned':        { en:'\uD83D\uDCCC Critique pinned.',    es:'\uD83D\uDCCC Cr\u00edtica fijada.',          pt:'\uD83D\uDCCC Cr\u00edtica fixada.' },
+'pe-prompt-note':   { en:'Coach critique at this timestamp:', es:'Cr\u00edtica del entrenador en este momento:', pt:'Cr\u00edtica do treinador neste momento:' },
 
-// Playbook Modal chrome
-'p-mod-tag':       { en:'Laboratory \u00b7 Positional Blueprint', es:'Laboratorio \u00b7 Plan Posicional', pt:'Laborat\u00f3rio \u00b7 Plano Posicional' },
-'p-mod-kpi-h':     { en:'Primary KPIs \u00b7 Founder-Verified', es:'KPIs Principales \u00b7 Verificados por el Fundador', pt:'KPIs Principais \u00b7 Verificados pelo Fundador' },
-'p-mod-drill-l':   { en:'Lab-Verified Drill', es:'Ejercicio Verificado en el Laboratorio', pt:'Exerc\u00edcio Verificado no Laborat\u00f3rio' },
-'p-mod-cta':       { en:'Unlock the full playbook \u2192', es:'Desbloquea el plan completo \u2192', pt:'Desbloqueie o plano completo \u2192' },
-'p-mod-dismiss':   { en:'Close blueprint', es:'Cerrar plan', pt:'Fechar plano' },
-'p-mod-seal':      { en:'Founder-Verified Biomechanical Protocols \u00b7 Sovereign Gold Standard', es:'Protocolos Biomec\u00e1nicos Verificados por el Fundador \u00b7 Est\u00e1ndar Soberano de Oro', pt:'Protocolos Biomec\u00e2nicos Verificados pelo Fundador \u00b7 Padr\u00e3o Soberano de Ouro' },
+// ═══ BIOMETRIC YIELD REPORT — Titan Follow-up ═══════════════
+'byr-launch':     { en:'\uD83E\uDDEC View Clinical Yield', es:'\uD83E\uDDEC Ver Rendimiento Cl\u00ednico', pt:'\uD83E\uDDEC Ver Rendimento Cl\u00ednico' },
+'byr-launch-sub': { en:'11 biomarkers \u00b7 Sovereign Radar synthesis', es:'11 biomarcadores \u00b7 s\u00edntesis Soberana', pt:'11 biomarcadores \u00b7 s\u00edntese Soberana' },
+'byr-decrypt':    { en:'Decrypting Clinical Yield...', es:'Descifrando Rendimiento Cl\u00ednico...', pt:'Descriptografando Rendimento Cl\u00ednico...' },
+'byr-tag':        { en:'Sovereign \u00b7 Clinical Yield', es:'Soberano \u00b7 Rendimiento Cl\u00ednico', pt:'Soberano \u00b7 Rendimento Cl\u00ednico' },
+'byr-heading':    { en:'Biometric Yield Report',  es:'Informe de Rendimiento Biom\u00e9trico', pt:'Relat\u00f3rio de Rendimento Biom\u00e9trico' },
+'byr-tap-hint':   { en:'Tap for Cluster View',    es:'Toca para Vista por Cl\u00faster',       pt:'Toque para Vis\u00e3o por Cluster' },
+'byr-back':       { en:'Radar Web',               es:'Red Radar',                              pt:'Rede Radar' },
+'byr-sys':        { en:'System Notification',     es:'Notificaci\u00f3n del Sistema',          pt:'Notifica\u00e7\u00e3o do Sistema' },
+// Marker + cluster labels
+'byr-cluster-autonomic':     { en:'Autonomic',     es:'Auton\u00f3mico',         pt:'Auton\u00f4mico' },
+'byr-cluster-biomechanical': { en:'Biomechanical', es:'Biomec\u00e1nico',         pt:'Biomec\u00e2nico' },
+'byr-cluster-performance':   { en:'Performance',   es:'Rendimiento',              pt:'Desempenho' },
+'byr-m-hrv':       { en:'HRV Index',             es:'\u00cdndice HRV',                 pt:'\u00cdndice HRV' },
+'byr-m-sleep':     { en:'Sleep Quality',         es:'Calidad del Sue\u00f1o',          pt:'Qualidade do Sono' },
+'byr-m-cns':       { en:'CNS Readiness',         es:'Preparaci\u00f3n del SNC',        pt:'Prontid\u00e3o do SNC' },
+'byr-m-stress':    { en:'Stress Tolerance',      es:'Tolerancia al Estr\u00e9s',       pt:'Toler\u00e2ncia ao Estresse' },
+'byr-m-rom':       { en:'Joint ROM',             es:'Amplitud Articular',              pt:'Amplitude Articular' },
+'byr-m-recovery':  { en:'Recovery Capacity',     es:'Capacidad de Recuperaci\u00f3n',  pt:'Capacidade de Recupera\u00e7\u00e3o' },
+'byr-m-movement':  { en:'Movement Quality',      es:'Calidad de Movimiento',           pt:'Qualidade de Movimento' },
+'byr-m-axial':     { en:'Axial Load Tolerance',  es:'Tolerancia a Carga Axial',        pt:'Toler\u00e2ncia \u00e0 Carga Axial' },
+'byr-m-overload':  { en:'Progressive Overload',  es:'Sobrecarga Progresiva',           pt:'Sobrecarga Progressiva' },
+'byr-m-fast':      { en:'Fasting Adaptation',    es:'Adaptaci\u00f3n al Ayuno',        pt:'Adapta\u00e7\u00e3o ao Jejum' },
+'byr-m-neural':    { en:'Neural Drive',          es:'Impulso Neural',                  pt:'Impulso Neural' },
+'som-window':      { en:'Today \u00b7 Readiness Sync', es:'Hoy \u00b7 Sincronizaci\u00f3n de Preparaci\u00f3n', pt:'Hoje \u00b7 Sincroniza\u00e7\u00e3o de Prontid\u00e3o' },
+'som-score-label': { en:'Somatic Readiness \u00b7 threshold 60%', es:'Preparaci\u00f3n Som\u00e1tica \u00b7 umbral 60%', pt:'Prontid\u00e3o Som\u00e1tica \u00b7 limite 60%' },
+'som-lbl-sleep':   { en:'Sleep Quality', es:'Calidad del Sue\u00f1o', pt:'Qualidade do Sono' },
+'som-lbl-cog':     { en:'Cognitive Load', es:'Carga Cognitiva', pt:'Carga Cognitiva' },
+'som-lbl-fast':    { en:'Fasting Window', es:'Ventana de Ayuno', pt:'Janela de Jejum' },
+'som-save-btn':    { en:'\u269b Sync Somatic Readiness', es:'\u269b Sincronizar Preparaci\u00f3n Som\u00e1tica', pt:'\u269b Sincronizar Prontid\u00e3o Som\u00e1tica' },
+'som-override-banner': { en:'<b>\u26a1 Somatic Override Active</b> \u2014 intensity capped at 70% 1RM (from 85%), volume down-regulated by 1 set per exercise to protect CNS.', es:'<b>\u26a1 Anulaci\u00f3n Som\u00e1tica Activa</b> \u2014 intensidad limitada al 70% del 1RM (desde 85%), volumen reducido en 1 serie por ejercicio para proteger el SNC.', pt:'<b>\u26a1 Override Som\u00e1tico Ativo</b> \u2014 intensidade limitada a 70% do 1RM (de 85%), volume reduzido em 1 s\u00e9rie por exerc\u00edcio para proteger o SNC.' },
+'som-tier-optimal':  { en:'OPTIMAL',  es:'\u00d3PTIMO',    pt:'\u00d3TIMO' },
+'som-tier-ready':    { en:'READY',    es:'PREPARADO',     pt:'PRONTO' },
+'som-tier-caution':  { en:'CAUTION',  es:'PRECAUCI\u00d3N', pt:'CAUTELA' },
+'som-tier-depleted': { en:'DEPLETED', es:'AGOTADO',       pt:'ESGOTADO' },
+'som-rdw-h':    { en:'SOMATIC OVERRIDE', es:'ANULACI\u00d3N SOM\u00c1TICA', pt:'OVERRIDE SOM\u00c1TICO' },
+'som-rdw-body': { en:'CNS-protective cap: intensity prescriptions capped at 70% 1RM today (from 85%). Drop 1 working set per exercise. Resume full protocol when Somatic Readiness \u2265 60%.', es:'L\u00edmite protector del SNC: las prescripciones de intensidad est\u00e1n limitadas al 70% del 1RM hoy (desde 85%). Reduce 1 serie efectiva por ejercicio. Reanuda el protocolo completo cuando la Preparaci\u00f3n Som\u00e1tica sea \u2265 60%.', pt:'Limite protetor do SNC: as prescri\u00e7\u00f5es de intensidade est\u00e3o limitadas a 70% do 1RM hoje (de 85%). Reduza 1 s\u00e9rie efetiva por exerc\u00edcio. Retome o protocolo completo quando a Prontid\u00e3o Som\u00e1tica for \u2265 60%.' },
 
-// Tiers — Sovereign packages
-'p-tiers-title':   { en:'Two <span class="volt">Tiers</span>. <span class="outline">One Standard.</span>', es:'Dos <span class="volt">Niveles</span>. <span class="outline">Un Est\u00e1ndar.</span>', pt:'Dois <span class="volt">N\u00edveis</span>. <span class="outline">Um Padr\u00e3o.</span>' },
-'p-tiers-meta':    { en:'Founder-Verified.<br>Sovereign Gold Standard.', es:'Verificado por el Fundador.<br>Est\u00e1ndar Soberano de Oro.', pt:'Verificado pelo Fundador.<br>Padr\u00e3o Soberano de Ouro.' },
-'p-dt-num':        { en:'tier / 01 \u00b7 dual-threat', es:'nivel / 01 \u00b7 dual-threat', pt:'n\u00edvel / 01 \u00b7 dual-threat' },
-'p-dt-name':       { en:'Dual-Threat', es:'Dual-Threat', pt:'Dual-Threat' },
-'p-dt-sub':        { en:'Hybrid programming \u00b7 8 weeks', es:'Programaci\u00f3n h\u00edbrida \u00b7 8 semanas', pt:'Programa\u00e7\u00e3o h\u00edbrida \u00b7 8 semanas' },
-'p-dt-flavor':     { en:'The dual-engine build. Strength + conditioning periodized for the everyday athlete.', es:'La construcci\u00f3n de doble motor. Fuerza + acondicionamiento periodizado para el atleta cotidiano.', pt:'A constru\u00e7\u00e3o de motor duplo. For\u00e7a + condicionamento periodizado para o atleta do dia a dia.' },
-'p-dt-cta':        { en:'Start Dual-Threat \u2192', es:'Iniciar Dual-Threat \u2192', pt:'Iniciar Dual-Threat \u2192' },
-'p-ap-ribbon':     { en:'Sovereign Pick', es:'Elecci\u00f3n Soberana', pt:'Escolha Soberana' },
-'p-ap-num':        { en:'tier / 02 \u00b7 all-pro', es:'nivel / 02 \u00b7 all-pro', pt:'n\u00edvel / 02 \u00b7 all-pro' },
-'p-ap-name':       { en:'All-Pro', es:'All-Pro', pt:'All-Pro' },
-'p-ap-sub':        { en:'Bespoke clinical coaching \u00b7 12 weeks', es:'Coaching cl\u00ednico a medida \u00b7 12 semanas', pt:'Coaching cl\u00ednico sob medida \u00b7 12 semanas' },
-'p-ap-flavor':     { en:'The flagship. Custom program, custom nutrition, OT-clinical assessment, full digital ecosystem access.', es:'El buque insignia. Programa personalizado, nutrici\u00f3n personalizada, evaluaci\u00f3n cl\u00ednica OT, acceso completo al ecosistema digital.', pt:'O carro-chefe. Programa personalizado, nutri\u00e7\u00e3o personalizada, avalia\u00e7\u00e3o cl\u00ednica OT, acesso completo ao ecossistema digital.' },
-'p-ap-cta':        { en:'Apply for All-Pro \u2192', es:'Aplicar para All-Pro \u2192', pt:'Aplicar para All-Pro \u2192' },
-'p-tiers-ledger-l': { en:'// BBF Financial Integrity Promise', es:'// Promesa de Integridad Financiera BBF', pt:'// Promessa de Integridade Financeira BBF' },
-'p-tiers-ledger-q': { en:'Whether you invest $247 or $497, you receive the same Founder-Verified attention to your joint safety, recovery, and long-term mobility. The price reflects access and depth. The Sovereign Gold Standard never changes.', es:'Ya sea que inviertas $247 o $497, recibes la misma atenci\u00f3n Verificada por el Fundador a la seguridad de tus articulaciones, recuperaci\u00f3n y movilidad a largo plazo. El precio refleja acceso y profundidad. El Est\u00e1ndar Soberano de Oro nunca cambia.', pt:'Seja voc\u00ea investindo $247 ou $497, voc\u00ea recebe a mesma aten\u00e7\u00e3o Verificada pelo Fundador \u00e0 seguran\u00e7a de suas articula\u00e7\u00f5es, recupera\u00e7\u00e3o e mobilidade a longo prazo. O pre\u00e7o reflete acesso e profundidade. O Padr\u00e3o Soberano de Ouro nunca muda.' },
-
-// Coach — Akeem's origin
-'p-coach-eye':     { en:'The architect', es:'El arquitecto', pt:'O arquiteto' },
-'p-coach-head':    { en:'I built BBF because <span class="outline-ink">nothing</span> fit the <span class="violet">trenches.</span>', es:'Constru\u00ed BBF porque <span class="outline-ink">nada</span> encajaba en las <span class="violet">trincheras.</span>', pt:'Constru\u00ed BBF porque <span class="outline-ink">nada</span> servia para as <span class="violet">trincheiras.</span>' },
-'p-coach-quote':   { en:'I\u2019m Akeem \u2014 architect of Build Believe Fit. I worked 12-hour shifts in medical manufacturing, then tried to train on everyone else\u2019s standard programs. None of them fit.', es:'Soy Akeem \u2014 arquitecto de Build Believe Fit. Trabaj\u00e9 turnos de 12 horas en la manufactura m\u00e9dica, luego intent\u00e9 entrenar con los programas est\u00e1ndar de todos los dem\u00e1s. Ninguno encajaba.', pt:'Eu sou Akeem \u2014 arquiteto da Build Believe Fit. Trabalhei turnos de 12 horas na manufatura m\u00e9dica, depois tentei treinar com os programas padr\u00e3o de todos os outros. Nenhum servia.' },
-'p-coach-body-1':  { en:'For seven years I ran the same failed experiment: clock out of a shift with wrecked legs and depleted CNS, then try to follow a program written for someone with eight hours of sleep and zero back fatigue. The templates assumed I was fresh. The gurus assumed I was lying. <strong>Neither was true. I was just working.</strong>', es:'Durante siete a\u00f1os corr\u00ed el mismo experimento fallido: terminar un turno con las piernas destrozadas y el SNC agotado, y luego intentar seguir un programa escrito para alguien con ocho horas de sue\u00f1o y cero fatiga de espalda. Las plantillas asum\u00edan que yo estaba fresco. Los gur\u00fas asum\u00edan que yo ment\u00eda. <strong>Ninguno era cierto. Yo solo estaba trabajando.</strong>', pt:'Por sete anos rodei o mesmo experimento falho: sair do turno com as pernas destru\u00eddas e o SNC esgotado, depois tentar seguir um programa escrito para algu\u00e9m com oito horas de sono e zero fadiga nas costas. Os modelos assumiam que eu estava fresco. Os gurus assumiam que eu estava mentindo. <strong>Nenhum era verdade. Eu apenas estava trabalhando.</strong>' },
-'p-coach-body-2':  { en:'So I stopped waiting for someone else\u2019s protocol and started architecting my own \u2014 built for shift recovery, joint longevity, and the reality of a working professional\u2019s week. That system became BBF-Lab. <strong>Everything I teach, I stress-tested in the trenches first.</strong>', es:'Entonces dej\u00e9 de esperar el protocolo de alguien m\u00e1s y empec\u00e9 a dise\u00f1ar el m\u00edo \u2014 construido para la recuperaci\u00f3n de turnos, la longevidad articular y la realidad de la semana de un profesional que trabaja. Ese sistema se convirti\u00f3 en BBF-Lab. <strong>Todo lo que ense\u00f1o, lo puse a prueba primero en las trincheras.</strong>', pt:'Ent\u00e3o parei de esperar o protocolo de outra pessoa e comecei a arquitetar o meu \u2014 constru\u00eddo para a recupera\u00e7\u00e3o de turnos, longevidade articular e a realidade da semana de um profissional que trabalha. Esse sistema tornou-se BBF-Lab. <strong>Tudo o que ensino, testei primeiro nas trincheiras.</strong>' },
-'p-coach-xform-1': { en:'Before \u00b7 2020', es:'Antes \u00b7 2020', pt:'Antes \u00b7 2020' },
-'p-coach-xform-1c':{ en:'Pre-architect \u00b7 off-the-shelf programs', es:'Pre-arquitecto \u00b7 programas gen\u00e9ricos', pt:'Pr\u00e9-arquiteto \u00b7 programas gen\u00e9ricos' },
-'p-coach-xform-2': { en:'After \u00b7 Sovereign Standard', es:'Despu\u00e9s \u00b7 Est\u00e1ndar Soberano', pt:'Depois \u00b7 Padr\u00e3o Soberano' },
-'p-coach-xform-2c':{ en:'Post-protocol \u00b7 trenches-tested', es:'Post-protocolo \u00b7 probado en las trincheras', pt:'P\u00f3s-protocolo \u00b7 testado nas trincheiras' },
-'p-coach-sig-role':{ en:'Performance Architect \u00b7 Clinical Biomechanics \u00b7 BBF-Lab Founder', es:'Arquitecto de Rendimiento \u00b7 Biomec\u00e1nica Cl\u00ednica \u00b7 Fundador de BBF-Lab', pt:'Arquiteto de Performance \u00b7 Biomec\u00e2nica Cl\u00ednica \u00b7 Fundador da BBF-Lab' },
-'p-coach-sig-est': { en:'Est. 2021', es:'Est. 2021', pt:'Est. 2021' },
-'p-coach-cm-1k':   { en:'Architect', es:'Arquitecto', pt:'Arquiteto' },
-'p-coach-cm-1v':   { en:'founder \u00b7 BBF', es:'fundador \u00b7 BBF', pt:'fundador \u00b7 BBF' },
-'p-coach-cm-2k':   { en:'Credentials', es:'Credenciales', pt:'Credenciais' },
-'p-coach-cm-2v':   { en:'PN L1 \u00b7 OT-informed', es:'PN L1 \u00b7 OT-informado', pt:'PN L1 \u00b7 OT-informado' },
-'p-coach-cm-3k':   { en:'Established', es:'Establecido', pt:'Estabelecido' },
-'p-coach-cm-3v':   { en:'sovereign standard', es:'est\u00e1ndar soberano', pt:'padr\u00e3o soberano' },
-'p-coach-cm-4k':   { en:'Background', es:'Antecedentes', pt:'Hist\u00f3rico' },
-'p-coach-cm-4v':   { en:'12hr shifts \u00b7 trenches', es:'turnos de 12h \u00b7 trincheras', pt:'turnos de 12h \u00b7 trincheiras' },
-
-// Contact — Direct line
-'p-ct-eye':        { en:'Direct line \u00b7 Akeem responds', es:'L\u00ednea directa \u00b7 Akeem responde', pt:'Linha direta \u00b7 Akeem responde' },
-'p-ct-h':          { en:'Rather just <span class="volt">talk?</span>', es:'\u00bf Prefieres <span class="volt">hablar?</span>', pt:'Prefere <span class="volt">conversar?</span>' },
-'p-ct-p':          { en:'Questions about fit, timing, or whether this is even the right room for you \u2014 reach out direct. Real reply within one business day.', es:'Preguntas sobre ajuste, tiempo, o si este es el lugar correcto para ti \u2014 cont\u00e1ctame directamente. Respuesta real dentro de un d\u00eda h\u00e1bil.', pt:'Perguntas sobre ajuste, tempo, ou se este \u00e9 o lugar certo para voc\u00ea \u2014 entre em contato direto. Resposta real dentro de um dia \u00fatil.' },
-'p-ct-call-l':     { en:'Call Akeem',  es:'Llamar a Akeem',  pt:'Ligar para Akeem' },
-'p-ct-text-l':     { en:'Text Akeem',  es:'Enviar texto a Akeem',  pt:'Enviar mensagem para Akeem' },
-'p-ct-email-l':    { en:'Email BBF',   es:'Correo a BBF',   pt:'E-mail para BBF' },
-'p-ct-cta-l':      { en:'Or skip the chat', es:'O salta la conversaci\u00f3n', pt:'Ou pule a conversa' },
-'p-ct-cta-v':      { en:'Start Pathfinder intake', es:'Iniciar evaluaci\u00f3n Pathfinder', pt:'Iniciar avalia\u00e7\u00e3o Pathfinder' },
-
-// Footer
-'p-ft-tag':        { en:'Movement science and clinical adaptation for adults who plan to be strong in thirty years. Established 2021.', es:'Ciencia del movimiento y adaptaci\u00f3n cl\u00ednica para adultos que planean ser fuertes en treinta a\u00f1os. Establecido en 2021.', pt:'Ci\u00eancia do movimento e adapta\u00e7\u00e3o cl\u00ednica para adultos que planejam ser fortes em trinta anos. Estabelecido em 2021.' },
-'p-ft-h-practice': { en:'Practice', es:'Pr\u00e1ctica', pt:'Pr\u00e1tica' },
-'p-ft-h-direct':   { en:'Direct', es:'Directo', pt:'Direto' },
-'p-ft-h-index':    { en:'Index', es:'\u00cdndice', pt:'\u00cdndice' },
-'p-ft-l-services': { en:'Services', es:'Servicios', pt:'Servi\u00e7os' },
-'p-ft-l-tiers':    { en:'Tiers',    es:'Niveles',   pt:'N\u00edveis' },
-'p-ft-l-coach':    { en:'Coach',    es:'Coach',     pt:'Coach' },
-'p-ft-l-fuel':     { en:'Fuel tool', es:'Herramienta de Nutrici\u00f3n', pt:'Ferramenta de Nutri\u00e7\u00e3o' },
-'p-ft-l-intake':   { en:'Start Pathfinder intake', es:'Iniciar evaluaci\u00f3n Pathfinder', pt:'Iniciar avalia\u00e7\u00e3o Pathfinder' },
-'p-ft-l-voices':   { en:'Client voices', es:'Voces de clientes', pt:'Vozes de clientes' },
-'p-ft-l-privacy':  { en:'Privacy', es:'Privacidad', pt:'Privacidade' },
-'p-ft-l-terms':    { en:'Terms', es:'T\u00e9rminos', pt:'Termos' },
-'p-ft-l-waiver':   { en:'Liability Waiver', es:'Renuncia de Responsabilidad', pt:'Ren\u00fancia de Responsabilidade' },
-'p-ft-base-1':     { en:'\u00a9 2026 Build Believe Fit \u00b7 All rights reserved', es:'\u00a9 2026 Build Believe Fit \u00b7 Todos los derechos reservados', pt:'\u00a9 2026 Build Believe Fit \u00b7 Todos os direitos reservados' },
-'p-ft-base-2':     { en:'BBF-001 \u00b7 Measured. Adapted.', es:'BBF-001 \u00b7 Medido. Adaptado.', pt:'BBF-001 \u00b7 Medido. Adaptado.' },
-
-// Pathfinder intake
-'p-in-eye':        { en:'Client intake \u00b7 4 min', es:'Evaluaci\u00f3n de cliente \u00b7 4 min', pt:'Avalia\u00e7\u00e3o de cliente \u00b7 4 min' },
-'p-in-h':          { en:'Start the <span class="volt">conversation.</span>', es:'Inicia la <span class="volt">conversaci\u00f3n.</span>', pt:'Comece a <span class="volt">conversa.</span>' },
-'p-in-p':          { en:'Four short steps. We\u2019ll calibrate your baseline targets and the clinical team reviews every intake personally within 48 hours.', es:'Cuatro pasos cortos. Calibraremos tus objetivos base y el equipo cl\u00ednico revisa cada evaluaci\u00f3n personalmente dentro de 48 horas.', pt:'Quatro passos curtos. Calibraremos seus objetivos base e a equipe cl\u00ednica revisa cada avalia\u00e7\u00e3o pessoalmente em 48 horas.' },
-'p-in-submit':     { en:'Calibrate & submit \u2192', es:'Calibrar y enviar \u2192', pt:'Calibrar e enviar \u2192' },
-
-// Mandate
-'p-md-eye':        { en:'Codex \u00b7 Article I', es:'C\u00f3dice \u00b7 Art\u00edculo I', pt:'C\u00f3dice \u00b7 Artigo I' },
-'p-md-sub':        { en:'BBF-Lab exists for people who plan to be operational in thirty years. No aesthetics-first marketing. No platitudes. A clinical practice with an appetite for proof and a refusal to confuse motion with progress.', es:'BBF-Lab existe para personas que planean estar operativas en treinta a\u00f1os. Sin marketing centrado en la est\u00e9tica. Sin trivialidades. Una pr\u00e1ctica cl\u00ednica con apetito por la prueba y el rechazo a confundir movimiento con progreso.', pt:'BBF-Lab existe para pessoas que planejam estar operacionais em trinta anos. Sem marketing focado em est\u00e9tica. Sem trivialidades. Uma pr\u00e1tica cl\u00ednica com apetite por provas e a recusa em confundir movimento com progresso.' },
-
-// ═══════════════════════════════════════════════════════════════
-// AUDIT-9/10: Authority copy (capability + digital system architecture framing)
-// ═══════════════════════════════════════════════════════════════
-// Hero stats — capability framing, no commodity acronyms, no black-box exposure
-'p-hero-stat-1':   { en:'OT-Integrated architecture', es:'Arquitectura OT-integrada', pt:'Arquitetura OT-integrada' },
-'p-hero-stat-2':   { en:'Clinical markers / intake', es:'Marcadores cl\u00ednicos / evaluaci\u00f3n', pt:'Marcadores cl\u00ednicos / avalia\u00e7\u00e3o' },
-'p-hero-stat-3':   { en:'Biomechanics \u00b7 Founder-led protocol', es:'Biomec\u00e1nica \u00b7 Protocolo dirigido por el Fundador', pt:'Biomec\u00e2nica \u00b7 Protocolo dirigido pelo Fundador' },
-
-// ═══════════════════════════════════════════════════════════════
-// AUDIT-9: The Bespoke Protocol — Sovereign Tier
-// ═══════════════════════════════════════════════════════════════
-'p-bp-ribbon':     { en:'Bespoke Protocol', es:'Protocolo a Medida', pt:'Protocolo Sob Medida' },
-'p-bp-seal':       { en:'Sovereign \u00b7 003', es:'Soberano \u00b7 003', pt:'Soberano \u00b7 003' },
-'p-bp-num':        { en:'tier / 03 \u00b7 bespoke', es:'nivel / 03 \u00b7 bespoke', pt:'n\u00edvel / 03 \u00b7 bespoke' },
-'p-bp-name':       { en:'The Bespoke Protocol', es:'El Protocolo a Medida', pt:'O Protocolo Sob Medida' },
-'p-bp-sub':        { en:'Total ecosystem integration \u00b7 ongoing', es:'Integraci\u00f3n total del ecosistema \u00b7 continuo', pt:'Integra\u00e7\u00e3o total do ecossistema \u00b7 cont\u00ednuo' },
-'p-bp-flavor':     { en:'Architected for the operator who demands complete system integration. Intelligent dynamic protocol generation, advanced clinical periodization, and a direct 1-on-1 line to the Architect.', es:'Arquitectado para el operador que exige integraci\u00f3n total del sistema. Generaci\u00f3n din\u00e1mica inteligente de protocolos, periodizaci\u00f3n cl\u00ednica avanzada y una l\u00ednea 1-on-1 directa con el Arquitecto.', pt:'Arquitetado para o operador que exige integra\u00e7\u00e3o total do sistema. Gera\u00e7\u00e3o din\u00e2mica inteligente de protocolos, periodiza\u00e7\u00e3o cl\u00ednica avan\u00e7ada e uma linha 1-on-1 direta com o Arquiteto.' },
-'p-bp-f1':         { en:'Total ecosystem integration \u2014 portal, calendar, biometrics, vault', es:'Integraci\u00f3n total del ecosistema \u2014 portal, calendario, biom\u00e9tricos, b\u00f3veda', pt:'Integra\u00e7\u00e3o total do ecossistema \u2014 portal, calend\u00e1rio, biom\u00e9tricos, cofre' },
-'p-bp-f2':         { en:'Intelligent dynamic system architecture \u2014 coach in the pocket, authored weekly', es:'Arquitectura din\u00e1mica inteligente del sistema \u2014 coach en el bolsillo, autorizada semanalmente', pt:'Arquitetura din\u00e2mica inteligente do sistema \u2014 coach no bolso, autorada semanalmente' },
-'p-bp-f3':         { en:'Advanced clinical periodization & OT-informed movement audit', es:'Periodizaci\u00f3n cl\u00ednica avanzada & auditor\u00eda de movimiento informada por TO', pt:'Periodiza\u00e7\u00e3o cl\u00ednica avan\u00e7ada & auditoria de movimento informada por TO' },
-'p-bp-f4':         { en:'Direct 1-on-1 app access \u2014 Akeem, not a queue', es:'Acceso directo 1-on-1 a la app \u2014 Akeem, no una cola', pt:'Acesso direto 1-on-1 ao app \u2014 Akeem, n\u00e3o uma fila' },
-'p-bp-f5':         { en:'Quarterly bloodwork & MD-partner consult integration', es:'An\u00e1lisis de sangre trimestrales e integraci\u00f3n de consulta con m\u00e9dico aliado', pt:'Exames de sangue trimestrais & integra\u00e7\u00e3o de consulta com m\u00e9dico parceiro' },
-'p-bp-f6':         { en:'Travel & schedule re-authoring on demand', es:'Reautor\u00eda de viaje & horario bajo demanda', pt:'Reautoria de viagem & agenda sob demanda' },
-'p-bp-f7':         { en:'Elevated human-experience architecture across life, not just training', es:'Arquitectura elevada de experiencia humana en toda la vida, no solo el entrenamiento', pt:'Arquitetura elevada de experi\u00eancia humana em toda a vida, n\u00e3o apenas no treino' },
-'p-bp-cta':        { en:'Request the Bespoke \u2192', es:'Solicitar el Bespoke \u2192', pt:'Solicitar o Bespoke \u2192' },
-// Updated tiers title + ledger for 3-tier structure
-'p-tiers-title':   { en:'Three <span class="volt">Tiers</span>. <span class="outline">One Standard.</span>', es:'Tres <span class="volt">Niveles</span>. <span class="outline">Un Est\u00e1ndar.</span>', pt:'Tr\u00eas <span class="volt">N\u00edveis</span>. <span class="outline">Um Padr\u00e3o.</span>' },
-'p-tiers-ledger-q': { en:'Whether you invest $247, $497, or the $1,500\u2013$2,500 Bespoke, you receive the same Founder-Verified attention to your joint safety, recovery, and long-term mobility. The price reflects access, depth, and proprietary digital system architecture. The Sovereign Gold Standard never changes.', es:'Ya sea que inviertas $247, $497 o el Bespoke de $1,500\u2013$2,500, recibes la misma atenci\u00f3n Verificada por el Fundador a la seguridad de tus articulaciones, recuperaci\u00f3n y movilidad a largo plazo. El precio refleja acceso, profundidad y arquitectura propietaria del sistema digital. El Est\u00e1ndar Soberano de Oro nunca cambia.', pt:'Seja voc\u00ea investindo $247, $497 ou o Bespoke de $1.500\u2013$2.500, voc\u00ea recebe a mesma aten\u00e7\u00e3o Verificada pelo Fundador \u00e0 seguran\u00e7a de suas articula\u00e7\u00f5es, recupera\u00e7\u00e3o e mobilidade a longo prazo. O pre\u00e7o reflete acesso, profundidade e arquitetura propriet\u00e1ria do sistema digital. O Padr\u00e3o Soberano de Ouro nunca muda.' }
+// ═══ RENDER-ENGINE TOASTS ════════════════════════════════════
+'render-welcome-toast':     { en:'\ud83c\udfaf Mastermind Diagnostic Complete. Your 12-Week Sovereign Blueprint has been deployed.', es:'\ud83c\udfaf Diagn\u00f3stico Mastermind Completo. Tu Plano Soberano de 12 Semanas ha sido desplegado.', pt:'\ud83c\udfaf Diagn\u00f3stico Mastermind Conclu\u00eddo. Seu Plano Soberano de 12 Semanas foi implantado.' },
+'render-recovery-toast':    { en:'\u26a1 Sovereign Recovery active. Today is Mobility + Pre-Hab.', es:'\u26a1 Recuperaci\u00f3n Soberana activa. Hoy es Movilidad + Pre-Hab.', pt:'\u26a1 Recupera\u00e7\u00e3o Soberana ativa. Hoje \u00e9 Mobilidade + Pre-Hab.' },
+'render-application-toast': { en:'\u2728 Application received. The Mastermind will review your clinical data.', es:'\u2728 Aplicaci\u00f3n recibida. El Mastermind revisar\u00e1 tus datos cl\u00ednicos.', pt:'\u2728 Candidatura recebida. O Mastermind revisar\u00e1 seus dados cl\u00ednicos.' },
+'render-no-user':      { en:'\u26a0 No active user. Sign in to deploy blueprint.', es:'\u26a0 No hay usuario activo. Inicia sesi\u00f3n para desplegar el plano.', pt:'\u26a0 Nenhum usu\u00e1rio ativo. Entre para implantar o plano.' },
+'render-engine-offline': { en:'\u26a0 Blueprint engine offline.', es:'\u26a0 Motor de plano sin conexi\u00f3n.', pt:'\u26a0 Motor do plano offline.' },
+'render-generate-failed': { en:'\u26a0 Blueprint generation failed.', es:'\u26a0 Generaci\u00f3n del plano fallida.', pt:'\u26a0 Falha na gera\u00e7\u00e3o do plano.' },
+'render-sync-offline': { en:'\u26a0 Sync engine offline.', es:'\u26a0 Motor de sincronizaci\u00f3n sin conexi\u00f3n.', pt:'\u26a0 Motor de sincroniza\u00e7\u00e3o offline.' },
+'render-app-offline':  { en:'\u26a0 Application engine offline.', es:'\u26a0 Motor de aplicaciones sin conexi\u00f3n.', pt:'\u26a0 Motor de candidaturas offline.' },
+'render-recovery-offline': { en:'\u26a0 Recovery engine offline.', es:'\u26a0 Motor de recuperaci\u00f3n sin conexi\u00f3n.', pt:'\u26a0 Motor de recupera\u00e7\u00e3o offline.' },
+'render-restoring':    { en:'\u26a1 Restoring...',  es:'\u26a1 Restaurando...', pt:'\u26a1 Restaurando...' },
+'render-submitting':   { en:'Submitting\u2026',     es:'Enviando\u2026',         pt:'Enviando\u2026' },
+'render-syncing':      { en:'\u26a1 Syncing...',    es:'\u26a1 Sincronizando...', pt:'\u26a1 Sincronizando...' },
+'som-sync-failed':     { en:'\u26a0 Somatic sync failed.', es:'\u26a0 Sincronizaci\u00f3n som\u00e1tica fallida.', pt:'\u26a0 Falha na sincroniza\u00e7\u00e3o som\u00e1tica.' },
+'som-toast-synced':    { en:'\u269b Somatic SYNCED', es:'\u269b Som\u00e1tico SINCRONIZADO', pt:'\u269b Som\u00e1tico SINCRONIZADO' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
@@ -542,7 +525,7 @@ function t(key) {
 }
 
 function updateToggles(l) {
-  // Index.html toggles (desktop + mobile) — legacy IDs
+  // Index.html toggles (desktop + mobile)
   var ids = [
     ['lt-en','lt-es','lt-pt'],
     ['mob-lt-en','mob-lt-es','mob-lt-pt']
@@ -563,30 +546,15 @@ function updateToggles(l) {
       }
     });
   });
-
-  // bbf-lang-placeholder: either Promethean (pre-rendered .lang-btn children)
-  // or legacy bbf-app.html empty-div that needs injection.
+  // bbf-app.html toggle (rendered into #bbf-lang-placeholder)
   var placeholder = document.getElementById('bbf-lang-placeholder');
   if (placeholder) {
-    var prometheanBtns = placeholder.querySelectorAll('.lang-btn');
-    if (prometheanBtns && prometheanBtns.length) {
-      // PROMETHEAN PATH — preserve my hardened buttons; just toggle state.
-      for (var i = 0; i < prometheanBtns.length; i++) {
-        var b = prometheanBtns[i];
-        var isOn = b.getAttribute('data-lang') === l;
-        b.classList.toggle('on', isOn);
-        b.classList.toggle('lang-active', isOn);
-        b.setAttribute('aria-pressed', isOn ? 'true' : 'false');
-      }
-    } else {
-      // LEGACY PATH — bbf-app.html still relies on innerHTML injection.
-      placeholder.innerHTML =
-        '<div id="bbf-lang-toggle">' +
-        '<button onclick="BBF_LANG.set(\'en\')" class="' + (l === 'en' ? 'lang-active' : '') + '">EN</button>' +
-        '<button onclick="BBF_LANG.set(\'es\')" class="' + (l === 'es' ? 'lang-active' : '') + '">ES</button>' +
-        '<button onclick="BBF_LANG.set(\'pt\')" class="' + (l === 'pt' ? 'lang-active' : '') + '">PT</button>' +
-        '</div>';
-    }
+    placeholder.innerHTML =
+      '<div id="bbf-lang-toggle">' +
+      '<button onclick="BBF_LANG.set(\'en\')" class="' + (l === 'en' ? 'lang-active' : '') + '">EN</button>' +
+      '<button onclick="BBF_LANG.set(\'es\')" class="' + (l === 'es' ? 'lang-active' : '') + '">ES</button>' +
+      '<button onclick="BBF_LANG.set(\'pt\')" class="' + (l === 'pt' ? 'lang-active' : '') + '">PT</button>' +
+      '</div>';
   }
 }
 

@@ -1,0 +1,123 @@
+/* ═══════════════════════════════════════════════════════════════════
+   BBF-CARDS.CSS — Phase 3 of the Sovereign Gold Standard elevation.
+   Service card upgrade: deep-purple surface, monoline gold SVG
+   icons, cursor-tracking 3D tilt, purple→gold accent reveal,
+   scroll-in stagger. Zero external libraries.
+   Overrides the legacy .svc-c rule in the inline <style> block by
+   cascade position (this file loads after the inline styles).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── CARD SURFACE ──────────────────────────────────────────────── */
+.svc-c {
+  background: linear-gradient(180deg, var(--bbf-purple-900) 0%, var(--bbf-purple-950) 100%);
+  border: 1px solid rgba(212, 175, 55, 0);               /* gold border, invisible at rest */
+  border-radius: var(--bbf-radius-xl);
+  padding: 2rem 1.9rem 1.9rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 14px 32px -16px rgba(0,0,0,.7),
+    0 2px 6px -2px rgba(0,0,0,.5),
+    0 0 0 1px rgba(45, 5, 85, .6)   inset,        /* dark inner border */
+    0 1px 0 rgba(255,255,255,.03)   inset;
+  transform-style: preserve-3d;
+  transform: perspective(1000px);
+  transition:
+    border-color  300ms var(--ease-sovereign),
+    box-shadow    300ms var(--ease-sovereign),
+    transform     450ms var(--ease-sovereign);
+  will-change: transform;
+}
+
+/* While the cursor is tracking the card, kill the transform transition
+   so the tilt is frame-locked to the pointer. Re-engaged on leave. */
+.svc-c.is-tilting { transition: border-color 300ms var(--ease-sovereign),
+                                box-shadow  300ms var(--ease-sovereign); }
+
+/* ── TOP ACCENT BAR — purple → gold, reveals on hover ──────────── */
+.svc-c::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--bbf-purple-500) 0%, var(--bbf-purple-600) 40%, var(--bbf-gold-550) 100%);
+  opacity: 0.35;
+  transform-origin: left center;
+  transition: opacity 380ms var(--ease-sovereign);
+}
+
+/* ── HOVER STATE — gold border fade + icon scale + accent full ─── */
+.svc-c:hover {
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow:
+    0 22px 48px -18px rgba(212,175,55,.22),
+    0 6px 16px -4px rgba(0,0,0,.6),
+    0 0 0 1px rgba(212,175,55,.3) inset,
+    0 1px 0 rgba(255,255,255,.05) inset;
+}
+.svc-c:hover::before { opacity: 1; }
+
+/* ── ICON BLOCK ────────────────────────────────────────────────── */
+.svc-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 1.1rem;
+  color: var(--bbf-gold-550);
+  transition: transform 320ms var(--ease-sovereign),
+              filter    320ms var(--ease-sovereign),
+              color     320ms var(--ease-sovereign);
+}
+.svc-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.svc-c:hover .svc-icon {
+  transform: scale(1.05);
+  color: var(--bbf-gold-400);
+  filter: drop-shadow(0 0 10px rgba(245,200,0,.45))
+          drop-shadow(0 0 22px rgba(245,200,0,.2));
+}
+
+/* Tighten the copy inside the card a hair for better rhythm with the
+   new icon block. Legacy .svc-n / .svc-d rules still apply for font
+   + colour; we only nudge margins. */
+.svc-n { margin-top: 0; }
+
+/* ── SCROLL-IN REVEAL (60ms stagger per card) ──────────────────── */
+.js-ready .svc-c {
+  opacity: 0;
+  transform: perspective(1000px) translateY(20px);
+  transition:
+    opacity    600ms var(--ease-sovereign),
+    transform  600ms var(--ease-sovereign),
+    border-color  300ms var(--ease-sovereign),
+    box-shadow    300ms var(--ease-sovereign);
+  transition-delay: var(--svc-stagger, 0ms);
+}
+.js-ready .svc-c.is-revealed {
+  opacity: 1;
+  transform: perspective(1000px) translateY(0);
+}
+
+/* ── REDUCED-MOTION FALLBACK (explicit, in addition to global) ──── */
+@media (prefers-reduced-motion: reduce) {
+  .js-ready .svc-c,
+  .js-ready .svc-c.is-revealed {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0ms;
+  }
+  .svc-c:hover { transform: none; }
+}
+
+/* ── TOUCH / NO-HOVER DEVICES — keep accent bar visible since there
+      is no hover event to reveal it ─────────────────────────────── */
+@media (hover: none) {
+  .svc-c::before { opacity: 0.85; }
+}

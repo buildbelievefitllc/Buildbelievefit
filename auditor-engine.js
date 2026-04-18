@@ -198,10 +198,242 @@ var BBF_AUDITOR = (function() {
     if (modal) modal.classList.remove('on');
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // INTELLIGENCE LAYER — runKinematicAudit
+  // Sits on top of BBF_SYNC.runKinematicAudit (the raw Friction Score
+  // generator). Cross-references tonnage load vs recovery capacity
+  // (7-day sleep avg + CNS depleted-days count + Somatic Readiness
+  // Score) to flag a true biomechanical redline — high tonnage
+  // accumulated WITHOUT the recovery capacity to absorb it.
+  //
+  // This does NOT modify the raw Friction Score. That stays the
+  // canonical input signal (brain on top of the nervous system).
+  // ═══════════════════════════════════════════════════════════════
+
+  // Redline thresholds — all three conditions must fire together so
+  // a bad-night-of-sleep with no training doesn't false-positive.
+  var REDLINE_TONNAGE_FLOOR   = 0.80;  // friction_score >= 80 (80% of tier budget)
+  var REDLINE_RECOVERY_CEIL   = 0.55;  // recovery_capacity <= 55%
+  var REDLINE_DEBT_GAP        = 0.30;  // tonnage_load - recovery >= 0.30
+
+  // Per-axial-lift mobility prescription. When a single lift drives
+  // the dominant share of the 4-week axial tonnage, the Mobility CTA
+  // swaps to the specific decompression protocol for that movement.
+  var MOBILITY_PRESCRIPTIONS = {
+    squat: {
+      lift: 'squat',
+      area: 'hip-lumbar',
+      en: '\uD83E\uDDB5 Lumbar Decompression Protocol',
+      es: '\uD83E\uDDB5 Protocolo de Descompresi\u00f3n Lumbar',
+      pt: '\uD83E\uDDB5 Protocolo de Descompress\u00e3o Lombar'
+    },
+    deadlift: {
+      lift: 'deadlift',
+      area: 'posterior-chain',
+      en: '\uD83E\uDDCD Thoracic Extension \u0026 Posterior Chain Reset',
+      es: '\uD83E\uDDCD Extensi\u00f3n Tor\u00e1cica y Reseteo de Cadena Posterior',
+      pt: '\uD83E\uDDCD Extens\u00e3o Tor\u00e1cica e Reset de Cadeia Posterior'
+    },
+    ohp: {
+      lift: 'ohp',
+      area: 'shoulder-thoracic',
+      en: '\uD83D\uDCAA Rotator Cuff Reset \u0026 Thoracic Mobility',
+      es: '\uD83D\uDCAA Reseteo del Manguito Rotador y Movilidad Tor\u00e1cica',
+      pt: '\uD83D\uDCAA Reset do Manguito Rotador e Mobilidade Tor\u00e1cica'
+    },
+    mixed: {
+      lift: 'mixed',
+      area: 'general',
+      en: '\uD83E\uDDB5 Prescribed Occupational Mobility',
+      es: '\uD83E\uDDB5 Movilidad Ocupacional Prescrita',
+      pt: '\uD83E\uDDB5 Mobilidade Ocupacional Prescrita'
+    }
+  };
+
+  function pickDominantLift(byLift) {
+    if (!byLift) return 'mixed';
+    var sq = (byLift.squat    && byLift.squat.tonnage)    || 0;
+    var dl = (byLift.deadlift && byLift.deadlift.tonnage) || 0;
+    var oh = (byLift.ohp      && byLift.ohp.tonnage)      || 0;
+    var total = sq + dl + oh;
+    if (total <= 0) return 'mixed';
+    // Squat or deadlift dominates if >= 55% of axial tonnage.
+    if (sq / total >= 0.55) return 'squat';
+    if (dl / total >= 0.55) return 'deadlift';
+    // OHP uses a lower floor since pressing tonnage is inherently smaller.
+    if (oh / total >= 0.40) return 'ohp';
+    return 'mixed';
+  }
+
+  async function runKinematicAudit(userId) {
+    if (!userId) return { biomechanical_redline: false, error: 'no uid' };
+    if (typeof BBF_SYNC === 'undefined' ||
+        typeof BBF_SYNC.runKinematicAudit !== 'function') {
+      return { biomechanical_redline: false, error: 'BBF_SYNC unavailable' };
+    }
+    var nowIso   = new Date().toISOString();
+
+    // Step 1 — raw Friction Score. Preserves the Sprint 1 engine output.
+    var raw = null;
+    try { raw = await BBF_SYNC.runKinematicAudit(userId); } catch(_) {}
+    if (!raw) return { biomechanical_redline: false, error: 'raw audit failed' };
+
+    // Step 2 — pull profile + readiness history from localStorage
+    // (mirrored by BBF_SYNC after every sync) plus Supabase top-up.
+    var profile = {};
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (d.u && d.u[userId]) profile = d.u[userId];
+    } catch(_) {}
+    try {
+      if (BBF_SYNC.fetchUserProfile) {
+        var cloud = await BBF_SYNC.fetchUserProfile(userId);
+        if (cloud) profile = Object.assign({}, profile, cloud);
+      }
+    } catch(_) {}
+
+    // Step 3 — recovery capacity (0..1), blended from 3 signals.
+    //   0.40 × normalised sleep quality (daily_readiness 7-day mean)
+    //   0.30 × (1 - depleted-days ratio over last 7)
+    //   0.30 × normalised Somatic Readiness Score (0..100 -> 0..1)
+    var nowMs   = Date.now();
+    var DAY_MS  = 24 * 60 * 60 * 1000;
+    var WEEK_MS = 7 * DAY_MS;
+    var cutoff  = nowMs - WEEK_MS;
+
+    // 7-day mean sleep. Fallback mid-value if no history.
+    var sleepSum = 0, sleepCount = 0;
+    var dr = profile.daily_readiness || {};
+    for (var k in dr) {
+      if (!Object.prototype.hasOwnProperty.call(dr, k)) continue;
+      var ts = Date.parse(k);
+      if (!isFinite(ts) || ts < cutoff) continue;
+      var s = parseFloat((dr[k] || {}).sleep);
+      if (isFinite(s) && s > 0) { sleepSum += s; sleepCount++; }
+    }
+    var sleepAvg = sleepCount ? (sleepSum / sleepCount) : 5;   // neutral default
+    var sleepNorm = Math.max(0, Math.min(1, sleepAvg / 10));
+
+    // CNS depleted-day count from bbf_logs type='cns-readiness' or local
+    // cns_status. Supabase fetch is best-effort.
+    var cnsDepletedDays = 0;
+    try {
+      if (BBF_SYNC.fetchLogs) {
+        var logs = await BBF_SYNC.fetchLogs(userId) || [];
+        var daysSeen = {};
+        for (var i = 0; i < logs.length; i++) {
+          var L = logs[i];
+          if (!L || L.type !== 'cns-readiness') continue;
+          var lts = Date.parse(L.date);
+          if (!isFinite(lts) || lts < cutoff) continue;
+          if (/DEPLETED/i.test(L.notes || '')) daysSeen[L.date] = true;
+        }
+        cnsDepletedDays = Object.keys(daysSeen).length;
+      }
+    } catch(_) {}
+    // Also honour the live cns_status if today is DEPLETED and we have no
+    // log-history coverage (offline/brand-new user).
+    if (cnsDepletedDays === 0 && (profile.cns_status || '').toUpperCase() === 'DEPLETED') {
+      cnsDepletedDays = 1;
+    }
+    var cnsRecoveryNorm = Math.max(0, Math.min(1, 1 - (cnsDepletedDays / 7)));
+
+    // Somatic Readiness — already normalised 0..100. Neutral 55 if absent.
+    var somatic = (profile.somatic_readiness_score != null)
+      ? parseFloat(profile.somatic_readiness_score) : 55;
+    if (!isFinite(somatic)) somatic = 55;
+    var somaticNorm = Math.max(0, Math.min(1, somatic / 100));
+
+    var recoveryCapacity =
+        (sleepNorm       * 0.40) +
+        (cnsRecoveryNorm * 0.30) +
+        (somaticNorm     * 0.30);
+    recoveryCapacity = Math.round(recoveryCapacity * 1000) / 1000;
+
+    // Step 4 — tonnage load (friction_score / threshold -> 0..1+).
+    var frictionScore = raw.friction_score || 0;
+    var frictionThreshold = raw.threshold || 100;
+    var tonnageLoad = Math.max(0, frictionScore / frictionThreshold);
+
+    var recoveryDebt = Math.max(0, tonnageLoad - recoveryCapacity);
+    recoveryDebt = Math.round(recoveryDebt * 1000) / 1000;
+
+    var redline =
+      tonnageLoad      >= REDLINE_TONNAGE_FLOOR &&
+      recoveryCapacity <= REDLINE_RECOVERY_CEIL &&
+      recoveryDebt     >= REDLINE_DEBT_GAP;
+
+    // Step 5 — pick the dominant lift so the Mobility CTA can swap
+    // to the specific decompression protocol.
+    var dominant = pickDominantLift(raw.by_lift || {});
+    var prescription = MOBILITY_PRESCRIPTIONS[dominant] || MOBILITY_PRESCRIPTIONS.mixed;
+
+    // Step 6 — local mirror so the UI repaints without a round-trip.
+    try {
+      var dLocal = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!dLocal.u) dLocal.u = {};
+      if (!dLocal.u[userId]) dLocal.u[userId] = {};
+      dLocal.u[userId].biomechanical_redline        = !!redline;
+      dLocal.u[userId].biomechanical_redline_at     = nowIso;
+      dLocal.u[userId].recovery_capacity            = recoveryCapacity;
+      dLocal.u[userId].recovery_debt                = recoveryDebt;
+      dLocal.u[userId].dominant_axial_lift          = dominant;
+      dLocal.u[userId].kinematic_audit_intelligence = {
+        biomechanical_redline: !!redline,
+        friction_score:        frictionScore,
+        tonnage_load:          tonnageLoad,
+        recovery_capacity:     recoveryCapacity,
+        recovery_debt:         recoveryDebt,
+        sleep_7d_avg:          Math.round(sleepAvg * 10) / 10,
+        cns_depleted_days_7d:  cnsDepletedDays,
+        somatic_readiness:     somatic,
+        dominant_axial_lift:   dominant,
+        mobility_prescription: prescription,
+        computed_at:           nowIso
+      };
+      localStorage.setItem('bbf_v7', JSON.stringify(dLocal));
+    } catch(_) {}
+
+    // Step 7 — persist redline state to Supabase (best-effort).
+    try {
+      if (typeof BBF_SYNC.patchUserFields === 'function') {
+        await BBF_SYNC.patchUserFields(userId, {
+          biomechanical_redline:    !!redline,
+          biomechanical_redline_at: nowIso,
+          recovery_capacity:        recoveryCapacity,
+          recovery_debt:            recoveryDebt,
+          dominant_axial_lift:      dominant
+        });
+      }
+    } catch(e) { console.warn('BBF_AUDITOR runKinematicAudit patch error:', e && e.message); }
+
+    return {
+      biomechanical_redline: !!redline,
+      friction_score:        frictionScore,
+      friction_threshold:    frictionThreshold,
+      tonnage_load:          tonnageLoad,
+      recovery_capacity:     recoveryCapacity,
+      recovery_debt:         recoveryDebt,
+      sleep_7d_avg:          Math.round(sleepAvg * 10) / 10,
+      cns_depleted_days_7d:  cnsDepletedDays,
+      somatic_readiness:     somatic,
+      dominant_axial_lift:   dominant,
+      mobility_prescription: prescription,
+      raw_audit:             raw,
+      computed_at:           nowIso
+    };
+  }
+
   return {
     trigger: triggerAuditorModal,
     select: select,
     close: closeModal,
+    runKinematicAudit:      runKinematicAudit,
+    pickDominantLift:       pickDominantLift,
+    MOBILITY_PRESCRIPTIONS: MOBILITY_PRESCRIPTIONS,
+    REDLINE_TONNAGE_FLOOR:  REDLINE_TONNAGE_FLOOR,
+    REDLINE_RECOVERY_CEIL:  REDLINE_RECOVERY_CEIL,
+    REDLINE_DEBT_GAP:       REDLINE_DEBT_GAP,
     TENSION_AREAS: TENSION_AREAS
   };
 

@@ -1,0 +1,165 @@
+/* ═══════════════════════════════════════════════════════════════════
+   BBF-HERO.CSS — Phase 2 of the Sovereign Gold Standard elevation.
+   Typography motion, viewfinder brackets, Ken Burns, badge pulse.
+   Pure CSS @keyframes; zero external libraries.
+   Stagger + reduced-motion inherit from bbf-tokens.css kill switch.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── HERO STACK: BUILD / BELIEVE / FIT ─────────────────────────── */
+.hero-stack {
+  display: flex;
+  flex-direction: column;
+  line-height: 0.9;
+  margin-bottom: 1.4rem;
+  font-family: 'Anton', 'Bebas Neue', 'Druk Wide', Impact, sans-serif;
+  font-weight: 400; /* Anton is already heavy at 400 */
+}
+.hs-word {
+  display: block;
+  opacity: 0;
+  transform: translateY(40px);
+  will-change: transform, opacity;
+  animation: bbfWordReveal 700ms var(--ease-sovereign) forwards;
+  letter-spacing: 0.015em;
+  /* reset the legacy h1 3px tracking — Anton reads best tighter */
+}
+.hs-word--build    { animation-delay:   0ms; }
+.hs-word--believe  { animation-delay: 120ms; color: var(--bbf-gold-victory); font-size: 110%; }
+.hs-word--fit      { animation-delay: 240ms;
+  -webkit-text-stroke: 2px var(--bbf-gold-victory);
+  color: transparent;
+  position: relative;
+  padding-bottom: 0.08em;
+}
+@keyframes bbfWordReveal {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+/* Gold underline under FIT — scaleX 0 → 1 from left after stack lands */
+.hs-word--fit::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--bbf-gold-victory) 0%, var(--bbf-gold-500) 100%);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: bbfUnderline 600ms var(--ease-sovereign) 940ms forwards;
+  box-shadow: 0 0 12px rgba(245,200,0,.45);
+}
+@keyframes bbfUnderline {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ── HERO PORTRAIT: viewfinder + Ken Burns + rim-light ─────────── */
+.hero-img-wrap {
+  /* already position:relative from legacy CSS */
+  --bracket-size: 36px;
+  --bracket-thick: 2px;
+  --bracket-inset: -10px;
+}
+.hero-img {
+  /* keep legacy radius/border but layer in gold rim-light + clip for KB */
+  box-shadow:
+    0 0 50px rgba(106,13,173,.25),
+    0 0 0 1px rgba(212,175,55,.32),
+    0 0 28px rgba(245,200,0,.14),
+    inset 0 0 0 1px rgba(255,255,255,.04);
+  position: relative;
+}
+.hero-img img {
+  transform-origin: 50% 45%;
+  animation: bbfKenBurns 8s var(--ease-glide) 1200ms infinite alternate;
+  will-change: transform;
+}
+@keyframes bbfKenBurns {
+  0%   { transform: scale(1.00); }
+  50%  { transform: scale(1.04); }
+  100% { transform: scale(1.00); }
+}
+
+/* Viewfinder corner brackets — top-left + bottom-right */
+.hero-img-wrap::before,
+.hero-img-wrap::after {
+  content: '';
+  position: absolute;
+  width: var(--bracket-size);
+  height: var(--bracket-size);
+  border: 0 solid var(--bbf-gold-victory);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  filter: drop-shadow(0 0 8px rgba(245,200,0,.35));
+  animation: bbfBracketIn 600ms var(--ease-sovereign) 520ms forwards;
+}
+.hero-img-wrap::before {
+  top:  var(--bracket-inset);
+  left: var(--bracket-inset);
+  border-top-width:  var(--bracket-thick);
+  border-left-width: var(--bracket-thick);
+  border-top-left-radius: 4px;
+  transform: translate(-6px, -6px) scale(0.85);
+}
+.hero-img-wrap::after {
+  bottom: var(--bracket-inset);
+  right:  var(--bracket-inset);
+  border-bottom-width: var(--bracket-thick);
+  border-right-width:  var(--bracket-thick);
+  border-bottom-right-radius: 4px;
+  transform: translate(6px, 6px) scale(0.85);
+  animation-delay: 640ms;
+}
+@keyframes bbfBracketIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; transform: translate(0,0) scale(1); }
+}
+
+/* ── ELITE STRENGTH & MOVEMENT BADGE — soft pulse ──────────────── */
+.hero-accent {
+  animation: bbfBadgePulse 3s var(--ease-glide) 1s infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+@keyframes bbfBadgePulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 6px 28px rgba(245,200,0,.30); }
+  50%      { transform: scale(1.03); box-shadow: 0 10px 36px rgba(245,200,0,.45); }
+}
+
+/* ── HERO STATS — count-up target styling (no motion change) ───── */
+.hs-n {
+  font-variant-numeric: tabular-nums;
+  /* tabular-nums prevents the count-up from causing width jitter */
+}
+.hs-n[data-countup] {
+  min-width: 2.2em;
+  display: inline-block;
+}
+
+/* ── RESPONSIVE — tighten the stack at small widths ────────────── */
+@media (max-width: 640px) {
+  .hero-img-wrap {
+    --bracket-size: 28px;
+    --bracket-inset: -8px;
+  }
+}
+
+/* ── REDUCED MOTION (belt-and-braces: the global guard in
+      bbf-tokens.css already neutralises animation-duration, but we
+      explicitly re-set final states here so motion-averse users see
+      the finished hero immediately on load) ────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hs-word,
+  .hs-word--fit::after,
+  .hero-img-wrap::before,
+  .hero-img-wrap::after {
+    opacity: 1;
+    transform: none;
+  }
+  .hs-word--fit::after { transform: scaleX(1); }
+  .hero-img img        { transform: none; }
+  .hero-accent         { transform: none; }
+}

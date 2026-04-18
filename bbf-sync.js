@@ -404,6 +404,924 @@ var BBF_SYNC = (function() {
     });
   }
 
+  // ─── SOVEREIGN BLUEPRINT GENERATOR ───────────────────────
+  // Which friction types activate which exercise substitutions.
+  var FRICTION_SHIFT_MAP = {
+    'knee':       ['Barbell Back Squat', 'Barbell Squat', 'Squat', 'Walking Lunges', 'Bulgarian Split Squats'],
+    'lower-back': ['Conventional Deadlift', 'Deadlift', 'Romanian Deadlift', 'Barbell Row', 'Power Clean', 'Hang Clean'],
+    'shoulder':   ['Overhead Barbell Press', 'Overhead Press', 'Bench Press'],
+    'hip':        ['Walking Lunges', 'Bulgarian Split Squats', 'Barbell Back Squat'],
+    'ankle':      ['Barbell Back Squat', 'Walking Lunges', 'Bulgarian Split Squats']
+  };
+
+  // Volume/intensity envelope keyed to training experience.
+  var EXPERIENCE_VOLUME = {
+    'beginner':     { days_per_week: 3, sets: 3, reps: '10-12', rpe: 6, progression_pct: 2.5 },
+    'intermediate': { days_per_week: 4, sets: 4, reps: '8-10',  rpe: 7, progression_pct: 5.0 },
+    'allpro':       { days_per_week: 5, sets: 5, reps: '5-8',   rpe: 8, progression_pct: 7.5 }
+  };
+
+  // Goal-driven rep range, rest, and working intensity.
+  var GOAL_PROFILE = {
+    'hypertrophy': { rep_range: '8-12',  rest_sec: 75,  intensity_pct: 70 },
+    'fat-loss':    { rep_range: '12-15', rest_sec: 45,  intensity_pct: 60 },
+    'longevity':   { rep_range: '10-12', rest_sec: 60,  intensity_pct: 65 },
+    'performance': { rep_range: '3-6',   rest_sec: 180, intensity_pct: 85 },
+    'recomp':      { rep_range: '8-10',  rest_sec: 60,  intensity_pct: 72 }
+  };
+
+  // 5 base day templates; truncated to days_per_week by experience tier.
+  var BASE_DAY_TEMPLATES = [
+    { label: 'Lower — Quad Dominant', exercises: [
+      { name: 'Barbell Back Squat',   equipment: 'Barbell' },
+      { name: 'Romanian Deadlift',    equipment: 'Barbell' },
+      { name: 'Walking Lunges',       equipment: 'DB'      },
+      { name: 'Leg Extension',        equipment: 'Machine' },
+      { name: 'Standing Calf Raise',  equipment: 'Machine' }
+    ]},
+    { label: 'Upper — Push', exercises: [
+      { name: 'Bench Press',            equipment: 'Barbell' },
+      { name: 'Overhead Barbell Press', equipment: 'Barbell' },
+      { name: 'Incline DB Press',       equipment: 'DB'      },
+      { name: 'Lateral Raise',          equipment: 'DB'      },
+      { name: 'Triceps Pushdown',       equipment: 'Cable'   }
+    ]},
+    { label: 'Lower — Posterior', exercises: [
+      { name: 'Conventional Deadlift',  equipment: 'Barbell' },
+      { name: 'Bulgarian Split Squats', equipment: 'DB'      },
+      { name: 'Hip Thrust',             equipment: 'Barbell' },
+      { name: 'Lying Hamstring Curl',   equipment: 'Machine' },
+      { name: 'Seated Calf Raise',      equipment: 'Machine' }
+    ]},
+    { label: 'Upper — Pull', exercises: [
+      { name: 'Barbell Row',   equipment: 'Barbell' },
+      { name: 'Pull-Up',       equipment: 'BW'      },
+      { name: 'Lat Pulldown',  equipment: 'Cable'   },
+      { name: 'Face Pull',     equipment: 'Cable'   },
+      { name: 'Biceps Curl',   equipment: 'DB'      }
+    ]},
+    { label: 'Power / Conditioning', exercises: [
+      { name: 'Power Clean',     equipment: 'Barbell' },
+      { name: 'Box Jump',        equipment: 'Box'     },
+      { name: 'Med-Ball Slam',   equipment: 'Med Ball'},
+      { name: 'Sled Push',       equipment: 'Sled'    },
+      { name: 'Farmer Carry',    equipment: 'DB/KB'   }
+    ]}
+  ];
+
+  function applyFrictionShifts(exerciseName, frictionList) {
+    if (!frictionList || !frictionList.length) return null;
+    for (var i = 0; i < frictionList.length; i++) {
+      var f = frictionList[i];
+      if (!f || f === 'none') continue;
+      var targets = FRICTION_SHIFT_MAP[f];
+      if (!targets) continue;
+      for (var j = 0; j < targets.length; j++) {
+        if (exerciseName === targets[j] && SOVEREIGN_SHIFTS[targets[j]]) {
+          return { replacement: SOVEREIGN_SHIFTS[targets[j]], friction: f };
+        }
+      }
+    }
+    return null;
+  }
+
+  function generateBespokeBlueprint(intakeData) {
+    intakeData = intakeData || {};
+    var goal     = intakeData.goal || 'hypertrophy';
+    var exp      = intakeData.experience || 'beginner';
+    var friction = Array.isArray(intakeData.friction) ? intakeData.friction : [];
+    var age      = parseInt(intakeData.age, 10) || 30;
+
+    var volume   = EXPERIENCE_VOLUME[exp]  || EXPERIENCE_VOLUME.beginner;
+    var profile  = GOAL_PROFILE[goal]      || GOAL_PROFILE.hypertrophy;
+    var templates = BASE_DAY_TEMPLATES.slice(0, volume.days_per_week);
+
+    var phases = [
+      { name: 'Accumulation',    weeks: [1,2,3,4],    set_mod: 0,  intensity_mod: 0    },
+      { name: 'Intensification', weeks: [5,6,7,8],    set_mod: 0,  intensity_mod: 7.5  },
+      { name: 'Realization',     weeks: [9,10,11,12], set_mod: -1, intensity_mod: 12.0 }
+    ];
+
+    var blueprint = {
+      generated_at: new Date().toISOString(),
+      intake: { age: age, goal: goal, experience: exp, friction: friction.slice() },
+      profile: {
+        goal_rep_range:         profile.rep_range,
+        rest_seconds:           profile.rest_sec,
+        base_intensity_pct:     profile.intensity_pct,
+        base_sets:              volume.sets,
+        base_reps:              volume.reps,
+        target_rpe:             volume.rpe,
+        days_per_week:          volume.days_per_week,
+        weekly_progression_pct: volume.progression_pct
+      },
+      weeks: []
+    };
+
+    for (var w = 1; w <= 12; w++) {
+      var phase = phases[0];
+      for (var p = 0; p < phases.length; p++) {
+        if (phases[p].weeks.indexOf(w) > -1) { phase = phases[p]; break; }
+      }
+      var weekSets      = Math.max(2, volume.sets + phase.set_mod);
+      var weekInPhase   = ((w - 1) % 4) + 1;
+      var weekIntensity = profile.intensity_pct + phase.intensity_mod + (weekInPhase - 1) * (volume.progression_pct / 4);
+      weekIntensity     = Math.min(95, Math.round(weekIntensity * 10) / 10);
+
+      var days = [];
+      for (var di = 0; di < templates.length; di++) {
+        var tmpl = templates[di];
+        var exercises = [];
+        for (var e = 0; e < tmpl.exercises.length; e++) {
+          var ex = tmpl.exercises[e];
+          var shift = applyFrictionShifts(ex.name, friction);
+          var finalName = shift ? shift.replacement : ex.name;
+          var entry = {
+            name:           finalName,
+            is_shifted:     !!shift,
+            sets:           weekSets,
+            reps:           profile.rep_range,
+            rest_seconds:   profile.rest_sec,
+            intensity_pct:  weekIntensity,
+            rpe_target:     volume.rpe,
+            equipment:      ex.equipment,
+            notes:          shift
+              ? 'Biomechanical Friction (' + shift.friction + '): ' + ex.name + ' \u2192 ' + shift.replacement
+              : ''
+          };
+          if (shift) {
+            entry.original_name  = ex.name;
+            entry.friction_cause = shift.friction;
+          }
+          exercises.push(entry);
+        }
+        days.push({ day: di + 1, label: tmpl.label, exercises: exercises });
+      }
+
+      blueprint.weeks.push({
+        week:          w,
+        phase:         phase.name,
+        intensity_pct: weekIntensity,
+        sets:          weekSets,
+        days:          days
+      });
+    }
+
+    return blueprint;
+  }
+
+  // ─── VAULT SAVE: DEPLOY ONBOARDING BLUEPRINT ─────────────
+  function deploySovereignOnboarding(userId, blueprintData) {
+    if (!userId || !blueprintData) return Promise.resolve(null);
+    var now = new Date().toISOString();
+
+    // 1. Mirror to localStorage so the dashboard renders instantly, even offline.
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!d.u) d.u = {};
+      if (!d.u[userId]) d.u[userId] = {};
+      d.u[userId].blueprint           = blueprintData;
+      d.u[userId].onboarding_complete = true;
+      d.u[userId].onboarded_at        = now;
+      d.u[userId].intake_complete     = true;
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(e) { console.warn('BBF_SYNC deploySovereignOnboarding local cache error:', e.message); }
+
+    // 2. Persist to Supabase user profile.
+    return supa('PATCH', 'bbf_users', {
+      blueprint:           blueprintData,
+      intake:              blueprintData.intake || null,
+      onboarding_complete: true,
+      onboarded_at:        now,
+      updated_at:          now
+    }, '?id=eq.' + encodeURIComponent(userId)).then(function(res) {
+      return { ok: true, userId: userId, onboarded_at: now, remote: res };
+    }).catch(function(e) {
+      console.warn('BBF_SYNC deploySovereignOnboarding remote error:', e && e.message);
+      return { ok: false, userId: userId, onboarded_at: now, error: e && e.message };
+    });
+  }
+
+  // ─── GHOST PROTOCOL SCANNER ──────────────────────────────
+  // Flags any user whose last activity is older than the inactivity window
+  // (default 72h) so downstream interventions can be triggered. Reads
+  // last_active_timestamp when present, falling back to updated_at then
+  // created_at for forward-compat with older rows.
+  var GHOST_INACTIVITY_MS = 72 * 60 * 60 * 1000;
+
+  async function runGhostProtocolScan(options) {
+    options = options || {};
+    var cutoffMs   = options.inactivity_ms || GHOST_INACTIVITY_MS;
+    var cutoffIso  = new Date(Date.now() - cutoffMs).toISOString();
+    var cutoffTime = Date.now() - cutoffMs;
+    var now        = new Date().toISOString();
+
+    try {
+      var users = await supa(
+        'GET',
+        'bbf_users',
+        null,
+        '?select=id,name,last_active_timestamp,updated_at,created_at,ghost_intervention_needed'
+      );
+      if (!Array.isArray(users)) users = [];
+
+      var ghosts = users.filter(function(u) {
+        var iso = u.last_active_timestamp || u.updated_at || u.created_at;
+        if (!iso) return false;
+        var t = Date.parse(iso);
+        return !isNaN(t) && t < cutoffTime;
+      });
+
+      var results = [];
+      for (var i = 0; i < ghosts.length; i++) {
+        var u = ghosts[i];
+        try {
+          await supa('PATCH', 'bbf_users', {
+            ghost_intervention_needed: true,
+            ghost_flagged_at:          now,
+            updated_at:                now
+          }, '?id=eq.' + encodeURIComponent(u.id));
+          results.push({ id: u.id, name: u.name || u.id, flagged: true });
+        } catch (err) {
+          console.warn('BBF_SYNC runGhostProtocolScan patch error for ' + u.id + ':', err && err.message);
+          results.push({ id: u.id, name: u.name || u.id, flagged: false, error: err && err.message });
+        }
+      }
+
+      var flaggedCount = 0;
+      for (var j = 0; j < results.length; j++) if (results[j].flagged) flaggedCount++;
+
+      return {
+        scanned:   users.length,
+        flagged:   flaggedCount,
+        cutoff:    cutoffIso,
+        inactivity_hours: cutoffMs / (60 * 60 * 1000),
+        users:     results,
+        scanned_at: now
+      };
+    } catch (e) {
+      console.error('BBF_SYNC runGhostProtocolScan fatal:', e && e.message);
+      return { scanned: 0, flagged: 0, cutoff: cutoffIso, error: e && e.message, scanned_at: now };
+    }
+  }
+
+  // Fetch a single user profile row from Supabase (ghost flag, blueprint, onboarding status).
+  async function fetchUserProfile(uid) {
+    if (!uid) return null;
+    try {
+      var rows = await supa(
+        'GET',
+        'bbf_users',
+        null,
+        '?id=eq.' + encodeURIComponent(uid) +
+          '&select=id,name,ghost_intervention_needed,ghost_flagged_at,ghost_cleared_at,mobility_override_date,onboarding_complete,blueprint,intake,last_active_timestamp,updated_at&limit=1'
+      );
+      if (!Array.isArray(rows) || !rows.length) return null;
+      var profile = rows[0];
+      // Mirror flags to localStorage so the dashboard can fall back offline.
+      try {
+        var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+        if (!d.u) d.u = {};
+        if (!d.u[uid]) d.u[uid] = {};
+        d.u[uid].ghost_intervention_needed = !!profile.ghost_intervention_needed;
+        if (profile.mobility_override_date) d.u[uid].mobility_override_date = profile.mobility_override_date;
+        if (profile.blueprint) d.u[uid].blueprint = profile.blueprint;
+        if (profile.onboarding_complete) d.u[uid].onboarding_complete = true;
+        localStorage.setItem('bbf_v7', JSON.stringify(d));
+      } catch(_) {}
+      return profile;
+    } catch(e) {
+      console.warn('BBF_SYNC fetchUserProfile error:', e && e.message);
+      return null;
+    }
+  }
+
+  // Clear the ghost intervention flag and stamp today as a mobility override day.
+  async function clearGhostIntervention(uid) {
+    if (!uid) return { ok: false, error: 'no uid' };
+    var now = new Date().toISOString();
+    var todayKey = now.slice(0, 10);
+
+    // Local mirror first — dashboard reacts instantly.
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!d.u) d.u = {};
+      if (!d.u[uid]) d.u[uid] = {};
+      d.u[uid].ghost_intervention_needed = false;
+      d.u[uid].ghost_cleared_at          = now;
+      d.u[uid].mobility_override_date    = todayKey;
+      d.u[uid].last_active_timestamp     = now;
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(_) {}
+
+    try {
+      await supa('PATCH', 'bbf_users', {
+        ghost_intervention_needed: false,
+        ghost_cleared_at:          now,
+        mobility_override_date:    todayKey,
+        last_active_timestamp:     now,
+        updated_at:                now
+      }, '?id=eq.' + encodeURIComponent(uid));
+      return { ok: true, uid: uid, mobility_override_date: todayKey, cleared_at: now };
+    } catch(e) {
+      console.warn('BBF_SYNC clearGhostIntervention error:', e && e.message);
+      return { ok: false, uid: uid, mobility_override_date: todayKey, cleared_at: now, error: e && e.message };
+    }
+  }
+
+  // ─── HIGH-TICKET SNIPER ──────────────────────────────────
+  // Canonical core axial lifts: loaded-spine compound barbell movements.
+  // Names chosen to match the Sovereign blueprint's BASE_DAY_TEMPLATES.
+  // Friction-shifted alternatives (Leg Press, Machine Chest Press, etc.) are
+  // intentionally EXCLUDED — a plateau on a substitute is not the same signal.
+  var AXIAL_LIFTS_EXACT = {
+    'Barbell Back Squat':     'squat',
+    'Barbell Squat':          'squat',
+    'Squat':                  'squat',
+    'Front Squat':            'squat',
+    'Conventional Deadlift':  'deadlift',
+    'Deadlift':               'deadlift',
+    'Sumo Deadlift':          'deadlift',
+    'Bench Press':            'bench',
+    'Barbell Bench Press':    'bench',
+    'Overhead Barbell Press': 'ohp',
+    'Overhead Press':         'ohp',
+    'Military Press':         'ohp',
+    'Strict Press':           'ohp'
+  };
+
+  function classifyAxialLift(name) {
+    if (!name) return null;
+    if (AXIAL_LIFTS_EXACT[name]) return AXIAL_LIFTS_EXACT[name];
+    var l = String(name).toLowerCase();
+    // Defensive substring match — excludes variants that are NOT axial
+    if (/\b(barbell |back |front )?squat\b/.test(l) &&
+        l.indexOf('split') === -1 && l.indexOf('goblet') === -1 &&
+        l.indexOf('single-leg') === -1 && l.indexOf('leg press') === -1 &&
+        l.indexOf('hack') === -1) return 'squat';
+    if (/\bdeadlift\b/.test(l) &&
+        l.indexOf('romanian') === -1 && l.indexOf('stiff') === -1 &&
+        l.indexOf('single') === -1 && l.indexOf('trap bar') === -1) return 'deadlift';
+    if (/\bbench press\b/.test(l) &&
+        l.indexOf('machine') === -1 && l.indexOf('dumbbell') === -1 &&
+        l.indexOf(' db ') === -1) return 'bench';
+    if (/(overhead|military|strict)\s+(barbell\s+)?press\b/.test(l) &&
+        l.indexOf('dumbbell') === -1 && l.indexOf('seated') === -1 &&
+        l.indexOf('machine') === -1 && l.indexOf(' db ') === -1) return 'ohp';
+    return null;
+  }
+
+  // Diagnostic for the High-Ticket Sniper. Returns one of:
+  //   { trigger_upsell: true,  reason: 'graduate', diagnostic: {...} }
+  //   { trigger_upsell: true,  reason: 'plateau',  diagnostic: {...} }
+  //   { trigger_upsell: false, reason: null,       diagnostic: {...} }
+  //
+  // Graduate wins over Plateau when both fire — graduation is the higher-
+  // value narrative for the 1-on-1 pitch.
+  async function evaluateSniperCriteria(userId) {
+    if (!userId) return { trigger_upsell: false, reason: null, diagnostic: { error: 'no uid' } };
+    var nowMs   = Date.now();
+    var WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+    // Load profile — cloud preferred, merge with localStorage for offline resilience.
+    var profile = null;
+    try { profile = await fetchUserProfile(userId); } catch(_) {}
+    try {
+      var cached = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (cached.u && cached.u[userId]) {
+        profile = Object.assign({}, cached.u[userId], profile || {});
+      }
+    } catch(_) {}
+    if (!profile) return { trigger_upsell: false, reason: null, diagnostic: { error: 'no profile' } };
+
+    var onboardedAt = profile.onboarded_at ? Date.parse(profile.onboarded_at) : null;
+    var blueprint   = profile.blueprint || null;
+    var daysPerWeek = (blueprint && blueprint.profile && blueprint.profile.days_per_week) || 3;
+
+    // ── TRIGGER A: GRADUATE ─────────────────────────────────
+    // Requires: 12-week blueprint exists, ≥ 84 days since onboarded_at,
+    // and workout-session adherence ≥ 75% of expected (days_per_week × 12).
+    var graduate = null;
+    if (blueprint && Array.isArray(blueprint.weeks) && blueprint.weeks.length >= 12 &&
+        onboardedAt && isFinite(onboardedAt)) {
+      var elapsedMs   = nowMs - onboardedAt;
+      var weeksElapsed = Math.floor(elapsedMs / WEEK_MS);
+      if (elapsedMs >= 12 * WEEK_MS) {
+        var logs = [];
+        try { logs = await fetchLogs(userId) || []; } catch(_) {}
+        var onboardedIso = new Date(onboardedAt).toISOString().slice(0, 10);
+        var seenDates = {};
+        for (var i = 0; i < logs.length; i++) {
+          var L = logs[i];
+          if (!L || !L.date) continue;
+          if (L.type && L.type !== 'strength') continue;
+          if (L.date < onboardedIso) continue;
+          seenDates[L.date] = true;
+        }
+        var completedSessions = Object.keys(seenDates).length;
+        var expectedSessions  = Math.max(1, Math.floor(daysPerWeek * 12 * 0.75));
+        if (completedSessions >= expectedSessions) {
+          graduate = {
+            weeks_elapsed:      weeksElapsed,
+            completed_sessions: completedSessions,
+            expected_sessions:  expectedSessions,
+            days_per_week:      daysPerWeek,
+            adherence_pct:      Math.round((completedSessions / (daysPerWeek * 12)) * 1000) / 10
+          };
+        }
+      }
+    }
+    if (graduate) return { trigger_upsell: true, reason: 'graduate', diagnostic: graduate };
+
+    // ── TRIGGER B: PLATEAU ──────────────────────────────────
+    // Per axial lift, build { week_number: max_weight } over the user's
+    // training history. If the most recent 3 CONSECUTIVE training weeks for
+    // that lift show non-increasing max weight (zero progression across
+    // both week-to-week transitions), flag plateau on that lift.
+    if (!blueprint || !onboardedAt) {
+      return { trigger_upsell: false, reason: null, diagnostic: { graduate_checked: true, plateau_checkable: false, cause: 'missing blueprint or onboarded_at' } };
+    }
+
+    var sets = [];
+    try { sets = await fetchSets(userId) || []; } catch(_) {}
+    if (!sets.length) {
+      return { trigger_upsell: false, reason: null, diagnostic: { graduate_checked: true, plateau_checked: true, cause: 'no set history' } };
+    }
+
+    var weeklyMax = {}; // { axialId: { weekNum: maxWeight } }
+    for (var k = 0; k < sets.length; k++) {
+      var S = sets[k];
+      if (!S || !S.day_key || S.weight == null) continue;
+      var w = parseFloat(S.weight);
+      if (!isFinite(w) || w <= 0) continue;
+
+      var m = /^(\d{4}-\d{2}-\d{2})_d(\d+)$/.exec(S.day_key);
+      if (!m) continue;
+      var dateIso = m[1];
+      var dayIdx  = parseInt(m[2], 10);
+      var dateMs  = Date.parse(dateIso);
+      if (!isFinite(dateMs)) continue;
+      var weekNum = Math.floor((dateMs - onboardedAt) / WEEK_MS) + 1;
+      if (weekNum < 1) continue;
+
+      // Map exercise_key -> exercise name via the bespoke blueprint.
+      var bpWeekIdx = Math.min(weekNum, blueprint.weeks.length) - 1;
+      var bpWeek    = blueprint.weeks[bpWeekIdx];
+      if (!bpWeek || !bpWeek.days) continue;
+      var bpDay = bpWeek.days[dayIdx];
+      if (!bpDay || !bpDay.exercises) continue;
+      var exMatch = /^ex_(\d+)$/.exec(S.exercise_key || '');
+      if (!exMatch) continue;
+      var exIdx = parseInt(exMatch[1], 10);
+      var ex    = bpDay.exercises[exIdx];
+      if (!ex || !ex.name) continue;
+
+      var axialId = classifyAxialLift(ex.name);
+      // Honor original_name when the lift was friction-shifted — we still
+      // want to see plateau on the *canonical* movement the user would have
+      // trained without friction.
+      if (!axialId && ex.original_name) axialId = classifyAxialLift(ex.original_name);
+      if (!axialId) continue;
+
+      if (!weeklyMax[axialId]) weeklyMax[axialId] = {};
+      if (!(weekNum in weeklyMax[axialId]) || w > weeklyMax[axialId][weekNum]) {
+        weeklyMax[axialId][weekNum] = w;
+      }
+    }
+
+    var plateauDetail = null;
+    var axialIds = Object.keys(weeklyMax);
+    for (var a = 0; a < axialIds.length; a++) {
+      var id       = axialIds[a];
+      var weeksMap = weeklyMax[id];
+      var weekNums = Object.keys(weeksMap).map(Number).sort(function(x, y){ return x - y; });
+      // Scan from most-recent backwards, looking for 3 consecutive training
+      // weeks (delta === 1) with non-increasing max weight.
+      for (var n = weekNums.length - 1; n >= 2; n--) {
+        var w3 = weekNums[n], w2 = weekNums[n-1], w1 = weekNums[n-2];
+        if (w3 - w2 !== 1 || w2 - w1 !== 1) continue;
+        var m3 = weeksMap[w3], m2 = weeksMap[w2], m1 = weeksMap[w1];
+        if (m2 <= m1 && m3 <= m2) {
+          plateauDetail = {
+            lift:    id,
+            weeks:   [w1, w2, w3],
+            weights: [m1, m2, m3]
+          };
+          break;
+        }
+      }
+      if (plateauDetail) break;
+    }
+
+    if (plateauDetail) {
+      return { trigger_upsell: true, reason: 'plateau', diagnostic: plateauDetail };
+    }
+
+    return {
+      trigger_upsell: false,
+      reason:         null,
+      diagnostic:     { graduate_checked: true, plateau_checked: true, axial_lifts_observed: axialIds }
+    };
+  }
+
+  // Lead capture for the High-Ticket Sniper. Updates the user's bbf_users
+  // row with 1on1_lead_status='pending' plus the trigger reason. Local
+  // mirror first so the UI reflects the pending state instantly.
+  async function submitMastermindApplication(userId, reason) {
+    if (!userId) return { ok: false, error: 'no uid' };
+    var now        = new Date().toISOString();
+    var safeReason = (reason === 'graduate' || reason === 'plateau') ? reason : (reason || 'unspecified');
+
+    try {
+      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!d.u) d.u = {};
+      if (!d.u[userId]) d.u[userId] = {};
+      d.u[userId]['1on1_lead_status']       = 'pending';
+      d.u[userId]['1on1_lead_reason']       = safeReason;
+      d.u[userId]['1on1_lead_submitted_at'] = now;
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+    } catch(_) {}
+
+    try {
+      await supa('PATCH', 'bbf_users', {
+        '1on1_lead_status':       'pending',
+        '1on1_lead_reason':       safeReason,
+        '1on1_lead_submitted_at': now,
+        updated_at:               now
+      }, '?id=eq.' + encodeURIComponent(userId));
+      return { ok: true, uid: userId, reason: safeReason, submitted_at: now };
+    } catch(e) {
+      console.warn('BBF_SYNC submitMastermindApplication error:', e && e.message);
+      return { ok: false, uid: userId, reason: safeReason, submitted_at: now, error: e && e.message };
+    }
+  }
+
+  // ─── KINEMATIC AUDITOR ───────────────────────────────────
+  // Biomechanical Friction Score — 4-week rolling analysis of axial load
+  // (back squat, conventional/sumo deadlift, strict OHP). Score 0–100+
+  // with a threshold of 100 (exceeding the user's tier budget). A
+  // progression ramp or OHP-heavy distribution adds further pressure.
+  //
+  // Tier budgets (lb-reps per 4-week block):
+  //   beginner     30,000
+  //   intermediate 75,000
+  //   allpro       150,000
+  var KINEMATIC_TIER_BUDGET = {
+    beginner:     30000,
+    intermediate: 75000,
+    allpro:       150000
+  };
+  var KINEMATIC_THRESHOLD = 100;
+  var KINEMATIC_WINDOW_MS = 28 * 24 * 60 * 60 * 1000;
+
+  async function runKinematicAudit(userId) {
+    if (!userId) return { friction_score: 0, warning: false, error: 'no uid' };
+
+    var nowMs  = Date.now();
+    var start  = new Date(nowMs - KINEMATIC_WINDOW_MS);
+    var endIso = new Date(nowMs).toISOString();
+
+    // Load profile (cloud + local fallback).
+    var profile = null;
+    try { profile = await fetchUserProfile(userId); } catch(_) {}
+    try {
+      var cached = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (cached.u && cached.u[userId]) profile = Object.assign({}, cached.u[userId], profile || {});
+    } catch(_) {}
+    if (!profile) return { friction_score: 0, warning: false, error: 'no profile' };
+
+    var blueprint = profile.blueprint || null;
+    var experience = (blueprint && blueprint.profile && blueprint.intake && blueprint.intake.experience) ||
+                     (blueprint && blueprint.intake && blueprint.intake.experience) ||
+                     (profile.intake && profile.intake.experience) ||
+                     'intermediate';
+    var tierBudget = KINEMATIC_TIER_BUDGET[experience] || KINEMATIC_TIER_BUDGET.intermediate;
+
+    var sets = [];
+    try { sets = await fetchSets(userId) || []; } catch(_) {}
+
+    var byLift = { squat: { tonnage: 0, sets: 0 }, deadlift: { tonnage: 0, sets: 0 }, ohp: { tonnage: 0, sets: 0 } };
+    var byWeek = [0, 0, 0, 0]; // index 0 = oldest week, 3 = newest
+    var byWeekLift = {
+      squat:    [0,0,0,0],
+      deadlift: [0,0,0,0],
+      ohp:      [0,0,0,0]
+    };
+    var sessionKeys = {};
+    var axialWorkingSets = 0;
+    var onboardedMs = profile.onboarded_at ? Date.parse(profile.onboarded_at) : null;
+
+    for (var i = 0; i < sets.length; i++) {
+      var S = sets[i];
+      if (!S || !S.day_key || S.weight == null) continue;
+      var w = parseFloat(S.weight);
+      var r = parseFloat(S.reps || 0);
+      if (!isFinite(w) || w <= 0 || !isFinite(r) || r <= 0) continue;
+
+      var m = /^(\d{4}-\d{2}-\d{2})_d(\d+)$/.exec(S.day_key);
+      if (!m) continue;
+      var dateMs = Date.parse(m[1]);
+      if (!isFinite(dateMs)) continue;
+      if (dateMs < nowMs - KINEMATIC_WINDOW_MS) continue; // outside 4-week window
+      if (dateMs > nowMs) continue;
+
+      // Map exercise_key -> exercise name. Prefer blueprint.weeks[week-1].days[d].exercises[e].
+      var dayIdx = parseInt(m[2], 10);
+      var exMatch = /^ex_(\d+)$/.exec(S.exercise_key || '');
+      if (!exMatch) continue;
+      var exIdx = parseInt(exMatch[1], 10);
+
+      var exName = null;
+      if (blueprint && Array.isArray(blueprint.weeks) && onboardedMs) {
+        var wkNum = Math.floor((dateMs - onboardedMs) / (7 * 24 * 60 * 60 * 1000)) + 1;
+        var bpWeek = blueprint.weeks[Math.min(Math.max(wkNum, 1), blueprint.weeks.length) - 1];
+        var bpDay  = bpWeek && bpWeek.days && bpWeek.days[dayIdx];
+        var ex     = bpDay && bpDay.exercises && bpDay.exercises[exIdx];
+        if (ex) exName = ex.original_name || ex.name;
+      }
+      if (!exName) continue;
+
+      var axialId = classifyAxialLift(exName);
+      if (axialId === 'bench') continue; // bench is sagittal, not axial for this audit
+      if (!axialId) continue;
+      if (!byLift[axialId]) continue;
+
+      // Heavy-OHP gate: only count OHP sets at >= 40 lb (filters warm-up / band work).
+      if (axialId === 'ohp' && w < 40) continue;
+
+      var tonnage = w * r;
+      byLift[axialId].tonnage += tonnage;
+      byLift[axialId].sets    += 1;
+      axialWorkingSets        += 1;
+      sessionKeys[S.day_key]   = true;
+
+      // Bucket into 4 equal 7-day windows from oldest→newest.
+      var ageMs = nowMs - dateMs;
+      var weekBucket = 3 - Math.min(3, Math.floor(ageMs / (7 * 24 * 60 * 60 * 1000)));
+      if (weekBucket < 0 || weekBucket > 3) continue;
+      byWeek[weekBucket]           += tonnage;
+      byWeekLift[axialId][weekBucket] += tonnage;
+    }
+
+    var totalTonnage = byLift.squat.tonnage + byLift.deadlift.tonnage + byLift.ohp.tonnage;
+    var sessionsWithAxial = Object.keys(sessionKeys).length;
+
+    // Base Friction Score — share of the tier's axial budget consumed.
+    var score = (totalTonnage / tierBudget) * 100;
+
+    // Progression-ramp bump: recent half vs earlier half tonnage.
+    var earlier = byWeek[0] + byWeek[1];
+    var recent  = byWeek[2] + byWeek[3];
+    var rampApplied = false;
+    if (earlier > 0 && recent > earlier * 1.15) {
+      score *= 1.15;
+      rampApplied = true;
+    }
+
+    // Heavy-OHP distribution bump — pressing-dominant weeks strain CNS disproportionately.
+    var ohpHeavy = false;
+    if (totalTonnage > 0 && (byLift.ohp.tonnage / totalTonnage) > 0.20) {
+      score *= 1.08;
+      ohpHeavy = true;
+    }
+
+    score = Math.round(score * 10) / 10;
+    var warning = score >= KINEMATIC_THRESHOLD;
+    var nowIso = new Date(nowMs).toISOString();
+
+    // Mirror to localStorage first so the heat-map UI can paint without a round-trip.
+    try {
+      var dLocal = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!dLocal.u) dLocal.u = {};
+      if (!dLocal.u[userId]) dLocal.u[userId] = {};
+      dLocal.u[userId].cns_friction_warning    = !!warning;
+      dLocal.u[userId].cns_friction_score      = score;
+      dLocal.u[userId].cns_friction_updated_at = nowIso;
+      dLocal.u[userId].kinematic_audit = {
+        friction_score: score,
+        warning:        warning,
+        threshold:      KINEMATIC_THRESHOLD,
+        by_lift:        byLift,
+        by_week:        byWeek,
+        by_week_lift:   byWeekLift,
+        sessions_with_axial: sessionsWithAxial,
+        axial_working_sets:  axialWorkingSets,
+        tier_budget:    tierBudget,
+        experience:     experience,
+        ramp_applied:   rampApplied,
+        ohp_heavy:      ohpHeavy,
+        window_start:   start.toISOString(),
+        window_end:     endIso,
+        computed_at:    nowIso
+      };
+      localStorage.setItem('bbf_v7', JSON.stringify(dLocal));
+    } catch(_) {}
+
+    // Persist warning state to Supabase (always write so stale warnings clear).
+    try {
+      await supa('PATCH', 'bbf_users', {
+        cns_friction_warning:    !!warning,
+        cns_friction_score:      score,
+        cns_friction_updated_at: nowIso,
+        updated_at:              nowIso
+      }, '?id=eq.' + encodeURIComponent(userId));
+    } catch(e) {
+      console.warn('BBF_SYNC runKinematicAudit patch error:', e && e.message);
+    }
+
+    return {
+      friction_score:      score,
+      warning:             warning,
+      threshold:           KINEMATIC_THRESHOLD,
+      by_lift:             byLift,
+      by_week:             byWeek,
+      by_week_lift:        byWeekLift,
+      sessions_with_axial: sessionsWithAxial,
+      axial_working_sets:  axialWorkingSets,
+      tier_budget:         tierBudget,
+      experience:          experience,
+      ramp_applied:        rampApplied,
+      ohp_heavy:           ohpHeavy,
+      window_start:        start.toISOString(),
+      window_end:          endIso,
+      computed_at:         nowIso
+    };
+  }
+
+  // ─── SOMATIC SYNC ────────────────────────────────────────
+  // Cross-reference lifestyle inputs (sleep, cognitive load, fasting
+  // window) with the Kinematic Auditor's CNS-friction state and the
+  // user's recent session cadence. Produces a 0–100 Somatic Readiness
+  // Score. If < 60, somatic_override_active is flipped, prescribing a
+  // 70% (vs 85%) intensity cap and a -1 set volume cut for the day.
+  //
+  // Component weights (sum 100):
+  //   sleep_quality   1–10  → 30 pts
+  //   cognitive_load  1–10  → 25 pts  (inverted; 1=best)
+  //   fasting_hours   0–36+ → 20 pts  (bell curve, peak 14–16h)
+  //   CNS friction                → 15 pts (0 if Phase 1 warning active)
+  //   7-day adherence             → 10 pts
+  var SOMATIC_OVERRIDE_THRESHOLD = 60;
+  var SOMATIC_ONE_RM_OVERRIDE_PCT = 70; // caps 85% prescription
+  var SOMATIC_VOLUME_DELTA = -1;        // drop 1 working set per exercise
+
+  function somaticFastingQuality(h) {
+    if (!(h > 0)) return 0.6;
+    if (h <= 12) return 0.6 + (h / 12) * 0.3;       // 0.6 → 0.9
+    if (h <= 16) return 0.9 + ((h - 12) / 4) * 0.1; // 0.9 → 1.0
+    if (h <= 20) return 1.0 - ((h - 16) / 4) * 0.15; // 1.0 → 0.85
+    if (h <= 36) return 0.85 - ((h - 20) / 16) * 0.35; // 0.85 → 0.50
+    return 0.30;
+  }
+
+  async function calculateSomaticReadiness(userId, inputs) {
+    if (!userId) return { score: 0, override_active: false, error: 'no uid' };
+    inputs = inputs || {};
+    var nowIso   = new Date().toISOString();
+    var todayKey = nowIso.slice(0, 10);
+
+    // Load profile (cloud + localStorage merge).
+    var profile = null;
+    try { profile = await fetchUserProfile(userId); } catch(_) {}
+    try {
+      var cached = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      if (cached.u && cached.u[userId]) profile = Object.assign({}, cached.u[userId], profile || {});
+    } catch(_) {}
+    profile = profile || {};
+
+    // Coalesce inputs: explicit > cached > today's readiness sleep > defaults.
+    var existingReadiness = (profile.daily_readiness || {})[todayKey] || {};
+    var fastingHours    = numOrNull(inputs.fasting_hours);
+    var cognitiveLoad   = numOrNull(inputs.cognitive_load);
+    var sleepQuality    = numOrNull(inputs.sleep_quality);
+    if (fastingHours  === null) fastingHours  = numOrNull(profile.somatic_fasting_hours);
+    if (cognitiveLoad === null) cognitiveLoad = numOrNull(profile.somatic_cognitive_load);
+    if (sleepQuality  === null) sleepQuality  = numOrNull(profile.somatic_sleep_quality);
+    if (sleepQuality  === null) sleepQuality  = numOrNull(existingReadiness.sleep);
+    if (fastingHours  === null) fastingHours  = 0;
+    if (cognitiveLoad === null) cognitiveLoad = 5;
+    if (sleepQuality  === null) sleepQuality  = 5;
+
+    fastingHours  = Math.max(0, Math.min(48, fastingHours));
+    cognitiveLoad = Math.max(1, Math.min(10, cognitiveLoad));
+    sleepQuality  = Math.max(1, Math.min(10, sleepQuality));
+
+    // Component scoring.
+    var sleepComp = (sleepQuality / 10) * 30;
+    var cogComp   = ((11 - cognitiveLoad) / 10) * 25;
+    var fastComp  = somaticFastingQuality(fastingHours) * 20;
+    var cnsComp   = profile.cns_friction_warning ? 0 : 15;
+
+    // 7-day adherence component.
+    var sessions7d = 0;
+    try {
+      var logs = await fetchLogs(userId) || [];
+      var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      var seenDates = {};
+      for (var i = 0; i < logs.length; i++) {
+        var L = logs[i];
+        if (!L || !L.date) continue;
+        if (L.type && L.type !== 'strength') continue;
+        var ms = Date.parse(L.date);
+        if (!isFinite(ms) || ms < cutoff) continue;
+        seenDates[L.date] = true;
+      }
+      sessions7d = Object.keys(seenDates).length;
+    } catch(_) {}
+    var activityComp = Math.max(0, Math.min(1, sessions7d / 4)) * 10;
+
+    var score = sleepComp + cogComp + fastComp + cnsComp + activityComp;
+    score = Math.round(score * 10) / 10;
+    if (score > 100) score = 100;
+    if (score < 0)   score = 0;
+
+    var overrideActive = score < SOMATIC_OVERRIDE_THRESHOLD;
+    var tier = score >= 80 ? 'optimal'
+             : score >= 60 ? 'ready'
+             : score >= 40 ? 'caution'
+             : 'depleted';
+
+    // Mirror to localStorage for instant UI repaint.
+    try {
+      var dLocal = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      if (!dLocal.u) dLocal.u = {};
+      if (!dLocal.u[userId]) dLocal.u[userId] = {};
+      dLocal.u[userId].somatic_fasting_hours   = fastingHours;
+      dLocal.u[userId].somatic_cognitive_load  = cognitiveLoad;
+      dLocal.u[userId].somatic_sleep_quality   = sleepQuality;
+      dLocal.u[userId].somatic_readiness_score = score;
+      dLocal.u[userId].somatic_override_active = overrideActive;
+      dLocal.u[userId].somatic_override_date   = overrideActive ? todayKey : null;
+      dLocal.u[userId].somatic_tier            = tier;
+      dLocal.u[userId].somatic_last_logged     = nowIso;
+      dLocal.u[userId].somatic_components      = {
+        sleep: sleepComp, cognition: cogComp, fasting: fastComp,
+        cns: cnsComp, activity: activityComp
+      };
+      localStorage.setItem('bbf_v7', JSON.stringify(dLocal));
+    } catch(_) {}
+
+    // Persist to Supabase.
+    try {
+      await supa('PATCH', 'bbf_users', {
+        somatic_fasting_hours:   fastingHours,
+        somatic_cognitive_load:  cognitiveLoad,
+        somatic_sleep_quality:   sleepQuality,
+        somatic_readiness_score: score,
+        somatic_override_active: overrideActive,
+        somatic_override_date:   overrideActive ? todayKey : null,
+        somatic_tier:            tier,
+        somatic_last_logged:     nowIso,
+        updated_at:              nowIso
+      }, '?id=eq.' + encodeURIComponent(userId));
+    } catch(e) {
+      console.warn('BBF_SYNC calculateSomaticReadiness patch error:', e && e.message);
+    }
+
+    // Also log a history row in bbf_logs for longitudinal analysis.
+    try {
+      await supa('POST', 'bbf_logs', {
+        user_id:   userId,
+        date:      todayKey,
+        type:      'somatic',
+        intensity: String(score),
+        notes:     'Somatic ' + tier.toUpperCase() + ' | sleep=' + sleepQuality + ' cog=' + cognitiveLoad + ' fast=' + fastingHours + 'h',
+        logged_at: nowIso,
+        logged_by: userId
+      });
+    } catch(_) {}
+
+    return {
+      score:             score,
+      override_active:   overrideActive,
+      override_date:     overrideActive ? todayKey : null,
+      threshold:         SOMATIC_OVERRIDE_THRESHOLD,
+      tier:              tier,
+      one_rm_override_pct: SOMATIC_ONE_RM_OVERRIDE_PCT,
+      volume_delta:      SOMATIC_VOLUME_DELTA,
+      inputs: {
+        fasting_hours:   fastingHours,
+        cognitive_load:  cognitiveLoad,
+        sleep_quality:   sleepQuality
+      },
+      components: {
+        sleep:     sleepComp,
+        cognition: cogComp,
+        fasting:   fastComp,
+        cns:       cnsComp,
+        activity:  activityComp
+      },
+      sessions_7d:       sessions7d,
+      computed_at:       nowIso
+    };
+  }
+
+  function numOrNull(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = parseFloat(v);
+    return isFinite(n) ? n : null;
+  }
+
   // ─── YOUTH ATHLETE EVOLUTION ─────────────────────────────
   function initYouthAttributes(uid) {
     try {
@@ -541,7 +1459,25 @@ var BBF_SYNC = (function() {
   }
 
   // ─── PUBLIC API ──────────────────────────────────────────
+  // Generic user-row PATCH helper for auditor-engine.js / render-engine
+  // to persist arbitrary columns without re-implementing the REST
+  // wiring. Mirrors the same offline-safe semantics as the scoped
+  // helpers above — a best-effort cloud PATCH that swallows errors
+  // and returns { ok, uid, error? } for the caller.
+  async function patchUserFields(uid, fields) {
+    if (!uid || !fields) return { ok: false, error: 'no uid or fields' };
+    var body = Object.assign({}, fields, { updated_at: new Date().toISOString() });
+    try {
+      await supa('PATCH', 'bbf_users', body, '?id=eq.' + encodeURIComponent(uid));
+      return { ok: true, uid: uid };
+    } catch(e) {
+      console.warn('BBF_SYNC patchUserFields error:', e && e.message);
+      return { ok: false, uid: uid, error: e && e.message };
+    }
+  }
+
   return {
+    patchUserFields: patchUserFields,
     syncUser: syncUser,
     syncLog: syncLog,
     syncSet: syncSet,
@@ -559,7 +1495,28 @@ var BBF_SYNC = (function() {
     incrementDiscipline: incrementDiscipline,
     logMorningReadiness: logMorningReadiness,
     evaluateBlueprint: evaluateBlueprint,
+    generateBespokeBlueprint: generateBespokeBlueprint,
+    deploySovereignOnboarding: deploySovereignOnboarding,
+    runGhostProtocolScan: runGhostProtocolScan,
+    fetchUserProfile: fetchUserProfile,
+    clearGhostIntervention: clearGhostIntervention,
+    evaluateSniperCriteria: evaluateSniperCriteria,
+    submitMastermindApplication: submitMastermindApplication,
+    runKinematicAudit: runKinematicAudit,
+    calculateSomaticReadiness: calculateSomaticReadiness,
+    somaticFastingQuality: somaticFastingQuality,
+    KINEMATIC_TIER_BUDGET: KINEMATIC_TIER_BUDGET,
+    KINEMATIC_THRESHOLD: KINEMATIC_THRESHOLD,
+    SOMATIC_OVERRIDE_THRESHOLD: SOMATIC_OVERRIDE_THRESHOLD,
+    SOMATIC_ONE_RM_OVERRIDE_PCT: SOMATIC_ONE_RM_OVERRIDE_PCT,
+    SOMATIC_VOLUME_DELTA: SOMATIC_VOLUME_DELTA,
+    classifyAxialLift: classifyAxialLift,
+    AXIAL_LIFTS_EXACT: AXIAL_LIFTS_EXACT,
+    GHOST_INACTIVITY_MS: GHOST_INACTIVITY_MS,
     SOVEREIGN_SHIFTS: SOVEREIGN_SHIFTS,
+    FRICTION_SHIFT_MAP: FRICTION_SHIFT_MAP,
+    EXPERIENCE_VOLUME: EXPERIENCE_VOLUME,
+    GOAL_PROFILE: GOAL_PROFILE,
     SOVEREIGN_PROTOCOLS: SOVEREIGN_PROTOCOLS,
     seekSovereignGold: seekSovereignGold,
     updateUserLanguage: updateUserLanguage,
