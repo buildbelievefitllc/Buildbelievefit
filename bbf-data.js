@@ -1300,8 +1300,8 @@ async function logBiometricYield(client_id, markerData) {
     marker_10_resting_hr: markerData[9],
     marker_11_blood_pressure: markerData[10]
   };
-  var SUPA_URL = 'https://ihclbceghxpuawymlvgi.supabase.co';
-  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloY2xiY2VnaHhwdWF3eW1sdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTk1MDIsImV4cCI6MjA5MTg3NTUwMn0.0f7d1aqtygMR__QiyYYUB87yrFLaSRihVQdiFaIhsP0';
+  var SUPA_URL = typeof process !== 'undefined' && process.env.SUPABASE_URL ? process.env.SUPABASE_URL : '';
+  var SUPA_KEY = typeof process !== 'undefined' && process.env.SUPABASE_KEY ? process.env.SUPABASE_KEY : '';
   return fetch(SUPA_URL + '/rest/v1/clinical_yield_log', {
     method: 'POST',
     headers: {
@@ -1315,8 +1315,8 @@ async function logBiometricYield(client_id, markerData) {
 }
 
 async function fetchClientYieldHistory(client_id) {
-  var SUPA_URL = 'https://ihclbceghxpuawymlvgi.supabase.co';
-  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloY2xiY2VnaHhwdWF3eW1sdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTk1MDIsImV4cCI6MjA5MTg3NTUwMn0.0f7d1aqtygMR__QiyYYUB87yrFLaSRihVQdiFaIhsP0';
+  var SUPA_URL = typeof process !== 'undefined' && process.env.SUPABASE_URL ? process.env.SUPABASE_URL : '';
+  var SUPA_KEY = typeof process !== 'undefined' && process.env.SUPABASE_KEY ? process.env.SUPABASE_KEY : '';
   return fetch(SUPA_URL + '/rest/v1/clinical_yield_log?client_id=eq.' + client_id + '&order=created_at.asc', {
     method: 'GET',
     headers: {
