@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS bbf_users (
   stress_mode TEXT DEFAULT 'desk',
   access_status TEXT DEFAULT 'unlocked',
   recovery_note TEXT DEFAULT '',
+  pin_hash TEXT,
   auto_lock_enabled BOOLEAN DEFAULT false,
   lock_expiry BIGINT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -85,15 +86,15 @@ CREATE POLICY "Allow all for anon" ON bbf_sets FOR ALL USING (true) WITH CHECK (
 CREATE POLICY "Allow all for anon" ON bbf_readiness FOR ALL USING (true) WITH CHECK (true);
 
 -- 7. SEED TRAINER ACCOUNT
-INSERT INTO bbf_users (id, name, role, type, goal)
-VALUES ('akeem', 'Akeem Brown', 'trainer', 'Trainer', 'Head Coach — Build Believe Fit')
+INSERT INTO bbf_users (id, name, role, type, goal, pin_hash)
+VALUES ('akeem', 'Akeem Brown', 'trainer', 'Trainer', 'Head Coach — Build Believe Fit', '1de5495d95a18bb628ebe8147e7f61046737bcc926fe89460e630a959a21b214')
 ON CONFLICT (id) DO NOTHING;
 
 -- SEED CLIENTS
-INSERT INTO bbf_users (id, name, role, type, goal, plan, schedule) VALUES
-  ('ana_bbf', 'Ana', 'client', 'Essentials', 'Lean & Toned', 'ana_spring', 'standard'),
-  ('jacky_bbf', 'Jacky', 'client', 'Essentials', 'Strength & Endurance', 'jacky_plan', 'shifts'),
-  ('suzanna_bbf', 'Suzanna', 'client', 'Essentials', 'Tone & Feel Strong', 'suzanna_plan', 'standard'),
-  ('jordan_bbf', 'Jordan', 'client', 'Platinum', 'Weight Loss', 'jordan_wayne', '9to5'),
-  ('wayne_bbf', 'Wayne', 'client', 'Platinum', 'Lean Muscle', 'jordan_wayne', 'shifts')
+INSERT INTO bbf_users (id, name, role, type, goal, plan, schedule, pin_hash) VALUES
+  ('ana_bbf', 'Ana', 'client', 'Essentials', 'Lean & Toned', 'ana_spring', 'standard', '158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab'),
+  ('jacky_bbf', 'Jacky', 'client', 'Essentials', 'Strength & Endurance', 'jacky_plan', 'shifts', 'ceaa28bba4caba687dc31b1bbe79eca3c70c33f871f1ce8f528cf9ab5cfd76dd'),
+  ('suzanna_bbf', 'Suzanna', 'client', 'Essentials', 'Tone & Feel Strong', 'suzanna_plan', 'standard', 'f8638b979b2f4f793ddb6dbd197e0ee25a7a6ea32b0ae22f5e3c5d119d839e75'),
+  ('jordan_bbf', 'Jordan', 'client', 'Platinum', 'Weight Loss', 'jordan_wayne', '9to5', '0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c'),
+  ('wayne_bbf', 'Wayne', 'client', 'Platinum', 'Lean Muscle', 'jordan_wayne', 'shifts', 'edee29f882543b956620b26d0ee0e7e950399b1c4222f5de05e06425b4c995e9')
 ON CONFLICT (id) DO NOTHING;
