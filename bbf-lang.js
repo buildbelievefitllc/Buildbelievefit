@@ -341,7 +341,149 @@ var D = {
 'app-tournament-off':   { en:'TOURNAMENT MODE: OFF \u2014 All Meals', es:'MODO TORNEO: OFF \u2014 Todas las Comidas', pt:'MODO TORNEIO: OFF \u2014 Todas as Refei\u00e7\u00f5es' },
 'app-tournament-label': { en:'Tournament Mode', es:'Modo Torneo', pt:'Modo Torneio' },
 'app-road-badge':       { en:'ROAD', es:'VIAJE', pt:'VIAGEM' },
-'app-prehab-audit-btn': { en:'\ud83e\uddea PRE-HAB AUDIT \u2014 START HERE', es:'\ud83e\uddea AUDITOR\u00cdA PRE-HAB \u2014 EMPIEZA AQU\u00cd', pt:'\ud83e\uddea AUDITORIA PRE-HAB \u2014 COMECE AQUI' }
+'app-prehab-audit-btn': { en:'\ud83e\uddea PRE-HAB AUDIT \u2014 START HERE', es:'\ud83e\uddea AUDITOR\u00cdA PRE-HAB \u2014 EMPIEZA AQU\u00cd', pt:'\ud83e\uddea AUDITORIA PRE-HAB \u2014 COMECE AQUI' },
+
+// ═══════════════════════════════════════════════════════════════
+// PROMETHEAN — added during Audit-7 trilingual restoration
+// ═══════════════════════════════════════════════════════════════
+
+// Command Header / Nav
+'nav-protocol':    { en:'protocol',      es:'protocolo',       pt:'protocolo' },
+'nav-tiers':       { en:'tiers',         es:'niveles',         pt:'n\u00edveis' },
+'nav-fuel':        { en:'fuel',          es:'nutrici\u00f3n',  pt:'nutri\u00e7\u00e3o' },
+'nav-voices':      { en:'voices',        es:'voces',           pt:'vozes' },
+'nav-portal':      { en:'Access Vault',  es:'Acceder al Portal', pt:'Acessar Portal' },
+'nav-intake':      { en:'Start Intake',  es:'Iniciar Evaluaci\u00f3n', pt:'Iniciar Avalia\u00e7\u00e3o' },
+
+// Hero
+'p-hero-eyebrow':  { en:'Now taking April cohort', es:'Aceptando la cohorte de abril', pt:'Aceitando a coorte de abril' },
+'p-hero-h-1':      { en:'Movement', es:'Movimiento', pt:'Movimento' },
+'p-hero-h-2':      { en:'science &', es:'ciencia y', pt:'ci\u00eancia e' },
+'p-hero-h-3':      { en:'clinical', es:'adaptaci\u00f3n', pt:'adapta\u00e7\u00e3o' },
+'p-hero-h-4':      { en:'adaptation', es:'cl\u00ednica', pt:'cl\u00ednica' },
+'p-hero-lede':     { en:'BBF-Lab is a coaching practice for adults with <strong>real jobs, unpredictable weeks, and bodies that need to last.</strong> Assessment-driven programming that adapts to your physiology \u2014 not a template pulled from someone else\u2019s highlight reel.', es:'BBF-Lab es una pr\u00e1ctica de coaching para adultos con <strong>trabajos reales, semanas impredecibles y cuerpos que necesitan durar.</strong> Programaci\u00f3n guiada por evaluaci\u00f3n que se adapta a tu fisiolog\u00eda \u2014 no una plantilla sacada del carrete de logros de otra persona.', pt:'BBF-Lab \u00e9 uma pr\u00e1tica de coaching para adultos com <strong>trabalhos reais, semanas imprevis\u00edveis e corpos que precisam durar.</strong> Programa\u00e7\u00e3o guiada por avalia\u00e7\u00e3o que se adapta \u00e0 sua fisiologia \u2014 n\u00e3o um modelo tirado do carretel de conquistas de outra pessoa.' },
+'p-hero-btn-1':    { en:'Start Intake',   es:'Iniciar Evaluaci\u00f3n', pt:'Iniciar Avalia\u00e7\u00e3o' },
+'p-hero-btn-2':    { en:'See the tiers',  es:'Ver los niveles',  pt:'Ver os n\u00edveis' },
+'p-hero-stat-1':   { en:'Coaching practice', es:'Pr\u00e1ctica de coaching', pt:'Pr\u00e1tica de coaching' },
+'p-hero-stat-2':   { en:'Clients coached',   es:'Clientes entrenados',      pt:'Clientes treinados' },
+'p-hero-stat-3':   { en:'Certified, NASM',   es:'Certificado, NASM',         pt:'Certificado, NASM' },
+
+// Services section
+'p-svc-title':     { en:'The <span class="volt">Practice</span>', es:'La <span class="volt">Pr\u00e1ctica</span>', pt:'A <span class="volt">Pr\u00e1tica</span>' },
+'p-svc-meta':      { en:'Six disciplines<br>One system', es:'Seis disciplinas<br>Un sistema', pt:'Seis disciplinas<br>Um sistema' },
+
+// Parent Playbook section
+'p-pp-title':      { en:'The <span class="volt">Parent</span> Playbook', es:'El Manual <span class="volt">Para Padres</span>', pt:'O Manual <span class="volt">Para Pais</span>' },
+'p-pp-meta':       { en:'Family performance<br>Engineered protocol', es:'Rendimiento familiar<br>Protocolo ingeniado', pt:'Performance familiar<br>Protocolo engenhado' },
+'p-pp-eyebrow':    { en:'Family Performance Series', es:'Serie de Rendimiento Familiar', pt:'S\u00e9rie de Performance Familiar' },
+'p-pp-headline':   { en:'The Busy Parent<br><span class="volt">Transformation</span>', es:'La Transformaci\u00f3n del<br><span class="volt">Padre Ocupado</span>', pt:'A Transforma\u00e7\u00e3o do<br><span class="volt">Pai Ocupado</span>' },
+'p-pp-lede':       { en:'Adaptive Metabolic Tiers (12:12, 14:10, 16:8) engineered for the high-demand reality. The Laboratory\u2019s primary protocol for sustainable parent transformation \u2014 backed by the Sovereign Gold Standard. Includes Youth Athlete Performance bonus.', es:'Niveles Metab\u00f3licos Adaptativos (12:12, 14:10, 16:8) dise\u00f1ados para la realidad de alta demanda. El protocolo principal del Laboratorio para la transformaci\u00f3n sostenible de padres \u2014 respaldado por el Est\u00e1ndar Soberano de Oro. Incluye bono de Rendimiento de Atleta Juvenil.', pt:'N\u00edveis Metab\u00f3licos Adaptativos (12:12, 14:10, 16:8) projetados para a realidade de alta demanda. O protocolo principal do Laborat\u00f3rio para a transforma\u00e7\u00e3o sustent\u00e1vel de pais \u2014 respaldado pelo Padr\u00e3o Soberano de Ouro. Inclui b\u00f4nus de Performance de Atleta Jovem.' },
+'p-pp-price-u':    { en:'standalone', es:'individual', pt:'individual' },
+'p-pp-price-badge':{ en:'Free with All-Pro', es:'Gratis con All-Pro', pt:'Gr\u00e1tis com All-Pro' },
+'p-pp-cta-1':      { en:'View the Plan', es:'Ver el Plan', pt:'Ver o Plano' },
+'p-pp-cta-2':      { en:'Explore Youth Blueprints', es:'Explorar Planes Juveniles', pt:'Explorar Planos Juvenis' },
+'p-pp-why':        { en:'Why this protocol exists', es:'Por qu\u00e9 existe este protocolo', pt:'Por que este protocolo existe' },
+'p-pp-why-h':      { en:'Built for the parent whose week never lands the same way twice.', es:'Dise\u00f1ado para el padre cuya semana nunca cae igual dos veces.', pt:'Feito para o pai cuja semana nunca cai igual duas vezes.' },
+'p-pp-t1-k':       { en:'Tier 12:12', es:'Nivel 12:12', pt:'N\u00edvel 12:12' },
+'p-pp-t1-n':       { en:'Survival cadence', es:'Cadencia de supervivencia', pt:'Cad\u00eancia de sobreviv\u00eancia' },
+'p-pp-t1-d':       { en:'Sleep-debt aware. 30-min sessions. Anchor weeks for chaos.', es:'Consciente de la deuda de sue\u00f1o. Sesiones de 30 min. Semanas ancla para el caos.', pt:'Ciente da d\u00edvida de sono. Sess\u00f5es de 30 min. Semanas \u00e2ncora para o caos.' },
+'p-pp-t2-k':       { en:'Tier 14:10', es:'Nivel 14:10', pt:'N\u00edvel 14:10' },
+'p-pp-t2-n':       { en:'Recovery build', es:'Construcci\u00f3n de recuperaci\u00f3n', pt:'Constru\u00e7\u00e3o de recupera\u00e7\u00e3o' },
+'p-pp-t2-d':       { en:'Metabolic re-anchor. 45-min sessions. Joint-longevity blocks.', es:'Re-anclaje metab\u00f3lico. Sesiones de 45 min. Bloques de longevidad articular.', pt:'Re-ancoragem metab\u00f3lica. Sess\u00f5es de 45 min. Blocos de longevidade articular.' },
+'p-pp-t3-k':       { en:'Tier 16:8', es:'Nivel 16:8', pt:'N\u00edvel 16:8' },
+'p-pp-t3-n':       { en:'Performance push', es:'Empuje de rendimiento', pt:'Empurr\u00e3o de performance' },
+'p-pp-t3-d':       { en:'Full hybrid load. 60-min sessions. Compound progression.', es:'Carga h\u00edbrida completa. Sesiones de 60 min. Progresi\u00f3n compuesta.', pt:'Carga h\u00edbrida completa. Sess\u00f5es de 60 min. Progress\u00e3o composta.' },
+'p-pp-t4-k':       { en:'Bonus', es:'Bono', pt:'B\u00f4nus' },
+'p-pp-t4-n':       { en:'Youth Athlete', es:'Atleta Juvenil', pt:'Atleta Jovem' },
+'p-pp-t4-d':       { en:'Companion module for kids 8-17. Sport-specific positions.', es:'M\u00f3dulo complementario para ni\u00f1os de 8-17 a\u00f1os. Posiciones espec\u00edficas del deporte.', pt:'M\u00f3dulo complementar para crian\u00e7as de 8-17 anos. Posi\u00e7\u00f5es espec\u00edficas do esporte.' },
+
+// Youth Athlete Selector
+'p-youth-eyebrow': { en:'Youth Athlete \u00b7 Positional Blueprints', es:'Atleta Juvenil \u00b7 Planes Posicionales', pt:'Atleta Jovem \u00b7 Planos Posicionais' },
+'p-youth-title':   { en:'Pick the <span class="volt">sport.</span> Pick the <span class="volt">position.</span> Get the plan.', es:'Elige el <span class="volt">deporte.</span> Elige la <span class="volt">posici\u00f3n.</span> Obt\u00e9n el plan.', pt:'Escolha o <span class="volt">esporte.</span> Escolha a <span class="volt">posi\u00e7\u00e3o.</span> Pegue o plano.' },
+'p-youth-sub':     { en:'5 sports<br>25 positions', es:'5 deportes<br>25 posiciones', pt:'5 esportes<br>25 posi\u00e7\u00f5es' },
+
+// Playbook Modal chrome
+'p-mod-tag':       { en:'Laboratory \u00b7 Positional Blueprint', es:'Laboratorio \u00b7 Plan Posicional', pt:'Laborat\u00f3rio \u00b7 Plano Posicional' },
+'p-mod-kpi-h':     { en:'Primary KPIs \u00b7 Founder-Verified', es:'KPIs Principales \u00b7 Verificados por el Fundador', pt:'KPIs Principais \u00b7 Verificados pelo Fundador' },
+'p-mod-drill-l':   { en:'Lab-Verified Drill', es:'Ejercicio Verificado en el Laboratorio', pt:'Exerc\u00edcio Verificado no Laborat\u00f3rio' },
+'p-mod-cta':       { en:'Unlock the full playbook \u2192', es:'Desbloquea el plan completo \u2192', pt:'Desbloqueie o plano completo \u2192' },
+'p-mod-dismiss':   { en:'Close blueprint', es:'Cerrar plan', pt:'Fechar plano' },
+'p-mod-seal':      { en:'Founder-Verified Biomechanical Protocols \u00b7 Sovereign Gold Standard', es:'Protocolos Biomec\u00e1nicos Verificados por el Fundador \u00b7 Est\u00e1ndar Soberano de Oro', pt:'Protocolos Biomec\u00e2nicos Verificados pelo Fundador \u00b7 Padr\u00e3o Soberano de Ouro' },
+
+// Tiers — Sovereign packages
+'p-tiers-title':   { en:'Two <span class="volt">Tiers</span>. <span class="outline">One Standard.</span>', es:'Dos <span class="volt">Niveles</span>. <span class="outline">Un Est\u00e1ndar.</span>', pt:'Dois <span class="volt">N\u00edveis</span>. <span class="outline">Um Padr\u00e3o.</span>' },
+'p-tiers-meta':    { en:'Founder-Verified.<br>Sovereign Gold Standard.', es:'Verificado por el Fundador.<br>Est\u00e1ndar Soberano de Oro.', pt:'Verificado pelo Fundador.<br>Padr\u00e3o Soberano de Ouro.' },
+'p-dt-num':        { en:'tier / 01 \u00b7 dual-threat', es:'nivel / 01 \u00b7 dual-threat', pt:'n\u00edvel / 01 \u00b7 dual-threat' },
+'p-dt-name':       { en:'Dual-Threat', es:'Dual-Threat', pt:'Dual-Threat' },
+'p-dt-sub':        { en:'Hybrid programming \u00b7 8 weeks', es:'Programaci\u00f3n h\u00edbrida \u00b7 8 semanas', pt:'Programa\u00e7\u00e3o h\u00edbrida \u00b7 8 semanas' },
+'p-dt-flavor':     { en:'The dual-engine build. Strength + conditioning periodized for the everyday athlete.', es:'La construcci\u00f3n de doble motor. Fuerza + acondicionamiento periodizado para el atleta cotidiano.', pt:'A constru\u00e7\u00e3o de motor duplo. For\u00e7a + condicionamento periodizado para o atleta do dia a dia.' },
+'p-dt-cta':        { en:'Start Dual-Threat \u2192', es:'Iniciar Dual-Threat \u2192', pt:'Iniciar Dual-Threat \u2192' },
+'p-ap-ribbon':     { en:'Sovereign Pick', es:'Elecci\u00f3n Soberana', pt:'Escolha Soberana' },
+'p-ap-num':        { en:'tier / 02 \u00b7 all-pro', es:'nivel / 02 \u00b7 all-pro', pt:'n\u00edvel / 02 \u00b7 all-pro' },
+'p-ap-name':       { en:'All-Pro', es:'All-Pro', pt:'All-Pro' },
+'p-ap-sub':        { en:'Bespoke clinical coaching \u00b7 12 weeks', es:'Coaching cl\u00ednico a medida \u00b7 12 semanas', pt:'Coaching cl\u00ednico sob medida \u00b7 12 semanas' },
+'p-ap-flavor':     { en:'The flagship. Custom program, custom nutrition, OT-clinical assessment, direct line to Akeem.', es:'El buque insignia. Programa personalizado, nutrici\u00f3n personalizada, evaluaci\u00f3n cl\u00ednica OT, l\u00ednea directa con Akeem.', pt:'O carro-chefe. Programa personalizado, nutri\u00e7\u00e3o personalizada, avalia\u00e7\u00e3o cl\u00ednica OT, linha direta com Akeem.' },
+'p-ap-cta':        { en:'Apply for All-Pro \u2192', es:'Aplicar para All-Pro \u2192', pt:'Aplicar para All-Pro \u2192' },
+'p-tiers-ledger-l': { en:'// BBF Financial Integrity Promise', es:'// Promesa de Integridad Financiera BBF', pt:'// Promessa de Integridade Financeira BBF' },
+'p-tiers-ledger-q': { en:'Whether you invest $247 or $497, you receive the same Founder-Verified attention to your joint safety, recovery, and long-term mobility. The price reflects access and depth. The Sovereign Gold Standard never changes.', es:'Ya sea que inviertas $247 o $497, recibes la misma atenci\u00f3n Verificada por el Fundador a la seguridad de tus articulaciones, recuperaci\u00f3n y movilidad a largo plazo. El precio refleja acceso y profundidad. El Est\u00e1ndar Soberano de Oro nunca cambia.', pt:'Seja voc\u00ea investindo $247 ou $497, voc\u00ea recebe a mesma aten\u00e7\u00e3o Verificada pelo Fundador \u00e0 seguran\u00e7a de suas articula\u00e7\u00f5es, recupera\u00e7\u00e3o e mobilidade a longo prazo. O pre\u00e7o reflete acesso e profundidade. O Padr\u00e3o Soberano de Ouro nunca muda.' },
+
+// Coach — Akeem's origin
+'p-coach-eye':     { en:'The architect', es:'El arquitecto', pt:'O arquiteto' },
+'p-coach-head':    { en:'I built BBF because <span class="outline-ink">nothing</span> fit the <span class="violet">trenches.</span>', es:'Constru\u00ed BBF porque <span class="outline-ink">nada</span> encajaba en las <span class="violet">trincheras.</span>', pt:'Constru\u00ed BBF porque <span class="outline-ink">nada</span> servia para as <span class="violet">trincheiras.</span>' },
+'p-coach-quote':   { en:'I\u2019m Akeem \u2014 architect of Build Believe Fit. I worked 12-hour shifts in medical manufacturing, then tried to train on everyone else\u2019s standard programs. None of them fit.', es:'Soy Akeem \u2014 arquitecto de Build Believe Fit. Trabaj\u00e9 turnos de 12 horas en la manufactura m\u00e9dica, luego intent\u00e9 entrenar con los programas est\u00e1ndar de todos los dem\u00e1s. Ninguno encajaba.', pt:'Eu sou Akeem \u2014 arquiteto da Build Believe Fit. Trabalhei turnos de 12 horas na manufatura m\u00e9dica, depois tentei treinar com os programas padr\u00e3o de todos os outros. Nenhum servia.' },
+'p-coach-body-1':  { en:'For seven years I ran the same failed experiment: clock out of a shift with wrecked legs and depleted CNS, then try to follow a program written for someone with eight hours of sleep and zero back fatigue. The templates assumed I was fresh. The gurus assumed I was lying. <strong>Neither was true. I was just working.</strong>', es:'Durante siete a\u00f1os corr\u00ed el mismo experimento fallido: terminar un turno con las piernas destrozadas y el SNC agotado, y luego intentar seguir un programa escrito para alguien con ocho horas de sue\u00f1o y cero fatiga de espalda. Las plantillas asum\u00edan que yo estaba fresco. Los gur\u00fas asum\u00edan que yo ment\u00eda. <strong>Ninguno era cierto. Yo solo estaba trabajando.</strong>', pt:'Por sete anos rodei o mesmo experimento falho: sair do turno com as pernas destru\u00eddas e o SNC esgotado, depois tentar seguir um programa escrito para algu\u00e9m com oito horas de sono e zero fadiga nas costas. Os modelos assumiam que eu estava fresco. Os gurus assumiam que eu estava mentindo. <strong>Nenhum era verdade. Eu apenas estava trabalhando.</strong>' },
+'p-coach-body-2':  { en:'So I stopped waiting for someone else\u2019s protocol and started architecting my own \u2014 built for shift recovery, joint longevity, and the reality of a working professional\u2019s week. That system became BBF-Lab. <strong>Everything I teach, I stress-tested in the trenches first.</strong>', es:'Entonces dej\u00e9 de esperar el protocolo de alguien m\u00e1s y empec\u00e9 a dise\u00f1ar el m\u00edo \u2014 construido para la recuperaci\u00f3n de turnos, la longevidad articular y la realidad de la semana de un profesional que trabaja. Ese sistema se convirti\u00f3 en BBF-Lab. <strong>Todo lo que ense\u00f1o, lo puse a prueba primero en las trincheras.</strong>', pt:'Ent\u00e3o parei de esperar o protocolo de outra pessoa e comecei a arquitetar o meu \u2014 constru\u00eddo para a recupera\u00e7\u00e3o de turnos, longevidade articular e a realidade da semana de um profissional que trabalha. Esse sistema tornou-se BBF-Lab. <strong>Tudo o que ensino, testei primeiro nas trincheiras.</strong>' },
+'p-coach-xform-1': { en:'Before \u00b7 2020', es:'Antes \u00b7 2020', pt:'Antes \u00b7 2020' },
+'p-coach-xform-1c':{ en:'Pre-architect \u00b7 off-the-shelf programs', es:'Pre-arquitecto \u00b7 programas gen\u00e9ricos', pt:'Pr\u00e9-arquiteto \u00b7 programas gen\u00e9ricos' },
+'p-coach-xform-2': { en:'After \u00b7 Sovereign Standard', es:'Despu\u00e9s \u00b7 Est\u00e1ndar Soberano', pt:'Depois \u00b7 Padr\u00e3o Soberano' },
+'p-coach-xform-2c':{ en:'Post-protocol \u00b7 trenches-tested', es:'Post-protocolo \u00b7 probado en las trincheras', pt:'P\u00f3s-protocolo \u00b7 testado nas trincheiras' },
+'p-coach-sig-role':{ en:'Performance Architect \u00b7 NASM-CPT \u00b7 BBF-Lab Founder', es:'Arquitecto de Rendimiento \u00b7 NASM-CPT \u00b7 Fundador de BBF-Lab', pt:'Arquiteto de Performance \u00b7 NASM-CPT \u00b7 Fundador da BBF-Lab' },
+'p-coach-sig-est': { en:'Est. 2021', es:'Est. 2021', pt:'Est. 2021' },
+'p-coach-cm-1k':   { en:'Architect', es:'Arquitecto', pt:'Arquiteto' },
+'p-coach-cm-1v':   { en:'founder \u00b7 BBF', es:'fundador \u00b7 BBF', pt:'fundador \u00b7 BBF' },
+'p-coach-cm-2k':   { en:'Credentials', es:'Credenciales', pt:'Credenciais' },
+'p-coach-cm-2v':   { en:'PN L1 \u00b7 OT-informed', es:'PN L1 \u00b7 OT-informado', pt:'PN L1 \u00b7 OT-informado' },
+'p-coach-cm-3k':   { en:'Established', es:'Establecido', pt:'Estabelecido' },
+'p-coach-cm-3v':   { en:'sovereign standard', es:'est\u00e1ndar soberano', pt:'padr\u00e3o soberano' },
+'p-coach-cm-4k':   { en:'Background', es:'Antecedentes', pt:'Hist\u00f3rico' },
+'p-coach-cm-4v':   { en:'12hr shifts \u00b7 trenches', es:'turnos de 12h \u00b7 trincheras', pt:'turnos de 12h \u00b7 trincheiras' },
+
+// Contact — Direct line
+'p-ct-eye':        { en:'Direct line \u00b7 Akeem responds', es:'L\u00ednea directa \u00b7 Akeem responde', pt:'Linha direta \u00b7 Akeem responde' },
+'p-ct-h':          { en:'Rather just <span class="volt">talk?</span>', es:'\u00bf Prefieres <span class="volt">hablar?</span>', pt:'Prefere <span class="volt">conversar?</span>' },
+'p-ct-p':          { en:'Questions about fit, timing, or whether this is even the right room for you \u2014 reach out direct. Real reply within one business day.', es:'Preguntas sobre ajuste, tiempo, o si este es el lugar correcto para ti \u2014 cont\u00e1ctame directamente. Respuesta real dentro de un d\u00eda h\u00e1bil.', pt:'Perguntas sobre ajuste, tempo, ou se este \u00e9 o lugar certo para voc\u00ea \u2014 entre em contato direto. Resposta real dentro de um dia \u00fatil.' },
+'p-ct-call-l':     { en:'Call Akeem',  es:'Llamar a Akeem',  pt:'Ligar para Akeem' },
+'p-ct-text-l':     { en:'Text Akeem',  es:'Enviar texto a Akeem',  pt:'Enviar mensagem para Akeem' },
+'p-ct-email-l':    { en:'Email BBF',   es:'Correo a BBF',   pt:'E-mail para BBF' },
+'p-ct-cta-l':      { en:'Or skip the chat', es:'O salta la conversaci\u00f3n', pt:'Ou pule a conversa' },
+'p-ct-cta-v':      { en:'Start Pathfinder intake', es:'Iniciar evaluaci\u00f3n Pathfinder', pt:'Iniciar avalia\u00e7\u00e3o Pathfinder' },
+
+// Footer
+'p-ft-tag':        { en:'Movement science and clinical adaptation for adults who plan to be strong in thirty years. Established 2021.', es:'Ciencia del movimiento y adaptaci\u00f3n cl\u00ednica para adultos que planean ser fuertes en treinta a\u00f1os. Establecido en 2021.', pt:'Ci\u00eancia do movimento e adapta\u00e7\u00e3o cl\u00ednica para adultos que planejam ser fortes em trinta anos. Estabelecido em 2021.' },
+'p-ft-h-practice': { en:'Practice', es:'Pr\u00e1ctica', pt:'Pr\u00e1tica' },
+'p-ft-h-direct':   { en:'Direct', es:'Directo', pt:'Direto' },
+'p-ft-h-index':    { en:'Index', es:'\u00cdndice', pt:'\u00cdndice' },
+'p-ft-l-services': { en:'Services', es:'Servicios', pt:'Servi\u00e7os' },
+'p-ft-l-tiers':    { en:'Tiers',    es:'Niveles',   pt:'N\u00edveis' },
+'p-ft-l-coach':    { en:'Coach',    es:'Coach',     pt:'Coach' },
+'p-ft-l-fuel':     { en:'Fuel tool', es:'Herramienta de Nutrici\u00f3n', pt:'Ferramenta de Nutri\u00e7\u00e3o' },
+'p-ft-l-intake':   { en:'Start Pathfinder intake', es:'Iniciar evaluaci\u00f3n Pathfinder', pt:'Iniciar avalia\u00e7\u00e3o Pathfinder' },
+'p-ft-l-voices':   { en:'Client voices', es:'Voces de clientes', pt:'Vozes de clientes' },
+'p-ft-l-privacy':  { en:'Privacy', es:'Privacidad', pt:'Privacidade' },
+'p-ft-l-terms':    { en:'Terms', es:'T\u00e9rminos', pt:'Termos' },
+'p-ft-l-waiver':   { en:'Liability Waiver', es:'Renuncia de Responsabilidad', pt:'Ren\u00fancia de Responsabilidade' },
+'p-ft-base-1':     { en:'\u00a9 2026 Build Believe Fit \u00b7 All rights reserved', es:'\u00a9 2026 Build Believe Fit \u00b7 Todos los derechos reservados', pt:'\u00a9 2026 Build Believe Fit \u00b7 Todos os direitos reservados' },
+'p-ft-base-2':     { en:'BBF-001 \u00b7 Measured. Adapted.', es:'BBF-001 \u00b7 Medido. Adaptado.', pt:'BBF-001 \u00b7 Medido. Adaptado.' },
+
+// Pathfinder intake
+'p-in-eye':        { en:'Client intake \u00b7 4 min', es:'Evaluaci\u00f3n de cliente \u00b7 4 min', pt:'Avalia\u00e7\u00e3o de cliente \u00b7 4 min' },
+'p-in-h':          { en:'Start the <span class="volt">conversation.</span>', es:'Inicia la <span class="volt">conversaci\u00f3n.</span>', pt:'Comece a <span class="volt">conversa.</span>' },
+'p-in-p':          { en:'Four short steps. We\u2019ll calibrate your baseline targets and the clinical team reviews every intake personally within 48 hours.', es:'Cuatro pasos cortos. Calibraremos tus objetivos base y el equipo cl\u00ednico revisa cada evaluaci\u00f3n personalmente dentro de 48 horas.', pt:'Quatro passos curtos. Calibraremos seus objetivos base e a equipe cl\u00ednica revisa cada avalia\u00e7\u00e3o pessoalmente em 48 horas.' },
+'p-in-submit':     { en:'Calibrate & submit \u2192', es:'Calibrar y enviar \u2192', pt:'Calibrar e enviar \u2192' },
+
+// Mandate
+'p-md-eye':        { en:'Codex \u00b7 Article I', es:'C\u00f3dice \u00b7 Art\u00edculo I', pt:'C\u00f3dice \u00b7 Artigo I' },
+'p-md-sub':        { en:'BBF-Lab exists for people who plan to be operational in thirty years. No aesthetics-first marketing. No platitudes. A clinical practice with an appetite for proof and a refusal to confuse motion with progress.', es:'BBF-Lab existe para personas que planean estar operativas en treinta a\u00f1os. Sin marketing centrado en la est\u00e9tica. Sin trivialidades. Una pr\u00e1ctica cl\u00ednica con apetito por la prueba y el rechazo a confundir movimiento con progreso.', pt:'BBF-Lab existe para pessoas que planejam estar operacionais em trinta anos. Sem marketing focado em est\u00e9tica. Sem trivialidades. Uma pr\u00e1tica cl\u00ednica com apetite por provas e a recusa em confundir movimento com progresso.' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
@@ -373,7 +515,7 @@ function t(key) {
 }
 
 function updateToggles(l) {
-  // Index.html toggles (desktop + mobile)
+  // Index.html toggles (desktop + mobile) — legacy IDs
   var ids = [
     ['lt-en','lt-es','lt-pt'],
     ['mob-lt-en','mob-lt-es','mob-lt-pt']
@@ -394,15 +536,30 @@ function updateToggles(l) {
       }
     });
   });
-  // bbf-app.html toggle (rendered into #bbf-lang-placeholder)
+
+  // bbf-lang-placeholder: either Promethean (pre-rendered .lang-btn children)
+  // or legacy bbf-app.html empty-div that needs injection.
   var placeholder = document.getElementById('bbf-lang-placeholder');
   if (placeholder) {
-    placeholder.innerHTML =
-      '<div id="bbf-lang-toggle">' +
-      '<button onclick="BBF_LANG.set(\'en\')" class="' + (l === 'en' ? 'lang-active' : '') + '">EN</button>' +
-      '<button onclick="BBF_LANG.set(\'es\')" class="' + (l === 'es' ? 'lang-active' : '') + '">ES</button>' +
-      '<button onclick="BBF_LANG.set(\'pt\')" class="' + (l === 'pt' ? 'lang-active' : '') + '">PT</button>' +
-      '</div>';
+    var prometheanBtns = placeholder.querySelectorAll('.lang-btn');
+    if (prometheanBtns && prometheanBtns.length) {
+      // PROMETHEAN PATH — preserve my hardened buttons; just toggle state.
+      for (var i = 0; i < prometheanBtns.length; i++) {
+        var b = prometheanBtns[i];
+        var isOn = b.getAttribute('data-lang') === l;
+        b.classList.toggle('on', isOn);
+        b.classList.toggle('lang-active', isOn);
+        b.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+      }
+    } else {
+      // LEGACY PATH — bbf-app.html still relies on innerHTML injection.
+      placeholder.innerHTML =
+        '<div id="bbf-lang-toggle">' +
+        '<button onclick="BBF_LANG.set(\'en\')" class="' + (l === 'en' ? 'lang-active' : '') + '">EN</button>' +
+        '<button onclick="BBF_LANG.set(\'es\')" class="' + (l === 'es' ? 'lang-active' : '') + '">ES</button>' +
+        '<button onclick="BBF_LANG.set(\'pt\')" class="' + (l === 'pt' ? 'lang-active' : '') + '">PT</button>' +
+        '</div>';
+    }
   }
 }
 
