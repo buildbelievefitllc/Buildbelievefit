@@ -2567,29 +2567,66 @@ html, body { background: #000 !important; }
 section[id], footer[id] { scroll-margin-top: 80px; }
 </style>
 <style id="vault-breath">
-/* ===== VAULT BREATH — subtle pulse on splash during boot =====
-   Splash shows briefly; this gives it a heartbeat feel without
-   touching the app shell. */
+/* ===== VAULT BREATH — heartbeat across the app shell =====
+   Purely additive. Gold + purple palette preserved. Respects
+   prefers-reduced-motion via the a11y-polish universal override. */
+
 @keyframes bbfSplashBreath {
-  0%, 100% {
-    text-shadow: 0 0 0 transparent;
-    transform: scale(1);
-  }
-  50% {
-    text-shadow: 0 0 18px rgba(245,200,0,.45);
-    transform: scale(1.012);
-  }
+  0%, 100% { text-shadow: 0 0 0 transparent; transform: scale(1); }
+  50%      { text-shadow: 0 0 18px rgba(245,200,0,.45); transform: scale(1.012); }
 }
 @keyframes bbfSplashBadgeBreath {
   0%, 100% { box-shadow: 0 0 0 0 rgba(245,200,0,0); }
   50%      { box-shadow: 0 0 22px 2px rgba(245,200,0,.35); }
 }
-#splash .sw {
-  animation: bbfSplashBreath 3.4s ease-in-out infinite;
+@keyframes bbfVaultTitleBreath {
+  0%, 100% { transform: translateY(0) scale(1); text-shadow: 0 0 0 transparent; }
+  50%      { transform: translateY(-3px) scale(1.018); text-shadow: 0 0 16px rgba(245,200,0,.40), 0 0 28px rgba(245,200,0,.18); }
 }
-#splash .sinn {
-  animation: bbfSplashBadgeBreath 3.4s ease-in-out 400ms infinite;
+@keyframes bbfGoldBadgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,200,0,0); filter: brightness(1); }
+  50%      { box-shadow: 0 0 18px 1px rgba(245,200,0,.45); filter: brightness(1.08); }
 }
+@keyframes bbfCTABreath {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50%      { transform: scale(1.012); filter: brightness(1.06); }
+}
+@keyframes bbfTitleGlow {
+  0%, 100% { text-shadow: 0 0 0 transparent; }
+  50%      { text-shadow: 0 0 12px rgba(245,200,0,.38); }
+}
+@keyframes bbfAlertBreath {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); transform: translateY(0); }
+  50%      { box-shadow: 0 0 16px 1px rgba(239,68,68,.35); transform: translateY(-1px); }
+}
+
+#splash .sw  { animation: bbfSplashBreath 3.4s ease-in-out infinite; }
+#splash .sinn{ animation: bbfSplashBadgeBreath 3.4s ease-in-out 400ms infinite; }
+
+.vault-hero-title { animation: bbfVaultTitleBreath 4.2s cubic-bezier(.4,0,.6,1) infinite; }
+
+.analytics-title, .cl-title, .hi-title, .vtitle, .byr-title, .vault-hero-lbl {
+  animation: bbfTitleGlow 3.8s ease-in-out infinite;
+}
+.analytics-title { animation-delay: 0ms; }
+.cl-title        { animation-delay: 400ms; }
+.hi-title        { animation-delay: 800ms; }
+.vtitle          { animation-delay: 1200ms; }
+.byr-title       { animation-delay: 1600ms; }
+
+.seq-badge, .gp-badge, .hts-badge, .cl-badge, .pe-status-badge {
+  animation: bbfGoldBadgePulse 3.2s ease-in-out infinite;
+}
+.seq-badge { animation-delay: 0ms; }
+.gp-badge  { animation-delay: 500ms; }
+.hts-badge { animation-delay: 1000ms; }
+.cl-badge  { animation-delay: 1500ms; }
+.pe-status-badge { animation-delay: 2000ms; }
+
+.seq-cta, .gp-cta, .hts-cta { animation: bbfCTABreath 3.6s ease-in-out infinite; }
+.seq-cta:hover, .gp-cta:hover, .hts-cta:hover { animation-play-state: paused; }
+
+.bhm-redline-text { animation: bbfAlertBreath 2.4s ease-in-out infinite; }
 </style>
 </head>
 <body>
