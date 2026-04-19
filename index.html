@@ -796,6 +796,147 @@ section[id], footer[id] { scroll-margin-top: 80px; }
   animation-delay: calc(var(--i, 0) * 400ms);
 }
 </style>
+<style id="surprise-layer">
+/* ============================================================================
+   SURPRISE LAYER (index.html) — additive polish, zero authored-content changes
+   Gold (#f5c800) + Purple (#6a0dad) palette preserved throughout.
+   ============================================================================ */
+
+/* ------ 1. Scroll progress rail — thin gold gradient at top of page ------ */
+.bbf-scroll-rail {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 2px; z-index: 10000;
+  background: transparent; pointer-events: none;
+}
+.bbf-scroll-rail::before {
+  content: "";
+  display: block; height: 100%;
+  width: var(--bbf-scroll, 0%);
+  background: linear-gradient(90deg,
+    rgba(106,13,173,0) 0%,
+    rgba(106,13,173,.55) 20%,
+    rgba(245,200,0,.85) 55%,
+    rgba(245,200,0,1) 100%);
+  box-shadow: 0 0 10px rgba(245,200,0,.6);
+  transition: width 120ms linear;
+}
+
+/* ------ 2. Sticky re-entry CTA — appears after user scrolls past hero ------ */
+.bbf-sticky-cta {
+  position: fixed;
+  bottom: calc(18px + env(safe-area-inset-bottom,0));
+  right: 18px;
+  z-index: 9999;
+  opacity: 0; pointer-events: none;
+  transform: translateY(14px) scale(.96);
+  transition: opacity .36s cubic-bezier(.4,0,.2,1), transform .36s cubic-bezier(.4,0,.2,1);
+
+  display: inline-flex; align-items: center; gap: .6rem;
+  padding: .85rem 1.25rem;
+  background: linear-gradient(180deg,#F2D769 0%,#E6C24F 25%,#D4AF37 55%,#A8862A 100%);
+  color: #060606;
+  font-family: 'Bebas Neue','Anton',sans-serif;
+  font-size: .9rem; letter-spacing: 2.5px;
+  text-transform: uppercase; text-decoration: none;
+  border-radius: 999px;
+  border: 1px solid rgba(242,215,105,.85);
+  box-shadow:
+    0 10px 32px rgba(245,200,0,.32),
+    0 2px 6px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.35);
+}
+.bbf-sticky-cta.bbf-visible { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+.bbf-sticky-cta:hover { transform: translateY(-2px) scale(1.02); filter: brightness(1.04); }
+.bbf-sticky-cta .bbf-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #060606; opacity: .85;
+  box-shadow: 0 0 0 0 rgba(6,6,6,.55);
+  animation: bbfStickyDot 1.8s ease-in-out infinite;
+}
+@keyframes bbfStickyDot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(6,6,6,.55); }
+  50%      { box-shadow: 0 0 0 5px rgba(6,6,6,0); }
+}
+@media (max-width: 480px) {
+  .bbf-sticky-cta {
+    left: 14px; right: 14px;
+    justify-content: center;
+    font-size: .85rem;
+  }
+}
+
+/* ------ 3. Scroll-reveal for major sections — gentle rise + fade ------ */
+.bbf-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1);
+  will-change: opacity, transform;
+}
+.bbf-reveal.bbf-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bbf-reveal { opacity: 1 !important; transform: none !important; }
+}
+
+/* ------ 4. Image lightbox for Akeem transformation photos ------ */
+.bbf-lightbox-trigger { cursor: zoom-in; transition: transform .2s; }
+.bbf-lightbox-trigger:hover { transform: scale(1.015); }
+.bbf-lightbox {
+  position: fixed; inset: 0; z-index: 100000;
+  background: rgba(6,6,6,.94);
+  display: none; align-items: center; justify-content: center;
+  padding: 2rem; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.bbf-lightbox.bbf-open { display: flex; animation: bbfLBFade .3s ease-out; }
+@keyframes bbfLBFade { from { opacity: 0; } to { opacity: 1; } }
+.bbf-lightbox-inner {
+  position: relative; max-width: 90vw; max-height: 88vh;
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid rgba(245,200,0,.35);
+  box-shadow: 0 0 80px rgba(245,200,0,.2), 0 30px 80px rgba(0,0,0,.7);
+  animation: bbfLBZoom .32s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes bbfLBZoom {
+  from { transform: scale(.9); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+.bbf-lightbox-inner img {
+  max-width: 90vw; max-height: 88vh; display: block; width: auto; height: auto;
+}
+.bbf-lightbox-caption {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 1rem 1.4rem;
+  background: linear-gradient(180deg, transparent, rgba(6,6,6,.85));
+  color: #f5c800;
+  font-family: 'Bebas Neue',sans-serif;
+  font-size: .85rem; letter-spacing: 2px;
+}
+.bbf-lightbox-close {
+  position: absolute; top: 10px; right: 10px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(6,6,6,.75);
+  border: 1px solid rgba(245,200,0,.4);
+  color: #f5c800; font-size: 22px; font-weight: 700;
+  display: grid; place-items: center; cursor: pointer;
+  transition: background .2s, transform .2s;
+}
+.bbf-lightbox-close:hover { background: rgba(245,200,0,.18); transform: scale(1.08); }
+
+/* ------ 5. Print stylesheet — clean PDF export ------ */
+@media print {
+  .bbf-scroll-rail, .bbf-sticky-cta, #nav, .ticker, .tk-track,
+  canvas, .shader-bg, .fiber-field, .neural-trail,
+  .world-blink, .threshold-flash, .audio-toggle,
+  #bio-ecg, .bio-ecg-standalone,
+  .skip-to-main { display: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+  section, footer { background: #fff !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; break-inside: avoid; }
+  a { color: #000 !important; text-decoration: underline; }
+  img { max-width: 100% !important; page-break-inside: avoid; }
+}
+</style>
 </head>
 <body>
 <a href="#main-content" class="skip-to-main">Skip to main content</a>
@@ -2697,5 +2838,156 @@ function pbRenderPositions(){
 })();
 </script>
 <!-- END PROMETHEAN ENGINE -->
+<script id="surprise-layer-js">
+/* Surprise layer runtime — sibling IIFE, guards around every hook */
+(function(){
+  'use strict';
+  var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var coarsePointer = matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+  // ---- 1. Scroll progress rail ----
+  try {
+    var rail = document.createElement('div');
+    rail.className = 'bbf-scroll-rail';
+    rail.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(rail);
+    function updateRail(){
+      var h = document.documentElement;
+      var pct = h.scrollHeight > h.clientHeight
+        ? (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100
+        : 0;
+      rail.style.setProperty('--bbf-scroll', pct.toFixed(2) + '%');
+    }
+    addEventListener('scroll', updateRail, { passive: true });
+    updateRail();
+  } catch(e){}
+
+  // ---- 2. Sticky re-entry CTA ----
+  try {
+    var hero = document.querySelector('#hero');
+    if (hero) {
+      var sticky = document.createElement('a');
+      sticky.href = '#pathfinder';
+      sticky.className = 'bbf-sticky-cta';
+      sticky.setAttribute('aria-label', 'Start My Path');
+      sticky.innerHTML = '<span class="bbf-dot" aria-hidden="true"></span>Start My Path &rarr;';
+      document.body.appendChild(sticky);
+
+      var heroObs = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          // Show sticky when hero scrolls OUT of view
+          if (e.isIntersecting) sticky.classList.remove('bbf-visible');
+          else sticky.classList.add('bbf-visible');
+        });
+      }, { threshold: 0.1 });
+      heroObs.observe(hero);
+
+      // Smooth scroll to pathfinder when tapped (handles polyfill gaps)
+      sticky.addEventListener('click', function(ev){
+        var target = document.querySelector('#pathfinder');
+        if (target) {
+          ev.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+  } catch(e){}
+
+  // ---- 3. Scroll-reveal for major sections ----
+  try {
+    var revealSelectors = [
+      '#services', '#founder', '#programs', '#nutrition',
+      '#testimonials', '#explorer', '#playbooks', '#specialized',
+      '#transformation', '#pathfinder', '#app-download', '#contact'
+    ];
+    var targets = [];
+    revealSelectors.forEach(function(sel){
+      var el = document.querySelector(sel);
+      if (el) { el.classList.add('bbf-reveal'); targets.push(el); }
+    });
+    if (targets.length && !reduceMotion) {
+      var revObs = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if (e.isIntersecting) {
+            e.target.classList.add('bbf-in');
+            revObs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
+      targets.forEach(function(t){ revObs.observe(t); });
+      // Fail-open: if IntersectionObserver misses something, force reveal after 2s
+      setTimeout(function(){
+        targets.forEach(function(t){ t.classList.add('bbf-in'); });
+      }, 4000);
+    } else {
+      targets.forEach(function(t){ t.classList.add('bbf-in'); });
+    }
+  } catch(e){}
+
+  // ---- 4. Image lightbox for Akeem transformation photos ----
+  try {
+    var akeem = document.querySelectorAll('img[src*="akeem-"]');
+    if (akeem.length) {
+      akeem.forEach(function(img){ img.classList.add('bbf-lightbox-trigger'); });
+
+      var lb = document.createElement('div');
+      lb.className = 'bbf-lightbox';
+      lb.setAttribute('role', 'dialog');
+      lb.setAttribute('aria-modal', 'true');
+      lb.setAttribute('aria-hidden', 'true');
+      lb.innerHTML =
+        '<div class="bbf-lightbox-inner">' +
+          '<img alt="" />' +
+          '<div class="bbf-lightbox-caption"></div>' +
+          '<button class="bbf-lightbox-close" aria-label="Close">&times;</button>' +
+        '</div>';
+      document.body.appendChild(lb);
+
+      var lbImg = lb.querySelector('img');
+      var lbCap = lb.querySelector('.bbf-lightbox-caption');
+      var lbClose = lb.querySelector('.bbf-lightbox-close');
+
+      function openLB(src, alt){
+        lbImg.src = src; lbImg.alt = alt || '';
+        lbCap.textContent = alt || '';
+        lb.classList.add('bbf-open');
+        lb.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLB(){
+        lb.classList.remove('bbf-open');
+        lb.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+      akeem.forEach(function(img){
+        img.addEventListener('click', function(){ openLB(img.src, img.alt); });
+      });
+      lbClose.addEventListener('click', closeLB);
+      lb.addEventListener('click', function(e){ if (e.target === lb) closeLB(); });
+      document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && lb.classList.contains('bbf-open')) closeLB(); });
+    }
+  } catch(e){}
+
+  // ---- 5. Magnetic primary CTAs (desktop only, fine pointer) ----
+  try {
+    if (!coarsePointer && !reduceMotion) {
+      var magnets = document.querySelectorAll('.btn-y, .btn-o, .prog-cta');
+      magnets.forEach(function(btn){
+        var r;
+        btn.addEventListener('pointerenter', function(){ r = btn.getBoundingClientRect(); });
+        btn.addEventListener('pointermove', function(e){
+          if (!r) r = btn.getBoundingClientRect();
+          var x = (e.clientX - r.left - r.width/2) / (r.width/2);
+          var y = (e.clientY - r.top - r.height/2) / (r.height/2);
+          btn.style.transform = 'translate(' + (x*5).toFixed(1) + 'px,' + (y*4).toFixed(1) + 'px)';
+        });
+        btn.addEventListener('pointerleave', function(){ btn.style.transform = ''; r = null; });
+      });
+    }
+  } catch(e){}
+
+  console.log('%c✨ BBF surprise layer online','color:#f5c800;font-family:monospace;');
+})();
+</script>
 </body>
 </html>
