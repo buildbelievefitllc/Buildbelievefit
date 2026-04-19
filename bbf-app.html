@@ -2527,6 +2527,49 @@ html, body { background: #000 !important; }
 .scr.on { z-index: 10 !important; }
 #splash { z-index: 999 !important; }
 </style>
+<style id="promethean-mobile-shield">
+/* ===== MOBILE ACCESSIBILITY SHIELD (bbf-app.html) =====
+   App is already viewport-fixed; kill engine visuals on phones so the
+   app UI remains crisp, touch-friendly, and battery-safe. */
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  /* Tear down all engine overlays on touch/small */
+  #audio-toggle, .audio-toggle,
+  #bio-ecg, .bio-ecg-standalone,
+  #neural-trail, .neural-trail,
+  #thresh-flash, .threshold-flash,
+  #world-blink, .world-blink,
+  #gaze, .gaze { display: none !important; }
+  /* When .rm is set, hide the shader + fiber canvases too */
+  html.rm .shader-bg, html.rm .fiber-field { display: none !important; }
+  /* Remove glass blur on screens — expensive on phones, also ensures app UI is fully opaque and legible */
+  #splash, #auth, #app, #restricted {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  #splash   { background: var(--purp) !important; }
+  #auth     { background: var(--blk)  !important; }
+  #app      { background: var(--blk)  !important; }
+  #restricted { background: var(--blk) !important; }
+  html, body { background: var(--blk) !important; }
+  /* Tap targets */
+  a, button, .chip, input[type="button"], input[type="submit"] {
+    touch-action: manipulation;
+  }
+  body { -webkit-text-size-adjust: 100%; }
+}
+</style>
+<script id="promethean-mobile-guard">
+/* Kill the Promethean engine on touch devices / small screens before it boots */
+(function(){
+  try {
+    var small = matchMedia('(max-width: 900px)').matches;
+    var touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+    if(small || touch){
+      document.documentElement.classList.add('rm'); /* engine IIFEs early-return on .rm */
+    }
+  } catch(e){}
+})();
+</script>
 </head>
 <body>
 
