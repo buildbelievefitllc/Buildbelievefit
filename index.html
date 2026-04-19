@@ -591,53 +591,52 @@ section, footer {
 
 </style>
 <style id="promethean-mobile-shield">
-/* ===== MOBILE ACCESSIBILITY SHIELD (index.html) ===== */
-@media (max-width: 900px), (hover: none) and (pointer: coarse) {
-  /* Kill cursor-dependent + corner overlays that hurt phone UX */
-  #audio-toggle, .audio-toggle,
-  #bio-ecg, .bio-ecg-standalone,
-  #neural-trail, .neural-trail,
-  #gaze, .gaze { display: none !important; }
-  /* When engine is disabled (html.rm), tear down bg canvases too */
-  html.rm .shader-bg, html.rm .fiber-field { display: none !important; }
-  /* Glass is expensive on phones — strip blur, keep solid bg so content is legible */
-  section, footer, nav, #nav, .ticker, .ticker.oracle {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background-color: rgba(10,10,10,0.96) !important;
-  }
-  #hero { background-color: rgba(6,6,6,0.94) !important; }
-  /* Reassert solid page bg so no transparent void under any section */
-  html, body { background: #060606 !important; }
-  /* Tap targets ≥ 44×44 per WCAG */
-  a, button, .chip, .goal-b, .tier-btn, .cta-nav, .nav-link, input[type="button"], input[type="submit"] {
+/* ===== MOBILE ACCESSIBILITY (index.html) — a11y + sizing only, animations stay ===== */
+
+/* Touch-friendly tap targets everywhere */
+@media (hover: none) and (pointer: coarse) {
+  a, button, .chip, .goal-b, .tier-btn, .cta-nav,
+  input[type="button"], input[type="submit"], select {
     min-height: 44px;
     touch-action: manipulation;
   }
-  /* Base font scale for readability */
-  body { font-size: 16px; -webkit-text-size-adjust: 100%; }
-  /* Safe-area padding for notched devices */
-  body { padding-left: env(safe-area-inset-left,0); padding-right: env(safe-area-inset-right,0); }
-  #nav { padding-top: calc(.8rem + env(safe-area-inset-top,0)); }
 }
-/* Very small screens: further reduce density */
+
+/* Mobile-specific sizing + safe area */
+@media (max-width: 900px) {
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    padding-left: env(safe-area-inset-left,0);
+    padding-right: env(safe-area-inset-right,0);
+  }
+  #nav { padding-top: calc(.8rem + env(safe-area-inset-top,0)); }
+  footer { padding-bottom: calc(2rem + env(safe-area-inset-bottom,0)); }
+
+  /* Perf-tune glass — smaller blur radius saves GPU without killing the look */
+  section, footer, nav, #nav {
+    backdrop-filter: blur(6px) saturate(1.05) !important;
+    -webkit-backdrop-filter: blur(6px) saturate(1.05) !important;
+  }
+
+  /* Standalone bio-ecg HUD clashes with nav on narrow screens — shrink + move to bottom */
+  #bio-ecg.bio-ecg-standalone,
+  canvas.bio-ecg-standalone {
+    width: 160px !important;
+    height: 26px !important;
+    top: auto !important;
+    right: 10px !important;
+    bottom: calc(10px + env(safe-area-inset-bottom,0)) !important;
+    opacity: 0.7 !important;
+  }
+}
+
+/* Narrow phones: tighten section padding so copy doesn't hug the edges */
 @media (max-width: 420px) {
-  .hero-h, .sec-h, h1, h2 { line-height: 1.05; }
   .wrap, section { padding-left: 1.1rem !important; padding-right: 1.1rem !important; }
+  h1, h2 { line-height: 1.08; }
+  #bio-ecg.bio-ecg-standalone, canvas.bio-ecg-standalone { display: none !important; }
 }
 </style>
-<script id="promethean-mobile-guard">
-/* Kill the Promethean engine on touch devices / small screens before it boots */
-(function(){
-  try {
-    var small = matchMedia('(max-width: 900px)').matches;
-    var touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
-    if(small || touch){
-      document.documentElement.classList.add('rm'); /* engine IIFEs early-return on .rm */
-    }
-  } catch(e){}
-})();
-</script>
 </head>
 <body>
 
