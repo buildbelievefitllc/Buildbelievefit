@@ -637,8 +637,77 @@ section, footer {
   #bio-ecg.bio-ecg-standalone, canvas.bio-ecg-standalone { display: none !important; }
 }
 </style>
+<!-- ===== SEO + SOCIAL + A11Y ENHANCEMENTS ===== -->
+<meta name="author" content="Akeem Brown" />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://buildbelievefit.fitness/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Build Believe Fit" />
+<meta property="og:title" content="Build Believe Fit — Universal Human Performance Architecture" />
+<meta property="og:description" content="Founder-verified clinical movement science by Akeem Brown, NASM-CPT. Sovereign protocols for everyday athletes, executives, and high-demand professionals." />
+<meta property="og:url" content="https://buildbelievefit.fitness/" />
+<meta property="og:image" content="https://buildbelievefit.fitness/bbf-photo.jpg" />
+<meta property="og:image:alt" content="Akeem Brown, Founder of Build Believe Fit" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Build Believe Fit — Universal Human Performance" />
+<meta name="twitter:description" content="Founder-verified protocols by Akeem Brown, NASM-CPT. Clinical movement science for the high-demand human." />
+<meta name="twitter:image" content="https://buildbelievefit.fitness/bbf-photo.jpg" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="BBF" />
+<link rel="apple-touch-icon" href="bbf-icon.jpeg" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "ProfessionalService",
+      "@id": "https://buildbelievefit.fitness/#business",
+      "name": "Build Believe Fit LLC",
+      "alternateName": "BBF",
+      "url": "https://buildbelievefit.fitness/",
+      "logo": "https://buildbelievefit.fitness/bbf-icon.jpeg",
+      "image": "https://buildbelievefit.fitness/bbf-photo.jpg",
+      "description": "Clinical movement science and adaptive training for everyday athletes, executives, first responders, and high-demand professionals.",
+      "founder": { "@id": "https://buildbelievefit.fitness/#founder" },
+      "areaServed": { "@type": "Country", "name": "United States" },
+      "priceRange": "$147 - $2,997"
+    },
+    {
+      "@type": "Person",
+      "@id": "https://buildbelievefit.fitness/#founder",
+      "name": "Akeem Brown",
+      "jobTitle": "Founder, Head Coach",
+      "worksFor": { "@id": "https://buildbelievefit.fitness/#business" },
+      "hasCredential": [
+        { "@type": "EducationalOccupationalCredential", "credentialCategory": "certification", "name": "NASM-CPT" }
+      ],
+      "image": "https://buildbelievefit.fitness/bbf-photo.jpg"
+    }
+  ]
+}
+</script>
+<style id="a11y-polish">
+.skip-to-main {
+  position: absolute; left: -9999px; top: 0; z-index: 10000;
+  background: #f5c800; color: #060606;
+  padding: .75rem 1.2rem;
+  font-family: 'Bebas Neue', sans-serif; font-weight: 700; letter-spacing: 2px;
+  text-decoration: none; border-radius: 0 0 8px 0;
+}
+.skip-to-main:focus { left: 0; outline: 2px solid #fff; outline-offset: 2px; }
+:focus-visible { outline: 2px solid #f5c800 !important; outline-offset: 2px !important; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  html { scroll-behavior: auto !important; }
+}
+section[id], footer[id] { scroll-margin-top: 80px; }
+</style>
 </head>
 <body>
+<a href="#main-content" class="skip-to-main">Skip to main content</a>
+
 
 <!-- NAV -->
 <nav id="nav">
@@ -699,6 +768,7 @@ section, footer {
 </div>
 
 <!-- HERO -->
+<span id="main-content" tabindex="-1"></span>
 <section id="hero">
   <div class="hero-bg">BBF</div>
   <div class="hero-in">
@@ -722,7 +792,7 @@ section, footer {
     </div>
     <div class="hero-img-wrap">
       <div class="hero-img">
-        <img src="bbf-photo.jpg" alt="Akeem Brown — Build Believe Fit" loading="eager"/>
+        <img src="bbf-photo.jpg" alt="Akeem Brown — Build Believe Fit" loading="eager" fetchpriority="high" decoding="async"/>
       </div>
       <div class="hero-accent" data-lang-key="hero-accent">&#x1F4AA;<br>ELITE<br>STRENGTH &amp;<br>MOVEMENT</div>
     </div>
@@ -1135,7 +1205,7 @@ section, footer {
       <div style="position:relative">
         <div style="position:absolute;top:1rem;left:1rem;z-index:3;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.3rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:3px;color:rgba(255,255,255,.55)" data-lang-key="trans-step1">STEP 1</div>
         <div style="border-radius:16px;overflow:hidden;border:2px solid var(--gry3);aspect-ratio:3/4;background:var(--gry2)">
-          <img src="akeem-before.png" alt="Akeem Brown — before the journey" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(30%) brightness(.85)"/>
+          <img src="akeem-before.png" alt="Akeem Brown — before the journey" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(30%) brightness(.85)"/>
         </div>
         <div style="margin-top:.9rem;padding:.75rem .9rem;background:var(--gry2);border:1px solid var(--gry3);border-radius:10px;border-left:3px solid rgba(255,255,255,.2)">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:.2rem" data-lang-key="trans-card1-title">The Starting Point</div>
@@ -1147,7 +1217,7 @@ section, footer {
       <div style="position:relative;transform:translateY(-12px)">
         <div style="position:absolute;top:1rem;left:1rem;z-index:3;background:rgba(59,130,246,.9);border-radius:8px;padding:.3rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:3px;color:#fff" data-lang-key="trans-step2">STEP 2</div>
         <div style="border-radius:16px;overflow:hidden;border:2px solid rgba(59,130,246,.5);box-shadow:0 0 40px rgba(59,130,246,.15);aspect-ratio:3/4;background:var(--gry2)">
-          <img src="akeem-nasm.jpg" alt="Akeem Brown — NASM Certified Personal Trainer" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top center"/>
+          <img src="akeem-nasm.jpg" alt="Akeem Brown — NASM Certified Personal Trainer" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:top center"/>
         </div>
         <div style="margin-top:.9rem;padding:.75rem .9rem;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(29,78,216,.08));border:1px solid rgba(59,130,246,.3);border-radius:10px;border-left:3px solid rgba(59,130,246,.6)">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:#60a5fa;margin-bottom:.2rem" data-lang-key="trans-card2-title">The System Discovery</div>
@@ -1170,7 +1240,7 @@ section, footer {
       <div style="position:relative">
         <div style="position:absolute;top:1rem;left:1rem;z-index:3;background:rgba(245,200,0,.92);border-radius:8px;padding:.3rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:3px;color:#060606" data-lang-key="trans-step3">STEP 3</div>
         <div style="border-radius:16px;overflow:hidden;border:2px solid rgba(245,200,0,.4);box-shadow:0 0 40px rgba(245,200,0,.12);aspect-ratio:3/4;background:var(--gry2)">
-          <img src="akeem-after.png" alt="Akeem Brown — after transformation" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top center"/>
+          <img src="akeem-after.png" alt="Akeem Brown — after transformation" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:top center"/>
         </div>
         <div style="margin-top:.9rem;padding:.75rem .9rem;background:linear-gradient(135deg,rgba(106,13,173,.15),rgba(74,8,128,.08));border:1px solid rgba(106,13,173,.3);border-radius:10px;border-left:3px solid var(--yel)">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:var(--yel);margin-bottom:.2rem" data-lang-key="trans-card3-title">The Architecture Lives</div>

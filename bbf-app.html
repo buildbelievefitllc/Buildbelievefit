@@ -2550,10 +2550,29 @@ html, body { background: #000 !important; }
   }
 }
 </style>
+<style id="a11y-polish">
+.skip-to-main {
+  position: absolute; left: -9999px; top: 0; z-index: 10000;
+  background: #f5c800; color: #060606;
+  padding: .75rem 1.2rem;
+  font-family: 'Bebas Neue', sans-serif; font-weight: 700; letter-spacing: 2px;
+  text-decoration: none; border-radius: 0 0 8px 0;
+}
+.skip-to-main:focus { left: 0; outline: 2px solid #fff; outline-offset: 2px; }
+:focus-visible { outline: 2px solid #f5c800 !important; outline-offset: 2px !important; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  html { scroll-behavior: auto !important; }
+}
+section[id], footer[id] { scroll-margin-top: 80px; }
+</style>
 </head>
 <body>
+<a href="#main-content" class="skip-to-main">Skip to main content</a>
+
 
 <!-- ═══ SPLASH ═══ -->
+<span id="main-content" tabindex="-1"></span>
 <div class="scr on" id="splash">
   <div class="sring"><div class="sinn">BBF</div></div>
   <div class="sw">Build<span class="y">Believe</span>Fit</div>
