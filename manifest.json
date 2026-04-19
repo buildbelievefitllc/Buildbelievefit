@@ -12,21 +12,21 @@
   "splash_pages": null,
   "icons": [
     {
-      "src": "bbf-icon.jpeg",
+      "src": "BBF-APP%20enter%20img.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "bbf-icon.jpeg",
+      "src": "BBF-APP%20enter%20img.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "bbf-icon.jpeg",
+      "src": "BBF-APP%20enter%20img.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
@@ -44,28 +44,28 @@
       "short_name": "Program",
       "description": "View today's personalized workout",
       "url": "/bbf-app.html",
-      "icons": [{ "src": "bbf-icon.jpeg", "sizes": "192x192" }]
+      "icons": [{ "src": "BBF-APP%20enter%20img.png", "sizes": "192x192" }]
     },
     {
       "name": "Nutrition Plan",
       "short_name": "Nutrition",
       "description": "View your 7-day meal plan",
       "url": "/bbf-app.html",
-      "icons": [{ "src": "bbf-icon.jpeg", "sizes": "192x192" }]
+      "icons": [{ "src": "BBF-APP%20enter%20img.png", "sizes": "192x192" }]
     },
     {
       "name": "Masterclass Vault",
       "short_name": "Masterclass",
       "description": "Human Performance Masterclass modules",
       "url": "/bbf-app.html",
-      "icons": [{ "src": "bbf-icon.jpeg", "sizes": "192x192" }]
+      "icons": [{ "src": "BBF-APP%20enter%20img.png", "sizes": "192x192" }]
     },
     {
       "name": "Book a Session",
       "short_name": "Book",
       "description": "Book a session with Akeem",
       "url": "/bbf-app.html",
-      "icons": [{ "src": "bbf-icon.jpeg", "sizes": "192x192" }]
+      "icons": [{ "src": "BBF-APP%20enter%20img.png", "sizes": "192x192" }]
     }
   ],
   "categories": ["health", "fitness", "lifestyle", "education"],

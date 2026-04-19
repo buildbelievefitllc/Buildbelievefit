@@ -2963,6 +2963,58 @@ body.bbf-pantheon-ok .bbf-dust { display: block; }
   #splash::before, #splash::after { width: min(220px, 70%); }
   .vault-hero-title::before { width: 100px; top: -18px; }
 }
+
+/* ---- Vault Seal image — replaces the old .sring/.sinn badge ---- */
+#splash .sring {
+  width: 170px; height: 170px;
+  border: none !important;
+  animation: none !important;
+  padding: 0;
+  background: transparent;
+  box-shadow:
+    0 0 0 1px rgba(245,200,0,.18),
+    0 0 60px rgba(245,200,0,.28),
+    0 10px 50px rgba(0,0,0,.45);
+  border-radius: 50%;
+}
+#splash .sring::before {
+  inset: -12px;
+  border-color: rgba(245,200,0,.28);
+}
+#splash .sring::after {
+  content: "";
+  position: absolute; inset: -32px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,200,0,.28) 0%, rgba(245,200,0,.10) 35%, transparent 65%);
+  filter: blur(8px);
+  z-index: -1;
+  pointer-events: none;
+  animation: bbfSealAura 5.2s ease-in-out infinite;
+}
+@keyframes bbfSealAura {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50%      { opacity: .95; transform: scale(1.05); }
+}
+.bbf-vault-seal {
+  width: 100% !important; height: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,.55)) drop-shadow(0 0 14px rgba(245,200,0,.32));
+  font-size: 0;
+  color: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  #splash .sring::after { animation: none !important; }
+}
+@media (max-width: 480px) {
+  #splash .sring { width: 140px; height: 140px; }
+  #splash .sring::after { inset: -24px; }
+}
 </style>
 <style id="ultra-instinct-layer">
 /* ============================================================================
@@ -3246,7 +3298,7 @@ body.bbf-kairos .bbf-kairos-target {
 <!-- ═══ SPLASH ═══ -->
 <span id="main-content" tabindex="-1"></span>
 <div class="scr on" id="splash">
-  <div class="sring"><div class="sinn">BBF</div></div>
+  <div class="sring"><img class="sinn bbf-vault-seal" src="BBF-APP%20enter%20img.png" alt="Build Believe Fit International — Vault Access" loading="eager" fetchpriority="high" decoding="async"></div>
   <div class="sw">Build<span class="y">Believe</span>Fit</div>
   <div class="stag" data-lang-key="app-splash-tag">Elite Strength &amp; Movement</div>
   <button id="ebtn" onclick="SS('auth')" data-lang-key="app-splash-enter">ENTER &#8594;</button>
