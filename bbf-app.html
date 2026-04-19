@@ -2964,6 +2964,280 @@ body.bbf-pantheon-ok .bbf-dust { display: block; }
   .vault-hero-title::before { width: 100px; top: -18px; }
 }
 </style>
+<style id="ultra-instinct-layer">
+/* ============================================================================
+   ULTRA INSTINCT LAYER (bbf-app.html)
+   Command Palette (⌘K) + Splash Ignition + Magnetic wordmark + Kairos
+   Vault-flavored. All additive. Palette locked. reduced-motion honored.
+   ============================================================================ */
+
+/* ---------- 1. COMMAND PALETTE ---------- */
+.bbf-cmdk-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(6,6,10,.60);
+  backdrop-filter: blur(10px) saturate(1.1);
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  z-index: 9997;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s cubic-bezier(.2,.8,.2,1);
+}
+.bbf-cmdk-backdrop.bbf-open { opacity: 1; pointer-events: auto; }
+
+.bbf-cmdk {
+  position: fixed;
+  top: 14vh; left: 50%;
+  transform: translateX(-50%) translateY(-14px) scale(.98);
+  width: min(600px, 92vw);
+  max-height: 66vh;
+  z-index: 9998;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, rgba(18,6,34,.96) 0%, rgba(10,6,18,.98) 100%);
+  border: 1px solid rgba(245,200,0,.42);
+  border-radius: 14px;
+  box-shadow:
+    0 24px 80px rgba(0,0,0,.6),
+    0 0 0 1px rgba(0,0,0,.4),
+    0 0 36px rgba(245,200,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.06);
+  overflow: hidden;
+  opacity: 0; pointer-events: none;
+  transition:
+    opacity .22s cubic-bezier(.2,.8,.2,1),
+    transform .28s cubic-bezier(.2,.8,.2,1);
+}
+.bbf-cmdk.bbf-open {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+.bbf-cmdk-head {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .9rem 1rem;
+  border-bottom: 1px solid rgba(245,200,0,.22);
+}
+.bbf-cmdk-head::before {
+  content: "\03A9";
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem; color: #f5c800;
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(245,200,0,.4);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.bbf-cmdk-input {
+  flex: 1;
+  background: transparent;
+  border: none; outline: none;
+  color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+}
+.bbf-cmdk-input::placeholder { color: rgba(255,255,255,.35); letter-spacing: 2px; }
+.bbf-cmdk-kbd {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .6rem; letter-spacing: 1.5px;
+  color: rgba(255,255,255,.5);
+  padding: .25rem .5rem;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 4px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.bbf-cmdk-list {
+  flex: 1; overflow-y: auto;
+  padding: .4rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245,200,0,.35) transparent;
+}
+.bbf-cmdk-list::-webkit-scrollbar { width: 6px; }
+.bbf-cmdk-list::-webkit-scrollbar-thumb { background: rgba(245,200,0,.35); border-radius: 3px; }
+.bbf-cmdk-group {
+  padding: .5rem .6rem .25rem;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .6rem; letter-spacing: 3px;
+  color: rgba(245,200,0,.6);
+  text-transform: uppercase;
+}
+.bbf-cmdk-item {
+  display: flex; align-items: center; gap: .8rem;
+  padding: .7rem .8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(255,255,255,.88);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: .88rem;
+  transition: background .15s, color .15s, transform .15s;
+}
+.bbf-cmdk-item .bbf-cmdk-ico {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  background: rgba(106,13,173,.25);
+  border: 1px solid rgba(245,200,0,.25);
+  border-radius: 6px;
+  font-size: .95rem;
+  flex-shrink: 0;
+}
+.bbf-cmdk-item .bbf-cmdk-txt { flex: 1; display: flex; flex-direction: column; }
+.bbf-cmdk-item .bbf-cmdk-sub { font-size: .7rem; color: rgba(255,255,255,.5); letter-spacing: .5px; }
+.bbf-cmdk-item .bbf-cmdk-arrow { opacity: 0; color: #f5c800; font-family: 'Bebas Neue', sans-serif; transition: opacity .15s, transform .15s; }
+.bbf-cmdk-item.bbf-active,
+.bbf-cmdk-item:hover {
+  background: linear-gradient(90deg, rgba(245,200,0,.14) 0%, rgba(106,13,173,.20) 100%);
+  color: #fff; transform: translateX(2px);
+}
+.bbf-cmdk-item.bbf-active .bbf-cmdk-arrow,
+.bbf-cmdk-item:hover .bbf-cmdk-arrow { opacity: 1; transform: translateX(2px); }
+.bbf-cmdk-empty {
+  padding: 1.6rem 1rem;
+  text-align: center;
+  color: rgba(255,255,255,.4);
+  font-family: 'Inter', sans-serif;
+  font-size: .85rem;
+}
+.bbf-cmdk-hint {
+  display: flex; gap: 1rem; justify-content: center;
+  padding: .55rem 1rem;
+  border-top: 1px solid rgba(245,200,0,.14);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .55rem; letter-spacing: 2px;
+  color: rgba(255,255,255,.35);
+  text-transform: uppercase;
+}
+
+/* ---------- 2. SPLASH IGNITION SEQUENCE ---------- */
+@keyframes bbfVaultIgnitionFade {
+  from { opacity: 0; transform: translateY(8px); filter: blur(3px); }
+  to   { opacity: 1; transform: translateY(0);   filter: blur(0);    }
+}
+@keyframes bbfVaultIgnitionRing {
+  from { opacity: 0; transform: scale(.82) rotate(-20deg); }
+  to   { opacity: 1; transform: scale(1)   rotate(0);      }
+}
+@keyframes bbfVaultIgnitionLaurel {
+  from { opacity: 0; transform: translateY(-50%) scale(.6); }
+  to   { opacity: .95; transform: translateY(-50%) scale(1); }
+}
+body.bbf-vault-igniting #splash .sring { opacity: 0; animation: bbfVaultIgnitionRing 900ms cubic-bezier(.2,.8,.2,1) 150ms forwards; }
+body.bbf-vault-igniting #splash .sw    { opacity: 0; animation: bbfVaultIgnitionFade 700ms cubic-bezier(.2,.8,.2,1) 650ms forwards; }
+body.bbf-vault-igniting #splash .stag  { opacity: 0; animation: bbfVaultIgnitionFade 700ms cubic-bezier(.2,.8,.2,1) 1050ms forwards; }
+body.bbf-vault-igniting #splash #ebtn  { opacity: 0; animation: bbfVaultIgnitionFade 800ms cubic-bezier(.2,.8,.2,1) 1350ms forwards; }
+body.bbf-vault-igniting #splash::before,
+body.bbf-vault-igniting #splash::after { opacity: 0 !important; animation: bbfVaultIgnitionFade 900ms cubic-bezier(.2,.8,.2,1) 1200ms forwards !important; }
+body.bbf-vault-igniting #splash .sw::before,
+body.bbf-vault-igniting #splash .sw::after {
+  animation: bbfVaultIgnitionLaurel 720ms cubic-bezier(.2,.8,.2,1) 800ms forwards;
+  opacity: 0;
+}
+.bbf-vault-beam {
+  position: fixed; inset: 0;
+  z-index: 998;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 60% at 50% 120%, rgba(245,200,0,.22) 0%, transparent 60%),
+    radial-gradient(80% 40% at 50% -10%, rgba(106,13,173,.35) 0%, transparent 55%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: bbfVaultBeam 1600ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+@keyframes bbfVaultBeam {
+  0%   { opacity: 0; }
+  35%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- 3. MAGNETIC SPLASH WORDMARK + CTA ---------- */
+#splash .sw,
+#ebtn,
+.tbu, .tbav {
+  transform: translate3d(var(--bbf-mag-x,0), var(--bbf-mag-y,0), 0) rotateX(var(--bbf-tilt-x,0deg)) rotateY(var(--bbf-tilt-y,0deg));
+  transform-style: preserve-3d;
+  transition: transform .28s cubic-bezier(.2,.8,.2,1);
+  will-change: transform;
+}
+#splash .sring {
+  transform: translate3d(var(--bbf-mag-x,0), var(--bbf-mag-y,0), 0);
+  transition: transform .32s cubic-bezier(.2,.8,.2,1);
+  will-change: transform;
+}
+@media (hover: none) and (pointer: coarse) {
+  #splash .sw, #ebtn, .tbu, .tbav, #splash .sring { transform: none !important; }
+}
+
+/* ---------- 4. KAIROS — TIME DILATION ON INTENT ---------- */
+body.bbf-kairos #splash,
+body.bbf-kairos #auth,
+body.bbf-kairos #app,
+body.bbf-kairos #restricted,
+body.bbf-kairos .tbar,
+body.bbf-kairos .bn,
+body.bbf-kairos .audio-toggle {
+  transition: filter .32s ease-out, opacity .32s ease-out;
+}
+body.bbf-kairos #splash > *,
+body.bbf-kairos #auth > *,
+body.bbf-kairos #restricted > * {
+  filter: blur(2.2px) saturate(.82);
+  opacity: .62;
+  transition: filter .32s ease-out, opacity .32s ease-out;
+}
+.bbf-kairos-target,
+body.bbf-kairos .bbf-kairos-target {
+  position: relative;
+  z-index: 60;
+  transform: scale(1.045) !important;
+  box-shadow:
+    0 0 0 2px rgba(245,200,0,.55),
+    0 8px 32px rgba(245,200,0,.32),
+    0 0 48px rgba(245,200,0,.28) !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+.bbf-kairos-tag {
+  position: absolute;
+  left: 50%; top: calc(100% + 8px);
+  transform: translateX(-50%) translateY(-4px);
+  padding: .3rem .6rem;
+  background: rgba(6,6,6,.92);
+  border: 1px solid rgba(245,200,0,.55);
+  border-radius: 4px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .58rem; letter-spacing: 3px;
+  color: #f5c800;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .22s, transform .22s;
+  pointer-events: none;
+  z-index: 61;
+}
+.bbf-kairos-target .bbf-kairos-tag {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  body.bbf-vault-igniting #splash .sring,
+  body.bbf-vault-igniting #splash .sw,
+  body.bbf-vault-igniting #splash .stag,
+  body.bbf-vault-igniting #splash #ebtn { animation: none !important; opacity: 1 !important; }
+  .bbf-vault-beam { display: none !important; }
+  #splash .sw, #ebtn, .tbu, .tbav, #splash .sring { transform: none !important; }
+  body.bbf-kairos #splash > *,
+  body.bbf-kairos #auth > *,
+  body.bbf-kairos #restricted > * { filter: none; opacity: 1; }
+  .bbf-kairos-target { transform: none !important; }
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 680px) {
+  .bbf-cmdk { top: 6vh; max-height: 82vh; width: 94vw; }
+  .bbf-cmdk-hint { display: none; }
+  body.bbf-kairos #splash > *,
+  body.bbf-kairos #auth > *,
+  body.bbf-kairos #restricted > * { filter: blur(1.6px); opacity: .72; }
+}
+</style>
 </head>
 <body>
 <a href="#main-content" class="skip-to-main">Skip to main content</a>
@@ -8507,6 +8781,254 @@ window.onload = function() {
   } catch(e){}
 
   console.log('%c\u03A9 Pantheon Mode (vault) — active', 'color:#f5c800;font-family:monospace;font-weight:bold;');
+})();
+</script>
+<script id="ultra-instinct-layer-js">
+/* Ultra Instinct runtime (bbf-app.html) — Command Palette + Splash Ignition + Magnetic + Kairos */
+(function(){
+  'use strict';
+  var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+  /* ============ 1. VAULT SPLASH IGNITION ============ */
+  try {
+    document.body.classList.add('bbf-vault-igniting');
+    if (!reduceMotion) {
+      var beam = document.createElement('div');
+      beam.className = 'bbf-vault-beam';
+      beam.setAttribute('aria-hidden','true');
+      document.body.appendChild(beam);
+      setTimeout(function(){ if (beam.parentNode) beam.parentNode.removeChild(beam); }, 1800);
+    }
+    setTimeout(function(){ document.body.classList.remove('bbf-vault-igniting'); }, 2400);
+  } catch(e){}
+
+  /* ============ 2. COMMAND PALETTE ============ */
+  function safeSS(id){ try { if (typeof SS === 'function') SS(id); } catch(e){} }
+  function safeLang(code){ try { if (typeof BBF_LANG !== 'undefined' && BBF_LANG.set) BBF_LANG.set(code); } catch(e){} }
+  function toggleAudio(){
+    try {
+      var b = document.querySelector('.audio-toggle');
+      if (b && b.click) b.click();
+    } catch(e){}
+  }
+  function goBack(){
+    try { history.back(); } catch(e){}
+  }
+
+  var COMMANDS = [
+    { group: 'Screens',  icon: '\u26A1',    name: 'Splash',       sub: 'Return to entry',       action: function(){ safeSS('splash'); } },
+    { group: 'Screens',  icon: '\u{1F510}', name: 'Sign In',      sub: 'Authentication',         action: function(){ safeSS('auth'); } },
+    { group: 'Screens',  icon: '\u{1F4F2}', name: 'App / Vault',  sub: 'Main interface',         action: function(){ safeSS('app'); } },
+    { group: 'Actions',  icon: '\u{1F50A}', name: 'Toggle Audio', sub: 'Silent / score',         action: toggleAudio },
+    { group: 'Actions',  icon: '\u{1F310}', name: 'Public Site',  sub: 'buildbelievefit.com',    action: function(){ location.href = 'index.html'; } },
+    { group: 'Actions',  icon: '\u2B05',    name: 'Back',         sub: 'Previous history',       action: goBack },
+    { group: 'Language', icon: 'EN', name: 'English',        sub: 'Switch to English',          action: function(){ safeLang('en'); } },
+    { group: 'Language', icon: 'ES', name: 'Espa\u00F1ol',   sub: 'Cambiar a espa\u00F1ol',     action: function(){ safeLang('es'); } },
+    { group: 'Language', icon: 'PT', name: 'Portugu\u00EAs', sub: 'Mudar para portugu\u00EAs',  action: function(){ safeLang('pt'); } }
+  ];
+
+  var backdrop, palette, input, list, activeIdx = 0, filtered = COMMANDS.slice();
+
+  function buildPalette(){
+    backdrop = document.createElement('div');
+    backdrop.className = 'bbf-cmdk-backdrop';
+    backdrop.setAttribute('aria-hidden','true');
+    document.body.appendChild(backdrop);
+
+    palette = document.createElement('div');
+    palette.className = 'bbf-cmdk';
+    palette.setAttribute('role','dialog');
+    palette.setAttribute('aria-modal','true');
+    palette.setAttribute('aria-label','Command palette');
+    palette.innerHTML =
+      '<div class="bbf-cmdk-head">' +
+        '<input type="text" class="bbf-cmdk-input" placeholder="Vault command — jump anywhere" aria-label="Search commands" />' +
+        '<span class="bbf-cmdk-kbd">ESC</span>' +
+      '</div>' +
+      '<div class="bbf-cmdk-list" role="listbox"></div>' +
+      '<div class="bbf-cmdk-hint"><span>\u2191\u2193 Navigate</span><span>\u23CE Select</span><span>ESC Close</span></div>';
+    document.body.appendChild(palette);
+
+    input = palette.querySelector('.bbf-cmdk-input');
+    list  = palette.querySelector('.bbf-cmdk-list');
+
+    input.addEventListener('input', function(){ render(input.value); });
+    input.addEventListener('keydown', onKey);
+    backdrop.addEventListener('click', close);
+    list.addEventListener('click', function(e){
+      var row = e.target.closest('.bbf-cmdk-item');
+      if (!row) return;
+      exec(Number(row.dataset.idx));
+    });
+  }
+
+  function render(q){
+    q = (q || '').toLowerCase().trim();
+    filtered = q
+      ? COMMANDS.filter(function(c){
+          return c.name.toLowerCase().indexOf(q) !== -1 ||
+                 c.sub.toLowerCase().indexOf(q)  !== -1 ||
+                 c.group.toLowerCase().indexOf(q) !== -1;
+        })
+      : COMMANDS.slice();
+    activeIdx = 0;
+    if (!filtered.length) {
+      list.innerHTML = '<div class="bbf-cmdk-empty">No matches. Try "splash", "audio", or "english".</div>';
+      return;
+    }
+    var html = '', lastGroup = '';
+    filtered.forEach(function(c, i){
+      if (c.group !== lastGroup) {
+        html += '<div class="bbf-cmdk-group">' + esc(c.group) + '</div>';
+        lastGroup = c.group;
+      }
+      html +=
+        '<div class="bbf-cmdk-item' + (i === activeIdx ? ' bbf-active' : '') + '" data-idx="' + i + '" role="option">' +
+          '<span class="bbf-cmdk-ico">' + esc(c.icon) + '</span>' +
+          '<span class="bbf-cmdk-txt">' +
+            '<span>' + esc(c.name) + '</span>' +
+            '<span class="bbf-cmdk-sub">' + esc(c.sub) + '</span>' +
+          '</span>' +
+          '<span class="bbf-cmdk-arrow">\u23CE</span>' +
+        '</div>';
+    });
+    list.innerHTML = html;
+  }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+  function onKey(e){
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); move(1); return; }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); move(-1); return; }
+    if (e.key === 'Enter')     { e.preventDefault(); exec(activeIdx); return; }
+  }
+  function move(d){
+    if (!filtered.length) return;
+    activeIdx = (activeIdx + d + filtered.length) % filtered.length;
+    var rows = list.querySelectorAll('.bbf-cmdk-item');
+    rows.forEach(function(r, i){ r.classList.toggle('bbf-active', i === activeIdx); });
+    var a = rows[activeIdx];
+    if (a && a.scrollIntoView) a.scrollIntoView({ block: 'nearest' });
+  }
+  function exec(i){
+    var c = filtered[i];
+    if (!c) return;
+    close();
+    setTimeout(function(){ try { c.action(); } catch(e){} }, 80);
+  }
+  function open(){
+    if (!palette) buildPalette();
+    render(''); input.value = '';
+    backdrop.classList.add('bbf-open');
+    palette.classList.add('bbf-open');
+    setTimeout(function(){ try { input.focus(); } catch(e){} }, 40);
+  }
+  function close(){
+    if (!palette) return;
+    backdrop.classList.remove('bbf-open');
+    palette.classList.remove('bbf-open');
+  }
+  addEventListener('keydown', function(e){
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      if (palette && palette.classList.contains('bbf-open')) close(); else open();
+    }
+  });
+
+  /* ============ 3. MAGNETIC SPLASH WORDMARK + 3D TILT ============ */
+  if (!touch && !reduceMotion) {
+    var magTargets = document.querySelectorAll('#ebtn, .tbu, .tbav');
+    magTargets.forEach(function(el){
+      el.addEventListener('mousemove', function(e){
+        var r = el.getBoundingClientRect();
+        var mx = e.clientX - (r.left + r.width  / 2);
+        var my = e.clientY - (r.top  + r.height / 2);
+        el.style.setProperty('--bbf-mag-x', (mx * 0.22).toFixed(1) + 'px');
+        el.style.setProperty('--bbf-mag-y', (my * 0.22).toFixed(1) + 'px');
+      });
+      el.addEventListener('mouseleave', function(){
+        el.style.setProperty('--bbf-mag-x', '0px');
+        el.style.setProperty('--bbf-mag-y', '0px');
+      });
+    });
+
+    // Splash: tilt the wordmark + ring in 3D as cursor crosses the splash
+    var splash = document.getElementById('splash');
+    if (splash) {
+      splash.addEventListener('mousemove', function(e){
+        var r = splash.getBoundingClientRect();
+        var nx = (e.clientX - (r.left + r.width  / 2)) / (r.width  / 2);
+        var ny = (e.clientY - (r.top  + r.height / 2)) / (r.height / 2);
+        var sw = splash.querySelector('.sw');
+        var sring = splash.querySelector('.sring');
+        if (sw) {
+          sw.style.setProperty('--bbf-tilt-y', (nx * 5).toFixed(2) + 'deg');
+          sw.style.setProperty('--bbf-tilt-x', (-ny * 4).toFixed(2) + 'deg');
+        }
+        if (sring) {
+          sring.style.setProperty('--bbf-mag-x', (nx * 6).toFixed(1) + 'px');
+          sring.style.setProperty('--bbf-mag-y', (ny * 6).toFixed(1) + 'px');
+        }
+      });
+      splash.addEventListener('mouseleave', function(){
+        var sw = splash.querySelector('.sw'); var sring = splash.querySelector('.sring');
+        if (sw) { sw.style.setProperty('--bbf-tilt-y','0deg'); sw.style.setProperty('--bbf-tilt-x','0deg'); }
+        if (sring) { sring.style.setProperty('--bbf-mag-x','0px'); sring.style.setProperty('--bbf-mag-y','0px'); }
+      });
+    }
+  }
+
+  /* ============ 4. KAIROS — TIME DILATION ON INTENT ============ */
+  if (!touch && !reduceMotion) {
+    var kairosTargets = document.querySelectorAll('#ebtn, #signin-btn');
+    var dilateTimer = null;
+    var activeTarget = null;
+
+    function activateKairos(el){
+      if (activeTarget) return;
+      activeTarget = el;
+      document.body.classList.add('bbf-kairos');
+      el.classList.add('bbf-kairos-target');
+      if (!el.querySelector('.bbf-kairos-tag')) {
+        var tag = document.createElement('span');
+        tag.className = 'bbf-kairos-tag';
+        tag.textContent = 'Sovereign Standard';
+        el.appendChild(tag);
+      }
+    }
+    function releaseKairos(){
+      if (!activeTarget) return;
+      document.body.classList.remove('bbf-kairos');
+      activeTarget.classList.remove('bbf-kairos-target');
+      activeTarget = null;
+    }
+
+    kairosTargets.forEach(function(el){
+      if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+      el.addEventListener('mouseenter', function(){
+        clearTimeout(dilateTimer);
+        dilateTimer = setTimeout(function(){ activateKairos(el); }, 160);
+      });
+      el.addEventListener('mouseleave', function(){
+        clearTimeout(dilateTimer);
+        releaseKairos();
+      });
+      el.addEventListener('focus', function(){ activateKairos(el); });
+      el.addEventListener('blur',  releaseKairos);
+    });
+
+    // Also kairos-activate on the Ω signet (pantheon) — the sovereign gesture
+    var sig = document.querySelector('.bbf-pantheon-signet');
+    if (sig) {
+      sig.addEventListener('mouseenter', function(){
+        clearTimeout(dilateTimer);
+        dilateTimer = setTimeout(function(){ activateKairos(sig); }, 240);
+      });
+      sig.addEventListener('mouseleave', function(){ clearTimeout(dilateTimer); releaseKairos(); });
+    }
+  }
+
+  console.log('%c\u26A1 Ultra Instinct (vault) — online (\u2318K / Ctrl+K)', 'color:#f5c800;font-family:monospace;font-weight:bold;');
 })();
 </script>
 </body>
