@@ -704,6 +704,98 @@ section, footer {
 }
 section[id], footer[id] { scroll-margin-top: 80px; }
 </style>
+<style id="hero-breath">
+/* ===== HERO BREATH — staggered word bounce + atmospheric pulse =====
+   Runs AFTER the existing bbfWordReveal animation finishes.
+   Gold + purple palette preserved. Respects prefers-reduced-motion
+   via the a11y-polish global override. */
+
+@keyframes bbfWordBreath {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.028);
+    filter: drop-shadow(0 0 18px rgba(245,200,0,.42));
+  }
+}
+@keyframes bbfBadgeBreath {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 6px 28px rgba(245,200,0,.3);
+  }
+  50% {
+    transform: scale(1.04) rotate(-1deg);
+    box-shadow: 0 10px 42px rgba(245,200,0,.58);
+  }
+}
+@keyframes bbfPhotoBreath {
+  0%, 100% {
+    box-shadow:
+      0 0 50px rgba(106,13,173,.25),
+      0 0 0 1px rgba(212,175,55,.32),
+      0 0 28px rgba(245,200,0,.14),
+      inset 0 0 0 1px rgba(255,255,255,.04);
+  }
+  50% {
+    box-shadow:
+      0 0 72px rgba(106,13,173,.42),
+      0 0 0 1px rgba(212,175,55,.48),
+      0 0 44px rgba(245,200,0,.30),
+      inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+}
+@keyframes bbfHeroBgBreath {
+  0%, 100% { opacity: .08; transform: translate(-50%,-50%) scale(1); }
+  50%      { opacity: .12; transform: translate(-50%,-50%) scale(1.04); }
+}
+@keyframes bbfStatBreath {
+  0%, 100% { text-shadow: 0 0 0 transparent; }
+  50%      { text-shadow: 0 0 14px rgba(245,200,0,.45); }
+}
+
+/* Stagger: start breath AFTER the reveal animation finishes (~940ms latest) */
+.hs-word--build {
+  animation:
+    bbfWordReveal 700ms var(--ease-sovereign) forwards,
+    bbfWordBreath 3.8s cubic-bezier(.4,0,.6,1) 1100ms infinite;
+}
+.hs-word--believe {
+  animation:
+    bbfWordReveal 700ms var(--ease-sovereign) 120ms forwards,
+    bbfWordBreath 3.8s cubic-bezier(.4,0,.6,1) 1400ms infinite;
+}
+.hs-word--fit {
+  animation:
+    bbfWordReveal 700ms var(--ease-sovereign) 240ms forwards,
+    bbfWordBreath 3.8s cubic-bezier(.4,0,.6,1) 1700ms infinite;
+}
+
+/* The gold corner badge pulses */
+.hero-accent {
+  animation: bbfBadgeBreath 4.2s ease-in-out 2s infinite;
+}
+
+/* Portrait frame shadow breathes — photo itself keeps Ken Burns */
+.hero-img {
+  animation: bbfPhotoBreath 6s ease-in-out 1.5s infinite;
+}
+
+/* The giant ghosted "BBF" behind the hero gets a slow radial breath
+   composed with the existing drift animation */
+.hero-bg {
+  animation:
+    drift 20s ease-in-out infinite alternate,
+    bbfHeroBgBreath 7s ease-in-out infinite;
+}
+
+/* Hero stat numbers pulse faintly on heartbeat cadence */
+.hs-n {
+  animation: bbfStatBreath 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 400ms);
+}
+</style>
 </head>
 <body>
 <a href="#main-content" class="skip-to-main">Skip to main content</a>
