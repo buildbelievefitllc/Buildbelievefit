@@ -937,6 +937,214 @@ section[id], footer[id] { scroll-margin-top: 80px; }
   img { max-width: 100% !important; page-break-inside: avoid; }
 }
 </style>
+<style id="pantheon-layer">
+/* ============================================================================
+   PANTHEON LAYER (index.html) — classical-architectural gold ornaments,
+   ceremonial accents, temple-grade polish. Additive only.
+   ============================================================================ */
+
+/* ---- Greek-key meander pattern as reusable variable ---- */
+:root {
+  --bbf-meander: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 14'><g fill='none' stroke='%23f5c800' stroke-width='1.1' opacity='0.65'><path d='M0,14 L0,3 L5,3 L5,9 L11,9 L11,3 L17,3 L17,11 L3,11 L3,14 M20,14 L20,3 L25,3 L25,9 L31,9 L31,3 L37,3 L37,11 L23,11 L23,14 M40,14 L40,3 L45,3 L45,9 L51,9 L51,3 L57,3 L57,11 L43,11 L43,14 M60,14 L60,3 L65,3 L65,9 L71,9 L71,3 L77,3 L77,11 L63,11 L63,14'/></g></svg>");
+  --bbf-laurel-l: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'><g fill='%23f5c800' stroke='%23f5c800' stroke-width='1' opacity='0.85'><path d='M72,20 Q50,8 28,14 Q18,16 10,20' fill='none' stroke-width='1.5'/><ellipse cx='60' cy='14' rx='6' ry='2.5' transform='rotate(-18 60 14)'/><ellipse cx='50' cy='12' rx='6' ry='2.5' transform='rotate(-22 50 12)'/><ellipse cx='40' cy='12' rx='6' ry='2.5' transform='rotate(-24 40 12)'/><ellipse cx='30' cy='14' rx='5' ry='2.2' transform='rotate(-26 30 14)'/><ellipse cx='22' cy='16' rx='4' ry='2' transform='rotate(-30 22 16)'/><ellipse cx='55' cy='22' rx='6' ry='2.5' transform='rotate(18 55 22)'/><ellipse cx='45' cy='24' rx='6' ry='2.5' transform='rotate(22 45 24)'/><ellipse cx='35' cy='24' rx='5' ry='2.2' transform='rotate(24 35 24)'/><ellipse cx='26' cy='22' rx='4' ry='2' transform='rotate(28 26 22)'/></g></svg>");
+  --bbf-laurel-r: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'><g fill='%23f5c800' stroke='%23f5c800' stroke-width='1' opacity='0.85' transform='translate(80 0) scale(-1 1)'><path d='M72,20 Q50,8 28,14 Q18,16 10,20' fill='none' stroke-width='1.5'/><ellipse cx='60' cy='14' rx='6' ry='2.5' transform='rotate(-18 60 14)'/><ellipse cx='50' cy='12' rx='6' ry='2.5' transform='rotate(-22 50 12)'/><ellipse cx='40' cy='12' rx='6' ry='2.5' transform='rotate(-24 40 12)'/><ellipse cx='30' cy='14' rx='5' ry='2.2' transform='rotate(-26 30 14)'/><ellipse cx='22' cy='16' rx='4' ry='2' transform='rotate(-30 22 16)'/><ellipse cx='55' cy='22' rx='6' ry='2.5' transform='rotate(18 55 22)'/><ellipse cx='45' cy='24' rx='6' ry='2.5' transform='rotate(22 45 24)'/><ellipse cx='35' cy='24' rx='5' ry='2.2' transform='rotate(24 35 24)'/><ellipse cx='26' cy='22' rx='4' ry='2' transform='rotate(28 26 22)'/></g></svg>");
+}
+
+/* ---- Laurel wreath flanking the hero badge ---- */
+.hero-badge {
+  position: relative;
+  display: inline-flex !important;
+  align-items: center; gap: 1.1rem;
+}
+.hero-badge::before,
+.hero-badge::after {
+  content: "";
+  display: inline-block;
+  width: 48px; height: 24px;
+  background-image: var(--bbf-laurel-l);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  filter: drop-shadow(0 0 6px rgba(245,200,0,.55));
+  opacity: .92;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.hero-badge::after {
+  background-image: var(--bbf-laurel-r);
+}
+
+/* ---- Greek-key meander dividers between major sections ---- */
+section::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: min(280px, 80%);
+  height: 14px;
+  background-image: var(--bbf-meander);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .6s ease-out;
+}
+#services::before, #founder::before, #programs::before,
+#nutrition::before, #testimonials::before, #explorer::before,
+#playbooks::before, #specialized::before, #transformation::before,
+#pathfinder::before, #contact::before {
+  opacity: .55;
+}
+/* Hero itself gets no top-meander (it's the start of the page) */
+#hero::before { display: none; }
+
+/* ---- Pantheon signet — fixed gold seal, bottom-left ---- */
+.bbf-pantheon-signet {
+  position: fixed;
+  left: calc(14px + env(safe-area-inset-left,0));
+  bottom: calc(14px + env(safe-area-inset-bottom,0));
+  width: 44px; height: 44px;
+  z-index: 95;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(10px) rotate(-5deg);
+  transition: opacity .5s cubic-bezier(.2,.8,.2,1), transform .5s cubic-bezier(.2,.8,.2,1);
+}
+.bbf-pantheon-signet.bbf-visible {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg);
+}
+.bbf-pantheon-signet::before {
+  content: "Ω";
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%,
+    #F2D769 0%, #E6C24F 30%, #D4AF37 60%, #A8862A 100%);
+  color: #060606;
+  font-family: 'Anton','Bebas Neue', serif;
+  font-size: 1.5rem; font-weight: 900;
+  border-radius: 50%;
+  border: 1.5px solid rgba(242,215,105,.8);
+  box-shadow:
+    0 6px 18px rgba(245,200,0,.38),
+    0 0 0 1px rgba(0,0,0,.3) inset,
+    0 1px 0 rgba(255,255,255,.4) inset;
+  animation: bbfPantheonBreath 4.8s ease-in-out infinite;
+}
+.bbf-pantheon-signet::after {
+  content: "";
+  position: absolute; inset: -6px;
+  border: 1px dashed rgba(245,200,0,.35);
+  border-radius: 50%;
+  animation: bbfPantheonOrbit 22s linear infinite;
+  pointer-events: none;
+}
+.bbf-pantheon-signet:hover::before {
+  transform: scale(1.08);
+  box-shadow:
+    0 10px 28px rgba(245,200,0,.55),
+    0 0 0 1px rgba(0,0,0,.3) inset,
+    0 1px 0 rgba(255,255,255,.5) inset;
+}
+.bbf-pantheon-signet:focus-visible {
+  outline: 2px solid #f5c800;
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+@keyframes bbfPantheonBreath {
+  0%, 100% { transform: scale(1);     box-shadow: 0 6px 18px rgba(245,200,0,.38), 0 0 0 1px rgba(0,0,0,.3) inset, 0 1px 0 rgba(255,255,255,.4) inset; }
+  50%      { transform: scale(1.035); box-shadow: 0 8px 26px rgba(245,200,0,.60), 0 0 0 1px rgba(0,0,0,.3) inset, 0 1px 0 rgba(255,255,255,.55) inset; }
+}
+@keyframes bbfPantheonOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ---- Pantheon signet tooltip ---- */
+.bbf-pantheon-tip {
+  position: fixed;
+  left: calc(68px + env(safe-area-inset-left,0));
+  bottom: calc(22px + env(safe-area-inset-bottom,0));
+  z-index: 95;
+  padding: .45rem .8rem;
+  background: rgba(6,6,6,.92);
+  border: 1px solid rgba(245,200,0,.5);
+  border-radius: 6px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .68rem; letter-spacing: 2px;
+  color: #f5c800;
+  text-transform: uppercase;
+  opacity: 0; pointer-events: none;
+  transform: translateX(-6px);
+  transition: opacity .25s, transform .25s;
+  white-space: nowrap;
+}
+.bbf-pantheon-tip.bbf-show {
+  opacity: 1; transform: translateX(0);
+}
+.bbf-pantheon-tip::before {
+  content: "";
+  position: absolute; left: -6px; top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: rgba(245,200,0,.5);
+}
+
+/* ---- Hero corner column-capital ornaments (decorative, pure CSS) ---- */
+#hero::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 28px;
+  background-image: var(--bbf-meander);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  opacity: .28;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent 0%, black 20%, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 20%, black 80%, transparent 100%);
+}
+
+/* ---- Ceremonial gold dust — rare idle particles ---- */
+.bbf-dust {
+  position: fixed; inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bbf-dust-mote {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f5c800 0%, rgba(245,200,0,0) 70%);
+  opacity: 0;
+  animation: bbfDustFall 14s linear infinite;
+  filter: blur(.4px);
+}
+@keyframes bbfDustFall {
+  0%   { transform: translate(0, -10vh); opacity: 0; }
+  10%  { opacity: .6; }
+  90%  { opacity: .4; }
+  100% { transform: translate(var(--dx, 40px), 110vh); opacity: 0; }
+}
+
+/* ---- Respect reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .bbf-pantheon-signet::before,
+  .bbf-pantheon-signet::after { animation: none !important; }
+  .bbf-dust-mote { animation: none !important; display: none !important; }
+}
+
+/* ---- Mobile: scale signet down ---- */
+@media (max-width: 480px) {
+  .bbf-pantheon-signet { width: 38px; height: 38px; }
+  .bbf-pantheon-signet::before { font-size: 1.25rem; }
+  .bbf-pantheon-tip { font-size: .6rem; padding: .35rem .6rem; }
+  /* Meander divider smaller on narrow */
+  section::before { width: min(200px, 60%); }
+}
+</style>
 </head>
 <body>
 <a href="#main-content" class="skip-to-main">Skip to main content</a>
@@ -2987,6 +3195,74 @@ function pbRenderPositions(){
   } catch(e){}
 
   console.log('%c✨ BBF surprise layer online','color:#f5c800;font-family:monospace;');
+})();
+</script>
+<script id="pantheon-layer-js">
+/* Pantheon runtime — mounts signet + tooltip + ceremonial dust */
+(function(){
+  'use strict';
+  var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- Pantheon signet ----
+  try {
+    var sig = document.createElement('button');
+    sig.className = 'bbf-pantheon-signet';
+    sig.setAttribute('type', 'button');
+    sig.setAttribute('aria-label', 'Pantheon Mode — Sovereign Standard active');
+    sig.setAttribute('title', 'Pantheon Mode');
+    document.body.appendChild(sig);
+
+    var tip = document.createElement('div');
+    tip.className = 'bbf-pantheon-tip';
+    tip.textContent = 'Pantheon — Active';
+    document.body.appendChild(tip);
+
+    // Reveal signet after the user has engaged (scroll 300px or 3s idle)
+    var revealed = false;
+    function reveal(){ if (revealed) return; revealed = true; sig.classList.add('bbf-visible'); }
+    addEventListener('scroll', function(){ if (scrollY > 300) reveal(); }, { passive: true, once: false });
+    setTimeout(reveal, 3000);
+
+    sig.addEventListener('mouseenter', function(){ tip.classList.add('bbf-show'); });
+    sig.addEventListener('mouseleave', function(){ tip.classList.remove('bbf-show'); });
+    sig.addEventListener('focus',      function(){ tip.classList.add('bbf-show'); });
+    sig.addEventListener('blur',       function(){ tip.classList.remove('bbf-show'); });
+
+    // Signet click: smooth scroll back to hero
+    sig.addEventListener('click', function(){
+      var h = document.getElementById('hero');
+      if (h) h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Flash celebration
+      sig.animate([
+        { transform: 'scale(1)',    filter: 'brightness(1)' },
+        { transform: 'scale(1.2)',  filter: 'brightness(1.6)' },
+        { transform: 'scale(1)',    filter: 'brightness(1)' }
+      ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    });
+  } catch(e){}
+
+  // ---- Ceremonial gold dust (hero-scoped, idle-only, capped count) ----
+  try {
+    if (!reduceMotion) {
+      var dust = document.createElement('div');
+      dust.className = 'bbf-dust';
+      dust.setAttribute('aria-hidden','true');
+      document.body.appendChild(dust);
+      var MOTE_COUNT = 14;
+      for (var i = 0; i < MOTE_COUNT; i++) {
+        var m = document.createElement('span');
+        m.className = 'bbf-dust-mote';
+        m.style.left = (Math.random() * 100) + 'vw';
+        m.style.setProperty('--dx', ((Math.random() - .5) * 120).toFixed(0) + 'px');
+        m.style.animationDelay  = (Math.random() * 14).toFixed(1) + 's';
+        m.style.animationDuration = (10 + Math.random() * 8).toFixed(1) + 's';
+        m.style.width = m.style.height = (2 + Math.random() * 2).toFixed(1) + 'px';
+        dust.appendChild(m);
+      }
+    }
+  } catch(e){}
+
+  console.log('%cΩ Pantheon Mode — active', 'color:#f5c800;font-family:monospace;font-weight:bold;');
 })();
 </script>
 </body>

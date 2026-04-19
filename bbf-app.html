@@ -2717,6 +2717,253 @@ section[id], footer[id] { scroll-margin-top: 80px; }
   100% { opacity: 0; transform: scale(1.6); }
 }
 </style>
+<style id="pantheon-layer">
+/* ============================================================================
+   PANTHEON LAYER (bbf-app.html) — ceremonial splash, vault signet, temple ornaments.
+   Additive only. Palette locked: gold #f5c800 / purple #6a0dad.
+   ============================================================================ */
+
+:root {
+  --bbf-meander: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 14'><g fill='none' stroke='%23f5c800' stroke-width='1.1' opacity='0.75'><path d='M0,14 L0,3 L5,3 L5,9 L11,9 L11,3 L17,3 L17,11 L3,11 L3,14 M20,14 L20,3 L25,3 L25,9 L31,9 L31,3 L37,3 L37,11 L23,11 L23,14 M40,14 L40,3 L45,3 L45,9 L51,9 L51,3 L57,3 L57,11 L43,11 L43,14 M60,14 L60,3 L65,3 L65,9 L71,9 L71,3 L77,3 L77,11 L63,11 L63,14'/></g></svg>");
+  --bbf-laurel-l: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'><g fill='%23f5c800' stroke='%23f5c800' stroke-width='1' opacity='0.88'><path d='M72,20 Q50,8 28,14 Q18,16 10,20' fill='none' stroke-width='1.5'/><ellipse cx='60' cy='14' rx='6' ry='2.5' transform='rotate(-18 60 14)'/><ellipse cx='50' cy='12' rx='6' ry='2.5' transform='rotate(-22 50 12)'/><ellipse cx='40' cy='12' rx='6' ry='2.5' transform='rotate(-24 40 12)'/><ellipse cx='30' cy='14' rx='5' ry='2.2' transform='rotate(-26 30 14)'/><ellipse cx='22' cy='16' rx='4' ry='2' transform='rotate(-30 22 16)'/><ellipse cx='55' cy='22' rx='6' ry='2.5' transform='rotate(18 55 22)'/><ellipse cx='45' cy='24' rx='6' ry='2.5' transform='rotate(22 45 24)'/><ellipse cx='35' cy='24' rx='5' ry='2.2' transform='rotate(24 35 24)'/><ellipse cx='26' cy='22' rx='4' ry='2' transform='rotate(28 26 22)'/></g></svg>");
+  --bbf-laurel-r: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'><g fill='%23f5c800' stroke='%23f5c800' stroke-width='1' opacity='0.88' transform='translate(80 0) scale(-1 1)'><path d='M72,20 Q50,8 28,14 Q18,16 10,20' fill='none' stroke-width='1.5'/><ellipse cx='60' cy='14' rx='6' ry='2.5' transform='rotate(-18 60 14)'/><ellipse cx='50' cy='12' rx='6' ry='2.5' transform='rotate(-22 50 12)'/><ellipse cx='40' cy='12' rx='6' ry='2.5' transform='rotate(-24 40 12)'/><ellipse cx='30' cy='14' rx='5' ry='2.2' transform='rotate(-26 30 14)'/><ellipse cx='22' cy='16' rx='4' ry='2' transform='rotate(-30 22 16)'/><ellipse cx='55' cy='22' rx='6' ry='2.5' transform='rotate(18 55 22)'/><ellipse cx='45' cy='24' rx='6' ry='2.5' transform='rotate(22 45 24)'/><ellipse cx='35' cy='24' rx='5' ry='2.2' transform='rotate(24 35 24)'/><ellipse cx='26' cy='22' rx='4' ry='2' transform='rotate(28 26 22)'/></g></svg>");
+}
+
+/* ---- Ceremonial splash: laurel wreath flanking the wordmark ---- */
+#splash .sw {
+  position: relative;
+  display: inline-block;
+  padding: 0 4.2rem;
+}
+#splash .sw::before,
+#splash .sw::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 52px; height: 26px;
+  background-image: var(--bbf-laurel-l);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  filter: drop-shadow(0 0 8px rgba(245,200,0,.55));
+  opacity: .95;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+#splash .sw::before { left: -.2rem; }
+#splash .sw::after  { right: -.2rem; background-image: var(--bbf-laurel-r); }
+
+/* ---- Greek-key meander bands above + below the splash ---- */
+#splash::before,
+#splash::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(360px, 78%);
+  height: 14px;
+  background-image: var(--bbf-meander);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  opacity: .55;
+  pointer-events: none;
+  animation: bbfMeanderDrift 18s ease-in-out infinite alternate;
+  z-index: 1;
+}
+#splash::before { top: 11%; }
+#splash::after  { bottom: 14%; }
+@keyframes bbfMeanderDrift {
+  0%   { opacity: .32; }
+  100% { opacity: .72; }
+}
+
+/* ---- Splash badge (sring) — crowning aura ---- */
+#splash .sring {
+  position: relative;
+}
+#splash .sring::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 1px dashed rgba(245,200,0,.28);
+  animation: bbfPantheonOrbit 30s linear infinite;
+  pointer-events: none;
+}
+
+/* ---- Auth screen: meander band top ---- */
+#auth::before, #restricted::before {
+  content: "";
+  position: absolute;
+  top: calc(env(safe-area-inset-top,0px) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(280px, 72%);
+  height: 14px;
+  background-image: var(--bbf-meander);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  opacity: .4;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---- Pantheon signet (Ω) — fixed, visible on splash / auth / restricted only ---- */
+.bbf-pantheon-signet {
+  position: fixed;
+  left: calc(14px + env(safe-area-inset-left,0));
+  top:  calc(14px + env(safe-area-inset-top,0));
+  width: 42px; height: 42px;
+  z-index: 94;
+  cursor: pointer;
+  pointer-events: auto;
+  display: none;
+  opacity: 0;
+  transform: translateY(-10px) rotate(-5deg);
+  transition: opacity .5s cubic-bezier(.2,.8,.2,1), transform .5s cubic-bezier(.2,.8,.2,1);
+  background: none; border: none; padding: 0;
+}
+body.bbf-pantheon-ok .bbf-pantheon-signet { display: block; }
+.bbf-pantheon-signet.bbf-visible {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg);
+}
+.bbf-pantheon-signet::before {
+  content: "\03A9";
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%,
+    #F2D769 0%, #E6C24F 30%, #D4AF37 60%, #A8862A 100%);
+  color: #060606;
+  font-family: 'Anton','Bebas Neue', serif;
+  font-size: 1.4rem; font-weight: 900;
+  border-radius: 50%;
+  border: 1.5px solid rgba(242,215,105,.8);
+  box-shadow:
+    0 6px 18px rgba(245,200,0,.38),
+    0 0 0 1px rgba(0,0,0,.3) inset,
+    0 1px 0 rgba(255,255,255,.4) inset;
+  animation: bbfPantheonBreath 4.8s ease-in-out infinite;
+}
+.bbf-pantheon-signet::after {
+  content: "";
+  position: absolute; inset: -6px;
+  border: 1px dashed rgba(245,200,0,.38);
+  border-radius: 50%;
+  animation: bbfPantheonOrbit 22s linear infinite;
+  pointer-events: none;
+}
+.bbf-pantheon-signet:hover::before {
+  transform: scale(1.08);
+  box-shadow:
+    0 10px 28px rgba(245,200,0,.60),
+    0 0 0 1px rgba(0,0,0,.3) inset,
+    0 1px 0 rgba(255,255,255,.5) inset;
+}
+.bbf-pantheon-signet:focus-visible { outline: 2px solid #f5c800; outline-offset: 4px; border-radius: 50%; }
+@keyframes bbfPantheonBreath {
+  0%, 100% { transform: scale(1);     box-shadow: 0 6px 18px rgba(245,200,0,.38), 0 0 0 1px rgba(0,0,0,.3) inset, 0 1px 0 rgba(255,255,255,.4) inset; }
+  50%      { transform: scale(1.035); box-shadow: 0 8px 26px rgba(245,200,0,.60), 0 0 0 1px rgba(0,0,0,.3) inset, 0 1px 0 rgba(255,255,255,.55) inset; }
+}
+@keyframes bbfPantheonOrbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ---- Pantheon tooltip (to the right of signet) ---- */
+.bbf-pantheon-tip {
+  position: fixed;
+  left: calc(66px + env(safe-area-inset-left,0));
+  top:  calc(22px + env(safe-area-inset-top,0));
+  z-index: 94;
+  padding: .4rem .75rem;
+  background: rgba(6,6,6,.92);
+  border: 1px solid rgba(245,200,0,.5);
+  border-radius: 6px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .65rem; letter-spacing: 2px;
+  color: #f5c800;
+  text-transform: uppercase;
+  opacity: 0; pointer-events: none;
+  transform: translateX(-6px);
+  transition: opacity .25s, transform .25s;
+  white-space: nowrap;
+  display: none;
+}
+body.bbf-pantheon-ok .bbf-pantheon-tip { display: block; }
+.bbf-pantheon-tip.bbf-show { opacity: 1; transform: translateX(0); }
+.bbf-pantheon-tip::before {
+  content: "";
+  position: absolute; left: -6px; top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: rgba(245,200,0,.5);
+}
+
+/* ---- Vault hero title gets ceremonial meander crown ---- */
+.vault-hero-title {
+  position: relative;
+}
+.vault-hero-title::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: -22px;
+  transform: translateX(-50%);
+  width: 140px; height: 14px;
+  background-image: var(--bbf-meander);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  opacity: .45;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent 0%, black 20%, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 20%, black 80%, transparent 100%);
+}
+
+/* ---- Ceremonial gold dust (splash / auth scoped) ---- */
+.bbf-dust {
+  position: fixed; inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  display: none;
+}
+body.bbf-pantheon-ok .bbf-dust { display: block; }
+.bbf-dust-mote {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f5c800 0%, rgba(245,200,0,0) 70%);
+  opacity: 0;
+  animation: bbfDustFall 14s linear infinite;
+  filter: blur(.4px);
+}
+@keyframes bbfDustFall {
+  0%   { transform: translate(0, -10vh); opacity: 0; }
+  10%  { opacity: .55; }
+  90%  { opacity: .35; }
+  100% { transform: translate(var(--dx, 40px), 110vh); opacity: 0; }
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .bbf-pantheon-signet::before,
+  .bbf-pantheon-signet::after,
+  #splash::before, #splash::after,
+  #splash .sring::before { animation: none !important; }
+  .bbf-dust-mote { animation: none !important; display: none !important; }
+}
+
+/* ---- Mobile: tighter ornaments ---- */
+@media (max-width: 480px) {
+  .bbf-pantheon-signet { width: 36px; height: 36px; }
+  .bbf-pantheon-signet::before { font-size: 1.2rem; }
+  .bbf-pantheon-tip { font-size: .58rem; padding: .32rem .55rem; }
+  #splash .sw { padding: 0 3rem; }
+  #splash .sw::before, #splash .sw::after { width: 40px; height: 20px; }
+  #splash::before, #splash::after { width: min(220px, 70%); }
+  .vault-hero-title::before { width: 100px; top: -18px; }
+}
+</style>
 </head>
 <body>
 <a href="#main-content" class="skip-to-main">Skip to main content</a>
@@ -8170,6 +8417,96 @@ window.onload = function() {
   } catch(e){}
 
   console.log('%c✨ BBF vault surprise layer online', 'color:#f5c800;font-family:monospace;');
+})();
+</script>
+<script id="pantheon-layer-js">
+/* Pantheon runtime (bbf-app.html) — ceremonial signet + splash dust + screen-aware visibility */
+(function(){
+  'use strict';
+  var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- Mount signet + tooltip (hidden until a ceremonial screen is active) ----
+  var sig, tip;
+  try {
+    sig = document.createElement('button');
+    sig.className = 'bbf-pantheon-signet';
+    sig.setAttribute('type','button');
+    sig.setAttribute('aria-label','Pantheon Mode — Sovereign Standard active');
+    sig.setAttribute('title','Pantheon Mode');
+    document.body.appendChild(sig);
+
+    tip = document.createElement('div');
+    tip.className = 'bbf-pantheon-tip';
+    tip.textContent = 'Pantheon — Active';
+    document.body.appendChild(tip);
+
+    sig.addEventListener('mouseenter', function(){ tip.classList.add('bbf-show'); });
+    sig.addEventListener('mouseleave', function(){ tip.classList.remove('bbf-show'); });
+    sig.addEventListener('focus',      function(){ tip.classList.add('bbf-show'); });
+    sig.addEventListener('blur',       function(){ tip.classList.remove('bbf-show'); });
+
+    // Click: ceremonial flash + scroll splash into view if present
+    sig.addEventListener('click', function(){
+      sig.animate([
+        { transform: 'scale(1)',    filter: 'brightness(1)' },
+        { transform: 'scale(1.2)',  filter: 'brightness(1.7)' },
+        { transform: 'scale(1)',    filter: 'brightness(1)' }
+      ], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    });
+  } catch(e){}
+
+  // ---- Ceremonial dust field (mounted once, visible only on ceremonial screens) ----
+  var dust;
+  try {
+    if (!reduceMotion) {
+      dust = document.createElement('div');
+      dust.className = 'bbf-dust';
+      dust.setAttribute('aria-hidden','true');
+      document.body.appendChild(dust);
+      var MOTE_COUNT = 12;
+      for (var i = 0; i < MOTE_COUNT; i++) {
+        var m = document.createElement('span');
+        m.className = 'bbf-dust-mote';
+        m.style.left = (Math.random() * 100) + 'vw';
+        m.style.setProperty('--dx', ((Math.random() - .5) * 120).toFixed(0) + 'px');
+        m.style.animationDelay    = (Math.random() * 14).toFixed(1) + 's';
+        m.style.animationDuration = (10 + Math.random() * 8).toFixed(1) + 's';
+        m.style.width = m.style.height = (2 + Math.random() * 2).toFixed(1) + 'px';
+        dust.appendChild(m);
+      }
+    }
+  } catch(e){}
+
+  // ---- Screen-aware visibility: Pantheon UI only on splash / auth / restricted ----
+  function syncPantheonVisibility(){
+    try {
+      var active = document.querySelector('.scr.on');
+      var id = active ? active.id : '';
+      var ceremonial = (id === 'splash' || id === 'auth' || id === 'restricted');
+      document.body.classList.toggle('bbf-pantheon-ok', ceremonial);
+      if (sig) {
+        if (ceremonial) {
+          // Reveal with slight delay so the screen transition completes first
+          setTimeout(function(){ sig.classList.add('bbf-visible'); }, 180);
+        } else {
+          sig.classList.remove('bbf-visible');
+          if (tip) tip.classList.remove('bbf-show');
+        }
+      }
+    } catch(e){}
+  }
+
+  // Initial sync + observe .scr class changes
+  try {
+    syncPantheonVisibility();
+    var scrs = document.querySelectorAll('.scr');
+    if (scrs.length && 'MutationObserver' in window) {
+      var obs = new MutationObserver(syncPantheonVisibility);
+      scrs.forEach(function(s){ obs.observe(s, { attributes: true, attributeFilter: ['class'] }); });
+    }
+  } catch(e){}
+
+  console.log('%c\u03A9 Pantheon Mode (vault) — active', 'color:#f5c800;font-family:monospace;font-weight:bold;');
 })();
 </script>
 </body>
