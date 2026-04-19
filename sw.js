@@ -1,8 +1,8 @@
 // Build Believe Fit — Service Worker v9 — Masterpiece
 // Background Sync + Offline Cache + Auto-flush on reconnect
 
-var CACHE = 'bbf-v10';
-var CORE = ['/bbf-app.html', '/manifest.json', '/BBF-APP%20enter%20img.png', '/bbf-photo.jpg'];
+var CACHE = 'bbf-v11';
+var CORE = ['/bbf-app.html', '/manifest.json', '/bbf-icon-192.jpg', '/bbf-icon-512.jpg', '/bbf-apple-touch-180.jpg', '/bbf-photo.jpg'];
 
 // ─── INSTALL ─────────────────────────────────────────────────
 self.addEventListener('install', function(e) {

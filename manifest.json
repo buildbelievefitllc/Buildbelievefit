@@ -12,21 +12,21 @@
   "splash_pages": null,
   "icons": [
     {
-      "src": "BBF-APP%20enter%20img.png",
+      "src": "bbf-icon-192.jpg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "BBF-APP%20enter%20img.png",
+      "src": "bbf-icon-512.jpg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "BBF-APP%20enter%20img.png",
+      "src": "bbf-icon-maskable-512.jpg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "maskable"
     }
   ],
@@ -44,28 +44,28 @@
       "short_name": "Program",
       "description": "View today's personalized workout",
       "url": "/bbf-app.html",
-      "icons": [{ "src": "BBF-APP%20enter%20img.png", "sizes": "192x192" }]
+      "icons": [{ "src": "bbf-icon-192.jpg", "sizes": "192x192", "type": "image/jpeg" }]
     },
     {
       "name": "Nutrition Plan",
       "short_name": "Nutrition",
       "description": "View your 7-day meal plan",
       "url": "/bbf-app.html",
-      "icons": [{ "src": "BBF-APP%20enter%20img.png", "sizes": "192x192" }]
+      "icons": [{ "src": "bbf-icon-192.jpg", "sizes": "192x192", "type": "image/jpeg" }]
     },
     {
       "name": "Masterclass Vault",
       "short_name": "Masterclass",
       "description": "Human Performance Masterclass modules",
       "url": "/bbf-app.html",
-      "icons": [{ "src": "BBF-APP%20enter%20img.png", "sizes": "192x192" }]
+      "icons": [{ "src": "bbf-icon-192.jpg", "sizes": "192x192", "type": "image/jpeg" }]
     },
     {
       "name": "Book a Session",
       "short_name": "Book",
       "description": "Book a session with Akeem",
       "url": "/bbf-app.html",
-      "icons": [{ "src": "BBF-APP%20enter%20img.png", "sizes": "192x192" }]
+      "icons": [{ "src": "bbf-icon-192.jpg", "sizes": "192x192", "type": "image/jpeg" }]
     }
   ],
   "categories": ["health", "fitness", "lifestyle", "education"],
