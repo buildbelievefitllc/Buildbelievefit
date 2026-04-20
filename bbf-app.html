@@ -3290,6 +3290,396 @@ body.bbf-kairos .bbf-kairos-target {
   body.bbf-kairos #restricted > * { filter: blur(1.6px); opacity: .72; }
 }
 </style>
+<style id="kinematic-form-hud-layer">
+/* ═══ KINEMATIC FORM HUD — Additive, scoped. Sovereign palette.
+   Cyan #00E5FF / Gold #F5C800 / Purple #6A0DAD. No engine hooks. ═══ */
+.kfh-scope {
+  --kfh-cy: #00E5FF;
+  --kfh-gd: #F5C800;
+  --kfh-pu: #8B1ABF;
+  --kfh-pu-d: #2A0845;
+  --kfh-grn: #22C55E;
+  --kfh-red: #EF4444;
+  --kfh-ink: #07070B;
+  --kfh-line: rgba(255,255,255,.08);
+  position: relative;
+  margin: 0 0 1rem;
+  border-radius: 18px;
+  padding: 1.1rem 1rem 1.15rem;
+  background:
+    radial-gradient(120% 80% at 8% 0%, rgba(0,229,255,.08), transparent 55%),
+    radial-gradient(110% 90% at 100% 100%, rgba(139,26,191,.14), transparent 58%),
+    linear-gradient(180deg, rgba(10,10,16,.92), rgba(6,6,10,.92));
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.04) inset,
+    0 0 0 1px rgba(245,200,0,.08),
+    0 18px 50px rgba(0,0,0,.55),
+    0 0 38px rgba(0,229,255,.05);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  overflow: hidden;
+  isolation: isolate;
+}
+.kfh-scope::before,
+.kfh-scope::after {
+  content: "";
+  position: absolute;
+  width: 18px; height: 18px;
+  border: 1.2px solid var(--kfh-gd);
+  opacity: .8;
+  pointer-events: none;
+}
+.kfh-scope::before { top: 8px; left: 8px;  border-right: none; border-bottom: none; }
+.kfh-scope::after  { bottom: 8px; right: 8px; border-left: none;  border-top: none;    }
+.kfh-scope .kfh-corner-tr,
+.kfh-scope .kfh-corner-bl {
+  position: absolute;
+  width: 18px; height: 18px;
+  border: 1.2px solid var(--kfh-gd);
+  opacity: .8;
+  pointer-events: none;
+}
+.kfh-scope .kfh-corner-tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+.kfh-scope .kfh-corner-bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+.kfh-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .6rem; margin-bottom: .85rem; padding: 0 .15rem;
+}
+.kfh-tag {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-family: 'Menlo','Courier New',ui-monospace,monospace;
+  font-size: .56rem; letter-spacing: .26em; text-transform: uppercase;
+  color: var(--kfh-gd);
+}
+.kfh-tag .kfh-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--kfh-cy);
+  box-shadow: 0 0 10px var(--kfh-cy);
+  animation: kfhPulse 1.6s ease-in-out infinite;
+}
+@keyframes kfhPulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.kfh-title {
+  font-size: 1.05rem; font-weight: 900; letter-spacing: .08em;
+  color: #fff; line-height: 1;
+}
+.kfh-title .kfh-ex {
+  color: var(--kfh-gd);
+  text-shadow: 0 0 12px rgba(245,200,0,.35);
+}
+.kfh-sub {
+  font-size: .64rem; letter-spacing: .22em; text-transform: uppercase;
+  color: rgba(255,255,255,.38); margin-top: .22rem;
+  font-family: 'Menlo','Courier New',ui-monospace,monospace;
+}
+/* ── Primary segmented toggle ── */
+.kfh-seg {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0; position: relative;
+  padding: 4px;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(245,200,0,.18);
+  border-radius: 999px;
+  margin-bottom: 1rem;
+}
+.kfh-seg-btn {
+  position: relative;
+  padding: .7rem .5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: 'Bebas Neue','Barlow Condensed',sans-serif;
+  font-size: .86rem; letter-spacing: .28em; text-transform: uppercase;
+  color: rgba(255,255,255,.52);
+  border-radius: 999px;
+  transition: color .25s, text-shadow .25s;
+  z-index: 1;
+  white-space: nowrap;
+}
+.kfh-seg-btn.on { color: #07070B; text-shadow: none; }
+.kfh-seg-slider {
+  position: absolute;
+  top: 4px; left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: linear-gradient(90deg, var(--kfh-cy), var(--kfh-gd));
+  border-radius: 999px;
+  box-shadow:
+    0 0 18px rgba(0,229,255,.35),
+    0 0 24px rgba(245,200,0,.25);
+  transition: transform .32s cubic-bezier(.2,.8,.2,1);
+  z-index: 0;
+}
+.kfh-seg[data-view="cam"] .kfh-seg-slider { transform: translateX(100%); }
+/* ── View container ── */
+.kfh-view { display: none; animation: kfhFade .35s ease-out; }
+.kfh-view.on { display: block; }
+@keyframes kfhFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* ── Sub-toggle (form vs fault) ── */
+.kfh-subseg {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .5rem;
+  margin-bottom: .9rem;
+}
+.kfh-chip {
+  padding: .55rem .6rem;
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  color: rgba(255,255,255,.55);
+  font-family: 'Menlo','Courier New',ui-monospace,monospace;
+  font-size: .58rem; letter-spacing: .22em; text-transform: uppercase;
+  cursor: pointer;
+  display: flex; align-items: center; gap: .45rem; justify-content: center;
+  transition: all .25s;
+  text-align: center; line-height: 1.2;
+}
+.kfh-chip .kfh-pip {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  transition: all .25s;
+  flex-shrink: 0;
+}
+.kfh-chip.on.ok {
+  color: var(--kfh-grn);
+  border-color: rgba(34,197,94,.5);
+  background: rgba(34,197,94,.06);
+  box-shadow: 0 0 18px rgba(34,197,94,.18), inset 0 0 0 1px rgba(34,197,94,.15);
+}
+.kfh-chip.on.ok .kfh-pip { background: var(--kfh-grn); box-shadow: 0 0 10px var(--kfh-grn); }
+.kfh-chip.on.warn {
+  color: var(--kfh-red);
+  border-color: rgba(239,68,68,.55);
+  background: rgba(239,68,68,.06);
+  box-shadow: 0 0 18px rgba(239,68,68,.2), inset 0 0 0 1px rgba(239,68,68,.18);
+}
+.kfh-chip.on.warn .kfh-pip { background: var(--kfh-red); box-shadow: 0 0 10px var(--kfh-red); }
+/* ── Wireframe stage ── */
+.kfh-stage {
+  position: relative;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, #05070B 0%, #080910 100%);
+  border: 1px solid rgba(0,229,255,.14);
+  padding: .9rem .7rem .8rem;
+  overflow: hidden;
+}
+.kfh-stage::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask: radial-gradient(circle at 50% 55%, #000 0%, transparent 85%);
+  -webkit-mask: radial-gradient(circle at 50% 55%, #000 0%, transparent 85%);
+  pointer-events: none;
+}
+.kfh-stage::after {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--kfh-cy), transparent);
+  opacity: .5;
+  animation: kfhScan 4.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes kfhScan {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: .6; }
+  90% { opacity: .6; }
+  100% { transform: translateY(260px); opacity: 0; }
+}
+.kfh-stage svg { display: block; width: 100%; height: auto; position: relative; z-index: 1; }
+/* Wireframe strokes */
+.kfh-wf { stroke: rgba(255,255,255,.55); stroke-width: 1.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.kfh-wf-bench { stroke: rgba(245,200,0,.55); stroke-width: 1.6; }
+.kfh-wf-bar { stroke: #fff; stroke-width: 2.4; }
+.kfh-wf-plate { fill: rgba(255,255,255,.08); stroke: rgba(255,255,255,.55); stroke-width: 1.2; }
+.kfh-wf-grid { stroke: rgba(0,229,255,.18); stroke-width: .6; stroke-dasharray: 2 3; fill: none; }
+.kfh-path-j {
+  stroke: var(--kfh-cy);
+  stroke-width: 1.8;
+  stroke-dasharray: 4 4;
+  fill: none;
+  filter: drop-shadow(0 0 6px rgba(0,229,255,.55));
+  animation: kfhDash 2.4s linear infinite;
+}
+@keyframes kfhDash { to { stroke-dashoffset: -32; } }
+.kfh-joint {
+  fill: #0a0a0d;
+  stroke: rgba(255,255,255,.55);
+  stroke-width: 1.2;
+  transition: fill .3s, stroke .3s, filter .3s, r .3s;
+}
+.kfh-scope[data-form="ok"] .kfh-joint.j-shoulder,
+.kfh-scope[data-form="ok"] .kfh-joint.j-elbow,
+.kfh-scope[data-form="ok"] .kfh-joint.j-wrist {
+  stroke: var(--kfh-grn); fill: rgba(34,197,94,.25);
+  filter: drop-shadow(0 0 6px rgba(34,197,94,.75));
+}
+.kfh-scope[data-form="warn"] .kfh-joint.j-shoulder {
+  stroke: var(--kfh-red); fill: rgba(239,68,68,.35);
+  filter: drop-shadow(0 0 10px rgba(239,68,68,.85));
+  animation: kfhWarnPulse 1.3s ease-in-out infinite;
+}
+@keyframes kfhWarnPulse {
+  0%,100% { filter: drop-shadow(0 0 6px rgba(239,68,68,.6)); }
+  50%     { filter: drop-shadow(0 0 14px rgba(239,68,68,1)); }
+}
+.kfh-halo {
+  fill: none;
+  stroke: var(--kfh-red);
+  stroke-width: 1;
+  opacity: 0;
+  transform-origin: center;
+}
+.kfh-scope[data-form="warn"] .kfh-halo {
+  opacity: .9;
+  animation: kfhHalo 1.6s ease-out infinite;
+}
+@keyframes kfhHalo {
+  0% { r: 6; opacity: .9; }
+  100% { r: 18; opacity: 0; }
+}
+.kfh-label-box {
+  font-family: 'Menlo','Courier New',ui-monospace,monospace;
+  font-size: 7.5px; letter-spacing: .14em; text-transform: uppercase;
+}
+.kfh-label-box.ok { fill: var(--kfh-grn); }
+.kfh-label-box.warn { fill: var(--kfh-red); }
+.kfh-leader { stroke-width: .8; fill: none; }
+.kfh-leader.ok { stroke: var(--kfh-grn); }
+.kfh-leader.warn { stroke: var(--kfh-red); }
+.kfh-bar-label {
+  fill: var(--kfh-cy);
+  font-family: 'Menlo','Courier New',ui-monospace,monospace;
+  font-size: 7px; letter-spacing: .18em; text-transform: uppercase;
+}
+/* Readout grid */
+.kfh-readout {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem;
+  margin-top: .75rem;
+}
+.kfh-metric {
+  padding: .55rem .55rem;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.06);
+  border-left: 2px solid var(--kfh-cy);
+  border-radius: 8px;
+}
+.kfh-metric .kfh-m-lbl {
+  font-family: 'Menlo','Courier New',ui-monospace,monospace;
+  font-size: .52rem; letter-spacing: .2em; text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+}
+.kfh-metric .kfh-m-val {
+  font-family: 'Bebas Neue','Barlow Condensed',sans-serif;
+  font-size: 1rem; letter-spacing: .06em; color: #fff;
+  margin-top: .15rem;
+}
+.kfh-scope[data-form="ok"] .kfh-metric { border-left-color: var(--kfh-grn); }
+.kfh-scope[data-form="warn"] .kfh-metric.m-fault {
+  border-left-color: var(--kfh-red);
+  background: rgba(239,68,68,.06);
+}
+.kfh-scope[data-form="warn"] .kfh-metric.m-fault .kfh-m-val { color: var(--kfh-red); }
+.kfh-footnote {
+  margin-top: .65rem;
+  font-family: 'Menlo','Courier New',ui-monospace,monospace;
+  font-size: .52rem; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(255,255,255,.32);
+  display: flex; align-items: center; gap: .4rem;
+  line-height: 1.5;
+}
+.kfh-footnote .kfh-fn-bar {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(245,200,0,.35), transparent);
+}
+/* ── Coach Cam placeholder ── */
+.kfh-cam {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(245,200,0,.22);
+  background:
+    radial-gradient(120% 80% at 10% 10%, rgba(0,229,255,.16), transparent 55%),
+    radial-gradient(120% 80% at 90% 90%, rgba(139,26,191,.32), transparent 55%),
+    linear-gradient(180deg, #07070C, #02020A);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.kfh-cam::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0px, rgba(255,255,255,.035) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.kfh-cam-brackets span {
+  position: absolute; width: 22px; height: 22px;
+  border: 1.4px solid var(--kfh-gd);
+  opacity: .9;
+}
+.kfh-cam-brackets .tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+.kfh-cam-brackets .tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+.kfh-cam-brackets .bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+.kfh-cam-brackets .br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+.kfh-cam-core {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .6rem; text-align: center; padding: 1rem;
+}
+.kfh-play {
+  width: 58px; height: 58px; border-radius: 50%;
+  border: 1.5px solid var(--kfh-gd);
+  background: radial-gradient(circle at center, rgba(245,200,0,.18), rgba(139,26,191,.18) 60%, transparent 80%);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--kfh-gd);
+  box-shadow: 0 0 22px rgba(245,200,0,.28), inset 0 0 12px rgba(0,229,255,.2);
+  animation: kfhPlayPulse 2.4s ease-in-out infinite;
+}
+.kfh-play svg { width: 18px; height: 18px; fill: var(--kfh-gd); margin-left: 3px; }
+@keyframes kfhPlayPulse {
+  0%,100% { box-shadow: 0 0 22px rgba(245,200,0,.28), inset 0 0 12px rgba(0,229,255,.2); }
+  50%     { box-shadow: 0 0 32px rgba(245,200,0,.5),  inset 0 0 16px rgba(0,229,255,.35); }
+}
+.kfh-cam-label {
+  font-family: 'Bebas Neue','Barlow Condensed',sans-serif;
+  font-size: .95rem; letter-spacing: .22em; text-transform: uppercase;
+  color: #fff;
+}
+.kfh-cam-label .kfh-c-gd { color: var(--kfh-gd); }
+.kfh-cam-sub {
+  font-family: 'Menlo','Courier New',ui-monospace,monospace;
+  font-size: .55rem; letter-spacing: .28em; text-transform: uppercase;
+  color: rgba(0,229,255,.75);
+  display: inline-flex; align-items: center; gap: .4rem;
+}
+.kfh-cam-sub .kfh-live {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--kfh-cy);
+  box-shadow: 0 0 8px var(--kfh-cy);
+  animation: kfhPulse 1.2s ease-in-out infinite;
+}
+.kfh-cam-meta {
+  position: absolute; left: 12px; right: 12px; bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: 'Menlo','Courier New',ui-monospace,monospace;
+  font-size: .5rem; letter-spacing: .24em; text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+}
+.kfh-cam-meta .kfh-cm-tag { color: var(--kfh-gd); }
+.kfh-cam-meta .kfh-cm-ch  { color: #C084FC; }
+.kfh-cam-foot {
+  margin-top: .7rem;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem;
+}
+.kfh-cam-foot .kfh-metric { border-left-color: var(--kfh-pu); }
+@media (max-width: 380px) {
+  .kfh-readout, .kfh-cam-foot { grid-template-columns: 1fr 1fr; }
+  .kfh-metric:nth-child(3) { grid-column: 1 / -1; }
+}
+</style>
 </head>
 <body>
 <a href="#main-content" class="skip-to-main">Skip to main content</a>
@@ -3726,6 +4116,208 @@ window.onload=function(){
     <div class="tp" id="tp-workout">
       <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-wo-title">Today&apos;s Program</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-wo-sub">Log your sets, reps &amp; weight</div></div>
       <button onclick="if(typeof BBF_PREHAB!=='undefined')BBF_PREHAB.trigger(function(r){TOAST('&#x1F9EA; Pre-Hab complete: '+r.area)})" style="width:100%;padding:.75rem;margin-bottom:1rem;background:transparent;border:2px solid #D4AF37;color:#D4AF37;font-family:var(--hb);font-size:.9rem;letter-spacing:3px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(212,175,55,.1)'" onmouseout="this.style.background='transparent'" data-lang-key="app-prehab-audit-btn">&#x1F9EA; PRE-HAB AUDIT &mdash; START HERE</button>
+      <!-- ═══ KINEMATIC FORM HUD ═══ Additive, self-contained UI. -->
+      <section class="kfh-scope" id="kfh-root" data-form="ok" aria-label="Kinematic Form HUD">
+        <span class="kfh-corner-tr" aria-hidden="true"></span>
+        <span class="kfh-corner-bl" aria-hidden="true"></span>
+        <div class="kfh-head">
+          <div>
+            <div class="kfh-tag"><span class="kfh-dot"></span>Kinematic Form HUD &middot; Clinical</div>
+            <div class="kfh-title" style="margin-top:.3rem">Exercise &middot; <span class="kfh-ex">Bench Press</span></div>
+            <div class="kfh-sub">Sagittal Plane &middot; Barbell &middot; Sovereign Rig</div>
+          </div>
+        </div>
+        <div class="kfh-seg" id="kfh-seg" data-view="render" role="tablist" aria-label="Primary view">
+          <div class="kfh-seg-slider" aria-hidden="true"></div>
+          <button type="button" class="kfh-seg-btn on" data-view="render" role="tab" aria-selected="true" onclick="KFH_SET_VIEW('render')">Bio-Render</button>
+          <button type="button" class="kfh-seg-btn"    data-view="cam"    role="tab" aria-selected="false" onclick="KFH_SET_VIEW('cam')">Coach Cam</button>
+        </div>
+        <!-- Bio-Render view -->
+        <div class="kfh-view on" id="kfh-view-render" role="tabpanel" aria-label="Bio-Render wireframe">
+          <div class="kfh-subseg" role="radiogroup" aria-label="Form mode">
+            <button type="button" class="kfh-chip on ok"   data-form="ok"   role="radio" aria-checked="true"  onclick="KFH_SET_FORM('ok')"><span class="kfh-pip"></span>Standard Form</button>
+            <button type="button" class="kfh-chip warn"    data-form="warn" role="radio" aria-checked="false" onclick="KFH_SET_FORM('warn')"><span class="kfh-pip"></span>Common Fault: Elbow Flare</button>
+          </div>
+          <div class="kfh-stage">
+            <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kfh-svg-title" role="img">
+              <title id="kfh-svg-title">Bench Press Sagittal Wireframe with J-Curve Bar Path</title>
+              <!-- Calibration grid edges -->
+              <g class="kfh-wf-grid">
+                <line x1="28"  y1="18" x2="28"  y2="188"/>
+                <line x1="292" y1="18" x2="292" y2="188"/>
+                <line x1="28"  y1="160" x2="292" y2="160"/>
+              </g>
+              <!-- Floor -->
+              <line class="kfh-wf kfh-wf-bench" x1="28" y1="180" x2="292" y2="180"/>
+              <!-- Bench -->
+              <g class="kfh-wf kfh-wf-bench">
+                <!-- Bench pad -->
+                <rect x="80" y="130" width="170" height="10" rx="2"/>
+                <!-- Bench legs -->
+                <line x1="92"  y1="140" x2="92"  y2="180"/>
+                <line x1="238" y1="140" x2="238" y2="180"/>
+                <line x1="85"  y1="180" x2="100" y2="180"/>
+                <line x1="230" y1="180" x2="246" y2="180"/>
+                <!-- Uprights -->
+                <line x1="262" y1="180" x2="262" y2="56"/>
+                <line x1="262" y1="56"  x2="272" y2="56"/>
+              </g>
+              <!-- Lifter wireframe (sagittal) -->
+              <g class="kfh-wf">
+                <!-- Head -->
+                <circle cx="92" cy="120" r="8"/>
+                <!-- Neck to hip (spine, slight arch) -->
+                <path d="M100 126 Q140 116 180 122 Q210 127 232 130"/>
+                <!-- Thigh -->
+                <line x1="232" y1="130" x2="244" y2="152"/>
+                <!-- Shin -->
+                <line x1="244" y1="152" x2="228" y2="180"/>
+                <!-- Foot -->
+                <line x1="220" y1="180" x2="240" y2="180"/>
+                <!-- Upper arm (shoulder -> elbow) -->
+                <line id="kfh-upperarm" x1="155" y1="120" x2="170" y2="86"/>
+                <!-- Forearm (elbow -> wrist/bar) -->
+                <line id="kfh-forearm" x1="170" y1="86" x2="175" y2="60"/>
+              </g>
+              <!-- Plates + bar -->
+              <g>
+                <line class="kfh-wf kfh-wf-bar" x1="158" y1="60" x2="192" y2="60"/>
+                <circle class="kfh-wf-plate" cx="175" cy="60" r="10"/>
+                <circle class="kfh-wf-plate" cx="175" cy="60" r="4"/>
+              </g>
+              <!-- J-Curve bar path (touch point above chest → rack/shoulder arc) -->
+              <!-- Touch point approx (175, 118) → lockout (198, 58), J-curve shifts toward shoulders -->
+              <path class="kfh-path-j" d="M175 118 C 180 98, 190 78, 198 58"/>
+              <!-- Path terminal markers -->
+              <circle cx="175" cy="118" r="2.5" fill="#00E5FF"/>
+              <circle cx="198" cy="58"  r="2.5" fill="#00E5FF"/>
+              <text class="kfh-bar-label" x="120" y="112">Touch &middot; Sternum</text>
+              <text class="kfh-bar-label" x="204" y="52">Lockout</text>
+              <text class="kfh-bar-label" x="208" y="92">J-Curve Path</text>
+              <!-- Joints -->
+              <circle class="kfh-joint j-shoulder" cx="155" cy="120" r="4.2"/>
+              <circle class="kfh-halo"             cx="155" cy="120" r="6"/>
+              <circle class="kfh-joint j-elbow"    cx="170" cy="86"  r="3.6"/>
+              <circle class="kfh-joint j-wrist"    cx="175" cy="60"  r="3.6"/>
+              <circle class="kfh-joint j-hip"      cx="232" cy="130" r="3.4"/>
+              <circle class="kfh-joint j-knee"     cx="244" cy="152" r="3.4"/>
+              <!-- Leader + callout label, swaps between ok/warn -->
+              <g id="kfh-callout-ok">
+                <line class="kfh-leader ok" x1="155" y1="120" x2="60"  y2="150"/>
+                <text class="kfh-label-box ok" x="30" y="162">Scap Retracted &middot; 45&deg;</text>
+              </g>
+              <g id="kfh-callout-warn" style="display:none">
+                <line class="kfh-leader warn" x1="155" y1="120" x2="60"  y2="150"/>
+                <text class="kfh-label-box warn" x="30" y="156">Elbow Flare 85&deg;</text>
+                <text class="kfh-label-box warn" x="30" y="168">Impingement Risk</text>
+              </g>
+            </svg>
+          </div>
+          <div class="kfh-readout">
+            <div class="kfh-metric">
+              <div class="kfh-m-lbl">Bar Path Dev.</div>
+              <div class="kfh-m-val" id="kfh-m-dev">&plusmn; 1.2 cm</div>
+            </div>
+            <div class="kfh-metric">
+              <div class="kfh-m-lbl">Tuck Angle</div>
+              <div class="kfh-m-val" id="kfh-m-tuck">65&deg;</div>
+            </div>
+            <div class="kfh-metric m-fault">
+              <div class="kfh-m-lbl">Shoulder Load</div>
+              <div class="kfh-m-val" id="kfh-m-load">Nominal</div>
+            </div>
+          </div>
+          <div class="kfh-footnote">
+            <span id="kfh-fn">Clinical reference &middot; Non-diagnostic overlay</span>
+            <span class="kfh-fn-bar" aria-hidden="true"></span>
+            <span>v1.0</span>
+          </div>
+        </div>
+        <!-- Coach Cam view -->
+        <div class="kfh-view" id="kfh-view-cam" role="tabpanel" aria-label="Coach Cam">
+          <div class="kfh-cam">
+            <div class="kfh-cam-brackets" aria-hidden="true">
+              <span class="tl"></span><span class="tr"></span>
+              <span class="bl"></span><span class="br"></span>
+            </div>
+            <div class="kfh-cam-core">
+              <div class="kfh-play" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+              </div>
+              <div class="kfh-cam-label"><span class="kfh-c-gd">Akeem Brown</span> &middot; Gym Footage</div>
+              <div class="kfh-cam-sub"><span class="kfh-live"></span>Awaiting Uplink</div>
+            </div>
+            <div class="kfh-cam-meta">
+              <span class="kfh-cm-tag">REC &middot; 4K &middot; DJI Osmo</span>
+              <span class="kfh-cm-ch">CH &middot; Sovereign 01</span>
+            </div>
+          </div>
+          <div class="kfh-cam-foot">
+            <div class="kfh-metric">
+              <div class="kfh-m-lbl">Signal</div>
+              <div class="kfh-m-val">Encrypted</div>
+            </div>
+            <div class="kfh-metric">
+              <div class="kfh-m-lbl">Bitrate</div>
+              <div class="kfh-m-val">-- Mbps</div>
+            </div>
+            <div class="kfh-metric">
+              <div class="kfh-m-lbl">ETA</div>
+              <div class="kfh-m-val">&lt; 24 h</div>
+            </div>
+          </div>
+          <div class="kfh-footnote" style="margin-top:.65rem">
+            <span>Sovereign review pipeline &middot; Cyan / Gold / Purple channel</span>
+            <span class="kfh-fn-bar" aria-hidden="true"></span>
+            <span>v1.0</span>
+          </div>
+        </div>
+      </section>
+      <script>
+      /* Kinematic Form HUD — scoped toggles. No engine hooks. */
+      (function(){
+        if (window.KFH_SET_VIEW) return;
+        function byId(id){ return document.getElementById(id); }
+        window.KFH_SET_VIEW = function(view){
+          var seg = byId('kfh-seg'); if (!seg) return;
+          seg.setAttribute('data-view', view);
+          var btns = seg.querySelectorAll('.kfh-seg-btn');
+          for (var i=0;i<btns.length;i++){
+            var on = btns[i].getAttribute('data-view') === view;
+            btns[i].classList.toggle('on', on);
+            btns[i].setAttribute('aria-selected', on ? 'true' : 'false');
+          }
+          var r = byId('kfh-view-render'), c = byId('kfh-view-cam');
+          if (r) r.classList.toggle('on', view === 'render');
+          if (c) c.classList.toggle('on', view === 'cam');
+        };
+        window.KFH_SET_FORM = function(mode){
+          var root = byId('kfh-root'); if (!root) return;
+          root.setAttribute('data-form', mode);
+          var chips = root.querySelectorAll('.kfh-chip');
+          for (var i=0;i<chips.length;i++){
+            var on = chips[i].getAttribute('data-form') === mode;
+            chips[i].classList.toggle('on', on);
+            chips[i].setAttribute('aria-checked', on ? 'true' : 'false');
+          }
+          var ok = byId('kfh-callout-ok'), wn = byId('kfh-callout-warn');
+          if (ok) ok.style.display = (mode === 'ok')   ? '' : 'none';
+          if (wn) wn.style.display = (mode === 'warn') ? '' : 'none';
+          var dev = byId('kfh-m-dev'), tuck = byId('kfh-m-tuck'), load = byId('kfh-m-load'), fn = byId('kfh-fn');
+          if (mode === 'warn'){
+            if (dev)  dev.textContent  = '\u00B1 4.8 cm';
+            if (tuck) tuck.textContent = '85\u00B0';
+            if (load) load.textContent = 'Elevated';
+            if (fn)   fn.textContent   = 'Fault pattern \u00B7 Elbow flare \u00B7 Impingement risk';
+          } else {
+            if (dev)  dev.textContent  = '\u00B1 1.2 cm';
+            if (tuck) tuck.textContent = '65\u00B0';
+            if (load) load.textContent = 'Nominal';
+            if (fn)   fn.textContent   = 'Clinical reference \u00B7 Non-diagnostic overlay';
+          }
+        };
+      })();
+      </script>
       <!-- PROGRAM PANE -->
       <div id="vault-program-pane">
         <div class="dnav" id="dnav"></div>
