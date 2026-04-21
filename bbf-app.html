@@ -154,7 +154,97 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ap-proto-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.3rem}
 .ap-proto-list li{position:relative;padding:.35rem .55rem .35rem 1.35rem;font-size:.85rem;line-height:1.35;color:rgba(255,255,255,.9);background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:8px;font-weight:600;letter-spacing:.2px}
 .ap-proto-list li::before{content:"";position:absolute;left:.55rem;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--ap-accent,#F5CF60);box-shadow:0 0 8px var(--ap-accent,#F5CF60)}
-@media(prefers-reduced-motion:reduce){.ap-kicker::before{animation:none}.ap-card,.ap-card:hover{transform:none;transition:none}.ap-toggle-thumb{transition:none}.ap-protocol[data-state="ready"]{animation:none}.ap-protocol-dot{animation:none!important}}
+/* ═ Phase 3 — Athlete Kinematic HUD (scoped port of .kfh-*) ═ */
+.ap-kfh-wrap{margin-top:1rem;animation:apProtoRise .5s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
+.ap-kfh-wrap[hidden]{display:none!important}
+.ap-kfh-scope{--apk-cy:#00E5FF;--apk-gd:#F5C800;--apk-pu:#8B1ABF;--apk-pu-d:#2A0845;--apk-grn:#22C55E;--apk-red:#EF4444;--apk-ink:#07070B;position:relative;border-radius:18px;padding:1.1rem 1rem 1.15rem;background:radial-gradient(120% 80% at 8% 0%,rgba(0,229,255,.08),transparent 55%),radial-gradient(110% 90% at 100% 100%,rgba(139,26,191,.16),transparent 58%),linear-gradient(180deg,rgba(10,10,16,.92),rgba(6,6,10,.92));border:1px solid rgba(255,255,255,.07);box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 0 0 1px rgba(245,200,0,.08),0 18px 50px rgba(0,0,0,.55),0 0 38px rgba(0,229,255,.05);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);overflow:hidden;isolation:isolate}
+.ap-kfh-scope::before,.ap-kfh-scope::after{content:"";position:absolute;width:18px;height:18px;border:1.2px solid var(--apk-gd);opacity:.8;pointer-events:none}
+.ap-kfh-scope::before{top:8px;left:8px;border-right:none;border-bottom:none}
+.ap-kfh-scope::after{bottom:8px;right:8px;border-left:none;border-top:none}
+.ap-kfh-scope .ap-kfh-corner-tr,.ap-kfh-scope .ap-kfh-corner-bl{position:absolute;width:18px;height:18px;border:1.2px solid var(--apk-gd);opacity:.8;pointer-events:none}
+.ap-kfh-scope .ap-kfh-corner-tr{top:8px;right:8px;border-left:none;border-bottom:none}
+.ap-kfh-scope .ap-kfh-corner-bl{bottom:8px;left:8px;border-right:none;border-top:none}
+.ap-kfh-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.85rem;padding:0 .15rem}
+.ap-kfh-tag{display:inline-flex;align-items:center;gap:.45rem;font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.56rem;letter-spacing:.26em;text-transform:uppercase;color:var(--apk-gd)}
+.ap-kfh-tag .ap-kfh-dot{width:7px;height:7px;border-radius:50%;background:var(--apk-cy);box-shadow:0 0 10px var(--apk-cy);animation:apKfhPulse 1.6s ease-in-out infinite}
+@keyframes apKfhPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.ap-kfh-title{font-size:1.05rem;font-weight:900;letter-spacing:.08em;color:#fff;line-height:1}
+.ap-kfh-title .ap-kfh-ex{color:var(--apk-gd);text-shadow:0 0 12px rgba(245,200,0,.35)}
+.ap-kfh-sub{font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-top:.22rem;font-family:'Menlo','Courier New',ui-monospace,monospace}
+.ap-kfh-seg{display:grid;grid-template-columns:1fr 1fr;gap:0;position:relative;padding:4px;background:rgba(0,0,0,.55);border:1px solid rgba(245,200,0,.18);border-radius:999px;margin-bottom:1rem}
+.ap-kfh-seg-btn{position:relative;padding:.7rem .5rem;background:transparent;border:none;cursor:pointer;font-family:'Bebas Neue','Barlow Condensed',sans-serif;font-size:.86rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.52);border-radius:999px;transition:color .25s,text-shadow .25s;z-index:1;white-space:nowrap}
+.ap-kfh-seg-btn.on{color:#07070B;text-shadow:none}
+.ap-kfh-seg-btn:focus-visible{outline:2px solid var(--apk-gd);outline-offset:2px}
+.ap-kfh-seg-slider{position:absolute;top:4px;left:4px;width:calc(50% - 4px);height:calc(100% - 8px);background:linear-gradient(90deg,var(--apk-cy),var(--apk-gd));border-radius:999px;box-shadow:0 0 18px rgba(0,229,255,.35),0 0 24px rgba(245,200,0,.25);transition:transform .32s cubic-bezier(.2,.8,.2,1);z-index:0}
+.ap-kfh-seg[data-view="cam"] .ap-kfh-seg-slider{transform:translateX(100%)}
+.ap-kfh-view{display:none;animation:apKfhFade .35s ease-out}
+.ap-kfh-view.on{display:block}
+@keyframes apKfhFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.ap-kfh-subseg{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.9rem}
+.ap-kfh-chip{padding:.55rem .6rem;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:rgba(255,255,255,.55);font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:.45rem;justify-content:center;transition:all .25s;text-align:center;line-height:1.2}
+.ap-kfh-chip:focus-visible{outline:2px solid var(--apk-gd);outline-offset:2px}
+.ap-kfh-chip .ap-kfh-pip{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .25s;flex-shrink:0}
+.ap-kfh-chip.on.ok{color:var(--apk-grn);border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.06);box-shadow:0 0 18px rgba(34,197,94,.18),inset 0 0 0 1px rgba(34,197,94,.15)}
+.ap-kfh-chip.on.ok .ap-kfh-pip{background:var(--apk-grn);box-shadow:0 0 10px var(--apk-grn)}
+.ap-kfh-chip.on.warn{color:var(--apk-red);border-color:rgba(239,68,68,.55);background:rgba(239,68,68,.06);box-shadow:0 0 18px rgba(239,68,68,.2),inset 0 0 0 1px rgba(239,68,68,.18)}
+.ap-kfh-chip.on.warn .ap-kfh-pip{background:var(--apk-red);box-shadow:0 0 10px var(--apk-red)}
+.ap-kfh-stage{position:relative;border-radius:14px;background:linear-gradient(180deg,#05070B 0%,#080910 100%);border:1px solid rgba(0,229,255,.14);padding:.9rem .7rem .8rem;overflow:hidden}
+.ap-kfh-stage::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(0,229,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.05) 1px,transparent 1px);background-size:22px 22px;mask:radial-gradient(circle at 50% 55%,#000 0%,transparent 85%);-webkit-mask:radial-gradient(circle at 50% 55%,#000 0%,transparent 85%);pointer-events:none}
+.ap-kfh-stage::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--apk-cy),transparent);opacity:.5;animation:apKfhScan 4.5s linear infinite;pointer-events:none}
+@keyframes apKfhScan{0%{transform:translateY(0);opacity:0}10%{opacity:.6}90%{opacity:.6}100%{transform:translateY(260px);opacity:0}}
+.ap-kfh-stage svg{display:block;width:100%;height:auto;position:relative;z-index:1}
+.ap-kfh-wf{stroke:rgba(255,255,255,.55);stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ap-kfh-wf-ground{stroke:rgba(245,200,0,.55);stroke-width:1.6}
+.ap-kfh-wf-grid{stroke:rgba(0,229,255,.18);stroke-width:.6;stroke-dasharray:2 3;fill:none}
+.ap-kfh-path-j{stroke:var(--apk-cy);stroke-width:1.8;stroke-dasharray:4 4;fill:none;filter:drop-shadow(0 0 6px rgba(0,229,255,.55));animation:apKfhDash 2.4s linear infinite}
+@keyframes apKfhDash{to{stroke-dashoffset:-32}}
+.ap-kfh-joint{fill:#0a0a0d;stroke:rgba(255,255,255,.55);stroke-width:1.2;transition:fill .3s,stroke .3s,filter .3s}
+.ap-kfh-scope[data-form="ok"] .ap-kfh-joint.j-knee,
+.ap-kfh-scope[data-form="ok"] .ap-kfh-joint.j-hip,
+.ap-kfh-scope[data-form="ok"] .ap-kfh-joint.j-ankle{stroke:var(--apk-grn);fill:rgba(34,197,94,.25);filter:drop-shadow(0 0 6px rgba(34,197,94,.75))}
+.ap-kfh-scope[data-form="warn"] .ap-kfh-joint.j-knee{stroke:var(--apk-red);fill:rgba(239,68,68,.35);filter:drop-shadow(0 0 10px rgba(239,68,68,.85));animation:apKfhWarnPulse 1.3s ease-in-out infinite}
+@keyframes apKfhWarnPulse{0%,100%{filter:drop-shadow(0 0 6px rgba(239,68,68,.6))}50%{filter:drop-shadow(0 0 14px rgba(239,68,68,1))}}
+.ap-kfh-halo{fill:none;stroke:var(--apk-red);stroke-width:1;opacity:0;transform-origin:center}
+.ap-kfh-scope[data-form="warn"] .ap-kfh-halo{opacity:.9;animation:apKfhHalo 1.6s ease-out infinite}
+@keyframes apKfhHalo{0%{r:6;opacity:.9}100%{r:18;opacity:0}}
+.ap-kfh-label-box{font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:7.5px;letter-spacing:.14em;text-transform:uppercase}
+.ap-kfh-label-box.ok{fill:var(--apk-grn)}
+.ap-kfh-label-box.warn{fill:var(--apk-red)}
+.ap-kfh-leader{stroke-width:.8;fill:none}
+.ap-kfh-leader.ok{stroke:var(--apk-grn)}
+.ap-kfh-leader.warn{stroke:var(--apk-red)}
+.ap-kfh-bar-label{fill:var(--apk-cy);font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:7px;letter-spacing:.18em;text-transform:uppercase}
+.ap-kfh-readout{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.75rem}
+.ap-kfh-metric{padding:.55rem;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.06);border-left:2px solid var(--apk-cy);border-radius:8px}
+.ap-kfh-metric .ap-kfh-m-lbl{font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.ap-kfh-metric .ap-kfh-m-val{font-family:'Bebas Neue','Barlow Condensed',sans-serif;font-size:1rem;letter-spacing:.06em;color:#fff;margin-top:.15rem}
+.ap-kfh-scope[data-form="ok"] .ap-kfh-metric{border-left-color:var(--apk-grn)}
+.ap-kfh-scope[data-form="warn"] .ap-kfh-metric.m-fault{border-left-color:var(--apk-red);background:rgba(239,68,68,.06)}
+.ap-kfh-scope[data-form="warn"] .ap-kfh-metric.m-fault .ap-kfh-m-val{color:var(--apk-red)}
+.ap-kfh-footnote{margin-top:.65rem;font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.32);display:flex;align-items:center;gap:.4rem;line-height:1.5}
+.ap-kfh-footnote .ap-kfh-fn-bar{flex:1;height:1px;background:linear-gradient(90deg,rgba(245,200,0,.35),transparent)}
+.ap-kfh-cam{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid rgba(245,200,0,.22);background:radial-gradient(120% 80% at 10% 10%,rgba(0,229,255,.16),transparent 55%),radial-gradient(120% 80% at 90% 90%,rgba(139,26,191,.32),transparent 55%),linear-gradient(180deg,#07070C,#02020A);box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.ap-kfh-cam::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0px,rgba(255,255,255,.035) 1px,transparent 1px,transparent 3px);mix-blend-mode:overlay;pointer-events:none}
+.ap-kfh-cam-brackets span{position:absolute;width:22px;height:22px;border:1.4px solid var(--apk-gd);opacity:.9}
+.ap-kfh-cam-brackets .tl{top:10px;left:10px;border-right:none;border-bottom:none}
+.ap-kfh-cam-brackets .tr{top:10px;right:10px;border-left:none;border-bottom:none}
+.ap-kfh-cam-brackets .bl{bottom:10px;left:10px;border-right:none;border-top:none}
+.ap-kfh-cam-brackets .br{bottom:10px;right:10px;border-left:none;border-top:none}
+.ap-kfh-cam-core{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;text-align:center;padding:1rem}
+.ap-kfh-play{width:58px;height:58px;border-radius:50%;border:1.5px solid var(--apk-gd);background:radial-gradient(circle at center,rgba(245,200,0,.18),rgba(139,26,191,.18) 60%,transparent 80%);display:flex;align-items:center;justify-content:center;color:var(--apk-gd);box-shadow:0 0 22px rgba(245,200,0,.28),inset 0 0 12px rgba(0,229,255,.2);animation:apKfhPlayPulse 2.4s ease-in-out infinite}
+.ap-kfh-play svg{width:18px;height:18px;fill:var(--apk-gd);margin-left:3px}
+@keyframes apKfhPlayPulse{0%,100%{box-shadow:0 0 22px rgba(245,200,0,.28),inset 0 0 12px rgba(0,229,255,.2)}50%{box-shadow:0 0 32px rgba(245,200,0,.5),inset 0 0 16px rgba(0,229,255,.35)}}
+.ap-kfh-cam-label{font-family:'Bebas Neue','Barlow Condensed',sans-serif;font-size:.95rem;letter-spacing:.22em;text-transform:uppercase;color:#fff}
+.ap-kfh-cam-label .ap-kfh-c-gd{color:var(--apk-gd)}
+.ap-kfh-cam-sub{font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.55rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(0,229,255,.75);display:inline-flex;align-items:center;gap:.4rem}
+.ap-kfh-cam-sub .ap-kfh-live{width:6px;height:6px;border-radius:50%;background:var(--apk-cy);box-shadow:0 0 8px var(--apk-cy);animation:apKfhPulse 1.2s ease-in-out infinite}
+.ap-kfh-cam-meta{position:absolute;left:12px;right:12px;bottom:10px;display:flex;align-items:center;justify-content:space-between;font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.5rem;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.ap-kfh-cam-meta .ap-kfh-cm-tag{color:var(--apk-gd)}
+.ap-kfh-cam-meta .ap-kfh-cm-ch{color:#C084FC}
+.ap-kfh-cam-foot{margin-top:.7rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+.ap-kfh-cam-foot .ap-kfh-metric{border-left-color:var(--apk-pu)}
+@media (max-width:380px){.ap-kfh-readout,.ap-kfh-cam-foot{grid-template-columns:1fr 1fr}.ap-kfh-metric:nth-child(3){grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.ap-kicker::before{animation:none}.ap-card,.ap-card:hover{transform:none;transition:none}.ap-toggle-thumb{transition:none}.ap-protocol[data-state="ready"]{animation:none}.ap-protocol-dot{animation:none!important}.ap-kfh-wrap{animation:none}.ap-kfh-stage::after,.ap-kfh-path-j,.ap-kfh-play,.ap-kfh-tag .ap-kfh-dot,.ap-kfh-cam-sub .ap-kfh-live{animation:none!important}.ap-kfh-seg-slider{transition:none}}
 /* HOME */
 .hero{background:linear-gradient(135deg,var(--purp),var(--purd));border-radius:16px;padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden}
 .hg{font-size:.72rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:.3rem}
@@ -4620,6 +4710,150 @@ window.onload=function(){
                 <p class="ap-proto-sec-body" id="ap-proto-nutri">&mdash;</p>
               </article>
             </div>
+
+            <!-- ═ Phase 3 — Athlete Kinematic Form HUD (scoped port) ═ -->
+            <div class="ap-kfh-wrap" id="ap-kfh-wrap" hidden>
+              <section class="ap-kfh-scope" id="ap-kfh-root" data-form="ok" aria-label="Athlete Kinematic Form HUD">
+                <span class="ap-kfh-corner-tr" aria-hidden="true"></span>
+                <span class="ap-kfh-corner-bl" aria-hidden="true"></span>
+                <div class="ap-kfh-head">
+                  <div>
+                    <div class="ap-kfh-tag"><span class="ap-kfh-dot"></span>Athlete Form HUD &middot; Clinical</div>
+                    <div class="ap-kfh-title" style="margin-top:.3rem">Movement &middot; <span class="ap-kfh-ex" id="ap-kfh-ex">Athletic Stance</span></div>
+                    <div class="ap-kfh-sub" id="ap-kfh-sub">Sagittal Plane &middot; Triple Extension &middot; Sovereign Rig</div>
+                  </div>
+                </div>
+                <div class="ap-kfh-seg" id="ap-kfh-seg" data-view="render" role="tablist" aria-label="Primary view">
+                  <div class="ap-kfh-seg-slider" aria-hidden="true"></div>
+                  <button type="button" class="ap-kfh-seg-btn on" data-view="render" role="tab" aria-selected="true" aria-controls="ap-kfh-view-render">Bio-Render</button>
+                  <button type="button" class="ap-kfh-seg-btn"    data-view="cam"    role="tab" aria-selected="false" aria-controls="ap-kfh-view-cam">Coach Cam</button>
+                </div>
+                <!-- Bio-Render view -->
+                <div class="ap-kfh-view on" id="ap-kfh-view-render" role="tabpanel" aria-label="Bio-Render wireframe">
+                  <div class="ap-kfh-subseg" role="radiogroup" aria-label="Form mode">
+                    <button type="button" class="ap-kfh-chip on ok"   data-form="ok"   role="radio" aria-checked="true"><span class="ap-kfh-pip"></span>Clinical Standard</button>
+                    <button type="button" class="ap-kfh-chip warn"    data-form="warn" role="radio" aria-checked="false"><span class="ap-kfh-pip"></span>Common Fault: Joint Shear</button>
+                  </div>
+                  <div class="ap-kfh-stage">
+                    <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-labelledby="ap-kfh-svg-title" role="img">
+                      <title id="ap-kfh-svg-title">Athletic Stance Sagittal Wireframe with Ground Reaction Force Vector</title>
+                      <g class="ap-kfh-wf-grid">
+                        <line x1="28"  y1="18" x2="28"  y2="188"/>
+                        <line x1="292" y1="18" x2="292" y2="188"/>
+                        <line x1="28"  y1="160" x2="292" y2="160"/>
+                      </g>
+                      <!-- Ground -->
+                      <line class="ap-kfh-wf ap-kfh-wf-ground" x1="28" y1="180" x2="292" y2="180"/>
+                      <!-- Athletic stance (sagittal): head, torso, arms, drive-leg / trail-leg -->
+                      <g class="ap-kfh-wf">
+                        <!-- Head -->
+                        <circle cx="162" cy="46" r="10"/>
+                        <!-- Neck + spine (slight hinge) -->
+                        <path d="M162 56 Q165 86 170 118"/>
+                        <!-- Drive-arm (shoulder -> elbow -> wrist) -->
+                        <line x1="162" y1="72" x2="140" y2="96"/>
+                        <line x1="140" y1="96" x2="132" y2="124"/>
+                        <!-- Trail-arm -->
+                        <line x1="162" y1="72" x2="186" y2="96"/>
+                        <line x1="186" y1="96" x2="198" y2="124"/>
+                        <!-- Pelvis -->
+                        <line x1="155" y1="120" x2="185" y2="120"/>
+                        <!-- Drive-leg: hip -> knee -> ankle (stacked/clinical) -->
+                        <line id="ap-kfh-thigh"    x1="170" y1="120" x2="168" y2="150"/>
+                        <line id="ap-kfh-shin"     x1="168" y1="150" x2="170" y2="180"/>
+                        <!-- Trail-leg (extended back) -->
+                        <line x1="180" y1="120" x2="215" y2="148"/>
+                        <line x1="215" y1="148" x2="238" y2="178"/>
+                        <!-- Feet -->
+                        <line x1="160" y1="180" x2="180" y2="180"/>
+                        <line x1="230" y1="178" x2="250" y2="178"/>
+                      </g>
+                      <!-- Ground Reaction Force vector -->
+                      <path class="ap-kfh-path-j" d="M170 180 C 170 160, 170 140, 170 120"/>
+                      <circle cx="170" cy="180" r="2.5" fill="#00E5FF"/>
+                      <circle cx="170" cy="120" r="2.5" fill="#00E5FF"/>
+                      <text class="ap-kfh-bar-label" x="176" y="150">GRF Vector</text>
+                      <text class="ap-kfh-bar-label" x="176" y="116">Triple Ext.</text>
+                      <!-- Joints -->
+                      <circle class="ap-kfh-joint j-shoulder" cx="162" cy="72"  r="3.6"/>
+                      <circle class="ap-kfh-joint j-hip"      cx="170" cy="120" r="4.2"/>
+                      <circle class="ap-kfh-joint j-knee"     cx="168" cy="150" r="4.2"/>
+                      <circle class="ap-kfh-halo"             cx="168" cy="150" r="6"/>
+                      <circle class="ap-kfh-joint j-ankle"    cx="170" cy="180" r="3.6"/>
+                      <!-- OK / WARN callouts -->
+                      <g id="ap-kfh-callout-ok">
+                        <line class="ap-kfh-leader ok" x1="168" y1="150" x2="80"  y2="158"/>
+                        <text class="ap-kfh-label-box ok" x="30" y="156">Knee Stacked</text>
+                        <text class="ap-kfh-label-box ok" x="30" y="168">Vertical Shin</text>
+                      </g>
+                      <g id="ap-kfh-callout-warn" style="display:none">
+                        <line class="ap-kfh-leader warn" x1="168" y1="150" x2="80" y2="156"/>
+                        <text class="ap-kfh-label-box warn" x="30" y="154">Valgus Collapse</text>
+                        <text class="ap-kfh-label-box warn" x="30" y="166">ACL Shear Risk</text>
+                      </g>
+                    </svg>
+                  </div>
+                  <div class="ap-kfh-readout">
+                    <div class="ap-kfh-metric">
+                      <div class="ap-kfh-m-lbl">Knee Tracking</div>
+                      <div class="ap-kfh-m-val" id="ap-kfh-m-track">On Midfoot</div>
+                    </div>
+                    <div class="ap-kfh-metric">
+                      <div class="ap-kfh-m-lbl">Hip Hinge</div>
+                      <div class="ap-kfh-m-val" id="ap-kfh-m-hinge">92&deg;</div>
+                    </div>
+                    <div class="ap-kfh-metric m-fault">
+                      <div class="ap-kfh-m-lbl">Joint Shear</div>
+                      <div class="ap-kfh-m-val" id="ap-kfh-m-shear">Nominal</div>
+                    </div>
+                  </div>
+                  <div class="ap-kfh-footnote">
+                    <span id="ap-kfh-fn">Clinical reference &middot; Non-diagnostic overlay</span>
+                    <span class="ap-kfh-fn-bar" aria-hidden="true"></span>
+                    <span>v1.0</span>
+                  </div>
+                </div>
+                <!-- Coach Cam view -->
+                <div class="ap-kfh-view" id="ap-kfh-view-cam" role="tabpanel" aria-label="Coach Cam">
+                  <div class="ap-kfh-cam">
+                    <div class="ap-kfh-cam-brackets" aria-hidden="true">
+                      <span class="tl"></span><span class="tr"></span>
+                      <span class="bl"></span><span class="br"></span>
+                    </div>
+                    <div class="ap-kfh-cam-core">
+                      <div class="ap-kfh-play" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+                      </div>
+                      <div class="ap-kfh-cam-label"><span class="ap-kfh-c-gd">Akeem Brown</span> &middot; Field Footage</div>
+                      <div class="ap-kfh-cam-sub"><span class="ap-kfh-live"></span>Awaiting Uplink</div>
+                    </div>
+                    <div class="ap-kfh-cam-meta">
+                      <span class="ap-kfh-cm-tag">REC &middot; 4K &middot; DJI Osmo</span>
+                      <span class="ap-kfh-cm-ch">CH &middot; Sovereign Athlete</span>
+                    </div>
+                  </div>
+                  <div class="ap-kfh-cam-foot">
+                    <div class="ap-kfh-metric">
+                      <div class="ap-kfh-m-lbl">Signal</div>
+                      <div class="ap-kfh-m-val">Encrypted</div>
+                    </div>
+                    <div class="ap-kfh-metric">
+                      <div class="ap-kfh-m-lbl">Bitrate</div>
+                      <div class="ap-kfh-m-val">-- Mbps</div>
+                    </div>
+                    <div class="ap-kfh-metric">
+                      <div class="ap-kfh-m-lbl">ETA</div>
+                      <div class="ap-kfh-m-val">&lt; 24 h</div>
+                    </div>
+                  </div>
+                  <div class="ap-kfh-footnote" style="margin-top:.65rem">
+                    <span>Sovereign review pipeline &middot; Cyan / Gold / Purple channel</span>
+                    <span class="ap-kfh-fn-bar" aria-hidden="true"></span>
+                    <span>v1.0</span>
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
         </section>
 
@@ -8534,12 +8768,14 @@ document.addEventListener('DOMContentLoaded', function() {
       var sport = ATHLETE_MATRIX[state.sport];
       var group = sport && sport.groups[state.position];
       var data  = group && group.phases[state.phase];
+      var hudWrap = document.getElementById('ap-kfh-wrap');
       if (!sport || !group || !data) {
         proto.setAttribute('data-state','empty');
         if (protoTitle) protoTitle.textContent = 'Awaiting Selection';
         if (protoMeta)  protoMeta.textContent  = 'Choose your sport, position, and season phase to unlock your protocol.';
         if (protoGrid)  protoGrid.hidden = true;
         if (protoEmpty) protoEmpty.style.display = '';
+        if (hudWrap)    hudWrap.hidden = true;
         return;
       }
       proto.setAttribute('data-state','ready');
@@ -8555,6 +8791,17 @@ document.addEventListener('DOMContentLoaded', function() {
       if (outNutri)   outNutri.textContent = data.nutrition;
       renderList(outLifts, data.lifts);
       renderList(outDrills, data.drills);
+      // ── HUD reveal + dynamic context ────────────────────────
+      if (hudWrap) {
+        hudWrap.hidden = false;
+        // reflow so the unfold animation restarts each time selections change
+        // eslint-disable-next-line no-unused-expressions
+        void hudWrap.offsetWidth;
+      }
+      var kfhEx  = document.getElementById('ap-kfh-ex');
+      var kfhSub = document.getElementById('ap-kfh-sub');
+      if (kfhEx)  kfhEx.textContent  = (data.lifts && data.lifts[0]) ? data.lifts[0] : 'Athletic Stance';
+      if (kfhSub) kfhSub.textContent = 'Sagittal Plane · ' + group.label + ' · ' + phaseLabel;
     }
 
     // ── Wire controls ──────────────────────────────────────────────
@@ -8595,6 +8842,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     setPhase(state.phase, false);
     renderProtocol();
+
+    // ── Athlete HUD toggles (scoped; mirrors workout HUD pattern) ──
+    (function wireAthleteHUD(){
+      var seg  = document.getElementById('ap-kfh-seg');
+      var root = document.getElementById('ap-kfh-root');
+      if (!seg || !root) return;
+      function setView(view){
+        seg.setAttribute('data-view', view);
+        var btns = seg.querySelectorAll('.ap-kfh-seg-btn');
+        for (var i=0; i<btns.length; i++){
+          var on = btns[i].getAttribute('data-view') === view;
+          btns[i].classList.toggle('on', on);
+          btns[i].setAttribute('aria-selected', on ? 'true' : 'false');
+        }
+        var r = document.getElementById('ap-kfh-view-render');
+        var c = document.getElementById('ap-kfh-view-cam');
+        if (r) r.classList.toggle('on', view === 'render');
+        if (c) c.classList.toggle('on', view === 'cam');
+      }
+      function setForm(mode){
+        root.setAttribute('data-form', mode);
+        var chips = root.querySelectorAll('.ap-kfh-chip');
+        for (var i=0; i<chips.length; i++){
+          var on = chips[i].getAttribute('data-form') === mode;
+          chips[i].classList.toggle('on', on);
+          chips[i].setAttribute('aria-checked', on ? 'true' : 'false');
+        }
+        var ok = document.getElementById('ap-kfh-callout-ok');
+        var wn = document.getElementById('ap-kfh-callout-warn');
+        if (ok) ok.style.display = (mode === 'ok')   ? '' : 'none';
+        if (wn) wn.style.display = (mode === 'warn') ? '' : 'none';
+        var track = document.getElementById('ap-kfh-m-track');
+        var hinge = document.getElementById('ap-kfh-m-hinge');
+        var shear = document.getElementById('ap-kfh-m-shear');
+        var fn    = document.getElementById('ap-kfh-fn');
+        if (mode === 'warn') {
+          if (track) track.textContent = 'Valgus In';
+          if (hinge) hinge.textContent = '74°';
+          if (shear) shear.textContent = 'Elevated';
+          if (fn)    fn.textContent    = 'Fault pattern · Valgus collapse · ACL shear risk';
+        } else {
+          if (track) track.textContent = 'On Midfoot';
+          if (hinge) hinge.textContent = '92°';
+          if (shear) shear.textContent = 'Nominal';
+          if (fn)    fn.textContent    = 'Clinical reference · Non-diagnostic overlay';
+        }
+      }
+      seg.querySelectorAll('.ap-kfh-seg-btn').forEach(function(b){
+        b.addEventListener('click', function(){ setView(b.getAttribute('data-view')); });
+      });
+      root.querySelectorAll('.ap-kfh-chip').forEach(function(c){
+        c.addEventListener('click', function(){ setForm(c.getAttribute('data-form')); });
+      });
+    })();
 
     // ── Topbar chip + deep link (unchanged wiring) ─────────────────
     var chip = document.getElementById('athlete-portal-btn');
