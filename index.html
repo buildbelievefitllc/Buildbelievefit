@@ -87,6 +87,9 @@ h1 .ol{-webkit-text-stroke:2px var(--yel);color:transparent}
 .btn-y:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(245,200,0,.4)}
 .btn-o{background:transparent;color:var(--wht);font-family:var(--hb);font-size:1rem;letter-spacing:3px;padding:.85rem 2rem;border:1px solid rgba(255,255,255,.2);border-radius:8px;display:inline-block;transition:all .2s}
 .btn-o:hover{border-color:var(--yel);color:var(--yel)}
+.btn-o.btn-athlete{background:linear-gradient(135deg,rgba(106,13,173,.28),rgba(212,175,55,.08));border:1px solid rgba(212,175,55,.55);color:#F5CF60;box-shadow:0 0 0 1px rgba(106,13,173,.25),0 6px 24px rgba(106,13,173,.22),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);position:relative}
+.btn-o.btn-athlete:hover{border-color:#F5CF60;color:#FBE3A0;box-shadow:0 0 0 1px rgba(245,200,0,.35),0 10px 32px rgba(212,175,55,.35),inset 0 1px 0 rgba(255,255,255,.06);transform:translateY(-1px)}
+.btn-o.btn-athlete:focus-visible{outline:2px solid #f5c800;outline-offset:3px}
 .hero-stats{display:flex;gap:2.5rem}
 .hs-n{font-family:var(--hb);font-size:2rem;color:var(--yel);line-height:1}
 .hs-l{font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);margin-top:.15rem}
@@ -1518,6 +1521,7 @@ body.bbf-kairos .hero-badge {
       <div class="hero-btns">
         <a href="#pathfinder" class="btn-y" data-lang-key="hero-cta">Start My Path &#x2192;</a>
         <a href="bbf-app.html" class="btn-o" data-lang-key="hero-portal">&#x1F4F2; Client Portal</a>
+        <a href="bbf-app.html#athlete" class="btn-o btn-athlete" data-lang-key="hero-athlete-portal" aria-label="Open Athlete Portal — youth &amp; collegiate performance space">&#x1F3C6; Athlete Portal</a>
       </div>
       <div class="hero-stats">
         <div><div class="hs-n" data-countup="2021">2021</div><div class="hs-l" data-lang-key="stat-clients">Est. &bull; Founded</div></div>
