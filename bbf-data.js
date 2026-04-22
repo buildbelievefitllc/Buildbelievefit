@@ -235,13 +235,6 @@ function TAB(name) {
   if (name === 'profile') { PTAB('overview'); }
 }
 
-function TOAST(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('on');
-  setTimeout(function() { t.classList.remove('on'); }, 2800);
-}
-
 function today() { return new Date().toISOString().slice(0, 10); }
 
 function FMT(dt) {
