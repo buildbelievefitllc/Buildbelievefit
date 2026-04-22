@@ -75,6 +75,33 @@ ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS video_critique_pins JSONB;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS sos_outbox JSONB;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS last_sos_at TIMESTAMPTZ;
 ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS architect_comlink_intercept JSONB;
+-- Vault Door — waiver capture + Stripe provisioning
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS legal_name TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS waiver_version TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS waiver_signature_name TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS waiver_accepted_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS waiver_ip TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS waiver_user_agent TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS tier_id TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS provisioning_state TEXT DEFAULT 'pending_payment';
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS stripe_session_id TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS subscription_status TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS temp_pin_displayed_at TIMESTAMPTZ;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS force_pin_reset BOOLEAN DEFAULT false;
+-- Ephemeral PIN-display slot: plaintext + expiry. Webhook writes,
+-- payment-success.html reads once and immediately clears via the
+-- clear-temp-pin Edge Function. RLS policy must restrict reads to
+-- the single bbf_user matching the URL-bound lead_id.
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS temp_pin_plaintext TEXT;
+ALTER TABLE bbf_users ADD COLUMN IF NOT EXISTS temp_pin_expires_at TIMESTAMPTZ;
+
+-- Indexes for provisioning / state lookups
+CREATE INDEX IF NOT EXISTS idx_bbf_users_provisioning_state ON bbf_users(provisioning_state);
+CREATE INDEX IF NOT EXISTS idx_bbf_users_stripe_session    ON bbf_users(stripe_session_id);
+CREATE INDEX IF NOT EXISTS idx_bbf_users_tier_id           ON bbf_users(tier_id);
 
 -- 2. WORKOUT LOGS TABLE
 CREATE TABLE IF NOT EXISTS bbf_logs (
