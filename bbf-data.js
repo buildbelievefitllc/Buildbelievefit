@@ -237,7 +237,7 @@ function TAB(name) {
 
 function TOAST(msg) {
   var t = document.getElementById('toast');
-  t.innerHTML = msg;
+  t.textContent = msg;
   t.classList.add('on');
   setTimeout(function() { t.classList.remove('on'); }, 2800);
 }
@@ -643,7 +643,7 @@ function SAVELOG() {
   EX = []; MOOD = '';
   ['lnotes','ldur','lint','lwt','lbf'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('exl').innerHTML = '';
-  TOAST('Session logged! &#x1F4AA;');
+  TOAST('Session logged! 💪');
   RH();
   TAB('home');
 }
@@ -674,7 +674,7 @@ function SAVENOTE() {
   d.l[uid].push({date:today(), type:'note', notes:text, loggedBy:'akeem', loggedAt:new Date().toISOString()});
   SD(d);
   document.getElementById('tnote').value = '';
-  TOAST('Coach note saved &#x2713;');
+  TOAST('Coach note saved ✓');
   RH();
 }
 
@@ -732,7 +732,7 @@ function SAVEGOAL() {
   var uid = VC || CU; var d = GD();
   d.u[uid].goal = document.getElementById('gg').value.trim();
   d.u[uid].gw   = document.getElementById('ggw').value.trim();
-  SD(d); CLOSEGOAL(); TOAST('Goal updated &#x2713;'); RA();
+  SD(d); CLOSEGOAL(); TOAST('Goal updated ✓'); RA();
 }
 
 function LOGOUT() {
@@ -912,7 +912,7 @@ function openModule(id) {
   var m = VAULT_MODULES.find(function(x){ return x.id === id; });
   if (!m) return;
   if (m.locked) {
-    TOAST('&#x1F512; Unlock with the 8-Week Elite Challenge');
+    TOAST('🔒 Unlock with the 8-Week Elite Challenge');
     return;
   }
   var wrap  = document.getElementById('video-player-wrap');
