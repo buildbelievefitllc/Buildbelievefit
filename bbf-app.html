@@ -549,13 +549,14 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ss-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1.15rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-top:.22rem;line-height:1.05}
 .ss-sub{font-size:.62rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--mut);margin-top:.3rem}
 .ss-field{position:relative;z-index:1;margin-bottom:1rem}
-.ss-lbl{display:block;font-size:.56rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#22d3ee;margin-bottom:.4rem;opacity:.85}
-.ss-select-wrap{position:relative}
-.ss-select{width:100%;background:linear-gradient(180deg,#0a0a0f 0%,#06060a 100%);border:1px solid rgba(212,175,55,.32);color:var(--wht);padding:.85rem 2.4rem .85rem 1rem;font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.92rem;font-weight:700;letter-spacing:1.5px;border-radius:10px;outline:none;-webkit-appearance:none;appearance:none;cursor:pointer;transition:border-color .25s ease,box-shadow .25s ease}
-.ss-select:hover{border-color:rgba(34,211,238,.5)}
-.ss-select:focus{border-color:#22d3ee;box-shadow:0 0 0 2px rgba(34,211,238,.18),0 0 18px rgba(34,211,238,.22)}
-.ss-select option{background:#0a0a0f;color:var(--wht)}
-.ss-select-caret{position:absolute;top:50%;right:.95rem;transform:translateY(-50%);pointer-events:none;width:10px;height:10px;border-right:2px solid var(--yel);border-bottom:2px solid var(--yel);rotate:45deg;opacity:.85}
+.ss-lbl{display:block;font-size:.56rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#22d3ee;margin-bottom:.5rem;opacity:.85}
+.ss-pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.55rem}
+.ss-pill{position:relative;background:linear-gradient(180deg,rgba(18,18,26,.72) 0%,rgba(8,8,14,.72) 100%);border:1px solid rgba(212,175,55,.26);color:rgba(249,245,255,.78);padding:.7rem .85rem;font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:999px;cursor:pointer;outline:none;backdrop-filter:blur(8px) saturate(1.1);-webkit-backdrop-filter:blur(8px) saturate(1.1);transition:border-color .25s ease,color .25s ease,background .25s ease,box-shadow .3s ease,transform .15s ease;display:flex;align-items:center;justify-content:center;gap:.45rem;text-align:center;line-height:1.15;user-select:none}
+.ss-pill::before{content:'';width:8px;height:8px;border-radius:50%;background:rgba(249,245,255,.22);box-shadow:inset 0 0 0 1px rgba(212,175,55,.4);flex-shrink:0;transition:background .25s ease,box-shadow .3s ease}
+.ss-pill:hover{border-color:rgba(34,211,238,.55);color:var(--wht);transform:translateY(-1px)}
+.ss-pill:focus-visible{border-color:#22d3ee;box-shadow:0 0 0 2px rgba(34,211,238,.25)}
+.ss-pill.on{border-color:rgba(245,200,0,.85);color:var(--wht);background:linear-gradient(180deg,rgba(139,26,191,.28) 0%,rgba(10,5,25,.78) 100%);box-shadow:0 0 0 1px rgba(245,200,0,.35),0 0 18px rgba(34,211,238,.22),inset 0 1px 0 rgba(255,255,255,.05)}
+.ss-pill.on::before{background:#22d3ee;box-shadow:0 0 10px rgba(34,211,238,.9),inset 0 0 0 1px rgba(245,200,0,.6)}
 .ss-body{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:.9rem}
 .ss-stage{position:relative;border-radius:14px;background:radial-gradient(70% 60% at 50% 40%,rgba(139,26,191,.14),transparent 70%),linear-gradient(180deg,rgba(6,6,10,.85) 0%,rgba(10,5,25,.8) 100%);border:1px solid rgba(255,255,255,.06);padding:1rem .8rem .4rem;overflow:hidden}
 .ss-stage::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(34,211,238,.04) 0 1px,transparent 1px 16px),repeating-linear-gradient(90deg,rgba(34,211,238,.04) 0 1px,transparent 1px 16px);pointer-events:none}
@@ -4430,16 +4431,13 @@ window.onload=function(){
           <div class="ss-sub">3D Degeneration Heatmap &middot; Clinical Antidote Engine</div>
         </div>
         <div class="ss-field">
-          <label class="ss-lbl" for="ss-profile">Occupational Profile</label>
-          <div class="ss-select-wrap">
-            <select class="ss-select" id="ss-profile" aria-label="Select occupational profile">
-              <option value="none">Select Your Daily Load Pattern&hellip;</option>
-              <option value="construction">Heavy Construction / Concrete</option>
-              <option value="factory">Medical Manufacturing / Factory Floor</option>
-              <option value="tactical">First Responder / Tactical Patrol</option>
-              <option value="corporate">Desk / Corporate Lumbar Compression</option>
-            </select>
-            <span class="ss-select-caret" aria-hidden="true"></span>
+          <span class="ss-lbl" id="ss-pills-lbl">Dynamic Kinematic Intake &middot; Tap All That Apply</span>
+          <div class="ss-pills" id="ss-pills" role="group" aria-labelledby="ss-pills-lbl">
+            <button type="button" class="ss-pill" data-symptom="lumbar" role="checkbox" aria-checked="false">Lumbar/Lower Back Ache</button>
+            <button type="button" class="ss-pill" data-symptom="knee"   role="checkbox" aria-checked="false">Knee Joint Shear</button>
+            <button type="button" class="ss-pill" data-symptom="neck"   role="checkbox" aria-checked="false">Stiff Neck/Upper Traps</button>
+            <button type="button" class="ss-pill" data-symptom="foot"   role="checkbox" aria-checked="false">Foot/Plantar Ache</button>
+            <button type="button" class="ss-pill" data-symptom="hip"    role="checkbox" aria-checked="false">Hip Flexor Tightness</button>
           </div>
         </div>
         <div class="ss-body">
@@ -4525,71 +4523,71 @@ window.onload=function(){
           <div class="ss-antidote" id="ss-antidote" role="status" aria-live="polite">
             <div class="ss-ant-tag"><span class="ss-ant-dot" aria-hidden="true"></span><span id="ss-ant-tag">Sentinel Standby</span></div>
             <div class="ss-ant-title" id="ss-ant-title">Clinical Antidote</div>
-            <div class="ss-ant-msg" id="ss-ant-msg">Select an occupational profile above to map degeneration zones and unlock your prescribed decompression protocol.</div>
+            <div class="ss-ant-msg" id="ss-ant-msg">Tap the regions above that feel compressed or restricted to map your degeneration zones and unlock your prescribed decompression protocol.</div>
           </div>
         </div>
       </section>
       <script>
-      /* Sovereign Sentinel — Occupational Load Map. Self-contained, no engine dependencies. */
+      /* Sovereign Sentinel — Dynamic Kinematic Intake. Multi-select pill toggle drives SVG zones + concatenated antidote. */
       (function(){
-        if (window.SS_SELECT_PROFILE) return;
-        var PROFILES = {
-          construction: {
-            zones: ['ss-z-lumbar','ss-z-knee-l','ss-z-knee-r'],
-            tag: 'Sentinel Warning',
-            title: 'Lumbar & Patellofemoral Load',
-            msg: 'Severe <em>Lumbar Compression</em> detected. Mandating 4-minute <em>Pallof Press &amp; Dead Bug</em> decompression sequence before heavy lifting.'
-          },
-          factory: {
-            zones: ['ss-z-foot-l','ss-z-foot-r','ss-z-cervical'],
-            tag: 'Sentinel Warning',
-            title: 'Plantar & Cervical Fatigue',
-            msg: 'Repetitive standing load on <em>Plantar Fascia</em> with <em>Cervical</em> forward-head strain. Prescribing short-foot drills and 3-minute chin-tuck decompression before shift.'
-          },
-          tactical: {
-            zones: ['ss-z-lumbar','ss-z-shoulders-l','ss-z-shoulders-r'],
-            tag: 'Sentinel Warning',
-            title: 'Tactical Load Asymmetry',
-            msg: 'Duty-belt and vest load drives <em>Lumbar</em> compression with bilateral <em>Trapezius</em> overload. Mandating hip-flexor release and banded Y-T-W sequence prior to patrol.'
-          },
-          corporate: {
-            zones: ['ss-z-hip-l','ss-z-hip-r','ss-z-shoulders-l','ss-z-shoulders-r'],
-            tag: 'Sentinel Warning',
-            title: 'Seated Compression Pattern',
-            msg: 'Shortened <em>Hip Flexors</em> with <em>Upper Shoulder</em> roll detected. Prescribing couch-stretch and thoracic opener protocol to reverse desk-induced compression.'
-          }
+        if (window.SS_TOGGLE_SYMPTOM) return;
+        var SYMPTOMS = {
+          lumbar: { zones:['ss-z-lumbar'],                                      antidote:'Mandating 4-min Pallof Press & Dead Bugs.' },
+          knee:   { zones:['ss-z-knee-l','ss-z-knee-r'],                        antidote:'Mandating 3-min Terminal Knee Extensions (TKEs).' },
+          neck:   { zones:['ss-z-cervical','ss-z-shoulders-l','ss-z-shoulders-r'], antidote:'Mandating 2-min Cervical Retraction holds.' },
+          foot:   { zones:['ss-z-foot-l','ss-z-foot-r'],                        antidote:'Mandating 2-min Plantar fascia rolling.' },
+          hip:    { zones:['ss-z-hip-l','ss-z-hip-r'],                          antidote:'Mandating 3-min Couch Stretch.' }
         };
+        var ORDER = ['lumbar','knee','neck','foot','hip'];
+        var active = Object.create(null);
         function clearZones(){
           var zones = document.querySelectorAll('#ss-zones .ss-zone');
           for (var i=0;i<zones.length;i++) zones[i].classList.remove('glow');
         }
-        function applyProfile(key){
-          var card = document.getElementById('ss-card');
-          var tag  = document.getElementById('ss-ant-tag');
-          var ttl  = document.getElementById('ss-ant-title');
-          var msg  = document.getElementById('ss-ant-msg');
+        function render(){
+          var tag = document.getElementById('ss-ant-tag');
+          var ttl = document.getElementById('ss-ant-title');
+          var msg = document.getElementById('ss-ant-msg');
           clearZones();
-          if (!PROFILES[key]){
-            if (card) card.setAttribute('data-profile','none');
-            if (tag)  tag.textContent = 'Sentinel Standby';
-            if (ttl)  ttl.textContent = 'Clinical Antidote';
-            if (msg)  msg.innerHTML   = 'Select an occupational profile above to map degeneration zones and unlock your prescribed decompression protocol.';
+          var keys = [];
+          for (var i=0;i<ORDER.length;i++) if (active[ORDER[i]]) keys.push(ORDER[i]);
+          if (!keys.length){
+            if (tag) tag.textContent = 'Sentinel Standby';
+            if (ttl) ttl.textContent = 'Clinical Antidote';
+            if (msg) msg.textContent = 'Tap the regions above that feel compressed or restricted to map your degeneration zones and unlock your prescribed decompression protocol.';
             return;
           }
-          var p = PROFILES[key];
-          for (var i=0;i<p.zones.length;i++){
-            var el = document.getElementById(p.zones[i]);
-            if (el) el.classList.add('glow');
+          var parts = [];
+          for (var j=0;j<keys.length;j++){
+            var sym = SYMPTOMS[keys[j]]; if (!sym) continue;
+            for (var k=0;k<sym.zones.length;k++){
+              var el = document.getElementById(sym.zones[k]);
+              if (el) el.classList.add('glow');
+            }
+            parts.push(sym.antidote);
           }
-          if (card) card.setAttribute('data-profile', key);
-          if (tag)  tag.textContent = p.tag;
-          if (ttl)  ttl.textContent = p.title;
-          if (msg)  msg.innerHTML   = p.msg;
+          if (tag) tag.textContent = 'Sentinel Warning';
+          if (ttl) ttl.textContent = keys.length === 1 ? 'Prescribed Decompression' : 'Multi-Zone Decompression Stack';
+          if (msg) msg.textContent = parts.join(' ');
         }
-        window.SS_SELECT_PROFILE = applyProfile;
-        var sel = document.getElementById('ss-profile');
-        if (sel){
-          sel.addEventListener('change', function(e){ applyProfile(e.target.value); });
+        function toggleSymptom(key, pillEl){
+          if (!SYMPTOMS[key]) return;
+          active[key] = !active[key];
+          if (pillEl){
+            pillEl.classList.toggle('on', !!active[key]);
+            pillEl.setAttribute('aria-checked', active[key] ? 'true' : 'false');
+          }
+          render();
+        }
+        window.SS_TOGGLE_SYMPTOM = toggleSymptom;
+        var pills = document.querySelectorAll('#ss-pills .ss-pill');
+        for (var i=0;i<pills.length;i++){
+          (function(p){
+            p.addEventListener('click', function(){ toggleSymptom(p.getAttribute('data-symptom'), p); });
+            p.addEventListener('keydown', function(e){
+              if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggleSymptom(p.getAttribute('data-symptom'), p); }
+            });
+          })(pills[i]);
         }
       })();
       </script>
