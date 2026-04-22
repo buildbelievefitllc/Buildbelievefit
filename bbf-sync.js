@@ -76,9 +76,26 @@ var BBF_SYNC = (function() {
   function syncSet(uid, dayKey, exKey, setNum, field, value) {
     if (!uid) return Promise.resolve();
     var row = { user_id: uid, day_key: dayKey, exercise_key: exKey, set_num: setNum };
-    row[field === 'r' ? 'reps' : 'weight'] = value;
+    if (field) {
+      row[field === 'r' ? 'reps' : 'weight'] = value;
+    } else if (value && typeof value === 'object') {
+      if (value.r !== undefined) row.reps = value.r;
+      if (value.w !== undefined) row.weight = value.w;
+    }
     row.logged_at = new Date().toISOString();
     return supa('POST', 'bbf_sets', row);
+  }
+
+  function syncSetsBulk(setsArray) {
+    if (!setsArray || setsArray.length === 0) return Promise.resolve();
+    var rows = setsArray.map(function(s) {
+      var row = { user_id: s.uid, day_key: s.dayKey, exercise_key: s.exKey, set_num: s.setNum };
+      if (s.r !== undefined) row.reps = s.r;
+      if (s.w !== undefined) row.weight = s.w;
+      row.logged_at = s.loggedAt || new Date().toISOString();
+      return row;
+    });
+    return supa('POST', 'bbf_sets', rows);
   }
 
   // ─── SYNC: READINESS ─────────────────────────────────────
@@ -144,17 +161,31 @@ var BBF_SYNC = (function() {
       }
 
       // Sync all sets
+      var batchedSets = [];
+      var isoTime = new Date().toISOString();
       for (var uid3 in (d.w || {})) {
         for (var dk in (d.w[uid3] || {})) {
           for (var ek in (d.w[uid3][dk] || {})) {
             (d.w[uid3][dk][ek] || []).forEach(function(set, si) {
               if (set.r || set.w) {
-                promises.push(syncSet(uid3, dk, ek, si, 'r', set.r || ''));
-                if (set.w) promises.push(syncSet(uid3, dk, ek, si, 'w', set.w));
+                batchedSets.push({
+                  uid: uid3,
+                  dayKey: dk,
+                  exKey: ek,
+                  setNum: si,
+                  r: set.r || '',
+                  w: set.w || '',
+                  loggedAt: isoTime
+                });
               }
             });
           }
         }
+      }
+
+      var chunkSize = 1000;
+      for (var i = 0; i < batchedSets.length; i += chunkSize) {
+        promises.push(syncSetsBulk(batchedSets.slice(i, i + chunkSize)));
       }
 
       return Promise.all(promises).then(function() {
