@@ -31,6 +31,23 @@ var BBF_SYNC = (function() {
     }).catch(function(e) { console.warn('BBF_SYNC offline:', e.message); return null; });
   }
 
+  // ─── ADMIN AUTHENTICATION ────────────────────────────────
+  function authenticateAdmin(pinHash) {
+    if (!pinHash) return Promise.resolve(false);
+    return supa('GET', 'bbf_users', null, '?role=eq.trainer')
+      .then(function(res) {
+        if (!res || !res.length) return false;
+        for (var i = 0; i < res.length; i++) {
+          if (res[i].pin_hash === pinHash) return true;
+        }
+        return false;
+      })
+      .catch(function(e) {
+        console.warn('BBF_SYNC authenticateAdmin error:', e);
+        return false;
+      });
+  }
+
   // ─── SYNC: USER PROFILE ──────────────────────────────────
   function syncUser(uid, userData) {
     if (!uid || !userData) return Promise.resolve();
@@ -1476,7 +1493,12 @@ var BBF_SYNC = (function() {
     }
   }
 
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { authenticateAdmin: authenticateAdmin };
+  }
+
   return {
+    authenticateAdmin: authenticateAdmin,
     patchUserFields: patchUserFields,
     syncUser: syncUser,
     syncLog: syncLog,
