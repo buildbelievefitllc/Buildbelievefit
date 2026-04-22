@@ -490,6 +490,56 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .home-ready{display:inline-flex;align-items:center;gap:.4rem;background:rgba(106,13,173,.1);border:1px solid rgba(106,13,173,.25);border-radius:20px;padding:.2rem .7rem;font-size:.7rem;font-weight:700;letter-spacing:1px;margin-top:.3rem}
 .home-ready.god{border-color:rgba(34,197,94,.3);color:#22c55e}.home-ready.std{color:var(--yel)}.home-ready.rec{border-color:rgba(239,68,68,.2);color:#ef4444}
 
+/* ═══ AUTONOMIC READINESS ENGINE ═══════════════════════════════════════ */
+.are-card{position:relative;margin-bottom:1.1rem;padding:1.25rem 1.2rem 1.35rem;border-radius:18px;background:radial-gradient(120% 120% at 0% 0%,rgba(106,13,173,.22) 0%,rgba(10,5,25,.78) 55%),linear-gradient(135deg,rgba(20,20,20,.72) 0%,rgba(10,5,25,.72) 100%);border:1px solid rgba(212,175,55,.32);backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden;transition:box-shadow .6s cubic-bezier(.4,0,.2,1),border-color .6s cubic-bezier(.4,0,.2,1)}
+.are-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#22d3ee,var(--yel),var(--purl));opacity:.9;transition:opacity .5s ease}
+.are-card::after{content:'';position:absolute;pointer-events:none;inset:0;border-radius:inherit;background:radial-gradient(80% 60% at 50% -20%,rgba(34,211,238,.14),transparent 60%);transition:background .6s ease}
+.are-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.8rem;margin-bottom:.9rem;position:relative;z-index:1}
+.are-head-l{display:flex;flex-direction:column;min-width:0}
+.are-tag{font-size:.58rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#22d3ee;opacity:.9}
+.are-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1.15rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-top:.22rem;line-height:1}
+.are-sub{font-size:.66rem;color:var(--mut);margin-top:.3rem;letter-spacing:1.5px;text-transform:uppercase}
+.are-score-wrap{text-align:right;flex-shrink:0}
+.are-score{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:2.4rem;font-weight:900;color:var(--wht);letter-spacing:2px;line-height:1;transition:color .6s ease,text-shadow .6s ease}
+.are-score .pct{font-size:1.05rem;color:var(--mut);margin-left:.1rem;font-weight:700}
+.are-score-l{font-size:.55rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--mut);margin-top:.15rem}
+.are-slider-wrap{position:relative;padding:.3rem 0 .8rem;z-index:1}
+.are-range{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;outline:none;cursor:pointer;margin:0;background:linear-gradient(90deg,#ef4444 0%,#ef4444 39%,#f59e0b 40%,#f59e0b 69%,#22c55e 70%,#22c55e 100%);box-shadow:inset 0 0 0 1px rgba(212,175,55,.28),0 0 16px rgba(34,211,238,.08)}
+.are-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,var(--yel) 60%,var(--purd));border:2px solid #060606;box-shadow:0 0 0 2px rgba(212,175,55,.55),0 0 18px rgba(34,211,238,.55);cursor:pointer;transition:transform .2s ease,box-shadow .4s ease}
+.are-range::-webkit-slider-thumb:hover{transform:scale(1.08)}
+.are-range::-webkit-slider-thumb:active{transform:scale(1.14);box-shadow:0 0 0 3px rgba(212,175,55,.65),0 0 24px rgba(34,211,238,.75)}
+.are-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,var(--yel) 60%,var(--purd));border:2px solid #060606;box-shadow:0 0 0 2px rgba(212,175,55,.55),0 0 18px rgba(34,211,238,.55);cursor:pointer;transition:transform .2s ease}
+.are-range::-moz-range-thumb:hover{transform:scale(1.08)}
+.are-scale{display:flex;justify-content:space-between;margin-top:.55rem;font-size:.54rem;font-weight:700;letter-spacing:2.5px;color:var(--mut);text-transform:uppercase}
+.are-readout{display:flex;align-items:center;gap:.75rem;padding:.8rem .95rem;border-radius:12px;background:rgba(8,8,8,.55);border:1px solid rgba(255,255,255,.05);transition:background .55s cubic-bezier(.4,0,.2,1),border-color .55s cubic-bezier(.4,0,.2,1),box-shadow .55s ease;position:relative;z-index:1}
+.are-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;background:var(--mut);animation:are-pulse 1.9s ease-in-out infinite;transition:background .5s ease,box-shadow .5s ease}
+.are-ind-label{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.68rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;flex-shrink:0;color:var(--mut);transition:color .5s ease}
+.are-msg{font-size:.78rem;line-height:1.45;color:rgba(255,255,255,.88);font-weight:600;text-align:right;margin-left:auto;transition:color .5s ease,opacity .5s ease}
+.are-card.tier-green{border-color:rgba(34,197,94,.45);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),0 0 24px rgba(34,197,94,.14),inset 0 1px 0 rgba(255,255,255,.05)}
+.are-card.tier-green .are-score{color:var(--grn);text-shadow:0 0 18px rgba(34,197,94,.45)}
+.are-card.tier-green .are-readout{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.32)}
+.are-card.tier-green .are-dot{background:var(--grn);box-shadow:0 0 14px rgba(34,197,94,.9)}
+.are-card.tier-green .are-ind-label{color:var(--grn)}
+.are-card.tier-yellow{border-color:rgba(245,158,11,.45);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),0 0 24px rgba(245,158,11,.14),inset 0 1px 0 rgba(255,255,255,.05)}
+.are-card.tier-yellow .are-score{color:var(--orn);text-shadow:0 0 18px rgba(245,158,11,.45)}
+.are-card.tier-yellow .are-readout{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.32)}
+.are-card.tier-yellow .are-dot{background:var(--orn);box-shadow:0 0 14px rgba(245,158,11,.9)}
+.are-card.tier-yellow .are-ind-label{color:var(--orn)}
+.are-card.tier-red{border-color:rgba(239,68,68,.5);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),0 0 26px rgba(239,68,68,.16),inset 0 1px 0 rgba(255,255,255,.05)}
+.are-card.tier-red .are-score{color:var(--red);text-shadow:0 0 18px rgba(239,68,68,.5)}
+.are-card.tier-red .are-readout{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.32)}
+.are-card.tier-red .are-dot{background:var(--red);box-shadow:0 0 14px rgba(239,68,68,.9);animation:are-pulse-fast 1.05s ease-in-out infinite}
+.are-card.tier-red .are-ind-label{color:var(--red)}
+@keyframes are-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.18);opacity:.7}}
+@keyframes are-pulse-fast{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.28);opacity:.55}}
+@media (max-width:460px){
+  .are-title{font-size:1rem;letter-spacing:2px}
+  .are-score{font-size:2rem}
+  .are-msg{font-size:.72rem}
+  .are-readout{flex-wrap:wrap;gap:.5rem}
+  .are-msg{text-align:left;width:100%;margin-left:0}
+}
+
 /* ═══ CNS HEATMAP ════════════════════════════════════════════ */
 .cns-titan{background:#22c55e !important;box-shadow:0 0 12px rgba(34,197,94,.5)}
 .cns-friction{background:#f59e0b !important;box-shadow:0 0 12px rgba(245,158,11,.5)}
@@ -4297,6 +4347,31 @@ window.onload=function(){
     </div>
     <!-- WORKOUT -->
     <div class="tp" id="tp-workout">
+      <!-- AUTONOMIC READINESS ENGINE (Task 1) -->
+      <section class="are-card" id="are-card" data-tier="green" aria-label="Autonomic Readiness Engine">
+        <div class="are-head">
+          <div class="are-head-l">
+            <div class="are-tag">Autonomic Readiness Engine</div>
+            <div class="are-title">Autonomic Readiness</div>
+            <div class="are-sub">Simulated CNS Readiness Score</div>
+          </div>
+          <div class="are-score-wrap">
+            <div class="are-score"><span id="are-score-n">75</span><span class="pct">%</span></div>
+            <div class="are-score-l">Readiness</div>
+          </div>
+        </div>
+        <div class="are-slider-wrap">
+          <input type="range" min="0" max="100" value="75" step="1" class="are-range" id="are-range" aria-label="Simulated CNS Readiness Score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="75">
+          <div class="are-scale">
+            <span>Recovery</span><span>Moderate</span><span>Max Output</span>
+          </div>
+        </div>
+        <div class="are-readout" id="are-readout" role="status" aria-live="polite">
+          <span class="are-dot" id="are-dot" aria-hidden="true"></span>
+          <span class="are-ind-label" id="are-ind-label">Max Output</span>
+          <span class="are-msg" id="are-msg">CNS Primed. Cleared for 85% 1RM Hypertrophy block.</span>
+        </div>
+      </section>
       <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-wo-title">Today&apos;s Program</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-wo-sub">Log your sets, reps &amp; weight</div></div>
       <button onclick="if(typeof BBF_PREHAB!=='undefined')BBF_PREHAB.trigger(function(r){TOAST('🧪 Pre-Hab complete: '+r.area)})" style="width:100%;padding:.75rem;margin-bottom:1rem;background:transparent;border:2px solid #D4AF37;color:#D4AF37;font-family:var(--hb);font-size:.9rem;letter-spacing:3px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(212,175,55,.1)'" onmouseout="this.style.background='transparent'" data-lang-key="app-prehab-audit-btn">&#x1F9EA; PRE-HAB AUDIT &mdash; START HERE</button>
       <!-- ═══ KINEMATIC FORM HUD ═══ Additive, self-contained UI. -->
@@ -10482,6 +10557,82 @@ window.onload = function() {
   }
 
   console.log('%c\u26A1 Ultra Instinct (vault) — online (\u2318K / Ctrl+K)', 'color:#f5c800;font-family:monospace;font-weight:bold;');
+})();
+</script>
+
+<!-- Autonomic Readiness Engine — Task 3: tiered CNS logic (manual slider today, wearable-ready for HRV/Sleep tomorrow). -->
+<script>
+(function(){
+  'use strict';
+  var TIERS = [
+    { min: 70, max: 100, key: 'green',  label: 'Max Output',
+      message: 'CNS Primed. Cleared for 85% 1RM Hypertrophy block.' },
+    { min: 40, max: 69,  key: 'yellow', label: 'Moderate',
+      message: 'Proceed with caution. Cap intensity at 70% 1RM.' },
+    { min: 0,  max: 39,  key: 'red',    label: 'Recovery Override',
+      message: 'System Fatigue Detected. Heavy lifting locked. Shifting to mobility and CNS recovery protocol.' }
+  ];
+
+  function tierFor(score){
+    score = Math.max(0, Math.min(100, Number(score) || 0));
+    for (var i = 0; i < TIERS.length; i++) {
+      if (score >= TIERS[i].min && score <= TIERS[i].max) return TIERS[i];
+    }
+    return TIERS[2];
+  }
+
+  function apply(score){
+    var card    = document.getElementById('are-card');
+    var range   = document.getElementById('are-range');
+    var scoreEl = document.getElementById('are-score-n');
+    var label   = document.getElementById('are-ind-label');
+    var msg     = document.getElementById('are-msg');
+    if (!card || !range || !scoreEl || !label || !msg) return;
+
+    score = Math.max(0, Math.min(100, Math.round(Number(score))));
+    var t = tierFor(score);
+
+    scoreEl.textContent = score;
+    range.setAttribute('aria-valuenow', String(score));
+    if (String(range.value) !== String(score)) range.value = score;
+
+    if (card.getAttribute('data-tier') !== t.key) {
+      card.classList.remove('tier-green','tier-yellow','tier-red');
+      card.classList.add('tier-' + t.key);
+      card.setAttribute('data-tier', t.key);
+    }
+
+    label.textContent = t.label;
+    msg.textContent   = t.message;
+
+    try {
+      window.BBF_ARE = window.BBF_ARE || {};
+      window.BBF_ARE.score = score;
+      window.BBF_ARE.tier  = t.key;
+      window.dispatchEvent(new CustomEvent('bbf:readiness', { detail: { score: score, tier: t.key, label: t.label, message: t.message } }));
+    } catch(_){}
+  }
+
+  function init(){
+    var range = document.getElementById('are-range');
+    if (!range || range.dataset.areBound === '1') return;
+    range.dataset.areBound = '1';
+    range.addEventListener('input',  function(){ apply(range.value); });
+    range.addEventListener('change', function(){ apply(range.value); });
+    apply(range.value);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  window.BBF_ARE = Object.assign(window.BBF_ARE || {}, {
+    set: function(n){ var r = document.getElementById('are-range'); if (r) { r.value = Math.max(0, Math.min(100, Math.round(Number(n) || 0))); apply(r.value); } },
+    get: function(){ var r = document.getElementById('are-range'); return r ? Number(r.value) : null; },
+    tierFor: tierFor
+  });
 })();
 </script>
 </body>
