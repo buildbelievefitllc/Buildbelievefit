@@ -5393,14 +5393,7 @@ window.onload=function(){
      JAVASCRIPT — All defined inline, no async dependencies
 ═══════════════════════════════════════════════════════════ -->
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-function SS(id) {
-  document.querySelectorAll('.scr').forEach(function(s) { s.classList.remove('on'); });
-  document.getElementById(id).classList.add('on');
-}
-
-
 // ─── STORAGE (embedded for guaranteed load order) ──────────────────
-var K = 'bbf_v7';
 var K_VER = 'bbf_version';
 var CURRENT_VER = '8';
 // If version mismatch, clear stale data so all clients get re-seeded
@@ -5412,11 +5405,6 @@ var CURRENT_VER = '8';
     }
   } catch(e) {}
 })();
-function GD() {
-  try { return JSON.parse(localStorage.getItem(K)) || {u:{},l:{},w:{}}; }
-  catch(e) { return {u:{},l:{},w:{}}; }
-}
-function SD(d) { localStorage.setItem(K, JSON.stringify(d)); }
 
 // ─── SEED CLIENT ACCOUNTS ─────────────────────────────────────────
 (function() {
