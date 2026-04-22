@@ -87,9 +87,28 @@ h1 .ol{-webkit-text-stroke:2px var(--yel);color:transparent}
 .btn-y:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(245,200,0,.4)}
 .btn-o{background:transparent;color:var(--wht);font-family:var(--hb);font-size:1rem;letter-spacing:3px;padding:.85rem 2rem;border:1px solid rgba(255,255,255,.2);border-radius:8px;display:inline-block;transition:all .2s}
 .btn-o:hover{border-color:var(--yel);color:var(--yel)}
-.btn-o.btn-athlete{background:linear-gradient(135deg,rgba(106,13,173,.28),rgba(212,175,55,.08));border:1px solid rgba(212,175,55,.55);color:#F5CF60;box-shadow:0 0 0 1px rgba(106,13,173,.25),0 6px 24px rgba(106,13,173,.22),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);position:relative}
-.btn-o.btn-athlete:hover{border-color:#F5CF60;color:#FBE3A0;box-shadow:0 0 0 1px rgba(245,200,0,.35),0 10px 32px rgba(212,175,55,.35),inset 0 1px 0 rgba(255,255,255,.06);transform:translateY(-1px)}
-.btn-o.btn-athlete:focus-visible{outline:2px solid #f5c800;outline-offset:3px}
+/* ═ Dual-Entry Architecture — "Two Doors" ═ */
+.two-doors{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2.5rem;max-width:620px}
+.door{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto auto;column-gap:.75rem;align-items:center;padding:1.05rem 1.2rem 1.15rem;border-radius:14px;text-decoration:none;overflow:hidden;isolation:isolate;background:linear-gradient(145deg,rgba(20,10,35,.72) 0%,rgba(8,4,18,.78) 100%);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15);box-shadow:0 12px 32px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .22s cubic-bezier(.22,1,.36,1),border-color .22s ease,box-shadow .22s ease}
+.door::before{content:"";position:absolute;inset:0;border-radius:14px;padding:1px;background:var(--door-edge,linear-gradient(135deg,rgba(245,200,0,.45),transparent 40%,transparent 60%,rgba(245,200,0,.25)));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.7;transition:opacity .25s}
+.door::after{content:"";position:absolute;top:0;bottom:0;left:0;width:3px;background:var(--door-accent,var(--yel));box-shadow:0 0 14px var(--door-accent,var(--yel));pointer-events:none}
+.door:hover,.door:focus-visible{transform:translateY(-2px);border-color:rgba(255,255,255,.2);box-shadow:0 18px 42px rgba(0,0,0,.55),0 0 0 1px var(--door-accent,var(--yel)),0 0 28px var(--door-glow,rgba(245,200,0,.3))}
+.door:hover::before,.door:focus-visible::before{opacity:1}
+.door:focus-visible{outline:2px solid var(--door-accent,var(--yel));outline-offset:3px}
+.door-kicker{grid-column:1/2;grid-row:1;font-family:var(--hb);font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--door-accent,var(--yel));opacity:.85}
+.door-title{grid-column:1/2;grid-row:2;font-family:var(--hb);font-size:1.1rem;line-height:1.05;letter-spacing:2px;text-transform:uppercase;color:var(--wht);margin-top:.15rem}
+.door-sub{grid-column:1/2;grid-row:3;font-size:.78rem;color:rgba(255,255,255,.62);margin-top:.35rem;letter-spacing:.5px;font-weight:600}
+.door-arrow{grid-column:2/3;grid-row:1/4;align-self:center;font-family:var(--hb);font-size:1.6rem;color:var(--door-accent,var(--yel));transition:transform .22s cubic-bezier(.22,1,.36,1);line-height:1;padding-left:.5rem}
+.door:hover .door-arrow,.door:focus-visible .door-arrow{transform:translateX(4px)}
+/* Vault (adult) — gold accent, matches brand */
+.door--vault{--door-accent:#F5C800;--door-glow:rgba(245,200,0,.32);--door-edge:linear-gradient(135deg,rgba(245,200,0,.45),transparent 40%,transparent 60%,rgba(212,175,55,.3))}
+/* Athlete (youth) — purple → cyan edge glow, premium standout */
+.door--athlete{--door-accent:#8EE3F5;--door-glow:rgba(142,227,245,.38);--door-edge:linear-gradient(135deg,rgba(157,39,201,.55),rgba(142,227,245,.35) 50%,rgba(157,39,201,.5));background:linear-gradient(145deg,rgba(30,3,56,.78) 0%,rgba(10,8,28,.82) 100%)}
+.door--athlete::after{background:linear-gradient(180deg,#9D27C9 0%,#8EE3F5 100%);box-shadow:0 0 16px rgba(142,227,245,.6),0 0 28px rgba(157,39,201,.4)}
+.door--athlete .door-kicker{color:#C8B3FF}
+.door--athlete .door-arrow{color:#8EE3F5;text-shadow:0 0 12px rgba(142,227,245,.55)}
+.door--athlete .door-sub{color:rgba(200,179,255,.78)}
+@media(prefers-reduced-motion:reduce){.door,.door .door-arrow{transition:none}.door:hover,.door:focus-visible{transform:none}.door:hover .door-arrow,.door:focus-visible .door-arrow{transform:none}}
 .hero-stats{display:flex;gap:2.5rem}
 .hs-n{font-family:var(--hb);font-size:2rem;color:var(--yel);line-height:1}
 .hs-l{font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);margin-top:.15rem}
@@ -332,6 +351,7 @@ footer{background:var(--blk);padding:3rem 2rem;border-top:1px solid var(--gry3)}
   .wrap{padding:4rem 1.2rem}
   .hero-btns{flex-direction:column}
   .btn-y,.btn-o{text-align:center}
+  .two-doors{grid-template-columns:1fr;max-width:420px}
   .path-card{padding:1.5rem}
 }
 
@@ -1319,6 +1339,7 @@ section::before {
 body.bbf-igniting .hero-badge        { opacity: 0; animation: bbfIgnitionFadeIn 620ms cubic-bezier(.2,.8,.2,1) 200ms forwards; }
 body.bbf-igniting .hero-sub          { opacity: 0; animation: bbfIgnitionFadeIn 700ms cubic-bezier(.2,.8,.2,1) 900ms forwards; }
 body.bbf-igniting .hero-btns         { opacity: 0; animation: bbfIgnitionFadeIn 700ms cubic-bezier(.2,.8,.2,1) 1150ms forwards; }
+body.bbf-igniting .two-doors         { opacity: 0; animation: bbfIgnitionFadeIn 700ms cubic-bezier(.2,.8,.2,1) 1250ms forwards; }
 body.bbf-igniting .hero-stats        { opacity: 0; animation: bbfIgnitionFadeIn 700ms cubic-bezier(.2,.8,.2,1) 1350ms forwards; }
 body.bbf-igniting .hero-img-wrap     { opacity: 0; animation: bbfIgnitionFadeIn 900ms cubic-bezier(.2,.8,.2,1) 550ms forwards; }
 /* Gold ignition pulse across hero meander */
@@ -1415,6 +1436,7 @@ body.bbf-kairos .hero-badge {
   body.bbf-igniting .hero-badge,
   body.bbf-igniting .hero-sub,
   body.bbf-igniting .hero-btns,
+  body.bbf-igniting .two-doors,
   body.bbf-igniting .hero-stats,
   body.bbf-igniting .hero-img-wrap { animation: none !important; opacity: 1 !important; }
   .bbf-ignition-pulse { display: none !important; }
@@ -1521,8 +1543,20 @@ body.bbf-kairos .hero-badge {
       <p class="hero-sub" id="hero-sub" data-lang-key="hero-sub">Universal performance for the <strong>high-demand human.</strong> We optimize the habit architecture of everyday athletes, executives, and first responders. <strong>Your schedule is the context. Your potential is the focus.</strong></p>
       <div class="hero-btns">
         <a href="#pathfinder" class="btn-y" data-lang-key="hero-cta">Start My Path &#x2192;</a>
-        <a href="bbf-app.html" class="btn-o" data-lang-key="hero-portal">&#x1F4F2; Client Portal</a>
-        <a href="bbf-app.html#athlete" class="btn-o btn-athlete" data-lang-key="hero-athlete-portal" aria-label="Open Athlete Portal — youth &amp; collegiate performance space">&#x1F3C6; Athlete Portal</a>
+      </div>
+      <div class="two-doors" role="group" aria-label="Choose your portal">
+        <a href="bbf-app.html" class="door door--vault" data-lang-key="hero-door-vault" aria-label="Enter The Vault — Sovereign adult client portal">
+          <span class="door-kicker" data-lang-key="hero-door-vault-kicker">For Adults</span>
+          <span class="door-title">Enter The Vault</span>
+          <span class="door-sub" data-lang-key="hero-door-vault-sub">Sovereign Client Portal</span>
+          <span class="door-arrow" aria-hidden="true">&#x2192;</span>
+        </a>
+        <a href="bbf-app.html#athlete" class="door door--athlete" data-lang-key="hero-door-athlete" aria-label="Open the Youth Athlete Portal — performance and pre-hab for youth and collegiate athletes">
+          <span class="door-kicker" data-lang-key="hero-door-athlete-kicker">Youth &amp; Collegiate</span>
+          <span class="door-title">Youth Athlete Portal</span>
+          <span class="door-sub" data-lang-key="hero-door-athlete-sub">Performance &amp; Pre-Hab</span>
+          <span class="door-arrow" aria-hidden="true">&#x2192;</span>
+        </a>
       </div>
       <div class="hero-stats">
         <div><div class="hs-n" data-countup="2021">2021</div><div class="hs-l" data-lang-key="stat-clients">Est. &bull; Founded</div></div>
@@ -3757,7 +3791,7 @@ function pbRenderPositions(){
      the rest of the world yields. Everything dims and blurs;
      the focused target sharpens with a sovereign aura + label. */
   if (!touch && !reduceMotion) {
-    var kairosTargets = document.querySelectorAll('.btn-y, .hero-btns .btn-o, .nc');
+    var kairosTargets = document.querySelectorAll('.btn-y, .hero-btns .btn-o, .two-doors .door, .nc');
     var dilateTimer = null;
     var activeTarget = null;
 
