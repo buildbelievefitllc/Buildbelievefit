@@ -171,7 +171,7 @@ function setStatus(uid,status){
   SD(d);renderClients();
   if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncUser(uid,d.u[uid]);
   var labels={unlocked:'✅ ACTIVATED',locked:'🔒 LOCKED',recovery:'🩹 RECOVERY MODE'};
-  toast(escapeHTML(d.u[uid].name||uid)+' — '+(labels[status]||status)+' - The Laboratory Standard is maintained.');
+  toast(escapeHTML(d.u[uid].name||uid)+' \u2014 '+(labels[status]||status)+' - The Laboratory Standard is maintained.');
 }
 
 function promptRecovery(uid){
@@ -190,7 +190,7 @@ function saveRecoveryNote(){
   d.u[noteTarget].lock_expiry=null;
   SD(d);closeNoteModal();renderClients();
   if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncUser(noteTarget,d.u[noteTarget]);
-  toast(escapeHTML(d.u[noteTarget].name||noteTarget)+' — 🩹 RECOVERY MODE - '+escapeHTML(note||'No note added'));
+  toast(escapeHTML(d.u[noteTarget].name||noteTarget)+' \u2014 🩹 RECOVERY MODE - '+escapeHTML(note||'No note added'));
 }
 
 function toggleAuto(uid,el){
@@ -198,7 +198,7 @@ function toggleAuto(uid,el){
   d.u[uid].auto_lock_enabled=!d.u[uid].auto_lock_enabled;
   if(!d.u[uid].auto_lock_enabled)d.u[uid].lock_expiry=null;
   SD(d);el.classList.toggle('on');
-  toast((d.u[uid].name||uid)+' \u2014 Auto-lock '+(d.u[uid].auto_lock_enabled?'ON':'OFF'));
+  toast(escapeHTML(d.u[uid].name||uid)+' \u2014 Auto-lock '+(d.u[uid].auto_lock_enabled?'ON':'OFF'));
 }
 </script>
 </body>
