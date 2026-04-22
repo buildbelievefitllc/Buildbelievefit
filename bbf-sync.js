@@ -8,7 +8,7 @@ var BBF_SYNC = (function() {
   'use strict';
 
   var SUPA_URL = 'https://ihclbceghxpuawymlvgi.supabase.co';
-  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloY2xiY2VnaHhwdWF3eW1sdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTk1MDIsImV4cCI6MjA5MTg3NTUwMn0.0f7d1aqtygMR__QiyYYUB87yrFLaSRihVQdiFaIhsP0';
+  var SUPA_KEY = window.ENV_SUPABASE_KEY || '';
   var REST = SUPA_URL + '/rest/v1';
 
   // ─── HTTP HELPER ─────────────────────────────────────────

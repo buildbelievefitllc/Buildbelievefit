@@ -2106,6 +2106,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <link rel="stylesheet" href="styles/bbf-tokens.css"/>
 <link rel="stylesheet" href="styles/bbf-vault.css"/>
 <script src="bbf-lang.js"></script>
+<script src="env.js"></script>
 <script src="bbf-sync.js"></script>
 <script src="render-engine.js"></script>
 <script src="auditor-engine.js"></script>
@@ -4115,7 +4116,7 @@ window.onload=function(){
     <!-- WORKOUT -->
     <div class="tp" id="tp-workout">
       <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-wo-title">Today&apos;s Program</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-wo-sub">Log your sets, reps &amp; weight</div></div>
-      <button onclick="if(typeof BBF_PREHAB!=='undefined')BBF_PREHAB.trigger(function(r){TOAST('&#x1F9EA; Pre-Hab complete: '+r.area)})" style="width:100%;padding:.75rem;margin-bottom:1rem;background:transparent;border:2px solid #D4AF37;color:#D4AF37;font-family:var(--hb);font-size:.9rem;letter-spacing:3px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(212,175,55,.1)'" onmouseout="this.style.background='transparent'" data-lang-key="app-prehab-audit-btn">&#x1F9EA; PRE-HAB AUDIT &mdash; START HERE</button>
+      <button onclick="if(typeof BBF_PREHAB!=='undefined')BBF_PREHAB.trigger(function(r){TOAST('🧪 Pre-Hab complete: '+r.area)})" style="width:100%;padding:.75rem;margin-bottom:1rem;background:transparent;border:2px solid #D4AF37;color:#D4AF37;font-family:var(--hb);font-size:.9rem;letter-spacing:3px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(212,175,55,.1)'" onmouseout="this.style.background='transparent'" data-lang-key="app-prehab-audit-btn">&#x1F9EA; PRE-HAB AUDIT &mdash; START HERE</button>
       <!-- ═══ KINEMATIC FORM HUD ═══ Additive, self-contained UI. -->
       <section class="kfh-scope" id="kfh-root" data-form="ok" aria-label="Kinematic Form HUD">
         <span class="kfh-corner-tr" aria-hidden="true"></span>
@@ -5164,7 +5165,7 @@ function TAB(name) {
 
 function TOAST(msg) {
   var t = document.getElementById('toast');
-  t.innerHTML = msg;
+  t.textContent = msg;
   t.classList.add('on');
   setTimeout(function() { t.classList.remove('on'); }, 2800);
 }
@@ -5542,7 +5543,7 @@ function showRestrictedScreen() {
 }
 
 function showRecoveryNotice() {
-  TOAST('&#x1FA79; ' + _t('app-gate-recovery-toast', 'Recovery Mode Active. Heavy lifting modules locked. Mobility protocol only.'));
+  TOAST('🩹 ' + _t('app-gate-recovery-toast', 'Recovery Mode Active. Heavy lifting modules locked. Mobility protocol only.'));
 }
 
 function exitRestricted() {
@@ -7033,7 +7034,7 @@ function saveReadiness() {
   var msg = tier === 'god-mode' ? _t('app-ready-god', 'CNS Peak Detected. Go for the PR.') :
             tier === 'standard' ? _t('app-ready-standard', 'Protocol Active. Execute as written.') :
             _t('app-ready-recovery', 'Fatigue Detected. Cap intensity at 70%.');
-  TOAST('&#x1F9EA; ' + score + '% \u2014 ' + msg);
+  TOAST('🧪 ' + score + '% \u2014 ' + msg);
   RH(); RW();
 }
 
@@ -7202,7 +7203,7 @@ function RDW() {
     h += '<div class="eb"><div class="eh" onclick="TEX(this)"><div><div class="en">' + exName + shiftBadge + '</div>' +
       '<div class="em">' + exEquip + ' &middot; ' + exSets + ' sets &times; ' + exReps + '</div></div>' +
       '<div class="ec">&#9662;</div></div><div class="ebody">';
-    h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){TOAST(\'&#x1F9EA; Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
+    h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){TOAST(\'🧪 Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
     h += ' <button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_HOLOGRAM!==\'undefined\')BBF_HOLOGRAM.toggle(\'holo-' + ei + '\',\'' + ex.name.replace(/'/g,"\\'") + '\')">&#x1F4D0; KINETIC HOLOGRAM</button>';
     h += '<div id="holo-' + ei + '" style="position:relative;width:100%;height:180px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;margin-top:.5rem;overflow:hidden;display:flex;align-items:center;justify-content:center"><span style="font-size:.7rem;color:#333;letter-spacing:2px">HOLOGRAM VIEWPORT</span></div>';
     // RPE Commander — Sovereign Target Banner
@@ -7377,7 +7378,7 @@ function SAVELOG() {
   EX = []; MOOD = '';
   ['lnotes','ldur','lint','lwt','lbf'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('exl').innerHTML = '';
-  TOAST('Session logged! &#x1F4AA;');
+  TOAST('Session logged! 💪');
   RH();
   TAB('home');
 }
@@ -7409,7 +7410,7 @@ function SAVENOTE() {
   SD(d);
   if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncLog(uid,d.l[uid][d.l[uid].length-1]);
   document.getElementById('tnote').value = '';
-  TOAST('Coach note saved &#x2713;');
+  TOAST('Coach note saved ✓');
   RH();
 }
 
@@ -7467,7 +7468,7 @@ function SAVEGOAL() {
   var uid = VC || CU; var d = GD();
   d.u[uid].goal = document.getElementById('gg').value.trim();
   d.u[uid].gw   = document.getElementById('ggw').value.trim();
-  SD(d); CLOSEGOAL(); TOAST('Goal updated &#x2713;'); RA();
+  SD(d); CLOSEGOAL(); TOAST('Goal updated ✓'); RA();
 }
 
 function LOGOUT() {
@@ -7661,7 +7662,7 @@ function openModule(id) {
   var m = VAULT_MODULES.find(function(x){ return x.id === id; });
   if (!m) return;
   if (m.locked) {
-    TOAST('&#x1F512; Unlock with the 8-Week Elite Challenge');
+    TOAST('🔒 Unlock with the 8-Week Elite Challenge');
     return;
   }
   var wrap  = document.getElementById('video-player-wrap');
@@ -7791,7 +7792,7 @@ function savePersona() {
   closePersonaModal();
   renderPersonaBadge(uid);
   updateStressToggleUI(p.type);
-  TOAST('Profile updated — ' + p.tag + ' &#x2713;');
+  TOAST('Profile updated — ' + p.tag + ' ✓');
   RA();
 }
 
@@ -8531,9 +8532,9 @@ function queueSync(payload){
   try{var q=JSON.parse(localStorage.getItem('bbf_sync_q')||'[]');q.push({...payload,ts:Date.now()});localStorage.setItem('bbf_sync_q',JSON.stringify(q.slice(-100)));}catch(e){}
 }
 window.addEventListener('online',function(){
-  try{var q=JSON.parse(localStorage.getItem('bbf_sync_q')||'[]');if(q.length){localStorage.removeItem('bbf_sync_q');TOAST('&#x1F4F6; '+q.length+' updates synced!');}}catch(e){}
+  try{var q=JSON.parse(localStorage.getItem('bbf_sync_q')||'[]');if(q.length){localStorage.removeItem('bbf_sync_q');TOAST('📶 '+q.length+' updates synced!');}}catch(e){}
 });
-window.addEventListener('offline',function(){TOAST('&#x1F4F5; Offline — workouts saved locally');});
+window.addEventListener('offline',function(){TOAST('📵 Offline — workouts saved locally');});
 
 // ─── SESSION STORAGE (Mid-Workout) ─────────────────────────────
 function saveSetToSession(dk,ek,s,f,v){

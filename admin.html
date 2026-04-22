@@ -93,8 +93,9 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 
 <div class="toast" id="admin-toast"></div>
 
+<script src="env.js"></script>
 <script>
-var ADMIN_PIN_HASH='1de5495d95a18bb628ebe8147e7f61046737bcc926fe89460e630a959a21b214';var K='bbf_v7';var noteTarget=null;
+var ADMIN_PIN_HASH = window.ENV_ADMIN_PIN_HASH || '';var K='bbf_v7';var noteTarget=null;
 function GD(){try{return JSON.parse(localStorage.getItem(K))||{u:{},l:{},w:{}};}catch(e){return{u:{},l:{},w:{}};}}
 function SD(d){localStorage.setItem(K,JSON.stringify(d));}
 
