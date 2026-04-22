@@ -532,6 +532,44 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .are-card.tier-red .are-ind-label{color:var(--red)}
 @keyframes are-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.18);opacity:.7}}
 @keyframes are-pulse-fast{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.28);opacity:.55}}
+
+/* ═══ AUTONOMIC READINESS ENGINE — PHASE 2 (Wearable Bridge) ═════════ */
+.are-card{position:relative}
+.are-sync-cta,.are-overlay,.are-resync{display:none}
+.are-card[data-sync-state="idle"] .are-slider-wrap,
+.are-card[data-sync-state="idle"] .are-readout,
+.are-card[data-sync-state="syncing"] .are-slider-wrap,
+.are-card[data-sync-state="syncing"] .are-readout,
+.are-card[data-sync-state="syncing"] .are-sync-cta,
+.are-card[data-sync-state="synced"]  .are-slider-wrap,
+.are-card[data-sync-state="synced"]  .are-sync-cta{display:none !important}
+.are-card[data-sync-state="idle"] .are-sync-cta{display:flex}
+.are-card[data-sync-state="syncing"] .are-overlay{display:flex}
+.are-card[data-sync-state="synced"]  .are-readout{display:flex}
+.are-card[data-sync-state="synced"]  .are-resync{display:inline-flex}
+
+.are-sync-cta{flex-direction:column;align-items:stretch;gap:.55rem;padding:.3rem 0 .8rem;position:relative;z-index:1}
+.are-sync-btn{position:relative;width:100%;padding:.95rem 1rem;border-radius:12px;border:1px solid rgba(212,175,55,.55);background:linear-gradient(135deg,rgba(106,13,173,.42) 0%,rgba(74,8,128,.55) 50%,rgba(34,211,238,.18) 100%);color:var(--wht);font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.95rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;cursor:pointer;overflow:hidden;box-shadow:0 10px 30px -12px rgba(106,13,173,.7),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .25s ease,box-shadow .35s ease,border-color .35s ease}
+.are-sync-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);transform:translateX(-110%);transition:transform .8s ease}
+.are-sync-btn:hover{transform:translateY(-1px);border-color:rgba(34,211,238,.65);box-shadow:0 14px 36px -12px rgba(34,211,238,.45),inset 0 1px 0 rgba(255,255,255,.12)}
+.are-sync-btn:hover::before{transform:translateX(110%)}
+.are-sync-btn:active{transform:translateY(0);box-shadow:0 6px 18px -8px rgba(34,211,238,.5),inset 0 1px 0 rgba(255,255,255,.06)}
+.are-sync-btn .are-sync-ico{margin-right:.55rem;font-size:.95rem;display:inline-block;vertical-align:-2px}
+.are-sync-sub{text-align:center;font-size:.66rem;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;color:var(--mut)}
+.are-sync-sub b{color:#22d3ee;font-weight:700}
+
+.are-overlay{position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120% 80% at 50% 30%,rgba(34,211,238,.08),transparent 60%),rgba(8,4,18,.72);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);align-items:center;justify-content:center;flex-direction:column;gap:1rem;z-index:5;animation:are-fade-in .35s ease both}
+.are-spinner{width:54px;height:54px;border-radius:50%;border:2px solid rgba(212,175,55,.18);border-top-color:#22d3ee;border-right-color:var(--yel);animation:spin 1s linear infinite;box-shadow:0 0 22px rgba(34,211,238,.35)}
+.are-spinner-inner{position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,var(--yel) 60%,var(--purd));box-shadow:0 0 14px rgba(212,175,55,.7)}
+.are-spinner-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+.are-overlay-msg{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.85rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--wht);text-align:center;padding:0 1rem;min-height:1.1em;transition:opacity .35s ease}
+.are-overlay-msg.fade{opacity:0}
+.are-overlay-tag{font-size:.55rem;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:#22d3ee;opacity:.85}
+@keyframes are-fade-in{from{opacity:0}to{opacity:1}}
+
+.are-resync{margin-top:.7rem;justify-content:center;align-items:center;gap:.35rem;background:transparent;border:none;color:var(--mut);font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:.4rem .6rem;border-radius:6px;transition:color .25s ease,background .25s ease;width:100%}
+.are-resync:hover{color:#22d3ee;background:rgba(34,211,238,.06)}
+.are-resync .are-resync-ico{font-size:.7rem}
 @media (max-width:460px){
   .are-title{font-size:1rem;letter-spacing:2px}
   .are-score{font-size:2rem}
@@ -4400,30 +4438,55 @@ window.onload=function(){
     </div>
     <!-- WORKOUT -->
     <div class="tp" id="tp-workout">
-      <!-- AUTONOMIC READINESS ENGINE (Task 1) -->
-      <section class="are-card" id="are-card" data-tier="green" aria-label="Autonomic Readiness Engine">
+      <!-- AUTONOMIC READINESS ENGINE (Phase 1 + Phase 2 Wearable Bridge) -->
+      <section class="are-card" id="are-card" data-tier="green" data-sync-state="idle" aria-label="Autonomic Readiness Engine">
         <div class="are-head">
           <div class="are-head-l">
             <div class="are-tag">Autonomic Readiness Engine</div>
             <div class="are-title">Autonomic Readiness</div>
-            <div class="are-sub">Simulated CNS Readiness Score</div>
+            <div class="are-sub">Wearable-Synced CNS Readiness</div>
           </div>
           <div class="are-score-wrap">
-            <div class="are-score"><span id="are-score-n">75</span><span class="pct">%</span></div>
+            <div class="are-score"><span id="are-score-n">--</span><span class="pct">%</span></div>
             <div class="are-score-l">Readiness</div>
           </div>
         </div>
+
+        <!-- Phase 1 manual slider — retained in DOM as the BBF_ARE.set() sink, hidden by data-sync-state CSS in Phase 2 -->
         <div class="are-slider-wrap">
-          <input type="range" min="0" max="100" value="75" step="1" class="are-range" id="are-range" aria-label="Simulated CNS Readiness Score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="75">
+          <input type="range" min="0" max="100" value="50" step="1" class="are-range" id="are-range" aria-label="Simulated CNS Readiness Score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
           <div class="are-scale">
             <span>Recovery</span><span>Moderate</span><span>Max Output</span>
           </div>
         </div>
+
+        <!-- Phase 2 Task 2: Sync Wearable CTA -->
+        <div class="are-sync-cta">
+          <button type="button" class="are-sync-btn" id="are-sync-btn" aria-label="Sync wearable device">
+            <span class="are-sync-ico" aria-hidden="true">&#x1F517;</span>Sync Wearable
+          </button>
+          <div class="are-sync-sub">Connect <b>Samsung Health</b>, <b>Apple Health</b>, <b>Garmin</b>, or <b>Oura</b></div>
+        </div>
+
+        <!-- Phase 2 Task 3: simulated OAuth overlay -->
+        <div class="are-overlay" id="are-overlay" role="status" aria-live="polite">
+          <div class="are-overlay-tag">Wearable API Bridge</div>
+          <div class="are-spinner-wrap">
+            <div class="are-spinner" aria-hidden="true"></div>
+            <div class="are-spinner-inner" aria-hidden="true"></div>
+          </div>
+          <div class="are-overlay-msg" id="are-overlay-msg">Authenticating via Terra API...</div>
+        </div>
+
+        <!-- Phase 1 readout (Phase 2 Task 6: surfaced after sync) -->
         <div class="are-readout" id="are-readout" role="status" aria-live="polite">
           <span class="are-dot" id="are-dot" aria-hidden="true"></span>
           <span class="are-ind-label" id="are-ind-label">Max Output</span>
           <span class="are-msg" id="are-msg">CNS Primed. Cleared for 85% 1RM Hypertrophy block.</span>
         </div>
+        <button type="button" class="are-resync" id="are-resync" aria-label="Re-sync wearable">
+          <span class="are-resync-ico" aria-hidden="true">&#x21BB;</span>Re-Sync
+        </button>
       </section>
       <!-- SOVEREIGN SENTINEL — Occupational Load Map (Predictive Occupational Analytics) -->
       <section class="ss-card" id="ss-card" data-profile="none" aria-label="Sovereign Sentinel Occupational Load Map">
@@ -10834,6 +10897,107 @@ window.onload = function() {
     set: function(n){ var r = document.getElementById('are-range'); if (r) { r.value = Math.max(0, Math.min(100, Math.round(Number(n) || 0))); apply(r.value); } },
     get: function(){ var r = document.getElementById('are-range'); return r ? Number(r.value) : null; },
     tierFor: tierFor
+  });
+})();
+</script>
+
+<!-- Autonomic Readiness Engine — Phase 2: Wearable API Bridge (simulated Terra OAuth → BBF_ARE.set socket). -->
+<script>
+(function(){
+  'use strict';
+  var STATE = { IDLE: 'idle', SYNCING: 'syncing', SYNCED: 'synced' };
+  var PHASE_MS = 2000;
+  var inFlight = false;
+  var phaseTimers = [];
+
+  function $(id){ return document.getElementById(id); }
+  function clearTimers(){ phaseTimers.forEach(clearTimeout); phaseTimers = []; }
+
+  function setState(card, s){
+    if (!card) return;
+    card.setAttribute('data-sync-state', s);
+  }
+
+  function neutralize(card){
+    if (!card) return;
+    card.classList.remove('tier-green','tier-yellow','tier-red');
+    card.setAttribute('data-tier','none');
+    var sn = $('are-score-n'); if (sn) sn.textContent = '--';
+    var range = $('are-range'); if (range) range.setAttribute('aria-valuenow','--');
+  }
+
+  function showOverlayMsg(text){
+    var el = $('are-overlay-msg');
+    if (!el) return;
+    el.classList.add('fade');
+    setTimeout(function(){ el.textContent = text; el.classList.remove('fade'); }, 220);
+  }
+
+  function randomScore(){
+    return Math.floor(Math.random() * (95 - 20 + 1)) + 20;
+  }
+
+  function startSync(){
+    if (inFlight) return;
+    var card = $('are-card');
+    if (!card || !window.BBF_ARE || typeof window.BBF_ARE.set !== 'function') return;
+    inFlight = true;
+    clearTimers();
+    neutralize(card);
+    var msg = $('are-overlay-msg');
+    if (msg) { msg.textContent = 'Authenticating via Terra API...'; msg.classList.remove('fade'); }
+    setState(card, STATE.SYNCING);
+
+    phaseTimers.push(setTimeout(function(){
+      showOverlayMsg('Pulling Biometric Sleep & HRV Data...');
+    }, PHASE_MS));
+
+    phaseTimers.push(setTimeout(function(){
+      var score = randomScore();
+      try { window.BBF_ARE.set(score); } catch (_) {}
+      setState(card, STATE.SYNCED);
+      inFlight = false;
+      try {
+        window.dispatchEvent(new CustomEvent('bbf:wearable-sync', {
+          detail: { source: 'simulated:terra', score: score, ts: Date.now() }
+        }));
+      } catch (_){}
+    }, PHASE_MS * 2));
+  }
+
+  function reset(){
+    var card = $('are-card');
+    if (!card) return;
+    clearTimers();
+    inFlight = false;
+    neutralize(card);
+    setState(card, STATE.IDLE);
+  }
+
+  function init(){
+    var card = $('are-card');
+    var btn = $('are-sync-btn');
+    var resync = $('are-resync');
+    if (!card || !btn) return;
+    if (btn.dataset.areP2Bound === '1') return;
+    btn.dataset.areP2Bound = '1';
+
+    setState(card, STATE.IDLE);
+    neutralize(card);
+
+    btn.addEventListener('click', startSync);
+    if (resync) resync.addEventListener('click', reset);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  window.BBF_ARE = Object.assign(window.BBF_ARE || {}, {
+    syncWearable: startSync,
+    resetWearable: reset
   });
 })();
 </script>
