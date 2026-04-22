@@ -16,27 +16,128 @@ var BBF_HOLOGRAM = (function() {
   }
 
   function findMapping(exerciseName) {
-    if (typeof KINETIC_MAPPINGS === 'undefined') return null;
+    if (typeof KINETIC_MAPPINGS === 'undefined' || !exerciseName) return null;
     if (KINETIC_MAPPINGS[exerciseName]) return KINETIC_MAPPINGS[exerciseName];
     // Fuzzy match
+    var lower = exerciseName.toLowerCase();
     for (var key in KINETIC_MAPPINGS) {
-      if (exerciseName.toLowerCase().indexOf(key.toLowerCase()) > -1) {
+      if (lower.indexOf(key.toLowerCase()) > -1) {
         return KINETIC_MAPPINGS[key];
       }
     }
     return null;
   }
 
+  // ─── SOVEREIGN SENTINEL ──────────────────────────────────
+  // Fallback anatomical wireframe for exercises without a specific kinetic map
+  function drawSovereignSentinel(ctx, W, H) {
+    var cx = W * 0.5;
+    var topY = H * 0.18;
+    var headR = Math.min(W, H) * 0.07;
+    var shoulderY = topY + headR * 2.3;
+    var shoulderHalf = W * 0.1;
+    var hipY = topY + H * 0.52;
+    var hipHalf = W * 0.075;
+    var footY = hipY + H * 0.22;
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(212,175,55,0.55)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.shadowColor = 'rgba(212,175,55,0.3)';
+    ctx.shadowBlur = 6;
+
+    // Head
+    ctx.beginPath();
+    ctx.arc(cx, topY + headR, headR, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Neck + shoulder line
+    ctx.beginPath();
+    ctx.moveTo(cx, topY + headR * 2);
+    ctx.lineTo(cx, shoulderY);
+    ctx.moveTo(cx - shoulderHalf, shoulderY);
+    ctx.lineTo(cx + shoulderHalf, shoulderY);
+    ctx.stroke();
+
+    // Torso (shoulders -> hips)
+    ctx.beginPath();
+    ctx.moveTo(cx - shoulderHalf, shoulderY);
+    ctx.lineTo(cx - hipHalf, hipY);
+    ctx.lineTo(cx + hipHalf, hipY);
+    ctx.lineTo(cx + shoulderHalf, shoulderY);
+    ctx.stroke();
+
+    // Arms
+    ctx.beginPath();
+    ctx.moveTo(cx - shoulderHalf, shoulderY);
+    ctx.lineTo(cx - shoulderHalf - W * 0.06, shoulderY + H * 0.28);
+    ctx.moveTo(cx + shoulderHalf, shoulderY);
+    ctx.lineTo(cx + shoulderHalf + W * 0.06, shoulderY + H * 0.28);
+    ctx.stroke();
+
+    // Legs
+    ctx.beginPath();
+    ctx.moveTo(cx - hipHalf, hipY);
+    ctx.lineTo(cx - hipHalf, footY);
+    ctx.moveTo(cx + hipHalf, hipY);
+    ctx.lineTo(cx + hipHalf, footY);
+    ctx.stroke();
+
+    // Purple spine accent
+    ctx.strokeStyle = 'rgba(106,13,173,0.45)';
+    ctx.beginPath();
+    ctx.moveTo(cx, shoulderY);
+    ctx.lineTo(cx, hipY);
+    ctx.stroke();
+    ctx.restore();
+
+    // Sentinel label
+    ctx.save();
+    ctx.font = '700 10px "Barlow Condensed", sans-serif';
+    ctx.fillStyle = 'rgba(212,175,55,0.65)';
+    ctx.textAlign = 'center';
+    ctx.fillText('SOVEREIGN SENTINEL', cx, H - 58);
+    ctx.font = '400 9px "Barlow Condensed", sans-serif';
+    ctx.fillStyle = 'rgba(180,180,180,0.55)';
+    ctx.fillText('Custom Kinetic Blueprint Pending', cx, H - 44);
+    ctx.restore();
+  }
+
+  function drawExerciseTitle(ctx, W, exerciseName) {
+    var label = 'EXERCISE — ' + String(exerciseName || 'UNSPECIFIED').toUpperCase();
+    ctx.save();
+    ctx.font = '700 11px "Bebas Neue", "Barlow Condensed", sans-serif';
+    ctx.fillStyle = '#D4AF37';
+    ctx.textAlign = 'left';
+    ctx.shadowColor = 'rgba(212,175,55,0.5)';
+    ctx.shadowBlur = 4;
+    ctx.fillText(label, 10, 16);
+    ctx.restore();
+  }
+
   function drawKineticHologram(canvas, exerciseName, lang) {
-    var mapping = findMapping(exerciseName);
-    if (!mapping || !canvas) return false;
+    if (!canvas) return false;
 
     var L = lang || getLang();
     var ctx = canvas.getContext('2d');
     var W = canvas.width;
     var H = canvas.height;
 
+    // Always clear and paint a known background so prior exercise graphics never persist
     ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, W, H);
+
+    // Dynamic title — always reflects the currently selected exercise
+    drawExerciseTitle(ctx, W, exerciseName);
+
+    var mapping = findMapping(exerciseName);
+    if (!mapping) {
+      // No specific SVG for this exercise — render the Sovereign Sentinel wireframe
+      drawSovereignSentinel(ctx, W, H);
+      return true;
+    }
 
     // ─── PRIMARY VECTOR (dashed gold line) ─────────────────
     var v = mapping.primaryVector;
@@ -145,9 +246,13 @@ var BBF_HOLOGRAM = (function() {
     var container = document.getElementById(containerId);
     if (!container) return;
     var canvas = container.querySelector('.holo-canvas');
+    // If canvas is visible and the exercise hasn't changed, collapse it (true toggle).
+    // If the exercise has changed, redraw with the new exercise instead of hiding.
     if (canvas && canvas.style.display !== 'none') {
-      canvas.style.display = 'none';
-      return;
+      if (canvas.dataset.exercise === exerciseName) {
+        canvas.style.display = 'none';
+        return;
+      }
     }
     if (!canvas) {
       canvas = document.createElement('canvas');
@@ -161,6 +266,7 @@ var BBF_HOLOGRAM = (function() {
     canvas.style.display = 'block';
     canvas.width = container.offsetWidth || 300;
     canvas.height = container.offsetHeight || 200;
+    canvas.dataset.exercise = exerciseName || '';
     drawKineticHologram(canvas, exerciseName);
   }
 

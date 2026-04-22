@@ -191,6 +191,10 @@ function openSport(id){
   document.querySelectorAll('.sc').forEach(function(c){c.classList.remove('on');});
   document.getElementById('sc-'+id).classList.add('on');
   var h='<div class="otag">COMBINE INPUT</div><div class="otitle">'+activeSport.icon+' '+activeSport.name+' <span>Combine</span></div><div class="osub">Enter athlete metrics for analysis</div>';
+  // Sport-switch dropdown — all five sports accessible from Phase 2 without re-opening
+  h+='<div class="ff" style="margin-bottom:16px"><label>Select Sport</label><select id="ci-sport" onchange="openSport(this.value)">'+
+    SPORTS.map(function(s){return '<option value="'+s.id+'"'+(s.id===activeSport.id?' selected':'')+'>'+s.name+'</option>';}).join('')+
+    '</select></div>';
   h+='<div class="fg">';
   activeSport.fields.forEach(function(f){
     if(f.type==='select'){
