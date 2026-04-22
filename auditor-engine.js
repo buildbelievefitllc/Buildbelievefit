@@ -3,10 +3,10 @@
 // Sovereign Gold Standard — Movement Quality System
 // ═══════════════════════════════════════════════════════════════
 
-var BBF_AUDITOR = (function() {
+const BBF_AUDITOR = (function() {
   'use strict';
 
-  var TENSION_AREAS = [
+  const TENSION_AREAS = [
     { id: 'lower-back', icon: '\uD83E\uDDB4', en: 'Lower Back', es: 'Espalda Baja', pt: 'Lombar' },
     { id: 'knees', icon: '\uD83E\uDDB5', en: 'Knees', es: 'Rodillas', pt: 'Joelhos' },
     { id: 'shoulders', icon: '\uD83E\uDDB6', en: 'Shoulders', es: 'Hombros', pt: 'Ombros' },
@@ -14,7 +14,7 @@ var BBF_AUDITOR = (function() {
   ];
 
   // ─── FOUNDER-VERIFIED CUE MATRIX ─────────────────────────
-  var CUES = {
+  const CUES = {
     'Squat':{
       'lower-back':'Core bracing compromised. Do not let your chest collapse. Drive the floor away. If your hips rise faster than your shoulders, the load is shifting to the spine.',
       'knees':'Check your shin angle. Ensure your front knee isn\u2019t tracking too far past your toes. Stabilize through the mid-foot. Widen stance if valgus collapse is present.',
@@ -77,8 +77,8 @@ var BBF_AUDITOR = (function() {
     }
   };
 
-  var currentExercise = null;
-  var currentCallback = null;
+  let currentExercise = null;
+  let currentCallback = null;
 
   function getLang() {
     return (typeof BBF_LANG !== 'undefined' && BBF_LANG.get) ? BBF_LANG.get() : 'en';
@@ -88,18 +88,18 @@ var BBF_AUDITOR = (function() {
     currentExercise = exerciseName;
     currentCallback = onSelect || function() {};
 
-    var L = getLang();
-    var title = { en: 'Where is the primary tension?', es: '\u00bfD\u00f3nde est\u00e1 la tensi\u00f3n principal?', pt: 'Onde est\u00e1 a tens\u00e3o principal?' };
-    var subtitle = { en: 'Select the area you feel working during:', es: 'Selecciona el \u00e1rea que sientes trabajar durante:', pt: 'Selecione a \u00e1rea que sente trabalhando durante:' };
+    const L = getLang();
+    const title = { en: 'Where is the primary tension?', es: '\u00bfD\u00f3nde est\u00e1 la tensi\u00f3n principal?', pt: 'Onde est\u00e1 a tens\u00e3o principal?' };
+    const subtitle = { en: 'Select the area you feel working during:', es: 'Selecciona el \u00e1rea que sientes trabajar durante:', pt: 'Selecione a \u00e1rea que sente trabalhando durante:' };
 
-    var modal = document.getElementById('auditor-modal');
+    const modal = document.getElementById('auditor-modal');
     if (!modal) return;
 
     document.getElementById('auditor-title').textContent = title[L] || title.en;
     document.getElementById('auditor-exercise').textContent = exerciseName;
     document.getElementById('auditor-subtitle').textContent = subtitle[L] || subtitle.en;
 
-    var grid = document.getElementById('auditor-options');
+    const grid = document.getElementById('auditor-options');
     grid.innerHTML = TENSION_AREAS.map(function(area) {
       return '<button class="aud-opt" onclick="BBF_AUDITOR.select(\'' + area.id + '\')">' +
         '<span class="aud-opt-icon">' + area.icon + '</span>' +
@@ -111,18 +111,18 @@ var BBF_AUDITOR = (function() {
   }
 
   function select(areaId) {
-    var area = TENSION_AREAS.find(function(a) { return a.id === areaId; });
-    var areaLabel = area ? area.en : areaId;
-    var L = getLang();
-    var areaDisplay = area ? (area[L] || area.en) : areaId;
+    const area = TENSION_AREAS.find(function(a) { return a.id === areaId; });
+    const areaLabel = area ? area.en : areaId;
+    const L = getLang();
+    const areaDisplay = area ? (area[L] || area.en) : areaId;
 
     // Look up the Founder-Verified cue
-    var cue = '';
+    let cue = '';
     if (CUES[currentExercise] && CUES[currentExercise][areaId]) {
       cue = CUES[currentExercise][areaId];
     } else {
       // Fuzzy match — check if exercise name contains a key
-      for (var movement in CUES) {
+      for (const movement in CUES) {
         if (currentExercise && currentExercise.toLowerCase().indexOf(movement.toLowerCase()) > -1) {
           cue = CUES[movement][areaId] || '';
           break;
@@ -131,9 +131,9 @@ var BBF_AUDITOR = (function() {
     }
 
     // Display the cue in the modal instead of closing
-    var grid = document.getElementById('auditor-options');
-    var title = document.getElementById('auditor-title');
-    var ackLabel = { en: 'ACKNOWLEDGED \u2014 BACK TO SET', es: 'RECONOCIDO \u2014 VOLVER A LA SERIE', pt: 'RECONHECIDO \u2014 VOLTAR \u00c0 S\u00c9RIE' };
+    const grid = document.getElementById('auditor-options');
+    const title = document.getElementById('auditor-title');
+    const ackLabel = { en: 'ACKNOWLEDGED \u2014 BACK TO SET', es: 'RECONOCIDO \u2014 VOLVER A LA SERIE', pt: 'RECONHECIDO \u2014 VOLTAR \u00c0 S\u00c9RIE' };
 
     if (grid && cue) {
       title.textContent = '\uD83D\uDEE1 SOVEREIGN CUE \u2014 ' + areaDisplay;
@@ -148,18 +148,18 @@ var BBF_AUDITOR = (function() {
       setTimeout(function() {
         try {
           if (typeof BBF_HOLOGRAM !== 'undefined' && typeof KINETIC_MAPPINGS !== 'undefined') {
-            var viewport = document.getElementById('audit-holo-viewport');
+            const viewport = document.getElementById('audit-holo-viewport');
             if (viewport) {
-              var mapping = BBF_HOLOGRAM.findMapping(currentExercise);
+              const mapping = BBF_HOLOGRAM.findMapping(currentExercise);
               if (mapping) {
                 // Shift focal point to selected tension area
-                var areaCoords = {
+                const areaCoords = {
                   'lower-back': { x: 0.5, y: 0.45 },
                   'knees': { x: 0.45, y: 0.72 },
                   'shoulders': { x: 0.42, y: 0.28 },
                   'target-muscle': mapping.focalPoint ? { x: mapping.focalPoint.x, y: mapping.focalPoint.y } : { x: 0.5, y: 0.5 }
                 };
-                var shifted = areaCoords[areaId] || { x: 0.5, y: 0.5 };
+                const shifted = areaCoords[areaId] || { x: 0.5, y: 0.5 };
                 mapping._overrideFocal = { x: shifted.x, y: shifted.y, radius: 0.09, label: { en: areaLabel, es: areaDisplay, pt: areaDisplay } };
               }
               BBF_HOLOGRAM.toggle('audit-holo-viewport', currentExercise);
@@ -175,7 +175,7 @@ var BBF_AUDITOR = (function() {
     // Push to Supabase cloud
     try {
       if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.logAuditRequest) {
-        var uid = (typeof CU !== 'undefined' && CU) ? CU : (typeof VC !== 'undefined' && VC) ? VC : 'unknown';
+        const uid = (typeof CU !== 'undefined' && CU) ? CU : (typeof VC !== 'undefined' && VC) ? VC : 'unknown';
         BBF_SYNC.logAuditRequest(uid, currentExercise, areaLabel)
           .then(function() { console.log('BBF_AUDITOR: Synced to cloud \u2014 ' + currentExercise + ' / ' + areaLabel); })
           .catch(function(e) { console.error('BBF_AUDITOR: Cloud sync failed \u2014', e); });
@@ -194,7 +194,7 @@ var BBF_AUDITOR = (function() {
   }
 
   function closeModal() {
-    var modal = document.getElementById('auditor-modal');
+    const modal = document.getElementById('auditor-modal');
     if (modal) modal.classList.remove('on');
   }
 
@@ -212,14 +212,14 @@ var BBF_AUDITOR = (function() {
 
   // Redline thresholds — all three conditions must fire together so
   // a bad-night-of-sleep with no training doesn't false-positive.
-  var REDLINE_TONNAGE_FLOOR   = 0.80;  // friction_score >= 80 (80% of tier budget)
-  var REDLINE_RECOVERY_CEIL   = 0.55;  // recovery_capacity <= 55%
-  var REDLINE_DEBT_GAP        = 0.30;  // tonnage_load - recovery >= 0.30
+  const REDLINE_TONNAGE_FLOOR   = 0.80;  // friction_score >= 80 (80% of tier budget)
+  const REDLINE_RECOVERY_CEIL   = 0.55;  // recovery_capacity <= 55%
+  const REDLINE_DEBT_GAP        = 0.30;  // tonnage_load - recovery >= 0.30
 
   // Per-axial-lift mobility prescription. When a single lift drives
   // the dominant share of the 4-week axial tonnage, the Mobility CTA
   // swaps to the specific decompression protocol for that movement.
-  var MOBILITY_PRESCRIPTIONS = {
+  const MOBILITY_PRESCRIPTIONS = {
     squat: {
       lift: 'squat',
       area: 'hip-lumbar',
@@ -252,10 +252,10 @@ var BBF_AUDITOR = (function() {
 
   function pickDominantLift(byLift) {
     if (!byLift) return 'mixed';
-    var sq = (byLift.squat    && byLift.squat.tonnage)    || 0;
-    var dl = (byLift.deadlift && byLift.deadlift.tonnage) || 0;
-    var oh = (byLift.ohp      && byLift.ohp.tonnage)      || 0;
-    var total = sq + dl + oh;
+    const sq = (byLift.squat    && byLift.squat.tonnage)    || 0;
+    const dl = (byLift.deadlift && byLift.deadlift.tonnage) || 0;
+    const oh = (byLift.ohp      && byLift.ohp.tonnage)      || 0;
+    const total = sq + dl + oh;
     if (total <= 0) return 'mixed';
     // Squat or deadlift dominates if >= 55% of axial tonnage.
     if (sq / total >= 0.55) return 'squat';
@@ -271,23 +271,23 @@ var BBF_AUDITOR = (function() {
         typeof BBF_SYNC.runKinematicAudit !== 'function') {
       return { biomechanical_redline: false, error: 'BBF_SYNC unavailable' };
     }
-    var nowIso   = new Date().toISOString();
+    const nowIso   = new Date().toISOString();
 
     // Step 1 — raw Friction Score. Preserves the Sprint 1 engine output.
-    var raw = null;
+    let raw = null;
     try { raw = await BBF_SYNC.runKinematicAudit(userId); } catch(_) {}
     if (!raw) return { biomechanical_redline: false, error: 'raw audit failed' };
 
     // Step 2 — pull profile + readiness history from localStorage
     // (mirrored by BBF_SYNC after every sync) plus Supabase top-up.
-    var profile = {};
+    let profile = {};
     try {
-      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      const d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
       if (d.u && d.u[userId]) profile = d.u[userId];
     } catch(_) {}
     try {
       if (BBF_SYNC.fetchUserProfile) {
-        var cloud = await BBF_SYNC.fetchUserProfile(userId);
+        const cloud = await BBF_SYNC.fetchUserProfile(userId);
         if (cloud) profile = Object.assign({}, profile, cloud);
       }
     } catch(_) {}
@@ -296,35 +296,35 @@ var BBF_AUDITOR = (function() {
     //   0.40 × normalised sleep quality (daily_readiness 7-day mean)
     //   0.30 × (1 - depleted-days ratio over last 7)
     //   0.30 × normalised Somatic Readiness Score (0..100 -> 0..1)
-    var nowMs   = Date.now();
-    var DAY_MS  = 24 * 60 * 60 * 1000;
-    var WEEK_MS = 7 * DAY_MS;
-    var cutoff  = nowMs - WEEK_MS;
+    const nowMs   = Date.now();
+    const DAY_MS  = 24 * 60 * 60 * 1000;
+    const WEEK_MS = 7 * DAY_MS;
+    const cutoff  = nowMs - WEEK_MS;
 
     // 7-day mean sleep. Fallback mid-value if no history.
-    var sleepSum = 0, sleepCount = 0;
-    var dr = profile.daily_readiness || {};
-    for (var k in dr) {
+    let sleepSum = 0, sleepCount = 0;
+    const dr = profile.daily_readiness || {};
+    for (const k in dr) {
       if (!Object.prototype.hasOwnProperty.call(dr, k)) continue;
-      var ts = Date.parse(k);
+      const ts = Date.parse(k);
       if (!isFinite(ts) || ts < cutoff) continue;
-      var s = parseFloat((dr[k] || {}).sleep);
+      const s = parseFloat((dr[k] || {}).sleep);
       if (isFinite(s) && s > 0) { sleepSum += s; sleepCount++; }
     }
-    var sleepAvg = sleepCount ? (sleepSum / sleepCount) : 5;   // neutral default
-    var sleepNorm = Math.max(0, Math.min(1, sleepAvg / 10));
+    const sleepAvg = sleepCount ? (sleepSum / sleepCount) : 5;   // neutral default
+    const sleepNorm = Math.max(0, Math.min(1, sleepAvg / 10));
 
     // CNS depleted-day count from bbf_logs type='cns-readiness' or local
     // cns_status. Supabase fetch is best-effort.
-    var cnsDepletedDays = 0;
+    let cnsDepletedDays = 0;
     try {
       if (BBF_SYNC.fetchLogs) {
-        var logs = await BBF_SYNC.fetchLogs(userId) || [];
-        var daysSeen = {};
-        for (var i = 0; i < logs.length; i++) {
-          var L = logs[i];
+        const logs = await BBF_SYNC.fetchLogs(userId) || [];
+        const daysSeen = {};
+        for (let i = 0; i < logs.length; i++) {
+          const L = logs[i];
           if (!L || L.type !== 'cns-readiness') continue;
-          var lts = Date.parse(L.date);
+          const lts = Date.parse(L.date);
           if (!isFinite(lts) || lts < cutoff) continue;
           if (/DEPLETED/i.test(L.notes || '')) daysSeen[L.date] = true;
         }
@@ -336,41 +336,41 @@ var BBF_AUDITOR = (function() {
     if (cnsDepletedDays === 0 && (profile.cns_status || '').toUpperCase() === 'DEPLETED') {
       cnsDepletedDays = 1;
     }
-    var cnsRecoveryNorm = Math.max(0, Math.min(1, 1 - (cnsDepletedDays / 7)));
+    const cnsRecoveryNorm = Math.max(0, Math.min(1, 1 - (cnsDepletedDays / 7)));
 
     // Somatic Readiness — already normalised 0..100. Neutral 55 if absent.
-    var somatic = (profile.somatic_readiness_score != null)
+    let somatic = (profile.somatic_readiness_score != null)
       ? parseFloat(profile.somatic_readiness_score) : 55;
     if (!isFinite(somatic)) somatic = 55;
-    var somaticNorm = Math.max(0, Math.min(1, somatic / 100));
+    const somaticNorm = Math.max(0, Math.min(1, somatic / 100));
 
-    var recoveryCapacity =
+    let recoveryCapacity =
         (sleepNorm       * 0.40) +
         (cnsRecoveryNorm * 0.30) +
         (somaticNorm     * 0.30);
     recoveryCapacity = Math.round(recoveryCapacity * 1000) / 1000;
 
     // Step 4 — tonnage load (friction_score / threshold -> 0..1+).
-    var frictionScore = raw.friction_score || 0;
-    var frictionThreshold = raw.threshold || 100;
-    var tonnageLoad = Math.max(0, frictionScore / frictionThreshold);
+    const frictionScore = raw.friction_score || 0;
+    const frictionThreshold = raw.threshold || 100;
+    const tonnageLoad = Math.max(0, frictionScore / frictionThreshold);
 
-    var recoveryDebt = Math.max(0, tonnageLoad - recoveryCapacity);
+    let recoveryDebt = Math.max(0, tonnageLoad - recoveryCapacity);
     recoveryDebt = Math.round(recoveryDebt * 1000) / 1000;
 
-    var redline =
+    const redline =
       tonnageLoad      >= REDLINE_TONNAGE_FLOOR &&
       recoveryCapacity <= REDLINE_RECOVERY_CEIL &&
       recoveryDebt     >= REDLINE_DEBT_GAP;
 
     // Step 5 — pick the dominant lift so the Mobility CTA can swap
     // to the specific decompression protocol.
-    var dominant = pickDominantLift(raw.by_lift || {});
-    var prescription = MOBILITY_PRESCRIPTIONS[dominant] || MOBILITY_PRESCRIPTIONS.mixed;
+    const dominant = pickDominantLift(raw.by_lift || {});
+    const prescription = MOBILITY_PRESCRIPTIONS[dominant] || MOBILITY_PRESCRIPTIONS.mixed;
 
     // Step 6 — local mirror so the UI repaints without a round-trip.
     try {
-      var dLocal = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
+      const dLocal = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
       if (!dLocal.u) dLocal.u = {};
       if (!dLocal.u[userId]) dLocal.u[userId] = {};
       dLocal.u[userId].biomechanical_redline        = !!redline;
