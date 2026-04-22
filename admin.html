@@ -115,7 +115,12 @@ async function authAdmin(){
 }
 document.getElementById('gate-pin').addEventListener('keydown',function(e){if(e.key==='Enter')authAdmin();});
 
-function toast(msg){var t=document.getElementById('admin-toast');t.innerHTML=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},3000);}
+function toast(msg){var t=document.getElementById('admin-toast');t.textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},3000);}
+
+function escapeHTML(str){
+  if(!str)return'';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
 
 function renderClients(){
   var d=GD();var clients=Object.entries(d.u).filter(function(e){return e[1].role==='client';});
@@ -126,21 +131,25 @@ function renderClients(){
     var sClass=status==='locked'?'locked':status==='recovery'?'recovery':'active';
     var sLabel=status==='locked'?'LOCKED':status==='recovery'?'RECOVERY':'ACTIVE';
     var autoLock=u.auto_lock_enabled||false;
-    var note=u.recovery_note||'';
+    var note=escapeHTML(u.recovery_note||'');
+    var sName=escapeHTML(u.name||uid);
+    var sType=escapeHTML(u.type||'Client');
+    var sGoal=escapeHTML(u.goal||'No goal set');
+    var sUid=escapeHTML(uid);
     var noteHTML=note?'<div class="cc-note"><div class="cc-note-lbl">FOUNDER\'S ALERT</div>'+note+'</div>':'';
     return '<div class="cc"><div class="cc-top">'+
       '<div class="cc-pulse '+sClass+'"></div>'+
-      '<div class="cc-av">'+(u.name||uid||'?')[0].toUpperCase()+'</div>'+
-      '<div class="cc-info"><div class="cc-name">'+(u.name||uid)+'</div><div class="cc-meta">'+(u.type||'Client')+' &bull; '+(u.goal||'No goal set')+'</div></div>'+
+      '<div class="cc-av">'+escapeHTML((u.name||uid||'?')[0].toUpperCase())+'</div>'+
+      '<div class="cc-info"><div class="cc-name">'+sName+'</div><div class="cc-meta">'+sType+' &bull; '+sGoal+'</div></div>'+
       '<span class="cc-status '+sClass+'">'+sLabel+'</span>'+
       '</div>'+
       '<div class="cc-bar">'+
-      '<button class="cc-btn act'+(status==='unlocked'?' on':'')+'" onclick="setStatus(\''+uid+'\',\'unlocked\')">&#x2705; ACTIVATE</button>'+
-      '<button class="cc-btn rec'+(status==='recovery'?' on':'')+'" onclick="promptRecovery(\''+uid+'\')">&#x1FA79; RECOVERY</button>'+
-      '<button class="cc-btn lck'+(status==='locked'?' on':'')+'" onclick="setStatus(\''+uid+'\',\'locked\')">&#x1F512; LOCK</button>'+
+      '<button class="cc-btn act'+(status==='unlocked'?' on':'')+'" onclick="setStatus(\''+sUid+'\',\'unlocked\')">&#x2705; ACTIVATE</button>'+
+      '<button class="cc-btn rec'+(status==='recovery'?' on':'')+'" onclick="promptRecovery(\''+sUid+'\')">&#x1FA79; RECOVERY</button>'+
+      '<button class="cc-btn lck'+(status==='locked'?' on':'')+'" onclick="setStatus(\''+sUid+'\',\'locked\')">&#x1F512; LOCK</button>'+
       '</div>'+
       noteHTML+
-      '<div class="auto-row"><div class="toggle'+(autoLock?' on':'')+'" onclick="toggleAuto(\''+uid+'\',this)"></div><label>12h Auto-Lock</label></div>'+
+      '<div class="auto-row"><div class="toggle'+(autoLock?' on':'')+'" onclick="toggleAuto(\''+sUid+'\',this)"></div><label>12h Auto-Lock</label></div>'+
       '</div>';
   }).join('');
 }
@@ -153,8 +162,8 @@ function setStatus(uid,status){
   if(status!=='recovery'){d.u[uid].recovery_note='';}
   SD(d);renderClients();
   if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncUser(uid,d.u[uid]);
-  var labels={unlocked:'&#x2705; ACTIVATED',locked:'&#x1F512; LOCKED',recovery:'&#x1FA79; RECOVERY MODE'};
-  toast((d.u[uid].name||uid)+' \u2014 '+(labels[status]||status)+'<br><span style="font-size:.7rem;color:rgba(255,255,255,.5)">The Laboratory Standard is maintained.</span>');
+  var labels={unlocked:'✅ ACTIVATED',locked:'🔒 LOCKED',recovery:'🩹 RECOVERY MODE'};
+  toast((d.u[uid].name||uid)+' \u2014 '+(labels[status]||status)+' - The Laboratory Standard is maintained.');
 }
 
 function promptRecovery(uid){
@@ -173,7 +182,7 @@ function saveRecoveryNote(){
   d.u[noteTarget].lock_expiry=null;
   SD(d);closeNoteModal();renderClients();
   if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncUser(noteTarget,d.u[noteTarget]);
-  toast((d.u[noteTarget].name||noteTarget)+' \u2014 &#x1FA79; RECOVERY MODE<br><span style="font-size:.7rem;color:rgba(255,255,255,.5)">'+(note||'No note added')+'</span>');
+  toast((d.u[noteTarget].name||noteTarget)+' \u2014 🩹 RECOVERY MODE - '+(note||'No note added'));
 }
 
 function toggleAuto(uid,el){
