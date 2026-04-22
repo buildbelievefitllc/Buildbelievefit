@@ -181,16 +181,48 @@ function cpb(txt,btn){navigator.clipboard.writeText(txt).then(function(){btn.tex
 var activeCat='ANATOMY';
 function renderVocab(){
   var cats=Object.keys(V);var bw=document.getElementById('cat-btns');var gw=document.getElementById('vocab-grid');
-  bw.innerHTML=cats.map(function(c){return '<button class="catb'+(c===activeCat?' on':'')+'" onclick="activeCat=\''+c+'\';renderVocab()">'+c+'</button>';}).join('');
-  gw.innerHTML=V[activeCat].map(function(v){return '<div class="vi"><div><div class="vi-es">'+v.es+'</div><div class="vi-cat">'+activeCat+'</div></div><div class="vi-en">'+v.en+'</div></div>';}).join('');
+  bw.innerHTML='';
+  cats.forEach(function(c){
+    var btn=document.createElement('button');
+    btn.className='catb'+(c===activeCat?' on':'');
+    btn.textContent=c;
+    btn.onclick=function(){activeCat=c;renderVocab();};
+    bw.appendChild(btn);
+  });
+  gw.innerHTML='';
+  V[activeCat].forEach(function(v){
+    var vi=document.createElement('div');vi.className='vi';
+    var innerDiv=document.createElement('div');
+    var viEs=document.createElement('div');viEs.className='vi-es';viEs.textContent=v.es;
+    var viCat=document.createElement('div');viCat.className='vi-cat';viCat.textContent=activeCat;
+    innerDiv.appendChild(viEs);innerDiv.appendChild(viCat);
+    var viEn=document.createElement('div');viEn.className='vi-en';viEn.textContent=v.en;
+    vi.appendChild(innerDiv);vi.appendChild(viEn);
+    gw.appendChild(vi);
+  });
 }
 function renderScripts(){
   var w=document.getElementById('scripts-wrap');
-  w.innerHTML=SC.map(function(s,i){
-    var lines=s.lines.map(function(l){return '<div class="sl"><span class="es">"'+l.es+'"</span><br><span class="en">'+l.en+'</span></div>';}).join('');
-    var copyTxt=s.lines.map(function(l){return 'ES: "'+l.es+'"\nEN: '+l.en;}).join('\n');
-    return '<div class="sb"><div class="sb-l">'+s.title+'</div>'+lines+'<button class="cpb" onclick="cpb(\''+copyTxt.replace(/'/g,"\\'")+'\',this)">COPY</button></div>';
-  }).join('');
+  w.innerHTML='';
+  SC.forEach(function(s,i){
+    var sb=document.createElement('div');sb.className='sb';
+    var sbL=document.createElement('div');sbL.className='sb-l';sbL.textContent=s.title;
+    sb.appendChild(sbL);
+    var copyLines=[];
+    s.lines.forEach(function(l){
+      var sl=document.createElement('div');sl.className='sl';
+      var spanEs=document.createElement('span');spanEs.className='es';spanEs.textContent='"'+l.es+'"';
+      var br=document.createElement('br');
+      var spanEn=document.createElement('span');spanEn.className='en';spanEn.textContent=l.en;
+      sl.appendChild(spanEs);sl.appendChild(br);sl.appendChild(spanEn);
+      sb.appendChild(sl);
+      copyLines.push('ES: "'+l.es+'"\nEN: '+l.en);
+    });
+    var btn=document.createElement('button');btn.className='cpb';btn.textContent='COPY';
+    btn.onclick=function(){cpb(copyLines.join('\n'),this);};
+    sb.appendChild(btn);
+    w.appendChild(sb);
+  });
 }
 
 // ─── RENDER: PORTUGUESE ────────────────────────────
@@ -198,46 +230,211 @@ var ptFilter='all';
 function renderPT(){
   var cats=["all","social","airport/nav","food","gym","social+"];
   var fw=document.getElementById('pt-filter');
-  fw.innerHTML=cats.map(function(c){return '<button class="catb'+(c===ptFilter?' on':'')+'" onclick="ptFilter=\''+c+'\';renderPT()" style="'+(c===ptFilter?'background:#0a2a2a;color:#22d3ee;border-color:#22d3ee':'')+'">'+c.toUpperCase()+'</button>';}).join('');
+  fw.innerHTML='';
+  cats.forEach(function(c){
+    var btn=document.createElement('button');
+    btn.className='catb'+(c===ptFilter?' on':'');
+    btn.textContent=c.toUpperCase();
+    if(c===ptFilter){
+      btn.style.background='#0a2a2a';
+      btn.style.color='#22d3ee';
+      btn.style.borderColor='#22d3ee';
+    }
+    btn.onclick=function(){ptFilter=c;renderPT();};
+    fw.appendChild(btn);
+  });
+
   var filtered=ptFilter==='all'?PT:PT.filter(function(p){return p.cat===ptFilter;});
   var lw=document.getElementById('pt-list');
-  lw.innerHTML=filtered.map(function(p){return '<div class="phi"><div class="phi-n">'+String(p.n).padStart(2,'0')+'</div><div style="flex:1"><div><span class="phi-pt">'+p.pt+'</span><span class="phi-tag">'+p.cat+'</span></div><div class="phi-en">'+p.en+'</div></div></div>';}).join('');
+  lw.innerHTML='';
+  filtered.forEach(function(p){
+    var phi=document.createElement('div');phi.className='phi';
+    var phiN=document.createElement('div');phiN.className='phi-n';phiN.textContent=String(p.n).padStart(2,'0');
+    phi.appendChild(phiN);
+
+    var cDiv=document.createElement('div');cDiv.style.flex='1';
+    var rDiv=document.createElement('div');
+    var spanPt=document.createElement('span');spanPt.className='phi-pt';spanPt.textContent=p.pt;
+    var spanTag=document.createElement('span');spanTag.className='phi-tag';spanTag.textContent=p.cat;
+    rDiv.appendChild(spanPt);rDiv.appendChild(spanTag);
+    cDiv.appendChild(rDiv);
+
+    var phiEn=document.createElement('div');phiEn.className='phi-en';phiEn.textContent=p.en;
+    cDiv.appendChild(phiEn);
+    phi.appendChild(cDiv);
+    lw.appendChild(phi);
+  });
+
   var pw=document.getElementById('pimsleur-list');
-  pw.innerHTML=PM.map(function(w){return '<div class="wr"><div class="wr-n">'+w.week+'</div><div style="flex:1;min-width:200px"><div class="wr-t">'+w.title+'</div><div class="wr-d">'+w.detail+'</div></div></div>';}).join('');
+  pw.innerHTML='';
+  PM.forEach(function(wItem){
+    var wr=document.createElement('div');wr.className='wr';
+    var wrN=document.createElement('div');wrN.className='wr-n';wrN.textContent=wItem.week;
+    wr.appendChild(wrN);
+
+    var fDiv=document.createElement('div');fDiv.style.flex='1';fDiv.style.minWidth='200px';
+    var wrT=document.createElement('div');wrT.className='wr-t';wrT.textContent=wItem.title;
+    var wrD=document.createElement('div');wrD.className='wr-d';wrD.textContent=wItem.detail;
+    fDiv.appendChild(wrT);fDiv.appendChild(wrD);
+    wr.appendChild(fDiv);
+    pw.appendChild(wr);
+  });
 }
 
 // ─── RENDER: ROLEPLAY ──────────────────────────────
 var selScenario=null;
 function renderScenarios(){
   var w=document.getElementById('scenarios-wrap');
-  w.innerHTML=SN.map(function(s,i){
+  w.innerHTML='';
+  SN.forEach(function(s,i){
     var langLabel=s.lang==='ES'?'Spanish':'Brazilian Portuguese';
     var prompt='Act as a local in this scenario. Respond ONLY in '+langLabel+'. If I make a grammar mistake, stop and correct me with: ❌ [my error] → ✅ [correction]. Then continue.\n\nScenario: '+s.desc+'\n\nOpening: '+s.prompt;
     var sel=selScenario===i;
-    var extra=sel?'<div class="sc-p"><strong style="font-family:Bebas Neue,sans-serif;font-size:13px;letter-spacing:2px;color:var(--yel);display:block;margin-bottom:6px">📋 PASTE THIS PROMPT:</strong>'+s.prompt+'</div><div class="corr"><div class="corr-l">⚡ COMMON ERRORS</div><div class="corr-t">'+s.correction+'</div></div><button class="cpb" onclick="cpb(\''+prompt.replace(/'/g,"\\'")+'\',this)">COPY PROMPT</button>':'';
-    return '<div class="sc'+(sel?' sel':'')+'" onclick="selScenario='+(sel?'null':i)+';renderScenarios()"><div style="display:flex;justify-content:space-between;align-items:center"><div class="sc-t">'+s.title+'</div><span style="font-family:Bebas Neue,sans-serif;font-size:13px;letter-spacing:2px;background:'+(s.lang==='ES'?'var(--pur)':'#0a3a3a')+';color:'+(s.lang==='ES'?'var(--yel)':'var(--cyan)')+';padding:3px 10px;border-radius:2px">'+s.lang+'</span></div><div class="sc-d">'+s.desc+'</div>'+extra+'</div>';
-  }).join('');
+
+    var sc=document.createElement('div');
+    sc.className='sc'+(sel?' sel':'');
+    sc.onclick=function(e){
+      if(e.target.tagName==='BUTTON')return;
+      selScenario=sel?null:i;renderScenarios();
+    };
+
+    var d1=document.createElement('div');
+    d1.style.display='flex';d1.style.justifyContent='space-between';d1.style.alignItems='center';
+    var scT=document.createElement('div');scT.className='sc-t';scT.textContent=s.title;
+    d1.appendChild(scT);
+
+    var spanLang=document.createElement('span');
+    spanLang.style.fontFamily='Bebas Neue,sans-serif';spanLang.style.fontSize='13px';spanLang.style.letterSpacing='2px';
+    spanLang.style.background=s.lang==='ES'?'var(--pur)':'#0a3a3a';
+    spanLang.style.color=s.lang==='ES'?'var(--yel)':'var(--cyan)';
+    spanLang.style.padding='3px 10px';spanLang.style.borderRadius='2px';
+    spanLang.textContent=s.lang;
+    d1.appendChild(spanLang);
+    sc.appendChild(d1);
+
+    var scD=document.createElement('div');scD.className='sc-d';scD.textContent=s.desc;
+    sc.appendChild(scD);
+
+    if(sel){
+      var scP=document.createElement('div');scP.className='sc-p';
+      var strongP=document.createElement('strong');
+      strongP.style.fontFamily='Bebas Neue,sans-serif';strongP.style.fontSize='13px';strongP.style.letterSpacing='2px';
+      strongP.style.color='var(--yel)';strongP.style.display='block';strongP.style.marginBottom='6px';
+      strongP.textContent='📋 PASTE THIS PROMPT:';
+      scP.appendChild(strongP);
+      scP.appendChild(document.createTextNode(s.prompt));
+      sc.appendChild(scP);
+
+      var corr=document.createElement('div');corr.className='corr';
+      var corrL=document.createElement('div');corrL.className='corr-l';corrL.textContent='⚡ COMMON ERRORS';
+      var corrT=document.createElement('div');corrT.className='corr-t';corrT.textContent=s.correction;
+      corr.appendChild(corrL);corr.appendChild(corrT);
+      sc.appendChild(corr);
+
+      var btn=document.createElement('button');btn.className='cpb';btn.textContent='COPY PROMPT';
+      btn.onclick=function(e){e.stopPropagation();cpb(prompt,this);};
+      sc.appendChild(btn);
+    }
+
+    w.appendChild(sc);
+  });
 }
 
 // ─── RENDER: INTENTIONS ────────────────────────────
 function renderIntentions(){
   var w=document.getElementById('intentions-wrap');
-  w.innerHTML=INT.map(function(item){
-    return '<div class="ic"><div class="ic-w">'+item.week+'</div><div class="ic-th">'+item.theme+'</div><div class="two"><div><div class="ic-lg ic-es">🇪🇸 ESPAÑOL</div><div class="ic-txt">"'+item.es+'"</div><button class="cpb" onclick="cpb(\''+item.es.replace(/'/g,"\\'")+'\',this)">COPY</button></div><div><div class="ic-lg ic-pt">🇧🇷 PORTUGUÊS</div><div class="ic-txt">"'+item.pt+'"</div><button class="cpb" onclick="cpb(\''+item.pt.replace(/'/g,"\\'")+'\',this)">COPY</button></div></div></div>';
-  }).join('');
+  w.innerHTML='';
+  INT.forEach(function(item){
+    var ic=document.createElement('div');ic.className='ic';
+    var icW=document.createElement('div');icW.className='ic-w';icW.textContent=item.week;
+    var icTh=document.createElement('div');icTh.className='ic-th';icTh.textContent=item.theme;
+    ic.appendChild(icW);ic.appendChild(icTh);
+
+    var two=document.createElement('div');two.className='two';
+
+    var esDiv=document.createElement('div');
+    var esLg=document.createElement('div');esLg.className='ic-lg ic-es';esLg.textContent='🇪🇸 ESPAÑOL';
+    var esTxt=document.createElement('div');esTxt.className='ic-txt';esTxt.textContent='"'+item.es+'"';
+    var esBtn=document.createElement('button');esBtn.className='cpb';esBtn.textContent='COPY';
+    esBtn.onclick=function(){cpb(item.es,this);};
+    esDiv.appendChild(esLg);esDiv.appendChild(esTxt);esDiv.appendChild(esBtn);
+    two.appendChild(esDiv);
+
+    var ptDiv=document.createElement('div');
+    var ptLg=document.createElement('div');ptLg.className='ic-lg ic-pt';ptLg.textContent='🇧🇷 PORTUGUÊS';
+    var ptTxt=document.createElement('div');ptTxt.className='ic-txt';ptTxt.textContent='"'+item.pt+'"';
+    var ptBtn=document.createElement('button');ptBtn.className='cpb';ptBtn.textContent='COPY';
+    ptBtn.onclick=function(){cpb(item.pt,this);};
+    ptDiv.appendChild(ptLg);ptDiv.appendChild(ptTxt);ptDiv.appendChild(ptBtn);
+    two.appendChild(ptDiv);
+
+    ic.appendChild(two);
+    w.appendChild(ic);
+  });
 }
 
 // ─── RENDER: ROADMAP ───────────────────────────────
 function renderRoadmap(){
   var days=["MON","TUE","WED","THU","FRI","SAT","SUN"];
   var w=document.getElementById('roadmap-wrap');
-  w.innerHTML=RM.map(function(p){
-    var dayH=days.map(function(d){return '<div class="dg-h">'+d+'</div>';}).join('');
-    var dayS=p.daily.map(function(a){return '<div class="dg-s"><div class="dg-a">'+a+'</div></div>';}).join('');
-    return '<div style="margin-bottom:24px"><div class="ph-hdr"><div class="ph-n">'+p.num+'</div><div><div class="ph-nm">'+p.name+'</div><div class="ph-wk">'+p.weeks+'</div></div></div><div class="two" style="margin-bottom:12px"><div class="card" style="padding:14px"><div class="card-st">🇪🇸 ESPAÑOL FOCUS</div><div style="font-size:14px;color:#ccc;line-height:1.6">'+p.es+'</div></div><div class="card" style="padding:14px;border-color:#0a3a3a"><div class="card-st" style="color:var(--cyan)">🇧🇷 PORTUGUÊS FOCUS</div><div style="font-size:14px;color:#ccc;line-height:1.6">'+p.pt+'</div></div></div><div class="dg">'+dayH+dayS+'</div></div>';
-  }).join('');
+  w.innerHTML='';
+  RM.forEach(function(p){
+    var rDiv=document.createElement('div');rDiv.style.marginBottom='24px';
+
+    var phHdr=document.createElement('div');phHdr.className='ph-hdr';
+    var phN=document.createElement('div');phN.className='ph-n';phN.textContent=p.num;
+    var hdR=document.createElement('div');
+    var phNm=document.createElement('div');phNm.className='ph-nm';phNm.textContent=p.name;
+    var phWk=document.createElement('div');phWk.className='ph-wk';phWk.textContent=p.weeks;
+    hdR.appendChild(phNm);hdR.appendChild(phWk);
+    phHdr.appendChild(phN);phHdr.appendChild(hdR);
+    rDiv.appendChild(phHdr);
+
+    var two=document.createElement('div');two.className='two';two.style.marginBottom='12px';
+
+    var c1=document.createElement('div');c1.className='card';c1.style.padding='14px';
+    var st1=document.createElement('div');st1.className='card-st';st1.textContent='🇪🇸 ESPAÑOL FOCUS';
+    var d1=document.createElement('div');d1.style.fontSize='14px';d1.style.color='#ccc';d1.style.lineHeight='1.6';d1.textContent=p.es;
+    c1.appendChild(st1);c1.appendChild(d1);
+    two.appendChild(c1);
+
+    var c2=document.createElement('div');c2.className='card';c2.style.padding='14px';c2.style.borderColor='#0a3a3a';
+    var st2=document.createElement('div');st2.className='card-st';st2.style.color='var(--cyan)';st2.textContent='🇧🇷 PORTUGUÊS FOCUS';
+    var d2=document.createElement('div');d2.style.fontSize='14px';d2.style.color='#ccc';d2.style.lineHeight='1.6';d2.textContent=p.pt;
+    c2.appendChild(st2);c2.appendChild(d2);
+    two.appendChild(c2);
+
+    rDiv.appendChild(two);
+
+    var dg=document.createElement('div');dg.className='dg';
+    days.forEach(function(d){
+      var dh=document.createElement('div');dh.className='dg-h';dh.textContent=d;
+      dg.appendChild(dh);
+    });
+    p.daily.forEach(function(a){
+      var ds=document.createElement('div');ds.className='dg-s';
+      var da=document.createElement('div');da.className='dg-a';da.textContent=a;
+      ds.appendChild(da);
+      dg.appendChild(ds);
+    });
+    rDiv.appendChild(dg);
+    w.appendChild(rDiv);
+  });
+
   var bw=document.getElementById('benchmarks');
-  bw.innerHTML=BM.map(function(b,i){return '<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><span style="font-family:Bebas Neue,sans-serif;font-size:20px;color:var(--yel);min-width:28px">'+(i+1)+'</span><span style="font-size:15px;color:#ddd">'+b+'</span></div>';}).join('');
+  bw.innerHTML='';
+  BM.forEach(function(b,i){
+    var d=document.createElement('div');
+    d.style.display='flex';d.style.gap='10px';d.style.alignItems='center';d.style.marginBottom='8px';
+    var sp1=document.createElement('span');
+    sp1.style.fontFamily='Bebas Neue,sans-serif';sp1.style.fontSize='20px';sp1.style.color='var(--yel)';sp1.style.minWidth='28px';
+    sp1.textContent=(i+1);
+    var sp2=document.createElement('span');
+    sp2.style.fontSize='15px';sp2.style.color='#ddd';
+    sp2.textContent=b;
+    d.appendChild(sp1);d.appendChild(sp2);
+    bw.appendChild(d);
+  });
 }
 
 // ─── TAB SWITCHING ─────────────────────────────────
