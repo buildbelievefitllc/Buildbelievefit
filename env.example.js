@@ -1,0 +1,2 @@
+window.ENV_SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
+window.ENV_SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';

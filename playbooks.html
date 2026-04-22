@@ -986,7 +986,13 @@
 
     const labels = {};
     cards.forEach(c => labels[c.dataset.pos] = c.dataset.label);
-    preview.innerHTML = items.map(p => `<span class="sel-tag">${labels[p]}</span>`).join('');
+    preview.innerHTML = '';
+    items.forEach(p => {
+      const span = document.createElement('span');
+      span.className = 'sel-tag';
+      span.textContent = labels[p];
+      preview.appendChild(span);
+    });
   }
 
   // ── Form submit ─────────────────────────────────────────────────────────
