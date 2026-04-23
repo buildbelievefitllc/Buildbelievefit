@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Vault Door &mdash; Build Believe Fit</title>
+<meta name="description" content="Select your clearance tier, accept the liability waiver, and enter the Vault.">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&family=Anton&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/bbf-tokens.css"/>
+<link rel="stylesheet" href="styles/bbf-pricing.css"/>
+<style>
+:root{
+  --pur:#1a0338;--yel:#f5c800;--gold:#f5c800;--blk:#060606;--card:#0d0118;
+  --brd:#1f1530;--mut:#888;--mut2:#aaa;--wht:#f0f0f0;
+  --gry:#0a0a0a;--gry2:#111;--gry3:#222;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  color:var(--wht);
+  font-family:'Barlow Condensed',sans-serif;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* ═══ HEADER ═══════════════════════════════════════════════════ */
+.vd-hdr{
+  text-align:center;
+  padding:3.2rem 1.5rem 1.6rem;
+  position:relative;
+  z-index:3;
+}
+.vd-eyebrow{
+  display:inline-block;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.7rem;
+  font-weight:700;
+  letter-spacing:.36em;
+  color:rgba(212,175,55,.72);
+  padding:.35rem .9rem;
+  border:1px solid rgba(212,175,55,.3);
+  border-radius:var(--bbf-radius-pill);
+  background:rgba(0,0,0,.35);
+  text-transform:uppercase;
+  margin-bottom:1.2rem;
+}
+.vd-hdr h1{
+  font-family:'Anton','Bebas Neue',Impact,sans-serif;
+  font-size:clamp(2.2rem,6vw,3.6rem);
+  letter-spacing:.035em;
+  line-height:1;
+  color:#fff;
+  margin-bottom:.7rem;
+}
+.vd-hdr h1 .y{color:var(--bbf-gold-victory)}
+.vd-sub{
+  max-width:620px;
+  margin:0 auto;
+  font-size:1rem;
+  color:rgba(255,255,255,.68);
+  line-height:1.55;
+  letter-spacing:.01em;
+}
+.vd-hairline{
+  display:block;
+  margin:1.4rem auto 0;
+  height:1px;
+  width:min(360px,70%);
+  background:linear-gradient(90deg,transparent 0%,rgba(212,175,55,.55) 50%,transparent 100%);
+}
+
+/* ═══ MAIN WRAP ═════════════════════════════════════════════════ */
+.vd-wrap{
+  max-width:1180px;
+  margin:0 auto;
+  padding:1.5rem 1.25rem 4rem;
+  position:relative;
+  z-index:3;
+}
+
+/* ═══ STAGE LABEL (Step indicator) ══════════════════════════════ */
+.vd-step{
+  display:flex;
+  align-items:center;
+  gap:.8rem;
+  margin:1.2rem 0 1.5rem;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.7rem;
+  letter-spacing:.3em;
+  color:rgba(212,175,55,.75);
+  text-transform:uppercase;
+}
+.vd-step-num{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:1px solid rgba(212,175,55,.45);
+  background:rgba(0,0,0,.4);
+  color:var(--bbf-gold-victory);
+  font-size:.85rem;
+  font-weight:900;
+}
+.vd-step-line{
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,rgba(212,175,55,.35) 0%,transparent 100%);
+}
+
+/* ═══ PRICING GRID ══════════════════════════════════════════════ */
+.prog-g{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1.6rem;
+  margin:1rem 0 2rem;
+}
+.prog-c{
+  background:linear-gradient(180deg,var(--bbf-purple-900) 0%,var(--bbf-purple-950) 100%);
+  border:2px solid rgba(212,175,55,.18);
+  border-radius:20px;
+  padding:2rem 1.75rem;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  cursor:pointer;
+  transition:transform .3s var(--ease-sovereign),border-color .3s,box-shadow .3s;
+  box-shadow:
+    0 18px 40px -18px rgba(0,0,0,.7),
+    0 4px 12px -4px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+.prog-c:hover{
+  border-color:rgba(212,175,55,.55);
+  transform:translateY(-3px);
+}
+.prog-c.sel{
+  border-color:var(--bbf-gold-victory);
+  box-shadow:
+    0 24px 52px -18px rgba(245,200,0,.35),
+    0 0 0 1px rgba(245,200,0,.4) inset,
+    inset 0 0 44px rgba(245,200,0,.08);
+  transform:translateY(-4px);
+}
+.prog-badge{
+  position:absolute;
+  top:-12px;
+  left:50%;
+  transform:translateX(-50%);
+  background:linear-gradient(180deg,var(--bbf-gold-400) 0%,var(--bbf-gold-550) 100%);
+  color:var(--bbf-purple-950);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.68rem;
+  letter-spacing:.22em;
+  font-weight:900;
+  padding:.3rem 1rem;
+  border-radius:var(--bbf-radius-pill);
+  text-transform:uppercase;
+  white-space:nowrap;
+  box-shadow:0 4px 14px rgba(212,175,55,.45);
+}
+.prog-t{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.65rem;
+  font-weight:700;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:rgba(212,175,55,.7);
+  margin-bottom:.55rem;
+}
+.prog-n{
+  font-family:'Anton','Bebas Neue',Impact,sans-serif;
+  font-size:2rem;
+  letter-spacing:.03em;
+  line-height:1;
+  color:#fff;
+  margin-bottom:.6rem;
+}
+.prog-tag{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.18em;
+  color:rgba(255,255,255,.6);
+  margin-bottom:.9rem;
+  text-transform:uppercase;
+}
+.prog-c.featured .prog-tag{color:var(--bbf-gold-victory)}
+.prog-p{
+  font-family:'Anton','Bebas Neue',Impact,sans-serif;
+  font-size:2.2rem;
+  letter-spacing:.02em;
+  color:var(--bbf-gold-victory);
+  margin-bottom:.15rem;
+  line-height:1;
+}
+.prog-p .cycle{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.85rem;
+  font-weight:600;
+  letter-spacing:.06em;
+  color:rgba(255,255,255,.55);
+  margin-left:.25rem;
+}
+.prog-sub{
+  font-size:.82rem;
+  color:rgba(255,255,255,.55);
+  margin-bottom:1.2rem;
+  line-height:1.5;
+}
+.prog-f{
+  list-style:none;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:.62rem;
+  margin:.25rem 0 1.6rem;
+}
+.prog-f li{
+  display:flex;
+  gap:.7rem;
+  font-size:.88rem;
+  font-weight:500;
+  color:rgba(255,255,255,.78);
+  line-height:1.45;
+}
+.prog-f li::before{content:"\2713";color:var(--bbf-gold-550);font-weight:900;flex-shrink:0;font-size:.95rem}
+.prog-f li.no{color:rgba(255,255,255,.32)}
+.prog-f li.no::before{content:"\2013";color:rgba(255,255,255,.22)}
+
+/* Reserve the gold CTA on cards via the existing .prog-cta from bbf-pricing.css.
+   .prog-cta--victory is reserved for the Sovereign tier (tier 3). */
+.prog-cta{
+  display:block;
+  text-align:center;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.95rem;
+  cursor:pointer;
+  text-decoration:none;
+}
+
+/* ═══ WAIVER PANEL ═════════════════════════════════════════════ */
+.vd-waiver{
+  background:linear-gradient(180deg,var(--bbf-purple-900) 0%,var(--bbf-purple-950) 100%);
+  border:1px solid rgba(212,175,55,.22);
+  border-radius:var(--bbf-radius-xl);
+  padding:2rem 1.8rem 2.2rem;
+  margin-top:2rem;
+  box-shadow:
+    0 24px 60px -24px rgba(0,0,0,.7),
+    inset 0 0 40px rgba(245,200,0,.04),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  position:relative;
+}
+.vd-waiver::before{
+  content:'';
+  position:absolute;
+  top:-1px;
+  left:16%;
+  right:16%;
+  height:1px;
+  background:linear-gradient(90deg,transparent 0%,rgba(212,175,55,.55) 50%,transparent 100%);
+  pointer-events:none;
+}
+.vd-waiver-hd{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:.6rem;
+  margin-bottom:1.2rem;
+  padding-bottom:.9rem;
+  border-bottom:1px solid rgba(212,175,55,.16);
+}
+.vd-waiver-t{
+  font-family:'Anton','Bebas Neue',Impact,sans-serif;
+  font-size:1.6rem;
+  letter-spacing:.025em;
+  line-height:1.1;
+  color:#fff;
+}
+.vd-waiver-t .y{color:var(--bbf-gold-victory)}
+.vd-waiver-v{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.65rem;
+  letter-spacing:.3em;
+  color:rgba(212,175,55,.6);
+  text-transform:uppercase;
+}
+.vd-waiver-body{
+  max-height:340px;
+  overflow-y:auto;
+  padding:.2rem .8rem .2rem 0;
+  font-size:.92rem;
+  line-height:1.72;
+  color:rgba(255,255,255,.72);
+  scrollbar-width:thin;
+  scrollbar-color:rgba(212,175,55,.35) rgba(0,0,0,.3);
+}
+.vd-waiver-body::-webkit-scrollbar{width:8px}
+.vd-waiver-body::-webkit-scrollbar-track{background:rgba(0,0,0,.3);border-radius:4px}
+.vd-waiver-body::-webkit-scrollbar-thumb{background:rgba(212,175,55,.35);border-radius:4px}
+.vd-waiver-body h3{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.82rem;
+  letter-spacing:.22em;
+  color:var(--bbf-gold-victory);
+  margin:1.1rem 0 .45rem;
+  text-transform:uppercase;
+}
+.vd-waiver-body h3:first-child{margin-top:0}
+.vd-waiver-body p{margin-bottom:.85rem}
+.vd-waiver-body strong{color:#fff;font-weight:700}
+.vd-waiver-body em{color:rgba(212,175,55,.85);font-style:normal;font-weight:600}
+
+/* ═══ SIGNATURE BLOCK ═══════════════════════════════════════════ */
+.vd-sig{
+  margin-top:1.5rem;
+  padding-top:1.4rem;
+  border-top:1px solid rgba(212,175,55,.18);
+  display:flex;
+  flex-direction:column;
+  gap:.6rem;
+}
+.vd-sig-lbl{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.7rem;
+  font-weight:700;
+  letter-spacing:.26em;
+  color:rgba(212,175,55,.7);
+  text-transform:uppercase;
+}
+.vd-sig-hint{
+  font-size:.82rem;
+  color:rgba(255,255,255,.5);
+  line-height:1.5;
+  margin-bottom:.2rem;
+}
+.vd-sig-input{
+  width:100%;
+  background:var(--bbf-purple-900);
+  border:1px solid rgba(212,175,55,.28);
+  color:#fff;
+  padding:1rem 1.1rem;
+  font-family:'Caveat','Brush Script MT',cursive,'Barlow Condensed',sans-serif;
+  font-size:1.6rem;
+  font-weight:500;
+  letter-spacing:.02em;
+  border-radius:var(--bbf-radius-md);
+  outline:none;
+  transition:border-color .22s var(--ease-sovereign),box-shadow .24s,background .24s;
+}
+.vd-sig-input::placeholder{
+  color:rgba(255,255,255,.22);
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1rem;
+  letter-spacing:.08em;
+  font-weight:500;
+}
+.vd-sig-input:focus{
+  border-color:var(--bbf-gold-550);
+  border-width:2px;
+  padding:calc(1rem - 1px) calc(1.1rem - 1px);
+  box-shadow:
+    0 0 0 4px rgba(212,175,55,.18),
+    0 0 18px rgba(212,175,55,.22),
+    inset 0 0 0 1px rgba(212,175,55,.08);
+  background:color-mix(in srgb,var(--bbf-purple-900) 88%,var(--bbf-gold-550) 12%);
+}
+
+/* ═══ FOOTER SEAL ══════════════════════════════════════════════ */
+.vd-seal{
+  text-align:center;
+  margin-top:2rem;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.62rem;
+  letter-spacing:.28em;
+  color:rgba(255,255,255,.32);
+  text-transform:uppercase;
+}
+.vd-seal .dot{color:var(--bbf-gold-550);margin:0 .4rem}
+
+/* ═══ RESPONSIVE ═══════════════════════════════════════════════ */
+@media (max-width: 900px){
+  .prog-g{grid-template-columns:1fr;gap:2rem;margin-top:1.5rem}
+  .prog-c.featured{--prog-scale:1;transform:none}
+}
+@media (max-width: 520px){
+  .vd-hdr{padding:2.2rem 1rem 1.2rem}
+  .vd-wrap{padding:1rem .9rem 3rem}
+  .vd-waiver{padding:1.5rem 1.2rem 1.8rem}
+  .vd-waiver-body{max-height:280px;font-size:.88rem}
+  .prog-c{padding:1.6rem 1.3rem}
+  .prog-n{font-size:1.7rem}
+  .prog-p{font-size:1.9rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     VAULT DOOR — TIER SELECT + LIABILITY WAIVER UI SHELL
+     Sprint 1: HTML structure + CSS styling only.
+     No JS routing, no Stripe links wired yet — those arrive in
+     Sprint 2 once the provisioning flow lands.
+     ═══════════════════════════════════════════════════════════ -->
+
+<header class="vd-hdr">
+  <div class="vd-eyebrow">Clearance Terminal &middot; Secure Entry</div>
+  <h1>The <span class="y">Vault Door</span></h1>
+  <p class="vd-sub">Select your tier. Accept the liability waiver. Sign to open the Vault and begin your Sovereign onboarding.</p>
+  <span class="vd-hairline"></span>
+</header>
+
+<main class="vd-wrap">
+
+  <!-- ── STEP 1: TIER SELECT ─────────────────────────────────── -->
+  <div class="vd-step">
+    <span class="vd-step-num">1</span>
+    <span>Choose Your Clearance Tier</span>
+    <span class="vd-step-line"></span>
+  </div>
+
+  <div class="prog-g" id="vd-tier-grid" role="radiogroup" aria-label="Clearance tier">
+
+    <!-- TIER 1 — GATEWAY $147/mo -->
+    <div class="prog-c" data-tier="gateway" role="radio" aria-checked="false" tabindex="0">
+      <div class="prog-t">Tier I &middot; Entry</div>
+      <div class="prog-n">Gateway</div>
+      <div class="prog-tag">Self-Guided Clearance</div>
+      <div class="prog-p">$147<span class="cycle">/ mo</span></div>
+      <p class="prog-sub">The door opens. Foundational access to the BBF operating system &mdash; habit architecture, workout tracking, nutrition blueprinting.</p>
+      <ul class="prog-f">
+        <li>BBF App &mdash; full client dashboard</li>
+        <li>Habit Architecture system</li>
+        <li>TDEE + macro blueprint calculator</li>
+        <li>Foundational workout library</li>
+        <li>Community Resource video modules</li>
+        <li class="no">Live 1-on-1 coaching</li>
+        <li class="no">Architect-level biomechanical protocols</li>
+      </ul>
+      <span class="prog-cta">Select Gateway</span>
+    </div>
+
+    <!-- TIER 2 — ARCHITECT HYBRID $497/mo (featured) -->
+    <div class="prog-c featured" data-tier="architect_hybrid" role="radio" aria-checked="false" tabindex="0">
+      <div class="prog-badge">Most Chosen</div>
+      <div class="prog-t">Tier II &middot; Hybrid Flagship</div>
+      <div class="prog-n">Architect <br>Hybrid</div>
+      <div class="prog-tag">Coach &times; Protocol Sync</div>
+      <div class="prog-p">$497<span class="cycle">/ mo</span></div>
+      <p class="prog-sub">The flagship. Everything in Gateway plus live Architect coaching, biomechanical auditing, and the Phantom Comlink SOS channel.</p>
+      <ul class="prog-f">
+        <li>Everything in Gateway</li>
+        <li>Bi-weekly live Architect sessions</li>
+        <li>Custom 7-day meal plan (yours specifically)</li>
+        <li>Kinematic Auditor &mdash; biomechanical redline flagging</li>
+        <li>Somatic Sync readiness engine</li>
+        <li>Phantom Comlink SOS channel</li>
+        <li>Masterclass Vault &mdash; all modules unlocked</li>
+      </ul>
+      <span class="prog-cta">Select Architect Hybrid</span>
+    </div>
+
+    <!-- TIER 3 — SOVEREIGN $1,500/mo -->
+    <div class="prog-c" data-tier="sovereign" role="radio" aria-checked="false" tabindex="0">
+      <div class="prog-t">Tier III &middot; Executive</div>
+      <div class="prog-n">Sovereign</div>
+      <div class="prog-tag">Founder-Direct Bespoke Protocol</div>
+      <div class="prog-p">$1,500<span class="cycle">/ mo</span></div>
+      <p class="prog-sub">Maximum clearance. Direct founder access, weekly 1-on-1 sessions with Akeem, and fully bespoke weekly program design.</p>
+      <ul class="prog-f">
+        <li>Everything in Architect Hybrid</li>
+        <li>Weekly 1-on-1 sessions with Akeem</li>
+        <li>Fully bespoke weekly program design</li>
+        <li>OT-clinical movement &amp; longevity assessment</li>
+        <li>Biometric Yield Report &mdash; weekly synthesis</li>
+        <li>Priority 24-hour direct access channel</li>
+        <li>Executive travel &amp; schedule adaptation</li>
+      </ul>
+      <span class="prog-cta prog-cta--victory">Apply for Sovereign</span>
+    </div>
+
+  </div>
+
+  <!-- ── STEP 2: LIABILITY WAIVER ────────────────────────────── -->
+  <div class="vd-step" style="margin-top:3rem">
+    <span class="vd-step-num">2</span>
+    <span>Review &amp; Accept the Liability Waiver</span>
+    <span class="vd-step-line"></span>
+  </div>
+
+  <section class="vd-waiver" aria-label="Liability Waiver">
+
+    <div class="vd-waiver-hd">
+      <div class="vd-waiver-t">Liability <span class="y">Waiver</span> &amp; Release</div>
+      <div class="vd-waiver-v">Version 2026.04 &middot; BBF LLC</div>
+    </div>
+
+    <div class="vd-waiver-body" id="vd-waiver-body" tabindex="0">
+
+      <h3>1. Assumption of Risk</h3>
+      <p>I, the undersigned, understand that participation in the <strong>Build Believe Fit</strong> training system &mdash; including but not limited to strength training, cardiovascular conditioning, mobility protocols, nutritional guidance, and any recommendations delivered via the BBF App, the Architect coaching channel, or any affiliated digital or in-person medium &mdash; involves <em>inherent physical risk</em>. Such risk may include, without limitation: muscular strain, joint injury, cardiovascular stress, fatigue, heat illness, falls, impacts with equipment, and in rare cases more serious injury or death. I voluntarily and knowingly assume all such risks, whether foreseeable or unforeseeable, as a condition of participation.</p>
+
+      <h3>2. Medical Representation</h3>
+      <p>I represent that I am in sufficient physical condition to participate in a vigorous fitness program, and I have either (a) consulted a licensed physician regarding my fitness to participate, or (b) voluntarily elected to participate without such consultation, accepting full responsibility for that decision. I acknowledge that <strong>Build Believe Fit LLC</strong>, its founder Akeem Brown, and all affiliated coaches and contractors are fitness professionals &mdash; <em>not</em> licensed medical providers &mdash; and no guidance provided through the BBF system constitutes medical diagnosis, treatment, or advice.</p>
+
+      <h3>3. Release &amp; Hold Harmless</h3>
+      <p>In consideration of being permitted to participate, I, for myself and on behalf of my heirs, assigns, personal representatives, and next of kin, hereby <strong>RELEASE, WAIVE, DISCHARGE, AND COVENANT NOT TO SUE</strong> Build Believe Fit LLC, its owners, officers, employees, contractors, agents, and any affiliated facility (collectively, the &ldquo;Released Parties&rdquo;) from any and all liability, claims, demands, actions, and causes of action arising out of or related to any loss, damage, or injury &mdash; including death &mdash; that may be sustained by me while participating in BBF programs, whether caused by the negligence of the Released Parties or otherwise.</p>
+
+      <h3>4. Indemnification</h3>
+      <p>I agree to <strong>INDEMNIFY AND HOLD HARMLESS</strong> the Released Parties from any loss, liability, damage, or cost they may incur arising out of my participation, including attorneys&rsquo; fees and costs of defense, whether caused by my own negligence or otherwise.</p>
+
+      <h3>5. Program Fit &amp; Modification</h3>
+      <p>I understand the Architect reserves the right to modify, pause, or terminate my program at any time if, in the Architect&rsquo;s sole judgement, continued participation presents a risk to my health, contravenes the integrity of the BBF method, or violates the terms of service. I will communicate honestly regarding injuries, pain signals, medications, and lifestyle factors that bear on program design (sleep, stress, nutrition, hydration). <em>Withholding material information voids the protective benefit of this document.</em></p>
+
+      <h3>6. Media &amp; Transformation Record</h3>
+      <p>I grant Build Believe Fit LLC a non-exclusive, royalty-free license to use anonymised progress data, body-composition changes, performance metrics, and before/after transformation imagery (where such imagery is voluntarily submitted) for internal program refinement, coach-to-coach education, and &mdash; only with my explicit, separately-signed written permission &mdash; external marketing. I may revoke the marketing permission at any time in writing; the internal and educational license survives termination.</p>
+
+      <h3>7. Payment, Billing &amp; Cancellation</h3>
+      <p>I understand my selected tier bills on a recurring monthly basis at the published rate. I may cancel future billing at any time by notifying the Architect in writing; cancellation terminates future charges but <strong>does not refund the current billing cycle</strong>. Refunds are granted solely at the discretion of Build Believe Fit LLC and only in circumstances of documented medical disqualification or verified Architect-side service failure.</p>
+
+      <h3>8. Digital Security, Credentials &amp; Vault Access</h3>
+      <p>Upon completion of payment I will receive a one-time system-generated PIN which grants me access to my private client vault inside the BBF App. I understand this PIN is displayed once, must be rotated at first login, and is <em>my sole responsibility to safeguard</em>. Build Believe Fit LLC is not liable for unauthorized access resulting from shared, weak, or exposed credentials.</p>
+
+      <h3>9. Governing Law &amp; Severability</h3>
+      <p>This agreement is governed by the laws of the State of Florida, United States, without regard to conflict-of-laws principles. If any provision of this waiver is held unenforceable, the remainder of the waiver shall remain in full force and effect, and the unenforceable provision shall be interpreted to give maximum lawful effect to its intent.</p>
+
+      <h3>10. Acknowledgement</h3>
+      <p>I have read this waiver in full. I understand it is a legally binding contract between me and Build Believe Fit LLC. I am signing it freely, without inducement or duress, and with full knowledge of its content and effect. <strong>By typing my full legal name in the signature field below, I affirm all terms above and consent to enter the Vault.</strong></p>
+
+    </div>
+
+    <!-- ── DIGITAL SIGNATURE INPUT ───────────────────────────── -->
+    <div class="vd-sig">
+      <label class="vd-sig-lbl" for="vd-signature">Digital Signature</label>
+      <div class="vd-sig-hint">Type your full legal name exactly as it appears on your government-issued ID. Your keystroke here constitutes a legally binding signature.</div>
+      <input
+        type="text"
+        id="vd-signature"
+        name="signature"
+        class="vd-sig-input"
+        placeholder="Full legal name &mdash; e.g. Jordan A. Ellis"
+        autocomplete="name"
+        maxlength="120"
+        spellcheck="false"
+        aria-describedby="vd-waiver-body"
+      />
+    </div>
+
+  </section>
+
+  <div class="vd-seal">
+    Build Believe Fit LLC
+    <span class="dot">&bull;</span>
+    Sovereign Gold Standard
+    <span class="dot">&bull;</span>
+    Est. 2021
+  </div>
+
+</main>
+
+</body>
+</html>
