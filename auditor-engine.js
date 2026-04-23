@@ -84,6 +84,26 @@ const BBF_AUDITOR = (function() {
     return (typeof BBF_LANG !== 'undefined' && BBF_LANG.get) ? BBF_LANG.get() : 'en';
   }
 
+  // DocumentFragment + rAF paint \u2014 mirrors Sovereign guardrail.
+  function paintFragment(host, html) {
+    if (!host) return;
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html || '';
+    const frag = tpl.content;
+    const commit = function () {
+      while (host.firstChild) host.removeChild(host.firstChild);
+      host.appendChild(frag);
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(commit);
+    else commit();
+  }
+
+  function escapeHtmlLocal(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
   function triggerAuditorModal(exerciseName, onSelect) {
     currentExercise = exerciseName;
     currentCallback = onSelect || function() {};
@@ -100,12 +120,28 @@ const BBF_AUDITOR = (function() {
     document.getElementById('auditor-subtitle').textContent = subtitle[L] || subtitle.en;
 
     const grid = document.getElementById('auditor-options');
-    grid.innerHTML = TENSION_AREAS.map(function(area) {
-      return '<button class="aud-opt" onclick="BBF_AUDITOR.select(\'' + area.id + '\')">' +
+    const optsHTML = TENSION_AREAS.map(function(area) {
+      return '<button class="aud-opt" data-aud-area="' + escapeHtmlLocal(area.id) + '">' +
         '<span class="aud-opt-icon">' + area.icon + '</span>' +
-        '<span class="aud-opt-label">' + (area[L] || area.en) + '</span>' +
+        '<span class="aud-opt-label">' + escapeHtmlLocal(area[L] || area.en) + '</span>' +
       '</button>';
     }).join('');
+    paintFragment(grid, optsHTML);
+
+    // Bind once the fragment is live; delegated listener avoids
+    // inline onclick handlers and re-binds on every paint.
+    const bind = function () {
+      const g = document.getElementById('auditor-options');
+      if (!g || g.__svBound) return;
+      g.__svBound = true;
+      g.addEventListener('click', function (ev) {
+        const btn = ev.target.closest('[data-aud-area]');
+        if (!btn) return;
+        select(btn.getAttribute('data-aud-area'));
+      });
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(bind);
+    else bind();
 
     modal.classList.add('on');
   }
@@ -137,13 +173,20 @@ const BBF_AUDITOR = (function() {
 
     if (grid && cue) {
       title.textContent = '\uD83D\uDEE1 SOVEREIGN CUE \u2014 ' + areaDisplay;
-      grid.innerHTML =
-        '<div style="grid-column:span 2;background:#0a0a0a;border-left:3px solid #D4AF37;border-radius:0 8px 8px 0;padding:1rem">' +
-        '<div style="font-size:.65rem;font-weight:700;letter-spacing:3px;color:#D4AF37;margin-bottom:.5rem">FOUNDER-VERIFIED \u2022 ' + currentExercise.toUpperCase() + '</div>' +
-        '<div style="font-size:.92rem;color:#ddd;line-height:1.7">' + cue + '</div>' +
+      const cueHTML =
+        '<div class="aud-cue is-active">' +
+          '<div class="aud-cue-kicker">FOUNDER-VERIFIED \u2022 ' + escapeHtmlLocal(currentExercise.toUpperCase()) + '</div>' +
+          '<div class="aud-cue-body">' + escapeHtmlLocal(cue) + '</div>' +
         '</div>' +
-        '<div id="audit-holo-viewport" style="grid-column:span 2;position:relative;width:100%;height:160px;background:#060606;border:1px solid #1e1e1e;border-radius:8px;margin-top:.5rem;overflow:hidden"></div>' +
-        '<button onclick="BBF_AUDITOR.close()" style="grid-column:span 2;margin-top:.5rem;padding:.8rem;background:#D4AF37;color:#0a0a0a;font-family:\'Bebas Neue\',sans-serif;font-size:.9rem;letter-spacing:2px;border:none;border-radius:6px;cursor:pointer">' + (ackLabel[L] || ackLabel.en) + '</button>';
+        '<div id="audit-holo-viewport" class="aud-holo-viewport"></div>' +
+        '<button type="button" id="aud-cue-ack" class="aud-cue-ack">' + escapeHtmlLocal(ackLabel[L] || ackLabel.en) + '</button>';
+      paintFragment(grid, cueHTML);
+      const bindAck = function () {
+        const ackBtn = document.getElementById('aud-cue-ack');
+        if (ackBtn) ackBtn.addEventListener('click', closeModal);
+      };
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(bindAck);
+      else bindAck();
       // Trigger hologram with dynamic focal point shift
       setTimeout(function() {
         try {
