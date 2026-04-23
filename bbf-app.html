@@ -12,6 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -4063,6 +4065,450 @@ body.bbf-kairos .bbf-kairos-target {
   .kfh-readout, .kfh-cam-foot { grid-template-columns: 1fr 1fr; }
   .kfh-metric:nth-child(3) { grid-column: 1 / -1; }
 }
+</style>
+<style id="sovereign-ui-layer">
+/* ═══════════════════════════════════════════════════════════════
+   SOVEREIGN UI LAYER — Matte Black Clinical Fitness Standard
+   Palette · Typography · 5-Layer Liquid Glass · State Classes
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  /* Sovereign Color Palette */
+  --sv-bg:#0C0E0C;            /* Flat Black base background */
+  --sv-surface-1:#1B1B1B;     /* Eerie Black surface */
+  --sv-surface-2:#111312;     /* Deeper plate */
+  --sv-line:rgba(255,255,255,.06);
+  --sv-line-strong:rgba(255,255,255,.14);
+  --sv-ink:#F4F5F4;           /* Primary text */
+  --sv-ink-dim:rgba(244,245,244,.62);
+  --sv-ink-mut:rgba(244,245,244,.38);
+  --sv-cta:#5B8CFF;           /* Telehealth Blue — Active / CTAs */
+  --sv-cta-soft:rgba(91,140,255,.18);
+  --sv-cta-glow:rgba(91,140,255,.35);
+  --sv-warn:#CC3300;          /* Surgical Red — Warnings */
+  --sv-warn-soft:rgba(204,51,0,.15);
+  --sv-warn-glow:rgba(204,51,0,.38);
+  --sv-ok:#3FB27F;            /* Clinical green (desaturated) */
+  --sv-caution:#E5B045;       /* Desaturated amber */
+  /* 5-Layer Liquid Glass tokens */
+  --sv-glass-shadow:0 18px 48px -18px rgba(0,0,0,.85), 0 2px 10px rgba(0,0,0,.55);
+  --sv-glass-inset:inset 0 1px 0 rgba(255,255,255,.07), inset 0 0 0 1px rgba(255,255,255,.04);
+  --sv-glass-blur:blur(18px) saturate(1.1);
+  --sv-glass-highlight:radial-gradient(ellipse at 0% 0%, rgba(255,255,255,.08), transparent 55%);
+  --sv-glass-surface:linear-gradient(155deg, rgba(27,27,27,.78) 0%, rgba(18,18,18,.72) 55%, rgba(12,14,12,.74) 100%);
+  --sv-mono:'JetBrains Mono','Geist Mono','SF Mono',ui-monospace,Menlo,Consolas,monospace;
+  --sv-body:'Inter','Helvetica Neue',system-ui,-apple-system,sans-serif;
+}
+/* ─── Global typography & background ──────────────────────────── */
+html,body{
+  background:var(--sv-bg) !important;
+  font-family:var(--sv-body);
+  color:var(--sv-ink);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+body,#app,#auth,.tp,.scr{background:var(--sv-bg) !important}
+.tbar{background:rgba(12,14,12,.95) !important;border-bottom:1px solid var(--sv-line) !important}
+.bn{background:rgba(12,14,12,.96) !important;border-top:1px solid var(--sv-line) !important;backdrop-filter:var(--sv-glass-blur);-webkit-backdrop-filter:var(--sv-glass-blur)}
+/* ─── Monospace lockup for numerical data (tabular figures) ─── */
+.mono,
+.sv-num,
+[data-sv-mono]{
+  font-family:var(--sv-mono) !important;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1,"lnum" 1,"ss01" 1;
+  letter-spacing:.01em;
+}
+/* ─── State classes replace inline styles across engines ─── */
+.is-critical-lockout{
+  --state-color:var(--sv-warn);
+  --state-glow:var(--sv-warn-glow);
+  --state-soft:var(--sv-warn-soft);
+}
+.is-warning{
+  --state-color:var(--sv-warn);
+  --state-glow:var(--sv-warn-glow);
+  --state-soft:var(--sv-warn-soft);
+}
+.is-caution{
+  --state-color:var(--sv-caution);
+  --state-glow:rgba(229,176,69,.35);
+  --state-soft:rgba(229,176,69,.15);
+}
+.is-ok{
+  --state-color:var(--sv-ok);
+  --state-glow:rgba(63,178,127,.3);
+  --state-soft:rgba(63,178,127,.14);
+}
+.is-active{
+  --state-color:var(--sv-cta);
+  --state-glow:var(--sv-cta-glow);
+  --state-soft:var(--sv-cta-soft);
+}
+.is-hidden{display:none !important}
+/* ─── 5-Layer Liquid Glass — the single source of truth ─── */
+.sv-glass{
+  position:relative;
+  background:var(--sv-glass-surface);
+  border:1px solid var(--sv-line-strong);
+  border-radius:18px;
+  box-shadow:var(--sv-glass-shadow),var(--sv-glass-inset);
+  backdrop-filter:var(--sv-glass-blur);
+  -webkit-backdrop-filter:var(--sv-glass-blur);
+  overflow:hidden;
+  isolation:isolate;
+}
+.sv-glass::before{
+  /* Layer 4 — top-left light source simulation */
+  content:"";
+  position:absolute;
+  inset:0;
+  background:var(--sv-glass-highlight);
+  pointer-events:none;
+  z-index:0;
+  mix-blend-mode:screen;
+  opacity:.9;
+}
+.sv-glass::after{
+  /* Layer 2 — inner inset highlight, simulating a glass edge */
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  padding:1px;
+  background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,0) 35%,rgba(255,255,255,0) 65%,rgba(91,140,255,.12));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  pointer-events:none;
+  z-index:0;
+}
+.sv-glass > *{position:relative;z-index:1}
+.sv-glass--flat{
+  /* Variant without backdrop-filter — for nested glass surfaces */
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  background:linear-gradient(155deg, rgba(27,27,27,.72) 0%, rgba(17,19,18,.72) 100%);
+}
+.sv-glass--critical{border-color:var(--sv-warn);box-shadow:var(--sv-glass-shadow),var(--sv-glass-inset),0 0 28px var(--sv-warn-glow)}
+.sv-glass--active{border-color:var(--sv-cta);box-shadow:var(--sv-glass-shadow),var(--sv-glass-inset),0 0 24px var(--sv-cta-glow)}
+/* ─── Sovereign dashboard block shell (Fueling / CNS / Profile) ─ */
+.sv-block{
+  padding:1.15rem 1.1rem 1.2rem;
+  margin-bottom:1rem;
+  color:var(--sv-ink);
+}
+.sv-block-head{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;
+  margin-bottom:.85rem;
+}
+.sv-block-kicker{
+  font-family:var(--sv-body);
+  font-size:.6rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;
+  color:var(--sv-cta);
+}
+.sv-block-title{
+  font-family:var(--sv-body);
+  font-size:1.05rem;letter-spacing:.5px;font-weight:800;
+  color:var(--sv-ink);margin-top:.2rem;
+}
+.sv-block-tag{
+  font-family:var(--sv-mono);
+  font-size:.58rem;letter-spacing:2px;
+  padding:.22rem .55rem;border-radius:6px;
+  background:var(--state-soft,var(--sv-cta-soft));
+  border:1px solid var(--state-color,var(--sv-cta));
+  color:var(--state-color,var(--sv-cta));
+  text-transform:uppercase;
+}
+/* Metric tiles — numbers use mono */
+.sv-metric-grid{display:grid;gap:.55rem;grid-template-columns:1fr 1fr}
+.sv-metric-grid--3{grid-template-columns:1fr 1fr 1fr}
+.sv-metric{
+  background:var(--sv-surface-1);
+  border:1px solid var(--sv-line);
+  border-radius:10px;
+  padding:.6rem .75rem;
+}
+.sv-metric-label{
+  font-size:.58rem;letter-spacing:2.4px;text-transform:uppercase;font-weight:700;
+  color:var(--sv-ink-mut);
+}
+.sv-metric-value{
+  font-family:var(--sv-mono);
+  font-variant-numeric:tabular-nums;
+  font-size:1.3rem;font-weight:600;color:var(--sv-ink);
+  letter-spacing:.5px;line-height:1.1;margin-top:.1rem;
+}
+.sv-metric-value--cta{color:var(--sv-cta)}
+.sv-metric-value--warn{color:var(--sv-warn)}
+.sv-metric-unit{
+  font-family:var(--sv-mono);
+  font-size:.62rem;color:var(--sv-ink-mut);margin-left:.3rem;
+}
+/* Reason list rows (CNS / ARE) */
+.sv-reasons{
+  margin-top:.9rem;border:1px solid var(--state-color,var(--sv-line-strong));
+  border-radius:12px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(10,10,10,.86),rgba(18,18,18,.82));
+}
+.sv-reason-row{
+  display:flex;gap:.7rem;padding:.7rem .85rem;
+  border-bottom:1px solid var(--sv-line);
+}
+.sv-reason-row:last-child{border-bottom:0}
+.sv-reason-bar{
+  width:3px;border-radius:2px;flex-shrink:0;
+  background:var(--state-color,var(--sv-cta));
+}
+.sv-reason-head{
+  font-family:var(--sv-body);font-size:.66rem;letter-spacing:2.2px;text-transform:uppercase;
+  color:var(--state-color,var(--sv-cta));font-weight:800;
+}
+.sv-reason-body{
+  font-size:.76rem;color:var(--sv-ink-dim);margin-top:.2rem;line-height:1.5;
+}
+/* Slider rows (CNS) */
+.sv-slider-grid{margin-top:.95rem;display:grid;grid-template-columns:1fr;gap:.55rem}
+.sv-slider-row{
+  background:var(--sv-surface-1);
+  border:1px solid var(--sv-line);
+  border-radius:10px;
+  padding:.6rem .75rem;
+}
+.sv-slider-head{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;
+}
+.sv-slider-label{
+  font-size:.58rem;letter-spacing:2.2px;text-transform:uppercase;font-weight:700;
+  color:var(--sv-ink-dim);
+}
+.sv-slider-value{
+  font-family:var(--sv-mono);font-variant-numeric:tabular-nums;
+  font-size:1rem;font-weight:500;color:var(--sv-cta);letter-spacing:.5px;
+}
+.sv-slider-unit{font-size:.62rem;color:var(--sv-ink-mut);margin-left:.25rem}
+.sv-range{
+  -webkit-appearance:none;appearance:none;width:100%;
+  height:4px;background:var(--sv-surface-2);border-radius:4px;
+  outline:none;cursor:pointer;accent-color:var(--sv-cta);
+}
+.sv-range::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--sv-ink);box-shadow:0 0 0 2px var(--sv-bg),0 0 10px var(--sv-cta-glow);cursor:pointer;
+}
+.sv-range::-moz-range-thumb{
+  width:16px;height:16px;border:none;border-radius:50%;
+  background:var(--sv-ink);box-shadow:0 0 0 2px var(--sv-bg),0 0 10px var(--sv-cta-glow);cursor:pointer;
+}
+/* Gauge wrapper */
+.sv-gauge{position:relative;width:72px;height:72px;flex-shrink:0}
+.sv-gauge svg{width:72px;height:72px;transform:rotate(-90deg)}
+.sv-gauge-inner{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.sv-gauge-score{
+  font-family:var(--sv-mono);font-variant-numeric:tabular-nums;
+  font-size:1.35rem;font-weight:600;color:var(--sv-ink);line-height:1;
+}
+.sv-gauge-label{
+  font-size:.5rem;letter-spacing:1.8px;color:var(--sv-ink-mut);margin-top:2px;
+}
+/* Banners */
+.sv-banner{
+  margin:.75rem 0 .2rem;padding:.7rem .85rem;border-radius:10px;
+  display:flex;align-items:center;gap:.6rem;
+  background:linear-gradient(90deg,var(--sv-surface-2),var(--sv-surface-1),var(--sv-surface-2));
+  border:1px solid var(--state-color,var(--sv-cta));
+}
+.sv-banner--pulse{animation:svPulse 1.6s ease-in-out infinite}
+.sv-banner-icon{font-size:1.1rem;line-height:1}
+.sv-banner-title{
+  font-family:var(--sv-body);font-size:.72rem;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--state-color,var(--sv-cta));font-weight:800;
+}
+.sv-banner-sub{font-size:.74rem;color:var(--sv-ink-dim);margin-top:.15rem}
+@keyframes svPulse{
+  0%,100%{box-shadow:0 0 0 0 var(--state-glow),inset 0 0 0 1px var(--state-color)}
+  50%{box-shadow:0 0 22px 3px var(--state-soft),inset 0 0 0 1px var(--state-color)}
+}
+/* ─── ARE Engine — sequence warning card ─── */
+.are-warn{
+  position:relative;
+  background:var(--sv-glass-surface);
+  border:1px solid var(--sv-caution);
+  border-radius:14px;
+  padding:.9rem 1rem;
+  margin:.75rem 0;
+  box-shadow:var(--sv-glass-shadow),var(--sv-glass-inset);
+  backdrop-filter:var(--sv-glass-blur);
+  -webkit-backdrop-filter:var(--sv-glass-blur);
+  color:var(--sv-ink);
+  overflow:hidden;
+}
+.are-warn .are-warn-bar{
+  position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--sv-caution);
+}
+.are-warn.are-warn-red{border-color:var(--sv-warn)}
+.are-warn.are-warn-red .are-warn-bar{background:var(--sv-warn)}
+.are-warn-body{padding-left:.5rem}
+.are-warn-tag{
+  font-family:var(--sv-body);font-size:.6rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--sv-caution);font-weight:800;
+}
+.are-warn.are-warn-red .are-warn-tag{color:var(--sv-warn)}
+.are-warn-title{
+  font-size:.98rem;font-weight:800;color:var(--sv-ink);margin-top:.15rem;letter-spacing:.3px;
+}
+.are-warn-msg{font-size:.78rem;color:var(--sv-ink-dim);margin-top:.3rem;line-height:1.5}
+.are-warn-list{margin-top:.5rem;padding-left:1.1rem;color:var(--sv-ink-dim);font-size:.75rem;line-height:1.55}
+.are-warn-li::marker{color:var(--sv-caution)}
+.are-badge{
+  display:inline-flex;align-items:center;gap:.35rem;
+  font-family:var(--sv-body);font-size:.6rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;
+  padding:.25rem .55rem;border-radius:6px;
+  background:var(--sv-surface-1);border:1px solid var(--sv-line-strong);
+  color:var(--sv-ink-dim);
+}
+.are-badge-mav{border-color:var(--sv-ok);color:var(--sv-ok)}
+.are-badge-mrv{border-color:var(--sv-warn);color:var(--sv-warn)}
+.are-badge-ico{font-family:var(--sv-mono);font-size:.78rem;line-height:1}
+.are-badge-txt{font-family:var(--sv-mono);font-variant-numeric:tabular-nums}
+/* ─── CNS Engine — lockout card ─── */
+.cns-lockout{
+  margin:.9rem 0 1rem;border-radius:16px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(12,14,12,.96) 0%,rgba(28,10,6,.92) 100%);
+  border:1px solid var(--sv-warn);
+  backdrop-filter:var(--sv-glass-blur);
+  -webkit-backdrop-filter:var(--sv-glass-blur);
+  box-shadow:var(--sv-glass-shadow),var(--sv-glass-inset),0 0 28px var(--sv-warn-glow);
+  animation:svPulse 1.6s ease-in-out infinite;
+  color:var(--sv-ink);
+}
+.cns-lockout-head{
+  padding:1rem 1.1rem .9rem;
+  border-bottom:1px solid var(--sv-warn-soft);
+  display:flex;align-items:center;gap:.75rem;
+}
+.cns-lockout-icon{font-size:1.45rem;line-height:1;color:var(--sv-warn)}
+.cns-lockout-kicker{
+  font-family:var(--sv-body);font-size:.6rem;letter-spacing:3.2px;text-transform:uppercase;
+  color:var(--sv-warn);font-weight:800;
+}
+.cns-lockout-title{
+  font-family:var(--sv-body);font-size:1.1rem;letter-spacing:.5px;font-weight:800;
+  color:var(--sv-ink);margin-top:.15rem;
+}
+.cns-lockout-meta{
+  font-family:var(--sv-mono);font-variant-numeric:tabular-nums;
+  font-size:.68rem;letter-spacing:1.5px;color:var(--sv-warn);font-weight:600;margin-top:.25rem;
+}
+.cns-lockout-body{padding:.85rem 1.1rem}
+.cns-lockout-foot{
+  font-size:.66rem;color:var(--sv-ink-mut);margin-top:.6rem;letter-spacing:.3px;line-height:1.55;
+}
+/* ─── Fueling Engine — Sovereign carb-load banner ─── */
+.fe-carbload-banner{
+  margin:.75rem 0 .2rem;padding:.7rem .85rem;border-radius:10px;
+  display:flex;align-items:center;gap:.6rem;
+  background:linear-gradient(90deg,var(--sv-surface-2),var(--sv-surface-1),var(--sv-surface-2));
+  border:1px solid var(--sv-cta);
+  animation:svPulse 1.6s ease-in-out infinite;
+  --state-color:var(--sv-cta);
+  --state-glow:var(--sv-cta-glow);
+  --state-soft:var(--sv-cta-soft);
+}
+.fe-carbload-icon{font-size:1.1rem;line-height:1;color:var(--sv-cta)}
+.fe-carbload-title{
+  font-family:var(--sv-body);font-size:.72rem;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--sv-cta);font-weight:800;
+}
+.fe-carbload-sub{font-size:.74rem;color:var(--sv-ink-dim);margin-top:.15rem}
+.fe-carbload-sub .mono{color:var(--sv-ink)}
+/* ─── Fueling engine surfaces ─── */
+.fe-block{padding:1.15rem 1.1rem 1.2rem;margin-bottom:1rem}
+.fe-empty-msg{font-size:.82rem;color:var(--sv-ink-dim);line-height:1.55;margin-top:.4rem}
+.fe-empty-msg strong{color:var(--sv-ink);font-weight:700}
+.fe-macros{margin-top:.55rem}
+.fe-macros .sv-metric{text-align:center}
+.fe-macro-label--carbs{color:var(--sv-ok) !important}
+.fe-macro-label--protein{color:var(--sv-warn) !important}
+.fe-macro-label--fats{color:var(--sv-cta) !important}
+.fe-foot{font-size:.68rem;color:var(--sv-ink-mut);margin-top:.55rem;letter-spacing:.3px}
+.fe-creatine{margin-top:.55rem;padding:.55rem .75rem;border-radius:10px;background:var(--sv-surface-1);border:1px solid var(--sv-line)}
+.fe-creatine-kicker{font-size:.6rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--sv-cta);font-weight:800}
+.fe-creatine-body{font-size:.76rem;color:var(--sv-ink-dim);margin-top:.2rem}
+.fe-creatine-body strong{color:var(--sv-ink);font-weight:600}
+.fe-event-row{margin-bottom:.55rem;display:flex;align-items:center;gap:.5rem}
+.fe-event-icon{font-size:1.1rem;line-height:1}
+.fe-event-status{font-family:var(--sv-mono);font-variant-numeric:tabular-nums;color:var(--state-color,var(--sv-ink-dim));font-size:.74rem;letter-spacing:.5px}
+.fe-event-input{
+  width:100%;background:var(--sv-surface-1);border:1px solid var(--sv-line);
+  border-radius:8px;padding:.6rem .75rem;color:var(--sv-ink);
+  font-family:var(--sv-mono);font-variant-numeric:tabular-nums;
+  font-size:.9rem;letter-spacing:.3px;outline:none;
+}
+.fe-event-input:focus{border-color:var(--sv-cta);box-shadow:0 0 0 2px var(--sv-cta-soft)}
+/* ─── CNS engine surfaces ─── */
+.cns-card{padding:1.15rem 1.1rem 1.2rem;margin-bottom:1rem}
+.cns-tier-line{
+  font-family:var(--sv-body);font-size:.66rem;letter-spacing:2px;
+  color:var(--state-color,var(--sv-ink));font-weight:800;margin-top:.25rem;
+}
+.cns-tier-line .mono{color:var(--state-color,var(--sv-ink))}
+.cns-foot{
+  font-family:var(--sv-body);font-size:.58rem;letter-spacing:2px;
+  color:var(--sv-ink-mut);margin-top:.7rem;text-align:center;
+}
+.sv-gauge-progress{transition:stroke-dashoffset .6s cubic-bezier(.22,1,.36,1),stroke .4s ease}
+/* ─── Auditor cue surface ─── */
+.aud-cue{
+  grid-column:span 2;
+  background:var(--sv-surface-1);
+  border-left:3px solid var(--state-color,var(--sv-cta));
+  border-radius:0 10px 10px 0;
+  padding:1rem;
+  color:var(--sv-ink);
+}
+.aud-cue-kicker{
+  font-size:.65rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;
+  color:var(--state-color,var(--sv-cta));margin-bottom:.5rem;
+}
+.aud-cue-body{font-size:.92rem;color:var(--sv-ink-dim);line-height:1.7}
+.aud-holo-viewport{
+  grid-column:span 2;position:relative;width:100%;height:160px;
+  background:var(--sv-bg);border:1px solid var(--sv-line);
+  border-radius:10px;margin-top:.5rem;overflow:hidden;
+}
+.aud-cue-ack{
+  grid-column:span 2;margin-top:.5rem;padding:.85rem;
+  background:var(--sv-cta);color:var(--sv-bg);
+  font-family:var(--sv-body);font-weight:800;font-size:.9rem;letter-spacing:2px;
+  border:none;border-radius:8px;cursor:pointer;
+  transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;
+}
+.aud-cue-ack:hover{filter:brightness(1.1);box-shadow:0 0 18px var(--sv-cta-glow)}
+.aud-cue-ack:active{transform:translateY(1px)}
+/* ─── Numeric elements that pre-existed: force tabular mono ─── */
+.sov-progress-pct,
+.sov-progress-meta,
+.sv-metric-value,
+.sv-slider-value,
+.sv-gauge-score,
+.cns-lockout-meta,
+.fe-event-status{
+  font-family:var(--sv-mono) !important;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1,"lnum" 1;
+}
+/* ─── Global polish: strip ugly default borders where we can ─── */
+input:focus,select:focus,textarea:focus,button:focus-visible{
+  outline-color:var(--sv-cta);
+}
+/* Sovereign default outline & scroll colors */
+html{scrollbar-color:var(--sv-surface-1) var(--sv-bg)}
+*::selection{background:var(--sv-cta-soft);color:var(--sv-ink)}
 </style>
 </head>
 <body>
@@ -9074,10 +9520,15 @@ function updateSovPrehabProgress() {
   var pctEl = document.getElementById('sov-prehab-pct');
   var metaEl = document.getElementById('sov-prehab-meta');
   var btn = document.getElementById('sov-prehab-commit');
-  if (barEl) barEl.style.width = pct + '%';
-  if (pctEl) pctEl.textContent = pct + '%';
-  if (metaEl) metaEl.textContent = checked.length + ' of ' + total + ' complete';
-  if (btn) btn.disabled = checked.length === 0;
+  // CLS guardrail: coalesce layout-triggering writes into one frame.
+  var paint = function () {
+    if (barEl) barEl.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (metaEl) metaEl.textContent = checked.length + ' of ' + total + ' complete';
+    if (btn) btn.disabled = checked.length === 0;
+  };
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(paint);
+  else paint();
 }
 
 // Routes a completed prehab routine through the same SAVELOG + BBF_SYNC.syncLog

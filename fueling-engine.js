@@ -248,42 +248,63 @@ const FUELING_ENGINE = (function () {
     };
   }
 
-  // ─── DASHBOARD DATA BLOCK (Matte Black) ──────────────────
+  // ─── DOCUMENT FRAGMENT + rAF PAINT ───────────────────────
+  // CLS-safe render path — parse off-DOM, commit in a single frame.
+  function paintFragment(host, html) {
+    if (!host) return;
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html || '';
+    const frag = tpl.content;
+    const commit = function () {
+      while (host.firstChild) host.removeChild(host.firstChild);
+      host.appendChild(frag);
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(commit);
+    else commit();
+  }
+
+  // ─── DASHBOARD DATA BLOCK (Sovereign Matte Black) ────────
+  // All colors / borders / shadows live in #sovereign-ui-layer.
+  // This function emits semantic markup only — no inline styles.
   function renderDashboardBlock(uid) {
     const host = document.getElementById('fueling-engine-block');
     if (!host) return null;
+    host.classList.remove('is-hidden');
     const snap = snapshot(uid);
     const m = snap.macros;
     const a = snap.audit;
 
     if (!m.ok) {
-      host.style.display = 'block';
-      host.innerHTML =
-        '<div style="background:#0a0a0a;border:1px solid #1e1e1e;border-radius:14px;padding:1.1rem;margin-bottom:1rem;position:relative;overflow:hidden">' +
-          '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f5c800,#6a0dad)"></div>' +
-          '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.62rem;letter-spacing:3px;color:#f5c800;font-weight:700">SOVEREIGN FUELING ENGINE</div>' +
-          '<div style="font-size:.82rem;color:#ccc;margin-top:.4rem;line-height:1.5">Log <strong style="color:#fff">Weight</strong> and <strong style="color:#fff">Body Fat %</strong> on the Body tab to unlock your TDEE, RMR and macro grams.</div>' +
+      const emptyHTML =
+        '<div class="sv-glass sv-block fe-block" data-fe-state="empty">' +
+          '<div class="sv-block-head">' +
+            '<div>' +
+              '<div class="sv-block-kicker">SOVEREIGN FUELING ENGINE</div>' +
+              '<div class="sv-block-title">BIOENERGETIC TARGET</div>' +
+            '</div>' +
+            '<div class="sv-block-tag">AWAITING INPUT</div>' +
+          '</div>' +
+          '<div class="fe-empty-msg">Log <strong>Weight</strong> and <strong>Body Fat&nbsp;%</strong> on the Body tab to unlock your TDEE, RMR and macro grams.</div>' +
         '</div>';
+      paintFragment(host, emptyHTML);
       return snap;
     }
 
     const profileLabel = m.profile === 'atp_pc' ? 'ATP-PC'
                        : m.profile === 'glycolytic' ? 'GLYCOLYTIC'
                        : 'BASELINE';
-    const profileColor = m.profile === 'atp_pc' ? '#ef4444'
-                       : m.profile === 'glycolytic' ? '#22c55e'
-                       : '#888';
+    const profileStateClass = m.profile === 'atp_pc' ? 'is-critical-lockout'
+                            : m.profile === 'glycolytic' ? 'is-ok'
+                            : 'is-active';
 
     let banner = '';
     if (a.carbLoadActive) {
       banner =
-        '<div class="fe-carbload-banner" style="margin:.75rem 0 .2rem;padding:.7rem .85rem;border-radius:10px;' +
-          'background:linear-gradient(90deg,#0a0a0a,#111,#0a0a0a);border:1px solid #f5c800;' +
-          'animation:feCarbPulse 1.4s ease-in-out infinite;display:flex;align-items:center;gap:.6rem">' +
-          '<span style="font-size:1.1rem">⚡</span>' +
+        '<div class="fe-carbload-banner" role="status" aria-live="polite">' +
+          '<span class="fe-carbload-icon">⚡</span>' +
           '<div>' +
-            '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.72rem;letter-spacing:2.5px;color:#f5c800;font-weight:800">SOVEREIGN CARB LOADING ACTIVE</div>' +
-            '<div style="font-size:.74rem;color:#ddd;margin-top:.15rem">10–12 g/kg Glycogen Saturation Required</div>' +
+            '<div class="fe-carbload-title">SOVEREIGN CARB LOADING ACTIVE</div>' +
+            '<div class="fe-carbload-sub"><span class="mono">10–12 g/kg</span> Glycogen Saturation Required</div>' +
           '</div>' +
         '</div>';
     }
@@ -291,51 +312,55 @@ const FUELING_ENGINE = (function () {
     let creatineLine = '';
     if (m.creatine) {
       creatineLine =
-        '<div style="margin-top:.55rem;padding:.55rem .7rem;background:#111;border:1px solid #1e1e1e;border-radius:8px">' +
-          '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.6rem;letter-spacing:2.5px;color:#f5c800">ATP-PC CREATINE PROTOCOL</div>' +
-          '<div style="font-size:.74rem;color:#ddd;margin-top:.2rem">Load <strong style="color:#fff">' + m.creatine.loadingGramsPerDay + ' g/day</strong> × ' + m.creatine.loadingDays + ' d · Maintain <strong style="color:#fff">' + m.creatine.maintenanceGramsPerDay + ' g/day</strong></div>' +
+        '<div class="fe-creatine sv-glass--flat">' +
+          '<div class="fe-creatine-kicker">ATP-PC CREATINE PROTOCOL</div>' +
+          '<div class="fe-creatine-body">' +
+            'Load <strong class="mono">' + m.creatine.loadingGramsPerDay + ' g/day</strong> &middot; ' +
+            '<span class="mono">' + escapeHtml(m.creatine.loadingDays) + ' d</span> &middot; ' +
+            'Maintain <strong class="mono">' + m.creatine.maintenanceGramsPerDay + ' g/day</strong>' +
+          '</div>' +
         '</div>';
     }
 
-    host.style.display = 'block';
-    host.innerHTML =
-      '<div style="background:#0a0a0a;border:1px solid #1e1e1e;border-radius:14px;padding:1.1rem;margin-bottom:1rem;position:relative;overflow:hidden">' +
-        '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f5c800,#6a0dad)"></div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.55rem">' +
+    const html =
+      '<div class="sv-glass sv-block fe-block" data-fe-profile="' + escapeAttr(m.profile || 'baseline') + '">' +
+        '<div class="sv-block-head">' +
           '<div>' +
-            '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.62rem;letter-spacing:3px;color:#f5c800;font-weight:700">SOVEREIGN FUELING ENGINE</div>' +
-            '<div style="font-family:var(--hb,\'Anton\',\'Bebas Neue\');font-size:1.15rem;letter-spacing:1.5px;color:#fff;margin-top:.1rem">BIOENERGETIC TARGET</div>' +
+            '<div class="sv-block-kicker">SOVEREIGN FUELING ENGINE</div>' +
+            '<div class="sv-block-title">BIOENERGETIC TARGET</div>' +
           '</div>' +
-          '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.58rem;letter-spacing:2px;color:' + profileColor + ';border:1px solid ' + profileColor + '44;padding:.2rem .55rem;border-radius:6px">' + profileLabel + '</div>' +
+          '<div class="sv-block-tag ' + profileStateClass + '">' + profileLabel + '</div>' +
         '</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:.55rem">' +
-          '<div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:.55rem .7rem">' +
-            '<div style="font-size:.58rem;letter-spacing:2.5px;color:#888;font-weight:700">TDEE</div>' +
-            '<div style="font-family:var(--hb,\'Anton\');font-size:1.3rem;color:#f5c800;letter-spacing:1px">' + m.tdee + '<span style="font-size:.62rem;color:#888;margin-left:.3rem">kcal</span></div>' +
+        '<div class="sv-metric-grid">' +
+          '<div class="sv-metric">' +
+            '<div class="sv-metric-label">TDEE</div>' +
+            '<div class="sv-metric-value sv-metric-value--cta"><span class="mono">' + m.tdee + '</span><span class="sv-metric-unit">kcal</span></div>' +
           '</div>' +
-          '<div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:.55rem .7rem">' +
-            '<div style="font-size:.58rem;letter-spacing:2.5px;color:#888;font-weight:700">RMR</div>' +
-            '<div style="font-family:var(--hb,\'Anton\');font-size:1.3rem;color:#fff;letter-spacing:1px">' + m.rmr + '<span style="font-size:.62rem;color:#888;margin-left:.3rem">kcal</span></div>' +
-          '</div>' +
-        '</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem">' +
-          '<div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:.55rem .6rem;text-align:center">' +
-            '<div style="font-size:.55rem;letter-spacing:2px;color:#22c55e;font-weight:700">CARBS</div>' +
-            '<div style="font-family:var(--hb,\'Anton\');font-size:1.15rem;color:#fff">' + m.carbs + 'g</div>' +
-          '</div>' +
-          '<div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:.55rem .6rem;text-align:center">' +
-            '<div style="font-size:.55rem;letter-spacing:2px;color:#ef4444;font-weight:700">PROTEIN</div>' +
-            '<div style="font-family:var(--hb,\'Anton\');font-size:1.15rem;color:#fff">' + m.protein + 'g</div>' +
-          '</div>' +
-          '<div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:.55rem .6rem;text-align:center">' +
-            '<div style="font-size:.55rem;letter-spacing:2px;color:#3b82f6;font-weight:700">FATS</div>' +
-            '<div style="font-family:var(--hb,\'Anton\');font-size:1.15rem;color:#fff">' + m.fats + 'g</div>' +
+          '<div class="sv-metric">' +
+            '<div class="sv-metric-label">RMR</div>' +
+            '<div class="sv-metric-value"><span class="mono">' + m.rmr + '</span><span class="sv-metric-unit">kcal</span></div>' +
           '</div>' +
         '</div>' +
-        '<div style="font-size:.65rem;color:#888;margin-top:.5rem">' + escapeHtml(m.carbBand) + ' · AF ' + m.af + '</div>' +
+        '<div class="sv-metric-grid sv-metric-grid--3 fe-macros">' +
+          '<div class="sv-metric">' +
+            '<div class="sv-metric-label fe-macro-label--carbs">CARBS</div>' +
+            '<div class="sv-metric-value"><span class="mono">' + m.carbs + '</span><span class="sv-metric-unit">g</span></div>' +
+          '</div>' +
+          '<div class="sv-metric">' +
+            '<div class="sv-metric-label fe-macro-label--protein">PROTEIN</div>' +
+            '<div class="sv-metric-value"><span class="mono">' + m.protein + '</span><span class="sv-metric-unit">g</span></div>' +
+          '</div>' +
+          '<div class="sv-metric">' +
+            '<div class="sv-metric-label fe-macro-label--fats">FATS</div>' +
+            '<div class="sv-metric-value"><span class="mono">' + m.fats + '</span><span class="sv-metric-unit">g</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="fe-foot"><span class="mono">' + escapeHtml(m.carbBand) + '</span> &middot; AF <span class="mono">' + m.af + '</span></div>' +
         creatineLine +
         banner +
       '</div>';
+
+    paintFragment(host, html);
     return snap;
   }
 
@@ -346,24 +371,26 @@ const FUELING_ENGINE = (function () {
     const current = readEventDate();
     const audit = auditEventPrep();
     let status = '';
+    let statusStateClass = '';
     if (current) {
       if (audit.hoursUntilEvent == null) status = '';
-      else if (audit.hoursUntilEvent < 0) status = 'Event passed';
-      else if (audit.carbLoadActive)      status = 'CARB LOAD ACTIVE · ' + audit.hoursUntilEvent + ' hrs';
-      else if (audit.hoursUntilEvent <= 48) status = audit.hoursUntilEvent + ' hrs · profile not glycolytic';
-      else                                status = 'T-' + Math.round(audit.hoursUntilEvent) + ' hrs';
+      else if (audit.hoursUntilEvent < 0) { status = 'Event passed'; statusStateClass = 'is-caution'; }
+      else if (audit.carbLoadActive)      { status = 'CARB LOAD ACTIVE · ' + audit.hoursUntilEvent + ' hrs'; statusStateClass = 'is-active'; }
+      else if (audit.hoursUntilEvent <= 48) { status = audit.hoursUntilEvent + ' hrs · profile not glycolytic'; statusStateClass = 'is-caution'; }
+      else                                { status = 'T-' + Math.round(audit.hoursUntilEvent) + ' hrs'; statusStateClass = 'is-ok'; }
     } else {
       status = 'No event scheduled';
     }
-    host.innerHTML =
-      '<div class="psrl" style="margin-bottom:.55rem"><span style="font-size:1.1rem">📆</span>' +
+    const html =
+      '<div class="psrl fe-event-row"><span class="fe-event-icon">📆</span>' +
         '<div><div class="psrn">Upcoming Event Date</div>' +
-        '<div class="psrs" id="fe-event-status">' + escapeHtml(status) + '</div></div></div>' +
-      '<input type="datetime-local" id="fe-event-input" value="' + escapeAttr(current) + '" ' +
-        'style="width:100%;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:.55rem .7rem;' +
-        'color:#fff;font-family:inherit;font-size:.9rem;letter-spacing:.5px">';
-    const input = document.getElementById('fe-event-input');
-    if (input) {
+        '<div class="psrs fe-event-status ' + statusStateClass + '" id="fe-event-status"><span class="mono">' + escapeHtml(status) + '</span></div></div></div>' +
+      '<input type="datetime-local" id="fe-event-input" class="fe-event-input mono" value="' + escapeAttr(current) + '">';
+    paintFragment(host, html);
+    // Defer listener binding until after rAF paint commits.
+    const bind = function () {
+      const input = document.getElementById('fe-event-input');
+      if (!input) return;
       input.addEventListener('change', function () {
         writeEventDate(input.value || '');
         renderSettingsControl();
@@ -371,21 +398,14 @@ const FUELING_ENGINE = (function () {
                   : (typeof CU !== 'undefined' && CU) ? CU : null;
         if (uid) renderDashboardBlock(uid);
       });
-    }
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(bind);
+    else bind();
   }
 
-  // ─── STYLE INJECTION (pulse keyframes) ───────────────────
-  function ensureStyles() {
-    if (document.getElementById('fe-style')) return;
-    const s = document.createElement('style');
-    s.id = 'fe-style';
-    s.textContent =
-      '@keyframes feCarbPulse{' +
-        '0%,100%{box-shadow:0 0 0 0 rgba(245,200,0,.55),inset 0 0 0 1px rgba(245,200,0,.6);border-color:#f5c800}' +
-        '50%{box-shadow:0 0 18px 3px rgba(245,200,0,.15),inset 0 0 0 1px rgba(245,200,0,1);border-color:#ffe033}' +
-      '}';
-    document.head.appendChild(s);
-  }
+  // Legacy ensureStyles — kept as a no-op so external callers don't break.
+  // All Sovereign animations now live in #sovereign-ui-layer.
+  function ensureStyles() { /* Sovereign UI layer owns this now. */ }
 
   // ─── HTML SAFETY ─────────────────────────────────────────
   function escapeHtml(s) {
@@ -397,7 +417,6 @@ const FUELING_ENGINE = (function () {
 
   // ─── BOOT ────────────────────────────────────────────────
   function init() {
-    ensureStyles();
     const uid = (typeof VC !== 'undefined' && VC) ? VC
               : (typeof CU !== 'undefined' && CU) ? CU : null;
     if (uid) renderDashboardBlock(uid);

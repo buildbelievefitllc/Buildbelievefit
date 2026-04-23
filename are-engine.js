@@ -251,16 +251,36 @@ const ARE_ENGINE = (function() {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // SOVEREIGN UI RENDERERS
+  // SOVEREIGN UI RENDERERS — DocumentFragment + rAF paint path
+  // CSS lives in bbf-app.html #sovereign-ui-layer. No inline styles.
   // ═══════════════════════════════════════════════════════════
-  // Matte Black / Yellow warning card for sequencing.
+
+  // Parse HTML string off-DOM into a DocumentFragment, then
+  // commit to the host inside a single requestAnimationFrame.
+  function paintFragment(host, html) {
+    if (!host) return;
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html || '';
+    const frag = tpl.content;
+    const commit = function() {
+      while (host.firstChild) host.removeChild(host.firstChild);
+      host.appendChild(frag);
+    };
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(commit);
+    } else {
+      commit();
+    }
+  }
+
+  // Matte Black / Surgical Red warning card for sequencing.
   function renderSequenceWarning(audit) {
     if (!audit || audit.ok) return '';
     const items = audit.violations.map(function(v) {
       return '<li class="are-warn-li">' + escapeHtml(v.reason) + '</li>';
     }).join('');
     return ''
-      + '<div class="are-warn" role="alert" data-are-severity="caution">'
+      + '<div class="are-warn is-caution" role="alert" data-are-severity="caution">'
       +   '<div class="are-warn-bar"></div>'
       +   '<div class="are-warn-body">'
       +     '<div class="are-warn-tag">ARE WARNING</div>'
@@ -277,7 +297,7 @@ const ARE_ENGINE = (function() {
     if (group.tier === 'mav') {
       return '<div class="are-badge are-badge-mav" title="' + escapeAttr(group.message) + '">'
            +   '<span class="are-badge-ico">&#x2713;</span>'
-           +   '<span class="are-badge-txt">MAV · ' + VOLUME.YIELD_HIGH + '% YIELD</span>'
+           +   '<span class="are-badge-txt"><span class="mono">MAV · ' + VOLUME.YIELD_HIGH + '%</span> YIELD</span>'
            + '</div>';
     }
     if (group.tier === 'mrv') {
@@ -292,7 +312,7 @@ const ARE_ENGINE = (function() {
   function renderInterferenceWarning(audit) {
     if (!audit || !audit.interference) return '';
     return ''
-      + '<div class="are-warn are-warn-red" role="alert" data-are-severity="interference">'
+      + '<div class="are-warn are-warn-red is-critical-lockout" role="alert" data-are-severity="interference">'
       +   '<div class="are-warn-bar"></div>'
       +   '<div class="are-warn-body">'
       +     '<div class="are-warn-tag">ARE INTERFERENCE</div>'
@@ -303,6 +323,7 @@ const ARE_ENGINE = (function() {
   }
 
   // Injection helper — mount warning HTML into a container.
+  // CLS-safe: builds a DocumentFragment first, paints inside rAF.
   function injectSequenceWarning(containerId, exercises) {
     const host = (typeof containerId === 'string')
       ? document.getElementById(containerId)
@@ -315,7 +336,7 @@ const ARE_ENGINE = (function() {
       wrap.className = 'are-warn-slot';
       host.parentNode.insertBefore(wrap, host);
     }
-    wrap.innerHTML = audit.ok ? '' : renderSequenceWarning(audit);
+    paintFragment(wrap, audit.ok ? '' : renderSequenceWarning(audit));
     return audit;
   }
 

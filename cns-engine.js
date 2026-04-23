@@ -178,57 +178,84 @@ const CNS_ENGINE = (function () {
     };
   }
 
-  // ─── DASHBOARD UI ────────────────────────────────────────
+  // ─── DOCUMENT FRAGMENT + rAF PAINT ───────────────────────
+  // CLS-safe render — parse HTML off-DOM, commit in one frame.
+  function paintFragment(host, html) {
+    if (!host) return;
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html || '';
+    const frag = tpl.content;
+    const commit = function () {
+      while (host.firstChild) host.removeChild(host.firstChild);
+      host.appendChild(frag);
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(commit);
+    else commit();
+  }
+
+  function stateClassForTier(tier) {
+    if (tier === 'RED')    return 'is-critical-lockout';
+    if (tier === 'YELLOW') return 'is-caution';
+    return 'is-ok';
+  }
+
+  // ─── DASHBOARD UI (Sovereign Matte Black) ────────────────
   function renderDashboardBlock() {
     const host = document.getElementById('cns-engine-block');
     if (!host) return null;
-    ensureStyles();
+    host.classList.remove('is-hidden');
     const audit = auditBiometrics();
     const st = audit.inputs;
     const tier = audit.state;
-    const tierColor = tier === 'RED'    ? '#ef4444'
-                    : tier === 'YELLOW' ? '#f5c800'
-                    :                     '#22c55e';
-    const ringColor = tier === 'RED'    ? 'rgba(239,68,68,.55)'
-                    : tier === 'YELLOW' ? 'rgba(245,200,0,.55)'
-                    :                     'rgba(34,197,94,.45)';
-
+    const stateClass = stateClassForTier(tier);
     const srs = audit.srs.score;
+
+    const tierLine = tier === 'RED'    ? 'LOCKOUT ACTIVE'
+                   : tier === 'YELLOW' ? 'VOLUME TAPER −20%'
+                   :                     'CLEARED FOR MAX EFFORT';
 
     const reasonsHTML = buildReasonsHTML(audit);
 
-    host.style.display = 'block';
-    host.innerHTML =
-      '<div class="cns-card" data-tier="' + tier + '" style="position:relative;background:linear-gradient(160deg,rgba(18,18,20,.92),rgba(8,8,8,.82));border:1px solid ' + ringColor.replace('.55','.4').replace('.45','.35') + ';border-radius:18px;padding:1.15rem 1.1rem 1.2rem;margin-bottom:1rem;overflow:hidden;backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04),0 0 28px ' + ringColor.replace('.55','.08').replace('.45','.06') + '">' +
-        '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#00e5ff,' + tierColor + ',#6a0dad)"></div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">' +
+    const html =
+      '<div class="sv-glass sv-block cns-card ' + stateClass + '" data-tier="' + tier + '">' +
+        '<div class="sv-block-head">' +
           '<div>' +
-            '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.6rem;letter-spacing:3px;color:#00e5ff;font-weight:800">SOVEREIGN NEUROLOGICAL ENGINE</div>' +
-            '<div style="font-family:var(--hb,\'Anton\',\'Bebas Neue\');font-size:1.2rem;letter-spacing:1.6px;color:#fff;margin-top:.15rem">SOVEREIGN READINESS</div>' +
-            '<div style="font-size:.66rem;letter-spacing:2px;color:' + tierColor + ';font-weight:800;margin-top:.25rem">' + tier + ' · ' + (tier === 'RED' ? 'LOCKOUT ACTIVE' : tier === 'YELLOW' ? 'VOLUME TAPER −20%' : 'CLEARED FOR MAX EFFORT') + '</div>' +
+            '<div class="sv-block-kicker">SOVEREIGN NEUROLOGICAL ENGINE</div>' +
+            '<div class="sv-block-title">SOVEREIGN READINESS</div>' +
+            '<div class="cns-tier-line"><span class="mono">' + tier + '</span> &middot; ' + tierLine + '</div>' +
           '</div>' +
-          buildGauge(srs, tierColor) +
+          buildGauge(srs) +
         '</div>' +
         reasonsHTML +
         buildSliderGrid(st) +
-        '<div style="font-size:.58rem;letter-spacing:2px;color:#666;margin-top:.7rem;text-align:center">HRV·SLEEP·ACWR · 79 CLINICAL SOURCES · MOCK WEARABLE FEED</div>' +
+        '<div class="cns-foot">HRV &middot; SLEEP &middot; ACWR &middot; <span class="mono">79</span> CLINICAL SOURCES &middot; MOCK WEARABLE FEED</div>' +
       '</div>';
 
-    attachSliderHandlers();
+    paintFragment(host, html);
+    // Listeners bind after the rAF commit lands.
+    const bind = function () { attachSliderHandlers(); };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(bind);
+    else bind();
     return audit;
   }
 
-  function buildGauge(score, color) {
+  // SVG gauge — stroke color picks up the current state color via
+  // `var(--state-color)`, which is set by .is-ok / .is-caution /
+  // .is-critical-lockout on the parent.
+  function buildGauge(score) {
+    const circumference = (2 * Math.PI * 30).toFixed(2);
+    const dashoffset   = ((1 - score / 100) * 2 * Math.PI * 30).toFixed(2);
     return (
-      '<div style="position:relative;width:72px;height:72px;flex-shrink:0">' +
-        '<svg viewBox="0 0 72 72" style="width:72px;height:72px;transform:rotate(-90deg)">' +
-          '<circle cx="36" cy="36" r="30" fill="none" stroke="#1a1a1a" stroke-width="6"/>' +
-          '<circle cx="36" cy="36" r="30" fill="none" stroke="' + color + '" stroke-width="6" stroke-linecap="round" ' +
-            'stroke-dasharray="' + (2 * Math.PI * 30).toFixed(2) + '" stroke-dashoffset="' + ((1 - score / 100) * 2 * Math.PI * 30).toFixed(2) + '" style="transition:stroke-dashoffset .6s cubic-bezier(.22,1,.36,1),stroke .4s ease"/>' +
+      '<div class="sv-gauge">' +
+        '<svg viewBox="0 0 72 72" aria-hidden="true">' +
+          '<circle cx="36" cy="36" r="30" fill="none" stroke="var(--sv-surface-1)" stroke-width="6"/>' +
+          '<circle class="sv-gauge-progress" cx="36" cy="36" r="30" fill="none" ' +
+            'stroke="var(--state-color, var(--sv-cta))" stroke-width="6" stroke-linecap="round" ' +
+            'stroke-dasharray="' + circumference + '" stroke-dashoffset="' + dashoffset + '"/>' +
         '</svg>' +
-        '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">' +
-          '<div style="font-family:var(--hb,\'Anton\');font-size:1.35rem;color:#fff;line-height:1">' + score + '</div>' +
-          '<div style="font-size:.5rem;letter-spacing:1.8px;color:#888;margin-top:1px">SRS</div>' +
+        '<div class="sv-gauge-inner">' +
+          '<div class="sv-gauge-score mono">' + score + '</div>' +
+          '<div class="sv-gauge-label">SRS</div>' +
         '</div>' +
       '</div>'
     );
@@ -237,18 +264,16 @@ const CNS_ENGINE = (function () {
   function buildReasonsHTML(audit) {
     const items = audit.lockout.active ? audit.lockout.reasons : audit.yellowReasons;
     if (!items || !items.length) return '';
-    const isLock = audit.lockout.active;
-    const borderCol = isLock ? 'rgba(239,68,68,.4)' : 'rgba(245,200,0,.4)';
-    const accent    = isLock ? '#ef4444' : '#f5c800';
+    const stateClass = audit.lockout.active ? 'is-critical-lockout' : 'is-caution';
     return (
-      '<div style="margin-top:.9rem;border:1px solid ' + borderCol + ';border-radius:12px;overflow:hidden;background:linear-gradient(135deg,rgba(10,10,10,.92),rgba(22,10,10,.82))">' +
+      '<div class="sv-reasons ' + stateClass + '">' +
         items.map(function (r) {
           return (
-            '<div style="display:flex;gap:.7rem;padding:.7rem .85rem;border-bottom:1px solid rgba(255,255,255,.04)">' +
-              '<div style="width:3px;background:' + accent + ';border-radius:2px;flex-shrink:0"></div>' +
+            '<div class="sv-reason-row">' +
+              '<div class="sv-reason-bar"></div>' +
               '<div>' +
-                '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.65rem;letter-spacing:2.2px;color:' + accent + ';font-weight:800">' + escapeHtml(r.headline) + '</div>' +
-                '<div style="font-size:.72rem;color:#ddd;margin-top:.2rem;line-height:1.45">' + escapeHtml(r.detail) + '</div>' +
+                '<div class="sv-reason-head">' + escapeHtml(r.headline) + '</div>' +
+                '<div class="sv-reason-body">' + escapeHtml(r.detail) + '</div>' +
               '</div>' +
             '</div>'
           );
@@ -259,21 +284,25 @@ const CNS_ENGINE = (function () {
 
   function buildSliderGrid(st) {
     const rows = [
-      { key: 'hrvDeviation', label: 'HRV DEVIATION', unit: '%',    min: -30, max: 10,  step: 0.5, val: st.hrvDeviation, color: '#00e5ff', fmt: function(v){return (v>=0?'+':'')+v.toFixed(1);} },
-      { key: 'totalSleep',   label: 'TOTAL SLEEP',   unit: 'h',    min: 0,   max: 12,  step: 0.1, val: st.totalSleep,   color: '#8b5cf6', fmt: function(v){return v.toFixed(1);} },
-      { key: 'deepSleep',    label: 'DEEP SLEEP',    unit: 'h',    min: 0,   max: 3,   step: 0.1, val: st.deepSleep,    color: '#a855f7', fmt: function(v){return v.toFixed(1);} },
-      { key: 'acwr',         label: 'ACWR',          unit: '',     min: 0,   max: 2.5, step: 0.05, val: st.acwr,        color: '#f5c800', fmt: function(v){return v.toFixed(2);} }
+      { key: 'hrvDeviation', label: 'HRV DEVIATION', unit: '%', min: -30, max: 10,  step: 0.5,  val: st.hrvDeviation, fmt: function(v){return (v>=0?'+':'')+v.toFixed(1);} },
+      { key: 'totalSleep',   label: 'TOTAL SLEEP',   unit: 'h', min: 0,   max: 12,  step: 0.1,  val: st.totalSleep,   fmt: function(v){return v.toFixed(1);} },
+      { key: 'deepSleep',    label: 'DEEP SLEEP',    unit: 'h', min: 0,   max: 3,   step: 0.1,  val: st.deepSleep,    fmt: function(v){return v.toFixed(1);} },
+      { key: 'acwr',         label: 'ACWR',          unit: '',  min: 0,   max: 2.5, step: 0.05, val: st.acwr,         fmt: function(v){return v.toFixed(2);} }
     ];
     return (
-      '<div style="margin-top:.95rem;display:grid;grid-template-columns:1fr;gap:.55rem">' +
+      '<div class="sv-slider-grid">' +
         rows.map(function (r) {
           return (
-            '<div class="cns-sldr" style="background:rgba(12,12,14,.72);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:.6rem .75rem">' +
-              '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem">' +
-                '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.58rem;letter-spacing:2.2px;color:#bbb;font-weight:700">' + r.label + '</div>' +
-                '<div style="font-family:var(--hb,\'Anton\');font-size:.95rem;color:' + r.color + ';letter-spacing:.5px"><span id="cns-val-' + r.key + '">' + r.fmt(r.val) + '</span><span style="font-size:.6rem;color:#777;margin-left:.2rem">' + r.unit + '</span></div>' +
+            '<div class="sv-slider-row" data-cns-row="' + r.key + '">' +
+              '<div class="sv-slider-head">' +
+                '<div class="sv-slider-label">' + r.label + '</div>' +
+                '<div class="sv-slider-value mono">' +
+                  '<span id="cns-val-' + r.key + '">' + r.fmt(r.val) + '</span>' +
+                  '<span class="sv-slider-unit">' + r.unit + '</span>' +
+                '</div>' +
               '</div>' +
-              '<input type="range" class="cns-range" data-cns-key="' + r.key + '" min="' + r.min + '" max="' + r.max + '" step="' + r.step + '" value="' + r.val + '" style="width:100%;accent-color:' + r.color + '">' +
+              '<input type="range" class="sv-range cns-range" data-cns-key="' + r.key + '" ' +
+                'min="' + r.min + '" max="' + r.max + '" step="' + r.step + '" value="' + r.val + '">' +
             '</div>'
           );
         }).join('') +
@@ -281,55 +310,76 @@ const CNS_ENGINE = (function () {
     );
   }
 
+  // Slider handlers — updates are coalesced into a single
+  // requestAnimationFrame so rapid drags don't thrash the DOM.
   function attachSliderHandlers() {
     const inputs = document.querySelectorAll('#cns-engine-block input.cns-range');
+    let pending = null;
+    let rafId = 0;
+    const flush = function () {
+      rafId = 0;
+      if (!pending) return;
+      writeState(pending);
+      pending = null;
+      renderDashboardBlock();
+    };
     inputs.forEach(function (inp) {
       inp.addEventListener('input', function () {
         const key = inp.getAttribute('data-cns-key');
         const v = parseFloat(inp.value);
-        const patch = {}; patch[key] = v;
-        writeState(patch);
-        renderDashboardBlock();
+        // Optimistic update of the visible number (no full repaint).
+        const readout = document.getElementById('cns-val-' + key);
+        if (readout) {
+          const r = { hrvDeviation: function(x){return (x>=0?'+':'')+x.toFixed(1);},
+                      totalSleep:   function(x){return x.toFixed(1);},
+                      deepSleep:    function(x){return x.toFixed(1);},
+                      acwr:         function(x){return x.toFixed(2);} };
+          readout.textContent = (r[key] || function(x){return x;})(v);
+        }
+        pending = pending || {};
+        pending[key] = v;
+        if (!rafId && typeof requestAnimationFrame === 'function') {
+          rafId = requestAnimationFrame(flush);
+        } else if (!rafId) {
+          flush();
+        }
       });
     });
   }
 
-  // ─── MATTE BLACK / RED LOCKOUT ERROR (SAVELOG hook) ──────
+  // ─── SOVEREIGN LOCKOUT ERROR (SAVELOG hook) ──────────────
+  // State-class driven — all visuals live in #sovereign-ui-layer.
   function renderLockoutError(targetId, enforcement) {
-    ensureStyles();
     const reasons = (enforcement && enforcement.reasons) || [];
     const trigger = (enforcement && enforcement.trigger) === 'ONE_REP_MAX'
       ? '1-RM attempt blocked'
       : 'Intensity > 7 blocked';
+    const srsScore = (enforcement && enforcement.audit && enforcement.audit.srs)
+      ? enforcement.audit.srs.score : 0;
 
     const html =
-      '<div class="cns-lockout" role="alert" style="margin:.9rem 0 1rem;border-radius:16px;overflow:hidden;' +
-        'background:linear-gradient(135deg,rgba(6,6,6,.96) 0%,rgba(28,6,6,.92) 100%);' +
-        'border:1px solid rgba(239,68,68,.55);backdrop-filter:blur(14px) saturate(1.2);' +
-        '-webkit-backdrop-filter:blur(14px) saturate(1.2);' +
-        'box-shadow:0 18px 44px -12px rgba(0,0,0,.9),0 0 28px rgba(239,68,68,.18),inset 0 1px 0 rgba(255,255,255,.04);' +
-        'animation:cnsLockPulse 1.6s ease-in-out infinite">' +
-        '<div style="padding:1rem 1.1rem .9rem;border-bottom:1px solid rgba(239,68,68,.18);display:flex;align-items:center;gap:.75rem">' +
-          '<div style="font-size:1.45rem;line-height:1">&#x26D4;</div>' +
+      '<div class="cns-lockout is-critical-lockout" role="alert">' +
+        '<div class="cns-lockout-head">' +
+          '<div class="cns-lockout-icon">&#x26D4;</div>' +
           '<div>' +
-            '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.6rem;letter-spacing:3.2px;color:#ef4444;font-weight:800">SOVEREIGN LOCKOUT</div>' +
-            '<div style="font-family:var(--hb,\'Anton\',\'Bebas Neue\');font-size:1.15rem;letter-spacing:1.5px;color:#fff;margin-top:.15rem">Physical Clearance REVOKED</div>' +
-            '<div style="font-size:.65rem;letter-spacing:1.5px;color:#ef4444;margin-top:.2rem;font-weight:700">' + escapeHtml(trigger) + ' · SRS ' + enforcement.audit.srs.score + '/100</div>' +
+            '<div class="cns-lockout-kicker">SOVEREIGN LOCKOUT</div>' +
+            '<div class="cns-lockout-title">Physical Clearance REVOKED</div>' +
+            '<div class="cns-lockout-meta">' + escapeHtml(trigger) + ' &middot; SRS <span class="mono">' + srsScore + '/100</span></div>' +
           '</div>' +
         '</div>' +
-        '<div style="padding:.85rem 1.1rem">' +
+        '<div class="cns-lockout-body">' +
           reasons.map(function (r) {
             return (
-              '<div style="display:flex;gap:.6rem;padding:.45rem 0">' +
-                '<div style="width:3px;background:#ef4444;border-radius:2px;flex-shrink:0"></div>' +
+              '<div class="sv-reason-row">' +
+                '<div class="sv-reason-bar"></div>' +
                 '<div>' +
-                  '<div style="font-family:var(--hb,\'Bebas Neue\');font-size:.62rem;letter-spacing:2.2px;color:#ef4444;font-weight:800">' + escapeHtml(r.headline) + '</div>' +
-                  '<div style="font-size:.72rem;color:#ddd;margin-top:.15rem;line-height:1.45">' + escapeHtml(r.detail) + '</div>' +
+                  '<div class="sv-reason-head">' + escapeHtml(r.headline) + '</div>' +
+                  '<div class="sv-reason-body">' + escapeHtml(r.detail) + '</div>' +
                 '</div>' +
               '</div>'
             );
           }).join('') +
-          '<div style="font-size:.64rem;color:#888;margin-top:.6rem;letter-spacing:.5px;line-height:1.5">' +
+          '<div class="cns-lockout-foot">' +
             'Save blocked until CNS state resolves to GREEN. Log a mobility / Z2 session, or lower intensity &le; 7 and remove 1-RM work.' +
           '</div>' +
         '</div>' +
@@ -343,31 +393,25 @@ const CNS_ENGINE = (function () {
         slot.id = 'cns-lockout-slot';
         target.insertBefore(slot, target.firstChild);
       }
-      slot.innerHTML = html;
-      slot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      paintFragment(slot, html);
+      // Scroll on the next frame so paint and scroll don't collide.
+      const scrollIn = function () {
+        const s = document.getElementById('cns-lockout-slot');
+        if (s) s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      };
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(scrollIn);
+      else scrollIn();
       setTimeout(function () {
         const s = document.getElementById('cns-lockout-slot');
-        if (s) s.innerHTML = '';
+        if (s) paintFragment(s, '');
       }, 9000);
     }
     return html;
   }
 
-  // ─── STYLES ──────────────────────────────────────────────
-  function ensureStyles() {
-    if (document.getElementById('cns-style')) return;
-    const s = document.createElement('style');
-    s.id = 'cns-style';
-    s.textContent =
-      '@keyframes cnsLockPulse{' +
-        '0%,100%{box-shadow:0 18px 44px -12px rgba(0,0,0,.9),0 0 28px rgba(239,68,68,.18),inset 0 1px 0 rgba(255,255,255,.04);border-color:rgba(239,68,68,.55)}' +
-        '50%{box-shadow:0 18px 44px -12px rgba(0,0,0,.9),0 0 46px rgba(239,68,68,.35),inset 0 1px 0 rgba(255,255,255,.04);border-color:rgba(239,68,68,.85)}' +
-      '}' +
-      '#cns-engine-block input.cns-range{-webkit-appearance:none;appearance:none;height:4px;background:#1a1a1a;border-radius:4px;outline:none;cursor:pointer}' +
-      '#cns-engine-block input.cns-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.6),0 0 10px rgba(0,229,255,.4);cursor:pointer}' +
-      '#cns-engine-block input.cns-range::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.6),0 0 10px rgba(0,229,255,.4);cursor:pointer}';
-    document.head.appendChild(s);
-  }
+  // Legacy ensureStyles — kept as a no-op for back-compat.
+  // All Sovereign animations now live in #sovereign-ui-layer.
+  function ensureStyles() { /* Sovereign UI layer owns this now. */ }
 
   // ─── HTML SAFETY ─────────────────────────────────────────
   function escapeHtml(s) {
@@ -378,7 +422,6 @@ const CNS_ENGINE = (function () {
 
   // ─── BOOT ────────────────────────────────────────────────
   function init() {
-    ensureStyles();
     renderDashboardBlock();
   }
   if (typeof document !== 'undefined') {
