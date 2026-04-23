@@ -1,0 +1,790 @@
+/* ============================================================
+   BBF SOVEREIGN UI — Medicine 3.0 Vault Door
+   Colors: Flat Black #0C0E0C / Eerie Black #1B1B1B
+           Telehealth Blue #5B8CFF / Surgical Red #CC3300
+   Type:   Inter (body) / Geist Mono (numerical)
+   ============================================================ */
+
+:root {
+  --flat-black: #0C0E0C;
+  --eerie-black: #1B1B1B;
+  --surface-raised: #222322;
+  --hairline: rgba(255, 255, 255, 0.06);
+  --hairline-strong: rgba(255, 255, 255, 0.12);
+  --telehealth: #5B8CFF;
+  --telehealth-soft: rgba(91, 140, 255, 0.14);
+  --telehealth-glow: rgba(91, 140, 255, 0.35);
+  --surgical: #CC3300;
+  --surgical-soft: rgba(204, 51, 0, 0.14);
+  --bone: #F4F4F2;
+  --mute: rgba(244, 244, 242, 0.62);
+  --mute-2: rgba(244, 244, 242, 0.38);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06),
+                  inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-glass: 0 24px 60px rgba(0, 0, 0, 0.55),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  --max: 1240px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--flat-black);
+  color: var(--bone);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.55;
+  font-feature-settings: 'ss01', 'cv11';
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(900px 600px at 15% -10%, rgba(91, 140, 255, 0.09), transparent 60%),
+    radial-gradient(700px 500px at 100% 30%, rgba(204, 51, 0, 0.05), transparent 65%),
+    linear-gradient(180deg, #0C0E0C 0%, #0A0C0A 100%);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 28px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===================== NAV ===================== */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  background: rgba(12, 14, 12, 0.62);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--bone);
+  font-weight: 600;
+}
+
+.brand__mark {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background:
+    linear-gradient(135deg, var(--telehealth) 0%, #2D5BCC 100%);
+  box-shadow: var(--shadow-inset), 0 0 14px var(--telehealth-glow);
+  position: relative;
+}
+
+.brand__mark::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: 2px;
+}
+
+.nav__meta {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.nav__pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav__pulse .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--telehealth);
+  box-shadow: 0 0 10px var(--telehealth-glow);
+  animation: pulse 2.4s var(--ease) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+.nav__admit {
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bone);
+  background: transparent;
+  border: 1px solid var(--hairline-strong);
+  transition: border-color .3s var(--ease), color .3s var(--ease);
+}
+
+.nav__admit:hover {
+  border-color: var(--telehealth);
+  color: var(--telehealth);
+}
+
+/* ===================== HERO ===================== */
+.hero {
+  padding: 96px 0 120px;
+  position: relative;
+}
+
+.hero__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mute);
+  background: rgba(27, 27, 27, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-inset);
+}
+
+.hero__chip .chip-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--telehealth);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--telehealth-glow);
+}
+
+/* Role selector */
+.role-selector {
+  margin-top: 34px;
+  display: inline-flex;
+  padding: 6px;
+  border-radius: 14px;
+  background: rgba(27, 27, 27, 0.6);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-inset);
+  position: relative;
+  gap: 2px;
+}
+
+.role-selector__btn {
+  position: relative;
+  padding: 11px 22px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute);
+  border-radius: 10px;
+  transition: color .3s var(--ease), background-color .3s var(--ease);
+  z-index: 1;
+}
+
+.role-selector__btn[aria-pressed="true"] {
+  color: var(--bone);
+  background:
+    linear-gradient(180deg, rgba(91, 140, 255, 0.22), rgba(91, 140, 255, 0.08));
+  box-shadow:
+    inset 0 0 0 1px rgba(91, 140, 255, 0.35),
+    0 0 20px rgba(91, 140, 255, 0.18);
+}
+
+.role-selector__btn:hover:not([aria-pressed="true"]) {
+  color: var(--bone);
+}
+
+/* Hero headline — fixed-size grid slots to prevent CLS */
+.hero__headline {
+  margin-top: 40px;
+  display: grid;
+  gap: 18px;
+  /* Reserve space with min-height so copy-swap produces zero CLS */
+  min-height: clamp(260px, 36vw, 360px);
+}
+
+.hero__kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--telehealth);
+}
+
+.hero__title {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: clamp(40px, 6.4vw, 84px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--bone);
+  max-width: 16ch;
+  font-feature-settings: 'ss01';
+  /* Smooth crossfade without layout shift */
+  opacity: 1;
+  transition: opacity .32s var(--ease);
+}
+
+.hero__title.is-swapping {
+  opacity: 0;
+}
+
+.hero__title em {
+  font-style: normal;
+  background: linear-gradient(180deg, var(--bone) 0%, rgba(91, 140, 255, 0.85) 120%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero__body {
+  font-size: clamp(15px, 1.35vw, 18px);
+  color: var(--mute);
+  max-width: 58ch;
+  line-height: 1.6;
+  transition: opacity .32s var(--ease);
+}
+
+.hero__body.is-swapping {
+  opacity: 0;
+}
+
+/* Hero CTA row */
+.hero__cta-row {
+  margin-top: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 26px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--flat-black);
+  background: linear-gradient(180deg, #8FB0FF 0%, var(--telehealth) 100%);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 10px 30px rgba(91, 140, 255, 0.28);
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+}
+
+.cta-primary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 16px 40px rgba(91, 140, 255, 0.36);
+}
+
+.cta-primary .arrow {
+  width: 14px;
+  height: 10px;
+  transition: transform .3s var(--ease);
+}
+
+.cta-primary:hover .arrow {
+  transform: translateX(4px);
+}
+
+.cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 22px;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mute);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 10px;
+  transition: color .3s var(--ease), border-color .3s var(--ease);
+}
+
+.cta-secondary:hover {
+  color: var(--bone);
+  border-color: var(--telehealth);
+}
+
+/* Hero metrics strip */
+.hero__metrics {
+  margin-top: 72px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.metric {
+  padding: 24px 24px;
+  border-right: 1px solid var(--hairline);
+}
+
+.metric:last-child {
+  border-right: none;
+}
+
+.metric__num {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--bone);
+}
+
+.metric__num .unit {
+  color: var(--telehealth);
+  font-size: 14px;
+  margin-left: 4px;
+}
+
+.metric__lbl {
+  margin-top: 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mute-2);
+}
+
+/* ===================== CYLINDER SHOWCASE ===================== */
+.showcase {
+  padding: 120px 0;
+  position: relative;
+}
+
+.section-head {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  margin-bottom: 64px;
+  align-items: end;
+}
+
+.section-head__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--telehealth);
+  margin-bottom: 18px;
+}
+
+.section-head__title {
+  font-weight: 500;
+  font-size: clamp(32px, 4.2vw, 52px);
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: var(--bone);
+}
+
+.section-head__body {
+  font-size: 15px;
+  color: var(--mute);
+  max-width: 48ch;
+  line-height: 1.7;
+}
+
+.cylinder-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.cylinder {
+  position: relative;
+  padding: 28px;
+  background:
+    linear-gradient(180deg, rgba(34, 35, 34, 0.78) 0%, rgba(27, 27, 27, 0.72) 100%);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-inset), var(--shadow-glass);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform .4s var(--ease), border-color .4s var(--ease);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cylinder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(400px 200px at var(--mx, 50%) var(--my, 0%), rgba(91, 140, 255, 0.12), transparent 55%);
+  opacity: 0;
+  transition: opacity .5s var(--ease);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.cylinder:hover {
+  transform: translateY(-4px);
+  border-color: rgba(91, 140, 255, 0.25);
+}
+
+.cylinder:hover::before {
+  opacity: 1;
+}
+
+.cylinder__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  color: var(--mute-2);
+  margin-bottom: 22px;
+}
+
+.cylinder__tag .no {
+  color: var(--telehealth);
+}
+
+.cylinder__title {
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--bone);
+}
+
+.cylinder__body {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--mute);
+  line-height: 1.65;
+  flex: 1;
+}
+
+.cylinder__footer {
+  margin-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 18px;
+  border-top: 1px solid var(--hairline);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mute-2);
+}
+
+.cylinder__footer .chev {
+  width: 10px;
+  height: 10px;
+  border-top: 1px solid var(--telehealth);
+  border-right: 1px solid var(--telehealth);
+  transform: rotate(45deg);
+}
+
+/* Cylinder icon */
+.cylinder__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--telehealth-soft);
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  border: 1px solid rgba(91, 140, 255, 0.22);
+  box-shadow: var(--shadow-inset);
+  color: var(--telehealth);
+}
+
+.cylinder--redflag .cylinder__icon {
+  background: var(--surgical-soft);
+  color: var(--surgical);
+  border-color: rgba(204, 51, 0, 0.28);
+}
+
+.cylinder--redflag .cylinder__tag .no {
+  color: var(--surgical);
+}
+
+/* ===================== DELTA BAND ===================== */
+.delta-band {
+  padding: 40px 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  background: rgba(27, 27, 27, 0.35);
+}
+
+.delta-band__inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.delta {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.delta__no {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--telehealth);
+  padding-top: 2px;
+}
+
+.delta__text {
+  font-size: 13.5px;
+  color: var(--mute);
+  line-height: 1.6;
+}
+
+.delta__text strong {
+  color: var(--bone);
+  font-weight: 500;
+}
+
+/* ===================== VAULT CTA ===================== */
+.vault {
+  padding: 140px 0 120px;
+  text-align: center;
+  position: relative;
+}
+
+.vault__frame {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 72px 48px;
+  border-radius: 28px;
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(34, 35, 34, 0.85) 0%, rgba(16, 17, 16, 0.85) 100%);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--hairline-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 40px 100px rgba(0, 0, 0, 0.6),
+    0 0 80px rgba(91, 140, 255, 0.08);
+  overflow: hidden;
+}
+
+.vault__frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(600px 300px at 50% 0%, rgba(91, 140, 255, 0.12), transparent 65%),
+    radial-gradient(400px 200px at 50% 100%, rgba(204, 51, 0, 0.05), transparent 60%);
+  pointer-events: none;
+}
+
+.vault__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--telehealth);
+}
+
+.vault__title {
+  margin-top: 18px;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--bone);
+}
+
+.vault__body {
+  margin: 22px auto 0;
+  max-width: 54ch;
+  color: var(--mute);
+  font-size: 15.5px;
+  line-height: 1.65;
+}
+
+.vault__cta {
+  margin-top: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 34px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--flat-black);
+  background: linear-gradient(180deg, #8FB0FF 0%, var(--telehealth) 100%);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 18px 50px rgba(91, 140, 255, 0.32);
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+}
+
+.vault__cta:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 24px 60px rgba(91, 140, 255, 0.44);
+}
+
+.vault__fineprint {
+  margin-top: 22px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mute-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vault__fineprint .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--surgical);
+  box-shadow: 0 0 10px rgba(204, 51, 0, 0.5);
+}
+
+/* ===================== FOOTER ===================== */
+.foot {
+  padding: 40px 0 56px;
+  border-top: 1px solid var(--hairline);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mute-2);
+}
+
+.foot__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.foot__legal {
+  display: flex;
+  gap: 22px;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 960px) {
+  .cylinder-grid { grid-template-columns: repeat(2, 1fr); }
+  .section-head {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  .delta-band__inner { grid-template-columns: 1fr; gap: 22px; }
+  .hero__metrics { grid-template-columns: repeat(2, 1fr); }
+  .metric:nth-child(2) { border-right: none; }
+  .metric:nth-child(1), .metric:nth-child(2) { border-bottom: 1px solid var(--hairline); }
+  .nav__meta .nav__pulse { display: none; }
+}
+
+@media (max-width: 620px) {
+  .container { padding: 0 20px; }
+  .hero { padding: 64px 0 80px; }
+  .role-selector { flex-wrap: wrap; }
+  .role-selector__btn { padding: 10px 16px; font-size: 11px; }
+  .cylinder-grid { grid-template-columns: 1fr; }
+  .vault__frame { padding: 56px 26px; }
+  .vault__cta { padding: 18px 22px; font-size: 11.5px; letter-spacing: 0.2em; }
+  .foot__inner { flex-direction: column; align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
