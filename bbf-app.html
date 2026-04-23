@@ -2495,6 +2495,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="prehab-auditor.js"></script>
 <script src="rpe-commander.js"></script>
 <script src="are-engine.js"></script>
+<script src="fueling-engine.js"></script>
 <script src="hologram-data.js"></script>
 <script src="hologram-renderer.js"></script>
 <script src="bbf-translator.js"></script>
@@ -4489,6 +4490,8 @@ window.onload=function(){
         <div class="sh"><span class="stt" style="color:#D4AF37">&#x1F3E0; Household Feed</span></div>
         <div id="household-alerts"></div>
       </div>
+      <!-- SOVEREIGN FUELING ENGINE — bioenergetic target block -->
+      <div id="fueling-engine-block" style="display:none"></div>
       <div id="cnwrap" style="display:none">
         <div class="sh"><span class="stt" data-lang-key="app-coach-notes">&#x1F4CB; Coach Notes</span></div>
         <div id="cnlist"></div>
@@ -5461,6 +5464,8 @@ window.onload=function(){
             <button onclick="setSovereignLang('pt')" id="sl-pt" style="flex:1;padding:.5rem;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid #2a2a2a;background:transparent;color:var(--mut)">PORTUGU&Ecirc;S</button>
           </div>
         </div>
+        <!-- SOVEREIGN FUELING ENGINE — event-date selector -->
+        <div class="psr" id="fueling-event-row" style="flex-direction:column;align-items:stretch"></div>
         <div class="psr" onclick="window.open('liability-waiver.pdf','_blank')"><div class="psrl"><span style="font-size:1.1rem">&#x1F4C4;</span><div><div class="psrn" data-lang-key="app-set-waiver">Liability Waiver</div><div class="psrs" data-lang-key="app-set-waiver-sub">View &amp; download PDF</div></div></div><span class="psra">&#x203A;</span></div>
         <div class="psr" id="logout-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F6AA;</span><div><div class="psrn" data-lang-key="app-set-signout">Sign Out</div><div class="psrs" data-lang-key="app-set-signout-sub">Log out of your account</div></div></div><span class="psra">&#x203A;</span></div>
       </div>
@@ -6359,6 +6364,10 @@ function RH() {
   checkIncomingReactions();
   renderPlayerCard();
   renderSweatContract();
+  if (typeof FUELING_ENGINE !== 'undefined') {
+    FUELING_ENGINE.renderDashboardBlock(uid);
+    FUELING_ENGINE.renderSettingsControl();
+  }
   updateLangButtons(LANG);
 }
 
@@ -9361,6 +9370,11 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch(_){}
     function persist(){
       try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(_){}
+      if (typeof window !== 'undefined' && window.FUELING_ENGINE) {
+        var feUid = (typeof VC !== 'undefined' && VC) ? VC : (typeof CU !== 'undefined' && CU) ? CU : null;
+        if (feUid) window.FUELING_ENGINE.renderDashboardBlock(feUid);
+        window.FUELING_ENGINE.renderSettingsControl();
+      }
     }
 
     // ── DOM refs ────────────────────────────────────────────────────
@@ -9944,6 +9958,10 @@ function SAVEMETRICS() {
   document.getElementById('metric-bf').value = '';
   TOAST('Metrics saved! \u2713');
   renderBody();
+  if (typeof FUELING_ENGINE !== 'undefined') {
+    FUELING_ENGINE.renderDashboardBlock(uid);
+    FUELING_ENGINE.renderSettingsControl();
+  }
 }
 
 
