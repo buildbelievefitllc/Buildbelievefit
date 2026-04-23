@@ -197,6 +197,73 @@ var BBF_SYNC = (function() {
     }
   }
 
+  // ─── PULL: Hydrate localStorage from Supabase for one user ───
+  // Source-of-truth pull so the dashboard (Total Sessions, Recent
+  // Sessions, streaks) reflects cloud state after a fresh login,
+  // a cache clear, or a cross-device sign-in.
+  function pullUser(uid) {
+    if (!uid) return Promise.resolve(0);
+    return Promise.all([fetchLogs(uid), fetchUser(uid)]).then(function(res) {
+      var cloudLogs = res[0] || [];
+      var cloudUser = (res[1] && res[1][0]) || null;
+      var d;
+      try { d = JSON.parse(localStorage.getItem('bbf_v7') || '{}'); }
+      catch (e) { d = {}; }
+      if (!d.u) d.u = {};
+      if (!d.l) d.l = {};
+      if (!d.w) d.w = {};
+
+      var localLogs = d.l[uid] || [];
+      var seen = {};
+      localLogs.forEach(function(l) {
+        var k = (l.loggedAt || '') + '|' + (l.date || '') + '|' + (l.type || '');
+        seen[k] = true;
+      });
+      var added = 0;
+      cloudLogs.forEach(function(r) {
+        var local = {
+          date: r.date,
+          type: r.type,
+          dur: r.duration || '',
+          intensity: r.intensity || '',
+          wt: r.weight || '',
+          bf: r.body_fat || '',
+          notes: r.notes || '',
+          mood: r.mood || '',
+          exercises: r.exercises || [],
+          loggedAt: r.logged_at,
+          loggedBy: r.logged_by || uid
+        };
+        var k = (local.loggedAt || '') + '|' + (local.date || '') + '|' + (local.type || '');
+        if (!seen[k]) { localLogs.push(local); seen[k] = true; added++; }
+      });
+      localLogs.sort(function(a, b) {
+        return (a.loggedAt || '').localeCompare(b.loggedAt || '');
+      });
+      d.l[uid] = localLogs;
+
+      if (cloudUser) {
+        if (!d.u[uid]) d.u[uid] = {};
+        var u = d.u[uid];
+        if (cloudUser.name && !u.name) u.name = cloudUser.name;
+        if (cloudUser.role && !u.role) u.role = cloudUser.role;
+        if (cloudUser.type && !u.type) u.type = cloudUser.type;
+        if (cloudUser.goal && !u.goal) u.goal = cloudUser.goal;
+        if (cloudUser.goal_weight && !u.gw) u.gw = cloudUser.goal_weight;
+        if (cloudUser.plan && !u.plan) u.plan = cloudUser.plan;
+        if (cloudUser.schedule && !u.schedule) u.schedule = cloudUser.schedule;
+        if (cloudUser.stress_mode && !u.stress_mode) u.stress_mode = cloudUser.stress_mode;
+        if (cloudUser.access_status) u.access_status = cloudUser.access_status;
+      }
+
+      localStorage.setItem('bbf_v7', JSON.stringify(d));
+      return added;
+    }).catch(function(e) {
+      console.warn('BBF_SYNC pullUser error:', e);
+      return 0;
+    });
+  }
+
   // ─── SYNC: AUDIT REQUEST ──────────────────────────────────
   function logAuditRequest(uid, exerciseName, tensionArea) {
     if (!uid || !exerciseName) return Promise.resolve();
@@ -1559,6 +1626,7 @@ var BBF_SYNC = (function() {
     fetchReadiness: fetchReadiness,
     fetchUser: fetchUser,
     pushAll: pushAll,
+    pullUser: pullUser,
     isOnline: isOnline
   };
 
