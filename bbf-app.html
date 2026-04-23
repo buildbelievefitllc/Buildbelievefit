@@ -4176,6 +4176,15 @@ window.onload=function(){
 
 <!-- ═══ APP ═══ -->
 <div class="scr" id="app">
+  <!-- ADMIN TRAPDOOR PATCH — return-to-command-center bar.
+       Visibility is managed by updateAdminBackButton(): only rendered when the
+       logged-in user is an admin/trainer AND is currently viewing a client
+       (VC !== null && VC !== CU). Clicking clears the client view state and
+       re-renders the admin's master client roster without a page refresh. -->
+  <div id="admin-back-bar" style="display:none;position:sticky;top:0;z-index:50;background:linear-gradient(90deg,rgba(106,13,173,.95),rgba(26,0,51,.95));border-bottom:1px solid #D4AF37;padding:.55rem .9rem;align-items:center;justify-content:space-between;gap:.6rem;backdrop-filter:blur(6px)">
+    <button type="button" id="admin-back-btn" onclick="RETURN_TO_COMMAND_CENTER()" style="font-family:var(--hb);font-size:.72rem;letter-spacing:2px;background:#D4AF37;color:#0a0a0a;border:none;padding:.45rem .9rem;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem">&#x2190; COMMAND CENTER</button>
+    <div style="font-family:var(--hb);font-size:.62rem;letter-spacing:2px;color:#D4AF37;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Admin View &middot; <span id="admin-back-client">&mdash;</span></div>
+  </div>
   <div class="tbar">
     <div class="tbl">B<span class="y">B</span>F</div>
     <div class="tbr">
@@ -4195,7 +4204,7 @@ window.onload=function(){
         <div class="csw">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
             <div class="csl">Viewing Client</div>
-            <button onclick="VC=null;LP();RA();" style="font-family:var(--hb);font-size:.72rem;letter-spacing:1px;background:rgba(245,200,0,.15);border:1px solid rgba(245,200,0,.3);color:var(--yel);padding:.3rem .8rem;border-radius:8px;cursor:pointer">&#x2190; Roster</button>
+            <button onclick="RETURN_TO_COMMAND_CENTER()" style="font-family:var(--hb);font-size:.72rem;letter-spacing:1px;background:rgba(245,200,0,.15);border:1px solid rgba(245,200,0,.3);color:var(--yel);padding:.3rem .8rem;border-radius:8px;cursor:pointer">&#x2190; Roster</button>
           </div>
           <div class="cps" id="cchips"></div>
         </div>
@@ -6093,11 +6102,53 @@ function selectClient(uid) {
   LP();
   RA();
   TAB('home');
+  updateAdminBackButton();
   // Hydrate this client's logs from Supabase so Total Sessions
   // reflects cloud state when the trainer drills in.
   if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.isOnline && BBF_SYNC.isOnline() && BBF_SYNC.pullUser) {
     BBF_SYNC.pullUser(uid).then(function(added) { if (added > 0) RH(); });
   }
+}
+
+// ─── ADMIN TRAPDOOR PATCH ─────────────────────────────────
+// updateAdminBackButton: shows the "Back to Command Center" bar only when the
+// logged-in user has an admin-class role (trainer or admin) AND is currently
+// drilled into a client profile. Regular clients never see this.
+function updateAdminBackButton() {
+  var bar = document.getElementById('admin-back-bar');
+  if (!bar) return;
+  var d = (typeof GD === 'function') ? GD() : { u: {} };
+  var meRole = (d.u[CU] && d.u[CU].role) || '';
+  var isAdmin = (meRole === 'admin' || meRole === 'trainer');
+  var viewingClient = !!(VC && VC !== CU);
+  if (isAdmin && viewingClient) {
+    var client = d.u[VC] || {};
+    var label = document.getElementById('admin-back-client');
+    if (label) label.textContent = 'Viewing ' + ((client.name || VC || '').split(' ')[0] || VC);
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+// RETURN_TO_COMMAND_CENTER: cleanly unmounts the client view, clears the
+// temporary viewing-client state, and re-renders the admin's master client
+// roster — no hard refresh required.
+function RETURN_TO_COMMAND_CENTER() {
+  if (!CU) return;
+  var d = (typeof GD === 'function') ? GD() : { u: {} };
+  var meRole = (d.u[CU] && d.u[CU].role) || '';
+  if (meRole !== 'admin' && meRole !== 'trainer') return;
+  VC = null;
+  EX = []; MOOD = ''; TYPE = 'strength'; PLAN = null; SDAY = 0;
+  var ts = document.getElementById('trswitch');
+  if (ts) ts.style.display = 'none';
+  document.querySelectorAll('.cp').forEach(function(x) { x.classList.remove('on'); });
+  LP();
+  TAB('home');
+  RA();
+  updateAdminBackButton();
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
 }
 
 function SETUP_TRAINER() {
@@ -6142,6 +6193,7 @@ function SETUP_TRAINER() {
       document.querySelectorAll('.cp').forEach(function(x) { x.classList.remove('on'); });
       c.classList.add('on');
       VC = k; LP(); RA(); RW();
+      updateAdminBackButton();
     };
     chips.appendChild(c);
   });
@@ -6156,6 +6208,7 @@ function RA() {
   var d = GD(); var u = d.u[uid] || {};
   var stressType = u.stress_mode || getPersona(uid).type;
   updateStressToggleUI(stressType);
+  updateAdminBackButton();
 }
 
 // ─── TOPBAR ───────────────────────────────────────────────
@@ -8258,6 +8311,7 @@ function LOGOUT() {
   if (WC) { WC.destroy(); WC = null; }
   document.getElementById('trswitch').style.display = 'none';
   document.getElementById('tnfwrap').style.display = 'none';
+  updateAdminBackButton();
   document.getElementById('u').value = '';
   document.getElementById('p').value = '';
   document.getElementById('lmsg').textContent = '';
