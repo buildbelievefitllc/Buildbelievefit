@@ -2496,6 +2496,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="rpe-commander.js"></script>
 <script src="are-engine.js"></script>
 <script src="fueling-engine.js"></script>
+<script src="cns-engine.js"></script>
 <script src="hologram-data.js"></script>
 <script src="hologram-renderer.js"></script>
 <script src="bbf-translator.js"></script>
@@ -4492,6 +4493,8 @@ window.onload=function(){
       </div>
       <!-- SOVEREIGN FUELING ENGINE — bioenergetic target block -->
       <div id="fueling-engine-block" style="display:none"></div>
+      <!-- SOVEREIGN NEUROLOGICAL ENGINE — CNS readiness / SRS / lockout -->
+      <div id="cns-engine-block" style="display:none"></div>
       <div id="cnwrap" style="display:none">
         <div class="sh"><span class="stt" data-lang-key="app-coach-notes">&#x1F4CB; Coach Notes</span></div>
         <div id="cnlist"></div>
@@ -8300,6 +8303,17 @@ function SAVELOG() {
     mood:MOOD, exercises:EX.slice(),
     loggedAt:new Date().toISOString(), loggedBy:CU
   };
+  // ─── CNS · Sovereign Neurological Lockout (HRV / Sleep / ACWR) ───
+  if (typeof CNS_ENGINE !== 'undefined') {
+    try {
+      var cnsCheck = CNS_ENGINE.enforceLockout(entry);
+      if (cnsCheck && cnsCheck.block) {
+        CNS_ENGINE.renderLockoutError('tp-log', cnsCheck);
+        TOAST('⛔ SOVEREIGN LOCKOUT · Max-effort save blocked');
+        return;
+      }
+    } catch(e) {}
+  }
   d.l[uid].push(entry);
   SD(d);
   if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncLog(uid,d.l[uid][d.l[uid].length-1]);
