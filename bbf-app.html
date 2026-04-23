@@ -612,6 +612,30 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   .are-msg{text-align:left;width:100%;margin-left:0}
 }
 
+/* ═══ ARE · SOVEREIGN WARNINGS (Matte Black / Yellow) ══════════ */
+.are-warn-slot{display:block}
+.are-warn{position:relative;display:flex;align-items:stretch;gap:0;margin:.8rem 0 1rem;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,rgba(10,10,10,.92) 0%,rgba(22,18,6,.88) 100%);border:1px solid rgba(245,200,0,.42);backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);box-shadow:0 14px 36px -18px rgba(0,0,0,.9),0 0 18px rgba(245,200,0,.08),inset 0 1px 0 rgba(255,255,255,.04)}
+.are-warn-bar{flex:0 0 6px;background:linear-gradient(180deg,var(--yel,#F5C800) 0%,#d4a308 100%);box-shadow:0 0 14px rgba(245,200,0,.55)}
+.are-warn-body{flex:1;padding:.85rem 1rem .9rem 1.05rem;min-width:0}
+.are-warn-tag{font-size:.56rem;font-weight:800;letter-spacing:3.5px;text-transform:uppercase;color:var(--yel,#F5C800);opacity:.95}
+.are-warn-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1rem;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;color:#fff;margin-top:.18rem;line-height:1.1}
+.are-warn-msg{font-size:.76rem;line-height:1.45;color:rgba(255,255,255,.82);font-weight:500;margin-top:.35rem}
+.are-warn-list{margin:.5rem 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.25rem}
+.are-warn-li{font-size:.7rem;line-height:1.4;color:rgba(255,255,255,.68);padding-left:.9rem;position:relative}
+.are-warn-li::before{content:'›';position:absolute;left:0;top:-1px;color:var(--yel,#F5C800);font-weight:800}
+.are-warn-red{border-color:rgba(239,68,68,.55);box-shadow:0 14px 36px -18px rgba(0,0,0,.9),0 0 22px rgba(239,68,68,.18),inset 0 1px 0 rgba(255,255,255,.04)}
+.are-warn-red .are-warn-bar{background:linear-gradient(180deg,#ef4444 0%,#991b1b 100%);box-shadow:0 0 16px rgba(239,68,68,.65)}
+.are-warn-red .are-warn-tag{color:#ef4444}
+.are-warn-red .are-warn-li::before{color:#ef4444}
+
+/* ═══ ARE · VOLUME BADGES (MAV / MRV) ══════════════════════════ */
+.are-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .65rem;border-radius:20px;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.58rem;font-weight:800;letter-spacing:2.2px;text-transform:uppercase;line-height:1;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);margin-left:.45rem;vertical-align:middle;white-space:nowrap}
+.are-badge-ico{font-size:.72rem;line-height:1}
+.are-badge-mav{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.45);color:#22c55e;box-shadow:0 0 12px rgba(34,197,94,.14),inset 0 1px 0 rgba(255,255,255,.04)}
+.are-badge-mrv{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.55);color:#ef4444;box-shadow:0 0 14px rgba(239,68,68,.22),inset 0 1px 0 rgba(255,255,255,.04);animation:are-badge-pulse 1.8s ease-in-out infinite}
+@keyframes are-badge-pulse{0%,100%{box-shadow:0 0 14px rgba(239,68,68,.22),inset 0 1px 0 rgba(255,255,255,.04)}50%{box-shadow:0 0 22px rgba(239,68,68,.5),inset 0 1px 0 rgba(255,255,255,.06)}}
+.muscle-item{position:relative}
+
 /* ═══ SOVEREIGN SENTINEL · OCCUPATIONAL LOAD MAP ═══════════════ */
 .ss-card{position:relative;margin-bottom:1.1rem;padding:1.25rem 1.2rem 1.35rem;border-radius:18px;background:radial-gradient(120% 120% at 100% 0%,rgba(106,13,173,.22) 0%,rgba(10,5,25,.78) 55%),linear-gradient(135deg,rgba(20,20,20,.72) 0%,rgba(10,5,25,.72) 100%);border:1px solid rgba(212,175,55,.32);backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden}
 .ss-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#22d3ee,var(--yel),var(--purl));opacity:.9}
@@ -2470,6 +2494,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="comlink-engine.js"></script>
 <script src="prehab-auditor.js"></script>
 <script src="rpe-commander.js"></script>
+<script src="are-engine.js"></script>
 <script src="hologram-data.js"></script>
 <script src="hologram-renderer.js"></script>
 <script src="bbf-translator.js"></script>
@@ -8256,7 +8281,7 @@ function SAVELOG() {
   if (!date) { TOAST('Please select a date'); return; }
   var d = GD();
   if (!d.l[uid]) d.l[uid] = [];
-  d.l[uid].push({
+  var entry = {
     date:date, type:TYPE,
     dur:document.getElementById('ldur').value || '',
     intensity:document.getElementById('lint').value || '',
@@ -8265,9 +8290,26 @@ function SAVELOG() {
     notes:document.getElementById('lnotes').value.trim(),
     mood:MOOD, exercises:EX.slice(),
     loggedAt:new Date().toISOString(), loggedBy:CU
-  });
+  };
+  d.l[uid].push(entry);
   SD(d);
   if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncLog(uid,d.l[uid][d.l[uid].length-1]);
+  // ─── ARE · Concurrent Interference Audit ────────────────────
+  if (typeof ARE_ENGINE !== 'undefined') {
+    try {
+      var userGoal = (d.u[uid] && d.u[uid].goal) || '';
+      var interf = ARE_ENGINE.auditConcurrent(userGoal, entry);
+      var slot = document.getElementById('are-interf-slot');
+      if (!slot) {
+        slot = document.createElement('div');
+        slot.id = 'are-interf-slot';
+        var logPane = document.getElementById('tp-log');
+        if (logPane) logPane.insertBefore(slot, logPane.firstChild);
+      }
+      slot.innerHTML = interf.interference ? ARE_ENGINE.renderInterferenceWarning(interf) : '';
+      if (interf.interference) TOAST('⚠ ARE: Zone 4 HIIT conflicts with 1RM goal');
+    } catch(e) {}
+  }
   EX = []; MOOD = '';
   ['lnotes','ldur','lint','lwt','lbf'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('exl').innerHTML = '';
@@ -8290,6 +8332,10 @@ function REL() {
   document.querySelectorAll('.exd').forEach(function(b) {
     b.onclick = function() { EX.splice(parseInt(b.dataset.i), 1); REL(); };
   });
+  // ─── ARE · Workout Builder Sequencing Audit ──────────────────
+  if (typeof ARE_ENGINE !== 'undefined') {
+    try { ARE_ENGINE.injectSequenceWarning('exl', EX); } catch(e) {}
+  }
 }
 
 function SAVENOTE() {
@@ -9755,8 +9801,26 @@ function renderMuscles(d, uid) {
     ml.innerHTML = '<div class="emp" style="padding:.5rem;grid-column:span 2"><div class="et" style="font-size:.72rem">Log workouts to see breakdown</div></div>';
     return;
   }
+  // ─── ARE · Weekly Volume Audit ──────────────────────────────
+  var volMap = {};
+  if (typeof ARE_ENGINE !== 'undefined') {
+    try {
+      var setsByMuscle = ARE_ENGINE.weeklySetsByMuscle(d.l[uid] || []);
+      var audit = ARE_ENGINE.auditVolume(setsByMuscle);
+      (audit.groups || []).forEach(function(g) { volMap[g.muscle] = g; });
+    } catch(e) {}
+  }
   ml.innerHTML = sorted.map(function(e) {
-    return '<div class="muscle-item"><span class="muscle-name">' + e[0] + '</span><span class="muscle-count">' + e[1] + 'x</span></div>';
+    var badge = '';
+    if (typeof ARE_ENGINE !== 'undefined') {
+      var focusKey = String(e[0] || '').toLowerCase();
+      var hit = null;
+      Object.keys(volMap).forEach(function(m) {
+        if (focusKey.indexOf(m) !== -1) hit = volMap[m];
+      });
+      if (hit) badge = ARE_ENGINE.renderVolumeBadge(hit);
+    }
+    return '<div class="muscle-item"><span class="muscle-name">' + e[0] + '</span><span class="muscle-count">' + e[1] + 'x</span>' + badge + '</div>';
   }).join('');
 }
 
