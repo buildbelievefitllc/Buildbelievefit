@@ -6055,8 +6055,17 @@ function ENTER() {
       RA();
       // Sovereign Intake — check if onboarding needed
       checkIntakeNeeded();
-      // Cloud sync — push localStorage to Supabase on login
-      if(typeof BBF_SYNC!=='undefined'&&BBF_SYNC.isOnline()){BBF_SYNC.pushAll().then(function(n){if(n>0)console.log('BBF: Synced '+n+' records to cloud');});}
+      // Cloud sync — pull cloud → local so Total Sessions reflects
+      // cross-device state, then push any local-only entries back up.
+      if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.isOnline()) {
+        var uid = VC || CU;
+        (BBF_SYNC.pullUser ? BBF_SYNC.pullUser(uid) : Promise.resolve(0)).then(function(added) {
+          if (added > 0) { RH(); }
+          return BBF_SYNC.pushAll();
+        }).then(function(n) {
+          if (n > 0) console.log('BBF: Synced ' + n + ' records to cloud');
+        });
+      }
       // Morning Readiness check — once per day for clients
       if (!hasReadinessToday(CU)) {
         setTimeout(function() { showReadinessModal(); }, 600);
@@ -6084,6 +6093,11 @@ function selectClient(uid) {
   LP();
   RA();
   TAB('home');
+  // Hydrate this client's logs from Supabase so Total Sessions
+  // reflects cloud state when the trainer drills in.
+  if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.isOnline && BBF_SYNC.isOnline() && BBF_SYNC.pullUser) {
+    BBF_SYNC.pullUser(uid).then(function(added) { if (added > 0) RH(); });
+  }
 }
 
 function SETUP_TRAINER() {
