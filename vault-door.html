@@ -369,6 +369,78 @@ body{
   background:color-mix(in srgb,var(--bbf-purple-900) 88%,var(--bbf-gold-550) 12%);
 }
 
+/* ── LEGAL LOCK — signature locked until waiver fully read ─── */
+.vd-sig-input:disabled{
+  cursor:not-allowed;
+  opacity:.55;
+  border-style:dashed;
+  border-color:rgba(212,175,55,.18);
+  background:rgba(0,0,0,.35);
+  color:rgba(255,255,255,.35);
+}
+.vd-sig-input:disabled::placeholder{color:rgba(255,255,255,.18)}
+
+.vd-sig-status{
+  display:flex;
+  align-items:center;
+  gap:.55rem;
+  margin-top:.15rem;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.66rem;
+  font-weight:700;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.45);
+  transition:color .3s var(--ease-sovereign);
+}
+.vd-sig-status .vd-sig-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:rgba(255,255,255,.25);
+  box-shadow:0 0 0 2px rgba(255,255,255,.06);
+  transition:background .3s,box-shadow .3s;
+  flex-shrink:0;
+}
+.vd-sig-status.is-unlocked{color:var(--bbf-gold-victory)}
+.vd-sig-status.is-unlocked .vd-sig-dot{
+  background:var(--bbf-gold-victory);
+  box-shadow:0 0 10px rgba(245,200,0,.65),0 0 0 2px rgba(245,200,0,.18);
+  animation:vdDotPulse 2.4s ease-in-out infinite;
+}
+@keyframes vdDotPulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.55;transform:scale(.88)}
+}
+
+/* Unlock transition on the input itself — a one-shot gold flash. */
+.vd-sig-input.is-unlocked{
+  animation:vdUnlockFlash 900ms var(--ease-sovereign);
+}
+@keyframes vdUnlockFlash{
+  0%{box-shadow:0 0 0 0 rgba(245,200,0,.6),inset 0 0 0 0 rgba(245,200,0,.0)}
+  35%{box-shadow:0 0 0 8px rgba(245,200,0,.22),inset 0 0 22px rgba(245,200,0,.14)}
+  100%{box-shadow:0 0 0 0 rgba(245,200,0,0),inset 0 0 0 0 rgba(245,200,0,0)}
+}
+
+/* Scroll-hint cue under the waiver body while it's still locked. */
+.vd-waiver-hint{
+  margin-top:.7rem;
+  text-align:right;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.6rem;
+  letter-spacing:.26em;
+  color:rgba(212,175,55,.5);
+  text-transform:uppercase;
+  transition:opacity .4s var(--ease-sovereign);
+}
+.vd-waiver-hint.is-done{opacity:0;pointer-events:none}
+
+@media (prefers-reduced-motion: reduce){
+  .vd-sig-status.is-unlocked .vd-sig-dot{animation:none}
+  .vd-sig-input.is-unlocked{animation:none}
+}
+
 /* ═══ FOOTER SEAL ══════════════════════════════════════════════ */
 .vd-seal{
   text-align:center;
@@ -532,6 +604,8 @@ body{
 
     </div>
 
+    <div class="vd-waiver-hint" id="vd-waiver-hint">Scroll to the end of the waiver to unlock signing &darr;</div>
+
     <!-- ── DIGITAL SIGNATURE INPUT ───────────────────────────── -->
     <div class="vd-sig">
       <label class="vd-sig-lbl" for="vd-signature">Digital Signature</label>
@@ -541,12 +615,18 @@ body{
         id="vd-signature"
         name="signature"
         class="vd-sig-input"
-        placeholder="Full legal name &mdash; e.g. Jordan A. Ellis"
+        placeholder="Locked &mdash; read the waiver to the end to unlock"
         autocomplete="name"
         maxlength="120"
         spellcheck="false"
-        aria-describedby="vd-waiver-body"
+        aria-describedby="vd-waiver-body vd-sig-status"
+        disabled
+        aria-disabled="true"
       />
+      <div class="vd-sig-status" id="vd-sig-status" aria-live="polite">
+        <span class="vd-sig-dot" aria-hidden="true"></span>
+        <span class="vd-sig-status-t">Locked &mdash; waiver not yet fully reviewed</span>
+      </div>
     </div>
 
   </section>
@@ -560,6 +640,112 @@ body{
   </div>
 
 </main>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SPRINT 2 — interactive behaviour
+       1. Tier card selection (single-select, radio semantics).
+       2. Legal Lock: signature input is disabled until the user
+          scrolls to the absolute bottom of the waiver body.
+       3. No Stripe routing — that lands in Sprint 3.
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  var grid    = document.getElementById('vd-tier-grid');
+  var waiver  = document.getElementById('vd-waiver-body');
+  var waivHnt = document.getElementById('vd-waiver-hint');
+  var sig     = document.getElementById('vd-signature');
+  var status  = document.getElementById('vd-sig-status');
+  if (!grid || !waiver || !sig || !status) return;
+
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.prog-c'));
+
+  /* ── 1. TIER SELECT STATE ─────────────────────────────────── */
+  function selectTier(card){
+    cards.forEach(function(c){
+      c.classList.remove('sel');
+      c.setAttribute('aria-checked', 'false');
+      c.tabIndex = -1;
+    });
+    card.classList.add('sel');
+    card.setAttribute('aria-checked', 'true');
+    card.tabIndex = 0;
+    // Stash the choice in-memory on the grid for Sprint 3 to read.
+    grid.dataset.selectedTier = card.dataset.tier || '';
+  }
+
+  cards.forEach(function(card, idx){
+    // First card is the initial roving-tabindex target.
+    card.tabIndex = idx === 0 ? 0 : -1;
+    card.addEventListener('click', function(){ selectTier(card); });
+    card.addEventListener('keydown', function(e){
+      switch (e.key){
+        case 'Enter':
+        case ' ':
+        case 'Spacebar':
+          e.preventDefault();
+          selectTier(card);
+          break;
+        case 'ArrowRight':
+        case 'ArrowDown':
+          e.preventDefault();
+          var nxt = cards[(idx + 1) % cards.length];
+          nxt.focus();
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault();
+          var prv = cards[(idx - 1 + cards.length) % cards.length];
+          prv.focus();
+          break;
+      }
+    });
+  });
+
+  /* ── 2. LEGAL LOCK — unlock signature on waiver scroll-bottom ── */
+  var unlocked = false;
+
+  function unlockSignature(){
+    if (unlocked) return;
+    unlocked = true;
+    sig.disabled = false;
+    sig.removeAttribute('aria-disabled');
+    sig.setAttribute('placeholder', 'Full legal name — e.g. Jordan A. Ellis');
+    sig.classList.add('is-unlocked');
+    status.classList.add('is-unlocked');
+    var t = status.querySelector('.vd-sig-status-t');
+    if (t) t.textContent = 'Unlocked — sign to affirm the waiver';
+    if (waivHnt) waivHnt.classList.add('is-done');
+    // Detach the scroll listener — it's done its job.
+    waiver.removeEventListener('scroll', onWaiverScroll);
+  }
+
+  function isAtBottom(){
+    // 4px tolerance covers sub-pixel rounding + momentum overscroll.
+    return (waiver.scrollHeight - waiver.scrollTop - waiver.clientHeight) <= 4;
+  }
+
+  function onWaiverScroll(){
+    if (isAtBottom()) unlockSignature();
+  }
+
+  waiver.addEventListener('scroll', onWaiverScroll, { passive: true });
+
+  // Tall viewports may render the waiver without any scroll at all.
+  // In that case the user can never scroll to the bottom, so we
+  // unlock immediately once layout settles.
+  function checkNoScrollNeeded(){
+    if (waiver.scrollHeight <= waiver.clientHeight + 4) unlockSignature();
+  }
+  // Wait one frame so fonts + layout are stable before measuring.
+  if (document.readyState === 'complete') {
+    requestAnimationFrame(checkNoScrollNeeded);
+  } else {
+    window.addEventListener('load', function(){
+      requestAnimationFrame(checkNoScrollNeeded);
+    });
+  }
+})();
+</script>
 
 </body>
 </html>
