@@ -400,6 +400,40 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .prehab-sets{display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap}
 .pset{background:rgba(106,13,173,.15);border:1px solid rgba(106,13,173,.3);border-radius:6px;padding:.25rem .6rem;font-size:.72rem;font-weight:700;color:var(--purl)}
 
+/* ─── SOVEREIGN PREHABILITATION TRACKER ─── */
+.sov-prehab-tracker{position:relative;margin-bottom:1.1rem;padding:1.2rem 1.1rem 1.1rem;border-radius:18px;background:linear-gradient(160deg,rgba(18,18,20,.92),rgba(8,8,8,.82));border:1px solid rgba(245,200,0,.18);box-shadow:0 18px 44px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04);-webkit-backdrop-filter:blur(14px) saturate(120%);backdrop-filter:blur(14px) saturate(120%);overflow:hidden}
+.sov-prehab-tracker::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 60% at 0% 0%,rgba(245,200,0,.06),transparent 55%),radial-gradient(90% 50% at 100% 100%,rgba(106,13,173,.08),transparent 60%)}
+.sov-prehab-head{position:relative;margin-bottom:.9rem}
+.sov-prehab-kicker{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;letter-spacing:4px;text-transform:uppercase;color:var(--yel);opacity:.85;margin-bottom:.25rem}
+.sov-prehab-title{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:1.25rem;line-height:1.1;letter-spacing:1.6px;text-transform:uppercase;color:var(--wht);font-weight:900}
+.sov-prehab-sub{margin-top:.3rem;font-size:.74rem;font-weight:600;color:rgba(255,255,255,.55);letter-spacing:.3px;line-height:1.5}
+.sov-protocol-switch{position:relative;display:flex;gap:.35rem;padding:4px;margin-bottom:.9rem;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.06);border-radius:10px}
+.sov-protocol-pill{flex:1;padding:.55rem .5rem;background:transparent;border:none;border-radius:7px;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.78rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.45);cursor:pointer;transition:color .18s ease,background .18s ease}
+.sov-protocol-pill.on{background:linear-gradient(180deg,rgba(30,30,34,.95),rgba(10,10,12,.9));color:var(--yel);box-shadow:inset 0 0 0 1px rgba(245,200,0,.25),0 2px 10px rgba(0,0,0,.4)}
+.sov-progress-wrap{position:relative;padding:.75rem .85rem;margin-bottom:.9rem;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);border-radius:12px}
+.sov-progress-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem}
+.sov-progress-lbl{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.66rem;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.sov-progress-pct{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:1.15rem;font-weight:900;letter-spacing:1px;color:var(--yel)}
+.sov-progress-track{position:relative;height:6px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.sov-progress-bar{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,rgba(245,200,0,.7),rgba(245,200,0,1));box-shadow:0 0 10px rgba(245,200,0,.45);transition:width .35s ease}
+.sov-progress-meta{margin-top:.4rem;font-size:.66rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.38);font-weight:700}
+.sov-checklist{position:relative;display:flex;flex-direction:column;gap:.5rem;margin-bottom:.9rem}
+.sov-check-item{display:flex;gap:.7rem;align-items:flex-start;padding:.7rem .85rem;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:11px;cursor:pointer;transition:border-color .18s ease,background .18s ease}
+.sov-check-item:hover{border-color:rgba(245,200,0,.22)}
+.sov-check-item.done{background:rgba(245,200,0,.04);border-color:rgba(245,200,0,.28)}
+.sov-check-box{flex-shrink:0;width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;margin-top:2px;background:rgba(0,0,0,.4);transition:all .18s ease}
+.sov-check-item.done .sov-check-box{background:var(--yel);border-color:var(--yel);box-shadow:0 0 10px rgba(245,200,0,.45)}
+.sov-check-box::after{content:"";width:10px;height:6px;border-left:2px solid var(--blk);border-bottom:2px solid var(--blk);transform:rotate(-45deg) translate(1px,-1px);opacity:0;transition:opacity .18s ease}
+.sov-check-item.done .sov-check-box::after{opacity:1}
+.sov-check-body{flex:1;min-width:0}
+.sov-check-name{font-size:.88rem;font-weight:700;color:var(--wht);letter-spacing:.3px;line-height:1.3}
+.sov-check-item.done .sov-check-name{color:rgba(249,245,255,.7);text-decoration:line-through;text-decoration-color:rgba(245,200,0,.4);text-decoration-thickness:1px}
+.sov-check-detail{margin-top:.2rem;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.5);line-height:1.5}
+.sov-check-tag{display:inline-block;margin-top:.35rem;padding:.15rem .45rem;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:rgba(245,200,0,.75);background:rgba(245,200,0,.06);border:1px solid rgba(245,200,0,.18);border-radius:4px}
+.sov-commit-btn{width:100%;padding:.85rem;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:.88rem;letter-spacing:3px;text-transform:uppercase;color:var(--blk);background:var(--yel);border:none;border-radius:10px;cursor:pointer;font-weight:900;box-shadow:0 6px 18px rgba(245,200,0,.22);transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease}
+.sov-commit-btn:active{transform:translateY(1px);box-shadow:0 3px 10px rgba(245,200,0,.18)}
+.sov-commit-btn[disabled]{background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);box-shadow:none;cursor:not-allowed}
+
 /* ─── VIDEO VAULT ────────────────────────────────────── */
 .vault-tabs{display:flex;gap:.4rem;margin-bottom:1rem;background:var(--gry2);border:1px solid var(--gry3);border-radius:10px;padding:3px}
 .vtab{flex:1;padding:.55rem;text-align:center;cursor:pointer;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;color:var(--mut2);background:transparent;border:none;border-radius:8px;transition:all .2s;text-transform:uppercase}
@@ -4962,6 +4996,30 @@ window.onload=function(){
         <div style="font-family:var(--hb);font-size:2rem;letter-spacing:2px" data-lang-key="app-prehab-title">Prehab &amp; Recovery</div>
         <div style="font-size:.8rem;font-weight:600;color:var(--mut2);margin-top:.2rem" data-lang-key="app-prehab-sub">OT-Informed joint health for high-demand athletes</div>
       </div>
+
+      <!-- ═══ SOVEREIGN PREHABILITATION TRACKER ═══ -->
+      <div class="sov-prehab-tracker">
+        <div class="sov-prehab-head">
+          <div class="sov-prehab-kicker">Clinical Protocol &middot; OT-Informed</div>
+          <div class="sov-prehab-title">Sovereign Prehabilitation Tracker</div>
+          <div class="sov-prehab-sub">Daily checklist of evidence-based routines. Complete each movement to log the session.</div>
+        </div>
+        <div class="sov-protocol-switch" role="tablist">
+          <button type="button" class="sov-protocol-pill on" data-protocol="surgery" role="tab" aria-selected="true">Surgery Recovery</button>
+          <button type="button" class="sov-protocol-pill" data-protocol="fall" role="tab" aria-selected="false">Fall Prevention</button>
+        </div>
+        <div class="sov-progress-wrap" aria-label="Daily completion">
+          <div class="sov-progress-row">
+            <div class="sov-progress-lbl">Today&rsquo;s Protocol Completion</div>
+            <div class="sov-progress-pct" id="sov-prehab-pct">0%</div>
+          </div>
+          <div class="sov-progress-track"><div class="sov-progress-bar" id="sov-prehab-bar" style="width:0%"></div></div>
+          <div class="sov-progress-meta" id="sov-prehab-meta">0 of 0 complete</div>
+        </div>
+        <div class="sov-checklist" id="sov-prehab-list" role="list"></div>
+        <button type="button" class="sov-commit-btn" id="sov-prehab-commit">Log Prehab Session &#x2713;</button>
+      </div>
+
       <div style="background:linear-gradient(135deg,rgba(106,13,173,.15),rgba(74,8,128,.1));border:1px solid rgba(106,13,173,.3);border-radius:14px;padding:1rem;margin-bottom:1rem">
         <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-bottom:.4rem">&#x1F9E0; The OT Advantage</div>
         <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.75);line-height:1.65">Your coach is an <strong style="color:var(--wht)">Exercise Science student and future Occupational Therapist.</strong> Every prehab cue in this section is grounded in OT principles — joint mechanics, movement longevity, and occupation-specific load patterns. This is clinical-level precision that most personal trainers cannot offer.</div>
@@ -8658,6 +8716,8 @@ renderPrehab = function() {
   });
   html += '</div>';
   con.innerHTML += html;
+  // Render the Sovereign Prehabilitation Tracker (checklists + progress bar)
+  if (typeof renderSovPrehab === 'function') renderSovPrehab();
 };
 
 
@@ -8833,7 +8893,162 @@ function togglePrehab(i) {
   ec.classList.toggle('on');
 }
 
+// ─── SOVEREIGN PREHABILITATION TRACKER ────────────────────────────
+var SOV_PREHAB_PROTOCOLS = {
+  surgery: {
+    label: 'Surgery Recovery',
+    tag: 'Post-Op',
+    items: [
+      { id:'sur_ankle',   name:'Ankle Pumps',                  detail:'3 sets of 20 — flex and point to drive circulation, prevent DVT.', tag:'Circulation' },
+      { id:'sur_quadset', name:'Quad Sets (Isometric)',        detail:'5 second holds x 15 reps. Press knee down, engage vastus medialis.', tag:'Activation' },
+      { id:'sur_glute',   name:'Glute Sets (Isometric)',       detail:'5 second squeezes x 15 reps. Re-pattern dormant glutes post-op.', tag:'Activation' },
+      { id:'sur_heel',    name:'Heel Slides',                  detail:'2 sets of 10. Controlled knee flexion within pain-free range.', tag:'Mobility' },
+      { id:'sur_srl',     name:'Straight Leg Raise',           detail:'3 sets of 10. Lock quad, lift 12 inches, 2-second hold.', tag:'Strength' },
+      { id:'sur_breath',  name:'Diaphragmatic Breathing',      detail:'2 minutes. Restore vagal tone, offset anesthesia fatigue.', tag:'Recovery' },
+      { id:'sur_walk',    name:'Short Ambulation Round',       detail:'2 minutes of slow, assisted walking. Build tolerance daily.', tag:'Gait' }
+    ]
+  },
+  fall: {
+    label: 'Fall Prevention',
+    tag: 'Balance',
+    items: [
+      { id:'fall_sts',    name:'Sit-to-Stand',                 detail:'3 sets of 10. No hands if possible — rebuilds eccentric quad control.', tag:'Strength' },
+      { id:'fall_heel',   name:'Heel-to-Toe Walk (Tandem)',    detail:'20 steps along a straight line. Trains dynamic balance corridor.', tag:'Balance' },
+      { id:'fall_sls',    name:'Single-Leg Stance',            detail:'30 seconds per side. Progress to eyes-closed when stable.', tag:'Proprioception' },
+      { id:'fall_calf',   name:'Calf Raises',                  detail:'3 sets of 15. Controlled — protect Achilles and ankle complex.', tag:'Strength' },
+      { id:'fall_hip',    name:'Hip Abduction (Side-Lying)',   detail:'2 sets of 12 per side. Reinforce gluteus medius for lateral stability.', tag:'Hip Stability' },
+      { id:'fall_march',  name:'Marching in Place',            detail:'60 seconds. Rhythmic hip flexion trains the gait pattern.', tag:'Gait' },
+      { id:'fall_tchi',   name:'Weight Shift (Tai Chi Style)', detail:'2 minutes. Slow mediolateral shifts to teach recovery from perturbation.', tag:'Balance' }
+    ]
+  }
+};
 
+var SOV_PREHAB_CURRENT = 'surgery';
+
+function getSovPrehabState() {
+  var uid = (typeof VC !== 'undefined' && VC) ? VC : CU;
+  var d = GD();
+  if (!d.u) d.u = {};
+  if (!d.u[uid]) d.u[uid] = {};
+  if (!d.u[uid].prehabProgress) d.u[uid].prehabProgress = {};
+  var date = today();
+  if (!d.u[uid].prehabProgress[date]) d.u[uid].prehabProgress[date] = { surgery:[], fall:[] };
+  if (!d.u[uid].prehabProgress[date].surgery) d.u[uid].prehabProgress[date].surgery = [];
+  if (!d.u[uid].prehabProgress[date].fall) d.u[uid].prehabProgress[date].fall = [];
+  return { d:d, uid:uid, date:date, day:d.u[uid].prehabProgress[date] };
+}
+
+function renderSovPrehab() {
+  var list = document.getElementById('sov-prehab-list');
+  if (!list) return;
+  var proto = SOV_PREHAB_PROTOCOLS[SOV_PREHAB_CURRENT] || SOV_PREHAB_PROTOCOLS.surgery;
+  var st = getSovPrehabState();
+  var checked = st.day[SOV_PREHAB_CURRENT] || [];
+  list.innerHTML = proto.items.map(function(it) {
+    var done = checked.indexOf(it.id) !== -1;
+    return '<div class="sov-check-item' + (done ? ' done' : '') +
+      '" role="listitem" data-id="' + it.id + '" tabindex="0" aria-pressed="' + (done ? 'true' : 'false') + '">' +
+      '<div class="sov-check-box" aria-hidden="true"></div>' +
+      '<div class="sov-check-body">' +
+        '<div class="sov-check-name">' + it.name + '</div>' +
+        '<div class="sov-check-detail">' + it.detail + '</div>' +
+        (it.tag ? '<span class="sov-check-tag">' + it.tag + '</span>' : '') +
+      '</div></div>';
+  }).join('');
+  Array.prototype.forEach.call(list.querySelectorAll('.sov-check-item'), function(el) {
+    el.onclick = function() { toggleSovPrehabItem(el.dataset.id); };
+    el.onkeydown = function(e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleSovPrehabItem(el.dataset.id); } };
+  });
+  // Wire protocol switch + commit button (idempotent)
+  Array.prototype.forEach.call(document.querySelectorAll('.sov-protocol-pill'), function(btn) {
+    btn.onclick = function() { switchSovPrehabProtocol(btn.dataset.protocol); };
+    var active = btn.dataset.protocol === SOV_PREHAB_CURRENT;
+    btn.classList.toggle('on', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  var cb = document.getElementById('sov-prehab-commit');
+  if (cb) cb.onclick = saveSovPrehabRoutine;
+  updateSovPrehabProgress();
+}
+
+function toggleSovPrehabItem(id) {
+  var st = getSovPrehabState();
+  var arr = st.day[SOV_PREHAB_CURRENT];
+  var i = arr.indexOf(id);
+  if (i === -1) arr.push(id); else arr.splice(i, 1);
+  SD(st.d);
+  // Light DOM update — avoid full re-render flash
+  var el = document.querySelector('.sov-check-item[data-id="' + id + '"]');
+  if (el) {
+    var done = arr.indexOf(id) !== -1;
+    el.classList.toggle('done', done);
+    el.setAttribute('aria-pressed', done ? 'true' : 'false');
+  }
+  updateSovPrehabProgress();
+}
+
+function switchSovPrehabProtocol(name) {
+  if (!SOV_PREHAB_PROTOCOLS[name] || name === SOV_PREHAB_CURRENT) return;
+  SOV_PREHAB_CURRENT = name;
+  renderSovPrehab();
+}
+
+function updateSovPrehabProgress() {
+  var proto = SOV_PREHAB_PROTOCOLS[SOV_PREHAB_CURRENT] || SOV_PREHAB_PROTOCOLS.surgery;
+  var st = getSovPrehabState();
+  var checked = (st.day[SOV_PREHAB_CURRENT] || []).filter(function(id) {
+    return proto.items.some(function(it) { return it.id === id; });
+  });
+  var total = proto.items.length;
+  var pct = total ? Math.round((checked.length / total) * 100) : 0;
+  var barEl = document.getElementById('sov-prehab-bar');
+  var pctEl = document.getElementById('sov-prehab-pct');
+  var metaEl = document.getElementById('sov-prehab-meta');
+  var btn = document.getElementById('sov-prehab-commit');
+  if (barEl) barEl.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (metaEl) metaEl.textContent = checked.length + ' of ' + total + ' complete';
+  if (btn) btn.disabled = checked.length === 0;
+}
+
+// Routes a completed prehab routine through the same SAVELOG + BBF_SYNC.syncLog
+// pipeline used by the strength/cardio logger (type:'prehab').
+function saveSovPrehabRoutine() {
+  var st = getSovPrehabState();
+  var proto = SOV_PREHAB_PROTOCOLS[SOV_PREHAB_CURRENT] || SOV_PREHAB_PROTOCOLS.surgery;
+  var done = (st.day[SOV_PREHAB_CURRENT] || []).filter(function(id) {
+    return proto.items.some(function(it) { return it.id === id; });
+  });
+  if (!done.length) { if (typeof TOAST === 'function') TOAST('Check at least one movement first'); return; }
+  var exercises = done.map(function(id) {
+    var item = proto.items.filter(function(it) { return it.id === id; })[0];
+    return item ? item.name : id;
+  });
+  var pct = Math.round((done.length / proto.items.length) * 100);
+  if (!st.d.l) st.d.l = {};
+  if (!st.d.l[st.uid]) st.d.l[st.uid] = [];
+  var entry = {
+    date: st.date,
+    type: 'prehab',
+    protocol: SOV_PREHAB_CURRENT,
+    dur: '',
+    intensity: '',
+    wt: '',
+    bf: '',
+    notes: 'Sovereign Prehab: ' + proto.label + ' (' + done.length + '/' + proto.items.length + ' = ' + pct + '%)',
+    mood: '',
+    exercises: exercises,
+    loggedAt: new Date().toISOString(),
+    loggedBy: (typeof CU !== 'undefined' ? CU : st.uid)
+  };
+  st.d.l[st.uid].push(entry);
+  SD(st.d);
+  if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.syncLog) {
+    BBF_SYNC.syncLog(st.uid, entry);
+  }
+  if (typeof TOAST === 'function') TOAST('Prehab session logged ✓ ' + pct + '%');
+  if (typeof RH === 'function') RH();
+}
 
 // ─── PERSONA PROTOCOL BADGE ───────────────────────────────────────
 
