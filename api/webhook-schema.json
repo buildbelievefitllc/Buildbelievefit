@@ -54,9 +54,9 @@
   },
 
   "tier_mapping": {
-    "gateway":   {"tier_number": 1, "label": "Gateway",         "price_usd": 147,  "stripe_link": "buy.stripe.com/7sYfZjfnharV5Vg7UZaZi04", "brevo_template": 1},
-    "architect": {"tier_number": 2, "label": "Architect Hybrid", "price_usd": 497,  "stripe_link": null, "brevo_template": 2},
-    "sovereign": {"tier_number": 3, "label": "Sovereign Vault",  "price_usd": 1500, "stripe_link": null, "brevo_template": 3}
+    "gateway":   {"tier_number": 1, "label": "Gateway",         "price_usd": 147,  "stripe_link": "https://buy.stripe.com/cNi3cx6QL2ZtbfA0sxaZi08", "brevo_template": 1},
+    "architect": {"tier_number": 2, "label": "Architect Hybrid", "price_usd": 497,  "stripe_link": "https://buy.stripe.com/cNi4gBejd6bF3N86QVaZi09", "brevo_template": 2},
+    "sovereign": {"tier_number": 3, "label": "Sovereign Vault",  "price_usd": 1500, "stripe_link": "https://buy.stripe.com/cNibJ32AveIberMcbfaZi0a", "brevo_template": 3}
   },
 
   "language_detection": {
