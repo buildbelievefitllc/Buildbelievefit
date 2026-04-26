@@ -1,38 +1,26 @@
 // ═══════════════════════════════════════════════════════════════
-// BBF VAULT — Tally Webhook Simulator
-// Fires a mock Tally payload at the local /webhook/tally endpoint.
+// BBF VAULT — Engine Simulator
+// Fires a mock client payload at the local /process endpoint.
 // Usage: node simulate-webhook.js
 // ═══════════════════════════════════════════════════════════════
 
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
-const ENDPOINT = `http://localhost:${PORT}/webhook/tally`;
+const ENDPOINT = `http://localhost:${PORT}/process`;
 
 const payload = {
-  data: {
-    fields: [
-      { key: 'client_name', label: 'Client Name', value: 'Akeem Brown' },
-      { key: 'vault_email', label: 'Vault Email Address', value: 'test-vault@buildbelievefit.com' },
-      { key: 'age', label: 'Age', value: 32 },
-      { key: 'height_weight', label: 'Height & Weight', value: "5'10\", 175 lbs" },
-      {
-        key: 'clinical_history',
-        label: 'Clinical History',
-        value: 'No current musculoskeletal issues. Cleared for high-intensity participation.',
-      },
-      {
-        key: 'training_protocol',
-        label: 'Training Protocol',
-        value: 'Hypertrophy focus, 85% 1RM working loads.',
-      },
-      { key: 'liability_cleared', label: 'Liability Cleared', value: true },
-    ],
-  },
+  client_name: 'Akeem Brown',
+  vault_email: 'test-vault@buildbelievefit.com',
+  age: 32,
+  height_weight: "5'10\", 175 lbs",
+  clinical_history: 'No current musculoskeletal issues. Cleared for high-intensity participation.',
+  training_protocol: 'Hypertrophy focus, 85% 1RM working loads.',
+  liability_cleared: true,
 };
 
 (async () => {
-  console.log(`[SIMULATOR] Firing mock Tally payload at ${ENDPOINT}`);
+  console.log(`[SIMULATOR] Firing mock client payload at ${ENDPOINT}`);
   console.log('[SIMULATOR] Payload:', JSON.stringify(payload, null, 2));
 
   const startedAt = Date.now();

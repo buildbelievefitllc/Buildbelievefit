@@ -1,8 +1,9 @@
 {
   "_documentation": "BBF Stripe → Zapier → Brevo Webhook Schema",
-  "_version": "1.0",
-  "_updated": "2026-04-14",
+  "_version": "2.0",
+  "_updated": "2026-04-26",
   "_flow": "Stripe Payment → Zapier Webhook → Brevo Transactional Email",
+  "_tier_directive": "Spectrum of Success — Tier 1 Gateway ($147), Tier 2 Architect Hybrid ($497), Tier 3 Sovereign Vault ($1,500).",
 
   "stripe_to_zapier": {
     "_trigger": "Stripe: New Payment (or Checkout Session Completed)",
@@ -13,7 +14,7 @@
       "currency": "{{stripe.currency}}",
       "payment_id": "{{stripe.payment_intent}}",
       "product_name": "{{stripe.line_items[0].description}}",
-      "tier": "{{stripe.metadata.tier || derived from amount: 147=community, 697=elite, 2997=legacy}}",
+      "tier": "{{stripe.metadata.tier || derived from amount: 147=gateway, 497=architect, 1500=sovereign}}",
       "timestamp": "{{stripe.created}}"
     }
   },
@@ -35,17 +36,17 @@
     },
     "email_trigger": {
       "templateId_by_tier": {
-        "community": 1,
-        "elite": 2,
-        "legacy": 3
+        "gateway": 1,
+        "architect": 2,
+        "sovereign": 3
       },
       "to": [{"email": "{{customer_email}}", "name": "{{customer_name}}"}],
       "params": {
         "FIRSTNAME": "{{FIRSTNAME}}",
         "TIER": "{{tier}}",
-        "TIER_LABEL_EN": "{{tier === 'community' ? 'Community Blueprint' : tier === 'elite' ? 'Elite 8-Week Challenge' : 'Legacy Performance Protocol'}}",
-        "TIER_LABEL_ES": "{{tier === 'community' ? 'Plan Comunitario' : tier === 'elite' ? 'Desafío Elite de 8 Semanas' : 'Protocolo de Rendimiento Legacy'}}",
-        "TIER_LABEL_PT": "{{tier === 'community' ? 'Plano Comunitário' : tier === 'elite' ? 'Desafio Elite de 8 Semanas' : 'Protocolo de Performance Legacy'}}",
+        "TIER_LABEL_EN": "{{tier === 'gateway' ? 'Tier 1: Gateway' : tier === 'architect' ? 'Tier 2: Architect Hybrid' : 'Tier 3: Sovereign Vault'}}",
+        "TIER_LABEL_ES": "{{tier === 'gateway' ? 'Nivel 1: Acceso Gateway' : tier === 'architect' ? 'Nivel 2: Arquitecto Híbrido' : 'Nivel 3: Bóveda Soberana'}}",
+        "TIER_LABEL_PT": "{{tier === 'gateway' ? 'Nível 1: Acesso Gateway' : tier === 'architect' ? 'Nível 2: Arquiteto Híbrido' : 'Nível 3: Cofre Soberano'}}",
         "APP_URL": "https://buildbelievefit.fitness/bbf-app.html",
         "AMOUNT": "{{amount_paid}}"
       }
@@ -53,9 +54,9 @@
   },
 
   "tier_mapping": {
-    "community": {"price_usd": 147, "stripe_link": "buy.stripe.com/7sYfZjfnharV5Vg7UZaZi04", "brevo_template": 1},
-    "elite": {"price_usd": 697, "stripe_link": "buy.stripe.com/8x26oJ8YT43x6Zka37aZi05", "brevo_template": 2},
-    "legacy": {"price_usd": 2997, "stripe_link": "buy.stripe.com/eVqaEZ2AveIberM8Z3aZi06", "brevo_template": 3}
+    "gateway":   {"tier_number": 1, "label": "Gateway",         "price_usd": 147,  "stripe_link": "buy.stripe.com/7sYfZjfnharV5Vg7UZaZi04", "brevo_template": 1},
+    "architect": {"tier_number": 2, "label": "Architect Hybrid", "price_usd": 497,  "stripe_link": null, "brevo_template": 2},
+    "sovereign": {"tier_number": 3, "label": "Sovereign Vault",  "price_usd": 1500, "stripe_link": null, "brevo_template": 3}
   },
 
   "language_detection": {
