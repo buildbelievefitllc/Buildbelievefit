@@ -1,0 +1,188 @@
+/* ═══════════════════════════════════════════════════════════════════
+   BBF-PRICING.CSS — Phase 4 of the Sovereign Gold Standard elevation.
+   Featured tier elevation, SVG checkmark draw-in, Most Popular float,
+   pricing CTA gold treatment. Zero libraries, pure CSS + SVG.
+   Loads after the inline <style> so these rules win by cascade order.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── TRANSFORM-HYGIENE: compound scale + translate via custom prop ─── */
+.prog-c {
+  --prog-scale: 1;
+  transform: translateY(0) scale(var(--prog-scale));
+  transition:
+    transform    450ms var(--ease-sovereign),
+    border-color 300ms var(--ease-sovereign),
+    box-shadow   300ms var(--ease-sovereign);
+}
+.prog-c:hover         { transform: translateY(-3px) scale(var(--prog-scale)); }
+.prog-c.sel           { transform: translateY(-4px) scale(var(--prog-scale)); }
+.prog-c.dim:not(.featured) { transform: translateY(0)   scale(calc(var(--prog-scale) * 0.98)); }
+
+/* ── FEATURED TIER — permanent 1.05 scale, 2px gold border,
+      breathing inner glow. Sits above the siblings and reads as the
+      default choice the eye lands on. ─────────────────────────────── */
+.prog-c.featured {
+  --prog-scale: 1.05;
+  border-width: 2px;
+  border-color: var(--bbf-gold-550);
+  box-shadow:
+    0 20px 44px -18px rgba(212,175,55,.32),
+    0 4px 14px -4px rgba(0,0,0,.55),
+    inset 0 0 40px rgba(245,200,0,.08),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  animation: bbfFeaturedBreathe 4.2s var(--ease-glide) infinite;
+  z-index: 2;
+  position: relative;
+}
+.prog-c.featured:hover {
+  border-color: var(--bbf-gold-victory);
+  box-shadow:
+    0 26px 56px -18px rgba(212,175,55,.45),
+    0 6px 18px -4px rgba(0,0,0,.6),
+    inset 0 0 48px rgba(245,200,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.08);
+}
+@keyframes bbfFeaturedBreathe {
+  0%, 100% {
+    box-shadow:
+      0 20px 44px -18px rgba(212,175,55,.28),
+      0 4px 14px -4px rgba(0,0,0,.55),
+      inset 0 0 40px rgba(245,200,0,.08),
+      inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  50% {
+    box-shadow:
+      0 22px 50px -16px rgba(212,175,55,.38),
+      0 6px 18px -4px rgba(0,0,0,.55),
+      inset 0 0 64px rgba(245,200,0,.18),
+      inset 0 1px 0 rgba(255,255,255,.07);
+  }
+}
+
+/* ── MOST POPULAR PILL — gentle float, 2.5s loop ─────────────────── */
+.prog-badge {
+  animation: bbfPillFloat 2.5s ease-in-out infinite;
+  will-change: transform;
+  /* keep the existing translateX(-50%) from the legacy .prog-badge rule;
+     the keyframes use translate() with the x component preserved. */
+}
+@keyframes bbfPillFloat {
+  0%, 100% { transform: translate(-50%,  0);     }
+  50%      { transform: translate(-50%, -4px);   }
+}
+
+/* ── CHECKMARK ICONS — replace the ::before "✓" ─────────────────── */
+.prog-f li {
+  position: relative;
+  align-items: flex-start;
+  line-height: 1.45;
+}
+/* Kill the legacy ::before glyphs (both "✓" and "–") — our SVGs take over. */
+.prog-f li::before { display: none !important; }
+
+.pf-check {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--bbf-gold-550);
+  overflow: visible;
+}
+.prog-f li.no .pf-check { color: var(--bbf-purple-800); }
+.pf-check polyline,
+.pf-check line {
+  stroke-dasharray: 28;
+  stroke-dashoffset: 28;
+  transition: stroke-dashoffset 520ms var(--ease-sovereign);
+}
+/* Draw-in trigger: the card gets .is-drawn when it enters viewport. */
+.prog-c.is-drawn .pf-check polyline,
+.prog-c.is-drawn .pf-check line {
+  stroke-dashoffset: 0;
+}
+/* Per-item stagger — eye reads down the list as the checks ink in. */
+.prog-c.is-drawn .prog-f li:nth-child(1) .pf-check polyline,
+.prog-c.is-drawn .prog-f li:nth-child(1) .pf-check line { transition-delay:   0ms; }
+.prog-c.is-drawn .prog-f li:nth-child(2) .pf-check polyline,
+.prog-c.is-drawn .prog-f li:nth-child(2) .pf-check line { transition-delay:  80ms; }
+.prog-c.is-drawn .prog-f li:nth-child(3) .pf-check polyline,
+.prog-c.is-drawn .prog-f li:nth-child(3) .pf-check line { transition-delay: 160ms; }
+.prog-c.is-drawn .prog-f li:nth-child(4) .pf-check polyline,
+.prog-c.is-drawn .prog-f li:nth-child(4) .pf-check line { transition-delay: 240ms; }
+.prog-c.is-drawn .prog-f li:nth-child(5) .pf-check polyline,
+.prog-c.is-drawn .prog-f li:nth-child(5) .pf-check line { transition-delay: 320ms; }
+.prog-c.is-drawn .prog-f li:nth-child(6) .pf-check polyline,
+.prog-c.is-drawn .prog-f li:nth-child(6) .pf-check line { transition-delay: 400ms; }
+.prog-c.is-drawn .prog-f li:nth-child(7) .pf-check polyline,
+.prog-c.is-drawn .prog-f li:nth-child(7) .pf-check line { transition-delay: 480ms; }
+
+/* ── PRICING CTAs — Laboratory Gold + victory reservation ────────── */
+/* Tiers 1 and 2 get the brushed Laboratory Gold gradient. */
+.prog-cta {
+  background: linear-gradient(180deg, var(--bbf-gold-400) 0%, var(--bbf-gold-500) 35%, var(--bbf-gold-550) 70%, var(--bbf-gold-600) 100%);
+  border: 1px solid var(--bbf-gold-400);
+  color: #0a0a0a;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  padding: 0.95rem 1rem;
+  border-radius: var(--bbf-radius-md);
+  box-shadow:
+    0 6px 20px rgba(212,175,55,.38),
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(0,0,0,.22);
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 180ms var(--ease-sovereign),
+    box-shadow 240ms var(--ease-sovereign),
+    filter 200ms;
+}
+.prog-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 600ms var(--ease-sovereign);
+  pointer-events: none;
+}
+.prog-cta:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow:
+    0 12px 30px rgba(212,175,55,.55),
+    0 0 0 1px rgba(245, 207, 96, 0.4),
+    inset 0 1px 0 rgba(255,255,255,.38),
+    inset 0 -1px 0 rgba(0,0,0,.2);
+}
+.prog-cta:hover::after { transform: translateX(100%); }
+.prog-cta:active { transform: translateY(0); filter: brightness(.97); }
+
+/* Tier 3 ("Apply for Legacy") — the reserved victory-gold variant.
+   Slightly brighter top stop, pure gold-victory mid, 2px border.
+   One of the three site-wide victory-gold CTAs (Start My Path /
+   Get The App / Apply For Legacy). */
+.prog-cta--victory {
+  background: linear-gradient(180deg, #FFE88A 0%, var(--bbf-gold-victory) 45%, var(--bbf-gold-550) 100%);
+  border: 2px solid var(--bbf-gold-victory);
+  box-shadow:
+    0 8px 24px rgba(245, 200, 0, .5),
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 -1px 0 rgba(0,0,0,.22);
+}
+.prog-cta--victory:hover {
+  box-shadow:
+    0 14px 36px rgba(245, 200, 0, .65),
+    0 0 0 1px rgba(245, 232, 138, .45),
+    inset 0 1px 0 rgba(255,255,255,.45),
+    inset 0 -1px 0 rgba(0,0,0,.2);
+}
+
+/* ── REDUCED-MOTION FALLBACK ──────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .prog-c.featured { animation: none; }
+  .prog-badge      { animation: none; }
+  .pf-check polyline,
+  .pf-check line   { stroke-dashoffset: 0 !important; transition: none; }
+  .prog-cta::after { display: none; }
+}

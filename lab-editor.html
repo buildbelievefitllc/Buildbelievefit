@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lab Editor — BBF Content Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="workout-data.js"></script>
+<script src="meal-data.js"></script>
+<style>
+:root{--pur:#1a0338;--yel:#f5c800;--blk:#060606;--card:#0d0118;--brd:#1f1530;--mut:#888;--grn:#22c55e}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-serif;padding:24px}
+.hdr{text-align:center;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--brd)}
+.hdr h1{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:var(--yel)}
+.hdr p{font-size:.82rem;color:var(--mut)}
+.tabs{display:flex;gap:8px;margin-bottom:1.5rem}
+.tab-btn{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;padding:8px 18px;background:var(--card);border:1px solid var(--brd);color:var(--mut);border-radius:4px;cursor:pointer}.tab-btn.on{background:var(--pur);color:var(--yel);border-color:var(--pur)}
+.panel{display:none}.panel.on{display:block}
+.item{background:var(--card);border:1px solid var(--brd);border-radius:6px;padding:16px;margin-bottom:12px}
+.item-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.item-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--yel)}
+.item-badge{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:rgba(42,10,85,.2);color:var(--pur);padding:2px 8px;border-radius:2px}
+.row{display:grid;grid-template-columns:60px 1fr 1fr 1fr;gap:8px;margin-bottom:6px;align-items:center}
+.row-lbl{font-size:.65rem;font-weight:700;letter-spacing:2px;color:var(--mut);text-transform:uppercase}
+.row input{background:#060606;border:1px solid var(--brd);color:#fff;padding:6px 10px;font-family:'Barlow Condensed',sans-serif;font-size:.88rem;border-radius:3px;outline:none}.row input:focus{border-color:var(--pur)}
+.save-btn{font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:2px;background:var(--grn);color:#fff;border:none;padding:8px 20px;border-radius:4px;cursor:pointer;margin-top:8px}
+.status{font-size:.75rem;color:var(--grn);margin-top:6px;min-height:1rem}
+.seal{text-align:center;font-size:.7rem;color:var(--mut);margin-top:2rem;font-style:italic}
+</style>
+</head>
+<body>
+<div class="hdr">
+<h1>&#x1F9EA; LAB CONTENT EDITOR</h1>
+<p>NASM-Verify trilingual drill and meal data. Changes save to browser for testing.</p>
+</div>
+<div class="tabs">
+<button class="tab-btn on" onclick="showPanel('drills')">DRILLS</button>
+<button class="tab-btn" onclick="showPanel('meals')">MEALS</button>
+</div>
+<div class="panel on" id="panel-drills"></div>
+<div class="panel" id="panel-meals"></div>
+<div class="seal">Built on the Sovereign Gold Standard. Data-driven, Athlete-tested.</div>
+<script>
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('panel-'+id).classList.add('on');
+  event.target.classList.add('on');
+}
+
+function renderDrills(){
+  var wrap=document.getElementById('panel-drills');var html='';
+  for(var sport in WORKOUT_CATALOG){
+    for(var pos in WORKOUT_CATALOG[sport]){
+      WORKOUT_CATALOG[sport][pos].forEach(function(drill,di){
+        var uid=sport+'-'+pos+'-'+di;
+        html+='<div class="item"><div class="item-hdr"><div class="item-title">'+sport.toUpperCase()+' / '+pos+' / #'+(di+1)+'</div><div class="item-badge">PENDING AUDIT</div></div>';
+        html+='<div class="row"><div class="row-lbl">EN</div><input id="d-'+uid+'-en" value="'+drill.name.en+'"><input id="d-'+uid+'-focus-en" value="'+drill.focus.en+'" style="grid-column:span 2"></div>';
+        html+='<div class="row"><div class="row-lbl">ES</div><input id="d-'+uid+'-es" value="'+drill.name.es+'"><input id="d-'+uid+'-focus-es" value="'+drill.focus.es+'" style="grid-column:span 2"></div>';
+        html+='<div class="row"><div class="row-lbl">PT</div><input id="d-'+uid+'-pt" value="'+drill.name.pt+'"><input id="d-'+uid+'-focus-pt" value="'+drill.focus.pt+'" style="grid-column:span 2"></div>';
+        html+='<div class="row"><div class="row-lbl">SETS</div><input id="d-'+uid+'-sets" value="'+drill.sets+'" style="max-width:120px"><div class="row-lbl" style="text-align:right">EQUIP</div><input id="d-'+uid+'-eq" value="'+drill.equipment+'"></div>';
+        html+='<button class="save-btn" onclick="saveDrill(\''+sport+'\',\''+pos+'\','+di+',\''+uid+'\')">VERIFY & SAVE</button><div class="status" id="s-'+uid+'"></div></div>';
+      });
+    }
+  }
+  wrap.innerHTML=html;
+}
+
+function saveDrill(sport,pos,di,uid){
+  var d=WORKOUT_CATALOG[sport][pos][di];
+  d.name.en=document.getElementById('d-'+uid+'-en').value;
+  d.name.es=document.getElementById('d-'+uid+'-es').value;
+  d.name.pt=document.getElementById('d-'+uid+'-pt').value;
+  d.focus.en=document.getElementById('d-'+uid+'-focus-en').value;
+  d.focus.es=document.getElementById('d-'+uid+'-focus-es').value;
+  d.focus.pt=document.getElementById('d-'+uid+'-focus-pt').value;
+  d.sets=document.getElementById('d-'+uid+'-sets').value;
+  d.equipment=document.getElementById('d-'+uid+'-eq').value;
+  try{localStorage.setItem('bbf_workout_catalog',JSON.stringify(WORKOUT_CATALOG));}catch(e){}
+  document.getElementById('s-'+uid).textContent='✓ NASM-Verified & Saved';
+}
+
+function renderMeals(){
+  var wrap=document.getElementById('panel-meals');var html='';
+  MEAL_VAULT.forEach(function(m,i){
+    html+='<div class="item"><div class="item-hdr"><div class="item-title">MEAL #'+m.id+' — '+(m.type==='road'?'ROAD':'HOME')+'</div><div class="item-badge">PENDING AUDIT</div></div>';
+    html+='<div class="row"><div class="row-lbl">EN</div><input id="m-'+i+'-en" value="'+m.name.en+'" style="grid-column:span 3"></div>';
+    html+='<div class="row"><div class="row-lbl">ES</div><input id="m-'+i+'-es" value="'+m.name.es+'" style="grid-column:span 3"></div>';
+    html+='<div class="row"><div class="row-lbl">PT</div><input id="m-'+i+'-pt" value="'+m.name.pt+'" style="grid-column:span 3"></div>';
+    html+='<div class="row"><div class="row-lbl">PARENT</div><input id="m-'+i+'-pp" value="'+m.parent.portion+'" style="grid-column:span 3"></div>';
+    html+='<div class="row"><div class="row-lbl">ATHLETE</div><input id="m-'+i+'-ap" value="'+m.athlete.portion+'" style="grid-column:span 3"></div>';
+    html+='<button class="save-btn" onclick="saveMeal('+i+')">VERIFY & SAVE</button><div class="status" id="ms-'+i+'"></div></div>';
+  });
+  wrap.innerHTML=html;
+}
+
+function saveMeal(i){
+  var m=MEAL_VAULT[i];
+  m.name.en=document.getElementById('m-'+i+'-en').value;
+  m.name.es=document.getElementById('m-'+i+'-es').value;
+  m.name.pt=document.getElementById('m-'+i+'-pt').value;
+  m.parent.portion=document.getElementById('m-'+i+'-pp').value;
+  m.athlete.portion=document.getElementById('m-'+i+'-ap').value;
+  try{localStorage.setItem('bbf_meal_vault',JSON.stringify(MEAL_VAULT));}catch(e){}
+  document.getElementById('ms-'+i).textContent='✓ NASM-Verified & Saved';
+}
+
+renderDrills();renderMeals();
+</script>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mastermind Portal — Build Believe Fit</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/bbf-tokens.css"/>
+<script src="env.js"></script>
+<script src="bbf-sync.js"></script>
+<script src="portal-engine.js"></script>
+<script src="comlink-engine.js"></script>
+<style>
+:root{--pur:#1a0338;--yel:#f5c800;--gold:#f5c800;--blk:#060606;--card:#0d0118;--brd:#1f1530;--mut:#888;--grn:#22c55e;--red:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-serif;min-height:100vh}
+.hdr{background:linear-gradient(135deg,#060606 0%,#1a0030 60%,#060606 100%);border-bottom:2px solid var(--gold);padding:24px;text-align:center;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:-60px;right:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(42,10,85,.2) 0%,transparent 70%);pointer-events:none}
+.hdr-badge{font-size:.6rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.hdr-t{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:3px;color:#fff;line-height:1}.hdr-t span{color:var(--gold)}
+.hdr-s{font-size:.78rem;color:var(--mut);margin-top:4px;letter-spacing:2px}
+.nav-bar{display:flex;background:#0d0d0d;border-bottom:1px solid var(--brd);overflow-x:auto;scrollbar-width:none}
+.nav-bar::-webkit-scrollbar{display:none}
+.nav-btn{flex-shrink:0;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:2px;padding:12px 20px;background:none;border:none;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}.nav-btn:hover{color:#ccc}.nav-btn.on{color:var(--gold);border-bottom-color:var(--gold);background:rgba(245,200,0,.05)}
+.cnt{max-width:900px;margin:0 auto;padding:24px 20px}
+.panel{display:none}.panel.on{display:block}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:2rem}
+.stat{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:1rem;text-align:center}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold);line-height:1}
+.stat-l{font-size:.62rem;font-weight:700;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-top:2px}
+.seal{text-align:center;font-size:.65rem;color:var(--mut);margin-top:3rem;padding-top:1rem;border-top:1px solid var(--brd);font-style:italic}
+.ent-row{display:flex;align-items:center;gap:1rem;padding:.8rem;background:#060606;border:1px solid var(--brd);border-radius:8px;margin-bottom:.5rem}
+.ent-name{flex:1;font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:#fff}
+.ent-toggle{width:42px;height:22px;background:var(--brd);border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}.ent-toggle.on{background:#f5c800}
+.ent-toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}.ent-toggle.on::after{transform:translateX(20px)}
+.ent-lbl{font-size:.65rem;font-weight:700;letter-spacing:1px;color:var(--mut);text-transform:uppercase}
+.ent-status{font-size:.65rem;font-weight:700;letter-spacing:1px;min-width:60px;text-align:right}
+
+/* ═══ LABORATORY GOLD CTA — v2 ═══════════════════════════════ */
+.btn-y, .nc, .lbtn, .dbtn, .submit-btn, .pathfinder-cta {
+  background: linear-gradient(180deg,#F2D769 0%,#E6C24F 25%,#D4AF37 55%,#A8862A 100%) !important;
+  border: 1px solid #F2D769 !important;
+  color: #0a0a0a !important;
+  box-shadow:
+    0 6px 22px rgba(212,175,55,.38),
+    0 1px 0 rgba(255,255,255,.25) inset,
+    0 -1px 0 rgba(0,0,0,.25) inset !important;
+  letter-spacing: 2.5px;
+  transition: transform .18s cubic-bezier(.2,.8,.25,1),
+              box-shadow .25s ease, filter .2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-y::after, .nc::after, .lbtn::after, .dbtn::after,
+.submit-btn::after, .pathfinder-cta::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%);
+  transform: translateX(-100%); transition: transform .55s ease;
+  pointer-events:none;
+}
+.btn-y:hover, .nc:hover, .lbtn:hover, .dbtn:hover,
+.submit-btn:hover, .pathfinder-cta:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 12px 34px rgba(212,175,55,.55),
+    0 0 0 1px rgba(242,215,105,.35),
+    0 1px 0 rgba(255,255,255,.35) inset !important;
+  filter: brightness(1.05);
+}
+.btn-y:hover::after, .nc:hover::after, .lbtn:hover::after,
+.dbtn:hover::after, .submit-btn:hover::after, .pathfinder-cta:hover::after {
+  transform: translateX(100%);
+}
+.btn-y:active, .nc:active, .lbtn:active, .dbtn:active,
+.submit-btn:active, .pathfinder-cta:active {
+  transform: translateY(0) scale(.995);
+  filter: brightness(.97);
+}
+
+/* ═══ DEPTH — SOVEREIGN COMMAND CENTER ═══════════════════════ */
+.stat, .ent-row {
+  background: linear-gradient(180deg,#141414 0%,#0b0b0b 100%);
+  border: 1px solid #222;
+  box-shadow:
+    0 12px 30px -14px rgba(0,0,0,.8),
+    0 2px 8px -2px rgba(0,0,0,.55),
+    0 1px 0 rgba(255,255,255,.04) inset;
+  transition: transform .2s ease, box-shadow .25s ease, border-color .25s;
+}
+.stat:hover, .ent-row:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212,175,55,.35);
+  box-shadow:
+    0 18px 42px -14px rgba(212,175,55,.25),
+    0 0 0 1px rgba(212,175,55,.2) inset;
+}
+.hdr {
+  box-shadow: 0 24px 48px -24px rgba(106,13,173,.55), 0 0 0 1px rgba(212,175,55,.18) inset;
+}
+
+/* ═══ GLASSMORPHISM — STICKY HEADER + NAV BAR ════════════════ */
+.hdr, .nav-bar {
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+.nav-bar {
+  background: rgba(13,13,13,.6) !important;
+  position: sticky; top: 0; z-index: 20;
+}
+
+/* ═══ SOVEREIGN VAULT ATMOSPHERE — extended into Mastermind Portal ═══ */
+body {
+  background:
+    conic-gradient(from 165deg at 88% -2%, rgba(245, 200, 0, 0.06) 0deg, rgba(245, 200, 0, 0) 95deg, rgba(245, 200, 0, 0) 360deg),
+    radial-gradient(ellipse 130% 95% at 50% 24%, var(--bbf-purple-800) 0%, var(--bbf-purple-950) 65%, var(--bbf-purple-950) 100%),
+    var(--bbf-purple-950) !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat;
+  position: relative;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
+}
+.hdr, .nav-bar, .stat, .ent-row, main, section { position: relative; z-index: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { display: none; }
+}
+
+/* ═══ COMLINK DISPATCH (Phase 4 — Mastermind side) ═══ */
+.cd-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--mut);
+  font-size: .85rem;
+  letter-spacing: 2px;
+}
+.cd-queue { display: flex; flex-direction: column; gap: .8rem; }
+.cd-card {
+  background: linear-gradient(180deg, var(--card) 0%, #060606 100%);
+  border: 1px solid var(--brd);
+  border-left: 3px solid var(--gold);
+  border-radius: 10px;
+  padding: 1rem 1rem 1.1rem;
+}
+.cd-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: .55rem;
+}
+.cd-client {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  color: #fff;
+}
+.cd-time {
+  font-family: 'Menlo', ui-monospace, monospace;
+  font-size: .65rem;
+  color: rgba(245,200,0,.55);
+  letter-spacing: 1.5px;
+}
+.cd-text {
+  background: rgba(0,0,0,.45);
+  border: 1px dashed rgba(245,200,0,.2);
+  border-radius: 8px;
+  padding: .7rem .85rem;
+  font-size: .88rem;
+  line-height: 1.55;
+  color: #e8e8e8;
+  margin-bottom: .65rem;
+}
+.cd-audio {
+  width: 100%;
+  height: 36px;
+  margin-bottom: .65rem;
+}
+.cd-controls { display: flex; flex-direction: column; gap: .5rem; }
+.cd-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .58rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.cd-select, .cd-note {
+  width: 100%;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(245,200,0,.25);
+  border-radius: 8px;
+  color: #fff;
+  padding: .6rem .75rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .88rem;
+  outline: none;
+  -webkit-appearance: none; appearance: none;
+}
+.cd-select:focus, .cd-note:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(245,200,0,.15);
+}
+.cd-select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23F5C800' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='3,5 7,9 11,5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right .75rem center;
+  padding-right: 2rem;
+}
+.cd-note { min-height: 70px; resize: vertical; }
+.cd-deploy {
+  width: 100%;
+  padding: .8rem;
+  border-radius: 8px;
+  border: 1px solid #F2D769;
+  background: linear-gradient(180deg, #F2D769 0%, #E6C24F 35%, #D4AF37 70%, #A8862A 100%);
+  color: #0a0a0a;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .85rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(212,175,55,.4), inset 0 1px 0 rgba(255,255,255,.3);
+  transition: transform .18s, filter .2s;
+}
+.cd-deploy:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.cd-deploy:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+.cd-deploy.is-deployed {
+  background: transparent;
+  color: #22c55e;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px rgba(34,197,94,.25);
+  cursor: default;
+}
+</style>
+</head>
+<body>
+
+<script>
+if (!BBF_PORTAL.verify()) { BBF_PORTAL.redirect(); }
+</script>
+
+<div class="hdr">
+<div class="hdr-badge">FOUNDER ACCESS ONLY</div>
+<div class="hdr-t">SOVEREIGN <span>COMMAND CENTER</span></div>
+<div class="hdr-s">Audit Triage &bull; Client Intelligence &bull; Performance Oversight</div>
+</div>
+
+<div class="nav-bar">
+<button class="nav-btn on" onclick="showPanel('triage')">&#x1F6A8; Audit Triage</button>
+<button class="nav-btn" onclick="showPanel('roster')">&#x1F465; Roster</button>
+<button class="nav-btn" onclick="showPanel('metrics')">&#x1F4CA; Metrics</button>
+<button class="nav-btn" onclick="showPanel('comlink')">&#x1F4E1; Comlink Dispatch</button>
+<button class="nav-btn" onclick="window.location.href='admin.html'">&#x1F6E1; Admin Controls</button>
+<button class="nav-btn" onclick="window.location.href='bbf-app.html'">&#x2190; Back to App</button>
+</div>
+
+<div class="cnt">
+
+<!-- TRIAGE PANEL -->
+<div class="panel on" id="panel-triage">
+<div class="stat-row">
+<div class="stat"><div class="stat-n" id="stat-pending">—</div><div class="stat-l">Pending Audits</div></div>
+<div class="stat"><div class="stat-n" id="stat-clients">—</div><div class="stat-l">Active Clients</div></div>
+<div class="stat"><div class="stat-n" id="stat-logs">—</div><div class="stat-l">Total Logs</div></div>
+</div>
+<div id="audit-triage-board"></div>
+
+<!-- ENTITLEMENTS PANEL -->
+<div style="background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:1.2rem;margin-top:1.5rem">
+<div style="font-family:'Bebas Neue',sans-serif;font-size:.75rem;letter-spacing:3px;color:#D4AF37;margin-bottom:1rem">ENTITLEMENTS CONTROL</div>
+<div id="entitlements-list"></div>
+</div>
+</div>
+
+<!-- ROSTER PANEL -->
+<div class="panel" id="panel-roster">
+<div id="roster-list" style="font-size:.85rem;color:var(--mut)">Loading roster...</div>
+</div>
+
+<!-- METRICS PANEL -->
+<div class="panel" id="panel-metrics">
+<div style="text-align:center;padding:3rem;color:var(--mut);font-size:.85rem;letter-spacing:2px">Metrics dashboard — coming in the next Titan Build.</div>
+</div>
+
+<!-- COMLINK DISPATCH PANEL — Phase 4 -->
+<div class="panel" id="panel-comlink">
+<div style="font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:3px;color:var(--gold);margin-bottom:.3rem;text-transform:uppercase">&#x1F4E1; Comlink Dispatch</div>
+<div style="font-size:.82rem;color:var(--mut);margin-bottom:1.2rem;letter-spacing:1px">Incoming SOS signals from the Roster. Select a protocol video, add a custom note, and deploy the Holographic Intercept.</div>
+<div class="cd-queue" id="cd-queue">
+  <div class="cd-empty">Loading dispatch queue&hellip;</div>
+</div>
+</div>
+
+</div>
+
+<div class="seal">Sovereign Gold Standard &bull; Est. 2021 &bull; Build Believe Fit LLC</div>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('panel-'+id).classList.add('on');
+  event.target.classList.add('on');
+  if (id === 'triage')  BBF_PORTAL.load();
+  if (id === 'roster')  loadRoster();
+  if (id === 'comlink') renderComlinkQueue();
+}
+
+function renderComlinkQueue() {
+  var wrap = document.getElementById('cd-queue');
+  if (!wrap || typeof BBF_COMLINK === 'undefined') return;
+  var queue = BBF_COMLINK.fetchPendingSOSQueue();
+  if (!queue.length) {
+    wrap.innerHTML = '<div class="cd-empty">\u2728 All clear. No pending SOS signals from the Roster.</div>';
+    return;
+  }
+  var library = BBF_COMLINK.VIDEO_LIBRARY || [];
+  var lang = (window.BBF_LANG && BBF_LANG.get) ? BBF_LANG.get() : 'en';
+  wrap.innerHTML = queue.map(function(sos){
+    var timeLbl = new Date(sos.created_at).toLocaleString();
+    var audioBlock = sos.audio_url ? '<audio controls src="' + sos.audio_url + '" class="cd-audio"></audio>' : '';
+    var textBlock = sos.text ? '<div class="cd-text">' + _escape(sos.text) + '</div>' : '';
+    var options = library.map(function(v){
+      return '<option value="' + v.id + '">' + (v[lang] || v.en) + ' &middot; ' + v.duration + '</option>';
+    }).join('');
+    return (
+      '<div class="cd-card" data-sos-id="' + sos.id + '" data-client-id="' + sos.client_id + '">' +
+        '<div class="cd-head">' +
+          '<div class="cd-client">' + _escape(sos.client_name) + '</div>' +
+          '<div class="cd-time">' + _escape(timeLbl) + '</div>' +
+        '</div>' +
+        textBlock + audioBlock +
+        '<div class="cd-controls">' +
+          '<div class="cd-label">Select Video Protocol</div>' +
+          '<select class="cd-select">' + options + '</select>' +
+          '<div class="cd-label">Custom Architect Note</div>' +
+          '<textarea class="cd-note" maxlength="400" placeholder="e.g. Marcus \u2014 your lumbar flare-up reads like last cycle\u2019s. Run the decompression flow tonight; we re-audit Monday."></textarea>' +
+          '<button class="cd-deploy" type="button" onclick="deployComlinkReply(this)">\u26A1 Deploy Directive</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+function deployComlinkReply(btn) {
+  if (typeof BBF_COMLINK === 'undefined') return;
+  var card = btn.closest('.cd-card');
+  if (!card) return;
+  var sosId    = card.getAttribute('data-sos-id');
+  var clientId = card.getAttribute('data-client-id');
+  var videoId  = card.querySelector('.cd-select').value;
+  var note     = card.querySelector('.cd-note').value;
+  var result = BBF_COMLINK.deployReply(clientId, { sosId: sosId, videoId: videoId, note: note });
+  if (!result.ok) {
+    alert('\u26A0 Deploy failed: ' + (result.error || 'unknown'));
+    return;
+  }
+  btn.classList.add('is-deployed');
+  btn.textContent = '\u2713 Deployed \u00b7 Awaiting Client Acknowledgement';
+  btn.disabled = true;
+  card.querySelector('.cd-select').disabled = true;
+  card.querySelector('.cd-note').disabled = true;
+}
+
+function _escape(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function loadRoster() {
+  try {
+    var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+    var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
+    var wrap = document.getElementById('roster-list');
+    wrap.innerHTML = clients.map(function(e) {
+      var uid = e[0], u = e[1];
+      var status = u.access_status || 'unlocked';
+      var sColor = status==='locked'?'#ef4444':status==='recovery'?'#f59e0b':'#22c55e';
+      var logs = (d.l[uid] || []).filter(function(l){return l.type!=='note';}).length;
+      return '<div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:1rem;margin-bottom:.6rem;display:flex;align-items:center;gap:1rem">' +
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+sColor+'"></div>' +
+        '<div style="flex:1"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:1rem;letter-spacing:2px;color:#fff">'+(u.name||uid)+'</div><div style="font-size:.72rem;color:#888">'+(u.type||'Client')+' • '+(u.goal||'No goal')+' • '+logs+' sessions</div></div>' +
+        '<div style="font-size:.65rem;font-weight:700;letter-spacing:1px;color:'+sColor+';text-transform:uppercase">'+status+'</div></div>';
+    }).join('');
+  } catch(e) {}
+}
+
+function renderEntitlements() {
+  try {
+    var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+    var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
+    var wrap = document.getElementById('entitlements-list');
+    if (!wrap) return;
+    wrap.innerHTML = clients.map(function(e) {
+      var uid = e[0], u = e[1];
+      var trial = u.trial_status === 'active';
+      return '<div class="ent-row">' +
+        '<div class="ent-name">' + (u.name || uid) + '</div>' +
+        '<div class="ent-lbl">Sovereign Trial</div>' +
+        '<div class="ent-toggle' + (trial ? ' on' : '') + '" onclick="BBF_PORTAL.toggleTrial(\'' + uid + '\',this)"></div>' +
+        '<span class="ent-status" id="trial-status-' + uid + '" style="color:' + (trial ? '#D4AF37' : '#555') + '">' + (trial ? 'ACTIVE' : 'OFF') + '</span>' +
+        '</div>';
+    }).join('');
+  } catch(e) {}
+}
+
+function toggleTrial(uid, el) {
+  try {
+    var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+    if (!d.u[uid]) return;
+    var isNowActive = d.u[uid].trial_status !== 'active';
+    d.u[uid].trial_status = isNowActive ? 'active' : 'inactive';
+    if (isNowActive) d.u[uid].trial_start_date = new Date().toISOString();
+    localStorage.setItem('bbf_v7', JSON.stringify(d));
+    el.classList.toggle('on', isNowActive);
+    var status = document.getElementById('trial-status-' + uid);
+    if (status) { status.textContent = isNowActive ? 'ACTIVE' : 'OFF'; status.style.color = isNowActive ? '#D4AF37' : '#555'; }
+    if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.toggleSovereignTrial) {
+      BBF_SYNC.toggleSovereignTrial(uid, isNowActive);
+    }
+  } catch(e) { console.error('Toggle trial error:', e); }
+}
+
+// Init
+BBF_PORTAL.load();
+renderEntitlements();
+try {
+  var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+  var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
+  var totalLogs = 0;
+  for (var uid in (d.l || {})) { totalLogs += (d.l[uid] || []).length; }
+  document.getElementById('stat-clients').textContent = clients.length;
+  document.getElementById('stat-logs').textContent = totalLogs;
+  setTimeout(function() {
+    var stats = BBF_PORTAL.stats();
+    document.getElementById('stat-pending').textContent = stats.total;
+  }, 500);
+} catch(e) {}
+</script>
+</body>
+</html>

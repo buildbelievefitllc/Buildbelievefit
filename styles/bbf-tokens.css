@@ -1,0 +1,132 @@
+/* ═══════════════════════════════════════════════════════════════════
+   BBF-TOKENS.CSS — The Sovereign Gold Standard design system
+   Phase 1 of the visual elevation: design tokens + atmosphere.
+   Loaded AFTER the legacy inline <style> block so these tokens and
+   the global atmospheric layer win by cascade position without
+   disturbing any existing selector.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── PURPLE RAMP — 5 steps, deep eggplant → electric royal ─────── */
+  --bbf-purple-500: #9D27C9;   /* electric royal — hero punch */
+  --bbf-purple-600: #6A0DAD;   /* brand purple (matches legacy --pur) */
+  --bbf-purple-700: #4A0880;   /* deeper */
+  --bbf-purple-800: #2D0555;   /* atmospheric mid */
+  --bbf-purple-900: #1E0340;   /* card surface — between 800 and 950 */
+  --bbf-purple-950: #110128;   /* near-black eggplant */
+
+  /* ── GOLD RAMP — 5 steps, warm cream → deep victory gold ───────── */
+  --bbf-gold-300:  #FBE3A0;    /* warm cream-gold */
+  --bbf-gold-400:  #F5CF60;    /* soft */
+  --bbf-gold-500:  #E6C24F;    /* core laboratory gold */
+  --bbf-gold-550:  #D4AF37;    /* deeper laboratory gold */
+  --bbf-gold-600:  #A8862A;    /* deep victory gold */
+
+  /* ── VICTORY GOLD — RESERVED for primary CTAs ONLY ─────────────────
+     Do NOT use on body copy, borders, or secondary actions. Reserved
+     for: Start My Path · Get The App · Apply For Legacy. Scarcity = value. */
+  --bbf-gold-victory: #F5C800;
+
+  /* ── SPACING SCALE ─────────────────────────────────────────────── */
+  --bbf-space-1:  4px;
+  --bbf-space-2:  8px;
+  --bbf-space-3:  12px;
+  --bbf-space-4:  16px;
+  --bbf-space-5:  24px;
+  --bbf-space-6:  32px;
+  --bbf-space-7:  48px;
+  --bbf-space-8:  64px;
+  --bbf-space-9:  96px;
+
+  /* ── RADIUS SCALE ──────────────────────────────────────────────── */
+  --bbf-radius-sm:  4px;
+  --bbf-radius-md:  8px;
+  --bbf-radius-lg:  12px;
+  --bbf-radius-xl:  16px;
+  --bbf-radius-2xl: 24px;
+  --bbf-radius-pill: 999px;
+
+  /* ── SHADOW SCALE ──────────────────────────────────────────────── */
+  --bbf-shadow-sm:    0 2px 8px -2px rgba(0,0,0,.4);
+  --bbf-shadow-md:    0 8px 22px -8px rgba(0,0,0,.55);
+  --bbf-shadow-lg:    0 18px 40px -18px rgba(0,0,0,.7);
+  --bbf-shadow-xl:    0 28px 60px -20px rgba(0,0,0,.75);
+  --bbf-shadow-glow-gold:   0 0 28px rgba(245,200,0,.45);
+  --bbf-shadow-glow-purple: 0 0 32px rgba(106,13,173,.45);
+  --bbf-shadow-rim-gold:    0 0 0 1px rgba(212,175,55,.35), 0 0 22px rgba(212,175,55,.25);
+
+  /* ── MOTION EASING + DURATION ──────────────────────────────────── */
+  --ease-sovereign: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-authority: cubic-bezier(0.85, 0, 0.15, 1);
+  --ease-glide:     cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --duration-quick:      180ms;
+  --duration-smooth:     450ms;
+  --duration-cinematic:  900ms;
+  --duration-marquee:     60s;
+
+  /* ── TYPOGRAPHY SCALE (display) ────────────────────────────────── */
+  --bbf-font-display: 'Bebas Neue', 'Anton', 'Druk Wide', Impact, sans-serif;
+  --bbf-font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bbf-tracking-tight:   -0.02em;
+  --bbf-tracking-display:  0.04em;
+  --bbf-tracking-eyebrow:  0.32em;
+}
+
+/* ═════════════════════════════════════════════════════════════════
+   GLOBAL ATMOSPHERIC BACKGROUND
+   A three-layer stack painted on <body>:
+     1. Gold "god ray" conic-gradient from the top-right corner (~4%)
+     2. Radial purple glow from mid-upper, fading to deep eggplant
+     3. Deep eggplant solid fallback
+   background-attachment: fixed keeps the atmosphere stationary while
+   content scrolls — creates the "stepping into a lab" cinematic feel.
+   ═════════════════════════════════════════════════════════════════ */
+body {
+  background:
+    conic-gradient(from 165deg at 88% -2%, rgba(245, 200, 0, 0.055) 0deg, rgba(245, 200, 0, 0) 95deg, rgba(245, 200, 0, 0) 360deg),
+    radial-gradient(ellipse 130% 95% at 50% 28%, var(--bbf-purple-800) 0%, var(--bbf-purple-950) 68%, var(--bbf-purple-950) 100%),
+    var(--bbf-purple-950);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
+/* ═════════════════════════════════════════════════════════════════
+   FILM GRAIN OVERLAY
+   Inline SVG noise via <feTurbulence> encoded as a data URI. Sits on
+   body::after with mix-blend-mode: overlay at 4% opacity — enough to
+   break up flat gradients without adding any perceivable texture.
+   Pointer-events off so it never blocks clicks. z-index 9999 puts it
+   above all content but below any modal (which use z-index 9999+
+   themselves — those have their own explicit opaque backgrounds so
+   the grain reads through modal shadows harmlessly).
+   ═════════════════════════════════════════════════════════════════ */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
+}
+
+/* ═════════════════════════════════════════════════════════════════
+   REDUCED-MOTION KILL SWITCH
+   Respects prefers-reduced-motion site-wide. Animations collapse to
+   ~0ms, iterations cap at 1, transitions snap. Future phases (Ken
+   Burns, count-up, marquee, cursor spring) inherit this guard for
+   free — I don't need to duplicate it in each component.
+   ═════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Disable film grain for users who may find noise distracting */
+  body::after { display: none; }
+}

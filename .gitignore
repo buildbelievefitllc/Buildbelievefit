@@ -1,0 +1,7 @@
+*.txt
+server.log
+node_modules/
+env.js
+.env
+.env.local
+package-lock.json

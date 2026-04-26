@@ -1,0 +1,720 @@
+/* ═══════════════════════════════════════════════════════════════════
+   BBF-VAULT.CSS — Phase 1 of the Private App Vault Mode.
+   Atmosphere + vertical gold light-beam + vault-card frame for the
+   #auth screen in bbf-app.html. All styles are SCOPED to #auth so
+   no other screen (home/workout/nutrition/profile/trainer views)
+   is affected. Zero DOM changes — targets existing IDs + classes
+   so form actions, name attributes, and submit handlers remain
+   exactly as shipped.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── GLOBAL BODY RESET for bbf-app.html ───────────────────────────
+   bbf-tokens.css globally paints body with the Track 1 atmosphere +
+   4% film grain body::after. That's correct for the public landing
+   page but would bleed across every screen of the private app
+   (home/workout/nutrition/profile/trainer roster). We suppress it
+   here and then re-apply the atmosphere ONLY to #auth via the
+   scoped rules below. bbf-vault.css is only linked from bbf-app.html,
+   so this reset is contained to the app context. */
+html, body {
+  background: var(--blk) !important;        /* preserves the legacy flat-black appearance of every non-auth screen */
+  background-attachment: initial !important;
+  min-height: 0;
+}
+body::after { display: none !important; }
+
+/* ── ATMOSPHERE — scoped to the auth screen only ──────────────── */
+#auth {
+  /* Replace the legacy flat background (var(--blk)) with the
+     three-layer atmospheric stack from Track 1 Phase 1. Scoped by
+     #auth selector so bbf-app.html's other screens stay untouched. */
+  background:
+    conic-gradient(from 165deg at 88% -2%, rgba(245, 200, 0, 0.07) 0deg, rgba(245, 200, 0, 0) 95deg, rgba(245, 200, 0, 0) 360deg),
+    radial-gradient(ellipse 130% 95% at 50% 28%, var(--bbf-purple-800) 0%, var(--bbf-purple-950) 68%, var(--bbf-purple-950) 100%),
+    var(--bbf-purple-950) !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+/* ── VERTICAL GOLD LIGHT-BEAM — behind the vault card ─────────── */
+/* A soft, wide gold column bloom sitting centred behind the form
+   box. Reads as "sovereign light cast on the clearance terminal."
+   8% alpha at the core, 85px blur, zero pointer interaction. */
+#auth::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 380px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(180deg,
+      rgba(245,200,0,0)   0%,
+      rgba(245,200,0,.08) 28%,
+      rgba(245,200,0,.08) 72%,
+      rgba(245,200,0,0)   100%);
+  filter: blur(85px);
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── FILM GRAIN — scoped to #auth, 4% overlay ─────────────────── */
+/* Inline SVG turbulence, identical technique to the global
+   bbf-tokens.css body::after grain but constrained to the auth
+   screen so the rest of the app stays un-textured. */
+#auth::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
+}
+
+/* Make sure the atop + abox sit above the atmospheric pseudo-layers. */
+#auth .atop,
+#auth .abox { position: relative; z-index: 2; }
+
+/* The existing .atop has its own purple-to-black gradient that
+   fights the new atmosphere. Drop it back to transparent so the
+   atmosphere reads through. (Phase 2 will restyle this header
+   block — for now we just stop it from blocking the gradient.) */
+#auth .atop {
+  background: transparent !important;
+  padding-bottom: 1.5rem;
+}
+
+/* ── VAULT CARD — the .abox upgrade ───────────────────────────── */
+/* We STYLE the existing .abox instead of wrapping it in a new
+   element, so every id and handler inside it stays exactly as
+   shipped. .abox wraps the tab row + both form panes. */
+#auth .abox {
+  background: linear-gradient(160deg, var(--bbf-purple-800) 0%, var(--bbf-purple-900) 60%, var(--bbf-purple-950) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: var(--bbf-radius-2xl);
+  padding: 2.25rem 1.75rem 2rem;
+  box-shadow:
+    /* Soft outer shadow — weight without harshness */
+    0 30px 70px -24px rgba(0, 0, 0, 0.7),
+    0 12px 28px -8px rgba(0, 0, 0, 0.55),
+    /* Faint inner gold glow — the vault is warm on the inside */
+    inset 0 0 48px rgba(245, 200, 0, 0.06),
+    /* Top hairline highlight — suggests bevelled metal edge */
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    /* Gold inner rim (1px equivalent via inset shadow) */
+    inset 0 0 0 1px rgba(212, 175, 55, 0.08);
+  max-width: 440px;
+  margin: 0 auto 2.5rem;
+  width: calc(100% - 2rem);
+  position: relative;
+}
+/* Gold micro-sheen along the top edge — reads as clearance-terminal
+   crown light. Drawn via an inset top hairline that fades at the
+   edges so it doesn't look like a hard border. */
+#auth .abox::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 16%;
+  right: 16%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,.55) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ── REDUCED-MOTION / LOW-END GPU CONSIDERATION ─────────────── */
+/* The 85px filter-blur on ::before is the most expensive rule in
+   this file. On screens under 480px we drop it significantly to
+   protect paint performance on low-end mobile (Phase 8 will extend
+   this; for Phase 1 we ship the defensive version now). */
+@media (max-width: 480px) {
+  #auth::before {
+    width: 280px;
+    filter: blur(55px);
+    opacity: 0.85;
+  }
+  #auth .abox {
+    padding: 1.75rem 1.25rem 1.6rem;
+    border-radius: var(--bbf-radius-xl);
+  }
+}
+
+/* ═══ PHASE 2 — HEADER POLISH ═══════════════════════════════════ */
+
+/* Wordmark: brand display font, tight letterspacing, victory-gold
+   accent. Anton is the heaviest condensed display in the stack;
+   Bebas Neue is the legacy fallback. */
+#auth .atop {
+  padding-top: calc(var(--st) + 2.25rem);
+  padding-bottom: 0;   /* hairline divider below provides the breathing room */
+}
+#auth .alo {
+  font-family: 'Anton', 'Bebas Neue', 'Druk Wide', Impact, sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.85rem, 6.5vw, 2.35rem);
+  letter-spacing: 0.035em;
+  line-height: 1;
+}
+#auth .alo .y { color: var(--bbf-gold-victory); }
+
+/* Gold-bracketed system label — "[ CLIENT PORTAL // SECURE ACCESS ]"
+   rendered in gold at 70% alpha, tight monospace-friendly tracking
+   so the forward slashes read as a terminal separator. */
+#auth .asu {
+  font-family: 'Bebas Neue', 'Barlow Condensed', ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.70);
+  margin-top: 0.55rem;
+  /* Prevent long strings on very narrow screens from wrapping mid-token */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Gold hairline divider beneath the header. Drawn via .atop::after
+   so no DOM change is required. transform-origin: center scaleX(0→1). */
+#auth .atop::after {
+  content: '';
+  display: block;
+  margin: 1.1rem auto 0;
+  height: 1px;
+  width: min(360px, 78%);
+  background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.55) 50%, transparent 100%);
+  transform: scaleX(0);
+  transform-origin: center;
+}
+
+/* ── HEADER STAGGER — fires when #auth becomes visible (gains .on) ──
+   Ties the animations to the .on class so they replay every time the
+   auth screen is entered (e.g. via the splash ENTER button, not just
+   initial DOM load). */
+#auth .alo,
+#auth .asu {
+  opacity: 0;
+  transform: translateY(14px);
+}
+#auth.on .alo {
+  animation: bbfVaultHeaderRise 720ms var(--ease-sovereign) 120ms forwards;
+}
+#auth.on .asu {
+  animation: bbfVaultHeaderRise 680ms var(--ease-sovereign) 320ms forwards;
+}
+#auth.on .atop::after {
+  animation: bbfHairlineDraw 700ms var(--ease-sovereign) 520ms forwards;
+}
+@keyframes bbfVaultHeaderRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes bbfHairlineDraw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+
+/* ═══ PHASE 3 — TAB TOGGLE REFINEMENT ═══════════════════════════ */
+
+/* Segmented pill container. Replaces the legacy 8px radius + hard
+   purple fill with a dark capsule, low-alpha gold-tinted border,
+   and a sliding gold indicator that crossfades between positions. */
+#auth .atabs {
+  position: relative;
+  display: flex;
+  gap: 0;
+  padding: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  background: rgba(0, 0, 0, 0.32);
+  border-radius: var(--bbf-radius-pill);
+  overflow: visible;             /* override legacy hidden for the indicator */
+  margin-bottom: 1.5rem;
+  box-shadow:
+    inset 0 1px 0 rgba(0,0,0,.4),
+    inset 0 -1px 0 rgba(255,255,255,.03);
+}
+
+/* Sliding gold indicator — absolutely positioned inside .atabs,
+   animates translateX between the two tab positions. Defaults to the
+   Sign In (left) position via .on-si; flips right via .on-nc. */
+#auth .atabs::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: linear-gradient(180deg, var(--bbf-gold-400) 0%, var(--bbf-gold-500) 45%, var(--bbf-gold-550) 100%);
+  border-radius: var(--bbf-radius-pill);
+  box-shadow:
+    0 4px 14px rgba(212, 175, 55, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  transform: translateX(0);
+  transition: transform 420ms var(--ease-sovereign);
+  z-index: 0;
+  pointer-events: none;
+}
+#auth .atabs.on-nc::before { transform: translateX(100%); }
+/* :has() path for browsers that expose it — keeps the indicator in
+   sync if anything other than the supplementary JS sets .on. */
+@supports selector(:has(*)) {
+  #auth .atabs:has(#tab-nc.on)::before { transform: translateX(100%); }
+}
+
+/* Buttons sit above the indicator. The active tab gets deep-purple
+   text on the gold fill; idle tab is muted white. */
+#auth .atab {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  padding: 0.78rem 0.8rem;
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+  background: transparent !important;
+  border: none;
+  border-radius: var(--bbf-radius-pill);
+  color: rgba(255, 255, 255, 0.58);
+  cursor: pointer;
+  transition:
+    color 260ms var(--ease-sovereign),
+    transform 180ms var(--ease-sovereign);
+}
+#auth .atab.on {
+  color: var(--bbf-purple-950);
+  font-weight: 900;
+}
+#auth .atab:not(.on):hover { color: rgba(255, 255, 255, 0.85); }
+#auth .atab:active { transform: scale(0.98); }
+
+/* ── PANE CROSS-FADE — gentle translateY + opacity on show ──── */
+/* Initial pane-si fade-in tied to #auth.on so it flows with the
+   header stagger. Switching triggers are re-played by the
+   supplementary script via .is-entering (reflow restart). */
+#pane-si, #pane-nc {
+  transform-origin: top center;
+}
+#auth.on #pane-si {
+  animation: bbfPaneSlide 420ms var(--ease-sovereign) 540ms both;
+}
+#pane-si.is-entering,
+#pane-nc.is-entering {
+  animation: bbfPaneSlide 380ms var(--ease-sovereign) both;
+}
+@keyframes bbfPaneSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ═══ PHASE 4 — INPUT GLOW-UP & PIN ILLUSION ════════════════════ */
+
+/* Premium static labels — clinical field headers in faint gold. */
+#auth .af {
+  gap: 0.45rem;
+  margin-bottom: 1.1rem;
+}
+#auth .af label {
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.55);
+}
+
+/* Input + select base style — deep purple fill, faint gold edge. */
+#auth .af input,
+#auth .af select {
+  background: var(--bbf-purple-900);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  color: var(--wht);
+  padding: 0.95rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 14px;
+  outline: none;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    border-color 220ms var(--ease-sovereign),
+    box-shadow   240ms var(--ease-sovereign),
+    background   240ms var(--ease-sovereign);
+}
+#auth .af input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+  font-weight: 500;
+}
+
+/* Focus state: 2px gold border + 4px gold glow. */
+#auth .af input:focus,
+#auth .af select:focus {
+  border-color: var(--bbf-gold-550);
+  border-width: 2px;
+  padding: calc(0.95rem - 1px) calc(1rem - 1px); /* compensate so focus doesn't reflow height */
+  box-shadow:
+    0 0 0 4px rgba(212, 175, 55, 0.18),
+    0 0 18px rgba(212, 175, 55, 0.22),
+    inset 0 0 0 1px rgba(212, 175, 55, 0.08);
+  background: color-mix(in srgb, var(--bbf-purple-900) 88%, var(--bbf-gold-550) 12%);
+}
+
+/* Chevron for the training-type <select> — gold SVG via background-image
+   since appearance:none strips the native arrow. */
+#auth .af select {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23D4AF37' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='3,5 7,9 11,5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+#auth .af select:focus {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%23F5C800' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><polyline points='3,5 7,9 11,5'/></svg>"),
+    linear-gradient(180deg, var(--bbf-purple-900), var(--bbf-purple-900));
+}
+
+/* ── PIN ILLUSION — single input, 4-slot visual ──────────────── */
+/* CRITICAL: the DOM stays a single <input type="password"
+   inputmode="numeric" maxlength="4">. No splitting. letter-spacing
+   + monospace + center-align creates the illusion of 4 discrete
+   digit slots while preserving every mobile keyboard + password-
+   manager behaviour. */
+#auth #p,
+#auth #rp {
+  letter-spacing: 1.5rem;
+  text-align: center;
+  font-family: ui-monospace, 'Menlo', 'Courier New', monospace;
+  font-size: 1.45rem;
+  font-weight: 700;
+  border-radius: 14px;
+  /* No padding compensation — letter-spacing is applied per user
+     spec literally. Browser trailing-spacing after the last glyph
+     produces a barely-perceptible optical shift that reads as
+     intentional on the "4 secure slots" illusion. */
+}
+/* Normalise the placeholder so "enter PIN" reads naturally — the
+   big letter-spacing only applies when the user types their digits. */
+#auth #p::placeholder,
+#auth #rp::placeholder {
+  letter-spacing: normal;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.22);
+  /* Pull placeholder left to counter the input's left padding shift. */
+  padding-left: 0;
+}
+
+
+/* ═══ PHASE 5 — PRIMARY CTA (SIGN IN / CREATE PROFILE) ══════════ */
+
+#auth .abtn {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 1.05rem 1rem;
+  margin-top: 0.8rem;
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #0a0a0a;
+  background: linear-gradient(180deg, var(--bbf-gold-400) 0%, var(--bbf-gold-500) 35%, var(--bbf-gold-550) 70%, var(--bbf-gold-600) 100%);
+  border: 1px solid var(--bbf-gold-400);
+  border-radius: 14px;
+  cursor: pointer;
+  /* 3s breathing pulse on the shadow — reads as "vault awaiting
+     clearance." Paused when submitting (see .is-submitting below). */
+  animation: bbfCtaBreathe 3s ease-in-out infinite;
+  transition:
+    transform  180ms var(--ease-sovereign),
+    filter     200ms var(--ease-sovereign);
+  box-shadow:
+    0 6px 20px rgba(212, 175, 55, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+}
+#auth .abtn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+#auth .abtn:active { transform: translateY(0); filter: brightness(.96); }
+
+@keyframes bbfCtaBreathe {
+  0%, 100% {
+    box-shadow:
+      0 6px 20px rgba(212, 175, 55, 0.40),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  }
+  50% {
+    box-shadow:
+      0 12px 34px rgba(212, 175, 55, 0.55),
+      0 0 0 1px rgba(242, 215, 105, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.38),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  }
+}
+
+/* Submitting state — pause breathing, hide label, render 3 staggered
+   dots, fire one-time shimmer sweep. Text replacement happens in the
+   supplementary script (3 .abtn-dot spans inserted). */
+#auth .abtn.is-submitting {
+  animation: none;
+  pointer-events: none;
+  box-shadow:
+    0 8px 26px rgba(212, 175, 55, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+}
+#auth .abtn.is-submitting::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.42) 50%,
+    transparent 70%);
+  transform: translateX(-100%);
+  animation: bbfShimmerSweep 1.1s cubic-bezier(0.35, 0, 0.65, 1) forwards;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+@keyframes bbfShimmerSweep {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%);  }
+}
+
+#auth .abtn-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 5px;
+  border-radius: 50%;
+  background: var(--bbf-purple-950);
+  opacity: 0.4;
+  animation: bbfDotLoader 1.15s ease-in-out infinite;
+  vertical-align: middle;
+}
+#auth .abtn-dot:nth-child(1) { animation-delay:   0ms; }
+#auth .abtn-dot:nth-child(2) { animation-delay: 180ms; }
+#auth .abtn-dot:nth-child(3) { animation-delay: 360ms; }
+@keyframes bbfDotLoader {
+  0%, 100% { opacity: 0.3; transform: scale(0.82); }
+  50%      { opacity: 1;   transform: scale(1.12); }
+}
+
+
+/* ═══ PHASE 6 — TRUST SIGNALS ═══════════════════════════════════ */
+
+/* Forgot PIN? link beneath the Sign In form, low-opacity gold. */
+#auth .vault-forgot {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 0.85rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.52);
+  text-decoration: none;
+  transition: color 200ms var(--ease-sovereign);
+}
+#auth .vault-forgot:hover { color: var(--bbf-gold-victory); }
+
+/* Status row below the card — pulsing gold dot, encrypted label,
+   right-aligned version tag. */
+#auth .vault-status {
+  max-width: 440px;
+  margin: 0 auto 1.8rem;
+  padding: 0 0.3rem;
+  width: calc(100% - 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.36);
+  position: relative;
+  z-index: 2;
+}
+#auth .vault-status .vs-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;                   /* allow text to shrink on narrow viewports */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#auth .vault-status .vs-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bbf-gold-victory);
+  box-shadow: 0 0 8px rgba(245, 200, 0, 0.75);
+  animation: bbfStatusPulse 2.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes bbfStatusPulse {
+  0%, 100% { opacity: 1; transform: scale(1);    box-shadow: 0 0 8px  rgba(245, 200, 0, 0.75); }
+  50%      { opacity: 0.55; transform: scale(.9); box-shadow: 0 0 14px rgba(245, 200, 0, 0.35); }
+}
+#auth .vault-status .vs-ver {
+  color: rgba(212, 175, 55, 0.45);
+  letter-spacing: 0.22em;
+  flex-shrink: 0;
+}
+
+/* Narrow screens: stack the status row so the version doesn't get
+   clipped against the wordmark overflow ellipsis. */
+@media (max-width: 420px) {
+  #auth .vault-status {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.55rem;
+  }
+  #auth .vault-status .vs-ver { letter-spacing: 0.18em; }
+}
+
+/* Fade the status row in with the pane slide so it flows with the
+   entry choreography. */
+#auth.on .vault-forgot,
+#auth.on .vault-status {
+  opacity: 0;
+  animation: bbfVaultHeaderRise 600ms var(--ease-sovereign) 760ms forwards;
+}
+
+/* ═══ REDUCED-MOTION — belt-and-braces ══════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  #auth .alo,
+  #auth .asu              { opacity: 1; transform: none; animation: none !important; }
+  #auth .atop::after      { transform: scaleX(1); animation: none !important; }
+  #auth .atabs::before    { transition: none; }
+  #pane-si, #pane-nc      { animation: none !important; }
+  #auth .abtn             { animation: none; }
+  #auth .abtn-dot         { animation: none; opacity: 0.6; }
+  #auth .abtn.is-submitting::after { animation: none; display: none; }
+  #auth .vault-status .vs-dot { animation: none; }
+  #auth.on .vault-forgot,
+  #auth.on .vault-status  { opacity: 1; animation: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DASHBOARD ATMOSPHERE EXTENSION
+   Extend the Sovereign Vault atmosphere from the auth threshold
+   into the private dashboard (#app) — home / workout (Daily
+   Blueprint) / nutrition / profile all inherit the stack. The body
+   stays flat --blk for the remaining screens (#restricted etc).
+   ═══════════════════════════════════════════════════════════════════ */
+#app {
+  background:
+    conic-gradient(from 165deg at 88% -2%, rgba(245, 200, 0, 0.055) 0deg, rgba(245, 200, 0, 0) 95deg, rgba(245, 200, 0, 0) 360deg),
+    radial-gradient(ellipse 130% 95% at 50% 28%, var(--bbf-purple-800) 0%, var(--bbf-purple-950) 68%, var(--bbf-purple-950) 100%),
+    var(--bbf-purple-950) !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+/* Film grain over #app — same 320×320 SVG turbulence tile, 3.5%
+   opacity (a hair lighter than #auth so it doesn't compete with
+   dashboard card shadows). Scoped pseudo so the rest of the DOM
+   isn't touched. */
+#app::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 320px 320px;
+}
+
+/* The tab panes and top bar need to read above the atmosphere. */
+#app > .tbar,
+#app > .bn,
+#app > .tp { position: relative; z-index: 2; }
+
+/* Subtle intensification on the Daily Blueprint view — a softer
+   gold halo from the top centre so the workout card commands
+   visual focus as the reader's eye enters the pane. */
+#app #tp-workout {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(245, 200, 0, 0.045) 0%, transparent 55%),
+    transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PRIMARY DASHBOARD CTAs — full victory-gold upgrade
+   .lbtn (SAVE NOTE / SAVE SESSION / SAVE METRICS)
+   .dbtn (MARK SESSION COMPLETE)
+   The legacy cascade in bbf-app.html inline <style> already painted
+   these a brushed Laboratory Gold, but the user audit reads it as
+   too subtle on the dark dashboard. This override layers the
+   reserved victory-gold at the top of the gradient, adds a breathing
+   shadow pulse, and tightens the border so the buttons read as the
+   single Ferrari-yellow accent in the viewport.
+   ═══════════════════════════════════════════════════════════════════ */
+#app .lbtn,
+#app .dbtn,
+#app .calc-btn {
+  background: linear-gradient(180deg,
+    var(--bbf-gold-victory) 0%,
+    #EDD266  18%,
+    var(--bbf-gold-500)  45%,
+    var(--bbf-gold-550)  70%,
+    var(--bbf-gold-600) 100%) !important;
+  border: 1.5px solid var(--bbf-gold-victory) !important;
+  color: var(--bbf-purple-950) !important;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 8px 26px rgba(245, 200, 0, 0.50),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22) !important;
+  animation: bbfCtaBreathe 3s ease-in-out infinite;
+  transition:
+    transform 180ms var(--ease-sovereign),
+    filter    200ms var(--ease-sovereign);
+}
+#app .lbtn:hover,
+#app .dbtn:hover,
+#app .calc-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+#app .lbtn:active,
+#app .dbtn:active,
+#app .calc-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app .lbtn, #app .dbtn, #app .calc-btn { animation: none; }
+}

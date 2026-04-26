@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sovereign Admin — Build Believe Fit</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="env.js"></script>
+<script src="bbf-sync.js"></script>
+<style>
+:root{--pur:#1a0338;--yel:#f5c800;--blk:#060606;--card:#0d0118;--brd:#1f1530;--mut:#888;--grn:#22c55e;--red:#ef4444;--orn:#f59e0b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-serif;min-height:100vh}
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.gate-box{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:2.5rem;max-width:380px;width:100%;text-align:center}
+.gate-t{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:var(--yel);margin-bottom:1rem}
+.gate-input{width:100%;background:#060606;border:1px solid var(--brd);color:#fff;padding:12px 16px;font-size:1rem;border-radius:6px;outline:none;margin-bottom:1rem;text-align:center;letter-spacing:4px}.gate-input:focus{border-color:var(--pur)}
+.gate-btn{width:100%;background:var(--yel);color:var(--blk);font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;padding:12px;border:none;border-radius:6px;cursor:pointer}
+.gate-err{color:var(--red);font-size:.82rem;margin-top:.5rem;min-height:1.2rem}
+.dash{display:none;padding:24px;max-width:900px;margin:0 auto}.dash.on{display:block}
+.hdr{text-align:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--brd)}
+.hdr-t{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:3px;color:#fff}.hdr-t span{color:var(--yel)}
+.hdr-s{font-size:.85rem;color:var(--mut);margin-top:.3rem}
+.cc{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:1.2rem 1.5rem;margin-bottom:.8rem;position:relative}
+.cc-top{display:flex;align-items:center;gap:1rem;margin-bottom:.8rem}
+.cc-pulse{width:10px;height:10px;border-radius:50%;flex-shrink:0;position:relative}
+.cc-pulse::after{content:'';position:absolute;inset:-3px;border-radius:50%;animation:pulse-ring 2s ease infinite;opacity:0}
+.cc-pulse.active{background:var(--grn)}.cc-pulse.active::after{border:2px solid var(--grn)}
+.cc-pulse.recovery{background:var(--orn)}.cc-pulse.recovery::after{border:2px solid var(--orn)}
+.cc-pulse.locked{background:var(--red)}.cc-pulse.locked::after{border:2px solid var(--red)}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.2);opacity:0}}
+.cc-av{width:42px;height:42px;border-radius:50%;background:var(--pur);border:2px solid var(--yel);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--yel);flex-shrink:0}
+.cc-info{flex:1;min-width:120px}
+.cc-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;color:#fff}
+.cc-meta{font-size:.72rem;color:var(--mut)}
+.cc-status{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;border-radius:3px;display:inline-block}
+.cc-status.active{background:rgba(34,197,94,.15);color:var(--grn)}
+.cc-status.recovery{background:rgba(245,158,11,.12);color:var(--orn)}
+.cc-status.locked{background:rgba(239,68,68,.1);color:var(--red)}
+.cc-bar{display:flex;gap:6px;flex-wrap:wrap}
+.cc-btn{font-family:'Bebas Neue',sans-serif;font-size:.75rem;letter-spacing:2px;padding:8px 16px;border:none;border-radius:4px;cursor:pointer;transition:all .15s}
+.cc-btn.act{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:var(--grn)}.cc-btn.act:hover{background:rgba(34,197,94,.3)}
+.cc-btn.rec{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--orn)}.cc-btn.rec:hover{background:rgba(245,158,11,.25)}
+.cc-btn.lck{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--red)}.cc-btn.lck:hover{background:rgba(239,68,68,.2)}
+.cc-btn.on{font-weight:900;box-shadow:inset 0 0 0 1px currentColor}
+.cc-note{background:#060606;border:1px solid var(--orn);border-left:3px solid var(--orn);border-radius:0 6px 6px 0;padding:.6rem .8rem;margin-top:.6rem;font-size:.78rem;color:var(--orn)}
+.cc-note-lbl{font-size:.6rem;font-weight:700;letter-spacing:2px;color:var(--orn);margin-bottom:.2rem}
+.auto-row{display:flex;align-items:center;gap:.6rem;margin-top:.6rem}
+.auto-row label{font-size:.65rem;font-weight:700;letter-spacing:1px;color:var(--mut);text-transform:uppercase}
+.toggle{width:36px;height:20px;background:var(--brd);border-radius:10px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}.toggle.on{background:var(--orn)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}.toggle.on::after{transform:translateX(16px)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--pur);border:1px solid var(--yel);padding:.7rem 1.5rem;border-radius:8px;font-size:.85rem;font-weight:700;color:#fff;z-index:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:24px}.modal-bg.on{display:flex}
+.modal-box{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:2rem;max-width:420px;width:100%}
+.modal-t{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--orn);margin-bottom:1rem}
+.modal-ta{width:100%;background:#060606;border:1px solid var(--brd);color:#fff;padding:10px 14px;font-size:.9rem;border-radius:6px;outline:none;min-height:80px;resize:vertical;margin-bottom:1rem}.modal-ta:focus{border-color:var(--orn)}
+.modal-btns{display:flex;gap:8px}
+.modal-cancel{flex:1;padding:10px;background:transparent;border:1px solid var(--brd);color:var(--mut);font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:2px;border-radius:6px;cursor:pointer}
+.modal-save{flex:2;padding:10px;background:var(--orn);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:2px;border:none;border-radius:6px;cursor:pointer}
+.seal{text-align:center;font-size:.68rem;color:var(--mut);margin-top:2rem;font-style:italic;padding-top:1rem;border-top:1px solid var(--brd)}
+</style>
+</head>
+<body>
+<div class="gate" id="gate">
+<div class="gate-box">
+<div class="gate-t">&#x1F512; SOVEREIGN ACCESS</div>
+<input type="password" class="gate-input" id="gate-pin" placeholder="FOUNDER PIN" maxlength="6">
+<button class="gate-btn" onclick="authAdmin()">AUTHENTICATE</button>
+<div class="gate-err" id="gate-err"></div>
+</div>
+</div>
+
+<div class="dash" id="dash">
+<div class="hdr">
+<div class="hdr-t">CLIENT <span>COMMAND CENTER</span></div>
+<div class="hdr-s">Access Control &bull; Recovery Protocols &bull; Session Locks &bull; Founder-Only</div>
+</div>
+<div id="client-list"></div>
+<div class="seal">Status Updated. The Laboratory Standard is maintained. &bull; Sovereign Gold Standard &bull; Founder-Verified</div>
+</div>
+
+<!-- RECOVERY NOTE MODAL -->
+<div class="modal-bg" id="note-modal">
+<div class="modal-box">
+<div class="modal-t">&#x1FA79; RECOVERY NOTE</div>
+<p style="font-size:.82rem;color:var(--mut);margin-bottom:1rem">This note will display as a Founder's Alert on the client's Daily Blueprint.</p>
+<textarea class="modal-ta" id="note-input" placeholder="e.g. Wrist rehab — No grip work for 2 weeks"></textarea>
+<div class="modal-btns">
+<button class="modal-cancel" onclick="closeNoteModal()">CANCEL</button>
+<button class="modal-save" onclick="saveRecoveryNote()">SET RECOVERY</button>
+</div>
+</div>
+</div>
+
+<div class="toast" id="admin-toast"></div>
+
+<script>
+var ADMIN_PIN_HASH='1de5495d95a18bb628ebe8147e7f61046737bcc926fe89460e630a959a21b214';var K='bbf_v7';var noteTarget=null;
+function GD(){try{return JSON.parse(localStorage.getItem(K))||{u:{},l:{},w:{}};}catch(e){return{u:{},l:{},w:{}};}}
+function SD(d){localStorage.setItem(K,JSON.stringify(d));}
+
+async function SHA256(m){
+  const buf=new TextEncoder().encode(m);
+  const hash=await crypto.subtle.digest('SHA-256',buf);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function authAdmin(){
+  var pin = document.getElementById('gate-pin').value.trim();
+  var hash = await SHA256(pin);
+  if(hash === ADMIN_PIN_HASH){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('dash').classList.add('on');
+    renderClients();
+  }else{document.getElementById('gate-err').textContent='Invalid PIN. Access denied.';}
+}
+document.getElementById('gate-pin').addEventListener('keydown',function(e){if(e.key==='Enter')authAdmin();});
+
+function toast(msg){var t=document.getElementById('admin-toast');t.textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},3000);}
+
+function escapeHTML(str){
+  if(!str)return'';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+function renderClients(){
+  var d=GD();var clients=Object.entries(d.u).filter(function(e){return e[1].role==='client';});
+  var wrap=document.getElementById('client-list');
+  wrap.innerHTML=clients.map(function(e){
+    var uid=e[0],u=e[1];
+    var status=u.access_status||'unlocked';
+    var sClass=status==='locked'?'locked':status==='recovery'?'recovery':'active';
+    var sLabel=status==='locked'?'LOCKED':status==='recovery'?'RECOVERY':'ACTIVE';
+    var autoLock=u.auto_lock_enabled||false;
+    var note=escapeHTML(u.recovery_note||'');
+    var sName=escapeHTML(u.name||uid);
+    var sType=escapeHTML(u.type||'Client');
+    var sGoal=escapeHTML(u.goal||'No goal set');
+    var sUid=escapeHTML(uid);
+    var noteHTML=note?'<div class="cc-note"><div class="cc-note-lbl">FOUNDER\'S ALERT</div>'+note+'</div>':'';
+    return '<div class="cc"><div class="cc-top">'+
+      '<div class="cc-pulse '+sClass+'"></div>'+
+      '<div class="cc-av">'+escapeHTML((u.name||uid||'?')[0].toUpperCase())+'</div>'+
+      '<div class="cc-info"><div class="cc-name">'+sName+'</div><div class="cc-meta">'+sType+' &bull; '+sGoal+'</div></div>'+
+      '<span class="cc-status '+sClass+'">'+sLabel+'</span>'+
+      '</div>'+
+      '<div class="cc-bar">'+
+      '<button class="cc-btn act'+(status==='unlocked'?' on':'')+'" onclick="setStatus(\''+sUid+'\',\'unlocked\')">&#x2705; ACTIVATE</button>'+
+      '<button class="cc-btn rec'+(status==='recovery'?' on':'')+'" onclick="promptRecovery(\''+sUid+'\')">&#x1FA79; RECOVERY</button>'+
+      '<button class="cc-btn lck'+(status==='locked'?' on':'')+'" onclick="setStatus(\''+sUid+'\',\'locked\')">&#x1F512; LOCK</button>'+
+      '</div>'+
+      noteHTML+
+      '<div class="auto-row"><div class="toggle'+(autoLock?' on':'')+'" onclick="toggleAuto(\''+sUid+'\',this)"></div><label>12h Auto-Lock</label></div>'+
+      '</div>';
+  }).join('');
+}
+
+function setStatus(uid,status){
+  var d=GD();if(!d.u[uid])return;
+  d.u[uid].access_status=status;
+  if(status==='unlocked'&&d.u[uid].auto_lock_enabled){d.u[uid].lock_expiry=Date.now()+(12*3600000);}
+  else{d.u[uid].lock_expiry=null;}
+  if(status!=='recovery'){d.u[uid].recovery_note='';}
+  SD(d);renderClients();
+  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncUser(uid,d.u[uid]);
+  var labels={unlocked:'✅ ACTIVATED',locked:'🔒 LOCKED',recovery:'🩹 RECOVERY MODE'};
+  toast((d.u[uid].name||uid)+' \u2014 '+(labels[status]||status)+' - The Laboratory Standard is maintained.');
+}
+
+function promptRecovery(uid){
+  noteTarget=uid;
+  var d=GD();
+  document.getElementById('note-input').value=(d.u[uid]&&d.u[uid].recovery_note)||'';
+  document.getElementById('note-modal').classList.add('on');
+}
+function closeNoteModal(){document.getElementById('note-modal').classList.remove('on');noteTarget=null;}
+function saveRecoveryNote(){
+  if(!noteTarget)return;
+  var note=document.getElementById('note-input').value.trim();
+  var d=GD();
+  d.u[noteTarget].access_status='recovery';
+  d.u[noteTarget].recovery_note=note;
+  d.u[noteTarget].lock_expiry=null;
+  SD(d);closeNoteModal();renderClients();
+  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncUser(noteTarget,d.u[noteTarget]);
+  toast((d.u[noteTarget].name||noteTarget)+' \u2014 🩹 RECOVERY MODE - '+(note||'No note added'));
+}
+
+function toggleAuto(uid,el){
+  var d=GD();if(!d.u[uid])return;
+  d.u[uid].auto_lock_enabled=!d.u[uid].auto_lock_enabled;
+  if(!d.u[uid].auto_lock_enabled)d.u[uid].lock_expiry=null;
+  SD(d);el.classList.toggle('on');
+  toast((d.u[uid].name||uid)+' \u2014 Auto-lock '+(d.u[uid].auto_lock_enabled?'ON':'OFF'));
+}
+</script>
+</body>
+</html>
