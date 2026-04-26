@@ -1699,7 +1699,7 @@ body.bbf-kairos .hero-badge {
     <div class="prog-g" id="prog-g" style="margin-top:3rem">
 
       <!-- TIER 1 — Gateway $147/mo -->
-      <div class="prog-c reveal d1" onclick="selProg(this,'gateway')">
+      <div class="prog-c reveal d1" onclick="selectTier('gateway')">
         <div class="prog-t" data-lang-key="prog-t1-tier">Gateway Tier</div>
         <div class="prog-n" data-lang-key="prog-t1-name">Gateway</div>
         <div style="font-size:.72rem;font-weight:700;letter-spacing:1px;color:#22c55e;margin-bottom:.3rem">FOUNDATIONAL HABIT LOGIC</div>
@@ -1714,11 +1714,11 @@ body.bbf-kairos .hero-badge {
           <li class="no"><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4.5" y1="4.5" x2="13.5" y2="13.5"/><line x1="13.5" y1="4.5" x2="4.5" y2="13.5"/></svg><span>Live coaching sessions</span></li>
           <li class="no"><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4.5" y1="4.5" x2="13.5" y2="13.5"/><line x1="13.5" y1="4.5" x2="4.5" y2="13.5"/></svg><span>Custom meal plan</span></li>
         </ul>
-        <a href="https://buy.stripe.com/cNi3cx6QL2ZtbfA0sxaZi08" class="prog-cta" data-lang-key="prog-t1-cta">Start Gateway &rarr;</a>
+        <button type="button" class="prog-cta" data-lang-key="prog-t1-cta" onclick="event.stopPropagation();selectTier('gateway')">Start Gateway &rarr;</button>
       </div>
 
       <!-- TIER 2 — Architect Hybrid $497/mo (featured) -->
-      <div class="prog-c featured reveal d2" onclick="selProg(this,'architect')">
+      <div class="prog-c featured reveal d2" onclick="selectTier('architect')">
         <div class="prog-badge">Most Popular</div>
         <div class="prog-t" data-lang-key="prog-t2-tier">Flagship Program</div>
         <div class="prog-n" data-lang-key="prog-t2-name">Architect<br>Hybrid</div>
@@ -1734,11 +1734,11 @@ body.bbf-kairos .hero-badge {
           <li><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,9 7.5,13.5 15,5"/></svg><span>Masterclass Vault &mdash; all 6 modules</span></li>
           <li><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,9 7.5,13.5 15,5"/></svg><span>Trilingual support (EN / ES / PT)</span></li>
         </ul>
-        <a href="https://buy.stripe.com/cNi4gBejd6bF3N86QVaZi09" class="prog-cta" data-lang-key="prog-t2-cta">Start Architect Hybrid &rarr;</a>
+        <button type="button" class="prog-cta" data-lang-key="prog-t2-cta" onclick="event.stopPropagation();selectTier('architect')">Start Architect Hybrid &rarr;</button>
       </div>
 
       <!-- TIER 3 — Sovereign $1,500/mo -->
-      <div class="prog-c reveal d3" onclick="selProg(this,'sovereign')">
+      <div class="prog-c reveal d3" onclick="selectTier('sovereign')">
         <div class="prog-t" data-lang-key="prog-t3-tier">Executive &amp; Clinical</div>
         <div class="prog-n" data-lang-key="prog-t3-name">Sovereign</div>
         <div style="font-size:.72rem;font-weight:700;letter-spacing:1px;color:var(--purl);margin-bottom:.3rem">BESPOKE EXECUTIVE PROTOCOL</div>
@@ -1753,7 +1753,7 @@ body.bbf-kairos .hero-badge {
           <li><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,9 7.5,13.5 15,5"/></svg><span>Priority 24-hour direct access</span></li>
           <li><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,9 7.5,13.5 15,5"/></svg><span>Multi-language sessions available</span></li>
         </ul>
-        <a href="https://buy.stripe.com/cNibJ32AveIberMcbfaZi0a" class="prog-cta prog-cta--victory" data-lang-key="prog-t3-cta">Apply for Sovereign &rarr;</a>
+        <button type="button" class="prog-cta prog-cta--victory" data-lang-key="prog-t3-cta" onclick="event.stopPropagation();selectTier('sovereign')">Apply for Sovereign &rarr;</button>
       </div>
 
     </div>
@@ -2065,6 +2065,7 @@ body.bbf-kairos .hero-badge {
       <p class="sec-s" style="margin:0 auto" id="path-sub" data-lang-key="path-sub">4 quick steps. We'll calculate your personalized targets and Akeem will reach out within 24 hours.</p>
     </div>
     <div class="path-card reveal">
+      <input type="hidden" id="f-tier" name="tier" value=""/>
       <div class="steps-ind">
         <div class="si act" id="si0"></div>
         <div class="si" id="si1"></div>
@@ -2262,13 +2263,27 @@ mnav.querySelectorAll('a').forEach(function(a){a.onclick=function(){mnav.classLi
   });
 })();
 
-// PROGRAM CARDS
-function selProg(card,id){
-  document.querySelectorAll('.prog-c').forEach(function(c){c.classList.remove('sel','dim');});
-  card.classList.add('sel');
-  document.querySelectorAll('.prog-c').forEach(function(c){if(c!==card)c.classList.add('dim');});
-  var s=document.getElementById('f-prog');
-  if(s){for(var i=0;i<s.options.length;i++){if(s.options[i].value===id){s.selectedIndex=i;break;}}}
+// PROGRAM CARDS — clicking a tier scrolls to the Pathfinder intake and
+// stamps the chosen tier into the hidden f-tier input. Direct Stripe
+// checkout is gated until doSubmit() confirms the form posted cleanly.
+var BBF_STRIPE_BY_TIER={
+  gateway:'https://buy.stripe.com/cNi3cx6QL2ZtbfA0sxaZi08',
+  architect:'https://buy.stripe.com/cNi4gBejd6bF3N86QVaZi09',
+  sovereign:'https://buy.stripe.com/cNibJ32AveIberMcbfaZi0a'
+};
+var BBF_TIER_INDEX={gateway:0,architect:1,sovereign:2};
+function selectTier(slug){
+  if(!BBF_STRIPE_BY_TIER[slug])return;
+  var idx=BBF_TIER_INDEX[slug];
+  var cards=document.querySelectorAll('.prog-c');
+  cards.forEach(function(c,i){
+    c.classList.remove('sel','dim');
+    if(i===idx)c.classList.add('sel');else c.classList.add('dim');
+  });
+  var t=document.getElementById('f-tier');
+  if(t)t.value=slug;
+  var pf=document.getElementById('pathfinder');
+  if(pf)pf.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 // CHIPS
@@ -2477,6 +2492,7 @@ function doSubmit(){
   var ins=parseInt(document.getElementById('f-in').value)||0;
   var act=parseFloat(document.getElementById('f-act').value)||1.55;
   var prog=document.getElementById('f-prog').value;
+  var tier=(document.getElementById('f-tier')||{}).value||'';
   var hlth=document.getElementById('f-health').value.trim();
   var ref=document.getElementById('f-ref').value;
   var gc=document.querySelector('#gc .chip.on');
@@ -2497,7 +2513,7 @@ function doSubmit(){
       method:'POST',
       body:JSON.stringify({
         first_name:fn, last_name:ln, full_name:fn+' '+ln, email:em, phone:ph,
-        fitness_goal:goal, schedule:sch, program:prog,
+        fitness_goal:goal, schedule:sch, program:prog, tier:tier,
         tdee_target:tgt, macro_p:mac.p, macro_c:mac.c, macro_f:mac.f,
         weight:wt, language_preference:localStorage.getItem('bbf_lang')||'en',
         source:'BBF Pathfinder Form', timestamp:new Date().toISOString()
@@ -2507,10 +2523,19 @@ function doSubmit(){
   fetch('https://formspree.io/f/mwvwjokw',{
     method:'POST',
     headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body:JSON.stringify({_subject:'New BBF Pathfinder Lead',first_name:fn,last_name:ln,full_name:fn+' '+ln,email:em,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,language_preference:localStorage.getItem('bbf_lang')||'en',source:'BBF Pathfinder Form',timestamp:new Date().toISOString()})
-  }).finally(function(){
+    body:JSON.stringify({_subject:'New BBF Pathfinder Lead',first_name:fn,last_name:ln,full_name:fn+' '+ln,email:em,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,tier:tier,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,language_preference:localStorage.getItem('bbf_lang')||'en',source:'BBF Pathfinder Form',timestamp:new Date().toISOString()})
+  }).then(function(r){
+    if(!r.ok)throw new Error('formspree '+r.status);
     btn.textContent='Calculate My Path & Submit \u2192';btn.disabled=false;
-    openMod(fn,tgt,mac,goal,sch);
+    if(tier&&BBF_STRIPE_BY_TIER[tier]){
+      flash('Intake received. Redirecting to secure checkout\u2026','ok');
+      window.location.href=BBF_STRIPE_BY_TIER[tier];
+    }else{
+      openMod(fn,tgt,mac,goal,sch);
+    }
+  }).catch(function(){
+    btn.textContent='Calculate My Path & Submit \u2192';btn.disabled=false;
+    flash('Submission failed. Please try again or email akeem@buildbelievefit.fitness.','err');
   });
 }
 function openMod(fn,tgt,mac,goal,schedule){
