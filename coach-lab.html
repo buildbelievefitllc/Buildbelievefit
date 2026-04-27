@@ -5,10 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Coach Lab — Build Believe Fit</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="env.js"></script>
+<script src="bbf-sync.js"></script>
 <style>
-:root{--pur:#1a0338;--purl:#2a0a55;--yel:#f5c800;--blk:#060606;--card:#0d0118;--brd:#1f1530;--mut:#888;--cyan:#00e5ff}
+:root{--pur:#1a0338;--purl:#2a0a55;--yel:#f5c800;--blk:#060606;--card:#0d0118;--brd:#1f1530;--mut:#888;--cyan:#00e5ff;--red:#ef4444}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-serif;min-height:100vh}
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.gate-box{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:2.5rem;max-width:380px;width:100%;text-align:center}
+.gate-t{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:var(--yel);margin-bottom:1rem}
+.gate-input{width:100%;background:#060606;border:1px solid var(--brd);color:#fff;padding:12px 16px;font-size:1rem;border-radius:6px;outline:none;margin-bottom:1rem;text-align:center;letter-spacing:4px}.gate-input:focus{border-color:var(--pur)}
+.gate-btn{width:100%;background:var(--yel);color:var(--blk);font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;padding:12px;border:none;border-radius:6px;cursor:pointer}
+.gate-err{color:var(--red);font-size:.82rem;margin-top:.5rem;min-height:1.2rem}
+.dash{display:none}
+.dash.on{display:block}
 .hdr{background:linear-gradient(135deg,#060606 0%,#1a0030 60%,#060606 100%);border-bottom:2px solid var(--yel);padding:32px 24px 20px;position:relative;overflow:hidden}
 .hdr::before{content:'';position:absolute;top:-40px;right:-60px;width:320px;height:320px;background:radial-gradient(circle,rgba(42,10,85,.25) 0%,transparent 70%);pointer-events:none}
 .hdr-b{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:6px;color:var(--yel);margin-bottom:6px;opacity:.9}
@@ -70,18 +80,16 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 </style>
 </head>
 <body>
-<script>
-// FOUNDER GATE — redirect non-trainers immediately
-(function(){
-  try{
-    var d=JSON.parse(localStorage.getItem('bbf_v7')||'{}');
-    var keys=Object.keys(d.u||{});
-    var isTrainer=false;
-    for(var i=0;i<keys.length;i++){if(d.u[keys[i]].role==='trainer'){isTrainer=true;break;}}
-    if(!isTrainer){window.location.href='index.html';return;}
-  }catch(e){window.location.href='index.html';}
-})();
-</script>
+<div class="gate" id="gate">
+<div class="gate-box">
+<div class="gate-t">&#x1F512; SOVEREIGN ACCESS</div>
+<input type="password" class="gate-input" id="gate-pin" placeholder="FOUNDER PIN" maxlength="6">
+<button class="gate-btn" onclick="authAdmin()">AUTHENTICATE</button>
+<div class="gate-err" id="gate-err"></div>
+</div>
+</div>
+
+<div class="dash" id="dash">
 <div class="hdr">
 <div class="hdr-b">BUILD BELIEVE FIT LLC &middot; AKEEM</div>
 <div class="hdr-t">90-DAY LANGUAGE<br><span>MASTERY PROTOCOL</span></div>
@@ -164,7 +172,38 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 </div>
 
 </div><!-- /cnt -->
+</div><!-- /dash -->
 <script>
+async function authAdmin(){
+  var pin = document.getElementById('gate-pin').value.trim();
+  if (!pin) {
+    document.getElementById('gate-err').textContent='Please enter a PIN.';
+    return;
+  }
+  try {
+    var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_admin_pin', {
+      method: 'POST',
+      headers: {
+        'apikey': window.ENV_SUPABASE_KEY,
+        'Authorization': 'Bearer ' + window.ENV_SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ pin_attempt: pin })
+    });
+    var isValid = await res.json();
+    if(isValid === true){
+      document.getElementById('gate').style.display='none';
+      document.getElementById('dash').classList.add('on');
+    }else{
+      document.getElementById('gate-err').textContent='Invalid PIN. Access denied.';
+    }
+  } catch(e) {
+    console.error(e);
+    document.getElementById('gate-err').textContent='Authentication error. Check connection.';
+  }
+}
+document.getElementById('gate-pin').addEventListener('keydown',function(e){if(e.key==='Enter')authAdmin();});
+
 // ─── DATA ──────────────────────────────────────────
 var V={"ANATOMY":[{es:"músculo",en:"muscle"},{es:"bíceps",en:"biceps"},{es:"tríceps",en:"triceps"},{es:"cuádriceps",en:"quadriceps"},{es:"isquiotibiales",en:"hamstrings"},{es:"glúteos",en:"glutes"},{es:"pectorales",en:"pectorals / chest"},{es:"deltoides",en:"deltoids / shoulders"},{es:"espalda",en:"back"},{es:"abdominales",en:"abs/core"},{es:"pantorrilla",en:"calf"},{es:"antebrazo",en:"forearm"},{es:"columna vertebral",en:"spine"},{es:"articulación",en:"joint"},{es:"tendón",en:"tendon"},{es:"ligamento",en:"ligament"},{es:"núcleo",en:"core"},{es:"postura",en:"posture"},{es:"rango de movimiento",en:"range of motion"},{es:"conexión mente-músculo",en:"mind-muscle connection"}],"NUTRITION":[{es:"macronutrientes",en:"macros"},{es:"proteína",en:"protein"},{es:"carbohidratos",en:"carbohydrates"},{es:"grasas saludables",en:"healthy fats"},{es:"calorías",en:"calories"},{es:"déficit calórico",en:"caloric deficit"},{es:"superávit calórico",en:"caloric surplus"},{es:"ayuno intermitente",en:"intermittent fasting"},{es:"ventana de alimentación",en:"eating window"},{es:"hidratación",en:"hydration"},{es:"suplemento",en:"supplement"},{es:"creatina",en:"creatine"},{es:"proteína de suero",en:"whey protein"},{es:"aminoácidos",en:"amino acids"},{es:"metabolismo",en:"metabolism"},{es:"composición corporal",en:"body composition"},{es:"grasa corporal",en:"body fat"},{es:"masa muscular",en:"muscle mass"},{es:"masa magra",en:"lean mass"},{es:"nutrición perientrenamiento",en:"peri-workout nutrition"}],"TRAINING":[{es:"sobrecarga progresiva",en:"progressive overload"},{es:"volumen de entrenamiento",en:"training volume"},{es:"intensidad",en:"intensity"},{es:"frecuencia",en:"frequency"},{es:"repetición",en:"rep"},{es:"serie",en:"set"},{es:"fallo muscular",en:"muscular failure"},{es:"técnica",en:"technique / form"},{es:"calentamiento",en:"warm-up"},{es:"enfriamiento",en:"cool-down"},{es:"hipertrofia",en:"hypertrophy"},{es:"resistencia",en:"endurance"},{es:"fuerza",en:"strength"},{es:"cardio",en:"cardio"},{es:"división de entrenamiento",en:"training split"},{es:"descanso activo",en:"active recovery"},{es:"sobreentrenamiento",en:"overtraining"},{es:"periodización",en:"periodization"},{es:"tiempo bajo tensión",en:"time under tension"},{es:"velocidad de ejecución",en:"rep tempo"}],"MOTIVATION & CUES":[{es:"¡Tú puedes!",en:"You can do it!"},{es:"¡Más peso!",en:"More weight!"},{es:"Una más",en:"One more"},{es:"¡Aprieta!",en:"Squeeze!"},{es:"Controla el movimiento",en:"Control the movement"},{es:"Respira",en:"Breathe"},{es:"Mantén la postura",en:"Hold your form"},{es:"Empuja",en:"Push"},{es:"Jala",en:"Pull"},{es:"Última repetición",en:"Last rep"},{es:"¡Descansa!",en:"Rest!"},{es:"Concéntrate",en:"Focus"},{es:"Siente el músculo",en:"Feel the muscle"},{es:"Más profundo",en:"Go deeper"},{es:"Velocidad controlada",en:"Controlled speed"},{es:"¡Excelente trabajo!",en:"Excellent work!"},{es:"Vamos a superar tus límites",en:"We're pushing your limits"},{es:"Confía en el proceso",en:"Trust the process"},{es:"Disciplina es libertad",en:"Discipline is freedom"},{es:"Construye, cree, logra",en:"Build, believe, achieve"}]};
 var SC=[{title:"SCRIPT 1 — Explaining 16/8 Fasting",lines:[{es:"Hoy vamos a hablar de tu protocolo de ayuno.",en:"Today we're going to talk about your fasting protocol."},{es:"El ayuno 16/8 significa que no comes durante 16 horas y tienes una ventana de alimentación de 8 horas.",en:"16/8 fasting means you don't eat for 16 hours and have an 8-hour eating window."},{es:"Por ejemplo, si tu última comida es a las 8 de la noche, no comes hasta el mediodía del día siguiente.",en:"For example, if your last meal is at 8 PM, you don't eat until noon the next day."},{es:"Durante el ayuno, puedes tomar agua, café negro, y té sin azúcar.",en:"During the fast, you can have water, black coffee, and unsweetened tea."},{es:"Este método mejora la sensibilidad a la insulina y te ayuda a reducir la grasa corporal.",en:"This method improves insulin sensitivity and helps you reduce body fat."},{es:"¿Tienes preguntas sobre cómo empezar?",en:"Do you have questions about how to start?"}]},{title:"SCRIPT 2 — The 5-Day Strength Split",lines:[{es:"Tu programa de entrenamiento es una división de cinco días.",en:"Your training program is a five-day split."},{es:"El lunes trabajamos el pecho y los tríceps.",en:"Monday we work chest and triceps."},{es:"El martes es para la espalda y los bíceps.",en:"Tuesday is for back and biceps."},{es:"El miércoles entrenamos los hombros y el núcleo.",en:"Wednesday we train shoulders and core."},{es:"El jueves nos enfocamos en los glúteos y los isquiotibiales.",en:"Thursday we focus on glutes and hamstrings."},{es:"El viernes es el día de cuádriceps y pantorrillas.",en:"Friday is quadriceps and calves day."},{es:"Cada semana aumentamos el peso o las repeticiones — eso es la sobrecarga progresiva.",en:"Every week we increase the weight or reps — that's progressive overload."}]},{title:"SCRIPT 3 — Motivation & Check-In",lines:[{es:"¿Cómo te sientes hoy? ¿Tienes energía para entrenar?",en:"How are you feeling today? Do you have energy to train?"},{es:"Recuerda: la consistencia es más importante que la perfección.",en:"Remember: consistency is more important than perfection."},{es:"Hoy vamos a trabajar en la conexión mente-músculo.",en:"Today we're going to work on the mind-muscle connection."},{es:"Cada repetición debe ser intencional — siente el músculo trabajar.",en:"Every rep must be intentional — feel the muscle working."},{es:"Tu objetivo es llegar a 175 libras de masa muscular limpia. Estamos construyendo ese físico.",en:"Your goal is to reach the Sovereign Gold Standard. We are building that physique."},{es:"¡Tú puedes! Construye, cree, logra.",en:"You can do it! Build, believe, achieve."}]}];

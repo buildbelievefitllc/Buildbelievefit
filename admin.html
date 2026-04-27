@@ -101,6 +101,10 @@ function SD(d){localStorage.setItem(K,JSON.stringify(d));}
 
 async function authAdmin(){
   var pin = document.getElementById('gate-pin').value.trim();
+  if (!pin) {
+    document.getElementById('gate-err').textContent='Please enter a PIN.';
+    return;
+  }
   document.getElementById('gate-err').textContent='Authenticating...';
 
   if (typeof BBF_SYNC === 'undefined') {

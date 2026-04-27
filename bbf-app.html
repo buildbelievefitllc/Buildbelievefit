@@ -4218,7 +4218,7 @@ function SS(id){
   if(t)t.classList.add('on');
 }
 
-function LOGIN(){
+async function LOGIN(){
   var uEl=document.getElementById('u')||document.getElementById('un');
   var pEl=document.getElementById('p')||document.getElementById('pw');
   var msg=document.getElementById('lmsg');
@@ -4226,22 +4226,43 @@ function LOGIN(){
   var user=uEl.value.trim().toLowerCase();
   var pin=pEl.value.trim();
   if(!user||!pin){if(msg)msg.textContent='Enter username and PIN.';return;}
-  var CREDS={'akeem':'8137','ana_bbf':'2026','jacky_bbf':'3456','suzanna_bbf':'5678','jordan_bbf':'1111','wayne_bbf':'2222'};
-  if(!CREDS[user]||CREDS[user]!==pin){
-    if(msg){msg.textContent='Incorrect username or PIN.';msg.style.color='#ef4444';}
+
+  if (msg) {
+    msg.textContent = 'Authenticating via Sovereign Layer...';
+    msg.style.color = 'var(--yel)';
+  }
+
+  try {
+    var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_user_pin', {
+      method: 'POST',
+      headers: {
+        'apikey': window.ENV_SUPABASE_KEY,
+        'Authorization': 'Bearer ' + window.ENV_SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ uid: user, pin_attempt: pin })
+    });
+    var isValid = await res.json();
+    if(isValid !== true){
+      if(msg){msg.textContent='Incorrect username or PIN.';msg.style.color='#ef4444';}
+      return;
+    }
+  } catch(e) {
+    if(msg){msg.textContent='Authentication error. Check connection.';msg.style.color='#ef4444';}
     return;
   }
+
   var d=GD();
   if(!d.u[user]){
     var SEEDS={
-      'akeem':      {name:'Akeem Brown',  pin:'8137',role:'trainer',type:'Trainer',  goal:'Head Coach',       gw:'',  plan:null},
-      'ana_bbf':    {name:'Ana',          pin:'2026',role:'client', type:'Essentials',goal:'Lean & Toned',    gw:'135',plan:'ana_spring'},
-      'jacky_bbf':  {name:'Jacky',        pin:'3456',role:'client', type:'Essentials',goal:'Strength',        gw:'',  plan:'jacky_plan'},
-      'suzanna_bbf':{name:'Suzanna',      pin:'5678',role:'client', type:'Essentials',goal:'Tone Up',         gw:'',  plan:'suzanna_plan'},
-      'jordan_bbf': {name:'Jordan',       pin:'1111',role:'client', type:'Platinum',  goal:'Weight Loss',     gw:'185',plan:'jordan_wayne'},
-      'wayne_bbf':  {name:'Wayne',        pin:'2222',role:'client', type:'Platinum',  goal:'Lean Muscle',     gw:'175',plan:'jordan_wayne'}
+      'akeem':      {name:'Akeem Brown',  pin:null, role:'trainer',type:'Trainer',  goal:'Head Coach',       gw:'',  plan:null},
+      'ana_bbf':    {name:'Ana',          pin:null, role:'client', type:'Essentials',goal:'Lean & Toned',    gw:'135',plan:'ana_spring'},
+      'jacky_bbf':  {name:'Jacky',        pin:null, role:'client', type:'Essentials',goal:'Strength',        gw:'',  plan:'jacky_plan'},
+      'suzanna_bbf':{name:'Suzanna',      pin:null, role:'client', type:'Essentials',goal:'Tone Up',         gw:'',  plan:'suzanna_plan'},
+      'jordan_bbf': {name:'Jordan',       pin:null, role:'client', type:'Platinum',  goal:'Weight Loss',     gw:'185',plan:'jordan_wayne'},
+      'wayne_bbf':  {name:'Wayne',        pin:null, role:'client', type:'Platinum',  goal:'Lean Muscle',     gw:'175',plan:'jordan_wayne'}
     };
-    d.u[user]=SEEDS[user]||{name:user,pin:pin,role:'client',type:'Essentials',goal:'',gw:'',plan:null};
+    d.u[user]=SEEDS[user]||{name:user,pin:null,role:'client',type:'Essentials',goal:'',gw:'',plan:null};
     if(!d.l[user])d.l[user]=[];
     if(!d.w[user])d.w[user]={};
     SD(d);
@@ -6066,12 +6087,12 @@ var CURRENT_VER = '8';
 // ─── SEED CLIENT ACCOUNTS ─────────────────────────────────────────
 (function() {
   var d = GD();
-  if (!d.u.akeem)     d.u.akeem     = {name:'Akeem Brown', pin:'8137', role:'trainer', type:'Trainer',   goal:'Head Coach — Build Believe Fit',                    gw:'', plan:null};
-  if (!d.u.ana_bbf)   d.u.ana_bbf   = {name:'Ana',         pin:'2026', role:'client',  type:'In-Person', goal:'Spring 2026 — Arms, Glutes & Full Body',            gw:'', plan:'ana_spring'};
-  if (!d.u.jacky_bbf) d.u.jacky_bbf = {name:'Jacky',       pin:'3456', role:'client',  type:'In-Person', goal:'5-Day Comprehensive Program',                       gw:'', plan:'jacky_plan'};
-  if (!d.u.suzanna_bbf) d.u.suzanna_bbf = {name:'Suzanna', pin:'5678', role:'client',  type:'In-Person', goal:'4-Day Strength — Planet Fitness (Watson & Buckeye)', gw:'', plan:'suzanna_plan'};
-  if (!d.u.jordan_bbf) d.u.jordan_bbf = {name:'Jordan',    pin:'1111', role:'client',  type:'In-Person', goal:'Performance & Longevity — 4-Day with Wayne',        gw:'', plan:'jordan_wayne', partner:'wayne_bbf'};
-  if (!d.u.wayne_bbf)  d.u.wayne_bbf  = {name:'Wayne',     pin:'2222', role:'client',  type:'In-Person', goal:'Performance & Longevity — 4-Day with Jordan',       gw:'', plan:'jordan_wayne', partner:'jordan_bbf'};
+  if (!d.u.akeem)     d.u.akeem     = {name:'Akeem Brown', pin:null, role:'trainer', type:'Trainer',   goal:'Head Coach — Build Believe Fit',                    gw:'', plan:null};
+  if (!d.u.ana_bbf)   d.u.ana_bbf   = {name:'Ana',         pin:null, role:'client',  type:'In-Person', goal:'Spring 2026 — Arms, Glutes & Full Body',            gw:'', plan:'ana_spring'};
+  if (!d.u.jacky_bbf) d.u.jacky_bbf = {name:'Jacky',       pin:null, role:'client',  type:'In-Person', goal:'5-Day Comprehensive Program',                       gw:'', plan:'jacky_plan'};
+  if (!d.u.suzanna_bbf) d.u.suzanna_bbf = {name:'Suzanna', pin:null, role:'client',  type:'In-Person', goal:'4-Day Strength — Planet Fitness (Watson & Buckeye)', gw:'', plan:'suzanna_plan'};
+  if (!d.u.jordan_bbf) d.u.jordan_bbf = {name:'Jordan',    pin:null, role:'client',  type:'In-Person', goal:'Strength & Hypertrophy',                            gw:'', plan:'jordan_wayne'};
+  if (!d.u.wayne_bbf)  d.u.wayne_bbf  = {name:'Wayne',     pin:null, role:'client',  type:'In-Person', goal:'Strength & Hypertrophy',                            gw:'', plan:'jordan_wayne'};
   ['akeem','ana_bbf','jacky_bbf','suzanna_bbf','jordan_bbf','wayne_bbf'].forEach(function(k) {
     if (!d.l[k]) d.l[k] = [];
     if (!d.w[k]) d.w[k] = {};
@@ -6279,12 +6300,12 @@ var MP = {
 // ─── SEED DATA ────────────────────────────────────────────
 (function() {
   var d = GD();
-  if (!d.u.akeem)     d.u.akeem     = {name:'Akeem Brown', pin:'8137', role:'trainer', type:'Trainer',   goal:'Head Coach — Build Believe Fit',                    gw:'', plan:null};
-  if (!d.u.ana_bbf)   d.u.ana_bbf   = {name:'Ana',         pin:'2026', role:'client',  type:'In-Person', goal:'Spring 2026 — Arms, Glutes & Full Body',            gw:'', plan:'ana_spring'};
-  if (!d.u.jacky_bbf) d.u.jacky_bbf = {name:'Jacky',       pin:'3456', role:'client',  type:'In-Person', goal:'5-Day Comprehensive Program',                       gw:'', plan:'jacky_plan'};
-  if (!d.u.suzanna_bbf) d.u.suzanna_bbf = {name:'Suzanna', pin:'5678', role:'client',  type:'In-Person', goal:'4-Day Strength — Planet Fitness (Watson & Buckeye)', gw:'', plan:'suzanna_plan'};
-  if (!d.u.jordan_bbf) d.u.jordan_bbf = {name:'Jordan',    pin:'1111', role:'client',  type:'In-Person', goal:'Performance & Longevity — 4-Day with Wayne',        gw:'', plan:'jordan_wayne', partner:'wayne_bbf'};
-  if (!d.u.wayne_bbf)  d.u.wayne_bbf  = {name:'Wayne',     pin:'2222', role:'client',  type:'In-Person', goal:'Performance & Longevity — 4-Day with Jordan',       gw:'', plan:'jordan_wayne', partner:'jordan_bbf'};
+  if (!d.u.akeem)     d.u.akeem     = {name:'Akeem Brown', pin:null, role:'trainer', type:'Trainer',   goal:'Head Coach — Build Believe Fit',                    gw:'', plan:null};
+  if (!d.u.ana_bbf)   d.u.ana_bbf   = {name:'Ana',         pin:null, role:'client',  type:'In-Person', goal:'Spring 2026 — Arms, Glutes & Full Body',            gw:'', plan:'ana_spring'};
+  if (!d.u.jacky_bbf) d.u.jacky_bbf = {name:'Jacky',       pin:null, role:'client',  type:'In-Person', goal:'5-Day Comprehensive Program',                       gw:'', plan:'jacky_plan'};
+  if (!d.u.suzanna_bbf) d.u.suzanna_bbf = {name:'Suzanna', pin:null, role:'client',  type:'In-Person', goal:'4-Day Strength — Planet Fitness (Watson & Buckeye)', gw:'', plan:'suzanna_plan'};
+  if (!d.u.jordan_bbf) d.u.jordan_bbf = {name:'Jordan',    pin:null, role:'client',  type:'In-Person', goal:'Performance & Longevity — 4-Day with Wayne',        gw:'', plan:'jordan_wayne', partner:'wayne_bbf'};
+  if (!d.u.wayne_bbf)  d.u.wayne_bbf  = {name:'Wayne',     pin:null, role:'client',  type:'In-Person', goal:'Performance & Longevity — 4-Day with Jordan',       gw:'', plan:'jordan_wayne', partner:'jordan_bbf'};
   ['akeem','ana_bbf','jacky_bbf','suzanna_bbf','jordan_bbf','wayne_bbf'].forEach(function(k) {
     if (!d.l[k]) d.l[k] = [];
     if (!d.w[k]) d.w[k] = {};
@@ -6520,11 +6541,11 @@ function SETUP_TRAINER() {
   var d = GD();
   // Force seed all client accounts (in case localStorage is stale)
   var CLIENT_SEEDS = {
-    'ana_bbf':     {name:'Ana',         pin:'2026', role:'client', type:'Essentials', goal:'Lean & Toned',         gw:'135', plan:'ana_spring',   schedule:'standard'},
-    'jacky_bbf':   {name:'Jacky',       pin:'3456', role:'client', type:'Essentials', goal:'Strength & Endurance', gw:'',    plan:'jacky_plan',   schedule:'shifts'},
-    'suzanna_bbf': {name:'Suzanna',     pin:'5678', role:'client', type:'Essentials', goal:'Tone & Feel Strong',   gw:'',    plan:'suzanna_plan', schedule:'standard'},
-    'jordan_bbf':  {name:'Jordan',      pin:'1111', role:'client', type:'Platinum',   goal:'Weight Loss',          gw:'185', plan:'jordan_wayne', schedule:'9to5'},
-    'wayne_bbf':   {name:'Wayne',       pin:'2222', role:'client', type:'Platinum',   goal:'Lean Muscle',          gw:'175', plan:'jordan_wayne', schedule:'shifts'}
+    'ana_bbf':     {name:'Ana',         pin:null, role:'client', type:'Essentials', goal:'Lean & Toned',         gw:'135', plan:'ana_spring',   schedule:'standard'},
+    'jacky_bbf':   {name:'Jacky',       pin:null, role:'client', type:'Essentials', goal:'Strength & Endurance', gw:'',    plan:'jacky_plan',   schedule:'shifts'},
+    'suzanna_bbf': {name:'Suzanna',     pin:null, role:'client', type:'Essentials', goal:'Tone & Feel Strong',   gw:'',    plan:'suzanna_plan', schedule:'standard'},
+    'jordan_bbf':  {name:'Jordan',      pin:null, role:'client', type:'Platinum',   goal:'Weight Loss',          gw:'185', plan:'jordan_wayne', schedule:'9to5'},
+    'wayne_bbf':   {name:'Wayne',       pin:null, role:'client', type:'Platinum',   goal:'Lean Muscle',          gw:'175', plan:'jordan_wayne', schedule:'shifts'}
   };
   Object.keys(CLIENT_SEEDS).forEach(function(uid) {
     if (!d.u[uid]) { d.u[uid] = CLIENT_SEEDS[uid]; }

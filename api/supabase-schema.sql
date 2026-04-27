@@ -210,3 +210,21 @@ BEGIN
   RETURN actual_hash = attempt_hash;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION bbf_verify_user_pin(uid TEXT, pin_attempt TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  actual_hash TEXT;
+  attempt_hash TEXT;
+BEGIN
+  SELECT pin_hash INTO actual_hash FROM bbf_users WHERE id = uid LIMIT 1;
+  IF actual_hash IS NULL THEN
+    RETURN FALSE;
+  END IF;
+  attempt_hash := encode(digest(pin_attempt, 'sha256'), 'hex');
+  RETURN attempt_hash = actual_hash;
+END;
+$$;
