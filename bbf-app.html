@@ -4992,43 +4992,142 @@ window.onload=function(){
       (function(){
         if (window.KFH_SET_VIEW) return;
         function byId(id){ return document.getElementById(id); }
+        function setText(id, v){ var el = byId(id); if (el) el.textContent = (v == null ? '' : v); }
+
+        /* SVG geometry placeholder — Sprint 2.2 will replace with real paths.
+           Must always include both callout groups so KFH_SET_FORM can toggle. */
+        var SVG_PLACEHOLDER =
+          '<g><g id="kfh-callout-ok"></g><g id="kfh-callout-warn" style="display:none"></g></g>';
+
+        /* Bench Press sagittal wireframe — restored from the pre-refactor static
+           SVG. Contains the bench, lifter, J-curve bar path, joints, and the
+           standard/fault callout groups (#kfh-callout-ok / #kfh-callout-warn). */
+        var BENCH_PRESS_SVG = [
+          '<g class="kfh-wf-grid">',
+            '<line x1="28" y1="18" x2="28" y2="188"/>',
+            '<line x1="292" y1="18" x2="292" y2="188"/>',
+            '<line x1="28" y1="160" x2="292" y2="160"/>',
+          '</g>',
+          '<line class="kfh-wf kfh-wf-bench" x1="28" y1="180" x2="292" y2="180"/>',
+          '<g class="kfh-wf kfh-wf-bench">',
+            '<rect x="80" y="130" width="170" height="10" rx="2"/>',
+            '<line x1="92" y1="140" x2="92" y2="180"/>',
+            '<line x1="238" y1="140" x2="238" y2="180"/>',
+            '<line x1="85" y1="180" x2="100" y2="180"/>',
+            '<line x1="230" y1="180" x2="246" y2="180"/>',
+            '<line x1="262" y1="180" x2="262" y2="56"/>',
+            '<line x1="262" y1="56" x2="272" y2="56"/>',
+          '</g>',
+          '<g class="kfh-wf">',
+            '<circle cx="92" cy="120" r="8"/>',
+            '<path d="M100 126 Q140 116 180 122 Q210 127 232 130"/>',
+            '<line x1="232" y1="130" x2="244" y2="152"/>',
+            '<line x1="244" y1="152" x2="228" y2="180"/>',
+            '<line x1="220" y1="180" x2="240" y2="180"/>',
+            '<line id="kfh-upperarm" x1="155" y1="120" x2="170" y2="86"/>',
+            '<line id="kfh-forearm" x1="170" y1="86" x2="175" y2="60"/>',
+          '</g>',
+          '<g>',
+            '<line class="kfh-wf kfh-wf-bar" x1="158" y1="60" x2="192" y2="60"/>',
+            '<circle class="kfh-wf-plate" cx="175" cy="60" r="10"/>',
+            '<circle class="kfh-wf-plate" cx="175" cy="60" r="4"/>',
+          '</g>',
+          '<path class="kfh-path-j" d="M175 118 C 180 98, 190 78, 198 58"/>',
+          '<circle cx="175" cy="118" r="2.5" fill="#00E5FF"/>',
+          '<circle cx="198" cy="58" r="2.5" fill="#00E5FF"/>',
+          '<text class="kfh-bar-label" x="120" y="112">Touch · Sternum</text>',
+          '<text class="kfh-bar-label" x="204" y="52">Lockout</text>',
+          '<text class="kfh-bar-label" x="208" y="92">J-Curve Path</text>',
+          '<circle class="kfh-joint j-shoulder" cx="155" cy="120" r="4.2"/>',
+          '<circle class="kfh-halo" cx="155" cy="120" r="6"/>',
+          '<circle class="kfh-joint j-elbow" cx="170" cy="86" r="3.6"/>',
+          '<circle class="kfh-joint j-wrist" cx="175" cy="60" r="3.6"/>',
+          '<circle class="kfh-joint j-hip" cx="232" cy="130" r="3.4"/>',
+          '<circle class="kfh-joint j-knee" cx="244" cy="152" r="3.4"/>',
+          '<g id="kfh-callout-ok">',
+            '<line class="kfh-leader ok" x1="155" y1="120" x2="60" y2="150"/>',
+            '<text class="kfh-label-box ok" x="30" y="162">Scap Retracted · 45°</text>',
+          '</g>',
+          '<g id="kfh-callout-warn" style="display:none">',
+            '<line class="kfh-leader warn" x1="155" y1="120" x2="60" y2="150"/>',
+            '<text class="kfh-label-box warn" x="30" y="156">Elbow Flare 85°</text>',
+            '<text class="kfh-label-box warn" x="30" y="168">Impingement Risk</text>',
+          '</g>'
+        ].join('');
+
 
         /* ── Clinical Exercise Data Object ─────────────────────────
-           Architect: drop real laboratory asset URLs into `mediaSrc`.
-           `mediaType` may be 'image' or 'video'. Leave mediaSrc empty
-           to render the premium 'Awaiting Clinical Asset' state. */
+           Each entry owns its full presentation contract:
+             title, subtitle, muscleTarget, clinicalNotes, media{Src,Type},
+             svgTitle, svgMarkup,
+             chipOkLabel, chipWarnLabel,
+             metricLabels{dev,tuck,load},
+             formStates{ok,warn} → {dev,tuck,load,fn}
+           Drop laboratory asset URLs into `mediaSrc` (`mediaType` = image|video). */
         window.KFH_EXERCISES = {
           'bench press': {
             title: 'Clinical Protocol: Bench Press',
             subtitle: 'Sagittal Plane · Barbell · Sovereign Rig',
             muscleTarget: 'Pectoralis Major / Anterior Deltoid / Triceps Brachii',
             clinicalNotes: 'Horizontal push patterning. Scapular retraction + J-curve bar path loads pectoralis fibers through 45° adduction. Drive through the mid-foot to stack ATP-PCr output for top-end tonnage.',
-            mediaSrc: '',
-            mediaType: 'image'
+            mediaSrc: '', mediaType: 'image',
+            svgTitle: 'Bench Press Sagittal Wireframe with J-Curve Bar Path',
+            svgMarkup: BENCH_PRESS_SVG,
+            chipOkLabel: 'Standard Form',
+            chipWarnLabel: 'Common Fault: Elbow Flare',
+            metricLabels: { dev: 'Bar Path Dev.', tuck: 'Tuck Angle', load: 'Shoulder Load' },
+            formStates: {
+              ok:   { dev: '± 1.2 cm', tuck: '65°', load: 'Nominal',  fn: 'Clinical reference · Non-diagnostic overlay' },
+              warn: { dev: '± 4.8 cm', tuck: '85°', load: 'Elevated', fn: 'Fault pattern · Elbow flare · Impingement risk' }
+            }
           },
           'bicep curl': {
             title: 'Clinical Protocol: Bicep Curl',
             subtitle: 'Sagittal Plane · Dumbbell · Isolation',
             muscleTarget: 'Biceps Brachii (Short + Long Head) / Brachialis / Brachioradialis',
             clinicalNotes: 'Elbow flexion in supination. Strict 3-second eccentric maximizes sarcoplasmic hypertrophy of the short head and spares the bicipital tendon. Glycolytic-dominant — keep rest under 90 seconds.',
-            mediaSrc: '',
-            mediaType: 'image'
+            mediaSrc: '', mediaType: 'image',
+            svgTitle: 'Bicep Curl Sagittal Wireframe with Strict Curl Arc',
+            svgMarkup: SVG_PLACEHOLDER,
+            chipOkLabel: 'Strict Form',
+            chipWarnLabel: 'Common Fault: Elbow Drift',
+            metricLabels: { dev: 'Elbow Drift', tuck: 'Supination', load: 'Bicep Tension' },
+            formStates: {
+              ok:   { dev: '0.4 cm', tuck: 'Full', load: 'Optimal',  fn: 'Clinical reference · Strict curl pattern' },
+              warn: { dev: '3.6 cm', tuck: 'Lost', load: 'Diffused', fn: 'Fault pattern · Elbow drift · Tension lost' }
+            }
           },
           'hack squat': {
             title: 'Clinical Protocol: Hack Squat',
             subtitle: 'Sagittal Plane · Machine · Fixed Rail',
             muscleTarget: 'Vastus Lateralis / Vastus Medialis / Gluteus Maximus',
             clinicalNotes: 'Machine-guided squat. The fixed rail isolates the quadriceps at depth with minimal axial spinal load — ideal for intensity stacking and hypertrophy work without CNS fatigue penalty.',
-            mediaSrc: '',
-            mediaType: 'image'
+            mediaSrc: '', mediaType: 'image',
+            svgTitle: 'Hack Squat Sagittal Wireframe with Sled Path',
+            svgMarkup: SVG_PLACEHOLDER,
+            chipOkLabel: 'Standard Form',
+            chipWarnLabel: 'Common Fault: Knee Valgus',
+            metricLabels: { dev: 'Knee Track', tuck: 'Depth', load: 'Patellar Load' },
+            formStates: {
+              ok:   { dev: 'Aligned',      tuck: 'Parallel', load: 'Nominal',  fn: 'Clinical reference · Quad-dominant pattern' },
+              warn: { dev: 'Caved 12°', tuck: 'Shallow',  load: 'Elevated', fn: 'Fault pattern · Knee valgus · Patellar stress' }
+            }
           },
           'romanian deadlift': {
             title: 'Clinical Protocol: Romanian Deadlift',
             subtitle: 'Sagittal Plane · Barbell · Hip Hinge',
             muscleTarget: 'Biceps Femoris / Semitendinosus / Gluteus Maximus / Erector Spinae',
             clinicalNotes: 'Hip-dominant hinge. Soft-knee, neutral spine, bar tracks mid-thigh. Eccentric loads the posterior chain through stretch-mediated hypertrophy — critical anti-extension protection for heavy squatters.',
-            mediaSrc: '',
-            mediaType: 'image'
+            mediaSrc: '', mediaType: 'image',
+            svgTitle: 'Romanian Deadlift Sagittal Wireframe with Vertical Bar Path',
+            svgMarkup: SVG_PLACEHOLDER,
+            chipOkLabel: 'Neutral Spine',
+            chipWarnLabel: 'Common Fault: Lumbar Flexion',
+            metricLabels: { dev: 'Bar Path', tuck: 'Hip Hinge', load: 'Spinal Load' },
+            formStates: {
+              ok:   { dev: 'Vertical',    tuck: '90°', load: 'Distributed', fn: 'Clinical reference · Posterior chain pattern' },
+              warn: { dev: 'Drift +3 cm', tuck: 'Stiff',    load: 'Shear Risk',  fn: 'Fault pattern · Lumbar flexion · Disc shear risk' }
+            }
           }
         };
         var KFH_DEFAULT_EXERCISE = {
@@ -5036,9 +5135,20 @@ window.onload=function(){
           subtitle: 'Sovereign Rig · Biomechanical Overlay',
           muscleTarget: 'Awaiting Classification',
           clinicalNotes: 'Protocol data pending. The Sovereign Clinical Intake will populate this panel once this exercise is registered in the laboratory database.',
-          mediaSrc: '',
-          mediaType: 'image'
+          mediaSrc: '', mediaType: 'image',
+          svgTitle: 'Laboratory Reference — Sagittal Wireframe',
+          svgMarkup: SVG_PLACEHOLDER,
+          chipOkLabel: 'Reference Standard',
+          chipWarnLabel: 'Reference Fault',
+          metricLabels: { dev: 'Path Dev.', tuck: 'Joint Angle', load: 'Joint Load' },
+          formStates: {
+            ok:   { dev: '—', tuck: '—', load: 'Pending', fn: 'Clinical reference · Awaiting classification' },
+            warn: { dev: '—', tuck: '—', load: 'Pending', fn: 'Reference overlay · Awaiting classification' }
+          }
         };
+
+        /* Currently loaded exercise — KFH_SET_FORM reads its formStates. */
+        var currentExercise = null;
 
         function lookupExercise(name){
           if (!name) return null;
@@ -5088,25 +5198,44 @@ window.onload=function(){
         }
 
         window.KFH_LOAD_EXERCISE = function(name){
-          var data = lookupExercise(name) || KFH_DEFAULT_EXERCISE;
-          var displayName = (lookupExercise(name) ? String(name).replace(/\b\w/g, function(c){ return c.toUpperCase(); }) : (data.title || name || 'Reference'));
-          var elEx    = byId('kfh-ex-name');
+          var match = lookupExercise(name);
+          var data  = match || KFH_DEFAULT_EXERCISE;
+          currentExercise = data;
+          var displayName = match
+            ? String(name).replace(/\b\w/g, function(c){ return c.toUpperCase(); })
+            : (data.title || name || 'Reference');
+
+          /* Header text */
+          setText('kfh-ex-name',             displayName);
+          setText('kfh-sub-text',            data.subtitle);
+          setText('kfh-muscle-target-text',  data.muscleTarget);
+          setText('kfh-clinical-notes-text', data.clinicalNotes);
+
+          /* SVG title + stage geometry — clearing innerHTML guarantees the
+             previous exercise's geometry is removed before injection. */
+          setText('kfh-svg-title', data.svgTitle || (displayName + ' — Sagittal Biomechanical Wireframe'));
+          var stage = byId('kfh-svg-stage');
+          if (stage) stage.innerHTML = data.svgMarkup || '';
+
+          /* Form-mode chip labels */
+          setText('kfh-chip-ok-text',   data.chipOkLabel   || 'Standard Form');
+          setText('kfh-chip-warn-text', data.chipWarnLabel || 'Common Fault');
+
+          /* Metric labels — values + footnote populated by KFH_SET_FORM. */
+          var labels = data.metricLabels || {};
+          setText('kfh-m-dev-lbl',  labels.dev);
+          setText('kfh-m-tuck-lbl', labels.tuck);
+          setText('kfh-m-load-lbl', labels.load);
+
+          /* Title attribute hook + Coach Cam labels (unchanged behavior) */
           var elTitle = byId('kfh-title');
-          var elSub   = byId('kfh-sub-text');
-          var elMT    = byId('kfh-muscle-target-text');
-          var elNotes = byId('kfh-clinical-notes-text');
-          var elSvgT  = byId('kfh-svg-title');
-          var elCamL  = byId('kfh-cam-label-text');
-          var elCamS  = byId('kfh-cam-sub-text');
-          if (elEx)    elEx.textContent    = displayName;
           if (elTitle) elTitle.setAttribute('data-kfh-title', data.title || '');
-          if (elSub)   elSub.textContent   = data.subtitle || '';
-          if (elMT)    elMT.textContent    = data.muscleTarget || '';
-          if (elNotes) elNotes.textContent = data.clinicalNotes || '';
-          if (elSvgT)  elSvgT.textContent  = displayName + ' — Sagittal Biomechanical Wireframe';
-          if (elCamL)  elCamL.textContent  = displayName + ' · Laboratory Footage';
-          if (elCamS)  elCamS.textContent  = data.mediaSrc ? 'Live Uplink Engaged' : 'Awaiting Uplink';
+          setText('kfh-cam-label-text', displayName + ' · Laboratory Footage');
+          setText('kfh-cam-sub-text',   data.mediaSrc ? 'Live Uplink Engaged' : 'Awaiting Uplink');
           setMedia(data.mediaSrc, data.mediaType);
+
+          /* Reset to standard form on every exercise swap. */
+          if (window.KFH_SET_FORM) window.KFH_SET_FORM('ok');
         };
 
         /* Helper for the render loop to wire exercise row clicks. */
@@ -5133,6 +5262,7 @@ window.onload=function(){
         };
         window.KFH_SET_FORM = function(mode){
           var root = byId('kfh-root'); if (!root) return;
+          if (mode !== 'ok' && mode !== 'warn') mode = 'ok';
           root.setAttribute('data-form', mode);
           var chips = root.querySelectorAll('.kfh-chip');
           for (var i=0;i<chips.length;i++){
@@ -5143,19 +5273,19 @@ window.onload=function(){
           var ok = byId('kfh-callout-ok'), wn = byId('kfh-callout-warn');
           if (ok) ok.style.display = (mode === 'ok')   ? '' : 'none';
           if (wn) wn.style.display = (mode === 'warn') ? '' : 'none';
-          var dev = byId('kfh-m-dev'), tuck = byId('kfh-m-tuck'), load = byId('kfh-m-load'), fn = byId('kfh-fn');
-          if (mode === 'warn'){
-            if (dev)  dev.textContent  = '\u00B1 4.8 cm';
-            if (tuck) tuck.textContent = '85\u00B0';
-            if (load) load.textContent = 'Elevated';
-            if (fn)   fn.textContent   = 'Fault pattern \u00B7 Elbow flare \u00B7 Impingement risk';
-          } else {
-            if (dev)  dev.textContent  = '\u00B1 1.2 cm';
-            if (tuck) tuck.textContent = '65\u00B0';
-            if (load) load.textContent = 'Nominal';
-            if (fn)   fn.textContent   = 'Clinical reference \u00B7 Non-diagnostic overlay';
-          }
+
+          /* Pull metric/footnote values from the currently loaded exercise. */
+          var data  = currentExercise || KFH_DEFAULT_EXERCISE;
+          var state = (data.formStates && data.formStates[mode]) || {};
+          setText('kfh-m-dev',  state.dev);
+          setText('kfh-m-tuck', state.tuck);
+          setText('kfh-m-load', state.load);
+          setText('kfh-fn',     state.fn);
         };
+
+        /* Bootstrap the HUD with the reference state so it never paints blank
+           before the user picks an exercise. RDW() will overwrite on click. */
+        try { window.KFH_LOAD_EXERCISE(''); } catch(e){}
       })();
       </script>
       <!-- PROGRAM PANE -->
