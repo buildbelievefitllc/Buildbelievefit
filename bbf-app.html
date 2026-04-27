@@ -4884,11 +4884,11 @@ window.onload=function(){
         <div class="kfh-head">
           <div>
             <div class="kfh-tag" id="kfh-tag"><span class="kfh-dot"></span><span id="kfh-tag-text">Kinematic Form HUD &middot; Clinical</span></div>
-            <div class="kfh-title" id="kfh-title" style="margin-top:.3rem"><span id="kfh-title-prefix">Exercise</span> &middot; <span class="kfh-ex" id="kfh-ex-name">Bench Press</span></div>
-            <div class="kfh-sub" id="kfh-sub-text">Sagittal Plane &middot; Barbell &middot; Sovereign Rig</div>
+            <div class="kfh-title" id="kfh-title" style="margin-top:.3rem"><span id="kfh-title-prefix">Exercise</span> &middot; <span class="kfh-ex" id="kfh-ex-name"></span></div>
+            <div class="kfh-sub" id="kfh-sub-text"></div>
             <div id="kfh-muscle-target" style="margin-top:.45rem;font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--yel);line-height:1.5">
               <span style="color:rgba(255,255,255,.35)">Target &middot;</span>
-              <span id="kfh-muscle-target-text">Pectoralis Major / Anterior Deltoid / Triceps Brachii</span>
+              <span id="kfh-muscle-target-text"></span>
             </div>
           </div>
         </div>
@@ -4913,107 +4913,38 @@ window.onload=function(){
         <!-- Bio-Render view -->
         <div class="kfh-view on" id="kfh-view-render" role="tabpanel" aria-label="Bio-Render wireframe">
           <div class="kfh-subseg" role="radiogroup" aria-label="Form mode">
-            <button type="button" class="kfh-chip on ok"   data-form="ok"   role="radio" aria-checked="true"  onclick="KFH_SET_FORM('ok')"><span class="kfh-pip"></span>Standard Form</button>
-            <button type="button" class="kfh-chip warn"    data-form="warn" role="radio" aria-checked="false" onclick="KFH_SET_FORM('warn')"><span class="kfh-pip"></span>Common Fault: Elbow Flare</button>
+            <button type="button" class="kfh-chip on ok"   data-form="ok"   role="radio" aria-checked="true"  onclick="KFH_SET_FORM('ok')"><span class="kfh-pip"></span><span id="kfh-chip-ok-text">Standard Form</span></button>
+            <button type="button" class="kfh-chip warn"    data-form="warn" role="radio" aria-checked="false" onclick="KFH_SET_FORM('warn')"><span class="kfh-pip"></span><span id="kfh-chip-warn-text">Common Fault</span></button>
           </div>
           <div class="kfh-stage">
-            <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kfh-svg-title" role="img">
-              <title id="kfh-svg-title" data-kfh-default="Bench Press Sagittal Wireframe with J-Curve Bar Path">Bench Press Sagittal Wireframe with J-Curve Bar Path</title>
-              <!-- Calibration grid edges -->
-              <g class="kfh-wf-grid">
-                <line x1="28"  y1="18" x2="28"  y2="188"/>
-                <line x1="292" y1="18" x2="292" y2="188"/>
-                <line x1="28"  y1="160" x2="292" y2="160"/>
-              </g>
-              <!-- Floor -->
-              <line class="kfh-wf kfh-wf-bench" x1="28" y1="180" x2="292" y2="180"/>
-              <!-- Bench -->
-              <g class="kfh-wf kfh-wf-bench">
-                <!-- Bench pad -->
-                <rect x="80" y="130" width="170" height="10" rx="2"/>
-                <!-- Bench legs -->
-                <line x1="92"  y1="140" x2="92"  y2="180"/>
-                <line x1="238" y1="140" x2="238" y2="180"/>
-                <line x1="85"  y1="180" x2="100" y2="180"/>
-                <line x1="230" y1="180" x2="246" y2="180"/>
-                <!-- Uprights -->
-                <line x1="262" y1="180" x2="262" y2="56"/>
-                <line x1="262" y1="56"  x2="272" y2="56"/>
-              </g>
-              <!-- Lifter wireframe (sagittal) -->
-              <g class="kfh-wf">
-                <!-- Head -->
-                <circle cx="92" cy="120" r="8"/>
-                <!-- Neck to hip (spine, slight arch) -->
-                <path d="M100 126 Q140 116 180 122 Q210 127 232 130"/>
-                <!-- Thigh -->
-                <line x1="232" y1="130" x2="244" y2="152"/>
-                <!-- Shin -->
-                <line x1="244" y1="152" x2="228" y2="180"/>
-                <!-- Foot -->
-                <line x1="220" y1="180" x2="240" y2="180"/>
-                <!-- Upper arm (shoulder -> elbow) -->
-                <line id="kfh-upperarm" x1="155" y1="120" x2="170" y2="86"/>
-                <!-- Forearm (elbow -> wrist/bar) -->
-                <line id="kfh-forearm" x1="170" y1="86" x2="175" y2="60"/>
-              </g>
-              <!-- Plates + bar -->
-              <g>
-                <line class="kfh-wf kfh-wf-bar" x1="158" y1="60" x2="192" y2="60"/>
-                <circle class="kfh-wf-plate" cx="175" cy="60" r="10"/>
-                <circle class="kfh-wf-plate" cx="175" cy="60" r="4"/>
-              </g>
-              <!-- J-Curve bar path (touch point above chest → rack/shoulder arc) -->
-              <!-- Touch point approx (175, 118) → lockout (198, 58), J-curve shifts toward shoulders -->
-              <path class="kfh-path-j" d="M175 118 C 180 98, 190 78, 198 58"/>
-              <!-- Path terminal markers -->
-              <circle cx="175" cy="118" r="2.5" fill="#00E5FF"/>
-              <circle cx="198" cy="58"  r="2.5" fill="#00E5FF"/>
-              <text class="kfh-bar-label" x="120" y="112">Touch &middot; Sternum</text>
-              <text class="kfh-bar-label" x="204" y="52">Lockout</text>
-              <text class="kfh-bar-label" x="208" y="92">J-Curve Path</text>
-              <!-- Joints -->
-              <circle class="kfh-joint j-shoulder" cx="155" cy="120" r="4.2"/>
-              <circle class="kfh-halo"             cx="155" cy="120" r="6"/>
-              <circle class="kfh-joint j-elbow"    cx="170" cy="86"  r="3.6"/>
-              <circle class="kfh-joint j-wrist"    cx="175" cy="60"  r="3.6"/>
-              <circle class="kfh-joint j-hip"      cx="232" cy="130" r="3.4"/>
-              <circle class="kfh-joint j-knee"     cx="244" cy="152" r="3.4"/>
-              <!-- Leader + callout label, swaps between ok/warn -->
-              <g id="kfh-callout-ok">
-                <line class="kfh-leader ok" x1="155" y1="120" x2="60"  y2="150"/>
-                <text class="kfh-label-box ok" x="30" y="162">Scap Retracted &middot; 45&deg;</text>
-              </g>
-              <g id="kfh-callout-warn" style="display:none">
-                <line class="kfh-leader warn" x1="155" y1="120" x2="60"  y2="150"/>
-                <text class="kfh-label-box warn" x="30" y="156">Elbow Flare 85&deg;</text>
-                <text class="kfh-label-box warn" x="30" y="168">Impingement Risk</text>
-              </g>
+            <svg id="kfh-svg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kfh-svg-title" role="img">
+              <title id="kfh-svg-title"></title>
+              <g id="kfh-svg-stage" aria-hidden="true"></g>
             </svg>
           </div>
           <div class="kfh-readout">
             <div class="kfh-metric">
-              <div class="kfh-m-lbl">Bar Path Dev.</div>
-              <div class="kfh-m-val" id="kfh-m-dev">&plusmn; 1.2 cm</div>
+              <div class="kfh-m-lbl" id="kfh-m-dev-lbl"></div>
+              <div class="kfh-m-val" id="kfh-m-dev"></div>
             </div>
             <div class="kfh-metric">
-              <div class="kfh-m-lbl">Tuck Angle</div>
-              <div class="kfh-m-val" id="kfh-m-tuck">65&deg;</div>
+              <div class="kfh-m-lbl" id="kfh-m-tuck-lbl"></div>
+              <div class="kfh-m-val" id="kfh-m-tuck"></div>
             </div>
             <div class="kfh-metric m-fault">
-              <div class="kfh-m-lbl">Shoulder Load</div>
-              <div class="kfh-m-val" id="kfh-m-load">Nominal</div>
+              <div class="kfh-m-lbl" id="kfh-m-load-lbl"></div>
+              <div class="kfh-m-val" id="kfh-m-load"></div>
             </div>
           </div>
           <div class="kfh-footnote">
-            <span id="kfh-fn">Clinical reference &middot; Non-diagnostic overlay</span>
+            <span id="kfh-fn"></span>
             <span class="kfh-fn-bar" aria-hidden="true"></span>
             <span>v1.0</span>
           </div>
           <!-- Dynamic clinical bioenergetic notes — swapped per exercise -->
           <div id="kfh-clinical-notes" style="margin-top:.6rem;padding:.7rem .8rem;border-radius:10px;background:rgba(139,26,191,.06);border:1px solid rgba(139,26,191,.22);border-left:2px solid var(--purl);font-size:.74rem;line-height:1.55;color:rgba(255,255,255,.78)">
             <div style="font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;color:var(--purl);margin-bottom:.35rem">Bioenergetic Notes</div>
-            <div id="kfh-clinical-notes-text">Horizontal push patterning. Scapular retraction + J-curve bar path loads pectoralis fibers through 45&deg; adduction. Non-negotiable for upper-body tonnage.</div>
+            <div id="kfh-clinical-notes-text"></div>
           </div>
         </div>
         <!-- Coach Cam view -->
