@@ -138,6 +138,39 @@ CREATE POLICY "Allow all for anon" ON bbf_logs FOR ALL USING (true) WITH CHECK (
 CREATE POLICY "Allow all for anon" ON bbf_sets FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all for anon" ON bbf_readiness FOR ALL USING (true) WITH CHECK (true);
 
+-- 6.5. RPC FUNCTIONS FOR SECURE AUTH
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE OR REPLACE FUNCTION bbf_verify_admin_pin(pin_attempt TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  stored_hash TEXT;
+  attempt_hash TEXT;
+BEGIN
+  SELECT pin_hash INTO stored_hash FROM bbf_users WHERE role = 'trainer' LIMIT 1;
+  attempt_hash := encode(digest(pin_attempt, 'sha256'), 'hex');
+  RETURN attempt_hash = stored_hash;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION bbf_verify_user_pin(uid TEXT, pin_attempt TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  stored_hash TEXT;
+  attempt_hash TEXT;
+BEGIN
+  SELECT pin_hash INTO stored_hash FROM bbf_users WHERE id = uid LIMIT 1;
+  attempt_hash := encode(digest(pin_attempt, 'sha256'), 'hex');
+  RETURN attempt_hash = stored_hash;
+END;
+$$;
+
 -- 7. SEED TRAINER ACCOUNT
 INSERT INTO bbf_users (id, name, role, type, goal, pin_hash)
 VALUES ('akeem', 'Akeem Brown', 'trainer', 'Trainer', 'Head Coach — Build Believe Fit', '1de5495d95a18bb628ebe8147e7f61046737bcc926fe89460e630a959a21b214')
