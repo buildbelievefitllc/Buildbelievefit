@@ -6,6 +6,11 @@
 var BBF_PORTAL = (function() {
   'use strict';
 
+  function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
   var pendingAudits = [];
 
   function verifyMastermindAccess() {
@@ -77,14 +82,18 @@ var BBF_PORTAL = (function() {
     board.innerHTML = '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:3px;color:#D4AF37;margin-bottom:1rem">' + pendingAudits.length + ' AUDIT REQUEST' + (pendingAudits.length > 1 ? 'S' : '') + ' PENDING</div>' +
       pendingAudits.map(function(a, i) {
         var parts = (a.notes || '').replace('Audit: ', '').split(' \u2014 Tension: ');
-        var exercise = parts[0] || 'Unknown';
-        var tension = parts[1] || 'Not specified';
-        var time = a.logged_at ? new Date(a.logged_at).toLocaleString() : a.date || '';
+        var exercise = escapeHTML(parts[0] || 'Unknown');
+        var tension = escapeHTML(parts[1] || 'Not specified');
+        var time = escapeHTML(a.logged_at ? new Date(a.logged_at).toLocaleString() : a.date || '');
+        var userName = escapeHTML(a.user_name || a.user_id);
+        var initial = escapeHTML((a.user_name || '?')[0].toUpperCase());
+        var rawUserId = a.user_id || '';
+        var userId = /^[a-zA-Z0-9_\-\.]+$/.test(rawUserId) ? rawUserId : '';
         return '<div style="background:#111;border:1px solid #1e1e1e;border-left:3px solid #D4AF37;border-radius:0 10px 10px 0;padding:1.2rem;margin-bottom:.8rem">' +
           '<div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:.8rem">' +
-          '<div style="flex-shrink:0;width:40px;height:40px;border-radius:50%;background:#6a0dad;border:2px solid #D4AF37;display:flex;align-items:center;justify-content:center;font-family:\'Bebas Neue\',sans-serif;font-size:.9rem;color:#D4AF37">' + (a.user_name || '?')[0].toUpperCase() + '</div>' +
+          '<div style="flex-shrink:0;width:40px;height:40px;border-radius:50%;background:#6a0dad;border:2px solid #D4AF37;display:flex;align-items:center;justify-content:center;font-family:\'Bebas Neue\',sans-serif;font-size:.9rem;color:#D4AF37">' + initial + '</div>' +
           '<div style="flex:1">' +
-          '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.1rem;letter-spacing:2px;color:#fff">' + (a.user_name || a.user_id) + '</div>' +
+          '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.1rem;letter-spacing:2px;color:#fff">' + userName + '</div>' +
           '<div style="font-size:.68rem;font-weight:700;letter-spacing:2px;color:#D4AF37;margin-top:.2rem">CLINICAL ALERT</div>' +
           '</div>' +
           '<div style="font-size:.6rem;color:#555;text-align:right;min-width:80px">' + time + '</div>' +
@@ -94,7 +103,7 @@ var BBF_PORTAL = (function() {
           '<div style="display:flex;gap:.6rem;align-items:center"><span style="font-size:1rem">\u26A0</span><span style="font-size:.85rem;color:#D4AF37">Tension Area: <strong>' + tension + '</strong></span></div>' +
           '</div>' +
           '<div style="display:flex;gap:.5rem">' +
-          '<button onclick="BBF_PORTAL.reviewProfile(\'' + (a.user_id || '') + '\')" style="flex:1;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:2px;background:transparent;border:1px solid #6a0dad;color:#8b1abf;padding:8px;border-radius:6px;cursor:pointer;transition:all .2s">\uD83D\uDCCB REVIEW PROFILE</button>' +
+          '<button onclick="BBF_PORTAL.reviewProfile(\'' + userId + '\')" style="flex:1;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:2px;background:transparent;border:1px solid #6a0dad;color:#8b1abf;padding:8px;border-radius:6px;cursor:pointer;transition:all .2s">\uD83D\uDCCB REVIEW PROFILE</button>' +
           '<button onclick="BBF_PORTAL.resolve(' + i + ')" style="flex:1;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:2px;background:rgba(34,197,94,.1);border:1px solid #22c55e;color:#22c55e;padding:8px;border-radius:6px;cursor:pointer;transition:all .2s">\u2705 MARK RESOLVED</button>' +
           '</div></div>';
       }).join('');
