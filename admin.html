@@ -105,28 +105,19 @@ async function authAdmin(){
     document.getElementById('gate-err').textContent='Please enter a PIN.';
     return;
   }
-  try {
-    var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_admin_pin', {
-      method: 'POST',
-      headers: {
-        'apikey': window.ENV_SUPABASE_KEY,
-        'Authorization': 'Bearer ' + window.ENV_SUPABASE_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ pin_attempt: pin })
-    });
-    var isValid = await res.json();
-    if(isValid === true){
-      document.getElementById('gate').style.display='none';
-      document.getElementById('dash').classList.add('on');
-      renderClients();
-    }else{
-      document.getElementById('gate-err').textContent='Invalid PIN. Access denied.';
-    }
-  } catch(e) {
-    console.error(e);
-    document.getElementById('gate-err').textContent='Authentication error. Check connection.';
+  document.getElementById('gate-err').textContent='Authenticating...';
+
+  if (typeof BBF_SYNC === 'undefined') {
+    document.getElementById('gate-err').textContent='System offline. Access denied.';
+    return;
   }
+
+  var isValid = await BBF_SYNC.verifyAdminPin(pin);
+  if(isValid){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('dash').classList.add('on');
+    renderClients();
+  }else{document.getElementById('gate-err').textContent='Invalid PIN. Access denied.';}
 }
 document.getElementById('gate-pin').addEventListener('keydown',function(e){if(e.key==='Enter')authAdmin();});
 
