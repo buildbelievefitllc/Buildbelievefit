@@ -5198,7 +5198,9 @@ window.onload=function(){
         }
 
         window.KFH_LOAD_EXERCISE = function(name){
+          console.log('[KFH] LOAD_EXERCISE invoked, name=', JSON.stringify(name));
           var match = lookupExercise(name);
+          console.log('[KFH] lookupExercise →', match ? ('HIT: ' + (match.title || name)) : 'MISS — using KFH_DEFAULT_EXERCISE');
           var data  = match || KFH_DEFAULT_EXERCISE;
           currentExercise = data;
           var displayName = match
@@ -8734,10 +8736,15 @@ function RDW() {
   con.querySelectorAll('.eh').forEach(function(hdr) {
     hdr.onclick = function() {
       TEX(hdr);
+      console.log('[KFH] Click detected on .eh:', hdr);
       if (window.KFH_LOAD_EXERCISE) {
         var exNameEl = hdr.querySelector('.en');
         var n = hdr.getAttribute('data-ex-name') || (exNameEl ? exNameEl.textContent.trim() : '');
+        console.log('[KFH] Payload captured:', JSON.stringify(n));
         if (n) window.KFH_LOAD_EXERCISE(n);
+        else  console.warn('[KFH] No name on row — data-ex-name + .en both empty');
+      } else {
+        console.warn('[KFH] window.KFH_LOAD_EXERCISE is undefined — IIFE did not run (cached HTML?)');
       }
     };
   });
