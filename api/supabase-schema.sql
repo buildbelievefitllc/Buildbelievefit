@@ -181,3 +181,32 @@ WITH CHECK (auth.uid() = client_id);
 CREATE POLICY "Architect Read" ON clinical_yield_log
 FOR SELECT
 USING ((auth.jwt() ->> 'role') = 'admin');
+
+-- 9. RPC FUNCTIONS
+-- Security Definer to bypass RLS for this specific query
+CREATE OR REPLACE FUNCTION bbf_verify_admin_pin(pin_attempt TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  actual_hash TEXT;
+  attempt_hash TEXT;
+BEGIN
+  -- Get the trainer's PIN hash
+  SELECT pin_hash INTO actual_hash
+  FROM bbf_users
+  WHERE id = 'akeem' AND role = 'trainer'
+  LIMIT 1;
+
+  IF actual_hash IS NULL THEN
+    RETURN FALSE;
+  END IF;
+
+  -- Hash the attempt using pgcrypto's digest to match the client-side SHA256 logic
+  attempt_hash := encode(digest(pin_attempt, 'sha256'), 'hex');
+
+  -- Return true if they match
+  RETURN actual_hash = attempt_hash;
+END;
+$$;

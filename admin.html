@@ -95,20 +95,21 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 <div class="toast" id="admin-toast"></div>
 
 <script>
-var ADMIN_PIN_HASH='1de5495d95a18bb628ebe8147e7f61046737bcc926fe89460e630a959a21b214';var K='bbf_v7';var noteTarget=null;
+var K='bbf_v7';var noteTarget=null;
 function GD(){try{return JSON.parse(localStorage.getItem(K))||{u:{},l:{},w:{}};}catch(e){return{u:{},l:{},w:{}};}}
 function SD(d){localStorage.setItem(K,JSON.stringify(d));}
 
-async function SHA256(m){
-  const buf=new TextEncoder().encode(m);
-  const hash=await crypto.subtle.digest('SHA-256',buf);
-  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
 async function authAdmin(){
   var pin = document.getElementById('gate-pin').value.trim();
-  var hash = await SHA256(pin);
-  if(hash === ADMIN_PIN_HASH){
+  document.getElementById('gate-err').textContent='Authenticating...';
+
+  if (typeof BBF_SYNC === 'undefined') {
+    document.getElementById('gate-err').textContent='System offline. Access denied.';
+    return;
+  }
+
+  var isValid = await BBF_SYNC.verifyAdminPin(pin);
+  if(isValid){
     document.getElementById('gate').style.display='none';
     document.getElementById('dash').classList.add('on');
     renderClients();

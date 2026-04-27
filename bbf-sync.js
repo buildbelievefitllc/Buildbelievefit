@@ -280,6 +280,18 @@ var BBF_SYNC = (function() {
   // ─── ONLINE STATUS ───────────────────────────────────────
   function isOnline() { return navigator.onLine; }
 
+  // ─── VERIFY: ADMIN PIN (TRAINER VIEW) ────────────────────
+  function verifyAdminPin(pinAttempt) {
+    return supa('POST', 'rpc/bbf_verify_admin_pin', { pin_attempt: pinAttempt })
+      .then(function(data) {
+        return data === true;
+      })
+      .catch(function(e) {
+        console.error('BBF_SYNC verifyAdminPin error:', e);
+        return false;
+      });
+  }
+
   // ─── FETCH: PENDING AUDIT REQUESTS (TRAINER VIEW) ─────────
   function fetchPendingAudits() {
     return supa('GET', 'bbf_logs', null,
@@ -1627,7 +1639,8 @@ var BBF_SYNC = (function() {
     fetchUser: fetchUser,
     pushAll: pushAll,
     pullUser: pullUser,
-    isOnline: isOnline
+    isOnline: isOnline,
+    verifyAdminPin: verifyAdminPin
   };
 
   if (typeof module !== 'undefined' && module.exports) {
