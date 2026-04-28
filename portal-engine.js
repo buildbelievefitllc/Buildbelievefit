@@ -125,28 +125,117 @@ var BBF_PORTAL = (function() {
 
   function reviewProfile(uid) {
     if (!uid) return;
+
+    var d, u, logs, recentLogs;
     try {
-      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
-      var u = d.u[uid] || {};
-      var logs = (d.l[uid] || []).filter(function(l) { return l.type !== 'note'; });
-      var recentLogs = logs.slice(-5).reverse();
-      var modal = document.createElement('div');
-      modal.id = 'profile-review-modal';
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px';
-      modal.innerHTML = '<div style="background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:2rem;max-width:500px;width:100%;max-height:80vh;overflow-y:auto">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.5rem;letter-spacing:2px;color:#fff">' + (u.name || uid) + '</div><button onclick="this.closest(\'#profile-review-modal\').remove()" style="background:none;border:none;color:#888;font-size:1.5rem;cursor:pointer">\u2715</button></div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem">' +
-        '<div style="background:#0a0a0a;border-radius:6px;padding:.6rem;text-align:center"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.4rem;color:#D4AF37">' + logs.length + '</div><div style="font-size:.6rem;color:#888;letter-spacing:1px">SESSIONS</div></div>' +
-        '<div style="background:#0a0a0a;border-radius:6px;padding:.6rem;text-align:center"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.4rem;color:#D4AF37">' + (u.type || 'Client') + '</div><div style="font-size:.6rem;color:#888;letter-spacing:1px">TIER</div></div></div>' +
-        '<div style="font-size:.65rem;font-weight:700;letter-spacing:2px;color:#D4AF37;margin-bottom:.5rem">RECENT SESSIONS</div>' +
-        (recentLogs.length ? recentLogs.map(function(l) {
-          return '<div style="background:#0a0a0a;border-left:2px solid #6a0dad;border-radius:0 6px 6px 0;padding:.5rem .8rem;margin-bottom:.4rem"><div style="font-size:.78rem;color:#fff">' + (l.notes || l.type) + '</div><div style="font-size:.6rem;color:#555">' + (l.date || '') + '</div></div>';
-        }).join('') : '<div style="font-size:.8rem;color:#555;padding:.5rem">No sessions logged yet.</div>') +
-        '<div style="font-size:.65rem;font-weight:700;letter-spacing:2px;color:#888;margin-top:1rem">Goal: ' + (u.goal || 'Not set') + '</div>' +
-        '</div>';
-      modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
-      document.body.appendChild(modal);
-    } catch(e) { console.error('Profile review error:', e); }
+      d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+      u = (d.u && d.u[uid]) || {};
+      logs = ((d.l && d.l[uid]) || []).filter(function(l) { return l.type !== 'note'; });
+      recentLogs = logs.slice(-5).reverse();
+    } catch (e) {
+      console.error('Profile review error:', e);
+      return;
+    }
+
+    var modal = document.createElement('div');
+    modal.id = 'profile-review-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px';
+
+    var container = document.createElement('div');
+    container.style.cssText = 'background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:2rem;max-width:500px;width:100%;max-height:80vh;overflow-y:auto';
+
+    var headerDiv = document.createElement('div');
+    headerDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem';
+
+    var title = document.createElement('div');
+    title.style.cssText = "font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;color:#fff";
+    title.textContent = u.name || uid;
+
+    var closeBtn = document.createElement('button');
+    closeBtn.style.cssText = 'background:none;border:none;color:#888;font-size:1.5rem;cursor:pointer';
+    closeBtn.textContent = '\u2715';
+    closeBtn.addEventListener('click', function() {
+      if (modal.parentNode) modal.parentNode.removeChild(modal);
+    });
+
+    headerDiv.appendChild(title);
+    headerDiv.appendChild(closeBtn);
+    container.appendChild(headerDiv);
+
+    var statsGrid = document.createElement('div');
+    statsGrid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem';
+
+    var sessionsCard = document.createElement('div');
+    sessionsCard.style.cssText = 'background:#0a0a0a;border-radius:6px;padding:.6rem;text-align:center';
+    var sessionsCount = document.createElement('div');
+    sessionsCount.style.cssText = "font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#D4AF37";
+    sessionsCount.textContent = String(logs.length);
+    var sessionsLabel = document.createElement('div');
+    sessionsLabel.style.cssText = 'font-size:.6rem;color:#888;letter-spacing:1px';
+    sessionsLabel.textContent = 'SESSIONS';
+    sessionsCard.appendChild(sessionsCount);
+    sessionsCard.appendChild(sessionsLabel);
+
+    var tierCard = document.createElement('div');
+    tierCard.style.cssText = 'background:#0a0a0a;border-radius:6px;padding:.6rem;text-align:center';
+    var tierValue = document.createElement('div');
+    tierValue.style.cssText = "font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#D4AF37";
+    tierValue.textContent = u.type || 'Client';
+    var tierLabel = document.createElement('div');
+    tierLabel.style.cssText = 'font-size:.6rem;color:#888;letter-spacing:1px';
+    tierLabel.textContent = 'TIER';
+    tierCard.appendChild(tierValue);
+    tierCard.appendChild(tierLabel);
+
+    statsGrid.appendChild(sessionsCard);
+    statsGrid.appendChild(tierCard);
+    container.appendChild(statsGrid);
+
+    var recentHeader = document.createElement('div');
+    recentHeader.style.cssText = 'font-size:.65rem;font-weight:700;letter-spacing:2px;color:#D4AF37;margin-bottom:.5rem';
+    recentHeader.textContent = 'RECENT SESSIONS';
+    container.appendChild(recentHeader);
+
+    if (recentLogs.length) {
+      recentLogs.forEach(function(l) {
+        var logItem = document.createElement('div');
+        logItem.style.cssText = 'background:#0a0a0a;border-left:2px solid #6a0dad;border-radius:0 6px 6px 0;padding:.5rem .8rem;margin-bottom:.4rem';
+
+        var logText = document.createElement('div');
+        logText.style.cssText = 'font-size:.78rem;color:#fff';
+        logText.textContent = l.notes || l.type || '';
+
+        var logDate = document.createElement('div');
+        logDate.style.cssText = 'font-size:.6rem;color:#555';
+        logDate.textContent = l.date || '';
+
+        logItem.appendChild(logText);
+        logItem.appendChild(logDate);
+        container.appendChild(logItem);
+      });
+    } else {
+      var emptyMsg = document.createElement('div');
+      emptyMsg.style.cssText = 'font-size:.8rem;color:#555;padding:.5rem';
+      emptyMsg.textContent = 'No sessions logged yet.';
+      container.appendChild(emptyMsg);
+    }
+
+    var goalFooter = document.createElement('div');
+    goalFooter.style.cssText = 'font-size:.65rem;font-weight:700;letter-spacing:2px;color:#888;margin-top:1rem';
+    goalFooter.appendChild(document.createTextNode('Goal: '));
+    var goalValue = document.createElement('span');
+    goalValue.textContent = u.goal || 'Not set';
+    goalFooter.appendChild(goalValue);
+    container.appendChild(goalFooter);
+
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal && modal.parentNode) {
+        modal.parentNode.removeChild(modal);
+      }
+    });
+
+    modal.appendChild(container);
+    document.body.appendChild(modal);
   }
 
   function getStats() {
