@@ -94,7 +94,7 @@ var BBF_PORTAL = (function() {
           '<div style="display:flex;gap:.6rem;align-items:center"><span style="font-size:1rem">\u26A0</span><span style="font-size:.85rem;color:#D4AF37">Tension Area: <strong>' + tension + '</strong></span></div>' +
           '</div>' +
           '<div style="display:flex;gap:.5rem">' +
-          '<button onclick="BBF_PORTAL.reviewProfile(\'' + (a.user_id || '') + '\')" style="flex:1;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:2px;background:transparent;border:1px solid #6a0dad;color:#8b1abf;padding:8px;border-radius:6px;cursor:pointer;transition:all .2s">\uD83D\uDCCB REVIEW PROFILE</button>' +
+          '<button onclick="var a = BBF_PORTAL.stats().audits[' + i + ']; var parts = (a.notes || \'\').replace(\'Audit: \', \'\').split(\' \\u2014 Tension: \'); var m = BBF_PORTAL.reviewProfile({profile:{full_name:a.user_name || a.user_id}, exercise: parts[0] || \'Unknown\', notes: a.notes, videoUrl: a.videoUrl}); document.body.appendChild(m);" style="flex:1;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:2px;background:transparent;border:1px solid #6a0dad;color:#8b1abf;padding:8px;border-radius:6px;cursor:pointer;transition:all .2s">\uD83D\uDCCB REVIEW PROFILE</button>' +
           '<button onclick="BBF_PORTAL.resolve(' + i + ')" style="flex:1;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:2px;background:rgba(34,197,94,.1);border:1px solid #22c55e;color:#22c55e;padding:8px;border-radius:6px;cursor:pointer;transition:all .2s">\u2705 MARK RESOLVED</button>' +
           '</div></div>';
       }).join('');
@@ -123,31 +123,101 @@ var BBF_PORTAL = (function() {
     }
   }
 
-  function reviewProfile(uid) {
-    if (!uid) return;
-    try {
-      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
-      var u = d.u[uid] || {};
-      var logs = (d.l[uid] || []).filter(function(l) { return l.type !== 'note'; });
-      var recentLogs = logs.slice(-5).reverse();
-      var modal = document.createElement('div');
-      modal.id = 'profile-review-modal';
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px';
-      modal.innerHTML = '<div style="background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:2rem;max-width:500px;width:100%;max-height:80vh;overflow-y:auto">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.5rem;letter-spacing:2px;color:#fff">' + (u.name || uid) + '</div><button onclick="this.closest(\'#profile-review-modal\').remove()" style="background:none;border:none;color:#888;font-size:1.5rem;cursor:pointer">\u2715</button></div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem">' +
-        '<div style="background:#0a0a0a;border-radius:6px;padding:.6rem;text-align:center"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.4rem;color:#D4AF37">' + logs.length + '</div><div style="font-size:.6rem;color:#888;letter-spacing:1px">SESSIONS</div></div>' +
-        '<div style="background:#0a0a0a;border-radius:6px;padding:.6rem;text-align:center"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.4rem;color:#D4AF37">' + (u.type || 'Client') + '</div><div style="font-size:.6rem;color:#888;letter-spacing:1px">TIER</div></div></div>' +
-        '<div style="font-size:.65rem;font-weight:700;letter-spacing:2px;color:#D4AF37;margin-bottom:.5rem">RECENT SESSIONS</div>' +
-        (recentLogs.length ? recentLogs.map(function(l) {
-          return '<div style="background:#0a0a0a;border-left:2px solid #6a0dad;border-radius:0 6px 6px 0;padding:.5rem .8rem;margin-bottom:.4rem"><div style="font-size:.78rem;color:#fff">' + (l.notes || l.type) + '</div><div style="font-size:.6rem;color:#555">' + (l.date || '') + '</div></div>';
-        }).join('') : '<div style="font-size:.8rem;color:#555;padding:.5rem">No sessions logged yet.</div>') +
-        '<div style="font-size:.65rem;font-weight:700;letter-spacing:2px;color:#888;margin-top:1rem">Goal: ' + (u.goal || 'Not set') + '</div>' +
-        '</div>';
-      modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
-      document.body.appendChild(modal);
-    } catch(e) { console.error('Profile review error:', e); }
-  }
+// BIG JIM SECURE DOM BUILDER
+const reviewProfile = (audit) => {
+    const modal = document.createElement('div');
+    modal.id = 'audit-review-modal';
+    // Basic modal overlay styling
+    modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;justify-content:center;align-items:center;z-index:1000;";
+
+    const container = document.createElement('div');
+    container.style.cssText = "background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:2rem;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;";
+
+    // --- HEADER ---
+    const headerDiv = document.createElement('div');
+    headerDiv.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;";
+
+    const title = document.createElement('h3');
+    title.style.cssText = "margin:0;font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px;color:#fff;";
+    // SECURE: textContent prevents HTML injection. Optional chaining prevents null crashes.
+    title.textContent = 'AUDIT REVIEW: ' + (audit.profile?.full_name || 'Unknown Athlete');
+
+    const closeBtn = document.createElement('button');
+    closeBtn.style.cssText = "background:none;border:none;color:#888;cursor:pointer;font-size:1.5rem;";
+    closeBtn.innerHTML = '&times;'; // Safe literal
+    // SECURE: Event listener instead of inline onclick
+    closeBtn.addEventListener('click', () => {
+        if (document.body.contains(modal)) document.body.removeChild(modal);
+    });
+
+    headerDiv.appendChild(title);
+    headerDiv.appendChild(closeBtn);
+    container.appendChild(headerDiv);
+
+    // --- MODULE ---
+    const moduleDiv = document.createElement('div');
+    moduleDiv.style.marginBottom = '1rem';
+
+    const moduleLabel = document.createElement('strong');
+    moduleLabel.style.cssText = "color:#888;font-size:.75rem;letter-spacing:1px;display:block;";
+    moduleLabel.textContent = "MODULE:";
+
+    const moduleValue = document.createElement('span');
+    moduleValue.style.cssText = "font-size:1.1rem;";
+    moduleValue.textContent = audit.exercise || 'Pre-Hab Assessment'; // SECURE
+
+    moduleDiv.appendChild(moduleLabel);
+    moduleDiv.appendChild(moduleValue);
+    container.appendChild(moduleDiv);
+
+    // --- NOTES ---
+    const notesDiv = document.createElement('div');
+    notesDiv.style.marginBottom = '1.5rem';
+
+    const notesLabel = document.createElement('strong');
+    notesLabel.style.cssText = "color:#888;font-size:.75rem;letter-spacing:1px;display:block;";
+    notesLabel.textContent = "NOTES:";
+
+    const notesValue = document.createElement('div');
+    notesValue.style.cssText = "background:#1a1a1a;padding:.8rem;border-radius:6px;font-size:.9rem;color:#ccc;margin-top:0.5rem;";
+    notesValue.textContent = audit.notes || 'No notes provided.'; // SECURE: textContent neutralizes XSS payloads
+
+    notesDiv.appendChild(notesLabel);
+    notesDiv.appendChild(notesValue);
+    container.appendChild(notesDiv);
+
+    // --- KINETIC CAPTURE (VIDEO URL) ---
+    if (audit.videoUrl) {
+        try {
+            const urlObj = new URL(audit.videoUrl);
+            // SECURE: Prevent javascript: or data: URL execution
+            if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
+                const videoDiv = document.createElement('div');
+                videoDiv.style.marginBottom = '1.5rem';
+
+                const videoLabel = document.createElement('strong');
+                videoLabel.style.cssText = "color:#888;font-size:.75rem;letter-spacing:1px;display:block;";
+                videoLabel.textContent = "KINETIC CAPTURE:";
+
+                const videoLink = document.createElement('a');
+                videoLink.href = urlObj.href;
+                videoLink.target = "_blank";
+                videoLink.rel = "noopener noreferrer"; // SECURE: Prevents reverse tab hijacking
+                videoLink.style.cssText = "display:inline-block;margin-top:.5rem;padding:.5rem 1rem;background:#222;color:#D4AF37;text-decoration:none;border:1px solid #333;border-radius:6px;font-size:.85rem;";
+                videoLink.textContent = "📹 View Footage";
+
+                videoDiv.appendChild(videoLabel);
+                videoDiv.appendChild(videoLink);
+                container.appendChild(videoDiv);
+            }
+        } catch (e) {
+            // Fails silently for invalid URLs instead of rendering malicious links
+        }
+    }
+
+    modal.appendChild(container);
+    return modal;
+};
 
   function getStats() {
     return {
