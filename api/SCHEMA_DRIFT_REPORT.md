@@ -1,9 +1,9 @@
-# Schema Drift Report — `api/supabase-schema.sql` vs Production
+# Schema Drift Report — `api/supabase-schema.legacy.sql` vs Production
 
 **Date captured:** 2026-04-29
 **Production source:** Supabase project `ihclbceghxpuawymlvgi` (bbf-lab), Postgres 17.6
 **Method:** MCP introspection (`information_schema`, `pg_proc`, `pg_indexes`, `pg_policies`, `pg_get_functiondef`, etc.) — equivalent to `pg_dump --schema-only`, with the Supabase platform schemas (`auth`, `storage`, `realtime`, etc.) excluded.
-**Outcome:** `api/supabase-schema-actual.sql` is now the captured truth. The fiction file (`api/supabase-schema.sql`) should be deprecated or rewritten — see "Recommendation" at the end.
+**Outcome:** `api/supabase-schema-actual.sql` is now the captured truth. The fiction file was renamed to `api/supabase-schema.legacy.sql` on the same date and marked DO-NOT-USE — see "Decision" at the end.
 
 ---
 
@@ -209,21 +209,18 @@ A handful of column defaults differ between fiction and reality (e.g. fiction de
 ## What I deliberately did **not** do
 
 - **Did not modify production.** This is a read-only audit + a new file.
-- **Did not delete or modify `api/supabase-schema.sql`.** Awaiting your call on whether to deprecate (rename + add header pointing to the actual file), rewrite (replace contents with the new file), or remove.
-- **Did not include client-account seed `INSERT`s** in the actual file. Re-running the fiction would have clobbered bcrypt hashes; re-running this file is now safe.
+- **Did not include client-account seed `INSERT`s** in the actual file. Re-running the fiction would have clobbered bcrypt hashes; re-running the actual file is now safe.
 - **Did not capture Supabase platform schemas** (`auth`, `storage`, etc.) — those are managed by Supabase and not part of our application schema.
 
 ---
 
-## Recommendation for what to do with `api/supabase-schema.sql`
+## Decision: deprecate-and-rename (executed 2026-04-29)
 
-Three options, in order of my preference:
+Three options were on the table:
 
-1. **Deprecate-and-rename** *(recommended)*: rename the fiction file to `api/supabase-schema.legacy.sql` and prepend a header that says "DO NOT USE — superseded by `supabase-schema-actual.sql` on 2026-04-29. Retained for git-history continuity only." Costs nothing, preserves history, keeps blame clean.
-
-2. **Delete** the fiction file. Cleanest repo state, but loses the readable artifact of what we *thought* we had. Git history covers it.
-
-3. **Rewrite in place**: overwrite `api/supabase-schema.sql` with the actual content and delete `api/supabase-schema-actual.sql`. Single canonical filename, but the diff in git will be massive and obscures the "drift discovery" nature of the change.
+1. **Deprecate-and-rename** — rename the fiction file to `api/supabase-schema.legacy.sql`, prepend a DO-NOT-USE header pointing at the actual file. Preserves git history and blame, costs nothing. **← selected and executed.**
+2. **Delete** — cleanest repo state, but loses the readable artifact of what we thought we had. Git history would cover it.
+3. **Rewrite in place** — overwrite the original path with actual content. Single canonical filename, but the diff would be massive and obscure the discovery nature of the change.
 
 Once Phase 3 P1 (Supabase CLI) lands, the canonical source of truth shifts to `supabase/migrations/` anyway, and whichever flat-file we keep becomes a generated artifact (`supabase db dump` output) rather than something humans edit.
 

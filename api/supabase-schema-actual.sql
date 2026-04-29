@@ -5,7 +5,8 @@
 -- (bbf-lab) on 2026-04-29 via Supabase MCP introspection (information_schema,
 -- pg_proc, pg_indexes, pg_policies, etc.). Postgres 17.6.
 --
--- This file SUPERSEDES api/supabase-schema.sql, which documents a fictional
+-- This file SUPERSEDES api/supabase-schema.legacy.sql (renamed from
+-- api/supabase-schema.sql on 2026-04-29), which documents a fictional
 -- model that production never matched. Treat this file as the single source
 -- of truth for the public schema until Supabase CLI migrations land
 -- (Phase 3 P1).

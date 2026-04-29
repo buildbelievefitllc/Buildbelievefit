@@ -1,7 +1,19 @@
--- ═══════════════════════════════════════════════════════════════
--- BBF SUPABASE SCHEMA — Run this in Supabase SQL Editor
--- Dashboard → SQL Editor → New Query → Paste → Run
--- ═══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════
+-- DO NOT USE — LEGACY / FICTIONAL SCHEMA
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Superseded on 2026-04-29 by api/supabase-schema-actual.sql.
+--
+-- This file documents a model that production NEVER matched. Running it
+-- against the bbf-lab project will fail (mismatched primary keys, missing
+-- columns, references to a clinical_yield_log table that does not exist)
+-- or — worse — clobber bcrypt-rotated PINs with sha256 seed hashes.
+--
+-- See api/SCHEMA_DRIFT_REPORT.md for the 14-item catalogue of differences
+-- and the rationale for retiring this file.
+--
+-- Retained ONLY for git-history continuity. Do not edit, do not run, do
+-- not reference for column names or types in new code.
+-- ═══════════════════════════════════════════════════════════════════════════
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
