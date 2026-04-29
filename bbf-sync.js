@@ -12,8 +12,14 @@ var BBF_SYNC = (function() {
   var REST = SUPA_URL + '/rest/v1';
 
   // ─── HTTP HELPER ─────────────────────────────────────────
+  // 10s AbortController timeout prevents auth/sync calls from hanging
+  // indefinitely when offline or when the network stalls — the .catch
+  // fires on AbortError so callers see a clean failure instead of a
+  // permanent "Authenticating..." spinner.
   function supa(method, table, body, query) {
     var url = REST + '/' + table + (query || '');
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timeoutId = controller ? setTimeout(function(){ controller.abort(); }, 10000) : null;
     var opts = {
       method: method,
       headers: {
@@ -23,12 +29,18 @@ var BBF_SYNC = (function() {
         'Prefer': method === 'POST' ? 'resolution=merge-duplicates' : 'return=minimal'
       }
     };
+    if (controller) opts.signal = controller.signal;
     if (body) opts.body = JSON.stringify(body);
     return fetch(url, opts).then(function(r) {
+      if (timeoutId) clearTimeout(timeoutId);
       if (!r.ok) return r.text().then(function(t) { console.warn('BBF_SYNC error:', t); return null; });
       if (r.status === 204) return null;
       return r.json();
-    }).catch(function(e) { console.warn('BBF_SYNC offline:', e.message); return null; });
+    }).catch(function(e) {
+      if (timeoutId) clearTimeout(timeoutId);
+      console.warn('BBF_SYNC offline:', e && (e.message || e.name) || 'unknown');
+      return null;
+    });
   }
 
   // ─── SYNC: USER PROFILE ──────────────────────────────────
