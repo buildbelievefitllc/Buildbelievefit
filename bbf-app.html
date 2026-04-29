@@ -4219,86 +4219,93 @@ function SS(id){
 }
 
 var _lockoutInt = null;
+var _loginInFlight = false;
 async function LOGIN(){
-  var uEl=document.getElementById('u')||document.getElementById('un');
-  var pEl=document.getElementById('p')||document.getElementById('pw');
-  var btn = document.getElementById('signin-btn');
-  if(pEl && pEl.disabled) return;
-  var msg=document.getElementById('lmsg');
-  if(!uEl||!pEl){if(msg)msg.textContent='Form error. Reload page.';return;}
-  var user=uEl.value.trim().toLowerCase();
-  var pin=pEl.value.trim();
-  if(!user||!pin){if(msg){msg.textContent='Enter username and PIN.';msg.style.color='';}return;}
-
-  if (msg) {
-    msg.textContent = 'Authenticating via Sovereign Layer...';
-    msg.style.color = 'var(--yel)';
-  }
-
+  if(_loginInFlight) return;
+  _loginInFlight = true;
   try {
-    var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_user_pin', {
-      method: 'POST',
-      headers: {
-        'apikey': window.ENV_SUPABASE_KEY,
-        'Authorization': 'Bearer ' + window.ENV_SUPABASE_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ uid: user, pin_attempt: pin })
-    });
-    var data = await res.json();
-    if(!data.ok){
-      if(data.lockout_active){
-        uEl.disabled = true;
-        pEl.disabled = true;
-        if(btn) btn.disabled = true;
-        if(data.retry_after_seconds <= 0) {
-          uEl.disabled = false; pEl.disabled = false; if(btn) btn.disabled = false;
-          if(msg){msg.textContent='Incorrect username or PIN.';msg.style.color='#ef4444';}
-          return;
-        }
-        var remaining = data.retry_after_seconds;
-        if(msg){msg.style.color='#ef4444'; msg.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';}
-        clearInterval(_lockoutInt);
-        _lockoutInt = setInterval(function(){
-          remaining--;
-          if(remaining <= 0) {
-            clearInterval(_lockoutInt);
+    var uEl=document.getElementById('u')||document.getElementById('un');
+    var pEl=document.getElementById('p')||document.getElementById('pw');
+    var btn = document.getElementById('signin-btn');
+    if(pEl && pEl.disabled) return;
+    var msg=document.getElementById('lmsg');
+    if(!uEl||!pEl){if(msg)msg.textContent='Form error. Reload page.';return;}
+    var user=uEl.value.trim().toLowerCase();
+    var pin=pEl.value.trim();
+    if(!user||!pin){if(msg){msg.textContent='Enter username and PIN.';msg.style.color='';}return;}
+
+    if (msg) {
+      msg.textContent = 'Authenticating via Sovereign Layer...';
+      msg.style.color = 'var(--yel)';
+    }
+
+    try {
+      var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_user_pin', {
+        method: 'POST',
+        headers: {
+          'apikey': window.ENV_SUPABASE_KEY,
+          'Authorization': 'Bearer ' + window.ENV_SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ uid: user, pin_attempt: pin })
+      });
+      var data = await res.json();
+      if(!data.ok){
+        if(data.lockout_active){
+          uEl.disabled = true;
+          pEl.disabled = true;
+          if(btn) btn.disabled = true;
+          if(data.retry_after_seconds <= 0) {
             uEl.disabled = false; pEl.disabled = false; if(btn) btn.disabled = false;
-            if(msg){msg.textContent='';msg.style.color='';}
-          } else {
-            if(msg) msg.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+            if(msg){msg.textContent='Incorrect username or PIN.';msg.style.color='#ef4444';}
+            return;
           }
-        }, 1000);
-      } else {
-        if(msg){msg.textContent='Incorrect username or PIN.';msg.style.color='#ef4444';}
+          var remaining = data.retry_after_seconds;
+          if(msg){msg.style.color='#ef4444'; msg.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';}
+          clearInterval(_lockoutInt);
+          _lockoutInt = setInterval(function(){
+            remaining--;
+            if(remaining <= 0) {
+              clearInterval(_lockoutInt);
+              uEl.disabled = false; pEl.disabled = false; if(btn) btn.disabled = false;
+              if(msg){msg.textContent='';msg.style.color='';}
+            } else {
+              if(msg) msg.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+            }
+          }, 1000);
+        } else {
+          if(msg){msg.textContent='Incorrect username or PIN.';msg.style.color='#ef4444';}
+        }
+        return;
       }
+    } catch(e) {
+      if(msg){msg.textContent='Authentication error. Check connection.';msg.style.color='#ef4444';}
       return;
     }
-  } catch(e) {
-    if(msg){msg.textContent='Authentication error. Check connection.';msg.style.color='#ef4444';}
-    return;
-  }
 
-  var d=GD();
-  if(!d.u[user]){
-    var SEEDS={
-      'akeem':      {name:'Akeem Brown',  pin:null, role:'trainer',type:'Trainer',  goal:'Head Coach',       gw:'',  plan:null},
-      'ana_bbf':    {name:'Ana',          pin:null, role:'client', type:'Essentials',goal:'Lean & Toned',    gw:'135',plan:'ana_spring'},
-      'jacky_bbf':  {name:'Jacky',        pin:null, role:'client', type:'Essentials',goal:'Strength',        gw:'',  plan:'jacky_plan'},
-      'suzanna_bbf':{name:'Suzanna',      pin:null, role:'client', type:'Essentials',goal:'Tone Up',         gw:'',  plan:'suzanna_plan'},
-      'jordan_bbf': {name:'Jordan',       pin:null, role:'client', type:'Platinum',  goal:'Weight Loss',     gw:'185',plan:'jordan_wayne'},
-      'wayne_bbf':  {name:'Wayne',        pin:null, role:'client', type:'Platinum',  goal:'Lean Muscle',     gw:'175',plan:'jordan_wayne'}
-    };
-    d.u[user]=SEEDS[user]||{name:user,pin:null,role:'client',type:'Essentials',goal:'',gw:'',plan:null};
-    if(!d.l[user])d.l[user]=[];
-    if(!d.w[user])d.w[user]={};
-    SD(d);
+    var d=GD();
+    if(!d.u[user]){
+      var SEEDS={
+        'akeem':      {name:'Akeem Brown',  pin:null, role:'trainer',type:'Trainer',  goal:'Head Coach',       gw:'',  plan:null},
+        'ana_bbf':    {name:'Ana',          pin:null, role:'client', type:'Essentials',goal:'Lean & Toned',    gw:'135',plan:'ana_spring'},
+        'jacky_bbf':  {name:'Jacky',        pin:null, role:'client', type:'Essentials',goal:'Strength',        gw:'',  plan:'jacky_plan'},
+        'suzanna_bbf':{name:'Suzanna',      pin:null, role:'client', type:'Essentials',goal:'Tone Up',         gw:'',  plan:'suzanna_plan'},
+        'jordan_bbf': {name:'Jordan',       pin:null, role:'client', type:'Platinum',  goal:'Weight Loss',     gw:'185',plan:'jordan_wayne'},
+        'wayne_bbf':  {name:'Wayne',        pin:null, role:'client', type:'Platinum',  goal:'Lean Muscle',     gw:'175',plan:'jordan_wayne'}
+      };
+      d.u[user]=SEEDS[user]||{name:user,pin:null,role:'client',type:'Essentials',goal:'',gw:'',plan:null};
+      if(!d.l[user])d.l[user]=[];
+      if(!d.w[user])d.w[user]={};
+      SD(d);
+    }
+    CU=user;
+    VC=(user==='akeem')?null:user;
+    if(msg)msg.textContent='';
+    // Hand off to main app
+    if(typeof ENTER==='function'){ENTER();}else{SS('app');}
+  } finally {
+    _loginInFlight = false;
   }
-  CU=user;
-  VC=(user==='akeem')?null:user;
-  if(msg)msg.textContent='';
-  // Hand off to main app
-  if(typeof ENTER==='function'){ENTER();}else{SS('app');}
 }
 
 function REGISTER(){
