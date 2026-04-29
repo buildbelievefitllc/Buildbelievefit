@@ -100,58 +100,65 @@ function GD(){try{return JSON.parse(localStorage.getItem(K))||{u:{},l:{},w:{}};}
 function SD(d){localStorage.setItem(K,JSON.stringify(d));}
 
 var _lockoutInt = null;
+var _authInFlight = false;
 async function authAdmin(){
-  var pinEl = document.getElementById('gate-pin');
-  var btn = document.querySelector('button[onclick="authAdmin()"]');
-  if (pinEl.disabled) return;
-  var pin = pinEl.value.trim();
-  var errEl = document.getElementById('gate-err');
-  if (!pin) {
-    errEl.textContent='Please enter a PIN.';
-    return;
-  }
-  errEl.textContent='Authenticating...';
-
-  if (typeof BBF_SYNC === 'undefined') {
-    errEl.textContent='System offline. Access denied.';
-    return;
-  }
-
-  var res = await BBF_SYNC.verifyAdminPin(pin);
-  if(res.error){
-    errEl.textContent='System offline. Access denied.';
-    return;
-  }
-
-  if(res.ok){
-    document.getElementById('gate').style.display='none';
-    document.getElementById('dash').classList.add('on');
-    renderClients();
-  }else if(res.lockout_active){
-    pinEl.disabled = true;
-    if(btn) btn.disabled = true;
-    if(res.retry_after_seconds <= 0) {
-      pinEl.disabled = false;
-      if(btn) btn.disabled = false;
-      errEl.textContent='Invalid PIN. Access denied.';
+  if(_authInFlight) return;
+  _authInFlight = true;
+  try {
+    var pinEl = document.getElementById('gate-pin');
+    var btn = document.querySelector('button[onclick="authAdmin()"]');
+    if (pinEl.disabled) return;
+    var pin = pinEl.value.trim();
+    var errEl = document.getElementById('gate-err');
+    if (!pin) {
+      errEl.textContent='Please enter a PIN.';
       return;
     }
-    var remaining = res.retry_after_seconds;
-    errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
-    clearInterval(_lockoutInt);
-    _lockoutInt = setInterval(function(){
-      remaining--;
-      if(remaining <= 0) {
-        clearInterval(_lockoutInt);
+    errEl.textContent='Authenticating...';
+
+    if (typeof BBF_SYNC === 'undefined') {
+      errEl.textContent='System offline. Access denied.';
+      return;
+    }
+
+    var res = await BBF_SYNC.verifyAdminPin(pin);
+    if(res.error){
+      errEl.textContent='System offline. Access denied.';
+      return;
+    }
+
+    if(res.ok){
+      document.getElementById('gate').style.display='none';
+      document.getElementById('dash').classList.add('on');
+      renderClients();
+    }else if(res.lockout_active){
+      pinEl.disabled = true;
+      if(btn) btn.disabled = true;
+      if(res.retry_after_seconds <= 0) {
         pinEl.disabled = false;
         if(btn) btn.disabled = false;
-        errEl.textContent = '';
-      } else {
-        errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+        errEl.textContent='Invalid PIN. Access denied.';
+        return;
       }
-    }, 1000);
-  }else{
-    errEl.textContent='Invalid PIN. Access denied.';
+      var remaining = res.retry_after_seconds;
+      errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+      clearInterval(_lockoutInt);
+      _lockoutInt = setInterval(function(){
+        remaining--;
+        if(remaining <= 0) {
+          clearInterval(_lockoutInt);
+          pinEl.disabled = false;
+          if(btn) btn.disabled = false;
+          errEl.textContent = '';
+        } else {
+          errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+        }
+      }, 1000);
+    }else{
+      errEl.textContent='Invalid PIN. Access denied.';
+    }
+  } finally {
+    _authInFlight = false;
   }
 }
 document.getElementById('gate-pin').addEventListener('keydown',function(e){if(e.key==='Enter')authAdmin();});

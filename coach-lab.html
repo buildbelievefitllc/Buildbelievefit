@@ -175,59 +175,66 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 </div><!-- /dash -->
 <script>
 var _lockoutInt = null;
+var _authInFlight = false;
 async function authAdmin(){
-  var pinEl = document.getElementById('gate-pin');
-  var btn = document.querySelector('button[onclick="authAdmin()"]');
-  if (pinEl.disabled) return;
-  var pin = pinEl.value.trim();
-  var errEl = document.getElementById('gate-err');
-  if (!pin) {
-    errEl.textContent='Please enter a PIN.';
-    return;
-  }
+  if(_authInFlight) return;
+  _authInFlight = true;
   try {
-    var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_admin_pin', {
-      method: 'POST',
-      headers: {
-        'apikey': window.ENV_SUPABASE_KEY,
-        'Authorization': 'Bearer ' + window.ENV_SUPABASE_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ pin_attempt: pin })
-    });
-    var data = await res.json();
-    if(data.ok){
-      document.getElementById('gate').style.display='none';
-      document.getElementById('dash').classList.add('on');
-    }else if(data.lockout_active){
-      pinEl.disabled = true;
-      if(btn) btn.disabled = true;
-      if(data.retry_after_seconds <= 0) {
-        pinEl.disabled = false;
-        if(btn) btn.disabled = false;
-        errEl.textContent='Invalid PIN. Access denied.';
-        return;
-      }
-      var remaining = data.retry_after_seconds;
-      errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
-      clearInterval(_lockoutInt);
-      _lockoutInt = setInterval(function(){
-        remaining--;
-        if(remaining <= 0) {
-          clearInterval(_lockoutInt);
+    var pinEl = document.getElementById('gate-pin');
+    var btn = document.querySelector('button[onclick="authAdmin()"]');
+    if (pinEl.disabled) return;
+    var pin = pinEl.value.trim();
+    var errEl = document.getElementById('gate-err');
+    if (!pin) {
+      errEl.textContent='Please enter a PIN.';
+      return;
+    }
+    try {
+      var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_admin_pin', {
+        method: 'POST',
+        headers: {
+          'apikey': window.ENV_SUPABASE_KEY,
+          'Authorization': 'Bearer ' + window.ENV_SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ pin_attempt: pin })
+      });
+      var data = await res.json();
+      if(data.ok){
+        document.getElementById('gate').style.display='none';
+        document.getElementById('dash').classList.add('on');
+      }else if(data.lockout_active){
+        pinEl.disabled = true;
+        if(btn) btn.disabled = true;
+        if(data.retry_after_seconds <= 0) {
           pinEl.disabled = false;
           if(btn) btn.disabled = false;
-          errEl.textContent = '';
-        } else {
-          errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+          errEl.textContent='Invalid PIN. Access denied.';
+          return;
         }
-      }, 1000);
-    }else{
-      errEl.textContent='Invalid PIN. Access denied.';
+        var remaining = data.retry_after_seconds;
+        errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+        clearInterval(_lockoutInt);
+        _lockoutInt = setInterval(function(){
+          remaining--;
+          if(remaining <= 0) {
+            clearInterval(_lockoutInt);
+            pinEl.disabled = false;
+            if(btn) btn.disabled = false;
+            errEl.textContent = '';
+          } else {
+            errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+          }
+        }, 1000);
+      }else{
+        errEl.textContent='Invalid PIN. Access denied.';
+      }
+    } catch(e) {
+      console.error(e);
+      errEl.textContent='Authentication error. Check connection.';
     }
-  } catch(e) {
-    console.error(e);
-    errEl.textContent='Authentication error. Check connection.';
+  } finally {
+    _authInFlight = false;
   }
 }
 document.getElementById('gate-pin').addEventListener('keydown',function(e){if(e.key==='Enter')authAdmin();});
