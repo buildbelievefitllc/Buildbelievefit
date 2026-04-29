@@ -4218,14 +4218,17 @@ function SS(id){
   if(t)t.classList.add('on');
 }
 
+var _lockoutInt = null;
 async function LOGIN(){
   var uEl=document.getElementById('u')||document.getElementById('un');
   var pEl=document.getElementById('p')||document.getElementById('pw');
+  var btn = document.getElementById('signin-btn');
+  if(pEl && pEl.disabled) return;
   var msg=document.getElementById('lmsg');
   if(!uEl||!pEl){if(msg)msg.textContent='Form error. Reload page.';return;}
   var user=uEl.value.trim().toLowerCase();
   var pin=pEl.value.trim();
-  if(!user||!pin){if(msg)msg.textContent='Enter username and PIN.';return;}
+  if(!user||!pin){if(msg){msg.textContent='Enter username and PIN.';msg.style.color='';}return;}
 
   if (msg) {
     msg.textContent = 'Authenticating via Sovereign Layer...';
@@ -4242,9 +4245,33 @@ async function LOGIN(){
       },
       body: JSON.stringify({ uid: user, pin_attempt: pin })
     });
-    var isValid = await res.json();
-    if(isValid !== true){
-      if(msg){msg.textContent='Incorrect username or PIN.';msg.style.color='#ef4444';}
+    var data = await res.json();
+    if(!data.ok){
+      if(data.lockout_active){
+        uEl.disabled = true;
+        pEl.disabled = true;
+        if(btn) btn.disabled = true;
+        if(data.retry_after_seconds <= 0) {
+          uEl.disabled = false; pEl.disabled = false; if(btn) btn.disabled = false;
+          if(msg){msg.textContent='Incorrect username or PIN.';msg.style.color='#ef4444';}
+          return;
+        }
+        var remaining = data.retry_after_seconds;
+        if(msg){msg.style.color='#ef4444'; msg.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';}
+        clearInterval(_lockoutInt);
+        _lockoutInt = setInterval(function(){
+          remaining--;
+          if(remaining <= 0) {
+            clearInterval(_lockoutInt);
+            uEl.disabled = false; pEl.disabled = false; if(btn) btn.disabled = false;
+            if(msg){msg.textContent='';msg.style.color='';}
+          } else {
+            if(msg) msg.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+          }
+        }, 1000);
+      } else {
+        if(msg){msg.textContent='Incorrect username or PIN.';msg.style.color='#ef4444';}
+      }
       return;
     }
   } catch(e) {

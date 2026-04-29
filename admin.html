@@ -99,25 +99,60 @@ var K='bbf_v7';var noteTarget=null;
 function GD(){try{return JSON.parse(localStorage.getItem(K))||{u:{},l:{},w:{}};}catch(e){return{u:{},l:{},w:{}};}}
 function SD(d){localStorage.setItem(K,JSON.stringify(d));}
 
+var _lockoutInt = null;
 async function authAdmin(){
-  var pin = document.getElementById('gate-pin').value.trim();
+  var pinEl = document.getElementById('gate-pin');
+  var btn = document.querySelector('button[onclick="authAdmin()"]');
+  if (pinEl.disabled) return;
+  var pin = pinEl.value.trim();
+  var errEl = document.getElementById('gate-err');
   if (!pin) {
-    document.getElementById('gate-err').textContent='Please enter a PIN.';
+    errEl.textContent='Please enter a PIN.';
     return;
   }
-  document.getElementById('gate-err').textContent='Authenticating...';
+  errEl.textContent='Authenticating...';
 
   if (typeof BBF_SYNC === 'undefined') {
-    document.getElementById('gate-err').textContent='System offline. Access denied.';
+    errEl.textContent='System offline. Access denied.';
     return;
   }
 
-  var isValid = await BBF_SYNC.verifyAdminPin(pin);
-  if(isValid){
+  var res = await BBF_SYNC.verifyAdminPin(pin);
+  if(res.error){
+    errEl.textContent='System offline. Access denied.';
+    return;
+  }
+
+  if(res.ok){
     document.getElementById('gate').style.display='none';
     document.getElementById('dash').classList.add('on');
     renderClients();
-  }else{document.getElementById('gate-err').textContent='Invalid PIN. Access denied.';}
+  }else if(res.lockout_active){
+    pinEl.disabled = true;
+    if(btn) btn.disabled = true;
+    if(res.retry_after_seconds <= 0) {
+      pinEl.disabled = false;
+      if(btn) btn.disabled = false;
+      errEl.textContent='Invalid PIN. Access denied.';
+      return;
+    }
+    var remaining = res.retry_after_seconds;
+    errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+    clearInterval(_lockoutInt);
+    _lockoutInt = setInterval(function(){
+      remaining--;
+      if(remaining <= 0) {
+        clearInterval(_lockoutInt);
+        pinEl.disabled = false;
+        if(btn) btn.disabled = false;
+        errEl.textContent = '';
+      } else {
+        errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+      }
+    }, 1000);
+  }else{
+    errEl.textContent='Invalid PIN. Access denied.';
+  }
 }
 document.getElementById('gate-pin').addEventListener('keydown',function(e){if(e.key==='Enter')authAdmin();});
 

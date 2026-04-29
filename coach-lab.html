@@ -174,10 +174,15 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 </div><!-- /cnt -->
 </div><!-- /dash -->
 <script>
+var _lockoutInt = null;
 async function authAdmin(){
-  var pin = document.getElementById('gate-pin').value.trim();
+  var pinEl = document.getElementById('gate-pin');
+  var btn = document.querySelector('button[onclick="authAdmin()"]');
+  if (pinEl.disabled) return;
+  var pin = pinEl.value.trim();
+  var errEl = document.getElementById('gate-err');
   if (!pin) {
-    document.getElementById('gate-err').textContent='Please enter a PIN.';
+    errEl.textContent='Please enter a PIN.';
     return;
   }
   try {
@@ -190,16 +195,39 @@ async function authAdmin(){
       },
       body: JSON.stringify({ pin_attempt: pin })
     });
-    var isValid = await res.json();
-    if(isValid === true){
+    var data = await res.json();
+    if(data.ok){
       document.getElementById('gate').style.display='none';
       document.getElementById('dash').classList.add('on');
+    }else if(data.lockout_active){
+      pinEl.disabled = true;
+      if(btn) btn.disabled = true;
+      if(data.retry_after_seconds <= 0) {
+        pinEl.disabled = false;
+        if(btn) btn.disabled = false;
+        errEl.textContent='Invalid PIN. Access denied.';
+        return;
+      }
+      var remaining = data.retry_after_seconds;
+      errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+      clearInterval(_lockoutInt);
+      _lockoutInt = setInterval(function(){
+        remaining--;
+        if(remaining <= 0) {
+          clearInterval(_lockoutInt);
+          pinEl.disabled = false;
+          if(btn) btn.disabled = false;
+          errEl.textContent = '';
+        } else {
+          errEl.textContent = 'Locked. Try again in ' + Math.floor(remaining/60) + 'm ' + (remaining%60).toString().padStart(2,'0') + 's';
+        }
+      }, 1000);
     }else{
-      document.getElementById('gate-err').textContent='Invalid PIN. Access denied.';
+      errEl.textContent='Invalid PIN. Access denied.';
     }
   } catch(e) {
     console.error(e);
-    document.getElementById('gate-err').textContent='Authentication error. Check connection.';
+    errEl.textContent='Authentication error. Check connection.';
   }
 }
 document.getElementById('gate-pin').addEventListener('keydown',function(e){if(e.key==='Enter')authAdmin();});
