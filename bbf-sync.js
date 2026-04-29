@@ -284,11 +284,11 @@ var BBF_SYNC = (function() {
   function verifyAdminPin(pinAttempt) {
     return supa('POST', 'rpc/bbf_verify_admin_pin', { pin_attempt: pinAttempt })
       .then(function(data) {
-        return data === true;
+        return data;
       })
       .catch(function(e) {
         console.error('BBF_SYNC verifyAdminPin error:', e);
-        return false;
+        return { ok: false, lockout_active: false, retry_after_seconds: 0, error: true };
       });
   }
 
