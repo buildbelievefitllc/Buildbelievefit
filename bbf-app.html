@@ -4288,6 +4288,14 @@ async function LOGIN(){
       return;
     }
 
+    // Phase 4 D: capture plans returned by bbf_verify_user_pin (if any).
+    // Stored on window so renderMyPlan() can pick them up after ENTER().
+    window._bbfPlans = (data && data.plans_available) ? {
+      workout_plan: data.workout_plan || '',
+      meal_plan: data.meal_plan || '',
+      plans_generated_at: data.plans_generated_at || null
+    } : null;
+
     var d=GD();
     if(!d.u[user]){
       var SEEDS={
@@ -4453,6 +4461,23 @@ window.onload=function(){
           </div>
           <div class="cps" id="cchips"></div>
         </div>
+      </div>
+      <!-- MY PLAN — Pathfinder-generated workout + fuel matrix (Phase 4 D)
+           Hidden by default. Populated by renderMyPlan() after LOGIN if the
+           bbf_verify_user_pin RPC returned plans_available=true. -->
+      <div id="my-plan-panel" style="display:none;background:var(--gry2);border:1px solid var(--gry3);border-radius:14px;padding:1.2rem;margin:1rem 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:.8rem;margin-bottom:.6rem;flex-wrap:wrap">
+          <div style="font-family:var(--hb);font-size:1rem;letter-spacing:2px;color:var(--yel)">YOUR PLAN</div>
+          <div id="my-plan-stamp" style="font-size:.65rem;font-weight:600;color:var(--mut2);letter-spacing:1px"></div>
+        </div>
+        <details id="my-plan-workout-wrap" open style="margin-bottom:.6rem">
+          <summary style="cursor:pointer;font-family:var(--hb);font-size:.78rem;letter-spacing:2px;color:#fff;padding:.4rem 0">Workout Plan</summary>
+          <pre id="my-plan-workout" style="white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#e8e8e8;background:var(--blk);border:1px solid var(--gry3);border-radius:8px;padding:1rem;margin:.4rem 0;max-height:60vh;overflow:auto"></pre>
+        </details>
+        <details id="my-plan-meal-wrap">
+          <summary style="cursor:pointer;font-family:var(--hb);font-size:.78rem;letter-spacing:2px;color:#fff;padding:.4rem 0">Fuel Matrix</summary>
+          <pre id="my-plan-meal" style="white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#e8e8e8;background:var(--blk);border:1px solid var(--gry3);border-radius:8px;padding:1rem;margin:.4rem 0;max-height:60vh;overflow:auto"></pre>
+        </details>
       </div>
       <!-- CNS HEATMAP -->
       <div id="cns-heatmap" style="display:none;background:var(--gry);border:1px solid #1e1e1e;border-radius:12px;padding:1rem;margin-bottom:1rem">
@@ -6498,8 +6523,34 @@ function TWKL(logs) {
 // ─── AUTH ─────────────────────────────────────────────────
 
 
+// Phase 4 D: render the Pathfinder-generated workout + meal plans into
+// the dashboard panel if bbf_verify_user_pin returned them on login.
+// Reads window._bbfPlans (set in LOGIN). Hides the panel if no plans.
+function renderMyPlan() {
+  var panel = document.getElementById('my-plan-panel');
+  if (!panel) return;
+  var plans = window._bbfPlans;
+  if (!plans || (!plans.workout_plan && !plans.meal_plan)) {
+    panel.style.display = 'none';
+    return;
+  }
+  var stamp = document.getElementById('my-plan-stamp');
+  var workout = document.getElementById('my-plan-workout');
+  var meal = document.getElementById('my-plan-meal');
+  if (stamp && plans.plans_generated_at) {
+    try {
+      var d = new Date(plans.plans_generated_at);
+      stamp.textContent = 'Generated ' + d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+    } catch(e) { stamp.textContent = ''; }
+  }
+  if (workout) workout.textContent = plans.workout_plan || '';
+  if (meal) meal.textContent = plans.meal_plan || '';
+  panel.style.display = 'block';
+}
+
 function ENTER() {
   SS('app');
+  if (typeof renderMyPlan === 'function') renderMyPlan();
   document.getElementById('ld').value = today();
   // Pull any data submitted from the website Pathfinder form
   try {
