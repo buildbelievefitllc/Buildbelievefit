@@ -256,6 +256,77 @@ app.post('/process', async (req, res) => {
   });
 });
 
+// ───────────────────────────────────────────────────────────────
+// /provision — Phase 4 Step E
+// Called by Zapier after Stripe payment success. Generates a 6-digit PIN,
+// invokes the SECURITY DEFINER RPC bbf_provision_client_pin which
+// generates a unique username (firstname_bbf), bcrypts the PIN, and
+// inserts the bbf_users row linked to the matching bbf_active_clients
+// row by vault_email. Returns plaintext credentials in the response so
+// Zapier can pass them to Brevo for the welcome email.
+//
+// Auth: requires X-BBF-Token header matching the BBF_PROVISION_TOKEN env
+// var. This shared secret prevents random origins from triggering
+// account creation. Missing or mismatched token → 401.
+//
+// Idempotency: if a bbf_users row already exists for the email, the RPC
+// returns ok:false reason='already_provisioned'. We surface that as 409
+// so Zapier can branch (e.g., re-send the existing creds via password
+// reset flow, or just skip silently).
+// ───────────────────────────────────────────────────────────────
+app.post('/provision', async (req, res) => {
+  const expectedToken = process.env.BBF_PROVISION_TOKEN;
+  const sentToken = req.headers['x-bbf-token'];
+  if (!expectedToken) {
+    console.error('[BBF VAULT] /provision called but BBF_PROVISION_TOKEN env var is not set.');
+    return res.status(503).json({ ok: false, error: 'provisioning_not_configured' });
+  }
+  if (sentToken !== expectedToken) {
+    return res.status(401).json({ ok: false, error: 'unauthorized' });
+  }
+
+  const body = req.body || {};
+  const customerEmail = String(body.customer_email || body.email || '').trim().toLowerCase();
+  const customerName  = String(body.customer_name || body.full_name || body.name || '').trim();
+  const tier          = body.tier || null;
+
+  if (!customerEmail) {
+    return res.status(400).json({ ok: false, error: 'customer_email is required' });
+  }
+
+  // Generate 6-digit PIN (cryptographically random, range 100000-999999)
+  const pin = String(100000 + Math.floor(Math.random() * 900000));
+
+  console.log('[BBF VAULT] /provision request for', customerEmail, 'tier=', tier);
+
+  try {
+    const { data, error } = await supabase.rpc('bbf_provision_client_pin', {
+      p_vault_email: customerEmail,
+      p_pin: pin,
+      p_full_name: customerName || 'BBF Client',
+    });
+    if (error) throw new Error(error.message);
+    if (!data || !data.ok) {
+      console.warn('[BBF VAULT] /provision RPC returned not-ok:', data);
+      const status = data && data.reason === 'already_provisioned' ? 409 : 422;
+      return res.status(status).json({ ok: false, ...data });
+    }
+
+    console.log(`[BBF VAULT] /provision success — ${customerEmail} → ${data.username}`);
+    return res.status(200).json({
+      ok: true,
+      username: data.username,
+      pin: pin,
+      email: customerEmail,
+      tier: tier,
+      app_url: 'https://buildbelievefit.fitness/bbf-app.html',
+    });
+  } catch (err) {
+    console.error('[BBF VAULT] /provision failed:', err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // Global fallthrough error handler
 app.use((err, req, res, next) => {
   console.error('[BBF VAULT] Unhandled error:', err);
