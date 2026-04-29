@@ -3,6 +3,8 @@
 -- Dashboard → SQL Editor → New Query → Paste → Run
 -- ═══════════════════════════════════════════════════════════════
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- 1. USERS TABLE
 CREATE TABLE IF NOT EXISTS bbf_users (
   id TEXT PRIMARY KEY,
@@ -185,46 +187,197 @@ USING ((auth.jwt() ->> 'role') = 'admin');
 -- 9. RPC FUNCTIONS
 -- Security Definer to bypass RLS for this specific query
 CREATE OR REPLACE FUNCTION bbf_verify_admin_pin(pin_attempt TEXT)
-RETURNS BOOLEAN
+RETURNS JSON
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-  actual_hash TEXT;
-  attempt_hash TEXT;
+  v_key TEXT := coalesce(current_setting('request.headers', true)::json->>'x-forwarded-for', 'UNKNOWN_IP');
+  v_attempt bbf_pin_attempts%ROWTYPE;
+  v_stored_hash TEXT;
+  v_is_valid BOOLEAN := FALSE;
+  v_now TIMESTAMPTZ := now();
+  v_retry_after INT := 0;
 BEGIN
-  -- Get the trainer's PIN hash
-  SELECT pin_hash INTO actual_hash
+  -- 1. Lockout Check
+  SELECT * INTO v_attempt FROM bbf_pin_attempts WHERE key = v_key;
+  IF v_attempt.locked_until > v_now THEN
+    RETURN json_build_object('ok', false, 'lockout_active', true, 'retry_after_seconds', extract(epoch from (v_attempt.locked_until - v_now))::int);
+  END IF;
+
+  -- 2. Hash Validation (Lazy Migration Aware)
+  SELECT pin_hash INTO v_stored_hash
   FROM bbf_users
   WHERE id = 'akeem' AND role = 'trainer'
   LIMIT 1;
 
-  IF actual_hash IS NULL THEN
-    RETURN FALSE;
+  IF v_stored_hash IS NOT NULL THEN
+    IF v_stored_hash LIKE '$2a$%' THEN
+      v_is_valid := (crypt(pin_attempt, v_stored_hash) = v_stored_hash);
+    ELSE
+      v_is_valid := (v_stored_hash = encode(digest(pin_attempt, 'sha256'), 'hex'));
+      IF v_is_valid THEN
+        UPDATE bbf_users SET pin_hash = crypt(pin_attempt, gen_salt('bf')) WHERE id = 'akeem';
+      END IF;
+    END IF;
   END IF;
 
-  -- Hash the attempt using pgcrypto's digest to match the client-side SHA256 logic
-  attempt_hash := encode(digest(pin_attempt, 'sha256'), 'hex');
+  -- 3. Handle Result
+  IF v_is_valid THEN
+    DELETE FROM bbf_pin_attempts WHERE key = v_key;
+    RETURN json_build_object('ok', true, 'lockout_active', false, 'retry_after_seconds', 0);
+  ELSE
+    -- IMPLEMENTATION CHOICE (a): 60-minute sliding window to clear honest mistakes over time while preventing rapid brute force.
+    INSERT INTO bbf_pin_attempts (key, failed_count, window_started_at, locked_until, last_attempt_at)
+    VALUES (v_key, 1, v_now, NULL, v_now)
+    ON CONFLICT (key) DO UPDATE SET
+      failed_count = CASE WHEN bbf_pin_attempts.last_attempt_at < (now() - interval '60 minutes') THEN 1 ELSE bbf_pin_attempts.failed_count + 1 END,
+      window_started_at = CASE WHEN bbf_pin_attempts.last_attempt_at < (now() - interval '60 minutes') THEN now() ELSE bbf_pin_attempts.window_started_at END,
+      locked_until = CASE 
+        WHEN (CASE WHEN bbf_pin_attempts.last_attempt_at < (now() - interval '60 minutes') THEN 1 ELSE bbf_pin_attempts.failed_count + 1 END) >= 3 
+        THEN now() + interval '15 minutes' 
+        ELSE NULL 
+      END,
+      last_attempt_at = now();
 
-  -- Return true if they match
-  RETURN actual_hash = attempt_hash;
+    SELECT * INTO v_attempt FROM bbf_pin_attempts WHERE key = v_key;
+    v_retry_after := CASE WHEN v_attempt.locked_until > v_now THEN extract(epoch from (v_attempt.locked_until - v_now))::int ELSE 0 END;
+    
+    RETURN json_build_object('ok', false, 'lockout_active', v_attempt.failed_count >= 3, 'retry_after_seconds', v_retry_after);
+  END IF;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION bbf_verify_user_pin(uid TEXT, pin_attempt TEXT)
-RETURNS BOOLEAN
+RETURNS JSON
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-  actual_hash TEXT;
-  attempt_hash TEXT;
+  v_key TEXT := uid;
+  v_attempt bbf_pin_attempts%ROWTYPE;
+  v_stored_hash TEXT;
+  v_is_valid BOOLEAN := FALSE;
+  v_now TIMESTAMPTZ := now();
+  v_retry_after INT := 0;
 BEGIN
-  SELECT pin_hash INTO actual_hash FROM bbf_users WHERE id = uid LIMIT 1;
-  IF actual_hash IS NULL THEN
-    RETURN FALSE;
+  -- 1. Lockout Check
+  SELECT * INTO v_attempt FROM bbf_pin_attempts WHERE key = v_key;
+  IF v_attempt.locked_until > v_now THEN
+    RETURN json_build_object('ok', false, 'lockout_active', true, 'retry_after_seconds', extract(epoch from (v_attempt.locked_until - v_now))::int);
   END IF;
-  attempt_hash := encode(digest(pin_attempt, 'sha256'), 'hex');
-  RETURN attempt_hash = actual_hash;
+
+  -- 2. Hash Validation (Lazy Migration Aware)
+  SELECT pin_hash INTO v_stored_hash FROM bbf_users WHERE id = uid LIMIT 1;
+  IF v_stored_hash IS NOT NULL THEN
+    IF v_stored_hash LIKE '$2a$%' THEN
+      v_is_valid := (crypt(pin_attempt, v_stored_hash) = v_stored_hash);
+    ELSE
+      v_is_valid := (v_stored_hash = encode(digest(pin_attempt, 'sha256'), 'hex'));
+      IF v_is_valid THEN
+        UPDATE bbf_users SET pin_hash = crypt(pin_attempt, gen_salt('bf')) WHERE id = uid;
+      END IF;
+    END IF;
+  END IF;
+
+  -- 3. Handle Result
+  IF v_is_valid THEN
+    DELETE FROM bbf_pin_attempts WHERE key = v_key;
+    RETURN json_build_object('ok', true, 'lockout_active', false, 'retry_after_seconds', 0);
+  ELSE
+    -- IMPLEMENTATION CHOICE (a): 60-minute sliding window to clear honest mistakes over time while preventing rapid brute force.
+    INSERT INTO bbf_pin_attempts (key, failed_count, window_started_at, locked_until, last_attempt_at)
+    VALUES (v_key, 1, v_now, NULL, v_now)
+    ON CONFLICT (key) DO UPDATE SET
+      failed_count = CASE WHEN bbf_pin_attempts.last_attempt_at < (now() - interval '60 minutes') THEN 1 ELSE bbf_pin_attempts.failed_count + 1 END,
+      window_started_at = CASE WHEN bbf_pin_attempts.last_attempt_at < (now() - interval '60 minutes') THEN now() ELSE bbf_pin_attempts.window_started_at END,
+      locked_until = CASE 
+        WHEN (CASE WHEN bbf_pin_attempts.last_attempt_at < (now() - interval '60 minutes') THEN 1 ELSE bbf_pin_attempts.failed_count + 1 END) >= 3 
+        THEN now() + interval '15 minutes' 
+        ELSE NULL 
+      END,
+      last_attempt_at = now();
+
+    SELECT * INTO v_attempt FROM bbf_pin_attempts WHERE key = v_key;
+    v_retry_after := CASE WHEN v_attempt.locked_until > v_now THEN extract(epoch from (v_attempt.locked_until - v_now))::int ELSE 0 END;
+    
+    RETURN json_build_object('ok', false, 'lockout_active', v_attempt.failed_count >= 3, 'retry_after_seconds', v_retry_after);
+  END IF;
+END;
+$$;
+
+-- 10. AUTH LOCKOUT SCHEMA (Phase 2A)
+
+-- IMPLEMENTATION CHOICE (a): 60-minute sliding window is supported by tracking `last_attempt_at` vs `window_started_at`.
+CREATE TABLE IF NOT EXISTS bbf_pin_attempts (
+  key TEXT PRIMARY KEY,
+  failed_count INTEGER DEFAULT 0,
+  window_started_at TIMESTAMPTZ DEFAULT NOW(),
+  locked_until TIMESTAMPTZ,
+  last_attempt_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pin_attempts_locked ON bbf_pin_attempts (locked_until);
+ALTER TABLE bbf_pin_attempts ENABLE ROW LEVEL SECURITY;
+
+-- Safety valve. Allows founder to clear a stuck lockout from a different IP.
+-- Has its own independent lockout to prevent brute-force of the founder PIN through this surface.
+CREATE OR REPLACE FUNCTION bbf_admin_clear_lockout(target_key TEXT, founder_pin TEXT)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_caller_ip TEXT := coalesce(current_setting('request.headers', true)::json->>'x-forwarded-for', 'UNKNOWN_IP');
+  v_key TEXT := 'CLEAR:' || v_caller_ip;
+  v_attempt bbf_pin_attempts%ROWTYPE;
+  v_stored_hash TEXT;
+  v_is_valid BOOLEAN := FALSE;
+  v_now TIMESTAMPTZ := now();
+  v_retry_after INT := 0;
+BEGIN
+  -- 1. Lockout Check for this specific caller
+  SELECT * INTO v_attempt FROM bbf_pin_attempts WHERE key = v_key;
+  IF v_attempt.locked_until > v_now THEN
+    RETURN json_build_object('ok', false, 'lockout_active', true, 'retry_after_seconds', extract(epoch from (v_attempt.locked_until - v_now))::int);
+  END IF;
+
+  -- 2. Hash Validation (Founder PIN)
+  SELECT pin_hash INTO v_stored_hash FROM bbf_users WHERE id = 'akeem' AND role = 'trainer' LIMIT 1;
+  IF v_stored_hash IS NOT NULL THEN
+    IF v_stored_hash LIKE '$2a$%' THEN
+      v_is_valid := (crypt(founder_pin, v_stored_hash) = v_stored_hash);
+    ELSE
+      v_is_valid := (v_stored_hash = encode(digest(founder_pin, 'sha256'), 'hex'));
+      IF v_is_valid THEN
+        UPDATE bbf_users SET pin_hash = crypt(founder_pin, gen_salt('bf')) WHERE id = 'akeem';
+      END IF;
+    END IF;
+  END IF;
+
+  -- 3. Success / Failure Handling
+  IF v_is_valid THEN
+    DELETE FROM bbf_pin_attempts WHERE key = target_key;
+    DELETE FROM bbf_pin_attempts WHERE key = v_key;
+    RETURN json_build_object('ok', true, 'cleared_key', target_key);
+  ELSE
+    -- IMPLEMENTATION CHOICE (a): 60-minute sliding window
+    INSERT INTO bbf_pin_attempts (key, failed_count, window_started_at, locked_until, last_attempt_at)
+    VALUES (v_key, 1, v_now, NULL, v_now)
+    ON CONFLICT (key) DO UPDATE SET
+      failed_count = CASE WHEN bbf_pin_attempts.last_attempt_at < (now() - interval '60 minutes') THEN 1 ELSE bbf_pin_attempts.failed_count + 1 END,
+      window_started_at = CASE WHEN bbf_pin_attempts.last_attempt_at < (now() - interval '60 minutes') THEN now() ELSE bbf_pin_attempts.window_started_at END,
+      locked_until = CASE 
+        WHEN (CASE WHEN bbf_pin_attempts.last_attempt_at < (now() - interval '60 minutes') THEN 1 ELSE bbf_pin_attempts.failed_count + 1 END) >= 3 
+        THEN now() + interval '15 minutes' 
+        ELSE NULL 
+      END,
+      last_attempt_at = now();
+
+    SELECT * INTO v_attempt FROM bbf_pin_attempts WHERE key = v_key;
+    v_retry_after := CASE WHEN v_attempt.locked_until > v_now THEN extract(epoch from (v_attempt.locked_until - v_now))::int ELSE 0 END;
+    
+    RETURN json_build_object('ok', false, 'lockout_active', v_attempt.failed_count >= 3, 'retry_after_seconds', v_retry_after);
+  END IF;
 END;
 $$;
