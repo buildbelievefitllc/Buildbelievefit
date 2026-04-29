@@ -1,6 +1,9 @@
 // ═══════════════════════════════════════════════════════════════
-// BBF VAULT — Supabase → Anthropic Engine (V8)
+// BBF VAULT — Supabase → Anthropic Engine (V9 — Closed Loop)
 // Build Believe Fit LLC | Central Automation Brain
+// V9 adds Phase 3: persist generated Markdown back into the
+// bbf_active_clients row's workout_plan / meal_plan columns so the
+// loop closes from intake → generation → storage → app display.
 // ═══════════════════════════════════════════════════════════════
 
 require('dotenv').config();
@@ -191,6 +194,34 @@ app.post('/process', async (req, res) => {
     return res.status(502).json({ ok: false, phase: 'anthropic', error: err.message });
   }
 
+  // Phase 3 — closed-loop persistence: write generated Markdown back to
+  // the bbf_active_clients row so bbf-app.html can read it on next login.
+  // Non-fatal: writeback failure logs loudly but does not fail the request.
+  // The caller still receives the Markdown in the response so downstream
+  // automation (Zapier, email) can use it even if persistence hiccups.
+  let plansPersisted = false;
+  let plansGeneratedAt = null;
+  try {
+    if (supabaseRow && supabaseRow.id) {
+      plansGeneratedAt = new Date().toISOString();
+      const { error: updateErr } = await supabase
+        .from('bbf_active_clients')
+        .update({
+          workout_plan: hypertrophyMarkdown,
+          meal_plan: fuelMarkdown,
+          plans_generated_at: plansGeneratedAt,
+        })
+        .eq('id', supabaseRow.id);
+      if (updateErr) throw new Error(updateErr.message);
+      plansPersisted = true;
+      console.log(
+        `[BBF VAULT] Phase 3 complete — plans persisted to bbf_active_clients id=${supabaseRow.id}`
+      );
+    }
+  } catch (err) {
+    console.error('[BBF VAULT] Phase 3 (writeback) failed (non-fatal):', err.message);
+  }
+
   const elapsedMs = Date.now() - startedAt;
   console.log(`[BBF VAULT] Pipeline complete in ${elapsedMs}ms for ${payload.vault_email}`);
 
@@ -198,6 +229,8 @@ app.post('/process', async (req, res) => {
     ok: true,
     elapsed_ms: elapsedMs,
     supabase_id: supabaseRow ? supabaseRow.id || null : null,
+    plans_persisted: plansPersisted,
+    plans_generated_at: plansGeneratedAt,
     hypertrophy_markdown: hypertrophyMarkdown,
     fuel_markdown: fuelMarkdown,
   });
