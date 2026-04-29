@@ -1,0 +1,8 @@
+# Supabase CLI ephemeral state — never commit
+.branches
+.temp
+.env
+
+# Local dev artifacts
+seed.sql.bak
+*.sql.bak

@@ -1,0 +1,18 @@
+# https://supabase.com/docs/guides/cli/config
+# Minimal config to enable `supabase link` and `supabase db push` against the
+# bbf-lab project. Run `supabase init` locally to expand this with the full
+# default sections (auth, storage, studio, edge-functions, etc.) if/when
+# local development with `supabase start` is needed.
+
+project_id = "ihclbceghxpuawymlvgi"
+
+[db]
+# Production runs Postgres 17.6 (see api/SCHEMA_DRIFT_REPORT.md).
+# Match the major version locally so dump/diff output stays compatible.
+major_version = 17
+
+[api]
+# Schemas exposed by PostgREST. `public` is canonical; `graphql_public` is
+# included for the pg_graphql extension that ships with Supabase.
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
