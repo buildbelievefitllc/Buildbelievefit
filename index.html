@@ -2520,6 +2520,34 @@ function doSubmit(){
       })
     }).catch(function(){});
   } catch(e) {}
+  // Phase 4 closed-loop call: fire the same payload (reshaped) at the
+  // Render Vault Engine so Anthropic generates the workout + meal plans
+  // and persists them to bbf_active_clients. Fire-and-forget — does not
+  // block the existing Formspree-driven UX flow below.
+  try {
+    var hwParts = [];
+    if (ft) hwParts.push(ft + "'" + (ins||0) + '"');
+    if (wt) hwParts.push(wt + ' lbs');
+    var hwStr = hwParts.join(', ');
+    var protocolParts = [];
+    if (goal && goal !== 'not specified') protocolParts.push(goal + ' focus');
+    if (exp  && exp  !== 'not specified') protocolParts.push(exp  + ' experience');
+    if (sch  && sch  !== 'not specified') protocolParts.push(sch  + ' work schedule');
+    var protocolStr = protocolParts.join(', ') || 'Hypertrophy focus, 85% 1RM working loads.';
+    fetch('https://buildbelievefit.onrender.com/process', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        client_name: ((fn+' '+ln).trim()) || 'Unknown Client',
+        vault_email: em,
+        age: age,
+        height_weight: hwStr,
+        clinical_history: hlth || 'None reported',
+        training_protocol: protocolStr,
+        liability_cleared: true
+      })
+    }).catch(function(){});
+  } catch(e) {}
   fetch('https://formspree.io/f/mwvwjokw',{
     method:'POST',
     headers:{'Content-Type':'application/json','Accept':'application/json'},
