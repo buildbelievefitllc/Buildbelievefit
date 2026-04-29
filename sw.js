@@ -1,7 +1,12 @@
 // Build Believe Fit — Service Worker v9 — Masterpiece
 // Background Sync + Offline Cache + Auto-flush on reconnect
-
-var CACHE = 'bbf-v12';
+//
+// CACHE-BUMP CONVENTION: bump the version string below on any deploy that
+// touches HTML/JS/CSS so the activate handler clears stale caches and
+// users get fresh assets on next load. Strategy is stale-while-revalidate
+// for GETs (POSTs bypass the SW entirely — see fetch handler below), so
+// without a version bump, updates can take two page loads to propagate.
+var CACHE = 'bbf-v13';
 var CORE = ['/bbf-app.html', '/manifest.json', '/bbf-icon-192.jpg', '/bbf-icon-512.jpg', '/bbf-apple-touch-180.jpg', '/bbf-photo.jpg'];
 
 // ─── INSTALL ─────────────────────────────────────────────────

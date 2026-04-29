@@ -190,7 +190,9 @@ async function authAdmin(){
       return;
     }
     try {
-      var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_admin_pin', {
+      var _ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var _to  = _ctl ? setTimeout(function(){ _ctl.abort(); }, 10000) : null;
+      var _opts = {
         method: 'POST',
         headers: {
           'apikey': window.ENV_SUPABASE_KEY,
@@ -198,7 +200,10 @@ async function authAdmin(){
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ pin_attempt: pin })
-      });
+      };
+      if (_ctl) _opts.signal = _ctl.signal;
+      var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_admin_pin', _opts);
+      if (_to) clearTimeout(_to);
       var data = await res.json();
       if(data.ok){
         document.getElementById('gate').style.display='none';

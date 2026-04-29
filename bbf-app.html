@@ -4240,7 +4240,9 @@ async function LOGIN(){
     }
 
     try {
-      var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_user_pin', {
+      var _ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var _to  = _ctl ? setTimeout(function(){ _ctl.abort(); }, 10000) : null;
+      var _opts = {
         method: 'POST',
         headers: {
           'apikey': window.ENV_SUPABASE_KEY,
@@ -4248,7 +4250,10 @@ async function LOGIN(){
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ uid: user, pin_attempt: pin })
-      });
+      };
+      if (_ctl) _opts.signal = _ctl.signal;
+      var res = await fetch(window.ENV_SUPABASE_URL + '/rest/v1/rpc/bbf_verify_user_pin', _opts);
+      if (_to) clearTimeout(_to);
       var data = await res.json();
       if(!data.ok){
         if(data.lockout_active){
