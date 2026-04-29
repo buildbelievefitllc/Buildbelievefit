@@ -4326,8 +4326,8 @@ function REGISTER(){
   var pin =pinEl.value.trim();
   var type=typeEl?typeEl.value:'Online / Remote';
   var goal=goalEl?goalEl.value.trim():'';
-  if(!name||!user||pin.length!==4){
-    if(msg){msg.textContent='Please fill all fields. PIN must be 4 digits.';msg.style.color='#ef4444';}
+  if(!name||!user||pin.length!==6){
+    if(msg){msg.textContent='Please fill all fields. PIN must be 6 digits.';msg.style.color='#ef4444';}
     return;
   }
   var d=GD();
@@ -4379,8 +4379,8 @@ window.onload=function(){
         <input type="text" id="u" placeholder="your username" autocomplete="username" autocorrect="off" autocapitalize="none" spellcheck="false"/>
       </div>
       <div class="af">
-        <label>PIN (4 digits)</label>
-        <input type="password" id="p" placeholder="enter PIN" maxlength="4" inputmode="numeric"/>
+        <label>PIN (6 digits)</label>
+        <input type="password" id="p" placeholder="enter PIN" maxlength="6" inputmode="numeric"/>
       </div>
       <button class="abtn" id="signin-btn" onclick="LOGIN()">Sign In &#8594;</button>
       <div class="amsg" id="lmsg"></div>
@@ -4389,7 +4389,7 @@ window.onload=function(){
     <div id="pane-nc" style="display:none">
       <div class="af"><label>Full Name</label><input type="text" id="rn" placeholder="e.g. Marcus Johnson"/></div>
       <div class="af"><label>Username (no spaces)</label><input type="text" id="ru" placeholder="e.g. marcus_j" autocorrect="off" autocapitalize="none" spellcheck="false"/></div>
-      <div class="af"><label>4-digit PIN</label><input type="password" id="rp" placeholder="choose a PIN" maxlength="4" inputmode="numeric"/></div>
+      <div class="af"><label>6-digit PIN</label><input type="password" id="rp" placeholder="choose a PIN" maxlength="6" inputmode="numeric"/></div>
       <div class="af"><label>Training Type</label><select id="rt"><option>In-Person</option><option>Online / Remote</option></select></div>
       <div class="af"><label>Goal (optional)</label><input type="text" id="rg" placeholder="e.g. Lose 20lbs by summer"/></div>
       <button class="abtn" id="register-btn" onclick="REGISTER()">Create Profile &#8594;</button>
