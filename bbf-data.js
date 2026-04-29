@@ -298,7 +298,7 @@ async function REGISTER() {
   var msg  = document.getElementById('rmsg');
   msg.className = 'amsg';
   if (!name || !user || !pin) { msg.textContent = 'Please fill in all required fields.'; return; }
-  if (!/^\d{4}$/.test(pin))  { msg.textContent = 'PIN must be exactly 4 digits.'; return; }
+  if (!/^\d{6}$/.test(pin))  { msg.textContent = 'PIN must be exactly 6 digits.'; return; }
   var d = GD();
   if (d.u[user]) { msg.textContent = 'Username already taken. Try another.'; return; }
   var hash = await SHA256(pin);
