@@ -6167,7 +6167,7 @@ window.onload=function(){
 <!-- ═══════════════════════════════════════════════════════════
      JAVASCRIPT — All defined inline, no async dependencies
 ═══════════════════════════════════════════════════════════ -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ─── STORAGE (embedded for guaranteed load order) ──────────────────
 var K_VER = 'bbf_version';
 var CURRENT_VER = '8';
@@ -9790,21 +9790,6 @@ function getRecoveryCues(uid) {
 
 document.addEventListener('DOMContentLoaded', function() {
 
-  // Splash
-  document.getElementById('ebtn').onclick = function() { SS('auth'); };
-
-  // Sign In button — wire LOGIN
-  var sbtn = document.getElementById('signin-btn');
-  if (sbtn) sbtn.onclick = LOGIN;
-
-  // PIN field — Enter key triggers login
-  var pField = document.getElementById('p');
-  if (pField) pField.addEventListener('keydown', function(e){ if(e.key==='Enter') LOGIN(); });
-
-  // Username field — Enter key moves to PIN
-  var uField = document.getElementById('u');
-  if (uField) uField.addEventListener('keydown', function(e){ if(e.key==='Enter'){ var p=document.getElementById('p'); if(p) p.focus(); } });
-
   // Auth tabs
   document.getElementById('tab-si').onclick = function() {
     document.getElementById('tab-si').classList.add('on');
@@ -9818,14 +9803,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('pane-nc').style.display = '';
     document.getElementById('pane-si').style.display = 'none';
   };
-
-  // Sign In
-  document.getElementById('signin-btn').onclick = LOGIN;
-  document.getElementById('p').onkeydown = function(e) { if (e.key === 'Enter') LOGIN(); };
-  document.getElementById('u').onkeydown = function(e) { if (e.key === 'Enter') document.getElementById('p').focus(); };
-
-  // Register
-  document.getElementById('register-btn').onclick = REGISTER;
 
   // Nav buttons
   document.querySelectorAll('.nv').forEach(function(b) {
