@@ -13,6 +13,22 @@ serve(async (req) => {
   }
 
   try {
+    const BBF_VAPI_INVOKE_TOKEN = Deno.env.get('BBF_VAPI_INVOKE_TOKEN');
+    if (!BBF_VAPI_INVOKE_TOKEN) {
+      return new Response(
+        JSON.stringify({ ok: false, error: "vapi_not_configured" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 503 }
+      );
+    }
+
+    const incomingToken = req.headers.get('x-bbf-token');
+    if (incomingToken !== BBF_VAPI_INVOKE_TOKEN) {
+      return new Response(
+        JSON.stringify({ ok: false, error: "unauthorized" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
     const VAPI_API_KEY = Deno.env.get('VAPI_API_KEY');
     const VAPI_ASSISTANT_ID = Deno.env.get('VAPI_ASSISTANT_ID');
     const TWILIO_PHONE_NUMBER = Deno.env.get('TWILIO_PHONE_NUMBER');
