@@ -4296,6 +4296,31 @@ async function LOGIN(){
       plans_generated_at: data.plans_generated_at || null
     } : null;
 
+    // Phase 5+ : if the cloud plans came back as JSON in the legacy WP/MP
+    // shapes (Anthropic outputs JSON since the system-prompt rewrite),
+    // populate PLAN and MP[user] so the existing polished RW()/RN() render
+    // functions display them identically to legacy seeded clients (Ana etc).
+    // Falls through to the Markdown <pre> fallback in RW/RN if the strings
+    // aren't valid JSON (backward-compat with older content).
+    if (window._bbfPlans) {
+      try {
+        if (window._bbfPlans.workout_plan) {
+          var workoutParsed = JSON.parse(window._bbfPlans.workout_plan);
+          if (Array.isArray(workoutParsed) && workoutParsed.length) {
+            PLAN = workoutParsed;
+          }
+        }
+      } catch(e) { /* legacy Markdown content — RW will render as <pre> */ }
+      try {
+        if (window._bbfPlans.meal_plan) {
+          var mealParsed = JSON.parse(window._bbfPlans.meal_plan);
+          if (mealParsed && Array.isArray(mealParsed.days) && mealParsed.days.length) {
+            MP[user] = mealParsed;
+          }
+        }
+      } catch(e) { /* legacy Markdown content — RN will render as <pre> */ }
+    }
+
     var d=GD();
     if(!d.u[user]){
       var SEEDS={

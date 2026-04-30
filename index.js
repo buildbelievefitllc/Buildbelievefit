@@ -49,12 +49,77 @@ const ANTHROPIC_MODEL = 'claude-sonnet-4-6';
 
 // ───────────────────────────────────────────────────────────────
 // System prompts (DO NOT MODIFY — locked by directive)
+//
+// Phase 5 update: prompts now require strict JSON output matching the
+// legacy WP / MP data shapes in bbf-data.js so the existing polished
+// RW() / RN() render functions can display cloud-generated plans
+// identically to legacy seeded plans (Ana, Jacky, etc.).
 // ───────────────────────────────────────────────────────────────
 const SYSTEM_PROMPT_HYPERTROPHY =
-  'You are an elite, clinical AI Fitness Architect for Build Believe Fit LLC. Generate a highly structured, periodized hypertrophy and prehab training protocol in strict Markdown. Rules: 1. All primary hypertrophy lifts must be calculated around an 85% 1RM working load. 2. Focus strictly on hypertrophy and body composition. 3. If the clinical history indicates joint issues, prescribe 2-3 specific pre-habilitation movements prior to working sets. 4. Use deadpan, authoritative, clinical language.';
+  'You are an elite, clinical AI Fitness Architect for Build Believe Fit LLC. ' +
+  'Generate a 7-day periodized hypertrophy and prehab training protocol. ' +
+  'CRITICAL OUTPUT REQUIREMENT: Respond ONLY with a valid JSON array. ' +
+  'No preamble, no commentary, no Markdown code fences. The response must ' +
+  'parse cleanly with JSON.parse(). ' +
+  'Schema: an array of exactly 7 day objects. Each day object has: ' +
+  '{"day": "Monday"|"Tuesday"|"Wednesday"|"Thursday"|"Friday"|"Saturday"|"Sunday", ' +
+  '"focus": short descriptor like "Arms & Back" or "Glutes" or "Rest", ' +
+  '"exercises": array of exercise objects, ' +
+  '"isRest": optional boolean, true for rest days (with empty exercises array), ' +
+  '"restNote": optional string with recovery guidance for rest days}. ' +
+  'Each exercise object has: ' +
+  '{"name": e.g. "Biceps Curls", ' +
+  '"equipment": e.g. "Dumbbells or Cable", ' +
+  '"sets": integer number of sets, ' +
+  '"reps": string like "10-12" or "8-10 per leg", ' +
+  '"notes": short clinical cue, e.g. "Control the eccentric — slow on the way down"}. ' +
+  'Rules: ' +
+  '1. All primary hypertrophy lifts mathematically bound to 85% of 1RM working load. ' +
+  '2. Focus strictly on hypertrophy and body composition. ' +
+  '3. If the clinical history indicates joint issues, prescribe 2-3 specific pre-habilitation movements as the first exercises of relevant days. ' +
+  '4. Use deadpan, authoritative, clinical language in the notes field. ' +
+  '5. Output exactly 7 day objects. Include 1-2 rest days with empty exercises arrays.';
 
 const SYSTEM_PROMPT_NUTRITION =
-  'You are an elite Clinical Nutritionist for Build Believe Fit LLC. Generate a precise nutritional blueprint in strict Markdown. Rules: 1. Program meals entirely around a sustainable 12/12 intermittent fasting schedule (8:00 AM to 8:00 PM). 2. Construct meal plans utilizing clean whole foods (chicken breast, steak, jasmine rice, sweet potatoes, broccoli, asparagus). 3. Calculate estimated TDEE, subtract a safe clinical deficit for fat loss while maintaining hypertrophy, and output exact macro targets. 4. Present the output in a Markdown table showing the exact time of consumption, food source, and macro breakdown.';
+  'You are an elite Clinical Nutritionist for Build Believe Fit LLC. ' +
+  'Generate a precise 7-day nutritional blueprint. ' +
+  'CRITICAL OUTPUT REQUIREMENT: Respond ONLY with a valid JSON object. ' +
+  'No preamble, no commentary, no Markdown code fences. The response must ' +
+  'parse cleanly with JSON.parse(). ' +
+  'Schema: ' +
+  '{"name": client first name (string), ' +
+  '"cal": calorie target string like "~2,800 cal/day", ' +
+  '"goal": one-line tagline like "Lean & Energized" or "High-Protein Recomposition", ' +
+  '"days": array of exactly 7 day objects}. ' +
+  'Each day object has: ' +
+  '{"day": "Day 1" through "Day 7", ' +
+  '"meals": array of meal objects}. ' +
+  'Each meal object has: ' +
+  '{"m": meal label like "Breakfast", "Lunch", "Snack", "Dinner", "Snack 2", ' +
+  '"i": food description with macros in parentheses, e.g. "5 oz Chicken, 1/2 cup Brown Rice (~385 cal/40g P)"}. ' +
+  'Rules: ' +
+  '1. Schedule meals around a sustainable 12/12 intermittent fasting window (8 AM to 8 PM). ' +
+  '2. Use clean whole foods (chicken breast, steak, jasmine rice, sweet potatoes, broccoli, asparagus). ' +
+  '3. Calculate estimated TDEE, subtract a safe clinical deficit for fat loss while maintaining hypertrophy, output the calorie target in the "cal" field and macros per meal in the "i" field. ' +
+  '4. Output exactly 7 day objects.';
+
+// JSON validation helper — strips optional Markdown code fences and
+// confirms the output parses. Returns the cleaned JSON string on success,
+// or null if the response can't be parsed (caller logs and falls back).
+function validateJsonResponse(rawText, label) {
+  if (typeof rawText !== 'string') return null;
+  let text = rawText.trim();
+  // Strip ```json or ``` fences if Anthropic wrapped despite instructions
+  text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+  try {
+    JSON.parse(text);
+    return text;
+  } catch (err) {
+    console.warn(`[BBF VAULT] ${label} JSON parse failed:`, err.message);
+    console.warn(`[BBF VAULT] ${label} raw (first 200 chars):`, text.slice(0, 200));
+    return null;
+  }
+}
 
 // ───────────────────────────────────────────────────────────────
 // Payload normalizer — accepts a flat client JSON body.
@@ -209,6 +274,15 @@ app.post('/process', async (req, res) => {
       generateFuelMatrix(payload),
     ]);
     console.log('[BBF VAULT] Phase 2 complete — Anthropic generation finished.');
+
+    // Phase 5: Anthropic now outputs JSON in the legacy WP/MP shapes.
+    // Validate parses cleanly; if so, replace the local strings with the
+    // cleaned JSON (fences stripped). If validation fails, persist the
+    // raw text — the frontend has a Markdown fallback for backward compat.
+    const cleanedWorkout = validateJsonResponse(hypertrophyMarkdown, 'workout_plan');
+    const cleanedMeal    = validateJsonResponse(fuelMarkdown,        'meal_plan');
+    if (cleanedWorkout) hypertrophyMarkdown = cleanedWorkout;
+    if (cleanedMeal)    fuelMarkdown        = cleanedMeal;
   } catch (err) {
     console.error('[BBF VAULT] Phase 2 (Anthropic) failed:', err);
     return res.status(502).json({ ok: false, phase: 'anthropic', error: err.message });
