@@ -38,12 +38,14 @@ Pathfinder questionnaire → Stripe checkout → Render `/provision` (creates `b
 **End-to-end smoke test (2026-04-30, post Phase 1.7 deploy):**
 - ✅ DB plumbing: cron → pg_net → edge fn auth → `bbf_vapi_calls` audit insert
 - ✅ Negative auth: 401 on no token, 401 on wrong token (via pg_net)
-- ✅ Positive path: edge fn returns 200, Vapi accepts payload, returns `status:queued`, Twilio dials +16233409254 successfully (test call placed and connected)
+- ✅ Positive path: edge fn returns 200, Vapi accepts payload, returns `status:queued`, Twilio dials +16233409254 successfully
+- ✅ Accountability assistant ("Rex") verified live with the dialed-in script (Akeem received call, walked through the friction → commitment flow, hit a real workout commitment as a result). Same `VAPI_ASSISTANT_ID` — prompt swapped in place via Vapi dashboard.
+- ✅ Sales-recovery assistant ("Pathfinder closer") pre-built in Vapi; ID stored in Edge Function Secrets as `VAPI_SALES_ASSISTANT_ID`. Not wired yet (see Phase 5 in §5 backlog).
 - ✅ Synthetic test rows cleaned up (FK CASCADE + manual user delete)
 
 **Configuration state (verified by Akeem):**
 - `pg_cron` extension: ENABLED via Supabase Dashboard
-- Edge Function Secrets (uppercase): `BBF_VAPI_INVOKE_TOKEN`, `VAPI_API_KEY`, `VAPI_ASSISTANT_ID`, `VAPI_PHONE_NUMBER_ID`. The deprecated `TWILIO_PHONE_NUMBER` secret can now be removed (no longer referenced in code).
+- Edge Function Secrets (uppercase): `BBF_VAPI_INVOKE_TOKEN`, `VAPI_API_KEY`, `VAPI_ASSISTANT_ID` (accountability/Rex), `VAPI_SALES_ASSISTANT_ID` (Pathfinder closer — stored, not wired), `VAPI_PHONE_NUMBER_ID`. The deprecated `TWILIO_PHONE_NUMBER` secret can now be removed.
 - Vault secret (lowercase): `bbf_vapi_invoke_token` (same value as Edge Function Secret)
 
 ## 4. Immediate Claude tasks
@@ -67,7 +69,14 @@ Active to-do:
 ## 5. Active backlog
 
 - **Test artifact cleanup migration** — shipped 2026-04-30 (`20260430050000_cleanup_test_artifacts`). `uid='akeem_bbf'` removed; 0 rows confirmed.
-- **Vapi Phase 4 (callback receiver)** — not yet scoped. Vapi can POST call status / transcript back; we need an edge function `vapi-callback` + columns on `bbf_vapi_calls` to capture (`ended_at`, `transcript`, `ended_reason`, etc.). Phase 1.6/1.7 are now in production; Phase 4 is the next operational gap.
+- **Vapi Phase 5 — Sales recovery / abandoned cart closer.** Pathfinder closer assistant already built in Vapi by Akeem; ID stored as `VAPI_SALES_ASSISTANT_ID` Edge Function Secret. Remaining work:
+  1. New SQL function `bbf_evaluate_abandoned_carts()` — scans `bbf_active_clients` for `onboarding_status='Pending'` rows aged > N days with `client_phone IS NOT NULL` and no recent call.
+  2. Update edge fn `vapi-outbound-trigger` to accept a `use_case` (or `assistant_id`) field in the pg_net payload and select the correct assistant from `VAPI_ASSISTANT_ID` vs `VAPI_SALES_ASSISTANT_ID`.
+  3. Pass new variable `daysSincePathfinder` (computed `now() - bbf_active_clients.created_at`) in the closer's payload.
+  4. New `pg_cron` schedule for the closer (different hour from accountability to avoid overlap).
+  5. Smoke test the closer path same way as 1.6/1.7.
+  6. (Future, separate phase) Wire a real Vapi tool for SMS payment-link delivery — needs Stripe + Twilio API keys + new edge fn `vapi-tool-send-payment-link`. Don't promise SMS in the assistant's prompt until this is wired.
+- **Vapi Phase 4 (callback receiver)** — not yet scoped. Vapi can POST call status / transcript back; we need an edge function `vapi-callback` + columns on `bbf_vapi_calls` to capture (`ended_at`, `transcript`, `ended_reason`, etc.). Currently `bbf_vapi_calls.vapi_call_id` and `transcript` stay NULL after a call.
 - **Schema-actual.sql AG hand-edits** — pending re-introspection (deferred to dedicated session per §11 rule #7).
 - **Render Vault Engine V9 cleanup** — see `api/AG_INTEGRATION_NOTES.md` P3 backlog.
 
