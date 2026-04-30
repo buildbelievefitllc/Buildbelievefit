@@ -8632,6 +8632,19 @@ function RW() {
   var con = document.getElementById('wcon');
   if (!PLAN) {
     nav.innerHTML = '';
+    // Phase 5: cloud-plan fallback — render Anthropic-generated Markdown
+    // from window._bbfPlans (set by LOGIN if bbf_verify_user_pin returned plans).
+    // Falls through to the original empty-state if no cloud plan is available.
+    var cloudWorkout = (window._bbfPlans && window._bbfPlans.workout_plan) || '';
+    if (cloudWorkout) {
+      con.innerHTML = '<div style="background:var(--gry2);border:1px solid var(--gry3);border-radius:14px;padding:1.2rem;margin:1rem 0">' +
+        '<div style="font-family:var(--hb);font-size:1rem;letter-spacing:2px;color:var(--yel);margin-bottom:.6rem">YOUR WORKOUT PLAN</div>' +
+        '<pre id="cloud-workout-md" style="white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#e8e8e8;background:var(--blk);border:1px solid var(--gry3);border-radius:8px;padding:1rem;margin:0;max-height:70vh;overflow:auto"></pre>' +
+        '</div>';
+      var preEl = document.getElementById('cloud-workout-md');
+      if (preEl) preEl.textContent = cloudWorkout;
+      return;
+    }
     con.innerHTML = '<div class="rdc"><div class="rdi">&#x1F4CB;</div><div class="rdt">' + _t('app-wo-noprogram','No Program') + '</div><div class="rds">' + _t('app-wo-noprogram-sub','Akeem will assign your Clinical Protocol.') + '</div></div>';
     return;
   }
@@ -8903,6 +8916,18 @@ function RN() {
   var uid = VC || CU;
   var plan = MP[uid];
   if (!plan) {
+    // Phase 5: cloud-plan fallback — render Anthropic-generated meal plan
+    // Markdown from window._bbfPlans before showing the empty state.
+    var cloudMeal = (window._bbfPlans && window._bbfPlans.meal_plan) || '';
+    if (cloudMeal) {
+      con.innerHTML = '<div style="background:var(--gry2);border:1px solid var(--gry3);border-radius:14px;padding:1.2rem;margin:1rem 0">' +
+        '<div style="font-family:var(--hb);font-size:1rem;letter-spacing:2px;color:var(--yel);margin-bottom:.6rem">YOUR FUEL MATRIX</div>' +
+        '<pre id="cloud-meal-md" style="white-space:pre-wrap;word-wrap:break-word;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#e8e8e8;background:var(--blk);border:1px solid var(--gry3);border-radius:8px;padding:1rem;margin:0;max-height:70vh;overflow:auto"></pre>' +
+        '</div>';
+      var preEl = document.getElementById('cloud-meal-md');
+      if (preEl) preEl.textContent = cloudMeal;
+      return;
+    }
     con.innerHTML = '<div class="emp"><div class="ei">&#x1F957;</div><div class="et">' + _t('app-nutr-noplan','No meal plan assigned yet') + '</div>' +
       '<div style="font-size:.8rem;color:var(--mut);margin-top:.5rem">' + _t('app-nutr-contact','Contact Akeem to get your plan set up.') + '</div></div>';
     return;
