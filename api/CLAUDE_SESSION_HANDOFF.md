@@ -1,9 +1,9 @@
 # Claude Session Handoff — Build Believe Fit
 
-**Last updated:** 2026-04-30 (post PR #74 smoke test — Phase 1.7 fix queued)
+**Last updated:** 2026-04-30 (Phase 1.7 verified end-to-end; outbound voice operational)
 **Project:** Build Believe Fit (BBF) — PIN-auth fitness coaching app + Pathfinder pipeline + Vapi outbound voice
 **Founder:** Akeem Brown
-**Phase:** 6 (Antigravity online; Vapi Phase 1.6 verified; Phase 1.7 payload fix in flight)
+**Phase:** 6 (Antigravity online; Vapi outbound voice fully operational; Phase 4 callback receiver next)
 
 This doc orients a fresh Claude session. Read it first, then run the checklist in **§4 Immediate Claude tasks** before touching anything else.
 
@@ -29,49 +29,46 @@ This doc orients a fresh Claude session. Read it first, then run the checklist i
 **Closed-loop signup pipeline is LIVE:**
 Pathfinder questionnaire → Stripe checkout → Render `/provision` (creates `bbf_users` row + sends to Anthropic for plan generation) → Anthropic returns structured JSON (WP/MP shapes) → Supabase `bbf_active_clients.workout_plan` + `meal_plan` populated → Zapier → Gmail welcome email with credentials → client logs into bbf-app.html → polished UI renders cloud plans.
 
-**Vapi voice integration — Phases 1, 1.5, 2, 3, 1.6 merged to `main`. Phase 1.7 in flight:**
+**Vapi voice integration — Phases 1, 1.5, 2, 3, 1.6, 1.7 all merged to `main` and verified end-to-end:**
 - `bbf_vapi_calls` tracking table + RLS
 - `bbf_evaluate_streaks()` function — finds clients who haven't logged in 3+ days, enforces 7-day rate limit, calls edge function via `pg_net.http_post` with `X-BBF-Token` from Vault
-- `vapi-outbound-trigger` edge function — auth-gated (returns 503 if `BBF_VAPI_INVOKE_TOKEN` unset, 401 on token mismatch), calls Vapi API
+- `vapi-outbound-trigger` edge function — auth-gated (returns 503 if `BBF_VAPI_INVOKE_TOKEN` unset, 401 on token mismatch), calls Vapi API with `phoneNumberId` + `customer.number` shape (Phase 1.7)
 - `pg_cron` schedule applied (`20260430000002_vapi_pg_cron_schedule.sql`); cron job `vapi-daily-accountability-check` scheduled `0 17 * * *` running `SELECT public.bbf_evaluate_streaks()`
 
-**Smoke test of Phase 1.6 (2026-04-30):**
-- ✅ DB plumbing verified end-to-end: cron → pg_net → edge fn auth → `bbf_vapi_calls` audit insert
-- ✅ Negative auth path: 401 on no token, 401 on wrong token (verified via pg_net since sandbox curl is blocked)
-- ❌ Positive path failed at Vapi API boundary: HTTP 400 — `phoneNumber.property phoneNumber should not exist` + `phoneNumber.twilioAccountSid must be a string`. Edge fn payload shape is wrong; +16233409254 did not ring. **Phase 1.7 directive issued at `api/AG_DIRECTIVE_VAPI_PAYLOAD_FIX.md`** to fix.
+**End-to-end smoke test (2026-04-30, post Phase 1.7 deploy):**
+- ✅ DB plumbing: cron → pg_net → edge fn auth → `bbf_vapi_calls` audit insert
+- ✅ Negative auth: 401 on no token, 401 on wrong token (via pg_net)
+- ✅ Positive path: edge fn returns 200, Vapi accepts payload, returns `status:queued`, Twilio dials +16233409254 successfully (test call placed and connected)
+- ✅ Synthetic test rows cleaned up (FK CASCADE + manual user delete)
 
 **Configuration state (verified by Akeem):**
 - `pg_cron` extension: ENABLED via Supabase Dashboard
-- Edge Function Secrets (uppercase): `BBF_VAPI_INVOKE_TOKEN`, `VAPI_API_KEY`, `VAPI_ASSISTANT_ID`, `TWILIO_PHONE_NUMBER` (Phase 1.7 will add `VAPI_PHONE_NUMBER_ID` and deprecate `TWILIO_PHONE_NUMBER`)
+- Edge Function Secrets (uppercase): `BBF_VAPI_INVOKE_TOKEN`, `VAPI_API_KEY`, `VAPI_ASSISTANT_ID`, `VAPI_PHONE_NUMBER_ID`. The deprecated `TWILIO_PHONE_NUMBER` secret can now be removed (no longer referenced in code).
 - Vault secret (lowercase): `bbf_vapi_invoke_token` (same value as Edge Function Secret)
 
-## 4. Immediate Claude tasks (Phase 1.7 — Vapi payload fix)
+## 4. Immediate Claude tasks
 
-Phase 1.6 production state verified by smoke test 2026-04-30:
-- [x] Phase 1.6 migration `20260430031500_vapi_phase_1_6_wire_pgnet_with_auth` — applied (prior session)
-- [x] pg_cron schedule migration `20260430000002_vapi_pg_cron_schedule` — applied (prior session)
-- [x] Test artifact cleanup migration `20260430050000_cleanup_test_artifacts` — applied (prior session); 0 rows for `uid='akeem_bbf'` confirmed
-- [x] Edge fn `vapi-outbound-trigger` deployed, ACTIVE, `verify_jwt:false` (prior session)
-- [x] Cron job `vapi-daily-accountability-check` scheduled `0 17 * * *` running `SELECT public.bbf_evaluate_streaks()`
-- [x] Negative auth: 401 on no token + 401 on wrong token (verified via pg_net)
-- [ ] Positive path: ❌ Vapi 400 — payload bug. **Phase 1.7 fix queued below.**
+Vapi outbound voice is operational as of 2026-04-30. End-to-end smoke test passed:
+- [x] Phase 1.6 migration `20260430031500_vapi_phase_1_6_wire_pgnet_with_auth` — applied
+- [x] pg_cron schedule migration `20260430000002_vapi_pg_cron_schedule` — applied
+- [x] Test artifact cleanup migration `20260430050000_cleanup_test_artifacts` — applied
+- [x] Edge fn `vapi-outbound-trigger` ACTIVE at version 3 (Phase 1.7 deploy), `verify_jwt:false`
+- [x] Cron job `vapi-daily-accountability-check` scheduled `0 17 * * *`
+- [x] Negative auth: 401 on no/wrong token (via pg_net)
+- [x] Positive path: edge fn 200 → Vapi accepts → Twilio dials → +16233409254 connects ✅
+- [x] Phase 1.7 PR #77 merged; `VAPI_PHONE_NUMBER_ID` secret configured in Supabase
 
-Run in this order. Stop and report after each step.
+Active to-do:
 
-- [ ] **Phase 1.7 — Vapi payload fix (Path B: phoneNumberId).** Directive: `api/AG_DIRECTIVE_VAPI_PAYLOAD_FIX.md`. Akeem has registered Twilio number in Vapi dashboard and obtained the `phoneNumberId` (to be added as `VAPI_PHONE_NUMBER_ID` Edge Function Secret). Sequence:
-   1. Code change to `supabase/functions/vapi-outbound-trigger/index.ts` + `api/VAPI_DESIGN.md` per directive (AG draft on `ag/vapi-payload-fix` OR Claude direct edit — pending Akeem decision)
-   2. PR → Akeem merge
-   3. Akeem adds `VAPI_PHONE_NUMBER_ID` Edge Function Secret in Supabase dashboard
-   4. Claude redeploys edge fn via `deploy_edge_function`
-   5. Claude re-runs §8 smoke test (full positive path including ring on +16233409254)
-   6. Akeem removes deprecated `TWILIO_PHONE_NUMBER` Edge Function Secret
-- [ ] **Re-introspect schema** → regenerate `api/supabase-schema-actual.sql` to wipe AG's prior hand-edits. **DEFERRED — separate dedicated session, disk-only-write protocol per §11 rule #7.** Two prior sessions timed out attempting to inline-rewrite this file.
+- [ ] **Akeem:** remove deprecated `TWILIO_PHONE_NUMBER` from Edge Function Secrets (no longer referenced in code). Optional housekeeping; safe to defer.
+- [ ] **Vapi Phase 4 — callback receiver.** Now that Phase 1.6/1.7 are operational, scope an edge fn `vapi-callback` + new columns on `bbf_vapi_calls` (e.g., `ended_at`, `transcript`, `ended_reason`) to capture Vapi's post-call POST. Currently `bbf_vapi_calls.vapi_call_id` and `transcript` stay NULL after a call because we don't ingest Vapi's callback. See §5 backlog for context.
+- [ ] **Re-introspect schema** → regenerate `api/supabase-schema-actual.sql`. **DEFERRED — separate dedicated session, disk-only-write protocol per §11 rule #7.** Two prior sessions timed out attempting to inline-rewrite this file.
 
 ## 5. Active backlog
 
-- **Test artifact cleanup migration** — directive given to AG overnight on branch `ag/cleanup-test-artifacts`. Two statements: `DELETE FROM bbf_users WHERE uid = 'akeem_bbf'` + NULL the four plan columns on `bbf_active_clients` for `akeemkbrown@gmail.com`. Check if branch was pushed; if so, review diff, open PR, merge, apply via MCP.
-- **Vapi Phase 4 (callback receiver)** — not yet scoped. Vapi can POST call status / transcript back; we need an edge function `vapi-callback` + columns on `bbf_vapi_calls` to capture. Defer until Phase 1.6 cron has fired in production at least once.
-- **Schema-actual.sql AG hand-edits** — resolved by re-introspection in §4.
+- **Test artifact cleanup migration** — shipped 2026-04-30 (`20260430050000_cleanup_test_artifacts`). `uid='akeem_bbf'` removed; 0 rows confirmed.
+- **Vapi Phase 4 (callback receiver)** — not yet scoped. Vapi can POST call status / transcript back; we need an edge function `vapi-callback` + columns on `bbf_vapi_calls` to capture (`ended_at`, `transcript`, `ended_reason`, etc.). Phase 1.6/1.7 are now in production; Phase 4 is the next operational gap.
+- **Schema-actual.sql AG hand-edits** — pending re-introspection (deferred to dedicated session per §11 rule #7).
 - **Render Vault Engine V9 cleanup** — see `api/AG_INTEGRATION_NOTES.md` P3 backlog.
 
 ## 6. Workflow rules (non-negotiable)
@@ -117,7 +114,7 @@ After §4 migrations + deploy, before declaring victory:
 
 ## 9. Recent merged PRs (reverse chronological)
 
-- **2026-04-30 verification** — Smoke test of #74 confirmed cron→pg_net→edge fn auth path works end-to-end. Vapi 400 on outbound payload shape exposed; Phase 1.7 directive issued (`api/AG_DIRECTIVE_VAPI_PAYLOAD_FIX.md`).
+- **#77 (2026-04-30) Phase 1.7** — Vapi outbound payload fix. Switched from BYO Twilio nesting to Vapi-managed `phoneNumberId` + `customer.number`. Smoke test post-deploy: edge fn 200 → Vapi `status:queued` → Twilio dials +16233409254. Outbound voice operational end-to-end.
 - **#74** Phase 1.6 — pg_net wired to Vapi edge function with Vault auth
 - AG Vapi commits Phase 1, 1.5, 2, 3 (pre-1.6)
 - **#73** AG integration notes

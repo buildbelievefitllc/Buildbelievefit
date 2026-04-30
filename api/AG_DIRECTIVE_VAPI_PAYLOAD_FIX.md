@@ -1,6 +1,6 @@
 # AG Directive — Vapi Outbound Payload Fix (Phase 1.7, Path B)
 
-**Status:** OPEN
+**Status:** COMPLETE — shipped via PR #77, verified end-to-end 2026-04-30 (edge fn 200 → Vapi queued → Twilio dial succeeds)
 **Issued:** 2026-04-30
 **Issued by:** Claude (post-smoke-test of merged PR #74)
 **Branch target:** `ag/vapi-payload-fix`
