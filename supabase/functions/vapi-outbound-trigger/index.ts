@@ -30,35 +30,53 @@ serve(async (req) => {
     }
 
     const VAPI_API_KEY = Deno.env.get('VAPI_API_KEY');
-    const VAPI_ASSISTANT_ID = Deno.env.get('VAPI_ASSISTANT_ID');
+    const VAPI_ASSISTANT_ID = Deno.env.get('VAPI_ASSISTANT_ID');                    // accountability (Rex)
+    const VAPI_SALES_ASSISTANT_ID = Deno.env.get('VAPI_SALES_ASSISTANT_ID');         // sales recovery
     const VAPI_PHONE_NUMBER_ID = Deno.env.get('VAPI_PHONE_NUMBER_ID');
 
-    if (!VAPI_API_KEY || !VAPI_ASSISTANT_ID || !VAPI_PHONE_NUMBER_ID) {
+    if (!VAPI_API_KEY || !VAPI_ASSISTANT_ID || !VAPI_SALES_ASSISTANT_ID || !VAPI_PHONE_NUMBER_ID) {
       throw new Error("Missing Vapi configuration environment variables");
     }
 
-    // Parse the payload from the pg_net webhook (bbf_evaluate_streaks)
-    const { client_email, client_name, client_phone, days_missed, protocol } = await req.json();
+    const {
+      use_case = 'accountability',  // default for safety / backwards compat with any caller that still sends old shape
+      client_email,
+      client_name,
+      client_phone,
+      days,
+      days_missed,                  // legacy field name — accept for one deploy cycle in case migration order slips
+      protocol
+    } = await req.json();
 
     if (!client_phone) {
       throw new Error(`Cannot initiate call for ${client_email}: No phone number provided.`);
     }
 
-    // Construct the Vapi outbound call payload (Phase 1.7: Vapi-managed phone number)
-    const vapiPayload = {
-      phoneNumberId: VAPI_PHONE_NUMBER_ID,
-      customer: {
-        number: client_phone
-      },
-      assistantId: VAPI_ASSISTANT_ID,
-      assistantOverrides: {
-        variableValues: {
+    if (!['accountability', 'sales_recovery'].includes(use_case)) {
+      throw new Error(`Unknown use_case: ${use_case}`);
+    }
+
+    const effectiveDays = days ?? days_missed ?? 3;
+    const assistantId = use_case === 'sales_recovery' ? VAPI_SALES_ASSISTANT_ID : VAPI_ASSISTANT_ID;
+    const variableValues = use_case === 'sales_recovery'
+      ? {
           clientName: client_name || 'Client',
-          daysMissed: String(days_missed || 3),
+          daysSincePathfinder: String(effectiveDays),
           programFocus: protocol || 'Training Protocol',
           coachName: 'Akeem'
         }
-      }
+      : {
+          clientName: client_name || 'Client',
+          daysMissed: String(effectiveDays),
+          programFocus: protocol || 'Training Protocol',
+          coachName: 'Akeem'
+        };
+
+    const vapiPayload = {
+      phoneNumberId: VAPI_PHONE_NUMBER_ID,
+      customer: { number: client_phone },
+      assistantId,
+      assistantOverrides: { variableValues }
     };
 
     console.log(`Initiating Vapi outbound call to ${client_name} (${client_phone})...`);
