@@ -4308,6 +4308,10 @@ async function LOGIN(){
           var workoutParsed = JSON.parse(window._bbfPlans.workout_plan);
           if (Array.isArray(workoutParsed) && workoutParsed.length) {
             PLAN = workoutParsed;
+            // Cache on window so LP() can re-apply this when called later
+            // (LP() runs after LOGIN and would otherwise reset PLAN to null
+            // for users without a legacy u.plan key).
+            window._bbfPlans._cloudPlanArray = workoutParsed;
           }
         }
       } catch(e) { /* legacy Markdown content — RW will render as <pre> */ }
@@ -6658,7 +6662,18 @@ function LP() {
   var d = GD();
   var uid = VC || CU;
   var u = d.u[uid] || {};
-  PLAN = u.plan ? WP[u.plan] : null;
+  // Phase 5+: prefer legacy WP[u.plan] if user has a seeded plan key.
+  // Otherwise, if a cloud workout plan is parsed and cached on window
+  // (set by LOGIN from bbf_verify_user_pin response), use that so the
+  // polished RW() render path picks it up. Falls back to null when
+  // neither is available — RW() then shows the empty state.
+  if (u.plan && WP[u.plan]) {
+    PLAN = WP[u.plan];
+  } else if (window._bbfPlans && window._bbfPlans._cloudPlanArray) {
+    PLAN = window._bbfPlans._cloudPlanArray;
+  } else {
+    PLAN = null;
+  }
 }
 
 function selectClient(uid) {
