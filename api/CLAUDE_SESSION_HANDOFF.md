@@ -112,8 +112,31 @@ After §4 migrations + deploy, before declaring victory:
 
 Paste into a new Claude session as the opening message:
 
-> You are continuing work on Build Believe Fit. **Read `api/CLAUDE_SESSION_HANDOFF.md` first** to orient — it has the current state, your immediate to-do list, the workflow rules, and the smoke test plan. After reading, run `git fetch origin --prune`, check `git log origin/main --oneline -5`, and check whether `origin/ag/cleanup-test-artifacts` exists. Then report back with: (a) is main where the handoff says it is, (b) did AG push the cleanup branch, (c) what's the next step you'd take. Do not apply migrations or deploy edge functions until I greenlight.
+> You are continuing work on Build Believe Fit. **Read `api/CLAUDE_SESSION_HANDOFF.md` first — especially §11 (context discipline).** It has the current state, your immediate to-do list, the workflow rules, the smoke test plan, and the habits that prevent timeouts. After reading, run `git fetch origin --prune`, `git log origin/main --oneline -5`, and check for any open `ag/*` or `claude/*` branches with unmerged work. Report back with: (a) where main is, (b) what's queued, (c) what you'd grind on first. Don't apply migrations or deploy edge functions until I greenlight.
+
+## 11. Context discipline (timeout prevention)
+
+This thread shipped a lot without a single timeout. Future sessions follow the same habits — they apply equally to backend MCP work and to frontend UI work:
+
+1. **MCP > file reads.** Query prod with `execute_sql` before reading files when checking state. Cheaper context.
+2. **Batch parallel.** Independent tool calls in ONE message; never sequential without a real dependency.
+3. **Read with offset/limit.** Need lines 391–545? `Read(file, offset:391, limit:155)`. Don't read a 2000-line file for 150 lines.
+4. **Don't echo your own writes.** Reference SQL/code you just produced by name; don't paste it back into chat.
+5. **Status updates: ONE sentence.** "Migration 1/3 applied" — done. Skip the recap.
+6. **No "let me think" preambles.** Do the thing, then state the result.
+7. **Big writes → disk, not chat.** Schema regens, bulk rewrites, multi-section docs: Write → commit → push → one-line confirm with sha. Never paste 1000+ lines into the conversation.
+8. **Delegate to AG for non-trivial edits.** Anything > ~5 lines of new code → write a directive, AG drafts on `ag/<topic>`, you verify. Saves your context for MCP and review.
+9. **PR bodies = durable record.** Test plans, gotchas, verification checklists live in PR descriptions where they survive context resets — not in chat scrollback.
+10. **Checkpoint to this doc proactively.** Phase wrap OR heavy context → update §3 / §4 / §9 + commit + push. Bridges sessions cleanly.
+11. **End the turn early.** Question answered → stop. Don't volunteer five next-step ideas. One next-step or "standing by" is enough.
+
+### Frontend addendum (when editing `bbf-app.html`)
+
+- **Grep before read.** Find handlers / IDs / selectors with `grep -n` first; then `Read` with offset/limit. The file is large — never load the whole thing unless you genuinely need it.
+- **Bump SW cache.** Increment the `BBF_CACHE` constant on every client-side change, or users see stale UI and you waste a debug cycle hunting a phantom bug.
+
+**Bridge signal:** if the conversation gets heavy mid-task — stop, update this doc with current state, commit, tell Akeem *"context refresh recommended — handoff updated."* That's the cue to move to a fresh session without losing thread.
 
 ---
 
-*Living doc. Update as state changes. Keep it under ~250 lines so a session can read it fast.*
+*Living doc. Update as state changes. Keep it under ~300 lines so a session can read it fast.*
