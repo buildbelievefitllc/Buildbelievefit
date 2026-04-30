@@ -33,7 +33,7 @@ When the Edge Function calls the Vapi API, it provides dynamic context about the
   "assistantOverrides": {
     "variableValues": {
       "clientName": "Marcus",
-      "daysMissed": "3",
+      "daysSincePathfinder": "3",
       "programFocus": "Hypertrophy",
       "coachName": "Akeem"
     }
@@ -42,6 +42,13 @@ When the Edge Function calls the Vapi API, it provides dynamic context about the
 ```
 
 > **Phase 1.7 (2026-04-30):** BBF migrated from BYO Twilio to a Vapi-managed phone number. The Twilio number is registered inside the Vapi dashboard, which returns a `phoneNumberId`. The edge function references that ID via the `VAPI_PHONE_NUMBER_ID` env var; Twilio account credentials are held by Vapi, not BBF. The dial target now lives at `customer.number` (Vapi's required shape), not nested under `phoneNumber`.
+
+## 3.5 Sales Recovery Use Case
+> **Phase 5 (2026-04-30):** Added a second outbound voice loop for prospects who abandoned cart (completed Pathfinder but did not pay).
+- **Trigger**: `bbf_evaluate_abandoned_carts()` cron at `0 19 * * *`
+- **Selection criteria**: Pending status, no paid user row, 3-30 days old, has phone, 0 or 1 prior sales call ≥ 7 days ago.
+- **Variables passed to assistant**: `clientName`, `daysSincePathfinder`, `programFocus`, `coachName`
+- **Reference**: Assistant config lives in Vapi dashboard ("Pathfinder closer"), ID stored as `VAPI_SALES_ASSISTANT_ID`.
 
 ## 4. Vapi Configuration
 **Assistant Settings:**
@@ -82,9 +89,10 @@ To configure this end-to-end integration, the following steps must be taken in t
 
 1. **Twilio Number Setup**: Procure a Twilio number for the outbound caller ID.
 2. **Vapi Assistant Setup**: Create the assistant in the Vapi dashboard using the System Prompt above. Note the Assistant ID.
-3. **Edge Function Secrets**: In the Supabase Dashboard (Edge Functions > Secrets), set the following four variables:
+3. **Edge Function Secrets**: In the Supabase Dashboard (Edge Functions > Secrets), set the following five variables:
    - `VAPI_API_KEY`: Your Vapi account API key.
-   - `VAPI_ASSISTANT_ID`: The ID of the assistant created in step 2.
+   - `VAPI_ASSISTANT_ID`: The ID of the accountability assistant created in step 2.
+   - `VAPI_SALES_ASSISTANT_ID`: The ID of the sales recovery assistant ("Pathfinder closer") created in step 2.
    - `VAPI_PHONE_NUMBER_ID`: The Vapi-managed phone number ID returned when the Twilio number is registered inside the Vapi dashboard (Phase 1.7 — replaces the prior `TWILIO_PHONE_NUMBER` secret).
    - `BBF_VAPI_INVOKE_TOKEN`: A secure, randomly generated string (e.g. UUID) used to authenticate the pg_net trigger.
 4. **Supabase Vault Secret**: In the Supabase Dashboard (Vault > Secrets), create a new secret named `bbf_vapi_invoke_token` and paste the exact same token used in step 3.
