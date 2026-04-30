@@ -33,7 +33,7 @@ When the Edge Function calls the Vapi API, it provides dynamic context about the
   "assistantOverrides": {
     "variableValues": {
       "clientName": "Marcus",
-      "daysSincePathfinder": "3",
+      "daysMissed": "3",
       "programFocus": "Hypertrophy",
       "coachName": "Akeem"
     }
