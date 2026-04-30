@@ -5910,6 +5910,54 @@ window.onload=function(){
         <div class="psr" id="logout-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F6AA;</span><div><div class="psrn" data-lang-key="app-set-signout">Sign Out</div><div class="psrs" data-lang-key="app-set-signout-sub">Log out of your account</div></div></div><span class="psra">&#x203A;</span></div>
       </div>
     </div>
+
+    <!-- RECALIBRATE -->
+    <div class="tp" id="tp-recalibrate">
+      <div class="sh"><span class="stt" data-lang-key="app-recalibrate">Re-Calibrate Your Plan</span></div>
+      <div style="background:var(--gry);border:1px solid #1e1e1e;border-radius:14px;padding:1.2rem;margin-bottom:1rem">
+        <p style="font-size:0.85rem;color:var(--mut2);margin-bottom:1rem">Refine your targets or update your clinical history. We'll regenerate your Sovereign Plan immediately.</p>
+        <div class="af">
+          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Full Name</label>
+          <input type="text" id="rc-name" placeholder="Marcus Johnson" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;margin-bottom:1rem;font-family:var(--bd)"/>
+        </div>
+        <div class="af">
+          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Vault Email</label>
+          <input type="email" id="rc-email" placeholder="marcus@email.com" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;margin-bottom:1rem;font-family:var(--bd)"/>
+        </div>
+        <div class="af" style="display:flex;gap:1rem;margin-bottom:1rem">
+          <div style="flex:1">
+            <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Age</label>
+            <input type="number" id="rc-age" placeholder="28" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
+          </div>
+          <div style="flex:1">
+            <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Weight (lbs)</label>
+            <input type="number" id="rc-wt" placeholder="185" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
+          </div>
+        </div>
+        <div class="af" style="margin-bottom:1rem">
+          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Height (ft / in)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+            <input type="number" id="rc-ft" placeholder="ft" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
+            <input type="number" id="rc-in" placeholder="in" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
+          </div>
+        </div>
+        <div class="af" style="margin-bottom:1rem">
+          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Training Focus</label>
+          <select id="rc-focus" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd);-webkit-appearance:none">
+            <option value="Hypertrophy">Hypertrophy (Build Muscle)</option>
+            <option value="Fat Loss">Fat Loss (Leaning Out)</option>
+            <option value="Body Recomp">Body Recomp</option>
+            <option value="Strength">Pure Strength</option>
+          </select>
+        </div>
+        <div class="af" style="margin-bottom:1rem">
+          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Health Notes / Injuries</label>
+          <textarea id="rc-hlth" placeholder="Any injuries or limitations?" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;min-height:80px;font-family:var(--bd)"></textarea>
+        </div>
+        <button id="rc-submit" onclick="submitRecalibrate()" style="width:100%;padding:1rem;background:linear-gradient(180deg,#F2D769 0%,#E6C24F 25%,#D4AF37 55%,#A8862A 100%);color:#0a0a0a;font-family:var(--hb);font-size:1rem;letter-spacing:2px;border:1px solid #F2D769;border-radius:8px;cursor:pointer;margin-top:1rem;box-shadow:0 6px 22px rgba(212,175,55,.38)">GENERATE NEW PLAN</button>
+        <div id="rc-msg" style="margin-top:1rem;text-align:center;font-size:0.85rem;font-weight:700"></div>
+      </div>
+    </div>
   </div>
   <!-- NAV -->
   <div class="bn">
@@ -5920,6 +5968,7 @@ window.onload=function(){
     <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span data-lang-key="app-nav-prehab">Prehab</span></button>
     <button class="nv" data-tab="book"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-lang-key="app-nav-book">Book</span></button>
     <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-lang-key="app-nav-profile">Profile</span></button>
+    <button class="nv" data-tab="recalibrate"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span data-lang-key="app-nav-recalibrate">Pathfinder</span></button>
   </div>
 
   <!-- ═══ BIOMETRIC YIELD REPORT — Sovereign Clinical Synthesis ═══ -->
@@ -6454,6 +6503,70 @@ var MP = {
   });
   SD(d);
 })();
+
+function submitRecalibrate() {
+  var btn = document.getElementById('rc-submit');
+  var msg = document.getElementById('rc-msg');
+  var name = document.getElementById('rc-name').value.trim() || (window.GD && GD().u[CU] ? GD().u[CU].name : 'Unknown');
+  var email = document.getElementById('rc-email').value.trim();
+  var age = parseInt(document.getElementById('rc-age').value)||0;
+  var wt = parseFloat(document.getElementById('rc-wt').value)||0;
+  var ft = parseInt(document.getElementById('rc-ft').value)||0;
+  var ins = parseInt(document.getElementById('rc-in').value)||0;
+  var focus = document.getElementById('rc-focus').value;
+  var hlth = document.getElementById('rc-hlth').value.trim();
+
+  if (!email) {
+    msg.style.color = '#ef4444';
+    msg.textContent = 'Vault Email is required.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Generating... (Takes ~20s)';
+  msg.textContent = '';
+
+  var hwParts = [];
+  if (ft) hwParts.push(ft + "'" + (ins||0) + '"');
+  if (wt) hwParts.push(wt + ' lbs');
+  
+  var payload = {
+    client_name: name,
+    vault_email: email,
+    age: age,
+    height_weight: hwParts.join(', '),
+    clinical_history: hlth || 'None reported',
+    training_protocol: focus + ' focus, standard working loads.',
+    liability_cleared: true
+  };
+
+  fetch('https://buildbelievefit.onrender.com/process', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(function(r) {
+    return r.json();
+  }).then(function(data) {
+    btn.disabled = false;
+    btn.textContent = 'GENERATE NEW PLAN';
+    if(data.ok) {
+      msg.style.color = '#22c55e';
+      msg.textContent = 'Success! Your plan was regenerated. Please wait while we sign you out to sync...';
+      setTimeout(function() {
+        if (typeof LOGOUT === 'function') LOGOUT();
+        else window.location.reload();
+      }, 4000);
+    } else {
+      msg.style.color = '#ef4444';
+      msg.textContent = 'Failed: ' + (data.error || 'Unknown error');
+    }
+  }).catch(function(e) {
+    btn.disabled = false;
+    btn.textContent = 'GENERATE NEW PLAN';
+    msg.style.color = '#ef4444';
+    msg.textContent = 'Network error during regeneration.';
+  });
+}
 
 // ─── STATE ────────────────────────────────────────────────
 var CU = null, VC = null, EX = [], MOOD = '', TYPE = 'strength';
