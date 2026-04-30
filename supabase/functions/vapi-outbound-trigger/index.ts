@@ -31,10 +31,10 @@ serve(async (req) => {
 
     const VAPI_API_KEY = Deno.env.get('VAPI_API_KEY');
     const VAPI_ASSISTANT_ID = Deno.env.get('VAPI_ASSISTANT_ID');
-    const TWILIO_PHONE_NUMBER = Deno.env.get('TWILIO_PHONE_NUMBER');
+    const VAPI_PHONE_NUMBER_ID = Deno.env.get('VAPI_PHONE_NUMBER_ID');
 
-    if (!VAPI_API_KEY || !VAPI_ASSISTANT_ID || !TWILIO_PHONE_NUMBER) {
-      throw new Error("Missing Vapi or Twilio configuration environment variables");
+    if (!VAPI_API_KEY || !VAPI_ASSISTANT_ID || !VAPI_PHONE_NUMBER_ID) {
+      throw new Error("Missing Vapi configuration environment variables");
     }
 
     // Parse the payload from the pg_net webhook (bbf_evaluate_streaks)
@@ -44,11 +44,11 @@ serve(async (req) => {
       throw new Error(`Cannot initiate call for ${client_email}: No phone number provided.`);
     }
 
-    // Construct the Vapi outbound call payload
+    // Construct the Vapi outbound call payload (Phase 1.7: Vapi-managed phone number)
     const vapiPayload = {
-      phoneNumber: {
-        twilioPhoneNumber: TWILIO_PHONE_NUMBER,
-        phoneNumber: client_phone
+      phoneNumberId: VAPI_PHONE_NUMBER_ID,
+      customer: {
+        number: client_phone
       },
       assistantId: VAPI_ASSISTANT_ID,
       assistantOverrides: {

@@ -25,9 +25,9 @@ When the Edge Function calls the Vapi API, it provides dynamic context about the
 **Vapi Outbound Request Payload:**
 ```json
 {
-  "phoneNumber": {
-    "twilioPhoneNumber": "+1<BBF_TWILIO_NUMBER>",
-    "phoneNumber": "+1<CLIENT_PHONE_NUMBER>"
+  "phoneNumberId": "<VAPI_PHONE_NUMBER_ID>",
+  "customer": {
+    "number": "+1<CLIENT_PHONE_NUMBER>"
   },
   "assistantId": "<VAPI_ASSISTANT_ID>",
   "assistantOverrides": {
@@ -40,6 +40,8 @@ When the Edge Function calls the Vapi API, it provides dynamic context about the
   }
 }
 ```
+
+> **Phase 1.7 (2026-04-30):** BBF migrated from BYO Twilio to a Vapi-managed phone number. The Twilio number is registered inside the Vapi dashboard, which returns a `phoneNumberId`. The edge function references that ID via the `VAPI_PHONE_NUMBER_ID` env var; Twilio account credentials are held by Vapi, not BBF. The dial target now lives at `customer.number` (Vapi's required shape), not nested under `phoneNumber`.
 
 ## 4. Vapi Configuration
 **Assistant Settings:**
@@ -83,7 +85,7 @@ To configure this end-to-end integration, the following steps must be taken in t
 3. **Edge Function Secrets**: In the Supabase Dashboard (Edge Functions > Secrets), set the following four variables:
    - `VAPI_API_KEY`: Your Vapi account API key.
    - `VAPI_ASSISTANT_ID`: The ID of the assistant created in step 2.
-   - `TWILIO_PHONE_NUMBER`: The outbound caller ID number.
+   - `VAPI_PHONE_NUMBER_ID`: The Vapi-managed phone number ID returned when the Twilio number is registered inside the Vapi dashboard (Phase 1.7 — replaces the prior `TWILIO_PHONE_NUMBER` secret).
    - `BBF_VAPI_INVOKE_TOKEN`: A secure, randomly generated string (e.g. UUID) used to authenticate the pg_net trigger.
 4. **Supabase Vault Secret**: In the Supabase Dashboard (Vault > Secrets), create a new secret named `bbf_vapi_invoke_token` and paste the exact same token used in step 3.
 5. **pg_cron Extension**: Enable the `pg_cron` extension in the Supabase Dashboard (Database > Extensions) so the daily evaluation schedule can run.
