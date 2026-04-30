@@ -74,3 +74,16 @@ To enforce the 7-day rate limit, we need to track outbound calls.
 - Setup `pg_cron` inside `api/supabase-schema.sql` (or via Dashboard if pg_cron is restricted to superuser).
 - Provision the Vapi Assistant in the Vapi dashboard.
 - Tie the pg_cron job to invoke the Edge Function via `pg_net` or `http_request`.
+
+## 7. Operational Setup
+To configure this end-to-end integration, the following steps must be taken in this order:
+
+1. **Twilio Number Setup**: Procure a Twilio number for the outbound caller ID.
+2. **Vapi Assistant Setup**: Create the assistant in the Vapi dashboard using the System Prompt above. Note the Assistant ID.
+3. **Edge Function Secrets**: In the Supabase Dashboard (Edge Functions > Secrets), set the following four variables:
+   - `VAPI_API_KEY`: Your Vapi account API key.
+   - `VAPI_ASSISTANT_ID`: The ID of the assistant created in step 2.
+   - `TWILIO_PHONE_NUMBER`: The outbound caller ID number.
+   - `BBF_VAPI_INVOKE_TOKEN`: A secure, randomly generated string (e.g. UUID) used to authenticate the pg_net trigger.
+4. **Supabase Vault Secret**: In the Supabase Dashboard (Vault > Secrets), create a new secret named `bbf_vapi_invoke_token` and paste the exact same token used in step 3.
+5. **pg_cron Extension**: Enable the `pg_cron` extension in the Supabase Dashboard (Database > Extensions) so the daily evaluation schedule can run.
