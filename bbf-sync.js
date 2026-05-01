@@ -277,15 +277,27 @@ var BBF_SYNC = (function() {
   }
 
   // ─── SYNC: AUDIT REQUEST ──────────────────────────────────
-  function logAuditRequest(uid, exerciseName, tensionArea) {
-    if (!uid || !exerciseName) return Promise.resolve();
-    return supa('POST', 'bbf_logs', {
+  // ─── SESSION GENERATOR ────────────────────────────────────
+  function getOrCreateSessionId() {
+    var id = sessionStorage.getItem('bbf_workout_session_id');
+    if (!id) {
+      id = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+        ? crypto.randomUUID() 
+        : ('sess-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+      sessionStorage.setItem('bbf_workout_session_id', id);
+    }
+    return id;
+  }
+
+  // ─── SYNC: AUDIT REQUEST ──────────────────────────────────
+  function logAuditRequest(uid, exerciseName, tensionZoneId) {
+    if (!uid || !exerciseName || !tensionZoneId) return Promise.resolve();
+    
+    return supa('POST', 'bbf_audit_logs', {
       user_id: uid,
-      date: new Date().toISOString().slice(0, 10),
-      type: 'audit',
-      notes: 'Audit: ' + exerciseName + ' — Tension: ' + tensionArea,
-      logged_at: new Date().toISOString(),
-      logged_by: uid
+      session_id: getOrCreateSessionId(),
+      movement_name: exerciseName,
+      tension_zone: tensionZoneId
     });
   }
 
@@ -306,20 +318,47 @@ var BBF_SYNC = (function() {
 
   // ─── FETCH: PENDING AUDIT REQUESTS (TRAINER VIEW) ─────────
   function fetchPendingAudits() {
-    return supa('GET', 'bbf_logs', null,
-      '?type=eq.audit&order=logged_at.desc&limit=100'
-    ).then(function(data) {
+    return supa('GET', 'bbf_audit_logs', null, '?order=created_at.desc&limit=100').then(function(data) {
       if (!data) return [];
       return data.map(function(entry) {
         return {
           user_id: entry.user_id,
-          user_name: entry.logged_by || entry.user_id,
-          notes: entry.notes || '',
-          date: entry.date,
-          logged_at: entry.logged_at
+          user_name: entry.user_id,
+          notes: 'Audit: ' + entry.movement_name + ' — Tension: ' + entry.tension_zone,
+          date: (entry.created_at || '').slice(0, 10),
+          logged_at: entry.created_at
         };
       });
     }).catch(function(e) { console.error('BBF_SYNC fetchPendingAudits error:', e); return []; });
+  }
+
+  // ─── FETCH: DAMAGED ZONES (SENTINEL) ──────────────────────
+  function fetchDamagedZones(userId) {
+    var thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    return supa('GET', 'bbf_audit_logs', null, 
+      '?user_id=eq.' + encodeURIComponent(userId) + '&created_at=gte.' + thirtyDaysAgo + '&order=created_at.desc'
+    ).then(function(logs) {
+      if (!logs) return [];
+      var zoneMap = {
+        'lower-back': ['ss-z-lumbar'],
+        'knees':      ['ss-z-knee-l', 'ss-z-knee-r'],
+        'shoulders':  ['ss-z-shoulders-l', 'ss-z-shoulders-r', 'ss-z-cervical'],
+        'hips':       ['ss-z-hip-l', 'ss-z-hip-r']
+      };
+      var damagedZones = {};
+      logs.forEach(function(log) {
+        if (log.tension_zone === 'target-muscle') return;
+        var svgIds = zoneMap[log.tension_zone] || [];
+        svgIds.forEach(function(svgId) {
+          if (!damagedZones[svgId]) damagedZones[svgId] = { count: 0, movements: [] };
+          damagedZones[svgId].count++;
+          if (damagedZones[svgId].movements.indexOf(log.movement_name) === -1) {
+            damagedZones[svgId].movements.push(log.movement_name);
+          }
+        });
+      });
+      return damagedZones;
+    }).catch(function(e) { console.error('BBF_SYNC fetchDamagedZones error:', e); return {}; });
   }
 
   // ─── FETCH: HISTORICAL RPE FOR EXERCISE ───────────────────
@@ -1652,7 +1691,8 @@ var BBF_SYNC = (function() {
     pushAll: pushAll,
     pullUser: pullUser,
     isOnline: isOnline,
-    verifyAdminPin: verifyAdminPin
+    verifyAdminPin: verifyAdminPin,
+    fetchDamagedZones: fetchDamagedZones
   };
 
   if (typeof module !== 'undefined' && module.exports) {
