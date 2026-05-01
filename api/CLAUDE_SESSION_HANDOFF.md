@@ -1,9 +1,9 @@
 # Claude Session Handoff — Build Believe Fit
 
-**Last updated:** 2026-05-01 (post PR #83 — Phase 6 Form Audit end-to-end live with slug→UUID bridge)
+**Last updated:** 2026-05-01 (Phase 6 wrapped — Form Audit live + Founders Five PINs provisioned; awaiting Phase 7 directive)
 **Project:** Build Believe Fit (BBF) — PIN-auth fitness coaching app + Pathfinder pipeline + Vapi outbound voice
 **Founder:** Akeem Brown
-**Phase:** 6 (Vapi 1–5 verified live; Form Audit Data Routing live for all clients; Ghost UI audit continuing)
+**Phase:** 6 wrapped → Phase 7 (scope TBD by Akeem)
 
 This doc orients a fresh Claude session. Read it first, then run the checklist in **§4 Immediate Claude tasks** before touching anything else.
 
@@ -58,6 +58,12 @@ Pathfinder questionnaire → Stripe checkout → Render `/provision` (creates `b
 **Audit "view as" UID priority — FIXED (PR #83):**
 - `auditor-engine.js:178` had `CU || VC` (admin's UID won over viewed client's). `prehab-auditor.js:96` only checked `CU`. Both now use `VC || CU` — admin "view as Ana" → click Audit Form → row lands under Ana's UUID.
 
+**Founders Five — PINs provisioned 2026-05-01 (migration `provision_legacy_client_pins`):**
+- The 5 grandfathered clients (Ana, Jacky, Suzanna, Jordan, Wayne) — Akeem's original support system pre-Pathfinder — now have functional bcrypt PINs in `bbf_users.pin_hash` (`$2a$06$…`, same scheme as the trainer PIN).
+- Plaintexts generated server-side via `gen_random_bytes`, delivered to founder out-of-band (chat), and **never committed to git or migration history** (migration stores hashes only).
+- These clients bypass the Pathfinder/Stripe pipeline entirely — they have `bbf_users` rows but no `bbf_active_clients` row. Plans resolve from the code-baked `d.u` dict in `bbf-app.html` (workout-data.js / meal-data.js). Auth path: `bbf_verify_user_pin(uid, pin_attempt)` RPC (already deployed).
+- Lockout: 3 wrong PINs → 15-minute timeout per `bbf_pin_attempts`.
+
 **Smoke tested 2026-05-01:** Akeem clicked as `akeem` → row landed `user_id=0a58aa6c…` ✓. Then admin "view as Ana" → 2 clicks (knees + target-muscle) → both landed `user_id=9a43a383…` (ana_bbf's UUID) ✓. Bridge confirmed working for both real users and demo clients.
 
 **Configuration state (verified by Akeem):**
@@ -65,30 +71,34 @@ Pathfinder questionnaire → Stripe checkout → Render `/provision` (creates `b
 - Edge Function Secrets: `BBF_VAPI_INVOKE_TOKEN`, `VAPI_API_KEY`, `VAPI_ASSISTANT_ID` (Rex), `VAPI_SALES_ASSISTANT_ID` (Pathfinder closer), `VAPI_PHONE_NUMBER_ID`. Deprecated `TWILIO_PHONE_NUMBER` should be removed.
 - Vault secret: `bbf_vapi_invoke_token` (matches Edge Function Secret)
 
-## 4. Immediate Claude tasks (Phase 6 — next Ghost UI slice TBD)
+## 4. Immediate Claude tasks (Phase 6 wrapped — Phase 7 scope incoming)
 
-Vapi work COMPLETE through Phase 5. Form Audit Data Routing slice + slug→UUID bridge + admin view-as VC priority all COMPLETE.
+Vapi work COMPLETE through Phase 5. Phase 6 (Form Audit Data Routing + slug→UUID bridge + admin view-as VC priority + Founders Five PIN provisioning) all COMPLETE.
 
 - [x] Phase 1.7 — payload fix (PR #77, merged 2026-04-30)
 - [x] Phase 5 — sales recovery loop (PR #78, merged 2026-04-30; verified 2026-05-01)
 - [x] Phase 6 Form Audit slice (PR #80, merged 2026-05-01)
 - [x] Slug → UUID bridge (PR #82, merged 2026-05-01; smoke tested live)
-- [x] Audit view-as VC priority fix (PR #83, merged 2026-05-01; verified Ana row landed under ana_bbf UUID)
+- [x] Audit view-as VC priority fix (PR #83, merged 2026-05-01)
+- [x] Founders Five PIN provisioning (migration `provision_legacy_client_pins`, applied 2026-05-01; plaintexts handed off out-of-band)
 - [ ] **Akeem todo:** remove deprecated `TWILIO_PHONE_NUMBER` Edge Function Secret in Supabase dashboard.
-- [ ] **Sentinel UI binding (next queued slice).** `BBF_SYNC.fetchDamagedZones(userId)` returns the right shape; `bbf-app.html:4823-4949` (Sentinel SVG + symptom pills) needs to consume it and visually highlight damaged `ss-z-*` zones. Bound by Akeem's brain-dump on priority.
+- [ ] **Akeem todo:** text the 5 PINs to each Founders Five client and confirm each can log in.
 
-**Active workstream — Phase 6 continued (other Ghost UI surfaces):**
+**Phase 7 — awaiting founder directive.** Akeem will brief scope at session start. Candidate slices already in §5 backlog if Akeem chooses to grind there:
+1. **Sentinel UI binding** — consume `BBF_SYNC.fetchDamagedZones` output in `bbf-app.html:4823-4949` (highlight damaged `ss-z-*` zones on the SVG). Pure frontend, no migration.
+2. **Trainer-view name join** — `fetchPendingAudits` (`bbf-sync.js:320`) currently surfaces `user_id` UUID; needs name resolution for the Audit Log Feed on Command Center.
+3. **`syncUser` rewrite** — `bbf-sync.js:47` writes `id: uid` (slug into uuid column) and includes columns not present in schema. Bigger lift; affects PIN-auth login persistence path.
 
-The Form Audit modal was the highest-priority Ghost UI item. Other suspect surfaces in `bbf-app.html` (and possibly `admin.html`, `coach-lab.html`, `index.html`) likely remain. For each next suspect Akeem brain-dumps, the loop is unchanged:
+For each new slice Akeem brain-dumps, the loop is unchanged:
 1. **Locate** — `grep -n` for the handler/selector/text.
 2. **Trace** — read just the relevant slice (offset/limit).
 3. **Classify** — wired / partial / stub / dead.
 4. **Decide** — wire it (small + valuable) OR remove it.
-5. **Bump SW cache** (`BBF_CACHE` in `sw.js`) on every client-side change.
+5. **Bump SW cache** (`CACHE` constant in `sw.js`) on every client-side change.
 
-Working branch: `claude/continue-bbf-dev-RXWha` (already used through PR #82/#83; reuse or branch fresh).
+Working branch: `claude/continue-bbf-dev-RXWha` (used through PR #82/#83) or `claude/handoff-post-bridge-fix` (PR #84). Branch fresh per Akeem's preference for Phase 7.
 
-- [ ] **Re-introspect schema** → regenerate `api/supabase-schema-actual.sql`. **DEFERRED** — separate dedicated session, disk-only-write protocol per §11 rule #7. Now two tables behind (`bbf_audit_logs` and the seeded `bbf_users` rows).
+- [ ] **Re-introspect schema** → regenerate `api/supabase-schema-actual.sql`. **DEFERRED** — separate dedicated session, disk-only-write protocol per §11 rule #7. Now 2-3 changes behind (`bbf_audit_logs` table, demo client rows in `bbf_users`, PIN hashes on those rows, `bbf_get_uid_map()` RPC).
 
 ## 5. Active backlog
 
@@ -151,6 +161,7 @@ After §4 migrations + deploy, before declaring victory:
 
 ## 9. Recent merged PRs (reverse chronological)
 
+- **2026-05-01 migration `provision_legacy_client_pins`** — Bcrypt PINs assigned to the 5 Founders Five (`ana_bbf`/`jacky_bbf`/`suzanna_bbf`/`jordan_bbf`/`wayne_bbf`). Plaintexts delivered to Akeem out-of-band; never persisted to git/history. Verified via `bbf_verify_user_pin` path.
 - **#83** (2026-05-01) Audit "view as" UID priority fix — `auditor-engine.js` + `prehab-auditor.js` now use `VC || CU` (was `CU || VC` / CU-only). Verified: admin "view as Ana" → 2 clicks → 2 rows in `bbf_audit_logs` under `user_id=9a43a383…` (ana_bbf).
 - **#82** (2026-05-01) Slug → UUID bridge — seeds 5 demo clients in `bbf_users` (ana_bbf/jacky_bbf/suzanna_bbf/jordan_bbf/wayne_bbf), adds `bbf_get_uid_map()` SECURITY DEFINER RPC, adds resolver layer to `bbf-sync.js` that transparently rewrites slug→UUID on all user_id-bearing requests. Migration `20260502030000_seed_demo_users.sql` applied 2026-05-01.
 - **#80** (2026-05-01) Phase 6 Form Audit data routing — `bbf_audit_logs` table, `BBF_SYNC.logAuditRequest`/`fetchDamagedZones`/`fetchPendingAudits`, migration `20260502020500_form_audit_routing.sql`. Sentinel UI binding deferred.
