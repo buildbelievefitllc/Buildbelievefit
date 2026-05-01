@@ -2500,6 +2500,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="hologram-data.js"></script>
 <script src="hologram-renderer.js"></script>
 <script src="kfh-exercise-catalog.js"></script>
+<script src="kfh-transpiler.js"></script>
+<script src="kfh-animator.js"></script>
 <script src="bbf-translator.js"></script>
 <script src="bbf-util.js"></script>
 <script src="bbf-data.js"></script>
@@ -5131,6 +5133,10 @@ window.onload=function(){
 
         /* Currently loaded exercise — KFH_SET_FORM reads its formStates. */
         var currentExercise = null;
+        /* Active rAF animator handle — null when no exercise is animating
+           (legacy static entries) or after stop(). KFH_LOAD_EXERCISE
+           manages the lifecycle; KFH_SET_FORM forwards mode changes. */
+        var _kfhAnimHandle = null;
 
         function setMedia(src, type){
           var wrap = byId('kfh-media');
@@ -5186,7 +5192,26 @@ window.onload=function(){
              previous exercise's geometry is removed before injection. */
           setText('kfh-svg-title', data.svgTitle || (displayName + ' — Sagittal Biomechanical Wireframe'));
           var stage = byId('kfh-svg-stage');
+          /* Stop any running animator before swapping the stage markup so
+             rAF callbacks don't race the new SVG nodes. */
+          if (_kfhAnimHandle && typeof _kfhAnimHandle.stop === 'function') {
+            try { _kfhAnimHandle.stop(); } catch(e){}
+          }
+          _kfhAnimHandle = null;
           if (stage) stage.innerHTML = data.svgMarkup || '';
+          /* Phase 12 — kick off the rAF engine for fully articulated
+             Blueprint-derived exercises. Legacy static entries omit
+             data.animation and stay frozen, preserving prior behavior. */
+          if (stage && data.animation && typeof BBF_KFH_ANIMATOR !== 'undefined' && BBF_KFH_ANIMATOR.start) {
+            var rootEl = byId('kfh-root');
+            var startMode = (rootEl && rootEl.getAttribute('data-form')) || 'ok';
+            try {
+              _kfhAnimHandle = BBF_KFH_ANIMATOR.start(stage, data.animation, startMode);
+            } catch(e) {
+              console.warn('[KFH] animator start failed:', e && e.message);
+              _kfhAnimHandle = null;
+            }
+          }
 
           /* Form-mode chip labels */
           setText('kfh-chip-ok-text',   data.chipOkLabel   || 'Standard Form');
@@ -5244,6 +5269,12 @@ window.onload=function(){
           var ok = byId('kfh-callout-ok'), wn = byId('kfh-callout-warn');
           if (ok) ok.style.display = (mode === 'ok')   ? '' : 'none';
           if (wn) wn.style.display = (mode === 'warn') ? '' : 'none';
+
+          /* Forward mode change to the animator so warn-pattern joint
+             overrides take effect immediately on chip toggle. */
+          if (_kfhAnimHandle && typeof _kfhAnimHandle.setMode === 'function') {
+            try { _kfhAnimHandle.setMode(mode); } catch(e){}
+          }
 
           /* Pull metric/footnote values from the currently loaded exercise. */
           var data  = currentExercise || getDefaultExercise() || {};

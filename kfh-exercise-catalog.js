@@ -258,10 +258,10 @@ var BBF_KFH_CATALOG = (function () {
   function getDefault() { return DEFAULT_EXERCISE; }
 
   // ─── REGISTER (Phase 12 hook for Blueprint transpiler) ───
-  // Accepts pre-baked legacy entries today. The Blueprint
-  // transpiler lands next sprint and converts structured
-  // Blueprints (joints / bones / equipment / kineticPath /
-  // forms) into this same legacy shape before calling here.
+  // register(key, entry, aliases) accepts a pre-baked catalog entry —
+  // either a legacy static one or a transpiled Phase 12 entry.
+  // registerBlueprint(bp) runs the Blueprint through BBF_KFH_TRANSPILER
+  // first, then registers the resulting entry under bp.id + bp.aliases.
   function register(key, entry, aliases) {
     if (!key || !entry) return false;
     var primary = String(key).toLowerCase().trim();
@@ -275,6 +275,23 @@ var BBF_KFH_CATALOG = (function () {
     return true;
   }
 
+  function registerBlueprint(bp) {
+    if (!bp || !bp.id) return false;
+    if (typeof BBF_KFH_TRANSPILER === 'undefined' || !BBF_KFH_TRANSPILER.transpile) {
+      console.warn('[BBF_KFH_CATALOG] BBF_KFH_TRANSPILER unavailable — cannot register blueprint:', bp.id);
+      return false;
+    }
+    try {
+      var entry = BBF_KFH_TRANSPILER.transpile(bp);
+      var aliases = (bp.aliases || []).slice();
+      if (bp.displayName) aliases.push(bp.displayName);
+      return register(bp.id, entry, aliases);
+    } catch (e) {
+      console.warn('[BBF_KFH_CATALOG] Blueprint transpile failed for', bp.id, '-', e && e.message);
+      return false;
+    }
+  }
+
   // Mirror the catalog onto window.KFH_EXERCISES for any console-
   // side debugging or legacy reader that still expects the global.
   // The IIFE in bbf-app.html now goes through getExercise() but the
@@ -284,13 +301,14 @@ var BBF_KFH_CATALOG = (function () {
   }
 
   return {
-    SVG_PLACEHOLDER:  SVG_PLACEHOLDER,
-    BENCH_PRESS_SVG:  BENCH_PRESS_SVG,
-    EXERCISES:        EXERCISES,
-    DEFAULT_EXERCISE: DEFAULT_EXERCISE,
-    getExercise:      getExercise,
-    getDefault:       getDefault,
-    register:         register
+    SVG_PLACEHOLDER:    SVG_PLACEHOLDER,
+    BENCH_PRESS_SVG:    BENCH_PRESS_SVG,
+    EXERCISES:          EXERCISES,
+    DEFAULT_EXERCISE:   DEFAULT_EXERCISE,
+    getExercise:        getExercise,
+    getDefault:         getDefault,
+    register:           register,
+    registerBlueprint:  registerBlueprint
   };
 
 })();
