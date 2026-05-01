@@ -67,8 +67,7 @@ For each suspect item Akeem brain-dumps:
 4. **Decide** — wire it (small + valuable) OR remove it (low value or out of scope).
 5. **Bump SW cache** (`BBF_CACHE`) on every client-side change.
 
-Working branch: `claude/ghost-ui-audit-gQ16V` (local; remote was deleted — recreate on first push).
-
+- [x] **Form Audit Data Routing**: `ag/form-audit-routing` pushed. PR opened by Akeem manually. Pending Claude review & merge. Contains new `bbf_audit_logs` table, `fetchDamagedZones` Sentinel logic, and JS wiring fixes.
 - [ ] **Re-introspect schema** → regenerate `api/supabase-schema-actual.sql`. **DEFERRED** — separate dedicated session, disk-only-write protocol per §11 rule #7.
 
 ## 5. Active backlog
