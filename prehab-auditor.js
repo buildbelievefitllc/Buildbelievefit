@@ -94,7 +94,10 @@ var BBF_PREHAB = (function() {
     try {
       if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.logAuditRequest) {
         var uid = (typeof VC !== 'undefined' && VC) ? VC : (typeof CU !== 'undefined' && CU) ? CU : 'unknown';
-        BBF_SYNC.logAuditRequest(uid, 'Pre-Hab Audit', areaId);
+        var p = BBF_SYNC.logAuditRequest(uid, 'Pre-Hab Audit', areaId);
+        if (p && typeof p.then === 'function') {
+          p.then(function(){ if (typeof window !== 'undefined' && window.SS_REFRESH_DAMAGED) window.SS_REFRESH_DAMAGED(); });
+        }
       }
     } catch (e) { console.error('BBF_PREHAB: Sync error', e); }
   }

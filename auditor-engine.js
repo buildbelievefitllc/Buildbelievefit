@@ -177,7 +177,10 @@ const BBF_AUDITOR = (function() {
       if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.logAuditRequest) {
         const uid = (typeof VC !== 'undefined' && VC) ? VC : (typeof CU !== 'undefined' && CU) ? CU : 'unknown';
         BBF_SYNC.logAuditRequest(uid, currentExercise, areaId)
-          .then(function() { console.log('BBF_AUDITOR: Synced to cloud \u2014 ' + currentExercise + ' / ' + areaId); })
+          .then(function() {
+            console.log('BBF_AUDITOR: Synced to cloud \u2014 ' + currentExercise + ' / ' + areaId);
+            if (typeof window !== 'undefined' && window.SS_REFRESH_DAMAGED) window.SS_REFRESH_DAMAGED();
+          })
           .catch(function(e) { console.error('BBF_AUDITOR: Cloud sync failed \u2014', e); });
       }
     } catch (e) { console.error('BBF_AUDITOR: Sync error \u2014', e); }

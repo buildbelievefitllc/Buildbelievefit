@@ -664,6 +664,10 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ss-joint{fill:rgba(245,200,0,.75);stroke:rgba(255,255,255,.6);stroke-width:.6}
 .ss-zone{fill:rgba(239,68,68,0);stroke:rgba(239,68,68,0);stroke-width:1.2;transition:fill .45s ease,stroke .45s ease,filter .45s ease}
 .ss-zone.glow{fill:rgba(239,68,68,.38);stroke:rgba(239,68,68,.95);filter:drop-shadow(0 0 6px rgba(239,68,68,.85)) drop-shadow(0 0 12px rgba(239,68,68,.55));animation:ss-pulse 1.6s ease-in-out infinite}
+.ss-zone.audit-flag{fill:rgba(245,158,11,.22);stroke:rgba(245,158,11,.65);stroke-width:1.1}
+.ss-zone.audit-flag.tier-2{fill:rgba(245,158,11,.34);stroke:rgba(245,158,11,.85);filter:drop-shadow(0 0 4px rgba(245,158,11,.55));animation:ss-pulse 2.4s ease-in-out infinite}
+.ss-zone.audit-flag.tier-3{fill:rgba(239,90,30,.42);stroke:rgba(239,90,30,.95);filter:drop-shadow(0 0 6px rgba(239,90,30,.75)) drop-shadow(0 0 12px rgba(239,90,30,.45));animation:ss-pulse 1.8s ease-in-out infinite}
+.ss-zone.glow.audit-flag{fill:rgba(239,68,68,.38);stroke:rgba(239,68,68,.95)}
 @keyframes ss-pulse{0%,100%{opacity:.95}50%{opacity:.55}}
 .ss-antidote{position:relative;padding:.95rem 1rem;border-radius:12px;background:linear-gradient(135deg,rgba(139,26,191,.18) 0%,rgba(10,5,25,.7) 100%);border:1px solid rgba(212,175,55,.35);overflow:hidden}
 .ss-antidote::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,#22d3ee,var(--yel),var(--purl))}
@@ -4952,6 +4956,38 @@ window.onload=function(){
             });
           })(pills[i]);
         }
+        // Sentinel — persistent overlay sourced from bbf_audit_logs (last 30d)
+        function clearAuditFlags(){
+          var zones = document.querySelectorAll('#ss-zones .ss-zone');
+          for (var i=0;i<zones.length;i++){
+            var z = zones[i];
+            z.classList.remove('audit-flag','tier-1','tier-2','tier-3');
+            var t = z.querySelector('title'); if (t) z.removeChild(t);
+          }
+        }
+        function paintDamagedZones(damagedMap){
+          clearAuditFlags();
+          if (!damagedMap) return;
+          Object.keys(damagedMap).forEach(function(svgId){
+            var el = document.getElementById(svgId); if (!el) return;
+            var info = damagedMap[svgId] || { count:0, movements:[] };
+            var tier = info.count >= 4 ? 'tier-3' : info.count >= 2 ? 'tier-2' : 'tier-1';
+            el.classList.add('audit-flag', tier);
+            var ttl = document.createElementNS('http://www.w3.org/2000/svg','title');
+            ttl.textContent = info.count + ' audit' + (info.count===1?'':'s') +
+              ' · last 30d' + (info.movements.length ? ' · ' + info.movements.slice(0,3).join(', ') : '');
+            el.appendChild(ttl);
+          });
+        }
+        function refreshSentinelFromAudits(){
+          if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchDamagedZones) return;
+          var uid = (typeof window.VC !== 'undefined' && window.VC) ? window.VC : (typeof window.CU !== 'undefined' ? window.CU : null);
+          if (!uid) return;
+          BBF_SYNC.fetchDamagedZones(uid).then(paintDamagedZones).catch(function(){});
+        }
+        window.SS_REFRESH_DAMAGED = refreshSentinelFromAudits;
+        // Initial paint — fires once on first script execution
+        try { refreshSentinelFromAudits(); } catch (e) {}
       })();
       </script>
       <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-wo-title">Today&apos;s Program</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-wo-sub">Log your sets, reps &amp; weight</div></div>
@@ -6582,7 +6618,7 @@ function TAB(name) {
   var btn = document.querySelector('.nv[data-tab="' + name + '"]');
   if (btn) btn.classList.add('on');
   if (name === 'home')      RH();
-  if (name === 'workout')   RW();
+  if (name === 'workout')   { RW(); if (window.SS_REFRESH_DAMAGED) window.SS_REFRESH_DAMAGED(); }
   if (name === 'nutrition') RN();
   if (name === 'prehab') renderPrehab();
   if (name === 'profile') { PTAB('overview'); }
