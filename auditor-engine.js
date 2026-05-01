@@ -175,7 +175,7 @@ const BBF_AUDITOR = (function() {
     // Push to Supabase cloud
     try {
       if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.logAuditRequest) {
-        const uid = (typeof CU !== 'undefined' && CU) ? CU : (typeof VC !== 'undefined' && VC) ? VC : 'unknown';
+        const uid = (typeof VC !== 'undefined' && VC) ? VC : (typeof CU !== 'undefined' && CU) ? CU : 'unknown';
         BBF_SYNC.logAuditRequest(uid, currentExercise, areaId)
           .then(function() { console.log('BBF_AUDITOR: Synced to cloud \u2014 ' + currentExercise + ' / ' + areaId); })
           .catch(function(e) { console.error('BBF_AUDITOR: Cloud sync failed \u2014', e); });

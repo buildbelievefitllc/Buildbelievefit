@@ -93,7 +93,7 @@ var BBF_PREHAB = (function() {
     // Cloud sync
     try {
       if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.logAuditRequest) {
-        var uid = (typeof CU !== 'undefined' && CU) ? CU : 'unknown';
+        var uid = (typeof VC !== 'undefined' && VC) ? VC : (typeof CU !== 'undefined' && CU) ? CU : 'unknown';
         BBF_SYNC.logAuditRequest(uid, 'Pre-Hab Audit', areaId);
       }
     } catch (e) { console.error('BBF_PREHAB: Sync error', e); }
