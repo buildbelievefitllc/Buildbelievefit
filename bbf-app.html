@@ -4213,6 +4213,14 @@ body.bbf-kairos .bbf-kairos-target {
 var K='bbf_v7';
 var CU=null,VC=null;
 
+// Phase 8 — Global Admin (Architect-everywhere) bypass.
+// Returns true whenever the logged-in user is the Architect (akeem),
+// regardless of any active "view as <client>" admin session. Gates that
+// OR with this stay open for the Architect across all client-facing content.
+window.BBF_IS_ADMIN = function() {
+  return typeof CU !== 'undefined' && CU === 'akeem';
+};
+
 function GD(){try{return JSON.parse(localStorage.getItem(K))||{u:{},l:{},w:{}};}catch(e){return{u:{},l:{},w:{}};}}
 function SD(d){localStorage.setItem(K,JSON.stringify(d));}
 
@@ -9411,8 +9419,9 @@ function renderVaultGrid() {
 
   grid.innerHTML = VAULT_MODULES.map(function(m) {
     var isWatched  = watched.indexOf(m.id) > -1;
-    var stateClass = m.locked ? 'locked' : 'unlocked';
-    var playHtml   = m.locked
+    var effectivelyLocked = m.locked && !(typeof window.BBF_IS_ADMIN === 'function' && window.BBF_IS_ADMIN());
+    var stateClass = effectivelyLocked ? 'locked' : 'unlocked';
+    var playHtml   = effectivelyLocked
       ? '<div class="module-lock">&#x1F512;</div>'
       : '<div class="module-play"><div class="module-play-icon"></div></div>';
     var watchedBadge = isWatched
@@ -9437,7 +9446,7 @@ function renderVaultGrid() {
   var actionEl = document.getElementById('parent-guide-action');
   if (statusEl && actionEl) {
     var tier = (d.u[uid] && d.u[uid].type) || 'Essentials';
-    var isUnlocked = (tier === 'Platinum' || tier === 'Trainer' || uid === 'akeem');
+    var isUnlocked = (typeof window.BBF_IS_ADMIN === 'function' && window.BBF_IS_ADMIN()) || tier === 'Platinum' || tier === 'Trainer';
     if (isUnlocked) {
       statusEl.textContent = 'Included with your ' + tier + ' tier';
       actionEl.innerHTML = '<a href="busy-parent-transformation.html" style="font-family:var(--hb);font-size:.75rem;letter-spacing:2px;background:var(--yel);color:var(--blk);padding:.45rem 1rem;border-radius:8px;text-decoration:none">OPEN</a>';
@@ -9451,7 +9460,7 @@ function renderVaultGrid() {
 function openModule(id) {
   var m = VAULT_MODULES.find(function(x){ return x.id === id; });
   if (!m) return;
-  if (m.locked) {
+  if (m.locked && !(typeof window.BBF_IS_ADMIN === 'function' && window.BBF_IS_ADMIN())) {
     TOAST('🔒 Unlock with the 8-Week Elite Challenge');
     return;
   }

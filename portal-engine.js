@@ -245,33 +245,10 @@ var BBF_PORTAL = (function() {
     };
   }
 
-  function toggleTrialAccess(uid, toggleEl) {
-    try {
-      var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
-      if (!d.u[uid]) return;
-      var isNowActive = d.u[uid].trial_status !== 'active';
-      d.u[uid].trial_status = isNowActive ? 'active' : 'inactive';
-      if (isNowActive) d.u[uid].trial_start_date = new Date().toISOString();
-      localStorage.setItem('bbf_v7', JSON.stringify(d));
-      // UI feedback
-      if (toggleEl) toggleEl.classList.toggle('on', isNowActive);
-      var status = document.getElementById('trial-status-' + uid);
-      if (status) {
-        status.textContent = isNowActive ? 'TRIAL AUTHORIZED' : 'ACCESS REVOKED';
-        status.style.color = isNowActive ? '#22c55e' : '#ef4444';
-        setTimeout(function() {
-          status.textContent = isNowActive ? 'ACTIVE' : 'OFF';
-          status.style.color = isNowActive ? '#D4AF37' : '#555';
-        }, 2000);
-      }
-      // Supabase sync
-      if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.toggleSovereignTrial) {
-        BBF_SYNC.toggleSovereignTrial(uid, isNowActive)
-          .then(function() { console.log('BBF_PORTAL: Trial ' + (isNowActive ? 'activated' : 'revoked') + ' for ' + uid); })
-          .catch(function(e) { console.error('BBF_PORTAL: Trial sync error:', e); });
-      }
-    } catch(e) { console.error('Toggle trial error:', e); }
-  }
+  // Phase 8 — toggleTrialAccess removed; canonical implementation lives in
+  // mastermind-portal.html:toggleTrial() (the call site). The HTML version
+  // owns optimistic UI + RPC revert logic; this duplicate diverged and is
+  // now dead code.
 
   return {
     verify: verifyMastermindAccess,
@@ -279,7 +256,6 @@ var BBF_PORTAL = (function() {
     load: loadTriageBoard,
     resolve: resolve,
     reviewProfile: reviewProfile,
-    toggleTrial: toggleTrialAccess,
     stats: getStats
   };
 
