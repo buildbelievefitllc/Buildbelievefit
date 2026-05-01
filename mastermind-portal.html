@@ -456,21 +456,22 @@ function toggleTrial(uid, el) {
   } catch(e) { console.error('Toggle trial error:', e); }
 }
 
-// Init
+// Init — Command Center stats from Supabase (browser-cache-agnostic).
 BBF_PORTAL.load();
 renderEntitlements();
-try {
-  var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
-  var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
-  var totalLogs = 0;
-  for (var uid in (d.l || {})) { totalLogs += (d.l[uid] || []).length; }
-  document.getElementById('stat-clients').textContent = clients.length;
-  document.getElementById('stat-logs').textContent = totalLogs;
-  setTimeout(function() {
-    var stats = BBF_PORTAL.stats();
-    document.getElementById('stat-pending').textContent = stats.total;
-  }, 500);
-} catch(e) {}
+if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.fetchAdminDashboardStats) {
+  BBF_SYNC.fetchAdminDashboardStats().then(function(s) {
+    var clientsEl = document.getElementById('stat-clients');
+    var logsEl    = document.getElementById('stat-logs');
+    if (clientsEl) clientsEl.textContent = (s.total_clients != null ? s.total_clients : 0);
+    if (logsEl)    logsEl.textContent    = (s.total_logs    != null ? s.total_logs    : 0);
+  });
+}
+setTimeout(function() {
+  var stats = BBF_PORTAL.stats();
+  var p = document.getElementById('stat-pending');
+  if (p) p.textContent = stats.total;
+}, 500);
 </script>
 </body>
 </html>
