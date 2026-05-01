@@ -459,14 +459,32 @@ function toggleTrial(uid, el) {
 // Init — Command Center stats from Supabase (browser-cache-agnostic).
 BBF_PORTAL.load();
 renderEntitlements();
+
+// Pre-paint a safe baseline so the spans never render blank, even if the
+// RPC hangs, returns null, or the response shape is unexpected.
+(function paintStatBaseline(){
+  var c = document.getElementById('stat-clients');
+  var l = document.getElementById('stat-logs');
+  if (c) c.textContent = '0';
+  if (l) l.textContent = '0';
+})();
+
 if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.fetchAdminDashboardStats) {
   BBF_SYNC.fetchAdminDashboardStats().then(function(s) {
-    var clientsEl = document.getElementById('stat-clients');
-    var logsEl    = document.getElementById('stat-logs');
-    if (clientsEl) clientsEl.textContent = (s.total_clients != null ? s.total_clients : 0);
-    if (logsEl)    logsEl.textContent    = (s.total_logs    != null ? s.total_logs    : 0);
+    try {
+      var clientsEl = document.getElementById('stat-clients');
+      var logsEl    = document.getElementById('stat-logs');
+      // Coerce to Number — defends against PostgREST returning bigint as string.
+      var clients = Number(s && s.total_clients);
+      var logs    = Number(s && s.total_logs);
+      if (clientsEl) clientsEl.textContent = isFinite(clients) ? clients : 0;
+      if (logsEl)    logsEl.textContent    = isFinite(logs)    ? logs    : 0;
+    } catch (err) {
+      console.error('[BBF Phase 9] stat paint error:', err);
+    }
   });
 }
+
 setTimeout(function() {
   var stats = BBF_PORTAL.stats();
   var p = document.getElementById('stat-pending');

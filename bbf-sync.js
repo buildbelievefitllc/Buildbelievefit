@@ -493,14 +493,25 @@ var BBF_SYNC = (function() {
   }
 
   // ─── FETCH: ADMIN DASHBOARD STATS ─────────────────────────
-  // Phase 9 — single-roundtrip Mastermind Portal stats.
-  // Returns { total_clients, total_logs, total_audits } from Supabase
-  // so the Command Center renders accurate counts on any browser/cache state.
+  // Phase 9 — Mastermind Portal stats. Normalises four PostgREST RPC shapes:
+  //   1. Direct jsonb:        {total_clients:N, total_logs:M, total_audits:P}
+  //   2. SETOF/array-wrap:    [{total_clients:N, ...}]
+  //   3. Function-name wrap:  {bbf_get_admin_dashboard_stats: {total_clients:N, ...}}
+  //   4. JSON-encoded string: a JSON string parsed by r.json() into a string
+  // Returns {} on any failure so callers can safely fall back to 0.
   function fetchAdminDashboardStats() {
     return supa('POST', 'rpc/bbf_get_admin_dashboard_stats', {})
       .then(function(res) {
-        var row = Array.isArray(res) ? res[0] : res;
-        return row || {};
+        console.log('[BBF Phase 9] dashboard stats raw:', res);
+        var row = res;
+        if (Array.isArray(row)) row = row[0];
+        if (typeof row === 'string') {
+          try { row = JSON.parse(row); } catch (_) { row = {}; }
+        }
+        if (row && typeof row === 'object' && row.bbf_get_admin_dashboard_stats) {
+          row = row.bbf_get_admin_dashboard_stats;
+        }
+        return (row && typeof row === 'object') ? row : {};
       })
       .catch(function(e) {
         console.error('BBF_SYNC fetchAdminDashboardStats error:', e);
