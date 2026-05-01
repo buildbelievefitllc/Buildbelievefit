@@ -354,40 +354,11 @@ const FUELING_ENGINE = (function () {
     return snap;
   }
 
-  // ─── SETTINGS: EVENT-DATE SELECTOR ───────────────────────
-  function renderSettingsControl() {
-    const host = document.getElementById('fueling-event-row');
-    if (!host) return;
-    const current = readEventDate();
-    const audit = auditEventPrep();
-    let status = '';
-    if (current) {
-      if (audit.hoursUntilEvent == null) status = '';
-      else if (audit.hoursUntilEvent < 0) status = 'Event passed';
-      else if (audit.carbLoadActive)      status = 'CARB LOAD ACTIVE · ' + audit.hoursUntilEvent + ' hrs';
-      else if (audit.hoursUntilEvent <= 48) status = audit.hoursUntilEvent + ' hrs · profile not glycolytic';
-      else                                status = 'T-' + Math.round(audit.hoursUntilEvent) + ' hrs';
-    } else {
-      status = 'No event scheduled';
-    }
-    host.innerHTML =
-      '<div class="psrl" style="margin-bottom:.55rem"><span style="font-size:1.1rem">📆</span>' +
-        '<div><div class="psrn">Upcoming Event Date</div>' +
-        '<div class="psrs" id="fe-event-status">' + escapeHtml(status) + '</div></div></div>' +
-      '<input type="datetime-local" id="fe-event-input" value="' + escapeAttr(current) + '" ' +
-        'style="width:100%;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:.55rem .7rem;' +
-        'color:#fff;font-family:inherit;font-size:.9rem;letter-spacing:.5px">';
-    const input = document.getElementById('fe-event-input');
-    if (input) {
-      input.addEventListener('change', function () {
-        writeEventDate(input.value || '');
-        renderSettingsControl();
-        const uid = (typeof VC !== 'undefined' && VC) ? VC
-                  : (typeof CU !== 'undefined' && CU) ? CU : null;
-        if (uid) renderDashboardBlock(uid);
-      });
-    }
-  }
+  // Phase 10 — renderSettingsControl removed. The "Upcoming Event Date"
+  // settings input was confusing clients and non-functional in production;
+  // its container (#fueling-event-row) and call sites in bbf-app.html were
+  // pruned in the same slice. readEventDate / auditEventPrep / writeEventDate
+  // remain as infrastructure for the dashboard bioenergetic block.
 
   // ─── STYLE INJECTION (pulse keyframes) ───────────────────
   function ensureStyles() {
@@ -416,7 +387,6 @@ const FUELING_ENGINE = (function () {
     const uid = (typeof VC !== 'undefined' && VC) ? VC
               : (typeof CU !== 'undefined' && CU) ? CU : null;
     if (uid) renderDashboardBlock(uid);
-    renderSettingsControl();
   }
 
   if (typeof document !== 'undefined') {
@@ -439,7 +409,6 @@ const FUELING_ENGINE = (function () {
     writeEventDate:       writeEventDate,
     // renderers
     renderDashboardBlock: renderDashboardBlock,
-    renderSettingsControl: renderSettingsControl,
     init: init
   };
 })();
