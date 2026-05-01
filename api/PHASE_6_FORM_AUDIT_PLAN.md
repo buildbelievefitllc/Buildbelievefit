@@ -1,113 +1,176 @@
 # Phase 6: Form Audit Data Routing Implementation Plan
 
 ## 1. Discovery
-The current Form Audit modal is triggered via `BBF_AUDITOR.trigger()` in `auditor-engine.js`. When a tension area is selected, `BBF_AUDITOR.select()` fires and internally calls `BBF_SYNC.logAuditRequest(uid, currentExercise, areaLabel)`. 
+The Form Audit modal is triggered in `auditor-engine.js` (lines 87-111) via `triggerAuditorModal()`. Upon selecting an area, it displays a Founder-Verified cue, toggles a hologram, and calls `BBF_SYNC.logAuditRequest(uid, currentExercise, areaLabel)` (line 179). 
 
-This request routes to `bbf-sync.js` (line 280), which attempts a `POST` to the `bbf_logs` table, inserting an object with `type: 'audit'` and `notes: 'Audit: [Exercise] — Tension: [Area]'`. 
+Big Jim's suspicion that this is a "Ghost UI" hitting a black hole is **100% correct**. 
+In `bbf-sync.js` (lines 280-289), `logAuditRequest` executes a `POST` to `bbf_logs` with a payload of `{ type: 'audit', notes: 'Audit: ...' }`. However, cross-referencing `api/supabase-schema-actual.sql` reveals that the production `bbf_logs` table *does not have* `type` or `notes` columns (it is a legacy table with `sport`, `drill_name`, `coach_notes`, etc.). Because Supabase's PostgREST drops or rejects unknown columns, the data has been silently discarded.
 
-However, cross-referencing this against the canonical production schema (`api/supabase-schema-actual.sql`), we see that `bbf_logs` **does not possess** `type` or `notes` columns. Instead, it expects coach-oriented columns (`sport`, `position`, `drill_name`, `coach_notes`). Because of this schema mismatch, PostgREST silently drops these unknown fields or rejects the payload entirely. Big Jim's assessment is correct: this is a "Ghost UI" where the biomechanical data vanishes into a black hole.
+Additionally, the read path in `bbf-sync.js` (`fetchPendingAudits`, lines 308-310) queries `bbf_logs?type=eq.audit`, effectively reading from the same nonexistent column and returning nothing.
 
-## 2. Schema Decision
-**Decision:** Create a new `bbf_audit_logs` table.
+## 2. Schema decision
+**Decision:** Create a new table `bbf_audit_logs`.
 
-**Justification:** Extending `bbf_logs` is incorrect because the existing `bbf_logs` table is fundamentally misaligned with the current client architecture (it is coach/drill focused). Forcing granular kinematic data (`session_id`, `movement_name`, `tension_zone`) into a coach-notes table creates severe structural drift. A dedicated `bbf_audit_logs` table provides a clean, sovereign repository specifically for the Sentinel to query.
+**Justification:** Extending `bbf_logs` is not viable. `bbf_logs` is designed around daily session logs, whereas the form audit is a granular, point-in-time micro-event. Conflating these two concepts would bloat the session table with unrelated data. A dedicated table cleanly segregates the data pipeline and allows strict querying for the Prehab/Sentinel UI.
 
-**Table Structure:**
-- `id` (UUID, PK)
-- `user_id` (UUID, FK to `bbf_users`)
-- `session_id` (TEXT)
+**Table Definition (`bbf_audit_logs`):**
+- `id` (UUID, Primary Key)
+- `user_id` (UUID, Foreign Key to `bbf_users.id`)
+- `session_id` (UUID, nullable, generated locally by client per session)
 - `movement_name` (TEXT)
-- `tension_zone` (TEXT)
-- `created_at` (TIMESTAMPTZ)
+- `tension_zone` (TEXT, constrained to specific system keys)
+- `created_at` (TIMESTAMPTZ, indexed)
 
 ## 3. DDL
-
 ```sql
 CREATE TABLE IF NOT EXISTS public.bbf_audit_logs (
-    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
-    user_id UUID REFERENCES public.bbf_users(id) ON DELETE CASCADE,
-    session_id TEXT,
-    movement_name TEXT NOT NULL,
-    tension_zone TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
+  id            UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
+  user_id       UUID REFERENCES public.bbf_users(id) ON DELETE CASCADE,
+  session_id    UUID, -- Nullable, client-generated, no FK
+  movement_name TEXT NOT NULL,
+  tension_zone  TEXT NOT NULL CHECK (tension_zone IN ('lower-back','knees','shoulders','target-muscle','hips')),
+  created_at    TIMESTAMPTZ DEFAULT now()
 );
 
--- Enable RLS
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_created ON public.bbf_audit_logs(user_id, created_at);
+
 ALTER TABLE public.bbf_audit_logs ENABLE ROW LEVEL SECURITY;
 
--- Match the webhook insert pattern seen in bbf_active_clients
-CREATE POLICY "Allow anon inserts" ON public.bbf_audit_logs
-    FOR INSERT TO anon WITH CHECK (true);
+-- ALLOW ANON INSERTS/SELECTS
+-- NOTE: This matches the existing loose pattern in BBF (PIN auth model, no JWT).
+CREATE POLICY "Allow Anon Inserts" 
+  ON public.bbf_audit_logs 
+  FOR INSERT 
+  TO anon 
+  WITH CHECK (true);
 
--- Allow service_role to manage and anon to read their own audits (if using anon keys)
-CREATE POLICY "Allow anon select" ON public.bbf_audit_logs
-    FOR SELECT TO anon USING (true);
+CREATE POLICY "Allow Anon Select" 
+  ON public.bbf_audit_logs 
+  FOR SELECT 
+  TO anon 
+  USING (true);
 ```
 
-## 4. JS Routing
-We need to update `bbf-sync.js` to route these requests to `bbf_audit_logs` using explicit columns, bypassing the legacy `notes` string-concatenation.
+## 4. JS routing
+We will add a session UUID generator to `bbf-sync.js`, update `logAuditRequest` to target the new table with granular columns (including `session_id`), and update both `auditor-engine.js` and `prehab-auditor.js` to pass `areaId` (the system ID) instead of the localized `areaLabel`. Furthermore, we'll fix the read path (`fetchPendingAudits`) to query the new table.
 
 ```javascript
-// Replace the existing logAuditRequest in bbf-sync.js
-function logAuditRequest(uid, exerciseName, tensionArea, sessionId) {
-  if (!uid || !exerciseName) return Promise.resolve();
-  
-  // Create a fallback session ID if none is provided
-  var sid = sessionId || 'session_' + new Date().toISOString().slice(0, 10);
+  // bbf-sync.js — Session ID Utility
+  function getOrCreateSessionId() {
+    var id = sessionStorage.getItem('bbf_workout_session_id');
+    if (!id) {
+      id = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+        ? crypto.randomUUID() 
+        : ('sess-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+      sessionStorage.setItem('bbf_workout_session_id', id);
+    }
+    return id;
+  }
 
-  return supa('POST', 'bbf_audit_logs', {
-    user_id: uid,
-    session_id: sid,
-    movement_name: exerciseName,
-    tension_zone: tensionArea,
-    created_at: new Date().toISOString()
-  });
-}
+  // bbf-sync.js — Replacement for logAuditRequest
+  function logAuditRequest(uid, exerciseName, tensionZoneId) {
+    if (!uid || !exerciseName || !tensionZoneId) return Promise.resolve();
+    
+    return supa('POST', 'bbf_audit_logs', {
+      user_id: uid,
+      session_id: getOrCreateSessionId(),
+      movement_name: exerciseName,
+      tension_zone: tensionZoneId
+    });
+  }
+
+  // bbf-sync.js — Redirect fetchPendingAudits
+  function fetchPendingAudits() {
+    return supa('GET', 'bbf_audit_logs', null, '?order=created_at.desc&limit=100').then(function(data) {
+      if (!data) return [];
+      return data.map(function(entry) {
+        return {
+          user_id: entry.user_id,
+          user_name: entry.user_id, // We'll map UID here as it was previously
+          notes: 'Audit: ' + entry.movement_name + ' — Tension: ' + entry.tension_zone,
+          date: entry.created_at.slice(0, 10),
+          logged_at: entry.created_at
+        };
+      });
+    }).catch(function(e) { console.error('BBF_SYNC fetchPendingAudits error:', e); return []; });
+  }
 ```
 
-Existing calls in `auditor-engine.js` (line 179) and `prehab-auditor.js` (line 97) will inherently utilize this updated function signature. They just need to optionally pass a `sessionId` if one is active in the global state, otherwise it will fallback to a daily session grouping.
+**Code Path Swaps:**
+In `auditor-engine.js` (line ~179) and `prehab-auditor.js` (line ~97), swap `areaLabel` for `areaId`:
+```javascript
+// Replace: BBF_SYNC.logAuditRequest(uid, currentExercise, areaLabel)
+// With: BBF_SYNC.logAuditRequest(uid, currentExercise, areaId)
+```
 
 ## 5. Sentinel SELECT
-To power the Sovereign Sentinel map, the Prehab & Recovery page needs to aggregate the tension zones to highlight damaged joints. 
+The Sentinel map needs to flag damaged zones. We will query recent audit logs, discard the 'target-muscle' entries, and map the remaining tension zones to the exact SVG DOM IDs used in `bbf-app.html`.
 
-**Query Logic (JS via supa wrapper):**
 ```javascript
-function fetchSovereignSentinelData(uid) {
-  // Fetch audits from the last 14 days to highlight recent cumulative damage
-  var cutoffDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
-  var query = '?user_id=eq.' + uid + '&created_at=gte.' + cutoffDate + '&select=tension_zone,movement_name';
-  
-  return supa('GET', 'bbf_audit_logs', null, query).then(function(audits) {
-    if (!audits) return {};
+  // bbf-sync.js — New read query for the Sentinel
+  function fetchDamagedZones(userId) {
+    var thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     
-    // Aggregate by tension_zone (e.g. 'lower-back', 'knees')
-    var heatMap = {};
-    audits.forEach(function(audit) {
-      var zone = audit.tension_zone;
-      heatMap[zone] = (heatMap[zone] || 0) + 1;
+    return supa('GET', 'bbf_audit_logs', null, 
+      '?user_id=eq.' + encodeURIComponent(userId) + 
+      '&created_at=gte.' + thirtyDaysAgo +
+      '&order=created_at.desc'
+    ).then(function(logs) {
+      if (!logs) return [];
+      
+      // Map tension_zone strings to actual SVG element IDs from bbf-app.html
+      var zoneMap = {
+        'lower-back': ['ss-z-lumbar'],
+        'knees':      ['ss-z-knee-l', 'ss-z-knee-r'],
+        'shoulders':  ['ss-z-shoulders-l', 'ss-z-shoulders-r', 'ss-z-cervical'],
+        'hips':       ['ss-z-hip-l', 'ss-z-hip-r']
+      };
+      
+      var damagedZones = {};
+      
+      logs.forEach(function(log) {
+        if (log.tension_zone === 'target-muscle') return; // Healthy state
+        
+        var svgIds = zoneMap[log.tension_zone] || [];
+        svgIds.forEach(function(svgId) {
+          if (!damagedZones[svgId]) {
+            damagedZones[svgId] = { count: 0, movements: [] };
+          }
+          damagedZones[svgId].count++;
+          
+          if (damagedZones[svgId].movements.indexOf(log.movement_name) === -1) {
+            damagedZones[svgId].movements.push(log.movement_name);
+          }
+        });
+      });
+      
+      return damagedZones;
     });
-    
-    return heatMap; // e.g., { 'Lower Back': 3, 'Knees': 1 }
-  });
-}
+  }
 ```
 
-**Zone Mapping:**
-The `tension_zone` stored in DB will map directly to `TENSION_AREAS` (e.g., 'Lower Back', 'Knees', 'Shoulders') defined in `auditor-engine.js`. The UI will apply a dynamic opacity/color overlay on the SVG based on the frequency count returned by the `heatMap`.
+## 6. Files to modify
+- **`bbf-sync.js`**
+  - **Edit** (lines 280-290): Overhaul `logAuditRequest` to target `bbf_audit_logs`.
+  - **Edit**: Add `getOrCreateSessionId` utility.
+  - **Edit** (lines 308-310): Redirect `fetchPendingAudits` to target `bbf_audit_logs`.
+  - **Edit**: Add `fetchDamagedZones` logic block.
+- **`auditor-engine.js`**
+  - **Edit** (line ~179): Change the `BBF_SYNC.logAuditRequest` payload from `areaLabel` to `areaId`.
+- **`prehab-auditor.js`**
+  - **Edit** (line ~97): Change the `BBF_SYNC.logAuditRequest` payload from `areaLabel` (or similar) to `areaId`.
+- **`bbf-app.html`**
+  - **Edit**: Bump the `BBF_CACHE` constant for Service Worker.
+- **`api/supabase-schema-actual.sql`**
+  - **No change needed** (regenerated autonomously by Claude).
+- **`supabase/migrations/<timestamp>_form_audit_routing.sql`** (to be created by Claude)
+  - **New**: Will contain the DDL, check constraints, and RLS statements block.
 
-## 6. Files to Modify
-- `api/PHASE_6_FORM_AUDIT_PLAN.md`: (Created this plan file)
-- `bbf-sync.js` (Lines 280-290): **EDIT**. Replace `logAuditRequest` function to target `bbf_audit_logs` with the strict JSON structure. Add `fetchSovereignSentinelData`.
-- `auditor-engine.js` (Line 179): **EDIT**. Update to pass a `sessionId` if one exists in scope.
-- `prehab-auditor.js` (Line 97): **EDIT**. Similar update to pass `sessionId` if available.
-- `bbf-app.html`: **NO CHANGE NEEDED**. The modal DOM and calls are dynamically injected by the engines.
-- `supabase/migrations/<timestamp>_form_audit_routing.sql`: **NEW FILE** (to be created by Claude post-review containing the DDL).
+## 7. Risks / open questions
+- **User ID typing**: `auditor-engine.js` resolves `uid` using `CU || VC`. If `CU` is currently set to the string representation (e.g. `'akeem'`) instead of the true UUID (`id`), the insert to `bbf_audit_logs.user_id` (UUID format) will fail. We need to ensure the runtime state uses the UUID for `CU`.
+- **RLS limitation**: As noted in the directive, `WITH CHECK (true)` and `USING (true)` for the `anon` role is a known security limitation in the current platform state. It aligns with the existing architecture (a PIN-based pseudo-auth layer over anon connections) and will be tightened in a separate workstream once true JWT auth is enabled.
 
-## 7. Risks / Open Questions
-- **Session IDs:** Currently, there is no canonical `session_id` passed around the Athlete Portal UI context. I proposed falling back to a daily timestamp (`'session_' + date`), but Akeem needs to confirm if a true `uuid` session hash is generated during the start of a workout that we should tap into.
-- **RLS Reads:** I created an anon SELECT policy to ensure the client can query the Sentinel data. However, `bbf_logs` has no SELECT policies in production, meaning anon queries fail unless `SUPA_KEY` is a service_role key. Akeem, please verify if `bbf_audit_logs` should strictly be `service_role` or if anon reads with user_id matching are acceptable.
-
-## 8. Out of Scope
-- Creating the actual SQL migration file in `supabase/migrations/` (deferred to Claude).
-- Wiring up the visual SVG manipulation in `bbf-app.html` for the Sentinel map (focusing strictly on the data routing).
-- Modifying `api/supabase-schema-actual.sql` (left strictly to Claude's MCP introspection).
+## 8. Out of scope
+- Implementing or modifying the visual "Prehab & Recovery" Sentinel UI itself. We are only building the data routing and the query.
+- Migrating historical audit logs. Since the production schema dropped them into a black hole, there is no legacy data to salvage/migrate.
+- Changing any Phase 2 auth flow mechanisms or touching `bbf_pin_attempts`.
