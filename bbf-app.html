@@ -5113,10 +5113,67 @@ window.onload=function(){
         function byId(id){ return document.getElementById(id); }
         function setText(id, v){ var el = byId(id); if (el) el.textContent = (v == null ? '' : v); }
 
-        /* SVG geometry placeholder — Sprint 2.2 will replace with real paths.
-           Must always include both callout groups so KFH_SET_FORM can toggle. */
-        var SVG_PLACEHOLDER =
-          '<g><g id="kfh-callout-ok"></g><g id="kfh-callout-warn" style="display:none"></g></g>';
+        /* Sovereign Sentinel fallback — high-tech "Awaiting Biometric Mapping"
+           clinical wireframe shown when an exercise has no specific kinetic
+           SVG. Maintains the Sovereign Standard aesthetic (glowing grid,
+           dashed kinetic axis, nominal joints) and includes both callout
+           groups so KFH_SET_FORM can toggle without breaking. */
+        var SVG_PLACEHOLDER = [
+          '<g class="kfh-wf-grid">',
+            '<line x1="28" y1="18" x2="28" y2="188"/>',
+            '<line x1="292" y1="18" x2="292" y2="188"/>',
+            '<line x1="28" y1="60" x2="292" y2="60"/>',
+            '<line x1="28" y1="160" x2="292" y2="160"/>',
+            '<line x1="160" y1="18" x2="160" y2="188"/>',
+          '</g>',
+          '<line class="kfh-wf kfh-wf-bench" x1="28" y1="180" x2="292" y2="180"/>',
+          '<g class="kfh-wf">',
+            '<circle cx="160" cy="40" r="11"/>',
+            '<line x1="160" y1="51" x2="160" y2="118"/>',
+            '<line x1="138" y1="68" x2="182" y2="68"/>',
+            '<line x1="138" y1="68" x2="120" y2="120"/>',
+            '<line x1="120" y1="120" x2="116" y2="148"/>',
+            '<line x1="182" y1="68" x2="200" y2="120"/>',
+            '<line x1="200" y1="120" x2="204" y2="148"/>',
+            '<line x1="146" y1="118" x2="174" y2="118"/>',
+            '<line x1="148" y1="118" x2="142" y2="150"/>',
+            '<line x1="142" y1="150" x2="140" y2="180"/>',
+            '<line x1="172" y1="118" x2="178" y2="150"/>',
+            '<line x1="178" y1="150" x2="180" y2="180"/>',
+            '<line x1="130" y1="180" x2="150" y2="180"/>',
+            '<line x1="170" y1="180" x2="190" y2="180"/>',
+          '</g>',
+          '<path class="kfh-path-j" d="M160 180 C 160 140, 160 100, 160 60"/>',
+          '<circle cx="160" cy="180" r="2.5" fill="#00E5FF"/>',
+          '<circle cx="160" cy="60" r="2.5" fill="#00E5FF"/>',
+          '<text class="kfh-bar-label" x="166" y="124">Sentinel Axis</text>',
+          '<circle class="kfh-joint j-shoulder" cx="138" cy="68" r="3.6"/>',
+          '<circle class="kfh-joint j-shoulder" cx="182" cy="68" r="3.6"/>',
+          '<circle class="kfh-joint j-elbow" cx="120" cy="120" r="3.2"/>',
+          '<circle class="kfh-joint j-elbow" cx="200" cy="120" r="3.2"/>',
+          '<circle class="kfh-joint j-wrist" cx="116" cy="148" r="2.8"/>',
+          '<circle class="kfh-joint j-wrist" cx="204" cy="148" r="2.8"/>',
+          '<circle class="kfh-joint j-hip" cx="148" cy="118" r="3.4"/>',
+          '<circle class="kfh-joint j-hip" cx="172" cy="118" r="3.4"/>',
+          '<circle class="kfh-joint j-knee" cx="142" cy="150" r="3.2"/>',
+          '<circle class="kfh-joint j-knee" cx="178" cy="150" r="3.2"/>',
+          '<circle class="kfh-halo" cx="160" cy="118" r="7"/>',
+          '<text class="kfh-bar-label" x="34" y="30">Sovereign Sentinel</text>',
+          '<text class="kfh-bar-label" x="34" y="40" opacity=".55">Clinical Wireframe</text>',
+          '<text class="kfh-bar-label" x="218" y="30" opacity=".7">Status</text>',
+          '<text class="kfh-bar-label" x="218" y="40" opacity=".55">Awaiting Biometric</text>',
+          '<text class="kfh-bar-label" x="218" y="50" opacity=".55">Mapping</text>',
+          '<g id="kfh-callout-ok">',
+            '<line class="kfh-leader ok" x1="160" y1="118" x2="60" y2="158"/>',
+            '<text class="kfh-label-box ok" x="30" y="160">Nominal Posture &middot; Ready</text>',
+            '<text class="kfh-label-box ok" x="30" y="172">Standard Reference</text>',
+          '</g>',
+          '<g id="kfh-callout-warn" style="display:none">',
+            '<line class="kfh-leader warn" x1="160" y1="118" x2="60" y2="158"/>',
+            '<text class="kfh-label-box warn" x="30" y="160">Pending Classification</text>',
+            '<text class="kfh-label-box warn" x="30" y="172">Form Reference Only</text>',
+          '</g>'
+        ].join('');
 
         /* Bench Press sagittal wireframe — restored from the pre-refactor static
            SVG. Contains the bench, lifter, J-curve bar path, joints, and the
@@ -5533,7 +5590,6 @@ window.onload=function(){
           <div class="sov-progress-meta" id="sov-prehab-meta">0 of 0 complete</div>
         </div>
         <div class="sov-checklist" id="sov-prehab-list" role="list"></div>
-        <button type="button" class="sov-commit-btn" id="sov-prehab-commit">Log Prehab Session &#x2713;</button>
       </div>
 
       <div style="background:linear-gradient(135deg,rgba(106,13,173,.15),rgba(74,8,128,.1));border:1px solid rgba(106,13,173,.3);border-radius:14px;padding:1rem;margin-bottom:1rem">
@@ -9906,6 +9962,16 @@ function toggleSovPrehabItem(id) {
     el.setAttribute('aria-pressed', done ? 'true' : 'false');
   }
   updateSovPrehabProgress();
+  // Auto-log the routine when every item in the active protocol is checked.
+  // Idempotent per date+protocol so re-toggling never spams the activity log.
+  var proto = SOV_PREHAB_PROTOCOLS[SOV_PREHAB_CURRENT] || SOV_PREHAB_PROTOCOLS.surgery;
+  var allDone = proto.items.every(function(it){ return arr.indexOf(it.id) !== -1; });
+  var loggedFlag = SOV_PREHAB_CURRENT + '_logged';
+  if (allDone && !st.day[loggedFlag]) {
+    st.day[loggedFlag] = true;
+    SD(st.d);
+    saveSovPrehabRoutine();
+  }
 }
 
 function switchSovPrehabProtocol(name) {
