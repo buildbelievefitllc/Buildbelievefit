@@ -176,8 +176,8 @@ const BBF_AUDITOR = (function() {
     try {
       if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.logAuditRequest) {
         const uid = (typeof CU !== 'undefined' && CU) ? CU : (typeof VC !== 'undefined' && VC) ? VC : 'unknown';
-        BBF_SYNC.logAuditRequest(uid, currentExercise, areaLabel)
-          .then(function() { console.log('BBF_AUDITOR: Synced to cloud \u2014 ' + currentExercise + ' / ' + areaLabel); })
+        BBF_SYNC.logAuditRequest(uid, currentExercise, areaId)
+          .then(function() { console.log('BBF_AUDITOR: Synced to cloud \u2014 ' + currentExercise + ' / ' + areaId); })
           .catch(function(e) { console.error('BBF_AUDITOR: Cloud sync failed \u2014', e); });
       }
     } catch (e) { console.error('BBF_AUDITOR: Sync error \u2014', e); }

@@ -94,7 +94,7 @@ var BBF_PREHAB = (function() {
     try {
       if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.logAuditRequest) {
         var uid = (typeof CU !== 'undefined' && CU) ? CU : 'unknown';
-        BBF_SYNC.logAuditRequest(uid, 'Pre-Hab Audit', area ? area.en : areaId);
+        BBF_SYNC.logAuditRequest(uid, 'Pre-Hab Audit', areaId);
       }
     } catch (e) { console.error('BBF_PREHAB: Sync error', e); }
   }
