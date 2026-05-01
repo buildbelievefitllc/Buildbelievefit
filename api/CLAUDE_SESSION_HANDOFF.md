@@ -1,9 +1,9 @@
 # Claude Session Handoff — Build Believe Fit
 
-**Last updated:** 2026-05-01 (post PR #78 — Phase 5 Vapi sales recovery verified live)
+**Last updated:** 2026-05-01 (post PR #80 — Phase 6 Form Audit data routing live)
 **Project:** Build Believe Fit (BBF) — PIN-auth fitness coaching app + Pathfinder pipeline + Vapi outbound voice
 **Founder:** Akeem Brown
-**Phase:** 6 (Vapi Phases 1–5 all verified live; Ghost UI audit in flight)
+**Phase:** 6 (Vapi 1–5 live; Form Audit data routing live; remaining Ghost UI surfaces TBD)
 
 This doc orients a fresh Claude session. Read it first, then run the checklist in **§4 Immediate Claude tasks** before touching anything else.
 
@@ -48,36 +48,45 @@ Pathfinder questionnaire → Stripe checkout → Render `/provision` (creates `b
 - Edge Function Secrets: `BBF_VAPI_INVOKE_TOKEN`, `VAPI_API_KEY`, `VAPI_ASSISTANT_ID` (Rex), `VAPI_SALES_ASSISTANT_ID` (Pathfinder closer), `VAPI_PHONE_NUMBER_ID`. Deprecated `TWILIO_PHONE_NUMBER` should be removed.
 - Vault secret: `bbf_vapi_invoke_token` (matches Edge Function Secret)
 
-## 4. Immediate Claude tasks (Phase 6 — Ghost UI audit)
+**Form Audit Data Routing (Phase 6) — LIVE:**
+- `bbf_audit_logs` table — `id, user_id, session_id, movement_name, tension_zone, created_at`. CHECK constraint on `tension_zone IN ('lower-back','knees','shoulders','target-muscle','hips')`. RLS enabled with anon INSERT/SELECT (matches loose PIN-auth pattern; tightening is a separate workstream).
+- `BBF_SYNC.logAuditRequest()` — POSTs to `bbf_audit_logs` with `getOrCreateSessionId()` (sessionStorage UUID per workout). Replaces broken Ghost UI logger that POSTed to nonexistent `bbf_logs.type/notes` columns.
+- `BBF_SYNC.fetchDamagedZones(userId)` — reads last 30 days of audit logs and maps `tension_zone` → real Sentinel SVG IDs (`ss-z-lumbar`, `ss-z-knee-l/r`, `ss-z-shoulders-l/r`, `ss-z-cervical`, `ss-z-hip-l/r`). Sentinel UI integration (binding the data to highlights) is the next slice — not in PR #80.
+- `BBF_SYNC.fetchPendingAudits()` — redirected from broken `bbf_logs?type=eq.audit` to `bbf_audit_logs` (trainer-side ghost fixed). Display-name regression: shows `user_id` UUID until we add a join.
+- Migration `20260502020500_form_audit_routing.sql` applied 2026-05-01. Smoke tested: positive insert, CHECK rejects invalid `tension_zone`, indexes + RLS verified.
 
-Vapi work is COMPLETE through Phase 5. Pivot to UI hygiene.
+## 4. Immediate Claude tasks (Phase 6 — next Ghost UI slice TBD)
+
+Vapi work is COMPLETE through Phase 5. Form Audit Data Routing slice of Phase 6 is COMPLETE.
 
 - [x] Phase 1.7 — payload fix (PR #77, merged 2026-04-30)
-- [x] Phase 5 — sales recovery loop (PR #78, merged 2026-04-30; edge fn v6 deployed + migration `20260430150000_vapi_phase_5_sales_recovery` applied + 5 smoke tests passed 2026-05-01)
-- [ ] **Akeem todo:** remove deprecated `TWILIO_PHONE_NUMBER` Edge Function Secret in Supabase dashboard (no longer read by edge fn).
+- [x] Phase 5 — sales recovery loop (PR #78, merged 2026-04-30; verified 2026-05-01)
+- [x] Phase 6 Form Audit slice (PR #80, merged 2026-05-01; migration applied + smoke tested)
+- [ ] **Akeem todo:** remove deprecated `TWILIO_PHONE_NUMBER` Edge Function Secret in Supabase dashboard.
+- [ ] **Akeem todo:** in-browser smoke — open athlete portal → complete a set → click "Lower Back" → confirm row in `bbf_audit_logs` (real client UI, not synthetic).
+- [ ] **Sentinel UI binding (next slice).** `fetchDamagedZones` returns the right shape; `bbf-app.html:4823-4949` (Sentinel SVG + symptom pills) needs to consume it and visually highlight the damaged `ss-z-*` zones. Bound by Akeem's brain-dump of when this becomes the priority.
 
-**Active workstream — Phase 6 Ghost UI audit:**
+**Active workstream — Phase 6 continued (other Ghost UI surfaces):**
 
-`bbf-app.html` (and possibly `admin.html`, `coach-lab.html`, `index.html`) has UI surfaces that look functional but aren't actually wired — buttons that toast but don't persist, panels that display but don't read from cloud, vibe-coded shells with no backend. Paying-client-facing dead UI is unacceptable.
-
-For each suspect item Akeem brain-dumps:
-1. **Locate** — `grep -n` for the handler/selector/text in `bbf-app.html` first.
-2. **Trace** — read just the relevant slice (offset/limit) to see what the handler actually does.
+`bbf-app.html` and possibly `admin.html`, `coach-lab.html`, `index.html` likely have more UI surfaces that look functional but aren't wired. The Form Audit modal was the highest-priority one (paying-client-facing, primary workout flow). For each next suspect Akeem brain-dumps, the loop is unchanged:
+1. **Locate** — `grep -n` for the handler/selector/text.
+2. **Trace** — read just the relevant slice (offset/limit).
 3. **Classify** — wired / partial / stub / dead.
-4. **Decide** — wire it (small + valuable) OR remove it (low value or out of scope).
+4. **Decide** — wire it (small + valuable) OR remove it.
 5. **Bump SW cache** (`BBF_CACHE`) on every client-side change.
 
-Working branch: `claude/ghost-ui-audit-gQ16V` (local; remote was deleted — recreate on first push).
-
-- [ ] **Re-introspect schema** → regenerate `api/supabase-schema-actual.sql`. **DEFERRED** — separate dedicated session, disk-only-write protocol per §11 rule #7.
+- [ ] **Re-introspect schema** → regenerate `api/supabase-schema-actual.sql`. **DEFERRED** — separate dedicated session, disk-only-write protocol per §11 rule #7. (Note: `bbf_audit_logs` was added in PR #80 — schema-actual.sql is now one table behind.)
 
 ## 5. Active backlog
 
-- **Phase 6 — Ghost UI audit** (current focus, see §4).
-- **Vapi Phase 4 (callback receiver)** — not yet scoped. Vapi can POST call status / transcript back; we need an edge function `vapi-callback` + columns on `bbf_vapi_calls` (`call_status` lifecycle + `transcript`) to capture. Defer until at least one production cron run produces real call data.
-- **Schema-actual.sql re-introspection** — deferred to dedicated session.
+- **Phase 6 — Sentinel UI binding** (consume `fetchDamagedZones` output in `bbf-app.html:4823-4949`).
+- **Phase 6 — additional Ghost UI surfaces** (continued audit, see §4).
+- **Phase 6 — trainer-view name join** — `fetchPendingAudits` currently shows `user_id` UUID where the old version showed an identifier; small ergonomic fix.
+- **Vapi Phase 4 (callback receiver)** — Vapi can POST call status / transcript back; need an edge function `vapi-callback` + columns on `bbf_vapi_calls` (`call_status` lifecycle + `transcript`). Defer until at least one production cron run produces real call data.
+- **Schema-actual.sql re-introspection** — deferred to dedicated session. Now one table behind (missing `bbf_audit_logs`).
 - **Render Vault Engine V9 cleanup** — see `api/AG_INTEGRATION_NOTES.md` P3 backlog.
 - **Akeem dashboard cleanup** — remove deprecated `TWILIO_PHONE_NUMBER` Edge Function Secret.
+- **AG sandbox remote** — `bbf_v2`'s `origin` is `C:\Users\akeem\OneDrive\Documents\buildbelievefit` (a local file path), so AG pushes go OneDrive → GitHub via a manual second hop. Not blocking; future workflow simplification could point bbf_v2 directly at canonical GitHub.
 
 ## 6. Workflow rules (non-negotiable)
 
@@ -96,8 +105,13 @@ Working branch: `claude/ghost-ui-audit-gQ16V` (local; remote was deleted — rec
 | `api/AG_INTEGRATION_NOTES.md` | AG's orientation doc — read for AG context & P3 backlog |
 | `api/VAPI_DESIGN.md` | Vapi architecture; §7 = operational setup |
 | `api/PHASE_4_LIVE_CONFIG.md` | Render/Zapier/Brevo config reference |
-| `api/supabase-schema-actual.sql` | Production schema (re-introspect to refresh) |
-| `bbf-app.html` | Frontend — PIN login, LP() plan resolution, Service Worker, polished UI |
+| `api/PHASE_6_FORM_AUDIT_PLAN.md` | Form Audit data routing plan (post-amendment, AG-authored) |
+| `api/AG_DIRECTIVE_PHASE_6_FORM_AUDIT.md` | Big Jim's directive + Claude scope guards for Phase 6 |
+| `api/supabase-schema-actual.sql` | Production schema (re-introspect to refresh; one table behind) |
+| `bbf-app.html` | Frontend — PIN login, LP() plan resolution, Service Worker, polished UI, Sentinel SVG (4823-4949) |
+| `bbf-sync.js` | Supabase REST sync layer — `supa()` wrapper, `logAuditRequest`, `fetchDamagedZones`, `getOrCreateSessionId` |
+| `auditor-engine.js` | `BBF_AUDITOR` — Form Audit modal logic + `runKinematicAudit` intelligence |
+| `prehab-auditor.js` | `BBF_PREHAB` — Pre-Hab Audit modal |
 | `index.js` | Render Vault Engine V9 — `/process` + `/provision` endpoints |
 | `supabase/functions/vapi-outbound-trigger/index.ts` | Vapi trigger edge function (auth-gated) |
 | `supabase/migrations/` | All DB migrations |
@@ -122,6 +136,8 @@ After §4 migrations + deploy, before declaring victory:
 
 ## 9. Recent merged PRs (reverse chronological)
 
+- **#80** Phase 6 Form Audit data routing — `bbf_audit_logs` table + CHECK + RLS, `getOrCreateSessionId` utility, replacement `logAuditRequest`, redirected `fetchPendingAudits`, new `fetchDamagedZones`, `areaId` swap in auditor + prehab, SW cache v23→v24. Drafted by AG, reviewed by Claude (5 amendments folded in pre-implementation), merged 2026-05-01. Migration applied + smoke tested same day.
+- **#79** Phase 6 AG directive + handoff post-Phase-5 (docs only).
 - **2026-05-01 verification** — Phase 5 post-merge: edge fn v6 deployed + migration applied + 5 smoke tests passed (negative auth, rate limit 1+1, three exclusion gates, two real Vapi rings to +16233409254 with edge fn 200 + valid Vapi call IDs).
 - **#78** Phase 5 — Vapi sales recovery loop (Pathfinder closer); `use_case` column, `bbf_evaluate_abandoned_carts()`, `0 19 * * *` cron, edge fn assistant routing.
 - **#77** Phase 1.7 — Vapi outbound payload fix (uses `phoneNumberId`); +16233409254 confirmed ringing.
