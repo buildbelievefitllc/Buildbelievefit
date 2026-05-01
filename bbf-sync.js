@@ -11,12 +11,88 @@ var BBF_SYNC = (function() {
   var SUPA_KEY = typeof window !== 'undefined' && window.ENV_SUPABASE_KEY ? window.ENV_SUPABASE_KEY : '';
   var REST = SUPA_URL + '/rest/v1';
 
+  // ─── SLUG → UUID RESOLVER ────────────────────────────────
+  // The frontend identifies users by stable slugs ('ana_bbf', 'akeem', etc.)
+  // The DB stores those in bbf_users.uid (text UNIQUE) and exposes a generated
+  // UUID at bbf_users.id which is the FK target for bbf_audit_logs / bbf_logs
+  // / bbf_sets. Every write keyed by user_id must use the UUID, not the slug —
+  // otherwise Postgres returns 400 (invalid input syntax for type uuid).
+  //
+  // This resolver fetches { uid → id } once per session and rewrites the
+  // user_id field on outgoing requests transparently. Callers continue to pass
+  // slugs; the wrapper around _supa() does the substitution.
+  var UID_MAP = {};
+  var bootstrapPromise = null;
+  var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  function isUuid(s) { return typeof s === 'string' && UUID_RE.test(s); }
+
+  // Bootstraps via a SECURITY DEFINER RPC (bbf_get_uid_map) — anon doesn't have
+  // SELECT on bbf_users directly (RLS enabled, no policy), so we ride the RPC
+  // pattern already used by bbf_verify_admin_pin.
+  function ensureUidMap() {
+    if (bootstrapPromise) return bootstrapPromise;
+    bootstrapPromise = _supa('POST', 'rpc/bbf_get_uid_map', {}, '').then(function(rows) {
+      if (rows && rows.length) {
+        rows.forEach(function(r) { if (r && r.uid && r.id) UID_MAP[r.uid] = r.id; });
+      }
+      return UID_MAP;
+    }).catch(function() { return UID_MAP; });
+    return bootstrapPromise;
+  }
+
+  function resolveUid(slugOrUuid) {
+    if (!slugOrUuid) return Promise.resolve(null);
+    if (isUuid(slugOrUuid)) return Promise.resolve(slugOrUuid);
+    return ensureUidMap().then(function() { return UID_MAP[slugOrUuid] || null; });
+  }
+
+  // Walk a body (object or array of objects) and resolve any user_id slug.
+  function resolveBody(body) {
+    if (!body) return Promise.resolve(body);
+    if (Array.isArray(body)) return Promise.all(body.map(resolveBody));
+    if (typeof body !== 'object') return Promise.resolve(body);
+    if (!body.user_id || isUuid(body.user_id)) return Promise.resolve(body);
+    return resolveUid(body.user_id).then(function(uid) {
+      if (!uid) return body; // unknown slug → let it 400 visibly
+      var copy = {}; for (var k in body) copy[k] = body[k];
+      copy.user_id = uid;
+      return copy;
+    });
+  }
+
+  // Rewrite query strings that filter on user_id=eq.<slug>. Also rewrites
+  // ?id=eq.<slug> when the table is bbf_users (caller meant the slug column).
+  function resolveQuery(table, query) {
+    if (!query) return Promise.resolve(query);
+    var m = query.match(/user_id=eq\.([^&]+)/);
+    if (m) {
+      var raw = decodeURIComponent(m[1]);
+      if (!isUuid(raw)) {
+        return resolveUid(raw).then(function(uid) {
+          if (!uid) return query;
+          return query.replace(/user_id=eq\.[^&]+/, 'user_id=eq.' + uid);
+        });
+      }
+    }
+    if (table === 'bbf_users') {
+      var n = query.match(/(^|[?&])id=eq\.([^&]+)/);
+      if (n) {
+        var raw2 = decodeURIComponent(n[2]);
+        if (!isUuid(raw2)) {
+          return Promise.resolve(query.replace(/(^|[?&])id=eq\.[^&]+/, '$1uid=eq.' + encodeURIComponent(raw2)));
+        }
+      }
+    }
+    return Promise.resolve(query);
+  }
+
   // ─── HTTP HELPER ─────────────────────────────────────────
   // 10s AbortController timeout prevents auth/sync calls from hanging
   // indefinitely when offline or when the network stalls — the .catch
   // fires on AbortError so callers see a clean failure instead of a
   // permanent "Authenticating..." spinner.
-  function supa(method, table, body, query) {
+  function _supa(method, table, body, query) {
     var url = REST + '/' + table + (query || '');
     var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var timeoutId = controller ? setTimeout(function(){ controller.abort(); }, 10000) : null;
@@ -40,6 +116,13 @@ var BBF_SYNC = (function() {
       if (timeoutId) clearTimeout(timeoutId);
       console.warn('BBF_SYNC offline:', e && (e.message || e.name) || 'unknown');
       return null;
+    });
+  }
+
+  // Public supa() — transparently resolves slug → UUID before delegating to _supa.
+  function supa(method, table, body, query) {
+    return Promise.all([resolveBody(body), resolveQuery(table, query)]).then(function(arr) {
+      return _supa(method, table, arr[0], arr[1]);
     });
   }
 
@@ -1638,6 +1721,8 @@ var BBF_SYNC = (function() {
   }
 
   var exported = {
+    bootstrapUidMap: ensureUidMap,
+    resolveUid: resolveUid,
     patchUserFields: patchUserFields,
     syncUser: syncUser,
     syncLog: syncLog,
