@@ -492,6 +492,22 @@ var BBF_SYNC = (function() {
     });
   }
 
+  // ─── FETCH: ADMIN DASHBOARD STATS ─────────────────────────
+  // Phase 9 — single-roundtrip Mastermind Portal stats.
+  // Returns { total_clients, total_logs, total_audits } from Supabase
+  // so the Command Center renders accurate counts on any browser/cache state.
+  function fetchAdminDashboardStats() {
+    return supa('POST', 'rpc/bbf_get_admin_dashboard_stats', {})
+      .then(function(res) {
+        var row = Array.isArray(res) ? res[0] : res;
+        return row || {};
+      })
+      .catch(function(e) {
+        console.error('BBF_SYNC fetchAdminDashboardStats error:', e);
+        return {};
+      });
+  }
+
   // ─── PROCESS: TIER UPGRADE ────────────────────────────────
   function processTierUpgrade(userId) {
     if (!userId) return Promise.resolve(null);
@@ -1730,6 +1746,7 @@ var BBF_SYNC = (function() {
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
     toggleSovereignTrial: toggleSovereignTrial,
+    fetchAdminDashboardStats: fetchAdminDashboardStats,
     processTierUpgrade: processTierUpgrade,
     linkHouseholdAccounts: linkHouseholdAccounts,
     sendHouseholdReaction: sendHouseholdReaction,

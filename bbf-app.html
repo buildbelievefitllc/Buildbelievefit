@@ -1157,6 +1157,12 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   text-transform: uppercase; font-weight: 700;
 }
 .som-input-lbl b { color: #D4AF37; font-family: var(--hb); font-size: .78rem; letter-spacing: 1px }
+.som-tier{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:.18rem .55rem;border-radius:6px;margin-left:.5rem;border:1px solid currentColor;background:rgba(255,255,255,.04);transition:color .35s ease,border-color .35s ease,background .35s ease}
+.som-tier[data-tier="optimal"] {color:#22c55e;background:rgba(34,197,94,.14)}
+.som-tier[data-tier="good"]    {color:#86efac;background:rgba(134,239,172,.14)}
+.som-tier[data-tier="mid"]     {color:#f5c800;background:rgba(245,200,0,.12)}
+.som-tier[data-tier="warn"]    {color:#FF9500;background:rgba(255,149,0,.14)}
+.som-tier[data-tier="critical"]{color:#ef4444;background:rgba(239,68,68,.14)}
 .som-range {
   -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
   background: linear-gradient(90deg, #6a0dad 0%, #D4AF37 100%);
@@ -4593,15 +4599,15 @@ window.onload=function(){
         </div>
         <div class="som-inputs">
           <div class="som-input-row">
-            <div class="som-input-lbl"><span data-lang-key="som-lbl-sleep">Sleep Quality</span><b id="som-val-sleep">5</b></div>
+            <div class="som-input-lbl"><span data-lang-key="som-lbl-sleep">Sleep Quality</span><b id="som-val-sleep">5</b><span class="som-tier" id="som-tier-sleep" data-tier="mid">Adequate</span></div>
             <input type="range" class="som-range" id="som-sleep" min="1" max="10" step="1" value="5">
           </div>
           <div class="som-input-row">
-            <div class="som-input-lbl"><span data-lang-key="som-lbl-cog">Cognitive Load</span><b id="som-val-cog">5</b></div>
+            <div class="som-input-lbl"><span data-lang-key="som-lbl-cog">Cognitive Load</span><b id="som-val-cog">5</b><span class="som-tier" id="som-tier-cog" data-tier="mid">Active</span></div>
             <input type="range" class="som-range" id="som-cog" min="1" max="10" step="1" value="5">
           </div>
           <div class="som-input-row">
-            <div class="som-input-lbl"><span data-lang-key="som-lbl-stress">Stress Level</span><b id="som-val-stress">5</b></div>
+            <div class="som-input-lbl"><span data-lang-key="som-lbl-stress">Stress Level</span><b id="som-val-stress">5</b><span class="som-tier" id="som-tier-stress" data-tier="mid">Active</span></div>
             <input type="range" class="som-range" id="som-stress" min="1" max="10" step="1" value="5">
           </div>
           <div class="som-input-row full">
@@ -8025,6 +8031,36 @@ function _somSubmit() {
   });
 }
 
+// Phase 9 — Somatic Readiness tier mapping. Sleep is high=good; Cog/Stress
+// are high=bad, so we flip them to a unified 1-10 wellness score first,
+// then bucket into 5 tiers (critical/warn/mid/good/optimal).
+var SOM_LABELS = {
+  sleep:  ['Depleted','Recovering','Adequate','Restored','Optimal'],
+  cog:    ['Overload','Heavy','Active','Steady','Light'],
+  stress: ['Critical','Strained','Active','Settled','Calm']
+};
+var SOM_TIERS = ['critical','warn','mid','good','optimal'];
+
+function somTierFor(kind, rawValue) {
+  var v = parseInt(rawValue, 10); if (isNaN(v)) v = 5;
+  var inverted = (kind === 'cog' || kind === 'stress');
+  var score    = inverted ? (11 - v) : v;
+  var bucket   = score <= 2 ? 0
+              : score <= 4 ? 1
+              : score <= 6 ? 2
+              : score <= 8 ? 3 : 4;
+  return { txt: SOM_LABELS[kind][bucket], tier: SOM_TIERS[bucket] };
+}
+
+function applySomTier(kind, slider, valEl, tierEl) {
+  if (!slider || !valEl) return;
+  valEl.textContent = slider.value;
+  if (!tierEl) return;
+  var t = somTierFor(kind, slider.value);
+  tierEl.textContent = t.txt;
+  tierEl.setAttribute('data-tier', t.tier);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   var sSleep  = document.getElementById('som-sleep');
   var sCog    = document.getElementById('som-cog');
@@ -8034,9 +8070,18 @@ document.addEventListener('DOMContentLoaded', function() {
   var vCog    = document.getElementById('som-val-cog');
   var vFast   = document.getElementById('som-val-fast');
   var vStress = document.getElementById('som-val-stress');
-  if (sSleep  && vSleep)  sSleep.addEventListener('input',  function(){ vSleep.textContent  = this.value; });
-  if (sCog    && vCog)    sCog.addEventListener('input',    function(){
-    vCog.textContent = this.value;
+  var tSleep  = document.getElementById('som-tier-sleep');
+  var tCog    = document.getElementById('som-tier-cog');
+  var tStress = document.getElementById('som-tier-stress');
+
+  // Initial paint so tiers reflect the default slider value (5) not the static markup.
+  applySomTier('sleep',  sSleep,  vSleep,  tSleep);
+  applySomTier('cog',    sCog,    vCog,    tCog);
+  applySomTier('stress', sStress, vStress, tStress);
+
+  if (sSleep)  sSleep.addEventListener('input',  function(){ applySomTier('sleep',  sSleep,  vSleep,  tSleep);  });
+  if (sCog)    sCog.addEventListener('input',    function(){
+    applySomTier('cog', sCog, vCog, tCog);
     // Live-interpolate the gauge stroke colour as the user drags
     // cognitive load (Sovereign Purple → Laboratory Gold) — no save needed.
     if (typeof BBF_SOMATIC !== 'undefined' && BBF_SOMATIC.gaugeHueForCognitiveLoad) {
@@ -8044,8 +8089,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (fill) fill.style.stroke = BBF_SOMATIC.gaugeHueForCognitiveLoad(this.value);
     }
   });
-  if (sFast   && vFast)   sFast.addEventListener('input',   function(){ vFast.textContent   = this.value; });
-  if (sStress && vStress) sStress.addEventListener('input', function(){ vStress.textContent = this.value; });
+  if (sFast   && vFast)   sFast.addEventListener('input',   function(){ vFast.textContent = this.value; });
+  if (sStress) sStress.addEventListener('input', function(){ applySomTier('stress', sStress, vStress, tStress); });
   var btn = document.getElementById('som-save-btn');
   if (btn) btn.addEventListener('click', _somSubmit);
 
