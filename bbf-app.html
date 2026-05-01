@@ -340,16 +340,6 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .eai:focus{border-color:var(--pur)}
 .eab{background:var(--purd);color:var(--wht);border:none;padding:.7rem 1rem;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:700;white-space:nowrap}
 .lbtn{width:100%;padding:1rem;background:var(--yel);color:var(--blk);font-size:1rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;margin-top:.5rem}
-/* BOOK */
-.bkh{background:linear-gradient(135deg,var(--purp),var(--purd));border-radius:16px;padding:1.5rem;margin-bottom:1rem;text-align:center}
-.bkt{font-size:2rem;font-weight:900;letter-spacing:3px;margin-bottom:.3rem}
-.bks{font-size:.85rem;color:rgba(255,255,255,.5)}
-.co{display:flex;align-items:center;gap:1rem;background:var(--gry);border:1px solid #1a1a1a;border-radius:12px;padding:1rem 1.2rem;text-decoration:none;margin-bottom:.7rem}
-.coi{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.4rem}
-.coi.g{background:rgba(34,197,94,.15)}.coi.p{background:rgba(106,13,173,.2)}.coi.b{background:rgba(59,130,246,.15)}
-.col2{font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut)}
-.cov{font-size:.95rem;font-weight:700;color:var(--wht)}
-.coa{margin-left:auto;color:var(--mut);font-size:1.2rem}
 /* PROFILE */
 .ph{text-align:center;padding:1.5rem 1rem;background:var(--gry);border-radius:16px;margin-bottom:1rem;border:1px solid #1a1a1a}
 .pav{width:72px;height:72px;border-radius:50%;background:var(--purd);border:3px solid var(--yel);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:var(--yel);margin:0 auto .8rem}
@@ -5436,7 +5426,7 @@ window.onload=function(){
         <div id="community-banner" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:14px;padding:1rem;margin-bottom:1rem;display:none">
           <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">&#x1F331; Community Blueprint — $67 Tier</div>
           <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.7);line-height:1.6">Modules 1-2 are unlocked for Community members. Upgrade to Elite Challenge to unlock all 6 modules.</div>
-          <a href="#" onclick="TAB('book');return false;" style="display:inline-block;margin-top:.7rem;background:#22c55e;color:#060606;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;padding:.45rem 1.2rem;border-radius:8px;text-decoration:none">Upgrade to Elite →</a>
+          <a href="sms:6233409254?body=Upgrade%20me%20to%20Elite" style="display:inline-block;margin-top:.7rem;background:#22c55e;color:#060606;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;padding:.45rem 1.2rem;border-radius:8px;text-decoration:none">Upgrade to Elite →</a>
         </div>
         <div class="vault-hero">
           <div class="vault-hero-lbl">Build Believe Fit LLC</div>
@@ -5479,7 +5469,10 @@ window.onload=function(){
     </div>
     <!-- LOG -->
     <div class="tp" id="tp-log">
-      <div style="margin-bottom:1.2rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-log-title">Log a Session</div></div>
+      <div style="margin-bottom:1.2rem">
+        <div style="font-family:var(--hb);font-size:1.4rem;letter-spacing:4px;text-transform:uppercase;color:var(--wht)" data-lang-key="app-log-title">Log a Session</div>
+        <div style="font-size:.78rem;font-weight:600;color:var(--mut2);margin-top:.25rem;letter-spacing:.5px" data-lang-key="app-log-sub">Capture any movement outside your assigned program.</div>
+      </div>
       <div class="lf2">
         <div><label class="lfl" data-lang-key="app-log-date">Date</label><input class="lfi" type="date" id="ld"/></div>
         <div><label class="lfl" data-lang-key="app-log-type">Session Type</label><div class="tcs" id="tchips">
@@ -5487,19 +5480,20 @@ window.onload=function(){
           <button class="tc3" data-t="cardio">&#x1F3C3; Cardio</button>
           <button class="tc3" data-t="hiit">&#x1F525; HIIT</button>
           <button class="tc3" data-t="mobility">&#x1F9D8; Mobility</button>
-          <button class="tc3" data-t="rest">&#x1F634; Rest</button>
         </div></div>
         <div class="lfr">
           <div><label class="lfl" data-lang-key="app-log-duration">Duration (mins)</label><input class="lfi" type="number" id="ldur" placeholder="45" inputmode="numeric"/></div>
           <div><label class="lfl" data-lang-key="app-log-intensity">Intensity (1-10)</label><input class="lfi" type="number" id="lint" placeholder="7" min="1" max="10" inputmode="numeric"/></div>
         </div>
-        <div class="lfr">
-          <div><label class="lfl">Weight (lbs)</label><input class="lfi" type="number" id="lwt" placeholder="185" inputmode="decimal"/></div>
-          <div><label class="lfl">Body Fat %</label><input class="lfi" type="number" id="lbf" placeholder="18" inputmode="decimal"/></div>
-        </div>
         <div><label class="lfl">Exercises</label>
           <div class="exl2" id="exl"></div>
           <div class="ear"><input class="eai" type="text" id="exi" placeholder="e.g. Bench Press 3x10 @ 185lbs"/><button class="eab" id="addex-btn">+ Add</button></div>
+        </div>
+        <!-- ── Section divider — objective ends, subjective begins ── -->
+        <div style="margin:.4rem 0 .2rem;display:flex;align-items:center;gap:.6rem">
+          <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(245,200,0,.35),transparent)"></div>
+          <div style="font-family:var(--hb);font-size:.6rem;letter-spacing:4px;color:var(--yel);opacity:.7">REFLECTION</div>
+          <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(245,200,0,.35),transparent)"></div>
         </div>
         <div><label class="lfl" data-lang-key="app-log-feel">How did you feel?</label><div class="mcs" id="mchips">
           <button class="mc2" data-m="Strong">&#x1F4AA; Strong</button>
@@ -5557,13 +5551,6 @@ window.onload=function(){
       </div>
     </div>
 
-    <!-- BOOK -->
-    <div class="tp" id="tp-book">
-      <div class="bkh"><div class="bkt" data-lang-key="app-book-title">Book a Session</div><div class="bks" data-lang-key="app-book-sub">Reach out to Akeem directly.</div></div>
-      <a href="sms:6233409254?body=START" class="co"><div class="coi g">&#x1F4AC;</div><div><div class="col2" data-lang-key="app-book-text">Text to Book</div><div class="cov">623-340-9254</div></div><div class="coa">&#x203A;</div></a>
-      <a href="tel:6233409254" class="co"><div class="coi p">&#x1F4DE;</div><div><div class="col2" data-lang-key="app-book-call">Call</div><div class="cov">623-340-9254</div></div><div class="coa">&#x203A;</div></a>
-      <a href="/cdn-cgi/l/email-protection#3456415d58505651585d514251525d405858577456415d58505651585d514251525d401a525d405a514747" class="co"><div class="coi b">&#x1F4E7;</div><div><div class="col2">Email</div><div class="cov"><span class="__cf_email__" data-cfemail="3250475b5e5650575e5b574457545b465e5e517250475b5e5650575e5b574457545b461c545b465c574141">[email&#160;protected]</span></div></div><div class="coa">&#x203A;</div></a>
-    </div>
     <!-- ═══ ATHLETE PORTAL — Phase 1 MVP shell (youth & collegiate) ═══ -->
     <div class="tp" id="tp-athlete" role="tabpanel" aria-labelledby="ap-title">
       <div class="ap-shell">
@@ -5960,8 +5947,6 @@ window.onload=function(){
             <button onclick="setSovereignLang('pt')" id="sl-pt" style="flex:1;padding:.5rem;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid #2a2a2a;background:transparent;color:var(--mut)">PORTUGU&Ecirc;S</button>
           </div>
         </div>
-        <!-- SOVEREIGN FUELING ENGINE — event-date selector -->
-        <div class="psr" id="fueling-event-row" style="flex-direction:column;align-items:stretch"></div>
         <div class="psr" onclick="window.open('liability-waiver.pdf','_blank')"><div class="psrl"><span style="font-size:1.1rem">&#x1F4C4;</span><div><div class="psrn" data-lang-key="app-set-waiver">Liability Waiver</div><div class="psrs" data-lang-key="app-set-waiver-sub">View &amp; download PDF</div></div></div><span class="psra">&#x203A;</span></div>
         <div class="psr" id="logout-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F6AA;</span><div><div class="psrn" data-lang-key="app-set-signout">Sign Out</div><div class="psrs" data-lang-key="app-set-signout-sub">Log out of your account</div></div></div><span class="psra">&#x203A;</span></div>
       </div>
@@ -6022,7 +6007,6 @@ window.onload=function(){
     <button class="nv" data-tab="nutrition"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg><span data-lang-key="app-nav-nutrition">Nutrition</span></button>
     <button class="nv" data-tab="log"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span data-lang-key="app-nav-log">Log</span></button>
     <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span data-lang-key="app-nav-prehab">Prehab</span></button>
-    <button class="nv" data-tab="book"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-lang-key="app-nav-book">Book</span></button>
     <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-lang-key="app-nav-profile">Profile</span></button>
     <button class="nv" data-tab="recalibrate"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span data-lang-key="app-nav-recalibrate">Pathfinder</span></button>
   </div>
@@ -6986,7 +6970,6 @@ function RH() {
   renderSweatContract();
   if (typeof FUELING_ENGINE !== 'undefined') {
     FUELING_ENGINE.renderDashboardBlock(uid);
-    FUELING_ENGINE.renderSettingsControl();
   }
   updateLangButtons(LANG);
 }
@@ -9183,8 +9166,6 @@ function SAVELOG() {
     date:date, type:TYPE,
     dur:document.getElementById('ldur').value || '',
     intensity:document.getElementById('lint').value || '',
-    wt:document.getElementById('lwt').value || '',
-    bf:document.getElementById('lbf').value || '',
     notes:document.getElementById('lnotes').value.trim(),
     mood:MOOD, exercises:EX.slice(),
     loggedAt:new Date().toISOString(), loggedBy:CU
@@ -10317,7 +10298,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (typeof window !== 'undefined' && window.FUELING_ENGINE) {
         var feUid = (typeof VC !== 'undefined' && VC) ? VC : (typeof CU !== 'undefined' && CU) ? CU : null;
         if (feUid) window.FUELING_ENGINE.renderDashboardBlock(feUid);
-        window.FUELING_ENGINE.renderSettingsControl();
       }
     }
 
@@ -10904,7 +10884,6 @@ function SAVEMETRICS() {
   renderBody();
   if (typeof FUELING_ENGINE !== 'undefined') {
     FUELING_ENGINE.renderDashboardBlock(uid);
-    FUELING_ENGINE.renderSettingsControl();
   }
 }
 
