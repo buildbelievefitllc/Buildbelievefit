@@ -479,20 +479,17 @@ var BBF_SYNC = (function() {
   }
 
   // ─── TOGGLE: SOVEREIGN TRIAL ──────────────────────────────
+  // Phase 8 — calls the SECURITY DEFINER RPC bbf_set_trial_status(p_uid, p_active).
+  // RPC resolves slug -> uuid server-side, applies UPDATE, returns {ok, ...}.
   function toggleSovereignTrial(userId, isTrialActive) {
     if (!userId) return Promise.resolve(null);
-    var payload = {
-      id: userId,
-      updated_at: new Date().toISOString()
-    };
-    if (isTrialActive) {
-      payload.trial_status = 'active';
-      payload.trial_start_date = new Date().toISOString();
-    } else {
-      payload.trial_status = 'inactive';
-    }
-    return supa('POST', 'bbf_users', payload)
-      .catch(function(e) { console.error('BBF_SYNC toggleSovereignTrial error:', e); return null; });
+    return supa('POST', 'rpc/bbf_set_trial_status', {
+      p_uid: userId,
+      p_active: !!isTrialActive
+    }).catch(function(e) {
+      console.error('BBF_SYNC toggleSovereignTrial error:', e);
+      return null;
+    });
   }
 
   // ─── PROCESS: TIER UPGRADE ────────────────────────────────
