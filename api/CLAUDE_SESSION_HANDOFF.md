@@ -239,7 +239,7 @@ After §4 migrations + deploy, before declaring victory:
 
 Paste into a new Claude session as the opening message:
 
-> You are continuing work on Build Believe Fit. **Read `api/CLAUDE_SESSION_HANDOFF.md` first — especially §6.2 (Tiered Autonomy Model) and §11 (context discipline).** Production state, RPC inventory, migrations applied, SW cache, and merged PR log are in §3 / §9. After reading, run `git fetch origin --prune` and `git log origin/main --oneline -10`. Check for any open `ag/*` or `claude/*` branches with unmerged work. Report: (a) where main is, (b) what's queued. Then stand by for the directive.
+> You are continuing work on Build Believe Fit. **Read `AI_DIRECTIVES.md` first** (especially §2.1 — Operating Cadence / Speed-First Autonomy), then `api/CLAUDE_SESSION_HANDOFF.md` (especially §11 context discipline). Production state, RPC inventory, migrations applied, SW cache, and merged PR log are in handoff §3 / §9. After reading, run `git fetch origin --prune` and `git log origin/main --oneline -10`. Check for any open `ag/*` or `claude/*` branches with unmerged work. Report: (a) where main is, (b) what's queued. Then stand by for the directive — and execute it under the Tier 1 default unless a Tier 2/3 trigger applies.
 
 ## 11. Context discipline (timeout prevention)
 
