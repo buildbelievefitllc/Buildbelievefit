@@ -2705,7 +2705,7 @@
   var SMITH_MACHINE_HIP_THRUSTS = {
     id: 'smith_machine_hip_thrusts',
     displayName: 'Smith Machine Hip Thrusts',
-    aliases: ['smith machine hip thrusts', 'smith hip thrusts', 'barbell hip thrusts (smith)', 'smith machine glute bridges', 'glute thrusts'],
+    aliases: ['smith machine hip thrusts', 'smith hip thrusts', 'barbell hip thrusts (smith)', 'smith machine glute bridges', 'glute thrusts', 'hip thrust', 'hip thrusts', 'barbell hip thrust', 'barbell hip thrusts'],
 
     title: {
       en: 'Clinical Protocol: Smith Machine Hip Thrusts',
@@ -3151,7 +3151,7 @@
   var CABLE_KICKBACKS = {
     id: 'cable_kickbacks',
     displayName: 'Cable Kickbacks',
-    aliases: ['cable kickbacks', 'cable glute kickbacks', 'glute kickbacks', 'cable hip extensions', 'standing cable kickbacks', 'single leg cable kickbacks', 'pulley kickbacks'],
+    aliases: ['cable kickbacks', 'cable glute kickbacks', 'glute kickbacks', 'cable hip extensions', 'standing cable kickbacks', 'single leg cable kickbacks', 'pulley kickbacks', 'reverse kickback', 'reverse kickbacks', 'reverse cable kickbacks'],
 
     title: {
       en: 'Clinical Protocol: Cable Kickbacks',
