@@ -3991,8 +3991,741 @@
     }
   };
 
+  // ─── GLUTE-BIAS BACK EXTENSIONS (V2 · Batch 6) ───────────
+  // Validator-patched: t=0 added symmetric right-arm joints.
+  var GLUTE_BIAS_BACK_EXTENSIONS = {
+    id: 'glute_bias_back_extensions',
+    displayName: 'Glute-Bias Back Extensions',
+    aliases: ['glute bias back extensions', 'glute-bias back extensions', '45-degree hyperextensions', 'glute extensions', '45-degree back extensions', 'roman chair glute extensions', 'rounded back extensions', 'glute-focused back extensions', 'back extension', 'back extensions', 'machine back extension'],
+
+    title: {
+      en: 'Clinical Protocol: Glute Back Extensions',
+      es: 'Protocolo Clínico: Extensiones de Espalda con Sesgo Glúteo',
+      pt: 'Protocolo Clínico: Extensão Lombar com Foco no Glúteo'
+    },
+    subtitle: {
+      en: 'Sagittal Plane · Machine · Sovereign Rig',
+      es: 'Plano Sagital · Máquina · Equipo Soberano',
+      pt: 'Plano Sagital · Máquina · Equipamento Soberano'
+    },
+    muscleTarget: {
+      en: 'Primary: Gluteus Maximus. Secondary: Hamstrings, Core Stabilizers.',
+      es: 'Primario: Glúteo Mayor. Secundarios: Isquiotibiales, Estabilizadores del Core.',
+      pt: 'Primário: Glúteo Máximo. Secundários: Isquiotibiais, Estabilizadores do Core.'
+    },
+    clinicalNotes: {
+      en: 'Perfect Sovereign execution demands a slightly rounded upper spine and a tucked chin to intentionally inhibit the erector spinae and force the glutes to be the primary drivers of hip extension. The kinetic chain relies on the pelvis being positioned just slightly over the top edge of the pad, allowing for pure, unhindered hip flexion and extension without any lumbar contribution. Joint health is protected by stopping the ascent the exact moment the hips reach full extension, strictly avoiding any overarching or hyperextension of the lower back.',
+      es: 'La ejecución soberana perfecta exige una columna superior ligeramente redondeada y un mentón retraído para inhibir intencionalmente los erectores espinales y forzar a los glúteos a ser los impulsores principales de la extensión de cadera. La cadena cinética depende de que la pelvis esté posicionada justo ligeramente sobre el borde superior del cojín, permitiendo una flexión y extensión de cadera pura y sin obstáculos sin ninguna contribución lumbar. La salud articular se protege deteniendo el ascenso en el momento exacto en que las caderas alcanzan la extensión completa, evitando estrictamente cualquier hiperarqueo o hiperextensión de la espalda baja.',
+      pt: 'A execução soberana perfeita exige uma coluna superior ligeiramente arredondada e um queixo retraído para inibir intencionalmente os eretores da espinha e forçar os glúteos a serem os impulsores primários da extensão do quadril. A cadeia cinética depende de a pelve estar posicionada apenas ligeiramente sobre a borda superior do apoio, permitindo flexão e extensão de quadril pura e desimpedida sem qualquer contribuição lombar. A saúde articular é protegida parando a subida no momento exato em que os quadris alcançam a extensão completa, evitando estritamente qualquer hiperarqueamento ou hiperextensão da região lombar.'
+    },
+    svgTitle: {
+      en: 'Glute Extension Sagittal Wireframe',
+      es: 'Wireframe Sagital de Extensión Glútea',
+      pt: 'Wireframe Sagital de Extensão Glútea'
+    },
+
+    plane: 'sagittal', facing: 'right', ground: { y: 0.92 },
+    jointSpec: STD_JOINT_SPEC, bones: STD_BONES,
+
+    animation: {
+      duration_ms: 3500, loop: true, direction: 'normal', easing: 'ease-in-out',
+      phases: [
+        { id: 'eccentric', start_pct: 0, end_pct: 40, easing: 'ease-out',
+          label: { en: 'Eccentric · Hip Hinge', es: 'Excéntrica · Bisagra de Cadera', pt: 'Excêntrica · Dobradiça de Quadril' },
+          cue:   { en: 'Hinge at the hips and lower the torso with deliberate pacing until a deep, safe stretch is felt across the hamstrings and glutes.',
+                   es: 'Bisagra en las caderas y baja el torso con un ritmo deliberado hasta sentir un estiramiento profundo y seguro en los isquiotibiales y glúteos.',
+                   pt: 'Faça a dobradiça nos quadris e abaixe o torso com ritmo deliberado até sentir um alongamento profundo e seguro nos isquiotibiais e glúteos.' } },
+        { id: 'isometric', start_pct: 40, end_pct: 50, easing: 'linear',
+          label: { en: 'Isometric · Bottom Stretch', es: 'Isométrica · Estiramiento Inferior', pt: 'Isométrica · Alongamento no Fundo' },
+          cue:   { en: 'Pause motionless at the absolute bottom of the stretch to dissipate elastic energy and maximize mechanical tension on the posterior chain.',
+                   es: 'Haz una pausa sin movimiento en el punto absoluto inferior del estiramiento para disipar la energía elástica y maximizar la tensión mecánica en la cadena posterior.',
+                   pt: 'Faça uma pausa sem movimento no ponto absoluto inferior do alongamento para dissipar a energia elástica e maximizar a tensão mecânica na cadeia posterior.' } },
+        { id: 'concentric', start_pct: 50, end_pct: 90, easing: 'ease-in',
+          label: { en: 'Concentric · Glute Drive', es: 'Concéntrica · Empuje de Glúteos', pt: 'Concêntrica · Impulso de Glúteos' },
+          cue:   { en: 'Drive the hips forcefully into the pad and squeeze the gluteals intensely to extend the torso until the body forms a straight line.',
+                   es: 'Empuja las caderas con fuerza contra el cojín y aprieta los glúteos intensamente para extender el torso hasta que el cuerpo forme una línea recta.',
+                   pt: 'Empurre os quadris com força contra o apoio e contraia os glúteos intensamente para estender o torso até que o corpo forme uma linha reta.' } },
+        { id: 'reset', start_pct: 90, end_pct: 100, easing: 'ease-in-out',
+          label: { en: 'Reset · Neutral Lockout', es: 'Reinicio · Bloqueo Neutro', pt: 'Reinício · Travamento Neutro' },
+          cue:   { en: 'Maintain straight alignment without arching.', es: 'Mantén la alineación recta sin arquear.', pt: 'Mantenha o alinhamento reto sem arquear.' } }
+      ],
+      keyframes: [
+        { t: 0.00, phase: 'eccentric',
+          joints: {
+            head: { x: 0.75, y: 0.20 },
+            shoulder_l: { x: 0.65, y: 0.35 }, shoulder_r: { x: 0.65, y: 0.35 },
+            hip_l:      { x: 0.45, y: 0.55 }, hip_r:      { x: 0.45, y: 0.55 },
+            knee_l:     { x: 0.30, y: 0.75 }, knee_r:     { x: 0.30, y: 0.75 },
+            ankle_l:    { x: 0.20, y: 0.92 }, ankle_r:    { x: 0.20, y: 0.92 },
+            elbow_l:    { x: 0.60, y: 0.40 }, elbow_r:    { x: 0.60, y: 0.40 },
+            wrist_l:    { x: 0.55, y: 0.35 }, wrist_r:    { x: 0.55, y: 0.35 }
+          } },
+        { t: 0.40, phase: 'eccentric',
+          joints: {
+            head: { x: 0.75, y: 0.80 },
+            shoulder_l: { x: 0.65, y: 0.70 }, shoulder_r: { x: 0.65, y: 0.70 },
+            elbow_l: { x: 0.60, y: 0.65 }, elbow_r: { x: 0.60, y: 0.65 },
+            wrist_l: { x: 0.55, y: 0.70 }, wrist_r: { x: 0.55, y: 0.70 }
+          } },
+        { t: 0.50, phase: 'isometric', joints: {} },
+        { t: 0.90, phase: 'concentric',
+          joints: {
+            head: { x: 0.75, y: 0.20 },
+            shoulder_l: { x: 0.65, y: 0.35 }, shoulder_r: { x: 0.65, y: 0.35 },
+            elbow_l: { x: 0.60, y: 0.40 }, elbow_r: { x: 0.60, y: 0.40 },
+            wrist_l: { x: 0.55, y: 0.35 }, wrist_r: { x: 0.55, y: 0.35 }
+          } },
+        { t: 1.00, phase: 'reset', joints: {} }
+      ]
+    },
+
+    equipment: [{ type: 'machine_pad', attach: ['hip_l', 'ankle_l'] }],
+
+    kineticPath: {
+      default: { label: { en: 'Extension Arc', es: 'Arco de Extensión', pt: 'Arco de Extensão' },
+                 d: 'M 0.65 0.70 Q 0.80 0.50 0.65 0.35' },
+      endpoints: [{ x: 0.65, y: 0.70 }, { x: 0.65, y: 0.35 }],
+      labels: [
+        { x: 0.70, y: 0.75, text: { en: 'Max Stretch',      es: 'Estiramiento Máximo', pt: 'Alongamento Máximo' } },
+        { x: 0.70, y: 0.30, text: { en: 'Neutral Lockout',  es: 'Bloqueo Neutro',      pt: 'Travamento Neutro' } }
+      ]
+    },
+
+    forms: {
+      ok: {
+        chipLabel: { en: 'Standard Form', es: 'Forma Estándar', pt: 'Forma Padrão' },
+        callouts: [
+          { from: 'hip_l', to: { x: 0.25, y: 0.45 },
+            lines: [{ en: 'Pivot strictly at hips', es: 'Pivota estrictamente en las caderas', pt: 'Pivote estritamente nos quadris' }] }
+        ],
+        metrics: {
+          dev: '± 1.0 cm',
+          tuck: { en: 'Chin Tucked', es: 'Mentón Retraído', pt: 'Queixo Retraído' },
+          load: { en: 'Glute Bias',  es: 'Sesgo Glúteo',    pt: 'Viés Glúteo' },
+          fn:   { en: 'Clinical reference overlay', es: 'Capa de referencia clínica', pt: 'Camada de referência clínica' }
+        },
+        haloAt: null
+      },
+      warn: {
+        chipLabel: { en: 'Common Fault: Lumbar Hyperextension', es: 'Falla Común: Hiperextensión Lumbar', pt: 'Falha Comum: Hiperextensão Lombar' },
+        callouts: [
+          { from: 'shoulder_l', to: { x: 0.85, y: 0.30 }, warn: true,
+            lines: [{ en: 'Overarching · Lumbar shear',
+                      es: 'Hiperarqueo · Cizalla lumbar',
+                      pt: 'Hiperarqueamento · Cisalhamento lombar' }] }
+        ],
+        metrics: {
+          dev: '± 4.0 cm',
+          tuck: { en: 'Spine Arched',    es: 'Columna Arqueada',     pt: 'Coluna Arqueada' },
+          load: { en: 'Erector Strain',  es: 'Tensión de Erectores', pt: 'Tensão de Eretores' },
+          fn:   { en: 'Fault pattern · Extending past neutral using lower back',
+                  es: 'Patrón de falla · Extendiendo más allá de neutral usando la espalda baja',
+                  pt: 'Padrão de falha · Estendendo além do neutro usando a região lombar' }
+        },
+        haloAt: 'shoulder_l',
+        keyframesOverride: [
+          { t: 0.90, joints: { head: { x: 0.65, y: 0.15 }, shoulder_l: { x: 0.55, y: 0.30 }, shoulder_r: { x: 0.55, y: 0.30 } } }
+        ]
+      }
+    },
+
+    metricLabels: {
+      dev:  { en: 'Path Dev.',      es: 'Desv. Trayectoria', pt: 'Desv. Trajetória' },
+      tuck: { en: 'Spinal Posture', es: 'Postura Espinal',   pt: 'Postura Espinhal' },
+      load: { en: 'Muscle Bias',    es: 'Sesgo Muscular',    pt: 'Viés Muscular' }
+    }
+  };
+
+  // ─── SUPPORTED KNEE RAISES (V2 · Batch 6) ────────────────
+  // Validator-patched: t=0 added symmetric right-arm joints.
+  var SUPPORTED_KNEE_RAISES = {
+    id: 'supported_knee_raises',
+    displayName: 'Supported Knee Raises',
+    aliases: ['supported knee raises', "captain's chair knee raises", 'vertical knee raises', 'vkr', 'hanging knee raises', 'machine knee raises', "captain's chair leg raises", 'forearm supported knee raises'],
+
+    title: {
+      en: 'Clinical Protocol: Supported Knee Raises',
+      es: 'Protocolo Clínico: Elevaciones de Rodillas con Soporte',
+      pt: 'Protocolo Clínico: Elevação de Joelhos com Apoio'
+    },
+    subtitle: {
+      en: 'Sagittal Plane · Machine · Sovereign Rig',
+      es: 'Plano Sagital · Máquina · Equipo Soberano',
+      pt: 'Plano Sagital · Máquina · Equipamento Soberano'
+    },
+    muscleTarget: {
+      en: 'Primary: Rectus Abdominis, Iliopsoas. Secondary: Obliques, Core Stabilizers.',
+      es: 'Primarios: Recto Abdominal, Iliopsoas. Secundarios: Oblicuos, Estabilizadores del Core.',
+      pt: 'Primários: Reto Abdominal, Iliopsoas. Secundários: Oblíquos, Estabilizadores do Core.'
+    },
+    clinicalNotes: {
+      en: 'Execution necessitates the forearms being rigidly anchored to the pads with the scapulae actively depressed to stabilize the torso and entirely prevent swinging or upper trap dominance. The kinetic chain requires an active posterior pelvic tilt at the top of the movement, curling the pelvis upward to fully shorten the rectus abdominis rather than simply flexing the hips. Joint health is optimized by avoiding excessive lumbar extension at the bottom of the rep, maintaining continuous core tension to protect the lower spine from sheer stress.',
+      es: 'La ejecución requiere que los antebrazos estén rígidamente anclados a los cojines con las escápulas activamente deprimidas para estabilizar el torso y prevenir por completo el balanceo o la dominancia del trapecio superior. La cadena cinética requiere una inclinación pélvica posterior activa en la parte superior del movimiento, curvando la pelvis hacia arriba para acortar completamente el recto abdominal en lugar de simplemente flexionar las caderas. La salud articular se optimiza evitando la extensión lumbar excesiva en el fondo de la repetición, manteniendo tensión continua del core para proteger la columna inferior del estrés cortante.',
+      pt: 'A execução necessita que os antebraços estejam rigidamente ancorados aos apoios com as escápulas ativamente deprimidas para estabilizar o torso e prevenir completamente o balanço ou a dominância do trapézio superior. A cadeia cinética requer uma inclinação pélvica posterior ativa no topo do movimento, curvando a pelve para cima para encurtar completamente o reto abdominal em vez de simplesmente flexionar os quadris. A saúde articular é otimizada evitando a extensão lombar excessiva no fundo da repetição, mantendo tensão contínua do core para proteger a coluna inferior do estresse cortante.'
+    },
+    svgTitle: {
+      en: 'Knee Raise Sagittal Wireframe',
+      es: 'Wireframe Sagital de Elevación de Rodillas',
+      pt: 'Wireframe Sagital de Elevação de Joelhos'
+    },
+
+    plane: 'sagittal', facing: 'right', ground: { y: 0.92 },
+    jointSpec: STD_JOINT_SPEC, bones: STD_BONES,
+
+    animation: {
+      duration_ms: 3000, loop: true, direction: 'normal', easing: 'ease-in-out',
+      phases: [
+        { id: 'eccentric', start_pct: 0, end_pct: 40, easing: 'ease-out',
+          label: { en: 'Eccentric · Controlled Drop', es: 'Excéntrica · Descenso Controlado', pt: 'Excêntrica · Descida Controlada' },
+          cue:   { en: 'Lower the knees with strict, deliberate control until the legs are extended, maintaining active tension in the lower abdominals throughout the descent.',
+                   es: 'Baja las rodillas con control estricto y deliberado hasta que las piernas estén extendidas, manteniendo tensión activa en los abdominales inferiores durante todo el descenso.',
+                   pt: 'Abaixe os joelhos com controle estrito e deliberado até que as pernas estejam estendidas, mantendo tensão ativa nos abdominais inferiores durante toda a descida.' } },
+        { id: 'isometric', start_pct: 40, end_pct: 50, easing: 'linear',
+          label: { en: 'Isometric · Dead Hang', es: 'Isométrica · Suspensión Pasiva', pt: 'Isométrica · Suspensão Passiva' },
+          cue:   { en: 'Hold the bottom position motionless to eliminate all pendular momentum and prevent energy leakage.',
+                   es: 'Mantén la posición inferior sin movimiento para eliminar todo el impulso pendular y prevenir la fuga de energía.',
+                   pt: 'Mantenha a posição inferior sem movimento para eliminar todo o impulso pendular e prevenir a perda de energia.' } },
+        { id: 'concentric', start_pct: 50, end_pct: 90, easing: 'ease-in',
+          label: { en: 'Concentric · Pelvic Curl', es: 'Concéntrica · Curva Pélvica', pt: 'Concêntrica · Curva Pélvica' },
+          cue:   { en: 'Drive the knees forcefully upward toward the chest while deliberately curling the pelvis toward the ribcage to achieve maximal spinal flexion.',
+                   es: 'Impulsa las rodillas con fuerza hacia arriba hacia el pecho mientras curvas deliberadamente la pelvis hacia la caja torácica para lograr la flexión espinal máxima.',
+                   pt: 'Impulsione os joelhos com força para cima em direção ao peito enquanto curva deliberadamente a pelve em direção à caixa torácica para alcançar a flexão espinhal máxima.' } },
+        { id: 'reset', start_pct: 90, end_pct: 100, easing: 'ease-in-out',
+          label: { en: 'Reset · Peak Contraction', es: 'Reinicio · Contracción Máxima', pt: 'Reinício · Contração Máxima' },
+          cue:   { en: 'Hold the crunch at the top.', es: 'Mantén el crunch arriba.', pt: 'Mantenha o crunch no topo.' } }
+      ],
+      keyframes: [
+        { t: 0.00, phase: 'eccentric',
+          joints: {
+            head: { x: 0.40, y: 0.20 },
+            shoulder_l: { x: 0.40, y: 0.35 }, shoulder_r: { x: 0.40, y: 0.35 },
+            hip_l:      { x: 0.45, y: 0.60 }, hip_r:      { x: 0.45, y: 0.60 },
+            knee_l:     { x: 0.65, y: 0.50 }, knee_r:     { x: 0.65, y: 0.50 },
+            ankle_l:    { x: 0.60, y: 0.75 }, ankle_r:    { x: 0.60, y: 0.75 },
+            elbow_l:    { x: 0.45, y: 0.45 }, elbow_r:    { x: 0.45, y: 0.45 },
+            wrist_l:    { x: 0.55, y: 0.45 }, wrist_r:    { x: 0.55, y: 0.45 }
+          } },
+        { t: 0.40, phase: 'eccentric',
+          joints: {
+            hip_l: { x: 0.40, y: 0.60 }, hip_r: { x: 0.40, y: 0.60 },
+            knee_l: { x: 0.40, y: 0.80 }, knee_r: { x: 0.40, y: 0.80 },
+            ankle_l: { x: 0.40, y: 0.92 }, ankle_r: { x: 0.40, y: 0.92 }
+          } },
+        { t: 0.50, phase: 'isometric', joints: {} },
+        { t: 0.90, phase: 'concentric',
+          joints: {
+            hip_l: { x: 0.45, y: 0.60 }, hip_r: { x: 0.45, y: 0.60 },
+            knee_l: { x: 0.65, y: 0.50 }, knee_r: { x: 0.65, y: 0.50 },
+            ankle_l: { x: 0.60, y: 0.75 }, ankle_r: { x: 0.60, y: 0.75 }
+          } },
+        { t: 1.00, phase: 'reset', joints: {} }
+      ]
+    },
+
+    equipment: [{ type: 'machine_pad', attach: ['shoulder_l', 'elbow_l'] }],
+
+    kineticPath: {
+      default: { label: { en: 'Flexion Arc', es: 'Arco de Flexión', pt: 'Arco de Flexão' },
+                 d: 'M 0.40 0.80 Q 0.55 0.70 0.65 0.50' },
+      endpoints: [{ x: 0.40, y: 0.80 }, { x: 0.65, y: 0.50 }],
+      labels: [
+        { x: 0.35, y: 0.85, text: { en: 'Bottom Start', es: 'Inicio en Fondo', pt: 'Início no Fundo' } },
+        { x: 0.70, y: 0.45, text: { en: 'Peak Curl',    es: 'Curva Máxima',    pt: 'Curva Máxima' } }
+      ]
+    },
+
+    forms: {
+      ok: {
+        chipLabel: { en: 'Standard Form', es: 'Forma Estándar', pt: 'Forma Padrão' },
+        callouts: [
+          { from: 'hip_l', to: { x: 0.20, y: 0.60 },
+            lines: [{ en: 'Pelvis curls upward', es: 'La pelvis se curva hacia arriba', pt: 'A pelve curva-se para cima' }] }
+        ],
+        metrics: {
+          dev: '± 1.0 cm',
+          tuck: { en: 'Scapulae Depressed',     es: 'Escápulas Deprimidas',      pt: 'Escápulas Deprimidas' },
+          load: { en: 'Rectus Abdominis Bias',  es: 'Sesgo del Recto Abdominal', pt: 'Viés do Reto Abdominal' },
+          fn:   { en: 'Clinical reference overlay', es: 'Capa de referencia clínica', pt: 'Camada de referência clínica' }
+        },
+        haloAt: null
+      },
+      warn: {
+        chipLabel: { en: 'Common Fault: Momentum Swing', es: 'Falla Común: Balanceo por Impulso', pt: 'Falha Comum: Balanço por Impulso' },
+        callouts: [
+          { from: 'knee_l', to: { x: 0.20, y: 0.80 }, warn: true,
+            lines: [{ en: 'Pendular swing · Core disengaged',
+                      es: 'Balanceo pendular · Core desactivado',
+                      pt: 'Balanço pendular · Core desativado' }] }
+        ],
+        metrics: {
+          dev: '± 5.0 cm',
+          tuck: { en: 'Body English',        es: 'Movimiento del Cuerpo',          pt: 'Movimento do Corpo' },
+          load: { en: 'Hip Flexor Overload', es: 'Sobrecarga del Flexor de Cadera', pt: 'Sobrecarga do Flexor do Quadril' },
+          fn:   { en: 'Fault pattern · Legs swing backward to generate force',
+                  es: 'Patrón de falla · Las piernas se balancean hacia atrás para generar fuerza',
+                  pt: 'Padrão de falha · Pernas balançam para trás para gerar força' }
+        },
+        haloAt: 'knee_l',
+        keyframesOverride: [
+          { t: 0.40, joints: { knee_l: { x: 0.25, y: 0.75 }, knee_r: { x: 0.25, y: 0.75 },
+                               ankle_l: { x: 0.20, y: 0.85 }, ankle_r: { x: 0.20, y: 0.85 } } }
+        ]
+      }
+    },
+
+    metricLabels: {
+      dev:  { en: 'Path Dev.',     es: 'Desv. Trayectoria', pt: 'Desv. Trajetória' },
+      tuck: { en: 'Torso Anchor',  es: 'Anclaje del Torso', pt: 'Ancoragem do Torso' },
+      load: { en: 'Muscle Bias',   es: 'Sesgo Muscular',    pt: 'Viés Muscular' }
+    }
+  };
+
+  // ─── PLANK (V2 · Batch 6) ────────────────────────────────
+  // Note: isometric hold pattern with extended phase boundaries
+  // (eccentric 0-20%, isometric 20-80%, concentric 80-95%, reset
+  // 95-100%). t=0 patched with symmetric right-arm joints.
+  var PLANK = {
+    id: 'plank',
+    displayName: 'Plank',
+    aliases: ['plank', 'floor plank', 'forearm plank', 'front plank', 'hover plank', 'abdominal plank', 'standard plank', 'static plank'],
+
+    title: {
+      en: 'Clinical Protocol: Plank',
+      es: 'Protocolo Clínico: Plancha',
+      pt: 'Protocolo Clínico: Prancha'
+    },
+    subtitle: {
+      en: 'Sagittal Plane · Bodyweight · Sovereign Rig',
+      es: 'Plano Sagital · Peso Corporal · Equipo Soberano',
+      pt: 'Plano Sagital · Peso Corporal · Equipamento Soberano'
+    },
+    muscleTarget: {
+      en: 'Primary: Rectus Abdominis, Transversus Abdominis. Secondary: Core Stabilizers, Gluteus Maximus, Quadriceps, Anterior Deltoid.',
+      es: 'Primarios: Recto Abdominal, Transverso Abdominal. Secundarios: Estabilizadores del Core, Glúteo Mayor, Cuádriceps, Deltoides Anterior.',
+      pt: 'Primários: Reto Abdominal, Transverso Abdominal. Secundários: Estabilizadores do Core, Glúteo Máximo, Quadríceps, Deltoide Anterior.'
+    },
+    clinicalNotes: {
+      en: 'Perfect Sovereign execution demands a rigid, straight line from the crown of the head to the heels, established by an active posterior pelvic tilt and a highly braced core. The kinetic chain relies on maximal full-body irradiation—squeezing the glutes, flexing the quadriceps, and driving the forearms into the floor to lock the skeleton in absolute neutrality. Optimal joint health is maintained by actively protracting the scapulae and keeping the cervical spine neutral, strictly avoiding lumbar sagging or cervical hyperextension.',
+      es: 'La ejecución soberana perfecta exige una línea recta y rígida desde la coronilla de la cabeza hasta los talones, establecida por una inclinación pélvica posterior activa y un core altamente activado. La cadena cinética depende de la irradiación máxima de todo el cuerpo—apretando los glúteos, flexionando los cuádriceps y empujando los antebrazos contra el suelo para bloquear el esqueleto en neutralidad absoluta. La salud articular óptima se mantiene protraiendo activamente las escápulas y manteniendo la columna cervical neutra, evitando estrictamente el hundimiento lumbar o la hiperextensión cervical.',
+      pt: 'A execução soberana perfeita exige uma linha reta e rígida do topo da cabeça aos calcanhares, estabelecida por uma inclinação pélvica posterior ativa e um core altamente ativado. A cadeia cinética depende da irradiação máxima de todo o corpo—contraindo os glúteos, flexionando os quadríceps e empurrando os antebraços contra o chão para travar o esqueleto em neutralidade absoluta. A saúde articular ótima é mantida protraindo ativamente as escápulas e mantendo a coluna cervical neutra, evitando estritamente o afundamento lombar ou a hiperextensão cervical.'
+    },
+    svgTitle: {
+      en: 'Plank Sagittal Wireframe',
+      es: 'Wireframe Sagital de Plancha',
+      pt: 'Wireframe Sagital de Prancha'
+    },
+
+    plane: 'sagittal', facing: 'right', ground: { y: 0.92 },
+    jointSpec: STD_JOINT_SPEC, bones: STD_BONES,
+
+    animation: {
+      duration_ms: 3000, loop: true, direction: 'normal', easing: 'ease-in-out',
+      phases: [
+        { id: 'eccentric', start_pct: 0, end_pct: 20, easing: 'ease-out',
+          label: { en: 'Setup · Structure Activation', es: 'Configuración · Activación Estructural', pt: 'Preparação · Ativação Estrutural' },
+          cue:   { en: 'Deliberately lower into position, anchoring the forearms and toes while drawing the navel toward the spine to establish your structural foundation.',
+                   es: 'Baja deliberadamente a la posición, anclando los antebrazos y los dedos de los pies mientras tiras el ombligo hacia la columna para establecer tu base estructural.',
+                   pt: 'Abaixe-se deliberadamente à posição, ancorando os antebraços e os dedos dos pés enquanto puxa o umbigo em direção à coluna para estabelecer sua base estrutural.' } },
+        { id: 'isometric', start_pct: 20, end_pct: 80, easing: 'linear',
+          label: { en: 'Isometric · Neutral Hold', es: 'Isométrica · Sostén Neutro', pt: 'Isométrica · Sustentação Neutra' },
+          cue:   { en: 'Hold the perfectly aligned peak position motionless, resisting gravity and refusing to let the hips sag or pike upward.',
+                   es: 'Mantén la posición pico perfectamente alineada sin movimiento, resistiendo la gravedad y negándote a dejar que las caderas se hundan o se eleven hacia arriba.',
+                   pt: 'Mantenha a posição pico perfeitamente alinhada sem movimento, resistindo à gravidade e recusando-se a deixar os quadris afundarem ou subirem.' } },
+        { id: 'concentric', start_pct: 80, end_pct: 95, easing: 'ease-in',
+          label: { en: 'Active · Full-Body Tension', es: 'Activa · Tensión de Cuerpo Completo', pt: 'Ativa · Tensão de Corpo Inteiro' },
+          cue:   { en: 'Actively drag your elbows and toes toward each other through the floor to generate maximal, unyielding full-body tension.',
+                   es: 'Arrastra activamente los codos y los dedos de los pies uno hacia el otro a través del suelo para generar la máxima tensión de cuerpo completo inquebrantable.',
+                   pt: 'Arraste ativamente os cotovelos e os dedos dos pés um em direção ao outro através do chão para gerar a máxima tensão de corpo inteiro inquebrável.' } },
+        { id: 'reset', start_pct: 95, end_pct: 100, easing: 'ease-in-out',
+          label: { en: 'Reset · Re-brace', es: 'Reinicio · Reactivación', pt: 'Reinício · Reativação' },
+          cue:   { en: 'Maintain neutral spine.', es: 'Mantén la columna neutra.', pt: 'Mantenha a coluna neutra.' } }
+      ],
+      keyframes: [
+        { t: 0.00, phase: 'eccentric',
+          joints: {
+            head: { x: 0.20, y: 0.60 },
+            shoulder_l: { x: 0.25, y: 0.70 }, shoulder_r: { x: 0.25, y: 0.70 },
+            hip_l:      { x: 0.55, y: 0.80 }, hip_r:      { x: 0.55, y: 0.80 },
+            knee_l:     { x: 0.75, y: 0.92 }, knee_r:     { x: 0.75, y: 0.92 },
+            ankle_l:    { x: 0.85, y: 0.92 }, ankle_r:    { x: 0.85, y: 0.92 },
+            elbow_l:    { x: 0.25, y: 0.92 }, elbow_r:    { x: 0.25, y: 0.92 },
+            wrist_l:    { x: 0.35, y: 0.92 }, wrist_r:    { x: 0.35, y: 0.92 }
+          } },
+        { t: 0.20, phase: 'isometric',
+          joints: {
+            head: { x: 0.20, y: 0.60 },
+            hip_l: { x: 0.55, y: 0.70 }, hip_r: { x: 0.55, y: 0.70 },
+            knee_l: { x: 0.75, y: 0.80 }, knee_r: { x: 0.75, y: 0.80 }
+          } },
+        { t: 0.80, phase: 'concentric', joints: {} },
+        { t: 0.95, phase: 'reset', joints: {} },
+        { t: 1.00, phase: 'reset', joints: {} }
+      ]
+    },
+
+    equipment: [],
+
+    kineticPath: {
+      default: { label: { en: 'Tension Vector', es: 'Vector de Tensión', pt: 'Vetor de Tensão' },
+                 d: 'M 0.25 0.92 L 0.85 0.92' },
+      endpoints: [{ x: 0.25, y: 0.92 }, { x: 0.85, y: 0.92 }],
+      labels: [
+        { x: 0.55, y: 0.95, text: { en: 'Active Floor Pull', es: 'Tracción Activa del Suelo', pt: 'Tração Ativa do Chão' } }
+      ]
+    },
+
+    forms: {
+      ok: {
+        chipLabel: { en: 'Standard Form', es: 'Forma Estándar', pt: 'Forma Padrão' },
+        callouts: [
+          { from: 'hip_l', to: { x: 0.55, y: 0.55 },
+            lines: [{ en: 'Perfectly straight kinetic chain', es: 'Cadena cinética perfectamente recta', pt: 'Cadeia cinética perfeitamente reta' }] }
+        ],
+        metrics: {
+          dev: '± 0.5 cm',
+          tuck: { en: 'Posterior Tilt',       es: 'Inclinación Posterior',     pt: 'Inclinação Posterior' },
+          load: { en: 'Full Core Activation', es: 'Activación Completa del Core', pt: 'Ativação Completa do Core' },
+          fn:   { en: 'Clinical reference overlay', es: 'Capa de referencia clínica', pt: 'Camada de referência clínica' }
+        },
+        haloAt: null
+      },
+      warn: {
+        chipLabel: { en: 'Common Fault: Lumbar Sag', es: 'Falla Común: Hundimiento Lumbar', pt: 'Falha Comum: Afundamento Lombar' },
+        callouts: [
+          { from: 'hip_l', to: { x: 0.55, y: 0.55 }, warn: true,
+            lines: [{ en: 'Hips dropping · Lumbar shear',
+                      es: 'Caderas cayendo · Cizalla lumbar',
+                      pt: 'Quadris caindo · Cisalhamento lombar' }] }
+        ],
+        metrics: {
+          dev: '± 4.0 cm',
+          tuck: { en: 'Anterior Tilt',   es: 'Inclinación Anterior', pt: 'Inclinação Anterior' },
+          load: { en: 'Spinal Overload', es: 'Sobrecarga Espinal',   pt: 'Sobrecarga Espinhal' },
+          fn:   { en: 'Fault pattern · Failure to maintain brace, lower back sags',
+                  es: 'Patrón de falla · No se logra mantener la activación, la espalda baja se hunde',
+                  pt: 'Padrão de falha · Falha em manter a ativação, a região lombar afunda' }
+        },
+        haloAt: 'hip_l',
+        keyframesOverride: [
+          { t: 0.20, joints: { hip_l: { x: 0.55, y: 0.82 }, hip_r: { x: 0.55, y: 0.82 }, head: { x: 0.25, y: 0.50 } } },
+          { t: 0.80, joints: { hip_l: { x: 0.55, y: 0.82 }, hip_r: { x: 0.55, y: 0.82 }, head: { x: 0.25, y: 0.50 } } }
+        ]
+      }
+    },
+
+    metricLabels: {
+      dev:  { en: 'Path Dev.',         es: 'Desv. Trayectoria',  pt: 'Desv. Trajetória' },
+      tuck: { en: 'Pelvic Alignment',  es: 'Alineación Pélvica', pt: 'Alinhamento Pélvico' },
+      load: { en: 'Joint Load',        es: 'Carga Articular',    pt: 'Carga Articular' }
+    }
+  };
+
+  // ─── HACK SQUATS (V2 · Batch 6) ──────────────────────────
+  // LEGACY CLEAROUT: alias 'hack squat' clears the legacy static
+  // entry via the conflict resolver. Validator-patched: t=0 added
+  // symmetric right-arm joints.
+  var HACK_SQUATS = {
+    id: 'hack_squats',
+    displayName: 'Hack Squats',
+    aliases: ['machine hack squats', 'hack squats', 'sled hack squats', 'hack machine squats', 'hack press', 'reverse hack squats', 'hack squat'],
+
+    title: {
+      en: 'Clinical Protocol: Hack Squats',
+      es: 'Protocolo Clínico: Sentadilla Hack',
+      pt: 'Protocolo Clínico: Agachamento Hack'
+    },
+    subtitle: {
+      en: 'Sagittal Plane · Machine · Sovereign Rig',
+      es: 'Plano Sagital · Máquina · Equipo Soberano',
+      pt: 'Plano Sagital · Máquina · Equipamento Soberano'
+    },
+    muscleTarget: {
+      en: 'Primary: Quadriceps. Secondary: Gluteus Maximus, Adductor Magnus.',
+      es: 'Primario: Cuádriceps. Secundarios: Glúteo Mayor, Aductor Mayor.',
+      pt: 'Primário: Quadríceps. Secundários: Glúteo Máximo, Adutor Magno.'
+    },
+    clinicalNotes: {
+      en: "Execution demands that the entire spine and pelvis remain rigidly pinned against the back pad throughout the movement to entirely prevent lumbar rounding or posterior pelvic tilt ('butt wink') at the bottom. The kinetic chain requires active foot tracking and a stable, flat-footed stance, ensuring the knees align perfectly over the toes to maximize quadriceps isolation. Joint articulation is optimized by descending into maximum safe knee flexion, controlling the load to strictly avoid bouncing out of the bottom position and to protect the patellar tendon.",
+      es: "La ejecución exige que toda la columna y la pelvis permanezcan rígidamente fijadas contra el respaldo durante todo el movimiento para prevenir por completo el redondeo lumbar o la inclinación pélvica posterior ('butt wink') en el fondo. La cadena cinética requiere un seguimiento activo del pie y una postura estable con pies planos, asegurando que las rodillas se alineen perfectamente sobre los dedos del pie para maximizar el aislamiento del cuádriceps. La articulación se optimiza descendiendo hasta la flexión máxima segura de rodilla, controlando la carga para evitar estrictamente rebotar en la posición inferior y proteger el tendón rotuliano.",
+      pt: "A execução exige que toda a coluna e a pelve permaneçam rigidamente pressionadas contra o encosto durante todo o movimento para prevenir completamente o arredondamento lombar ou a inclinação pélvica posterior ('butt wink') no fundo. A cadeia cinética requer rastreamento ativo do pé e uma postura estável com os pés planos, garantindo que os joelhos se alinhem perfeitamente sobre os dedos do pé para maximizar o isolamento do quadríceps. A articulação é otimizada descendo até a flexão máxima segura do joelho, controlando a carga para evitar estritamente saltar da posição inferior e proteger o tendão patelar."
+    },
+    svgTitle: {
+      en: 'Hack Squat Sagittal Wireframe',
+      es: 'Wireframe Sagital de Sentadilla Hack',
+      pt: 'Wireframe Sagital de Agachamento Hack'
+    },
+
+    plane: 'sagittal', facing: 'right', ground: { y: 0.92 },
+    jointSpec: STD_JOINT_SPEC, bones: STD_BONES,
+
+    animation: {
+      duration_ms: 3500, loop: true, direction: 'normal', easing: 'ease-in-out',
+      phases: [
+        { id: 'eccentric', start_pct: 0, end_pct: 40, easing: 'ease-out',
+          label: { en: 'Eccentric · Sled Descent', es: 'Excéntrica · Descenso del Trineo', pt: 'Excêntrica · Descida do Trenó' },
+          cue:   { en: 'Lower the sled with strict, deliberate control, allowing the knees to travel forward over the toes until maximal safe depth is achieved.',
+                   es: 'Baja el trineo con control estricto y deliberado, permitiendo que las rodillas avancen sobre los dedos del pie hasta lograr la profundidad máxima segura.',
+                   pt: 'Abaixe o trenó com controle estrito e deliberado, permitindo que os joelhos avancem sobre os dedos do pé até alcançar a profundidade máxima segura.' } },
+        { id: 'isometric', start_pct: 40, end_pct: 50, easing: 'linear',
+          label: { en: 'Isometric · Bottom Hold', es: 'Isométrica · Pausa Inferior', pt: 'Isométrica · Pausa no Fundo' },
+          cue:   { en: 'Pause motionless in the deep squat to dissipate downward momentum and maximize mechanical tension on the quadriceps.',
+                   es: 'Haz una pausa sin movimiento en la sentadilla profunda para disipar el impulso descendente y maximizar la tensión mecánica sobre los cuádriceps.',
+                   pt: 'Faça uma pausa sem movimento no agachamento profundo para dissipar o impulso descendente e maximizar a tensão mecânica sobre os quadríceps.' } },
+        { id: 'concentric', start_pct: 50, end_pct: 90, easing: 'ease-in',
+          label: { en: 'Concentric · Sled Drive', es: 'Concéntrica · Empuje del Trineo', pt: 'Concêntrica · Impulso do Trenó' },
+          cue:   { en: 'Drive forcefully upward through the mid-foot, extending the knees and hips simultaneously to return to the starting position without locking out the joints.',
+                   es: 'Empuja con fuerza hacia arriba desde la planta media del pie, extendiendo las rodillas y caderas simultáneamente para volver a la posición inicial sin bloquear las articulaciones.',
+                   pt: 'Empurre com força para cima através do meio do pé, estendendo joelhos e quadris simultaneamente para retornar à posição inicial sem travar as articulações.' } },
+        { id: 'reset', start_pct: 90, end_pct: 100, easing: 'ease-in-out',
+          label: { en: 'Reset · Soft Lockout', es: 'Reinicio · Bloqueo Suave', pt: 'Reinício · Travamento Suave' },
+          cue:   { en: 'Maintain quad tension.', es: 'Mantén la tensión del cuádriceps.', pt: 'Mantenha a tensão do quadríceps.' } }
+      ],
+      keyframes: [
+        { t: 0.00, phase: 'eccentric',
+          joints: {
+            head: { x: 0.25, y: 0.20 },
+            shoulder_l: { x: 0.30, y: 0.35 }, shoulder_r: { x: 0.30, y: 0.35 },
+            hip_l:      { x: 0.40, y: 0.55 }, hip_r:      { x: 0.40, y: 0.55 },
+            knee_l:     { x: 0.55, y: 0.60 }, knee_r:     { x: 0.55, y: 0.60 },
+            ankle_l:    { x: 0.65, y: 0.85 }, ankle_r:    { x: 0.65, y: 0.85 },
+            elbow_l:    { x: 0.30, y: 0.45 }, elbow_r:    { x: 0.30, y: 0.45 },
+            wrist_l:    { x: 0.30, y: 0.30 }, wrist_r:    { x: 0.30, y: 0.30 }
+          } },
+        { t: 0.40, phase: 'eccentric',
+          joints: {
+            head: { x: 0.15, y: 0.40 },
+            shoulder_l: { x: 0.20, y: 0.55 }, shoulder_r: { x: 0.20, y: 0.55 },
+            hip_l: { x: 0.30, y: 0.75 }, hip_r: { x: 0.30, y: 0.75 },
+            knee_l: { x: 0.50, y: 0.75 }, knee_r: { x: 0.50, y: 0.75 },
+            elbow_l: { x: 0.20, y: 0.65 }, elbow_r: { x: 0.20, y: 0.65 },
+            wrist_l: { x: 0.20, y: 0.50 }, wrist_r: { x: 0.20, y: 0.50 }
+          } },
+        { t: 0.50, phase: 'isometric', joints: {} },
+        { t: 0.90, phase: 'concentric',
+          joints: {
+            head: { x: 0.25, y: 0.20 },
+            shoulder_l: { x: 0.30, y: 0.35 }, shoulder_r: { x: 0.30, y: 0.35 },
+            hip_l: { x: 0.40, y: 0.55 }, hip_r: { x: 0.40, y: 0.55 },
+            knee_l: { x: 0.55, y: 0.60 }, knee_r: { x: 0.55, y: 0.60 },
+            elbow_l: { x: 0.30, y: 0.45 }, elbow_r: { x: 0.30, y: 0.45 },
+            wrist_l: { x: 0.30, y: 0.30 }, wrist_r: { x: 0.30, y: 0.30 }
+          } },
+        { t: 1.00, phase: 'reset', joints: {} }
+      ]
+    },
+
+    equipment: [
+      { type: 'machine_pad', attach: ['shoulder_l', 'hip_l'] },
+      { type: 'bench',       attach: ['ankle_l'] }
+    ],
+
+    kineticPath: {
+      default: { label: { en: 'Sled Path', es: 'Trayectoria del Trineo', pt: 'Trajetória do Trenó' },
+                 d: 'M 0.40 0.55 L 0.30 0.75' },
+      endpoints: [{ x: 0.40, y: 0.55 }, { x: 0.30, y: 0.75 }],
+      labels: [
+        { x: 0.45, y: 0.50, text: { en: 'Top',       es: 'Arriba',             pt: 'Topo' } },
+        { x: 0.20, y: 0.80, text: { en: 'Max Depth', es: 'Profundidad Máxima', pt: 'Profundidade Máxima' } }
+      ]
+    },
+
+    forms: {
+      ok: {
+        chipLabel: { en: 'Standard Form', es: 'Forma Estándar', pt: 'Forma Padrão' },
+        callouts: [
+          { from: 'hip_l', to: { x: 0.15, y: 0.65 },
+            lines: [{ en: 'Pelvis pinned to pad', es: 'Pelvis fijada al respaldo', pt: 'Pelve fixada ao encosto' }] }
+        ],
+        metrics: {
+          dev: '± 1.0 cm',
+          tuck: { en: 'Neutral Spine',  es: 'Columna Neutra',          pt: 'Coluna Neutra' },
+          load: { en: 'Quad Isolation', es: 'Aislamiento de Cuádriceps', pt: 'Isolamento do Quadríceps' },
+          fn:   { en: 'Clinical reference overlay', es: 'Capa de referencia clínica', pt: 'Camada de referência clínica' }
+        },
+        haloAt: null
+      },
+      warn: {
+        chipLabel: { en: 'Common Fault: Butt Wink', es: 'Falla Común: Butt Wink (Hundimiento Pélvico)', pt: 'Falha Comum: Butt Wink (Inclinação Pélvica)' },
+        callouts: [
+          { from: 'hip_l', to: { x: 0.15, y: 0.65 }, warn: true,
+            lines: [{ en: 'Pelvis tucks · Lumbar shear',
+                      es: 'Pelvis se inclina · Cizalla lumbar',
+                      pt: 'Pelve inclina · Cisalhamento lombar' }] }
+        ],
+        metrics: {
+          dev: '± 4.0 cm',
+          tuck: { en: 'Posterior Tilt',      es: 'Inclinación Posterior', pt: 'Inclinação Posterior' },
+          load: { en: 'Lower Back Overload', es: 'Sobrecarga Lumbar',     pt: 'Sobrecarga Lombar' },
+          fn:   { en: 'Fault pattern · Hips peel off the back pad at the bottom',
+                  es: 'Patrón de falla · Las caderas se despegan del respaldo en el fondo',
+                  pt: 'Padrão de falha · Quadris desencostam do encosto no fundo' }
+        },
+        haloAt: 'hip_l',
+        keyframesOverride: [
+          { t: 0.40, joints: { hip_l: { x: 0.35, y: 0.75 }, hip_r: { x: 0.35, y: 0.75 } } }
+        ]
+      }
+    },
+
+    metricLabels: {
+      dev:  { en: 'Path Dev.',     es: 'Desv. Trayectoria', pt: 'Desv. Trajetória' },
+      tuck: { en: 'Pelvic Anchor', es: 'Anclaje Pélvico',   pt: 'Ancoragem Pélvica' },
+      load: { en: 'Muscle Bias',   es: 'Sesgo Muscular',    pt: 'Viés Muscular' }
+    }
+  };
+
+  // ─── BARBELL BENCH PRESS (V2 · Batch 6) ──────────────────
+  // LEGACY CLEAROUT: alias 'bench press' clears the legacy static
+  // entry via the conflict resolver. Library is now 100% V2 after
+  // this entry registers.
+  var BARBELL_BENCH_PRESS = {
+    id: 'barbell_bench_press',
+    displayName: 'Barbell Bench Press',
+    aliases: ['barbell bench press', 'flat barbell bench press', 'flat bench', 'bb bench press', 'barbell flat press', 'bench press', 'flat barbell press'],
+
+    title: {
+      en: 'Clinical Protocol: Barbell Bench Press',
+      es: 'Protocolo Clínico: Press de Banca con Barra',
+      pt: 'Protocolo Clínico: Supino com Barra'
+    },
+    subtitle: {
+      en: 'Transverse Plane · Barbell · Sovereign Rig',
+      es: 'Plano Transversal · Barra · Equipo Soberano',
+      pt: 'Plano Transversal · Barra · Equipamento Soberano'
+    },
+    muscleTarget: {
+      en: 'Primary: Pectoralis Major. Secondary: Anterior Deltoid, Triceps Brachii.',
+      es: 'Primario: Pectoral Mayor. Secundarios: Deltoides Anterior, Tríceps Braquial.',
+      pt: 'Primário: Peitoral Maior. Secundários: Deltoide Anterior, Tríceps Braquial.'
+    },
+    clinicalNotes: {
+      en: 'Perfect Sovereign execution demands retracted and depressed scapulae pinned rigidly into the bench to establish a stable pressing platform, ensuring strict isolation of the pectorals and protecting the glenohumeral capsule. The kinetic chain relies on a stable five-point contact system and active leg drive transferring force through a highly braced torso, entirely preventing energy leakage. Optimal joint health is preserved by maintaining a slight elbow tuck (45-to-60-degree angle to the torso) during the descent, ensuring the barbell touches the lower chest to strictly avoid subacromial impingement.',
+      es: 'La ejecución soberana perfecta exige escápulas retraídas y deprimidas rígidamente fijadas al banco para establecer una plataforma de presión estable, garantizando el aislamiento estricto de los pectorales y protegiendo la cápsula glenohumeral. La cadena cinética depende de un sistema estable de cinco puntos de contacto y un empuje activo de las piernas transfiriendo fuerza a través de un torso altamente activado, evitando por completo la fuga de energía. La salud articular óptima se preserva manteniendo una ligera retracción del codo (ángulo de 45 a 60 grados respecto al torso) durante el descenso, asegurando que la barra toque el pecho inferior para evitar estrictamente el pinzamiento subacromial.',
+      pt: 'A execução soberana perfeita exige escápulas retraídas e deprimidas rigidamente pressionadas ao banco para estabelecer uma plataforma de pressão estável, garantindo o isolamento estrito dos peitorais e protegendo a cápsula glenoumeral. A cadeia cinética depende de um sistema estável de cinco pontos de contato e impulso ativo das pernas transferindo força através de um torso altamente ativado, prevenindo completamente a perda de energia. A saúde articular ótima é preservada mantendo uma leve retração do cotovelo (ângulo de 45 a 60 graus em relação ao torso) durante a descida, garantindo que a barra toque o peito inferior para evitar estritamente o impacto subacromial.'
+    },
+    svgTitle: {
+      en: 'Bench Press Sagittal Wireframe',
+      es: 'Wireframe Sagital de Press de Banca',
+      pt: 'Wireframe Sagital de Supino'
+    },
+
+    plane: 'sagittal', facing: 'right', ground: { y: 0.92 },
+    jointSpec: STD_JOINT_SPEC, bones: STD_BONES,
+
+    animation: {
+      duration_ms: 3500, loop: true, direction: 'normal', easing: 'ease-in-out',
+      phases: [
+        { id: 'eccentric', start_pct: 0, end_pct: 40, easing: 'ease-out',
+          label: { en: 'Eccentric · Loaded Descent', es: 'Excéntrica · Descenso con Carga', pt: 'Excêntrica · Descida Carregada' },
+          cue:   { en: 'Lower the barbell with deliberate pacing toward the lower sternum until a maximal, safe stretch is achieved across the chest.',
+                   es: 'Baja la barra con un ritmo deliberado hacia el esternón inferior hasta lograr un estiramiento máximo y seguro en el pecho.',
+                   pt: 'Abaixe a barra com ritmo deliberado em direção ao esterno inferior até alcançar um alongamento máximo e seguro no peito.' } },
+        { id: 'isometric', start_pct: 40, end_pct: 50, easing: 'linear',
+          label: { en: 'Isometric · Chest Touch', es: 'Isométrica · Toque al Pecho', pt: 'Isométrica · Toque no Peito' },
+          cue:   { en: 'Pause the barbell motionless on the chest to dissipate elastic recoil and maximize mechanical tension on the pectoralis fibers.',
+                   es: 'Haz una pausa con la barra sin movimiento en el pecho para disipar el rebote elástico y maximizar la tensión mecánica en las fibras del pectoral.',
+                   pt: 'Faça uma pausa com a barra sem movimento no peito para dissipar o recuo elástico e maximizar a tensão mecânica nas fibras do peitoral.' } },
+        { id: 'concentric', start_pct: 50, end_pct: 90, easing: 'ease-in',
+          label: { en: 'Concentric · Press Drive', es: 'Concéntrica · Empuje de Presión', pt: 'Concêntrica · Impulso de Pressão' },
+          cue:   { en: 'Drive the barbell forcefully upward and slightly backward over the shoulders through a strict contraction of the chest and triceps.',
+                   es: 'Empuja la barra con fuerza hacia arriba y ligeramente hacia atrás sobre los hombros mediante una contracción estricta del pecho y los tríceps.',
+                   pt: 'Empurre a barra com força para cima e ligeiramente para trás sobre os ombros através de uma contração estrita do peito e dos tríceps.' } },
+        { id: 'reset', start_pct: 90, end_pct: 100, easing: 'ease-in-out',
+          label: { en: 'Reset · Lockout Dwell', es: 'Reinicio · Pausa en Bloqueo', pt: 'Reinício · Pausa no Travamento' },
+          cue:   { en: 'Maintain scapular retraction.', es: 'Mantén la retracción escapular.', pt: 'Mantenha a retração escapular.' } }
+      ],
+      keyframes: [
+        { t: 0.00, phase: 'eccentric',
+          joints: {
+            head: { x: 0.25, y: 0.55 },
+            shoulder_l: { x: 0.35, y: 0.55 }, shoulder_r: { x: 0.35, y: 0.55 },
+            hip_l:      { x: 0.65, y: 0.55 }, hip_r:      { x: 0.65, y: 0.55 },
+            knee_l:     { x: 0.75, y: 0.70 }, knee_r:     { x: 0.75, y: 0.70 },
+            ankle_l:    { x: 0.65, y: 0.92 }, ankle_r:    { x: 0.65, y: 0.92 },
+            elbow_l:    { x: 0.40, y: 0.30 }, elbow_r:    { x: 0.40, y: 0.30 },
+            wrist_l:    { x: 0.35, y: 0.15 }, wrist_r:    { x: 0.35, y: 0.15 }
+          } },
+        { t: 0.40, phase: 'eccentric',
+          joints: {
+            elbow_l: { x: 0.45, y: 0.65 }, elbow_r: { x: 0.45, y: 0.65 },
+            wrist_l: { x: 0.45, y: 0.45 }, wrist_r: { x: 0.45, y: 0.45 }
+          } },
+        { t: 0.50, phase: 'isometric', joints: {} },
+        { t: 0.90, phase: 'concentric',
+          joints: {
+            elbow_l: { x: 0.40, y: 0.30 }, elbow_r: { x: 0.40, y: 0.30 },
+            wrist_l: { x: 0.35, y: 0.15 }, wrist_r: { x: 0.35, y: 0.15 }
+          } },
+        { t: 1.00, phase: 'reset', joints: {} }
+      ]
+    },
+
+    equipment: [
+      { type: 'bar',   attach: ['wrist_l', 'wrist_r'] },
+      { type: 'bench', attach: ['shoulder_l', 'hip_l'] }
+    ],
+
+    kineticPath: {
+      default: { label: { en: 'Press J-Curve', es: 'Curva-J de Presión', pt: 'Curva-J de Pressão' },
+                 d: 'M 0.35 0.15 L 0.45 0.45' },
+      endpoints: [{ x: 0.35, y: 0.15 }, { x: 0.45, y: 0.45 }],
+      labels: [
+        { x: 0.30, y: 0.10, text: { en: 'Lockout',       es: 'Bloqueo',          pt: 'Travamento' } },
+        { x: 0.50, y: 0.45, text: { en: 'Sternum Touch', es: 'Toque al Esternón', pt: 'Toque no Esterno' } }
+      ]
+    },
+
+    forms: {
+      ok: {
+        chipLabel: { en: 'Standard Form', es: 'Forma Estándar', pt: 'Forma Padrão' },
+        callouts: [
+          { from: 'shoulder_l', to: { x: 0.20, y: 0.40 },
+            lines: [{ en: 'Scapulae pinned to bench', es: 'Escápulas fijadas al banco', pt: 'Escápulas fixadas ao banco' }] }
+        ],
+        metrics: {
+          dev: '± 1.0 cm',
+          tuck: { en: 'Retracted',     es: 'Retraídas',     pt: 'Retraídas' },
+          load: { en: 'Pectoral Bias', es: 'Sesgo Pectoral', pt: 'Viés Peitoral' },
+          fn:   { en: 'Clinical reference overlay', es: 'Capa de referencia clínica', pt: 'Camada de referência clínica' }
+        },
+        haloAt: null
+      },
+      warn: {
+        chipLabel: { en: 'Common Fault: Scapular Flare', es: 'Falla Común: Apertura Escapular', pt: 'Falha Comum: Abertura Escapular' },
+        callouts: [
+          { from: 'shoulder_l', to: { x: 0.20, y: 0.40 }, warn: true,
+            lines: [{ en: 'Shoulders lift · Impingement risk',
+                      es: 'Hombros se elevan · Riesgo de pinzamiento',
+                      pt: 'Ombros sobem · Risco de impacto' }] }
+        ],
+        metrics: {
+          dev: '± 4.0 cm',
+          tuck: { en: 'Protracted',                es: 'Protraídas',                       pt: 'Protraídas' },
+          load: { en: 'Anterior Delt Overload',    es: 'Sobrecarga del Deltoides Anterior', pt: 'Sobrecarga do Deltoide Anterior' },
+          fn:   { en: 'Fault pattern · Shoulders roll off bench to assist press',
+                  es: 'Patrón de falla · Los hombros se despegan del banco para asistir el empuje',
+                  pt: 'Padrão de falha · Ombros desencostam do banco para auxiliar a pressão' }
+        },
+        haloAt: 'shoulder_l',
+        keyframesOverride: [
+          { t: 0.90, joints: { shoulder_l: { x: 0.35, y: 0.45 }, shoulder_r: { x: 0.35, y: 0.45 },
+                               elbow_l: { x: 0.40, y: 0.25 }, wrist_l: { x: 0.35, y: 0.10 } } }
+        ]
+      }
+    },
+
+    metricLabels: {
+      dev:  { en: 'Path Dev.',       es: 'Desv. Trayectoria',  pt: 'Desv. Trajetória' },
+      tuck: { en: 'Scapular Anchor', es: 'Anclaje Escapular',  pt: 'Ancoragem Escapular' },
+      load: { en: 'Joint Load',      es: 'Carga Articular',    pt: 'Carga Articular' }
+    }
+  };
+
   // ─── REGISTRATIONS ───────────────────────────────────────
   // Append new Blueprints to this array as they ship from the War Room.
+  // Final batch milestone: hack_squats and barbell_bench_press clear
+  // the legacy static 'hack squat' and 'bench press' entries via the
+  // alias-conflict resolver. Library is now 100% V2 fully articulated.
   var BLUEPRINTS = [
     BARBELL_BACK_SQUAT,
     BICEPS_CURLS,
@@ -4020,7 +4753,12 @@
     SEATED_MACHINE_ABDUCTION,
     CABLE_OVERHEAD_TRICEPS_EXTENSION,
     EZ_BAR_PREACHER_CURLS,
-    MACHINE_CRUNCHES
+    MACHINE_CRUNCHES,
+    GLUTE_BIAS_BACK_EXTENSIONS,
+    SUPPORTED_KNEE_RAISES,
+    PLANK,
+    HACK_SQUATS,
+    BARBELL_BENCH_PRESS
   ];
 
   BLUEPRINTS.forEach(function (bp) {
