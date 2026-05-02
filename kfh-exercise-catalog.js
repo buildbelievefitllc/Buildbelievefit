@@ -235,16 +235,26 @@ var BBF_KFH_CATALOG = (function () {
   // will populate this via register(key, entry, aliases).
   var ALIASES = {};
 
+  // ─── KEY NORMALIZATION ───────────────────────────────────
+  // STRICT case-insensitive contract: every key, alias, and lookup
+  // query goes through _normKey() before touching EXERCISES /
+  // ALIASES. UI payloads like "Biceps curls" / "BICEP CURL" /
+  // "  back squat  " all collapse to the same canonical form, so
+  // a single registered alias serves every casing the UI sends.
+  function _normKey(s) {
+    return s == null ? '' : String(s).toLowerCase().trim();
+  }
+
   // ─── LOOKUP ──────────────────────────────────────────────
-  // Resolution order:
-  //   1. Exact match on primary key (lowercased)
+  // Resolution order (all comparisons case-insensitive):
+  //   1. Exact match on primary key
   //   2. Exact match on registered alias
   //   3. Substring fuzzy match against any primary key
   // Mirrors the Phase 11 behavior so existing callers (e.g. the
   // exercise-row click handler) keep hitting the same entries.
   function getExercise(name) {
-    if (!name) return null;
-    var raw = String(name).toLowerCase().trim();
+    var raw = _normKey(name);
+    if (!raw) return null;
     if (EXERCISES[raw]) return EXERCISES[raw];
     if (ALIASES[raw] && EXERCISES[ALIASES[raw]]) return EXERCISES[ALIASES[raw]];
     for (var key in EXERCISES) {
@@ -262,14 +272,17 @@ var BBF_KFH_CATALOG = (function () {
   // either a legacy static one or a transpiled Phase 12 entry.
   // registerBlueprint(bp) runs the Blueprint through BBF_KFH_TRANSPILER
   // first, then registers the resulting entry under bp.id + bp.aliases.
+  // All keys + aliases are case-insensitive (see _normKey).
   function register(key, entry, aliases) {
-    if (!key || !entry) return false;
-    var primary = String(key).toLowerCase().trim();
+    if (!entry) return false;
+    var primary = _normKey(key);
+    if (!primary) return false;
     EXERCISES[primary] = entry;
     if (aliases && aliases.length) {
       aliases.forEach(function (a) {
-        if (!a) return;
-        ALIASES[String(a).toLowerCase().trim()] = primary;
+        var aliasKey = _normKey(a);
+        if (!aliasKey) return;
+        ALIASES[aliasKey] = primary;
       });
     }
     return true;
@@ -291,11 +304,10 @@ var BBF_KFH_CATALOG = (function () {
       // placeholder. We only clear LEGACY entries (no animation block);
       // existing Blueprint primaries are left alone so two Blueprints
       // with overlapping aliases don't silently delete each other.
-      var primaryKey = String(bp.id).toLowerCase().trim();
+      var primaryKey = _normKey(bp.id);
       aliases.forEach(function (a) {
-        if (!a) return;
-        var aliasKey = String(a).toLowerCase().trim();
-        if (aliasKey === primaryKey) return;
+        var aliasKey = _normKey(a);
+        if (!aliasKey || aliasKey === primaryKey) return;
         var existing = EXERCISES[aliasKey];
         if (existing && !existing.animation) {
           delete EXERCISES[aliasKey];
