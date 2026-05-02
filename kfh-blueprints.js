@@ -1871,7 +1871,7 @@
   var SEATED_DB_SHOULDER_PRESS = {
     id: 'seated_db_shoulder_press',
     displayName: 'Seated DB Shoulder Press',
-    aliases: ['seated db shoulder press', 'seated dumbbell shoulder press', 'db overhead press', 'dumbbell overhead press', 'seated ohp', 'db shoulder press', 'dumbbell military press', 'seated dumbbell presses'],
+    aliases: ['seated db shoulder press', 'seated dumbbell shoulder press', 'db overhead press', 'dumbbell overhead press', 'seated ohp', 'db shoulder press', 'dumbbell military press', 'seated dumbbell presses', 'shoulder press', 'shoulder presses'],
 
     title: {
       en: 'Clinical Protocol: Seated DB Shoulder Press',
