@@ -877,7 +877,7 @@
   var TRICEPS_PUSHDOWNS = {
     id: 'triceps_pushdowns',
     displayName: 'Triceps Pushdowns',
-    aliases: ['tricep pushdown', 'triceps pushdown', 'tricep pushdowns', 'triceps pushdowns', 'cable pushdowns'],
+    aliases: ['tricep pushdown', 'triceps pushdown', 'tricep pushdowns', 'triceps pushdowns', 'cable pushdowns', 'rope tricep push down', 'rope triceps pushdown', 'rope pushdowns'],
 
     title: {
       en: 'Clinical Protocol: Triceps Pushdowns',
@@ -1299,7 +1299,7 @@
   var HEAVY_LEG_PRESS = {
     id: 'heavy_leg_press',
     displayName: 'Heavy Leg Press',
-    aliases: ['heavy leg press', 'leg presses', 'machine leg press', '45-degree leg press', 'seated leg press', 'incline leg press'],
+    aliases: ['heavy leg press', 'leg presses', 'machine leg press', '45-degree leg press', 'seated leg press', 'incline leg press', 'leg press'],
 
     title: {
       en: 'Clinical Protocol: Heavy Leg Press',
@@ -3008,7 +3008,7 @@
   var SEATED_CALF_RAISES = {
     id: 'seated_calf_raises',
     displayName: 'Seated Calf Raises',
-    aliases: ['seated calf raises', 'machine seated calf raises', 'soleus raises', 'seated calf machine', 'bent-knee calf raises'],
+    aliases: ['seated calf raises', 'machine seated calf raises', 'soleus raises', 'seated calf machine', 'bent-knee calf raises', 'calf raises', 'calf raise'],
 
     title: {
       en: 'Clinical Protocol: Seated Calf Raises',
@@ -3576,7 +3576,7 @@
   var CABLE_OVERHEAD_TRICEPS_EXTENSION = {
     id: 'cable_overhead_triceps_extension',
     displayName: 'Cable Overhead Triceps Extension',
-    aliases: ['cable overhead triceps extension', 'overhead cable extensions', 'rope overhead extensions', 'overhead triceps press', 'cable french press', 'high pulley overhead extensions'],
+    aliases: ['cable overhead triceps extension', 'overhead cable extensions', 'rope overhead extensions', 'overhead triceps press', 'cable french press', 'high pulley overhead extensions', 'overhead triceps extension', 'overhead tricep extension'],
 
     title: {
       en: 'Clinical Protocol: Overhead Triceps Extension',
