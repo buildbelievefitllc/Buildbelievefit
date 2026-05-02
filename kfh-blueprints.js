@@ -3285,7 +3285,7 @@
   var MACHINE_CHEST_PRESS = {
     id: 'machine_chest_press',
     displayName: 'Machine Chest Press',
-    aliases: ['machine chest press', 'seated chest press', 'machine press', 'chest press machine', 'seated machine chest press', 'hammer strength chest press', 'neutral grip machine press'],
+    aliases: ['machine chest press', 'seated chest press', 'machine press', 'chest press machine', 'seated machine chest press', 'hammer strength chest press', 'neutral grip machine press', 'chest press', 'chest presses'],
 
     title: {
       en: 'Clinical Protocol: Machine Chest Press',
@@ -3433,7 +3433,7 @@
   var SEATED_MACHINE_ABDUCTION = {
     id: 'seated_machine_abduction',
     displayName: 'Seated Machine Abduction',
-    aliases: ['seated machine abduction', 'hip abductor machine', 'machine hip abductions', 'seated abductions', 'outer thigh machine', 'machine outer thighs', 'glute abduction machine'],
+    aliases: ['seated machine abduction', 'hip abductor machine', 'machine hip abductions', 'seated abductions', 'outer thigh machine', 'machine outer thighs', 'glute abduction machine', 'hip abduction', 'hip abductions'],
 
     title: {
       en: 'Clinical Protocol: Seated Machine Abduction',
@@ -3851,7 +3851,7 @@
   var MACHINE_CRUNCHES = {
     id: 'machine_crunches',
     displayName: 'Machine Crunches',
-    aliases: ['machine crunches', 'seated machine crunches', 'ab machine', 'abdominal crunch machine', 'weighted crunches', 'seated ab crunches'],
+    aliases: ['machine crunches', 'seated machine crunches', 'ab machine', 'abdominal crunch machine', 'weighted crunches', 'seated ab crunches', 'abdominal crunches', 'ab crunches', 'crunches'],
 
     title: {
       en: 'Clinical Protocol: Machine Crunches',
