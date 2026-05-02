@@ -285,6 +285,23 @@ var BBF_KFH_CATALOG = (function () {
       var entry = BBF_KFH_TRANSPILER.transpile(bp);
       var aliases = (bp.aliases || []).slice();
       if (bp.displayName) aliases.push(bp.displayName);
+
+      // A Blueprint that claims an alias matching a legacy static entry
+      // takes precedence — the animated hologram replaces the static
+      // placeholder. We only clear LEGACY entries (no animation block);
+      // existing Blueprint primaries are left alone so two Blueprints
+      // with overlapping aliases don't silently delete each other.
+      var primaryKey = String(bp.id).toLowerCase().trim();
+      aliases.forEach(function (a) {
+        if (!a) return;
+        var aliasKey = String(a).toLowerCase().trim();
+        if (aliasKey === primaryKey) return;
+        var existing = EXERCISES[aliasKey];
+        if (existing && !existing.animation) {
+          delete EXERCISES[aliasKey];
+        }
+      });
+
       return register(bp.id, entry, aliases);
     } catch (e) {
       console.warn('[BBF_KFH_CATALOG] Blueprint transpile failed for', bp.id, '-', e && e.message);
