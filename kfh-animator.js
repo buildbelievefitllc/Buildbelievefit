@@ -162,53 +162,59 @@ var BBF_KFH_ANIMATOR = (function () {
     for (var ei = 0; ei < eqs.length; ei++) {
       var eq = eqs[ei];
       if (!eq.attach || !eq.attach.length) continue;
-      var node = _stage.querySelector('[data-bp-equip="' + ei + '"]');
-      if (!node) continue;
 
-      // Two-attach equipment (bar/trap_bar) → line endpoints + plates at midpoint
-      if (eq.attach.length === 2 && (node.tagName.toLowerCase() === 'line')) {
-        var a = _interpJoint(_timelines[eq.attach[0]], t, easingName);
-        var b = _interpJoint(_timelines[eq.attach[1]], t, easingName);
-        if (!a || !b) continue;
-        _setAttr(node, 'x1', (a.x * W).toFixed(2));
-        _setAttr(node, 'y1', (a.y * H).toFixed(2));
-        _setAttr(node, 'x2', (b.x * W).toFixed(2));
-        _setAttr(node, 'y2', (b.y * H).toFixed(2));
-        var plates = _stage.querySelectorAll('[data-bp-plate="' + ei + '"]');
-        if (plates && plates.length) {
-          var cx = ((a.x + b.x) / 2 * W).toFixed(2);
-          var cy = ((a.y + b.y) / 2 * H).toFixed(2);
-          for (var p = 0; p < plates.length; p++) {
-            _setAttr(plates[p], 'cx', cx);
-            _setAttr(plates[p], 'cy', cy);
+      // Compute current attach-joint positions and their midpoint average.
+      // Used by every equipment type below — bar endpoints, dumbbell
+      // center, stability ball center, plate-stack center, etc.
+      var positions = [];
+      for (var k = 0; k < eq.attach.length; k++) {
+        var jp = _interpJoint(_timelines[eq.attach[k]], t, easingName);
+        if (jp) positions.push(jp);
+      }
+      if (!positions.length) continue;
+      var sumX = 0, sumY = 0;
+      for (var pi = 0; pi < positions.length; pi++) {
+        sumX += positions[pi].x;
+        sumY += positions[pi].y;
+      }
+      var avgCx = (sumX / positions.length * W).toFixed(2);
+      var avgCy = (sumY / positions.length * H).toFixed(2);
+
+      // Update the primary equipment node.
+      var node = _stage.querySelector('[data-bp-equip="' + ei + '"]');
+      if (node) {
+        var tag = node.tagName.toLowerCase();
+        var et  = eq.type || '';
+        if (tag === 'line') {
+          if (et === 'cable_column') {
+            // Cable line tail follows attach[0] (the wrist); x1/y1 anchor
+            // at the pulley head stays static.
+            _setAttr(node, 'x2', (positions[0].x * W).toFixed(2));
+            _setAttr(node, 'y2', (positions[0].y * H).toFixed(2));
+          } else if (positions.length >= 2) {
+            // Bar / trap_bar: line spans both attach joints.
+            _setAttr(node, 'x1', (positions[0].x * W).toFixed(2));
+            _setAttr(node, 'y1', (positions[0].y * H).toFixed(2));
+            _setAttr(node, 'x2', (positions[1].x * W).toFixed(2));
+            _setAttr(node, 'y2', (positions[1].y * H).toFixed(2));
           }
+        } else if (tag === 'circle') {
+          // Single-attach (dumbbell/kettlebell), multi-attach circle
+          // (stability_ball, plate-stack outer disc) — center on the
+          // averaged attach midpoint.
+          _setAttr(node, 'cx', avgCx);
+          _setAttr(node, 'cy', avgCy);
         }
-        continue;
       }
 
-      // Single-attach (dumbbell/kettlebell circle, cable line tail)
-      if (eq.attach.length >= 1) {
-        var pos = _interpJoint(_timelines[eq.attach[0]], t, easingName);
-        if (!pos) continue;
-        if (node.tagName.toLowerCase() === 'circle') {
-          _setAttr(node, 'cx', (pos.x * W).toFixed(2));
-          _setAttr(node, 'cy', (pos.y * H).toFixed(2));
-        } else if (node.tagName.toLowerCase() === 'line') {
-          // Cable column: x2/y2 follow the wrist; x1/y1 are the static anchor (untouched).
-          _setAttr(node, 'x2', (pos.x * W).toFixed(2));
-          _setAttr(node, 'y2', (pos.y * H).toFixed(2));
-        }
-        // Stability ball: average all attach joints for the ball center
-        if (node.tagName.toLowerCase() === 'circle' && eq.attach.length > 1) {
-          var sumX = 0, sumY = 0, n = 0;
-          for (var k = 0; k < eq.attach.length; k++) {
-            var jp = _interpJoint(_timelines[eq.attach[k]], t, easingName);
-            if (jp) { sumX += jp.x; sumY += jp.y; n++; }
-          }
-          if (n > 0) {
-            _setAttr(node, 'cx', (sumX / n * W).toFixed(2));
-            _setAttr(node, 'cy', (sumY / n * H).toFixed(2));
-          }
+      // Update any data-bp-plate children for this equipment index. Used
+      // by both bar's plate stack at the bar midpoint AND plate-type
+      // equipment's concentric discs at the attach midpoint.
+      var plates = _stage.querySelectorAll('[data-bp-plate="' + ei + '"]');
+      if (plates && plates.length) {
+        for (var p = 0; p < plates.length; p++) {
+          _setAttr(plates[p], 'cx', avgCx);
+          _setAttr(plates[p], 'cy', avgCy);
         }
       }
     }

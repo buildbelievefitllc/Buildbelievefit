@@ -183,6 +183,41 @@ var BBF_KFH_TRANSPILER = (function () {
       return;
     }
 
+    if (t === 'plate') {
+      // Stacked weight plates anchored to attach joints (e.g. leg press
+      // foot platform between the two ankles, or a single weight clamped
+      // to one wrist). Sovereign-styled concentric discs — outer disc is
+      // the platform / primary plate (data-bp-equip — animator updates
+      // cx/cy each frame from the attach-joint midpoint), inner discs
+      // are the loaded plate stack (data-bp-plate — animator updates
+      // them via the shared plates loop). Reuses kfh-wf-plate styling.
+      var pp1, pp2;
+      if (eq.attach && eq.attach.length === 2) {
+        pp1 = _initialPos(bp, eq.attach[0]);
+        pp2 = _initialPos(bp, eq.attach[1]);
+      } else if (eq.attach && eq.attach.length === 1) {
+        pp1 = pp2 = _initialPos(bp, eq.attach[0]);
+      } else {
+        pp1 = pp2 = { x: eq.x != null ? eq.x : 0.5, y: eq.y != null ? eq.y : 0.5 };
+      }
+      var pmidX = (pp1.x + pp2.x) / 2 * W;
+      var pmidY = (pp1.y + pp2.y) / 2 * H;
+      var pOuterR = eq.radius != null ? (eq.radius * Math.min(W, H)) : 14;
+      parts.push(
+        '<circle class="kfh-wf-plate" data-bp-equip="' + ei + '" ' +
+          'cx="' + num(pmidX) + '" cy="' + num(pmidY) + '" r="' + num(pOuterR, 1) + '"/>'
+      );
+      parts.push(
+        '<circle class="kfh-wf-plate" data-bp-plate="' + ei + '" ' +
+          'cx="' + num(pmidX) + '" cy="' + num(pmidY) + '" r="' + num(pOuterR * 0.65, 1) + '"/>'
+      );
+      parts.push(
+        '<circle class="kfh-wf-plate" data-bp-plate="' + ei + '" ' +
+          'cx="' + num(pmidX) + '" cy="' + num(pmidY) + '" r="' + num(pOuterR * 0.30, 1) + '"/>'
+      );
+      return;
+    }
+
     if (t === 'stability_ball') {
       var radius = (eq.radius != null ? eq.radius : 0.10) * Math.min(W, H);
       var center;
