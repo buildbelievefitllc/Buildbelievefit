@@ -423,7 +423,7 @@
   var ROMANIAN_DEADLIFT = {
     id: 'romanian_deadlift',
     displayName: 'Romanian Deadlift',
-    aliases: ['rdl', 'romanian deadlifts', 'stiff leg deadlift'],
+    aliases: ['rdl', 'rdls', 'romanian deadlift', 'romanian deadlifts', 'stiff leg deadlift', 'stiff leg deadlifts'],
 
     title: {
       en: 'Clinical Protocol: Romanian Deadlift',
@@ -572,7 +572,7 @@
   var LAT_PULLDOWNS = {
     id: 'lat_pulldowns',
     displayName: 'Lat Pulldowns',
-    aliases: ['lat pulldown', 'pulldowns', 'cable pulldown'],
+    aliases: ['lat pulldown', 'lat pulldowns', 'cable pulldown', 'cable pulldowns', 'pulldowns'],
 
     title: {
       en: 'Clinical Protocol: Lat Pulldowns',
@@ -717,7 +717,7 @@
   var WALKING_LUNGES = {
     id: 'walking_lunges',
     displayName: 'Walking Lunges',
-    aliases: ['walking lunge', 'lunges', 'dumbbell lunges'],
+    aliases: ['walking lunge', 'walking lunges', 'lunges', 'dumbbell lunges', 'dumbbell walking lunges'],
 
     title: {
       en: 'Clinical Protocol: Walking Lunges',
@@ -877,7 +877,7 @@
   var TRICEPS_PUSHDOWNS = {
     id: 'triceps_pushdowns',
     displayName: 'Triceps Pushdowns',
-    aliases: ['tricep pushdown', 'triceps pushdown', 'cable pushdowns'],
+    aliases: ['tricep pushdown', 'triceps pushdown', 'tricep pushdowns', 'triceps pushdowns', 'cable pushdowns'],
 
     title: {
       en: 'Clinical Protocol: Triceps Pushdowns',
@@ -1012,7 +1012,7 @@
   var LATERAL_RAISES = {
     id: 'lateral_raises',
     displayName: 'Lateral Raises',
-    aliases: ['lateral raise', 'side raises', 'dumbbell lateral raise'],
+    aliases: ['lateral raise', 'lateral raises', 'side raises', 'dumbbell lateral raise', 'dumbbell lateral raises'],
 
     title: {
       en: 'Clinical Protocol: Lateral Raises',
