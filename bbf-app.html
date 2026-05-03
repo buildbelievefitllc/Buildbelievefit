@@ -170,6 +170,13 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ap-progression-lock-ic{font-size:1.4rem;margin-bottom:.45rem;opacity:.75;filter:drop-shadow(0 0 8px rgba(212,175,55,.35))}
 .ap-progression-lock-t{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.85rem;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.82);margin-bottom:.3rem}
 .ap-progression-lock-s{font-size:.78rem;line-height:1.5;max-width:42ch;margin:0 auto;color:var(--mut)}
+.ap-progression-lock[hidden]{display:none!important}
+.ap-progression-lock.is-dissolving{opacity:0;transform:translateY(-6px);transition:opacity .32s ease-out,transform .32s ease-out;pointer-events:none}
+.ap-progression-cta[aria-disabled="true"]{cursor:default;pointer-events:none}
+.ap-progression-cta.is-acknowledged{background:linear-gradient(180deg,rgba(245,200,0,.18) 0%,rgba(212,175,55,.12) 100%);color:#F5CF60;box-shadow:inset 0 0 0 1px rgba(245,200,0,.42),0 4px 14px rgba(245,200,0,.16)}
+.ap-progression-cta.is-acknowledged:hover{filter:none;box-shadow:inset 0 0 0 1px rgba(245,200,0,.42),0 4px 14px rgba(245,200,0,.16)}
+.ap-progression-cta.is-acknowledged .ap-progression-cta-ic{background:#F5CF60;color:#1B1106}
+.ap-progression-cta.is-acknowledged .ap-progression-cta-s{color:rgba(245,200,0,.62)}
 /* ═ Pathfinder Admin Sports Console (admin-only RBAC view inside tp-recalibrate) ═ */
 .pf-admin-banner{display:flex;align-items:center;justify-content:center;gap:.55rem;margin:0 0 .9rem;padding:.7rem .9rem;background:linear-gradient(90deg,rgba(139,26,191,.2) 0%,rgba(106,13,173,.14) 100%);border:1px solid rgba(157,39,201,.45);border-radius:12px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.74rem;letter-spacing:2.6px;text-transform:uppercase;color:#D8A8FF;font-weight:800}
 .pf-admin-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#9D27C9;box-shadow:0 0 12px #9D27C9;animation:apPulse 2.2s ease-in-out infinite}
@@ -183,7 +190,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .pf-denied-ic{font-size:2.2rem;margin-bottom:.55rem;opacity:.85;filter:drop-shadow(0 0 12px rgba(239,68,68,.45))}
 .pf-denied-t{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1rem;letter-spacing:3.5px;text-transform:uppercase;color:#FFB4B4;margin-bottom:.45rem;font-weight:900}
 .pf-denied-s{font-size:.82rem;line-height:1.5;max-width:46ch;margin:0 auto;color:var(--mut)}
-@media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving{transition:none}.pf-admin-dot{animation:none}}
+@media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving,.ap-progression-lock.is-dissolving{transition:none}.pf-admin-dot{animation:none}}
 /* ═ Phase 3 — Athlete Kinematic HUD (scoped port of .kfh-*) ═ */
 .ap-kfh-wrap{margin-top:1rem;animation:apProtoRise .5s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
 .ap-kfh-wrap[hidden]{display:none!important}
@@ -5774,7 +5781,7 @@ window.onload=function(){
                 <span class="ap-progression-cta-t">Mark Protocol Complete</span>
                 <span class="ap-progression-cta-s">Unlocks the Athlete Form HUD</span>
               </button>
-              <div class="ap-progression-lock" id="ap-phase2-lock">
+              <div class="ap-progression-lock" id="ap-phase2-lock" data-state="locked">
                 <div class="ap-progression-lock-ic" aria-hidden="true">&#x1F512;</div>
                 <div class="ap-progression-lock-t">Phase 2 &middot; Form HUD Locked</div>
                 <div class="ap-progression-lock-s">Acknowledge protocol completion above to unlock the Athlete Kinematic Form HUD &mdash; biomechanical scanner with valgus collapse and ACL shear detection.</div>
@@ -10625,6 +10632,56 @@ document.addEventListener('DOMContentLoaded', function() {
       renderProtocol();
     }
 
+    // ── Phase 2 unlock-state propagator ────────────────────────────
+    // Single source of truth: state.protocolCompleted. All four UI
+    // regions subscribe through this one path so they can never drift:
+    //   (a) lock card  (b) CTA button  (c) footer status  (d) HUD mount
+    // (d) is handled by renderProtocol() since it owns the kinematic
+    // wireframe; this function owns a/b/c.
+    function syncPhase2UI(opts){
+      opts = opts || {};
+      var unlocked = state.protocolCompleted === true;
+      var lock     = document.getElementById('ap-phase2-lock');
+      var cta      = document.getElementById('ap-protocol-complete-btn');
+      var status   = document.getElementById('ap-status');
+      // (a) Lock placeholder card
+      if (lock) {
+        if (unlocked) {
+          lock.setAttribute('data-state','unlocked');
+          if (opts.animate && lock.hidden !== true) {
+            lock.classList.add('is-dissolving');
+            setTimeout(function(){
+              lock.classList.remove('is-dissolving');
+              lock.hidden = true;
+            }, 340);
+          } else {
+            lock.classList.remove('is-dissolving');
+            lock.hidden = true;
+          }
+        } else {
+          lock.classList.remove('is-dissolving');
+          lock.hidden = false;
+          lock.setAttribute('data-state','locked');
+        }
+      }
+      // (b) Mark Protocol Complete CTA
+      if (cta) {
+        cta.classList.toggle('is-acknowledged', unlocked);
+        cta.setAttribute('aria-disabled', unlocked ? 'true' : 'false');
+        cta.setAttribute('data-state', unlocked ? 'acknowledged' : 'pending');
+        var ctaT = cta.querySelector('.ap-progression-cta-t');
+        var ctaS = cta.querySelector('.ap-progression-cta-s');
+        if (ctaT) ctaT.textContent = unlocked ? 'Protocol Acknowledged' : 'Mark Protocol Complete';
+        if (ctaS) ctaS.textContent = unlocked ? 'Form HUD Active' : 'Unlocks the Athlete Form HUD';
+      }
+      // (c) Footer status bar
+      if (status) {
+        status.textContent = unlocked
+          ? '🔓 Phase 2 — Form HUD active. Selections persist on this device.'
+          : '🔒 Phase 2 — interactive matrix live. Selections persist on this device.';
+      }
+    }
+
     // ── Protocol renderer ──────────────────────────────────────────
     function renderList(ul, items){
       if (!ul) return;
@@ -10650,6 +10707,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (protoEmpty) protoEmpty.style.display = '';
         if (hudWrap)    hudWrap.hidden = true;
         if (gate)       gate.hidden = true;
+        // Footer lives outside the gate, so we still sync its locked
+        // copy here even though the gate itself is hidden.
+        syncPhase2UI();
         return;
       }
       proto.setAttribute('data-state','ready');
@@ -10669,11 +10729,16 @@ document.addEventListener('DOMContentLoaded', function() {
       // Admin/trainer auditing happens in the Pathfinder Admin Portal —
       // this view is pure Client and acts uniformly. The CEO QA's the
       // gate by switching to a test client account (CU/VC swap).
+      // The gate container stays visible whenever selections are
+      // complete; the lock card / CTA / footer all subscribe to
+      // state.protocolCompleted via syncPhase2UI() — no more divergent
+      // unlock paths between regions.
       var unlocked = state.protocolCompleted === true;
       if (gate) {
         gate.classList.remove('is-dissolving');
-        gate.hidden = unlocked;
+        gate.hidden = false;
       }
+      syncPhase2UI();
       if (hudWrap) {
         hudWrap.hidden = !unlocked;
         if (unlocked) {
@@ -10712,18 +10777,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var completeCta = document.getElementById('ap-protocol-complete-btn');
     if (completeCta) {
       completeCta.addEventListener('click', function(){
-        // Mutate state, persist, then dissolve the gate and reveal the HUD.
+        // Re-click guard: the CTA stays visible after acknowledgment as
+        // an "acknowledged" affordance, but cannot re-trigger the unlock.
+        if (completeCta.getAttribute('aria-disabled') === 'true') return;
+        // Mutate state, persist, then propagate to all four regions.
         state.protocolCompleted = true;
         persist();
-        var gate    = document.getElementById('ap-progression-gate');
+        syncPhase2UI({ animate: true });
         var hudWrap = document.getElementById('ap-kfh-wrap');
-        if (gate) {
-          gate.classList.add('is-dissolving');
-          setTimeout(function(){
-            gate.hidden = true;
-            gate.classList.remove('is-dissolving');
-          }, 340);
-        }
         if (hudWrap) {
           hudWrap.hidden = false;
           // eslint-disable-next-line no-unused-expressions
