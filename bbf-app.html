@@ -174,6 +174,15 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .pf-admin-banner{display:flex;align-items:center;justify-content:center;gap:.55rem;margin:0 0 .9rem;padding:.7rem .9rem;background:linear-gradient(90deg,rgba(139,26,191,.2) 0%,rgba(106,13,173,.14) 100%);border:1px solid rgba(157,39,201,.45);border-radius:12px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.74rem;letter-spacing:2.6px;text-transform:uppercase;color:#D8A8FF;font-weight:800}
 .pf-admin-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#9D27C9;box-shadow:0 0 12px #9D27C9;animation:apPulse 2.2s ease-in-out infinite}
 .pf-admin-sub{font-size:.82rem;line-height:1.5;color:var(--mut2);margin:0 0 .2rem;padding:0 .15rem}
+.nv.pf-admin-nav[hidden]{display:none!important}
+.nv.pf-admin-nav svg{stroke:#D8A8FF}
+.nv.pf-admin-nav.on svg{stroke:#9D27C9}
+.nv.pf-admin-nav span{color:#D8A8FF}
+.nv.pf-admin-nav.on span{color:#9D27C9}
+.pf-denied{margin-top:1.4rem;padding:1.6rem 1.2rem;background:linear-gradient(150deg,rgba(40,8,8,.55) 0%,rgba(10,10,15,.78) 60%,rgba(38,12,12,.5) 100%);border:1px dashed rgba(239,68,68,.4);border-radius:14px;text-align:center;color:rgba(255,255,255,.78)}
+.pf-denied-ic{font-size:2.2rem;margin-bottom:.55rem;opacity:.85;filter:drop-shadow(0 0 12px rgba(239,68,68,.45))}
+.pf-denied-t{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1rem;letter-spacing:3.5px;text-transform:uppercase;color:#FFB4B4;margin-bottom:.45rem;font-weight:900}
+.pf-denied-s{font-size:.82rem;line-height:1.5;max-width:46ch;margin:0 auto;color:var(--mut)}
 @media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving{transition:none}.pf-admin-dot{animation:none}}
 /* ═ Phase 3 — Athlete Kinematic HUD (scoped port of .kfh-*) ═ */
 .ap-kfh-wrap{margin-top:1rem;animation:apProtoRise .5s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
@@ -6027,17 +6036,16 @@ window.onload=function(){
 
     <!-- RECALIBRATE -->
     <div class="tp" id="tp-recalibrate">
-      <!-- ═══ PATHFINDER · STRICT RBAC ═══════════════════════════════════════
-           Athletes (role=client): see the Re-Calibrate plan form (#pf-client-view)
-           Admins (role=trainer/admin or uid=akeem): see the Pathfinder Admin
-           Sports Console (#pf-admin-view) — unrestricted Sport→Position→Phase
-           protocol audit, no progressionCompleted gate. The Pathfinder Admin
-           IIFE at script load detects role and toggles which view is visible.
+      <!-- ═══ SPORTS ADMIN CONSOLE · STRICT RBAC ═════════════════════════════
+           Tab is admin-only. Nav button (#pf-admin-nav-btn) is hidden for
+           non-admins, so they can't reach this view via the bottom nav.
+           Defensive guard in the IIFE renders an Access Denied state if a
+           non-admin lands here via direct hash/URL.
       ═════════════════════════════════════════════════════════════════════ -->
 
-      <!-- ─── Pathfinder Admin Sports Console (admin-only) ─────────── -->
-      <div id="pf-admin-view" hidden>
-        <div class="sh"><span class="stt">Pathfinder &middot; Admin Sports Console</span></div>
+      <!-- ─── Sports Admin Sports Console (admin view) ─────────── -->
+      <div id="pf-admin-view">
+        <div class="sh"><span class="stt">Sports Admin Console</span></div>
         <div class="pf-admin-banner" role="status">
           <span class="pf-admin-dot" aria-hidden="true"></span>
           <span>Admin Auditing Mode &middot; Unrestricted Protocol Access</span>
@@ -6114,53 +6122,12 @@ window.onload=function(){
         </section>
       </div>
 
-      <!-- ─── Re-Calibrate Plan form (non-admin client view — preserved) ─── -->
-      <div id="pf-client-view">
-      <div class="sh"><span class="stt" data-lang-key="app-recalibrate">Re-Calibrate Your Plan</span></div>
-      <div style="background:var(--gry);border:1px solid #1e1e1e;border-radius:14px;padding:1.2rem;margin-bottom:1rem">
-        <p style="font-size:0.85rem;color:var(--mut2);margin-bottom:1rem">Refine your targets or update your clinical history. We'll regenerate your Sovereign Plan immediately.</p>
-        <div class="af">
-          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Full Name</label>
-          <input type="text" id="rc-name" placeholder="Marcus Johnson" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;margin-bottom:1rem;font-family:var(--bd)"/>
-        </div>
-        <div class="af">
-          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Vault Email</label>
-          <input type="email" id="rc-email" placeholder="marcus@email.com" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;margin-bottom:1rem;font-family:var(--bd)"/>
-        </div>
-        <div class="af" style="display:flex;gap:1rem;margin-bottom:1rem">
-          <div style="flex:1">
-            <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Age</label>
-            <input type="number" id="rc-age" placeholder="28" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
-          </div>
-          <div style="flex:1">
-            <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Weight (lbs)</label>
-            <input type="number" id="rc-wt" placeholder="185" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
-          </div>
-        </div>
-        <div class="af" style="margin-bottom:1rem">
-          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Height (ft / in)</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
-            <input type="number" id="rc-ft" placeholder="ft" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
-            <input type="number" id="rc-in" placeholder="in" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
-          </div>
-        </div>
-        <div class="af" style="margin-bottom:1rem">
-          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Training Focus</label>
-          <select id="rc-focus" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd);-webkit-appearance:none">
-            <option value="Hypertrophy">Hypertrophy (Build Muscle)</option>
-            <option value="Fat Loss">Fat Loss (Leaning Out)</option>
-            <option value="Body Recomp">Body Recomp</option>
-            <option value="Strength">Pure Strength</option>
-          </select>
-        </div>
-        <div class="af" style="margin-bottom:1rem">
-          <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Health Notes / Injuries</label>
-          <textarea id="rc-hlth" placeholder="Any injuries or limitations?" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;min-height:80px;font-family:var(--bd)"></textarea>
-        </div>
-        <button id="rc-submit" onclick="submitRecalibrate()" style="width:100%;padding:1rem;background:linear-gradient(180deg,#F2D769 0%,#E6C24F 25%,#D4AF37 55%,#A8862A 100%);color:#0a0a0a;font-family:var(--hb);font-size:1rem;letter-spacing:2px;border:1px solid #F2D769;border-radius:8px;cursor:pointer;margin-top:1rem;box-shadow:0 6px 22px rgba(212,175,55,.38)">GENERATE NEW PLAN</button>
-        <div id="rc-msg" style="margin-top:1rem;text-align:center;font-size:0.85rem;font-weight:700"></div>
+      <!-- ─── Access Denied (defensive — non-admin direct-link/hash entry) ─── -->
+      <div id="pf-denied-view" class="pf-denied" hidden role="alert">
+        <div class="pf-denied-ic" aria-hidden="true">&#x1F6AB;</div>
+        <div class="pf-denied-t">Access Denied</div>
+        <div class="pf-denied-s">This section is reserved for the Sovereign administrative tier. Contact the head coach if you believe this is in error.</div>
       </div>
-      </div><!-- /#pf-client-view -->
     </div>
   </div>
   <!-- NAV -->
@@ -6171,7 +6138,7 @@ window.onload=function(){
     <button class="nv" data-tab="log"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span data-lang-key="app-nav-log">Log</span></button>
     <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span data-lang-key="app-nav-prehab">Prehab</span></button>
     <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-lang-key="app-nav-profile">Profile</span></button>
-    <button class="nv" data-tab="recalibrate"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span data-lang-key="app-nav-recalibrate">Pathfinder</span></button>
+    <button class="nv pf-admin-nav" data-tab="recalibrate" id="pf-admin-nav-btn" hidden aria-label="Sports Admin Console"><svg viewBox="0 0 24 24"><path d="M6 9V6a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3"/><path d="M5 9h14"/><path d="M8 9v3a4 4 0 0 0 8 0V9"/><path d="M10 17v4"/><path d="M14 17v4"/><path d="M9 21h6"/></svg><span>Sports Admin</span></button>
   </div>
 
   <!-- ═══ BIOMETRIC YIELD REPORT — Sovereign Clinical Synthesis ═══ -->
@@ -10752,12 +10719,14 @@ document.addEventListener('DOMContentLoaded', function() {
   })();
 
   // ═══════════════════════════════════════════════════════════════
-  // PATHFINDER ADMIN SPORTS CONSOLE — strict RBAC, lives inside
-  // tp-recalibrate. Admins see this view; clients see the existing
-  // Re-Calibrate Plan form. Runs once on DOMContentLoaded then re-
-  // checks every time the user navigates to the tab (handles VC swap
-  // mid-session). The protocol grid renders without any progression
-  // gate — admin auditing is unrestricted by design.
+  // SPORTS ADMIN CONSOLE — strict RBAC, lives at tp-recalibrate.
+  // The bottom-nav button (#pf-admin-nav-btn) is hidden for non-admins
+  // so the tab is unreachable via UI. If a non-admin lands here via
+  // direct hash/URL, the IIFE renders an Access Denied state instead
+  // of the admin console. Re-evaluates on every tab activation so a
+  // mid-session VC swap (CEO → test-client → CEO) flips correctly.
+  // The protocol grid renders without any progression gate — admin
+  // auditing is unrestricted by design.
   // ═══════════════════════════════════════════════════════════════
   (function pathfinderAdminPortal(){
     function _bbfIsAdmin(){
@@ -10775,8 +10744,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     var pfAdmin  = document.getElementById('pf-admin-view');
-    var pfClient = document.getElementById('pf-client-view');
-    if (!pfAdmin || !pfClient) return;
+    var pfDenied = document.getElementById('pf-denied-view');
+    var pfNavBtn = document.getElementById('pf-admin-nav-btn');
+    if (!pfAdmin) return;
 
     // Ephemeral selection state — admin auditing is session-scoped, no persistence.
     var pfState = { sport:'', position:'', phase:'off' };
@@ -10892,13 +10862,16 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function(){ pfSetPhase(btn.getAttribute('data-phase')); });
     });
 
-    // Resolve which view to render based on role. Re-runs every time
-    // the user navigates to the Pathfinder tab so a mid-session VC
-    // swap (CEO → test client → CEO) flips the views correctly.
+    // Resolve view + nav-button visibility based on role. Re-runs on
+    // every tp-recalibrate tab activation so a mid-session VC swap
+    // (CEO → test client → CEO) flips correctly without a reload.
     function resolvePathfinderRBAC(){
       var isAdmin = _bbfIsAdmin();
+      // Admin view + Access Denied are mutually exclusive.
       pfAdmin.hidden  = !isAdmin;
-      pfClient.hidden =  isAdmin;
+      if (pfDenied) pfDenied.hidden = isAdmin;
+      // Bottom-nav button visibility — hide entirely for non-admins.
+      if (pfNavBtn) pfNavBtn.hidden = !isAdmin;
       if (isAdmin) {
         pfPopulatePositions(pfState.sport);
         pfSetPhase(pfState.phase);
