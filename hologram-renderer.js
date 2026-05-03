@@ -284,14 +284,51 @@ var BBF_HOLOGRAM = (function() {
     return stage;
   }
 
+  // Inject a single <style> block that wins the cascade against
+  // .kfh-stage svg / canvas (which are z-index:1 in the page CSS).
+  // Class-based + !important so no other script can drag the SVG
+  // back into view while V3 owns the stage.
+  function _ensureV3Stylesheet() {
+    if (document.getElementById('bbf-v3-stylesheet')) return;
+    var st = document.createElement('style');
+    st.id = 'bbf-v3-stylesheet';
+    st.textContent =
+      '.kfh-stage.kfh-v3-active > svg,' +
+      '.kfh-stage.kfh-v3-active #kfh-svg{' +
+        'display:none !important;' +
+        'visibility:hidden !important;' +
+        'opacity:0 !important;' +
+        'pointer-events:none !important;' +
+      '}' +
+      '.kfh-stage.kfh-v3-active{position:relative !important;}' +
+      '.kfh-stage.kfh-v3-active > canvas#kfh-3d-stage{' +
+        'position:absolute !important;' +
+        'top:0 !important;' +
+        'left:0 !important;' +
+        'width:100% !important;' +
+        'height:100% !important;' +
+        'z-index:9999 !important;' +
+        'display:block !important;' +
+        'aspect-ratio:auto !important;' +
+        'pointer-events:auto;' +
+      '}';
+    document.head.appendChild(st);
+  }
+
   function _setV2SvgVisible(visible) {
     var svg = document.getElementById('kfh-svg');
     if (!svg) return;
     if (visible) {
-      svg.style.display = '';
+      svg.style.removeProperty('display');
+      svg.style.removeProperty('visibility');
+      svg.style.removeProperty('opacity');
       svg.removeAttribute('aria-hidden');
     } else {
-      svg.style.display = 'none';
+      // Belt-and-suspenders: inline !important on top of the V3
+      // class rules in case a stray script clears className.
+      svg.style.setProperty('display',    'none',   'important');
+      svg.style.setProperty('visibility', 'hidden', 'important');
+      svg.style.setProperty('opacity',    '0',      'important');
       svg.setAttribute('aria-hidden', 'true');
     }
   }
@@ -343,7 +380,7 @@ var BBF_HOLOGRAM = (function() {
       overlay.className = 'kfh-3d-overlay';
       overlay.style.cssText = [
         'position:absolute', 'left:8px', 'top:6px', 'right:8px',
-        'pointer-events:none', 'z-index:11',
+        'pointer-events:none', 'z-index:10000',
         'font-family:"Bebas Neue","Barlow Condensed",sans-serif',
         'color:#f5c800',
         'text-shadow:0 0 6px rgba(245,200,0,.5)'
@@ -386,7 +423,10 @@ var BBF_HOLOGRAM = (function() {
     // the Bio-Render stage before re-init.
     if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
 
-    if (stage) _detachOverlay(stage);
+    if (stage) {
+      stage.classList.remove('kfh-v3-active');
+      _detachOverlay(stage);
+    }
     _setV2SvgVisible(true);
     _v3ActiveExerciseId = null;
     _v3InitInFlight = false;
@@ -402,11 +442,22 @@ var BBF_HOLOGRAM = (function() {
     var h = stage.offsetHeight || 200;
     canvas.width  = w;
     canvas.height = h;
-    canvas.style.cssText =
-      'position:absolute;top:0;left:0;width:100%;height:100%;display:block;z-index:2';
-    if (getComputedStyle(stage).position === 'static') {
-      stage.style.position = 'relative';
-    }
+
+    // Belt-and-suspenders inline styles with !important — the V3
+    // stylesheet (#bbf-v3-stylesheet) carries the same rules via
+    // class .kfh-v3-active so we are double-covered against the
+    // page-level `.kfh-stage canvas { z-index:1 }` cascade.
+    var s = canvas.style;
+    s.setProperty('position',     'absolute', 'important');
+    s.setProperty('top',          '0',        'important');
+    s.setProperty('left',         '0',        'important');
+    s.setProperty('width',        '100%',     'important');
+    s.setProperty('height',       '100%',     'important');
+    s.setProperty('display',      'block',    'important');
+    s.setProperty('z-index',      '9999',     'important');
+    s.setProperty('aspect-ratio', 'auto',     'important');
+
+    stage.style.setProperty('position', 'relative', 'important');
     stage.appendChild(canvas);
     return canvas;
   }
@@ -425,6 +476,8 @@ var BBF_HOLOGRAM = (function() {
     }
 
     var R = window.BBF_KFH_3D_RENDERER;
+    _ensureV3Stylesheet();
+    stage.classList.add('kfh-v3-active');
     _setV2SvgVisible(false);
 
     var canvas = _ensureCanvasInStage(stage);
