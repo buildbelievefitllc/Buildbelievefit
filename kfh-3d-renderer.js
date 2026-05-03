@@ -224,6 +224,27 @@ function render() {
   }
 }
 
+// Resize the WebGL renderer + camera projection to match a new
+// container size. Used by BBF_HOLOGRAM when re-parenting the
+// kfh-3d-stage canvas into the active exercise card's viewport
+// (Phase 13 / B3-3 Option B). Safe to call before the rig has
+// loaded; the inner-size update applies to the next render.
+function resize(w, h) {
+  if (!_state.renderer || !_state.camera) return;
+  const W = Math.max(1, w | 0);
+  const H = Math.max(1, h | 0);
+  _state.renderer.setSize(W, H, false);
+  _state.camera.aspect = W / H;
+  _state.camera.updateProjectionMatrix();
+  if (_state.canvas) {
+    _state.canvas.width  = W;
+    _state.canvas.height = H;
+  }
+  if (_state.loaded && !_state.rafId) {
+    _state.renderer.render(_state.scene, _state.camera);
+  }
+}
+
 function show() {
   if (_state.canvas) {
     _state.canvas.hidden = false;
@@ -368,7 +389,7 @@ function setAnimationMode(mode) {
 function isAnimating() { return _state.rafId != null; }
 
 const api = {
-  init, render, show, hide,
+  init, render, resize, show, hide,
   isLoaded, getBones, getScene, getYBot,
   startAnimation, stopAnimation, setAnimationMode, isAnimating,
   SOVEREIGN
@@ -379,7 +400,7 @@ if (typeof window !== 'undefined') {
 }
 
 export {
-  init, render, show, hide,
+  init, render, resize, show, hide,
   isLoaded, getBones, getScene, getYBot,
   startAnimation, stopAnimation, setAnimationMode, isAnimating,
   SOVEREIGN

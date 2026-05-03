@@ -2540,11 +2540,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
       .then(function () {
         verifyRig(getBones());
         window.BBF_KFH_3D_READY = true;
-        // If the IIFE bootstrapped the Back Squat before the rig
-        // finished loading, retry the 3D engage path now.
-        if (typeof window.KFH_RETRY_3D === 'function') {
-          try { window.KFH_RETRY_3D(); } catch (e) {}
-        }
+        console.log('%c[KFH-3D] rig ready — Option B per-card button can engage on click',
+                    'color:#22C55E;font-weight:bold');
       })
       .catch(function (err) {
         console.warn('[KFH-3D] init failed — Sovereign Sentinel SVG remains active:', err);
@@ -5097,7 +5094,7 @@ window.onload=function(){
             <button type="button" class="kfh-chip on ok"   data-form="ok"   role="radio" aria-checked="true"  onclick="KFH_SET_FORM('ok')"><span class="kfh-pip"></span><span id="kfh-chip-ok-text">Standard Form</span></button>
             <button type="button" class="kfh-chip warn"    data-form="warn" role="radio" aria-checked="false" onclick="KFH_SET_FORM('warn')"><span class="kfh-pip"></span><span id="kfh-chip-warn-text">Common Fault</span></button>
           </div>
-          <div class="kfh-stage">
+          <div class="kfh-stage" id="kfh-3d-canvas-home">
             <svg id="kfh-svg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kfh-svg-title" role="img">
               <title id="kfh-svg-title"></title>
               <g id="kfh-svg-stage" aria-hidden="true"></g>
@@ -5200,99 +5197,12 @@ window.onload=function(){
            manages the lifecycle; KFH_SET_FORM forwards mode changes. */
         var _kfhAnimHandle = null;
 
-        /* ── Phase 13 / B3-3 · V3 3D Engine Path A Pilot ──────────
-           Only a hand-picked Blueprint id list flips to the WebGL
-           Mixamo rig. Every other Blueprint (32 of 33) stays on the
-           V2 SVG Sentinel. The Set is consulted by reference inside
-           KFH_LOAD_EXERCISE and updated only when a new pilot ships.
-           B3-3 final target: Lat Pulldowns (frontal-plane overhead
-           reach exercises both arms; the angle-normalization step in
-           the bridge keeps each upper-arm bone on its short arc). */
-        var KFH_3D_PILOTED_IDS = { 'lat_pulldowns': true };
-        var _kfh3DActive       = false;
-        var _kfh3DPendingExer  = null;  // remembered if rig loads after click
-
-        function _is3DEligible(data){
-          if (!data || !data.id) return false;
-          if (!KFH_3D_PILOTED_IDS[data.id]) return false;
-          if (!window.BBF_KFH_3D_READY) return false;
-          if (!window.BBF_KFH_3D_RENDERER) return false;
-          return true;
-        }
-
-        function _kfhFallbackToV2(reason){
-          if (!_kfh3DActive) return;
-          console.warn('[KFH] reverting to V2 SVG Sentinel — reason:', reason || 'unknown');
-          _kfh3DActive = false;
-          var svg = byId('kfh-svg');
-          var canvas = byId('kfh-3d-stage');
-          if (svg) svg.style.display = '';
-          if (canvas) {
-            canvas.hidden = true;
-            canvas.setAttribute('aria-hidden', 'true');
-          }
-          if (window.BBF_KFH_3D_RENDERER && window.BBF_KFH_3D_RENDERER.stopAnimation) {
-            try { window.BBF_KFH_3D_RENDERER.stopAnimation(); } catch(e){}
-          }
-          // Re-arm the V2 animator on the same exercise data so the
-          // Sentinel resumes seamlessly.
-          var data = currentExercise;
-          var stage = byId('kfh-svg-stage');
-          if (stage && data && data.animation && typeof BBF_KFH_ANIMATOR !== 'undefined') {
-            var rootEl = byId('kfh-root');
-            var startMode = (rootEl && rootEl.getAttribute('data-form')) || 'ok';
-            try { _kfhAnimHandle = BBF_KFH_ANIMATOR.start(stage, data.animation, startMode); }
-            catch(e){ _kfhAnimHandle = null; }
-          }
-        }
-
-        function _kfhEngage3D(data){
-          if (!_is3DEligible(data)) return false;
-          var svg    = byId('kfh-svg');
-          var canvas = byId('kfh-3d-stage');
-          if (!canvas) return false;
-          // Stop V2 animator before swapping surfaces — rAF callbacks
-          // shouldn't update SVG nodes while the canvas is the active view.
-          if (_kfhAnimHandle && typeof _kfhAnimHandle.stop === 'function') {
-            try { _kfhAnimHandle.stop(); } catch(e){}
-          }
-          _kfhAnimHandle = null;
-          if (svg) svg.style.display = 'none';
-          canvas.hidden = false;
-          canvas.removeAttribute('aria-hidden');
-
-          var rootEl = byId('kfh-root');
-          var startMode = (rootEl && rootEl.getAttribute('data-form')) || 'ok';
-          var ok = false;
-          try {
-            ok = window.BBF_KFH_3D_RENDERER.startAnimation(data.animation, startMode, {
-              onFallback: _kfhFallbackToV2
-            });
-          } catch(e) {
-            console.warn('[KFH-3D] startAnimation threw:', e && e.message);
-            ok = false;
-          }
-          if (!ok) {
-            _kfhFallbackToV2('start-failed');
-            return false;
-          }
-          window.BBF_KFH_3D_RENDERER.show();
-          _kfh3DActive = true;
-          _kfh3DPendingExer = null;
-          console.log('%c[KFH-3D] Path A engaged · ' + (data.id || 'unknown'),
-                      'color:#f5c800;font-weight:bold');
-          return true;
-        }
-
-        // Late-loading rig retry — bbf-app.html's ESM module calls
-        // window.KFH_RETRY_3D once the GLB finishes downloading. If the
-        // user already loaded the Back Squat we engage 3D now.
-        window.KFH_RETRY_3D = function(){
-          if (!_kfh3DPendingExer) return;
-          var data = _kfh3DPendingExer;
-          _kfh3DPendingExer = null;
-          _kfhEngage3D(data);
-        };
+        /* Phase 13 / B3-3 Option B note: the V3 3D engage path no
+           longer fires from KFH_LOAD_EXERCISE. The per-card "Kinetic
+           Hologram" button (BBF_HOLOGRAM.toggle in hologram-renderer.js)
+           owns the WebGL surface entirely. The Bio-Render pane stays
+           on the V2 SVG Sentinel for every Blueprint, including the
+           pilot. */
 
         function setMedia(src, type){
           var wrap = byId('kfh-media');
@@ -5354,22 +5264,6 @@ window.onload=function(){
             try { _kfhAnimHandle.stop(); } catch(e){}
           }
           _kfhAnimHandle = null;
-          /* If we were on the V3 3D path for the previous exercise, tear
-             down the canvas surface before swapping — every non-piloted
-             exercise must land on the V2 SVG Sentinel cleanly. */
-          if (_kfh3DActive && window.BBF_KFH_3D_RENDERER) {
-            try { window.BBF_KFH_3D_RENDERER.stopAnimation(); } catch(e){}
-            try { window.BBF_KFH_3D_RENDERER.hide(); } catch(e){}
-            _kfh3DActive = false;
-          }
-          var svgEl    = byId('kfh-svg');
-          var canvasEl = byId('kfh-3d-stage');
-          if (svgEl) svgEl.style.display = '';
-          if (canvasEl) {
-            canvasEl.hidden = true;
-            canvasEl.setAttribute('aria-hidden', 'true');
-          }
-
           if (stage) stage.innerHTML = data.svgMarkup || '';
           /* Phase 12 — kick off the rAF engine for fully articulated
              Blueprint-derived exercises. Legacy static entries omit
@@ -5383,22 +5277,6 @@ window.onload=function(){
               console.warn('[KFH] animator start failed:', e && e.message);
               _kfhAnimHandle = null;
             }
-          }
-
-          /* Phase 13 / B3-3 · Path A Pilot engage attempt.
-             If this Blueprint's id is in the 3D pilot allow-list
-             AND the rig is loaded, hand off to the WebGL renderer.
-             If the rig is still downloading we remember the pick so
-             KFH_RETRY_3D() can engage once it lands. */
-          if (data && data.id && KFH_3D_PILOTED_IDS[data.id]) {
-            if (window.BBF_KFH_3D_READY && window.BBF_KFH_3D_RENDERER) {
-              _kfhEngage3D(data);
-            } else {
-              _kfh3DPendingExer = data;
-              console.log('[KFH-3D] rig not ready yet — Sentinel SVG will hold until GLB lands');
-            }
-          } else {
-            _kfh3DPendingExer = null;
           }
 
           /* Form-mode chip labels */
@@ -5462,11 +5340,6 @@ window.onload=function(){
              overrides take effect immediately on chip toggle. */
           if (_kfhAnimHandle && typeof _kfhAnimHandle.setMode === 'function') {
             try { _kfhAnimHandle.setMode(mode); } catch(e){}
-          }
-          /* Phase 13 / B3-3 · forward mode to the 3D driver too so
-             warn keyframesOverride flows through Path A. */
-          if (_kfh3DActive && window.BBF_KFH_3D_RENDERER && window.BBF_KFH_3D_RENDERER.setAnimationMode) {
-            try { window.BBF_KFH_3D_RENDERER.setAnimationMode(mode); } catch(e){}
           }
 
           /* Pull metric/footnote values from the currently loaded exercise. */

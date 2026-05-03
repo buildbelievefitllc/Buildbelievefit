@@ -242,12 +242,151 @@ var BBF_HOLOGRAM = (function() {
     return true;
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // PHASE 13 / B3-3 · OPTION B · 3D Kinetic Hologram per-card path
+  //
+  // Hand-picked Blueprint ids drop the WebGL YBot rig into the
+  // exercise card's existing holo-N viewport instead of the V1 2D
+  // Sentinel canvas. We don't spin up a per-card three.js scene —
+  // the page-level kfh-3d-stage canvas (booted in bbf-app.html's
+  // inline ESM module) is re-parented into the active card and
+  // moved back to its Bio-Render home on retreat. The WebGL
+  // context survives the DOM move; we just resize the renderer.
+  //
+  // ID resolution intentionally goes through BBF_KFH_CATALOG so
+  // any case / alias variant of the user-facing name ("Lat Pulldown",
+  // "lat pulldowns", "Cable Pulldown", etc.) maps to the canonical
+  // Blueprint id ('lat_pulldowns') before the allow-list check.
+  // ═══════════════════════════════════════════════════════════════
+  var KFH_3D_PILOT_IDS = { 'lat_pulldowns': true };
+  var _v3ActiveContainerId = null;
+  var _v3CanvasHomeId      = null;
+
+  function _resolve3DEntry(exerciseName) {
+    if (typeof BBF_KFH_CATALOG === 'undefined' || !BBF_KFH_CATALOG.getExercise) return null;
+    var entry = BBF_KFH_CATALOG.getExercise(exerciseName);
+    if (!entry || !entry.id) return null;
+    if (!KFH_3D_PILOT_IDS[entry.id]) return null;
+    if (!entry.animation) return null;
+    return entry;
+  }
+
+  function _v3CanvasHome() {
+    // Resolve (and remember) the canvas's original parent so retreat()
+    // can put it back exactly where init() planted it. Falls back to
+    // the .kfh-stage div if the explicit id was never recorded.
+    if (_v3CanvasHomeId) {
+      var home = document.getElementById(_v3CanvasHomeId);
+      if (home) return home;
+    }
+    return document.querySelector('.kfh-stage') || document.body;
+  }
+
+  function _retreat3D() {
+    var canvas = document.getElementById('kfh-3d-stage');
+    if (window.BBF_KFH_3D_RENDERER && window.BBF_KFH_3D_RENDERER.stopAnimation) {
+      try { window.BBF_KFH_3D_RENDERER.stopAnimation(); } catch (e) {}
+    }
+    if (canvas) {
+      canvas.hidden = true;
+      canvas.setAttribute('aria-hidden', 'true');
+      canvas.style.cssText = ''; // strip card-fill styling
+      var home = _v3CanvasHome();
+      if (home && canvas.parentNode !== home) home.appendChild(canvas);
+    }
+    _v3ActiveContainerId = null;
+  }
+
+  function _engage3DInCard(container, entry) {
+    if (!container) return false;
+    if (!window.BBF_KFH_3D_RENDERER || !window.BBF_KFH_3D_READY) return false;
+    var canvas = document.getElementById('kfh-3d-stage');
+    if (!canvas) return false;
+
+    // Remember the canvas's original parent on first engage so we can
+    // put it back on retreat without leaving it parented inside a card.
+    if (!_v3CanvasHomeId && canvas.parentNode && canvas.parentNode.id) {
+      _v3CanvasHomeId = canvas.parentNode.id;
+    } else if (!_v3CanvasHomeId && canvas.parentNode) {
+      // .kfh-stage has no id; assign one so we can find our way home.
+      var p = canvas.parentNode;
+      if (!p.id) p.id = 'kfh-3d-canvas-home';
+      _v3CanvasHomeId = p.id;
+    }
+
+    // Hide any existing V1 2D canvas in this card so they don't stack.
+    var v2 = container.querySelector('.holo-canvas');
+    if (v2) v2.style.display = 'none';
+
+    // Re-parent the 3D canvas into this card's viewport.
+    container.style.position = 'relative';
+    if (canvas.parentNode !== container) container.appendChild(canvas);
+    canvas.hidden = false;
+    canvas.removeAttribute('aria-hidden');
+    canvas.style.cssText =
+      'position:absolute;top:0;left:0;width:100%;height:100%;display:block;z-index:10';
+
+    // Resize the WebGL renderer + camera projection for the card.
+    var w = container.offsetWidth  || 300;
+    var h = container.offsetHeight || 180;
+    if (window.BBF_KFH_3D_RENDERER.resize) {
+      try { window.BBF_KFH_3D_RENDERER.resize(w, h); } catch (e) {}
+    }
+
+    // Start the rep loop. The bridge derives every frame from the
+    // V2 keyframes — the form chip context isn't reachable from
+    // this surface yet, so we default to 'ok'.
+    var ok = false;
+    try {
+      ok = window.BBF_KFH_3D_RENDERER.startAnimation(entry.animation, 'ok', {
+        onFallback: _retreat3D
+      });
+    } catch (e) {
+      console.warn('[BBF_HOLOGRAM] V3 startAnimation threw:', e && e.message);
+      ok = false;
+    }
+    if (!ok) {
+      _retreat3D();
+      return false;
+    }
+
+    _v3ActiveContainerId = container.id;
+    console.log(
+      '%c[BBF_HOLOGRAM] V3 engaged · ' + entry.id + ' in ' + container.id,
+      'color:#f5c800;font-weight:bold'
+    );
+    return true;
+  }
+
   function toggle(containerId, exerciseName) {
     var container = document.getElementById(containerId);
     if (!container) return;
+
+    // ── 3D path · piloted Blueprint with rig ready ──────────
+    var pilotEntry = _resolve3DEntry(exerciseName);
+    if (pilotEntry) {
+      var canvas3D = document.getElementById('kfh-3d-stage');
+      var alreadyHere = (
+        _v3ActiveContainerId === containerId &&
+        canvas3D && !canvas3D.hidden && canvas3D.parentNode === container
+      );
+      if (alreadyHere) {
+        _retreat3D();
+        return;
+      }
+      // If the rig isn't ready yet, fall through to V1 2D so the
+      // user still gets a Sentinel; on the next click (after the
+      // GLB lands) the V3 path takes over.
+      if (window.BBF_KFH_3D_READY && _engage3DInCard(container, pilotEntry)) {
+        return;
+      }
+      console.warn('[BBF_HOLOGRAM] V3 rig not ready — falling back to V1 Sentinel for', exerciseName);
+    }
+
+    // ── V1 2D path · Sentinel + per-exercise mapping (legacy) ─
+    // Any prior 3D engagement parked the canvas in another card; we
+    // don't touch it from here — _retreat3D is owned by the 3D path.
     var canvas = container.querySelector('.holo-canvas');
-    // If canvas is visible and the exercise hasn't changed, collapse it (true toggle).
-    // If the exercise has changed, redraw with the new exercise instead of hiding.
     if (canvas && canvas.style.display !== 'none') {
       if (canvas.dataset.exercise === exerciseName) {
         canvas.style.display = 'none';
