@@ -76,12 +76,13 @@ function _setupScene(canvas) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(SOVEREIGN.matteBlack);
 
-  // Pulled in to (0,1.2,2.5) looking at the chest (0,1.0,0) per CEO
-  // Phase 7 directive — z=5 was an overcorrection that pushed the
-  // matte-black rig past usable contrast on a matte-black background.
-  const camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 100);
-  camera.position.set(0, 1.2, 2.5);
-  camera.lookAt(new THREE.Vector3(0, 1.0, 0));
+  // Cinematic frame · CEO Phase 8 directive. Camera centered on the
+  // rig's vertical midpoint (y≈0.8 for a 1.65-unit body) and pulled
+  // to z=4.5 with a standard 45° FOV — gives a full head-to-feet
+  // shot so we can verify lat-pulldown arm mechanics.
+  const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+  camera.position.set(0, 0.8, 4.5);
+  camera.lookAt(new THREE.Vector3(0, 0.8, 0));
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
