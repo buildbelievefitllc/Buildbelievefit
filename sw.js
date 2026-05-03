@@ -6,8 +6,8 @@
 // users get fresh assets on next load. Strategy is stale-while-revalidate
 // for GETs (POSTs bypass the SW entirely — see fetch handler below), so
 // without a version bump, updates can take two page loads to propagate.
-var CACHE = 'bbf-v51';
-var CORE = ['/bbf-app.html', '/manifest.json', '/bbf-icon-192.jpg', '/bbf-icon-512.jpg', '/bbf-apple-touch-180.jpg', '/bbf-photo.jpg'];
+var CACHE = 'bbf-v52';
+var CORE = ['/bbf-app.html', '/manifest.json', '/bbf-icon-192.jpg', '/bbf-icon-512.jpg', '/bbf-apple-touch-180.jpg', '/bbf-photo.jpg', '/public/models/ybot.glb'];
 
 // ─── INSTALL ─────────────────────────────────────────────────
 self.addEventListener('install', function(e) {

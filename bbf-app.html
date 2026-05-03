@@ -2503,6 +2503,41 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="kfh-transpiler.js"></script>
 <script src="kfh-animator.js"></script>
 <script src="kfh-blueprints.js"></script>
+<!-- ═══ V3 3D ENGINE · Phase 13 / B3-2 (modern ESM · static T-pose only) ═══
+     Importmap resolves bare specifiers for three + GLTFLoader from CDN.
+     Inline module imports the bridge + renderer (browser dedupes module loads),
+     boots the scene on DOMContentLoaded, and verifies the bone manifest against
+     the JOINT_TO_BONE table. Canvas stays hidden until B3-3 wires the toggle. -->
+<script type="importmap">
+{
+  "imports": {
+    "three":         "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+  import { verifyRig } from './kfh-3d-rig-bridge.js';
+  import { init, getBones } from './kfh-3d-renderer.js';
+
+  function bootKFH3D() {
+    var canvas = document.getElementById('kfh-3d-stage');
+    if (!canvas) {
+      console.warn('[KFH-3D] #kfh-3d-stage canvas not found — V3 layer disabled');
+      return;
+    }
+    init(canvas)
+      .then(function () { verifyRig(getBones()); })
+      .catch(function (err) {
+        console.warn('[KFH-3D] init failed — Sovereign Sentinel SVG remains active:', err);
+      });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootKFH3D, { once: true });
+  } else {
+    bootKFH3D();
+  }
+</script>
 <script src="bbf-translator.js"></script>
 <script src="bbf-util.js"></script>
 <script src="bbf-data.js"></script>
@@ -4001,6 +4036,10 @@ body.bbf-kairos .bbf-kairos-target {
   100% { transform: translateY(260px); opacity: 0; }
 }
 .kfh-stage svg { display: block; width: 100%; height: auto; position: relative; z-index: 1; }
+/* V3 3D layer — sibling canvas of the SVG, hidden by default until B3-3 wires the IIFE switch.
+   Sovereign Sentinel SVG drives the Bio-Render pane until the renderer is proven on this device. */
+.kfh-stage canvas { display: block; width: 100%; aspect-ratio: 320 / 200; position: relative; z-index: 1; }
+.kfh-stage canvas[hidden] { display: none; }
 /* Wireframe strokes */
 .kfh-wf { stroke: rgba(255,255,255,.55); stroke-width: 1.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .kfh-wf-bench { stroke: rgba(245,200,0,.55); stroke-width: 1.6; }
@@ -5044,6 +5083,9 @@ window.onload=function(){
               <title id="kfh-svg-title"></title>
               <g id="kfh-svg-stage" aria-hidden="true"></g>
             </svg>
+            <!-- V3 3D layer · hidden by default until B3-3 wires the IIFE switch.
+                 Sovereign Sentinel SVG above remains the active surface in B3-2. -->
+            <canvas id="kfh-3d-stage" width="640" height="400" hidden aria-hidden="true"></canvas>
           </div>
           <div class="kfh-readout">
             <div class="kfh-metric">
