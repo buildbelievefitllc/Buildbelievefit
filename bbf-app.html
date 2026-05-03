@@ -170,10 +170,11 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ap-progression-lock-ic{font-size:1.4rem;margin-bottom:.45rem;opacity:.75;filter:drop-shadow(0 0 8px rgba(212,175,55,.35))}
 .ap-progression-lock-t{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.85rem;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.82);margin-bottom:.3rem}
 .ap-progression-lock-s{font-size:.78rem;line-height:1.5;max-width:42ch;margin:0 auto;color:var(--mut)}
-.ap-admin-override-badge{display:flex;align-items:center;gap:.5rem;justify-content:center;margin-top:.85rem;padding:.55rem .8rem;background:linear-gradient(90deg,rgba(139,26,191,.18) 0%,rgba(106,13,173,.12) 100%);border:1px solid rgba(157,39,201,.4);border-radius:10px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.7rem;letter-spacing:2.4px;text-transform:uppercase;color:#D8A8FF;font-weight:700}
-.ap-admin-override-badge[hidden]{display:none!important}
-.ap-admin-override-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#9D27C9;box-shadow:0 0 10px #9D27C9;animation:apPulse 2.2s ease-in-out infinite}
-@media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving{transition:none}.ap-admin-override-dot{animation:none}}
+/* ═ Pathfinder Admin Sports Console (admin-only RBAC view inside tp-recalibrate) ═ */
+.pf-admin-banner{display:flex;align-items:center;justify-content:center;gap:.55rem;margin:0 0 .9rem;padding:.7rem .9rem;background:linear-gradient(90deg,rgba(139,26,191,.2) 0%,rgba(106,13,173,.14) 100%);border:1px solid rgba(157,39,201,.45);border-radius:12px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.74rem;letter-spacing:2.6px;text-transform:uppercase;color:#D8A8FF;font-weight:800}
+.pf-admin-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#9D27C9;box-shadow:0 0 12px #9D27C9;animation:apPulse 2.2s ease-in-out infinite}
+.pf-admin-sub{font-size:.82rem;line-height:1.5;color:var(--mut2);margin:0 0 .2rem;padding:0 .15rem}
+@media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving{transition:none}.pf-admin-dot{animation:none}}
 /* ═ Phase 3 — Athlete Kinematic HUD (scoped port of .kfh-*) ═ */
 .ap-kfh-wrap{margin-top:1rem;animation:apProtoRise .5s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
 .ap-kfh-wrap[hidden]{display:none!important}
@@ -5720,12 +5721,6 @@ window.onload=function(){
               </div>
             </div>
 
-            <!-- ═ Admin Override Badge — visible only when active user has trainer/admin role ═ -->
-            <div class="ap-admin-override-badge" id="ap-admin-override-badge" hidden role="status" aria-live="polite">
-              <span class="ap-admin-override-dot" aria-hidden="true"></span>
-              <span>Admin Override &middot; Phase 2 Bypass Active</span>
-            </div>
-
             <!-- ═ Phase 3 — Athlete Kinematic Form HUD (scoped port) ═ -->
             <div class="ap-kfh-wrap" id="ap-kfh-wrap" hidden>
               <section class="ap-kfh-scope" id="ap-kfh-root" data-form="ok" aria-label="Athlete Kinematic Form HUD">
@@ -6032,6 +6027,95 @@ window.onload=function(){
 
     <!-- RECALIBRATE -->
     <div class="tp" id="tp-recalibrate">
+      <!-- ═══ PATHFINDER · STRICT RBAC ═══════════════════════════════════════
+           Athletes (role=client): see the Re-Calibrate plan form (#pf-client-view)
+           Admins (role=trainer/admin or uid=akeem): see the Pathfinder Admin
+           Sports Console (#pf-admin-view) — unrestricted Sport→Position→Phase
+           protocol audit, no progressionCompleted gate. The Pathfinder Admin
+           IIFE at script load detects role and toggles which view is visible.
+      ═════════════════════════════════════════════════════════════════════ -->
+
+      <!-- ─── Pathfinder Admin Sports Console (admin-only) ─────────── -->
+      <div id="pf-admin-view" hidden>
+        <div class="sh"><span class="stt">Pathfinder &middot; Admin Sports Console</span></div>
+        <div class="pf-admin-banner" role="status">
+          <span class="pf-admin-dot" aria-hidden="true"></span>
+          <span>Admin Auditing Mode &middot; Unrestricted Protocol Access</span>
+        </div>
+        <p class="pf-admin-sub">Audit any Sport &middot; Position &middot; Season Phase combination. The Phase 2 Clinical Matrix renders instantly &mdash; no progression gate, no acknowledgement required.</p>
+
+        <!-- Selection matrix (cloned from Athlete Portal with pf- prefix) -->
+        <div class="ap-grid" style="margin-top:1rem">
+          <div class="ap-card">
+            <label class="ap-card-label" for="pf-sport-select">Select Sport</label>
+            <select class="ap-select" id="pf-sport-select" aria-label="Select sport for admin audit">
+              <option value="">— Choose a sport —</option>
+              <option value="football">Football</option>
+              <option value="basketball">Basketball</option>
+              <option value="soccer">Soccer</option>
+              <option value="baseball">Baseball</option>
+              <option value="volleyball">Volleyball</option>
+            </select>
+          </div>
+          <div class="ap-card">
+            <label class="ap-card-label" for="pf-position-select">Select Position Group</label>
+            <select class="ap-select" id="pf-position-select" aria-label="Select position group" disabled>
+              <option value="">— Choose sport first —</option>
+            </select>
+            <div class="ap-card-hint" id="pf-position-hint"></div>
+          </div>
+          <div class="ap-card">
+            <div class="ap-card-label" id="pf-phase-label">Current Season Phase</div>
+            <div class="ap-toggle" role="radiogroup" aria-labelledby="pf-phase-label">
+              <button type="button" class="ap-toggle-seg on" id="pf-phase-off" role="radio" aria-checked="true" data-phase="off">
+                <span class="ap-toggle-seg-t">Off-Season</span>
+                <span class="ap-toggle-seg-s">Hypertrophy</span>
+              </button>
+              <button type="button" class="ap-toggle-seg" id="pf-phase-in" role="radio" aria-checked="false" data-phase="in">
+                <span class="ap-toggle-seg-t">In-Season</span>
+                <span class="ap-toggle-seg-s">Game Day</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clinical Protocol panel (no gate, unrestricted reveal) -->
+        <section class="ap-protocol" id="pf-protocol" data-state="empty" aria-live="polite">
+          <div class="ap-protocol-head">
+            <div class="ap-protocol-kicker"><span class="ap-protocol-dot"></span> Clinical Protocol &middot; Audit View</div>
+            <h2 class="ap-protocol-title" id="pf-protocol-title">Awaiting Selection</h2>
+            <p class="ap-protocol-meta" id="pf-protocol-meta">Choose sport, position, and phase to render the protocol.</p>
+          </div>
+          <div class="ap-protocol-body">
+            <div class="ap-protocol-empty" id="pf-protocol-empty">
+              <div class="ap-protocol-empty-ic" aria-hidden="true">&#x1F50D;</div>
+              <div class="ap-protocol-empty-t">Audit Standby</div>
+              <div class="ap-protocol-empty-s">Select sport, position group, and season phase to render the Clinical Goal, Primary Lifts, Movement Science Drills, and Nutrition Protocol.</div>
+            </div>
+            <div class="ap-protocol-grid" id="pf-protocol-grid" hidden>
+              <article class="ap-proto-sec ap-proto-sec--goal">
+                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x1F3AF;</span><h3 class="ap-proto-sec-t">Clinical Goal</h3></div>
+                <p class="ap-proto-sec-body" id="pf-proto-goal">&mdash;</p>
+              </article>
+              <article class="ap-proto-sec ap-proto-sec--lifts">
+                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x1F3CB;</span><h3 class="ap-proto-sec-t">Primary Lifts</h3></div>
+                <ul class="ap-proto-list" id="pf-proto-lifts"></ul>
+              </article>
+              <article class="ap-proto-sec ap-proto-sec--drills">
+                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x26A1;</span><h3 class="ap-proto-sec-t">Movement Science Drills</h3></div>
+                <ul class="ap-proto-list" id="pf-proto-drills"></ul>
+              </article>
+              <article class="ap-proto-sec ap-proto-sec--nutri">
+                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x1F957;</span><h3 class="ap-proto-sec-t">Nutrition Protocol</h3></div>
+                <p class="ap-proto-sec-body" id="pf-proto-nutri">&mdash;</p>
+              </article>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ─── Re-Calibrate Plan form (non-admin client view — preserved) ─── -->
+      <div id="pf-client-view">
       <div class="sh"><span class="stt" data-lang-key="app-recalibrate">Re-Calibrate Your Plan</span></div>
       <div style="background:var(--gry);border:1px solid #1e1e1e;border-radius:14px;padding:1.2rem;margin-bottom:1rem">
         <p style="font-size:0.85rem;color:var(--mut2);margin-bottom:1rem">Refine your targets or update your clinical history. We'll regenerate your Sovereign Plan immediately.</p>
@@ -6076,6 +6160,7 @@ window.onload=function(){
         <button id="rc-submit" onclick="submitRecalibrate()" style="width:100%;padding:1rem;background:linear-gradient(180deg,#F2D769 0%,#E6C24F 25%,#D4AF37 55%,#A8862A 100%);color:#0a0a0a;font-family:var(--hb);font-size:1rem;letter-spacing:2px;border:1px solid #F2D769;border-radius:8px;cursor:pointer;margin-top:1rem;box-shadow:0 6px 22px rgba(212,175,55,.38)">GENERATE NEW PLAN</button>
         <div id="rc-msg" style="margin-top:1rem;text-align:center;font-size:0.85rem;font-weight:700"></div>
       </div>
+      </div><!-- /#pf-client-view -->
     </div>
   </div>
   <!-- NAV -->
@@ -10390,23 +10475,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    // ── Role detection — admin/trainer bypasses the Phase 2 lock ──
-    // Sovereign roles: 'trainer' (Akeem/CEO), 'admin' (future), or the
-    // legacy CU === 'akeem' shorthand. Athletes have role === 'client'.
-    function _athleteIsAdmin(){
-      try {
-        var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
-        if (!uid) return false;
-        if (uid === 'akeem') return true;
-        if (typeof GD === 'function') {
-          var d = GD();
-          var u = d && d.u && d.u[uid];
-          if (u && (u.role === 'trainer' || u.role === 'admin')) return true;
-        }
-      } catch(_){}
-      return false;
-    }
-
     // ── DOM refs ────────────────────────────────────────────────────
     var sportSel    = document.getElementById('ap-sport-select');
     var positionSel = document.getElementById('ap-position-select');
@@ -10486,9 +10554,8 @@ document.addEventListener('DOMContentLoaded', function() {
       var sport = ATHLETE_MATRIX[state.sport];
       var group = sport && sport.groups[state.position];
       var data  = group && group.phases[state.phase];
-      var hudWrap     = document.getElementById('ap-kfh-wrap');
-      var gate        = document.getElementById('ap-progression-gate');
-      var adminBadge  = document.getElementById('ap-admin-override-badge');
+      var hudWrap = document.getElementById('ap-kfh-wrap');
+      var gate    = document.getElementById('ap-progression-gate');
       if (!sport || !group || !data) {
         proto.setAttribute('data-state','empty');
         if (protoTitle) protoTitle.textContent = 'Awaiting Selection';
@@ -10497,7 +10564,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (protoEmpty) protoEmpty.style.display = '';
         if (hudWrap)    hudWrap.hidden = true;
         if (gate)       gate.hidden = true;
-        if (adminBadge) adminBadge.hidden = true;
         return;
       }
       proto.setAttribute('data-state','ready');
@@ -10513,17 +10579,15 @@ document.addEventListener('DOMContentLoaded', function() {
       if (outNutri)   outNutri.textContent = data.nutrition;
       renderList(outLifts, data.lifts);
       renderList(outDrills, data.drills);
-      // ── Progression gate + HUD reveal ───────────────────────
-      // Athletes must acknowledge protocol completion via the CTA before
-      // the Phase 2 Form HUD unlocks. Admin/trainer role bypasses the gate
-      // and shows the Admin Override badge so the bypass is visible in QA.
-      var isAdmin  = _athleteIsAdmin();
-      var unlocked = isAdmin || state.protocolCompleted === true;
+      // ── Progression gate (uniform for all users of this view) ────
+      // Admin/trainer auditing happens in the Pathfinder Admin Portal —
+      // this view is pure Client and acts uniformly. The CEO QA's the
+      // gate by switching to a test client account (CU/VC swap).
+      var unlocked = state.protocolCompleted === true;
       if (gate) {
         gate.classList.remove('is-dissolving');
         gate.hidden = unlocked;
       }
-      if (adminBadge) adminBadge.hidden = !isAdmin;
       if (hudWrap) {
         hudWrap.hidden = !unlocked;
         if (unlocked) {
@@ -10685,6 +10749,177 @@ document.addEventListener('DOMContentLoaded', function() {
       new MutationObserver(handleHash).observe(appEl, {attributes:true, attributeFilter:['class']});
     }
     setTimeout(handleHash, 400);
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // PATHFINDER ADMIN SPORTS CONSOLE — strict RBAC, lives inside
+  // tp-recalibrate. Admins see this view; clients see the existing
+  // Re-Calibrate Plan form. Runs once on DOMContentLoaded then re-
+  // checks every time the user navigates to the tab (handles VC swap
+  // mid-session). The protocol grid renders without any progression
+  // gate — admin auditing is unrestricted by design.
+  // ═══════════════════════════════════════════════════════════════
+  (function pathfinderAdminPortal(){
+    function _bbfIsAdmin(){
+      try {
+        var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+        if (!uid) return false;
+        if (uid === 'akeem') return true;
+        if (typeof GD === 'function') {
+          var d = GD();
+          var u = d && d.u && d.u[uid];
+          if (u && (u.role === 'trainer' || u.role === 'admin')) return true;
+        }
+      } catch(_){}
+      return false;
+    }
+
+    var pfAdmin  = document.getElementById('pf-admin-view');
+    var pfClient = document.getElementById('pf-client-view');
+    if (!pfAdmin || !pfClient) return;
+
+    // Ephemeral selection state — admin auditing is session-scoped, no persistence.
+    var pfState = { sport:'', position:'', phase:'off' };
+
+    var pfSport     = document.getElementById('pf-sport-select');
+    var pfPosition  = document.getElementById('pf-position-select');
+    var pfPosHint   = document.getElementById('pf-position-hint');
+    var pfSegOff    = document.getElementById('pf-phase-off');
+    var pfSegIn    = document.getElementById('pf-phase-in');
+    var pfProto     = document.getElementById('pf-protocol');
+    var pfTitle     = document.getElementById('pf-protocol-title');
+    var pfMeta      = document.getElementById('pf-protocol-meta');
+    var pfEmpty     = document.getElementById('pf-protocol-empty');
+    var pfGrid      = document.getElementById('pf-protocol-grid');
+    var pfGoal      = document.getElementById('pf-proto-goal');
+    var pfLifts     = document.getElementById('pf-proto-lifts');
+    var pfDrills    = document.getElementById('pf-proto-drills');
+    var pfNutri     = document.getElementById('pf-proto-nutri');
+
+    function pfPopulatePositions(sportKey){
+      if (!pfPosition) return;
+      pfPosition.innerHTML = '';
+      var matrix = (typeof window !== 'undefined' && window.ATHLETE_MATRIX) || null;
+      var sport  = matrix && matrix[sportKey];
+      if (!sport) {
+        var opt = document.createElement('option');
+        opt.value = ''; opt.textContent = '— Choose sport first —';
+        pfPosition.appendChild(opt);
+        pfPosition.disabled = true;
+        if (pfPosHint) pfPosHint.textContent = '';
+        return;
+      }
+      var ph = document.createElement('option');
+      ph.value = ''; ph.textContent = '— Choose position group —';
+      pfPosition.appendChild(ph);
+      Object.keys(sport.groups).forEach(function(gKey){
+        var g = sport.groups[gKey];
+        var o = document.createElement('option');
+        o.value = gKey;
+        o.textContent = g.label;
+        o.title = g.roster;
+        pfPosition.appendChild(o);
+      });
+      pfPosition.disabled = false;
+      if (pfPosHint) {
+        var rosters = Object.keys(sport.groups).map(function(k){ return sport.groups[k].label + ': ' + sport.groups[k].roster; }).join(' · ');
+        pfPosHint.textContent = rosters;
+      }
+    }
+
+    function pfSetPhase(phaseKey){
+      if (phaseKey !== 'in' && phaseKey !== 'off') phaseKey = 'off';
+      pfState.phase = phaseKey;
+      if (pfSegOff) { pfSegOff.classList.toggle('on', phaseKey === 'off'); pfSegOff.setAttribute('aria-checked', phaseKey === 'off' ? 'true' : 'false'); }
+      if (pfSegIn)  { pfSegIn.classList.toggle('on',  phaseKey === 'in');  pfSegIn.setAttribute('aria-checked',  phaseKey === 'in'  ? 'true' : 'false'); }
+      pfRender();
+    }
+
+    function pfRenderList(ul, items){
+      if (!ul) return;
+      ul.innerHTML = '';
+      (items || []).forEach(function(t){
+        var li = document.createElement('li');
+        li.textContent = t;
+        ul.appendChild(li);
+      });
+    }
+
+    function pfRender(){
+      if (!pfProto) return;
+      var matrix = (typeof window !== 'undefined' && window.ATHLETE_MATRIX) || null;
+      var sport  = matrix && matrix[pfState.sport];
+      var group  = sport && sport.groups[pfState.position];
+      var data   = group && group.phases[pfState.phase];
+      if (!sport || !group || !data) {
+        pfProto.setAttribute('data-state','empty');
+        if (pfTitle) pfTitle.textContent = 'Awaiting Selection';
+        if (pfMeta)  pfMeta.textContent  = 'Choose sport, position, and phase to render the protocol.';
+        if (pfGrid)  pfGrid.hidden = true;
+        if (pfEmpty) pfEmpty.style.display = '';
+        return;
+      }
+      pfProto.setAttribute('data-state','ready');
+      // eslint-disable-next-line no-unused-expressions
+      void pfProto.offsetWidth;
+      var phaseLabel = pfState.phase === 'off' ? 'Off-Season Hypertrophy' : 'In-Season Game Day';
+      if (pfTitle) pfTitle.textContent = sport.label + ' — ' + group.label;
+      if (pfMeta)  pfMeta.textContent  = phaseLabel + ' · ' + group.roster;
+      if (pfEmpty) pfEmpty.style.display = 'none';
+      if (pfGrid)  pfGrid.hidden = false;
+      if (pfGoal)  pfGoal.textContent  = data.goal;
+      if (pfNutri) pfNutri.textContent = data.nutrition;
+      pfRenderList(pfLifts,  data.lifts);
+      pfRenderList(pfDrills, data.drills);
+    }
+
+    if (pfSport) {
+      pfSport.addEventListener('change', function(){
+        pfState.sport = pfSport.value;
+        pfState.position = '';
+        pfPopulatePositions(pfState.sport);
+        pfRender();
+      });
+    }
+    if (pfPosition) {
+      pfPosition.addEventListener('change', function(){
+        pfState.position = pfPosition.value;
+        pfRender();
+      });
+    }
+    [pfSegOff, pfSegIn].forEach(function(btn){
+      if (!btn) return;
+      btn.addEventListener('click', function(){ pfSetPhase(btn.getAttribute('data-phase')); });
+    });
+
+    // Resolve which view to render based on role. Re-runs every time
+    // the user navigates to the Pathfinder tab so a mid-session VC
+    // swap (CEO → test client → CEO) flips the views correctly.
+    function resolvePathfinderRBAC(){
+      var isAdmin = _bbfIsAdmin();
+      pfAdmin.hidden  = !isAdmin;
+      pfClient.hidden =  isAdmin;
+      if (isAdmin) {
+        pfPopulatePositions(pfState.sport);
+        pfSetPhase(pfState.phase);
+      }
+    }
+    resolvePathfinderRBAC();
+
+    // Re-resolve on tab activation. Hooks the existing TAB() flow via
+    // a MutationObserver on tp-recalibrate's class list (tabs toggle
+    // .on when shown).
+    var pane = document.getElementById('tp-recalibrate');
+    if (pane && 'MutationObserver' in window) {
+      new MutationObserver(function(muts){
+        for (var i=0;i<muts.length;i++){
+          if (muts[i].attributeName === 'class' && pane.classList.contains('on')) {
+            resolvePathfinderRBAC();
+            break;
+          }
+        }
+      }).observe(pane, { attributes:true, attributeFilter:['class'] });
+    }
   })();
 
   // Quick actions
