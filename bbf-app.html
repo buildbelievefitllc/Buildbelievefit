@@ -2563,6 +2563,23 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
       console.log('%c[KFH-BTN] CLICK · src=' + source + ' · holo=' + holoId +
                   ' · exercise=' + JSON.stringify(exerciseId),
                   'color:#f5c800;font-weight:bold');
+      // Dedup: the inline onclick AND the document-level delegated
+      // listener both fire for the same physical click. Without this
+      // guard BBF_HOLOGRAM.toggle() runs twice — second call tears
+      // down the canvas the first init is painting into, leaving an
+      // empty stage and pushing the user back to the V2 Sentinel.
+      // Diagnostic log above intentionally fires before this guard
+      // so the CLI still proves capture from both code paths.
+      if (btn) {
+        var now = (typeof performance !== 'undefined' && performance.now)
+          ? performance.now() : Date.now();
+        if (btn.__kfhLastFire != null && (now - btn.__kfhLastFire) < 250) {
+          console.log('[KFH-BTN] coalesced duplicate fire (src=' + source +
+                      ', dt=' + Math.round(now - btn.__kfhLastFire) + 'ms)');
+          return;
+        }
+        btn.__kfhLastFire = now;
+      }
       if (!holoId || !exerciseId) {
         console.warn('[KFH-BTN] missing data attrs · holo=' + holoId + ' name=' + exerciseId);
         return;

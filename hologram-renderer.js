@@ -411,16 +411,21 @@ var BBF_HOLOGRAM = (function() {
     }
     var R = window.BBF_KFH_3D_RENDERER;
 
+    // Reorder: bail BEFORE canvas teardown when an init is already
+    // in flight. Previously _ensureCanvasInCard ran first, which
+    // ripped out the canvas the in-flight R.init() was painting
+    // into and left an empty stage (drove the V2 fallback the CEO
+    // saw in production after the click intercept fix).
+    if (_v3InitInFlight) {
+      console.log('[BBF_HOLOGRAM] V3 init already in flight — ignoring duplicate engage');
+      return true;
+    }
+
     // Hide any V1 Sentinel canvas left in this card so they don't stack.
     var v2 = container.querySelector('.holo-canvas');
     if (v2) v2.style.display = 'none';
 
     var canvas = _ensureCanvasInCard(container);
-
-    if (_v3InitInFlight) {
-      console.log('[BBF_HOLOGRAM] V3 init already in flight — ignoring duplicate engage');
-      return true;
-    }
     _v3InitInFlight = true;
 
     // Trilingual overlay first — gives the user immediate feedback.
