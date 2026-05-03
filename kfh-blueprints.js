@@ -4721,6 +4721,154 @@
     }
   };
 
+  // ─── DUMBBELL FLYES (V2 · Batch 7 — 33rd Blueprint) ──────
+  // First Blueprint with plane='transverse' (top-down view of supine
+  // bench position) and facing='up'. Validator-patched: t=0 added
+  // knee + ankle joints (figure has feet planted on the floor —
+  // knees just below hips, ankles at the ground reference y=0.92).
+  var DUMBBELL_FLYES = {
+    id: 'dumbbell_flyes',
+    displayName: 'Dumbbell Flyes',
+    aliases: ['dumbbell flyes', 'db flyes', 'dumbbell flys', 'db flys', 'flat bench db flyes', 'flat bench dumbbell flyes', 'flat db flyes', 'flat dumbbell flys', 'chest flyes', 'db chest flyes', 'dumbbell chest flyes'],
+
+    title: {
+      en: 'Clinical Protocol: Dumbbell Flyes',
+      es: 'Protocolo Clínico: Aperturas con Mancuernas',
+      pt: 'Protocolo Clínico: Crucifixo com Halteres'
+    },
+    subtitle: {
+      en: 'Transverse Plane · Dumbbells · Sovereign Rig',
+      es: 'Plano Transversal · Mancuernas · Equipo Soberano',
+      pt: 'Plano Transversal · Halteres · Equipamento Soberano'
+    },
+    muscleTarget: {
+      en: 'Primary: Pectoralis Major. Secondary: Anterior Deltoid, Coracobrachialis, Biceps Brachii (as stabilizers), Core Stabilizers.',
+      es: 'Primario: Pectoral Mayor. Secundarios: Deltoides Anterior, Coracobraquial, Bíceps Braquial (como estabilizadores), Estabilizadores del Core.',
+      pt: 'Primário: Peitoral Maior. Secundários: Deltoide Anterior, Coracobraquial, Bíceps Braquial (como estabilizadores), Estabilizadores do Core.'
+    },
+    clinicalNotes: {
+      en: 'Perfect Sovereign execution demands retracted and depressed scapulae pinned rigidly into the bench to ensure strict isolation of the pectoralis major and to protect the anterior shoulder capsule. The kinetic chain relies on maintaining a slight, fixed bend in the elbows throughout the entire arc, entirely preventing triceps involvement or momentum generation. Optimal joint health is preserved by opening the arms only until a maximal, safe stretch is achieved across the chest, strictly avoiding overextending the glenohumeral joint at the bottom of the movement.',
+      es: 'La ejecución soberana perfecta exige escápulas retraídas y deprimidas rígidamente fijadas al banco para garantizar el aislamiento estricto del pectoral mayor y proteger la cápsula anterior del hombro. La cadena cinética depende de mantener una flexión leve y fija en los codos durante todo el arco, evitando por completo la participación del tríceps o la generación de impulso. La salud articular óptima se preserva abriendo los brazos solo hasta lograr un estiramiento máximo y seguro en el pecho, evitando estrictamente la sobreextensión de la articulación glenohumeral en el fondo del movimiento.',
+      pt: 'A execução soberana perfeita exige escápulas retraídas e deprimidas rigidamente pressionadas ao banco para garantir o isolamento estrito do peitoral maior e proteger a cápsula anterior do ombro. A cadeia cinética depende de manter uma flexão leve e fixa nos cotovelos durante todo o arco, prevenindo completamente a participação do tríceps ou a geração de impulso. A saúde articular ótima é preservada abrindo os braços apenas até alcançar um alongamento máximo e seguro no peito, evitando estritamente a sobre-extensão da articulação glenoumeral no fundo do movimento.'
+    },
+    svgTitle: {
+      en: 'DB Flyes Transverse Wireframe',
+      es: 'Wireframe Transversal de Aperturas con Mancuernas',
+      pt: 'Wireframe Transversal de Crucifixo com Halteres'
+    },
+
+    plane: 'transverse', facing: 'up', ground: { y: 0.92 },
+    jointSpec: STD_JOINT_SPEC, bones: STD_BONES,
+
+    animation: {
+      duration_ms: 3500, loop: true, direction: 'normal', easing: 'ease-in-out',
+      phases: [
+        { id: 'eccentric', start_pct: 0, end_pct: 40, easing: 'ease-out',
+          label: { en: 'Eccentric · Flye Arc', es: 'Excéntrica · Arco de Apertura', pt: 'Excêntrica · Arco do Crucifixo' },
+          cue:   { en: 'Lower the dumbbells outward with deliberate pacing and a fixed elbow angle until a deep, safe stretch is achieved across the pectorals.',
+                   es: 'Baja las mancuernas hacia los lados con un ritmo deliberado y un ángulo fijo en los codos hasta lograr un estiramiento profundo y seguro en los pectorales.',
+                   pt: 'Abaixe os halteres para fora com ritmo deliberado e um ângulo fixo nos cotovelos até alcançar um alongamento profundo e seguro nos peitorais.' } },
+        { id: 'isometric', start_pct: 40, end_pct: 50, easing: 'linear',
+          label: { en: 'Isometric · Deep Stretch', es: 'Isométrica · Estiramiento Profundo', pt: 'Isométrica · Alongamento Profundo' },
+          cue:   { en: 'Hold the fully stretched position motionless to eliminate elastic recoil and maximize mechanical tension on the chest musculature.',
+                   es: 'Mantén la posición completamente estirada sin movimiento para eliminar el rebote elástico y maximizar la tensión mecánica en la musculatura del pecho.',
+                   pt: 'Mantenha a posição totalmente alongada sem movimento para eliminar o recuo elástico e maximizar a tensão mecânica na musculatura do peito.' } },
+        { id: 'concentric', start_pct: 50, end_pct: 90, easing: 'ease-in',
+          label: { en: 'Concentric · Pec Squeeze', es: 'Concéntrica · Apretón Pectoral', pt: 'Concêntrica · Contração Peitoral' },
+          cue:   { en: 'Drive the weights forcefully upward and inward through a strict contraction of the chest, squeezing the pectorals together at the midline.',
+                   es: 'Empuja los pesos con fuerza hacia arriba y hacia adentro mediante una contracción estricta del pecho, apretando los pectorales juntos en la línea media.',
+                   pt: 'Empurre os pesos com força para cima e para dentro através de uma contração estrita do peito, contraindo os peitorais juntos na linha média.' } },
+        { id: 'reset', start_pct: 90, end_pct: 100, easing: 'ease-in-out',
+          label: { en: 'Reset · Peak Contraction', es: 'Reinicio · Contracción Máxima', pt: 'Reinício · Contração Máxima' },
+          cue:   { en: 'Maintain peak tension.', es: 'Mantén la tensión máxima.', pt: 'Mantenha a tensão máxima.' } }
+      ],
+      keyframes: [
+        { t: 0.00, phase: 'eccentric',
+          joints: {
+            head: { x: 0.50, y: 0.50 },
+            shoulder_l: { x: 0.40, y: 0.50 }, shoulder_r: { x: 0.60, y: 0.50 },
+            hip_l:      { x: 0.45, y: 0.80 }, hip_r:      { x: 0.55, y: 0.80 },
+            knee_l:     { x: 0.45, y: 0.85 }, knee_r:     { x: 0.55, y: 0.85 },
+            ankle_l:    { x: 0.45, y: 0.92 }, ankle_r:    { x: 0.55, y: 0.92 },
+            elbow_l:    { x: 0.40, y: 0.35 }, elbow_r:    { x: 0.60, y: 0.35 },
+            wrist_l:    { x: 0.45, y: 0.20 }, wrist_r:    { x: 0.55, y: 0.20 }
+          } },
+        { t: 0.40, phase: 'eccentric',
+          joints: {
+            elbow_l: { x: 0.25, y: 0.50 }, elbow_r: { x: 0.75, y: 0.50 },
+            wrist_l: { x: 0.15, y: 0.50 }, wrist_r: { x: 0.85, y: 0.50 }
+          } },
+        { t: 0.50, phase: 'isometric', joints: {} },
+        { t: 0.90, phase: 'concentric',
+          joints: {
+            elbow_l: { x: 0.40, y: 0.35 }, elbow_r: { x: 0.60, y: 0.35 },
+            wrist_l: { x: 0.45, y: 0.20 }, wrist_r: { x: 0.55, y: 0.20 }
+          } },
+        { t: 1.00, phase: 'reset', joints: {} }
+      ]
+    },
+
+    equipment: [
+      { type: 'dumbbell', attach: ['wrist_l', 'wrist_r'] },
+      { type: 'bench',    attach: ['shoulder_l', 'shoulder_r'] }
+    ],
+
+    kineticPath: {
+      default: { label: { en: 'Flye Arc', es: 'Arco de Apertura', pt: 'Arco do Crucifixo' },
+                 d: 'M 0.15 0.50 Q 0.30 0.20 0.45 0.20' },
+      endpoints: [{ x: 0.15, y: 0.50 }, { x: 0.45, y: 0.20 }],
+      labels: [
+        { x: 0.10, y: 0.55, text: { en: 'Max Stretch',  es: 'Estiramiento Máximo', pt: 'Alongamento Máximo' } },
+        { x: 0.50, y: 0.15, text: { en: 'Peak Squeeze', es: 'Apretón Máximo',      pt: 'Contração Máxima' } }
+      ]
+    },
+
+    forms: {
+      ok: {
+        chipLabel: { en: 'Standard Form', es: 'Forma Estándar', pt: 'Forma Padrão' },
+        callouts: [
+          { from: 'elbow_l', to: { x: 0.20, y: 0.30 },
+            lines: [{ en: 'Fixed slight elbow bend', es: 'Flexión leve y fija del codo', pt: 'Flexão leve e fixa do cotovelo' }] }
+        ],
+        metrics: {
+          dev: '± 1.0 cm',
+          tuck: { en: 'Scapulae Pinned',      es: 'Escápulas Fijadas',  pt: 'Escápulas Fixadas' },
+          load: { en: 'Pectoral Isolation',   es: 'Aislamiento Pectoral', pt: 'Isolamento Peitoral' },
+          fn:   { en: 'Clinical reference overlay', es: 'Capa de referencia clínica', pt: 'Camada de referência clínica' }
+        },
+        haloAt: null
+      },
+      warn: {
+        chipLabel: { en: 'Common Fault: Pressing', es: 'Falla Común: Presión', pt: 'Falha Comum: Pressão' },
+        callouts: [
+          { from: 'elbow_l', to: { x: 0.20, y: 0.60 }, warn: true,
+            lines: [{ en: 'Elbows drop · Turns into press',
+                      es: 'Los codos caen · Se convierte en presión',
+                      pt: 'Cotovelos descem · Vira pressão' }] }
+        ],
+        metrics: {
+          dev: '± 5.0 cm',
+          tuck: { en: 'Triceps Activated', es: 'Tríceps Activado',     pt: 'Tríceps Ativado' },
+          load: { en: 'Tension Loss',      es: 'Pérdida de Tensión',   pt: 'Perda de Tensão' },
+          fn:   { en: 'Fault pattern · Bending elbows deeply to assist lift',
+                  es: 'Patrón de falla · Flexionando los codos profundamente para asistir el levantamiento',
+                  pt: 'Padrão de falha · Flexionando os cotovelos profundamente para auxiliar o levantamento' }
+        },
+        haloAt: 'elbow_l',
+        keyframesOverride: [
+          { t: 0.40, joints: { elbow_l: { x: 0.35, y: 0.60 }, elbow_r: { x: 0.65, y: 0.60 },
+                               wrist_l: { x: 0.35, y: 0.45 }, wrist_r: { x: 0.65, y: 0.45 } } }
+        ]
+      }
+    },
+
+    metricLabels: {
+      dev:  { en: 'Path Dev.',   es: 'Desv. Trayectoria',  pt: 'Desv. Trajetória' },
+      tuck: { en: 'Arm Anchor',  es: 'Anclaje del Brazo',  pt: 'Ancoragem do Braço' },
+      load: { en: 'Muscle Bias', es: 'Sesgo Muscular',     pt: 'Viés Muscular' }
+    }
+  };
+
   // ─── REGISTRATIONS ───────────────────────────────────────
   // Append new Blueprints to this array as they ship from the War Room.
   // Final batch milestone: hack_squats and barbell_bench_press clear
@@ -4758,7 +4906,8 @@
     SUPPORTED_KNEE_RAISES,
     PLANK,
     HACK_SQUATS,
-    BARBELL_BENCH_PRESS
+    BARBELL_BENCH_PRESS,
+    DUMBBELL_FLYES
   ];
 
   BLUEPRINTS.forEach(function (bp) {
