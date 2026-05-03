@@ -182,6 +182,18 @@ function _angle2D(parent, child) {
   return Math.atan2(-(child.y - parent.y), (child.x - parent.x));
 }
 
+// Normalize an angle delta to the shortest arc in (-π, π]. Without
+// this, a limb whose 2D vector wraps the atan2 branch cut between
+// rest and t (e.g. the lat-pulldown overhead reach, which sweeps
+// from down-left through ±180° to up-left) would rotate the long
+// way around 252° CCW instead of the natural 108° CW path.
+function _normalizeAngleDelta(d) {
+  if (!isFinite(d)) return 0;
+  while (d >  Math.PI) d -= 2 * Math.PI;
+  while (d <= -Math.PI) d += 2 * Math.PI;
+  return d;
+}
+
 // ─── PATH A · MATH BRIDGE ────────────────────────────────
 // computeBoneRotationsForBlueprint
 //   animation : the transpiled animation block (or full Blueprint
@@ -230,7 +242,7 @@ function computeBoneRotationsForBlueprint(animation, t, mode) {
     const tAngle    = _angle2D(positionsT[parentJoint],    positionsT[childJoint]);
     if (restAngle == null || tAngle == null) return;
 
-    const deltaZ = tAngle - restAngle;
+    const deltaZ = _normalizeAngleDelta(tAngle - restAngle);
     rotations[boneName] = new THREE.Euler(0, 0, deltaZ, 'XYZ');
   });
 
@@ -246,7 +258,8 @@ function computeBoneRotationsForBlueprint(animation, t, mode) {
   const spineRest = _angle2D(hipMidRest, shoMidRest);
   const spineT    = _angle2D(hipMidT,    shoMidT);
   if (spineRest != null && spineT != null) {
-    rotations[SPINE_BONE] = new THREE.Euler(0, 0, spineT - spineRest, 'XYZ');
+    const spineDelta = _normalizeAngleDelta(spineT - spineRest);
+    rotations[SPINE_BONE] = new THREE.Euler(0, 0, spineDelta, 'XYZ');
   }
 
   // ── Hips translation · sink the pelvis into the squat ──

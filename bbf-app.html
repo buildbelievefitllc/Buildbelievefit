@@ -5204,8 +5204,11 @@ window.onload=function(){
            Only a hand-picked Blueprint id list flips to the WebGL
            Mixamo rig. Every other Blueprint (32 of 33) stays on the
            V2 SVG Sentinel. The Set is consulted by reference inside
-           KFH_LOAD_EXERCISE and updated only when a new pilot ships. */
-        var KFH_3D_PILOTED_IDS = { 'barbell_back_squat': true };
+           KFH_LOAD_EXERCISE and updated only when a new pilot ships.
+           B3-3 final target: Lat Pulldowns (frontal-plane overhead
+           reach exercises both arms; the angle-normalization step in
+           the bridge keeps each upper-arm bone on its short arc). */
+        var KFH_3D_PILOTED_IDS = { 'lat_pulldowns': true };
         var _kfh3DActive       = false;
         var _kfh3DPendingExer  = null;  // remembered if rig loads after click
 
