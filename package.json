@@ -13,6 +13,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@anthropic-ai/claude-code": "2.1.119",
     "@anthropic-ai/sdk": "^0.30.1",
     "@supabase/supabase-js": "^2.104.1",
     "dotenv": "^16.4.5",
