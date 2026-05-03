@@ -2519,11 +2519,10 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script type="module">
   // Phase 13 / B3-3 Option B · side-effect imports register
   // window.BBF_KFH_3D_BRIDGE + window.BBF_KFH_3D_RENDERER. The
-  // per-card "Kinetic Hologram" button (BBF_HOLOGRAM.toggle in
-  // hologram-renderer.js) lazy-initializes the renderer on first
-  // engage and disposes the WebGL context on retreat — no
-  // page-load init, no static canvas, single piloted Blueprint
-  // (lat_pulldowns).
+  // per-card "Kinetic Hologram" button (KFH_BUTTON_CLICK below)
+  // lazy-initializes the renderer on first engage and disposes the
+  // WebGL context on retreat — no page-load init, no static canvas,
+  // single piloted Blueprint (lat_pulldowns).
   import './kfh-3d-rig-bridge.js';
   import './kfh-3d-renderer.js';
   if (typeof WebGLRenderingContext === 'undefined') {
@@ -2533,6 +2532,43 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
     console.log('%c[KFH-3D] modules loaded · awaiting per-card engage',
                 'color:#6a0dad;font-weight:bold');
   }
+</script>
+<script>
+  // Phase 13 / B3-3 Option B · HARDWIRED CLICK INTERCEPT
+  //
+  // The KINETIC HOLOGRAM button on each exercise card now calls
+  // KFH_BUTTON_CLICK(this) directly — a single top-level entry
+  // point we own end-to-end. The first thing it does on every
+  // click is log [KFH-BTN] CLICK so we can prove the click
+  // reached the handler regardless of whether BBF_HOLOGRAM
+  // loaded, and regardless of any silent-noop guards around it.
+  //
+  // Defined as a regular <script> (not type="module") so it's
+  // synchronous and available before the program-pane render
+  // bakes onclick="KFH_BUTTON_CLICK(this)" into every card.
+  (function () {
+    console.log('%c[KFH-BTN] hardwired click intercept registered',
+                'color:#22C55E;font-weight:bold');
+    window.KFH_BUTTON_CLICK = function (btn) {
+      var holoId  = btn && btn.dataset && btn.dataset.kfhHolo;
+      var exName  = btn && btn.dataset && btn.dataset.kfhExname;
+      console.log('%c[KFH-BTN] CLICK · holo=' + holoId + ' · exercise=' + JSON.stringify(exName),
+                  'color:#f5c800;font-weight:bold');
+      if (!holoId || !exName) {
+        console.warn('[KFH-BTN] missing data attrs · holo=' + holoId + ' name=' + exName);
+        return;
+      }
+      if (typeof BBF_HOLOGRAM === 'undefined' || !BBF_HOLOGRAM.toggle) {
+        console.warn('[KFH-BTN] BBF_HOLOGRAM unavailable at click time — script load order or load failure');
+        return;
+      }
+      try {
+        BBF_HOLOGRAM.toggle(holoId, exName);
+      } catch (e) {
+        console.warn('[KFH-BTN] toggle threw:', e && e.message);
+      }
+    };
+  })();
 </script>
 <script src="bbf-translator.js"></script>
 <script src="bbf-util.js"></script>
@@ -8907,7 +8943,7 @@ function RDW() {
       '<div class="em">' + exEquip + ' &middot; ' + exSets + ' sets &times; ' + exReps + '</div></div>' +
       '<div class="ec">&#9662;</div></div><div class="ebody">';
     h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){if(typeof LOG_AUDIT_ENTRY===\'function\')LOG_AUDIT_ENTRY(\'' + uid + '\',r);TOAST(\'🧪 Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
-    h += ' <button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_HOLOGRAM!==\'undefined\')BBF_HOLOGRAM.toggle(\'holo-' + ei + '\',\'' + ex.name.replace(/'/g,"\\'") + '\')">&#x1F4D0; KINETIC HOLOGRAM</button>';
+    h += ' <button class="aud-btn" data-kfh-holo="holo-' + ei + '" data-kfh-exname="' + ex.name.replace(/"/g,'&quot;') + '" onclick="event.stopPropagation();KFH_BUTTON_CLICK(this);">&#x1F4D0; KINETIC HOLOGRAM</button>';
     h += '<div id="holo-' + ei + '" style="position:relative;width:100%;height:180px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;margin-top:.5rem;overflow:hidden;display:flex;align-items:center;justify-content:center"><span style="font-size:.7rem;color:#333;letter-spacing:2px">HOLOGRAM VIEWPORT</span></div>';
     // RPE Commander — Sovereign Target Banner
     if (typeof BBF_RPE !== 'undefined' && sv.length > 0 && sv[0].w) {

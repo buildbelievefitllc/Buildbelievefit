@@ -6,6 +6,14 @@
 var BBF_HOLOGRAM = (function() {
   'use strict';
 
+  // Page-load sentinel so live-fire tests can prove this file
+  // actually parsed + executed (Phase 13 / B3-3 Option B). If
+  // the next button click logs [KFH-BTN] CLICK but no [BBF_HOLOGRAM]
+  // toggle, the load order is wrong; if neither logs, the click
+  // intercept itself didn't fire.
+  console.log('%c[BBF_HOLOGRAM] module loaded · Phase 13 / B3-3 Option B per-card V3 path active',
+              'color:#f5c800;font-weight:bold');
+
   var GOLD = '#D4AF37';
   var GOLD_GLOW = 'rgba(212,175,55,0.4)';
   var PURPLE = '#6a0dad';
