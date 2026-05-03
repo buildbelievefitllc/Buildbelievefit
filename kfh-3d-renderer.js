@@ -76,9 +76,12 @@ function _setupScene(canvas) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(SOVEREIGN.matteBlack);
 
-  const camera = new THREE.PerspectiveCamera(32, w / h, 0.1, 100);
-  camera.position.set(0, 1.05, 3.4);
-  camera.lookAt(0, 1.05, 0);
+  // Pulled back to frame the full YBot · CEO directive Phase 6 fix.
+  // Camera at (0,1.5,5) looking at the chest (0,1.2,0); fov widened
+  // to 38° so a 1.65-unit-tall rig fills ~70% of the vertical frame.
+  const camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 100);
+  camera.position.set(0, 1.5, 5);
+  camera.lookAt(new THREE.Vector3(0, 1.2, 0));
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -188,6 +191,35 @@ async function init(canvas) {
         try {
           const ybot = gltf.scene;
           ybot.position.set(0, 0, 0);
+          ybot.scale.set(1, 1, 1);
+
+          // Defensive scale normalization · Mixamo .fbx → .glb
+          // pipelines frequently emit the rig at 100× (cm → m drift),
+          // which puts the chest at world-y ≈ 165 and parks the
+          // camera inside the model's knee. We compute the bbox
+          // post-load and rescale so the rig hits a target height of
+          // 1.65 world units (the value the rig-bridge calibration
+          // assumes for hipsOffset translation).
+          const TARGET_HEIGHT = 1.65;
+          const bbox = new THREE.Box3().setFromObject(ybot);
+          const measuredH = bbox.max.y - bbox.min.y;
+          if (isFinite(measuredH) && measuredH > 0) {
+            const k = TARGET_HEIGHT / measuredH;
+            // Only rescale if the model is meaningfully off (>15%);
+            // a clean 1.65-unit rig should be left untouched.
+            if (k < 0.85 || k > 1.15) {
+              ybot.scale.setScalar(k);
+              console.log(
+                '%c[KFH-3D] rig auto-scaled · measured ' + measuredH.toFixed(2) +
+                'u → target ' + TARGET_HEIGHT + 'u (×' + k.toFixed(4) + ')',
+                'color:#f5c800;font-weight:bold'
+              );
+            }
+          }
+          // Drop the rig so its feet sit on y=0 after rescale.
+          const bbox2 = new THREE.Box3().setFromObject(ybot);
+          if (isFinite(bbox2.min.y)) ybot.position.y = -bbox2.min.y;
+
           _applySovereignMaterial(ybot);
 
           const bones = _harvestBones(ybot);
