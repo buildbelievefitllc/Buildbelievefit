@@ -81,7 +81,7 @@ function _setupScene(canvas) {
   // to z=4.5 with a standard 45° FOV — gives a full head-to-feet
   // shot so we can verify lat-pulldown arm mechanics.
   const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-  camera.position.set(0, 0.8, 4.5);
+  camera.position.set(0, 0.8, 4.5);  // x explicitly 0 · Phase 9 center
   camera.lookAt(new THREE.Vector3(0, 0.8, 0));
 
   const renderer = new THREE.WebGLRenderer({
@@ -95,17 +95,17 @@ function _setupScene(canvas) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
   }
 
-  // ─── Clinical Studio Lighting ───────────────────────
-  // Ambient boosted to 1.5 (Phase 7 CEO directive) so the matte-
-  // black + purple-emissive rig reads against the matte-black
-  // canvas; gold key + purple rim still shape the form.
-  scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+  // ─── Clinical Studio Lighting · Phase 9 ─────────────
+  // CEO directive: matte-black material + matte-black background
+  // demands a strong white key + lifted ambient to read silhouette.
+  // Sovereign Purple rim retained at low intensity for brand accent.
+  scene.add(new THREE.AmbientLight(0x404040, 2.0));
 
-  const keyLight = new THREE.DirectionalLight(SOVEREIGN.bbfGold, 1.10);
-  keyLight.position.set(2.5, 4.0, 3.2);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  keyLight.position.set(2, 2, 5);
   scene.add(keyLight);
 
-  const rimLight = new THREE.DirectionalLight(SOVEREIGN.bbfPurple, 0.85);
+  const rimLight = new THREE.DirectionalLight(SOVEREIGN.bbfPurple, 0.6);
   rimLight.position.set(-2.0, 2.4, -2.6);
   scene.add(rimLight);
 
@@ -217,9 +217,18 @@ async function init(canvas) {
               );
             }
           }
-          // Drop the rig so its feet sit on y=0 after rescale.
+          // Force absolute centering · Phase 9 CEO directive. Mixamo
+          // exports often park the rig's internal pivot offset from
+          // the mesh's geometric center, which shoved the YBot to
+          // the right of the canvas. We re-measure post-scale and
+          // translate position so the bbox center sits on x=0/z=0
+          // and feet rest on y=0.
           const bbox2 = new THREE.Box3().setFromObject(ybot);
-          if (isFinite(bbox2.min.y)) ybot.position.y = -bbox2.min.y;
+          if (isFinite(bbox2.min.y)) {
+            ybot.position.x = -(bbox2.min.x + bbox2.max.x) * 0.5;
+            ybot.position.z = -(bbox2.min.z + bbox2.max.z) * 0.5;
+            ybot.position.y = -bbox2.min.y;
+          }
 
           _applySovereignMaterial(ybot);
 
