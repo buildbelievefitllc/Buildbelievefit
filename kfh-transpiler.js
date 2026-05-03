@@ -436,6 +436,10 @@ var BBF_KFH_TRANSPILER = (function () {
     var lang = 'en';
 
     var entry = {
+      // Blueprint identity — preserved so the IIFE can route a
+      // matched entry to the V3 3D pilot path (Phase 13 / B3-3).
+      id:            bp.id || '',
+
       // Flat display fields (en — used by the IIFE today)
       title:         pickLang(bp.title,        lang),
       subtitle:      pickLang(bp.subtitle,     lang),

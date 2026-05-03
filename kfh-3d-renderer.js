@@ -1,19 +1,25 @@
 // ═══════════════════════════════════════════════════════════════
 // KFH-3D-RENDERER.JS — BBF Kinematic Form HUD V3 Renderer (ESM)
-// Sovereign Gold Standard — Phase 13 / B3-2
+// Sovereign Gold Standard — Phase 13 / B3-3
 //
 // Boots a Clinical Studio three.js scene, loads the YBot rig
 // (Adobe Mixamo) into a WebGL canvas, applies the Sovereign
 // Material Override (Matte Black + Purple emissive), and harvests
 // the rig's bone manifest for Path A mapping verification.
 //
-// B3-2 SCOPE
-//   - Static T-pose render only. No animation. No V2 Blueprint
-//     wiring yet. Path A driver lives in kfh-3d-rig-bridge.js
-//     and lands wired in B3-3 (Barbell Back Squat pilot).
-//   - Canvas hidden by default (HTML `hidden` attribute). Toggle
-//     via window.BBF_KFH_3D_RENDERER.show() once the IIFE switch
-//     wires up in B3-3.
+// B3-2 SCOPE (shipped)
+//   - Static T-pose render only.
+//
+// B3-3 SCOPE (this commit) — Path A Pilot · Barbell Back Squat
+//   - rAF animation driver (start / stop / setMode) consumes the
+//     V2 transpiled animation block and the rig-bridge math to
+//     drive the live skeleton each frame.
+//   - Frame timer derived from animation.duration_ms; phases roll
+//     through the V2 4-phase contract (eccentric → isometric →
+//     concentric → reset) with shared easing.
+//   - FPS probe (sub-30fps over a rolling window) emits a single
+//     fallback signal that the IIFE consumes to revert to the V2
+//     SVG Sentinel transparently.
 //
 // SOVEREIGN PALETTE (locked — never deviate)
 //   matte black 0x090909 · BBF purple 0x6a0dad · BBF gold 0xf5c800
@@ -21,6 +27,7 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { computeBoneRotationsForBlueprint, ROOT_BONE } from './kfh-3d-rig-bridge.js';
 
 const SOVEREIGN = Object.freeze({
   matteBlack: 0x090909,
@@ -38,8 +45,25 @@ const _state = {
   bones:       {},
   canvas:      null,
   initStarted: false,
-  loaded:      false
+  loaded:      false,
+
+  // Animation driver state
+  animation:   null,
+  mode:        'ok',
+  startTs:     0,
+  rafId:       null,
+  hipsRest:    { x: 0, y: 0, z: 0 },
+  restQuats:   {},     // { boneName: THREE.Quaternion } — captured on first apply
+
+  // FPS probe
+  frameStamps: [],
+  fpsLow:      false,
+  onFallback:  null
 };
+
+const FPS_WINDOW_MS = 1500;   // rolling window for the avg-FPS probe
+const FPS_MIN       = 30;     // hard floor — sub-30 triggers fallback
+const FPS_MIN_FRAMES = 24;    // need at least this many samples before judging
 
 // ─── SCENE BOOTSTRAP ─────────────────────────────────────
 function _setupScene(canvas) {
@@ -127,11 +151,13 @@ function _logBoneManifest(bones) {
     '%c[KFH-3D] YBot rig loaded · ' + names.length + ' bones',
     'color:#f5c800;font-weight:bold'
   );
-  console.log('[KFH-3D] full bone list:', names);
-  const sorted = names.slice().sort();
-  sorted.forEach((n, i) => {
-    console.log('[KFH-3D] bone[' + String(i).padStart(3, '0') + ']:', n);
-  });
+}
+
+function _captureHipsRest() {
+  const hips = _state.bones[ROOT_BONE];
+  if (hips) {
+    _state.hipsRest = { x: hips.position.x, y: hips.position.y, z: hips.position.z };
+  }
 }
 
 // ─── PUBLIC API ──────────────────────────────────────────
@@ -163,13 +189,13 @@ async function init(canvas) {
           _state.scene.add(ybot);
           _state.ybot   = ybot;
           _state.loaded = true;
+          _captureHipsRest();
 
           // Single static render — canvas may be hidden but the
-          // backing WebGL surface is primed for when the IIFE
-          // shows it in B3-3.
+          // backing WebGL surface is primed for the IIFE toggle.
           _state.renderer.render(_state.scene, _state.camera);
           console.log(
-            '%c[KFH-3D] static T-pose render complete · canvas hidden until B3-3',
+            '%c[KFH-3D] static T-pose render complete · awaiting startAnimation()',
             'color:#6a0dad;font-weight:bold'
           );
           resolve(_state);
@@ -199,12 +225,18 @@ function render() {
 }
 
 function show() {
-  if (_state.canvas) _state.canvas.hidden = false;
+  if (_state.canvas) {
+    _state.canvas.hidden = false;
+    _state.canvas.removeAttribute('aria-hidden');
+  }
   render();
 }
 
 function hide() {
-  if (_state.canvas) _state.canvas.hidden = true;
+  if (_state.canvas) {
+    _state.canvas.hidden = true;
+    _state.canvas.setAttribute('aria-hidden', 'true');
+  }
 }
 
 function isLoaded() { return _state.loaded; }
@@ -212,9 +244,133 @@ function getBones() { return _state.bones; }
 function getScene() { return _state.scene; }
 function getYBot()  { return _state.ybot; }
 
+// ─── ANIMATION DRIVER ────────────────────────────────────
+// Caches each targeted bone's rest local quaternion the first time
+// we touch it. Each frame we copy the rest quaternion back, then
+// post-multiply the per-frame Z-axis delta from the bridge so the
+// rig returns cleanly to T-pose between rep cycles.
+function _ensureRestQuat(boneName) {
+  if (_state.restQuats[boneName]) return _state.restQuats[boneName];
+  const bone = _state.bones[boneName];
+  if (!bone) return null;
+  _state.restQuats[boneName] = bone.quaternion.clone();
+  return _state.restQuats[boneName];
+}
+
+const _tmpDeltaQuat = new THREE.Quaternion();
+
+function _applyFrame(t) {
+  if (!_state.animation || !_state.bones || !_state.loaded) return;
+
+  const result = computeBoneRotationsForBlueprint(_state.animation, t, _state.mode);
+  const rotations = (result && result.rotations) || {};
+  const hipsOffset = (result && result.hipsOffset) || { x: 0, y: 0, z: 0 };
+
+  Object.keys(rotations).forEach((boneName) => {
+    const bone = _state.bones[boneName];
+    if (!bone) return;
+    const rest = _ensureRestQuat(boneName);
+    if (!rest) return;
+    const eul = rotations[boneName];
+    _tmpDeltaQuat.setFromEuler(eul);
+    bone.quaternion.copy(rest).multiply(_tmpDeltaQuat);
+  });
+
+  const hips = _state.bones[ROOT_BONE];
+  if (hips) {
+    hips.position.set(
+      _state.hipsRest.x + hipsOffset.x,
+      _state.hipsRest.y + hipsOffset.y,
+      _state.hipsRest.z + hipsOffset.z
+    );
+  }
+}
+
+function _resetRestPose() {
+  Object.keys(_state.restQuats).forEach((boneName) => {
+    const bone = _state.bones[boneName];
+    if (bone) bone.quaternion.copy(_state.restQuats[boneName]);
+  });
+  const hips = _state.bones[ROOT_BONE];
+  if (hips) hips.position.set(_state.hipsRest.x, _state.hipsRest.y, _state.hipsRest.z);
+}
+
+function _trackFps(now) {
+  const stamps = _state.frameStamps;
+  stamps.push(now);
+  while (stamps.length && (now - stamps[0]) > FPS_WINDOW_MS) stamps.shift();
+  if (stamps.length < FPS_MIN_FRAMES) return;
+  const span = (stamps[stamps.length - 1] - stamps[0]) / 1000;
+  if (span <= 0) return;
+  const fps = (stamps.length - 1) / span;
+  if (fps < FPS_MIN && !_state.fpsLow) {
+    _state.fpsLow = true;
+    console.warn('[KFH-3D] FPS probe · sub-30fps detected (' + fps.toFixed(1) + ') — falling back to V2 SVG');
+    if (typeof _state.onFallback === 'function') {
+      try { _state.onFallback('low-fps'); } catch (e) {}
+    }
+  }
+}
+
+function _frame(now) {
+  if (!_state.animation || !_state.loaded) { _state.rafId = null; return; }
+  if (!_state.startTs) _state.startTs = now;
+  const elapsed = now - _state.startTs;
+  const dur = _state.animation.duration_ms || 2400;
+  const t = (elapsed % dur) / dur;
+
+  _applyFrame(t);
+  _state.renderer.render(_state.scene, _state.camera);
+
+  _trackFps(now);
+
+  if (typeof requestAnimationFrame !== 'undefined') {
+    _state.rafId = requestAnimationFrame(_frame);
+  } else {
+    _state.rafId = null;
+  }
+}
+
+function startAnimation(animation, mode, opts) {
+  stopAnimation();
+  if (!animation || !_state.loaded) return false;
+  _state.animation = animation;
+  _state.mode = mode || 'ok';
+  _state.startTs = 0;
+  _state.frameStamps = [];
+  _state.fpsLow = false;
+  _state.onFallback = (opts && opts.onFallback) || null;
+
+  if (typeof requestAnimationFrame === 'undefined') {
+    console.warn('[KFH-3D] startAnimation: requestAnimationFrame unavailable');
+    return false;
+  }
+  _state.rafId = requestAnimationFrame(_frame);
+  console.log('%c[KFH-3D] animation driver started · mode=' + _state.mode,
+              'color:#6a0dad;font-weight:bold');
+  return true;
+}
+
+function stopAnimation(restPose) {
+  if (_state.rafId != null && typeof cancelAnimationFrame !== 'undefined') {
+    try { cancelAnimationFrame(_state.rafId); } catch (e) {}
+  }
+  _state.rafId = null;
+  _state.animation = null;
+  _state.frameStamps = [];
+  if (restPose !== false) _resetRestPose();
+}
+
+function setAnimationMode(mode) {
+  _state.mode = (mode === 'warn') ? 'warn' : 'ok';
+}
+
+function isAnimating() { return _state.rafId != null; }
+
 const api = {
   init, render, show, hide,
   isLoaded, getBones, getScene, getYBot,
+  startAnimation, stopAnimation, setAnimationMode, isAnimating,
   SOVEREIGN
 };
 
@@ -225,6 +381,7 @@ if (typeof window !== 'undefined') {
 export {
   init, render, show, hide,
   isLoaded, getBones, getScene, getYBot,
+  startAnimation, stopAnimation, setAnimationMode, isAnimating,
   SOVEREIGN
 };
 export default api;
