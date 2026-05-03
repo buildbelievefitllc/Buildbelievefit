@@ -5190,11 +5190,12 @@ window.onload=function(){
               <title id="kfh-svg-title"></title>
               <g id="kfh-svg-stage" aria-hidden="true"></g>
             </svg>
-            <!-- Phase 13 / B3-3 Option B · the V3 WebGL canvas is no
-                 longer mounted in the Bio-Render pane. BBF_HOLOGRAM
-                 spins up a fresh #kfh-3d-stage canvas inside the
-                 active exercise card on engage and disposes it on
-                 retreat (mandatory WebGL Context Disposal). -->
+            <!-- Phase 13 · V3 Engine Swap · CEO directive
+                 The V3 WebGL canvas (#kfh-3d-stage) mounts INTO this
+                 .kfh-stage container when BBF_HOLOGRAM engages a
+                 piloted exercise. While V3 is active, #kfh-svg above
+                 is set to display:none. Retreat removes the canvas,
+                 disposes the WebGL context, and restores the SVG. -->
           </div>
           <div class="kfh-readout">
             <div class="kfh-metric">
@@ -5290,12 +5291,10 @@ window.onload=function(){
            manages the lifecycle; KFH_SET_FORM forwards mode changes. */
         var _kfhAnimHandle = null;
 
-        /* Phase 13 / B3-3 Option B note: the V3 3D engage path no
-           longer fires from KFH_LOAD_EXERCISE. The per-card "Kinetic
-           Hologram" button (BBF_HOLOGRAM.toggle in hologram-renderer.js)
-           owns the WebGL surface entirely. The Bio-Render pane stays
-           on the V2 SVG Sentinel for every Blueprint, including the
-           pilot. */
+        /* Phase 13 V3 Engine Swap note: the per-card "Kinetic Hologram"
+           button (BBF_HOLOGRAM.toggle in hologram-renderer.js) owns
+           the WebGL surface and mounts it into the main .kfh-stage
+           Bio-Render pane (V2 #kfh-svg is hidden while engaged). */
 
         function setMedia(src, type){
           var wrap = byId('kfh-media');

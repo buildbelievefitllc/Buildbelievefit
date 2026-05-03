@@ -251,31 +251,50 @@ var BBF_HOLOGRAM = (function() {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // PHASE 13 / B3-3 · OPTION B · 3D Kinetic Hologram per-card path
+  // PHASE 13 / B3-3 · V3 Kinetic Hologram · Main Bio-Render Stage
   //
-  // Hand-picked Blueprint ids drop the WebGL YBot rig into the
-  // exercise card's existing holo-N viewport instead of the V1 2D
-  // Sentinel canvas. The page-level #kfh-3d-stage canvas is the
-  // single rendering surface — re-parented into the active card on
-  // engage, moved back to its #kfh-3d-canvas-home div on retreat.
+  // CEO directive (Phase 13 redirect): the WebGL YBot rig mounts
+  // into the MAIN Bio-Render stage (.kfh-stage) at the top of the
+  // app — never into the per-card list-row holo viewport. While V3
+  // is engaged, the V2 SVG Sentinel (#kfh-svg) is explicitly hidden
+  // and the 3D canvas owns the stage. Retreat restores the SVG and
+  // disposes the WebGL context.
   //
-  // ID resolution intentionally goes through BBF_KFH_CATALOG so
-  // any case / alias variant of the user-facing name ("Lat Pulldown",
-  // "lat pulldowns", "Cable Pulldown", etc.) maps to the canonical
-  // snake_case Blueprint id ('lat_pulldowns') before the strict
-  // allow-list check.
+  // ID resolution goes through BBF_KFH_CATALOG so any case / alias
+  // variant of the user-facing name maps to the canonical snake_case
+  // Blueprint id before the strict allow-list check.
   //
-  // Every gate logs through `[BBF_HOLOGRAM]` so the next live-fire
-  // test surfaces exactly which check passes or fails.
-  //
-  // Constraints (B3-3 Option B mandatory):
-  //   · Trilingual DOM overlay  → engage paints exercise title in en/es/pt.
+  // Constraints (locked):
+  //   · Trilingual DOM overlay → engage paints title in en/es/pt
+  //     over the canvas (sits inside .kfh-stage).
   //   · WebGL Context Disposal → retreat calls renderer.dispose().
   // ═══════════════════════════════════════════════════════════════
   var KFH_3D_PILOT_IDS = { 'lat_pulldowns': true };
-  var _v3ActiveContainerId = null;
-  var _v3CanvasHomeId      = 'kfh-3d-canvas-home';
-  var _v3InitInFlight      = false;
+  var _v3ActiveExerciseId = null;
+  var _v3InitInFlight     = false;
+
+  function _getBioStage() {
+    // Main Bio-Render stage at the top of the app (single source of
+    // truth for V3). Falls back to the document body only if the
+    // expected DOM is missing — that scenario logs and surfaces.
+    var stage = document.querySelector('.kfh-stage');
+    if (!stage) {
+      console.warn('[BBF_HOLOGRAM] .kfh-stage not found in DOM — V3 cannot mount');
+    }
+    return stage;
+  }
+
+  function _setV2SvgVisible(visible) {
+    var svg = document.getElementById('kfh-svg');
+    if (!svg) return;
+    if (visible) {
+      svg.style.display = '';
+      svg.removeAttribute('aria-hidden');
+    } else {
+      svg.style.display = 'none';
+      svg.setAttribute('aria-hidden', 'true');
+    }
+  }
 
   function _resolve3DEntry(exerciseName) {
     if (typeof BBF_KFH_CATALOG === 'undefined' || !BBF_KFH_CATALOG.getExercise) {
@@ -302,12 +321,6 @@ var BBF_HOLOGRAM = (function() {
     console.log('%c[BBF_HOLOGRAM] V3 piloted entry resolved · id=' + entry.id,
                 'color:#f5c800;font-weight:bold');
     return entry;
-  }
-
-  function _v3CanvasHome() {
-    return document.getElementById(_v3CanvasHomeId)
-      || document.querySelector('.kfh-stage')
-      || document.body;
   }
 
   function _pickLang() {
@@ -358,87 +371,76 @@ var BBF_HOLOGRAM = (function() {
   function _retreat3D(reason) {
     console.log('[BBF_HOLOGRAM] V3 retreat · reason=' + (reason || 'user-toggle'));
     var canvas = document.getElementById('kfh-3d-stage');
-    var activeContainer = _v3ActiveContainerId
-      ? document.getElementById(_v3ActiveContainerId)
-      : null;
+    var stage  = _getBioStage();
 
     if (window.BBF_KFH_3D_RENDERER) {
       var R = window.BBF_KFH_3D_RENDERER;
       try { if (R.stopAnimation) R.stopAnimation(); } catch (e) {}
-      // Mandatory: WebGL Context Disposal on modal close.
+      // Mandatory: WebGL Context Disposal on retreat.
       try { if (R.dispose) R.dispose(); } catch (e) {
         console.warn('[BBF_HOLOGRAM] dispose threw:', e && e.message);
       }
     }
     // dispose() severed the WebGL context — drop the canvas DOM
     // element entirely; a future engage will re-create it inside
-    // the target card before re-init.
+    // the Bio-Render stage before re-init.
     if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
 
-    if (activeContainer) _detachOverlay(activeContainer);
-    _v3ActiveContainerId = null;
+    if (stage) _detachOverlay(stage);
+    _setV2SvgVisible(true);
+    _v3ActiveExerciseId = null;
     _v3InitInFlight = false;
   }
 
-  function _ensureCanvasInCard(container) {
-    // Each engage stands up a fresh canvas inside the active card.
-    // The previous engage's renderer was disposed on retreat, which
-    // killed its WebGL context — so we never reuse the prior canvas.
+  function _ensureCanvasInStage(stage) {
     var existing = document.getElementById('kfh-3d-stage');
     if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
 
     var canvas = document.createElement('canvas');
     canvas.id = 'kfh-3d-stage';
-    var w = container.offsetWidth  || 300;
-    var h = container.offsetHeight || 180;
+    var w = stage.offsetWidth  || 320;
+    var h = stage.offsetHeight || 200;
     canvas.width  = w;
     canvas.height = h;
     canvas.style.cssText =
-      'position:absolute;top:0;left:0;width:100%;height:100%;display:block;z-index:10';
-    container.style.position = 'relative';
-    container.appendChild(canvas);
+      'position:absolute;top:0;left:0;width:100%;height:100%;display:block;z-index:2';
+    if (getComputedStyle(stage).position === 'static') {
+      stage.style.position = 'relative';
+    }
+    stage.appendChild(canvas);
     return canvas;
   }
 
-  function _engage3DInCard(container, entry) {
-    if (!container) {
-      console.warn('[BBF_HOLOGRAM] _engage3DInCard: no container');
-      return false;
-    }
+  function _engage3DInStage(entry) {
     if (!window.BBF_KFH_3D_RENDERER) {
       console.warn('[BBF_HOLOGRAM] BBF_KFH_3D_RENDERER unavailable — V3 module not loaded');
       return false;
     }
-    var R = window.BBF_KFH_3D_RENDERER;
+    var stage = _getBioStage();
+    if (!stage) return false;
 
-    // Reorder: bail BEFORE canvas teardown when an init is already
-    // in flight. Previously _ensureCanvasInCard ran first, which
-    // ripped out the canvas the in-flight R.init() was painting
-    // into and left an empty stage (drove the V2 fallback the CEO
-    // saw in production after the click intercept fix).
     if (_v3InitInFlight) {
       console.log('[BBF_HOLOGRAM] V3 init already in flight — ignoring duplicate engage');
       return true;
     }
 
-    // Hide any V1 Sentinel canvas left in this card so they don't stack.
-    var v2 = container.querySelector('.holo-canvas');
-    if (v2) v2.style.display = 'none';
+    var R = window.BBF_KFH_3D_RENDERER;
+    _setV2SvgVisible(false);
 
-    var canvas = _ensureCanvasInCard(container);
+    var canvas = _ensureCanvasInStage(stage);
     _v3InitInFlight = true;
 
-    // Trilingual overlay first — gives the user immediate feedback.
-    _attachOverlay(container, entry);
+    // Trilingual overlay sits inside the stage above the canvas.
+    _attachOverlay(stage, entry);
 
-    console.log('%c[BBF_HOLOGRAM] V3 engaging · ' + entry.id + ' in ' + container.id +
+    console.log('%c[BBF_HOLOGRAM] V3 engaging · ' + entry.id + ' in .kfh-stage' +
                 ' (' + canvas.width + 'x' + canvas.height + ')',
                 'color:#f5c800;font-weight:bold');
 
     R.init(canvas)
       .then(function () {
         _v3InitInFlight = false;
-        _v3ActiveContainerId = container.id;
+        _v3ActiveExerciseId = entry.id;
         if (R.resize) R.resize(canvas.width, canvas.height);
         var ok = false;
         try {
@@ -464,8 +466,6 @@ var BBF_HOLOGRAM = (function() {
         console.warn('[BBF_HOLOGRAM] V3 init failed — Sentinel SVG fallback:', err && err.message);
         window.BBF_KFH_3D_READY = false;
         _retreat3D('init-failed');
-        // Fall back to V1 2D so the user still sees something.
-        _drawV1Sentinel(container, entry.id);
       });
 
     return true;
@@ -490,28 +490,28 @@ var BBF_HOLOGRAM = (function() {
   function toggle(containerId, exerciseName) {
     console.log('[BBF_HOLOGRAM] toggle · container=' + containerId +
                 ' · exercise=' + JSON.stringify(exerciseName));
+
+    var pilotEntry = _resolve3DEntry(exerciseName);
+
+    // ── V3 piloted path · ALWAYS targets the main Bio-Render stage ──
+    // The per-card containerId is intentionally ignored for V3; the
+    // canvas owns the top stage and the V2 SVG is hidden while active.
+    if (pilotEntry) {
+      if (_v3ActiveExerciseId === pilotEntry.id) {
+        _retreat3D('user-toggle');
+        return;
+      }
+      if (_v3ActiveExerciseId) _retreat3D('switch-exercise');
+      _engage3DInStage(pilotEntry);
+      return;
+    }
+
+    // ── V1 2D Sentinel path · per-card overlay for everything else ──
     var container = document.getElementById(containerId);
     if (!container) {
       console.warn('[BBF_HOLOGRAM] container not found:', containerId);
       return;
     }
-
-    var pilotEntry = _resolve3DEntry(exerciseName);
-
-    // ── 3D piloted path ────────────────────────────────────
-    if (pilotEntry) {
-      // Same card already engaged → toggle off.
-      if (_v3ActiveContainerId === containerId) {
-        _retreat3D('user-toggle');
-        return;
-      }
-      // Different card was engaged → tear down before re-engaging here.
-      if (_v3ActiveContainerId) _retreat3D('switch-card');
-      _engage3DInCard(container, pilotEntry);
-      return;
-    }
-
-    // ── V1 2D Sentinel path · everything else ─────────────
     var canvas = container.querySelector('.holo-canvas');
     if (canvas && canvas.style.display !== 'none') {
       if (canvas.dataset.exercise === exerciseName) {

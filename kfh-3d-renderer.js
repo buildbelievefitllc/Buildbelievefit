@@ -58,7 +58,10 @@ const _state = {
   // FPS probe
   frameStamps: [],
   fpsLow:      false,
-  onFallback:  null
+  onFallback:  null,
+
+  // One-shot telemetry — proves the rAF loop is actually running.
+  frameLogged: false
 };
 
 const FPS_WINDOW_MS = 1500;   // rolling window for the avg-FPS probe
@@ -401,6 +404,13 @@ function _frame(now) {
   _applyFrame(t);
   _state.renderer.render(_state.scene, _state.camera);
 
+  // One-shot telemetry per startAnimation cycle — proves the rig
+  // loop is actually executing (CEO directive · Phase 13).
+  if (!_state.frameLogged) {
+    _state.frameLogged = true;
+    console.log('[KFH-3D] Animating frame...');
+  }
+
   _trackFps(now);
 
   if (typeof requestAnimationFrame !== 'undefined') {
@@ -418,6 +428,7 @@ function startAnimation(animation, mode, opts) {
   _state.startTs = 0;
   _state.frameStamps = [];
   _state.fpsLow = false;
+  _state.frameLogged = false;
   _state.onFallback = (opts && opts.onFallback) || null;
 
   if (typeof requestAnimationFrame === 'undefined') {
