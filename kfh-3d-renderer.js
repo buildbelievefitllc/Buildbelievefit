@@ -76,12 +76,12 @@ function _setupScene(canvas) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(SOVEREIGN.matteBlack);
 
-  // Pulled back to frame the full YBot · CEO directive Phase 6 fix.
-  // Camera at (0,1.5,5) looking at the chest (0,1.2,0); fov widened
-  // to 38° so a 1.65-unit-tall rig fills ~70% of the vertical frame.
+  // Pulled in to (0,1.2,2.5) looking at the chest (0,1.0,0) per CEO
+  // Phase 7 directive — z=5 was an overcorrection that pushed the
+  // matte-black rig past usable contrast on a matte-black background.
   const camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 100);
-  camera.position.set(0, 1.5, 5);
-  camera.lookAt(new THREE.Vector3(0, 1.2, 0));
+  camera.position.set(0, 1.2, 2.5);
+  camera.lookAt(new THREE.Vector3(0, 1.0, 0));
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -95,10 +95,10 @@ function _setupScene(canvas) {
   }
 
   // ─── Clinical Studio Lighting ───────────────────────
-  // Low ambient floor + Sovereign Gold key + Sovereign Purple rim.
-  // Matches the V2 wireframe scanner aesthetic in 3D — clinical,
-  // not theatrical.
-  scene.add(new THREE.AmbientLight(0xffffff, 0.20));
+  // Ambient boosted to 1.5 (Phase 7 CEO directive) so the matte-
+  // black + purple-emissive rig reads against the matte-black
+  // canvas; gold key + purple rim still shape the form.
+  scene.add(new THREE.AmbientLight(0xffffff, 1.5));
 
   const keyLight = new THREE.DirectionalLight(SOVEREIGN.bbfGold, 1.10);
   keyLight.position.set(2.5, 4.0, 3.2);
