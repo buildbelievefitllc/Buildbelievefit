@@ -269,7 +269,21 @@ var BBF_HOLOGRAM = (function() {
   //     over the canvas (sits inside .kfh-stage).
   //   · WebGL Context Disposal → retreat calls renderer.dispose().
   // ═══════════════════════════════════════════════════════════════
-  var KFH_3D_PILOT_IDS = { 'lat_pulldowns': true };
+  // ═══════════════════════════════════════════════════════════════
+  // V3 ENGINE · PARKED (CEO directive — back-burner)
+  //
+  // The V3 WebGL/Three.js engine code remains in the repo (see
+  // kfh-3d-renderer.js, kfh-3d-rig-bridge.js, hologram-renderer.js
+  // _engage3DInStage / _retreat3D) for revival from branch
+  // `v3-engine-swap-parked`. The pilot allow-list below is
+  // intentionally empty — every exercise now falls through to the
+  // V2 Sentinel SVG path that the catalog has been driving since
+  // Phase 12 (33 fully articulated trilingual blueprints).
+  //
+  // To revive: add canonical Blueprint ids back to KFH_3D_PILOT_IDS,
+  // re-add '/public/models/ybot.glb' to sw.js CORE, bump cache.
+  // ═══════════════════════════════════════════════════════════════
+  var KFH_3D_PILOT_IDS = {};
   var _v3ActiveExerciseId = null;
   var _v3InitInFlight     = false;
 
