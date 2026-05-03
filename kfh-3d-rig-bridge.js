@@ -14,32 +14,33 @@
 //   - Path B (Blueprint-authored rigPoses overrides for transverse-
 //     plane exercises) lands in B3-Final.
 //
-// MIXAMO BONE-NAME CAVEAT
-// Mixamo glTFs export bone names as either "mixamorigHips" (no
-// separator) or "mixamorig:Hips" (with colon) depending on the
-// pipeline. The mapping below is our day-one best-guess. The
-// renderer logs the actual rig bone names on load — if any below
-// mismatch, patch this table and ship a hotfix in the next cache
-// bump before B3-3 animates anything.
+// MIXAMO BONE-NAME CONVENTION (VERIFIED · B3-2.1)
+// FBX2glTF v0.9.7 conversion of the Mixamo Y Bot rig produces bone
+// names with the "mixamorig:" prefix (colon-separated). Manifest
+// extracted server-side from the GLB JSON chunk and ratified by
+// the War Room — all 13 joint targets + the root bone resolve
+// cleanly against the live rig (52 unique bones across 2 skin).
+// If a future model swap uses a different prefix, patch this
+// table and re-run verifyRig() before animating.
 // ═══════════════════════════════════════════════════════════════
 
 const JOINT_TO_BONE = Object.freeze({
-  head:       'mixamorigHead',
-  shoulder_l: 'mixamorigLeftArm',
-  shoulder_r: 'mixamorigRightArm',
-  elbow_l:    'mixamorigLeftForeArm',
-  elbow_r:    'mixamorigRightForeArm',
-  wrist_l:    'mixamorigLeftHand',
-  wrist_r:    'mixamorigRightHand',
-  hip_l:      'mixamorigLeftUpLeg',
-  hip_r:      'mixamorigRightUpLeg',
-  knee_l:     'mixamorigLeftLeg',
-  knee_r:     'mixamorigRightLeg',
-  ankle_l:    'mixamorigLeftFoot',
-  ankle_r:    'mixamorigRightFoot'
+  head:       'mixamorig:Head',
+  shoulder_l: 'mixamorig:LeftArm',
+  shoulder_r: 'mixamorig:RightArm',
+  elbow_l:    'mixamorig:LeftForeArm',
+  elbow_r:    'mixamorig:RightForeArm',
+  wrist_l:    'mixamorig:LeftHand',
+  wrist_r:    'mixamorig:RightHand',
+  hip_l:      'mixamorig:LeftUpLeg',
+  hip_r:      'mixamorig:RightUpLeg',
+  knee_l:     'mixamorig:LeftLeg',
+  knee_r:     'mixamorig:RightLeg',
+  ankle_l:    'mixamorig:LeftFoot',
+  ankle_r:    'mixamorig:RightFoot'
 });
 
-const ROOT_BONE = 'mixamorigHips';
+const ROOT_BONE = 'mixamorig:Hips';
 
 function listMappings() {
   return JOINT_TO_BONE;
