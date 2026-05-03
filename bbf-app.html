@@ -10568,6 +10568,44 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
+    // ── Cloud sync (Supabase via BBF_SYNC) ─────────────────────────
+    // localStorage stays the offline cache; bbf_athlete_progression is
+    // the source of truth across devices. The slug→UUID resolver inside
+    // BBF_SYNC handles user_id rewriting for us; we just pass the slug.
+    function _resolveAthleteUid(){
+      var v = (typeof VC !== 'undefined') ? VC : null;
+      var c = (typeof CU !== 'undefined') ? CU : null;
+      // Trainer view (CU='akeem', VC=null) has no athlete to log against.
+      if (c === 'akeem' && !v) return null;
+      return v || c || null;
+    }
+    function pushProgressionToCloud(){
+      if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.pushAthleteProgression) return;
+      var uid = _resolveAthleteUid();
+      if (!uid || !state.sport || !state.position || !state.phase) return;
+      BBF_SYNC.pushAthleteProgression(uid, state.sport, state.position, state.phase, !!state.protocolCompleted);
+    }
+    function hydrateProgressionFromCloud(){
+      if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchAthleteProgression) return;
+      var uid = _resolveAthleteUid();
+      if (!uid || !state.sport || !state.position || !state.phase) return;
+      // Capture the tuple at request time so a fast VC-swap or selection
+      // change can't apply a stale fetch result to the wrong context.
+      var ctx = { sport: state.sport, position: state.position, phase: state.phase, uid: uid };
+      BBF_SYNC.fetchAthleteProgression(uid, ctx.sport, ctx.position, ctx.phase).then(function(row){
+        if (state.sport !== ctx.sport || state.position !== ctx.position || state.phase !== ctx.phase) return;
+        if (_resolveAthleteUid() !== ctx.uid) return;
+        if (row && row.protocol_completed === true && state.protocolCompleted !== true) {
+          state.protocolCompleted = true;
+          persist();
+          renderProtocol();
+        } else if (state.protocolCompleted === true && (!row || row.protocol_completed !== true)) {
+          // Legacy local ack predating cloud sync — push it up.
+          pushProgressionToCloud();
+        }
+      });
+    }
+
     // ── DOM refs ────────────────────────────────────────────────────
     var sportSel    = document.getElementById('ap-sport-select');
     var positionSel = document.getElementById('ap-position-select');
@@ -10780,9 +10818,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Re-click guard: the CTA stays visible after acknowledgment as
         // an "acknowledged" affordance, but cannot re-trigger the unlock.
         if (completeCta.getAttribute('aria-disabled') === 'true') return;
-        // Mutate state, persist, then propagate to all four regions.
+        // Mutate state, persist locally, push to Supabase, then propagate
+        // to all four UI regions. The cloud write is fire-and-forget — the
+        // local persist + UI flip are immediate so the athlete sees their
+        // acknowledgment commit even if the network is offline; on next
+        // hydration the cloud catches up via the legacy-ack push path.
         state.protocolCompleted = true;
         persist();
+        pushProgressionToCloud();
         syncPhase2UI({ animate: true });
         var hudWrap = document.getElementById('ap-kfh-wrap');
         if (hudWrap) {
@@ -10814,6 +10857,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     setPhase(state.phase, false);
     renderProtocol();
+    // Cloud reconciliation: if Supabase has this user×selection marked
+    // completed, override the local view; if local is ahead (legacy ack),
+    // push it up. Async so the UI paints from localStorage immediately.
+    hydrateProgressionFromCloud();
 
     // ── Athlete HUD toggles (scoped; mirrors workout HUD pattern) ──
     (function wireAthleteHUD(){

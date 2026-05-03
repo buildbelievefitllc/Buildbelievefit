@@ -478,6 +478,48 @@ var BBF_SYNC = (function() {
     }).catch(function(e) { console.error('BBF_SYNC logPreHabNeed error:', e); return null; });
   }
 
+  // ─── SYNC: ATHLETE PORTAL PHASE 2 PROGRESSION ─────────────
+  // Phase 2 unlock state lives at sport × position × phase granularity:
+  // a "Skill Positions / Off-Season Hypertrophy" acknowledgment is
+  // distinct from "Skill Positions / In-Season Game Day". The unique
+  // constraint on (user_id, sport, position, phase) lets PostgREST
+  // upsert via Prefer: resolution=merge-duplicates — re-clicks bump
+  // updated_at without re-stamping completed_at, and a flip back to
+  // false (selection change) clears completed_at via DB trigger.
+  function pushAthleteProgression(uid, sport, position, phase, completed) {
+    if (!uid || !sport || !position || !phase) return Promise.resolve(null);
+    if (phase !== 'off' && phase !== 'in') return Promise.resolve(null);
+    return supa('POST', 'bbf_athlete_progression', {
+      user_id: uid,
+      sport: sport,
+      position: position,
+      phase: phase,
+      protocol_completed: !!completed
+    }).catch(function(e) {
+      console.error('BBF_SYNC pushAthleteProgression error:', e);
+      return null;
+    });
+  }
+
+  // Returns the row for this user × sport × position × phase, or null
+  // if it doesn't exist yet (which means "not acknowledged"). Callers
+  // should treat null as "locked".
+  function fetchAthleteProgression(uid, sport, position, phase) {
+    if (!uid || !sport || !position || !phase) return Promise.resolve(null);
+    var q = '?user_id=eq.' + encodeURIComponent(uid) +
+            '&sport=eq.'    + encodeURIComponent(sport) +
+            '&position=eq.' + encodeURIComponent(position) +
+            '&phase=eq.'    + encodeURIComponent(phase) +
+            '&limit=1';
+    return supa('GET', 'bbf_athlete_progression', null, q).then(function(rows) {
+      if (!rows || !rows.length) return null;
+      return rows[0];
+    }).catch(function(e) {
+      console.error('BBF_SYNC fetchAthleteProgression error:', e);
+      return null;
+    });
+  }
+
   // ─── TOGGLE: SOVEREIGN TRIAL ──────────────────────────────
   // Phase 8 — calls the SECURITY DEFINER RPC bbf_set_trial_status(p_uid, p_active).
   // RPC resolves slug -> uuid server-side, applies UPDATE, returns {ok, ...}.
@@ -1802,7 +1844,9 @@ var BBF_SYNC = (function() {
     pullUser: pullUser,
     isOnline: isOnline,
     verifyAdminPin: verifyAdminPin,
-    fetchDamagedZones: fetchDamagedZones
+    fetchDamagedZones: fetchDamagedZones,
+    pushAthleteProgression: pushAthleteProgression,
+    fetchAthleteProgression: fetchAthleteProgression
   };
 
   if (typeof module !== 'undefined' && module.exports) {
