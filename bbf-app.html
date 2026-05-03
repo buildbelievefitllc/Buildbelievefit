@@ -2517,41 +2517,21 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 }
 </script>
 <script type="module">
-  import { verifyRig } from './kfh-3d-rig-bridge.js';
-  import { init, getBones } from './kfh-3d-renderer.js';
-
-  function bootKFH3D() {
-    var canvas = document.getElementById('kfh-3d-stage');
-    if (!canvas) {
-      console.warn('[KFH-3D] #kfh-3d-stage canvas not found — V3 layer disabled');
-      window.BBF_KFH_3D_READY = false;
-      return;
-    }
-    // WebGL feature gate — if the runtime lacks WebGL constructors at all
-    // we never call init(); the IIFE keeps the V2 Sentinel active. Any
-    // context-creation failure inside init() lands in the .catch below
-    // and clears BBF_KFH_3D_READY the same way.
-    if (typeof WebGLRenderingContext === 'undefined') {
-      console.warn('[KFH-3D] WebGL unavailable — V3 disabled, V2 SVG remains active');
-      window.BBF_KFH_3D_READY = false;
-      return;
-    }
-    init(canvas)
-      .then(function () {
-        verifyRig(getBones());
-        window.BBF_KFH_3D_READY = true;
-        console.log('%c[KFH-3D] rig ready — Option B per-card button can engage on click',
-                    'color:#22C55E;font-weight:bold');
-      })
-      .catch(function (err) {
-        console.warn('[KFH-3D] init failed — Sovereign Sentinel SVG remains active:', err);
-        window.BBF_KFH_3D_READY = false;
-      });
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootKFH3D, { once: true });
+  // Phase 13 / B3-3 Option B · side-effect imports register
+  // window.BBF_KFH_3D_BRIDGE + window.BBF_KFH_3D_RENDERER. The
+  // per-card "Kinetic Hologram" button (BBF_HOLOGRAM.toggle in
+  // hologram-renderer.js) lazy-initializes the renderer on first
+  // engage and disposes the WebGL context on retreat — no
+  // page-load init, no static canvas, single piloted Blueprint
+  // (lat_pulldowns).
+  import './kfh-3d-rig-bridge.js';
+  import './kfh-3d-renderer.js';
+  if (typeof WebGLRenderingContext === 'undefined') {
+    console.warn('[KFH-3D] WebGL unavailable — V3 path will fall back to V1 Sentinel on every click');
+    window.BBF_KFH_3D_READY = false;
   } else {
-    bootKFH3D();
+    console.log('%c[KFH-3D] modules loaded · awaiting per-card engage',
+                'color:#6a0dad;font-weight:bold');
   }
 </script>
 <script src="bbf-translator.js"></script>
@@ -5094,14 +5074,16 @@ window.onload=function(){
             <button type="button" class="kfh-chip on ok"   data-form="ok"   role="radio" aria-checked="true"  onclick="KFH_SET_FORM('ok')"><span class="kfh-pip"></span><span id="kfh-chip-ok-text">Standard Form</span></button>
             <button type="button" class="kfh-chip warn"    data-form="warn" role="radio" aria-checked="false" onclick="KFH_SET_FORM('warn')"><span class="kfh-pip"></span><span id="kfh-chip-warn-text">Common Fault</span></button>
           </div>
-          <div class="kfh-stage" id="kfh-3d-canvas-home">
+          <div class="kfh-stage">
             <svg id="kfh-svg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kfh-svg-title" role="img">
               <title id="kfh-svg-title"></title>
               <g id="kfh-svg-stage" aria-hidden="true"></g>
             </svg>
-            <!-- V3 3D layer · hidden by default until B3-3 wires the IIFE switch.
-                 Sovereign Sentinel SVG above remains the active surface in B3-2. -->
-            <canvas id="kfh-3d-stage" width="640" height="400" hidden aria-hidden="true"></canvas>
+            <!-- Phase 13 / B3-3 Option B · the V3 WebGL canvas is no
+                 longer mounted in the Bio-Render pane. BBF_HOLOGRAM
+                 spins up a fresh #kfh-3d-stage canvas inside the
+                 active exercise card on engage and disposes it on
+                 retreat (mandatory WebGL Context Disposal). -->
           </div>
           <div class="kfh-readout">
             <div class="kfh-metric">

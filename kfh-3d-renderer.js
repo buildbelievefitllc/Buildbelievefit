@@ -161,8 +161,12 @@ function _captureHipsRest() {
 }
 
 // ─── PUBLIC API ──────────────────────────────────────────
+// Re-entrant: a previous dispose() resets initStarted so a fresh
+// engage (Phase 13 / B3-3 Option B per-card path) can stand up
+// the scene again on the same or a replacement canvas.
+let _initPromise = null;
 async function init(canvas) {
-  if (_state.initStarted) return _state;
+  if (_state.initStarted && _initPromise) return _initPromise;
   _state.initStarted = true;
 
   if (!canvas) throw new Error('[KFH-3D] init: canvas element required');
@@ -174,7 +178,7 @@ async function init(canvas) {
 
   const loader = new GLTFLoader();
 
-  return new Promise((resolve, reject) => {
+  _initPromise = new Promise((resolve, reject) => {
     loader.load(
       ASSET_URL,
       (gltf) => {
@@ -201,6 +205,7 @@ async function init(canvas) {
           resolve(_state);
         } catch (e) {
           console.warn('[KFH-3D] post-load setup failed:', e);
+          _state.initStarted = false; // allow retry
           reject(e);
         }
       },
@@ -212,10 +217,63 @@ async function init(canvas) {
       },
       (err) => {
         console.warn('[KFH-3D] ybot.glb load failed (Sentinel SVG remains active):', err);
+        _state.initStarted = false; // allow retry on a future engage
         reject(err);
       }
     );
   });
+  return _initPromise;
+}
+
+// Phase 13 / B3-3 Option B · WebGL Context Disposal contract.
+// Called by BBF_HOLOGRAM when the per-card hologram closes
+// (modal close). Stops the rAF loop, releases every geometry /
+// material / texture, then disposes the WebGLRenderer's GL
+// context. Resets initStarted so a future engage can stand up
+// a fresh scene (re-init lazy-loads from the SW cache).
+function dispose() {
+  if (_state.rafId != null && typeof cancelAnimationFrame !== 'undefined') {
+    try { cancelAnimationFrame(_state.rafId); } catch (e) {}
+  }
+  _state.rafId = null;
+  _state.animation = null;
+  _state.frameStamps = [];
+  _state.fpsLow = false;
+
+  if (_state.scene) {
+    _state.scene.traverse((node) => {
+      if (node.geometry && typeof node.geometry.dispose === 'function') {
+        try { node.geometry.dispose(); } catch (e) {}
+      }
+      if (node.material) {
+        const mats = Array.isArray(node.material) ? node.material : [node.material];
+        mats.forEach((m) => {
+          if (m && typeof m.dispose === 'function') {
+            try { m.dispose(); } catch (e) {}
+          }
+        });
+      }
+    });
+  }
+  if (_state.renderer && typeof _state.renderer.dispose === 'function') {
+    try { _state.renderer.dispose(); } catch (e) {}
+    if (_state.renderer.forceContextLoss) {
+      try { _state.renderer.forceContextLoss(); } catch (e) {}
+    }
+  }
+
+  _state.scene = null;
+  _state.camera = null;
+  _state.renderer = null;
+  _state.ybot = null;
+  _state.bones = {};
+  _state.restQuats = {};
+  _state.canvas = null;
+  _state.loaded = false;
+  _state.initStarted = false;
+  _initPromise = null;
+  console.log('%c[KFH-3D] dispose complete · context released',
+              'color:#22C55E;font-weight:bold');
 }
 
 function render() {
@@ -389,7 +447,7 @@ function setAnimationMode(mode) {
 function isAnimating() { return _state.rafId != null; }
 
 const api = {
-  init, render, resize, show, hide,
+  init, render, resize, show, hide, dispose,
   isLoaded, getBones, getScene, getYBot,
   startAnimation, stopAnimation, setAnimationMode, isAnimating,
   SOVEREIGN
@@ -400,7 +458,7 @@ if (typeof window !== 'undefined') {
 }
 
 export {
-  init, render, resize, show, hide,
+  init, render, resize, show, hide, dispose,
   isLoaded, getBones, getScene, getYBot,
   startAnimation, stopAnimation, setAnimationMode, isAnimating,
   SOVEREIGN

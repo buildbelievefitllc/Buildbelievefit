@@ -247,145 +247,258 @@ var BBF_HOLOGRAM = (function() {
   //
   // Hand-picked Blueprint ids drop the WebGL YBot rig into the
   // exercise card's existing holo-N viewport instead of the V1 2D
-  // Sentinel canvas. We don't spin up a per-card three.js scene —
-  // the page-level kfh-3d-stage canvas (booted in bbf-app.html's
-  // inline ESM module) is re-parented into the active card and
-  // moved back to its Bio-Render home on retreat. The WebGL
-  // context survives the DOM move; we just resize the renderer.
+  // Sentinel canvas. The page-level #kfh-3d-stage canvas is the
+  // single rendering surface — re-parented into the active card on
+  // engage, moved back to its #kfh-3d-canvas-home div on retreat.
   //
   // ID resolution intentionally goes through BBF_KFH_CATALOG so
   // any case / alias variant of the user-facing name ("Lat Pulldown",
   // "lat pulldowns", "Cable Pulldown", etc.) maps to the canonical
-  // Blueprint id ('lat_pulldowns') before the allow-list check.
+  // snake_case Blueprint id ('lat_pulldowns') before the strict
+  // allow-list check.
+  //
+  // Every gate logs through `[BBF_HOLOGRAM]` so the next live-fire
+  // test surfaces exactly which check passes or fails.
+  //
+  // Constraints (B3-3 Option B mandatory):
+  //   · Trilingual DOM overlay  → engage paints exercise title in en/es/pt.
+  //   · WebGL Context Disposal → retreat calls renderer.dispose().
   // ═══════════════════════════════════════════════════════════════
   var KFH_3D_PILOT_IDS = { 'lat_pulldowns': true };
   var _v3ActiveContainerId = null;
-  var _v3CanvasHomeId      = null;
+  var _v3CanvasHomeId      = 'kfh-3d-canvas-home';
+  var _v3InitInFlight      = false;
 
   function _resolve3DEntry(exerciseName) {
-    if (typeof BBF_KFH_CATALOG === 'undefined' || !BBF_KFH_CATALOG.getExercise) return null;
+    if (typeof BBF_KFH_CATALOG === 'undefined' || !BBF_KFH_CATALOG.getExercise) {
+      console.log('[BBF_HOLOGRAM] BBF_KFH_CATALOG unavailable — V3 gate falls through to V1');
+      return null;
+    }
     var entry = BBF_KFH_CATALOG.getExercise(exerciseName);
-    if (!entry || !entry.id) return null;
-    if (!KFH_3D_PILOT_IDS[entry.id]) return null;
-    if (!entry.animation) return null;
+    if (!entry) {
+      console.log('[BBF_HOLOGRAM] no catalog entry for "' + exerciseName + '" — V1 path');
+      return null;
+    }
+    if (!entry.id) {
+      console.log('[BBF_HOLOGRAM] entry has no id (legacy/static catalog row) — V1 path');
+      return null;
+    }
+    if (!KFH_3D_PILOT_IDS[entry.id]) {
+      console.log('[BBF_HOLOGRAM] entry.id "' + entry.id + '" not in 3D pilot allow-list — V1 path');
+      return null;
+    }
+    if (!entry.animation) {
+      console.warn('[BBF_HOLOGRAM] piloted entry "' + entry.id + '" has no animation block — V1 path');
+      return null;
+    }
+    console.log('%c[BBF_HOLOGRAM] V3 piloted entry resolved · id=' + entry.id,
+                'color:#f5c800;font-weight:bold');
     return entry;
   }
 
   function _v3CanvasHome() {
-    // Resolve (and remember) the canvas's original parent so retreat()
-    // can put it back exactly where init() planted it. Falls back to
-    // the .kfh-stage div if the explicit id was never recorded.
-    if (_v3CanvasHomeId) {
-      var home = document.getElementById(_v3CanvasHomeId);
-      if (home) return home;
-    }
-    return document.querySelector('.kfh-stage') || document.body;
+    return document.getElementById(_v3CanvasHomeId)
+      || document.querySelector('.kfh-stage')
+      || document.body;
   }
 
-  function _retreat3D() {
+  function _pickLang() {
+    return getLang ? getLang() : 'en';
+  }
+
+  function _attachOverlay(container, entry) {
+    // Trilingual DOM overlay — title pulled from the transpiled
+    // entry's i18n.title block (en/es/pt). Sits above the canvas
+    // in the same containing div so it scrolls + resizes with it.
+    var lang = _pickLang();
+    var titleI18n = (entry.i18n && entry.i18n.title) || {};
+    var title = titleI18n[lang] || titleI18n.en || entry.title || '';
+    var subI18n = (entry.i18n && entry.i18n.subtitle) || {};
+    var sub = subI18n[lang] || subI18n.en || entry.subtitle || '';
+
+    var overlay = container.querySelector('.kfh-3d-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'kfh-3d-overlay';
+      overlay.style.cssText = [
+        'position:absolute', 'left:8px', 'top:6px', 'right:8px',
+        'pointer-events:none', 'z-index:11',
+        'font-family:"Bebas Neue","Barlow Condensed",sans-serif',
+        'color:#f5c800',
+        'text-shadow:0 0 6px rgba(245,200,0,.5)'
+      ].join(';');
+      container.appendChild(overlay);
+    }
+    overlay.innerHTML =
+      '<div style="font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase">' +
+        (title || '').replace(/[<>]/g, '') +
+      '</div>' +
+      '<div style="font-size:.55rem;font-weight:600;letter-spacing:1.5px;color:rgba(245,200,0,.7);margin-top:2px">' +
+        (sub || '').replace(/[<>]/g, '') +
+      '</div>' +
+      '<div data-i18n-langtag style="position:absolute;right:0;top:0;font-size:.5rem;letter-spacing:2px;color:rgba(106,13,173,.85)">' +
+        lang.toUpperCase() +
+      '</div>';
+  }
+
+  function _detachOverlay(container) {
+    if (!container) return;
+    var overlay = container.querySelector('.kfh-3d-overlay');
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  }
+
+  function _retreat3D(reason) {
+    console.log('[BBF_HOLOGRAM] V3 retreat · reason=' + (reason || 'user-toggle'));
     var canvas = document.getElementById('kfh-3d-stage');
-    if (window.BBF_KFH_3D_RENDERER && window.BBF_KFH_3D_RENDERER.stopAnimation) {
-      try { window.BBF_KFH_3D_RENDERER.stopAnimation(); } catch (e) {}
+    var activeContainer = _v3ActiveContainerId
+      ? document.getElementById(_v3ActiveContainerId)
+      : null;
+
+    if (window.BBF_KFH_3D_RENDERER) {
+      var R = window.BBF_KFH_3D_RENDERER;
+      try { if (R.stopAnimation) R.stopAnimation(); } catch (e) {}
+      // Mandatory: WebGL Context Disposal on modal close.
+      try { if (R.dispose) R.dispose(); } catch (e) {
+        console.warn('[BBF_HOLOGRAM] dispose threw:', e && e.message);
+      }
     }
-    if (canvas) {
-      canvas.hidden = true;
-      canvas.setAttribute('aria-hidden', 'true');
-      canvas.style.cssText = ''; // strip card-fill styling
-      var home = _v3CanvasHome();
-      if (home && canvas.parentNode !== home) home.appendChild(canvas);
-    }
+    // dispose() severed the WebGL context — drop the canvas DOM
+    // element entirely; a future engage will re-create it inside
+    // the target card before re-init.
+    if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+
+    if (activeContainer) _detachOverlay(activeContainer);
     _v3ActiveContainerId = null;
+    _v3InitInFlight = false;
+  }
+
+  function _ensureCanvasInCard(container) {
+    // Each engage stands up a fresh canvas inside the active card.
+    // The previous engage's renderer was disposed on retreat, which
+    // killed its WebGL context — so we never reuse the prior canvas.
+    var existing = document.getElementById('kfh-3d-stage');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+    var canvas = document.createElement('canvas');
+    canvas.id = 'kfh-3d-stage';
+    var w = container.offsetWidth  || 300;
+    var h = container.offsetHeight || 180;
+    canvas.width  = w;
+    canvas.height = h;
+    canvas.style.cssText =
+      'position:absolute;top:0;left:0;width:100%;height:100%;display:block;z-index:10';
+    container.style.position = 'relative';
+    container.appendChild(canvas);
+    return canvas;
   }
 
   function _engage3DInCard(container, entry) {
-    if (!container) return false;
-    if (!window.BBF_KFH_3D_RENDERER || !window.BBF_KFH_3D_READY) return false;
-    var canvas = document.getElementById('kfh-3d-stage');
-    if (!canvas) return false;
-
-    // Remember the canvas's original parent on first engage so we can
-    // put it back on retreat without leaving it parented inside a card.
-    if (!_v3CanvasHomeId && canvas.parentNode && canvas.parentNode.id) {
-      _v3CanvasHomeId = canvas.parentNode.id;
-    } else if (!_v3CanvasHomeId && canvas.parentNode) {
-      // .kfh-stage has no id; assign one so we can find our way home.
-      var p = canvas.parentNode;
-      if (!p.id) p.id = 'kfh-3d-canvas-home';
-      _v3CanvasHomeId = p.id;
+    if (!container) {
+      console.warn('[BBF_HOLOGRAM] _engage3DInCard: no container');
+      return false;
     }
+    if (!window.BBF_KFH_3D_RENDERER) {
+      console.warn('[BBF_HOLOGRAM] BBF_KFH_3D_RENDERER unavailable — V3 module not loaded');
+      return false;
+    }
+    var R = window.BBF_KFH_3D_RENDERER;
 
-    // Hide any existing V1 2D canvas in this card so they don't stack.
+    // Hide any V1 Sentinel canvas left in this card so they don't stack.
     var v2 = container.querySelector('.holo-canvas');
     if (v2) v2.style.display = 'none';
 
-    // Re-parent the 3D canvas into this card's viewport.
-    container.style.position = 'relative';
-    if (canvas.parentNode !== container) container.appendChild(canvas);
-    canvas.hidden = false;
-    canvas.removeAttribute('aria-hidden');
-    canvas.style.cssText =
-      'position:absolute;top:0;left:0;width:100%;height:100%;display:block;z-index:10';
+    var canvas = _ensureCanvasInCard(container);
 
-    // Resize the WebGL renderer + camera projection for the card.
-    var w = container.offsetWidth  || 300;
-    var h = container.offsetHeight || 180;
-    if (window.BBF_KFH_3D_RENDERER.resize) {
-      try { window.BBF_KFH_3D_RENDERER.resize(w, h); } catch (e) {}
+    if (_v3InitInFlight) {
+      console.log('[BBF_HOLOGRAM] V3 init already in flight — ignoring duplicate engage');
+      return true;
     }
+    _v3InitInFlight = true;
 
-    // Start the rep loop. The bridge derives every frame from the
-    // V2 keyframes — the form chip context isn't reachable from
-    // this surface yet, so we default to 'ok'.
-    var ok = false;
-    try {
-      ok = window.BBF_KFH_3D_RENDERER.startAnimation(entry.animation, 'ok', {
-        onFallback: _retreat3D
+    // Trilingual overlay first — gives the user immediate feedback.
+    _attachOverlay(container, entry);
+
+    console.log('%c[BBF_HOLOGRAM] V3 engaging · ' + entry.id + ' in ' + container.id +
+                ' (' + canvas.width + 'x' + canvas.height + ')',
+                'color:#f5c800;font-weight:bold');
+
+    R.init(canvas)
+      .then(function () {
+        _v3InitInFlight = false;
+        _v3ActiveContainerId = container.id;
+        if (R.resize) R.resize(canvas.width, canvas.height);
+        var ok = false;
+        try {
+          ok = R.startAnimation(entry.animation, 'ok', {
+            onFallback: function () { _retreat3D('low-fps'); }
+          });
+        } catch (e) {
+          console.warn('[BBF_HOLOGRAM] V3 startAnimation threw:', e && e.message);
+          ok = false;
+        }
+        if (!ok) {
+          console.warn('[BBF_HOLOGRAM] V3 startAnimation returned false — retreating');
+          _retreat3D('start-failed');
+          return;
+        }
+        if (R.show) R.show();
+        window.BBF_KFH_3D_READY = true;
+        console.log('%c[BBF_HOLOGRAM] V3 animation running · ' + entry.id,
+                    'color:#22C55E;font-weight:bold');
+      })
+      .catch(function (err) {
+        _v3InitInFlight = false;
+        console.warn('[BBF_HOLOGRAM] V3 init failed — Sentinel SVG fallback:', err && err.message);
+        window.BBF_KFH_3D_READY = false;
+        _retreat3D('init-failed');
+        // Fall back to V1 2D so the user still sees something.
+        _drawV1Sentinel(container, entry.id);
       });
-    } catch (e) {
-      console.warn('[BBF_HOLOGRAM] V3 startAnimation threw:', e && e.message);
-      ok = false;
-    }
-    if (!ok) {
-      _retreat3D();
-      return false;
-    }
 
-    _v3ActiveContainerId = container.id;
-    console.log(
-      '%c[BBF_HOLOGRAM] V3 engaged · ' + entry.id + ' in ' + container.id,
-      'color:#f5c800;font-weight:bold'
-    );
     return true;
   }
 
-  function toggle(containerId, exerciseName) {
-    var container = document.getElementById(containerId);
-    if (!container) return;
+  function _drawV1Sentinel(container, exerciseName) {
+    var canvas = container.querySelector('.holo-canvas');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.className = 'holo-canvas';
+      canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10';
+      container.style.position = 'relative';
+      container.appendChild(canvas);
+    }
+    canvas.style.display = 'block';
+    canvas.width  = container.offsetWidth  || 300;
+    canvas.height = container.offsetHeight || 200;
+    canvas.dataset.exercise = exerciseName || '';
+    drawKineticHologram(canvas, exerciseName);
+  }
 
-    // ── 3D path · piloted Blueprint with rig ready ──────────
-    var pilotEntry = _resolve3DEntry(exerciseName);
-    if (pilotEntry) {
-      var canvas3D = document.getElementById('kfh-3d-stage');
-      var alreadyHere = (
-        _v3ActiveContainerId === containerId &&
-        canvas3D && !canvas3D.hidden && canvas3D.parentNode === container
-      );
-      if (alreadyHere) {
-        _retreat3D();
-        return;
-      }
-      // If the rig isn't ready yet, fall through to V1 2D so the
-      // user still gets a Sentinel; on the next click (after the
-      // GLB lands) the V3 path takes over.
-      if (window.BBF_KFH_3D_READY && _engage3DInCard(container, pilotEntry)) {
-        return;
-      }
-      console.warn('[BBF_HOLOGRAM] V3 rig not ready — falling back to V1 Sentinel for', exerciseName);
+  function toggle(containerId, exerciseName) {
+    console.log('[BBF_HOLOGRAM] toggle · container=' + containerId +
+                ' · exercise=' + JSON.stringify(exerciseName));
+    var container = document.getElementById(containerId);
+    if (!container) {
+      console.warn('[BBF_HOLOGRAM] container not found:', containerId);
+      return;
     }
 
-    // ── V1 2D path · Sentinel + per-exercise mapping (legacy) ─
-    // Any prior 3D engagement parked the canvas in another card; we
-    // don't touch it from here — _retreat3D is owned by the 3D path.
+    var pilotEntry = _resolve3DEntry(exerciseName);
+
+    // ── 3D piloted path ────────────────────────────────────
+    if (pilotEntry) {
+      // Same card already engaged → toggle off.
+      if (_v3ActiveContainerId === containerId) {
+        _retreat3D('user-toggle');
+        return;
+      }
+      // Different card was engaged → tear down before re-engaging here.
+      if (_v3ActiveContainerId) _retreat3D('switch-card');
+      _engage3DInCard(container, pilotEntry);
+      return;
+    }
+
+    // ── V1 2D Sentinel path · everything else ─────────────
     var canvas = container.querySelector('.holo-canvas');
     if (canvas && canvas.style.display !== 'none') {
       if (canvas.dataset.exercise === exerciseName) {
@@ -393,20 +506,7 @@ var BBF_HOLOGRAM = (function() {
         return;
       }
     }
-    if (!canvas) {
-      canvas = document.createElement('canvas');
-      canvas.className = 'holo-canvas';
-      canvas.width = container.offsetWidth || 300;
-      canvas.height = container.offsetHeight || 200;
-      canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10';
-      container.style.position = 'relative';
-      container.appendChild(canvas);
-    }
-    canvas.style.display = 'block';
-    canvas.width = container.offsetWidth || 300;
-    canvas.height = container.offsetHeight || 200;
-    canvas.dataset.exercise = exerciseName || '';
-    drawKineticHologram(canvas, exerciseName);
+    _drawV1Sentinel(container, exerciseName);
   }
 
   // ═══════════════════════════════════════════════════════════════
