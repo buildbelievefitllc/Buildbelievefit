@@ -796,6 +796,10 @@ var BBF_HOLOGRAM = (function() {
     draw:        drawKineticHologram,
     toggle:      toggle,
     findMapping: findMapping,
+    /* Phase 13 / B3-3 — exposed so the host page's visibilitychange
+       and pagehide listeners can guarantee renderer.dispose() runs
+       even when the user leaves the card without re-clicking. */
+    _retreat3D:  _retreat3D,
     /* Titan 3 Phantom Eye exports. */
     initializeVision: initializeVision,
     uploadVideo:      uploadVideo,

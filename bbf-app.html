@@ -2549,13 +2549,22 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   (function () {
     console.log('%c[KFH-BTN] hardwired click intercept registered',
                 'color:#22C55E;font-weight:bold');
-    window.KFH_BUTTON_CLICK = function (btn) {
-      var holoId  = btn && btn.dataset && btn.dataset.kfhHolo;
-      var exName  = btn && btn.dataset && btn.dataset.kfhExname;
-      console.log('%c[KFH-BTN] CLICK · holo=' + holoId + ' · exercise=' + JSON.stringify(exName),
+
+    // Single source of truth for the per-card KINETIC HOLOGRAM click.
+    // Both the inline onclick path AND the document-level delegated
+    // listener funnel here, so we always log + always toggle even if
+    // inline handlers are stripped by sanitization/CSP, or if some
+    // ancestor handler tries to swallow the event.
+    function _invokeHologram(btn, source) {
+      var holoId     = btn && btn.dataset && btn.dataset.kfhHolo;
+      var exerciseId = btn && btn.dataset && btn.dataset.kfhExname;
+      // ★ MANDATORY DIAGNOSTIC — first line, no guards above it. ★
+      console.log("HOLOGRAM BUTTON CLICKED - EXERCISE:", exerciseId);
+      console.log('%c[KFH-BTN] CLICK · src=' + source + ' · holo=' + holoId +
+                  ' · exercise=' + JSON.stringify(exerciseId),
                   'color:#f5c800;font-weight:bold');
-      if (!holoId || !exName) {
-        console.warn('[KFH-BTN] missing data attrs · holo=' + holoId + ' name=' + exName);
+      if (!holoId || !exerciseId) {
+        console.warn('[KFH-BTN] missing data attrs · holo=' + holoId + ' name=' + exerciseId);
         return;
       }
       if (typeof BBF_HOLOGRAM === 'undefined' || !BBF_HOLOGRAM.toggle) {
@@ -2563,11 +2572,60 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
         return;
       }
       try {
-        BBF_HOLOGRAM.toggle(holoId, exName);
+        // BBF_HOLOGRAM.toggle handles V3 engage / retreat (incl.
+        // renderer.dispose() on close) and the trilingual EN/ES/PT
+        // overlay attach via _attachOverlay().
+        BBF_HOLOGRAM.toggle(holoId, exerciseId);
       } catch (e) {
         console.warn('[KFH-BTN] toggle threw:', e && e.message);
       }
+    }
+
+    // Path 1 — inline onclick="KFH_BUTTON_CLICK(this)" baked into
+    // every exercise card's KINETIC HOLOGRAM button (see render at
+    // ~line 8946: aud-btn[data-kfh-holo][data-kfh-exname]).
+    window.KFH_BUTTON_CLICK = function (btn) {
+      _invokeHologram(btn, 'inline-onclick');
     };
+
+    // Path 2 — defensive document-level delegated listener in the
+    // capture phase. Fires even if the inline onclick attribute was
+    // stripped (CSP, sanitizer, framework re-render) or if an
+    // ancestor click handler swallowed the bubble. The exercise-card
+    // header (.eh) has its own onclick="TEX(this)" — using capture
+    // phase + a class+dataset selector keeps this listener scoped to
+    // the hologram button only and ahead of any bubble-phase
+    // interference.
+    document.addEventListener('click', function (ev) {
+      var btn = ev.target && ev.target.closest
+        ? ev.target.closest('.aud-btn[data-kfh-holo][data-kfh-exname]')
+        : null;
+      if (!btn) return;
+      // Stop the click from also collapsing the parent .eb card via
+      // TEX(this) on .eh — same guarantee the inline handler made
+      // with event.stopPropagation().
+      ev.stopPropagation();
+      _invokeHologram(btn, 'delegated-capture');
+    }, true);
+
+    // Mandatory: when the V3 modal/card retreats, dispose the WebGL
+    // context. _retreat3D() inside hologram-renderer.js already calls
+    // BBF_KFH_3D_RENDERER.dispose(); this listener is a belt-and-
+    // suspenders teardown for the case where the user navigates away
+    // (route change, tab hide) without clicking the button again.
+    function _disposeIfActive(reason) {
+      if (typeof BBF_HOLOGRAM === 'undefined' || !BBF_HOLOGRAM._retreat3D) {
+        if (window.BBF_KFH_3D_RENDERER && window.BBF_KFH_3D_RENDERER.dispose) {
+          try { window.BBF_KFH_3D_RENDERER.dispose(); } catch (e) {}
+        }
+        return;
+      }
+      try { BBF_HOLOGRAM._retreat3D(reason); } catch (e) {}
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') _disposeIfActive('tab-hidden');
+    });
+    window.addEventListener('pagehide', function () { _disposeIfActive('page-hide'); });
   })();
 </script>
 <script src="bbf-translator.js"></script>
