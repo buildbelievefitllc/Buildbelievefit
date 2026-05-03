@@ -154,6 +154,26 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ap-proto-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.3rem}
 .ap-proto-list li{position:relative;padding:.35rem .55rem .35rem 1.35rem;font-size:.85rem;line-height:1.35;color:rgba(255,255,255,.9);background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:8px;font-weight:600;letter-spacing:.2px}
 .ap-proto-list li::before{content:"";position:absolute;left:.55rem;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--ap-accent,#F5CF60);box-shadow:0 0 8px var(--ap-accent,#F5CF60)}
+/* ═ Athlete Portal Progression Gate (CTA + Phase 2 Lock + Admin Override) ═ */
+.ap-progression-gate{margin-top:1rem;display:flex;flex-direction:column;gap:.85rem;animation:apProtoRise .5s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
+.ap-progression-gate[hidden]{display:none!important}
+.ap-progression-gate.is-dissolving{opacity:0;transform:translateY(-6px);transition:opacity .32s ease-out,transform .32s ease-out;pointer-events:none}
+.ap-progression-cta{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.18rem;width:100%;padding:1rem 1.1rem;background:linear-gradient(180deg,#F5CF60 0%,#D4AF37 100%);border:none;border-radius:12px;cursor:pointer;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);color:#1B1106;text-align:center;box-shadow:0 8px 22px rgba(245,200,0,.32),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;-webkit-tap-highlight-color:transparent}
+.ap-progression-cta:hover{filter:brightness(1.04);box-shadow:0 10px 26px rgba(245,200,0,.4),inset 0 1px 0 rgba(255,255,255,.5)}
+.ap-progression-cta:active{transform:translateY(1px);box-shadow:0 4px 14px rgba(245,200,0,.28),inset 0 1px 0 rgba(255,255,255,.3)}
+.ap-progression-cta:focus-visible{outline:2px solid #F5CF60;outline-offset:3px}
+.ap-progression-cta-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#1B1106;color:#F5CF60;font-size:.72rem;font-weight:900;margin-bottom:.1rem}
+.ap-progression-cta-t{font-size:1rem;letter-spacing:3.5px;font-weight:900;text-transform:uppercase}
+.ap-progression-cta-s{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(27,17,6,.72);font-weight:700}
+.ap-progression-lock{position:relative;background:linear-gradient(150deg,rgba(20,8,38,.68) 0%,rgba(8,8,14,.78) 60%,rgba(28,12,48,.55) 100%);border:1px dashed rgba(212,175,55,.32);border-radius:14px;padding:1.1rem 1rem;text-align:center;color:var(--mut)}
+.ap-progression-lock::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.55) 50%,transparent);opacity:.45}
+.ap-progression-lock-ic{font-size:1.4rem;margin-bottom:.45rem;opacity:.75;filter:drop-shadow(0 0 8px rgba(212,175,55,.35))}
+.ap-progression-lock-t{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.85rem;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.82);margin-bottom:.3rem}
+.ap-progression-lock-s{font-size:.78rem;line-height:1.5;max-width:42ch;margin:0 auto;color:var(--mut)}
+.ap-admin-override-badge{display:flex;align-items:center;gap:.5rem;justify-content:center;margin-top:.85rem;padding:.55rem .8rem;background:linear-gradient(90deg,rgba(139,26,191,.18) 0%,rgba(106,13,173,.12) 100%);border:1px solid rgba(157,39,201,.4);border-radius:10px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.7rem;letter-spacing:2.4px;text-transform:uppercase;color:#D8A8FF;font-weight:700}
+.ap-admin-override-badge[hidden]{display:none!important}
+.ap-admin-override-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#9D27C9;box-shadow:0 0 10px #9D27C9;animation:apPulse 2.2s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving{transition:none}.ap-admin-override-dot{animation:none}}
 /* ═ Phase 3 — Athlete Kinematic HUD (scoped port of .kfh-*) ═ */
 .ap-kfh-wrap{margin-top:1rem;animation:apProtoRise .5s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
 .ap-kfh-wrap[hidden]{display:none!important}
@@ -5686,6 +5706,26 @@ window.onload=function(){
               </article>
             </div>
 
+            <!-- ═ Progression Gate — CTA + Phase 2 Lock (between protocol grid and Form HUD) ═ -->
+            <div class="ap-progression-gate" id="ap-progression-gate" hidden>
+              <button class="ap-progression-cta" id="ap-protocol-complete-btn" type="button" aria-controls="ap-kfh-wrap">
+                <span class="ap-progression-cta-ic" aria-hidden="true">&#x2713;</span>
+                <span class="ap-progression-cta-t">Mark Protocol Complete</span>
+                <span class="ap-progression-cta-s">Unlocks the Athlete Form HUD</span>
+              </button>
+              <div class="ap-progression-lock" id="ap-phase2-lock">
+                <div class="ap-progression-lock-ic" aria-hidden="true">&#x1F512;</div>
+                <div class="ap-progression-lock-t">Phase 2 &middot; Form HUD Locked</div>
+                <div class="ap-progression-lock-s">Acknowledge protocol completion above to unlock the Athlete Kinematic Form HUD &mdash; biomechanical scanner with valgus collapse and ACL shear detection.</div>
+              </div>
+            </div>
+
+            <!-- ═ Admin Override Badge — visible only when active user has trainer/admin role ═ -->
+            <div class="ap-admin-override-badge" id="ap-admin-override-badge" hidden role="status" aria-live="polite">
+              <span class="ap-admin-override-dot" aria-hidden="true"></span>
+              <span>Admin Override &middot; Phase 2 Bypass Active</span>
+            </div>
+
             <!-- ═ Phase 3 — Athlete Kinematic Form HUD (scoped port) ═ -->
             <div class="ap-kfh-wrap" id="ap-kfh-wrap" hidden>
               <section class="ap-kfh-scope" id="ap-kfh-root" data-form="ok" aria-label="Athlete Kinematic Form HUD">
@@ -10329,7 +10369,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ── State (persisted per-device) ────────────────────────────────
     var STORE_KEY = 'bbf_athlete_portal_v2';
-    var state = { sport:'', position:'', phase:'off' };
+    var state = { sport:'', position:'', phase:'off', protocolCompleted:false };
     try {
       var raw = localStorage.getItem(STORE_KEY);
       if (raw) {
@@ -10338,6 +10378,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (typeof saved.sport === 'string') state.sport = saved.sport;
           if (typeof saved.position === 'string') state.position = saved.position;
           if (saved.phase === 'in' || saved.phase === 'off') state.phase = saved.phase;
+          if (saved.protocolCompleted === true) state.protocolCompleted = true;
         }
       }
     } catch(_){}
@@ -10347,6 +10388,23 @@ document.addEventListener('DOMContentLoaded', function() {
         var feUid = (typeof VC !== 'undefined' && VC) ? VC : (typeof CU !== 'undefined' && CU) ? CU : null;
         if (feUid) window.FUELING_ENGINE.renderDashboardBlock(feUid);
       }
+    }
+
+    // ── Role detection — admin/trainer bypasses the Phase 2 lock ──
+    // Sovereign roles: 'trainer' (Akeem/CEO), 'admin' (future), or the
+    // legacy CU === 'akeem' shorthand. Athletes have role === 'client'.
+    function _athleteIsAdmin(){
+      try {
+        var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+        if (!uid) return false;
+        if (uid === 'akeem') return true;
+        if (typeof GD === 'function') {
+          var d = GD();
+          var u = d && d.u && d.u[uid];
+          if (u && (u.role === 'trainer' || u.role === 'admin')) return true;
+        }
+      } catch(_){}
+      return false;
     }
 
     // ── DOM refs ────────────────────────────────────────────────────
@@ -10404,7 +10462,12 @@ document.addEventListener('DOMContentLoaded', function() {
       if (toggle) toggle.setAttribute('data-phase', phaseKey);
       if (segOff) { segOff.classList.toggle('on', phaseKey === 'off'); segOff.setAttribute('aria-checked', phaseKey === 'off' ? 'true' : 'false'); segOff.tabIndex = phaseKey === 'off' ? 0 : -1; }
       if (segIn)  { segIn.classList.toggle('on', phaseKey === 'in');   segIn.setAttribute('aria-checked', phaseKey === 'in'  ? 'true' : 'false'); segIn.tabIndex  = phaseKey === 'in'  ? 0 : -1; }
-      if (fromUser) persist();
+      // User-initiated phase change resets the progression — the athlete
+      // is opting into a different protocol cycle and needs to re-acknowledge.
+      if (fromUser) {
+        state.protocolCompleted = false;
+        persist();
+      }
       renderProtocol();
     }
 
@@ -10423,7 +10486,9 @@ document.addEventListener('DOMContentLoaded', function() {
       var sport = ATHLETE_MATRIX[state.sport];
       var group = sport && sport.groups[state.position];
       var data  = group && group.phases[state.phase];
-      var hudWrap = document.getElementById('ap-kfh-wrap');
+      var hudWrap     = document.getElementById('ap-kfh-wrap');
+      var gate        = document.getElementById('ap-progression-gate');
+      var adminBadge  = document.getElementById('ap-admin-override-badge');
       if (!sport || !group || !data) {
         proto.setAttribute('data-state','empty');
         if (protoTitle) protoTitle.textContent = 'Awaiting Selection';
@@ -10431,6 +10496,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (protoGrid)  protoGrid.hidden = true;
         if (protoEmpty) protoEmpty.style.display = '';
         if (hudWrap)    hudWrap.hidden = true;
+        if (gate)       gate.hidden = true;
+        if (adminBadge) adminBadge.hidden = true;
         return;
       }
       proto.setAttribute('data-state','ready');
@@ -10446,12 +10513,24 @@ document.addEventListener('DOMContentLoaded', function() {
       if (outNutri)   outNutri.textContent = data.nutrition;
       renderList(outLifts, data.lifts);
       renderList(outDrills, data.drills);
-      // ── HUD reveal + dynamic context ────────────────────────
+      // ── Progression gate + HUD reveal ───────────────────────
+      // Athletes must acknowledge protocol completion via the CTA before
+      // the Phase 2 Form HUD unlocks. Admin/trainer role bypasses the gate
+      // and shows the Admin Override badge so the bypass is visible in QA.
+      var isAdmin  = _athleteIsAdmin();
+      var unlocked = isAdmin || state.protocolCompleted === true;
+      if (gate) {
+        gate.classList.remove('is-dissolving');
+        gate.hidden = unlocked;
+      }
+      if (adminBadge) adminBadge.hidden = !isAdmin;
       if (hudWrap) {
-        hudWrap.hidden = false;
-        // reflow so the unfold animation restarts each time selections change
-        // eslint-disable-next-line no-unused-expressions
-        void hudWrap.offsetWidth;
+        hudWrap.hidden = !unlocked;
+        if (unlocked) {
+          // reflow so the unfold animation restarts each time the HUD reveals
+          // eslint-disable-next-line no-unused-expressions
+          void hudWrap.offsetWidth;
+        }
       }
       var kfhEx  = document.getElementById('ap-kfh-ex');
       var kfhSub = document.getElementById('ap-kfh-sub');
@@ -10460,10 +10539,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ── Wire controls ──────────────────────────────────────────────
+    // Any change to sport/position/phase resets protocolCompleted: the
+    // athlete is moving to a new protocol they haven't acknowledged yet.
     if (sportSel) {
       sportSel.addEventListener('change', function(){
         state.sport = sportSel.value;
         state.position = '';
+        state.protocolCompleted = false;
         populatePositions(state.sport);
         persist();
         renderProtocol();
@@ -10472,8 +10554,32 @@ document.addEventListener('DOMContentLoaded', function() {
     if (positionSel) {
       positionSel.addEventListener('change', function(){
         state.position = positionSel.value;
+        state.protocolCompleted = false;
         persist();
         renderProtocol();
+      });
+    }
+    var completeCta = document.getElementById('ap-protocol-complete-btn');
+    if (completeCta) {
+      completeCta.addEventListener('click', function(){
+        // Mutate state, persist, then dissolve the gate and reveal the HUD.
+        state.protocolCompleted = true;
+        persist();
+        var gate    = document.getElementById('ap-progression-gate');
+        var hudWrap = document.getElementById('ap-kfh-wrap');
+        if (gate) {
+          gate.classList.add('is-dissolving');
+          setTimeout(function(){
+            gate.hidden = true;
+            gate.classList.remove('is-dissolving');
+          }, 340);
+        }
+        if (hudWrap) {
+          hudWrap.hidden = false;
+          // eslint-disable-next-line no-unused-expressions
+          void hudWrap.offsetWidth;
+        }
+        if (typeof TOAST === 'function') TOAST('Protocol acknowledged ✓ Phase 2 unlocked');
       });
     }
     [segOff, segIn].forEach(function(btn){
