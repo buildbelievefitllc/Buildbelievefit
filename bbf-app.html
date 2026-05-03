@@ -1907,7 +1907,58 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   margin-top: .25rem;
 }
 
+/* Re-Calibrate launcher — paired with .byr-launch in the Profile tab. */
+.rc-launch {
+  display: block;
+  width: 100%;
+  padding: .85rem 1rem;
+  margin-top: .65rem;
+  background: linear-gradient(180deg, #151515 0%, #080808 100%);
+  border: 1px solid rgba(245,200,0,.35);
+  border-left: 3px solid #F5CF60;
+  border-radius: 12px;
+  color: #F5CF60;
+  font-family: var(--hb);
+  font-size: .82rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  transition: background .2s, box-shadow .25s, transform .18s;
+  box-shadow: 0 6px 18px -6px rgba(245,200,0,.2);
+}
+.rc-launch:hover {
+  background: linear-gradient(180deg, #1c1c1c 0%, #0a0a0a 100%);
+  box-shadow: 0 10px 26px -6px rgba(245,200,0,.35);
+  transform: translateY(-1px);
+}
+.rc-launch[aria-expanded="true"] {
+  border-left-color: #D4AF37;
+  background: linear-gradient(180deg, #1c1c1c 0%, #0a0a0a 100%);
+}
+.rc-launch b {
+  display: block;
+  font-family: var(--bd);
+  font-size: .68rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  letter-spacing: .06em;
+  text-transform: none;
+  margin-top: .25rem;
+}
+.rc-form-wrap {
+  margin-top: .85rem;
+  animation: rcSlideIn .28s ease-out both;
+}
+.rc-form-wrap[hidden] { display: none !important; }
+@keyframes rcSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .rc-form-wrap { animation: none; }
+  .rc-launch:hover { transform: none; }
   .byr-scanline   { animation: none; top: 50%; }
   .byr-terminal   { animation: none; }
   .byr-bar.unlock .byr-bar-fill { animation: none; }
@@ -5890,6 +5941,57 @@ window.onload=function(){
         <b data-lang-key="byr-launch-sub">11 biomarkers &middot; Sovereign Radar synthesis</b>
       </button>
 
+      <!-- RE-CALIBRATE PLAN launcher — toggles inline form for plan regeneration -->
+      <button class="rc-launch" type="button" id="rc-launch-btn" onclick="toggleRecalibrate()" aria-expanded="false" aria-controls="rc-form-wrap">
+        <span>&#x1F504; Re-Calibrate Plan</span>
+        <b>Refresh targets &middot; Regenerate Sovereign Plan</b>
+      </button>
+      <div class="rc-form-wrap" id="rc-form-wrap" hidden>
+        <div style="background:var(--gry);border:1px solid #1e1e1e;border-radius:14px;padding:1.2rem;margin-bottom:1rem">
+          <p style="font-size:0.85rem;color:var(--mut2);margin-bottom:1rem">Refine your targets or update your clinical history. We'll regenerate your Sovereign Plan immediately.</p>
+          <div class="af">
+            <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Full Name</label>
+            <input type="text" id="rc-name" placeholder="Marcus Johnson" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;margin-bottom:1rem;font-family:var(--bd)"/>
+          </div>
+          <div class="af">
+            <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Vault Email</label>
+            <input type="email" id="rc-email" placeholder="marcus@email.com" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;margin-bottom:1rem;font-family:var(--bd)"/>
+          </div>
+          <div class="af" style="display:flex;gap:1rem;margin-bottom:1rem">
+            <div style="flex:1">
+              <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Age</label>
+              <input type="number" id="rc-age" placeholder="28" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
+            </div>
+            <div style="flex:1">
+              <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Weight (lbs)</label>
+              <input type="number" id="rc-wt" placeholder="185" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
+            </div>
+          </div>
+          <div class="af" style="margin-bottom:1rem">
+            <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Height (ft / in)</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+              <input type="number" id="rc-ft" placeholder="ft" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
+              <input type="number" id="rc-in" placeholder="in" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd)"/>
+            </div>
+          </div>
+          <div class="af" style="margin-bottom:1rem">
+            <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Training Focus</label>
+            <select id="rc-focus" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;font-family:var(--bd);-webkit-appearance:none">
+              <option value="Hypertrophy">Hypertrophy (Build Muscle)</option>
+              <option value="Fat Loss">Fat Loss (Leaning Out)</option>
+              <option value="Body Recomp">Body Recomp</option>
+              <option value="Strength">Pure Strength</option>
+            </select>
+          </div>
+          <div class="af" style="margin-bottom:1rem">
+            <label style="font-size:.62rem;font-weight:700;color:var(--mut2);text-transform:uppercase;margin-bottom:.3rem;display:block">Health Notes / Injuries</label>
+            <textarea id="rc-hlth" placeholder="Any injuries or limitations?" style="width:100%;background:var(--blk);border:1px solid #1e1e1e;color:#fff;padding:.8rem;border-radius:8px;min-height:80px;font-family:var(--bd)"></textarea>
+          </div>
+          <button id="rc-submit" onclick="submitRecalibrate()" style="width:100%;padding:1rem;background:linear-gradient(180deg,#F2D769 0%,#E6C24F 25%,#D4AF37 55%,#A8862A 100%);color:#0a0a0a;font-family:var(--hb);font-size:1rem;letter-spacing:2px;border:1px solid #F2D769;border-radius:8px;cursor:pointer;margin-top:1rem;box-shadow:0 6px 22px rgba(212,175,55,.38)">GENERATE NEW PLAN</button>
+          <div id="rc-msg" style="margin-top:1rem;text-align:center;font-size:0.85rem;font-weight:700"></div>
+        </div>
+      </div>
+
       <!-- PROGRESS ANALYTICS -->
       <div style="margin-bottom:1rem">
         <div style="font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.2rem" data-lang-key="app-progress-title">My Progress</div>
@@ -6673,6 +6775,23 @@ var MP = {
   });
   SD(d);
 })();
+
+// Toggle the inline Re-Calibrate form (collapsible launcher in Profile tab).
+// Opening the form auto-focuses the first input for fast keyboard entry.
+function toggleRecalibrate() {
+  var btn  = document.getElementById('rc-launch-btn');
+  var wrap = document.getElementById('rc-form-wrap');
+  if (!btn || !wrap) return;
+  var opening = wrap.hidden === true;
+  wrap.hidden = !opening;
+  btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  if (opening) {
+    var first = document.getElementById('rc-name');
+    if (first && typeof first.focus === 'function') {
+      setTimeout(function(){ try { first.focus({ preventScroll:false }); } catch(_){ first.focus(); } }, 60);
+    }
+  }
+}
 
 function submitRecalibrate() {
   var btn = document.getElementById('rc-submit');
