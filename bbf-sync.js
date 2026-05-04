@@ -487,16 +487,27 @@ var BBF_SYNC = (function() {
   // updated_at without re-stamping completed_at, and a flip back to
   // false (selection change) clears completed_at via DB trigger.
   function pushAthleteProgression(uid, sport, position, phase, completed) {
-    if (!uid || !sport || !position || !phase) return Promise.resolve(null);
-    if (phase !== 'off' && phase !== 'in') return Promise.resolve(null);
-    return supa('POST', 'bbf_athlete_progression', {
+    if (!uid || !sport || !position || !phase) {
+      console.warn('[BBF-SYNC] pushAthleteProgression: missing arg', { uid: uid, sport: sport, position: position, phase: phase });
+      return Promise.resolve(null);
+    }
+    if (phase !== 'off' && phase !== 'in') {
+      console.warn('[BBF-SYNC] pushAthleteProgression: invalid phase', phase);
+      return Promise.resolve(null);
+    }
+    var payload = {
       user_id: uid,
       sport: sport,
       position: position,
       phase: phase,
       protocol_completed: !!completed
+    };
+    console.log('[BBF-SYNC] Pushing Phase 2 Completion:', payload);
+    return supa('POST', 'bbf_athlete_progression', payload).then(function(response) {
+      console.log('[BBF-SYNC] Phase 2 Push Response:', response);
+      return response;
     }).catch(function(e) {
-      console.error('BBF_SYNC pushAthleteProgression error:', e);
+      console.error('[BBF-SYNC] Supabase Write Failed:', e);
       return null;
     });
   }
@@ -505,17 +516,22 @@ var BBF_SYNC = (function() {
   // if it doesn't exist yet (which means "not acknowledged"). Callers
   // should treat null as "locked".
   function fetchAthleteProgression(uid, sport, position, phase) {
-    if (!uid || !sport || !position || !phase) return Promise.resolve(null);
+    if (!uid || !sport || !position || !phase) {
+      console.warn('[BBF-SYNC] fetchAthleteProgression: missing arg', { uid: uid, sport: sport, position: position, phase: phase });
+      return Promise.resolve(null);
+    }
     var q = '?user_id=eq.' + encodeURIComponent(uid) +
             '&sport=eq.'    + encodeURIComponent(sport) +
             '&position=eq.' + encodeURIComponent(position) +
             '&phase=eq.'    + encodeURIComponent(phase) +
             '&limit=1';
+    console.log('[BBF-SYNC] Hydration Fetch:', { uid: uid, sport: sport, position: position, phase: phase });
     return supa('GET', 'bbf_athlete_progression', null, q).then(function(rows) {
-      if (!rows || !rows.length) return null;
-      return rows[0];
+      var row = (rows && rows.length) ? rows[0] : null;
+      console.log('[BBF-SYNC] Hydration Fetch Response:', row);
+      return row;
     }).catch(function(e) {
-      console.error('BBF_SYNC fetchAthleteProgression error:', e);
+      console.error('[BBF-SYNC] Supabase Read Failed:', e);
       return null;
     });
   }

@@ -10580,28 +10580,61 @@ document.addEventListener('DOMContentLoaded', function() {
       return v || c || null;
     }
     function pushProgressionToCloud(){
-      if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.pushAthleteProgression) return;
+      if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.pushAthleteProgression) {
+        console.warn('[BBF-HYDRATE] pushProgressionToCloud: BBF_SYNC not loaded');
+        return;
+      }
       var uid = _resolveAthleteUid();
-      if (!uid || !state.sport || !state.position || !state.phase) return;
+      if (!uid || !state.sport || !state.position || !state.phase) {
+        console.warn('[BBF-HYDRATE] pushProgressionToCloud: skipped (missing uid/selection)', {
+          uid: uid, sport: state.sport, position: state.position, phase: state.phase
+        });
+        return;
+      }
       BBF_SYNC.pushAthleteProgression(uid, state.sport, state.position, state.phase, !!state.protocolCompleted);
     }
     function hydrateProgressionFromCloud(){
-      if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchAthleteProgression) return;
+      if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchAthleteProgression) {
+        console.warn('[BBF-HYDRATE] BBF_SYNC.fetchAthleteProgression unavailable');
+        return;
+      }
       var uid = _resolveAthleteUid();
-      if (!uid || !state.sport || !state.position || !state.phase) return;
+      if (!uid || !state.sport || !state.position || !state.phase) {
+        console.log('[BBF-HYDRATE] skipping fetch — incomplete context', {
+          uid: uid, sport: state.sport, position: state.position, phase: state.phase
+        });
+        return;
+      }
       // Capture the tuple at request time so a fast VC-swap or selection
       // change can't apply a stale fetch result to the wrong context.
-      var ctx = { sport: state.sport, position: state.position, phase: state.phase, uid: uid };
+      var ctx = { sport: state.sport, position: state.position, phase: state.phase, uid: uid, localAtRequest: state.protocolCompleted === true };
+      console.log('[BBF-HYDRATE] fetching cloud state', ctx);
       BBF_SYNC.fetchAthleteProgression(uid, ctx.sport, ctx.position, ctx.phase).then(function(row){
-        if (state.sport !== ctx.sport || state.position !== ctx.position || state.phase !== ctx.phase) return;
-        if (_resolveAthleteUid() !== ctx.uid) return;
-        if (row && row.protocol_completed === true && state.protocolCompleted !== true) {
+        if (state.sport !== ctx.sport || state.position !== ctx.position || state.phase !== ctx.phase) {
+          console.log('[BBF-HYDRATE] tuple changed mid-fetch — discarding response', { row: row });
+          return;
+        }
+        if (_resolveAthleteUid() !== ctx.uid) {
+          console.log('[BBF-HYDRATE] athlete UID changed mid-fetch — discarding response');
+          return;
+        }
+        var cloudCompleted = !!(row && row.protocol_completed === true);
+        var localCompleted = state.protocolCompleted === true;
+        console.log('[BBF-HYDRATE] reconciling', { cloudCompleted: cloudCompleted, localCompleted: localCompleted, row: row });
+        // ── HARD RULE: NEVER overwrite a local true with a cloud false/null ──
+        // Cloud is authoritative ONLY in the "cloud true → local false" path.
+        // The other direction (local true → cloud null/false) means the
+        // legacy ack predates this sync feature, so we push it up.
+        if (cloudCompleted && !localCompleted) {
+          console.log('[BBF-HYDRATE] cloud=true, local=false → adopting cloud truth');
           state.protocolCompleted = true;
           persist();
           renderProtocol();
-        } else if (state.protocolCompleted === true && (!row || row.protocol_completed !== true)) {
-          // Legacy local ack predating cloud sync — push it up.
+        } else if (localCompleted && !cloudCompleted) {
+          console.log('[BBF-HYDRATE] local=true, cloud=null/false → pushing local up (legacy ack catch-up)');
           pushProgressionToCloud();
+        } else {
+          console.log('[BBF-HYDRATE] no action — states already aligned');
         }
       });
     }
@@ -10818,14 +10851,39 @@ document.addEventListener('DOMContentLoaded', function() {
         // Re-click guard: the CTA stays visible after acknowledgment as
         // an "acknowledged" affordance, but cannot re-trigger the unlock.
         if (completeCta.getAttribute('aria-disabled') === 'true') return;
-        // Mutate state, persist locally, push to Supabase, then propagate
-        // to all four UI regions. The cloud write is fire-and-forget — the
-        // local persist + UI flip are immediate so the athlete sees their
-        // acknowledgment commit even if the network is offline; on next
-        // hydration the cloud catches up via the legacy-ack push path.
+
+        console.log('[BBF-PORTAL] Mark Protocol Complete clicked', {
+          sport: state.sport, position: state.position, phase: state.phase
+        });
+
+        // ── STEP 1: Mutate state ────────────────────────────────
         state.protocolCompleted = true;
+
+        // ── STEP 2: Persist to localStorage (synchronous, must succeed) ──
         persist();
+
+        // ── STEP 3: Verify the localStorage write actually stuck.
+        // Belt-and-suspenders against quota errors, in-private modes, or
+        // any extension that mutates storage between writes. If the read-
+        // back doesn't match, alarm loudly and re-persist.
+        var verified = false;
+        try {
+          var raw = localStorage.getItem(STORE_KEY);
+          var saved = raw ? JSON.parse(raw) : null;
+          verified = !!(saved && saved.protocolCompleted === true);
+          console.log('[BBF-PORTAL] localStorage post-persist:', saved);
+        } catch (e) {
+          console.error('[BBF-PORTAL] localStorage readback failed:', e);
+        }
+        if (!verified) {
+          console.error('[BBF-PORTAL] localStorage write did not stick — re-persisting');
+          persist();
+        }
+
+        // ── STEP 4: Push to Supabase (fire-and-forget; offline-safe) ──
         pushProgressionToCloud();
+
+        // ── STEP 5: Propagate UI to all four regions ────────────
         syncPhase2UI({ animate: true });
         var hudWrap = document.getElementById('ap-kfh-wrap');
         if (hudWrap) {
