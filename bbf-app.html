@@ -2024,9 +2024,51 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ═ Phase 5 — Telemetry Ingestion form (Log Session launcher + form) ═ */
+.ts-launch{display:flex;flex-direction:column;align-items:flex-start;gap:.18rem;width:100%;padding:.95rem 1.05rem;margin:.85rem 0;background:linear-gradient(135deg,rgba(0,229,255,.08) 0%,rgba(8,8,14,.65) 60%,rgba(20,8,38,.62) 100%);border:1px solid rgba(0,229,255,.32);border-left:4px solid #00E5FF;border-radius:12px;cursor:pointer;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);color:#fff;text-align:left;transition:transform .15s ease,box-shadow .2s ease,border-color .2s ease,filter .15s ease;-webkit-tap-highlight-color:transparent}
+.ts-launch:hover{filter:brightness(1.07);box-shadow:0 8px 22px rgba(0,229,255,.18);border-color:rgba(0,229,255,.55)}
+.ts-launch:active{transform:translateY(1px)}
+.ts-launch[aria-expanded="true"]{border-left-color:#F5C800;border-color:rgba(245,200,0,.42);background:linear-gradient(135deg,rgba(245,200,0,.08) 0%,rgba(8,8,14,.65) 60%,rgba(20,8,38,.62) 100%)}
+.ts-launch span{font-size:1.02rem;letter-spacing:3.2px;text-transform:uppercase;font-weight:900;color:#fff}
+.ts-launch b{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.7rem;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,.62);font-weight:700}
+.ts-form-wrap{margin-top:.55rem;margin-bottom:1rem;background:linear-gradient(180deg,rgba(8,8,14,.72),rgba(14,8,28,.62));border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1.1rem 1.05rem;animation:tsSlideIn .28s ease-out both}
+.ts-form-wrap[hidden]{display:none!important}
+@keyframes tsSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ts-form{display:flex;flex-direction:column;gap:.95rem}
+.ts-field{display:flex;flex-direction:column;gap:.32rem}
+.ts-field label{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.66rem;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.62);font-weight:700}
+.ts-field select,.ts-field input[type="number"],.ts-field input[type="text"]{width:100%;background:#0a0a0e;border:1px solid rgba(255,255,255,.12);color:#fff;padding:.7rem .8rem;border-radius:8px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.92rem;letter-spacing:.4px}
+.ts-field select:focus,.ts-field input:focus{outline:none;border-color:rgba(0,229,255,.55);box-shadow:0 0 0 3px rgba(0,229,255,.15)}
+.ts-field input[type="range"]{width:100%;accent-color:#F5C800;background:transparent}
+.ts-srpe-display{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:.95rem;letter-spacing:1.4px;color:#F5CF60;font-weight:900}
+.ts-srpe-scale{display:flex;justify-content:space-between;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.6rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.42);margin-top:.15rem}
+.ts-bouts-fieldset{border:1px dashed rgba(0,229,255,.22);border-radius:10px;padding:.85rem .9rem;margin:0;background:rgba(0,229,255,.02)}
+.ts-bouts-fieldset legend{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.78rem;letter-spacing:2.4px;text-transform:uppercase;color:#00E5FF;font-weight:900;padding:0 .35rem}
+.ts-optional{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.62rem;letter-spacing:1.2px;color:rgba(255,255,255,.42);font-weight:600;text-transform:none;margin-left:.35rem}
+.ts-bouts-hint{font-size:.74rem;line-height:1.5;color:rgba(255,255,255,.55);margin:0 0 .65rem 0}
+.ts-bouts-list{display:flex;flex-direction:column;gap:.55rem;margin-bottom:.55rem}
+.ts-bout{display:grid;grid-template-columns:1.1fr 1.4fr 1fr 1fr auto;gap:.4rem;align-items:center;padding:.45rem;background:rgba(8,8,14,.55);border:1px solid rgba(255,255,255,.08);border-radius:8px}
+.ts-bout select,.ts-bout input{padding:.45rem .55rem;font-size:.78rem;background:#0a0a0e;border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:6px;font-family:'Barlow Condensed',var(--bd,sans-serif)}
+.ts-bout-remove{background:transparent;border:1px solid rgba(239,68,68,.35);color:#FF7A7A;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:1.1rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.ts-bout-remove:hover{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.55)}
+.ts-add-bout{background:transparent;border:1px dashed rgba(0,229,255,.42);color:#00E5FF;padding:.55rem .85rem;border-radius:8px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.74rem;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;cursor:pointer;width:100%}
+.ts-add-bout:hover{background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.7)}
+.ts-submit{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.18rem;width:100%;padding:1rem 1.1rem;background:linear-gradient(180deg,#F5CF60 0%,#D4AF37 100%);border:none;border-radius:12px;cursor:pointer;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);color:#1B1106;text-align:center;box-shadow:0 8px 22px rgba(245,200,0,.32),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;-webkit-tap-highlight-color:transparent;margin-top:.35rem}
+.ts-submit:hover:not(:disabled){filter:brightness(1.04);box-shadow:0 10px 26px rgba(245,200,0,.4),inset 0 1px 0 rgba(255,255,255,.5)}
+.ts-submit:active:not(:disabled){transform:translateY(1px)}
+.ts-submit:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.4)}
+.ts-submit-t{font-size:1rem;letter-spacing:3.5px;font-weight:900;text-transform:uppercase}
+.ts-submit-s{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.66rem;letter-spacing:1.4px;text-transform:uppercase;color:rgba(27,17,6,.65);font-weight:700}
+.ts-msg{min-height:1.1rem;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.78rem;letter-spacing:.4px;text-align:center;color:rgba(255,255,255,.7)}
+.ts-msg[data-state="error"]{color:#FF7A7A;font-weight:700}
+.ts-msg[data-state="success"]{color:#86EFAC;font-weight:700}
+@media(max-width:520px){.ts-bout{grid-template-columns:1fr 1fr;gap:.4rem}.ts-bout-remove{grid-column:1/-1;width:100%;height:32px}}
+
 @media (prefers-reduced-motion: reduce) {
   .rc-form-wrap { animation: none; }
   .rc-launch:hover { transform: none; }
+  .ts-form-wrap { animation: none; }
+  .ts-launch:hover { transform: none; }
   .byr-scanline   { animation: none; top: 50%; }
   .byr-terminal   { animation: none; }
   .byr-bar.unlock .byr-bar-fill { animation: none; }
@@ -5747,6 +5789,52 @@ window.onload=function(){
           <h1 class="ap-title" id="ap-title">Athlete Portal<span class="y">:</span> Prepare for <span class="y">Game Day</span></h1>
           <p class="ap-sub">A dedicated command deck for youth and collegiate athletes. Dial in your sport, position, and season phase &mdash; we&rsquo;ll do the rest.</p>
         </header>
+
+        <!-- ═ Phase 5 — Telemetry Ingestion · /log interface ═ -->
+        <button class="ts-launch" type="button" id="ts-launch-btn" onclick="toggleTelemetrySession()" aria-expanded="false" aria-controls="ts-form-wrap">
+          <span>&#x1F4CA; Log Session</span>
+          <b>Push to BBF Intelligence Engine &middot; Updates Load Audit live</b>
+        </button>
+        <div class="ts-form-wrap" id="ts-form-wrap" hidden>
+          <form class="ts-form" id="ts-form" onsubmit="submitTelemetrySession(event)">
+            <div class="ts-field">
+              <label for="ts-session-type">Session Type</label>
+              <select id="ts-session-type" required>
+                <option value="">&mdash; Select &mdash;</option>
+                <option value="Practice">Practice</option>
+                <option value="Game">Game</option>
+                <option value="Lift">Lift</option>
+                <option value="Conditioning">Conditioning</option>
+                <option value="Rehab">Rehab</option>
+              </select>
+            </div>
+            <div class="ts-field">
+              <label for="ts-duration">Duration (minutes)</label>
+              <input type="number" id="ts-duration" min="1" max="600" step="1" placeholder="e.g. 75" required />
+            </div>
+            <div class="ts-field">
+              <label for="ts-srpe">sRPE Intensity &mdash; <span class="ts-srpe-display" id="ts-srpe-display">5</span> / 10</label>
+              <input type="range" id="ts-srpe" min="1" max="10" step="1" value="5" oninput="document.getElementById('ts-srpe-display').textContent=this.value" />
+              <div class="ts-srpe-scale" aria-hidden="true">
+                <span>1 &middot; Easy</span><span>5 &middot; Moderate</span><span>10 &middot; Max</span>
+              </div>
+            </div>
+
+            <fieldset class="ts-bouts-fieldset">
+              <legend>Micro-Recovery Bouts <span class="ts-optional">(optional)</span></legend>
+              <p class="ts-bouts-hint">Log high-intensity sprints/efforts with their start time and duration. The engine audits the rest interval between consecutive ATP-PC bouts against the 3-minute minimum.</p>
+              <div class="ts-bouts-list" id="ts-bouts-list"></div>
+              <button type="button" class="ts-add-bout" onclick="addTelemetryBout()">+ Add Bout</button>
+            </fieldset>
+
+            <button type="submit" class="ts-submit" id="ts-submit-btn">
+              <span class="ts-submit-t">LOG SESSION</span>
+              <span class="ts-submit-s">Commits to bbf_athlete_load_logs</span>
+            </button>
+            <div class="ts-msg" id="ts-msg" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+
         <div class="ap-grid" role="list" aria-label="Athlete profile setup">
           <div class="ap-control" role="listitem">
             <span class="ap-badge">Step 1</span>
@@ -11277,6 +11365,145 @@ document.addEventListener('DOMContentLoaded', function() {
       new MutationObserver(handleHash).observe(appEl, {attributes:true, attributeFilter:['class']});
     }
     setTimeout(handleHash, 400);
+
+    // ═ Phase 5 — Telemetry Ingestion form handlers ═
+    // Defined inside the IIFE so they reach _resolveAthleteUid and
+    // loadLoadAudit; exposed on window for the inline attribute hooks.
+    function _tsPad2(n){ n = '' + n; return n.length < 2 ? '0' + n : n; }
+    function toggleTelemetrySession(){
+      var btn  = document.getElementById('ts-launch-btn');
+      var wrap = document.getElementById('ts-form-wrap');
+      if (!btn || !wrap) return;
+      var opening = wrap.hidden === true;
+      wrap.hidden = !opening;
+      btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      if (opening) {
+        var first = document.getElementById('ts-session-type');
+        if (first && typeof first.focus === 'function') {
+          setTimeout(function(){ try { first.focus({ preventScroll:false }); } catch(_){ first.focus(); } }, 60);
+        }
+      }
+    }
+    function addTelemetryBout(){
+      var list = document.getElementById('ts-bouts-list');
+      if (!list) return;
+      var n = list.querySelectorAll('.ts-bout').length + 1;
+      var now = new Date();
+      var defaultTime = _tsPad2(now.getUTCHours()) + ':' + _tsPad2(now.getUTCMinutes());
+      var row = document.createElement('div');
+      row.className = 'ts-bout';
+      row.innerHTML =
+        '<select class="ts-bout-type" aria-label="Bout type">' +
+          '<option value="High-Intensity ATP-PC" selected>ATP-PC</option>' +
+          '<option value="Glycolytic">Glycolytic</option>' +
+          '<option value="Aerobic">Aerobic</option>' +
+        '</select>' +
+        '<input class="ts-bout-name" type="text" placeholder="Sprint ' + n + '" value="Sprint ' + n + '" aria-label="Exercise name" />' +
+        '<input class="ts-bout-start" type="time" step="1" value="' + defaultTime + '" aria-label="Start time (UTC)" required />' +
+        '<input class="ts-bout-duration" type="number" min="1" max="3600" placeholder="Sec" aria-label="Duration in seconds" required />' +
+        '<button type="button" class="ts-bout-remove" onclick="removeTelemetryBout(this)" aria-label="Remove bout">&times;</button>';
+      list.appendChild(row);
+    }
+    function removeTelemetryBout(btn){
+      if (!btn) return;
+      var row = btn.closest('.ts-bout');
+      if (row && row.parentNode) row.parentNode.removeChild(row);
+    }
+    function _tsSetMsg(text, level){
+      var msg = document.getElementById('ts-msg');
+      if (!msg) return;
+      msg.textContent = text || '';
+      if (level) msg.setAttribute('data-state', level);
+      else msg.removeAttribute('data-state');
+    }
+    function submitTelemetrySession(e){
+      if (e && e.preventDefault) e.preventDefault();
+      var btn  = document.getElementById('ts-submit-btn');
+      var btnT = btn && btn.querySelector('.ts-submit-t');
+      if (!btn || btn.disabled) return;
+
+      var sessionType = (document.getElementById('ts-session-type') || {}).value || '';
+      var duration    = parseInt((document.getElementById('ts-duration') || {}).value, 10);
+      var srpe        = parseInt((document.getElementById('ts-srpe')     || {}).value, 10);
+
+      if (!sessionType) { _tsSetMsg('Select a session type.', 'error'); return; }
+      if (!(duration > 0 && duration <= 600)) { _tsSetMsg('Duration must be 1–600 minutes.', 'error'); return; }
+      if (!(srpe >= 1 && srpe <= 10)) { _tsSetMsg('sRPE must be 1–10.', 'error'); return; }
+
+      // Gather bouts (UTC day-aligned to match adapter's bucket convention)
+      var todayMid = new Date(); todayMid.setUTCHours(0, 0, 0, 0);
+      var rows = document.querySelectorAll('#ts-bouts-list .ts-bout');
+      var bouts = [];
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        var bType = r.querySelector('.ts-bout-type').value;
+        var bName = (r.querySelector('.ts-bout-name').value || '').trim() || ('Bout ' + (i + 1));
+        var time  = r.querySelector('.ts-bout-start').value;
+        var sec   = parseInt(r.querySelector('.ts-bout-duration').value, 10);
+        if (!time || !(sec > 0)) { _tsSetMsg('Each bout needs a start time and duration.', 'error'); return; }
+        var parts = time.split(':');
+        var hh = parseInt(parts[0], 10), mm = parseInt(parts[1], 10), ss = parts[2] ? parseInt(parts[2], 10) : 0;
+        var startMs = todayMid.getTime() + ((hh * 3600) + (mm * 60) + ss) * 1000;
+        var endMs   = startMs + sec * 1000;
+        bouts.push({
+          bout_type:       bType,
+          exercise_name:   bName,
+          start_timestamp: new Date(startMs).toISOString(),
+          end_timestamp:   new Date(endMs).toISOString()
+        });
+      }
+
+      var uid = _resolveAthleteUid();
+      if (!uid) { _tsSetMsg('Sign in as an athlete to log a session.', 'error'); return; }
+
+      if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.pushAthleteTelemetry) {
+        _tsSetMsg('Sync layer not loaded. Reload the app.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      var originalLabel = btnT ? btnT.textContent : 'LOG SESSION';
+      if (btnT) btnT.textContent = 'LOGGING…';
+      _tsSetMsg('Pushing to engine…');
+
+      BBF_SYNC.pushAthleteTelemetry(uid, {
+        session_type:     sessionType,
+        duration_minutes: duration,
+        srpe_intensity:   srpe
+      }, bouts).then(function(result){
+        if (!result || !result.ok) {
+          var err = (result && result.error) || 'unknown error';
+          _tsSetMsg('Failed to log session: ' + err, 'error');
+          btn.disabled = false;
+          if (btnT) btnT.textContent = originalLabel;
+          return;
+        }
+        // Success — toast, reset form, close, refresh Load Audit
+        if (typeof TOAST === 'function') TOAST('✓ Session logged · Engine refreshing');
+        var form = document.getElementById('ts-form');
+        if (form) form.reset();
+        var list = document.getElementById('ts-bouts-list');
+        if (list) list.innerHTML = '';
+        var disp = document.getElementById('ts-srpe-display');
+        if (disp) disp.textContent = '5';
+        _tsSetMsg('');
+        btn.disabled = false;
+        if (btnT) btnT.textContent = originalLabel;
+        toggleTelemetrySession();
+        // Re-fire the Load Audit so the card paints fresh ACWR + sessions
+        // count without a full page reload.
+        if (typeof loadLoadAudit === 'function') loadLoadAudit();
+      });
+    }
+
+    // Expose globals for inline attribute hooks
+    window.toggleTelemetrySession = toggleTelemetrySession;
+    window.addTelemetryBout       = addTelemetryBout;
+    window.removeTelemetryBout    = removeTelemetryBout;
+    window.submitTelemetrySession = submitTelemetrySession;
+    // Also expose loadLoadAudit so the form-submit success path can
+    // re-fire it without going through renderProtocol().
+    window.loadLoadAudit          = loadLoadAudit;
   })();
 
   // ═══════════════════════════════════════════════════════════════

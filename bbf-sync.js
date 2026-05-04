@@ -92,17 +92,24 @@ var BBF_SYNC = (function() {
   // indefinitely when offline or when the network stalls — the .catch
   // fires on AbortError so callers see a clean failure instead of a
   // permanent "Authenticating..." spinner.
-  function _supa(method, table, body, query) {
+  function _supa(method, table, body, query, callOpts) {
+    callOpts = callOpts || {};
     var url = REST + '/' + table + (query || '');
     var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var timeoutId = controller ? setTimeout(function(){ controller.abort(); }, 10000) : null;
+    // Default Prefer: POSTs upsert via merge-duplicates; GETs/PATCHes
+    // return minimal. callOpts.prefer overrides — used by inserts that
+    // need return=representation to recover server-generated columns
+    // (e.g. fresh log_id from bbf_athlete_load_logs).
+    var preferHeader = callOpts.prefer ||
+      (method === 'POST' ? 'resolution=merge-duplicates' : 'return=minimal');
     var opts = {
       method: method,
       headers: {
         'apikey': SUPA_KEY,
         'Authorization': 'Bearer ' + SUPA_KEY,
         'Content-Type': 'application/json',
-        'Prefer': method === 'POST' ? 'resolution=merge-duplicates' : 'return=minimal'
+        'Prefer': preferHeader
       }
     };
     if (controller) opts.signal = controller.signal;
@@ -120,9 +127,9 @@ var BBF_SYNC = (function() {
   }
 
   // Public supa() — transparently resolves slug → UUID before delegating to _supa.
-  function supa(method, table, body, query) {
+  function supa(method, table, body, query, callOpts) {
     return Promise.all([resolveBody(body), resolveQuery(table, query)]).then(function(arr) {
-      return _supa(method, table, arr[0], arr[1]);
+      return _supa(method, table, arr[0], arr[1], callOpts);
     });
   }
 
@@ -658,6 +665,121 @@ var BBF_SYNC = (function() {
     }).catch(function(e) {
       console.error('[BBF-SYNC] Telemetry fetch failed:', e);
       return null;
+    });
+  }
+
+  // ─── PHASE 5: PUSH ATHLETE TELEMETRY (write adapter) ─────────
+  // Two-step write:
+  //   1. INSERT into bbf_athlete_load_logs with Prefer:return=representation
+  //      so we can recover the server-generated log_id.
+  //   2. If boutsData is non-empty, fan log_id into each bout row and
+  //      bulk-INSERT into bbf_athlete_load_bouts.
+  //
+  // Returns:
+  //   { ok: true,  log: {...inserted log row...},
+  //                bouts: [...inserted bout rows...],
+  //                boutsInserted: number }
+  //   { ok: false, error: 'reason' }   on validation or write failure.
+  //
+  // Validation kept local — server still enforces CHECK constraints
+  // (duration_minutes >= 0, srpe_intensity 1-10, end >= start).
+  function pushAthleteTelemetry(athleteSlugOrId, sessionData, boutsData) {
+    if (!athleteSlugOrId) {
+      console.warn('[BBF-SYNC] pushAthleteTelemetry: missing athleteId');
+      return Promise.resolve({ ok: false, error: 'missing athleteId' });
+    }
+    if (!sessionData || typeof sessionData !== 'object') {
+      console.warn('[BBF-SYNC] pushAthleteTelemetry: missing sessionData');
+      return Promise.resolve({ ok: false, error: 'missing sessionData' });
+    }
+    var sType    = String(sessionData.session_type || '').trim();
+    var dur      = +sessionData.duration_minutes;
+    var srpe     = +sessionData.srpe_intensity;
+    if (!sType) {
+      return Promise.resolve({ ok: false, error: 'session_type required' });
+    }
+    if (!(dur >= 0) || !isFinite(dur)) {
+      return Promise.resolve({ ok: false, error: 'duration_minutes must be a non-negative number' });
+    }
+    if (!(srpe >= 1 && srpe <= 10)) {
+      return Promise.resolve({ ok: false, error: 'srpe_intensity must be 1-10' });
+    }
+
+    return resolveUid(athleteSlugOrId).then(function(uid) {
+      if (!uid) {
+        console.warn('[BBF-SYNC] pushAthleteTelemetry: could not resolve UID for', athleteSlugOrId);
+        return { ok: false, error: 'unknown athlete: ' + athleteSlugOrId };
+      }
+
+      var logPayload = {
+        athlete_id:        uid,
+        session_type:      sType,
+        duration_minutes:  Math.round(dur),
+        srpe_intensity:    Math.round(srpe)
+      };
+      if (sessionData.session_timestamp) {
+        logPayload.session_timestamp = sessionData.session_timestamp;
+      }
+
+      console.log('[BBF-SYNC] Pushing telemetry log:', logPayload);
+
+      return supa('POST', 'bbf_athlete_load_logs', logPayload, null, {
+        prefer: 'resolution=merge-duplicates,return=representation'
+      }).then(function(logResp) {
+        if (!logResp || !Array.isArray(logResp) || !logResp.length) {
+          console.error('[BBF-SYNC] pushAthleteTelemetry: log INSERT returned no row', logResp);
+          return { ok: false, error: 'log insert returned no row' };
+        }
+        var logRow = logResp[0];
+        console.log('[BBF-SYNC] Telemetry log inserted: log_id=' + logRow.log_id + '  load_au=' + logRow.load_au);
+
+        // No bouts to write — done.
+        if (!boutsData || !Array.isArray(boutsData) || boutsData.length === 0) {
+          return { ok: true, log: logRow, bouts: [], boutsInserted: 0 };
+        }
+
+        // Validate + map bouts onto the new log_id.
+        var boutPayload = [];
+        for (var i = 0; i < boutsData.length; i++) {
+          var b = boutsData[i] || {};
+          var bType = String(b.bout_type || '').trim();
+          var bName = String(b.exercise_name || '').trim();
+          var bStart = b.start_timestamp;
+          var bEnd   = b.end_timestamp;
+          if (!bType || !bName || !bStart || !bEnd) {
+            console.warn('[BBF-SYNC] Skipping invalid bout at index ' + i, b);
+            continue;
+          }
+          if (Date.parse(bEnd) < Date.parse(bStart)) {
+            console.warn('[BBF-SYNC] Skipping bout: end < start at index ' + i, b);
+            continue;
+          }
+          boutPayload.push({
+            log_id:          logRow.log_id,
+            bout_type:       bType,
+            exercise_name:   bName,
+            start_timestamp: bStart,
+            end_timestamp:   bEnd
+          });
+        }
+
+        if (boutPayload.length === 0) {
+          return { ok: true, log: logRow, bouts: [], boutsInserted: 0 };
+        }
+
+        console.log('[BBF-SYNC] Pushing ' + boutPayload.length + ' bouts for log_id=' + logRow.log_id);
+
+        return supa('POST', 'bbf_athlete_load_bouts', boutPayload, null, {
+          prefer: 'resolution=merge-duplicates,return=representation'
+        }).then(function(boutResp) {
+          var boutRows = Array.isArray(boutResp) ? boutResp : [];
+          console.log('[BBF-SYNC] Telemetry bouts inserted: ' + boutRows.length);
+          return { ok: true, log: logRow, bouts: boutRows, boutsInserted: boutRows.length };
+        });
+      });
+    }).catch(function(e) {
+      console.error('[BBF-SYNC] pushAthleteTelemetry failed:', e);
+      return { ok: false, error: (e && e.message) || 'unknown error' };
     });
   }
 
@@ -1988,7 +2110,8 @@ var BBF_SYNC = (function() {
     fetchDamagedZones: fetchDamagedZones,
     pushAthleteProgression: pushAthleteProgression,
     fetchAthleteProgression: fetchAthleteProgression,
-    fetchAthleteTelemetry: fetchAthleteTelemetry
+    fetchAthleteTelemetry:  fetchAthleteTelemetry,
+    pushAthleteTelemetry:   pushAthleteTelemetry
   };
 
   if (typeof module !== 'undefined' && module.exports) {
