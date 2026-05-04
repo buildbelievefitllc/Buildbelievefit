@@ -29,7 +29,7 @@ section{display:block;width:100%}
 .reveal{opacity:1;transform:none;transition:opacity .65s ease,transform .65s ease}
 .js-ready .reveal{opacity:0;transform:translateY(32px)}
 .js-ready .reveal.vis{opacity:1;transform:none}
-.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
 
 /* NAV */
 #nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:.9rem 2rem;background:rgba(6,6,6,.88);border-bottom:1px solid rgba(106,13,173,.2);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .3s}
@@ -154,7 +154,7 @@ h1 .ol{-webkit-text-stroke:2px var(--yel);color:transparent}
 
 /* PROGRAMS */
 #programs{background:var(--gry)}
-.prog-g{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+.prog-g{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-top:3rem}
 .prog-c{background:var(--gry2);border:2px solid var(--gry3);border-radius:20px;padding:2rem;display:flex;flex-direction:column;position:relative;cursor:pointer;transition:all .3s}
 .prog-c:hover{border-color:rgba(106,13,173,.5);transform:translateY(-3px)}
 .prog-c.sel{border-color:var(--yel);box-shadow:0 0 40px rgba(245,200,0,.12);transform:translateY(-4px)}
@@ -1717,8 +1717,26 @@ body.bbf-kairos .hero-badge {
         <button type="button" class="prog-cta" data-lang-key="prog-t1-cta" onclick="event.stopPropagation();selectTier('gateway')">Start Gateway &rarr;</button>
       </div>
 
-      <!-- TIER 2 — Architect Hybrid $247/mo (featured) -->
-      <div class="prog-c featured reveal d2" onclick="selectTier('architect')">
+      <!-- TIER 2 — Youth Athlete $97/mo -->
+      <div class="prog-c reveal d2" onclick="selectTier('youth_athlete')">
+        <div class="prog-t">Youth Athlete Tier</div>
+        <div class="prog-n">BBF<br>Youth Athlete</div>
+        <div style="font-size:.72rem;font-weight:700;letter-spacing:1px;color:#0ea5e9;margin-bottom:.3rem">CLINICAL YOUTH PROTOCOL (AGES 9&ndash;17)</div>
+        <div class="prog-p">$97 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">/mo</span></div>
+        <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.22);border-radius:8px;padding:.6rem .8rem;margin-bottom:1rem;font-size:.78rem;font-weight:700;color:#0ea5e9">&#x1F3C6; Sport-Specific &mdash; Pediatric Liability Shield</div>
+        <ul class="prog-f">
+          <li><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,9 7.5,13.5 15,5"/></svg><span>Position-Specific Programming</span></li>
+          <li><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,9 7.5,13.5 15,5"/></svg><span>Biomechanical Prehab Protocols</span></li>
+          <li><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,9 7.5,13.5 15,5"/></svg><span>Video Form Checks</span></li>
+          <li><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,9 7.5,13.5 15,5"/></svg><span>Monthly Progress Review</span></li>
+          <li><svg class="pf-check" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3,9 7.5,13.5 15,5"/></svg><span>Sport Playbook Access</span></li>
+        </ul>
+        <div style="font-size:.7rem;font-weight:600;color:var(--mut2);margin-bottom:.8rem;font-style:italic;text-align:center">Disclaimer: NO parent coaching included.</div>
+        <button type="button" class="prog-cta" onclick="event.stopPropagation();selectTier('youth_athlete')">Apply for Youth Athlete &rarr;</button>
+      </div>
+
+      <!-- TIER 3 — Architect Hybrid $247/mo (featured) -->
+      <div class="prog-c featured reveal d3" onclick="selectTier('architect')">
         <div class="prog-badge">Most Popular</div>
         <div class="prog-t" data-lang-key="prog-t2-tier">Flagship Program</div>
         <div class="prog-n" data-lang-key="prog-t2-name">Architect<br>Hybrid</div>
@@ -1737,8 +1755,8 @@ body.bbf-kairos .hero-badge {
         <button type="button" class="prog-cta" data-lang-key="prog-t2-cta" onclick="event.stopPropagation();selectTier('architect')">Start Architect Hybrid &rarr;</button>
       </div>
 
-      <!-- TIER 3 — Sovereign $497/mo -->
-      <div class="prog-c reveal d3" onclick="selectTier('sovereign')">
+      <!-- TIER 4 — Sovereign $497/mo -->
+      <div class="prog-c reveal d4" onclick="selectTier('sovereign')">
         <div class="prog-t" data-lang-key="prog-t3-tier">Executive &amp; Clinical</div>
         <div class="prog-n" data-lang-key="prog-t3-name">Sovereign</div>
         <div style="font-size:.72rem;font-weight:700;letter-spacing:1px;color:var(--purl);margin-bottom:.3rem">BESPOKE EXECUTIVE PROTOCOL</div>
@@ -2268,10 +2286,11 @@ mnav.querySelectorAll('a').forEach(function(a){a.onclick=function(){mnav.classLi
 // checkout is gated until doSubmit() confirms the form posted cleanly.
 var BBF_STRIPE_BY_TIER={
   gateway:'https://buy.stripe.com/14A7sNb7143x1F02AFaZi0c',
+  youth_athlete:'https://buy.stripe.com/cNieVf8YT6bF2J42AFaZi0f',
   architect:'https://buy.stripe.com/6oU6oJb7157B3N80sxaZi0d',
   sovereign:'https://buy.stripe.com/cNi3cxa2X9nR97sfnraZi0e'
 };
-var BBF_TIER_INDEX={gateway:0,architect:1,sovereign:2};
+var BBF_TIER_INDEX={gateway:0,youth_athlete:1,architect:2,sovereign:3};
 function selectTier(slug){
   if(!BBF_STRIPE_BY_TIER[slug])return;
   var idx=BBF_TIER_INDEX[slug];
