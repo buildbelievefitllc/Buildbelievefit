@@ -190,7 +190,31 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .pf-denied-ic{font-size:2.2rem;margin-bottom:.55rem;opacity:.85;filter:drop-shadow(0 0 12px rgba(239,68,68,.45))}
 .pf-denied-t{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1rem;letter-spacing:3.5px;text-transform:uppercase;color:#FFB4B4;margin-bottom:.45rem;font-weight:900}
 .pf-denied-s{font-size:.82rem;line-height:1.5;max-width:46ch;margin:0 auto;color:var(--mut)}
-@media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving,.ap-progression-lock.is-dissolving{transition:none}.pf-admin-dot{animation:none}}
+/* ═ Phase 3 — Sovereign Clinical Intelligence cards ═ */
+.ap-kfh-intel{display:flex;flex-direction:column;gap:.85rem;margin-top:.95rem}
+.ap-intel-card{background:linear-gradient(180deg,rgba(8,8,14,.72),rgba(14,8,28,.62));border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.95rem 1rem;position:relative;overflow:hidden}
+.ap-intel-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#F5C800 50%,transparent);opacity:.42}
+.ap-intel-h{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.6rem}
+.ap-intel-t{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.78rem;letter-spacing:3px;text-transform:uppercase;color:#F5C800;font-weight:900;margin:0}
+.ap-intel-tag{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.62rem;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:700}
+.ap-intel-bars{display:flex;flex-direction:column;gap:.45rem}
+.ap-intel-bar{display:grid;grid-template-columns:6rem 1fr 2.6rem;align-items:center;gap:.65rem}
+.ap-intel-bar-lbl{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.7rem;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.78);font-weight:700}
+.ap-intel-bar-track{height:7px;border-radius:4px;background:rgba(255,255,255,.06);position:relative;overflow:hidden}
+.ap-intel-bar-fill{position:absolute;top:0;left:0;bottom:0;border-radius:4px;background:linear-gradient(90deg,#00E5FF,#F5C800);transition:width .4s ease-out;width:0}
+.ap-intel-bar-fill[data-system="glycolytic"]{background:linear-gradient(90deg,#F5C800,#8B1ABF)}
+.ap-intel-bar-fill[data-system="aerobic"]{background:linear-gradient(90deg,#8B1ABF,#5B86E5)}
+.ap-intel-bar-pct{font-variant-numeric:tabular-nums;font-weight:900;color:#fff;font-size:.86rem;text-align:right}
+.ap-intel-rows{display:flex;flex-direction:column;gap:.42rem}
+.ap-intel-row{display:grid;grid-template-columns:6.5rem 1fr;gap:.65rem;align-items:start;padding:.45rem 0;border-top:1px dashed rgba(255,255,255,.06)}
+.ap-intel-row:first-child{border-top:none;padding-top:0}
+.ap-intel-k{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.66rem;letter-spacing:1.3px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:700;padding-top:.12rem}
+.ap-intel-v{font-size:.85rem;color:rgba(255,255,255,.92);line-height:1.45}
+.ap-intel-v small{display:block;font-size:.72rem;color:rgba(255,255,255,.55);margin-top:.15rem;font-family:'Barlow Condensed',var(--bd,sans-serif);letter-spacing:.4px}
+.ap-intel-pending{padding:.7rem .9rem;border:1px dashed rgba(212,175,55,.34);border-radius:10px;background:rgba(212,175,55,.04);font-size:.78rem;color:rgba(255,255,255,.7);text-align:center}
+.ap-intel-pending strong{display:block;color:#F5C800;font-weight:800;font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:2px;margin-bottom:.22rem}
+@media(max-width:520px){.ap-intel-bar{grid-template-columns:5rem 1fr 2.4rem}.ap-intel-row{grid-template-columns:1fr;gap:.18rem}.ap-intel-k{padding-top:0}}
+@media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving,.ap-progression-lock.is-dissolving{transition:none}.ap-intel-bar-fill{transition:none}.pf-admin-dot{animation:none}}
 /* ═ Phase 3 — Athlete Kinematic HUD (scoped port of .kfh-*) ═ */
 .ap-kfh-wrap{margin-top:1rem;animation:apProtoRise .5s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
 .ap-kfh-wrap[hidden]{display:none!important}
@@ -2575,6 +2599,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="bbf-lang.js"></script>
 <script src="env.js"></script>
 <script src="bbf-sync.js"></script>
+<script src="bbf-intelligence-engine.js"></script>
 <script src="render-engine.js"></script>
 <script src="auditor-engine.js"></script>
 <script src="somatic-engine.js"></script>
@@ -5795,139 +5820,17 @@ window.onload=function(){
                 <span class="ap-kfh-corner-bl" aria-hidden="true"></span>
                 <div class="ap-kfh-head">
                   <div>
-                    <div class="ap-kfh-tag"><span class="ap-kfh-dot"></span>Athlete Form HUD &middot; Clinical</div>
-                    <div class="ap-kfh-title" style="margin-top:.3rem">Movement &middot; <span class="ap-kfh-ex" id="ap-kfh-ex">Athletic Stance</span></div>
-                    <div class="ap-kfh-sub" id="ap-kfh-sub">Sagittal Plane &middot; Triple Extension &middot; Sovereign Rig</div>
+                    <div class="ap-kfh-tag"><span class="ap-kfh-dot"></span>Sovereign Clinical Intelligence</div>
+                    <div class="ap-kfh-title" style="margin-top:.3rem">Clinical Brief &middot; <span class="ap-kfh-ex" id="ap-kfh-ex">&mdash;</span></div>
+                    <div class="ap-kfh-sub" id="ap-kfh-sub">Awaiting selection</div>
                   </div>
                 </div>
-                <div class="ap-kfh-seg" id="ap-kfh-seg" data-view="render" role="tablist" aria-label="Primary view">
-                  <div class="ap-kfh-seg-slider" aria-hidden="true"></div>
-                  <button type="button" class="ap-kfh-seg-btn on" data-view="render" role="tab" aria-selected="true" aria-controls="ap-kfh-view-render">Bio-Render</button>
-                  <button type="button" class="ap-kfh-seg-btn"    data-view="cam"    role="tab" aria-selected="false" aria-controls="ap-kfh-view-cam">Coach Cam</button>
-                </div>
-                <!-- Bio-Render view -->
-                <div class="ap-kfh-view on" id="ap-kfh-view-render" role="tabpanel" aria-label="Bio-Render wireframe">
-                  <div class="ap-kfh-subseg" role="radiogroup" aria-label="Form mode">
-                    <button type="button" class="ap-kfh-chip on ok"   data-form="ok"   role="radio" aria-checked="true"><span class="ap-kfh-pip"></span>Clinical Standard</button>
-                    <button type="button" class="ap-kfh-chip warn"    data-form="warn" role="radio" aria-checked="false"><span class="ap-kfh-pip"></span>Common Fault: Joint Shear</button>
-                  </div>
-                  <div class="ap-kfh-stage">
-                    <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-labelledby="ap-kfh-svg-title" role="img">
-                      <title id="ap-kfh-svg-title">Athletic Stance Sagittal Wireframe with Ground Reaction Force Vector</title>
-                      <g class="ap-kfh-wf-grid">
-                        <line x1="28"  y1="18" x2="28"  y2="188"/>
-                        <line x1="292" y1="18" x2="292" y2="188"/>
-                        <line x1="28"  y1="160" x2="292" y2="160"/>
-                      </g>
-                      <!-- Ground -->
-                      <line class="ap-kfh-wf ap-kfh-wf-ground" x1="28" y1="180" x2="292" y2="180"/>
-                      <!-- Athletic stance (sagittal): head, torso, arms, drive-leg / trail-leg -->
-                      <g class="ap-kfh-wf">
-                        <!-- Head -->
-                        <circle cx="162" cy="46" r="10"/>
-                        <!-- Neck + spine (slight hinge) -->
-                        <path d="M162 56 Q165 86 170 118"/>
-                        <!-- Drive-arm (shoulder -> elbow -> wrist) -->
-                        <line x1="162" y1="72" x2="140" y2="96"/>
-                        <line x1="140" y1="96" x2="132" y2="124"/>
-                        <!-- Trail-arm -->
-                        <line x1="162" y1="72" x2="186" y2="96"/>
-                        <line x1="186" y1="96" x2="198" y2="124"/>
-                        <!-- Pelvis -->
-                        <line x1="155" y1="120" x2="185" y2="120"/>
-                        <!-- Drive-leg: hip -> knee -> ankle (stacked/clinical) -->
-                        <line id="ap-kfh-thigh"    x1="170" y1="120" x2="168" y2="150"/>
-                        <line id="ap-kfh-shin"     x1="168" y1="150" x2="170" y2="180"/>
-                        <!-- Trail-leg (extended back) -->
-                        <line x1="180" y1="120" x2="215" y2="148"/>
-                        <line x1="215" y1="148" x2="238" y2="178"/>
-                        <!-- Feet -->
-                        <line x1="160" y1="180" x2="180" y2="180"/>
-                        <line x1="230" y1="178" x2="250" y2="178"/>
-                      </g>
-                      <!-- Ground Reaction Force vector -->
-                      <path class="ap-kfh-path-j" d="M170 180 C 170 160, 170 140, 170 120"/>
-                      <circle cx="170" cy="180" r="2.5" fill="#00E5FF"/>
-                      <circle cx="170" cy="120" r="2.5" fill="#00E5FF"/>
-                      <text class="ap-kfh-bar-label" x="176" y="150">GRF Vector</text>
-                      <text class="ap-kfh-bar-label" x="176" y="116">Triple Ext.</text>
-                      <!-- Joints -->
-                      <circle class="ap-kfh-joint j-shoulder" cx="162" cy="72"  r="3.6"/>
-                      <circle class="ap-kfh-joint j-hip"      cx="170" cy="120" r="4.2"/>
-                      <circle class="ap-kfh-joint j-knee"     cx="168" cy="150" r="4.2"/>
-                      <circle class="ap-kfh-halo"             cx="168" cy="150" r="6"/>
-                      <circle class="ap-kfh-joint j-ankle"    cx="170" cy="180" r="3.6"/>
-                      <!-- OK / WARN callouts -->
-                      <g id="ap-kfh-callout-ok">
-                        <line class="ap-kfh-leader ok" x1="168" y1="150" x2="80"  y2="158"/>
-                        <text class="ap-kfh-label-box ok" x="30" y="156">Knee Stacked</text>
-                        <text class="ap-kfh-label-box ok" x="30" y="168">Vertical Shin</text>
-                      </g>
-                      <g id="ap-kfh-callout-warn" style="display:none">
-                        <line class="ap-kfh-leader warn" x1="168" y1="150" x2="80" y2="156"/>
-                        <text class="ap-kfh-label-box warn" x="30" y="154">Valgus Collapse</text>
-                        <text class="ap-kfh-label-box warn" x="30" y="166">ACL Shear Risk</text>
-                      </g>
-                    </svg>
-                  </div>
-                  <div class="ap-kfh-readout">
-                    <div class="ap-kfh-metric">
-                      <div class="ap-kfh-m-lbl">Knee Tracking</div>
-                      <div class="ap-kfh-m-val" id="ap-kfh-m-track">On Midfoot</div>
-                    </div>
-                    <div class="ap-kfh-metric">
-                      <div class="ap-kfh-m-lbl">Hip Hinge</div>
-                      <div class="ap-kfh-m-val" id="ap-kfh-m-hinge">92&deg;</div>
-                    </div>
-                    <div class="ap-kfh-metric m-fault">
-                      <div class="ap-kfh-m-lbl">Joint Shear</div>
-                      <div class="ap-kfh-m-val" id="ap-kfh-m-shear">Nominal</div>
-                    </div>
-                  </div>
-                  <div class="ap-kfh-footnote">
-                    <span id="ap-kfh-fn">Clinical reference &middot; Non-diagnostic overlay</span>
-                    <span class="ap-kfh-fn-bar" aria-hidden="true"></span>
-                    <span>v1.0</span>
-                  </div>
-                </div>
-                <!-- Coach Cam view -->
-                <div class="ap-kfh-view" id="ap-kfh-view-cam" role="tabpanel" aria-label="Coach Cam">
-                  <div class="ap-kfh-cam">
-                    <div class="ap-kfh-cam-brackets" aria-hidden="true">
-                      <span class="tl"></span><span class="tr"></span>
-                      <span class="bl"></span><span class="br"></span>
-                    </div>
-                    <div class="ap-kfh-cam-core">
-                      <div class="ap-kfh-play" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
-                      </div>
-                      <div class="ap-kfh-cam-label"><span class="ap-kfh-c-gd">Akeem Brown</span> &middot; Field Footage</div>
-                      <div class="ap-kfh-cam-sub"><span class="ap-kfh-live"></span>Awaiting Uplink</div>
-                    </div>
-                    <div class="ap-kfh-cam-meta">
-                      <span class="ap-kfh-cm-tag">REC &middot; 4K &middot; DJI Osmo</span>
-                      <span class="ap-kfh-cm-ch">CH &middot; Sovereign Athlete</span>
-                    </div>
-                  </div>
-                  <div class="ap-kfh-cam-foot">
-                    <div class="ap-kfh-metric">
-                      <div class="ap-kfh-m-lbl">Signal</div>
-                      <div class="ap-kfh-m-val">Encrypted</div>
-                    </div>
-                    <div class="ap-kfh-metric">
-                      <div class="ap-kfh-m-lbl">Bitrate</div>
-                      <div class="ap-kfh-m-val">-- Mbps</div>
-                    </div>
-                    <div class="ap-kfh-metric">
-                      <div class="ap-kfh-m-lbl">ETA</div>
-                      <div class="ap-kfh-m-val">&lt; 24 h</div>
-                    </div>
-                  </div>
-                  <div class="ap-kfh-footnote" style="margin-top:.65rem">
-                    <span>Sovereign review pipeline &middot; Cyan / Gold / Purple channel</span>
-                    <span class="ap-kfh-fn-bar" aria-hidden="true"></span>
-                    <span>v1.0</span>
-                  </div>
+                <!-- ═ Clinical Intel Grid — populated by renderClinicalIntel() ═ -->
+                <div class="ap-kfh-intel" id="ap-kfh-intel" data-coverage="full" aria-live="polite"></div>
+                <div class="ap-kfh-footnote">
+                  <span id="ap-kfh-fn">Sovereign Clinical Intelligence &middot; Reference compiler &middot; Non-diagnostic</span>
+                  <span class="ap-kfh-fn-bar" aria-hidden="true"></span>
+                  <span>v1.0</span>
                 </div>
               </section>
             </div>
@@ -10860,12 +10763,132 @@ document.addEventListener('DOMContentLoaded', function() {
           // reflow so the unfold animation restarts each time the HUD reveals
           // eslint-disable-next-line no-unused-expressions
           void hudWrap.offsetWidth;
+          // Phase 3: render the clinical intelligence cards. This is
+          // also called from the CTA click handler so the cards paint
+          // the moment the gate dissolves; here it covers reload-with-
+          // unlocked-state and selection-change-while-unlocked paths.
+          renderClinicalIntel();
         }
       }
+      // HUD header text: pulls from the clinical brief context now,
+      // not the old sagittal-plane wireframe metadata.
       var kfhEx  = document.getElementById('ap-kfh-ex');
       var kfhSub = document.getElementById('ap-kfh-sub');
-      if (kfhEx)  kfhEx.textContent  = (data.lifts && data.lifts[0]) ? data.lifts[0] : 'Athletic Stance';
-      if (kfhSub) kfhSub.textContent = 'Sagittal Plane · ' + group.label + ' · ' + phaseLabel;
+      if (kfhEx)  kfhEx.textContent  = sport.label;
+      if (kfhSub) kfhSub.textContent = group.label + ' · ' + phaseLabel + ' · Collegiate/Pro';
+    }
+
+    // ── Phase 3: Clinical Intelligence renderer ────────────────────
+    // Pure DOM write into #ap-kfh-intel. Pulls compiled protocol from
+    // BBF_INTEL.calculateAthleteProtocol() and paints 4 cards. No
+    // state mutation. Safe to call repeatedly (idempotent re-renders).
+    function _esc(s){
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function renderClinicalIntel(){
+      var host = document.getElementById('ap-kfh-intel');
+      if (!host) return;
+      if (typeof BBF_INTEL === 'undefined' || !BBF_INTEL.calculateAthleteProtocol) {
+        host.innerHTML = '<div class="ap-intel-pending"><strong>Engine Offline</strong>The clinical intelligence engine has not loaded. Reload to retry.</div>';
+        return;
+      }
+      if (!state.sport || !state.position || !state.phase) {
+        host.innerHTML = '<div class="ap-intel-pending"><strong>Awaiting Selection</strong>Choose sport, position, and season phase above to compile your clinical brief.</div>';
+        return;
+      }
+      var p = BBF_INTEL.calculateAthleteProtocol(state.sport, state.position, state.phase);
+      host.setAttribute('data-coverage', p.meta.coverage);
+
+      var html = '';
+
+      // ── Card 1: Energy Systems ─────────────────────────────────
+      html += '<article class="ap-intel-card" data-block="energy">';
+      html +=   '<div class="ap-intel-h"><h4 class="ap-intel-t">Energy System Targets</h4>';
+      if (p.energySystem) {
+        html += '<span class="ap-intel-tag">' + _esc(p.energySystem.source) + '</span>';
+      }
+      html +=   '</div>';
+      if (p.energySystem) {
+        var bars = [
+          { lbl: 'ATP-PC',     pct: p.energySystem.atpPc,      sys: 'atpPc' },
+          { lbl: 'Glycolytic', pct: p.energySystem.glycolytic, sys: 'glycolytic' },
+          { lbl: 'Aerobic',    pct: p.energySystem.aerobic,    sys: 'aerobic' }
+        ];
+        html += '<div class="ap-intel-bars">';
+        for (var i=0; i<bars.length; i++){
+          var b = bars[i];
+          html += '<div class="ap-intel-bar">';
+          html +=   '<span class="ap-intel-bar-lbl">' + _esc(b.lbl) + '</span>';
+          html +=   '<div class="ap-intel-bar-track"><div class="ap-intel-bar-fill" data-system="' + _esc(b.sys) + '" style="width:' + b.pct + '%"></div></div>';
+          html +=   '<span class="ap-intel-bar-pct">' + b.pct + '%</span>';
+          html += '</div>';
+        }
+        html += '</div>';
+      } else {
+        html += '<div class="ap-intel-pending"><strong>Profile Pending</strong>No positional energy matrix on file for this sport yet. Universal recovery guardrails (below) still apply.</div>';
+      }
+      html += '</article>';
+
+      // ── Card 2: Training Methodology ───────────────────────────
+      html += '<article class="ap-intel-card" data-block="methodology">';
+      html +=   '<div class="ap-intel-h"><h4 class="ap-intel-t">Training Methodology</h4>';
+      if (p.methodology) {
+        html += '<span class="ap-intel-tag">' + _esc(p.methodology.athleteStage) + '</span>';
+      }
+      html +=   '</div>';
+      if (p.methodology) {
+        html += '<div class="ap-intel-rows">';
+        html +=   '<div class="ap-intel-row"><span class="ap-intel-k">Phase</span><span class="ap-intel-v">' + _esc(p.methodology.phaseLabel) + '</span></div>';
+        if (p.methodology.load)     html += '<div class="ap-intel-row"><span class="ap-intel-k">Load</span><span class="ap-intel-v">' + _esc(p.methodology.load) + '</span></div>';
+        if (p.methodology.volume)   html += '<div class="ap-intel-row"><span class="ap-intel-k">Volume</span><span class="ap-intel-v">' + _esc(p.methodology.volume) + '</span></div>';
+        if (p.methodology.velocity) html += '<div class="ap-intel-row"><span class="ap-intel-k">Velocity</span><span class="ap-intel-v">' + _esc(p.methodology.velocity) + '</span></div>';
+        html += '</div>';
+      }
+      html += '</article>';
+
+      // ── Card 3: Prehab Triggers ────────────────────────────────
+      html += '<article class="ap-intel-card" data-block="prehab">';
+      html +=   '<div class="ap-intel-h"><h4 class="ap-intel-t">Prehab Triggers</h4>';
+      if (p.prehab) {
+        html += '<span class="ap-intel-tag">Mandatory</span>';
+      }
+      html +=   '</div>';
+      if (p.prehab) {
+        html += '<div class="ap-intel-rows">';
+        html +=   '<div class="ap-intel-row"><span class="ap-intel-k">Risk Site</span><span class="ap-intel-v">' + _esc(p.prehab.riskSite) + '</span></div>';
+        for (var j=0; j<p.prehab.drills.length; j++){
+          var d = p.prehab.drills[j];
+          html += '<div class="ap-intel-row"><span class="ap-intel-k">Drill ' + (j+1) + '</span><span class="ap-intel-v">' + _esc(d.name) + '<small>' + _esc(d.purpose) + '</small></span></div>';
+        }
+        html += '</div>';
+      } else {
+        html += '<div class="ap-intel-pending"><strong>Clinical profile pending</strong>Sport-specific prehab triggers have not been ingested yet. Refer to universal guardrails below.</div>';
+      }
+      html += '</article>';
+
+      // ── Card 4: Recovery Guardrails (universal) ────────────────
+      html += '<article class="ap-intel-card" data-block="guardrails">';
+      html +=   '<div class="ap-intel-h"><h4 class="ap-intel-t">Recovery Guardrails</h4>';
+      html +=   '<span class="ap-intel-tag">Universal</span>';
+      html +=   '</div>';
+      html +=   '<div class="ap-intel-rows">';
+      var g = p.guardrails || {};
+      var rows = [
+        { k: 'Micro Rest',   g: g.micro },
+        { k: 'Macro Window', g: g.macroPostMaxEffort },
+        { k: 'Weekly Off',   g: g.macroWeekly },           // null at Collegiate/Pro
+        { k: 'Autoreg.',     g: g.autoregulation }
+      ];
+      for (var k=0; k<rows.length; k++){
+        if (!rows[k].g) continue;
+        html += '<div class="ap-intel-row"><span class="ap-intel-k">' + _esc(rows[k].k) + '</span><span class="ap-intel-v">' + _esc(rows[k].g.rule) + '<small>' + _esc(rows[k].g.condition) + '</small></span></div>';
+      }
+      html +=   '</div>';
+      html += '</article>';
+
+      host.innerHTML = html;
     }
 
     // ── Wire controls ──────────────────────────────────────────────
@@ -10935,6 +10958,10 @@ document.addEventListener('DOMContentLoaded', function() {
           // eslint-disable-next-line no-unused-expressions
           void hudWrap.offsetWidth;
         }
+        // Phase 3: paint the clinical intelligence cards immediately
+        // on unlock so the athlete sees the compiled brief alongside
+        // the lock-card dissolve animation.
+        renderClinicalIntel();
         if (typeof TOAST === 'function') TOAST('Protocol acknowledged ✓ Phase 2 unlocked');
       });
     }
