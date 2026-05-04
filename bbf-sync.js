@@ -536,6 +536,131 @@ var BBF_SYNC = (function() {
     });
   }
 
+  // ─── PHASE 5: ATHLETE LOAD TELEMETRY ─────────────────────────
+  // Async adapter feeding BBF_INTEL.runLoadAudit() with live data
+  // from bbf_athlete_load_logs (28-day macro window) +
+  // bbf_athlete_load_bouts (current-day intra-session bouts).
+  //
+  // Day buckets are aligned to UTC midnight so multi-session days
+  // sum into the same bucket regardless of local clock skew. Rest
+  // days produce a 0 in the array (no row → no contribution). The
+  // returned shape matches what runLoadAudit already eats — the
+  // simulation source can be hot-swapped in/out without touching
+  // the engine.
+  //
+  // Returns a Promise resolving to:
+  //   { dailyLoads: number[28],
+  //     bouts:      [{ type, start, durationSec, label }],
+  //     meta:       { source:'live', athleteId, daysCovered:28,
+  //                   sessionsFound, boutsFound, fetchedAt } }
+  // Or null on hard failure (network / unresolvable slug).
+  function fetchAthleteTelemetry(athleteSlugOrId) {
+    if (!athleteSlugOrId) {
+      console.warn('[BBF-SYNC] fetchAthleteTelemetry: missing athleteId');
+      return Promise.resolve(null);
+    }
+    console.log('[BBF-SYNC] Fetching athlete telemetry:', athleteSlugOrId);
+
+    return resolveUid(athleteSlugOrId).then(function(uid) {
+      if (!uid) {
+        console.warn('[BBF-SYNC] fetchAthleteTelemetry: could not resolve UID for', athleteSlugOrId);
+        return null;
+      }
+
+      var DAY_MS  = 24 * 60 * 60 * 1000;
+      var WINDOW  = 28;
+      var todayMid = new Date();
+      todayMid.setUTCHours(0, 0, 0, 0);
+      var todayMs = todayMid.getTime();
+      var sinceMs = todayMs - (WINDOW - 1) * DAY_MS;
+      var sinceISO = new Date(sinceMs).toISOString();
+
+      // ── Query 1: macro logs across the 28-day window ──
+      var logsQ = '?athlete_id=eq.' + encodeURIComponent(uid) +
+                  '&session_timestamp=gte.' + encodeURIComponent(sinceISO) +
+                  '&order=session_timestamp.asc' +
+                  '&select=log_id,session_timestamp,load_au';
+
+      return supa('GET', 'bbf_athlete_load_logs', null, logsQ).then(function(logRows) {
+        if (logRows === null) {
+          console.error('[BBF-SYNC] Telemetry log query failed (network/RLS)');
+          return null;
+        }
+
+        // Bucket loads into the 28-element array (newest at index 27).
+        var dailyLoads = new Array(WINDOW);
+        for (var i = 0; i < WINDOW; i++) dailyLoads[i] = 0;
+        var todayLogIds = [];
+        logRows.forEach(function(row) {
+          var t = Date.parse(row.session_timestamp);
+          if (isNaN(t)) return;
+          var d = new Date(t);
+          d.setUTCHours(0, 0, 0, 0);
+          var daysAgo = Math.round((todayMs - d.getTime()) / DAY_MS);
+          if (daysAgo >= 0 && daysAgo < WINDOW) {
+            dailyLoads[(WINDOW - 1) - daysAgo] += (+row.load_au || 0);
+          }
+          if (daysAgo === 0) todayLogIds.push(row.log_id);
+        });
+
+        // ── Query 2: bouts for today's session(s) ──
+        // Skip if no logs today — there can't be bouts without a parent log.
+        if (todayLogIds.length === 0) {
+          var emptyResult = {
+            dailyLoads: dailyLoads,
+            bouts: [],
+            meta: {
+              source:        'live',
+              athleteId:     uid,
+              daysCovered:   WINDOW,
+              sessionsFound: logRows.length,
+              boutsFound:    0,
+              fetchedAt:     new Date().toISOString()
+            }
+          };
+          console.log('[BBF-SYNC] Telemetry response:', emptyResult.meta);
+          return emptyResult;
+        }
+
+        var inFilter  = '(' + todayLogIds.join(',') + ')';
+        var boutsQ    = '?log_id=in.' + encodeURIComponent(inFilter) +
+                        '&order=start_timestamp.asc' +
+                        '&select=set_id,bout_type,exercise_name,start_timestamp,end_timestamp';
+
+        return supa('GET', 'bbf_athlete_load_bouts', null, boutsQ).then(function(boutRows) {
+          var bouts = (boutRows || []).map(function(b) {
+            var startMs = Date.parse(b.start_timestamp);
+            var endMs   = Date.parse(b.end_timestamp);
+            var dur     = (!isNaN(startMs) && !isNaN(endMs)) ? Math.max(0, (endMs - startMs) / 1000) : 0;
+            return {
+              type:        b.bout_type,
+              start:       b.start_timestamp,
+              durationSec: dur,
+              label:       b.exercise_name || b.bout_type
+            };
+          });
+          var result = {
+            dailyLoads: dailyLoads,
+            bouts: bouts,
+            meta: {
+              source:        'live',
+              athleteId:     uid,
+              daysCovered:   WINDOW,
+              sessionsFound: logRows.length,
+              boutsFound:    bouts.length,
+              fetchedAt:     new Date().toISOString()
+            }
+          };
+          console.log('[BBF-SYNC] Telemetry response:', result.meta);
+          return result;
+        });
+      });
+    }).catch(function(e) {
+      console.error('[BBF-SYNC] Telemetry fetch failed:', e);
+      return null;
+    });
+  }
+
   // ─── TOGGLE: SOVEREIGN TRIAL ──────────────────────────────
   // Phase 8 — calls the SECURITY DEFINER RPC bbf_set_trial_status(p_uid, p_active).
   // RPC resolves slug -> uuid server-side, applies UPDATE, returns {ok, ...}.
@@ -1862,7 +1987,8 @@ var BBF_SYNC = (function() {
     verifyAdminPin: verifyAdminPin,
     fetchDamagedZones: fetchDamagedZones,
     pushAthleteProgression: pushAthleteProgression,
-    fetchAthleteProgression: fetchAthleteProgression
+    fetchAthleteProgression: fetchAthleteProgression,
+    fetchAthleteTelemetry: fetchAthleteTelemetry
   };
 
   if (typeof module !== 'undefined' && module.exports) {

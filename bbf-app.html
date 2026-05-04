@@ -218,6 +218,14 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ap-intel-card[data-alert="high"]::before{background:linear-gradient(90deg,transparent,#EF4444 50%,transparent);opacity:.7}
 .ap-intel-card[data-alert="medium"]{border-color:rgba(245,200,0,.45);background:linear-gradient(180deg,rgba(40,28,8,.6),rgba(20,12,8,.7))}
 .ap-intel-card[data-alert="nominal"]{border-color:rgba(34,197,94,.32)}
+.ap-intel-card[data-alert="loading"]{border-color:rgba(0,229,255,.32)}
+.ap-intel-card[data-alert="loading"]::before{background:linear-gradient(90deg,transparent,#00E5FF 50%,transparent);opacity:.55}
+.ap-intel-card[data-alert="unknown"]{border-color:rgba(255,255,255,.12)}
+.ap-intel-card[data-alert="error"]{border-color:rgba(239,68,68,.32)}
+/* Phase 5 — Live Telemetry tag with pulsing cyan beacon */
+.ap-intel-tag-live{display:inline-flex;align-items:center;gap:.4rem;color:#00E5FF;font-weight:800}
+.ap-intel-pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:#00E5FF;box-shadow:0 0 8px rgba(0,229,255,.85),0 0 0 0 rgba(0,229,255,.45);animation:apIntelPulse 1.6s ease-out infinite}
+@keyframes apIntelPulse{0%{box-shadow:0 0 8px rgba(0,229,255,.85),0 0 0 0 rgba(0,229,255,.45)}70%{box-shadow:0 0 8px rgba(0,229,255,.4),0 0 0 9px rgba(0,229,255,0)}100%{box-shadow:0 0 8px rgba(0,229,255,.85),0 0 0 0 rgba(0,229,255,0)}}
 .ap-intel-acwr{display:grid;grid-template-columns:1fr auto;gap:.55rem;align-items:end;margin-bottom:.5rem}
 .ap-intel-acwr-num{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1.65rem;font-weight:900;letter-spacing:1.5px;line-height:1;color:#fff;font-variant-numeric:tabular-nums}
 .ap-intel-acwr[data-state="alert"] .ap-intel-acwr-num{color:#FF7A7A}
@@ -243,7 +251,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ap-intel-violation-rest{font-variant-numeric:tabular-nums;font-weight:900;color:#FF9494}
 .ap-intel-nominal{padding:.5rem .65rem;border-radius:8px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.28);color:#86EFAC;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.78rem;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;text-align:center}
 @media(max-width:520px){.ap-intel-bar{grid-template-columns:5rem 1fr 2.4rem}.ap-intel-row{grid-template-columns:1fr;gap:.18rem}.ap-intel-k{padding-top:0}.ap-intel-violation{grid-template-columns:1fr;gap:.18rem}}
-@media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving,.ap-progression-lock.is-dissolving{transition:none}.ap-intel-bar-fill{transition:none}.pf-admin-dot{animation:none}}
+@media(prefers-reduced-motion:reduce){.ap-progression-gate{animation:none}.ap-progression-gate.is-dissolving,.ap-progression-lock.is-dissolving{transition:none}.ap-intel-bar-fill,.ap-intel-acwr-fill{transition:none}.ap-intel-pulse{animation:none}.pf-admin-dot{animation:none}}
 /* ═ Phase 3 — Athlete Kinematic HUD (scoped port of .kfh-*) ═ */
 .ap-kfh-wrap{margin-top:1rem;animation:apProtoRise .5s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
 .ap-kfh-wrap[hidden]{display:none!important}
@@ -10917,43 +10925,103 @@ document.addEventListener('DOMContentLoaded', function() {
       html +=   '</div>';
       html += '</article>';
 
-      // ── Card 5: Load Audit (Phase 4 — Dynamic Load Auditor) ─────
-      html += renderLoadAuditMarkup();
+      // ── Card 5: Load Audit (Phase 5 — Live Telemetry Pipeline) ─────
+      // Synchronous placeholder; real fetch + paint happens async via
+      // loadLoadAudit() so renderClinicalIntel stays sync-safe.
+      html += renderLoadAuditPlaceholder();
 
       host.innerHTML = html;
+
+      // Kick off the async live-telemetry fetch + paint into the card slot.
+      loadLoadAudit();
     }
 
-    // ── Phase 4: Load Audit card markup ───────────────────────────
-    // Runs the simulation pipeline through BBF_INTEL.runLoadAudit and
-    // renders the resulting ACWR + violation report. Keeps a clear
-    // SIMULATION tag so it's never mistaken for live athlete telemetry
-    // (real bbf_logs ingestion is a future ticket).
-    function renderLoadAuditMarkup(){
-      if (typeof BBF_INTEL === 'undefined' || !BBF_INTEL.runLoadAudit || !BBF_INTEL.simulateMicrocycle) {
-        return '<article class="ap-intel-card" data-block="load-audit"><div class="ap-intel-h"><h4 class="ap-intel-t">Load Audit</h4></div><div class="ap-intel-pending"><strong>Auditor Offline</strong>Load auditor module did not load. Reload to retry.</div></article>';
+    // ── Phase 5: Load Audit placeholder + async live-data paint ────
+    // The 5th card initially renders a "Connecting…" stub so the rest
+    // of the dashboard paints immediately. fetchAthleteTelemetry then
+    // resolves and replaces the card's innerHTML in-place. The card
+    // has a stable id so a fresh renderClinicalIntel (e.g. selection
+    // change mid-fetch) can re-target it without a stale reference.
+    function renderLoadAuditPlaceholder(){
+      return '<article class="ap-intel-card" data-block="load-audit" data-alert="loading" id="ap-load-audit">' +
+        '<div class="ap-intel-h">' +
+          '<h4 class="ap-intel-t">Load Audit</h4>' +
+          '<span class="ap-intel-tag ap-intel-tag-live"><span class="ap-intel-pulse" aria-hidden="true"></span>Live Telemetry</span>' +
+        '</div>' +
+        '<div class="ap-intel-pending"><strong>Connecting</strong>Fetching live athlete telemetry&hellip;</div>' +
+        '</article>';
+    }
+
+    function loadLoadAudit(){
+      var card = document.getElementById('ap-load-audit');
+      if (!card) return;
+
+      // Engine + sync layer guards
+      if (typeof BBF_INTEL === 'undefined' || !BBF_INTEL.runLoadAudit) {
+        _paintLoadAuditNotice(card, 'error', 'Engine Offline', 'BBF_INTEL did not load. Reload to retry.');
+        return;
       }
-      var sim    = BBF_INTEL.simulateMicrocycle({
-        sport:    state.sport,
-        position: state.position,
-        phase:    state.phase
+      if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchAthleteTelemetry) {
+        _paintLoadAuditNotice(card, 'error', 'Sync Layer Offline', 'BBF_SYNC.fetchAthleteTelemetry did not load. Reload to retry.');
+        return;
+      }
+
+      // Auth: respect the trainer-view skip + pre-login race
+      var uid = _resolveAthleteUid();
+      if (!uid) {
+        _paintLoadAuditNotice(card, 'unknown', 'Awaiting Authentication', 'Sign in to enable load audit telemetry.');
+        return;
+      }
+
+      console.log('[BBF-PORTAL] Load audit: requesting telemetry for', uid);
+      BBF_SYNC.fetchAthleteTelemetry(uid).then(function(telemetry){
+        // Re-acquire the card in case renderClinicalIntel re-fired mid-fetch.
+        var freshCard = document.getElementById('ap-load-audit');
+        if (!freshCard) return;
+
+        if (!telemetry) {
+          _paintLoadAuditNotice(freshCard, 'error', 'Telemetry Fetch Failed', 'Network or RLS error — see console for [BBF-SYNC] details.');
+          return;
+        }
+        if (telemetry.meta.sessionsFound === 0) {
+          _paintLoadAuditNotice(freshCard, 'nominal', 'No Live Telemetry Yet', 'Feed the engine via /log to begin auditing. Universal recovery guardrails (above) still apply.');
+          return;
+        }
+
+        var report = BBF_INTEL.runLoadAudit({ dailyLoads: telemetry.dailyLoads, bouts: telemetry.bouts });
+        console.log('[BBF-PORTAL] Load audit report:', { ratio: report.acwr.ratio, alerts: report.alerts.length, violations: report.microRecovery.violations.length });
+        freshCard.innerHTML = _buildLoadAuditReportHTML(report, telemetry.meta);
+        var topAlert = report.alerts[0] || null;
+        freshCard.setAttribute('data-alert', topAlert ? topAlert.severity : 'nominal');
       });
-      var report = BBF_INTEL.runLoadAudit({ dailyLoads: sim.dailyLoads, bouts: sim.bouts });
-      var acwr   = report.acwr;
-      var micro  = report.microRecovery;
+    }
 
-      // Card severity tag — drives the border + background tint
-      var topAlert = report.alerts[0] || null;
-      var cardAlert = topAlert ? topAlert.severity : 'nominal';
+    function _paintLoadAuditNotice(card, alertLevel, title, body){
+      card.setAttribute('data-alert', alertLevel);
+      card.innerHTML =
+        '<div class="ap-intel-h">' +
+          '<h4 class="ap-intel-t">Load Audit</h4>' +
+          '<span class="ap-intel-tag ap-intel-tag-live"><span class="ap-intel-pulse" aria-hidden="true"></span>Live Telemetry</span>' +
+        '</div>' +
+        '<div class="ap-intel-pending"><strong>' + _esc(title) + '</strong>' + _esc(body) + '</div>';
+    }
 
-      var h = '<article class="ap-intel-card" data-block="load-audit" data-alert="' + _esc(cardAlert) + '">';
-      h += '<div class="ap-intel-h"><h4 class="ap-intel-t">Load Audit</h4>';
-      h += '<span class="ap-intel-tag">Simulation &middot; ' + sim.meta.windowDays + 'd window</span>';
-      h += '</div>';
+    // Pure markup builder — given an audit report + telemetry meta,
+    // returns the inner HTML of the Load Audit card (no <article> wrap;
+    // that's owned by the parent so we can swap content in-place).
+    function _buildLoadAuditReportHTML(report, meta){
+      var acwr  = report.acwr;
+      var micro = report.microRecovery;
+
+      var h = '<div class="ap-intel-h">' +
+                '<h4 class="ap-intel-t">Load Audit</h4>' +
+                '<span class="ap-intel-tag ap-intel-tag-live"><span class="ap-intel-pulse" aria-hidden="true"></span>Live Telemetry</span>' +
+              '</div>';
 
       // ACWR readout + threshold-aware progress bar
-      var ratioStr = (acwr.ratio === null) ? '—' : acwr.ratio.toFixed(2);
-      var fillPct  = (acwr.ratio === null) ? 0 : Math.min(100, (acwr.ratio / 2.0) * 100);
-      var threshPct= (acwr.threshold / 2.0) * 100;
+      var ratioStr  = (acwr.ratio === null) ? '—' : acwr.ratio.toFixed(2);
+      var fillPct   = (acwr.ratio === null) ? 0 : Math.min(100, (acwr.ratio / 2.0) * 100);
+      var threshPct = (acwr.threshold / 2.0) * 100;
       var stateAttr = acwr.fatigueState ? 'alert' : (acwr.ratio === null ? 'unknown' : 'ok');
       var stateLbl  = acwr.fatigueState ? '⚠ Fatigue State' : (acwr.ratio === null ? 'Insufficient' : '✓ Safe Zone');
 
@@ -10970,9 +11038,10 @@ document.addEventListener('DOMContentLoaded', function() {
       h += '<div class="ap-intel-rows">';
       h += '<div class="ap-intel-row"><span class="ap-intel-k">Acute</span><span class="ap-intel-v">' + acwr.acuteLoad.toLocaleString() + ' AU<small>last 7 days, sRPE</small></span></div>';
       h += '<div class="ap-intel-row"><span class="ap-intel-k">Chronic</span><span class="ap-intel-v">' + acwr.chronicLoad.toLocaleString() + ' AU/wk<small>28-day average</small></span></div>';
+      h += '<div class="ap-intel-row"><span class="ap-intel-k">Sessions</span><span class="ap-intel-v">' + (meta && meta.sessionsFound != null ? meta.sessionsFound : '—') + '<small>logged in window</small></span></div>';
       h += '</div>';
 
-      // Active alerts (ACWR breach + micro-recovery violations)
+      // Active alerts
       if (report.alerts.length > 0) {
         for (var ai = 0; ai < report.alerts.length; ai++) {
           var al = report.alerts[ai];
@@ -10989,12 +11058,12 @@ document.addEventListener('DOMContentLoaded', function() {
         h += '<div class="ap-intel-nominal">All systems nominal · 0 violations</div>';
       }
 
-      // Itemized micro-recovery violations (when present)
+      // Itemized micro-recovery violations
       if (micro.violations.length > 0) {
         h += '<div class="ap-intel-violations">';
         for (var vi = 0; vi < micro.violations.length; vi++) {
           var v = micro.violations[vi];
-          var when = (v.atIso || '').slice(11, 16); // HH:MM
+          var when = (v.atIso || '').slice(11, 16);
           var fromLbl = (v.fromBout && v.fromBout.label) || ('Bout ' + vi);
           var toLbl   = (v.toBout   && v.toBout.label)   || ('Bout ' + (vi + 1));
           h += '<div class="ap-intel-violation">';
@@ -11006,7 +11075,6 @@ document.addEventListener('DOMContentLoaded', function() {
         h += '</div>';
       }
 
-      h += '</article>';
       return h;
     }
 
