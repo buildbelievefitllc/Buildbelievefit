@@ -10605,6 +10605,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         return;
       }
+      // Per-session dedup: each (uid × sport × position × phase) tuple
+      // only needs one cloud fetch. Selection changes naturally produce
+      // a new key. This prevents renderProtocol re-runs (e.g. on every
+      // dropdown change) from spamming Supabase.
+      var dedupKey = uid + '|' + state.sport + '|' + state.position + '|' + state.phase;
+      if (_hydratedKeys[dedupKey]) {
+        console.log('[BBF-HYDRATE] skipping fetch — already hydrated this tuple this session', dedupKey);
+        return;
+      }
+      _hydratedKeys[dedupKey] = true;
       // Capture the tuple at request time so a fast VC-swap or selection
       // change can't apply a stale fetch result to the wrong context.
       var ctx = { sport: state.sport, position: state.position, phase: state.phase, uid: uid, localAtRequest: state.protocolCompleted === true };
@@ -10637,6 +10647,35 @@ document.addEventListener('DOMContentLoaded', function() {
           console.log('[BBF-HYDRATE] no action — states already aligned');
         }
       });
+    }
+
+    // Per-session dedup map: keys are "uid|sport|position|phase".
+    // Cleared only on full page reload — VC swap clears via the
+    // tuple-changed guard inside the .then() callback.
+    var _hydratedKeys = {};
+
+    // Polling fallback for the auth race: the Athlete Portal IIFE runs
+    // during initial script parse, but VC/CU only get populated after
+    // the user completes login. _resolveAthleteUid() returns null
+    // during that window. Rather than wire into the LOGIN function (and
+    // create cross-module coupling), we poll for up to 30s. Polling
+    // stops the moment a UID resolves OR the user opens a different
+    // tab (no point hydrating an unseen view).
+    var _hydrationPollTimer = null;
+    function tryHydrateWhenAuthReady(retriesRemaining){
+      retriesRemaining = (retriesRemaining == null) ? 60 : retriesRemaining;
+      var uid = _resolveAthleteUid();
+      if (uid) {
+        console.log('[BBF-HYDRATE] auth resolved — UID:', uid);
+        hydrateProgressionFromCloud();
+        return;
+      }
+      if (retriesRemaining <= 0) {
+        console.warn('[BBF-HYDRATE] auth never resolved after 30s — hydration deferred to next user interaction');
+        return;
+      }
+      // 500ms × 60 retries = 30s ceiling
+      _hydrationPollTimer = setTimeout(function(){ tryHydrateWhenAuthReady(retriesRemaining - 1); }, 500);
     }
 
     // ── DOM refs ────────────────────────────────────────────────────
@@ -10810,6 +10849,11 @@ document.addEventListener('DOMContentLoaded', function() {
         gate.hidden = false;
       }
       syncPhase2UI();
+      // Selection just became (or stayed) complete → opportunistic
+      // cloud hydration. The dedup map inside hydrate prevents the
+      // same tuple from being fetched twice in a session, so this is
+      // safe to call from every render trigger.
+      hydrateProgressionFromCloud();
       if (hudWrap) {
         hudWrap.hidden = !unlocked;
         if (unlocked) {
@@ -10915,10 +10959,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     setPhase(state.phase, false);
     renderProtocol();
-    // Cloud reconciliation: if Supabase has this user×selection marked
-    // completed, override the local view; if local is ahead (legacy ack),
-    // push it up. Async so the UI paints from localStorage immediately.
-    hydrateProgressionFromCloud();
+    // Cloud reconciliation. The Athlete Portal IIFE runs at script-
+    // parse time, before LOGIN populates VC/CU. tryHydrateWhenAuthReady
+    // polls every 500ms (×60 = 30s ceiling) for the auth context to
+    // resolve, then fires the hydrate. If auth never resolves, the
+    // hydrate also re-fires from renderProtocol() on any user-driven
+    // selection change (defense in depth). The dedup map prevents
+    // duplicate fetches per (uid × sport × position × phase).
+    tryHydrateWhenAuthReady();
+
+    // Diagnostic surface for the CEO: window.BBF.uid returns the
+    // currently-resolved athlete UID (slug) or null. Read-only getter
+    // — DO NOT assign to it. The lang module already owns window.BBF;
+    // we add a getter without overwriting the existing properties.
+    if (typeof window !== 'undefined' && window.BBF && typeof window.BBF === 'object') {
+      try {
+        Object.defineProperty(window.BBF, 'uid', {
+          configurable: true,
+          enumerable: true,
+          get: function(){ return _resolveAthleteUid(); }
+        });
+      } catch (_) {}
+    }
 
     // ── Athlete HUD toggles (scoped; mirrors workout HUD pattern) ──
     (function wireAthleteHUD(){
