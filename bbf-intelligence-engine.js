@@ -197,12 +197,231 @@
     };
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // Phase 4 — Dynamic Load Auditor
+  //
+  // Active enforcement of Block 4 guardrails against an athlete's
+  // weekly training stream. Pure math + pure validators; no DOM
+  // and no I/O. The engine is fed an array of daily training-load
+  // values (sRPE: session RPE × duration in minutes — the Gabbett
+  // canonical model) and a list of intra-session bouts; it returns
+  // a structured audit report the UI renders verbatim.
+  //
+  // Future: when bbf_logs/bbf_sets accumulate real-world data, we
+  // swap the simulation source for a real fetch. The audit math
+  // doesn't change.
+  // ═══════════════════════════════════════════════════════════
+
+  var ACUTE_WINDOW_DAYS   = 7;
+  var CHRONIC_WINDOW_DAYS = 28;
+  var ACWR_THRESHOLD      = 1.5;
+  var ATP_PC_MIN_REST_SEC = 180;
+  var ATP_PC_BOUT_TYPE    = 'High-Intensity ATP-PC';
+
+  // ─── ACWR (Acute:Chronic Workload Ratio) ────────────────────
+  // dailyLoads: array of training load (AU) per day, oldest → newest.
+  // Returns null-safe shape with fatigueState + alert when threshold
+  // is breached. Insufficient baseline (<28d) flagged separately —
+  // ratio is still computed but UI should soften the language.
+  function calculateACWR(dailyLoads, opts) {
+    opts = opts || {};
+    var acuteWindow   = opts.acuteWindow   || ACUTE_WINDOW_DAYS;
+    var chronicWindow = opts.chronicWindow || CHRONIC_WINDOW_DAYS;
+    var threshold     = (typeof opts.threshold === 'number') ? opts.threshold : ACWR_THRESHOLD;
+
+    if (!Array.isArray(dailyLoads) || dailyLoads.length === 0) {
+      return { acuteLoad: 0, chronicLoad: 0, ratio: null, threshold: threshold,
+               fatigueState: false, alert: null, daysCovered: 0, insufficient: true };
+    }
+
+    var n = dailyLoads.length;
+    var insufficient = n < chronicWindow;
+    var chronicDays  = Math.min(n, chronicWindow);
+    var acuteDays    = Math.min(n, acuteWindow);
+
+    var acuteLoad = 0;
+    for (var i = n - acuteDays; i < n; i++) acuteLoad += (+dailyLoads[i] || 0);
+
+    var chronicTotal = 0;
+    for (var j = n - chronicDays; j < n; j++) chronicTotal += (+dailyLoads[j] || 0);
+    // 4-week average weekly load (Gabbett): total ÷ (window/7)
+    var chronicLoad = chronicTotal / (chronicWindow / 7);
+
+    var ratio = (chronicLoad > 0) ? (acuteLoad / chronicLoad) : null;
+    var fatigueState = (ratio !== null) && (ratio > threshold);
+
+    var alert = null;
+    if (fatigueState) {
+      alert = {
+        severity: 'high',
+        rule:     'Mandatory Volume Reduction',
+        reason:   'ACWR ' + ratio.toFixed(2) + ' exceeds the ' + threshold + ' elevated-injury-risk threshold',
+        source:   'Block 4 Autoregulation Guardrail'
+      };
+    }
+
+    return {
+      acuteLoad:    Math.round(acuteLoad),
+      chronicLoad:  Math.round(chronicLoad),
+      ratio:        ratio === null ? null : +ratio.toFixed(3),
+      threshold:    threshold,
+      fatigueState: fatigueState,
+      alert:        alert,
+      daysCovered:  n,
+      insufficient: insufficient
+    };
+  }
+
+  // ─── Micro-Recovery audit (3-min ATP-PC rule) ───────────────
+  // bouts: [{ type, start: ISO string | epoch ms, durationSec }]
+  // Walks consecutive ATP-PC bouts in order; flags any pair whose
+  // rest gap (next.start - prev.end) is below the 180s threshold.
+  function auditMicroRecovery(bouts, opts) {
+    opts = opts || {};
+    var minRest = opts.minRestSec || ATP_PC_MIN_REST_SEC;
+    var atpType = opts.atpPcType  || ATP_PC_BOUT_TYPE;
+
+    if (!Array.isArray(bouts) || bouts.length < 2) {
+      return { violations: [], totalAtpPcBouts: bouts ? bouts.length : 0,
+               pairsChecked: 0, threshold: minRest };
+    }
+
+    function tsMs(b){
+      if (typeof b.start === 'number') return b.start;
+      var t = Date.parse(b.start);
+      return isNaN(t) ? null : t;
+    }
+
+    // Filter ATP-PC, preserve original order.
+    var atp = bouts.filter(function(b){ return b && b.type === atpType; });
+    var violations = [];
+    var pairsChecked = 0;
+
+    for (var i = 1; i < atp.length; i++) {
+      var prev = atp[i-1];
+      var curr = atp[i];
+      var prevStart = tsMs(prev);
+      var currStart = tsMs(curr);
+      if (prevStart === null || currStart === null) continue;
+      var prevEnd = prevStart + ((+prev.durationSec || 0) * 1000);
+      var restSec = (currStart - prevEnd) / 1000;
+      pairsChecked++;
+      if (restSec < minRest) {
+        violations.push({
+          fromBout:  prev,
+          toBout:    curr,
+          restSec:   Math.round(restSec),
+          threshold: minRest,
+          atIso:     curr.start
+        });
+      }
+    }
+    return {
+      violations:      violations,
+      totalAtpPcBouts: atp.length,
+      pairsChecked:    pairsChecked,
+      threshold:       minRest
+    };
+  }
+
+  // ─── Combined audit wrapper ─────────────────────────────────
+  // Runs ACWR + micro-recovery and surfaces a flat alerts array
+  // the UI can render without conditional reshuffling.
+  function runLoadAudit(input) {
+    input = input || {};
+    var acwr  = calculateACWR(input.dailyLoads || [], input.acwrOpts);
+    var micro = auditMicroRecovery(input.bouts || [], input.microOpts);
+    var alerts = [];
+    if (acwr.alert) alerts.push(acwr.alert);
+    if (micro.violations.length > 0) {
+      alerts.push({
+        severity: 'medium',
+        rule:     'Micro-Recovery Protocol Violation',
+        reason:   micro.violations.length + ' of ' + micro.pairsChecked +
+                  ' ATP-PC bout pair' + (micro.pairsChecked === 1 ? '' : 's') +
+                  ' fell below the ' + (micro.threshold / 60) + '-minute rest minimum',
+        source:   'Block 4 Micro-Recovery Guardrail'
+      });
+    }
+    return {
+      acwr: acwr,
+      microRecovery: micro,
+      alerts: alerts,
+      summary: {
+        fatigueState:   acwr.fatigueState,
+        violationCount: micro.violations.length,
+        anyAlerts:      alerts.length > 0
+      }
+    };
+  }
+
+  // ─── Mock microcycle simulation ─────────────────────────────
+  // Deterministic 28-day microcycle for an in-season Football
+  // Skill Position athlete. Days 0-20 are a steady moderate
+  // baseline (~2,450 AU/week). Days 21-27 are a deliberate spike
+  // (~4,750 AU/week — extra mid-week conditioning + high-RPE game)
+  // designed to land ACWR cleanly above the 1.5 threshold so the
+  // autoregulation alert fires end-to-end.
+  //
+  // The bout list contains 4 ATP-PC sprints on day 21; the 1st→2nd
+  // and 2nd→3rd gaps are < 3 min (deliberate violations); the 3rd→4th
+  // gap is > 3 min (passes). Lets the UI demonstrate both states.
+  function simulateMicrocycle(opts) {
+    opts = opts || {};
+    var anchor = opts.dateAnchor || '2026-04-21T00:00:00Z'; // day 21 of the microcycle = spike start
+
+    // Baseline week pattern (Mon→Sun): lift / practice / recovery /
+    // practice / light / game / rest. Total = 2,450 AU.
+    var baselineWeek = [400, 500, 200, 500, 250, 600, 0];
+    // Spike week pattern: lift / practice++ / lift / practice /
+    // conditioning / high-RPE game / active recovery. Total = 4,750.
+    var spikeWeek    = [600, 800, 700, 750, 600, 900, 400];
+
+    var dailyLoads = [].concat(baselineWeek, baselineWeek, baselineWeek, spikeWeek);
+
+    // ATP-PC sprint bouts on the spike-week Tuesday morning (extra
+    // conditioning that triggers the 3-min rest violations).
+    // ISO timestamps: 10:30:00, 10:31:50, 10:33:30, 10:38:00 on day 22.
+    var dayTwoISO = '2026-04-22T'; // day-21 anchor + 1 → day 22 of mock
+    var bouts = [
+      { type: ATP_PC_BOUT_TYPE, start: dayTwoISO + '10:30:00Z', durationSec:  8, label: 'Sprint 1' },
+      { type: ATP_PC_BOUT_TYPE, start: dayTwoISO + '10:31:50Z', durationSec:  8, label: 'Sprint 2' },
+      { type: ATP_PC_BOUT_TYPE, start: dayTwoISO + '10:33:30Z', durationSec: 10, label: 'Sprint 3' },
+      { type: ATP_PC_BOUT_TYPE, start: dayTwoISO + '10:38:00Z', durationSec: 10, label: 'Sprint 4' }
+    ];
+
+    return {
+      meta: {
+        sport:        opts.sport       || 'football',
+        position:     opts.position    || 'skill',
+        phase:        opts.phase       || 'in',
+        athleteStage: opts.athleteStage || 'Collegiate/Pro',
+        scenario:     opts.scenario    || 'football_skill_inseason_spike',
+        dateAnchor:   anchor,
+        windowDays:   dailyLoads.length,
+        microcycleDays: 14
+      },
+      dailyLoads: dailyLoads,
+      bouts:      bouts,
+      description: '28-day window for an in-season Football Skill Position athlete. Days 0-20: steady baseline (~2,450 AU/week). Days 21-27: deliberate load spike (~4,750 AU/week) designed to breach the ACWR > 1.5 threshold and exercise the autoregulation alert. Day-22 morning includes 4 ATP-PC sprints with 2 sub-3-min rest violations to exercise the micro-recovery guardrail.'
+    };
+  }
+
   var api = {
     ENERGY_PROFILES:     ENERGY_PROFILES,
     METHODOLOGIES:       METHODOLOGIES,
     PREHAB_TRIGGERS:     PREHAB_TRIGGERS,
     RECOVERY_GUARDRAILS: RECOVERY_GUARDRAILS,
-    calculateAthleteProtocol: calculateAthleteProtocol
+    calculateAthleteProtocol: calculateAthleteProtocol,
+    // Phase 4 — Dynamic Load Auditor
+    calculateACWR:       calculateACWR,
+    auditMicroRecovery:  auditMicroRecovery,
+    runLoadAudit:        runLoadAudit,
+    simulateMicrocycle:  simulateMicrocycle,
+    ACUTE_WINDOW_DAYS:   ACUTE_WINDOW_DAYS,
+    CHRONIC_WINDOW_DAYS: CHRONIC_WINDOW_DAYS,
+    ACWR_THRESHOLD:      ACWR_THRESHOLD,
+    ATP_PC_MIN_REST_SEC: ATP_PC_MIN_REST_SEC
   };
 
   // Browser global + Node test harness export.
