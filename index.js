@@ -103,6 +103,93 @@ const SYSTEM_PROMPT_NUTRITION =
   '3. Calculate estimated TDEE, subtract a safe clinical deficit for fat loss while maintaining hypertrophy, output the calorie target in the "cal" field and macros per meal in the "i" field. ' +
   '4. Output exactly 7 day objects.';
 
+// ───────────────────────────────────────────────────────────────
+// Phase B2: Youth Athlete prompts (Ages 9-17)
+// Clinical liability shield + sport-specific prehab logic.
+// JSON schemas mirror the adult prompts so cloud-generated youth plans
+// render through the same frontend WP/MP pipeline (RW()/RN()).
+// ───────────────────────────────────────────────────────────────
+const SYSTEM_PROMPT_YOUTH_HYPERTROPHY =
+  'You are the Lead Clinical Sports Scientist for Build Believe Fit (BBF). ' +
+  'Generate a structured training blueprint for a Youth Athlete (Ages 9-17), ' +
+  'output as Week 1 of a 4-week progressive macrocycle. ' +
+  'You MUST adhere to these strict clinical overrides: ' +
+  '- Loading: NO heavy 1-RM testing or strict heavy axial loading (e.g. heavy ' +
+  'barbell back squats) for ages 8-13. Use bodyweight, med balls, and light ' +
+  'bands only. Moderate hypertrophy (65-80%) is ONLY permitted for ages 14+. ' +
+  '- Volume: Total weekly training hours must NEVER exceed the chronological ' +
+  'age of the athlete in years. Mandate 2 full days off per week. ' +
+  '- Sport-Specific Prehab Triggers (infer the sport from the training_protocol ' +
+  'field; if multiple sports apply, blend the relevant prehab): ' +
+  'Basketball -> glute medius activation to mitigate dynamic knee valgus; ' +
+  'Volleyball -> knee stability for force absorption; ' +
+  'Soccer -> neuromuscular control, adductor strength, eccentric hamstrings (ACL protection); ' +
+  'Baseball -> 90/90 hip mobility flows to protect developing shoulder/elbow from torque; ' +
+  'Football -> Fundamental Motor Skills, athletic stance, and deceleration mechanics before high-speed cutting. ' +
+  '- Energy Systems: Prioritize neural plasticity, movement quality, and aerobic ' +
+  'base over extreme glycolytic conditioning. ' +
+  'CRITICAL OUTPUT REQUIREMENT: Respond ONLY with a valid JSON array. ' +
+  'No preamble, no commentary, no Markdown code fences. The response must ' +
+  'parse cleanly with JSON.parse(). ' +
+  'Schema (matches the BBF active clients schema): an array of exactly 7 day objects. ' +
+  'Each day object has: ' +
+  '{"day": "Monday"|"Tuesday"|"Wednesday"|"Thursday"|"Friday"|"Saturday"|"Sunday", ' +
+  '"focus": short descriptor like "Sport Prehab + Aerobic Base" or "Movement Quality" or "Rest", ' +
+  '"exercises": array of exercise objects, ' +
+  '"isRest": optional boolean, true for rest days (with empty exercises array), ' +
+  '"restNote": optional string with recovery guidance for rest days}. ' +
+  'Each exercise object has: ' +
+  '{"name": e.g. "Glute Bridges" or "Med Ball Slams", ' +
+  '"equipment": e.g. "Bodyweight", "Med Ball", or "Light Band" (NEVER heavy barbell for ages 8-13), ' +
+  '"sets": integer, ' +
+  '"reps": string like "10-12" or "8 per leg", ' +
+  '"notes": short clinical cue in deadpan, authoritative language}. ' +
+  'Rules: ' +
+  '1. Output exactly 7 day objects. MANDATE 2 full rest days with empty exercises arrays and a restNote. ' +
+  '2. The first 2-3 exercises of each non-rest day must be sport-specific prehab. ' +
+  '3. For ages 8-13: equipment field must ONLY be "Bodyweight", "Med Ball", or "Light Band". ' +
+  '4. Estimated weekly working time across all sessions must not exceed the chronological age of the athlete in hours.';
+
+const SYSTEM_PROMPT_YOUTH_NUTRITION =
+  'You are the Director of Performance Nutrition for Build Believe Fit (BBF). ' +
+  'Generate a 7-day fueling matrix for a Youth Athlete. ' +
+  'You MUST adhere to this strict clinical liability shield: ' +
+  'HARD EXCLUSIONS (DO NOT DEVIATE): You must categorically refuse to recommend ' +
+  'sports supplements or ergogenic aids of any kind, severe caloric deficits or ' +
+  'cutting or shredding protocols, high-fat or ketogenic diets (>46% fat), ' +
+  'intermittent fasting, or dehydration protocols. ' +
+  'Caloric Baselines: Prevent Low Energy Availability (LEA). Account for both ' +
+  'performance and the massive biological growth demands of adolescence. Use the ' +
+  'Cunningham Equation (RMR = 500 + 22 * LBM in kg) as the baseline if LBM is known; ' +
+  'otherwise use age- and weight-appropriate pediatric estimates. When uncertain, err high — NEVER low. ' +
+  'Single-Game Fueling (Football, Soccer, Basketball): ' +
+  'Pre-game (1-4 hrs before): 1-4 g/kg carbs + 5-10g protein, low fat and low fiber. ' +
+  'Intra-game (>60 mins of play): 30-60g carbs per hour. ' +
+  'Tournament Fueling (Volleyball, Baseball, multi-bout days): ' +
+  'Prioritize immediate glycogen restoration between bouts when recovery window is <24hr. ' +
+  '1.0-1.2 g/kg/hr carbs + 20g protein within 30-60 mins post-game. ' +
+  'Hydration: 500-600 mL water or sports drink 2-3 hours pre-event; ' +
+  '200-300 mL 10-20 mins pre-event; 200-300 mL every 10-20 mins during play. ' +
+  'CRITICAL OUTPUT REQUIREMENT: Respond ONLY with a valid JSON object. ' +
+  'No preamble, no commentary, no Markdown code fences. The response must ' +
+  'parse cleanly with JSON.parse(). ' +
+  'Schema (matches the BBF active clients schema): ' +
+  '{"name": athlete first name (string), ' +
+  '"cal": calorie target string like "~3,200 cal/day", ' +
+  '"goal": one-line tagline like "Growth & Performance" or "Tournament Recovery", ' +
+  '"days": array of exactly 7 day objects}. ' +
+  'Each day object has: ' +
+  '{"day": "Day 1" through "Day 7", ' +
+  '"meals": array of meal objects}. ' +
+  'Each meal object has: ' +
+  '{"m": meal label like "Breakfast", "Pre-Practice Snack", "Lunch", "Post-Game Recovery", "Dinner", "Snack 2", ' +
+  '"i": food description with macros in parentheses, e.g. "1 cup oatmeal + banana + 2 tbsp peanut butter (~420 cal/15g P)"}. ' +
+  'Rules: ' +
+  '1. Output exactly 7 day objects. ' +
+  '2. Schedule meals across the full waking day. NO fasting windows. ' +
+  '3. Use whole foods: lean proteins, whole grains, fruits, vegetables, dairy as appropriate. ' +
+  '4. Caloric target must support growth and sport demands.';
+
 // JSON validation helper — strips optional Markdown code fences and
 // confirms the output parses. Returns the cleaned JSON string on success,
 // or null if the response can't be parsed (caller logs and falls back).
@@ -133,6 +220,7 @@ function normalizeClientPayload(body) {
     height_weight: String(b.height_weight || ''),
     clinical_history: String(b.clinical_history || ''),
     training_protocol: String(b.training_protocol || ''),
+    tier: String(b.tier || ''),
     liability_cleared: b.liability_cleared !== undefined ? Boolean(b.liability_cleared) : true,
   };
 }
@@ -210,6 +298,55 @@ async function generateFuelMatrix(payload) {
     .join('\n');
 }
 
+// Phase B2: Youth Athlete generation pair. Same return shape as the adult
+// versions (raw text from Anthropic; JSON-validated upstream). Routed to
+// only when payload.tier === 'youth_athlete' in /process Phase 2.
+async function generateYouthAthleteBlueprint(payload) {
+  const userMessage = [
+    `Athlete Age: ${payload.age || 'N/A'}`,
+    `Sport / Training Protocol: ${payload.training_protocol || 'General Athletic Development'}`,
+    `Clinical History: ${payload.clinical_history || 'None reported'}`,
+    'Tier: youth_athlete',
+    '',
+    'Generate the youth athlete weekly training blueprint now (Week 1 of a 4-week progressive macrocycle).',
+  ].join('\n');
+
+  const response = await anthropic.messages.create({
+    model: ANTHROPIC_MODEL,
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT_YOUTH_HYPERTROPHY,
+    messages: [{ role: 'user', content: userMessage }],
+  });
+
+  return response.content
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text)
+    .join('\n');
+}
+
+async function generateYouthFuelMatrix(payload) {
+  const userMessage = [
+    `Athlete Age: ${payload.age || 'N/A'}`,
+    `Height & Weight: ${payload.height_weight || 'N/A'}`,
+    `Sport / Training Protocol: ${payload.training_protocol || 'General Athletic Development'}`,
+    'Tier: youth_athlete',
+    '',
+    'Generate the youth athlete fueling matrix now.',
+  ].join('\n');
+
+  const response = await anthropic.messages.create({
+    model: ANTHROPIC_MODEL,
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT_YOUTH_NUTRITION,
+    messages: [{ role: 'user', content: userMessage }],
+  });
+
+  return response.content
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text)
+    .join('\n');
+}
+
 // ───────────────────────────────────────────────────────────────
 // Express server
 // ───────────────────────────────────────────────────────────────
@@ -265,13 +402,17 @@ app.post('/process', async (req, res) => {
     return res.status(500).json({ ok: false, phase: 'supabase', error: err.message });
   }
 
-  // Phase 2 — parallel Anthropic generation
+  // Phase 2 — parallel Anthropic generation (tier-aware fork)
   let hypertrophyMarkdown = '';
   let fuelMarkdown = '';
   try {
+    const isYouth = payload.tier === 'youth_athlete';
+    console.log(`[BBF VAULT] Tier: ${payload.tier || '(none)'} → ${isYouth ? 'YOUTH' : 'ADULT'} prompts`);
+    const blueprintFn = isYouth ? generateYouthAthleteBlueprint : generateHypertrophyBlueprint;
+    const fuelFn      = isYouth ? generateYouthFuelMatrix      : generateFuelMatrix;
     [hypertrophyMarkdown, fuelMarkdown] = await Promise.all([
-      generateHypertrophyBlueprint(payload),
-      generateFuelMatrix(payload),
+      blueprintFn(payload),
+      fuelFn(payload),
     ]);
     console.log('[BBF VAULT] Phase 2 complete — Anthropic generation finished.');
 
