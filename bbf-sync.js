@@ -783,6 +783,165 @@ var BBF_SYNC = (function() {
     });
   }
 
+  // ─── PHASE 8: GLOBAL ROSTER TELEMETRY (Panopticon adapter) ───
+  // Admin-only command-center fetch. Pulls the entire roster's
+  // 28-day macro logs + today's bouts + most-recent sport/position
+  // in a SINGLE round trip (4 parallel queries — constant count
+  // regardless of roster size, no N+1).
+  //
+  // Returns:
+  //   { roster: [
+  //       { athlete_id, slug, name, role,
+  //         sport, position, phase,         (or null if no progression yet)
+  //         dailyLoads:[28], bouts:[...] }
+  //     ],
+  //     meta: { source:'live', fetchedAt, athletes, totalLogs,
+  //             totalBouts, totalProgressions, windowDays } }
+  // Or null on hard failure.
+  //
+  // Caller (Panopticon UI) is expected to iterate roster through
+  // BBF_INTEL.runLoadAudit and classify status (red/yellow/green/dormant).
+  function fetchGlobalRosterTelemetry() {
+    console.log('[BBF-SYNC] Fetching global roster telemetry');
+
+    var DAY_MS  = 24 * 60 * 60 * 1000;
+    var WINDOW  = 28;
+    var todayMid = new Date();
+    todayMid.setUTCHours(0, 0, 0, 0);
+    var todayMs = todayMid.getTime();
+    var sinceISO    = new Date(todayMs - (WINDOW - 1) * DAY_MS).toISOString();
+    var todayISO    = todayMid.toISOString();
+    var tomorrowISO = new Date(todayMs + DAY_MS).toISOString();
+
+    // Q1: full roster (anon SELECT enabled by phase8_bbf_users_anon_select).
+    //     Filter to non-admin/trainer in JS — bbf_users is small and
+    //     keeping the SQL simple avoids PostgREST or-filter fragility.
+    var usersQ = '?select=id,uid,name,role&order=name.asc';
+
+    // Q2: 28-day macro logs across the entire roster.
+    var logsQ  = '?session_timestamp=gte.' + encodeURIComponent(sinceISO) +
+                 '&select=athlete_id,session_timestamp,load_au' +
+                 '&order=session_timestamp.asc';
+
+    // Q3: Today's bouts with parent log's athlete_id embedded — single
+    //     round trip via PostgREST embedded resource (no client-side
+    //     log_id IN list needed, all 4 queries fire in parallel).
+    var boutsQ = '?start_timestamp=gte.' + encodeURIComponent(todayISO) +
+                 '&start_timestamp=lt.'  + encodeURIComponent(tomorrowISO) +
+                 '&select=bout_type,exercise_name,start_timestamp,end_timestamp,' +
+                          'log:bbf_athlete_load_logs!inner(athlete_id)' +
+                 '&order=start_timestamp.asc';
+
+    // Q4: Most-recent progression row per athlete (for Sport/Position
+    //     display per directive). Newest-first; we keep the first
+    //     occurrence of each user_id.
+    var progQ  = '?select=user_id,sport,position,phase,protocol_completed,updated_at' +
+                 '&order=updated_at.desc' +
+                 '&limit=1000';
+
+    return Promise.all([
+      supa('GET', 'bbf_users',                  null, usersQ),
+      supa('GET', 'bbf_athlete_load_logs',      null, logsQ),
+      supa('GET', 'bbf_athlete_load_bouts',     null, boutsQ),
+      supa('GET', 'bbf_athlete_progression',    null, progQ)
+    ]).then(function(results) {
+      var users         = results[0] || [];
+      var logs          = results[1] || [];
+      var bouts         = results[2] || [];
+      var progressions  = results[3] || [];
+
+      if (!Array.isArray(users) || users.length === 0) {
+        console.warn('[BBF-SYNC] Global roster: no users returned (RLS blocked?)');
+        return {
+          roster: [],
+          meta: { source: 'live', fetchedAt: new Date().toISOString(), athletes: 0,
+                  totalLogs: 0, totalBouts: 0, totalProgressions: 0, windowDays: WINDOW }
+        };
+      }
+
+      // Filter to athletes (drop admin/trainer roles) and seed the
+      // per-athlete bucket with empty dailyLoads / bouts arrays.
+      var byAthlete = {};
+      users.forEach(function(u) {
+        if (!u || !u.id) return;
+        if (u.role === 'admin' || u.role === 'trainer') return;
+        var arr = new Array(WINDOW);
+        for (var i = 0; i < WINDOW; i++) arr[i] = 0;
+        byAthlete[u.id] = {
+          athlete_id: u.id,
+          slug:       u.uid || null,
+          name:       u.name || u.uid || 'Unknown',
+          role:       u.role || 'client',
+          sport:      null,
+          position:   null,
+          phase:      null,
+          dailyLoads: arr,
+          bouts:      []
+        };
+      });
+
+      // Bucket the macro logs into per-athlete dailyLoads (UTC-midnight aligned).
+      logs.forEach(function(row) {
+        var a = byAthlete[row.athlete_id];
+        if (!a) return; // log for an admin/trainer or unknown athlete
+        var t = Date.parse(row.session_timestamp);
+        if (isNaN(t)) return;
+        var d = new Date(t); d.setUTCHours(0, 0, 0, 0);
+        var daysAgo = Math.round((todayMs - d.getTime()) / DAY_MS);
+        if (daysAgo >= 0 && daysAgo < WINDOW) {
+          a.dailyLoads[(WINDOW - 1) - daysAgo] += (+row.load_au || 0);
+        }
+      });
+
+      // Group bouts via the embedded log.athlete_id.
+      bouts.forEach(function(b) {
+        var aid = b && b.log && b.log.athlete_id;
+        if (!aid) return;
+        var a = byAthlete[aid];
+        if (!a) return;
+        var startMs = Date.parse(b.start_timestamp);
+        var endMs   = Date.parse(b.end_timestamp);
+        var dur     = (!isNaN(startMs) && !isNaN(endMs)) ? Math.max(0, (endMs - startMs) / 1000) : 0;
+        a.bouts.push({
+          type:        b.bout_type,
+          start:       b.start_timestamp,
+          durationSec: dur,
+          label:       b.exercise_name || b.bout_type
+        });
+      });
+
+      // Most-recent progression wins per athlete (rows already DESC by updated_at).
+      progressions.forEach(function(p) {
+        var a = byAthlete[p.user_id];
+        if (!a || a.sport) return; // first-seen wins
+        a.sport    = p.sport    || null;
+        a.position = p.position || null;
+        a.phase    = p.phase    || null;
+      });
+
+      var roster = [];
+      for (var k in byAthlete) { if (byAthlete.hasOwnProperty(k)) roster.push(byAthlete[k]); }
+
+      var result = {
+        roster: roster,
+        meta: {
+          source:            'live',
+          fetchedAt:         new Date().toISOString(),
+          athletes:          roster.length,
+          totalLogs:         logs.length,
+          totalBouts:        bouts.length,
+          totalProgressions: progressions.length,
+          windowDays:        WINDOW
+        }
+      };
+      console.log('[BBF-SYNC] Global roster response:', result.meta);
+      return result;
+    }).catch(function(e) {
+      console.error('[BBF-SYNC] Global roster fetch failed:', e);
+      return null;
+    });
+  }
+
   // ─── TOGGLE: SOVEREIGN TRIAL ──────────────────────────────
   // Phase 8 — calls the SECURITY DEFINER RPC bbf_set_trial_status(p_uid, p_active).
   // RPC resolves slug -> uuid server-side, applies UPDATE, returns {ok, ...}.
@@ -2111,7 +2270,8 @@ var BBF_SYNC = (function() {
     pushAthleteProgression: pushAthleteProgression,
     fetchAthleteProgression: fetchAthleteProgression,
     fetchAthleteTelemetry:  fetchAthleteTelemetry,
-    pushAthleteTelemetry:   pushAthleteTelemetry
+    pushAthleteTelemetry:   pushAthleteTelemetry,
+    fetchGlobalRosterTelemetry: fetchGlobalRosterTelemetry
   };
 
   if (typeof module !== 'undefined' && module.exports) {

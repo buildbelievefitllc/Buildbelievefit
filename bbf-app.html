@@ -190,6 +190,53 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .pf-denied-ic{font-size:2.2rem;margin-bottom:.55rem;opacity:.85;filter:drop-shadow(0 0 12px rgba(239,68,68,.45))}
 .pf-denied-t{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1rem;letter-spacing:3.5px;text-transform:uppercase;color:#FFB4B4;margin-bottom:.45rem;font-weight:900}
 .pf-denied-s{font-size:.82rem;line-height:1.5;max-width:46ch;margin:0 auto;color:var(--mut)}
+/* ═ Phase 8 — Sovereign Panopticon (admin-only Command Center) ═ */
+.panopticon-banner{display:flex;align-items:center;gap:.5rem;padding:.65rem .85rem;margin:.85rem 0 .5rem;background:linear-gradient(90deg,rgba(0,229,255,.07),rgba(245,200,0,.06));border:1px solid rgba(0,229,255,.28);border-radius:10px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.74rem;letter-spacing:1.4px;text-transform:uppercase;color:#fff;font-weight:700}
+.panopticon-pulse{width:8px;height:8px;border-radius:50%;background:#00E5FF;box-shadow:0 0 8px rgba(0,229,255,.85),0 0 0 0 rgba(0,229,255,.45);animation:apIntelPulse 1.6s ease-out infinite;flex-shrink:0}
+.panopticon-sub{font-size:.82rem;line-height:1.5;color:var(--mut2,rgba(255,255,255,.6));margin:.45rem 0 .85rem}
+.panopticon-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.85rem;padding:.65rem .85rem;background:rgba(8,8,14,.55);border:1px solid rgba(255,255,255,.07);border-radius:10px;margin-bottom:.95rem;flex-wrap:wrap}
+.panopticon-summary{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;flex:1 1 auto;min-width:0}
+.panopticon-summary-total{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.92rem;letter-spacing:2.4px;text-transform:uppercase;color:#fff;font-weight:900;margin-right:.4rem}
+.panopticon-summary-empty{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.74rem;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:700}
+.panopticon-summary-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .55rem;border-radius:99px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.66rem;letter-spacing:1.2px;text-transform:uppercase;font-weight:800;border:1px solid currentColor}
+.panopticon-summary-pill[data-status="red"]{color:#FF7A7A;background:rgba(239,68,68,.1)}
+.panopticon-summary-pill[data-status="yellow"]{color:#F5CF60;background:rgba(245,200,0,.1)}
+.panopticon-summary-pill[data-status="green"]{color:#86EFAC;background:rgba(34,197,94,.1)}
+.panopticon-summary-pill[data-status="dormant"]{color:rgba(255,255,255,.55);background:rgba(255,255,255,.04)}
+.panopticon-refresh{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem .9rem;border-radius:8px;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.42);color:#00E5FF;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.7rem;letter-spacing:1.4px;text-transform:uppercase;font-weight:800;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+.panopticon-refresh:hover:not(:disabled){background:rgba(0,229,255,.16);border-color:rgba(0,229,255,.7)}
+.panopticon-refresh:disabled{opacity:.5;cursor:not-allowed}
+.panopticon-refresh svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.panopticon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem}
+.panopticon-empty{padding:1rem;text-align:center;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.85rem;letter-spacing:.4px;color:rgba(255,255,255,.5);background:rgba(8,8,14,.5);border:1px dashed rgba(255,255,255,.1);border-radius:10px;grid-column:1/-1}
+.panopticon-card{position:relative;padding:.95rem 1rem;border-radius:12px;background:linear-gradient(180deg,rgba(8,8,14,.78),rgba(14,8,28,.66));border:1px solid rgba(255,255,255,.08);overflow:hidden;transition:transform .15s ease,box-shadow .15s ease}
+.panopticon-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,currentColor 50%,transparent);opacity:.5}
+.panopticon-card[data-status="red"]{border-color:rgba(239,68,68,.5);background:linear-gradient(180deg,rgba(60,8,8,.6),rgba(28,8,14,.7));color:#FF7A7A}
+.panopticon-card[data-status="yellow"]{border-color:rgba(245,200,0,.45);background:linear-gradient(180deg,rgba(40,28,8,.55),rgba(20,12,8,.7));color:#F5CF60}
+.panopticon-card[data-status="green"]{border-color:rgba(34,197,94,.32);color:#86EFAC}
+.panopticon-card[data-status="dormant"]{border-color:rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(14,14,18,.7),rgba(8,8,14,.75));color:rgba(255,255,255,.4)}
+.panopticon-card:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.panopticon-card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.55rem}
+.panopticon-pill{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.66rem;letter-spacing:1.6px;text-transform:uppercase;font-weight:900;padding:.2rem .5rem;border-radius:6px;line-height:1.2;display:inline-block;color:currentColor;background:rgba(255,255,255,.04);border:1px solid currentColor;white-space:nowrap}
+.panopticon-acwr{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
+.panopticon-acwr-num{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1.65rem;font-weight:900;letter-spacing:1.2px;color:#fff;font-variant-numeric:tabular-nums}
+.panopticon-card[data-status="red"] .panopticon-acwr-num{color:#FF7A7A}
+.panopticon-card[data-status="yellow"] .panopticon-acwr-num{color:#F5CF60}
+.panopticon-card[data-status="green"] .panopticon-acwr-num{color:#86EFAC}
+.panopticon-card[data-status="dormant"] .panopticon-acwr-num{color:rgba(255,255,255,.45)}
+.panopticon-acwr-lbl{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.55rem;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:700;margin-top:.1rem}
+.panopticon-card-name{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1.05rem;letter-spacing:1.2px;color:#fff;font-weight:900;margin-bottom:.18rem;text-transform:uppercase}
+.panopticon-card-meta{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.72rem;letter-spacing:.6px;color:rgba(255,255,255,.55);margin-bottom:.65rem}
+.panopticon-alerts{display:flex;flex-direction:column;gap:.4rem;margin-top:.45rem}
+.panopticon-alert{padding:.5rem .65rem;border-radius:7px;display:flex;flex-direction:column;gap:.18rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.panopticon-alert[data-severity="high"]{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.32)}
+.panopticon-alert[data-severity="medium"]{background:rgba(245,200,0,.08);border-color:rgba(245,200,0,.28)}
+.panopticon-alert-rule{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.7rem;letter-spacing:1.4px;text-transform:uppercase;font-weight:900;color:#fff}
+.panopticon-alert[data-severity="high"] .panopticon-alert-rule{color:#FFB4B4}
+.panopticon-alert[data-severity="medium"] .panopticon-alert-rule{color:#F5CF60}
+.panopticon-alert-reason{font-size:.75rem;line-height:1.45;color:rgba(255,255,255,.82)}
+.panopticon-empty-state{padding:.42rem .55rem;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.7rem;letter-spacing:.6px;color:rgba(255,255,255,.4);text-align:center;background:rgba(255,255,255,.02);border-radius:6px;margin-top:.45rem}
+@media(max-width:520px){.panopticon-grid{grid-template-columns:1fr}.panopticon-toolbar{flex-direction:column;align-items:stretch}.panopticon-summary{justify-content:space-between}.panopticon-refresh{justify-content:center}}
 /* ═ Phase 3 — Sovereign Clinical Intelligence cards ═ */
 .ap-kfh-intel{display:flex;flex-direction:column;gap:.85rem;margin-top:.95rem}
 .ap-intel-card{background:linear-gradient(180deg,rgba(8,8,14,.72),rgba(14,8,28,.62));border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.95rem 1rem;position:relative;overflow:hidden}
@@ -6266,6 +6313,43 @@ window.onload=function(){
         <div class="pf-denied-s">This section is reserved for the Sovereign administrative tier. Contact the head coach if you believe this is in error.</div>
       </div>
     </div>
+
+    <!-- ═════ PHASE 8 — SOVEREIGN PANOPTICON · ADMIN-ONLY COMMAND CENTER ═════
+         Strict RBAC: tab is admin-only. Nav button (#panopticon-nav-btn)
+         is hidden for non-admins so they cannot reach it via the bottom
+         nav. The portal IIFE removes the entire admin-view DOM subtree
+         on init for non-admins; if a non-admin lands here via direct
+         hash/URL, only the Access Denied panel is rendered.
+    ═════════════════════════════════════════════════════════════════════ -->
+    <div class="tp" id="tp-panopticon" role="tabpanel" aria-labelledby="panopticon-title">
+      <div id="panopticon-admin-view">
+        <div class="sh"><span class="stt" id="panopticon-title">Sovereign Panopticon</span></div>
+        <div class="panopticon-banner" role="status">
+          <span class="panopticon-pulse" aria-hidden="true"></span>
+          <span>Live Roster Telemetry &middot; Auto-sorted by Risk Severity</span>
+        </div>
+        <p class="panopticon-sub">Command-center view of the entire athlete roster. The Intelligence Engine processes each athlete's last 28 days of training load + today's bouts and surfaces the highest-risk states first.</p>
+
+        <div class="panopticon-toolbar">
+          <div class="panopticon-summary" id="panopticon-summary" aria-live="polite">
+            <span class="panopticon-summary-empty">Loading roster&hellip;</span>
+          </div>
+          <button class="panopticon-refresh" type="button" id="panopticon-refresh-btn" onclick="refreshPanopticon()" aria-label="Refresh roster">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 4 21 12 13 12"/></svg>
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <div class="panopticon-grid" id="panopticon-grid" aria-live="polite"></div>
+      </div>
+
+      <!-- Defensive Access Denied (non-admin direct-link/hash entry) -->
+      <div id="panopticon-denied-view" class="pf-denied" hidden role="alert">
+        <div class="pf-denied-ic" aria-hidden="true">&#x1F6AB;</div>
+        <div class="pf-denied-t">Access Denied</div>
+        <div class="pf-denied-s">The Sovereign Panopticon is reserved for the administrative tier. Contact the head coach if you believe this is in error.</div>
+      </div>
+    </div>
   </div>
   <!-- NAV -->
   <div class="bn">
@@ -6276,6 +6360,7 @@ window.onload=function(){
     <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span data-lang-key="app-nav-prehab">Prehab</span></button>
     <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-lang-key="app-nav-profile">Profile</span></button>
     <button class="nv pf-admin-nav" data-tab="recalibrate" id="pf-admin-nav-btn" hidden aria-label="Sports Admin Console"><svg viewBox="0 0 24 24"><path d="M6 9V6a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3"/><path d="M5 9h14"/><path d="M8 9v3a4 4 0 0 0 8 0V9"/><path d="M10 17v4"/><path d="M14 17v4"/><path d="M9 21h6"/></svg><span>Sports Admin</span></button>
+    <button class="nv pf-admin-nav" data-tab="panopticon" id="panopticon-nav-btn" hidden aria-label="Sovereign Panopticon · Command Center"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span>Command</span></button>
   </div>
 
   <!-- ═══ BIOMETRIC YIELD REPORT — Sovereign Clinical Synthesis ═══ -->
@@ -11681,6 +11766,227 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }).observe(pane, { attributes:true, attributeFilter:['class'] });
     }
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // PHASE 8 — SOVEREIGN PANOPTICON · ADMIN-ONLY COMMAND CENTER
+  // Strict RBAC mirrors the Sports Admin pattern: nav button hidden
+  // for non-admins, admin-view subtree hidden + Access Denied panel
+  // shown for direct-hash entry, RBAC re-evaluated on every tab
+  // activation so a mid-session VC swap flips correctly.
+  // ═══════════════════════════════════════════════════════════════
+  (function panopticonPortal(){
+    function _bbfIsAdmin(){
+      try {
+        var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+        if (!uid) return false;
+        if (uid === 'akeem') return true;
+        if (typeof GD === 'function') {
+          var d = GD();
+          var u = d && d.u && d.u[uid];
+          if (u && (u.role === 'trainer' || u.role === 'admin')) return true;
+        }
+      } catch(_){}
+      return false;
+    }
+
+    var pAdmin   = document.getElementById('panopticon-admin-view');
+    var pDenied  = document.getElementById('panopticon-denied-view');
+    var pNavBtn  = document.getElementById('panopticon-nav-btn');
+    var pSummary = document.getElementById('panopticon-summary');
+    var pGrid    = document.getElementById('panopticon-grid');
+    var pRefresh = document.getElementById('panopticon-refresh-btn');
+    if (!pAdmin || !pGrid) return;
+
+    function _esc(s){
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    // Risk classification (CEO Phase 8 sign-off):
+    //   RED     = active violation (fatigueState OR micro-recovery violations)
+    //   YELLOW  = 1.30 ≤ ACWR < 1.50 (Gabbett caution zone)
+    //   GREEN   = nominal with active data
+    //   DORMANT = zero sessions in 28-day window (gray, distinct from green)
+    function _classifyRisk(report, totalLoad){
+      if (!totalLoad || totalLoad === 0) return 'dormant';
+      if (!report) return 'dormant';
+      var fatigue    = !!(report.summary && report.summary.fatigueState);
+      var violations = !!(report.microRecovery && report.microRecovery.violations.length > 0);
+      if (fatigue || violations) return 'red';
+      var ratio = report.acwr.ratio;
+      if (ratio !== null && ratio >= 1.30 && ratio < 1.50) return 'yellow';
+      return 'green';
+    }
+    var _statusOrder = { red: 0, yellow: 1, green: 2, dormant: 3 };
+    var _statusLabel = {
+      red:     '⚠ Active Violation',
+      yellow:  '▲ Caution Zone',
+      green:   '✓ Nominal',
+      dormant: '◌ No Telemetry'
+    };
+
+    function _sportLabel(sport, position){
+      var matrix = (typeof window !== 'undefined' && window.ATHLETE_MATRIX) || null;
+      if (!sport) return null;
+      if (!matrix || !matrix[sport]) return sport;
+      var s = matrix[sport];
+      var groupLabel = (position && s.groups && s.groups[position]) ? s.groups[position].label : null;
+      return groupLabel ? (s.label + ' · ' + groupLabel) : s.label;
+    }
+
+    // Pure: takes the global roster payload, returns an array of
+    // { athlete, report, status, totalLoad } sorted RED→YELLOW→GREEN→DORMANT,
+    // tied athletes within a bucket sorted by ACWR descending (worst first).
+    function processGlobalRoster(data){
+      var roster = (data && data.roster) || [];
+      return roster.map(function(a){
+        var totalLoad = 0;
+        for (var i = 0; i < a.dailyLoads.length; i++) totalLoad += (+a.dailyLoads[i] || 0);
+        var report = (typeof BBF_INTEL !== 'undefined' && BBF_INTEL.runLoadAudit)
+          ? BBF_INTEL.runLoadAudit({ dailyLoads: a.dailyLoads, bouts: a.bouts })
+          : null;
+        return {
+          athlete:   a,
+          report:    report,
+          status:    _classifyRisk(report, totalLoad),
+          totalLoad: totalLoad
+        };
+      }).sort(function(x, y){
+        var d = (_statusOrder[x.status] || 9) - (_statusOrder[y.status] || 9);
+        if (d !== 0) return d;
+        var rx = x.report && x.report.acwr.ratio;
+        var ry = y.report && y.report.acwr.ratio;
+        if (rx == null && ry == null) return (x.athlete.name || '').localeCompare(y.athlete.name || '');
+        if (rx == null) return 1;
+        if (ry == null) return -1;
+        return ry - rx;
+      });
+    }
+
+    function _summaryHTML(processed){
+      var counts = { red: 0, yellow: 0, green: 0, dormant: 0 };
+      processed.forEach(function(p){ counts[p.status] = (counts[p.status] || 0) + 1; });
+      var total = processed.length;
+      return '<span class="panopticon-summary-total">' + total + ' ' + (total === 1 ? 'athlete' : 'athletes') + '</span>' +
+             '<span class="panopticon-summary-pill" data-status="red">'     + counts.red     + ' RED</span>' +
+             '<span class="panopticon-summary-pill" data-status="yellow">'  + counts.yellow  + ' YELLOW</span>' +
+             '<span class="panopticon-summary-pill" data-status="green">'   + counts.green   + ' GREEN</span>' +
+             '<span class="panopticon-summary-pill" data-status="dormant">' + counts.dormant + ' DORMANT</span>';
+    }
+
+    function _cardHTML(p){
+      var a = p.athlete;
+      var report = p.report;
+      var sportLabel = _sportLabel(a.sport, a.position) || (a.role || 'No profile');
+      var ratioStr = (report && report.acwr.ratio !== null) ? report.acwr.ratio.toFixed(2) : '—';
+      var statusLbl = _statusLabel[p.status] || p.status.toUpperCase();
+
+      // Verbatim guardrail text per directive: render the engine's
+      // alert.rule and alert.reason exactly as the engine produced them.
+      var alertsHTML = '';
+      if (p.status === 'red' && report && report.alerts.length > 0) {
+        alertsHTML += '<div class="panopticon-alerts">';
+        for (var i = 0; i < report.alerts.length; i++) {
+          var al = report.alerts[i];
+          alertsHTML += '<div class="panopticon-alert" data-severity="' + _esc(al.severity) + '">' +
+                          '<span class="panopticon-alert-rule">' + _esc(al.rule) + '</span>' +
+                          '<span class="panopticon-alert-reason">' + _esc(al.reason) + '</span>' +
+                        '</div>';
+        }
+        alertsHTML += '</div>';
+      } else if (p.status === 'yellow' && report) {
+        alertsHTML = '<div class="panopticon-alert" data-severity="medium">' +
+                       '<span class="panopticon-alert-rule">Approaching ACWR Threshold</span>' +
+                       '<span class="panopticon-alert-reason">ACWR ' + _esc(ratioStr) + ' is in the 1.30–1.50 caution zone</span>' +
+                     '</div>';
+      } else if (p.status === 'dormant') {
+        alertsHTML = '<div class="panopticon-empty-state">No sessions logged in 28-day window</div>';
+      } else {
+        alertsHTML = '<div class="panopticon-empty-state">All systems nominal</div>';
+      }
+
+      return '<article class="panopticon-card" data-status="' + _esc(p.status) + '">' +
+               '<div class="panopticon-card-h">' +
+                 '<span class="panopticon-pill" data-status="' + _esc(p.status) + '">' + _esc(statusLbl) + '</span>' +
+                 '<div class="panopticon-acwr">' +
+                   '<span class="panopticon-acwr-num">' + _esc(ratioStr) + '</span>' +
+                   '<span class="panopticon-acwr-lbl">ACWR</span>' +
+                 '</div>' +
+               '</div>' +
+               '<div class="panopticon-card-name">' + _esc(a.name || a.slug || 'Unknown') + '</div>' +
+               '<div class="panopticon-card-meta">' + _esc(sportLabel) + '</div>' +
+               alertsHTML +
+             '</article>';
+    }
+
+    function renderPanopticonGrid(data){
+      if (!pGrid) return;
+      var processed = processGlobalRoster(data);
+      if (pSummary) pSummary.innerHTML = _summaryHTML(processed);
+      if (processed.length === 0) {
+        pGrid.innerHTML = '<div class="panopticon-empty">No athletes in the roster yet.</div>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < processed.length; i++) html += _cardHTML(processed[i]);
+      pGrid.innerHTML = html;
+    }
+
+    function _setLoading(msg){
+      if (pSummary) pSummary.innerHTML = '<span class="panopticon-summary-empty">' + _esc(msg || 'Loading roster…') + '</span>';
+      if (pGrid)    pGrid.innerHTML = '<div class="panopticon-empty">' + _esc(msg || 'Fetching live telemetry…') + '</div>';
+    }
+
+    function loadPanopticon(){
+      if (!_bbfIsAdmin()) return; // defensive: never fetch for non-admin
+      if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchGlobalRosterTelemetry) {
+        _setLoading('Sync layer not loaded — reload to retry.');
+        return;
+      }
+      _setLoading('Fetching live roster telemetry…');
+      if (pRefresh) pRefresh.disabled = true;
+      console.log('[BBF-PANOPTICON] Loading roster…');
+      BBF_SYNC.fetchGlobalRosterTelemetry().then(function(data){
+        if (pRefresh) pRefresh.disabled = false;
+        if (!data) {
+          _setLoading('Roster fetch failed — see console.');
+          return;
+        }
+        console.log('[BBF-PANOPTICON] Roster fetched:', data.meta);
+        renderPanopticonGrid(data);
+      });
+    }
+
+    // RBAC resolver — runs on init and on every tp-panopticon activation
+    // so a mid-session VC swap flips the view correctly without reload.
+    function resolvePanopticonRBAC(){
+      var isAdmin = _bbfIsAdmin();
+      pAdmin.hidden = !isAdmin;
+      if (pDenied) pDenied.hidden = isAdmin;
+      if (pNavBtn) pNavBtn.hidden = !isAdmin;
+      if (isAdmin) loadPanopticon();
+    }
+    resolvePanopticonRBAC();
+
+    var pane = document.getElementById('tp-panopticon');
+    if (pane && 'MutationObserver' in window) {
+      new MutationObserver(function(muts){
+        for (var i = 0; i < muts.length; i++) {
+          if (muts[i].attributeName === 'class' && pane.classList.contains('on')) {
+            resolvePanopticonRBAC();
+            break;
+          }
+        }
+      }).observe(pane, { attributes:true, attributeFilter:['class'] });
+    }
+
+    // Expose refresh handler for the inline onclick attribute
+    window.refreshPanopticon = function(){
+      if (!_bbfIsAdmin()) return;
+      loadPanopticon();
+    };
   })();
 
   // Quick actions
