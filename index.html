@@ -2173,6 +2173,23 @@ body.bbf-kairos .hero-badge {
         <div class="sh-s" data-lang-key="path-s4-s">Almost there. This helps Akeem prepare before reaching out.</div>
         <div class="ff"><label>Program Interest</label><select id="f-prog" name="program"><option value="foundation">Foundation &mdash; Getting Started</option><option value="elite">Elite Transformation &mdash; Full Commitment</option><option value="remote">Remote Coaching &mdash; Anywhere</option></select></div>
         <div class="ff"><label>Health Notes &amp; Injuries</label><textarea id="f-health" name="health_notes" placeholder="Any injuries, limitations, or health conditions we should know about?"></textarea></div>
+        <div class="ff"><label>Dietary Profile <span style="color:#ef4444">*</span></label>
+          <select id="f-diet" name="dietary_profile">
+            <option value="Omnivore" selected>Omnivore</option>
+            <option value="Vegetarian">Vegetarian</option>
+            <option value="Vegan">Vegan</option>
+          </select>
+        </div>
+        <div class="ff"><label>Allergies / Restrictions <span style="color:#ef4444">*</span> <span style="font-weight:400;color:rgba(255,255,255,.45);font-size:.78rem">(select all that apply, or "None")</span></label>
+          <div class="chips" id="ac">
+            <button type="button" class="chip" data-v="Gluten">Gluten-Free</button>
+            <button type="button" class="chip" data-v="Dairy">Dairy-Free</button>
+            <button type="button" class="chip" data-v="Nut">Nut-Free</button>
+            <button type="button" class="chip" data-v="Soy">Soy-Free</button>
+            <button type="button" class="chip" data-v="Egg">Egg-Free</button>
+            <button type="button" class="chip" data-v="">None</button>
+          </div>
+        </div>
         <div class="ff"><label>How did you hear about us?</label><select id="f-ref" name="referral"><option value="">Select...</option><option>Instagram</option><option>Referral from a friend</option><option>QR Code / Business Card</option><option>Google Search</option><option>TikTok</option><option>Other</option></select></div>
         <div class="fnav" style="flex-direction:column;gap:.8rem">
           <button class="btn-sub" id="sbtn" onclick="doSubmit()" data-lang-key="path-submit">Calculate My Path &amp; Submit &#x2192;</button>
@@ -2384,6 +2401,26 @@ function setupChips(id){
   });
 }
 setupChips('gc');setupChips('ec');setupChips('sc');
+// Phase 14 — Allergens chip group is multi-select (Gluten/Dairy/Nut/
+// Soy/Egg can co-occur). The "None" chip is mutually exclusive with
+// every other chip in the group: picking it clears the others, and
+// picking any other clears None.
+(function setupAllergenChips(){
+  var c=document.getElementById('ac');if(!c)return;
+  c.querySelectorAll('.chip').forEach(function(b){
+    b.onclick=function(){
+      var isNone=(b.dataset.v==='');
+      if(isNone){
+        c.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on');});
+        b.classList.add('on');
+      }else{
+        var noneBtn=c.querySelector('.chip[data-v=""]');
+        if(noneBtn)noneBtn.classList.remove('on');
+        b.classList.toggle('on');
+      }
+    };
+  });
+})();
 document.querySelectorAll('#grow .goal-b').forEach(function(b){
   b.onclick=function(){document.querySelectorAll('#grow .goal-b').forEach(function(x){x.classList.remove('on');});b.classList.add('on');};
 });
@@ -2585,6 +2622,21 @@ function doSubmit(){
   var tier=(document.getElementById('f-tier')||{}).value||'';
   var hlth=document.getElementById('f-health').value.trim();
   var ref=document.getElementById('f-ref').value;
+  // Phase 14 — dietary intake (required for the nutrition liability
+  // shield). Dietary Profile defaults to Omnivore so it's always valid.
+  // Allergens require an affirmative pick (any combo, or "None").
+  var dietEl=document.getElementById('f-diet');
+  var diet=dietEl?(dietEl.value||'Omnivore'):'Omnivore';
+  var allergenChips=document.querySelectorAll('#ac .chip.on');
+  var allergens=[];var hasNonePick=false;
+  allergenChips.forEach(function(c){
+    if(c.dataset.v==='')hasNonePick=true;
+    else allergens.push(c.dataset.v);
+  });
+  if(!hasNonePick&&allergens.length===0){
+    flash('Please pick your dietary restrictions (or select "None").','err');
+    return;
+  }
   var gc=document.querySelector('#gc .chip.on');
   var ec=document.querySelector('#ec .chip.on');
   var sc=document.querySelector('#sc .chip.on');
@@ -2597,7 +2649,7 @@ function doSubmit(){
   var tgt=base+adj;
   var mac=tgt>0?calcMacros(tgt,wt,adj):{p:0,c:0,f:0};
   btn.textContent='Calculating & Sending...';btn.disabled=true;
-  try{localStorage.setItem('bbf_pathfinder',JSON.stringify({email:em,name:fn+' '+ln,goal:goal,weight:wt,schedule:sch,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,program:prog,tier:tier,ts:Date.now()}));}catch(e){}
+  try{localStorage.setItem('bbf_pathfinder',JSON.stringify({email:em,name:fn+' '+ln,goal:goal,weight:wt,schedule:sch,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,program:prog,tier:tier,dietary_profile:diet,allergens:allergens,ts:Date.now()}));}catch(e){}
   try {
     fetch('https://hooks.zapier.com/hooks/catch/27190846/u7l7ixc/', {
       method:'POST',
@@ -2606,6 +2658,7 @@ function doSubmit(){
         fitness_goal:goal, schedule:sch, program:prog, tier:tier,
         tdee_target:tgt, macro_p:mac.p, macro_c:mac.c, macro_f:mac.f,
         weight:wt, language_preference:localStorage.getItem('bbf_lang')||'en',
+        dietary_profile:diet, allergens:allergens,
         source:'BBF Pathfinder Form', timestamp:new Date().toISOString()
       })
     }).catch(function(){});
@@ -2642,6 +2695,11 @@ function doSubmit(){
         macro_p: mac.p,
         macro_c: mac.c,
         macro_f: mac.f,
+        // Phase 14 — dietary liability shield. Sent for every tier so
+        // adult/youth nutrition prompts can also honor the user's
+        // dietary profile + allergens if extended later.
+        dietary_profile: diet,
+        allergens: allergens,
         liability_cleared: true
       })
     }).catch(function(){});
@@ -2649,7 +2707,7 @@ function doSubmit(){
   fetch('https://formspree.io/f/mwvwjokw',{
     method:'POST',
     headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body:JSON.stringify({_subject:'New BBF Pathfinder Lead',first_name:fn,last_name:ln,full_name:fn+' '+ln,email:em,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,tier:tier,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,language_preference:localStorage.getItem('bbf_lang')||'en',source:'BBF Pathfinder Form',timestamp:new Date().toISOString()})
+    body:JSON.stringify({_subject:'New BBF Pathfinder Lead',first_name:fn,last_name:ln,full_name:fn+' '+ln,email:em,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,tier:tier,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,dietary_profile:diet,allergens:allergens,language_preference:localStorage.getItem('bbf_lang')||'en',source:'BBF Pathfinder Form',timestamp:new Date().toISOString()})
   }).then(function(r){
     if(!r.ok)throw new Error('formspree '+r.status);
     btn.textContent='Calculate My Path & Submit \u2192';btn.disabled=false;
