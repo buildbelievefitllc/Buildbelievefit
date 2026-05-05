@@ -1,9 +1,9 @@
 # Claude Session Handoff — Build Believe Fit
 
-**Last updated:** 2026-05-01 (post Phase 10 — UI Pruning shipped, six phases past the prior bridge)
+**Last updated:** 2026-05-05 (post Pricing realignment + Youth Athlete tier launch — Phases A + B2 + B3 shipped; Phase 14 Nutrition Tier System queued)
 **Project:** Build Believe Fit (BBF) — PIN-auth fitness coaching app + Pathfinder pipeline + Vapi outbound voice
 **Founder:** Akeem Brown
-**Phase:** 10 (Vapi 1–5 verified live; Form Audit Data Routing live; Sentinel UI binding live; admin bypass + live trial toggles live; admin dashboard stats live; somatic readiness tiers live; UI pruning shipped)
+**Phase:** Pricing/Youth Athlete launch shipped (Phases A + B2 + B3); Phase 14 Nutrition Tier System queued. Prior live state: Phase 10 UI pruning + Phases 6-9b (admin/audit/sentinel/somatic) + Vapi 1-5 all in production.
 
 This doc orients a fresh Claude session. Read it first, then run the checklist in **§4 Immediate Claude tasks** before touching anything else.
 
@@ -75,6 +75,12 @@ Pathfinder questionnaire → Stripe checkout → Render `/provision` (creates `b
 - "Upcoming Event Date" settings row deleted from Profile. `FUELING_ENGINE.renderSettingsControl()` function + 3 call sites + export removed. `readEventDate / writeEventDate / auditEventPrep / renderDashboardBlock` retained as infrastructure for the dashboard bioenergetic block.
 - Free Log (`tp-log`) cleaned: removed Weight + Body Fat row (body comp belongs in Profile → Body); removed Rest from Session Type chips; added subtitle kicker; added REFLECTION divider between objective and subjective fields; tightened title to Bebas Neue 1.4rem 4px-spacing. SAVELOG payload hardened to drop `wt`/`bf` (would've null-ref'd on the removed inputs).
 
+**Pricing realignment + Youth Athlete tier (Phases A + B2 + B3) — LIVE (2026-05-05):**
+- **Phase A — pricing repriced (PR #94).** Storefront `index.html` swap: Gateway $147→$67, Architect $497→$247, Sovereign $1,500→$497. Updated JSON-LD `priceRange`, founder-quote copy, 3 tier cards/comments, and `BBF_STRIPE_BY_TIER` map (3 new payment URLs). Backend untouched — pipeline is tier-agnostic; tier flows through as a string label only. Busy Parent guide standalone $147 intentionally left (separate SKU).
+- **Phase B2 — youth backend fork (PR #95).** `index.js` `/process` Phase 2 now forks on `payload.tier === 'youth_athlete'` to route through `generateYouthAthleteBlueprint` + `generateYouthFuelMatrix` instead of the adult pair. Two new constants `SYSTEM_PROMPT_YOUTH_HYPERTROPHY` + `SYSTEM_PROMPT_YOUTH_NUTRITION` carry the clinical guardrails: youth hypertrophy caps loading by age (bodyweight/med ball/light bands ONLY for ages 8-13; moderate 65-80% only for 14+), weekly working hours capped at chronological age, mandates 2 rest days, sport-specific prehab triggers (BBall→glute medius, VBall→knee stability, Soccer→ACL/eccentric hams, Baseball→90/90 hip, Football→FMS/decel). Youth nutrition has hard exclusions (NO supplements, deficits, keto, IF, or dehydration), Cunningham Equation baseline, single-game + tournament fueling ladders, hydration table. Both youth prompts emit IDENTICAL JSON shapes to adult prompts → frontend `RW()`/`RN()` renders cloud youth plans through legacy WP/MP path with zero client changes. `tier` field now captured in `normalizeClientPayload` (was being silently dropped).
+- **Phase B3 — youth storefront card (direct push `266ad2d`).** Programs grid now 4-card (`.prog-g` `repeat(4,1fr)` desktop; existing `@media(max-width:900px)` collapses to 1-col mobile; `.d4` animation delay added). Youth card at position 2 between Gateway and Architect: title "Youth Athlete Tier", price $97/mo, sky-blue kicker (`#0ea5e9`) "CLINICAL YOUTH PROTOCOL (AGES 9-17)", 5 features (Position-Specific Programming, Biomechanical Prehab Protocols, Video Form Checks, Monthly Progress Review, Sport Playbook Access), italic disclaimer "NO parent coaching included.", CTA "Apply for Youth Athlete" → `selectTier('youth_athlete')` (card highlight + form prefill + scroll to Pathfinder, NOT direct Stripe). `BBF_STRIPE_BY_TIER` adds `youth_athlete:'cNieVf8YT6bF2J42AFaZi0f'`; `BBF_TIER_INDEX` reordered to `{gateway:0, youth_athlete:1, architect:2, sovereign:3}`. Sibling reflow: Architect d2→d3, Sovereign d3→d4. **No SW cache bump** — marketing site only, not the app. **Direct push to main was Akeem-authorized per-task exception, not a workflow change** — default §6.1 still applies (PR through `claude/<topic>` branch).
+- End-to-end loop verified at architecture level: storefront card → Pathfinder form → `/process` Phase 2 tier fork → tier-specific Anthropic generation → Supabase writeback → app login renders through legacy WP/MP path. **Pending:** Akeem to manually smoke-test the full youth journey in production.
+
 **Admin "view as" UID priority — FIXED (PR #83):** `auditor-engine.js:178` + `prehab-auditor.js:96` use `VC || CU` (admin-view-as wins).
 
 **Migrations applied to project `ihclbceghxpuawymlvgi` since the prior bridge:**
@@ -97,7 +103,7 @@ Pathfinder questionnaire → Stripe checkout → Render `/provision` (creates `b
 
 ## 4. Immediate Claude tasks
 
-Phase 10 is live. Akeem is preparing the next directive.
+Phases A + B2 + B3 are live. Akeem queued **Phase 14 Nutrition Tier System** (see §5) and is preparing the price points + cuisine JSON inputs.
 
 - [x] Phase 7 — Sentinel UI binding (PR #85, merged 2026-05-01)
 - [x] Phase 8 — admin bypass + live trial toggles (PR #86, merged 2026-05-01; migration applied)
@@ -105,13 +111,22 @@ Phase 10 is live. Akeem is preparing the next directive.
 - [x] Phase 9 — admin dashboard stats + somatic tier labels (PR #88, merged 2026-05-01; migration applied)
 - [x] Phase 9b — defensive normalizer (PR #89, merged 2026-05-01)
 - [x] Phase 10 — UI pruning (PR #90, merged 2026-05-01)
+- [x] Phase A — pricing realignment $67/$247/$497 + new Stripe links (PR #94, merged 2026-05-05)
+- [x] Phase B2 — Youth Athlete tier backend fork in `/process` + clinical Anthropic prompts (PR #95, merged 2026-05-05)
+- [x] Phase B3 — Youth Athlete tier storefront card (4-card grid, direct push `266ad2d`, 2026-05-05)
 - [ ] **Akeem todo:** remove deprecated `TWILIO_PHONE_NUMBER` Edge Function Secret in Supabase dashboard.
+- [ ] **Akeem todo:** smoke-test full Youth Athlete journey in production (storefront card → Pathfinder → Stripe → /provision → app login → cloud-generated youth plans render through `RW()`/`RN()`).
+- [ ] **Akeem todo (Phase 14 prereqs):** provide nutrition tier price points + new Stripe payment links + the American/Mexican/Brazilian cuisine JSON from NotebookLM.
 - [ ] **Re-introspect schema** → regenerate `api/supabase-schema-actual.sql`. **DEFERRED** — separate dedicated session, disk-only-write protocol per §11 rule #7. Now FIVE units behind: `bbf_audit_logs`, demo `bbf_users` rows, `bbf_users.trial_status/trial_start_date/updated_at` columns, two new SECURITY DEFINER RPCs.
 - [ ] **Diagnostic console.log cleanup** in `bbf-sync.js fetchAdminDashboardStats` once PostgREST response shape is confirmed from a real Mastermind Portal session.
 
 ## 5. Active backlog
 
-- **Phase 11+ TBD** — Akeem dropping next directive into a fresh session.
+- **Phase 14 — Nutrition Tier System (NEXT)** — two interlocked parts, plan-then-greenlight per §6.2 Tier 2:
+  1. **Nutrition pricing tier UI + Stripe routing.** Same pattern as Phase A/B3: new tier cards added to the nutrition section of `index.html` (or a dedicated nutrition surface if Akeem prefers). Likely needs either a new `BBF_NUTRITION_STRIPE_BY_TIER` map + index OR reuse of the existing `selectTier` flow with new tier slugs. Akeem provides the price points + Stripe payment links.
+  2. **Tri-cuisine library integration (American / Mexican / Brazilian).** Recipes in JSON sourced from NotebookLM. Open architecture questions to resolve in plan: (a) does cuisine selection happen via intake form field, tier-coded, or per-meal? (b) does the JSON REPLACE the Anthropic-generated meal plan, or AUGMENT it as cuisine context for the existing prompts? (c) JSON shape from NotebookLM is unknown — needs validation against the existing MP shape (`{name, cal, goal, days[]}` with `days[].meals[].{m, i}`). Pre-execution: Akeem provides the JSON; Claude validates structure + drafts integration plan + waits for greenlight.
+- **Phase B4 (deferred)** — add a dedicated `sport` field to the youth-tier intake form (currently inferred from `training_protocol` text).
+- **Parental-consent liability copy** for under-18 youth intake — Big Jim's call.
 - **`admin.html` access_status toggles** (Activate/Recovery/Lock) — same backend-disconnect problem `mastermind-portal.html` had pre-Phase-9. Currently writes `access_status` via `BBF_SYNC.syncUser` which is broken (writes columns that don't exist). Separate slice when Akeem prioritizes.
 - **`syncUser` rewrite** — `bbf-sync.js:130` writes `id: uid` (slug into uuid column) and includes fields not in schema (`type`, `goal`, `goal_weight`, `plan`, `schedule`, `stress_mode`, `access_status`, `recovery_note`, `auto_lock_enabled`, `lock_expiry`). Bridge fixes the FK target side; this fixes the write side.
 - **Trainer-view name join** — `fetchPendingAudits` (`bbf-sync.js:403`) surfaces `user_id` UUID as the display name; needs join (or RPC like `bbf_get_uid_map`) to resolve UUID → name for the Audit Log Feed.
@@ -197,7 +212,7 @@ Claude stops, describes the action, and waits for explicit confirmation. After t
 | `mastermind-portal.html` | Admin Command Center; stats from `BBF_SYNC.fetchAdminDashboardStats` with pre-paint baseline + Number coercion + try/catch (Phase 9/9b). Sovereign Trial toggle has optimistic UI + revert. |
 | `portal-engine.js` | Mastermind portal logic; duplicate `toggleTrialAccess` deleted (Phase 8). |
 | `sw.js` | Service Worker; bump `CACHE` constant on every client-side change (currently `bbf-v32`). |
-| `index.js` | Render Vault Engine V9 — `/process` + `/provision` endpoints |
+| `index.js` | Render Vault Engine V9 — `/process` + `/provision` endpoints. `/process` Phase 2 forks on `payload.tier === 'youth_athlete'` to route to youth-specific Anthropic prompts (Phase B2). `tier` captured in `normalizeClientPayload`. Pricing storefront in `index.html` uses `BBF_STRIPE_BY_TIER` (4 entries) + `BBF_TIER_INDEX` + `selectTier()` (Phase A/B3). |
 | `supabase/functions/vapi-outbound-trigger/index.ts` | Vapi trigger edge function (auth-gated) |
 | `supabase/migrations/` | All DB migrations |
 
@@ -220,6 +235,9 @@ After §4 migrations + deploy, before declaring victory:
 
 ## 9. Recent merged PRs (reverse chronological)
 
+- **`266ad2d` (direct push to main)** (2026-05-05) Phase B3 — Youth Athlete tier UI card on storefront. Programs grid 3-card → 4-card (`.prog-g` `repeat(4,1fr)`; `.d4` animation delay added). New card at position 2 between Gateway and Architect ($97/mo, sky-blue kicker, 5 features, "NO parent coaching" italic disclaimer, CTA → `selectTier('youth_athlete')` → Pathfinder, NOT direct Stripe). `BBF_STRIPE_BY_TIER` + `BBF_TIER_INDEX` updated to 4 entries. Sibling reflow: Architect d2→d3, Sovereign d3→d4. No SW bump (marketing-site only). Direct push was Akeem-authorized per-task exception.
+- **#95** (2026-05-05) Phase B2 — Youth Athlete tier backend fork in `/process` + clinical Anthropic prompts (`SYSTEM_PROMPT_YOUTH_HYPERTROPHY` + `SYSTEM_PROMPT_YOUTH_NUTRITION`). Pediatric load caps by age (bodyweight-only 8-13; 65-80% 14+), volume cap = chronological age in hrs, sport-specific prehab triggers (BBall/VBall/Soccer/Baseball/Football), hard nutrition exclusions (no supplements/cuts/keto/IF/dehydration), Cunningham Equation baseline, single-game + tournament fueling ladders. JSON shapes mirror adult prompts → frontend `RW()`/`RN()` work without client changes. `tier` captured in `normalizeClientPayload`.
+- **#94** (2026-05-05) Phase A — Pricing realignment ($147→$67 Gateway, $497→$247 Architect, $1,500→$497 Sovereign). `index.html` only: JSON-LD priceRange, founder-quote copy, 3 tier cards/comments, `BBF_STRIPE_BY_TIER` map (3 new Stripe URLs). Backend untouched (pipeline tier-agnostic).
 - **#90** (2026-05-01) Phase 10 UI pruning — Book tab + page removed (nav 7→6, Upgrade CTA → SMS intent); Upcoming Event Date settings row removed; Free Log five-point cleanup (tighter title + subtitle, removed Weight/Body Fat, removed Rest chip, REFLECTION divider). SAVELOG hardened. Cache `bbf-v32`.
 - **#89** (2026-05-01) Phase 9b defensive normalizer — `fetchAdminDashboardStats` handles 4 PostgREST shapes + diagnostic log; Mastermind Portal pre-paints `'0'` baseline + Number coercion + try/catch. Cache `bbf-v31`.
 - **#88** (2026-05-01) Phase 9 admin dashboard stats + somatic tiers — RPC `bbf_get_admin_dashboard_stats`; mastermind-portal.html stats from Supabase (was localStorage); Somatic sliders render axis-aware tier labels (Sleep direct, Cog/Stress flipped). Migration `20260502050000` applied. Cache `bbf-v30`.
