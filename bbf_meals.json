@@ -1,0 +1,2723 @@
+[
+  {
+    "id": "meal_001",
+    "name": {
+      "en": "Traditional Slow-Cooked Beef Stew",
+      "es": "Birria de Res",
+      "pt": "Birria de Carne"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Beef shank",
+      "guajillo chiles",
+      "garlic",
+      "cloves",
+      "ginger",
+      "apple cider vinegar"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 240,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": "Slow-cooked to break down connective tissues into bioavailable collagen."
+  },
+  {
+    "id": "meal_002",
+    "name": {
+      "en": "Brazilian Black Bean & Pork Stew",
+      "es": "Frijoles Negros con Cerdo",
+      "pt": "Feijoada"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Black beans",
+      "lean pork loin",
+      "garlic",
+      "bay leaves",
+      "orange",
+      "collard greens"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 240,
+    "budget_tier": "mid",
+    "specialty_equipment": true,
+    "notes": "Requires a pressure cooker for the beans. Widely considered the national dish of Brazil."
+  },
+  {
+    "id": "meal_003",
+    "name": {
+      "en": "Shredded Chicken in Tomato Adobo",
+      "es": "Pollo en Tinga",
+      "pt": "Frango em Tinga"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Chicken breast",
+      "tomato",
+      "chipotle in adobo",
+      "onion",
+      "garlic"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 30,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": "Metabolic stimulant due to chiles."
+  },
+  {
+    "id": "meal_004",
+    "name": {
+      "en": "Brazilian Chicken Rice",
+      "es": "Galinhada",
+      "pt": "Galinhada"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Chicken thighs",
+      "rice",
+      "bell peppers",
+      "turmeric",
+      "peas",
+      "onion"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 45,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_005",
+    "name": {
+      "en": "Sonoran Grilled Steak",
+      "es": "Carne Asada Sonorense",
+      "pt": "Churrasco de Carne"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Lean skirt steak",
+      "lime juice",
+      "sea salt",
+      "scallions"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 20,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_006",
+    "name": {
+      "en": "Minced Beef with Vegetables",
+      "es": "Picadillo Mexicano",
+      "pt": "Picadinho de Carne"
+    },
+    "cuisine": "Other",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Ground beef",
+      "carrots",
+      "potatoes",
+      "peas",
+      "tomato sauce"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 30,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": "Mexican / Brazilian fusion."
+  },
+  {
+    "id": "meal_007",
+    "name": {
+      "en": "Brazilian Sun-Dried Beef with Cassava",
+      "es": "Carne con Yuca",
+      "pt": "Carne de Sol com Mandioca"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Sun-dried beef (charque)",
+      "boiled cassava",
+      "clarified butter",
+      "red onion"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 40,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": "Cassava must be peeled and boiled correctly to remove natural cyanogenic glycosides."
+  },
+  {
+    "id": "meal_008",
+    "name": {
+      "en": "Classic American Cobb Salad",
+      "es": "Ensalada Cobb",
+      "pt": "Salada Cobb"
+    },
+    "cuisine": "American",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Chicken breast",
+      "hard-boiled eggs",
+      "avocado",
+      "bacon",
+      "mixed greens",
+      "blue cheese"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 15,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": "High-protein efficiency."
+  },
+  {
+    "id": "meal_009",
+    "name": {
+      "en": "Yucatan-Style Roast Pork",
+      "es": "Cochinita Pibil",
+      "pt": "Porco Assado à Yucatan"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Pork shoulder",
+      "achiote paste",
+      "sour orange juice",
+      "banana leaves",
+      "pickled onions"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 240,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": "Achiote paste is key for natural coloring and spice."
+  },
+  {
+    "id": "meal_010",
+    "name": {
+      "en": "Brazilian Beef Fillet with Garlic",
+      "es": "Filete al Ajo",
+      "pt": "Filé à Osvaldo Aranha"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Beef tenderloin",
+      "fried garlic",
+      "white rice",
+      "farofa",
+      "egg"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 25,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_011",
+    "name": {
+      "en": "Mexican Meatball Soup",
+      "es": "Caldo de Albóndigas",
+      "pt": "Sopa de Almôndegas"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Lean ground beef",
+      "zucchini",
+      "carrots",
+      "potatoes",
+      "mint",
+      "tomato broth"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 50,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_012",
+    "name": {
+      "en": "Turkey Breast with Al Pastor Marinade",
+      "es": "Pavo al Pastor",
+      "pt": "Peru ao Pastor"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Turkey breast",
+      "guajillo chile",
+      "pineapple",
+      "achiote",
+      "vinegar"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 40,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_013",
+    "name": {
+      "en": "Brazilian Chicken Shepherd’s Pie",
+      "es": "Escondidinho de Pollo",
+      "pt": "Escondidinho de Frango"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Shredded chicken",
+      "cassava (yuca) mash",
+      "requeijão cheese",
+      "onion"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 45,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_014",
+    "name": {
+      "en": "Grilled Chicken Fajita Bowl",
+      "es": "Tazón de Fajitas de Pollo",
+      "pt": "Tigela de Fajitas de Frango"
+    },
+    "cuisine": "Other",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Chicken breast",
+      "bell peppers",
+      "onions",
+      "brown rice",
+      "lime"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 25,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": "American / Mexican. Post-workout supportive bowl."
+  },
+  {
+    "id": "meal_015",
+    "name": {
+      "en": "Brazilian Rice, Beans & Egg",
+      "es": "Casamiento con Huevo",
+      "pt": "Arroz, Feijão e Ovo"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "White rice",
+      "pinto beans",
+      "fried egg",
+      "farofa",
+      "sautéed kale"
+    ],
+    "protein_source": "egg",
+    "prep_time_minutes": 20,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Pressure cooker advised for beans. Prato feito baseline."
+  },
+  {
+    "id": "meal_016",
+    "name": {
+      "en": "Shredded Beef with Peppers",
+      "es": "Ropa Vieja",
+      "pt": "Ropa Vieja"
+    },
+    "cuisine": "Other",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Shredded flank steak",
+      "bell peppers",
+      "tomatoes",
+      "onions",
+      "garlic"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 60,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": "Mexican / Cuban origin."
+  },
+  {
+    "id": "meal_017",
+    "name": {
+      "en": "Grilled Herb Chicken",
+      "es": "Pollo Rostizado con Hierbas",
+      "pt": "Frango Grelhado com Ervas"
+    },
+    "cuisine": "American",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Whole chicken pieces",
+      "rosemary",
+      "garlic",
+      "lemon",
+      "sweet potato"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 45,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_018",
+    "name": {
+      "en": "Mexican Scrambled Eggs with Jerky",
+      "es": "Machacado con Huevo",
+      "pt": "Carne Seca com Ovos"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "breakfast",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Dried beef (machaca)",
+      "eggs",
+      "tomato",
+      "onion",
+      "serrano chile"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 15,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_019",
+    "name": {
+      "en": "Brazilian Beef Stew with Veggies",
+      "es": "Cocido de Res",
+      "pt": "Vaca Atolada"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Beef ribs",
+      "cassava (mandioca)",
+      "tomatoes",
+      "onions",
+      "garlic"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 120,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_020",
+    "name": {
+      "en": "High-Protein Turkey Tacos",
+      "es": "Tacos de Pavo",
+      "pt": "Tacos de Peru"
+    },
+    "cuisine": "American",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Ground turkey",
+      "corn tortillas",
+      "pico de gallo",
+      "shredded lettuce"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 20,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Comal recommended for cooking tortillas."
+  },
+  {
+    "id": "meal_021",
+    "name": {
+      "en": "Brazilian Chicken Wings",
+      "es": "Alitas de Pollo",
+      "pt": "Frango a Passarinho"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Small chicken pieces",
+      "fried garlic",
+      "parsley",
+      "lime"
+    ],
+    "protein_source": "animal",
+    "prep_time_minutes": 30,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_022",
+    "name": {
+      "en": "Mexican Scrambled Eggs",
+      "es": "Huevos a la Mexicana",
+      "pt": "Ovos Mexidos à Mexicana"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "breakfast",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Eggs",
+      "tomato",
+      "white onion",
+      "jalapeño"
+    ],
+    "protein_source": "egg",
+    "prep_time_minutes": 15,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_023",
+    "name": {
+      "en": "Brazilian Cheese Rolls",
+      "es": "Pan de Queso",
+      "pt": "Pão de Queijo"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Tapioca starch",
+      "Minas cheese",
+      "eggs",
+      "milk"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 30,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_024",
+    "name": {
+      "en": "Ranch-Style Eggs",
+      "es": "Huevos Rancheros",
+      "pt": "Ovos Rancheros"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "breakfast",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Eggs",
+      "corn tortillas",
+      "black beans",
+      "salsa roja",
+      "avocado"
+    ],
+    "protein_source": "egg",
+    "prep_time_minutes": 20,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Comal recommended for cooking tortillas."
+  },
+  {
+    "id": "meal_025",
+    "name": {
+      "en": "Brazilian Grilled Cheese Skewers",
+      "es": "Brochetas de Queso",
+      "pt": "Queijo Coalho Grelhado"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Queijo de coalho",
+      "oregano",
+      "honey (optional)"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 10,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_026",
+    "name": {
+      "en": "Mexican Squash with Corn",
+      "es": "Calabacitas con Elote",
+      "pt": "Abobrinha com Milho"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Zucchini",
+      "corn",
+      "tomato",
+      "cream",
+      "queso fresco"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 25,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_027",
+    "name": {
+      "en": "Brazilian Pumpkin Stew",
+      "es": "Guisado de Calabaza",
+      "pt": "Quibebe"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Winter squash",
+      "onion",
+      "garlic",
+      "parsley",
+      "ginger"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 35,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_028",
+    "name": {
+      "en": "Bean-Drenched Tortillas",
+      "es": "Enfrijoladas de Queso",
+      "pt": "Enfrijoladas de Queijo"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Corn tortillas",
+      "black bean sauce",
+      "queso fresco",
+      "onion"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 25,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Comal recommended for cooking tortillas."
+  },
+  {
+    "id": "meal_029",
+    "name": {
+      "en": "Brazilian Cornmeal Cake",
+      "es": "Pastel de Elote",
+      "pt": "Bolo de Fubá"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Cornmeal",
+      "eggs",
+      "milk",
+      "sugar",
+      "fennel seeds"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 50,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_030",
+    "name": {
+      "en": "Potato & Poblano Skillet",
+      "es": "Papas con Rajas",
+      "pt": "Batatas com Rajas"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Potatoes",
+      "poblano peppers",
+      "cream",
+      "onion",
+      "cheese"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 30,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_031",
+    "name": {
+      "en": "Brazilian Hearts of Palm Salad",
+      "es": "Ensalada de Palmitos",
+      "pt": "Salada de Palmito"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Hearts of palm",
+      "tomato",
+      "onion",
+      "olive oil",
+      "vinegar"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 10,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_032",
+    "name": {
+      "en": "Greek Yogurt & Berry Bowl",
+      "es": "Tazón de Yogur y Moras",
+      "pt": "Iogurte Grego com Frutas"
+    },
+    "cuisine": "American",
+    "meal_type": "breakfast",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Greek yogurt",
+      "strawberries",
+      "blueberries",
+      "honey"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 5,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": "Excellent post-workout or quick breakfast option."
+  },
+  {
+    "id": "meal_033",
+    "name": {
+      "en": "Mexican Lentil Soup",
+      "es": "Sopa de Lentejas",
+      "pt": "Sopa de Lentilha"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Lentils",
+      "carrots",
+      "tomato sauce",
+      "garlic",
+      "cilantro"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 45,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_034",
+    "name": {
+      "en": "Brazilian Tapioca Crepe",
+      "es": "Tapioca de Queso",
+      "pt": "Tapioca de Queijo"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "breakfast",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Tapioca starch",
+      "mozzarella or coalho cheese",
+      "tomato"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 15,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_035",
+    "name": {
+      "en": "Stuffed Mini Bell Peppers",
+      "es": "Pimientos Rellenos",
+      "pt": "Pimentões Recheados"
+    },
+    "cuisine": "American",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Mini peppers",
+      "quinoa",
+      "black beans",
+      "cream cheese"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 25,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_036",
+    "name": {
+      "en": "Mexican Nopal Salad",
+      "es": "Ensalada de Nopales",
+      "pt": "Salada de Nopais"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Prickly pear cactus",
+      "tomato",
+      "onion",
+      "lime juice",
+      "queso fresco"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 20,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_037",
+    "name": {
+      "en": "Brazilian Potato Salad",
+      "es": "Ensalada de Papa",
+      "pt": "Salada de Maionese"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Potatoes",
+      "carrots",
+      "green beans",
+      "mayonnaise",
+      "eggs"
+    ],
+    "protein_source": "egg",
+    "prep_time_minutes": 30,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_038",
+    "name": {
+      "en": "Cottage Cheese & Fruit",
+      "es": "Requesón con Fruta",
+      "pt": "Queijo Cottage com Frutas"
+    },
+    "cuisine": "American",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Cottage cheese",
+      "pineapple or peaches",
+      "cinnamon"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 5,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_039",
+    "name": {
+      "en": "Mexican Alphabet Soup",
+      "es": "Sopa de Letras",
+      "pt": "Sopa de Letrinhas"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Alphabet pasta",
+      "tomato broth",
+      "garlic",
+      "onion"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 20,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_040",
+    "name": {
+      "en": "Brazilian Tapioca Sticks",
+      "es": "Dedos de Tapioca",
+      "pt": "Dadinho de Tapioca"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Tapioca starch",
+      "coalho cheese",
+      "milk",
+      "deep-fried or baked"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 35,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_041",
+    "name": {
+      "en": "Mushroom & Cheese Quesadilla",
+      "es": "Quesadilla de Hongos",
+      "pt": "Quesadilla de Cogumelo"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Corn tortillas",
+      "portobello mushrooms",
+      "Oaxaca cheese",
+      "epazote"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 15,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Comal recommended for tortillas."
+  },
+  {
+    "id": "meal_042",
+    "name": {
+      "en": "Brazilian Sweet Rice Pudding",
+      "es": "Arroz con Leche",
+      "pt": "Arroz Doce"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free"
+    ],
+    "core_ingredients": [
+      "Rice",
+      "milk",
+      "condensed milk",
+      "cinnamon",
+      "cloves"
+    ],
+    "protein_source": "dairy",
+    "prep_time_minutes": 40,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_043",
+    "name": {
+      "en": "Amazonian Açaí Bowl",
+      "es": "Tazón de Açaí",
+      "pt": "Açaí na Tigela"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "breakfast",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Açaí pulp",
+      "banana",
+      "granola (GF)",
+      "honey/agave"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 10,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": "High-quality fats and complex carbohydrates for endurance."
+  },
+  {
+    "id": "meal_044",
+    "name": {
+      "en": "Stuffed Masa Cakes",
+      "es": "Tlacoyos de Frijol",
+      "pt": "Tlacoyos de Feijão"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Corn masa",
+      "black beans",
+      "cactus",
+      "salsa verde"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 35,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Comal recommended for cooking tlacoyos. Tortilla press optional but helpful."
+  },
+  {
+    "id": "meal_045",
+    "name": {
+      "en": "Brazilian Cashew Stew",
+      "es": "Moqueca de Caju",
+      "pt": "Moqueca de Caju"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Cashew fruit or hearts of palm",
+      "coconut milk",
+      "bell peppers",
+      "dendê oil"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 40,
+    "budget_tier": "mid",
+    "specialty_equipment": true,
+    "notes": "Traditionally cooked in heavy clay pots (panela de barro). Needs Dendê Oil."
+  },
+  {
+    "id": "meal_046",
+    "name": {
+      "en": "Vegan Hominy Soup",
+      "es": "Pozole Vegano",
+      "pt": "Pozole Vegano"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Hominy (cacahuazintle)",
+      "mushrooms or jackfruit",
+      "radish",
+      "oregano"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 50,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Traditionally cooked in heavy clay pots."
+  },
+  {
+    "id": "meal_047",
+    "name": {
+      "en": "Rice & Black-Eyed Peas",
+      "es": "Baião de Dois Vegano",
+      "pt": "Baião de Dois Vegano"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Rice",
+      "black-eyed peas",
+      "coconut oil",
+      "scallions",
+      "cilantro"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 30,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_048",
+    "name": {
+      "en": "Cauliflower \"Ceviche\"",
+      "es": "Ceviche de Coliflor",
+      "pt": "Ceviche de Couve-Flor"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Minced cauliflower",
+      "lime juice",
+      "cucumber",
+      "tomato",
+      "cilantro"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 20,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_049",
+    "name": {
+      "en": "Brazilian Steamed Bean Tamal",
+      "es": "Abará",
+      "pt": "Abará"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Black-eyed pea paste",
+      "palm oil",
+      "wrapped in banana leaf"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 60,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": "Dendê Oil is integral."
+  },
+  {
+    "id": "meal_050",
+    "name": {
+      "en": "Roasted Amaranth Bars",
+      "es": "Alegría de Amaranto",
+      "pt": "Alegria de Amaranto"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Puffed amaranth",
+      "agave nectar",
+      "pumpkin seeds (pepitas)"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 20,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_051",
+    "name": {
+      "en": "Yuca with Garlic Sauce",
+      "es": "Yuca con Mojo",
+      "pt": "Mandioca com Molho de Alho"
+    },
+    "cuisine": "Other",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Boiled cassava (yuca)",
+      "garlic",
+      "olive oil",
+      "lime/onion"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 30,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": "Brazilian / Caribbean."
+  },
+  {
+    "id": "meal_052",
+    "name": {
+      "en": "Sweet Potato & Chickpea Stew",
+      "es": "Guisado de Camote",
+      "pt": "Guisado de Batata Doce"
+    },
+    "cuisine": "Other",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Sweet potato",
+      "chickpeas",
+      "chile colorado",
+      "onion"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 45,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": "American / Mexican."
+  },
+  {
+    "id": "meal_053",
+    "name": {
+      "en": "Brazilian Tapioca with Coconut",
+      "es": "Tapioca de Coco",
+      "pt": "Tapioca de Coco"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Tapioca starch",
+      "shredded coconut",
+      "coconut milk"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 15,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_054",
+    "name": {
+      "en": "Mushroom Tlayuda",
+      "es": "Tlayuda de Hongos",
+      "pt": "Tlayuda de Cogumelo"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Large crispy tortilla",
+      "refried beans",
+      "mushrooms",
+      "avocado"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 25,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Comal recommended for tortillas."
+  },
+  {
+    "id": "meal_055",
+    "name": {
+      "en": "Quinoa & Black Bean Salad",
+      "es": "Ensalada de Quinoa",
+      "pt": "Salada de Quinoa"
+    },
+    "cuisine": "American",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Quinoa",
+      "black beans",
+      "corn",
+      "cilantro",
+      "lime vinaigrette"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 20,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_056",
+    "name": {
+      "en": "Brazilian Okra Stew",
+      "es": "Guisado de Quiabo",
+      "pt": "Caruru Vegano"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Okra",
+      "peanuts (optional)",
+      "palm oil",
+      "ginger",
+      "onion"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 35,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_057",
+    "name": {
+      "en": "Portobello Mushroom Tacos",
+      "es": "Tacos de Portobello",
+      "pt": "Tacos de Portobello"
+    },
+    "cuisine": "Other",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Portobello strips",
+      "corn tortillas",
+      "bell peppers",
+      "onions"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 20,
+    "budget_tier": "mid",
+    "specialty_equipment": true,
+    "notes": "Mexican / American. Comal recommended for tortillas."
+  },
+  {
+    "id": "meal_058",
+    "name": {
+      "en": "Brazilian Grilled Bananas",
+      "es": "Bananas Asadas",
+      "pt": "Bananas Grelhadas"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Plantains or bananas",
+      "cinnamon",
+      "coconut oil"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 10,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_059",
+    "name": {
+      "en": "Guacamole with Veggies",
+      "es": "Guacamole con Verduras",
+      "pt": "Guacamole com Vegetais"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Avocado",
+      "tomato",
+      "onion",
+      "lime",
+      "cucumber/carrots for dipping"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 15,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_060",
+    "name": {
+      "en": "Chickpea & Spinach Tacos",
+      "es": "Tacos de Garbanzo",
+      "pt": "Tacos de Grão-de-Bico"
+    },
+    "cuisine": "Other",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Chickpeas",
+      "spinach",
+      "garlic",
+      "corn tortillas",
+      "salsa"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 20,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Mexican / American. Comal recommended for tortillas."
+  },
+  {
+    "id": "meal_061",
+    "name": {
+      "en": "Brazilian Tapioca Porridge",
+      "es": "Avena de Tapioca",
+      "pt": "Mingau de Tapioca"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "breakfast",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Tapioca pearls",
+      "coconut milk",
+      "sugar/agave",
+      "cinnamon"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 30,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_062",
+    "name": {
+      "en": "Mexican Pinto Beans",
+      "es": "Frijoles de la Olla",
+      "pt": "Feijão de Corda"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Pinto beans",
+      "epazote",
+      "onion",
+      "garlic",
+      "water"
+    ],
+    "protein_source": "plant",
+    "prep_time_minutes": 90,
+    "budget_tier": "budget",
+    "specialty_equipment": true,
+    "notes": "Epazote reduces flatulence. Pressure cooker or clay pot optional."
+  },
+  {
+    "id": "meal_063",
+    "name": {
+      "en": "Chia Seed Pudding",
+      "es": "Pudín de Chía",
+      "pt": "Pudim de Chia"
+    },
+    "cuisine": "American",
+    "meal_type": "breakfast",
+    "dietary_profile": [
+      "vegan",
+      "vegetarian"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "shellfish-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Chia seeds",
+      "almond/coconut milk",
+      "berries",
+      "vanilla"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 5,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_064",
+    "name": {
+      "en": "Brazilian Fish Stew",
+      "es": "Moqueca de Pescado",
+      "pt": "Moqueca de Peixe"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "White fish (cod/halibut)",
+      "coconut milk",
+      "dendê oil",
+      "peppers",
+      "onion"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 35,
+    "budget_tier": "premium",
+    "specialty_equipment": true,
+    "notes": "Traditionally cooked in a heavy clay pot. Requires Dendê Oil."
+  },
+  {
+    "id": "meal_065",
+    "name": {
+      "en": "Veracruz-Style Fish",
+      "es": "Pescado a la Veracruzana",
+      "pt": "Peixe à Veracruzana"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Red snapper or cod",
+      "tomato",
+      "olives",
+      "capers",
+      "pickled jalapeños"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 45,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": "Integrates Mediterranean heart-healthy mono-unsaturated fats."
+  },
+  {
+    "id": "meal_066",
+    "name": {
+      "en": "Spicy Lime Shrimp",
+      "es": "Aguachile",
+      "pt": "Aguachile"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Raw shrimp",
+      "lime juice",
+      "cucumber",
+      "red onion",
+      "serrano chile"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 20,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": "Uses citrus acid to maintain integrity of lean protein."
+  },
+  {
+    "id": "meal_067",
+    "name": {
+      "en": "Brazilian Shrimp in Cassava Cream",
+      "es": "Bobó de Camarón",
+      "pt": "Bobó de Camarão"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Shrimp",
+      "cassava (yuca) puree",
+      "coconut milk",
+      "palm oil",
+      "ginger"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 50,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_068",
+    "name": {
+      "en": "Fish Tacos (Baja Style)",
+      "es": "Tacos de Pescado",
+      "pt": "Tacos de Peixe"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "White fish",
+      "corn tortillas",
+      "cabbage slaw",
+      "lime",
+      "avocado"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 25,
+    "budget_tier": "mid",
+    "specialty_equipment": true,
+    "notes": "Comal recommended for tortillas."
+  },
+  {
+    "id": "meal_069",
+    "name": {
+      "en": "Brazilian Salted Cod with Veggies",
+      "es": "Bacalao a la Portuguesa",
+      "pt": "Bacalhoada"
+    },
+    "cuisine": "Other",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Salted cod",
+      "potatoes",
+      "hard-boiled eggs",
+      "olives",
+      "onions",
+      "olive oil"
+    ],
+    "protein_source": "mixed",
+    "prep_time_minutes": 60,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": "Brazilian / Portuguese."
+  },
+  {
+    "id": "meal_070",
+    "name": {
+      "en": "Shrimp Tostadas",
+      "es": "Tostadas de Camarón",
+      "pt": "Tostadas de Camarão"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Cooked shrimp",
+      "corn tostadas",
+      "pico de gallo",
+      "avocado"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 15,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_071",
+    "name": {
+      "en": "Brazilian Shrimp in Coconut Sauce",
+      "es": "Camarón en Coco",
+      "pt": "Camarão no Leite de Coco"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Shrimp",
+      "coconut milk",
+      "onion",
+      "garlic",
+      "cilantro"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 25,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_072",
+    "name": {
+      "en": "Grilled Salmon with Sweet Potato",
+      "es": "Salmón con Camote",
+      "pt": "Salmão com Batata Doce"
+    },
+    "cuisine": "American",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Salmon fillet",
+      "sweet potato",
+      "asparagus",
+      "lemon"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 25,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_073",
+    "name": {
+      "en": "Mexican Shrimp Cocktail",
+      "es": "Coctel de Camarón",
+      "pt": "Coquetel de Camarão"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Chilled shrimp",
+      "tomato-lime juice",
+      "avocado",
+      "onion",
+      "cilantro"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 15,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_074",
+    "name": {
+      "en": "Brazilian Fish Fillet",
+      "es": "Filete de Pescado",
+      "pt": "Filé de Peixe Grelhado"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Tilapia or sea bass",
+      "garlic",
+      "lime",
+      "served with rice/beans"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 20,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_075",
+    "name": {
+      "en": "Octopus Tostada",
+      "es": "Tostada de Pulpo",
+      "pt": "Tostada de Polvo"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Tenderized octopus",
+      "corn tostada",
+      "avocado",
+      "salsa"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 30,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_076",
+    "name": {
+      "en": "Tuna Salad Sandwich",
+      "es": "Sándwich de Atún",
+      "pt": "Sanduíche de Atum"
+    },
+    "cuisine": "American",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "nut-free",
+      "soy-free"
+    ],
+    "core_ingredients": [
+      "Canned tuna",
+      "whole grain bread",
+      "Greek yogurt (sub for mayo)",
+      "celery"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 10,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_077",
+    "name": {
+      "en": "Brazilian Seafood Stew (No Coconut)",
+      "es": "Moqueca Capixaba",
+      "pt": "Moqueca Capixaba"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "White fish",
+      "annatto (urucum)",
+      "olive oil",
+      "cilantro",
+      "tomato"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 40,
+    "budget_tier": "premium",
+    "specialty_equipment": true,
+    "notes": "Traditionally cooked in a clay pot."
+  },
+  {
+    "id": "meal_078",
+    "name": {
+      "en": "Sopa de Lima (Yucatan Lime Soup)",
+      "es": "Sopa de Lima",
+      "pt": "Sopa de Lima"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Chicken broth (can use fish stock)",
+      "white fish/shrimp",
+      "lime",
+      "peppers",
+      "tortillas"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 45,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_079",
+    "name": {
+      "en": "Sardine Mash with Avocado",
+      "es": "Pasta de Sardina",
+      "pt": "Pasta de Sardinha"
+    },
+    "cuisine": "Other",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Canned sardines",
+      "avocado",
+      "lime",
+      "chili flakes",
+      "crackers/tostada"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 5,
+    "budget_tier": "budget",
+    "specialty_equipment": false,
+    "notes": "Global / Brazilian."
+  },
+  {
+    "id": "meal_080",
+    "name": {
+      "en": "Seafood Paella (Regional Style)",
+      "es": "Arroz a la Marinera",
+      "pt": "Arroz de Marisco"
+    },
+    "cuisine": "Other",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Rice",
+      "shrimp",
+      "mussels",
+      "squid",
+      "saffron",
+      "bell peppers"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 60,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": "Global / Brazilian."
+  },
+  {
+    "id": "meal_081",
+    "name": {
+      "en": "Grilled Swordfish with Lemon",
+      "es": "Pez Espada",
+      "pt": "Pez Espada Grelhado"
+    },
+    "cuisine": "Other",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Swordfish steak",
+      "garlic",
+      "lemon",
+      "parsley",
+      "roasted veggies"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 20,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": "Mediterranean."
+  },
+  {
+    "id": "meal_082",
+    "name": {
+      "en": "Mexican Fish Soup",
+      "es": "Caldo de Pescado",
+      "pt": "Caldo de Peixe"
+    },
+    "cuisine": "Mexican",
+    "meal_type": "dinner",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Fish chunks",
+      "carrots",
+      "potatoes",
+      "tomato-chile broth"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 45,
+    "budget_tier": "mid",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_083",
+    "name": {
+      "en": "Brazilian Shrimp Skewers",
+      "es": "Brochetas de Camarón",
+      "pt": "Espetinho de Camarão"
+    },
+    "cuisine": "Brazilian",
+    "meal_type": "lunch",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free",
+      "dairy-free"
+    ],
+    "core_ingredients": [
+      "Large shrimp",
+      "garlic",
+      "sea salt",
+      "grilled over coals"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 15,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": null
+  },
+  {
+    "id": "meal_084",
+    "name": {
+      "en": "Smoked Salmon & Cream Cheese",
+      "es": "Salmón Ahumado",
+      "pt": "Salmão Defumado"
+    },
+    "cuisine": "American",
+    "meal_type": "snack",
+    "dietary_profile": [
+      "pescatarian",
+      "omnivore"
+    ],
+    "restrictions_safe": [
+      "gluten-free",
+      "nut-free",
+      "soy-free",
+      "egg-free"
+    ],
+    "core_ingredients": [
+      "Smoked salmon",
+      "light cream cheese",
+      "capers",
+      "whole grain toast"
+    ],
+    "protein_source": "seafood",
+    "prep_time_minutes": 10,
+    "budget_tier": "premium",
+    "specialty_equipment": false,
+    "notes": null
+  }
+]
