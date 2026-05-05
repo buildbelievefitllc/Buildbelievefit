@@ -4606,6 +4606,41 @@ window.BBF_IS_ADMIN = function() {
   return typeof CU !== 'undefined' && CU === 'akeem';
 };
 
+// Phase 14 — Nutrition-only role derivation (RBAC, no DB migration).
+// Tier propagates from the Pathfinder form via localStorage.bbf_pathfinder
+// → ENTER() lifts it to d.u[uid].tier. Any tier slug starting with
+// "nutrition_" (essentials/platinum) suppresses the Workouts surface so
+// the Nutrition Portal user never sees an empty Program tab. Admin
+// always wins — Akeem still sees everything.
+window.BBF_IS_NUTRITION_ONLY = function() {
+  try {
+    if (window.BBF_IS_ADMIN && window.BBF_IS_ADMIN()) return false;
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return false;
+    var d = (typeof GD === 'function') ? GD() : null;
+    var u = d && d.u && d.u[uid];
+    var tier = (u && u.tier) || '';
+    return typeof tier === 'string' && tier.indexOf('nutrition_') === 0;
+  } catch(_) { return false; }
+};
+// Apply the Workouts-tab suppression DOM mutation. Idempotent — safe to
+// call repeatedly (e.g. after login, on tab activation, after tier writeback).
+window.BBF_APPLY_NUTRITION_GATE = function() {
+  try {
+    var hide = !!(window.BBF_IS_NUTRITION_ONLY && window.BBF_IS_NUTRITION_ONLY());
+    var navBtn = document.querySelector('button.nv[data-tab="workout"]');
+    if (navBtn) navBtn.hidden = hide;
+    var qaW = document.getElementById('qa-w');
+    if (qaW) qaW.style.display = hide ? 'none' : '';
+    // If the user is currently sitting on the workout tab and we just
+    // hid it, bounce them to the nutrition tab.
+    if (hide && typeof TAB === 'function') {
+      var workoutPane = document.getElementById('tp-workout');
+      if (workoutPane && workoutPane.classList.contains('on')) TAB('nutrition');
+    }
+  } catch(_) {}
+};
+
 function GD(){try{return JSON.parse(localStorage.getItem(K))||{u:{},l:{},w:{}};}catch(e){return{u:{},l:{},w:{}};}}
 function SD(d){localStorage.setItem(K,JSON.stringify(d));}
 
@@ -7079,11 +7114,18 @@ function ENTER() {
           if (pDef && !d.u[uid].stress_mode) d.u[uid].stress_mode = pDef.type;
         }
         if (webData.tdee_target) d.u[uid].tdee_target = webData.tdee_target;
+        // Phase 14 — propagate tier slug from the Pathfinder form so
+        // BBF_IS_NUTRITION_ONLY() can derive the role on read. Same-device
+        // signup only; cross-device users default to no tier (full app).
+        if (webData.tier) d.u[uid].tier = webData.tier;
         SD(d);
       }
       localStorage.removeItem('bbf_pathfinder'); // consume once
     }
   } catch(e) {}
+  // Phase 14 — apply the nutrition-only Workouts-tab suppression after
+  // any tier ingest. Idempotent; admin always wins.
+  try { if (window.BBF_APPLY_NUTRITION_GATE) window.BBF_APPLY_NUTRITION_GATE(); } catch(_) {}
   if (CU === 'akeem') {
     SETUP_TRAINER();
   } else {
