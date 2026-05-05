@@ -570,42 +570,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .sov-commit-btn[disabled]{background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);box-shadow:none;cursor:not-allowed}
 
 /* ─── VIDEO VAULT ────────────────────────────────────── */
-.vault-tabs{display:flex;gap:.4rem;margin-bottom:1rem;background:var(--gry2);border:1px solid var(--gry3);border-radius:10px;padding:3px}
-.vtab{flex:1;padding:.55rem;text-align:center;cursor:pointer;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;color:var(--mut2);background:transparent;border:none;border-radius:8px;transition:all .2s;text-transform:uppercase}
-.vtab.on{background:var(--purd);color:var(--wht)}
-.vault-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.5rem}
-.module-card{background:var(--gry2);border:1px solid var(--gry3);border-radius:16px;overflow:hidden;position:relative;cursor:pointer;transition:border-color .3s,transform .2s}
-.module-card:active{transform:scale(.97)}
-.module-card.locked{opacity:.55;cursor:default}
-.module-card.unlocked{border-color:rgba(106,13,173,.4)}
-.module-card.unlocked:active{transform:scale(.97);border-color:var(--yel)}
-.module-thumb{aspect-ratio:16/9;background:linear-gradient(135deg,var(--purp),var(--purd));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.module-thumb::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.25)}
-.module-play{width:40px;height:40px;border-radius:50%;background:rgba(245,200,0,.9);display:flex;align-items:center;justify-content:center;position:relative;z-index:2;flex-shrink:0}
-.module-play-icon{border-left:14px solid #060606;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px}
-.module-lock{font-size:1.4rem;position:relative;z-index:2}
-.module-num{position:absolute;top:.5rem;left:.6rem;font-family:var(--hb);font-size:.65rem;letter-spacing:2px;color:rgba(255,255,255,.5);z-index:2}
-.module-dur{position:absolute;bottom:.4rem;right:.5rem;background:rgba(0,0,0,.6);border-radius:4px;padding:.1rem .4rem;font-size:.62rem;font-weight:700;color:var(--wht);z-index:2}
-.module-info{padding:.75rem}
-.module-title{font-family:var(--hb);font-size:.95rem;letter-spacing:1px;margin-bottom:.2rem;line-height:1.2}
-.module-desc{font-size:.72rem;font-weight:600;color:var(--mut2);line-height:1.5}
-.module-tag{display:inline-flex;align-items:center;gap:.3rem;background:rgba(106,13,173,.15);border:1px solid rgba(106,13,173,.3);border-radius:20px;padding:.15rem .55rem;font-size:.6rem;font-weight:700;letter-spacing:1px;color:var(--purl);margin-top:.4rem}
-.vault-hero{background:linear-gradient(135deg,var(--purp),var(--purd));border-radius:18px;padding:1.3rem;margin-bottom:1rem;position:relative;overflow:hidden}
-.vault-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(245,200,0,.07),transparent 70%)}
-.vault-hero-lbl{font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:.3rem}
-.vault-hero-title{font-family:var(--hb);font-size:1.7rem;letter-spacing:2px;color:var(--yel);line-height:1}
-.vault-hero-sub{font-size:.8rem;font-weight:600;color:rgba(255,255,255,.5);margin-top:.35rem}
-.vault-progress{display:flex;align-items:center;gap:.8rem;margin-top:.9rem}
-.vault-prog-bar{flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
-.vault-prog-fill{height:100%;background:var(--yel);border-radius:3px;transition:width .5s ease}
-.vault-prog-lbl{font-size:.68rem;font-weight:700;color:var(--yel);white-space:nowrap}
-.video-player-wrap{display:none;background:var(--blk);border-radius:14px;overflow:hidden;margin-bottom:1rem;border:1px solid var(--gry3)}
-.video-player-wrap.on{display:block}
-.video-player-inner{aspect-ratio:16/9;background:#000;display:flex;align-items:center;justify-content:center;position:relative}
-.video-player-ph{text-align:center;color:rgba(255,255,255,.3)}
-.video-player-ph-icon{font-size:3rem;margin-bottom:.5rem}
-.video-player-ph-txt{font-size:.82rem;font-weight:700;letter-spacing:1px}
-.video-close-btn{width:100%;padding:.65rem;background:var(--gry2);border:none;color:var(--mut2);font-family:var(--hb);font-size:.8rem;letter-spacing:2px;cursor:pointer}
+/* Phase 15 — Masterclass purge. .vault-tabs/.vtab/.vault-grid/.vault-hero*/
+/* .vault-prog*/.module-*/.video-player-* removed alongside the Masterclass HTML. */
 .toast{position:fixed;bottom:calc(var(--sb) + 5.5rem);left:50%;transform:translateX(-50%) translateY(20px);background:var(--purd);border:1px solid var(--pur);border-left:3px solid var(--yel);padding:.7rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:700;color:var(--wht);z-index:500;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -1372,42 +1338,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   position: relative;
   transition: border-color .35s ease, box-shadow .4s ease;
 }
-.pe-widget.is-pending {
-  border-color: rgba(212,175,55,.7);
-  box-shadow:
-    0 22px 52px -18px rgba(212,175,55,.45),
-    0 0 0 1px rgba(212,175,55,.55) inset,
-    0 1px 0 rgba(255,255,255,.05) inset;
-  animation: peBorderPulse 2.4s ease-in-out infinite;
-}
-@keyframes peBorderPulse {
-  0%,100% { box-shadow:
-    0 22px 52px -18px rgba(212,175,55,.35),
-    0 0 0 1px rgba(212,175,55,.45) inset,
-    0 1px 0 rgba(255,255,255,.05) inset; }
-  50% { box-shadow:
-    0 26px 60px -14px rgba(212,175,55,.6),
-    0 0 0 1.5px rgba(242,215,105,.7) inset,
-    0 1px 0 rgba(255,255,255,.08) inset; }
-}
-.pe-widget.is-cleared {
-  border-color: rgba(106,13,173,.65);
-  box-shadow:
-    0 22px 52px -18px rgba(106,13,173,.45),
-    0 0 22px rgba(106,13,173,.3),
-    0 0 0 1px rgba(106,13,173,.5) inset,
-    0 1px 0 rgba(255,255,255,.05) inset;
-}
-.pe-widget.is-revision {
-  border-color: rgba(255,122,26,.65);
-  box-shadow:
-    0 22px 52px -18px rgba(255,122,26,.45),
-    0 0 0 1px rgba(255,122,26,.55) inset,
-    0 1px 0 rgba(255,255,255,.05) inset;
-}
 .pe-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.85rem; gap:.8rem }
 .pe-label { font-family:var(--hb); font-size:.64rem; letter-spacing:3.5px; color:#D4AF37; text-transform:uppercase }
-.pe-widget.is-cleared .pe-label { color: #b87aff }
 .pe-status-badge {
   font-family: var(--hb);
   font-size: .58rem;
@@ -1420,10 +1352,9 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   color: var(--mut2);
   white-space: nowrap;
 }
-.pe-widget.is-pending  .pe-status-badge { background: rgba(212,175,55,.15); border-color: rgba(212,175,55,.55); color: #D4AF37 }
-.pe-widget.is-cleared  .pe-status-badge { background: rgba(106,13,173,.2); border-color: rgba(106,13,173,.55); color: #b87aff }
-.pe-widget.is-cleared  .pe-status-badge::before { content:'\2713\00a0'; color:#22c55e; font-weight:700 }
-.pe-widget.is-revision .pe-status-badge { background: rgba(255,122,26,.15); border-color: rgba(255,122,26,.55); color: #FF9500 }
+.pe-status-badge.is-live { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.55); color: #ef4444 }
+.pe-status-badge.is-live::before { content:'\25CF\00a0'; animation: peLiveDot 1.4s ease-in-out infinite; }
+@keyframes peLiveDot { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
 
 /* 16:9 viewport frame with gold viewfinder brackets + scanline */
 .pe-frame {
@@ -1436,13 +1367,6 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.05);
-}
-.pe-frame > video {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: contain;
-  background: #000;
-  border-radius: 12px;
 }
 /* Viewfinder brackets — L-shapes that breathe inward in a slow scan */
 .pe-bracket {
@@ -1482,143 +1406,180 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   100% { top: 100%;  opacity: 0; }
 }
 
-/* Empty state — shown when no video uploaded; surfaces the Rx. */
-.pe-empty {
+/* Live AI Coach hero — sits inside .pe-frame, replaces the upload empty
+   state. Anchors the "Initialize Live Coach" CTA at the centre of the
+   viewport. The brackets + scanline still animate over the top so the
+   widget stays cinematic when idle. */
+.pe-hero {
   position: absolute; inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 1.2rem 1.4rem;
-  gap: .4rem;
-  color: rgba(255,255,255,.7);
+  padding: 1.6rem 1.4rem;
+  gap: .55rem;
+  z-index: 2;
 }
-.pe-empty-eye {
-  font-size: 2.4rem;
-  opacity: .6;
+.pe-hero-eye {
+  font-size: 2.6rem;
+  opacity: .35;
   filter: drop-shadow(0 0 18px rgba(212,175,55,.4));
+  animation: peHeroEyeBreath 4.2s ease-in-out infinite;
 }
-.pe-empty-label {
+@keyframes peHeroEyeBreath { 0%,100% { transform: scale(1); opacity: .35; } 50% { transform: scale(1.08); opacity: .55; } }
+.pe-hero-kicker {
   font-family: var(--hb);
-  font-size: .92rem;
-  letter-spacing: .12em;
-  color: #D4AF37;
+  font-size: .6rem;
+  letter-spacing: 4px;
   text-transform: uppercase;
+  color: rgba(212,175,55,.85);
 }
-.pe-empty-sub {
-  font-size: .78rem;
-  color: rgba(255,255,255,.55);
-  line-height: 1.45;
-  max-width: 340px;
+.pe-hero-title {
+  font-family: var(--hb);
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+  color: var(--wht);
+  line-height: 1.18;
+  max-width: 26ch;
 }
-.pe-empty-rx {
-  margin-top: .6rem;
-  padding: .55rem .8rem;
-  font-size: .72rem;
-  line-height: 1.45;
-  color: #FBE3A0;
-  background: rgba(106,13,173,.28);
-  border: 1px solid rgba(212,175,55,.35);
-  border-left: 3px solid var(--bbf-gold-victory, #F5C800);
-  border-radius: 8px;
-  max-width: 380px;
+.pe-hero-sub {
+  font-size: .76rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.6);
+  line-height: 1.5;
+  max-width: 38ch;
 }
-
-/* Critique overlay — coach's pinned note that appears as the video
-   plays through each pin timestamp. */
-.pe-critique {
-  position: absolute;
-  left: 10%; right: 10%;
-  bottom: 14%;
-  padding: .7rem 1rem;
-  background: rgba(10,0,20,.88);
-  border: 1px solid rgba(212,175,55,.6);
-  border-left: 3px solid var(--bbf-gold-victory, #F5C800);
-  border-radius: 8px;
-  color: #FBE3A0;
-  font-size: .82rem;
-  line-height: 1.45;
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity .35s ease, transform .35s ease;
-  pointer-events: none;
-  z-index: 4;
-}
-.pe-critique.on { opacity: 1; transform: translateY(0); }
-
-/* Timeline with pin markers */
-.pe-timeline { margin-top: .8rem; position: relative; }
-.pe-timeline-track {
-  height: 4px; background: rgba(255,255,255,.08); border-radius: 2px;
-  overflow: hidden; position: relative;
-}
-.pe-timeline-progress {
-  position: absolute; inset: 0 auto 0 0;
-  width: 0%;
-  background: linear-gradient(90deg, #D4AF37 0%, #F5C800 100%);
-  transition: width .18s linear;
-}
-.pe-pins {
-  position: absolute;
-  left: 0; right: 0; top: -4px; height: 12px;
-}
-.pe-pin {
-  position: absolute;
-  top: 0; transform: translateX(-50%);
-  width: 12px; height: 12px;
-  background: radial-gradient(circle at 30% 30%, #F5C800 0%, #D4AF37 55%, #8a6c1c 100%);
-  border: none;
-  border-radius: 50%;
+.pe-init-btn {
+  margin-top: .55rem;
+  padding: .85rem 1.4rem;
+  background: linear-gradient(180deg, #F2D769 0%, #E6C24F 35%, #D4AF37 70%, #A8862A 100%);
+  color: #060606;
+  font-family: var(--hb);
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  border: 1px solid #F2D769;
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 0 8px rgba(245,200,0,.55), 0 0 0 2px rgba(10,1,24,.85);
-  transition: transform .18s ease;
-  padding: 0;
+  box-shadow: 0 8px 22px -6px rgba(212,175,55,.55), inset 0 1px 0 rgba(255,255,255,.4);
+  transition: transform .18s ease, box-shadow .25s ease, filter .2s ease;
 }
-.pe-pin:hover { transform: translateX(-50%) scale(1.2); }
+.pe-init-btn:hover { transform: translateY(-1px); filter: brightness(1.06); box-shadow: 0 10px 28px -6px rgba(212,175,55,.75), inset 0 1px 0 rgba(255,255,255,.4); }
+.pe-init-btn:active { transform: scale(.97); }
 
-/* Action row */
-.pe-actions {
+/* ═══ PHANTOM EYE STREAM — full-page Live Coach overlay (Phase 15 Slice 1C) ═══ */
+.pes-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10500;
   display: flex;
-  gap: .6rem;
-  margin-top: .9rem;
-  flex-wrap: wrap;
-}
-.pe-btn {
-  flex: 1 1 auto;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: .75rem 1rem;
+  background: rgba(2,1,8,.93);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+.pes-overlay[hidden] { display: none; }
+.pes-shell {
+  width: min(100%, 960px);
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(20,5,35,.78), rgba(8,2,15,.92));
+  border: 1px solid rgba(212,175,55,.35);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,.85), 0 0 40px rgba(212,175,55,.18);
+  overflow: hidden;
+}
+.pes-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .9rem 1.1rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  gap: 1rem;
+}
+.pes-head-l { display: flex; flex-direction: column; gap: .15rem; min-width: 0 }
+.pes-head-r { display: flex; align-items: center; gap: .7rem }
+.pes-kicker { font-family: var(--hb); font-size: .58rem; letter-spacing: 4px; text-transform: uppercase; color: rgba(212,175,55,.8) }
+.pes-title { font-family: var(--hb); font-size: 1.15rem; letter-spacing: 1px; color: var(--wht); line-height: 1 }
+.pes-x {
+  background: transparent; border: 0; color: rgba(255,255,255,.7);
+  font-size: 1.3rem; cursor: pointer; padding: .25rem .55rem;
+  border-radius: 8px; transition: background .15s ease, color .15s ease;
+}
+.pes-x:hover { background: rgba(255,255,255,.08); color: var(--wht) }
+.pes-stage {
+  position: relative;
+  background: #000;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#phantom-eye-stream {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  background: #000;
+  /* Mirror the front camera so it reads like a viewfinder, not a recording. */
+  transform: scaleX(-1);
+}
+.pes-overlay-msg {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 80%;
+  text-align: center;
   font-family: var(--hb);
-  font-size: .75rem;
+  font-size: .85rem;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,.78);
+  background: rgba(10,0,20,.78);
+  border: 1px solid rgba(212,175,55,.35);
+  border-radius: 10px;
+  padding: .8rem 1rem;
+  pointer-events: none;
+  display: none;
+}
+.pes-overlay-msg.on { display: block }
+.pes-overlay-msg.is-error { color: #ef4444; border-color: rgba(239,68,68,.45) }
+.pes-actions {
+  display: flex;
+  justify-content: center;
+  padding: .9rem 1.1rem;
+  border-top: 1px solid rgba(255,255,255,.06);
+  background: rgba(0,0,0,.25);
+}
+.pes-btn {
+  padding: .8rem 1.6rem;
+  font-family: var(--hb);
+  font-size: .78rem;
   font-weight: 700;
-  letter-spacing: .18em;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
   border-radius: 10px;
   cursor: pointer;
-  transition: transform .18s ease, filter .2s ease, box-shadow .25s ease;
-  text-align: center;
+  border: 1px solid transparent;
+  transition: transform .15s ease, filter .2s ease, background .2s ease;
 }
-.pe-btn--primary {
-  background: linear-gradient(180deg, #F2D769 0%, #E6C24F 35%, #D4AF37 70%, #A8862A 100%);
-  border: 1px solid #F2D769;
-  color: #0a0a0a;
-  box-shadow: 0 6px 18px rgba(212,175,55,.38), inset 0 1px 0 rgba(255,255,255,.28);
+.pes-btn--terminate {
+  background: rgba(239,68,68,.15);
+  border-color: rgba(239,68,68,.6);
+  color: #ef4444;
 }
-.pe-btn--primary:hover { transform: translateY(-1px); filter: brightness(1.05); }
-.pe-btn--ghost {
-  background: transparent;
-  border: 1px solid rgba(212,175,55,.35);
-  color: rgba(212,175,55,.85);
-}
-.pe-btn--ghost:hover { background: rgba(212,175,55,.08); color: #F5C800; }
+.pes-btn--terminate:hover { background: rgba(239,68,68,.28); filter: brightness(1.05) }
+.pes-btn--terminate:active { transform: scale(.97) }
 
 @media (prefers-reduced-motion: reduce) {
   .pe-bracket { animation: none; }
   .pe-scanline { animation: none; opacity: 0; }
-  .pe-widget.is-pending { animation: none; }
+  .pe-hero-eye { animation: none; }
+  .pe-status-badge.is-live::before { animation: none; }
 }
 
 /* ═══ BIOMETRIC YIELD REPORT — Promethean UI (Matte Black × Gold) ═══
@@ -3472,10 +3433,6 @@ section[id], footer[id] { scroll-margin-top: 80px; }
   0%, 100% { box-shadow: 0 0 0 0 rgba(245,200,0,0); }
   50%      { box-shadow: 0 0 22px 2px rgba(245,200,0,.35); }
 }
-@keyframes bbfVaultTitleBreath {
-  0%, 100% { transform: translateY(0) scale(1); text-shadow: 0 0 0 transparent; }
-  50%      { transform: translateY(-3px) scale(1.018); text-shadow: 0 0 16px rgba(245,200,0,.40), 0 0 28px rgba(245,200,0,.18); }
-}
 @keyframes bbfGoldBadgePulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(245,200,0,0); filter: brightness(1); }
   50%      { box-shadow: 0 0 18px 1px rgba(245,200,0,.45); filter: brightness(1.08); }
@@ -3496,9 +3453,7 @@ section[id], footer[id] { scroll-margin-top: 80px; }
 #splash .sw  { animation: bbfSplashBreath 3.4s ease-in-out infinite; }
 #splash .sinn{ animation: bbfSplashBadgeBreath 3.4s ease-in-out 400ms infinite; }
 
-.vault-hero-title { animation: bbfVaultTitleBreath 4.2s cubic-bezier(.4,0,.6,1) infinite; }
-
-.analytics-title, .cl-title, .hi-title, .vtitle, .byr-title, .vault-hero-lbl {
+.analytics-title, .cl-title, .hi-title, .vtitle, .byr-title {
   animation: bbfTitleGlow 3.8s ease-in-out infinite;
 }
 .analytics-title { animation-delay: 0ms; }
@@ -3793,25 +3748,6 @@ body.bbf-pantheon-ok .bbf-pantheon-tip { display: block; }
   border-right-color: rgba(245,200,0,.5);
 }
 
-/* ---- Vault hero title gets ceremonial meander crown ---- */
-.vault-hero-title {
-  position: relative;
-}
-.vault-hero-title::before {
-  content: "";
-  position: absolute;
-  left: 50%; top: -22px;
-  transform: translateX(-50%);
-  width: 140px; height: 14px;
-  background-image: var(--bbf-meander);
-  background-repeat: repeat-x;
-  background-size: auto 100%;
-  opacity: .45;
-  pointer-events: none;
-  mask-image: linear-gradient(90deg, transparent 0%, black 20%, black 80%, transparent 100%);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 20%, black 80%, transparent 100%);
-}
-
 /* ---- Ceremonial gold dust (splash / auth scoped) ---- */
 .bbf-dust {
   position: fixed; inset: 0;
@@ -3854,7 +3790,6 @@ body.bbf-pantheon-ok .bbf-dust { display: block; }
   #splash .sw { padding: 0 3rem; }
   #splash .sw::before, #splash .sw::after { width: 40px; height: 20px; }
   #splash::before, #splash::after { width: min(220px, 70%); }
-  .vault-hero-title::before { width: 100px; top: -18px; }
 }
 
 /* ---- Vault Seal image — replaces the old .sring/.sinn badge ---- */
@@ -5049,10 +4984,10 @@ window.onload=function(){
           <button class="seq-dismiss" id="seq-dismiss-btn" type="button" data-lang-key="seq-dismiss">Acknowledge &amp; Continue with Caution</button>
         </div>
       </div>
-      <!-- PHANTOM EYE — video check-in viewport (Titan 3) -->
-      <div id="phantom-eye" class="pe-widget" style="display:none">
+      <!-- PHANTOM EYE — Live AI Coach hub (Phase 15 Slice 1) -->
+      <div id="phantom-eye" class="pe-widget">
         <div class="pe-head">
-          <div class="pe-label" data-lang-key="pe-label">&#x1F441; Phantom Eye Viewport</div>
+          <div class="pe-label" data-lang-key="pe-label">&#x1F441; Phantom Eye Viewport &middot; Live Biomechanical &amp; Nutritional Analysis</div>
           <div class="pe-status-badge" id="pe-status-badge" data-lang-key="pe-badge-idle">Idle</div>
         </div>
         <div class="pe-frame" id="pe-frame">
@@ -5061,23 +4996,13 @@ window.onload=function(){
           <span class="pe-bracket pe-bracket--bl" aria-hidden="true"></span>
           <span class="pe-bracket pe-bracket--br" aria-hidden="true"></span>
           <div class="pe-scanline" aria-hidden="true"></div>
-          <video id="pe-video" playsinline controls preload="metadata" style="display:none"></video>
-          <div class="pe-empty" id="pe-empty">
-            <div class="pe-empty-eye" aria-hidden="true">&#x1F441;</div>
-            <div class="pe-empty-label" data-lang-key="pe-empty-label">Awaiting Form Submission</div>
-            <div class="pe-empty-sub"  data-lang-key="pe-empty-sub">Film your working set. Sovereign review in &lt;24h.</div>
-            <div class="pe-empty-rx"   id="pe-empty-rx"></div>
+          <div class="pe-hero" id="pe-hero">
+            <div class="pe-hero-eye" aria-hidden="true">&#x1F441;</div>
+            <div class="pe-hero-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
+            <div class="pe-hero-title" data-lang-key="pe-hero-title">Real-time form audit + nutrition vision</div>
+            <div class="pe-hero-sub" data-lang-key="pe-hero-sub">Stream your camera to the BBF Intelligence Engine. Instant biomechanical cues + macro estimates from what you're holding, lifting, or eating.</div>
+            <button type="button" class="pe-init-btn" id="pe-init-btn" onclick="initLiveCoach()" data-lang-key="pe-init">&#x1F3AC; Initialize Live Coach &rarr;</button>
           </div>
-          <div class="pe-critique" id="pe-critique" role="status" aria-live="polite"></div>
-        </div>
-        <div class="pe-timeline" id="pe-timeline" style="display:none">
-          <div class="pe-timeline-track"><div class="pe-timeline-progress" id="pe-timeline-progress"></div></div>
-          <div class="pe-pins" id="pe-pins"></div>
-        </div>
-        <div class="pe-actions">
-          <label class="pe-btn pe-btn--primary" for="pe-file-input" data-lang-key="pe-upload">&#x1F4F9; Upload Form Check</label>
-          <input type="file" id="pe-file-input" accept="video/*" style="display:none">
-          <button class="pe-btn pe-btn--ghost" id="pe-pin-btn" type="button" style="display:none" data-lang-key="pe-pin">&#x1F4CC; Pin Critique</button>
         </div>
       </div>
       <!-- PHANTOM COMLINK launcher (Phase 4) — opens the SECURE UPLINK SOS modal -->
@@ -5726,53 +5651,6 @@ window.onload=function(){
       <div id="vault-program-pane">
         <div class="dnav" id="dnav"></div>
         <div id="wcon"></div>
-      </div>
-      <!-- ── Section divider — Program ends, Masterclass begins ── -->
-      <div style="margin:1.5rem 0 1rem;display:flex;align-items:center;gap:.6rem">
-        <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(245,200,0,.35),transparent)"></div>
-        <div style="font-family:var(--hb);font-size:.65rem;letter-spacing:4px;color:var(--yel);opacity:.75">MASTERCLASS VAULT</div>
-        <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(245,200,0,.35),transparent)"></div>
-      </div>
-      <!-- MASTERCLASS VAULT PANE -->
-      <div id="vault-masterclass-pane">
-        <!-- Community Resource Banner -->
-        <div id="community-banner" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:14px;padding:1rem;margin-bottom:1rem;display:none">
-          <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#22c55e;margin-bottom:.3rem">&#x1F331; Community Blueprint — $67 Tier</div>
-          <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.7);line-height:1.6">Modules 1-2 are unlocked for Community members. Upgrade to Elite Challenge to unlock all 6 modules.</div>
-          <a href="sms:6233409254?body=Upgrade%20me%20to%20Elite" style="display:inline-block;margin-top:.7rem;background:#22c55e;color:#060606;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;padding:.45rem 1.2rem;border-radius:8px;text-decoration:none">Upgrade to Elite →</a>
-        </div>
-        <div class="vault-hero">
-          <div class="vault-hero-lbl">Build Believe Fit LLC</div>
-          <div class="vault-hero-title">Human Performance<br>Masterclass</div>
-          <div class="vault-hero-sub">6 modules &bull; DJI Osmo footage &bull; Sovereign Gold Standard Science</div>
-          <div class="vault-progress">
-            <div class="vault-prog-bar"><div class="vault-prog-fill" id="vault-fill" style="width:0%"></div></div>
-            <div class="vault-prog-lbl" id="vault-pct">0% Complete</div>
-          </div>
-        </div>
-        <!-- VIDEO PLAYER (hidden until module selected) -->
-        <div class="video-player-wrap" id="video-player-wrap">
-          <div class="video-player-inner">
-            <div class="video-player-ph">
-              <div class="video-player-ph-icon">&#x1F3AC;</div>
-              <div class="video-player-ph-txt" id="video-ph-txt">Module loading...</div>
-            </div>
-            <video id="vault-video" style="display:none;width:100%;height:100%;object-fit:contain" controls playsinline></video>
-          </div>
-          <button class="video-close-btn" onclick="closeVideoPlayer()">&#x2715; Close</button>
-        </div>
-        <!-- MODULE GRID -->
-        <div class="vault-grid" id="vault-grid"></div>
-        <!-- SPECIALIZED PROTOCOL — Busy Parent -->
-        <div id="parent-guide-card" style="background:var(--gry);border:1px solid #1a1a1a;border-radius:14px;padding:1.2rem;margin-top:1rem;display:flex;align-items:center;gap:1rem">
-          <div style="font-size:1.8rem;flex-shrink:0">&#x1F46A;</div>
-          <div style="flex:1">
-            <div style="font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--purl);margin-bottom:.2rem">Specialized Protocol</div>
-            <div style="font-size:.95rem;font-weight:800;color:var(--wht)">Busy Parent Transformation</div>
-            <div style="font-size:.72rem;color:var(--mut);margin-top:.15rem" id="parent-guide-status"></div>
-          </div>
-          <div id="parent-guide-action" style="flex-shrink:0"></div>
-        </div>
       </div>
     </div>
     <!-- NUTRITION -->
@@ -6439,6 +6317,29 @@ window.onload=function(){
     </div>
   </div>
 
+  <!-- ═══ PHANTOM EYE — Live Coach stream overlay (Phase 15 Slice 1C) ═══ -->
+  <div class="pes-overlay" id="phantom-eye-stream-modal" role="dialog" aria-modal="true" aria-labelledby="pes-title" hidden>
+    <div class="pes-shell">
+      <header class="pes-head">
+        <div class="pes-head-l">
+          <div class="pes-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
+          <div class="pes-title" id="pes-title">Phantom Eye &middot; Live Stream</div>
+        </div>
+        <div class="pes-head-r">
+          <span class="pe-status-badge is-live" id="pes-live-badge" data-lang-key="pe-badge-live">Live</span>
+          <button type="button" class="pes-x" id="pes-x-btn" onclick="terminateLiveCoach()" aria-label="Close Live Coach">&#x2715;</button>
+        </div>
+      </header>
+      <div class="pes-stage">
+        <video id="phantom-eye-stream" autoplay playsinline muted></video>
+        <div class="pes-overlay-msg" id="pes-overlay-msg" role="status" aria-live="polite"></div>
+      </div>
+      <div class="pes-actions">
+        <button type="button" class="pes-btn pes-btn--terminate" id="pes-terminate-btn" onclick="terminateLiveCoach()" data-lang-key="pe-terminate">Terminate Session</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ PHANTOM COMLINK — SECURE UPLINK modal (Client SOS) ═══ -->
   <div class="cl-overlay" id="secure-uplink-modal" role="dialog" aria-modal="true" aria-labelledby="cl-title">
     <div class="cl-modal">
@@ -7026,7 +6927,7 @@ function TAB(name) {
   var btn = document.querySelector('.nv[data-tab="' + name + '"]');
   if (btn) btn.classList.add('on');
   if (name === 'home')      RH();
-  if (name === 'workout')   { RW(); if (window.SS_REFRESH_DAMAGED) window.SS_REFRESH_DAMAGED(); if (typeof renderVaultGrid === 'function') renderVaultGrid(); }
+  if (name === 'workout')   { RW(); if (window.SS_REFRESH_DAMAGED) window.SS_REFRESH_DAMAGED(); }
   if (name === 'nutrition') RN();
   if (name === 'prehab') renderPrehab();
   if (name === 'profile') { PTAB('overview'); }
@@ -8517,78 +8418,94 @@ document.addEventListener('DOMContentLoaded', function() {
   if (seqDismiss) seqDismiss.addEventListener('click', closeSeq);
 });
 
-// ─── PHANTOM EYE (Titan 3 — video check-in viewport) ─────
-function renderPhantomEye() {
-  var uid = VC || CU;
-  if (!uid) return;
-  if (CU === 'akeem' && VC === null) return; // trainer view: skip
-  if (typeof BBF_HOLOGRAM === 'undefined' || !BBF_HOLOGRAM.initializeVision) return;
-  BBF_HOLOGRAM.initializeVision(uid).catch(function(e){
-    console.warn('Phantom Eye init error:', e && e.message);
-  });
-}
+// ─── PHANTOM EYE — Live AI Coach hub (Phase 15 Slice 1) ─────
+// The hub is statically rendered inside the workout surface. The Titan 3
+// upload pipeline is gone; renderPhantomEye stays as a callable no-op
+// for any legacy callers (e.g. ENTER → renderPhantomEye still fires).
+// The "Initialize Live Coach" CTA delegates to window.initLiveCoach,
+// which owns the getUserMedia + stream-modal flow defined in the
+// camera-staging block (Phase 15 Slice 1C).
+function renderPhantomEye() { /* no-op — Live Coach hub is statically rendered */ }
 
-document.addEventListener('DOMContentLoaded', function() {
-  var fileInput = document.getElementById('pe-file-input');
-  var pinBtn    = document.getElementById('pe-pin-btn');
-  var video     = document.getElementById('pe-video');
-  var progress  = document.getElementById('pe-timeline-progress');
+// Active MediaStream so terminateLiveCoach can stop every track.
+// Held on window so any future caller (e.g. Gemini Live API socket
+// teardown in Slice 2+) can reach it. Null when no session is live.
+window.PHANTOM_EYE_STREAM = null;
 
-  if (fileInput) fileInput.addEventListener('change', function(e){
-    var f = e.target && e.target.files && e.target.files[0];
-    if (!f) return;
-    if (typeof BBF_HOLOGRAM !== 'undefined' && BBF_HOLOGRAM.uploadVideo) {
-      BBF_HOLOGRAM.uploadVideo(f, { exercise_name: null });
-      if (typeof TOAST === 'function') {
-        TOAST((typeof _t === 'function' ? _t('pe-uploaded', '\uD83D\uDCF9 Form check uploaded. Awaiting Sovereign review.') : '\uD83D\uDCF9 Form check uploaded.'));
-      }
-    }
-    try { e.target.value = ''; } catch(_) {}
-  });
+window.initLiveCoach = function initLiveCoach() {
+  var overlay  = document.getElementById('phantom-eye-stream-modal');
+  var videoEl  = document.getElementById('phantom-eye-stream');
+  var msgEl    = document.getElementById('pes-overlay-msg');
+  var initBtn  = document.getElementById('pe-init-btn');
+  var statusEl = document.getElementById('pe-status-badge');
+  if (!overlay || !videoEl) return;
 
-  if (pinBtn) pinBtn.addEventListener('click', function(){
-    if (!video) return;
-    var ts = video.currentTime || 0;
-    var msg = (typeof _t === 'function')
-      ? _t('pe-prompt-note', 'Coach critique at ' + ts.toFixed(1) + 's:')
-      : 'Coach critique at ' + ts.toFixed(1) + 's:';
-    var note = (typeof prompt === 'function') ? prompt(msg) : null;
-    if (!note) return;
-    if (typeof BBF_HOLOGRAM !== 'undefined' && BBF_HOLOGRAM.pinCritique) {
-      BBF_HOLOGRAM.pinCritique(ts, note);
-      if (typeof TOAST === 'function') {
-        TOAST((typeof _t === 'function' ? _t('pe-pinned', '\uD83D\uDCCC Critique pinned.') : '\uD83D\uDCCC Pinned.'));
-      }
-    }
-  });
-
-  if (video && progress) {
-    video.addEventListener('timeupdate', function(){
-      var d = video.duration || 0;
-      if (!isFinite(d) || d <= 0) { progress.style.width = '0%'; return; }
-      progress.style.width = ((video.currentTime / d) * 100).toFixed(2) + '%';
-    });
-    // Surface pinned critiques as playback reaches each timestamp.
-    video.addEventListener('timeupdate', function(){
-      if (typeof BBF_HOLOGRAM === 'undefined' || !BBF_HOLOGRAM.getVisionState) return;
-      var pins = (BBF_HOLOGRAM.getVisionState().pins || []);
-      var now = video.currentTime || 0;
-      pins.forEach(function(pin){
-        var delta = now - (pin.timestamp_sec || 0);
-        if (delta >= 0 && delta < 0.25 && !pin._shown) {
-          pin._shown = true;
-          var box = document.getElementById('pe-critique');
-          if (!box) return;
-          box.textContent = pin['note_' + (typeof LANG !== 'undefined' ? LANG : 'en')] || pin.note_en || pin.note || '';
-          box.classList.add('on');
-          clearTimeout(pin._to);
-          pin._to = setTimeout(function(){ box.classList.remove('on'); }, 5500);
-        }
-        if (delta > 4) pin._shown = false; // reset for scrubs back
-      });
-    });
+  // Reveal the overlay first so the permission prompt has visual context.
+  overlay.hidden = false;
+  document.body.style.overflow = 'hidden';
+  if (msgEl) {
+    msgEl.classList.remove('is-error');
+    msgEl.textContent = (typeof _t === 'function' ? _t('pe-perm-prompt', 'Requesting camera + microphone…') : 'Requesting camera + microphone…');
+    msgEl.classList.add('on');
   }
-});
+  if (initBtn) initBtn.disabled = true;
+
+  // Reject early if the API isn't available (older browsers, http://).
+  if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+    var unsupportedMsg = (typeof _t === 'function' ? _t('pe-perm-unsupported', 'Live Coach requires a browser with camera + microphone APIs. Please update your browser.') : 'Live Coach requires a browser with camera + microphone APIs.');
+    if (msgEl) { msgEl.textContent = unsupportedMsg; msgEl.classList.add('is-error', 'on'); }
+    if (initBtn) initBtn.disabled = false;
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    .then(function(stream) {
+      window.PHANTOM_EYE_STREAM = stream;
+      videoEl.srcObject = stream;
+      if (msgEl) { msgEl.classList.remove('on', 'is-error'); msgEl.textContent = ''; }
+      if (statusEl) {
+        statusEl.classList.add('is-live');
+        statusEl.textContent = (typeof _t === 'function' ? _t('pe-badge-live', 'Live') : 'Live');
+      }
+      if (initBtn) initBtn.disabled = false;
+    })
+    .catch(function(err) {
+      console.warn('Phantom Eye getUserMedia denied/failed:', err && err.name, err && err.message);
+      var deniedMsg = (typeof _t === 'function' ? _t('pe-perm-denied', 'Camera/microphone access denied. Enable permissions in your browser settings to use the Live Coach.') : 'Camera/microphone access denied. Enable permissions in your browser settings.');
+      if (msgEl) { msgEl.textContent = deniedMsg; msgEl.classList.add('is-error', 'on'); }
+      if (initBtn) initBtn.disabled = false;
+    });
+};
+
+window.terminateLiveCoach = function terminateLiveCoach() {
+  var overlay  = document.getElementById('phantom-eye-stream-modal');
+  var videoEl  = document.getElementById('phantom-eye-stream');
+  var msgEl    = document.getElementById('pes-overlay-msg');
+  var statusEl = document.getElementById('pe-status-badge');
+
+  // Stop every track on the active stream so the camera + mic indicator
+  // turns off in the user's browser. Null-safe in case the user never
+  // granted permissions.
+  if (window.PHANTOM_EYE_STREAM) {
+    try {
+      window.PHANTOM_EYE_STREAM.getTracks().forEach(function(t){
+        try { t.stop(); } catch(_) {}
+      });
+    } catch(_) {}
+    window.PHANTOM_EYE_STREAM = null;
+  }
+  if (videoEl) {
+    try { videoEl.pause(); } catch(_) {}
+    videoEl.srcObject = null;
+  }
+  if (overlay) overlay.hidden = true;
+  document.body.style.overflow = '';
+  if (msgEl) { msgEl.classList.remove('on', 'is-error'); msgEl.textContent = ''; }
+  if (statusEl) {
+    statusEl.classList.remove('is-live');
+    statusEl.textContent = (typeof _t === 'function' ? _t('pe-badge-idle', 'Idle') : 'Idle');
+  }
+};
 
 // ═══════════════════════════════════════════════════════════
 // BIOMETRIC YIELD REPORT — Sovereign Clinical Synthesis
@@ -9752,177 +9669,6 @@ function renderProtocolBadge(uid) {
   badge.style.background  = proto.color + '11';
   if (icon) icon.innerHTML = proto.icon;
   if (lbl)  { lbl.textContent = proto.label; lbl.style.color = proto.color; }
-}
-
-// ─── VIDEO VAULT ──────────────────────────────────────────────────
-var VAULT_MODULES = [
-  {
-    id: 1,
-    title: 'The Human Performance Foundation',
-    desc: 'Who this program is built for and why standard fitness advice fails high-demand professionals.',
-    duration: '18 min',
-    locked: false,
-    tag: 'Mindset',
-    tag_icon: '&#x1F9E0;',
-    bg: 'linear-gradient(135deg,#1e0338,#4a0880)',
-    src: ''  // Drop your DJI Osmo MP4 URL here
-  },
-  {
-    id: 2,
-    title: 'Progressive Overload for Real Life',
-    desc: 'How to build strength progressively when recovery is compressed by shift work and life demands.',
-    duration: '24 min',
-    locked: false,
-    tag: 'Strength',
-    tag_icon: '&#x1F3CB;',
-    bg: 'linear-gradient(135deg,#0d0118,#6a0dad)',
-    src: ''
-  },
-  {
-    id: 3,
-    title: 'Nutrition in the Dead Zones',
-    desc: 'Fueling strategy for 12-hour shifts, overnight rotations, and no-kitchen environments.',
-    duration: '21 min',
-    locked: false,
-    tag: 'Nutrition',
-    tag_icon: '&#x1F957;',
-    bg: 'linear-gradient(135deg,#0a1600,#1a4000)',
-    src: ''
-  },
-  {
-    id: 4,
-    title: 'OT-Backed Joint Longevity Protocol',
-    desc: 'The prehab science behind protecting hips, spine, shoulders, and ankles for a 30-year career.',
-    duration: '28 min',
-    locked: true,
-    tag: 'Recovery',
-    tag_icon: '&#x1F9B4;',
-    bg: 'linear-gradient(135deg,#001020,#003060)',
-    src: ''
-  },
-  {
-    id: 5,
-    title: 'Sleep Architecture for Shift Workers',
-    desc: 'Circadian rhythm manipulation, sleep stacking, and the hormonal environment for muscle growth.',
-    duration: '19 min',
-    locked: true,
-    tag: 'Recovery',
-    tag_icon: '&#x1F634;',
-    bg: 'linear-gradient(135deg,#0d0118,#2d0050)',
-    src: ''
-  },
-  {
-    id: 6,
-    title: 'The 8-Week Transformation Blueprint',
-    desc: 'Week-by-week periodization mapped to your real schedule. The full system in one module.',
-    duration: '35 min',
-    locked: true,
-    tag: 'Blueprint',
-    tag_icon: '&#x1F3AF;',
-    bg: 'linear-gradient(135deg,#1a0e00,#4a2800)',
-    src: ''
-  }
-];
-
-var vaultProgress = 0;
-
-// Phase 8b — switchVaultTab removed. The Masterclass pane is now an
-// always-visible stacked section beneath the workout area; the tab
-// buttons (#vtab-prog / #vtab-vault) it referenced never existed in
-// the DOM, so the function was unreachable dead code.
-
-function renderVaultGrid() {
-  var grid = document.getElementById('vault-grid');
-  if (!grid) return;
-  var uid = VC || CU;
-  var d = GD(); var u = d.u[uid] || {};
-  var watched = u.vault_watched || [];
-  var completed = watched.length;
-  vaultProgress = VAULT_MODULES.length > 0 ? Math.round((completed / VAULT_MODULES.length) * 100) : 0;
-  var fill = document.getElementById('vault-fill');
-  var pct  = document.getElementById('vault-pct');
-  if (fill) fill.style.width = vaultProgress + '%';
-  if (pct)  pct.textContent = vaultProgress + '% Complete';
-
-  grid.innerHTML = VAULT_MODULES.map(function(m) {
-    var isWatched  = watched.indexOf(m.id) > -1;
-    var effectivelyLocked = m.locked && !(typeof window.BBF_IS_ADMIN === 'function' && window.BBF_IS_ADMIN());
-    var stateClass = effectivelyLocked ? 'locked' : 'unlocked';
-    var playHtml   = effectivelyLocked
-      ? '<div class="module-lock">&#x1F512;</div>'
-      : '<div class="module-play"><div class="module-play-icon"></div></div>';
-    var watchedBadge = isWatched
-      ? '<div style="position:absolute;top:.5rem;right:.6rem;z-index:3;background:rgba(34,197,94,.85);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.7rem">&#x2713;</div>'
-      : '';
-    return '<div class="module-card ' + stateClass + '" onclick="openModule(' + m.id + ')">' +
-      '<div class="module-thumb" style="background:' + m.bg + '">' +
-        '<div class="module-num">MODULE ' + m.id + '</div>' +
-        playHtml +
-        watchedBadge +
-        '<div class="module-dur">' + m.duration + '</div>' +
-      '</div>' +
-      '<div class="module-info">' +
-        '<div class="module-title">' + m.title + '</div>' +
-        '<div class="module-desc">' + m.desc + '</div>' +
-        '<div class="module-tag">' + m.tag_icon + ' ' + m.tag + '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-  // Render Busy Parent guide card based on tier
-  var statusEl = document.getElementById('parent-guide-status');
-  var actionEl = document.getElementById('parent-guide-action');
-  if (statusEl && actionEl) {
-    var tier = (d.u[uid] && d.u[uid].type) || 'Essentials';
-    var isUnlocked = (typeof window.BBF_IS_ADMIN === 'function' && window.BBF_IS_ADMIN()) || tier === 'Platinum' || tier === 'Trainer';
-    if (isUnlocked) {
-      statusEl.textContent = 'Included with your ' + tier + ' tier';
-      actionEl.innerHTML = '<a href="busy-parent-transformation.html" style="font-family:var(--hb);font-size:.75rem;letter-spacing:2px;background:var(--yel);color:var(--blk);padding:.45rem 1rem;border-radius:8px;text-decoration:none">OPEN</a>';
-    } else {
-      statusEl.textContent = 'Upgrade to Elite or Legacy to unlock';
-      actionEl.innerHTML = '<span style="font-size:1.2rem">&#x1F512;</span>';
-    }
-  }
-}
-
-function openModule(id) {
-  var m = VAULT_MODULES.find(function(x){ return x.id === id; });
-  if (!m) return;
-  if (m.locked && !(typeof window.BBF_IS_ADMIN === 'function' && window.BBF_IS_ADMIN())) {
-    TOAST('🔒 Unlock with the 8-Week Elite Challenge');
-    return;
-  }
-  var wrap  = document.getElementById('video-player-wrap');
-  var video = document.getElementById('vault-video');
-  var ph    = document.getElementById('video-ph-txt');
-  var phContainer = document.querySelector('.video-player-ph');
-  if (!wrap) return;
-  wrap.classList.add('on');
-  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  if (m.src) {
-    if (video) { video.src = m.src; video.style.display = 'block'; }
-    if (phContainer) phContainer.style.display = 'none';
-  } else {
-    // Placeholder state
-    if (video) video.style.display = 'none';
-    if (phContainer) phContainer.style.display = 'block';
-    if (ph) ph.textContent = m.title + ' — Upload your DJI footage to activate';
-  }
-  // Mark as watched
-  var uid = VC || CU;
-  var d = GD(); var u = d.u[uid] || {};
-  if (!u.vault_watched) u.vault_watched = [];
-  if (u.vault_watched.indexOf(id) === -1) {
-    u.vault_watched.push(id);
-    d.u[uid] = u; SD(d);
-    renderVaultGrid();
-  }
-}
-
-function closeVideoPlayer() {
-  var wrap  = document.getElementById('video-player-wrap');
-  var video = document.getElementById('vault-video');
-  if (wrap)  wrap.classList.remove('on');
-  if (video) { video.pause(); video.src = ''; }
 }
 
 // ─── LANGUAGE STATE ───────────────────────────────────────────────

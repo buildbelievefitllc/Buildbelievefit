@@ -427,19 +427,18 @@ var D = {
 'seq-cta':         { en:'Initialise Mobility + Recovery Protocol', es:'Iniciar Protocolo de Movilidad + Recuperaci\u00f3n', pt:'Iniciar Protocolo de Mobilidade + Recupera\u00e7\u00e3o' },
 'seq-dismiss':     { en:'Acknowledge \u0026 Continue with Caution', es:'Reconocer y Continuar con Precauci\u00f3n', pt:'Reconhecer e Continuar com Cautela' },
 
-// ═══ PHANTOM EYE — Titan 3 video check-in viewport ═══════════
-'pe-label':         { en:'\uD83D\uDC41 Phantom Eye Viewport', es:'\uD83D\uDC41 Viewport del Ojo Fantasma', pt:'\uD83D\uDC41 Viewport do Olho Fantasma' },
-'pe-badge-idle':    { en:'Idle',                es:'En Reposo',            pt:'Em Repouso' },
-'pe-badge-pending': { en:'Pending Review',      es:'En Revisi\u00f3n',     pt:'Em Revis\u00e3o' },
-'pe-badge-cleared': { en:'Cleared',             es:'Aprobado',             pt:'Aprovado' },
-'pe-badge-needs_revision': { en:'Needs Revision', es:'Requiere Revisi\u00f3n', pt:'Requer Revis\u00e3o' },
-'pe-empty-label':   { en:'Awaiting Form Submission', es:'Esperando Env\u00edo de T\u00e9cnica', pt:'Aguardando Envio de T\u00e9cnica' },
-'pe-empty-sub':     { en:'Film your working set. Sovereign review in &lt;24h.', es:'Graba tu serie de trabajo. Revisi\u00f3n Soberana en &lt;24h.', pt:'Grave sua s\u00e9rie de trabalho. Revis\u00e3o Soberana em &lt;24h.' },
-'pe-upload':        { en:'\uD83D\uDCF9 Upload Form Check',   es:'\uD83D\uDCF9 Subir Chequeo de T\u00e9cnica', pt:'\uD83D\uDCF9 Enviar Verifica\u00e7\u00e3o de T\u00e9cnica' },
-'pe-pin':           { en:'\uD83D\uDCCC Pin Critique',        es:'\uD83D\uDCCC Fijar Cr\u00edtica',            pt:'\uD83D\uDCCC Fixar Cr\u00edtica' },
-'pe-uploaded':      { en:'\uD83D\uDCF9 Form check uploaded. Awaiting Sovereign review.', es:'\uD83D\uDCF9 Chequeo de t\u00e9cnica subido. Esperando revisi\u00f3n Soberana.', pt:'\uD83D\uDCF9 Verifica\u00e7\u00e3o de t\u00e9cnica enviada. Aguardando revis\u00e3o Soberana.' },
-'pe-pinned':        { en:'\uD83D\uDCCC Critique pinned.',    es:'\uD83D\uDCCC Cr\u00edtica fijada.',          pt:'\uD83D\uDCCC Cr\u00edtica fixada.' },
-'pe-prompt-note':   { en:'Coach critique at this timestamp:', es:'Cr\u00edtica del entrenador en este momento:', pt:'Cr\u00edtica do treinador neste momento:' },
+
+// ═══ PHANTOM EYE — Live AI Coach hub (Phase 15) ═════════════
+'pe-label':        { en:'👁 Phantom Eye Viewport · Live Biomechanical & Nutritional Analysis', es:'👁 Viewport del Ojo Fantasma · Análisis Biomecánico y Nutricional en Vivo', pt:'👁 Viewport do Olho Fantasma · Análise Biomecânica e Nutricional ao Vivo' },
+'pe-badge-idle':   { en:'Idle',                es:'En Reposo',            pt:'Em Repouso' },
+'pe-badge-live':   { en:'Live',                es:'En Vivo',              pt:'Ao Vivo' },
+'pe-hero-kicker':  { en:'Multimodal AI Coach', es:'Coach IA Multimodal',  pt:'Coach IA Multimodal' },
+'pe-hero-title':   { en:'Real-time form audit + nutrition vision', es:'Auditoría de técnica + visión nutricional en tiempo real', pt:'Auditoria de técnica + visão nutricional em tempo real' },
+'pe-hero-sub':     { en:'Stream your camera to the BBF Intelligence Engine. Instant biomechanical cues + macro estimates from what you are holding, lifting, or eating.', es:'Transmite tu cámara al Motor de Inteligencia BBF. Señales biomecánicas instantáneas + estimaciones de macros de lo que sostienes, levantas o comes.', pt:'Transmita sua câmera para o Motor de Inteligência BBF. Dicas biomecânicas instantâneas + estimativas de macros do que você segura, levanta ou come.' },
+'pe-init':         { en:'🎬 Initialize Live Coach →', es:'🎬 Iniciar Coach en Vivo →', pt:'🎬 Iniciar Coach ao Vivo →' },
+'pe-terminate':    { en:'Terminate Session',   es:'Terminar Sesión', pt:'Encerrar Sessão' },
+'pe-perm-denied':  { en:'Camera/microphone access denied. Enable permissions in your browser settings to use the Live Coach.', es:'Acceso a cámara/micrófono denegado. Habilita los permisos en la configuración del navegador para usar el Coach en Vivo.', pt:'Acesso à câmera/microfone negado. Ative as permissões nas configurações do navegador para usar o Coach ao Vivo.' },
+'pe-perm-unsupported': { en:'Live Coach requires a browser with camera + microphone APIs. Please update your browser.', es:'El Coach en Vivo requiere un navegador con APIs de cámara y micrófono. Actualiza tu navegador.', pt:'O Coach ao Vivo requer um navegador com APIs de câmera e microfone. Atualize seu navegador.' },
 
 // ═══ BIOMETRIC YIELD REPORT — Titan Follow-up ═══════════════
 'byr-launch':     { en:'\uD83E\uDDEC View Clinical Yield', es:'\uD83E\uDDEC Ver Rendimiento Cl\u00ednico', pt:'\uD83E\uDDEC Ver Rendimento Cl\u00ednico' },
