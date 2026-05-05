@@ -415,6 +415,12 @@ var D = {
 'bhm-stat-tier':     { en:'Tier',      es:'Nivel',    pt:'N\u00edvel' },
 'bhm-warn-text':     { en:'\u26a0 CNS friction elevated. Progressive axial loading exceeds safe tonnage for this 4-week block.', es:'\u26a0 Fricci\u00f3n del SNC elevada. La carga axial progresiva excede el tonelaje seguro para este bloque de 4 semanas.', pt:'\u26a0 Fric\u00e7\u00e3o do SNC elevada. A carga axial progressiva excede a tonelagem segura para este bloco de 4 semanas.' },
 'bhm-mobility-btn':  { en:'\ud83e\uddb5 Prescribed Occupational Mobility', es:'\ud83e\uddb5 Movilidad Ocupacional Prescrita', pt:'\ud83e\uddb5 Mobilidade Ocupacional Prescrita' },
+'bhm-friction-title':    { en:'Joint Friction · Recovery Trajectory', es:'Fricción Articular · Trayectoria de Recuperación', pt:'Fricção Articular · Trajetória de Recuperação' },
+'bhm-friction-week-tpl': { en:'Currently · Week {N} of 4', es:'Actualmente · Semana {N} de 4', pt:'Atualmente · Semana {N} de 4' },
+'bhm-friction-pain':     { en:'Pain',     es:'Dolor',      pt:'Dor' },
+'bhm-friction-easing':   { en:'Easing',   es:'Aliviando',  pt:'Aliviando' },
+'bhm-friction-reduced':  { en:'Reduced',  es:'Reducido',   pt:'Reduzido' },
+'bhm-friction-cleared':  { en:'Cleared',  es:'Despejado',  pt:'Limpo' },
 
 // ═══ SOMATIC MAP (Somatic Sync) ══════════════════════════════
 'som-label':       { en:'\ud83e\uddA0 Somatic Readiness Matrix', es:'\ud83e\uddA0 Matriz de Preparaci\u00f3n Som\u00e1tica', pt:'\ud83e\uddA0 Matriz de Prontid\u00e3o Som\u00e1tica' },

@@ -1185,6 +1185,105 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   .bhm-widget.redline { animation: none; }
 }
 
+/* ═══ Phase 15 Slice 3 — JOINT FRICTION RECOVERY TRACKER ════ */
+/* Sits inside the .bhm-widget below the axial-load grid. Plots a
+   per-joint exponential-decay recovery trajectory pulled from
+   d.u[uid].intake.friction (Sovereign Intake step 3). Each row is
+   one joint the user reported at intake; each column is a week of
+   the prehab protocol. Cell saturation is the modeled pain level;
+   the .current cell highlights where the user is on the curve today. */
+.bhm-friction-wrap {
+  margin-top: .9rem;
+  padding-top: .85rem;
+  border-top: 1px dashed rgba(34,197,94,.18);
+}
+.bhm-friction-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .8rem;
+  margin-bottom: .55rem;
+}
+.bhm-friction-title {
+  font-family: var(--hb);
+  font-size: .62rem;
+  letter-spacing: 3px;
+  color: #22c55e;
+  text-transform: uppercase;
+}
+.bhm-widget.warn .bhm-friction-title,
+.bhm-widget.redline .bhm-friction-title { color: #FF9500 }
+.bhm-friction-week {
+  font-size: .54rem;
+  letter-spacing: 1.5px;
+  color: #D4AF37;
+  text-transform: uppercase;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.bhm-friction-row {
+  display: grid;
+  grid-template-columns: 64px repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+  align-items: stretch;
+}
+.bhm-friction-cell {
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.04);
+  position: relative;
+  transition: background .4s ease, border-color .4s ease, transform .2s ease;
+}
+.bhm-friction-cell:hover { transform: scale(1.03); border-color: rgba(34,197,94,.4) }
+/* Recovery palette runs hot (pain) → cool (cleared). Inverse of the
+   axial-load palette so users read it as "recovery improving". */
+.bhm-friction-cell.f-h4 { background: rgba(239,68,68,.55); border-color: rgba(239,68,68,.7); box-shadow: 0 0 12px rgba(239,68,68,.35) }
+.bhm-friction-cell.f-h3 { background: rgba(255,149,0,.42); border-color: rgba(255,149,0,.55) }
+.bhm-friction-cell.f-h2 { background: rgba(212,175,55,.32); border-color: rgba(212,175,55,.45) }
+.bhm-friction-cell.f-h1 { background: rgba(34,197,94,.22); border-color: rgba(34,197,94,.4) }
+.bhm-friction-cell.current {
+  outline: 2px solid #D4AF37;
+  outline-offset: 1px;
+  z-index: 2;
+  box-shadow: 0 0 14px rgba(212,175,55,.55);
+}
+.bhm-friction-cell.current::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: -7px;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #D4AF37;
+  filter: drop-shadow(0 0 4px rgba(212,175,55,.6));
+}
+.bhm-friction-legend {
+  display: flex;
+  gap: .8rem;
+  padding-top: .45rem;
+  font-size: .54rem;
+  letter-spacing: 1.5px;
+  color: var(--mut2);
+  text-transform: uppercase;
+  font-weight: 700;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.bhm-legend-chip {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  margin-right: .25rem;
+  vertical-align: middle;
+}
+.bhm-legend-chip.f-h4 { background: rgba(239,68,68,.6); border: 1px solid rgba(239,68,68,.8) }
+.bhm-legend-chip.f-h3 { background: rgba(255,149,0,.5); border: 1px solid rgba(255,149,0,.7) }
+.bhm-legend-chip.f-h2 { background: rgba(212,175,55,.4); border: 1px solid rgba(212,175,55,.6) }
+.bhm-legend-chip.f-h1 { background: rgba(34,197,94,.3); border: 1px solid rgba(34,197,94,.55) }
+
 /* ═══ SOMATIC SYNC — readiness + override widget ═════════════ */
 .som-widget {
   background: rgba(10,10,14,.58);
@@ -4897,6 +4996,23 @@ window.onload=function(){
           <div class="bhm-row"><div class="bhm-rlabel" data-lang-key="bhm-lift-deadlift">DEADLIFT</div><div class="bhm-cell" data-lift="deadlift" data-w="0"></div><div class="bhm-cell" data-lift="deadlift" data-w="1"></div><div class="bhm-cell" data-lift="deadlift" data-w="2"></div><div class="bhm-cell" data-lift="deadlift" data-w="3"></div></div>
           <div class="bhm-row"><div class="bhm-rlabel" data-lang-key="bhm-lift-ohp">OHP</div><div class="bhm-cell" data-lift="ohp" data-w="0"></div><div class="bhm-cell" data-lift="ohp" data-w="1"></div><div class="bhm-cell" data-lift="ohp" data-w="2"></div><div class="bhm-cell" data-lift="ohp" data-w="3"></div></div>
         </div>
+        <!-- Phase 15 Slice 3 — JOINT FRICTION RECOVERY TRACKER -->
+        <!-- Reads d.u[uid].intake.friction (Sovereign Intake step 3) and -->
+        <!-- plots an exponential-decay recovery trajectory across W1-W4. -->
+        <div class="bhm-friction-wrap" id="bhm-friction-wrap" style="display:none">
+          <div class="bhm-friction-head">
+            <div class="bhm-friction-title" data-lang-key="bhm-friction-title">Joint Friction · Recovery Trajectory</div>
+            <div class="bhm-friction-week" id="bhm-friction-week"></div>
+          </div>
+          <div class="bhm-grid-labels"><div></div><div>W1</div><div>W2</div><div>W3</div><div>W4</div></div>
+          <div class="bhm-friction-rows" id="bhm-friction-rows"></div>
+          <div class="bhm-friction-legend">
+            <span class="bhm-legend-chip f-h4"></span><span data-lang-key="bhm-friction-pain">Pain</span>
+            <span class="bhm-legend-chip f-h3"></span><span data-lang-key="bhm-friction-easing">Easing</span>
+            <span class="bhm-legend-chip f-h2"></span><span data-lang-key="bhm-friction-reduced">Reduced</span>
+            <span class="bhm-legend-chip f-h1"></span><span data-lang-key="bhm-friction-cleared">Cleared</span>
+          </div>
+        </div>
         <div class="bhm-foot-stats">
           <span><span data-lang-key="bhm-stat-sets">Sets</span> <b id="bhm-stat-sets">0</b></span>
           <span><span data-lang-key="bhm-stat-sessions">Sessions</span> <b id="bhm-stat-sessions">0</b></span>
@@ -8119,12 +8235,97 @@ function _bhmPaintIntelligence(intel) {
   }
 }
 
+// ─── Phase 15 Slice 3 — JOINT FRICTION RECOVERY TRACKER ──────
+// Reads d.u[uid].intake.friction (Sovereign Intake step 3), renders one
+// row per reported joint across W1-W4, shades cells along an exponential
+// decay curve (pain receding as the prehab protocol takes hold), and
+// highlights the user's current week on the trajectory. Falls back to
+// hidden state when no intake friction data exists or the user picked
+// "None" at intake.
+var _BHM_FRICTION_LABELS = {
+  knee:        { en: 'KNEE',     es: 'RODILLA',         pt: 'JOELHO'   },
+  'lower-back':{ en: 'L. BACK',  es: 'LUMBAR',          pt: 'LOMBAR'   },
+  shoulder:    { en: 'SHOULDER', es: 'HOMBRO',          pt: 'OMBRO'    },
+  hip:         { en: 'HIP',      es: 'CADERA',          pt: 'QUADRIL'  },
+  ankle:       { en: 'ANKLE',    es: 'TOBILLO',         pt: 'TORNOZELO'}
+};
+function _frictionDecayClass(weekIndex) {
+  // Exponential decay: pain(t) = exp(-0.4 * t). Anchored so W1 = full
+  // pain (h4), W4 ≈ 30% baseline (h1 — cleared trajectory).
+  var pain = Math.exp(-0.4 * weekIndex);
+  if (pain > 0.75) return 'f-h4';
+  if (pain > 0.50) return 'f-h3';
+  if (pain > 0.35) return 'f-h2';
+  return 'f-h1';
+}
+function _frictionPaintRecoveryTracker(uid) {
+  var wrap = document.getElementById('bhm-friction-wrap');
+  if (!wrap) return;
+  var rowsContainer = document.getElementById('bhm-friction-rows');
+  var weekBadge = document.getElementById('bhm-friction-week');
+  if (!rowsContainer) return;
+
+  var d = (typeof GD === 'function') ? GD() : { u: {} };
+  var u = (d && d.u && d.u[uid]) || {};
+  var intake = u.intake || {};
+  var friction = Array.isArray(intake.friction) ? intake.friction : [];
+  // 'none' is the user-friendly "no joint issues" sentinel — strip it.
+  friction = friction.filter(function(f) { return f && f !== 'none'; });
+
+  if (friction.length === 0) { wrap.style.display = 'none'; return; }
+
+  // Compute the current week (clamped to W1-W4) from the intake timestamp.
+  var startedAt = intake.completed ? Date.parse(intake.completed) : NaN;
+  var weeksSince = isFinite(startedAt)
+    ? Math.floor((Date.now() - startedAt) / (7 * 24 * 60 * 60 * 1000))
+    : 0;
+  var currentWeek = Math.max(0, Math.min(3, weeksSince));
+
+  rowsContainer.innerHTML = '';
+  var L = (typeof LANG !== 'undefined' && LANG) ? LANG : 'en';
+  friction.forEach(function(joint) {
+    var labelDict = _BHM_FRICTION_LABELS[joint];
+    var labelText = labelDict ? (labelDict[L] || labelDict.en) : joint.toUpperCase();
+    var row = document.createElement('div');
+    row.className = 'bhm-friction-row';
+    var rl = document.createElement('div');
+    rl.className = 'bhm-rlabel';
+    rl.textContent = labelText;
+    row.appendChild(rl);
+    for (var w = 0; w < 4; w++) {
+      var cell = document.createElement('div');
+      cell.className = 'bhm-friction-cell ' + _frictionDecayClass(w);
+      if (w === currentWeek) cell.classList.add('current');
+      var painPct = Math.round(Math.exp(-0.4 * w) * 100);
+      cell.title = labelText + ' · W' + (w + 1) + ' · ' + painPct + '% baseline';
+      row.appendChild(cell);
+    }
+    rowsContainer.appendChild(row);
+  });
+
+  if (weekBadge) {
+    var weekLabelTpl = (typeof _t === 'function')
+      ? _t('bhm-friction-week-tpl', 'Currently · Week {N} of 4')
+      : 'Currently · Week {N} of 4';
+    weekBadge.textContent = weekLabelTpl.replace('{N}', currentWeek + 1);
+  }
+
+  wrap.style.display = 'block';
+  // Friction data alone is enough to surface the BHM widget — even if
+  // the user has no axial-lift sessions logged yet.
+  var widget = document.getElementById('biomech-heatmap');
+  if (widget) widget.style.display = 'block';
+}
+
 function renderBiomechHeatMap() {
   var uid = VC || CU;
   if (!uid) return;
   if (CU === 'akeem' && VC === null) return; // trainer view: skip
   // Paint from cache first (instant), then refresh from Supabase.
   _bhmApplyCached(uid);
+  // Phase 15 Slice 3 — friction recovery trajectory (synchronous; uses
+  // cached intake data; no network).
+  try { _frictionPaintRecoveryTracker(uid); } catch(_) {}
   // Paint intelligence-layer cache too, if any exists.
   try {
     var dCache = GD();
