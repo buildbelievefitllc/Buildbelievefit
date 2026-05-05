@@ -512,6 +512,156 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'bbf-vault-engine', model: ANTHROPIC_MODEL });
 });
 
+// ───────────────────────────────────────────────────────────────
+// Phase 15 Slice 4 — Wearable API Bridge
+// /api/wearable-sync/health-connect
+//
+// Simulated Samsung Health / Android Health Connect telemetry endpoint.
+// Returns a payload modeled strictly after the Android Health Connect
+// JSON schema (SleepSessionRecord + HeartRateVariabilityRmssdRecord +
+// RestingHeartRateRecord) so the frontend integration is perfectly
+// staged for the future native Android wrapper — wrapper drops in,
+// schema doesn't move.
+//
+// Each call randomizes within plausible biological ranges so the dial
+// moves on every fetch (live feel during sales pitches). The
+// readiness_score (0-100) is computed server-side from the simulated
+// signals using a weighted model: sleep duration 25%, sleep efficiency
+// (deep+REM share) 20%, HRV deviation from baseline 35%, RHR deviation
+// from baseline 20%. Clamped to one decimal place.
+//
+// Auth: read-only simulated data, no PII, gated by the existing CORS
+// allowlist (buildbelievefit.fitness + GitHub Pages preview origin).
+// ───────────────────────────────────────────────────────────────
+function _wsRandom(min, max) { return min + Math.random() * (max - min); }
+function _wsClamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function _wsBuildSleepSessionRecord() {
+  // Sleep window: ended ~1 hour ago, lasted between 5h45 and 8h30.
+  const endTime = new Date(Date.now() - 60 * 60 * 1000);
+  const totalMinutes = Math.round(_wsRandom(345, 510));
+  const startTime = new Date(endTime.getTime() - totalMinutes * 60 * 1000);
+
+  // Stage distribution (as % of total): typical adult night.
+  const awakePct = _wsRandom(0.04, 0.08);
+  const lightPct = _wsRandom(0.45, 0.58);
+  const deepPct  = _wsRandom(0.13, 0.22);
+  const remPct   = 1 - awakePct - lightPct - deepPct;
+
+  // Build chronologically ordered stage segments: awake → light → deep → REM → light.
+  const stages = [];
+  let cursor = new Date(startTime);
+  function pushStage(stage, minutes) {
+    if (minutes <= 0) return;
+    const segEnd = new Date(cursor.getTime() + minutes * 60 * 1000);
+    stages.push({
+      startTime: cursor.toISOString(),
+      endTime: segEnd.toISOString(),
+      stage: stage,
+    });
+    cursor = segEnd;
+  }
+  pushStage('AWAKE',          Math.round(totalMinutes * awakePct));
+  pushStage('SLEEPING_LIGHT', Math.round(totalMinutes * lightPct * 0.6));
+  pushStage('SLEEPING_DEEP',  Math.round(totalMinutes * deepPct));
+  pushStage('SLEEPING_REM',   Math.round(totalMinutes * remPct));
+  pushStage('SLEEPING_LIGHT', Math.round(totalMinutes * lightPct * 0.4));
+
+  return {
+    startTime: startTime.toISOString(),
+    endTime: endTime.toISOString(),
+    title: 'Night sleep',
+    durationMinutes: totalMinutes,
+    stages: stages,
+  };
+}
+
+function _wsBuildHrvRmssdRecord() {
+  // Baseline RMSSD: 35-65 ms. Current sample drifts ±25%.
+  const baselineMillis = Math.round(_wsRandom(35, 65) * 10) / 10;
+  const samples = [];
+  const now = Date.now();
+  // 6 samples taken every 30 minutes leading up to now.
+  for (let i = 5; i >= 0; i--) {
+    const drift = _wsRandom(0.75, 1.25);
+    samples.push({
+      time: new Date(now - i * 30 * 60 * 1000).toISOString(),
+      heartRateVariabilityMillis: Math.round(baselineMillis * drift * 10) / 10,
+    });
+  }
+  return { samples: samples, baselineMillis: baselineMillis };
+}
+
+function _wsBuildRhrRecord() {
+  // Baseline RHR: 52-72 bpm. Current sample drifts ±15%.
+  const baselineBpm = Math.round(_wsRandom(52, 72));
+  const samples = [];
+  const now = Date.now();
+  for (let i = 5; i >= 0; i--) {
+    const drift = _wsRandom(0.92, 1.12);
+    samples.push({
+      time: new Date(now - i * 30 * 60 * 1000).toISOString(),
+      beatsPerMinute: Math.round(baselineBpm * drift),
+    });
+  }
+  return { samples: samples, baselineBpm: baselineBpm };
+}
+
+function _wsCalculateReadinessScore(sleep, hrv, rhr) {
+  // Sleep duration score: 8h target. Linearly scaled from 4h floor.
+  const sleepHours = sleep.durationMinutes / 60;
+  const sleepDurScore = _wsClamp((sleepHours - 4) * 25, 0, 100);
+
+  // Sleep efficiency: deep + REM as % of total session.
+  const deepRemMin = sleep.stages
+    .filter((s) => s.stage === 'SLEEPING_DEEP' || s.stage === 'SLEEPING_REM')
+    .reduce((acc, s) => acc + (Date.parse(s.endTime) - Date.parse(s.startTime)) / 60000, 0);
+  const sleepEffPct = (deepRemMin / sleep.durationMinutes) * 100;
+  const sleepEffScore = _wsClamp((sleepEffPct - 15) * (100 / 20), 0, 100);
+
+  // HRV: average of last 3 samples vs baseline. Higher current = better.
+  const recentHrv = hrv.samples.slice(-3).reduce((a, b) => a + b.heartRateVariabilityMillis, 0) / 3;
+  const hrvRatio = recentHrv / hrv.baselineMillis;
+  const hrvScore = _wsClamp((hrvRatio - 0.6) * (100 / 0.4), 0, 100);
+
+  // RHR: average of last 3 samples vs baseline. Lower current = better.
+  const recentRhr = rhr.samples.slice(-3).reduce((a, b) => a + b.beatsPerMinute, 0) / 3;
+  const rhrRatio = recentRhr / rhr.baselineBpm;
+  const rhrScore = _wsClamp((1.15 - rhrRatio) * (100 / 0.15), 0, 100);
+
+  const weighted = sleepDurScore * 0.25 + sleepEffScore * 0.20 + hrvScore * 0.35 + rhrScore * 0.20;
+  return Math.round(weighted * 10) / 10;
+}
+
+app.get('/api/wearable-sync/health-connect', (req, res) => {
+  try {
+    const sleepSessionRecord = _wsBuildSleepSessionRecord();
+    const heartRateVariabilityRmssdRecord = _wsBuildHrvRmssdRecord();
+    const restingHeartRateRecord = _wsBuildRhrRecord();
+    const readiness_score = _wsCalculateReadinessScore(
+      sleepSessionRecord,
+      heartRateVariabilityRmssdRecord,
+      restingHeartRateRecord
+    );
+
+    return res.status(200).json({
+      ok: true,
+      provider: 'samsung_health_connect',
+      schema_version: 'health-connect/v1',
+      generated_at: new Date().toISOString(),
+      records: {
+        SleepSessionRecord: sleepSessionRecord,
+        HeartRateVariabilityRmssdRecord: heartRateVariabilityRmssdRecord,
+        RestingHeartRateRecord: restingHeartRateRecord,
+      },
+      readiness_score: readiness_score,
+    });
+  } catch (err) {
+    console.error('[BBF VAULT] /api/wearable-sync/health-connect failed:', err);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.post('/process', async (req, res) => {
   const startedAt = Date.now();
   const payload = normalizeClientPayload(req.body);
