@@ -1469,6 +1469,112 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .pe-init-btn:hover { transform: translateY(-1px); filter: brightness(1.06); box-shadow: 0 10px 28px -6px rgba(212,175,55,.75), inset 0 1px 0 rgba(255,255,255,.4); }
 .pe-init-btn:active { transform: scale(.97); }
 
+/* ═══ PHANTOM EYE STREAM — full-page Live Coach overlay (Phase 15 Slice 1C) ═══ */
+.pes-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,1,8,.93);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 1rem;
+}
+.pes-overlay[hidden] { display: none; }
+.pes-shell {
+  width: min(100%, 960px);
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(20,5,35,.78), rgba(8,2,15,.92));
+  border: 1px solid rgba(212,175,55,.35);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,.85), 0 0 40px rgba(212,175,55,.18);
+  overflow: hidden;
+}
+.pes-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .9rem 1.1rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  gap: 1rem;
+}
+.pes-head-l { display: flex; flex-direction: column; gap: .15rem; min-width: 0 }
+.pes-head-r { display: flex; align-items: center; gap: .7rem }
+.pes-kicker { font-family: var(--hb); font-size: .58rem; letter-spacing: 4px; text-transform: uppercase; color: rgba(212,175,55,.8) }
+.pes-title { font-family: var(--hb); font-size: 1.15rem; letter-spacing: 1px; color: var(--wht); line-height: 1 }
+.pes-x {
+  background: transparent; border: 0; color: rgba(255,255,255,.7);
+  font-size: 1.3rem; cursor: pointer; padding: .25rem .55rem;
+  border-radius: 8px; transition: background .15s ease, color .15s ease;
+}
+.pes-x:hover { background: rgba(255,255,255,.08); color: var(--wht) }
+.pes-stage {
+  position: relative;
+  background: #000;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#phantom-eye-stream {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  background: #000;
+  /* Mirror the front camera so it reads like a viewfinder, not a recording. */
+  transform: scaleX(-1);
+}
+.pes-overlay-msg {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 80%;
+  text-align: center;
+  font-family: var(--hb);
+  font-size: .85rem;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,.78);
+  background: rgba(10,0,20,.78);
+  border: 1px solid rgba(212,175,55,.35);
+  border-radius: 10px;
+  padding: .8rem 1rem;
+  pointer-events: none;
+  display: none;
+}
+.pes-overlay-msg.on { display: block }
+.pes-overlay-msg.is-error { color: #ef4444; border-color: rgba(239,68,68,.45) }
+.pes-actions {
+  display: flex;
+  justify-content: center;
+  padding: .9rem 1.1rem;
+  border-top: 1px solid rgba(255,255,255,.06);
+  background: rgba(0,0,0,.25);
+}
+.pes-btn {
+  padding: .8rem 1.6rem;
+  font-family: var(--hb);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform .15s ease, filter .2s ease, background .2s ease;
+}
+.pes-btn--terminate {
+  background: rgba(239,68,68,.15);
+  border-color: rgba(239,68,68,.6);
+  color: #ef4444;
+}
+.pes-btn--terminate:hover { background: rgba(239,68,68,.28); filter: brightness(1.05) }
+.pes-btn--terminate:active { transform: scale(.97) }
+
 @media (prefers-reduced-motion: reduce) {
   .pe-bracket { animation: none; }
   .pe-scanline { animation: none; opacity: 0; }
@@ -6211,6 +6317,29 @@ window.onload=function(){
     </div>
   </div>
 
+  <!-- ═══ PHANTOM EYE — Live Coach stream overlay (Phase 15 Slice 1C) ═══ -->
+  <div class="pes-overlay" id="phantom-eye-stream-modal" role="dialog" aria-modal="true" aria-labelledby="pes-title" hidden>
+    <div class="pes-shell">
+      <header class="pes-head">
+        <div class="pes-head-l">
+          <div class="pes-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
+          <div class="pes-title" id="pes-title">Phantom Eye &middot; Live Stream</div>
+        </div>
+        <div class="pes-head-r">
+          <span class="pe-status-badge is-live" id="pes-live-badge" data-lang-key="pe-badge-live">Live</span>
+          <button type="button" class="pes-x" id="pes-x-btn" onclick="terminateLiveCoach()" aria-label="Close Live Coach">&#x2715;</button>
+        </div>
+      </header>
+      <div class="pes-stage">
+        <video id="phantom-eye-stream" autoplay playsinline muted></video>
+        <div class="pes-overlay-msg" id="pes-overlay-msg" role="status" aria-live="polite"></div>
+      </div>
+      <div class="pes-actions">
+        <button type="button" class="pes-btn pes-btn--terminate" id="pes-terminate-btn" onclick="terminateLiveCoach()" data-lang-key="pe-terminate">Terminate Session</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ PHANTOM COMLINK — SECURE UPLINK modal (Client SOS) ═══ -->
   <div class="cl-overlay" id="secure-uplink-modal" role="dialog" aria-modal="true" aria-labelledby="cl-title">
     <div class="cl-modal">
@@ -8297,6 +8426,86 @@ document.addEventListener('DOMContentLoaded', function() {
 // which owns the getUserMedia + stream-modal flow defined in the
 // camera-staging block (Phase 15 Slice 1C).
 function renderPhantomEye() { /* no-op — Live Coach hub is statically rendered */ }
+
+// Active MediaStream so terminateLiveCoach can stop every track.
+// Held on window so any future caller (e.g. Gemini Live API socket
+// teardown in Slice 2+) can reach it. Null when no session is live.
+window.PHANTOM_EYE_STREAM = null;
+
+window.initLiveCoach = function initLiveCoach() {
+  var overlay  = document.getElementById('phantom-eye-stream-modal');
+  var videoEl  = document.getElementById('phantom-eye-stream');
+  var msgEl    = document.getElementById('pes-overlay-msg');
+  var initBtn  = document.getElementById('pe-init-btn');
+  var statusEl = document.getElementById('pe-status-badge');
+  if (!overlay || !videoEl) return;
+
+  // Reveal the overlay first so the permission prompt has visual context.
+  overlay.hidden = false;
+  document.body.style.overflow = 'hidden';
+  if (msgEl) {
+    msgEl.classList.remove('is-error');
+    msgEl.textContent = (typeof _t === 'function' ? _t('pe-perm-prompt', 'Requesting camera + microphone…') : 'Requesting camera + microphone…');
+    msgEl.classList.add('on');
+  }
+  if (initBtn) initBtn.disabled = true;
+
+  // Reject early if the API isn't available (older browsers, http://).
+  if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+    var unsupportedMsg = (typeof _t === 'function' ? _t('pe-perm-unsupported', 'Live Coach requires a browser with camera + microphone APIs. Please update your browser.') : 'Live Coach requires a browser with camera + microphone APIs.');
+    if (msgEl) { msgEl.textContent = unsupportedMsg; msgEl.classList.add('is-error', 'on'); }
+    if (initBtn) initBtn.disabled = false;
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    .then(function(stream) {
+      window.PHANTOM_EYE_STREAM = stream;
+      videoEl.srcObject = stream;
+      if (msgEl) { msgEl.classList.remove('on', 'is-error'); msgEl.textContent = ''; }
+      if (statusEl) {
+        statusEl.classList.add('is-live');
+        statusEl.textContent = (typeof _t === 'function' ? _t('pe-badge-live', 'Live') : 'Live');
+      }
+      if (initBtn) initBtn.disabled = false;
+    })
+    .catch(function(err) {
+      console.warn('Phantom Eye getUserMedia denied/failed:', err && err.name, err && err.message);
+      var deniedMsg = (typeof _t === 'function' ? _t('pe-perm-denied', 'Camera/microphone access denied. Enable permissions in your browser settings to use the Live Coach.') : 'Camera/microphone access denied. Enable permissions in your browser settings.');
+      if (msgEl) { msgEl.textContent = deniedMsg; msgEl.classList.add('is-error', 'on'); }
+      if (initBtn) initBtn.disabled = false;
+    });
+};
+
+window.terminateLiveCoach = function terminateLiveCoach() {
+  var overlay  = document.getElementById('phantom-eye-stream-modal');
+  var videoEl  = document.getElementById('phantom-eye-stream');
+  var msgEl    = document.getElementById('pes-overlay-msg');
+  var statusEl = document.getElementById('pe-status-badge');
+
+  // Stop every track on the active stream so the camera + mic indicator
+  // turns off in the user's browser. Null-safe in case the user never
+  // granted permissions.
+  if (window.PHANTOM_EYE_STREAM) {
+    try {
+      window.PHANTOM_EYE_STREAM.getTracks().forEach(function(t){
+        try { t.stop(); } catch(_) {}
+      });
+    } catch(_) {}
+    window.PHANTOM_EYE_STREAM = null;
+  }
+  if (videoEl) {
+    try { videoEl.pause(); } catch(_) {}
+    videoEl.srcObject = null;
+  }
+  if (overlay) overlay.hidden = true;
+  document.body.style.overflow = '';
+  if (msgEl) { msgEl.classList.remove('on', 'is-error'); msgEl.textContent = ''; }
+  if (statusEl) {
+    statusEl.classList.remove('is-live');
+    statusEl.textContent = (typeof _t === 'function' ? _t('pe-badge-idle', 'Idle') : 'Idle');
+  }
+};
 
 // ═══════════════════════════════════════════════════════════
 // BIOMETRIC YIELD REPORT — Sovereign Clinical Synthesis
