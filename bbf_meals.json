@@ -1,682 +1,682 @@
 [
-  {
-    "id": "bbf-brk-001",
-    "name": {
-      "en": "American Grass-fed Bison & Sweet Potato Hash"
-    },
-    "cuisine": "American",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Ground bison (90% lean)", "sweet potatoes", "red onions", "kale", "avocado oil", "garlic powder", "cumin", "chili powder"],
-    "serving_g": 450,
-    "calories": 557,
-    "protein_g": 27,
-    "carbs_g": 19,
-    "fat_g": 42,
-    [cite_start]"notes": "Bison is a nutrient-dense alternative to beef, providing higher levels of iron and zinc, which are essential for oxygen transport and immune function in athletes. [cite: 25] [cite_start]The sweet potatoes provide a low-glycemic carbohydrate source that supports sustained energy without the insulin spikes of refined grains. [cite: 26]"
-  },
-  {
-    "id": "bbf-brk-002",
-    "name": {
-      "en": "Mexican Huevos a la Mexicana with Black Bean Puree"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free"],
-    "core_ingredients": ["Pasture-raised eggs", "tomatoes", "onions", "serrano peppers", "black beans", "avocado", "fresh cilantro"],
-    "serving_g": 400,
-    "calories": 420,
-    "protein_g": 24,
-    "carbs_g": 18,
-    "fat_g": 28,
-    [cite_start]"notes": "The addition of capsaicin from serrano peppers may enhance metabolic rate and improve peripheral circulation. [cite: 29] [cite_start]The black bean puree provides a secondary protein source and high fiber content to stabilize postprandial glucose. [cite: 30]"
-  },
-  {
-    "id": "bbf-brk-003",
-    "name": {
-      "en": "Brazilian Tapioca Crepe with Shredded Chicken & Avocado"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Manioc starch (tapioca)", "shredded chicken breast", "avocado", "sea salt", "fresh parsley"],
-    "serving_g": 380,
-    "calories": 435,
-    "protein_g": 32,
-    "carbs_g": 45,
-    "fat_g": 15,
-    [cite_start]"notes": "Tapioca is a traditional Brazilian carbohydrate source that is naturally gluten-free and extremely easy on the digestive tract, making it an ideal pre-workout meal. [cite: 33] [cite_start]The chicken provides high-bioavailability essential amino acids for tissue repair. [cite: 34]"
-  },
-  {
-    "id": "bbf-brk-004",
-    "name": {
-      "en": "American Turkey Sausage & Spinach Egg Muffins"
-    },
-    "cuisine": "American",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free"],
-    "core_ingredients": ["Lean ground turkey", "eggs", "baby spinach", "onions", "red bell peppers", "sage", "rosemary"],
-    "serving_g": 300,
-    "calories": 360,
-    "protein_g": 28,
-    "carbs_g": 6,
-    "fat_g": 24,
-    [cite_start]"notes": "These muffins are optimized for portability. [cite: 36] [cite_start]Spinach provides magnesium, which is crucial for muscle relaxation and preventing cramps. [cite: 37] [cite_start]The lean turkey ensures a high-protein density with minimal saturated fat. [cite: 38]"
-  },
-  {
-    "id": "bbf-brk-005",
-    "name": {
-      "en": "Brazilian Açaí Performance Bowl (Whey/Plant Boosted)"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Unsweetened açaí pulp", "grass-fed whey protein", "banana", "hemp seeds", "fresh strawberries"],
-    "serving_g": 400,
-    "calories": 388,
-    "protein_g": 28,
-    "carbs_g": 42,
-    "fat_g": 12,
-    [cite_start]"notes": "Traditional açaí bowls are often hyper-caloric due to added sugars. [cite: 40] [cite_start]This version uses unsweetened pulp and adds protein powder to achieve a more favorable carb-to-protein ratio, supporting muscle synthesis while providing a potent dose of anthocyanins. [cite: 41]"
-  },
-  {
-    "id": "bbf-brk-006",
-    "name": {
-      "en": "Mexican Savory Tamale Breakfast Bowl"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free"],
-    "core_ingredients": ["Organic stone-ground polenta (corn)", "pinto beans", "poached eggs", "salsa verde", "avocado", "radish"],
-    "serving_g": 420,
-    "calories": 485,
-    "protein_g": 22,
-    "carbs_g": 55,
-    "fat_g": 18,
-    [cite_start]"notes": "The use of polenta provides a similar nutritional profile to traditional masa but is often easier for athletes to digest. [cite: 43] [cite_start]The combination of pinto beans and eggs ensures a complete amino acid profile. [cite: 44]"
-  },
-  {
-    "id": "bbf-brk-007",
-    "name": {
-      "en": "American Blueberry & Greek Yogurt Power Pancakes"
-    },
-    "cuisine": "American",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free"],
-    "core_ingredients": ["Oat flour", "non-fat Greek yogurt", "eggs", "blueberries", "cinnamon", "raw honey"],
-    "serving_g": 350,
-    "calories": 380,
-    "protein_g": 25,
-    "carbs_g": 45,
-    "fat_g": 8,
-    [cite_start]"notes": "Utilizing Greek yogurt in the batter increases the protein density without the need for processed protein powders. [cite: 46] [cite_start]Blueberries provide localized antioxidant support for the eyes and vascular system. [cite: 47]"
-  },
-  {
-    "id": "bbf-brk-008",
-    "name": {
-      "en": "Brazilian Pão de Queijo & Soft Boiled Eggs"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free"],
-    "core_ingredients": ["Tapioca-based cheese rolls", "soft-boiled eggs", "sliced tomatoes", "olive oil"],
-    "serving_g": 350,
-    "calories": 510,
-    "protein_g": 20,
-    "carbs_g": 38,
-    "fat_g": 32,
-    [cite_start]"notes": "While calorie-dense, this breakfast provides the essential fats required for fat-soluble vitamin absorption (A, D, E, K). [cite: 49] [cite_start]The tapioca starch offers a quick energy source for morning metabolic needs. [cite: 50]"
-  },
-  {
-    "id": "bbf-brk-009",
-    "name": {
-      "en": "Mexican Tofu Scramble 'Migas'"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Vegan"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Egg-Free"],
-    "core_ingredients": ["Extra-firm tofu", "turmeric", "nutritional yeast", "onions", "bell peppers", "corn tortillas", "black beans", "avocado"],
-    "serving_g": 400,
-    "calories": 395,
-    "protein_g": 24,
-    "carbs_g": 42,
-    "fat_g": 15,
-    [cite_start]"notes": "Tofu is a complete plant protein. [cite: 52] [cite_start]Turmeric acts as a natural anti-inflammatory agent, which is essential for athletes managing high training loads. [cite: 53] [cite_start]The nutritional yeast provides a vegan source of B-vitamins. [cite: 54]"
-  },
-  {
-    "id": "bbf-brk-010",
-    "name": {
-      "en": "American Mixed Berry Baked Oatmeal"
-    },
-    "cuisine": "American",
-    "meal_type": "Breakfast",
-    "dietary_profile": ["Vegan"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Steel-cut oats", "flaxseeds", "chia seeds", "almond milk (unsweetened)", "mixed berries"],
-    "serving_g": 400,
-    "calories": 340,
-    "protein_g": 12,
-    "carbs_g": 58,
-    "fat_g": 10,
-    [cite_start]"notes": "This meal is high in soluble fiber (beta-glucans), which supports cardiovascular health by modulating cholesterol absorption. [cite: 56] [cite_start]Chia and flaxseeds provide a plant-based source of omega-3 fatty acids. [cite: 57]"
-  },
-  {
-    "id": "bbf-lun-001",
-    "name": {
-      "en": "American Honey Lemon Salmon & Broccolini"
-    },
-    "cuisine": "American",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Wild-caught salmon", "broccolini", "raw honey", "lemon juice", "garlic", "olive oil", "quinoa"],
-    "serving_g": 450,
-    "calories": 520,
-    "protein_g": 34,
-    "carbs_g": 38,
-    "fat_g": 24,
-    [cite_start]"notes": "Salmon is the premier source of long-chain omega-3s, which improve muscle membrane fluidity and reduce soreness. [cite: 68] [cite_start]Broccolini provides sulforaphane, a compound that supports the body's natural detoxification pathways. [cite: 69]"
-  },
-  {
-    "id": "bbf-lun-002",
-    "name": {
-      "en": "Mexican Grilled Chicken Fajita Bowl"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Marinated chicken breast", "bell peppers", "onions", "brown rice", "black beans", "guacamole", "fresh salsa"],
-    "serving_g": 500,
-    "calories": 516,
-    "protein_g": 32,
-    "carbs_g": 48,
-    "fat_g": 24,
-    [cite_start]"notes": "This meal provides a perfect 1:1.5 protein-to-carb ratio, which is clinically optimal for refueling after a morning metabolic conditioning session. [cite: 71] [cite_start]Guacamole provides monounsaturated fats that support hormonal health. [cite: 72]"
-  },
-  {
-    "id": "bbf-lun-003",
-    "name": {
-      "en": "Brazilian Picanha Steak & Vinaigrette Salad"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Grilled top sirloin cap (Picanha)", "mixed greens", "tomatoes", "red onion", "white wine vinegar", "olive oil"],
-    "serving_g": 400,
-    "calories": 484,
-    "protein_g": 30,
-    "carbs_g": 32,
-    "fat_g": 26,
-    [cite_start]"notes": "Picanha is the prized cut of Brazil, offering a high concentration of B12 and creatine. [cite: 74] [cite_start]The fresh 'vinaigrette' (Brazilian salsa) provides digestive enzymes to help breakdown the dense protein. [cite: 75]"
-  },
-  {
-    "id": "bbf-lun-004",
-    "name": {
-      "en": "American Turkey Burger Lettuce Wrap & Sweet Potato Fries"
-    },
-    "cuisine": "American",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Ground turkey (93% lean)", "iceberg lettuce", "tomato", "red onion", "sweet potato (air-fried)", "avocado oil"],
-    "serving_g": 420,
-    "calories": 530,
-    "protein_g": 34,
-    "carbs_g": 49,
-    "fat_g": 20,
-    [cite_start]"notes": "By eliminating the bun, the athlete avoids refined wheat and potential gluten-induced gut permeability. [cite: 77] [cite_start]Sweet potatoes are rich in Vitamin A, which is essential for tissue repair and epithelial health. [cite: 78]"
-  },
-  {
-    "id": "bbf-lun-005",
-    "name": {
-      "en": "Mexican Shrimp Ceviche Lettuce Wraps"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Cooked shrimp", "lime juice", "cucumber", "tomato", "onion", "cilantro", "avocado", "romaine lettuce"],
-    "serving_g": 400,
-    "calories": 320,
-    "protein_g": 36,
-    "carbs_g": 12,
-    "fat_g": 14,
-    [cite_start]"notes": "This is an ultra-lean protein option. [cite: 80] [cite_start]Shrimp is high in astaxanthin, a powerful antioxidant that protects the skin and eyes from UV damage during outdoor training. [cite: 81]"
-  },
-  {
-    "id": "bbf-lun-006",
-    "name": {
-      "en": "Brazilian Moqueca Prawn Stew (Lunch Portion)"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Prawns", "coconut milk", "red peppers", "onions", "tomatoes", "garlic", "dende oil", "white rice"],
-    "serving_g": 450,
-    "calories": 398,
-    "protein_g": 23,
-    "carbs_g": 12,
-    "fat_g": 28,
-    [cite_start]"notes": "The coconut milk base provides MCTs (medium-chain triglycerides), which are processed differently than long-chain fats, providing a more immediate fuel source for the brain and muscles. [cite: 83]"
-  },
-  {
-    "id": "bbf-lun-007",
-    "name": {
-      "en": "American Chicken Buddha Bowl with Tahini"
-    },
-    "cuisine": "American",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Grilled chicken", "quinoa", "roasted sweet potatoes", "kale", "lemon-tahini dressing"],
-    "serving_g": 450,
-    "calories": 540,
-    "protein_g": 38,
-    "carbs_g": 52,
-    "fat_g": 18,
-    [cite_start]"notes": "This bowl focuses on micronutrient density. [cite: 85] [cite_start]The combination of kale and tahini provides a non-dairy source of calcium, which is vital for bone density and muscle contraction signals. [cite: 86]"
-  },
-  {
-    "id": "bbf-lun-008",
-    "name": {
-      "en": "Mexican Veggie-Stuffed Poblano Peppers"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Roasted poblano peppers", "black beans", "quinoa", "corn", "diced tomatoes", "onion", "garlic"],
-    "serving_g": 450,
-    "calories": 420,
-    "protein_g": 16,
-    "carbs_g": 62,
-    "fat_g": 12,
-    [cite_start]"notes": "Poblano peppers are rich in Vitamin C. Quinoa and black beans provide a complete protein source for vegetarian athletes who require high fiber for digestive regularity. [cite: 88]"
-  },
-  {
-    "id": "bbf-lun-009",
-    "name": {
-      "en": "American Greek Lentil Power Bowl (Vegetarian)"
-    },
-    "cuisine": "American",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Brown lentils", "cucumber", "tomatoes", "kalamata olives", "feta cheese", "red onion", "lemon-olive oil dressing"],
-    "serving_g": 400,
-    "calories": 410,
-    "protein_g": 18,
-    "carbs_g": 48,
-    "fat_g": 16,
-    [cite_start]"notes": "Lentils provide a stable source of iron. [cite: 90] [cite_start]The healthy fats from olives and olive oil support cardiovascular health and reduce systemic inflammation. [cite: 91]"
-  },
-  {
-    "id": "bbf-lun-010",
-    "name": {
-      "en": "Brazilian Rice & Chickpea Medley"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Chickpeas", "brown rice", "sautéed garlic", "onions", "fresh herbs", "olive oil"],
-    "serving_g": 400,
-    "calories": 420,
-    "protein_g": 15,
-    "carbs_g": 72,
-    "fat_g": 8,
-    [cite_start]"notes": "This is a 'clean energy' meal. [cite: 93] [cite_start]The high carbohydrate content from rice and chickpeas is perfect for replenishing glycogen after high-volume aerobic workouts. [cite: 94]"
-  },
-  {
-    "id": "bbf-lun-011",
-    "name": {
-      "en": "Mexican Sweet Potato & Corn Enchiladas"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Corn tortillas", "roasted sweet potatoes", "corn", "black beans", "homemade red salsa (no sugar)", "goat cheese"],
-    "serving_g": 420,
-    "calories": 480,
-    "protein_g": 14,
-    "carbs_g": 82,
-    "fat_g": 10,
-    [cite_start]"notes": "Sweet potatoes and corn provide a spectrum of carotenoids. [cite: 96] [cite_start]This meal is designed for 'heavy training days' where carbohydrate requirements are elevated. [cite: 97]"
-  },
-  {
-    "id": "bbf-lun-012",
-    "name": {
-      "en": "American Cauliflower Cashew Lunch Bowl"
-    },
-    "cuisine": "American",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Roasted cauliflower", "toasted cashews", "barley (or quinoa for GF)", "chickpeas", "honey-ginger vinaigrette"],
-    "serving_g": 400,
-    "calories": 440,
-    "protein_g": 14,
-    "carbs_g": 58,
-    "fat_g": 20,
-    [cite_start]"notes": "Cauliflower is a cruciferous vegetable that contains indole-3-carbinol, which helps modulate estrogen metabolism. [cite: 99] [cite_start]Cashews provide healthy fats and magnesium. [cite: 100]"
-  },
-  {
-    "id": "bbf-lun-013",
-    "name": {
-      "en": "Mexican Jackfruit 'Carnitas' Burrito Bowl"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Vegan"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Young green jackfruit (brined)", "cilantro-lime cauliflower rice", "black beans", "salsa", "guacamole"],
-    "serving_g": 400,
-    "calories": 280,
-    "protein_g": 8,
-    "carbs_g": 34,
-    "fat_g": 12,
-    [cite_start]"notes": "This is a low-calorie, high-volume meal. [cite: 102] [cite_start]It is perfect for athletes in a 'weight-cutting' phase who still require the psychological satisfaction of a large, flavorful meal. [cite: 103]"
-  },
-  {
-    "id": "bbf-lun-014",
-    "name": {
-      "en": "American Spiralized Veggie Sesame Noodles"
-    },
-    "cuisine": "American",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Vegan"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Egg-Free"],
-    "core_ingredients": ["Zucchini noodles", "chickpeas", "carrots", "red cabbage", "almond butter-ginger sauce (no sugar)"],
-    "serving_g": 450,
-    "calories": 385,
-    "protein_g": 14,
-    "carbs_g": 38,
-    "fat_g": 22,
-    [cite_start]"notes": "The almond butter provides a superior fat profile to peanut butter, and the zucchini noodles drastically reduce the glycemic load compared to wheat pasta. [cite: 105]"
-  },
-  {
-    "id": "bbf-lun-015",
-    "name": {
-      "en": "Brazilian Hearts of Palm & Tomato Salad"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Lunch",
-    "dietary_profile": ["Vegan"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Hearts of palm", "tomatoes", "onions", "cilantro", "lime juice", "avocado", "black beans"],
-    "serving_g": 400,
-    "calories": 310,
-    "protein_g": 12,
-    "carbs_g": 44,
-    "fat_g": 12,
-    [cite_start]"notes": "Hearts of palm are extremely low in calories but rich in minerals like potassium and copper. [cite: 108] [cite_start]This salad is highly hydrating and alkaline, supporting post-workout recovery. [cite: 109]"
-  },
-  {
-    "id": "bbf-din-001",
-    "name": {
-      "en": "Brazilian Traditional Feijoada (BBF Performance Version)"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Black beans", "lean pork loin", "grass-fed beef", "smoked turkey sausage (no nitrates)", "collard greens", "orange slices"],
-    "serving_g": 550,
-    "calories": 600,
-    "protein_g": 45,
-    "carbs_g": 40,
-    "fat_g": 30,
-    [cite_start]"notes": "Feijoada is the national dish of Brazil. [cite: 113] [cite_start]By using leaner meat cuts, the saturated fat content is controlled while maintaining a massive protein load. [cite: 114] [cite_start]The traditional orange slices are critical for providing Vitamin C to enhance the absorption of the iron from the black beans. [cite: 115]"
-  },
-  {
-    "id": "bbf-din-002",
-    "name": {
-      "en": "Mexican Carne Asada with Brown Rice & Pinto Beans"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Marinated skirt steak", "pinto beans", "brown rice", "fresh salsa", "avocado"],
-    "serving_g": 500,
-    "calories": 630,
-    "protein_g": 37,
-    "carbs_g": 68,
-    "fat_g": 24,
-    [cite_start]"notes": "Skirt steak is one of the richest sources of CLA (Conjugated Linoleic Acid), which may support fat loss and muscle retention. [cite: 118] [cite_start]Pinto beans offer a complex carbohydrate and fiber source that promotes satiety. [cite: 119]"
-  },
-  {
-    "id": "bbf-din-003",
-    "name": {
-      "en": "American Roast Lemon Herb Chicken & Asparagus"
-    },
-    "cuisine": "American",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Chicken thighs (skin-on)", "asparagus", "lemon", "garlic", "fresh rosemary", "thyme"],
-    "serving_g": 450,
-    "calories": 580,
-    "protein_g": 38,
-    "carbs_g": 12,
-    "fat_g": 44,
-    [cite_start]"notes": "Asparagus contains asparagine, an amino acid that helps with the removal of metabolic waste from the muscles. [cite: 121] [cite_start]The healthy fats from the chicken skin provide sustained energy for hormone production. [cite: 122]"
-  },
-  {
-    "id": "bbf-din-004",
-    "name": {
-      "en": "Brazilian Frango Churrasco (Grilled Lemon & Garlic Chicken)"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Boneless skinless chicken thighs", "lemon zest", "paprika", "garlic", "piri-piri sauce (no sugar)", "roasted yuca"],
-    "serving_g": 450,
-    "calories": 480,
-    "protein_g": 26,
-    "carbs_g": 38,
-    "fat_g": 23,
-    [cite_start]"notes": "Yuca (cassava) is a dense source of energy, higher in calories than potatoes but with a very low glycemic impact, making it perfect for replenishing glycogen without causing insulin resistance. [cite: 125]"
-  },
-  {
-    "id": "bbf-din-005",
-    "name": {
-      "en": "Mexican Chicken Tinga Performance Bowl"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Shredded chicken breast", "tomato-chipotle sauce", "cilantro-lime rice", "black beans", "pickled red onions"],
-    "serving_g": 480,
-    "calories": 560,
-    "protein_g": 38,
-    "carbs_g": 50,
-    "fat_g": 10,
-    [cite_start]"notes": "The high protein-to-fat ratio makes this an ideal recovery meal for athletes focusing on lean muscle mass. [cite: 127] [cite_start]The chipotle peppers provide a mild thermogenic effect. [cite: 128]"
-  },
-  {
-    "id": "bbf-din-006",
-    "name": {
-      "en": "American Grass-fed Bison & Sweet Potato Hash (Dinner Portion)"
-    },
-    "cuisine": "American",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Ground bison", "sweet potatoes", "red onions", "kale", "avocado oil"],
-    "serving_g": 500,
-    "calories": 610,
-    "protein_g": 36,
-    "carbs_g": 35,
-    "fat_g": 40,
-    [cite_start]"notes": "The increased portion size for dinner ensures that the body has a consistent supply of amino acids throughout the sleep cycle, preventing nocturnal catabolism. [cite: 130]"
-  },
-  {
-    "id": "bbf-din-007",
-    "name": {
-      "en": "Brazilian Moqueca de Peixe (Fish Stew) with Brown Rice"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Omnivore"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["White fish (Halibut or Cod)", "coconut milk", "tomatoes", "onions", "bell peppers", "cilantro", "lime juice"],
-    "serving_g": 450,
-    "calories": 448,
-    "protein_g": 32,
-    "carbs_g": 55,
-    "fat_g": 12,
-    [cite_start]"notes": "This stew is rich in vitamins and minerals. [cite: 133] [cite_start]The white fish provides lean protein that is easy for the body to assimilate before bedtime. [cite: 134]"
-  },
-  {
-    "id": "bbf-din-008",
-    "name": {
-      "en": "American Butternut Squash & Lentil Curry"
-    },
-    "cuisine": "American",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Butternut squash", "red lentils", "coconut milk", "ginger", "turmeric", "garlic", "brown rice"],
-    "serving_g": 480,
-    "calories": 510,
-    "protein_g": 20,
-    "carbs_g": 78,
-    "fat_g": 14,
-    [cite_start]"notes": "The combination of turmeric and ginger makes this meal a powerful anti-inflammatory 'shot' for the body. [cite: 136] [cite_start]Butternut squash is high in potassium, aiding in fluid balance and muscle function. [cite: 137]"
-  },
-  {
-    "id": "bbf-din-009",
-    "name": {
-      "en": "Mexican Chickpea & Spinach Street Tacos"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Seasoned chickpeas", "fresh spinach", "corn tortillas", "avocado crema (dairy-free)", "pickled jalapeños"],
-    "serving_g": 400,
-    "calories": 420,
-    "protein_g": 14,
-    "carbs_g": 58,
-    "fat_g": 16,
-    [cite_start]"notes": "Spinach is a source of nitrates, which may improve mitochondrial efficiency. [cite: 140] [cite_start]Chickpeas provide the necessary protein for nighttime repair processes. [cite: 141]"
-  },
-  {
-    "id": "bbf-din-010",
-    "name": {
-      "en": "Brazilian Tutu de Feijão (Vegetarian Bean Puree)"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free"],
-    "core_ingredients": ["Black bean puree", "manioc flour (farofa)", "sautéed garlic", "hard-boiled eggs", "collard greens"],
-    "serving_g": 450,
-    "calories": 520,
-    "protein_g": 22,
-    "carbs_g": 68,
-    "fat_g": 18,
-    [cite_start]"notes": "This traditional dish is highly satisfying. [cite: 143] [cite_start]The addition of eggs ensures a high-quality protein source, while the manioc flour provides the necessary energy for long-term recovery. [cite: 144]"
-  },
-  {
-    "id": "bbf-din-011",
-    "name": {
-      "en": "American Chopped Chickpea Salad with Bulgur Wheat"
-    },
-    "cuisine": "American",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Vegetarian"],
-    "restrictions_safe": ["Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Chickpeas", "bulgur wheat (quinoa for GF)", "cucumber", "bell peppers", "feta cheese", "honey-lemon vinaigrette"],
-    "serving_g": 450,
-    "calories": 460,
-    "protein_g": 18,
-    "carbs_g": 65,
-    "fat_g": 14,
-    [cite_start]"notes": "Bulgur wheat is a whole grain that provides B-vitamins and manganese. [cite: 147] [cite_start]This salad is refreshing and light, perfect for evening meals after late-day practices. [cite: 148]"
-  },
-  {
-    "id": "bbf-din-012",
-    "name": {
-      "en": "Mexican Chickpea Pozole Verde"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Vegan"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Chickpeas", "hominy (nixtamalized corn)", "tomatillos", "poblano peppers", "cilantro", "pumpkin seeds (pepitas)"],
-    "serving_g": 500,
-    "calories": 382,
-    "protein_g": 16,
-    "carbs_g": 72,
-    "fat_g": 4,
-    [cite_start]"notes": "Nixtamalization increases the bioavailability of niacin. [cite: 151] [cite_start]This stew is nutrient-dense and low in fat, making it an excellent 'clean' dinner choice for vegan athletes. [cite: 152]"
-  },
-  {
-    "id": "bbf-din-013",
-    "name": {
-      "en": "American Tempeh & Broccoli Stir Fry (Vegan)"
-    },
-    "cuisine": "American",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Vegan"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Egg-Free"],
-    "core_ingredients": ["Fermented tempeh", "broccoli", "carrots", "snap peas", "coconut aminos", "ginger", "brown rice"],
-    "serving_g": 450,
-    "calories": 440,
-    "protein_g": 26,
-    "carbs_g": 54,
-    "fat_g": 16,
-    [cite_start]"notes": "Tempeh is a superior vegan protein because it is fermented, reducing the levels of phytic acid and making the minerals more absorbable. [cite: 155] [cite_start]Broccoli is rich in Vitamin K. [cite: 156]"
-  },
-  {
-    "id": "bbf-din-014",
-    "name": {
-      "en": "Brazilian Plantain & Pinto Bean Stew"
-    },
-    "cuisine": "Brazilian",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Vegan"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Pinto beans", "ripe plantains", "tomatoes", "onions", "garlic", "cilantro", "coconut oil"],
-    "serving_g": 450,
-    "calories": 410,
-    "protein_g": 14,
-    "carbs_g": 76,
-    "fat_g": 8,
-    [cite_start]"notes": "Plantains provide a unique source of resistant starch when cooked, which serves as a prebiotic for beneficial gut bacteria. [cite: 158] [cite_start]This meal is high in potassium. [cite: 159]"
-  },
-  {
-    "id": "bbf-din-015",
-    "name": {
-      "en": "Mexican Jackfruit 'Carnitas' Burrito Bowl (Dinner Portion)"
-    },
-    "cuisine": "Mexican",
-    "meal_type": "Dinner",
-    "dietary_profile": ["Vegan"],
-    "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
-    "core_ingredients": ["Shredded jackfruit", "cilantro-lime cauliflower rice", "black beans", "salsa", "guacamole"],
-    "serving_g": 500,
-    "calories": 350,
-    "protein_g": 10,
-    "carbs_g": 42,
-    "fat_g": 15,
-    [cite_start]"notes": "By using a larger portion of black beans and cauliflower rice, the athlete receives a high volume of food with minimal caloric density, supporting lean body mass maintenance. [cite: 161]"
-  }
+ {
+ "id": "bbf-brk-001",
+ "name": {
+ "en": "American Grass-fed Bison & Sweet Potato Hash"
+ },
+ "cuisine": "American",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Ground bison (90% lean)", "sweet potatoes", "red onions", "kale", "avocado oil", "garlic powder", "cumin", "chili powder"],
+ "serving_g": 450,
+ "calories": 557,
+ "protein_g": 27,
+ "carbs_g": 19,
+ "fat_g": 42,
+ "notes": "Bison is a nutrient-dense alternative to beef, providing higher levels of iron and zinc, which are essential for oxygen transport and immune function in athletes. The sweet potatoes provide a low-glycemic carbohydrate source that supports sustained energy without the insulin spikes of refined grains. "
+ },
+ {
+ "id": "bbf-brk-002",
+ "name": {
+ "en": "Mexican Huevos a la Mexicana with Black Bean Puree"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free"],
+ "core_ingredients": ["Pasture-raised eggs", "tomatoes", "onions", "serrano peppers", "black beans", "avocado", "fresh cilantro"],
+ "serving_g": 400,
+ "calories": 420,
+ "protein_g": 24,
+ "carbs_g": 18,
+ "fat_g": 28,
+ "notes": "The addition of capsaicin from serrano peppers may enhance metabolic rate and improve peripheral circulation. The black bean puree provides a secondary protein source and high fiber content to stabilize postprandial glucose. "
+ },
+ {
+ "id": "bbf-brk-003",
+ "name": {
+ "en": "Brazilian Tapioca Crepe with Shredded Chicken & Avocado"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Manioc starch (tapioca)", "shredded chicken breast", "avocado", "sea salt", "fresh parsley"],
+ "serving_g": 380,
+ "calories": 435,
+ "protein_g": 32,
+ "carbs_g": 45,
+ "fat_g": 15,
+ "notes": "Tapioca is a traditional Brazilian carbohydrate source that is naturally gluten-free and extremely easy on the digestive tract, making it an ideal pre-workout meal. The chicken provides high-bioavailability essential amino acids for tissue repair. "
+ },
+ {
+ "id": "bbf-brk-004",
+ "name": {
+ "en": "American Turkey Sausage & Spinach Egg Muffins"
+ },
+ "cuisine": "American",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free"],
+ "core_ingredients": ["Lean ground turkey", "eggs", "baby spinach", "onions", "red bell peppers", "sage", "rosemary"],
+ "serving_g": 300,
+ "calories": 360,
+ "protein_g": 28,
+ "carbs_g": 6,
+ "fat_g": 24,
+ "notes": "These muffins are optimized for portability. Spinach provides magnesium, which is crucial for muscle relaxation and preventing cramps. The lean turkey ensures a high-protein density with minimal saturated fat. "
+ },
+ {
+ "id": "bbf-brk-005",
+ "name": {
+ "en": "Brazilian Açaí Performance Bowl (Whey/Plant Boosted)"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Unsweetened açaí pulp", "grass-fed whey protein", "banana", "hemp seeds", "fresh strawberries"],
+ "serving_g": 400,
+ "calories": 388,
+ "protein_g": 28,
+ "carbs_g": 42,
+ "fat_g": 12,
+ "notes": "Traditional açaí bowls are often hyper-caloric due to added sugars. This version uses unsweetened pulp and adds protein powder to achieve a more favorable carb-to-protein ratio, supporting muscle synthesis while providing a potent dose of anthocyanins. "
+ },
+ {
+ "id": "bbf-brk-006",
+ "name": {
+ "en": "Mexican Savory Tamale Breakfast Bowl"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free"],
+ "core_ingredients": ["Organic stone-ground polenta (corn)", "pinto beans", "poached eggs", "salsa verde", "avocado", "radish"],
+ "serving_g": 420,
+ "calories": 485,
+ "protein_g": 22,
+ "carbs_g": 55,
+ "fat_g": 18,
+ "notes": "The use of polenta provides a similar nutritional profile to traditional masa but is often easier for athletes to digest. The combination of pinto beans and eggs ensures a complete amino acid profile. "
+ },
+ {
+ "id": "bbf-brk-007",
+ "name": {
+ "en": "American Blueberry & Greek Yogurt Power Pancakes"
+ },
+ "cuisine": "American",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free"],
+ "core_ingredients": ["Oat flour", "non-fat Greek yogurt", "eggs", "blueberries", "cinnamon", "raw honey"],
+ "serving_g": 350,
+ "calories": 380,
+ "protein_g": 25,
+ "carbs_g": 45,
+ "fat_g": 8,
+ "notes": "Utilizing Greek yogurt in the batter increases the protein density without the need for processed protein powders. Blueberries provide localized antioxidant support for the eyes and vascular system. "
+ },
+ {
+ "id": "bbf-brk-008",
+ "name": {
+ "en": "Brazilian Pão de Queijo & Soft Boiled Eggs"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free"],
+ "core_ingredients": ["Tapioca-based cheese rolls", "soft-boiled eggs", "sliced tomatoes", "olive oil"],
+ "serving_g": 350,
+ "calories": 510,
+ "protein_g": 20,
+ "carbs_g": 38,
+ "fat_g": 32,
+ "notes": "While calorie-dense, this breakfast provides the essential fats required for fat-soluble vitamin absorption (A, D, E, K). The tapioca starch offers a quick energy source for morning metabolic needs. "
+ },
+ {
+ "id": "bbf-brk-009",
+ "name": {
+ "en": "Mexican Tofu Scramble 'Migas'"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Vegan"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Egg-Free"],
+ "core_ingredients": ["Extra-firm tofu", "turmeric", "nutritional yeast", "onions", "bell peppers", "corn tortillas", "black beans", "avocado"],
+ "serving_g": 400,
+ "calories": 395,
+ "protein_g": 24,
+ "carbs_g": 42,
+ "fat_g": 15,
+ "notes": "Tofu is a complete plant protein. Turmeric acts as a natural anti-inflammatory agent, which is essential for athletes managing high training loads. The nutritional yeast provides a vegan source of B-vitamins. "
+ },
+ {
+ "id": "bbf-brk-010",
+ "name": {
+ "en": "American Mixed Berry Baked Oatmeal"
+ },
+ "cuisine": "American",
+ "meal_type": "Breakfast",
+ "dietary_profile": ["Vegan"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Steel-cut oats", "flaxseeds", "chia seeds", "almond milk (unsweetened)", "mixed berries"],
+ "serving_g": 400,
+ "calories": 340,
+ "protein_g": 12,
+ "carbs_g": 58,
+ "fat_g": 10,
+ "notes": "This meal is high in soluble fiber (beta-glucans), which supports cardiovascular health by modulating cholesterol absorption. Chia and flaxseeds provide a plant-based source of omega-3 fatty acids. "
+ },
+ {
+ "id": "bbf-lun-001",
+ "name": {
+ "en": "American Honey Lemon Salmon & Broccolini"
+ },
+ "cuisine": "American",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Wild-caught salmon", "broccolini", "raw honey", "lemon juice", "garlic", "olive oil", "quinoa"],
+ "serving_g": 450,
+ "calories": 520,
+ "protein_g": 34,
+ "carbs_g": 38,
+ "fat_g": 24,
+ "notes": "Salmon is the premier source of long-chain omega-3s, which improve muscle membrane fluidity and reduce soreness. Broccolini provides sulforaphane, a compound that supports the body's natural detoxification pathways. "
+ },
+ {
+ "id": "bbf-lun-002",
+ "name": {
+ "en": "Mexican Grilled Chicken Fajita Bowl"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Marinated chicken breast", "bell peppers", "onions", "brown rice", "black beans", "guacamole", "fresh salsa"],
+ "serving_g": 500,
+ "calories": 516,
+ "protein_g": 32,
+ "carbs_g": 48,
+ "fat_g": 24,
+ "notes": "This meal provides a perfect 1:1.5 protein-to-carb ratio, which is clinically optimal for refueling after a morning metabolic conditioning session. Guacamole provides monounsaturated fats that support hormonal health. "
+ },
+ {
+ "id": "bbf-lun-003",
+ "name": {
+ "en": "Brazilian Picanha Steak & Vinaigrette Salad"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Grilled top sirloin cap (Picanha)", "mixed greens", "tomatoes", "red onion", "white wine vinegar", "olive oil"],
+ "serving_g": 400,
+ "calories": 484,
+ "protein_g": 30,
+ "carbs_g": 32,
+ "fat_g": 26,
+ "notes": "Picanha is the prized cut of Brazil, offering a high concentration of B12 and creatine. The fresh 'vinaigrette' (Brazilian salsa) provides digestive enzymes to help breakdown the dense protein. "
+ },
+ {
+ "id": "bbf-lun-004",
+ "name": {
+ "en": "American Turkey Burger Lettuce Wrap & Sweet Potato Fries"
+ },
+ "cuisine": "American",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Ground turkey (93% lean)", "iceberg lettuce", "tomato", "red onion", "sweet potato (air-fried)", "avocado oil"],
+ "serving_g": 420,
+ "calories": 530,
+ "protein_g": 34,
+ "carbs_g": 49,
+ "fat_g": 20,
+ "notes": "By eliminating the bun, the athlete avoids refined wheat and potential gluten-induced gut permeability. Sweet potatoes are rich in Vitamin A, which is essential for tissue repair and epithelial health. "
+ },
+ {
+ "id": "bbf-lun-005",
+ "name": {
+ "en": "Mexican Shrimp Ceviche Lettuce Wraps"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Cooked shrimp", "lime juice", "cucumber", "tomato", "onion", "cilantro", "avocado", "romaine lettuce"],
+ "serving_g": 400,
+ "calories": 320,
+ "protein_g": 36,
+ "carbs_g": 12,
+ "fat_g": 14,
+ "notes": "This is an ultra-lean protein option. Shrimp is high in astaxanthin, a powerful antioxidant that protects the skin and eyes from UV damage during outdoor training. "
+ },
+ {
+ "id": "bbf-lun-006",
+ "name": {
+ "en": "Brazilian Moqueca Prawn Stew (Lunch Portion)"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Prawns", "coconut milk", "red peppers", "onions", "tomatoes", "garlic", "dende oil", "white rice"],
+ "serving_g": 450,
+ "calories": 398,
+ "protein_g": 23,
+ "carbs_g": 12,
+ "fat_g": 28,
+ "notes": "The coconut milk base provides MCTs (medium-chain triglycerides), which are processed differently than long-chain fats, providing a more immediate fuel source for the brain and muscles. "
+ },
+ {
+ "id": "bbf-lun-007",
+ "name": {
+ "en": "American Chicken Buddha Bowl with Tahini"
+ },
+ "cuisine": "American",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Grilled chicken", "quinoa", "roasted sweet potatoes", "kale", "lemon-tahini dressing"],
+ "serving_g": 450,
+ "calories": 540,
+ "protein_g": 38,
+ "carbs_g": 52,
+ "fat_g": 18,
+ "notes": "This bowl focuses on micronutrient density. The combination of kale and tahini provides a non-dairy source of calcium, which is vital for bone density and muscle contraction signals. "
+ },
+ {
+ "id": "bbf-lun-008",
+ "name": {
+ "en": "Mexican Veggie-Stuffed Poblano Peppers"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Roasted poblano peppers", "black beans", "quinoa", "corn", "diced tomatoes", "onion", "garlic"],
+ "serving_g": 450,
+ "calories": 420,
+ "protein_g": 16,
+ "carbs_g": 62,
+ "fat_g": 12,
+ "notes": "Poblano peppers are rich in Vitamin C. Quinoa and black beans provide a complete protein source for vegetarian athletes who require high fiber for digestive regularity. "
+ },
+ {
+ "id": "bbf-lun-009",
+ "name": {
+ "en": "American Greek Lentil Power Bowl (Vegetarian)"
+ },
+ "cuisine": "American",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Brown lentils", "cucumber", "tomatoes", "kalamata olives", "feta cheese", "red onion", "lemon-olive oil dressing"],
+ "serving_g": 400,
+ "calories": 410,
+ "protein_g": 18,
+ "carbs_g": 48,
+ "fat_g": 16,
+ "notes": "Lentils provide a stable source of iron. The healthy fats from olives and olive oil support cardiovascular health and reduce systemic inflammation. "
+ },
+ {
+ "id": "bbf-lun-010",
+ "name": {
+ "en": "Brazilian Rice & Chickpea Medley"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Chickpeas", "brown rice", "sautéed garlic", "onions", "fresh herbs", "olive oil"],
+ "serving_g": 400,
+ "calories": 420,
+ "protein_g": 15,
+ "carbs_g": 72,
+ "fat_g": 8,
+ "notes": "This is a 'clean energy' meal. The high carbohydrate content from rice and chickpeas is perfect for replenishing glycogen after high-volume aerobic workouts. "
+ },
+ {
+ "id": "bbf-lun-011",
+ "name": {
+ "en": "Mexican Sweet Potato & Corn Enchiladas"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Corn tortillas", "roasted sweet potatoes", "corn", "black beans", "homemade red salsa (no sugar)", "goat cheese"],
+ "serving_g": 420,
+ "calories": 480,
+ "protein_g": 14,
+ "carbs_g": 82,
+ "fat_g": 10,
+ "notes": "Sweet potatoes and corn provide a spectrum of carotenoids. This meal is designed for 'heavy training days' where carbohydrate requirements are elevated. "
+ },
+ {
+ "id": "bbf-lun-012",
+ "name": {
+ "en": "American Cauliflower Cashew Lunch Bowl"
+ },
+ "cuisine": "American",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Roasted cauliflower", "toasted cashews", "barley (or quinoa for GF)", "chickpeas", "honey-ginger vinaigrette"],
+ "serving_g": 400,
+ "calories": 440,
+ "protein_g": 14,
+ "carbs_g": 58,
+ "fat_g": 20,
+ "notes": "Cauliflower is a cruciferous vegetable that contains indole-3-carbinol, which helps modulate estrogen metabolism. Cashews provide healthy fats and magnesium. "
+ },
+ {
+ "id": "bbf-lun-013",
+ "name": {
+ "en": "Mexican Jackfruit 'Carnitas' Burrito Bowl"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Vegan"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Young green jackfruit (brined)", "cilantro-lime cauliflower rice", "black beans", "salsa", "guacamole"],
+ "serving_g": 400,
+ "calories": 280,
+ "protein_g": 8,
+ "carbs_g": 34,
+ "fat_g": 12,
+ "notes": "This is a low-calorie, high-volume meal. It is perfect for athletes in a 'weight-cutting' phase who still require the psychological satisfaction of a large, flavorful meal. "
+ },
+ {
+ "id": "bbf-lun-014",
+ "name": {
+ "en": "American Spiralized Veggie Sesame Noodles"
+ },
+ "cuisine": "American",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Vegan"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Egg-Free"],
+ "core_ingredients": ["Zucchini noodles", "chickpeas", "carrots", "red cabbage", "almond butter-ginger sauce (no sugar)"],
+ "serving_g": 450,
+ "calories": 385,
+ "protein_g": 14,
+ "carbs_g": 38,
+ "fat_g": 22,
+ "notes": "The almond butter provides a superior fat profile to peanut butter, and the zucchini noodles drastically reduce the glycemic load compared to wheat pasta. "
+ },
+ {
+ "id": "bbf-lun-015",
+ "name": {
+ "en": "Brazilian Hearts of Palm & Tomato Salad"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Lunch",
+ "dietary_profile": ["Vegan"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Hearts of palm", "tomatoes", "onions", "cilantro", "lime juice", "avocado", "black beans"],
+ "serving_g": 400,
+ "calories": 310,
+ "protein_g": 12,
+ "carbs_g": 44,
+ "fat_g": 12,
+ "notes": "Hearts of palm are extremely low in calories but rich in minerals like potassium and copper. This salad is highly hydrating and alkaline, supporting post-workout recovery. "
+ },
+ {
+ "id": "bbf-din-001",
+ "name": {
+ "en": "Brazilian Traditional Feijoada (BBF Performance Version)"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Black beans", "lean pork loin", "grass-fed beef", "smoked turkey sausage (no nitrates)", "collard greens", "orange slices"],
+ "serving_g": 550,
+ "calories": 600,
+ "protein_g": 45,
+ "carbs_g": 40,
+ "fat_g": 30,
+ "notes": "Feijoada is the national dish of Brazil. By using leaner meat cuts, the saturated fat content is controlled while maintaining a massive protein load. The traditional orange slices are critical for providing Vitamin C to enhance the absorption of the iron from the black beans. "
+ },
+ {
+ "id": "bbf-din-002",
+ "name": {
+ "en": "Mexican Carne Asada with Brown Rice & Pinto Beans"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Marinated skirt steak", "pinto beans", "brown rice", "fresh salsa", "avocado"],
+ "serving_g": 500,
+ "calories": 630,
+ "protein_g": 37,
+ "carbs_g": 68,
+ "fat_g": 24,
+ "notes": "Skirt steak is one of the richest sources of CLA (Conjugated Linoleic Acid), which may support fat loss and muscle retention. Pinto beans offer a complex carbohydrate and fiber source that promotes satiety. "
+ },
+ {
+ "id": "bbf-din-003",
+ "name": {
+ "en": "American Roast Lemon Herb Chicken & Asparagus"
+ },
+ "cuisine": "American",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Chicken thighs (skin-on)", "asparagus", "lemon", "garlic", "fresh rosemary", "thyme"],
+ "serving_g": 450,
+ "calories": 580,
+ "protein_g": 38,
+ "carbs_g": 12,
+ "fat_g": 44,
+ "notes": "Asparagus contains asparagine, an amino acid that helps with the removal of metabolic waste from the muscles. The healthy fats from the chicken skin provide sustained energy for hormone production. "
+ },
+ {
+ "id": "bbf-din-004",
+ "name": {
+ "en": "Brazilian Frango Churrasco (Grilled Lemon & Garlic Chicken)"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Boneless skinless chicken thighs", "lemon zest", "paprika", "garlic", "piri-piri sauce (no sugar)", "roasted yuca"],
+ "serving_g": 450,
+ "calories": 480,
+ "protein_g": 26,
+ "carbs_g": 38,
+ "fat_g": 23,
+ "notes": "Yuca (cassava) is a dense source of energy, higher in calories than potatoes but with a very low glycemic impact, making it perfect for replenishing glycogen without causing insulin resistance. "
+ },
+ {
+ "id": "bbf-din-005",
+ "name": {
+ "en": "Mexican Chicken Tinga Performance Bowl"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Shredded chicken breast", "tomato-chipotle sauce", "cilantro-lime rice", "black beans", "pickled red onions"],
+ "serving_g": 480,
+ "calories": 560,
+ "protein_g": 38,
+ "carbs_g": 50,
+ "fat_g": 10,
+ "notes": "The high protein-to-fat ratio makes this an ideal recovery meal for athletes focusing on lean muscle mass. The chipotle peppers provide a mild thermogenic effect. "
+ },
+ {
+ "id": "bbf-din-006",
+ "name": {
+ "en": "American Grass-fed Bison & Sweet Potato Hash (Dinner Portion)"
+ },
+ "cuisine": "American",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Ground bison", "sweet potatoes", "red onions", "kale", "avocado oil"],
+ "serving_g": 500,
+ "calories": 610,
+ "protein_g": 36,
+ "carbs_g": 35,
+ "fat_g": 40,
+ "notes": "The increased portion size for dinner ensures that the body has a consistent supply of amino acids throughout the sleep cycle, preventing nocturnal catabolism. "
+ },
+ {
+ "id": "bbf-din-007",
+ "name": {
+ "en": "Brazilian Moqueca de Peixe (Fish Stew) with Brown Rice"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Omnivore"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["White fish (Halibut or Cod)", "coconut milk", "tomatoes", "onions", "bell peppers", "cilantro", "lime juice"],
+ "serving_g": 450,
+ "calories": 448,
+ "protein_g": 32,
+ "carbs_g": 55,
+ "fat_g": 12,
+ "notes": "This stew is rich in vitamins and minerals. The white fish provides lean protein that is easy for the body to assimilate before bedtime. "
+ },
+ {
+ "id": "bbf-din-008",
+ "name": {
+ "en": "American Butternut Squash & Lentil Curry"
+ },
+ "cuisine": "American",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Butternut squash", "red lentils", "coconut milk", "ginger", "turmeric", "garlic", "brown rice"],
+ "serving_g": 480,
+ "calories": 510,
+ "protein_g": 20,
+ "carbs_g": 78,
+ "fat_g": 14,
+ "notes": "The combination of turmeric and ginger makes this meal a powerful anti-inflammatory 'shot' for the body. Butternut squash is high in potassium, aiding in fluid balance and muscle function. "
+ },
+ {
+ "id": "bbf-din-009",
+ "name": {
+ "en": "Mexican Chickpea & Spinach Street Tacos"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Seasoned chickpeas", "fresh spinach", "corn tortillas", "avocado crema (dairy-free)", "pickled jalapeños"],
+ "serving_g": 400,
+ "calories": 420,
+ "protein_g": 14,
+ "carbs_g": 58,
+ "fat_g": 16,
+ "notes": "Spinach is a source of nitrates, which may improve mitochondrial efficiency. Chickpeas provide the necessary protein for nighttime repair processes. "
+ },
+ {
+ "id": "bbf-din-010",
+ "name": {
+ "en": "Brazilian Tutu de Feijão (Vegetarian Bean Puree)"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Gluten-Free", "Nut-Free", "Soy-Free"],
+ "core_ingredients": ["Black bean puree", "manioc flour (farofa)", "sautéed garlic", "hard-boiled eggs", "collard greens"],
+ "serving_g": 450,
+ "calories": 520,
+ "protein_g": 22,
+ "carbs_g": 68,
+ "fat_g": 18,
+ "notes": "This traditional dish is highly satisfying. The addition of eggs ensures a high-quality protein source, while the manioc flour provides the necessary energy for long-term recovery. "
+ },
+ {
+ "id": "bbf-din-011",
+ "name": {
+ "en": "American Chopped Chickpea Salad with Bulgur Wheat"
+ },
+ "cuisine": "American",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Vegetarian"],
+ "restrictions_safe": ["Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Chickpeas", "bulgur wheat (quinoa for GF)", "cucumber", "bell peppers", "feta cheese", "honey-lemon vinaigrette"],
+ "serving_g": 450,
+ "calories": 460,
+ "protein_g": 18,
+ "carbs_g": 65,
+ "fat_g": 14,
+ "notes": "Bulgur wheat is a whole grain that provides B-vitamins and manganese. This salad is refreshing and light, perfect for evening meals after late-day practices. "
+ },
+ {
+ "id": "bbf-din-012",
+ "name": {
+ "en": "Mexican Chickpea Pozole Verde"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Vegan"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Chickpeas", "hominy (nixtamalized corn)", "tomatillos", "poblano peppers", "cilantro", "pumpkin seeds (pepitas)"],
+ "serving_g": 500,
+ "calories": 382,
+ "protein_g": 16,
+ "carbs_g": 72,
+ "fat_g": 4,
+ "notes": "Nixtamalization increases the bioavailability of niacin. This stew is nutrient-dense and low in fat, making it an excellent 'clean' dinner choice for vegan athletes. "
+ },
+ {
+ "id": "bbf-din-013",
+ "name": {
+ "en": "American Tempeh & Broccoli Stir Fry (Vegan)"
+ },
+ "cuisine": "American",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Vegan"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Egg-Free"],
+ "core_ingredients": ["Fermented tempeh", "broccoli", "carrots", "snap peas", "coconut aminos", "ginger", "brown rice"],
+ "serving_g": 450,
+ "calories": 440,
+ "protein_g": 26,
+ "carbs_g": 54,
+ "fat_g": 16,
+ "notes": "Tempeh is a superior vegan protein because it is fermented, reducing the levels of phytic acid and making the minerals more absorbable. Broccoli is rich in Vitamin K. "
+ },
+ {
+ "id": "bbf-din-014",
+ "name": {
+ "en": "Brazilian Plantain & Pinto Bean Stew"
+ },
+ "cuisine": "Brazilian",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Vegan"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Pinto beans", "ripe plantains", "tomatoes", "onions", "garlic", "cilantro", "coconut oil"],
+ "serving_g": 450,
+ "calories": 410,
+ "protein_g": 14,
+ "carbs_g": 76,
+ "fat_g": 8,
+ "notes": "Plantains provide a unique source of resistant starch when cooked, which serves as a prebiotic for beneficial gut bacteria. This meal is high in potassium. "
+ },
+ {
+ "id": "bbf-din-015",
+ "name": {
+ "en": "Mexican Jackfruit 'Carnitas' Burrito Bowl (Dinner Portion)"
+ },
+ "cuisine": "Mexican",
+ "meal_type": "Dinner",
+ "dietary_profile": ["Vegan"],
+ "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
+ "core_ingredients": ["Shredded jackfruit", "cilantro-lime cauliflower rice", "black beans", "salsa", "guacamole"],
+ "serving_g": 500,
+ "calories": 350,
+ "protein_g": 10,
+ "carbs_g": 42,
+ "fat_g": 15,
+ "notes": "By using a larger portion of black beans and cauliflower rice, the athlete receives a high volume of food with minimal caloric density, supporting lean body mass maintenance. "
+ }
 ]

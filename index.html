@@ -1793,36 +1793,41 @@ body.bbf-kairos .hero-badge {
       <p class="sec-s" style="margin:0 auto" data-lang-key="nut-sub">Precision nutrition architecture. Personalized meal plans aligned with your training, metabolic profile, and the demands of your schedule.</p>
     </div>
     <div class="nutr-g">
+      <!-- TIER 1 — Lite (Free, lead capture only) -->
       <div class="nutr-c lite reveal d1">
         <div class="nutr-t">Tier 1</div>
         <div class="nutr-n" data-lang-key="nut-n1">Lite</div>
-        <div class="nutr-d" data-lang-key="nut-d1">Self-starters who need a solid baseline. Use our free TDEE calculator and get your macro targets instantly.</div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--y,#f5c800);margin:.4rem 0 .6rem;letter-spacing:.5px">Free</div>
+        <div class="nutr-d" data-lang-key="nut-d1">Self-starters who need a solid baseline. Calculate your TDEE + macros instantly &mdash; we'll send your numbers to your inbox.</div>
         <ul class="nutr-l">
-          <li>TDEE &amp; Calorie Target</li>
+          <li>TDEE &amp; calorie target</li>
           <li>Macro breakdown (P/C/F)</li>
-          <li>General food guidance</li>
-          <li>One-time setup consultation</li>
+          <li>Sent to your inbox</li>
+          <li>Lead-capture only &mdash; no app access</li>
         </ul>
-        <a href="#tdee-calc" class="nutr-btn nb-lite" data-lang-key="nut-cta1">Calculate Your TDEE &#x2192;</a>
+        <button type="button" class="nutr-btn nb-lite" onclick="openLiteLeadCapture()" data-lang-key="nut-cta1">Get My Free TDEE &#x2192;</button>
       </div>
+      <!-- TIER 2 — Essentials $67/mo -->
       <div class="nutr-c ess reveal d2">
         <div class="nutr-t">Tier 2 &mdash; Most Popular</div>
         <div class="nutr-n" data-lang-key="nut-n2">Essentials</div>
-        <div class="nutr-d" data-lang-key="nut-d2">Full nutrition system built around your training. Tracked inside your personalized client portal.</div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--y,#f5c800);margin:.4rem 0 .6rem;letter-spacing:.5px">$67 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">/ month</span></div>
+        <div class="nutr-d" data-lang-key="nut-d2">A 7-day rotational meal plan built from our clinical-grade culinary matrix. Static plan, refreshed bi-weekly.</div>
         <ul class="nutr-l">
-          <li>Everything in Lite</li>
-          <li>Custom 7-day meal plan</li>
+          <li>Static 7-day meal plan (TDEE-aligned)</li>
           <li>Food swap guide by portion</li>
           <li>Nutrition portal access</li>
           <li>Bi-weekly plan updates</li>
         </ul>
-        <a href="bbf-app.html" class="nutr-btn nb-ess" data-lang-key="nut-cta2">Access Client Portal &#x2192;</a>
+        <button type="button" class="nutr-btn nb-ess" onclick="selectTier('nutrition_essentials')" data-lang-key="nut-cta2">Apply for Essentials &#x2192;</button>
       </div>
+      <!-- TIER 3 — Platinum $147/mo -->
       <div class="nutr-c plat reveal d3">
         <div class="plat-badge">Premium</div>
         <div class="nutr-t">Tier 3</div>
         <div class="nutr-n" data-lang-key="nut-n3">Platinum</div>
-        <div class="nutr-d" data-lang-key="nut-d3">Full-service. Training and nutrition fully integrated. Akeem manages and adjusts everything.</div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--y,#f5c800);margin:.4rem 0 .6rem;letter-spacing:.5px">$147 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">/ month</span></div>
+        <div class="nutr-d" data-lang-key="nut-d3">Adaptive plans synced with your training. Akeem reviews and adjusts every week.</div>
         <ul class="nutr-l">
           <li>Everything in Essentials</li>
           <li>Weekly adaptive meal updates</li>
@@ -1830,7 +1835,7 @@ body.bbf-kairos .hero-badge {
           <li>Priority daily messaging</li>
           <li>Weekly progress reviews</li>
         </ul>
-        <a href="#pathfinder" class="nutr-btn nb-plat" data-lang-key="nut-cta3">Apply for Platinum &#x2192;</a>
+        <button type="button" class="nutr-btn nb-plat" onclick="selectTier('nutrition_platinum')" data-lang-key="nut-cta3">Apply for Platinum &#x2192;</button>
       </div>
     </div>
     <!-- TDEE CALCULATOR -->
@@ -2238,6 +2243,62 @@ body.bbf-kairos .hero-badge {
   </div>
 </footer>
 
+<!-- LITE-TIER LEAD CAPTURE MODAL (Phase 14) -->
+<div id="nlite-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.78);padding:1rem;overflow-y:auto" role="dialog" aria-modal="true" aria-labelledby="nlite-title">
+  <div style="max-width:520px;margin:3rem auto;background:#0f1318;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:1.6rem 1.4rem;position:relative">
+    <button type="button" onclick="closeLiteLeadCapture()" aria-label="Close" style="position:absolute;top:.6rem;right:.8rem;background:transparent;border:0;color:#aaa;font-size:1.4rem;cursor:pointer">&#x2715;</button>
+    <div style="font-size:.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--y,#f5c800);margin-bottom:.4rem">BBF Nutrition Portal &mdash; Lite</div>
+    <h3 id="nlite-title" style="font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.6rem;letter-spacing:1px;margin:0 0 .8rem;color:#fff">Free TDEE + Macros</h3>
+    <div id="nlite-form-view">
+      <p style="font-size:.85rem;color:rgba(255,255,255,.7);margin:0 0 1rem;line-height:1.5">Fill in your stats. We'll calculate your daily calorie target, send the numbers to your email, and show you what an Essentials upgrade unlocks.</p>
+      <div style="display:grid;gap:.7rem">
+        <input type="email" id="nlite-em" placeholder="Email address" autocomplete="email" style="padding:.7rem .9rem;background:#1a1f26;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.9rem"/>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+          <input type="number" id="nlite-age" placeholder="Age" min="16" max="80" inputmode="numeric" style="padding:.7rem .9rem;background:#1a1f26;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.9rem"/>
+          <select id="nlite-sex" style="padding:.7rem .9rem;background:#1a1f26;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.9rem">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <input type="number" id="nlite-wt" placeholder="Weight (lbs)" inputmode="decimal" style="padding:.7rem .9rem;background:#1a1f26;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.9rem"/>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+          <input type="number" id="nlite-ft" placeholder="Height ft" min="4" max="7" inputmode="numeric" style="padding:.7rem .9rem;background:#1a1f26;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.9rem"/>
+          <input type="number" id="nlite-in" placeholder="Height in" min="0" max="11" inputmode="numeric" style="padding:.7rem .9rem;background:#1a1f26;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.9rem"/>
+        </div>
+        <select id="nlite-act" style="padding:.7rem .9rem;background:#1a1f26;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.9rem">
+          <option value="1.2">Sedentary</option>
+          <option value="1.375">Lightly active (1-3x/week)</option>
+          <option value="1.55" selected>Moderately active (3-5x/week)</option>
+          <option value="1.725">Very active (6-7x/week)</option>
+          <option value="1.9">Extremely active / physical job</option>
+        </select>
+        <select id="nlite-goal" style="padding:.7rem .9rem;background:#1a1f26;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.9rem">
+          <option value="-500">Lose fat (-500 cal)</option>
+          <option value="0">Maintain weight</option>
+          <option value="300">Build muscle (+300 cal)</option>
+        </select>
+        <div id="nlite-msg" style="font-size:.78rem;color:#ef4444;min-height:1.1em"></div>
+        <button type="button" id="nlite-submit" onclick="submitLiteLeadCapture()" style="padding:.85rem 1rem;background:var(--y,#f5c800);color:#000;border:0;border-radius:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;font-size:.95rem">Calculate &amp; Send &rarr;</button>
+      </div>
+    </div>
+    <div id="nlite-result-view" style="display:none">
+      <div style="text-align:center;padding:.4rem 0">
+        <div style="font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:.3rem">Your Daily Target</div>
+        <div id="nlite-cal" style="font-family:var(--hb,'Bebas Neue',sans-serif);font-size:3rem;color:var(--y,#f5c800);line-height:1">&mdash;</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.55);margin-bottom:1rem">calories / day</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem">
+          <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:.6rem .4rem"><div id="nlite-p" style="font-weight:800;color:#ef4444;font-size:1.05rem">&mdash;</div><div style="font-size:.65rem;color:rgba(255,255,255,.55)">Protein (g)</div></div>
+          <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:.6rem .4rem"><div id="nlite-c" style="font-weight:800;color:#3b82f6;font-size:1.05rem">&mdash;</div><div style="font-size:.65rem;color:rgba(255,255,255,.55)">Carbs (g)</div></div>
+          <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:.6rem .4rem"><div id="nlite-f" style="font-weight:800;color:#f59e0b;font-size:1.05rem">&mdash;</div><div style="font-size:.65rem;color:rgba(255,255,255,.55)">Fats (g)</div></div>
+        </div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:1.2rem">A copy is on its way to your inbox. Want a 7-day rotational meal plan built around these numbers?</div>
+        <button type="button" onclick="closeLiteLeadCapture();selectTier('nutrition_essentials')" style="display:block;width:100%;padding:.85rem 1rem;background:var(--y,#f5c800);color:#000;border:0;border-radius:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;font-size:.95rem;margin-bottom:.5rem">Upgrade to Essentials &mdash; $67/mo &rarr;</button>
+        <button type="button" onclick="closeLiteLeadCapture()" style="display:block;width:100%;padding:.6rem;background:transparent;color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);border-radius:10px;cursor:pointer;font-size:.8rem">Close &mdash; I'll check my email</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SUCCESS MODAL -->
 <div id="smodal">
   <div class="sm-box">
@@ -2288,17 +2349,27 @@ var BBF_STRIPE_BY_TIER={
   gateway:'https://buy.stripe.com/14A7sNb7143x1F02AFaZi0c',
   youth_athlete:'https://buy.stripe.com/cNieVf8YT6bF2J42AFaZi0f',
   architect:'https://buy.stripe.com/6oU6oJb7157B3N80sxaZi0d',
-  sovereign:'https://buy.stripe.com/cNi3cxa2X9nR97sfnraZi0e'
+  sovereign:'https://buy.stripe.com/cNi3cxa2X9nR97sfnraZi0e',
+  // Phase 14 nutrition tiers — Stripe links pending CEO provisioning.
+  // doSubmit() detects '#' and shows a "Stripe Links Pending" toast
+  // instead of redirecting, so the Pathfinder intake still completes.
+  nutrition_essentials:'#',
+  nutrition_platinum:'#'
 };
 var BBF_TIER_INDEX={gateway:0,youth_athlete:1,architect:2,sovereign:3};
 function selectTier(slug){
   if(!BBF_STRIPE_BY_TIER[slug])return;
+  // Visual select only applies to the .prog-c grid (Gateway/Youth/Architect/
+  // Sovereign). Nutrition tiers live in a separate .nutr-c grid; just
+  // stamp f-tier and scroll to Pathfinder.
   var idx=BBF_TIER_INDEX[slug];
-  var cards=document.querySelectorAll('.prog-c');
-  cards.forEach(function(c,i){
-    c.classList.remove('sel','dim');
-    if(i===idx)c.classList.add('sel');else c.classList.add('dim');
-  });
+  if(idx!==undefined){
+    var cards=document.querySelectorAll('.prog-c');
+    cards.forEach(function(c,i){
+      c.classList.remove('sel','dim');
+      if(i===idx)c.classList.add('sel');else c.classList.add('dim');
+    });
+  }
   var t=document.getElementById('f-tier');
   if(t)t.value=slug;
   var pf=document.getElementById('pathfinder');
@@ -2526,7 +2597,7 @@ function doSubmit(){
   var tgt=base+adj;
   var mac=tgt>0?calcMacros(tgt,wt,adj):{p:0,c:0,f:0};
   btn.textContent='Calculating & Sending...';btn.disabled=true;
-  try{localStorage.setItem('bbf_pathfinder',JSON.stringify({email:em,name:fn+' '+ln,goal:goal,weight:wt,schedule:sch,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,program:prog,ts:Date.now()}));}catch(e){}
+  try{localStorage.setItem('bbf_pathfinder',JSON.stringify({email:em,name:fn+' '+ln,goal:goal,weight:wt,schedule:sch,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,program:prog,tier:tier,ts:Date.now()}));}catch(e){}
   try {
     fetch('https://hooks.zapier.com/hooks/catch/27190846/u7l7ixc/', {
       method:'POST',
@@ -2563,6 +2634,14 @@ function doSubmit(){
         height_weight: hwStr,
         clinical_history: hlth || 'None reported',
         training_protocol: protocolStr,
+        // Phase 14 — tier + macro pass-through. The nutrition-only fork
+        // in /process needs target macros to enforce the ±5% variance
+        // against real numbers instead of re-estimating from age/weight.
+        tier: tier,
+        tdee_target: tgt,
+        macro_p: mac.p,
+        macro_c: mac.c,
+        macro_f: mac.f,
         liability_cleared: true
       })
     }).catch(function(){});
@@ -2574,9 +2653,12 @@ function doSubmit(){
   }).then(function(r){
     if(!r.ok)throw new Error('formspree '+r.status);
     btn.textContent='Calculate My Path & Submit \u2192';btn.disabled=false;
-    if(tier&&BBF_STRIPE_BY_TIER[tier]){
+    if(tier&&BBF_STRIPE_BY_TIER[tier]&&BBF_STRIPE_BY_TIER[tier]!=='#'){
       flash('Intake received. Redirecting to secure checkout\u2026','ok');
       window.location.href=BBF_STRIPE_BY_TIER[tier];
+    }else if(tier&&BBF_STRIPE_BY_TIER[tier]==='#'){
+      flash('Intake received. Stripe links pending \u2014 Akeem will follow up by email.','ok');
+      openMod(fn,tgt,mac,goal,sch);
     }else{
       openMod(fn,tgt,mac,goal,sch);
     }
@@ -2604,6 +2686,68 @@ function openMod(fn,tgt,mac,goal,schedule){
   document.body.style.overflow='hidden';
 }
 function closeMod(){document.getElementById('smodal').classList.remove('on');document.body.style.overflow='auto';}
+
+// ─── PHASE 14 — NUTRITION LITE LEAD CAPTURE ──────────────────
+// Tier 1 of the Nutrition Portal. Free TDEE + macros, email goes to
+// Zapier (same hook as the Pathfinder form), no Stripe / no app
+// account. Closes with an upsell CTA to the Essentials tier.
+function openLiteLeadCapture(){
+  var m=document.getElementById('nlite-modal');
+  if(!m)return;
+  document.getElementById('nlite-form-view').style.display='block';
+  document.getElementById('nlite-result-view').style.display='none';
+  document.getElementById('nlite-msg').textContent='';
+  m.style.display='block';
+  document.body.style.overflow='hidden';
+}
+function closeLiteLeadCapture(){
+  var m=document.getElementById('nlite-modal');
+  if(m)m.style.display='none';
+  document.body.style.overflow='auto';
+}
+function submitLiteLeadCapture(){
+  var em=(document.getElementById('nlite-em').value||'').trim();
+  var age=parseInt(document.getElementById('nlite-age').value)||0;
+  var sex=document.getElementById('nlite-sex').value;
+  var wt=parseFloat(document.getElementById('nlite-wt').value)||0;
+  var ft=parseInt(document.getElementById('nlite-ft').value)||0;
+  var ins=parseInt(document.getElementById('nlite-in').value)||0;
+  var act=parseFloat(document.getElementById('nlite-act').value)||1.55;
+  var adj=parseInt(document.getElementById('nlite-goal').value)||0;
+  var msg=document.getElementById('nlite-msg');
+  if(!em||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){msg.textContent='Please enter a valid email.';return;}
+  if(!age||!wt||!ft){msg.textContent='Please fill in age, weight, and height.';return;}
+  msg.textContent='';
+  var btn=document.getElementById('nlite-submit');
+  btn.disabled=true;btn.textContent='Sending…';
+  var base=calcTDEE(age,sex,wt,ft,ins,act);
+  var tgt=base+adj;
+  var mac=calcMacros(tgt,wt,adj);
+  // Fire-and-forget Zapier webhook — same endpoint as Pathfinder so the
+  // CEO's existing routing rules can branch on source='BBF Nutrition Lite'.
+  try{
+    fetch('https://hooks.zapier.com/hooks/catch/27190846/u7l7ixc/',{
+      method:'POST',
+      body:JSON.stringify({
+        email:em, age:age, sex:sex, weight:wt, height_ft:ft, height_in:ins,
+        activity_level:act, goal_adjustment:adj,
+        tdee_base:base, tdee_target:tgt,
+        macro_p:mac.p, macro_c:mac.c, macro_f:mac.f,
+        tier:'nutrition_lite',
+        source:'BBF Nutrition Lite Lead', timestamp:new Date().toISOString()
+      })
+    }).catch(function(){});
+  }catch(e){}
+  // Show the result view immediately — webhook is fire-and-forget so we
+  // don't gate the UX on its response.
+  document.getElementById('nlite-cal').textContent=tgt.toLocaleString();
+  document.getElementById('nlite-p').textContent=mac.p;
+  document.getElementById('nlite-c').textContent=mac.c;
+  document.getElementById('nlite-f').textContent=mac.f;
+  document.getElementById('nlite-form-view').style.display='none';
+  document.getElementById('nlite-result-view').style.display='block';
+  btn.disabled=false;btn.textContent='Calculate & Send →';
+}
 
 // ─── VALUE EXPLORER ─────────────────────────────────────────
 var EXP_SPORTS=[

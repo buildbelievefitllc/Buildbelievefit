@@ -48,6 +48,22 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const ANTHROPIC_MODEL = 'claude-sonnet-4-6';
 
 // ───────────────────────────────────────────────────────────────
+// Phase 14 — Culinary Matrix (clinical-grade meal database)
+// 40 records × American/Mexican/Brazilian, native macros + dietary
+// profiles + allergen-safe tags. Loaded once at module init; passed
+// verbatim to the nutrition-only prompt so Anthropic selects from a
+// closed universe (no invented food).
+// ───────────────────────────────────────────────────────────────
+let BBF_MEALS_MATRIX = [];
+try {
+  BBF_MEALS_MATRIX = require('./bbf_meals.json');
+  console.log(`[BBF VAULT] Culinary matrix loaded — ${BBF_MEALS_MATRIX.length} meals`);
+} catch (err) {
+  console.error('[BBF VAULT] Failed to load bbf_meals.json:', err.message);
+  console.error('[BBF VAULT] Nutrition-only generation will fail until the matrix is fixed.');
+}
+
+// ───────────────────────────────────────────────────────────────
 // System prompts (DO NOT MODIFY — locked by directive)
 //
 // Phase 5 update: prompts now require strict JSON output matching the
@@ -190,6 +206,66 @@ const SYSTEM_PROMPT_YOUTH_NUTRITION =
   '3. Use whole foods: lean proteins, whole grains, fruits, vegetables, dairy as appropriate. ' +
   '4. Caloric target must support growth and sport demands.';
 
+// ───────────────────────────────────────────────────────────────
+// Phase 14: Nutrition-Only prompt (Essentials / Platinum tiers)
+// Closed-universe meal selection from BBF_MEALS_MATRIX. Hard-bound
+// macro variance (±5%), dietary-profile filter, allergen exclusion,
+// cuisine rotation, calorie-driven meal frequency, and a high-calorie
+// latitude clause that authorises serving-size scaling up to 2.0x or
+// double meal-slot assignment to hit aggressive TDEE targets.
+// JSON output mirrors the adult nutrition schema (legacy MP shape) so
+// the existing frontend RN() renders cloud-generated nutrition plans
+// through the same pipeline as Architect/Sovereign meal plans.
+// ───────────────────────────────────────────────────────────────
+const SYSTEM_PROMPT_NUTRITION_ONLY =
+  'You are the Director of Performance Nutrition for Build Believe Fit (BBF). ' +
+  'Generate a 7-day Rotational Meal Plan based strictly on the user\'s TDEE. ' +
+  'CULINARY MATRIX: A JSON array of approved meals is supplied in the user ' +
+  'message. You MUST ONLY select meals from this array. Do not invent food. ' +
+  'Do not substitute ingredients. Do not propose meals that are not in the ' +
+  'matrix. ' +
+  'MACRO VARIANCE: The daily total (calories, protein_g, carbs_g, fat_g) MUST ' +
+  'hit the user\'s target macros within a +/- 5% variance. Sum the macros from ' +
+  'the meals you select to verify before finalising each day. ' +
+  'SAFETY FILTER — DIETARY PROFILE: You MUST respect the user\'s dietary ' +
+  'profile (Omnivore / Vegetarian / Vegan). A Vegan user can ONLY be served ' +
+  'meals whose dietary_profile array contains "Vegan". A Vegetarian user can ' +
+  'be served meals tagged "Vegetarian" OR "Vegan". An Omnivore user may be ' +
+  'served any meal. ' +
+  'SAFETY FILTER — ALLERGENS: You MUST strictly exclude any meal whose ' +
+  'restrictions_safe array does NOT cover every allergen the user listed. ' +
+  'I.e., for every user_allergen, the meal\'s restrictions_safe MUST contain ' +
+  'the matching "<allergen>-Free" tag. If the user lists no allergens, no ' +
+  'allergen filtering is required. ' +
+  'CUISINE ROTATION: Rotate American / Mexican / Brazilian across the 7 days ' +
+  'to prevent diet fatigue. No single cuisine should appear on more than 3 of ' +
+  'the 7 days. ' +
+  'MEAL FREQUENCY (calorie-driven): If the user\'s daily target is below 1800 ' +
+  'kcal, schedule 3 meals per day. Between 1800 and 2400 kcal, schedule 4 ' +
+  'meals per day. Above 2400 kcal, schedule 5 meals per day. ' +
+  'HIGH-CALORIE LATITUDE: If the user\'s TDEE requires a high caloric intake ' +
+  'that cannot be met by standard single servings of the provided meals, you ' +
+  'are authorised to dynamically adjust the serving_g (and proportionately ' +
+  'scale the macros) up to 2.0x, OR you may assign two breakfast/lunch items ' +
+  'in a single day to hit the target. Do not exceed 2.0x scaling. ' +
+  'CRITICAL OUTPUT REQUIREMENT: Respond ONLY with a valid JSON object. No ' +
+  'preamble, no commentary, no Markdown code fences. The response must parse ' +
+  'cleanly with JSON.parse(). ' +
+  'Schema (matches the legacy BBF meal plan schema): ' +
+  '{"name": client first name (string), ' +
+  '"cal": calorie target string like "~2,400 cal/day", ' +
+  '"goal": one-line tagline like "Tri-Cuisine Rotational Plan" or "Plant-Based Performance", ' +
+  '"days": array of exactly 7 day objects}. ' +
+  'Each day object: {"day": "Day 1" through "Day 7", "meals": array of meal objects}. ' +
+  'Each meal object: ' +
+  '{"m": meal label like "Breakfast", "Lunch", "Dinner" — match the meal_type ' +
+  'from the matrix; if you scale a serving, append " (1.5x)" or similar to the label, ' +
+  '"i": full meal description with macros in parentheses, e.g. ' +
+  '"American Grass-fed Bison & Sweet Potato Hash (450g, ~557 cal/27g P/19g C/42g F)" — ' +
+  'pull name.en, serving_g, calories, protein_g, carbs_g, fat_g from the matrix entry, ' +
+  'scale them in concert if you applied a serving multiplier}. ' +
+  'Output exactly 7 day objects.';
+
 // JSON validation helper — strips optional Markdown code fences and
 // confirms the output parses. Returns the cleaned JSON string on success,
 // or null if the response can't be parsed (caller logs and falls back).
@@ -221,6 +297,17 @@ function normalizeClientPayload(body) {
     clinical_history: String(b.clinical_history || ''),
     training_protocol: String(b.training_protocol || ''),
     tier: String(b.tier || ''),
+    // Phase 14 — nutrition-only fields. Frontend Pathfinder calculates
+    // TDEE + macros locally; pass through so the nutrition prompt can
+    // hit ±5% variance against real targets instead of re-estimating.
+    // dietary_profile + allergens default safely (Omnivore / none) when
+    // the form doesn't capture them yet.
+    tdee_target: Number(b.tdee_target) || 0,
+    macro_p: Number(b.macro_p) || 0,
+    macro_c: Number(b.macro_c) || 0,
+    macro_f: Number(b.macro_f) || 0,
+    dietary_profile: String(b.dietary_profile || 'Omnivore'),
+    allergens: Array.isArray(b.allergens) ? b.allergens.map(String) : [],
     liability_cleared: b.liability_cleared !== undefined ? Boolean(b.liability_cleared) : true,
   };
 }
@@ -324,6 +411,54 @@ async function generateYouthAthleteBlueprint(payload) {
     .join('\n');
 }
 
+// Phase 14: Nutrition-only generation (Essentials / Platinum). Routed
+// to in /process when payload.tier starts with "nutrition_" and isn't
+// "nutrition_lite" (which is lead-capture-only and never hits /process).
+// Returns the raw Anthropic text; caller validates JSON and persists.
+async function generateNutritionOnlyBlueprint(payload) {
+  const firstName = (payload.client_name || 'Client').split(' ')[0] || 'Client';
+  const tdee = payload.tdee_target;
+  const macroP = payload.macro_p;
+  const macroC = payload.macro_c;
+  const macroF = payload.macro_f;
+  const allergensStr = payload.allergens && payload.allergens.length
+    ? payload.allergens.join(', ')
+    : 'None';
+
+  const userMessage = [
+    `Client: ${firstName}`,
+    `Age: ${payload.age || 'N/A'}`,
+    `Height & Weight: ${payload.height_weight || 'N/A'}`,
+    `Tier: ${payload.tier}`,
+    '',
+    'TARGET MACROS (daily totals — sum of selected meals must land within ±5%):',
+    `  Calories: ${tdee || '(not provided — estimate from age/height/weight/activity)'}`,
+    `  Protein:  ${macroP || '(not provided — estimate)'} g`,
+    `  Carbs:    ${macroC || '(not provided — estimate)'} g`,
+    `  Fats:     ${macroF || '(not provided — estimate)'} g`,
+    '',
+    `DIETARY PROFILE: ${payload.dietary_profile}`,
+    `ALLERGENS (user-listed, must avoid): ${allergensStr}`,
+    '',
+    'CULINARY MATRIX (JSON array — select all meals from this list, do not invent food):',
+    JSON.stringify(BBF_MEALS_MATRIX),
+    '',
+    'Generate the 7-day rotational meal plan now.',
+  ].join('\n');
+
+  const response = await anthropic.messages.create({
+    model: ANTHROPIC_MODEL,
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT_NUTRITION_ONLY,
+    messages: [{ role: 'user', content: userMessage }],
+  });
+
+  return response.content
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text)
+    .join('\n');
+}
+
 async function generateYouthFuelMatrix(payload) {
   const userMessage = [
     `Athlete Age: ${payload.age || 'N/A'}`,
@@ -402,28 +537,45 @@ app.post('/process', async (req, res) => {
     return res.status(500).json({ ok: false, phase: 'supabase', error: err.message });
   }
 
-  // Phase 2 — parallel Anthropic generation (tier-aware fork)
-  let hypertrophyMarkdown = '';
+  // Phase 2 — parallel Anthropic generation (tier-aware tri-fork)
+  // Adult (default): hypertrophy + nutrition.
+  // Youth (tier === 'youth_athlete'): pediatric hypertrophy + youth nutrition.
+  // Nutrition-only (tier startsWith 'nutrition_' && !== 'nutrition_lite'):
+  //   meal plan only, no workout — Workouts tab is RBAC-suppressed
+  //   client-side via window.BBF_IS_NUTRITION_ONLY.
+  // (nutrition_lite never reaches /process — it's lead-capture only.)
+  let hypertrophyMarkdown = null;
   let fuelMarkdown = '';
   try {
-    const isYouth = payload.tier === 'youth_athlete';
-    console.log(`[BBF VAULT] Tier: ${payload.tier || '(none)'} → ${isYouth ? 'YOUTH' : 'ADULT'} prompts`);
-    const blueprintFn = isYouth ? generateYouthAthleteBlueprint : generateHypertrophyBlueprint;
-    const fuelFn      = isYouth ? generateYouthFuelMatrix      : generateFuelMatrix;
-    [hypertrophyMarkdown, fuelMarkdown] = await Promise.all([
-      blueprintFn(payload),
-      fuelFn(payload),
-    ]);
-    console.log('[BBF VAULT] Phase 2 complete — Anthropic generation finished.');
+    const tier = payload.tier || '';
+    const isYouth = tier === 'youth_athlete';
+    const isNutritionOnly = tier.indexOf('nutrition_') === 0 && tier !== 'nutrition_lite';
 
-    // Phase 5: Anthropic now outputs JSON in the legacy WP/MP shapes.
-    // Validate parses cleanly; if so, replace the local strings with the
-    // cleaned JSON (fences stripped). If validation fails, persist the
-    // raw text — the frontend has a Markdown fallback for backward compat.
-    const cleanedWorkout = validateJsonResponse(hypertrophyMarkdown, 'workout_plan');
-    const cleanedMeal    = validateJsonResponse(fuelMarkdown,        'meal_plan');
-    if (cleanedWorkout) hypertrophyMarkdown = cleanedWorkout;
-    if (cleanedMeal)    fuelMarkdown        = cleanedMeal;
+    if (isNutritionOnly) {
+      console.log(`[BBF VAULT] Tier: ${tier} → NUTRITION-ONLY prompt (workout generation skipped)`);
+      fuelMarkdown = await generateNutritionOnlyBlueprint(payload);
+      console.log('[BBF VAULT] Phase 2 complete — nutrition-only generation finished.');
+      const cleanedMeal = validateJsonResponse(fuelMarkdown, 'meal_plan');
+      if (cleanedMeal) fuelMarkdown = cleanedMeal;
+    } else {
+      console.log(`[BBF VAULT] Tier: ${tier || '(none)'} → ${isYouth ? 'YOUTH' : 'ADULT'} prompts`);
+      const blueprintFn = isYouth ? generateYouthAthleteBlueprint : generateHypertrophyBlueprint;
+      const fuelFn      = isYouth ? generateYouthFuelMatrix      : generateFuelMatrix;
+      [hypertrophyMarkdown, fuelMarkdown] = await Promise.all([
+        blueprintFn(payload),
+        fuelFn(payload),
+      ]);
+      console.log('[BBF VAULT] Phase 2 complete — Anthropic generation finished.');
+
+      // Phase 5: Anthropic now outputs JSON in the legacy WP/MP shapes.
+      // Validate parses cleanly; if so, replace the local strings with the
+      // cleaned JSON (fences stripped). If validation fails, persist the
+      // raw text — the frontend has a Markdown fallback for backward compat.
+      const cleanedWorkout = validateJsonResponse(hypertrophyMarkdown, 'workout_plan');
+      const cleanedMeal    = validateJsonResponse(fuelMarkdown,        'meal_plan');
+      if (cleanedWorkout) hypertrophyMarkdown = cleanedWorkout;
+      if (cleanedMeal)    fuelMarkdown        = cleanedMeal;
+    }
   } catch (err) {
     console.error('[BBF VAULT] Phase 2 (Anthropic) failed:', err);
     return res.status(502).json({ ok: false, phase: 'anthropic', error: err.message });
