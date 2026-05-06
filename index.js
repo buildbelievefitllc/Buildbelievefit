@@ -954,34 +954,50 @@ function attachPhantomEyeProxy(server) {
     console.error('[BBF VAULT] ws package missing — install with `npm install ws`. Phantom Eye proxy disabled.');
     return;
   }
+  // Phase 15 Slice 10 — verbose boot diagnostics. Logs the exact env
+  // signal the proxy will operate under so the CEO can read at a
+  // glance whether Render dropped the key on this deploy or not.
   if (!GEMINI_API_KEY) {
-    console.warn('[BBF VAULT] GEMINI_API_KEY missing — Phantom Eye proxy will reject upgrades with 503.');
+    console.warn('[BBF VAULT] GEMINI_API_KEY missing (length=0) — Phantom Eye proxy will reject upgrades with 503.');
   } else {
-    console.log('[BBF VAULT] GEMINI_API_KEY present — Phantom Eye proxy ready.');
+    console.log('[BBF VAULT] GEMINI_API_KEY present (length=' + GEMINI_API_KEY.length + ', starts="' + GEMINI_API_KEY.slice(0, 4) + '…") — Phantom Eye proxy ready.');
   }
+  console.log('[BBF VAULT] Phantom Eye ALLOWED_ORIGINS:', Array.from(ALLOWED_ORIGINS).join(', '));
+  console.log('[BBF VAULT] Phantom Eye GEMINI_LIVE_MODEL=' + GEMINI_LIVE_MODEL);
+  console.log('[BBF VAULT] Phantom Eye GEMINI_LIVE_URL_BASE=' + GEMINI_LIVE_URL_BASE);
   const wss = new WS.Server({ noServer: true });
 
   server.on('upgrade', (req, socket, head) => {
     let pathname = '/';
     try { pathname = new URL(req.url, 'http://localhost').pathname; } catch (_) {}
+    const origin = req.headers.origin;
+    const ua = req.headers['user-agent'] || '(no-ua)';
+    console.log('[Phantom Eye] upgrade attempt · path=' + pathname + ' origin=' + (origin || '(none)') + ' ua=' + ua.slice(0, 80));
     if (pathname !== PHANTOM_EYE_PROXY_PATH) {
+      console.warn('[Phantom Eye] upgrade rejected — wrong path:', pathname);
       socket.destroy();
       return;
     }
-    const origin = req.headers.origin;
     if (origin && !ALLOWED_ORIGINS.has(origin)) {
-      console.warn('[Phantom Eye] upgrade rejected — origin not allowlisted:', origin);
+      console.warn('[Phantom Eye] upgrade rejected — origin not allowlisted: "' + origin + '" (allowed: ' + Array.from(ALLOWED_ORIGINS).join(', ') + ')');
       socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
       socket.destroy();
       return;
     }
+    if (!origin) {
+      console.warn('[Phantom Eye] upgrade has NO Origin header — allowing through (likely a tool/curl)');
+    } else {
+      console.log('[Phantom Eye] origin allowlist: PASS · ' + origin);
+    }
     if (!GEMINI_API_KEY) {
-      console.warn('[Phantom Eye] upgrade rejected — GEMINI_API_KEY not set');
+      console.warn('[Phantom Eye] upgrade rejected — GEMINI_API_KEY not set on this instance');
       socket.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
       socket.destroy();
       return;
     }
+    console.log('[Phantom Eye] upgrade gates: PASS · handshaking');
     wss.handleUpgrade(req, socket, head, (clientWs) => {
+      console.log('[Phantom Eye] handshake complete · emitting connection');
       wss.emit('connection', clientWs, req);
     });
   });
@@ -1002,8 +1018,6 @@ function attachPhantomEyeProxy(server) {
     }
 
     clientWs.on('message', (data) => {
-      // Parse as JSON. Non-JSON or binary frames forwarded verbatim if
-      // the upstream is open; otherwise dropped.
       let parsed = null;
       try {
         const text = (typeof data === 'string') ? data : data.toString('utf8');
@@ -1017,19 +1031,15 @@ function attachPhantomEyeProxy(server) {
 
       // First message from client must be the context bootstrap.
       if (parsed && parsed.type === 'context' && !geminiWs) {
-        // Phase 15 Slice 6 — bifurcated mode. Client sends 'vision'
-        // (Phantom Eye) or 'voice' (Virtual Coach); proxy picks the
-        // matching system prompt. Default to vision for backward compat
-        // with any pre-Slice-6 clients still in cache.
         const mode = parsed.mode === 'voice' ? 'voice' : 'vision';
-        log('mode:', mode);
+        log('mode:', mode, '· payload keys:', Object.keys(parsed.payload || {}).join(','));
         const systemInstruction = buildSystemInstruction(parsed.payload || {}, mode);
         const upstreamUrl = GEMINI_LIVE_URL_BASE + '?key=' + encodeURIComponent(GEMINI_API_KEY);
-        log('opening Gemini Live upstream');
+        log('opening Gemini Live upstream · model=' + GEMINI_LIVE_MODEL + ' · url=' + GEMINI_LIVE_URL_BASE + '?key=…' + GEMINI_API_KEY.slice(-4));
         geminiWs = new WS(upstreamUrl);
 
         geminiWs.on('open', () => {
-          log('upstream open; sending setup');
+          log('Gemini upstream OPEN · sending setup · prompt_chars=' + systemInstruction.length);
           const setup = {
             setup: {
               model: GEMINI_LIVE_MODEL,
@@ -1037,25 +1047,26 @@ function attachPhantomEyeProxy(server) {
               systemInstruction: { parts: [{ text: systemInstruction }] },
             },
           };
-          try { geminiWs.send(JSON.stringify(setup)); } catch (e) { log('setup send failed:', e.message); }
+          try { geminiWs.send(JSON.stringify(setup)); log('setup sent'); }
+          catch (e) { log('setup send failed:', e.message); }
           setupSent = true;
-          try { clientWs.send(JSON.stringify({ type: 'ready' })); } catch (_) {}
+          try { clientWs.send(JSON.stringify({ type: 'ready' })); log('client signalled ready'); }
+          catch (e) { log('ready signal failed:', e.message); }
         });
 
         geminiWs.on('message', (msg) => {
-          // Forward every Gemini frame to the client verbatim. Client
-          // parses serverContent.modelTurn for audio inlineData.
           try { clientWs.send(msg); } catch (e) { log('downstream send failed:', e.message); }
         });
 
         geminiWs.on('close', (code, reason) => {
-          log('upstream closed:', code, reason && reason.toString());
-          try { clientWs.send(JSON.stringify({ type: 'upstream-closed', code: code })); } catch (_) {}
+          const reasonStr = reason ? reason.toString() : '(empty)';
+          log('Gemini upstream CLOSED · code=' + code + ' reason=' + reasonStr);
+          try { clientWs.send(JSON.stringify({ type: 'upstream-closed', code: code, reason: reasonStr })); } catch (_) {}
           teardown('upstream-close');
         });
 
         geminiWs.on('error', (err) => {
-          log('upstream error:', err && err.message);
+          log('Gemini upstream ERROR · name=' + (err && err.name) + ' · message=' + (err && err.message));
           try { clientWs.send(JSON.stringify({ type: 'upstream-error', error: err && err.message })); } catch (_) {}
         });
         return;
@@ -1071,7 +1082,10 @@ function attachPhantomEyeProxy(server) {
       }
     });
 
-    clientWs.on('close', () => { teardown('client-close'); });
+    clientWs.on('close', (code, reason) => {
+      log('client WS closed · code=' + code + ' reason=' + (reason ? reason.toString() : '(empty)'));
+      teardown('client-close');
+    });
     clientWs.on('error', (err) => { log('client error:', err && err.message); teardown('client-error'); });
   });
 
