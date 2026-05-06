@@ -8815,11 +8815,12 @@ function _lcStartStreaming(stream, msgEl, modeRefs) {
   };
 
   // ── WebSocket lifecycle ──────────────────────────────────
+  console.log('[Phantom Eye] dialing bridge URL=' + window.PHANTOM_EYE_BRIDGE_URL);
   _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-connecting', 'Connecting to Sovereign Coach…') : 'Connecting to Sovereign Coach…'));
   var ws;
   try { ws = new WebSocket(window.PHANTOM_EYE_BRIDGE_URL); }
   catch (e) {
-    console.warn('[Phantom Eye] WS construct failed:', e && e.message);
+    console.error('[Phantom Eye] WS construct failed:', e && e.message);
     _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable. Camera streaming locally only.') : 'Sovereign Coach unavailable. Camera streaming locally only.'), true);
     return;
   }
@@ -8827,9 +8828,10 @@ function _lcStartStreaming(stream, msgEl, modeRefs) {
   ws.binaryType = 'arraybuffer';
 
   ws.addEventListener('open', function() {
+    console.log('[Phantom Eye] WS open · sending context · mode=' + lc.mode);
     var ctx = _lcCollectContext();
     try { ws.send(JSON.stringify({ type: 'context', mode: lc.mode, payload: ctx })); }
-    catch (_) {}
+    catch (e) { console.error('[Phantom Eye] context send failed:', e && e.message); }
   });
 
   ws.addEventListener('message', function(ev) {
@@ -8838,10 +8840,8 @@ function _lcStartStreaming(stream, msgEl, modeRefs) {
     try { msg = JSON.parse(text); } catch (_) { return; }
 
     if (msg.type === 'ready') {
+      console.log('[Phantom Eye] proxy → ready · starting capture');
       _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-coach-ready', 'Sovereign Coach connected. Speak when ready.') : 'Sovereign Coach connected. Speak when ready.'));
-      // Vision mode: fade the status banner so the live frame is unobstructed.
-      // Voice mode: keep the status visible — the orb is the focal point but the
-      // status copy is the only textual feedback the user has.
       if (lc.mode === 'vision') {
         setTimeout(function() { if (msgEl) msgEl.classList.remove('on'); }, 2400);
       }
@@ -8849,6 +8849,7 @@ function _lcStartStreaming(stream, msgEl, modeRefs) {
       return;
     }
     if (msg.type === 'upstream-closed' || msg.type === 'upstream-error') {
+      console.warn('[Phantom Eye] proxy → upstream failure:', msg.type, 'code=' + (msg.code || 'n/a'), 'error=' + (msg.error || 'n/a'));
       _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable. Camera streaming locally only.') : 'Sovereign Coach unavailable. Camera streaming locally only.'), true);
       return;
     }
@@ -8864,13 +8865,14 @@ function _lcStartStreaming(stream, msgEl, modeRefs) {
   });
 
   ws.addEventListener('close', function(ev) {
+    console.warn('[Phantom Eye ' + lc.mode + '] WS close · code=' + ev.code + ' reason=' + ev.reason + ' wasClean=' + ev.wasClean);
     if (window.PHANTOM_EYE_LC === lc) {
-      console.log('[Phantom Eye ' + lc.mode + '] bridge closed:', ev.code);
       try { if (lc.videoTimer) clearInterval(lc.videoTimer); lc.videoTimer = null; } catch (_) {}
     }
   });
 
   ws.addEventListener('error', function() {
+    console.error('[Phantom Eye ' + lc.mode + '] WS error event fired (handshake or transport)');
     _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable. Camera streaming locally only.') : 'Sovereign Coach unavailable. Camera streaming locally only.'), true);
   });
 }
@@ -9025,12 +9027,17 @@ function _lcQueuePlayback(lc, b64) {
 }
 
 window.initLiveCoach = function initLiveCoach(mode) {
-  var refs = _lcResolveMode(mode);
+  console.log('[Phantom Eye] initLiveCoach() called · mode=' + mode);
+  var refs;
+  try { refs = _lcResolveMode(mode); }
+  catch (e) { console.error('[Phantom Eye] _lcResolveMode threw:', e && e.message); return; }
+
   // Defensive: if the user clicks one mode while the OTHER is already
   // running, kill the active session before opening the new modal.
   // Prevents two open WS bridges + two AudioContexts fighting over the
   // same hardware.
   if (window.PHANTOM_EYE_LC) {
+    console.log('[Phantom Eye] tearing down stale session · old mode=' + window.PHANTOM_EYE_LC.mode);
     try { window.terminateLiveCoach(window.PHANTOM_EYE_LC.mode); } catch (_) {}
   }
 
@@ -9039,53 +9046,80 @@ window.initLiveCoach = function initLiveCoach(mode) {
   var msgEl    = document.getElementById(refs.msgElId);
   var initBtn  = document.getElementById(refs.initBtnId);
   var statusEl = document.getElementById(refs.statusBadgeId);
+
+  console.log('[Phantom Eye] DOM resolution · overlay=' + !!overlay + ' videoEl=' + !!videoEl + ' msgEl=' + !!msgEl + ' initBtn=' + !!initBtn + ' statusEl=' + !!statusEl);
+
   // Vision mode requires a <video> element; voice mode does not.
-  if (!overlay) return;
-  if (refs.mode === 'vision' && !videoEl) return;
+  if (!overlay) { console.error('[Phantom Eye] FATAL: overlay element missing for id=' + refs.overlayId); return; }
+  if (refs.mode === 'vision' && !videoEl) { console.error('[Phantom Eye] FATAL: vision-mode video element missing for id=' + refs.videoElId); return; }
 
-  // Reveal the overlay first so the permission prompt has visual context.
-  overlay.hidden = false;
-  document.body.style.overflow = 'hidden';
-  if (msgEl) {
-    msgEl.classList.remove('is-error');
-    msgEl.textContent = (typeof _t === 'function' ? _t(refs.requestingCopyKey, refs.requestingCopy) : refs.requestingCopy);
-    msgEl.classList.add('on');
-  }
-  if (initBtn) initBtn.disabled = true;
+  // Wrap the entire flow in try/finally so the button is ALWAYS
+  // re-enabled even if an exception slips through. Slice 9 regression
+  // was the button getting stuck disabled when an early throw left
+  // the modal half-rendered; this guarantees the user can always retry.
+  try {
+    // Reveal the overlay first so the permission prompt has visual context.
+    overlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+    if (msgEl) {
+      msgEl.classList.remove('is-error');
+      msgEl.textContent = (typeof _t === 'function' ? _t(refs.requestingCopyKey, refs.requestingCopy) : refs.requestingCopy);
+      msgEl.classList.add('on');
+    }
+    if (initBtn) initBtn.disabled = true;
+    console.log('[Phantom Eye] modal revealed · awaiting getUserMedia');
 
-  // Reject early if the API isn't available (older browsers, http://).
-  if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
-    var unsupportedMsg = (typeof _t === 'function' ? _t('pe-perm-unsupported', 'Live Coach requires a browser with camera + microphone APIs. Please update your browser.') : 'Live Coach requires a browser with camera + microphone APIs.');
-    if (msgEl) { msgEl.textContent = unsupportedMsg; msgEl.classList.add('is-error', 'on'); }
+    // Reject early if the API isn't available (older browsers, http://).
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+      console.warn('[Phantom Eye] mediaDevices.getUserMedia unavailable on this browser/origin');
+      var unsupportedMsg = (typeof _t === 'function' ? _t('pe-perm-unsupported', 'Live Coach requires a browser with camera + microphone APIs. Please update your browser.') : 'Live Coach requires a browser with camera + microphone APIs.');
+      if (msgEl) { msgEl.textContent = unsupportedMsg; msgEl.classList.add('is-error', 'on'); }
+      if (initBtn) initBtn.disabled = false;
+      return;
+    }
+
+    // STRICT COST LOCK: getUserMedia constraints are sourced from the
+    // mode resolver. Voice mode passes { video: false, audio: {…} } —
+    // the camera permission is never even requested, so a misbehaving
+    // browser cannot accidentally grant video and feed it upstream.
+    console.log('[Phantom Eye] getUserMedia constraints:', JSON.stringify(refs.gumConstraints));
+    navigator.mediaDevices.getUserMedia(refs.gumConstraints)
+      .then(function(stream) {
+        console.log('[Phantom Eye] getUserMedia OK · tracks=' + stream.getTracks().length);
+        window.PHANTOM_EYE_STREAM = stream;
+        if (videoEl) videoEl.srcObject = stream;
+        if (statusEl) {
+          statusEl.classList.add('is-live');
+          statusEl.textContent = (typeof _t === 'function' ? _t('pe-badge-live', 'Live') : 'Live');
+        }
+        if (initBtn) initBtn.disabled = false;
+        // Open the Gemini Live bridge. The status banner stays mounted
+        // through Connecting → Coach Ready → Coach Unavailable.
+        try { _lcStartStreaming(stream, msgEl, refs); }
+        catch (e) {
+          console.error('[Phantom Eye ' + refs.mode + '] bridge boot threw:', e && e.message);
+          if (msgEl) {
+            msgEl.textContent = (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable. Camera streaming locally only.') : 'Sovereign Coach unavailable.');
+            msgEl.classList.add('is-error', 'on');
+          }
+        }
+      })
+      .catch(function(err) {
+        console.warn('[Phantom Eye ' + refs.mode + '] getUserMedia denied/failed · name=' + (err && err.name) + ' msg=' + (err && err.message));
+        var deniedMsg = (typeof _t === 'function' ? _t('pe-perm-denied', 'Camera/microphone access denied. Enable permissions in your browser settings to use the Live Coach.') : 'Camera/microphone access denied. Enable permissions in your browser settings.');
+        if (msgEl) { msgEl.textContent = deniedMsg; msgEl.classList.add('is-error', 'on'); }
+        if (initBtn) initBtn.disabled = false;
+      });
+  } catch (e) {
+    console.error('[Phantom Eye] initLiveCoach threw:', e && e.message);
+    // Safety net — re-enable the button + surface the error so the user
+    // is never stranded on a half-rendered modal.
     if (initBtn) initBtn.disabled = false;
-    return;
+    if (msgEl) {
+      msgEl.textContent = 'Live Coach failed to start. Tap Terminate Session and try again.';
+      msgEl.classList.add('is-error', 'on');
+    }
   }
-
-  // STRICT COST LOCK: getUserMedia constraints are sourced from the
-  // mode resolver. Voice mode passes { video: false, audio: {…} } —
-  // the camera permission is never even requested, so a misbehaving
-  // browser cannot accidentally grant video and feed it upstream.
-  navigator.mediaDevices.getUserMedia(refs.gumConstraints)
-    .then(function(stream) {
-      window.PHANTOM_EYE_STREAM = stream;
-      if (videoEl) videoEl.srcObject = stream;
-      if (statusEl) {
-        statusEl.classList.add('is-live');
-        statusEl.textContent = (typeof _t === 'function' ? _t('pe-badge-live', 'Live') : 'Live');
-      }
-      if (initBtn) initBtn.disabled = false;
-      // Open the Gemini Live bridge. The status banner stays mounted
-      // through Connecting → Coach Ready → Coach Unavailable.
-      try { _lcStartStreaming(stream, msgEl, refs); } catch (e) {
-        console.warn('[Phantom Eye ' + refs.mode + '] bridge boot failed:', e && e.message);
-      }
-    })
-    .catch(function(err) {
-      console.warn('[Phantom Eye ' + refs.mode + '] getUserMedia denied/failed:', err && err.name, err && err.message);
-      var deniedMsg = (typeof _t === 'function' ? _t('pe-perm-denied', 'Camera/microphone access denied. Enable permissions in your browser settings to use the Live Coach.') : 'Camera/microphone access denied. Enable permissions in your browser settings.');
-      if (msgEl) { msgEl.textContent = deniedMsg; msgEl.classList.add('is-error', 'on'); }
-      if (initBtn) initBtn.disabled = false;
-    });
 };
 
 window.terminateLiveCoach = function terminateLiveCoach(mode) {
