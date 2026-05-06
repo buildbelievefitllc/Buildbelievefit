@@ -871,6 +871,12 @@ const GEMINI_LIVE_URL_BASE =
   'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent';
 const PHANTOM_EYE_PROXY_PATH = '/ws/phantom-eye';
 
+// Phase 15 Slice 6 — Bifurcated prompts. The vision-mode prompt
+// (Phantom Eye) instructs the model to read the live video feed for
+// form audit / food analysis. The voice-mode prompt (Virtual Coach)
+// strips every "look at the video" instruction so the model never
+// hallucinates seeing things in an audio-only session — and so the
+// AI never asks the user to "show" something that can't be sent.
 const SOVEREIGN_COACH_PROMPT =
   'You are the BBF Sovereign Coach — an elite biomechanics and nutrition ' +
   'coach for Build Believe Fit LLC. Use the live video feed to analyse ' +
@@ -886,9 +892,32 @@ const SOVEREIGN_COACH_PROMPT =
   'intake, be especially vigilant about loading those joints — flag any ' +
   'movement that risks aggravating them.';
 
-function buildSystemInstruction(payload) {
+const SOVEREIGN_COACH_PROMPT_VOICE =
+  'You are the BBF Virtual Coach — an elite biomechanics and nutrition ' +
+  'coach for Build Believe Fit LLC, operating in AUDIO-ONLY mode. You ' +
+  'have NO video feed. Do not reference what you see; never ask the ' +
+  'user to "show" you anything. Listen carefully to what they describe: ' +
+  'pain they are feeling, exercises they are setting up, food they are ' +
+  'about to eat, questions about programming or recovery. Respond with ' +
+  'short, deadpan, clinical sentences — no preamble, no fluff. Address ' +
+  'the user by their first name when natural. ' +
+  'You MUST strictly adhere to the user\'s provided macro limits and ' +
+  'allergy restrictions when answering nutrition questions. ' +
+  'For form questions: ask audio-friendly clarifiers (which leg, which ' +
+  'side, what feels off, how the bar tracks) — coach via verbal cues, ' +
+  'not visual ones. ' +
+  'For nutrition: respect dietary profile + allergens absolutely; ' +
+  'when refusing a food, suggest a compliant swap from common pantry ' +
+  'staples. ' +
+  'For pain or joint friction reports: cross-reference the user\'s ' +
+  'intake data, recommend prehab cues, and never load progression on ' +
+  'a flagged joint without explicit user confirmation that the pain ' +
+  'has cleared.';
+
+function buildSystemInstruction(payload, mode) {
   const p = payload || {};
-  const lines = [SOVEREIGN_COACH_PROMPT, '', 'CLIENT CONTEXT:'];
+  const basePrompt = (mode === 'voice') ? SOVEREIGN_COACH_PROMPT_VOICE : SOVEREIGN_COACH_PROMPT;
+  const lines = [basePrompt, '', 'CLIENT CONTEXT:'];
   if (p.name)        lines.push('- First name: ' + String(p.name));
   if (p.age)         lines.push('- Age: ' + String(p.age));
   if (p.tier)        lines.push('- BBF Tier: ' + String(p.tier));
@@ -988,7 +1017,13 @@ function attachPhantomEyeProxy(server) {
 
       // First message from client must be the context bootstrap.
       if (parsed && parsed.type === 'context' && !geminiWs) {
-        const systemInstruction = buildSystemInstruction(parsed.payload || {});
+        // Phase 15 Slice 6 — bifurcated mode. Client sends 'vision'
+        // (Phantom Eye) or 'voice' (Virtual Coach); proxy picks the
+        // matching system prompt. Default to vision for backward compat
+        // with any pre-Slice-6 clients still in cache.
+        const mode = parsed.mode === 'voice' ? 'voice' : 'vision';
+        log('mode:', mode);
+        const systemInstruction = buildSystemInstruction(parsed.payload || {}, mode);
         const upstreamUrl = GEMINI_LIVE_URL_BASE + '?key=' + encodeURIComponent(GEMINI_API_KEY);
         log('opening Gemini Live upstream');
         geminiWs = new WS(upstreamUrl);
