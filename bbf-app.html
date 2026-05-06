@@ -1664,18 +1664,50 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
    height: auto so they strictly obey their flex container; switch the
    stage's object-fit to contain so portrait recordings letterbox cleanly
    instead of overflowing. */
+/* Phase 15 Slice 16 — mobile viewport architecture fix.
+   Two-pronged CSS-only repair (no DOM duplication):
+   1. IDLE viewport (.pe-frame): drop the 16:9 aspect lock on mobile
+      so the hero copy + CTA button fit naturally instead of
+      overflowing the cinematic frame.
+   2. IN-MODAL stage (.pes-stage + #phantom-eye-stream): revert the
+      Slice 8 letterbox attempt — it left the <video> at height:auto
+      (=0px until metadata loads) which is why the stream stayed
+      black on mobile. Video fills the stage with object-fit:cover
+      from the moment srcObject lands. */
 @media (max-width: 768px) {
+  /* IDLE Phantom Eye viewport — frame becomes content-driven, hero
+     drops out of position:absolute so the column can flow naturally.
+     Brackets + scanline keep their absolute positioning so they
+     anchor to the now-content-sized frame edges. */
+  #phantom-eye .pe-frame {
+    aspect-ratio: auto;
+    height: auto;
+    min-height: fit-content;
+    padding: 1.6rem 1.1rem 1.4rem;
+  }
+  #phantom-eye .pe-hero {
+    position: static;
+    inset: auto;
+    padding: 0;
+    gap: .5rem;
+  }
+  #phantom-eye .pe-hero-title { font-size: 1.15rem; max-width: 100%; }
+  #phantom-eye .pe-hero-sub   { font-size: .72rem; max-width: 100%; }
+
+  /* IN-MODAL Phantom Eye stream — relaxed stage, video FILLS. The
+     min-height + width:100%/height:100%/object-fit:cover combo
+     guarantees a non-zero render area the instant srcObject lands,
+     so the user never sees a blank stage while metadata loads. */
   #phantom-eye-stream-modal .pes-stage {
     aspect-ratio: auto;
-    min-height: 220px;
-    max-height: 65vh;
+    min-height: 240px;
+    max-height: 70vh;
   }
   #phantom-eye-stream-modal #phantom-eye-stream,
-  #phantom-eye-stream-modal video,
-  #phantom-eye-stream-modal canvas {
-    max-width: 100%;
-    height: auto;
-    object-fit: contain;
+  #phantom-eye-stream-modal video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   #phantom-eye-stream-modal .pes-shell {
     max-width: calc(100vw - 1rem);
@@ -9087,7 +9119,18 @@ window.initLiveCoach = function initLiveCoach(mode) {
       .then(function(stream) {
         console.log('[Phantom Eye] getUserMedia OK · tracks=' + stream.getTracks().length);
         window.PHANTOM_EYE_STREAM = stream;
-        if (videoEl) videoEl.srcObject = stream;
+        if (videoEl) {
+          videoEl.srcObject = stream;
+          // Phase 15 Slice 16 — iOS Safari (and some Android Chrome
+          // builds) won't auto-fire .play() when srcObject is assigned
+          // to a <video autoplay>. Explicit .play() + promise catch is
+          // required so the user never sees a paused 0px stage while
+          // the metadata loads. The 'muted' + 'playsinline' attrs on
+          // the <video> element keep autoplay policy happy.
+          videoEl.play().catch(function(e) {
+            console.error('[Phantom Eye] video.play() failed:', e && e.message);
+          });
+        }
         if (statusEl) {
           statusEl.classList.add('is-live');
           statusEl.textContent = (typeof _t === 'function' ? _t('pe-badge-live', 'Live') : 'Live');
@@ -9109,6 +9152,10 @@ window.initLiveCoach = function initLiveCoach(mode) {
         var deniedMsg = (typeof _t === 'function' ? _t('pe-perm-denied', 'Camera/microphone access denied. Enable permissions in your browser settings to use the Live Coach.') : 'Camera/microphone access denied. Enable permissions in your browser settings.');
         if (msgEl) { msgEl.textContent = deniedMsg; msgEl.classList.add('is-error', 'on'); }
         if (initBtn) initBtn.disabled = false;
+        // Phase 15 Slice 16 — surface the camera/mic block as a
+        // persistent TOAST too so users who close the modal before
+        // reading the in-modal pill still get the actionable hint.
+        if (typeof TOAST === 'function') TOAST(deniedMsg);
       });
   } catch (e) {
     console.error('[Phantom Eye] initLiveCoach threw:', e && e.message);
