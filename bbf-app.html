@@ -1654,6 +1654,32 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   /* Mirror the front camera so it reads like a viewfinder, not a recording. */
   transform: scaleX(-1);
 }
+
+/* Phase 15 Slice 8 — mobile viewport guard. The 16:9 .pes-stage was
+   spilling past the screen width on narrow devices because the .pes-shell
+   was sized at 100% of viewport but the absolute-positioned <video> +
+   any future <canvas> overlays could compute a wider intrinsic size.
+   Force the video and any canvas inside the modal to max-width: 100% +
+   height: auto so they strictly obey their flex container; switch the
+   stage's object-fit to contain so portrait recordings letterbox cleanly
+   instead of overflowing. */
+@media (max-width: 768px) {
+  #phantom-eye-stream-modal .pes-stage {
+    aspect-ratio: auto;
+    min-height: 220px;
+    max-height: 65vh;
+  }
+  #phantom-eye-stream-modal #phantom-eye-stream,
+  #phantom-eye-stream-modal video,
+  #phantom-eye-stream-modal canvas {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+  #phantom-eye-stream-modal .pes-shell {
+    max-width: calc(100vw - 1rem);
+  }
+}
 .pes-overlay-msg {
   position: absolute;
   left: 50%; top: 50%;
