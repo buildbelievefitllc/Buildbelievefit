@@ -12,6 +12,7 @@ const express = require('express');
 const http = require('http');
 const { createClient } = require('@supabase/supabase-js');
 const Anthropic = require('@anthropic-ai/sdk');
+const { mintTicket, verifyTicket } = require('./bbf-ws-ticket');
 
 // ───────────────────────────────────────────────────────────────
 // Environment validation
@@ -20,6 +21,7 @@ const {
   SUPABASE_URL,
   SUPABASE_SERVICE_KEY,
   ANTHROPIC_API_KEY,
+  BBF_WS_TICKET_SECRET,
   PORT = 3000,
 } = process.env;
 
@@ -514,6 +516,139 @@ app.get('/health', (req, res) => {
 });
 
 // ───────────────────────────────────────────────────────────────
+// Phase 16 — Iron Vault V2: server-enforced Sovereign Trial gate
+// ───────────────────────────────────────────────────────────────
+// Two HTTP routes + one WS upgrade gate. Source of truth for whether
+// a user can open the Live Coach (/ws/phantom-eye) is the bbf_users
+// row checked here — the frontend mirrors it for UX but cannot be
+// trusted. Auth model is the one-shot signed ticket (CEO ruling
+// Option C): no Supabase Auth, no long-lived tokens.
+//
+// PIN re-verification on these endpoints is deferred to Slice B+1.
+// Today an attacker can hit /api/user/start-trial with a stranger's
+// uid and burn their free trial slot, or hit /api/auth/ws-ticket
+// with a known sovereign uid to open a coach session as them. The
+// rate-limit + one-trial-per-uid hard-lock contain the first; the
+// second is bounded by the 60s ticket TTL and the lack of any
+// user-data leak (the WS only proxies live audio/video — there is
+// no read of the impersonated user's Supabase data).
+// ───────────────────────────────────────────────────────────────
+
+if (!BBF_WS_TICKET_SECRET) {
+  console.warn('[BBF VAULT] BBF_WS_TICKET_SECRET missing — Iron Vault gate will reject every WS upgrade with 401. Set the env var on Render before this slice goes live.');
+} else {
+  console.log('[BBF VAULT] BBF_WS_TICKET_SECRET present (length=' + BBF_WS_TICKET_SECRET.length + ') — Iron Vault gate armed.');
+}
+
+// Per-IP rate limit for /api/user/start-trial. 5 calls per rolling
+// hour. In-memory bucket keyed by req.ip; entries pruned lazily.
+const _ironVaultStartTrialBuckets = new Map();
+const _IRON_VAULT_RATE_WINDOW_MS = 60 * 60 * 1000;
+const _IRON_VAULT_RATE_MAX = 5;
+
+function _ironVaultRateLimitOk(ip) {
+  const now = Date.now();
+  let arr = _ironVaultStartTrialBuckets.get(ip);
+  if (!arr) arr = [];
+  arr = arr.filter((t) => t > now - _IRON_VAULT_RATE_WINDOW_MS);
+  if (arr.length >= _IRON_VAULT_RATE_MAX) {
+    _ironVaultStartTrialBuckets.set(ip, arr);
+    return false;
+  }
+  arr.push(now);
+  _ironVaultStartTrialBuckets.set(ip, arr);
+  if (_ironVaultStartTrialBuckets.size > 1024) {
+    for (const [k, v] of _ironVaultStartTrialBuckets) {
+      const keep = v.filter((t) => t > now - _IRON_VAULT_RATE_WINDOW_MS);
+      if (keep.length === 0) _ironVaultStartTrialBuckets.delete(k);
+      else _ironVaultStartTrialBuckets.set(k, keep);
+    }
+  }
+  return true;
+}
+
+// Read subscription_tier + trial_expires_at for a given uid via the
+// bbf_get_trial_state RPC. Returns null when the user doesn't exist
+// or the call fails — caller treats null as "no access".
+async function _ironVaultReadTrialState(uid) {
+  if (!uid || typeof uid !== 'string') return null;
+  try {
+    const { data, error } = await supabase.rpc('bbf_get_trial_state', { p_uid: uid });
+    if (error) {
+      console.warn('[Iron Vault] bbf_get_trial_state error:', error.message || error);
+      return null;
+    }
+    if (Array.isArray(data) && data.length) return data[0];
+    if (data && typeof data === 'object') return data;
+    return null;
+  } catch (e) {
+    console.warn('[Iron Vault] bbf_get_trial_state threw:', e && e.message);
+    return null;
+  }
+}
+
+function _ironVaultHasAccess(state) {
+  if (!state) return false;
+  if (state.subscription_tier === 'sovereign') return true;
+  if (state.trial_expires_at && new Date(state.trial_expires_at).getTime() > Date.now()) return true;
+  return false;
+}
+
+// POST /api/user/start-trial — opt-in 7-day mystery box.
+// Body: { uid }. The RPC enforces one-trial-per-uid + non-sovereign;
+// this route surfaces those rejections as HTTP status codes.
+app.post('/api/user/start-trial', async (req, res) => {
+  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+  if (!_ironVaultRateLimitOk(ip)) {
+    return res.status(429).json({ ok: false, error: 'rate_limited' });
+  }
+  const uid = req.body && typeof req.body.uid === 'string' ? req.body.uid.trim() : '';
+  if (!uid) return res.status(400).json({ ok: false, error: 'missing_uid' });
+  try {
+    const { data, error } = await supabase.rpc('bbf_start_trial', { p_uid: uid });
+    if (error) {
+      const msg = error.message || String(error);
+      if (msg.indexOf('user_not_found') !== -1)         return res.status(404).json({ ok: false, error: 'user_not_found' });
+      if (msg.indexOf('trial_already_consumed') !== -1) return res.status(409).json({ ok: false, error: 'trial_already_consumed' });
+      if (msg.indexOf('already_sovereign') !== -1)      return res.status(409).json({ ok: false, error: 'already_sovereign' });
+      console.error('[Iron Vault] start_trial unknown error:', msg);
+      return res.status(500).json({ ok: false, error: 'rpc_failed' });
+    }
+    return res.status(200).json({ ok: true, trial_expires_at: data });
+  } catch (e) {
+    console.error('[Iron Vault] start_trial threw:', e && e.message);
+    return res.status(500).json({ ok: false, error: 'internal' });
+  }
+});
+
+// POST /api/auth/ws-ticket — mint a 60s single-use ticket that the
+// frontend appends to the /ws/phantom-eye URL. Body: { uid }. Server
+// reads bbf_get_trial_state and only mints when sovereign OR trial is
+// still active. Returns 403 with a structured reason otherwise.
+app.post('/api/auth/ws-ticket', async (req, res) => {
+  if (!BBF_WS_TICKET_SECRET) {
+    return res.status(503).json({ ok: false, error: 'ticket_secret_missing' });
+  }
+  const uid = req.body && typeof req.body.uid === 'string' ? req.body.uid.trim() : '';
+  if (!uid) return res.status(400).json({ ok: false, error: 'missing_uid' });
+  const state = await _ironVaultReadTrialState(uid);
+  if (!state) return res.status(404).json({ ok: false, error: 'user_not_found' });
+  if (!_ironVaultHasAccess(state)) {
+    const reason = (state.trial_expires_at && new Date(state.trial_expires_at).getTime() <= Date.now())
+      ? 'trial_expired'
+      : 'no_access';
+    return res.status(403).json({ ok: false, error: reason });
+  }
+  try {
+    const { ticket, exp } = mintTicket(uid, BBF_WS_TICKET_SECRET);
+    return res.status(200).json({ ok: true, ticket, exp });
+  } catch (e) {
+    console.error('[Iron Vault] mintTicket threw:', e && e.message);
+    return res.status(500).json({ ok: false, error: 'mint_failed' });
+  }
+});
+
+// ───────────────────────────────────────────────────────────────
 // Phase 15 Slice 4 — Wearable API Bridge
 // /api/wearable-sync/health-connect
 //
@@ -995,6 +1130,31 @@ function attachPhantomEyeProxy(server) {
     } else {
       console.log('[Phantom Eye] origin allowlist: PASS · ' + origin);
     }
+    // Phase 16 Iron Vault V2 — WS ticket gate. The frontend hits
+    // /api/auth/ws-ticket first; that route checks subscription_tier
+    // + trial_expires_at against bbf_users and only mints a ticket
+    // when the user is sovereign or trial-active. The ticket is HMAC-
+    // signed with BBF_WS_TICKET_SECRET, expires in 60s, and is single-
+    // use (verifyTicket marks the nonce consumed). No ticket → 401.
+    if (!BBF_WS_TICKET_SECRET) {
+      console.warn('[Phantom Eye] upgrade rejected — BBF_WS_TICKET_SECRET not set; cannot verify ticket');
+      socket.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+    let ticket = '';
+    try {
+      const u = new URL(req.url, 'http://localhost');
+      ticket = u.searchParams.get('ticket') || '';
+    } catch (_) {}
+    const v = verifyTicket(ticket, BBF_WS_TICKET_SECRET);
+    if (!v.ok) {
+      console.warn('[Phantom Eye] upgrade rejected — ticket invalid (' + v.reason + ')');
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+    console.log('[Phantom Eye] ticket verified · uid=' + v.uid);
     if (!GEMINI_API_KEY) {
       console.warn('[Phantom Eye] upgrade rejected — GEMINI_API_KEY not set on this instance');
       socket.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
