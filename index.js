@@ -1040,14 +1040,21 @@ function attachPhantomEyeProxy(server) {
 
         geminiWs.on('open', () => {
           log('Gemini upstream OPEN · sending setup · prompt_chars=' + systemInstruction.length);
+          // Phase 15 Slice 13 — payload shape aligned to the current
+          // v1alpha BidiGenerateContent contract. The wrapper renamed
+          // from `generationConfig` to `config`; this matches what
+          // Google's current live SDKs serialise on the wire and
+          // unblocks the 1008 Policy Violation (the model registry
+          // confirmed the model name + bidiGenerateContent support
+          // upstream — the rejection was on field-name validation).
           const setup = {
             setup: {
               model: GEMINI_LIVE_MODEL,
-              generationConfig: { responseModalities: ['AUDIO'] },
+              config: { responseModalities: ['AUDIO'] },
               systemInstruction: { parts: [{ text: systemInstruction }] },
             },
           };
-          try { geminiWs.send(JSON.stringify(setup)); log('setup sent'); }
+          try { geminiWs.send(JSON.stringify(setup)); log('setup sent · payload=' + JSON.stringify(Object.keys(setup.setup))); }
           catch (e) { log('setup send failed:', e.message); }
           setupSent = true;
           try { clientWs.send(JSON.stringify({ type: 'ready' })); log('client signalled ready'); }
