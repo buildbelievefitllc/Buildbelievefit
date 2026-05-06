@@ -867,8 +867,12 @@ app.use((err, req, res, next) => {
 // ───────────────────────────────────────────────────────────────
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_LIVE_MODEL = 'models/gemini-3.1-flash-live-preview';
+// Phase 15 Slice 14 — Gemini Live API v1alpha → v1beta endpoint
+// migration. Google moved 3.1 live-preview models off v1alpha; the
+// 1008 reason "not found for API version v1alpha" was the API
+// version mismatch, not the model or the payload shape.
 const GEMINI_LIVE_URL_BASE =
-  'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent';
+  'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
 const PHANTOM_EYE_PROXY_PATH = '/ws/phantom-eye';
 
 // Phase 15 Slice 6 — Bifurcated prompts. The vision-mode prompt
