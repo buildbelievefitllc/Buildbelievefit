@@ -866,13 +866,15 @@ app.use((err, req, res, next) => {
 // upgrades. If the key is missing, upgrades are rejected with 503.
 // ───────────────────────────────────────────────────────────────
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_LIVE_MODEL = 'models/gemini-3.1-flash-live-preview';
-// Phase 15 Slice 14 — Gemini Live API v1alpha → v1beta endpoint
-// migration. Google moved 3.1 live-preview models off v1alpha; the
-// 1008 reason "not found for API version v1alpha" was the API
-// version mismatch, not the model or the payload shape.
+const GEMINI_LIVE_MODEL = 'models/gemini-2.5-flash-native-audio-latest';
+// Phase 15 Slice 15 — Gemini Live endpoint reverted to v1alpha and
+// the model swapped to the stable 2.5 native-audio string. CEO live-
+// fire confirmed Google's routing layer for the 3.1-flash-live-preview
+// model is broken on both v1alpha and v1beta; abandoning that string.
+// The 2.5-flash-native-audio-latest model is the registered Tier 1
+// stable target and is registered for bidiGenerateContent on v1alpha.
 const GEMINI_LIVE_URL_BASE =
-  'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
+  'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent';
 const PHANTOM_EYE_PROXY_PATH = '/ws/phantom-eye';
 
 // Phase 15 Slice 6 — Bifurcated prompts. The vision-mode prompt
