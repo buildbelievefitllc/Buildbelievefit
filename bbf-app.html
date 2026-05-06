@@ -1549,24 +1549,50 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   line-height: 1.5;
   max-width: 38ch;
 }
-.pe-init-btn {
+/* Phase 15 Slice 6 — Bifurcated Live Coach trigger grid. Two CTAs
+   (Phantom Eye = vision, Virtual Coach = voice-only) so the user
+   makes an explicit cost-aware choice — no accidental video tokens. */
+.pe-init-grid {
   margin-top: .55rem;
-  padding: .85rem 1.4rem;
-  background: linear-gradient(180deg, #F2D769 0%, #E6C24F 35%, #D4AF37 70%, #A8862A 100%);
-  color: #060606;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .55rem;
+  width: 100%;
+  max-width: 480px;
+}
+@media (max-width: 480px) {
+  .pe-init-grid { grid-template-columns: 1fr }
+}
+.pe-init-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+  padding: .9rem .8rem;
   font-family: var(--hb);
-  font-size: .8rem;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  border: 1px solid #F2D769;
+  border: 1px solid;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 8px 22px -6px rgba(212,175,55,.55), inset 0 1px 0 rgba(255,255,255,.4);
+  box-shadow: 0 8px 22px -6px rgba(212,175,55,.45), inset 0 1px 0 rgba(255,255,255,.4);
   transition: transform .18s ease, box-shadow .25s ease, filter .2s ease;
+  text-align: center;
 }
-.pe-init-btn:hover { transform: translateY(-1px); filter: brightness(1.06); box-shadow: 0 10px 28px -6px rgba(212,175,55,.75), inset 0 1px 0 rgba(255,255,255,.4); }
+.pe-init-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
 .pe-init-btn:active { transform: scale(.97); }
+.pe-init-btn--vision {
+  background: linear-gradient(180deg, #F2D769 0%, #E6C24F 35%, #D4AF37 70%, #A8862A 100%);
+  color: #060606;
+  border-color: #F2D769;
+}
+.pe-init-btn--voice {
+  background: linear-gradient(180deg, #1e3a8a 0%, #6a0dad 60%, #4c1d95 100%);
+  color: #ddd6fe;
+  border-color: rgba(139, 92, 246, .55);
+  box-shadow: 0 8px 22px -6px rgba(139,92,246,.5), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.pe-init-icon  { font-size: 1.4rem; line-height: 1 }
+.pe-init-label { font-size: .82rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase }
+.pe-init-sub   { font-size: .58rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; opacity: .8 }
 
 /* ═══ PHANTOM EYE STREAM — full-page Live Coach overlay (Phase 15 Slice 1C) ═══ */
 .pes-overlay {
@@ -1674,11 +1700,123 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .pes-btn--terminate:hover { background: rgba(239,68,68,.28); filter: brightness(1.05) }
 .pes-btn--terminate:active { transform: scale(.97) }
 
+/* ═══ BBF VIRTUAL COACH — voice-only overlay (Phase 15 Slice 6) ═══ */
+.vc-overlay {
+  position: fixed; inset: 0;
+  z-index: 10500;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(20,5,35,.96) 0%, rgba(2,1,8,.98) 70%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 1rem;
+}
+.vc-overlay[hidden] { display: none }
+.vc-shell {
+  width: min(100%, 720px);
+  max-height: calc(100vh - 2rem);
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, rgba(20,5,35,.78), rgba(8,2,15,.92));
+  border: 1px solid rgba(139,92,246,.45);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,.85), 0 0 50px rgba(139,92,246,.2);
+  overflow: hidden;
+}
+.vc-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .9rem 1.1rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  gap: 1rem;
+}
+.vc-head-l { display: flex; flex-direction: column; gap: .15rem; min-width: 0 }
+.vc-head-r { display: flex; align-items: center; gap: .7rem }
+.vc-kicker { font-family: var(--hb); font-size: .58rem; letter-spacing: 4px; text-transform: uppercase; color: rgba(139,92,246,.85) }
+.vc-title  { font-family: var(--hb); font-size: 1.15rem; letter-spacing: 1px; color: var(--wht); line-height: 1 }
+.vc-x {
+  background: transparent; border: 0; color: rgba(255,255,255,.7);
+  font-size: 1.3rem; cursor: pointer; padding: .25rem .55rem;
+  border-radius: 8px; transition: background .15s ease, color .15s ease;
+}
+.vc-x:hover { background: rgba(255,255,255,.08); color: var(--wht) }
+.vc-stage {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 3rem 1.5rem;
+  gap: 1.6rem;
+  position: relative;
+  min-height: 360px;
+}
+/* Centred glowing orb. CSS keyframes do the breathing baseline; the
+   --vc-orb-amp custom property is driven from JS by an AnalyserNode
+   reading the live mic so the orb pulses with the user's voice. */
+.vc-orb {
+  position: relative;
+  width: 240px; height: 240px;
+  --vc-orb-amp: 0;
+  transform: scale(calc(1 + var(--vc-orb-amp) * 0.18));
+  transition: transform .12s linear;
+}
+.vc-orb-core {
+  position: absolute; inset: 30%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #F5C800 0%, #D4AF37 35%, #6a0dad 80%, transparent 100%);
+  box-shadow: 0 0 60px rgba(212,175,55,.6), 0 0 120px rgba(106,13,173,.45), inset 0 0 24px rgba(255,255,255,.25);
+  animation: vcOrbCorePulse 2.6s ease-in-out infinite;
+}
+.vc-orb-ring {
+  position: absolute;
+  border: 2px solid;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.vc-orb-ring--inner {
+  inset: 12%;
+  border-color: rgba(212,175,55,.32);
+  animation: vcOrbRingPulse 2.6s ease-in-out infinite;
+}
+.vc-orb-ring--outer {
+  inset: 0;
+  border-color: rgba(106,13,173,.28);
+  animation: vcOrbRingPulse 3.4s ease-in-out 0.5s infinite;
+}
+@keyframes vcOrbCorePulse {
+  0%, 100% { transform: scale(1);    filter: brightness(1);    }
+  50%      { transform: scale(1.06); filter: brightness(1.18); }
+}
+@keyframes vcOrbRingPulse {
+  0%, 100% { transform: scale(1);    opacity: .4;  }
+  50%      { transform: scale(1.15); opacity: .85; }
+}
+.vc-status {
+  font-family: var(--hb);
+  font-size: .8rem;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,.78);
+  text-align: center;
+  min-height: 1.4em;
+  padding: .55rem .9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(139,92,246,.3);
+  background: rgba(139,92,246,.1);
+  max-width: 28em;
+}
+.vc-status:empty { display: none }
+.vc-status.is-error { color: #fca5a5; border-color: rgba(239,68,68,.4); background: rgba(239,68,68,.1); }
+.vc-actions {
+  display: flex; justify-content: center;
+  padding: .9rem 1.1rem;
+  border-top: 1px solid rgba(255,255,255,.06);
+  background: rgba(0,0,0,.25);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pe-bracket { animation: none; }
   .pe-scanline { animation: none; opacity: 0; }
   .pe-hero-eye { animation: none; }
   .pe-status-badge.is-live::before { animation: none; }
+  .vc-orb-core { animation: none; }
+  .vc-orb-ring { animation: none; }
+  .vc-orb { transition: none; }
 }
 
 /* ═══ BIOMETRIC YIELD REPORT — Promethean UI (Matte Black × Gold) ═══
@@ -5213,7 +5351,22 @@ window.onload=function(){
             <div class="pe-hero-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
             <div class="pe-hero-title" data-lang-key="pe-hero-title">Real-time form audit + nutrition vision</div>
             <div class="pe-hero-sub" data-lang-key="pe-hero-sub">Stream your camera to the BBF Intelligence Engine. Instant biomechanical cues + macro estimates from what you're holding, lifting, or eating.</div>
-            <button type="button" class="pe-init-btn" id="pe-init-btn" onclick="initLiveCoach()" data-lang-key="pe-init">&#x1F3AC; Initialize Live Coach &rarr;</button>
+            <!-- Phase 15 Slice 6 — Bifurcated Live Coach. Two distinct
+                 activation paths so clients cannot accidentally trigger
+                 video streaming (vision = camera+mic = expensive tokens;
+                 voice = mic-only = cheap tokens). -->
+            <div class="pe-init-grid">
+              <button type="button" class="pe-init-btn pe-init-btn--vision" id="pe-init-vision-btn" onclick="initLiveCoach('vision')">
+                <span class="pe-init-icon" aria-hidden="true">&#x1F441;&#xFE0F;</span>
+                <span class="pe-init-label" data-lang-key="pe-init-vision">BBF Phantom Eye</span>
+                <span class="pe-init-sub"   data-lang-key="pe-init-vision-sub">Live Vision Check</span>
+              </button>
+              <button type="button" class="pe-init-btn pe-init-btn--voice" id="pe-init-voice-btn" onclick="initLiveCoach('voice')">
+                <span class="pe-init-icon" aria-hidden="true">&#x1F3A4;</span>
+                <span class="pe-init-label" data-lang-key="pe-init-voice">BBF Virtual Coach</span>
+                <span class="pe-init-sub"   data-lang-key="pe-init-voice-sub">Audio Only</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -6529,17 +6682,17 @@ window.onload=function(){
     </div>
   </div>
 
-  <!-- ═══ PHANTOM EYE — Live Coach stream overlay (Phase 15 Slice 1C) ═══ -->
+  <!-- ═══ PHANTOM EYE — Live Vision overlay (vision mode: video + audio) ═══ -->
   <div class="pes-overlay" id="phantom-eye-stream-modal" role="dialog" aria-modal="true" aria-labelledby="pes-title" hidden>
     <div class="pes-shell">
       <header class="pes-head">
         <div class="pes-head-l">
-          <div class="pes-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
-          <div class="pes-title" id="pes-title">Phantom Eye &middot; Live Stream</div>
+          <div class="pes-kicker" data-lang-key="pe-init-vision-sub">Live Vision Check</div>
+          <div class="pes-title" id="pes-title" data-lang-key="pe-init-vision">BBF Phantom Eye</div>
         </div>
         <div class="pes-head-r">
           <span class="pe-status-badge is-live" id="pes-live-badge" data-lang-key="pe-badge-live">Live</span>
-          <button type="button" class="pes-x" id="pes-x-btn" onclick="terminateLiveCoach()" aria-label="Close Live Coach">&#x2715;</button>
+          <button type="button" class="pes-x" id="pes-x-btn" onclick="terminateLiveCoach('vision')" aria-label="Close Live Coach">&#x2715;</button>
         </div>
       </header>
       <div class="pes-stage">
@@ -6547,7 +6700,34 @@ window.onload=function(){
         <div class="pes-overlay-msg" id="pes-overlay-msg" role="status" aria-live="polite"></div>
       </div>
       <div class="pes-actions">
-        <button type="button" class="pes-btn pes-btn--terminate" id="pes-terminate-btn" onclick="terminateLiveCoach()" data-lang-key="pe-terminate">Terminate Session</button>
+        <button type="button" class="pes-btn pes-btn--terminate" id="pes-terminate-btn" onclick="terminateLiveCoach('vision')" data-lang-key="pe-terminate">Terminate Session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BBF VIRTUAL COACH — Voice-only overlay (audio-only · cost lock) ═══ -->
+  <div class="vc-overlay" id="bbf-virtual-coach-modal" role="dialog" aria-modal="true" aria-labelledby="vc-title" hidden>
+    <div class="vc-shell">
+      <header class="vc-head">
+        <div class="vc-head-l">
+          <div class="vc-kicker" data-lang-key="pe-init-voice-sub">Audio Only</div>
+          <div class="vc-title" id="vc-title" data-lang-key="pe-init-voice">BBF Virtual Coach</div>
+        </div>
+        <div class="vc-head-r">
+          <span class="pe-status-badge is-live" id="vc-live-badge" data-lang-key="pe-badge-live">Live</span>
+          <button type="button" class="vc-x" id="vc-x-btn" onclick="terminateLiveCoach('voice')" aria-label="Close Virtual Coach">&#x2715;</button>
+        </div>
+      </header>
+      <div class="vc-stage">
+        <div class="vc-orb" id="vc-orb" aria-hidden="true">
+          <div class="vc-orb-ring vc-orb-ring--outer"></div>
+          <div class="vc-orb-ring vc-orb-ring--inner"></div>
+          <div class="vc-orb-core"></div>
+        </div>
+        <div class="vc-status" id="vc-status-msg" role="status" aria-live="polite"></div>
+      </div>
+      <div class="vc-actions">
+        <button type="button" class="pes-btn pes-btn--terminate" id="vc-terminate-btn" onclick="terminateLiveCoach('voice')" data-lang-key="pe-terminate">Terminate Session</button>
       </div>
     </div>
   </div>
@@ -8920,14 +9100,57 @@ function _lcSetStatus(msgEl, text, isError) {
   msgEl.classList.add('on');
 }
 
-function _lcStartStreaming(stream, msgEl) {
+// Phase 15 Slice 6 — Bifurcated mode resolver. Returns the DOM element
+// IDs + getUserMedia constraints + orb hookup for the requested mode.
+// Vision = Phantom Eye modal (video + audio). Voice = Virtual Coach
+// modal (audio-only — strict cost lock, no video tokens).
+function _lcResolveMode(mode) {
+  if (mode === 'voice') {
+    return {
+      mode: 'voice',
+      overlayId:    'bbf-virtual-coach-modal',
+      videoElId:    null,
+      msgElId:      'vc-status-msg',
+      initBtnId:    'pe-init-voice-btn',
+      statusBadgeId:'vc-live-badge',
+      orbId:        'vc-orb',
+      gumConstraints: {
+        video: false,
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      },
+      requestingCopyKey: 'pe-perm-prompt-voice',
+      requestingCopy:    'Requesting microphone…',
+    };
+  }
+  return {
+    mode: 'vision',
+    overlayId:    'phantom-eye-stream-modal',
+    videoElId:    'phantom-eye-stream',
+    msgElId:      'pes-overlay-msg',
+    initBtnId:    'pe-init-vision-btn',
+    statusBadgeId:'pes-live-badge',
+    orbId:        null,
+    gumConstraints: {
+      video: true,
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    },
+    requestingCopyKey: 'pe-perm-prompt',
+    requestingCopy:    'Requesting camera + microphone…',
+  };
+}
+
+function _lcStartStreaming(stream, msgEl, modeRefs) {
   var lc = window.PHANTOM_EYE_LC = {
+    mode: modeRefs.mode,
+    modeRefs: modeRefs,
     stream: stream,
     ws: null,
     audioCtx: null,
     source: null,
     processor: null,
     muteGain: null,
+    analyser: null,
+    orbRaf: 0,
     playbackCtx: null,
     playbackCursor: 0,
     videoTimer: null,
@@ -8935,13 +9158,20 @@ function _lcStartStreaming(stream, msgEl) {
   };
 
   lc.teardown = function teardownLc() {
+    try { if (lc.orbRaf) cancelAnimationFrame(lc.orbRaf); lc.orbRaf = 0; } catch (_) {}
     try { if (lc.videoTimer) clearInterval(lc.videoTimer); lc.videoTimer = null; } catch (_) {}
     try { if (lc.processor) lc.processor.disconnect(); } catch (_) {}
     try { if (lc.muteGain)  lc.muteGain.disconnect();  } catch (_) {}
+    try { if (lc.analyser)  lc.analyser.disconnect();  } catch (_) {}
     try { if (lc.source)    lc.source.disconnect();    } catch (_) {}
     try { if (lc.audioCtx    && lc.audioCtx.state    !== 'closed') lc.audioCtx.close();    } catch (_) {}
     try { if (lc.playbackCtx && lc.playbackCtx.state !== 'closed') lc.playbackCtx.close(); } catch (_) {}
     try { if (lc.ws && (lc.ws.readyState === 0 || lc.ws.readyState === 1)) lc.ws.close(1000, 'client-end'); } catch (_) {}
+    // Clear orb amplitude so the modal closes back to baseline visuals.
+    if (lc.modeRefs && lc.modeRefs.orbId) {
+      var orb = document.getElementById(lc.modeRefs.orbId);
+      if (orb) orb.style.setProperty('--vc-orb-amp', 0);
+    }
   };
 
   // ── WebSocket lifecycle ──────────────────────────────────
@@ -8958,7 +9188,7 @@ function _lcStartStreaming(stream, msgEl) {
 
   ws.addEventListener('open', function() {
     var ctx = _lcCollectContext();
-    try { ws.send(JSON.stringify({ type: 'context', payload: ctx })); }
+    try { ws.send(JSON.stringify({ type: 'context', mode: lc.mode, payload: ctx })); }
     catch (_) {}
   });
 
@@ -8969,8 +9199,12 @@ function _lcStartStreaming(stream, msgEl) {
 
     if (msg.type === 'ready') {
       _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-coach-ready', 'Sovereign Coach connected. Speak when ready.') : 'Sovereign Coach connected. Speak when ready.'));
-      // Fade the status banner after a few seconds so the live frame is unobstructed.
-      setTimeout(function() { if (msgEl) msgEl.classList.remove('on'); }, 2400);
+      // Vision mode: fade the status banner so the live frame is unobstructed.
+      // Voice mode: keep the status visible — the orb is the focal point but the
+      // status copy is the only textual feedback the user has.
+      if (lc.mode === 'vision') {
+        setTimeout(function() { if (msgEl) msgEl.classList.remove('on'); }, 2400);
+      }
       _lcStartCapture(lc);
       return;
     }
@@ -8991,9 +9225,7 @@ function _lcStartStreaming(stream, msgEl) {
 
   ws.addEventListener('close', function(ev) {
     if (window.PHANTOM_EYE_LC === lc) {
-      console.log('[Phantom Eye] bridge closed:', ev.code);
-      // Don't auto-teardown the entire session here — terminateLiveCoach
-      // owns that. Just stop forwarding frames upstream.
+      console.log('[Phantom Eye ' + lc.mode + '] bridge closed:', ev.code);
       try { if (lc.videoTimer) clearInterval(lc.videoTimer); lc.videoTimer = null; } catch (_) {}
     }
   });
@@ -9011,6 +9243,29 @@ function _lcStartCapture(lc) {
     if (!AC) throw new Error('AudioContext unavailable');
     lc.audioCtx = new AC({ sampleRate: 16000 });
     lc.source = lc.audioCtx.createMediaStreamSource(lc.stream);
+    // Voice mode: hook an AnalyserNode so the glowing orb pulses in
+    // real time with the user's mic level. Vision mode skips this —
+    // the live video is its own kinetic feedback.
+    if (lc.mode === 'voice' && lc.modeRefs && lc.modeRefs.orbId) {
+      try {
+        lc.analyser = lc.audioCtx.createAnalyser();
+        lc.analyser.fftSize = 256;
+        lc.analyser.smoothingTimeConstant = 0.6;
+        lc.source.connect(lc.analyser);
+        var freqData = new Uint8Array(lc.analyser.frequencyBinCount);
+        var orbEl = document.getElementById(lc.modeRefs.orbId);
+        var pump = function() {
+          if (!lc.analyser || lc.audioCtx.state === 'closed') return;
+          lc.analyser.getByteFrequencyData(freqData);
+          var sum = 0;
+          for (var fi = 0; fi < freqData.length; fi++) sum += freqData[fi];
+          var amp = (sum / freqData.length) / 255; // 0-1
+          if (orbEl) orbEl.style.setProperty('--vc-orb-amp', amp.toFixed(3));
+          lc.orbRaf = requestAnimationFrame(pump);
+        };
+        lc.orbRaf = requestAnimationFrame(pump);
+      } catch (_) {}
+    }
     // ScriptProcessor is deprecated but universally supported and
     // sufficient for 16 kHz mono. AudioWorklet upgrade is a follow-up.
     lc.processor = lc.audioCtx.createScriptProcessor(4096, 1, 1);
@@ -9040,8 +9295,13 @@ function _lcStartCapture(lc) {
   }
 
   // ── Video: 1 fps JPEG frames sampled from the live <video> ─
+  // STRICT COST LOCK (Phase 15 Slice 6): voice mode never opens this
+  // pipeline — guarantees zero video tokens hit Gemini for the audio-
+  // only Virtual Coach path. The mode comes from the bifurcated init
+  // entry point and is mirrored on lc.mode + lc.modeRefs.videoElId.
+  if (lc.mode !== 'vision' || !lc.modeRefs || !lc.modeRefs.videoElId) return;
   try {
-    var videoEl = document.getElementById('phantom-eye-stream');
+    var videoEl = document.getElementById(lc.modeRefs.videoElId);
     if (!videoEl) return;
     lc.hiddenCanvas = document.createElement('canvas');
     lc.videoTimer = setInterval(function() {
@@ -9109,20 +9369,31 @@ function _lcQueuePlayback(lc, b64) {
   }
 }
 
-window.initLiveCoach = function initLiveCoach() {
-  var overlay  = document.getElementById('phantom-eye-stream-modal');
-  var videoEl  = document.getElementById('phantom-eye-stream');
-  var msgEl    = document.getElementById('pes-overlay-msg');
-  var initBtn  = document.getElementById('pe-init-btn');
-  var statusEl = document.getElementById('pe-status-badge');
-  if (!overlay || !videoEl) return;
+window.initLiveCoach = function initLiveCoach(mode) {
+  var refs = _lcResolveMode(mode);
+  // Defensive: if the user clicks one mode while the OTHER is already
+  // running, kill the active session before opening the new modal.
+  // Prevents two open WS bridges + two AudioContexts fighting over the
+  // same hardware.
+  if (window.PHANTOM_EYE_LC) {
+    try { window.terminateLiveCoach(window.PHANTOM_EYE_LC.mode); } catch (_) {}
+  }
+
+  var overlay  = document.getElementById(refs.overlayId);
+  var videoEl  = refs.videoElId ? document.getElementById(refs.videoElId) : null;
+  var msgEl    = document.getElementById(refs.msgElId);
+  var initBtn  = document.getElementById(refs.initBtnId);
+  var statusEl = document.getElementById(refs.statusBadgeId);
+  // Vision mode requires a <video> element; voice mode does not.
+  if (!overlay) return;
+  if (refs.mode === 'vision' && !videoEl) return;
 
   // Reveal the overlay first so the permission prompt has visual context.
   overlay.hidden = false;
   document.body.style.overflow = 'hidden';
   if (msgEl) {
     msgEl.classList.remove('is-error');
-    msgEl.textContent = (typeof _t === 'function' ? _t('pe-perm-prompt', 'Requesting camera + microphone…') : 'Requesting camera + microphone…');
+    msgEl.textContent = (typeof _t === 'function' ? _t(refs.requestingCopyKey, refs.requestingCopy) : refs.requestingCopy);
     msgEl.classList.add('on');
   }
   if (initBtn) initBtn.disabled = true;
@@ -9135,51 +9406,56 @@ window.initLiveCoach = function initLiveCoach() {
     return;
   }
 
-  navigator.mediaDevices.getUserMedia({
-    // Echo cancellation + noise suppression are critical so the AI's
-    // 24 kHz playback doesn't loop back into the mic and feed itself.
-    video: true,
-    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-  })
+  // STRICT COST LOCK: getUserMedia constraints are sourced from the
+  // mode resolver. Voice mode passes { video: false, audio: {…} } —
+  // the camera permission is never even requested, so a misbehaving
+  // browser cannot accidentally grant video and feed it upstream.
+  navigator.mediaDevices.getUserMedia(refs.gumConstraints)
     .then(function(stream) {
       window.PHANTOM_EYE_STREAM = stream;
-      videoEl.srcObject = stream;
+      if (videoEl) videoEl.srcObject = stream;
       if (statusEl) {
         statusEl.classList.add('is-live');
         statusEl.textContent = (typeof _t === 'function' ? _t('pe-badge-live', 'Live') : 'Live');
       }
       if (initBtn) initBtn.disabled = false;
-      // Phase 15 Slice 5 — open the Gemini Live bridge. The status box
-      // stays mounted; _lcStartStreaming flips it through Connecting →
-      // Coach Ready → Coach Unavailable as the WS handshake unfolds.
-      try { _lcStartStreaming(stream, msgEl); } catch (e) {
-        console.warn('[Phantom Eye] bridge boot failed:', e && e.message);
+      // Open the Gemini Live bridge. The status banner stays mounted
+      // through Connecting → Coach Ready → Coach Unavailable.
+      try { _lcStartStreaming(stream, msgEl, refs); } catch (e) {
+        console.warn('[Phantom Eye ' + refs.mode + '] bridge boot failed:', e && e.message);
       }
     })
     .catch(function(err) {
-      console.warn('Phantom Eye getUserMedia denied/failed:', err && err.name, err && err.message);
+      console.warn('[Phantom Eye ' + refs.mode + '] getUserMedia denied/failed:', err && err.name, err && err.message);
       var deniedMsg = (typeof _t === 'function' ? _t('pe-perm-denied', 'Camera/microphone access denied. Enable permissions in your browser settings to use the Live Coach.') : 'Camera/microphone access denied. Enable permissions in your browser settings.');
       if (msgEl) { msgEl.textContent = deniedMsg; msgEl.classList.add('is-error', 'on'); }
       if (initBtn) initBtn.disabled = false;
     });
 };
 
-window.terminateLiveCoach = function terminateLiveCoach() {
-  var overlay  = document.getElementById('phantom-eye-stream-modal');
-  var videoEl  = document.getElementById('phantom-eye-stream');
-  var msgEl    = document.getElementById('pes-overlay-msg');
-  var statusEl = document.getElementById('pe-status-badge');
+window.terminateLiveCoach = function terminateLiveCoach(mode) {
+  // Default the mode lookup to whichever session is currently live so
+  // the inline X / Terminate buttons can call this with no argument
+  // and still hit the right modal. Falls back to 'vision' as a safety
+  // net for legacy callers.
+  if (!mode && window.PHANTOM_EYE_LC && window.PHANTOM_EYE_LC.mode) {
+    mode = window.PHANTOM_EYE_LC.mode;
+  }
+  var refs = _lcResolveMode(mode || 'vision');
+  var overlay  = document.getElementById(refs.overlayId);
+  var videoEl  = refs.videoElId ? document.getElementById(refs.videoElId) : null;
+  var msgEl    = document.getElementById(refs.msgElId);
+  var statusEl = document.getElementById(refs.statusBadgeId);
 
-  // Phase 15 Slice 5 — close the Gemini Live bridge first so the AI
-  // stops emitting audio before we kill the playback context.
+  // Close the Gemini Live bridge first so the AI stops emitting
+  // audio before we kill the playback context.
   if (window.PHANTOM_EYE_LC && typeof window.PHANTOM_EYE_LC.teardown === 'function') {
     try { window.PHANTOM_EYE_LC.teardown(); } catch (_) {}
     window.PHANTOM_EYE_LC = null;
   }
 
-  // Stop every track on the active stream so the camera + mic indicator
-  // turns off in the user's browser. Null-safe in case the user never
-  // granted permissions.
+  // Stop every track on the active MediaStream so the OS-level camera
+  // + mic indicators switch off in the browser. Null-safe.
   if (window.PHANTOM_EYE_STREAM) {
     try {
       window.PHANTOM_EYE_STREAM.getTracks().forEach(function(t){
