@@ -942,17 +942,67 @@ var BBF_SYNC = (function() {
     });
   }
 
-  // ─── TOGGLE: SOVEREIGN TRIAL ──────────────────────────────
-  // Phase 8 — calls the SECURITY DEFINER RPC bbf_set_trial_status(p_uid, p_active).
-  // RPC resolves slug -> uuid server-side, applies UPDATE, returns {ok, ...}.
-  function toggleSovereignTrial(userId, isTrialActive) {
+  // ─── PHASE 16 — IRON VAULT V2: Sovereign Trial server-enforced gate ──
+  // The Phase 8 cosmetic toggle (trial_status / bbf_set_trial_status) is
+  // gone. Three RPC wrappers + two HTTP endpoints replace it.
+  //   • adminSetTrial(uid, grant)   → Mastermind Portal entitlement toggle.
+  //   • startTrial(uid)             → user-initiated 7-day mystery box.
+  //   • fetchTrialState(uid)        → fresh-fetch on login + tab focus (Q4).
+  //   • fetchWsTicket(uid)          → mints the 60s one-shot ticket the
+  //                                    frontend appends to /ws/phantom-eye.
+  // Frontend cache is display-only; the server gate is source of truth.
+  var BBF_TRIAL_API_BASE = 'https://buildbelievefit.onrender.com';
+
+  function adminSetTrial(userId, grant) {
     if (!userId) return Promise.resolve(null);
-    return supa('POST', 'rpc/bbf_set_trial_status', {
+    return supa('POST', 'rpc/bbf_admin_set_trial', {
       p_uid: userId,
-      p_active: !!isTrialActive
+      p_grant: !!grant
     }).catch(function(e) {
-      console.error('BBF_SYNC toggleSovereignTrial error:', e);
+      console.error('BBF_SYNC adminSetTrial error:', e);
       return null;
+    });
+  }
+
+  function fetchTrialState(userId) {
+    if (!userId) return Promise.resolve(null);
+    return supa('POST', 'rpc/bbf_get_trial_state', { p_uid: userId })
+      .then(function(res) {
+        if (Array.isArray(res) && res.length) return res[0];
+        if (res && typeof res === 'object') return res;
+        return null;
+      })
+      .catch(function(e) {
+        console.warn('BBF_SYNC fetchTrialState error:', e && e.message);
+        return null;
+      });
+  }
+
+  function startTrial(userId) {
+    if (!userId) return Promise.resolve({ ok: false, error: 'missing_uid' });
+    return fetch(BBF_TRIAL_API_BASE + '/api/user/start-trial', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: userId })
+    }).then(function(r) {
+      return r.json().then(function(j) { return Object.assign({ status: r.status }, j); });
+    }).catch(function(e) {
+      console.error('BBF_SYNC startTrial error:', e && e.message);
+      return { ok: false, error: 'network' };
+    });
+  }
+
+  function fetchWsTicket(userId) {
+    if (!userId) return Promise.resolve({ ok: false, error: 'missing_uid' });
+    return fetch(BBF_TRIAL_API_BASE + '/api/auth/ws-ticket', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: userId })
+    }).then(function(r) {
+      return r.json().then(function(j) { return Object.assign({ status: r.status }, j); });
+    }).catch(function(e) {
+      console.error('BBF_SYNC fetchWsTicket error:', e && e.message);
+      return { ok: false, error: 'network' };
     });
   }
 
@@ -984,6 +1034,8 @@ var BBF_SYNC = (function() {
   }
 
   // ─── PROCESS: TIER UPGRADE ────────────────────────────────
+  // Phase 16 — trial_status column dropped; subscription_tier='sovereign'
+  // + trial_expires_at=null is the new "trial converted to paid" state.
   function processTierUpgrade(userId) {
     if (!userId) return Promise.resolve(null);
     // Update localStorage
@@ -991,7 +1043,8 @@ var BBF_SYNC = (function() {
       var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
       if (d.u[userId]) {
         d.u[userId].type = 'All-Pro';
-        d.u[userId].trial_status = 'completed';
+        d.u[userId].subscription_tier = 'sovereign';
+        d.u[userId].trial_expires_at = null;
         if (!d.u[userId].unlocked_bonuses) d.u[userId].unlocked_bonuses = [];
         if (d.u[userId].unlocked_bonuses.indexOf('Sovereign 16:8 Fasting Blueprint') === -1) {
           d.u[userId].unlocked_bonuses.push('Sovereign 16:8 Fasting Blueprint');
@@ -1003,7 +1056,8 @@ var BBF_SYNC = (function() {
     return supa('POST', 'bbf_users', {
       id: userId,
       type: 'All-Pro',
-      trial_status: 'completed',
+      subscription_tier: 'sovereign',
+      trial_expires_at: null,
       updated_at: new Date().toISOString()
     }).catch(function(e) { console.error('BBF_SYNC processTierUpgrade cloud error:', e); return null; });
   }
@@ -1406,11 +1460,14 @@ var BBF_SYNC = (function() {
         'bbf_users',
         null,
         '?id=eq.' + encodeURIComponent(uid) +
-          '&select=id,name,ghost_intervention_needed,ghost_flagged_at,ghost_cleared_at,mobility_override_date,onboarding_complete,blueprint,intake,last_active_timestamp,updated_at&limit=1'
+          '&select=id,name,ghost_intervention_needed,ghost_flagged_at,ghost_cleared_at,mobility_override_date,onboarding_complete,blueprint,intake,last_active_timestamp,updated_at,subscription_tier,trial_expires_at&limit=1'
       );
       if (!Array.isArray(rows) || !rows.length) return null;
       var profile = rows[0];
       // Mirror flags to localStorage so the dashboard can fall back offline.
+      // Phase 16 — subscription_tier + trial_expires_at mirrored for the
+      // BBF_TRIAL_STATE() / BBF_APPLY_TRIAL_GATE() helpers. Display-only;
+      // server-side WS upgrade gate is the actual source of truth.
       try {
         var d = JSON.parse(localStorage.getItem('bbf_v7') || '{"u":{},"l":{},"w":{}}');
         if (!d.u) d.u = {};
@@ -1419,6 +1476,8 @@ var BBF_SYNC = (function() {
         if (profile.mobility_override_date) d.u[uid].mobility_override_date = profile.mobility_override_date;
         if (profile.blueprint) d.u[uid].blueprint = profile.blueprint;
         if (profile.onboarding_complete) d.u[uid].onboarding_complete = true;
+        d.u[uid].subscription_tier = profile.subscription_tier || null;
+        d.u[uid].trial_expires_at  = profile.trial_expires_at  || null;
         localStorage.setItem('bbf_v7', JSON.stringify(d));
       } catch(_) {}
       return profile;
@@ -2220,7 +2279,10 @@ var BBF_SYNC = (function() {
     fetchPendingAudits: fetchPendingAudits,
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
-    toggleSovereignTrial: toggleSovereignTrial,
+    adminSetTrial: adminSetTrial,
+    fetchTrialState: fetchTrialState,
+    startTrial: startTrial,
+    fetchWsTicket: fetchWsTicket,
     fetchAdminDashboardStats: fetchAdminDashboardStats,
     processTierUpgrade: processTierUpgrade,
     linkHouseholdAccounts: linkHouseholdAccounts,

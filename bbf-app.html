@@ -1467,6 +1467,184 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.05);
 }
+
+/* Phase 16 Iron Vault V2 — three-state Sovereign Trial gate.
+   The Live Coach hub (.pe-frame) and any element with class
+   .iv-gated mirror the server's trial state. Admin (BBF_IS_ADMIN)
+   short-circuits the gate so the gate JS never adds these classes
+   to akeem's DOM. */
+.iv-gated.iv-state-null,
+.pe-frame.iv-state-null {
+  position: relative;
+  filter: blur(10px) saturate(.8);
+  pointer-events: none;
+}
+.iv-gated.iv-state-null::before,
+.pe-frame.iv-state-null::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(17,1,40,.55) 0%, rgba(9,9,9,.75) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+.iv-trial-cta {
+  position: absolute;
+  inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .9rem;
+  z-index: 3;
+  text-align: center;
+  padding: 1rem 1.4rem;
+  pointer-events: auto;
+  filter: none;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.iv-trial-cta-kicker {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: .12em;
+  color: #f5c800;
+  font-size: 1rem;
+  text-shadow: 0 0 12px rgba(245,200,0,.45);
+}
+.iv-trial-cta-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: .04em;
+  color: #fff;
+  line-height: 1.05;
+}
+.iv-trial-cta-btn {
+  background: linear-gradient(135deg, #6a0dad 0%, #f5c800 110%);
+  color: #fff;
+  border: none;
+  padding: .85rem 1.6rem;
+  border-radius: 10px;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: .08em;
+  font-size: 1.05rem;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(106,13,173,.5), 0 0 0 1px rgba(245,200,0,.35) inset;
+  transition: transform .15s ease, filter .15s ease;
+}
+.iv-trial-cta-btn:hover  { transform: translateY(-1px); filter: brightness(1.08); }
+.iv-trial-cta-btn:active { transform: scale(.98); }
+.iv-trial-cta-btn[disabled] { opacity: .65; cursor: progress; }
+
+.iv-gated.iv-state-expired,
+.pe-frame.iv-state-expired {
+  position: relative;
+  filter: grayscale(1) opacity(.55);
+  pointer-events: none;
+}
+.iv-expired-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .6rem;
+  z-index: 3;
+  text-align: center;
+  pointer-events: auto;
+  filter: none;
+  background: rgba(9,9,9,.55);
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.iv-expired-icon { font-size: 2rem; }
+.iv-expired-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: .04em;
+  color: #fff;
+}
+.iv-expired-btn {
+  background: #f5c800;
+  color: #090909;
+  border: none;
+  padding: .65rem 1.3rem;
+  border-radius: 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: .08em;
+  font-size: .95rem;
+  cursor: pointer;
+}
+.iv-expired-btn:hover { filter: brightness(1.05); }
+
+/* Wearables "Coming Soon" gate — applied to the .som-wearable-btn
+   wrapper and the .are-sync-btn / .are-resync clusters. */
+.iv-wearables-coming-soon {
+  position: relative;
+  filter: grayscale(1) opacity(.45);
+  pointer-events: none !important;
+}
+.iv-wearables-coming-soon::after {
+  content: 'COMING SOON';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) rotate(-6deg);
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: .14em;
+  font-size: .85rem;
+  color: #f5c800;
+  background: rgba(9,9,9,.85);
+  padding: .35rem .7rem;
+  border: 1px solid rgba(245,200,0,.55);
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+  filter: none;
+}
+
+/* Paywall modal (injected to body on first BBF_SHOW_PAYWALL_MODAL). */
+.iv-paywall-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(9,9,9,.85);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.iv-paywall-card {
+  max-width: 420px; width: 100%;
+  background: linear-gradient(180deg, #1a0a2e 0%, #090909 100%);
+  border: 1px solid rgba(245,200,0,.4);
+  border-radius: 14px;
+  padding: 1.6rem;
+  text-align: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  color: #fff;
+  box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(106,13,173,.3) inset;
+}
+.iv-paywall-kicker {
+  font-family: 'Bebas Neue', sans-serif;
+  color: #f5c800;
+  letter-spacing: .14em;
+  font-size: .95rem;
+}
+.iv-paywall-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: .04em;
+  margin: .4rem 0 .6rem;
+}
+.iv-paywall-body { font-size: 1rem; line-height: 1.4; opacity: .85; margin-bottom: 1rem; }
+.iv-paywall-btn {
+  background: linear-gradient(135deg, #6a0dad 0%, #f5c800 110%);
+  color: #fff; border: none;
+  padding: .85rem 1.6rem;
+  border-radius: 10px;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: .08em;
+  font-size: 1.05rem;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(106,13,173,.5);
+}
+.iv-paywall-close {
+  margin-top: .8rem;
+  background: transparent;
+  color: rgba(255,255,255,.6);
+  border: none;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .9rem;
+}
 /* Viewfinder brackets — L-shapes that breathe inward in a slow scan */
 .pe-bracket {
   position: absolute;
@@ -4581,6 +4759,211 @@ window.BBF_APPLY_NUTRITION_GATE = function() {
   } catch(_) {}
 };
 
+// ─── Phase 16 — IRON VAULT V2 frontend gate ───────────────────────
+// Three-state mirror of the server-side bbf_users.trial_expires_at /
+// subscription_tier. Display-only — server's WS upgrade gate is the
+// source of truth. Admin (BBF_IS_ADMIN) short-circuits everything.
+//
+//   'null'    → no trial ever started → blur + Sovereign Trial CTA
+//   'active'  → trial running OR sovereign tier → unblurred, full access
+//   'expired' → trial_expires_at <= NOW() → greyed + lock + paywall click
+//
+// BBF_APPLY_TRIAL_GATE() is idempotent. Hooked at login and on tab
+// focus (visibilitychange) so cross-device flips reflect within one
+// tab activation. localStorage cache is mirrored from fetchTrialState
+// in bbf-sync.js — never trusted across the WS upgrade boundary.
+window.BBF_TRIAL_STATE = function() {
+  try {
+    if (window.BBF_IS_ADMIN && window.BBF_IS_ADMIN()) return 'active';
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return 'null';
+    var d = (typeof GD === 'function') ? GD() : null;
+    var u = d && d.u && d.u[uid];
+    if (!u) return 'null';
+    if (u.subscription_tier === 'sovereign') return 'active';
+    if (!u.trial_expires_at) return 'null';
+    var ms = new Date(u.trial_expires_at).getTime();
+    if (!isFinite(ms)) return 'null';
+    return ms > Date.now() ? 'active' : 'expired';
+  } catch(_) { return 'null'; }
+};
+
+window.BBF_APPLY_TRIAL_GATE = function() {
+  try {
+    var state = window.BBF_TRIAL_STATE();
+    var frame = document.getElementById('pe-frame');
+    if (!frame) return;
+    frame.classList.remove('iv-state-null', 'iv-state-active', 'iv-state-expired');
+    // Strip any previously-injected overlay so we don't stack them.
+    var existingCta = frame.querySelector('.iv-trial-cta');
+    if (existingCta) existingCta.remove();
+    var existingExp = frame.querySelector('.iv-expired-overlay');
+    if (existingExp) existingExp.remove();
+    if (state === 'active') {
+      frame.classList.add('iv-state-active');
+      return;
+    }
+    if (state === 'null') {
+      frame.classList.add('iv-state-null');
+      var cta = document.createElement('div');
+      cta.className = 'iv-trial-cta';
+      cta.innerHTML =
+        '<div class="iv-trial-cta-kicker">SOVEREIGN COACH LOCKED</div>' +
+        '<div class="iv-trial-cta-title">Unlock 7 days of AI voice + camera coaching.</div>' +
+        '<button type="button" class="iv-trial-cta-btn" id="iv-trial-start-btn">Unlock 7-Day Sovereign Trial</button>';
+      frame.appendChild(cta);
+      var btn = cta.querySelector('#iv-trial-start-btn');
+      if (btn) btn.addEventListener('click', function() { window.BBF_START_TRIAL(); });
+      return;
+    }
+    // expired
+    frame.classList.add('iv-state-expired');
+    var exp = document.createElement('div');
+    exp.className = 'iv-expired-overlay';
+    exp.innerHTML =
+      '<div class="iv-expired-icon">&#x1F512;</div>' +
+      '<div class="iv-expired-title">Your Sovereign Trial has ended.</div>' +
+      '<button type="button" class="iv-expired-btn">Upgrade to Premium</button>';
+    frame.appendChild(exp);
+    var ebtn = exp.querySelector('.iv-expired-btn');
+    if (ebtn) ebtn.addEventListener('click', function() { window.BBF_SHOW_PAYWALL_MODAL(); });
+  } catch(_) {}
+};
+
+// Wearables "Coming Soon" — always-on greyed overlay regardless of trial
+// state. Targets the Somatic Readiness wearable button + the ARE sync /
+// resync controls. CEO directive: do not build the Open Wearables backends
+// at this time; surface "Coming Soon" so the placeholders remain visible.
+window.BBF_APPLY_WEARABLES_COMING_SOON = function() {
+  try {
+    var ids = ['som-wearable-btn', 'are-sync-btn', 'are-resync'];
+    ids.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      // Wrap the button in a positioned shell so the badge anchors right.
+      var wrap = el.parentElement;
+      if (!wrap) return;
+      if (!wrap.classList.contains('iv-wearables-coming-soon')) {
+        // Safety: if the wrapper hosts other unrelated children, scope the
+        // class on a fresh inline-block span around the button instead.
+        if (wrap.children.length > 1) {
+          if (el.dataset._ivWrapped === '1') return;
+          var shell = document.createElement('span');
+          shell.className = 'iv-wearables-coming-soon';
+          shell.style.display = 'inline-block';
+          shell.style.position = 'relative';
+          el.parentNode.insertBefore(shell, el);
+          shell.appendChild(el);
+          el.dataset._ivWrapped = '1';
+        } else {
+          wrap.classList.add('iv-wearables-coming-soon');
+        }
+      }
+      el.disabled = true;
+    });
+  } catch(_) {}
+};
+
+window.BBF_START_TRIAL = function() {
+  try {
+    var btn = document.getElementById('iv-trial-start-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Starting…'; }
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return;
+    var sync = (typeof BBF_SYNC !== 'undefined') ? BBF_SYNC : null;
+    if (!sync || !sync.startTrial) {
+      console.error('[Iron Vault] BBF_SYNC.startTrial unavailable');
+      if (btn) { btn.disabled = false; btn.textContent = 'Unlock 7-Day Sovereign Trial'; }
+      return;
+    }
+    sync.startTrial(uid).then(function(res) {
+      if (res && res.ok && res.trial_expires_at) {
+        var d = GD();
+        if (!d.u[uid]) d.u[uid] = {};
+        d.u[uid].trial_expires_at = res.trial_expires_at;
+        SD(d);
+        if (typeof TOAST === 'function') TOAST('Sovereign Trial activated — 7 days unlocked.');
+        window.BBF_APPLY_TRIAL_GATE();
+        return;
+      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Unlock 7-Day Sovereign Trial'; }
+      var msg = (res && res.error) || 'unknown';
+      if (msg === 'trial_already_consumed') {
+        if (typeof TOAST === 'function') TOAST('Trial already used — refresh to see latest state.');
+        if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.fetchTrialState) {
+          BBF_SYNC.fetchTrialState(uid).then(function(s) {
+            if (s) {
+              var d2 = GD();
+              if (!d2.u[uid]) d2.u[uid] = {};
+              d2.u[uid].subscription_tier = s.subscription_tier || null;
+              d2.u[uid].trial_expires_at  = s.trial_expires_at  || null;
+              SD(d2);
+              window.BBF_APPLY_TRIAL_GATE();
+            }
+          });
+        }
+      } else if (msg === 'rate_limited') {
+        if (typeof TOAST === 'function') TOAST('Too many attempts — wait an hour and try again.');
+      } else {
+        if (typeof TOAST === 'function') TOAST('Trial activation failed (' + msg + ').');
+      }
+    });
+  } catch(e) { console.error('[Iron Vault] BBF_START_TRIAL threw:', e && e.message); }
+};
+
+window.BBF_SHOW_PAYWALL_MODAL = function() {
+  try {
+    var existing = document.getElementById('iv-paywall-root');
+    if (existing) existing.remove();
+    var root = document.createElement('div');
+    root.id = 'iv-paywall-root';
+    root.className = 'iv-paywall-backdrop';
+    root.innerHTML =
+      '<div class="iv-paywall-card" role="dialog" aria-modal="true">' +
+        '<div class="iv-paywall-kicker">SOVEREIGN VAULT</div>' +
+        '<div class="iv-paywall-title">Upgrade to Premium</div>' +
+        '<div class="iv-paywall-body">' +
+          'Your Sovereign Trial has ended. Upgrade to keep AI voice + camera coaching, ' +
+          'wearable sync, and the full Sovereign protocol stack.' +
+        '</div>' +
+        '<button type="button" class="iv-paywall-btn" id="iv-paywall-go">Continue to Checkout</button>' +
+        '<div><button type="button" class="iv-paywall-close" id="iv-paywall-close">Not now</button></div>' +
+      '</div>';
+    document.body.appendChild(root);
+    document.getElementById('iv-paywall-go').addEventListener('click', function() {
+      // Placeholder Stripe wiring per CEO directive — uses the existing
+      // Sovereign tier checkout URL. Real Stripe paywall hook is a future slice.
+      var url = (typeof BBF_STRIPE_BY_TIER !== 'undefined' && BBF_STRIPE_BY_TIER && BBF_STRIPE_BY_TIER.sovereign)
+        ? BBF_STRIPE_BY_TIER.sovereign
+        : 'sms:6233409254?body=Upgrade%20me%20to%20Sovereign';
+      try { window.location.href = url; } catch(_) {}
+    });
+    document.getElementById('iv-paywall-close').addEventListener('click', function() { root.remove(); });
+    root.addEventListener('click', function(ev) { if (ev.target === root) root.remove(); });
+  } catch(_) {}
+};
+
+// Cross-device fresh-fetch (Q4): on tab focus, pull subscription_tier +
+// trial_expires_at from Supabase and re-apply the gate. localStorage is
+// strictly display; server is truth.
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState !== 'visible') return;
+  try {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return;
+    if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchTrialState) return;
+    BBF_SYNC.fetchTrialState(uid).then(function(s) {
+      if (!s) return;
+      var d = GD();
+      if (!d.u[uid]) d.u[uid] = {};
+      d.u[uid].subscription_tier = s.subscription_tier || null;
+      d.u[uid].trial_expires_at  = s.trial_expires_at  || null;
+      SD(d);
+      window.BBF_APPLY_TRIAL_GATE();
+    });
+  } catch(_) {}
+});
+
 function GD(){try{return JSON.parse(localStorage.getItem(K))||{u:{},l:{},w:{}};}catch(e){return{u:{},l:{},w:{}};}}
 function SD(d){localStorage.setItem(K,JSON.stringify(d));}
 
@@ -7062,6 +7445,26 @@ function ENTER() {
   // Phase 14 — apply the nutrition-only Workouts-tab suppression after
   // any tier ingest. Idempotent; admin always wins.
   try { if (window.BBF_APPLY_NUTRITION_GATE) window.BBF_APPLY_NUTRITION_GATE(); } catch(_) {}
+  // Phase 16 Iron Vault V2 — fresh-fetch trial state from Supabase, then
+  // apply the three-state gate to the Live Coach hub. Wearables get the
+  // always-on Coming Soon overlay regardless of trial state.
+  try {
+    if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.fetchTrialState && CU) {
+      BBF_SYNC.fetchTrialState(CU).then(function(s) {
+        if (s) {
+          var d2 = GD();
+          if (!d2.u[CU]) d2.u[CU] = {};
+          d2.u[CU].subscription_tier = s.subscription_tier || null;
+          d2.u[CU].trial_expires_at  = s.trial_expires_at  || null;
+          SD(d2);
+        }
+        if (window.BBF_APPLY_TRIAL_GATE) window.BBF_APPLY_TRIAL_GATE();
+      });
+    } else {
+      if (window.BBF_APPLY_TRIAL_GATE) window.BBF_APPLY_TRIAL_GATE();
+    }
+    if (window.BBF_APPLY_WEARABLES_COMING_SOON) window.BBF_APPLY_WEARABLES_COMING_SOON();
+  } catch(_) {}
   if (CU === 'akeem') {
     SETUP_TRAINER();
   } else {
@@ -7580,7 +7983,7 @@ function executeSovereignUpgrade() {
   } else {
     // Fallback: just update localStorage
     var d = GD();
-    if (d.u[uid]) { d.u[uid].type = 'All-Pro'; d.u[uid].trial_status = 'completed'; SD(d); }
+    if (d.u[uid]) { d.u[uid].type = 'All-Pro'; d.u[uid].subscription_tier = 'sovereign'; d.u[uid].trial_expires_at = null; SD(d); }
     showUpgradeModal();
     setTimeout(function() { RDW(); }, 1500);
   }
@@ -8847,17 +9250,53 @@ function _lcStartStreaming(stream, msgEl, modeRefs) {
   };
 
   // ── WebSocket lifecycle ──────────────────────────────────
+  // Phase 16 Iron Vault V2 — fetch a one-shot signed ticket from the
+  // backend (which checks subscription_tier + trial_expires_at against
+  // bbf_users) before opening the WS. No ticket = no Coach session. On
+  // 403 the gate is re-applied so the user sees the correct lockout UX.
   console.log('[Phantom Eye] dialing bridge URL=' + window.PHANTOM_EYE_BRIDGE_URL);
   _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-connecting', 'Connecting to Sovereign Coach…') : 'Connecting to Sovereign Coach…'));
-  var ws;
-  try { ws = new WebSocket(window.PHANTOM_EYE_BRIDGE_URL); }
-  catch (e) {
-    console.error('[Phantom Eye] WS construct failed:', e && e.message);
-    _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable. Camera streaming locally only.') : 'Sovereign Coach unavailable. Camera streaming locally only.'), true);
+  var uidForTicket = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  if (!uidForTicket || typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchWsTicket) {
+    console.error('[Phantom Eye] cannot mint ticket — uid or BBF_SYNC.fetchWsTicket missing');
+    _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable.') : 'Sovereign Coach unavailable.'), true);
     return;
   }
-  lc.ws = ws;
-  ws.binaryType = 'arraybuffer';
+  BBF_SYNC.fetchWsTicket(uidForTicket).then(function(tres) {
+    // Stale-session guard: if the user terminated before the ticket
+    // resolved, skip the WS open and let the consumed ticket expire.
+    if (window.PHANTOM_EYE_LC !== lc) {
+      console.log('[Phantom Eye] ticket resolved but session was torn down — skipping WS open');
+      return;
+    }
+    if (!tres || !tres.ok || !tres.ticket) {
+      console.warn('[Phantom Eye] ws-ticket denied · status=' + (tres && tres.status) + ' error=' + (tres && tres.error));
+      var reason = tres && tres.error ? tres.error : 'no_ticket';
+      var lockedCopy = (reason === 'trial_expired')
+        ? 'Your Sovereign Trial has ended. Upgrade to continue.'
+        : 'Sovereign Coach access denied. Start your trial or upgrade.';
+      _lcSetStatus(msgEl, lockedCopy, true);
+      try { if (typeof TOAST === 'function') TOAST(lockedCopy); } catch (_) {}
+      try { if (window.terminateLiveCoach) window.terminateLiveCoach(lc.mode); } catch (_) {}
+      try { if (window.BBF_APPLY_TRIAL_GATE) window.BBF_APPLY_TRIAL_GATE(); } catch (_) {}
+      return;
+    }
+    var wsUrl = window.PHANTOM_EYE_BRIDGE_URL + '?ticket=' + encodeURIComponent(tres.ticket);
+    var ws;
+    try { ws = new WebSocket(wsUrl); }
+    catch (e) {
+      console.error('[Phantom Eye] WS construct failed:', e && e.message);
+      _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable. Camera streaming locally only.') : 'Sovereign Coach unavailable. Camera streaming locally only.'), true);
+      return;
+    }
+    lc.ws = ws;
+    ws.binaryType = 'arraybuffer';
+    _lcAttachWsHandlers(ws, lc, msgEl);
+  });
+  return;
+}
+
+function _lcAttachWsHandlers(ws, lc, msgEl) {
 
   ws.addEventListener('open', function() {
     console.log('[Phantom Eye] WS open · sending context · mode=' + lc.mode);
@@ -9749,9 +10188,13 @@ function RDW() {
   var dk = today() + '_d' + SDAY;
   var saved = wl[dk] || {};
   var partner = d.u[uid] && d.u[uid].partner ? d.u[uid].partner : null;
-  // Sovereign Paywall — trial users see Days 1-2 only
+  // Sovereign Paywall — trial users see Days 1-2 only.
+  // Phase 16 Iron Vault V2 — derive trial-active from trial_expires_at
+  // (the dropped trial_status column is gone). Sovereign tier = paid,
+  // never trial-gated. Frontend cache mirrors the server fresh-fetch.
   var userObj = d.u[uid] || {};
-  var isTrial = userObj.trial_status === 'active';
+  var _trialMs = userObj.trial_expires_at ? new Date(userObj.trial_expires_at).getTime() : 0;
+  var isTrial = userObj.subscription_tier !== 'sovereign' && _trialMs > Date.now();
   var isTrainer = (CU === 'akeem');
   if (isTrial && !isTrainer && SDAY >= 2) {
     con.innerHTML = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div></div>' +

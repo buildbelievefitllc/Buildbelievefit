@@ -403,7 +403,10 @@ function renderEntitlements() {
     if (!wrap) return;
     wrap.innerHTML = clients.map(function(e) {
       var uid = e[0], u = e[1];
-      var trial = u.trial_status === 'active';
+      // Phase 16 Iron Vault V2 — derive from trial_expires_at, not the
+      // dropped trial_status column. Future timestamp = active trial.
+      var expiresAt = u.trial_expires_at ? new Date(u.trial_expires_at).getTime() : 0;
+      var trial = expiresAt > Date.now();
       return '<div class="ent-row">' +
         '<div class="ent-name">' + (u.name || uid) + '</div>' +
         '<div class="ent-lbl">Sovereign Trial</div>' +
@@ -418,37 +421,45 @@ function toggleTrial(uid, el) {
   try {
     var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
     if (!d.u[uid]) return;
-    var prevStatus = d.u[uid].trial_status || 'inactive';
-    var prevStart  = d.u[uid].trial_start_date || null;
-    var isNowActive = prevStatus !== 'active';
+    // Phase 16 Iron Vault V2 — admin override calls bbf_admin_set_trial RPC.
+    // p_grant=true → trial_expires_at = NOW()+7d; p_grant=false → NULL
+    // (which re-eligibilises the user for the user-initiated 7-day flow).
+    var prevExpires = d.u[uid].trial_expires_at || null;
+    var wasActive = prevExpires && new Date(prevExpires).getTime() > Date.now();
+    var grant = !wasActive;
 
-    // Optimistic UI + localStorage update
-    d.u[uid].trial_status = isNowActive ? 'active' : 'inactive';
-    if (isNowActive) d.u[uid].trial_start_date = new Date().toISOString();
+    var nextExpiresOptimistic = grant
+      ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      : null;
+    d.u[uid].trial_expires_at = nextExpiresOptimistic;
     localStorage.setItem('bbf_v7', JSON.stringify(d));
-    el.classList.toggle('on', isNowActive);
+    el.classList.toggle('on', grant);
     var status = document.getElementById('trial-status-' + uid);
-    if (status) { status.textContent = isNowActive ? 'ACTIVE' : 'OFF'; status.style.color = isNowActive ? '#D4AF37' : '#555'; }
+    if (status) { status.textContent = grant ? 'ACTIVE' : 'OFF'; status.style.color = grant ? '#D4AF37' : '#555'; }
 
-    // Cloud sync — revert UI + localStorage if RPC rejects or returns ok:false.
-    if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.toggleSovereignTrial) {
-      BBF_SYNC.toggleSovereignTrial(uid, isNowActive)
+    // Cloud sync — revert UI + localStorage if RPC fails.
+    if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.adminSetTrial) {
+      BBF_SYNC.adminSetTrial(uid, grant)
         .then(function(res) {
-          var ok = Array.isArray(res) ? (res[0] && res[0].ok) : (res && res.ok);
-          if (!ok) throw new Error((res && res.error) || 'rpc_failed');
+          // PostgREST returns the scalar timestamptz directly or wrapped.
+          // null is a valid success value when grant=false.
+          if (res === null || res === undefined) {
+            if (grant) throw new Error('rpc_returned_null_on_grant');
+            return;
+          }
+          if (typeof res === 'object' && res.error) throw new Error(res.error);
         })
         .catch(function(err) {
           console.error('Toggle trial cloud revert:', err);
           var d2 = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
           if (d2.u[uid]) {
-            d2.u[uid].trial_status = prevStatus;
-            d2.u[uid].trial_start_date = prevStart;
+            d2.u[uid].trial_expires_at = prevExpires;
             localStorage.setItem('bbf_v7', JSON.stringify(d2));
           }
-          el.classList.toggle('on', prevStatus === 'active');
+          el.classList.toggle('on', wasActive);
           if (status) {
-            status.textContent = prevStatus === 'active' ? 'ACTIVE' : 'OFF';
-            status.style.color = prevStatus === 'active' ? '#D4AF37' : '#555';
+            status.textContent = wasActive ? 'ACTIVE' : 'OFF';
+            status.style.color = wasActive ? '#D4AF37' : '#555';
           }
           alert('Trial toggle failed — try again. (' + (err && err.message ? err.message : 'network') + ')');
         });
