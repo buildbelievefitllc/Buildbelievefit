@@ -1,0 +1,71 @@
+{
+  "packageId": "com.buildbelievefit.bbf",
+  "host": "buildbelievefit.fitness",
+  "name": "Build Believe Fit",
+  "launcherName": "BBF",
+  "display": "standalone",
+  "themeColor": "#6a0dad",
+  "themeColorDark": "#000000",
+  "navigationColor": "#6a0dad",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#6a0dad",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#6a0dad",
+  "enableNotifications": false,
+  "startUrl": "/bbf-app.html",
+  "iconUrl": "https://buildbelievefit.fitness/bbf-icon-512.png",
+  "maskableIconUrl": "https://buildbelievefit.fitness/bbf-icon-maskable-512.png",
+  "appVersion": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Today's Program",
+      "shortName": "Program",
+      "url": "/bbf-app.html",
+      "chosenIdx": 0,
+      "iconUrl": "https://buildbelievefit.fitness/bbf-icon-192.png"
+    },
+    {
+      "name": "Nutrition Plan",
+      "shortName": "Nutrition",
+      "url": "/bbf-app.html",
+      "chosenIdx": 0,
+      "iconUrl": "https://buildbelievefit.fitness/bbf-icon-192.png"
+    },
+    {
+      "name": "Live AI Coach",
+      "shortName": "Coach",
+      "url": "/bbf-app.html",
+      "chosenIdx": 0,
+      "iconUrl": "https://buildbelievefit.fitness/bbf-icon-192.png"
+    },
+    {
+      "name": "Log Session",
+      "shortName": "Log",
+      "url": "/bbf-app.html",
+      "chosenIdx": 0,
+      "iconUrl": "https://buildbelievefit.fitness/bbf-icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://buildbelievefit.fitness/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": { "enabled": false },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://buildbelievefit.fitness/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [
+    {
+      "name": "androidStoreUpload",
+      "value": "8A:AB:5C:AB:D0:72:09:7A:0A:21:9D:C0:DB:79:26:10:22:32:01:B5:74:40:B2:07:10:87:8C:72:3D:38:65:AF"
+    }
+  ],
+  "signingKey": {
+    "path": "./bbf-twa-key.jks",
+    "alias": "bbf-twa-key"
+  }
+}

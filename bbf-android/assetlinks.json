@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.buildbelievefit.bbf",
+      "sha256_cert_fingerprints": [
+        "8A:AB:5C:AB:D0:72:09:7A:0A:21:9D:C0:DB:79:26:10:22:32:01:B5:74:40:B2:07:10:87:8C:72:3D:38:65:AF"
+      ]
+    }
+  }
+]

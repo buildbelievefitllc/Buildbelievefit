@@ -1,0 +1,18 @@
+# Phase 15 Slice 19 — Bubblewrap Android build kit
+# These artifacts are sensitive and must NEVER be committed.
+
+# Cryptographic signing key — losing or leaking this loses the Play Store
+# listing identity. Back up via password manager / encrypted vault only.
+*.jks
+
+# Plaintext keystore + key passwords. Same security profile as the .jks.
+KEYSTORE_PASSWORDS.txt
+
+# The full deliverable zip contains both of the above.
+bbf-android-twa-build.zip
+
+# Build artifacts produced when the CEO runs `bubblewrap build` locally.
+app-release-bundle.aab
+app-release-signed.apk
+.gradle/
+build/
