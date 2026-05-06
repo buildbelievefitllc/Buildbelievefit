@@ -2777,7 +2777,92 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 @media (prefers-reduced-motion: reduce) {
   .som-widget.flow .som-gauge { animation: none; }
   .seq-box { animation: none; }
+  .som-wearable-btn::before { animation: none; }
 }
+
+/* ═══ Phase 15 Slice 4 — Sync Wearable button + status ═══ */
+.som-actions-row { display: flex; gap: .55rem; align-items: stretch; flex-wrap: wrap; }
+.som-actions-row > .som-save-btn { flex: 1 1 50%; min-width: 0 }
+.som-save-btn--secondary {
+  background: rgba(34,197,94,.08);
+  border: 1px solid rgba(34,197,94,.35);
+  color: #86efac;
+}
+.som-save-btn--secondary:hover { background: rgba(34,197,94,.15); }
+.som-wearable-btn {
+  flex: 1 1 50%;
+  min-width: 0;
+  position: relative;
+  padding: .85rem 1rem;
+  background: linear-gradient(135deg, #1e3a8a 0%, #6a0dad 60%, #4c1d95 100%);
+  border: 1px solid rgba(139, 92, 246, .55);
+  color: #ddd6fe;
+  font-family: var(--hb);
+  font-size: .72rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 8px 22px -6px rgba(139,92,246,.5), inset 0 1px 0 rgba(255,255,255,.08);
+  transition: transform .18s ease, filter .2s ease, background .25s ease;
+}
+.som-wearable-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.som-wearable-btn:active { transform: scale(.98); }
+.som-wearable-btn[disabled] { opacity: .65; cursor: progress; }
+.som-wearable-btn.is-syncing::before {
+  content: '';
+  position: absolute;
+  left: .85rem;
+  top: 50%;
+  width: 12px; height: 12px;
+  margin-top: -6px;
+  border: 2px solid rgba(221,214,254,.25);
+  border-top-color: #ddd6fe;
+  border-radius: 50%;
+  animation: somWearableSpin .8s linear infinite;
+}
+.som-wearable-btn.is-syncing { padding-left: 2.4rem; }
+@keyframes somWearableSpin { to { transform: rotate(360deg); } }
+
+.som-wearable-status {
+  margin-top: .55rem;
+  padding: .55rem .8rem;
+  font-family: var(--hb);
+  font-size: .58rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 8px;
+  border: 1px solid rgba(139,92,246,.4);
+  background: rgba(139,92,246,.1);
+  color: #c4b5fd;
+}
+.som-wearable-status[data-state="syncing"] {
+  background: rgba(139,92,246,.14);
+  border-color: rgba(139,92,246,.55);
+  color: #ddd6fe;
+}
+.som-wearable-status[data-state="ok"] {
+  background: rgba(34,197,94,.12);
+  border-color: rgba(34,197,94,.45);
+  color: #86efac;
+}
+.som-wearable-status[data-state="err"] {
+  background: rgba(239,68,68,.12);
+  border-color: rgba(239,68,68,.45);
+  color: #fca5a5;
+}
+
+/* >80 Cleared (green) = default som-widget palette. .warn covers
+   50-79 Caution (amber). New .depleted class layered for <50 Red
+   without disturbing the warn-state animation. */
+.som-widget.depleted { border-color: rgba(239,68,68,.55); }
+.som-widget.depleted .som-label,
+.som-widget.depleted .som-gauge-tier { color: #ef4444 }
+.som-widget.depleted .som-score-fill { background: linear-gradient(90deg,#fca5a5,#ef4444) }
+.som-widget.depleted .som-gauge-fill { stroke: #ef4444 }
+.som-widget.depleted .som-score-n,
+.som-widget.depleted .som-gauge-num { color: #ef4444; text-shadow: 0 0 18px rgba(239,68,68,.45); }
 
 </style>
 <link rel="stylesheet" href="styles/bbf-tokens.css"/>
@@ -5080,7 +5165,18 @@ window.onload=function(){
             <input type="number" class="som-fast-input" id="som-fast" min="0" max="48" step="0.5" value="0" inputmode="decimal" placeholder="e.g. 16">
           </div>
         </div>
-        <button class="som-save-btn" id="som-save-btn" type="button" data-lang-key="som-save-btn">&#x269B; Sync Somatic Readiness</button>
+        <!-- Phase 15 Slice 4 — Wearable API Bridge.
+             Sync Wearable pulls a simulated Samsung Health / Android
+             Health Connect payload from /api/wearable-sync/health-connect
+             and overrides the manual sliders with the device-derived
+             readiness_score. Status pill flips through Idle → Syncing →
+             Synced/Failed; the dial repaints + tier color (cleared/
+             caution/depleted) cascades through .som-widget classes. -->
+        <div class="som-actions-row">
+          <button class="som-save-btn som-save-btn--secondary" id="som-save-btn" type="button" data-lang-key="som-save-btn">&#x269B; Sync Somatic Readiness</button>
+          <button class="som-wearable-btn" id="som-wearable-btn" type="button" onclick="syncWearable()" data-lang-key="som-wearable-btn">&#x231A; Sync Wearable</button>
+        </div>
+        <div class="som-wearable-status" id="som-wearable-status" role="status" aria-live="polite" hidden></div>
         <div class="som-flow-banner" id="som-flow-banner" data-lang-key="som-flow-banner">
           <b>&#x1F525; FLOW STATE</b> &mdash; Every biomarker aligned. Push for a personal record today &mdash; the CNS is ready to adapt.
         </div>
@@ -8429,6 +8525,125 @@ function _somPaint(state) {
   // per user per calendar day to avoid interrupting repeatedly.
   if (state.emergency_deload) _maybeTriggerEmergencyDeload(uid);
 }
+
+// ─── Phase 15 Slice 4 — Wearable API Bridge (Galaxy Watch / Health Connect) ───
+// Fetches simulated telemetry from /api/wearable-sync/health-connect on the
+// Render vault engine, parses the Health Connect-shaped payload, and pushes
+// readiness_score through _somPaint so the dial repaints + tier-color
+// cascades through the .som-widget classes (cleared / caution / depleted).
+// Loading copy + spinner give the UX an authentic "device handshake" feel
+// during sales pitches; failure path surfaces an inline retry hint.
+var BBF_WEARABLE_BRIDGE_URL = 'https://buildbelievefit.onrender.com/api/wearable-sync/health-connect';
+
+function _wearableTierFromScore(score) {
+  // Directive mapping: >80 cleared, 50-79 caution, <50 depleted.
+  if (score >= 80) return 'cleared';
+  if (score >= 50) return 'caution';
+  return 'depleted';
+}
+
+function _wearableSetStatus(state, msg) {
+  var pill = document.getElementById('som-wearable-status');
+  if (!pill) return;
+  if (state == null) { pill.hidden = true; pill.removeAttribute('data-state'); pill.textContent = ''; return; }
+  pill.hidden = false;
+  pill.setAttribute('data-state', state);
+  pill.textContent = msg;
+}
+
+function _wearablePaintFromPayload(payload) {
+  if (!payload || typeof payload !== 'object') return;
+  var score = Number(payload.readiness_score);
+  if (!isFinite(score)) return;
+  var widget = document.getElementById('somatic-map');
+  if (!widget) return;
+
+  // Tier mapping per CEO directive — overrides the existing flow/warn
+  // logic so the wearable signal is the single source of truth post-sync.
+  var tier = _wearableTierFromScore(score);
+  widget.classList.toggle('flow', false);                     // wearable supersedes manual flow
+  widget.classList.toggle('warn', tier === 'caution');
+  widget.classList.toggle('depleted', tier === 'depleted');
+
+  // _somPaint owns the dial paint + state mirror. Pass a synthetic state
+  // matching what BBF_SOMATIC.calculateSyncScore would emit, so the
+  // cross-talk + emergency-deload guards still work downstream.
+  _somPaint({
+    score: score,
+    tier: (tier === 'cleared' ? (score >= 90 ? 'flow' : 'optimal')
+         : tier === 'caution' ? 'caution'
+         : 'depleted'),
+    flow_state:      score >= 90,
+    override_active: tier === 'depleted',
+    override_date:   tier === 'depleted' ? today() : null,
+    emergency_deload: false,
+    gauge_stroke: tier === 'cleared' ? '#22c55e'
+                : tier === 'caution' ? '#FF9500'
+                :                       '#ef4444',
+  });
+
+  // Persist the wearable provenance so a future sync UI can show "last
+  // synced 4m ago" and so cross-device conflicts can be reconciled.
+  try {
+    var uid = VC || CU;
+    if (uid) {
+      var d = GD();
+      if (d.u[uid]) {
+        d.u[uid].wearable_last_sync_at      = payload.generated_at || new Date().toISOString();
+        d.u[uid].wearable_provider          = payload.provider || 'samsung_health_connect';
+        d.u[uid].wearable_last_readiness    = score;
+        SD(d);
+      }
+    }
+  } catch(_) {}
+}
+
+function syncWearable() {
+  var btn       = document.getElementById('som-wearable-btn');
+  var statusKey = function(k, fb) { return (typeof _t === 'function') ? _t(k, fb) : fb; };
+
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add('is-syncing');
+    var original = btn.dataset._origLabel || btn.textContent;
+    btn.dataset._origLabel = original;
+    btn.textContent = statusKey('som-wearable-syncing', 'Syncing Health Connect…');
+  }
+  _wearableSetStatus('syncing', statusKey('som-wearable-status-syncing', 'Handshaking with Samsung Health…'));
+
+  // Tiny artificial delay floor (~600ms) so the spinner is visible even
+  // when the network is fast — sells the "device polling" beat in demos.
+  var minDelay = new Promise(function(r){ setTimeout(r, 600); });
+
+  var fetchP = fetch(BBF_WEARABLE_BRIDGE_URL, { method: 'GET', credentials: 'omit' })
+    .then(function(res){
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    });
+
+  Promise.all([fetchP, minDelay]).then(function(results){
+    var payload = results[0];
+    if (!payload || payload.ok === false) throw new Error(payload && payload.error || 'malformed payload');
+    _wearablePaintFromPayload(payload);
+    var score = Math.round((payload.readiness_score || 0) * 10) / 10;
+    var tier = _wearableTierFromScore(score);
+    var tierLabel = (tier === 'cleared' ? statusKey('som-wearable-tier-cleared', 'Cleared')
+                    : tier === 'caution' ? statusKey('som-wearable-tier-caution', 'Caution')
+                    :                      statusKey('som-wearable-tier-depleted', 'Depleted'));
+    _wearableSetStatus('ok', statusKey('som-wearable-status-ok', 'Synced · {SCORE}% · {TIER}')
+      .replace('{SCORE}', score).replace('{TIER}', tierLabel));
+  }).catch(function(err){
+    console.warn('[BBF Wearable] sync failed:', err && err.message);
+    _wearableSetStatus('err', statusKey('som-wearable-status-err', 'Sync failed — tap to retry'));
+  }).then(function(){
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove('is-syncing');
+      btn.textContent = btn.dataset._origLabel || (statusKey('som-wearable-btn', '⌚ Sync Wearable'));
+    }
+  });
+}
+window.syncWearable = syncWearable;
 
 function _maybeTriggerEmergencyDeload(uid) {
   try {
