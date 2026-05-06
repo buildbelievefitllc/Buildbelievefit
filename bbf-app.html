@@ -9049,6 +9049,43 @@ window.PHANTOM_EYE_STREAM = null;
 window.PHANTOM_EYE_BRIDGE_URL = 'wss://buildbelievefit.onrender.com/ws/phantom-eye';
 window.PHANTOM_EYE_LC = null;
 
+// Phase 15 Slice 7 — Auto-terminate idle kill switch.
+// LC_NOISE_FLOOR is the amplitude (0-1, post FFT averaging) below which
+// the session is considered silent. Typical idle mic noise sits around
+// 0.005-0.012; speaking voices peak 0.05-0.4. 0.018 is a safe floor.
+// LC_IDLE_TIMEOUT_MS is the rolling silence window before the session
+// auto-tears down to stop the token bleed when a client walks away.
+var LC_NOISE_FLOOR    = 0.018;
+var LC_IDLE_TIMEOUT_MS = 60 * 1000;
+
+function _lcTriggerIdleTimeout(lc) {
+  var mode = lc && lc.mode ? lc.mode : 'vision';
+  console.log('[Phantom Eye ' + mode + '] auto-terminating after ' + (LC_IDLE_TIMEOUT_MS / 1000) + 's of silence');
+  // Surface the reason inside the modal status pill BEFORE we tear
+  // down — so the user sees the cause in context.
+  var copy = (typeof _t === 'function')
+    ? _t('pe-status-idle-terminated', 'Session auto-terminated to save battery and bandwidth.')
+    : 'Session auto-terminated to save battery and bandwidth.';
+  if (lc.modeRefs && lc.modeRefs.msgElId) {
+    var msgEl = document.getElementById(lc.modeRefs.msgElId);
+    if (msgEl) {
+      msgEl.classList.remove('is-error');
+      msgEl.textContent = copy;
+      msgEl.classList.add('on');
+    }
+  }
+  // Brief delay so the user reads the in-modal message before the
+  // overlay closes; then the persistent TOAST carries the same copy
+  // outside the modal in case they were looking elsewhere.
+  // Identity guard: if the user already started a fresh session
+  // before this stale timer fires, skip — let the new session run.
+  setTimeout(function() {
+    if (window.PHANTOM_EYE_LC !== lc) return;
+    try { if (typeof TOAST === 'function') TOAST(copy); } catch (_) {}
+    try { if (window.terminateLiveCoach) window.terminateLiveCoach(mode); } catch (_) {}
+  }, 1800);
+}
+
 function _lcCollectContext() {
   try {
     var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
@@ -9243,29 +9280,44 @@ function _lcStartCapture(lc) {
     if (!AC) throw new Error('AudioContext unavailable');
     lc.audioCtx = new AC({ sampleRate: 16000 });
     lc.source = lc.audioCtx.createMediaStreamSource(lc.stream);
-    // Voice mode: hook an AnalyserNode so the glowing orb pulses in
-    // real time with the user's mic level. Vision mode skips this —
-    // the live video is its own kinetic feedback.
-    if (lc.mode === 'voice' && lc.modeRefs && lc.modeRefs.orbId) {
-      try {
-        lc.analyser = lc.audioCtx.createAnalyser();
-        lc.analyser.fftSize = 256;
-        lc.analyser.smoothingTimeConstant = 0.6;
-        lc.source.connect(lc.analyser);
-        var freqData = new Uint8Array(lc.analyser.frequencyBinCount);
-        var orbEl = document.getElementById(lc.modeRefs.orbId);
-        var pump = function() {
-          if (!lc.analyser || lc.audioCtx.state === 'closed') return;
-          lc.analyser.getByteFrequencyData(freqData);
-          var sum = 0;
-          for (var fi = 0; fi < freqData.length; fi++) sum += freqData[fi];
-          var amp = (sum / freqData.length) / 255; // 0-1
-          if (orbEl) orbEl.style.setProperty('--vc-orb-amp', amp.toFixed(3));
-          lc.orbRaf = requestAnimationFrame(pump);
-        };
+    // Phase 15 Slice 7 — silence detection + auto-terminate.
+    // The AnalyserNode is now hooked for BOTH modes (vision + voice).
+    // Voice mode also drives the glowing orb via --vc-orb-amp; vision
+    // mode just consumes the amp signal for the silence timer. Either
+    // way, 60 s of below-noise-floor amplitude auto-terminates the
+    // session to stop the token bleed when a client walks away.
+    try {
+      lc.analyser = lc.audioCtx.createAnalyser();
+      lc.analyser.fftSize = 256;
+      lc.analyser.smoothingTimeConstant = 0.6;
+      lc.source.connect(lc.analyser);
+      var freqData = new Uint8Array(lc.analyser.frequencyBinCount);
+      var orbEl = (lc.modeRefs && lc.modeRefs.orbId) ? document.getElementById(lc.modeRefs.orbId) : null;
+      lc.silenceLastVoiceMs = Date.now();
+      lc.silenceTimeoutFired = false;
+      var pump = function() {
+        if (!lc.analyser || !lc.audioCtx || lc.audioCtx.state === 'closed') return;
+        lc.analyser.getByteFrequencyData(freqData);
+        var sum = 0;
+        for (var fi = 0; fi < freqData.length; fi++) sum += freqData[fi];
+        var amp = (sum / freqData.length) / 255; // 0-1
+        // Voice-mode orb scale.
+        if (orbEl) orbEl.style.setProperty('--vc-orb-amp', amp.toFixed(3));
+        // Rolling silence timer. Any spike above the noise floor resets
+        // the clock; sustained quiet for LC_IDLE_TIMEOUT_MS fires the
+        // auto-terminate sever protocol.
+        if (amp >= LC_NOISE_FLOOR) {
+          lc.silenceLastVoiceMs = Date.now();
+        } else if (!lc.silenceTimeoutFired
+                   && (Date.now() - lc.silenceLastVoiceMs) >= LC_IDLE_TIMEOUT_MS) {
+          lc.silenceTimeoutFired = true;
+          _lcTriggerIdleTimeout(lc);
+          return; // halt the rAF loop; teardown takes over
+        }
         lc.orbRaf = requestAnimationFrame(pump);
-      } catch (_) {}
-    }
+      };
+      lc.orbRaf = requestAnimationFrame(pump);
+    } catch (_) {}
     // ScriptProcessor is deprecated but universally supported and
     // sufficient for 16 kHz mono. AudioWorklet upgrade is a follow-up.
     lc.processor = lc.audioCtx.createScriptProcessor(4096, 1, 1);

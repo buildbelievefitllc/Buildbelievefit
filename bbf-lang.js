@@ -454,6 +454,7 @@ var D = {
 'pe-status-connecting':   { en:'Connecting to Sovereign Coach…', es:'Conectando con el Coach Soberano…', pt:'Conectando ao Coach Soberano…' },
 'pe-status-coach-ready':  { en:'Sovereign Coach connected. Speak when ready.', es:'Coach Soberano conectado. Habla cuando estés listo.', pt:'Coach Soberano conectado. Fale quando estiver pronto.' },
 'pe-status-bridge-fail':  { en:'Sovereign Coach unavailable. Camera streaming locally only.', es:'Coach Soberano no disponible. La cámara transmite solo localmente.', pt:'Coach Soberano indisponível. A câmera transmite apenas localmente.' },
+'pe-status-idle-terminated': { en:'Session auto-terminated to save battery and bandwidth.', es:'Sesión terminada automáticamente para ahorrar batería y ancho de banda.', pt:'Sessão encerrada automaticamente para economizar bateria e largura de banda.' },
 
 // ═══ BIOMETRIC YIELD REPORT — Titan Follow-up ═══════════════
 'byr-launch':     { en:'\uD83E\uDDEC View Clinical Yield', es:'\uD83E\uDDEC Ver Rendimiento Cl\u00ednico', pt:'\uD83E\uDDEC Ver Rendimento Cl\u00ednico' },
