@@ -866,7 +866,7 @@ app.use((err, req, res, next) => {
 // upgrades. If the key is missing, upgrades are rejected with 503.
 // ───────────────────────────────────────────────────────────────
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_LIVE_MODEL = 'models/gemini-2.0-flash-exp';
+const GEMINI_LIVE_MODEL = 'models/gemini-3.1-flash-live-preview';
 const GEMINI_LIVE_URL_BASE =
   'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent';
 const PHANTOM_EYE_PROXY_PATH = '/ws/phantom-eye';
