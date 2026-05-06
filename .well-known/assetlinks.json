@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "fitness.buildbelievefit.twa",
+      "sha256_cert_fingerprints": [
+        "1F:2F:D0:2F:C9:89:D4:99:C9:3D:4C:AB:88:86:E2:EC:90:20:F4:64:1E:7E:56:3B:9B:1D:2A:2F:4D:0A:82:B1"
+      ]
+    }
+  }
+]
