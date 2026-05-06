@@ -7231,6 +7231,13 @@ function ENTER() {
         // BBF_IS_NUTRITION_ONLY() can derive the role on read. Same-device
         // signup only; cross-device users default to no tier (full app).
         if (webData.tier) d.u[uid].tier = webData.tier;
+        // Phase 15 Slice 5 — mirror dietary profile + allergens for the
+        // Phantom Eye Sovereign Coach systemInstruction. Same-device only.
+        if (webData.macro_p) d.u[uid].macro_p = webData.macro_p;
+        if (webData.macro_c) d.u[uid].macro_c = webData.macro_c;
+        if (webData.macro_f) d.u[uid].macro_f = webData.macro_f;
+        if (webData.dietary_profile) d.u[uid].dietary_profile = webData.dietary_profile;
+        if (Array.isArray(webData.allergens)) d.u[uid].allergens = webData.allergens;
         SD(d);
       }
       localStorage.removeItem('bbf_pathfinder'); // consume once
@@ -8845,8 +8852,262 @@ function renderPhantomEye() { /* no-op — Live Coach hub is statically rendered
 
 // Active MediaStream so terminateLiveCoach can stop every track.
 // Held on window so any future caller (e.g. Gemini Live API socket
-// teardown in Slice 2+) can reach it. Null when no session is live.
+// teardown) can reach it. Null when no session is live.
 window.PHANTOM_EYE_STREAM = null;
+
+// ─── Phase 15 Slice 5 — Phantom Eye ↔ Gemini Multimodal Live bridge ─
+// Frontend half of the BBF Sovereign Coach. Captures the user's mic
+// at 16 kHz PCM16 mono and samples the live <video> at ~1 fps as JPEG,
+// streams both via WebSocket to the backend proxy at /ws/phantom-eye
+// (which holds the GEMINI_API_KEY and forwards to Gemini Live), and
+// plays the AI's 24 kHz PCM16 voice response back through Web Audio.
+// State lives on window.PHANTOM_EYE_LC so terminateLiveCoach can
+// fully tear down audio + video + WS in a single call.
+
+// Backend proxy URL. Render auto-deploys index.js; Origin is gated
+// on the proxy side against the existing CORS allowlist.
+window.PHANTOM_EYE_BRIDGE_URL = 'wss://buildbelievefit.onrender.com/ws/phantom-eye';
+window.PHANTOM_EYE_LC = null;
+
+function _lcCollectContext() {
+  try {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return {};
+    var d = (typeof GD === 'function') ? GD() : { u: {} };
+    var u = (d && d.u && d.u[uid]) || {};
+    var intake = u.intake || {};
+    return {
+      name: u.name || (typeof uid === 'string' ? uid.split('_')[0] : null),
+      age: intake.age || null,
+      tier: u.tier || u.type || null,
+      goal: intake.goal || u.goal || null,
+      experience: intake.experience || null,
+      tdee_target: u.tdee_target || null,
+      macro_p: u.macro_p || null,
+      macro_c: u.macro_c || null,
+      macro_f: u.macro_f || null,
+      dietary_profile: u.dietary_profile || 'Omnivore',
+      allergens: Array.isArray(u.allergens) ? u.allergens : [],
+      friction: Array.isArray(intake.friction)
+        ? intake.friction.filter(function(f){ return f && f !== 'none'; })
+        : [],
+    };
+  } catch (_) { return {}; }
+}
+
+function _lcArrayBufferToBase64(buf) {
+  // Chunked conversion to keep large buffers off the call stack.
+  var bytes = new Uint8Array(buf);
+  var binary = '';
+  var CHUNK = 32768;
+  for (var i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + CHUNK, bytes.length)));
+  }
+  return btoa(binary);
+}
+
+function _lcBase64ToInt16(b64) {
+  var bin = atob(b64);
+  var bytes = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Int16Array(bytes.buffer);
+}
+
+function _lcSetStatus(msgEl, text, isError) {
+  if (!msgEl) return;
+  msgEl.classList.toggle('is-error', !!isError);
+  msgEl.textContent = text;
+  msgEl.classList.add('on');
+}
+
+function _lcStartStreaming(stream, msgEl) {
+  var lc = window.PHANTOM_EYE_LC = {
+    stream: stream,
+    ws: null,
+    audioCtx: null,
+    source: null,
+    processor: null,
+    muteGain: null,
+    playbackCtx: null,
+    playbackCursor: 0,
+    videoTimer: null,
+    hiddenCanvas: null,
+  };
+
+  lc.teardown = function teardownLc() {
+    try { if (lc.videoTimer) clearInterval(lc.videoTimer); lc.videoTimer = null; } catch (_) {}
+    try { if (lc.processor) lc.processor.disconnect(); } catch (_) {}
+    try { if (lc.muteGain)  lc.muteGain.disconnect();  } catch (_) {}
+    try { if (lc.source)    lc.source.disconnect();    } catch (_) {}
+    try { if (lc.audioCtx    && lc.audioCtx.state    !== 'closed') lc.audioCtx.close();    } catch (_) {}
+    try { if (lc.playbackCtx && lc.playbackCtx.state !== 'closed') lc.playbackCtx.close(); } catch (_) {}
+    try { if (lc.ws && (lc.ws.readyState === 0 || lc.ws.readyState === 1)) lc.ws.close(1000, 'client-end'); } catch (_) {}
+  };
+
+  // ── WebSocket lifecycle ──────────────────────────────────
+  _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-connecting', 'Connecting to Sovereign Coach…') : 'Connecting to Sovereign Coach…'));
+  var ws;
+  try { ws = new WebSocket(window.PHANTOM_EYE_BRIDGE_URL); }
+  catch (e) {
+    console.warn('[Phantom Eye] WS construct failed:', e && e.message);
+    _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable. Camera streaming locally only.') : 'Sovereign Coach unavailable. Camera streaming locally only.'), true);
+    return;
+  }
+  lc.ws = ws;
+  ws.binaryType = 'arraybuffer';
+
+  ws.addEventListener('open', function() {
+    var ctx = _lcCollectContext();
+    try { ws.send(JSON.stringify({ type: 'context', payload: ctx })); }
+    catch (_) {}
+  });
+
+  ws.addEventListener('message', function(ev) {
+    var text = (typeof ev.data === 'string') ? ev.data : new TextDecoder().decode(ev.data);
+    var msg;
+    try { msg = JSON.parse(text); } catch (_) { return; }
+
+    if (msg.type === 'ready') {
+      _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-coach-ready', 'Sovereign Coach connected. Speak when ready.') : 'Sovereign Coach connected. Speak when ready.'));
+      // Fade the status banner after a few seconds so the live frame is unobstructed.
+      setTimeout(function() { if (msgEl) msgEl.classList.remove('on'); }, 2400);
+      _lcStartCapture(lc);
+      return;
+    }
+    if (msg.type === 'upstream-closed' || msg.type === 'upstream-error') {
+      _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable. Camera streaming locally only.') : 'Sovereign Coach unavailable. Camera streaming locally only.'), true);
+      return;
+    }
+
+    // Gemini Live serverContent — extract any audio inlineData parts.
+    if (msg.serverContent && msg.serverContent.modelTurn && Array.isArray(msg.serverContent.modelTurn.parts)) {
+      msg.serverContent.modelTurn.parts.forEach(function(part) {
+        if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.indexOf('audio/pcm') === 0) {
+          _lcQueuePlayback(lc, part.inlineData.data);
+        }
+      });
+    }
+  });
+
+  ws.addEventListener('close', function(ev) {
+    if (window.PHANTOM_EYE_LC === lc) {
+      console.log('[Phantom Eye] bridge closed:', ev.code);
+      // Don't auto-teardown the entire session here — terminateLiveCoach
+      // owns that. Just stop forwarding frames upstream.
+      try { if (lc.videoTimer) clearInterval(lc.videoTimer); lc.videoTimer = null; } catch (_) {}
+    }
+  });
+
+  ws.addEventListener('error', function() {
+    _lcSetStatus(msgEl, (typeof _t === 'function' ? _t('pe-status-bridge-fail', 'Sovereign Coach unavailable. Camera streaming locally only.') : 'Sovereign Coach unavailable. Camera streaming locally only.'), true);
+  });
+}
+
+function _lcStartCapture(lc) {
+  if (!lc || !lc.stream) return;
+  // ── Audio: 16 kHz mono PCM16 chunks, ~256 ms each ─────────
+  try {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error('AudioContext unavailable');
+    lc.audioCtx = new AC({ sampleRate: 16000 });
+    lc.source = lc.audioCtx.createMediaStreamSource(lc.stream);
+    // ScriptProcessor is deprecated but universally supported and
+    // sufficient for 16 kHz mono. AudioWorklet upgrade is a follow-up.
+    lc.processor = lc.audioCtx.createScriptProcessor(4096, 1, 1);
+    lc.muteGain = lc.audioCtx.createGain();
+    lc.muteGain.gain.value = 0; // route the processor to a silent sink so mic doesn't echo locally
+    lc.processor.onaudioprocess = function(e) {
+      if (!lc.ws || lc.ws.readyState !== 1) return;
+      var input = e.inputBuffer.getChannelData(0);
+      var pcm16 = new Int16Array(input.length);
+      for (var i = 0; i < input.length; i++) {
+        var s = Math.max(-1, Math.min(1, input[i]));
+        pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+      try {
+        lc.ws.send(JSON.stringify({
+          realtime_input: { media_chunks: [
+            { mime_type: 'audio/pcm;rate=16000', data: _lcArrayBufferToBase64(pcm16.buffer) }
+          ]}
+        }));
+      } catch (_) {}
+    };
+    lc.source.connect(lc.processor);
+    lc.processor.connect(lc.muteGain);
+    lc.muteGain.connect(lc.audioCtx.destination);
+  } catch (e) {
+    console.warn('[Phantom Eye] audio capture init failed:', e && e.message);
+  }
+
+  // ── Video: 1 fps JPEG frames sampled from the live <video> ─
+  try {
+    var videoEl = document.getElementById('phantom-eye-stream');
+    if (!videoEl) return;
+    lc.hiddenCanvas = document.createElement('canvas');
+    lc.videoTimer = setInterval(function() {
+      if (!lc.ws || lc.ws.readyState !== 1) return;
+      if (!videoEl.videoWidth) return;
+      var w = 640;
+      var h = Math.round(640 * (videoEl.videoHeight / videoEl.videoWidth));
+      lc.hiddenCanvas.width = w; lc.hiddenCanvas.height = h;
+      var ctx2d = lc.hiddenCanvas.getContext('2d');
+      // Compensate for the CSS preview mirror (transform: scaleX(-1))
+      // so the AI sees a true frame, not a mirrored one.
+      ctx2d.save();
+      ctx2d.scale(-1, 1);
+      ctx2d.drawImage(videoEl, -w, 0, w, h);
+      ctx2d.restore();
+      lc.hiddenCanvas.toBlob(function(blob) {
+        if (!blob || !lc.ws || lc.ws.readyState !== 1) return;
+        var reader = new FileReader();
+        reader.onloadend = function() {
+          var dataUrl = reader.result || '';
+          var idx = dataUrl.indexOf('base64,');
+          if (idx === -1) return;
+          var b64 = dataUrl.slice(idx + 7);
+          try {
+            lc.ws.send(JSON.stringify({
+              realtime_input: { media_chunks: [
+                { mime_type: 'image/jpeg', data: b64 }
+              ]}
+            }));
+          } catch (_) {}
+        };
+        reader.readAsDataURL(blob);
+      }, 'image/jpeg', 0.7);
+    }, 1000);
+  } catch (e) {
+    console.warn('[Phantom Eye] video capture init failed:', e && e.message);
+  }
+}
+
+function _lcQueuePlayback(lc, b64) {
+  // Gemini Live emits 24 kHz PCM16 mono. Decode → Float32 → schedule
+  // an AudioBufferSourceNode at the running playbackCursor so chunks
+  // play seamlessly as they arrive.
+  try {
+    if (!lc.playbackCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      lc.playbackCtx = new AC({ sampleRate: 24000 });
+      lc.playbackCursor = 0;
+    }
+    var int16 = _lcBase64ToInt16(b64);
+    if (!int16.length) return;
+    var float32 = new Float32Array(int16.length);
+    for (var i = 0; i < int16.length; i++) float32[i] = int16[i] / 32768;
+    var buffer = lc.playbackCtx.createBuffer(1, float32.length, 24000);
+    buffer.copyToChannel(float32, 0, 0);
+    var src = lc.playbackCtx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(lc.playbackCtx.destination);
+    var startAt = Math.max(lc.playbackCtx.currentTime + 0.05, lc.playbackCursor);
+    src.start(startAt);
+    lc.playbackCursor = startAt + buffer.duration;
+  } catch (e) {
+    console.warn('[Phantom Eye] playback queue failed:', e && e.message);
+  }
+}
 
 window.initLiveCoach = function initLiveCoach() {
   var overlay  = document.getElementById('phantom-eye-stream-modal');
@@ -8874,16 +9135,26 @@ window.initLiveCoach = function initLiveCoach() {
     return;
   }
 
-  navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+  navigator.mediaDevices.getUserMedia({
+    // Echo cancellation + noise suppression are critical so the AI's
+    // 24 kHz playback doesn't loop back into the mic and feed itself.
+    video: true,
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+  })
     .then(function(stream) {
       window.PHANTOM_EYE_STREAM = stream;
       videoEl.srcObject = stream;
-      if (msgEl) { msgEl.classList.remove('on', 'is-error'); msgEl.textContent = ''; }
       if (statusEl) {
         statusEl.classList.add('is-live');
         statusEl.textContent = (typeof _t === 'function' ? _t('pe-badge-live', 'Live') : 'Live');
       }
       if (initBtn) initBtn.disabled = false;
+      // Phase 15 Slice 5 — open the Gemini Live bridge. The status box
+      // stays mounted; _lcStartStreaming flips it through Connecting →
+      // Coach Ready → Coach Unavailable as the WS handshake unfolds.
+      try { _lcStartStreaming(stream, msgEl); } catch (e) {
+        console.warn('[Phantom Eye] bridge boot failed:', e && e.message);
+      }
     })
     .catch(function(err) {
       console.warn('Phantom Eye getUserMedia denied/failed:', err && err.name, err && err.message);
@@ -8898,6 +9169,13 @@ window.terminateLiveCoach = function terminateLiveCoach() {
   var videoEl  = document.getElementById('phantom-eye-stream');
   var msgEl    = document.getElementById('pes-overlay-msg');
   var statusEl = document.getElementById('pe-status-badge');
+
+  // Phase 15 Slice 5 — close the Gemini Live bridge first so the AI
+  // stops emitting audio before we kill the playback context.
+  if (window.PHANTOM_EYE_LC && typeof window.PHANTOM_EYE_LC.teardown === 'function') {
+    try { window.PHANTOM_EYE_LC.teardown(); } catch (_) {}
+    window.PHANTOM_EYE_LC = null;
+  }
 
   // Stop every track on the active stream so the camera + mic indicator
   // turns off in the user's browser. Null-safe in case the user never

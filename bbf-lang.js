@@ -445,6 +445,9 @@ var D = {
 'pe-terminate':    { en:'Terminate Session',   es:'Terminar Sesión', pt:'Encerrar Sessão' },
 'pe-perm-denied':  { en:'Camera/microphone access denied. Enable permissions in your browser settings to use the Live Coach.', es:'Acceso a cámara/micrófono denegado. Habilita los permisos en la configuración del navegador para usar el Coach en Vivo.', pt:'Acesso à câmera/microfone negado. Ative as permissões nas configurações do navegador para usar o Coach ao Vivo.' },
 'pe-perm-unsupported': { en:'Live Coach requires a browser with camera + microphone APIs. Please update your browser.', es:'El Coach en Vivo requiere un navegador con APIs de cámara y micrófono. Actualiza tu navegador.', pt:'O Coach ao Vivo requer um navegador com APIs de câmera e microfone. Atualize seu navegador.' },
+'pe-status-connecting':   { en:'Connecting to Sovereign Coach…', es:'Conectando con el Coach Soberano…', pt:'Conectando ao Coach Soberano…' },
+'pe-status-coach-ready':  { en:'Sovereign Coach connected. Speak when ready.', es:'Coach Soberano conectado. Habla cuando estés listo.', pt:'Coach Soberano conectado. Fale quando estiver pronto.' },
+'pe-status-bridge-fail':  { en:'Sovereign Coach unavailable. Camera streaming locally only.', es:'Coach Soberano no disponible. La cámara transmite solo localmente.', pt:'Coach Soberano indisponível. A câmera transmite apenas localmente.' },
 
 // ═══ BIOMETRIC YIELD REPORT — Titan Follow-up ═══════════════
 'byr-launch':     { en:'\uD83E\uDDEC View Clinical Yield', es:'\uD83E\uDDEC Ver Rendimiento Cl\u00ednico', pt:'\uD83E\uDDEC Ver Rendimento Cl\u00ednico' },

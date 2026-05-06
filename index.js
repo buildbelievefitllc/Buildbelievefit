@@ -9,6 +9,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const http = require('http');
 const { createClient } = require('@supabase/supabase-js');
 const Anthropic = require('@anthropic-ai/sdk');
 
@@ -850,9 +851,205 @@ app.use((err, req, res, next) => {
   res.status(500).json({ ok: false, error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
+// ───────────────────────────────────────────────────────────────
+// Phase 15 Slice 5 — Phantom Eye Live Coach proxy
+//
+// WebSocket bridge between bbf-app.html and the Gemini Multimodal
+// Live API. Frontend connects to /ws/phantom-eye, sends a single
+// 'context' message containing the user's payload (name, TDEE,
+// macros, dietary profile, allergens, joint friction). The proxy
+// constructs a dynamic systemInstruction casting the AI as the BBF
+// Sovereign Coach, opens an outbound WebSocket to Gemini Live,
+// forwards bidirectional audio + video traffic.
+//
+// GEMINI_API_KEY never leaves this server. Origin allowlist gates
+// upgrades. If the key is missing, upgrades are rejected with 503.
+// ───────────────────────────────────────────────────────────────
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_LIVE_MODEL = 'models/gemini-2.0-flash-exp';
+const GEMINI_LIVE_URL_BASE =
+  'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent';
+const PHANTOM_EYE_PROXY_PATH = '/ws/phantom-eye';
+
+const SOVEREIGN_COACH_PROMPT =
+  'You are the BBF Sovereign Coach — an elite biomechanics and nutrition ' +
+  'coach for Build Believe Fit LLC. Use the live video feed to analyse ' +
+  'exercise form (correcting joint angles, hip shift, knee valgus, spine ' +
+  'neutrality, bar path, stance width) OR to analyse food ingredients ' +
+  'and cooking progress. You MUST strictly adhere to the user\'s provided ' +
+  'macro limits and allergy restrictions. Speak in short, deadpan, ' +
+  'clinical sentences — no preamble, no fluff. Address the user by their ' +
+  'first name when appropriate. If a movement looks unsafe, call it out ' +
+  'immediately and prescribe the correction. If a food choice violates ' +
+  'an allergy or the dietary profile, refuse it firmly and suggest a ' +
+  'compliant swap. If the user has reported joint friction in their ' +
+  'intake, be especially vigilant about loading those joints — flag any ' +
+  'movement that risks aggravating them.';
+
+function buildSystemInstruction(payload) {
+  const p = payload || {};
+  const lines = [SOVEREIGN_COACH_PROMPT, '', 'CLIENT CONTEXT:'];
+  if (p.name)        lines.push('- First name: ' + String(p.name));
+  if (p.age)         lines.push('- Age: ' + String(p.age));
+  if (p.tier)        lines.push('- BBF Tier: ' + String(p.tier));
+  if (p.goal)        lines.push('- Primary goal: ' + String(p.goal));
+  if (p.experience)  lines.push('- Training experience: ' + String(p.experience));
+  if (p.tdee_target) lines.push('- Daily calorie target: ' + String(p.tdee_target) + ' kcal');
+  const macroBits = [];
+  if (p.macro_p) macroBits.push(p.macro_p + 'g protein');
+  if (p.macro_c) macroBits.push(p.macro_c + 'g carbs');
+  if (p.macro_f) macroBits.push(p.macro_f + 'g fat');
+  if (macroBits.length) lines.push('- Daily macro targets: ' + macroBits.join(', '));
+  if (p.dietary_profile) lines.push('- Dietary profile: ' + String(p.dietary_profile) + ' (must respect)');
+  if (Array.isArray(p.allergens) && p.allergens.length) {
+    lines.push('- Allergen restrictions: ' + p.allergens.join(', ') + ' (strictly avoid)');
+  } else {
+    lines.push('- Allergen restrictions: none reported');
+  }
+  if (Array.isArray(p.friction) && p.friction.length) {
+    lines.push('- Reported joint friction: ' + p.friction.join(', ') + ' (be vigilant about loading these joints)');
+  }
+  lines.push('');
+  lines.push(
+    'Open with a single short greeting using the client\'s first name, ' +
+    'then wait for them to either speak or move into frame before assessing.'
+  );
+  return lines.join('\n');
+}
+
+function attachPhantomEyeProxy(server) {
+  let WS;
+  try {
+    WS = require('ws');
+  } catch (e) {
+    console.error('[BBF VAULT] ws package missing — install with `npm install ws`. Phantom Eye proxy disabled.');
+    return;
+  }
+  if (!GEMINI_API_KEY) {
+    console.warn('[BBF VAULT] GEMINI_API_KEY missing — Phantom Eye proxy will reject upgrades with 503.');
+  } else {
+    console.log('[BBF VAULT] GEMINI_API_KEY present — Phantom Eye proxy ready.');
+  }
+  const wss = new WS.Server({ noServer: true });
+
+  server.on('upgrade', (req, socket, head) => {
+    let pathname = '/';
+    try { pathname = new URL(req.url, 'http://localhost').pathname; } catch (_) {}
+    if (pathname !== PHANTOM_EYE_PROXY_PATH) {
+      socket.destroy();
+      return;
+    }
+    const origin = req.headers.origin;
+    if (origin && !ALLOWED_ORIGINS.has(origin)) {
+      console.warn('[Phantom Eye] upgrade rejected — origin not allowlisted:', origin);
+      socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+    if (!GEMINI_API_KEY) {
+      console.warn('[Phantom Eye] upgrade rejected — GEMINI_API_KEY not set');
+      socket.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+    wss.handleUpgrade(req, socket, head, (clientWs) => {
+      wss.emit('connection', clientWs, req);
+    });
+  });
+
+  wss.on('connection', (clientWs, req) => {
+    const sessionId = Math.random().toString(36).slice(2, 10);
+    const log = (...args) => console.log('[Phantom Eye ' + sessionId + ']', ...args);
+    log('client connected from', req.headers.origin || '(no-origin)');
+
+    let geminiWs = null;
+    let setupSent = false;
+    let firstFrameForwarded = false;
+
+    function teardown(reason) {
+      log('teardown:', reason);
+      try { if (clientWs && clientWs.readyState === WS.OPEN) clientWs.close(1000, reason || 'session-end'); } catch (_) {}
+      try { if (geminiWs && geminiWs.readyState === WS.OPEN) geminiWs.close(1000, reason || 'session-end'); } catch (_) {}
+    }
+
+    clientWs.on('message', (data) => {
+      // Parse as JSON. Non-JSON or binary frames forwarded verbatim if
+      // the upstream is open; otherwise dropped.
+      let parsed = null;
+      try {
+        const text = (typeof data === 'string') ? data : data.toString('utf8');
+        parsed = JSON.parse(text);
+      } catch (_) {
+        if (geminiWs && geminiWs.readyState === WS.OPEN) {
+          try { geminiWs.send(data); } catch (_) {}
+        }
+        return;
+      }
+
+      // First message from client must be the context bootstrap.
+      if (parsed && parsed.type === 'context' && !geminiWs) {
+        const systemInstruction = buildSystemInstruction(parsed.payload || {});
+        const upstreamUrl = GEMINI_LIVE_URL_BASE + '?key=' + encodeURIComponent(GEMINI_API_KEY);
+        log('opening Gemini Live upstream');
+        geminiWs = new WS(upstreamUrl);
+
+        geminiWs.on('open', () => {
+          log('upstream open; sending setup');
+          const setup = {
+            setup: {
+              model: GEMINI_LIVE_MODEL,
+              generationConfig: { responseModalities: ['AUDIO'] },
+              systemInstruction: { parts: [{ text: systemInstruction }] },
+            },
+          };
+          try { geminiWs.send(JSON.stringify(setup)); } catch (e) { log('setup send failed:', e.message); }
+          setupSent = true;
+          try { clientWs.send(JSON.stringify({ type: 'ready' })); } catch (_) {}
+        });
+
+        geminiWs.on('message', (msg) => {
+          // Forward every Gemini frame to the client verbatim. Client
+          // parses serverContent.modelTurn for audio inlineData.
+          try { clientWs.send(msg); } catch (e) { log('downstream send failed:', e.message); }
+        });
+
+        geminiWs.on('close', (code, reason) => {
+          log('upstream closed:', code, reason && reason.toString());
+          try { clientWs.send(JSON.stringify({ type: 'upstream-closed', code: code })); } catch (_) {}
+          teardown('upstream-close');
+        });
+
+        geminiWs.on('error', (err) => {
+          log('upstream error:', err && err.message);
+          try { clientWs.send(JSON.stringify({ type: 'upstream-error', error: err && err.message })); } catch (_) {}
+        });
+        return;
+      }
+
+      // Streaming frames forwarded straight to Gemini once setup landed.
+      if (geminiWs && geminiWs.readyState === WS.OPEN && setupSent) {
+        if (!firstFrameForwarded) {
+          firstFrameForwarded = true;
+          log('first realtime_input frame forwarded');
+        }
+        try { geminiWs.send(JSON.stringify(parsed)); } catch (e) { log('forward failed:', e.message); }
+      }
+    });
+
+    clientWs.on('close', () => { teardown('client-close'); });
+    clientWs.on('error', (err) => { log('client error:', err && err.message); teardown('client-error'); });
+  });
+
+  console.log('[BBF VAULT] Phantom Eye proxy attached at ws ' + PHANTOM_EYE_PROXY_PATH);
+}
+
+const httpServer = http.createServer(app);
+attachPhantomEyeProxy(httpServer);
+
+httpServer.listen(PORT, () => {
   console.log(`[BBF VAULT] Engine server listening on port ${PORT}`);
   console.log(`[BBF VAULT] Process endpoint: POST /process`);
+  console.log(`[BBF VAULT] Phantom Eye proxy: ws ${PHANTOM_EYE_PROXY_PATH}`);
 });
 
 module.exports = app;
