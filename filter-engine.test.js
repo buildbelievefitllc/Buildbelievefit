@@ -77,3 +77,48 @@ try {
   console.error(error);
   process.exit(1);
 }
+
+const { getTournamentMeals } = require('./filter-engine.js');
+
+function runTournamentMealsTests() {
+  console.log('Running tests for getTournamentMeals...');
+
+  // Test 1: Undefined MEAL_VAULT
+  console.log('Test 1: Undefined MEAL_VAULT');
+  delete global.MEAL_VAULT;
+  let result = getTournamentMeals();
+  assert.deepStrictEqual(result, [], 'Should return empty array when MEAL_VAULT is undefined');
+
+  // Test 2: Filter tournament meals
+  console.log('Test 2: Filter tournament meals');
+  global.MEAL_VAULT = [
+    { id: 1, name: 'Normal Meal 1', type: 'standard' },
+    { id: 2, name: 'Tournament Meal 1', type: 'road' },
+    { id: 3, name: 'Normal Meal 2', type: 'standard' },
+    { id: 4, name: 'Tournament Meal 2', type: 'road' },
+  ];
+  result = getTournamentMeals();
+  assert.strictEqual(result.length, 2, 'Should return exactly 2 meals');
+  assert.strictEqual(result[0].id, 2, 'First meal should have id 2');
+  assert.strictEqual(result[1].id, 4, 'Second meal should have id 4');
+  assert.ok(result.every(m => m.type === 'road'), 'All returned meals should have type "road"');
+
+  // Test 3: No tournament meals
+  console.log('Test 3: No tournament meals');
+  global.MEAL_VAULT = [
+    { id: 1, name: 'Normal Meal 1', type: 'standard' },
+    { id: 3, name: 'Normal Meal 2', type: 'standard' },
+  ];
+  result = getTournamentMeals();
+  assert.deepStrictEqual(result, [], 'Should return empty array when no tournament meals exist');
+
+  console.log('getTournamentMeals tests passed!');
+}
+
+try {
+  runTournamentMealsTests();
+} catch (error) {
+  console.error('getTournamentMeals tests failed!');
+  console.error(error);
+  process.exit(1);
+}
