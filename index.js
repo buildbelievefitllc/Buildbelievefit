@@ -966,12 +966,37 @@ app.post('/provision', async (req, res) => {
     }
 
     console.log(`[BBF VAULT] /provision success — ${customerEmail} → ${data.username}`);
+
+    // Phase 17 — write subscription_tier to the freshly provisioned row
+    // via the bbf_admin_set_tier RPC. Re-uses the SECURITY DEFINER
+    // validator (allowed-tier list + akeem safety net). Defaults to
+    // 'gateway' when the upstream Pathfinder payload didn't carry a
+    // tier slug — safer than NULL given the Phase 17 login bouncer
+    // blocks NULL accounts. Failure here does not unwind the
+    // provision (PIN + row are already created); we log + continue
+    // so Zapier still receives credentials. Akeem's Switchboard can
+    // hand-correct the tier from Mastermind if this ever drops.
+    const tierToWrite = (typeof tier === 'string' && tier.trim()) ? tier.trim() : 'gateway';
+    try {
+      const { error: tierErr } = await supabase.rpc('bbf_admin_set_tier', {
+        p_uid: data.username,
+        p_tier: tierToWrite,
+      });
+      if (tierErr) {
+        console.error('[BBF VAULT] /provision tier write failed (non-fatal):', tierErr.message || tierErr);
+      } else {
+        console.log(`[BBF VAULT] /provision tier set — ${data.username} → ${tierToWrite}`);
+      }
+    } catch (e) {
+      console.error('[BBF VAULT] /provision tier write threw (non-fatal):', e && e.message);
+    }
+
     return res.status(200).json({
       ok: true,
       username: data.username,
       pin: pin,
       email: customerEmail,
-      tier: tier,
+      tier: tierToWrite,
       app_url: 'https://buildbelievefit.fitness/bbf-app.html',
     });
   } catch (err) {

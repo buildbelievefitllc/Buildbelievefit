@@ -5101,11 +5101,137 @@ async function LOGIN(){
     CU=user;
     VC=(user==='akeem')?null:user;
     if(msg)msg.textContent='';
-    // Hand off to main app
-    if(typeof ENTER==='function'){ENTER();}else{SS('app');}
+    // Phase 17 — The Bouncer. PIN verified, but before we hand the user
+    // to the dashboard we check subscription_tier + trial_expires_at.
+    // Admin (akeem) short-circuits straight to ENTER. Anyone with
+    // tier IS NULL OR 'lite' AND no active trial gets the Vault Access
+    // Denied screen with Upgrade / Trial CTAs. Active trial OR tier in
+    // (gateway, architect, sovereign, youth_athlete, nutrition_*)
+    // proceeds normally.
+    if (user === 'akeem') {
+      if (typeof ENTER === 'function') { ENTER(); } else { SS('app'); }
+      return;
+    }
+    var _proceedToApp = function _proceedToApp(){
+      if (typeof ENTER === 'function') { ENTER(); } else { SS('app'); }
+    };
+    var _gatedAtBouncer = function _gatedAtBouncer(tier, expIso){
+      var ms = expIso ? new Date(expIso).getTime() : 0;
+      var trialActive = isFinite(ms) && ms > Date.now();
+      var lockedTier = (tier === null || typeof tier === 'undefined' || tier === '' || tier === 'lite');
+      return lockedTier && !trialActive;
+    };
+    try {
+      if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.fetchTrialState) {
+        BBF_SYNC.fetchTrialState(user).then(function(state){
+          var tier = state && state.subscription_tier;
+          var exp  = state && state.trial_expires_at;
+          // Mirror to localStorage so the inside-app gates and visibility
+          // refresh see the same state without an extra round trip.
+          try {
+            var d2 = GD();
+            if (!d2.u[user]) d2.u[user] = {};
+            d2.u[user].subscription_tier = tier || null;
+            d2.u[user].trial_expires_at  = exp  || null;
+            SD(d2);
+          } catch(_) {}
+          if (_gatedAtBouncer(tier, exp)) {
+            window._bouncerUid = user;
+            _paintBouncer(/*alreadyConsumed*/ exp != null);
+            SS('bouncer');
+            return;
+          }
+          _proceedToApp();
+        }).catch(function(){
+          // Fail-open on network error — the inside-app gate remains the
+          // backstop. (Iron Vault V2 ws-ticket gate still enforces server-
+          // side for AI/camera surfaces.)
+          _proceedToApp();
+        });
+      } else {
+        _proceedToApp();
+      }
+    } catch(_) { _proceedToApp(); }
+    return;
   } finally {
     _loginInFlight = false;
   }
+}
+
+// Phase 17 — Bouncer screen handlers. Painted when LOGIN finds the
+// just-authenticated user is NULL/lite-tier with no active trial.
+// Wires the Upgrade and Trial CTAs to live network calls; the trial
+// path resumes the dashboard transition on success so the user lands
+// in-app one click later. Idempotent — safe to call repeatedly.
+var BBF_GATEWAY_STRIPE_URL = 'https://buy.stripe.com/14A7sNb7143x1F02AFaZi0c';
+
+function _paintBouncer(alreadyConsumed) {
+  try {
+    var copyEl    = document.getElementById('bouncer-copy');
+    var trialBtn  = document.getElementById('bouncer-trial-btn');
+    var upgradeBtn= document.getElementById('bouncer-upgrade-btn');
+    if (alreadyConsumed && copyEl) {
+      copyEl.textContent = 'Your trial has already been used. Upgrade to the Gateway or Sovereign tier to enter the Vault.';
+    } else if (copyEl) {
+      copyEl.textContent = 'Your account currently has no active app access. Please upgrade to the Gateway or Sovereign tier to enter the vault.';
+    }
+    if (trialBtn) {
+      trialBtn.style.display = alreadyConsumed ? 'none' : '';
+      trialBtn.disabled = false;
+      trialBtn.textContent = 'UNLOCK 7-DAY SOVEREIGN TRIAL';
+      trialBtn.onclick = function(){ _bouncerStartTrial(); };
+    }
+    if (upgradeBtn) {
+      upgradeBtn.onclick = function(){
+        try { window.location.href = BBF_GATEWAY_STRIPE_URL; } catch(_) {}
+      };
+    }
+  } catch(_) {}
+}
+
+function _bouncerStartTrial() {
+  var btn = document.getElementById('bouncer-trial-btn');
+  var uid = window._bouncerUid;
+  if (!uid) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'UNLOCKING…'; }
+  if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.startTrial) {
+    if (btn) { btn.disabled = false; btn.textContent = 'UNLOCK 7-DAY SOVEREIGN TRIAL'; }
+    if (typeof TOAST === 'function') TOAST('Trial unavailable — sync layer offline.');
+    return;
+  }
+  BBF_SYNC.startTrial(uid).then(function(res) {
+    if (res && res.ok && res.trial_expires_at) {
+      try {
+        var d = GD();
+        if (!d.u[uid]) d.u[uid] = {};
+        d.u[uid].trial_expires_at = res.trial_expires_at;
+        SD(d);
+      } catch(_) {}
+      if (typeof TOAST === 'function') TOAST('Sovereign Trial activated — 7 days unlocked.');
+      // Resume the dashboard transition the bouncer interrupted.
+      if (typeof ENTER === 'function') { ENTER(); } else { SS('app'); }
+      return;
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'UNLOCK 7-DAY SOVEREIGN TRIAL'; }
+    var err = (res && res.error) || 'unknown';
+    if (err === 'trial_already_consumed') {
+      _paintBouncer(true);
+      if (typeof TOAST === 'function') TOAST('Trial already used — upgrade to continue.');
+    } else if (err === 'rate_limited') {
+      if (typeof TOAST === 'function') TOAST('Too many attempts — wait an hour and try again.');
+    } else {
+      if (typeof TOAST === 'function') TOAST('Trial activation failed (' + err + ').');
+    }
+  });
+}
+
+function exitBouncer() {
+  try {
+    window._bouncerUid = null;
+    CU = null;
+    VC = null;
+  } catch(_) {}
+  SS('auth');
 }
 
 function REGISTER(){
@@ -5210,6 +5336,29 @@ window.onload=function(){
       </div>
       <a href="sms:6233409254?body=Hey Akeem, I need to reactivate my BBF access." style="display:inline-block;background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:1rem;letter-spacing:3px;padding:.85rem 2rem;border-radius:8px;text-decoration:none;margin-bottom:.8rem" data-lang-key="app-gate-contact">&#x1F4AC; TEXT AKEEM</a>
       <div><button onclick="exitRestricted()" style="background:none;border:1px solid rgba(255,255,255,.15);color:var(--mut);font-family:var(--hb);font-size:.85rem;letter-spacing:2px;padding:.6rem 1.5rem;border-radius:6px;cursor:pointer" data-lang-key="app-gate-signout">SIGN OUT</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PHASE 17 — VAULT ACCESS DENIED (Bouncer) ═══ -->
+<!-- Surfaced on login when subscription_tier IS NULL or 'lite' AND no
+     active trial. Two CTAs: Upgrade to Gateway (Stripe) and Unlock
+     7-Day Sovereign Trial (start-trial RPC + auto-resume to dashboard).
+     trial_already_consumed (409) collapses the layout to upgrade-only. -->
+<div class="scr" id="bouncer">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:linear-gradient(180deg,var(--purp),var(--blk))">
+    <div style="max-width:460px;text-align:center;width:100%">
+      <div style="font-size:3.6rem;margin-bottom:.6rem">&#x1F510;</div>
+      <div style="font-family:var(--hb);font-size:2.4rem;letter-spacing:3px;color:var(--yel);margin-bottom:.6rem">VAULT ACCESS DENIED</div>
+      <div id="bouncer-copy" style="font-size:.95rem;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:1.6rem">
+        Your account currently has no active app access. Please upgrade to the Gateway or Sovereign tier to enter the vault.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.7rem;margin-bottom:1.4rem">
+        <button id="bouncer-upgrade-btn" type="button" style="background:linear-gradient(135deg,#6a0dad 0%,#f5c800 110%);color:#fff;border:none;padding:.95rem 1.6rem;border-radius:10px;font-family:var(--hb);letter-spacing:3px;font-size:1rem;cursor:pointer;box-shadow:0 8px 24px rgba(106,13,173,.5)">UPGRADE TO GATEWAY</button>
+        <button id="bouncer-trial-btn" type="button" style="background:transparent;color:#f5c800;border:1px solid rgba(245,200,0,.45);padding:.85rem 1.4rem;border-radius:10px;font-family:var(--hb);letter-spacing:2px;font-size:.92rem;cursor:pointer">UNLOCK 7-DAY SOVEREIGN TRIAL</button>
+      </div>
+      <a href="https://buildbelievefit.fitness/#pricing" style="display:inline-block;color:rgba(255,255,255,.55);font-family:var(--bd, 'Barlow Condensed'),sans-serif;font-size:.85rem;text-decoration:underline;margin-bottom:.8rem">Compare tiers &rarr;</a>
+      <div><button onclick="exitBouncer()" type="button" style="background:none;border:1px solid rgba(255,255,255,.15);color:var(--mut);font-family:var(--hb);font-size:.78rem;letter-spacing:2px;padding:.55rem 1.4rem;border-radius:6px;cursor:pointer">SIGN OUT</button></div>
     </div>
   </div>
 </div>

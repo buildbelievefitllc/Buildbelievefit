@@ -953,6 +953,20 @@ var BBF_SYNC = (function() {
   // Frontend cache is display-only; the server gate is source of truth.
   var BBF_TRIAL_API_BASE = 'https://buildbelievefit.onrender.com';
 
+  // Phase 17 — Switchboard. Calls bbf_admin_set_tier RPC. Server-side
+  // validates p_tier against allowed list and rejects akeem-downgrade.
+  // Mastermind Portal entitlements row dropdown calls this on change.
+  function adminSetTier(userId, tier) {
+    if (!userId || !tier) return Promise.resolve(null);
+    return supa('POST', 'rpc/bbf_admin_set_tier', {
+      p_uid: userId,
+      p_tier: tier
+    }).catch(function(e) {
+      console.error('BBF_SYNC adminSetTier error:', e);
+      return null;
+    });
+  }
+
   function adminSetTrial(userId, grant) {
     if (!userId) return Promise.resolve(null);
     return supa('POST', 'rpc/bbf_admin_set_trial', {
@@ -2280,6 +2294,7 @@ var BBF_SYNC = (function() {
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
     adminSetTrial: adminSetTrial,
+    adminSetTier: adminSetTier,
     fetchTrialState: fetchTrialState,
     startTrial: startTrial,
     fetchWsTicket: fetchWsTicket,

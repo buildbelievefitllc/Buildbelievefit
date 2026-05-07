@@ -35,6 +35,9 @@ body{background:var(--blk);color:#f0f0f0;font-family:'Barlow Condensed',sans-ser
 .ent-toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}.ent-toggle.on::after{transform:translateX(20px)}
 .ent-lbl{font-size:.65rem;font-weight:700;letter-spacing:1px;color:var(--mut);text-transform:uppercase}
 .ent-status{font-size:.65rem;font-weight:700;letter-spacing:1px;min-width:60px;text-align:right}
+.ent-tier-select{background:#0a0a0a;border:1px solid var(--brd);color:#f5c800;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-size:.78rem;padding:.35rem .55rem;border-radius:6px;cursor:pointer;text-transform:uppercase;outline:none}
+.ent-tier-select:focus{border-color:#f5c800}
+.ent-tier-select:disabled{opacity:.55;cursor:not-allowed}
 
 /* ═══ LABORATORY GOLD CTA — v2 ═══════════════════════════════ */
 .btn-y, .nc, .lbtn, .dbtn, .submit-btn, .pathfinder-cta {
@@ -401,15 +404,31 @@ function renderEntitlements() {
     var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
     var wrap = document.getElementById('entitlements-list');
     if (!wrap) return;
+    var TIER_OPTS = ['lite','gateway','architect','sovereign','youth_athlete','nutrition_essentials','nutrition_platinum'];
     wrap.innerHTML = clients.map(function(e) {
       var uid = e[0], u = e[1];
       // Phase 16 Iron Vault V2 — derive from trial_expires_at, not the
       // dropped trial_status column. Future timestamp = active trial.
       var expiresAt = u.trial_expires_at ? new Date(u.trial_expires_at).getTime() : 0;
       var trial = expiresAt > Date.now();
+      // Phase 17 — Switchboard. Per-row tier dropdown; uid='akeem' is
+      // locked to sovereign and cannot be downgraded (server-enforced).
+      var currentTier = u.subscription_tier || '';
+      var tierLocked = (uid === 'akeem');
+      var tierOpts = TIER_OPTS.map(function(t){
+        return '<option value="' + t + '"' + (t === currentTier ? ' selected' : '') + '>' + t + '</option>';
+      }).join('');
+      var tierSelect = '<select class="ent-tier-select" id="tier-select-' + uid + '"' +
+        (tierLocked ? ' disabled title="akeem is locked to sovereign"' : '') +
+        ' onchange="BBF_PORTAL.setTier(\'' + uid + '\',this.value,this)">' +
+        (currentTier ? '' : '<option value="" disabled selected>—</option>') +
+        tierOpts +
+        '</select>';
       return '<div class="ent-row">' +
         '<div class="ent-name">' + (u.name || uid) + '</div>' +
-        '<div class="ent-lbl">Sovereign Trial</div>' +
+        '<div class="ent-lbl">Tier</div>' +
+        tierSelect +
+        '<div class="ent-lbl" style="margin-left:1rem">Sovereign Trial</div>' +
         '<div class="ent-toggle' + (trial ? ' on' : '') + '" onclick="BBF_PORTAL.toggleTrial(\'' + uid + '\',this)"></div>' +
         '<span class="ent-status" id="trial-status-' + uid + '" style="color:' + (trial ? '#D4AF37' : '#555') + '">' + (trial ? 'ACTIVE' : 'OFF') + '</span>' +
         '</div>';
@@ -465,6 +484,50 @@ function toggleTrial(uid, el) {
         });
     }
   } catch(e) { console.error('Toggle trial error:', e); }
+}
+
+// Phase 17 — Switchboard tier setter. Slug is server-validated by the
+// bbf_admin_set_tier RPC (allowed-tier list + akeem-locked safety net).
+// Optimistic update + revert on failure mirrors the toggleTrial pattern.
+function setTier(uid, newTier, selectEl) {
+  try {
+    var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+    if (!d.u[uid]) return;
+    var prevTier = d.u[uid].subscription_tier || '';
+    if (prevTier === newTier) return;
+    d.u[uid].subscription_tier = newTier;
+    localStorage.setItem('bbf_v7', JSON.stringify(d));
+
+    if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.adminSetTier) {
+      alert('Sync layer offline — tier change not persisted.');
+      return;
+    }
+    BBF_SYNC.adminSetTier(uid, newTier)
+      .then(function(res) {
+        // Server returns the new tier string on success, or null on failure.
+        if (res === null || res === undefined) throw new Error('rpc_failed');
+        if (typeof res === 'object' && res.error) throw new Error(res.error);
+      })
+      .catch(function(err) {
+        console.error('setTier cloud revert:', err);
+        var d2 = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+        if (d2.u[uid]) {
+          d2.u[uid].subscription_tier = prevTier;
+          localStorage.setItem('bbf_v7', JSON.stringify(d2));
+        }
+        if (selectEl) selectEl.value = prevTier || '';
+        alert('Tier change failed — try again. (' + (err && err.message ? err.message : 'network') + ')');
+      });
+  } catch(e) { console.error('setTier error:', e); }
+}
+
+// Phase 17 — wire the inline handlers onto the BBF_PORTAL module so the
+// onclick="BBF_PORTAL.toggleTrial(...)" / onchange="BBF_PORTAL.setTier(...)"
+// strings emitted by renderEntitlements actually resolve. Pre-Phase-17 the
+// toggleTrial reference here was unattached (latent regression from Phase 8).
+if (typeof BBF_PORTAL === 'object' && BBF_PORTAL) {
+  BBF_PORTAL.toggleTrial = toggleTrial;
+  BBF_PORTAL.setTier     = setTier;
 }
 
 // Init — Command Center stats from Supabase (browser-cache-agnostic).
