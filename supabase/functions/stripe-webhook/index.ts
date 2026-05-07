@@ -161,7 +161,46 @@ serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // ─── 6. Provision (create-or-find by email; idempotent) ────────
+  // ─── 6. Ensure bbf_active_clients row exists (Phase 18 hotfix) ────
+  // bbf_provision_client_pin is gated on a pre-existing bbf_active_clients
+  // row keyed by vault_email — historically created by the Pathfinder/
+  // /process intake flow BEFORE the customer hits Stripe. This Edge
+  // Function bypasses Pathfinder (Stripe direct → us), so we must seed
+  // the gate row ourselves. SELECT-then-INSERT pattern; if Stripe ever
+  // double-fires concurrently we accept the small race window producing
+  // a duplicate row (provisioning RPC tolerates duplicates via ORDER BY
+  // created_at DESC LIMIT 1; admin can dedupe later).
+  const { data: existingClient, error: existingErr } = await supabase
+    .from('bbf_active_clients')
+    .select('id')
+    .eq('vault_email', email)
+    .limit(1)
+    .maybeSingle();
+  if (existingErr) {
+    console.error(`[stripe-webhook] bbf_active_clients lookup failed (session=${session.id}):`, existingErr.message);
+    return jsonResponse({ ok: false, error: 'active_client_lookup_failed', detail: existingErr.message }, 500);
+  }
+  if (!existingClient) {
+    const { error: insertErr } = await supabase
+      .from('bbf_active_clients')
+      .insert({
+        client_name: fullName,
+        client_email: email,
+        vault_email: email,
+        spectrum_tier: tier,
+        onboarding_status: 'Pending',
+        liability_cleared: true,
+      });
+    if (insertErr) {
+      console.error(`[stripe-webhook] bbf_active_clients insert failed (session=${session.id}):`, insertErr.message);
+      return jsonResponse({ ok: false, error: 'active_client_insert_failed', detail: insertErr.message }, 500);
+    }
+    console.log(`[stripe-webhook] bbf_active_clients row created for ${email} (tier=${tier})`);
+  } else {
+    console.log(`[stripe-webhook] bbf_active_clients row already exists for ${email} (id=${existingClient.id})`);
+  }
+
+  // ─── 7. Provision (create-or-find by email; idempotent) ────────
   // bbf_provision_client_pin returns:
   //   { ok: true,  username: 'xxx', ... } on fresh provision
   //   { ok: false, reason: 'already_provisioned', username: 'xxx', ... } on re-fire
@@ -181,14 +220,14 @@ serve(async (req) => {
     console.error('[stripe-webhook] provision returned not-ok:', provData);
     return jsonResponse({ ok: false, error: 'provision_rejected', detail: provData }, 422);
   }
-  const username: string | undefined = provData.username;
+  const username: string | undefined = provData.username || provData.existing_uid;
   if (!username) {
     console.error('[stripe-webhook] provision returned no username:', provData);
     return jsonResponse({ ok: false, error: 'no_username' }, 500);
   }
   const newlyProvisioned = provData.ok === true; // ok:true with no reason = fresh
 
-  // ─── 7. Set subscription tier ──────────────────────────────────
+  // ─── 8. Set subscription tier ──────────────────────────────────
   // bbf_admin_set_tier validates the tier slug and raises
   // `akeem_locked_to_sovereign` if someone's email maps to akeem and
   // the tier is anything but sovereign. Failures here are non-fatal
@@ -207,7 +246,7 @@ serve(async (req) => {
     console.log(`[stripe-webhook] tier set — ${username} → ${tier}`);
   }
 
-  // ─── 8. Welcome / Sentinel email (Brevo SMTP API framework) ────
+  // ─── 9. Welcome / Sentinel email (Brevo SMTP API framework) ────
   // CEO directive: set up the basic framework — actual subject + HTML
   // body to be wired in a follow-up slice. Brevo creds live in env;
   // failures are logged but do NOT fail the webhook (Stripe already
@@ -262,7 +301,7 @@ serve(async (req) => {
     }
   }
 
-  // ─── 9. Acknowledge Stripe ─────────────────────────────────────
+  // ─── 10. Acknowledge Stripe ────────────────────────────────────
   return jsonResponse(
     {
       ok: true,
