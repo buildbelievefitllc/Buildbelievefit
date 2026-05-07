@@ -2367,11 +2367,12 @@ var BBF_STRIPE_BY_TIER={
   youth_athlete:'https://buy.stripe.com/cNieVf8YT6bF2J42AFaZi0f',
   architect:'https://buy.stripe.com/6oU6oJb7157B3N80sxaZi0d',
   sovereign:'https://buy.stripe.com/cNi3cxa2X9nR97sfnraZi0e',
-  // Phase 14 nutrition tiers — Stripe links pending CEO provisioning.
-  // doSubmit() detects '#' and shows a "Stripe Links Pending" toast
-  // instead of redirecting, so the Pathfinder intake still completes.
-  nutrition_essentials:'#',
-  nutrition_platinum:'#'
+  // Phase 18 — nutrition tiers wired live. Stripe dashboard metadata
+  // (`tier:nutrition_essentials` / `tier:nutrition_platinum`) is the
+  // primary source of truth; doSubmit() also appends
+  // ?client_reference_id=<slug> as a defense-in-depth fallback.
+  nutrition_essentials:'https://buy.stripe.com/14AcN70snbvZ83ob7baZi0g',
+  nutrition_platinum:'https://buy.stripe.com/3cIeVf6QL57B0AWgrvaZi0h'
 };
 var BBF_TIER_INDEX={gateway:0,youth_athlete:1,architect:2,sovereign:3};
 function selectTier(slug){
