@@ -1,3 +1,4 @@
+function escapeHTML_data(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 // ═══════════════════════════════════════════════════════════════════
 // BBF-DATA.JS — Build Believe Fit LLC
 // All static data: workout plans, meal plans, personas, prehab, vault
@@ -422,7 +423,7 @@ function RH() {
   if (notes.length) {
     cnw.style.display = 'block';
     document.getElementById('cnlist').innerHTML = notes.map(function(n) {
-      return '<div class="cn2"><div class="cnh"><span>&#x1F4CB;</span><span class="cnl">Coach Note</span><span class="cnd">' + FMT(n.date) + '</span></div><div class="cnt">' + n.notes + '</div></div>';
+      return '<div class="cn2"><div class="cnh"><span>&#x1F4CB;</span><span class="cnl">Coach Note</span><span class="cnd">' + FMT(n.date) + '</span></div><div class="cnt">' + escapeHTML_data(n.notes) + '</div></div>';
     }).join('');
   } else { cnw.style.display = 'none'; }
   var recent = logs.filter(function(l) { return l.type !== 'note'; }).slice(-5).reverse();
@@ -650,7 +651,7 @@ function ADDEX() {
 
 function REL() {
   document.getElementById('exl').innerHTML = EX.map(function(e, i) {
-    return '<div class="exi"><span>' + e + '</span><button class="exd" data-i="' + i + '">&#x2715;</button></div>';
+    return '<div class="exi"><span>' + escapeHTML_data(e) + '</span><button class="exd" data-i="' + i + '">&#x2715;</button></div>';
   }).join('');
   document.querySelectorAll('.exd').forEach(function(b) {
     b.onclick = function() { EX.splice(parseInt(b.dataset.i), 1); REL(); };
@@ -680,7 +681,7 @@ function RP() {
   document.getElementById('pav').textContent = ((u.name || uid || '?')[0]).toUpperCase();
   document.getElementById('pname').textContent = u.name || uid;
   document.getElementById('pmeta').textContent = (u.type || '') + (u.role === 'trainer' ? ' · Head Coach' : '');
-  document.getElementById('pgoal').innerHTML = '<strong>Goal:</strong> ' + (u.goal || 'Not set') + (u.gw ? ' · Target: ' + u.gw + ' lbs' : '');
+  document.getElementById('pgoal').innerHTML = '<strong>Goal:</strong> ' + escapeHTML_data(u.goal || 'Not set') + (u.gw ? ' · Target: ' + escapeHTML_data(u.gw) + ' lbs' : '');
   document.getElementById('gsub').textContent = u.goal || 'Tap to set';
   var wl = logs.filter(function(l) { return l.wt; }).map(function(l) { return {d:l.date, v:parseFloat(l.wt)}; }).sort(function(a,b) { return a.d.localeCompare(b.d); });
   if (wl.length) {
