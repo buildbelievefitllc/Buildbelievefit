@@ -122,21 +122,36 @@ serve(async (req) => {
   const session = event.data.object as Stripe.Checkout.Session;
   const email = session.customer_details?.email?.toLowerCase().trim() || '';
   const fullName = session.customer_details?.name?.trim() || 'BBF Client';
-  const rawTier = (session.metadata?.tier || '').trim();
+
+  // Tier sources, in priority order:
+  //   1. session.metadata.tier         — set per-Payment-Link in the Stripe
+  //                                       dashboard (primary source of truth).
+  //   2. session.client_reference_id   — appended by storefront doSubmit() as
+  //                                       a belt-and-suspenders fallback.
+  //   3. 'gateway' default with HIGH-PRIORITY warning log.
+  // The dual-source architecture means a forgotten dashboard config still
+  // resolves correctly from the URL param, and a tampered URL gets caught
+  // by the dashboard metadata; both must fail before fallback fires.
+  const metaTier = (session.metadata?.tier || '').trim();
+  const refTier  = (session.client_reference_id || '').trim();
+  const rawTier  = metaTier || refTier;
+  const tierSource = metaTier ? 'metadata.tier' : (refTier ? 'client_reference_id' : 'none');
 
   if (!email) {
     console.error(`[stripe-webhook] no email on session ${session.id} — cannot provision`);
     return jsonResponse({ ok: false, error: 'missing_email' }, 400);
   }
 
-  // ─── 4. Tier resolution (CEO ruling: metadata-driven, gateway fallback) ──
+  // ─── 4. Tier resolution (CEO ruling: metadata-driven w/ client_reference_id fallback, gateway as last resort) ──
   let tier: string;
   if (rawTier && ALLOWED_TIERS.includes(rawTier)) {
     tier = rawTier;
+    console.log(`[stripe-webhook] tier resolved from ${tierSource}: ${tier} (session=${session.id})`);
   } else {
     console.warn(
-      `[stripe-webhook] HIGH-PRIORITY: session ${session.id} for ${email} has missing/malformed metadata.tier="${rawTier}". ` +
-      `Defaulting to 'gateway'. Admin should reconcile via Mastermind Portal Switchboard.`
+      `[stripe-webhook] HIGH-PRIORITY: session ${session.id} for ${email} has no resolvable tier ` +
+      `(metadata.tier="${metaTier}", client_reference_id="${refTier}"). Defaulting to 'gateway'. ` +
+      `Admin should reconcile via Mastermind Portal Switchboard.`
     );
     tier = 'gateway';
   }

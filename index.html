@@ -2713,7 +2713,17 @@ function doSubmit(){
     btn.textContent='Calculate My Path & Submit \u2192';btn.disabled=false;
     if(tier&&BBF_STRIPE_BY_TIER[tier]&&BBF_STRIPE_BY_TIER[tier]!=='#'){
       flash('Intake received. Redirecting to secure checkout\u2026','ok');
-      window.location.href=BBF_STRIPE_BY_TIER[tier];
+      // Phase 18 \u2014 append tier as client_reference_id on the Stripe
+      // Payment Link URL. The stripe-webhook Edge Function reads
+      // session.metadata.tier first (set per-link in Stripe dashboard)
+      // and falls back to session.client_reference_id if metadata is
+      // missing or malformed. Belt-and-suspenders so a forgotten
+      // dashboard config doesn't silently default new buyers to
+      // 'gateway'. Defensive ?-vs-& separator in case Stripe ever
+      // adds default query params to a Payment Link URL.
+      var checkoutUrl=BBF_STRIPE_BY_TIER[tier];
+      var sep=(checkoutUrl.indexOf('?')===-1)?'?':'&';
+      window.location.href=checkoutUrl+sep+'client_reference_id='+encodeURIComponent(tier);
     }else if(tier&&BBF_STRIPE_BY_TIER[tier]==='#'){
       flash('Intake received. Stripe links pending \u2014 Akeem will follow up by email.','ok');
       openMod(fn,tgt,mac,goal,sch);
