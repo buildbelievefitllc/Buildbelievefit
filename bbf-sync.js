@@ -1432,21 +1432,22 @@ var BBF_SYNC = (function() {
         return !isNaN(t) && t < cutoffTime;
       });
 
-      var results = [];
-      for (var i = 0; i < ghosts.length; i++) {
-        var u = ghosts[i];
-        try {
-          await supa('PATCH', 'bbf_users', {
-            ghost_intervention_needed: true,
-            ghost_flagged_at:          now,
-            updated_at:                now
-          }, '?id=eq.' + encodeURIComponent(u.id));
-          results.push({ id: u.id, name: u.name || u.id, flagged: true });
-        } catch (err) {
+      var patchPromises = ghosts.map(function(u) {
+        return supa('PATCH', 'bbf_users', {
+          ghost_intervention_needed: true,
+          ghost_flagged_at:          now,
+          updated_at:                now
+        }, '?id=eq.' + encodeURIComponent(u.id))
+        .then(function() {
+          return { id: u.id, name: u.name || u.id, flagged: true };
+        })
+        .catch(function(err) {
           console.warn('BBF_SYNC runGhostProtocolScan patch error for ' + u.id + ':', err && err.message);
-          results.push({ id: u.id, name: u.name || u.id, flagged: false, error: err && err.message });
-        }
-      }
+          return { id: u.id, name: u.name || u.id, flagged: false, error: err && err.message };
+        });
+      });
+
+      var results = await Promise.all(patchPromises);
 
       var flaggedCount = 0;
       for (var j = 0; j < results.length; j++) if (results[j].flagged) flaggedCount++;
