@@ -2651,19 +2651,11 @@ function doSubmit(){
   var mac=tgt>0?calcMacros(tgt,wt,adj):{p:0,c:0,f:0};
   btn.textContent='Calculating & Sending...';btn.disabled=true;
   try{localStorage.setItem('bbf_pathfinder',JSON.stringify({email:em,name:fn+' '+ln,goal:goal,weight:wt,schedule:sch,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,program:prog,tier:tier,dietary_profile:diet,allergens:allergens,ts:Date.now()}));}catch(e){}
-  try {
-    fetch('https://hooks.zapier.com/hooks/catch/27190846/u7l7ixc/', {
-      method:'POST',
-      body:JSON.stringify({
-        first_name:fn, last_name:ln, full_name:fn+' '+ln, email:em, phone:ph,
-        fitness_goal:goal, schedule:sch, program:prog, tier:tier,
-        tdee_target:tgt, macro_p:mac.p, macro_c:mac.c, macro_f:mac.f,
-        weight:wt, language_preference:localStorage.getItem('bbf_lang')||'en',
-        dietary_profile:diet, allergens:allergens,
-        source:'BBF Pathfinder Form', timestamp:new Date().toISOString()
-      })
-    }).catch(function(){});
-  } catch(e) {}
+  // Phase 19 — Zapier kill. The fire-and-forget Zapier webhook that used
+  // to live here was retired in favor of the bbf-lead-capture Edge
+  // Function (called below as the redirect-gating call, replacing
+  // Formspree). Net effect: one outbound lead-capture POST instead of
+  // three (Zapier + Formspree + Render /process).
   // Phase 4 closed-loop call: fire the same payload (reshaped) at the
   // Render Vault Engine so Anthropic generates the workout + meal plans
   // and persists them to bbf_active_clients. Fire-and-forget — does not
@@ -2705,12 +2697,16 @@ function doSubmit(){
       })
     }).catch(function(){});
   } catch(e) {}
-  fetch('https://formspree.io/f/mwvwjokw',{
+  // Phase 19 \u2014 bbf-lead-capture Edge Function replaces Formspree as the
+  // redirect-gating call. Writes the lead to bbf_leads + fires Brevo
+  // admin notification. Same .then() chain preserved so the Stripe
+  // redirect logic still gates on a successful lead capture.
+  fetch('https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-lead-capture',{
     method:'POST',
-    headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body:JSON.stringify({_subject:'New BBF Pathfinder Lead',first_name:fn,last_name:ln,full_name:fn+' '+ln,email:em,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,tier:tier,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,dietary_profile:diet,allergens:allergens,language_preference:localStorage.getItem('bbf_lang')||'en',source:'BBF Pathfinder Form',timestamp:new Date().toISOString()})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({source:'pathfinder',email:em,full_name:fn+' '+ln,first_name:fn,last_name:ln,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,tier:tier,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,dietary_profile:diet,allergens:allergens,language_preference:localStorage.getItem('bbf_lang')||'en',timestamp:new Date().toISOString()})
   }).then(function(r){
-    if(!r.ok)throw new Error('formspree '+r.status);
+    if(!r.ok)throw new Error('lead_capture '+r.status);
     btn.textContent='Calculate My Path & Submit \u2192';btn.disabled=false;
     if(tier&&BBF_STRIPE_BY_TIER[tier]&&BBF_STRIPE_BY_TIER[tier]!=='#'){
       flash('Intake received. Redirecting to secure checkout\u2026','ok');
@@ -2792,18 +2788,22 @@ function submitLiteLeadCapture(){
   var base=calcTDEE(age,sex,wt,ft,ins,act);
   var tgt=base+adj;
   var mac=calcMacros(tgt,wt,adj);
-  // Fire-and-forget Zapier webhook — same endpoint as Pathfinder so the
-  // CEO's existing routing rules can branch on source='BBF Nutrition Lite'.
+  // Phase 19 — bbf-lead-capture Edge Function replaces the Zapier
+  // webhook. Writes lead to bbf_leads + fires Brevo admin notification
+  // + sends Brevo welcome email to the lead with their TDEE/macros
+  // (welcome auto-triggered server-side because source='nutrition_lite').
   try{
-    fetch('https://hooks.zapier.com/hooks/catch/27190846/u7l7ixc/',{
+    fetch('https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-lead-capture',{
       method:'POST',
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
+        source:'nutrition_lite',
         email:em, age:age, sex:sex, weight:wt, height_ft:ft, height_in:ins,
         activity_level:act, goal_adjustment:adj,
         tdee_base:base, tdee_target:tgt,
         macro_p:mac.p, macro_c:mac.c, macro_f:mac.f,
         tier:'nutrition_lite',
-        source:'BBF Nutrition Lite Lead', timestamp:new Date().toISOString()
+        timestamp:new Date().toISOString()
       })
     }).catch(function(){});
   }catch(e){}
