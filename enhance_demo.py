@@ -54,9 +54,12 @@ BARLOW_BOLD_PATH  = FONTS / "BarlowCondensed-Bold.ttf"
 OUT_W, OUT_H   = 1080, 1920
 SRC_H          = 2340
 FPS            = 30
-OPEN_CARD_DUR  = 1.5
+OPEN_CARD_DUR  = 0.8       # snap-fast cold open; first 2 sec are the hook
 CLOSE_CARD_DUR = 3.0
 GAP_BETWEEN_VO = 0.2
+BODY_SPEEDUP   = 1.15      # body video + voiceover audio time-compression
+                           # to drop the marketing intro by ~12s while
+                           # keeping every VO line intact.
 
 # Beat map: voiceover -> source segment + lower-third callout text
 BEATS: List[dict] = [
@@ -111,7 +114,7 @@ def make_cpt_mask(out_path: Path) -> None:
     # is the actual strip height (~135px) plus a small fade margin
     # so motion is forgiving. Width 440 fits between the "2021" and
     # "100%" outer columns.
-    W, H = 380, 180
+    W, H = 320, 180
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     pad = 3
@@ -212,18 +215,19 @@ def make_closing_card(text_main: str, out_path: Path) -> None:
 # ============================================================
 # ffmpeg pipeline stages
 # ============================================================
-def stage_master_audio(vo_files: List[Path], out_path: Path) -> List[float]:
+def stage_master_audio(vo_files: List[Path], out_path: Path,
+                       tail_silence: float = 0.0) -> List[float]:
     """
-    Concat 7 voiceover MP3s with brief breathing room. Returns the list
-    of cumulative VO start offsets (in seconds, from t=0 of the
-    concatenated audio). Output is encoded as AAC for the final mux.
+    Concat 7 voiceover MP3s with brief breathing room, apply
+    BODY_SPEEDUP via atempo so audio matches the speedup'd body video,
+    then optionally append `tail_silence` seconds so the closing card
+    has audio room. Returns cumulative VO start offsets (in POST-speedup
+    seconds, from t=0 of master audio). Output is AAC for the final mux.
     """
     # Build a concat list with 0.2s silence padding between clips.
-    # Use ffmpeg concat filter (re-encode) so we can intersperse silence.
     inputs = []
     for vo in vo_files:
         inputs += ["-i", str(vo)]
-    # Generate the silence source
     silence_path = INTERMEDIATE / "_silence.mp3"
     if not silence_path.exists():
         run(
@@ -242,20 +246,55 @@ def stage_master_audio(vo_files: List[Path], out_path: Path) -> List[float]:
             if i < len(vo_files) - 1:
                 f.write(f"file '{silence_path.resolve()}'\n")
 
+    raw_master = INTERMEDIATE / "_master_raw.m4a"
     run(
         ["ffmpeg", "-y", "-f", "concat", "-safe", "0",
          "-i", str(concat_list),
          "-c:a", "aac", "-b:a", "192k", "-ar", "44100",
-         str(out_path)],
-        "concat voiceovers + silence pads -> master audio AAC",
+         str(raw_master)],
+        "concat voiceovers + silence pads -> raw master AAC",
     )
 
-    # Compute cumulative offsets
+    # Apply atempo for time-compression matching body speedup.
+    sped_master = INTERMEDIATE / "_master_sped.m4a"
+    run(
+        ["ffmpeg", "-y", "-i", str(raw_master),
+         "-af", f"atempo={BODY_SPEEDUP:.4f}",
+         "-c:a", "aac", "-b:a", "192k", "-ar", "44100",
+         str(sped_master)],
+        f"atempo {BODY_SPEEDUP}x master audio -> sped master",
+    )
+
+    if tail_silence > 0:
+        # Render silence at target length and concat after sped master.
+        tail_path = INTERMEDIATE / "_tail_silence.m4a"
+        run(
+            ["ffmpeg", "-y", "-f", "lavfi",
+             "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
+             "-t", f"{tail_silence:.3f}",
+             "-c:a", "aac", "-b:a", "192k", str(tail_path)],
+            f"render closing-card silence pad ({tail_silence:.2f}s)",
+        )
+        tail_concat = INTERMEDIATE / "_master_tail_concat.txt"
+        with open(tail_concat, "w") as f:
+            f.write(f"file '{sped_master.resolve()}'\n")
+            f.write(f"file '{tail_path.resolve()}'\n")
+        run(
+            ["ffmpeg", "-y", "-f", "concat", "-safe", "0",
+             "-i", str(tail_concat),
+             "-c:a", "aac", "-b:a", "192k", str(out_path)],
+            "concat sped master + tail silence -> final master",
+        )
+    else:
+        shutil.copy(sped_master, out_path)
+
+    # Cumulative VO offsets in POST-speedup seconds (used to place
+    # overlays in the final video timeline).
     offsets = []
     cursor = 0.0
     for vo in vo_files:
         offsets.append(cursor)
-        cursor += ffprobe_duration(vo) + GAP_BETWEEN_VO
+        cursor += (ffprobe_duration(vo) + GAP_BETWEEN_VO) / BODY_SPEEDUP
     return offsets
 
 
@@ -263,29 +302,43 @@ def stage_body(src: Path, vo_files: List[Path], out_path: Path) -> float:
     """
     Build the cropped + trimmed body MP4 (1080x1920, no overlays, no
     audio) by trimming each beat's source segment to its voiceover
-    duration and concatenating. Returns total body duration.
+    duration, applying BODY_SPEEDUP via setpts, and concatenating.
+    Returns total body duration (already speedup-compressed).
     """
     seg_files = []
     cumulative = 0.0
+    pts_factor = 1.0 / BODY_SPEEDUP
     for i, beat in enumerate(BEATS):
         vo_dur = ffprobe_duration(VOICEOVER_DIR / beat["vo"])
         seg_path = INTERMEDIATE / f"body_seg_{i:02d}.mp4"
-        # Use -ss before -i for fast seek; -t for duration; vf for crop.
+        # Pull `vo_dur` seconds of source content per beat (unchanged),
+        # then setpts=PTS*pts_factor compresses the playback to
+        # vo_dur/BODY_SPEEDUP seconds. Audio (atempo at the same ratio)
+        # is applied later in stage_master_audio. Together this drops
+        # the marketing intro lingering without losing any VO line.
         # Crop 1080x2340 -> 1080x1920 center: y offset = (2340-1920)/2 = 210
+        vf = (
+            f"crop={OUT_W}:{OUT_H}:0:210,"
+            f"setpts=PTS*{pts_factor:.6f},"
+            f"fps={FPS},format=yuv420p"
+        )
+        # Both -ss and -t MUST be before -i so they apply to the input.
+        # If -t is placed after -i it becomes an output cap and ffmpeg
+        # duplicates frames to fill it, defeating setpts compression.
         run(
             ["ffmpeg", "-y",
              "-ss", str(float(beat["src_in"])),
-             "-i", str(src),
              "-t", f"{vo_dur:.3f}",
-             "-vf", f"crop={OUT_W}:{OUT_H}:0:210,fps={FPS},format=yuv420p",
+             "-i", str(src),
+             "-vf", vf,
              "-an",
              "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
              "-pix_fmt", "yuv420p",
              str(seg_path)],
-            f"trim+crop beat {i+1} ({beat['vo']})",
+            f"trim+crop+speedup beat {i+1} ({beat['vo']})",
         )
         seg_files.append(seg_path)
-        cumulative += vo_dur
+        cumulative += vo_dur / BODY_SPEEDUP
 
     # Concat segments via concat demuxer
     concat_list = INTERMEDIATE / "_body_concat.txt"
@@ -499,25 +552,36 @@ def main():
     open_png = INTERMEDIATE / "opening_card.png"
     make_opening_card(open_png)
 
-    # Stage 2 — master audio
-    print("[2/6] Building master audio (AAC)...")
-    master_audio = INTERMEDIATE / "master_audio.m4a"
-    vo_offsets = stage_master_audio(vo_files, master_audio)
-    audio_dur = ffprobe_duration(master_audio)
-    print(f"      Master audio: {audio_dur:.2f}s")
-    print(f"      VO offsets: {[f'{s:.2f}' for s in vo_offsets]}")
-
-    # Stage 3 — body video (no audio, no overlays)
-    print("[3/6] Building cropped + trimmed body video...")
+    # Stage 2 — body first so we know its duration for audio tail-pad sizing
+    print("[2/6] Building cropped + trimmed body video...")
     body_path = INTERMEDIATE / "body.mp4"
     body_dur = stage_body(src_path, vo_files, body_path)
-    print(f"      Body: {body_dur:.2f}s")
+    print(f"      Body: {body_dur:.2f}s (speedup {BODY_SPEEDUP}x)")
+
+    # Stage 3 — master audio with tail silence sized so the full closing
+    # card sequence (incl. all trilingual flashes) plays before audio ends.
+    print("[3/6] Building master audio (AAC)...")
+    master_audio = INTERMEDIATE / "master_audio.m4a"
+    target_video_dur = OPEN_CARD_DUR + body_dur + CLOSE_CARD_DUR
+    # Pre-compute sped-master length to know how much silence to append.
+    raw_master_dur_est = sum(ffprobe_duration(v) for v in vo_files) \
+                       + GAP_BETWEEN_VO * (len(vo_files) - 1)
+    sped_master_dur_est = raw_master_dur_est / BODY_SPEEDUP
+    tail_silence = max(0.0,
+        target_video_dur - OPEN_CARD_DUR - sped_master_dur_est + 0.05)
+    vo_offsets = stage_master_audio(vo_files, master_audio,
+                                    tail_silence=tail_silence)
+    audio_dur = ffprobe_duration(master_audio)
+    print(f"      Master audio: {audio_dur:.2f}s "
+          f"(tail silence {tail_silence:.2f}s)")
+    print(f"      VO offsets (post-speedup): "
+          f"{[f'{s:.2f}' for s in vo_offsets]}")
 
     # Stage 4 — opening + closing cards
     print("[4/6] Rendering opening + closing card sequence...")
     open_clip = INTERMEDIATE / "opening_clip.mp4"
     stage_card_clip(open_png, OPEN_CARD_DUR, open_clip,
-                    fade_in=0.6, fade_out=0.4)
+                    fade_in=0.2, fade_out=0.2)
 
     close_clip = INTERMEDIATE / "closing_clip.mp4"
     close_dur = stage_closing_card_sequence(close_clip)
@@ -567,9 +631,15 @@ def main():
     # column is centered at x=405 (not 540 = frame center). Brightness
     # scan of clean_t9.0.png at shield row y=490 shows shield icon
     # x=390-420, big "2021" x=90-180, big "100%" x=660-780.
+    # Beat-2-time offsets are measured against the UN-sped body. After
+    # BODY_SPEEDUP, the same source content arrives 1/BODY_SPEEDUP
+    # earlier in the beat, so we scale offsets accordingly. Mask y
+    # values are unchanged because the strip's pixel position vs.
+    # source content is unchanged — only the time axis is compressed.
     cpt_x = "(W-w)/2-135"
-    s1_start = beat2_base + 1.75   # final t=10.50 (body 9.00)
-    s1_end   = beat2_base + 1.85   # final t=10.60 (body 9.10)
+    sf = 1.0 / BODY_SPEEDUP
+    s1_start = beat2_base + 1.75 * sf
+    s1_end   = beat2_base + 1.85 * sf
     overlays.append({
         "png":   cpt_png,
         "start": s1_start,
@@ -578,9 +648,9 @@ def main():
         "y":     440,
     })
     # Segment 2: post-jump smooth drift — y interpolates 390 -> 135
-    # over body t=9.1->10.5 (final t=10.60->12.00).
-    s2_start = beat2_base + 1.85
-    s2_end   = beat2_base + 3.25
+    # over the same source-content window (now compressed in time).
+    s2_start = beat2_base + 1.85 * sf
+    s2_end   = beat2_base + 3.25 * sf
     overlays.append({
         "png":   cpt_png,
         "start": s2_start,
@@ -590,13 +660,14 @@ def main():
     })
 
     # Callouts: lower-third, fired 0.5s after each VO begins, held for
-    # min(VO_dur, 5.5s).
+    # min(beat_dur, 5.5s). Beat duration is vo_dur/BODY_SPEEDUP after
+    # speedup compression.
     for i, beat in enumerate(BEATS):
         if not beat["callout"]:
             continue
-        vo_dur = ffprobe_duration(VOICEOVER_DIR / beat["vo"])
+        beat_dur = ffprobe_duration(VOICEOVER_DIR / beat["vo"]) / BODY_SPEEDUP
         co_start = OPEN_CARD_DUR + vo_offsets[i] + 0.5
-        co_dur = min(vo_dur - 0.6, 5.5) if (vo_dur - 0.6) > 1 else (vo_dur - 0.2)
+        co_dur = min(beat_dur - 0.6, 5.5) if (beat_dur - 0.6) > 1 else (beat_dur - 0.2)
         overlays.append({
             "png":   callout_pngs[beat["callout"]],
             "start": co_start,
@@ -605,10 +676,10 @@ def main():
             "y":     int(OUT_H * 0.78),
         })
 
-    # Trilingual gold pill — overlay during VO #7
-    vo7_dur = ffprobe_duration(VOICEOVER_DIR / "07_trilingual_close.mp3")
+    # Trilingual gold pill — overlay during VO #7 (post-speedup duration).
+    vo7_beat_dur = ffprobe_duration(VOICEOVER_DIR / "07_trilingual_close.mp3") / BODY_SPEEDUP
     pill_start = OPEN_CARD_DUR + vo_offsets[6] + 0.6
-    pill_dur = max(2.0, min(2.5, vo7_dur - 1.0))
+    pill_dur = max(2.0, min(2.5, vo7_beat_dur - 1.0))
     overlays.append({
         "png":   pill_png,
         "start": pill_start,
