@@ -5,3 +5,8 @@ env.js
 .env
 .env.local
 package-lock.json
+__pycache__/
+build/intermediate/
+build/qa_frames/
+build/source_samples/
+build/fonts/
