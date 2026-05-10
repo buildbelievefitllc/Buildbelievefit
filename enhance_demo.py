@@ -79,6 +79,42 @@ BEATS: List[dict] = [
      "callout": "EN · ES · PT"},
 ]
 
+# Cinematic zoom-ins per beat — Ken Burns motion via ffmpeg zoompan.
+# z_start_in_seg + z_dur in OUTPUT (post-speedup) seconds within the
+# beat segment. y_pct/x_pct: zoom focal point as fraction of frame.
+# zoom_max capped at 1.12x per brief; durations 1.8-2.2s minimum so
+# motion never reads as a glitch.
+ZOOMS = {
+    0: dict(z_start=0.5,  z_dur=2.0, z_max=1.10, x_pct=0.5, y_pct=0.45),  # hero "Build Believe Fit"
+    1: dict(z_start=4.5,  z_dur=2.0, z_max=1.12, x_pct=0.5, y_pct=0.55),  # founder reveal post-mask
+    2: dict(z_start=10.0, z_dur=2.0, z_max=1.10, x_pct=0.5, y_pct=0.50),  # sports playbook grid
+    3: dict(z_start=1.5,  z_dur=2.0, z_max=1.10, x_pct=0.5, y_pct=0.55),  # vault CTA
+    4: dict(z_start=14.0, z_dur=2.0, z_max=1.10, x_pct=0.5, y_pct=0.40),  # workout (Arms & Back)
+    5: dict(z_start=10.0, z_dur=2.0, z_max=1.10, x_pct=0.5, y_pct=0.45),  # nutrition meal plan
+    6: dict(z_start=2.0,  z_dur=2.0, z_max=1.12, x_pct=0.5, y_pct=0.10),  # EN/ES/PT toggle in header
+}
+
+# Section boundaries — index of beat that LEADS (fade-out) and beat
+# that FOLLOWS (fade-in) the transition. Each transition is rendered
+# as 0.25s fade-out + 0.25s fade-in for a 0.5s "fade through black"
+# without changing total body length (no overlap, no audio drift).
+# Within-marketing transition (1->2) is intentionally a hard cut.
+SECTION_FADES = [
+    # (out_beat_idx, in_beat_idx)
+    (1, 2),   # Marketing -> Sports
+    (2, 3),   # Sports -> Vault
+    (3, 4),   # Vault -> Workout/Lab
+    (4, 5),   # Workout -> Nutrition
+    (5, 6),   # Nutrition -> Athlete portal
+]
+FADE_HALF = 0.25   # 0.25s out + 0.25s in = 0.5s fade-through-black
+
+BEATS_WITH_FADE_OUT = {a for a, _ in SECTION_FADES}
+BEATS_WITH_FADE_IN  = {b for _, b in SECTION_FADES}
+# Beat 7 (last body beat) also fades out for the body -> closing card
+# transition; the closing card fades in (see stage_closing_card_sequence).
+BEATS_WITH_FADE_OUT.add(6)
+
 
 # ============================================================
 # Helpers
@@ -298,18 +334,51 @@ def stage_master_audio(vo_files: List[Path], out_path: Path,
     return offsets
 
 
+def _zoom_filter_str(z_start: float, z_dur: float, z_max: float,
+                     x_pct: float, y_pct: float) -> str:
+    """
+    Build an ffmpeg crop+scale filter that produces a Ken Burns
+    zoom from 1.0 to z_max over OUTPUT seconds [z_start, z_start+z_dur],
+    then holds at z_max. Centered on (x_pct, y_pct) of the input frame.
+
+    Implementation note: an earlier attempt used the `zoompan` filter
+    with d=1, but its internal per-frame resize ran ~75x slower than
+    real-time on long beats and the pipeline could not finish inside
+    the sandbox budget. The faster approach is to crop a shrinking
+    window from the (already cropped to OUT_WxOUT_H) input and scale
+    that window back to OUT_WxOUT_H with the bilinear scaler.
+    """
+    z_end = z_start + z_dur
+    Z = (
+        f"if(lt(t,{z_start}),1,"
+        f"if(lt(t,{z_end}),"
+        f"1+{z_max - 1:.4f}*((t-{z_start})/{z_dur}),"
+        f"{z_max:.4f}))"
+    )
+    w = f"in_w/({Z})"
+    h = f"in_h/({Z})"
+    x = f"in_w*{x_pct}-(in_w/({Z}))/2"
+    y = f"in_h*{y_pct}-(in_h/({Z}))/2"
+    return (
+        f"crop=w='{w}':h='{h}':x='{x}':y='{y}',"
+        f"scale={OUT_W}:{OUT_H}:flags=bilinear"
+    )
+
+
 def stage_body(src: Path, vo_files: List[Path], out_path: Path) -> float:
     """
     Build the cropped + trimmed body MP4 (1080x1920, no overlays, no
     audio) by trimming each beat's source segment to its voiceover
-    duration, applying BODY_SPEEDUP via setpts, and concatenating.
-    Returns total body duration (already speedup-compressed).
+    duration, applying BODY_SPEEDUP via setpts, optional Ken Burns
+    zoom, and section-boundary fades, then concatenating. Returns
+    total body duration (already speedup-compressed).
     """
     seg_files = []
     cumulative = 0.0
     pts_factor = 1.0 / BODY_SPEEDUP
     for i, beat in enumerate(BEATS):
         vo_dur = ffprobe_duration(VOICEOVER_DIR / beat["vo"])
+        seg_out_dur = vo_dur / BODY_SPEEDUP
         seg_path = INTERMEDIATE / f"body_seg_{i:02d}.mp4"
         # Pull `vo_dur` seconds of source content per beat (unchanged),
         # then setpts=PTS*pts_factor compresses the playback to
@@ -317,11 +386,26 @@ def stage_body(src: Path, vo_files: List[Path], out_path: Path) -> float:
         # is applied later in stage_master_audio. Together this drops
         # the marketing intro lingering without losing any VO line.
         # Crop 1080x2340 -> 1080x1920 center: y offset = (2340-1920)/2 = 210
-        vf = (
-            f"crop={OUT_W}:{OUT_H}:0:210,"
-            f"setpts=PTS*{pts_factor:.6f},"
-            f"fps={FPS},format=yuv420p"
-        )
+        chain = [
+            f"crop={OUT_W}:{OUT_H}:0:210",
+            f"setpts=PTS*{pts_factor:.6f}",
+        ]
+        # Ken Burns zoom (in post-speedup seconds within this segment)
+        zoom = ZOOMS.get(i)
+        if zoom and zoom["z_start"] + zoom["z_dur"] <= seg_out_dur:
+            chain.append(_zoom_filter_str(
+                zoom["z_start"], zoom["z_dur"], zoom["z_max"],
+                zoom["x_pct"], zoom["y_pct"],
+            ))
+        # Section-boundary fade-through-black (no length change)
+        if i in BEATS_WITH_FADE_IN:
+            chain.append(f"fade=t=in:st=0:d={FADE_HALF}")
+        if i in BEATS_WITH_FADE_OUT:
+            fade_out_st = max(0.0, seg_out_dur - FADE_HALF)
+            chain.append(f"fade=t=out:st={fade_out_st:.3f}:d={FADE_HALF}")
+        chain.append(f"fps={FPS}")
+        chain.append("format=yuv420p")
+        vf = ",".join(chain)
         # Both -ss and -t MUST be before -i so they apply to the input.
         # If -t is placed after -i it becomes an output cap and ffmpeg
         # duplicates frames to fill it, defeating setpts compression.
@@ -419,14 +503,17 @@ def stage_closing_card_sequence(out_path: Path) -> float:
         "concat closing flashes -> raw closing",
     )
 
-    # Apply final fade-out
+    # Apply fade-in (body -> closing card cross-section transition)
+    # AND final fade-out tail in a single pass.
     run(
         ["ffmpeg", "-y", "-i", str(raw),
-         "-vf", f"fade=t=out:st={total - 0.5:.3f}:d=0.5",
+         "-vf",
+         f"fade=t=in:st=0:d={FADE_HALF},"
+         f"fade=t=out:st={total - 0.5:.3f}:d=0.5",
          "-c:v", "libx264", "-preset", "ultrafast", "-crf", "20",
          "-pix_fmt", "yuv420p", "-an",
          str(out_path)],
-        "closing fade-out tail",
+        "closing fade-in + fade-out tail",
     )
     return total
 
@@ -631,32 +718,36 @@ def main():
     # column is centered at x=405 (not 540 = frame center). Brightness
     # scan of clean_t9.0.png at shield row y=490 shows shield icon
     # x=390-420, big "2021" x=90-180, big "100%" x=660-780.
-    # Beat-2-time offsets are measured against the UN-sped body. After
-    # BODY_SPEEDUP, the same source content arrives 1/BODY_SPEEDUP
-    # earlier in the beat, so we scale offsets accordingly. Mask y
-    # values are unchanged because the strip's pixel position vs.
-    # source content is unchanged — only the time axis is compressed.
+    # CPT mask placement — derived empirically for v3 by direct
+    # visual inspection of body frames (see build/qa_frames/
+    # v3j_body_t*_zoom.png). The credentials strip first appears
+    # below the YOUTH PORTAL banner, then scrolls upward as the
+    # source page advances:
+    #   body 7.3-7.5 -> strip y=490-605 (lower stable, just entered)
+    #   body 7.7     -> strip y=350-450 (mid-scroll)
+    #   body 8.0     -> strip y=170-280 (further up)
+    #   body 8.4-8.7 -> strip y=110-210 (settled near top)
+    #   body 8.7+    -> strip scrolls off-screen
+    # Two discrete mask phases at the two stable positions; the
+    # rapid scroll between them is short and motion-blurred.
     cpt_x = "(W-w)/2-135"
-    sf = 1.0 / BODY_SPEEDUP
-    s1_start = beat2_base + 1.75 * sf
-    s1_end   = beat2_base + 1.85 * sf
+    # CPT mask placement — empirically calibrated by visual
+    # inspection of the rendered v3 video frames in the strip-visible
+    # window. The strip ("2021"/shield/"100%" with EST.FOUNDED /
+    # CERTIFIED CPT / CUSTOM PLANS subtitle) is on-screen final
+    # t=8.1-9.6 in v3 timing. Strip y in the v3 cropped output
+    # ranges from y=520-650 to y=410-580 across that window — the
+    # variation is small enough that a single static mask at
+    # y=440 H=200 covers the middle column "shield + CERTIFIED CPT"
+    # for the entire visible window without bleeding into the
+    # "2021 / EST FOUNDED" or "100% / CUSTOM PLANS" outer columns.
+    cpt_x = "(W-w)/2-135"
     overlays.append({
         "png":   cpt_png,
-        "start": s1_start,
-        "end":   s1_end,
+        "start": OPEN_CARD_DUR + 7.30,   # final 8.10
+        "end":   OPEN_CARD_DUR + 8.80,   # final 9.60
         "x":     cpt_x,
-        "y":     440,
-    })
-    # Segment 2: post-jump smooth drift — y interpolates 390 -> 135
-    # over the same source-content window (now compressed in time).
-    s2_start = beat2_base + 1.85 * sf
-    s2_end   = beat2_base + 3.25 * sf
-    overlays.append({
-        "png":   cpt_png,
-        "start": s2_start,
-        "end":   s2_end,
-        "x":     cpt_x,
-        "y":     f"390-255*(t-{s2_start:.3f})/({s2_end - s2_start:.3f})",
+        "y":     540,
     })
 
     # Callouts: lower-third, fired 0.5s after each VO begins, held for
