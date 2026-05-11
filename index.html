@@ -1465,6 +1465,75 @@ body.bbf-kairos .hero-badge {
   body.bbf-kairos .hero-badge { filter: blur(1.6px); opacity: .72; }
 }
 </style>
+<!-- Cloudflare Turnstile · invisible-mode bot mitigation for lead-capture
+     forms (Pathfinder + Nutrition Lite). Site key is public/safe to ship in
+     the bundle; matching SECRET key lives only as a Supabase Edge Function
+     env var (TURNSTILE_SECRET_KEY) — never in source. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script>
+  // Turnstile token plumbing. The two <div class="cf-turnstile"> widgets
+  // (one per form) auto-render on Turnstile API load and run in invisible
+  // mode. Their data-callback fires with a single-use token; the helper
+  // below promise-wraps the callback so the submit handlers can `await`
+  // a token before POSTing to bbf-lead-capture.
+  //
+  // Tokens are single-use — turnstile.reset() invalidates the prior token
+  // before each submit so a user can submit a corrected form multiple
+  // times in the same page session without a stale-token rejection.
+  window._bbfTsState = { pathfinder: null, lite: null };
+
+  function _bbfTsResolveTok(form, token) {
+    var s = window._bbfTsState[form];
+    if (!s) return;
+    window._bbfTsState[form] = null;
+    if (s.timeout) clearTimeout(s.timeout);
+    if (typeof s.resolve === 'function') s.resolve(token);
+  }
+  function _bbfTsRejectTok(form, reason) {
+    var s = window._bbfTsState[form];
+    if (!s) return;
+    window._bbfTsState[form] = null;
+    if (s.timeout) clearTimeout(s.timeout);
+    if (typeof s.reject === 'function') s.reject(new Error(reason || 'turnstile_error'));
+  }
+
+  // data-callback targets (one per widget)
+  window.bbfTurnstilePathfinderToken = function (token) { _bbfTsResolveTok('pathfinder', token); };
+  window.bbfTurnstileLiteToken       = function (token) { _bbfTsResolveTok('lite',       token); };
+  window.bbfTurnstilePathfinderError = function ()      { _bbfTsRejectTok('pathfinder', 'turnstile_widget_error'); };
+  window.bbfTurnstileLiteError       = function ()      { _bbfTsRejectTok('lite',       'turnstile_widget_error'); };
+
+  // Promise-wrapped token fetch. Form = 'pathfinder' | 'lite'.
+  window.bbfGetTurnstileToken = function (form) {
+    return new Promise(function (resolve, reject) {
+      if (typeof window.turnstile === 'undefined') {
+        return reject(new Error('turnstile_unavailable'));
+      }
+      var widgetId = (form === 'pathfinder') ? '#ts-pathfinder' : '#ts-lite';
+      var widgetEl = document.querySelector(widgetId);
+      if (!widgetEl) return reject(new Error('turnstile_widget_missing'));
+
+      // Reject any in-flight token request for this form before starting a
+      // new one — protects against rapid double-clicks on the submit button.
+      _bbfTsRejectTok(form, 'turnstile_superseded');
+
+      var to = setTimeout(function () {
+        _bbfTsRejectTok(form, 'turnstile_timeout');
+      }, 15000);
+      window._bbfTsState[form] = { resolve: resolve, reject: reject, timeout: to };
+
+      try {
+        // reset() drops the prior token so the next callback fires with a
+        // fresh single-use one. For invisible widgets, execute() then
+        // triggers the challenge programmatically.
+        window.turnstile.reset(widgetEl);
+        window.turnstile.execute(widgetEl);
+      } catch (e) {
+        _bbfTsRejectTok(form, 'turnstile_execute_threw');
+      }
+    });
+  };
+</script>
 </head>
 <body>
 <a href="#main-content" class="skip-to-main">Skip to main content</a>
@@ -2195,6 +2264,12 @@ body.bbf-kairos .hero-badge {
           <button class="btn-sub" id="sbtn" onclick="doSubmit()" data-lang-key="path-submit">Calculate My Path &amp; Submit &#x2192;</button>
           <button class="btn-back" onclick="prv(3)" style="text-align:center">&#x2190; Back</button>
         </div>
+        <!-- Cloudflare Turnstile · invisible challenge for Pathfinder submit -->
+        <div id="ts-pathfinder" class="cf-turnstile"
+             data-sitekey="0x4AAAAAADNeGfwul8991iH-"
+             data-size="invisible"
+             data-callback="bbfTurnstilePathfinderToken"
+             data-error-callback="bbfTurnstilePathfinderError"></div>
         <div class="fmsg" id="fmsg"></div>
       </div>
     </div>
@@ -2295,6 +2370,12 @@ body.bbf-kairos .hero-badge {
           <option value="300">Build muscle (+300 cal)</option>
         </select>
         <div id="nlite-msg" style="font-size:.78rem;color:#ef4444;min-height:1.1em"></div>
+        <!-- Cloudflare Turnstile · invisible challenge for Nutrition Lite submit -->
+        <div id="ts-lite" class="cf-turnstile"
+             data-sitekey="0x4AAAAAADNeGfwul8991iH-"
+             data-size="invisible"
+             data-callback="bbfTurnstileLiteToken"
+             data-error-callback="bbfTurnstileLiteError"></div>
         <button type="button" id="nlite-submit" onclick="submitLiteLeadCapture()" style="padding:.85rem 1rem;background:var(--y,#f5c800);color:#000;border:0;border-radius:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;font-size:.95rem">Calculate &amp; Send &rarr;</button>
       </div>
     </div>
@@ -2699,12 +2780,15 @@ function doSubmit(){
   } catch(e) {}
   // Phase 19 \u2014 bbf-lead-capture Edge Function replaces Formspree as the
   // redirect-gating call. Writes the lead to bbf_leads + fires Brevo
-  // admin notification. Same .then() chain preserved so the Stripe
-  // redirect logic still gates on a successful lead capture.
-  fetch('https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-lead-capture',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({source:'pathfinder',email:em,full_name:fn+' '+ln,first_name:fn,last_name:ln,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,tier:tier,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,dietary_profile:diet,allergens:allergens,language_preference:localStorage.getItem('bbf_lang')||'en',timestamp:new Date().toISOString()})
+  // admin notification. Phase 6 \u2014 wrapped in Turnstile invisible
+  // challenge; the Edge Function rejects 403 if the token fails siteverify
+  // so botnet spam never hits bbf_leads or Brevo.
+  window.bbfGetTurnstileToken('pathfinder').then(function(turnstileToken){
+    return fetch('https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-lead-capture',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({source:'pathfinder',email:em,full_name:fn+' '+ln,first_name:fn,last_name:ln,phone:ph,age:age,sex:sex,weight:wt,height:ft+"'"+ins+'"',activity_level:act,fitness_goal:goal,experience:exp,schedule:sch,program:prog,tier:tier,health_notes:hlth,referral:ref,tdee_target:tgt,macro_p:mac.p,macro_c:mac.c,macro_f:mac.f,dietary_profile:diet,allergens:allergens,language_preference:localStorage.getItem('bbf_lang')||'en',timestamp:new Date().toISOString(),turnstile_token:turnstileToken})
+    });
   }).then(function(r){
     if(!r.ok)throw new Error('lead_capture '+r.status);
     btn.textContent='Calculate My Path & Submit \u2192';btn.disabled=false;
@@ -2792,19 +2876,24 @@ function submitLiteLeadCapture(){
   // webhook. Writes lead to bbf_leads + fires Brevo admin notification
   // + sends Brevo welcome email to the lead with their TDEE/macros
   // (welcome auto-triggered server-side because source='nutrition_lite').
+  // Phase 6 — Turnstile invisible challenge wraps the POST so the Edge
+  // Function can 403-reject botnet submits before insert + Brevo fire.
   try{
-    fetch('https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-lead-capture',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        source:'nutrition_lite',
-        email:em, age:age, sex:sex, weight:wt, height_ft:ft, height_in:ins,
-        activity_level:act, goal_adjustment:adj,
-        tdee_base:base, tdee_target:tgt,
-        macro_p:mac.p, macro_c:mac.c, macro_f:mac.f,
-        tier:'nutrition_lite',
-        timestamp:new Date().toISOString()
-      })
+    window.bbfGetTurnstileToken('lite').then(function(turnstileToken){
+      return fetch('https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-lead-capture',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          source:'nutrition_lite',
+          email:em, age:age, sex:sex, weight:wt, height_ft:ft, height_in:ins,
+          activity_level:act, goal_adjustment:adj,
+          tdee_base:base, tdee_target:tgt,
+          macro_p:mac.p, macro_c:mac.c, macro_f:mac.f,
+          tier:'nutrition_lite',
+          timestamp:new Date().toISOString(),
+          turnstile_token:turnstileToken
+        })
+      });
     }).catch(function(){});
   }catch(e){}
   // Show the result view immediately — webhook is fire-and-forget so we
