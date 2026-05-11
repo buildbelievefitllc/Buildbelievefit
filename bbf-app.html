@@ -4778,69 +4778,78 @@ window.BBF_TRIAL_STATE = function() {
   } catch(_) { return 'null'; }
 };
 
+// WAR ROOM Phase 5 — gate logic refactored to walk both (frame, voice-btn)
+// pairs: the original Program-tab Phantom Eye + Virtual Coach, and the
+// cloned Nutrition-tab Nutrition Vision + Virtual Chef. Same trial flow,
+// same overlay markup; trial state propagates to both surfaces in one pass.
+function _bbfGateFrame(frame, state) {
+  if (!frame) return;
+  frame.classList.remove('iv-state-null', 'iv-state-active', 'iv-state-expired');
+  // Strip any previously-injected overlay so we don't stack them.
+  var existingCta = frame.querySelector('.iv-trial-cta');
+  if (existingCta) existingCta.remove();
+  var existingExp = frame.querySelector('.iv-expired-overlay');
+  if (existingExp) existingExp.remove();
+  if (state === 'active') {
+    frame.classList.add('iv-state-active');
+  } else if (state === 'null') {
+    frame.classList.add('iv-state-null');
+    var cta = document.createElement('div');
+    cta.className = 'iv-trial-cta';
+    cta.innerHTML =
+      '<div class="iv-trial-cta-kicker">SOVEREIGN COACH LOCKED</div>' +
+      '<div class="iv-trial-cta-title">Unlock 7 days of AI voice + camera coaching.</div>' +
+      '<button type="button" class="iv-trial-cta-btn iv-trial-cta-btn--gate">Unlock 7-Day Sovereign Trial</button>';
+    frame.appendChild(cta);
+    var btn = cta.querySelector('.iv-trial-cta-btn--gate');
+    if (btn) btn.addEventListener('click', function() { window.BBF_START_TRIAL(); });
+  } else {
+    // expired
+    frame.classList.add('iv-state-expired');
+    var exp = document.createElement('div');
+    exp.className = 'iv-expired-overlay';
+    exp.innerHTML =
+      '<div class="iv-expired-icon">&#x1F512;</div>' +
+      '<div class="iv-expired-title">Your Sovereign Trial has ended.</div>' +
+      '<button type="button" class="iv-expired-btn">Upgrade to Premium</button>';
+    frame.appendChild(exp);
+    var ebtn = exp.querySelector('.iv-expired-btn');
+    if (ebtn) ebtn.addEventListener('click', function() { window.BBF_SHOW_PAYWALL_MODAL(); });
+  }
+}
+
+function _bbfGateVoiceBtn(vcBtn, state) {
+  if (!vcBtn) return;
+  vcBtn.classList.remove('iv-vc-state-null', 'iv-vc-state-active', 'iv-vc-state-expired');
+  if (state === 'null') {
+    vcBtn.classList.add('iv-vc-state-null');
+    vcBtn.setAttribute('aria-disabled', 'true');
+    vcBtn.onclick = function(e) { if (e) e.preventDefault(); window.BBF_START_TRIAL(); };
+  } else if (state === 'expired') {
+    vcBtn.classList.add('iv-vc-state-expired');
+    vcBtn.setAttribute('aria-disabled', 'true');
+    vcBtn.onclick = function(e) { if (e) e.preventDefault(); window.BBF_SHOW_PAYWALL_MODAL(); };
+  } else {
+    vcBtn.classList.add('iv-vc-state-active');
+    vcBtn.removeAttribute('aria-disabled');
+    vcBtn.onclick = function() { initLiveCoach('voice'); };
+  }
+}
+
+// Surfaces gated by trial state. Each entry is {frame-id, voice-btn-id}.
+// Program tab originals first, Nutrition tab clones second (Phase 5).
+var _BBF_TRIAL_SURFACES = [
+  { frameId: 'pe-frame', vcBtnId: 'pe-init-voice-btn' },
+  { frameId: 'nv-frame', vcBtnId: 'nv-init-chef-btn'  }
+];
+
 window.BBF_APPLY_TRIAL_GATE = function() {
   try {
     var state = window.BBF_TRIAL_STATE();
-    var frame = document.getElementById('pe-frame');
-    var vcBtn = document.getElementById('pe-init-voice-btn');
-
-    // ── .pe-frame (Phantom Eye vision modal trigger) ──
-    if (frame) {
-      frame.classList.remove('iv-state-null', 'iv-state-active', 'iv-state-expired');
-      // Strip any previously-injected overlay so we don't stack them.
-      var existingCta = frame.querySelector('.iv-trial-cta');
-      if (existingCta) existingCta.remove();
-      var existingExp = frame.querySelector('.iv-expired-overlay');
-      if (existingExp) existingExp.remove();
-      if (state === 'active') {
-        frame.classList.add('iv-state-active');
-      } else if (state === 'null') {
-        frame.classList.add('iv-state-null');
-        var cta = document.createElement('div');
-        cta.className = 'iv-trial-cta';
-        cta.innerHTML =
-          '<div class="iv-trial-cta-kicker">SOVEREIGN COACH LOCKED</div>' +
-          '<div class="iv-trial-cta-title">Unlock 7 days of AI voice + camera coaching.</div>' +
-          '<button type="button" class="iv-trial-cta-btn" id="iv-trial-start-btn">Unlock 7-Day Sovereign Trial</button>';
-        frame.appendChild(cta);
-        var btn = cta.querySelector('#iv-trial-start-btn');
-        if (btn) btn.addEventListener('click', function() { window.BBF_START_TRIAL(); });
-      } else {
-        // expired
-        frame.classList.add('iv-state-expired');
-        var exp = document.createElement('div');
-        exp.className = 'iv-expired-overlay';
-        exp.innerHTML =
-          '<div class="iv-expired-icon">&#x1F512;</div>' +
-          '<div class="iv-expired-title">Your Sovereign Trial has ended.</div>' +
-          '<button type="button" class="iv-expired-btn">Upgrade to Premium</button>';
-        frame.appendChild(exp);
-        var ebtn = exp.querySelector('.iv-expired-btn');
-        if (ebtn) ebtn.addEventListener('click', function() { window.BBF_SHOW_PAYWALL_MODAL(); });
-      }
-    }
-
-    // ── #pe-init-voice-btn (Virtual Coach standalone trigger) ──
-    // Phase 17 hotfix — pre-fix the button was visible+clickable for
-    // null/expired users and the WS upgrade silently 401'd inside the
-    // VC modal. Now the click is intercepted at the DOM layer and
-    // routed to the trial activation or paywall flow before the modal
-    // even opens.
-    if (vcBtn) {
-      vcBtn.classList.remove('iv-vc-state-null', 'iv-vc-state-active', 'iv-vc-state-expired');
-      if (state === 'null') {
-        vcBtn.classList.add('iv-vc-state-null');
-        vcBtn.setAttribute('aria-disabled', 'true');
-        vcBtn.onclick = function(e) { if (e) e.preventDefault(); window.BBF_START_TRIAL(); };
-      } else if (state === 'expired') {
-        vcBtn.classList.add('iv-vc-state-expired');
-        vcBtn.setAttribute('aria-disabled', 'true');
-        vcBtn.onclick = function(e) { if (e) e.preventDefault(); window.BBF_SHOW_PAYWALL_MODAL(); };
-      } else {
-        vcBtn.classList.add('iv-vc-state-active');
-        vcBtn.removeAttribute('aria-disabled');
-        vcBtn.onclick = function() { initLiveCoach('voice'); };
-      }
+    for (var i = 0; i < _BBF_TRIAL_SURFACES.length; i++) {
+      var s = _BBF_TRIAL_SURFACES[i];
+      _bbfGateFrame(document.getElementById(s.frameId), state);
+      _bbfGateVoiceBtn(document.getElementById(s.vcBtnId), state);
     }
   } catch(_) {}
 };
@@ -4881,14 +4890,23 @@ window.BBF_APPLY_WEARABLES_COMING_SOON = function() {
 
 window.BBF_START_TRIAL = function() {
   try {
-    var btn = document.getElementById('iv-trial-start-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Starting…'; }
+    // WAR ROOM Phase 5 — gate CTA now lives on both Program (#pe-frame) and
+    // Nutrition (#nv-frame) surfaces, so it's class-keyed instead of ID-keyed
+    // to avoid duplicate-ID DOM. Iterate every gate button on the page.
+    var gateBtns = document.querySelectorAll('.iv-trial-cta-btn--gate');
+    function _setGate(text, disabled) {
+      for (var i = 0; i < gateBtns.length; i++) {
+        gateBtns[i].disabled = disabled;
+        gateBtns[i].textContent = text;
+      }
+    }
+    _setGate('Starting…', true);
     var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
     if (!uid) return;
     var sync = (typeof BBF_SYNC !== 'undefined') ? BBF_SYNC : null;
     if (!sync || !sync.startTrial) {
       console.error('[Iron Vault] BBF_SYNC.startTrial unavailable');
-      if (btn) { btn.disabled = false; btn.textContent = 'Unlock 7-Day Sovereign Trial'; }
+      _setGate('Unlock 7-Day Sovereign Trial', false);
       return;
     }
     sync.startTrial(uid).then(function(res) {
@@ -4901,7 +4919,7 @@ window.BBF_START_TRIAL = function() {
         window.BBF_APPLY_TRIAL_GATE();
         return;
       }
-      if (btn) { btn.disabled = false; btn.textContent = 'Unlock 7-Day Sovereign Trial'; }
+      _setGate('Unlock 7-Day Sovereign Trial', false);
       var msg = (res && res.error) || 'unknown';
       if (msg === 'trial_already_consumed') {
         if (typeof TOAST === 'function') TOAST('Trial already used — refresh to see latest state.');
@@ -5996,7 +6014,7 @@ window.onload=function(){
           <!-- PHANTOM EYE — Live AI Coach hub (Phase 15 Slice 1) -->
           <div id="phantom-eye" class="pe-widget">
             <div class="pe-head">
-              <div class="pe-label" data-lang-key="pe-label">&#x1F441; Phantom Eye Viewport &middot; Live Biomechanical &amp; Nutritional Analysis</div>
+              <div class="pe-label" data-lang-key="pe-label">&#x1F441; Phantom Eye Viewport &middot; Live Biomechanical Form Audit</div>
               <div class="pe-status-badge" id="pe-status-badge" data-lang-key="pe-badge-idle">Idle</div>
             </div>
             <div class="pe-frame" id="pe-frame">
@@ -6008,8 +6026,8 @@ window.onload=function(){
               <div class="pe-hero" id="pe-hero">
                 <div class="pe-hero-eye" aria-hidden="true">&#x1F441;</div>
                 <div class="pe-hero-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
-                <div class="pe-hero-title" data-lang-key="pe-hero-title">Real-time form audit + nutrition vision</div>
-                <div class="pe-hero-sub" data-lang-key="pe-hero-sub">Stream your camera to the BBF Intelligence Engine. Instant biomechanical cues + macro estimates from what you're holding, lifting, or eating.</div>
+                <div class="pe-hero-title" data-lang-key="pe-hero-title">Real-time form audit</div>
+                <div class="pe-hero-sub" data-lang-key="pe-hero-sub">Stream your camera to the BBF Intelligence Engine. Instant biomechanical cues from what you're lifting.</div>
                 <!-- Phase 15 Slice 9 — Phantom Eye CTA is now a single full-
                      width button. The Virtual Coach button has migrated to
                      its own section below the widget (where the deprecated
@@ -6035,8 +6053,55 @@ window.onload=function(){
     </div>
     <!-- NUTRITION -->
     <div class="tp" id="tp-nutrition">
-      <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-nutr-title">Nutrition Plan</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-nutr-sub">Your personalized 7-day meal plan</div></div>
-      <div id="ncon"><div class="emp"><div class="ei">&#x1F957;</div><div class="et">Loading...</div></div></div>
+      <!-- ═ WAR ROOM Phase 5 · Nutrition tab inversion + Phantom Eye/VC clones
+           with remapped IDs. Camera-API bindings unchanged: both cloned
+           buttons still call initLiveCoach('vision') / initLiveCoach('voice')
+           which target the singleton #phantom-eye-stream-modal. The
+           #nv-frame + #nv-init-chef-btn IDs are picked up by
+           BBF_APPLY_TRIAL_GATE so trial state propagates here too. ═ -->
+      <div id="nutrition-tab-wrapper">
+        <div id="active-nutrition-plan">
+          <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-nutr-title">Nutrition Plan</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-nutr-sub">Your personalized 7-day meal plan</div></div>
+          <div id="ncon"><div class="emp"><div class="ei">&#x1F957;</div><div class="et">Loading...</div></div></div>
+        </div>
+        <div id="nutrition-tools-stack">
+          <div id="virtual-chef-module">
+            <!-- BBF VIRTUAL CHEF — full-width audio-only CTA (clone of #pe-init-voice-btn). -->
+            <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="nv-init-chef-btn" onclick="initLiveCoach('voice')">
+              <span class="pe-init-icon" aria-hidden="true">&#x1F468;&#x200D;&#x1F373;</span>
+              <span class="pe-init-label">BBF Virtual Chef</span>
+              <span class="pe-init-sub">Recipes &middot; TDEE Talk-Through</span>
+            </button>
+          </div>
+          <div id="nutrition-vision-module">
+            <!-- NUTRITION VISION — Live AI Food Analysis (clone of #phantom-eye). -->
+            <div id="nutrition-vision" class="pe-widget">
+              <div class="pe-head">
+                <div class="pe-label">&#x1F957; Nutrition Vision Viewport &middot; Live Food Analysis</div>
+                <div class="pe-status-badge" id="nv-status-badge">Idle</div>
+              </div>
+              <div class="pe-frame" id="nv-frame">
+                <span class="pe-bracket pe-bracket--tl" aria-hidden="true"></span>
+                <span class="pe-bracket pe-bracket--tr" aria-hidden="true"></span>
+                <span class="pe-bracket pe-bracket--bl" aria-hidden="true"></span>
+                <span class="pe-bracket pe-bracket--br" aria-hidden="true"></span>
+                <div class="pe-scanline" aria-hidden="true"></div>
+                <div class="pe-hero" id="nv-hero">
+                  <div class="pe-hero-eye" aria-hidden="true">&#x1F957;</div>
+                  <div class="pe-hero-kicker">Multimodal AI Nutritionist</div>
+                  <div class="pe-hero-title">Real-time Nutrition Vision</div>
+                  <div class="pe-hero-sub">Point your camera at what you're about to eat. Instant macro + calorie estimates aligned with your day's TDEE target.</div>
+                  <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="nv-init-vision-btn" onclick="initLiveCoach('vision')">
+                    <span class="pe-init-icon" aria-hidden="true">&#x1F441;&#xFE0F;</span>
+                    <span class="pe-init-label">Nutrition Vision</span>
+                    <span class="pe-init-sub">Live Food Check</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- LOG -->
     <div class="tp" id="tp-log">
