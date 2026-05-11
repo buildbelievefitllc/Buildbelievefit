@@ -4469,6 +4469,20 @@ body.bbf-kairos .bbf-kairos-target {
 .kfh-view { display: none; animation: kfhFade .35s ease-out; }
 .kfh-view.on { display: block; }
 @keyframes kfhFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* ═ WAR ROOM Phase 2 + 3 — Program tab inversion layout ═════════════
+   #program-tab-wrapper is the new top-level container inside #tp-workout.
+   Active program block sits first; clinical tools stacked below. The
+   refined Bio-Render no longer shares space with the deleted Coach Cam
+   panel, so its inner stage + form-mode chips get centered cleanly. */
+#program-tab-wrapper { display: flex; flex-direction: column; gap: 1rem; }
+#active-program-schedule { display: flex; flex-direction: column; }
+#clinical-tools-stack { display: flex; flex-direction: column; gap: 1rem; }
+#clinical-tools-stack > div[id$="-module"] { width: 100%; }
+#bio-render-module .kfh-subseg { max-width: 380px; margin-left: auto; margin-right: auto; }
+#bio-render-module .kfh-stage { margin-left: auto; margin-right: auto; max-width: 100%; }
+#bio-render-module .kfh-view#kfh-view-render { text-align: center; }
+#bio-render-module .kfh-readout,
+#bio-render-module .kfh-footnote { text-align: left; }
 /* ── Sub-toggle (form vs fault) ── */
 .kfh-subseg {
   display: grid; grid-template-columns: 1fr 1fr; gap: .5rem;
@@ -5711,607 +5725,576 @@ window.onload=function(){
     </div>
     <!-- WORKOUT -->
     <div class="tp" id="tp-workout">
-      <!-- AUTONOMIC READINESS ENGINE (Phase 1 + Phase 2 Wearable Bridge) -->
-      <section class="are-card" id="are-card" data-tier="green" data-sync-state="idle" aria-label="Autonomic Readiness Engine">
-        <div class="are-head">
-          <div class="are-head-l">
-            <div class="are-tag">Autonomic Readiness Engine</div>
-            <div class="are-title">Autonomic Readiness</div>
-            <div class="are-sub">Wearable-Synced CNS Readiness</div>
-          </div>
-          <div class="are-score-wrap">
-            <div class="are-score"><span id="are-score-n">--</span><span class="pct">%</span></div>
-            <div class="are-score-l">Readiness</div>
-          </div>
+      <!-- ═ WAR ROOM Phase 2 + 3 · Program tab inversion ═════════════════
+           Active program block elevated to top; clinical tools stacked
+           below per CEO directive + Big Jim structural nudge. Phase 2
+           cleanup nuked #kfh-media, .kfh-seg, #kfh-view-cam. ═ -->
+      <div id="program-tab-wrapper">
+        <div id="active-program-schedule">
+        <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-wo-title">Today&apos;s Program</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-wo-sub">Log your sets, reps &amp; weight</div></div>
+        <button onclick="if(typeof BBF_PREHAB!=='undefined')BBF_PREHAB.trigger(function(r){TOAST('🧪 Pre-Hab complete: '+r.area)})" style="width:100%;padding:.75rem;margin-bottom:1rem;background:transparent;border:2px solid #D4AF37;color:#D4AF37;font-family:var(--hb);font-size:.9rem;letter-spacing:3px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(212,175,55,.1)'" onmouseout="this.style.background='transparent'" data-lang-key="app-prehab-audit-btn">&#x1F9EA; PRE-HAB AUDIT &mdash; START HERE</button>
+        <!-- PROGRAM PANE -->
+        <div id="vault-program-pane">
+          <div class="dnav" id="dnav"></div>
+          <div id="wcon"></div>
         </div>
-
-        <!-- Phase 1 manual slider — retained in DOM as the BBF_ARE.set() sink, hidden by data-sync-state CSS in Phase 2 -->
-        <div class="are-slider-wrap">
-          <input type="range" min="0" max="100" value="50" step="1" class="are-range" id="are-range" aria-label="Simulated CNS Readiness Score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
-          <div class="are-scale">
-            <span>Recovery</span><span>Moderate</span><span>Max Output</span>
-          </div>
         </div>
-
-        <!-- Phase 2 Task 2: Sync Wearable CTA -->
-        <div class="are-sync-cta">
-          <button type="button" class="are-sync-btn" id="are-sync-btn" aria-label="Sync wearable device">
-            <span class="are-sync-ico" aria-hidden="true">&#x1F517;</span>Sync Wearable
-          </button>
-          <div class="are-sync-sub">Connect <b>Samsung Health</b>, <b>Apple Health</b>, <b>Garmin</b>, or <b>Oura</b></div>
-        </div>
-
-        <!-- Phase 2 Task 3: simulated OAuth overlay -->
-        <div class="are-overlay" id="are-overlay" role="status" aria-live="polite">
-          <div class="are-overlay-tag">Wearable API Bridge</div>
-          <div class="are-spinner-wrap">
-            <div class="are-spinner" aria-hidden="true"></div>
-            <div class="are-spinner-inner" aria-hidden="true"></div>
-          </div>
-          <div class="are-overlay-msg" id="are-overlay-msg">Authenticating via Terra API...</div>
-        </div>
-
-        <!-- Phase 1 readout (Phase 2 Task 6: surfaced after sync) -->
-        <div class="are-readout" id="are-readout" role="status" aria-live="polite">
-          <span class="are-dot" id="are-dot" aria-hidden="true"></span>
-          <span class="are-ind-label" id="are-ind-label">Max Output</span>
-          <span class="are-msg" id="are-msg">CNS Primed. Cleared for 85% 1RM Hypertrophy block.</span>
-        </div>
-        <button type="button" class="are-resync" id="are-resync" aria-label="Re-sync wearable">
-          <span class="are-resync-ico" aria-hidden="true">&#x21BB;</span>Re-Sync
-        </button>
-      </section>
-      <!-- ═ WAR ROOM Phase 1 · Action 2 (hotfix) — Phantom Eye + Virtual
-           Coach surfaced as visible blocks at the TOP of the Program tab,
-           sitting between #are-card (Autonomic Readiness) and #ss-card
-           (Sovereign Sentinel Occupational Load Map). Previous attempt
-           buried these inside #ap-protocol ~700 lines below the fold — the
-           "vanished module" Big Jim flagged. This slot is direct child of
-           #tp-workout, no display:none parents, no [data-state] gates. ═ -->
-      <!-- PHANTOM EYE — Live AI Coach hub (Phase 15 Slice 1) -->
-      <div id="phantom-eye" class="pe-widget">
-        <div class="pe-head">
-          <div class="pe-label" data-lang-key="pe-label">&#x1F441; Phantom Eye Viewport &middot; Live Biomechanical &amp; Nutritional Analysis</div>
-          <div class="pe-status-badge" id="pe-status-badge" data-lang-key="pe-badge-idle">Idle</div>
-        </div>
-        <div class="pe-frame" id="pe-frame">
-          <span class="pe-bracket pe-bracket--tl" aria-hidden="true"></span>
-          <span class="pe-bracket pe-bracket--tr" aria-hidden="true"></span>
-          <span class="pe-bracket pe-bracket--bl" aria-hidden="true"></span>
-          <span class="pe-bracket pe-bracket--br" aria-hidden="true"></span>
-          <div class="pe-scanline" aria-hidden="true"></div>
-          <div class="pe-hero" id="pe-hero">
-            <div class="pe-hero-eye" aria-hidden="true">&#x1F441;</div>
-            <div class="pe-hero-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
-            <div class="pe-hero-title" data-lang-key="pe-hero-title">Real-time form audit + nutrition vision</div>
-            <div class="pe-hero-sub" data-lang-key="pe-hero-sub">Stream your camera to the BBF Intelligence Engine. Instant biomechanical cues + macro estimates from what you're holding, lifting, or eating.</div>
-            <!-- Phase 15 Slice 9 — Phantom Eye CTA is now a single full-
-                 width button. The Virtual Coach button has migrated to
-                 its own section below the widget (where the deprecated
-                 Comlink launcher used to live) so the two AI activation
-                 paths each get a thumb-friendly mobile target. -->
-            <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="pe-init-vision-btn" onclick="initLiveCoach('vision')">
-              <span class="pe-init-icon" aria-hidden="true">&#x1F441;&#xFE0F;</span>
-              <span class="pe-init-label" data-lang-key="pe-init-vision">BBF Phantom Eye</span>
-              <span class="pe-init-sub"   data-lang-key="pe-init-vision-sub">Live Vision Check</span>
-            </button>
-          </div>
-        </div>
-      </div>
-      <!-- BBF VIRTUAL COACH — full-width audio-only CTA. -->
-      <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="pe-init-voice-btn" onclick="initLiveCoach('voice')">
-        <span class="pe-init-icon" aria-hidden="true">&#x1F3A4;</span>
-        <span class="pe-init-label" data-lang-key="pe-init-voice">BBF Virtual Coach</span>
-        <span class="pe-init-sub"   data-lang-key="pe-init-voice-sub">Audio Only</span>
-      </button>
-      <!-- SOVEREIGN SENTINEL — Occupational Load Map (Predictive Occupational Analytics) -->
-      <section class="ss-card" id="ss-card" data-profile="none" aria-label="Sovereign Sentinel Occupational Load Map">
-        <div class="ss-head">
-          <div class="ss-tag">Sovereign Sentinel &middot; Predictive Occupational Analytics</div>
-          <div class="ss-title">Sovereign Sentinel: Occupational Load Map</div>
-          <div class="ss-sub">3D Degeneration Heatmap &middot; Clinical Antidote Engine</div>
-        </div>
-        <div class="ss-field">
-          <span class="ss-lbl" id="ss-pills-lbl">Dynamic Kinematic Intake &middot; Tap All That Apply</span>
-          <div class="ss-pills" id="ss-pills" role="group" aria-labelledby="ss-pills-lbl">
-            <button type="button" class="ss-pill" data-symptom="lumbar" role="checkbox" aria-checked="false">Lumbar/Lower Back Ache</button>
-            <button type="button" class="ss-pill" data-symptom="knee"   role="checkbox" aria-checked="false">Knee Joint Shear</button>
-            <button type="button" class="ss-pill" data-symptom="neck"   role="checkbox" aria-checked="false">Stiff Neck/Upper Traps</button>
-            <button type="button" class="ss-pill" data-symptom="foot"   role="checkbox" aria-checked="false">Foot/Plantar Ache</button>
-            <button type="button" class="ss-pill" data-symptom="hip"    role="checkbox" aria-checked="false">Hip Flexor Tightness</button>
-          </div>
-        </div>
-        <div class="ss-body">
-          <div class="ss-stage" aria-label="Occupational degeneration wireframe">
-            <span class="ss-stage-lbl">Anterior &middot; 3D Heatmap</span>
-            <span class="ss-stage-lbl r">Sentinel</span>
-            <svg class="ss-svg" viewBox="0 0 260 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ss-svg-title">
-              <title id="ss-svg-title">Forward-facing human wireframe with occupational degeneration zones</title>
-              <!-- Calibration grid frame -->
-              <g class="ss-wf ss-wf-dim">
-                <line x1="20" y1="20" x2="20" y2="340"/>
-                <line x1="240" y1="20" x2="240" y2="340"/>
-                <line x1="20" y1="340" x2="240" y2="340"/>
-              </g>
-              <!-- Centerline plumb -->
-              <line class="ss-wf ss-wf-dim" x1="130" y1="20" x2="130" y2="340" stroke-dasharray="3 5"/>
-              <!-- Degeneration zones (rendered behind skeleton so the wireframe reads on top) -->
-              <g id="ss-zones">
-                <!-- Cervical spine (C1-C7) -->
-                <ellipse class="ss-zone" id="ss-z-cervical" cx="130" cy="66" rx="9" ry="14"/>
-                <!-- Upper shoulders / trapezius (dual, symmetric) -->
-                <ellipse class="ss-zone" id="ss-z-shoulders-l" cx="104" cy="92" rx="16" ry="9"/>
-                <ellipse class="ss-zone" id="ss-z-shoulders-r" cx="156" cy="92" rx="16" ry="9"/>
-                <!-- Lumbar spine (L4/L5) -->
-                <ellipse class="ss-zone" id="ss-z-lumbar" cx="130" cy="168" rx="14" ry="16"/>
-                <!-- Hip flexors (iliopsoas, bilateral) -->
-                <ellipse class="ss-zone" id="ss-z-hip-l" cx="116" cy="196" rx="10" ry="12"/>
-                <ellipse class="ss-zone" id="ss-z-hip-r" cx="144" cy="196" rx="10" ry="12"/>
-                <!-- Knees (patellofemoral) -->
-                <circle class="ss-zone" id="ss-z-knee-l" cx="112" cy="256" r="10"/>
-                <circle class="ss-zone" id="ss-z-knee-r" cx="148" cy="256" r="10"/>
-                <!-- Feet / Plantar fascia -->
-                <ellipse class="ss-zone" id="ss-z-foot-l" cx="108" cy="328" rx="12" ry="6"/>
-                <ellipse class="ss-zone" id="ss-z-foot-r" cx="152" cy="328" rx="12" ry="6"/>
-              </g>
-              <!-- Human wireframe (anterior / forward-facing) -->
-              <g class="ss-wf">
-                <!-- Head -->
-                <circle cx="130" cy="44" r="18"/>
-                <!-- Neck -->
-                <line x1="130" y1="62" x2="130" y2="78"/>
-                <!-- Clavicle / shoulder line -->
-                <line x1="92" y1="92" x2="168" y2="92"/>
-                <!-- Torso sides -->
-                <line x1="94" y1="94" x2="104" y2="180"/>
-                <line x1="166" y1="94" x2="156" y2="180"/>
-                <!-- Sternum / spine indicator -->
-                <line x1="130" y1="80" x2="130" y2="180" stroke-dasharray="2 4"/>
-                <!-- Pelvis -->
-                <path d="M104 180 Q130 196 156 180 L152 210 Q130 220 108 210 Z"/>
-                <!-- Upper arms -->
-                <line x1="92" y1="94" x2="78" y2="160"/>
-                <line x1="168" y1="94" x2="182" y2="160"/>
-                <!-- Forearms -->
-                <line x1="78" y1="160" x2="70" y2="220"/>
-                <line x1="182" y1="160" x2="190" y2="220"/>
-                <!-- Hands -->
-                <circle cx="70" cy="226" r="4"/>
-                <circle cx="190" cy="226" r="4"/>
-                <!-- Thighs -->
-                <line x1="114" y1="214" x2="112" y2="256"/>
-                <line x1="146" y1="214" x2="148" y2="256"/>
-                <!-- Shins -->
-                <line x1="112" y1="256" x2="108" y2="320"/>
-                <line x1="148" y1="256" x2="152" y2="320"/>
-                <!-- Feet -->
-                <line x1="96" y1="328" x2="120" y2="328"/>
-                <line x1="140" y1="328" x2="164" y2="328"/>
-              </g>
-              <!-- Joints for premium read -->
-              <g>
-                <circle class="ss-joint" cx="92" cy="92" r="3"/>
-                <circle class="ss-joint" cx="168" cy="92" r="3"/>
-                <circle class="ss-joint" cx="78" cy="160" r="2.5"/>
-                <circle class="ss-joint" cx="182" cy="160" r="2.5"/>
-                <circle class="ss-joint" cx="114" cy="214" r="3"/>
-                <circle class="ss-joint" cx="146" cy="214" r="3"/>
-                <circle class="ss-joint" cx="112" cy="256" r="2.5"/>
-                <circle class="ss-joint" cx="148" cy="256" r="2.5"/>
-              </g>
-            </svg>
-          </div>
-          <div class="ss-antidote" id="ss-antidote" role="status" aria-live="polite">
-            <div class="ss-ant-tag"><span class="ss-ant-dot" aria-hidden="true"></span><span id="ss-ant-tag">Sentinel Standby</span></div>
-            <div class="ss-ant-title" id="ss-ant-title">Clinical Antidote</div>
-            <div class="ss-ant-msg" id="ss-ant-msg">Tap the regions above that feel compressed or restricted to map your degeneration zones and unlock your prescribed decompression protocol.</div>
-          </div>
-        </div>
-      </section>
-      <script>
-      /* Sovereign Sentinel — Dynamic Kinematic Intake. Multi-select pill toggle drives SVG zones + concatenated antidote. */
-      (function(){
-        if (window.SS_TOGGLE_SYMPTOM) return;
-        var SYMPTOMS = {
-          lumbar: { zones:['ss-z-lumbar'],                                      antidote:'Mandating 4-min Pallof Press & Dead Bugs.' },
-          knee:   { zones:['ss-z-knee-l','ss-z-knee-r'],                        antidote:'Mandating 3-min Terminal Knee Extensions (TKEs).' },
-          neck:   { zones:['ss-z-cervical','ss-z-shoulders-l','ss-z-shoulders-r'], antidote:'Mandating 2-min Cervical Retraction holds.' },
-          foot:   { zones:['ss-z-foot-l','ss-z-foot-r'],                        antidote:'Mandating 2-min Plantar fascia rolling.' },
-          hip:    { zones:['ss-z-hip-l','ss-z-hip-r'],                          antidote:'Mandating 3-min Couch Stretch.' }
-        };
-        var ORDER = ['lumbar','knee','neck','foot','hip'];
-        var active = Object.create(null);
-        function clearZones(){
-          var zones = document.querySelectorAll('#ss-zones .ss-zone');
-          for (var i=0;i<zones.length;i++) zones[i].classList.remove('glow');
-        }
-        function render(){
-          var tag = document.getElementById('ss-ant-tag');
-          var ttl = document.getElementById('ss-ant-title');
-          var msg = document.getElementById('ss-ant-msg');
-          clearZones();
-          var keys = [];
-          for (var i=0;i<ORDER.length;i++) if (active[ORDER[i]]) keys.push(ORDER[i]);
-          if (!keys.length){
-            if (tag) tag.textContent = 'Sentinel Standby';
-            if (ttl) ttl.textContent = 'Clinical Antidote';
-            if (msg) msg.textContent = 'Tap the regions above that feel compressed or restricted to map your degeneration zones and unlock your prescribed decompression protocol.';
-            return;
-          }
-          var parts = [];
-          for (var j=0;j<keys.length;j++){
-            var sym = SYMPTOMS[keys[j]]; if (!sym) continue;
-            for (var k=0;k<sym.zones.length;k++){
-              var el = document.getElementById(sym.zones[k]);
-              if (el) el.classList.add('glow');
-            }
-            parts.push(sym.antidote);
-          }
-          if (tag) tag.textContent = 'Sentinel Warning';
-          if (ttl) ttl.textContent = keys.length === 1 ? 'Prescribed Decompression' : 'Multi-Zone Decompression Stack';
-          if (msg) msg.textContent = parts.join(' ');
-        }
-        function toggleSymptom(key, pillEl){
-          if (!SYMPTOMS[key]) return;
-          active[key] = !active[key];
-          if (pillEl){
-            pillEl.classList.toggle('on', !!active[key]);
-            pillEl.setAttribute('aria-checked', active[key] ? 'true' : 'false');
-          }
-          render();
-        }
-        window.SS_TOGGLE_SYMPTOM = toggleSymptom;
-        var pills = document.querySelectorAll('#ss-pills .ss-pill');
-        for (var i=0;i<pills.length;i++){
-          (function(p){
-            p.addEventListener('click', function(){ toggleSymptom(p.getAttribute('data-symptom'), p); });
-            p.addEventListener('keydown', function(e){
-              if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggleSymptom(p.getAttribute('data-symptom'), p); }
-            });
-          })(pills[i]);
-        }
-        // Sentinel — persistent overlay sourced from bbf_audit_logs (last 30d)
-        function clearAuditFlags(){
-          var zones = document.querySelectorAll('#ss-zones .ss-zone');
-          for (var i=0;i<zones.length;i++){
-            var z = zones[i];
-            z.classList.remove('audit-flag','tier-1','tier-2','tier-3');
-            var t = z.querySelector('title'); if (t) z.removeChild(t);
-          }
-        }
-        function paintDamagedZones(damagedMap){
-          clearAuditFlags();
-          if (!damagedMap) return;
-          Object.keys(damagedMap).forEach(function(svgId){
-            var el = document.getElementById(svgId); if (!el) return;
-            var info = damagedMap[svgId] || { count:0, movements:[] };
-            var tier = info.count >= 4 ? 'tier-3' : info.count >= 2 ? 'tier-2' : 'tier-1';
-            el.classList.add('audit-flag', tier);
-            var ttl = document.createElementNS('http://www.w3.org/2000/svg','title');
-            ttl.textContent = info.count + ' audit' + (info.count===1?'':'s') +
-              ' · last 30d' + (info.movements.length ? ' · ' + info.movements.slice(0,3).join(', ') : '');
-            el.appendChild(ttl);
-          });
-        }
-        function refreshSentinelFromAudits(){
-          if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchDamagedZones) return;
-          var uid = (typeof window.VC !== 'undefined' && window.VC) ? window.VC : (typeof window.CU !== 'undefined' ? window.CU : null);
-          if (!uid) return;
-          BBF_SYNC.fetchDamagedZones(uid).then(paintDamagedZones).catch(function(){});
-        }
-        window.SS_REFRESH_DAMAGED = refreshSentinelFromAudits;
-        // Initial paint — fires once on first script execution
-        try { refreshSentinelFromAudits(); } catch (e) {}
-      })();
-      </script>
-      <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-wo-title">Today&apos;s Program</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-wo-sub">Log your sets, reps &amp; weight</div></div>
-      <button onclick="if(typeof BBF_PREHAB!=='undefined')BBF_PREHAB.trigger(function(r){TOAST('🧪 Pre-Hab complete: '+r.area)})" style="width:100%;padding:.75rem;margin-bottom:1rem;background:transparent;border:2px solid #D4AF37;color:#D4AF37;font-family:var(--hb);font-size:.9rem;letter-spacing:3px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(212,175,55,.1)'" onmouseout="this.style.background='transparent'" data-lang-key="app-prehab-audit-btn">&#x1F9EA; PRE-HAB AUDIT &mdash; START HERE</button>
-      <!-- ═══ KINEMATIC FORM HUD ═══ Additive, self-contained UI. -->
-      <section class="kfh-scope" id="kfh-root" data-form="ok" aria-label="Kinematic Form HUD">
-        <span class="kfh-corner-tr" aria-hidden="true"></span>
-        <span class="kfh-corner-bl" aria-hidden="true"></span>
-        <div class="kfh-head">
-          <div>
-            <div class="kfh-tag" id="kfh-tag"><span class="kfh-dot"></span><span id="kfh-tag-text">Kinematic Form HUD &middot; Clinical</span></div>
-            <div class="kfh-title" id="kfh-title" style="margin-top:.3rem"><span id="kfh-title-prefix">Exercise</span> &middot; <span class="kfh-ex" id="kfh-ex-name"></span></div>
-            <div class="kfh-sub" id="kfh-sub-text"></div>
-            <div id="kfh-muscle-target" style="margin-top:.45rem;font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--yel);line-height:1.5">
-              <span style="color:rgba(255,255,255,.35)">Target &middot;</span>
-              <span id="kfh-muscle-target-text"></span>
-            </div>
-          </div>
-        </div>
-        <!-- Clinical Media Asset Slot — accepts external src (image or video). Empty state shows 'Awaiting Clinical Asset'. -->
-        <div class="kfh-media" id="kfh-media" data-empty="true"
-             style="position:relative;margin:.6rem 0 .8rem;border-radius:12px;overflow:hidden;aspect-ratio:16/9;border:1px solid rgba(245,200,0,.22);background:linear-gradient(180deg,#05070B 0%,#080910 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)">
-          <img id="kfh-media-img" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/>
-          <video id="kfh-media-video" playsinline muted loop style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
-          <div id="kfh-media-empty" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:.8rem;gap:.4rem;background:radial-gradient(120% 80% at 10% 10%,rgba(0,229,255,.10),transparent 55%),radial-gradient(120% 80% at 90% 90%,rgba(139,26,191,.28),transparent 55%)">
-            <div style="display:flex;align-items:center;gap:.5rem">
-              <span style="width:8px;height:8px;border-radius:50%;background:var(--yel);box-shadow:0 0 10px var(--yel);animation:kfhScan 2.4s ease-in-out infinite"></span>
-              <span style="font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.62rem;letter-spacing:.26em;text-transform:uppercase;color:var(--yel)">Awaiting Clinical Asset</span>
-            </div>
-            <div style="font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.38);max-width:260px;line-height:1.6" id="kfh-media-empty-sub">Sovereign review pipeline &middot; Architect will drop verified laboratory footage into this slot.</div>
-          </div>
-        </div>
-        <div class="kfh-seg" id="kfh-seg" data-view="render" role="tablist" aria-label="Primary view">
-          <div class="kfh-seg-slider" aria-hidden="true"></div>
-          <button type="button" class="kfh-seg-btn on" data-view="render" role="tab" aria-selected="true" onclick="KFH_SET_VIEW('render')">Bio-Render</button>
-          <button type="button" class="kfh-seg-btn"    data-view="cam"    role="tab" aria-selected="false" onclick="KFH_SET_VIEW('cam')">Coach Cam</button>
-        </div>
-        <!-- Bio-Render view -->
-        <div class="kfh-view on" id="kfh-view-render" role="tabpanel" aria-label="Bio-Render wireframe">
-          <div class="kfh-subseg" role="radiogroup" aria-label="Form mode">
-            <button type="button" class="kfh-chip on ok"   data-form="ok"   role="radio" aria-checked="true"  onclick="KFH_SET_FORM('ok')"><span class="kfh-pip"></span><span id="kfh-chip-ok-text">Standard Form</span></button>
-            <button type="button" class="kfh-chip warn"    data-form="warn" role="radio" aria-checked="false" onclick="KFH_SET_FORM('warn')"><span class="kfh-pip"></span><span id="kfh-chip-warn-text">Common Fault</span></button>
-          </div>
-          <div class="kfh-stage">
-            <svg id="kfh-svg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kfh-svg-title" role="img">
-              <title id="kfh-svg-title"></title>
-              <g id="kfh-svg-stage" aria-hidden="true"></g>
-            </svg>
-            <!-- Phase 13 · V3 Engine Swap · CEO directive
-                 The V3 WebGL canvas (#kfh-3d-stage) mounts INTO this
-                 .kfh-stage container when BBF_HOLOGRAM engages a
-                 piloted exercise. While V3 is active, #kfh-svg above
-                 is set to display:none. Retreat removes the canvas,
-                 disposes the WebGL context, and restores the SVG. -->
-          </div>
-          <div class="kfh-readout">
-            <div class="kfh-metric">
-              <div class="kfh-m-lbl" id="kfh-m-dev-lbl"></div>
-              <div class="kfh-m-val" id="kfh-m-dev"></div>
-            </div>
-            <div class="kfh-metric">
-              <div class="kfh-m-lbl" id="kfh-m-tuck-lbl"></div>
-              <div class="kfh-m-val" id="kfh-m-tuck"></div>
-            </div>
-            <div class="kfh-metric m-fault">
-              <div class="kfh-m-lbl" id="kfh-m-load-lbl"></div>
-              <div class="kfh-m-val" id="kfh-m-load"></div>
-            </div>
-          </div>
-          <div class="kfh-footnote">
-            <span id="kfh-fn"></span>
-            <span class="kfh-fn-bar" aria-hidden="true"></span>
-            <span>v1.0</span>
-          </div>
-          <!-- Dynamic clinical bioenergetic notes — swapped per exercise -->
-          <div id="kfh-clinical-notes" style="margin-top:.6rem;padding:.7rem .8rem;border-radius:10px;background:rgba(139,26,191,.06);border:1px solid rgba(139,26,191,.22);border-left:2px solid var(--purl);font-size:.74rem;line-height:1.55;color:rgba(255,255,255,.78)">
-            <div style="font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;color:var(--purl);margin-bottom:.35rem">Bioenergetic Notes</div>
-            <div id="kfh-clinical-notes-text"></div>
-          </div>
-        </div>
-        <!-- Coach Cam view -->
-        <div class="kfh-view" id="kfh-view-cam" role="tabpanel" aria-label="Coach Cam">
-          <div class="kfh-cam">
-            <div class="kfh-cam-brackets" aria-hidden="true">
-              <span class="tl"></span><span class="tr"></span>
-              <span class="bl"></span><span class="br"></span>
-            </div>
-            <div class="kfh-cam-core">
-              <div class="kfh-play" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+        <div id="clinical-tools-stack">
+          <div id="readiness-engine-module">
+          <!-- AUTONOMIC READINESS ENGINE (Phase 1 + Phase 2 Wearable Bridge) -->
+          <section class="are-card" id="are-card" data-tier="green" data-sync-state="idle" aria-label="Autonomic Readiness Engine">
+            <div class="are-head">
+              <div class="are-head-l">
+                <div class="are-tag">Autonomic Readiness Engine</div>
+                <div class="are-title">Autonomic Readiness</div>
+                <div class="are-sub">Wearable-Synced CNS Readiness</div>
               </div>
-              <div class="kfh-cam-label"><span class="kfh-c-gd">Akeem Brown</span> &middot; <span id="kfh-cam-label-text">Performance Laboratory Footage</span></div>
-              <div class="kfh-cam-sub"><span class="kfh-live"></span><span id="kfh-cam-sub-text">Awaiting Uplink</span></div>
+              <div class="are-score-wrap">
+                <div class="are-score"><span id="are-score-n">--</span><span class="pct">%</span></div>
+                <div class="are-score-l">Readiness</div>
+              </div>
             </div>
-            <div class="kfh-cam-meta">
-              <span class="kfh-cm-tag">REC &middot; 4K &middot; DJI Osmo</span>
-              <span class="kfh-cm-ch">CH &middot; Sovereign 01</span>
+
+            <!-- Phase 1 manual slider — retained in DOM as the BBF_ARE.set() sink, hidden by data-sync-state CSS in Phase 2 -->
+            <div class="are-slider-wrap">
+              <input type="range" min="0" max="100" value="50" step="1" class="are-range" id="are-range" aria-label="Simulated CNS Readiness Score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+              <div class="are-scale">
+                <span>Recovery</span><span>Moderate</span><span>Max Output</span>
+              </div>
+            </div>
+
+            <!-- Phase 2 Task 2: Sync Wearable CTA -->
+            <div class="are-sync-cta">
+              <button type="button" class="are-sync-btn" id="are-sync-btn" aria-label="Sync wearable device">
+                <span class="are-sync-ico" aria-hidden="true">&#x1F517;</span>Sync Wearable
+              </button>
+              <div class="are-sync-sub">Connect <b>Samsung Health</b>, <b>Apple Health</b>, <b>Garmin</b>, or <b>Oura</b></div>
+            </div>
+
+            <!-- Phase 2 Task 3: simulated OAuth overlay -->
+            <div class="are-overlay" id="are-overlay" role="status" aria-live="polite">
+              <div class="are-overlay-tag">Wearable API Bridge</div>
+              <div class="are-spinner-wrap">
+                <div class="are-spinner" aria-hidden="true"></div>
+                <div class="are-spinner-inner" aria-hidden="true"></div>
+              </div>
+              <div class="are-overlay-msg" id="are-overlay-msg">Authenticating via Terra API...</div>
+            </div>
+
+            <!-- Phase 1 readout (Phase 2 Task 6: surfaced after sync) -->
+            <div class="are-readout" id="are-readout" role="status" aria-live="polite">
+              <span class="are-dot" id="are-dot" aria-hidden="true"></span>
+              <span class="are-ind-label" id="are-ind-label">Max Output</span>
+              <span class="are-msg" id="are-msg">CNS Primed. Cleared for 85% 1RM Hypertrophy block.</span>
+            </div>
+            <button type="button" class="are-resync" id="are-resync" aria-label="Re-sync wearable">
+              <span class="are-resync-ico" aria-hidden="true">&#x21BB;</span>Re-Sync
+            </button>
+          </section>
+          </div>
+          <div id="bio-render-module">
+          <!-- ═══ KINEMATIC FORM HUD ═══ Additive, self-contained UI. -->
+          <section class="kfh-scope" id="kfh-root" data-form="ok" aria-label="Kinematic Form HUD">
+            <span class="kfh-corner-tr" aria-hidden="true"></span>
+            <span class="kfh-corner-bl" aria-hidden="true"></span>
+            <div class="kfh-head">
+              <div>
+                <div class="kfh-tag" id="kfh-tag"><span class="kfh-dot"></span><span id="kfh-tag-text">Kinematic Form HUD &middot; Clinical</span></div>
+                <div class="kfh-title" id="kfh-title" style="margin-top:.3rem"><span id="kfh-title-prefix">Exercise</span> &middot; <span class="kfh-ex" id="kfh-ex-name"></span></div>
+                <div class="kfh-sub" id="kfh-sub-text"></div>
+                <div id="kfh-muscle-target" style="margin-top:.45rem;font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--yel);line-height:1.5">
+                  <span style="color:rgba(255,255,255,.35)">Target &middot;</span>
+                  <span id="kfh-muscle-target-text"></span>
+                </div>
+              </div>
+            </div>
+            <!-- ═ WAR ROOM Phase 2 · #kfh-media (Awaiting Clinical Asset) and
+                 .kfh-seg (Bio-Render | Coach Cam tabs) NUKED per CEO directive.
+                 Bio-Render is now the sole view inside #kfh-root. Coach Cam
+                 panel below also removed. ═ -->
+            <!-- Bio-Render view -->
+            <div class="kfh-view on" id="kfh-view-render" role="tabpanel" aria-label="Bio-Render wireframe">
+              <div class="kfh-subseg" role="radiogroup" aria-label="Form mode">
+                <button type="button" class="kfh-chip on ok"   data-form="ok"   role="radio" aria-checked="true"  onclick="KFH_SET_FORM('ok')"><span class="kfh-pip"></span><span id="kfh-chip-ok-text">Standard Form</span></button>
+                <button type="button" class="kfh-chip warn"    data-form="warn" role="radio" aria-checked="false" onclick="KFH_SET_FORM('warn')"><span class="kfh-pip"></span><span id="kfh-chip-warn-text">Common Fault</span></button>
+              </div>
+              <div class="kfh-stage">
+                <svg id="kfh-svg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kfh-svg-title" role="img">
+                  <title id="kfh-svg-title"></title>
+                  <g id="kfh-svg-stage" aria-hidden="true"></g>
+                </svg>
+                <!-- Phase 13 · V3 Engine Swap · CEO directive
+                     The V3 WebGL canvas (#kfh-3d-stage) mounts INTO this
+                     .kfh-stage container when BBF_HOLOGRAM engages a
+                     piloted exercise. While V3 is active, #kfh-svg above
+                     is set to display:none. Retreat removes the canvas,
+                     disposes the WebGL context, and restores the SVG. -->
+              </div>
+              <div class="kfh-readout">
+                <div class="kfh-metric">
+                  <div class="kfh-m-lbl" id="kfh-m-dev-lbl"></div>
+                  <div class="kfh-m-val" id="kfh-m-dev"></div>
+                </div>
+                <div class="kfh-metric">
+                  <div class="kfh-m-lbl" id="kfh-m-tuck-lbl"></div>
+                  <div class="kfh-m-val" id="kfh-m-tuck"></div>
+                </div>
+                <div class="kfh-metric m-fault">
+                  <div class="kfh-m-lbl" id="kfh-m-load-lbl"></div>
+                  <div class="kfh-m-val" id="kfh-m-load"></div>
+                </div>
+              </div>
+              <div class="kfh-footnote">
+                <span id="kfh-fn"></span>
+                <span class="kfh-fn-bar" aria-hidden="true"></span>
+                <span>v1.0</span>
+              </div>
+              <!-- Dynamic clinical bioenergetic notes — swapped per exercise -->
+              <div id="kfh-clinical-notes" style="margin-top:.6rem;padding:.7rem .8rem;border-radius:10px;background:rgba(139,26,191,.06);border:1px solid rgba(139,26,191,.22);border-left:2px solid var(--purl);font-size:.74rem;line-height:1.55;color:rgba(255,255,255,.78)">
+                <div style="font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;color:var(--purl);margin-bottom:.35rem">Bioenergetic Notes</div>
+                <div id="kfh-clinical-notes-text"></div>
+              </div>
+            </div>
+            <!-- ═ WAR ROOM Phase 2 · #kfh-view-cam (Coach Cam panel) NUKED per
+                 CEO directive. setText() calls in the KFH script targeting
+                 #kfh-cam-label-text / #kfh-cam-sub-text become safe no-ops
+                 (byId returns null, setText is null-tolerant). ═ -->
+          </section>
+          <script>
+          /* Kinematic Form HUD — scoped toggles + dynamic exercise swap. No engine hooks. */
+          (function(){
+            if (window.KFH_SET_VIEW) return;
+            function byId(id){ return document.getElementById(id); }
+            function setText(id, v){ var el = byId(id); if (el) el.textContent = (v == null ? '' : v); }
+
+            /* Phase 12 catalog refactor: SVG templates, exercise definitions,
+               and the default fallback live in kfh-exercise-catalog.js
+               (loaded ahead of this script). The IIFE goes through the
+               catalog's getExercise/getDefault for all reads. */
+            function lookupExercise(name) {
+              return (typeof BBF_KFH_CATALOG !== 'undefined' && BBF_KFH_CATALOG.getExercise)
+                ? BBF_KFH_CATALOG.getExercise(name)
+                : null;
+            }
+            function getDefaultExercise() {
+              return (typeof BBF_KFH_CATALOG !== 'undefined' && BBF_KFH_CATALOG.getDefault)
+                ? BBF_KFH_CATALOG.getDefault()
+                : null;
+            }
+
+            /* Currently loaded exercise — KFH_SET_FORM reads its formStates. */
+            var currentExercise = null;
+            /* Active rAF animator handle — null when no exercise is animating
+               (legacy static entries) or after stop(). KFH_LOAD_EXERCISE
+               manages the lifecycle; KFH_SET_FORM forwards mode changes. */
+            var _kfhAnimHandle = null;
+
+            /* Phase 13 V3 Engine Swap note: the per-card "Kinetic Hologram"
+               button (BBF_HOLOGRAM.toggle in hologram-renderer.js) owns
+               the WebGL surface and mounts it into the main .kfh-stage
+               Bio-Render pane (V2 #kfh-svg is hidden while engaged). */
+
+            function setMedia(src, type){
+              var wrap = byId('kfh-media');
+              var img  = byId('kfh-media-img');
+              var vid  = byId('kfh-media-video');
+              var ph   = byId('kfh-media-empty');
+              if (!wrap) return;
+              if (!src){
+                wrap.setAttribute('data-empty','true');
+                if (img){ img.style.display='none'; img.removeAttribute('src'); img.alt=''; }
+                if (vid){ try{ vid.pause(); }catch(e){} vid.style.display='none'; vid.removeAttribute('src'); vid.load && vid.load(); }
+                if (ph)  ph.style.display='flex';
+                return;
+              }
+              wrap.setAttribute('data-empty','false');
+              if (ph) ph.style.display='none';
+              if ((type || 'image').toLowerCase() === 'video'){
+                if (img){ img.style.display='none'; img.removeAttribute('src'); }
+                if (vid){
+                  vid.style.display='block';
+                  if (vid.getAttribute('src') !== src) vid.setAttribute('src', src);
+                  vid.setAttribute('playsinline','');
+                  vid.muted = true;
+                  var p = vid.play && vid.play();
+                  if (p && p.catch) p.catch(function(){});
+                }
+              } else {
+                if (vid){ try{ vid.pause(); }catch(e){} vid.style.display='none'; vid.removeAttribute('src'); }
+                if (img){
+                  img.style.display='block';
+                  if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+                }
+              }
+            }
+
+            window.KFH_LOAD_EXERCISE = function(name){
+              console.log('[KFH] LOAD_EXERCISE invoked, name=', JSON.stringify(name));
+              var match = lookupExercise(name);
+              console.log('[KFH] lookupExercise →', match ? ('HIT: ' + (match.title || name)) : 'MISS — using catalog default');
+              var data  = match || getDefaultExercise() || {};
+              currentExercise = data;
+              var displayName = match
+                ? String(name).replace(/\b\w/g, function(c){ return c.toUpperCase(); })
+                : (data.title || name || 'Reference');
+
+              /* Header text */
+              setText('kfh-ex-name',             displayName);
+              setText('kfh-sub-text',            data.subtitle);
+              setText('kfh-muscle-target-text',  data.muscleTarget);
+              setText('kfh-clinical-notes-text', data.clinicalNotes);
+
+              /* SVG title + stage geometry — clearing innerHTML guarantees the
+                 previous exercise's geometry is removed before injection. */
+              setText('kfh-svg-title', data.svgTitle || (displayName + ' — Sagittal Biomechanical Wireframe'));
+              var stage = byId('kfh-svg-stage');
+              /* Stop any running animator before swapping the stage markup so
+                 rAF callbacks don't race the new SVG nodes. */
+              if (_kfhAnimHandle && typeof _kfhAnimHandle.stop === 'function') {
+                try { _kfhAnimHandle.stop(); } catch(e){}
+              }
+              _kfhAnimHandle = null;
+              if (stage) stage.innerHTML = data.svgMarkup || '';
+              /* Phase 12 — kick off the rAF engine for fully articulated
+                 Blueprint-derived exercises. Legacy static entries omit
+                 data.animation and stay frozen, preserving prior behavior. */
+              if (stage && data.animation && typeof BBF_KFH_ANIMATOR !== 'undefined' && BBF_KFH_ANIMATOR.start) {
+                var rootEl = byId('kfh-root');
+                var startMode = (rootEl && rootEl.getAttribute('data-form')) || 'ok';
+                try {
+                  _kfhAnimHandle = BBF_KFH_ANIMATOR.start(stage, data.animation, startMode);
+                } catch(e) {
+                  console.warn('[KFH] animator start failed:', e && e.message);
+                  _kfhAnimHandle = null;
+                }
+              }
+
+              /* Form-mode chip labels */
+              setText('kfh-chip-ok-text',   data.chipOkLabel   || 'Standard Form');
+              setText('kfh-chip-warn-text', data.chipWarnLabel || 'Common Fault');
+
+              /* Metric labels — values + footnote populated by KFH_SET_FORM. */
+              var labels = data.metricLabels || {};
+              setText('kfh-m-dev-lbl',  labels.dev);
+              setText('kfh-m-tuck-lbl', labels.tuck);
+              setText('kfh-m-load-lbl', labels.load);
+
+              /* Title attribute hook + Coach Cam labels (unchanged behavior) */
+              var elTitle = byId('kfh-title');
+              if (elTitle) elTitle.setAttribute('data-kfh-title', data.title || '');
+              setText('kfh-cam-label-text', displayName + ' · Laboratory Footage');
+              setText('kfh-cam-sub-text',   data.mediaSrc ? 'Live Uplink Engaged' : 'Awaiting Uplink');
+              setMedia(data.mediaSrc, data.mediaType);
+
+              /* Reset to standard form on every exercise swap. */
+              if (window.KFH_SET_FORM) window.KFH_SET_FORM('ok');
+            };
+
+            /* Helper for the render loop to wire exercise row clicks. */
+            window.KFH_BIND_EXERCISE_ROW = function(el, name){
+              if (!el || !name) return;
+              el.setAttribute('data-ex-name', name);
+              el.addEventListener('click', function(){
+                if (window.KFH_LOAD_EXERCISE) window.KFH_LOAD_EXERCISE(name);
+              });
+            };
+
+            window.KFH_SET_VIEW = function(view){
+              var seg = byId('kfh-seg'); if (!seg) return;
+              seg.setAttribute('data-view', view);
+              var btns = seg.querySelectorAll('.kfh-seg-btn');
+              for (var i=0;i<btns.length;i++){
+                var on = btns[i].getAttribute('data-view') === view;
+                btns[i].classList.toggle('on', on);
+                btns[i].setAttribute('aria-selected', on ? 'true' : 'false');
+              }
+              var r = byId('kfh-view-render'), c = byId('kfh-view-cam');
+              if (r) r.classList.toggle('on', view === 'render');
+              if (c) c.classList.toggle('on', view === 'cam');
+            };
+            window.KFH_SET_FORM = function(mode){
+              var root = byId('kfh-root'); if (!root) return;
+              if (mode !== 'ok' && mode !== 'warn') mode = 'ok';
+              root.setAttribute('data-form', mode);
+              var chips = root.querySelectorAll('.kfh-chip');
+              for (var i=0;i<chips.length;i++){
+                var on = chips[i].getAttribute('data-form') === mode;
+                chips[i].classList.toggle('on', on);
+                chips[i].setAttribute('aria-checked', on ? 'true' : 'false');
+              }
+              var ok = byId('kfh-callout-ok'), wn = byId('kfh-callout-warn');
+              if (ok) ok.style.display = (mode === 'ok')   ? '' : 'none';
+              if (wn) wn.style.display = (mode === 'warn') ? '' : 'none';
+
+              /* Forward mode change to the animator so warn-pattern joint
+                 overrides take effect immediately on chip toggle. */
+              if (_kfhAnimHandle && typeof _kfhAnimHandle.setMode === 'function') {
+                try { _kfhAnimHandle.setMode(mode); } catch(e){}
+              }
+
+              /* Pull metric/footnote values from the currently loaded exercise. */
+              var data  = currentExercise || getDefaultExercise() || {};
+              var state = (data.formStates && data.formStates[mode]) || {};
+              setText('kfh-m-dev',  state.dev);
+              setText('kfh-m-tuck', state.tuck);
+              setText('kfh-m-load', state.load);
+              setText('kfh-fn',     state.fn);
+            };
+
+            /* Bootstrap the HUD with the reference state so it never paints blank
+               before the user picks an exercise. RDW() will overwrite on click. */
+            try { window.KFH_LOAD_EXERCISE(''); } catch(e){}
+          })();
+          </script>
+          </div>
+          <div id="sovereign-sentinel-module">
+          <!-- SOVEREIGN SENTINEL — Occupational Load Map (Predictive Occupational Analytics) -->
+          <section class="ss-card" id="ss-card" data-profile="none" aria-label="Sovereign Sentinel Occupational Load Map">
+            <div class="ss-head">
+              <div class="ss-tag">Sovereign Sentinel &middot; Predictive Occupational Analytics</div>
+              <div class="ss-title">Sovereign Sentinel: Occupational Load Map</div>
+              <div class="ss-sub">3D Degeneration Heatmap &middot; Clinical Antidote Engine</div>
+            </div>
+            <div class="ss-field">
+              <span class="ss-lbl" id="ss-pills-lbl">Dynamic Kinematic Intake &middot; Tap All That Apply</span>
+              <div class="ss-pills" id="ss-pills" role="group" aria-labelledby="ss-pills-lbl">
+                <button type="button" class="ss-pill" data-symptom="lumbar" role="checkbox" aria-checked="false">Lumbar/Lower Back Ache</button>
+                <button type="button" class="ss-pill" data-symptom="knee"   role="checkbox" aria-checked="false">Knee Joint Shear</button>
+                <button type="button" class="ss-pill" data-symptom="neck"   role="checkbox" aria-checked="false">Stiff Neck/Upper Traps</button>
+                <button type="button" class="ss-pill" data-symptom="foot"   role="checkbox" aria-checked="false">Foot/Plantar Ache</button>
+                <button type="button" class="ss-pill" data-symptom="hip"    role="checkbox" aria-checked="false">Hip Flexor Tightness</button>
+              </div>
+            </div>
+            <div class="ss-body">
+              <div class="ss-stage" aria-label="Occupational degeneration wireframe">
+                <span class="ss-stage-lbl">Anterior &middot; 3D Heatmap</span>
+                <span class="ss-stage-lbl r">Sentinel</span>
+                <svg class="ss-svg" viewBox="0 0 260 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ss-svg-title">
+                  <title id="ss-svg-title">Forward-facing human wireframe with occupational degeneration zones</title>
+                  <!-- Calibration grid frame -->
+                  <g class="ss-wf ss-wf-dim">
+                    <line x1="20" y1="20" x2="20" y2="340"/>
+                    <line x1="240" y1="20" x2="240" y2="340"/>
+                    <line x1="20" y1="340" x2="240" y2="340"/>
+                  </g>
+                  <!-- Centerline plumb -->
+                  <line class="ss-wf ss-wf-dim" x1="130" y1="20" x2="130" y2="340" stroke-dasharray="3 5"/>
+                  <!-- Degeneration zones (rendered behind skeleton so the wireframe reads on top) -->
+                  <g id="ss-zones">
+                    <!-- Cervical spine (C1-C7) -->
+                    <ellipse class="ss-zone" id="ss-z-cervical" cx="130" cy="66" rx="9" ry="14"/>
+                    <!-- Upper shoulders / trapezius (dual, symmetric) -->
+                    <ellipse class="ss-zone" id="ss-z-shoulders-l" cx="104" cy="92" rx="16" ry="9"/>
+                    <ellipse class="ss-zone" id="ss-z-shoulders-r" cx="156" cy="92" rx="16" ry="9"/>
+                    <!-- Lumbar spine (L4/L5) -->
+                    <ellipse class="ss-zone" id="ss-z-lumbar" cx="130" cy="168" rx="14" ry="16"/>
+                    <!-- Hip flexors (iliopsoas, bilateral) -->
+                    <ellipse class="ss-zone" id="ss-z-hip-l" cx="116" cy="196" rx="10" ry="12"/>
+                    <ellipse class="ss-zone" id="ss-z-hip-r" cx="144" cy="196" rx="10" ry="12"/>
+                    <!-- Knees (patellofemoral) -->
+                    <circle class="ss-zone" id="ss-z-knee-l" cx="112" cy="256" r="10"/>
+                    <circle class="ss-zone" id="ss-z-knee-r" cx="148" cy="256" r="10"/>
+                    <!-- Feet / Plantar fascia -->
+                    <ellipse class="ss-zone" id="ss-z-foot-l" cx="108" cy="328" rx="12" ry="6"/>
+                    <ellipse class="ss-zone" id="ss-z-foot-r" cx="152" cy="328" rx="12" ry="6"/>
+                  </g>
+                  <!-- Human wireframe (anterior / forward-facing) -->
+                  <g class="ss-wf">
+                    <!-- Head -->
+                    <circle cx="130" cy="44" r="18"/>
+                    <!-- Neck -->
+                    <line x1="130" y1="62" x2="130" y2="78"/>
+                    <!-- Clavicle / shoulder line -->
+                    <line x1="92" y1="92" x2="168" y2="92"/>
+                    <!-- Torso sides -->
+                    <line x1="94" y1="94" x2="104" y2="180"/>
+                    <line x1="166" y1="94" x2="156" y2="180"/>
+                    <!-- Sternum / spine indicator -->
+                    <line x1="130" y1="80" x2="130" y2="180" stroke-dasharray="2 4"/>
+                    <!-- Pelvis -->
+                    <path d="M104 180 Q130 196 156 180 L152 210 Q130 220 108 210 Z"/>
+                    <!-- Upper arms -->
+                    <line x1="92" y1="94" x2="78" y2="160"/>
+                    <line x1="168" y1="94" x2="182" y2="160"/>
+                    <!-- Forearms -->
+                    <line x1="78" y1="160" x2="70" y2="220"/>
+                    <line x1="182" y1="160" x2="190" y2="220"/>
+                    <!-- Hands -->
+                    <circle cx="70" cy="226" r="4"/>
+                    <circle cx="190" cy="226" r="4"/>
+                    <!-- Thighs -->
+                    <line x1="114" y1="214" x2="112" y2="256"/>
+                    <line x1="146" y1="214" x2="148" y2="256"/>
+                    <!-- Shins -->
+                    <line x1="112" y1="256" x2="108" y2="320"/>
+                    <line x1="148" y1="256" x2="152" y2="320"/>
+                    <!-- Feet -->
+                    <line x1="96" y1="328" x2="120" y2="328"/>
+                    <line x1="140" y1="328" x2="164" y2="328"/>
+                  </g>
+                  <!-- Joints for premium read -->
+                  <g>
+                    <circle class="ss-joint" cx="92" cy="92" r="3"/>
+                    <circle class="ss-joint" cx="168" cy="92" r="3"/>
+                    <circle class="ss-joint" cx="78" cy="160" r="2.5"/>
+                    <circle class="ss-joint" cx="182" cy="160" r="2.5"/>
+                    <circle class="ss-joint" cx="114" cy="214" r="3"/>
+                    <circle class="ss-joint" cx="146" cy="214" r="3"/>
+                    <circle class="ss-joint" cx="112" cy="256" r="2.5"/>
+                    <circle class="ss-joint" cx="148" cy="256" r="2.5"/>
+                  </g>
+                </svg>
+              </div>
+              <div class="ss-antidote" id="ss-antidote" role="status" aria-live="polite">
+                <div class="ss-ant-tag"><span class="ss-ant-dot" aria-hidden="true"></span><span id="ss-ant-tag">Sentinel Standby</span></div>
+                <div class="ss-ant-title" id="ss-ant-title">Clinical Antidote</div>
+                <div class="ss-ant-msg" id="ss-ant-msg">Tap the regions above that feel compressed or restricted to map your degeneration zones and unlock your prescribed decompression protocol.</div>
+              </div>
+            </div>
+          </section>
+          <script>
+          /* Sovereign Sentinel — Dynamic Kinematic Intake. Multi-select pill toggle drives SVG zones + concatenated antidote. */
+          (function(){
+            if (window.SS_TOGGLE_SYMPTOM) return;
+            var SYMPTOMS = {
+              lumbar: { zones:['ss-z-lumbar'],                                      antidote:'Mandating 4-min Pallof Press & Dead Bugs.' },
+              knee:   { zones:['ss-z-knee-l','ss-z-knee-r'],                        antidote:'Mandating 3-min Terminal Knee Extensions (TKEs).' },
+              neck:   { zones:['ss-z-cervical','ss-z-shoulders-l','ss-z-shoulders-r'], antidote:'Mandating 2-min Cervical Retraction holds.' },
+              foot:   { zones:['ss-z-foot-l','ss-z-foot-r'],                        antidote:'Mandating 2-min Plantar fascia rolling.' },
+              hip:    { zones:['ss-z-hip-l','ss-z-hip-r'],                          antidote:'Mandating 3-min Couch Stretch.' }
+            };
+            var ORDER = ['lumbar','knee','neck','foot','hip'];
+            var active = Object.create(null);
+            function clearZones(){
+              var zones = document.querySelectorAll('#ss-zones .ss-zone');
+              for (var i=0;i<zones.length;i++) zones[i].classList.remove('glow');
+            }
+            function render(){
+              var tag = document.getElementById('ss-ant-tag');
+              var ttl = document.getElementById('ss-ant-title');
+              var msg = document.getElementById('ss-ant-msg');
+              clearZones();
+              var keys = [];
+              for (var i=0;i<ORDER.length;i++) if (active[ORDER[i]]) keys.push(ORDER[i]);
+              if (!keys.length){
+                if (tag) tag.textContent = 'Sentinel Standby';
+                if (ttl) ttl.textContent = 'Clinical Antidote';
+                if (msg) msg.textContent = 'Tap the regions above that feel compressed or restricted to map your degeneration zones and unlock your prescribed decompression protocol.';
+                return;
+              }
+              var parts = [];
+              for (var j=0;j<keys.length;j++){
+                var sym = SYMPTOMS[keys[j]]; if (!sym) continue;
+                for (var k=0;k<sym.zones.length;k++){
+                  var el = document.getElementById(sym.zones[k]);
+                  if (el) el.classList.add('glow');
+                }
+                parts.push(sym.antidote);
+              }
+              if (tag) tag.textContent = 'Sentinel Warning';
+              if (ttl) ttl.textContent = keys.length === 1 ? 'Prescribed Decompression' : 'Multi-Zone Decompression Stack';
+              if (msg) msg.textContent = parts.join(' ');
+            }
+            function toggleSymptom(key, pillEl){
+              if (!SYMPTOMS[key]) return;
+              active[key] = !active[key];
+              if (pillEl){
+                pillEl.classList.toggle('on', !!active[key]);
+                pillEl.setAttribute('aria-checked', active[key] ? 'true' : 'false');
+              }
+              render();
+            }
+            window.SS_TOGGLE_SYMPTOM = toggleSymptom;
+            var pills = document.querySelectorAll('#ss-pills .ss-pill');
+            for (var i=0;i<pills.length;i++){
+              (function(p){
+                p.addEventListener('click', function(){ toggleSymptom(p.getAttribute('data-symptom'), p); });
+                p.addEventListener('keydown', function(e){
+                  if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggleSymptom(p.getAttribute('data-symptom'), p); }
+                });
+              })(pills[i]);
+            }
+            // Sentinel — persistent overlay sourced from bbf_audit_logs (last 30d)
+            function clearAuditFlags(){
+              var zones = document.querySelectorAll('#ss-zones .ss-zone');
+              for (var i=0;i<zones.length;i++){
+                var z = zones[i];
+                z.classList.remove('audit-flag','tier-1','tier-2','tier-3');
+                var t = z.querySelector('title'); if (t) z.removeChild(t);
+              }
+            }
+            function paintDamagedZones(damagedMap){
+              clearAuditFlags();
+              if (!damagedMap) return;
+              Object.keys(damagedMap).forEach(function(svgId){
+                var el = document.getElementById(svgId); if (!el) return;
+                var info = damagedMap[svgId] || { count:0, movements:[] };
+                var tier = info.count >= 4 ? 'tier-3' : info.count >= 2 ? 'tier-2' : 'tier-1';
+                el.classList.add('audit-flag', tier);
+                var ttl = document.createElementNS('http://www.w3.org/2000/svg','title');
+                ttl.textContent = info.count + ' audit' + (info.count===1?'':'s') +
+                  ' · last 30d' + (info.movements.length ? ' · ' + info.movements.slice(0,3).join(', ') : '');
+                el.appendChild(ttl);
+              });
+            }
+            function refreshSentinelFromAudits(){
+              if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchDamagedZones) return;
+              var uid = (typeof window.VC !== 'undefined' && window.VC) ? window.VC : (typeof window.CU !== 'undefined' ? window.CU : null);
+              if (!uid) return;
+              BBF_SYNC.fetchDamagedZones(uid).then(paintDamagedZones).catch(function(){});
+            }
+            window.SS_REFRESH_DAMAGED = refreshSentinelFromAudits;
+            // Initial paint — fires once on first script execution
+            try { refreshSentinelFromAudits(); } catch (e) {}
+          })();
+          </script>
+          </div>
+          <div id="phantom-eye-module">
+          <!-- ═ WAR ROOM Phase 1 · Action 2 (hotfix) — Phantom Eye + Virtual
+               Coach surfaced as visible blocks at the TOP of the Program tab,
+               sitting between #are-card (Autonomic Readiness) and #ss-card
+               (Sovereign Sentinel Occupational Load Map). Previous attempt
+               buried these inside #ap-protocol ~700 lines below the fold — the
+               "vanished module" Big Jim flagged. This slot is direct child of
+               #tp-workout, no display:none parents, no [data-state] gates. ═ -->
+          <!-- PHANTOM EYE — Live AI Coach hub (Phase 15 Slice 1) -->
+          <div id="phantom-eye" class="pe-widget">
+            <div class="pe-head">
+              <div class="pe-label" data-lang-key="pe-label">&#x1F441; Phantom Eye Viewport &middot; Live Biomechanical &amp; Nutritional Analysis</div>
+              <div class="pe-status-badge" id="pe-status-badge" data-lang-key="pe-badge-idle">Idle</div>
+            </div>
+            <div class="pe-frame" id="pe-frame">
+              <span class="pe-bracket pe-bracket--tl" aria-hidden="true"></span>
+              <span class="pe-bracket pe-bracket--tr" aria-hidden="true"></span>
+              <span class="pe-bracket pe-bracket--bl" aria-hidden="true"></span>
+              <span class="pe-bracket pe-bracket--br" aria-hidden="true"></span>
+              <div class="pe-scanline" aria-hidden="true"></div>
+              <div class="pe-hero" id="pe-hero">
+                <div class="pe-hero-eye" aria-hidden="true">&#x1F441;</div>
+                <div class="pe-hero-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
+                <div class="pe-hero-title" data-lang-key="pe-hero-title">Real-time form audit + nutrition vision</div>
+                <div class="pe-hero-sub" data-lang-key="pe-hero-sub">Stream your camera to the BBF Intelligence Engine. Instant biomechanical cues + macro estimates from what you're holding, lifting, or eating.</div>
+                <!-- Phase 15 Slice 9 — Phantom Eye CTA is now a single full-
+                     width button. The Virtual Coach button has migrated to
+                     its own section below the widget (where the deprecated
+                     Comlink launcher used to live) so the two AI activation
+                     paths each get a thumb-friendly mobile target. -->
+                <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="pe-init-vision-btn" onclick="initLiveCoach('vision')">
+                  <span class="pe-init-icon" aria-hidden="true">&#x1F441;&#xFE0F;</span>
+                  <span class="pe-init-label" data-lang-key="pe-init-vision">BBF Phantom Eye</span>
+                  <span class="pe-init-sub"   data-lang-key="pe-init-vision-sub">Live Vision Check</span>
+                </button>
+              </div>
             </div>
           </div>
-          <div class="kfh-cam-foot">
-            <div class="kfh-metric">
-              <div class="kfh-m-lbl">Signal</div>
-              <div class="kfh-m-val">Encrypted</div>
-            </div>
-            <div class="kfh-metric">
-              <div class="kfh-m-lbl">Bitrate</div>
-              <div class="kfh-m-val">-- Mbps</div>
-            </div>
-            <div class="kfh-metric">
-              <div class="kfh-m-lbl">ETA</div>
-              <div class="kfh-m-val">&lt; 24 h</div>
-            </div>
-          </div>
-          <div class="kfh-footnote" style="margin-top:.65rem">
-            <span>Sovereign review pipeline &middot; Cyan / Gold / Purple channel</span>
-            <span class="kfh-fn-bar" aria-hidden="true"></span>
-            <span>v1.0</span>
+          <!-- BBF VIRTUAL COACH — full-width audio-only CTA. -->
+          <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="pe-init-voice-btn" onclick="initLiveCoach('voice')">
+            <span class="pe-init-icon" aria-hidden="true">&#x1F3A4;</span>
+            <span class="pe-init-label" data-lang-key="pe-init-voice">BBF Virtual Coach</span>
+            <span class="pe-init-sub"   data-lang-key="pe-init-voice-sub">Audio Only</span>
+          </button>
           </div>
         </div>
-      </section>
-      <script>
-      /* Kinematic Form HUD — scoped toggles + dynamic exercise swap. No engine hooks. */
-      (function(){
-        if (window.KFH_SET_VIEW) return;
-        function byId(id){ return document.getElementById(id); }
-        function setText(id, v){ var el = byId(id); if (el) el.textContent = (v == null ? '' : v); }
-
-        /* Phase 12 catalog refactor: SVG templates, exercise definitions,
-           and the default fallback live in kfh-exercise-catalog.js
-           (loaded ahead of this script). The IIFE goes through the
-           catalog's getExercise/getDefault for all reads. */
-        function lookupExercise(name) {
-          return (typeof BBF_KFH_CATALOG !== 'undefined' && BBF_KFH_CATALOG.getExercise)
-            ? BBF_KFH_CATALOG.getExercise(name)
-            : null;
-        }
-        function getDefaultExercise() {
-          return (typeof BBF_KFH_CATALOG !== 'undefined' && BBF_KFH_CATALOG.getDefault)
-            ? BBF_KFH_CATALOG.getDefault()
-            : null;
-        }
-
-        /* Currently loaded exercise — KFH_SET_FORM reads its formStates. */
-        var currentExercise = null;
-        /* Active rAF animator handle — null when no exercise is animating
-           (legacy static entries) or after stop(). KFH_LOAD_EXERCISE
-           manages the lifecycle; KFH_SET_FORM forwards mode changes. */
-        var _kfhAnimHandle = null;
-
-        /* Phase 13 V3 Engine Swap note: the per-card "Kinetic Hologram"
-           button (BBF_HOLOGRAM.toggle in hologram-renderer.js) owns
-           the WebGL surface and mounts it into the main .kfh-stage
-           Bio-Render pane (V2 #kfh-svg is hidden while engaged). */
-
-        function setMedia(src, type){
-          var wrap = byId('kfh-media');
-          var img  = byId('kfh-media-img');
-          var vid  = byId('kfh-media-video');
-          var ph   = byId('kfh-media-empty');
-          if (!wrap) return;
-          if (!src){
-            wrap.setAttribute('data-empty','true');
-            if (img){ img.style.display='none'; img.removeAttribute('src'); img.alt=''; }
-            if (vid){ try{ vid.pause(); }catch(e){} vid.style.display='none'; vid.removeAttribute('src'); vid.load && vid.load(); }
-            if (ph)  ph.style.display='flex';
-            return;
-          }
-          wrap.setAttribute('data-empty','false');
-          if (ph) ph.style.display='none';
-          if ((type || 'image').toLowerCase() === 'video'){
-            if (img){ img.style.display='none'; img.removeAttribute('src'); }
-            if (vid){
-              vid.style.display='block';
-              if (vid.getAttribute('src') !== src) vid.setAttribute('src', src);
-              vid.setAttribute('playsinline','');
-              vid.muted = true;
-              var p = vid.play && vid.play();
-              if (p && p.catch) p.catch(function(){});
-            }
-          } else {
-            if (vid){ try{ vid.pause(); }catch(e){} vid.style.display='none'; vid.removeAttribute('src'); }
-            if (img){
-              img.style.display='block';
-              if (img.getAttribute('src') !== src) img.setAttribute('src', src);
-            }
-          }
-        }
-
-        window.KFH_LOAD_EXERCISE = function(name){
-          console.log('[KFH] LOAD_EXERCISE invoked, name=', JSON.stringify(name));
-          var match = lookupExercise(name);
-          console.log('[KFH] lookupExercise →', match ? ('HIT: ' + (match.title || name)) : 'MISS — using catalog default');
-          var data  = match || getDefaultExercise() || {};
-          currentExercise = data;
-          var displayName = match
-            ? String(name).replace(/\b\w/g, function(c){ return c.toUpperCase(); })
-            : (data.title || name || 'Reference');
-
-          /* Header text */
-          setText('kfh-ex-name',             displayName);
-          setText('kfh-sub-text',            data.subtitle);
-          setText('kfh-muscle-target-text',  data.muscleTarget);
-          setText('kfh-clinical-notes-text', data.clinicalNotes);
-
-          /* SVG title + stage geometry — clearing innerHTML guarantees the
-             previous exercise's geometry is removed before injection. */
-          setText('kfh-svg-title', data.svgTitle || (displayName + ' — Sagittal Biomechanical Wireframe'));
-          var stage = byId('kfh-svg-stage');
-          /* Stop any running animator before swapping the stage markup so
-             rAF callbacks don't race the new SVG nodes. */
-          if (_kfhAnimHandle && typeof _kfhAnimHandle.stop === 'function') {
-            try { _kfhAnimHandle.stop(); } catch(e){}
-          }
-          _kfhAnimHandle = null;
-          if (stage) stage.innerHTML = data.svgMarkup || '';
-          /* Phase 12 — kick off the rAF engine for fully articulated
-             Blueprint-derived exercises. Legacy static entries omit
-             data.animation and stay frozen, preserving prior behavior. */
-          if (stage && data.animation && typeof BBF_KFH_ANIMATOR !== 'undefined' && BBF_KFH_ANIMATOR.start) {
-            var rootEl = byId('kfh-root');
-            var startMode = (rootEl && rootEl.getAttribute('data-form')) || 'ok';
-            try {
-              _kfhAnimHandle = BBF_KFH_ANIMATOR.start(stage, data.animation, startMode);
-            } catch(e) {
-              console.warn('[KFH] animator start failed:', e && e.message);
-              _kfhAnimHandle = null;
-            }
-          }
-
-          /* Form-mode chip labels */
-          setText('kfh-chip-ok-text',   data.chipOkLabel   || 'Standard Form');
-          setText('kfh-chip-warn-text', data.chipWarnLabel || 'Common Fault');
-
-          /* Metric labels — values + footnote populated by KFH_SET_FORM. */
-          var labels = data.metricLabels || {};
-          setText('kfh-m-dev-lbl',  labels.dev);
-          setText('kfh-m-tuck-lbl', labels.tuck);
-          setText('kfh-m-load-lbl', labels.load);
-
-          /* Title attribute hook + Coach Cam labels (unchanged behavior) */
-          var elTitle = byId('kfh-title');
-          if (elTitle) elTitle.setAttribute('data-kfh-title', data.title || '');
-          setText('kfh-cam-label-text', displayName + ' · Laboratory Footage');
-          setText('kfh-cam-sub-text',   data.mediaSrc ? 'Live Uplink Engaged' : 'Awaiting Uplink');
-          setMedia(data.mediaSrc, data.mediaType);
-
-          /* Reset to standard form on every exercise swap. */
-          if (window.KFH_SET_FORM) window.KFH_SET_FORM('ok');
-        };
-
-        /* Helper for the render loop to wire exercise row clicks. */
-        window.KFH_BIND_EXERCISE_ROW = function(el, name){
-          if (!el || !name) return;
-          el.setAttribute('data-ex-name', name);
-          el.addEventListener('click', function(){
-            if (window.KFH_LOAD_EXERCISE) window.KFH_LOAD_EXERCISE(name);
-          });
-        };
-
-        window.KFH_SET_VIEW = function(view){
-          var seg = byId('kfh-seg'); if (!seg) return;
-          seg.setAttribute('data-view', view);
-          var btns = seg.querySelectorAll('.kfh-seg-btn');
-          for (var i=0;i<btns.length;i++){
-            var on = btns[i].getAttribute('data-view') === view;
-            btns[i].classList.toggle('on', on);
-            btns[i].setAttribute('aria-selected', on ? 'true' : 'false');
-          }
-          var r = byId('kfh-view-render'), c = byId('kfh-view-cam');
-          if (r) r.classList.toggle('on', view === 'render');
-          if (c) c.classList.toggle('on', view === 'cam');
-        };
-        window.KFH_SET_FORM = function(mode){
-          var root = byId('kfh-root'); if (!root) return;
-          if (mode !== 'ok' && mode !== 'warn') mode = 'ok';
-          root.setAttribute('data-form', mode);
-          var chips = root.querySelectorAll('.kfh-chip');
-          for (var i=0;i<chips.length;i++){
-            var on = chips[i].getAttribute('data-form') === mode;
-            chips[i].classList.toggle('on', on);
-            chips[i].setAttribute('aria-checked', on ? 'true' : 'false');
-          }
-          var ok = byId('kfh-callout-ok'), wn = byId('kfh-callout-warn');
-          if (ok) ok.style.display = (mode === 'ok')   ? '' : 'none';
-          if (wn) wn.style.display = (mode === 'warn') ? '' : 'none';
-
-          /* Forward mode change to the animator so warn-pattern joint
-             overrides take effect immediately on chip toggle. */
-          if (_kfhAnimHandle && typeof _kfhAnimHandle.setMode === 'function') {
-            try { _kfhAnimHandle.setMode(mode); } catch(e){}
-          }
-
-          /* Pull metric/footnote values from the currently loaded exercise. */
-          var data  = currentExercise || getDefaultExercise() || {};
-          var state = (data.formStates && data.formStates[mode]) || {};
-          setText('kfh-m-dev',  state.dev);
-          setText('kfh-m-tuck', state.tuck);
-          setText('kfh-m-load', state.load);
-          setText('kfh-fn',     state.fn);
-        };
-
-        /* Bootstrap the HUD with the reference state so it never paints blank
-           before the user picks an exercise. RDW() will overwrite on click. */
-        try { window.KFH_LOAD_EXERCISE(''); } catch(e){}
-      })();
-      </script>
-      <!-- PROGRAM PANE -->
-      <div id="vault-program-pane">
-        <div class="dnav" id="dnav"></div>
-        <div id="wcon"></div>
       </div>
     </div>
     <!-- NUTRITION -->
