@@ -881,6 +881,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 
 /* ═══ AUDITOR ════════════════════════════════════════════════ */
 .aud-btn{font-family:var(--hb);font-size:.65rem;letter-spacing:2px;background:transparent;border:1px solid #D4AF37;color:#D4AF37;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all .2s;margin-top:.4rem;display:inline-block}.aud-btn:hover{background:rgba(212,175,55,.12)}
+/* WAR ROOM Phase 4 — adjacent helper text for the Kinetic Hologram button. */
+.kh-hint{display:inline-block;margin-left:.5rem;font-family:'Menlo','Courier New',ui-monospace,monospace;font-size:.62rem;letter-spacing:.12em;color:rgba(255,255,255,.55);opacity:.7;vertical-align:middle}
 .aud-opt{display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1rem;background:var(--gry);border:1px solid var(--gry3);border-radius:10px;cursor:pointer;transition:all .2s;border:none}.aud-opt:hover{background:rgba(212,175,55,.1);outline:1px solid #D4AF37}
 .aud-opt-icon{font-size:1.8rem}.aud-opt-label{font-size:.75rem;font-weight:700;letter-spacing:1px;color:var(--wht)}
 
@@ -2962,115 +2964,46 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   }
 </script>
 <script>
-  // Phase 13 / B3-3 Option B · HARDWIRED CLICK INTERCEPT
+  // WAR ROOM Phase 4 · Kinetic Hologram button rewired to a smooth
+  // scroll to the Bio-Render module (#bio-render-module). The V3 WebGL
+  // engine was parked, so toggling it just fell back to the V1 Sentinel
+  // stick figure — which is the same stick figure Phase 4 nuked. The
+  // button now scrolls users to the actual biomechanical wireframe.
   //
-  // The KINETIC HOLOGRAM button on each exercise card now calls
-  // KFH_BUTTON_CLICK(this) directly — a single top-level entry
-  // point we own end-to-end. The first thing it does on every
-  // click is log [KFH-BTN] CLICK so we can prove the click
-  // reached the handler regardless of whether BBF_HOLOGRAM
-  // loaded, and regardless of any silent-noop guards around it.
-  //
-  // Defined as a regular <script> (not type="module") so it's
-  // synchronous and available before the program-pane render
-  // bakes onclick="KFH_BUTTON_CLICK(this)" into every card.
-  (function () {
-    console.log('%c[KFH-BTN] hardwired click intercept registered',
-                'color:#22C55E;font-weight:bold');
-
-    // Single source of truth for the per-card KINETIC HOLOGRAM click.
-    // Both the inline onclick path AND the document-level delegated
-    // listener funnel here, so we always log + always toggle even if
-    // inline handlers are stripped by sanitization/CSP, or if some
-    // ancestor handler tries to swallow the event.
-    function _invokeHologram(btn, source) {
-      var holoId     = btn && btn.dataset && btn.dataset.kfhHolo;
-      var exerciseId = btn && btn.dataset && btn.dataset.kfhExname;
-      // ★ MANDATORY DIAGNOSTIC — first line, no guards above it. ★
-      console.log("HOLOGRAM BUTTON CLICKED - EXERCISE:", exerciseId);
-      console.log('%c[KFH-BTN] CLICK · src=' + source + ' · holo=' + holoId +
-                  ' · exercise=' + JSON.stringify(exerciseId),
-                  'color:#f5c800;font-weight:bold');
-      // Dedup: the inline onclick AND the document-level delegated
-      // listener both fire for the same physical click. Without this
-      // guard BBF_HOLOGRAM.toggle() runs twice — second call tears
-      // down the canvas the first init is painting into, leaving an
-      // empty stage and pushing the user back to the V2 Sentinel.
-      // Diagnostic log above intentionally fires before this guard
-      // so the CLI still proves capture from both code paths.
-      if (btn) {
-        var now = (typeof performance !== 'undefined' && performance.now)
-          ? performance.now() : Date.now();
-        if (btn.__kfhLastFire != null && (now - btn.__kfhLastFire) < 250) {
-          console.log('[KFH-BTN] coalesced duplicate fire (src=' + source +
-                      ', dt=' + Math.round(now - btn.__kfhLastFire) + 'ms)');
-          return;
-        }
-        btn.__kfhLastFire = now;
-      }
-      if (!holoId || !exerciseId) {
-        console.warn('[KFH-BTN] missing data attrs · holo=' + holoId + ' name=' + exerciseId);
-        return;
-      }
-      if (typeof BBF_HOLOGRAM === 'undefined' || !BBF_HOLOGRAM.toggle) {
-        console.warn('[KFH-BTN] BBF_HOLOGRAM unavailable at click time — script load order or load failure');
-        return;
-      }
+  // Big Jim's vanilla-JS template adapted from per-button (single ID)
+  // to global helper because there are N Kinetic Hologram buttons (one
+  // per exercise card, rendered dynamically into #wcon). Each button's
+  // inline onclick now calls BBF_HOLOGRAM_SCROLL().
+  window.BBF_HOLOGRAM_SCROLL = function () {
+    var bioRenderTarget = document.getElementById('bio-render-module');
+    if (bioRenderTarget && bioRenderTarget.scrollIntoView) {
       try {
-        // BBF_HOLOGRAM.toggle handles V3 engage / retreat (incl.
-        // renderer.dispose() on close) and the trilingual EN/ES/PT
-        // overlay attach via _attachOverlay().
-        BBF_HOLOGRAM.toggle(holoId, exerciseId);
+        bioRenderTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch (e) {
-        console.warn('[KFH-BTN] toggle threw:', e && e.message);
+        // Fallback for older browsers that don't accept the options object
+        try { bioRenderTarget.scrollIntoView(true); } catch (e2) {}
       }
     }
+  };
 
-    // Path 1 — inline onclick="KFH_BUTTON_CLICK(this)" baked into
-    // every exercise card's KINETIC HOLOGRAM button (see render at
-    // ~line 8946: aud-btn[data-kfh-holo][data-kfh-exname]).
-    window.KFH_BUTTON_CLICK = function (btn) {
-      _invokeHologram(btn, 'inline-onclick');
-    };
+  // V3 hologram handler retained as a defensive no-op so any legacy
+  // inline onclick=KFH_BUTTON_CLICK(this) that survived a cached render
+  // routes to the scroll instead of an undefined-function error.
+  window.KFH_BUTTON_CLICK = function () { window.BBF_HOLOGRAM_SCROLL(); };
 
-    // Path 2 — defensive document-level delegated listener in the
-    // capture phase. Fires even if the inline onclick attribute was
-    // stripped (CSP, sanitizer, framework re-render) or if an
-    // ancestor click handler swallowed the bubble. The exercise-card
-    // header (.eh) has its own onclick="TEX(this)" — using capture
-    // phase + a class+dataset selector keeps this listener scoped to
-    // the hologram button only and ahead of any bubble-phase
-    // interference.
-    document.addEventListener('click', function (ev) {
-      var btn = ev.target && ev.target.closest
-        ? ev.target.closest('.aud-btn[data-kfh-holo][data-kfh-exname]')
-        : null;
-      if (!btn) return;
-      // Stop the click from also collapsing the parent .eb card via
-      // TEX(this) on .eh — same guarantee the inline handler made
-      // with event.stopPropagation().
-      ev.stopPropagation();
-      _invokeHologram(btn, 'delegated-capture');
-    }, true);
-
-    // Mandatory: when the V3 modal/card retreats, dispose the WebGL
-    // context. _retreat3D() inside hologram-renderer.js already calls
-    // BBF_KFH_3D_RENDERER.dispose(); this listener is a belt-and-
-    // suspenders teardown for the case where the user navigates away
-    // (route change, tab hide) without clicking the button again.
-    function _disposeIfActive(reason) {
-      if (typeof BBF_HOLOGRAM === 'undefined' || !BBF_HOLOGRAM._retreat3D) {
-        if (window.BBF_KFH_3D_RENDERER && window.BBF_KFH_3D_RENDERER.dispose) {
-          try { window.BBF_KFH_3D_RENDERER.dispose(); } catch (e) {}
-        }
-        return;
-      }
-      try { BBF_HOLOGRAM._retreat3D(reason); } catch (e) {}
-    }
-    document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'hidden') _disposeIfActive('tab-hidden');
-    });
-    window.addEventListener('pagehide', function () { _disposeIfActive('page-hide'); });
+  // Phase 13 V3 click-intercept block (delegated capture + visibility
+  // teardown) removed — its only consumer was the now-replaced inline
+  // onclick path. WebGL teardown listeners (visibilitychange / pagehide)
+  // are no longer needed since the V3 engine never engages from this
+  // surface.
+  (function () {
+    // Stub kept for the rare case a hot module reload still references
+    // _invokeHologram via window scope — routes to scroll, no-op safe.
+    function _invokeHologram() { window.BBF_HOLOGRAM_SCROLL(); }
+    // Legacy delegated capture-phase click intercept + WebGL teardown
+    // listeners removed. The Kinetic Hologram button no longer toggles
+    // a WebGL canvas, so visibilitychange / pagehide dispose hooks have
+    // nothing to tear down here.
   })();
 </script>
 <script src="bbf-translator.js"></script>
@@ -6047,208 +5980,11 @@ window.onload=function(){
           })();
           </script>
           </div>
-          <div id="sovereign-sentinel-module">
-          <!-- SOVEREIGN SENTINEL — Occupational Load Map (Predictive Occupational Analytics) -->
-          <section class="ss-card" id="ss-card" data-profile="none" aria-label="Sovereign Sentinel Occupational Load Map">
-            <div class="ss-head">
-              <div class="ss-tag">Sovereign Sentinel &middot; Predictive Occupational Analytics</div>
-              <div class="ss-title">Sovereign Sentinel: Occupational Load Map</div>
-              <div class="ss-sub">3D Degeneration Heatmap &middot; Clinical Antidote Engine</div>
-            </div>
-            <div class="ss-field">
-              <span class="ss-lbl" id="ss-pills-lbl">Dynamic Kinematic Intake &middot; Tap All That Apply</span>
-              <div class="ss-pills" id="ss-pills" role="group" aria-labelledby="ss-pills-lbl">
-                <button type="button" class="ss-pill" data-symptom="lumbar" role="checkbox" aria-checked="false">Lumbar/Lower Back Ache</button>
-                <button type="button" class="ss-pill" data-symptom="knee"   role="checkbox" aria-checked="false">Knee Joint Shear</button>
-                <button type="button" class="ss-pill" data-symptom="neck"   role="checkbox" aria-checked="false">Stiff Neck/Upper Traps</button>
-                <button type="button" class="ss-pill" data-symptom="foot"   role="checkbox" aria-checked="false">Foot/Plantar Ache</button>
-                <button type="button" class="ss-pill" data-symptom="hip"    role="checkbox" aria-checked="false">Hip Flexor Tightness</button>
-              </div>
-            </div>
-            <div class="ss-body">
-              <div class="ss-stage" aria-label="Occupational degeneration wireframe">
-                <span class="ss-stage-lbl">Anterior &middot; 3D Heatmap</span>
-                <span class="ss-stage-lbl r">Sentinel</span>
-                <svg class="ss-svg" viewBox="0 0 260 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ss-svg-title">
-                  <title id="ss-svg-title">Forward-facing human wireframe with occupational degeneration zones</title>
-                  <!-- Calibration grid frame -->
-                  <g class="ss-wf ss-wf-dim">
-                    <line x1="20" y1="20" x2="20" y2="340"/>
-                    <line x1="240" y1="20" x2="240" y2="340"/>
-                    <line x1="20" y1="340" x2="240" y2="340"/>
-                  </g>
-                  <!-- Centerline plumb -->
-                  <line class="ss-wf ss-wf-dim" x1="130" y1="20" x2="130" y2="340" stroke-dasharray="3 5"/>
-                  <!-- Degeneration zones (rendered behind skeleton so the wireframe reads on top) -->
-                  <g id="ss-zones">
-                    <!-- Cervical spine (C1-C7) -->
-                    <ellipse class="ss-zone" id="ss-z-cervical" cx="130" cy="66" rx="9" ry="14"/>
-                    <!-- Upper shoulders / trapezius (dual, symmetric) -->
-                    <ellipse class="ss-zone" id="ss-z-shoulders-l" cx="104" cy="92" rx="16" ry="9"/>
-                    <ellipse class="ss-zone" id="ss-z-shoulders-r" cx="156" cy="92" rx="16" ry="9"/>
-                    <!-- Lumbar spine (L4/L5) -->
-                    <ellipse class="ss-zone" id="ss-z-lumbar" cx="130" cy="168" rx="14" ry="16"/>
-                    <!-- Hip flexors (iliopsoas, bilateral) -->
-                    <ellipse class="ss-zone" id="ss-z-hip-l" cx="116" cy="196" rx="10" ry="12"/>
-                    <ellipse class="ss-zone" id="ss-z-hip-r" cx="144" cy="196" rx="10" ry="12"/>
-                    <!-- Knees (patellofemoral) -->
-                    <circle class="ss-zone" id="ss-z-knee-l" cx="112" cy="256" r="10"/>
-                    <circle class="ss-zone" id="ss-z-knee-r" cx="148" cy="256" r="10"/>
-                    <!-- Feet / Plantar fascia -->
-                    <ellipse class="ss-zone" id="ss-z-foot-l" cx="108" cy="328" rx="12" ry="6"/>
-                    <ellipse class="ss-zone" id="ss-z-foot-r" cx="152" cy="328" rx="12" ry="6"/>
-                  </g>
-                  <!-- Human wireframe (anterior / forward-facing) -->
-                  <g class="ss-wf">
-                    <!-- Head -->
-                    <circle cx="130" cy="44" r="18"/>
-                    <!-- Neck -->
-                    <line x1="130" y1="62" x2="130" y2="78"/>
-                    <!-- Clavicle / shoulder line -->
-                    <line x1="92" y1="92" x2="168" y2="92"/>
-                    <!-- Torso sides -->
-                    <line x1="94" y1="94" x2="104" y2="180"/>
-                    <line x1="166" y1="94" x2="156" y2="180"/>
-                    <!-- Sternum / spine indicator -->
-                    <line x1="130" y1="80" x2="130" y2="180" stroke-dasharray="2 4"/>
-                    <!-- Pelvis -->
-                    <path d="M104 180 Q130 196 156 180 L152 210 Q130 220 108 210 Z"/>
-                    <!-- Upper arms -->
-                    <line x1="92" y1="94" x2="78" y2="160"/>
-                    <line x1="168" y1="94" x2="182" y2="160"/>
-                    <!-- Forearms -->
-                    <line x1="78" y1="160" x2="70" y2="220"/>
-                    <line x1="182" y1="160" x2="190" y2="220"/>
-                    <!-- Hands -->
-                    <circle cx="70" cy="226" r="4"/>
-                    <circle cx="190" cy="226" r="4"/>
-                    <!-- Thighs -->
-                    <line x1="114" y1="214" x2="112" y2="256"/>
-                    <line x1="146" y1="214" x2="148" y2="256"/>
-                    <!-- Shins -->
-                    <line x1="112" y1="256" x2="108" y2="320"/>
-                    <line x1="148" y1="256" x2="152" y2="320"/>
-                    <!-- Feet -->
-                    <line x1="96" y1="328" x2="120" y2="328"/>
-                    <line x1="140" y1="328" x2="164" y2="328"/>
-                  </g>
-                  <!-- Joints for premium read -->
-                  <g>
-                    <circle class="ss-joint" cx="92" cy="92" r="3"/>
-                    <circle class="ss-joint" cx="168" cy="92" r="3"/>
-                    <circle class="ss-joint" cx="78" cy="160" r="2.5"/>
-                    <circle class="ss-joint" cx="182" cy="160" r="2.5"/>
-                    <circle class="ss-joint" cx="114" cy="214" r="3"/>
-                    <circle class="ss-joint" cx="146" cy="214" r="3"/>
-                    <circle class="ss-joint" cx="112" cy="256" r="2.5"/>
-                    <circle class="ss-joint" cx="148" cy="256" r="2.5"/>
-                  </g>
-                </svg>
-              </div>
-              <div class="ss-antidote" id="ss-antidote" role="status" aria-live="polite">
-                <div class="ss-ant-tag"><span class="ss-ant-dot" aria-hidden="true"></span><span id="ss-ant-tag">Sentinel Standby</span></div>
-                <div class="ss-ant-title" id="ss-ant-title">Clinical Antidote</div>
-                <div class="ss-ant-msg" id="ss-ant-msg">Tap the regions above that feel compressed or restricted to map your degeneration zones and unlock your prescribed decompression protocol.</div>
-              </div>
-            </div>
-          </section>
-          <script>
-          /* Sovereign Sentinel — Dynamic Kinematic Intake. Multi-select pill toggle drives SVG zones + concatenated antidote. */
-          (function(){
-            if (window.SS_TOGGLE_SYMPTOM) return;
-            var SYMPTOMS = {
-              lumbar: { zones:['ss-z-lumbar'],                                      antidote:'Mandating 4-min Pallof Press & Dead Bugs.' },
-              knee:   { zones:['ss-z-knee-l','ss-z-knee-r'],                        antidote:'Mandating 3-min Terminal Knee Extensions (TKEs).' },
-              neck:   { zones:['ss-z-cervical','ss-z-shoulders-l','ss-z-shoulders-r'], antidote:'Mandating 2-min Cervical Retraction holds.' },
-              foot:   { zones:['ss-z-foot-l','ss-z-foot-r'],                        antidote:'Mandating 2-min Plantar fascia rolling.' },
-              hip:    { zones:['ss-z-hip-l','ss-z-hip-r'],                          antidote:'Mandating 3-min Couch Stretch.' }
-            };
-            var ORDER = ['lumbar','knee','neck','foot','hip'];
-            var active = Object.create(null);
-            function clearZones(){
-              var zones = document.querySelectorAll('#ss-zones .ss-zone');
-              for (var i=0;i<zones.length;i++) zones[i].classList.remove('glow');
-            }
-            function render(){
-              var tag = document.getElementById('ss-ant-tag');
-              var ttl = document.getElementById('ss-ant-title');
-              var msg = document.getElementById('ss-ant-msg');
-              clearZones();
-              var keys = [];
-              for (var i=0;i<ORDER.length;i++) if (active[ORDER[i]]) keys.push(ORDER[i]);
-              if (!keys.length){
-                if (tag) tag.textContent = 'Sentinel Standby';
-                if (ttl) ttl.textContent = 'Clinical Antidote';
-                if (msg) msg.textContent = 'Tap the regions above that feel compressed or restricted to map your degeneration zones and unlock your prescribed decompression protocol.';
-                return;
-              }
-              var parts = [];
-              for (var j=0;j<keys.length;j++){
-                var sym = SYMPTOMS[keys[j]]; if (!sym) continue;
-                for (var k=0;k<sym.zones.length;k++){
-                  var el = document.getElementById(sym.zones[k]);
-                  if (el) el.classList.add('glow');
-                }
-                parts.push(sym.antidote);
-              }
-              if (tag) tag.textContent = 'Sentinel Warning';
-              if (ttl) ttl.textContent = keys.length === 1 ? 'Prescribed Decompression' : 'Multi-Zone Decompression Stack';
-              if (msg) msg.textContent = parts.join(' ');
-            }
-            function toggleSymptom(key, pillEl){
-              if (!SYMPTOMS[key]) return;
-              active[key] = !active[key];
-              if (pillEl){
-                pillEl.classList.toggle('on', !!active[key]);
-                pillEl.setAttribute('aria-checked', active[key] ? 'true' : 'false');
-              }
-              render();
-            }
-            window.SS_TOGGLE_SYMPTOM = toggleSymptom;
-            var pills = document.querySelectorAll('#ss-pills .ss-pill');
-            for (var i=0;i<pills.length;i++){
-              (function(p){
-                p.addEventListener('click', function(){ toggleSymptom(p.getAttribute('data-symptom'), p); });
-                p.addEventListener('keydown', function(e){
-                  if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggleSymptom(p.getAttribute('data-symptom'), p); }
-                });
-              })(pills[i]);
-            }
-            // Sentinel — persistent overlay sourced from bbf_audit_logs (last 30d)
-            function clearAuditFlags(){
-              var zones = document.querySelectorAll('#ss-zones .ss-zone');
-              for (var i=0;i<zones.length;i++){
-                var z = zones[i];
-                z.classList.remove('audit-flag','tier-1','tier-2','tier-3');
-                var t = z.querySelector('title'); if (t) z.removeChild(t);
-              }
-            }
-            function paintDamagedZones(damagedMap){
-              clearAuditFlags();
-              if (!damagedMap) return;
-              Object.keys(damagedMap).forEach(function(svgId){
-                var el = document.getElementById(svgId); if (!el) return;
-                var info = damagedMap[svgId] || { count:0, movements:[] };
-                var tier = info.count >= 4 ? 'tier-3' : info.count >= 2 ? 'tier-2' : 'tier-1';
-                el.classList.add('audit-flag', tier);
-                var ttl = document.createElementNS('http://www.w3.org/2000/svg','title');
-                ttl.textContent = info.count + ' audit' + (info.count===1?'':'s') +
-                  ' · last 30d' + (info.movements.length ? ' · ' + info.movements.slice(0,3).join(', ') : '');
-                el.appendChild(ttl);
-              });
-            }
-            function refreshSentinelFromAudits(){
-              if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchDamagedZones) return;
-              var uid = (typeof window.VC !== 'undefined' && window.VC) ? window.VC : (typeof window.CU !== 'undefined' ? window.CU : null);
-              if (!uid) return;
-              BBF_SYNC.fetchDamagedZones(uid).then(paintDamagedZones).catch(function(){});
-            }
-            window.SS_REFRESH_DAMAGED = refreshSentinelFromAudits;
-            // Initial paint — fires once on first script execution
-            try { refreshSentinelFromAudits(); } catch (e) {}
-          })();
-          </script>
-          </div>
+          <!-- ═ WAR ROOM Phase 4 · #sovereign-sentinel-module NUKED entirely.
+               Static stick figure / wearable placeholder was causing user
+               friction. Will be reinstated when wearable integration is
+               live; until then this slot stays empty. Sentinel inline script
+               and #ss-card markup removed with it. ═ -->
           <div id="phantom-eye-module">
           <!-- ═ WAR ROOM Phase 1 · Action 2 (hotfix) — Phantom Eye + Virtual
                Coach surfaced as visible blocks at the TOP of the Program tab,
@@ -10478,8 +10214,12 @@ function RDW() {
       '<div class="em">' + exEquip + ' &middot; ' + exSets + ' sets &times; ' + exReps + '</div></div>' +
       '<div class="ec">&#9662;</div></div><div class="ebody">';
     h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){if(typeof LOG_AUDIT_ENTRY===\'function\')LOG_AUDIT_ENTRY(\'' + uid + '\',r);TOAST(\'🧪 Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
-    h += ' <button class="aud-btn" data-kfh-holo="holo-' + ei + '" data-kfh-exname="' + ex.name.replace(/"/g,'&quot;') + '" onclick="event.stopPropagation();KFH_BUTTON_CLICK(this);">&#x1F4D0; KINETIC HOLOGRAM</button>';
-    h += '<div id="holo-' + ei + '" style="position:relative;width:100%;height:180px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;margin-top:.5rem;overflow:hidden;display:flex;align-items:center;justify-content:center"><span style="font-size:.7rem;color:#333;letter-spacing:2px">HOLOGRAM VIEWPORT</span></div>';
+    // WAR ROOM Phase 4 · Kinetic Hologram button rewired to scroll the user
+    // to #bio-render-module instead of toggling the parked V3 WebGL engine.
+    // The empty #holo-N viewport div + "HOLOGRAM VIEWPORT" placeholder is
+    // gone — dead UI without the V3 toggle.
+    h += ' <button class="aud-btn" data-kfh-holo="holo-' + ei + '" data-kfh-exname="' + ex.name.replace(/"/g,'&quot;') + '" onclick="event.stopPropagation();BBF_HOLOGRAM_SCROLL();">&#x1F4D0; KINETIC HOLOGRAM</button>';
+    h += '<span class="kh-hint" aria-hidden="true">Tap to jump to Bio-Render</span>';
     // RPE Commander — Sovereign Target Banner
     if (typeof BBF_RPE !== 'undefined' && sv.length > 0 && sv[0].w) {
       var lastW = parseFloat(sv[0].w) || 0;
