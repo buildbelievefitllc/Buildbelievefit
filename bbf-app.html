@@ -5457,6 +5457,22 @@ window.onload=function(){
   <div class="tc">
     <!-- HOME -->
     <div class="tp on" id="tp-home">
+      <!-- ═ WAR ROOM Phase 1 · Action 1 — Client Nameplate elevated to absolute
+           top of #tp-home (was buried below the Phantom Eye widget at ~L5673).
+           Big Jim audit confirmed no positional dependencies; #hname is
+           populated via getElementById and is DOM-position-agnostic. ═ -->
+      <div class="hero">
+        <div class="hg" data-lang-key="app-welcome">Welcome back</div>
+        <div class="hn" id="hname">&#8212;</div>
+        <div id="protocol-badge" style="display:none;align-items:center;gap:.4rem;background:rgba(245,200,0,.1);border:1px solid rgba(245,200,0,.25);border-radius:20px;padding:.28rem .8rem;margin:.35rem 0;width:fit-content">
+          <span id="protocol-icon" style="font-size:.8rem"></span>
+          <span id="protocol-label" style="font-family:var(--hb);font-size:.72rem;letter-spacing:2px;color:var(--yel)"></span>
+        </div>
+        <div class="hm" id="hmeta"></div>
+        <div class="home-ready" id="home-readiness" style="display:none"></div>
+        <div style="display:flex;align-items:center;gap:.4rem;margin-top:.3rem"><div style="width:6px;height:6px;border-radius:50%;background:#22c55e"></div><span style="font-size:.6rem;font-weight:700;letter-spacing:1px;color:var(--mut)" data-lang-key="app-sync-status">Data Secured in the Lab</span></div>
+        <div class="stk"><div class="stn" id="hstreak">0</div><div class="stl">Streak &#x1F525;</div></div>
+      </div>
       <div id="trswitch" style="display:none">
         <div class="csw">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
@@ -5617,45 +5633,10 @@ window.onload=function(){
           <button class="seq-dismiss" id="seq-dismiss-btn" type="button" data-lang-key="seq-dismiss">Acknowledge &amp; Continue with Caution</button>
         </div>
       </div>
-      <!-- PHANTOM EYE — Live AI Coach hub (Phase 15 Slice 1) -->
-      <div id="phantom-eye" class="pe-widget">
-        <div class="pe-head">
-          <div class="pe-label" data-lang-key="pe-label">&#x1F441; Phantom Eye Viewport &middot; Live Biomechanical &amp; Nutritional Analysis</div>
-          <div class="pe-status-badge" id="pe-status-badge" data-lang-key="pe-badge-idle">Idle</div>
-        </div>
-        <div class="pe-frame" id="pe-frame">
-          <span class="pe-bracket pe-bracket--tl" aria-hidden="true"></span>
-          <span class="pe-bracket pe-bracket--tr" aria-hidden="true"></span>
-          <span class="pe-bracket pe-bracket--bl" aria-hidden="true"></span>
-          <span class="pe-bracket pe-bracket--br" aria-hidden="true"></span>
-          <div class="pe-scanline" aria-hidden="true"></div>
-          <div class="pe-hero" id="pe-hero">
-            <div class="pe-hero-eye" aria-hidden="true">&#x1F441;</div>
-            <div class="pe-hero-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
-            <div class="pe-hero-title" data-lang-key="pe-hero-title">Real-time form audit + nutrition vision</div>
-            <div class="pe-hero-sub" data-lang-key="pe-hero-sub">Stream your camera to the BBF Intelligence Engine. Instant biomechanical cues + macro estimates from what you're holding, lifting, or eating.</div>
-            <!-- Phase 15 Slice 9 — Phantom Eye CTA is now a single full-
-                 width button. The Virtual Coach button has migrated to
-                 its own section below the widget (where the deprecated
-                 Comlink launcher used to live) so the two AI activation
-                 paths each get a thumb-friendly mobile target. -->
-            <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="pe-init-vision-btn" onclick="initLiveCoach('vision')">
-              <span class="pe-init-icon" aria-hidden="true">&#x1F441;&#xFE0F;</span>
-              <span class="pe-init-label" data-lang-key="pe-init-vision">BBF Phantom Eye</span>
-              <span class="pe-init-sub"   data-lang-key="pe-init-vision-sub">Live Vision Check</span>
-            </button>
-          </div>
-        </div>
-      </div>
-      <!-- BBF VIRTUAL COACH — full-width audio-only CTA. Lives in the
-           slot vacated by the Phantom Comlink launcher (Phase 15 Slice 9
-           deprecation). Same indigo→purple chassis as the bifurcated
-           grid version, expanded to full width. -->
-      <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="pe-init-voice-btn" onclick="initLiveCoach('voice')">
-        <span class="pe-init-icon" aria-hidden="true">&#x1F3A4;</span>
-        <span class="pe-init-label" data-lang-key="pe-init-voice">BBF Virtual Coach</span>
-        <span class="pe-init-sub"   data-lang-key="pe-init-voice-sub">Audio Only</span>
-      </button>
+      <!-- ═ WAR ROOM Phase 1 · Action 2 — Phantom Eye + Virtual Coach
+           buttons relocated to the Clinical Protocol section in #tp-workout
+           (#ap-protocol). Both DOM blocks removed from this slot to declutter
+           the dashboard hierarchy. ═ -->
       <!-- PLAYER CARD -->
       <div id="player-card" style="display:none;background:linear-gradient(135deg,#0d0015,#1a0030);border:2px solid #D4AF37;border-radius:14px;padding:1.2rem;margin-bottom:1rem;position:relative;overflow:hidden">
         <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6a0dad,#D4AF37)"></div>
@@ -5670,18 +5651,9 @@ window.onload=function(){
           <div><div style="display:flex;justify-content:space-between;margin-bottom:.25rem"><span style="font-size:.6rem;font-weight:700;letter-spacing:2px;color:#3b82f6">DISCIPLINE</span><span style="font-family:var(--hb);font-size:.85rem;color:#3b82f6" id="pc-discipline">70</span></div><div style="height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden"><div id="pc-discipline-bar" style="height:100%;background:#3b82f6;border-radius:2px;width:70%;transition:width .5s"></div></div></div>
         </div>
       </div>
-      <div class="hero">
-        <div class="hg" data-lang-key="app-welcome">Welcome back</div>
-        <div class="hn" id="hname">&#8212;</div>
-        <div id="protocol-badge" style="display:none;align-items:center;gap:.4rem;background:rgba(245,200,0,.1);border:1px solid rgba(245,200,0,.25);border-radius:20px;padding:.28rem .8rem;margin:.35rem 0;width:fit-content">
-          <span id="protocol-icon" style="font-size:.8rem"></span>
-          <span id="protocol-label" style="font-family:var(--hb);font-size:.72rem;letter-spacing:2px;color:var(--yel)"></span>
-        </div>
-        <div class="hm" id="hmeta"></div>
-        <div class="home-ready" id="home-readiness" style="display:none"></div>
-        <div style="display:flex;align-items:center;gap:.4rem;margin-top:.3rem"><div style="width:6px;height:6px;border-radius:50%;background:#22c55e"></div><span style="font-size:.6rem;font-weight:700;letter-spacing:1px;color:var(--mut)" data-lang-key="app-sync-status">Data Secured in the Lab</span></div>
-        <div class="stk"><div class="stn" id="hstreak">0</div><div class="stl">Streak &#x1F525;</div></div>
-      </div>
+      <!-- ═ WAR ROOM Phase 1 · Action 1 — .hero relocated to first child of
+           #tp-home (above). Original position below the Phantom Eye widget
+           was the buried-hierarchy issue Big Jim flagged. ═ -->
       <div class="sg">
         <div class="sc"><div class="sv" id="qtot">0</div><div class="sl" data-lang-key="app-total-sessions">Total Sessions</div></div>
         <div class="sc y"><div class="sv" id="qwk">0</div><div class="sl" data-lang-key="app-this-week">This Week</div></div>
@@ -6505,6 +6477,56 @@ window.onload=function(){
             <h2 class="ap-protocol-title" id="ap-protocol-title">Awaiting Selection</h2>
             <p class="ap-protocol-meta" id="ap-protocol-meta">Choose your sport, position, and season phase to unlock your protocol.</p>
           </div>
+          <!-- ═ WAR ROOM Phase 1 · Action 2 — Phantom Eye + Virtual Coach
+               relocated INTO the Clinical Protocol section (was middle of the
+               main client dashboard). Sits between the protocol head and the
+               protocol body, filling the underutilized vertical space Big Jim
+               flagged. Camera-API bindings are unaffected:
+                 - initLiveCoach() targets #phantom-eye-stream-modal (top-level)
+                 - getUserMedia stream lands in modal video, not #phantom-eye
+                 - All CSS for #phantom-eye uses descendant selectors, position-
+                   independent.
+               #ap-protocol-head, body, grid, progression gate, and Form HUD
+               are preserved entirely below this block. ═ -->
+          <!-- PHANTOM EYE — Live AI Coach hub (Phase 15 Slice 1) -->
+          <div id="phantom-eye" class="pe-widget">
+            <div class="pe-head">
+              <div class="pe-label" data-lang-key="pe-label">&#x1F441; Phantom Eye Viewport &middot; Live Biomechanical &amp; Nutritional Analysis</div>
+              <div class="pe-status-badge" id="pe-status-badge" data-lang-key="pe-badge-idle">Idle</div>
+            </div>
+            <div class="pe-frame" id="pe-frame">
+              <span class="pe-bracket pe-bracket--tl" aria-hidden="true"></span>
+              <span class="pe-bracket pe-bracket--tr" aria-hidden="true"></span>
+              <span class="pe-bracket pe-bracket--bl" aria-hidden="true"></span>
+              <span class="pe-bracket pe-bracket--br" aria-hidden="true"></span>
+              <div class="pe-scanline" aria-hidden="true"></div>
+              <div class="pe-hero" id="pe-hero">
+                <div class="pe-hero-eye" aria-hidden="true">&#x1F441;</div>
+                <div class="pe-hero-kicker" data-lang-key="pe-hero-kicker">Multimodal AI Coach</div>
+                <div class="pe-hero-title" data-lang-key="pe-hero-title">Real-time form audit + nutrition vision</div>
+                <div class="pe-hero-sub" data-lang-key="pe-hero-sub">Stream your camera to the BBF Intelligence Engine. Instant biomechanical cues + macro estimates from what you're holding, lifting, or eating.</div>
+                <!-- Phase 15 Slice 9 — Phantom Eye CTA is now a single full-
+                     width button. The Virtual Coach button has migrated to
+                     its own section below the widget (where the deprecated
+                     Comlink launcher used to live) so the two AI activation
+                     paths each get a thumb-friendly mobile target. -->
+                <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="pe-init-vision-btn" onclick="initLiveCoach('vision')">
+                  <span class="pe-init-icon" aria-hidden="true">&#x1F441;&#xFE0F;</span>
+                  <span class="pe-init-label" data-lang-key="pe-init-vision">BBF Phantom Eye</span>
+                  <span class="pe-init-sub"   data-lang-key="pe-init-vision-sub">Live Vision Check</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- BBF VIRTUAL COACH — full-width audio-only CTA. Lives in the
+               slot vacated by the Phantom Comlink launcher (Phase 15 Slice 9
+               deprecation). Same indigo→purple chassis as the bifurcated
+               grid version, expanded to full width. -->
+          <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="pe-init-voice-btn" onclick="initLiveCoach('voice')">
+            <span class="pe-init-icon" aria-hidden="true">&#x1F3A4;</span>
+            <span class="pe-init-label" data-lang-key="pe-init-voice">BBF Virtual Coach</span>
+            <span class="pe-init-sub"   data-lang-key="pe-init-voice-sub">Audio Only</span>
+          </button>
           <div class="ap-protocol-body" id="ap-protocol-body">
             <div class="ap-protocol-empty" id="ap-protocol-empty">
               <div class="ap-protocol-empty-ic" aria-hidden="true">&#x1F512;</div>
