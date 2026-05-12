@@ -100,36 +100,35 @@ var WP = {
     {day:'Day 6',focus:'Rest',exercises:[],isRest:true,restNote:'Active recovery. Hydration and stretching.'},
     {day:'Day 7',focus:'Rest',exercises:[],isRest:true,restNote:'Complete rest.'}
   ],
-  suzanna_plan: [
-    {day:'Day 1',focus:'Full Leg Day',exercises:[
-      {name:'Leg Press',equipment:'Machine',sets:3,reps:'12',notes:'Start 170-175 lbs'},
-      {name:'Bulgarian Split Squats',equipment:'Dumbbells',sets:3,reps:'12',notes:'Chest up — balance and depth'},
-      {name:'Leg Extensions',equipment:'Machine',sets:3,reps:'12',notes:'50 lbs — squeeze quads'},
-      {name:'Hamstring Curls',equipment:'Machine (Lying)',sets:3,reps:'12',notes:'60 lbs — full ROM'},
-      {name:'Seated Calf Raises',equipment:'Machine',sets:3,reps:'15',notes:'30 lbs — slow on the way down'}
+  jacque_plan: [
+    {day:'Day 1',focus:'Push + Core — Chest, Shoulders, Triceps & Upper Abs',exercises:[
+      {name:'Dumbbell Chest Press',equipment:'Dumbbells',sets:3,reps:'12',notes:'Controlled tempo — feel the chest stretch at the bottom'},
+      {name:'Dumbbell Overhead Press',equipment:'Dumbbells',sets:3,reps:'12',notes:'Core tight, no arching the lower back'},
+      {name:'Tricep Cable Pushdowns',equipment:'Cable',sets:3,reps:'15',notes:'Pin elbows to ribs, extend fully at the bottom'},
+      {name:'Incline Pushups',equipment:'Bodyweight (bench or wall)',sets:3,reps:'To failure',notes:'Flat back — pace yourself across sets'},
+      {name:'Planks',equipment:'Bodyweight',sets:3,reps:'45 sec hold',notes:'Ribcage down, glutes engaged, breathe through the brace'},
+      {name:'Deadbugs',equipment:'Bodyweight',sets:3,reps:'15',notes:'Focus on ribcage down throughout — slow, controlled, no flaring'}
     ]},
-    {day:'Day 2',focus:'Upper Body Push',exercises:[
-      {name:'DB Chest Press',equipment:'Dumbbells',sets:3,reps:'12',notes:'Elbows at 45 degrees'},
-      {name:'DB Shoulder Press',equipment:'Dumbbells',sets:3,reps:'12',notes:'Control the negative'},
-      {name:'Lateral Raises',equipment:'Dumbbells',sets:3,reps:'15',notes:'Lead with elbows'},
-      {name:'Tricep Pushdowns',equipment:'Cable',sets:3,reps:'12',notes:'Pin elbows to ribs'}
+    {day:'Day 2',focus:'Pull + Core — Back, Biceps & Obliques',exercises:[
+      {name:'Lat Pulldowns',equipment:'Machine',sets:3,reps:'12',notes:'Drive elbows down, lean back slightly'},
+      {name:'Seated Cable Rows',equipment:'Cable',sets:3,reps:'12',notes:'Squeeze shoulder blades together at the top'},
+      {name:'Dumbbell Bicep Curls',equipment:'Dumbbells',sets:3,reps:'12',notes:'No swinging — strict, controlled form'},
+      {name:'Face Pulls',equipment:'Cable',sets:3,reps:'15',notes:'Pull toward the forehead, elbows high — rear-delt focus'},
+      {name:'Bird-Dogs',equipment:'Bodyweight',sets:3,reps:'12 per side',notes:'Opposite arm + leg — pause at full extension, ribs locked'},
+      {name:'Russian Twists',equipment:'Bodyweight or light DB',sets:3,reps:'20',notes:'Rotate from the obliques, not the arms'}
     ]},
-    {day:'Day 3',focus:'Glute Focus',exercises:[
-      {name:'Smith Machine Hip Thrusts',equipment:'Smith Machine',sets:4,reps:'12',notes:'2-second squeeze at the top'},
-      {name:'DB Romanian Deadlifts',equipment:'Dumbbells',sets:3,reps:'12',notes:'Feel the hamstring stretch'},
-      {name:'Cable Kickbacks',equipment:'Cable',sets:3,reps:'15',notes:'Straight leg — glute squeeze'},
-      {name:'Hip Abduction Machine',equipment:'Machine',sets:3,reps:'20',notes:'Slow and controlled'},
-      {name:'Glute-Bias Back Extensions',equipment:'Machine',sets:3,reps:'15',notes:'Rounded upper back'}
+    {day:'Day 3',focus:'Legs + Core — Glutes, Quads, Hamstrings & Lower Abs',exercises:[
+      {name:'Goblet Squats',equipment:'Dumbbell or Kettlebell',sets:3,reps:'12-15',notes:'Chest up, knees track over toes'},
+      {name:'Romanian Deadlifts (RDLs)',equipment:'Dumbbells or Barbell',sets:3,reps:'12',notes:'Hinge at the hips — feel the hamstring stretch'},
+      {name:'Leg Press',equipment:'Machine',sets:3,reps:'15',notes:'High foot placement — glute + hamstring bias'},
+      {name:'Glute Bridges',equipment:'Bodyweight (or DB on hips)',sets:3,reps:'20',notes:'2-second squeeze at the top'},
+      {name:"Supported Knee Raises",equipment:"Captain's chair or bench",sets:3,reps:'12',notes:'Pelvic tilt before each rep — no swinging'},
+      {name:'Pelvic Tilts',equipment:'Bodyweight (supine)',sets:3,reps:'20',notes:'Slow & controlled — flatten lower back into the mat'}
     ]},
-    {day:'Day 4',focus:'Upper Body Pull',exercises:[
-      {name:'Lat Pulldown',equipment:'Machine',sets:3,reps:'12',notes:'Drive elbows down'},
-      {name:'Seated Cable Row',equipment:'Cable',sets:3,reps:'12',notes:'Squeeze shoulder blades'},
-      {name:'Face Pulls',equipment:'Cable',sets:3,reps:'15',notes:'Pull toward forehead'},
-      {name:'Dumbbell Bicep Curls',equipment:'Dumbbells',sets:3,reps:'12',notes:'No swinging — strict form'}
-    ]},
-    {day:'Day 5',focus:'Rest',exercises:[],isRest:true,restNote:'Rest or light activity. 45 min incline cardio optional.'},
-    {day:'Day 6',focus:'Rest',exercises:[],isRest:true},
-    {day:'Day 7',focus:'Rest',exercises:[],isRest:true}
+    {day:'Day 4',focus:'Active Recovery',exercises:[],isRest:true,restNote:'Off-day protocol — 8,000–10,000 steps · 20–30 min walking or light cycling · 3 L water minimum.'},
+    {day:'Day 5',focus:'Active Recovery',exercises:[],isRest:true,restNote:'Off-day protocol — 8,000–10,000 steps · 20–30 min walking or light cycling · 3 L water minimum.'},
+    {day:'Day 6',focus:'Active Recovery',exercises:[],isRest:true,restNote:'Off-day protocol — 8,000–10,000 steps · 20–30 min walking or light cycling · 3 L water minimum.'},
+    {day:'Day 7',focus:'Full Rest',exercises:[],isRest:true,restNote:'Full rest — sleep, hydrate, recover. 3 L water minimum still applies.'}
   ],
   jordan_wayne: [
     {day:'Day 1',focus:'Upper Body Push',focus_cue:'Time Under Tension — 3-second eccentric every rep',exercises:[
@@ -186,14 +185,14 @@ var MP = {
     {day:'Day 6',meals:[{m:'Breakfast',i:'4 oz Greek Yogurt Parfait, 1/2 cup Fruit, 1/4 cup Nuts'},{m:'Lunch',i:'5 oz Tuna Salad, Light Mayo, 2 slices Whole-Wheat Bread'},{m:'Dinner',i:'6 oz Grilled Chicken, 1 cup Pasta with Pesto, 1/2 cup Side Salad'}]},
     {day:'Day 7',meals:[{m:'All Meals',i:'Flexible — stay within your calorie and protein targets.'}]}
   ]},
-  suzanna_bbf: {name:'Suzanna',cal:'~1,640 cal/day',goal:'Fat Loss — Balanced Macros (Bilingual)',days:[
-    {day:'Día 1',meals:[{m:'Desayuno / Breakfast',i:'3 claras + 1 huevo, 1/2 taza avena, 1/2 taza bayas | 3 egg whites, 1 egg, 1/2 cup oats, 1/2 cup berries'},{m:'Almuerzo / Lunch',i:'5 oz pollo, 1/2 taza arroz integral, 1 taza brócoli | 5 oz chicken, 1/2 cup brown rice, 1 cup broccoli'},{m:'Merienda / Snack',i:'1 manzana, 10 almendras | 1 apple, 10 almonds'},{m:'Cena / Dinner',i:'5 oz salmón, 4 oz camote, 1 taza espárragos | 5 oz salmon, 4 oz sweet potato, 1 cup asparagus'}]},
-    {day:'Día 2',meals:[{m:'Desayuno / Breakfast',i:'1 taza yogur griego 0%, 1/2 taza fresas, 1 cda chía | 1 cup 0% Greek yogurt, 1/2 cup strawberries, 1 tbsp chia'},{m:'Almuerzo / Lunch',i:'5 oz pavo molido, 1/2 taza quinoa, 1 taza ejotes | 5 oz ground turkey, 1/2 cup quinoa, 1 cup green beans'},{m:'Merienda / Snack',i:'1 plátano, 1 medida proteína | 1 banana, 1 scoop whey'},{m:'Cena / Dinner',i:'5 oz sirloin, 1/2 taza papas rojas, 1 taza calabacín | 5 oz sirloin, 1/2 cup red potatoes, 1 cup zucchini'}]},
-    {day:'Día 3',meals:[{m:'Desayuno / Breakfast',i:'2 rebanadas pan integral, 1/4 aguacate, 2 huevos | 2 slices wheat toast, 1/4 avocado, 2 boiled eggs'},{m:'Almuerzo / Lunch',i:'5 oz tilapia, 1/2 taza arroz jazmín, 1 taza pimientos | 5 oz tilapia, 1/2 cup jasmine rice, 1 cup peppers'},{m:'Merienda / Snack',i:'1/2 taza requesón, 1/2 taza piña | 1/2 cup cottage cheese, 1/2 cup pineapple'},{m:'Cena / Dinner',i:'5 oz carne 93/7, 1/2 taza pasta integral, 1 taza espinacas | 5 oz 93/7 beef, 1/2 cup wheat pasta, 1 cup spinach'}]},
-    {day:'Día 4',meals:[{m:'Desayuno / Breakfast',i:'Hotcakes proteína: 1 medida suero, 2 claras, 1/4 taza avena | Protein pancakes: 1 scoop whey, 2 egg whites, 1/4 cup oats'},{m:'Almuerzo / Lunch',i:'5 oz pollo, ensalada verde grande | 5 oz chicken, large green salad'},{m:'Merienda / Snack',i:'1 pera, 10 nueces | 1 pear, 10 walnuts'},{m:'Cena / Dinner',i:'5 oz lomo cerdo, 1/2 taza arroz integral, 1 taza coles Bruselas | 5 oz pork tenderloin, 1/2 cup brown rice, 1 cup brussels sprouts'}]},
-    {day:'Día 5',meals:[{m:'Desayuno / Breakfast',i:'3 claras, 1 huevo revuelto con vegetales, 1 rebanada pan | 3 egg whites, 1 egg scrambled with veggies, 1 slice wheat toast'},{m:'Almuerzo / Lunch',i:'5 oz salmón, 4 oz camote, 1 taza coliflor | 5 oz salmon, 4 oz sweet potato, 1 cup cauliflower'},{m:'Merienda / Snack',i:'1 taza yogur griego, 1/2 taza bayas | 1 cup Greek yogurt, 1/2 cup berries'},{m:'Cena / Dinner',i:'5 oz pavo molido, 2 tortillas maíz, 1/4 aguacate, pico de gallo | 5 oz ground turkey, 2 corn tortillas, 1/4 avocado, pico de gallo'}]},
-    {day:'Día 6',meals:[{m:'Desayuno / Breakfast',i:'1/2 taza avena, 1 medida proteína, 1 cda crema maní | 1/2 cup oats, 1 scoop whey, 1 tbsp peanut butter'},{m:'Almuerzo / Lunch',i:'5 oz sirloin, 1/2 taza quinoa, 1 taza brócoli | 5 oz sirloin, 1/2 cup quinoa, 1 cup broccoli'},{m:'Merienda / Snack',i:'2 huevos duros, 1 taza zanahorias | 2 boiled eggs, 1 cup carrots'},{m:'Cena / Dinner',i:'5 oz camarones, 1 taza vegetales, 1/2 taza arroz jazmín | 5 oz shrimp, 1 cup veggies, 1/2 cup jasmine rice'}]},
-    {day:'Día 7',meals:[{m:'Desayuno / Breakfast',i:'2 huevos, 2 rebanadas tocino pavo, 1 taza fruta | 2 eggs, 2 slices turkey bacon, 1 cup mixed fruit'},{m:'Almuerzo / Lunch',i:'5 oz chili de carne | 5 oz lean beef chili'},{m:'Merienda / Snack',i:'1 medida proteína, 1 manzana | 1 scoop whey, 1 apple'},{m:'Cena / Dinner',i:'5 oz pollo, 4 oz camote, 1 taza espárragos | 5 oz chicken, 4 oz sweet potato, 1 cup asparagus'}]}
+  jacque_bbf: {name:'Jacquellyn',cal:'Pending — coach delivering',goal:'Postpartum Recomp — Fat Loss (Mommy Pouch Focus) + Muscle Toning',days:[
+    {day:'Day 1',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly. In the interim, hold 3 L water minimum + high-protein anchors at each meal.'}]},
+    {day:'Day 2',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 3',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 4',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 5',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 6',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 7',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]}
   ]},
   jordan_bbf: {name:'Jordan',cal:'~2,900 cal/day',goal:'Performance & Muscle Building',days:[
     {day:'Monday',meals:[{m:'Breakfast',i:'6 Egg Whites, 2 Whole Eggs, 1 cup Oatmeal (dry)'},{m:'Lunch',i:'8 oz Grilled Chicken, 1.5 cups Jasmine Rice, 1 cup Broccoli'},{m:'Dinner',i:'8 oz Lean Ground Turkey, 8 oz Sweet Potato, 1 cup Asparagus'}]},
@@ -793,14 +792,14 @@ var MP = {
     {day:'Day 6',meals:[{m:'Breakfast',i:'4 oz Greek Yogurt Parfait, 1/2 cup Fruit, 1/4 cup Nuts'},{m:'Lunch',i:'5 oz Tuna Salad, Light Mayo, 2 slices Whole-Wheat Bread'},{m:'Dinner',i:'6 oz Grilled Chicken, 1 cup Pasta with Pesto, 1/2 cup Side Salad'}]},
     {day:'Day 7',meals:[{m:'All Meals',i:'Flexible — stay within your calorie and protein targets.'}]}
   ]},
-  suzanna_bbf: {name:'Suzanna',cal:'~1,640 cal/day',goal:'Fat Loss — Balanced Macros (Bilingual)',days:[
-    {day:'Día 1',meals:[{m:'Desayuno / Breakfast',i:'3 claras + 1 huevo, 1/2 taza avena, 1/2 taza bayas | 3 egg whites, 1 egg, 1/2 cup oats, 1/2 cup berries'},{m:'Almuerzo / Lunch',i:'5 oz pollo, 1/2 taza arroz integral, 1 taza brócoli | 5 oz chicken, 1/2 cup brown rice, 1 cup broccoli'},{m:'Merienda / Snack',i:'1 manzana, 10 almendras | 1 apple, 10 almonds'},{m:'Cena / Dinner',i:'5 oz salmón, 4 oz camote, 1 taza espárragos | 5 oz salmon, 4 oz sweet potato, 1 cup asparagus'}]},
-    {day:'Día 2',meals:[{m:'Desayuno / Breakfast',i:'1 taza yogur griego 0%, 1/2 taza fresas, 1 cda chía | 1 cup 0% Greek yogurt, 1/2 cup strawberries, 1 tbsp chia'},{m:'Almuerzo / Lunch',i:'5 oz pavo molido, 1/2 taza quinoa, 1 taza ejotes | 5 oz ground turkey, 1/2 cup quinoa, 1 cup green beans'},{m:'Merienda / Snack',i:'1 plátano, 1 medida proteína | 1 banana, 1 scoop whey'},{m:'Cena / Dinner',i:'5 oz sirloin, 1/2 taza papas rojas, 1 taza calabacín | 5 oz sirloin, 1/2 cup red potatoes, 1 cup zucchini'}]},
-    {day:'Día 3',meals:[{m:'Desayuno / Breakfast',i:'2 rebanadas pan integral, 1/4 aguacate, 2 huevos | 2 slices wheat toast, 1/4 avocado, 2 boiled eggs'},{m:'Almuerzo / Lunch',i:'5 oz tilapia, 1/2 taza arroz jazmín, 1 taza pimientos | 5 oz tilapia, 1/2 cup jasmine rice, 1 cup peppers'},{m:'Merienda / Snack',i:'1/2 taza requesón, 1/2 taza piña | 1/2 cup cottage cheese, 1/2 cup pineapple'},{m:'Cena / Dinner',i:'5 oz carne 93/7, 1/2 taza pasta integral, 1 taza espinacas | 5 oz 93/7 beef, 1/2 cup wheat pasta, 1 cup spinach'}]},
-    {day:'Día 4',meals:[{m:'Desayuno / Breakfast',i:'Hotcakes proteína: 1 medida suero, 2 claras, 1/4 taza avena | Protein pancakes: 1 scoop whey, 2 egg whites, 1/4 cup oats'},{m:'Almuerzo / Lunch',i:'5 oz pollo, ensalada verde grande | 5 oz chicken, large green salad'},{m:'Merienda / Snack',i:'1 pera, 10 nueces | 1 pear, 10 walnuts'},{m:'Cena / Dinner',i:'5 oz lomo cerdo, 1/2 taza arroz integral, 1 taza coles Bruselas | 5 oz pork tenderloin, 1/2 cup brown rice, 1 cup brussels sprouts'}]},
-    {day:'Día 5',meals:[{m:'Desayuno / Breakfast',i:'3 claras, 1 huevo revuelto con vegetales, 1 rebanada pan | 3 egg whites, 1 egg scrambled with veggies, 1 slice wheat toast'},{m:'Almuerzo / Lunch',i:'5 oz salmón, 4 oz camote, 1 taza coliflor | 5 oz salmon, 4 oz sweet potato, 1 cup cauliflower'},{m:'Merienda / Snack',i:'1 taza yogur griego, 1/2 taza bayas | 1 cup Greek yogurt, 1/2 cup berries'},{m:'Cena / Dinner',i:'5 oz pavo molido, 2 tortillas maíz, 1/4 aguacate, pico de gallo | 5 oz ground turkey, 2 corn tortillas, 1/4 avocado, pico de gallo'}]},
-    {day:'Día 6',meals:[{m:'Desayuno / Breakfast',i:'1/2 taza avena, 1 medida proteína, 1 cda crema maní | 1/2 cup oats, 1 scoop whey, 1 tbsp peanut butter'},{m:'Almuerzo / Lunch',i:'5 oz sirloin, 1/2 taza quinoa, 1 taza brócoli | 5 oz sirloin, 1/2 cup quinoa, 1 cup broccoli'},{m:'Merienda / Snack',i:'2 huevos duros, 1 taza zanahorias | 2 boiled eggs, 1 cup carrots'},{m:'Cena / Dinner',i:'5 oz camarones, 1 taza vegetales, 1/2 taza arroz jazmín | 5 oz shrimp, 1 cup veggies, 1/2 cup jasmine rice'}]},
-    {day:'Día 7',meals:[{m:'Desayuno / Breakfast',i:'2 huevos, 2 rebanadas tocino pavo, 1 taza fruta | 2 eggs, 2 slices turkey bacon, 1 cup mixed fruit'},{m:'Almuerzo / Lunch',i:'5 oz chili de carne | 5 oz lean beef chili'},{m:'Merienda / Snack',i:'1 medida proteína, 1 manzana | 1 scoop whey, 1 apple'},{m:'Cena / Dinner',i:'5 oz pollo, 4 oz camote, 1 taza espárragos | 5 oz chicken, 4 oz sweet potato, 1 cup asparagus'}]}
+  jacque_bbf: {name:'Jacquellyn',cal:'Pending — coach delivering',goal:'Postpartum Recomp — Fat Loss (Mommy Pouch Focus) + Muscle Toning',days:[
+    {day:'Day 1',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly. In the interim, hold 3 L water minimum + high-protein anchors at each meal.'}]},
+    {day:'Day 2',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 3',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 4',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 5',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 6',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
+    {day:'Day 7',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]}
   ]},
   jordan_bbf: {name:'Jordan',cal:'~2,900 cal/day',goal:'Performance & Muscle Building',days:[
     {day:'Monday',meals:[{m:'Breakfast',i:'6 Egg Whites, 2 Whole Eggs, 1 cup Oatmeal (dry)'},{m:'Lunch',i:'8 oz Grilled Chicken, 1.5 cups Jasmine Rice, 1 cup Broccoli'},{m:'Dinner',i:'8 oz Lean Ground Turkey, 8 oz Sweet Potato, 1 cup Asparagus'}]},
