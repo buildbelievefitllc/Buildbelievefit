@@ -185,14 +185,49 @@ var MP = {
     {day:'Day 6',meals:[{m:'Breakfast',i:'4 oz Greek Yogurt Parfait, 1/2 cup Fruit, 1/4 cup Nuts'},{m:'Lunch',i:'5 oz Tuna Salad, Light Mayo, 2 slices Whole-Wheat Bread'},{m:'Dinner',i:'6 oz Grilled Chicken, 1 cup Pasta with Pesto, 1/2 cup Side Salad'}]},
     {day:'Day 7',meals:[{m:'All Meals',i:'Flexible — stay within your calorie and protein targets.'}]}
   ]},
-  jacque_bbf: {name:'Jacquellyn',cal:'Pending — coach delivering',goal:'Postpartum Recomp — Fat Loss (Mommy Pouch Focus) + Muscle Toning',days:[
-    {day:'Day 1',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly. In the interim, hold 3 L water minimum + high-protein anchors at each meal.'}]},
-    {day:'Day 2',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 3',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 4',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 5',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 6',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 7',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]}
+  jacque_bbf: {name:'Jacquellyn',cal:'~1,652 cal/day',goal:'Postpartum Recomp — High Protein / Clean Carbs · MEDICAL ALERT: STRICTLY NO COCONUT (olive or avocado oil only) · Weigh meat AFTER cooking · Measure rice/beans AFTER cooking',days:[
+    {day:'Day 1',meals:[
+      {m:'Breakfast',i:'4 oz cooked lean ground turkey, 1 cup sautéed bell peppers & onions (olive or avocado oil — NO coconut), 1 cup berries'},
+      {m:'Lunch',i:'5 oz cooked lean ground beef, 1/2 cup brown rice (cooked), 1/2 cup black beans (cooked), 1 cup green beans'},
+      {m:'Snack',i:'1 cup Greek yogurt, 1 medium apple, dash of cinnamon'},
+      {m:'Dinner',i:'5 oz cooked chicken breast, 3/4 cup jasmine rice (cooked), 1.5 cups roasted broccoli with 1 tbsp olive oil'}
+    ]},
+    {day:'Day 2',meals:[
+      {m:'Breakfast',i:'3 whole eggs + 3 egg whites, 1/2 cup rolled oats, 1/2 cup sliced banana'},
+      {m:'Lunch',i:'5 oz cooked lean ground turkey, 1/2 cup white rice (cooked), 1/2 cup pinto beans (cooked), 1 cup shredded lettuce & tomatoes'},
+      {m:'Snack',i:'1 cup low-fat cottage cheese, 1 cup pineapple chunks'},
+      {m:'Dinner',i:'5 oz cooked sirloin steak, 3/4 cup brown rice (cooked), 1.5 cups asparagus with 1 tsp olive oil'}
+    ]},
+    {day:'Day 3',meals:[
+      {m:'Breakfast',i:'4 oz chicken sausage (verify label — coconut-free), 1 cup spinach, 1 cup melon'},
+      {m:'Lunch',i:'5 oz ground chicken, 1/2 cup quinoa or brown rice (cooked), 1/2 cup black beans (cooked), 1 cup mixed zucchini & squash'},
+      {m:'Snack',i:'2 hard-boiled eggs, 1 cup grapes'},
+      {m:'Dinner',i:'5 oz cooked white fish, 3/4 cup jasmine rice (cooked), 1.5 cups steamed cauliflower & carrots'}
+    ]},
+    {day:'Day 4',meals:[
+      {m:'Breakfast',i:'4 oz cooked lean ground turkey, 1 cup sautéed bell peppers & onions (olive or avocado oil — NO coconut), 1 cup berries'},
+      {m:'Lunch',i:'5 oz cooked lean ground beef, 1/2 cup brown rice (cooked), 1/2 cup black beans (cooked), 1 cup green beans'},
+      {m:'Snack',i:'1 cup Greek yogurt, 1 medium apple, dash of cinnamon'},
+      {m:'Dinner',i:'5 oz cooked chicken breast, 3/4 cup jasmine rice (cooked), 1.5 cups roasted broccoli with 1 tbsp olive oil'}
+    ]},
+    {day:'Day 5',meals:[
+      {m:'Breakfast',i:'3 whole eggs + 3 egg whites, 1/2 cup rolled oats, 1/2 cup sliced banana'},
+      {m:'Lunch',i:'5 oz cooked lean ground turkey, 1/2 cup white rice (cooked), 1/2 cup pinto beans (cooked), 1 cup shredded lettuce & tomatoes'},
+      {m:'Snack',i:'1 cup low-fat cottage cheese, 1 cup pineapple chunks'},
+      {m:'Dinner',i:'5 oz cooked sirloin steak, 3/4 cup brown rice (cooked), 1.5 cups asparagus with 1 tsp olive oil'}
+    ]},
+    {day:'Day 6',meals:[
+      {m:'Breakfast',i:'4 oz chicken sausage (verify label — coconut-free), 1 cup spinach, 1 cup melon'},
+      {m:'Lunch',i:'5 oz ground chicken, 1/2 cup quinoa or brown rice (cooked), 1/2 cup black beans (cooked), 1 cup mixed zucchini & squash'},
+      {m:'Snack',i:'2 hard-boiled eggs, 1 cup grapes'},
+      {m:'Dinner',i:'5 oz cooked white fish, 3/4 cup jasmine rice (cooked), 1.5 cups steamed cauliflower & carrots'}
+    ]},
+    {day:'Day 7',meals:[
+      {m:'Breakfast',i:'3 whole eggs, 1 cup oats, 1/2 cup berries'},
+      {m:'Lunch',i:'5 oz cooked lean ground beef, 1/2 cup rice (cooked), 1/2 cup beans (cooked), 1 cup veggies'},
+      {m:'Snack',i:'1 cup Greek yogurt, 1 apple'},
+      {m:'Dinner',i:'5 oz cooked chicken breast, 3/4 cup rice (cooked), 1.5 cups mixed greens'}
+    ]}
   ]},
   jordan_bbf: {name:'Jordan',cal:'~2,900 cal/day',goal:'Performance & Muscle Building',days:[
     {day:'Monday',meals:[{m:'Breakfast',i:'6 Egg Whites, 2 Whole Eggs, 1 cup Oatmeal (dry)'},{m:'Lunch',i:'8 oz Grilled Chicken, 1.5 cups Jasmine Rice, 1 cup Broccoli'},{m:'Dinner',i:'8 oz Lean Ground Turkey, 8 oz Sweet Potato, 1 cup Asparagus'}]},
@@ -792,14 +827,49 @@ var MP = {
     {day:'Day 6',meals:[{m:'Breakfast',i:'4 oz Greek Yogurt Parfait, 1/2 cup Fruit, 1/4 cup Nuts'},{m:'Lunch',i:'5 oz Tuna Salad, Light Mayo, 2 slices Whole-Wheat Bread'},{m:'Dinner',i:'6 oz Grilled Chicken, 1 cup Pasta with Pesto, 1/2 cup Side Salad'}]},
     {day:'Day 7',meals:[{m:'All Meals',i:'Flexible — stay within your calorie and protein targets.'}]}
   ]},
-  jacque_bbf: {name:'Jacquellyn',cal:'Pending — coach delivering',goal:'Postpartum Recomp — Fat Loss (Mommy Pouch Focus) + Muscle Toning',days:[
-    {day:'Day 1',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly. In the interim, hold 3 L water minimum + high-protein anchors at each meal.'}]},
-    {day:'Day 2',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 3',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 4',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 5',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 6',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]},
-    {day:'Day 7',meals:[{m:'All Meals',i:'Postpartum recomp nutrition protocol pending — Akeem will deliver your personalized meal plan shortly.'}]}
+  jacque_bbf: {name:'Jacquellyn',cal:'~1,652 cal/day',goal:'Postpartum Recomp — High Protein / Clean Carbs · MEDICAL ALERT: STRICTLY NO COCONUT (olive or avocado oil only) · Weigh meat AFTER cooking · Measure rice/beans AFTER cooking',days:[
+    {day:'Day 1',meals:[
+      {m:'Breakfast',i:'4 oz cooked lean ground turkey, 1 cup sautéed bell peppers & onions (olive or avocado oil — NO coconut), 1 cup berries'},
+      {m:'Lunch',i:'5 oz cooked lean ground beef, 1/2 cup brown rice (cooked), 1/2 cup black beans (cooked), 1 cup green beans'},
+      {m:'Snack',i:'1 cup Greek yogurt, 1 medium apple, dash of cinnamon'},
+      {m:'Dinner',i:'5 oz cooked chicken breast, 3/4 cup jasmine rice (cooked), 1.5 cups roasted broccoli with 1 tbsp olive oil'}
+    ]},
+    {day:'Day 2',meals:[
+      {m:'Breakfast',i:'3 whole eggs + 3 egg whites, 1/2 cup rolled oats, 1/2 cup sliced banana'},
+      {m:'Lunch',i:'5 oz cooked lean ground turkey, 1/2 cup white rice (cooked), 1/2 cup pinto beans (cooked), 1 cup shredded lettuce & tomatoes'},
+      {m:'Snack',i:'1 cup low-fat cottage cheese, 1 cup pineapple chunks'},
+      {m:'Dinner',i:'5 oz cooked sirloin steak, 3/4 cup brown rice (cooked), 1.5 cups asparagus with 1 tsp olive oil'}
+    ]},
+    {day:'Day 3',meals:[
+      {m:'Breakfast',i:'4 oz chicken sausage (verify label — coconut-free), 1 cup spinach, 1 cup melon'},
+      {m:'Lunch',i:'5 oz ground chicken, 1/2 cup quinoa or brown rice (cooked), 1/2 cup black beans (cooked), 1 cup mixed zucchini & squash'},
+      {m:'Snack',i:'2 hard-boiled eggs, 1 cup grapes'},
+      {m:'Dinner',i:'5 oz cooked white fish, 3/4 cup jasmine rice (cooked), 1.5 cups steamed cauliflower & carrots'}
+    ]},
+    {day:'Day 4',meals:[
+      {m:'Breakfast',i:'4 oz cooked lean ground turkey, 1 cup sautéed bell peppers & onions (olive or avocado oil — NO coconut), 1 cup berries'},
+      {m:'Lunch',i:'5 oz cooked lean ground beef, 1/2 cup brown rice (cooked), 1/2 cup black beans (cooked), 1 cup green beans'},
+      {m:'Snack',i:'1 cup Greek yogurt, 1 medium apple, dash of cinnamon'},
+      {m:'Dinner',i:'5 oz cooked chicken breast, 3/4 cup jasmine rice (cooked), 1.5 cups roasted broccoli with 1 tbsp olive oil'}
+    ]},
+    {day:'Day 5',meals:[
+      {m:'Breakfast',i:'3 whole eggs + 3 egg whites, 1/2 cup rolled oats, 1/2 cup sliced banana'},
+      {m:'Lunch',i:'5 oz cooked lean ground turkey, 1/2 cup white rice (cooked), 1/2 cup pinto beans (cooked), 1 cup shredded lettuce & tomatoes'},
+      {m:'Snack',i:'1 cup low-fat cottage cheese, 1 cup pineapple chunks'},
+      {m:'Dinner',i:'5 oz cooked sirloin steak, 3/4 cup brown rice (cooked), 1.5 cups asparagus with 1 tsp olive oil'}
+    ]},
+    {day:'Day 6',meals:[
+      {m:'Breakfast',i:'4 oz chicken sausage (verify label — coconut-free), 1 cup spinach, 1 cup melon'},
+      {m:'Lunch',i:'5 oz ground chicken, 1/2 cup quinoa or brown rice (cooked), 1/2 cup black beans (cooked), 1 cup mixed zucchini & squash'},
+      {m:'Snack',i:'2 hard-boiled eggs, 1 cup grapes'},
+      {m:'Dinner',i:'5 oz cooked white fish, 3/4 cup jasmine rice (cooked), 1.5 cups steamed cauliflower & carrots'}
+    ]},
+    {day:'Day 7',meals:[
+      {m:'Breakfast',i:'3 whole eggs, 1 cup oats, 1/2 cup berries'},
+      {m:'Lunch',i:'5 oz cooked lean ground beef, 1/2 cup rice (cooked), 1/2 cup beans (cooked), 1 cup veggies'},
+      {m:'Snack',i:'1 cup Greek yogurt, 1 apple'},
+      {m:'Dinner',i:'5 oz cooked chicken breast, 3/4 cup rice (cooked), 1.5 cups mixed greens'}
+    ]}
   ]},
   jordan_bbf: {name:'Jordan',cal:'~2,900 cal/day',goal:'Performance & Muscle Building',days:[
     {day:'Monday',meals:[{m:'Breakfast',i:'6 Egg Whites, 2 Whole Eggs, 1 cup Oatmeal (dry)'},{m:'Lunch',i:'8 oz Grilled Chicken, 1.5 cups Jasmine Rice, 1 cup Broccoli'},{m:'Dinner',i:'8 oz Lean Ground Turkey, 8 oz Sweet Potato, 1 cup Asparagus'}]},
