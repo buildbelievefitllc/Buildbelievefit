@@ -172,12 +172,26 @@ var BBF_SYNC = (function() {
   // localStorage but no longer pollute the wire request.
   function syncLog(uid, logEntry) {
     if (!uid || !logEntry) return Promise.resolve();
+    // Phase 6 follow-up — request return=representation so PostgREST
+    // sends back the inserted row. Without it, response body is empty
+    // and supa() returns null on BOTH success and failure, leaving the
+    // caller unable to tell the two apart. The row's presence is now
+    // the unambiguous success signal; anything else throws so the
+    // caller can surface the error per CEO directive.
     return supa('POST', 'bbf_logs', {
       user_id:     uid,
       date:        logEntry.date,
       duration:    logEntry.dur || '',
       body_fat:    logEntry.bf || '',
       coach_notes: logEntry.notes || ''
+    }, '', { prefer: 'return=representation' }).then(function(data) {
+      if (data == null) {
+        throw new Error('syncLog database_error (supa returned null — non-2xx or network)');
+      }
+      if (Array.isArray(data) && data.length === 0) {
+        throw new Error('syncLog inserted 0 rows (RLS or schema rejected the row)');
+      }
+      return Array.isArray(data) ? data[0] : data;
     });
   }
 
