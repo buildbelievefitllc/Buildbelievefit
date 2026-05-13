@@ -10453,12 +10453,52 @@ function getReadinessZone(score) {
   return 'green';
 }
 
+// Phase 5 — server-authoritative weights cache. Populated by
+// hydrateServerWeights() per (uid, dayIdx) on first RDW() render.
+//   undefined  → not yet hydrated (RDW will fire the RPC)
+//   {}         → hydrated, no historical weights for this day
+//   { ex_N: <num> } → hydrated, exercise positions have prior weights
+var _serverLastWeights = {};
+var _serverLastWeightsInflight = {};
+
+function hydrateServerWeights(uid, dayIdx) {
+  if (!uid || dayIdx == null) return Promise.resolve(false);
+  var key = uid + ':' + dayIdx;
+  if (_serverLastWeights[key] !== undefined) return Promise.resolve(false); // cache hit
+  if (_serverLastWeightsInflight[key]) return Promise.resolve(false);       // in flight
+  if (!window.BBF_SYNC || typeof BBF_SYNC.fetchLastWeights !== 'function') {
+    return Promise.resolve(false);
+  }
+  _serverLastWeightsInflight[key] = true;
+  return BBF_SYNC.fetchLastWeights(uid, dayIdx).then(function(res) {
+    _serverLastWeightsInflight[key] = false;
+    if (res && res.ok !== false && res.weights) {
+      _serverLastWeights[key] = res.weights;
+      return true;
+    }
+    _serverLastWeights[key] = {}; // cache empty so we don't refetch forever
+    return false;
+  }).catch(function() {
+    _serverLastWeightsInflight[key] = false;
+    return false;
+  });
+}
+
 // Walks local d.w[uid] cache for the most recent non-zero weight
-// at (same day-of-week, same exercise position). bbf_sets has no
-// exercise_name column upstream, so PLAN-position is the join key.
-// If PLAN gets shuffled this falls back to null gracefully.
+// at (same day-of-week, same exercise position). Phase 5: consults
+// the server-authoritative _serverLastWeights cache first; falls
+// back to localStorage so the engine stays useful offline / pre-hydrate.
 function getLastLoggedWeight(uid, sday, ei) {
   if (uid == null || sday == null || ei == null) return null;
+  // Server-side (post-hydration) takes precedence — it survives device
+  // switching and accumulates across sessions, while localStorage is
+  // device-local.
+  var srv = _serverLastWeights[uid + ':' + sday];
+  if (srv && srv['ex_' + ei] != null) {
+    var sv = Number(srv['ex_' + ei]);
+    if (sv > 0) return sv;
+  }
+  // Local-storage fallback: same day-of-week + same exercise position.
   var d = GD();
   var wl = d.w[uid] || {};
   var suffix = '_d' + sday;
@@ -10624,6 +10664,23 @@ function RDW() {
   var con = document.getElementById('wcon');
   var d = GD();
   var uid = VC || CU;
+  // Phase 5 — fire-and-repaint lazy hydration of server-authoritative
+  // historical weights. First render shows localStorage values; once
+  // the RPC resolves, _serverLastWeights[uid:sday] populates and we
+  // call RDW() again so the autoreg banners reflect cross-device data.
+  // Stale-uid/sday guard drops responses that arrive after the user
+  // navigated to a different client or day.
+  (function() {
+    var _uidAtFetch = uid;
+    var _sdayAtFetch = SDAY;
+    hydrateServerWeights(uid, SDAY).then(function(didHydrate) {
+      if (!didHydrate) return;
+      var stillUid = VC || CU;
+      if (stillUid === _uidAtFetch && SDAY === _sdayAtFetch && typeof RDW === 'function') {
+        RDW();
+      }
+    });
+  })();
   var userObjEarly = d.u[uid] || {};
   // Ghost Protocol: if Sovereign Baseline was just restored, render the
   // Sovereign Mobility / Pre-Hab day instead of the standard blueprint.
