@@ -11165,22 +11165,25 @@ var BBF_NUTRITION_ROTATOR = (function() {
       body: JSON.stringify(payload)
     }).then(function(r) {
       return r.json().catch(function() { return null; }).then(function(body) {
-        return { status: r.status, ok: r.ok, body: body };
+        return { status: r.status, statusText: r.statusText, ok: r.ok, body: body };
       });
     }).then(function(resp) {
+      // Verbose error surfacing per CEO directive — never alert without
+      // status + statusText + server-side error code so the caller can
+      // diagnose without opening DevTools.
+      var srvCode = (resp.body && resp.body.error) || '(no body)';
+      var statusLine = '[' + resp.status + ' ' + (resp.statusText || '') + ']';
       if (resp.status === 401) {
         clearAdminToken();
-        alert('Admin token rejected. Will re-prompt on next click.');
+        alert(statusLine + ' Admin token rejected (server: ' + srvCode + '). Will re-prompt on next click.');
         return null;
       }
       if (resp.status === 429) {
-        var code = (resp.body && resp.body.error) || 'rate_limited';
-        alert('Rate limit hit (' + code + '). Try again later.');
+        alert(statusLine + ' Rate limit hit (server: ' + srvCode + '). Try again later.');
         return null;
       }
       if (!resp.ok || !resp.body || !resp.body.ok || !resp.body.plan) {
-        var msg = (resp.body && resp.body.error) || ('HTTP ' + resp.status);
-        alert('Rotation failed: ' + msg);
+        alert('Rotation failed ' + statusLine + ' — server: ' + srvCode + '\nEndpoint: ' + ENDPOINT);
         return null;
       }
       // Cloud overwrite — same shape RN() reads.
@@ -11197,8 +11200,13 @@ var BBF_NUTRITION_ROTATOR = (function() {
         btn.textContent = originalText;
       }
     }).catch(function(err) {
-      console.error('[BBF_NUTRITION_ROTATOR] fetch threw:', err && err.message);
-      alert('Network error while rotating plan. Check console.');
+      // Thrown-error path — almost always CORS/DNS/offline. Surface
+      // err.name + err.message + the endpoint so the failure mode is
+      // immediately classifiable without DevTools.
+      console.error('[BBF_NUTRITION_ROTATOR] fetch threw:', err);
+      var name = (err && err.name) || 'Error';
+      var msg  = (err && err.message) || 'unknown';
+      alert('[NETWORK] ' + name + ': ' + msg + '\nEndpoint: ' + ENDPOINT + '\nLikely CORS / DNS / offline. Check DevTools > Network tab.');
       if (document.body.contains(btn)) {
         btn.disabled = false;
         btn.textContent = originalText;
