@@ -77,18 +77,18 @@ var D = {
 // ═══ PROGRAMS ═══
 'prog-lbl':        { en:'Choose Your Path', es:'Elige Tu Camino', pt:'Escolha Seu Caminho' },
 'prog-h':          { en:'Spectrum of <span class="y">Success</span>', es:'Espectro del <span class="y">\u00c9xito</span>', pt:'Espectro do <span class="y">Sucesso</span>' },
-'prog-section-sub': { en:'We respect every dollar you invest. Whether it\u2019s $67 or $497, you receive a clinical, OT-informed return backed by the same system that produced Founder-Verified Biomechanical Protocols.', es:'Respetamos cada d\u00f3lar que inviertes. Sea $67 o $497, recibes un retorno cl\u00ednico respaldado por el mismo sistema que produjo Protocolos Biomec\u00e1nicos Verificados por el Fundador.', pt:'Respeitamos cada d\u00f3lar que voc\u00ea investe. Seja $67 ou $497, voc\u00ea recebe um retorno cl\u00ednico respaldado pelo mesmo sistema que produziu Protocolos Biomec\u00e1nicos Verificados por el Fundador.' },
+'prog-section-sub': { en:'We respect every dollar you invest. Whether it\u2019s $67/month or a $1,197 flat-fee Apex Protocol, you receive a clinical, OT-informed return backed by the same system that produced Founder-Verified Biomechanical Protocols.', es:'Respetamos cada d\u00f3lar que inviertes. Sea $67/mes o un Protocolo Apex de tarifa \u00fanica de $1,197, recibes un retorno cl\u00ednico respaldado por el mismo sistema que produjo Protocolos Biomec\u00e1nicos Verificados por el Fundador.', pt:'Respeitamos cada d\u00f3lar que voc\u00ea investe. Seja $67/m\u00eas ou um Protocolo Apex de taxa \u00fanica de $1,197, voc\u00ea recebe um retorno cl\u00ednico respaldado pelo mesmo sistema que produziu Protocolos Biomec\u00e1nicos Verificados por el Fundador.' },
 'prog-t1-tier':    { en:'Gateway Tier', es:'Nivel Gateway', pt:'N\u00edvel Gateway' },
 'prog-t1-name':    { en:'Gateway', es:'Gateway', pt:'Gateway' },
 'prog-t1-price':   { en:'$67 /mo', es:'$67 /mes', pt:'$67 /m\u00eas' },
 'prog-t1-cta':     { en:'Start Gateway \u2192', es:'Comienza Gateway \u2192', pt:'Comece Gateway \u2192' },
 'prog-t2-tier':    { en:'Flagship Program', es:'Programa Insignia', pt:'Programa Principal' },
 'prog-t2-name':    { en:'Architect Hybrid', es:'Architect Hybrid', pt:'Architect Hybrid' },
-'prog-t2-price':   { en:'$247 /mo', es:'$247 /mes', pt:'$247 /m\u00eas' },
+'prog-t2-price':   { en:'$697 Flat Fee / 12-Week Protocol', es:'$697 Tarifa \u00danica / Protocolo de 12 Semanas', pt:'$697 Taxa \u00danica / Protocolo de 12 Semanas' },
 'prog-t2-cta':     { en:'Start Architect Hybrid \u2192', es:'Iniciar Architect Hybrid \u2192', pt:'Iniciar Architect Hybrid \u2192' },
 'prog-t3-tier':    { en:'Executive & Clinical', es:'Ejecutivo & Cl\u00ednico', pt:'Executivo & Cl\u00ednico' },
 'prog-t3-name':    { en:'Sovereign', es:'Sovereign', pt:'Sovereign' },
-'prog-t3-price':   { en:'$497 /mo', es:'$497 /mes', pt:'$497 /m\u00eas' },
+'prog-t3-price':   { en:'$1,197 Flat Fee / 12-Week Apex Protocol', es:'$1,197 Tarifa \u00danica / Protocolo Apex de 12 Semanas', pt:'$1,197 Taxa \u00danica / Protocolo Apex de 12 Semanas' },
 'prog-t3-cta':     { en:'Apply for Sovereign \u2192', es:'Solicitar Sovereign \u2192', pt:'Solicitar Sovereign \u2192' },
 
 // ═══ NUTRITION ═══
