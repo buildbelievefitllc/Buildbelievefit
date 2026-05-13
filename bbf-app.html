@@ -481,6 +481,15 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .meal-check{position:absolute;top:.7rem;right:.7rem;width:22px;height:22px;cursor:pointer;accent-color:#00ff88;margin:0}
 .nutr-card.is-checked{opacity:.7;border-left-color:#00ff88}
 .nutr-card.is-checked .nutr-ml{color:#00ff88}
+/* ═ WAR ROOM Feature 2 — Scan Meal primary button (BBF Vision Coach) ═══
+   Full-width gold CTA below the shaker; flips to a disabled "analyzing"
+   state during the Gemini fetch. */
+.bbf-primary-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.85rem 1rem;margin-bottom:.9rem;background:linear-gradient(180deg,var(--yel),#d4a800);color:#0e0e0e;border:1px solid rgba(212,175,55,.55);border-radius:12px;font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:opacity .25s,transform .15s,box-shadow .25s;box-shadow:0 4px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18)}
+.bbf-primary-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(212,175,55,.25),inset 0 1px 0 rgba(255,255,255,.22)}
+.bbf-primary-btn:active{transform:translateY(0)}
+.bbf-primary-btn:disabled,.bbf-primary-btn[data-state="analyzing"]{opacity:.7;cursor:wait;transform:none}
+.bbf-primary-btn[data-state="analyzing"]{background:linear-gradient(180deg,rgba(212,175,55,.55),rgba(168,124,0,.55));animation:bbfPulse 1.4s ease-in-out infinite}
+@keyframes bbfPulse{0%,100%{opacity:.65}50%{opacity:.95}}
 /* LOG */
 .lf2{display:flex;flex-direction:column;gap:.9rem}
 .lfl{font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:.35rem;display:block}
@@ -10539,6 +10548,151 @@ var BBF_NUTRITION_TRACKER = (function() {
   return { init: init, restore: restore, applyVisual: applyVisual, slugMeal: slugMeal };
 })();
 
+// ─── WAR ROOM Feature 2 · BBF Vision Coach (audio-only meal scan) ───
+// Flow: user taps Scan Meal -> camera / file picker -> photo selected
+// -> base64 -> POST /api/vision-coach on the Render backend (which holds
+// GEMINI_API_KEY and calls gemini-1.5-flash:generateContent) -> response
+// text -> window.speechSynthesis.speak(). Nothing is rendered to the DOM.
+//
+// Hardcoded "Lance" system prompt is the literal string from the directive.
+//
+// iOS Safari note: speechSynthesis requires a prior user gesture before
+// the first speak() call. We warm up the engine with a silent utterance
+// inside the click handler so the post-fetch speak() succeeds even
+// though the gesture chain is broken by the network round-trip.
+var BBF_VISION_COACH = (function() {
+  var ENDPOINT = 'https://buildbelievefit.onrender.com/api/vision-coach';
+  var LANCE_PROMPT = "You are Lance, a clinical fitness coach. Evaluate this meal photo. Briefly explain the nutritional benefits, confirm if the portion sizes look aligned with a high-protein recomp goal, and offer an encouraging word. Keep it under 3 sentences. Be punchy and professional.";
+
+  function setBtnState(btn, state) {
+    if (!btn) return;
+    if (state === 'analyzing') {
+      btn.disabled = true;
+      btn.setAttribute('data-state', 'analyzing');
+      btn.innerHTML = '&#x1F399;&#xFE0F; Analyzing&hellip;';
+    } else {
+      btn.disabled = false;
+      btn.setAttribute('data-state', 'idle');
+      btn.innerHTML = '&#x1F399;&#xFE0F; Scan Meal';
+    }
+  }
+
+  function pickVoice(synth) {
+    var voices = (synth && synth.getVoices && synth.getVoices()) || [];
+    // Highest-quality "Lance"-shaped voice first, then any voice flagged
+    // Male (word-boundary so "Female" doesn't accidentally match), then
+    // first available, then null (browser default).
+    return voices.find(function(v){ return v.name && v.name.indexOf('Google UK English Male') > -1; })
+        || voices.find(function(v){ return v.name && /\bMale\b/.test(v.name) && !/Female/i.test(v.name); })
+        || voices[0]
+        || null;
+  }
+
+  function speak(text, btn) {
+    var synth = window.speechSynthesis;
+    if (!synth || typeof SpeechSynthesisUtterance === 'undefined') {
+      // No TTS — give the button back so the user isn't stuck on "Analyzing…"
+      setBtnState(btn, 'idle');
+      return;
+    }
+    function doSpeak() {
+      try { synth.cancel(); } catch (_) {}
+      var utter = new SpeechSynthesisUtterance(text);
+      utter.voice = pickVoice(synth);
+      utter.rate = 1.0;
+      utter.onstart = function() { setBtnState(btn, 'idle'); };
+      utter.onend = function() { setBtnState(btn, 'idle'); };
+      utter.onerror = function() { setBtnState(btn, 'idle'); };
+      synth.speak(utter);
+    }
+    if (synth.getVoices().length === 0) {
+      // Chrome populates voices asynchronously; wait once then speak.
+      synth.addEventListener('voiceschanged', doSpeak, { once: true });
+      try { synth.getVoices(); } catch (_) {}
+      // Failsafe: if voiceschanged never fires within 1s, speak anyway.
+      setTimeout(function() {
+        if (!synth.speaking && !synth.pending) doSpeak();
+      }, 1000);
+    } else {
+      doSpeak();
+    }
+  }
+
+  function fileToBase64(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function() {
+        // reader.result is "data:image/jpeg;base64,..."; strip the prefix.
+        var s = String(reader.result || '');
+        var idx = s.indexOf(',');
+        resolve({
+          base64: idx > -1 ? s.slice(idx + 1) : s,
+          mimeType: file.type || 'image/jpeg'
+        });
+      };
+      reader.onerror = function() { reject(new Error('file_read_failed')); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function handleFile(file, btn) {
+    if (!file) { setBtnState(btn, 'idle'); return; }
+    fileToBase64(file).then(function(payload) {
+      return fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image_base64: payload.base64,
+          mime_type: payload.mimeType,
+          prompt: LANCE_PROMPT
+        })
+      });
+    }).then(function(r) {
+      if (!r.ok) throw new Error('vision_coach_' + r.status);
+      return r.json();
+    }).then(function(j) {
+      var text = (j && j.ok && j.text) || '';
+      if (!text) throw new Error('vision_coach_empty');
+      speak(text, btn);
+    }).catch(function(err) {
+      console.warn('[BBF_VISION_COACH] failure:', err && err.message);
+      speak("Sorry — I couldn't analyze that meal. Please try again in a moment.", btn);
+    });
+  }
+
+  function init() {
+    var btn = document.getElementById('audioMealScannerBtn');
+    var input = document.getElementById('mealImageUpload');
+    if (!btn || !input) return;
+    if (btn.dataset.bbfVisionWired === '1') return;
+    btn.dataset.bbfVisionWired = '1';
+
+    btn.addEventListener('click', function() {
+      // Warm up speechSynthesis inside the user gesture so iOS allows the
+      // post-fetch speak() to fire. Empty/silent utterance is a no-op.
+      try {
+        if (window.speechSynthesis && typeof SpeechSynthesisUtterance !== 'undefined') {
+          var warm = new SpeechSynthesisUtterance(' ');
+          warm.volume = 0;
+          window.speechSynthesis.speak(warm);
+        }
+      } catch (_) {}
+      // Reset the file input so re-selecting the same photo still fires change.
+      try { input.value = ''; } catch (_) {}
+      input.click();
+    });
+
+    input.addEventListener('change', function(ev) {
+      var file = ev.target && ev.target.files && ev.target.files[0];
+      if (!file) return;
+      setBtnState(btn, 'analyzing');
+      handleFile(file, btn);
+    });
+  }
+
+  return { init: init };
+})();
+
 function RN() {
   var con = document.getElementById('ncon');
   var uid = VC || CU;
@@ -10569,6 +10723,11 @@ function RN() {
             '<div class="shaker-outline"><div class="shaker-fill" id="shakerFill"></div></div>' +
             '<p id="shakerText">0% Daily Fuel</p>' +
           '</div>';
+  // Feature 2 · Scan Meal — fires the camera/file picker, POSTs the photo
+  // to /api/vision-coach, and "Lance" speaks his review via Web Speech API.
+  // Nothing is rendered to the DOM; the response is audio-only.
+  h += '<button type="button" id="audioMealScannerBtn" class="bbf-primary-btn">&#x1F399;&#xFE0F; Scan Meal</button>';
+  h += '<input type="file" id="mealImageUpload" accept="image/*" capture="environment" style="display:none">';
   h += '<div class="dh"><div class="dl">' + plan.name + "'s Plan</div>" +
     '<div class="dn2" style="font-size:1.3rem">' + plan.cal + '</div>' +
     '<div class="df2">&#x1F3AF; ' + plan.goal + '</div></div>';
@@ -10579,6 +10738,7 @@ function RN() {
   con.innerHTML = h;
   BBF_NUTRITION_TRACKER.init();
   BBF_NUTRITION_TRACKER.restore();
+  BBF_VISION_COACH.init();
 }
 
 function RNDAY(plan, idx) {
