@@ -489,7 +489,7 @@ async function generateYouthFuelMatrix(payload) {
 // Express server
 // ───────────────────────────────────────────────────────────────
 const app = express();
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 // CORS — allow the Pathfinder form on buildbelievefit.fitness to POST
 // directly to /process. Uses an explicit allowlist rather than '*' so
@@ -907,6 +907,112 @@ app.post('/process', async (req, res) => {
     hypertrophy_markdown: hypertrophyMarkdown,
     fuel_markdown: fuelMarkdown,
   });
+});
+
+// ───────────────────────────────────────────────────────────────
+// POST /api/vision-coach — Phase 9 Feature 2: BBF Vision AI Audio Scanner
+// ───────────────────────────────────────────────────────────────
+// Single-shot Gemini Vision REST call. Receives a Base64-encoded meal
+// photo + a hardcoded "Lance" coaching prompt from the BBF Nutrition tab
+// (bbf-app.html "Scan Meal" button), forwards to the Gemini 1.5 Flash
+// generateContent endpoint, returns the text candidate. The client then
+// pipes the text through window.speechSynthesis — Lance "speaks" the
+// review out loud rather than rendering it to the DOM.
+//
+// Lives on this server (not on Supabase Edge Functions) because GEMINI_API_KEY
+// is already wired here for the live Phantom Eye WebSocket bridge — single
+// key, single source of truth, no extra env-var sprawl.
+//
+// Origin allowlist + per-IP rate limit (5 calls/minute) guards Gemini spend.
+// ───────────────────────────────────────────────────────────────
+const VISION_COACH_RATE_WINDOW_MS = 60 * 1000;
+const VISION_COACH_RATE_MAX = 5;
+const _visionCoachBuckets = new Map();
+function _visionCoachRateOk(ip) {
+  const now = Date.now();
+  let arr = _visionCoachBuckets.get(ip) || [];
+  arr = arr.filter(t => t > now - VISION_COACH_RATE_WINDOW_MS);
+  if (arr.length >= VISION_COACH_RATE_MAX) { _visionCoachBuckets.set(ip, arr); return false; }
+  arr.push(now);
+  _visionCoachBuckets.set(ip, arr);
+  return true;
+}
+
+app.post('/api/vision-coach', async (req, res) => {
+  // CORS pre-check — the global middleware already set the headers; if
+  // the origin isn't on the allowlist we refuse early so we don't burn
+  // Gemini quota on a third-party caller.
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  }
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+  if (!_visionCoachRateOk(ip)) {
+    return res.status(429).json({ ok: false, error: 'rate_limited' });
+  }
+  if (!GEMINI_API_KEY) {
+    console.warn('[vision-coach] rejected — GEMINI_API_KEY missing');
+    return res.status(503).json({ ok: false, error: 'config_missing' });
+  }
+  const body = req.body || {};
+  const imageBase64 = typeof body.image_base64 === 'string' ? body.image_base64.trim() : '';
+  const mimeType    = typeof body.mime_type === 'string'    ? body.mime_type.trim()    : 'image/jpeg';
+  const prompt      = typeof body.prompt === 'string'       ? body.prompt              : '';
+  if (!imageBase64 || imageBase64.length < 32) {
+    return res.status(400).json({ ok: false, error: 'image_missing' });
+  }
+  if (!prompt || prompt.length < 10) {
+    return res.status(400).json({ ok: false, error: 'prompt_missing' });
+  }
+
+  // gemini-1.5-flash: GA vision-capable, fast, low-cost. Same family as
+  // the Live model used by the Phantom Eye bridge.
+  const model = 'gemini-1.5-flash';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+              model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
+  const payload = {
+    contents: [{
+      parts: [
+        { text: prompt },
+        { inline_data: { mime_type: mimeType, data: imageBase64 } }
+      ]
+    }],
+    generationConfig: {
+      temperature: 0.55,
+      maxOutputTokens: 200
+    }
+  };
+
+  let upstream;
+  try {
+    upstream = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error('[vision-coach] gemini fetch threw:', err && err.message);
+    return res.status(502).json({ ok: false, error: 'gemini_unreachable' });
+  }
+
+  let geminiBody = null;
+  try { geminiBody = await upstream.json(); }
+  catch (_) { /* non-JSON body */ }
+
+  if (!upstream.ok) {
+    const msg = geminiBody?.error?.message || ('gemini ' + upstream.status);
+    console.error('[vision-coach] gemini non-2xx:', upstream.status, msg);
+    return res.status(502).json({ ok: false, error: 'gemini_error', detail: msg });
+  }
+
+  const text = geminiBody?.candidates?.[0]?.content?.parts
+    ?.map(p => p?.text || '').join(' ').trim();
+  if (!text) {
+    console.warn('[vision-coach] gemini returned empty text', JSON.stringify(geminiBody).slice(0, 400));
+    return res.status(502).json({ ok: false, error: 'gemini_empty' });
+  }
+
+  return res.status(200).json({ ok: true, text });
 });
 
 // ───────────────────────────────────────────────────────────────
