@@ -8098,16 +8098,28 @@ function _bbfHandleResolveClick(ev) {
     btn.textContent = originalLabel;
     if (card) card.style.opacity = '';
     if (typeof TOAST === 'function') TOAST('Could not resolve audit — ' + msg);
+    // Phase 9.5 hotfix — surface the actual failure loud and clear. No
+    // more flying blind: an alert ensures the admin sees the error code
+    // immediately instead of relying on a Toast that auto-dismisses.
+    alert('Database Error: ' + msg);
   }
 
   if (auditId && typeof BBF_SYNC !== 'undefined' && typeof BBF_SYNC.resolveAudit === 'function') {
-    BBF_SYNC.resolveAudit(auditId).then(function() {
+    BBF_SYNC.resolveAudit(auditId).then(function(row) {
+      // Only proceed to DOM removal after the database CONFIRMS the
+      // UPDATE landed (row is truthy = a row was returned by PostgREST
+      // with Prefer:return=representation). Previously we treated
+      // 'audit_not_found' as success, which masked the RLS-blocked
+      // UPDATE that was silently filtering every PATCH to zero rows.
+      if (!row) {
+        revert('empty_response');
+        return;
+      }
       finish();
     }).catch(function(err) {
-      console.warn('[BBF_AUDIT] resolveAudit failed:', err && err.message);
-      // 'audit_not_found' = row already resolved elsewhere; treat as success.
-      if (err && err.message === 'audit_not_found') return finish();
-      revert((err && err.message) || 'network');
+      var msg = (err && err.message) || 'network';
+      console.error('[BBF_AUDIT] resolveAudit failed:', err);
+      revert(msg);
     });
   } else {
     // Local-only audit (no id) — nothing to PATCH, just clear the local mirror.
