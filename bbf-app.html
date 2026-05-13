@@ -10429,6 +10429,112 @@ function getTodayReadiness(uid) {
   return r ? r.score : null;
 }
 
+// ─── PHASE 4 · AUTOREGULATION ENGINE ──────────────────────────
+// Deterministic math layer — readiness score × historical working
+// weight = today's target. Pure client-side, no Gemini, no RPC.
+// Zones per CEO coefficient matrix:
+//   <70   Red    → 0.90  (Deload)
+//   70-84 Yellow → 1.00  (Hold)
+//   85+   Green  → 1.025 at 85 → 1.050 at 100 (Overload, linear)
+function calculateReadinessMultiplier(score) {
+  if (score == null || isNaN(score)) return 1.0;
+  var s = Number(score);
+  if (s < 70) return 0.90;
+  if (s < 85) return 1.00;
+  var clipped = Math.min(100, s);
+  return Math.round((1.025 + (clipped - 85) / 15 * 0.025) * 1000) / 1000;
+}
+
+function getReadinessZone(score) {
+  if (score == null || isNaN(score)) return 'none';
+  var s = Number(score);
+  if (s < 70) return 'red';
+  if (s < 85) return 'yellow';
+  return 'green';
+}
+
+// Walks local d.w[uid] cache for the most recent non-zero weight
+// at (same day-of-week, same exercise position). bbf_sets has no
+// exercise_name column upstream, so PLAN-position is the join key.
+// If PLAN gets shuffled this falls back to null gracefully.
+function getLastLoggedWeight(uid, sday, ei) {
+  if (uid == null || sday == null || ei == null) return null;
+  var d = GD();
+  var wl = d.w[uid] || {};
+  var suffix = '_d' + sday;
+  var sufLen = suffix.length;
+  var todaySuffix = today() + suffix;
+  var ek = 'ex_' + ei;
+  var matching = Object.keys(wl).filter(function(k) {
+    return k.length > sufLen && k.slice(-sufLen) === suffix && k !== todaySuffix;
+  }).sort().reverse(); // most recent date first
+  for (var i = 0; i < matching.length; i++) {
+    var sets = (wl[matching[i]] || {})[ek] || [];
+    for (var s = 0; s < sets.length; s++) {
+      var w = parseFloat(sets[s] && sets[s].w);
+      if (w > 0) return w;
+    }
+  }
+  return null;
+}
+
+// Returns { weight, zone, multiplier, source, baseline? }.
+// weight is null when no history exists — UI falls back to "Log
+// weight to enable" without breaking the loop.
+function computeTargetWeight(uid, sday, ei, readinessScore) {
+  var hist = getLastLoggedWeight(uid, sday, ei);
+  var mult = calculateReadinessMultiplier(readinessScore);
+  var zone = getReadinessZone(readinessScore);
+  if (hist == null) {
+    return { weight: null, zone: zone, multiplier: mult, source: 'no_history' };
+  }
+  // Round to nearest 2.5 lb plate increment.
+  var rounded = Math.round((hist * mult) / 2.5) * 2.5;
+  return {
+    weight: rounded,
+    zone: zone,
+    multiplier: mult,
+    source: 'historical',
+    baseline: hist
+  };
+}
+
+function getAutoregBannerHTML(target, exReps) {
+  if (!target) return '';
+  // Cardio / timed exercises don't have a weight-progression model.
+  if (exReps && (exReps.indexOf('min') > -1 || exReps.indexOf('sec') > -1)) return '';
+  var zone = target.zone;
+  var palette = {
+    green:  { bg:'rgba(34,197,94,.06)',  br:'rgba(34,197,94,.25)',  ll:'#22c55e',   text:'#22c55e' },
+    yellow: { bg:'rgba(245,200,0,.05)',  br:'rgba(245,200,0,.2)',   ll:'var(--yel)', text:'var(--yel)' },
+    red:    { bg:'rgba(239,68,68,.06)',  br:'rgba(239,68,68,.25)',  ll:'#ef4444',   text:'#ef4444' },
+    none:   { bg:'rgba(80,80,80,.05)',   br:'rgba(120,120,120,.2)', ll:'var(--mut)', text:'var(--mut)' }
+  };
+  var p = palette[zone] || palette.none;
+  var pct = Math.round((target.multiplier - 1) * 1000) / 10;
+  var pctTxt = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
+  var icon, label;
+  if (zone === 'green')      { icon = '&#x2191;'; label = 'OVERLOAD'; }
+  else if (zone === 'red')   { icon = '&#x2193;'; label = 'DELOAD'; }
+  else if (zone === 'yellow'){ icon = '&#x2014;'; label = 'HOLD'; }
+  else                       { icon = '&#x25CB;'; label = 'BASELINE'; }
+  var valueTxt = (target.weight != null) ? (target.weight + ' lb') : 'Log weight to enable';
+  var baselineNote = (target.baseline != null && target.weight != null && target.multiplier !== 1.0)
+    ? ' <span style="color:var(--mut);font-weight:400;font-family:\'Menlo\',ui-monospace,monospace;font-size:.6rem">(from ' + target.baseline + ' lb)</span>'
+    : '';
+  var zoneSuffix = (target.multiplier !== 1.0) ? ' ' + pctTxt : '';
+  return '<div class="ar-target" data-zone="' + zone + '" style="' +
+    'display:flex;align-items:center;gap:.55rem;margin:.55rem 0 .35rem;padding:.5rem .7rem;' +
+    'background:' + p.bg + ';border:1px solid ' + p.br + ';border-left:3px solid ' + p.ll + ';' +
+    'border-radius:0 8px 8px 0">' +
+    '<span style="font-size:1rem;color:' + p.text + ';line-height:1">' + icon + '</span>' +
+    '<span style="font-family:\'Menlo\',ui-monospace,monospace;font-size:.58rem;font-weight:800;letter-spacing:.2em;color:var(--mut2);text-transform:uppercase">Today\'s Target</span>' +
+    '<span style="font-family:var(--hb,\'Bebas Neue\',sans-serif);font-size:.98rem;font-weight:900;letter-spacing:1.5px;color:var(--wht)">' + valueTxt + '</span>' +
+    baselineNote +
+    '<span style="margin-left:auto;padding:.2rem .55rem;border-radius:3px;background:rgba(0,0,0,.35);font-family:\'Menlo\',ui-monospace,monospace;font-size:.58rem;font-weight:800;letter-spacing:.18em;color:' + p.text + '">' + label + zoneSuffix + '</span>' +
+    '</div>';
+}
+
 function getReadinessBannerHTML(score) {
   if (score === null) return '';
   var tier = score >= 90 ? 'god' : score >= 70 ? 'std' : 'rec';
@@ -10622,6 +10728,12 @@ function RDW() {
     }
     if (ex.is_shifted && ex.original_name) h += '<div class="enote" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)">&#x26A0; ' + _ts('sovereign-shift') + ': <strong>' + ex.original_name + '</strong> \u2192 <strong>' + exName + '</strong></div>';
     else if (exNotes) h += '<div class="enote">&#x1F4A1; ' + exNotes + '</div>';
+    // Phase 4 \u00b7 Autoregulation Engine \u2014 per-exercise target weight banner.
+    // readyScore (above) \u00d7 historical working weight at (SDAY, ei) = today's
+    // target. Skips cardio/timed exercises internally; degrades to
+    // "Log weight to enable" when no history exists.
+    var _arTarget = computeTargetWeight(uid, SDAY, ei, readyScore);
+    h += getAutoregBannerHTML(_arTarget, exReps);
     if (partner) {
       var pd = d.w[partner] || {};
       var pdk2 = pd[dk] || {};
