@@ -10882,7 +10882,21 @@ function CWO(day, dk) {
   if (!d.l[uid]) d.l[uid] = [];
   d.l[uid].push({date:today(), type:'strength', notes:'Completed: ' + day.focus, loggedAt:new Date().toISOString(), loggedBy:CU});
   SD(d);
-  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncLog(uid,d.l[uid][d.l[uid].length-1]);
+  // Phase 6 follow-up — surface syncLog failures loudly. Previously
+  // fire-and-forget meant a silent RLS/schema rejection looked
+  // identical to a 201 Created; CEO's Profile/Command Center kept
+  // reading "0 Sessions" with no clue why. Now an alert pops on any
+  // failure path and the inserted row gets logged on success.
+  if (typeof BBF_SYNC !== 'undefined') {
+    BBF_SYNC.syncLog(uid, d.l[uid][d.l[uid].length-1])
+      .then(function(row) {
+        if (row) console.log('[CWO] session log persisted:', row);
+      })
+      .catch(function(err) {
+        console.error('[CWO] syncLog failed:', err);
+        alert('Session save failed: ' + (err && err.message ? err.message : 'unknown'));
+      });
+  }
   try { if(dk) sessionStorage.removeItem('bbf_wo_' + dk); } catch(e) {}
   var stk = STREAK((d.l[uid]||[]).filter(function(l){return l.type!=='note';}));
   showVictory(_t('app-victory-title','CRUSHED IT!'), day.focus + ' ' + _t('app-victory-complete','Complete'), day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + ' \u2022 ' + _t('app-victory-great','Great work!'));
