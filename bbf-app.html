@@ -10549,30 +10549,44 @@ var BBF_NUTRITION_TRACKER = (function() {
 })();
 
 // ─── WAR ROOM Feature 2 · BBF Vision Coach (audio-only meal scan) ───
-// Flow: user taps Scan Meal -> camera / file picker -> photo selected
-// -> base64 -> POST /api/vision-coach on the Render backend (which holds
-// GEMINI_API_KEY and calls gemini-1.5-flash:generateContent) -> response
-// text -> window.speechSynthesis.speak(). Nothing is rendered to the DOM.
+// Flow: user taps Scan Meal -> in-app WebRTC camera stream opens (rear-
+// facing on mobile) -> user taps Take Photo -> frame is captured to a
+// hidden canvas -> base64 POST to /api/vision-coach on the Render
+// backend (which holds GEMINI_API_KEY and calls gemini-1.5-flash:
+// generateContent) -> response text -> window.speechSynthesis.speak().
+// Nothing is rendered to the DOM.
+//
+// State machine on the Scan Meal button:
+//   idle       -> "Scan Meal"        (click opens camera, transitions to streaming)
+//   streaming  -> "Cancel Scan"      (click stops camera, returns to idle)
+//   analyzing  -> "Analyzing..."     (fetch in flight, returns to idle on audio start)
 //
 // Hardcoded "Lance" system prompt is the literal string from the directive.
 //
 // iOS Safari note: speechSynthesis requires a prior user gesture before
-// the first speak() call. We warm up the engine with a silent utterance
-// inside the click handler so the post-fetch speak() succeeds even
-// though the gesture chain is broken by the network round-trip.
+// the first speak() call. The Take Photo click is the gesture nearest
+// to the fetch, so we warm up there with a silent utterance so the
+// post-fetch speak() succeeds even though the gesture chain is broken
+// by the network round-trip.
 var BBF_VISION_COACH = (function() {
   var ENDPOINT = 'https://buildbelievefit.onrender.com/api/vision-coach';
   var LANCE_PROMPT = "You are Lance, a clinical fitness coach. Evaluate this meal photo. Briefly explain the nutritional benefits, confirm if the portion sizes look aligned with a high-protein recomp goal, and offer an encouraging word. Keep it under 3 sentences. Be punchy and professional.";
 
+  var _state = 'idle';
+  var _stream = null;
+
   function setBtnState(btn, state) {
     if (!btn) return;
-    if (state === 'analyzing') {
+    _state = state;
+    btn.setAttribute('data-state', state);
+    if (state === 'streaming') {
+      btn.disabled = false;
+      btn.innerHTML = '&#x274C; Cancel Scan';
+    } else if (state === 'analyzing') {
       btn.disabled = true;
-      btn.setAttribute('data-state', 'analyzing');
       btn.innerHTML = '&#x1F399;&#xFE0F; Analyzing&hellip;';
     } else {
       btn.disabled = false;
-      btn.setAttribute('data-state', 'idle');
       btn.innerHTML = '&#x1F399;&#xFE0F; Scan Meal';
     }
   }
@@ -10618,35 +10632,88 @@ var BBF_VISION_COACH = (function() {
     }
   }
 
-  function fileToBase64(file) {
-    return new Promise(function(resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function() {
-        // reader.result is "data:image/jpeg;base64,..."; strip the prefix.
-        var s = String(reader.result || '');
-        var idx = s.indexOf(',');
-        resolve({
-          base64: idx > -1 ? s.slice(idx + 1) : s,
-          mimeType: file.type || 'image/jpeg'
-        });
-      };
-      reader.onerror = function() { reject(new Error('file_read_failed')); };
-      reader.readAsDataURL(file);
-    });
+  function stopStream() {
+    if (_stream) {
+      try { _stream.getTracks().forEach(function(t) { try { t.stop(); } catch(_){} }); } catch(_){}
+      _stream = null;
+    }
+    var video = document.getElementById('mealVideoFeed');
+    if (video) {
+      try { video.pause(); } catch(_) {}
+      try { video.srcObject = null; } catch(_) {}
+    }
+    var container = document.getElementById('mealScannerContainer');
+    if (container) container.style.display = 'none';
   }
 
-  function handleFile(file, btn) {
-    if (!file) { setBtnState(btn, 'idle'); return; }
-    fileToBase64(file).then(function(payload) {
-      return fetch(ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          image_base64: payload.base64,
-          mime_type: payload.mimeType,
-          prompt: LANCE_PROMPT
-        })
+  function startStream(btn) {
+    var container = document.getElementById('mealScannerContainer');
+    var video = document.getElementById('mealVideoFeed');
+    if (!container || !video) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      speak('Sorry — your browser does not support camera access.', btn);
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(function(stream) {
+        _stream = stream;
+        video.srcObject = stream;
+        container.style.display = '';
+        setBtnState(btn, 'streaming');
+      })
+      .catch(function(err) {
+        console.warn('[BBF_VISION_COACH] getUserMedia failed:', err && err.message);
+        setBtnState(btn, 'idle');
+        var msg = (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'))
+          ? 'Camera permission denied. Allow camera access in your browser settings to scan a meal.'
+          : 'Sorry — could not start the camera. Please try again.';
+        speak(msg, btn);
       });
+  }
+
+  function capturePhoto(btn) {
+    var video = document.getElementById('mealVideoFeed');
+    var canvas = document.getElementById('mealCaptureCanvas');
+    if (!video || !canvas || !_stream) {
+      setBtnState(btn, 'idle');
+      stopStream();
+      return;
+    }
+    var w = video.videoWidth || 1280;
+    var h = video.videoHeight || 720;
+    canvas.width = w;
+    canvas.height = h;
+    var ctx = canvas.getContext('2d');
+    try {
+      ctx.drawImage(video, 0, 0, w, h);
+    } catch (e) {
+      console.warn('[BBF_VISION_COACH] drawImage threw:', e && e.message);
+      stopStream();
+      setBtnState(btn, 'idle');
+      speak('Could not capture the frame — please try again.', btn);
+      return;
+    }
+    var dataUrl;
+    try { dataUrl = canvas.toDataURL('image/jpeg', 0.9); }
+    catch (e) {
+      stopStream();
+      setBtnState(btn, 'idle');
+      speak('Could not encode the photo — please try again.', btn);
+      return;
+    }
+    // Camera off as soon as we have the still.
+    stopStream();
+    setBtnState(btn, 'analyzing');
+    var idx = dataUrl.indexOf(',');
+    var base64 = idx > -1 ? dataUrl.slice(idx + 1) : dataUrl;
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image_base64: base64,
+        mime_type: 'image/jpeg',
+        prompt: LANCE_PROMPT
+      })
     }).then(function(r) {
       if (!r.ok) throw new Error('vision_coach_' + r.status);
       return r.json();
@@ -10661,15 +10728,41 @@ var BBF_VISION_COACH = (function() {
   }
 
   function init() {
+    // Defensive teardown — if RN() re-rendered while a stream was active,
+    // the old DOM nodes were thrown away but the MediaStream tracks
+    // remain open. Kill them before wiring the new buttons.
+    stopStream();
+    _state = 'idle';
+
     var btn = document.getElementById('audioMealScannerBtn');
-    var input = document.getElementById('mealImageUpload');
-    if (!btn || !input) return;
+    var capBtn = document.getElementById('captureMealBtn');
+    if (!btn || !capBtn) return;
     if (btn.dataset.bbfVisionWired === '1') return;
     btn.dataset.bbfVisionWired = '1';
 
+    // Belt + suspenders: hide the page (tab switch, lock, etc.) -> kill stream.
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden' && _state === 'streaming') {
+        stopStream();
+        setBtnState(btn, 'idle');
+      }
+    });
+
     btn.addEventListener('click', function() {
-      // Warm up speechSynthesis inside the user gesture so iOS allows the
-      // post-fetch speak() to fire. Empty/silent utterance is a no-op.
+      if (_state === 'streaming') {
+        // Cancel Scan -> teardown
+        stopStream();
+        setBtnState(btn, 'idle');
+        return;
+      }
+      if (_state === 'analyzing') return; // ignore clicks during fetch
+      startStream(btn);
+    });
+
+    capBtn.addEventListener('click', function() {
+      if (_state !== 'streaming') return;
+      // Warm up speechSynthesis inside the user gesture so iOS allows
+      // the post-fetch speak() to fire. Empty/silent utterance is a no-op.
       try {
         if (window.speechSynthesis && typeof SpeechSynthesisUtterance !== 'undefined') {
           var warm = new SpeechSynthesisUtterance(' ');
@@ -10677,20 +10770,11 @@ var BBF_VISION_COACH = (function() {
           window.speechSynthesis.speak(warm);
         }
       } catch (_) {}
-      // Reset the file input so re-selecting the same photo still fires change.
-      try { input.value = ''; } catch (_) {}
-      input.click();
-    });
-
-    input.addEventListener('change', function(ev) {
-      var file = ev.target && ev.target.files && ev.target.files[0];
-      if (!file) return;
-      setBtnState(btn, 'analyzing');
-      handleFile(file, btn);
+      capturePhoto(btn);
     });
   }
 
-  return { init: init };
+  return { init: init, _stopStream: stopStream };
 })();
 
 function RN() {
@@ -10723,11 +10807,16 @@ function RN() {
             '<div class="shaker-outline"><div class="shaker-fill" id="shakerFill"></div></div>' +
             '<p id="shakerText">0% Daily Fuel</p>' +
           '</div>';
-  // Feature 2 · Scan Meal — fires the camera/file picker, POSTs the photo
-  // to /api/vision-coach, and "Lance" speaks his review via Web Speech API.
+  // Feature 2 · Scan Meal — fires an in-app WebRTC camera stream (rear-
+  // facing on mobile), client takes a still, POSTs base64 to
+  // /api/vision-coach, and "Lance" speaks his review via Web Speech API.
   // Nothing is rendered to the DOM; the response is audio-only.
   h += '<button type="button" id="audioMealScannerBtn" class="bbf-primary-btn">&#x1F399;&#xFE0F; Scan Meal</button>';
-  h += '<input type="file" id="mealImageUpload" accept="image/*" capture="environment" style="display:none">';
+  h += '<div id="mealScannerContainer" style="display: none; width: 100%; max-width: 400px; margin: 10px auto; border-radius: 8px; overflow: hidden; position: relative;">' +
+         '<video id="mealVideoFeed" autoplay playsinline style="width: 100%; height: auto; display: block;"></video>' +
+         '<canvas id="mealCaptureCanvas" style="display: none;"></canvas>' +
+         '<button id="captureMealBtn" class="bbf-primary-btn" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 10;">&#x1F4F8; Take Photo</button>' +
+       '</div>';
   h += '<div class="dh"><div class="dl">' + plan.name + "'s Plan</div>" +
     '<div class="dn2" style="font-size:1.3rem">' + plan.cal + '</div>' +
     '<div class="df2">&#x1F3AF; ' + plan.goal + '</div></div>';
