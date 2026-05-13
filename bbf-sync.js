@@ -450,9 +450,10 @@ var BBF_SYNC = (function() {
         // With Prefer:return=representation the PATCH responds with the
         // [updated_row]. Empty array = no row matched (either id is bad,
         // already resolved, or RLS silently filtered it). All three
-        // warrant surfacing.
+        // warrant surfacing — include the auditId we tried to PATCH so
+        // the admin can compare against the row that actually exists.
         if (Array.isArray(data) && data.length === 0) {
-          throw new Error('audit_not_found');
+          throw new Error('Update failed: No rows matched ID ' + auditId);
         }
         return Array.isArray(data) ? data[0] : data;
       });
