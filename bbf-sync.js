@@ -175,29 +175,52 @@ var BBF_SYNC = (function() {
   }
 
   // ─── SYNC: WORKOUT SET ───────────────────────────────────
+  // Phase 5 fix — three column-name typos were silently dropping data
+  // for months: set_num → set_number, weight → weight_lbs, logged_at
+  // does not exist on bbf_sets. Combined with the bbf_sets-RLS-not-
+  // policied issue (separate migration), every cloud sync was a no-op.
   function syncSet(uid, dayKey, exKey, setNum, field, value) {
     if (!uid) return Promise.resolve();
-    var row = { user_id: uid, day_key: dayKey, exercise_key: exKey, set_num: setNum };
+    var row = { user_id: uid, day_key: dayKey, exercise_key: exKey, set_number: setNum };
     if (field) {
-      row[field === 'r' ? 'reps' : 'weight'] = value;
+      row[field === 'r' ? 'reps' : 'weight_lbs'] = value;
     } else if (value && typeof value === 'object') {
       if (value.r !== undefined) row.reps = value.r;
-      if (value.w !== undefined) row.weight = value.w;
+      if (value.w !== undefined) row.weight_lbs = value.w;
     }
-    row.logged_at = new Date().toISOString();
     return supa('POST', 'bbf_sets', row);
   }
 
   function syncSetsBulk(setsArray) {
     if (!setsArray || setsArray.length === 0) return Promise.resolve();
     var rows = setsArray.map(function(s) {
-      var row = { user_id: s.uid, day_key: s.dayKey, exercise_key: s.exKey, set_num: s.setNum };
+      var row = { user_id: s.uid, day_key: s.dayKey, exercise_key: s.exKey, set_number: s.setNum };
       if (s.r !== undefined) row.reps = s.r;
-      if (s.w !== undefined) row.weight = s.w;
-      row.logged_at = s.loggedAt || new Date().toISOString();
+      if (s.w !== undefined) row.weight_lbs = s.w;
       return row;
     });
     return supa('POST', 'bbf_sets', rows);
+  }
+
+  // ─── PHASE 5 · SERVER-AUTHORITATIVE AUTOREG WEIGHTS ───────
+  // Calls the SECURITY DEFINER RPC bbf_get_last_weights(text, int)
+  // and returns { ok, day_idx, weights: { ex_0: 135, ex_1: 95, ... } }
+  // or null on failure. The autoregulation engine on the workout
+  // view consults this before falling back to localStorage.
+  function fetchLastWeights(uid, dayIdx) {
+    if (!uid || dayIdx == null) return Promise.resolve(null);
+    return supa('POST', 'rpc/bbf_get_last_weights',
+      { target_uid: uid, target_day_idx: Number(dayIdx) }, '',
+      { prefer: 'return=representation' })
+      .then(function(res) {
+        if (!res) return null;
+        if (Array.isArray(res)) return res[0] || null;
+        return res;
+      })
+      .catch(function(e) {
+        console.warn('BBF_SYNC fetchLastWeights error:', e && e.message);
+        return null;
+      });
   }
 
   // ─── SYNC: READINESS ─────────────────────────────────────
@@ -2395,6 +2418,7 @@ var BBF_SYNC = (function() {
     saveMealPlan: saveMealPlan,
     fetchMealPlan: fetchMealPlan,
     fetchProfileMetrics: fetchProfileMetrics,
+    fetchLastWeights: fetchLastWeights,
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
     adminSetTrial: adminSetTrial,
