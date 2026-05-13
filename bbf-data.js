@@ -185,7 +185,7 @@ var MP = {
     {day:'Day 6',meals:[{m:'Breakfast',i:'4 oz Greek Yogurt Parfait, 1/2 cup Fruit, 1/4 cup Nuts'},{m:'Lunch',i:'5 oz Tuna Salad, Light Mayo, 2 slices Whole-Wheat Bread'},{m:'Dinner',i:'6 oz Grilled Chicken, 1 cup Pasta with Pesto, 1/2 cup Side Salad'}]},
     {day:'Day 7',meals:[{m:'All Meals',i:'Flexible — stay within your calorie and protein targets.'}]}
   ]},
-  jacque_bbf: {name:'Jacquellyn',cal:'~1,652 cal/day',goal:'Postpartum Recomp — High Protein / Clean Carbs · MEDICAL ALERT: STRICTLY NO COCONUT (olive or avocado oil only) · Weigh meat AFTER cooking · Measure rice/beans AFTER cooking',days:[
+  jacque_bbf: {name:'Jacquelyn',cal:'~1,652 cal/day',goal:'Postpartum Recomp — High Protein / Clean Carbs · MEDICAL ALERT: STRICTLY NO COCONUT (olive or avocado oil only) · Weigh meat AFTER cooking · Measure rice/beans AFTER cooking',days:[
     {day:'Day 1',meals:[
       {m:'Breakfast',i:'4 oz cooked lean ground turkey, 1 cup sautéed bell peppers & onions (olive or avocado oil — NO coconut), 1 cup berries'},
       {m:'Lunch',i:'5 oz cooked lean ground beef, 1/2 cup brown rice (cooked), 1/2 cup black beans (cooked), 1 cup green beans'},
@@ -827,7 +827,7 @@ var MP = {
     {day:'Day 6',meals:[{m:'Breakfast',i:'4 oz Greek Yogurt Parfait, 1/2 cup Fruit, 1/4 cup Nuts'},{m:'Lunch',i:'5 oz Tuna Salad, Light Mayo, 2 slices Whole-Wheat Bread'},{m:'Dinner',i:'6 oz Grilled Chicken, 1 cup Pasta with Pesto, 1/2 cup Side Salad'}]},
     {day:'Day 7',meals:[{m:'All Meals',i:'Flexible — stay within your calorie and protein targets.'}]}
   ]},
-  jacque_bbf: {name:'Jacquellyn',cal:'~1,652 cal/day',goal:'Postpartum Recomp — High Protein / Clean Carbs · MEDICAL ALERT: STRICTLY NO COCONUT (olive or avocado oil only) · Weigh meat AFTER cooking · Measure rice/beans AFTER cooking',days:[
+  jacque_bbf: {name:'Jacquelyn',cal:'~1,652 cal/day',goal:'Postpartum Recomp — High Protein / Clean Carbs · MEDICAL ALERT: STRICTLY NO COCONUT (olive or avocado oil only) · Weigh meat AFTER cooking · Measure rice/beans AFTER cooking',days:[
     {day:'Day 1',meals:[
       {m:'Breakfast',i:'4 oz cooked lean ground turkey, 1 cup sautéed bell peppers & onions (olive or avocado oil — NO coconut), 1 cup berries'},
       {m:'Lunch',i:'5 oz cooked lean ground beef, 1/2 cup brown rice (cooked), 1/2 cup black beans (cooked), 1 cup green beans'},
