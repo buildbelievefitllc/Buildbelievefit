@@ -13761,6 +13761,36 @@ function renderOverview() {
 
   // Muscle groups
   renderMuscles(d, uid);
+
+  // Phase 3 Obj 1 — server-authoritative overwrite. The block above is
+  // the optimistic first paint from localStorage; the RPC arrives moments
+  // later and overwrites every counter + heatmap with cross-device-
+  // consistent aggregates from bbf_logs. Stale-uid guard prevents a slow
+  // response from clobbering a freshly-rendered other-client view (e.g.,
+  // admin rapidly toggling between clients in Command Center).
+  if (window.BBF_SYNC && typeof BBF_SYNC.fetchProfileMetrics === 'function') {
+    var _uidAtFetch = uid;
+    BBF_SYNC.fetchProfileMetrics(uid).then(function(m) {
+      if (!m || m.ok === false) return;
+      var stillUid = VC || CU;
+      if (stillUid !== _uidAtFetch) return; // user navigated away — drop
+      var setText = function(id, v) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = (v == null ? 0 : v);
+      };
+      setText('an-total',  m.total_sessions);
+      setText('an-streak', m.current_streak);
+      setText('an-week',   m.this_week);
+      setText('an-month',  m.this_month);
+      setText('an-best',   m.best_streak);
+      setText('an-avg',    m.avg_per_week);
+      if (Array.isArray(m.heatmap)) {
+        var srvSeen = {};
+        m.heatmap.forEach(function(e) { if (e && e.logged) srvSeen[e.date] = 1; });
+        renderHeatmap(srvSeen);
+      }
+    });
+  }
 }
 
 function renderBarChart(logs) {
