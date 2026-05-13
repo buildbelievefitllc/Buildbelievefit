@@ -11010,9 +11010,223 @@ var BBF_VISION_COACH = (function() {
   return { init: init, _stopStream: stopStream };
 })();
 
+// ───────────────────────────────────────────────────────────────
+// BBF_NUTRITION_ROTATOR — Phase 10 Scale Engine
+// ───────────────────────────────────────────────────────────────
+// Admin-only One-Click AI Nutrition Rotator. Calls /api/rotate-nutrition
+// with the active client's TDEE + medical constraints + previous-plan
+// summary + tier, receives a fresh 7-day plan in the EXACT MP[uid] shape
+// ({ name, cal, goal, days: [{ day, meals: [{ m, i }] }] }), drops it
+// into MP[uid] verbatim, persists to bbf_users.nutrition_plan via
+// BBF_SYNC.saveMealPlan, then re-renders the tab.
+//
+// Admin gate: CU === 'akeem' && VC && VC !== CU — Akeem actively viewing
+// a client's profile via the Command Center. Clients never see the button.
+//
+// Auth: X-BBF-Admin-Token header. Token is entered once per session via
+// prompt() and stashed in sessionStorage. The server holds the truth in
+// env BBF_ADMIN_TOKEN — frontend code never embeds it.
+//
+// Lazy cloud hydration: on first RN() per (session, uid) we fetch the
+// cloud plan and overwrite MP[uid] before render so rotated plans
+// survive page reload / next-session login without a boot-time call.
+// ───────────────────────────────────────────────────────────────
+var BBF_NUTRITION_ROTATOR = (function() {
+  var ENDPOINT = 'https://buildbelievefit.onrender.com/api/rotate-nutrition';
+  var TOKEN_KEY = 'BBF_ADMIN_TOKEN';
+  var _hydrated = {};   // { uid: true } — cloud fetch already attempted
+  var _inflight = false;
+
+  function isAdminView() {
+    return (typeof CU !== 'undefined' && CU === 'akeem') &&
+           (typeof VC !== 'undefined' && VC && VC !== CU);
+  }
+
+  function getAdminToken() {
+    var t = null;
+    try { t = sessionStorage.getItem(TOKEN_KEY); } catch(_) {}
+    if (t) return t;
+    var entered = (typeof prompt === 'function')
+      ? prompt("Enter BBF Admin Token to rotate this client's nutrition plan:")
+      : null;
+    if (!entered) return null;
+    entered = entered.trim();
+    if (!entered) return null;
+    try { sessionStorage.setItem(TOKEN_KEY, entered); } catch(_) {}
+    return entered;
+  }
+  function clearAdminToken() {
+    try { sessionStorage.removeItem(TOKEN_KEY); } catch(_) {}
+  }
+
+  // Compact "main dishes" summary so the previousPlan field stays cheap
+  // (Gemini bills by token; 1.5kb cap keeps cost bounded).
+  function summarizePreviousPlan(plan) {
+    if (!plan || !Array.isArray(plan.days)) return '';
+    var lines = [];
+    plan.days.forEach(function(dy) {
+      var labels = (dy.meals || [])
+        .map(function(m) { return (m.m || '') + ': ' + ((m.i || '').split(/[,(]/)[0] || '').trim(); })
+        .filter(Boolean);
+      if (labels.length) lines.push(dy.day + ' — ' + labels.join('; '));
+    });
+    return lines.join('\n').slice(0, 1500);
+  }
+
+  function buildConstraints(uid) {
+    var u  = (typeof d !== 'undefined' && d && d.u && d.u[uid]) || {};
+    var mp = (typeof MP !== 'undefined' && MP[uid]) || {};
+    var notes = [];
+    if (u.medical_notes) notes.push(u.medical_notes);
+    if (u.allergens)     notes.push('Allergens: ' + u.allergens);
+    // Several seed plans embed medical alerts inside MP[uid].goal
+    // (e.g. Jacquelyn: 'MEDICAL ALERT: STRICTLY NO COCONUT'). Forward.
+    if (mp.goal && /MEDICAL ALERT|ALLERG|STRICT/i.test(mp.goal)) {
+      notes.push(mp.goal);
+    }
+    return notes.join(' · ');
+  }
+
+  function inferTdee(uid) {
+    var mp = (typeof MP !== 'undefined' && MP[uid]) || {};
+    if (mp.cal) return mp.cal;
+    var u = (typeof d !== 'undefined' && d && d.u && d.u[uid]) || {};
+    if (u.tdee_target) return String(u.tdee_target);
+    return '~1,800 cal/day';
+  }
+  function inferTier(uid) {
+    var u = (typeof d !== 'undefined' && d && d.u && d.u[uid]) || {};
+    return u.subscription_tier || u.tier || 'gateway';
+  }
+  function inferName(uid) {
+    var u  = (typeof d !== 'undefined' && d && d.u && d.u[uid]) || {};
+    var mp = (typeof MP !== 'undefined' && MP[uid]) || {};
+    return (u.name && u.name.split(' ')[0]) || mp.name || uid;
+  }
+
+  // Lazy cloud hydration. Returns Promise<bool> — true means MP[uid] was
+  // overwritten and the caller should re-render.
+  function hydrateOnce(uid) {
+    if (!uid || _hydrated[uid]) return Promise.resolve(false);
+    _hydrated[uid] = true;
+    if (!window.BBF_SYNC || typeof BBF_SYNC.fetchMealPlan !== 'function') {
+      return Promise.resolve(false);
+    }
+    return BBF_SYNC.fetchMealPlan(uid).then(function(res) {
+      if (!res || !res.plan || !Array.isArray(res.plan.days)) return false;
+      if (typeof MP === 'undefined') return false;
+      MP[uid] = res.plan;
+      return true;
+    }).catch(function() { return false; });
+  }
+
+  function injectButton(con) {
+    if (!con || !isAdminView()) return;
+    if (con.querySelector('#bbfAdminRotateMeals')) return; // idempotent
+    var btn = document.createElement('button');
+    btn.id = 'bbfAdminRotateMeals';
+    btn.className = 'bbf-primary-btn';
+    btn.style.cssText = 'background:#FF00ff;color:#fff;margin-bottom:15px;';
+    btn.textContent = '🔄 AI Auto-Rotate Protocol';
+    btn.addEventListener('click', onRotateClick);
+    con.insertBefore(btn, con.firstChild);
+  }
+
+  function onRotateClick(e) {
+    var btn = e.currentTarget;
+    if (_inflight) return;
+    if (!isAdminView()) return;
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || '';
+    if (!uid) return;
+    var token = getAdminToken();
+    if (!token) {
+      btn.textContent = '🔄 Token required';
+      setTimeout(function(){ btn.textContent = '🔄 AI Auto-Rotate Protocol'; }, 2500);
+      return;
+    }
+
+    _inflight = true;
+    var originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '🔄 Formulating New Protocol...';
+
+    var payload = {
+      uid:          uid,
+      tdee:         inferTdee(uid),
+      constraints:  buildConstraints(uid),
+      previousPlan: summarizePreviousPlan((typeof MP !== 'undefined' && MP[uid]) || null),
+      clientTier:   inferTier(uid),
+      clientName:   inferName(uid)
+    };
+
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': token },
+      body: JSON.stringify(payload)
+    }).then(function(r) {
+      return r.json().catch(function() { return null; }).then(function(body) {
+        return { status: r.status, ok: r.ok, body: body };
+      });
+    }).then(function(resp) {
+      if (resp.status === 401) {
+        clearAdminToken();
+        alert('Admin token rejected. Will re-prompt on next click.');
+        return null;
+      }
+      if (resp.status === 429) {
+        var code = (resp.body && resp.body.error) || 'rate_limited';
+        alert('Rate limit hit (' + code + '). Try again later.');
+        return null;
+      }
+      if (!resp.ok || !resp.body || !resp.body.ok || !resp.body.plan) {
+        var msg = (resp.body && resp.body.error) || ('HTTP ' + resp.status);
+        alert('Rotation failed: ' + msg);
+        return null;
+      }
+      // Cloud overwrite — same shape RN() reads.
+      if (typeof MP !== 'undefined') MP[uid] = resp.body.plan;
+      var persist = (window.BBF_SYNC && typeof BBF_SYNC.saveMealPlan === 'function')
+        ? BBF_SYNC.saveMealPlan(uid, resp.body.plan)
+        : Promise.resolve({ ok: true });
+      return persist.then(function() { return resp.body.plan; });
+    }).then(function(newPlan) {
+      if (newPlan && typeof RN === 'function') {
+        try { RN(); } catch(_) {}
+      } else if (document.body.contains(btn)) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }).catch(function(err) {
+      console.error('[BBF_NUTRITION_ROTATOR] fetch threw:', err && err.message);
+      alert('Network error while rotating plan. Check console.');
+      if (document.body.contains(btn)) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }).then(function() {
+      _inflight = false;
+    });
+  }
+
+  return {
+    isAdminView: isAdminView,
+    injectButton: injectButton,
+    hydrateOnce: hydrateOnce,
+    clearAdminToken: clearAdminToken
+  };
+})();
+
 function RN() {
   var con = document.getElementById('ncon');
   var uid = VC || CU;
+  // Phase 10 lazy cloud hydration — first paint per (session, uid) may
+  // be the seed plan; once the async fetch resolves, we re-render with
+  // the cloud version. Idempotent guard inside hydrateOnce.
+  if (window.BBF_NUTRITION_ROTATOR && typeof BBF_NUTRITION_ROTATOR.hydrateOnce === 'function') {
+    BBF_NUTRITION_ROTATOR.hydrateOnce(uid).then(function(didOverwrite) {
+      if (didOverwrite && typeof RN === 'function') RN();
+    });
+  }
   var plan = MP[uid];
   if (!plan) {
     // Phase 5: cloud-plan fallback — render Anthropic-generated meal plan
@@ -11025,10 +11239,12 @@ function RN() {
         '</div>';
       var preEl = document.getElementById('cloud-meal-md');
       if (preEl) preEl.textContent = cloudMeal;
+      if (window.BBF_NUTRITION_ROTATOR) BBF_NUTRITION_ROTATOR.injectButton(con);
       return;
     }
     con.innerHTML = '<div class="emp"><div class="ei">&#x1F957;</div><div class="et">' + _t('app-nutr-noplan','No meal plan assigned yet') + '</div>' +
       '<div style="font-size:.8rem;color:var(--mut);margin-top:.5rem">' + _t('app-nutr-contact','Contact Akeem to get your plan set up.') + '</div></div>';
+    if (window.BBF_NUTRITION_ROTATOR) BBF_NUTRITION_ROTATOR.injectButton(con);
     return;
   }
   var todayIdx = new Date().getDay();
@@ -11061,6 +11277,10 @@ function RN() {
   BBF_NUTRITION_TRACKER.init();
   BBF_NUTRITION_TRACKER.restore();
   BBF_VISION_COACH.init();
+  // Phase 10 — admin-only "🔄 AI Auto-Rotate Protocol" button. No-op for
+  // clients and for Akeem on his own Nutrition tab; only renders when
+  // Akeem is viewing a client's profile via the Command Center.
+  if (window.BBF_NUTRITION_ROTATOR) BBF_NUTRITION_ROTATOR.injectButton(con);
   // Phase 9 — re-apply tier gate so the dynamically-rendered Scan Meal
   // button + scanner container inherit the same lock as the (static)
   // Virtual Chef / Nutrition Vision modules.
