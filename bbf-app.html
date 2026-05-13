@@ -8019,6 +8019,10 @@ function parseCloudAudit(entry) {
     }
   }
   return {
+    // Phase 9.5 — carry the DB row id so the Command Center "Mark
+    // Resolved" button can PATCH the right record. Falls back to null
+    // for legacy local-only audits.
+    id: entry.id || null,
     uid: entry.user_id || 'cloud',
     exercise: exercise,
     tensionArea: areaId,
@@ -8026,6 +8030,89 @@ function parseCloudAudit(entry) {
     cue: '',
     timestamp: entry.logged_at || (entry.date ? entry.date + 'T00:00:00.000Z' : new Date().toISOString())
   };
+}
+
+// Phase 9.5 · Sovereign Command Center "Mark Resolved" handler.
+// Wired as a delegated click listener on #admin-audit-feed so it
+// survives every re-render of the audit cards. Idempotent setup —
+// the wrapper checks data-bbfAuditWired before attaching, so calling
+// renderAdminAuditFeed() multiple times never stacks listeners.
+function _bbfDedupeKey(a) {
+  return (a.uid || '') + '|' + (a.exercise || '') + '|' +
+         (a.areaLabel || a.tensionArea || '') + '|' +
+         String(a.timestamp || '').slice(0, 16);
+}
+function _bbfRemoveLocalAudit(key) {
+  try {
+    var d = GD();
+    if (!Array.isArray(d.audits)) return;
+    var before = d.audits.length;
+    d.audits = d.audits.filter(function(a) { return _bbfDedupeKey(a) !== key; });
+    if (d.audits.length !== before) SD(d);
+  } catch (_) {}
+}
+function _bbfHandleResolveClick(ev) {
+  var btn = ev.target && ev.target.closest && ev.target.closest('.audit-resolve-btn');
+  if (!btn) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  if (btn.disabled) return;
+  var card = btn.closest('.audit-card');
+  var auditId = btn.getAttribute('data-audit-id') || '';
+  var dedupeKey = btn.getAttribute('data-audit-key') || '';
+  var originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Resolving…';
+  if (card) card.style.opacity = '0.55';
+
+  function finish() {
+    // Remove from local mirror so re-renders / merges don't resurface it.
+    if (dedupeKey) _bbfRemoveLocalAudit(dedupeKey);
+    // DOM removal + counter decrement.
+    if (card && card.parentNode) {
+      card.style.transition = 'opacity .25s ease, transform .25s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(8px)';
+      setTimeout(function() {
+        if (card.parentNode) card.parentNode.removeChild(card);
+        // Re-paint the count badge in the head so it stays in sync.
+        var head = document.querySelector('#admin-audit-feed .audit-feed-count');
+        var remaining = document.querySelectorAll('#admin-audit-feed .audit-card').length;
+        if (head) head.textContent = remaining + ' signal' + (remaining === 1 ? '' : 's');
+        // Empty-state fallback when the last card resolves.
+        var feed = document.getElementById('admin-audit-feed');
+        if (feed && remaining === 0 && !feed.querySelector('.audit-empty')) {
+          var empty = document.createElement('div');
+          empty.className = 'audit-empty';
+          empty.style.cssText = 'background:var(--gry2);border:1px dashed var(--gry3);border-radius:12px;padding:1rem;text-align:center';
+          empty.innerHTML =
+            '<div style="font-family:var(--hb);font-size:.82rem;letter-spacing:2px;color:var(--mut2)">All audits resolved.</div>' +
+            '<div style="font-size:.72rem;color:var(--mut2);margin-top:.3rem;line-height:1.5">The feed will repopulate the next time a client flags a tension area.</div>';
+          feed.appendChild(empty);
+        }
+      }, 220);
+    }
+  }
+  function revert(msg) {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    if (card) card.style.opacity = '';
+    if (typeof TOAST === 'function') TOAST('Could not resolve audit — ' + msg);
+  }
+
+  if (auditId && typeof BBF_SYNC !== 'undefined' && typeof BBF_SYNC.resolveAudit === 'function') {
+    BBF_SYNC.resolveAudit(auditId).then(function() {
+      finish();
+    }).catch(function(err) {
+      console.warn('[BBF_AUDIT] resolveAudit failed:', err && err.message);
+      // 'audit_not_found' = row already resolved elsewhere; treat as success.
+      if (err && err.message === 'audit_not_found') return finish();
+      revert((err && err.message) || 'network');
+    });
+  } else {
+    // Local-only audit (no id) — nothing to PATCH, just clear the local mirror.
+    finish();
+  }
 }
 
 function mergeAudits(localList, cloudList) {
@@ -8048,6 +8135,14 @@ function renderAdminAuditFeed(d) {
   if (!d) d = GD();
   var local = Array.isArray(d.audits) ? d.audits.slice(0) : [];
   var usersMap = d.u || {};
+  // Phase 9.5 — wire the delegated resolve-click listener exactly once
+  // per #admin-audit-feed element. Subsequent renders replace innerHTML
+  // but the listener on the parent survives, so click handling is
+  // continuous across re-renders.
+  if (wrap.dataset.bbfAuditWired !== '1') {
+    wrap.addEventListener('click', _bbfHandleResolveClick);
+    wrap.dataset.bbfAuditWired = '1';
+  }
   function paint(list) {
     var items = mergeAudits(local, list || []).slice(0, 15);
     wrap.innerHTML = ''; // Clear previous contents
@@ -8057,11 +8152,12 @@ function renderAdminAuditFeed(d) {
     head.innerHTML =
         '<span style="font-family:var(--hb);font-size:1rem;letter-spacing:3px;color:var(--yel);text-transform:uppercase">&#x1F9EA; Audit Log Feed</span>' +
         '<span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(245,200,0,.35),transparent)"></span>' +
-        '<span style="font-family:\'Menlo\',ui-monospace,monospace;font-size:.58rem;letter-spacing:.22em;color:var(--mut2);text-transform:uppercase">' + items.length + ' signal' + (items.length === 1 ? '' : 's') + '</span>';
+        '<span class="audit-feed-count" style="font-family:\'Menlo\',ui-monospace,monospace;font-size:.58rem;letter-spacing:.22em;color:var(--mut2);text-transform:uppercase">' + items.length + ' signal' + (items.length === 1 ? '' : 's') + '</span>';
     wrap.appendChild(head);
 
     if (!items.length) {
       var noItems = document.createElement('div');
+      noItems.className = 'audit-empty';
       noItems.style.cssText = 'background:var(--gry2);border:1px dashed var(--gry3);border-radius:12px;padding:1rem;text-align:center';
       noItems.innerHTML =
           '<div style="font-family:var(--hb);font-size:.82rem;letter-spacing:2px;color:var(--mut2)">No audits logged yet.</div>' +
@@ -8075,6 +8171,7 @@ function renderAdminAuditFeed(d) {
         var initial = String(name).charAt(0).toUpperCase();
 
         var itemWrap = document.createElement('div');
+        itemWrap.className = 'audit-card';
         itemWrap.style.cssText = 'background:var(--gry2);border:1px solid var(--gry3);border-left:3px solid ' + meta.accent + ';border-radius:0 12px 12px 0;padding:.75rem .9rem;margin-bottom:.55rem';
 
         var innerWrap = document.createElement('div');
@@ -8128,6 +8225,22 @@ function renderAdminAuditFeed(d) {
           cueDiv.textContent = String(a.cue);
           itemWrap.appendChild(cueDiv);
         }
+
+        // Phase 9.5 — "Mark Resolved" CTA. PATCHes bbf_audit_logs.resolved_at
+        // for cloud-backed rows (id present); for local-only audits it just
+        // clears the localStorage mirror so the entry doesn't resurface on
+        // the next merge.
+        var resolveRow = document.createElement('div');
+        resolveRow.style.cssText = 'margin-top:.55rem;display:flex;justify-content:flex-end';
+        var resolveBtn = document.createElement('button');
+        resolveBtn.type = 'button';
+        resolveBtn.className = 'audit-resolve-btn';
+        if (a.id) resolveBtn.setAttribute('data-audit-id', a.id);
+        resolveBtn.setAttribute('data-audit-key', _bbfDedupeKey(a));
+        resolveBtn.style.cssText = 'font-family:var(--hb,\'Bebas Neue\',sans-serif);font-size:.62rem;letter-spacing:2.5px;text-transform:uppercase;padding:.35rem .7rem;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.45);color:#00ff88;border-radius:6px;cursor:pointer;transition:background .2s,opacity .2s';
+        resolveBtn.textContent = '✓ Mark Resolved';
+        resolveRow.appendChild(resolveBtn);
+        itemWrap.appendChild(resolveRow);
 
         wrap.appendChild(itemWrap);
       });
