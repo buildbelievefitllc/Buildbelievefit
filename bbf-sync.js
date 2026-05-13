@@ -2310,6 +2310,46 @@ var BBF_SYNC = (function() {
     }
   }
 
+  // ─── PHASE 10 · MEAL PLAN PERSISTENCE ────────────────────
+  // Cloud-persisted plans live in bbf_users.nutrition_plan (jsonb).
+  // Shape stored matches MP[uid] verbatim so the lazy-hydrate path on
+  // the frontend can do `MP[uid] = cloudPlan` with no transform.
+  function saveMealPlan(uid, plan) {
+    if (!uid || !plan) return Promise.resolve({ ok: false, error: 'no uid or plan' });
+    var body = {
+      nutrition_plan: plan,
+      nutrition_plan_updated_at: new Date().toISOString()
+    };
+    return supa('PATCH', 'bbf_users', body, '?id=eq.' + encodeURIComponent(uid))
+      .then(function() { return { ok: true, uid: uid }; })
+      .catch(function(e) {
+        console.warn('BBF_SYNC saveMealPlan error:', e && e.message);
+        return { ok: false, uid: uid, error: e && e.message };
+      });
+  }
+
+  // Returns the cloud plan envelope or null. Caller decides whether to
+  // overwrite the in-memory MP[uid] seed. resolveQuery() in this file
+  // rewrites ?id=eq.<slug> → ?uid=eq.<slug> for the bbf_users table.
+  function fetchMealPlan(uid) {
+    if (!uid) return Promise.resolve(null);
+    var q = '?id=eq.' + encodeURIComponent(uid) + '&select=nutrition_plan,nutrition_plan_updated_at';
+    return supa('GET', 'bbf_users', null, q)
+      .then(function(rows) {
+        if (!rows || !rows.length) return null;
+        var row = rows[0];
+        if (!row || !row.nutrition_plan) return null;
+        return {
+          plan: row.nutrition_plan,
+          updatedAt: row.nutrition_plan_updated_at || null
+        };
+      })
+      .catch(function(e) {
+        console.warn('BBF_SYNC fetchMealPlan error:', e && e.message);
+        return null;
+      });
+  }
+
   var exported = {
     bootstrapUidMap: ensureUidMap,
     resolveUid: resolveUid,
@@ -2321,6 +2361,8 @@ var BBF_SYNC = (function() {
     logAuditRequest: logAuditRequest,
     fetchPendingAudits: fetchPendingAudits,
     resolveAudit: resolveAudit,
+    saveMealPlan: saveMealPlan,
+    fetchMealPlan: fetchMealPlan,
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
     adminSetTrial: adminSetTrial,
