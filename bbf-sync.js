@@ -266,7 +266,11 @@ var BBF_SYNC = (function() {
 
   // ─── FETCH: ALL LOGS (TRAINER VIEW) ──────────────────────
   function fetchAllLogs() {
-    return supa('GET', 'bbf_logs', null, '?order=logged_at.desc&limit=500');
+    // Phase 6 hotfix — bbf_logs has no logged_at column. Sort by date
+    // descending instead, which actually exists. PostgREST returned 400
+    // on the old order=logged_at.desc and supa() swallowed to null —
+    // any caller (admin all-logs feed) got an empty list silently.
+    return supa('GET', 'bbf_logs', null, '?order=date.desc&limit=500');
   }
 
   // ─── FETCH: READINESS FOR USER ───────────────────────────
@@ -523,8 +527,10 @@ var BBF_SYNC = (function() {
     // Query bbf_logs for the most recent audit/strength entry matching this exercise
     return supa('GET', 'bbf_logs', null,
       '?user_id=eq.' + uid +
-      '&notes=like.*' + encodeURIComponent(exerciseName) + '*' +
-      '&order=logged_at.desc&limit=1'
+      // Phase 6 hotfix — column is coach_notes, not notes; and bbf_logs
+      // has no logged_at, sort by date.
+      '&coach_notes=like.*' + encodeURIComponent(exerciseName) + '*' +
+      '&order=date.desc&limit=1'
     ).then(function(data) {
       if (data && data.length > 0) {
         var entry = data[0];
@@ -1182,7 +1188,11 @@ var BBF_SYNC = (function() {
         // Fetch last 48 hours of logs for all household members
         var cutoff = new Date(Date.now() - 48 * 3600000).toISOString();
         return supa('GET', 'bbf_logs', null,
-          '?user_id=in.(' + memberIds.join(',') + ')&logged_at=gte.' + cutoff + '&order=logged_at.desc&limit=50'
+          // Phase 6 hotfix — logged_at doesn't exist on bbf_logs. Use
+          // date (date type) for both the cutoff filter and the sort.
+          // Note: the cutoff loses sub-day resolution; for a 48h window
+          // we accept the ±1d fuzziness on the floor.
+          '?user_id=in.(' + memberIds.join(',') + ')&date=gte.' + cutoff.slice(0, 10) + '&order=date.desc&limit=50'
         ).then(function(logs) {
           return {
             household_id: householdId,
