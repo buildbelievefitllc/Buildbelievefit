@@ -1079,3 +1079,107 @@ var RECOVERY_CUES = {
   }
 };
 
+// ─── PHASE 9.5 DIAGNOSTIC · MARK RESOLVED PROBE ────────────────
+// window.RUN_DB_PROBE — call from the browser DevTools console to
+// surface the raw HTTP behavior of the bbf_audit_logs PATCH:
+//   1. Fetch one unresolved audit row
+//   2. Log its id (and bail loud if undefined — that IS the bug)
+//   3. PATCH resolved_at = now() with Prefer: return=representation
+//   4. Log the raw { status, ok, statusText, data, headers } from
+//      PostgREST so we can see whether the row matched, whether RLS
+//      filtered, or whether something else is masking the failure.
+// Uses raw fetch (not the BBF_SYNC wrapper) on purpose — wrappers can
+// swallow non-2xx silently, and this probe must show the real wire.
+// ────────────────────────────────────────────────────────────────
+if (typeof window !== 'undefined') {
+  window.RUN_DB_PROBE = async function() {
+    var SUPA_URL = window.ENV_SUPABASE_URL || '';
+    var SUPA_KEY = window.ENV_SUPABASE_KEY || '';
+    if (!SUPA_URL || !SUPA_KEY) {
+      console.error('[RUN_DB_PROBE] Supabase env not loaded — ENV_SUPABASE_URL or ENV_SUPABASE_KEY undefined');
+      alert('Probe aborted: Supabase env vars not loaded on this page.');
+      return;
+    }
+    var REST = SUPA_URL + '/rest/v1';
+    var baseHeaders = {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json'
+    };
+
+    try {
+      console.log('1. Fetching first unresolved audit...');
+      var listResp = await fetch(
+        REST + '/bbf_audit_logs?resolved_at=is.null&limit=1&select=*',
+        { headers: baseHeaders }
+      );
+      var listText = await listResp.text();
+      var rows;
+      try { rows = JSON.parse(listText); } catch (_) { rows = listText; }
+      console.log('   Fetch status:', listResp.status, listResp.statusText);
+      console.log('   Fetch body  :', rows);
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        console.error('[RUN_DB_PROBE] No unresolved audits available to probe.');
+        alert('Probe aborted: no unresolved audit rows in bbf_audit_logs.');
+        return;
+      }
+
+      var targetAudit = rows[0];
+      console.log('2. Target ID is:', targetAudit.id, '(type:', typeof targetAudit.id + ')');
+      console.log('   Full target row:', targetAudit);
+      if (!targetAudit.id) {
+        console.error('[RUN_DB_PROBE] targetAudit.id is undefined/null — THIS IS THE BUG. PostgREST returned a row with no id column. Compare against the SELECT body above.');
+        alert('Probe found bug: targetAudit.id is undefined. See console for full row.');
+        return;
+      }
+
+      console.log('3. Firing PATCH request...');
+      var patchUrl = REST + '/bbf_audit_logs?id=eq.' + encodeURIComponent(targetAudit.id);
+      var patchHeaders = Object.assign({}, baseHeaders, { 'Prefer': 'return=representation' });
+      var patchBody = JSON.stringify({ resolved_at: new Date().toISOString() });
+      console.log('   PATCH URL :', patchUrl);
+      console.log('   PATCH body:', patchBody);
+
+      var patchResp = await fetch(patchUrl, {
+        method: 'PATCH',
+        headers: patchHeaders,
+        body: patchBody
+      });
+      var patchText = await patchResp.text();
+      var data = null;
+      try { data = JSON.parse(patchText); } catch (_) { data = patchText; }
+
+      var rawResponse = {
+        status:     patchResp.status,
+        ok:         patchResp.ok,
+        statusText: patchResp.statusText,
+        data:       data,
+        error:      patchResp.ok ? null : (data && data.message) || patchText || null,
+        headers: {
+          'content-type':  patchResp.headers.get('content-type'),
+          'content-range': patchResp.headers.get('content-range'),
+          'preference-applied': patchResp.headers.get('preference-applied')
+        }
+      };
+      console.log('4. Raw Response:', rawResponse);
+
+      // Synthesized verdict.
+      if (Array.isArray(data) && data.length === 0) {
+        console.error('[RUN_DB_PROBE] VERDICT: PATCH returned 200 OK with empty array. The row id did not match any row — either RLS is still filtering, the id format is wrong, or the row was deleted between fetch and PATCH.');
+      } else if (Array.isArray(data) && data.length > 0 && data[0].resolved_at) {
+        console.log('[RUN_DB_PROBE] VERDICT: PATCH succeeded. resolved_at =', data[0].resolved_at);
+      } else if (!patchResp.ok) {
+        console.error('[RUN_DB_PROBE] VERDICT: PATCH failed with HTTP', patchResp.status, '— see error field above.');
+      } else {
+        console.warn('[RUN_DB_PROBE] VERDICT: PATCH returned an unexpected shape — inspect data field.');
+      }
+
+      alert('Probe Complete. Check Console.');
+    } catch (err) {
+      console.error('[RUN_DB_PROBE] crashed:', err);
+      alert('Probe crashed: ' + (err && err.message || 'unknown'));
+    }
+  };
+}
+
