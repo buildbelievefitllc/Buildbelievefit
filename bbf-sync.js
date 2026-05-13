@@ -407,11 +407,17 @@ var BBF_SYNC = (function() {
   }
 
   // ─── FETCH: PENDING AUDIT REQUESTS (TRAINER VIEW) ─────────
+  // Phase 9.5 — strictly filter out resolved rows via the new resolved_at
+  // column so resolutions persist past a page reload. Includes the row
+  // `id` in the projection so the Command Center's "Mark Resolved" button
+  // can PATCH the right record.
   function fetchPendingAudits() {
-    return supa('GET', 'bbf_audit_logs', null, '?order=created_at.desc&limit=100').then(function(data) {
+    return supa('GET', 'bbf_audit_logs', null,
+        '?resolved_at=is.null&order=created_at.desc&limit=100').then(function(data) {
       if (!data) return [];
       return data.map(function(entry) {
         return {
+          id: entry.id,
           user_id: entry.user_id,
           user_name: entry.user_id,
           notes: 'Audit: ' + entry.movement_name + ' — Tension: ' + entry.tension_zone,
@@ -420,6 +426,28 @@ var BBF_SYNC = (function() {
         };
       });
     }).catch(function(e) { console.error('BBF_SYNC fetchPendingAudits error:', e); return []; });
+  }
+
+  // ─── MUTATE: MARK AUDIT RESOLVED ──────────────────────────
+  // Phase 9.5 — Sovereign Command Center "Mark Resolved" persistence.
+  // PATCHes bbf_audit_logs.resolved_at = now() for the given row id.
+  // Returns the updated row (or null on failure) so the caller can
+  // commit DOM removal optimistically and revert on rejection.
+  function resolveAudit(auditId) {
+    if (!auditId) return Promise.reject(new Error('missing_audit_id'));
+    return supa('PATCH', 'bbf_audit_logs',
+      { resolved_at: new Date().toISOString() },
+      '?id=eq.' + encodeURIComponent(auditId),
+      { prefer: 'return=representation' })
+      .then(function(data) {
+        // With Prefer:return=representation the PATCH responds with the
+        // [updated_row]. Empty array = no row matched (already resolved
+        // by another tab, or id has been purged).
+        if (Array.isArray(data) && data.length === 0) {
+          throw new Error('audit_not_found');
+        }
+        return Array.isArray(data) ? data[0] : data;
+      });
   }
 
   // ─── FETCH: DAMAGED ZONES (SENTINEL) ──────────────────────
@@ -2292,6 +2320,7 @@ var BBF_SYNC = (function() {
     syncReadiness: syncReadiness,
     logAuditRequest: logAuditRequest,
     fetchPendingAudits: fetchPendingAudits,
+    resolveAudit: resolveAudit,
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
     adminSetTrial: adminSetTrial,
