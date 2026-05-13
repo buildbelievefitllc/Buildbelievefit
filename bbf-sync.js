@@ -2350,6 +2350,28 @@ var BBF_SYNC = (function() {
       });
   }
 
+  // ─── PHASE 3 OBJ 1 · SERVER-AUTHORITATIVE PROFILE METRICS ─
+  // Wraps the SECURITY DEFINER RPC bbf_get_profile_metrics(text). The
+  // RPC accepts a slug or UUID and returns:
+  //   { ok, total_sessions, current_streak, best_streak,
+  //     this_week, this_month, avg_per_week, heatmap[30] }
+  // Postgres RPCs called via PostgREST return the JSON scalar directly
+  // (not wrapped in an array) when the function returns a scalar type
+  // like jsonb. We tolerate both shapes defensively.
+  function fetchProfileMetrics(uid) {
+    if (!uid) return Promise.resolve(null);
+    return supa('POST', 'rpc/bbf_get_profile_metrics', { target_uid: uid }, '', { prefer: 'return=representation' })
+      .then(function(res) {
+        if (!res) return null;
+        if (Array.isArray(res)) return res[0] || null;
+        return res;
+      })
+      .catch(function(e) {
+        console.warn('BBF_SYNC fetchProfileMetrics error:', e && e.message);
+        return null;
+      });
+  }
+
   var exported = {
     bootstrapUidMap: ensureUidMap,
     resolveUid: resolveUid,
@@ -2363,6 +2385,7 @@ var BBF_SYNC = (function() {
     resolveAudit: resolveAudit,
     saveMealPlan: saveMealPlan,
     fetchMealPlan: fetchMealPlan,
+    fetchProfileMetrics: fetchProfileMetrics,
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
     adminSetTrial: adminSetTrial,
