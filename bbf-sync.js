@@ -431,8 +431,9 @@ var BBF_SYNC = (function() {
   // ─── MUTATE: MARK AUDIT RESOLVED ──────────────────────────
   // Phase 9.5 — Sovereign Command Center "Mark Resolved" persistence.
   // PATCHes bbf_audit_logs.resolved_at = now() for the given row id.
-  // Returns the updated row (or null on failure) so the caller can
-  // commit DOM removal optimistically and revert on rejection.
+  // Returns the updated row, or THROWS on every failure path so the
+  // caller can surface the error (no more silent success on null /
+  // empty / non-2xx — those bugs hid the RLS-blocked UPDATE for weeks).
   function resolveAudit(auditId) {
     if (!auditId) return Promise.reject(new Error('missing_audit_id'));
     return supa('PATCH', 'bbf_audit_logs',
@@ -440,9 +441,16 @@ var BBF_SYNC = (function() {
       '?id=eq.' + encodeURIComponent(auditId),
       { prefer: 'return=representation' })
       .then(function(data) {
+        // supa() returns null on non-2xx OR network failure. We can't
+        // distinguish, but in either case the UPDATE did NOT land — the
+        // caller MUST treat this as failure, not silent success.
+        if (data == null) {
+          throw new Error('database_error');
+        }
         // With Prefer:return=representation the PATCH responds with the
-        // [updated_row]. Empty array = no row matched (already resolved
-        // by another tab, or id has been purged).
+        // [updated_row]. Empty array = no row matched (either id is bad,
+        // already resolved, or RLS silently filtered it). All three
+        // warrant surfacing.
         if (Array.isArray(data) && data.length === 0) {
           throw new Error('audit_not_found');
         }
