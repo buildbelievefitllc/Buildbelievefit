@@ -404,7 +404,17 @@ function renderEntitlements() {
     var clients = Object.entries(d.u || {}).filter(function(e){return e[1].role==='client';});
     var wrap = document.getElementById('entitlements-list');
     if (!wrap) return;
-    var TIER_OPTS = ['lite','gateway','architect','sovereign','youth_athlete','nutrition_essentials','nutrition_platinum'];
+    // Phase 9 pricing pivot — only the 4 active monetized tiers ship in
+    // the dropdown. Legacy slugs (lite, nutrition_essentials,
+    // nutrition_platinum) are still accepted by bbf_admin_set_tier on
+    // the server side, but new entitlement grants flow through these
+    // four. Tuples: [slug, human label].
+    var TIER_OPTS = [
+      ['gateway',       'Gateway'],
+      ['youth_athlete', 'BBF Youth Athlete'],
+      ['architect',     'Architect Hybrid'],
+      ['sovereign',     'Sovereign']
+    ];
     wrap.innerHTML = clients.map(function(e) {
       var uid = e[0], u = e[1];
       // Phase 16 Iron Vault V2 — derive from trial_expires_at, not the
@@ -415,13 +425,21 @@ function renderEntitlements() {
       // locked to sovereign and cannot be downgraded (server-enforced).
       var currentTier = u.subscription_tier || '';
       var tierLocked = (uid === 'akeem');
+      // Surface legacy/unknown tiers as a disabled "[legacy: <slug>]"
+      // option so the dropdown isn't blank when a row carries an old
+      // value like nutrition_essentials.
+      var knownSlugs = TIER_OPTS.map(function(t){ return t[0]; });
+      var legacyOption = (currentTier && knownSlugs.indexOf(currentTier) === -1)
+        ? '<option value="' + currentTier + '" selected disabled>[legacy: ' + currentTier + ']</option>'
+        : '';
       var tierOpts = TIER_OPTS.map(function(t){
-        return '<option value="' + t + '"' + (t === currentTier ? ' selected' : '') + '>' + t + '</option>';
+        return '<option value="' + t[0] + '"' + (t[0] === currentTier ? ' selected' : '') + '>' + t[1] + '</option>';
       }).join('');
       var tierSelect = '<select class="ent-tier-select" id="tier-select-' + uid + '"' +
         (tierLocked ? ' disabled title="akeem is locked to sovereign"' : '') +
         ' onchange="BBF_PORTAL.setTier(\'' + uid + '\',this.value,this)">' +
         (currentTier ? '' : '<option value="" disabled selected>—</option>') +
+        legacyOption +
         tierOpts +
         '</select>';
       return '<div class="ent-row">' +
