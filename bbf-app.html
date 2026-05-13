@@ -1636,6 +1636,14 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   content: '\1F512  Upgrade to Premium';
 }
 
+/* Phase 9 — Tier-based feature gate. Applied by BBF_APPLY_TIER_GATE()
+   to hide nav buttons, sections, and dynamically-rendered controls when
+   the current user's subscription_tier does not unlock that feature.
+   !important so it overrides inline style="display:..." (e.g. the
+   somatic-map widget defaults to display:none then somatic-engine flips
+   it via style.display='block'). */
+.bbf-tier-locked { display: none !important; }
+
 /* Wearables "Coming Soon" gate — applied to the .som-wearable-btn
    wrapper and the .are-sync-btn / .are-resync clusters. */
 .iv-wearables-coming-soon {
@@ -4876,6 +4884,113 @@ window.BBF_APPLY_TRIAL_GATE = function() {
       _bbfGateVoiceBtn(document.getElementById(s.vcBtnId), state);
     }
   } catch(_) {}
+  // Phase 9 — tier feature gate runs after every trial-state apply so
+  // a trial flip (off -> on or expired) immediately repaints the
+  // entitlement-restricted DOM.
+  if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
+    try { window.BBF_APPLY_TIER_GATE(); } catch (_) {}
+  }
+};
+
+// ═════════════════════════════════════════════════════════════════════
+// Phase 9 — Tier-based feature gate.
+//
+// CEO directive: keep the existing Sovereign Command Center entitlement
+// architecture intact, just teach the app to enforce per-tier visibility
+// on the four new monetized tiers.
+//
+//   gateway / youth_athlete  → Program tab (Standard Workouts) + Profile.
+//                              Hide: Phantom Eye module (AI Vision+Coach),
+//                              entire Nutrition tab, Log (Free Log) tab,
+//                              Prehab (Somatic Readiness) tab, Somatic
+//                              widget on Home, Home quick-action shortcuts
+//                              for Nutrition & Free Log.
+//   architect                → Standard Macros/Meal Plan + Somatic +
+//                              Program + Log + Profile. Hide: Phantom Eye
+//                              module + Nutrition tools stack (Virtual
+//                              Chef + Nutrition Vision) + Scan Meal btn.
+//   sovereign                → Everything unlocked.
+//   default / unknown        → Most restrictive (Gateway treatment).
+//
+// Trial-active overrides tier to give Sovereign-equivalent UI access
+// while the 7-day trial is live (mirrors the server-side trial gate
+// on the WS upgrade path).
+// ═════════════════════════════════════════════════════════════════════
+// Element-IDs and nav-tab slugs the gate touches. Listed centrally so
+// the gate can reset (un-lock) all of them before re-applying the per-
+// tier subset — guarantees a tier upgrade in the Command Center
+// immediately reveals previously-hidden features without a refresh.
+var _BBF_TIER_GATE_ELS = [
+  'phantom-eye-module',     // Program-tab AI block (Phantom Eye + Virtual Coach)
+  'virtual-chef-module',    // Nutrition-tab Virtual Chef button
+  'nutrition-vision-module',// Nutrition-tab Nutrition Vision widget
+  'nutrition-tools-stack',  // Wrapper around chef + vision modules (Architect-locks the whole stack)
+  'audioMealScannerBtn',    // Nutrition-tab Scan Meal CTA (dynamically rendered in #ncon)
+  'mealScannerContainer',   // Hidden WebRTC capture container (dynamic)
+  'somatic-map',            // Home-tab Somatic Readiness widget
+  'qa-l',                   // Home quick-action: Free Log
+  'qa-n'                    // Home quick-action: Nutrition
+];
+var _BBF_TIER_GATE_NAVS = ['nutrition', 'log', 'prehab'];
+
+var _BBF_TIER_LOCKS = {
+  // Each tier names the elements / nav tabs it must HIDE.
+  gateway: {
+    els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer','somatic-map','qa-l','qa-n'],
+    navs: ['nutrition','log','prehab']
+  },
+  youth_athlete: {
+    els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer','somatic-map','qa-l','qa-n'],
+    navs: ['nutrition','log','prehab']
+  },
+  architect: {
+    els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer'],
+    navs: []
+  },
+  sovereign: {
+    els:  [],
+    navs: []
+  }
+};
+
+window.BBF_APPLY_TIER_GATE = function() {
+  try {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return;
+    var d = GD();
+    var user = (d.u && d.u[uid]) || {};
+    var tier = String(user.subscription_tier || '').toLowerCase();
+    // Trial-active = Sovereign UI access regardless of base tier.
+    var trialActive = user.trial_expires_at && new Date(user.trial_expires_at).getTime() > Date.now();
+    var effectiveTier = trialActive ? 'sovereign' : tier;
+    var lock = _BBF_TIER_LOCKS[effectiveTier] || _BBF_TIER_LOCKS.gateway; // safest default
+
+    // Reset: clear lock class on every gate-aware element + nav button
+    // first, so a tier upgrade reveals previously-hidden surfaces.
+    _BBF_TIER_GATE_ELS.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.remove('bbf-tier-locked');
+    });
+    _BBF_TIER_GATE_NAVS.forEach(function(slug) {
+      var btn = document.querySelector('.nv[data-tab="' + slug + '"]');
+      if (btn) btn.classList.remove('bbf-tier-locked');
+    });
+
+    // Apply this tier's locks.
+    lock.els.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.add('bbf-tier-locked');
+    });
+    lock.navs.forEach(function(slug) {
+      var btn = document.querySelector('.nv[data-tab="' + slug + '"]');
+      if (btn) btn.classList.add('bbf-tier-locked');
+      // If the currently-active tab is one we just locked, bounce to Home.
+      var pane = document.getElementById('tp-' + slug);
+      if (pane && pane.classList.contains('on') && typeof TAB === 'function') {
+        TAB('home');
+      }
+    });
+  } catch(_) {}
 };
 
 // Wearables "Coming Soon" — always-on greyed overlay regardless of trial
@@ -7416,6 +7531,11 @@ function TAB(name) {
   if (name === 'nutrition') RN();
   if (name === 'prehab') renderPrehab();
   if (name === 'profile') { PTAB('overview'); }
+  // Phase 9 — re-apply tier gate after every tab switch so dynamically-
+  // rendered surfaces (Scan Meal, day-swapped meals, etc.) re-mask.
+  if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
+    try { window.BBF_APPLY_TIER_GATE(); } catch(_) {}
+  }
 }
 
 function today() {
@@ -10828,6 +10948,12 @@ function RN() {
   BBF_NUTRITION_TRACKER.init();
   BBF_NUTRITION_TRACKER.restore();
   BBF_VISION_COACH.init();
+  // Phase 9 — re-apply tier gate so the dynamically-rendered Scan Meal
+  // button + scanner container inherit the same lock as the (static)
+  // Virtual Chef / Nutrition Vision modules.
+  if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
+    try { window.BBF_APPLY_TIER_GATE(); } catch(_) {}
+  }
 }
 
 function RNDAY(plan, idx) {
