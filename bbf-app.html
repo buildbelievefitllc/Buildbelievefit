@@ -8122,15 +8122,34 @@ function _bbfHandleResolveClick(ev) {
       revert(msg);
     });
   } else {
-    // Local-only audit (no id) — nothing to PATCH, just clear the local mirror.
-    finish();
+    // Phase 9.5 final fix — NO silent finish() here. If the button is
+    // missing a data-audit-id, that's a renderer bug, not a "local-only
+    // audit" edge case. Refuse to remove the card; surface the failure
+    // via alert + throw so the admin sees it and the trace shows up in
+    // the console. The card stays on screen until properly resolved.
+    console.error('[BBF_AUDIT] UI Error: Button missing data-audit-id', {
+      auditId: auditId, dedupeKey: dedupeKey
+    });
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    if (card) card.style.opacity = '';
+    alert('UI Error: Button missing data-audit-id');
+    throw new Error('UI Error: Button missing data-audit-id');
   }
 }
 
 function mergeAudits(localList, cloudList) {
   var seen = {};
   var merged = [];
-  (localList || []).concat(cloudList || []).forEach(function(a) {
+  // Phase 9.5 final fix — cloud entries are concat'd FIRST so they win
+  // the dedupe race over local entries that share the same uid|exercise
+  // |area|timestamp signature. Previously local came first, which meant
+  // a freshly-submitted audit (no id yet) would shadow the same row's
+  // cloud-fetched copy (id present), the renderer would get the id-less
+  // local object, the button would render without data-audit-id, and
+  // the click handler would silently fall into its local-only branch.
+  // Mark Resolved appeared to work but never touched the DB.
+  (cloudList || []).concat(localList || []).forEach(function(a) {
     if (!a) return;
     var k = (a.uid || '') + '|' + (a.exercise || '') + '|' + (a.areaLabel || a.tensionArea || '') + '|' + (a.timestamp || '').slice(0, 16);
     if (seen[k]) return;
@@ -8247,7 +8266,12 @@ function renderAdminAuditFeed(d) {
         var resolveBtn = document.createElement('button');
         resolveBtn.type = 'button';
         resolveBtn.className = 'audit-resolve-btn';
-        if (a.id) resolveBtn.setAttribute('data-audit-id', a.id);
+        // Phase 9.5 final fix — ALWAYS set data-audit-id, even when a.id
+        // is missing. An empty attribute trips the click handler's
+        // missing-id check loudly (alert + throw) instead of silently
+        // sliding into a finish() fallback. The previous `if (a.id)`
+        // guard was the silent trap door that hid every UI-side failure.
+        resolveBtn.setAttribute('data-audit-id', a.id || '');
         resolveBtn.setAttribute('data-audit-key', _bbfDedupeKey(a));
         resolveBtn.style.cssText = 'font-family:var(--hb,\'Bebas Neue\',sans-serif);font-size:.62rem;letter-spacing:2.5px;text-transform:uppercase;padding:.35rem .7rem;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.45);color:#00ff88;border-radius:6px;cursor:pointer;transition:background .2s,opacity .2s';
         resolveBtn.textContent = '✓ Mark Resolved';
