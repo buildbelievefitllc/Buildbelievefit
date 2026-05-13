@@ -1016,6 +1016,211 @@ app.post('/api/vision-coach', async (req, res) => {
 });
 
 // ───────────────────────────────────────────────────────────────
+// POST /api/rotate-nutrition — Phase 10 Scale Engine (AI Nutrition Rotator)
+// ───────────────────────────────────────────────────────────────
+// Admin-only Gemini call that regenerates a 7-day meal plan in the EXACT
+// shape MP[uid] uses on the frontend ({ name, cal, goal, days: [{ day,
+// meals: [{ m, i }] }] }). The client (bbf-app.html · BBF_NUTRITION_ROTATOR)
+// drops the returned plan into MP[uid] verbatim and PATCHes
+// bbf_users.nutrition_plan for persistence — zero RN() rewrite.
+//
+// Auth:    X-BBF-Admin-Token header must equal env BBF_ADMIN_TOKEN.
+//          Same pattern as /provision (which uses BBF_PROVISION_TOKEN).
+//          Without this gate any allowed-origin caller could burn Gemini
+//          quota on demand; each rotation is ~3–8k tokens.
+// Limits:  per-IP 5/min (shared budget defense) + per-UID 2/day (cost
+//          containment for the targeted client).
+// Schema:  generationConfig.responseMimeType = "application/json" plus a
+//          strict responseSchema — Gemini returns parsed-ready JSON, not
+//          free-form Markdown.
+// ───────────────────────────────────────────────────────────────
+const ROTATE_NUTRITION_IP_WINDOW_MS = 60 * 1000;
+const ROTATE_NUTRITION_IP_MAX = 5;
+const ROTATE_NUTRITION_UID_WINDOW_MS = 24 * 60 * 60 * 1000;
+const ROTATE_NUTRITION_UID_MAX = 2;
+const _rotateNutritionIpBuckets = new Map();
+const _rotateNutritionUidBuckets = new Map();
+function _rotateNutritionIpRateOk(ip) {
+  const now = Date.now();
+  let arr = _rotateNutritionIpBuckets.get(ip) || [];
+  arr = arr.filter(t => t > now - ROTATE_NUTRITION_IP_WINDOW_MS);
+  if (arr.length >= ROTATE_NUTRITION_IP_MAX) {
+    _rotateNutritionIpBuckets.set(ip, arr);
+    return false;
+  }
+  arr.push(now);
+  _rotateNutritionIpBuckets.set(ip, arr);
+  return true;
+}
+function _rotateNutritionUidRateOk(uid) {
+  const now = Date.now();
+  let arr = _rotateNutritionUidBuckets.get(uid) || [];
+  arr = arr.filter(t => t > now - ROTATE_NUTRITION_UID_WINDOW_MS);
+  if (arr.length >= ROTATE_NUTRITION_UID_MAX) {
+    _rotateNutritionUidBuckets.set(uid, arr);
+    return false;
+  }
+  arr.push(now);
+  _rotateNutritionUidBuckets.set(uid, arr);
+  return true;
+}
+
+app.post('/api/rotate-nutrition', async (req, res) => {
+  // Origin allowlist — refuse before burning Gemini quota.
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  }
+
+  // Admin token gate. Configured via Render env BBF_ADMIN_TOKEN.
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) {
+    console.error('[rotate-nutrition] rejected — BBF_ADMIN_TOKEN env var is not set on this instance.');
+    return res.status(503).json({ ok: false, error: 'config_missing' });
+  }
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) {
+    console.warn('[rotate-nutrition] rejected — bad/missing X-BBF-Admin-Token from origin "' + (origin || '') + '"');
+    return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+  }
+
+  if (!GEMINI_API_KEY) {
+    console.warn('[rotate-nutrition] rejected — GEMINI_API_KEY missing');
+    return res.status(503).json({ ok: false, error: 'config_missing' });
+  }
+
+  const body = req.body || {};
+  const uid          = typeof body.uid === 'string'           ? body.uid.trim()           : '';
+  const tdee         = typeof body.tdee === 'string'          ? body.tdee.trim()          : (body.tdee != null ? String(body.tdee) : '');
+  const constraints  = typeof body.constraints === 'string'   ? body.constraints.trim()   : '';
+  const previousPlan = typeof body.previousPlan === 'string'  ? body.previousPlan.trim()  : '';
+  const clientTier   = typeof body.clientTier === 'string'    ? body.clientTier.trim()    : 'gateway';
+  const clientName   = typeof body.clientName === 'string'    ? body.clientName.trim()    : '';
+  if (!uid)  return res.status(400).json({ ok: false, error: 'uid_missing' });
+  if (!tdee) return res.status(400).json({ ok: false, error: 'tdee_missing' });
+
+  // Per-IP rate limit AFTER auth so leaked-token spam still hits the
+  // ceiling; per-UID rate limit ALWAYS, even for trusted callers.
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+  if (!_rotateNutritionIpRateOk(ip)) {
+    return res.status(429).json({ ok: false, error: 'rate_limited_ip' });
+  }
+  if (!_rotateNutritionUidRateOk(uid)) {
+    return res.status(429).json({ ok: false, error: 'rate_limited_uid' });
+  }
+
+  // Prompt mirrors the CEO's blueprint verbatim, but the JSON-key
+  // wording is rewritten to the LIVE MP shape ({m,i}) so the response
+  // drops straight into MP[uid] with zero transform.
+  const prompt =
+    "You are Lance, a clinical sports nutritionist. Generate a brand new " +
+    "7-day meal plan for a client on the " + clientTier + " tier. " +
+    "Target Calories: " + tdee + ". " +
+    "Strict Medical Constraints: " + (constraints || 'none stated') + ". " +
+    "Previous Plan: " + (previousPlan || 'none provided') + ". " +
+    "Do not repeat the exact main dishes from the previous plan. " +
+    "Provide high-protein, clean-carb meals. " +
+    "Return a single JSON object with the following keys: " +
+    "'name' (the client's first name — use '" + (clientName || uid) + "'), " +
+    "'cal' (a one-line calorie/protein summary, e.g. '~1,652 cal/day · High Protein'), " +
+    "'goal' (one short sentence summarizing the protocol; if there are medical constraints, restate them inline), " +
+    "and 'days' (an array of exactly 7 objects — one per day, or grouped days like 'Day 1 & 4'). " +
+    "Each day object MUST have a 'day' string (e.g. 'Day 1') and a 'meals' array. " +
+    "Each meal object MUST have an 'm' (meal label, e.g. 'Breakfast', 'Lunch', 'Snack', 'Dinner') " +
+    "and an 'i' (exact portioned ingredients with calories and protein, " +
+    "e.g. '4 oz Grilled Chicken, 1/2 cup Brown Rice, 1 cup Mixed Greens (~385 cal / 40g P)'). " +
+    "Do not include any prose, headers, or markdown outside the JSON. " +
+    "ABSOLUTELY honor every medical constraint listed above — those are non-negotiable.";
+
+  const responseSchema = {
+    type: 'object',
+    properties: {
+      name: { type: 'string' },
+      cal:  { type: 'string' },
+      goal: { type: 'string' },
+      days: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            day:   { type: 'string' },
+            meals: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  m: { type: 'string' },
+                  i: { type: 'string' }
+                },
+                required: ['m', 'i']
+              }
+            }
+          },
+          required: ['day', 'meals']
+        }
+      }
+    },
+    required: ['name', 'cal', 'goal', 'days']
+  };
+
+  const model = 'gemini-1.5-flash';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+              model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
+  const payload = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.85,
+      maxOutputTokens: 4096,
+      responseMimeType: 'application/json',
+      responseSchema: responseSchema
+    }
+  };
+
+  let upstream;
+  try {
+    upstream = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error('[rotate-nutrition] gemini fetch threw:', err && err.message);
+    return res.status(502).json({ ok: false, error: 'gemini_unreachable' });
+  }
+
+  let geminiBody = null;
+  try { geminiBody = await upstream.json(); }
+  catch (_) { /* non-JSON body */ }
+
+  if (!upstream.ok) {
+    const msg = geminiBody?.error?.message || ('gemini ' + upstream.status);
+    console.error('[rotate-nutrition] gemini non-2xx:', upstream.status, msg);
+    return res.status(502).json({ ok: false, error: 'gemini_error', detail: msg });
+  }
+
+  const rawText = geminiBody?.candidates?.[0]?.content?.parts
+    ?.map(p => p?.text || '').join('').trim();
+  if (!rawText) {
+    console.warn('[rotate-nutrition] gemini returned empty text', JSON.stringify(geminiBody).slice(0, 400));
+    return res.status(502).json({ ok: false, error: 'gemini_empty' });
+  }
+
+  let plan;
+  try { plan = JSON.parse(rawText); }
+  catch (e) {
+    console.error('[rotate-nutrition] JSON.parse failed:', e && e.message, '· raw=', rawText.slice(0, 400));
+    return res.status(502).json({ ok: false, error: 'gemini_bad_json' });
+  }
+
+  // Structural sanity — schema enforcement above is best-effort upstream.
+  if (!plan || typeof plan !== 'object' || !Array.isArray(plan.days) || plan.days.length === 0) {
+    return res.status(502).json({ ok: false, error: 'gemini_plan_shape' });
+  }
+
+  return res.status(200).json({ ok: true, plan });
+});
+
+// ───────────────────────────────────────────────────────────────
 // /provision — Phase 4 Step E
 // Called by Zapier after Stripe payment success. Generates a 6-digit PIN,
 // invokes the SECURITY DEFINER RPC bbf_provision_client_pin which
