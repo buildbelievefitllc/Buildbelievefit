@@ -156,21 +156,28 @@ var BBF_SYNC = (function() {
   }
 
   // ─── SYNC: WORKOUT LOG ───────────────────────────────────
+  // Phase 6 fix — syncLog was writing 7 columns that don't exist on
+  // bbf_logs (type, intensity, weight, mood, exercises, logged_at,
+  // logged_by) plus 'notes' where the actual column is 'coach_notes'.
+  // PostgREST silently dropped every bogus field, but combined with
+  // the zero-RLS-policy state on bbf_logs (separate migration) the
+  // entire insert returned 401/no-op. End result: "Total Sessions"
+  // stuck at 0 on the Profile dashboard because no rows landed.
+  //
+  // Real bbf_logs columns:
+  //   user_id, date, sport, position, drill_name, coach_notes,
+  //   language, body_fat, duration
+  // The CWO entry shape only maps cleanly onto a subset; the dropped
+  // local fields (type, mood, wt, exercises, loggedBy) stay in
+  // localStorage but no longer pollute the wire request.
   function syncLog(uid, logEntry) {
     if (!uid || !logEntry) return Promise.resolve();
     return supa('POST', 'bbf_logs', {
-      user_id: uid,
-      date: logEntry.date,
-      type: logEntry.type || 'strength',
-      duration: logEntry.dur || '',
-      intensity: logEntry.int || logEntry.intensity || '',
-      weight: logEntry.wt || '',
-      body_fat: logEntry.bf || '',
-      notes: logEntry.notes || '',
-      mood: logEntry.mood || '',
-      exercises: logEntry.exercises || [],
-      logged_at: logEntry.loggedAt || new Date().toISOString(),
-      logged_by: logEntry.loggedBy || uid
+      user_id:     uid,
+      date:        logEntry.date,
+      duration:    logEntry.dur || '',
+      body_fat:    logEntry.bf || '',
+      coach_notes: logEntry.notes || ''
     });
   }
 
