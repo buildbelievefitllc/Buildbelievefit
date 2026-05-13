@@ -461,11 +461,26 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .rdt{font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.5rem;color:var(--yel)}
 .rds{font-size:.88rem;color:var(--mut);line-height:1.6}
 /* NUTRITION */
-.nutr-card{background:var(--gry);border:1px solid #1a1a1a;border-left:3px solid var(--yel);border-radius:0 12px 12px 0;padding:1rem;margin-bottom:.7rem}
+.nutr-card{background:var(--gry);border:1px solid #1a1a1a;border-left:3px solid var(--yel);border-radius:0 12px 12px 0;padding:1rem;margin-bottom:.7rem;position:relative}
 .nutr-snack{border-left-color:var(--purl)}
 .nutr-ml{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--yel);margin-bottom:.3rem}
 .nutr-snack .nutr-ml{color:var(--purl)}
 .nutr-mi{font-size:.88rem;color:#ddd;line-height:1.6}
+/* ═ WAR ROOM Feature 1 — Shaker bottle daily-fuel progress + meal checks ═
+   Per-day percent of meals checked off lifts the gold liquid up the bottle;
+   at 100% the fill flips neon-green with a glow. localStorage state keyed
+   per uid + per ISO date so checks auto-reset at midnight. */
+.shaker-container{display:flex;flex-direction:column;align-items:center;gap:.4rem;margin:.4rem 0 1.1rem;padding:.8rem .6rem;background:linear-gradient(180deg,rgba(20,15,30,.85),rgba(10,10,15,.7));border:1px solid rgba(212,175,55,.18);border-radius:14px}
+.shaker-outline{position:relative;width:84px;height:128px;border:2px solid rgba(212,175,55,.55);border-radius:10px 10px 18px 18px;background:rgba(0,0,0,.45);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.shaker-outline::before{content:"";position:absolute;top:-9px;left:50%;transform:translateX(-50%);width:46px;height:10px;border:2px solid rgba(212,175,55,.55);border-bottom:none;border-radius:5px 5px 0 0;background:rgba(20,15,30,.95)}
+.shaker-outline::after{content:"";position:absolute;top:14px;left:8%;right:8%;height:2px;background:rgba(212,175,55,.18);border-radius:1px;pointer-events:none}
+.shaker-fill{position:absolute;left:0;right:0;bottom:0;height:0%;background:linear-gradient(180deg,#f5c800,#d4a800);transition:height 0.5s ease-in-out,background-color 0.3s,box-shadow 0.3s}
+.shaker-fill.full{background:#00ff88;box-shadow:0 0 22px rgba(0,255,136,.55),inset 0 0 16px rgba(0,255,136,.35)}
+#shakerText{margin:0;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.78rem;letter-spacing:3px;color:var(--yel);text-transform:uppercase}
+.shaker-fill.full ~ #shakerText,.shaker-container[data-state="full"] #shakerText{color:#00ff88}
+.meal-check{position:absolute;top:.7rem;right:.7rem;width:22px;height:22px;cursor:pointer;accent-color:#00ff88;margin:0}
+.nutr-card.is-checked{opacity:.7;border-left-color:#00ff88}
+.nutr-card.is-checked .nutr-ml{color:#00ff88}
 /* LOG */
 .lf2{display:flex;flex-direction:column;gap:.9rem}
 .lfl{font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:.35rem;display:block}
@@ -10440,6 +10455,90 @@ function CWO(day, dk) {
 }
 
 // ─── NUTRITION ────────────────────────────────────────────
+// WAR ROOM Feature 1 · Shaker-bottle daily-fuel progress.
+// Per-uid + per-ISO-date localStorage so meal checks auto-reset at midnight.
+// Event delegation on #ncon so the listener survives day-swap re-renders.
+var BBF_NUTRITION_TRACKER = (function() {
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  }
+  function storageKey(uid) { return 'bbf_nutrition_progress_' + uid; }
+  function load(uid) {
+    if (!uid) return new Set();
+    try {
+      var raw = localStorage.getItem(storageKey(uid));
+      if (!raw) return new Set();
+      var parsed = JSON.parse(raw);
+      if (!parsed || parsed.date !== todayISO()) return new Set();
+      return new Set(Array.isArray(parsed.checked) ? parsed.checked : []);
+    } catch (_) { return new Set(); }
+  }
+  function persist(uid, set) {
+    if (!uid) return;
+    try {
+      localStorage.setItem(storageKey(uid), JSON.stringify({
+        date: todayISO(),
+        checked: Array.from(set)
+      }));
+    } catch (_) {}
+  }
+  function applyVisual() {
+    var fill = document.getElementById('shakerFill');
+    var text = document.getElementById('shakerText');
+    var container = document.querySelector('.shaker-container');
+    if (!fill || !text) return;
+    var boxes = document.querySelectorAll('#ndaycon .meal-check');
+    var total = boxes.length;
+    var checked = 0;
+    boxes.forEach(function(b) { if (b.checked) checked++; });
+    var pct = total === 0 ? 0 : Math.round((checked / total) * 100);
+    fill.style.height = pct + '%';
+    text.textContent = pct + '% Daily Fuel';
+    var full = (pct === 100 && total > 0);
+    fill.classList.toggle('full', full);
+    if (container) container.setAttribute('data-state', full ? 'full' : 'partial');
+  }
+  function restore() {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) { applyVisual(); return; }
+    var checkedSet = load(uid);
+    document.querySelectorAll('#ndaycon .meal-check').forEach(function(box) {
+      var id = box.getAttribute('data-meal-id');
+      var on = checkedSet.has(id);
+      box.checked = on;
+      var card = box.closest('.nutr-card');
+      if (card) card.classList.toggle('is-checked', on);
+    });
+    applyVisual();
+  }
+  function handleChange(ev) {
+    var t = ev.target;
+    if (!t || !t.classList || !t.classList.contains('meal-check')) return;
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return;
+    var id = t.getAttribute('data-meal-id');
+    var set = load(uid);
+    if (t.checked) set.add(id); else set.delete(id);
+    persist(uid, set);
+    var card = t.closest('.nutr-card');
+    if (card) card.classList.toggle('is-checked', t.checked);
+    applyVisual();
+  }
+  function init() {
+    var ncon = document.getElementById('ncon');
+    if (!ncon || ncon.dataset.bbfTrackerWired === '1') return;
+    ncon.addEventListener('change', handleChange);
+    ncon.dataset.bbfTrackerWired = '1';
+  }
+  function slugMeal(name) {
+    return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'meal';
+  }
+  return { init: init, restore: restore, applyVisual: applyVisual, slugMeal: slugMeal };
+})();
+
 function RN() {
   var con = document.getElementById('ncon');
   var uid = VC || CU;
@@ -10464,7 +10563,13 @@ function RN() {
   var todayIdx = new Date().getDay();
   todayIdx = todayIdx === 0 ? 6 : todayIdx - 1;
   if (todayIdx >= plan.days.length) todayIdx = 0;
-  var h = '<div class="dh"><div class="dl">' + plan.name + "'s Plan</div>" +
+  // Shaker-bottle daily fuel progress — sits above the day-nav so it's the
+  // first thing the client sees when they open the Nutrition tab.
+  var h = '<div class="shaker-container" data-state="partial">' +
+            '<div class="shaker-outline"><div class="shaker-fill" id="shakerFill"></div></div>' +
+            '<p id="shakerText">0% Daily Fuel</p>' +
+          '</div>';
+  h += '<div class="dh"><div class="dl">' + plan.name + "'s Plan</div>" +
     '<div class="dn2" style="font-size:1.3rem">' + plan.cal + '</div>' +
     '<div class="df2">&#x1F3AF; ' + plan.goal + '</div></div>';
   h += '<div class="dnav" id="nnav">' + plan.days.map(function(day, i) {
@@ -10472,13 +10577,17 @@ function RN() {
   }).join('') + '</div>';
   h += '<div id="ndaycon">' + RNDAY(plan, todayIdx) + '</div>';
   con.innerHTML = h;
+  BBF_NUTRITION_TRACKER.init();
+  BBF_NUTRITION_TRACKER.restore();
 }
 
 function RNDAY(plan, idx) {
   var day = plan.days[idx];
   return day.meals.map(function(m) {
     var isSnack = m.m.toLowerCase().indexOf('snack') > -1 || m.m.toLowerCase().indexOf('merienda') > -1;
+    var mealId = 'd' + idx + '-' + BBF_NUTRITION_TRACKER.slugMeal(m.m);
     return '<div class="nutr-card' + (isSnack ? ' nutr-snack' : '') + '">' +
+      '<input type="checkbox" class="meal-check" data-meal-id="' + mealId + '" aria-label="Mark ' + m.m + ' as eaten">' +
       '<div class="nutr-ml">' + m.m + '</div>' +
       '<div class="nutr-mi">' + m.i + '</div></div>';
   }).join('');
@@ -10491,6 +10600,7 @@ function SNDAY(i) {
   document.querySelectorAll('#nnav .dbn').forEach(function(b, idx) { b.classList.toggle('on', idx === i); });
   var dc = document.getElementById('ndaycon');
   if (dc) dc.innerHTML = RNDAY(plan, i);
+  BBF_NUTRITION_TRACKER.restore();
 }
 
 // ─── LOG ──────────────────────────────────────────────────
