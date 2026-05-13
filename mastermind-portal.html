@@ -548,9 +548,48 @@ if (typeof BBF_PORTAL === 'object' && BBF_PORTAL) {
   BBF_PORTAL.setTier     = setTier;
 }
 
+// Phase 6 — cloud-hydrate the Entitlements roster BEFORE first paint.
+// The bbf-app.html login flow only refreshes the LOGGED-IN user's
+// subscription_tier / trial_expires_at — the admin viewing the
+// mastermind portal was seeing every OTHER client's tier/trial from
+// stale localStorage. After a toggle, the cloud RPC succeeded but
+// next page-load painted the pre-toggle (stale) value, which the CEO
+// read as "reset on reload". Fetching bbf_users authoritatively
+// before render eliminates the staleness window.
+function hydrateEntitlementsThenRender() {
+  if (typeof BBF_SYNC === 'undefined' || typeof BBF_SYNC.fetchAllUsers !== 'function') {
+    renderEntitlements();
+    return;
+  }
+  BBF_SYNC.fetchAllUsers().then(function(rows) {
+    try {
+      if (Array.isArray(rows) && rows.length) {
+        var d = JSON.parse(localStorage.getItem('bbf_v7') || '{}');
+        if (!d.u) d.u = {};
+        rows.forEach(function(r) {
+          if (!r || !r.uid) return;
+          if (!d.u[r.uid]) d.u[r.uid] = {};
+          d.u[r.uid].subscription_tier = r.subscription_tier || null;
+          d.u[r.uid].trial_expires_at  = r.trial_expires_at  || null;
+          if (r.name) d.u[r.uid].name = r.name;
+          if (r.role) d.u[r.uid].role = r.role;
+        });
+        localStorage.setItem('bbf_v7', JSON.stringify(d));
+      }
+    } catch(e) {
+      console.warn('hydrateEntitlements merge failed:', e);
+    }
+    renderEntitlements();
+  }).catch(function() {
+    // Network failure — fall back to whatever is in localStorage so
+    // the panel never goes blank.
+    renderEntitlements();
+  });
+}
+
 // Init — Command Center stats from Supabase (browser-cache-agnostic).
 BBF_PORTAL.load();
-renderEntitlements();
+hydrateEntitlementsThenRender();
 
 // Pre-paint a safe baseline so the spans never render blank, even if the
 // RPC hangs, returns null, or the response shape is unexpected.
