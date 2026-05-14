@@ -8439,6 +8439,30 @@ function checkIntakeNeeded() {
   if (!uid || uid === 'akeem') return;
   var d = GD();
   var u = d.u[uid] || {};
+  // Pre-questionnaire roster grandfather clause. These five clients
+  // onboarded manually with Akeem BEFORE the in-app Sovereign Intake
+  // shipped — they already gave him the goal / experience / friction
+  // answers face-to-face. Re-prompting them every login (especially
+  // on a fresh device or after a SW cache flush) is dead UX, and
+  // intake_complete currently lives in localStorage only (no DB
+  // column to hydrate from), so the flag can't persist cross-device
+  // for them until the schema lands. Hardcoded fast-path: skip the
+  // modal AND backfill the localStorage flag so any other code path
+  // reading intake_complete sees truth.
+  // Future clients auto-provisioned via Stripe / bbf_provision_client_pin
+  // are NOT in this list and walk through intake as designed.
+  var PRE_QUESTIONNAIRE_ROSTER = {
+    ana_bbf: 1, jacky_bbf: 1, jacque_bbf: 1, jordan_bbf: 1, wayne_bbf: 1
+  };
+  if (PRE_QUESTIONNAIRE_ROSTER[uid]) {
+    if (!u.intake_complete) {
+      if (!d.u[uid]) d.u[uid] = {};
+      d.u[uid].intake_complete = true;
+      d.u[uid].intake_grandfathered = true;
+      SD(d);
+    }
+    return;
+  }
   if (!u.intake_complete) {
     setTimeout(function() { document.getElementById('sovereign-intake').classList.add('on'); }, 800);
   }
