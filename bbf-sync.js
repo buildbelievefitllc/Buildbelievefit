@@ -243,35 +243,62 @@ var BBF_SYNC = (function() {
   // bbf_sets.log_id NULL — the orphan-rows bug CEO inspected.
   //
   // Contract:
-  //   1. POST bbf_logs first, return=representation captures the id.
-  //   2. If the log insert fails, REJECT immediately — never create
-  //      orphan sets. syncLog already throws on null/empty (Phase 6).
-  //   3. Inject log_id into every set row, bulk POST in one request.
-  //   4. If the set batch fails, reject with the specific error so
-  //      the caller can alert without burying the message.
+  //   1. Pre-flight: reject IMMEDIATELY if setsArray is empty — never
+  //      create an orphan bbf_logs parent with no children.
+  //   2. POST bbf_logs first, return=representation captures the id.
+  //   3. If the log insert fails, REJECT — never create orphan sets.
+  //   4. Inject log_id into every set row, bulk POST in one request.
+  //   5. Validate row count: data.length === setsArray.length.
+  //      Anything less = partial drop (RLS / schema rejection).
+  //   6. On sets failure or count mismatch: DELETE the parent log
+  //      to keep the table free of orphans, then re-throw so the
+  //      UI alert path surfaces the original error.
   //
   // Returns { log, sets } on success.
   function syncSession(uid, logEntry, setsArray) {
     if (!uid || !logEntry) {
       return Promise.reject(new Error('syncSession requires uid and logEntry'));
     }
+    // Phase 1 guard — refuse empty payload before creating the parent.
+    if (!Array.isArray(setsArray) || setsArray.length === 0) {
+      return Promise.reject(new Error('Payload empty: No sets found in local cache to sync.'));
+    }
     return syncLog(uid, logEntry).then(function(logRow) {
       if (!logRow || !logRow.id) {
         throw new Error('syncSession aborted — syncLog returned no id');
       }
       var logId = logRow.id;
-      if (!Array.isArray(setsArray) || setsArray.length === 0) {
-        return { log: logRow, sets: [] };
-      }
       var rowsWithLogId = setsArray.map(function(s) {
         var copy = {}; for (var k in s) copy[k] = s[k];
         copy.logId = logId;
         return copy;
       });
       return syncSetsBulk(rowsWithLogId).then(function(setRows) {
-        return { log: logRow, sets: setRows || [] };
+        // Atomic validation — every requested row must have landed.
+        if (!setRows || setRows.length !== setsArray.length) {
+          throw new Error('Partial Drop: Row count mismatch.');
+        }
+        return { log: logRow, sets: setRows };
+      }).catch(function(setsErr) {
+        // Atomic rollback — best-effort DELETE on the parent log so
+        // we never leave an orphan. Re-throw the original error
+        // regardless of rollback outcome so the UI alert is honest
+        // about what failed.
+        return deleteLog(logId).then(function() {
+          console.warn('[syncSession] rollback: deleted orphan log', logId);
+        }, function(delErr) {
+          console.error('[syncSession] rollback DELETE failed for log', logId, delErr && delErr.message);
+        }).then(function() { throw setsErr; });
       });
     });
+  }
+
+  // Thin DELETE wrapper for atomic rollback. RLS policy
+  // "Allow Anon Delete Logs" must exist on bbf_logs (see the
+  // 2026-05-13_bbf_logs_delete_policy migration).
+  function deleteLog(logId) {
+    if (!logId) return Promise.reject(new Error('deleteLog requires logId'));
+    return supa('DELETE', 'bbf_logs', null, '?id=eq.' + encodeURIComponent(logId));
   }
 
   // ─── PHASE 5 · SERVER-AUTHORITATIVE AUTOREG WEIGHTS ───────
@@ -2502,6 +2529,7 @@ var BBF_SYNC = (function() {
     fetchProfileMetrics: fetchProfileMetrics,
     fetchLastWeights: fetchLastWeights,
     syncSession: syncSession,
+    deleteLog: deleteLog,
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
     adminSetTrial: adminSetTrial,
