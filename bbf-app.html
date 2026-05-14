@@ -10442,8 +10442,20 @@ function saveReadiness() {
   if (!d.u[uid].daily_readiness) d.u[uid].daily_readiness = {};
   d.u[uid].daily_readiness[today()] = { sleep: sleep, stress: stress, energy: energy, score: score };
   d.u[uid].readiness_last_check = today();
+  // Phase 11 — bridge the Morning Lab Audit into the CNS Agent input.
+  // Writing somatic_readiness_score + somatic_readiness_date puts the
+  // audit on the SAME variable the Somatic Matrix submit writes, so
+  // the Agent's readinessForToday() picks it up unconditionally.
+  d.u[uid].somatic_readiness_score = score;
+  d.u[uid].somatic_readiness_date  = today();
   SD(d);
   if(typeof BBF_SYNC!=='undefined'){BBF_SYNC.syncReadiness(uid,today(),{sleep:sleep,stress:stress,energy:energy,score:score});BBF_SYNC.syncUser(uid,d.u[uid]);}
+  // Phase 11 — recompute the Agent prescription immediately so the
+  // Workout tab paints the fresh zone + coaching on the next render
+  // (RH()/RW() below).
+  if (window.BBF_CNS_AGENT && typeof BBF_CNS_AGENT.recompute === 'function') {
+    try { BBF_CNS_AGENT.recompute(uid); } catch(_) {}
+  }
   closeReadinessModal();
   var tier = score >= 90 ? 'god-mode' : score >= 70 ? 'standard' : 'recovery';
   var msg = tier === 'god-mode' ? _t('app-ready-god', 'CNS Peak Detected. Go for the PR.') :
@@ -10551,10 +10563,24 @@ function getLastLoggedWeight(uid, sday, ei) {
 // Returns { weight, zone, multiplier, source, baseline? }.
 // weight is null when no history exists — UI falls back to "Log
 // weight to enable" without breaking the loop.
-function computeTargetWeight(uid, sday, ei, readinessScore) {
+//
+// Phase 11 — Single Source of Truth: when the optional `rx` param
+// is supplied (the BBF_CNS_AGENT prescription for today), its
+// weight_mult and zone take precedence over the legacy Phase 4
+// calculateReadinessMultiplier output. The Agent is the absolute
+// authority on the target load — the legacy 0.90/1.0/1.025-1.05
+// path becomes a fallback only when the Agent module is missing
+// (boot-order / older bundle edge case).
+function computeTargetWeight(uid, sday, ei, readinessScore, rx) {
   var hist = getLastLoggedWeight(uid, sday, ei);
-  var mult = calculateReadinessMultiplier(readinessScore);
-  var zone = getReadinessZone(readinessScore);
+  var mult, zone;
+  if (rx && typeof rx.weight_mult === 'number') {
+    mult = rx.weight_mult;
+    zone = rx.zone || getReadinessZone(readinessScore);
+  } else {
+    mult = calculateReadinessMultiplier(readinessScore);
+    zone = getReadinessZone(readinessScore);
+  }
   if (hist == null) {
     return { weight: null, zone: zone, multiplier: mult, source: 'no_history' };
   }
@@ -11125,7 +11151,10 @@ function RDW() {
     // readyScore (above) \u00d7 historical working weight at (SDAY, ei) = today's
     // target. Skips cardio/timed exercises internally; degrades to
     // "Log weight to enable" when no history exists.
-    var _arTarget = computeTargetWeight(uid, SDAY, ei, readyScore);
+    // Phase 11 — Pass the Agent prescription (_cnsRx) so computeTargetWeight
+    // uses Agent's weight_mult as the single source of truth. Falls back
+    // to the legacy autoreg multiplier only when the Agent module is absent.
+    var _arTarget = computeTargetWeight(uid, SDAY, ei, readyScore, _cnsRx);
     h += getAutoregBannerHTML(_arTarget, exReps);
     // Phase 11 — append the CNS Agent's rx-driven sets/reps/rest
     // overlay directly under the autoreg target so both signals
@@ -11134,6 +11163,24 @@ function RDW() {
     if (_cnsRx && window.BBF_CNS_AGENT && typeof BBF_CNS_AGENT.renderExerciseOverlayHTML === 'function') {
       h += BBF_CNS_AGENT.renderExerciseOverlayHTML(_cnsRx, exReps);
     }
+    // Phase 11 — Auto-populate set inputs with Agent's target reps + weight
+    // so clients only adjust when they fail to hit the prescribed numbers.
+    // Skipped for cardio/timed exercises (no rep-band semantics). Prefill
+    // values only land in inputs that aren't already populated by saved
+    // session data (sv1.r / sv1.w), so a client mid-workout never loses
+    // their typed values to a refresh.
+    var _isCardio = exReps && (exReps.indexOf('min') > -1 || exReps.indexOf('sec') > -1);
+    var _prefillReps = '';
+    if (!_isCardio && _cnsRx && _cnsRx.rep_band) {
+      // Upper bound of the rep band is the target — what you aim to hit.
+      var _rm = String(_cnsRx.rep_band).match(/(\d+)\s*-\s*(\d+)/);
+      if (_rm) _prefillReps = _rm[2];
+      else {
+        var _rs = String(_cnsRx.rep_band).match(/(\d+)/);
+        if (_rs) _prefillReps = _rs[1];
+      }
+    }
+    var _prefillWeight = (_arTarget && _arTarget.weight != null) ? String(_arTarget.weight) : '';
     if (partner) {
       var pd = d.w[partner] || {};
       var pdk2 = pd[dk] || {};
@@ -11150,11 +11197,11 @@ function RDW() {
         var psv1 = psv[s] || {};
         h += '<div style="display:grid;grid-template-columns:28px 1fr 1fr .3fr 1fr 1fr;gap:.4rem;margin-top:.4rem;align-items:center">' +
           '<div class="snum">' + (s+1) + '</div>' +
-          '<input class="sinp' + (sv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (sv1.r||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r"/>' +
-          '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/>' +
+          '<input class="sinp' + (sv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (sv1.r || _prefillReps) + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r"/>' +
+          '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w || _prefillWeight) + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/>' +
           '<div style="text-align:center;color:#333">|</div>' +
-          '<input class="sinp' + (psv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (psv1.r||'') + '" data-uid="' + partner + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r" style="border-color:' + (psv1.r ? '#8b1abf' : '') + '"/>' +
-          '<input class="sinp' + (psv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (psv1.w||'') + '" data-uid="' + partner + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w" style="border-color:' + (psv1.w ? '#8b1abf' : '') + '"/>' +
+          '<input class="sinp' + (psv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (psv1.r || _prefillReps) + '" data-uid="' + partner + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r" style="border-color:' + (psv1.r ? '#8b1abf' : '') + '"/>' +
+          '<input class="sinp' + (psv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (psv1.w || _prefillWeight) + '" data-uid="' + partner + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w" style="border-color:' + (psv1.w ? '#8b1abf' : '') + '"/>' +
           '</div>';
       }
     } else {
@@ -11162,8 +11209,8 @@ function RDW() {
       for (var s = 0; s < ns; s++) {
         var sv1 = sv[s] || {};
         h += '<div class="srow2"><div class="snum">' + (s+1) + '</div><div class="stgt">' + ex.reps + '</div>' +
-          '<input class="sinp' + (sv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (sv1.r||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r"/>' +
-          '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w||'') + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/></div>';
+          '<input class="sinp' + (sv1.r ? ' done' : '') + '" type="number" placeholder="reps" inputmode="numeric" value="' + (sv1.r || _prefillReps) + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="r"/>' +
+          '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w || _prefillWeight) + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/></div>';
       }
     }
     h += '</div></div>';
