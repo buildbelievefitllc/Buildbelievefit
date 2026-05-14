@@ -213,14 +213,65 @@ var BBF_SYNC = (function() {
   }
 
   function syncSetsBulk(setsArray) {
-    if (!setsArray || setsArray.length === 0) return Promise.resolve();
+    if (!setsArray || setsArray.length === 0) return Promise.resolve([]);
     var rows = setsArray.map(function(s) {
       var row = { user_id: s.uid, day_key: s.dayKey, exercise_key: s.exKey, set_number: s.setNum };
+      if (s.logId) row.log_id = s.logId;
       if (s.r !== undefined) row.reps = s.r;
       if (s.w !== undefined) row.weight_lbs = s.w;
       return row;
     });
-    return supa('POST', 'bbf_sets', rows);
+    // Phase 6 final fix — return=representation + explicit throws so
+    // the caller (syncSession) can distinguish 0-row inserts from
+    // success, mirroring syncLog's verifiable contract.
+    return supa('POST', 'bbf_sets', rows, '', { prefer: 'return=representation' })
+      .then(function(data) {
+        if (data == null) {
+          throw new Error('syncSetsBulk database_error (supa returned null)');
+        }
+        if (Array.isArray(data) && data.length === 0) {
+          throw new Error('syncSetsBulk inserted 0 rows (RLS or schema rejected the batch)');
+        }
+        return data;
+      });
+  }
+
+  // ─── PHASE 6 FINAL · SESSION-LEVEL ATOMIC SYNC ───────────
+  // Sequences syncLog → syncSetsBulk with log_id injection so every
+  // set row carries the FK to the log it belongs to. Previously each
+  // set POSTed inline via SVS before the log existed, leaving every
+  // bbf_sets.log_id NULL — the orphan-rows bug CEO inspected.
+  //
+  // Contract:
+  //   1. POST bbf_logs first, return=representation captures the id.
+  //   2. If the log insert fails, REJECT immediately — never create
+  //      orphan sets. syncLog already throws on null/empty (Phase 6).
+  //   3. Inject log_id into every set row, bulk POST in one request.
+  //   4. If the set batch fails, reject with the specific error so
+  //      the caller can alert without burying the message.
+  //
+  // Returns { log, sets } on success.
+  function syncSession(uid, logEntry, setsArray) {
+    if (!uid || !logEntry) {
+      return Promise.reject(new Error('syncSession requires uid and logEntry'));
+    }
+    return syncLog(uid, logEntry).then(function(logRow) {
+      if (!logRow || !logRow.id) {
+        throw new Error('syncSession aborted — syncLog returned no id');
+      }
+      var logId = logRow.id;
+      if (!Array.isArray(setsArray) || setsArray.length === 0) {
+        return { log: logRow, sets: [] };
+      }
+      var rowsWithLogId = setsArray.map(function(s) {
+        var copy = {}; for (var k in s) copy[k] = s[k];
+        copy.logId = logId;
+        return copy;
+      });
+      return syncSetsBulk(rowsWithLogId).then(function(setRows) {
+        return { log: logRow, sets: setRows || [] };
+      });
+    });
   }
 
   // ─── PHASE 5 · SERVER-AUTHORITATIVE AUTOREG WEIGHTS ───────
@@ -2450,6 +2501,7 @@ var BBF_SYNC = (function() {
     fetchMealPlan: fetchMealPlan,
     fetchProfileMetrics: fetchProfileMetrics,
     fetchLastWeights: fetchLastWeights,
+    syncSession: syncSession,
     fetchHistoricalRPE: fetchHistoricalRPE,
     logPreHabNeed: logPreHabNeed,
     adminSetTrial: adminSetTrial,
