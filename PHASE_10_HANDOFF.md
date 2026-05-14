@@ -291,3 +291,75 @@ BBF_CNS_AGENT.inferGoal(uid)
 - Cloud-stored prescription history table for weekly coaching review
 - Per-set RPE storage → enables `avg_rpe_last_3` overreaching detection
 - Set-level history walk → enables `plateau_flag` detection
+
+---
+
+## 11 · SESSION HANDOFF · POST-PHASE-11 STATE (passover for new session)
+
+### Live state at handoff time
+| Field | Value |
+|---|---|
+| Working branch | `claude/init-bbf-frontend-aRnEa` |
+| `origin/main` HEAD | `c7569ec` — fix(cns): Morning Lab wired + single source of truth + auto-fill inputs |
+| `sw.js` cache | `bbf-v138` (bump on every frontend commit) |
+| Repo | `buildbelievefitllc/Buildbelievefit` |
+| Supabase project | `ihclbceghxpuawymlvgi` |
+
+### What landed this session (PRs #142 → #160)
+- **Phase 10 · Nutrition Rotator** — `/api/rotate-nutrition`, `bbf_users.nutrition_plan` column, X-BBF-Admin-Token gate, `BBF_NUTRITION_ROTATOR` IIFE
+- **Phase 3 · Profile Metrics RPC** — `bbf_get_profile_metrics(text, int)` returns Total Sessions, streaks, 30-day heatmap; `renderOverview()` lazy-hydrates server values
+- **Phase 4 · Autoregulation Engine v1** — `calculateReadinessMultiplier`, `computeTargetWeight`, per-exercise target banner in RDW (localStorage history)
+- **Phase 5 · Server-Hydrated Autoreg** — `bbf_sets.exercise_key` column, `bbf_get_last_weights(text, int)` RPC, `Allow Anon Insert/Select Sets` RLS; removed inline `syncSet` in SVS
+- **Phase 6 · Session Persistence + Vault Lock**
+  - `bbf_logs` Allow Anon Insert/Select/Delete policies; column-name fixes in `syncLog` (drop 7 bogus fields, rename `notes`→`coach_notes`)
+  - `bbf_sets`: NOT NULL on `log_id`, FK `ON DELETE CASCADE`, **132 orphan rows purged**
+  - `BBF_SYNC.syncSession(uid, logEntry, setsArray)` — atomic log → bulk sets with `log_id` injection, partial-drop validation, rollback DELETE
+  - `CWO()` rewritten as async — UI lockdown, "Saving…", only-on-resolve `CRUSHED IT!`, alerts on failure
+  - Partner-mode aggregator — `_appendSetsForUid` pulls both primary + partner from localStorage
+- **Phase 9.5 · Mark Resolved** — `bbf_audit_logs` Allow Admin Update policy, three-layer fix (mergeAudits concat order, always-set `data-audit-id`, no silent finish), `RUN_DB_PROBE()` diagnostic
+- **Phase 6 Entitlements** — `mastermind-portal.html` cloud-hydrates `bbf_users` before rendering entitlements
+- **Phase 11 · BBF_CNS_AGENT** — see §10 above; layered on Phase 4-5 autoreg; Morning Lab Audit + Somatic Matrix both feed it; single source of truth on weight math; set inputs auto-prefilled
+- **iOS Safari fix** — `-webkit-text-size-adjust:100%` + bumped all tap-target inputs to 1rem (fixed Jacquelyn's blown-out plan view)
+- **PWA install dual-card** — platform-aware `index.html` install instructions (iPhone Safari + Android Chrome) with SVG glyphs, standalone detection, iOS-non-Safari warning
+- **Jacquelyn Day 1 swap** — Incline Pushups→Incline DB Press (3×8-12), Deadbugs→Supported Knee Raises (3×12)
+- **Intake grandfather** — `checkIntakeNeeded` skips modal for the original 5 + auto-marks `intake_complete=true` in localStorage
+
+### Open follow-ups (worth a sweep when there's air time)
+- All "Allow Anon …" RLS policies (audit_logs / sets / logs + the sets-DELETE policy) are wide-open `USING(true)` — tighten to `user_id = auth.uid()` or admin-token when Supabase Auth is wired
+- `bbf_users` has NO anon UPDATE policy + 4 of the 5 cols `deploySovereignOnboarding` writes don't exist. `saveMealPlan` (Phase 10 rotator) also silently no-ops on cloud as a result
+- Many bodies still include a `logged_at` field that PostgREST silently drops (cosmetic, not query errors — `fetchAllLogs` ORDER BY was already fixed)
+- BBF_CNS_AGENT v1.5: differentiated goal rows, auto-apply `sets_delta` to rendered set count, per-partner agent compute, RPE-based overreaching detector, plateau detector
+
+### Active roster — all goal-seeded to `'recomp'` via Phase 11 first-touch
+- `ana_bbf` Ana · gateway
+- `jacky_bbf` Jacky · gateway
+- `jacque_bbf` Jacquelyn · gateway · **MEDICAL: STRICT coconut allergy** · PIN `999388`
+- `jordan_bbf` Jordan · gateway · partner=`wayne_bbf`
+- `wayne_bbf` Wayne · gateway · partner=`jordan_bbf`
+- `akeem` (trainer, sovereign — server-locked)
+
+### NEXT OBJECTIVE · Agent Metrics Dashboard (Command Center)
+
+Build a Sovereign-tier admin dashboard inside the Command Center that surfaces BBF_CNS_AGENT analytics. CEO will direct the exact metric list at session start; likely vector:
+
+- **Today's zone distribution** — how many clients are in Recovery / Baseline / Overload right now
+- **Roster CNS heatmap** — last 7 days of zones per client, calendar grid
+- **Coaching messages delivered today** — which narratives fired (default vs hot_streak vs returning_layoff etc.)
+- **Goal distribution** — clients per goal
+- **Average load multiplier** — across all active prescriptions
+- **Anomaly callouts** — clients who haven't submitted Somatic/Lab Audit today; clients trending down zone-wise over 7 days
+
+Data sources:
+- `d.u[uid].cns_prescription` (every client's cached rx)
+- `BBF_CNS_AGENT.ensure(uid)` per uid if cache is stale
+- `bbf_get_profile_metrics(uid)` for session counts to cross-reference
+- Future: a `bbf_users.cns_prescription_history` JSONB column (or `bbf_agent_log` table) if week-over-week is wanted — not built yet
+
+Architecture notes:
+- Admin-only — gate on `CU === 'akeem'` per existing pattern
+- Pure client-side computation across the roster: iterate `Object.keys(d.u)` for non-akeem clients, call `BBF_CNS_AGENT.analyze(uid)` for each
+- No new schema in V1 unless cross-day history is requested
+- Coaching tone matches the Agent (mentor voice)
+- Could live in the Panopticon tab in `bbf-app.html` (admin-side trainer view) OR as a new panel in `mastermind-portal.html` — CEO will direct
+
+Standing rule: plan first, then execute per CEO's "show me the plan first" preference.
