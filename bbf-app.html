@@ -10890,24 +10890,40 @@ async function CWO(day, dk) {
   // localStorage (false-positive success state).
 
   // Build setsArray from this session's localStorage cache.
+  // Partner Mode — when the primary user has d.u[uid].partner set,
+  // the dual-input set grid in RDW saves the partner's reps/weight
+  // into d.w[partner][dk] (data-uid on the inputs points at the
+  // partner). Pre-fix, the bulk POST only read d.w[primary][dk] so
+  // partner data never reached cloud. We now aggregate both —
+  // each set row carries its OWN uid (used for the bbf_sets.user_id
+  // column) while sharing the primary user's log_id (one joint
+  // session row, two users' sets).
   var setsArray = [];
-  var wlDk = (d.w[uid] || {})[dk] || {};
-  Object.keys(wlDk).forEach(function(ek) {
-    (wlDk[ek] || []).forEach(function(setObj, i) {
-      if (!setObj) return;
-      var hasReps   = setObj.r != null && setObj.r !== '';
-      var hasWeight = setObj.w != null && setObj.w !== '';
-      if (!hasReps && !hasWeight) return;
-      setsArray.push({
-        uid:    uid,
-        dayKey: dk,
-        exKey:  ek,
-        setNum: i + 1,
-        r: hasReps   ? Number(setObj.r) : undefined,
-        w: hasWeight ? Number(setObj.w) : undefined
+  function _appendSetsForUid(targetUid) {
+    var wlDkInner = (d.w[targetUid] || {})[dk] || {};
+    Object.keys(wlDkInner).forEach(function(ek) {
+      (wlDkInner[ek] || []).forEach(function(setObj, i) {
+        if (!setObj) return;
+        var hasReps   = setObj.r != null && setObj.r !== '';
+        var hasWeight = setObj.w != null && setObj.w !== '';
+        if (!hasReps && !hasWeight) return;
+        setsArray.push({
+          uid:    targetUid,
+          dayKey: dk,
+          exKey:  ek,
+          setNum: i + 1,
+          r: hasReps   ? Number(setObj.r) : undefined,
+          w: hasWeight ? Number(setObj.w) : undefined
+        });
       });
     });
-  });
+  }
+  _appendSetsForUid(uid);
+  var partnerUid = (d.u[uid] || {}).partner;
+  if (partnerUid && partnerUid !== uid && d.u[partnerUid]) {
+    _appendSetsForUid(partnerUid);
+    console.log('[CWO] partner mode — also syncing sets for', partnerUid);
+  }
 
   // UI Lockdown — disable Mark Complete + show in-flight label so a
   // double-click can't fire a second syncSession mid-rollback.
