@@ -10881,51 +10881,63 @@ function SVS(inp) {
   queueSync({uid:uid, dk:inp.dataset.dk, ek:inp.dataset.ek, s:parseInt(inp.dataset.s), f:inp.dataset.f, v:v});
 }
 
-function CWO(day, dk) {
-  var uid = VC || CU; var d = GD();
-  if (!d.l[uid]) d.l[uid] = [];
+async function CWO(day, dk) {
+  var uid = VC || CU;
+  var d = GD();
   var logEntry = {date:today(), type:'strength', notes:'Completed: ' + day.focus, loggedAt:new Date().toISOString(), loggedBy:CU};
-  d.l[uid].push(logEntry);
-  SD(d);
+  // Phase 6 Final — local d.l push moved to AFTER syncSession resolves
+  // so a cloud failure cannot leave an un-persisted log lingering in
+  // localStorage (false-positive success state).
 
-  // Phase 6 final fix — atomic session sync. syncSession POSTs the
-  // log first, captures its id, then bulk POSTs every non-empty set
-  // for this (uid, dk) with log_id injected. Replaces the
-  // previously-broken inline-per-set sync that left bbf_sets.log_id
-  // NULL across the board.
-  if (typeof BBF_SYNC !== 'undefined' && typeof BBF_SYNC.syncSession === 'function') {
-    var setsArray = [];
-    var wlDk = (d.w[uid] || {})[dk] || {};
-    Object.keys(wlDk).forEach(function(ek) {
-      (wlDk[ek] || []).forEach(function(setObj, i) {
-        if (!setObj) return;
-        var hasReps   = setObj.r != null && setObj.r !== '';
-        var hasWeight = setObj.w != null && setObj.w !== '';
-        if (!hasReps && !hasWeight) return; // skip empty slot
-        setsArray.push({
-          uid:    uid,
-          dayKey: dk,
-          exKey:  ek,
-          setNum: i + 1,
-          r: hasReps   ? Number(setObj.r) : undefined,
-          w: hasWeight ? Number(setObj.w) : undefined
-        });
+  // Build setsArray from this session's localStorage cache.
+  var setsArray = [];
+  var wlDk = (d.w[uid] || {})[dk] || {};
+  Object.keys(wlDk).forEach(function(ek) {
+    (wlDk[ek] || []).forEach(function(setObj, i) {
+      if (!setObj) return;
+      var hasReps   = setObj.r != null && setObj.r !== '';
+      var hasWeight = setObj.w != null && setObj.w !== '';
+      if (!hasReps && !hasWeight) return;
+      setsArray.push({
+        uid:    uid,
+        dayKey: dk,
+        exKey:  ek,
+        setNum: i + 1,
+        r: hasReps   ? Number(setObj.r) : undefined,
+        w: hasWeight ? Number(setObj.w) : undefined
       });
     });
-    BBF_SYNC.syncSession(uid, logEntry, setsArray)
-      .then(function(result) {
-        console.log('[CWO] session persisted:', {
-          log_id:    result.log && result.log.id,
-          sets_count: (result.sets || []).length
-        });
-      })
-      .catch(function(err) {
-        console.error('[CWO] syncSession failed:', err);
-        alert('Session save failed: ' + (err && err.message ? err.message : 'unknown'));
-      });
+  });
+
+  // UI Lockdown — disable Mark Complete + show in-flight label so a
+  // double-click can't fire a second syncSession mid-rollback.
+  var completeBtn = document.querySelector('.dbtn[data-dk="' + dk + '"]') ||
+                    document.querySelector('.dbtn');
+  var originalBtnHTML = completeBtn ? completeBtn.innerHTML : '';
+  if (completeBtn) {
+    completeBtn.disabled = true;
+    completeBtn.innerHTML = 'Saving…';
   }
-  try { if(dk) sessionStorage.removeItem('bbf_wo_' + dk); } catch(e) {}
-  var stk = STREAK((d.l[uid]||[]).filter(function(l){return l.type!=='note';}));
+
+  try {
+    if (typeof BBF_SYNC === 'undefined' || typeof BBF_SYNC.syncSession !== 'function') {
+      throw new Error('Sync layer offline');
+    }
+    var result = await BBF_SYNC.syncSession(uid, logEntry, setsArray);
+    console.log('[CWO] session persisted:', {
+      log_id:    result.log && result.log.id,
+      sets_count: (result.sets || []).length
+    });
+
+    // Cloud confirmed — NOW commit the local log entry. Atomic with
+    // the cloud insert: if sync rejects, neither side accrues state.
+    if (!d.l[uid]) d.l[uid] = [];
+    d.l[uid].push(logEntry);
+    SD(d);
+
+    // Cleanup + victory + navigate. Only reached on resolve.
+    try { if(dk) sessionStorage.removeItem('bbf_wo_' + dk); } catch(e) {}
+    var stk = STREAK((d.l[uid]||[]).filter(function(l){return l.type!=='note';}));
   showVictory(_t('app-victory-title','CRUSHED IT!'), day.focus + ' ' + _t('app-victory-complete','Complete'), day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + ' \u2022 ' + _t('app-victory-great','Great work!'));
   setTimeout(function(){ checkStreakMilestone(stk); checkProgressiveOverload(); }, 600);
   // Athlete Evolution — update attributes based on workout type
@@ -10933,12 +10945,20 @@ function CWO(day, dk) {
     BBF_SYNC.processAthleteEvolution(uid, day.focus || '');
     if (stk > 0 && stk % 7 === 0) BBF_SYNC.incrementDiscipline(uid);
   }
-  RH();
-  // High-Ticket Sniper — run the Mastermind-Roster diagnostic after the
-  // victory flow settles. If graduate or plateau fires, the VIP modal is
-  // shown (rate-limited per-user inside render-engine).
-  if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.checkSniperAtWorkoutComplete) {
-    setTimeout(function() { RENDER_ENGINE.checkSniperAtWorkoutComplete(uid); }, 3500);
+    RH();
+    // High-Ticket Sniper — run the Mastermind-Roster diagnostic
+    // after the victory flow settles. Rate-limited per-user
+    // inside render-engine.
+    if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.checkSniperAtWorkoutComplete) {
+      setTimeout(function() { RENDER_ENGINE.checkSniperAtWorkoutComplete(uid); }, 3500);
+    }
+  } catch (err) {
+    console.error('[CWO] syncSession failed:', err);
+    if (completeBtn) {
+      completeBtn.disabled = false;
+      completeBtn.innerHTML = originalBtnHTML;
+    }
+    alert('Session save failed: ' + (err && err.message ? err.message : 'unknown'));
   }
 }
 
