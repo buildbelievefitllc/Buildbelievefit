@@ -10871,7 +10871,11 @@ function SVS(inp) {
   while (d.w[uid][dk][ek].length <= s) d.w[uid][dk][ek].push({});
   d.w[uid][dk][ek][s][f] = v;
   SD(d);
-  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncSet(uid,dk,ek,s,f,v);
+  // Phase 6 final fix — inline cloud POST removed. Sets used to fire
+  // BBF_SYNC.syncSet here per keystroke, BEFORE any bbf_logs row
+  // existed, which left every cloud row with log_id=NULL (the orphan
+  // bug). Cloud sync now happens once at Mark Session Complete via
+  // syncSession, with proper log_id linkage.
   inp.classList.add('done');
   saveSetToSession(inp.dataset.dk, inp.dataset.ek, parseInt(inp.dataset.s), inp.dataset.f, v);
   queueSync({uid:uid, dk:inp.dataset.dk, ek:inp.dataset.ek, s:parseInt(inp.dataset.s), f:inp.dataset.f, v:v});
@@ -10880,20 +10884,43 @@ function SVS(inp) {
 function CWO(day, dk) {
   var uid = VC || CU; var d = GD();
   if (!d.l[uid]) d.l[uid] = [];
-  d.l[uid].push({date:today(), type:'strength', notes:'Completed: ' + day.focus, loggedAt:new Date().toISOString(), loggedBy:CU});
+  var logEntry = {date:today(), type:'strength', notes:'Completed: ' + day.focus, loggedAt:new Date().toISOString(), loggedBy:CU};
+  d.l[uid].push(logEntry);
   SD(d);
-  // Phase 6 follow-up — surface syncLog failures loudly. Previously
-  // fire-and-forget meant a silent RLS/schema rejection looked
-  // identical to a 201 Created; CEO's Profile/Command Center kept
-  // reading "0 Sessions" with no clue why. Now an alert pops on any
-  // failure path and the inserted row gets logged on success.
-  if (typeof BBF_SYNC !== 'undefined') {
-    BBF_SYNC.syncLog(uid, d.l[uid][d.l[uid].length-1])
-      .then(function(row) {
-        if (row) console.log('[CWO] session log persisted:', row);
+
+  // Phase 6 final fix — atomic session sync. syncSession POSTs the
+  // log first, captures its id, then bulk POSTs every non-empty set
+  // for this (uid, dk) with log_id injected. Replaces the
+  // previously-broken inline-per-set sync that left bbf_sets.log_id
+  // NULL across the board.
+  if (typeof BBF_SYNC !== 'undefined' && typeof BBF_SYNC.syncSession === 'function') {
+    var setsArray = [];
+    var wlDk = (d.w[uid] || {})[dk] || {};
+    Object.keys(wlDk).forEach(function(ek) {
+      (wlDk[ek] || []).forEach(function(setObj, i) {
+        if (!setObj) return;
+        var hasReps   = setObj.r != null && setObj.r !== '';
+        var hasWeight = setObj.w != null && setObj.w !== '';
+        if (!hasReps && !hasWeight) return; // skip empty slot
+        setsArray.push({
+          uid:    uid,
+          dayKey: dk,
+          exKey:  ek,
+          setNum: i + 1,
+          r: hasReps   ? Number(setObj.r) : undefined,
+          w: hasWeight ? Number(setObj.w) : undefined
+        });
+      });
+    });
+    BBF_SYNC.syncSession(uid, logEntry, setsArray)
+      .then(function(result) {
+        console.log('[CWO] session persisted:', {
+          log_id:    result.log && result.log.id,
+          sets_count: (result.sets || []).length
+        });
       })
       .catch(function(err) {
-        console.error('[CWO] syncLog failed:', err);
+        console.error('[CWO] syncSession failed:', err);
         alert('Session save failed: ' + (err && err.message ? err.message : 'unknown'));
       });
   }
