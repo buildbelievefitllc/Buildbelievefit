@@ -269,12 +269,41 @@ h1 .ol{-webkit-text-stroke:2px var(--yel);color:transparent}
 
 /* APP DOWNLOAD */
 #app-download{background:linear-gradient(135deg,var(--purp),var(--purx));padding:6rem 2rem;text-align:center;position:relative;overflow:hidden}
-.app-in{max-width:680px;margin:0 auto;position:relative;z-index:2}
+.app-in{max-width:780px;margin:0 auto;position:relative;z-index:2}
 .app-url{background:rgba(0,0,0,.4);border:1px solid rgba(106,13,173,.4);border-radius:10px;padding:.9rem 1.5rem;font-family:var(--hb);font-size:1.2rem;letter-spacing:2px;color:var(--yel);display:inline-block;margin:1.5rem 0;word-break:break-all}
 .inst-s{display:flex;justify-content:center;gap:3rem;margin-top:2.5rem;flex-wrap:wrap}
 .ist{text-align:center;max-width:140px}
 .ist-n{font-family:var(--hb);font-size:2rem;color:var(--yel);line-height:1;margin-bottom:.3rem}
 .ist-t{font-size:.76rem;font-weight:600;color:rgba(255,255,255,.45);line-height:1.5}
+
+/* PWA INSTALL CARDS — platform-aware install instructions */
+.pwa-platforms{margin-top:2.8rem}
+.pwa-pre{font-size:.95rem;color:rgba(255,255,255,.55);max-width:520px;margin:0 auto 1.6rem;line-height:1.55}
+.pwa-cards{display:grid;grid-template-columns:1fr;gap:1.1rem;max-width:720px;margin:0 auto}
+@media(min-width:640px){.pwa-cards{grid-template-columns:1fr 1fr}}
+.pwa-card{position:relative;background:rgba(8,4,18,.55);border:1px solid rgba(212,175,55,.18);border-radius:14px;padding:1.4rem 1.3rem 1.5rem;text-align:left;transition:border-color .25s ease,background .25s ease,transform .25s ease;overflow:hidden}
+.pwa-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(212,175,55,.35),transparent);opacity:.5}
+.pwa-card.is-active{border-color:rgba(245,200,0,.65);background:rgba(20,8,40,.7);transform:translateY(-2px);box-shadow:0 18px 44px -18px rgba(0,0,0,.6),0 0 22px rgba(245,200,0,.12)}
+.pwa-card-h{display:flex;align-items:center;gap:.85rem;margin-bottom:1.1rem;padding-bottom:.85rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.pwa-card-ic{font-size:1.85rem;line-height:1;flex-shrink:0}
+.pwa-card-t{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.35rem;letter-spacing:2px;color:var(--wht);line-height:1}
+.pwa-card-s{font-size:.65rem;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:.25rem}
+.pwa-card.is-active .pwa-card-s{color:var(--yel)}
+.pwa-card-flag{display:inline-block;margin-left:auto;padding:.2rem .55rem;border-radius:99px;font-size:.58rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;background:rgba(245,200,0,.16);border:1px solid rgba(245,200,0,.4);color:var(--yel);opacity:0;transition:opacity .25s ease}
+.pwa-card.is-active .pwa-card-flag{opacity:1}
+.pwa-steps{list-style:none;padding:0;margin:0;counter-reset:pwa-step}
+.pwa-steps li{position:relative;padding:.55rem 0 .55rem 2.2rem;font-size:.88rem;line-height:1.55;color:rgba(255,255,255,.78);counter-increment:pwa-step}
+.pwa-steps li::before{content:counter(pwa-step);position:absolute;left:0;top:.55rem;width:1.5rem;height:1.5rem;border-radius:50%;background:rgba(245,200,0,.12);border:1px solid rgba(245,200,0,.4);color:var(--yel);font-family:var(--hb,'Bebas Neue',sans-serif);font-size:.78rem;display:flex;align-items:center;justify-content:center;line-height:1}
+.pwa-steps li + li{border-top:1px dashed rgba(255,255,255,.06)}
+.pwa-steps strong{color:var(--wht);font-weight:700}
+.pwa-glyph{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin:0 .25rem;background:rgba(245,200,0,.1);border:1px solid rgba(245,200,0,.35);border-radius:6px;color:var(--yel);vertical-align:-7px}
+.pwa-glyph svg{width:14px;height:14px;display:block}
+.pwa-warn{margin-top:1rem;padding:.7rem .85rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.78rem;line-height:1.5;color:rgba(255,255,255,.75)}
+.pwa-warn strong{color:#ef4444}
+.pwa-already{margin:2.5rem auto 0;max-width:520px;padding:1.2rem 1.4rem;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);border-left:3px solid #22c55e;border-radius:10px;display:flex;align-items:center;gap:1rem;text-align:left}
+.pwa-already-ic{font-size:1.6rem;color:#22c55e;flex-shrink:0}
+.pwa-already-h{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1rem;letter-spacing:2px;color:#22c55e;margin-bottom:.2rem}
+.pwa-already-s{font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.5}
 
 /* CONTACT */
 #contact{background:var(--pur);padding:6rem 2rem;text-align:center;position:relative;overflow:hidden}
@@ -2278,11 +2307,128 @@ body.bbf-kairos .hero-badge {
       <p class="sec-s" style="margin:0 auto;color:rgba(255,255,255,.45)" data-lang-key="app-sub">Access your personalized workout program, meal plan, progress tracking, and coach notes &mdash; all in one mobile app that works offline.</p>
       <div class="app-url">buildbelievefit.fitness/bbf-app.html</div>
       <a href="bbf-app.html" class="btn-y">&#x1F4F2; Open Client App</a>
-      <div class="inst-s">
-        <div class="ist"><div class="ist-n">1</div><div class="ist-t">Open the link in your browser</div></div>
-        <div class="ist"><div class="ist-n">2</div><div class="ist-t">Tap menu then "Add to Home Screen"</div></div>
-        <div class="ist"><div class="ist-n">3</div><div class="ist-t">Use like a real app &mdash; works offline too</div></div>
+
+      <!-- Standalone-mode confirmation — shown when the page is already
+           running as an installed PWA (window.matchMedia('(display-mode:
+           standalone)') matches, OR navigator.standalone === true on iOS). -->
+      <div class="pwa-already" id="pwa-already" hidden>
+        <div class="pwa-already-ic">&#x2713;</div>
+        <div>
+          <div class="pwa-already-h">App Installed</div>
+          <div class="pwa-already-s">You're already running BBF as a phone app. Tap the BBF icon on your home screen anytime — no browser needed.</div>
+        </div>
       </div>
+
+      <!-- Platform-aware install instructions. JS at the bottom of this
+           section auto-detects iOS vs Android and adds .is-active to the
+           matching card. Both cards stay visible so users can still see
+           the alternate platform's steps. -->
+      <div class="pwa-platforms" id="pwa-platforms">
+        <p class="pwa-pre">Turn this page into a real app icon on your phone &mdash; 30 seconds, no app store, works offline.</p>
+        <div class="pwa-cards">
+
+          <!-- iOS Safari -->
+          <article class="pwa-card" data-platform="ios" id="pwa-card-ios">
+            <header class="pwa-card-h">
+              <span class="pwa-card-ic">&#x1F4F1;</span>
+              <div style="flex:1;min-width:0">
+                <div class="pwa-card-t">iPhone &middot; iPad</div>
+                <div class="pwa-card-s">Safari only</div>
+              </div>
+              <span class="pwa-card-flag">Your device</span>
+            </header>
+            <ol class="pwa-steps">
+              <li>Open this page in <strong>Safari</strong> (not Chrome or Firefox &mdash; iOS only allows installing from Safari)</li>
+              <li>Tap the
+                <span class="pwa-glyph" aria-label="Share button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span>
+                <strong>Share</strong> button at the bottom of the screen</li>
+              <li>Scroll down and tap <strong>&ldquo;Add to Home Screen&rdquo;</strong></li>
+              <li>Tap <strong>Add</strong> in the top-right corner</li>
+              <li>Find the BBF icon on your home screen &mdash; tap it like any other app</li>
+            </ol>
+            <div class="pwa-warn" id="pwa-warn-ios" hidden>
+              <strong>Heads up:</strong> you opened this in a non-Safari browser. On iPhone, only Safari can install web apps to the home screen. Copy the link, paste it into Safari, and the steps above will work.
+            </div>
+          </article>
+
+          <!-- Android Chrome / Edge -->
+          <article class="pwa-card" data-platform="android" id="pwa-card-android">
+            <header class="pwa-card-h">
+              <span class="pwa-card-ic">&#x1F916;</span>
+              <div style="flex:1;min-width:0">
+                <div class="pwa-card-t">Android</div>
+                <div class="pwa-card-s">Chrome &middot; Edge &middot; Samsung Internet</div>
+              </div>
+              <span class="pwa-card-flag">Your device</span>
+            </header>
+            <ol class="pwa-steps">
+              <li>Open this page in <strong>Chrome</strong>, Edge, or Samsung Internet</li>
+              <li>Tap the
+                <span class="pwa-glyph" aria-label="Menu button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></span>
+                menu in the top-right corner</li>
+              <li>Tap <strong>&ldquo;Install app&rdquo;</strong> or <strong>&ldquo;Add to Home screen&rdquo;</strong> (wording varies by browser)</li>
+              <li>Tap <strong>Install</strong> to confirm</li>
+              <li>Find the BBF icon in your app drawer or home screen &mdash; tap it like any other app</li>
+            </ol>
+          </article>
+
+        </div>
+      </div>
+
+      <script>
+      (function(){
+        // Hide the instructions block when the user is ALREADY running
+        // the app as a standalone PWA — they don't need a how-to.
+        function isStandalone(){
+          try {
+            return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                   window.navigator.standalone === true;
+          } catch (_) { return false; }
+        }
+        // Cheap UA sniff — sufficient for "show the right card by default".
+        // Not used for any security decision.
+        function detectPlatform(){
+          var ua = (navigator.userAgent || '').toLowerCase();
+          var isIPad = /ipad/.test(ua) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          if (/iphone|ipod/.test(ua) || isIPad) return 'ios';
+          if (/android/.test(ua)) return 'android';
+          return null;
+        }
+        // Chrome / Firefox on iOS reports its own UA but can't install PWAs
+        // — only Safari can. Surface the warning so users don't get stuck.
+        function isIOSNonSafari(){
+          var ua = (navigator.userAgent || '').toLowerCase();
+          var iosLike = /iphone|ipod|ipad/.test(ua) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          if (!iosLike) return false;
+          return /crios|fxios|edgios|opios/.test(ua);
+        }
+        function init(){
+          if (isStandalone()) {
+            var already = document.getElementById('pwa-already');
+            var platforms = document.getElementById('pwa-platforms');
+            if (already) already.hidden = false;
+            if (platforms) platforms.style.display = 'none';
+            return;
+          }
+          var plat = detectPlatform();
+          if (plat) {
+            var card = document.getElementById('pwa-card-' + plat);
+            if (card) card.classList.add('is-active');
+          }
+          if (isIOSNonSafari()) {
+            var warn = document.getElementById('pwa-warn-ios');
+            if (warn) warn.hidden = false;
+          }
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+      </script>
     </div>
   </div>
 </section>
