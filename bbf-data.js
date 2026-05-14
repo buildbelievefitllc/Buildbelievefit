@@ -105,9 +105,9 @@ var WP = {
       {name:'Dumbbell Chest Press',equipment:'Dumbbells',sets:3,reps:'12',notes:'Controlled tempo — feel the chest stretch at the bottom'},
       {name:'Dumbbell Overhead Press',equipment:'Dumbbells',sets:3,reps:'12',notes:'Core tight, no arching the lower back'},
       {name:'Tricep Cable Pushdowns',equipment:'Cable',sets:3,reps:'15',notes:'Pin elbows to ribs, extend fully at the bottom'},
-      {name:'Incline Pushups',equipment:'Bodyweight (bench or wall)',sets:3,reps:'To failure',notes:'Flat back — pace yourself across sets'},
+      {name:'Incline DB Press',equipment:'Dumbbells',sets:3,reps:'8-12',notes:'Bench at 30-45° — controlled descent, drive through the chest at the top. Hypertrophy protocol — load to RPE 7-8.'},
       {name:'Planks',equipment:'Bodyweight',sets:3,reps:'45 sec hold',notes:'Ribcage down, glutes engaged, breathe through the brace'},
-      {name:'Deadbugs',equipment:'Bodyweight',sets:3,reps:'15',notes:'Focus on ribcage down throughout — slow, controlled, no flaring'}
+      {name:'Supported Knee Raises',equipment:"Captain's chair or bench",sets:3,reps:'12',notes:'Pelvic tilt before each rep — engage lower abs, no leg swing'}
     ]},
     {day:'Day 2',focus:'Pull + Core — Back, Biceps & Obliques',exercises:[
       {name:'Lat Pulldowns',equipment:'Machine',sets:3,reps:'12',notes:'Drive elbows down, lean back slightly'},
