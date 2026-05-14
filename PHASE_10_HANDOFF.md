@@ -216,3 +216,78 @@ An admin-only button rendered in the Nutrition tab that, on click, regenerates t
 - Branch protection on `main` is enforced — every change goes through PR + rebase-merge.
 
 End of handoff. Acknowledge and await the first directive — it will likely be the Nutrition Rotator blueprint above.
+
+---
+
+## 10 · PHASE 11 ADDENDUM · BBF_CNS_AGENT (CNS Intelligence Agent)
+
+Layered ON TOP of the Phase 4-5 autoreg engine. Lives as an IIFE in
+`bbf-app.html` just before `function RW()`. Pure deterministic math +
+template bank, no Gemini, no schema change.
+
+### Inputs (read at analyze-time)
+| Source | Field | Notes |
+|---|---|---|
+| `d.u[uid].somatic_readiness_score` | CNS score 0-100 | Preferred input — set by Somatic Matrix submit (`_somSubmit` → `BBF_SYNC.calculateSomaticReadiness`). Falls back to `d.u[uid].daily_readiness[today()].score` from the Autonomic slider. |
+| `d.u[uid].goal` | Goal taxonomy | Free text or chip value. Inferred via substring match → `recomp` / `hypertrophy` / `fat-loss` / `strength` / `longevity` / `performance`. Defaults to `recomp` for the original 5 (`ana_bbf, jacky_bbf, jacque_bbf, jordan_bbf, wayne_bbf`) via `seedDefaultGoalIfNeeded`. |
+| `d.l[uid]` | Local log array | History modifiers: `sessions_last_7d`, `days_since_last`. RPE + plateau flags are v1.5. |
+
+### Math (goal × zone prescription)
+```
+            recovery    baseline     overload
+recomp      ×0.85       ×1.00        ×1.04
+            sets -1     sets ±0      sets ±0
+            reps 12-15  reps 10-12   reps 8-10
+            rest 45s    rest 60s     rest 75s
+```
+Other goals alias to `recomp` for V1. To be differentiated row-by-row in v1.5.
+
+Zone classifier matches the Phase 4 autoreg matrix: `<70` recovery, `70-84` baseline, `≥85` overload.
+
+### History modifiers (post-zone, pre-prescription)
+- `plateau_flag` → force `recovery` + narrative `plateau` (v1.5; flag currently always `false`)
+- `avg_rpe_last_3 > 8.5` → force `recovery` + narrative `overreaching` (v1.5; field currently `null`)
+- `days_since_last > 7` AND zone == `overload` → drop to `baseline` + narrative `returning_layoff`
+- `sessions_last_7d ≥ 5` AND zone == `overload` → drop to `baseline` + narrative `hot_streak`
+
+### Coaching template bank
+Indexed by `zone + '_' + narrative`. Keys live: `recovery_default`, `recovery_plateau`, `recovery_overreaching`, `baseline_default`, `baseline_returning_layoff`, `baseline_hot_streak`, `overload_default`. `${name}` interpolated at render. Voice is calm-mentor — supportive, direct, patient.
+
+### Output shape
+```js
+{
+  cns_score, goal, zone, narrative,
+  weight_mult, sets_delta, rep_band, rest_seconds,
+  coaching_message, computed_at
+}
+```
+
+### Persistence
+`d.u[uid].cns_prescription` (full rx) + `d.u[uid].cns_prescription_at` (ISO). Cache valid until midnight local (compared via `today()`); `recompute(uid)` invalidates + re-runs. Every Somatic Matrix submit calls `BBF_CNS_AGENT.recompute(uid)` so the workout view picks up fresh values on next render.
+
+### Surfaces
+1. **RDW top banner** — `BBF_CNS_AGENT.ensure(uid)` then `renderAgentBannerHTML(rx)`. REPLACES `getReadinessBannerHTML(readyScore)` at the top of the workout day. Legacy function is kept as a fallback for the module-missing edge case.
+2. **Per-exercise overlay** — appended below the existing Phase 4 autoreg banner via `renderExerciseOverlayHTML(rx, exReps)`. Skips cardio/timed exercises.
+3. **Somatic submit hook** — `_somSubmit` in `bbf-app.html` calls `BBF_CNS_AGENT.recompute(uid)` after `calculateSomaticReadiness` resolves.
+
+### Public API
+```js
+BBF_CNS_AGENT.analyze(uid)
+BBF_CNS_AGENT.ensure(uid)       // cache-first wrapper
+BBF_CNS_AGENT.persist(uid, rx)
+BBF_CNS_AGENT.getCached(uid)
+BBF_CNS_AGENT.invalidate(uid)
+BBF_CNS_AGENT.recompute(uid)
+BBF_CNS_AGENT.renderAgentBannerHTML(rx)
+BBF_CNS_AGENT.renderExerciseOverlayHTML(rx, exReps)
+BBF_CNS_AGENT.seedDefaultGoalIfNeeded(uid)
+BBF_CNS_AGENT.classifyZone(cns)
+BBF_CNS_AGENT.inferGoal(uid)
+```
+
+### Out of scope (V1.5 follow-ups)
+- Differentiated goal rows (hypertrophy / fat-loss / strength / longevity / performance currently alias to recomp)
+- Auto-apply the `sets_delta` to the actual set-input grid (currently descriptive only)
+- Cloud-stored prescription history table for weekly coaching review
+- Per-set RPE storage → enables `avg_rpe_last_3` overreaching detection
+- Set-level history walk → enables `plateau_flag` detection

@@ -9321,6 +9321,12 @@ function _somSubmit() {
   Promise.resolve(p).then(function(state){
     if (state) _somPaint(state);
     if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    // Phase 11 — Somatic Matrix submit invalidates the BBF_CNS_AGENT
+    // cache and recomputes so the workout view picks up the fresh
+    // prescription immediately on next render.
+    if (window.BBF_CNS_AGENT && typeof BBF_CNS_AGENT.recompute === 'function') {
+      try { BBF_CNS_AGENT.recompute(uid); } catch(_) {}
+    }
     if (typeof TOAST === 'function') {
       var s = state && Math.round((state.score||0));
       var tierKey = state && state.tier ? ('som-tier-' + state.tier) : null;
@@ -10610,6 +10616,300 @@ function getReadinessBannerHTML(score) {
   return '<div class="ready-banner ' + tier + '"><span class="rb-icon">' + icon + '</span><div><div>' + score + '% \u2014 ' + msg + '</div><div class="ready-seal">' + seal + '</div></div></div>';
 }
 
+// ═══════════════════════════════════════════════════════════════
+// BBF_CNS_AGENT · Phase 11 CNS Intelligence Agent
+// ═══════════════════════════════════════════════════════════════
+// Layered on top of the existing Phase 4-5 autoreg engine. Takes
+// three inputs (CNS readiness score, client goal, training history)
+// and emits a deterministic prescription { weight_mult, sets_delta,
+// rep_band, rest_seconds, coaching_message } plus a mentor-tone
+// message rendered at the top of the Workout view.
+//
+// Pure math + template bank. No Gemini, no schema migration. Cache
+// lives in d.u[uid].cns_prescription with a same-day expiry — every
+// Somatic Matrix submit invalidates and recomputes.
+//
+// V1 scope: 'recomp' goal row is fully tuned (covers the original
+// 5 clients + the 'recomp' intake chip). Other goals alias to the
+// recomp shape until v1.5 differentiates them — flagged.
+// ═══════════════════════════════════════════════════════════════
+var BBF_CNS_AGENT = (function() {
+
+  // Original 5 clients get 'recomp' as their default goal on first
+  // access — same one-shot grandfather pattern as checkIntakeNeeded.
+  var ORIGINAL_ROSTER = {
+    ana_bbf: 1, jacky_bbf: 1, jacque_bbf: 1, jordan_bbf: 1, wayne_bbf: 1
+  };
+
+  // Goal x Zone -> Prescription matrix. Deltas from the PLAN baseline.
+  // weight_mult is applied to the most-recent logged weight (same
+  // input the Phase 4 autoreg banner consumes). sets_delta / rep_band
+  // / rest_seconds are descriptive (rendered in the banner, not auto-
+  // applied to the set grid — that's a V1.5 thing).
+  var PRESCRIPTION = {
+    recomp: {
+      recovery: { weight_mult: 0.85, sets_delta: -1, rep_band: '12-15', rest_seconds: 45 },
+      baseline: { weight_mult: 1.00, sets_delta:  0, rep_band: '10-12', rest_seconds: 60 },
+      overload: { weight_mult: 1.04, sets_delta:  0, rep_band: '8-10',  rest_seconds: 75 }
+    },
+    // Other goals alias to recomp for V1. To be differentiated v1.5.
+    hypertrophy: 'recomp',
+    'fat-loss':  'recomp',
+    strength:    'recomp',
+    longevity:   'recomp',
+    performance: 'recomp',
+    recovery:    'recomp'
+  };
+
+  // Template bank indexed by zone_narrative. ${name} interpolated at
+  // render time. Mentor voice — supportive, direct, calm.
+  var TEMPLATES = {
+    recovery_default:
+      "Your nervous system is asking for restraint, ${name}. We're trimming weight 15% and stretching reps to 12-15. Treat today as a quality session — flawless tempo, controlled breath. Rest is a weapon. The PR will be there next week.",
+    recovery_plateau:
+      "Recent loads have been flat for three sessions. That's not weakness — that's data, ${name}. We're deloading today: 85% of last working weight, extra rest. Then we re-attack next session.",
+    recovery_overreaching:
+      "You've been pushing into the red, ${name}. Average RPE across recent sessions points to overreaching, not training. Today we deload. Strength compounds when the body absorbs the work.",
+    baseline_default:
+      "Solid readiness, ${name}. Execute today's protocol exactly as written. Controlled descent, intentional pause, full range. Sessions like this one are the soil — show up consistent and the weight goes up on its own.",
+    baseline_returning_layoff:
+      "Welcome back, ${name}. Holding the line on volume today — we reintroduce weight gradually. One step at a time builds the habit; the strength returns faster than you think.",
+    baseline_hot_streak:
+      "Five sessions in seven days. The consistency is your moat, ${name}. We're holding load today — same weight, same reps — so we don't outrun recovery. The discipline IS the protocol.",
+    overload_default:
+      "Your CNS is primed, ${name}. Add 2-5% to the main lifts and chase the lower end of the rep range with intent. This is the compound window — the work today carries you for the next ten sessions."
+  };
+
+  function _GD() { try { return GD(); } catch(_) { return { u:{}, l:{} }; } }
+  function _SD(d) { try { SD(d); } catch(_) {} }
+
+  function classifyZone(cns) {
+    if (cns == null || isNaN(cns)) return 'baseline';
+    var s = Number(cns);
+    if (s < 70) return 'recovery';
+    if (s < 85) return 'baseline';
+    return 'overload';
+  }
+
+  function inferGoal(uid) {
+    var d = _GD();
+    var u = d.u[uid] || {};
+    var goal = String(u.goal || '').toLowerCase();
+    if (goal.indexOf('recomp') > -1)      return 'recomp';
+    if (goal.indexOf('hypertrophy') > -1) return 'hypertrophy';
+    if (goal.indexOf('fat') > -1 || goal.indexOf('loss') > -1) return 'fat-loss';
+    if (goal.indexOf('strength') > -1)    return 'strength';
+    if (goal.indexOf('longevity') > -1)   return 'longevity';
+    if (goal.indexOf('performance') > -1) return 'performance';
+    return 'recomp';
+  }
+
+  function resolveGoalRow(goal) {
+    var row = PRESCRIPTION[goal];
+    if (typeof row === 'string') return PRESCRIPTION[row];
+    return row || PRESCRIPTION.recomp;
+  }
+
+  function readHistory(uid) {
+    var d = _GD();
+    var logs = (d.l[uid] || []).filter(function(l){ return l && l.type !== 'note'; });
+    if (!logs.length) {
+      return { sessions_last_7d: 0, days_since_last: 999, avg_rpe_last_3: null, plateau_flag: false };
+    }
+    var now = Date.now();
+    var DAY = 86400000;
+    var last7 = logs.filter(function(l) {
+      if (!l.date) return false;
+      var t = new Date(l.date + 'T12:00:00').getTime();
+      return now - t <= 7 * DAY;
+    });
+    var sorted = logs.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+    var lastLog = sorted[0];
+    var daysSinceLast = lastLog && lastLog.date
+      ? Math.floor((now - new Date(lastLog.date + 'T12:00:00').getTime()) / DAY)
+      : 999;
+    return {
+      sessions_last_7d: last7.length,
+      days_since_last:  daysSinceLast,
+      avg_rpe_last_3:   null,
+      plateau_flag:     false
+    };
+  }
+
+  function applyHistoryModifiers(zone, history) {
+    if (history.plateau_flag) {
+      return { zone: 'recovery', narrative: 'plateau' };
+    }
+    if (history.avg_rpe_last_3 != null && history.avg_rpe_last_3 > 8.5) {
+      return { zone: 'recovery', narrative: 'overreaching' };
+    }
+    if (history.days_since_last > 7 && zone === 'overload') {
+      return { zone: 'baseline', narrative: 'returning_layoff' };
+    }
+    if (history.sessions_last_7d >= 5 && zone === 'overload') {
+      return { zone: 'baseline', narrative: 'hot_streak' };
+    }
+    return { zone: zone, narrative: 'default' };
+  }
+
+  function readinessForToday(uid) {
+    var d = _GD();
+    var u = d.u[uid] || {};
+    if (typeof u.somatic_readiness_score === 'number') {
+      if (!u.somatic_readiness_date || u.somatic_readiness_date === today()) {
+        return u.somatic_readiness_score;
+      }
+    }
+    var r = u.daily_readiness && u.daily_readiness[today()];
+    return r ? r.score : null;
+  }
+
+  function _renderTemplate(t, ctx) {
+    return t.replace(/\$\{(\w+)\}/g, function(_, k) { return ctx[k] || ''; });
+  }
+
+  function seedDefaultGoalIfNeeded(uid) {
+    if (!uid || !ORIGINAL_ROSTER[uid]) return;
+    var d = _GD();
+    if (!d.u[uid]) d.u[uid] = {};
+    if (d.u[uid].goal) return;
+    d.u[uid].goal = 'recomp';
+    d.u[uid].goal_seeded_at = new Date().toISOString();
+    _SD(d);
+  }
+
+  function analyze(uid) {
+    if (!uid) return null;
+    seedDefaultGoalIfNeeded(uid);
+    var cns = readinessForToday(uid);
+    var goal = inferGoal(uid);
+    var history = readHistory(uid);
+    var baseZone = classifyZone(cns);
+    var modifiers = applyHistoryModifiers(baseZone, history);
+    var zone = modifiers.zone;
+    var narrative = modifiers.narrative;
+    var rx = resolveGoalRow(goal)[zone] || resolveGoalRow(goal).baseline;
+    var d = _GD();
+    var u = d.u[uid] || {};
+    var name = String(u.name || uid || '').split(' ')[0] || 'friend';
+    var templateKey = zone + '_' + narrative;
+    var template = TEMPLATES[templateKey] || TEMPLATES[zone + '_default'] || TEMPLATES.baseline_default;
+    var coaching_message = _renderTemplate(template, { name: name });
+    return {
+      cns_score:        (cns != null) ? Number(cns) : null,
+      goal:             goal,
+      zone:             zone,
+      narrative:        narrative,
+      weight_mult:      rx.weight_mult,
+      sets_delta:       rx.sets_delta,
+      rep_band:         rx.rep_band,
+      rest_seconds:     rx.rest_seconds,
+      coaching_message: coaching_message,
+      computed_at:      new Date().toISOString()
+    };
+  }
+
+  function persist(uid, prescription) {
+    if (!uid || !prescription) return;
+    var d = _GD();
+    if (!d.u[uid]) d.u[uid] = {};
+    d.u[uid].cns_prescription = prescription;
+    d.u[uid].cns_prescription_at = prescription.computed_at;
+    _SD(d);
+  }
+
+  function getCached(uid) {
+    if (!uid) return null;
+    var d = _GD();
+    var u = d.u[uid] || {};
+    var rx = u.cns_prescription;
+    if (!rx) return null;
+    var computedDate = String(rx.computed_at || '').slice(0, 10);
+    if (computedDate !== today()) return null;
+    return rx;
+  }
+
+  function ensure(uid) {
+    var cached = getCached(uid);
+    if (cached) return cached;
+    var rx = analyze(uid);
+    persist(uid, rx);
+    return rx;
+  }
+
+  function invalidate(uid) {
+    if (!uid) return;
+    var d = _GD();
+    if (!d.u[uid]) return;
+    delete d.u[uid].cns_prescription;
+    delete d.u[uid].cns_prescription_at;
+    _SD(d);
+  }
+
+  function recompute(uid) {
+    invalidate(uid);
+    return ensure(uid);
+  }
+
+  function renderAgentBannerHTML(rx) {
+    if (!rx) return '';
+    var palette = {
+      recovery: { bg:'rgba(239,68,68,.07)',  br:'rgba(239,68,68,.32)',  ll:'#ef4444',    text:'#ef4444',    label:'RECOVERY ZONE', icon:'&#x1F6E1;&#xFE0F;' },
+      baseline: { bg:'rgba(245,200,0,.06)',  br:'rgba(245,200,0,.32)',  ll:'var(--yel)', text:'var(--yel)', label:'BASELINE ZONE', icon:'&#x1F9EA;' },
+      overload: { bg:'rgba(34,197,94,.07)',  br:'rgba(34,197,94,.32)',  ll:'#22c55e',    text:'#22c55e',    label:'OVERLOAD ZONE', icon:'&#x26A1;' }
+    };
+    var p = palette[rx.zone] || palette.baseline;
+    var scoreTxt = (rx.cns_score != null) ? Math.round(rx.cns_score) + '%' : '—';
+    var multPct  = Math.round((rx.weight_mult - 1) * 1000) / 10;
+    var multTxt  = (rx.weight_mult === 1.0)
+      ? '×1.00 hold'
+      : ('×' + rx.weight_mult.toFixed(2) + ' (' + (multPct > 0 ? '+' : '') + multPct.toFixed(1) + '%)');
+    var setsTxt  = rx.sets_delta === 0 ? 'sets unchanged'
+      : (rx.sets_delta > 0 ? 'sets +' + rx.sets_delta : 'sets ' + rx.sets_delta);
+    return '<div class="cns-agent" data-zone="' + rx.zone + '" style="' +
+      'background:' + p.bg + ';border:1px solid ' + p.br + ';border-left:3px solid ' + p.ll + ';' +
+      'border-radius:0 12px 12px 0;padding:1rem 1.1rem;margin:0 0 1rem">' +
+      '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.65rem;flex-wrap:wrap">' +
+        '<span style="font-size:1.05rem;color:' + p.text + ';line-height:1">' + p.icon + '</span>' +
+        '<span style="font-family:var(--hb,\'Bebas Neue\',sans-serif);font-size:.88rem;letter-spacing:2.5px;color:' + p.text + ';line-height:1">CNS &middot; ' + p.label + '</span>' +
+        '<span style="margin-left:auto;font-family:var(--hb,\'Bebas Neue\',sans-serif);font-size:1.45rem;font-weight:900;color:' + p.text + ';line-height:1;letter-spacing:1px">' + scoreTxt + '</span>' +
+      '</div>' +
+      '<p style="font-size:.92rem;line-height:1.6;color:#dcdcdc;margin:0 0 .7rem">' + rx.coaching_message + '</p>' +
+      '<div style="font-family:\'Menlo\',ui-monospace,monospace;font-size:.6rem;letter-spacing:.18em;color:rgba(255,255,255,.55);text-transform:uppercase;line-height:1.7">' +
+        'Today\'s adjustments &middot; load ' + multTxt + ' &middot; reps ' + rx.rep_band + ' &middot; rest ' + rx.rest_seconds + 's &middot; ' + setsTxt +
+      '</div>' +
+    '</div>';
+  }
+
+  // Per-exercise overlay line appended to the autoreg banner. Skips
+  // cardio/timed exercises (no rep-band semantics).
+  function renderExerciseOverlayHTML(rx, exReps) {
+    if (!rx) return '';
+    if (exReps && (exReps.indexOf('min') > -1 || exReps.indexOf('sec') > -1)) return '';
+    var palette = { recovery:'#ef4444', baseline:'var(--yel)', overload:'#22c55e' };
+    var color = palette[rx.zone] || palette.baseline;
+    var setsTxt = rx.sets_delta === 0 ? 'sets ±0'
+      : (rx.sets_delta > 0 ? 'sets +' + rx.sets_delta : 'sets ' + rx.sets_delta);
+    return '<div style="margin-top:.4rem;font-family:\'Menlo\',ui-monospace,monospace;font-size:.58rem;letter-spacing:.16em;color:' + color + ';text-transform:uppercase">' +
+      'Agent &middot; ' + rx.rep_band + ' reps &middot; ' + setsTxt + ' &middot; rest ' + rx.rest_seconds + 's' +
+    '</div>';
+  }
+
+  return {
+    analyze:                  analyze,
+    persist:                  persist,
+    getCached:                getCached,
+    ensure:                   ensure,
+    invalidate:               invalidate,
+    recompute:                recompute,
+    renderAgentBannerHTML:    renderAgentBannerHTML,
+    renderExerciseOverlayHTML:renderExerciseOverlayHTML,
+    seedDefaultGoalIfNeeded:  seedDefaultGoalIfNeeded,
+    classifyZone:             classifyZone,
+    inferGoal:                inferGoal
+  };
+})();
+
 // ─── WORKOUT ──────────────────────────────────────────────
 function RW() {
   var nav = document.getElementById('dnav');
@@ -10751,7 +11051,19 @@ function RDW() {
   var dhClass = readyTier === 'god' ? ' god-glow' : '';
   var h = '<div class="dh' + dhClass + '"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
     '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>';
-  h += getReadinessBannerHTML(readyScore);
+  // Phase 11 — BBF_CNS_AGENT banner replaces the legacy readiness
+  // banner at the top of the workout day. Single unified high-signal
+  // surface: zone + score + mentor coaching + today's adjustments.
+  // Falls back to the legacy readiness banner if the agent module is
+  // missing (older bundle / boot-order edge case).
+  var _cnsRx = (window.BBF_CNS_AGENT && typeof BBF_CNS_AGENT.ensure === 'function')
+    ? BBF_CNS_AGENT.ensure(uid)
+    : null;
+  if (_cnsRx) {
+    h += BBF_CNS_AGENT.renderAgentBannerHTML(_cnsRx);
+  } else {
+    h += getReadinessBannerHTML(readyScore);
+  }
   // Somatic Override banner — triggered when today's Somatic Readiness < 60%
   var somOverride = (d.u[uid] || {}).somatic_override_active === true &&
                     (d.u[uid] || {}).somatic_override_date === today();
@@ -10815,6 +11127,13 @@ function RDW() {
     // "Log weight to enable" when no history exists.
     var _arTarget = computeTargetWeight(uid, SDAY, ei, readyScore);
     h += getAutoregBannerHTML(_arTarget, exReps);
+    // Phase 11 — append the CNS Agent's rx-driven sets/reps/rest
+    // overlay directly under the autoreg target so both signals
+    // land in the same visual block. _cnsRx is computed once at
+    // RDW entry (above) and shared across all exercises in this day.
+    if (_cnsRx && window.BBF_CNS_AGENT && typeof BBF_CNS_AGENT.renderExerciseOverlayHTML === 'function') {
+      h += BBF_CNS_AGENT.renderExerciseOverlayHTML(_cnsRx, exReps);
+    }
     if (partner) {
       var pd = d.w[partner] || {};
       var pdk2 = pd[dk] || {};
