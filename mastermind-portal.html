@@ -508,7 +508,16 @@ var BBF_COACH_AGENT = (function() {
         if (s.day_key && s.day_key >= cutoff) return true;
         return false;
       });
-      var readiness = allReadiness.filter(function(r) { return r && r.date && r.date >= cutoff; });
+      // bbf_readiness ships submission time on the `timestamp` column
+      // (timestamptz, default now()). Slice to YYYY-MM-DD for the
+      // cutoff comparison. `r.date` back-compat preserved for any
+      // legacy in-flight rows from older write paths.
+      var readiness = allReadiness.filter(function(r) {
+        if (!r) return false;
+        var t = r.timestamp || r.date;
+        if (!t) return false;
+        return String(t).slice(0, 10) >= cutoff;
+      });
       return {
         uid: f.uid, name: f.name, uuid: f.uuid,
         sessions: sessions, sets: sets, readiness: readiness,
