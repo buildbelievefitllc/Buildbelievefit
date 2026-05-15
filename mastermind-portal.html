@@ -243,6 +243,39 @@ body::after {
   box-shadow: 0 0 0 1px rgba(34,197,94,.25);
   cursor: default;
 }
+
+/* ═══ CO-COACH INTELLIGENCE AGENT · SPRINT 1 (pipeline status) ═══ */
+.coach-agent{font-family:'Barlow Condensed',sans-serif}
+.ca-hdr{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-bottom:1rem;border-bottom:1px solid var(--brd);margin-bottom:1.1rem;flex-wrap:wrap}
+.ca-hdr-l{display:flex;align-items:center;gap:.85rem;flex:1;min-width:0}
+.ca-hdr-pulse{width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 12px rgba(34,197,94,.55);flex-shrink:0;animation:caPulse 1.6s ease-out infinite}
+@keyframes caPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}80%{box-shadow:0 0 0 9px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.ca-hdr-t{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;line-height:1}
+.ca-hdr-s{font-size:.7rem;letter-spacing:1.4px;color:var(--mut);margin-top:.28rem;font-family:'Menlo',ui-monospace,monospace}
+.ca-refresh{background:transparent;border:1px solid rgba(245,200,0,.4);color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:2.5px;padding:.55rem 1.05rem;border-radius:6px;cursor:pointer;font-size:.72rem;text-transform:uppercase;transition:background .18s,border-color .18s}
+.ca-refresh:hover:not(:disabled){background:rgba(245,200,0,.08);border-color:var(--gold)}
+.ca-refresh:disabled{opacity:.45;cursor:not-allowed}
+.ca-stage-row{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.2rem}
+.ca-stage{display:inline-flex;align-items:center;gap:.4rem;padding:.34rem .75rem;border-radius:99px;font-family:'Bebas Neue',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--brd);background:#060606;color:var(--mut);font-weight:700}
+.ca-stage-active{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.1);color:#86EFAC}
+.ca-stage-pending{opacity:.5}
+.ca-loading{padding:2rem;text-align:center;color:var(--mut);font-size:.85rem;letter-spacing:1.4px;background:var(--card);border:1px dashed var(--brd);border-radius:10px}
+.ca-roster{display:flex;flex-direction:column;gap:.65rem}
+.ca-card{background:linear-gradient(180deg,var(--card) 0%,#060606 100%);border:1px solid var(--brd);border-radius:10px;padding:.95rem 1.05rem;transition:transform .18s,border-color .18s}
+.ca-card:hover{transform:translateY(-1px);border-color:rgba(245,200,0,.28)}
+.ca-card-h{display:flex;justify-content:space-between;align-items:baseline;gap:.65rem;margin-bottom:.65rem;flex-wrap:wrap}
+.ca-card-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2.5px;color:#fff;text-transform:uppercase}
+.ca-card-uid{font-family:'Menlo',ui-monospace,monospace;font-size:.62rem;color:var(--mut);letter-spacing:.6px}
+.ca-card-uid[data-state="missing"]{color:#ef4444}
+.ca-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.55rem}
+.ca-metric{background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.05);border-radius:7px;padding:.6rem .55rem;text-align:center}
+.ca-metric-n{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold);line-height:1;font-variant-numeric:tabular-nums}
+.ca-metric-n[data-zero="1"]{color:rgba(255,255,255,.35)}
+.ca-metric-l{font-size:.58rem;letter-spacing:1.4px;color:var(--mut);text-transform:uppercase;font-weight:700;margin-top:.35rem}
+.ca-card-readiness{margin-top:.65rem;font-size:.74rem;color:rgba(255,255,255,.62);letter-spacing:.6px;border-top:1px dashed rgba(255,255,255,.06);padding-top:.55rem}
+.ca-card-readiness strong{color:#fff;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1.5px;margin-right:.3rem}
+.ca-footer{margin-top:1.2rem;padding:.7rem .9rem;border:1px dashed rgba(245,200,0,.22);border-radius:8px;background:rgba(245,200,0,.04);font-size:.74rem;color:rgba(255,255,255,.62);letter-spacing:.5px;text-align:center;font-style:italic}
+.ca-error{padding:1rem 1.2rem;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.08);border-radius:10px;color:#FF9999;font-size:.85rem;letter-spacing:.4px;font-family:'Menlo',ui-monospace,monospace}
 </style>
 </head>
 <body>
@@ -289,9 +322,29 @@ if (!BBF_PORTAL.verify()) { BBF_PORTAL.redirect(); }
 <div id="roster-list" style="font-size:.85rem;color:var(--mut)">Loading roster...</div>
 </div>
 
-<!-- METRICS PANEL -->
+<!-- METRICS PANEL — Co-Coach Intelligence Agent · Sprint 1 (data pipeline) -->
 <div class="panel" id="panel-metrics">
-<div style="text-align:center;padding:3rem;color:var(--mut);font-size:.85rem;letter-spacing:2px">Metrics dashboard — coming in the next Titan Build.</div>
+<div class="coach-agent">
+  <div class="ca-hdr">
+    <div class="ca-hdr-l">
+      <div class="ca-hdr-pulse" aria-hidden="true"></div>
+      <div>
+        <div class="ca-hdr-t">Co-Coach Intelligence Agent</div>
+        <div class="ca-hdr-s" id="ca-status">Idle &middot; awaiting tab open</div>
+      </div>
+    </div>
+    <button class="ca-refresh" type="button" onclick="if(window.BBF_COACH_AGENT)BBF_COACH_AGENT.refresh()">Refresh</button>
+  </div>
+  <div class="ca-stage-row" id="ca-stages">
+    <span class="ca-stage ca-stage-active">Stage 1 &middot; Data Pipeline</span>
+    <span class="ca-stage ca-stage-pending">Stage 2 &middot; Logic Engine</span>
+    <span class="ca-stage ca-stage-pending">Stage 3 &middot; Coaching Narrative</span>
+  </div>
+  <div class="ca-roster" id="ca-roster">
+    <div class="ca-loading">Open the Metrics tab to fetch Founder 5 telemetry from Supabase.</div>
+  </div>
+  <div class="ca-footer">Sprint 1 verifies the data pipeline. Deterministic plateau/consistency/recovery triggers deploy in Sprint 2; sharp coaching narrative ships in Sprint 3. Zero LLM &mdash; all logic is local.</div>
+</div>
 </div>
 
 <!-- COMLINK DISPATCH PANEL — Phase 4 -->
@@ -308,6 +361,238 @@ if (!BBF_PORTAL.verify()) { BBF_PORTAL.redirect(); }
 <div class="seal">Sovereign Gold Standard &bull; Est. 2021 &bull; Build Believe Fit LLC</div>
 
 <script>
+// ════════════════════════════════════════════════════════════════════════
+// BBF_COACH_AGENT · Sprint 1 — Data Pipeline (Founder 5 telemetry)
+// ────────────────────────────────────────────────────────────────────────
+// Reads bbf_logs / bbf_sets / bbf_readiness / bbf_audit_logs for the
+// Founder 5, windows everything client-side to 21 days, and surfaces a
+// pipeline status readout. Sprint 2 layers deterministic plateau /
+// consistency / recovery triggers over this bundle. Sprint 3 swaps the
+// stub UI for the sharp Co-Coach narrative cards.
+//
+// Constraint reaffirmed: ZERO LLM. All insights flow through local logic
+// over the data fetched here.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_COACH_AGENT = (function() {
+
+  var FOUNDER_5   = ['ana_bbf', 'jacky_bbf', 'jacque_bbf', 'jordan_bbf', 'wayne_bbf'];
+  var WINDOW_DAYS = 21;
+
+  function _ymdMinusDays(n) {
+    var t = new Date(Date.now() - n * 86400000);
+    return t.getFullYear() + '-' +
+      String(t.getMonth() + 1).padStart(2, '0') + '-' +
+      String(t.getDate()).padStart(2, '0');
+  }
+
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // Resolve the slug→UUID + display name map by fetching the full
+  // bbf_users roster (already used by hydrateEntitlementsThenRender).
+  // Both `uid` (slug) and `id` (UUID PK) come back per row; we filter
+  // to the Founder 5 and drop the rest. Order matches FOUNDER_5.
+  function _resolveFounders() {
+    if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchAllUsers) {
+      return Promise.reject(new Error('BBF_SYNC.fetchAllUsers unavailable'));
+    }
+    return BBF_SYNC.fetchAllUsers().then(function(rows) {
+      var byUid = {};
+      (rows || []).forEach(function(r) {
+        if (r && r.uid && FOUNDER_5.indexOf(r.uid) !== -1) {
+          byUid[r.uid] = {
+            uuid: r.id || null,
+            name: r.name || r.uid,
+            somatic_readiness_score: r.somatic_readiness_score
+          };
+        }
+      });
+      return FOUNDER_5.map(function(uid) {
+        var meta = byUid[uid] || { uuid: null, name: uid, somatic_readiness_score: null };
+        return {
+          uid: uid,
+          uuid: meta.uuid,
+          name: meta.name,
+          somatic_readiness_score: meta.somatic_readiness_score
+        };
+      });
+    });
+  }
+
+  // Per-founder pull: logs + sets + readiness in parallel. Failures
+  // fall back to empty arrays so one bad call doesn't sink the row.
+  // The 21-day window is applied client-side after the network round-
+  // trip, since the existing BBF_SYNC.fetch* signatures don't accept
+  // a window param (they cap at limit=100/500 which already covers it).
+  function _fetchOneFounder(f) {
+    if (!f.uuid) {
+      return Promise.resolve({
+        uid: f.uid, name: f.name, uuid: null,
+        sessions: [], sets: [], readiness: [], audits: [],
+        somatic_readiness_score: f.somatic_readiness_score,
+        error: 'no_uuid'
+      });
+    }
+    var pLogs      = BBF_SYNC.fetchLogs      ? BBF_SYNC.fetchLogs(f.uuid).catch(function(){return [];})      : Promise.resolve([]);
+    var pSets      = BBF_SYNC.fetchSets      ? BBF_SYNC.fetchSets(f.uuid).catch(function(){return [];})      : Promise.resolve([]);
+    var pReadiness = BBF_SYNC.fetchReadiness ? BBF_SYNC.fetchReadiness(f.uuid).catch(function(){return [];}) : Promise.resolve([]);
+    return Promise.all([pLogs, pSets, pReadiness]).then(function(results) {
+      var allLogs      = Array.isArray(results[0]) ? results[0] : [];
+      var allSets      = Array.isArray(results[1]) ? results[1] : [];
+      var allReadiness = Array.isArray(results[2]) ? results[2] : [];
+      var cutoff = _ymdMinusDays(WINDOW_DAYS);
+      var sessions = allLogs.filter(function(l) { return l && l.date && l.date >= cutoff; });
+      // Build a log-id index so we can scope sets to the 21d window via
+      // their FK. Fall back to day_key for any legacy rows missing log_id.
+      var logIdSet = {};
+      sessions.forEach(function(l) { if (l && l.id) logIdSet[l.id] = 1; });
+      var sets = allSets.filter(function(s) {
+        if (!s) return false;
+        if (s.log_id && logIdSet[s.log_id]) return true;
+        if (s.day_key && s.day_key >= cutoff) return true;
+        return false;
+      });
+      var readiness = allReadiness.filter(function(r) { return r && r.date && r.date >= cutoff; });
+      return {
+        uid: f.uid, name: f.name, uuid: f.uuid,
+        sessions: sessions, sets: sets, readiness: readiness,
+        audits: [],
+        somatic_readiness_score: f.somatic_readiness_score
+      };
+    });
+  }
+
+  // Pending audit pull (the unresolved pain/concern signals) is the
+  // already-shipped trainer endpoint. Bulk-fetch once + group by uuid.
+  function _fetchAudits(founders) {
+    if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.fetchPendingAudits) {
+      return Promise.resolve({});
+    }
+    return BBF_SYNC.fetchPendingAudits().then(function(rows) {
+      var byUuid = {};
+      founders.forEach(function(f) { if (f.uuid) byUuid[f.uuid] = []; });
+      (rows || []).forEach(function(a) {
+        if (a && a.user_id && byUuid[a.user_id]) byUuid[a.user_id].push(a);
+      });
+      return byUuid;
+    }).catch(function() { return {}; });
+  }
+
+  // Public: returns Promise<Array<bundle>> — the normalized per-founder
+  // 21-day bundle. Sprint 2 will consume this directly.
+  function fetch() {
+    return _resolveFounders().then(function(founders) {
+      var bundlesP = Promise.all(founders.map(_fetchOneFounder));
+      var auditsP  = _fetchAudits(founders);
+      return Promise.all([bundlesP, auditsP]).then(function(parts) {
+        var bundles = parts[0];
+        var auditsByUuid = parts[1] || {};
+        bundles.forEach(function(b) {
+          if (b.uuid && auditsByUuid[b.uuid]) b.audits = auditsByUuid[b.uuid];
+        });
+        return bundles;
+      });
+    });
+  }
+
+  // ─── Sprint 1 status renderer ──────────────────────────────────
+
+  function _renderCard(b) {
+    var readinessLast = (b.readiness && b.readiness[0]) || null;
+    var lastScoreTxt;
+    if (readinessLast && readinessLast.score != null) {
+      lastScoreTxt = Math.round(readinessLast.score) + ' &middot; ' + _esc(readinessLast.date);
+    } else if (b.somatic_readiness_score != null) {
+      lastScoreTxt = Math.round(b.somatic_readiness_score) + ' &middot; (live profile)';
+    } else {
+      lastScoreTxt = '&mdash; no submits in 21d';
+    }
+    var uidTag = b.uuid
+      ? '<div class="ca-card-uid">' + _esc(b.uid) + '</div>'
+      : '<div class="ca-card-uid" data-state="missing">' + _esc(b.uid) + ' &middot; no UUID resolved</div>';
+    var z = function(n) { return n === 0 ? ' data-zero="1"' : ''; };
+    return '' +
+      '<div class="ca-card">' +
+        '<div class="ca-card-h">' +
+          '<div class="ca-card-name">' + _esc(b.name) + '</div>' +
+          uidTag +
+        '</div>' +
+        '<div class="ca-card-grid">' +
+          '<div class="ca-metric"><div class="ca-metric-n"' + z(b.sessions.length)  + '>' + b.sessions.length  + '</div><div class="ca-metric-l">Sessions &middot; 21d</div></div>' +
+          '<div class="ca-metric"><div class="ca-metric-n"' + z(b.sets.length)      + '>' + b.sets.length      + '</div><div class="ca-metric-l">Sets &middot; 21d</div></div>' +
+          '<div class="ca-metric"><div class="ca-metric-n"' + z(b.readiness.length) + '>' + b.readiness.length + '</div><div class="ca-metric-l">Readiness &middot; 21d</div></div>' +
+          '<div class="ca-metric"><div class="ca-metric-n"' + z(b.audits.length)    + '>' + b.audits.length    + '</div><div class="ca-metric-l">Open Audits</div></div>' +
+        '</div>' +
+        '<div class="ca-card-readiness"><strong>Last readiness:</strong> ' + lastScoreTxt + '</div>' +
+      '</div>';
+  }
+
+  function _setStatus(msg, ok) {
+    var s = document.getElementById('ca-status');
+    if (s) s.textContent = msg;
+    var p = document.querySelector('.ca-hdr-pulse');
+    if (p) p.style.background = ok ? '#22c55e' : '#ef4444';
+  }
+
+  function _renderBundles(bundles) {
+    var wrap = document.getElementById('ca-roster');
+    if (!wrap) return;
+    if (!bundles || !bundles.length) {
+      wrap.innerHTML = '<div class="ca-loading">No Founder 5 rows resolved from bbf_users. Verify the roster slugs are present.</div>';
+      _setStatus('Pipeline LIVE · 0 founders resolved', false);
+      return;
+    }
+    wrap.innerHTML = bundles.map(_renderCard).join('');
+    var totalSessions  = bundles.reduce(function(a,b){ return a + b.sessions.length;  }, 0);
+    var totalSets      = bundles.reduce(function(a,b){ return a + b.sets.length;      }, 0);
+    var totalReadiness = bundles.reduce(function(a,b){ return a + b.readiness.length; }, 0);
+    var totalAudits    = bundles.reduce(function(a,b){ return a + b.audits.length;    }, 0);
+    _setStatus(
+      'Pipeline LIVE · ' + bundles.length + ' founders · ' +
+      totalSessions + ' sessions · ' + totalSets + ' sets · ' +
+      totalReadiness + ' readiness · ' + totalAudits + ' audits',
+      true
+    );
+    console.log('[BBF_COACH_AGENT] Sprint 1 bundles:', bundles);
+  }
+
+  function _renderError(err) {
+    var wrap = document.getElementById('ca-roster');
+    if (wrap) wrap.innerHTML = '<div class="ca-error">Pipeline error: ' + _esc((err && err.message) || 'unknown') + '. Check console + Supabase RLS policies.</div>';
+    _setStatus('Pipeline FAULT — see console', false);
+    console.error('[BBF_COACH_AGENT] fetch failed:', err);
+  }
+
+  var _inFlight = false;
+
+  function render() {
+    if (!document.getElementById('ca-roster')) return;
+    if (_inFlight) return;
+    _inFlight = true;
+    var btn = document.querySelector('.ca-refresh');
+    if (btn) btn.disabled = true;
+    _setStatus('Fetching Supabase telemetry…', true);
+    fetch()
+      .then(_renderBundles)
+      .catch(_renderError)
+      .then(function() {
+        _inFlight = false;
+        if (btn) btn.disabled = false;
+      });
+  }
+
+  function refresh() { render(); }
+
+  return {
+    fetch:   fetch,
+    render:  render,
+    refresh: refresh
+  };
+})();
+
 function showPanel(id) {
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');});
@@ -316,6 +601,7 @@ function showPanel(id) {
   if (id === 'triage')  BBF_PORTAL.load();
   if (id === 'roster')  loadRoster();
   if (id === 'comlink') renderComlinkQueue();
+  if (id === 'metrics') BBF_COACH_AGENT.render();
 }
 
 function renderComlinkQueue() {
