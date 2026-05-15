@@ -244,7 +244,7 @@ body::after {
   cursor: default;
 }
 
-/* ═══ CO-COACH INTELLIGENCE AGENT · SPRINT 1 (pipeline status) ═══ */
+/* ═══ CO-COACH INTELLIGENCE AGENT · SPRINT 3 (narrative UI) ═══ */
 .coach-agent{font-family:'Barlow Condensed',sans-serif}
 .ca-hdr{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-bottom:1rem;border-bottom:1px solid var(--brd);margin-bottom:1.1rem;flex-wrap:wrap}
 .ca-hdr-l{display:flex;align-items:center;gap:.85rem;flex:1;min-width:0}
@@ -259,23 +259,72 @@ body::after {
 .ca-stage{display:inline-flex;align-items:center;gap:.4rem;padding:.34rem .75rem;border-radius:99px;font-family:'Bebas Neue',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--brd);background:#060606;color:var(--mut);font-weight:700}
 .ca-stage-active{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.1);color:#86EFAC}
 .ca-stage-pending{opacity:.5}
-.ca-loading{padding:2rem;text-align:center;color:var(--mut);font-size:.85rem;letter-spacing:1.4px;background:var(--card);border:1px dashed var(--brd);border-radius:10px}
-.ca-roster{display:flex;flex-direction:column;gap:.65rem}
-.ca-card{background:linear-gradient(180deg,var(--card) 0%,#060606 100%);border:1px solid var(--brd);border-radius:10px;padding:.95rem 1.05rem;transition:transform .18s,border-color .18s}
-.ca-card:hover{transform:translateY(-1px);border-color:rgba(245,200,0,.28)}
-.ca-card-h{display:flex;justify-content:space-between;align-items:baseline;gap:.65rem;margin-bottom:.65rem;flex-wrap:wrap}
-.ca-card-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2.5px;color:#fff;text-transform:uppercase}
-.ca-card-uid{font-family:'Menlo',ui-monospace,monospace;font-size:.62rem;color:var(--mut);letter-spacing:.6px}
-.ca-card-uid[data-state="missing"]{color:#ef4444}
-.ca-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.55rem}
-.ca-metric{background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.05);border-radius:7px;padding:.6rem .55rem;text-align:center}
-.ca-metric-n{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold);line-height:1;font-variant-numeric:tabular-nums}
-.ca-metric-n[data-zero="1"]{color:rgba(255,255,255,.35)}
-.ca-metric-l{font-size:.58rem;letter-spacing:1.4px;color:var(--mut);text-transform:uppercase;font-weight:700;margin-top:.35rem}
-.ca-card-readiness{margin-top:.65rem;font-size:.74rem;color:rgba(255,255,255,.62);letter-spacing:.6px;border-top:1px dashed rgba(255,255,255,.06);padding-top:.55rem}
-.ca-card-readiness strong{color:#fff;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1.5px;margin-right:.3rem}
 .ca-footer{margin-top:1.2rem;padding:.7rem .9rem;border:1px dashed rgba(245,200,0,.22);border-radius:8px;background:rgba(245,200,0,.04);font-size:.74rem;color:rgba(255,255,255,.62);letter-spacing:.5px;text-align:center;font-style:italic}
 .ca-error{padding:1rem 1.2rem;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.08);border-radius:10px;color:#FF9999;font-size:.85rem;letter-spacing:.4px;font-family:'Menlo',ui-monospace,monospace}
+
+/* ─── Loading hero (Co-Coach Edge Function in flight) ─────────── */
+.co-loading{position:relative;padding:2.6rem 1.5rem;text-align:center;border:1px solid rgba(245,200,0,.2);border-radius:14px;background:linear-gradient(180deg,rgba(245,200,0,.04) 0%,rgba(10,10,10,.7) 100%);overflow:hidden}
+.co-loading::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 40%,rgba(245,200,0,.08) 50%,transparent 60%);transform:translateX(-100%);animation:coShimmer 2.4s ease-in-out infinite;pointer-events:none}
+@keyframes coShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.co-loading-orb{display:flex;justify-content:center;gap:.55rem;margin-bottom:1rem}
+.co-loading-orb span{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px rgba(245,200,0,.45);animation:coOrb 1.4s ease-in-out infinite}
+.co-loading-orb span:nth-child(2){animation-delay:.18s}
+.co-loading-orb span:nth-child(3){animation-delay:.36s}
+@keyframes coOrb{0%,80%,100%{transform:scale(.7);opacity:.45}40%{transform:scale(1.15);opacity:1}}
+.co-loading-t{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:3px;text-transform:uppercase;color:#fff;line-height:1.4}
+.co-loading-s{margin-top:.6rem;font-size:.72rem;letter-spacing:1.4px;color:var(--mut);font-family:'Menlo',ui-monospace,monospace}
+
+/* ─── Executive Summary (AI headline) ──────────────────────────── */
+.co-summary{position:relative;padding:1.4rem 1.5rem 1.5rem;border-radius:12px;background:linear-gradient(180deg,rgba(245,200,0,.06) 0%,rgba(8,8,14,.85) 100%);border:1px solid rgba(245,200,0,.32);margin-bottom:1.5rem;overflow:hidden}
+.co-summary::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,#F5C800 40%,#D4AF37 60%,transparent 100%);opacity:.7}
+.co-summary-flag{display:inline-flex;align-items:center;gap:.45rem;font-family:'Bebas Neue',sans-serif;font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:.6rem}
+.co-summary-flag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px rgba(245,200,0,.65);animation:caPulse 1.6s ease-out infinite}
+.co-summary-headline{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1.6px;color:#fff;line-height:1.35;text-transform:none}
+@media(min-width:720px){.co-summary-headline{font-size:1.6rem}}
+.co-summary-meta{margin-top:.85rem;padding-top:.7rem;border-top:1px dashed rgba(245,200,0,.18);display:flex;justify-content:space-between;gap:.85rem;flex-wrap:wrap;font-family:'Menlo',ui-monospace,monospace;font-size:.62rem;letter-spacing:1.2px;color:rgba(255,255,255,.45)}
+
+/* ─── Sections (PRIORITY / MOVING WELL / ROSTER STATUS) ────────── */
+.co-section{margin-bottom:1.4rem}
+.co-section-h{display:flex;align-items:center;justify-content:space-between;gap:.85rem;margin-bottom:.85rem;padding:.5rem .85rem;border-radius:8px;background:rgba(0,0,0,.4);border:1px solid var(--brd)}
+.co-section[data-tone="priority"] .co-section-h{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.06)}
+.co-section[data-tone="moving_well"] .co-section-h{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.05)}
+.co-section[data-tone="roster"] .co-section-h{border-color:rgba(0,229,255,.32);background:rgba(0,229,255,.04)}
+.co-section-t{display:flex;align-items:center;gap:.55rem;font-family:'Bebas Neue',sans-serif;font-size:.92rem;letter-spacing:2.6px;text-transform:uppercase;color:#fff;font-weight:700}
+.co-section[data-tone="priority"] .co-section-t{color:#FF7A7A}
+.co-section[data-tone="moving_well"] .co-section-t{color:#86EFAC}
+.co-section[data-tone="roster"] .co-section-t{color:#00E5FF}
+.co-section-count{font-family:'Menlo',ui-monospace,monospace;font-size:.65rem;letter-spacing:1.2px;color:rgba(255,255,255,.55);font-weight:700;text-transform:uppercase}
+.co-section-empty{padding:1.05rem 1rem;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:.78rem;letter-spacing:.6px;color:rgba(255,255,255,.42);background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.07);border-radius:8px;font-style:italic}
+
+/* ─── Insight grid + cards ─────────────────────────────────────── */
+.co-grid{display:grid;grid-template-columns:1fr;gap:.7rem}
+@media(min-width:740px){.co-grid{grid-template-columns:repeat(2,1fr)}}
+.co-card{position:relative;padding:.95rem 1.05rem 1.05rem;border-radius:10px;background:linear-gradient(180deg,var(--card) 0%,#060606 100%);border:1px solid var(--brd);border-left:3px solid rgba(255,255,255,.15);transition:transform .18s ease,box-shadow .25s ease,border-color .2s ease;overflow:hidden}
+.co-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,currentColor 50%,transparent);opacity:.32}
+.co-card:hover{transform:translateY(-1px);box-shadow:0 12px 28px -16px rgba(0,0,0,.7)}
+.co-card[data-category="pain_signal"]      {border-left-color:#EF4444;color:#FF7A7A}
+.co-card[data-category="recovery_concern"] {border-left-color:#F97316;color:#FFA565}
+.co-card[data-category="needs_attention"]  {border-left-color:#F5CF60;color:#F5CF60}
+.co-card[data-category="plateau"]          {border-left-color:#F5CF60;color:#F5CF60}
+.co-card[data-category="consistency_drop"] {border-left-color:#F5CF60;color:#F5CF60}
+.co-card[data-category="progressing"]      {border-left-color:#22C55E;color:#86EFAC}
+.co-card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:.65rem;margin-bottom:.7rem;flex-wrap:wrap}
+.co-card-id{flex:1;min-width:0}
+.co-card-name{font-family:'Bebas Neue',sans-serif;font-size:1.08rem;letter-spacing:2.5px;color:#fff;text-transform:uppercase;line-height:1;margin-bottom:.18rem}
+.co-card-uid{font-family:'Menlo',ui-monospace,monospace;font-size:.6rem;color:rgba(255,255,255,.4);letter-spacing:.6px}
+.co-card-tags{display:flex;flex-direction:column;align-items:flex-end;gap:.35rem;flex-shrink:0}
+.co-card-cat{display:inline-flex;align-items:center;padding:.22rem .55rem;border-radius:99px;font-family:'Bebas Neue',sans-serif;font-size:.58rem;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:currentColor;background:rgba(255,255,255,.04);border:1px solid currentColor;line-height:1.2;white-space:nowrap}
+.co-card-pri{display:inline-flex;align-items:center;justify-content:center;min-width:2.4rem;padding:.18rem .55rem;border-radius:6px;font-family:'Bebas Neue',sans-serif;font-size:.78rem;letter-spacing:1px;font-weight:900;color:#000;font-variant-numeric:tabular-nums;background:rgba(255,255,255,.85)}
+.co-card-pri[data-band="urgent"]{background:#EF4444;color:#fff}
+.co-card-pri[data-band="high"]  {background:#F97316;color:#000}
+.co-card-pri[data-band="med"]   {background:#F5CF60;color:#1a1208}
+.co-card-pri[data-band="low"]   {background:#00E5FF;color:#000}
+.co-card-summary{margin:.1rem 0 .85rem;font-family:'Barlow Condensed',sans-serif;font-size:.94rem;line-height:1.5;color:#fff;font-weight:600}
+.co-card-row{display:grid;grid-template-columns:5.6rem 1fr;gap:.65rem;align-items:start;padding:.55rem 0;border-top:1px dashed rgba(255,255,255,.07)}
+.co-card-row-l{font-family:'Bebas Neue',sans-serif;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:700;padding-top:.18rem;line-height:1.2}
+.co-card-row-v{font-family:'Barlow Condensed',sans-serif;font-size:.84rem;line-height:1.5;color:rgba(255,255,255,.82)}
+.co-card-row-rec .co-card-row-l{color:currentColor}
+.co-card-row-rec .co-card-row-v{color:#fff;font-weight:600}
 </style>
 </head>
 <body>
@@ -322,7 +371,7 @@ if (!BBF_PORTAL.verify()) { BBF_PORTAL.redirect(); }
 <div id="roster-list" style="font-size:.85rem;color:var(--mut)">Loading roster...</div>
 </div>
 
-<!-- METRICS PANEL — Co-Coach Intelligence Agent · Sprint 1 (data pipeline) -->
+<!-- METRICS PANEL — Co-Coach Intelligence Agent · Sprint 3 (narrative UI) -->
 <div class="panel" id="panel-metrics">
 <div class="coach-agent">
   <div class="ca-hdr">
@@ -337,13 +386,17 @@ if (!BBF_PORTAL.verify()) { BBF_PORTAL.redirect(); }
   </div>
   <div class="ca-stage-row" id="ca-stages">
     <span class="ca-stage ca-stage-active">Stage 1 &middot; Data Pipeline</span>
-    <span class="ca-stage ca-stage-pending">Stage 2 &middot; Logic Engine</span>
+    <span class="ca-stage ca-stage-active">Stage 2 &middot; LLM Brain</span>
     <span class="ca-stage ca-stage-pending">Stage 3 &middot; Coaching Narrative</span>
   </div>
-  <div class="ca-roster" id="ca-roster">
-    <div class="ca-loading">Open the Metrics tab to fetch Founder 5 telemetry from Supabase.</div>
+  <div id="ca-roster" aria-live="polite">
+    <div class="co-loading">
+      <div class="co-loading-orb" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="co-loading-t">Open the Metrics tab to engage the Co-Coach.</div>
+      <div class="co-loading-s">Claude Opus 4.7 &middot; adaptive thinking &middot; structured output</div>
+    </div>
   </div>
-  <div class="ca-footer">Sprint 1 verifies the data pipeline. Deterministic plateau/consistency/recovery triggers deploy in Sprint 2; sharp coaching narrative ships in Sprint 3. Zero LLM &mdash; all logic is local.</div>
+  <div class="ca-footer">Live AI analysis &middot; structured JSON via Supabase Edge Function &middot; Claude Opus 4.7 with adaptive thinking.</div>
 </div>
 </div>
 
@@ -505,36 +558,52 @@ var BBF_COACH_AGENT = (function() {
   // with structured output). See _runAnalysis() below for the wire.
   // ───────────────────────────────────────────────────────────────
 
-  // ─── Sprint 1 status renderer ──────────────────────────────────
+  // ─── Sprint 3 · Narrative renderers ────────────────────────────
 
-  function _renderCard(b) {
-    var readinessLast = (b.readiness && b.readiness[0]) || null;
-    var lastScoreTxt;
-    if (readinessLast && readinessLast.score != null) {
-      lastScoreTxt = Math.round(readinessLast.score) + ' &middot; ' + _esc(readinessLast.date);
-    } else if (b.somatic_readiness_score != null) {
-      lastScoreTxt = Math.round(b.somatic_readiness_score) + ' &middot; (live profile)';
-    } else {
-      lastScoreTxt = '&mdash; no submits in 21d';
-    }
-    var uidTag = b.uuid
-      ? '<div class="ca-card-uid">' + _esc(b.uid) + '</div>'
-      : '<div class="ca-card-uid" data-state="missing">' + _esc(b.uid) + ' &middot; no UUID resolved</div>';
-    var z = function(n) { return n === 0 ? ' data-zero="1"' : ''; };
-    return '' +
-      '<div class="ca-card">' +
-        '<div class="ca-card-h">' +
-          '<div class="ca-card-name">' + _esc(b.name) + '</div>' +
-          uidTag +
-        '</div>' +
-        '<div class="ca-card-grid">' +
-          '<div class="ca-metric"><div class="ca-metric-n"' + z(b.sessions.length)  + '>' + b.sessions.length  + '</div><div class="ca-metric-l">Sessions &middot; 21d</div></div>' +
-          '<div class="ca-metric"><div class="ca-metric-n"' + z(b.sets.length)      + '>' + b.sets.length      + '</div><div class="ca-metric-l">Sets &middot; 21d</div></div>' +
-          '<div class="ca-metric"><div class="ca-metric-n"' + z(b.readiness.length) + '>' + b.readiness.length + '</div><div class="ca-metric-l">Readiness &middot; 21d</div></div>' +
-          '<div class="ca-metric"><div class="ca-metric-n"' + z(b.audits.length)    + '>' + b.audits.length    + '</div><div class="ca-metric-l">Open Audits</div></div>' +
-        '</div>' +
-        '<div class="ca-card-readiness"><strong>Last readiness:</strong> ' + lastScoreTxt + '</div>' +
-      '</div>';
+  // Display labels for the LLM's category enum (matches the JSON schema
+  // in supabase/functions/bbf-co-coach/index.ts).
+  var CATEGORY_LABEL = {
+    pain_signal:      'Pain Signal',
+    recovery_concern: 'Recovery Risk',
+    needs_attention:  'Needs Attention',
+    plateau:          'Plateau',
+    consistency_drop: 'Consistency Drop',
+    progressing:      'On the Move'
+  };
+
+  var SECTION_TITLE = {
+    priority:    'Priority Attention',
+    moving_well: "Who's Moving Well",
+    roster:      'Roster Status'
+  };
+
+  var SECTION_EMPTY = {
+    priority:    'No urgent flags — fleet is steady.',
+    moving_well: 'No standout wins this week — keep the protocol consistent.',
+    roster:     'No additional status items.'
+  };
+
+  // Bucket an insight into one of the three sections. Pain / recovery /
+  // explicit needs_attention always promotes to Priority regardless of
+  // priority score; priority ≥ 70 on any negative category (plateau,
+  // consistency_drop) also promotes. Progressing → moving_well. Rest
+  // (low-priority plateaus, consistency drops) → roster.
+  function _groupOf(insight) {
+    var cat = String((insight && insight.category) || '');
+    var pri = Number(insight && insight.priority) || 0;
+    if (cat === 'pain_signal' || cat === 'recovery_concern' || cat === 'needs_attention') return 'priority';
+    if (pri >= 70)                return 'priority';
+    if (cat === 'progressing')    return 'moving_well';
+    return 'roster';
+  }
+
+  // Priority band drives the color pill on each card.
+  function _priBand(pri) {
+    var p = Number(pri) || 0;
+    if (p >= 80) return 'urgent';
+    if (p >= 65) return 'high';
+    if (p >= 40) return 'med';
+    return 'low';
   }
 
   function _setStatus(msg, ok) {
@@ -544,33 +613,130 @@ var BBF_COACH_AGENT = (function() {
     if (p) p.style.background = ok ? '#22c55e' : '#ef4444';
   }
 
-  function _renderBundles(bundles) {
+  // Loading hero — shown while fetch() + LLM are in flight.
+  function _renderLoading() {
     var wrap = document.getElementById('ca-roster');
     if (!wrap) return;
-    if (!bundles || !bundles.length) {
-      wrap.innerHTML = '<div class="ca-loading">No Founder 5 rows resolved from bbf_users. Verify the roster slugs are present.</div>';
-      _setStatus('Pipeline LIVE · 0 founders resolved', false);
-      return;
-    }
-    wrap.innerHTML = bundles.map(_renderCard).join('');
-    var totalSessions  = bundles.reduce(function(a,b){ return a + b.sessions.length;  }, 0);
-    var totalSets      = bundles.reduce(function(a,b){ return a + b.sets.length;      }, 0);
-    var totalReadiness = bundles.reduce(function(a,b){ return a + b.readiness.length; }, 0);
-    var totalAudits    = bundles.reduce(function(a,b){ return a + b.audits.length;    }, 0);
-    _setStatus(
-      'Pipeline LIVE · ' + bundles.length + ' founders · ' +
-      totalSessions + ' sessions · ' + totalSets + ' sets · ' +
-      totalReadiness + ' readiness · ' + totalAudits + ' audits',
-      true
-    );
-    console.log('[BBF_COACH_AGENT] Sprint 1 bundles:', bundles);
+    wrap.innerHTML = '' +
+      '<div class="co-loading">' +
+        '<div class="co-loading-orb" aria-hidden="true"><span></span><span></span><span></span></div>' +
+        '<div class="co-loading-t">Co-Coach AI is analyzing 21 days of fleet data&hellip;</div>' +
+        '<div class="co-loading-s">Claude Opus 4.7 &middot; adaptive thinking &middot; structured output</div>' +
+      '</div>';
   }
 
-  function _renderError(err) {
+  function _renderNarrativeError(err) {
     var wrap = document.getElementById('ca-roster');
-    if (wrap) wrap.innerHTML = '<div class="ca-error">Pipeline error: ' + _esc((err && err.message) || 'unknown') + '. Check console + Supabase RLS policies.</div>';
-    _setStatus('Pipeline FAULT — see console', false);
-    console.error('[BBF_COACH_AGENT] fetch failed:', err);
+    if (!wrap) return;
+    var detail = (err && err.body && (err.body.error || err.body.detail))
+      || (err && err.message)
+      || 'unknown';
+    wrap.innerHTML =
+      '<div class="ca-error">' +
+        '<strong>Co-Coach offline.</strong><br>' + _esc(detail) +
+        '<br><br>Inspect the browser console + Supabase Edge Function logs for <code>bbf-co-coach</code>. ' +
+        'If this is the first run after deploy, ensure <code>ANTHROPIC_API_KEY</code> is set in Supabase secrets.' +
+      '</div>';
+  }
+
+  function _renderCard(insight) {
+    var cat      = String(insight.category || '');
+    var pri      = Number(insight.priority) || 0;
+    var band     = _priBand(pri);
+    var catLabel = CATEGORY_LABEL[cat] || cat;
+    return '' +
+      '<article class="co-card" data-category="' + _esc(cat) + '" data-band="' + _esc(band) + '">' +
+        '<div class="co-card-h">' +
+          '<div class="co-card-id">' +
+            '<div class="co-card-name">' + _esc(insight.name || insight.uid || 'Athlete') + '</div>' +
+            '<div class="co-card-uid">' + _esc(insight.uid || '') + '</div>' +
+          '</div>' +
+          '<div class="co-card-tags">' +
+            '<span class="co-card-cat">' + _esc(catLabel) + '</span>' +
+            '<span class="co-card-pri" data-band="' + _esc(band) + '" title="Priority score (0-100)">' + pri + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<p class="co-card-summary">' + _esc(insight.summary || '') + '</p>' +
+        '<div class="co-card-row">' +
+          '<span class="co-card-row-l">Evidence</span>' +
+          '<span class="co-card-row-v">' + _esc(insight.evidence || '—') + '</span>' +
+        '</div>' +
+        '<div class="co-card-row co-card-row-rec">' +
+          '<span class="co-card-row-l">Action</span>' +
+          '<span class="co-card-row-v">' + _esc(insight.recommendation || '—') + '</span>' +
+        '</div>' +
+      '</article>';
+  }
+
+  function _renderSection(tone, insights) {
+    var title    = SECTION_TITLE[tone] || tone;
+    var emptyTxt = SECTION_EMPTY[tone] || 'Nothing here.';
+    var count    = insights.length;
+    var countTxt = count + ' ' + (count === 1 ? 'insight' : 'insights');
+    var inner    = count
+      ? '<div class="co-grid">' + insights.map(_renderCard).join('') + '</div>'
+      : '<div class="co-section-empty">' + emptyTxt + '</div>';
+    return '' +
+      '<section class="co-section" data-tone="' + tone + '">' +
+        '<div class="co-section-h">' +
+          '<span class="co-section-t">' + title + '</span>' +
+          '<span class="co-section-count">' + countTxt + '</span>' +
+        '</div>' +
+        inner +
+      '</section>';
+  }
+
+  function _renderNarrative(analysis, meta) {
+    var wrap = document.getElementById('ca-roster');
+    if (!wrap) return;
+    if (!analysis || !Array.isArray(analysis.insights)) {
+      wrap.innerHTML = '<div class="ca-error">Co-Coach returned an empty analysis. Hit Refresh to retry.</div>';
+      return;
+    }
+
+    var groups = { priority: [], moving_well: [], roster: [] };
+    analysis.insights.forEach(function(i) {
+      var g = _groupOf(i);
+      (groups[g] || groups.roster).push(i);
+    });
+    // Defensive resort within each group (LLM should already produce desc order).
+    Object.keys(groups).forEach(function(k) {
+      groups[k].sort(function(a, b) { return (Number(b.priority) || 0) - (Number(a.priority) || 0); });
+    });
+
+    var now      = new Date();
+    var hh       = String(now.getHours()).padStart(2, '0');
+    var mm       = String(now.getMinutes()).padStart(2, '0');
+    var dur      = meta && meta.duration_ms ? meta.duration_ms + 'ms' : null;
+    var modelTxt = (meta && meta.model) || 'Claude Opus 4.7';
+    var countTxt = analysis.insights.length + (analysis.insights.length === 1 ? ' insight' : ' insights');
+    var metaLine = modelTxt + (dur ? ' · ' + dur : '') + ' · ' + countTxt;
+    var cacheTxt = (meta && meta.cache_read != null && meta.cache_read > 0)
+      ? 'cache hit · ' + meta.cache_read.toLocaleString() + ' tokens read'
+      : '';
+
+    wrap.innerHTML = '' +
+      '<div class="co-summary">' +
+        '<div class="co-summary-flag">Co-Coach Briefing &middot; ' + hh + ':' + mm + '</div>' +
+        '<div class="co-summary-headline">' + _esc(analysis.headline || 'Roster scan complete.') + '</div>' +
+        '<div class="co-summary-meta">' +
+          '<span>' + _esc(metaLine) + '</span>' +
+          '<span>' + _esc(cacheTxt) + '</span>' +
+        '</div>' +
+      '</div>' +
+      _renderSection('priority',    groups.priority) +
+      _renderSection('moving_well', groups.moving_well) +
+      _renderSection('roster',      groups.roster);
+
+    // Flip Stage 3 chip → active.
+    var stages = document.getElementById('ca-stages');
+    if (stages) {
+      var chips = stages.querySelectorAll('.ca-stage');
+      if (chips[2]) {
+        chips[2].classList.remove('ca-stage-pending');
+        chips[2].classList.add('ca-stage-active');
+      }
+    }
   }
 
   var _inFlight     = false;
@@ -641,47 +807,40 @@ var BBF_COACH_AGENT = (function() {
     });
   }
 
-  // Renders the Stage 2 chip active + appends the headline/count to the
-  // status line. Sprint 3 will replace this with the full narrative card
-  // set; for now we console-log the analysis so the CEO can verify the
-  // round-trip and the AI's output quality.
+  // POSTs the bundle to the bbf-co-coach Edge Function, then hands the
+  // structured JSON to _renderNarrative. Falls back to _renderNarrativeError
+  // on any failure (network, 5xx, schema mismatch). Status line + pulse
+  // color are updated through _setStatus.
   function _runAnalysis(bundles) {
     _lastBundles = bundles || [];
-
-    var stages = document.getElementById('ca-stages');
-    var statusEl = document.getElementById('ca-status');
-    var statusBase = statusEl ? statusEl.textContent : '';
-
-    if (statusEl) statusEl.textContent = statusBase + ' · Engaging Co-Coach intelligence…';
 
     return _callCoCoach(bundles).then(function(resp) {
       var analysis = (resp && resp.analysis) || null;
       _lastAnalysis = analysis;
 
-      // Flip Stage 2 chip → active on successful round-trip.
-      if (stages) {
-        var chips = stages.querySelectorAll('.ca-stage');
-        if (chips[1]) {
-          chips[1].classList.remove('ca-stage-pending');
-          chips[1].classList.add('ca-stage-active');
-        }
-      }
+      var meta = {
+        duration_ms: resp && resp.duration_ms,
+        model:       (resp && resp.model) || 'claude-opus-4-7',
+        cache_read:  resp && resp.usage && resp.usage.cache_read_input_tokens
+      };
 
-      var insightCount = (analysis && Array.isArray(analysis.insights)) ? analysis.insights.length : 0;
-      if (statusEl) {
-        var dur = resp && resp.duration_ms ? ' · ' + resp.duration_ms + 'ms' : '';
-        var model = resp && resp.model ? ' · ' + resp.model : '';
-        statusEl.textContent = statusBase + ' · LLM LIVE · ' + insightCount + ' insight' + (insightCount === 1 ? '' : 's') + dur + model;
-      }
+      _renderNarrative(analysis, meta);
 
-      console.log('[BBF_COACH_AGENT] Sprint 2 (LLM) analysis:', analysis);
+      var n = (analysis && Array.isArray(analysis.insights)) ? analysis.insights.length : 0;
+      _setStatus(
+        'Co-Coach LIVE · ' + n + ' insight' + (n === 1 ? '' : 's') +
+        (meta.duration_ms ? ' · ' + meta.duration_ms + 'ms' : '') +
+        ' · ' + meta.model,
+        true
+      );
+
+      console.log('[BBF_COACH_AGENT] Co-Coach analysis:', analysis);
       if (resp && resp.usage) console.log('[BBF_COACH_AGENT] Anthropic usage:', resp.usage);
       return analysis;
     }).catch(function(err) {
-      if (statusEl) {
-        var detail = (err && err.body && err.body.error) || (err && err.message) || 'unknown';
-        statusEl.textContent = statusBase + ' · LLM FAULT · ' + detail;
-      }
+      var detail = (err && err.body && (err.body.error || err.body.detail)) || (err && err.message) || 'unknown';
+      _setStatus('Co-Coach FAULT · ' + detail, false);
+      _renderNarrativeError(err);
       console.error('[BBF_COACH_AGENT] Co-Coach LLM call failed:', err);
       _lastAnalysis = null;
       return null;
@@ -694,13 +853,24 @@ var BBF_COACH_AGENT = (function() {
     _inFlight = true;
     var btn = document.querySelector('.ca-refresh');
     if (btn) btn.disabled = true;
-    _setStatus('Fetching Supabase telemetry…', true);
+
+    // Show the loading hero immediately so the tab doesn't sit blank
+    // during the ~1s fetch + ~5-15s LLM round-trip.
+    _renderLoading();
+    _setStatus('Co-Coach AI is analyzing 21 days of fleet data…', true);
+
     fetch()
       .then(function(bundles) {
-        _renderBundles(bundles);
+        _lastBundles = bundles || [];
         return _runAnalysis(bundles);
       })
-      .catch(_renderError)
+      .catch(function(err) {
+        // Data pipeline failure (slug→UUID resolve or per-uid fetch).
+        var detail = (err && err.message) || 'pipeline_unknown_error';
+        _setStatus('Pipeline FAULT · ' + detail, false);
+        _renderNarrativeError(err);
+        console.error('[BBF_COACH_AGENT] Data pipeline failed:', err);
+      })
       .then(function() {
         _inFlight = false;
         if (btn) btn.disabled = false;
