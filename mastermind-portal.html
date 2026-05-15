@@ -498,6 +498,278 @@ var BBF_COACH_AGENT = (function() {
     });
   }
 
+  // ─── Sprint 2 · Logic Engine ───────────────────────────────────
+  // Deterministic triggers over a Sprint-1 bundle. Zero LLM. Each
+  // detector returns 0 or more raw insight objects; analyze() runs
+  // all four across the roster, scores priority, and sorts desc.
+  // ───────────────────────────────────────────────────────────────
+
+  // Tuned constants per CEO ruling. Edit here for V2 calibration.
+  var PAIN_KEYWORDS                = ['knee', 'lower back', 'shoulder', 'tweak', 'sharp'];
+  var PAIN_KEYWORDS_ACUTE          = { 'tweak': 1, 'sharp': 1 };
+  var PLATEAU_WEIGHT_TOLERANCE_LBS = 2.5;   // ±2.5lb → 5lb total span
+  var PLATEAU_MIN_SESSIONS         = 3;
+  var CONSISTENCY_DROP_THRESHOLD   = 0.40;  // 40% drop last 7d vs prior 7d
+  var RECOVERY_AVG_THRESHOLD       = 70;    // 7d avg below this → flag
+  var RECOVERY_LOW_VALUE           = 70;    // sub-this counts toward consecutive streak
+  var RECOVERY_CONSECUTIVE_MIN     = 3;     // 3 consecutive lows → flag
+
+  function _ymd(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  }
+
+  // Per-exercise per-session top working set: prefer the heaviest set;
+  // on a tie, take the one with the most reps. Returns
+  // { exercise_key: [{ session_key, day_key, weight_lbs, reps }, ...] }
+  // sorted chronologically (oldest → newest).
+  function _exerciseSessionSeries(sets) {
+    var byEx = {};
+    (sets || []).forEach(function(s) {
+      if (!s) return;
+      var ex = s.exercise_key;
+      var sk = s.log_id || s.day_key;
+      var w  = Number(s.weight_lbs);
+      var r  = Number(s.reps);
+      if (!ex || !sk || !isFinite(w)) return;
+      if (!byEx[ex]) byEx[ex] = {};
+      var prior = byEx[ex][sk];
+      var rNorm = isFinite(r) ? r : 0;
+      if (!prior || w > prior.weight_lbs || (w === prior.weight_lbs && rNorm > prior.reps)) {
+        byEx[ex][sk] = {
+          session_key: sk,
+          day_key:     s.day_key || null,
+          weight_lbs:  w,
+          reps:        rNorm
+        };
+      }
+    });
+    var out = {};
+    Object.keys(byEx).forEach(function(ex) {
+      var arr = [];
+      Object.keys(byEx[ex]).forEach(function(k) { arr.push(byEx[ex][k]); });
+      arr = arr.filter(function(s) { return s.day_key; });
+      arr.sort(function(a, b) { return (a.day_key || '').localeCompare(b.day_key || ''); });
+      if (arr.length) out[ex] = arr;
+    });
+    return out;
+  }
+
+  function _detectPlateau(bundle) {
+    var insights = [];
+    var series = _exerciseSessionSeries(bundle.sets);
+    Object.keys(series).forEach(function(ex) {
+      var sessions = series[ex];
+      if (sessions.length < PLATEAU_MIN_SESSIONS) return;
+      // Walk backwards from the most-recent session, expanding the window
+      // while the running weight span stays within ±tolerance. Bail out
+      // the moment the span exceeds tolerance — anchor stays at the latest.
+      var window = [sessions[sessions.length - 1]];
+      for (var i = sessions.length - 2; i >= 0; i--) {
+        var candidate = sessions[i];
+        var lo = candidate.weight_lbs, hi = candidate.weight_lbs;
+        for (var j = 0; j < window.length; j++) {
+          if (window[j].weight_lbs < lo) lo = window[j].weight_lbs;
+          if (window[j].weight_lbs > hi) hi = window[j].weight_lbs;
+        }
+        if ((hi - lo) > 2 * PLATEAU_WEIGHT_TOLERANCE_LBS) break;
+        window.unshift(candidate);
+      }
+      if (window.length < PLATEAU_MIN_SESSIONS) return;
+      // Reps NOT strictly increasing across the flat window = plateau.
+      var repsClimbing = window.every(function(s, idx) {
+        return idx === 0 || s.reps > window[idx - 1].reps;
+      });
+      if (repsClimbing) return;
+      var weightsArr = window.map(function(s) { return s.weight_lbs; });
+      insights.push({
+        uid:           bundle.uid,
+        name:          bundle.name,
+        type:          'plateau',
+        exercise:      ex,
+        sessions_flat: window.length,
+        weight_lbs:    weightsArr[weightsArr.length - 1],
+        weight_min:    Math.min.apply(null, weightsArr),
+        weight_max:    Math.max.apply(null, weightsArr),
+        reps_pattern:  window.map(function(s) { return s.reps; }),
+        last_session:  window[window.length - 1].day_key
+      });
+    });
+    return insights;
+  }
+
+  function _detectConsistencyDrop(bundle) {
+    var DAY = 86400000;
+    var now = Date.now();
+    var lastCutoff  = _ymd(new Date(now - 7  * DAY));
+    var priorCutoff = _ymd(new Date(now - 14 * DAY));
+    var lastCount = 0, priorCount = 0;
+    (bundle.sessions || []).forEach(function(l) {
+      var dk = l && l.date;
+      if (!dk) return;
+      if (dk >= lastCutoff)  lastCount++;
+      else if (dk >= priorCutoff) priorCount++;
+    });
+    if (priorCount === 0) return []; // no baseline to compare against
+    var dropPct = (priorCount - lastCount) / priorCount;
+    if (dropPct < CONSISTENCY_DROP_THRESHOLD) return [];
+    return [{
+      uid:            bundle.uid,
+      name:           bundle.name,
+      type:           'consistency',
+      last_7d_count:  lastCount,
+      prior_7d_count: priorCount,
+      drop_pct:       Math.round(dropPct * 100) / 100
+    }];
+  }
+
+  function _detectRecoveryRisk(bundle) {
+    var readiness = (bundle.readiness || []).slice();
+    if (!readiness.length) return [];
+    // Sort descending by date so [0] = most recent submit.
+    readiness.sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+
+    // Trigger A — 7-day calendar window average below threshold.
+    var cutoffStr = _ymd(new Date(Date.now() - 7 * 86400000));
+    var last7 = readiness.filter(function(r) { return r && r.date && r.date >= cutoffStr; });
+    var avg7 = null;
+    if (last7.length) {
+      var sum = 0;
+      for (var i = 0; i < last7.length; i++) sum += (Number(last7[i].score) || 0);
+      avg7 = sum / last7.length;
+    }
+    var avgHit = (avg7 != null && avg7 < RECOVERY_AVG_THRESHOLD);
+
+    // Trigger B — N consecutive sub-threshold scores (walking from newest).
+    var consecutive = 0;
+    for (var k = 0; k < readiness.length; k++) {
+      if (Number(readiness[k].score) < RECOVERY_LOW_VALUE) consecutive++;
+      else break;
+    }
+    var consecHit = (consecutive >= RECOVERY_CONSECUTIVE_MIN);
+
+    if (!avgHit && !consecHit) return [];
+    return [{
+      uid:             bundle.uid,
+      name:            bundle.name,
+      type:            'recovery',
+      avg_7d_score:    (avg7 != null) ? Math.round(avg7 * 10) / 10 : null,
+      sample_size:     last7.length,
+      consecutive_low: consecutive,
+      triggered_by:    (avgHit && consecHit) ? 'both' : (consecHit ? 'consecutive' : 'avg')
+    }];
+  }
+
+  function _snippet(text, kw) {
+    var src   = String(text || '');
+    var lower = src.toLowerCase();
+    var idx   = lower.indexOf(kw);
+    if (idx < 0) return src.slice(0, 80);
+    var start = Math.max(0, idx - 20);
+    var end   = Math.min(src.length, idx + kw.length + 30);
+    return (start > 0 ? '…' : '') + src.slice(start, end).trim() + (end < src.length ? '…' : '');
+  }
+
+  function _detectPainFriction(bundle) {
+    var hits = [];
+    var seen = {};
+    function scan(source, text, refId) {
+      if (!text) return;
+      var lower = String(text).toLowerCase();
+      for (var i = 0; i < PAIN_KEYWORDS.length; i++) {
+        var kw = PAIN_KEYWORDS[i];
+        if (lower.indexOf(kw) > -1) {
+          var dedupeKey = source + '|' + kw + '|' + (refId || '');
+          if (seen[dedupeKey]) continue;
+          seen[dedupeKey] = 1;
+          hits.push({
+            source:  source,
+            keyword: kw,
+            ref_id:  refId || null,
+            snippet: _snippet(text, kw)
+          });
+        }
+      }
+    }
+    (bundle.audits || []).forEach(function(a) {
+      scan('audit', a.movement_name, a.id);
+      scan('audit', a.coach_notes,   a.id);
+      scan('audit', a.tension_zone,  a.id);
+    });
+    (bundle.sessions || []).forEach(function(l) {
+      scan('log', l.coach_notes, l.id);
+      scan('log', l.notes,       l.id);
+    });
+    return hits.map(function(h) {
+      return {
+        uid:     bundle.uid,
+        name:    bundle.name,
+        type:    'pain',
+        keyword: h.keyword,
+        source:  h.source,
+        ref_id:  h.ref_id,
+        snippet: h.snippet,
+        acute:   !!PAIN_KEYWORDS_ACUTE[h.keyword]
+      };
+    });
+  }
+
+  // Priority scorer: pain + recovery top the band per CEO ruling. Caps:
+  //   pain        : 95
+  //   recovery    : 90
+  //   consistency : 70
+  //   plateau     : 55
+  function _scorePriority(insight) {
+    if (insight.type === 'pain') {
+      var p = 60;
+      if (insight.acute)            p += 25;
+      if (insight.source === 'audit') p += 5;
+      return Math.min(95, p);
+    }
+    if (insight.type === 'recovery') {
+      var r = 50;
+      if (insight.triggered_by === 'both')        r += 25;
+      else if (insight.triggered_by === 'consecutive') r += 20;
+      if (insight.avg_7d_score != null && insight.avg_7d_score < 60) r += 10;
+      if (insight.consecutive_low >= 5) r += 5;
+      return Math.min(90, r);
+    }
+    if (insight.type === 'consistency') {
+      var c = 30;
+      if (insight.drop_pct >= 0.60)      c += 20;
+      else if (insight.drop_pct >= 0.50) c += 12;
+      if (insight.last_7d_count === 0)   c += 8;
+      return Math.min(70, c);
+    }
+    if (insight.type === 'plateau') {
+      var pl = 25;
+      pl += Math.min(20, Math.max(0, insight.sessions_flat - 3) * 5);
+      return Math.min(55, pl);
+    }
+    return 0;
+  }
+
+  // Public: run all four detectors across the roster, score, sort desc.
+  function analyze(bundles) {
+    if (!Array.isArray(bundles)) return [];
+    var insights = [];
+    bundles.forEach(function(b) {
+      if (!b || !b.uid) return;
+      Array.prototype.push.apply(insights, _detectPlateau(b));
+      Array.prototype.push.apply(insights, _detectConsistencyDrop(b));
+      Array.prototype.push.apply(insights, _detectRecoveryRisk(b));
+      Array.prototype.push.apply(insights, _detectPainFriction(b));
+    });
+    var computedAt = new Date().toISOString();
+    insights.forEach(function(i) {
+      i.priority    = _scorePriority(i);
+      i.computed_at = computedAt;
+    });
+    insights.sort(function(a, b) { return b.priority - a.priority; });
+    return insights;
+  }
+
   // ─── Sprint 1 status renderer ──────────────────────────────────
 
   function _renderCard(b) {
@@ -566,7 +838,36 @@ var BBF_COACH_AGENT = (function() {
     console.error('[BBF_COACH_AGENT] fetch failed:', err);
   }
 
-  var _inFlight = false;
+  var _inFlight     = false;
+  var _lastBundles  = [];
+  var _lastInsights = [];
+
+  // Sprint 2 hook — flips the Stage 2 chip and appends the insight count
+  // to the status line. Console-logs the array so the CEO can verify the
+  // math. NO UI cards yet — narrative ships in Sprint 3.
+  function _runAnalysis(bundles) {
+    var insights = analyze(bundles);
+    _lastBundles  = bundles || [];
+    _lastInsights = insights;
+
+    var stages = document.getElementById('ca-stages');
+    if (stages) {
+      var chips = stages.querySelectorAll('.ca-stage');
+      if (chips[1]) {
+        chips[1].classList.remove('ca-stage-pending');
+        chips[1].classList.add('ca-stage-active');
+      }
+    }
+    var s = document.getElementById('ca-status');
+    if (s) {
+      var suffix = insights.length
+        ? ' · ' + insights.length + ' insight' + (insights.length === 1 ? '' : 's') + ' flagged'
+        : ' · 0 insights · roster all-green';
+      s.textContent += suffix;
+    }
+    console.log('[BBF_COACH_AGENT] Sprint 2 insights:', insights);
+    return insights;
+  }
 
   function render() {
     if (!document.getElementById('ca-roster')) return;
@@ -576,7 +877,10 @@ var BBF_COACH_AGENT = (function() {
     if (btn) btn.disabled = true;
     _setStatus('Fetching Supabase telemetry…', true);
     fetch()
-      .then(_renderBundles)
+      .then(function(bundles) {
+        _renderBundles(bundles);
+        return _runAnalysis(bundles);
+      })
       .catch(_renderError)
       .then(function() {
         _inFlight = false;
@@ -586,10 +890,16 @@ var BBF_COACH_AGENT = (function() {
 
   function refresh() { render(); }
 
+  function getInsights() { return _lastInsights.slice(); }
+  function getBundles()  { return _lastBundles.slice();  }
+
   return {
-    fetch:   fetch,
-    render:  render,
-    refresh: refresh
+    fetch:       fetch,
+    analyze:     analyze,
+    render:      render,
+    refresh:     refresh,
+    getInsights: getInsights,
+    getBundles:  getBundles
   };
 })();
 
