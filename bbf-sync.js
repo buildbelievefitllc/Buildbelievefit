@@ -264,6 +264,39 @@ var BBF_SYNC = (function() {
       if (s.w !== undefined) row.weight_lbs = s.w;
       return row;
     });
+
+    // ─── PGRST102 fix · bulk-insert key-union normalization ────────
+    // PostgREST rejects heterogeneous batches with
+    //   HTTP 400 PGRST102 "All object keys must match"
+    // when row objects have different sets of keys. Our row shape
+    // varies legitimately: bodyweight/timed sets have reps but no
+    // weight_lbs, weighted sets have both. Pre-fix this blew up the
+    // whole batch + left an orphan parent log behind (see the 91%
+    // orphan rate diagnosed via xmin audit).
+    //
+    // Compute the union of keys across all rows, then ensure every
+    // row carries every key (null where missing). All target columns
+    // (reps, weight_lbs, log_id, etc.) are nullable per schema —
+    // except log_id which is NOT NULL but is always injected upstream
+    // by syncSession before this call, so a null log_id would surface
+    // as a 23502 (loud failure, which is what we want if the upstream
+    // injection ever breaks).
+    if (rows.length > 1) {
+      var keyUnion = Object.create(null);
+      rows.forEach(function(r) {
+        for (var k in r) { if (Object.prototype.hasOwnProperty.call(r, k)) keyUnion[k] = true; }
+      });
+      var allKeys = Object.keys(keyUnion);
+      rows = rows.map(function(r) {
+        var normalized = {};
+        for (var i = 0; i < allKeys.length; i++) {
+          var k = allKeys[i];
+          normalized[k] = Object.prototype.hasOwnProperty.call(r, k) ? r[k] : null;
+        }
+        return normalized;
+      });
+    }
+
     // Phase 6 final fix — return=representation + explicit throws so
     // the caller (syncSession) can distinguish 0-row inserts from
     // success, mirroring syncLog's verifiable contract.
