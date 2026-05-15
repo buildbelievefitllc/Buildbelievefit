@@ -402,17 +402,26 @@ var BBF_SYNC = (function() {
   }
 
   // ─── SYNC: READINESS ─────────────────────────────────────
+  // Writes to bbf_readiness. The schema columns are:
+  //   user_id (uuid), score (int), sleep_quality (int),
+  //   soreness_level (int), timestamp (timestamptz, defaults now())
+  //
+  // Caller API is intentionally kept stable — pass {sleep, stress,
+  // energy, score} and we map to the real columns. `energy` has no
+  // schema column and is dropped (preserve for a future migration);
+  // `stress` maps to `soreness_level` as the closest CNS analog.
+  // `date` arg is no longer used — the DB default `now()` on the
+  // `timestamp` column is the source of truth for submission time.
+  // Strict mode → next failure surfaces as a structured Error
+  // instead of being silently swallowed (the bug that left
+  // bbf_readiness at 0 rows for the entire history of the app).
   function syncReadiness(uid, date, data) {
     if (!uid || !data) return Promise.resolve();
-    return supa('POST', 'bbf_readiness', {
-      user_id: uid,
-      date: date,
-      sleep: data.sleep,
-      stress: data.stress,
-      energy: data.energy,
-      score: data.score,
-      logged_at: new Date().toISOString()
-    });
+    var row = { user_id: uid };
+    if (data.score != null)  row.score          = Number(data.score);
+    if (data.sleep != null)  row.sleep_quality  = Number(data.sleep);
+    if (data.stress != null) row.soreness_level = Number(data.stress);
+    return supa('POST', 'bbf_readiness', row, '', { strict: true });
   }
 
   // ─── FETCH: ALL LOGS FOR USER ────────────────────────────
@@ -446,7 +455,9 @@ var BBF_SYNC = (function() {
 
   // ─── FETCH: READINESS FOR USER ───────────────────────────
   function fetchReadiness(uid) {
-    return supa('GET', 'bbf_readiness', null, '?user_id=eq.' + uid + '&order=date.desc&limit=30');
+    // bbf_readiness has no `date` column — submission time lives in
+    // `timestamp` (timestamptz, default now()). Sort by that.
+    return supa('GET', 'bbf_readiness', null, '?user_id=eq.' + uid + '&order=timestamp.desc&limit=30');
   }
 
   // ─── BULK SYNC: Push all localStorage to Supabase ────────
@@ -2332,18 +2343,12 @@ var BBF_SYNC = (function() {
       console.warn('BBF_SYNC calculateSomaticReadiness patch error:', e && e.message);
     }
 
-    // Also log a history row in bbf_logs for longitudinal analysis.
-    try {
-      await supa('POST', 'bbf_logs', {
-        user_id:   userId,
-        date:      todayKey,
-        type:      'somatic',
-        intensity: String(score),
-        notes:     'Somatic ' + tier.toUpperCase() + ' | sleep=' + sleepQuality + ' cog=' + cognitiveLoad + ' fast=' + fastingHours + 'h',
-        logged_at: nowIso,
-        logged_by: userId
-      });
-    } catch(_) {}
+    // DUPLICATE WRITER REMOVED — was POSTing to bbf_logs (wrong table
+    // for somatic data) with 5 of 7 fields silently dropped by PostgREST
+    // (type, intensity, notes, logged_at, logged_by don't exist on
+    // bbf_logs). Left 52 coach_notes=NULL orphan rows in bbf_logs across
+    // the founder roster. Longitudinal somatic history now lives in
+    // bbf_readiness via the somatic-engine.js → syncReadiness re-route.
 
     return {
       score:             score,

@@ -214,22 +214,30 @@ var BBF_SOMATIC = (function() {
       console.warn('BBF_SOMATIC calculateSyncScore patch error:', e && e.message);
     }
 
-    // ── History row in bbf_logs for longitudinal analysis ─────
+    // ── History row in bbf_readiness for the Co-Coach AI ──────
+    // RE-ROUTED from bbf_logs → bbf_readiness. The original syncLog
+    // path mis-targeted the workout-session table and contaminated it
+    // with 164 non-workout rows across the founder roster; the proper
+    // bbf_readiness destination had received zero writes for the
+    // entire history of the app. Re-routing here is what feeds the
+    // Co-Coach Agent's fetchReadiness() with real CNS data.
+    //
+    // Mapping loss notice — bbf_readiness columns are:
+    //   user_id, score, sleep_quality, soreness_level, timestamp
+    // The richer somatic payload below (cognitiveLoad, fastingHours,
+    // flowState, emergencyDeload, tier) does not have schema columns
+    // yet. Score + sleep + stress(→soreness) preserved; rest dropped
+    // pending a future bbf_readiness schema expansion. localStorage
+    // (`d.u[uid].somatic_*` and `d.u[uid].daily_readiness[dayKey]`)
+    // still holds the full payload for the BBF_CNS_AGENT's same-day
+    // calculations — only the cross-session cloud archive loses the
+    // auxiliary fields.
     try {
-      if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.syncLog) {
-        BBF_SYNC.syncLog(userId, {
-          date:      dayKey,
-          type:      'somatic',
-          intensity: String(score),
-          notes:     'Somatic ' + tier.toUpperCase() +
-                     ' | sleep=' + sleepQuality +
-                     ' cog=' + cognitiveLoad +
-                     ' fast=' + fastingHours + 'h' +
-                     ' stress=' + stressLevel +
-                     (flowState ? ' | FLOW' : '') +
-                     (emergencyDeload ? ' | EMERGENCY-DELOAD' : ''),
-          loggedAt:  nowIso,
-          loggedBy:  userId
+      if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.syncReadiness) {
+        BBF_SYNC.syncReadiness(userId, dayKey, {
+          score:  score,
+          sleep:  sleepQuality,
+          stress: stressLevel
         });
       }
     } catch(_) {}
