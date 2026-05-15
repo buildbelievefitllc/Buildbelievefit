@@ -114,6 +114,12 @@ const SYSTEM_PROMPT = [
 
 // JSON Schema for the structured response. Constrains the LLM output so
 // the frontend can JSON.parse() without defensive code.
+//
+// Anthropic structured-output JSON Schema does NOT support numerical
+// constraints (minimum / maximum / multipleOf) — the Python/TS SDKs
+// strip them client-side, but raw fetch (our path) does not. Passing
+// them through returns a 400. Constraints we'd like to enforce here
+// live in the field `description` instead; the LLM respects them.
 const RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
@@ -136,9 +142,7 @@ const RESPONSE_SCHEMA = {
           },
           priority: {
             type: 'integer',
-            minimum: 0,
-            maximum: 100,
-            description: '0-100, pain/recovery weighted highest per CEO ruling.',
+            description: 'Priority score on a 0-100 scale (inclusive). Higher = more urgent. Pain/recovery 70-95, consistency drop 40-65, plateau 25-55, healthy progress 15-40 per CEO ruling.',
           },
           summary: {
             type: 'string',
