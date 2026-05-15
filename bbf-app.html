@@ -456,6 +456,17 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .sinp:focus{border-color:var(--pur)}.sinp.done{border-color:var(--grn);background:rgba(34,197,94,.05)}
 .enote{background:rgba(245,200,0,.05);border:1px solid rgba(245,200,0,.15);border-radius:6px;padding:.6rem .8rem;margin-top:.7rem;font-size:.78rem;color:#aaa;line-height:1.5}
 .dbtn{width:100%;padding:1rem;background:var(--yel);color:var(--blk);font-size:1rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:10px;cursor:pointer;margin-top:.8rem}
+/* ═ Admin Master Key — readiness gate override on Mark Session Complete ═
+   .dbtn-locked    → client hasn't done Morning Lab Audit; non-admin viewer locked out
+   .dbtn-admin-override → client hasn't done audit BUT current user is trainer/admin;
+                           orange "Force Complete" CTA + pulsing dot so the CEO
+                           can see at a glance that the master key is engaged. */
+.dbtn-locked{background:rgba(255,255,255,.06) !important;color:rgba(255,255,255,.42) !important;border:1px solid rgba(255,255,255,.12) !important;cursor:not-allowed !important;box-shadow:none !important;font-size:.85rem !important;letter-spacing:1.4px !important;filter:none !important}
+.dbtn-locked:hover,.dbtn-locked:active,.dbtn-locked:hover::after{transform:none !important;filter:none !important;box-shadow:none !important;background:rgba(255,255,255,.06) !important}
+.dbtn-admin-override{background:linear-gradient(180deg,#FF8B5E 0%,#E5602A 100%) !important;color:#0a0a0a !important;border:1px solid #FF8B5E !important;box-shadow:0 6px 22px rgba(229,96,42,.42),0 1px 0 rgba(255,255,255,.25) inset !important;letter-spacing:2.5px}
+.dbtn-admin-override:hover:not(:disabled){filter:brightness(1.05);transform:translateY(-2px) scale(1.01);box-shadow:0 12px 34px rgba(229,96,42,.55),0 0 0 1px rgba(255,139,94,.4),0 1px 0 rgba(255,255,255,.35) inset !important}
+.dbtn-admin-override::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#0a0a0a;margin-right:.55rem;vertical-align:1px;box-shadow:0 0 6px rgba(0,0,0,.5);animation:dbtnAdminPulse 1.4s ease-out infinite}
+@keyframes dbtnAdminPulse{0%{box-shadow:0 0 0 0 rgba(0,0,0,.55)}80%{box-shadow:0 0 0 7px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
 .rdc{background:var(--gry);border:1px solid #1a1a1a;border-radius:16px;padding:2rem;text-align:center}
 .rdi{font-size:3rem;margin-bottom:1rem}
 .rdt{font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.5rem;color:var(--yel)}
@@ -11214,7 +11225,29 @@ function RDW() {
     }
     h += '</div></div>';
   });
-  h += '<button class="dbtn" data-dk="' + dk + '">&#x2713; ' + _t('app-wo-complete','Mark Session Complete') + '</button>';
+  // Readiness gate · Admin Master Key. Clients can't mark a session
+  // complete until they've logged today's Morning Lab Audit, but the
+  // trainer/admin (viewing via VC) is allowed to FORCE COMPLETE so
+  // they're not trapped behind client-side accountability. Returns
+  // { mode: 'open' | 'override' | 'locked' }.
+  var _bbfReadinessGate = (function(){
+    if (typeof hasReadinessToday !== 'function') return { mode: 'open' };
+    if (hasReadinessToday(uid)) return { mode: 'open' };
+    var actorObj = (d.u[CU] || {});
+    var actorIsAdmin = (CU === 'akeem') || actorObj.role === 'trainer' || actorObj.role === 'admin';
+    return { mode: actorIsAdmin ? 'override' : 'locked' };
+  })();
+  if (_bbfReadinessGate.mode === 'override') {
+    h += '<button class="dbtn dbtn-admin-override" data-dk="' + dk + '" data-readiness-override="1" title="Client has not completed today’s Morning Lab Audit. Admin Master Key engaged.">' +
+         '&#x1F511; ' + _t('app-wo-complete-admin','Force Complete (Admin)') +
+         '</button>';
+  } else if (_bbfReadinessGate.mode === 'locked') {
+    h += '<button class="dbtn dbtn-locked" data-dk="' + dk + '" disabled aria-disabled="true" title="The client must complete today’s Morning Lab Audit before logging this session.">' +
+         '&#x1F512; ' + _t('app-wo-complete-locked','Awaiting Morning Lab Audit') +
+         '</button>';
+  } else {
+    h += '<button class="dbtn" data-dk="' + dk + '">&#x2713; ' + _t('app-wo-complete','Mark Session Complete') + '</button>';
+  }
   con.innerHTML = h;
   con.querySelectorAll('.eh').forEach(function(hdr) {
     hdr.onclick = function() {
@@ -11273,6 +11306,26 @@ function SVS(inp) {
 async function CWO(day, dk) {
   var uid = VC || CU;
   var d = GD();
+
+  // Readiness gate · Admin Master Key. Defensive — the button is also
+  // visually locked in RDW for non-admins, but if anything (cached DOM,
+  // a programmatic .click() in DevTools, partner-mode glitch) lets a
+  // non-admin reach this entry, we still bail. Admin viewers proceed
+  // and we log the override for the audit trail.
+  if (typeof hasReadinessToday === 'function' && !hasReadinessToday(uid)) {
+    var actorObj = (d.u[CU] || {});
+    var actorIsAdmin = (CU === 'akeem') || actorObj.role === 'trainer' || actorObj.role === 'admin';
+    if (!actorIsAdmin) {
+      if (typeof TOAST === 'function') {
+        TOAST('Cannot log session — client has not completed today’s Morning Lab Audit.');
+      } else {
+        alert('Cannot log session — client has not completed today’s Morning Lab Audit.');
+      }
+      return;
+    }
+    console.warn('[CWO] Admin Master Key engaged · readiness gate bypassed · viewedUid=' + uid + ' · actor=' + CU);
+  }
+
   var logEntry = {date:today(), type:'strength', notes:'Completed: ' + day.focus, loggedAt:new Date().toISOString(), loggedBy:CU};
   // Phase 6 Final — local d.l push moved to AFTER syncSession resolves
   // so a cloud failure cannot leave an un-persisted log lingering in
