@@ -628,13 +628,29 @@ var BBF_COACH_AGENT = (function() {
   function _renderNarrativeError(err) {
     var wrap = document.getElementById('ca-roster');
     if (!wrap) return;
-    var detail = (err && err.body && (err.body.error || err.body.detail))
-      || (err && err.message)
-      || 'unknown';
+    var body = (err && err.body) || {};
+    // Surface every diagnostic layer we have so the user doesn't need
+    // to crack open DevTools to read the network response body.
+    var slug      = body.error  || (err && err.message) || 'unknown';
+    var detail    = body.detail || '';
+    var upstream  = (body.status != null) ? body.status : '';
+    var rawErr    = body.raw && body.raw.error;
+    var rawMsg    = rawErr && (rawErr.message || rawErr.type || '');
+    var rawType   = rawErr && rawErr.type || '';
+    var httpLine  = (err && err.status != null) ? 'HTTP ' + err.status : '';
+    var lines = [];
+    if (httpLine) lines.push('<div><strong>Edge Function:</strong> ' + _esc(httpLine) + ' &middot; <code>' + _esc(slug) + '</code></div>');
+    if (upstream || rawType) {
+      lines.push('<div><strong>Anthropic:</strong> ' + _esc(upstream ? 'HTTP ' + upstream : '') + (rawType ? ' &middot; <code>' + _esc(rawType) + '</code>' : '') + '</div>');
+    }
+    if (rawMsg)  lines.push('<div><strong>Message:</strong> ' + _esc(rawMsg) + '</div>');
+    if (detail && detail !== rawMsg) lines.push('<div><strong>Detail:</strong> ' + _esc(detail) + '</div>');
+    if (!lines.length) lines.push('<div>' + _esc(slug) + '</div>');
     wrap.innerHTML =
       '<div class="ca-error">' +
-        '<strong>Co-Coach offline.</strong><br>' + _esc(detail) +
-        '<br><br>Inspect the browser console + Supabase Edge Function logs for <code>bbf-co-coach</code>. ' +
+        '<strong>Co-Coach offline.</strong><br><br>' +
+        lines.join('') +
+        '<br>Inspect the browser console + Supabase Edge Function logs for <code>bbf-co-coach</code>. ' +
         'If this is the first run after deploy, ensure <code>ANTHROPIC_API_KEY</code> is set in Supabase secrets.' +
       '</div>';
   }
