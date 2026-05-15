@@ -11411,12 +11411,40 @@ async function CWO(day, dk) {
       setTimeout(function() { RENDER_ENGINE.checkSniperAtWorkoutComplete(uid); }, 3500);
     }
   } catch (err) {
+    // Always log the JS Error chain.
     console.error('[CWO] syncSession failed:', err);
+    // If this is a structured BBF_SYNC error, dump the full PostgREST
+    // diagnostic — status, table, request, response body. This is the
+    // line that ends the "flying blind on Supabase returned null"
+    // problem for good.
+    if (err && err.bbfSync) {
+      console.error('[CWO] PostgREST diagnostic:', {
+        method:     err.method,
+        table:      err.table,
+        url:        err.url,
+        status:     err.status,
+        statusText: err.statusText,
+        body:       err.body
+      });
+    }
     if (completeBtn) {
       completeBtn.disabled = false;
       completeBtn.innerHTML = originalBtnHTML;
     }
-    alert('Session save failed: ' + (err && err.message ? err.message : 'unknown'));
+    // Build a user-facing alert that includes the actual server message
+    // when available, instead of the generic "Supabase returned null".
+    var alertMsg = 'Session save failed.\n\n' + (err && err.message ? err.message : 'unknown');
+    if (err && err.bbfSync && err.body && typeof err.body === 'object') {
+      var b = err.body;
+      var serverLines = [];
+      if (b.code)    serverLines.push('code: ' + b.code);
+      if (b.message) serverLines.push('msg:  ' + b.message);
+      if (b.hint)    serverLines.push('hint: ' + b.hint);
+      if (b.details) serverLines.push('det:  ' + b.details);
+      if (serverLines.length) alertMsg += '\n\nServer:\n' + serverLines.join('\n');
+    }
+    alertMsg += '\n\n(See browser console for full diagnostic.)';
+    alert(alertMsg);
   }
 }
 

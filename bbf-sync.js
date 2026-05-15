@@ -92,6 +92,21 @@ var BBF_SYNC = (function() {
   // indefinitely when offline or when the network stalls — the .catch
   // fires on AbortError so callers see a clean failure instead of a
   // permanent "Authenticating..." spinner.
+  //
+  // Error handling — TWO modes:
+  //   default (callOpts.strict !== true)
+  //     - 4xx/5xx logs to console.error, returns null
+  //     - preserves the existing "null = transient" contract for
+  //       legacy callers (reads w/ no .catch)
+  //   strict (callOpts.strict === true)
+  //     - 4xx/5xx logs AND throws a structured Error with .status,
+  //       .statusText, .body (parsed PostgREST envelope when JSON),
+  //       .url, .method, .table — caller's .catch surfaces the real
+  //       diagnostic to the user instead of "Supabase returned null"
+  //     - used by writes that must not silently fail (syncLog, syncSetsBulk)
+  //   Both modes return null on network/abort/fetch-throw so callers
+  //   can distinguish "server said no" (strict throw) from "couldn't
+  //   reach server" (null).
   function _supa(method, table, body, query, callOpts) {
     callOpts = callOpts || {};
     var url = REST + '/' + table + (query || '');
@@ -116,12 +131,38 @@ var BBF_SYNC = (function() {
     if (body) opts.body = JSON.stringify(body);
     return fetch(url, opts).then(function(r) {
       if (timeoutId) clearTimeout(timeoutId);
-      if (!r.ok) return r.text().then(function(t) { console.warn('BBF_SYNC error:', t); return null; });
+      if (!r.ok) {
+        return r.text().then(function(t) {
+          var parsed = null;
+          try { parsed = t ? JSON.parse(t) : null; } catch(_) {}
+          // Always log — upgraded from console.warn so it surfaces in
+          // every DevTools default filter. PostgREST error envelope
+          // typically has { code, message, hint, details } — surface
+          // all of them in the console line.
+          console.error('[BBF_SYNC] ' + method + ' ' + table + ' → HTTP ' + r.status + ' ' + r.statusText, parsed || t || '(empty body)');
+          if (callOpts.strict) {
+            var detail = (parsed && (parsed.message || parsed.error || parsed.hint)) || t || r.statusText;
+            var err = new Error('[BBF_SYNC] ' + method + ' ' + table + ' → HTTP ' + r.status + ': ' + detail);
+            err.bbfSync    = true;
+            err.status     = r.status;
+            err.statusText = r.statusText;
+            err.body       = parsed || t || null;
+            err.url        = url;
+            err.method     = method;
+            err.table      = table;
+            throw err;
+          }
+          return null;
+        });
+      }
       if (r.status === 204) return null;
       return r.json();
     }).catch(function(e) {
       if (timeoutId) clearTimeout(timeoutId);
-      console.warn('BBF_SYNC offline:', e && (e.message || e.name) || 'unknown');
+      // Re-throw our own structured errors so strict callers see them.
+      if (e && e.bbfSync) throw e;
+      // Network / abort / fetch threw — keep null-return contract.
+      console.error('[BBF_SYNC] ' + method + ' ' + table + ' offline:', (e && (e.message || e.name)) || 'unknown');
       return null;
     });
   }
@@ -184,12 +225,14 @@ var BBF_SYNC = (function() {
       duration:    logEntry.dur || '',
       body_fat:    logEntry.bf || '',
       coach_notes: logEntry.notes || ''
-    }, '', { prefer: 'return=representation' }).then(function(data) {
+    }, '', { prefer: 'return=representation', strict: true }).then(function(data) {
       if (data == null) {
-        throw new Error('syncLog database_error (supa returned null — non-2xx or network)');
+        // strict mode throws on HTTP non-2xx, so null here means
+        // the network call itself fell through (abort/offline).
+        throw new Error('syncLog network_error (no response — offline or aborted)');
       }
       if (Array.isArray(data) && data.length === 0) {
-        throw new Error('syncLog inserted 0 rows (RLS or schema rejected the row)');
+        throw new Error('syncLog inserted 0 rows (representation returned empty — RLS or schema rejected the row silently)');
       }
       return Array.isArray(data) ? data[0] : data;
     });
@@ -224,13 +267,16 @@ var BBF_SYNC = (function() {
     // Phase 6 final fix — return=representation + explicit throws so
     // the caller (syncSession) can distinguish 0-row inserts from
     // success, mirroring syncLog's verifiable contract.
-    return supa('POST', 'bbf_sets', rows, '', { prefer: 'return=representation' })
+    // Strict mode: any HTTP non-2xx surfaces as a structured Error
+    // (status / body / table) — see _supa.
+    return supa('POST', 'bbf_sets', rows, '', { prefer: 'return=representation', strict: true })
       .then(function(data) {
         if (data == null) {
-          throw new Error('syncSetsBulk database_error (supa returned null)');
+          // strict mode throws on non-2xx; null here = offline/abort.
+          throw new Error('syncSetsBulk network_error (no response — offline or aborted)');
         }
         if (Array.isArray(data) && data.length === 0) {
-          throw new Error('syncSetsBulk inserted 0 rows (RLS or schema rejected the batch)');
+          throw new Error('syncSetsBulk inserted 0 rows (representation returned empty — likely RLS or schema silent reject)');
         }
         return data;
       });
