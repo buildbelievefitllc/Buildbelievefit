@@ -474,6 +474,12 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .agent-override-banner{background:rgba(255,69,0,.15);border:1px solid #FF4500;color:#FF4500;padding:10px;margin-bottom:15px;text-transform:uppercase;font-weight:bold}
 .static-lift-aborted{text-decoration:line-through;opacity:.4;filter:grayscale(100%)}
 .agent-injected-lift{border-left:3px solid #FF4500;padding-left:10px}
+/* ═ Phase 3 — Predictive Trajectory Forecaster · Sovereign Purple aesthetic
+   Renders inside the Strength sub-tab on a per-lift basis. Three classes
+   verbatim from the CEO spec — no renames, no extras. */
+.trajectory-forecaster{background:linear-gradient(135deg,rgba(20,20,20,1) 0%,rgba(40,0,80,0.4) 100%);border:1px solid #8A2BE2;border-radius:8px;padding:15px;margin-top:20px;box-shadow:0 0 10px rgba(138,43,226,0.2)}
+.trajectory-metric{font-size:24px;font-weight:900;color:#FFF;text-shadow:0 0 5px #8A2BE2}
+.trajectory-insight{color:#A9A9A9;font-size:14px;font-style:italic;border-left:2px solid #8A2BE2;padding-left:10px;margin-top:10px}
 .rdc{background:var(--gry);border:1px solid #1a1a1a;border-radius:16px;padding:2rem;text-align:center}
 .rdi{font-size:3rem;margin-bottom:1rem}
 .rdt{font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.5rem;color:var(--yel)}
@@ -11120,6 +11126,162 @@ var BBF_PEAKING_ENGINE = (function() {
   return { fire: fire };
 })();
 
+// ════════════════════════════════════════════════════════════════════════
+// BBF_FORECAST_ENGINE · Phase 3 — Predictive Trajectory Forecaster client
+// ────────────────────────────────────────────────────────────────────────
+// Calls /functions/v1/bbf-agentic-forecasting per-lift. Renders a
+// Sovereign-purple .trajectory-forecaster panel inside the Strength
+// sub-tab. Public API: attach(container, liftName).
+//
+// Omniscience Protocol — sends admin_override based on
+// window.BBF_ADMIN_OVERRIDE (the unified global). When true, the backend
+// returns the hardcoded "ADMIN BYPASS" payload that we render verbatim.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_FORECAST_ENGINE = (function() {
+
+  var ENDPOINT = '/functions/v1/bbf-agentic-forecasting';
+  // In-flight token gates against duplicate fetches when the user
+  // toggles between lifts rapidly. Token is (uid|liftName).
+  var _inFlightFor = null;
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function _renderInto(panel, payload, liftName) {
+    var metric    = String((payload && payload.projected_1rm)    || '—');
+    var confidence = String((payload && payload.confidence_score) || '—');
+    var insight   = String((payload && payload.agent_insight)    || '—');
+    panel.innerHTML =
+      '<div style="font-size:.62rem;letter-spacing:2.2px;text-transform:uppercase;color:#8A2BE2;font-weight:800;margin-bottom:.45rem">' +
+        'Trajectory Forecaster &middot; 30-day 1RM' +
+      '</div>' +
+      '<div class="trajectory-metric">' + _esc(metric) + '</div>' +
+      '<div style="font-size:.72rem;letter-spacing:1.4px;color:#A9A9A9;margin-top:.35rem">' +
+        _esc(confidence) + ' confidence &middot; ' + _esc(liftName) +
+      '</div>' +
+      '<div class="trajectory-insight">' + _esc(insight) + '</div>';
+  }
+
+  function _renderLoading(panel, liftName) {
+    panel.innerHTML =
+      '<div style="font-size:.62rem;letter-spacing:2.2px;text-transform:uppercase;color:#8A2BE2;font-weight:800;margin-bottom:.45rem">' +
+        'Trajectory Forecaster &middot; 30-day 1RM' +
+      '</div>' +
+      '<div class="trajectory-metric" style="opacity:.6">&hellip;</div>' +
+      '<div style="font-size:.72rem;letter-spacing:1.4px;color:#A9A9A9;margin-top:.35rem">' +
+        'Engaging Claude Opus 4.7 &middot; ' + _esc(liftName) +
+      '</div>' +
+      '<div class="trajectory-insight">Reading 60 most recent sets, projecting trajectory&hellip;</div>';
+  }
+
+  function _renderError(panel, msg, liftName) {
+    panel.innerHTML =
+      '<div style="font-size:.62rem;letter-spacing:2.2px;text-transform:uppercase;color:#FF4500;font-weight:800;margin-bottom:.45rem">' +
+        'Trajectory Forecaster &middot; offline' +
+      '</div>' +
+      '<div class="trajectory-metric" style="opacity:.6">&mdash;</div>' +
+      '<div style="font-size:.72rem;letter-spacing:1.4px;color:#A9A9A9;margin-top:.35rem">' +
+        _esc(liftName) +
+      '</div>' +
+      '<div class="trajectory-insight">' + _esc(msg || 'Forecaster fetch failed. Check console.') + '</div>';
+  }
+
+  // attach(container, liftName) — inserts/replaces a .trajectory-forecaster
+  // panel inside container, fetches the forecast for the named lift, and
+  // morphs the panel into either the result or an error state.
+  function attach(container, liftName) {
+    if (!container || !liftName) return;
+
+    // Replace any existing panel rather than stacking — switching lifts
+    // should swap content, not append.
+    var existing = container.querySelector('.trajectory-forecaster');
+    var panel;
+    if (existing) {
+      panel = existing;
+    } else {
+      panel = document.createElement('div');
+      panel.className = 'trajectory-forecaster';
+      container.appendChild(panel);
+    }
+
+    _renderLoading(panel, liftName);
+
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) { _renderError(panel, 'No active user.', liftName); return; }
+
+    // Dedupe identical in-flight fetches (rapid lift swaps).
+    var token = uid + '|' + liftName;
+    if (_inFlightFor === token) return;
+    _inFlightFor = token;
+
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) {
+      headers['Authorization'] = 'Bearer ' + anon;
+      headers['apikey']        = anon;
+    }
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+    var body = {
+      uid:            uid,
+      lift_name:      liftName,
+      admin_override: !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+    };
+
+    window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify(body)
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok) {
+          var msg = (parsed && (parsed.error || parsed.detail)) || ('HTTP ' + res.status);
+          console.warn('[BBF_FORECAST] engine returned HTTP ' + res.status + ':', parsed || t);
+          _renderError(panel, msg, liftName);
+          return;
+        }
+        if (!parsed) {
+          _renderError(panel, 'Unparseable response.', liftName);
+          return;
+        }
+        _renderInto(panel, parsed, liftName);
+        console.log('[BBF_FORECAST] ' + liftName + ' →', parsed);
+      });
+    }).catch(function(err) {
+      console.warn('[BBF_FORECAST] fetch failed:', err && err.message || err);
+      _renderError(panel, (err && err.message) || 'Network error.', liftName);
+    }).then(function() {
+      if (_inFlightFor === token) _inFlightFor = null;
+    });
+  }
+
+  return { attach: attach };
+})();
+
 // ─── WORKOUT ──────────────────────────────────────────────
 function RW() {
   var nav = document.getElementById('dnav');
@@ -14865,10 +15027,29 @@ function renderStrength() {
     return;
   }
   el.innerHTML = '<div style="margin-bottom:.5rem;font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut)">Personal Bests</div>' +
-    entries.map(function(e) {
-      return '<div class="muscle-item" style="margin-bottom:.4rem"><span class="muscle-name" style="font-size:.8rem">' + e[0] + '</span>' +
+    entries.map(function(e, i) {
+      // data-lift carries the canonical name for the forecaster click
+      // handler. cursor:pointer + the .is-forecast-target class wires
+      // the visual affordance without needing new CSS.
+      return '<div class="muscle-item is-forecast-target" data-lift="' + String(e[0]).replace(/"/g,'&quot;') + '" style="margin-bottom:.4rem;cursor:pointer">' +
+        '<span class="muscle-name" style="font-size:.8rem">' + e[0] + '</span>' +
         '<span class="muscle-count">' + e[1] + ' lbs</span></div>';
     }).join('');
+
+  // ─── Phase 3 · Predictive Trajectory Forecaster ──────────────
+  // Auto-fire for the top PB lift on render, then wire each row so
+  // tapping switches the forecaster to that lift in-place. The
+  // .trajectory-forecaster panel lives as the last child of
+  // #an-strength-content; attach() handles the create-or-swap.
+  if (typeof BBF_FORECAST_ENGINE !== 'undefined' && entries.length) {
+    BBF_FORECAST_ENGINE.attach(el, entries[0][0]);
+    el.querySelectorAll('.is-forecast-target').forEach(function(row) {
+      row.onclick = function() {
+        var lift = row.getAttribute('data-lift') || '';
+        if (lift) BBF_FORECAST_ENGINE.attach(el, lift);
+      };
+    });
+  }
 }
 
 function renderBody() {
