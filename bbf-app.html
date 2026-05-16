@@ -544,6 +544,15 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 @keyframes bbfComlinkSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .comlink-verdict-banner{background:rgba(255,215,0,0.1);border-left:4px solid #FFD700;color:#FFD700;padding:12px;margin-bottom:20px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;font-size:.78rem;line-height:1.45}
 .comlink-verdict-banner__close{float:right;background:transparent;border:none;color:#FFD700;font-size:1rem;cursor:pointer;padding:0 .2rem;margin-left:.5rem;font-weight:bold;line-height:1}
+/* Phase 7.1 UI Lockdown — titanium bolts on the floating buttons. CEO's
+   spec selectors injected verbatim alongside my actual selectors so both
+   future-named and current elements are pinned to viewport corners,
+   immune to any conflicting relative wrappers in the cascade. */
+.sovereign-comlink-fab{position:fixed !important;bottom:20px !important;right:20px !important;z-index:9999 !important;transform:none !important;margin:0 !important}
+.sovereign-comlink-fab.recording{transform:none !important}
+.sovereign-comlink-fab:hover{transform:translateY(-2px) scale(1.05) !important}
+#omniscience-toggle-container,.omniscience-toggle,#bbfOmniscienceToggle.omni-toggle--floating,.omni-toggle--floating{position:fixed !important;bottom:20px !important;left:20px !important;right:auto !important;top:auto !important;z-index:9999 !important;transform:none !important;margin:0 !important}
+#bbfOmniscienceToggle.omni-toggle--floating:hover{transform:translateY(-2px) !important}
 .omni-toggle{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 .omni-toggle--floating{position:fixed;left:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 5.2rem);z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .omni-toggle--panel{margin-right:.55rem}
