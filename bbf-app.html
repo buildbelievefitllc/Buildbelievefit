@@ -522,6 +522,19 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .prehab-matrix-subheader--baseline{color:rgba(0,255,204,.62)}
 .prehab-matrix-subheader--override{color:#00FFCC}
 .prehab-matrix-subheader--override::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#00FFCC;margin-right:.55rem;vertical-align:1px;box-shadow:0 0 6px rgba(0,255,204,.65)}
+.kinematic-scanner-btn{background:transparent;border:1px solid #FF00FF;color:#FF00FF;padding:5px 10px;font-size:12px;border-radius:4px;cursor:pointer;margin-top:5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;-webkit-tap-highlight-color:rgba(0,0,0,0);transition:background .15s ease,filter .15s ease}
+.kinematic-scanner-btn:hover:not(:disabled){background:rgba(255,0,255,.08);filter:brightness(1.12)}
+.kinematic-scanner-btn:disabled{opacity:.6;cursor:not-allowed}
+.kinematic-results-panel{background:rgba(255,0,255,.05);border-left:3px solid #FF00FF;padding:10px;margin-top:10px;font-size:13px;color:#E0E0E0;border-radius:0 6px 6px 0;animation:bbfKinFade .25s ease-out}
+.kinematic-results-panel--loading{animation:bbfKinPulse 1.4s ease-in-out infinite;color:#FF00FF;font-style:italic;letter-spacing:.5px}
+.kinematic-results-panel__flags{margin-top:6px;padding-left:14px;color:#C8C8C8;line-height:1.55}
+.kinematic-results-panel__flags li{margin-bottom:3px}
+.kinematic-results-panel__row{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap}
+.kinematic-results-panel__lift{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,0,255,.7);font-weight:800}
+.form-score-metric{font-weight:900;color:#FF00FF;font-size:18px}
+.kinematic-cue{font-weight:bold;color:#FFF;margin-top:8px;line-height:1.5}
+@keyframes bbfKinFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bbfKinPulse{0%,100%{opacity:.55}50%{opacity:1}}
 .omni-toggle{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 .omni-toggle--floating{position:fixed;right:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 5.2rem);z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .omni-toggle--panel{margin-right:.55rem}
@@ -11472,11 +11485,38 @@ var BBF_PREHAB_MATRIX = (function() {
     if (btn) { btn.disabled = false; btn.textContent = IDLE_LABEL; }
   }
 
-  // Session-scoped dedupe: tracks which uids have already auto-fired
-  // a baseline this page-session. Memory only — dies on reload, so the
-  // "Live Library = fresh on every page session" promise holds. Prevents
-  // tab toggling from burning a Claude credit per visit.
+  // Session-scoped dedupe: backs up the 24h localStorage cache for free
+  // protection against rapid same-session tab toggling between cache
+  // reads. Memory only — dies on reload, so a hard reload across a
+  // midnight boundary still hits the new-day cache miss correctly.
   var _autoFiredBaselineFor = {};
+
+  // Phase 5.2 cost patch — 24h baseline cache keyed by uid + local date.
+  // Strict midnight expiration (date in the key changes at the user's
+  // local midnight). Caches ONLY auto-fired baseline payloads — user
+  // Overrides always bypass to stay fresh.
+  var BASELINE_CACHE_PREFIX = 'bbf_prehab_baseline_';
+  function _baselineCacheKey(uid) { return BASELINE_CACHE_PREFIX + uid + '_' + _todayLocal(); }
+  function _readBaselineCache(uid) {
+    try {
+      var raw = localStorage.getItem(_baselineCacheKey(uid));
+      if (!raw) return null;
+      var entry = JSON.parse(raw);
+      return (entry && Array.isArray(entry.matrix)) ? entry.matrix : null;
+    } catch (_) { return null; }
+  }
+  function _writeBaselineCache(uid, matrix) {
+    try {
+      // Sweep prior-day entries for this uid before writing today's.
+      var pfx = BASELINE_CACHE_PREFIX + uid + '_';
+      var todayKey = _baselineCacheKey(uid);
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(pfx) === 0 && k !== todayKey) localStorage.removeItem(k);
+      }
+      localStorage.setItem(todayKey, JSON.stringify({ matrix: matrix }));
+    } catch (_) {}
+  }
 
   // Phase 5.1 audible: two-state generate flow.
   //   - Auto-fire baseline on tab mount → render with baseline sub-header
@@ -11547,7 +11587,12 @@ var BBF_PREHAB_MATRIX = (function() {
           return;
         }
         _renderResults(parsed.matrix, mode);
-        console.log('[BBF_PREHAB v5.1] ' + uid + ' · mode=' + mode + ' → ' + parsed.matrix.length + ' movements · friction_len=' + friction.length);
+        // Cost patch: persist auto-baseline for the rest of the local
+        // day. Override responses + admin mocks are not cached (live).
+        if (mode === 'baseline' && !body.admin_override) {
+          _writeBaselineCache(uid, parsed.matrix);
+        }
+        console.log('[BBF_PREHAB v5.2] ' + uid + ' · mode=' + mode + ' → ' + parsed.matrix.length + ' movements · friction_len=' + friction.length);
       });
     }).catch(function(err) {
       console.warn('[BBF_PREHAB v5.1] fetch failed:', err && err.message || err);
@@ -11558,9 +11603,9 @@ var BBF_PREHAB_MATRIX = (function() {
     });
   }
 
-  // Auto-fire the baseline on tab mount — once per uid per page-session.
-  // Skipped if results container already has cards (idempotent re-render
-  // protection) or if the user already auto-fired this session.
+  // Auto-fire the baseline on tab mount — once per uid per page-session,
+  // skipped entirely if a same-day baseline is already cached in
+  // localStorage. Cached baseline renders synchronously; no network call.
   function autoFireBaseline() {
     var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
     if (!uid) return;
@@ -11568,6 +11613,17 @@ var BBF_PREHAB_MATRIX = (function() {
     var con = document.getElementById(RESULTS_ID);
     if (con && con.querySelector('.prehab-matrix-card')) return;
     _autoFiredBaselineFor[uid] = true;
+    // Cost patch: serve same-day baseline from cache when available.
+    // Bypassed under Omniscience so admin toggling still shows live mocks.
+    var omni = !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true);
+    if (!omni) {
+      var cached = _readBaselineCache(uid);
+      if (cached) {
+        _renderResults(cached, 'baseline');
+        console.log('[BBF_PREHAB v5.2] ' + uid + ' · baseline cache hit (today=' + _todayLocal() + ')');
+        return;
+      }
+    }
     generate({ baseline: true });
   }
 
@@ -11593,7 +11649,262 @@ var BBF_PREHAB_MATRIX = (function() {
     keys.forEach(function(k) { localStorage.removeItem(k); });
   } catch (_) {}
 
-  return { init: init, generate: generate, autoFireBaseline: autoFireBaseline };
+  // Public clear — invoked by BBF_OMNISCIENCE_TOGGLE on state flip so the
+  // next autoFireBaseline pulls fresh (admin mock or real). Clears the
+  // 24h baseline cache, the in-memory dedupe flag, and the rendered cards.
+  function clearCache(uid) {
+    try {
+      var prefix = BASELINE_CACHE_PREFIX + (uid ? uid + '_' : '');
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(prefix) === 0) localStorage.removeItem(k);
+      }
+    } catch (_) {}
+    if (uid) delete _autoFiredBaselineFor[uid];
+    else _autoFiredBaselineFor = {};
+    // Empty the rendered cards so the next autoFireBaseline pass can re-fire.
+    var con = document.getElementById(RESULTS_ID);
+    if (con) con.innerHTML = '';
+  }
+
+  return { init: init, generate: generate, autoFireBaseline: autoFireBaseline, clearCache: clearCache };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_KINEMATICS · Phase 6 — Live Kinematic Mapping (Form Check)
+// ────────────────────────────────────────────────────────────────────────
+// "🎥 Form Check" button injected by RDW() at the bottom of every primary
+// .eb exercise block. On click: opens the device camera (or file picker)
+// via a shared hidden <input type="file">. On image select: resize via
+// canvas (max 1024px long edge, JPEG 0.8) → base64 → POST to
+// /functions/v1/bbf-agentic-kinematics → render the form_score +
+// kinematic_flags + correction_cue into a .kinematic-results-panel
+// directly beneath the lift block.
+//
+// Omniscience Protocol — sends admin_override based on
+// window.BBF_ADMIN_OVERRIDE. When true, the backend returns the
+// hardcoded "98 / Perfect spinal / Add 10 lbs" mock per CEO spec.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_KINEMATICS = (function() {
+  var ENDPOINT      = '/functions/v1/bbf-agentic-kinematics';
+  var FILE_INPUT_ID = 'bbf-kinematics-file';
+  var MAX_LONG_EDGE = 1024;
+  var JPEG_QUALITY  = 0.8;
+  var _activeBlock  = null;     // .eb element awaiting a file
+  var _activeLift   = '';
+  var _inFlight     = false;
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Ensure the hidden file input is present in the DOM. Shared across
+  // every Form Check button — the active block is tracked in module
+  // state. Idempotent.
+  function _ensureFileInput() {
+    var input = document.getElementById(FILE_INPUT_ID);
+    if (input) return input;
+    input = document.createElement('input');
+    input.type   = 'file';
+    input.id     = FILE_INPUT_ID;
+    input.accept = 'image/*';
+    input.setAttribute('capture', 'environment');
+    input.style.display = 'none';
+    input.addEventListener('change', _onFileSelected);
+    document.body.appendChild(input);
+    return input;
+  }
+
+  // Find or create the .kinematic-results-panel as a child of the active
+  // .eb block. Replace any existing panel content (re-scan replaces prior).
+  function _resultsPanel(block) {
+    if (!block) return null;
+    var panel = block.querySelector('.kinematic-results-panel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.className = 'kinematic-results-panel';
+      block.appendChild(panel);
+    }
+    return panel;
+  }
+
+  function _renderLoading(block, liftName) {
+    var panel = _resultsPanel(block);
+    if (!panel) return;
+    panel.classList.add('kinematic-results-panel--loading');
+    panel.innerHTML = '&#x1F4F8; Analyzing biomechanics for ' + _esc(liftName) + '&hellip;';
+  }
+
+  function _renderResults(block, liftName, payload) {
+    var panel = _resultsPanel(block);
+    if (!panel) return;
+    panel.classList.remove('kinematic-results-panel--loading');
+    var score = (payload && typeof payload.form_score === 'number') ? Math.round(payload.form_score) : 0;
+    var flags = (payload && Array.isArray(payload.kinematic_flags)) ? payload.kinematic_flags : [];
+    var cue   = (payload && payload.correction_cue) || '—';
+    var flagsHtml = flags.map(function(f) { return '<li>' + _esc(f) + '</li>'; }).join('');
+    panel.innerHTML =
+      '<div class="kinematic-results-panel__row">' +
+        '<span class="form-score-metric">' + score + ' / 100</span>' +
+        '<span class="kinematic-results-panel__lift">' + _esc(liftName) + ' &middot; Form Score</span>' +
+      '</div>' +
+      (flagsHtml ? '<ul class="kinematic-results-panel__flags">' + flagsHtml + '</ul>' : '') +
+      '<div class="kinematic-cue">' + _esc(cue) + '</div>';
+  }
+
+  function _renderError(block, liftName, msg) {
+    var panel = _resultsPanel(block);
+    if (!panel) return;
+    panel.classList.remove('kinematic-results-panel--loading');
+    panel.innerHTML = '<div class="kinematic-cue" style="color:#FF8866">&#x26A0; ' + _esc(msg || 'Scan failed.') + ' Tap Form Check to retry.</div>';
+  }
+
+  // Resize an image File via canvas to MAX_LONG_EDGE on the long side,
+  // re-encode as JPEG at JPEG_QUALITY, return { base64, mime }. Keeps
+  // POST payloads in the few-hundred-KB range for typical phone photos.
+  function _resizeToBase64(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = function() { reject(new Error('FileReader failed.')); };
+      reader.onload  = function(e) {
+        var img = new Image();
+        img.onerror = function() { reject(new Error('Image decode failed.')); };
+        img.onload  = function() {
+          var w = img.naturalWidth, h = img.naturalHeight;
+          if (!w || !h) { reject(new Error('Image dimensions zero.')); return; }
+          var scale = Math.min(1, MAX_LONG_EDGE / Math.max(w, h));
+          var tw = Math.round(w * scale), th = Math.round(h * scale);
+          var canvas = document.createElement('canvas');
+          canvas.width  = tw;
+          canvas.height = th;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, tw, th);
+          try {
+            var dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+            var m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+            if (!m) { reject(new Error('Canvas export failed.')); return; }
+            resolve({ base64: m[2], mime: m[1] });
+          } catch (err) { reject(err); }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function _onFileSelected(e) {
+    var file = e && e.target && e.target.files && e.target.files[0];
+    var input = document.getElementById(FILE_INPUT_ID);
+    if (input) input.value = '';  // reset so re-picking the same file fires change again
+    if (!file) return;
+    if (!_activeBlock || !_activeLift) return;
+    if (_inFlight) return;
+
+    var block    = _activeBlock;
+    var liftName = _activeLift;
+    _renderLoading(block, liftName);
+    _inFlight = true;
+    _setButtonDisabled(block, true);
+
+    _resizeToBase64(file).then(function(out) {
+      var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+      if (!uid) throw new Error('No active user.');
+
+      var headers = { 'Content-Type': 'application/json' };
+      var anon = _anonKey();
+      if (anon) {
+        headers['Authorization'] = 'Bearer ' + anon;
+        headers['apikey']        = anon;
+      }
+      var tok = _adminToken();
+      if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+      var body = {
+        uid:            uid,
+        image_base64:   out.base64,
+        mime_type:      out.mime,
+        lift_name:      liftName,
+        admin_override: !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+      };
+
+      return window.fetch(_supabaseUrl() + ENDPOINT, {
+        method:  'POST',
+        headers: headers,
+        body:    JSON.stringify(body)
+      });
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok || !parsed) {
+          console.warn('[BBF_KINEMATICS] engine returned HTTP ' + res.status + ':', parsed || t);
+          _renderError(block, liftName, 'Scanner error (HTTP ' + res.status + ').');
+          return;
+        }
+        _renderResults(block, liftName, parsed);
+        console.log('[BBF_KINEMATICS] ' + liftName + ' → score=' + parsed.form_score);
+      });
+    }).catch(function(err) {
+      console.warn('[BBF_KINEMATICS] flow failed:', err && err.message || err);
+      _renderError(block, liftName, (err && err.message) || 'Network error.');
+    }).then(function() {
+      _inFlight = false;
+      _setButtonDisabled(block, false);
+    });
+  }
+
+  function _setButtonDisabled(block, disabled) {
+    if (!block) return;
+    var btn = block.querySelector('.kinematic-scanner-btn');
+    if (btn) btn.disabled = !!disabled;
+  }
+
+  function _onButtonClick(e) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    var btn = e && e.currentTarget;
+    if (!btn) return;
+    var block = btn.closest('.eb');
+    if (!block) return;
+    _activeBlock = block;
+    _activeLift  = btn.dataset.liftName || '(unknown)';
+    var input = _ensureFileInput();
+    input.click();
+  }
+
+  // Idempotent — binds every Form Check button in the document exactly
+  // once. Called from RDW() after the workout view re-renders.
+  function init() {
+    _ensureFileInput();
+    var buttons = document.querySelectorAll('.kinematic-scanner-btn');
+    for (var i = 0; i < buttons.length; i++) {
+      var btn = buttons[i];
+      if (btn.dataset.bbfBound === '1') continue;
+      btn.dataset.bbfBound = '1';
+      btn.addEventListener('click', _onButtonClick);
+    }
+  }
+
+  return { init: init };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
@@ -12033,6 +12344,12 @@ function RDW() {
           '<input class="sinp' + (sv1.w ? ' done' : '') + '" type="number" placeholder="lbs" inputmode="decimal" value="' + (sv1.w || _prefillWeight) + '" data-uid="' + uid + '" data-dk="' + dk + '" data-ek="' + ek + '" data-s="' + s + '" data-f="w"/></div>';
       }
     }
+    // Phase 6 — Live Kinematic Mapping. Append the Form Check button at
+    // the bottom of every non-cardio exercise block; BBF_KINEMATICS.init()
+    // (called after the .innerHTML write below) binds the click handler.
+    if (!_isCardio) {
+      h += '<button type="button" class="kinematic-scanner-btn" data-lift-name="' + exName.replace(/"/g,'&quot;') + '">&#x1F3A5; Form Check</button>';
+    }
     h += '</div></div>';
   });
   // Readiness gate · Admin Master Key. Clients can't mark a session
@@ -12059,6 +12376,11 @@ function RDW() {
     h += '<button class="dbtn" data-dk="' + dk + '">&#x2713; ' + _t('app-wo-complete','Mark Session Complete') + '</button>';
   }
   con.innerHTML = h;
+  // Phase 6 — bind Form Check buttons rendered above. Idempotent via
+  // dataset.bbfBound flag, safe to call on every RDW pass.
+  if (typeof BBF_KINEMATICS !== 'undefined') {
+    try { BBF_KINEMATICS.init(); } catch (_) {}
+  }
   con.querySelectorAll('.eh').forEach(function(hdr) {
     hdr.onclick = function() {
       TEX(hdr);
