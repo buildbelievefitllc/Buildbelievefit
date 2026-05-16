@@ -1,33 +1,36 @@
-// bbf-agentic-prehab — Dynamic Prehab Matrix (Phase 4)
+// bbf-agentic-prehab — Live Library Recovery Matrix (Phase 5, v2)
 // ─────────────────────────────────────────────────────────────────────
-// Reads the athlete's last 48 hours of bbf_readiness telemetry (sleep_quality,
-// soreness_level), asks Claude Opus 4.7 to produce a 3-step daily recovery
-// protocol prioritizing CNS recovery, tissue repair, and hypertrophy readiness.
+// Phase 5 audible: scope reframed from autonomic-readiness-driven
+// (sleep/soreness · 48h bbf_readiness window) to demographic + workload +
+// friction-driven. Reads the user's profile from bbf_users, today's lifts
+// from bbf_sets (day_key prefix match), and a free-text "Friction Scanner"
+// string supplied by the client. Returns a 3-movement recovery matrix.
 //
-// SCHEMA NOTES:
-//   - bbf_readiness uses `timestamp` (timestamptz), NOT `created_at`. Confirmed
-//     via information_schema; Phase B re-route (§12 PR #171) corrected the
-//     column mapping in this session's prior work.
-//   - 48-hour window: timestamp.gte.<now-48h> · order=timestamp.desc
-//
-// FAILURE POSTURE:
-//   - Omniscience Protocol is the FIRST gate; admin_override=true skips BOTH
-//     the DB read AND the Anthropic call, returning a multi-tier mock so the
-//     UI render can be eyeballed without burning API credits.
-//   - On any non-2xx, parse failure, missing config, or 12s timeout: return
-//     the static "Default Baseline Recovery Protocol" payload with
-//     source="fallback". Per directive: do NOT crash the client — every code
-//     path returns a valid PrehabMatrix payload at HTTP 200.
+// SCOPE CHANGE: this engine is now a GLOBAL CORE FEATURE — available to
+// every tier (gateway / youth_athlete / architect / sovereign), not just
+// the Athlete Portal. Tier gate update in bbf-app.html ships alongside.
 //
 // Request shape:
 //   POST /functions/v1/bbf-agentic-prehab
-//   Content-Type: application/json
-//   X-BBF-Admin-Token: <optional shared secret>
 //   Body:
 //   {
-//     "uid": "jacque_bbf",        // required (slug or UUID)
-//     "admin_override": false     // optional · true → Omniscience bypass
+//     "uid": "jacque_bbf",                    // required (slug or uuid)
+//     "actual_uuid": "0df9a69a-...",          // optional · pre-resolved
+//     "reported_friction": "tight low back",  // required · can be ""
+//     "client_context": {                     // optional · frontend enrichment
+//       "goal":  "recomp",                    // local state, not in bbf_users
+//       "today": "2026-05-16",                // client-local date for day_key
+//       "partner": "wayne_bbf"
+//     },
+//     "admin_override": false                 // Omniscience bypass
 //   }
+//
+// Response shape (200 OK):
+//   { matrix: [{ name, duration, focus, reason }, ...3 entries...] }
+//
+// FAILURE POSTURE: matches v1 — every code path returns a valid matrix
+// at HTTP 200. Omniscience first-gate, static baseline matrix on any
+// upstream failure. Client never sees an error state.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -44,38 +47,40 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL                  = 'claude-opus-4-7';
-const MAX_TOKENS             = 2048;
-const EFFORT_DEFAULT         = 'high';
-const CLAUDE_TIMEOUT_MS      = 12000;
-const READINESS_WINDOW_HOURS = 48;
+const MODEL             = 'claude-opus-4-7';
+const MAX_TOKENS        = 2048;
+const EFFORT_DEFAULT    = 'high';
+const CLAUDE_TIMEOUT_MS = 12000;
 
 const SYSTEM_PROMPT = [
-  'You are the BBF Dynamic Prehab Matrix. The athlete is reviewing their recovery directive for the day. They are a hypertrophy-focused lifter and your prescription MUST prioritize central nervous system (CNS) recovery, tissue repair, and readiness for their next progressive-overload session.',
+  'You are an elite physical therapist generating a tailored 3-movement recovery / prehab matrix for an athlete.',
   '',
-  '# WHAT YOU RECEIVE',
-  '- A 48-hour rolling window of bbf_readiness rows: sleep_quality (0-10), soreness_level (0-10), timestamp.',
-  '- Derived metrics: sleep_avg, soreness_avg, sample_count.',
+  '# DECISION INPUTS YOU RECEIVE',
+  '- profile — name, subscription_tier, metabolic_tier, current_streak, cns_friction_score (if present), and optional goal supplied by the client. Use this to read the athlete\'s context. A gateway-tier postpartum client gets different prescriptions than a sovereign-tier strength athlete or a youth-athlete tier (gateway/youth_athlete) recovering between practice and game-day.',
+  '- today_workload — array of { exercise_key, weight_lbs, reps, day_key } for lifts the athlete completed TODAY. Empty array = non-training day → program for general recovery rather than post-session recovery.',
+  '- reported_friction — free-text string from the athlete describing tightness, pain, fatigue, or specific zones. May be empty.',
   '',
-  '# HOW TO READ THE TELEMETRY',
-  '- sleep_quality_avg >= 7 AND soreness_level_avg <= 4 → Tier 1 (Active Recovery). Light mobility + standard hydration + low-intensity blood flow.',
-  '- sleep_quality_avg 5-6 OR soreness_level_avg 5-7 → Tier 2 (Tissue Repair). Targeted mobility for the fatigued zones, electrolyte-forward rehydration, contrast modalities.',
-  '- sleep_quality_avg < 5 OR soreness_level_avg > 7 → Tier 3 (Deload). Parasympathetic-priming mobility only, aggressive sodium-forward rehydration, NSDR or passive recovery.',
+  '# OUTPUT RULES',
+  '- EXACTLY 3 movements.',
+  '- Each movement object: { name, duration, focus, reason }.',
+  '  · name: specific protocol (3-6 words). Examples: "90/90 Hip Capsule Mobilization", "Banded Pec Doorway Stretch".',
+  '  · duration: time or rep prescription. Examples: "2 mins", "30 sec hold x 3 sides", "10 controlled reps".',
+  '  · focus: anatomic target zone. Examples: "Hip flexors / TFL", "Thoracic spine", "Posterior chain".',
+  '  · reason: ONE tactical sentence linking THIS movement to THE athlete\'s context — cite their friction text if present, OR the specific lift volume they did today, OR their demographic.',
   '',
-  '# WHAT YOU RETURN — EXACTLY 3 STEPS IN THIS ORDER',
-  '1. mobility — title, detail (one tactical sentence: what to do, where, what to feel), duration_minutes (integer 5-25), intensity ("low" | "moderate" | "high")',
-  '2. hydration — title, detail (one tactical sentence: what fluid, when, why now), target_oz (integer 16-128), electrolyte_focus ("sodium" | "potassium" | "magnesium" | "balanced")',
-  '3. active_recovery — title, detail (one tactical sentence), duration_minutes (integer 10-45), modality (e.g. "walking", "swim", "cycling", "NSDR", "sauna", "cold plunge")',
+  '# PRESCRIPTION LOGIC',
+  '- Prioritize what reported_friction signals. If the athlete says "lower back tight", every movement should at least be back-aware.',
+  '- If reported_friction is empty AND today_workload is non-empty, infer the dominant movement pattern (push / pull / squat / hinge) and prescribe complementary recovery for the antagonist / supporting tissue.',
+  '- If reported_friction is empty AND today_workload is empty, default to a general posterior-chain / hip / thoracic reset protocol.',
   '',
-  '# OUTPUT FIELDS',
-  '- protocol_tier — exactly one of: "Tier 1 — Active Recovery", "Tier 2 — Tissue Repair", "Tier 3 — Deload".',
-  '- cns_status — ONE sentence describing the athlete\'s current CNS state and what the protocol is targeting. Direct coach voice.',
-  '- hypertrophy_priming — ONE sentence linking today\'s recovery to tomorrow\'s lift readiness. Example: "Clears posterior-chain DOMS so tomorrow\'s pull volume lands on fresh tissue."',
+  '# SAFETY (non-negotiable)',
+  '- Never prescribe a loaded or end-range movement that would aggravate a stated friction zone. If pain is mentioned, prescribe decompression / capsule work / breath-driven mobilization — NOT loaded range-of-motion.',
+  '- For postpartum-coded clients (e.g. metabolic_tier flagged postpartum, name matches Jacquelyn) avoid deep flexion of the rectus abdominis until cleared.',
+  '- For youth athletes (gateway/youth_athlete tier with younger demographic signals) lean into mobility + neuromuscular reset, not strength holds.',
   '',
-  '# CONSTRAINTS',
-  '- Direct voice. No "consider", "perhaps", "you may". Imperatives only.',
-  '- Never prescribe a movement that loads a fatigued joint. If soreness is high, the mobility vector is decompression / capsule work, NOT loaded ROM.',
-  '- Numerical fields are integers within the given ranges. Never null, never strings.',
+  '# VOICE',
+  '- Direct. Imperative. No "consider", no "may want to", no hedging.',
+  '- Reason field should reference SPECIFIC context (their friction text, the exercise_key they did) not generic platitudes.',
   '',
   'Return ONLY structured JSON matching the response schema. No markdown, no preamble.',
 ].join('\n');
@@ -83,117 +88,51 @@ const SYSTEM_PROMPT = [
 const RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
-    protocol_tier: {
-      type: 'string',
-      description: 'One of "Tier 1 — Active Recovery", "Tier 2 — Tissue Repair", "Tier 3 — Deload" — matched to telemetry.',
-    },
-    cns_status: {
-      type: 'string',
-      description: 'One-sentence read on the athlete\'s current CNS state. Direct coach voice.',
-    },
-    steps: {
+    matrix: {
       type: 'array',
-      description: 'Exactly 3 steps, in order: mobility, hydration, active_recovery.',
+      description: 'Exactly 3 recovery movements tailored to the athlete\'s profile + today\'s workload + reported friction.',
       items: {
         type: 'object',
         properties: {
-          vector:            { type: 'string',  description: '"mobility" | "hydration" | "active_recovery"' },
-          title:             { type: 'string',  description: 'Short directive title (3-6 words).' },
-          detail:            { type: 'string',  description: 'One tactical sentence — what to do.' },
-          duration_minutes:  { type: 'integer', description: 'Integer minutes. Omit for hydration step.' },
-          intensity:         { type: 'string',  description: '"low" | "moderate" | "high" — mobility step only.' },
-          target_oz:         { type: 'integer', description: 'Integer oz. Hydration step only.' },
-          electrolyte_focus: { type: 'string',  description: '"sodium" | "potassium" | "magnesium" | "balanced" — hydration step only.' },
-          modality:          { type: 'string',  description: 'e.g. "walking" — active_recovery step only.' },
+          name:     { type: 'string', description: 'Specific protocol name (3-6 words).' },
+          duration: { type: 'string', description: 'Time or rep prescription. Examples: "2 mins", "30 sec hold x 3 sides".' },
+          focus:    { type: 'string', description: 'Anatomic target zone. Examples: "Hip flexors / TFL", "Thoracic spine".' },
+          reason:   { type: 'string', description: 'One tactical sentence linking this movement to the athlete\'s specific context.' },
         },
-        required: ['vector', 'title', 'detail'],
+        required: ['name', 'duration', 'focus', 'reason'],
       },
     },
-    hypertrophy_priming: {
-      type: 'string',
-      description: 'One sentence linking today\'s recovery to tomorrow\'s lift readiness.',
-    },
   },
-  required: ['protocol_tier', 'cns_status', 'steps', 'hypertrophy_priming'],
+  required: ['matrix'],
   additionalProperties: false,
 };
 
-// ─── Static "Default Baseline Recovery Protocol" ───────────────────────
-// Returned on ANY upstream failure (Anthropic non-2xx, timeout, parse fail,
-// missing config, no readiness data, uid unresolvable). Per directive: do
-// not crash the client — every code path must return a valid PrehabMatrix
-// payload at HTTP 200.
-function defaultBaselineProtocol() {
-  return {
-    protocol_tier: 'Default Baseline',
-    cns_status:    'Insufficient telemetry — defaulting to the universal recovery floor. Log Morning Lab Audit to unlock personalized prescriptions.',
-    steps: [
-      {
-        vector:           'mobility',
-        title:            'Full-Body Reset Flow',
-        detail:           'Cat-cow x10, 90/90 hip switches x8/side, wall slides x10. Slow tempo — feel each segment move.',
-        duration_minutes: 8,
-        intensity:        'low',
-      },
-      {
-        vector:            'hydration',
-        title:             'Electrolyte-Forward Rehydration',
-        detail:            'Drink 32 oz water with a balanced electrolyte mix (sodium + potassium + magnesium) within the hour.',
-        target_oz:         32,
-        electrolyte_focus: 'balanced',
-      },
-      {
-        vector:           'active_recovery',
-        title:            'Zone 2 Walk',
-        detail:           'Walk 20 minutes at conversational pace. Nasal breathing only — drives parasympathetic tone.',
-        duration_minutes: 20,
-        modality:         'walking',
-      },
-    ],
-    hypertrophy_priming: 'Baseline recovery clears systemic fatigue and primes the CNS for the next progressive-overload session.',
-    source:              'fallback',
-    generated_at:        new Date().toISOString(),
-  };
-}
-
-// ─── Omniscience Mock — Multi-Tier Stress Test ─────────────────────────
-// Returned when admin_override=true. Designed to exercise every UI render
-// surface: long titles, max-range numerical fields, atypical modality,
-// saturated tier label, all step-shape fields populated.
+// ─── Omniscience Mock (CEO spec) ───────────────────────────────────────
+// admin_override=true → return this verbatim. Skips DB + Claude call.
 function adminOverrideMock() {
   return {
-    protocol_tier: 'ADMIN OVERRIDE — Multi-Tier Stress Test',
-    cns_status:    'OMNISCIENCE PROTOCOL ACTIVE. CNS bypass engaged — rendering full UI stress matrix across all three recovery vectors. Telemetry pipeline skipped; Anthropic API spared.',
-    steps: [
-      {
-        vector:           'mobility',
-        title:            'Posterior-Chain Decompression Sweep',
-        detail:           'Thoracic foam-roller passes x10, deep squat hold x60s, 90/90 hip mobilization x8/side. Find resistance, breathe through it for two cycles.',
-        duration_minutes: 25,
-        intensity:        'high',
-      },
-      {
-        vector:            'hydration',
-        title:             'Sodium-Forward Rehydration Bolus',
-        detail:            'Drink 128 oz water across the next 4 hours with 1.5g sodium total. Front-load the first 32 oz within 20 minutes.',
-        target_oz:         128,
-        electrolyte_focus: 'sodium',
-      },
-      {
-        vector:           'active_recovery',
-        title:            'Contrast Sauna → Plunge Cycle',
-        detail:           'Sauna 12 min at 180°F, cold plunge 2 min at 50°F, repeat for 3 rounds. Finish in the cold.',
-        duration_minutes: 45,
-        modality:         'contrast sauna/plunge',
-      },
+    matrix: [
+      { name: 'ADMIN BYPASS: Psoas Release',         duration: '2 mins', focus: 'Hip flexors / Psoas major', reason: 'Master Key Active.' },
+      { name: 'ADMIN BYPASS: Thoracic Extension',    duration: '2 mins', focus: 'Upper back / T-spine',      reason: 'Master Key Active.' },
+      { name: 'ADMIN BYPASS: Posterior Chain Reset', duration: '90 sec', focus: 'Hamstrings / Glutes',       reason: 'Master Key Active.' },
     ],
-    hypertrophy_priming: 'ADMIN OVERRIDE: this stress-test payload exercises every visual surface — long titles, max numerical fields, saturated tier label — so the UI render can be verified end-to-end without burning a single API credit.',
-    source:              'admin_override',
-    generated_at:        new Date().toISOString(),
   };
 }
 
-// ─── Slug → UUID resolver (mirrors Phase 2/3 pattern) ──────────────────
+// ─── Static "Default Baseline" matrix ──────────────────────────────────
+// Returned on ANY upstream failure. Per directive: never crash the
+// client. Matches the response schema exactly.
+function defaultBaselineMatrix() {
+  return {
+    matrix: [
+      { name: 'Cat-Cow Spinal Flow',         duration: '2 mins',                focus: 'Full spine mobility',    reason: 'Universal baseline reset when telemetry is unavailable. Restores segmental motion top-to-bottom.' },
+      { name: '90/90 Hip Switch',            duration: '30 sec hold x 3 sides', focus: 'Hip capsule + rotators', reason: 'Pairs internal + external hip rotation in a low-friction position. Safe for every demographic.' },
+      { name: 'Childs Pose with Side Reach', duration: '60 sec total',          focus: 'Lats / lower back',      reason: 'Decompresses the lumbar segment and opens the lats. Safe finisher regardless of session load.' },
+    ],
+  };
+}
+
+// ─── Slug → UUID resolver (mirrors Phase 2/3/4 pattern) ────────────────
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isUuid(s: string): boolean { return UUID_RE.test(s); }
 
@@ -210,7 +149,7 @@ async function resolveUuid(uid: string, supabaseUrl: string, supabaseKey: string
       body: '{}',
     });
     if (!res.ok) {
-      console.error(`[bbf-agentic-prehab] uid_map RPC failed: HTTP ${res.status}`);
+      console.error(`[bbf-agentic-prehab v2] uid_map RPC failed: HTTP ${res.status}`);
       return null;
     }
     const rows = await res.json();
@@ -220,21 +159,19 @@ async function resolveUuid(uid: string, supabaseUrl: string, supabaseKey: string
     }
     return null;
   } catch (e) {
-    console.error(`[bbf-agentic-prehab] uid_map RPC error: ${(e as Error).message}`);
+    console.error(`[bbf-agentic-prehab v2] uid_map RPC error: ${(e as Error).message}`);
     return null;
   }
 }
 
-// ─── 48-hour readiness fetch ───────────────────────────────────────────
-async function fetchReadinessWindow(
+// ─── User profile fetch ────────────────────────────────────────────────
+async function fetchUserProfile(
   uuid: string,
   supabaseUrl: string,
   supabaseKey: string,
-): Promise<Array<{ sleep_quality: number | null; soreness_level: number | null; timestamp: string | null }> | null> {
-  const sinceIso = new Date(Date.now() - READINESS_WINDOW_HOURS * 3600 * 1000).toISOString();
-  const select = 'sleep_quality,soreness_level,timestamp';
-  const qs = `user_id=eq.${encodeURIComponent(uuid)}&timestamp=gte.${encodeURIComponent(sinceIso)}&select=${select}&order=timestamp.desc`;
-  const url = `${supabaseUrl}/rest/v1/bbf_readiness?${qs}`;
+): Promise<Record<string, unknown> | null> {
+  const select = 'name,subscription_tier,metabolic_tier,current_streak,cns_friction_score';
+  const url = `${supabaseUrl}/rest/v1/bbf_users?id=eq.${encodeURIComponent(uuid)}&select=${select}&limit=1`;
   try {
     const res = await fetch(url, {
       headers: {
@@ -243,20 +180,46 @@ async function fetchReadinessWindow(
       },
     });
     if (!res.ok) {
-      console.error(`[bbf-agentic-prehab] readiness fetch failed: HTTP ${res.status} ${await res.text()}`);
+      console.error(`[bbf-agentic-prehab v2] user fetch failed: HTTP ${res.status} ${await res.text()}`);
       return null;
     }
-    return await res.json();
+    const rows = await res.json();
+    return (Array.isArray(rows) && rows[0]) || null;
   } catch (e) {
-    console.error(`[bbf-agentic-prehab] readiness fetch error: ${(e as Error).message}`);
+    console.error(`[bbf-agentic-prehab v2] user fetch error: ${(e as Error).message}`);
     return null;
   }
 }
 
-function avg(nums: Array<number | null | undefined>): number | null {
-  const clean = nums.filter((n) => typeof n === 'number' && !Number.isNaN(n)) as number[];
-  if (!clean.length) return null;
-  return clean.reduce((a, b) => a + b, 0) / clean.length;
+// ─── Today's sets fetch ────────────────────────────────────────────────
+// bbf_sets.day_key is text shaped "YYYY-MM-DD_dN". Filter via like prefix
+// match on the client-supplied date (preferred — uses athlete's local TZ)
+// or UTC today as fallback.
+async function fetchTodaySets(
+  uuid: string,
+  todayDate: string,
+  supabaseUrl: string,
+  supabaseKey: string,
+): Promise<Array<Record<string, unknown>> | null> {
+  const select = 'exercise_key,weight_lbs,reps,day_key';
+  const qs = `user_id=eq.${encodeURIComponent(uuid)}&day_key=like.${encodeURIComponent(todayDate + '%')}&select=${select}&order=day_key.desc&limit=80`;
+  const url = `${supabaseUrl}/rest/v1/bbf_sets?${qs}`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'apikey':        supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+      },
+    });
+    if (!res.ok) {
+      console.error(`[bbf-agentic-prehab v2] sets fetch failed: HTTP ${res.status} ${await res.text()}`);
+      return null;
+    }
+    return await res.json();
+  } catch (e) {
+    console.error(`[bbf-agentic-prehab v2] sets fetch error: ${(e as Error).message}`);
+    return null;
+  }
 }
 
 // ─── Anthropic call w/ 12s AbortController timeout ─────────────────────
@@ -276,7 +239,7 @@ async function callClaude(userMessage: string, apiKey: string) {
       {
         type:          'text',
         text:          SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' },
+        cache_control: { type: 'ephemeral' },  // CEO directive
       },
     ],
     messages: [
@@ -302,14 +265,14 @@ async function callClaude(userMessage: string, apiKey: string) {
 
     if (!res.ok) {
       const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-      console.error(`[bbf-agentic-prehab] Anthropic API error: status=${res.status} body=${JSON.stringify(body)}`);
+      console.error(`[bbf-agentic-prehab v2] Anthropic API error: status=${res.status} body=${JSON.stringify(body)}`);
       return { ok: false as const, status: res.status, error: errMsg, raw: body };
     }
     return { ok: true as const, status: res.status, body };
   } catch (e) {
     const err = e as Error;
     const reason = err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message;
-    console.error(`[bbf-agentic-prehab] Claude fetch threw: ${reason}`);
+    console.error(`[bbf-agentic-prehab v2] Claude fetch threw: ${reason}`);
     return { ok: false as const, status: 0, error: reason, raw: null };
   } finally {
     clearTimeout(timeout);
@@ -324,6 +287,11 @@ function extractTextBlock(content: any[]): string | null {
   return null;
 }
 
+function utcToday(): string {
+  const d = new Date();
+  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+}
+
 // ─── Handler ───────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -333,7 +301,7 @@ serve(async (req: Request) => {
   if (expectedToken) {
     const sent = req.headers.get('x-bbf-admin-token') || '';
     if (sent !== expectedToken) {
-      console.warn('[bbf-agentic-prehab] rejected: bad/missing X-BBF-Admin-Token');
+      console.warn('[bbf-agentic-prehab v2] rejected: bad/missing X-BBF-Admin-Token');
       return jsonResponse({ error: 'unauthorized' }, 401);
     }
   }
@@ -342,93 +310,99 @@ serve(async (req: Request) => {
   try { payload = await req.json(); }
   catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const uidRaw        = payload?.uid;
-  const adminOverride = !!payload?.admin_override;
-
-  if (typeof uidRaw !== 'string' || !uidRaw) {
-    return jsonResponse({ error: 'missing_uid' }, 400);
-  }
+  const { uid, actual_uuid, reported_friction, client_context, admin_override } = payload || {};
 
   // ─── 1. OMNISCIENCE PROTOCOL — ABSOLUTE FIRST GATE ─────────────
-  // Per CEO directive: admin_override=true bypasses BOTH the DB read AND
-  // the Anthropic call. Returns the multi-tier stress-test mock so the UI
-  // render can be eyeballed at full resolution without burning credits.
-  if (adminOverride) {
+  if (admin_override === true) {
     return jsonResponse(adminOverrideMock(), 200);
   }
 
-  // ─── 2. Pull last 48h of readiness ─────────────────────────────
+  if (typeof uid !== 'string' || !uid) {
+    return jsonResponse({ error: 'missing_uid' }, 400);
+  }
+  const friction = typeof reported_friction === 'string' ? reported_friction : '';
+  const ctx      = (client_context && typeof client_context === 'object') ? client_context : {};
+  const todayDate = (typeof ctx.today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ctx.today)) ? ctx.today : utcToday();
+
+  // ─── 2. Resolve uuid + pull demographics & today's workload ────
   const SUPABASE_URL         = Deno.env.get('SUPABASE_URL');
   const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    console.error('[bbf-agentic-prehab] missing Supabase config — returning baseline fallback');
-    return jsonResponse(defaultBaselineProtocol(), 200);
+    console.error('[bbf-agentic-prehab v2] missing Supabase config — returning baseline fallback');
+    return jsonResponse(defaultBaselineMatrix(), 200);
   }
 
-  const uuid = await resolveUuid(uidRaw, SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  let uuid: string | null = null;
+  if (typeof actual_uuid === 'string' && isUuid(actual_uuid)) {
+    uuid = actual_uuid;
+  } else {
+    uuid = await resolveUuid(uid, SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  }
   if (!uuid) {
-    console.warn(`[bbf-agentic-prehab] uid not resolvable: ${uidRaw} — returning baseline fallback`);
-    return jsonResponse(defaultBaselineProtocol(), 200);
+    console.warn(`[bbf-agentic-prehab v2] uid not resolvable: ${uid} — returning baseline fallback`);
+    return jsonResponse(defaultBaselineMatrix(), 200);
   }
 
-  const readiness = await fetchReadinessWindow(uuid, SUPABASE_URL, SUPABASE_SERVICE_KEY);
-  if (!readiness || !readiness.length) {
-    console.warn(`[bbf-agentic-prehab] no readiness rows in last ${READINESS_WINDOW_HOURS}h for ${uidRaw} — returning baseline fallback`);
-    return jsonResponse(defaultBaselineProtocol(), 200);
-  }
+  // Pull profile + today's sets in parallel for latency.
+  const [userRow, todaySets] = await Promise.all([
+    fetchUserProfile(uuid, SUPABASE_URL, SUPABASE_SERVICE_KEY),
+    fetchTodaySets(uuid, todayDate, SUPABASE_URL, SUPABASE_SERVICE_KEY),
+  ]);
 
-  const sleepAvg    = avg(readiness.map((r) => r.sleep_quality));
-  const sorenessAvg = avg(readiness.map((r) => r.soreness_level));
-  const sampleCount = readiness.length;
+  // Merge: server profile (canonical) + client_context (local enrichment
+  // like `goal` which doesn't exist on bbf_users).
+  const userProfile: Record<string, unknown> = Object.assign(
+    {},
+    userRow || { uid },
+    { uid, goal: ctx.goal || null, partner: ctx.partner || null },
+  );
+  const todayWorkload = Array.isArray(todaySets) ? todaySets : [];
 
   // ─── 3. Claude call ────────────────────────────────────────────
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   if (!ANTHROPIC_API_KEY) {
-    console.error('[bbf-agentic-prehab] missing ANTHROPIC_API_KEY — returning baseline fallback');
-    return jsonResponse(defaultBaselineProtocol(), 200);
+    console.error('[bbf-agentic-prehab v2] missing ANTHROPIC_API_KEY — returning baseline fallback');
+    return jsonResponse(defaultBaselineMatrix(), 200);
   }
 
   const userMessage =
-    'Athlete telemetry — last ' + READINESS_WINDOW_HOURS + ' hours of bbf_readiness rows:\n\n' +
-    '```json\n' + JSON.stringify({
-      sleep_avg:    sleepAvg,
-      soreness_avg: sorenessAvg,
-      sample_count: sampleCount,
-      rows:         readiness,
-    }, null, 2) + '\n```\n\n' +
-    'Hypertrophy-focused lifter. Generate today\'s 3-step recovery protocol. Return ONLY the JSON schema response.';
+    'Generate a 3-movement recovery / prehab matrix for this athlete.\n\n' +
+    '## profile\n```json\n' + JSON.stringify(userProfile, null, 2) + '\n```\n\n' +
+    '## today_workload (' + todayWorkload.length + ' set' + (todayWorkload.length === 1 ? '' : 's') + ' completed on ' + todayDate + ')\n' +
+    '```json\n' + JSON.stringify(todayWorkload, null, 2) + '\n```\n\n' +
+    '## reported_friction\n' + (friction ? '"' + friction + '"' : '(none reported)') + '\n\n' +
+    'Return ONLY the JSON schema response. Exactly 3 entries in matrix.';
 
   const t0     = Date.now();
   const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
   const dur    = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-prehab] Claude failed (${result.error}) after ${dur}ms — returning baseline fallback`);
-    return jsonResponse(defaultBaselineProtocol(), 200);
+    console.warn(`[bbf-agentic-prehab v2] Claude failed (${result.error}) after ${dur}ms — returning baseline fallback`);
+    return jsonResponse(defaultBaselineMatrix(), 200);
   }
 
   const respBody: any = result.body;
   const text = extractTextBlock(respBody?.content);
   if (!text) {
-    console.warn('[bbf-agentic-prehab] no text block in response — returning baseline fallback');
-    return jsonResponse(defaultBaselineProtocol(), 200);
+    console.warn('[bbf-agentic-prehab v2] no text block in response — returning baseline fallback');
+    return jsonResponse(defaultBaselineMatrix(), 200);
   }
 
   let parsed: any;
   try { parsed = JSON.parse(text); }
   catch (e) {
-    console.warn(`[bbf-agentic-prehab] parse failed (${(e as Error).message}) — returning baseline fallback`);
-    return jsonResponse(defaultBaselineProtocol(), 200);
+    console.warn(`[bbf-agentic-prehab v2] parse failed (${(e as Error).message}) — returning baseline fallback`);
+    return jsonResponse(defaultBaselineMatrix(), 200);
   }
 
-  console.log(`[bbf-agentic-prehab] uid=${uidRaw} · samples=${sampleCount} · sleep_avg=${sleepAvg?.toFixed(1)} · soreness_avg=${sorenessAvg?.toFixed(1)} · tier=${parsed.protocol_tier} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  if (!parsed || !Array.isArray(parsed.matrix) || parsed.matrix.length !== 3) {
+    console.warn(`[bbf-agentic-prehab v2] schema shape mismatch (got ${JSON.stringify(parsed).slice(0,200)}) — returning baseline fallback`);
+    return jsonResponse(defaultBaselineMatrix(), 200);
+  }
 
-  return jsonResponse({
-    protocol_tier:       parsed.protocol_tier,
-    cns_status:          parsed.cns_status,
-    steps:               parsed.steps,
-    hypertrophy_priming: parsed.hypertrophy_priming,
-    source:              'claude',
-    generated_at:        new Date().toISOString(),
-  }, 200);
+  console.log(`[bbf-agentic-prehab v2] uid=${uid} · today=${todayDate} · sets=${todayWorkload.length} · friction_len=${friction.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+
+  // Strict response per CEO spec — only { matrix }. No extra metadata.
+  return jsonResponse({ matrix: parsed.matrix }, 200);
 });

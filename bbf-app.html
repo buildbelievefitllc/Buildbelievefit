@@ -499,6 +499,25 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .prehab-matrix--fallback .prehab-matrix__cns{border-left-color:#666;color:#aaa}
 @keyframes bbfPrehabShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .prehab-matrix__shimmer{background:linear-gradient(90deg,rgba(0,201,167,0.06) 0%,rgba(0,201,167,0.22) 50%,rgba(0,201,167,0.06) 100%);background-size:200% 100%;animation:bbfPrehabShimmer 1.4s linear infinite;color:transparent !important;border-radius:6px;min-height:1rem}
+.prehab-library-header{margin:0 0 1rem}
+.prehab-library-kicker{font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:#00FFCC;font-weight:800;margin-bottom:.25rem}
+.prehab-library-title{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.5rem;letter-spacing:2px;color:#fff;line-height:1.1}
+.prehab-library-sub{font-size:.78rem;color:rgba(255,255,255,.62);line-height:1.55;margin-top:.4rem}
+.prehab-library-label{display:block;font-size:.66rem;letter-spacing:2px;text-transform:uppercase;color:#00FFCC;font-weight:800;margin:.85rem 0 .35rem}
+.prehab-matrix-card{background:#111;border-left:4px solid #00FFCC;padding:15px;margin-bottom:10px;border-radius:4px}
+.prehab-title{font-weight:bold;color:#FFF;font-size:18px}
+.prehab-focus{color:#00FFCC;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-top:4px}
+.prehab-duration{display:inline-block;font-size:12px;color:#FFF;background:rgba(0,255,204,.14);border:1px solid rgba(0,255,204,.42);padding:2px 10px;border-radius:99px;margin-top:8px;font-weight:700;letter-spacing:.8px}
+.prehab-reason{color:#A9A9A9;font-size:13px;margin-top:5px;font-style:italic;line-height:1.5}
+.friction-input{width:100%;padding:12px;background:#222;border:1px solid #444;color:#FFF;margin-bottom:15px;border-radius:4px;font-family:inherit;font-size:.88rem;line-height:1.5;resize:vertical;box-sizing:border-box;-webkit-appearance:none;appearance:none}
+.friction-input:focus{outline:none;border-color:#00FFCC;background:#1a1a1a}
+.generate-recovery-btn{background:#00FFCC;color:#000;font-weight:bold;padding:10px 20px;border:none;cursor:pointer;text-transform:uppercase;border-radius:4px;letter-spacing:1.5px;font-size:.85rem;transition:filter .15s ease,transform .15s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
+.generate-recovery-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.generate-recovery-btn:disabled{background:#333;color:#666;cursor:not-allowed}
+.prehab-matrix-results{margin-top:1.1rem}
+.prehab-matrix-loading{padding:1.2rem;text-align:center;font-size:.78rem;letter-spacing:1.5px;color:#00FFCC;text-transform:uppercase;border:1px dashed rgba(0,255,204,.35);border-radius:6px;animation:bbfLibPulse 1.4s ease-in-out infinite}
+.prehab-matrix-error{padding:1rem;border:1px solid #444;border-left:3px solid #FF4500;background:rgba(255,69,0,.08);color:#FF8866;font-size:.82rem;border-radius:4px;line-height:1.5}
+@keyframes bbfLibPulse{0%,100%{opacity:.55}50%{opacity:1}}
 .omni-toggle{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 .omni-toggle--floating{position:fixed;right:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 5.2rem);z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .omni-toggle--panel{margin-right:.55rem}
@@ -5002,13 +5021,15 @@ var _BBF_TIER_GATE_NAVS = ['nutrition', 'log', 'prehab'];
 
 var _BBF_TIER_LOCKS = {
   // Each tier names the elements / nav tabs it must HIDE.
+  // Phase 5 audible: Prehab is now a GLOBAL CORE FEATURE (Live Library
+  // Recovery Matrix) — removed from gateway/youth_athlete lock list.
   gateway: {
     els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer','somatic-map','qa-l','qa-n'],
-    navs: ['nutrition','log','prehab']
+    navs: ['nutrition','log']
   },
   youth_athlete: {
     els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer','somatic-map','qa-l','qa-n'],
-    navs: ['nutrition','log','prehab']
+    navs: ['nutrition','log']
   },
   architect: {
     els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer'],
@@ -6377,7 +6398,7 @@ window.onload=function(){
         <div class="sov-checklist" id="sov-prehab-list" role="list"></div>
       </div>
 
-      <div style="background:linear-gradient(135deg,rgba(106,13,173,.15),rgba(74,8,128,.1));border:1px solid rgba(106,13,173,.3);border-radius:14px;padding:1rem;margin-bottom:1rem">
+      <div id="prehab-ot-banner" style="background:linear-gradient(135deg,rgba(106,13,173,.15),rgba(74,8,128,.1));border:1px solid rgba(106,13,173,.3);border-radius:14px;padding:1rem;margin-bottom:1rem">
         <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-bottom:.4rem">&#x1F9E0; The OT Advantage</div>
         <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.75);line-height:1.65">Your coach is an <strong style="color:var(--wht)">Exercise Science student and future Occupational Therapist.</strong> Every prehab cue in this section is grounded in OT principles — joint mechanics, movement longevity, and occupation-specific load patterns. This is clinical-level precision that most personal trainers cannot offer.</div>
       </div>
@@ -11332,11 +11353,19 @@ var BBF_FORECAST_ENGINE = (function() {
 })();
 
 // ════════════════════════════════════════════════════════════════════════
-// BBF_PREHAB_MATRIX · Phase 4 — Dynamic Prehab Matrix client
+// BBF_PREHAB_MATRIX · Phase 5 — Live Library Recovery Matrix (v2 client)
 // ────────────────────────────────────────────────────────────────────────
-// Calls /functions/v1/bbf-agentic-prehab. Renders a teal .prehab-matrix
-// panel at the TOP of #prehab-cues with the day's 3-step recovery
-// directive (mobility / hydration / active recovery).
+// Global core feature, available to ALL tiers (gateway / youth_athlete /
+// architect / sovereign — tier gate updated to match). Generate-on-click
+// UX driven by a "Friction Scanner" textarea — replaces the Phase 4
+// auto-fire-on-tab-open flow and its 5-min cache.
+//
+// renderPrehab() (rewritten alongside) injects the input + button + empty
+// results container into #prehab-cues. This IIFE owns the click handler
+// + fetch + card rendering. POSTs to /functions/v1/bbf-agentic-prehab
+// with { uid, actual_uuid?, reported_friction, client_context, admin_override }
+// and renders the returned { matrix: [{ name, duration, focus, reason }] }
+// into .prehab-matrix-card rows.
 //
 // Omniscience Protocol — sends admin_override based on
 // window.BBF_ADMIN_OVERRIDE (the unified global). When true, the backend
@@ -11348,8 +11377,13 @@ var BBF_FORECAST_ENGINE = (function() {
 // .prehab-matrix--fallback modifier class; render path is identical.
 // ════════════════════════════════════════════════════════════════════════
 var BBF_PREHAB_MATRIX = (function() {
-  var ENDPOINT = '/functions/v1/bbf-agentic-prehab';
-  var _inFlightFor = null;
+  var ENDPOINT      = '/functions/v1/bbf-agentic-prehab';
+  var INPUT_ID      = 'bbf-friction-input';
+  var BTN_ID        = 'bbf-generate-recovery-btn';
+  var RESULTS_ID    = 'bbf-prehab-matrix-results';
+  var IDLE_LABEL    = 'Generate Recovery Matrix';
+  var LOADING_LABEL = 'Generating…';
+  var _inFlight     = false;
 
   function _supabaseUrl() {
     try {
@@ -11374,179 +11408,77 @@ var BBF_PREHAB_MATRIX = (function() {
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
+  function _todayLocal() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
 
-  var VECTOR_ICON = {
-    mobility:        '&#x1F9B4;',
-    hydration:       '&#x1F4A7;',
-    active_recovery: '&#x1F6B6;'
-  };
-  var VECTOR_LABEL = {
-    mobility:        'Mobility',
-    hydration:       'Hydration',
-    active_recovery: 'Active Recovery'
-  };
-
-  function _stepHtml(step) {
-    var v     = String((step && step.vector) || '').toLowerCase();
-    var icon  = VECTOR_ICON[v]  || '&#x2728;';
-    var label = VECTOR_LABEL[v] || v.toUpperCase();
-    var title  = _esc(step && step.title  || '—');
-    var detail = _esc(step && step.detail || '—');
-
-    var metricBits = [];
-    if (v === 'mobility') {
-      if (step && step.duration_minutes != null) metricBits.push(_esc(step.duration_minutes) + ' min');
-      if (step && step.intensity)                metricBits.push(_esc(step.intensity) + ' intensity');
-    } else if (v === 'hydration') {
-      if (step && step.target_oz != null)        metricBits.push(_esc(step.target_oz) + ' oz');
-      if (step && step.electrolyte_focus)        metricBits.push(_esc(step.electrolyte_focus) + ' electrolytes');
-    } else if (v === 'active_recovery') {
-      if (step && step.duration_minutes != null) metricBits.push(_esc(step.duration_minutes) + ' min');
-      if (step && step.modality)                 metricBits.push(_esc(step.modality));
-    }
-    var metricLine = metricBits.length
-      ? '<div class="prehab-matrix__meta">' + metricBits.join(' &middot; ') + '</div>'
-      : '';
-
-    return '<div class="prehab-matrix__step">' +
-      '<div class="prehab-matrix__step-head">' +
-        '<span class="prehab-matrix__icon">' + icon + '</span>' +
-        '<span class="prehab-matrix__step-label">' + label + '</span>' +
-      '</div>' +
-      '<div class="prehab-matrix__step-title">' + title + '</div>' +
-      '<div class="prehab-matrix__step-detail">' + detail + '</div>' +
-      metricLine +
+  function _cardHtml(item) {
+    var name     = _esc(item && item.name     || '—');
+    var duration = _esc(item && item.duration || '');
+    var focus    = _esc(item && item.focus    || '');
+    var reason   = _esc(item && item.reason   || '');
+    return '<div class="prehab-matrix-card">' +
+      '<div class="prehab-title">' + name + '</div>' +
+      (focus    ? '<div class="prehab-focus">' + focus + '</div>'       : '') +
+      (duration ? '<div class="prehab-duration">' + duration + '</div>' : '') +
+      (reason   ? '<div class="prehab-reason">' + reason + '</div>'     : '') +
     '</div>';
   }
 
-  function _renderInto(panel, payload) {
-    var tier   = _esc((payload && payload.protocol_tier)       || '—');
-    var cns    = _esc((payload && payload.cns_status)          || '');
-    var prime  = _esc((payload && payload.hypertrophy_priming) || '');
-    var source = String((payload && payload.source) || 'claude');
-    var steps  = (payload && Array.isArray(payload.steps)) ? payload.steps : [];
-
-    panel.classList.toggle('prehab-matrix--fallback', source === 'fallback');
-
-    panel.innerHTML =
-      '<div class="prehab-matrix__header">' +
-        '<div class="prehab-matrix__title">Dynamic Prehab Matrix</div>' +
-        '<div class="prehab-matrix__tier">' + tier + '</div>' +
-      '</div>' +
-      (cns   ? '<div class="prehab-matrix__cns">' + cns + '</div>' : '') +
-      '<div class="prehab-matrix__steps">' +
-        steps.map(_stepHtml).join('') +
-      '</div>' +
-      (prime ? '<div class="prehab-matrix__prime">' + prime + '</div>' : '');
-  }
-
-  function _renderLoading(panel) {
-    panel.classList.remove('prehab-matrix--fallback');
-    panel.innerHTML =
-      '<div class="prehab-matrix__header">' +
-        '<div class="prehab-matrix__title">Dynamic Prehab Matrix</div>' +
-        '<div class="prehab-matrix__tier prehab-matrix__shimmer">Engaging Claude Opus 4.7&hellip;</div>' +
-      '</div>' +
-      '<div class="prehab-matrix__cns prehab-matrix__shimmer">Reading 48h of telemetry &middot; computing CNS state &middot; building recovery vectors</div>' +
-      '<div class="prehab-matrix__steps">' +
-        '<div class="prehab-matrix__step prehab-matrix__shimmer">&nbsp;</div>' +
-        '<div class="prehab-matrix__step prehab-matrix__shimmer">&nbsp;</div>' +
-        '<div class="prehab-matrix__step prehab-matrix__shimmer">&nbsp;</div>' +
-      '</div>';
-  }
-
-  // Client-side fallback when the edge function itself is unreachable
-  // (CORS / network / 5xx before our handler runs). The edge already
-  // wraps every business-logic failure into its own baseline payload —
-  // this is the belt-and-suspenders layer.
-  function _renderFallback(panel) {
-    _renderInto(panel, {
-      protocol_tier: 'Default Baseline',
-      cns_status:    'Couldn\'t reach the matrix. Showing the universal recovery floor.',
-      steps: [
-        { vector: 'mobility',        title: 'Full-Body Reset Flow',          detail: 'Cat-cow x10, 90/90 hip switches x8/side, wall slides x10.',         duration_minutes: 8,  intensity: 'low' },
-        { vector: 'hydration',       title: 'Electrolyte-Forward Rehydrate', detail: 'Drink 32 oz water with balanced electrolytes inside an hour.',      target_oz: 32,        electrolyte_focus: 'balanced' },
-        { vector: 'active_recovery', title: 'Zone 2 Walk',                   detail: 'Walk 20 min, conversational pace, nasal breathing only.',           duration_minutes: 20, modality: 'walking' }
-      ],
-      hypertrophy_priming: 'Baseline recovery clears systemic fatigue and primes the CNS for the next progressive-overload session.',
-      source: 'fallback'
-    });
-  }
-
-  // Mount the .prehab-matrix panel as the FIRST child of #prehab-cues so
-  // the daily AI directive sits above the static PREHAB cards. Idempotent
-  // — reuses an existing node on subsequent renders rather than stacking.
-  function _mountPoint() {
-    var con = document.getElementById('prehab-cues');
-    if (!con) return null;
-    var existing = con.querySelector('.prehab-matrix');
-    if (existing) return existing;
-    var panel = document.createElement('div');
-    panel.className = 'prehab-matrix';
-    if (con.firstChild) con.insertBefore(panel, con.firstChild);
-    else con.appendChild(panel);
-    return panel;
-  }
-
-  // ─── Token Armor — 5-min localStorage cache ──────────────────────────
-  // Per CEO directive: do NOT burn Anthropic credits on UI tab switching.
-  // If the user toggles into Prehab within 5 minutes of the last successful
-  // fetch, serve the parsed JSON from localStorage and skip the network call.
-  // Cache is uid-keyed. Admin-override responses are never cached (we always
-  // want the live mock so the head coach sees toggle state changes
-  // immediately). Fallback payloads are never cached (we want a real retry
-  // next render).
-  var CACHE_PREFIX = 'bbf_prehab_cache_';
-  var CACHE_TTL_MS = 5 * 60 * 1000;
-
-  function _cacheKey(uid) { return CACHE_PREFIX + uid; }
-
-  function _readCache(uid) {
-    try {
-      var raw = localStorage.getItem(_cacheKey(uid));
-      if (!raw) return null;
-      var entry = JSON.parse(raw);
-      if (!entry || typeof entry.fetched_at !== 'number' || !entry.payload) return null;
-      if (Date.now() - entry.fetched_at > CACHE_TTL_MS) return null;
-      return entry.payload;
-    } catch (_) { return null; }
-  }
-
-  function _writeCache(uid, payload) {
-    try {
-      localStorage.setItem(_cacheKey(uid), JSON.stringify({
-        fetched_at: Date.now(),
-        payload:    payload
-      }));
-    } catch (_) {}
-  }
-
-  function fire(uid) {
-    uid = uid || ((typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null);
-    if (!uid) return;
-    var panel = _mountPoint();
-    if (!panel) return;
-
-    var omni = !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true);
-
-    // Token Armor — cache hit short-circuits the fetch. Bypassed under
-    // omniscience (we want the live admin mock every time the toggle
-    // state could have changed).
-    if (!omni) {
-      var cached = _readCache(uid);
-      if (cached) {
-        _renderInto(panel, cached);
-        console.log('[BBF_PREHAB] ' + uid + ' → cache hit (age=' +
-          Math.round((Date.now() - (JSON.parse(localStorage.getItem(_cacheKey(uid))||'{}').fetched_at||Date.now()))/1000) +
-          's, tier=' + cached.protocol_tier + ')');
-        return;
-      }
+  function _renderResults(matrix) {
+    var con = document.getElementById(RESULTS_ID);
+    if (!con) return;
+    if (!Array.isArray(matrix) || !matrix.length) {
+      con.innerHTML = '<div class="prehab-matrix-error">No matrix returned. Try again or adjust your friction text.</div>';
+      return;
     }
+    con.innerHTML = matrix.map(_cardHtml).join('');
+  }
 
-    _renderLoading(panel);
+  function _renderLoading() {
+    var con = document.getElementById(RESULTS_ID);
+    if (con) con.innerHTML = '<div class="prehab-matrix-loading">&#x1F501; Generating tailored recovery matrix&hellip;</div>';
+    var btn = document.getElementById(BTN_ID);
+    if (btn) { btn.disabled = true; btn.textContent = LOADING_LABEL; }
+  }
 
-    if (_inFlightFor === uid) return;
-    _inFlightFor = uid;
+  function _renderError(msg) {
+    var con = document.getElementById(RESULTS_ID);
+    if (con) con.innerHTML = '<div class="prehab-matrix-error">' + _esc(msg || 'Could not reach the recovery engine.') + ' Tap Generate to retry.</div>';
+  }
+
+  function _resetButton() {
+    var btn = document.getElementById(BTN_ID);
+    if (btn) { btn.disabled = false; btn.textContent = IDLE_LABEL; }
+  }
+
+  function generate() {
+    if (_inFlight) return;
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) { _renderError('No active user.'); return; }
+
+    var input  = document.getElementById(INPUT_ID);
+    var friction = input ? String(input.value || '').trim().slice(0, 600) : '';
+
+    // Resolve uuid + goal opportunistically from local state. Goal is
+    // user-facing local-only context (not on bbf_users); pass it through
+    // the client_context envelope so the LLM has the full picture.
+    var actualUuid = null;
+    var goal       = null;
+    var partner    = null;
+    try {
+      var d = (typeof GD === 'function') ? GD() : null;
+      var u = (d && d.u && d.u[uid]) || {};
+      goal    = u.goal    || null;
+      partner = u.partner || null;
+      if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC._uidMap && BBF_SYNC._uidMap[uid]) {
+        actualUuid = BBF_SYNC._uidMap[uid];
+      }
+    } catch (_) {}
+
+    _renderLoading();
+    _inFlight = true;
 
     var headers = { 'Content-Type': 'application/json' };
     var anon = _anonKey();
@@ -11558,8 +11490,11 @@ var BBF_PREHAB_MATRIX = (function() {
     if (tok) headers['X-BBF-Admin-Token'] = tok;
 
     var body = {
-      uid:            uid,
-      admin_override: omni
+      uid:               uid,
+      actual_uuid:       actualUuid,
+      reported_friction: friction,
+      client_context:    { goal: goal, today: _todayLocal(), partner: partner },
+      admin_override:    !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
     };
 
     window.fetch(_supabaseUrl() + ENDPOINT, {
@@ -11570,47 +11505,46 @@ var BBF_PREHAB_MATRIX = (function() {
       return res.text().then(function(t) {
         var parsed = null;
         try { parsed = JSON.parse(t); } catch (_) {}
-        if (!res.ok || !parsed) {
-          console.warn('[BBF_PREHAB] engine returned HTTP ' + res.status + ':', parsed || t);
-          _renderFallback(panel);
+        if (!res.ok || !parsed || !Array.isArray(parsed.matrix)) {
+          console.warn('[BBF_PREHAB v5] engine returned HTTP ' + res.status + ':', parsed || t);
+          _renderError('Recovery engine returned an error (HTTP ' + res.status + ').');
           return;
         }
-        _renderInto(panel, parsed);
-        // Only cache real Claude payloads. Admin mocks + fallbacks stay
-        // out of the cache so subsequent renders reflect real telemetry
-        // or admin state, not stale bypass output.
-        if (!omni && parsed.source === 'claude') {
-          _writeCache(uid, parsed);
-        }
-        console.log('[BBF_PREHAB] ' + uid + ' → tier=' + parsed.protocol_tier + ' source=' + parsed.source);
+        _renderResults(parsed.matrix);
+        console.log('[BBF_PREHAB v5] ' + uid + ' → ' + parsed.matrix.length + ' movements · friction_len=' + friction.length);
       });
     }).catch(function(err) {
-      console.warn('[BBF_PREHAB] fetch failed:', err && err.message || err);
-      _renderFallback(panel);
+      console.warn('[BBF_PREHAB v5] fetch failed:', err && err.message || err);
+      _renderError((err && err.message) || 'Network error.');
     }).then(function() {
-      if (_inFlightFor === uid) _inFlightFor = null;
+      _inFlight = false;
+      _resetButton();
     });
   }
 
-  // Public cache clear — invoked by BBF_OMNISCIENCE_TOGGLE on state flip
-  // so the next fire() pulls fresh (real or admin) rather than serving
-  // stale pre-toggle output.
-  function clearCache(uid) {
-    try {
-      if (uid) {
-        localStorage.removeItem(_cacheKey(uid));
-      } else {
-        var keys = [];
-        for (var i = 0; i < localStorage.length; i++) {
-          var k = localStorage.key(i);
-          if (k && k.indexOf(CACHE_PREFIX) === 0) keys.push(k);
-        }
-        keys.forEach(function(k) { localStorage.removeItem(k); });
-      }
-    } catch (_) {}
+  // Idempotent — binds the click handler exactly once per button render.
+  // renderPrehab() recreates the DOM on every tab open, so dataset flag
+  // prevents stale double-bindings.
+  function init() {
+    var btn = document.getElementById(BTN_ID);
+    if (!btn) return;
+    if (btn.dataset.bbfBound === '1') return;
+    btn.dataset.bbfBound = '1';
+    btn.addEventListener('click', generate);
   }
 
-  return { fire: fire, clearCache: clearCache };
+  // Sweep dead Phase-4 5-min cache entries from earlier IIFE — fire once
+  // on script load so previously-cached responses don't clutter localStorage.
+  try {
+    var keys = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf('bbf_prehab_cache_') === 0) keys.push(k);
+    }
+    keys.forEach(function(k) { localStorage.removeItem(k); });
+  } catch (_) {}
+
+  return { init: init, generate: generate };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
@@ -13197,38 +13131,10 @@ function savePersona() {
   RA();
 }
 
-// Override renderPrehab to use stress mode
-var _originalRenderPrehab = renderPrehab;
-renderPrehab = function() {
-  var uid = VC || CU;
-  var d = GD(); var u = d.u[uid] || {};
-  var stressType = u.stress_mode || getPersona(uid).type;
-  STRESS_MODE = stressType;
-  updateStressToggleUI(stressType);
-  _originalRenderPrehab();
-  // Append stress-specific cues below OT prehab
-  var con = document.getElementById('prehab-cues');
-  if (!con) return;
-  var rc = RECOVERY_CUES[stressType] || RECOVERY_CUES['desk'];
-  var L = LANG || 'en';
-  var rcLabel = (typeof rc.label === 'object') ? (rc.label[L] || rc.label.en) : rc.label;
-  var html = '<div style="background:linear-gradient(135deg,var(--purp),var(--purd));border-radius:16px;padding:1.3rem;margin-top:1rem">' +
-    '<div style="font-size:.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.5rem">&#x1F9E0; ' + rcLabel.toUpperCase() + '</div>';
-  rc.cues.forEach(function(c) {
-    var cTitle = (typeof c.title === 'object') ? (c.title[L] || c.title.en) : c.title;
-    var cDesc = (typeof c.desc === 'object') ? (c.desc[L] || c.desc.en) : c.desc;
-    html += '<div style="background:rgba(0,0,0,.3);border-radius:10px;padding:.8rem 1rem;margin-bottom:.6rem">' +
-      '<div style="font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--yel);margin-bottom:.3rem">' + cTitle + '</div>' +
-      '<div style="font-size:.83rem;font-weight:600;color:rgba(255,255,255,.75);line-height:1.6">' + cDesc + '</div></div>';
-  });
-  html += '</div>';
-  con.innerHTML += html;
-  // Render the Sovereign Prehabilitation Tracker (checklists + progress bar)
-  if (typeof renderSovPrehab === 'function') renderSovPrehab();
-  // Phase 4 — Dynamic Prehab Matrix: AI-derived 3-step recovery directive
-  // pinned to the top of #prehab-cues for the active client.
-  if (typeof BBF_PREHAB_MATRIX !== 'undefined') BBF_PREHAB_MATRIX.fire(uid);
-};
+// Phase 5: Live Library is the only Prehab tab surface. The legacy
+// _originalRenderPrehab wrapper (stress-mode cues + Sov Prehab tracker
+// glue) is intentionally not reinstated — renderPrehab() below now owns
+// the full tab content end-to-end and hides the legacy static blocks.
 
 
 
@@ -13369,31 +13275,38 @@ var PREHAB = [
 var DAILY_EN = '&#x1F305; Morning (3 min): Cat-cow x10, glute bridge x15, ankle circles x10 each.<br>&#x1F3CB; Pre-Protocol (2 min): Wall slides x10, 90/90 hip x30s each side.<br>&#x1F634; Post-Shift (5 min): Childs pose 60s, prayer stretch 30s, single-leg balance 30s each.<br>&#x26A1; Weekly: Add band external rotation on upper-body days. Non-negotiable.';
 var DAILY_ES = '&#x1F305; Mañana (3 min): Gato-vaca x10, puente de glúteos x15, círculos de tobillo x10 cada uno.<br>&#x1F3CB; Pre-Entrenamiento (2 min): Deslizamientos en pared x10, 90/90 cadera x30s cada lado.<br>&#x1F634; Post-Turno (5 min): Postura del niño 60s, estiramiento de rezo 30s, equilibrio en una pierna 30s cada uno.<br>&#x26A1; Semanal: Rotación externa con banda en días de tren superior. Obligatorio.';
 
+// Phase 5: Prehab tab now hosts the Live Library Recovery Matrix end-to-end.
+// renderPrehab() hides the legacy surfaces (Sovereign Prehab Tracker, OT
+// Advantage banner, Daily Protocol panel) and replaces the #prehab-cues
+// container with the friction-input + Generate button UI. The static PREHAB
+// catalog const is left in place because renderSovereignMobilityDay() in
+// the workout view still consumes it. BBF_PREHAB_MATRIX.init() binds the
+// click handler; the actual fetch + matrix render happens on click.
 function renderPrehab() {
+  // Hide the legacy Prehab tab surfaces. Idempotent — safe to call repeatedly.
+  var legacySelectors = ['.sov-prehab-tracker', '#prehab-ot-banner'];
+  legacySelectors.forEach(function(sel) {
+    var el = document.querySelector(sel);
+    if (el) el.style.display = 'none';
+  });
+  var dpEl = document.getElementById('daily-protocol');
+  if (dpEl && dpEl.parentElement) dpEl.parentElement.style.display = 'none';
+
   var con = document.getElementById('prehab-cues');
-  var dp  = document.getElementById('daily-protocol');
-  if (!con || !dp) return;
-  dp.innerHTML = LANG === 'pt' ? (typeof DAILY_PT!=='undefined'?DAILY_PT:DAILY_EN) : LANG === 'es' ? DAILY_ES : DAILY_EN;
-  con.innerHTML = PREHAB.map(function(p, pi) {
-    var title = LANG === 'pt' ? (p.pt_title||p.en_title) : LANG === 'es' ? p.es_title : p.en_title;
-    var focus = LANG === 'pt' ? (p.pt_focus||p.en_focus) : LANG === 'es' ? p.es_focus : p.en_focus;
-    var cuesHtml = p.cues.map(function(c) {
-      var lbl = LANG === 'pt' ? (c.pt_lbl||c.en_lbl) : LANG === 'es' ? c.es_lbl : c.en_lbl;
-      var txt = LANG === 'pt' ? (c.pt_txt||c.en_txt) : LANG === 'es' ? c.es_txt : c.en_txt;
-      return '<div class="prehab-cue"><div class="prehab-cue-lbl">' + lbl + '</div><div class="prehab-cue-txt">' + txt + '</div></div>';
-    }).join('');
-    var setsHtml = p.sets.map(function(s) { return '<div class="pset">' + s + '</div>'; }).join('');
-    return '<div class="prehab-card">' +
-      '<div class="prehab-hdr" onclick="togglePrehab(' + pi + ')">' +
-      '<div style="display:flex;align-items:center;gap:.7rem;flex:1">' +
-      '<div class="prehab-icon">' + p.icon + '</div>' +
-      '<div><div class="prehab-title">' + title + '</div><div class="prehab-focus">' + focus + '</div></div>' +
-      '</div><div class="ec" id="prehab-ec-' + pi + '">▾</div></div>' +
-      '<div class="prehab-body" id="prehab-body-' + pi + '">' +
-      cuesHtml +
-      '<div class="prehab-sets" style="margin-top:.8rem">' + setsHtml + '</div>' +
-      '</div></div>';
-  }).join('');
+  if (!con) return;
+  con.innerHTML =
+    '<div class="prehab-library-header">' +
+      '<div class="prehab-library-kicker">Live Library &middot; v5</div>' +
+      '<div class="prehab-library-title">Recovery Matrix</div>' +
+      '<div class="prehab-library-sub">Tap Generate for a 3-movement recovery protocol tailored to your demographic, today\'s workload, and what you\'re feeling. Updated live every time.</div>' +
+    '</div>' +
+    '<label for="bbf-friction-input" class="prehab-library-label">Friction Scanner</label>' +
+    '<div class="prehab-library-sub" style="margin:0 0 .5rem">Log any tightness, pain points, or fatigue from today\'s session. Leave blank if you\'re feeling fresh.</div>' +
+    '<textarea id="bbf-friction-input" class="friction-input" placeholder="e.g. lower back stiff after deadlifts, left knee twinge on lunges, right shoulder tight from pressing…" rows="3" maxlength="600"></textarea>' +
+    '<button id="bbf-generate-recovery-btn" type="button" class="generate-recovery-btn">Generate Recovery Matrix</button>' +
+    '<div id="bbf-prehab-matrix-results" class="prehab-matrix-results"></div>';
+
+  if (typeof BBF_PREHAB_MATRIX !== 'undefined') BBF_PREHAB_MATRIX.init();
 }
 function togglePrehab(i) {
   var body = document.getElementById('prehab-body-' + i);
