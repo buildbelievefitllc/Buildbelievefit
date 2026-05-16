@@ -5463,7 +5463,7 @@ async function LOGIN(){
     var d=GD();
     if(!d.u[user]){
       var SEEDS={
-        'akeem':      {name:'Akeem Brown',  pin:null, role:'trainer',type:'Trainer',  goal:'Head Coach',       gw:'',  plan:null},
+        'akeem':      {name:'Akeem Brown',  pin:null, role:'trainer',type:'Trainer',  goal:'Head Coach',       gw:'',  plan:'akeem_ceo'},
         'ana_bbf':    {name:'Ana',          pin:null, role:'client', type:'Essentials',goal:'Lean & Toned',    gw:'135',plan:'ana_spring'},
         'jacky_bbf':  {name:'Jacky',        pin:null, role:'client', type:'Essentials',goal:'Strength',        gw:'',  plan:'jacky_plan'},
         'jacque_bbf':{name:'Jacquelyn',      pin:null, role:'client', type:'Essentials',goal:'3-Day Postpartum Recomp (PPL)', gw:'',  plan:'jacque_plan'},
@@ -7420,7 +7420,12 @@ var CURRENT_VER = '8';
 // ─── SEED CLIENT ACCOUNTS ─────────────────────────────────────────
 (function() {
   var d = GD();
-  if (!d.u.akeem)     d.u.akeem     = {name:'Akeem Brown', pin:null, role:'trainer', type:'Trainer',   goal:'Head Coach — Build Believe Fit',                    gw:'', plan:null};
+  if (!d.u.akeem)     d.u.akeem     = {name:'Akeem Brown', pin:null, role:'trainer', type:'Trainer',   goal:'Head Coach — Build Believe Fit',                    gw:'', plan:'akeem_ceo'};
+  // Phase 10.1 live-fire injection — force the CEO's plan key on every
+  // load so an existing localStorage profile (pre-dating this commit)
+  // picks up the new akeem_ceo blueprint without requiring a manual
+  // clear of bbf_v7. Idempotent + safe to run on every bootstrap pass.
+  if (d.u.akeem && d.u.akeem.plan !== 'akeem_ceo') d.u.akeem.plan = 'akeem_ceo';
   if (!d.u.ana_bbf)   d.u.ana_bbf   = {name:'Ana',         pin:null, role:'client',  type:'In-Person', goal:'Spring 2026 — Arms, Glutes & Full Body',            gw:'', plan:'ana_spring'};
   if (!d.u.jacky_bbf) d.u.jacky_bbf = {name:'Jacky',       pin:null, role:'client',  type:'In-Person', goal:'5-Day Comprehensive Program',                       gw:'', plan:'jacky_plan'};
   if (!d.u.jacque_bbf) d.u.jacque_bbf = {name:'Jacquelyn', pin:null, role:'client',  type:'In-Person', goal:'3-Day Postpartum Recomp (PPL) — Fat Loss + Muscle Toning', gw:'', plan:'jacque_plan'};
@@ -7436,6 +7441,55 @@ var CURRENT_VER = '8';
 
 // ─── WORKOUT PLANS ────────────────────────────────────────
 var WP = {
+  // ═══ akeem_ceo · CEO live-fire test data (Phase 10.1) ════════════════
+  // 6-day split + 1 rest day. Day shape matches the existing PLAN
+  // contract consumed by RDW() ({day, focus, exercises:[{name, equipment,
+  // sets, reps, notes}, isRest?}]). CEO's source payload uses "target"
+  // strings like "4x8-10" / "3xDrop" / "3xFail"; adapted to the
+  // RDW-native sets+reps shape below. equipment is left blank (CEO did
+  // not specify; coach picks on the floor).
+  akeem_ceo: [
+    { day: 'Day 1', focus: 'Chest & Triceps', exercises: [
+      { name: 'Bench Press',                equipment: '', sets: 4, reps: '8-10',  notes: 'Working sets at 85% 1RM. Rest 90s.' },
+      { name: 'Incline Dumbbell Press',     equipment: '', sets: 3, reps: '10-12', notes: 'Rest 90s.' },
+      { name: 'Cable Crossovers',           equipment: '', sets: 3, reps: '12-15', notes: 'Rest 60s.' },
+      { name: 'Overhead Triceps Extension', equipment: '', sets: 3, reps: '10-12', notes: 'Rest 60s.' },
+      { name: 'Triceps Pushdowns',          equipment: '', sets: 3, reps: '12-15', notes: 'Rest 60s.' }
+    ]},
+    { day: 'Day 2', focus: 'Back & Biceps', exercises: [
+      { name: 'Lat Pulldowns',              equipment: '', sets: 4, reps: '8-10',  notes: 'Rest 90s.' },
+      { name: 'Seated Rows',                equipment: '', sets: 3, reps: '10-12', notes: 'Rest 90s.' },
+      { name: 'Face Pulls',                 equipment: '', sets: 3, reps: '12-15', notes: 'Rest 60s.' },
+      { name: 'Barbell Curls',              equipment: '', sets: 3, reps: '10-12', notes: 'Rest 60s.' },
+      { name: 'Hammer Curls',               equipment: '', sets: 3, reps: '12-15', notes: 'Rest 60s.' }
+    ]},
+    { day: 'Day 3', focus: 'Shoulders & Abs', exercises: [
+      { name: 'Overhead Press',             equipment: '', sets: 4, reps: '8-10',  notes: 'Working sets at 85% 1RM. Rest 90s.' },
+      { name: 'Lateral Raises',             equipment: '', sets: 3, reps: 'Drop',  notes: '2-3 drops per set. Rest 90s.' },
+      { name: 'Front Raises',               equipment: '', sets: 3, reps: '12-15', notes: 'Rest 60s.' },
+      { name: 'Crunches',                   equipment: '', sets: 3, reps: '15-20', notes: 'Rest 30s.' },
+      { name: 'Leg Raises',                 equipment: '', sets: 3, reps: '15-20', notes: 'Rest 30s.' }
+    ]},
+    { day: 'Day 4', focus: 'Legs', exercises: [
+      { name: 'Hack Squats',                equipment: '', sets: 4, reps: '8-10',  notes: 'Working sets at 85% 1RM. Rest 90s.' },
+      { name: 'Lunges',                     equipment: '', sets: 3, reps: '10-12', notes: 'Per leg. Rest 90s.' },
+      { name: 'Leg Press',                  equipment: '', sets: 3, reps: '12-15', notes: 'Rest 60s.' },
+      { name: 'Calf Raises',                equipment: '', sets: 4, reps: '15-20', notes: 'Rest 30s.' }
+    ]},
+    { day: 'Day 5', focus: 'Chest & Triceps (Day 2)', exercises: [
+      { name: 'Incline Bench Press',        equipment: '', sets: 4, reps: '8-10',  notes: 'Rest 90s.' },
+      { name: 'Dumbbell Flyes',             equipment: '', sets: 3, reps: '12-15', notes: 'Rest 60s.' },
+      { name: 'Close-Grip Bench Press',     equipment: '', sets: 3, reps: '10-12', notes: 'Rest 60s.' },
+      { name: 'Triceps Dips',               equipment: '', sets: 3, reps: 'Fail',  notes: 'To failure. Rest 60s.' }
+    ]},
+    { day: 'Day 6', focus: 'Back & Biceps (Day 2)', exercises: [
+      { name: 'Deadlifts',                  equipment: '', sets: 3, reps: '5-8',   notes: 'Working sets at 85% 1RM. Rest 120s.' },
+      { name: 'Pull-ups',                   equipment: '', sets: 3, reps: 'Fail',  notes: 'Assisted if needed. Rest 90s.' },
+      { name: 'Preacher Curls',             equipment: '', sets: 3, reps: '10-12', notes: 'Rest 60s.' },
+      { name: 'Concentration Curls',        equipment: '', sets: 3, reps: '12-15', notes: 'Rest 60s.' }
+    ]},
+    { day: 'Day 7', focus: 'Rest & Recovery', isRest: true, exercises: [] }
+  ],
   ana_spring: [
     {day:'Monday',focus:'Arms & Back',exercises:[
       {name:'Biceps Curls',equipment:'Dumbbells or Cable',sets:4,reps:'10-12',notes:'Control the eccentric — slow on the way down'},
@@ -7667,7 +7721,12 @@ var MP = {
 // ─── SEED DATA ────────────────────────────────────────────
 (function() {
   var d = GD();
-  if (!d.u.akeem)     d.u.akeem     = {name:'Akeem Brown', pin:null, role:'trainer', type:'Trainer',   goal:'Head Coach — Build Believe Fit',                    gw:'', plan:null};
+  if (!d.u.akeem)     d.u.akeem     = {name:'Akeem Brown', pin:null, role:'trainer', type:'Trainer',   goal:'Head Coach — Build Believe Fit',                    gw:'', plan:'akeem_ceo'};
+  // Phase 10.1 live-fire injection — force the CEO's plan key on every
+  // load so an existing localStorage profile (pre-dating this commit)
+  // picks up the new akeem_ceo blueprint without requiring a manual
+  // clear of bbf_v7. Idempotent + safe to run on every bootstrap pass.
+  if (d.u.akeem && d.u.akeem.plan !== 'akeem_ceo') d.u.akeem.plan = 'akeem_ceo';
   if (!d.u.ana_bbf)   d.u.ana_bbf   = {name:'Ana',         pin:null, role:'client',  type:'In-Person', goal:'Spring 2026 — Arms, Glutes & Full Body',            gw:'', plan:'ana_spring'};
   if (!d.u.jacky_bbf) d.u.jacky_bbf = {name:'Jacky',       pin:null, role:'client',  type:'In-Person', goal:'5-Day Comprehensive Program',                       gw:'', plan:'jacky_plan'};
   if (!d.u.jacque_bbf) d.u.jacque_bbf = {name:'Jacquelyn', pin:null, role:'client',  type:'In-Person', goal:'3-Day Postpartum Recomp (PPL) — Fat Loss + Muscle Toning', gw:'', plan:'jacque_plan'};
