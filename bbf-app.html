@@ -553,6 +553,53 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .sovereign-comlink-fab:hover{transform:translateY(-2px) scale(1.05) !important}
 #omniscience-toggle-container,.omniscience-toggle,#bbfOmniscienceToggle.omni-toggle--floating,.omni-toggle--floating{position:fixed !important;bottom:20px !important;left:20px !important;right:auto !important;top:auto !important;z-index:9999 !important;transform:none !important;margin:0 !important}
 #bbfOmniscienceToggle.omni-toggle--floating:hover{transform:translateY(-2px) !important}
+/* Phase 8 + Phase 9 — Mastery Protocol (Bilingual Empire) */
+.mastery-protocol{margin:1.4rem 0;border-top:1px solid #1f1f1f;padding-top:1.2rem}
+.mp-header{margin-bottom:1rem}
+.mp-kicker{font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:#D4AF37;font-weight:800}
+.mp-title{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.4rem;letter-spacing:2px;color:#fff;margin-top:.15rem}
+.mp-sub{font-size:.78rem;color:rgba(255,255,255,.62);line-height:1.5;margin-top:.4rem}
+.mp-panel{background:linear-gradient(135deg,rgba(20,20,20,1) 0%,rgba(35,28,8,0.55) 100%);border:1px solid rgba(212,175,55,.28);border-left:3px solid #D4AF37;border-radius:10px;padding:1rem 1.1rem;margin-bottom:1rem}
+.mp-panel-h{display:flex;align-items:center;gap:.55rem;margin-bottom:.3rem}
+.mp-panel-icon{font-size:1.1rem}
+.mp-panel-t{font-size:.85rem;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#fff}
+.mp-panel-sub{font-size:.72rem;color:rgba(255,255,255,.58);line-height:1.5;margin-bottom:.85rem}
+.mp-field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.75rem}
+.mp-field--inline{flex-direction:row;align-items:stretch;gap:.4rem}
+.mp-label{font-size:.62rem;letter-spacing:1.8px;text-transform:uppercase;color:#D4AF37;font-weight:700}
+.mp-input{flex:1;width:100%;box-sizing:border-box;background:#0e0e0e;color:#fff;border:1px solid #2a2a2a;border-radius:6px;padding:.55rem .7rem;font:inherit;font-size:.85rem}
+.mp-input:focus{outline:none;border-color:#D4AF37;background:#161109}
+.mp-primary-btn{background:#D4AF37;color:#000;border:none;border-radius:6px;padding:.55rem 1rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;font-size:.78rem;cursor:pointer;transition:filter .15s ease,transform .15s ease;-webkit-tap-highlight-color:rgba(0,0,0,0);white-space:nowrap}
+.mp-primary-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.mp-primary-btn:disabled{opacity:.45;cursor:not-allowed}
+.mp-primary-btn--full{width:100%;padding:.7rem 1rem;margin-top:.25rem}
+.mp-mic-btn{background:transparent;color:#D4AF37;border:1px solid #D4AF37;border-radius:6px;padding:.45rem .6rem;font-size:.95rem;cursor:pointer;transition:background .15s ease}
+.mp-mic-btn:hover:not(:disabled){background:rgba(212,175,55,.08)}
+.mp-mic-btn:disabled{opacity:.5;cursor:not-allowed}
+.mp-mic-btn.recording{background:#D4AF37;color:#000;animation:mpMicPulse 1.4s infinite}
+@keyframes mpMicPulse{0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,.6)}50%{box-shadow:0 0 0 10px rgba(212,175,55,0)}}
+.mp-reset-btn{background:transparent;color:rgba(255,255,255,.45);border:none;padding:.4rem 0 0;font-size:.7rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+.mp-reset-btn:hover{color:#D4AF37}
+.immersion-chat{display:flex;flex-direction:column;gap:.55rem;max-height:320px;overflow-y:auto;background:#080808;border:1px solid #1a1a1a;border-radius:6px;padding:.6rem;margin:.5rem 0 .65rem;min-height:120px}
+.immersion-chat:empty::before{content:'Pick a scenario and send your first message to begin the roleplay.';display:block;color:rgba(255,255,255,.32);font-size:.75rem;font-style:italic;text-align:center;padding:1.2rem .4rem}
+.imm-msg{padding:.5rem .7rem;border-radius:8px;max-width:88%;font-size:.82rem;line-height:1.45}
+.imm-msg--user{align-self:flex-end;background:rgba(212,175,55,.14);border:1px solid rgba(212,175,55,.42);color:#fff}
+.imm-msg--ai{align-self:flex-start;background:#161616;border:1px solid #2a2a2a;color:#e0e0e0}
+.imm-msg--loading{align-self:flex-start;font-style:italic;color:rgba(212,175,55,.7);background:transparent;border:none;animation:bbfLibPulse 1.4s ease-in-out infinite}
+.imm-correction{margin-top:.4rem;padding-top:.4rem;border-top:1px dashed rgba(255,255,255,.1);font-size:.7rem;color:#a9d8cc;line-height:1.45}
+.imm-correction--perfect{color:#86EFAC}
+.imm-score-row{display:flex;justify-content:space-between;align-items:center;margin-top:.4rem;font-size:.65rem;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.imm-score-pill{background:rgba(212,175,55,.14);border:1px solid rgba(212,175,55,.5);color:#D4AF37;padding:1px 9px;border-radius:99px;font-weight:800;font-size:.7rem;letter-spacing:.8px}
+.linguist-result{margin-top:.85rem;display:none}
+.linguist-result.on{display:block;animation:bbfKinFade .25s ease-out}
+.linguist-card{background:#080808;border:1px solid rgba(212,175,55,.32);border-left:3px solid #D4AF37;border-radius:0 6px 6px 0;padding:.85rem 1rem}
+.linguist-row{display:flex;flex-direction:column;gap:.15rem;margin-bottom:.65rem}
+.linguist-row:last-child{margin-bottom:0}
+.linguist-row-lbl{font-size:.6rem;letter-spacing:1.6px;text-transform:uppercase;color:rgba(212,175,55,.75);font-weight:800}
+.linguist-row-translation{font-size:1.05rem;color:#fff;font-weight:700;line-height:1.35}
+.linguist-row-phonetic{font-size:.85rem;color:#D4AF37;font-style:italic;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.5px}
+.linguist-row-literal{font-size:.78rem;color:rgba(255,255,255,.62);line-height:1.45}
+.linguist-row-error{font-size:.78rem;color:#FF8866;line-height:1.5}
 .omni-toggle{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 .omni-toggle--floating{position:fixed;left:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 5.2rem);z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .omni-toggle--panel{margin-right:.55rem}
@@ -6834,6 +6881,60 @@ window.onload=function(){
             <button onclick="setSovereignLang('pt')" id="sl-pt" style="flex:1;padding:.5rem;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid #2a2a2a;background:transparent;color:var(--mut)">PORTUGU&Ecirc;S</button>
           </div>
         </div>
+        <!-- ═══ MASTERY PROTOCOL · Phase 8 + Phase 9 bilingual engines ═══════════════
+             Anchored beneath Sovereign Linguistics in the Profile tab. Two sub-
+             panels: Immersion Simulator (Phase 8 roleplay) and Coaching Scripts
+             (Phase 9 linguist). Both inherit the language preference set on the
+             Sovereign Linguistics row above (LANG global). -->
+        <div class="mastery-protocol">
+          <div class="mp-header">
+            <div class="mp-kicker">Mastery Protocol</div>
+            <div class="mp-title">Bilingual Empire</div>
+            <div class="mp-sub">Practice fluency with the Immersion Simulator, then deploy gym-floor coaching cues via Dynamic Scripts. Both inherit your language preference from Sovereign Linguistics above.</div>
+          </div>
+
+          <!-- ── PHASE 8 · Immersion Simulator ─────────────────────────────── -->
+          <div class="mp-panel">
+            <div class="mp-panel-h">
+              <span class="mp-panel-icon">&#x1F3AD;</span>
+              <span class="mp-panel-t">Immersion Simulator</span>
+            </div>
+            <div class="mp-panel-sub">Roleplay a real scenario in your target language. The native speaker replies in character; you get a grammar correction and fluency score per turn.</div>
+
+            <div class="mp-field">
+              <label class="mp-label" for="bbf-immersion-scenario">Scenario</label>
+              <input type="text" id="bbf-immersion-scenario" class="mp-input" maxlength="200" placeholder="e.g. Ordering a protein shake at a gym in S&atilde;o Paulo" />
+            </div>
+
+            <div class="immersion-chat" id="bbf-immersion-chat" aria-live="polite"></div>
+
+            <div class="mp-field mp-field--inline">
+              <input type="text" id="bbf-immersion-input" class="mp-input" maxlength="500" placeholder="Type your message in the target language&hellip;" />
+              <button type="button" id="bbf-immersion-mic-btn" class="mp-mic-btn" title="Dictate in target language">&#x1F3A4;</button>
+              <button type="button" id="bbf-immersion-send-btn" class="mp-primary-btn">Send</button>
+            </div>
+            <button type="button" id="bbf-immersion-reset-btn" class="mp-reset-btn">&#x21BA; Reset Conversation</button>
+          </div>
+
+          <!-- ── PHASE 9 · Coaching Scripts ────────────────────────────────── -->
+          <div class="mp-panel">
+            <div class="mp-panel-h">
+              <span class="mp-panel-icon">&#x1F4E2;</span>
+              <span class="mp-panel-t">Coaching Scripts</span>
+            </div>
+            <div class="mp-panel-sub">Convert an English coaching cue into a ready-to-shout phrase in your target language. Phonetic guide + literal meaning included so you can verify and pronounce.</div>
+
+            <div class="mp-field">
+              <label class="mp-label" for="bbf-linguist-cue">English Coaching Cue</label>
+              <input type="text" id="bbf-linguist-cue" class="mp-input" maxlength="200" placeholder="e.g. Drive your knees out!" />
+            </div>
+
+            <button type="button" id="bbf-linguist-go-btn" class="mp-primary-btn mp-primary-btn--full">&#x26A1; Translate to Gym-Floor Slang</button>
+
+            <div class="linguist-result" id="bbf-linguist-result" aria-live="polite"></div>
+          </div>
+        </div>
+
         <div class="psr" onclick="window.open('liability-waiver.pdf','_blank')"><div class="psrl"><span style="font-size:1.1rem">&#x1F4C4;</span><div><div class="psrn" data-lang-key="app-set-waiver">Liability Waiver</div><div class="psrs" data-lang-key="app-set-waiver-sub">View &amp; download PDF</div></div></div><span class="psra">&#x203A;</span></div>
         <div class="psr" id="logout-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F6AA;</span><div><div class="psrn" data-lang-key="app-set-signout">Sign Out</div><div class="psrs" data-lang-key="app-set-signout-sub">Log out of your account</div></div></div><span class="psra">&#x203A;</span></div>
       </div>
@@ -7654,7 +7755,13 @@ function TAB(name) {
   if (name === 'workout')   { RW(); if (window.SS_REFRESH_DAMAGED) window.SS_REFRESH_DAMAGED(); }
   if (name === 'nutrition') RN();
   if (name === 'prehab') renderPrehab();
-  if (name === 'profile') { PTAB('overview'); }
+  if (name === 'profile') {
+    PTAB('overview');
+    // Phase 8+9 — bind the Mastery Protocol controls on every Profile open
+    // (idempotent via dataset.bbfBound).
+    if (typeof BBF_IMMERSION !== 'undefined') { try { BBF_IMMERSION.init(); } catch (_) {} }
+    if (typeof BBF_LINGUIST  !== 'undefined') { try { BBF_LINGUIST.init();  } catch (_) {} }
+  }
   // Phase 9 — re-apply tier gate after every tab switch so dynamically-
   // rendered surfaces (Scan Meal, day-swapped meals, etc.) re-mask.
   if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
@@ -11521,12 +11628,29 @@ var BBF_PREHAB_MATRIX = (function() {
   var BASELINE_CACHE_PREFIX = 'bbf_prehab_baseline_';
   function _baselineCacheKey(uid) { return BASELINE_CACHE_PREFIX + uid + '_' + _todayLocal(); }
   function _readBaselineCache(uid) {
+    var key = _baselineCacheKey(uid);
     try {
-      var raw = localStorage.getItem(_baselineCacheKey(uid));
+      var raw = localStorage.getItem(key);
       if (!raw) return null;
-      var entry = JSON.parse(raw);
-      return (entry && Array.isArray(entry.matrix)) ? entry.matrix : null;
-    } catch (_) { return null; }
+      var entry = null;
+      try { entry = JSON.parse(raw); }
+      catch (parseErr) {
+        // Corrupt JSON — evict so the next read forces a fresh fetch.
+        try { localStorage.removeItem(key); } catch (_) {}
+        console.warn('[BBF_PREHAB v5.3] evicted corrupt baseline cache for ' + uid + ':', parseErr && parseErr.message);
+        return null;
+      }
+      if (!entry || !Array.isArray(entry.matrix) || !entry.matrix.length) {
+        // Valid JSON but wrong shape (null / empty matrix / wrong schema).
+        // Evict so we don't keep serving a broken render.
+        try { localStorage.removeItem(key); } catch (_) {}
+        return null;
+      }
+      return entry.matrix;
+    } catch (e) {
+      try { localStorage.removeItem(key); } catch (_) {}
+      return null;
+    }
   }
   function _writeBaselineCache(uid, matrix) {
     try {
@@ -11618,8 +11742,14 @@ var BBF_PREHAB_MATRIX = (function() {
         console.log('[BBF_PREHAB v5.2] ' + uid + ' · mode=' + mode + ' → ' + parsed.matrix.length + ' movements · friction_len=' + friction.length);
       });
     }).catch(function(err) {
-      console.warn('[BBF_PREHAB v5.1] fetch failed:', err && err.message || err);
-      _renderError((err && err.message) || 'Network error.', mode);
+      var raw = (err && err.message) || String(err || '');
+      console.warn('[BBF_PREHAB v5.3] fetch failed:', raw);
+      // "Failed to fetch" is the browser's raw network error string —
+      // wrap with athlete-friendly copy instead of leaking it to the UI.
+      var friendly = /failed to fetch|networkerror|load failed/i.test(raw)
+        ? 'Lost connection to the recovery engine. Check your signal and tap Generate to retry.'
+        : raw;
+      _renderError(friendly, mode);
     }).then(function() {
       _inFlight = false;
       _resetButton();
@@ -12236,6 +12366,412 @@ var BBF_COMLINK = (function() {
   }
 
   return { mount: mount, isSupported: function() { return _supported; } };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_IMMERSION · Phase 8 — Sovereign Linguistics · Roleplay Simulator
+// ────────────────────────────────────────────────────────────────────────
+// Multi-turn chat IIFE inside the Profile › Mastery Protocol section.
+// POSTs to /functions/v1/bbf-agentic-immersion with scenario +
+// target_language (read from window.LANG) + user message + per-session
+// conversation_history. Renders a chat thread with per-AI-turn grammar
+// correction + fluency score pill.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_IMMERSION = (function() {
+  var ENDPOINT      = '/functions/v1/bbf-agentic-immersion';
+  var SCENARIO_ID   = 'bbf-immersion-scenario';
+  var CHAT_ID       = 'bbf-immersion-chat';
+  var INPUT_ID      = 'bbf-immersion-input';
+  var SEND_ID       = 'bbf-immersion-send-btn';
+  var MIC_ID        = 'bbf-immersion-mic-btn';
+  var RESET_ID      = 'bbf-immersion-reset-btn';
+  var _history      = [];       // [{role:'user'|'assistant', content:string}]
+  var _inFlight     = false;
+  var _rec          = null;
+  var _dictating    = false;
+  var _supportsSR   = (function() {
+    try { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+    catch (_) { return false; }
+  })();
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _targetLang() {
+    try {
+      if (typeof LANG === 'string' && LANG) return LANG;
+      if (typeof window !== 'undefined' && window.LANG) return window.LANG;
+    } catch (_) {}
+    return 'es';
+  }
+  function _srLocale() {
+    var l = _targetLang();
+    if (l === 'es') return 'es-US';
+    if (l === 'pt') return 'pt-BR';
+    return 'en-US';
+  }
+
+  function _renderUserMsg(text) {
+    var chat = document.getElementById(CHAT_ID);
+    if (!chat) return;
+    var el = document.createElement('div');
+    el.className = 'imm-msg imm-msg--user';
+    el.innerHTML = _esc(text);
+    chat.appendChild(el);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function _renderLoadingMsg() {
+    var chat = document.getElementById(CHAT_ID);
+    if (!chat) return null;
+    var el = document.createElement('div');
+    el.className = 'imm-msg imm-msg--ai imm-msg--loading';
+    el.textContent = '…';
+    chat.appendChild(el);
+    chat.scrollTop = chat.scrollHeight;
+    return el;
+  }
+  function _renderAiMsg(loadingEl, payload) {
+    var chat = document.getElementById(CHAT_ID);
+    if (!chat) return;
+    var reply  = String((payload && payload.ai_reply)           || '—');
+    var corr   = String((payload && payload.grammar_correction) || '');
+    var score  = (payload && typeof payload.fluency_score === 'number') ? Math.round(payload.fluency_score) : null;
+    var perfect = /^perfect/i.test(corr.trim());
+    var corrHtml = corr
+      ? '<div class="imm-correction' + (perfect ? ' imm-correction--perfect' : '') + '">' +
+        '<strong>Tutor:</strong> ' + _esc(corr) + '</div>'
+      : '';
+    var scoreHtml = (score !== null)
+      ? '<div class="imm-score-row"><span>Fluency</span><span class="imm-score-pill">' + score + ' / 100</span></div>'
+      : '';
+    var el = document.createElement('div');
+    el.className = 'imm-msg imm-msg--ai';
+    el.innerHTML = _esc(reply) + corrHtml + scoreHtml;
+    if (loadingEl && loadingEl.parentNode) loadingEl.parentNode.replaceChild(el, loadingEl);
+    else chat.appendChild(el);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function _renderError(loadingEl, msg) {
+    var html = '<div class="imm-correction" style="color:#FF8866">' + _esc(msg || 'Could not reach the immersion engine.') + '</div>';
+    var el = document.createElement('div');
+    el.className = 'imm-msg imm-msg--ai';
+    el.innerHTML = html;
+    if (loadingEl && loadingEl.parentNode) loadingEl.parentNode.replaceChild(el, loadingEl);
+    else {
+      var chat = document.getElementById(CHAT_ID);
+      if (chat) { chat.appendChild(el); chat.scrollTop = chat.scrollHeight; }
+    }
+  }
+
+  function _send() {
+    if (_inFlight) return;
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return;
+    var scenarioEl = document.getElementById(SCENARIO_ID);
+    var inputEl    = document.getElementById(INPUT_ID);
+    if (!scenarioEl || !inputEl) return;
+    var scenario = String(scenarioEl.value || '').trim();
+    var message  = String(inputEl.value || '').trim();
+    if (!scenario) { scenarioEl.focus(); return; }
+    if (!message)  { inputEl.focus(); return; }
+
+    _renderUserMsg(message);
+    inputEl.value = '';
+    var loadingEl = _renderLoadingMsg();
+    _inFlight = true;
+    var sendBtn = document.getElementById(SEND_ID);
+    if (sendBtn) sendBtn.disabled = true;
+
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) { headers['Authorization'] = 'Bearer ' + anon; headers['apikey'] = anon; }
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+    var body = {
+      uid:                  uid,
+      scenario:             scenario,
+      target_language:      _targetLang(),
+      user_message:         message,
+      conversation_history: _history.slice(),
+      admin_override:       !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+    };
+
+    window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify(body)
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok || !parsed) {
+          _renderError(loadingEl, 'Immersion engine error (HTTP ' + res.status + ').');
+          return;
+        }
+        _renderAiMsg(loadingEl, parsed);
+        _history.push({ role: 'user',      content: message });
+        _history.push({ role: 'assistant', content: String(parsed.ai_reply || '') });
+        if (_history.length > 24) _history = _history.slice(-24);
+      });
+    }).catch(function(err) {
+      var raw = (err && err.message) || String(err || '');
+      var friendly = /failed to fetch|networkerror|load failed/i.test(raw)
+        ? 'Lost connection to the immersion engine. Check your signal and resend.'
+        : raw;
+      _renderError(loadingEl, friendly);
+    }).then(function() {
+      _inFlight = false;
+      if (sendBtn) sendBtn.disabled = false;
+    });
+  }
+
+  function _onMicClick() {
+    if (!_supportsSR) return;
+    if (_dictating) { try { _rec && _rec.stop(); } catch (_) {} return; }
+    var Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var rec = new Ctor();
+    rec.lang            = _srLocale();
+    rec.continuous      = false;
+    rec.interimResults  = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = function(e) {
+      try {
+        var t = '';
+        for (var i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+        var inp = document.getElementById(INPUT_ID);
+        if (inp && t.trim()) {
+          inp.value = (inp.value ? inp.value + ' ' : '') + t.trim();
+          inp.focus();
+        }
+      } catch (_) {}
+    };
+    rec.onerror = function() {};
+    rec.onend = function() {
+      _dictating = false;
+      var btn = document.getElementById(MIC_ID);
+      if (btn) btn.classList.remove('recording');
+      _rec = null;
+    };
+    try {
+      rec.start();
+      _rec = rec;
+      _dictating = true;
+      var btn = document.getElementById(MIC_ID);
+      if (btn) btn.classList.add('recording');
+    } catch (_) {
+      _dictating = false;
+    }
+  }
+
+  function _resetChat() {
+    _history = [];
+    var chat = document.getElementById(CHAT_ID);
+    if (chat) chat.innerHTML = '';
+  }
+
+  function init() {
+    var sendBtn  = document.getElementById(SEND_ID);
+    var input    = document.getElementById(INPUT_ID);
+    var micBtn   = document.getElementById(MIC_ID);
+    var resetBtn = document.getElementById(RESET_ID);
+    if (sendBtn && sendBtn.dataset.bbfBound !== '1') {
+      sendBtn.dataset.bbfBound = '1';
+      sendBtn.addEventListener('click', _send);
+    }
+    if (input && input.dataset.bbfBound !== '1') {
+      input.dataset.bbfBound = '1';
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _send(); }
+      });
+    }
+    if (micBtn) {
+      if (!_supportsSR) micBtn.disabled = true;
+      if (micBtn.dataset.bbfBound !== '1') {
+        micBtn.dataset.bbfBound = '1';
+        micBtn.addEventListener('click', _onMicClick);
+      }
+    }
+    if (resetBtn && resetBtn.dataset.bbfBound !== '1') {
+      resetBtn.dataset.bbfBound = '1';
+      resetBtn.addEventListener('click', _resetChat);
+    }
+  }
+
+  return { init: init };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_LINGUIST · Phase 9 — Dynamic Coaching Scripts
+// ────────────────────────────────────────────────────────────────────────
+// One-shot translator IIFE inside the Profile › Mastery Protocol section.
+// POSTs an English cue to /functions/v1/bbf-agentic-linguist; renders
+// { translation, phonetic, literal_meaning } as a gold-themed card.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_LINGUIST = (function() {
+  var ENDPOINT  = '/functions/v1/bbf-agentic-linguist';
+  var CUE_ID    = 'bbf-linguist-cue';
+  var GO_ID     = 'bbf-linguist-go-btn';
+  var RESULT_ID = 'bbf-linguist-result';
+  var _inFlight = false;
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _targetLang() {
+    try {
+      if (typeof LANG === 'string' && LANG) return LANG;
+      if (typeof window !== 'undefined' && window.LANG) return window.LANG;
+    } catch (_) {}
+    return 'es';
+  }
+
+  function _renderCard(payload) {
+    var con = document.getElementById(RESULT_ID);
+    if (!con) return;
+    var translation = _esc((payload && payload.translation)     || '—');
+    var phonetic    = _esc((payload && payload.phonetic)        || '—');
+    var literal     = _esc((payload && payload.literal_meaning) || '—');
+    con.classList.add('on');
+    con.innerHTML =
+      '<div class="linguist-card">' +
+        '<div class="linguist-row">' +
+          '<div class="linguist-row-lbl">Gym-Floor Phrase</div>' +
+          '<div class="linguist-row-translation">' + translation + '</div>' +
+        '</div>' +
+        '<div class="linguist-row">' +
+          '<div class="linguist-row-lbl">Phonetic</div>' +
+          '<div class="linguist-row-phonetic">' + phonetic + '</div>' +
+        '</div>' +
+        '<div class="linguist-row">' +
+          '<div class="linguist-row-lbl">Literal Meaning</div>' +
+          '<div class="linguist-row-literal">' + literal + '</div>' +
+        '</div>' +
+      '</div>';
+  }
+  function _renderLoading() {
+    var con = document.getElementById(RESULT_ID);
+    if (!con) return;
+    con.classList.add('on');
+    con.innerHTML = '<div class="linguist-card linguist-row-literal" style="font-style:italic;color:#D4AF37;animation:bbfLibPulse 1.4s ease-in-out infinite">&#x1F501; Translating to gym-floor slang&hellip;</div>';
+  }
+  function _renderError(msg) {
+    var con = document.getElementById(RESULT_ID);
+    if (!con) return;
+    con.classList.add('on');
+    con.innerHTML = '<div class="linguist-card"><div class="linguist-row-error">' + _esc(msg || 'Linguist offline. Tap Translate to retry.') + '</div></div>';
+  }
+
+  function _translate() {
+    if (_inFlight) return;
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return;
+    var cueEl = document.getElementById(CUE_ID);
+    if (!cueEl) return;
+    var cue = String(cueEl.value || '').trim();
+    if (!cue) { cueEl.focus(); return; }
+
+    _renderLoading();
+    _inFlight = true;
+    var goBtn = document.getElementById(GO_ID);
+    if (goBtn) goBtn.disabled = true;
+
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) { headers['Authorization'] = 'Bearer ' + anon; headers['apikey'] = anon; }
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+    var body = {
+      uid:             uid,
+      english_cue:     cue,
+      target_language: _targetLang(),
+      admin_override:  !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+    };
+
+    window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify(body)
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok || !parsed) {
+          _renderError('Linguist engine error (HTTP ' + res.status + ').');
+          return;
+        }
+        _renderCard(parsed);
+        console.log('[BBF_LINGUIST] cue="' + cue.slice(0,60) + '" → "' + (parsed.translation || '').slice(0,60) + '"');
+      });
+    }).catch(function(err) {
+      var raw = (err && err.message) || String(err || '');
+      var friendly = /failed to fetch|networkerror|load failed/i.test(raw)
+        ? 'Lost connection to the linguist engine. Check your signal and tap Translate.'
+        : raw;
+      _renderError(friendly);
+    }).then(function() {
+      _inFlight = false;
+      if (goBtn) goBtn.disabled = false;
+    });
+  }
+
+  function init() {
+    var goBtn = document.getElementById(GO_ID);
+    var cueEl = document.getElementById(CUE_ID);
+    if (goBtn && goBtn.dataset.bbfBound !== '1') {
+      goBtn.dataset.bbfBound = '1';
+      goBtn.addEventListener('click', _translate);
+    }
+    if (cueEl && cueEl.dataset.bbfBound !== '1') {
+      cueEl.dataset.bbfBound = '1';
+      cueEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); _translate(); }
+      });
+    }
+  }
+
+  return { init: init };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
