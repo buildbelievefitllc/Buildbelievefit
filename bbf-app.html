@@ -2666,6 +2666,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ts-field select:focus,.ts-field input:focus{outline:none;border-color:rgba(0,229,255,.55);box-shadow:0 0 0 3px rgba(0,229,255,.15)}
 .ts-field input[type="range"]{width:100%;accent-color:#F5C800;background:transparent}
 .ts-srpe-display{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:.95rem;letter-spacing:1.4px;color:#F5CF60;font-weight:900}
+.ts-srpe-help{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.66rem;letter-spacing:.6px;color:rgba(255,255,255,.55);margin:.15rem 0 .35rem;line-height:1.4}
 .ts-srpe-scale{display:flex;justify-content:space-between;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.6rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.42);margin-top:.15rem}
 .ts-bouts-fieldset{border:1px dashed rgba(0,229,255,.22);border-radius:10px;padding:.85rem .9rem;margin:0;background:rgba(0,229,255,.02)}
 .ts-bouts-fieldset legend{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.78rem;letter-spacing:2.4px;text-transform:uppercase;color:#00E5FF;font-weight:900;padding:0 .35rem}
@@ -6423,7 +6424,8 @@ window.onload=function(){
               <input type="number" id="ts-duration" min="1" max="600" step="1" placeholder="e.g. 75" required />
             </div>
             <div class="ts-field">
-              <label for="ts-srpe">sRPE Intensity &mdash; <span class="ts-srpe-display" id="ts-srpe-display">5</span> / 10</label>
+              <label for="ts-srpe">Workout Difficulty &mdash; <span class="ts-srpe-display" id="ts-srpe-display">5</span> / 10</label>
+              <div class="ts-srpe-help">1 = Easy Warmup &nbsp;&middot;&nbsp; 10 = Absolute Maximum Effort</div>
               <input type="range" id="ts-srpe" min="1" max="10" step="1" value="5" oninput="document.getElementById('ts-srpe-display').textContent=this.value" />
               <div class="ts-srpe-scale" aria-hidden="true">
                 <span>1 &middot; Easy</span><span>5 &middot; Moderate</span><span>10 &middot; Max</span>
@@ -14731,7 +14733,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (!sessionType) { _tsSetMsg('Select a session type.', 'error'); return; }
       if (!(duration > 0 && duration <= 600)) { _tsSetMsg('Duration must be 1–600 minutes.', 'error'); return; }
-      if (!(srpe >= 1 && srpe <= 10)) { _tsSetMsg('sRPE must be 1–10.', 'error'); return; }
+      if (!(srpe >= 1 && srpe <= 10)) { _tsSetMsg('Workout Difficulty must be 1–10.', 'error'); return; }
 
       // Gather bouts (UTC day-aligned to match adapter's bucket convention)
       var todayMid = new Date(); todayMid.setUTCHours(0, 0, 0, 0);
