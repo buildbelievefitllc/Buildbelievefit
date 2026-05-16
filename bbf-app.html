@@ -514,6 +514,14 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .omni-toggle--on .omni-toggle__label{color:#fff;text-shadow:0 0 6px rgba(255,255,255,.4)}
 .omni-toggle--on .omni-toggle__sub{color:rgba(255,255,255,.78)}
 @keyframes bbfOmniPulse{0%{box-shadow:0 0 0 0 rgba(0,0,0,.7)}70%{box-shadow:0 0 0 10px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+@media (max-width:480px){
+  .omni-toggle{padding:.45rem .7rem;border-radius:10px;gap:.1rem}
+  .omni-toggle--floating{right:.7rem;bottom:calc(env(safe-area-inset-bottom,0px) + 4.5rem)}
+  .omni-toggle__label{font-size:.6rem;letter-spacing:1.6px;padding-right:1rem}
+  .omni-toggle__sub{font-size:.5rem;letter-spacing:1.1px;padding-right:1rem}
+  .omni-toggle__dot{top:.5rem;right:.55rem;width:7px;height:7px}
+  .omni-toggle--on{box-shadow:0 0 10px rgba(255,139,94,.4),0 3px 12px rgba(58,10,82,.4),0 1px 0 rgba(255,255,255,.15) inset}
+}
 .rdc{background:var(--gry);border:1px solid #1a1a1a;border-radius:16px;padding:2rem;text-align:center}
 .rdi{font-size:3rem;margin-bottom:1rem}
 .rdt{font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.5rem;color:var(--yel)}
