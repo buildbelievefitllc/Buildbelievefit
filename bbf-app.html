@@ -518,6 +518,10 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .prehab-matrix-loading{padding:1.2rem;text-align:center;font-size:.78rem;letter-spacing:1.5px;color:#00FFCC;text-transform:uppercase;border:1px dashed rgba(0,255,204,.35);border-radius:6px;animation:bbfLibPulse 1.4s ease-in-out infinite}
 .prehab-matrix-error{padding:1rem;border:1px solid #444;border-left:3px solid #FF4500;background:rgba(255,69,0,.08);color:#FF8866;font-size:.82rem;border-radius:4px;line-height:1.5}
 @keyframes bbfLibPulse{0%,100%{opacity:.55}50%{opacity:1}}
+.prehab-matrix-subheader{font-size:.62rem;letter-spacing:2.4px;text-transform:uppercase;font-weight:800;margin:.2rem 0 .65rem;padding-left:.2rem}
+.prehab-matrix-subheader--baseline{color:rgba(0,255,204,.62)}
+.prehab-matrix-subheader--override{color:#00FFCC}
+.prehab-matrix-subheader--override::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#00FFCC;margin-right:.55rem;vertical-align:1px;box-shadow:0 0 6px rgba(0,255,204,.65)}
 .omni-toggle{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 .omni-toggle--floating{position:fixed;right:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 5.2rem);z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .omni-toggle--panel{margin-right:.55rem}
@@ -11426,26 +11430,41 @@ var BBF_PREHAB_MATRIX = (function() {
     '</div>';
   }
 
-  function _renderResults(matrix) {
+  // Two-state sub-header copy (CEO spec, verbatim):
+  //   baseline (auto-fired on tab mount): "Auto-Generated Baseline Protocol (Based on Today's Load)"
+  //   override (user-initiated Generate): "Targeted Friction Override Protocol"
+  function _subHeaderHtml(mode) {
+    if (mode === 'override') {
+      return '<div class="prehab-matrix-subheader prehab-matrix-subheader--override">Targeted Friction Override Protocol</div>';
+    }
+    return '<div class="prehab-matrix-subheader prehab-matrix-subheader--baseline">Auto-Generated Baseline Protocol (Based on Today\'s Load)</div>';
+  }
+
+  function _renderResults(matrix, mode) {
     var con = document.getElementById(RESULTS_ID);
     if (!con) return;
     if (!Array.isArray(matrix) || !matrix.length) {
-      con.innerHTML = '<div class="prehab-matrix-error">No matrix returned. Try again or adjust your friction text.</div>';
+      con.innerHTML = _subHeaderHtml(mode) + '<div class="prehab-matrix-error">No matrix returned. Try again or adjust your friction text.</div>';
       return;
     }
-    con.innerHTML = matrix.map(_cardHtml).join('');
+    con.innerHTML = _subHeaderHtml(mode) + matrix.map(_cardHtml).join('');
   }
 
-  function _renderLoading() {
+  function _renderLoading(mode) {
     var con = document.getElementById(RESULTS_ID);
-    if (con) con.innerHTML = '<div class="prehab-matrix-loading">&#x1F501; Generating tailored recovery matrix&hellip;</div>';
+    if (con) {
+      var loadingCopy = mode === 'override'
+        ? '&#x1F501; Targeting your friction&hellip;'
+        : '&#x1F501; Auto-generating today\'s baseline&hellip;';
+      con.innerHTML = _subHeaderHtml(mode) + '<div class="prehab-matrix-loading">' + loadingCopy + '</div>';
+    }
     var btn = document.getElementById(BTN_ID);
     if (btn) { btn.disabled = true; btn.textContent = LOADING_LABEL; }
   }
 
-  function _renderError(msg) {
+  function _renderError(msg, mode) {
     var con = document.getElementById(RESULTS_ID);
-    if (con) con.innerHTML = '<div class="prehab-matrix-error">' + _esc(msg || 'Could not reach the recovery engine.') + ' Tap Generate to retry.</div>';
+    if (con) con.innerHTML = _subHeaderHtml(mode) + '<div class="prehab-matrix-error">' + _esc(msg || 'Could not reach the recovery engine.') + ' Tap Generate to retry.</div>';
   }
 
   function _resetButton() {
@@ -11453,13 +11472,30 @@ var BBF_PREHAB_MATRIX = (function() {
     if (btn) { btn.disabled = false; btn.textContent = IDLE_LABEL; }
   }
 
-  function generate() {
+  // Session-scoped dedupe: tracks which uids have already auto-fired
+  // a baseline this page-session. Memory only — dies on reload, so the
+  // "Live Library = fresh on every page session" promise holds. Prevents
+  // tab toggling from burning a Claude credit per visit.
+  var _autoFiredBaselineFor = {};
+
+  // Phase 5.1 audible: two-state generate flow.
+  //   - Auto-fire baseline on tab mount → render with baseline sub-header
+  //   - User click on Generate → render with override sub-header
+  // CEO directive: override REPLACES baseline in DOM (single results
+  // container, full innerHTML swap per render).
+  function generate(opts) {
+    opts = opts || {};
+    var mode = opts.baseline === true ? 'baseline' : 'override';
     if (_inFlight) return;
     var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
-    if (!uid) { _renderError('No active user.'); return; }
+    if (!uid) { _renderError('No active user.', mode); return; }
 
     var input  = document.getElementById(INPUT_ID);
-    var friction = input ? String(input.value || '').trim().slice(0, 600) : '';
+    // Baseline call sends empty friction even if the user typed something —
+    // the auto-fire's job is to show today's load-aware baseline, not the
+    // friction text. The friction is reserved for the explicit override
+    // click.
+    var friction = (mode === 'override' && input) ? String(input.value || '').trim().slice(0, 600) : '';
 
     // Resolve uuid + goal opportunistically from local state. Goal is
     // user-facing local-only context (not on bbf_users); pass it through
@@ -11477,7 +11513,7 @@ var BBF_PREHAB_MATRIX = (function() {
       }
     } catch (_) {}
 
-    _renderLoading();
+    _renderLoading(mode);
     _inFlight = true;
 
     var headers = { 'Content-Type': 'application/json' };
@@ -11506,31 +11542,44 @@ var BBF_PREHAB_MATRIX = (function() {
         var parsed = null;
         try { parsed = JSON.parse(t); } catch (_) {}
         if (!res.ok || !parsed || !Array.isArray(parsed.matrix)) {
-          console.warn('[BBF_PREHAB v5] engine returned HTTP ' + res.status + ':', parsed || t);
-          _renderError('Recovery engine returned an error (HTTP ' + res.status + ').');
+          console.warn('[BBF_PREHAB v5.1] engine returned HTTP ' + res.status + ':', parsed || t);
+          _renderError('Recovery engine returned an error (HTTP ' + res.status + ').', mode);
           return;
         }
-        _renderResults(parsed.matrix);
-        console.log('[BBF_PREHAB v5] ' + uid + ' → ' + parsed.matrix.length + ' movements · friction_len=' + friction.length);
+        _renderResults(parsed.matrix, mode);
+        console.log('[BBF_PREHAB v5.1] ' + uid + ' · mode=' + mode + ' → ' + parsed.matrix.length + ' movements · friction_len=' + friction.length);
       });
     }).catch(function(err) {
-      console.warn('[BBF_PREHAB v5] fetch failed:', err && err.message || err);
-      _renderError((err && err.message) || 'Network error.');
+      console.warn('[BBF_PREHAB v5.1] fetch failed:', err && err.message || err);
+      _renderError((err && err.message) || 'Network error.', mode);
     }).then(function() {
       _inFlight = false;
       _resetButton();
     });
   }
 
+  // Auto-fire the baseline on tab mount — once per uid per page-session.
+  // Skipped if results container already has cards (idempotent re-render
+  // protection) or if the user already auto-fired this session.
+  function autoFireBaseline() {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return;
+    if (_autoFiredBaselineFor[uid]) return;
+    var con = document.getElementById(RESULTS_ID);
+    if (con && con.querySelector('.prehab-matrix-card')) return;
+    _autoFiredBaselineFor[uid] = true;
+    generate({ baseline: true });
+  }
+
   // Idempotent — binds the click handler exactly once per button render.
-  // renderPrehab() recreates the DOM on every tab open, so dataset flag
-  // prevents stale double-bindings.
+  // renderPrehab() reuses the DOM on subsequent tab opens (idempotent
+  // mount), so dataset flag prevents stale double-bindings on re-init.
   function init() {
     var btn = document.getElementById(BTN_ID);
     if (!btn) return;
     if (btn.dataset.bbfBound === '1') return;
     btn.dataset.bbfBound = '1';
-    btn.addEventListener('click', generate);
+    btn.addEventListener('click', function() { generate(); });
   }
 
   // Sweep dead Phase-4 5-min cache entries from earlier IIFE — fire once
@@ -11544,7 +11593,7 @@ var BBF_PREHAB_MATRIX = (function() {
     keys.forEach(function(k) { localStorage.removeItem(k); });
   } catch (_) {}
 
-  return { init: init, generate: generate };
+  return { init: init, generate: generate, autoFireBaseline: autoFireBaseline };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
@@ -13294,19 +13343,28 @@ function renderPrehab() {
 
   var con = document.getElementById('prehab-cues');
   if (!con) return;
-  con.innerHTML =
-    '<div class="prehab-library-header">' +
-      '<div class="prehab-library-kicker">Live Library &middot; v5</div>' +
-      '<div class="prehab-library-title">Recovery Matrix</div>' +
-      '<div class="prehab-library-sub">Tap Generate for a 3-movement recovery protocol tailored to your demographic, today\'s workload, and what you\'re feeling. Updated live every time.</div>' +
-    '</div>' +
-    '<label for="bbf-friction-input" class="prehab-library-label">Friction Scanner</label>' +
-    '<div class="prehab-library-sub" style="margin:0 0 .5rem">Log any tightness, pain points, or fatigue from today\'s session. Leave blank if you\'re feeling fresh.</div>' +
-    '<textarea id="bbf-friction-input" class="friction-input" placeholder="e.g. lower back stiff after deadlifts, left knee twinge on lunges, right shoulder tight from pressing…" rows="3" maxlength="600"></textarea>' +
-    '<button id="bbf-generate-recovery-btn" type="button" class="generate-recovery-btn">Generate Recovery Matrix</button>' +
-    '<div id="bbf-prehab-matrix-results" class="prehab-matrix-results"></div>';
+  // Idempotent UI mount — only build the input/button shell once per
+  // page-session so tab toggling preserves the rendered matrix and the
+  // typed-but-not-yet-submitted friction text. The IIFE handles its own
+  // dedupe for the auto-fire and the click bind.
+  if (!con.querySelector('#bbf-friction-input')) {
+    con.innerHTML =
+      '<div class="prehab-library-header">' +
+        '<div class="prehab-library-kicker">Live Library &middot; v5</div>' +
+        '<div class="prehab-library-title">Recovery Matrix</div>' +
+        '<div class="prehab-library-sub">Today\'s baseline auto-generates below. Type into the Friction Scanner and tap Generate to override with a targeted protocol.</div>' +
+      '</div>' +
+      '<label for="bbf-friction-input" class="prehab-library-label">Friction Scanner</label>' +
+      '<div class="prehab-library-sub" style="margin:0 0 .5rem">Log any tightness, pain points, or fatigue from today\'s session. Leave blank to keep the auto-baseline.</div>' +
+      '<textarea id="bbf-friction-input" class="friction-input" placeholder="e.g. lower back stiff after deadlifts, left knee twinge on lunges, right shoulder tight from pressing…" rows="3" maxlength="600"></textarea>' +
+      '<button id="bbf-generate-recovery-btn" type="button" class="generate-recovery-btn">Generate Recovery Matrix</button>' +
+      '<div id="bbf-prehab-matrix-results" class="prehab-matrix-results"></div>';
+  }
 
-  if (typeof BBF_PREHAB_MATRIX !== 'undefined') BBF_PREHAB_MATRIX.init();
+  if (typeof BBF_PREHAB_MATRIX !== 'undefined') {
+    BBF_PREHAB_MATRIX.init();
+    BBF_PREHAB_MATRIX.autoFireBaseline();
+  }
 }
 function togglePrehab(i) {
   var body = document.getElementById('prehab-body-' + i);
