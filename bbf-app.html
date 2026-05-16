@@ -499,20 +499,21 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .prehab-matrix--fallback .prehab-matrix__cns{border-left-color:#666;color:#aaa}
 @keyframes bbfPrehabShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .prehab-matrix__shimmer{background:linear-gradient(90deg,rgba(0,201,167,0.06) 0%,rgba(0,201,167,0.22) 50%,rgba(0,201,167,0.06) 100%);background-size:200% 100%;animation:bbfPrehabShimmer 1.4s linear infinite;color:transparent !important;border-radius:6px;min-height:1rem}
-.omni-toggle{position:fixed;bottom:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease}
+.omni-toggle{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
+.omni-toggle--floating{position:fixed;right:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 5.2rem);z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.omni-toggle--panel{margin-right:.55rem}
 .omni-toggle:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.32);box-shadow:0 12px 30px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.1) inset}
 .omni-toggle:focus{outline:none;border-color:#8A2BE2}
 .omni-toggle__dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#666;box-shadow:0 0 0 2px rgba(255,255,255,.06);position:absolute;top:.6rem;right:.7rem}
 .omni-toggle__dot--off{background:#555}
-.omni-toggle__label{font-size:.68rem;letter-spacing:2.2px;font-weight:800;text-transform:uppercase;color:#bdbdbd;padding-right:1.3rem}
-.omni-toggle__sub{font-size:.58rem;letter-spacing:1.4px;text-transform:uppercase;color:#888;padding-right:1.3rem}
+.omni-toggle__label{font-size:.68rem;letter-spacing:2.2px;font-weight:800;text-transform:uppercase;color:#bdbdbd;padding-right:1.3rem;white-space:nowrap}
+.omni-toggle__sub{font-size:.58rem;letter-spacing:1.4px;text-transform:uppercase;color:#888;padding-right:1.3rem;white-space:nowrap}
 .omni-toggle--on{background:linear-gradient(135deg,#3a0a52 0%,#FF8B5E 100%);border-color:#FF8B5E;color:#fff;box-shadow:0 0 18px rgba(255,139,94,.5),0 6px 22px rgba(58,10,82,.55),0 1px 0 rgba(255,255,255,.18) inset}
 .omni-toggle--on:hover{box-shadow:0 0 26px rgba(255,139,94,.7),0 12px 30px rgba(58,10,82,.7),0 1px 0 rgba(255,255,255,.22) inset}
 .omni-toggle--on .omni-toggle__dot{background:#0a0a0a;animation:bbfOmniPulse 1.4s ease-out infinite}
 .omni-toggle--on .omni-toggle__label{color:#fff;text-shadow:0 0 6px rgba(255,255,255,.4)}
 .omni-toggle--on .omni-toggle__sub{color:rgba(255,255,255,.78)}
 @keyframes bbfOmniPulse{0%{box-shadow:0 0 0 0 rgba(0,0,0,.7)}70%{box-shadow:0 0 0 10px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
-@media (max-width:480px){.omni-toggle{bottom:.7rem;right:.7rem;padding:.5rem .75rem}.omni-toggle__label{font-size:.62rem}.omni-toggle__sub{font-size:.52rem}}
 .rdc{background:var(--gry);border:1px solid #1a1a1a;border-radius:16px;padding:2rem;text-align:center}
 .rdi{font-size:3rem;margin-bottom:1rem}
 .rdt{font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.5rem;color:var(--yel)}
@@ -11617,8 +11618,9 @@ var BBF_PREHAB_MATRIX = (function() {
 // localStorage hydration at script load.
 // ════════════════════════════════════════════════════════════════════════
 var BBF_OMNISCIENCE_TOGGLE = (function() {
-  var STORAGE_KEY = 'bbf_omniscience';
-  var BTN_ID      = 'bbfOmniscienceToggle';
+  var STORAGE_KEY  = 'bbf_omniscience';
+  var BTN_ID       = 'bbfOmniscienceToggle';
+  var PANEL_BTN_ID = 'bbfOmniscienceToggleCmd';
 
   // Hydrate from localStorage BEFORE the script continues so any IIFE
   // that reads window.BBF_ADMIN_OVERRIDE on first fire sees the persisted
@@ -11663,6 +11665,10 @@ var BBF_OMNISCIENCE_TOGGLE = (function() {
         '<span class="omni-toggle__sub">tap to engage</span>';
   }
 
+  function _renderAll() {
+    document.querySelectorAll('.omni-toggle').forEach(_renderBtn);
+  }
+
   function _refireAgents() {
     // Clear the Prehab cache so the next render of the prehab tab pulls
     // fresh (admin mock or real, depending on new state).
@@ -11692,29 +11698,60 @@ var BBF_OMNISCIENCE_TOGGLE = (function() {
       if (next) localStorage.setItem(STORAGE_KEY, '1');
       else      localStorage.removeItem(STORAGE_KEY);
     } catch (_) {}
-    var btn = document.getElementById(BTN_ID);
-    if (btn) _renderBtn(btn);
+    _renderAll();
     console.log('[BBF_OMNISCIENCE] toggled →', next ? 'ON' : 'OFF');
     _refireAgents();
+  }
+
+  // Mount the floating bottom-right button. Lifted ~5rem above the
+  // bottom nav (.bn fixed at bottom:0) so it doesn't visually compete
+  // with the Profile / Command icons.
+  function _mountFloating() {
+    var btn = document.getElementById(BTN_ID);
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id        = BTN_ID;
+      btn.type      = 'button';
+      btn.className = 'omni-toggle omni-toggle--floating';
+      btn.addEventListener('click', _handleClick);
+      document.body.appendChild(btn);
+    }
+    btn.style.display = '';
+    _renderBtn(btn);
+  }
+
+  // Mount a second button inside the Sovereign Panopticon toolbar so
+  // the toggle is also discoverable from the Command Center surface,
+  // not just the floating overlay. Same state, same handler.
+  function _mountPanopticon() {
+    var toolbar = document.querySelector('#tp-panopticon .panopticon-toolbar');
+    if (!toolbar) return;
+    var btn = toolbar.querySelector('.omni-toggle--panel');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id        = PANEL_BTN_ID;
+      btn.type      = 'button';
+      btn.className = 'omni-toggle omni-toggle--panel';
+      btn.addEventListener('click', _handleClick);
+      // Insert as the first child so it sits to the left of the
+      // existing Refresh button.
+      var refresh = toolbar.querySelector('.panopticon-refresh');
+      if (refresh) toolbar.insertBefore(btn, refresh);
+      else toolbar.appendChild(btn);
+    }
+    _renderBtn(btn);
   }
 
   function mount() {
     if (!_isAdmin()) {
       var existing = document.getElementById(BTN_ID);
       if (existing) existing.style.display = 'none';
+      var existingPanel = document.getElementById(PANEL_BTN_ID);
+      if (existingPanel) existingPanel.style.display = 'none';
       return;
     }
-    var btn = document.getElementById(BTN_ID);
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.id        = BTN_ID;
-      btn.type      = 'button';
-      btn.className = 'omni-toggle';
-      btn.addEventListener('click', _handleClick);
-      document.body.appendChild(btn);
-    }
-    btn.style.display = '';
-    _renderBtn(btn);
+    _mountFloating();
+    _mountPanopticon();
   }
 
   if (document.readyState === 'loading') {
