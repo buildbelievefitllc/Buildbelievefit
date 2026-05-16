@@ -480,6 +480,25 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .trajectory-forecaster{background:linear-gradient(135deg,rgba(20,20,20,1) 0%,rgba(40,0,80,0.4) 100%);border:1px solid #8A2BE2;border-radius:8px;padding:15px;margin-top:20px;box-shadow:0 0 10px rgba(138,43,226,0.2)}
 .trajectory-metric{font-size:24px;font-weight:900;color:#FFF;text-shadow:0 0 5px #8A2BE2}
 .trajectory-insight{color:#A9A9A9;font-size:14px;font-style:italic;border-left:2px solid #8A2BE2;padding-left:10px;margin-top:10px}
+.prehab-matrix{background:linear-gradient(135deg,rgba(20,20,20,1) 0%,rgba(0,80,70,0.45) 100%);border:1px solid #00C9A7;border-radius:12px;padding:1.1rem 1.2rem;margin:0 0 1rem;box-shadow:0 0 12px rgba(0,201,167,0.18);color:#e8e8e8}
+.prehab-matrix__header{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin-bottom:.5rem;flex-wrap:wrap}
+.prehab-matrix__title{font-size:.62rem;letter-spacing:2.2px;text-transform:uppercase;color:#00C9A7;font-weight:800}
+.prehab-matrix__tier{font-size:.78rem;font-weight:700;color:#fff;text-shadow:0 0 6px rgba(0,201,167,0.45)}
+.prehab-matrix__cns{font-size:.82rem;line-height:1.55;color:#cfeae3;border-left:2px solid #00C9A7;padding-left:.7rem;margin:.4rem 0 .9rem}
+.prehab-matrix__steps{display:grid;grid-template-columns:1fr;gap:.6rem;margin-bottom:.7rem}
+.prehab-matrix__step{background:rgba(0,0,0,0.32);border:1px solid rgba(0,201,167,0.25);border-radius:10px;padding:.7rem .85rem}
+.prehab-matrix__step-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem}
+.prehab-matrix__icon{font-size:1.05rem}
+.prehab-matrix__step-label{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:#00C9A7;font-weight:800}
+.prehab-matrix__step-title{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.2rem}
+.prehab-matrix__step-detail{font-size:.8rem;line-height:1.55;color:#d4d4d4}
+.prehab-matrix__meta{font-size:.7rem;letter-spacing:.8px;color:#7fd9c8;margin-top:.4rem;text-transform:lowercase}
+.prehab-matrix__prime{font-size:.78rem;font-style:italic;color:#a9d8cc;border-top:1px dashed rgba(0,201,167,0.3);padding-top:.55rem;margin-top:.2rem}
+.prehab-matrix--fallback{border-color:#666;box-shadow:none;background:linear-gradient(135deg,rgba(20,20,20,1) 0%,rgba(40,40,40,0.6) 100%)}
+.prehab-matrix--fallback .prehab-matrix__title,.prehab-matrix--fallback .prehab-matrix__step-label,.prehab-matrix--fallback .prehab-matrix__meta{color:#888}
+.prehab-matrix--fallback .prehab-matrix__cns{border-left-color:#666;color:#aaa}
+@keyframes bbfPrehabShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.prehab-matrix__shimmer{background:linear-gradient(90deg,rgba(0,201,167,0.06) 0%,rgba(0,201,167,0.22) 50%,rgba(0,201,167,0.06) 100%);background-size:200% 100%;animation:bbfPrehabShimmer 1.4s linear infinite;color:transparent !important;border-radius:6px;min-height:1rem}
 .rdc{background:var(--gry);border:1px solid #1a1a1a;border-radius:16px;padding:2rem;text-align:center}
 .rdi{font-size:3rem;margin-bottom:1rem}
 .rdt{font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.5rem;color:var(--yel)}
@@ -11282,6 +11301,215 @@ var BBF_FORECAST_ENGINE = (function() {
   return { attach: attach };
 })();
 
+// ════════════════════════════════════════════════════════════════════════
+// BBF_PREHAB_MATRIX · Phase 4 — Dynamic Prehab Matrix client
+// ────────────────────────────────────────────────────────────────────────
+// Calls /functions/v1/bbf-agentic-prehab. Renders a teal .prehab-matrix
+// panel at the TOP of #prehab-cues with the day's 3-step recovery
+// directive (mobility / hydration / active recovery).
+//
+// Omniscience Protocol — sends admin_override based on
+// window.BBF_ADMIN_OVERRIDE (the unified global). When true, the backend
+// returns the hardcoded multi-tier stress-test mock that we render verbatim.
+//
+// Failure posture — the edge function NEVER returns non-2xx for an
+// upstream failure; it returns the static "Default Baseline Recovery
+// Protocol" payload with source="fallback". We surface that with a
+// .prehab-matrix--fallback modifier class; render path is identical.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_PREHAB_MATRIX = (function() {
+  var ENDPOINT = '/functions/v1/bbf-agentic-prehab';
+  var _inFlightFor = null;
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  var VECTOR_ICON = {
+    mobility:        '&#x1F9B4;',
+    hydration:       '&#x1F4A7;',
+    active_recovery: '&#x1F6B6;'
+  };
+  var VECTOR_LABEL = {
+    mobility:        'Mobility',
+    hydration:       'Hydration',
+    active_recovery: 'Active Recovery'
+  };
+
+  function _stepHtml(step) {
+    var v     = String((step && step.vector) || '').toLowerCase();
+    var icon  = VECTOR_ICON[v]  || '&#x2728;';
+    var label = VECTOR_LABEL[v] || v.toUpperCase();
+    var title  = _esc(step && step.title  || '—');
+    var detail = _esc(step && step.detail || '—');
+
+    var metricBits = [];
+    if (v === 'mobility') {
+      if (step && step.duration_minutes != null) metricBits.push(_esc(step.duration_minutes) + ' min');
+      if (step && step.intensity)                metricBits.push(_esc(step.intensity) + ' intensity');
+    } else if (v === 'hydration') {
+      if (step && step.target_oz != null)        metricBits.push(_esc(step.target_oz) + ' oz');
+      if (step && step.electrolyte_focus)        metricBits.push(_esc(step.electrolyte_focus) + ' electrolytes');
+    } else if (v === 'active_recovery') {
+      if (step && step.duration_minutes != null) metricBits.push(_esc(step.duration_minutes) + ' min');
+      if (step && step.modality)                 metricBits.push(_esc(step.modality));
+    }
+    var metricLine = metricBits.length
+      ? '<div class="prehab-matrix__meta">' + metricBits.join(' &middot; ') + '</div>'
+      : '';
+
+    return '<div class="prehab-matrix__step">' +
+      '<div class="prehab-matrix__step-head">' +
+        '<span class="prehab-matrix__icon">' + icon + '</span>' +
+        '<span class="prehab-matrix__step-label">' + label + '</span>' +
+      '</div>' +
+      '<div class="prehab-matrix__step-title">' + title + '</div>' +
+      '<div class="prehab-matrix__step-detail">' + detail + '</div>' +
+      metricLine +
+    '</div>';
+  }
+
+  function _renderInto(panel, payload) {
+    var tier   = _esc((payload && payload.protocol_tier)       || '—');
+    var cns    = _esc((payload && payload.cns_status)          || '');
+    var prime  = _esc((payload && payload.hypertrophy_priming) || '');
+    var source = String((payload && payload.source) || 'claude');
+    var steps  = (payload && Array.isArray(payload.steps)) ? payload.steps : [];
+
+    panel.classList.toggle('prehab-matrix--fallback', source === 'fallback');
+
+    panel.innerHTML =
+      '<div class="prehab-matrix__header">' +
+        '<div class="prehab-matrix__title">Dynamic Prehab Matrix</div>' +
+        '<div class="prehab-matrix__tier">' + tier + '</div>' +
+      '</div>' +
+      (cns   ? '<div class="prehab-matrix__cns">' + cns + '</div>' : '') +
+      '<div class="prehab-matrix__steps">' +
+        steps.map(_stepHtml).join('') +
+      '</div>' +
+      (prime ? '<div class="prehab-matrix__prime">' + prime + '</div>' : '');
+  }
+
+  function _renderLoading(panel) {
+    panel.classList.remove('prehab-matrix--fallback');
+    panel.innerHTML =
+      '<div class="prehab-matrix__header">' +
+        '<div class="prehab-matrix__title">Dynamic Prehab Matrix</div>' +
+        '<div class="prehab-matrix__tier prehab-matrix__shimmer">Engaging Claude Opus 4.7&hellip;</div>' +
+      '</div>' +
+      '<div class="prehab-matrix__cns prehab-matrix__shimmer">Reading 48h of telemetry &middot; computing CNS state &middot; building recovery vectors</div>' +
+      '<div class="prehab-matrix__steps">' +
+        '<div class="prehab-matrix__step prehab-matrix__shimmer">&nbsp;</div>' +
+        '<div class="prehab-matrix__step prehab-matrix__shimmer">&nbsp;</div>' +
+        '<div class="prehab-matrix__step prehab-matrix__shimmer">&nbsp;</div>' +
+      '</div>';
+  }
+
+  // Client-side fallback when the edge function itself is unreachable
+  // (CORS / network / 5xx before our handler runs). The edge already
+  // wraps every business-logic failure into its own baseline payload —
+  // this is the belt-and-suspenders layer.
+  function _renderFallback(panel) {
+    _renderInto(panel, {
+      protocol_tier: 'Default Baseline',
+      cns_status:    'Couldn\'t reach the matrix. Showing the universal recovery floor.',
+      steps: [
+        { vector: 'mobility',        title: 'Full-Body Reset Flow',          detail: 'Cat-cow x10, 90/90 hip switches x8/side, wall slides x10.',         duration_minutes: 8,  intensity: 'low' },
+        { vector: 'hydration',       title: 'Electrolyte-Forward Rehydrate', detail: 'Drink 32 oz water with balanced electrolytes inside an hour.',      target_oz: 32,        electrolyte_focus: 'balanced' },
+        { vector: 'active_recovery', title: 'Zone 2 Walk',                   detail: 'Walk 20 min, conversational pace, nasal breathing only.',           duration_minutes: 20, modality: 'walking' }
+      ],
+      hypertrophy_priming: 'Baseline recovery clears systemic fatigue and primes the CNS for the next progressive-overload session.',
+      source: 'fallback'
+    });
+  }
+
+  // Mount the .prehab-matrix panel as the FIRST child of #prehab-cues so
+  // the daily AI directive sits above the static PREHAB cards. Idempotent
+  // — reuses an existing node on subsequent renders rather than stacking.
+  function _mountPoint() {
+    var con = document.getElementById('prehab-cues');
+    if (!con) return null;
+    var existing = con.querySelector('.prehab-matrix');
+    if (existing) return existing;
+    var panel = document.createElement('div');
+    panel.className = 'prehab-matrix';
+    if (con.firstChild) con.insertBefore(panel, con.firstChild);
+    else con.appendChild(panel);
+    return panel;
+  }
+
+  function fire(uid) {
+    uid = uid || ((typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null);
+    if (!uid) return;
+    var panel = _mountPoint();
+    if (!panel) return;
+
+    _renderLoading(panel);
+
+    if (_inFlightFor === uid) return;
+    _inFlightFor = uid;
+
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) {
+      headers['Authorization'] = 'Bearer ' + anon;
+      headers['apikey']        = anon;
+    }
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+    var body = {
+      uid:            uid,
+      admin_override: !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+    };
+
+    window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify(body)
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok || !parsed) {
+          console.warn('[BBF_PREHAB] engine returned HTTP ' + res.status + ':', parsed || t);
+          _renderFallback(panel);
+          return;
+        }
+        _renderInto(panel, parsed);
+        console.log('[BBF_PREHAB] ' + uid + ' → tier=' + parsed.protocol_tier + ' source=' + parsed.source);
+      });
+    }).catch(function(err) {
+      console.warn('[BBF_PREHAB] fetch failed:', err && err.message || err);
+      _renderFallback(panel);
+    }).then(function() {
+      if (_inFlightFor === uid) _inFlightFor = null;
+    });
+  }
+
+  return { fire: fire };
+})();
+
 // ─── WORKOUT ──────────────────────────────────────────────
 function RW() {
   var nav = document.getElementById('dnav');
@@ -12734,6 +12962,9 @@ renderPrehab = function() {
   con.innerHTML += html;
   // Render the Sovereign Prehabilitation Tracker (checklists + progress bar)
   if (typeof renderSovPrehab === 'function') renderSovPrehab();
+  // Phase 4 — Dynamic Prehab Matrix: AI-derived 3-step recovery directive
+  // pinned to the top of #prehab-cues for the active client.
+  if (typeof BBF_PREHAB_MATRIX !== 'undefined') BBF_PREHAB_MATRIX.fire(uid);
 };
 
 
