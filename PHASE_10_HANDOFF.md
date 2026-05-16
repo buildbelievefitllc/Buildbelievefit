@@ -363,3 +363,96 @@ Architecture notes:
 - Could live in the Panopticon tab in `bbf-app.html` (admin-side trainer view) OR as a new panel in `mastermind-portal.html` — CEO will direct
 
 Standing rule: plan first, then execute per CEO's "show me the plan first" preference.
+
+---
+
+## 12 · SESSION HANDOFF · POST-PHASE-3 STATE (passover for new session)
+
+### Live state at handoff time
+| Field | Value |
+|---|---|
+| Working branch | `claude/init-bbf-frontend-FkT6w` |
+| `origin/main` HEAD | `caba304` — feat(forecast): Phase 3 · Predictive Trajectory Forecaster |
+| `sw.js` cache | `bbf-v150` (bump on every frontend commit) |
+| Repo | `buildbelievefitllc/Buildbelievefit` |
+| Supabase project | `ihclbceghxpuawymlvgi` |
+
+### What landed this session (PRs #163 → #173 · 11 PRs)
+
+**Co-Coach Intelligence Agent (3-sprint arc + 1 hotfix)**
+- **PR #163** · Sprint 1 — Founder-5 data pipeline (slug→UUID via `fetchAllUsers`, parallel `fetchLogs`/`fetchSets`/`fetchReadiness` + bulk `fetchPendingAudits`, 21-day window) mounted in `mastermind-portal.html#panel-metrics`. **ALSO retired the misplaced Phase 12 Panopticon hijack** in `bbf-app.html` (the original Agent Metrics Dashboard work that landed in the wrong DOM container).
+- **PR #164** · Sprint 2 — Deterministic math engine (plateau / consistency / recovery / pain detectors + priority scorer). **RETIRED in PR #165**.
+- **PR #165** · Architecture pivot — math engine deleted; replaced with `bbf-co-coach` Supabase Edge Function calling Claude Opus 4.7 (adaptive thinking, effort=high, structured output via `output_config.format`, ephemeral cache on system prompt).
+- **PR #166** · Sprint 3 — Co-Coach narrative UI · Executive Summary hero + 3 sections (Priority Attention · Who's Moving Well · Roster Status) with insight cards (name + category chip + 0-100 priority pill + summary + evidence + recommendation).
+- **PR #167** · Hotfix — stripped `minimum`/`maximum` from `priority` field in the `bbf-co-coach` response schema (Anthropic structured-output JSON Schema does NOT support numerical constraints; raw fetch doesn't strip them like the SDKs do; was 400'ing every call). Also bumped `console.warn`→`console.error` and surfaced `err.bbfSync` payload in `_renderNarrativeError`.
+
+**Admin Master Key (RBAC)**
+- **PR #168** · `Mark Session Complete` button now has 3 modes: `open` (client logged Morning Lab Audit · normal gold button), `locked` (audit missing + non-admin · disabled gray "🔒 Awaiting Morning Lab Audit"), `override` (audit missing + admin · orange pulsing "🔑 Force Complete (Admin)"). Hardened with second-check at `CWO()` entry. Admin detection: `CU === 'akeem' || (d.u[CU]||{}).role === 'trainer' || 'admin'`.
+
+**Backend sync hardening + bug pin**
+- **PR #169** · Strict-mode `_supa` in `bbf-sync.js` — non-2xx now throws a structured Error (`.bbfSync`, `.status`, `.body`, `.url`, `.method`, `.table`) when `callOpts.strict: true`. `syncLog` and `syncSetsBulk` opt in. CWO catch block extracts the full PostgREST diagnostic and surfaces it in both `console.error` and the user-facing alert.
+- **PR #170** · `syncSetsBulk` PGRST102 normalizer — PostgREST rejects bulk-insert arrays where row objects have non-identical key sets. Now computes the key union across rows and null-fills missing keys before POST. This was the **actual root cause** of the long-standing 91% orphan rate on `Completed:` workout logs (mixed weighted + bodyweight sets in one batch → 400 → rollback didn't fire → orphan parent log).
+
+**Data-layer cleanup**
+- **PR #171** · Phase B re-route — Somatic Matrix submits were calling `BBF_SYNC.syncLog` and miswriting to `bbf_logs` (164 contaminated rows across the roster). Re-routed to `BBF_SYNC.syncReadiness` → `bbf_readiness`. Also fixed `syncReadiness` to use real schema columns (`sleep_quality`/`soreness_level` not `sleep`/`stress`/`energy`/`logged_at`); fixed `fetchReadiness` to `?order=timestamp.desc` (was `?order=date.desc` against a non-existent column); deleted the duplicate writer in `bbf-sync.js`; updated Co-Coach Agent's filter to use `r.timestamp` not `r.date`. Migration `bbf_readiness_rls_policies` applied — anon INSERT + SELECT (table previously had RLS on with zero policies, blocking everything).
+
+**Game-Day Peaking Engine**
+- **PR #172** · Phase 2 — `bbf-agentic-peaking` Edge Function (Opus 4.7, adaptive thinking, `output_config.format`, ephemeral cache). Trigger: `sleep_quality < 6 OR soreness_level > 7` on the most recent `bbf_readiness` row. On trip: returns `warning_banner + 2 replacement_lifts`. `BBF_PEAKING_ENGINE` IIFE fires at end of `RDW()`. DOM morph: `.agent-override-banner` after `.dh`, `.static-lift-aborted` on every `.eb`, 2 new `.eb.agent-injected-lift` cards appended. Omniscience Protocol: `admin_override=true` bypasses the engine.
+
+**Predictive Trajectory Forecaster**
+- **PR #173** · Phase 3 — `bbf-agentic-forecasting` Edge Function. Reads last 60 `bbf_sets` (descending by `day_key`), Claude Opus 4.7 projects 30-day 1RM + confidence + concrete training micro-adjustment. `BBF_FORECAST_ENGINE` IIFE in `bbf-app.html` mounts a Sovereign-purple `.trajectory-forecaster` panel inside the Strength sub-tab. Auto-fires for top PB on render; each PB row click swaps the panel in-place. Omniscience flag uses **`window.BBF_ADMIN_OVERRIDE`** (unified name — different from Phase 2's `BBF_PEAKING_FORCE_ADMIN`).
+
+### Three agentic engines now live
+
+| Engine | Edge Function | Surface | Trigger |
+|---|---|---|---|
+| **Co-Coach** | `bbf-co-coach` v3+ | `mastermind-portal.html#panel-metrics` | Admin opens Metrics tab |
+| **Peaking** | `bbf-agentic-peaking` v1 | `bbf-app.html` workout (`RDW`) | `sleep < 6 OR soreness > 7` |
+| **Forecaster** | `bbf-agentic-forecasting` v1 | `bbf-app.html` Strength sub-tab | Athlete views progress for a lift |
+
+All three: Opus 4.7 · adaptive thinking · effort `high` · `output_config.format` strict JSON · `cache_control: ephemeral` on system prompt · `verify_jwt: false` · optional `X-BBF-Admin-Token` gate via `BBF_COACH_AGENT_TOKEN` secret. ANTHROPIC_API_KEY is set in Supabase secrets (CEO confirmed in this session).
+
+### Schema state
+
+`bbf_readiness` now has RLS policies (anon INSERT + SELECT) and is actively receiving rows from both `saveReadiness` (Morning Lab Audit modal) and `somatic-engine.js` (Somatic Matrix). Columns in use: `user_id`, `score`, `sleep_quality`, `soreness_level`, `timestamp`.
+
+### Open follow-ups (worth a sweep when there's air time)
+
+1. **Phase C historical cleanup SQL — output but NOT yet COMMIT'd.** 269 rows in `bbf_logs` await CEO ruling: 164 Somatic miswrites (migrate to `bbf_readiness`, then DELETE), 52 empty-coach_notes rows from the dead duplicate writer (DELETE), 53 orphan `Completed:` rows (DELETE). Script is wrapped in `BEGIN; ... ROLLBACK;` — CEO will flip to COMMIT in Supabase SQL Editor when ready. Search prior turn or re-render via the prompt: "give me the Phase C cleanup SQL again."
+2. **`bbf_readiness` schema expansion** — current writes drop `cognitive_load`, `fasting_hours`, `flow_state`, `emergency_deload`, `tier` because no columns exist. Adding them would let `somatic-engine.js` preserve the full payload. Schema migration, single PR.
+3. **Unified Omniscience flag** — Phase 2 (Peaking) reads `window.BBF_PEAKING_FORCE_ADMIN`; Phase 3 (Forecaster) reads `window.BBF_ADMIN_OVERRIDE`. Two-line change to align Phase 2 onto the unified name.
+4. **Co-Coach Agent Omniscience alignment** — Co-Coach predates the protocol; doesn't read `BBF_ADMIN_OVERRIDE`. 5-line follow-up to add the gate.
+5. **Exercise display name resolution in Co-Coach narrative** — insights carry raw `ex_42` style keys. A blueprint mapping exists at `bbf-sync.js:1842` / `:2005`; lift it into a helper Sprint 3.5 can call.
+6. All "Allow Anon …" RLS policies (`audit_logs` / `sets` / `logs` / `readiness`) still wide-open `with_check: true` — tighten to `user_id = auth.uid()` or admin-token when Supabase Auth is wired roster-wide.
+
+### Active roster — unchanged
+- `ana_bbf` Ana · gateway
+- `jacky_bbf` Jacky · gateway
+- `jacque_bbf` Jacquelyn · gateway · **MEDICAL: STRICT coconut allergy** · PIN `999388` · UUID `0df9a69a-ff81-41e2-815d-fe179be1f7d3`
+- `jordan_bbf` Jordan · gateway · partner=`wayne_bbf`
+- `wayne_bbf` Wayne · gateway · partner=`jordan_bbf`
+- `akeem` (trainer, sovereign — server-locked)
+
+### DO NOT REBUILD additions (live in production)
+
+Per §3 / §10 plus this session's additions:
+- **`BBF_COACH_AGENT`** IIFE in `mastermind-portal.html` — Co-Coach pipeline + narrative UI
+- **`bbf-co-coach`** Edge Function — Claude Opus 4.7 with structured output (no numerical constraints in schema)
+- **`BBF_PEAKING_ENGINE`** IIFE + `bbf-agentic-peaking` Edge Function — workout-day intercept on compromised CNS
+- **`BBF_FORECAST_ENGINE`** IIFE + `bbf-agentic-forecasting` Edge Function — per-lift 30-day 1RM projection
+- **Admin Master Key** — `.dbtn-locked` / `.dbtn-admin-override` 3-mode gate on Mark Session Complete + `CWO()` entry check
+- **Strict-mode `_supa`** wrapper in `bbf-sync.js` — throws structured Error on non-2xx when `callOpts.strict: true`
+- **`syncSetsBulk` PGRST102 normalizer** — key-union null-fill for heterogeneous bulk-insert payloads
+- **`bbf_readiness` write path** — corrected `syncReadiness` column mapping + anon INSERT/SELECT RLS policies + Co-Coach Agent reads `r.timestamp`
+- **Phase 11 `BBF_CNS_AGENT`** (still live, unchanged from §10)
+
+### NEXT OBJECTIVE · Phase 4 (CEO will brief at session start)
+
+CEO will direct Phase 4 scope when the new session boots. Standard pattern observed in this session: CEO provides a spoon-fed TypeScript scaffold for a new Edge Function (`bbf-agentic-*`), CSS classes (3-4 of them), and a JS hook description. Expected shape:
+
+- New `bbf-agentic-*` Edge Function (Opus 4.7, `cache_control: ephemeral`, Omniscience Protocol enforced)
+- 3-4 CSS classes for a new visual surface
+- A JS hook on a specific render path
+- Frontend reads `window.BBF_ADMIN_OVERRIDE` for the Omniscience flag
+
+Standing rules in effect: PR + rebase-merge to main (no direct push) · no hardcoded secrets · bump SW on every frontend commit · recon-grep before edit · surface ambiguity before charging · plan-first on >100 LOC net features.
