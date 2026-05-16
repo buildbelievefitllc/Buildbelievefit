@@ -467,6 +467,13 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .dbtn-admin-override:hover:not(:disabled){filter:brightness(1.05);transform:translateY(-2px) scale(1.01);box-shadow:0 12px 34px rgba(229,96,42,.55),0 0 0 1px rgba(255,139,94,.4),0 1px 0 rgba(255,255,255,.35) inset !important}
 .dbtn-admin-override::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#0a0a0a;margin-right:.55rem;vertical-align:1px;box-shadow:0 0 6px rgba(0,0,0,.5);animation:dbtnAdminPulse 1.4s ease-out infinite}
 @keyframes dbtnAdminPulse{0%{box-shadow:0 0 0 0 rgba(0,0,0,.55)}80%{box-shadow:0 0 0 7px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+/* ═ Phase 2 — Game-Day Peaking Engine override · injected at render-time
+   when bbf-agentic-peaking returns override_active=true. Three classes
+   total — no layout changes, just visual morph on top of the static
+   RDW build so the day collapses cleanly into a recovery protocol. */
+.agent-override-banner{background:rgba(255,69,0,.15);border:1px solid #FF4500;color:#FF4500;padding:10px;margin-bottom:15px;text-transform:uppercase;font-weight:bold}
+.static-lift-aborted{text-decoration:line-through;opacity:.4;filter:grayscale(100%)}
+.agent-injected-lift{border-left:3px solid #FF4500;padding-left:10px}
 .rdc{background:var(--gry);border:1px solid #1a1a1a;border-radius:16px;padding:2rem;text-align:center}
 .rdi{font-size:3rem;margin-bottom:1rem}
 .rdt{font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.5rem;color:var(--yel)}
@@ -10946,6 +10953,173 @@ var BBF_CNS_AGENT = (function() {
     inferGoal:                inferGoal
   };
 })();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_PEAKING_ENGINE · Phase 2 — Game-Day Peaking client
+// ────────────────────────────────────────────────────────────────────────
+// Calls /functions/v1/bbf-agentic-peaking after RDW renders. On
+// override_active=true, mutates the in-place DOM:
+//   1. Inserts an .agent-override-banner after the .dh day header
+//   2. Adds .static-lift-aborted to every existing .eb exercise block
+//   3. Appends the 2 .agent-injected-lift cards after the heavy lifts
+//
+// Skips when:
+//   - window.BBF_PEAKING_DISABLED === true (admin Omniscience opt-out)
+//   - .agent-override-banner already present (dedupe on re-renders)
+//   - readiness data missing for the user (Edge Function uses safe defaults)
+//
+// Sends admin_override=false by default; set window.BBF_PEAKING_FORCE_ADMIN
+// = true to bypass the engine entirely (returns override_active=false).
+// ════════════════════════════════════════════════════════════════════════
+var BBF_PEAKING_ENGINE = (function() {
+
+  var ENDPOINT = '/functions/v1/bbf-agentic-peaking';
+  var _inFlightFor = null;  // (uid|dk) of the currently-active fetch
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function _renderInjectedLift(lift) {
+    // Match the structural shape RDW uses for an exercise (.eb wrapper +
+    // .eh header + .ebody) so the existing CSS picks it up. The
+    // .agent-injected-lift class adds the orange left border on top.
+    return '<div class="eb agent-injected-lift">' +
+      '<div class="eh">' +
+        '<div>' +
+          '<div class="en">' + _esc(lift && lift.name) + '</div>' +
+          '<div class="em">' + _esc(lift && lift.reps) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="ebody" style="padding:.65rem .9rem .85rem;font-size:.85rem;color:#ccc;line-height:1.5">' +
+        _esc(lift && lift.notes) +
+      '</div>' +
+    '</div>';
+  }
+
+  function _applyOverride(resp) {
+    var con = document.getElementById('wcon');
+    if (!con) return;
+    // Dedupe — if an override is already painted, don't double-stack.
+    if (con.querySelector('.agent-override-banner')) return;
+
+    // 1. Banner — insert after the day header (.dh) so it sits above
+    //    the readiness/CNS banners and the exercise list.
+    var dh = con.querySelector('.dh');
+    if (!dh) return; // sanity — empty day or trial-locked state
+    var banner = document.createElement('div');
+    banner.className = 'agent-override-banner';
+    banner.setAttribute('data-peaking-banner', '1');
+    banner.textContent = String(resp.warning_banner || 'CNS COMPROMISED · RECOVERY PROTOCOL ACTIVE');
+    dh.insertAdjacentElement('afterend', banner);
+
+    // 2. Strike-through every static .eb exercise block currently in
+    //    the DOM (the heavy program).
+    var ebs = con.querySelectorAll('.eb');
+    var lastStaticEb = null;
+    ebs.forEach(function(eb) {
+      eb.classList.add('static-lift-aborted');
+      lastStaticEb = eb;
+    });
+
+    // 3. Append replacement_lifts after the last static .eb (before
+    //    the Mark Session Complete button so the replacements live
+    //    inside the Lifts card flow).
+    var lifts = Array.isArray(resp.replacement_lifts) ? resp.replacement_lifts : [];
+    if (!lifts.length || !lastStaticEb) return;
+    var injectedHtml = lifts.map(_renderInjectedLift).join('');
+    lastStaticEb.insertAdjacentHTML('afterend', injectedHtml);
+
+    console.log('[BBF_PEAKING] override active · ' + lifts.length + ' replacement lifts injected · readiness=' + JSON.stringify(resp.readiness_snapshot || {}));
+  }
+
+  function fire(day, dk, uid) {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_PEAKING_DISABLED === true) return;
+      if (!uid || !day) return;
+      if (day.isRest) return;
+
+      // Dedupe per-render. If the same (uid, dk) is already in flight,
+      // skip — RDW gets called multiple times on hydration.
+      var token = uid + '|' + (dk || '');
+      if (_inFlightFor === token) return;
+      _inFlightFor = token;
+
+      // If the override is already painted (e.g. hydrate re-fire after
+      // a successful override), do nothing.
+      var con = document.getElementById('wcon');
+      if (con && con.querySelector('.agent-override-banner')) { _inFlightFor = null; return; }
+
+      var headers = { 'Content-Type': 'application/json' };
+      var anon = _anonKey();
+      if (anon) {
+        headers['Authorization'] = 'Bearer ' + anon;
+        headers['apikey']        = anon;
+      }
+      var tok = _adminToken();
+      if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+      var body = {
+        uid:              uid,
+        admin_override:   !!(typeof window !== 'undefined' && window.BBF_PEAKING_FORCE_ADMIN === true),
+        scheduled_focus:  String(day.focus || ''),
+        scheduled_lifts:  Array.isArray(day.exercises) ? day.exercises.map(function(e){ return String(e && e.name || ''); }).filter(Boolean) : []
+      };
+
+      window.fetch(_supabaseUrl() + ENDPOINT, {
+        method:  'POST',
+        headers: headers,
+        body:    JSON.stringify(body)
+      }).then(function(res) {
+        return res.text().then(function(t) {
+          var parsed = null;
+          try { parsed = JSON.parse(t); } catch (_) {}
+          if (!res.ok) {
+            console.warn('[BBF_PEAKING] engine returned HTTP ' + res.status + ':', parsed || t);
+            return;
+          }
+          if (!parsed || parsed.override_active !== true) {
+            // No intercept — leave the static program as-is.
+            return;
+          }
+          _applyOverride(parsed);
+        });
+      }).catch(function(err) {
+        console.warn('[BBF_PEAKING] fetch failed:', err && err.message || err);
+      }).then(function() {
+        // Clear in-flight flag whether success or failure.
+        if (_inFlightFor === token) _inFlightFor = null;
+      });
+    } catch (e) {
+      console.warn('[BBF_PEAKING] fire threw:', e && e.message);
+      _inFlightFor = null;
+    }
+  }
+
+  return { fire: fire };
+})();
+
 // ─── WORKOUT ──────────────────────────────────────────────
 function RW() {
   var nav = document.getElementById('dnav');
@@ -11270,6 +11444,20 @@ function RDW() {
   });
   var dbtn = con.querySelector('.dbtn');
   if (dbtn) dbtn.onclick = function() { CWO(day, dk); };
+
+  // ─── Phase 2 · Game-Day Peaking Engine ───────────────────────
+  // Fire-and-morph: the static RDW build is already on the page; if
+  // the athlete's CNS is compromised, the Edge Function asks Opus 4.7
+  // for 2 replacement lifts and we mutate the DOM in place — banner
+  // at the top of the Lifts card, .static-lift-aborted on the heavy
+  // lifts, .agent-injected-lift on the new ones. No re-render, no
+  // layout reflow beyond the injection. Skips rest days, skips when
+  // window.BBF_PEAKING_DISABLED === true (admin Omniscience escape
+  // hatch), and dedupes on the existing .agent-override-banner so
+  // hydrate→re-render cycles don't double-fire.
+  if (typeof BBF_PEAKING_ENGINE !== 'undefined' && !day.isRest) {
+    BBF_PEAKING_ENGINE.fire(day, dk, uid);
+  }
 }
 
 function TEX(hdr) {
