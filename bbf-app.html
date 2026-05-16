@@ -600,6 +600,39 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .linguist-row-phonetic{font-size:.85rem;color:#D4AF37;font-style:italic;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.5px}
 .linguist-row-literal{font-size:.78rem;color:rgba(255,255,255,.62);line-height:1.45}
 .linguist-row-error{font-size:.78rem;color:#FF8866;line-height:1.5}
+/* Phase 10 — Smart Cardio Engine. Brutalist red/orange. Treadmill-readable. */
+.cardio-hero{margin-bottom:1.4rem;text-align:center}
+.cardio-kicker{font-size:.7rem;letter-spacing:4px;text-transform:uppercase;color:#FF6B35;font-weight:900}
+.cardio-title{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:2rem;letter-spacing:2px;color:#fff;line-height:1.1;margin-top:.25rem}
+.cardio-sub{font-size:.82rem;color:rgba(255,255,255,.62);line-height:1.55;margin-top:.5rem;max-width:560px;margin-left:auto;margin-right:auto}
+.cardio-input-wrap{background:linear-gradient(135deg,#1a0a08 0%,#26110d 100%);border:2px solid #FF4500;border-radius:14px;padding:1.2rem 1.1rem;margin-bottom:1rem;box-shadow:0 0 24px rgba(255,69,0,.18)}
+.cardio-input-lbl{display:block;font-size:.72rem;letter-spacing:2.4px;text-transform:uppercase;color:#FF6B35;font-weight:800;margin-bottom:.6rem;text-align:center}
+.cardio-input-row{display:flex;align-items:center;gap:.75rem}
+.cardio-slider{flex:1;-webkit-appearance:none;appearance:none;height:8px;background:#330e08;border:1px solid rgba(255,107,53,.45);border-radius:99px;outline:none;cursor:pointer}
+.cardio-slider::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#FF4500;border:3px solid #fff;cursor:pointer;box-shadow:0 0 12px rgba(255,69,0,.7)}
+.cardio-slider::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#FF4500;border:3px solid #fff;cursor:pointer;box-shadow:0 0 12px rgba(255,69,0,.7)}
+.cardio-number{width:92px;background:#0a0405;color:#fff;border:2px solid #FF4500;border-radius:8px;padding:.65rem .4rem;font-size:1.7rem;font-weight:900;text-align:center;font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:1.5px;-moz-appearance:textfield}
+.cardio-number::-webkit-outer-spin-button,.cardio-number::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.cardio-number:focus{outline:none;background:#1a0707;box-shadow:0 0 0 3px rgba(255,69,0,.3)}
+.cardio-units{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.1rem;color:#FF6B35;font-weight:800;letter-spacing:2px}
+.cardio-tier-hint{font-size:.7rem;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:.85rem;text-align:center}
+.cardio-tier-hint span{color:#FF6B35;font-weight:800}
+.cardio-generate-btn{display:block;width:100%;background:linear-gradient(180deg,#FF6B35 0%,#FF4500 100%);color:#0a0a0a;border:none;padding:1.1rem 1rem;border-radius:12px;font-size:1.05rem;font-weight:900;letter-spacing:2.4px;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 22px rgba(255,69,0,.42);transition:filter .15s ease,transform .15s ease,box-shadow .15s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
+.cardio-generate-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,69,0,.55)}
+.cardio-generate-btn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.4)}
+.cardio-results{margin-top:1.2rem}
+.cardio-modality{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:2.2rem;letter-spacing:2.6px;color:#fff;text-transform:uppercase;line-height:1.05;text-shadow:0 0 14px rgba(255,69,0,.35);margin-bottom:.85rem;text-align:center}
+.cardio-protocol{background:#0a0405;border:2px solid #FF4500;border-radius:10px;padding:1.1rem 1.2rem;font-family:ui-monospace,SFMono-Regular,Menlo,'Courier New',monospace;font-size:1.02rem;line-height:1.65;color:#fff;white-space:pre-wrap;word-break:break-word;letter-spacing:.4px;margin-bottom:1rem}
+.cardio-roi-banner{background:rgba(255,69,0,.12);border-left:4px solid #FF4500;color:#FFB89E;padding:14px 16px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px;font-size:.82rem;line-height:1.55;border-radius:0 6px 6px 0}
+.cardio-loading{text-align:center;padding:1.4rem;font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.2rem;letter-spacing:3px;color:#FF6B35;text-transform:uppercase;border:1px dashed rgba(255,107,53,.45);border-radius:10px;animation:bbfCardioPulse 1.4s ease-in-out infinite}
+.cardio-error{padding:1rem 1.1rem;border:1px solid rgba(255,69,0,.5);border-left:3px solid #FF4500;background:rgba(255,69,0,.08);color:#FF8866;font-size:.85rem;border-radius:6px;line-height:1.5}
+@keyframes bbfCardioPulse{0%,100%{opacity:.55}50%{opacity:1}}
+@media (max-width:480px){
+  .cardio-title{font-size:1.7rem}
+  .cardio-modality{font-size:1.85rem;letter-spacing:1.8px}
+  .cardio-protocol{font-size:.95rem;padding:.9rem 1rem}
+  .cardio-generate-btn{padding:.95rem 1rem;font-size:.95rem;letter-spacing:1.8px}
+}
 .omni-toggle{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 .omni-toggle--floating{position:fixed;left:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 5.2rem);z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .omni-toggle--panel{margin-right:.55rem}
@@ -5099,19 +5132,21 @@ var _BBF_TIER_GATE_ELS = [
   'qa-l',                   // Home quick-action: Free Log
   'qa-n'                    // Home quick-action: Nutrition
 ];
-var _BBF_TIER_GATE_NAVS = ['nutrition', 'log', 'prehab'];
+var _BBF_TIER_GATE_NAVS = ['nutrition', 'prehab'];
 
 var _BBF_TIER_LOCKS = {
   // Each tier names the elements / nav tabs it must HIDE.
   // Phase 5 audible: Prehab is now a GLOBAL CORE FEATURE (Live Library
   // Recovery Matrix) — removed from gateway/youth_athlete lock list.
+  // Phase 10: Smart Cardio (replacing legacy Log tab) is also global —
+  // removed 'log' from every tier's nav-lock list. 'log' slug is dead.
   gateway: {
     els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer','somatic-map','qa-l','qa-n'],
-    navs: ['nutrition','log']
+    navs: ['nutrition']
   },
   youth_athlete: {
     els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer','somatic-map','qa-l','qa-n'],
-    navs: ['nutrition','log']
+    navs: ['nutrition']
   },
   architect: {
     els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer'],
@@ -6413,43 +6448,31 @@ window.onload=function(){
       </div>
     </div>
     <!-- LOG -->
-    <div class="tp" id="tp-log">
-      <div style="margin-bottom:1.2rem">
-        <div style="font-family:var(--hb);font-size:1.4rem;letter-spacing:4px;text-transform:uppercase;color:var(--wht)" data-lang-key="app-log-title">Log a Session</div>
-        <div style="font-size:.78rem;font-weight:600;color:var(--mut2);margin-top:.25rem;letter-spacing:.5px" data-lang-key="app-log-sub">Capture any movement outside your assigned program.</div>
+    <!-- ═══ SMART CARDIO ENGINE · Phase 10 · GLOBAL CORE FEATURE ═══════════════
+         Replaces the legacy Free Log surface entirely. Athlete inputs
+         available_minutes → deterministic router picks the tier (HIIT /
+         Tempo / Zone 2) → Claude Opus 4.7 generates a minute-by-minute
+         protocol + a Sovereign Toast explaining the physiological ROI. -->
+    <div class="tp" id="tp-cardio">
+      <div class="cardio-hero">
+        <div class="cardio-kicker">Smart Cardio</div>
+        <div class="cardio-title">How much time do you have?</div>
+        <div class="cardio-sub">The engine routes between HIIT (&lt; 20 min), Tempo (20-35 min), and Zone 2 (&gt; 35 min) — then Claude writes the precise protocol for your time budget.</div>
       </div>
-      <div class="lf2">
-        <div><label class="lfl" data-lang-key="app-log-date">Date</label><input class="lfi" type="date" id="ld"/></div>
-        <div><label class="lfl" data-lang-key="app-log-type">Session Type</label><div class="tcs" id="tchips">
-          <button class="tc3 on" data-t="strength">&#x1F4AA; Strength</button>
-          <button class="tc3" data-t="cardio">&#x1F3C3; Cardio</button>
-          <button class="tc3" data-t="hiit">&#x1F525; HIIT</button>
-          <button class="tc3" data-t="mobility">&#x1F9D8; Mobility</button>
-        </div></div>
-        <div class="lfr">
-          <div><label class="lfl" data-lang-key="app-log-duration">Duration (mins)</label><input class="lfi" type="number" id="ldur" placeholder="45" inputmode="numeric"/></div>
-          <div><label class="lfl" data-lang-key="app-log-intensity">Intensity (1-10)</label><input class="lfi" type="number" id="lint" placeholder="7" min="1" max="10" inputmode="numeric"/></div>
+
+      <div class="cardio-input-wrap">
+        <label class="cardio-input-lbl" for="bbf-cardio-minutes">Available Minutes</label>
+        <div class="cardio-input-row">
+          <input type="range"  id="bbf-cardio-slider" class="cardio-slider" min="5" max="60" step="1" value="20" />
+          <input type="number" id="bbf-cardio-minutes" class="cardio-number" min="5" max="120" step="1" value="20" inputmode="numeric" />
+          <span class="cardio-units">min</span>
         </div>
-        <div><label class="lfl">Exercises</label>
-          <div class="exl2" id="exl"></div>
-          <div class="ear"><input class="eai" type="text" id="exi" placeholder="e.g. Bench Press 3x10 @ 185lbs"/><button class="eab" id="addex-btn">+ Add</button></div>
-        </div>
-        <!-- ── Section divider — objective ends, subjective begins ── -->
-        <div style="margin:.4rem 0 .2rem;display:flex;align-items:center;gap:.6rem">
-          <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(245,200,0,.35),transparent)"></div>
-          <div style="font-family:var(--hb);font-size:.6rem;letter-spacing:4px;color:var(--yel);opacity:.7">REFLECTION</div>
-          <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(245,200,0,.35),transparent)"></div>
-        </div>
-        <div><label class="lfl" data-lang-key="app-log-feel">How did you feel?</label><div class="mcs" id="mchips">
-          <button class="mc2" data-m="Strong">&#x1F4AA; Strong</button>
-          <button class="mc2" data-m="Great">&#x1F60A; Great</button>
-          <button class="mc2" data-m="Pushed">&#x1F624; Pushed</button>
-          <button class="mc2" data-m="Average">&#x1F610; Average</button>
-          <button class="mc2" data-m="Tough">&#x1F629; Tough Day</button>
-        </div></div>
-        <div><label class="lfl" data-lang-key="app-log-notes">Notes</label><textarea class="lfta" id="lnotes" placeholder="What did you work on? Any PRs?"></textarea></div>
-        <button class="lbtn" id="savelog-btn" data-lang-key="app-log-save">Save Session &#x2713;</button>
+        <div class="cardio-tier-hint" id="bbf-cardio-tier-hint">Strategy &middot; <span id="bbf-cardio-tier-label">Tempo (Caloric Burn)</span></div>
       </div>
+
+      <button type="button" id="bbf-cardio-generate-btn" class="cardio-generate-btn">&#x1F525; Generate Protocol</button>
+
+      <div id="bbf-cardio-results" class="cardio-results" aria-live="polite"></div>
     </div>
     <!-- PREHAB & RECOVERY -->
     <div class="tp" id="tp-prehab">
@@ -7078,7 +7101,7 @@ window.onload=function(){
     <button class="nv on" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-lang-key="app-nav-home">Home</span></button>
     <button class="nv" data-tab="workout"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><line x1="6" y1="7" x2="6" y2="17"/><line x1="18" y1="7" x2="18" y2="17"/></svg><span data-lang-key="app-nav-program">Program</span></button>
     <button class="nv" data-tab="nutrition"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg><span data-lang-key="app-nav-nutrition">Nutrition</span></button>
-    <button class="nv" data-tab="log"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span data-lang-key="app-nav-log">Log</span></button>
+    <button class="nv" data-tab="cardio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span data-lang-key="app-nav-cardio">Smart Cardio</span></button>
     <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span data-lang-key="app-nav-prehab">Prehab</span></button>
     <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-lang-key="app-nav-profile">Profile</span></button>
     <button class="nv pf-admin-nav" data-tab="recalibrate" id="pf-admin-nav-btn" hidden aria-label="Sports Admin Console"><svg viewBox="0 0 24 24"><path d="M6 9V6a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3"/><path d="M5 9h14"/><path d="M8 9v3a4 4 0 0 0 8 0V9"/><path d="M10 17v4"/><path d="M14 17v4"/><path d="M9 21h6"/></svg><span>Sports Admin</span></button>
@@ -7754,6 +7777,7 @@ function TAB(name) {
   if (name === 'home')      RH();
   if (name === 'workout')   { RW(); if (window.SS_REFRESH_DAMAGED) window.SS_REFRESH_DAMAGED(); }
   if (name === 'nutrition') RN();
+  if (name === 'cardio') { if (typeof BBF_CARDIO !== 'undefined') BBF_CARDIO.render(); }
   if (name === 'prehab') renderPrehab();
   if (name === 'profile') {
     PTAB('overview');
@@ -12775,6 +12799,186 @@ var BBF_LINGUIST = (function() {
 })();
 
 // ════════════════════════════════════════════════════════════════════════
+// BBF_CARDIO · Phase 10 — Smart Cardio Engine client
+// ────────────────────────────────────────────────────────────────────────
+// Replaces the legacy Free Log tab. User enters available_minutes,
+// the deterministic router in the edge function picks the strategy tier
+// (HIIT < 20 / Tempo 20-35 / Zone 2 > 35), and Claude Opus 4.7 writes
+// the minute-by-minute protocol. Renders modality + protocol + ROI toast.
+// Reads window.BBF_ADMIN_OVERRIDE for unified Omniscience.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_CARDIO = (function() {
+  var ENDPOINT       = '/functions/v1/bbf-agentic-cardio';
+  var MINUTES_ID     = 'bbf-cardio-minutes';
+  var SLIDER_ID      = 'bbf-cardio-slider';
+  var TIER_LABEL_ID  = 'bbf-cardio-tier-label';
+  var GENERATE_ID    = 'bbf-cardio-generate-btn';
+  var RESULTS_ID     = 'bbf-cardio-results';
+  var _inFlight      = false;
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _clampMinutes(n) {
+    var v = Number(n);
+    if (!isFinite(v) || v <= 0) return 20;
+    return Math.max(5, Math.min(120, Math.round(v)));
+  }
+  // Client-side mirror of the edge function's deterministic router. Keeps
+  // the tier hint label in sync with the user's input live, before they
+  // tap Generate. Tier strings match the server enum.
+  function _tierLabel(minutes) {
+    if (minutes < 20)  return 'HIIT (Max EPOC)';
+    if (minutes <= 35) return 'Tempo (Caloric Burn)';
+    return 'Zone 2 (Fat Oxidation)';
+  }
+  function _syncTierHint() {
+    var input = document.getElementById(MINUTES_ID);
+    var label = document.getElementById(TIER_LABEL_ID);
+    if (!input || !label) return;
+    var m = _clampMinutes(input.value);
+    label.textContent = _tierLabel(m);
+  }
+  function _syncSliderFromNumber() {
+    var input  = document.getElementById(MINUTES_ID);
+    var slider = document.getElementById(SLIDER_ID);
+    if (!input || !slider) return;
+    var m = _clampMinutes(input.value);
+    // Slider tops out at 60; for >60 leave slider pinned at max.
+    if (m <= 60) slider.value = String(m);
+    else         slider.value = '60';
+  }
+  function _syncNumberFromSlider() {
+    var input  = document.getElementById(MINUTES_ID);
+    var slider = document.getElementById(SLIDER_ID);
+    if (!input || !slider) return;
+    input.value = slider.value;
+  }
+
+  function _renderLoading() {
+    var con = document.getElementById(RESULTS_ID);
+    if (con) con.innerHTML = '<div class="cardio-loading">&#x1F525; Routing tier &middot; engaging Claude &middot; writing protocol&hellip;</div>';
+    var btn = document.getElementById(GENERATE_ID);
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+  }
+  function _renderError(msg) {
+    var con = document.getElementById(RESULTS_ID);
+    if (con) con.innerHTML = '<div class="cardio-error">&#x26A0; ' + _esc(msg || 'Could not reach the cardio engine.') + ' Tap Generate Protocol to retry.</div>';
+  }
+  function _renderResults(payload) {
+    var con = document.getElementById(RESULTS_ID);
+    if (!con) return;
+    var modality = _esc((payload && payload.modality)  || '—');
+    var protocol = _esc((payload && payload.protocol)  || '—');
+    var roi      = _esc((payload && payload.roi_toast) || '—');
+    con.innerHTML =
+      '<div class="cardio-modality">' + modality + '</div>' +
+      '<pre class="cardio-protocol">' + protocol + '</pre>' +
+      '<div class="cardio-roi-banner">&#x1F525; ' + roi + '</div>';
+  }
+  function _resetButton() {
+    var btn = document.getElementById(GENERATE_ID);
+    if (btn) { btn.disabled = false; btn.innerHTML = '&#x1F525; Generate Protocol'; }
+  }
+
+  function _generate() {
+    if (_inFlight) return;
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) { _renderError('No active user.'); return; }
+    var input = document.getElementById(MINUTES_ID);
+    if (!input) return;
+    var minutes = _clampMinutes(input.value);
+
+    _renderLoading();
+    _inFlight = true;
+
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) { headers['Authorization'] = 'Bearer ' + anon; headers['apikey'] = anon; }
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+    var body = {
+      uid:               uid,
+      available_minutes: minutes,
+      admin_override:    !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+    };
+
+    window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify(body)
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok || !parsed) {
+          console.warn('[BBF_CARDIO] engine returned HTTP ' + res.status + ':', parsed || t);
+          _renderError('Cardio engine error (HTTP ' + res.status + ').');
+          return;
+        }
+        _renderResults(parsed);
+        console.log('[BBF_CARDIO] ' + uid + ' · ' + minutes + 'min · ' + _tierLabel(minutes) + ' → "' + (parsed.modality || '').slice(0,60) + '"');
+      });
+    }).catch(function(err) {
+      var raw = (err && err.message) || String(err || '');
+      var friendly = /failed to fetch|networkerror|load failed/i.test(raw)
+        ? 'Lost connection to the cardio engine. Check your signal and tap Generate Protocol.'
+        : raw;
+      _renderError(friendly);
+    }).then(function() {
+      _inFlight = false;
+      _resetButton();
+    });
+  }
+
+  // Idempotent — called from TAB('cardio'). Binds handlers exactly once
+  // per element via dataset.bbfBound. Syncs the live tier-label hint
+  // whenever the user adjusts the slider or number input.
+  function render() {
+    var minutesEl = document.getElementById(MINUTES_ID);
+    var sliderEl  = document.getElementById(SLIDER_ID);
+    var goEl      = document.getElementById(GENERATE_ID);
+
+    if (minutesEl && minutesEl.dataset.bbfBound !== '1') {
+      minutesEl.dataset.bbfBound = '1';
+      minutesEl.addEventListener('input', function() { _syncSliderFromNumber(); _syncTierHint(); });
+    }
+    if (sliderEl && sliderEl.dataset.bbfBound !== '1') {
+      sliderEl.dataset.bbfBound = '1';
+      sliderEl.addEventListener('input', function() { _syncNumberFromSlider(); _syncTierHint(); });
+    }
+    if (goEl && goEl.dataset.bbfBound !== '1') {
+      goEl.dataset.bbfBound = '1';
+      goEl.addEventListener('click', _generate);
+    }
+    _syncTierHint();
+  }
+
+  return { render: render, generate: _generate };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
 // BBF_OMNISCIENCE_TOGGLE · Phase 4.1 — unified admin-bypass toggle UI
 // ────────────────────────────────────────────────────────────────────────
 // Fixed bottom-right floating button. Admin-only (mounts only when the
@@ -14084,58 +14288,12 @@ function SNDAY(i) {
   BBF_NUTRITION_TRACKER.restore();
 }
 
-// ─── LOG ──────────────────────────────────────────────────
-function SAVELOG() {
-  var uid = VC || CU;
-  var date = document.getElementById('ld').value;
-  if (!date) { TOAST('Please select a date'); return; }
-  var d = GD();
-  if (!d.l[uid]) d.l[uid] = [];
-  var entry = {
-    date:date, type:TYPE,
-    dur:document.getElementById('ldur').value || '',
-    intensity:document.getElementById('lint').value || '',
-    notes:document.getElementById('lnotes').value.trim(),
-    mood:MOOD, exercises:EX.slice(),
-    loggedAt:new Date().toISOString(), loggedBy:CU
-  };
-  // ─── CNS · Sovereign Neurological Lockout (HRV / Sleep / ACWR) ───
-  if (typeof CNS_ENGINE !== 'undefined') {
-    try {
-      var cnsCheck = CNS_ENGINE.enforceLockout(entry);
-      if (cnsCheck && cnsCheck.block) {
-        CNS_ENGINE.renderLockoutError('tp-log', cnsCheck);
-        TOAST('⛔ SOVEREIGN LOCKOUT · Max-effort save blocked');
-        return;
-      }
-    } catch(e) {}
-  }
-  d.l[uid].push(entry);
-  SD(d);
-  if(typeof BBF_SYNC!=='undefined')BBF_SYNC.syncLog(uid,d.l[uid][d.l[uid].length-1]);
-  // ─── ARE · Concurrent Interference Audit ────────────────────
-  if (typeof ARE_ENGINE !== 'undefined') {
-    try {
-      var userGoal = (d.u[uid] && d.u[uid].goal) || '';
-      var interf = ARE_ENGINE.auditConcurrent(userGoal, entry);
-      var slot = document.getElementById('are-interf-slot');
-      if (!slot) {
-        slot = document.createElement('div');
-        slot.id = 'are-interf-slot';
-        var logPane = document.getElementById('tp-log');
-        if (logPane) logPane.insertBefore(slot, logPane.firstChild);
-      }
-      slot.innerHTML = interf.interference ? ARE_ENGINE.renderInterferenceWarning(interf) : '';
-      if (interf.interference) TOAST('⚠ ARE: Zone 4 HIIT conflicts with 1RM goal');
-    } catch(e) {}
-  }
-  EX = []; MOOD = '';
-  ['lnotes','ldur','lint','lwt','lbf'].forEach(function(id) { document.getElementById(id).value = ''; });
-  document.getElementById('exl').innerHTML = '';
-  TOAST('Session logged! 💪');
-  RH();
-  TAB('home');
-}
+// Phase 10 — SAVELOG() and the entire legacy Free Log surface were ripped
+// out when the bottom-nav Log tab was replaced by Smart Cardio. The
+// related ADDEX / mood-chip / session-type handlers below are kept for
+// now since they only no-op (their DOM targets are gone); they can be
+// purged in a future cleanup commit. ARE_ENGINE concurrent-interference
+// audit and CNS_ENGINE lockout still run from other surfaces.
 
 function ADDEX() {
   var inp = document.getElementById('exi');
@@ -16371,13 +16529,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Quick actions
   document.getElementById('qa-w').onclick = function() { TAB('workout'); };
-  document.getElementById('qa-l').onclick = function() { TAB('log'); };
+  document.getElementById('qa-l').onclick = function() { TAB('cardio'); };
   document.getElementById('qa-n').onclick = function() { TAB('nutrition'); };
   document.getElementById('qa-p').onclick = function() { TAB('profile'); };
 
-  // Log
-  document.getElementById('savelog-btn').onclick = SAVELOG;
-  document.getElementById('addex-btn').onclick = ADDEX;
+  // Phase 10 — legacy Free Log bindings removed alongside the bottom-nav
+  // Log tab. SAVELOG / ADDEX / their #savelog-btn / #addex-btn / #lnotes
+  // / #ld / #ldur DOM targets no longer exist. Smart Cardio binds its
+  // own handlers via BBF_CARDIO.render() on every TAB('cardio') call.
   document.getElementById('exi').onkeydown = function(e) { if (e.key === 'Enter') ADDEX(); };
 
   document.querySelectorAll('.tc3').forEach(function(c) {
