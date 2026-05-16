@@ -813,10 +813,14 @@ var BBF_COACH_AGENT = (function() {
     }
     var adminTok = _adminToken();
     if (adminTok) headers['X-BBF-Admin-Token'] = adminTok;
+    // Omniscience Protocol — when window.BBF_ADMIN_OVERRIDE === true the
+    // Edge Function returns a multi-tier stress-test mock and skips the
+    // Anthropic call entirely. Unified global across all 4 agents.
+    var omni = !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true);
     return window.fetch(url, {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify({ bundles: bundles || [] })
+      body: JSON.stringify({ bundles: bundles || [], admin_override: omni })
     }).then(function(res) {
       return res.text().then(function(text) {
         var parsed = null;

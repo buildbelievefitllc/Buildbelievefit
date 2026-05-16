@@ -499,6 +499,20 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .prehab-matrix--fallback .prehab-matrix__cns{border-left-color:#666;color:#aaa}
 @keyframes bbfPrehabShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .prehab-matrix__shimmer{background:linear-gradient(90deg,rgba(0,201,167,0.06) 0%,rgba(0,201,167,0.22) 50%,rgba(0,201,167,0.06) 100%);background-size:200% 100%;animation:bbfPrehabShimmer 1.4s linear infinite;color:transparent !important;border-radius:6px;min-height:1rem}
+.omni-toggle{position:fixed;bottom:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease}
+.omni-toggle:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.32);box-shadow:0 12px 30px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.1) inset}
+.omni-toggle:focus{outline:none;border-color:#8A2BE2}
+.omni-toggle__dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#666;box-shadow:0 0 0 2px rgba(255,255,255,.06);position:absolute;top:.6rem;right:.7rem}
+.omni-toggle__dot--off{background:#555}
+.omni-toggle__label{font-size:.68rem;letter-spacing:2.2px;font-weight:800;text-transform:uppercase;color:#bdbdbd;padding-right:1.3rem}
+.omni-toggle__sub{font-size:.58rem;letter-spacing:1.4px;text-transform:uppercase;color:#888;padding-right:1.3rem}
+.omni-toggle--on{background:linear-gradient(135deg,#3a0a52 0%,#FF8B5E 100%);border-color:#FF8B5E;color:#fff;box-shadow:0 0 18px rgba(255,139,94,.5),0 6px 22px rgba(58,10,82,.55),0 1px 0 rgba(255,255,255,.18) inset}
+.omni-toggle--on:hover{box-shadow:0 0 26px rgba(255,139,94,.7),0 12px 30px rgba(58,10,82,.7),0 1px 0 rgba(255,255,255,.22) inset}
+.omni-toggle--on .omni-toggle__dot{background:#0a0a0a;animation:bbfOmniPulse 1.4s ease-out infinite}
+.omni-toggle--on .omni-toggle__label{color:#fff;text-shadow:0 0 6px rgba(255,255,255,.4)}
+.omni-toggle--on .omni-toggle__sub{color:rgba(255,255,255,.78)}
+@keyframes bbfOmniPulse{0%{box-shadow:0 0 0 0 rgba(0,0,0,.7)}70%{box-shadow:0 0 0 10px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+@media (max-width:480px){.omni-toggle{bottom:.7rem;right:.7rem;padding:.5rem .75rem}.omni-toggle__label{font-size:.62rem}.omni-toggle__sub{font-size:.52rem}}
 .rdc{background:var(--gry);border:1px solid #1a1a1a;border-radius:16px;padding:2rem;text-align:center}
 .rdi{font-size:3rem;margin-bottom:1rem}
 .rdt{font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.5rem;color:var(--yel)}
@@ -7579,6 +7593,12 @@ function TAB(name) {
   if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
     try { window.BBF_APPLY_TIER_GATE(); } catch(_) {}
   }
+  // Phase 4.1 — idempotent mount of the Omniscience toggle so the button
+  // appears as soon as CU is set post-login (DOMContentLoaded may fire
+  // before auth completes).
+  if (typeof BBF_OMNISCIENCE_TOGGLE !== 'undefined') {
+    try { BBF_OMNISCIENCE_TOGGLE.mount(); } catch(_) {}
+  }
 }
 
 function today() {
@@ -10989,12 +11009,12 @@ var BBF_CNS_AGENT = (function() {
 //   3. Appends the 2 .agent-injected-lift cards after the heavy lifts
 //
 // Skips when:
-//   - window.BBF_PEAKING_DISABLED === true (admin Omniscience opt-out)
+//   - window.BBF_ADMIN_OVERRIDE === true (unified Omniscience global).
+//     Sends admin_override=true to the backend, which returns
+//     override_active=false / "Static Protocol Active" — IIFE renders
+//     nothing, athlete sees normal workout.
 //   - .agent-override-banner already present (dedupe on re-renders)
 //   - readiness data missing for the user (Edge Function uses safe defaults)
-//
-// Sends admin_override=false by default; set window.BBF_PEAKING_FORCE_ADMIN
-// = true to bypass the engine entirely (returns override_active=false).
 // ════════════════════════════════════════════════════════════════════════
 var BBF_PEAKING_ENGINE = (function() {
 
@@ -11081,7 +11101,6 @@ var BBF_PEAKING_ENGINE = (function() {
 
   function fire(day, dk, uid) {
     try {
-      if (typeof window !== 'undefined' && window.BBF_PEAKING_DISABLED === true) return;
       if (!uid || !day) return;
       if (day.isRest) return;
 
@@ -11107,7 +11126,7 @@ var BBF_PEAKING_ENGINE = (function() {
 
       var body = {
         uid:              uid,
-        admin_override:   !!(typeof window !== 'undefined' && window.BBF_PEAKING_FORCE_ADMIN === true),
+        admin_override:   !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true),
         scheduled_focus:  String(day.focus || ''),
         scheduled_lifts:  Array.isArray(day.exercises) ? day.exercises.map(function(e){ return String(e && e.name || ''); }).filter(Boolean) : []
       };
@@ -11458,11 +11477,60 @@ var BBF_PREHAB_MATRIX = (function() {
     return panel;
   }
 
+  // ─── Token Armor — 5-min localStorage cache ──────────────────────────
+  // Per CEO directive: do NOT burn Anthropic credits on UI tab switching.
+  // If the user toggles into Prehab within 5 minutes of the last successful
+  // fetch, serve the parsed JSON from localStorage and skip the network call.
+  // Cache is uid-keyed. Admin-override responses are never cached (we always
+  // want the live mock so the head coach sees toggle state changes
+  // immediately). Fallback payloads are never cached (we want a real retry
+  // next render).
+  var CACHE_PREFIX = 'bbf_prehab_cache_';
+  var CACHE_TTL_MS = 5 * 60 * 1000;
+
+  function _cacheKey(uid) { return CACHE_PREFIX + uid; }
+
+  function _readCache(uid) {
+    try {
+      var raw = localStorage.getItem(_cacheKey(uid));
+      if (!raw) return null;
+      var entry = JSON.parse(raw);
+      if (!entry || typeof entry.fetched_at !== 'number' || !entry.payload) return null;
+      if (Date.now() - entry.fetched_at > CACHE_TTL_MS) return null;
+      return entry.payload;
+    } catch (_) { return null; }
+  }
+
+  function _writeCache(uid, payload) {
+    try {
+      localStorage.setItem(_cacheKey(uid), JSON.stringify({
+        fetched_at: Date.now(),
+        payload:    payload
+      }));
+    } catch (_) {}
+  }
+
   function fire(uid) {
     uid = uid || ((typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null);
     if (!uid) return;
     var panel = _mountPoint();
     if (!panel) return;
+
+    var omni = !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true);
+
+    // Token Armor — cache hit short-circuits the fetch. Bypassed under
+    // omniscience (we want the live admin mock every time the toggle
+    // state could have changed).
+    if (!omni) {
+      var cached = _readCache(uid);
+      if (cached) {
+        _renderInto(panel, cached);
+        console.log('[BBF_PREHAB] ' + uid + ' → cache hit (age=' +
+          Math.round((Date.now() - (JSON.parse(localStorage.getItem(_cacheKey(uid))||'{}').fetched_at||Date.now()))/1000) +
+          's, tier=' + cached.protocol_tier + ')');
+        return;
+      }
+    }
 
     _renderLoading(panel);
 
@@ -11480,7 +11548,7 @@ var BBF_PREHAB_MATRIX = (function() {
 
     var body = {
       uid:            uid,
-      admin_override: !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+      admin_override: omni
     };
 
     window.fetch(_supabaseUrl() + ENDPOINT, {
@@ -11497,6 +11565,12 @@ var BBF_PREHAB_MATRIX = (function() {
           return;
         }
         _renderInto(panel, parsed);
+        // Only cache real Claude payloads. Admin mocks + fallbacks stay
+        // out of the cache so subsequent renders reflect real telemetry
+        // or admin state, not stale bypass output.
+        if (!omni && parsed.source === 'claude') {
+          _writeCache(uid, parsed);
+        }
         console.log('[BBF_PREHAB] ' + uid + ' → tier=' + parsed.protocol_tier + ' source=' + parsed.source);
       });
     }).catch(function(err) {
@@ -11507,7 +11581,149 @@ var BBF_PREHAB_MATRIX = (function() {
     });
   }
 
-  return { fire: fire };
+  // Public cache clear — invoked by BBF_OMNISCIENCE_TOGGLE on state flip
+  // so the next fire() pulls fresh (real or admin) rather than serving
+  // stale pre-toggle output.
+  function clearCache(uid) {
+    try {
+      if (uid) {
+        localStorage.removeItem(_cacheKey(uid));
+      } else {
+        var keys = [];
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf(CACHE_PREFIX) === 0) keys.push(k);
+        }
+        keys.forEach(function(k) { localStorage.removeItem(k); });
+      }
+    } catch (_) {}
+  }
+
+  return { fire: fire, clearCache: clearCache };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_OMNISCIENCE_TOGGLE · Phase 4.1 — unified admin-bypass toggle UI
+// ────────────────────────────────────────────────────────────────────────
+// Fixed bottom-right floating button. Admin-only (mounts only when the
+// active user is akeem or has role=trainer/admin). Two visual states:
+//   - OFF: muted gray, eye-closed glyph, "OMNISCIENCE · tap to engage"
+//   - ON:  Sovereign-purple gradient w/ pulsing dot, eye-open glyph,
+//          "OMNISCIENCE ON · all agents bypassed"
+// Click flips window.BBF_ADMIN_OVERRIDE, persists to localStorage
+// (`bbf_omniscience`), clears the Prehab cache so the next fire() pulls
+// fresh, and forces a TAB() repaint so Peaking / Forecaster / Prehab
+// pick up the new state instantly. State survives reload via
+// localStorage hydration at script load.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_OMNISCIENCE_TOGGLE = (function() {
+  var STORAGE_KEY = 'bbf_omniscience';
+  var BTN_ID      = 'bbfOmniscienceToggle';
+
+  // Hydrate from localStorage BEFORE the script continues so any IIFE
+  // that reads window.BBF_ADMIN_OVERRIDE on first fire sees the persisted
+  // value rather than undefined.
+  try {
+    if (localStorage.getItem(STORAGE_KEY) === '1') {
+      window.BBF_ADMIN_OVERRIDE = true;
+    }
+  } catch (_) {}
+
+  function _isAdmin() {
+    try {
+      if (typeof CU === 'undefined' || !CU) return false;
+      if (CU === 'akeem') return true;
+      if (typeof GD !== 'function') return false;
+      var d = GD(); var u = (d && d.u && d.u[CU]) || {};
+      return u.role === 'trainer' || u.role === 'admin';
+    } catch (_) { return false; }
+  }
+
+  function _activeTab() {
+    var on = document.querySelector('.nv.on');
+    if (on && on.dataset && on.dataset.tab) return on.dataset.tab;
+    var pane = document.querySelector('.tp.on');
+    if (pane && pane.id && pane.id.indexOf('tp-') === 0) return pane.id.slice(3);
+    return 'home';
+  }
+
+  function _renderBtn(btn) {
+    var on = window.BBF_ADMIN_OVERRIDE === true;
+    btn.classList.toggle('omni-toggle--on', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.title = on
+      ? 'Omniscience ON — all 4 agents bypassed with admin mocks. Tap to disengage.'
+      : 'Omniscience OFF — agents fire live Claude calls. Tap to engage admin mock mode.';
+    btn.innerHTML = on
+      ? '<span class="omni-toggle__dot"></span>' +
+        '<span class="omni-toggle__label">OMNISCIENCE&nbsp;ON</span>' +
+        '<span class="omni-toggle__sub">all agents bypassed</span>'
+      : '<span class="omni-toggle__dot omni-toggle__dot--off"></span>' +
+        '<span class="omni-toggle__label">OMNISCIENCE</span>' +
+        '<span class="omni-toggle__sub">tap to engage</span>';
+  }
+
+  function _refireAgents() {
+    // Clear the Prehab cache so the next render of the prehab tab pulls
+    // fresh (admin mock or real, depending on new state).
+    try {
+      if (typeof BBF_PREHAB_MATRIX !== 'undefined' && BBF_PREHAB_MATRIX.clearCache) {
+        BBF_PREHAB_MATRIX.clearCache();
+      }
+    } catch (_) {}
+    // Tear down the Peaking banner explicitly — its dedupe guard would
+    // otherwise block re-render if .agent-override-banner is still in DOM.
+    try {
+      document.querySelectorAll('.agent-override-banner').forEach(function(el) { el.remove(); });
+      document.querySelectorAll('.static-lift-aborted').forEach(function(el) { el.classList.remove('static-lift-aborted'); });
+      document.querySelectorAll('.agent-injected-lift').forEach(function(el) { el.remove(); });
+    } catch (_) {}
+    // Repaint the active tab — each tab's render path re-fires the agent
+    // it owns (Workout→Peaking+Forecaster, Prehab→Matrix).
+    try { if (typeof TAB === 'function') TAB(_activeTab()); } catch (e) {
+      console.warn('[BBF_OMNISCIENCE] TAB repaint failed:', e);
+    }
+  }
+
+  function _handleClick() {
+    var next = !(window.BBF_ADMIN_OVERRIDE === true);
+    window.BBF_ADMIN_OVERRIDE = next;
+    try {
+      if (next) localStorage.setItem(STORAGE_KEY, '1');
+      else      localStorage.removeItem(STORAGE_KEY);
+    } catch (_) {}
+    var btn = document.getElementById(BTN_ID);
+    if (btn) _renderBtn(btn);
+    console.log('[BBF_OMNISCIENCE] toggled →', next ? 'ON' : 'OFF');
+    _refireAgents();
+  }
+
+  function mount() {
+    if (!_isAdmin()) {
+      var existing = document.getElementById(BTN_ID);
+      if (existing) existing.style.display = 'none';
+      return;
+    }
+    var btn = document.getElementById(BTN_ID);
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id        = BTN_ID;
+      btn.type      = 'button';
+      btn.className = 'omni-toggle';
+      btn.addEventListener('click', _handleClick);
+      document.body.appendChild(btn);
+    }
+    btn.style.display = '';
+    _renderBtn(btn);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+
+  return { mount: mount, refireAgents: _refireAgents };
 })();
 
 // ─── WORKOUT ──────────────────────────────────────────────
@@ -11842,9 +12058,9 @@ function RDW() {
   // at the top of the Lifts card, .static-lift-aborted on the heavy
   // lifts, .agent-injected-lift on the new ones. No re-render, no
   // layout reflow beyond the injection. Skips rest days, skips when
-  // window.BBF_PEAKING_DISABLED === true (admin Omniscience escape
-  // hatch), and dedupes on the existing .agent-override-banner so
-  // hydrate→re-render cycles don't double-fire.
+  // window.BBF_ADMIN_OVERRIDE === true (unified Omniscience global,
+  // see Peaking IIFE header), and dedupes on the existing
+  // .agent-override-banner so hydrate→re-render cycles don't double-fire.
   if (typeof BBF_PEAKING_ENGINE !== 'undefined' && !day.isRest) {
     BBF_PEAKING_ENGINE.fire(day, dk, uid);
   }

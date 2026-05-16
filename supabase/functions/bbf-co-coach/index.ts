@@ -232,6 +232,83 @@ function extractTextBlock(content: any[]): string | null {
   return null;
 }
 
+// ─── Omniscience Mock — Multi-Tier Stress Test ─────────────────────────
+// Returned when admin_override=true. Exercises every UI surface in the
+// Co-Coach narrative: headline hero, all 6 category enum values
+// (progressing / plateau / consistency_drop / recovery_concern /
+// pain_signal / needs_attention), priority spread from 95 down to 28,
+// concrete evidence with exercise_keys + dates + numbers, direct-voice
+// recommendations. Lets the head coach eyeball the render without
+// burning Opus tokens.
+function adminOverrideMock() {
+  return {
+    ok: true,
+    analysis: {
+      headline: 'OMNISCIENCE PROTOCOL ACTIVE — full-spectrum roster stress test, 6 insights across every category. Anthropic API spared.',
+      insights: [
+        {
+          uid:            'wayne_bbf',
+          name:           'Wayne',
+          category:       'pain_signal',
+          priority:       94,
+          summary:        'Acute lower-back tweak on Day-2 RDLs — flagged twice this week.',
+          evidence:       'Audit logged 2026-05-15 (movement_name=ex_42 RDL, tension_zone=lumbar). Coach_notes on 2026-05-13 + 2026-05-14 sessions both mention "low back tight, cut volume short".',
+          recommendation: 'Pull Wayne off conventional RDL for the next 2 sessions. Sub in supported single-leg RDL at 50% load, 3x8. Re-evaluate Friday before reintroducing.',
+        },
+        {
+          uid:            'jordan_bbf',
+          name:           'Jordan',
+          category:       'recovery_concern',
+          priority:       87,
+          summary:        '5 consecutive sub-65 readiness submits — CNS is buried.',
+          evidence:       'bbf_readiness scores May 11-15: 62 / 58 / 64 / 61 / 59. Sleep_quality avg 4.2, soreness_level avg 7.4. Last full deload was 22 days ago.',
+          recommendation: 'Cut next session\'s top set by 15% and add a 24-hour rest insertion. Hold Jordan\'s squat volume flat for the week — no PR attempts.',
+        },
+        {
+          uid:            'jacque_bbf',
+          name:           'Jacquelyn',
+          category:       'plateau',
+          priority:       54,
+          summary:        'Incline DB Press stuck at 25lb x 8-10 for 4 consecutive sessions.',
+          evidence:       'bbf_sets exercise_key=ex_3, sessions 2026-05-08, 05-10, 05-12, 05-14 all weight_lbs=25, reps=8-10. RPE trending 7.5 → 8.5 (subjective fatigue rising without weight progression).',
+          recommendation: 'Drop to 22.5lb for 3x12 with a 3-second eccentric for one session to re-establish motor pattern, then re-attempt 27.5lb x 6-8 next week.',
+        },
+        {
+          uid:            'ana_bbf',
+          name:           'Ana',
+          category:       'consistency_drop',
+          priority:       48,
+          summary:        '2 sessions logged last 7d vs 4 the prior week — 50% drop.',
+          evidence:       'bbf_logs dates 2026-05-10, 2026-05-13 only. No readiness submits since 2026-05-14. Streak counter went from 11 to 0.',
+          recommendation: 'Send Ana a check-in DM today. If life event, offer a 2-day mini-block to restore rhythm. If no response by tomorrow, escalate to call.',
+        },
+        {
+          uid:            'jacky_bbf',
+          name:           'Jacky',
+          category:       'progressing',
+          priority:       32,
+          summary:        'Hit a new 5RM on ex_7 Goblet Squat — clean tempo, RPE 8.',
+          evidence:       'bbf_sets 2026-05-14: weight_lbs=45, reps=5, day_key=2026-05-14_d1. Prior PR was 40lb x 5 on 2026-04-30. Treadmill cardio compliance 3/3 this week.',
+          recommendation: 'Acknowledge the PR Friday. Next session, programmatically bump goblet to 47.5lb x 5 — momentum is real.',
+        },
+        {
+          uid:            'wayne_bbf',
+          name:           'Wayne',
+          category:       'needs_attention',
+          priority:       28,
+          summary:        'Partner-mode set logging out of sync with Jordan\'s — audit if persistent.',
+          evidence:       'Wayne\'s last 3 sessions show 0 partner-shared sets despite the partner=jordan_bbf link. Either Wayne is solo-lifting or _appendSetsForUid aggregator missed a write.',
+          recommendation: 'Spot-check Wayne\'s session next time you\'re on the floor. Confirm the partner toggle is engaged in the UI before sets start.',
+        },
+      ],
+    },
+    model:       'admin_override_mock',
+    usage:       { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+    duration_ms: 0,
+    source:      'admin_override',
+  };
+}
+
 // ─── Handler ───────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -249,15 +326,24 @@ serve(async (req: Request) => {
     }
   }
 
+  let payload: any;
+  try { payload = await req.json(); }
+  catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
+
+  // ─── OMNISCIENCE PROTOCOL — ABSOLUTE FIRST GATE ────────────────
+  // Per CEO directive: admin_override=true bypasses BOTH the bundle
+  // validation AND the Anthropic call. Returns the multi-tier stress-test
+  // mock so the head coach can eyeball the narrative render without
+  // burning Opus tokens on a 21-day, 5-client telemetry analysis.
+  if (payload && payload.admin_override === true) {
+    return jsonResponse(adminOverrideMock(), 200);
+  }
+
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   if (!ANTHROPIC_API_KEY) {
     console.error('[bbf-co-coach] missing ANTHROPIC_API_KEY in Supabase secrets.');
     return jsonResponse({ error: 'config_missing_anthropic_key' }, 503);
   }
-
-  let payload: any;
-  try { payload = await req.json(); }
-  catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
   const bundles = Array.isArray(payload?.bundles) ? payload.bundles : null;
   if (!bundles || bundles.length === 0) {
