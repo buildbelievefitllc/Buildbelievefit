@@ -535,8 +535,17 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .kinematic-cue{font-weight:bold;color:#FFF;margin-top:8px;line-height:1.5}
 @keyframes bbfKinFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @keyframes bbfKinPulse{0%,100%{opacity:.55}50%{opacity:1}}
+.sovereign-comlink-fab{position:fixed;bottom:80px;right:20px;z-index:1000;background:#000;border:2px solid #FFD700;color:#FFD700;border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 15px rgba(255,215,0,0.4);cursor:pointer;transition:transform 0.2s ease;font-size:26px;-webkit-tap-highlight-color:rgba(0,0,0,0)}
+.sovereign-comlink-fab:hover{transform:translateY(-2px) scale(1.05)}
+.sovereign-comlink-fab:disabled{opacity:.55;cursor:not-allowed}
+.sovereign-comlink-fab.recording{background:#FFD700;color:#000;animation:pulse-gold 1.5s infinite}
+.sovereign-comlink-fab.processing{background:#000;color:#FFD700;animation:bbfComlinkSpin 1.1s linear infinite}
+@keyframes pulse-gold{0%{box-shadow:0 0 0 0 rgba(255,215,0,0.7)}70%{box-shadow:0 0 0 20px rgba(255,215,0,0)}100%{box-shadow:0 0 0 0 rgba(255,215,0,0)}}
+@keyframes bbfComlinkSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.comlink-verdict-banner{background:rgba(255,215,0,0.1);border-left:4px solid #FFD700;color:#FFD700;padding:12px;margin-bottom:20px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;font-size:.78rem;line-height:1.45}
+.comlink-verdict-banner__close{float:right;background:transparent;border:none;color:#FFD700;font-size:1rem;cursor:pointer;padding:0 .2rem;margin-left:.5rem;font-weight:bold;line-height:1}
 .omni-toggle{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.6rem .9rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:linear-gradient(135deg,rgba(25,25,28,.92) 0%,rgba(40,40,45,.92) 100%);color:#cfcfcf;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.42),0 1px 0 rgba(255,255,255,.06) inset;transition:transform .15s ease,box-shadow .15s ease,border-color .2s ease,background .25s ease;-webkit-tap-highlight-color:rgba(0,0,0,0)}
-.omni-toggle--floating{position:fixed;right:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 5.2rem);z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.omni-toggle--floating{position:fixed;left:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 5.2rem);z-index:9999;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .omni-toggle--panel{margin-right:.55rem}
 .omni-toggle:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.32);box-shadow:0 12px 30px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.1) inset}
 .omni-toggle:focus{outline:none;border-color:#8A2BE2}
@@ -552,7 +561,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 @keyframes bbfOmniPulse{0%{box-shadow:0 0 0 0 rgba(0,0,0,.7)}70%{box-shadow:0 0 0 10px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
 @media (max-width:480px){
   .omni-toggle{padding:.45rem .7rem;border-radius:10px;gap:.1rem}
-  .omni-toggle--floating{right:.7rem;bottom:calc(env(safe-area-inset-bottom,0px) + 4.5rem)}
+  .omni-toggle--floating{left:.7rem;bottom:calc(env(safe-area-inset-bottom,0px) + 4.5rem)}
   .omni-toggle__label{font-size:.6rem;letter-spacing:1.6px;padding-right:1rem}
   .omni-toggle__sub{font-size:.5rem;letter-spacing:1.1px;padding-right:1rem}
   .omni-toggle__dot{top:.5rem;right:.55rem;width:7px;height:7px}
@@ -7648,6 +7657,11 @@ function TAB(name) {
   if (typeof BBF_OMNISCIENCE_TOGGLE !== 'undefined') {
     try { BBF_OMNISCIENCE_TOGGLE.mount(); } catch(_) {}
   }
+  // Phase 7 — Sovereign Comlink FAB. Mounts on Workout tab only, hidden
+  // on every other tab. Idempotent.
+  if (typeof BBF_COMLINK !== 'undefined') {
+    try { BBF_COMLINK.mount(); } catch(_) {}
+  }
 }
 
 function today() {
@@ -11905,6 +11919,314 @@ var BBF_KINEMATICS = (function() {
   }
 
   return { init: init };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_COMLINK · Phase 7 — Sovereign Comlink (voice → workout rewrite)
+// ────────────────────────────────────────────────────────────────────────
+// Floating gold microphone FAB pinned bottom-right (only on the Workout
+// tab). Tap → Web Speech API → transcript → POST to bbf-agentic-comlink
+// → mutate PLAN[SDAY].exercises in memory → call RDW() → render a gold
+// .comlink-verdict-banner at the top of the workout view.
+//
+// In-memory only — reload restores the original plan (safer for V1).
+// Reads window.BBF_ADMIN_OVERRIDE for unified Omniscience.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_COMLINK = (function() {
+  var ENDPOINT  = '/functions/v1/bbf-agentic-comlink';
+  var FAB_ID    = 'bbf-comlink-fab';
+  var BANNER_ID = 'bbf-comlink-verdict';
+  var STATE     = 'idle';      // 'idle' | 'recording' | 'processing'
+  var _rec      = null;        // active SpeechRecognition instance
+  var _supported = (function() {
+    try { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+    catch (_) { return false; }
+  })();
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _isWorkoutTab() {
+    var pane = document.getElementById('tp-workout');
+    return !!(pane && pane.classList.contains('on'));
+  }
+
+  function _setState(next) {
+    STATE = next;
+    var fab = document.getElementById(FAB_ID);
+    if (!fab) return;
+    fab.classList.remove('recording', 'processing');
+    if (next === 'recording')  fab.classList.add('recording');
+    if (next === 'processing') fab.classList.add('processing');
+    fab.disabled = next === 'processing';
+    if (next === 'idle')       fab.innerHTML = '&#x1F3A4;';
+    if (next === 'recording')  fab.innerHTML = '&#x25A0;';  // stop square
+    if (next === 'processing') fab.innerHTML = '&#x231B;';  // hourglass
+    fab.title = next === 'idle'
+      ? 'Sovereign Comlink — tap, speak a constraint, release.'
+      : next === 'recording'
+        ? 'Listening… tap to stop.'
+        : 'Rewriting your workout…';
+  }
+
+  // ─── Web Speech API wrangling ────────────────────────────────────────
+  function _startRecording() {
+    if (!_supported) {
+      TOAST && TOAST('Voice input not supported on this browser.');
+      return;
+    }
+    if (STATE !== 'idle') return;
+
+    var Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var rec = new Ctor();
+    rec.lang           = (typeof LANG === 'string' && LANG === 'es') ? 'es-US'
+                       : (typeof LANG === 'string' && LANG === 'pt') ? 'pt-BR'
+                       : 'en-US';
+    rec.continuous     = false;
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+
+    rec.onresult = function(e) {
+      try {
+        var transcript = '';
+        for (var i = 0; i < e.results.length; i++) {
+          transcript += e.results[i][0].transcript;
+        }
+        transcript = String(transcript || '').trim();
+        if (transcript) {
+          _send(transcript);
+        } else {
+          _setState('idle');
+          TOAST && TOAST('No speech detected. Tap and try again.');
+        }
+      } catch (err) {
+        console.warn('[BBF_COMLINK] onresult error:', err);
+        _setState('idle');
+      }
+    };
+    rec.onerror = function(e) {
+      var msg = e && e.error || 'unknown';
+      console.warn('[BBF_COMLINK] recognition error:', msg);
+      _setState('idle');
+      if (msg === 'not-allowed' || msg === 'service-not-allowed') {
+        TOAST && TOAST('Microphone permission denied. Enable in Settings.');
+      } else if (msg === 'no-speech') {
+        TOAST && TOAST('No speech detected. Tap and try again.');
+      } else if (msg === 'audio-capture') {
+        TOAST && TOAST('No microphone available.');
+      }
+    };
+    rec.onend = function() {
+      // If we ended without firing onresult and STATE is still recording,
+      // reset to idle (covers user cancellation, silent timeout, etc.).
+      if (STATE === 'recording') _setState('idle');
+    };
+
+    try {
+      rec.start();
+      _rec = rec;
+      _setState('recording');
+    } catch (err) {
+      console.warn('[BBF_COMLINK] start failed:', err);
+      _setState('idle');
+      TOAST && TOAST('Could not start recording.');
+    }
+  }
+
+  function _stopRecording() {
+    if (_rec) {
+      try { _rec.stop(); } catch (_) {}
+    }
+  }
+
+  // ─── Backend call + workout rewrite ──────────────────────────────────
+  function _currentWorkoutSnapshot() {
+    try {
+      if (typeof PLAN === 'undefined' || !PLAN || typeof SDAY !== 'number') return [];
+      var day = PLAN[SDAY];
+      if (!day || !Array.isArray(day.exercises)) return [];
+      return day.exercises.map(function(ex) {
+        return {
+          name:      String((ex && ex.name)      || ''),
+          sets:      (ex && ex.sets != null)     ? ex.sets : null,
+          reps:      String((ex && ex.reps)      || ''),
+          equipment: String((ex && ex.equipment) || ''),
+          notes:     String((ex && ex.notes)     || ''),
+        };
+      });
+    } catch (_) { return []; }
+  }
+
+  // Parse a free-form target string ("3x10", "5x5", "AMRAP 90s", "30 sec hold")
+  // into { sets, reps } compatible with the existing RDW renderer. Defaults
+  // to { sets: 1, reps: target_verbatim } when no NxM pattern is present.
+  function _parseTarget(target) {
+    var t = String(target || '').trim();
+    if (!t) return { sets: 1, reps: '' };
+    var m = /^(\d+)\s*[x×]\s*(.+)$/i.exec(t);
+    if (m) return { sets: parseInt(m[1], 10) || 1, reps: m[2].trim() };
+    return { sets: 1, reps: t };
+  }
+
+  function _applyRewrite(updatedWorkout, verdict) {
+    if (typeof PLAN === 'undefined' || !PLAN || typeof SDAY !== 'number') return;
+    var day = PLAN[SDAY];
+    if (!day) return;
+    // Mutate in-memory plan ONLY. Reload restores the original.
+    day.exercises = (updatedWorkout || []).map(function(ex) {
+      var parsed = _parseTarget(ex && ex.target);
+      var wt = String((ex && ex.weight_lbs) || '').trim();
+      var notes = '';
+      if (wt && wt.toUpperCase() !== 'BW') {
+        // numeric weight — surface in notes for visibility
+        notes = '🎙 Comlink target: ' + wt + ' lb';
+      } else if (wt && wt.toUpperCase() === 'BW') {
+        notes = '🎙 Comlink: bodyweight';
+      } else {
+        notes = '🎙 Comlink rewrite';
+      }
+      return {
+        name:        String((ex && ex.name) || 'Exercise'),
+        sets:        parsed.sets,
+        reps:        parsed.reps,
+        equipment:   '',
+        notes:       notes,
+        is_shifted:  false,
+        is_comlink:  true,
+      };
+    });
+    // Re-render the workout view with the new array.
+    if (typeof RDW === 'function') {
+      try { RDW(); } catch (e) { console.warn('[BBF_COMLINK] RDW after rewrite failed:', e); }
+    }
+    _injectVerdictBanner(verdict);
+  }
+
+  function _injectVerdictBanner(verdict) {
+    var con = document.getElementById('wcon');
+    if (!con) return;
+    var existing = document.getElementById(BANNER_ID);
+    if (existing) existing.remove();
+    var banner = document.createElement('div');
+    banner.id = BANNER_ID;
+    banner.className = 'comlink-verdict-banner';
+    banner.innerHTML =
+      '<button class="comlink-verdict-banner__close" type="button" aria-label="Dismiss" onclick="(function(b){if(b)b.remove();})(document.getElementById(\'' + BANNER_ID + '\'))">&times;</button>' +
+      '&#x1F3D5; ' + _esc(verdict || 'Comlink active.');
+    if (con.firstChild) con.insertBefore(banner, con.firstChild);
+    else con.appendChild(banner);
+  }
+
+  function _send(transcript) {
+    _setState('processing');
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) {
+      _setState('idle');
+      TOAST && TOAST('No active user.');
+      return;
+    }
+    var workout = _currentWorkoutSnapshot();
+
+    var goal    = null;
+    var partner = null;
+    try {
+      var d = (typeof GD === 'function') ? GD() : null;
+      var u = (d && d.u && d.u[uid]) || {};
+      goal    = u.goal    || null;
+      partner = u.partner || null;
+    } catch (_) {}
+
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) {
+      headers['Authorization'] = 'Bearer ' + anon;
+      headers['apikey']        = anon;
+    }
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+    var body = {
+      uid:             uid,
+      transcript:      transcript,
+      current_workout: workout,
+      client_context:  { goal: goal, partner: partner },
+      admin_override:  !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true),
+    };
+
+    window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify(body)
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok || !parsed || !Array.isArray(parsed.updated_workout)) {
+          console.warn('[BBF_COMLINK] engine returned HTTP ' + res.status + ':', parsed || t);
+          TOAST && TOAST('Comlink error (HTTP ' + res.status + '). Try again.');
+          return;
+        }
+        _applyRewrite(parsed.updated_workout, parsed.comlink_verdict);
+        console.log('[BBF_COMLINK] transcript="' + transcript.slice(0,80) + '" → ' + parsed.updated_workout.length + ' exercises · verdict="' + (parsed.comlink_verdict || '').slice(0,80) + '"');
+      });
+    }).catch(function(err) {
+      console.warn('[BBF_COMLINK] fetch failed:', err && err.message || err);
+      TOAST && TOAST('Comlink offline. Network error.');
+    }).then(function() {
+      _setState('idle');
+    });
+  }
+
+  function _onFabClick(e) {
+    if (e) e.stopPropagation();
+    if (STATE === 'idle')      _startRecording();
+    else if (STATE === 'recording') _stopRecording();
+    // processing state: button disabled
+  }
+
+  // Idempotent mount/unmount. Mounts ONLY when Workout tab is active —
+  // the FAB is workout-specific so it doesn't squat on home/profile/etc.
+  function mount() {
+    var existing = document.getElementById(FAB_ID);
+    if (!_isWorkoutTab()) {
+      if (existing) existing.style.display = 'none';
+      return;
+    }
+    var fab = existing;
+    if (!fab) {
+      fab = document.createElement('button');
+      fab.id        = FAB_ID;
+      fab.type      = 'button';
+      fab.className = 'sovereign-comlink-fab';
+      fab.setAttribute('aria-label', 'Sovereign Comlink — voice rewrite');
+      fab.addEventListener('click', _onFabClick);
+      document.body.appendChild(fab);
+    }
+    fab.style.display = _supported ? 'flex' : 'none';
+    if (STATE === 'idle') _setState('idle');
+  }
+
+  return { mount: mount, isSupported: function() { return _supported; } };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
