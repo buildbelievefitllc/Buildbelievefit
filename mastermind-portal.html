@@ -138,7 +138,65 @@ body::after {
   body::after { display: none; }
 }
 
-/* ═══ COMLINK DISPATCH (Phase 4 — Mastermind side) ═══ */
+/* ═══ COMLINK DISPATCH (Phase 7.1 — Admin Audible terminal) ═══ */
+.cd-admin-grid { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.4rem; }
+.cd-admin-field { display: flex; flex-direction: column; gap: .35rem; }
+.cd-admin-lbl { font-size: .68rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 800; }
+.cd-admin-select, .cd-admin-textarea {
+  width: 100%; box-sizing: border-box;
+  background: #111; color: #fff;
+  border: 1px solid rgba(255,215,0,.35); border-radius: 6px;
+  padding: .65rem .85rem;
+  font-family: inherit; font-size: .88rem; line-height: 1.45;
+}
+.cd-admin-select { -webkit-appearance: none; appearance: none; cursor: pointer; }
+.cd-admin-select:focus, .cd-admin-textarea:focus { outline: none; border-color: var(--gold); background: #1a1a1a; }
+.cd-admin-textarea { resize: vertical; min-height: 70px; }
+.cd-admin-actions-inline { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin-top: .25rem; }
+.cd-admin-dictate {
+  background: transparent; color: var(--gold); border: 1px solid var(--gold);
+  padding: .45rem .85rem; border-radius: 6px; cursor: pointer;
+  font-size: .72rem; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 700;
+  transition: background .15s ease, transform .15s ease;
+}
+.cd-admin-dictate:hover:not(:disabled) { background: rgba(255,215,0,.08); }
+.cd-admin-dictate:disabled { opacity: .55; cursor: not-allowed; }
+.cd-admin-dictate.recording { background: var(--gold); color: #000; animation: cdAdminPulse 1.4s infinite; }
+@keyframes cdAdminPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,215,0,.6); } 50% { box-shadow: 0 0 0 12px rgba(255,215,0,0); } }
+.cd-admin-dictate-status { font-size: .7rem; color: var(--mut); letter-spacing: .8px; }
+.cd-admin-dispatch {
+  background: var(--gold); color: #000; border: none;
+  padding: .85rem 1.25rem; border-radius: 6px; cursor: pointer;
+  font-size: .88rem; letter-spacing: 1.8px; text-transform: uppercase; font-weight: 900;
+  transition: filter .15s ease, transform .15s ease;
+}
+.cd-admin-dispatch:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+.cd-admin-dispatch:disabled { opacity: .45; cursor: not-allowed; }
+.cd-admin-status { font-size: .78rem; color: var(--mut); letter-spacing: .5px; min-height: 1.1rem; }
+.cd-admin-status.ok { color: #86EFAC; }
+.cd-admin-status.err { color: #FF7A7A; }
+.cd-admin-status.loading { color: var(--gold); }
+.cd-admin-results { margin-top: 1rem; }
+.cd-admin-verdict {
+  background: rgba(255,215,0,.1); border-left: 4px solid var(--gold);
+  color: var(--gold); padding: 12px; margin-bottom: 16px;
+  font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+  font-size: .8rem; line-height: 1.45; border-radius: 0 6px 6px 0;
+}
+.cd-admin-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.cd-admin-table th, .cd-admin-table td { padding: .55rem .7rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,.08); }
+.cd-admin-table th {
+  font-size: .65rem; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--gold); font-weight: 800; background: rgba(255,215,0,.06);
+}
+.cd-admin-table td { color: #E0E0E0; vertical-align: top; }
+.cd-admin-table tr:last-child td { border-bottom: none; }
+.cd-admin-table .cd-cell-num { width: 36px; color: var(--mut); font-weight: 700; }
+.cd-admin-table .cd-cell-name { font-weight: 700; color: #fff; }
+.cd-admin-table .cd-cell-target { color: var(--gold); font-weight: 700; white-space: nowrap; }
+.cd-admin-table .cd-cell-weight { white-space: nowrap; font-size: .78rem; color: rgba(255,255,255,.78); }
+
+/* ═══ COMLINK DISPATCH LEGACY (Phase 4 SOS queue — superseded by Phase 7.1 admin audible above) ═══ */
 .cd-empty {
   text-align: center;
   padding: 2.5rem 1rem;
@@ -400,13 +458,33 @@ if (!BBF_PORTAL.verify()) { BBF_PORTAL.redirect(); }
 </div>
 </div>
 
-<!-- COMLINK DISPATCH PANEL — Phase 4 -->
+<!-- COMLINK DISPATCH PANEL — Phase 7.1 Admin Audible Terminal -->
 <div class="panel" id="panel-comlink">
-<div style="font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:3px;color:var(--gold);margin-bottom:.3rem;text-transform:uppercase">&#x1F4E1; Comlink Dispatch</div>
-<div style="font-size:.82rem;color:var(--mut);margin-bottom:1.2rem;letter-spacing:1px">Incoming SOS signals from the Roster. Select a protocol video, add a custom note, and deploy the Holographic Intercept.</div>
-<div class="cd-queue" id="cd-queue">
-  <div class="cd-empty">Loading dispatch queue&hellip;</div>
-</div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:3px;color:var(--gold);margin-bottom:.3rem;text-transform:uppercase">&#x1F4E1; Comlink Dispatch &middot; Admin Audible</div>
+  <div style="font-size:.82rem;color:var(--mut);margin-bottom:1.2rem;letter-spacing:.5px;line-height:1.5">Live AI play-calling terminal. Select a roster member, dictate or type a real-time audible (time constraint, equipment limit, pain flag), and Claude Opus 4.7 rewrites their workout in seconds. Reuses the <code style="color:var(--gold)">bbf-agentic-comlink</code> Edge Function.</div>
+
+  <div class="cd-admin-grid">
+    <div class="cd-admin-field">
+      <label class="cd-admin-lbl" for="cd-admin-athlete">Target Athlete</label>
+      <select class="cd-admin-select" id="cd-admin-athlete">
+        <option value="" disabled selected>Loading roster&hellip;</option>
+      </select>
+    </div>
+
+    <div class="cd-admin-field">
+      <label class="cd-admin-lbl" for="cd-admin-transcript">Audible Transcript</label>
+      <textarea class="cd-admin-textarea" id="cd-admin-transcript" rows="3" maxlength="600" placeholder="e.g. Wayne only has 18 minutes &mdash; compress to a DB push circuit. Or: Jacky&apos;s left knee is flared, pull all loaded knee flexion."></textarea>
+      <div class="cd-admin-actions-inline">
+        <button class="cd-admin-dictate" type="button" id="cd-admin-dictate-btn">&#x1F3A4; Dictate Audible</button>
+        <span class="cd-admin-dictate-status" id="cd-admin-dictate-status"></span>
+      </div>
+    </div>
+
+    <button class="cd-admin-dispatch" type="button" id="cd-admin-dispatch-btn" disabled>&#x26A1; Dispatch Audible</button>
+    <div class="cd-admin-status" id="cd-admin-status" aria-live="polite"></div>
+  </div>
+
+  <div class="cd-admin-results" id="cd-admin-results" aria-live="polite"></div>
 </div>
 
 </div>
@@ -927,7 +1005,13 @@ function showPanel(id) {
   event.target.classList.add('on');
   if (id === 'triage')  BBF_PORTAL.load();
   if (id === 'roster')  loadRoster();
-  if (id === 'comlink') renderComlinkQueue();
+  if (id === 'comlink') {
+    // Phase 7.1 — admin Comlink Dispatch supersedes the legacy SOS queue.
+    // renderComlinkQueue() (Phase 4 video-library dispatcher in
+    // comlink-engine.js) is no longer wired to this tab; left in place
+    // for any non-tab callers.
+    if (typeof BBF_COMLINK_DISPATCH !== 'undefined') BBF_COMLINK_DISPATCH.init();
+  }
   if (id === 'metrics') BBF_COACH_AGENT.render();
 }
 
@@ -1234,6 +1318,314 @@ setTimeout(function() {
   var p = document.getElementById('stat-pending');
   if (p) p.textContent = stats.total;
 }, 500);
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_COMLINK_DISPATCH · Phase 7.1 — Admin Audible terminal
+// ────────────────────────────────────────────────────────────────────────
+// Lives in the Command Center #panel-comlink tab. Admin selects a roster
+// member, types or dictates a real-time audible, clicks Dispatch. The
+// existing bbf-agentic-comlink Edge Function rewrites the athlete's
+// current workout; the response renders into an Updated Protocol table
+// on the admin screen for verification.
+//
+// Reuses the same edge function as the client-side BBF_COMLINK in
+// bbf-app.html — no new backend. Workout source is mocked for V1 (real
+// per-athlete plan storage doesn't exist on bbf_users yet; see SITREP
+// follow-up).
+// ════════════════════════════════════════════════════════════════════════
+var BBF_COMLINK_DISPATCH = (function() {
+  var ENDPOINT      = '/functions/v1/bbf-agentic-comlink';
+  var SELECT_ID     = 'cd-admin-athlete';
+  var TEXTAREA_ID   = 'cd-admin-transcript';
+  var DICTATE_ID    = 'cd-admin-dictate-btn';
+  var DICT_STAT_ID  = 'cd-admin-dictate-status';
+  var DISPATCH_ID   = 'cd-admin-dispatch-btn';
+  var STATUS_ID     = 'cd-admin-status';
+  var RESULTS_ID    = 'cd-admin-results';
+  var _initialized  = false;
+  var _rosterLoaded = false;
+  var _rec          = null;
+  var _dictating    = false;
+  var _supported    = (function() {
+    try { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+    catch (_) { return false; }
+  })();
+
+  // Mock workout used when fetching real per-athlete plan data. The
+  // bbf_users table has no workout_plan column today (only nutrition_plan);
+  // wiring to the real plan source is a follow-up. For V1 the edge fn
+  // gets a representative push/pull/legs blueprint and rewrites against
+  // the actual transcript constraint — which is the load-bearing part of
+  // the demo. CEO greenlit "or mock it if in testing mode."
+  function _mockCurrentWorkout(name) {
+    return [
+      { name: 'Back Squat',          sets: 4, reps: '6-8',   equipment: 'barbell',     notes: '' },
+      { name: 'Romanian Deadlift',   sets: 3, reps: '8-10',  equipment: 'barbell',     notes: '' },
+      { name: 'Walking Lunge',       sets: 3, reps: '10/leg',equipment: 'dumbbell',    notes: '' },
+      { name: 'Leg Curl',            sets: 3, reps: '12-15', equipment: 'machine',     notes: '' },
+      { name: 'Calf Raise',          sets: 4, reps: '12-15', equipment: 'machine',     notes: '' }
+    ];
+  }
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.SUPABASE_URL) return String(window.SUPABASE_URL).replace(/\/$/, '');
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.SUPABASE_ANON_KEY) return String(window.SUPABASE_ANON_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function _setStatus(text, tone) {
+    var el = document.getElementById(STATUS_ID);
+    if (!el) return;
+    el.className = 'cd-admin-status' + (tone ? ' ' + tone : '');
+    el.textContent = text || '';
+  }
+
+  function _updateDispatchEnabled() {
+    var btn = document.getElementById(DISPATCH_ID);
+    if (!btn) return;
+    var sel = document.getElementById(SELECT_ID);
+    var ta  = document.getElementById(TEXTAREA_ID);
+    var hasAthlete   = !!(sel && sel.value);
+    var hasTranscript = !!(ta && ta.value.trim());
+    btn.disabled = !(hasAthlete && hasTranscript);
+  }
+
+  // ─── Roster load ─────────────────────────────────────────────────────
+  function _populateRoster() {
+    if (_rosterLoaded) return;
+    var sel = document.getElementById(SELECT_ID);
+    if (!sel) return;
+    // Reuse the same Founder-5 + Akeem source the Co-Coach Agent uses.
+    // Fall back to a static list if BBF_SYNC.fetchAllUsers is unavailable.
+    var staticRoster = [
+      { uid: 'akeem',      name: 'Akeem (Trainer)' },
+      { uid: 'ana_bbf',    name: 'Ana' },
+      { uid: 'jacky_bbf',  name: 'Jacky' },
+      { uid: 'jacque_bbf', name: 'Jacquelyn' },
+      { uid: 'jordan_bbf', name: 'Jordan' },
+      { uid: 'wayne_bbf',  name: 'Wayne' }
+    ];
+
+    var fill = function(roster) {
+      sel.innerHTML = '<option value="" disabled selected>Select an athlete&hellip;</option>' +
+        roster.map(function(r) {
+          return '<option value="' + _esc(r.uid) + '">' + _esc(r.name) + '</option>';
+        }).join('');
+      sel.addEventListener('change', _updateDispatchEnabled);
+      _rosterLoaded = true;
+      _updateDispatchEnabled();
+    };
+
+    try {
+      if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.fetchAllUsers) {
+        BBF_SYNC.fetchAllUsers().then(function(rows) {
+          var byUid = {};
+          (rows || []).forEach(function(r) { if (r && r.uid) byUid[r.uid] = r; });
+          var roster = staticRoster.map(function(s) {
+            var hit = byUid[s.uid];
+            return { uid: s.uid, name: (hit && hit.name) || s.name };
+          });
+          fill(roster);
+        }).catch(function() { fill(staticRoster); });
+        return;
+      }
+    } catch (_) {}
+    fill(staticRoster);
+  }
+
+  // ─── Dictate (Web Speech API) ────────────────────────────────────────
+  function _initDictate() {
+    var btn = document.getElementById(DICTATE_ID);
+    var statEl = document.getElementById(DICT_STAT_ID);
+    if (!btn) return;
+    if (!_supported) {
+      btn.disabled = true;
+      btn.title = 'Voice input not supported on this browser — type instead.';
+      if (statEl) statEl.textContent = '(voice unavailable in this browser)';
+      return;
+    }
+    if (btn.dataset.bbfBound === '1') return;
+    btn.dataset.bbfBound = '1';
+    btn.addEventListener('click', _onDictateClick);
+  }
+
+  function _setDictating(on) {
+    _dictating = on;
+    var btn = document.getElementById(DICTATE_ID);
+    var statEl = document.getElementById(DICT_STAT_ID);
+    if (btn) {
+      btn.classList.toggle('recording', on);
+      btn.innerHTML = on ? '&#x25A0; Stop' : '&#x1F3A4; Dictate Audible';
+    }
+    if (statEl) statEl.textContent = on ? 'Listening… speak now.' : '';
+  }
+
+  function _onDictateClick() {
+    if (_dictating) {
+      try { _rec && _rec.stop(); } catch (_) {}
+      return;
+    }
+    var Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var rec = new Ctor();
+    rec.lang            = 'en-US';
+    rec.continuous      = false;
+    rec.interimResults  = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = function(e) {
+      try {
+        var t = '';
+        for (var i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+        var ta = document.getElementById(TEXTAREA_ID);
+        if (ta && t.trim()) {
+          ta.value = (ta.value ? ta.value + ' ' : '') + t.trim();
+          _updateDispatchEnabled();
+        }
+      } catch (err) { console.warn('[BBF_COMLINK_DISPATCH] dictate result error:', err); }
+    };
+    rec.onerror = function(ev) {
+      var msg = ev && ev.error || 'unknown';
+      console.warn('[BBF_COMLINK_DISPATCH] dictate error:', msg);
+      _setStatus(msg === 'not-allowed' ? 'Microphone permission denied.'
+                : msg === 'no-speech'    ? 'No speech detected. Try again.'
+                : 'Voice capture error (' + msg + ').', 'err');
+    };
+    rec.onend = function() { _setDictating(false); _rec = null; };
+    try {
+      rec.start();
+      _rec = rec;
+      _setDictating(true);
+      _setStatus('', '');
+    } catch (err) {
+      console.warn('[BBF_COMLINK_DISPATCH] start failed:', err);
+      _setStatus('Could not start microphone.', 'err');
+    }
+  }
+
+  // ─── Dispatch (POST → bbf-agentic-comlink → render table) ────────────
+  function _onDispatch() {
+    var sel = document.getElementById(SELECT_ID);
+    var ta  = document.getElementById(TEXTAREA_ID);
+    var btn = document.getElementById(DISPATCH_ID);
+    if (!sel || !ta || !btn) return;
+    var uid       = sel.value;
+    var transcript = ta.value.trim();
+    if (!uid)       { _setStatus('Pick an athlete first.', 'err'); return; }
+    if (!transcript){ _setStatus('Type or dictate an audible first.', 'err'); return; }
+
+    btn.disabled = true;
+    _setStatus('Dispatching to bbf-agentic-comlink…', 'loading');
+    var resultsEl = document.getElementById(RESULTS_ID);
+    if (resultsEl) resultsEl.innerHTML = '';
+
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) {
+      headers['Authorization'] = 'Bearer ' + anon;
+      headers['apikey']        = anon;
+    }
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+    var displayName = (sel.options[sel.selectedIndex] || {}).text || uid;
+    var body = {
+      uid:             uid,
+      transcript:      transcript,
+      current_workout: _mockCurrentWorkout(displayName),
+      client_context:  { goal: null, partner: null, dispatched_by: 'akeem_admin' },
+      admin_override:  !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+    };
+
+    var t0 = Date.now();
+    window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify(body)
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok || !parsed || !Array.isArray(parsed.updated_workout)) {
+          console.warn('[BBF_COMLINK_DISPATCH] engine returned HTTP ' + res.status + ':', parsed || t);
+          _setStatus('Comlink error (HTTP ' + res.status + ').', 'err');
+          return;
+        }
+        _renderResults(displayName, transcript, parsed);
+        _setStatus('Dispatched to ' + displayName + ' (' + (Date.now() - t0) + 'ms).', 'ok');
+        console.log('[BBF_COMLINK_DISPATCH] ' + uid + ' ← admin audible ("' + transcript.slice(0, 60) + '") → ' + parsed.updated_workout.length + ' exercises');
+      });
+    }).catch(function(err) {
+      console.warn('[BBF_COMLINK_DISPATCH] fetch failed:', err && err.message || err);
+      _setStatus('Network error: ' + (err && err.message || 'unknown') + '.', 'err');
+    }).then(function() {
+      btn.disabled = false;
+      _updateDispatchEnabled();
+    });
+  }
+
+  function _renderResults(athleteName, transcript, payload) {
+    var con = document.getElementById(RESULTS_ID);
+    if (!con) return;
+    var verdict = _esc((payload && payload.comlink_verdict) || '—');
+    var matrix  = (payload && Array.isArray(payload.updated_workout)) ? payload.updated_workout : [];
+    var rows = matrix.map(function(ex, i) {
+      var name   = _esc((ex && ex.name)       || '');
+      var target = _esc((ex && ex.target)     || '');
+      var weight = _esc((ex && ex.weight_lbs) || '');
+      var weightCell = weight ? (weight.toUpperCase() === 'BW' ? 'BW' : weight + ' lb') : '—';
+      return '<tr>' +
+        '<td class="cd-cell-num">' + (i + 1) + '</td>' +
+        '<td class="cd-cell-name">' + name + '</td>' +
+        '<td class="cd-cell-target">' + target + '</td>' +
+        '<td class="cd-cell-weight">' + weightCell + '</td>' +
+      '</tr>';
+    }).join('');
+
+    con.innerHTML =
+      '<div class="cd-admin-verdict">&#x1F4E1; ' + verdict + '</div>' +
+      '<div style="font-size:.7rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--mut);margin-bottom:.5rem">' +
+        'Updated Protocol &middot; ' + _esc(athleteName) + ' &middot; audible: &ldquo;' + _esc(transcript) + '&rdquo;' +
+      '</div>' +
+      '<table class="cd-admin-table">' +
+        '<thead><tr><th>#</th><th>Movement</th><th>Target</th><th>Load</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>';
+  }
+
+  // ─── Lifecycle ───────────────────────────────────────────────────────
+  function init() {
+    if (!_initialized) {
+      var dispatchBtn = document.getElementById(DISPATCH_ID);
+      var ta          = document.getElementById(TEXTAREA_ID);
+      if (dispatchBtn) dispatchBtn.addEventListener('click', _onDispatch);
+      if (ta)          ta.addEventListener('input', _updateDispatchEnabled);
+      _initialized = true;
+    }
+    _populateRoster();
+    _initDictate();
+    _updateDispatchEnabled();
+  }
+
+  return { init: init };
+})();
 </script>
 </body>
 </html>
