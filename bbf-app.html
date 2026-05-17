@@ -7928,6 +7928,11 @@ function TWKL(logs) {
 
 function ENTER() {
   SS('app');
+  // Phase 10.3 — wrap the ENTER body so any future throw (e.g. another
+  // missed dead-DOM reference like Phase 10's #ld blocker) can never
+  // silently abort the login → LP → RDW chain again. Errors log to
+  // console; user still reaches the app.
+  try {
   // Phase 10.2 hotfix — #ld was the Free Log date input, deleted in
   // Phase 10. Trying to set its value here was throwing
   // TypeError: Cannot set properties of null and aborting ENTER()
@@ -7990,6 +7995,15 @@ function ENTER() {
   } catch(_) {}
   if (CU === 'akeem') {
     SETUP_TRAINER();
+    // Phase 10.3 — CEO dogfood mode. Trainer path historically skipped
+    // LP() because akeem viewed clients via selectClient() (which sets
+    // VC + calls LP). For live-fire testing the CEO logs in as akeem
+    // AND uses the app as a client, so the Workout tab needs his own
+    // plan loaded. LP() reads (VC || CU) — VC is null here, so it
+    // loads PLAN from d.u['akeem'].plan = 'akeem_ceo'.
+    try { LP(); } catch (e) { console.warn('[ENTER] LP() for akeem failed:', e); }
+    try { if (typeof RA === 'function') RA(); } catch (_) {}
+    try { if (typeof RW === 'function') RW(); } catch (_) {}
   } else {
     // ─── GATEKEEPER: Check access status ─────────────
     var accessD = GD();
@@ -8041,6 +8055,9 @@ function ENTER() {
     } else {
       _bbfProceedAfterGhostCheck();
     }
+  }
+  } catch (e) {
+    console.error('[ENTER] threw:', e && e.message, e && e.stack);
   }
 }
 
@@ -15023,6 +15040,12 @@ function getRecoveryCues(uid) {
 
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Phase 10.3 — BLUNT-FORCE init guard. Wraps the entire init handler
+  // in a try/catch so a single missed-DOM-reference throw can never
+  // again silently abort the chain (and break login → PLAN load →
+  // RDW render). Errors surface as console warnings, the rest of the
+  // bindings still attach.
+  try {
 
   // Auth tabs
   document.getElementById('tab-si').onclick = function() {
@@ -16644,6 +16667,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Phase 10.2 hotfix — #ld (Free Log date input) deleted in Phase 10.
   // The original setter here threw and aborted the entire init handler.
+
+  } catch (e) {
+    // Phase 10.3 — never let init silently abort. Log and continue.
+    console.error('[init] DOMContentLoaded handler threw:', e && e.message, e && e.stack);
+  }
 });
 
 
