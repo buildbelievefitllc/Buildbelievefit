@@ -7928,7 +7928,11 @@ function TWKL(logs) {
 
 function ENTER() {
   SS('app');
-  document.getElementById('ld').value = today();
+  // Phase 10.2 hotfix — #ld was the Free Log date input, deleted in
+  // Phase 10. Trying to set its value here was throwing
+  // TypeError: Cannot set properties of null and aborting ENTER()
+  // before LP() ran, so PLAN never loaded and every athlete saw the
+  // "No Program" empty state. Block removed.
   // Pull any data submitted from the website Pathfinder form
   try {
     var webData = JSON.parse(localStorage.getItem('bbf_pathfinder') || 'null');
@@ -14354,15 +14358,14 @@ function SNDAY(i) {
 // purged in a future cleanup commit. ARE_ENGINE concurrent-interference
 // audit and CNS_ENGINE lockout still run from other surfaces.
 
-function ADDEX() {
-  var inp = document.getElementById('exi');
-  var v = inp.value.trim();
-  if (!v) return;
-  EX.push(v); inp.value = ''; REL();
-}
+// Phase 10.2 hotfix — ADDEX() removed (no callers, no DOM target).
 
+// Phase 10.2 hotfix — REL() now null-guards #exl since the Free Log
+// DOM is gone. Self-recursion via .exd click handlers also tolerated.
 function REL() {
-  document.getElementById('exl').innerHTML = EX.map(function(e, i) {
+  var exl = document.getElementById('exl');
+  if (!exl) return;
+  exl.innerHTML = EX.map(function(e, i) {
     return '<div class="exi"><span>' + escapeHTML(e) + '</span><button class="exd" data-i="' + i + '">&#x2715;</button></div>';
   }).join('');
   document.querySelectorAll('.exd').forEach(function(b) {
@@ -16592,25 +16595,14 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('qa-n').onclick = function() { TAB('nutrition'); };
   document.getElementById('qa-p').onclick = function() { TAB('profile'); };
 
-  // Phase 10 — legacy Free Log bindings removed alongside the bottom-nav
-  // Log tab. SAVELOG / ADDEX / their #savelog-btn / #addex-btn / #lnotes
-  // / #ld / #ldur DOM targets no longer exist. Smart Cardio binds its
-  // own handlers via BBF_CARDIO.render() on every TAB('cardio') call.
-  document.getElementById('exi').onkeydown = function(e) { if (e.key === 'Enter') ADDEX(); };
+  // Phase 10.2 hotfix — Free Log bindings ripped out entirely. The
+  // line below used to throw on null #exi and abort the rest of this
+  // init handler, killing every binding that came after it (including
+  // the home-tab quick-actions). Removed alongside the .tc3/.mc2
+  // chip handlers, which targeted DOM that no longer exists.
 
-  document.querySelectorAll('.tc3').forEach(function(c) {
-    c.onclick = function() {
-      document.querySelectorAll('.tc3').forEach(function(x) { x.classList.remove('on'); });
-      c.classList.add('on'); TYPE = c.dataset.t;
-    };
-  });
-
-  document.querySelectorAll('.mc2').forEach(function(c) {
-    c.onclick = function() {
-      document.querySelectorAll('.mc2').forEach(function(x) { x.classList.remove('on'); });
-      c.classList.add('on'); MOOD = c.dataset.m;
-    };
-  });
+  // Phase 10.2 hotfix — .mc2 mood-chip handlers removed; targets no
+  // longer exist (Free Log DOM ripped out).
 
   // Trainer note
   document.getElementById('note-btn').onclick = SAVENOTE;
@@ -16650,8 +16642,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.target === this) CLOSEGOAL();
   };
 
-  // Date default
-  document.getElementById('ld').value = today();
+  // Phase 10.2 hotfix — #ld (Free Log date input) deleted in Phase 10.
+  // The original setter here threw and aborted the entire init handler.
 });
 
 
