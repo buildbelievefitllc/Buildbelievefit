@@ -5439,6 +5439,17 @@ async function LOGIN(){
       if(!d.w[user])d.w[user]={};
       SD(d);
     }
+    // Phase 18 — daily_brief hydration. The Midnight Haiku Engine
+    // refreshes bbf_users.daily_brief nightly; bbf_verify_user_pin
+    // returns it on the success payload. Mirror to the local user
+    // object so renderSovereignIntel() reads it on the first
+    // Workout-tab render after ENTER(). Always write (even when
+    // null/undefined) so a stale local value never ghosts a cleared
+    // server value.
+    if (data && Object.prototype.hasOwnProperty.call(data, 'daily_brief')) {
+      d.u[user].daily_brief = data.daily_brief || null;
+      SD(d);
+    }
     CU=user;
     VC=(user==='akeem')?null:user;
     if(msg)msg.textContent='';
