@@ -862,79 +862,41 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .are-score{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:2.4rem;font-weight:900;color:var(--wht);letter-spacing:2px;line-height:1;transition:color .6s ease,text-shadow .6s ease}
 .are-score .pct{font-size:1.05rem;color:var(--mut);margin-left:.1rem;font-weight:700}
 .are-score-l{font-size:.55rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--mut);margin-top:.15rem}
-.are-slider-wrap{position:relative;padding:.3rem 0 .8rem;z-index:1}
-.are-range{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;outline:none;cursor:pointer;margin:0;background:linear-gradient(90deg,#ef4444 0%,#ef4444 39%,#f59e0b 40%,#f59e0b 69%,#22c55e 70%,#22c55e 100%);box-shadow:inset 0 0 0 1px rgba(212,175,55,.28),0 0 16px rgba(34,211,238,.08)}
-.are-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,var(--yel) 60%,var(--purd));border:2px solid #060606;box-shadow:0 0 0 2px rgba(212,175,55,.55),0 0 18px rgba(34,211,238,.55);cursor:pointer;transition:transform .2s ease,box-shadow .4s ease}
-.are-range::-webkit-slider-thumb:hover{transform:scale(1.08)}
-.are-range::-webkit-slider-thumb:active{transform:scale(1.14);box-shadow:0 0 0 3px rgba(212,175,55,.65),0 0 24px rgba(34,211,238,.75)}
-.are-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,var(--yel) 60%,var(--purd));border:2px solid #060606;box-shadow:0 0 0 2px rgba(212,175,55,.55),0 0 18px rgba(34,211,238,.55);cursor:pointer;transition:transform .2s ease}
-.are-range::-moz-range-thumb:hover{transform:scale(1.08)}
-.are-scale{display:flex;justify-content:space-between;margin-top:.55rem;font-size:.54rem;font-weight:700;letter-spacing:2.5px;color:var(--mut);text-transform:uppercase}
-.are-readout{display:flex;align-items:center;gap:.75rem;padding:.8rem .95rem;border-radius:12px;background:rgba(8,8,8,.55);border:1px solid rgba(255,255,255,.05);transition:background .55s cubic-bezier(.4,0,.2,1),border-color .55s cubic-bezier(.4,0,.2,1),box-shadow .55s ease;position:relative;z-index:1}
-.are-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;background:var(--mut);animation:are-pulse 1.9s ease-in-out infinite;transition:background .5s ease,box-shadow .5s ease}
-.are-ind-label{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.68rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;flex-shrink:0;color:var(--mut);transition:color .5s ease}
-.are-msg{font-size:.78rem;line-height:1.45;color:rgba(255,255,255,.88);font-weight:600;text-align:right;margin-left:auto;transition:color .5s ease,opacity .5s ease}
 .are-card.tier-green{border-color:rgba(34,197,94,.45);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),0 0 24px rgba(34,197,94,.14),inset 0 1px 0 rgba(255,255,255,.05)}
 .are-card.tier-green .are-score{color:var(--grn);text-shadow:0 0 18px rgba(34,197,94,.45)}
-.are-card.tier-green .are-readout{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.32)}
-.are-card.tier-green .are-dot{background:var(--grn);box-shadow:0 0 14px rgba(34,197,94,.9)}
-.are-card.tier-green .are-ind-label{color:var(--grn)}
 .are-card.tier-yellow{border-color:rgba(245,158,11,.45);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),0 0 24px rgba(245,158,11,.14),inset 0 1px 0 rgba(255,255,255,.05)}
 .are-card.tier-yellow .are-score{color:var(--orn);text-shadow:0 0 18px rgba(245,158,11,.45)}
-.are-card.tier-yellow .are-readout{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.32)}
-.are-card.tier-yellow .are-dot{background:var(--orn);box-shadow:0 0 14px rgba(245,158,11,.9)}
-.are-card.tier-yellow .are-ind-label{color:var(--orn)}
 .are-card.tier-red{border-color:rgba(239,68,68,.5);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),0 0 26px rgba(239,68,68,.16),inset 0 1px 0 rgba(255,255,255,.05)}
 .are-card.tier-red .are-score{color:var(--red);text-shadow:0 0 18px rgba(239,68,68,.5)}
-.are-card.tier-red .are-readout{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.32)}
-.are-card.tier-red .are-dot{background:var(--red);box-shadow:0 0 14px rgba(239,68,68,.9);animation:are-pulse-fast 1.05s ease-in-out infinite}
-.are-card.tier-red .are-ind-label{color:var(--red)}
-@keyframes are-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.18);opacity:.7}}
-@keyframes are-pulse-fast{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.28);opacity:.55}}
 
-/* ═══ AUTONOMIC READINESS ENGINE — PHASE 2 (Wearable Bridge) ═════════ */
-.are-card{position:relative}
-.are-sync-cta,.are-overlay,.are-resync{display:none}
-.are-card[data-sync-state="idle"] .are-slider-wrap,
-.are-card[data-sync-state="idle"] .are-readout,
-.are-card[data-sync-state="syncing"] .are-slider-wrap,
-.are-card[data-sync-state="syncing"] .are-readout,
-.are-card[data-sync-state="syncing"] .are-sync-cta,
-.are-card[data-sync-state="synced"]  .are-slider-wrap,
-.are-card[data-sync-state="synced"]  .are-sync-cta{display:none !important}
-.are-card[data-sync-state="idle"] .are-sync-cta{display:flex}
-.are-card[data-sync-state="syncing"] .are-overlay{display:flex}
-.are-card[data-sync-state="synced"]  .are-readout{display:flex}
-.are-card[data-sync-state="synced"]  .are-resync{display:inline-flex}
-
-.are-sync-cta{flex-direction:column;align-items:stretch;gap:.55rem;padding:.3rem 0 .8rem;position:relative;z-index:1}
-.are-sync-btn{position:relative;width:100%;padding:.95rem 1rem;border-radius:12px;border:1px solid rgba(212,175,55,.55);background:linear-gradient(135deg,rgba(106,13,173,.42) 0%,rgba(74,8,128,.55) 50%,rgba(34,211,238,.18) 100%);color:var(--wht);font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.95rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;cursor:pointer;overflow:hidden;box-shadow:0 10px 30px -12px rgba(106,13,173,.7),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .25s ease,box-shadow .35s ease,border-color .35s ease}
-.are-sync-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);transform:translateX(-110%);transition:transform .8s ease}
-.are-sync-btn:hover{transform:translateY(-1px);border-color:rgba(34,211,238,.65);box-shadow:0 14px 36px -12px rgba(34,211,238,.45),inset 0 1px 0 rgba(255,255,255,.12)}
-.are-sync-btn:hover::before{transform:translateX(110%)}
-.are-sync-btn:active{transform:translateY(0);box-shadow:0 6px 18px -8px rgba(34,211,238,.5),inset 0 1px 0 rgba(255,255,255,.06)}
-.are-sync-btn .are-sync-ico{margin-right:.55rem;font-size:.95rem;display:inline-block;vertical-align:-2px}
-.are-sync-sub{text-align:center;font-size:.66rem;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;color:var(--mut)}
-.are-sync-sub b{color:#22d3ee;font-weight:700}
-
-.are-overlay{position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120% 80% at 50% 30%,rgba(34,211,238,.08),transparent 60%),rgba(8,4,18,.72);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);align-items:center;justify-content:center;flex-direction:column;gap:1rem;z-index:5;animation:are-fade-in .35s ease both}
-.are-spinner{width:54px;height:54px;border-radius:50%;border:2px solid rgba(212,175,55,.18);border-top-color:#22d3ee;border-right-color:var(--yel);animation:spin 1s linear infinite;box-shadow:0 0 22px rgba(34,211,238,.35)}
-.are-spinner-inner{position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,var(--yel) 60%,var(--purd));box-shadow:0 0 14px rgba(212,175,55,.7)}
-.are-spinner-wrap{position:relative;display:flex;align-items:center;justify-content:center}
-.are-overlay-msg{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.85rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--wht);text-align:center;padding:0 1rem;min-height:1.1em;transition:opacity .35s ease}
-.are-overlay-msg.fade{opacity:0}
-.are-overlay-tag{font-size:.55rem;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:#22d3ee;opacity:.85}
-@keyframes are-fade-in{from{opacity:0}to{opacity:1}}
-
-.are-resync{margin-top:.7rem;justify-content:center;align-items:center;gap:.35rem;background:transparent;border:none;color:var(--mut);font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;padding:.4rem .6rem;border-radius:6px;transition:color .25s ease,background .25s ease;width:100%}
-.are-resync:hover{color:#22d3ee;background:rgba(34,211,238,.06)}
-.are-resync .are-resync-ico{font-size:.7rem}
+/* ═══ SOVEREIGN INTELLIGENCE BRIEF ═══════════════════════════════════
+   Replaces the amputated mock wearable sliders. Pantheon-tier clinical
+   insight surface bound to client.daily_brief (with deterministic
+   biomechanical fallback). Sovereign purple / gold / teal palette. */
+.sovereign-intel{position:relative;margin-top:.4rem;padding:1rem 1.05rem 1.1rem;border-radius:14px;background:radial-gradient(120% 90% at 0% 0%,rgba(139,26,191,.16) 0%,rgba(10,5,25,.62) 60%),linear-gradient(135deg,rgba(18,10,32,.78) 0%,rgba(8,4,18,.82) 100%);border:1px solid rgba(139,26,191,.42);box-shadow:0 14px 36px -18px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.04),0 0 18px rgba(139,26,191,.08);overflow:hidden;z-index:1;transition:border-color .5s ease,box-shadow .5s ease}
+.sovereign-intel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(34,211,238,.55) 22%,var(--yel) 50%,rgba(139,26,191,.6) 78%,transparent 100%);opacity:.85}
+.sovereign-intel::after{content:'';position:absolute;pointer-events:none;inset:0;border-radius:inherit;background:radial-gradient(80% 60% at 100% 0%,rgba(245,200,0,.07),transparent 55%);transition:opacity .5s ease}
+.sovereign-intel-head{display:flex;align-items:center;gap:.7rem;margin-bottom:.75rem;position:relative;z-index:1}
+.sovereign-intel-ico{flex-shrink:0;width:34px;height:34px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 25%,rgba(245,200,0,.22),rgba(139,26,191,.32) 60%,rgba(8,4,18,.9));border:1px solid rgba(245,200,0,.5);box-shadow:0 0 12px rgba(139,26,191,.42),inset 0 1px 0 rgba(255,255,255,.08);position:relative}
+.sovereign-intel-ico svg{width:18px;height:18px;display:block;filter:drop-shadow(0 0 4px rgba(245,200,0,.65))}
+.sovereign-intel-ico::after{content:'';position:absolute;inset:-3px;border-radius:11px;background:radial-gradient(circle,rgba(34,211,238,.18),transparent 65%);opacity:.6;animation:sov-intel-pulse 3.4s ease-in-out infinite}
+.sovereign-intel-titles{min-width:0;flex:1}
+.sovereign-intel-tag{font-size:.54rem;font-weight:800;letter-spacing:3.6px;text-transform:uppercase;color:#22d3ee;opacity:.9;line-height:1}
+.sovereign-intel-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.92rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-top:.2rem;line-height:1.05;text-shadow:0 0 8px rgba(245,200,0,.32)}
+.sovereign-intel-body{position:relative;z-index:1;padding:.6rem .75rem .65rem;border-radius:10px;background:rgba(6,3,14,.55);border:1px solid rgba(139,26,191,.26);border-left:2px solid var(--purl,#8B1ABF);font-size:.77rem;line-height:1.55;color:rgba(255,255,255,.86);font-weight:500;transition:opacity .35s ease,transform .35s ease}
+.sovereign-intel-body.is-loading{opacity:.55}
+.sovereign-intel-body .sov-greet{display:block;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.7rem;letter-spacing:2.4px;text-transform:uppercase;color:#22d3ee;margin-bottom:.35rem;font-weight:800}
+.sovereign-intel-meta{margin-top:.6rem;display:flex;align-items:center;justify-content:space-between;gap:.6rem;font-size:.52rem;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:rgba(255,255,255,.42);position:relative;z-index:1}
+.sovereign-intel-meta .sov-pulse{display:inline-flex;align-items:center;gap:.35rem;color:var(--yel);opacity:.78}
+.sovereign-intel-meta .sov-pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--yel);box-shadow:0 0 8px rgba(245,200,0,.7);animation:sov-intel-dot 2s ease-in-out infinite}
+@keyframes sov-intel-pulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.18);opacity:.85}}
+@keyframes sov-intel-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.6}}
 @media (max-width:460px){
   .are-title{font-size:1rem;letter-spacing:2px}
   .are-score{font-size:2rem}
-  .are-msg{font-size:.72rem}
-  .are-readout{flex-wrap:wrap;gap:.5rem}
-  .are-msg{text-align:left;width:100%;margin-left:0}
+  .sovereign-intel{padding:.85rem .9rem 1rem}
+  .sovereign-intel-title{font-size:.84rem;letter-spacing:2.4px}
+  .sovereign-intel-body{font-size:.73rem}
 }
 
 /* ═══ ARE · SOVEREIGN WARNINGS (Matte Black / Yellow) ══════════ */
@@ -1845,7 +1807,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .bbf-tier-locked { display: none !important; }
 
 /* Wearables "Coming Soon" gate — applied to the .som-wearable-btn
-   wrapper and the .are-sync-btn / .are-resync clusters. */
+   wrapper. (ARE sync / resync clusters amputated alongside the mock
+   slider UI; Sovereign Intelligence Brief replaced that real estate.) */
 .iv-wearables-coming-soon {
   position: relative;
   filter: grayscale(1) opacity(.45);
@@ -5199,12 +5162,13 @@ window.BBF_APPLY_TIER_GATE = function() {
 };
 
 // Wearables "Coming Soon" — always-on greyed overlay regardless of trial
-// state. Targets the Somatic Readiness wearable button + the ARE sync /
-// resync controls. CEO directive: do not build the Open Wearables backends
-// at this time; surface "Coming Soon" so the placeholders remain visible.
+// state. Targets the Somatic Readiness wearable button only — the ARE
+// sync / resync controls were amputated with the mock-slider eradication,
+// replaced by the Sovereign Intelligence Brief. CEO directive: do not
+// build the Open Wearables backends at this time.
 window.BBF_APPLY_WEARABLES_COMING_SOON = function() {
   try {
-    var ids = ['som-wearable-btn', 'are-sync-btn', 'are-resync'];
+    var ids = ['som-wearable-btn'];
     ids.forEach(function(id) {
       var el = document.getElementById(id);
       if (!el) return;
@@ -6036,13 +6000,18 @@ window.onload=function(){
         </div>
         <div id="clinical-tools-stack">
           <div id="readiness-engine-module">
-          <!-- AUTONOMIC READINESS ENGINE (Phase 1 + Phase 2 Wearable Bridge) -->
-          <section class="are-card" id="are-card" data-tier="green" data-sync-state="idle" aria-label="Autonomic Readiness Engine">
+          <!-- AUTONOMIC READINESS ENGINE · Sovereign Intelligence Brief
+               Mock wearable sliders amputated — Sovereign-tier athletes get
+               clinical insight, not fake biometrics. Tier glow (red/yellow/
+               green) on the card itself remains as the backend Progression
+               Gatekeeper's lockout signal; .are-warn-slot is injected by
+               are-engine.js as a sibling for concurrent-training warnings. -->
+          <section class="are-card" id="are-card" data-tier="none" aria-label="Sovereign Intelligence Brief">
             <div class="are-head">
               <div class="are-head-l">
                 <div class="are-tag">Autonomic Readiness Engine</div>
                 <div class="are-title">Autonomic Readiness</div>
-                <div class="are-sub">Wearable-Synced CNS Readiness</div>
+                <div class="are-sub">Sovereign CNS Insight</div>
               </div>
               <div class="are-score-wrap">
                 <div class="are-score"><span id="are-score-n">--</span><span class="pct">%</span></div>
@@ -6050,41 +6019,32 @@ window.onload=function(){
               </div>
             </div>
 
-            <!-- Phase 1 manual slider — retained in DOM as the BBF_ARE.set() sink, hidden by data-sync-state CSS in Phase 2 -->
-            <div class="are-slider-wrap">
-              <input type="range" min="0" max="100" value="50" step="1" class="are-range" id="are-range" aria-label="Simulated CNS Readiness Score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
-              <div class="are-scale">
-                <span>Recovery</span><span>Moderate</span><span>Max Output</span>
+            <!-- Sovereign Intelligence Brief — dynamic clinical insight surface.
+                 Populated by renderSovereignIntel() from client.daily_brief
+                 with a deterministic biomechanical fallback. -->
+            <div class="sovereign-intel" id="sovereign-intel" role="region" aria-label="Sovereign Intelligence Brief">
+              <div class="sovereign-intel-head">
+                <span class="sovereign-intel-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M12 2.5c-2.6 0-4.8 1.9-5.2 4.4-1.6.5-2.8 2-2.8 3.8 0 1.3.6 2.5 1.6 3.3-.4.7-.6 1.5-.6 2.3 0 2.5 2 4.5 4.5 4.5.6 0 1.2-.1 1.7-.4.5.3 1.1.4 1.7.4 2.5 0 4.5-2 4.5-4.5 0-.8-.2-1.6-.6-2.3 1-.8 1.6-2 1.6-3.3 0-1.8-1.2-3.3-2.8-3.8C16.8 4.4 14.6 2.5 12 2.5z" stroke="#F5C800" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 7v10M9.5 9.5l5 5M14.5 9.5l-5 5" stroke="#22d3ee" stroke-width="1.2" stroke-linecap="round" opacity=".85"/>
+                    <circle cx="12" cy="12" r="1.6" fill="#F5C800"/>
+                  </svg>
+                </span>
+                <div class="sovereign-intel-titles">
+                  <div class="sovereign-intel-tag">Daily Brief &middot; Sovereign Tier</div>
+                  <div class="sovereign-intel-title">Sovereign Intelligence</div>
+                </div>
+              </div>
+              <div class="sovereign-intel-body" id="sovereign-intel-body">
+                <span class="sov-greet" id="sovereign-intel-greet">Hey Athlete,</span>
+                <span id="sovereign-intel-msg">Optimal joint health is preserved by intention, not just exertion. Focus on maximizing your time-under-tension and strict biomechanical form today.</span>
+              </div>
+              <div class="sovereign-intel-meta">
+                <span>Pantheon Insight Layer</span>
+                <span class="sov-pulse"><span class="sov-pulse-dot" aria-hidden="true"></span>Live</span>
               </div>
             </div>
-
-            <!-- Phase 2 Task 2: Sync Wearable CTA -->
-            <div class="are-sync-cta">
-              <button type="button" class="are-sync-btn" id="are-sync-btn" aria-label="Sync wearable device">
-                <span class="are-sync-ico" aria-hidden="true">&#x1F517;</span>Sync Wearable
-              </button>
-              <div class="are-sync-sub">Connect <b>Samsung Health</b>, <b>Apple Health</b>, <b>Garmin</b>, or <b>Oura</b></div>
-            </div>
-
-            <!-- Phase 2 Task 3: simulated OAuth overlay -->
-            <div class="are-overlay" id="are-overlay" role="status" aria-live="polite">
-              <div class="are-overlay-tag">Wearable API Bridge</div>
-              <div class="are-spinner-wrap">
-                <div class="are-spinner" aria-hidden="true"></div>
-                <div class="are-spinner-inner" aria-hidden="true"></div>
-              </div>
-              <div class="are-overlay-msg" id="are-overlay-msg">Authenticating via Terra API...</div>
-            </div>
-
-            <!-- Phase 1 readout (Phase 2 Task 6: surfaced after sync) -->
-            <div class="are-readout" id="are-readout" role="status" aria-live="polite">
-              <span class="are-dot" id="are-dot" aria-hidden="true"></span>
-              <span class="are-ind-label" id="are-ind-label">Max Output</span>
-              <span class="are-msg" id="are-msg">CNS Primed. Cleared for 85% 1RM Hypertrophy block.</span>
-            </div>
-            <button type="button" class="are-resync" id="are-resync" aria-label="Re-sync wearable">
-              <span class="are-resync-ico" aria-hidden="true">&#x21BB;</span>Re-Sync
-            </button>
           </section>
           </div>
           <div id="bio-render-module">
@@ -13251,6 +13211,11 @@ function RW() {
     return '<button class="dbn' + (i === SDAY ? ' on' : '') + '" onclick="SELDAY(' + i + ')">' + day.day + '</button>';
   }).join('');
   RDW();
+  try {
+    if (window.BBF_SOVEREIGN_INTEL && typeof window.BBF_SOVEREIGN_INTEL.render === 'function') {
+      window.BBF_SOVEREIGN_INTEL.render();
+    }
+  } catch(_){}
 }
 
 function SELDAY(i) {
@@ -18243,169 +18208,71 @@ window.onload = function() {
 })();
 </script>
 
-<!-- Autonomic Readiness Engine — Task 3: tiered CNS logic (manual slider today, wearable-ready for HRV/Sleep tomorrow). -->
+<!-- Sovereign Intelligence Brief — Pantheon-tier clinical insight surface.
+     Replaces the amputated mock wearable sliders. Pulls a daily_brief
+     string from client.daily_brief; falls back to a deterministic
+     biomechanical message if absent. Tier glow on .are-card is still
+     driven externally by the backend CNS / Progression Gatekeeper. -->
 <script>
 (function(){
   'use strict';
-  var TIERS = [
-    { min: 70, max: 100, key: 'green',  label: 'Max Output',
-      message: 'CNS Primed. Cleared for 85% 1RM Hypertrophy block.' },
-    { min: 40, max: 69,  key: 'yellow', label: 'Moderate',
-      message: 'Proceed with caution. Cap intensity at 70% 1RM.' },
-    { min: 0,  max: 39,  key: 'red',    label: 'Recovery Override',
-      message: 'System Fatigue Detected. Heavy lifting locked. Shifting to mobility and CNS recovery protocol.' }
-  ];
 
-  function tierFor(score){
-    score = Math.max(0, Math.min(100, Number(score) || 0));
-    for (var i = 0; i < TIERS.length; i++) {
-      if (score >= TIERS[i].min && score <= TIERS[i].max) return TIERS[i];
-    }
-    return TIERS[2];
-  }
-
-  function apply(score){
-    var card    = document.getElementById('are-card');
-    var range   = document.getElementById('are-range');
-    var scoreEl = document.getElementById('are-score-n');
-    var label   = document.getElementById('are-ind-label');
-    var msg     = document.getElementById('are-msg');
-    if (!card || !range || !scoreEl || !label || !msg) return;
-
-    score = Math.max(0, Math.min(100, Math.round(Number(score))));
-    var t = tierFor(score);
-
-    scoreEl.textContent = score;
-    range.setAttribute('aria-valuenow', String(score));
-    if (String(range.value) !== String(score)) range.value = score;
-
-    if (card.getAttribute('data-tier') !== t.key) {
-      card.classList.remove('tier-green','tier-yellow','tier-red');
-      card.classList.add('tier-' + t.key);
-      card.setAttribute('data-tier', t.key);
-    }
-
-    label.textContent = t.label;
-    msg.textContent   = t.message;
-
-    try {
-      window.BBF_ARE = window.BBF_ARE || {};
-      window.BBF_ARE.score = score;
-      window.BBF_ARE.tier  = t.key;
-      window.dispatchEvent(new CustomEvent('bbf:readiness', { detail: { score: score, tier: t.key, label: t.label, message: t.message } }));
-    } catch(_){}
-  }
-
-  function init(){
-    var range = document.getElementById('are-range');
-    if (!range || range.dataset.areBound === '1') return;
-    range.dataset.areBound = '1';
-    range.addEventListener('input',  function(){ apply(range.value); });
-    range.addEventListener('change', function(){ apply(range.value); });
-    apply(range.value);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
-  window.BBF_ARE = Object.assign(window.BBF_ARE || {}, {
-    set: function(n){ var r = document.getElementById('are-range'); if (r) { r.value = Math.max(0, Math.min(100, Math.round(Number(n) || 0))); apply(r.value); } },
-    get: function(){ var r = document.getElementById('are-range'); return r ? Number(r.value) : null; },
-    tierFor: tierFor
-  });
-})();
-</script>
-
-<!-- Autonomic Readiness Engine — Phase 2: Wearable API Bridge (simulated Terra OAuth → BBF_ARE.set socket). -->
-<script>
-(function(){
-  'use strict';
-  var STATE = { IDLE: 'idle', SYNCING: 'syncing', SYNCED: 'synced' };
-  var PHASE_MS = 2000;
-  var inFlight = false;
-  var phaseTimers = [];
+  var FALLBACK_MSG = 'Optimal joint health is preserved by intention, not just exertion. Focus on maximizing your time-under-tension and strict biomechanical form today.';
 
   function $(id){ return document.getElementById(id); }
-  function clearTimers(){ phaseTimers.forEach(clearTimeout); phaseTimers = []; }
 
-  function setState(card, s){
-    if (!card) return;
-    card.setAttribute('data-sync-state', s);
+  function firstNameFor(uid){
+    try {
+      if (typeof GD !== 'function') return '';
+      var d = GD();
+      var u = (d && d.u && uid && d.u[uid]) || {};
+      var raw = (u.name || uid || '').toString().trim();
+      if (!raw) return '';
+      return raw.split(/\s+/)[0];
+    } catch(_) { return ''; }
   }
 
-  function neutralize(card){
-    if (!card) return;
-    card.classList.remove('tier-green','tier-yellow','tier-red');
-    card.setAttribute('data-tier','none');
-    var sn = $('are-score-n'); if (sn) sn.textContent = '--';
-    var range = $('are-range'); if (range) range.setAttribute('aria-valuenow','--');
+  function dailyBriefFor(uid){
+    try {
+      if (typeof GD !== 'function') return '';
+      var d = GD();
+      var u = (d && d.u && uid && d.u[uid]) || {};
+      var brief = u.daily_brief;
+      if (typeof brief === 'string' && brief.trim()) return brief.trim();
+      return '';
+    } catch(_) { return ''; }
   }
 
-  function showOverlayMsg(text){
-    var el = $('are-overlay-msg');
-    if (!el) return;
-    el.classList.add('fade');
-    setTimeout(function(){ el.textContent = text; el.classList.remove('fade'); }, 220);
+  function activeUid(){
+    try {
+      if (typeof VC !== 'undefined' && VC) return VC;
+      if (typeof CU !== 'undefined' && CU) return CU;
+    } catch(_) {}
+    return '';
   }
 
-  function randomScore(){
-    return Math.floor(Math.random() * (95 - 20 + 1)) + 20;
+  function render(uid){
+    var greetEl = $('sovereign-intel-greet');
+    var msgEl   = $('sovereign-intel-msg');
+    var bodyEl  = $('sovereign-intel-body');
+    if (!greetEl || !msgEl) return;
+
+    var resolved = uid || activeUid();
+    var fname    = firstNameFor(resolved);
+    var greeting = 'Hey ' + (fname || 'Athlete') + ',';
+    var brief    = dailyBriefFor(resolved) || FALLBACK_MSG;
+
+    if (bodyEl) bodyEl.classList.add('is-loading');
+    greetEl.textContent = greeting;
+    msgEl.textContent   = brief;
+    if (bodyEl) {
+      requestAnimationFrame(function(){
+        bodyEl.classList.remove('is-loading');
+      });
+    }
   }
 
-  function startSync(){
-    if (inFlight) return;
-    var card = $('are-card');
-    if (!card || !window.BBF_ARE || typeof window.BBF_ARE.set !== 'function') return;
-    inFlight = true;
-    clearTimers();
-    neutralize(card);
-    var msg = $('are-overlay-msg');
-    if (msg) { msg.textContent = 'Authenticating via Terra API...'; msg.classList.remove('fade'); }
-    setState(card, STATE.SYNCING);
-
-    phaseTimers.push(setTimeout(function(){
-      showOverlayMsg('Pulling Biometric Sleep & HRV Data...');
-    }, PHASE_MS));
-
-    phaseTimers.push(setTimeout(function(){
-      var score = randomScore();
-      try { window.BBF_ARE.set(score); } catch (_) {}
-      setState(card, STATE.SYNCED);
-      inFlight = false;
-      try {
-        window.dispatchEvent(new CustomEvent('bbf:wearable-sync', {
-          detail: { source: 'simulated:terra', score: score, ts: Date.now() }
-        }));
-      } catch (_){}
-    }, PHASE_MS * 2));
-  }
-
-  function reset(){
-    var card = $('are-card');
-    if (!card) return;
-    clearTimers();
-    inFlight = false;
-    neutralize(card);
-    setState(card, STATE.IDLE);
-  }
-
-  function init(){
-    var card = $('are-card');
-    var btn = $('are-sync-btn');
-    var resync = $('are-resync');
-    if (!card || !btn) return;
-    if (btn.dataset.areP2Bound === '1') return;
-    btn.dataset.areP2Bound = '1';
-
-    setState(card, STATE.IDLE);
-    neutralize(card);
-
-    btn.addEventListener('click', startSync);
-    if (resync) resync.addEventListener('click', reset);
-  }
+  function init(){ render(); }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
@@ -18413,10 +18280,7 @@ window.onload = function() {
     init();
   }
 
-  window.BBF_ARE = Object.assign(window.BBF_ARE || {}, {
-    syncWearable: startSync,
-    resetWearable: reset
-  });
+  window.BBF_SOVEREIGN_INTEL = { render: render };
 })();
 </script>
 </body>
