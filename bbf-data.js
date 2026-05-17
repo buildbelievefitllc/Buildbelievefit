@@ -117,15 +117,22 @@ var WP = {
       {name:'Bird-Dogs',equipment:'Bodyweight',sets:3,reps:'12 per side',notes:'Opposite arm + leg — pause at full extension, ribs locked'},
       {name:'Russian Twists',equipment:'Bodyweight or light DB',sets:3,reps:'20',notes:'Rotate from the obliques, not the arms'}
     ]},
-    {day:'Day 3',focus:'Legs + Core — Glutes, Quads, Hamstrings & Lower Abs',exercises:[
-      {name:'Goblet Squats',equipment:'Dumbbell or Kettlebell',sets:3,reps:'12-15',notes:'Chest up, knees track over toes'},
-      {name:'Romanian Deadlifts (RDLs)',equipment:'Dumbbells or Barbell',sets:3,reps:'12',notes:'Hinge at the hips — feel the hamstring stretch'},
-      {name:'Leg Press',equipment:'Machine',sets:3,reps:'15',notes:'High foot placement — glute + hamstring bias'},
-      {name:'Glute Bridges',equipment:'Bodyweight (or DB on hips)',sets:3,reps:'20',notes:'2-second squeeze at the top'},
-      {name:"Supported Knee Raises",equipment:"Captain's chair or bench",sets:3,reps:'12',notes:'Pelvic tilt before each rep — no swinging'},
-      {name:'Pelvic Tilts',equipment:'Bodyweight (supine)',sets:3,reps:'20',notes:'Slow & controlled — flatten lower back into the mat'}
+    {day:'Day 3',focus:'Glutes + Core — Booty Building & Pelvic Floor',exercises:[
+      {name:'Barbell or DB Hip Thrusts',equipment:'Barbell or Dumbbell',sets:4,reps:'10-12',notes:'Heels close to hips, ribs down — drive glutes through the bar with a 2-sec squeeze at the top'},
+      {name:'Romanian Deadlifts (RDLs)',equipment:'Dumbbells or Barbell',sets:3,reps:'12',notes:'Hip hinge — push butt back, slight knee bend, neutral spine, feel the hamstring stretch'},
+      {name:'Cable Pull-Throughs',equipment:'Cable',sets:3,reps:'15',notes:'Same hinge pattern as RDLs — stand 2 ft from the stack, drive through the heels at lockout'},
+      {name:'Abductor Machine',equipment:'Machine',sets:3,reps:'15-20',notes:'Slight forward lean targets glute medius — slow on the way in, 1-sec hold at full open'},
+      {name:'Heel Taps',equipment:'Bodyweight (supine)',sets:3,reps:'20',notes:'Lower back pressed to the floor — alternate tapping each heel down, lower abs do the work'},
+      {name:'Russian Twists',equipment:'Bodyweight or light DB',sets:3,reps:'20',notes:'Rotate from the obliques, not the arms — feet grounded if pelvic floor cues firing'}
     ]},
-    {day:'Day 4',focus:'Active Recovery',exercises:[],isRest:true,restNote:'Off-day protocol — 8,000–10,000 steps · 20–30 min walking or light cycling · 3 L water minimum.'},
+    {day:'Day 4',focus:'Legs (Quads & Hams) + Core — Thigh Development & Lower Abs',exercises:[
+      {name:'Goblet Squats',equipment:'Dumbbell or Kettlebell',sets:3,reps:'12-15',notes:'Chest up, knees track over toes — sit between the hips, full depth without compromising posture'},
+      {name:'Leg Press',equipment:'Machine',sets:3,reps:'15',notes:'Mid-foot placement — quad bias, knees track in line with toes, controlled descent'},
+      {name:'Leg Extensions',equipment:'Machine',sets:3,reps:'15',notes:'Full extension, 1-sec squeeze at the top, slow eccentric — control the negative'},
+      {name:'Seated Leg Curls',equipment:'Machine',sets:3,reps:'15',notes:'Drive heels down + back, 2-sec hold at full curl — feel the hamstrings, not the lower back'},
+      {name:'Supported Knee Raises',equipment:"Captain's chair or bench",sets:3,reps:'12',notes:'Pelvic tilt before each rep — lower abs lift the legs, no swinging'},
+      {name:'Planks',equipment:'Bodyweight',sets:3,reps:'45 sec hold',notes:'Ribcage down, glutes engaged, breathe through the brace — 360° core tension'}
+    ]},
     {day:'Day 5',focus:'Active Recovery',exercises:[],isRest:true,restNote:'Off-day protocol — 8,000–10,000 steps · 20–30 min walking or light cycling · 3 L water minimum.'},
     {day:'Day 6',focus:'Active Recovery',exercises:[],isRest:true,restNote:'Off-day protocol — 8,000–10,000 steps · 20–30 min walking or light cycling · 3 L water minimum.'},
     {day:'Day 7',focus:'Full Rest',exercises:[],isRest:true,restNote:'Full rest — sleep, hydrate, recover. 3 L water minimum still applies.'}
