@@ -535,6 +535,42 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .kinematic-cue{font-weight:bold;color:#FFF;margin-top:8px;line-height:1.5}
 @keyframes bbfKinFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @keyframes bbfKinPulse{0%,100%{opacity:.55}50%{opacity:1}}
+
+/* ═══ PREHAB · Phase 11 — Sovereign Intelligence Suite + visual cleanup ═══
+   Two agentic surfaces (Recovery Matrix + Kinematic Scan) grouped under
+   one shell + collapsible disclosures for the OT Advantage banner and
+   Daily Routine so reference content is one tap away without crowding. */
+.prehab-intel-suite{position:relative;background:linear-gradient(160deg,rgba(14,14,20,.92) 0%,rgba(8,4,18,.86) 100%);border:1px solid rgba(245,200,0,.28);border-radius:18px;padding:1.1rem 1rem 1.2rem;margin:0 0 1.1rem;box-shadow:0 18px 44px -18px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden}
+.prehab-intel-suite::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(0,255,204,.45) 22%,var(--yel,#F5C800) 50%,rgba(255,0,255,.5) 78%,transparent 100%);opacity:.9}
+.prehab-suite-kicker{font-size:.6rem;font-weight:800;letter-spacing:3.6px;text-transform:uppercase;color:var(--yel,#F5C800);margin-bottom:.3rem}
+.prehab-suite-sub{font-size:.76rem;line-height:1.55;color:rgba(255,255,255,.62);margin-bottom:1rem;max-width:54ch}
+.prehab-suite-card{background:rgba(8,8,12,.55);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:.95rem 1rem 1.05rem;margin-bottom:.85rem}
+.prehab-suite-card:last-child{margin-bottom:0}
+.prehab-library-kicker--magenta{color:#FF00FF}
+.prehab-library-label--magenta{color:#FF00FF}
+.prehab-kinematic-lift-input{width:100%;background:rgba(0,0,0,.55);border:1px solid rgba(255,0,255,.28);color:#fff;font:14px/1.45 -apple-system,Segoe UI,Roboto,sans-serif;padding:.62rem .8rem;border-radius:8px;margin:0 0 .65rem;outline:none;transition:border-color .2s ease,box-shadow .2s ease}
+.prehab-kinematic-lift-input:focus{border-color:rgba(255,0,255,.7);box-shadow:0 0 0 2px rgba(255,0,255,.18)}
+.prehab-kinematic-lift-input::placeholder{color:rgba(255,255,255,.32)}
+.prehab-kinematic-btn{display:inline-flex;align-items:center;justify-content:center;width:100%;background:linear-gradient(135deg,rgba(255,0,255,.18) 0%,rgba(106,13,173,.32) 100%);border:1px solid rgba(255,0,255,.55);color:#fff;padding:.7rem 1rem;font-size:.82rem;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;border-radius:10px;cursor:pointer;transition:transform .2s ease,box-shadow .25s ease,filter .2s ease;margin-top:.2rem;box-shadow:0 8px 22px -10px rgba(255,0,255,.45),inset 0 1px 0 rgba(255,255,255,.08)}
+.prehab-kinematic-btn:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.1);box-shadow:0 12px 28px -10px rgba(255,0,255,.6),inset 0 1px 0 rgba(255,255,255,.12)}
+.prehab-kinematic-btn:disabled{opacity:.55;cursor:not-allowed}
+
+/* Collapsible disclosure (OT Advantage banner + Daily Routine).
+   Single chevron summary row, body unfolds on tap. Educational content
+   stays in the page but doesn't dominate the scroll. */
+.prehab-disclosure{background:rgba(8,8,12,.45);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:0;overflow:hidden;margin:0}
+.prehab-disclosure[open]{background:rgba(8,8,12,.6)}
+.prehab-disclosure > summary{list-style:none;cursor:pointer;padding:.85rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.6rem;-webkit-tap-highlight-color:rgba(0,0,0,0)}
+.prehab-disclosure > summary::-webkit-details-marker{display:none}
+.prehab-disclosure > summary::after{content:'\\25BE';color:rgba(255,255,255,.45);font-size:.7rem;transition:transform .25s ease;margin-left:auto}
+.prehab-disclosure[open] > summary::after{transform:rotate(180deg)}
+.prehab-disc-kicker{font-size:.7rem;font-weight:800;letter-spacing:2.2px;text-transform:uppercase;color:#fff}
+.prehab-disc-hint{font-size:.62rem;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.prehab-disc-body{padding:0 1rem 1rem;border-top:1px solid rgba(255,255,255,.05)}
+.prehab-disclosure--purple{border-color:rgba(106,13,173,.32)}
+.prehab-disclosure--purple > summary{background:linear-gradient(135deg,rgba(106,13,173,.18),rgba(74,8,128,.12))}
+.prehab-disclosure--purple .prehab-disc-kicker{color:#E0CFFF}
+
 .sovereign-comlink-fab{position:fixed;bottom:80px;right:20px;z-index:1000;background:#000;border:2px solid #FFD700;color:#FFD700;border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 15px rgba(255,215,0,0.4);cursor:pointer;transition:transform 0.2s ease;font-size:26px;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 .sovereign-comlink-fab:hover{transform:translateY(-2px) scale(1.05)}
 .sovereign-comlink-fab:disabled{opacity:.55;cursor:not-allowed}
@@ -14741,14 +14777,43 @@ var DAILY_ES = '&#x1F305; Mañana (3 min): Gato-vaca x10, puente de glúteos x15
 // the workout view still consumes it. BBF_PREHAB_MATRIX.init() binds the
 // click handler; the actual fetch + matrix render happens on click.
 function renderPrehab() {
-  // Hide the legacy Prehab tab surfaces. Idempotent — safe to call repeatedly.
-  var legacySelectors = ['.sov-prehab-tracker', '#prehab-ot-banner'];
-  legacySelectors.forEach(function(sel) {
-    var el = document.querySelector(sel);
-    if (el) el.style.display = 'none';
-  });
+  // Phase 11 — CEO directive: stop hiding the legacy surfaces. All info
+  // stays visible, just framed under clear section kickers so the tab
+  // doesn't read as a wall of disconnected cards. The Sovereign Prehab
+  // Tracker, OT Advantage banner, and Daily Protocol all live again.
+  // Convert the OT Advantage and Daily Routine blocks to <details>
+  // collapsibles so educational/reference content is one tap away
+  // without eating vertical real estate by default.
+  var otBanner = document.getElementById('prehab-ot-banner');
+  if (otBanner) {
+    otBanner.style.display = '';
+    if (!otBanner.dataset.bbfCollapsed) {
+      otBanner.dataset.bbfCollapsed = '1';
+      var otInner = otBanner.innerHTML;
+      otBanner.innerHTML =
+        '<details class="prehab-disclosure">' +
+          '<summary><span class="prehab-disc-kicker">&#x1F9E0; The OT Advantage</span><span class="prehab-disc-hint">tap to expand</span></summary>' +
+          '<div class="prehab-disc-body">' + otInner + '</div>' +
+        '</details>';
+    }
+  }
+  var sovTracker = document.querySelector('.sov-prehab-tracker');
+  if (sovTracker) sovTracker.style.display = '';
   var dpEl = document.getElementById('daily-protocol');
-  if (dpEl && dpEl.parentElement) dpEl.parentElement.style.display = 'none';
+  if (dpEl && dpEl.parentElement) {
+    dpEl.parentElement.style.display = '';
+    var dpParent = dpEl.parentElement;
+    if (!dpParent.dataset.bbfCollapsed) {
+      dpParent.dataset.bbfCollapsed = '1';
+      var dpInner = dpParent.innerHTML;
+      dpParent.style.cssText = '';
+      dpParent.innerHTML =
+        '<details class="prehab-disclosure prehab-disclosure--purple">' +
+          '<summary><span class="prehab-disc-kicker">&#x1F305; Daily Routine</span><span class="prehab-disc-hint">morning / pre-protocol / post-shift</span></summary>' +
+          '<div class="prehab-disc-body">' + dpInner + '</div>' +
+        '</details>';
+    }
+  }
 
   var con = document.getElementById('prehab-cues');
   if (!con) return;
@@ -14756,23 +14821,51 @@ function renderPrehab() {
   // page-session so tab toggling preserves the rendered matrix and the
   // typed-but-not-yet-submitted friction text. The IIFE handles its own
   // dedupe for the auto-fire and the click bind.
+  //
+  // Phase 11 — two agentic surfaces grouped under one "Live Intelligence"
+  // shell: Recovery Matrix (Friction Scanner → bbf-agentic-prehab) +
+  // Kinematic Scan (image upload → bbf-agentic-kinematics). The Scan
+  // button uses class="kinematic-scanner-btn" inside a div.eb so
+  // BBF_KINEMATICS.init()'s existing handler picks it up unmodified.
   if (!con.querySelector('#bbf-friction-input')) {
     con.innerHTML =
-      '<div class="prehab-library-header">' +
-        '<div class="prehab-library-kicker">Live Library &middot; v5</div>' +
-        '<div class="prehab-library-title">Recovery Matrix</div>' +
-        '<div class="prehab-library-sub">Today\'s baseline auto-generates below. Type into the Friction Scanner and tap Generate to override with a targeted protocol.</div>' +
-      '</div>' +
-      '<label for="bbf-friction-input" class="prehab-library-label">Friction Scanner</label>' +
-      '<div class="prehab-library-sub" style="margin:0 0 .5rem">Log any tightness, pain points, or fatigue from today\'s session. Leave blank to keep the auto-baseline.</div>' +
-      '<textarea id="bbf-friction-input" class="friction-input" placeholder="e.g. lower back stiff after deadlifts, left knee twinge on lunges, right shoulder tight from pressing…" rows="3" maxlength="600"></textarea>' +
-      '<button id="bbf-generate-recovery-btn" type="button" class="generate-recovery-btn">Generate Recovery Matrix</button>' +
-      '<div id="bbf-prehab-matrix-results" class="prehab-matrix-results"></div>';
+      '<div class="prehab-intel-suite">' +
+        '<div class="prehab-suite-kicker">Sovereign Intelligence Suite</div>' +
+        '<div class="prehab-suite-sub">Two agentic surfaces: type your friction signals for a recovery protocol, or upload a movement still for a clinical form audit.</div>' +
+        // ─── Recovery Matrix ───────────────────────────────────────
+        '<div class="prehab-suite-card">' +
+          '<div class="prehab-library-header">' +
+            '<div class="prehab-library-kicker">Live Library &middot; v5</div>' +
+            '<div class="prehab-library-title">Recovery Matrix</div>' +
+            '<div class="prehab-library-sub">Today\'s baseline auto-generates below. Type into the Friction Scanner and tap Generate to override with a targeted protocol.</div>' +
+          '</div>' +
+          '<label for="bbf-friction-input" class="prehab-library-label">Friction Scanner</label>' +
+          '<div class="prehab-library-sub" style="margin:0 0 .5rem">Log any tightness, pain points, or fatigue from today\'s session. Leave blank to keep the auto-baseline.</div>' +
+          '<textarea id="bbf-friction-input" class="friction-input" placeholder="e.g. lower back stiff after deadlifts, left knee twinge on lunges, right shoulder tight from pressing…" rows="3" maxlength="600"></textarea>' +
+          '<button id="bbf-generate-recovery-btn" type="button" class="generate-recovery-btn">Generate Recovery Matrix</button>' +
+          '<div id="bbf-prehab-matrix-results" class="prehab-matrix-results"></div>' +
+        '</div>' +
+        // ─── Kinematic Scan ────────────────────────────────────────
+        '<div class="prehab-suite-card eb" id="bbf-prehab-kinematic-block">' +
+          '<div class="prehab-library-header">' +
+            '<div class="prehab-library-kicker prehab-library-kicker--magenta">Kinematic Scanner &middot; Vision</div>' +
+            '<div class="prehab-library-title">Form Audit</div>' +
+            '<div class="prehab-library-sub">Upload (or capture) a still of any working position. Claude returns a 0-100 form score, two anatomic flags, and one actionable cue.</div>' +
+          '</div>' +
+          '<label for="bbf-prehab-kinematic-lift" class="prehab-library-label prehab-library-label--magenta">Movement Name (optional)</label>' +
+          '<input id="bbf-prehab-kinematic-lift" type="text" class="prehab-kinematic-lift-input" placeholder="e.g. Back Squat, RDL, Push-Up — leave blank for general scan" maxlength="80" oninput="(function(s){var b=document.querySelector(\'#bbf-prehab-kinematic-block .kinematic-scanner-btn\');if(b){b.setAttribute(\'data-lift-name\', s.value.trim() || \'Movement Scan\');}})(this)">' +
+          '<button type="button" class="kinematic-scanner-btn prehab-kinematic-btn" data-lift-name="Movement Scan">&#x1F3A5; Run Form Scan</button>' +
+        '</div>' +
+      '</div>';
   }
 
   if (typeof BBF_PREHAB_MATRIX !== 'undefined') {
     BBF_PREHAB_MATRIX.init();
     BBF_PREHAB_MATRIX.autoFireBaseline();
+  }
+  // Re-bind the Kinematic Scan button (idempotent — checks data-bbfBound).
+  if (typeof BBF_KINEMATICS !== 'undefined' && BBF_KINEMATICS.init) {
+    try { BBF_KINEMATICS.init(); } catch (_) {}
   }
 }
 function togglePrehab(i) {
