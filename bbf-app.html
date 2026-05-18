@@ -900,8 +900,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ready-banner .rb-icon{font-size:1.2rem;flex-shrink:0}
 .ready-seal{font-size:.65rem;color:var(--mut);text-align:center;margin-top:.6rem;font-style:italic}
 .dh.god-glow{box-shadow:0 0 30px rgba(245,200,0,.12);border:1px solid rgba(245,200,0,.25)}
-.home-ready{display:inline-flex;align-items:center;gap:.4rem;background:rgba(106,13,173,.1);border:1px solid rgba(106,13,173,.25);border-radius:20px;padding:.2rem .7rem;font-size:.7rem;font-weight:700;letter-spacing:1px;margin-top:.3rem}
-.home-ready.god{border-color:rgba(34,197,94,.3);color:#22c55e}.home-ready.std{color:var(--yel)}.home-ready.rec{border-color:rgba(239,68,68,.2);color:#ef4444}
+/* .home-ready badge · NUKED with the Sovereign Readiness UI. */
 
 /* ═══ AUTONOMIC READINESS ENGINE ═══════════════════════════════════════ */
 /* Sovereign Readiness UI — NUKED per CEO directive. Backend bbf_readiness
@@ -3121,7 +3120,6 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="rpe-commander.js"></script>
 <script src="are-engine.js"></script>
 <script src="fueling-engine.js"></script>
-<script src="cns-engine.js"></script>
 <script src="hologram-data.js"></script>
 <script src="hologram-renderer.js"></script>
 <script src="kfh-exercise-catalog.js"></script>
@@ -5753,7 +5751,6 @@ window.onload=function(){
           <span id="protocol-label" style="font-family:var(--hb);font-size:.72rem;letter-spacing:2px;color:var(--yel)"></span>
         </div>
         <div class="hm" id="hmeta"></div>
-        <div class="home-ready" id="home-readiness" style="display:none"></div>
         <div style="display:flex;align-items:center;gap:.4rem;margin-top:.3rem"><div style="width:6px;height:6px;border-radius:50%;background:#22c55e"></div><span style="font-size:.6rem;font-weight:700;letter-spacing:1px;color:var(--mut)" data-lang-key="app-sync-status">Data Secured in the Lab</span></div>
         <div class="stk"><div class="stn" id="hstreak">0</div><div class="stl">Streak &#x1F525;</div></div>
       </div>
@@ -5976,8 +5973,7 @@ window.onload=function(){
       </div>
       <!-- SOVEREIGN FUELING ENGINE — bioenergetic target block -->
       <div id="fueling-engine-block" style="display:none"></div>
-      <!-- SOVEREIGN NEUROLOGICAL ENGINE — CNS readiness / SRS / lockout -->
-      <div id="cns-engine-block" style="display:none"></div>
+      <!-- Sovereign Neurological Engine mount point NUKED per CEO directive. -->
       <div id="cnwrap" style="display:none">
         <div class="sh"><span class="stt" data-lang-key="app-coach-notes">&#x1F4CB; Coach Notes</span></div>
         <div id="cnlist"></div>
@@ -7251,36 +7247,8 @@ window.onload=function(){
 </div>
 
 <!-- READINESS MODAL -->
-<div class="modal" id="readiness-modal">
-  <div class="msh">
-    <div class="mhd"></div>
-    <div class="mt" data-lang-key="app-ready-title">&#x1F9EA; Morning Lab Audit</div>
-    <div style="font-size:.82rem;font-weight:600;color:var(--mut2);margin-bottom:1.2rem" data-lang-key="app-ready-sub">Rate your current state. The system adapts your training intensity automatically.</div>
-    <div class="ready-row">
-      <div class="ready-lbl"><span data-lang-key="app-ready-sleep">Sleep Quality</span><span class="ready-val" id="rv-sleep">5</span></div>
-      <input type="range" class="ready-range" id="ready-sleep" min="1" max="10" value="5" oninput="document.getElementById('rv-sleep').textContent=this.value;updateReadinessPreview()">
-      <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--mut);margin-top:.2rem"><span data-lang-key="app-ready-sleep-lo">Restless</span><span data-lang-key="app-ready-sleep-hi">Deep Rest</span></div>
-    </div>
-    <div class="ready-row">
-      <div class="ready-lbl"><span data-lang-key="app-ready-stress">Stress Level</span><span class="ready-val" id="rv-stress">5</span></div>
-      <input type="range" class="ready-range" id="ready-stress" min="1" max="10" value="5" oninput="document.getElementById('rv-stress').textContent=this.value;updateReadinessPreview()">
-      <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--mut);margin-top:.2rem"><span data-lang-key="app-ready-stress-lo">Calm</span><span data-lang-key="app-ready-stress-hi">High Pressure</span></div>
-    </div>
-    <div class="ready-row">
-      <div class="ready-lbl"><span data-lang-key="app-ready-energy">Physical Energy</span><span class="ready-val" id="rv-energy">5</span></div>
-      <input type="range" class="ready-range" id="ready-energy" min="1" max="10" value="5" oninput="document.getElementById('rv-energy').textContent=this.value;updateReadinessPreview()">
-      <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--mut);margin-top:.2rem"><span data-lang-key="app-ready-energy-lo">Exhausted</span><span data-lang-key="app-ready-energy-hi">Fresh</span></div>
-    </div>
-    <div class="ready-score std" id="ready-preview">
-      <div class="ready-score-n" id="ready-preview-n">50%</div>
-      <div class="ready-score-l" id="ready-preview-l" data-lang-key="app-ready-coefficient">Readiness Coefficient</div>
-    </div>
-    <div class="ma">
-      <button class="mc3" onclick="skipReadiness()" data-lang-key="app-ready-skip">Skip</button>
-      <button class="ms" onclick="saveReadiness()" data-lang-key="app-ready-lock">Lock In &#x1F512;</button>
-    </div>
-  </div>
-</div>
+<!-- Morning Lab Audit (readiness modal) NUKED per CEO directive — no UI prompt. -->
+
 
 <!-- PRE-HAB AUDIT MODAL -->
 <div class="modal" id="prehab-audit-modal">
@@ -8005,10 +7973,7 @@ function ENTER() {
           if (n > 0) console.log('BBF: Synced ' + n + ' records to cloud');
         });
       }
-      // Morning Readiness check — once per day for clients
-      if (!hasReadinessToday(CU)) {
-        setTimeout(function() { showReadinessModal(); }, 600);
-      }
+      // Morning Readiness modal trigger NUKED per CEO directive — no UI prompt.
     }
     if (typeof RENDER_ENGINE !== 'undefined' && RENDER_ENGINE.checkGhostAndMaybeIntercept) {
       RENDER_ENGINE.checkGhostAndMaybeIntercept(VC).then(function(intercepted) {
@@ -8176,18 +8141,7 @@ function RH() {
   document.getElementById('hname').textContent = (displayUser.name || displayUid || '').split(' ')[0] || '—';
   document.getElementById('hmeta').textContent = (u.goal || '').substring(0, 50);
   document.getElementById('hstreak').textContent = STREAK(logs);
-  // Readiness badge on home
-  var readyEl = document.getElementById('home-readiness');
-  if (readyEl) {
-    var rs = getTodayReadiness(uid);
-    if (rs !== null) {
-      var rt = rs >= 90 ? 'god' : rs >= 70 ? 'std' : 'rec';
-      var rl = rt === 'god' ? _ts('cns-titan').split(': ')[1] || 'TITAN' : rt === 'std' ? _ts('cns-friction').split(': ')[1] || 'READY' : _ts('cns-depleted').split(': ')[1] || 'DEPLETED';
-      readyEl.className = 'home-ready ' + rt;
-      readyEl.innerHTML = '&#x1F9EA; ' + rs + '% ' + rl;
-      readyEl.style.display = 'inline-flex';
-    } else { readyEl.style.display = 'none'; }
-  }
+  // Home readiness badge render NUKED per CEO directive.
   document.getElementById('qtot').textContent = logs.filter(function(l) { return l.type !== 'note'; }).length;
   document.getElementById('qwk').textContent = TWKL(logs);
   var lw = LWT(logs);
@@ -10709,75 +10663,14 @@ function renderHouseholdFeed() {
 }
 
 // ─── READINESS ENGINE ─────────────────────────────────────
-function hasReadinessToday(uid) {
-  var d = GD(); var u = d.u[uid] || {};
-  return u.readiness_last_check === today();
-}
+// Sovereign Readiness UI surfaces NUKED per CEO directive.
+// hasReadinessToday() stubbed to always pass so the workout-completion
+// gate degrades to a no-op until backend bbf_readiness scores come
+// online. getTodayReadiness() retained so computeTargetWeight() can
+// still consume backend scores invisibly when they arrive.
+function hasReadinessToday(uid) { return true; }
 
-function showReadinessModal() {
-  document.getElementById('ready-sleep').value = 5;
-  document.getElementById('ready-stress').value = 5;
-  document.getElementById('ready-energy').value = 5;
-  document.getElementById('rv-sleep').textContent = '5';
-  document.getElementById('rv-stress').textContent = '5';
-  document.getElementById('rv-energy').textContent = '5';
-  updateReadinessPreview();
-  document.getElementById('readiness-modal').classList.add('on');
-}
-
-function closeReadinessModal() {
-  document.getElementById('readiness-modal').classList.remove('on');
-}
-
-function skipReadiness() {
-  var d = GD(); var uid = VC || CU;
-  if (d.u[uid]) { d.u[uid].readiness_last_check = today(); SD(d); }
-  closeReadinessModal();
-}
-
-function updateReadinessPreview() {
-  var s = parseInt(document.getElementById('ready-sleep').value) || 5;
-  var st = parseInt(document.getElementById('ready-stress').value) || 5;
-  var e = parseInt(document.getElementById('ready-energy').value) || 5;
-  var score = Math.round(((s + (10 - st) + e) / 30) * 100);
-  var el = document.getElementById('ready-preview-n');
-  var wrap = document.getElementById('ready-preview');
-  if (el) el.textContent = score + '%';
-  if (wrap) { wrap.className = 'ready-score ' + (score >= 90 ? 'god' : score >= 70 ? 'std' : 'rec'); }
-}
-
-function saveReadiness() {
-  var sleep = parseInt(document.getElementById('ready-sleep').value) || 5;
-  var stress = parseInt(document.getElementById('ready-stress').value) || 5;
-  var energy = parseInt(document.getElementById('ready-energy').value) || 5;
-  var score = Math.round(((sleep + (10 - stress) + energy) / 30) * 100);
-  var d = GD(); var uid = VC || CU;
-  if (!d.u[uid]) return;
-  if (!d.u[uid].daily_readiness) d.u[uid].daily_readiness = {};
-  d.u[uid].daily_readiness[today()] = { sleep: sleep, stress: stress, energy: energy, score: score };
-  d.u[uid].readiness_last_check = today();
-  // Phase 11 — bridge the Morning Lab Audit into the CNS Agent input.
-  // Writing somatic_readiness_score + somatic_readiness_date puts the
-  // audit on the SAME variable the Somatic Matrix submit writes, so
-  // the Agent's readinessForToday() picks it up unconditionally.
-  d.u[uid].somatic_readiness_score = score;
-  d.u[uid].somatic_readiness_date  = today();
-  SD(d);
-  if(typeof BBF_SYNC!=='undefined'){BBF_SYNC.syncReadiness(uid,today(),{sleep:sleep,stress:stress,energy:energy,score:score});BBF_SYNC.syncUser(uid,d.u[uid]);}
-  // Phase 11 — recompute the Agent prescription immediately so the
-  // Workout tab paints the fresh zone + coaching on the next render
-  // (RH()/RW() below).
-  if (window.BBF_CNS_AGENT && typeof BBF_CNS_AGENT.recompute === 'function') {
-    try { BBF_CNS_AGENT.recompute(uid); } catch(_) {}
-  }
-  closeReadinessModal();
-  var tier = score >= 90 ? 'god-mode' : score >= 70 ? 'standard' : 'recovery';
-  var msg = tier === 'god-mode' ? _t('app-ready-god', 'CNS Peak Detected. Go for the PR.') :
-            tier === 'standard' ? _t('app-ready-standard', 'Protocol Active. Execute as written.') :
-            _t('app-ready-recovery', 'Fatigue Detected. Cap intensity at 70%.');
-  TOAST('🧪 ' + score + '% \u2014 ' + msg);
-  RH(); RW();
-}
+// (showReadinessModal / closeReadinessModal / skipReadiness / updateReadinessPreview / saveReadiness — NUKED per CEO directive)
 
 function getTodayReadiness(uid) {
   var d = GD(); var u = d.u[uid] || {};
@@ -10945,16 +10838,7 @@ function getAutoregBannerHTML(target, exReps) {
     '</div>';
 }
 
-function getReadinessBannerHTML(score) {
-  if (score === null) return '';
-  var tier = score >= 90 ? 'god' : score >= 70 ? 'std' : 'rec';
-  var icon = tier === 'god' ? '&#x26A1;' : tier === 'std' ? '&#x1F9EA;' : '&#x26A0;';
-  var msg = tier === 'god' ? _t('app-ready-god', 'CNS Peak Detected. Add 5% to your primary lifts today. Go for the PR.') :
-            tier === 'std' ? _t('app-ready-standard', 'Laboratory Protocol Active. Execute the session as written.') :
-            _t('app-ready-recovery', 'Fatigue Detected. Cap intensity at 70%. Prioritize longevity.');
-  var seal = _t('app-ready-seal', 'Architecture by Akeem. Sovereign Gold Standard Met. This system protects your gains.');
-  return '<div class="ready-banner ' + tier + '"><span class="rb-icon">' + icon + '</span><div><div>' + score + '% \u2014 ' + msg + '</div><div class="ready-seal">' + seal + '</div></div></div>';
-}
+// getReadinessBannerHTML() NUKED per CEO directive (was injected into RDW).
 
 // ═══════════════════════════════════════════════════════════════
 // BBF_CNS_AGENT · Phase 11 CNS Intelligence Agent
@@ -11191,49 +11075,11 @@ var BBF_CNS_AGENT = (function() {
     return ensure(uid);
   }
 
-  function renderAgentBannerHTML(rx) {
-    if (!rx) return '';
-    var palette = {
-      recovery: { bg:'rgba(239,68,68,.07)',  br:'rgba(239,68,68,.32)',  ll:'#ef4444',    text:'#ef4444',    label:'RECOVERY ZONE', icon:'&#x1F6E1;&#xFE0F;' },
-      baseline: { bg:'rgba(245,200,0,.06)',  br:'rgba(245,200,0,.32)',  ll:'var(--yel)', text:'var(--yel)', label:'BASELINE ZONE', icon:'&#x1F9EA;' },
-      overload: { bg:'rgba(34,197,94,.07)',  br:'rgba(34,197,94,.32)',  ll:'#22c55e',    text:'#22c55e',    label:'OVERLOAD ZONE', icon:'&#x26A1;' }
-    };
-    var p = palette[rx.zone] || palette.baseline;
-    var scoreTxt = (rx.cns_score != null) ? Math.round(rx.cns_score) + '%' : '—';
-    var multPct  = Math.round((rx.weight_mult - 1) * 1000) / 10;
-    var multTxt  = (rx.weight_mult === 1.0)
-      ? '×1.00 hold'
-      : ('×' + rx.weight_mult.toFixed(2) + ' (' + (multPct > 0 ? '+' : '') + multPct.toFixed(1) + '%)');
-    var setsTxt  = rx.sets_delta === 0 ? 'sets unchanged'
-      : (rx.sets_delta > 0 ? 'sets +' + rx.sets_delta : 'sets ' + rx.sets_delta);
-    return '<div class="cns-agent" data-zone="' + rx.zone + '" style="' +
-      'background:' + p.bg + ';border:1px solid ' + p.br + ';border-left:3px solid ' + p.ll + ';' +
-      'border-radius:0 12px 12px 0;padding:1rem 1.1rem;margin:0 0 1rem">' +
-      '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.65rem;flex-wrap:wrap">' +
-        '<span style="font-size:1.05rem;color:' + p.text + ';line-height:1">' + p.icon + '</span>' +
-        '<span style="font-family:var(--hb,\'Bebas Neue\',sans-serif);font-size:.88rem;letter-spacing:2.5px;color:' + p.text + ';line-height:1">CNS &middot; ' + p.label + '</span>' +
-        '<span style="margin-left:auto;font-family:var(--hb,\'Bebas Neue\',sans-serif);font-size:1.45rem;font-weight:900;color:' + p.text + ';line-height:1;letter-spacing:1px">' + scoreTxt + '</span>' +
-      '</div>' +
-      '<p style="font-size:.92rem;line-height:1.6;color:#dcdcdc;margin:0 0 .7rem">' + rx.coaching_message + '</p>' +
-      '<div style="font-family:\'Menlo\',ui-monospace,monospace;font-size:.6rem;letter-spacing:.18em;color:rgba(255,255,255,.55);text-transform:uppercase;line-height:1.7">' +
-        'Today\'s adjustments &middot; load ' + multTxt + ' &middot; reps ' + rx.rep_band + ' &middot; rest ' + rx.rest_seconds + 's &middot; ' + setsTxt +
-      '</div>' +
-    '</div>';
-  }
+  function renderAgentBannerHTML(rx) { return ""; /* NUKED per CEO directive */ }
 
   // Per-exercise overlay line appended to the autoreg banner. Skips
   // cardio/timed exercises (no rep-band semantics).
-  function renderExerciseOverlayHTML(rx, exReps) {
-    if (!rx) return '';
-    if (exReps && (exReps.indexOf('min') > -1 || exReps.indexOf('sec') > -1)) return '';
-    var palette = { recovery:'#ef4444', baseline:'var(--yel)', overload:'#22c55e' };
-    var color = palette[rx.zone] || palette.baseline;
-    var setsTxt = rx.sets_delta === 0 ? 'sets ±0'
-      : (rx.sets_delta > 0 ? 'sets +' + rx.sets_delta : 'sets ' + rx.sets_delta);
-    return '<div style="margin-top:.4rem;font-family:\'Menlo\',ui-monospace,monospace;font-size:.58rem;letter-spacing:.16em;color:' + color + ';text-transform:uppercase">' +
-      'Agent &middot; ' + rx.rep_band + ' reps &middot; ' + setsTxt + ' &middot; rest ' + rx.rest_seconds + 's' +
-    '</div>';
-  }
+  function renderExerciseOverlayHTML(rx, exReps) { return ""; /* NUKED per CEO directive */ }
 
   return {
     analyze:                  analyze,
@@ -13335,11 +13181,10 @@ function RDW() {
   var _cnsRx = (window.BBF_CNS_AGENT && typeof BBF_CNS_AGENT.ensure === 'function')
     ? BBF_CNS_AGENT.ensure(uid)
     : null;
-  if (_cnsRx) {
-    h += BBF_CNS_AGENT.renderAgentBannerHTML(_cnsRx);
-  } else {
-    h += getReadinessBannerHTML(readyScore);
-  }
+  // BBF_CNS_AGENT.renderAgentBannerHTML + getReadinessBannerHTML fallback
+  // both NUKED per CEO directive — Sovereign Readiness has zero pixels on
+  // the glass. _cnsRx prescription is still computed in the data layer
+  // for the Progression Gatekeeper to consume invisibly.
   // Somatic Override banner — triggered when today's Somatic Readiness < 60%
   var somOverride = (d.u[uid] || {}).somatic_override_active === true &&
                     (d.u[uid] || {}).somatic_override_date === today();
@@ -13410,9 +13255,7 @@ function RDW() {
     // overlay directly under the autoreg target so both signals
     // land in the same visual block. _cnsRx is computed once at
     // RDW entry (above) and shared across all exercises in this day.
-    if (_cnsRx && window.BBF_CNS_AGENT && typeof BBF_CNS_AGENT.renderExerciseOverlayHTML === 'function') {
-      h += BBF_CNS_AGENT.renderExerciseOverlayHTML(_cnsRx, exReps);
-    }
+    // BBF_CNS_AGENT.renderExerciseOverlayHTML call NUKED per CEO directive.
     // Phase 11 — Auto-populate set inputs with Agent's target reps + weight
     // so clients only adjust when they fail to hit the prescribed numbers.
     // Skipped for cardio/timed exercises (no rep-band semantics). Prefill
@@ -14356,10 +14199,8 @@ function REL() {
   document.querySelectorAll('.exd').forEach(function(b) {
     b.onclick = function() { EX.splice(parseInt(b.dataset.i), 1); REL(); };
   });
-  // ─── ARE · Workout Builder Sequencing Audit ──────────────────
-  if (typeof ARE_ENGINE !== 'undefined') {
-    try { ARE_ENGINE.injectSequenceWarning('exl', EX); } catch(e) {}
-  }
+  // ARE sequencing warning injection NUKED per CEO directive (was the
+  // .are-warn lockout card painted above the workout builder list).
 }
 
 function SAVENOTE() {
@@ -16868,26 +16709,10 @@ function renderMuscles(d, uid) {
     ml.innerHTML = '<div class="emp" style="padding:.5rem;grid-column:span 2"><div class="et" style="font-size:.72rem">Log Clinical Protocols to see breakdown</div></div>';
     return;
   }
-  // ─── ARE · Weekly Volume Audit ──────────────────────────────
-  var volMap = {};
-  if (typeof ARE_ENGINE !== 'undefined') {
-    try {
-      var setsByMuscle = ARE_ENGINE.weeklySetsByMuscle(d.l[uid] || []);
-      var audit = ARE_ENGINE.auditVolume(setsByMuscle);
-      (audit.groups || []).forEach(function(g) { volMap[g.muscle] = g; });
-    } catch(e) {}
-  }
+  // ARE volume badge (MAV/MRV/CNS-BURNOUT-RISK) injection NUKED per
+  // CEO directive — Sovereign Readiness has zero pixels on the glass.
   ml.innerHTML = sorted.map(function(e) {
-    var badge = '';
-    if (typeof ARE_ENGINE !== 'undefined') {
-      var focusKey = String(e[0] || '').toLowerCase();
-      var hit = null;
-      Object.keys(volMap).forEach(function(m) {
-        if (focusKey.indexOf(m) !== -1) hit = volMap[m];
-      });
-      if (hit) badge = ARE_ENGINE.renderVolumeBadge(hit);
-    }
-    return '<div class="muscle-item"><span class="muscle-name">' + e[0] + '</span><span class="muscle-count">' + e[1] + 'x</span>' + badge + '</div>';
+    return '<div class="muscle-item"><span class="muscle-name">' + e[0] + '</span><span class="muscle-count">' + e[1] + 'x</span></div>';
   }).join('');
 }
 
