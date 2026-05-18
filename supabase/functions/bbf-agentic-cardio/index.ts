@@ -34,7 +34,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'content-type, authorization, x-bbf-admin-token',
+  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token',
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
