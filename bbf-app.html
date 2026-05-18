@@ -904,70 +904,15 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .home-ready.god{border-color:rgba(34,197,94,.3);color:#22c55e}.home-ready.std{color:var(--yel)}.home-ready.rec{border-color:rgba(239,68,68,.2);color:#ef4444}
 
 /* ═══ AUTONOMIC READINESS ENGINE ═══════════════════════════════════════ */
-.are-card{position:relative;margin-bottom:1.1rem;padding:1.25rem 1.2rem 1.35rem;border-radius:18px;background:radial-gradient(120% 120% at 0% 0%,rgba(106,13,173,.22) 0%,rgba(10,5,25,.78) 55%),linear-gradient(135deg,rgba(20,20,20,.72) 0%,rgba(10,5,25,.72) 100%);border:1px solid rgba(212,175,55,.32);backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden;transition:box-shadow .6s cubic-bezier(.4,0,.2,1),border-color .6s cubic-bezier(.4,0,.2,1)}
-.are-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#22d3ee,var(--yel),var(--purl));opacity:.9;transition:opacity .5s ease}
-.are-card::after{content:'';position:absolute;pointer-events:none;inset:0;border-radius:inherit;background:radial-gradient(80% 60% at 50% -20%,rgba(34,211,238,.14),transparent 60%);transition:background .6s ease}
-.are-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.8rem;margin-bottom:.9rem;position:relative;z-index:1}
-.are-head-l{display:flex;flex-direction:column;min-width:0}
-.are-tag{font-size:.58rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#22d3ee;opacity:.9}
-.are-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1.15rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-top:.22rem;line-height:1}
-.are-sub{font-size:.66rem;color:var(--mut);margin-top:.3rem;letter-spacing:1.5px;text-transform:uppercase}
-.are-score-wrap{text-align:right;flex-shrink:0}
-.are-score{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:2.4rem;font-weight:900;color:var(--wht);letter-spacing:2px;line-height:1;transition:color .6s ease,text-shadow .6s ease}
-.are-score .pct{font-size:1.05rem;color:var(--mut);margin-left:.1rem;font-weight:700}
-.are-score-l{font-size:.55rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--mut);margin-top:.15rem}
-.are-card.tier-green{border-color:rgba(34,197,94,.45);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),0 0 24px rgba(34,197,94,.14),inset 0 1px 0 rgba(255,255,255,.05)}
-.are-card.tier-green .are-score{color:var(--grn);text-shadow:0 0 18px rgba(34,197,94,.45)}
-.are-card.tier-yellow{border-color:rgba(245,158,11,.45);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),0 0 24px rgba(245,158,11,.14),inset 0 1px 0 rgba(255,255,255,.05)}
-.are-card.tier-yellow .are-score{color:var(--orn);text-shadow:0 0 18px rgba(245,158,11,.45)}
-.are-card.tier-red{border-color:rgba(239,68,68,.5);box-shadow:0 18px 44px -18px rgba(0,0,0,.8),0 0 26px rgba(239,68,68,.16),inset 0 1px 0 rgba(255,255,255,.05)}
-.are-card.tier-red .are-score{color:var(--red);text-shadow:0 0 18px rgba(239,68,68,.5)}
+/* Sovereign Readiness UI — NUKED per CEO directive. Backend bbf_readiness
+   scores still feed the Progression Gatekeeper invisibly. */
 
 /* ═══ SOVEREIGN INTELLIGENCE BRIEF ═══════════════════════════════════
    Replaces the amputated mock wearable sliders. Pantheon-tier clinical
    insight surface bound to client.daily_brief (with deterministic
    biomechanical fallback). Sovereign purple / gold / teal palette. */
-.sovereign-intel{position:relative;margin-top:.4rem;padding:1rem 1.05rem 1.1rem;border-radius:14px;background:radial-gradient(120% 90% at 0% 0%,rgba(139,26,191,.16) 0%,rgba(10,5,25,.62) 60%),linear-gradient(135deg,rgba(18,10,32,.78) 0%,rgba(8,4,18,.82) 100%);border:1px solid rgba(139,26,191,.42);box-shadow:0 14px 36px -18px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.04),0 0 18px rgba(139,26,191,.08);overflow:hidden;z-index:1;transition:border-color .5s ease,box-shadow .5s ease}
-.sovereign-intel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(34,211,238,.55) 22%,var(--yel) 50%,rgba(139,26,191,.6) 78%,transparent 100%);opacity:.85}
-.sovereign-intel::after{content:'';position:absolute;pointer-events:none;inset:0;border-radius:inherit;background:radial-gradient(80% 60% at 100% 0%,rgba(245,200,0,.07),transparent 55%);transition:opacity .5s ease}
-.sovereign-intel-head{display:flex;align-items:center;gap:.7rem;margin-bottom:.75rem;position:relative;z-index:1}
-.sovereign-intel-ico{flex-shrink:0;width:34px;height:34px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 25%,rgba(245,200,0,.22),rgba(139,26,191,.32) 60%,rgba(8,4,18,.9));border:1px solid rgba(245,200,0,.5);box-shadow:0 0 12px rgba(139,26,191,.42),inset 0 1px 0 rgba(255,255,255,.08);position:relative}
-.sovereign-intel-ico svg{width:18px;height:18px;display:block;filter:drop-shadow(0 0 4px rgba(245,200,0,.65))}
-.sovereign-intel-ico::after{content:'';position:absolute;inset:-3px;border-radius:11px;background:radial-gradient(circle,rgba(34,211,238,.18),transparent 65%);opacity:.6;animation:sov-intel-pulse 3.4s ease-in-out infinite}
-.sovereign-intel-titles{min-width:0;flex:1}
-.sovereign-intel-tag{font-size:.54rem;font-weight:800;letter-spacing:3.6px;text-transform:uppercase;color:#22d3ee;opacity:.9;line-height:1}
-.sovereign-intel-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.92rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-top:.2rem;line-height:1.05;text-shadow:0 0 8px rgba(245,200,0,.32)}
-.sovereign-intel-body{position:relative;z-index:1;padding:.6rem .75rem .65rem;border-radius:10px;background:rgba(6,3,14,.55);border:1px solid rgba(139,26,191,.26);border-left:2px solid var(--purl,#8B1ABF);font-size:.77rem;line-height:1.55;color:rgba(255,255,255,.86);font-weight:500;transition:opacity .35s ease,transform .35s ease}
-.sovereign-intel-body.is-loading{opacity:.55}
-.sovereign-intel-body .sov-greet{display:block;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.7rem;letter-spacing:2.4px;text-transform:uppercase;color:#22d3ee;margin-bottom:.35rem;font-weight:800}
-.sovereign-intel-meta{margin-top:.6rem;display:flex;align-items:center;justify-content:space-between;gap:.6rem;font-size:.52rem;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:rgba(255,255,255,.42);position:relative;z-index:1}
-.sovereign-intel-meta .sov-pulse{display:inline-flex;align-items:center;gap:.35rem;color:var(--yel);opacity:.78}
-.sovereign-intel-meta .sov-pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--yel);box-shadow:0 0 8px rgba(245,200,0,.7);animation:sov-intel-dot 2s ease-in-out infinite}
-@keyframes sov-intel-pulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.18);opacity:.85}}
-@keyframes sov-intel-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.6}}
-@media (max-width:460px){
-  .are-title{font-size:1rem;letter-spacing:2px}
-  .are-score{font-size:2rem}
-  .sovereign-intel{padding:.85rem .9rem 1rem}
-  .sovereign-intel-title{font-size:.84rem;letter-spacing:2.4px}
-  .sovereign-intel-body{font-size:.73rem}
-}
-
-/* ═══ ARE · SOVEREIGN WARNINGS (Matte Black / Yellow) ══════════ */
-.are-warn-slot{display:block}
-.are-warn{position:relative;display:flex;align-items:stretch;gap:0;margin:.8rem 0 1rem;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,rgba(10,10,10,.92) 0%,rgba(22,18,6,.88) 100%);border:1px solid rgba(245,200,0,.42);backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);box-shadow:0 14px 36px -18px rgba(0,0,0,.9),0 0 18px rgba(245,200,0,.08),inset 0 1px 0 rgba(255,255,255,.04)}
-.are-warn-bar{flex:0 0 6px;background:linear-gradient(180deg,var(--yel,#F5C800) 0%,#d4a308 100%);box-shadow:0 0 14px rgba(245,200,0,.55)}
-.are-warn-body{flex:1;padding:.85rem 1rem .9rem 1.05rem;min-width:0}
-.are-warn-tag{font-size:.56rem;font-weight:800;letter-spacing:3.5px;text-transform:uppercase;color:var(--yel,#F5C800);opacity:.95}
-.are-warn-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1rem;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;color:#fff;margin-top:.18rem;line-height:1.1}
-.are-warn-msg{font-size:.76rem;line-height:1.45;color:rgba(255,255,255,.82);font-weight:500;margin-top:.35rem}
-.are-warn-list{margin:.5rem 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.25rem}
-.are-warn-li{font-size:.7rem;line-height:1.4;color:rgba(255,255,255,.68);padding-left:.9rem;position:relative}
-.are-warn-li::before{content:'›';position:absolute;left:0;top:-1px;color:var(--yel,#F5C800);font-weight:800}
-.are-warn-red{border-color:rgba(239,68,68,.55);box-shadow:0 14px 36px -18px rgba(0,0,0,.9),0 0 22px rgba(239,68,68,.18),inset 0 1px 0 rgba(255,255,255,.04)}
-.are-warn-red .are-warn-bar{background:linear-gradient(180deg,#ef4444 0%,#991b1b 100%);box-shadow:0 0 16px rgba(239,68,68,.65)}
-.are-warn-red .are-warn-tag{color:#ef4444}
-.are-warn-red .are-warn-li::before{color:#ef4444}
+/* .sovereign-intel + .are-warn-* — full NUKE (keyframes + mobile breakpoint +
+   warning card styles) so no orphan rules linger after the DOM eradication. */
 
 /* ═══ ARE · VOLUME BADGES (MAV / MRV) ══════════════════════════ */
 .are-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .65rem;border-radius:20px;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.58rem;font-weight:800;letter-spacing:2.2px;text-transform:uppercase;line-height:1;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);margin-left:.45rem;vertical-align:middle;white-space:nowrap}
@@ -5493,11 +5438,12 @@ async function LOGIN(){
       if(!d.w[user])d.w[user]={};
       SD(d);
     }
-    // Phase 18 — daily_brief hydration. The Midnight Haiku Engine
-    // refreshes bbf_users.daily_brief nightly; bbf_verify_user_pin
-    // returns it on the success payload. Mirror to the local user
-    // object so renderSovereignIntel() reads it on the first
-    // Workout-tab render after ENTER(). Always write (even when
+    // Phase 18 — daily_brief hydration kept in the data layer for
+    // backend/admin consumers (Midnight Haiku Engine writes it
+    // nightly; bbf_verify_user_pin returns it on success). The
+    // Sovereign Readiness UI that surfaced this string was NUKED
+    // per CEO directive — mirror is retained for future server-side
+    // consumers and admin dashboards only. Always write (even when
     // null/undefined) so a stale local value never ghosts a cleared
     // server value.
     if (data && Object.prototype.hasOwnProperty.call(data, 'daily_brief')) {
@@ -6064,54 +6010,6 @@ window.onload=function(){
         </div>
         </div>
         <div id="clinical-tools-stack">
-          <div id="readiness-engine-module">
-          <!-- AUTONOMIC READINESS ENGINE · Sovereign Intelligence Brief
-               Mock wearable sliders amputated — Sovereign-tier athletes get
-               clinical insight, not fake biometrics. Tier glow (red/yellow/
-               green) on the card itself remains as the backend Progression
-               Gatekeeper's lockout signal; .are-warn-slot is injected by
-               are-engine.js as a sibling for concurrent-training warnings. -->
-          <section class="are-card" id="are-card" data-tier="none" aria-label="Sovereign Intelligence Brief">
-            <div class="are-head">
-              <div class="are-head-l">
-                <div class="are-tag">Autonomic Readiness Engine</div>
-                <div class="are-title">Autonomic Readiness</div>
-                <div class="are-sub">Sovereign CNS Insight</div>
-              </div>
-              <div class="are-score-wrap">
-                <div class="are-score"><span id="are-score-n">--</span><span class="pct">%</span></div>
-                <div class="are-score-l">Readiness</div>
-              </div>
-            </div>
-
-            <!-- Sovereign Intelligence Brief — dynamic clinical insight surface.
-                 Populated by renderSovereignIntel() from client.daily_brief
-                 with a deterministic biomechanical fallback. -->
-            <div class="sovereign-intel" id="sovereign-intel" role="region" aria-label="Sovereign Intelligence Brief">
-              <div class="sovereign-intel-head">
-                <span class="sovereign-intel-ico" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M12 2.5c-2.6 0-4.8 1.9-5.2 4.4-1.6.5-2.8 2-2.8 3.8 0 1.3.6 2.5 1.6 3.3-.4.7-.6 1.5-.6 2.3 0 2.5 2 4.5 4.5 4.5.6 0 1.2-.1 1.7-.4.5.3 1.1.4 1.7.4 2.5 0 4.5-2 4.5-4.5 0-.8-.2-1.6-.6-2.3 1-.8 1.6-2 1.6-3.3 0-1.8-1.2-3.3-2.8-3.8C16.8 4.4 14.6 2.5 12 2.5z" stroke="#F5C800" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 7v10M9.5 9.5l5 5M14.5 9.5l-5 5" stroke="#22d3ee" stroke-width="1.2" stroke-linecap="round" opacity=".85"/>
-                    <circle cx="12" cy="12" r="1.6" fill="#F5C800"/>
-                  </svg>
-                </span>
-                <div class="sovereign-intel-titles">
-                  <div class="sovereign-intel-tag">Daily Brief &middot; Sovereign Tier</div>
-                  <div class="sovereign-intel-title">Sovereign Intelligence</div>
-                </div>
-              </div>
-              <div class="sovereign-intel-body" id="sovereign-intel-body">
-                <span class="sov-greet" id="sovereign-intel-greet">Hey Athlete,</span>
-                <span id="sovereign-intel-msg">Optimal joint health is preserved by intention, not just exertion. Focus on maximizing your time-under-tension and strict biomechanical form today.</span>
-              </div>
-              <div class="sovereign-intel-meta">
-                <span>Pantheon Insight Layer</span>
-                <span class="sov-pulse"><span class="sov-pulse-dot" aria-hidden="true"></span>Live</span>
-              </div>
-            </div>
-          </section>
-          </div>
           <div id="bio-render-module">
           <!-- ═══ KINEMATIC FORM HUD ═══ Additive, self-contained UI. -->
           <section class="kfh-scope" id="kfh-root" data-form="ok" aria-label="Kinematic Form HUD">
@@ -6374,9 +6272,10 @@ window.onload=function(){
                and #ss-card markup removed with it. ═ -->
           <div id="phantom-eye-module">
           <!-- ═ WAR ROOM Phase 1 · Action 2 (hotfix) — Phantom Eye + Virtual
-               Coach surfaced as visible blocks at the TOP of the Program tab,
-               sitting between #are-card (Autonomic Readiness) and #ss-card
-               (Sovereign Sentinel Occupational Load Map). Previous attempt
+               Coach surfaced as visible blocks at the TOP of the Program tab.
+               (The Sovereign Readiness card that previously sat above this
+               slot has been NUKED — backend gatekeeper logic preserved.)
+               Previous attempt
                buried these inside #ap-protocol ~700 lines below the fold — the
                "vanished module" Big Jim flagged. This slot is direct child of
                #tp-workout, no display:none parents, no [data-state] gates. ═ -->
@@ -7866,7 +7765,37 @@ function TAB(name) {
   if (pane) pane.classList.add('on');
   var btn = document.querySelector('.nv[data-tab="' + name + '"]');
   if (btn) btn.classList.add('on');
-  if (name === 'home')      RH();
+  if (name === 'home') {
+    // ─── STATE-BLEED GUARD (Phase 11) ────────────────────────────
+    // Admin/trainer landing on home via bottom-nav (not the explicit
+    // "Back to Command Center" button) must shed any client-context
+    // state from a prior selectClient() so the previous client's
+    // Player Card, Total Sessions, Today's Focus, etc. do not ghost
+    // onto the admin home view. Mirrors RETURN_TO_COMMAND_CENTER's
+    // reset logic without recursing through TAB('home').
+    try {
+      var _bbfHomeDoc  = (typeof GD === 'function') ? GD() : { u: {} };
+      var _bbfHomeRole = (_bbfHomeDoc.u[CU] && _bbfHomeDoc.u[CU].role) || '';
+      var _bbfIsAdmin  = (_bbfHomeRole === 'admin' || _bbfHomeRole === 'trainer');
+      if (_bbfIsAdmin && VC && VC !== CU) {
+        VC = null;
+        EX = []; MOOD = ''; TYPE = 'strength'; PLAN = null; SDAY = 0;
+        var _bbfTrSwitch = document.getElementById('trswitch');
+        if (_bbfTrSwitch) _bbfTrSwitch.style.display = 'none';
+        document.querySelectorAll('.cp').forEach(function(x){ x.classList.remove('on'); });
+        if (typeof LP === 'function') LP();
+        if (typeof updateAdminBackButton === 'function') updateAdminBackButton();
+      }
+      // Belt-and-suspenders: any time admin/trainer hits home with no
+      // active client, force-hide the youth Player Card so stale DOM
+      // from a previous selectClient() cannot ghost across the view.
+      if (_bbfIsAdmin && (!VC || VC === CU)) {
+        var _bbfPCard = document.getElementById('player-card');
+        if (_bbfPCard) _bbfPCard.style.display = 'none';
+      }
+    } catch (_) {}
+    RH();
+  }
   if (name === 'workout')   { RW(); if (window.SS_REFRESH_DAMAGED) window.SS_REFRESH_DAMAGED(); }
   if (name === 'nutrition') RN();
   if (name === 'cardio') { if (typeof BBF_CARDIO !== 'undefined') BBF_CARDIO.render(); }
@@ -8279,6 +8208,12 @@ function RH() {
   } else { cnw.style.display = 'none'; }
   // ── TRAINER DASHBOARD ─────────────────────────────────────────
   if (CU === 'akeem' && VC === null) {
+    // Defensive: a prior selectClient() could have left the youth
+    // Player Card visible. Force-hide it before rendering the roster
+    // so the trainer's home view is never contaminated with the last
+    // client's avatar / stat bars.
+    var _bbfRosterPCard = document.getElementById('player-card');
+    if (_bbfRosterPCard) _bbfRosterPCard.style.display = 'none';
     renderTrainerDashboard(d);
     return;
   }
@@ -13277,11 +13212,6 @@ function RW() {
     return '<button class="dbn' + (i === SDAY ? ' on' : '') + '" onclick="SELDAY(' + i + ')">' + day.day + '</button>';
   }).join('');
   RDW();
-  try {
-    if (window.BBF_SOVEREIGN_INTEL && typeof window.BBF_SOVEREIGN_INTEL.render === 'function') {
-      window.BBF_SOVEREIGN_INTEL.render();
-    }
-  } catch(_){}
 }
 
 function SELDAY(i) {
@@ -18331,80 +18261,8 @@ window.onload = function() {
 })();
 </script>
 
-<!-- Sovereign Intelligence Brief — Pantheon-tier clinical insight surface.
-     Replaces the amputated mock wearable sliders. Pulls a daily_brief
-     string from client.daily_brief; falls back to a deterministic
-     biomechanical message if absent. Tier glow on .are-card is still
-     driven externally by the backend CNS / Progression Gatekeeper. -->
-<script>
-(function(){
-  'use strict';
-
-  var FALLBACK_MSG = 'Optimal joint health is preserved by intention, not just exertion. Focus on maximizing your time-under-tension and strict biomechanical form today.';
-
-  function $(id){ return document.getElementById(id); }
-
-  function firstNameFor(uid){
-    try {
-      if (typeof GD !== 'function') return '';
-      var d = GD();
-      var u = (d && d.u && uid && d.u[uid]) || {};
-      var raw = (u.name || uid || '').toString().trim();
-      if (!raw) return '';
-      return raw.split(/\s+/)[0];
-    } catch(_) { return ''; }
-  }
-
-  function dailyBriefFor(uid){
-    try {
-      if (typeof GD !== 'function') return '';
-      var d = GD();
-      var u = (d && d.u && uid && d.u[uid]) || {};
-      var brief = u.daily_brief;
-      if (typeof brief === 'string' && brief.trim()) return brief.trim();
-      return '';
-    } catch(_) { return ''; }
-  }
-
-  function activeUid(){
-    try {
-      if (typeof VC !== 'undefined' && VC) return VC;
-      if (typeof CU !== 'undefined' && CU) return CU;
-    } catch(_) {}
-    return '';
-  }
-
-  function render(uid){
-    var greetEl = $('sovereign-intel-greet');
-    var msgEl   = $('sovereign-intel-msg');
-    var bodyEl  = $('sovereign-intel-body');
-    if (!greetEl || !msgEl) return;
-
-    var resolved = uid || activeUid();
-    var fname    = firstNameFor(resolved);
-    var greeting = 'Hey ' + (fname || 'Athlete') + ',';
-    var brief    = dailyBriefFor(resolved) || FALLBACK_MSG;
-
-    if (bodyEl) bodyEl.classList.add('is-loading');
-    greetEl.textContent = greeting;
-    msgEl.textContent   = brief;
-    if (bodyEl) {
-      requestAnimationFrame(function(){
-        bodyEl.classList.remove('is-loading');
-      });
-    }
-  }
-
-  function init(){ render(); }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
-  window.BBF_SOVEREIGN_INTEL = { render: render };
-})();
-</script>
+<!-- Sovereign Readiness IIFE removed — backend Progression Gatekeeper still
+     reads bbf_readiness scores via getReadinessZone()/computeTargetWeight()
+     to clamp working weights. No DOM surface. No pixel. -->
 </body>
 </html>
