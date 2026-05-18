@@ -571,6 +571,24 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .prehab-disclosure--purple > summary{background:linear-gradient(135deg,rgba(106,13,173,.18),rgba(74,8,128,.12))}
 .prehab-disclosure--purple .prehab-disc-kicker{color:#E0CFFF}
 
+/* ═══ MASTERY · Phase 11 — Sovereign Mastery Protocol Suite (Profile tab) ═══
+   Hoisted from the buried position inside .psl to a prominent gold-bordered
+   card directly under the Weight Progress chart. Mirrors the Prehab
+   Sovereign Intelligence Suite visual language for cross-tab consistency.
+   Accent palette: gold (Immersion) + teal (Coaching Scripts). */
+.mastery-intel-suite{position:relative;background:linear-gradient(160deg,rgba(14,14,20,.92) 0%,rgba(8,4,18,.86) 100%);border:1px solid rgba(212,175,55,.32);border-radius:18px;padding:1.1rem 1rem 1.2rem;margin:1.2rem 0 1.3rem;box-shadow:0 18px 44px -18px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden}
+.mastery-intel-suite::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(212,175,55,.55) 22%,#22d3ee 50%,rgba(106,13,173,.55) 78%,transparent 100%);opacity:.9}
+.mastery-suite-kicker{font-size:.6rem;font-weight:800;letter-spacing:3.6px;text-transform:uppercase;color:#D4AF37;margin-bottom:.25rem}
+.mastery-suite-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1.45rem;letter-spacing:2.2px;text-transform:uppercase;color:#fff;line-height:1.05;text-shadow:0 0 10px rgba(212,175,55,.18)}
+.mastery-suite-sub{font-size:.76rem;line-height:1.55;color:rgba(255,255,255,.62);margin-top:.45rem;margin-bottom:1rem;max-width:58ch}
+.mastery-suite-card{background:rgba(8,8,12,.55);border:1px solid rgba(212,175,55,.22);border-left:3px solid #D4AF37;border-radius:12px;padding:.95rem 1rem 1.05rem;margin-bottom:.85rem}
+.mastery-suite-card:last-child{margin-bottom:0}
+.mastery-suite-card--teal{border-color:rgba(34,211,238,.28);border-left-color:#22d3ee}
+.mastery-suite-card--teal .mp-panel-t{color:#fff}
+.mp-label--teal{color:#22d3ee !important}
+.mp-primary-btn--teal{background:#22d3ee !important;color:#001318 !important}
+.mp-primary-btn--teal:hover:not(:disabled){filter:brightness(1.08);box-shadow:0 8px 22px -10px rgba(34,211,238,.55)}
+
 .sovereign-comlink-fab{position:fixed;bottom:80px;right:20px;z-index:1000;background:#000;border:2px solid #FFD700;color:#FFD700;border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 15px rgba(255,215,0,0.4);cursor:pointer;transition:transform 0.2s ease;font-size:26px;-webkit-tap-highlight-color:rgba(0,0,0,0)}
 .sovereign-comlink-fab:hover{transform:translateY(-2px) scale(1.05)}
 .sovereign-comlink-fab:disabled{opacity:.55;cursor:not-allowed}
@@ -6891,6 +6909,61 @@ window.onload=function(){
         </div>
         <canvas id="wChart" height="110"></canvas>
       </div>
+      <!-- ═══ SOVEREIGN MASTERY PROTOCOL · Phase 11 hoist ═══════════════════════
+           Hoisted out of the Settings list (.psl) where it was buried at the
+           bottom. Now lives directly under the Weight Progress chart as a
+           prominent gold-bordered Intelligence Suite. Both engines (Immersion
+           Simulator + Coaching Scripts) still bind via the same IDs that
+           BBF_IMMERSION.init() and BBF_LINGUIST.init() query — no JS change.
+           Honors the language preference from the Sovereign Linguistics row
+           in Settings below (LANG global). -->
+      <div class="mastery-intel-suite">
+        <div class="mastery-suite-kicker">Sovereign Mastery Protocol</div>
+        <div class="mastery-suite-title">Bilingual Empire</div>
+        <div class="mastery-suite-sub">Two language engines on Claude Opus 4.7: roleplay a real scenario for live fluency feedback, then deploy gym-floor coaching cues in your target tongue. Both honor your Sovereign Linguistics setting below.</div>
+
+        <!-- ── PHASE 8 · Immersion Simulator ───────────────────────────────────── -->
+        <div class="mastery-suite-card">
+          <div class="mp-panel-h">
+            <span class="mp-panel-icon">&#x1F3AD;</span>
+            <span class="mp-panel-t">Immersion Simulator</span>
+          </div>
+          <div class="mp-panel-sub">Roleplay a real scenario in your target language. The native speaker replies in character; you get a grammar correction and fluency score per turn.</div>
+
+          <div class="mp-field">
+            <label class="mp-label" for="bbf-immersion-scenario">Scenario</label>
+            <input type="text" id="bbf-immersion-scenario" class="mp-input" maxlength="200" placeholder="e.g. Ordering a protein shake at a gym in S&atilde;o Paulo" />
+          </div>
+
+          <div class="immersion-chat" id="bbf-immersion-chat" aria-live="polite"></div>
+
+          <div class="mp-field mp-field--inline">
+            <input type="text" id="bbf-immersion-input" class="mp-input" maxlength="500" placeholder="Type your message in the target language&hellip;" />
+            <button type="button" id="bbf-immersion-mic-btn" class="mp-mic-btn" title="Dictate in target language">&#x1F3A4;</button>
+            <button type="button" id="bbf-immersion-send-btn" class="mp-primary-btn">Send</button>
+          </div>
+          <button type="button" id="bbf-immersion-reset-btn" class="mp-reset-btn">&#x21BA; Reset Conversation</button>
+        </div>
+
+        <!-- ── PHASE 9 · Coaching Scripts ──────────────────────────────────────── -->
+        <div class="mastery-suite-card mastery-suite-card--teal">
+          <div class="mp-panel-h">
+            <span class="mp-panel-icon">&#x1F4E2;</span>
+            <span class="mp-panel-t">Coaching Scripts</span>
+          </div>
+          <div class="mp-panel-sub">Convert an English coaching cue into a ready-to-shout phrase in your target language. Phonetic guide + literal meaning included so you can verify and pronounce.</div>
+
+          <div class="mp-field">
+            <label class="mp-label mp-label--teal" for="bbf-linguist-cue">English Coaching Cue</label>
+            <input type="text" id="bbf-linguist-cue" class="mp-input" maxlength="200" placeholder="e.g. Drive your knees out!" />
+          </div>
+
+          <button type="button" id="bbf-linguist-go-btn" class="mp-primary-btn mp-primary-btn--teal mp-primary-btn--full">&#x26A1; Translate to Gym-Floor Slang</button>
+
+          <div class="linguist-result" id="bbf-linguist-result" aria-live="polite"></div>
+        </div>
+      </div>
+
       <div id="pt-settings-wrap">
       <div class="sh" style="margin-top:1rem"><span class="stt" data-lang-key="app-settings">Settings</span></div>
       <div class="psl">
@@ -6911,60 +6984,6 @@ window.onload=function(){
             <button onclick="setSovereignLang('pt')" id="sl-pt" style="flex:1;padding:.5rem;font-family:var(--hb);font-size:.8rem;letter-spacing:2px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid #2a2a2a;background:transparent;color:var(--mut)">PORTUGU&Ecirc;S</button>
           </div>
         </div>
-        <!-- ═══ MASTERY PROTOCOL · Phase 8 + Phase 9 bilingual engines ═══════════════
-             Anchored beneath Sovereign Linguistics in the Profile tab. Two sub-
-             panels: Immersion Simulator (Phase 8 roleplay) and Coaching Scripts
-             (Phase 9 linguist). Both inherit the language preference set on the
-             Sovereign Linguistics row above (LANG global). -->
-        <div class="mastery-protocol">
-          <div class="mp-header">
-            <div class="mp-kicker">Mastery Protocol</div>
-            <div class="mp-title">Bilingual Empire</div>
-            <div class="mp-sub">Practice fluency with the Immersion Simulator, then deploy gym-floor coaching cues via Dynamic Scripts. Both inherit your language preference from Sovereign Linguistics above.</div>
-          </div>
-
-          <!-- ── PHASE 8 · Immersion Simulator ─────────────────────────────── -->
-          <div class="mp-panel">
-            <div class="mp-panel-h">
-              <span class="mp-panel-icon">&#x1F3AD;</span>
-              <span class="mp-panel-t">Immersion Simulator</span>
-            </div>
-            <div class="mp-panel-sub">Roleplay a real scenario in your target language. The native speaker replies in character; you get a grammar correction and fluency score per turn.</div>
-
-            <div class="mp-field">
-              <label class="mp-label" for="bbf-immersion-scenario">Scenario</label>
-              <input type="text" id="bbf-immersion-scenario" class="mp-input" maxlength="200" placeholder="e.g. Ordering a protein shake at a gym in S&atilde;o Paulo" />
-            </div>
-
-            <div class="immersion-chat" id="bbf-immersion-chat" aria-live="polite"></div>
-
-            <div class="mp-field mp-field--inline">
-              <input type="text" id="bbf-immersion-input" class="mp-input" maxlength="500" placeholder="Type your message in the target language&hellip;" />
-              <button type="button" id="bbf-immersion-mic-btn" class="mp-mic-btn" title="Dictate in target language">&#x1F3A4;</button>
-              <button type="button" id="bbf-immersion-send-btn" class="mp-primary-btn">Send</button>
-            </div>
-            <button type="button" id="bbf-immersion-reset-btn" class="mp-reset-btn">&#x21BA; Reset Conversation</button>
-          </div>
-
-          <!-- ── PHASE 9 · Coaching Scripts ────────────────────────────────── -->
-          <div class="mp-panel">
-            <div class="mp-panel-h">
-              <span class="mp-panel-icon">&#x1F4E2;</span>
-              <span class="mp-panel-t">Coaching Scripts</span>
-            </div>
-            <div class="mp-panel-sub">Convert an English coaching cue into a ready-to-shout phrase in your target language. Phonetic guide + literal meaning included so you can verify and pronounce.</div>
-
-            <div class="mp-field">
-              <label class="mp-label" for="bbf-linguist-cue">English Coaching Cue</label>
-              <input type="text" id="bbf-linguist-cue" class="mp-input" maxlength="200" placeholder="e.g. Drive your knees out!" />
-            </div>
-
-            <button type="button" id="bbf-linguist-go-btn" class="mp-primary-btn mp-primary-btn--full">&#x26A1; Translate to Gym-Floor Slang</button>
-
-            <div class="linguist-result" id="bbf-linguist-result" aria-live="polite"></div>
-          </div>
-        </div>
-
         <div class="psr" onclick="window.open('liability-waiver.pdf','_blank')"><div class="psrl"><span style="font-size:1.1rem">&#x1F4C4;</span><div><div class="psrn" data-lang-key="app-set-waiver">Liability Waiver</div><div class="psrs" data-lang-key="app-set-waiver-sub">View &amp; download PDF</div></div></div><span class="psra">&#x203A;</span></div>
         <div class="psr" id="logout-btn"><div class="psrl"><span style="font-size:1.1rem">&#x1F6AA;</span><div><div class="psrn" data-lang-key="app-set-signout">Sign Out</div><div class="psrs" data-lang-key="app-set-signout-sub">Log out of your account</div></div></div><span class="psra">&#x203A;</span></div>
       </div>
