@@ -7745,11 +7745,18 @@ function TAB(name) {
     // Player Card, Total Sessions, Today's Focus, etc. do not ghost
     // onto the admin home view. Mirrors RETURN_TO_COMMAND_CENTER's
     // reset logic without recursing through TAB('home').
+    //
+    // Phase 11 hotfix — selectClient() sets window._bbfSkipBleedGuard
+    // before its internal TAB('home') call so the guard doesn't
+    // clobber the VC that selectClient just intentionally set. Without
+    // this, clicking a client card on the trainer roster appeared to
+    // do nothing because VC was set then immediately cleared.
     try {
       var _bbfHomeDoc  = (typeof GD === 'function') ? GD() : { u: {} };
       var _bbfHomeRole = (_bbfHomeDoc.u[CU] && _bbfHomeDoc.u[CU].role) || '';
       var _bbfIsAdmin  = (_bbfHomeRole === 'admin' || _bbfHomeRole === 'trainer');
-      if (_bbfIsAdmin && VC && VC !== CU) {
+      var _bbfSkip     = !!window._bbfSkipBleedGuard;
+      if (!_bbfSkip && _bbfIsAdmin && VC && VC !== CU) {
         VC = null;
         EX = []; MOOD = ''; TYPE = 'strength'; PLAN = null; SDAY = 0;
         var _bbfTrSwitch = document.getElementById('trswitch');
@@ -8014,7 +8021,12 @@ function selectClient(uid) {
   VC = uid;
   LP();
   RA();
-  TAB('home');
+  // Phase 11 hotfix — the TAB('home') state-bleed guard clears VC when
+  // it sees admin+VC, which would clobber the VC we just set here.
+  // Signal the guard to skip this one navigation so the trainer can
+  // actually drill into a client view via the roster click.
+  window._bbfSkipBleedGuard = true;
+  try { TAB('home'); } finally { window._bbfSkipBleedGuard = false; }
   updateAdminBackButton();
   // Hydrate this client's logs from Supabase so Total Sessions
   // reflects cloud state when the trainer drills in.
