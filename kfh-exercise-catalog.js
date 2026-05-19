@@ -80,15 +80,26 @@ var BBF_KFH_CATALOG = (function () {
   ].join('');
 
   // ─── BENCH PRESS WIREFRAME ───────────────────────────────
-  // Sagittal wireframe: bench, lifter, J-curve bar path, joints,
-  // standard/fault callout groups.
+  // Phase 13 Path A · Anatomical side profile (replaces stick figure).
+  // Recognizable human silhouette of a supine lifter on a bench with
+  // visible anatomical landmarks (skull, throat, ribcage curve, pec,
+  // anterior hip). Preserves every addressable ID the animator and
+  // form-state callouts depend on:
+  //   #kfh-upperarm, #kfh-forearm, #kfh-callout-ok, #kfh-callout-warn,
+  //   .kfh-joint.j-shoulder/-elbow/-wrist/-hip/-knee, .kfh-path-j,
+  //   .kfh-wf-bar / .kfh-wf-plate / .kfh-wf-bench / .kfh-wf-grid.
+  // J-curve bar path retained (clinically meaningful — sternum touch
+  // to lockout). Sovereign palette: cyan body outline, gold muscle
+  // bellies, purple spine indicator.
   var BENCH_PRESS_SVG = [
+    // ── Grid + floor (preserved) ────────────────────────────
     '<g class="kfh-wf-grid">',
       '<line x1="28" y1="18" x2="28" y2="188"/>',
       '<line x1="292" y1="18" x2="292" y2="188"/>',
       '<line x1="28" y1="160" x2="292" y2="160"/>',
     '</g>',
     '<line class="kfh-wf kfh-wf-bench" x1="28" y1="180" x2="292" y2="180"/>',
+    // ── Bench + rack (preserved) ────────────────────────────
     '<g class="kfh-wf kfh-wf-bench">',
       '<rect x="80" y="130" width="170" height="10" rx="2"/>',
       '<line x1="92" y1="140" x2="92" y2="180"/>',
@@ -98,38 +109,70 @@ var BBF_KFH_CATALOG = (function () {
       '<line x1="262" y1="180" x2="262" y2="56"/>',
       '<line x1="262" y1="56" x2="272" y2="56"/>',
     '</g>',
+    // ── Anatomy gradients (cyan body fill + gold muscle belly hint) ─
+    '<defs>',
+      '<linearGradient id="kfh-bp-body-grad" x1="0%" y1="0%" x2="0%" y2="100%">',
+        '<stop offset="0%" stop-color="#00E5FF" stop-opacity="0.22"/>',
+        '<stop offset="100%" stop-color="#00E5FF" stop-opacity="0.05"/>',
+      '</linearGradient>',
+      '<linearGradient id="kfh-bp-pec-grad" x1="0%" y1="0%" x2="100%" y2="0%">',
+        '<stop offset="0%" stop-color="#F5C800" stop-opacity="0.34"/>',
+        '<stop offset="100%" stop-color="#F5C800" stop-opacity="0.08"/>',
+      '</linearGradient>',
+    '</defs>',
+    // ── Body silhouette: head + supine torso (recognizable human profile) ─
+    //   Trace: back of skull → cranium → forehead → face → throat →
+    //   supine torso top (chest peaks ~y=121, hip plateaus ~y=129) →
+    //   anterior hip → flat bottom along bench line → close.
+    '<path class="kfh-anatomy-body" d="M 86,118 C 78,114 76,104 84,100 C 94,96 108,98 114,108 L 115,116 L 118,122 L 113,127 L 126,128 C 142,124 160,122 178,123 C 195,124 211,126 226,129 L 240,131 L 244,138 L 86,138 Z" fill="url(#kfh-bp-body-grad)" stroke="#00E5FF" stroke-width="1.4" stroke-linejoin="round"/>',
+    // ── Pec major belly (gold gradient hint at upper chest) ─
+    '<ellipse cx="150" cy="124" rx="24" ry="5.5" fill="url(#kfh-bp-pec-grad)"/>',
+    // ── Spine + ribcage indicator (faint dashed purple) ─
+    '<path d="M 102,128 Q 150,134 200,135 Q 225,135 240,134" stroke="rgba(139,26,191,0.55)" stroke-width="0.9" fill="none" stroke-dasharray="2.5,2"/>',
+    // ── Eye / facial landmark ─
+    '<circle cx="98" cy="112" r="1.4" fill="#00E5FF" opacity="0.65"/>',
+    // ── Legs (preserved skeletal lines — anatomy focus is torso/arms) ─
     '<g class="kfh-wf">',
-      '<circle cx="92" cy="120" r="8"/>',
-      '<path d="M100 126 Q140 116 180 122 Q210 127 232 130"/>',
       '<line x1="232" y1="130" x2="244" y2="152"/>',
       '<line x1="244" y1="152" x2="228" y2="180"/>',
       '<line x1="220" y1="180" x2="240" y2="180"/>',
-      '<line id="kfh-upperarm" x1="155" y1="120" x2="170" y2="86"/>',
-      '<line id="kfh-forearm" x1="170" y1="86" x2="175" y2="60"/>',
     '</g>',
+    // ── Arms (preserved IDs — animator targets these) ─
+    '<line id="kfh-upperarm" x1="152" y1="121" x2="170" y2="86" stroke="#00E5FF" stroke-width="3.5" stroke-linecap="round"/>',
+    '<line id="kfh-forearm" x1="170" y1="86" x2="175" y2="60" stroke="#00E5FF" stroke-width="3" stroke-linecap="round"/>',
+    // ── Bicep belly hint (oblique ellipse along upper arm) ─
+    '<ellipse cx="161" cy="104" rx="3.5" ry="9" fill="url(#kfh-bp-pec-grad)" transform="rotate(-28 161 104)"/>',
+    // ── Hand grip on bar ─
+    '<rect x="170" y="55" width="10" height="9" rx="2" fill="none" stroke="#F5C800" stroke-width="1.4"/>',
+    // ── Bar + plates (preserved) ─
     '<g>',
       '<line class="kfh-wf kfh-wf-bar" x1="158" y1="60" x2="192" y2="60"/>',
       '<circle class="kfh-wf-plate" cx="175" cy="60" r="10"/>',
       '<circle class="kfh-wf-plate" cx="175" cy="60" r="4"/>',
     '</g>',
+    // ── J-curve bar path (preserved — clinically meaningful) ─
     '<path class="kfh-path-j" d="M175 118 C 180 98, 190 78, 198 58"/>',
     '<circle cx="175" cy="118" r="2.5" fill="#00E5FF"/>',
     '<circle cx="198" cy="58" r="2.5" fill="#00E5FF"/>',
+    // ── Bar path labels (preserved) ─
     '<text class="kfh-bar-label" x="120" y="112">Touch · Sternum</text>',
     '<text class="kfh-bar-label" x="204" y="52">Lockout</text>',
     '<text class="kfh-bar-label" x="208" y="92">J-Curve Path</text>',
-    '<circle class="kfh-joint j-shoulder" cx="155" cy="120" r="4.2"/>',
-    '<circle class="kfh-halo" cx="155" cy="120" r="6"/>',
+    // ── Joints (preserved IDs + classes — animator + callouts depend on these) ─
+    '<circle class="kfh-joint j-shoulder" cx="152" cy="121" r="4.2"/>',
+    '<circle class="kfh-halo" cx="152" cy="121" r="7"/>',
     '<circle class="kfh-joint j-elbow" cx="170" cy="86" r="3.6"/>',
     '<circle class="kfh-joint j-wrist" cx="175" cy="60" r="3.6"/>',
     '<circle class="kfh-joint j-hip" cx="232" cy="130" r="3.4"/>',
     '<circle class="kfh-joint j-knee" cx="244" cy="152" r="3.4"/>',
+    // ── OK callout (preserved — scap retraction reference) ─
     '<g id="kfh-callout-ok">',
-      '<line class="kfh-leader ok" x1="155" y1="120" x2="60" y2="150"/>',
+      '<line class="kfh-leader ok" x1="155" y1="121" x2="60" y2="150"/>',
       '<text class="kfh-label-box ok" x="30" y="162">Scap Retracted · 45°</text>',
     '</g>',
+    // ── Warn callout (preserved — elbow flare fault) ─
     '<g id="kfh-callout-warn" style="display:none">',
-      '<line class="kfh-leader warn" x1="155" y1="120" x2="60" y2="150"/>',
+      '<line class="kfh-leader warn" x1="155" y1="121" x2="60" y2="150"/>',
       '<text class="kfh-label-box warn" x="30" y="156">Elbow Flare 85°</text>',
       '<text class="kfh-label-box warn" x="30" y="168">Impingement Risk</text>',
     '</g>'

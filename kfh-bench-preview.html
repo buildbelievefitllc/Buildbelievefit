@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KFH Bench Press — Anatomical Style Anchor (Path A · v1)</title>
+<style>
+  :root {
+    --yel: #F5C800;
+    --cyan: #00E5FF;
+    --purl: #8B1ABF;
+    --wht: #fff;
+    --blk: #060606;
+    --mut: rgba(255,255,255,0.5);
+    --bg-deep: #0a0a0e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem 1rem;
+    background: radial-gradient(ellipse at top, #1a0d1f 0%, var(--bg-deep) 70%);
+    color: var(--wht);
+    font-family: 'Menlo', 'Courier New', ui-monospace, monospace;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  h1 {
+    font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+    font-size: 1.6rem; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--yel); margin: 0 0 .3rem;
+  }
+  .sub { color: var(--mut); font-size: .8rem; letter-spacing: 1px; margin-bottom: 2rem; }
+  .stage-row { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+  @media (min-width: 720px) { .stage-row { grid-template-columns: 1fr 1fr; } }
+  .stage {
+    background: linear-gradient(180deg, #0c0c10 0%, #050507 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 18px 44px -18px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .stage-label {
+    font-size: .62rem; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: .35rem; font-weight: 800;
+  }
+  .stage-name {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem;
+    letter-spacing: 1.8px; text-transform: uppercase; color: var(--wht);
+    margin-bottom: 1rem;
+  }
+  .svg-mount {
+    aspect-ratio: 320 / 200;
+    background: radial-gradient(ellipse at top right, rgba(245,200,0,0.06), transparent 60%), #050507;
+    border: 1px solid rgba(0,229,255,0.18);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+  .svg-mount svg { width: 100%; height: 100%; display: block; }
+
+  /* KFH style replicas — mirror the relevant rules from bbf-app.html so the
+     SVG renders the same as it will inside the actual KFH HUD. */
+  .kfh-wf-grid line { stroke: rgba(0,229,255,0.10); stroke-width: 0.5; }
+  .kfh-wf, .kfh-wf line, .kfh-wf path, .kfh-wf circle { stroke: rgba(255,255,255,0.42); stroke-width: 1.3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .kfh-wf-bench, .kfh-wf-bench line, .kfh-wf-bench rect { stroke: rgba(255,255,255,0.55); fill: none; stroke-width: 1.4; }
+  .kfh-wf-bar { stroke: var(--yel); stroke-width: 2.4; }
+  .kfh-wf-plate { fill: rgba(245,200,0,0.18); stroke: var(--yel); stroke-width: 1.4; }
+  .kfh-joint { fill: var(--cyan); stroke: rgba(255,255,255,0.45); stroke-width: 0.6; }
+  .kfh-joint.j-shoulder { fill: var(--yel); }
+  .kfh-halo { fill: none; stroke: var(--yel); stroke-width: 1.2; opacity: 0.65; animation: kfhHaloPulse 2.4s ease-in-out infinite; }
+  @keyframes kfhHaloPulse { 0%,100% { opacity: 0.45; r: 6; } 50% { opacity: 0.85; r: 8; } }
+  .kfh-path-j { stroke: var(--cyan); stroke-width: 1.4; stroke-dasharray: 3 2; fill: none; opacity: 0.78; }
+  .kfh-leader { stroke-width: 0.9; opacity: 0.85; }
+  .kfh-leader.ok   { stroke: #22c55e; }
+  .kfh-leader.warn { stroke: #ef4444; }
+  .kfh-label-box.ok   { fill: #22c55e; font: 700 7px 'Menlo', monospace; letter-spacing: 1.2px; text-transform: uppercase; }
+  .kfh-label-box.warn { fill: #ef4444; font: 700 7px 'Menlo', monospace; letter-spacing: 1.2px; text-transform: uppercase; }
+  .kfh-bar-label { fill: rgba(255,255,255,0.7); font: 700 6.5px 'Menlo', monospace; letter-spacing: 1.4px; text-transform: uppercase; }
+
+  .notes {
+    margin-top: 2rem;
+    padding: 1.1rem;
+    background: rgba(245,200,0,0.05);
+    border-left: 3px solid var(--yel);
+    border-radius: 0 10px 10px 0;
+    font-size: .78rem; line-height: 1.65; color: rgba(255,255,255,0.78);
+  }
+  .notes b { color: var(--yel); }
+  .checklist { margin-top: 1rem; padding-left: 0; list-style: none; }
+  .checklist li { padding: .35rem 0 .35rem 1.4rem; position: relative; }
+  .checklist li::before { content: '☐'; position: absolute; left: 0; color: var(--cyan); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>KFH Bench Press · Anatomical Style Anchor</h1>
+  <div class="sub">Path A · v1 — side-by-side comparison · render at the same scale the actual KFH HUD uses (320 × 200 viewBox)</div>
+
+  <div class="stage-row">
+    <!-- BEFORE -->
+    <div class="stage">
+      <div class="stage-label">Before</div>
+      <div class="stage-name">Stick figure (current production)</div>
+      <div class="svg-mount">
+        <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+          <g class="kfh-wf-grid">
+            <line x1="28" y1="18" x2="28" y2="188"/>
+            <line x1="292" y1="18" x2="292" y2="188"/>
+            <line x1="28" y1="160" x2="292" y2="160"/>
+          </g>
+          <line class="kfh-wf kfh-wf-bench" x1="28" y1="180" x2="292" y2="180"/>
+          <g class="kfh-wf kfh-wf-bench">
+            <rect x="80" y="130" width="170" height="10" rx="2"/>
+            <line x1="92" y1="140" x2="92" y2="180"/>
+            <line x1="238" y1="140" x2="238" y2="180"/>
+            <line x1="85" y1="180" x2="100" y2="180"/>
+            <line x1="230" y1="180" x2="246" y2="180"/>
+            <line x1="262" y1="180" x2="262" y2="56"/>
+            <line x1="262" y1="56" x2="272" y2="56"/>
+          </g>
+          <g class="kfh-wf">
+            <circle cx="92" cy="120" r="8"/>
+            <path d="M100 126 Q140 116 180 122 Q210 127 232 130"/>
+            <line x1="232" y1="130" x2="244" y2="152"/>
+            <line x1="244" y1="152" x2="228" y2="180"/>
+            <line x1="220" y1="180" x2="240" y2="180"/>
+            <line x1="155" y1="120" x2="170" y2="86"/>
+            <line x1="170" y1="86" x2="175" y2="60"/>
+          </g>
+          <g>
+            <line class="kfh-wf kfh-wf-bar" x1="158" y1="60" x2="192" y2="60"/>
+            <circle class="kfh-wf-plate" cx="175" cy="60" r="10"/>
+            <circle class="kfh-wf-plate" cx="175" cy="60" r="4"/>
+          </g>
+          <path class="kfh-path-j" d="M175 118 C 180 98, 190 78, 198 58"/>
+          <circle cx="175" cy="118" r="2.5" fill="#00E5FF"/>
+          <circle cx="198" cy="58"  r="2.5" fill="#00E5FF"/>
+          <text class="kfh-bar-label" x="120" y="112">Touch · Sternum</text>
+          <text class="kfh-bar-label" x="204" y="52">Lockout</text>
+          <text class="kfh-bar-label" x="208" y="92">J-Curve Path</text>
+          <circle class="kfh-joint j-shoulder" cx="155" cy="120" r="4.2"/>
+          <circle class="kfh-halo" cx="155" cy="120" r="6"/>
+          <circle class="kfh-joint j-elbow" cx="170" cy="86" r="3.6"/>
+          <circle class="kfh-joint j-wrist" cx="175" cy="60" r="3.6"/>
+          <circle class="kfh-joint j-hip" cx="232" cy="130" r="3.4"/>
+          <circle class="kfh-joint j-knee" cx="244" cy="152" r="3.4"/>
+          <line class="kfh-leader ok" x1="155" y1="120" x2="60" y2="150"/>
+          <text class="kfh-label-box ok" x="30" y="162">Scap Retracted · 45°</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- AFTER -->
+    <div class="stage">
+      <div class="stage-label">After</div>
+      <div class="stage-name">Anatomical side profile (proposed)</div>
+      <div class="svg-mount">
+        <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+          <g class="kfh-wf-grid">
+            <line x1="28" y1="18" x2="28" y2="188"/>
+            <line x1="292" y1="18" x2="292" y2="188"/>
+            <line x1="28" y1="160" x2="292" y2="160"/>
+          </g>
+          <line class="kfh-wf kfh-wf-bench" x1="28" y1="180" x2="292" y2="180"/>
+          <g class="kfh-wf kfh-wf-bench">
+            <rect x="80" y="130" width="170" height="10" rx="2"/>
+            <line x1="92" y1="140" x2="92" y2="180"/>
+            <line x1="238" y1="140" x2="238" y2="180"/>
+            <line x1="85" y1="180" x2="100" y2="180"/>
+            <line x1="230" y1="180" x2="246" y2="180"/>
+            <line x1="262" y1="180" x2="262" y2="56"/>
+            <line x1="262" y1="56" x2="272" y2="56"/>
+          </g>
+          <defs>
+            <linearGradient id="kfh-bp-body-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.22"/>
+              <stop offset="100%" stop-color="#00E5FF" stop-opacity="0.05"/>
+            </linearGradient>
+            <linearGradient id="kfh-bp-pec-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#F5C800" stop-opacity="0.34"/>
+              <stop offset="100%" stop-color="#F5C800" stop-opacity="0.08"/>
+            </linearGradient>
+          </defs>
+          <path d="M 86,118 C 78,114 76,104 84,100 C 94,96 108,98 114,108 L 115,116 L 118,122 L 113,127 L 126,128 C 142,124 160,122 178,123 C 195,124 211,126 226,129 L 240,131 L 244,138 L 86,138 Z" fill="url(#kfh-bp-body-grad)" stroke="#00E5FF" stroke-width="1.4" stroke-linejoin="round"/>
+          <ellipse cx="150" cy="124" rx="24" ry="5.5" fill="url(#kfh-bp-pec-grad)"/>
+          <path d="M 102,128 Q 150,134 200,135 Q 225,135 240,134" stroke="rgba(139,26,191,0.55)" stroke-width="0.9" fill="none" stroke-dasharray="2.5,2"/>
+          <circle cx="98" cy="112" r="1.4" fill="#00E5FF" opacity="0.65"/>
+          <g class="kfh-wf">
+            <line x1="232" y1="130" x2="244" y2="152"/>
+            <line x1="244" y1="152" x2="228" y2="180"/>
+            <line x1="220" y1="180" x2="240" y2="180"/>
+          </g>
+          <line x1="152" y1="121" x2="170" y2="86" stroke="#00E5FF" stroke-width="3.5" stroke-linecap="round"/>
+          <line x1="170" y1="86" x2="175" y2="60" stroke="#00E5FF" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="161" cy="104" rx="3.5" ry="9" fill="url(#kfh-bp-pec-grad)" transform="rotate(-28 161 104)"/>
+          <rect x="170" y="55" width="10" height="9" rx="2" fill="none" stroke="#F5C800" stroke-width="1.4"/>
+          <g>
+            <line class="kfh-wf kfh-wf-bar" x1="158" y1="60" x2="192" y2="60"/>
+            <circle class="kfh-wf-plate" cx="175" cy="60" r="10"/>
+            <circle class="kfh-wf-plate" cx="175" cy="60" r="4"/>
+          </g>
+          <path class="kfh-path-j" d="M175 118 C 180 98, 190 78, 198 58"/>
+          <circle cx="175" cy="118" r="2.5" fill="#00E5FF"/>
+          <circle cx="198" cy="58"  r="2.5" fill="#00E5FF"/>
+          <text class="kfh-bar-label" x="120" y="112">Touch · Sternum</text>
+          <text class="kfh-bar-label" x="204" y="52">Lockout</text>
+          <text class="kfh-bar-label" x="208" y="92">J-Curve Path</text>
+          <circle class="kfh-joint j-shoulder" cx="152" cy="121" r="4.2"/>
+          <circle class="kfh-halo" cx="152" cy="121" r="7"/>
+          <circle class="kfh-joint j-elbow" cx="170" cy="86" r="3.6"/>
+          <circle class="kfh-joint j-wrist" cx="175" cy="60" r="3.6"/>
+          <circle class="kfh-joint j-hip" cx="232" cy="130" r="3.4"/>
+          <circle class="kfh-joint j-knee" cx="244" cy="152" r="3.4"/>
+          <line class="kfh-leader ok" x1="155" y1="121" x2="60" y2="150"/>
+          <text class="kfh-label-box ok" x="30" y="162">Scap Retracted · 45°</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <b>What's new in the AFTER:</b>
+    <ul class="checklist">
+      <li>Anatomical body silhouette (cyan filled path) — recognizable as a person lying supine, not a stick figure with a circle head.</li>
+      <li>Pec major belly highlight (gold gradient ellipse over upper chest) — primes the eye to the prime mover of bench press.</li>
+      <li>Spine + ribcage indicator (faint dashed purple line through the torso) — clinical anatomical landmark, BBF brand color.</li>
+      <li>Bicep belly hint (gold oblique ellipse on the upper arm) — same anatomical-detail treatment on the working arm.</li>
+      <li>Hand grip rectangle on the bar (gold outlined) — shows where the hands actually contact, not just an abstract joint dot.</li>
+      <li>Eye / facial landmark dot — small cue that this is a face, not just a head circle.</li>
+      <li><b>PRESERVED:</b> every joint ID (#kfh-upperarm, #kfh-forearm, j-shoulder/-elbow/-wrist/-hip/-knee), OK/Warn callout groups, J-curve bar path, scap retraction reference, sternum-touch + lockout labels. Animator + form-state toggle work unchanged.</li>
+    </ul>
+  </div>
+
+  <div class="notes" style="border-left-color: var(--cyan); background: rgba(0,229,255,0.05); margin-top: 1rem">
+    <b>Style anchor — please confirm before I do the other 4:</b>
+    <ul class="checklist">
+      <li>Anatomical detail level — too much, too little, just right?</li>
+      <li>Body fill opacity — should it be more visible or more subtle?</li>
+      <li>Muscle belly highlights (gold gradient) — does the gold accent read as "muscle" or as visual noise?</li>
+      <li>Spine dashed line — does it add clinical depth or clutter?</li>
+      <li>Color balance — too much cyan, gold, purple, or right at the BBF Sovereign palette?</li>
+      <li>Should I keep the original leg lines (stick) or also upgrade legs to silhouette? (current choice: keep stick legs, since bench press is upper-body-driven)</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
