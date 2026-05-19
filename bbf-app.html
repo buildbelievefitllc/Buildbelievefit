@@ -3112,6 +3112,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <link rel="stylesheet" href="styles/bbf-tokens.css"/>
 <link rel="stylesheet" href="styles/bbf-vault.css"/>
 <script src="bbf-lang.js"></script>
+<script src="bbf-plan-i18n.js"></script>
 <script src="env.js"></script>
 <script src="bbf-sync.js"></script>
 <script src="bbf-intelligence-engine.js"></script>
@@ -8594,6 +8595,20 @@ function _t(key, fallback) {
   }
   return fallback;
 }
+
+// ─── PLAN I18N HELPERS ──────────────────────────────────────────
+// Display-only translators for workout-plan content. The underlying
+// ex.name / day / focus / equipment / notes strings stay English in
+// the data so KFH catalog lookup, kinematic agent lift_name params,
+// and any backend keyed on exercise name continue to fire correctly
+// regardless of selected language. Caller pattern:
+//   - Display text: use _trEx(ex.name) inside innerHTML
+//   - KFH/backend feed: still pass ex.name (English, untouched)
+function _trEx(n)    { return (window.BBF_PLAN_I18N && window.BBF_PLAN_I18N.tr) ? window.BBF_PLAN_I18N.tr('exercises', n) : n; }
+function _trDay(n)   { return (window.BBF_PLAN_I18N && window.BBF_PLAN_I18N.tr) ? window.BBF_PLAN_I18N.tr('days', n)      : n; }
+function _trFocus(n) { return (window.BBF_PLAN_I18N && window.BBF_PLAN_I18N.tr) ? window.BBF_PLAN_I18N.tr('focuses', n)   : n; }
+function _trEq(n)    { return (window.BBF_PLAN_I18N && window.BBF_PLAN_I18N.tr) ? window.BBF_PLAN_I18N.tr('equipment', n) : n; }
+function _trNote(n)  { return (window.BBF_PLAN_I18N && window.BBF_PLAN_I18N.tr) ? window.BBF_PLAN_I18N.tr('notes', n)     : n; }
 function _ts(key) {
   if (typeof BBF_TRANSLATOR !== 'undefined') return BBF_TRANSLATOR.t(key, LANG || 'en');
   return key;
@@ -13162,7 +13177,7 @@ function RW() {
     return;
   }
   nav.innerHTML = PLAN.map(function(day, i) {
-    return '<button class="dbn' + (i === SDAY ? ' on' : '') + '" onclick="SELDAY(' + i + ')">' + day.day + '</button>';
+    return '<button class="dbn' + (i === SDAY ? ' on' : '') + '" onclick="SELDAY(' + i + ')">' + _trDay(day.day) + '</button>';
   }).join('');
   RDW();
 }
@@ -13256,7 +13271,7 @@ function RDW() {
   var isTrial = userObj.subscription_tier !== 'sovereign' && _trialMs > Date.now();
   var isTrainer = (CU === 'akeem');
   if (isTrial && !isTrainer && SDAY >= 2) {
-    con.innerHTML = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div></div>' +
+    con.innerHTML = '<div class="dh"><div class="dl">' + _trDay(day.day) + '</div><div class="dn2">' + _trFocus(day.focus) + '</div></div>' +
       '<div style="position:relative;border-radius:14px;overflow:hidden;margin-top:.5rem">' +
       '<div style="padding:1.5rem" class="sovereign-blur-lock">' +
       '<div class="eb" style="margin-bottom:.8rem"><div class="eh"><div><div class="en">Exercise Preview</div><div class="em">' + day.exercises.length + ' exercises locked</div></div></div></div>' +
@@ -13271,15 +13286,15 @@ function RDW() {
     return;
   }
   if (day.isRest) {
-    con.innerHTML = '<div class="dh"><div class="dl">' + day.day + '</div><div class="dn2">' + _t('app-wo-restday','Rest Day') + '</div></div>' +
+    con.innerHTML = '<div class="dh"><div class="dl">' + _trDay(day.day) + '</div><div class="dn2">' + _t('app-wo-restday','Rest Day') + '</div></div>' +
       '<div class="rdc"><div class="rdi">&#x1F634;</div><div class="rdt">' + _t('app-wo-restrecover','Rest & Recover') + '</div><div class="rds">' + (day.restNote || _t('app-wo-restdefault','Active recovery, stretch, hydrate.')) + '</div></div>';
     return;
   }
   var readyScore = getTodayReadiness(uid);
   var readyTier = readyScore !== null ? (readyScore >= 90 ? 'god' : readyScore >= 70 ? 'std' : 'rec') : null;
   var dhClass = readyTier === 'god' ? ' god-glow' : '';
-  var h = '<div class="dh' + dhClass + '"><div class="dl">' + day.day + '</div><div class="dn2">' + day.focus + '</div>' +
-    '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + day.focus_cue : '') + '</div></div>';
+  var h = '<div class="dh' + dhClass + '"><div class="dl">' + _trDay(day.day) + '</div><div class="dn2">' + _trFocus(day.focus) + '</div>' +
+    '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + _trNote(day.focus_cue) : '') + '</div></div>';
   // Phase 11 — BBF_CNS_AGENT banner replaces the legacy readiness
   // banner at the top of the workout day. Single unified high-signal
   // surface: zone + score + mentor coaching + today's adjustments.
@@ -13329,8 +13344,12 @@ function RDW() {
     var exNotes = ex.notes || '';
     var ns = (exReps.indexOf('min') > -1 || exReps.indexOf('sec') > -1) ? 1 : exSets;
     var shiftBadge = ex.is_shifted ? ' <span style="font-size:.55rem;font-weight:700;letter-spacing:1px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:1px 6px;border-radius:3px;vertical-align:middle">SHIFTED</span>' : '';
-    h += '<div class="eb"><div class="eh" data-ex-name="' + exName.replace(/"/g,'&quot;') + '" onclick="TEX(this)"><div><div class="en">' + exName + shiftBadge + '</div>' +
-      '<div class="em">' + exEquip + ' &middot; ' + exSets + ' sets &times; ' + exReps + '</div></div>' +
+    // KEY vs DISPLAY split — data-ex-name keeps the ENGLISH key so the
+    // KFH HUD listener (L13474 + #kfh-ex-name binder L6214) resolves
+    // the catalog entry correctly; the visible .en text node gets the
+    // translated label via _trEx().
+    h += '<div class="eb"><div class="eh" data-ex-name="' + exName.replace(/"/g,'&quot;') + '" onclick="TEX(this)"><div><div class="en">' + _trEx(exName) + shiftBadge + '</div>' +
+      '<div class="em">' + _trEq(exEquip) + ' &middot; ' + exSets + ' sets &times; ' + exReps + '</div></div>' +
       '<div class="ec">&#9662;</div></div><div class="ebody">';
     h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){if(typeof LOG_AUDIT_ENTRY===\'function\')LOG_AUDIT_ENTRY(\'' + uid + '\',r);TOAST(\'🧪 Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
     // WAR ROOM Phase 4 · Kinetic Hologram button rewired to scroll the user
@@ -13347,8 +13366,8 @@ function RDW() {
       var rpeResult = BBF_RPE.calculate(lastW, lastRPE, est1RM);
       h += BBF_RPE.render(rpeResult);
     }
-    if (ex.is_shifted && ex.original_name) h += '<div class="enote" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)">&#x26A0; ' + _ts('sovereign-shift') + ': <strong>' + ex.original_name + '</strong> \u2192 <strong>' + exName + '</strong></div>';
-    else if (exNotes) h += '<div class="enote">&#x1F4A1; ' + exNotes + '</div>';
+    if (ex.is_shifted && ex.original_name) h += '<div class="enote" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)">&#x26A0; ' + _ts('sovereign-shift') + ': <strong>' + _trEx(ex.original_name) + '</strong> \u2192 <strong>' + _trEx(exName) + '</strong></div>';
+    else if (exNotes) h += '<div class="enote">&#x1F4A1; ' + _trNote(exNotes) + '</div>';
     // Phase 4 \u00b7 Autoregulation Engine \u2014 per-exercise target weight banner.
     // readyScore (above) \u00d7 historical working weight at (SDAY, ei) = today's
     // target. Skips cardio/timed exercises internally; degrades to
@@ -13611,7 +13630,7 @@ async function CWO(day, dk) {
     // Cleanup + victory + navigate. Only reached on resolve.
     try { if(dk) sessionStorage.removeItem('bbf_wo_' + dk); } catch(e) {}
     var stk = STREAK((d.l[uid]||[]).filter(function(l){return l.type!=='note';}));
-  showVictory(_t('app-victory-title','CRUSHED IT!'), day.focus + ' ' + _t('app-victory-complete','Complete'), day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + ' \u2022 ' + _t('app-victory-great','Great work!'));
+  showVictory(_t('app-victory-title','CRUSHED IT!'), _trFocus(day.focus) + ' ' + _t('app-victory-complete','Complete'), day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + ' \u2022 ' + _t('app-victory-great','Great work!'));
   setTimeout(function(){ checkStreakMilestone(stk); checkProgressiveOverload(); }, 600);
   // Athlete Evolution — update attributes based on workout type
   if (typeof BBF_SYNC !== 'undefined' && BBF_SYNC.processAthleteEvolution) {
@@ -14245,7 +14264,7 @@ function RN() {
     '<div class="dn2" style="font-size:1.3rem">' + plan.cal + '</div>' +
     '<div class="df2">&#x1F3AF; ' + plan.goal + '</div></div>';
   h += '<div class="dnav" id="nnav">' + plan.days.map(function(day, i) {
-    return '<button class="dbn' + (i === todayIdx ? ' on' : '') + '" onclick="SNDAY(' + i + ')">' + day.day + '</button>';
+    return '<button class="dbn' + (i === todayIdx ? ' on' : '') + '" onclick="SNDAY(' + i + ')">' + _trDay(day.day) + '</button>';
   }).join('') + '</div>';
   h += '<div id="ndaycon">' + RNDAY(plan, todayIdx) + '</div>';
   con.innerHTML = h;
