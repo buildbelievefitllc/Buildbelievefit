@@ -1,0 +1,21 @@
+# Build Believe Fit LLC — Static Deployment Headers
+#
+# CSP TRADE-OFFS:
+# We are currently using 'unsafe-inline' for script-src and style-src because
+# bbf-app.html relies heavily on inline script blocks and inline styles.
+#
+# Future hardening path:
+# - Extract inline scripts to external .js files.
+# - Apply cryptographic nonces or hashes to remaining inline scripts/styles.
+# - Remove 'unsafe-inline' from CSP directives.
+
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=(), payment=(), interest-cohort=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com https://challenges.cloudflare.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.anthropic.com https://api.brevo.com https://api.vapi.ai https://buildbelievefit.onrender.com wss://buildbelievefit.onrender.com https://buy.stripe.com https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
