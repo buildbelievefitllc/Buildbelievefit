@@ -5589,12 +5589,32 @@ function exitBouncer() {
 }
 
 function REGISTER(){
-  var nameEl=document.getElementById('rn');
-  var userEl=document.getElementById('ru');
-  var pinEl =document.getElementById('rp');
-  var typeEl=document.getElementById('rt');
-  var goalEl=document.getElementById('rg');
-  var msg   =document.getElementById('rmsg');
+  // ─── IRON GATE (Phase 11 · paywall enforcement) ──────────────
+  // CEO directive: only the trainer (Akeem) may create new client
+  // accounts. The public "New Client" tab is removed from the auth
+  // screen, but this function-level guard is defense-in-depth — a
+  // bypass via DevTools (unhide the pane, click Create Profile)
+  // still fails here. Legitimate admin-initiated creation flows
+  // through ADMIN_CREATE_CLIENT() which sets _bbfAdminProvisioning
+  // before invoking the create path.
+  var _msg = document.getElementById('rmsg') || document.getElementById('admin-create-msg');
+  var _isAkeem = (CU === 'akeem');
+  var _adminFlag = !!window._bbfAdminProvisioning;
+  if (!_isAkeem || !_adminFlag) {
+    if (_msg) {
+      _msg.textContent = 'Account creation is restricted. Contact Akeem (akeem@buildbelievefit.fitness) to provision your access after payment.';
+      _msg.style.color = '#ef4444';
+    }
+    console.warn('[BBF] REGISTER blocked — admin-only path. CU=' + (CU || 'null') + ' adminFlag=' + _adminFlag);
+    return;
+  }
+  // ─── END IRON GATE ───────────────────────────────────────────
+  var nameEl=document.getElementById('rn')||document.getElementById('admin-create-name');
+  var userEl=document.getElementById('ru')||document.getElementById('admin-create-user');
+  var pinEl =document.getElementById('rp')||document.getElementById('admin-create-pin');
+  var typeEl=document.getElementById('rt')||document.getElementById('admin-create-type');
+  var goalEl=document.getElementById('rg')||document.getElementById('admin-create-goal');
+  var msg   =_msg;
   if(!nameEl||!userEl||!pinEl){if(msg)msg.textContent='Form error.';return;}
   var name=nameEl.value.trim();
   var user=userEl.value.trim().toLowerCase().replace(/\s+/g,'_');
@@ -5607,14 +5627,73 @@ function REGISTER(){
   }
   var d=GD();
   if(d.u[user]){if(msg){msg.textContent='Username taken. Choose another.';msg.style.color='#ef4444';}return;}
-  d.u[user]={name:name,pin:pin,role:'client',type:type,goal:goal,gw:'',plan:null};
+  // Audit trail — every admin-provisioned profile is stamped so we can
+  // distinguish from any legacy self-signups in the data.
+  d.u[user]={
+    name:name, pin:pin, role:'client',
+    type:type, goal:goal, gw:'', plan:null,
+    created_by:'akeem', created_at:(typeof today==='function'?today():new Date().toISOString().slice(0,10)),
+    provisioning:'admin_override'
+  };
   if(!d.l[user])d.l[user]=[];
   if(!d.w[user])d.w[user]={};
   SD(d);
-  CU=user;VC=user;
-  if(msg)msg.textContent='';
-  if(typeof ENTER==='function'){ENTER();}else{SS('app');}
+  // Admin-provisioning path: do NOT auto-login as the new client.
+  // Akeem stays signed in and gets a confirmation toast + roster
+  // refresh. The new client signs in themselves with their PIN.
+  if (msg) {
+    msg.textContent = 'Profile created for ' + name + ' (' + user + '). Share their PIN.';
+    msg.style.color = '#22c55e';
+  }
+  if (typeof TOAST === 'function') TOAST('🔐 Client profile created: ' + name);
+  // Refresh the trainer dashboard so the new client appears in the roster.
+  if (typeof renderTrainerDashboard === 'function') {
+    try { renderTrainerDashboard(d); } catch (_) {}
+  }
+  // Clear form fields after success for the next provisioning.
+  try { nameEl.value=''; userEl.value=''; pinEl.value=''; if(goalEl)goalEl.value=''; } catch(_){}
 }
+
+// ─── ADMIN-ONLY CLIENT PROVISIONING (Phase 11) ──────────────────
+// Trainer-side override for the iron-gated REGISTER() function. Used
+// when Akeem needs to create a profile manually after a client pays
+// but cannot get access through the normal flow (failed sync, lost
+// PIN at sign-up, in-person paid client, etc.).
+//
+// UI: hidden modal #admin-create-modal. Trainer dashboard renders a
+// "+ Create Client Profile" button that opens it. Submission flips
+// window._bbfAdminProvisioning so REGISTER()'s iron gate allows the
+// call, then unflips in finally.
+window.openAdminCreateClient = function openAdminCreateClient(){
+  if (CU !== 'akeem') {
+    console.warn('[BBF] openAdminCreateClient blocked — only Akeem can open this modal.');
+    return;
+  }
+  var modal = document.getElementById('admin-create-modal');
+  if (modal) modal.classList.add('on');
+};
+window.closeAdminCreateClient = function closeAdminCreateClient(){
+  var modal = document.getElementById('admin-create-modal');
+  if (modal) modal.classList.remove('on');
+  var msg = document.getElementById('admin-create-msg');
+  if (msg) { msg.textContent = ''; msg.style.color = ''; }
+};
+window.ADMIN_CREATE_CLIENT = function ADMIN_CREATE_CLIENT(){
+  // Trainer-initiated. Flip the iron-gate bypass flag JUST for this
+  // call; REGISTER's guard checks CU==='akeem' AND this flag, so a
+  // call without both fails. try/finally guarantees the flag clears
+  // even if REGISTER throws.
+  if (CU !== 'akeem') {
+    console.warn('[BBF] ADMIN_CREATE_CLIENT blocked — current user is not Akeem.');
+    return;
+  }
+  window._bbfAdminProvisioning = true;
+  try {
+    REGISTER();
+  } finally {
+    window._bbfAdminProvisioning = false;
+  }
+};
 
 // Wire buttons immediately
 document.addEventListener('DOMContentLoaded',function(){
@@ -5644,10 +5723,11 @@ window.onload=function(){
     <div class="asu">[ CLIENT PORTAL // SECURE ACCESS ]</div>
   </div>
   <div class="abox">
-    <div class="atabs">
-      <button class="atab on" id="tab-si">Sign In</button>
-      <button class="atab" id="tab-nc">New Client</button>
-    </div>
+    <!-- Public "New Client" signup tab REMOVED per CEO directive — paywall
+         enforcement. Client account creation is now Akeem-only via the
+         trainer dashboard's "Create Client Profile" admin tool. The
+         #pane-nc form below is retained in the DOM (hidden) so the admin
+         tool can clone its fields, and REGISTER() is gated to admin-only. -->
     <div id="pane-si">
       <div class="af">
         <label>Username</label>
@@ -5661,7 +5741,7 @@ window.onload=function(){
       <div class="amsg" id="lmsg"></div>
       <a class="vault-forgot" href="mailto:akeem@buildbelievefit.fitness?subject=PIN%20Reset%20Request">Forgot PIN?</a>
     </div>
-    <div id="pane-nc" style="display:none">
+    <div id="pane-nc" style="display:none" data-bbf-admin-only="1" aria-hidden="true">
       <div class="af"><label>Full Name</label><input type="text" id="rn" placeholder="e.g. Marcus Johnson"/></div>
       <div class="af"><label>Username (no spaces)</label><input type="text" id="ru" placeholder="e.g. marcus_j" autocorrect="off" autocapitalize="none" spellcheck="false"/></div>
       <div class="af"><label>6-digit PIN</label><input type="password" id="rp" placeholder="choose a PIN" maxlength="6" inputmode="numeric"/></div>
@@ -7255,6 +7335,31 @@ window.onload=function(){
 <!-- Morning Lab Audit (readiness modal) NUKED per CEO directive — no UI prompt. -->
 
 
+<!-- ═══ ADMIN-ONLY CLIENT PROVISIONING MODAL ═════════════════════
+     Trapdoor for Akeem to create a client profile manually when the
+     normal paywall/payment flow can't deliver access. NEVER exposed
+     in the public auth screen — opened only via the trainer-dashboard
+     "+ Create Client Profile" button (visible only when CU==='akeem').
+     ADMIN_CREATE_CLIENT() routes through REGISTER() with the
+     _bbfAdminProvisioning flag set so the iron gate allows the call. -->
+<div class="modal" id="admin-create-modal">
+  <div class="msh">
+    <div class="mhd"></div>
+    <div class="mt">&#x1F510; Provision Client Profile</div>
+    <div style="font-size:.78rem;font-weight:600;color:var(--mut2);margin-bottom:1rem;line-height:1.55">Admin override — use when a paid client cannot reach the app through the normal flow. The new profile is stamped <code style="background:#1a1a1a;padding:.05rem .4rem;border-radius:3px;color:var(--yel)">provisioning: admin_override</code> in the audit trail.</div>
+    <div class="af"><label>Full Name</label><input type="text" id="admin-create-name" placeholder="e.g. Marcus Johnson" autocorrect="off"/></div>
+    <div class="af"><label>Username (no spaces)</label><input type="text" id="admin-create-user" placeholder="e.g. marcus_j" autocorrect="off" autocapitalize="none" spellcheck="false"/></div>
+    <div class="af"><label>6-digit PIN (share with client)</label><input type="password" id="admin-create-pin" placeholder="set a PIN" maxlength="6" inputmode="numeric"/></div>
+    <div class="af"><label>Training Type</label><select id="admin-create-type"><option>In-Person</option><option>Online / Remote</option></select></div>
+    <div class="af"><label>Goal (optional)</label><input type="text" id="admin-create-goal" placeholder="e.g. Lose 20lbs by summer"/></div>
+    <div class="amsg" id="admin-create-msg" style="margin-top:.6rem"></div>
+    <div class="ma" style="margin-top:1rem;display:flex;gap:.6rem">
+      <button class="mc3" onclick="closeAdminCreateClient()" style="flex:1">Cancel</button>
+      <button class="ms" onclick="ADMIN_CREATE_CLIENT()" style="flex:1;background:var(--yel);color:#000;font-family:var(--hb);letter-spacing:2px">Provision &#x2192;</button>
+    </div>
+  </div>
+</div>
+
 <!-- PRE-HAB AUDIT MODAL -->
 <div class="modal" id="prehab-audit-modal">
   <div class="msh">
@@ -8215,6 +8320,8 @@ function renderTrainerDashboard(d) {
   var rosterWrap = document.getElementById('rlist');
   if (!rosterWrap) return;
   document.querySelector('.stt') && (document.querySelector('.stt').textContent = 'Your Client Roster');
+  // Founder 5 display metadata. Admin-provisioned clients get a
+  // generic icon/color fallback so the trainer can still drill in.
   var clientNames = {
     'ana_bbf':     {name:'Ana',     tier:'Essentials', plan:'Spring Program',       icon:'&#x1F4AA;', color:'#22c55e'},
     'jacky_bbf':   {name:'Jacky',   tier:'Essentials', plan:'Push/Pull/Legs',       icon:'&#x26A1;',  color:'#f5c800'},
@@ -8222,21 +8329,48 @@ function renderTrainerDashboard(d) {
     'jordan_bbf':  {name:'Jordan',  tier:'Platinum',   plan:'Lean-Down Program',    icon:'&#x1F3C6;', color:'#3b82f6'},
     'wayne_bbf':   {name:'Wayne',   tier:'Platinum',   plan:'Lean Muscle Build',    icon:'&#x1F525;', color:'#ef4444'}
   };
-  var html = '<div style="display:flex;flex-direction:column;gap:.7rem">';
-  Object.keys(clientNames).forEach(function(uid) {
-    var c = clientNames[uid];
+  // Admin override CTA — opens the provisioning modal. Only renders
+  // because renderTrainerDashboard itself is gated to CU==='akeem'.
+  var html = '';
+  html += '<button onclick="openAdminCreateClient()" style="width:100%;margin-bottom:1rem;padding:.85rem 1rem;background:linear-gradient(135deg,rgba(245,200,0,.14),rgba(212,175,55,.08));border:1px dashed rgba(245,200,0,.5);border-radius:12px;color:var(--yel);font-family:var(--hb);font-size:.82rem;letter-spacing:2.4px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.55rem">&#x2795; Create Client Profile <span style="font-size:.6rem;letter-spacing:2px;color:var(--mut);font-weight:600;text-transform:none">&middot; admin override</span></button>';
+  html += '<div style="display:flex;flex-direction:column;gap:.7rem">';
+  // Iterate ALL clients in the data, not just the founder 5. This way
+  // admin-provisioned clients appear in the roster the moment they're
+  // created.
+  var allClients = Object.keys(d.u || {}).filter(function(uid){
+    var u = d.u[uid];
+    return u && u.role === 'client';
+  });
+  // Stable order: founder 5 first (in their hardcoded order), then
+  // admin-provisioned by created_at desc, then anything else.
+  var founderOrder = ['ana_bbf','jacky_bbf','jacque_bbf','jordan_bbf','wayne_bbf'];
+  var founders = founderOrder.filter(function(uid){ return allClients.indexOf(uid) !== -1; });
+  var others = allClients.filter(function(uid){ return founderOrder.indexOf(uid) === -1; }).sort(function(a,b){
+    var ua = d.u[a] || {}, ub = d.u[b] || {};
+    return (ub.created_at || '').localeCompare(ua.created_at || '');
+  });
+  var orderedClients = founders.concat(others);
+  orderedClients.forEach(function(uid) {
+    var u = d.u[uid] || {};
+    var meta = clientNames[uid] || {
+      name: u.name || uid,
+      tier: u.type || (u.provisioning === 'admin_override' ? 'Admin-Provisioned' : 'Client'),
+      plan: u.plan ? String(u.plan).replace(/_/g,' ') : (u.goal || '—'),
+      icon: '&#x1F510;',
+      color: '#94a3b8'
+    };
     var clogs = d.l[uid] || [];
     var streak = STREAK(clogs);
     var sessions = clogs.filter(function(l){ return l.type !== 'note'; }).length;
     html += '<div style="background:var(--gry2);border:1px solid var(--gry3);border-radius:14px;padding:1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer" data-uid="' + uid + '" onclick="selectClient(this.dataset.uid)">' +
       '<div style="display:flex;align-items:center;gap:.8rem">' +
-      '<div style="width:44px;height:44px;border-radius:50%;background:' + c.color + '22;border:2px solid ' + c.color + ';display:flex;align-items:center;justify-content:center;font-size:1.3rem">' + c.icon + '</div>' +
+      '<div style="width:44px;height:44px;border-radius:50%;background:' + meta.color + '22;border:2px solid ' + meta.color + ';display:flex;align-items:center;justify-content:center;font-size:1.3rem">' + meta.icon + '</div>' +
       '<div>' +
-      '<div style="font-family:var(--hb);font-size:1rem;letter-spacing:1px;color:var(--wht)">' + c.name + '</div>' +
-      '<div style="font-size:.72rem;font-weight:700;color:var(--mut2)">' + c.plan + ' &bull; ' + c.tier + '</div>' +
+      '<div style="font-family:var(--hb);font-size:1rem;letter-spacing:1px;color:var(--wht)">' + meta.name + '</div>' +
+      '<div style="font-size:.72rem;font-weight:700;color:var(--mut2)">' + meta.plan + ' &bull; ' + meta.tier + '</div>' +
       '</div></div>' +
       '<div style="text-align:right">' +
-      '<div style="font-size:.8rem;font-weight:800;color:' + c.color + '">' + streak + ' &#x1F525;</div>' +
+      '<div style="font-size:.8rem;font-weight:800;color:' + meta.color + '">' + streak + ' &#x1F525;</div>' +
       '<div style="font-size:.68rem;color:var(--mut2)">' + sessions + ' sessions</div>' +
       '<div style="margin-top:.3rem;background:var(--pur);color:var(--yel);font-family:var(--hb);font-size:.65rem;letter-spacing:1px;padding:.2rem .6rem;border-radius:6px">VIEW PLAN</div>' +
       '</div></div>';
@@ -15048,19 +15182,19 @@ document.addEventListener('DOMContentLoaded', function() {
   // bindings still attach.
   try {
 
-  // Auth tabs
-  document.getElementById('tab-si').onclick = function() {
-    document.getElementById('tab-si').classList.add('on');
-    document.getElementById('tab-nc').classList.remove('on');
-    document.getElementById('pane-si').style.display = '';
-    document.getElementById('pane-nc').style.display = 'none';
-  };
-  document.getElementById('tab-nc').onclick = function() {
-    document.getElementById('tab-nc').classList.add('on');
-    document.getElementById('tab-si').classList.remove('on');
-    document.getElementById('pane-nc').style.display = '';
-    document.getElementById('pane-si').style.display = 'none';
-  };
+  // Auth tabs — public "New Client" tab REMOVED per CEO directive
+  // (paywall enforcement). The Sign-In pane is the only public path;
+  // client account creation is admin-only via the trainer dashboard.
+  // Defensive: if the legacy tab DOM ever resurfaces (cached HTML,
+  // partial deploy), force the pane back to sign-in.
+  var _bbfTabSi = document.getElementById('tab-si');
+  var _bbfTabNc = document.getElementById('tab-nc');
+  if (_bbfTabNc) _bbfTabNc.style.display = 'none';
+  if (_bbfTabSi) _bbfTabSi.style.cursor = 'default';
+  var _bbfPaneSi = document.getElementById('pane-si');
+  var _bbfPaneNc = document.getElementById('pane-nc');
+  if (_bbfPaneSi) _bbfPaneSi.style.display = '';
+  if (_bbfPaneNc) _bbfPaneNc.style.display = 'none';
 
   // Nav buttons
   document.querySelectorAll('.nv').forEach(function(b) {
