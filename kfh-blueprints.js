@@ -163,23 +163,6 @@
       { type: 'bar', attach: ['shoulder_l', 'shoulder_r'], plates: true }
     ],
 
-    bodyOutline: {
-      // Standing side profile, t=0 at top of squat. Anchored to
-      // head(0.50,0.20), shoulders(0.50,0.35), hips(0.50,0.60),
-      // knees(0.50,0.78), ankles(0.50,0.92). Silhouette extends
-      // x≈0.42-0.58 so animated wireframe at x=0.50 sits inside.
-      silhouette: {
-        d: 'M 0.50,0.13 C 0.44,0.13 0.42,0.18 0.43,0.22 L 0.45,0.26 L 0.46,0.30 L 0.46,0.34 L 0.45,0.40 L 0.44,0.46 L 0.43,0.52 L 0.43,0.58 L 0.43,0.62 L 0.43,0.68 L 0.44,0.74 L 0.45,0.80 L 0.46,0.86 L 0.46,0.92 L 0.50,0.93 L 0.54,0.92 L 0.54,0.86 L 0.55,0.80 L 0.56,0.74 L 0.57,0.68 L 0.57,0.62 L 0.57,0.58 L 0.57,0.52 L 0.56,0.46 L 0.55,0.40 L 0.54,0.34 L 0.54,0.30 L 0.55,0.26 L 0.57,0.22 C 0.58,0.18 0.56,0.13 0.50,0.13 Z'
-      },
-      highlights: [
-        { name: 'quad',  d: 'M 0.52,0.64 Q 0.55,0.71 0.54,0.76 Q 0.51,0.72 0.50,0.65 Z' },
-        { name: 'glute', d: 'M 0.43,0.60 Q 0.40,0.64 0.43,0.68 Q 0.46,0.65 0.46,0.62 Z' }
-      ],
-      spine: {
-        d: 'M 0.46,0.30 Q 0.47,0.45 0.46,0.60'
-      }
-    },
-
     kineticPath: {
       default: {
         label: { en: 'Bar Path', es: 'Trayectoria de Barra', pt: 'Trajetória da Barra' },
@@ -366,23 +349,6 @@
       { type: 'dumbbell', attach: ['wrist_l', 'wrist_r'] }
     ],
 
-    bodyOutline: {
-      // Standing side profile. t=0 hangs arms straight (elbow at hip),
-      // wrist mid-curl. Body shape mirrors back-squat baseline; bicep
-      // belly highlight on the upper arm visible between shoulder and
-      // elbow.
-      silhouette: {
-        d: 'M 0.50,0.13 C 0.44,0.13 0.42,0.18 0.43,0.22 L 0.45,0.26 L 0.46,0.30 L 0.46,0.34 L 0.45,0.40 L 0.44,0.46 L 0.43,0.52 L 0.43,0.58 L 0.43,0.62 L 0.43,0.68 L 0.44,0.74 L 0.45,0.80 L 0.46,0.86 L 0.46,0.92 L 0.50,0.93 L 0.54,0.92 L 0.54,0.86 L 0.55,0.80 L 0.56,0.74 L 0.57,0.68 L 0.57,0.62 L 0.57,0.58 L 0.57,0.52 L 0.56,0.46 L 0.55,0.40 L 0.54,0.34 L 0.54,0.30 L 0.55,0.26 L 0.57,0.22 C 0.58,0.18 0.56,0.13 0.50,0.13 Z'
-      },
-      highlights: [
-        { name: 'bicep', d: 'M 0.52,0.40 Q 0.56,0.44 0.55,0.50 Q 0.51,0.46 0.50,0.40 Z' },
-        { name: 'pec',   d: 'M 0.51,0.36 Q 0.55,0.38 0.56,0.42 Q 0.52,0.40 0.50,0.37 Z' }
-      ],
-      spine: {
-        d: 'M 0.46,0.30 Q 0.47,0.45 0.46,0.60'
-      }
-    },
-
     kineticPath: {
       default: {
         label: { en: 'Flexion Arc', es: 'Arco de Flexión', pt: 'Arco de Flexão' },
@@ -545,23 +511,6 @@
     },
 
     equipment: [{ type: 'bar', attach: ['wrist_l', 'wrist_r'], plates: true }],
-
-    bodyOutline: {
-      // Standing side profile, t=0 at top with bar at thigh level.
-      // Hamstring belly + glute highlights signal the posterior chain
-      // as the prime mover. Spine indicator drawn straight (neutral
-      // spine is THE clinical cue for RDL).
-      silhouette: {
-        d: 'M 0.50,0.13 C 0.44,0.13 0.42,0.18 0.43,0.22 L 0.45,0.26 L 0.46,0.30 L 0.46,0.34 L 0.45,0.40 L 0.44,0.46 L 0.43,0.52 L 0.43,0.58 L 0.43,0.62 L 0.43,0.68 L 0.44,0.74 L 0.45,0.80 L 0.46,0.86 L 0.46,0.92 L 0.50,0.93 L 0.54,0.92 L 0.54,0.86 L 0.55,0.80 L 0.56,0.74 L 0.57,0.68 L 0.57,0.62 L 0.57,0.58 L 0.57,0.52 L 0.56,0.46 L 0.55,0.40 L 0.54,0.34 L 0.54,0.30 L 0.55,0.26 L 0.57,0.22 C 0.58,0.18 0.56,0.13 0.50,0.13 Z'
-      },
-      highlights: [
-        { name: 'hamstring', d: 'M 0.44,0.62 Q 0.42,0.70 0.44,0.78 Q 0.47,0.72 0.47,0.64 Z' },
-        { name: 'glute',     d: 'M 0.43,0.58 Q 0.40,0.62 0.43,0.66 Q 0.46,0.63 0.46,0.60 Z' }
-      ],
-      spine: {
-        d: 'M 0.46,0.30 L 0.46,0.45 L 0.46,0.60'
-      }
-    },
 
     kineticPath: {
       default: { label: { en: 'Bar Path', es: 'Trayectoria de Barra', pt: 'Trajetória da Barra' },
@@ -1285,23 +1234,6 @@
 
     equipment: [{ type: 'dumbbell', attach: ['wrist_l', 'wrist_r'] }],
 
-    bodyOutline: {
-      // Supine side profile. Head right at (0.75,0.65); torso runs left
-      // along the bench; hip at (0.30,0.65); leg hangs off bench-left:
-      // thigh straight down to knee (0.30,0.80), shin forward to ankle
-      // (0.40,0.92). Silhouette traces head + supine torso top (chest
-      // peaks above bench) + visible leg as one closed shape.
-      silhouette: {
-        d: 'M 0.79,0.65 C 0.83,0.63 0.83,0.56 0.79,0.55 C 0.74,0.55 0.71,0.58 0.71,0.62 L 0.70,0.66 L 0.68,0.64 C 0.64,0.61 0.60,0.60 0.55,0.62 C 0.48,0.60 0.40,0.61 0.35,0.62 C 0.32,0.62 0.30,0.63 0.28,0.64 L 0.27,0.66 L 0.27,0.72 L 0.28,0.78 L 0.28,0.85 L 0.29,0.92 L 0.42,0.92 L 0.41,0.88 L 0.34,0.85 L 0.33,0.78 L 0.32,0.72 L 0.33,0.66 Z'
-      },
-      highlights: [
-        { name: 'pec', d: 'M 0.52,0.60 Q 0.60,0.59 0.66,0.61 Q 0.60,0.63 0.52,0.62 Z' }
-      ],
-      spine: {
-        d: 'M 0.70,0.65 Q 0.50,0.66 0.30,0.65'
-      }
-    },
-
     kineticPath: {
       default: { label: { en: 'Press Vector', es: 'Vector de Presión', pt: 'Vetor de Pressão' },
                  d: 'M 0.60 0.15 L 0.60 0.60' },
@@ -2019,24 +1951,6 @@
     },
 
     equipment: [{ type: 'dumbbell', attach: ['wrist_l', 'wrist_r'] }],
-
-    bodyOutline: {
-      // Frontal view (both shoulders + arms visible). Head at (0.50,0.20);
-      // torso spans shoulders (0.40-0.60, 0.35) down to hips (0.45-0.55,
-      // 0.65); legs split to knees (0.35,0.75) and (0.65,0.75). Body
-      // silhouette traces full frontal trunk + both legs.
-      silhouette: {
-        d: 'M 0.50,0.13 C 0.43,0.13 0.41,0.18 0.43,0.23 C 0.45,0.27 0.48,0.28 0.50,0.28 C 0.52,0.28 0.55,0.27 0.57,0.23 C 0.59,0.18 0.57,0.13 0.50,0.13 Z M 0.47,0.30 L 0.38,0.34 L 0.36,0.42 L 0.38,0.52 L 0.40,0.60 L 0.42,0.66 L 0.36,0.74 L 0.34,0.85 L 0.32,0.92 L 0.40,0.92 L 0.42,0.85 L 0.46,0.78 L 0.50,0.72 L 0.54,0.78 L 0.58,0.85 L 0.60,0.92 L 0.68,0.92 L 0.66,0.85 L 0.64,0.74 L 0.58,0.66 L 0.60,0.60 L 0.62,0.52 L 0.64,0.42 L 0.62,0.34 L 0.53,0.30 Z'
-      },
-      highlights: [
-        { name: 'deltoid_l', d: 'M 0.37,0.33 Q 0.34,0.36 0.36,0.40 Q 0.40,0.38 0.41,0.34 Z' },
-        { name: 'deltoid_r', d: 'M 0.59,0.34 Q 0.60,0.38 0.64,0.40 Q 0.66,0.36 0.63,0.33 Z' },
-        { name: 'pec',       d: 'M 0.42,0.40 Q 0.50,0.42 0.58,0.40 Q 0.50,0.46 0.42,0.45 Z' }
-      ],
-      spine: {
-        d: 'M 0.50,0.32 L 0.50,0.46 L 0.50,0.62'
-      }
-    },
 
     kineticPath: {
       default: { label: { en: 'Press Vector', es: 'Vector de Presión', pt: 'Vetor de Pressão' },

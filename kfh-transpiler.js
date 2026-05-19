@@ -281,67 +281,6 @@ var BBF_KFH_TRANSPILER = (function () {
     }
   }
 
-  // ─── BODY OUTLINE EMITTER (Phase 13 Path B) ──────────────
-  // Renders a static anatomical silhouette UNDER the animated bones
-  // and joints. The animator never touches outline elements (no
-  // data-bp-* attributes), so the body stays in its t=0 reference
-  // pose while the wireframe animates the rep cycle on top.
-  //
-  // Each Blueprint may optionally declare:
-  //   bodyOutline: {
-  //     silhouette: { d: 'M ... Z' },     // primary cyan-filled body
-  //     highlights: [{ name, d }, ...],   // gold-gradient muscle bellies
-  //     spine:      { d, dashed: true }   // purple dashed spine indicator
-  //   }
-  // Coords are normalized [0,1] and scaled to 320×200 by _scalePath.
-  // Gradient ids are scoped per Blueprint id to avoid cross-Blueprint
-  // ID collision when multiple SVGs paint on the same page.
-  function _emitBodyOutline(parts, outline, bpId) {
-    if (!outline) return;
-    var safeId = String(bpId || 'kfh').replace(/[^a-z0-9_-]/gi, '_');
-    var bodyGradId   = 'kfh-bo-' + safeId + '-body';
-    var muscleGradId = 'kfh-bo-' + safeId + '-muscle';
-
-    parts.push('<defs>');
-    parts.push(
-      '<linearGradient id="' + bodyGradId + '" x1="0%" y1="0%" x2="0%" y2="100%">' +
-        '<stop offset="0%" stop-color="#00E5FF" stop-opacity="0.22"/>' +
-        '<stop offset="100%" stop-color="#00E5FF" stop-opacity="0.05"/>' +
-      '</linearGradient>'
-    );
-    parts.push(
-      '<linearGradient id="' + muscleGradId + '" x1="0%" y1="0%" x2="100%" y2="0%">' +
-        '<stop offset="0%" stop-color="#F5C800" stop-opacity="0.34"/>' +
-        '<stop offset="100%" stop-color="#F5C800" stop-opacity="0.08"/>' +
-      '</linearGradient>'
-    );
-    parts.push('</defs>');
-
-    if (outline.silhouette && outline.silhouette.d) {
-      parts.push(
-        '<path class="kfh-anatomy-body" d="' + _scalePath(outline.silhouette.d) + '" ' +
-          'fill="url(#' + bodyGradId + ')" stroke="#00E5FF" stroke-width="1.4" stroke-linejoin="round"/>'
-      );
-    }
-
-    (outline.highlights || []).forEach(function (h) {
-      if (!h || !h.d) return;
-      parts.push(
-        '<path class="kfh-anatomy-muscle" d="' + _scalePath(h.d) + '" ' +
-          'fill="url(#' + muscleGradId + ')" stroke="none"/>'
-      );
-    });
-
-    if (outline.spine && outline.spine.d) {
-      var dashed = outline.spine.dashed !== false;
-      parts.push(
-        '<path class="kfh-anatomy-spine" d="' + _scalePath(outline.spine.d) + '" ' +
-          'stroke="rgba(139,26,191,0.55)" stroke-width="0.9" fill="none"' +
-          (dashed ? ' stroke-dasharray="2.5,2"' : '') + '/>'
-      );
-    }
-  }
-
   // ─── CALLOUT EMITTER ─────────────────────────────────────
   function _emitCallout(parts, co, mode, bp) {
     var fp = _initialPos(bp, co.from);
@@ -386,11 +325,6 @@ var BBF_KFH_TRANSPILER = (function () {
     (bp.equipment || []).forEach(function (eq, ei) {
       _emitEquipment(parts, eq, ei, bp);
     });
-
-    // Phase 13 Path B — body outline (static anatomical silhouette
-    // rendered UNDER the animated bones/joints). Backward compat:
-    // Blueprints without bodyOutline render as wireframe-only.
-    _emitBodyOutline(parts, bp.bodyOutline, bp.id);
 
     // Bones (animator updates endpoints each frame)
     (bp.bones || []).forEach(function (pair, bi) {
