@@ -2054,6 +2054,9 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   border-radius: 8px; transition: background .15s ease, color .15s ease;
 }
 .pes-x:hover { background: rgba(255,255,255,.08); color: var(--wht) }
+.pes-x.pes-flip { font-size: 1.05rem }
+.pes-x.pes-flip:disabled { opacity: .45; cursor: not-allowed }
+.pes-x.pes-flip:not(:disabled):hover { background: rgba(212,175,55,.14); color: var(--yel,#F5C800) }
 .pes-stage {
   position: relative;
   background: #000;
@@ -7080,6 +7083,7 @@ window.onload=function(){
         </div>
         <div class="pes-head-r">
           <span class="pe-status-badge is-live" id="pes-live-badge" data-lang-key="pe-badge-live">Live</span>
+          <button type="button" class="pes-x pes-flip" id="pes-flip-cam-btn" onclick="flipPhantomEyeCamera()" aria-label="Flip camera" title="Flip camera (front / rear)">&#x1F504;</button>
           <button type="button" class="pes-x" id="pes-x-btn" onclick="terminateLiveCoach('vision')" aria-label="Close Live Coach">&#x2715;</button>
         </div>
       </header>
@@ -9847,7 +9851,11 @@ function _lcResolveMode(mode) {
     statusBadgeId:'pes-live-badge',
     orbId:        null,
     gumConstraints: {
-      video: true,
+      // Prefer the REAR camera by default — the user is pointing the
+      // phone at a meal / their movement, not at their own face. The
+      // 🔄 flip button in the modal header swaps to the front camera
+      // on demand via flipPhantomEyeCamera().
+      video: { facingMode: { ideal: 'environment' } },
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
     },
     requestingCopyKey: 'pe-perm-prompt',
@@ -9871,6 +9879,15 @@ function _lcStartStreaming(stream, msgEl, modeRefs) {
     playbackCursor: 0,
     videoTimer: null,
     hiddenCanvas: null,
+    // Camera-flip state — seeded from the active video track's facingMode
+    // (or the requested ideal if the track doesn't expose it).
+    facingMode: (function(){
+      try {
+        var t = stream && stream.getVideoTracks && stream.getVideoTracks()[0];
+        var s = t && typeof t.getSettings === 'function' ? t.getSettings() : null;
+        return (s && s.facingMode) || 'environment';
+      } catch(_) { return 'environment'; }
+    })(),
   };
 
   lc.teardown = function teardownLc() {
@@ -10247,6 +10264,67 @@ window.initLiveCoach = function initLiveCoach(mode) {
       msgEl.classList.add('is-error', 'on');
     }
   }
+};
+
+// ─── PHANTOM EYE — Camera Flip (front <-> rear) ──────────────────────
+// Replaces the video track on the live stream without re-prompting
+// the user for microphone permission. Keeps the WS + audio pipeline +
+// orb visualization fully intact — only the video track swaps.
+// Wired to the 🔄 button in the modal header (id="pes-flip-cam-btn").
+window.flipPhantomEyeCamera = function flipPhantomEyeCamera() {
+  var lc = window.PHANTOM_EYE_LC;
+  if (!lc || !lc.stream) return;
+  if (lc.mode !== 'vision') return;
+  var btn = document.getElementById('pes-flip-cam-btn');
+  if (btn && btn.disabled) return;
+  if (btn) btn.disabled = true;
+
+  var nextMode = (lc.facingMode === 'user') ? 'environment' : 'user';
+  console.log('[Phantom Eye] camera flip · ' + lc.facingMode + ' -> ' + nextMode);
+
+  if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+    if (btn) btn.disabled = false;
+    return;
+  }
+
+  // Video-only request — audio is already running, do NOT re-acquire it.
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: nextMode } } })
+    .then(function(newStream) {
+      var newVideoTrack = newStream.getVideoTracks && newStream.getVideoTracks()[0];
+      if (!newVideoTrack) { throw new Error('no video track in flipped stream'); }
+      var oldTracks = lc.stream.getVideoTracks ? lc.stream.getVideoTracks() : [];
+      oldTracks.forEach(function(t) {
+        try { lc.stream.removeTrack(t); } catch(_) {}
+        try { t.stop(); } catch(_) {}
+      });
+      try { lc.stream.addTrack(newVideoTrack); } catch(_) {}
+
+      // Re-bind srcObject so the <video> element picks up the new track
+      // immediately on browsers that don't auto-refresh on addTrack.
+      var videoElId = lc.modeRefs && lc.modeRefs.videoElId;
+      var videoEl = videoElId ? document.getElementById(videoElId) : null;
+      if (videoEl) {
+        videoEl.srcObject = lc.stream;
+        var p = videoEl.play && videoEl.play();
+        if (p && typeof p.catch === 'function') { p.catch(function(){}); }
+      }
+      // Update state. If the track exposes its actual settings, trust them.
+      try {
+        var s = typeof newVideoTrack.getSettings === 'function' ? newVideoTrack.getSettings() : null;
+        lc.facingMode = (s && s.facingMode) || nextMode;
+      } catch(_) {
+        lc.facingMode = nextMode;
+      }
+      if (btn) btn.disabled = false;
+    })
+    .catch(function(err) {
+      console.warn('[Phantom Eye] camera flip failed:', err && err.message);
+      if (btn) btn.disabled = false;
+      // Best-effort user feedback — non-blocking.
+      try {
+        if (typeof TOAST === 'function') TOAST('Camera flip unavailable on this device.');
+      } catch(_) {}
+    });
 };
 
 window.terminateLiveCoach = function terminateLiveCoach(mode) {
