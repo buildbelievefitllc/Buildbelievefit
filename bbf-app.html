@@ -7802,6 +7802,14 @@ function TAB(name) {
   if (typeof BBF_COMLINK !== 'undefined') {
     try { BBF_COMLINK.mount(); } catch(_) {}
   }
+  // Phase 11 hotfix — translate any data-lang-key elements injected by
+  // the just-finished tab-specific render. Without this, a user who
+  // switches language and then switches tabs sees the new tab in
+  // English because BBF_LANG.apply() only ran at language-switch time,
+  // BEFORE this tab's render path injected fresh DOM.
+  if (typeof BBF_LANG !== 'undefined' && BBF_LANG.apply) {
+    try { BBF_LANG.apply(); } catch(_) {}
+  }
 }
 
 function today() {
@@ -8957,6 +8965,15 @@ function setSovereignLang(lang) {
     if (tabId === 'home') RH();
     if (tabId === 'workout') RW();
     if (tabId === 'nutrition') RN();
+  }
+  // Phase 11 hotfix \u2014 BBF_LANG.set() ran apply() BEFORE renderPrehab/RH/RW/RN
+  // re-rendered the tab content, so newly-injected data-lang-key elements
+  // never got translated. Run apply() AGAIN at the end so the new DOM
+  // (with English default text from the template strings) gets swapped
+  // to the active language. Also handles _t()-driven content via the
+  // LANG global that's already updated above.
+  if (typeof BBF_LANG !== 'undefined' && BBF_LANG.apply) {
+    try { BBF_LANG.apply(); } catch(_) {}
   }
   TOAST('\uD83C\uDF10 Language: ' + {en:'English',es:'Espa\u00f1ol',pt:'Portugu\u00eas'}[lang]);
 }
@@ -14409,7 +14426,16 @@ function renderProtocolBadge(uid) {
 }
 
 // ─── LANGUAGE STATE ───────────────────────────────────────────────
-var LANG = 'en';
+// Hydrate from localStorage so _t() returns the user's saved language
+// on every page load. Without this, a Spanish/Portuguese user who
+// refreshed the page would see static [data-lang-key] elements
+// correctly translated (driven by bbf-lang.js's IIFE-internal LANG)
+// but any _t()-driven dynamic content would fall back to English
+// because this bbf-app.html-scoped LANG stayed at 'en' until the
+// user clicked the language pill again.
+var LANG = (function(){
+  try { return localStorage.getItem('bbf_lang') || 'en'; } catch(_) { return 'en'; }
+})();
 function setLang(l) {
   LANG = l;
   // Sync with global BBF lang engine — translate all data-lang-key elements
