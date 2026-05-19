@@ -516,6 +516,13 @@ var BBF_KFH_CATALOG = (function () {
   // Drop laboratory asset URLs into mediaSrc (mediaType = image|video).
   var EXERCISES = {
     'bench press': {
+      // Phase 13 Path A shield — `animation: {}` truthy marker so the
+      // blueprint-deletion guard in registerBlueprint() at L679
+      // (`if (existing && !existing.animation)`) skips this entry.
+      // Without this shield, any future blueprint with a 'bench press'
+      // alias would clobber the anatomical SVG with the transpiler's
+      // generic stick figure.
+      animation: {},
       title: 'Clinical Protocol: Bench Press',
       subtitle: 'Sagittal Plane · Barbell · Sovereign Rig',
       muscleTarget: 'Pectoralis Major / Anterior Deltoid / Triceps Brachii',
@@ -532,6 +539,9 @@ var BBF_KFH_CATALOG = (function () {
       }
     },
     'bicep curl': {
+      // Shield against BICEPS_CURLS blueprint (kfh-blueprints.js L240-243)
+      // whose 'bicep curl' alias would otherwise delete this anatomical entry.
+      animation: {},
       title: 'Clinical Protocol: Bicep Curl',
       subtitle: 'Sagittal Plane · Dumbbell · Isolation',
       muscleTarget: 'Biceps Brachii (Short + Long Head) / Brachialis / Brachioradialis',
@@ -548,6 +558,9 @@ var BBF_KFH_CATALOG = (function () {
       }
     },
     'hack squat': {
+      // Shield — no current blueprint claims 'hack squat' but adding the
+      // marker preempts any future blueprint registration that might.
+      animation: {},
       title: 'Clinical Protocol: Hack Squat',
       subtitle: 'Sagittal Plane · Machine · Fixed Rail',
       muscleTarget: 'Vastus Lateralis / Vastus Medialis / Gluteus Maximus',
@@ -564,6 +577,10 @@ var BBF_KFH_CATALOG = (function () {
       }
     },
     'romanian deadlift': {
+      // Shield against ROMANIAN_DEADLIFT blueprint (kfh-blueprints.js L423-426)
+      // whose 'romanian deadlift' / 'rdl' / 'rdls' aliases would otherwise
+      // delete this anatomical entry.
+      animation: {},
       title: 'Clinical Protocol: Romanian Deadlift',
       subtitle: 'Sagittal Plane · Barbell · Hip Hinge',
       muscleTarget: 'Biceps Femoris / Semitendinosus / Gluteus Maximus / Erector Spinae',
@@ -580,6 +597,11 @@ var BBF_KFH_CATALOG = (function () {
       }
     },
     'overhead press': {
+      // Shield — SEATED_DB_SHOULDER_PRESS blueprint (kfh-blueprints.js L1871-1874)
+      // aliases 'shoulder press' + 'dumbbell overhead press' but NOT 'overhead
+      // press' exactly. This marker preempts any future blueprint that adds
+      // 'overhead press' as an alias.
+      animation: {},
       title: 'Clinical Protocol: Overhead Press',
       subtitle: 'Sagittal Plane · Barbell · Vertical Push',
       muscleTarget: 'Anterior Deltoid / Medial Deltoid / Triceps Brachii / Upper Trapezius',
@@ -596,6 +618,68 @@ var BBF_KFH_CATALOG = (function () {
       }
     }
   };
+
+  // ─── Phase 13 Path A · PLAN-VARIANT SHORTCUTS ────────────
+  // Founder 5 plans use plural / hyphenated / alternate phrasings
+  // for the same exercise ("Biceps Curls" vs "Bicep Curl", "Romanian
+  // Deadlifts" vs "Romanian Deadlift", "Shoulder Press" vs "Overhead
+  // Press"). Without these shortcuts, the lookup falls through to
+  // ALIASES (populated by kfh-blueprints.js) which points at the
+  // transpiler's stick-figure rendering, NOT my anatomical SVG.
+  //
+  // By assigning the SAME entry object to multiple keys, the
+  // animation:{} shield carries across all variants — every key
+  // survives the blueprint-registration deletion guard.
+  //
+  // Each shortcut points to one of the 5 anatomical entries above.
+  // EXERCISES[key] takes precedence over ALIASES[key] in getExercise().
+
+  // Bench Press variants
+  EXERCISES['incline bench press']     = EXERCISES['bench press'];
+  EXERCISES['incline press']           = EXERCISES['bench press'];
+  EXERCISES['incline dumbbell press']  = EXERCISES['bench press'];
+  EXERCISES['incline db press']        = EXERCISES['bench press'];
+  EXERCISES['chest press']             = EXERCISES['bench press'];
+  EXERCISES['dumbbell chest press']    = EXERCISES['bench press'];
+  EXERCISES['db flat bench press']     = EXERCISES['bench press'];
+  EXERCISES['dumbbell flat bench press'] = EXERCISES['bench press'];
+  EXERCISES['close-grip bench press']  = EXERCISES['bench press'];
+  EXERCISES['flat dumbbell presses']   = EXERCISES['bench press'];
+  EXERCISES['dumbbell bench presses']  = EXERCISES['bench press'];
+
+  // Bicep Curl variants
+  EXERCISES['biceps curls']            = EXERCISES['bicep curl'];
+  EXERCISES['dumbbell bicep curls']    = EXERCISES['bicep curl'];
+  EXERCISES['barbell curls']           = EXERCISES['bicep curl'];
+  EXERCISES['hammer curls']            = EXERCISES['bicep curl'];
+  EXERCISES['preacher curls']          = EXERCISES['bicep curl'];
+  EXERCISES['concentration curls']     = EXERCISES['bicep curl'];
+  EXERCISES['cable curl']              = EXERCISES['bicep curl'];
+
+  // Hack Squat variants
+  EXERCISES['hack squats']             = EXERCISES['hack squat'];
+
+  // Romanian Deadlift variants
+  EXERCISES['romanian deadlifts']      = EXERCISES['romanian deadlift'];
+  EXERCISES['romanian deadlifts (rdls)'] = EXERCISES['romanian deadlift'];
+  EXERCISES['rdl']                     = EXERCISES['romanian deadlift'];
+  EXERCISES['rdls']                    = EXERCISES['romanian deadlift'];
+  EXERCISES['stiff leg deadlift']      = EXERCISES['romanian deadlift'];
+  EXERCISES['stiff leg deadlifts']     = EXERCISES['romanian deadlift'];
+  EXERCISES['deadlifts']               = EXERCISES['romanian deadlift'];
+
+  // Overhead Press variants (covers Seated DB Shoulder Press blueprint scope)
+  EXERCISES['shoulder press']          = EXERCISES['overhead press'];
+  EXERCISES['shoulder presses']        = EXERCISES['overhead press'];
+  EXERCISES['dumbbell overhead press'] = EXERCISES['overhead press'];
+  EXERCISES['db overhead press']       = EXERCISES['overhead press'];
+  EXERCISES['seated db shoulder press']   = EXERCISES['overhead press'];
+  EXERCISES['seated dumbbell shoulder press'] = EXERCISES['overhead press'];
+  EXERCISES['db shoulder press']       = EXERCISES['overhead press'];
+  EXERCISES['seated ohp']              = EXERCISES['overhead press'];
+  EXERCISES['ohp']                     = EXERCISES['overhead press'];
+  EXERCISES['dumbbell military press'] = EXERCISES['overhead press'];
+  EXERCISES['seated dumbbell presses'] = EXERCISES['overhead press'];
 
   // Alias index — additional names that resolve to a primary key.
   // Empty for the legacy entries; future Blueprint-based registrations
