@@ -10284,10 +10284,7 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
       if (typeof BBF_TTS !== 'undefined') {
         try {
           var ttsFeature = BBF_TTS.featureForMode(lc.mode);
-          if (ttsFeature) {
-            lc.ttsActive = true;  // mute downstream Gemini PCM playback below
-            BBF_TTS.appendDelta(ttsFeature, msg.text);
-          }
+          if (ttsFeature) BBF_TTS.appendDelta(ttsFeature, msg.text);
         } catch (e) { console.warn('[Phantom Eye] BBF_TTS appendDelta failed:', e && e.message); }
       }
       return;
@@ -10301,12 +10298,16 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
     }
 
     // Gemini Live serverContent — extract any audio inlineData parts.
-    // When BBF_TTS is active (ElevenLabs synthesizing via Julius/Kelli),
-    // we skip the native Gemini PCM so the user only hears one voice.
+    // We only suppress Gemini's native PCM once BBF_TTS has PROVEN it
+    // can play audio (hasPlayedAudio === true). That keeps Gemini's
+    // voice as a safety net whenever ElevenLabs is misconfigured
+    // (missing API key, network error, etc.) so the user always hears
+    // something instead of silent text.
     if (msg.serverContent && msg.serverContent.modelTurn && Array.isArray(msg.serverContent.modelTurn.parts)) {
+      var ttsTakingOver = (typeof BBF_TTS !== 'undefined') && BBF_TTS.hasPlayedAudio && BBF_TTS.hasPlayedAudio();
       msg.serverContent.modelTurn.parts.forEach(function(part) {
         if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.indexOf('audio/pcm') === 0) {
-          if (lc.ttsActive) return;
+          if (ttsTakingOver) return;
           _lcQueuePlayback(lc, part.inlineData.data);
         }
       });
@@ -13125,11 +13126,15 @@ var BBF_INTERCEPT = (function() {
 // WHERE feature = '<key>';  · zero code changes here.
 // ════════════════════════════════════════════════════════════════════════
 var BBF_TTS = (function() {
-  var ENDPOINT     = '/functions/v1/bbf-tts-eleven';
-  var _queue       = [];   // pending utterances · played sequentially
-  var _playing     = false;
-  var _activeAudio = null; // current Audio element so stop() can halt it
-  var _buffers     = {};   // sentence buffer per feature key
+  var ENDPOINT      = '/functions/v1/bbf-tts-eleven';
+  var _queue        = [];   // pending utterances · played sequentially
+  var _playing      = false;
+  var _activeAudio  = null; // current Audio element so stop() can halt it
+  var _buffers      = {};   // sentence buffer per feature key
+  // Health flags · let callers decide whether to fall back to Gemini PCM
+  // playback when ElevenLabs is misconfigured or unreachable.
+  var _audioPlayed  = false; // true after first successful Audio playback
+  var _lastFail     = null;  // last { reason, feature } from edge fn
 
   // Heuristic feature derivation. Called from existing Gemini hooks
   // that only know `mode` ('vision' | 'voice') — we resolve which BBF
@@ -13172,6 +13177,7 @@ var BBF_TTS = (function() {
     try {
       var audio = new Audio(item.dataUrl);
       _activeAudio = audio;
+      audio.addEventListener('playing', function() { _audioPlayed = true; });
       audio.addEventListener('ended', function() {
         _activeAudio = null;
         _playing     = false;
@@ -13245,9 +13251,12 @@ var BBF_TTS = (function() {
         var parsed = null;
         try { parsed = JSON.parse(t); } catch (_) {}
         if (!parsed || parsed.ok !== true || !parsed.audio_base64) {
-          console.warn('[BBF_TTS] tts ok=false · feature=' + featureKey + ' · reason=' + (parsed && parsed.reason));
+          var reason = (parsed && parsed.reason) || 'unknown';
+          _lastFail = { reason: reason, feature: featureKey };
+          console.warn('[BBF_TTS] tts ok=false · feature=' + featureKey + ' · reason=' + reason + ' · audio will fall back to Gemini PCM');
           return;
         }
+        _lastFail = null;
         console.log('[BBF_TTS] feature=' + featureKey + ' · voice=' + parsed.voice_name + ' · bytes=' + parsed.bytes + ' · est_ms=' + parsed.duration_ms_estimate);
         return _enqueue(_dataUrl(parsed.audio_base64, parsed.mime));
       });
@@ -13282,12 +13291,17 @@ var BBF_TTS = (function() {
     return Promise.resolve();
   }
 
+  function hasPlayedAudio() { return _audioPlayed; }
+  function lastFailure()    { return _lastFail; }
+
   return {
     speak:          speak,
     appendDelta:    appendDelta,
     flush:          flush,
     stop:           stop,
-    featureForMode: featureForMode
+    featureForMode: featureForMode,
+    hasPlayedAudio: hasPlayedAudio,
+    lastFailure:    lastFailure
   };
 })();
 
