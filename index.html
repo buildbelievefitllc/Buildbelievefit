@@ -4345,5 +4345,275 @@ function pbRenderPositions(){
   console.log('%c\u26A1 Ultra Instinct — online (\u2318K / Ctrl+K)', 'color:#f5c800;font-family:monospace;font-weight:bold;');
 })();
 </script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     WARHEAD 1 · BBF PATHFINDER SALES COMLINK
+     ─────────────────────────────────────────────────────────────────
+     Floating FAB (bottom-right) opens an "Access the Vault" chat panel
+     wired to /functions/v1/bbf-agentic-pathfinder. Claude Opus 4.7
+     triages the lead in ≤4 exchanges (time + goal + TDEE math) and
+     recommends Gateway / Architect Hybrid / Sovereign. The
+     recommendation card reuses the existing selectTier(tier_key)
+     function so the lead lands in the same Stripe / Lead capture
+     funnel as the regular pricing-section CTAs.
+═══════════════════════════════════════════════════════════════════ -->
+<style>
+.bbf-pf-fab{position:fixed;bottom:24px;right:24px;z-index:9000;display:inline-flex;align-items:center;gap:.55rem;background:linear-gradient(135deg,#0d0118 0%,#060606 60%);color:var(--yel,#f5c800);border:2px solid var(--yel,#f5c800);border-radius:999px;padding:.85rem 1.3rem;font-family:'Bebas Neue','Barlow Condensed',sans-serif;font-size:.85rem;letter-spacing:2.4px;text-transform:uppercase;cursor:pointer;box-shadow:0 12px 36px -10px rgba(0,0,0,.7),0 0 22px rgba(245,200,0,.25);transition:transform .25s ease,box-shadow .25s ease,opacity .2s ease;font-weight:700;-webkit-tap-highlight-color:rgba(0,0,0,0)}
+.bbf-pf-fab:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 14px 40px -10px rgba(0,0,0,.8),0 0 28px rgba(245,200,0,.4)}
+.bbf-pf-fab:focus{outline:none;box-shadow:0 0 0 3px rgba(245,200,0,.4),0 12px 36px -10px rgba(0,0,0,.7)}
+.bbf-pf-fab[data-open="true"]{opacity:0;pointer-events:none;transform:translateY(20px)}
+.bbf-pf-fab .bbf-pf-fab-key{font-size:1.1rem;filter:drop-shadow(0 0 6px rgba(245,200,0,.65))}
+@media (max-width:520px){.bbf-pf-fab{bottom:18px;right:18px;padding:.7rem 1rem;font-size:.74rem;letter-spacing:1.8px}}
+
+.bbf-pf-panel{position:fixed;bottom:24px;right:24px;z-index:9001;width:min(380px,calc(100vw - 32px));height:min(580px,calc(100vh - 48px));background:linear-gradient(170deg,#0d0118 0%,#060606 50%,#0d0118 100%);border:1px solid rgba(245,200,0,.32);border-radius:18px;box-shadow:0 28px 64px -20px rgba(0,0,0,.85),0 0 32px rgba(106,13,173,.18),inset 0 1px 0 rgba(255,255,255,.05);display:none;flex-direction:column;overflow:hidden;opacity:0;transform:translateY(20px) scale(.96);transition:opacity .28s ease,transform .28s cubic-bezier(.2,.85,.35,1.05)}
+.bbf-pf-panel[data-open="true"]{display:flex;opacity:1;transform:none}
+.bbf-pf-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(245,200,0,.7) 22%,rgba(106,13,173,.7) 78%,transparent 100%);opacity:.95;pointer-events:none}
+@media (max-width:520px){.bbf-pf-panel{bottom:0;right:0;width:100vw;height:100vh;border-radius:18px 18px 0 0;border-left:none;border-right:none;border-bottom:none}}
+
+.bbf-pf-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.1rem .85rem;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.bbf-pf-head-l{display:flex;flex-direction:column}
+.bbf-pf-kicker{font-family:'Bebas Neue',sans-serif;font-size:.6rem;letter-spacing:3.4px;text-transform:uppercase;color:rgba(245,200,0,.7);font-weight:800}
+.bbf-pf-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2.4px;text-transform:uppercase;color:var(--wht,#f9f5ff);line-height:1.05;margin-top:.15rem}
+.bbf-pf-x{background:transparent;border:0;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;padding:.2rem .45rem;border-radius:6px;transition:background .15s ease,color .15s ease;line-height:1}
+.bbf-pf-x:hover{background:rgba(255,255,255,.08);color:#fff}
+
+.bbf-pf-thread{flex:1;overflow-y:auto;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.7rem;scroll-behavior:smooth}
+.bbf-pf-thread::-webkit-scrollbar{width:6px}
+.bbf-pf-thread::-webkit-scrollbar-track{background:rgba(0,0,0,.3)}
+.bbf-pf-thread::-webkit-scrollbar-thumb{background:rgba(245,200,0,.25);border-radius:3px}
+
+.bbf-pf-msg{font-family:'Barlow Condensed','Arial',sans-serif;font-size:.92rem;line-height:1.55;padding:.7rem .9rem;border-radius:11px;max-width:88%;word-wrap:break-word;animation:bbfPfFade .28s ease}
+@keyframes bbfPfFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.bbf-pf-msg--user{align-self:flex-end;background:linear-gradient(135deg,rgba(245,200,0,.18),rgba(245,200,0,.08));border:1px solid rgba(245,200,0,.35);color:#fff5d0}
+.bbf-pf-msg--agent{align-self:flex-start;background:linear-gradient(135deg,rgba(106,13,173,.18),rgba(20,5,40,.6));border:1px solid rgba(139,26,191,.32);color:rgba(255,255,255,.92)}
+.bbf-pf-msg--agent::before{content:'BBF Pathfinder';display:block;font-family:'Bebas Neue',sans-serif;font-size:.58rem;letter-spacing:2.2px;text-transform:uppercase;color:#22d3ee;margin-bottom:.25rem;font-weight:800}
+.bbf-pf-msg--typing{align-self:flex-start;background:rgba(106,13,173,.12);border:1px dashed rgba(139,26,191,.32);color:rgba(255,255,255,.5);font-style:italic;animation:bbfPfPulse 1.4s ease-in-out infinite}
+@keyframes bbfPfPulse{0%,100%{opacity:.5}50%{opacity:.95}}
+
+.bbf-pf-rec{align-self:stretch;margin:.4rem 0;padding:1rem 1.05rem 1.1rem;background:linear-gradient(150deg,rgba(20,5,40,.85) 0%,rgba(8,4,18,.92) 100%);border:1px solid rgba(245,200,0,.45);border-radius:13px;box-shadow:0 12px 32px -12px rgba(0,0,0,.75),0 0 22px rgba(245,200,0,.12);position:relative;animation:bbfPfFade .35s ease}
+.bbf-pf-rec::before{content:'🎯  Sovereign Verdict';display:block;font-family:'Bebas Neue',sans-serif;font-size:.6rem;letter-spacing:3.2px;text-transform:uppercase;color:var(--yel,#f5c800);margin-bottom:.45rem;font-weight:800}
+.bbf-pf-rec-name{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2.5px;text-transform:uppercase;color:#fff;line-height:1}
+.bbf-pf-rec-price{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:1.6px;color:var(--yel,#f5c800);margin-top:.25rem}
+.bbf-pf-rec-headline{font-size:.82rem;color:rgba(255,255,255,.72);margin-top:.45rem;line-height:1.5}
+.bbf-pf-rec-fit{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.5rem;font-style:italic;line-height:1.4;border-top:1px dashed rgba(255,255,255,.1);padding-top:.5rem}
+.bbf-pf-rec-cta{display:inline-block;width:100%;margin-top:.8rem;background:var(--yel,#f5c800);color:#0a0a0a;font-family:'Bebas Neue',sans-serif;font-size:.92rem;letter-spacing:2.4px;text-transform:uppercase;border:none;padding:.75rem 1rem;border-radius:8px;cursor:pointer;font-weight:900;transition:transform .15s ease,box-shadow .2s ease}
+.bbf-pf-rec-cta:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px rgba(245,200,0,.65)}
+
+.bbf-pf-input-wrap{display:flex;gap:.5rem;padding:.85rem 1.1rem 1rem;border-top:1px solid rgba(255,255,255,.06);background:rgba(8,4,18,.6);flex-shrink:0}
+.bbf-pf-input{flex:1;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.12);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:.95rem;padding:.65rem .85rem;border-radius:9px;outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.bbf-pf-input::placeholder{color:rgba(255,255,255,.32)}
+.bbf-pf-input:focus{border-color:rgba(245,200,0,.6);box-shadow:0 0 0 2px rgba(245,200,0,.18)}
+.bbf-pf-send{background:var(--yel,#f5c800);color:#0a0a0a;border:none;border-radius:9px;padding:0 .95rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:1.8px;cursor:pointer;font-weight:900;transition:filter .15s ease,transform .12s ease}
+.bbf-pf-send:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.bbf-pf-send:disabled{opacity:.45;cursor:not-allowed}
+</style>
+
+<button type="button" class="bbf-pf-fab" id="bbf-pf-fab" aria-label="Open BBF Pathfinder — Access the Vault">
+  <span class="bbf-pf-fab-key" aria-hidden="true">🗝️</span>
+  <span class="bbf-pf-fab-label">Access the Vault</span>
+</button>
+
+<aside class="bbf-pf-panel" id="bbf-pf-panel" role="dialog" aria-modal="false" aria-labelledby="bbf-pf-title" aria-hidden="true">
+  <header class="bbf-pf-head">
+    <div class="bbf-pf-head-l">
+      <span class="bbf-pf-kicker">BBF Sovereign · Live</span>
+      <span class="bbf-pf-title" id="bbf-pf-title">Pathfinder Comlink</span>
+    </div>
+    <button type="button" class="bbf-pf-x" id="bbf-pf-close" aria-label="Close Pathfinder">&#x2715;</button>
+  </header>
+  <div class="bbf-pf-thread" id="bbf-pf-thread" role="log" aria-live="polite"></div>
+  <div class="bbf-pf-input-wrap">
+    <input type="text" class="bbf-pf-input" id="bbf-pf-input" placeholder="What's your training goal or weekly hours?" maxlength="500" autocomplete="off"/>
+    <button type="button" class="bbf-pf-send" id="bbf-pf-send">Send</button>
+  </div>
+</aside>
+
+<script>
+(function(){
+  'use strict';
+
+  var STORAGE_KEY    = 'bbf_pathfinder_session_v1';
+  var STORAGE_TTL_MS = 24 * 60 * 60 * 1000;
+  var ENDPOINT_PATH  = '/functions/v1/bbf-agentic-pathfinder';
+
+  var fab    = document.getElementById('bbf-pf-fab');
+  var panel  = document.getElementById('bbf-pf-panel');
+  var close  = document.getElementById('bbf-pf-close');
+  var thread = document.getElementById('bbf-pf-thread');
+  var input  = document.getElementById('bbf-pf-input');
+  var send   = document.getElementById('bbf-pf-send');
+
+  if (!fab || !panel || !thread || !input || !send) return;
+
+  var state = { messages: [], in_flight: false };
+
+  function loadSession(){
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var p = JSON.parse(raw);
+      if (!p || !p.ts || (Date.now() - p.ts) > STORAGE_TTL_MS) {
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+      if (Array.isArray(p.messages)) state.messages = p.messages;
+    } catch (e) { /* ignore */ }
+  }
+  function saveSession(){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        ts: Date.now(),
+        messages: state.messages
+      }));
+    } catch (e) { /* ignore quota / privacy mode */ }
+  }
+  function clearSession(){ try { localStorage.removeItem(STORAGE_KEY); } catch(e){} }
+
+  function escapeHtml(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function scrollToBottom(){
+    requestAnimationFrame(function(){ thread.scrollTop = thread.scrollHeight; });
+  }
+  function renderMessage(role, text){
+    var el = document.createElement('div');
+    el.className = 'bbf-pf-msg ' + (role === 'user' ? 'bbf-pf-msg--user' : 'bbf-pf-msg--agent');
+    el.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+    thread.appendChild(el);
+    scrollToBottom();
+  }
+  function renderRecommendation(rec){
+    if (!rec || !rec.tier) return;
+    var card = document.createElement('div');
+    card.className = 'bbf-pf-rec';
+    card.setAttribute('data-tier', rec.tier);
+    card.innerHTML =
+      '<div class="bbf-pf-rec-name">' + escapeHtml(rec.name || rec.tier) + '</div>' +
+      '<div class="bbf-pf-rec-price">' + escapeHtml(rec.price || '') + '</div>' +
+      '<div class="bbf-pf-rec-headline">' + escapeHtml(rec.headline || '') + '</div>' +
+      (rec.fit ? '<div class="bbf-pf-rec-fit">' + escapeHtml(rec.fit) + '</div>' : '') +
+      '<button type="button" class="bbf-pf-rec-cta" data-tier="' + escapeHtml(rec.tier) + '">Apply for ' + escapeHtml(rec.name || rec.tier) + ' →</button>';
+    thread.appendChild(card);
+    scrollToBottom();
+    var btn = card.querySelector('.bbf-pf-rec-cta');
+    btn.addEventListener('click', function(){
+      var tk = btn.getAttribute('data-tier');
+      clearSession();
+      if (typeof window.selectTier === 'function') {
+        window.selectTier(tk);
+      } else {
+        var sec = document.getElementById('programs') || document.querySelector('section[id*="prog"]');
+        if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+  function renderTyping(){
+    var el = document.createElement('div');
+    el.className = 'bbf-pf-msg bbf-pf-msg--typing';
+    el.id = 'bbf-pf-typing';
+    el.textContent = 'Triaging…';
+    thread.appendChild(el);
+    scrollToBottom();
+  }
+  function clearTyping(){
+    var el = document.getElementById('bbf-pf-typing');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  function endpoint(){
+    var base = (typeof window.ENV_SUPABASE_URL === 'string' && window.ENV_SUPABASE_URL) || '';
+    return base.replace(/\/$/, '') + ENDPOINT_PATH;
+  }
+  function apiKey(){
+    return (typeof window.ENV_SUPABASE_KEY === 'string' && window.ENV_SUPABASE_KEY) || '';
+  }
+  function callPathfinder(messages){
+    return fetch(endpoint(), {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        apiKey(),
+        'Authorization': 'Bearer ' + apiKey()
+      },
+      body: JSON.stringify({ messages: messages })
+    }).then(function(r){ return r.json(); });
+  }
+
+  function sendMessage(){
+    if (state.in_flight) return;
+    var text = (input.value || '').trim();
+    if (!text) return;
+    input.value = '';
+    state.messages.push({ role: 'user', content: text });
+    renderMessage('user', text);
+    saveSession();
+
+    state.in_flight = true;
+    send.disabled = true;
+    input.disabled = true;
+    renderTyping();
+
+    callPathfinder(state.messages)
+      .then(function(data){
+        clearTyping();
+        var reply = (data && data.reply) || 'The Pathfinder paused — refresh and try again, or text akeem@buildbelievefit.fitness directly.';
+        state.messages.push({ role: 'assistant', content: reply });
+        renderMessage('agent', reply);
+        if (data && data.recommendation) renderRecommendation(data.recommendation);
+        saveSession();
+      })
+      .catch(function(err){
+        clearTyping();
+        renderMessage('agent', 'The triage system is offline for a moment. Text akeem@buildbelievefit.fitness or use the pricing section above.');
+        console.warn('[BBF Pathfinder] fetch failed:', err && err.message);
+      })
+      .then(function(){
+        state.in_flight = false;
+        send.disabled = false;
+        input.disabled = false;
+        input.focus();
+      });
+  }
+
+  function openPanel(){
+    fab.setAttribute('data-open', 'true');
+    panel.setAttribute('data-open', 'true');
+    panel.setAttribute('aria-hidden', 'false');
+    if (!thread.children.length) {
+      if (state.messages.length) {
+        state.messages.forEach(function(m){ renderMessage(m.role === 'user' ? 'user' : 'agent', m.content); });
+      } else {
+        renderMessage('agent', 'Welcome to BBF Pathfinder. State your training goal or your weekly time availability — whichever is the binding constraint. I\'ll triage you to the right tier in under four turns.');
+      }
+    }
+    setTimeout(function(){ input.focus(); }, 220);
+  }
+  function closePanel(){
+    fab.removeAttribute('data-open');
+    panel.removeAttribute('data-open');
+    panel.setAttribute('aria-hidden', 'true');
+  }
+
+  loadSession();
+  fab.addEventListener('click', openPanel);
+  close.addEventListener('click', closePanel);
+  send.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && panel.getAttribute('data-open') === 'true') closePanel();
+  });
+
+  window.BBF_PATHFINDER = {
+    open:  openPanel,
+    close: closePanel,
+    reset: function(){ state.messages = []; thread.innerHTML = ''; clearSession(); }
+  };
+})();
+</script>
+
 </body>
 </html>
