@@ -6462,7 +6462,7 @@ window.onload=function(){
                      its own section below the widget (where the deprecated
                      Comlink launcher used to live) so the two AI activation
                      paths each get a thumb-friendly mobile target. -->
-                <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="pe-init-vision-btn" onclick="initLiveCoach('vision')">
+                <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="pe-init-vision-btn" onclick="(typeof BBF_INTERCEPT!=='undefined'&&BBF_INTERCEPT.check)?BBF_INTERCEPT.check('phantom_eye',function(){initLiveCoach('vision');}):initLiveCoach('vision');">
                   <span class="pe-init-icon" aria-hidden="true">&#x1F441;&#xFE0F;</span>
                   <span class="pe-init-label" data-lang-key="pe-init-vision">BBF Phantom Eye</span>
                   <span class="pe-init-sub"   data-lang-key="pe-init-vision-sub">Live Vision Check</span>
@@ -6471,7 +6471,7 @@ window.onload=function(){
             </div>
           </div>
           <!-- BBF VIRTUAL COACH — full-width audio-only CTA. -->
-          <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="pe-init-voice-btn" onclick="initLiveCoach('voice')">
+          <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="pe-init-voice-btn" onclick="(typeof BBF_INTERCEPT!=='undefined'&&BBF_INTERCEPT.check)?BBF_INTERCEPT.check('virtual_coach',function(){initLiveCoach('voice');}):initLiveCoach('voice');">
             <span class="pe-init-icon" aria-hidden="true">&#x1F3A4;</span>
             <span class="pe-init-label" data-lang-key="pe-init-voice">BBF Virtual Coach</span>
             <span class="pe-init-sub"   data-lang-key="pe-init-voice-sub">Audio Only</span>
@@ -6496,7 +6496,7 @@ window.onload=function(){
         <div id="nutrition-tools-stack">
           <div id="virtual-chef-module">
             <!-- BBF VIRTUAL CHEF — full-width audio-only CTA (clone of #pe-init-voice-btn). -->
-            <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="nv-init-chef-btn" onclick="initLiveCoach('voice')">
+            <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="nv-init-chef-btn" onclick="(typeof BBF_INTERCEPT!=='undefined'&&BBF_INTERCEPT.check)?BBF_INTERCEPT.check('virtual_chef',function(){initLiveCoach('voice');}):initLiveCoach('voice');">
               <span class="pe-init-icon" aria-hidden="true">&#x1F468;&#x200D;&#x1F373;</span>
               <span class="pe-init-label">BBF Virtual Chef</span>
               <span class="pe-init-sub">Recipes &middot; TDEE Talk-Through</span>
@@ -6520,7 +6520,7 @@ window.onload=function(){
                   <div class="pe-hero-kicker">Multimodal AI Nutritionist</div>
                   <div class="pe-hero-title">Real-time Nutrition Vision</div>
                   <div class="pe-hero-sub">Point your camera at what you're about to eat. Instant macro + calorie estimates aligned with your day's TDEE target.</div>
-                  <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="nv-init-vision-btn" onclick="initLiveCoach('vision')">
+                  <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="nv-init-vision-btn" onclick="(typeof BBF_INTERCEPT!=='undefined'&&BBF_INTERCEPT.check)?BBF_INTERCEPT.check('nutrition_vision',function(){initLiveCoach('vision');}):initLiveCoach('vision');">
                     <span class="pe-init-icon" aria-hidden="true">&#x1F441;&#xFE0F;</span>
                     <span class="pe-init-label">Nutrition Vision</span>
                     <span class="pe-init-sub">Live Food Check</span>
@@ -12947,6 +12947,30 @@ var BBF_INTERCEPT = (function() {
       body:  'This is a deterministic routing engine. It will dictate your intensity based entirely on the time you give it. Commit to the output.',
       cta:   'Acknowledge & Proceed',
       kicker:'Smart Cardio · First Use'
+    },
+    phantom_eye: {
+      title: '🎥 LIVE VISION CHECK',
+      body:  'Frame the full kinetic chain before the rep. 45-degree angle, full body in shot, well-lit space. Cluttered or partial frames produce false flags. Run one set at a time.',
+      cta:   'Acknowledge & Proceed',
+      kicker:'BBF Phantom Eye · First Use'
+    },
+    virtual_coach: {
+      title: '🎤 LIVE COACH ACTIVE',
+      body:  'Audio-only coaching. Speak one clear question per turn — form cue, programming logic, recovery read. Long-winded transmissions split the agent\'s focus. End the session when the answer lands.',
+      cta:   'Acknowledge & Proceed',
+      kicker:'BBF Virtual Coach · First Use'
+    },
+    nutrition_vision: {
+      title: '📷 FOOD FRAME',
+      body:  'Hold the plate at a clean 45-degree overhead. One dish per scan. Stacked plates, low light, or partial frames burn the analyzer and return null. Re-frame before you fire.',
+      cta:   'Acknowledge & Proceed',
+      kicker:'Nutrition Vision · First Use'
+    },
+    virtual_chef: {
+      title: '🍳 CHEF ON-CALL',
+      body:  'Audio-only nutrition coaching. State your goal, your constraint, or one specific meal. Example: "High-protein lunch under 600 calories." Vague prompts return vague plans — the chef mirrors your specificity.',
+      cta:   'Acknowledge & Proceed',
+      kicker:'BBF Virtual Chef · First Use'
     }
   };
 
