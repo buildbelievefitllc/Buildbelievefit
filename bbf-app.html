@@ -10357,9 +10357,25 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
         console.warn('[Phantom Eye] off-topic strike ' + lc.offTopicStrikes + ' / ' + STRIKE_LIMIT);
         if (lc.offTopicStrikes >= STRIKE_LIMIT) {
           console.warn('[Phantom Eye] strike-out · session terminating');
+          // Record the 15-min lockout for THIS feature (admin bypass
+          // is honored inside BBF_STRIKE_LOCKOUT.setLockout).
+          var lockoutFeatStrike = null;
+          try {
+            lockoutFeatStrike = BBF_TTS.featureForMode(lc.mode);
+            if (typeof BBF_STRIKE_LOCKOUT !== 'undefined' && lockoutFeatStrike) {
+              BBF_STRIKE_LOCKOUT.setLockout(lockoutFeatStrike);
+            }
+          } catch (_) {}
+          var lockoutMin = (typeof BBF_STRIKE_LOCKOUT !== 'undefined') ? Math.round(BBF_STRIKE_LOCKOUT.LOCKOUT_MS / 60000) : 15;
           try {
             var msgEl2 = document.getElementById((lc.mode === 'voice') ? 'lc-voice-status' : 'lc-status');
-            if (msgEl2) { msgEl2.textContent = 'Session ended — off-topic limit reached. Reconnect when ready to focus.'; msgEl2.classList.add('on'); }
+            if (msgEl2) {
+              var isAdminUser = (typeof BBF_STRIKE_LOCKOUT !== 'undefined') && BBF_STRIKE_LOCKOUT.isAdmin();
+              msgEl2.textContent = isAdminUser
+                ? 'Session ended — off-topic limit reached. (Admin: no lockout applied.)'
+                : 'Session ended — off-topic limit reached. This agent is locked for ' + lockoutMin + ' minutes.';
+              msgEl2.classList.add('on');
+            }
           } catch (_) {}
           // Speak a brief sign-off through the active voice, then close
           // the WS so no further frames or token spend happen.
@@ -10382,16 +10398,22 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
     }
 
     // Gemini Live serverContent — extract any audio inlineData parts.
-    // We only suppress Gemini's native PCM once BBF_TTS has PROVEN it
-    // can play audio (hasPlayedAudio === true). That keeps Gemini's
-    // voice as a safety net whenever ElevenLabs is misconfigured
-    // (missing API key, network error, etc.) so the user always hears
-    // something instead of silent text.
+    // PCM is suppressed whenever BBF_TTS is loaded AND has not soft-failed
+    // on this session. That way ElevenLabs is the single voice the user
+    // hears from turn 1 — no Gemini "general voice" bleed-through during
+    // the warmup of the first ElevenLabs round-trip. If BBF_TTS soft-fails
+    // (lastFailure() returns non-null), the gate flips and Gemini PCM
+    // plays through as the safety-net fallback.
     if (msg.serverContent && msg.serverContent.modelTurn && Array.isArray(msg.serverContent.modelTurn.parts)) {
-      var ttsTakingOver = (typeof BBF_TTS !== 'undefined') && BBF_TTS.hasPlayedAudio && BBF_TTS.hasPlayedAudio();
+      var ttsHealthy = false;
+      try {
+        ttsHealthy = (typeof BBF_TTS !== 'undefined')
+          && !!BBF_TTS.featureForMode(lc.mode)
+          && !BBF_TTS.lastFailure();
+      } catch (_) { ttsHealthy = false; }
       msg.serverContent.modelTurn.parts.forEach(function(part) {
         if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.indexOf('audio/pcm') === 0) {
-          if (ttsTakingOver) return;
+          if (ttsHealthy) return;
           _lcQueuePlayback(lc, part.inlineData.data);
         }
       });
@@ -10565,6 +10587,28 @@ window.initLiveCoach = function initLiveCoach(mode) {
   var refs;
   try { refs = _lcResolveMode(mode); }
   catch (e) { console.error('[Phantom Eye] _lcResolveMode threw:', e && e.message); return; }
+
+  // ── Strike lockout check · 15-min cooldown after off-topic strike-out
+  // Admin (CU==='akeem' or BBF_ADMIN_BYPASS) skips the gate entirely.
+  try {
+    if (typeof BBF_STRIKE_LOCKOUT !== 'undefined' && typeof BBF_TTS !== 'undefined') {
+      var lockoutFeature = BBF_TTS.featureForMode(mode);
+      var leftMs = lockoutFeature ? BBF_STRIKE_LOCKOUT.remainingMs(lockoutFeature) : 0;
+      if (leftMs > 0) {
+        var lockMsg = lockoutFeature.replace(/_/g, ' ') + ' locked for ' + BBF_STRIKE_LOCKOUT.formatRemaining(leftMs) + ' — off-topic limit reached on the prior session. Try a different agent in the meantime.';
+        console.warn('[Phantom Eye] BLOCKED · ' + lockMsg);
+        try {
+          var msgElLk = document.getElementById(refs.msgElId);
+          if (msgElLk) { msgElLk.textContent = lockMsg; msgElLk.classList.add('on'); setTimeout(function() { msgElLk.classList.remove('on'); }, 6000); }
+        } catch (_) {}
+        try {
+          var initBtnLk = document.getElementById(refs.initBtnId);
+          if (initBtnLk) { initBtnLk.disabled = false; }
+        } catch (_) {}
+        return;
+      }
+    }
+  } catch (e) { console.warn('[Phantom Eye] strike-lockout check threw:', e && e.message); }
 
   // Defensive: if the user clicks one mode while the OTHER is already
   // running, kill the active session before opening the new modal.
@@ -13041,6 +13085,85 @@ var BBF_POSITIONAL_INTEL = (function() {
 // It wraps the click bindings at three sites — the original handlers
 // run unchanged once the user has acknowledged.
 // ════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════
+// BBF_STRIKE_LOCKOUT · 15-min cooldown after off-topic strike-out
+// ────────────────────────────────────────────────────────────────────────
+// Per-feature lockout stored in localStorage. When a user blows through
+// the 2-strike scope discipline on Virtual Coach (for example), that
+// feature is locked for STRIKE_LOCKOUT_MS · the other three agents stay
+// available so they can still get value from BBF. Admin bypass:
+// CU==='akeem' or localStorage.BBF_ADMIN_BYPASS==='1' skip all gates.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_STRIKE_LOCKOUT = (function() {
+  var LS_PREFIX        = 'bbf_strike_lockout.';
+  var LOCKOUT_MS       = 15 * 60 * 1000; // 15 min · single source of truth
+  var ADMIN_BYPASS_KEY = 'BBF_ADMIN_BYPASS';
+
+  function _isAdmin() {
+    try {
+      if (typeof CU !== 'undefined' && CU === 'akeem') return true;
+      if (typeof localStorage !== 'undefined' && localStorage.getItem(ADMIN_BYPASS_KEY) === '1') return true;
+    } catch (_) {}
+    return false;
+  }
+
+  function setLockout(feature) {
+    if (!feature) return 0;
+    if (_isAdmin()) { console.log('[BBF_STRIKE_LOCKOUT] admin · skipping lockout for ' + feature); return 0; }
+    var until = Date.now() + LOCKOUT_MS;
+    try { localStorage.setItem(LS_PREFIX + feature, String(until)); } catch (_) {}
+    console.warn('[BBF_STRIKE_LOCKOUT] ' + feature + ' locked until ' + new Date(until).toLocaleTimeString());
+    return until;
+  }
+
+  function remainingMs(feature) {
+    if (!feature || _isAdmin()) return 0;
+    try {
+      var raw = localStorage.getItem(LS_PREFIX + feature);
+      if (!raw) return 0;
+      var until = parseInt(raw, 10);
+      if (!until || isNaN(until)) return 0;
+      var left = until - Date.now();
+      if (left <= 0) { localStorage.removeItem(LS_PREFIX + feature); return 0; }
+      return left;
+    } catch (_) { return 0; }
+  }
+
+  function clear(feature) {
+    if (!feature) return;
+    try { localStorage.removeItem(LS_PREFIX + feature); } catch (_) {}
+    console.log('[BBF_STRIKE_LOCKOUT] cleared lockout for ' + feature);
+  }
+
+  function clearAll() {
+    try {
+      var killList = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(LS_PREFIX) === 0) killList.push(k);
+      }
+      killList.forEach(function(k) { localStorage.removeItem(k); });
+      console.log('[BBF_STRIKE_LOCKOUT] cleared ' + killList.length + ' lockouts');
+    } catch (_) {}
+  }
+
+  function formatRemaining(ms) {
+    var m = Math.floor(ms / 60000);
+    var s = Math.floor((ms % 60000) / 1000);
+    return m + 'm ' + (s < 10 ? '0' : '') + s + 's';
+  }
+
+  return {
+    setLockout:      setLockout,
+    remainingMs:     remainingMs,
+    clear:           clear,
+    clearAll:        clearAll,
+    formatRemaining: formatRemaining,
+    isAdmin:         _isAdmin,
+    LOCKOUT_MS:      LOCKOUT_MS,
+  };
+})();
+
 var BBF_INTERCEPT = (function() {
   var STORE_PREFIX = 'intercept_cleared_';
 
