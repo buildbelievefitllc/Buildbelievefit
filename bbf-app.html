@@ -10276,10 +10276,37 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
       return;
     }
 
+    // ── ElevenLabs side-channel (Julius / Kelli LaShae) ──────────
+    // Proxy emits {type:'gemini-text', text} from outputAudioTranscription
+    // and {type:'gemini-turn-complete'} at end-of-turn. Route both to
+    // BBF_TTS so the configured voice speaks every Gemini reply.
+    if (msg.type === 'gemini-text' && typeof msg.text === 'string' && msg.text) {
+      if (typeof BBF_TTS !== 'undefined') {
+        try {
+          var ttsFeature = BBF_TTS.featureForMode(lc.mode);
+          if (ttsFeature) {
+            lc.ttsActive = true;  // mute downstream Gemini PCM playback below
+            BBF_TTS.appendDelta(ttsFeature, msg.text);
+          }
+        } catch (e) { console.warn('[Phantom Eye] BBF_TTS appendDelta failed:', e && e.message); }
+      }
+      return;
+    }
+    if (msg.type === 'gemini-turn-complete') {
+      if (typeof BBF_TTS !== 'undefined' && lc.ttsActive) {
+        try { BBF_TTS.flush(BBF_TTS.featureForMode(lc.mode)); }
+        catch (e) { console.warn('[Phantom Eye] BBF_TTS flush failed:', e && e.message); }
+      }
+      return;
+    }
+
     // Gemini Live serverContent — extract any audio inlineData parts.
+    // When BBF_TTS is active (ElevenLabs synthesizing via Julius/Kelli),
+    // we skip the native Gemini PCM so the user only hears one voice.
     if (msg.serverContent && msg.serverContent.modelTurn && Array.isArray(msg.serverContent.modelTurn.parts)) {
       msg.serverContent.modelTurn.parts.forEach(function(part) {
         if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.indexOf('audio/pcm') === 0) {
+          if (lc.ttsActive) return;
           _lcQueuePlayback(lc, part.inlineData.data);
         }
       });

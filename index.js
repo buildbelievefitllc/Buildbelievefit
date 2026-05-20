@@ -1542,14 +1542,20 @@ function attachPhantomEyeProxy(server) {
 
         geminiWs.on('open', () => {
           log('Gemini upstream OPEN · sending setup · prompt_chars=' + systemInstruction.length);
+          // Dual-modality setup. Gemini still emits its native PCM audio
+          // (so existing playback works as a fallback) AND we ask it for
+          // a synchronized output_audio_transcription so the BBF TTS
+          // layer can pipe text to ElevenLabs (Julius / Kelli LaShae)
+          // for the actual voice the user hears.
           const setup = {
             setup: {
               model: GEMINI_LIVE_MODEL,
               generationConfig: { responseModalities: ['AUDIO'] },
+              outputAudioTranscription: {},
               systemInstruction: { parts: [{ text: systemInstruction }] },
             },
           };
-          try { geminiWs.send(JSON.stringify(setup)); log('setup sent'); }
+          try { geminiWs.send(JSON.stringify(setup)); log('setup sent · output_audio_transcription=on'); }
           catch (e) { log('setup send failed:', e.message); }
           setupSent = true;
           try { clientWs.send(JSON.stringify({ type: 'ready' })); log('client signalled ready'); }
@@ -1557,7 +1563,27 @@ function attachPhantomEyeProxy(server) {
         });
 
         geminiWs.on('message', (msg) => {
+          // Always forward the raw upstream frame so existing audio +
+          // serverContent handling on the client keeps working unchanged.
           try { clientWs.send(msg); } catch (e) { log('downstream send failed:', e.message); }
+
+          // ALSO sniff for outputAudioTranscription text deltas and forward
+          // them as a tagged side-channel so the BBF TTS gateway can route
+          // them through the public.voices table → ElevenLabs API → the
+          // configured voice (Julius for fitness · Kelli LaShae for nutrition).
+          try {
+            const text = (typeof msg === 'string') ? msg : msg.toString('utf8');
+            const parsed = JSON.parse(text);
+            const sc = parsed && parsed.serverContent;
+            if (sc) {
+              if (sc.outputTranscription && typeof sc.outputTranscription.text === 'string' && sc.outputTranscription.text) {
+                try { clientWs.send(JSON.stringify({ type: 'gemini-text', text: sc.outputTranscription.text })); } catch (_) {}
+              }
+              if (sc.turnComplete === true) {
+                try { clientWs.send(JSON.stringify({ type: 'gemini-turn-complete' })); } catch (_) {}
+              }
+            }
+          } catch (_) { /* binary frame or non-JSON — no transcript to extract */ }
         });
 
         geminiWs.on('close', (code, reason) => {
