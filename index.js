@@ -1359,10 +1359,21 @@ const PHANTOM_EYE_PROXY_PATH = '/ws/phantom-eye';
 // keeps the brand experience disciplined — Gemini refuses out-of-scope
 // questions in a single redirect line instead of free-roaming chat.
 //
-// CRITICAL: every prompt includes a hard refusal pattern. If the user
-// asks anything outside the feature's domain, the model must redirect
-// in ONE short line and NOT engage off-topic, even once. This is the
-// load-bearing instruction — keep it.
+// STRIKE PROTOCOL · every prompt below ends with the same instruction:
+// when refusing an out-of-scope question, prepend the EXACT sentinel
+// token `[BBF_OFF_TOPIC]` (on its own line) to the reply. The token
+// is a machine signal — the frontend strips it before speaking and
+// uses it to count strikes. Two strikes within a session and the
+// frontend terminates the WebSocket — saves tokens, ends the abuse.
+// The model is explicitly told NOT to announce the token verbally.
+
+const STRIKE_INSTRUCTION =
+  '\n\nSTRIKE SIGNAL · when (and ONLY when) you are refusing an ' +
+  'out-of-scope question, prepend the exact token `[BBF_OFF_TOPIC]` ' +
+  'on its own line at the very start of your reply, then a newline, ' +
+  'then the spoken refusal text. The token is a machine signal — do ' +
+  'NOT speak it aloud, do NOT explain it, do NOT mention it. Never ' +
+  'emit the token for in-scope coaching replies — only for refusals.';
 
 const PROMPT_PHANTOM_EYE =
   'You are BBF Phantom Eye — a live form-check coach for Build Believe ' +
@@ -1385,7 +1396,8 @@ const PROMPT_PHANTOM_EYE =
   'fluff. Address the user by first name when natural. If a movement ' +
   'looks unsafe, call it out and prescribe the correction. If the ' +
   'user has reported joint friction, be vigilant about loading those ' +
-  'joints — flag any movement that risks aggravating them.';
+  'joints — flag any movement that risks aggravating them.' +
+  STRIKE_INSTRUCTION;
 
 const PROMPT_VIRTUAL_COACH =
   'You are BBF Virtual Coach — an audio-only training coach for Build ' +
@@ -1411,7 +1423,8 @@ const PROMPT_VIRTUAL_COACH =
   'ask audio-friendly clarifiers (which leg, which side, what feels ' +
   'off, how the bar tracks). For pain or joint friction: never load ' +
   'progression on a flagged joint without explicit user confirmation ' +
-  'the pain has cleared.';
+  'the pain has cleared.' +
+  STRIKE_INSTRUCTION;
 
 const PROMPT_NUTRITION_VISION =
   'You are BBF Food Frame — a live food and meal analyst for Build ' +
@@ -1436,7 +1449,8 @@ const PROMPT_NUTRITION_VISION =
   'dietary profile and allergen restrictions absolutely. If a food ' +
   'violates them, refuse firmly and suggest a compliant swap from ' +
   'common pantry staples. Stay strict on the daily macro and calorie ' +
-  'budget — call out portion sizes that blow it.';
+  'budget — call out portion sizes that blow it.' +
+  STRIKE_INSTRUCTION;
 
 const PROMPT_VIRTUAL_CHEF =
   'You are BBF Chef on Call — an audio-only nutrition coach for Build ' +
@@ -1459,7 +1473,8 @@ const PROMPT_VIRTUAL_CHEF =
   '\n\nStyle: short, deadpan, clinical sentences. No preamble, no ' +
   'fluff. Address by first name when natural. Respect dietary profile ' +
   'and allergens absolutely; suggest compliant swaps when refusing a ' +
-  'food. Stay strict on the user\'s daily macro and calorie targets.';
+  'food. Stay strict on the user\'s daily macro and calorie targets.' +
+  STRIKE_INSTRUCTION;
 
 // Feature → (prompt, category) registry. Mirrors public.voices feature
 // keys so the same key drives BBF_TTS voice selection AND the system

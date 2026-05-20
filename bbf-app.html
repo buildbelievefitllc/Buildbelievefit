@@ -10286,20 +10286,98 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
     // Proxy emits {type:'gemini-text', text} from outputAudioTranscription
     // and {type:'gemini-turn-complete'} at end-of-turn. Route both to
     // BBF_TTS so the configured voice speaks every Gemini reply.
+    //
+    // STRIKE PROTOCOL · system prompts instruct Gemini to prepend the
+    // sentinel `[BBF_OFF_TOPIC]` (own line) at the start of any
+    // out-of-scope refusal. We buffer the head of each turn, detect
+    // the token, strip it before speaking, and count strikes. At the
+    // strike limit (2 by default · first refusal is the warning, second
+    // off-topic = session over) we play a brief goodbye via TTS and
+    // close the WebSocket. Stops abuse, saves Gemini + ElevenLabs cost.
     if (msg.type === 'gemini-text' && typeof msg.text === 'string' && msg.text) {
       if (typeof BBF_TTS !== 'undefined') {
         try {
           var ttsFeature = BBF_TTS.featureForMode(lc.mode);
-          if (ttsFeature) BBF_TTS.appendDelta(ttsFeature, msg.text);
+          if (!ttsFeature) return;
+
+          // Per-turn state · lazy init
+          if (typeof lc.turnHeadFlushed === 'undefined') {
+            lc.turnHeadFlushed   = false;
+            lc.turnHeadBuffer    = '';
+            lc.thisTurnIsOffTopic = false;
+          }
+
+          if (lc.turnHeadFlushed) {
+            // Head decision already made for this turn; pass through.
+            BBF_TTS.appendDelta(ttsFeature, msg.text);
+          } else {
+            lc.turnHeadBuffer += msg.text;
+            // Decide once we have enough head bytes OR we've crossed a
+            // newline (sentinel token is followed by \n per the prompt).
+            if (lc.turnHeadBuffer.length >= 25 || lc.turnHeadBuffer.indexOf('\n') >= 0) {
+              var head = lc.turnHeadBuffer;
+              if (head.indexOf('[BBF_OFF_TOPIC]') === 0) {
+                lc.thisTurnIsOffTopic = true;
+                head = head.replace(/^\[BBF_OFF_TOPIC\]\s*/, '');
+                console.warn('[Phantom Eye] off-topic sentinel detected · pending strike on turn-complete');
+              }
+              lc.turnHeadFlushed = true;
+              lc.turnHeadBuffer  = '';
+              if (head) BBF_TTS.appendDelta(ttsFeature, head);
+            }
+          }
         } catch (e) { console.warn('[Phantom Eye] BBF_TTS appendDelta failed:', e && e.message); }
       }
       return;
     }
     if (msg.type === 'gemini-turn-complete') {
-      if (typeof BBF_TTS !== 'undefined' && lc.ttsActive) {
-        try { BBF_TTS.flush(BBF_TTS.featureForMode(lc.mode)); }
-        catch (e) { console.warn('[Phantom Eye] BBF_TTS flush failed:', e && e.message); }
+      if (typeof BBF_TTS !== 'undefined') {
+        try {
+          var feat = BBF_TTS.featureForMode(lc.mode);
+          // Short reply that never hit the 25-char head trigger · flush now.
+          if (!lc.turnHeadFlushed && lc.turnHeadBuffer) {
+            var head2 = lc.turnHeadBuffer;
+            if (head2.indexOf('[BBF_OFF_TOPIC]') === 0) {
+              lc.thisTurnIsOffTopic = true;
+              head2 = head2.replace(/^\[BBF_OFF_TOPIC\]\s*/, '');
+              console.warn('[Phantom Eye] off-topic sentinel detected (short reply) · pending strike');
+            }
+            if (head2 && feat) BBF_TTS.appendDelta(feat, head2);
+            lc.turnHeadFlushed = true;
+            lc.turnHeadBuffer  = '';
+          }
+          if (feat) BBF_TTS.flush(feat);
+        } catch (e) { console.warn('[Phantom Eye] BBF_TTS flush failed:', e && e.message); }
       }
+
+      // ── Strike accounting · runs after every Gemini turn ─────
+      var STRIKE_LIMIT = 2;  // first refusal = warning · second off-topic = out
+      if (lc.thisTurnIsOffTopic) {
+        lc.offTopicStrikes = (lc.offTopicStrikes || 0) + 1;
+        console.warn('[Phantom Eye] off-topic strike ' + lc.offTopicStrikes + ' / ' + STRIKE_LIMIT);
+        if (lc.offTopicStrikes >= STRIKE_LIMIT) {
+          console.warn('[Phantom Eye] strike-out · session terminating');
+          try {
+            var msgEl2 = document.getElementById((lc.mode === 'voice') ? 'lc-voice-status' : 'lc-status');
+            if (msgEl2) { msgEl2.textContent = 'Session ended — off-topic limit reached. Reconnect when ready to focus.'; msgEl2.classList.add('on'); }
+          } catch (_) {}
+          // Speak a brief sign-off through the active voice, then close
+          // the WS so no further frames or token spend happen.
+          try {
+            var goodbyeFeat = BBF_TTS.featureForMode(lc.mode);
+            if (goodbyeFeat) BBF_TTS.speak(goodbyeFeat, 'Session ending. Reconnect when ready to focus on what I can actually help with.');
+          } catch (_) {}
+          setTimeout(function() {
+            try { window.terminateLiveCoach(lc.mode); }
+            catch (e) { console.warn('[Phantom Eye] terminate after strike-out failed:', e && e.message); }
+          }, 6000);
+        }
+      }
+
+      // Reset per-turn state for the next turn.
+      lc.turnHeadFlushed    = false;
+      lc.turnHeadBuffer     = '';
+      lc.thisTurnIsOffTopic = false;
       return;
     }
 
