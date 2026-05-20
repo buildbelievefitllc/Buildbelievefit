@@ -10252,7 +10252,13 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
   ws.addEventListener('open', function() {
     console.log('[Phantom Eye] WS open · sending context · mode=' + lc.mode);
     var ctx = _lcCollectContext();
-    try { ws.send(JSON.stringify({ type: 'context', mode: lc.mode, payload: ctx })); }
+    // Tell the proxy which BBF feature is active so it can select the
+    // scope-locked system prompt (phantom_eye · virtual_coach ·
+    // nutrition_vision · virtual_chef). Falls back to mode-based prompt
+    // if BBF_TTS isn't available (legacy path).
+    var featureKey = null;
+    try { featureKey = (typeof BBF_TTS !== 'undefined') ? BBF_TTS.featureForMode(lc.mode) : null; } catch (_) {}
+    try { ws.send(JSON.stringify({ type: 'context', mode: lc.mode, feature: featureKey, payload: ctx })); }
     catch (e) { console.error('[Phantom Eye] context send failed:', e && e.message); }
   });
 

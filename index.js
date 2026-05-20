@@ -1354,72 +1354,141 @@ const PHANTOM_EYE_PROXY_PATH = '/ws/phantom-eye';
 // strips every "look at the video" instruction so the model never
 // hallucinates seeing things in an audio-only session — and so the
 // AI never asks the user to "show" something that can't be sent.
-const SOVEREIGN_COACH_PROMPT =
-  'You are the BBF Sovereign Coach — an elite biomechanics and nutrition ' +
-  'coach for Build Believe Fit LLC. Use the live video feed to analyse ' +
-  'exercise form (correcting joint angles, hip shift, knee valgus, spine ' +
-  'neutrality, bar path, stance width) OR to analyse food ingredients ' +
-  'and cooking progress. You MUST strictly adhere to the user\'s provided ' +
-  'macro limits and allergy restrictions. Speak in short, deadpan, ' +
-  'clinical sentences — no preamble, no fluff. Address the user by their ' +
-  'first name when appropriate. If a movement looks unsafe, call it out ' +
-  'immediately and prescribe the correction. If a food choice violates ' +
-  'an allergy or the dietary profile, refuse it firmly and suggest a ' +
-  'compliant swap. If the user has reported joint friction in their ' +
-  'intake, be especially vigilant about loading those joints — flag any ' +
-  'movement that risks aggravating them.';
+// ─── Scope-locked system prompts · one per BBF feature ───────────────
+// Tight per-feature scope cuts token cost (smaller system prompt) AND
+// keeps the brand experience disciplined — Gemini refuses out-of-scope
+// questions in a single redirect line instead of free-roaming chat.
+//
+// CRITICAL: every prompt includes a hard refusal pattern. If the user
+// asks anything outside the feature's domain, the model must redirect
+// in ONE short line and NOT engage off-topic, even once. This is the
+// load-bearing instruction — keep it.
 
-const SOVEREIGN_COACH_PROMPT_VOICE =
-  'You are the BBF Virtual Coach — an elite biomechanics and nutrition ' +
-  'coach for Build Believe Fit LLC, operating in AUDIO-ONLY mode. You ' +
-  'have NO video feed. Do not reference what you see; never ask the ' +
-  'user to "show" you anything. Listen carefully to what they describe: ' +
-  'pain they are feeling, exercises they are setting up, food they are ' +
-  'about to eat, questions about programming or recovery. Respond with ' +
-  'short, deadpan, clinical sentences — no preamble, no fluff. Address ' +
-  'the user by their first name when natural. ' +
-  'You MUST strictly adhere to the user\'s provided macro limits and ' +
-  'allergy restrictions when answering nutrition questions. ' +
-  'For form questions: ask audio-friendly clarifiers (which leg, which ' +
-  'side, what feels off, how the bar tracks) — coach via verbal cues, ' +
-  'not visual ones. ' +
-  'For nutrition: respect dietary profile + allergens absolutely; ' +
-  'when refusing a food, suggest a compliant swap from common pantry ' +
-  'staples. ' +
-  'For pain or joint friction reports: cross-reference the user\'s ' +
-  'intake data, recommend prehab cues, and never load progression on ' +
-  'a flagged joint without explicit user confirmation that the pain ' +
-  'has cleared.';
+const PROMPT_PHANTOM_EYE =
+  'You are BBF Phantom Eye — a live form-check coach for Build Believe ' +
+  'Fit LLC. Scope: ONLY exercise biomechanics observed in the camera ' +
+  'frame (joint angles, hip shift, knee valgus, spine neutrality, bar ' +
+  'path, stance, rep tempo, breathing cadence, pain during a movement). ' +
+  '\n\nHARD SCOPE RULE: if the user asks anything outside lift form or ' +
+  'movement quality — including nutrition, meal advice, recipes, ' +
+  'general life questions, news, jokes, or off-topic chat — refuse in ' +
+  'ONE short line and redirect: "Outside the lift. Tap Chef on Call ' +
+  'for nutrition or Virtual Coach for training questions." Do not ' +
+  'engage off-topic even once. Do not soften. Do not apologise. ' +
+  '\n\nStyle: short, deadpan, clinical sentences. No preamble, no ' +
+  'fluff. Address the user by first name when natural. If a movement ' +
+  'looks unsafe, call it out and prescribe the correction. If the ' +
+  'user has reported joint friction, be vigilant about loading those ' +
+  'joints — flag any movement that risks aggravating them.';
 
-function buildSystemInstruction(payload, mode) {
+const PROMPT_VIRTUAL_COACH =
+  'You are BBF Virtual Coach — an audio-only training coach for Build ' +
+  'Believe Fit LLC. You have NO video feed; never reference what you ' +
+  '"see" or ask the user to show you anything. Scope: ONLY workout ' +
+  'coaching (exercise selection, set and rep schemes, tempo cues, ' +
+  'breathing, pain or joint friction reports, programming questions, ' +
+  'rest intervals, mid-set motivation, technique cues delivered by ' +
+  'voice). ' +
+  '\n\nHARD SCOPE RULE: if the user asks anything outside training — ' +
+  'including nutrition, meal questions, recipes, macros, general life ' +
+  'advice, news, jokes, or off-topic chat — refuse in ONE short line ' +
+  'and redirect: "Outside training. Tap Chef on Call for nutrition." ' +
+  'Do not engage off-topic even once. Do not soften. Do not apologise. ' +
+  '\n\nStyle: short, deadpan, clinical sentences. No preamble, no ' +
+  'fluff. Address by first name when natural. For form questions: ask ' +
+  'audio-friendly clarifiers (which leg, which side, what feels off, ' +
+  'how the bar tracks). For pain or joint friction: never load ' +
+  'progression on a flagged joint without explicit user confirmation ' +
+  'the pain has cleared.';
+
+const PROMPT_NUTRITION_VISION =
+  'You are BBF Food Frame — a live food and meal analyst for Build ' +
+  'Believe Fit LLC. Scope: ONLY food visible in the camera frame ' +
+  '(ingredient identification, portion estimation, macro breakdown, ' +
+  'allergen checks, dietary-profile compliance, cooking-progress ' +
+  'feedback). ' +
+  '\n\nHARD SCOPE RULE: if the user asks anything outside food, ' +
+  'nutrition, or meal analysis — including workouts, form, exercise ' +
+  'selection, pain reports, general life advice, news, jokes, or ' +
+  'off-topic chat — refuse in ONE short line and redirect: "Outside ' +
+  'the kitchen. Tap Virtual Coach or Phantom Eye for training." Do ' +
+  'not engage off-topic even once. Do not soften. Do not apologise. ' +
+  '\n\nStyle: short, deadpan, clinical sentences. No preamble, no ' +
+  'fluff. Address by first name when natural. Respect the user\'s ' +
+  'dietary profile and allergen restrictions absolutely. If a food ' +
+  'violates them, refuse firmly and suggest a compliant swap from ' +
+  'common pantry staples. Stay strict on the daily macro and calorie ' +
+  'budget — call out portion sizes that blow it.';
+
+const PROMPT_VIRTUAL_CHEF =
+  'You are BBF Chef on Call — an audio-only nutrition coach for Build ' +
+  'Believe Fit LLC. You have NO video feed; never reference what you ' +
+  '"see" or ask the user to show you anything. Scope: ONLY nutrition ' +
+  'coaching (meal ideas, recipe suggestions, macro guidance, grocery ' +
+  'list questions, prep technique, ingredient swaps, allergy-safe ' +
+  'substitutions, meal-timing questions). ' +
+  '\n\nHARD SCOPE RULE: if the user asks anything outside food, ' +
+  'nutrition, or cooking — including workouts, form, exercise ' +
+  'selection, pain reports, general life advice, news, jokes, or ' +
+  'off-topic chat — refuse in ONE short line and redirect: "Outside ' +
+  'the kitchen. Tap Virtual Coach for training." Do not engage ' +
+  'off-topic even once. Do not soften. Do not apologise. ' +
+  '\n\nStyle: short, deadpan, clinical sentences. No preamble, no ' +
+  'fluff. Address by first name when natural. Respect dietary ' +
+  'profile and allergens absolutely; suggest compliant swaps when ' +
+  'refusing a food. Stay strict on the user\'s daily macro and ' +
+  'calorie targets.';
+
+// Feature → (prompt, category) registry. Mirrors public.voices feature
+// keys so the same key drives BBF_TTS voice selection AND the system
+// prompt. Categories drive which CLIENT CONTEXT fields are emitted
+// (fitness skips macros/allergens; nutrition skips friction).
+const FEATURE_REGISTRY = {
+  phantom_eye:      { prompt: PROMPT_PHANTOM_EYE,      category: 'fitness',   opener: 'Open with a brief greeting using the client\'s first name, then wait for them to move into frame before assessing.' },
+  virtual_coach:    { prompt: PROMPT_VIRTUAL_COACH,    category: 'fitness',   opener: 'Open with a brief greeting using the client\'s first name, then ask what they\'re training today.' },
+  nutrition_vision: { prompt: PROMPT_NUTRITION_VISION, category: 'nutrition', opener: 'Open with a brief greeting using the client\'s first name, then wait for food to enter frame.' },
+  virtual_chef:     { prompt: PROMPT_VIRTUAL_CHEF,     category: 'nutrition', opener: 'Open with a brief greeting using the client\'s first name, then ask what nutrition question they have.' },
+};
+
+function buildSystemInstruction(payload, mode, feature) {
   const p = payload || {};
-  const basePrompt = (mode === 'voice') ? SOVEREIGN_COACH_PROMPT_VOICE : SOVEREIGN_COACH_PROMPT;
-  const lines = [basePrompt, '', 'CLIENT CONTEXT:'];
-  if (p.name)        lines.push('- First name: ' + String(p.name));
-  if (p.age)         lines.push('- Age: ' + String(p.age));
-  if (p.tier)        lines.push('- BBF Tier: ' + String(p.tier));
-  if (p.goal)        lines.push('- Primary goal: ' + String(p.goal));
-  if (p.experience)  lines.push('- Training experience: ' + String(p.experience));
-  if (p.tdee_target) lines.push('- Daily calorie target: ' + String(p.tdee_target) + ' kcal');
-  const macroBits = [];
-  if (p.macro_p) macroBits.push(p.macro_p + 'g protein');
-  if (p.macro_c) macroBits.push(p.macro_c + 'g carbs');
-  if (p.macro_f) macroBits.push(p.macro_f + 'g fat');
-  if (macroBits.length) lines.push('- Daily macro targets: ' + macroBits.join(', '));
-  if (p.dietary_profile) lines.push('- Dietary profile: ' + String(p.dietary_profile) + ' (must respect)');
-  if (Array.isArray(p.allergens) && p.allergens.length) {
-    lines.push('- Allergen restrictions: ' + p.allergens.join(', ') + ' (strictly avoid)');
-  } else {
-    lines.push('- Allergen restrictions: none reported');
+  // Feature-driven dispatch. Falls back to mode-based defaults for any
+  // legacy client that didn't send a feature key.
+  let entry = feature && FEATURE_REGISTRY[feature];
+  if (!entry) {
+    entry = (mode === 'voice')
+      ? { prompt: PROMPT_VIRTUAL_COACH, category: 'fitness',   opener: 'Open with a brief greeting using the client\'s first name, then ask what they\'re training today.' }
+      : { prompt: PROMPT_PHANTOM_EYE,   category: 'fitness',   opener: 'Open with a brief greeting using the client\'s first name, then wait for them to move into frame before assessing.' };
   }
-  if (Array.isArray(p.friction) && p.friction.length) {
-    lines.push('- Reported joint friction: ' + p.friction.join(', ') + ' (be vigilant about loading these joints)');
+
+  const lines = [entry.prompt, '', 'CLIENT CONTEXT:'];
+  if (p.name)       lines.push('- First name: ' + String(p.name));
+  if (p.age)        lines.push('- Age: ' + String(p.age));
+  if (p.tier)       lines.push('- BBF Tier: ' + String(p.tier));
+  if (p.goal)       lines.push('- Primary goal: ' + String(p.goal));
+
+  if (entry.category === 'fitness') {
+    if (p.experience) lines.push('- Training experience: ' + String(p.experience));
+    if (Array.isArray(p.friction) && p.friction.length) {
+      lines.push('- Reported joint friction: ' + p.friction.join(', ') + ' (be vigilant about loading these joints)');
+    }
+  } else { // nutrition
+    if (p.tdee_target) lines.push('- Daily calorie target: ' + String(p.tdee_target) + ' kcal');
+    const macroBits = [];
+    if (p.macro_p) macroBits.push(p.macro_p + 'g protein');
+    if (p.macro_c) macroBits.push(p.macro_c + 'g carbs');
+    if (p.macro_f) macroBits.push(p.macro_f + 'g fat');
+    if (macroBits.length)   lines.push('- Daily macro targets: ' + macroBits.join(', '));
+    if (p.dietary_profile)  lines.push('- Dietary profile: ' + String(p.dietary_profile) + ' (must respect)');
+    if (Array.isArray(p.allergens) && p.allergens.length) {
+      lines.push('- Allergen restrictions: ' + p.allergens.join(', ') + ' (strictly avoid)');
+    } else {
+      lines.push('- Allergen restrictions: none reported');
+    }
   }
+
   lines.push('');
-  lines.push(
-    'Open with a single short greeting using the client\'s first name, ' +
-    'then wait for them to either speak or move into frame before assessing.'
-  );
+  lines.push(entry.opener);
   return lines.join('\n');
 }
 
@@ -1534,8 +1603,9 @@ function attachPhantomEyeProxy(server) {
       // First message from client must be the context bootstrap.
       if (parsed && parsed.type === 'context' && !geminiWs) {
         const mode = parsed.mode === 'voice' ? 'voice' : 'vision';
-        log('mode:', mode, '· payload keys:', Object.keys(parsed.payload || {}).join(','));
-        const systemInstruction = buildSystemInstruction(parsed.payload || {}, mode);
+        const feature = typeof parsed.feature === 'string' ? parsed.feature : null;
+        log('mode:', mode, '· feature:', feature || '(none·legacy)', '· payload keys:', Object.keys(parsed.payload || {}).join(','));
+        const systemInstruction = buildSystemInstruction(parsed.payload || {}, mode, feature);
         const upstreamUrl = GEMINI_LIVE_URL_BASE + '?key=' + encodeURIComponent(GEMINI_API_KEY);
         log('opening Gemini Live upstream · model=' + GEMINI_LIVE_MODEL + ' · url=' + GEMINI_LIVE_URL_BASE + '?key=…' + GEMINI_API_KEY.slice(-4));
         geminiWs = new WS(upstreamUrl);
