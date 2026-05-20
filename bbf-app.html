@@ -3168,6 +3168,25 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .bbf-tour-replay b{font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.78rem;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6)}
 @media (max-width:520px){.bbf-tour-tip{max-width:calc(100vw - 24px);left:12px!important;right:12px!important}}
 
+/* ═ BBF_INTERCEPT — First-Click education modal (token-burn guard) ═ */
+.bbf-icp-overlay{position:fixed;inset:0;z-index:99995;background:rgba(4,4,8,.82);backdrop-filter:blur(8px) saturate(1.2);-webkit-backdrop-filter:blur(8px) saturate(1.2);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;transition:opacity .25s ease;pointer-events:none}
+.bbf-icp-overlay.on{opacity:1;pointer-events:auto}
+.bbf-icp-card{position:relative;width:100%;max-width:440px;background:linear-gradient(150deg,rgba(20,8,38,.96) 0%,rgba(8,10,18,.98) 60%,rgba(8,20,26,.95) 100%);border:1px solid rgba(245,207,96,.55);border-radius:18px;padding:1.6rem 1.4rem 1.35rem;box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 0 1px rgba(245,200,0,.08);transform:translateY(14px) scale(.97);opacity:0;transition:transform .32s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)),opacity .28s ease;color:#fff;overflow:hidden}
+.bbf-icp-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#22d3ee 18%,#F5CF60 50%,#9D27C9 82%,transparent);opacity:.9}
+.bbf-icp-card::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 15% 0%,rgba(34,211,238,.08),transparent 45%),radial-gradient(ellipse at 85% 100%,rgba(157,39,201,.1),transparent 50%);pointer-events:none;border-radius:18px}
+.bbf-icp-overlay.on .bbf-icp-card{transform:translateY(0) scale(1);opacity:1}
+.bbf-icp-kicker{position:relative;z-index:1;display:flex;align-items:center;gap:.5rem;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;letter-spacing:3.5px;text-transform:uppercase;color:#22d3ee;margin-bottom:.55rem}
+.bbf-icp-kicker-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22d3ee;box-shadow:0 0 12px #22d3ee;animation:bbfIcpPulse 1.8s ease-in-out infinite}
+@keyframes bbfIcpPulse{0%,100%{opacity:1}50%{opacity:.45}}
+.bbf-icp-title{position:relative;z-index:1;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:clamp(1.25rem,5vw,1.65rem);line-height:1.05;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:#fff;margin:0 0 .85rem;background:linear-gradient(90deg,#FBE3A0 0%,#F5CF60 45%,#D4AF37 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.bbf-icp-body{position:relative;z-index:1;font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.95rem;line-height:1.55;color:rgba(255,255,255,.86);margin:0 0 1.25rem}
+.bbf-icp-foot{position:relative;z-index:1;display:flex;align-items:center;justify-content:flex-end;gap:.6rem}
+.bbf-icp-cta{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:.88rem;letter-spacing:2.4px;text-transform:uppercase;background:linear-gradient(180deg,#F5CF60 0%,#D4AF37 100%);color:#1B1106;border:1px solid #F5CF60;border-radius:12px;padding:.85rem 1.4rem;cursor:pointer;box-shadow:0 8px 22px rgba(245,200,0,.34),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .15s ease,filter .15s ease;-webkit-tap-highlight-color:transparent}
+.bbf-icp-cta:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.bbf-icp-close{position:absolute;top:.55rem;right:.7rem;z-index:2;background:transparent;border:none;color:rgba(255,255,255,.5);font-size:1.2rem;line-height:1;cursor:pointer;padding:.3rem .5rem;border-radius:6px;transition:color .2s,background .2s}
+.bbf-icp-close:hover{color:#fff;background:rgba(255,255,255,.08)}
+@media (max-width:520px){.bbf-icp-card{padding:1.35rem 1.15rem 1.15rem;border-radius:16px}.bbf-icp-cta{width:100%;padding:.95rem 1rem}.bbf-icp-foot{justify-content:stretch}}
+
 </style>
 <link rel="stylesheet" href="styles/bbf-tokens.css"/>
 <link rel="stylesheet" href="styles/bbf-vault.css"/>
@@ -12316,6 +12335,9 @@ var BBF_KINEMATICS = (function() {
 
   // Idempotent — binds every Form Check button in the document exactly
   // once. Called from RDW() after the workout view re-renders.
+  // Wrapped via BBF_INTERCEPT — first click on any kinematic scanner
+  // button surfaces the Calibration education modal before _onButtonClick
+  // fires. Subsequent clicks bypass the modal automatically.
   function init() {
     _ensureFileInput();
     var buttons = document.querySelectorAll('.kinematic-scanner-btn');
@@ -12323,7 +12345,15 @@ var BBF_KINEMATICS = (function() {
       var btn = buttons[i];
       if (btn.dataset.bbfBound === '1') continue;
       btn.dataset.bbfBound = '1';
-      btn.addEventListener('click', _onButtonClick);
+      btn.addEventListener('click', function(e) {
+        if (e) { e.stopPropagation(); e.preventDefault(); }
+        var origEvent = e;
+        if (typeof BBF_INTERCEPT !== 'undefined' && BBF_INTERCEPT.check) {
+          BBF_INTERCEPT.check('kinematic_scanner', function() { _onButtonClick(origEvent); });
+        } else {
+          _onButtonClick(origEvent);
+        }
+      });
     }
   }
 
@@ -12628,7 +12658,17 @@ var BBF_COMLINK = (function() {
       fab.type      = 'button';
       fab.className = 'sovereign-comlink-fab';
       fab.setAttribute('aria-label', 'Sovereign Comlink — voice rewrite');
-      fab.addEventListener('click', _onFabClick);
+      // Wrapped via BBF_INTERCEPT — first tap surfaces the Command
+      // Protocol education modal before _onFabClick fires. Subsequent
+      // taps bypass the modal automatically.
+      fab.addEventListener('click', function(e) {
+        var origEvent = e;
+        if (typeof BBF_INTERCEPT !== 'undefined' && BBF_INTERCEPT.check) {
+          BBF_INTERCEPT.check('sovereign_comlink', function() { _onFabClick(origEvent); });
+        } else {
+          _onFabClick(origEvent);
+        }
+      });
       document.body.appendChild(fab);
     }
     fab.style.display = _supported ? 'flex' : 'none';
@@ -12859,6 +12899,144 @@ var BBF_POSITIONAL_INTEL = (function() {
   }
 
   return { mount: mount };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_INTERCEPT · First-Click Intercepts (token-burn guard + education)
+// ────────────────────────────────────────────────────────────────────────
+// Lightweight wrapper that intercepts the FIRST click on every agentic
+// feature, surfaces a Sovereign-styled education modal, and (on
+// acknowledge) flips a localStorage flag so subsequent clicks fire the
+// original callback instantly — no second prompt, no extra friction.
+//
+// Public API:
+//   BBF_INTERCEPT.check(featureKey, executionCallback)
+//     · featureKey already cleared → executionCallback() fires immediately
+//     · not cleared                → render modal · "Acknowledge & Proceed"
+//                                    sets intercept_cleared_<featureKey>=true
+//                                    in localStorage, closes, then fires
+//                                    executionCallback()
+//
+// Three registered features:
+//   sovereign_comlink  — gold mic FAB (BBF_COMLINK)
+//   kinematic_scanner  — magenta "Run Form Scan" / Form Check (BBF_KINEMATICS)
+//   smart_cardio       — orange "Generate Protocol" (BBF_CARDIO)
+//
+// Per CEO directive: this wrapper does NOT rewrite any agentic function.
+// It wraps the click bindings at three sites — the original handlers
+// run unchanged once the user has acknowledged.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_INTERCEPT = (function() {
+  var STORE_PREFIX = 'intercept_cleared_';
+
+  var FEATURES = {
+    sovereign_comlink: {
+      title: '🎙️ COMMAND PROTOCOL',
+      body:  'Do not use this for general chat. State your biomechanical friction or time constraint. Example: "My CNS is fried, replace heavy squats." Keep it under 15 seconds.',
+      cta:   'Acknowledge & Proceed',
+      kicker:'Sovereign Comlink · First Use'
+    },
+    kinematic_scanner: {
+      title: '🎥 CALIBRATION REQUIRED',
+      body:  'The Vision agent requires a clear, 45-degree angle of the entire kinetic chain. Uploading obscured or overly long footage will result in a failed scan.',
+      cta:   'Acknowledge & Proceed',
+      kicker:'Kinematic Scanner · First Use'
+    },
+    smart_cardio: {
+      title: '⚡ ENGINE ENGAGED',
+      body:  'This is a deterministic routing engine. It will dictate your intensity based entirely on the time you give it. Commit to the output.',
+      cta:   'Acknowledge & Proceed',
+      kicker:'Smart Cardio · First Use'
+    }
+  };
+
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _cleared(key) {
+    try { return localStorage.getItem(STORE_PREFIX + key) === 'true'; } catch (_) { return false; }
+  }
+  function _setCleared(key) {
+    try { localStorage.setItem(STORE_PREFIX + key, 'true'); } catch (_) {}
+  }
+
+  function _renderModal(featureKey, onAcknowledge, onCancel) {
+    var spec = FEATURES[featureKey];
+    if (!spec) { onAcknowledge && onAcknowledge(); return; }
+
+    var overlay = document.createElement('div');
+    overlay.className = 'bbf-icp-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'bbf-icp-title-' + featureKey);
+    overlay.innerHTML =
+      '<div class="bbf-icp-card" role="document">' +
+        '<button type="button" class="bbf-icp-close" aria-label="Cancel">&times;</button>' +
+        '<div class="bbf-icp-kicker"><span class="bbf-icp-kicker-dot"></span>' + _esc(spec.kicker) + '</div>' +
+        '<h2 class="bbf-icp-title" id="bbf-icp-title-' + featureKey + '">' + _esc(spec.title) + '</h2>' +
+        '<p class="bbf-icp-body">' + _esc(spec.body) + '</p>' +
+        '<div class="bbf-icp-foot">' +
+          '<button type="button" class="bbf-icp-cta" data-act="ack">' + _esc(spec.cta) + '</button>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+    // Lock background scroll while modal is up.
+    var prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    // Animate in
+    requestAnimationFrame(function() { overlay.classList.add('on'); });
+
+    function _teardown(cb) {
+      overlay.classList.remove('on');
+      setTimeout(function() {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        document.body.style.overflow = prevOverflow || '';
+        if (typeof cb === 'function') cb();
+      }, 240);
+    }
+
+    var ackBtn   = overlay.querySelector('[data-act="ack"]');
+    var closeBtn = overlay.querySelector('.bbf-icp-close');
+
+    function _cancel() {
+      document.removeEventListener('keydown', _onKey, true);
+      _teardown(function() { if (typeof onCancel === 'function') onCancel(); });
+    }
+    function _acknowledge() {
+      _setCleared(featureKey);
+      document.removeEventListener('keydown', _onKey, true);
+      _teardown(function() { if (typeof onAcknowledge === 'function') onAcknowledge(); });
+    }
+    function _onKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); _cancel(); }
+      else if (e.key === 'Enter') { e.preventDefault(); _acknowledge(); }
+    }
+
+    if (ackBtn)   ackBtn.addEventListener('click', _acknowledge);
+    if (closeBtn) closeBtn.addEventListener('click', _cancel);
+    // Click backdrop = cancel (treat as accidental tap; no flag, no callback).
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) _cancel(); });
+    document.addEventListener('keydown', _onKey, true);
+    // Focus the CTA so Enter acknowledges and Tab cycles inside the card.
+    setTimeout(function() { if (ackBtn) try { ackBtn.focus(); } catch (_) {} }, 60);
+  }
+
+  function check(featureKey, executionCallback) {
+    if (typeof executionCallback !== 'function') return;
+    if (!FEATURES[featureKey])  { executionCallback(); return; }
+    if (_cleared(featureKey))   { executionCallback(); return; }
+    _renderModal(featureKey, executionCallback, null);
+  }
+
+  // Test helper — flips the cleared flag back off for QA / debugging.
+  function reset(featureKey) {
+    try { localStorage.removeItem(STORE_PREFIX + (featureKey || '')); } catch (_) {}
+  }
+
+  return { check: check, reset: reset };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
@@ -13776,7 +13954,17 @@ var BBF_CARDIO = (function() {
     }
     if (goEl && goEl.dataset.bbfBound !== '1') {
       goEl.dataset.bbfBound = '1';
-      goEl.addEventListener('click', _generate);
+      // Wrapped via BBF_INTERCEPT — first tap surfaces the Engine
+      // Engaged education modal before _generate fires. Subsequent
+      // taps bypass the modal automatically.
+      goEl.addEventListener('click', function(e) {
+        var origEvent = e;
+        if (typeof BBF_INTERCEPT !== 'undefined' && BBF_INTERCEPT.check) {
+          BBF_INTERCEPT.check('smart_cardio', function() { _generate(origEvent); });
+        } else {
+          _generate(origEvent);
+        }
+      });
     }
     _syncTierHint();
   }
