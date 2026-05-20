@@ -12658,12 +12658,41 @@ var BBF_POSITIONAL_INTEL = (function() {
     } catch (_) {}
     return { sport: sport, position: position };
   }
+  // ATHLETE_MATRIX position-group keys → WORKOUT_CATALOG position keys.
+  // The portal groups multiple roster positions under one matrix slot
+  // (e.g. football's "skill" = QB + RB + WR + S). We aggregate every
+  // founder-verified drill across the underlying WORKOUT_CATALOG keys
+  // so the agent has the full slate to pick from for that group.
+  var POSITION_GROUP_MAP = {
+    football:   { skill:     ['QB','RB','WR','S'],
+                  bigs:      ['OL','DL','LB','TE'] },
+    soccer:     { field:     ['FW','MF'],
+                  goal:      ['DEF','GK'] },
+    basketball: { perimeter: ['PG','SG','SF'],
+                  post:      ['PF','C'] },
+    baseball:   { pitcher:   ['P'],
+                  infielder: ['IF','C'] },
+    volleyball: { outside:   ['OH','MB'],
+                  setter:    ['S','LIB'] },
+  };
+
   function _candidates(sport, position) {
     if (typeof WORKOUT_CATALOG === 'undefined' || !WORKOUT_CATALOG) return [];
     var bySport = WORKOUT_CATALOG[sport];
     if (!bySport) return [];
-    var arr = bySport[position];
-    return Array.isArray(arr) ? arr : [];
+    // Resolve the portal group key (e.g. "skill") to the underlying
+    // WORKOUT_CATALOG position keys (e.g. ["QB","RB","WR","S"]).
+    var keys = POSITION_GROUP_MAP[sport] && POSITION_GROUP_MAP[sport][position];
+    // Direct hit on a raw catalog key (e.g. "PG") also supported for
+    // forward-compat if the portal ever exposes raw positions.
+    if (!keys && Array.isArray(bySport[position])) keys = [position];
+    if (!keys || !keys.length) return [];
+    var out = [];
+    for (var i = 0; i < keys.length; i++) {
+      var arr = bySport[keys[i]];
+      if (Array.isArray(arr)) out = out.concat(arr);
+    }
+    return out;
   }
   function _setStatus(text, state) {
     var el = document.getElementById('pic-status');
