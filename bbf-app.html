@@ -10628,6 +10628,9 @@ window.terminateLiveCoach = function terminateLiveCoach(mode) {
   if (!mode && window.PHANTOM_EYE_LC && window.PHANTOM_EYE_LC.mode) {
     mode = window.PHANTOM_EYE_LC.mode;
   }
+  // Halt any ElevenLabs (Julius / Kelli LaShae) playback that was
+  // mid-sentence — the queue is reset so the next session starts clean.
+  try { if (typeof BBF_TTS !== 'undefined' && BBF_TTS.stop) BBF_TTS.stop(); } catch (_) {}
   var refs = _lcResolveMode(mode || 'vision');
   var overlay  = document.getElementById(refs.overlayId);
   var videoEl  = refs.videoElId ? document.getElementById(refs.videoElId) : null;
@@ -13061,6 +13064,204 @@ var BBF_INTERCEPT = (function() {
   }
 
   return { check: check, reset: reset };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_TTS · ElevenLabs voice gateway · data-driven per-feature routing
+// ────────────────────────────────────────────────────────────────────────
+// Calls the bbf-tts-eleven edge function with a feature key + text. The
+// edge fn looks up the voice_id from the public.voices Supabase table
+// (Julius for fitness · Kelli LaShae for nutrition), forwards to
+// ElevenLabs, and returns base64 MP3 that this IIFE decodes + plays.
+//
+// Public API:
+//   BBF_TTS.speak(featureKey, text, opts?) → Promise<void>
+//     Plays the audio for the given text + feature. Queues sequentially.
+//   BBF_TTS.featureForMode(mode)           → string | null
+//     Derives the feature key from initLiveCoach's `mode` + active tab.
+//   BBF_TTS.stop()                         → void
+//     Stops any in-flight playback (call from terminateLiveCoach).
+//   BBF_TTS.flush(featureKey, opts?)       → void
+//     Convenience: speak whatever's in the sentence buffer for this feature.
+//   BBF_TTS.appendDelta(featureKey, delta, opts?) → void
+//     Buffers streamed text deltas and auto-flushes on sentence boundaries
+//     ('. ' / '! ' / '? ' / newline). Designed for Gemini Live → ElevenLabs
+//     bridging once the Render proxy starts emitting outputTranscription.
+//
+// Feature-key registry (mirrors public.voices + BBF_INTERCEPT keys):
+//   phantom_eye      → Julius        (Program tab · Live Vision Check)
+//   virtual_coach    → Julius        (Program tab · Live Coach Active)
+//   nutrition_vision → Kelli LaShae  (Nutrition tab · Food Frame)
+//   virtual_chef     → Kelli LaShae  (Nutrition tab · Chef on Call)
+//
+// To swap voices later: UPDATE public.voices SET voice_id = '<new>'
+// WHERE feature = '<key>';  · zero code changes here.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_TTS = (function() {
+  var ENDPOINT     = '/functions/v1/bbf-tts-eleven';
+  var _queue       = [];   // pending utterances · played sequentially
+  var _playing     = false;
+  var _activeAudio = null; // current Audio element so stop() can halt it
+  var _buffers     = {};   // sentence buffer per feature key
+
+  // Heuristic feature derivation. Called from existing Gemini hooks
+  // that only know `mode` ('vision' | 'voice') — we resolve which BBF
+  // feature is actually active by reading the current tab.
+  //   Program  + vision → phantom_eye
+  //   Program  + voice  → virtual_coach
+  //   Nutrition + vision → nutrition_vision
+  //   Nutrition + voice  → virtual_chef
+  function featureForMode(mode) {
+    var nutritionOn = false;
+    try {
+      var npane = document.getElementById('tp-nutrition');
+      nutritionOn = !!(npane && npane.classList.contains('on'));
+    } catch (_) {}
+    if (mode === 'vision') return nutritionOn ? 'nutrition_vision' : 'phantom_eye';
+    if (mode === 'voice')  return nutritionOn ? 'virtual_chef'     : 'virtual_coach';
+    return null;
+  }
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _dataUrl(base64, mime) {
+    return 'data:' + (mime || 'audio/mpeg') + ';base64,' + base64;
+  }
+
+  function _playNext() {
+    if (_playing || !_queue.length) return;
+    var item = _queue.shift();
+    _playing = true;
+    try {
+      var audio = new Audio(item.dataUrl);
+      _activeAudio = audio;
+      audio.addEventListener('ended', function() {
+        _activeAudio = null;
+        _playing     = false;
+        if (item.resolve) item.resolve();
+        _playNext();
+      });
+      audio.addEventListener('error', function(e) {
+        console.warn('[BBF_TTS] audio playback error:', e && (e.message || e.type));
+        _activeAudio = null;
+        _playing     = false;
+        if (item.reject) item.reject(new Error('audio_playback_error'));
+        _playNext();
+      });
+      var p = audio.play();
+      if (p && typeof p.then === 'function') {
+        p.catch(function(err) {
+          console.warn('[BBF_TTS] audio.play() rejected:', err && err.message || err);
+          _activeAudio = null;
+          _playing     = false;
+          if (item.reject) item.reject(err);
+          _playNext();
+        });
+      }
+    } catch (err) {
+      console.warn('[BBF_TTS] playback threw:', err && err.message || err);
+      _activeAudio = null;
+      _playing     = false;
+      if (item.reject) item.reject(err);
+      _playNext();
+    }
+  }
+
+  function _enqueue(dataUrl) {
+    return new Promise(function(resolve, reject) {
+      _queue.push({ dataUrl: dataUrl, resolve: resolve, reject: reject });
+      _playNext();
+    });
+  }
+
+  function stop() {
+    _queue.length = 0;
+    if (_activeAudio) {
+      try { _activeAudio.pause(); } catch (_) {}
+      try { _activeAudio.src = ''; } catch (_) {}
+    }
+    _activeAudio = null;
+    _playing     = false;
+    _buffers     = {};
+  }
+
+  function speak(featureKey, text, opts) {
+    text = String(text == null ? '' : text).trim();
+    if (!featureKey || !text) return Promise.resolve();
+
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) {
+      headers['Authorization'] = 'Bearer ' + anon;
+      headers['apikey']        = anon;
+    }
+    var body = { feature: featureKey, text: text };
+    if (opts && opts.model_id)       body.model_id       = opts.model_id;
+    if (opts && opts.voice_settings) body.voice_settings = opts.voice_settings;
+
+    return window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify(body)
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!parsed || parsed.ok !== true || !parsed.audio_base64) {
+          console.warn('[BBF_TTS] tts ok=false · feature=' + featureKey + ' · reason=' + (parsed && parsed.reason));
+          return;
+        }
+        console.log('[BBF_TTS] feature=' + featureKey + ' · voice=' + parsed.voice_name + ' · bytes=' + parsed.bytes + ' · est_ms=' + parsed.duration_ms_estimate);
+        return _enqueue(_dataUrl(parsed.audio_base64, parsed.mime));
+      });
+    }).catch(function(err) {
+      console.warn('[BBF_TTS] fetch failed · feature=' + featureKey + ':', err && err.message || err);
+    });
+  }
+
+  // Sentence-boundary buffering for streamed deltas. Cheap: split on
+  // sentence-final punctuation followed by whitespace / newline. Anything
+  // not yet terminal stays in the buffer until flush() or the next
+  // delta closes a sentence.
+  var SENTENCE_BOUNDARY = /([.!?][\)"'”’]?\s+|\n+)/;
+  function appendDelta(featureKey, delta, opts) {
+    if (!featureKey || typeof delta !== 'string' || !delta) return;
+    var buf = (_buffers[featureKey] || '') + delta;
+    var lastBoundary = -1;
+    var m, re = new RegExp(SENTENCE_BOUNDARY.source, 'g');
+    while ((m = re.exec(buf)) !== null) lastBoundary = m.index + m[0].length;
+    if (lastBoundary > 0) {
+      var toSpeak = buf.slice(0, lastBoundary).trim();
+      _buffers[featureKey] = buf.slice(lastBoundary);
+      if (toSpeak) speak(featureKey, toSpeak, opts);
+    } else {
+      _buffers[featureKey] = buf;
+    }
+  }
+  function flush(featureKey, opts) {
+    var leftover = (_buffers[featureKey] || '').trim();
+    _buffers[featureKey] = '';
+    if (leftover) return speak(featureKey, leftover, opts);
+    return Promise.resolve();
+  }
+
+  return {
+    speak:          speak,
+    appendDelta:    appendDelta,
+    flush:          flush,
+    stop:           stop,
+    featureForMode: featureForMode
+  };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
