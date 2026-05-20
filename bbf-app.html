@@ -3108,6 +3108,37 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .som-widget.depleted .som-score-n,
 .som-widget.depleted .som-gauge-num { color: #ef4444; text-shadow: 0 0 18px rgba(239,68,68,.45); }
 
+/* ═ Warhead 2 — Positional Intelligence Comlink (Athlete Portal) ═ */
+.pic-wrap{position:relative;margin-top:1.1rem;background:linear-gradient(150deg,rgba(20,8,38,.78) 0%,rgba(8,10,18,.85) 60%,rgba(8,20,26,.7) 100%);border:1px solid rgba(34,211,238,.32);border-radius:16px;padding:1.05rem 1rem 1.1rem;overflow:hidden;backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.pic-wrap::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#22d3ee 18%,#F5CF60 50%,#9D27C9 82%,transparent);opacity:.7}
+.pic-kicker{display:flex;align-items:center;gap:.5rem;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;letter-spacing:3.5px;text-transform:uppercase;color:#22d3ee;margin-bottom:.35rem}
+.pic-kicker-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22d3ee;box-shadow:0 0 10px #22d3ee}
+.pic-title{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:clamp(1rem,3.8vw,1.3rem);line-height:1.05;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--wht);margin:0 0 .25rem}
+.pic-sub{font-size:.78rem;line-height:1.45;color:rgba(255,255,255,.62);margin:0 0 .8rem}
+.pic-form{display:flex;gap:.55rem;flex-wrap:wrap;margin-bottom:.7rem}
+.pic-input{flex:1;min-width:0;background:rgba(8,4,18,.85);border:1px solid rgba(212,175,55,.32);color:#fff;padding:.78rem .85rem;border-radius:10px;font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.95rem;letter-spacing:.3px;outline:none;transition:border-color .2s ease,box-shadow .2s ease}
+.pic-input:focus{border-color:#F5CF60;box-shadow:0 0 0 2px rgba(245,200,0,.18)}
+.pic-input::placeholder{color:rgba(255,255,255,.42);font-style:italic}
+.pic-submit{background:linear-gradient(180deg,#F5CF60 0%,#D4AF37 100%);color:#1B1106;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:.85rem;letter-spacing:2px;border:1px solid #F5CF60;border-radius:10px;padding:.78rem 1.2rem;cursor:pointer;box-shadow:0 6px 18px rgba(245,200,0,.28),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .15s ease,filter .15s ease;-webkit-tap-highlight-color:transparent}
+.pic-submit:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.05)}
+.pic-submit:disabled{opacity:.55;cursor:not-allowed}
+.pic-hint{font-size:.7rem;letter-spacing:.5px;color:rgba(255,255,255,.42);margin:0 0 .5rem}
+.pic-status{font-size:.78rem;color:#22d3ee;margin:0 0 .65rem;letter-spacing:.3px;min-height:1em}
+.pic-status[data-state="error"]{color:#fca5a5}
+.pic-empty{font-size:.75rem;color:rgba(255,255,255,.48);text-align:center;padding:.8rem .5rem;border:1px dashed rgba(212,175,55,.2);border-radius:10px;margin-top:.4rem}
+.pic-card{position:relative;margin-top:.6rem;background:linear-gradient(150deg,rgba(28,12,48,.6) 0%,rgba(10,10,14,.78) 60%,rgba(8,18,24,.55) 100%);border:1px solid rgba(245,207,96,.45);border-radius:14px;padding:1rem 1rem 1.05rem;overflow:hidden;animation:picCardRise .42s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
+.pic-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#F5CF60 50%,transparent);opacity:.85}
+@keyframes picCardRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.pic-card-verdict{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.82rem;letter-spacing:1.5px;color:#F5CF60;text-transform:uppercase;margin:0 0 .6rem;line-height:1.35}
+.pic-card-name{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:clamp(1.1rem,4.5vw,1.45rem);font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#fff;margin:0 0 .5rem;line-height:1.1}
+.pic-card-meta{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.65rem}
+.pic-chip{display:inline-flex;align-items:center;gap:.3rem;font-size:.66rem;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);letter-spacing:1.5px;text-transform:uppercase;background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.32);color:#F5CF60;padding:.28rem .55rem;border-radius:6px}
+.pic-chip--kpi{background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.32);color:#22d3ee}
+.pic-chip--equip{background:rgba(157,39,201,.1);border-color:rgba(157,39,201,.32);color:#d8b4fe}
+.pic-card-focus{font-size:.85rem;line-height:1.45;color:rgba(255,255,255,.85);margin:0 0 .55rem;font-weight:600}
+.pic-card-why{font-size:.78rem;line-height:1.5;color:rgba(255,255,255,.62);margin:0;border-top:1px solid rgba(255,255,255,.06);padding-top:.55rem}
+.pic-card-why-lbl{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:#22d3ee;display:block;margin-bottom:.2rem}
+
 </style>
 <link rel="stylesheet" href="styles/bbf-tokens.css"/>
 <link rel="stylesheet" href="styles/bbf-vault.css"/>
@@ -3206,6 +3237,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="bbf-translator.js"></script>
 <script src="bbf-util.js"></script>
 <script src="bbf-data.js"></script>
+<script src="workout-data.js"></script>
 <style id="promethean-vault-engine">
 /* === Extracted Max Mode CSS === */
 .shader-bg {
@@ -6666,6 +6698,22 @@ window.onload=function(){
               </article>
             </div>
 
+            <!-- ═ Warhead 2 — Positional Intelligence Comlink (dynamic drill query) ═ -->
+            <section class="pic-wrap" id="pic-wrap" hidden aria-labelledby="pic-title">
+              <div class="pic-kicker" aria-hidden="true">
+                <span class="pic-kicker-dot"></span> Positional Intelligence
+              </div>
+              <h3 class="pic-title" id="pic-title">Explore Your Position</h3>
+              <p class="pic-sub">State an athletic improvement you want to develop. The comlink queries the BBF founder-verified drill catalog for your sport &amp; position and surfaces the right drill.</p>
+              <form class="pic-form" id="pic-form" autocomplete="off">
+                <input class="pic-input" id="pic-input" type="text" maxlength="240" aria-label="Athletic improvement query" placeholder='e.g. "I need a faster first step"'>
+                <button class="pic-submit" id="pic-submit" type="submit">Query</button>
+              </form>
+              <div class="pic-hint" id="pic-hint">Try: faster first step &middot; higher vertical &middot; lateral agility &middot; more rotational power</div>
+              <div class="pic-status" id="pic-status" role="status" aria-live="polite"></div>
+              <div id="pic-result"></div>
+            </section>
+
             <!-- ═ Progression Gate — CTA + Phase 2 Lock (between protocol grid and Form HUD) ═ -->
             <div class="ap-progression-gate" id="ap-progression-gate" hidden>
               <button class="ap-progression-cta" id="ap-protocol-complete-btn" type="button" aria-controls="ap-kfh-wrap">
@@ -7907,6 +7955,12 @@ function TAB(name) {
   // on every other tab. Idempotent.
   if (typeof BBF_COMLINK !== 'undefined') {
     try { BBF_COMLINK.mount(); } catch(_) {}
+  }
+  // Warhead 2 — Positional Intelligence Comlink. Idempotent (internal guard).
+  // Lives inside the Athlete Portal but mount the listener once globally
+  // so it survives tab switches.
+  if (typeof BBF_POSITIONAL_INTEL !== 'undefined') {
+    try { BBF_POSITIONAL_INTEL.mount(); } catch(_) {}
   }
   // Phase 11 hotfix — translate any data-lang-key elements injected by
   // the just-finished tab-specific render. Without this, a user who
@@ -12543,6 +12597,200 @@ var BBF_COMLINK = (function() {
 })();
 
 // ════════════════════════════════════════════════════════════════════════
+// BBF_POSITIONAL_INTEL · Warhead 2 — Positional Intelligence Comlink
+// ────────────────────────────────────────────────────────────────────────
+// Inside the Athlete Portal ("Explore Your Position" section). User types
+// an athletic improvement query → POSTs to bbf-agentic-comlink with
+// intent=positional_drill and the founder-verified drill candidates for
+// their current sport+position → renders the selected drill as a card.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_POSITIONAL_INTEL = (function() {
+  var ENDPOINT = '/functions/v1/bbf-agentic-comlink';
+  var _mounted = false;
+  var _busy    = false;
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _lang() {
+    try {
+      if (typeof LANG === 'string' && (LANG === 'en' || LANG === 'es' || LANG === 'pt')) return LANG;
+    } catch (_) {}
+    return 'en';
+  }
+  function _athleteState() {
+    // Live select values are the source of truth (state is also persisted
+    // to localStorage under 'bbf_athlete_portal_v2' but selects always
+    // reflect current intent).
+    var sportSel = document.getElementById('ap-sport-select');
+    var posSel   = document.getElementById('ap-position-select');
+    var sport    = (sportSel && sportSel.value) || '';
+    var position = (posSel && posSel.value)     || '';
+    if (sport && position) return { sport: sport, position: position };
+    try {
+      var raw = localStorage.getItem('bbf_athlete_portal_v2');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.sport && parsed.position) {
+          return { sport: parsed.sport, position: parsed.position };
+        }
+      }
+    } catch (_) {}
+    return { sport: sport, position: position };
+  }
+  function _candidates(sport, position) {
+    if (typeof WORKOUT_CATALOG === 'undefined' || !WORKOUT_CATALOG) return [];
+    var bySport = WORKOUT_CATALOG[sport];
+    if (!bySport) return [];
+    var arr = bySport[position];
+    return Array.isArray(arr) ? arr : [];
+  }
+  function _setStatus(text, state) {
+    var el = document.getElementById('pic-status');
+    if (!el) return;
+    el.textContent = text || '';
+    if (state) el.setAttribute('data-state', state); else el.removeAttribute('data-state');
+  }
+  function _renderEmpty(reason) {
+    var host = document.getElementById('pic-result');
+    if (!host) return;
+    host.innerHTML = '<div class="pic-empty">' + _esc(reason) + '</div>';
+  }
+  function _renderCard(drill, verdict, why, lang) {
+    var host = document.getElementById('pic-result');
+    if (!host || !drill) return;
+    var name  = (drill.name  && (drill.name[lang]  || drill.name.en))  || 'Drill';
+    var focus = (drill.focus && (drill.focus[lang] || drill.focus.en)) || '';
+    var sets  = drill.sets      || '';
+    var equip = drill.equipment || '';
+    var kpi   = drill.kpi       || '';
+    var html = '<article class="pic-card" aria-live="polite">';
+    html += '<div class="pic-card-verdict">&#x1F3AF; ' + _esc(verdict || 'Drill selected.') + '</div>';
+    html += '<h4 class="pic-card-name">' + _esc(name) + '</h4>';
+    html += '<div class="pic-card-meta">';
+    if (sets)  html += '<span class="pic-chip">' + _esc(sets) + '</span>';
+    if (equip) html += '<span class="pic-chip pic-chip--equip">' + _esc(equip) + '</span>';
+    if (kpi)   html += '<span class="pic-chip pic-chip--kpi">' + _esc(kpi) + '</span>';
+    html += '</div>';
+    if (focus) html += '<p class="pic-card-focus">' + _esc(focus) + '</p>';
+    if (why) {
+      html += '<div class="pic-card-why">';
+      html +=   '<span class="pic-card-why-lbl">Why this drill</span>';
+      html +=   _esc(why);
+      html += '</div>';
+    }
+    html += '</article>';
+    host.innerHTML = html;
+  }
+
+  function _query(text) {
+    if (_busy) return;
+    var st = _athleteState();
+    if (!st.sport || !st.position) {
+      _setStatus('Select a sport and position first.', 'error');
+      return;
+    }
+    var candidates = _candidates(st.sport, st.position);
+    if (!candidates.length) {
+      _setStatus('No founder-verified drills loaded for ' + st.sport + ' / ' + st.position + '.', 'error');
+      return;
+    }
+    var lang = _lang();
+    var uid  = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || 'guest_athlete';
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) {
+      headers['Authorization'] = 'Bearer ' + anon;
+      headers['apikey']        = anon;
+    }
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+    var body = {
+      intent:         'positional_drill',
+      uid:            uid,
+      query:          text,
+      sport:          st.sport,
+      position:       st.position,
+      candidates:     candidates,
+      lang:           lang,
+      admin_override: !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true),
+    };
+
+    _busy = true;
+    var submit = document.getElementById('pic-submit');
+    if (submit) submit.disabled = true;
+    _setStatus('Querying the founder catalog…');
+
+    window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify(body)
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok || !parsed || typeof parsed.drill_index !== 'number') {
+          console.warn('[BBF_POSITIONAL_INTEL] engine returned HTTP ' + res.status + ':', parsed || t);
+          _setStatus('Comlink error (HTTP ' + res.status + '). Try again.', 'error');
+          return;
+        }
+        var idx = Math.max(0, Math.min(candidates.length - 1, Math.floor(parsed.drill_index)));
+        var drill = candidates[idx];
+        _renderCard(drill, parsed.coaching_verdict, parsed.why, lang);
+        _setStatus('Drill matched · index ' + idx + ' of ' + candidates.length + '.');
+        console.log('[BBF_POSITIONAL_INTEL] query="' + text.slice(0,80) + '" · ' + st.sport + '/' + st.position + ' → idx=' + idx + ' · verdict="' + (parsed.coaching_verdict || '').slice(0,80) + '"');
+      });
+    }).catch(function(err) {
+      console.warn('[BBF_POSITIONAL_INTEL] fetch failed:', err && err.message || err);
+      _setStatus('Comlink offline. Network error.', 'error');
+    }).then(function() {
+      _busy = false;
+      if (submit) submit.disabled = false;
+    });
+  }
+
+  function mount() {
+    if (_mounted) return;
+    var form = document.getElementById('pic-form');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var input = document.getElementById('pic-input');
+      var raw   = input ? String(input.value || '').trim() : '';
+      if (!raw) {
+        _setStatus('Type what you want to improve.', 'error');
+        return;
+      }
+      _query(raw.slice(0, 240));
+    });
+    _mounted = true;
+  }
+
+  return { mount: mount };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
 // BBF_IMMERSION · Phase 8 — Sovereign Linguistics · Roleplay Simulator
 // ────────────────────────────────────────────────────────────────────────
 // Multi-turn chat IIFE inside the Profile › Mastery Protocol section.
@@ -15680,6 +15928,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var data  = group && group.phases[state.phase];
       var hudWrap = document.getElementById('ap-kfh-wrap');
       var gate    = document.getElementById('ap-progression-gate');
+      var picWrap = document.getElementById('pic-wrap');
       if (!sport || !group || !data) {
         proto.setAttribute('data-state','empty');
         if (protoTitle) protoTitle.textContent = 'Awaiting Selection';
@@ -15688,6 +15937,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (protoEmpty) protoEmpty.style.display = '';
         if (hudWrap)    hudWrap.hidden = true;
         if (gate)       gate.hidden = true;
+        if (picWrap)    picWrap.hidden = true;
         // Footer lives outside the gate, so we still sync its locked
         // copy here even though the gate itself is hidden.
         syncPhase2UI();
@@ -15702,6 +15952,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (protoMeta)  protoMeta.textContent  = phaseLabel + ' · ' + group.roster;
       if (protoEmpty) protoEmpty.style.display = 'none';
       if (protoGrid)  protoGrid.hidden = false;
+      if (picWrap)    picWrap.hidden = false;
       if (outGoal)    outGoal.textContent  = data.goal;
       if (outNutri)   outNutri.textContent = data.nutrition;
       renderList(outLifts, data.lifts);
