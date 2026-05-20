@@ -44,11 +44,14 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 const MAX_TEXT_LEN          = 2500;   // ElevenLabs hard caps at ~2500 chars per request
 const ELEVEN_TIMEOUT_MS     = 20000;
-const DEFAULT_MODEL_ID      = 'eleven_turbo_v2_5';   // low-latency, multilingual
+// eleven_flash_v2_5 → ~75ms first-byte latency (vs ~250-400ms on turbo).
+// Same voices, slightly less expressive prosody — the latency win wins.
+// To override per-request: POST with { model_id: 'eleven_turbo_v2_5' }.
+const DEFAULT_MODEL_ID      = 'eleven_flash_v2_5';
 const DEFAULT_VOICE_SETTINGS = {
-  stability:         0.45,
+  stability:         0.40,
   similarity_boost:  0.85,
-  style:             0.30,
+  style:             0.00,   // Style transfer adds latency; off for snappier first-byte.
   use_speaker_boost: true,
 };
 

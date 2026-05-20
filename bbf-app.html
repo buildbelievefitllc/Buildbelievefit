@@ -13273,20 +13273,41 @@ var BBF_TTS = (function() {
     });
   }
 
-  // Sentence-boundary buffering for streamed deltas. Cheap: split on
-  // sentence-final punctuation followed by whitespace / newline. Anything
-  // not yet terminal stays in the buffer until flush() or the next
-  // delta closes a sentence.
-  var SENTENCE_BOUNDARY = /([.!?][\)"'”’]?\s+|\n+)/;
+  // Latency-tuned streaming buffer.
+  // Three flush triggers, checked in order of preference:
+  //   1. Hard sentence-end (. ! ? \n) — natural prosody boundary
+  //   2. Clause-end (, ; :) — flush only if buffer ≥ MIN_CLAUSE_LEN so we
+  //      don't fragment short phrases (e.g. "Yes," doesn't fire alone).
+  //   3. Soft cap (MAX_BUFFER_LEN) — if the model keeps going without any
+  //      punctuation, flush at the next word boundary to bound first-byte
+  //      latency. The user hears something within ~1.5s even on a wall of
+  //      text with no commas.
+  var SENTENCE_BOUNDARY = /([.!?][\)"'”’]?\s+|\n+)/g;
+  var CLAUSE_BOUNDARY   = /([,;:][\)"'”’]?\s+)/g;
+  var MIN_CLAUSE_LEN    = 40;   // chars · skip clause flush below this
+  var MAX_BUFFER_LEN    = 140;  // chars · force flush at next word boundary
+  function _lastMatchEnd(re, str) {
+    var last = -1, m;
+    re.lastIndex = 0;
+    while ((m = re.exec(str)) !== null) last = m.index + m[0].length;
+    return last;
+  }
   function appendDelta(featureKey, delta, opts) {
     if (!featureKey || typeof delta !== 'string' || !delta) return;
     var buf = (_buffers[featureKey] || '') + delta;
-    var lastBoundary = -1;
-    var m, re = new RegExp(SENTENCE_BOUNDARY.source, 'g');
-    while ((m = re.exec(buf)) !== null) lastBoundary = m.index + m[0].length;
-    if (lastBoundary > 0) {
-      var toSpeak = buf.slice(0, lastBoundary).trim();
-      _buffers[featureKey] = buf.slice(lastBoundary);
+
+    var cut = _lastMatchEnd(SENTENCE_BOUNDARY, buf);
+    if (cut <= 0 && buf.length >= MIN_CLAUSE_LEN) {
+      cut = _lastMatchEnd(CLAUSE_BOUNDARY, buf);
+    }
+    if (cut <= 0 && buf.length >= MAX_BUFFER_LEN) {
+      var spaceIdx = buf.lastIndexOf(' ');
+      if (spaceIdx > MAX_BUFFER_LEN / 2) cut = spaceIdx + 1;
+    }
+
+    if (cut > 0) {
+      var toSpeak = buf.slice(0, cut).trim();
+      _buffers[featureKey] = buf.slice(cut);
       if (toSpeak) speak(featureKey, toSpeak, opts);
     } else {
       _buffers[featureKey] = buf;
