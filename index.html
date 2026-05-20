@@ -1875,6 +1875,331 @@ body.bbf-kairos .hero-badge {
   </div>
 </section>
 
+<!-- ═══ MOAB 3 · THE ROUTINE INTERROGATOR ═══════════════════════════════
+     Brutalist lead-gen audit. Prospect pastes their split → Claude
+     Opus 4.7 surfaces 2-3 programming gaps → contrasts BBF systems →
+     hard tier recommendation → Stripe checkout buttons rendered live.
+     Frictionless: no email gate. ═══════════════════════════════════════ -->
+<style>
+#interrogator{position:relative;background:#050507;padding:5rem 1.25rem;border-top:2px solid rgba(239,68,68,.55);border-bottom:2px solid rgba(34,211,238,.5);overflow:hidden;isolation:isolate}
+#interrogator::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(34,211,238,.03) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(239,68,68,.025) 0 1px,transparent 1px 4px);pointer-events:none;mix-blend-mode:screen;z-index:0}
+#interrogator::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,#EF4444 22%,#F5C800 50%,#22D3EE 78%,transparent);opacity:.85;z-index:1}
+.intg-in{position:relative;z-index:2;max-width:920px;margin:0 auto}
+.intg-kicker{display:flex;align-items:center;justify-content:center;gap:.55rem;font-family:var(--hb,'Bebas Neue','Anton',sans-serif);font-size:.7rem;letter-spacing:5px;text-transform:uppercase;color:#EF4444;margin-bottom:.7rem}
+.intg-kicker-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#EF4444;box-shadow:0 0 14px #EF4444;animation:intgPulse 1.6s ease-in-out infinite}
+@keyframes intgPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+.intg-title{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:clamp(2rem,7vw,3.4rem);line-height:.95;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-align:center;margin:0 0 .55rem;color:#fff}
+.intg-title b{background:linear-gradient(90deg,#FBE3A0 0%,#F5C800 45%,#D4AF37 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.intg-sub{text-align:center;max-width:640px;margin:0 auto 2.1rem;font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:1rem;line-height:1.55;color:rgba(255,255,255,.62)}
+.intg-shell{background:linear-gradient(180deg,#0a0a10 0%,#080812 100%);border:1px solid rgba(245,200,0,.22);border-radius:14px;padding:1.5rem 1.3rem 1.35rem;box-shadow:0 24px 70px rgba(0,0,0,.55),0 0 0 1px rgba(34,211,238,.06)}
+.intg-label{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.55rem}
+.intg-label-l{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.66rem;letter-spacing:3px;text-transform:uppercase;color:#22D3EE}
+.intg-label-r{font-family:'Menlo','Courier New',monospace;font-size:.6rem;letter-spacing:2px;color:rgba(255,255,255,.32);text-transform:uppercase}
+.intg-textarea{width:100%;background:#04040a;border:1px solid rgba(34,211,238,.32);color:#E8FBFF;font-family:'Menlo','Courier New',monospace;font-size:.92rem;line-height:1.55;padding:1rem 1rem;border-radius:10px;min-height:200px;resize:vertical;outline:none;transition:border-color .2s ease,box-shadow .2s ease;-webkit-tap-highlight-color:transparent}
+.intg-textarea:focus{border-color:#F5C800;box-shadow:0 0 0 2px rgba(245,200,0,.18),inset 0 0 18px rgba(34,211,238,.06)}
+.intg-textarea::placeholder{color:rgba(255,255,255,.32);font-style:italic}
+.intg-counter{margin-top:.4rem;font-family:'Menlo','Courier New',monospace;font-size:.62rem;letter-spacing:1.6px;color:rgba(255,255,255,.32);text-align:right;text-transform:uppercase}
+.intg-counter[data-state="warn"]{color:#F5C800}
+.intg-counter[data-state="cap"]{color:#EF4444}
+.intg-go{display:block;width:100%;margin-top:1.1rem;background:linear-gradient(180deg,#EF4444 0%,#B91C1C 100%);color:#fff;border:1px solid #EF4444;border-radius:12px;padding:1.15rem 1rem;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:1.15rem;letter-spacing:3.5px;text-transform:uppercase;font-weight:900;cursor:pointer;box-shadow:0 12px 32px rgba(239,68,68,.45),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .15s ease,filter .15s ease,box-shadow .15s ease;-webkit-tap-highlight-color:transparent}
+.intg-go:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 18px 42px rgba(239,68,68,.55),inset 0 1px 0 rgba(255,255,255,.25)}
+.intg-go:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.4)}
+.intg-go .intg-go-sub{display:block;font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.66rem;letter-spacing:2.5px;font-weight:700;margin-top:.25rem;color:rgba(255,255,255,.85)}
+.intg-output{margin-top:1.4rem;background:#020208;border:1px solid rgba(34,211,238,.45);border-radius:12px;padding:1.3rem 1.15rem;font-family:'Menlo','Courier New',monospace;color:#E8FBFF;box-shadow:inset 0 0 32px rgba(34,211,238,.05),0 18px 50px rgba(0,0,0,.45);display:none;position:relative;overflow:hidden}
+.intg-output::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#22D3EE 22%,#F5C800 50%,#EF4444 78%,transparent);opacity:.7}
+.intg-output[data-state="open"]{display:block;animation:intgRise .5s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)) both}
+@keyframes intgRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.intg-scan{display:flex;align-items:center;gap:.5rem;font-size:.66rem;letter-spacing:2.8px;text-transform:uppercase;color:#22D3EE;margin-bottom:.85rem}
+.intg-scan-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22D3EE;box-shadow:0 0 12px #22D3EE;animation:intgPulse 1.4s ease-in-out infinite}
+.intg-section{margin-bottom:1.25rem}
+.intg-section:last-child{margin-bottom:0}
+.intg-section-h{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.78rem;letter-spacing:3.5px;text-transform:uppercase;margin:0 0 .55rem;padding-bottom:.45rem;border-bottom:1px dashed rgba(255,255,255,.12)}
+.intg-section--gaps .intg-section-h{color:#EF4444}
+.intg-section--contrast .intg-section-h{color:#F5C800}
+.intg-section--verdict .intg-section-h{color:#22D3EE}
+.intg-entry{padding:.65rem 0;border-bottom:1px dotted rgba(255,255,255,.06)}
+.intg-entry:last-child{border-bottom:none}
+.intg-entry-t{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.88rem;letter-spacing:1.8px;text-transform:uppercase;margin:0 0 .25rem}
+.intg-section--gaps .intg-entry-t{color:#FCA5A5}
+.intg-section--contrast .intg-entry-t{color:#F5CF60}
+.intg-entry-b{font-size:.85rem;line-height:1.55;color:rgba(255,255,255,.78);margin:0;font-family:var(--bd,'Barlow Condensed',sans-serif);letter-spacing:.2px}
+.intg-verdict-head{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:1.05rem;line-height:1.25;letter-spacing:1.4px;text-transform:uppercase;color:#fff;margin:0 0 .55rem}
+.intg-verdict-rationale{font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.88rem;line-height:1.55;color:rgba(255,255,255,.78);margin:0 0 1rem}
+.intg-cta-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:.6rem}
+@media (max-width:520px){.intg-cta-row{grid-template-columns:1fr}}
+.intg-cta{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;padding:1.1rem 1rem;border-radius:12px;cursor:pointer;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);letter-spacing:2.2px;text-transform:uppercase;border:none;text-align:center;transition:transform .15s ease,filter .15s ease,box-shadow .15s ease;-webkit-tap-highlight-color:transparent}
+.intg-cta:hover{transform:translateY(-2px);filter:brightness(1.07)}
+.intg-cta-prim{background:linear-gradient(180deg,#F5C800 0%,#D4AF37 100%);color:#1B1106;box-shadow:0 12px 30px rgba(245,200,0,.42),inset 0 1px 0 rgba(255,255,255,.32);font-size:1rem;font-weight:900;border:1px solid #F5CF60}
+.intg-cta-prim.intg-cta--recommended{box-shadow:0 16px 40px rgba(245,200,0,.6),inset 0 1px 0 rgba(255,255,255,.4),0 0 0 2px #FBE3A0}
+.intg-cta-sec{background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.55);color:#22D3EE;font-size:.92rem;font-weight:800}
+.intg-cta-sec:hover{background:rgba(34,211,238,.16);color:#E8FBFF}
+.intg-cta-sub{font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.64rem;letter-spacing:1.5px;font-weight:700;opacity:.85}
+.intg-recommended-badge{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.55rem;letter-spacing:2.5px;background:rgba(245,200,0,.18);border:1px solid rgba(245,200,0,.55);color:#F5CF60;padding:.15rem .45rem;border-radius:4px;text-transform:uppercase;margin-bottom:.2rem}
+.intg-error{font-family:'Menlo','Courier New',monospace;font-size:.82rem;color:#FCA5A5;background:rgba(239,68,68,.06);border:1px dashed rgba(239,68,68,.35);border-radius:8px;padding:.85rem 1rem;letter-spacing:.4px}
+.intg-load{display:flex;align-items:center;justify-content:center;gap:.6rem;padding:1.6rem 1rem;color:#22D3EE;font-family:'Menlo','Courier New',monospace;font-size:.85rem;letter-spacing:2.5px;text-transform:uppercase}
+.intg-load::before{content:"";width:14px;height:14px;border:2px solid rgba(34,211,238,.3);border-top-color:#22D3EE;border-radius:50%;animation:intgSpin .8s linear infinite}
+@keyframes intgSpin{to{transform:rotate(360deg)}}
+@media (max-width:520px){#interrogator{padding:3.5rem 1rem}.intg-shell{padding:1.15rem 1rem 1.1rem}.intg-output{padding:1.1rem 1rem}.intg-go{font-size:1rem;letter-spacing:2.5px;padding:1rem .8rem}}
+</style>
+<section id="interrogator" aria-labelledby="intg-title">
+  <div class="intg-in">
+    <div class="intg-kicker" aria-hidden="true">
+      <span class="intg-kicker-dot"></span> MOAB 3 &middot; Lead-Gen Audit
+    </div>
+    <h2 class="intg-title" id="intg-title">The Routine <b>Interrogator</b></h2>
+    <p class="intg-sub">Paste your current workout split. The audit engine surfaces the structural gaps your program is hiding and prescribes the exact BBF architecture that closes them. No email. No friction.</p>
+    <div class="intg-shell" role="form" aria-labelledby="intg-title">
+      <div class="intg-label">
+        <span class="intg-label-l">&gt; PASTE YOUR PROTOCOL</span>
+        <span class="intg-label-r" id="intg-counter-meta">0 / 4000</span>
+      </div>
+      <textarea class="intg-textarea" id="intg-input" maxlength="4000"
+        placeholder="MON — Chest + Triceps&#10;Bench Press 4x8 / Incline DB 3x10 / Cable Fly 3x12 / Skullcrushers 4x10 / Pushdowns 3x15&#10;&#10;TUE — Back + Biceps&#10;Pull-ups 4xAMRAP / Barbell Row 4x8 / Lat Pulldown 3x12 / DB Curl 4x10 / Hammer Curl 3x12&#10;&#10;WED — Legs&#10;Squat 5x5 / RDL 4x8 / Leg Press 3x12 / Calf Raises 4x15&#10;&#10;THU — Shoulders&#10;OHP 4x6 / Lateral Raise 4x12 / Rear Delt Fly 3x15 / Shrugs 4x10&#10;&#10;FRI — Arms&#10;Cable Curl 4x12 / Tricep Pushdown 4x12 / Hammer Curl 3x10 / Overhead Tricep 3x12&#10;&#10;SAT — Cardio (45 min Zone 2)&#10;SUN — Rest"
+        aria-label="Paste your current workout routine for clinical audit"></textarea>
+      <div class="intg-counter" id="intg-counter">0 / 4000 chars</div>
+      <button type="button" class="intg-go" id="intg-go-btn">
+        Audit My Protocol &rarr;
+        <span class="intg-go-sub">Clinical breakdown &middot; ~10-second read</span>
+      </button>
+      <div class="intg-output" id="intg-output" role="region" aria-live="polite" aria-label="Interrogator audit results"></div>
+    </div>
+  </div>
+</section>
+<script>
+(function() {
+  'use strict';
+  var ENDPOINT     = '/functions/v1/bbf-agentic-interrogator';
+  var STORAGE_KEY  = 'bbf_interrogator_session_v1';
+  var TEXTAREA_ID  = 'intg-input';
+  var COUNTER_ID   = 'intg-counter';
+  var COUNTER_META = 'intg-counter-meta';
+  var GO_ID        = 'intg-go-btn';
+  var OUT_ID       = 'intg-output';
+  var MAX_LEN      = 4000;
+  var MIN_LEN      = 18;
+  var _inFlight    = false;
+
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) {
+        return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+      }
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _session() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return raw;
+      var sid = 'sid_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now().toString(36);
+      localStorage.setItem(STORAGE_KEY, sid);
+      return sid;
+    } catch (_) { return 'anonymous'; }
+  }
+  function _syncCounter() {
+    var ta   = document.getElementById(TEXTAREA_ID);
+    var c1   = document.getElementById(COUNTER_ID);
+    var c2   = document.getElementById(COUNTER_META);
+    var len  = (ta && ta.value) ? ta.value.length : 0;
+    var txt  = len + ' / ' + MAX_LEN + ' chars';
+    if (c1) {
+      c1.textContent = txt;
+      c1.removeAttribute('data-state');
+      if (len >= MAX_LEN)     c1.setAttribute('data-state', 'cap');
+      else if (len > MAX_LEN * 0.85) c1.setAttribute('data-state', 'warn');
+    }
+    if (c2) c2.textContent = len + ' / ' + MAX_LEN;
+  }
+
+  function _renderLoading() {
+    var out = document.getElementById(OUT_ID);
+    if (!out) return;
+    out.setAttribute('data-state', 'open');
+    out.innerHTML = '<div class="intg-load">RUNNING CLINICAL AUDIT</div>';
+  }
+  function _renderError(msg) {
+    var out = document.getElementById(OUT_ID);
+    if (!out) return;
+    out.setAttribute('data-state', 'open');
+    out.innerHTML =
+      '<div class="intg-scan"><span class="intg-scan-dot"></span> AUDIT &middot; OFFLINE</div>' +
+      '<div class="intg-error">&#9888; ' + _esc(msg || 'Could not reach the interrogator engine.') + ' Retry in a moment or proceed straight to the architecture.</div>' +
+      '<div class="intg-cta-row" style="margin-top:1rem">' +
+        '<button type="button" class="intg-cta intg-cta-prim" onclick="selectTier(\'gateway\')">Start Gateway<span class="intg-cta-sub">$67/mo · Habit Architecture</span></button>' +
+        '<button type="button" class="intg-cta intg-cta-sec" onclick="selectTier(\'architect\')">Start Architect<span class="intg-cta-sub">$697 · 12-Week Hybrid</span></button>' +
+      '</div>';
+  }
+
+  function _tierMeta(tier) {
+    if (tier === 'architect') {
+      return { label: 'Start Architect Hybrid', sub: '$697 &middot; 12-Week Hybrid', other: 'gateway', otherLabel: 'Start Gateway', otherSub: '$67/mo &middot; Habit Architecture' };
+    }
+    return     { label: 'Start Gateway',         sub: '$67/mo &middot; Habit Architecture', other: 'architect', otherLabel: 'Start Architect', otherSub: '$697 &middot; 12-Week Hybrid' };
+  }
+
+  function _renderAudit(data) {
+    var out = document.getElementById(OUT_ID);
+    if (!out || !data) return;
+    var html = '';
+    html += '<div class="intg-scan"><span class="intg-scan-dot"></span> AUDIT &middot; COMPLETE</div>';
+
+    // GAPS
+    if (Array.isArray(data.gaps) && data.gaps.length) {
+      html += '<div class="intg-section intg-section--gaps">';
+      html +=   '<h3 class="intg-section-h">[ 01 ] THE GAPS</h3>';
+      for (var i = 0; i < data.gaps.length; i++) {
+        var g = data.gaps[i] || {};
+        html += '<div class="intg-entry">';
+        html +=   '<h4 class="intg-entry-t">' + _esc(g.title || 'Gap ' + (i+1)) + '</h4>';
+        html +=   '<p class="intg-entry-b">' + _esc(g.body || '') + '</p>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    // SOVEREIGN CONTRAST
+    if (Array.isArray(data.sovereign_contrast) && data.sovereign_contrast.length) {
+      html += '<div class="intg-section intg-section--contrast">';
+      html +=   '<h3 class="intg-section-h">[ 02 ] THE SOVEREIGN CONTRAST</h3>';
+      for (var j = 0; j < data.sovereign_contrast.length; j++) {
+        var c = data.sovereign_contrast[j] || {};
+        html += '<div class="intg-entry">';
+        html +=   '<h4 class="intg-entry-t">' + _esc(c.system || 'BBF System') + '</h4>';
+        html +=   '<p class="intg-entry-b">' + _esc(c.body || '') + '</p>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    // VERDICT
+    var v = data.verdict || {};
+    var recTier = (v.recommended_tier === 'architect') ? 'architect' : 'gateway';
+    var meta = _tierMeta(recTier);
+    html += '<div class="intg-section intg-section--verdict">';
+    html +=   '<h3 class="intg-section-h">[ 03 ] THE VERDICT</h3>';
+    if (v.headline)  html += '<p class="intg-verdict-head">' + _esc(v.headline) + '</p>';
+    if (v.rationale) html += '<p class="intg-verdict-rationale">' + _esc(v.rationale) + '</p>';
+    html += '<div class="intg-cta-row">';
+    html +=   '<button type="button" class="intg-cta intg-cta-prim intg-cta--recommended" data-tier="' + recTier + '">';
+    html +=     '<span class="intg-recommended-badge">&#9733; Recommended</span>' + meta.label;
+    html +=     '<span class="intg-cta-sub">' + meta.sub + '</span>';
+    html +=   '</button>';
+    html +=   '<button type="button" class="intg-cta intg-cta-sec" data-tier="' + meta.other + '">';
+    html +=     meta.otherLabel;
+    html +=     '<span class="intg-cta-sub">' + meta.otherSub + '</span>';
+    html +=   '</button>';
+    html += '</div>';
+    html += '</div>';
+
+    out.setAttribute('data-state', 'open');
+    out.innerHTML = html;
+
+    // Wire tier CTAs through the site-wide funnel.
+    var btns = out.querySelectorAll('[data-tier]');
+    for (var k = 0; k < btns.length; k++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          if (typeof window.selectTier === 'function') {
+            try { window.selectTier(btn.getAttribute('data-tier')); } catch (_) {}
+          }
+        });
+      })(btns[k]);
+    }
+
+    // Scroll the readout into view (the audit lives below the fold on
+    // most viewports — soft-scroll keeps the prospect oriented).
+    try { out.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {}
+  }
+
+  function _submit() {
+    if (_inFlight) return;
+    var ta = document.getElementById(TEXTAREA_ID);
+    var go = document.getElementById(GO_ID);
+    var routine = (ta && ta.value || '').trim();
+    if (routine.length < MIN_LEN) {
+      _renderError('Paste at least ' + MIN_LEN + ' characters of your current routine for the audit to fire. Days of the week + the lifts are enough.');
+      try { ta.focus(); } catch (_) {}
+      return;
+    }
+    _inFlight = true;
+    if (go) {
+      go.disabled  = true;
+      go.innerHTML = 'AUDITING&hellip;<span class="intg-go-sub">Engine engaged &middot; ~10s read</span>';
+    }
+    _renderLoading();
+
+    var headers = { 'Content-Type': 'application/json' };
+    var anon = _anonKey();
+    if (anon) {
+      headers['Authorization'] = 'Bearer ' + anon;
+      headers['apikey']        = anon;
+    }
+    var body = JSON.stringify({ routine: routine.slice(0, MAX_LEN), session_id: _session() });
+
+    window.fetch(_supabaseUrl() + ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    body
+    }).then(function(res) {
+      return res.text().then(function(t) {
+        var parsed = null;
+        try { parsed = JSON.parse(t); } catch (_) {}
+        if (!res.ok || !parsed) {
+          console.warn('[INTERROGATOR] engine returned HTTP ' + res.status + ':', parsed || t);
+          _renderError('Engine returned HTTP ' + res.status + '. The architecture is still live — open it directly below.');
+          return;
+        }
+        _renderAudit(parsed);
+      });
+    }).catch(function(err) {
+      console.warn('[INTERROGATOR] fetch failed:', err && err.message || err);
+      _renderError('Network error reaching the interrogator. The architecture is still live — open it directly below.');
+    }).then(function() {
+      _inFlight = false;
+      var goBtn = document.getElementById(GO_ID);
+      if (goBtn) {
+        goBtn.disabled  = false;
+        goBtn.innerHTML = 'Re-Audit My Protocol &rarr;<span class="intg-go-sub">Refine the input above and re-fire</span>';
+      }
+    });
+  }
+
+  function _mount() {
+    var ta = document.getElementById(TEXTAREA_ID);
+    var go = document.getElementById(GO_ID);
+    if (ta) {
+      ta.addEventListener('input', _syncCounter);
+      ta.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + Enter submits.
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.keyCode === 13)) {
+          e.preventDefault();
+          _submit();
+        }
+      });
+    }
+    if (go) go.addEventListener('click', _submit);
+    _syncCounter();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _mount);
+  } else {
+    _mount();
+  }
+})();
+</script>
+
 <!-- NUTRITION -->
 <section id="nutrition">
   <div class="nutr-in">
