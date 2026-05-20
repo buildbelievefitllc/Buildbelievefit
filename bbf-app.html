@@ -13252,8 +13252,16 @@ var BBF_TTS = (function() {
         try { parsed = JSON.parse(t); } catch (_) {}
         if (!parsed || parsed.ok !== true || !parsed.audio_base64) {
           var reason = (parsed && parsed.reason) || 'unknown';
-          _lastFail = { reason: reason, feature: featureKey };
-          console.warn('[BBF_TTS] tts ok=false · feature=' + featureKey + ' · reason=' + reason + ' · audio will fall back to Gemini PCM');
+          _lastFail = {
+            reason:      reason,
+            feature:     featureKey,
+            status:      parsed && parsed.status,
+            eleven_body: parsed && parsed.eleven_body,
+            voice_id:    parsed && parsed.voice_id,
+            voice_name:  parsed && parsed.voice_name,
+            full:        parsed,
+          };
+          console.warn('[BBF_TTS] tts ok=false · feature=' + featureKey + ' · reason=' + reason + ' · status=' + (parsed && parsed.status) + ' · eleven_body=' + JSON.stringify(parsed && parsed.eleven_body) + ' · audio will fall back to Gemini PCM');
           return;
         }
         _lastFail = null;

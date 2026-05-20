@@ -31,7 +31,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token',
 };
 
@@ -112,7 +112,7 @@ async function callElevenLabs(
       let errBody: any = null;
       try { errBody = await res.json(); } catch (_) { try { errBody = await res.text(); } catch (_) {} }
       console.error(`[bbf-tts-eleven] ElevenLabs API error: status=${res.status} body=${JSON.stringify(errBody).slice(0, 400)}`);
-      return { ok: false as const, status: res.status, error: `elevenlabs_${res.status}` };
+      return { ok: false as const, status: res.status, error: `elevenlabs_${res.status}`, body: errBody };
     }
 
     const buf = new Uint8Array(await res.arrayBuffer());
@@ -147,7 +147,28 @@ function estimateDurationMs(bytes: number): number {
 // ─── Handler ─────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
-  if (req.method !== 'POST')    return jsonResponse({ ok: false, reason: 'method_not_allowed' }, 405);
+
+  // GET /functions/v1/bbf-tts-eleven?diag=1  ·  one-shot health probe.
+  // Surfaces which env vars are present (boolean only, no values) so we
+  // can confirm ELEVENLABS_API_KEY landed without exposing the secret.
+  if (req.method === 'GET') {
+    const url = new URL(req.url);
+    if (url.searchParams.get('diag') === '1') {
+      return jsonResponse({
+        ok: true,
+        diag: {
+          has_supabase_url:           !!Deno.env.get('SUPABASE_URL'),
+          has_service_role_key:       !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+          has_anon_key:               !!Deno.env.get('SUPABASE_ANON_KEY'),
+          has_elevenlabs_api_key:     !!Deno.env.get('ELEVENLABS_API_KEY'),
+          elevenlabs_key_length:      (Deno.env.get('ELEVENLABS_API_KEY') || '').length,
+        },
+      });
+    }
+    return jsonResponse({ ok: false, reason: 'method_not_allowed' }, 405);
+  }
+
+  if (req.method !== 'POST') return jsonResponse({ ok: false, reason: 'method_not_allowed' }, 405);
 
   let payload: any;
   try { payload = await req.json(); }
@@ -200,10 +221,12 @@ serve(async (req: Request) => {
 
   if (!result.ok) {
     return jsonResponse({
-      ok:         false,
-      reason:     result.error || 'tts_failed',
-      voice_id:   voice.voice_id,
-      voice_name: voice.voice_name,
+      ok:           false,
+      reason:       result.error || 'tts_failed',
+      status:       (result as any).status,
+      eleven_body:  (result as any).body || null,
+      voice_id:     voice.voice_id,
+      voice_name:   voice.voice_name,
     }, 200);
   }
 
