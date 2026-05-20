@@ -3139,6 +3139,35 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .pic-card-why{font-size:.78rem;line-height:1.5;color:rgba(255,255,255,.62);margin:0;border-top:1px solid rgba(255,255,255,.06);padding-top:.55rem}
 .pic-card-why-lbl{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:#22d3ee;display:block;margin-bottom:.2rem}
 
+/* ═ BBF_TOUR — Role-based onboarding concierge ═ */
+.bbf-tour-overlay{position:fixed;inset:0;z-index:99990;pointer-events:auto;background:transparent;opacity:0;transition:opacity .28s ease}
+.bbf-tour-overlay.on{opacity:1}
+.bbf-tour-overlay.is-pulsing .bbf-tour-spot{animation:bbfTourPulse 1.8s ease-in-out infinite}
+.bbf-tour-spot{position:absolute;border-radius:14px;box-shadow:0 0 0 9999px rgba(4,4,8,.82),0 0 0 2px #F5CF60,0 0 28px 6px rgba(245,200,0,.45),inset 0 0 0 1px rgba(245,200,0,.35);transition:top .42s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)),left .42s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)),width .42s var(--ease-sovereign,cubic-bezier(.22,1,.36,1)),height .42s var(--ease-sovereign,cubic-bezier(.22,1,.36,1));pointer-events:none}
+@keyframes bbfTourPulse{0%,100%{box-shadow:0 0 0 9999px rgba(4,4,8,.82),0 0 0 2px #F5CF60,0 0 28px 6px rgba(245,200,0,.45),inset 0 0 0 1px rgba(245,200,0,.35)}50%{box-shadow:0 0 0 9999px rgba(4,4,8,.82),0 0 0 3px #FBE3A0,0 0 42px 12px rgba(245,200,0,.65),inset 0 0 0 1px rgba(245,200,0,.5)}}
+.bbf-tour-tip{position:absolute;max-width:min(360px,calc(100vw - 32px));background:linear-gradient(150deg,rgba(20,8,38,.96) 0%,rgba(8,10,18,.97) 60%,rgba(8,20,26,.95) 100%);border:1px solid rgba(245,207,96,.55);border-radius:16px;padding:1.1rem 1.1rem 1rem;box-shadow:0 24px 60px rgba(0,0,0,.65),0 0 0 1px rgba(245,200,0,.08);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);opacity:0;transform:translateY(8px);transition:opacity .28s ease,transform .28s ease;color:#fff}
+.bbf-tour-tip::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#22d3ee 20%,#F5CF60 50%,#9D27C9 80%,transparent);opacity:.85}
+.bbf-tour-tip.on{opacity:1;transform:translateY(0)}
+.bbf-tour-tip-kicker{display:flex;align-items:center;gap:.45rem;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;letter-spacing:3.5px;text-transform:uppercase;color:#22d3ee;margin-bottom:.45rem}
+.bbf-tour-tip-kicker-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22d3ee;box-shadow:0 0 10px #22d3ee}
+.bbf-tour-tip-title{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:clamp(1.05rem,4.2vw,1.35rem);line-height:1.1;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#fff;margin:0 0 .55rem}
+.bbf-tour-tip-body{font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.92rem;line-height:1.5;color:rgba(255,255,255,.82);margin:0 0 .9rem}
+.bbf-tour-tip-foot{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.bbf-tour-tip-progress{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.66rem;letter-spacing:2.5px;color:rgba(255,255,255,.5);text-transform:uppercase}
+.bbf-tour-tip-actions{display:flex;align-items:center;gap:.5rem}
+.bbf-tour-btn{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:.78rem;letter-spacing:2px;text-transform:uppercase;border-radius:10px;padding:.65rem 1.1rem;cursor:pointer;transition:transform .15s ease,filter .15s ease,background .2s ease;-webkit-tap-highlight-color:transparent}
+.bbf-tour-btn-skip{background:transparent;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.62)}
+.bbf-tour-btn-skip:hover{color:#fff;border-color:rgba(255,255,255,.35)}
+.bbf-tour-btn-next{background:linear-gradient(180deg,#F5CF60 0%,#D4AF37 100%);color:#1B1106;border:1px solid #F5CF60;box-shadow:0 6px 18px rgba(245,200,0,.32),inset 0 1px 0 rgba(255,255,255,.35)}
+.bbf-tour-btn-next:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.bbf-tour-tip-close{position:absolute;top:.5rem;right:.6rem;background:transparent;border:none;color:rgba(255,255,255,.55);font-size:1.1rem;cursor:pointer;padding:.2rem .45rem;border-radius:6px;line-height:1}
+.bbf-tour-tip-close:hover{color:#fff;background:rgba(255,255,255,.08)}
+.bbf-tour-replay{display:flex;flex-direction:column;align-items:flex-start;gap:.2rem;width:100%;text-align:left;background:linear-gradient(180deg,rgba(20,8,38,.78) 0%,rgba(8,10,18,.88) 100%);border:1px solid rgba(34,211,238,.4);border-radius:14px;padding:1rem 1.1rem;cursor:pointer;color:#fff;margin-bottom:1rem;transition:transform .15s ease,border-color .2s ease,box-shadow .2s ease;font-family:inherit}
+.bbf-tour-replay:hover{transform:translateY(-1px);border-color:rgba(34,211,238,.7);box-shadow:0 10px 28px rgba(34,211,238,.18)}
+.bbf-tour-replay span{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:.92rem;letter-spacing:2px;text-transform:uppercase;color:#22d3ee}
+.bbf-tour-replay b{font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.78rem;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6)}
+@media (max-width:520px){.bbf-tour-tip{max-width:calc(100vw - 24px);left:12px!important;right:12px!important}}
+
 </style>
 <link rel="stylesheet" href="styles/bbf-tokens.css"/>
 <link rel="stylesheet" href="styles/bbf-vault.css"/>
@@ -6766,6 +6795,12 @@ window.onload=function(){
         <b data-lang-key="byr-launch-sub">11 biomarkers &middot; Sovereign Radar synthesis</b>
       </button>
 
+      <!-- BBF_TOUR — Replay Initiation (concierge re-trigger) -->
+      <button class="bbf-tour-replay" type="button" id="bbf-tour-replay-btn" onclick="if(typeof BBF_TOUR!=='undefined')BBF_TOUR.replay()">
+        <span>&#x1F5DD; Replay Initiation</span>
+        <b>Re-run the concierge tour &middot; tier-aware walkthrough</b>
+      </button>
+
       <!-- RE-CALIBRATE PLAN launcher — toggles inline form for plan regeneration -->
       <button class="rc-launch" type="button" id="rc-launch-btn" onclick="toggleRecalibrate()" aria-expanded="false" aria-controls="rc-form-wrap">
         <span>&#x1F504; Re-Calibrate Plan</span>
@@ -7961,6 +7996,12 @@ function TAB(name) {
   // so it survives tab switches.
   if (typeof BBF_POSITIONAL_INTEL !== 'undefined') {
     try { BBF_POSITIONAL_INTEL.mount(); } catch(_) {}
+  }
+  // BBF_TOUR — auto-fire the role-based onboarding concierge on first
+  // visit. Internal completion flag (localStorage) guarantees this runs
+  // exactly once per device unless replayed manually from Profile.
+  if (typeof BBF_TOUR !== 'undefined') {
+    try { BBF_TOUR.init(); } catch(_) {}
   }
   // Phase 11 hotfix — translate any data-lang-key elements injected by
   // the just-finished tab-specific render. Without this, a user who
@@ -12817,6 +12858,343 @@ var BBF_POSITIONAL_INTEL = (function() {
   }
 
   return { mount: mount };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_TOUR · Role-based onboarding concierge
+// ────────────────────────────────────────────────────────────────────────
+// Tier-aware spotlight tour for first-time users inside bbf-app.html.
+// Reads subscription_tier from the user profile (GD().u[uid]) and runs
+// the matching sequence of spotlights + tooltips. Persists a
+// `tour_completed: true` flag so the auto-fire only happens once;
+// re-trigger manually from the Profile tab via .bbf-tour-replay button.
+//
+// Tier paths:
+//   gateway        → Program · Nutrition
+//   youth_athlete  → Program · Athlete Portal · Positional Intelligence
+//                    (treated as the "Athlete" path per CEO directive)
+//   architect      → Program · Nutrition · Prehab Matrix · Smart Cardio
+//   sovereign      → Architect set + Sovereign Comlink (Gold Mic) +
+//                    Kinematic Form Scanner (Magenta) + Intelligence Feed
+//   default / unknown → gateway treatment (safest)
+//
+// Each step optionally specifies { tab } to switch tabs before measuring
+// the target. If a step's target is missing or hidden (e.g. tier-locked),
+// the step is silently skipped — the tour never points at empty space.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_TOUR = (function() {
+  var STORE_KEY    = 'bbf_tour_state_v1';
+  var STEP_DELAY   = 320;  // ms after tab switch before measuring target
+  var _overlay     = null;
+  var _spot        = null;
+  var _tip         = null;
+  var _steps       = [];
+  var _idx         = 0;
+  var _active      = false;
+  var _resizeBound = null;
+  var _onResize    = null;
+
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function _state() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) return JSON.parse(raw) || {};
+    } catch (_) {}
+    return {};
+  }
+  function _saveState(s) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(s || {})); } catch (_) {}
+  }
+  function _markCompleted() {
+    var s = _state();
+    s.tour_completed = true;
+    s.completed_at   = new Date().toISOString();
+    _saveState(s);
+  }
+
+  // ── Tier detection ───────────────────────────────────────────────────
+  // Mirrors BBF_APPLY_TIER_GATE: read subscription_tier from the active
+  // user's profile, honor trial_expires_at as a Sovereign override.
+  function _detectTier() {
+    try {
+      var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+      if (!uid || typeof GD !== 'function') return 'gateway';
+      var d = GD();
+      var user = (d && d.u && d.u[uid]) || {};
+      var tier = String(user.subscription_tier || '').toLowerCase();
+      var trialActive = user.trial_expires_at && new Date(user.trial_expires_at).getTime() > Date.now();
+      if (trialActive) return 'sovereign';
+      if (tier === 'sovereign' || tier === 'architect' || tier === 'youth_athlete' || tier === 'gateway') return tier;
+      // "athlete" alias from CEO directive maps to youth_athlete
+      if (tier === 'athlete') return 'youth_athlete';
+      return 'gateway';
+    } catch (_) { return 'gateway'; }
+  }
+
+  // ── Tour sequences (Sovereign brand voice) ──────────────────────────
+  var COMMON = {
+    program:   { tab:'workout',   resolve:function(){ return document.querySelector('.nv[data-tab="workout"]'); },
+                 title:'Your Daily Program', kicker:'Weapon · Program',
+                 body:'Your sovereign protocol for today. Every set, rep, and rest interval is calibrated to your phase. Open it from this tab and execute — the engine logs each rep as you complete it.' },
+    nutrition: { tab:'nutrition', resolve:function(){ return document.querySelector('.nv[data-tab="nutrition"]'); },
+                 title:'Daily Nutrition', kicker:'Weapon · Fuel',
+                 body:'Your fueling deck — macros, meal plan, and the founder-verified food matrix. Hit these numbers and the recomp signal compounds.' },
+    prehab:    { tab:'prehab',    resolve:function(){ return document.querySelector('.nv[data-tab="prehab"]'); },
+                 title:'Prehab Matrix', kicker:'Weapon · Recovery',
+                 body:'Live Library Recovery Matrix — your daily 3-movement protocol against soft-tissue debt. The Friction Scanner adapts the prescription to whatever zone is taxed.' },
+    cardio:    { tab:'cardio',    resolve:function(){ return document.querySelector('.nv[data-tab="cardio"]'); },
+                 title:'Smart Cardio Engine', kicker:'Weapon · Conditioning',
+                 body:'Heart-rate-zoned conditioning intelligence. Log a session and the engine reads your ATP-PC / glycolytic / aerobic mix, then writes back the right intensity for your next cardio bout.' },
+    comlink:   { tab:'workout',   resolve:function(){ return document.getElementById('bbf-comlink-fab'); },
+                 title:'Sovereign Comlink', kicker:'Weapon · Gold Mic',
+                 body:'Tap the gold microphone and speak a constraint or friction signal — "I only have 20 minutes", "my lower back is fried". The comlink rewrites today\'s session in real time. CNS-aware. OT-informed.' },
+    kinematic: { tab:'prehab',    resolve:function(){ return document.querySelector('#bbf-prehab-kinematic-block .kinematic-scanner-btn') || document.getElementById('bbf-prehab-kinematic-block'); },
+                 title:'Kinematic Form Scanner', kicker:'Weapon · Magenta',
+                 body:'Stream your lift to the BBF Kinematic Auditor. Valgus collapse, anterior tilt, ACL shear — flagged in real time. The Sovereign tier of biomechanical intelligence.' },
+    intel:     { tab:'home',      resolve:function(){ return document.getElementById('biomech-heatmap'); },
+                 title:'Intelligence Feed', kicker:'Weapon · Sovereign Layer',
+                 body:'Your 4-week Biomechanical Health Matrix — axial load, friction score, and weekly heatmap across the four heavy lifts. The auditor surfaces the redline before you feel it.' },
+    athletePortal: { tab:'athlete',
+                 resolve:function(){ return document.getElementById('athlete-portal-btn') || document.getElementById('tp-athlete'); },
+                 title:'Athlete Portal', kicker:'Weapon · Position',
+                 body:'Your dedicated command deck. Dial in sport, position group, and season phase — the Clinical Protocol writes itself to match game-day demands.' },
+    positional:{ tab:'athlete',   resolve:function(){ return document.getElementById('pic-wrap'); },
+                 title:'Positional Intelligence', kicker:'Weapon · Drill Comlink',
+                 body:'State the improvement you want — faster first step, higher vertical, more rotational torque. The comlink queries the founder-verified drill catalog and surfaces the exact drill for your slot.' },
+  };
+
+  function _buildSteps(tier) {
+    if (tier === 'sovereign') {
+      return [ COMMON.program, COMMON.nutrition, COMMON.prehab, COMMON.cardio,
+               COMMON.comlink, COMMON.kinematic, COMMON.intel ];
+    }
+    if (tier === 'architect') {
+      return [ COMMON.program, COMMON.nutrition, COMMON.prehab, COMMON.cardio ];
+    }
+    if (tier === 'youth_athlete') {
+      return [ COMMON.program, COMMON.athletePortal, COMMON.positional ];
+    }
+    // gateway + default
+    return [ COMMON.program, COMMON.nutrition ];
+  }
+
+  // ── DOM scaffolding ─────────────────────────────────────────────────
+  function _ensureScaffold() {
+    if (_overlay) return;
+    _overlay = document.createElement('div');
+    _overlay.className = 'bbf-tour-overlay';
+    _overlay.setAttribute('role', 'dialog');
+    _overlay.setAttribute('aria-modal', 'true');
+    _overlay.setAttribute('aria-label', 'Onboarding tour');
+
+    _spot = document.createElement('div');
+    _spot.className = 'bbf-tour-spot';
+
+    _tip = document.createElement('div');
+    _tip.className = 'bbf-tour-tip';
+
+    _overlay.appendChild(_spot);
+    _overlay.appendChild(_tip);
+    document.body.appendChild(_overlay);
+
+    // Keep the spotlight + tip aligned as the layout shifts (orientation
+    // change, on-screen keyboard, dynamic content reflow).
+    _onResize = function() { if (_active) _renderStep(); };
+    window.addEventListener('resize', _onResize);
+    window.addEventListener('orientationchange', _onResize);
+    _resizeBound = true;
+  }
+
+  function _tearDownScaffold() {
+    if (_overlay && _overlay.parentNode) _overlay.parentNode.removeChild(_overlay);
+    _overlay = null; _spot = null; _tip = null;
+    if (_resizeBound) {
+      window.removeEventListener('resize', _onResize);
+      window.removeEventListener('orientationchange', _onResize);
+      _resizeBound = false;
+    }
+  }
+
+  // ── Step rendering ──────────────────────────────────────────────────
+  function _placeTip(rect) {
+    if (!_tip) return;
+    // Default below the target; flip above if there's no room.
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var pad = 14;
+    _tip.style.maxWidth = ''; // reset
+    // Force a reflow to measure the tip's natural size
+    _tip.style.left = '-9999px';
+    _tip.style.top  = '-9999px';
+    _tip.style.display = 'block';
+    var tipW = Math.min(360, vw - 32);
+    var tipH = _tip.offsetHeight || 180;
+
+    // Mobile: pin horizontally to viewport edges with 12px gutters
+    var isMobile = vw <= 520;
+
+    var top, left;
+    var spaceBelow = vh - (rect.bottom + pad);
+    var spaceAbove = rect.top - pad;
+    if (spaceBelow >= tipH || spaceBelow >= spaceAbove) {
+      top = Math.min(rect.bottom + pad, vh - tipH - 12);
+    } else {
+      top = Math.max(12, rect.top - tipH - pad);
+    }
+    if (isMobile) {
+      left = 12;
+    } else {
+      // Try to center the tip on the target horizontally
+      left = rect.left + rect.width / 2 - tipW / 2;
+      left = Math.max(12, Math.min(vw - tipW - 12, left));
+    }
+    _tip.style.left = left + 'px';
+    _tip.style.top  = Math.max(12, top) + 'px';
+  }
+
+  function _scrollIntoViewIfNeeded(el) {
+    if (!el || typeof el.getBoundingClientRect !== 'function') return;
+    var r = el.getBoundingClientRect();
+    var vh = window.innerHeight;
+    if (r.top < 60 || r.bottom > vh - 60) {
+      try { el.scrollIntoView({ behavior:'smooth', block:'center' }); } catch (_) { el.scrollIntoView(); }
+    }
+  }
+
+  function _measure(el) {
+    var r = el.getBoundingClientRect();
+    var pad = 10;
+    return {
+      top:    r.top - pad,
+      left:   r.left - pad,
+      width:  r.width + pad * 2,
+      height: r.height + pad * 2,
+      right:  r.right + pad,
+      bottom: r.bottom + pad
+    };
+  }
+
+  function _renderStep() {
+    if (!_active || !_steps.length) return;
+    var step = _steps[_idx];
+    if (!step) { _finish(false); return; }
+
+    var el = null;
+    try { el = step.resolve && step.resolve(); } catch (_) { el = null; }
+    if (!el || el.offsetParent === null) {
+      // Element missing or display:none — skip silently.
+      _advance();
+      return;
+    }
+
+    _scrollIntoViewIfNeeded(el);
+
+    // Slight delay so the smooth scroll settles before we measure.
+    setTimeout(function() {
+      if (!_active) return;
+      var rect = _measure(el);
+      _spot.style.top    = rect.top + 'px';
+      _spot.style.left   = rect.left + 'px';
+      _spot.style.width  = rect.width + 'px';
+      _spot.style.height = rect.height + 'px';
+
+      _tip.innerHTML =
+        '<button class="bbf-tour-tip-close" type="button" aria-label="Close tour">&times;</button>' +
+        '<div class="bbf-tour-tip-kicker"><span class="bbf-tour-tip-kicker-dot"></span>' + _esc(step.kicker || 'Comlink') + '</div>' +
+        '<h3 class="bbf-tour-tip-title">' + _esc(step.title || '') + '</h3>' +
+        '<p class="bbf-tour-tip-body">' + _esc(step.body || '') + '</p>' +
+        '<div class="bbf-tour-tip-foot">' +
+          '<span class="bbf-tour-tip-progress">' + (_idx + 1) + ' / ' + _steps.length + '</span>' +
+          '<div class="bbf-tour-tip-actions">' +
+            (_idx > 0 ? '<button class="bbf-tour-btn bbf-tour-btn-skip" data-act="skip" type="button">Skip</button>' : '') +
+            '<button class="bbf-tour-btn bbf-tour-btn-next" data-act="next" type="button">' +
+              (_idx === _steps.length - 1 ? 'Finish' : 'Next') +
+            '</button>' +
+          '</div>' +
+        '</div>';
+
+      _placeTip(rect);
+      _tip.classList.add('on');
+
+      // Wire actions
+      var closeBtn = _tip.querySelector('.bbf-tour-tip-close');
+      var skipBtn  = _tip.querySelector('[data-act="skip"]');
+      var nextBtn  = _tip.querySelector('[data-act="next"]');
+      if (closeBtn) closeBtn.onclick = function() { _finish(false); };
+      if (skipBtn)  skipBtn.onclick  = function() { _finish(false); };
+      if (nextBtn)  nextBtn.onclick  = function() { _advance(); };
+    }, 60);
+  }
+
+  function _advance() {
+    _idx += 1;
+    if (_idx >= _steps.length) { _finish(true); return; }
+    _runCurrent();
+  }
+
+  function _runCurrent() {
+    var step = _steps[_idx];
+    if (!step) { _finish(false); return; }
+    if (step.tab && typeof window.show === 'function') {
+      try { window.show(step.tab); } catch (_) {}
+      // Let the tab swap settle (BBF_COMLINK.mount + RDW renders fire here).
+      setTimeout(_renderStep, STEP_DELAY);
+    } else {
+      _renderStep();
+    }
+  }
+
+  function _finish(completed) {
+    if (!_active) return;
+    _active = false;
+    if (_overlay) _overlay.classList.remove('on', 'is-pulsing');
+    if (_tip)     _tip.classList.remove('on');
+    setTimeout(_tearDownScaffold, 280);
+    if (completed) _markCompleted();
+  }
+
+  // ── Public API ──────────────────────────────────────────────────────
+  function _start() {
+    if (_active) return;
+    var tier = _detectTier();
+    _steps = _buildSteps(tier);
+    if (!_steps.length) return;
+    _idx = 0;
+    _active = true;
+    _ensureScaffold();
+    // Snap the overlay on immediately, then animate the first step.
+    requestAnimationFrame(function() {
+      if (_overlay) _overlay.classList.add('on', 'is-pulsing');
+      _runCurrent();
+    });
+    console.log('[BBF_TOUR] starting · tier=' + tier + ' · steps=' + _steps.length);
+  }
+
+  function init() {
+    // Auto-fire only for first-time users. Wait until the user record is
+    // hydrated (CU/VC assigned post-login) so tier detection has data.
+    try {
+      var st = _state();
+      if (st.tour_completed === true) return;
+    } catch (_) {}
+    // Defer a beat so the home tab renders its hero first.
+    setTimeout(_start, 900);
+  }
+
+  function replay() {
+    // Wipe completion flag so a subsequent visit doesn't replay forever,
+    // but allow the manual re-trigger to run now.
+    var s = _state();
+    delete s.tour_completed;
+    _saveState(s);
+    _start();
+  }
+
+  return { init: init, replay: replay, _state: _state };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
