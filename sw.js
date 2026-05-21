@@ -3,13 +3,46 @@
 //
 // CACHE-BUMP CONVENTION: bump the version string below on any deploy that
 // touches HTML/JS/CSS so the activate handler clears stale caches and
-// users get fresh assets on next load. Strategy is stale-while-revalidate
-// for GETs (POSTs bypass the SW entirely — see fetch handler below), so
-// without a version bump, updates can take two page loads to propagate.
-var CACHE = 'bbf-v205';
-// V3 ybot.glb removed from CORE pre-cache · V3 engine parked. Asset
-// remains in /public/models/ for revival (branch v3-engine-swap-parked).
-var CORE = ['/bbf-app.html', '/manifest.json', '/bbf-icon-192.png', '/bbf-icon-512.png', '/bbf-apple-touch-180.jpg', '/bbf-photo.jpg'];
+// users get fresh assets on next load.
+//
+// CACHING POLICY (Phase 22 hardening · Ana stale-weights smoke-test):
+//   • Static same-origin assets (HTML/JS/CSS/images/icons/manifest)
+//     → stale-while-revalidate · fast offline boot, fresh on next load.
+//   • Dynamic API hosts (Supabase REST/functions, Render proxy /api/*,
+//     PostgREST anywhere) → NEVER cached. Always go to network.
+//
+// The prior version cached ALL successful GETs, including PostgREST
+// rows. That left clients pinned to stale workout sets / dietary
+// fields / meal plans for the lifetime of the cache entry. Closed.
+var CACHE = 'bbf-v206';
+var CORE  = ['/bbf-app.html', '/manifest.json', '/bbf-icon-192.png', '/bbf-icon-512.png', '/bbf-apple-touch-180.jpg', '/bbf-photo.jpg'];
+
+// Hosts that serve dynamic data — NEVER cache anything from these.
+// Anything else (same-origin GET to GitHub Pages) gets the
+// stale-while-revalidate treatment for fast offline boot.
+var DYNAMIC_HOST_PATTERNS = [
+  /\.supabase\.co$/i,                  // PostgREST + edge functions
+  /\.supabase\.in$/i,                  // legacy region
+  /buildbelievefit\.onrender\.com$/i,  // Render proxy /api/* + /ws/*
+  /api\.elevenlabs\.io$/i,             // direct TTS calls (defensive)
+  /api\.brevo\.com$/i,                 // direct mail (defensive)
+  /generativelanguage\.googleapis/i,   // Gemini direct
+];
+
+function isDynamic(url) {
+  try {
+    var u = new URL(url);
+    // Any path under /api/ from anywhere is dynamic (defensive).
+    if (u.pathname.indexOf('/api/') === 0 || u.pathname.indexOf('/rest/v1/') === 0 ||
+        u.pathname.indexOf('/functions/v1/') === 0 || u.pathname.indexOf('/rpc/') === 0) {
+      return true;
+    }
+    for (var i = 0; i < DYNAMIC_HOST_PATTERNS.length; i++) {
+      if (DYNAMIC_HOST_PATTERNS[i].test(u.hostname)) return true;
+    }
+    return false;
+  } catch (_) { return false; }
+}
 
 // ─── INSTALL ─────────────────────────────────────────────────
 self.addEventListener('install', function(e) {
@@ -30,14 +63,32 @@ self.addEventListener('activate', function(e) {
           return caches.delete(k);
         })
       );
+    }).then(function() {
+      // Phase 22 cache-policy upgrade · also evict any previously-cached
+      // dynamic responses that the OLD policy stored in the current
+      // cache. Without this, clients upgrading from v205 → v206 would
+      // still see stale PostgREST data until the next cache-key bump.
+      return caches.open(CACHE).then(function(c) {
+        return c.keys().then(function(reqs) {
+          return Promise.all(reqs.map(function(req) {
+            if (isDynamic(req.url)) return c.delete(req);
+            return null;
+          }));
+        });
+      });
     })
   );
   self.clients.claim();
 });
 
-// ─── FETCH — Stale-While-Revalidate ──────────────────────────
+// ─── FETCH ───────────────────────────────────────────────────
+// Two paths:
+//   1. DYNAMIC requests · network-only · NEVER cached
+//   2. Static GET · stale-while-revalidate as before
 self.addEventListener('fetch', function(e) {
-  if (e.request.method !== 'GET') return;
+  if (e.request.method !== 'GET') return;       // POSTs bypass · writes go direct
+  if (isDynamic(e.request.url)) return;         // dynamic GETs bypass · always fresh
+
   e.respondWith(
     caches.match(e.request).then(function(cached) {
       var networkFetch = fetch(e.request).then(function(response) {
