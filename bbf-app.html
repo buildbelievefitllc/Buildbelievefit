@@ -7767,6 +7767,27 @@ var CURRENT_VER = '8';
     if (!d.l[k]) d.l[k] = [];
     if (!d.w[k]) d.w[k] = {};
   });
+  // Phase 22 · seed sanity · ensure every existing seed account has the
+  // dietary fields defined so the rotator / Phantom Eye / Chef on Call
+  // never see undefined when they expect an array or a profile string.
+  // Jacquelyn carries a documented strict-no-coconut allergen per her
+  // intake; the others get safe Omnivore defaults until admin or the
+  // AI diagnostic personalizes them.
+  ['akeem','ana_bbf','jacky_bbf','jordan_bbf','wayne_bbf'].forEach(function(k) {
+    if (!d.u[k]) return;
+    if (typeof d.u[k].dietary_profile === 'undefined') d.u[k].dietary_profile = 'Omnivore';
+    if (!Array.isArray(d.u[k].allergens))     d.u[k].allergens     = [];
+    if (!Array.isArray(d.u[k].food_likes))    d.u[k].food_likes    = [];
+    if (!Array.isArray(d.u[k].food_dislikes)) d.u[k].food_dislikes = [];
+  });
+  if (d.u.jacque_bbf) {
+    if (typeof d.u.jacque_bbf.dietary_profile === 'undefined') d.u.jacque_bbf.dietary_profile = 'Omnivore';
+    if (!Array.isArray(d.u.jacque_bbf.allergens) || d.u.jacque_bbf.allergens.indexOf('Coconut') === -1) {
+      d.u.jacque_bbf.allergens = ['Coconut'];
+    }
+    if (!Array.isArray(d.u.jacque_bbf.food_likes))    d.u.jacque_bbf.food_likes    = [];
+    if (!Array.isArray(d.u.jacque_bbf.food_dislikes)) d.u.jacque_bbf.food_dislikes = [];
+  }
   SD(d);
 })();
 
@@ -8075,6 +8096,27 @@ var MP = {
     if (!d.l[k]) d.l[k] = [];
     if (!d.w[k]) d.w[k] = {};
   });
+  // Phase 22 · seed sanity · ensure every existing seed account has the
+  // dietary fields defined so the rotator / Phantom Eye / Chef on Call
+  // never see undefined when they expect an array or a profile string.
+  // Jacquelyn carries a documented strict-no-coconut allergen per her
+  // intake; the others get safe Omnivore defaults until admin or the
+  // AI diagnostic personalizes them.
+  ['akeem','ana_bbf','jacky_bbf','jordan_bbf','wayne_bbf'].forEach(function(k) {
+    if (!d.u[k]) return;
+    if (typeof d.u[k].dietary_profile === 'undefined') d.u[k].dietary_profile = 'Omnivore';
+    if (!Array.isArray(d.u[k].allergens))     d.u[k].allergens     = [];
+    if (!Array.isArray(d.u[k].food_likes))    d.u[k].food_likes    = [];
+    if (!Array.isArray(d.u[k].food_dislikes)) d.u[k].food_dislikes = [];
+  });
+  if (d.u.jacque_bbf) {
+    if (typeof d.u.jacque_bbf.dietary_profile === 'undefined') d.u.jacque_bbf.dietary_profile = 'Omnivore';
+    if (!Array.isArray(d.u.jacque_bbf.allergens) || d.u.jacque_bbf.allergens.indexOf('Coconut') === -1) {
+      d.u.jacque_bbf.allergens = ['Coconut'];
+    }
+    if (!Array.isArray(d.u.jacque_bbf.food_likes))    d.u.jacque_bbf.food_likes    = [];
+    if (!Array.isArray(d.u.jacque_bbf.food_dislikes)) d.u.jacque_bbf.food_dislikes = [];
+  }
   SD(d);
 })();
 
@@ -8361,11 +8403,50 @@ function ENTER() {
         if (webData.macro_f) d.u[uid].macro_f = webData.macro_f;
         if (webData.dietary_profile) d.u[uid].dietary_profile = webData.dietary_profile;
         if (Array.isArray(webData.allergens)) d.u[uid].allergens = webData.allergens;
+        if (Array.isArray(webData.food_likes)) d.u[uid].food_likes = webData.food_likes;
+        if (Array.isArray(webData.food_dislikes)) d.u[uid].food_dislikes = webData.food_dislikes;
+        if (webData.tdee_target) d.u[uid].tdee_target = webData.tdee_target;
         SD(d);
       }
       localStorage.removeItem('bbf_pathfinder'); // consume once
     }
   } catch(e) {}
+
+  // Phase 22 · cross-device dietary hydration. localStorage.bbf_pathfinder
+  // only exists on the device where the Pathfinder form was filled out;
+  // a client logging in on a fresh phone would otherwise default to
+  // Omnivore/empty. Fetch from bbf_users (populated by /provision's
+  // mirror step) and merge into d.u[uid]. Only fires when local cache
+  // is missing the fields — never overrides admin edits already saved.
+  try {
+    var _uidForHydrate = (typeof CU !== 'undefined' && CU) ? CU : null;
+    var _localU = _uidForHydrate ? (d && d.u && d.u[_uidForHydrate]) : null;
+    var _needsHydrate = _localU && (!_localU.dietary_profile || typeof _localU.allergens === 'undefined');
+    if (_needsHydrate) {
+      var _supaUrl = (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) || 'https://ihclbceghxpuawymlvgi.supabase.co';
+      fetch(_supaUrl + '/functions/v1/bbf-user-profile', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ uid: _uidForHydrate })
+      }).then(function(r){ return r.json(); }).then(function(body){
+        if (!body || !body.ok || !body.profile) return;
+        var p = body.profile;
+        var d2 = GD();
+        if (!d2 || !d2.u || !d2.u[_uidForHydrate]) return;
+        var target = d2.u[_uidForHydrate];
+        if (!target.dietary_profile && p.dietary_profile) target.dietary_profile = p.dietary_profile;
+        if (!Array.isArray(target.allergens))     target.allergens     = p.allergens     || [];
+        if (!Array.isArray(target.food_likes))    target.food_likes    = p.food_likes    || [];
+        if (!Array.isArray(target.food_dislikes)) target.food_dislikes = p.food_dislikes || [];
+        if (!target.tdee_target && p.tdee_target) target.tdee_target = p.tdee_target;
+        if (!target.macro_p && p.macro_p) target.macro_p = p.macro_p;
+        if (!target.macro_c && p.macro_c) target.macro_c = p.macro_c;
+        if (!target.macro_f && p.macro_f) target.macro_f = p.macro_f;
+        SD(d2);
+        console.log('[BBF] dietary hydrated cross-device for ' + _uidForHydrate + ' · ' + (p.dietary_profile || 'Omnivore') + ' · ' + (p.allergens || []).length + ' allergens');
+      }).catch(function(e){ console.warn('[BBF] dietary hydrate fetch failed:', e && e.message); });
+    }
+  } catch (e) { console.warn('[BBF] dietary hydrate threw:', e && e.message); }
   // Phase 14 — apply the nutrition-only Workouts-tab suppression after
   // any tier ingest. Idempotent; admin always wins.
   try { if (window.BBF_APPLY_NUTRITION_GATE) window.BBF_APPLY_NUTRITION_GATE(); } catch(_) {}

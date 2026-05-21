@@ -321,6 +321,10 @@ function normalizeClientPayload(body) {
 async function upsertActiveClient(payload) {
   const ageNumeric = Number.isFinite(Number(payload.age)) ? Number(payload.age) : null;
 
+  // Phase 22 · persist the full Pathfinder intake — dietary + macros.
+  // Previously these fields were normalized in normalizeClientPayload()
+  // but dropped at the upsert step, which forced downstream prompts +
+  // app hydration to re-default to Omnivore/empty. Fixed end-to-end.
   const row = {
     client_name: payload.client_name,
     vault_email: payload.vault_email,
@@ -329,6 +333,14 @@ async function upsertActiveClient(payload) {
     clinical_history: payload.clinical_history,
     training_protocol: payload.training_protocol,
     liability_cleared: payload.liability_cleared,
+    dietary_profile: payload.dietary_profile || 'Omnivore',
+    allergens:       Array.isArray(payload.allergens)     ? payload.allergens     : [],
+    food_likes:      Array.isArray(payload.food_likes)    ? payload.food_likes    : [],
+    food_dislikes:   Array.isArray(payload.food_dislikes) ? payload.food_dislikes : [],
+    tdee_target:     Number.isFinite(Number(payload.tdee_target)) && Number(payload.tdee_target) > 0 ? Number(payload.tdee_target) : null,
+    macro_p:         Number.isFinite(Number(payload.macro_p))     && Number(payload.macro_p)     > 0 ? Number(payload.macro_p)     : null,
+    macro_c:         Number.isFinite(Number(payload.macro_c))     && Number(payload.macro_c)     > 0 ? Number(payload.macro_c)     : null,
+    macro_f:         Number.isFinite(Number(payload.macro_f))     && Number(payload.macro_f)     > 0 ? Number(payload.macro_f)     : null,
     updated_at: new Date().toISOString(),
   };
 
@@ -368,12 +380,36 @@ async function generateHypertrophyBlueprint(payload) {
 }
 
 async function generateFuelMatrix(payload) {
+  // Phase 22 · pass dietary intake into the adult fuel-matrix prompt
+  // verbatim. Previously generateFuelMatrix dropped these fields on the
+  // floor — only generateNutritionOnlyBlueprint honored them, leaving
+  // adult workout+nutrition tier members with macro generation that
+  // ignored their Pathfinder-declared allergens. Closed.
+  const dietary  = payload.dietary_profile || 'Omnivore';
+  const allergs  = Array.isArray(payload.allergens) && payload.allergens.length
+    ? payload.allergens.join(', ') : 'none reported';
+  const likes    = Array.isArray(payload.food_likes) && payload.food_likes.length
+    ? payload.food_likes.join(', ') : '';
+  const dislikes = Array.isArray(payload.food_dislikes) && payload.food_dislikes.length
+    ? payload.food_dislikes.join(', ') : '';
+  const macroLine = (payload.tdee_target || payload.macro_p)
+    ? `Target Daily Calories: ${payload.tdee_target || 'unspecified'} · Macro Targets: ${payload.macro_p || '?'}g P / ${payload.macro_c || '?'}g C / ${payload.macro_f || '?'}g F`
+    : '';
+
   const userMessage = [
     `Client Age: ${payload.age || 'N/A'}`,
     `Height & Weight: ${payload.height_weight || 'N/A'}`,
+    `Dietary Profile: ${dietary}`,
+    `Allergen Restrictions (strictly avoid): ${allergs}`,
+    likes    ? `Bias toward foods they like: ${likes}` : '',
+    dislikes ? `Avoid (preference, not allergen): ${dislikes}` : '',
+    macroLine,
     '',
-    'Generate the Sovereign Fuel Matrix nutritional blueprint now.',
-  ].join('\n');
+    'Generate the Sovereign Fuel Matrix nutritional blueprint now. ' +
+    'Every meal MUST respect the Dietary Profile and the Allergen ' +
+    'Restrictions above — those are non-negotiable. Bias selections ' +
+    'toward declared likes when possible without breaking macros.',
+  ].filter(Boolean).join('\n');
 
   const response = await anthropic.messages.create({
     model: ANTHROPIC_MODEL,
@@ -1556,6 +1592,48 @@ app.post('/provision', async (req, res) => {
     }
 
     console.log(`[BBF VAULT] /provision success — ${customerEmail} → ${data.username}`);
+
+    // Phase 22 · pipeline coherence · pull the dietary intake the
+    // Pathfinder collected (stored on bbf_active_clients by /process)
+    // and mirror it onto the freshly-provisioned bbf_users row so the
+    // client lands in the app with their real preferences, not the
+    // Omnivore/empty fallback. Linked by vault_email == client_email.
+    // Non-fatal: any error here just logs and continues so Zapier still
+    // gets the welcome credentials.
+    try {
+      const { data: intake, error: intakeErr } = await supabase
+        .from('bbf_active_clients')
+        .select('dietary_profile, allergens, food_likes, food_dislikes, tdee_target, macro_p, macro_c, macro_f')
+        .or(`vault_email.eq.${customerEmail},client_email.eq.${customerEmail}`)
+        .maybeSingle();
+      if (intakeErr) {
+        console.warn('[BBF VAULT] /provision intake lookup failed (non-fatal):', intakeErr.message || intakeErr);
+      } else if (intake) {
+        const { error: upErr } = await supabase
+          .from('bbf_users')
+          .update({
+            dietary_profile: intake.dietary_profile || 'Omnivore',
+            allergens:       Array.isArray(intake.allergens)     ? intake.allergens     : [],
+            food_likes:      Array.isArray(intake.food_likes)    ? intake.food_likes    : [],
+            food_dislikes:   Array.isArray(intake.food_dislikes) ? intake.food_dislikes : [],
+            tdee_target:     intake.tdee_target || null,
+            macro_p:         intake.macro_p || null,
+            macro_c:         intake.macro_c || null,
+            macro_f:         intake.macro_f || null,
+            updated_at:      new Date().toISOString(),
+          })
+          .eq('uid', data.username);
+        if (upErr) {
+          console.warn('[BBF VAULT] /provision dietary mirror failed (non-fatal):', upErr.message || upErr);
+        } else {
+          console.log(`[BBF VAULT] /provision dietary mirrored — ${data.username} · ${intake.dietary_profile || 'Omnivore'} · ${(intake.allergens||[]).length} allergens`);
+        }
+      } else {
+        console.log(`[BBF VAULT] /provision · no bbf_active_clients intake row for ${customerEmail} · skipping dietary mirror`);
+      }
+    } catch (e) {
+      console.warn('[BBF VAULT] /provision dietary mirror threw (non-fatal):', e && e.message);
+    }
 
     // Phase 17 — write subscription_tier to the freshly provisioned row
     // via the bbf_admin_set_tier RPC. Re-uses the SECURITY DEFINER
