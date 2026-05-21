@@ -338,12 +338,15 @@ async function stageRestructureProposal(
     },
   };
   try {
+    // No Origin header on the server-side call · the Render proxy's
+    // ALLOWED_ORIGINS check is `if (origin && !ALLOWED_ORIGINS.has(origin))`,
+    // so omitting Origin skips the browser-origin gate entirely. The
+    // admin-token gate remains the load-bearing auth check.
     const res = await fetch(`${renderOrigin}/api/proposal-submit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-BBF-Admin-Token': adminToken,
-        'Origin': renderOrigin,  // satisfy the proxy's origin allowlist
       },
       body: JSON.stringify(body),
     });

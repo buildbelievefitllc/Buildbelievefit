@@ -10768,6 +10768,37 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
       return;
     }
 
+    // ── NUTRITION VISION · portion-confidence event router (Phase 5) ─
+    // The WS bridge emits messages of shape:
+    //   { type: 'nutrition-vision-event', uid, meal_name,
+    //     calories, protein_g, carbs_g, fats_g,
+    //     portion_confidence: 0-1, clarifying_question?, vision_payload, ts }
+    // Dispatched as a window CustomEvent so BBF_NUTRITION_INTEL picks
+    // it up via its installed listener. If portion_confidence is low,
+    // the coordinator surfaces a Kelli LaShae clarifying question + an
+    // "log my estimate anyway" escape hatch — NEVER silently mis-logs.
+    if (msg.type === 'nutrition-vision-event' && typeof msg.meal_name === 'string') {
+      try {
+        window.dispatchEvent(new CustomEvent('bbf:nutrition:vision:event', {
+          detail: {
+            uid:                msg.uid                || ((typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null),
+            meal_name:          msg.meal_name,
+            calories:           (msg.calories != null) ? Number(msg.calories) : null,
+            protein_g:          (msg.protein_g != null) ? Number(msg.protein_g) : null,
+            carbs_g:            (msg.carbs_g != null) ? Number(msg.carbs_g) : null,
+            fats_g:             (msg.fats_g != null) ? Number(msg.fats_g) : null,
+            portion_confidence: (msg.portion_confidence != null) ? Number(msg.portion_confidence) : 1.0,
+            clarifying_question: msg.clarifying_question || null,
+            vision_payload:     msg.vision_payload || msg,
+            ts:                 msg.ts || Date.now(),
+          }
+        }));
+      } catch (e) {
+        console.warn('[Phantom Eye] nutrition-vision-event dispatch failed:', e && e.message);
+      }
+      return;
+    }
+
     // ── ElevenLabs side-channel (Julius / Kelli LaShae) ──────────
     // Proxy emits {type:'gemini-text', text} from outputAudioTranscription
     // and {type:'gemini-turn-complete'} at end-of-turn. Route both to
@@ -14856,6 +14887,701 @@ var BBF_PROGRAM_INTEL = (function() {
 // Install listeners + initial heatmap at script-load. Heatmap render
 // is best-effort · the workout pane may not exist yet at load time.
 try { if (typeof BBF_PROGRAM_INTEL !== 'undefined') BBF_PROGRAM_INTEL.ensureListener(); } catch (_) {}
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_NUTRITION_INTEL · Operation Pantheon · Phase 5 Nutrition Tab Coordinator
+// ────────────────────────────────────────────────────────────────────────
+// Single coordinator for the nutrition tab's agentic surface:
+//   · NUTRITION VISION (Gemini) portion-confidence loop · low confidence
+//     never silently mis-logs · clarifying question via BBF VIRTUAL CHEF
+//     (Kelli LaShae · feature_key 'virtual_chef') + ALWAYS a "log my
+//     estimate anyway" escape hatch (UX friction guardrail)
+//   · Transient daily intake writes to bbf_meal_logs (NEVER bbf_audit_logs
+//     · routine logs stay out of the agentic audit ledger)
+//   · IF-aware Wellbeing Guardrail · reads bbf_meal_logs daily totals ·
+//     accounts for somatic_fasting_hours (a 16/8 fast is NOT an ED) ·
+//     threshold = 20% below Mifflin-St Jeor BMR (or 1200 kcal floor when
+//     BMR not computable) ·  sustained over 3-of-7 days (5-of-7 for
+//     declared IF protocols) OR sharp logging drop-off (4+ zero-log days)
+//   · Safe Action: IMMEDIATELY halt restrictive numeric targeting (local
+//     UX flip · habit-based framing) + stage cns_intervention proposal
+//     to founder · gently surface NAED resource link (NEVER a popup)
+//   · Sunday Macro Reconciliation (callable from MIDNIGHT HAIKU job) ·
+//     stages nutrition_target_recalc proposal · wellbeing halt SUPERSEDES
+//     any restrictive numeric proposal
+//   · Fasting / timing warnings DISABLED for any user where
+//     ghost_intervention_needed === true (Task 4)
+//
+// Honors the Phase 0 contract:
+//   · CNS reads ONLY via BBF_CNS_AGENT.snapshot()
+//   · bbf:cns:updated listener installed
+//   · structural changes route through /api/proposal-submit
+//   · cues sanitized via BBF_OT_PROMPT.passThrough()
+//   · every agentic decision audited via /api/audit-log
+//
+// NUTRITION VISION EVENT SCHEMA (strict · the WS bridge emits this shape):
+//   {
+//     type: 'nutrition-vision-event',   // ws-message envelope (router strips)
+//     uid: 'akeem',
+//     meal_name: 'Grilled chicken bowl',
+//     calories: 580, protein_g: 42, carbs_g: 55, fats_g: 18,
+//     portion_confidence: 0.0-1.0,
+//     clarifying_question: '...',        // optional · we generate if absent
+//     vision_payload: { ... },           // raw Gemini output
+//     ts: 1717000000000
+//   }
+// Debug: window.BBF_NUTRITION_INTEL.debugFireNutritionEvent(...)
+// ════════════════════════════════════════════════════════════════════════
+var BBF_NUTRITION_INTEL = (function() {
+  var VERSION = 'BBF_NUTRITION_INTEL.v1';
+
+  // ── Wellbeing thresholds (IF-aware) ────────────────────────────
+  var WELLBEING_FLOOR_KCAL          = 1200;     // absolute minimum floor when BMR not computable
+  var WELLBEING_BMR_DEFICIT_PCT     = 0.20;     // 20 % below BMR triggers concern
+  var WELLBEING_SUSTAINED_DAYS      = 3;        // 3 of last 7 days under floor → halt
+  var WELLBEING_SUSTAINED_DAYS_IF   = 5;        // 5 of last 7 for declared IF protocols
+  var IF_PROTOCOL_THRESHOLD_HOURS   = 14;       // somatic_fasting_hours ≥ this → IF protocol
+  var LOGGING_DROPOFF_DAYS          = 4;        // ≥ N zero-log days in a 7-day window
+  var PORTION_CONFIDENCE_LOW_THRESH = 0.6;      // < this fires the clarification loop
+  var NAED_RESOURCE_URL             = 'https://www.allianceforeatingdisorders.com';
+
+  // ── Internal state ─────────────────────────────────────────────
+  var _listenerInstalled    = false;
+  var _pendingClarification = null;             // { meal_payload, clarifying_question, ts }
+
+  function _activeUid() {
+    return (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  }
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY);
+    } catch (_) {}
+    return '';
+  }
+  function _renderToken() {
+    try {
+      if (typeof sessionStorage !== 'undefined') return sessionStorage.getItem('BBF_ADMIN_TOKEN') || '';
+    } catch (_) {}
+    return '';
+  }
+  function _renderProxyOrigin() {
+    return 'https://buildbelievefit.onrender.com';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // ── Audit · agentic actions ONLY → /api/audit-log (NOT routine intake) ─
+  function audit(action_type, payload, opts) {
+    opts = opts || {};
+    try {
+      var body = {
+        action_type:   action_type,
+        agent:         VERSION,
+        target_uid:    _activeUid(),
+        payload:       payload || null,
+        success:       opts.success !== false,
+        error_message: opts.error_message || null,
+      };
+      var headers = { 'Content-Type': 'application/json' };
+      var tok = _renderToken();
+      if (tok) headers['X-BBF-Admin-Token'] = tok;
+      fetch(_renderProxyOrigin() + '/api/audit-log', {
+        method: 'POST', headers: headers,
+        body: JSON.stringify(body), keepalive: true,
+      }).catch(function(){});
+    } catch (_) {}
+  }
+
+  // ── CNS snapshot · Pantheon contract single-reader path ─────────
+  function snapshot(uid) {
+    if (typeof BBF_CNS_AGENT === 'undefined' || !BBF_CNS_AGENT.snapshot) return null;
+    try { return BBF_CNS_AGENT.snapshot(uid || _activeUid()); }
+    catch (_) { return null; }
+  }
+
+  function _getUserProfile(uid) {
+    if (typeof GD !== 'function') return {};
+    var d = GD();
+    return (d.u && d.u[uid]) || {};
+  }
+
+  // ── Slug → UUID resolver ───────────────────────────────────────
+  function _resolveUidUuid(uidSlug) {
+    if (typeof BBF_SYNC !== 'undefined' && typeof BBF_SYNC.resolveUid === 'function') {
+      return BBF_SYNC.resolveUid(uidSlug);
+    }
+    return Promise.resolve(uidSlug);
+  }
+
+  // ── BMR · Mifflin-St Jeor · returns null when inputs missing ───
+  function computeBMR(opts) {
+    opts = opts || {};
+    var sex      = String(opts.sex || '').toLowerCase();
+    var weightLb = Number(opts.weight_lb);
+    var heightIn = Number(opts.height_in);
+    var age      = Number(opts.age);
+    if (!weightLb || !heightIn || !age) return null;
+    var kg = weightLb * 0.45359237;
+    var cm = heightIn * 2.54;
+    var sexConst = (sex === 'female' || sex === 'f') ? -161 : 5;
+    return Math.round(10 * kg + 6.25 * cm - 5 * age + sexConst);
+  }
+
+  // ── At-risk gate · Task 4 ──────────────────────────────────────
+  // ghost_intervention_needed === true:
+  //   · ALL fasting / timing warnings DISABLED
+  //   · The Wellbeing Guardrail (Task 2) is still ACTIVE for them ·
+  //     it's a SAFETY net · they need it most.
+  function isAtRiskProfile(uid) {
+    var u = _getUserProfile(uid || _activeUid());
+    return !!u.ghost_intervention_needed;
+  }
+  function shouldSuppressFastingWarning(uid) {
+    // Task 4: somatic_fasting_hours is purely informational · NEVER police
+    // meal timing for at-risk profiles · disable all fasting/timing nags.
+    return isAtRiskProfile(uid);
+  }
+
+  // ── Local wellbeing halt · immediate UI flip · NO cloud auto-write ─
+  // Cloud persistence is gated by founder approval of the staged
+  // cns_intervention proposal. Local flag flips UI to habit-based
+  // framing instantly. Expires after 30 days unless reset.
+  function _haltKey(uid) { return 'bbf_wellbeing_halt_' + (uid || _activeUid()); }
+  function isLocalHaltActive(uid) {
+    try {
+      var raw = localStorage.getItem(_haltKey(uid));
+      if (!raw) return false;
+      var parsed = JSON.parse(raw);
+      var ageMs = Date.now() - (parsed.ts || 0);
+      if (ageMs > 30 * 86400000) { localStorage.removeItem(_haltKey(uid)); return false; }
+      return !!parsed.active;
+    } catch (_) { return false; }
+  }
+  function setLocalHalt(uid, reason) {
+    try {
+      localStorage.setItem(_haltKey(uid), JSON.stringify({
+        active: true, reason: reason || 'pattern_detected', ts: Date.now(),
+      }));
+    } catch (_) {}
+  }
+  function clearLocalHalt(uid) {
+    try { localStorage.removeItem(_haltKey(uid)); } catch (_) {}
+  }
+
+  // ── Listener install ───────────────────────────────────────────
+  function ensureListener() {
+    if (_listenerInstalled) return;
+    window.addEventListener('bbf:cns:updated', function(e) {
+      var detail = e && e.detail || {};
+      if (detail.uid !== _activeUid()) return;
+      var pane = document.getElementById('tp-nutrition');
+      if (!pane || !pane.classList.contains('on')) return;
+      try { renderDailyPanel(); } catch (_) {}
+    });
+    window.addEventListener('bbf:nutrition:vision:event', function(e) {
+      try { handleNutritionVisionEvent(e.detail || {}); }
+      catch (e2) { console.warn('[BBF_NUTRITION_INTEL] vision handler threw:', e2 && e2.message); }
+    });
+    _listenerInstalled = true;
+    console.log('[BBF_NUTRITION_INTEL] listeners installed · v=' + VERSION);
+  }
+
+  // ── Cloud write · bbf_meal_logs (TRANSIENT · NOT audit) ────────
+  function logMeal(meal) {
+    var uid = meal.uid || _activeUid();
+    if (!uid) return Promise.reject(new Error('no_active_uid'));
+    return _resolveUidUuid(uid).then(function(uuid) {
+      if (!uuid) throw new Error('uid_not_resolvable');
+      var row = {
+        user_id:            uuid,
+        log_date:           meal.log_date || new Date().toISOString().slice(0,10),
+        meal_slot:          meal.meal_slot || null,
+        meal_name:          meal.meal_name || null,
+        calories:           (meal.calories != null) ? Number(meal.calories) : null,
+        protein_g:          (meal.protein_g != null) ? Number(meal.protein_g) : null,
+        carbs_g:            (meal.carbs_g != null) ? Number(meal.carbs_g) : null,
+        fats_g:             (meal.fats_g != null) ? Number(meal.fats_g) : null,
+        source:             meal.source || 'manual',
+        portion_confidence: (meal.portion_confidence != null) ? Number(meal.portion_confidence) : null,
+        vision_payload:     meal.vision_payload || null,
+        metadata:           meal.metadata || {},
+      };
+      var anonKey = _anonKey();
+      var headers = { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+      if (anonKey) {
+        headers['apikey'] = anonKey;
+        headers['Authorization'] = 'Bearer ' + anonKey;
+      }
+      return fetch(_supabaseUrl() + '/rest/v1/bbf_meal_logs', {
+        method: 'POST', headers: headers, body: JSON.stringify(row),
+      }).then(function(r) {
+        if (!r.ok) {
+          return r.text().then(function(t) {
+            throw new Error('bbf_meal_logs HTTP ' + r.status + ': ' + t.slice(0, 200));
+          });
+        }
+        return true;
+      });
+    });
+  }
+
+  // ── 7-day daily totals from bbf_meal_logs ──────────────────────
+  function fetchDailyTotals(uid, days) {
+    days = days || 7;
+    return _resolveUidUuid(uid || _activeUid()).then(function(uuid) {
+      if (!uuid) return [];
+      var anonKey = _anonKey();
+      var sinceDate = new Date(Date.now() - days * 86400000).toISOString().slice(0,10);
+      var qs = 'user_id=eq.' + encodeURIComponent(uuid) +
+               '&log_date=gte.' + encodeURIComponent(sinceDate) +
+               '&select=log_date,calories,protein_g,carbs_g,fats_g' +
+               '&order=log_date.desc';
+      var headers = {};
+      if (anonKey) {
+        headers['apikey'] = anonKey;
+        headers['Authorization'] = 'Bearer ' + anonKey;
+      }
+      return fetch(_supabaseUrl() + '/rest/v1/bbf_meal_logs?' + qs, { headers: headers })
+        .then(function(r) { if (!r.ok) return []; return r.json(); })
+        .then(function(rows) {
+          if (!Array.isArray(rows)) return [];
+          var buckets = {};
+          rows.forEach(function(row) {
+            var d = row.log_date;
+            if (!buckets[d]) buckets[d] = { date: d, kcal: 0, p: 0, c: 0, f: 0, entries: 0 };
+            buckets[d].kcal += Number(row.calories) || 0;
+            buckets[d].p    += Number(row.protein_g) || 0;
+            buckets[d].c    += Number(row.carbs_g) || 0;
+            buckets[d].f    += Number(row.fats_g) || 0;
+            buckets[d].entries++;
+          });
+          return Object.keys(buckets).sort().reverse().map(function(k) { return buckets[k]; });
+        });
+    });
+  }
+
+  // ── Nutrition Vision event handler · portion-confidence loop ───
+  function handleNutritionVisionEvent(ev) {
+    if (!ev || typeof ev !== 'object' || !ev.meal_name) return;
+    var confidence = (ev.portion_confidence != null) ? Number(ev.portion_confidence) : 1.0;
+    var uid = ev.uid || _activeUid();
+    var mealPayload = {
+      uid:                uid,
+      meal_name:          ev.meal_name,
+      calories:           ev.calories,
+      protein_g:          ev.protein_g,
+      carbs_g:            ev.carbs_g,
+      fats_g:             ev.fats_g,
+      portion_confidence: confidence,
+      vision_payload:     ev.vision_payload || ev,
+      source:             'nutrition_vision',
+    };
+    audit('nutrition_vision_event', {
+      meal_name: mealPayload.meal_name, calories: mealPayload.calories,
+      portion_confidence: confidence, threshold: PORTION_CONFIDENCE_LOW_THRESH,
+    });
+    if (confidence < PORTION_CONFIDENCE_LOW_THRESH) {
+      // LOW confidence · do NOT silently mis-log · ask a clarifying question
+      _pendingClarification = {
+        meal_payload:        mealPayload,
+        clarifying_question: ev.clarifying_question || _buildClarifyingQuestion(ev),
+        ts:                  Date.now(),
+      };
+      _renderClarificationCard();
+      _speakClarifyingQuestion(_pendingClarification.clarifying_question);
+      audit('nutrition_portion_clarification_needed', {
+        meal_name: mealPayload.meal_name,
+        portion_confidence: confidence,
+      });
+    } else {
+      // Confident · log directly to bbf_meal_logs
+      logMeal(mealPayload).then(function() {
+        audit('nutrition_meal_logged', {
+          meal_name: mealPayload.meal_name, calories: mealPayload.calories,
+          source: 'nutrition_vision', confidence: confidence,
+        });
+        try { renderDailyPanel(); } catch (_) {}
+      }).catch(function(err) {
+        audit('nutrition_meal_log_failed', { meal_name: mealPayload.meal_name },
+              { success: false, error_message: err && err.message });
+      });
+    }
+  }
+
+  function _buildClarifyingQuestion(ev) {
+    // Reference object/size · sharper than "how much" (per directive)
+    var name = ev.meal_name || 'the meal';
+    return 'About the ' + name + '. Was the portion closer to a deck of cards, a clenched fist, or two fists side by side? One quick word helps me lock the calories.';
+  }
+
+  function _speakClarifyingQuestion(text) {
+    if (typeof BBF_OT_PROMPT !== 'undefined' && BBF_OT_PROMPT.passThrough) {
+      try { text = BBF_OT_PROMPT.passThrough(text, { agent: VERSION, surface: 'portion_clarification' }); }
+      catch (_) {}
+    }
+    if (typeof BBF_TTS !== 'undefined' && BBF_TTS.speak) {
+      try { BBF_TTS.speak('virtual_chef', text); } catch (_) {}
+    }
+  }
+
+  function _renderClarificationCard() {
+    if (!_pendingClarification) return;
+    var pane = document.getElementById('ncon');
+    if (!pane) return;
+    var existing = document.getElementById('bbf-nutr-clarification');
+    if (existing) existing.remove();
+    var card = document.createElement('div');
+    card.id = 'bbf-nutr-clarification';
+    card.style.cssText = 'background:linear-gradient(135deg,#6a0dad,#4a0880);color:#fff;padding:1rem;border-radius:12px;margin:.6rem 0;box-shadow:0 4px 14px rgba(106,13,173,.4)';
+    card.innerHTML =
+      '<div style="font-size:.7rem;font-weight:800;letter-spacing:2px;opacity:.85;margin-bottom:.35rem">🍳 CHEF ON CALL · PORTION CHECK</div>' +
+      '<div style="font-size:.95rem;line-height:1.45;margin-bottom:.7rem">' + _esc(_pendingClarification.clarifying_question) + '</div>' +
+      '<div style="display:flex;gap:.4rem;flex-wrap:wrap">' +
+        '<button id="bbf-nutr-clarify-respond" type="button" style="flex:1;background:#f5c800;color:#000;border:0;border-radius:8px;padding:.55rem .8rem;font-weight:800;cursor:pointer">Speak the answer</button>' +
+        '<button id="bbf-nutr-clarify-skip"    type="button" style="flex:1;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:.55rem .8rem;font-weight:700;cursor:pointer">Log my estimate anyway</button>' +
+      '</div>';
+    pane.insertBefore(card, pane.firstChild);
+    var respondBtn = document.getElementById('bbf-nutr-clarify-respond');
+    var skipBtn    = document.getElementById('bbf-nutr-clarify-skip');
+    if (respondBtn) respondBtn.onclick = function() {
+      audit('nutrition_portion_clarify_respond_opened', {
+        meal_name: _pendingClarification && _pendingClarification.meal_payload.meal_name,
+      });
+      try {
+        if (typeof BBF_INTERCEPT !== 'undefined' && BBF_INTERCEPT.check) {
+          BBF_INTERCEPT.check('virtual_chef', function() {
+            if (typeof window.initLiveCoach === 'function') window.initLiveCoach('voice');
+          });
+        } else if (typeof window.initLiveCoach === 'function') {
+          window.initLiveCoach('voice');
+        }
+      } catch (_) {}
+    };
+    if (skipBtn) skipBtn.onclick = function() { logEstimateAnyway(); };
+  }
+
+  // ── Escape hatch · "log my estimate anyway" (UX friction guardrail) ─
+  function logEstimateAnyway() {
+    if (!_pendingClarification) return;
+    var payload = Object.assign({}, _pendingClarification.meal_payload, {
+      source: 'nutrition_vision_estimate',
+      metadata: {
+        escape_hatch: true,
+        original_confidence: _pendingClarification.meal_payload.portion_confidence,
+      },
+    });
+    audit('nutrition_log_estimate_anyway', {
+      meal_name: payload.meal_name, calories: payload.calories,
+      portion_confidence: payload.portion_confidence,
+    });
+    logMeal(payload).then(function() {
+      _pendingClarification = null;
+      var card = document.getElementById('bbf-nutr-clarification');
+      if (card) card.remove();
+      try { renderDailyPanel(); } catch (_) {}
+    }).catch(function(err) {
+      audit('nutrition_meal_log_failed', { meal_name: payload.meal_name, escape_hatch: true },
+            { success: false, error_message: err && err.message });
+    });
+  }
+
+  // ── Wellbeing Guardrail (Task 2) · IF-aware deficit detection ──
+  // Returns the full evaluation so callers (Midnight Haiku, dashboard,
+  // QA) can inspect the math. CONCERN fires when:
+  //   · ≥ N days under personal floor (N=5 for IF, 3 otherwise) OR
+  //   · ≥ 4 zero-log days in the 7-day window (sharp drop-off)
+  function evaluateWellbeing(uid) {
+    uid = uid || _activeUid();
+    if (!uid) return Promise.resolve({ concern: false, reason: 'no_uid' });
+    var u = _getUserProfile(uid);
+    var fastingHours = Number(u.somatic_fasting_hours) || 0;
+    var isIF = fastingHours >= IF_PROTOCOL_THRESHOLD_HOURS;
+    var sustainedThreshold = isIF ? WELLBEING_SUSTAINED_DAYS_IF : WELLBEING_SUSTAINED_DAYS;
+    var bmr = computeBMR({
+      sex: u.sex, weight_lb: u.weight_lb, height_in: u.height_in, age: u.age,
+    });
+    var personalFloor = bmr ? Math.round(bmr * (1 - WELLBEING_BMR_DEFICIT_PCT)) : WELLBEING_FLOOR_KCAL;
+    return fetchDailyTotals(uid, 7).then(function(daily) {
+      var underFloor = 0;
+      var zeroLogDays = 0;
+      var todayMs = Date.now();
+      var windowResults = [];
+      for (var i = 0; i < 7; i++) {
+        var d = new Date(todayMs - i * 86400000).toISOString().slice(0,10);
+        var match = (daily || []).find(function(b) { return b.date === d; });
+        if (!match || match.entries === 0) {
+          zeroLogDays++;
+          windowResults.push({ date: d, kcal: 0, logged: false });
+        } else {
+          if (match.kcal > 0 && match.kcal < personalFloor) underFloor++;
+          windowResults.push({ date: d, kcal: match.kcal, logged: true });
+        }
+      }
+      var sharpDropOff     = zeroLogDays  >= LOGGING_DROPOFF_DAYS;
+      var sustainedDeficit = underFloor   >= sustainedThreshold;
+      var concern          = sharpDropOff || sustainedDeficit;
+      return {
+        concern:                    concern,
+        reason:                     sharpDropOff ? 'logging_dropoff' : sustainedDeficit ? 'sustained_deficit' : 'normal',
+        sustained_under_floor_days: underFloor,
+        zero_log_days:              zeroLogDays,
+        sustained_threshold:        sustainedThreshold,
+        personal_floor_kcal:        personalFloor,
+        bmr_estimate:               bmr,
+        is_if_protocol:             isIF,
+        fasting_hours:              fastingHours,
+        window:                     windowResults,
+      };
+    });
+  }
+
+  // ── Trigger Wellbeing Halt · local UI flip + queue escalation ──
+  // SAFE ACTION: immediate local mode switch (habit framing · numeric
+  // targets paused). Founder receives a cns_intervention proposal.
+  // NAED resource link surfaced gently in the panel (NEVER alarm/popup).
+  function triggerWellbeingHalt(uid, evaluation) {
+    uid = uid || _activeUid();
+    setLocalHalt(uid, evaluation && evaluation.reason);
+    audit('wellbeing_halt_triggered', {
+      reason:                     evaluation && evaluation.reason,
+      sustained_under_floor_days: evaluation && evaluation.sustained_under_floor_days,
+      zero_log_days:              evaluation && evaluation.zero_log_days,
+      personal_floor_kcal:        evaluation && evaluation.personal_floor_kcal,
+      is_if_protocol:             evaluation && evaluation.is_if_protocol,
+      fasting_hours:              evaluation && evaluation.fasting_hours,
+    });
+    var snap = snapshot(uid);
+    var u    = _getUserProfile(uid);
+    var body = {
+      proposal_type: 'cns_intervention',
+      risk_level:    'critical',
+      population:    { uids: [uid], cohort: 'single' },
+      diff: {
+        target_table: 'bbf_users',
+        target_uid:   uid,
+        before:       { ghost_intervention_needed: !!u.ghost_intervention_needed },
+        after:        { ghost_intervention_needed: true, ghost_flagged_at: new Date().toISOString() },
+        fields:       ['ghost_intervention_needed', 'ghost_flagged_at'],
+      },
+      rationale: 'Wellbeing guardrail triggered by ' + VERSION + ': ' +
+                 (evaluation && evaluation.reason || 'pattern_detected') +
+                 '. Restrictive numeric targeting auto-halted locally · founder review needed for a human conversation. NAED resource surfaced gently in the nutrition tab footer. NEVER an alarm/popup.',
+      proposed_by: VERSION,
+      metadata: {
+        wellbeing_halt:  true,
+        evaluation:      evaluation || null,
+        cns_snapshot:    snap,
+        naed_resource:   NAED_RESOURCE_URL,
+        triggered_at:    new Date().toISOString(),
+      },
+    };
+    var headers = { 'Content-Type': 'application/json' };
+    var tok = _renderToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+    fetch(_renderProxyOrigin() + '/api/proposal-submit', {
+      method: 'POST', headers: headers, body: JSON.stringify(body),
+    })
+      .then(function(r) { return r.json().catch(function(){ return null; }); })
+      .then(function(j) {
+        audit('wellbeing_halt_proposal_staged', {
+          proposal_id: j && j.proposal && j.proposal.id,
+          ok: !!(j && j.ok),
+        });
+      }).catch(function(err) {
+        audit('wellbeing_halt_proposal_failed', {},
+              { success: false, error_message: err && err.message });
+      });
+    try { renderDailyPanel(); } catch (_) {}
+  }
+
+  // ── Sunday Macro Reconciliation (callable from MIDNIGHT HAIKU + FE) ─
+  // PRECEDENCE: wellbeing halt SUPERSEDES the recalc. If halt is active,
+  // NO restrictive numeric proposal is generated · returns { skipped: true }.
+  function proposeMacroRecalc(uid, opts) {
+    uid = uid || _activeUid();
+    opts = opts || {};
+    if (isLocalHaltActive(uid)) {
+      audit('nutrition_target_recalc_skipped_wellbeing_halt', { uid: uid });
+      return Promise.resolve({ skipped: true, reason: 'wellbeing_halt_active' });
+    }
+    var u = _getUserProfile(uid);
+    return fetchDailyTotals(uid, 7).then(function(daily) {
+      if (!daily || daily.length === 0) {
+        audit('nutrition_target_recalc_skipped_no_data', { uid: uid });
+        return { skipped: true, reason: 'no_meal_data' };
+      }
+      var totalKcal = 0, totalP = 0, totalC = 0, totalF = 0, count = 0;
+      daily.forEach(function(b) {
+        if (b.kcal > 0) {
+          totalKcal += b.kcal; totalP += b.p; totalC += b.c; totalF += b.f; count++;
+        }
+      });
+      if (count < 3) {
+        audit('nutrition_target_recalc_skipped_insufficient_data', { uid: uid, logged_days: count });
+        return { skipped: true, reason: 'insufficient_logged_days', logged_days: count };
+      }
+      var avgKcal = Math.round(totalKcal / count);
+      var avgP    = Math.round(totalP / count);
+      var avgC    = Math.round(totalC / count);
+      var avgF    = Math.round(totalF / count);
+      var body = {
+        proposal_type: 'nutrition_target_recalc',
+        risk_level:    'medium',
+        population:    { uids: [uid], cohort: 'single' },
+        diff: {
+          target_table: 'bbf_users',
+          target_uid:   uid,
+          before: {
+            tdee_target: u.tdee_target || null,
+            macro_p:     u.macro_p     || null,
+            macro_c:     u.macro_c     || null,
+            macro_f:     u.macro_f     || null,
+          },
+          after:  {
+            tdee_target: avgKcal,
+            macro_p:     avgP,
+            macro_c:     avgC,
+            macro_f:     avgF,
+          },
+          fields: ['tdee_target','macro_p','macro_c','macro_f'],
+        },
+        rationale: 'Weekly trend reconciliation by ' + VERSION + '. 7-day rolling averages: ' +
+                   avgKcal + ' kcal · ' + avgP + 'g P / ' + avgC + 'g C / ' + avgF + 'g F across ' +
+                   count + ' logged days. Founder reviews actual-vs-target drift before any target write goes live.',
+        proposed_by: VERSION,
+        metadata: {
+          weekly_aggregation: { avg_kcal: avgKcal, avg_p: avgP, avg_c: avgC, avg_f: avgF, logged_days: count },
+          generated_at: new Date().toISOString(),
+        },
+      };
+      var headers = { 'Content-Type': 'application/json' };
+      var tok = _renderToken();
+      if (tok) headers['X-BBF-Admin-Token'] = tok;
+      return fetch(_renderProxyOrigin() + '/api/proposal-submit', {
+        method: 'POST', headers: headers, body: JSON.stringify(body),
+      })
+        .then(function(r) { return r.json().catch(function(){ return null; }); })
+        .then(function(j) {
+          audit('nutrition_target_recalc_staged', {
+            proposal_id: j && j.proposal && j.proposal.id,
+            ok:          !!(j && j.ok),
+            avg_kcal:    avgKcal,
+            logged_days: count,
+          });
+          return j;
+        });
+    });
+  }
+
+  // ── Daily intake panel · top of #ncon · always paints ──────────
+  // Also runs the wellbeing evaluation in the background and triggers
+  // a halt when the threshold trips. Halt UI mode replaces the numeric
+  // panel with habit-based framing + a gentle NAED resource link.
+  function renderDailyPanel() {
+    var pane = document.getElementById('ncon');
+    if (!pane) return;
+    var uid = _activeUid();
+    if (!uid) return;
+    var existing = document.getElementById('bbf-nutr-daily-panel');
+    if (existing) existing.remove();
+
+    var haltActive = isLocalHaltActive(uid);
+    var u = _getUserProfile(uid);
+
+    fetchDailyTotals(uid, 7).then(function(daily) {
+      var todayKey  = new Date().toISOString().slice(0,10);
+      var todayBucket = (daily || []).find(function(b) { return b.date === todayKey; }) ||
+                        { date: todayKey, kcal: 0, p: 0, c: 0, f: 0, entries: 0 };
+      var target = u.tdee_target || null;
+      var pct = (target && todayBucket.kcal) ? Math.round((todayBucket.kcal / target) * 100) : null;
+      var panelHtml;
+      if (haltActive) {
+        panelHtml =
+          '<div id="bbf-nutr-daily-panel" style="background:#0a0a0a;border:1px solid #2a2a2a;border-left:3px solid #6a0dad;border-radius:10px;padding:.75rem .9rem;margin:.6rem 0">' +
+            '<div style="font-size:.62rem;font-weight:800;letter-spacing:2px;color:#bb88ff;text-transform:uppercase;margin-bottom:.35rem">🌿 Habit-based framing · numeric targets paused</div>' +
+            '<div style="font-size:.88rem;line-height:1.5;color:#e8e8e8;margin-bottom:.45rem">Today\'s focus: log every meal, hydrate, sleep eight hours, move with intention. The numbers can wait.</div>' +
+            '<div style="font-size:.68rem;color:#888;line-height:1.45;margin-top:.4rem;border-top:1px dashed #2a2a2a;padding-top:.4rem">If you want extra support · the <a href="' + NAED_RESOURCE_URL + '" target="_blank" rel="noopener" style="color:#bb88ff;text-decoration:underline">National Alliance for Eating Disorders</a> has a free helpline and resource hub. No pressure · just here.</div>' +
+          '</div>';
+      } else {
+        var macroLine = (todayBucket.p || todayBucket.c || todayBucket.f)
+          ? '<span style="color:#bbb"><strong>P</strong> ' + todayBucket.p + 'g · <strong>C</strong> ' + todayBucket.c + 'g · <strong>F</strong> ' + todayBucket.f + 'g</span>'
+          : '';
+        var targetLine = target ? ' <span style="color:#888">/ ' + target + ' kcal</span>' : '';
+        var pctLine    = (pct != null) ? ' <span style="color:#888">(' + pct + '%)</span>' : '';
+        panelHtml =
+          '<div id="bbf-nutr-daily-panel" style="background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:.6rem .85rem;margin:.6rem 0">' +
+            '<div style="font-size:.62rem;font-weight:800;letter-spacing:2px;color:#888;text-transform:uppercase;margin-bottom:.3rem">📊 Today\'s logged intake</div>' +
+            '<div style="font-size:.92rem;color:#f5c800;font-weight:700">' + todayBucket.kcal + ' kcal' + targetLine + pctLine + '</div>' +
+            (macroLine ? '<div style="font-size:.78rem;margin-top:.2rem">' + macroLine + '</div>' : '') +
+            '<div style="font-size:.65rem;color:#666;margin-top:.25rem">' + todayBucket.entries + ' meal' + (todayBucket.entries === 1 ? '' : 's') + ' logged today</div>' +
+          '</div>';
+      }
+      pane.insertAdjacentHTML('afterbegin', panelHtml);
+    }).catch(function() {});
+
+    // Background wellbeing evaluation · trigger halt if criteria met.
+    // Suppress re-trigger when halt is already active locally.
+    if (!haltActive) {
+      evaluateWellbeing(uid).then(function(evaluation) {
+        if (evaluation && evaluation.concern) {
+          triggerWellbeingHalt(uid, evaluation);
+        }
+      }).catch(function(){});
+    }
+  }
+
+  // ── Debug · fire a synthetic nutrition vision event for QA ─────
+  function debugFireNutritionEvent(meal_name, calories, portion_confidence) {
+    handleNutritionVisionEvent({
+      uid:                _activeUid(),
+      meal_name:          meal_name || 'Test Meal',
+      calories:           (calories != null) ? calories : 500,
+      protein_g:          30, carbs_g: 50, fats_g: 15,
+      portion_confidence: (portion_confidence != null) ? portion_confidence : 0.4,
+      ts:                 Date.now(),
+    });
+  }
+
+  return {
+    VERSION:                       VERSION,
+    WELLBEING_FLOOR_KCAL:          WELLBEING_FLOOR_KCAL,
+    WELLBEING_BMR_DEFICIT_PCT:     WELLBEING_BMR_DEFICIT_PCT,
+    WELLBEING_SUSTAINED_DAYS:      WELLBEING_SUSTAINED_DAYS,
+    WELLBEING_SUSTAINED_DAYS_IF:   WELLBEING_SUSTAINED_DAYS_IF,
+    IF_PROTOCOL_THRESHOLD_HOURS:   IF_PROTOCOL_THRESHOLD_HOURS,
+    PORTION_CONFIDENCE_LOW_THRESH: PORTION_CONFIDENCE_LOW_THRESH,
+    NAED_RESOURCE_URL:             NAED_RESOURCE_URL,
+    ensureListener:                ensureListener,
+    snapshot:                      snapshot,
+    audit:                         audit,
+    computeBMR:                    computeBMR,
+    isAtRiskProfile:               isAtRiskProfile,
+    shouldSuppressFastingWarning:  shouldSuppressFastingWarning,
+    isLocalHaltActive:             isLocalHaltActive,
+    setLocalHalt:                  setLocalHalt,
+    clearLocalHalt:                clearLocalHalt,
+    logMeal:                       logMeal,
+    fetchDailyTotals:              fetchDailyTotals,
+    handleNutritionVisionEvent:    handleNutritionVisionEvent,
+    logEstimateAnyway:             logEstimateAnyway,
+    evaluateWellbeing:             evaluateWellbeing,
+    triggerWellbeingHalt:          triggerWellbeingHalt,
+    proposeMacroRecalc:            proposeMacroRecalc,
+    renderDailyPanel:              renderDailyPanel,
+    debugFireNutritionEvent:       debugFireNutritionEvent,
+  };
+})();
+
+try { if (typeof BBF_NUTRITION_INTEL !== 'undefined') BBF_NUTRITION_INTEL.ensureListener(); } catch (_) {}
 
 // ════════════════════════════════════════════════════════════════════════
 // BBF_KINEMATICS · Phase 6 — Live Kinematic Mapping (Form Check)
@@ -19289,6 +20015,15 @@ function RN() {
   // Virtual Chef / Nutrition Vision modules.
   if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
     try { window.BBF_APPLY_TIER_GATE(); } catch(_) {}
+  }
+  // Phase 5 · BBF_NUTRITION_INTEL paints the daily intake panel + runs
+  // the wellbeing guardrail evaluation in the background. The panel
+  // shows today's logged kcal/macros · or, when the wellbeing halt is
+  // active, switches to habit-based framing + a gentle NAED resource
+  // link (NEVER an alarm/popup). Re-rendered on bbf:cns:updated too.
+  if (typeof BBF_NUTRITION_INTEL !== 'undefined') {
+    try { BBF_NUTRITION_INTEL.renderDailyPanel(); }
+    catch (e) { console.warn('[RN] nutrition panel render threw:', e && e.message); }
   }
 }
 

@@ -14,7 +14,7 @@
 // The prior version cached ALL successful GETs, including PostgREST
 // rows. That left clients pinned to stale workout sets / dietary
 // fields / meal plans for the lifetime of the cache entry. Closed.
-var CACHE = 'bbf-v211';
+var CACHE = 'bbf-v212';
 var CORE  = ['/bbf-app.html', '/manifest.json', '/bbf-icon-192.png', '/bbf-icon-512.png', '/bbf-apple-touch-180.jpg', '/bbf-photo.jpg'];
 
 // Hosts that serve dynamic data — NEVER cache anything from these.

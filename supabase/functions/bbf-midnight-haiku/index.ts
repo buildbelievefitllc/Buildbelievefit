@@ -1,4 +1,4 @@
-// bbf-midnight-haiku — Midnight Haiku Engine
+// bbf-midnight-haiku v2 — Midnight Haiku Engine + Sunday Macro Reconciliation
 // ─────────────────────────────────────────────────────────────────────
 // Asynchronous, cron-triggered batch that generates the next-day
 // daily_brief for every Sovereign-tier athlete. Reads each user's last
@@ -8,6 +8,20 @@
 // UPDATEs bbf_users.daily_brief with the result. The brief surfaces on
 // the next render of the Sovereign Intelligence Brief widget on the
 // Workout tab (see window.BBF_SOVEREIGN_INTEL.render).
+//
+// Phase 5 EXTENSION · Sunday Macro Reconciliation (callable subsystem):
+//   · On Sundays (UTC), every Sovereign athlete additionally gets a
+//     weekly nutrition reconciliation pass: 7-day rolling avg of
+//     bbf_meal_logs vs current bbf_users macro/TDEE targets. If the
+//     averages drift > 8 % from current targets AND ≥ 3 logged days
+//     exist in the window, a nutrition_target_recalc proposal is STAGED
+//     to bbf_pending_review via /api/proposal-submit.
+//   · PRECEDENCE RULE: a wellbeing halt SUPERSEDES the recalc. If an
+//     unresolved cns_intervention proposal with metadata.wellbeing_halt
+//     exists for the user in the last 30 days, NO restrictive numeric
+//     proposal is generated for that user. Logged loudly to audit.
+//   · The recalc is NEVER live · founder approves every target change
+//     through the existing proposal queue.
 //
 // CEO directive specified `claude-3-haiku-20240307` — that model is
 // retired (2026 sunset). This function uses the current Haiku 4.5
@@ -278,6 +292,264 @@ function extractTextBlock(content: unknown): string | null {
   return null;
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// Phase 5 · Sunday Macro Reconciliation subsystem
+// ───────────────────────────────────────────────────────────────────────
+// Runs ONLY on Sundays (UTC). For each Sovereign user:
+//   1. Check wellbeing-halt precedence · skip if an unresolved
+//      cns_intervention proposal with metadata.wellbeing_halt exists
+//      for this user within the last 30 days.
+//   2. Pull 7-day rolling bbf_meal_logs averages.
+//   3. If ≥ 3 logged days AND drift > 8 % from current targets,
+//      stage a nutrition_target_recalc proposal via the Render proxy.
+// ═══════════════════════════════════════════════════════════════════════
+
+const NUTRITION_RECALC_DRIFT_THRESHOLD_PCT = 0.08;
+const NUTRITION_RECALC_MIN_LOGGED_DAYS     = 3;
+const NUTRITION_RECALC_WINDOW_DAYS         = 7;
+const WELLBEING_HALT_LOOKBACK_DAYS         = 30;
+
+type MealLogDayBucket = {
+  date: string;
+  kcal: number;
+  p: number;
+  c: number;
+  f: number;
+  entries: number;
+};
+
+type UserNutritionState = {
+  tdee_target: number | null;
+  macro_p:     number | null;
+  macro_c:     number | null;
+  macro_f:     number | null;
+  somatic_fasting_hours:     number | null;
+  ghost_intervention_needed: boolean;
+};
+
+async function fetchUserNutritionState(
+  uuid: string, supabaseUrl: string, supabaseKey: string,
+): Promise<UserNutritionState> {
+  const url = `${supabaseUrl}/rest/v1/bbf_users?id=eq.${encodeURIComponent(uuid)}` +
+              `&select=tdee_target,macro_p,macro_c,macro_f,somatic_fasting_hours,ghost_intervention_needed&limit=1`;
+  try {
+    const res = await fetch(url, {
+      headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` },
+    });
+    if (!res.ok) {
+      return { tdee_target: null, macro_p: null, macro_c: null, macro_f: null, somatic_fasting_hours: null, ghost_intervention_needed: false };
+    }
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      const r = rows[0];
+      return {
+        tdee_target: r.tdee_target != null ? Number(r.tdee_target) : null,
+        macro_p:     r.macro_p     != null ? Number(r.macro_p)     : null,
+        macro_c:     r.macro_c     != null ? Number(r.macro_c)     : null,
+        macro_f:     r.macro_f     != null ? Number(r.macro_f)     : null,
+        somatic_fasting_hours:     r.somatic_fasting_hours != null ? Number(r.somatic_fasting_hours) : null,
+        ghost_intervention_needed: !!r.ghost_intervention_needed,
+      };
+    }
+  } catch (_) {}
+  return { tdee_target: null, macro_p: null, macro_c: null, macro_f: null, somatic_fasting_hours: null, ghost_intervention_needed: false };
+}
+
+async function fetchMealLogTotals(
+  uuid: string, supabaseUrl: string, supabaseKey: string,
+): Promise<MealLogDayBucket[]> {
+  const sinceDate = new Date(Date.now() - NUTRITION_RECALC_WINDOW_DAYS * 86400000).toISOString().slice(0,10);
+  const qs = `user_id=eq.${encodeURIComponent(uuid)}` +
+             `&log_date=gte.${encodeURIComponent(sinceDate)}` +
+             `&select=log_date,calories,protein_g,carbs_g,fats_g` +
+             `&order=log_date.desc`;
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/bbf_meal_logs?${qs}`, {
+      headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` },
+    });
+    if (!res.ok) return [];
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return [];
+    const buckets: Record<string, MealLogDayBucket> = {};
+    for (const row of rows) {
+      const d = row.log_date;
+      if (!buckets[d]) buckets[d] = { date: d, kcal: 0, p: 0, c: 0, f: 0, entries: 0 };
+      buckets[d].kcal += Number(row.calories)  || 0;
+      buckets[d].p    += Number(row.protein_g) || 0;
+      buckets[d].c    += Number(row.carbs_g)   || 0;
+      buckets[d].f    += Number(row.fats_g)    || 0;
+      buckets[d].entries++;
+    }
+    return Object.values(buckets);
+  } catch (_) { return []; }
+}
+
+// PRECEDENCE GATE · check for active wellbeing halt via queue lookup
+async function hasActiveWellbeingHalt(
+  uuid: string, supabaseUrl: string, supabaseKey: string,
+): Promise<boolean> {
+  // Resolve uuid → slug for the proposal_review.diff.target_uid field
+  // (target_uid is stored as the slug · queue lookup uses the slug).
+  // Easier path: query the queue for any cns_intervention proposal
+  // submitted in the last 30 days whose population.uids contains the
+  // user's uuid OR slug. Simpler yet · since we have the uuid, we can
+  // pull the user's slug first and then query by slug in the diff.
+  try {
+    const userRes = await fetch(`${supabaseUrl}/rest/v1/bbf_users?id=eq.${encodeURIComponent(uuid)}&select=uid&limit=1`, {
+      headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` },
+    });
+    if (!userRes.ok) return false;
+    const userRows = await userRes.json();
+    if (!Array.isArray(userRows) || userRows.length === 0) return false;
+    const slug = userRows[0].uid;
+    if (!slug) return false;
+
+    const sinceIso = new Date(Date.now() - WELLBEING_HALT_LOOKBACK_DAYS * 86400000).toISOString();
+    const qs = `proposal_type=eq.cns_intervention` +
+               `&proposed_at=gte.${encodeURIComponent(sinceIso)}` +
+               `&status=in.(pending,executed)` +
+               `&select=id,metadata,diff,status`;
+    const propRes = await fetch(`${supabaseUrl}/rest/v1/bbf_pending_review?${qs}`, {
+      headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` },
+    });
+    if (!propRes.ok) return false;
+    const rows = await propRes.json();
+    if (!Array.isArray(rows)) return false;
+    return rows.some((r: any) => {
+      const tgt = r && r.diff && r.diff.target_uid;
+      const wellbeing = r && r.metadata && r.metadata.wellbeing_halt === true;
+      return wellbeing && tgt === slug;
+    });
+  } catch (_) { return false; }
+}
+
+async function stageNutritionTargetRecalcProposal(
+  uidSlug: string, state: UserNutritionState, avg: { kcal: number; p: number; c: number; f: number; count: number },
+  renderOrigin: string, adminToken: string,
+): Promise<{ staged: boolean; proposal_id: string | null; error?: string }> {
+  const body = {
+    proposal_type: 'nutrition_target_recalc',
+    risk_level:    'medium',
+    population:    { uids: [uidSlug], cohort: 'single' },
+    diff: {
+      target_table: 'bbf_users',
+      target_uid:   uidSlug,
+      before: {
+        tdee_target: state.tdee_target,
+        macro_p:     state.macro_p,
+        macro_c:     state.macro_c,
+        macro_f:     state.macro_f,
+      },
+      after: {
+        tdee_target: avg.kcal,
+        macro_p:     avg.p,
+        macro_c:     avg.c,
+        macro_f:     avg.f,
+      },
+      fields: ['tdee_target','macro_p','macro_c','macro_f'],
+    },
+    rationale: 'Sunday weekly trend reconciliation by bbf-midnight-haiku.v2. 7-day rolling averages: ' +
+               avg.kcal + ' kcal · ' + avg.p + 'g P / ' + avg.c + 'g C / ' + avg.f + 'g F across ' +
+               avg.count + ' logged days. Drift > ' + Math.round(NUTRITION_RECALC_DRIFT_THRESHOLD_PCT * 100) +
+               ' % from current targets · founder reviews actual-vs-target drift before any target write goes live.',
+    proposed_by: 'bbf-midnight-haiku.v2',
+    metadata: {
+      weekly_aggregation: { avg_kcal: avg.kcal, avg_p: avg.p, avg_c: avg.c, avg_f: avg.f, logged_days: avg.count },
+      somatic_fasting_hours: state.somatic_fasting_hours,
+      generated_at:       new Date().toISOString(),
+    },
+  };
+  try {
+    // No Origin header on the server-side call · the Render proxy's
+    // ALLOWED_ORIGINS check is `if (origin && !ALLOWED_ORIGINS.has(origin))`,
+    // so omitting Origin skips the browser-origin gate entirely. The
+    // admin-token gate remains the load-bearing auth check.
+    const res = await fetch(`${renderOrigin}/api/proposal-submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':      'application/json',
+        'X-BBF-Admin-Token': adminToken,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error(`[bbf-midnight-haiku:sunday] proposal-submit HTTP ${res.status}: ${txt.slice(0,300)}`);
+      return { staged: false, proposal_id: null, error: `proxy_http_${res.status}` };
+    }
+    const j = await res.json().catch(() => null) as any;
+    return {
+      staged:      !!(j && j.ok && j.proposal && j.proposal.id),
+      proposal_id: (j && j.proposal && j.proposal.id) || null,
+    };
+  } catch (e) {
+    console.error(`[bbf-midnight-haiku:sunday] proposal-submit threw: ${(e as Error).message}`);
+    return { staged: false, proposal_id: null, error: (e as Error).message };
+  }
+}
+
+type SundayReconResult = {
+  uid: string;
+  skipped: boolean;
+  reason?: string;
+  proposal_id?: string | null;
+  drift_pct?:   number | null;
+};
+
+async function runSundayReconciliationForUser(
+  user: SovereignUser, supabaseUrl: string, supabaseKey: string,
+  renderOrigin: string, adminToken: string,
+): Promise<SundayReconResult> {
+  // 1. Precedence gate · wellbeing halt SUPERSEDES recalc
+  const halted = await hasActiveWellbeingHalt(user.id, supabaseUrl, supabaseKey);
+  if (halted) {
+    console.log(`[bbf-midnight-haiku:sunday] uid=${user.id} SKIPPED · wellbeing_halt_active`);
+    return { uid: user.id, skipped: true, reason: 'wellbeing_halt_active' };
+  }
+
+  // 2. Pull current state + meal logs
+  const [state, dailyTotals] = await Promise.all([
+    fetchUserNutritionState(user.id, supabaseUrl, supabaseKey),
+    fetchMealLogTotals(user.id, supabaseUrl, supabaseKey),
+  ]);
+  if (!dailyTotals.length) {
+    return { uid: user.id, skipped: true, reason: 'no_meal_logs' };
+  }
+  let totalKcal = 0, totalP = 0, totalC = 0, totalF = 0, count = 0;
+  for (const b of dailyTotals) {
+    if (b.kcal > 0) {
+      totalKcal += b.kcal; totalP += b.p; totalC += b.c; totalF += b.f; count++;
+    }
+  }
+  if (count < NUTRITION_RECALC_MIN_LOGGED_DAYS) {
+    return { uid: user.id, skipped: true, reason: `insufficient_logged_days_${count}` };
+  }
+  const avg = {
+    kcal:  Math.round(totalKcal / count),
+    p:     Math.round(totalP / count),
+    c:     Math.round(totalC / count),
+    f:     Math.round(totalF / count),
+    count,
+  };
+  // 3. Drift check vs current target (only fire when drift exceeds threshold)
+  let driftPct: number | null = null;
+  if (state.tdee_target && state.tdee_target > 0) {
+    driftPct = Math.abs((avg.kcal - state.tdee_target) / state.tdee_target);
+    if (driftPct < NUTRITION_RECALC_DRIFT_THRESHOLD_PCT) {
+      return { uid: user.id, skipped: true, reason: 'drift_below_threshold', drift_pct: driftPct };
+    }
+  }
+  // 4. Stage proposal · founder approves before any target write
+  const staging = await stageNutritionTargetRecalcProposal(
+    user.id, state, avg, renderOrigin, adminToken,
+  );
+  if (!staging.staged) {
+    return { uid: user.id, skipped: true, reason: staging.error || 'stage_failed', drift_pct: driftPct };
+  }
+  console.log(`[bbf-midnight-haiku:sunday] STAGED · uid=${user.id} · proposal_id=${staging.proposal_id} · drift=${driftPct?.toFixed(2)}`);
+  return { uid: user.id, skipped: false, proposal_id: staging.proposal_id, drift_pct: driftPct };
+}
+
 // ─── Injection: UPDATE bbf_users.daily_brief ──────────────────────────
 async function persistBrief(
   uuid: string,
@@ -312,7 +584,10 @@ async function processUser(
   supabaseKey: string,
   apiKey: string,
   dryRun: boolean,
-): Promise<{ uid: string; brief: string }> {
+  isSunday: boolean,
+  renderOrigin: string,
+  adminToken: string,
+): Promise<{ uid: string; brief: string; sunday_recon: SundayReconResult | null }> {
   const [logs, readiness] = await Promise.all([
     fetchRecentLogs(user.id, sinceIso, supabaseUrl, supabaseKey),
     fetchRecentReadiness(user.id, sinceIso, supabaseUrl, supabaseKey),
@@ -321,7 +596,21 @@ async function processUser(
   if (!dryRun) {
     await persistBrief(user.id, brief, supabaseUrl, supabaseKey);
   }
-  return { uid: user.id, brief };
+  // Phase 5 · Sunday-only macro reconciliation · runs AFTER the brief
+  // is persisted so a recon failure never blocks the daily brief flow.
+  // Skips entirely on non-Sundays, or when adminToken is missing.
+  let sundayRecon: SundayReconResult | null = null;
+  if (isSunday && !dryRun && adminToken) {
+    try {
+      sundayRecon = await runSundayReconciliationForUser(
+        user, supabaseUrl, supabaseKey, renderOrigin, adminToken,
+      );
+    } catch (e) {
+      console.error(`[bbf-midnight-haiku:sunday] uid=${user.id} threw: ${(e as Error).message}`);
+      sundayRecon = { uid: user.id, skipped: true, reason: 'exception_' + (e as Error).message.slice(0, 80) };
+    }
+  }
+  return { uid: user.id, brief, sunday_recon: sundayRecon };
 }
 
 // ─── Batch orchestration ──────────────────────────────────────────────
@@ -332,21 +621,26 @@ async function runBatch(
   supabaseKey: string,
   apiKey: string,
   dryRun: boolean,
+  isSunday: boolean,
+  renderOrigin: string,
+  adminToken: string,
 ) {
   const errors: { uid: string; message: string }[] = [];
+  const sundayReconResults: SundayReconResult[] = [];
   let succeeded = 0;
 
   for (let i = 0; i < roster.length; i += BATCH_SIZE) {
     const slice = roster.slice(i, i + BATCH_SIZE);
     const results = await Promise.allSettled(
       slice.map((user) =>
-        processUser(user, sinceIso, supabaseUrl, supabaseKey, apiKey, dryRun)
+        processUser(user, sinceIso, supabaseUrl, supabaseKey, apiKey, dryRun, isSunday, renderOrigin, adminToken)
       ),
     );
     results.forEach((r, idx) => {
       const user = slice[idx];
       if (r.status === 'fulfilled') {
         succeeded++;
+        if (r.value.sunday_recon) sundayReconResults.push(r.value.sunday_recon);
         console.log(`[bbf-midnight-haiku] OK uid=${user.id} brief="${r.value.brief.slice(0, 80)}..."`);
       } else {
         const message = r.reason instanceof Error ? r.reason.message : String(r.reason);
@@ -356,7 +650,7 @@ async function runBatch(
     });
   }
 
-  return { succeeded, failed: errors.length, errors };
+  return { succeeded, failed: errors.length, errors, sunday_recon: sundayReconResults };
 }
 
 // ─── Entry point ──────────────────────────────────────────────────────
@@ -385,18 +679,27 @@ serve(async (req: Request) => {
   if (!SUPABASE_URL)         return jsonResponse({ error: 'config_missing_supabase_url' }, 503);
   if (!SUPABASE_SERVICE_KEY) return jsonResponse({ error: 'config_missing_service_role_key' }, 503);
 
+  // Parse body ONCE · cron typically POSTs no body, but callers can
+  // pass { dry_run: true } and/or { force_sunday: true } for QA.
   let dryRun = false;
+  let forceSunday = false;
   try {
     const text = await req.text();
     if (text) {
       const parsed = JSON.parse(text);
-      dryRun = Boolean(parsed?.dry_run);
+      dryRun      = Boolean(parsed?.dry_run);
+      forceSunday = Boolean(parsed?.force_sunday);
     }
   } catch {
-    // Empty or malformed body is fine — cron typically POSTs no body.
+    // Empty or malformed body is fine.
   }
 
   const sinceIso = new Date(Date.now() - LOOKBACK_HOURS * 60 * 60 * 1000).toISOString();
+
+  // Phase 5 · Sunday-only branch · UTC day-of-week 0 = Sunday
+  const isSunday = (new Date().getUTCDay() === 0) || forceSunday;
+  const RENDER_ORIGIN     = Deno.env.get('BBF_RENDER_PROXY_ORIGIN') || 'https://buildbelievefit.onrender.com';
+  const BBF_ADMIN_TOKEN   = Deno.env.get('BBF_ADMIN_TOKEN') || '';
 
   let roster: SovereignUser[];
   try {
@@ -407,38 +710,45 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'roster_fetch_failed', detail: message }, 502);
   }
 
-  console.log(`[bbf-midnight-haiku] sweep: ${roster.length} sovereign athletes, dry_run=${dryRun}`);
+  console.log(`[bbf-midnight-haiku] sweep: ${roster.length} sovereign athletes, dry_run=${dryRun}, sunday=${isSunday}`);
 
   if (roster.length === 0) {
     return jsonResponse({
-      ok:         true,
-      processed:  0,
-      succeeded:  0,
-      failed:     0,
-      model:      MODEL,
-      dry_run:    dryRun,
-      batch_size: BATCH_SIZE,
-      errors:     [],
+      ok:           true,
+      processed:    0,
+      succeeded:    0,
+      failed:       0,
+      model:        MODEL,
+      dry_run:      dryRun,
+      batch_size:   BATCH_SIZE,
+      sunday:       isSunday,
+      sunday_recon: [],
+      errors:       [],
     });
   }
 
-  const { succeeded, failed, errors } = await runBatch(
+  const { succeeded, failed, errors, sunday_recon } = await runBatch(
     roster,
     sinceIso,
     SUPABASE_URL,
     SUPABASE_SERVICE_KEY,
     ANTHROPIC_API_KEY,
     dryRun,
+    isSunday,
+    RENDER_ORIGIN,
+    BBF_ADMIN_TOKEN,
   );
 
   return jsonResponse({
-    ok:         true,
-    processed:  roster.length,
+    ok:           true,
+    processed:    roster.length,
     succeeded,
     failed,
-    model:      MODEL,
-    dry_run:    dryRun,
-    batch_size: BATCH_SIZE,
+    model:        MODEL,
+    dry_run:      dryRun,
+    batch_size:   BATCH_SIZE,
+    sunday:       isSunday,
+    sunday_recon,
     errors,
   });
 });
