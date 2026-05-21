@@ -7256,6 +7256,34 @@ window.onload=function(){
 
         <div class="panopticon-grid" id="panopticon-grid" aria-live="polite"></div>
 
+        <!-- ═══ SOVEREIGN CONCIERGE · 24/7 lead re-engagement agent ════
+             Templated outreach worker that runs daily via pg_cron.
+             Scores each pending lead by intake completeness, sends a
+             personalized email via Brevo, logs to bbf_lead_actions.
+             Admin can fire a run manually with the "Run Now" button.   -->
+        <div class="sh" style="margin-top:2rem"><span class="stt">◇ Sovereign Concierge</span></div>
+        <div class="panopticon-banner" role="status" style="background:linear-gradient(90deg,rgba(245,200,0,.10),rgba(106,13,173,.08));border-color:rgba(245,200,0,.32)">
+          <span class="panopticon-pulse" aria-hidden="true" style="background:var(--yel);box-shadow:0 0 8px rgba(245,200,0,.85)"></span>
+          <span>Autonomous Lead Worker &middot; Daily 09:00 UTC &middot; Brevo Templated Outreach</span>
+        </div>
+        <p class="panopticon-sub">Scores every pending lead by intake completeness (HOT &ge; 75 / WARM 45-74 / COLD &lt; 45), sends a tier-matched re-engagement email via Brevo, and logs every action below. 14-day cooldown per lead. Hard cap 50 sends per run. Skips provisioned + do-not-contact leads automatically.</p>
+
+        <div class="panopticon-toolbar">
+          <div class="panopticon-summary" id="bbf-concierge-summary" aria-live="polite">
+            <span class="panopticon-summary-empty">Click refresh to load Concierge log&hellip;</span>
+          </div>
+          <button class="panopticon-refresh" type="button" id="bbf-concierge-runnow-btn" onclick="window.BBF_CONCIERGE && BBF_CONCIERGE.runNow()" aria-label="Trigger Concierge run now" style="background:rgba(245,200,0,.08);border-color:rgba(245,200,0,.42);color:var(--yel)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Run Now</span>
+          </button>
+          <button class="panopticon-refresh" type="button" id="bbf-concierge-refresh-btn" onclick="window.BBF_CONCIERGE && BBF_CONCIERGE.refresh()" aria-label="Refresh Concierge log">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 4 21 12 13 12"/></svg>
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <div id="bbf-concierge-log" class="bbf-leads-list" aria-live="polite"></div>
+
         <!-- ═══ INCOMING LEADS · Pathfinder roster (admin-only) ═══════
              Reads from bbf_leads via /api/leads-list (admin-token-gated).
              Each row is auto-flagged PROVISIONED or PENDING by
@@ -16547,6 +16575,198 @@ var BBF_LEADS = (function() {
   return { refresh: refresh, toggle: toggle, copyEmail: copyEmail };
 })();
 
+// ═════════════════════════════════════════════════════════════════════
+// BBF_CONCIERGE · Sovereign 24/7 lead concierge surface
+// ─────────────────────────────────────────────────────────────────────
+// Reads the bbf_lead_actions audit log via /api/concierge-log (admin-
+// token-gated) and renders recent runs as expandable cards in the
+// Panopticon. "Run Now" triggers an immediate run via
+// /api/concierge-run-now (which proxies to the bbf-lead-concierge edge
+// function) so the admin can verify the agent end-to-end on demand.
+// ═════════════════════════════════════════════════════════════════════
+var BBF_CONCIERGE = (function() {
+  var LOG_ENDPOINT  = 'https://buildbelievefit.onrender.com/api/concierge-log';
+  var RUN_ENDPOINT  = 'https://buildbelievefit.onrender.com/api/concierge-run-now';
+  var TOKEN_KEY     = 'BBF_ADMIN_TOKEN';
+  var _inflight     = false;
+  var _running      = false;
+  var _expanded     = {};
+
+  function _isAdmin() { return (typeof CU !== 'undefined' && CU === 'akeem'); }
+  function _adminToken() {
+    var t = null;
+    try { t = sessionStorage.getItem(TOKEN_KEY); } catch(_) {}
+    if (t) return t;
+    var entered = (typeof prompt === 'function') ? prompt('Enter BBF Admin Token to access the Concierge:') : null;
+    if (!entered) return null;
+    entered = entered.trim(); if (!entered) return null;
+    try { sessionStorage.setItem(TOKEN_KEY, entered); } catch(_) {}
+    return entered;
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function _timeAgo(iso) {
+    if (!iso) return '—';
+    var ms = Date.now() - new Date(iso).getTime();
+    if (ms < 0) return 'just now';
+    var s = Math.floor(ms / 1000); if (s < 60) return s + 's ago';
+    var m = Math.floor(s / 60);     if (m < 60) return m + 'm ago';
+    var h = Math.floor(m / 60);     if (h < 24) return h + 'h ago';
+    var d = Math.floor(h / 24);     if (d < 30) return d + 'd ago';
+    var mo = Math.floor(d / 30);    return mo + 'mo ago';
+  }
+  function _priorityClass(p) {
+    if (p === 'HOT')  return 'red';
+    if (p === 'WARM') return 'yellow';
+    return 'dormant';
+  }
+  function _actionBadge(a) {
+    if (a.action_type === 'email_sent')         return '<span class="panopticon-summary-pill" data-status="green">SENT</span>';
+    if (a.action_type === 'email_failed')       return '<span class="panopticon-summary-pill" data-status="red">FAILED</span>';
+    if (a.action_type === 'skipped_provisioned')return '<span class="panopticon-summary-pill" data-status="green">PROVISIONED</span>';
+    if (a.action_type === 'skipped_cooldown')   return '<span class="panopticon-summary-pill" data-status="dormant">COOLDOWN</span>';
+    if (a.action_type === 'skipped_dnc')        return '<span class="panopticon-summary-pill" data-status="dormant">DO-NOT-CONTACT</span>';
+    if (a.action_type === 'skipped_stale')      return '<span class="panopticon-summary-pill" data-status="dormant">STALE</span>';
+    return '<span class="panopticon-summary-pill" data-status="dormant">' + _esc(a.action_type) + '</span>';
+  }
+
+  function _renderRun(run) {
+    var open = !!_expanded[run.run_id];
+    var headTotals =
+      '<span class="panopticon-summary-pill" data-status="green">' + run.sent + ' sent</span>' +
+      (run.failed ? '<span class="panopticon-summary-pill" data-status="red">' + run.failed + ' failed</span>' : '') +
+      (run.skipped ? '<span class="panopticon-summary-pill" data-status="dormant">' + run.skipped + ' skipped</span>' : '');
+    var detail = '';
+    if (open) {
+      detail = '<div class="bbf-lead-detail">' +
+        run.actions.map(function(a) {
+          var prio = a.priority ? '<span class="panopticon-summary-pill" data-status="' + _priorityClass(a.priority) + '">' + _esc(a.priority) + (a.score != null ? ' · ' + a.score : '') + '</span>' : '';
+          var sub  = a.email_subject ? '<div class="bbf-lead-bits" style="margin-top:.25rem"><em style="opacity:.7">' + _esc(a.email_subject) + '</em></div>' : '';
+          var err  = a.error ? '<div class="bbf-lead-bits" style="margin-top:.25rem;color:#FF7A7A">' + _esc(a.error) + '</div>' : '';
+          return '<div style="padding:.55rem 0;border-bottom:1px dashed rgba(255,255,255,.06)">' +
+                   '<div style="display:flex;gap:.5rem;justify-content:space-between;align-items:flex-start">' +
+                     '<div style="min-width:0;flex:1 1 auto"><div style="font-size:.82rem;color:#fff">' + _esc(a.lead_email) + '</div>' + sub + err + '</div>' +
+                     '<div style="display:flex;gap:.35rem;flex-wrap:wrap;justify-content:flex-end">' + prio + _actionBadge(a) + '</div>' +
+                   '</div>' +
+                 '</div>';
+        }).join('') +
+      '</div>';
+    }
+    return '<div class="bbf-lead-row' + (open ? ' is-open' : '') + '" onclick="window.BBF_CONCIERGE && BBF_CONCIERGE.toggle(\'' + _esc(run.run_id) + '\')">' +
+             '<div class="bbf-lead-head">' +
+               '<div class="bbf-lead-id">' +
+                 '<div class="bbf-lead-name">Run · ' + _esc(_timeAgo(run.started_at)) + '</div>' +
+                 '<div class="bbf-lead-email" style="font-size:.7rem;opacity:.55">' + _esc(run.run_id) + '</div>' +
+               '</div>' +
+               '<div class="bbf-lead-meta">' + headTotals + '</div>' +
+             '</div>' +
+             detail +
+           '</div>';
+  }
+
+  function refresh() {
+    if (!_isAdmin()) return;
+    if (_inflight) return;
+    var log = document.getElementById('bbf-concierge-log');
+    var sum = document.getElementById('bbf-concierge-summary');
+    var token = _adminToken(); if (!token) return;
+    _inflight = true;
+    if (log) log.innerHTML = '<div class="bbf-leads-empty">Loading Concierge log&hellip;</div>';
+
+    fetch(LOG_ENDPOINT, {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify({ limit: 80 })
+    }).then(function(r) {
+      return r.json().catch(function() { return null; }).then(function(b) {
+        return { status: r.status, ok: r.ok, body: b };
+      });
+    }).then(function(resp) {
+      if (resp.status === 401) {
+        try { sessionStorage.removeItem(TOKEN_KEY); } catch(_) {}
+        if (log) log.innerHTML = '<div class="bbf-leads-empty">Admin token rejected · click Refresh to retry.</div>';
+        return;
+      }
+      if (!resp.ok || !resp.body || !resp.body.ok) {
+        var err = (resp.body && resp.body.error) || ('status_' + resp.status);
+        if (log) log.innerHTML = '<div class="bbf-leads-empty">Concierge log fetch failed (' + _esc(err) + ').</div>';
+        return;
+      }
+      var runs = resp.body.runs || [];
+      if (sum) {
+        if (runs.length === 0) {
+          sum.innerHTML = '<span class="panopticon-summary-empty">No Concierge runs yet · next scheduled run · daily 09:00 UTC.</span>';
+        } else {
+          var totalSent = runs.reduce(function(n, r) { return n + (r.sent || 0); }, 0);
+          var lastRun   = runs[0];
+          sum.innerHTML =
+            '<span class="panopticon-summary-total">' + runs.length + ' runs · ' + totalSent + ' emails sent</span>' +
+            '<span class="panopticon-summary-pill" data-status="green">last run ' + _esc(_timeAgo(lastRun.started_at)) + '</span>';
+        }
+      }
+      if (log) {
+        log.innerHTML = runs.length
+          ? runs.map(_renderRun).join('')
+          : '<div class="bbf-leads-empty">No Concierge runs yet · the agent fires daily at 09:00 UTC or click <strong>Run Now</strong> above to trigger immediately.</div>';
+      }
+    }).catch(function(err) {
+      console.error('[BBF_CONCIERGE] log fetch threw:', err);
+      if (log) log.innerHTML = '<div class="bbf-leads-empty">[NETWORK] ' + _esc((err && err.message) || 'unknown') + '</div>';
+    }).then(function() { _inflight = false; });
+  }
+
+  function runNow() {
+    if (!_isAdmin()) return;
+    if (_running) return;
+    var token = _adminToken(); if (!token) return;
+    var btn = document.getElementById('bbf-concierge-runnow-btn');
+    if (!confirm('Fire the Sovereign Concierge now? It will score pending leads and AUTONOMOUSLY SEND re-engagement emails via Brevo (subject to 14-day per-lead cooldown).')) return;
+
+    _running = true;
+    if (btn) { btn.disabled = true; var prev = btn.innerHTML; btn.innerHTML = '<span>Working&hellip;</span>'; btn._prev = prev; }
+
+    fetch(RUN_ENDPOINT, {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify({})
+    }).then(function(r) {
+      return r.json().catch(function() { return null; }).then(function(b) {
+        return { status: r.status, ok: r.ok, body: b };
+      });
+    }).then(function(resp) {
+      if (resp.status === 401) {
+        try { sessionStorage.removeItem(TOKEN_KEY); } catch(_) {}
+        alert('Admin token rejected. Try Run Now again.');
+        return;
+      }
+      if (!resp.ok || !resp.body || !resp.body.ok) {
+        var err = (resp.body && (resp.body.error || (resp.body.result && resp.body.result.reason))) || ('status_' + resp.status);
+        alert('Concierge run failed · ' + err);
+        return;
+      }
+      var r = resp.body.result || {};
+      alert('Concierge run complete · sent ' + (r.sent || 0) + ' · processed ' + (r.processed || 0) + ' · skipped ' + Object.values(r.skipped || {}).reduce(function(a,b){return a+b;}, 0));
+      refresh();
+    }).catch(function(err) {
+      console.error('[BBF_CONCIERGE] runNow threw:', err);
+      alert('[NETWORK] ' + (err && err.message || 'unknown'));
+    }).then(function() {
+      _running = false;
+      if (btn) { btn.disabled = false; if (btn._prev) btn.innerHTML = btn._prev; }
+    });
+  }
+
+  function toggle(runId) {
+    _expanded[runId] = !_expanded[runId];
+    refresh();
+  }
+
+  return { refresh: refresh, runNow: runNow, toggle: toggle };
+})();
+
 function RN() {
   var con = document.getElementById('ncon');
   var uid = VC || CU;
@@ -18950,9 +19170,11 @@ document.addEventListener('DOMContentLoaded', function() {
     window.refreshPanopticon = function(){
       if (!_bbfIsAdmin()) return;
       loadPanopticon();
-      // Phase 22 · auto-load Pathfinder leads roster alongside the
-      // athlete telemetry · single refresh button feel, two data sources.
-      try { if (window.BBF_LEADS && BBF_LEADS.refresh) BBF_LEADS.refresh(); } catch (_) {}
+      // Phase 22 · auto-load Pathfinder leads roster + Concierge log
+      // alongside the athlete telemetry · single refresh button feel,
+      // three data sources.
+      try { if (window.BBF_LEADS     && BBF_LEADS.refresh)     BBF_LEADS.refresh(); }     catch (_) {}
+      try { if (window.BBF_CONCIERGE && BBF_CONCIERGE.refresh) BBF_CONCIERGE.refresh(); } catch (_) {}
     };
   })();
 
