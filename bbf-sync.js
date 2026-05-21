@@ -434,6 +434,27 @@ var BBF_SYNC = (function() {
     return supa('GET', 'bbf_sets', null, '?user_id=eq.' + uid + '&order=day_key.desc&limit=500');
   }
 
+  // ─── FETCH: ATHLETE PROGRESSION (Phase 2 · mesocycle history) ───
+  // Returns the most recent bbf_athlete_progression row for a uid (slug).
+  // Used by BBF_ATHLETE_INTEL to read sport/position/phase/mesocycle
+  // context before proposing a phase_advancement. Returns null when no
+  // row exists yet (new athlete · proposal carries before=null).
+  async function fetchAthleteProgression(uid) {
+    if (!uid) return null;
+    try {
+      var actualUuid = await resolveUid(uid);
+      if (!actualUuid) return null;
+      var q = '?user_id=eq.' + encodeURIComponent(actualUuid) +
+              '&order=updated_at.desc&limit=1' +
+              '&select=id,user_id,sport,position,phase,target_phase,mesocycle_started_at,mesocycle_week,phase_history,rpe_avg_last_3,friction_avg_last_3,guardian_consent,guardian_consent_at,completed_at,updated_at';
+      var rows = await supa('GET', 'bbf_athlete_progression', null, q);
+      return (Array.isArray(rows) && rows[0]) || null;
+    } catch (e) {
+      console.warn('BBF_SYNC fetchAthleteProgression error:', e && e.message);
+      return null;
+    }
+  }
+
   // ─── FETCH: ATHLETE LOAD BOUTS (Phase 0 · ACWR source) ───
   // Joins bbf_athlete_load_bouts → bbf_athlete_load_logs via log_id
   // so we can filter by athlete_id (the load_logs FK) AND inherit
@@ -2649,6 +2670,7 @@ var BBF_SYNC = (function() {
     saveMealPlan: saveMealPlan,
     fetchMealPlan: fetchMealPlan,
     fetchAthleteLoadBouts: fetchAthleteLoadBouts,
+    fetchAthleteProgression: fetchAthleteProgression,
     fetchProfileMetrics: fetchProfileMetrics,
     fetchLastWeights: fetchLastWeights,
     syncSession: syncSession,

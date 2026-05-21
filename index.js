@@ -1892,6 +1892,15 @@ const PROPOSAL_TARGET_WHITELIST = {
     'workout_plan','meal_plan','plans_generated_at',
     'training_protocol','clinical_history'
   ]),
+  // Phase 2 · athlete progression target · phase advancements + mesocycle
+  // updates flow through the approval queue · never auto-written.
+  bbf_athlete_progression: new Set([
+    'sport','position','phase','target_phase',
+    'protocol_completed','completed_at',
+    'mesocycle_started_at','mesocycle_week',
+    'phase_history','rpe_avg_last_3','friction_avg_last_3',
+    'guardian_consent','guardian_consent_at'
+  ]),
 };
 
 function _sanitizeProposalDiff(diff) {
@@ -2066,16 +2075,39 @@ app.post('/api/proposal-approve', async (req, res) => {
   let returnedRows = null;
   let executionError = null;
   try {
-    const eq = (check.target_table === 'bbf_users') ? 'uid' : 'vault_email';
-    const r = await supabase
-      .from(check.target_table)
-      .update(updatePayload)
-      .eq(eq, check.target_uid)
-      .select();
-    if (r.error) {
-      executionError = r.error.message || 'unknown_error';
+    let eq, filterValue;
+    if (check.target_table === 'bbf_users') {
+      eq = 'uid'; filterValue = check.target_uid;
+    } else if (check.target_table === 'bbf_active_clients') {
+      eq = 'vault_email'; filterValue = check.target_uid;
+    } else if (check.target_table === 'bbf_athlete_progression') {
+      // Resolve slug → uuid first since athlete_progression.user_id is a
+      // uuid FK to bbf_users.id, not the text slug.
+      const userLookup = await supabase
+        .from('bbf_users')
+        .select('id')
+        .eq('uid', check.target_uid)
+        .maybeSingle();
+      if (userLookup.error || !userLookup.data) {
+        executionError = 'user_not_found_for_slug:' + check.target_uid;
+      } else {
+        eq = 'user_id'; filterValue = userLookup.data.id;
+      }
     } else {
-      returnedRows = Array.isArray(r.data) ? r.data : (r.data ? [r.data] : []);
+      executionError = 'target_table_unhandled:' + check.target_table;
+    }
+
+    if (!executionError) {
+      const r = await supabase
+        .from(check.target_table)
+        .update(updatePayload)
+        .eq(eq, filterValue)
+        .select();
+      if (r.error) {
+        executionError = r.error.message || 'unknown_error';
+      } else {
+        returnedRows = Array.isArray(r.data) ? r.data : (r.data ? [r.data] : []);
+      }
     }
   } catch (e) {
     executionError = (e && e.message) || 'execute_threw';

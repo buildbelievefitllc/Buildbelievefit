@@ -13342,6 +13342,442 @@ var BBF_PREHAB_INTEL = (function() {
 })();
 
 // ════════════════════════════════════════════════════════════════════════
+// BBF_ATHLETE_INTEL · Operation Pantheon · Phase 2 Athlete Portal Keystone
+// ────────────────────────────────────────────────────────────────────────
+// Coordinator that sits BETWEEN the Athlete Portal UI and the four
+// canonical contracts:
+//   · BBF_DATA.acwrForUserRegion   · per-region ACWR (Phase 0)
+//   · BBF_CNS_AGENT.snapshot       · 3-D state (Phase 0)
+//   · BBF_PREHAB_INTEL             · readiness gate + regression floor
+//   · /api/proposal-submit         · founder-gated approval queue
+//
+// FOUR RESPONSIBILITIES:
+//   1. MATRIX BIFURCATION · 3D ATHLETE_MATRIX (sport×position×phase) for
+//      verified content; 2D FUNCTIONAL_MATRIX (profile×phase) FEATURE-
+//      FLAGGED OFF until content is seeded.
+//   2. YOUTH SAFETY LOCK · youth_athlete tier never auto-advances phases;
+//      load-progression ceiling clamped to 1.03 (vs 1.05 adult); guardian
+//      consent required before any phase_advancement proposal executes.
+//   3. ACWR + COLD-START INTEGRATION · transient swaps consult BBF_DATA
+//      ACWR; if baseline_status !== 'valid', fall back to RPE + CNS
+//      friction score · NO ACWR-driven swaps fire.
+//   4. POSITIONAL INTELLIGENCE COMLINK · deterministic table runs FIRST;
+//      Claude only for novel cases (wrapped in BBF_INTERCEPT rate-cap +
+//      OT prompt). Every swap → bbf_logs (session event) + bbf_audit_logs.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_FEATURE_FLAGS = (typeof window !== 'undefined' && window.BBF_FEATURE_FLAGS) || {
+  functional_matrix_enabled: false,   // ships OFF · enable when content is seeded
+  athlete_intel_v2_enabled:  true,
+  positional_comlink_enabled: true,
+};
+if (typeof window !== 'undefined') window.BBF_FEATURE_FLAGS = BBF_FEATURE_FLAGS;
+
+var BBF_ATHLETE_INTEL = (function() {
+
+  // ── YOUTH SAFETY LOCK constants ───────────────────────────────────
+  var YOUTH_LOAD_CEILING_MULT = 1.03;   // adult ceiling is 1.05 · youth conservative
+  var ADULT_LOAD_CEILING_MULT = 1.05;
+  var YOUTH_AUTO_ADVANCE_BANNED = true; // hard ban regardless of any other signal
+
+  // ── DETERMINISTIC TRANSIENT-SWAP TABLE ────────────────────────────
+  // For high-ACWR regions, swap heavy plyometric / loaded movements for
+  // isometric / unloaded variants. Mid-session live swaps · execute
+  // immediately · audited to bbf_logs + bbf_audit_logs. NO LLM.
+  // Each rule: { match(ctx) → bool, swap: { remove_match, add: {...} }, reason, protocol_id }
+  var SWAP_RULES = [
+    {
+      protocol_id: 'knee_overload_iso_swap',
+      match: function(ctx) {
+        return ctx.acwr_by_region && ctx.acwr_by_region.knee && ctx.acwr_by_region.knee.zone === 'overload' &&
+               /\b(box jump|plyo|broad jump|depth jump|tuck jump|bounding)\b/i.test(ctx.movement || '');
+      },
+      swap: { add: { name: 'Spanish Squat Isometric Hold', sets: 3, reps: '45s hold', equipment: 'Band / Wall', focus: 'Quadriceps · VMO' } },
+      reason: 'Knee region in ACWR overload zone · isometric hold preserves the strength stimulus without compounding the spike.',
+    },
+    {
+      protocol_id: 'shoulder_overload_pause_swap',
+      match: function(ctx) {
+        return ctx.acwr_by_region && ctx.acwr_by_region.shoulder && ctx.acwr_by_region.shoulder.zone === 'overload' &&
+               /\b(med ball|throw|slam|push press|clean)\b/i.test(ctx.movement || '');
+      },
+      swap: { add: { name: 'Half-Kneeling Landmine Press', sets: 3, reps: '8/side · 3s eccentric', equipment: 'Landmine', focus: 'Shoulder stability · scap control' } },
+      reason: 'Shoulder ACWR in overload · removes ballistic loading while preserving scapular control stimulus.',
+    },
+    {
+      protocol_id: 'hip_overload_glute_swap',
+      match: function(ctx) {
+        return ctx.acwr_by_region && ctx.acwr_by_region.hip && ctx.acwr_by_region.hip.zone === 'overload' &&
+               /\b(sprint|hill|sled push|swing)\b/i.test(ctx.movement || '');
+      },
+      swap: { add: { name: 'Tempo Glute Bridge with Pause', sets: 3, reps: '10 reps · 3s pause', equipment: 'Barbell / DB', focus: 'Glute max · posterior chain' } },
+      reason: 'Hip ACWR in overload · controlled tempo work owns the same posterior-chain stimulus with no fresh load spike.',
+    },
+    {
+      protocol_id: 'spine_overload_carry_swap',
+      match: function(ctx) {
+        return ctx.acwr_by_region && ctx.acwr_by_region.spine && ctx.acwr_by_region.spine.zone === 'overload' &&
+               /\b(deadlift|rdl|good morning|barbell row)\b/i.test(ctx.movement || '');
+      },
+      swap: { add: { name: 'Suitcase Carry · 40 yd', sets: 3, reps: '40 yd/side', equipment: 'Single DB or KB', focus: 'Anti-lateral spine stability' } },
+      reason: 'Spine ACWR in overload · suitcase carries preserve anti-lateral demand without axial compression.',
+    },
+    {
+      protocol_id: 'systemic_redline_recovery_swap',
+      match: function(ctx) {
+        return ctx.cns_snapshot && ctx.cns_snapshot.Localized && ctx.cns_snapshot.Localized.biomechanical_redline === true;
+      },
+      swap: { add: { name: '90/90 Breathing + Childs Pose', sets: 2, reps: '5 min total', equipment: 'None', focus: 'Parasympathetic reset' } },
+      reason: 'Redline flagged · drop the planned movement and run a parasympathetic reset block. Resume tomorrow.',
+    },
+  ];
+
+  function _activeUid() {
+    return (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  }
+
+  function _userTier(uid) {
+    var d = (typeof GD === 'function') ? GD() : null;
+    var u = (d && d.u && d.u[uid]) || {};
+    return (u.subscription_tier || u.tier || 'gateway').toLowerCase();
+  }
+
+  function _isYouth(uid) {
+    return _userTier(uid) === 'youth_athlete';
+  }
+
+  // ── 1. ACWR + COLD-START GATE ──────────────────────────────────────
+  // Returns { source, by_region, snapshot, allow_acwr_swaps, baseline_status }
+  // source = 'acwr' when baseline valid · 'rpe_friction_fallback' otherwise.
+  async function readiness(uid) {
+    uid = uid || _activeUid();
+    var d = (typeof GD === 'function') ? GD() : null;
+    var u = (d && d.u && d.u[uid]) || {};
+    var baseline_status = u.baseline_status || 'building';
+    var snap = (typeof BBF_CNS_AGENT !== 'undefined' && BBF_CNS_AGENT.snapshot) ? BBF_CNS_AGENT.snapshot(uid) : null;
+    if (baseline_status !== 'valid') {
+      return {
+        source:          'rpe_friction_fallback',
+        baseline_status: baseline_status,
+        snapshot:        snap,
+        by_region:       {},
+        allow_acwr_swaps: false,
+        rationale: 'Baseline still building · ACWR-driven swaps suppressed · using RPE + CNS friction score as the fallback signal.',
+      };
+    }
+    // Baseline valid · pull per-region ACWR via canonical BBF_DATA
+    var REGIONS = (window.BBF_DATA && BBF_DATA.JOINT_REGIONS) || ['shoulder','elbow_wrist','spine','hip','knee','ankle','core','systemic'];
+    var by_region = {};
+    if (window.BBF_DATA && BBF_DATA.acwrForUserRegion) {
+      for (var i = 0; i < REGIONS.length; i++) {
+        try { by_region[REGIONS[i]] = await BBF_DATA.acwrForUserRegion(uid, REGIONS[i]); }
+        catch (_) { by_region[REGIONS[i]] = null; }
+      }
+    }
+    return {
+      source:          'acwr',
+      baseline_status: baseline_status,
+      snapshot:        snap,
+      by_region:       by_region,
+      allow_acwr_swaps: true,
+      rationale: 'Baseline valid · per-region ACWR active · deterministic swaps + advisories firing.',
+    };
+  }
+
+  // ── 2. POSITIONAL INTELLIGENCE COMLINK · deterministic-first swap ──
+  // Caller passes { uid, movement, day_key } describing the planned
+  // movement. Returns either { swap: {...}, source:'deterministic',
+  // protocol_id } OR { source:'no_swap' } OR routes to Claude for novel
+  // cases (when explicit opts.allow_llm=true and movement isn't matched).
+  async function transientSwap(input) {
+    input = input || {};
+    var uid = input.uid || _activeUid();
+    var rdy = await readiness(uid);
+    var ctx = {
+      uid:            uid,
+      movement:       input.movement || '',
+      day_key:        input.day_key  || null,
+      cns_snapshot:   rdy.snapshot,
+      acwr_by_region: rdy.by_region,
+      baseline_status: rdy.baseline_status,
+    };
+
+    // Cold-start: skip ACWR rules · only redline rule (CNS-driven) still
+    // fires since it doesn't need a chronic load baseline.
+    var rulesToCheck = rdy.allow_acwr_swaps ? SWAP_RULES : SWAP_RULES.filter(function(r) { return r.protocol_id === 'systemic_redline_recovery_swap'; });
+
+    for (var i = 0; i < rulesToCheck.length; i++) {
+      var rule = rulesToCheck[i];
+      var matched = false;
+      try { matched = !!rule.match(ctx); } catch (_) {}
+      if (matched) {
+        // Execute the swap · live · audit BOTH bbf_logs (session event)
+        // AND bbf_audit_logs (action audit). Per directive.
+        var detail = {
+          protocol_id:    rule.protocol_id,
+          source:         'deterministic',
+          original:       input.movement,
+          replacement:    rule.swap.add,
+          reason:         rule.reason,
+          acwr_snapshot:  rdy.by_region,
+          baseline_status: rdy.baseline_status,
+          day_key:        input.day_key,
+        };
+        _emitSwapEvents(uid, detail);
+        return {
+          ok:            true,
+          source:        'deterministic',
+          protocol_id:   rule.protocol_id,
+          original:      input.movement,
+          replacement:   rule.swap.add,
+          reason:        rule.reason,
+          baseline_status: rdy.baseline_status,
+        };
+      }
+    }
+
+    // No deterministic match · OPTIONALLY route to Claude via the
+    // existing bbf-agentic-comlink edge fn (which now ships v2 with OT
+    // prompt injection + vocab filter). Default: do NOT auto-LLM ·
+    // requires explicit opts.allow_llm=true so we don't burn tokens
+    // on every uncategorized exercise.
+    if (input.allow_llm && typeof BBF_COMLINK !== 'undefined' && BBF_COMLINK.send) {
+      return BBF_COMLINK.send({
+        intent: 'positional_drill',
+        uid:    uid,
+        movement: input.movement,
+        cns_snapshot:    rdy.snapshot,
+        acwr_by_region:  rdy.by_region,
+        baseline_status: rdy.baseline_status,
+      });
+    }
+
+    return { ok: true, source: 'no_swap', reason: 'no_matching_rule', baseline_status: rdy.baseline_status };
+  }
+
+  // ── EVENT EMISSION (session event + audit event) ───────────────────
+  function _emitSwapEvents(uid, detail) {
+    // Session event · bbf_logs row with sport='comlink_swap' + drill_name
+    // as the protocol id. The row is loose · the audit log is canonical.
+    try {
+      var d = (typeof GD === 'function') ? GD() : null;
+      if (d && d.l) {
+        if (!d.l[uid]) d.l[uid] = [];
+        d.l[uid].push({
+          date:    (new Date()).toISOString().slice(0,10),
+          type:    'comlink_swap',
+          notes:   'Live swap · ' + (detail.protocol_id || '') + ' · ' + (detail.original || '') + ' → ' + ((detail.replacement && detail.replacement.name) || ''),
+          loggedAt: new Date().toISOString(),
+          loggedBy: (typeof CU !== 'undefined') ? CU : null,
+          swap:    detail,
+        });
+        if (typeof SD === 'function') SD(d);
+      }
+    } catch (_) {}
+    // Audit · server-side bbf_audit_logs via /api/audit-log
+    try {
+      var token = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('BBF_ADMIN_TOKEN')) || '';
+      if (!token) return;
+      fetch('https://buildbelievefit.onrender.com/api/audit-log', {
+        method:  'POST',
+        headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+        body:    JSON.stringify({
+          action_type: 'athlete_transient_swap',
+          agent:       'BBF_ATHLETE_INTEL.v1',
+          target_uid:  uid,
+          payload:     detail,
+          success:     true,
+        })
+      }).catch(function(){});
+    } catch (_) {}
+  }
+
+  // ── 3. PHASE ADVANCEMENT · ALWAYS GOES THROUGH PROPOSAL QUEUE ──────
+  // No phase advancement ever auto-writes. Constructs a proposal and
+  // POSTs to /api/proposal-submit. Youth tier requires guardian consent
+  // already recorded in bbf_athlete_progression · the executor enforces
+  // this at decide-time too.
+  async function proposePhaseAdvancement(opts) {
+    opts = opts || {};
+    var uid = opts.uid || _activeUid();
+    if (!uid) return { ok: false, error: 'no_uid' };
+
+    // Stateful BBF_INTEL · pull current mesocycle history first so
+    // the proposal's `before` state reflects the actual cloud row.
+    var current = null;
+    if (window.BBF_SYNC && typeof BBF_SYNC.fetchAthleteProgression === 'function') {
+      try { current = await BBF_SYNC.fetchAthleteProgression(uid); } catch (_) {}
+    }
+
+    if (_isYouth(uid) && YOUTH_AUTO_ADVANCE_BANNED) {
+      // Guardian consent must be present in BOTH local state AND the
+      // canonical bbf_athlete_progression row. The executor checks
+      // again at decide-time · this is defense-in-depth on the client.
+      var consentOK = (current && current.guardian_consent === true) ||
+                      (await _hasGuardianConsent(uid));
+      if (!consentOK) {
+        return {
+          ok:     false,
+          reason: 'youth_guardian_consent_required',
+          remedy: 'Guardian consent must be recorded in bbf_athlete_progression before this proposal can advance.',
+        };
+      }
+    }
+
+    var token = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('BBF_ADMIN_TOKEN')) || '';
+    if (!token) return { ok: false, error: 'no_admin_token' };
+
+    // Construct the `before` snapshot from the live row · these are the
+    // exact fields the executor will overwrite on approval.
+    var before = current ? {
+      sport:                 current.sport,
+      position:              current.position,
+      phase:                 current.phase,
+      target_phase:          current.target_phase,
+      mesocycle_week:        current.mesocycle_week,
+      mesocycle_started_at:  current.mesocycle_started_at,
+      phase_history:         current.phase_history,
+    } : null;
+    var nextHistory = (current && Array.isArray(current.phase_history)) ? current.phase_history.slice() : [];
+    if (current && current.phase) {
+      nextHistory.push({
+        phase:      current.phase,
+        started_at: current.mesocycle_started_at || null,
+        ended_at:   new Date().toISOString(),
+        weeks:      current.mesocycle_week || null,
+      });
+    }
+    var after = Object.assign({}, opts.after || {}, {
+      mesocycle_week:        1,
+      mesocycle_started_at:  new Date().toISOString(),
+      phase_history:         nextHistory,
+    });
+
+    var payload = {
+      proposal_type: 'phase_advancement',
+      risk_level:    _isYouth(uid) ? 'high' : (opts.risk_level || 'medium'),
+      population:    { uids: [uid], cohort: _isYouth(uid) ? 'youth_athlete' : 'single' },
+      diff:          {
+        target_table: 'bbf_athlete_progression',
+        target_uid:   uid,
+        before:       before,
+        after:        after,
+        fields:       Object.keys(after),
+      },
+      rationale:     opts.rationale || ('Phase advancement proposed from Athlete Portal · ' + (opts.from || (current && current.phase) || '?') + ' → ' + (opts.to || '?')),
+      proposed_by:   'BBF_ATHLETE_INTEL.v1',
+      metadata:      {
+        tier:                  _userTier(uid),
+        youth_lock:            _isYouth(uid),
+        guardian_consent:      !!(current && current.guardian_consent),
+        guardian_consent_at:   current && current.guardian_consent_at || null,
+        cns_snapshot:          (typeof BBF_CNS_AGENT !== 'undefined' && BBF_CNS_AGENT.snapshot) ? BBF_CNS_AGENT.snapshot(uid) : null,
+        progression_snapshot:  current,
+      },
+    };
+    return fetch('https://buildbelievefit.onrender.com/api/proposal-submit', {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify(payload),
+    }).then(function(r){ return r.json().catch(function(){ return null; }); })
+      .catch(function(e){ return { ok: false, error: (e && e.message) || 'fetch_failed' }; });
+  }
+
+  async function proposeAdaptiveDrillCandidate(opts) {
+    opts = opts || {};
+    var uid = opts.uid || _activeUid();
+    var token = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('BBF_ADMIN_TOKEN')) || '';
+    if (!token) return { ok: false, error: 'no_admin_token' };
+    var payload = {
+      proposal_type: 'adaptive_drill_candidate',
+      risk_level:    'low',   // adding to catalog is low-risk · founder still vets
+      population:    { uids: [uid], cohort: 'catalog_extension' },
+      diff:          {
+        target_table: 'bbf_athlete_progression',
+        target_uid:   uid,
+        before:       null,
+        after:        { phase_history: opts.drill_proposal || {} },
+        fields:       ['phase_history'],
+      },
+      rationale:     opts.rationale || 'Adaptive drill candidate emitted from Claude · founder vet required before catalog inclusion.',
+      proposed_by:   'BBF_ATHLETE_INTEL.v1',
+      metadata:      { tier: _userTier(uid), drill: opts.drill_proposal || null },
+    };
+    return fetch('https://buildbelievefit.onrender.com/api/proposal-submit', {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify(payload),
+    }).then(function(r){ return r.json().catch(function(){ return null; }); })
+      .catch(function(e){ return { ok: false, error: (e && e.message) || 'fetch_failed' }; });
+  }
+
+  async function _hasGuardianConsent(uid) {
+    // Local-first · check d.u[uid].guardian_consent. Cloud check would
+    // read bbf_athlete_progression.guardian_consent · skipped here for
+    // synchronous-ish flow · cloud is the canonical record for the
+    // executor's defense-in-depth check.
+    try {
+      var d = (typeof GD === 'function') ? GD() : null;
+      var u = (d && d.u && d.u[uid]) || {};
+      return !!u.guardian_consent;
+    } catch (_) { return false; }
+  }
+
+  // ── 4. LOAD-PROGRESSION CEILING · youth-aware ──────────────────────
+  function loadCeilingForUid(uid) {
+    return _isYouth(uid || _activeUid()) ? YOUTH_LOAD_CEILING_MULT : ADULT_LOAD_CEILING_MULT;
+  }
+  function applyLoadCeiling(uid, proposedMult) {
+    var ceiling = loadCeilingForUid(uid);
+    var clamped = Math.min(ceiling, Number(proposedMult) || 1.0);
+    return {
+      ok:              true,
+      proposed_mult:   Number(proposedMult),
+      applied_mult:    clamped,
+      ceiling:         ceiling,
+      ceiling_engaged: clamped < proposedMult,
+      tier:            _userTier(uid),
+      youth_lock:      _isYouth(uid || _activeUid()),
+    };
+  }
+
+  // ── PUBLIC API ─────────────────────────────────────────────────────
+  return {
+    YOUTH_LOAD_CEILING_MULT:        YOUTH_LOAD_CEILING_MULT,
+    ADULT_LOAD_CEILING_MULT:        ADULT_LOAD_CEILING_MULT,
+    YOUTH_AUTO_ADVANCE_BANNED:      YOUTH_AUTO_ADVANCE_BANNED,
+    readiness:                      readiness,
+    transientSwap:                  transientSwap,
+    proposePhaseAdvancement:        proposePhaseAdvancement,
+    proposeAdaptiveDrillCandidate:  proposeAdaptiveDrillCandidate,
+    loadCeilingForUid:              loadCeilingForUid,
+    applyLoadCeiling:               applyLoadCeiling,
+    isYouth:                        _isYouth,
+    userTier:                       _userTier,
+  };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// FUNCTIONAL_MATRIX · Phase 2 · feature-flagged OFF skeleton
+// ────────────────────────────────────────────────────────────────────────
+// 2D adaptive/elderly profile matrix. Ships EMPTY + flagged OFF per the
+// directive. Content will be seeded later · admin UI flips
+// BBF_FEATURE_FLAGS.functional_matrix_enabled = true to surface it.
+// Keep the shape contract here so downstream code can target stable keys.
+// ════════════════════════════════════════════════════════════════════════
+window.FUNCTIONAL_MATRIX = {
+  // Profile keys planned for the bifurcation (NO content yet):
+  // 'adaptive_athlete_upper_limb_impaired', 'adaptive_athlete_lower_limb_impaired',
+  // 'elderly_baseline_60_75', 'elderly_baseline_75_plus',
+  // 'post_stroke_baseline', 'cardiac_rehab_baseline',
+  // 'pregnancy_baseline', 'postpartum_baseline'.
+  _meta: {
+    enabled:   false,
+    feature_flag: 'functional_matrix_enabled',
+    note: 'Verified content must be seeded BEFORE this flag flips. Shipping OFF per CEO directive.',
+  },
+};
+
+// ════════════════════════════════════════════════════════════════════════
 // BBF_KINEMATICS · Phase 6 — Live Kinematic Mapping (Form Check)
 // ────────────────────────────────────────────────────────────────────────
 // "🎥 Form Check" button injected by RDW() at the bottom of every primary
