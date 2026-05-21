@@ -7255,6 +7255,30 @@ window.onload=function(){
         </div>
 
         <div class="panopticon-grid" id="panopticon-grid" aria-live="polite"></div>
+
+        <!-- ═══ INCOMING LEADS · Pathfinder roster (admin-only) ═══════
+             Reads from bbf_leads via /api/leads-list (admin-token-gated).
+             Each row is auto-flagged PROVISIONED or PENDING by
+             cross-referencing bbf_users. Click a row to expand the full
+             intake payload (dietary, allergens, height/weight, goal, etc).  -->
+        <div class="sh" style="margin-top:2rem"><span class="stt">◇ Incoming Leads</span></div>
+        <div class="panopticon-banner" role="status">
+          <span class="panopticon-pulse" aria-hidden="true" style="background:var(--yel);box-shadow:0 0 8px rgba(245,200,0,.85)"></span>
+          <span>Pathfinder Intake Queue &middot; Newest First</span>
+        </div>
+        <p class="panopticon-sub">Every Pathfinder form submission lands here in real time. <strong style="color:#86EFAC">PROVISIONED</strong> = the client paid + we created their app account. <strong style="color:#F5CF60">PENDING</strong> = lead is in but hasn't completed Stripe checkout yet (re-engagement candidate).</p>
+
+        <div class="panopticon-toolbar">
+          <div class="panopticon-summary" id="bbf-leads-summary" aria-live="polite">
+            <span class="panopticon-summary-empty">Click refresh to load roster&hellip;</span>
+          </div>
+          <button class="panopticon-refresh" type="button" id="bbf-leads-refresh-btn" onclick="window.BBF_LEADS && BBF_LEADS.refresh()" aria-label="Refresh leads">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 4 21 12 13 12"/></svg>
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <div id="bbf-leads-list" class="bbf-leads-list" aria-live="polite"></div>
       </div>
 
       <!-- Defensive Access Denied (non-admin direct-link/hash entry) -->
@@ -7687,6 +7711,62 @@ window.onload=function(){
     margin-bottom:.6rem;
     opacity:.85;
   }
+
+  /* ── Incoming Leads · Sovereign roster styling ─────────────── */
+  .bbf-leads-list { display:flex; flex-direction:column; gap:.55rem; margin-top:.4rem; }
+  .bbf-leads-empty {
+    padding:1.1rem .9rem; text-align:center;
+    background:rgba(8,8,14,.55); border:1px dashed rgba(255,255,255,.12); border-radius:10px;
+    color:rgba(255,255,255,.55); font-family:'Barlow Condensed',var(--bd,sans-serif);
+    font-size:.78rem; letter-spacing:1.2px; text-transform:uppercase; font-weight:700;
+  }
+  .bbf-lead-row {
+    padding:.75rem .85rem; border:1px solid rgba(255,255,255,.08); border-radius:10px;
+    background:linear-gradient(135deg,rgba(8,8,14,.7) 0%,rgba(20,12,40,.45) 100%);
+    cursor:pointer; transition:border-color .15s ease, transform .12s ease;
+  }
+  .bbf-lead-row:hover { border-color:rgba(245,200,0,.42); transform:translateY(-1px); }
+  .bbf-lead-row.is-open { border-color:rgba(245,200,0,.55); }
+  .bbf-lead-head { display:flex; justify-content:space-between; align-items:flex-start; gap:.6rem; }
+  .bbf-lead-id { min-width:0; flex:1 1 auto; }
+  .bbf-lead-name {
+    font-family:var(--hb); font-size:.92rem; letter-spacing:1.5px; color:#fff; font-weight:900;
+    text-transform:uppercase; line-height:1.1;
+  }
+  .bbf-lead-email { font-size:.78rem; color:rgba(255,255,255,.55); margin-top:.15rem; word-break:break-all; }
+  .bbf-lead-meta { display:flex; align-items:center; gap:.45rem; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+  .bbf-lead-when {
+    font-family:'Barlow Condensed',var(--bd,sans-serif); font-size:.68rem;
+    letter-spacing:.6px; color:rgba(255,255,255,.5); text-transform:lowercase;
+  }
+  .bbf-lead-bits {
+    margin-top:.5rem; font-size:.76rem; color:rgba(255,255,255,.65); line-height:1.5;
+  }
+  .bbf-lead-bits code {
+    background:#1a1a1a; padding:.05rem .4rem; border-radius:3px; color:var(--yel); font-size:.74rem;
+  }
+  .bbf-lead-detail {
+    margin-top:.7rem; padding:.7rem .8rem; border-top:1px dashed rgba(245,200,0,.25);
+    background:rgba(8,8,14,.45); border-radius:8px;
+  }
+  .bbf-lead-detail-row {
+    display:flex; gap:.6rem; padding:.18rem 0; font-size:.78rem; color:#fff; line-height:1.5;
+  }
+  .bbf-lead-detail-k {
+    font-family:'Barlow Condensed',var(--bd,sans-serif); font-size:.7rem; letter-spacing:1.2px;
+    text-transform:uppercase; color:rgba(245,200,0,.85); flex:0 0 130px;
+  }
+  .bbf-lead-detail-v { flex:1 1 auto; color:rgba(255,255,255,.85); word-break:break-word; }
+  .bbf-lead-actions { display:flex; gap:.5rem; margin-top:.7rem; flex-wrap:wrap; }
+  .bbf-lead-action {
+    display:inline-flex; align-items:center; gap:.3rem;
+    padding:.45rem .75rem; border-radius:6px;
+    background:linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 100%);
+    border:1px solid var(--yel); color:var(--yel);
+    font-family:var(--hb); font-size:.65rem; letter-spacing:1.6px; text-transform:uppercase;
+    text-decoration:none; cursor:pointer;
+  }
+  .bbf-lead-action:hover { background:linear-gradient(135deg,#1a0a2a 0%,#2a0e44 100%); }
 </style>
 
 <!-- PRE-HAB AUDIT MODAL -->
@@ -16268,6 +16348,205 @@ var BBF_DIETARY = (function() {
   };
 })();
 
+// ═════════════════════════════════════════════════════════════════════
+// BBF_LEADS · Pathfinder intake roster (Sovereign Command Center)
+// ─────────────────────────────────────────────────────────────────────
+// Surfaces incoming Pathfinder form submissions inside the Panopticon
+// (admin-only). Backed by /api/leads-list on the Render proxy, which
+// admin-token-gates a service-role read of bbf_leads + cross-references
+// bbf_users by email so each row gets a PROVISIONED or PENDING badge.
+// Click a row to expand the full payload (dietary, allergens, goal,
+// height/weight, primary_goal, etc).
+// ═════════════════════════════════════════════════════════════════════
+var BBF_LEADS = (function() {
+  var ENDPOINT  = 'https://buildbelievefit.onrender.com/api/leads-list';
+  var TOKEN_KEY = 'BBF_ADMIN_TOKEN';
+  var _inflight = false;
+  var _expanded = {};   // { lead_id: true } — open accordion rows
+
+  function _isAdmin() {
+    return (typeof CU !== 'undefined' && CU === 'akeem');
+  }
+  function _adminToken() {
+    var t = null;
+    try { t = sessionStorage.getItem(TOKEN_KEY); } catch(_) {}
+    if (t) return t;
+    var entered = (typeof prompt === 'function')
+      ? prompt('Enter BBF Admin Token to load the leads roster:') : null;
+    if (!entered) return null;
+    entered = entered.trim(); if (!entered) return null;
+    try { sessionStorage.setItem(TOKEN_KEY, entered); } catch(_) {}
+    return entered;
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function _timeAgo(iso) {
+    if (!iso) return '—';
+    var ms = Date.now() - new Date(iso).getTime();
+    if (ms < 0) return 'just now';
+    var s = Math.floor(ms / 1000);
+    if (s < 60)    return s + 's ago';
+    var m = Math.floor(s / 60);
+    if (m < 60)    return m + 'm ago';
+    var h = Math.floor(m / 60);
+    if (h < 24)    return h + 'h ago';
+    var d = Math.floor(h / 24);
+    if (d < 30)    return d + 'd ago';
+    var mo = Math.floor(d / 30);
+    return mo + 'mo ago';
+  }
+  function _summary(total, provisioned, pending) {
+    var sum = document.getElementById('bbf-leads-summary');
+    if (!sum) return;
+    if (total === 0) {
+      sum.innerHTML = '<span class="panopticon-summary-empty">No leads in queue.</span>';
+      return;
+    }
+    sum.innerHTML =
+      '<span class="panopticon-summary-total">' + total + ' total</span>' +
+      '<span class="panopticon-summary-pill" data-status="green">' + provisioned + ' provisioned</span>' +
+      '<span class="panopticon-summary-pill" data-status="yellow">' + pending + ' pending</span>';
+  }
+  function _renderLead(lead) {
+    var statusClass = lead.provisioned ? 'green' : 'yellow';
+    var statusLabel = lead.provisioned ? 'PROVISIONED' : 'PENDING';
+    var when = _timeAgo(lead.created_at);
+    var open = !!_expanded[lead.id];
+    var bits = [];
+    if (lead.tier) bits.push('Tier: <code>' + _esc(lead.tier) + '</code>');
+    if (lead.dietary_profile) bits.push('Diet: ' + _esc(lead.dietary_profile));
+    if (lead.allergens && lead.allergens.length) bits.push(lead.allergens.length + ' allergen' + (lead.allergens.length === 1 ? '' : 's'));
+    if (lead.primary_goal) bits.push('Goal: ' + _esc(String(lead.primary_goal).slice(0, 40)));
+
+    var detailHtml = '';
+    if (open) {
+      var rows = [
+        ['Email', lead.email],
+        ['Phone', lead.phone || '—'],
+        ['Tier',  lead.tier || '—'],
+        ['Age',   lead.age || '—'],
+        ['Sex',   lead.sex || '—'],
+        ['Height',lead.height || '—'],
+        ['Weight',lead.weight || '—'],
+        ['Dietary Profile', lead.dietary_profile || '—'],
+        ['Allergens', (lead.allergens && lead.allergens.length) ? lead.allergens.join(', ') : 'none reported'],
+        ['Primary Goal', lead.primary_goal || '—'],
+        ['Program', lead.program || '—'],
+        ['Health Notes', lead.health_notes || '—'],
+      ];
+      detailHtml =
+        '<div class="bbf-lead-detail">' +
+          rows.map(function(r) {
+            return '<div class="bbf-lead-detail-row"><span class="bbf-lead-detail-k">' + _esc(r[0]) + '</span><span class="bbf-lead-detail-v">' + _esc(r[1]) + '</span></div>';
+          }).join('') +
+          '<div class="bbf-lead-actions">' +
+            '<a class="bbf-lead-action" href="mailto:' + _esc(lead.email) + '?subject=Build%20Believe%20Fit%20%E2%80%94%20Next%20Steps">&#x2709; Email</a>' +
+            '<button type="button" class="bbf-lead-action" onclick="window.BBF_LEADS && BBF_LEADS.copyEmail(\'' + _esc(lead.email).replace(/'/g,"\\'") + '\', this)">&#x2398; Copy Email</button>' +
+          '</div>' +
+        '</div>';
+    }
+
+    return '' +
+      '<div class="bbf-lead-row' + (open ? ' is-open' : '') + '" data-lead-id="' + _esc(lead.id) + '" onclick="window.BBF_LEADS && BBF_LEADS.toggle(\'' + _esc(lead.id) + '\')">' +
+        '<div class="bbf-lead-head">' +
+          '<div class="bbf-lead-id">' +
+            '<div class="bbf-lead-name">' + _esc(lead.full_name || '(no name)') + '</div>' +
+            '<div class="bbf-lead-email">' + _esc(lead.email || '') + '</div>' +
+          '</div>' +
+          '<div class="bbf-lead-meta">' +
+            '<span class="panopticon-summary-pill" data-status="' + statusClass + '">' + statusLabel + '</span>' +
+            '<span class="bbf-lead-when">' + _esc(when) + '</span>' +
+          '</div>' +
+        '</div>' +
+        (bits.length ? '<div class="bbf-lead-bits">' + bits.join(' &middot; ') + '</div>' : '') +
+        detailHtml +
+      '</div>';
+  }
+
+  function refresh() {
+    if (!_isAdmin()) {
+      console.warn('[BBF_LEADS] refresh blocked · not admin');
+      return;
+    }
+    if (_inflight) return;
+    var list = document.getElementById('bbf-leads-list');
+    var btn  = document.getElementById('bbf-leads-refresh-btn');
+    var token = _adminToken();
+    if (!token) return;
+    _inflight = true;
+    if (btn) btn.disabled = true;
+    if (list) list.innerHTML = '<div class="bbf-leads-empty">Loading roster&hellip;</div>';
+
+    fetch(ENDPOINT, {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify({ limit: 100 })
+    }).then(function(r) {
+      return r.json().catch(function() { return null; }).then(function(b) {
+        return { status: r.status, ok: r.ok, body: b };
+      });
+    }).then(function(resp) {
+      if (resp.status === 401) {
+        try { sessionStorage.removeItem(TOKEN_KEY); } catch(_) {}
+        if (list) list.innerHTML = '<div class="bbf-leads-empty">Admin token rejected. Click Refresh to retry.</div>';
+        return;
+      }
+      if (resp.status === 429) {
+        if (list) list.innerHTML = '<div class="bbf-leads-empty">Rate limit hit · wait a minute and retry.</div>';
+        return;
+      }
+      if (!resp.ok || !resp.body || !resp.body.ok || !Array.isArray(resp.body.leads)) {
+        var err = (resp.body && resp.body.error) || 'unknown';
+        if (list) list.innerHTML = '<div class="bbf-leads-empty">Leads fetch failed (' + _esc(err) + ').</div>';
+        return;
+      }
+      _summary(resp.body.total, resp.body.provisioned, resp.body.pending);
+      if (!resp.body.leads.length) {
+        if (list) list.innerHTML = '<div class="bbf-leads-empty">No leads in queue yet. New Pathfinder submissions land here in real time.</div>';
+        return;
+      }
+      if (list) list.innerHTML = resp.body.leads.map(_renderLead).join('');
+    }).catch(function(err) {
+      console.error('[BBF_LEADS] fetch threw:', err);
+      if (list) list.innerHTML = '<div class="bbf-leads-empty">[NETWORK] ' + _esc((err && err.message) || 'unknown') + '</div>';
+    }).then(function() {
+      _inflight = false;
+      if (btn) btn.disabled = false;
+    });
+  }
+
+  function toggle(id) {
+    _expanded[id] = !_expanded[id];
+    // Cheap re-render: re-fetch isn't needed; we re-render from cached
+    // DOM by toggling the class + injecting/removing the detail block.
+    // Easier: just call refresh() (one request, ~200ms). Trades a bit
+    // of latency for simpler code — leads list is small (<200 rows).
+    refresh();
+  }
+  function copyEmail(email, btnEl) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = email; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+      }
+      if (btnEl) {
+        var orig = btnEl.textContent;
+        btnEl.textContent = '✓ Copied';
+        setTimeout(function() { btnEl.textContent = orig; }, 1200);
+      }
+    } catch (e) { console.warn('[BBF_LEADS] copyEmail failed:', e && e.message); }
+    if (event && event.stopPropagation) event.stopPropagation();
+  }
+
+  return { refresh: refresh, toggle: toggle, copyEmail: copyEmail };
+})();
+
 function RN() {
   var con = document.getElementById('ncon');
   var uid = VC || CU;
@@ -18671,6 +18950,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.refreshPanopticon = function(){
       if (!_bbfIsAdmin()) return;
       loadPanopticon();
+      // Phase 22 · auto-load Pathfinder leads roster alongside the
+      // athlete telemetry · single refresh button feel, two data sources.
+      try { if (window.BBF_LEADS && BBF_LEADS.refresh) BBF_LEADS.refresh(); } catch (_) {}
     };
   })();
 

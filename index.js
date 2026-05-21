@@ -1536,6 +1536,112 @@ app.post('/api/diagnose-profile', async (req, res) => {
 });
 
 // ───────────────────────────────────────────────────────────────
+// POST /api/leads-list — Phase 22 Sovereign Command Center · admin view of leads
+// ───────────────────────────────────────────────────────────────
+// Admin-only · returns recent Pathfinder leads with provisioning
+// status (cross-referenced against bbf_users by email). Used by the
+// "Incoming Leads" panel in the Panopticon tab. RLS is enabled on
+// bbf_leads with no anon/auth policies (deny-by-default); this
+// endpoint reads via the service role and gates on BBF_ADMIN_TOKEN.
+// ───────────────────────────────────────────────────────────────
+const LEADS_LIST_IP_WINDOW_MS = 60 * 1000;
+const LEADS_LIST_IP_MAX       = 20;
+const _leadsListIpBuckets = new Map();
+function _leadsListIpRateOk(ip) {
+  const now = Date.now();
+  let arr = _leadsListIpBuckets.get(ip) || [];
+  arr = arr.filter(t => t > now - LEADS_LIST_IP_WINDOW_MS);
+  if (arr.length >= LEADS_LIST_IP_MAX) { _leadsListIpBuckets.set(ip, arr); return false; }
+  arr.push(now); _leadsListIpBuckets.set(ip, arr); return true;
+}
+
+app.post('/api/leads-list', async (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  }
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) {
+    console.error('[leads-list] rejected — BBF_ADMIN_TOKEN env var is not set.');
+    return res.status(503).json({ ok: false, error: 'config_missing' });
+  }
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) {
+    return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+  }
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+  if (!_leadsListIpRateOk(ip)) return res.status(429).json({ ok: false, error: 'rate_limited' });
+
+  const body  = req.body || {};
+  const limit = Math.max(1, Math.min(200, Number(body.limit) || 50));
+
+  try {
+    // 1. Fetch leads (most recent first)
+    const { data: leads, error: leadsErr } = await supabase
+      .from('bbf_leads')
+      .select('id, source, email, full_name, phone, tier, payload, created_at')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (leadsErr) {
+      console.error('[leads-list] bbf_leads query failed:', leadsErr.message);
+      return res.status(500).json({ ok: false, error: 'leads_query_failed' });
+    }
+
+    // 2. Cross-reference against bbf_users by email so each row can be
+    //    flagged as PROVISIONED or PENDING. Single query, hash-join in JS.
+    const emails = Array.from(new Set((leads || []).map(l => (l.email || '').toLowerCase()).filter(Boolean)));
+    const provisionedSet = new Set();
+    if (emails.length) {
+      const { data: users, error: usersErr } = await supabase
+        .from('bbf_users')
+        .select('email')
+        .in('email', emails);
+      if (usersErr) {
+        console.warn('[leads-list] bbf_users cross-reference failed (non-fatal):', usersErr.message);
+      } else {
+        (users || []).forEach(u => { if (u.email) provisionedSet.add(String(u.email).toLowerCase()); });
+      }
+    }
+
+    // 3. Decorate each lead with status + extracted intake snapshot
+    const decorated = (leads || []).map(l => {
+      const p = (l.payload && typeof l.payload === 'object') ? l.payload : {};
+      return {
+        id:               l.id,
+        source:           l.source,
+        email:            l.email,
+        full_name:        l.full_name,
+        phone:            l.phone,
+        tier:             l.tier || p.tier || null,
+        created_at:       l.created_at,
+        provisioned:      provisionedSet.has(String(l.email || '').toLowerCase()),
+        dietary_profile:  p.dietary_profile || null,
+        allergens:        Array.isArray(p.allergens) ? p.allergens : [],
+        age:              p.age || null,
+        sex:              p.sex || null,
+        height:           p.height || null,
+        weight:           p.weight || null,
+        primary_goal:     p.primary_goal || null,
+        program:          p.program || null,
+        health_notes:     p.health_notes || null,
+        full_payload:     p,
+      };
+    });
+
+    return res.status(200).json({
+      ok:           true,
+      total:        decorated.length,
+      provisioned:  decorated.filter(l => l.provisioned).length,
+      pending:      decorated.filter(l => !l.provisioned).length,
+      leads:        decorated,
+    });
+  } catch (err) {
+    console.error('[leads-list] threw:', err && err.message);
+    return res.status(500).json({ ok: false, error: 'unexpected' });
+  }
+});
+
+// ───────────────────────────────────────────────────────────────
 // /provision — Phase 4 Step E
 // Called by Zapier after Stripe payment success. Generates a 6-digit PIN,
 // invokes the SECURITY DEFINER RPC bbf_provision_client_pin which
