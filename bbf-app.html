@@ -5809,6 +5809,36 @@ window.ADMIN_CREATE_CLIENT = function ADMIN_CREATE_CLIENT(){
     console.log('[BBF] dietary intake stamped on new client:', target.name || '(no name)', JSON.stringify({
       diet: target.dietary_profile, allergens: target.allergens.length, likes: target.food_likes.length, dislikes: target.food_dislikes.length
     }));
+
+    // Cloud sync · the previous flow never created a bbf_users row, so
+    // a client created here could not sign in on their own device.
+    // Fixed by /api/admin-upsert-client.
+    if (window.BBF_CLOUDSYNC) {
+      var targetUid = intakeUser;
+      if (!targetUid) {
+        // Fallback · find the slug key for `target` in d2.u
+        Object.keys(d2.u).forEach(function(k){ if (d2.u[k] === target) targetUid = k; });
+      }
+      if (targetUid) {
+        BBF_CLOUDSYNC.upsert(targetUid, {
+          name:            target.name || targetUid,
+          role:            target.role || 'client',
+          dietary_profile: target.dietary_profile,
+          allergens:       target.allergens,
+          food_likes:      target.food_likes,
+          food_dislikes:   target.food_dislikes
+        }).then(function(r) {
+          var msgEl = document.getElementById('admin-create-msg');
+          if (r.ok) {
+            console.log('[BBF] cloud row created for ' + targetUid);
+            if (msgEl) { msgEl.textContent = '◇ Provisioned · cloud row created · client can sign in on their device.'; msgEl.style.color = 'var(--yel)'; }
+          } else {
+            console.warn('[BBF] cloud row creation FAILED for ' + targetUid + ' · ' + r.error);
+            if (msgEl) { msgEl.textContent = '⚠ Local saved · cloud sync failed (' + r.error + ') · client will not see their plan on their device until you re-push from the Dietary Profile editor.'; msgEl.style.color = 'var(--red,#ef4444)'; }
+          }
+        });
+      }
+    }
   } catch (e) {
     console.warn('[BBF] admin-create intake stamp failed:', e && e.message);
   }
@@ -7617,12 +7647,14 @@ window.onload=function(){
   <div class="msh">
     <div class="mhd"></div>
     <div class="mt" style="display:flex;align-items:center;gap:.5rem">&#x25C7; Sovereign Nutrition Profile</div>
-    <div style="font-size:.78rem;font-weight:600;color:var(--mut2);margin-bottom:1rem;line-height:1.55">
-      Editing <code style="background:#1a1a1a;padding:.05rem .4rem;border-radius:3px;color:var(--yel)" id="bbf-diet-client-tag">—</code>'s dietary profile. Changes save to the client profile and gate the next AI rotation. The 40-meal Sovereign library is filtered against these constraints before Gemini picks anything.
+    <div style="font-size:.78rem;font-weight:600;color:var(--mut2);margin-bottom:.6rem;line-height:1.55">
+      Editing <code style="background:#1a1a1a;padding:.05rem .4rem;border-radius:3px;color:var(--yel)" id="bbf-diet-client-tag">—</code>'s dietary profile. Changes save to the client profile <strong>AND</strong> sync to the cloud so they appear on the client's device.
     </div>
+    <div id="bbf-diet-cloud-status" style="margin:0 0 1rem 0;padding:.55rem .7rem;border-radius:8px;background:#0a0a0a;border:1px solid #1a1a1a;font-size:.72rem;letter-spacing:.8px;color:var(--mut2);font-family:'Barlow Condensed',var(--bd,sans-serif);text-transform:uppercase">◇ Cloud status · checking…</div>
 
-    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-      <button class="ms" id="bbf-diet-ai-btn" onclick="window.BBF_DIETARY && BBF_DIETARY.openDiagnose()" style="flex:1;background:linear-gradient(135deg,#1a1a1a 0%,#0a0a0a 100%);color:var(--yel);border:1px solid var(--yel);font-family:var(--hb);letter-spacing:2px;font-size:.72rem;padding:.7rem .5rem">&#x2728; GENERATE VIA AI</button>
+    <div style="display:flex;gap:.5rem;margin-bottom:.5rem;flex-wrap:wrap">
+      <button class="ms" id="bbf-diet-ai-btn" onclick="window.BBF_DIETARY && BBF_DIETARY.openDiagnose()" style="flex:1;min-width:160px;background:linear-gradient(135deg,#1a1a1a 0%,#0a0a0a 100%);color:var(--yel);border:1px solid var(--yel);font-family:var(--hb);letter-spacing:2px;font-size:.72rem;padding:.7rem .5rem">&#x2728; GENERATE VIA AI</button>
+      <button class="ms" id="bbf-diet-pushall-btn" onclick="window.BBF_DIETARY && BBF_DIETARY.pushFullToCloud()" style="flex:1;min-width:200px;background:linear-gradient(135deg,#1a0a2a 0%,#2a0e44 100%);color:var(--yel);border:1px solid var(--yel);font-family:var(--hb);letter-spacing:2px;font-size:.72rem;padding:.7rem .5rem" title="Force-push everything (profile + meal plan) to the cloud · fixes local-only clients">&#x25C7; PUSH FULL PROFILE TO CLOUD</button>
     </div>
 
     <div class="af">
@@ -16100,9 +16132,23 @@ var BBF_NUTRITION_ROTATOR = (function() {
       }
       // Cloud overwrite — same shape RN() reads.
       if (typeof MP !== 'undefined') MP[uid] = resp.body.plan;
-      var persist = (window.BBF_SYNC && typeof BBF_SYNC.saveMealPlan === 'function')
-        ? BBF_SYNC.saveMealPlan(uid, resp.body.plan)
-        : Promise.resolve({ ok: true });
+      // Cloud persist path · saveMealPlan PATCHes bbf_users.nutrition_plan
+      // by uid, but PATCH against a non-existent row is a silent no-op
+      // (zero rows affected, no error). Fall through to admin-upsert-client
+      // when the local user lacks a cloud row, which UPSERTs the meal
+      // plan + creates the row if needed. Surfaces the failure mode loud.
+      var persist;
+      if (window.BBF_CLOUDSYNC) {
+        persist = BBF_CLOUDSYNC.upsert(uid, { nutrition_plan: resp.body.plan }).then(function(r) {
+          if (!r.ok) console.warn('[BBF_NUTRITION_ROTATOR] cloud upsert FAILED · ' + uid + ' · ' + r.error);
+          else        console.log('[BBF_NUTRITION_ROTATOR] meal plan synced to cloud for ' + uid);
+          return r;
+        });
+      } else if (window.BBF_SYNC && typeof BBF_SYNC.saveMealPlan === 'function') {
+        persist = BBF_SYNC.saveMealPlan(uid, resp.body.plan);
+      } else {
+        persist = Promise.resolve({ ok: true });
+      }
       return persist.then(function() { return resp.body.plan; });
     }).then(function(newPlan) {
       if (newPlan && typeof RN === 'function') {
@@ -16151,6 +16197,76 @@ var BBF_NUTRITION_ROTATOR = (function() {
 // constraints. The "Generate via AI" CTA opens the 5-question wizard
 // that hits /api/diagnose-profile and pre-fills the parent modal.
 // ═════════════════════════════════════════════════════════════════════
+// ─── BBF_CLOUDSYNC · admin escape hatch for bbf_users upserts ──────────
+// Wraps the /api/admin-upsert-client endpoint so every admin-side mutation
+// (dietary, meal plan, profile creation) can push to the cloud in one
+// call. Replaces the never-existed BBF_SYNC.saveProfile() that was the
+// silent leak surfaced by the Honor smoke test.
+var BBF_CLOUDSYNC = (function() {
+  var UPSERT_ENDPOINT = 'https://buildbelievefit.onrender.com/api/admin-upsert-client';
+  var CHECK_ENDPOINT  = 'https://buildbelievefit.onrender.com/api/admin-check-cloud';
+  var TOKEN_KEY       = 'BBF_ADMIN_TOKEN';
+  function _token() {
+    var t = null; try { t = sessionStorage.getItem(TOKEN_KEY); } catch(_) {}
+    if (t) return t;
+    var entered = (typeof prompt === 'function') ? prompt('Enter BBF Admin Token (one-time, cached for the session):') : null;
+    if (!entered) return null;
+    entered = entered.trim(); if (!entered) return null;
+    try { sessionStorage.setItem(TOKEN_KEY, entered); } catch(_) {}
+    return entered;
+  }
+  function upsert(uid, fields) {
+    var token = _token();
+    if (!token) return Promise.resolve({ ok: false, error: 'no_token' });
+    var payload = Object.assign({ uid: String(uid).toLowerCase() }, fields || {});
+    return window.fetch(UPSERT_ENDPOINT, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify(payload)
+    }).then(function(r){ return r.json().catch(function(){ return null; }).then(function(b){ return { status: r.status, ok: r.ok, body: b }; }); })
+      .then(function(resp) {
+        if (resp.status === 401) { try { sessionStorage.removeItem(TOKEN_KEY); } catch(_) {} return { ok: false, error: 'admin_token_invalid' }; }
+        if (!resp.ok || !resp.body || !resp.body.ok) return { ok: false, error: (resp.body && resp.body.error) || ('status_' + resp.status) };
+        return { ok: true, row: resp.body.row };
+      })
+      .catch(function(err) { return { ok: false, error: (err && err.message) || 'network_error' }; });
+  }
+  function checkCloud(uid) {
+    var token = _token();
+    if (!token) return Promise.resolve({ ok: false, error: 'no_token' });
+    return window.fetch(CHECK_ENDPOINT, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify({ uid: String(uid).toLowerCase() })
+    }).then(function(r){ return r.json().catch(function(){ return null; }); })
+      .catch(function(err) { return { ok: false, error: (err && err.message) || 'network_error' }; });
+  }
+  // Convenience · pull every relevant field off d.u[uid] and push it all.
+  function pushFull(uid) {
+    var d2 = (typeof GD === 'function') ? GD() : null;
+    var u  = (d2 && d2.u && d2.u[uid]) || null;
+    if (!u) return Promise.resolve({ ok: false, error: 'no_local_user' });
+    var mp = (typeof MP !== 'undefined' && MP[uid]) || null;
+    var payload = {
+      name:               u.name || uid,
+      role:               u.role || 'client',
+      subscription_tier:  u.subscription_tier || u.tier || null,
+      dietary_profile:    u.dietary_profile || 'Omnivore',
+      allergens:          Array.isArray(u.allergens)     ? u.allergens     : [],
+      food_likes:         Array.isArray(u.food_likes)    ? u.food_likes    : [],
+      food_dislikes:      Array.isArray(u.food_dislikes) ? u.food_dislikes : [],
+      tdee_target:        Number(u.tdee_target) || null,
+      macro_p:            Number(u.macro_p)     || null,
+      macro_c:            Number(u.macro_c)     || null,
+      macro_f:            Number(u.macro_f)     || null,
+    };
+    if (u.email) payload.email = u.email;
+    if (mp && mp.days) payload.nutrition_plan = mp;
+    return upsert(uid, payload);
+  }
+  return { upsert: upsert, checkCloud: checkCloud, pushFull: pushFull };
+})();
+
 var BBF_DIETARY = (function() {
   var DIAGNOSE_ENDPOINT = 'https://buildbelievefit.onrender.com/api/diagnose-profile';
   var TOKEN_KEY         = 'BBF_ADMIN_TOKEN';
@@ -16215,6 +16331,32 @@ var BBF_DIETARY = (function() {
     _populateFromUser();
     var modal = document.getElementById('bbf-dietary-modal');
     if (modal) modal.classList.add('on');
+    // Cloud-status probe · tells the admin at a glance whether the
+    // client even has a bbf_users row (Honor smoke-test mode).
+    var statusEl = document.getElementById('bbf-diet-cloud-status');
+    if (statusEl) statusEl.textContent = '◇ Cloud status · checking…';
+    var uid = _activeUid();
+    if (uid && window.BBF_CLOUDSYNC) {
+      BBF_CLOUDSYNC.checkCloud(uid).then(function(r) {
+        if (!statusEl) return;
+        if (!r || !r.ok) {
+          statusEl.textContent = '◇ Cloud status · probe failed (' + (r && r.error || 'unknown') + ')';
+          statusEl.style.color = 'var(--red,#ef4444)';
+          statusEl.style.borderColor = 'rgba(239,68,68,.32)';
+          return;
+        }
+        if (!r.exists) {
+          statusEl.innerHTML = '◇ Cloud status · <strong style="color:#FF7A7A">LOCAL-ONLY</strong> · this client has no cloud row. They cannot see their plan on their device until you click <strong style="color:var(--yel)">Push Full Profile to Cloud</strong> below.';
+          statusEl.style.color = '#FFB6B6';
+          statusEl.style.borderColor = 'rgba(239,68,68,.32)';
+        } else {
+          var row = r.row || {};
+          statusEl.innerHTML = '◇ Cloud status · <strong style="color:#86EFAC">SYNCED</strong> · ' + (row.dietary_profile || 'Omnivore') + ' · ' + ((row.allergens || []).length) + ' allergens · meal plan ' + (row.has_meal_plan ? 'attached' : 'none');
+          statusEl.style.color = '#86EFAC';
+          statusEl.style.borderColor = 'rgba(34,197,94,.32)';
+        }
+      });
+    }
   }
   function close() {
     var modal = document.getElementById('bbf-dietary-modal');
@@ -16235,28 +16377,67 @@ var BBF_DIETARY = (function() {
     d2.u[uid].food_likes      = _parseCsv(likesEl    ? likesEl.value    : '');
     d2.u[uid].food_dislikes   = _parseCsv(dislikesEl ? dislikesEl.value : '');
     SD(d2);
-    console.log('[BBF_DIETARY] saved for ' + uid + ':', JSON.stringify({
+    console.log('[BBF_DIETARY] saved LOCALLY for ' + uid + ':', JSON.stringify({
       diet: d2.u[uid].dietary_profile,
       allergens: d2.u[uid].allergens,
       likes_n: d2.u[uid].food_likes.length,
       dislikes_n: d2.u[uid].food_dislikes.length
     }));
-    // Best-effort cloud sync — only if BBF_SYNC exposes a profile patcher.
-    if (window.BBF_SYNC && typeof BBF_SYNC.saveProfile === 'function') {
-      try { BBF_SYNC.saveProfile(uid, {
-        dietary_profile: d2.u[uid].dietary_profile,
-        allergens:       d2.u[uid].allergens,
-        food_likes:      d2.u[uid].food_likes,
-        food_dislikes:   d2.u[uid].food_dislikes
-      }); } catch (_) {}
+    // Cloud sync · the previous BBF_SYNC.saveProfile() check was always
+    // false (no such export existed) so dietary edits never reached the
+    // cloud. Fixed via /api/admin-upsert-client. Returns the local
+    // record immediately; cloud write is in-flight via .pendingCloud.
+    var rec = d2.u[uid];
+    if (window.BBF_CLOUDSYNC) {
+      rec.pendingCloud = BBF_CLOUDSYNC.upsert(uid, {
+        name:            rec.name || uid,
+        dietary_profile: rec.dietary_profile,
+        allergens:       rec.allergens,
+        food_likes:      rec.food_likes,
+        food_dislikes:   rec.food_dislikes
+      }).then(function(r) {
+        console.log('[BBF_DIETARY] cloud sync · ' + uid + ' · ' + (r.ok ? 'OK' : 'FAIL ' + r.error));
+        return r;
+      });
     }
-    return d2.u[uid];
+    return rec;
   }
   function save() {
     var rec = _commit();
     var msg = document.getElementById('bbf-diet-msg');
-    if (rec && msg) { msg.textContent = '◇ Saved · ' + (rec.dietary_profile || '') + ' · ' + (rec.allergens || []).length + ' allergens · ' + (rec.food_likes || []).length + ' likes / ' + (rec.food_dislikes || []).length + ' avoids'; msg.style.color = 'var(--yel)'; }
-    setTimeout(close, 1100);
+    if (!rec || !msg) { setTimeout(close, 1100); return; }
+    msg.textContent = '◇ Local saved · pushing to cloud…';
+    msg.style.color = 'var(--mut2)';
+    var cloudPromise = rec.pendingCloud || Promise.resolve({ ok: false, error: 'no_cloud_path' });
+    cloudPromise.then(function(r) {
+      if (r && r.ok) {
+        msg.textContent = '◇ Saved & synced · ' + (rec.dietary_profile || '') + ' · ' + (rec.allergens || []).length + ' allergens · cloud row updated';
+        msg.style.color = 'var(--yel)';
+      } else {
+        msg.textContent = '◇ Saved locally · cloud sync failed (' + (r && r.error || 'unknown') + ') · client will not see this until cloud row exists';
+        msg.style.color = 'var(--red,#ef4444)';
+      }
+      setTimeout(close, r && r.ok ? 1400 : 4500);
+    });
+  }
+  function pushFullToCloud() {
+    if (!_isAdminContext()) return;
+    var uid = _activeUid();
+    if (!uid) return;
+    var msg = document.getElementById('bbf-diet-msg');
+    if (msg) { msg.textContent = '◇ Pushing full profile + meal plan to cloud…'; msg.style.color = 'var(--mut2)'; }
+    if (!window.BBF_CLOUDSYNC) { if (msg) { msg.textContent = 'BBF_CLOUDSYNC unavailable.'; msg.style.color = 'var(--red,#ef4444)'; } return; }
+    BBF_CLOUDSYNC.pushFull(uid).then(function(r) {
+      if (!msg) return;
+      if (r.ok) {
+        var snap = r.row || {};
+        msg.textContent = '◇ Full push OK · cloud row now reflects: ' + (snap.dietary_profile || 'Omnivore') + ' · ' + ((snap.allergens || []).length) + ' allergens · meal plan ' + (snap.nutrition_plan_updated_at ? 'attached' : 'none');
+        msg.style.color = 'var(--yel)';
+      } else {
+        msg.textContent = '◇ Cloud push failed · ' + (r.error || 'unknown');
+        msg.style.color = 'var(--red,#ef4444)';
+      }
+    });
   }
   function saveAndRotate() {
     var rec = _commit();
@@ -16366,13 +16547,14 @@ var BBF_DIETARY = (function() {
   }
 
   return {
-    open:          open,
-    close:         close,
-    save:          save,
-    saveAndRotate: saveAndRotate,
-    openDiagnose:  openDiagnose,
-    closeDiagnose: closeDiagnose,
-    runDiagnose:   runDiagnose
+    open:             open,
+    close:            close,
+    save:             save,
+    saveAndRotate:    saveAndRotate,
+    pushFullToCloud:  pushFullToCloud,
+    openDiagnose:     openDiagnose,
+    closeDiagnose:    closeDiagnose,
+    runDiagnose:      runDiagnose
   };
 })();
 

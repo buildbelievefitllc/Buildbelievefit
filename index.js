@@ -1739,6 +1739,126 @@ app.post('/api/concierge-log', async (req, res) => {
 });
 
 // ───────────────────────────────────────────────────────────────
+// POST /api/admin-upsert-client — admin cloud-sync escape hatch
+// ───────────────────────────────────────────────────────────────
+// Patches (or creates) a bbf_users row by `uid` text column. The CEO
+// uses this from the Command Center to push admin-side edits (dietary
+// profile, allergens, food likes/dislikes, macros) that previously
+// only lived in localStorage. Closes the gap exposed by the Honor
+// smoke test: client profile + dietary intake set on admin device,
+// but client logs in on her phone and sees nothing because no cloud
+// row existed.
+//
+// Auth   · X-BBF-Admin-Token (same gate as rotator + concierge)
+// Rate   · 30/min IP
+// Schema · upserts into bbf_users by uid. Fields beyond the safe-list
+//          are silently dropped — caller can't bypass admin scope to
+//          write arbitrary columns.
+// ───────────────────────────────────────────────────────────────
+const ADMIN_UPSERT_IP_WINDOW_MS = 60 * 1000;
+const ADMIN_UPSERT_IP_MAX       = 30;
+const _adminUpsertIpBuckets = new Map();
+function _adminUpsertIpRateOk(ip) {
+  const now = Date.now();
+  let arr = _adminUpsertIpBuckets.get(ip) || [];
+  arr = arr.filter(t => t > now - ADMIN_UPSERT_IP_WINDOW_MS);
+  if (arr.length >= ADMIN_UPSERT_IP_MAX) { _adminUpsertIpBuckets.set(ip, arr); return false; }
+  arr.push(now); _adminUpsertIpBuckets.set(ip, arr); return true;
+}
+
+app.post('/api/admin-upsert-client', async (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  }
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) return res.status(503).json({ ok: false, error: 'config_missing' });
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) {
+    return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+  }
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+  if (!_adminUpsertIpRateOk(ip)) return res.status(429).json({ ok: false, error: 'rate_limited' });
+
+  const body = req.body || {};
+  const uid  = typeof body.uid === 'string' ? body.uid.trim().toLowerCase() : '';
+  if (!uid) return res.status(400).json({ ok: false, error: 'uid_required' });
+  if (!/^[a-z0-9_]{2,40}$/.test(uid)) return res.status(400).json({ ok: false, error: 'uid_format_invalid' });
+
+  // Safe-list of writable fields · anything else is silently dropped.
+  const row = { uid: uid, updated_at: new Date().toISOString() };
+  if (typeof body.name === 'string'              && body.name.trim())     row.name              = body.name.trim().slice(0, 120);
+  if (typeof body.email === 'string'             && body.email.trim())    row.email             = body.email.trim().toLowerCase().slice(0, 160);
+  if (typeof body.role === 'string')                                      row.role              = body.role.slice(0, 24);
+  if (typeof body.subscription_tier === 'string')                         row.subscription_tier = body.subscription_tier.slice(0, 40);
+  if (typeof body.dietary_profile === 'string'   && body.dietary_profile.trim()) row.dietary_profile = body.dietary_profile.trim().slice(0, 40);
+  if (Array.isArray(body.allergens))                                      row.allergens         = body.allergens.map(s => String(s).slice(0, 40)).filter(Boolean).slice(0, 20);
+  if (Array.isArray(body.food_likes))                                     row.food_likes        = body.food_likes.map(s => String(s).slice(0, 60)).filter(Boolean).slice(0, 25);
+  if (Array.isArray(body.food_dislikes))                                  row.food_dislikes     = body.food_dislikes.map(s => String(s).slice(0, 60)).filter(Boolean).slice(0, 25);
+  if (Number.isFinite(Number(body.tdee_target))  && Number(body.tdee_target) > 0) row.tdee_target = Number(body.tdee_target);
+  if (Number.isFinite(Number(body.macro_p))      && Number(body.macro_p) > 0)     row.macro_p     = Number(body.macro_p);
+  if (Number.isFinite(Number(body.macro_c))      && Number(body.macro_c) > 0)     row.macro_c     = Number(body.macro_c);
+  if (Number.isFinite(Number(body.macro_f))      && Number(body.macro_f) > 0)     row.macro_f     = Number(body.macro_f);
+  if (body.nutrition_plan && typeof body.nutrition_plan === 'object') {
+    row.nutrition_plan = body.nutrition_plan;
+    row.nutrition_plan_updated_at = new Date().toISOString();
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('bbf_users')
+      .upsert(row, { onConflict: 'uid' })
+      .select('uid, name, email, subscription_tier, dietary_profile, allergens, food_likes, food_dislikes, tdee_target, macro_p, macro_c, macro_f, updated_at')
+      .single();
+    if (error) {
+      console.error('[admin-upsert-client] failed:', error.message);
+      return res.status(500).json({ ok: false, error: 'upsert_failed', detail: error.message });
+    }
+    console.log(`[admin-upsert-client] ok · uid=${uid} · diet=${row.dietary_profile || '(unchanged)'} · allergens=${(row.allergens || []).length}`);
+    return res.status(200).json({ ok: true, row: data });
+  } catch (err) {
+    console.error('[admin-upsert-client] threw:', err && err.message);
+    return res.status(500).json({ ok: false, error: 'unexpected' });
+  }
+});
+
+// ───────────────────────────────────────────────────────────────
+// POST /api/admin-check-cloud — quick cloud-status probe for the admin UI
+// Returns { ok, exists, row } so the Command Center can render
+// SYNCED / LOCAL-ONLY badges per client.
+// ───────────────────────────────────────────────────────────────
+app.post('/api/admin-check-cloud', async (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  }
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) return res.status(503).json({ ok: false, error: 'config_missing' });
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) {
+    return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+  }
+  const body = req.body || {};
+  const uid  = typeof body.uid === 'string' ? body.uid.trim().toLowerCase() : '';
+  if (!uid) return res.status(400).json({ ok: false, error: 'uid_required' });
+  try {
+    const { data, error } = await supabase
+      .from('bbf_users')
+      .select('uid, name, email, subscription_tier, dietary_profile, allergens, food_likes, food_dislikes, tdee_target, macro_p, macro_c, macro_f, nutrition_plan, nutrition_plan_updated_at, updated_at')
+      .eq('uid', uid)
+      .maybeSingle();
+    if (error) return res.status(500).json({ ok: false, error: error.message });
+    if (data) {
+      data.has_meal_plan = !!data.nutrition_plan;
+      delete data.nutrition_plan; // keep response small · UI only needs the boolean
+    }
+    return res.status(200).json({ ok: true, exists: !!data, row: data || null });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: 'unexpected' });
+  }
+});
+
+// ───────────────────────────────────────────────────────────────
 // /provision — Phase 4 Step E
 // Called by Zapier after Stripe payment success. Generates a 6-digit PIN,
 // invokes the SECURITY DEFINER RPC bbf_provision_client_pin which
