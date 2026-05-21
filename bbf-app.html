@@ -540,6 +540,17 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
    Two agentic surfaces (Recovery Matrix + Kinematic Scan) grouped under
    one shell + collapsible disclosures for the OT Advantage banner and
    Daily Routine so reference content is one tap away without crowding. */
+/* ── Operation Pantheon · Phase 1 Live Intelligence banner ── */
+.prehab-intel-banner{position:relative;background:linear-gradient(135deg,rgba(8,8,12,.85) 0%,rgba(20,8,40,.62) 100%);border:1px solid rgba(245,200,0,.35);border-radius:14px;padding:.8rem .9rem;margin:0 0 .9rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.prehab-intel-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(245,200,0,.65) 50%,transparent 100%);opacity:.9}
+.prehab-intel-kicker{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;letter-spacing:3.4px;text-transform:uppercase;color:var(--yel,#F5C800);font-weight:900;margin-bottom:.55rem;opacity:.92}
+.prehab-intel-pills{display:flex;flex-wrap:wrap;gap:.4rem .5rem}
+.prehab-intel-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.32rem .65rem;border-radius:99px;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.72rem;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;border:1px solid currentColor;background:rgba(0,0,0,.32);transition:background .18s ease,box-shadow .18s ease}
+.prehab-intel-pill--ok{color:#86EFAC;background:rgba(34,197,94,.08)}
+.prehab-intel-pill--alert{color:#FF7A7A;background:rgba(239,68,68,.12);box-shadow:0 0 12px -4px rgba(239,68,68,.5)}
+.prehab-intel-pill--caution{color:#F5CF60;background:rgba(245,200,0,.10);box-shadow:0 0 10px -4px rgba(245,200,0,.45)}
+.prehab-intel-pill--neutral{color:rgba(255,255,255,.65);background:rgba(255,255,255,.04)}
+.prehab-intel-note{margin-top:.55rem;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.74rem;letter-spacing:.6px;line-height:1.5;color:rgba(255,255,255,.62);font-style:italic}
 .prehab-intel-suite{position:relative;background:linear-gradient(160deg,rgba(14,14,20,.92) 0%,rgba(8,4,18,.86) 100%);border:1px solid rgba(245,200,0,.28);border-radius:18px;padding:1.1rem 1rem 1.2rem;margin:0 0 1.1rem;box-shadow:0 18px 44px -18px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden}
 .prehab-intel-suite::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(0,255,204,.45) 22%,var(--yel,#F5C800) 50%,rgba(255,0,255,.5) 78%,transparent 100%);opacity:.9}
 .prehab-suite-kicker{font-size:.6rem;font-weight:800;letter-spacing:3.6px;text-transform:uppercase;color:var(--yel,#F5C800);margin-bottom:.3rem}
@@ -12907,11 +12918,25 @@ var BBF_PREHAB_MATRIX = (function() {
     var tok = _adminToken();
     if (tok) headers['X-BBF-Admin-Token'] = tok;
 
+    // Phase 1 · forward CNS snapshot + damper so the edge fn's
+    // deterministic protocol table can fire without re-fetching state.
+    var cns_snapshot = null, damper = null;
+    try {
+      if (typeof BBF_PREHAB_INTEL !== 'undefined') {
+        cns_snapshot = BBF_PREHAB_INTEL.snapshot(uid);
+        damper       = BBF_PREHAB_INTEL.damperCheck(uid);
+      } else if (typeof BBF_CNS_AGENT !== 'undefined') {
+        cns_snapshot = BBF_CNS_AGENT.snapshot(uid);
+      }
+    } catch (_) {}
+
     var body = {
       uid:               uid,
       actual_uuid:       actualUuid,
       reported_friction: friction,
       client_context:    { goal: goal, today: _todayLocal(), partner: partner },
+      cns_snapshot:      cns_snapshot,
+      damper:            damper,
       admin_override:    !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
     };
 
@@ -13016,6 +13041,304 @@ var BBF_PREHAB_MATRIX = (function() {
   }
 
   return { init: init, generate: generate, autoFireBaseline: autoFireBaseline, clearCache: clearCache };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_PREHAB_INTEL · Operation Pantheon · Phase 1 Keystone
+// ────────────────────────────────────────────────────────────────────────
+// Coordinator that sits BETWEEN the existing BBF_PREHAB_MATRIX UI and
+// the canonical contracts shipped in Phase 0:
+//   · BBF_CNS_AGENT.snapshot()           → 3-D state, single-writer
+//   · BBF_DATA.acwrForUserRegion()       → ACWR per joint region
+//   · BBF_OT_PROMPT.systemContext()      → OT reasoning frame
+//   · /api/proposal-submit               → founder-gated approval queue
+//   · /api/audit-log                     → transient-reduction audit trail
+//
+// FOUR RESPONSIBILITIES:
+//   1. Snapshot CNS state + listen for 'bbf:cns:updated' · re-render on change
+//   2. No-readiness gate · if no bbf_readiness for today, surface the
+//      Somatic Matrix prompt + suppress auto-regressions
+//   3. Multi-day damper · severe regressions only fire when the
+//      cns_friction_score has trended elevated for 2+ consecutive days
+//   4. Regression floor · prescribed volume can NEVER drop below 60%
+//      of the baseline · audited transient reduction emits on every fire
+//
+// THIS MODULE IS THE SOLE WRITER WRAPPER. All prehab-driven CNS state
+// updates route through propose*Update so the single-writer contract holds.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_PREHAB_INTEL = (function() {
+
+  var REGRESSION_FLOOR_PCT       = 0.60;   // hardcoded · cannot drop below 60% baseline
+  var TREND_DAYS_FOR_SEVERE      = 2;      // multi-day damper · 2+ consecutive elevated days
+  var FRICTION_ELEVATED_THRESHOLD = 65;    // 0-100 scale · >65 is the "elevated" tier
+  var FRICTION_SEVERE_THRESHOLD   = 80;    // >80 is severe · damper-gated even still
+  var SOMATIC_FRESHNESS_HOURS    = 18;     // readiness >18h old is stale → re-prompt
+  var FORECAST_ENDPOINT          = '/functions/v1/bbf-agentic-forecasting';
+
+  var _listenerInstalled = false;
+  var _lastUidSnapshotted = null;
+  var _frictionHistoryCache = null;
+
+  function _activeUid() {
+    return (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  }
+
+  // ── 1. SNAPSHOT + EVENT LISTENER ──────────────────────────────
+  // Snapshot is the ONLY allowed read of CNS state. Mutations are
+  // forbidden · the snapshot is a deep clone per Phase 0 contract.
+  function snapshot(uid) {
+    if (typeof BBF_CNS_AGENT === 'undefined' || !BBF_CNS_AGENT.snapshot) return null;
+    return BBF_CNS_AGENT.snapshot(uid || _activeUid());
+  }
+
+  // Install once · subscribers re-render the prehab surface when ANY
+  // CNS dimension changes for the active uid mid-session.
+  function ensureListener() {
+    if (_listenerInstalled) return;
+    if (typeof window === 'undefined' || !window.addEventListener) return;
+    window.addEventListener('bbf:cns:updated', function(e) {
+      try {
+        var detail = e && e.detail || {};
+        var activeUid = _activeUid();
+        if (detail.uid !== activeUid) return;
+        // Only re-render when the prehab tab is currently visible.
+        var pane = document.getElementById('tp-prehab');
+        if (!pane || !pane.classList.contains('on')) return;
+        console.log('[BBF_PREHAB_INTEL] CNS state changed for ' + detail.uid + ' · dimension=' + detail.dimension + ' · rev=' + detail.rev + ' · re-rendering');
+        if (typeof renderPrehab === 'function') {
+          try { renderPrehab(); } catch (err) { console.warn('[BBF_PREHAB_INTEL] re-render threw:', err && err.message); }
+        }
+      } catch (_) {}
+    });
+    _listenerInstalled = true;
+  }
+
+  // ── 2. NO-READINESS GATE ──────────────────────────────────────
+  // Returns { ready, reason, last_at, hours_since } so the renderer
+  // can surface the gate. If not ready, severe regressions MUST be
+  // suppressed regardless of CNS score.
+  function readinessForToday(uid) {
+    var d = (typeof GD === 'function') ? GD() : null;
+    var u = (d && d.u && d.u[uid || _activeUid()]) || {};
+    var todayStr = (function(){ var x = new Date(); return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') + '-' + String(x.getDate()).padStart(2,'0'); })();
+    var s = u.somatic_readiness_score;
+    var dt = u.somatic_readiness_date || (u.daily_readiness && u.daily_readiness[todayStr] && u.daily_readiness[todayStr].date);
+    if (s == null || dt !== todayStr) {
+      return { ready: false, reason: 'no_readiness_today', score: null, last_at: dt || null };
+    }
+    // Check freshness · readiness logged >18h ago is stale even if
+    // today's date matches (timezone edge).
+    var lastTs = u.somatic_readiness_at || u.cns_friction_updated_at || null;
+    if (lastTs) {
+      var hours = (Date.now() - new Date(lastTs).getTime()) / 3600000;
+      if (hours > SOMATIC_FRESHNESS_HOURS) {
+        return { ready: false, reason: 'readiness_stale', score: s, last_at: lastTs, hours_since: hours };
+      }
+    }
+    return { ready: true, reason: 'fresh', score: Number(s), last_at: lastTs };
+  }
+
+  // ── 3. MULTI-DAY DAMPER ───────────────────────────────────────
+  // Pulls the last 7 days of CNS friction scores (from local logs)
+  // and counts consecutive elevated days. Severe regressions ONLY
+  // fire when count >= TREND_DAYS_FOR_SEVERE.
+  function _frictionHistory(uid) {
+    if (_frictionHistoryCache && _frictionHistoryCache.uid === uid && (Date.now() - _frictionHistoryCache.t) < 60000) {
+      return _frictionHistoryCache.history;
+    }
+    var d = (typeof GD === 'function') ? GD() : null;
+    var u = (d && d.u && d.u[uid]) || {};
+    var history = [];
+    // Pull from u.cns_history if available (future), otherwise approximate
+    // from current snapshot + somatic submits in d.l[uid].
+    var snap = snapshot(uid);
+    var todayScore = snap && snap.Systemic && snap.Systemic.cns_friction_score;
+    if (todayScore != null) {
+      history.push({ date: new Date().toISOString().slice(0,10), score: Number(todayScore) });
+    }
+    var logs = (d && d.l && d.l[uid]) || [];
+    logs.forEach(function(l) {
+      if (l && l.cns_friction_score != null && l.date) {
+        history.push({ date: l.date, score: Number(l.cns_friction_score) });
+      }
+    });
+    // De-dupe by date · keep newest.
+    var byDate = {};
+    history.forEach(function(h) { byDate[h.date] = h.score; });
+    var ordered = Object.keys(byDate).sort().reverse().map(function(d){ return { date: d, score: byDate[d] }; });
+    _frictionHistoryCache = { uid: uid, t: Date.now(), history: ordered.slice(0, 14) };
+    return _frictionHistoryCache.history;
+  }
+
+  // Returns { elevated_streak_days, severe_authorized, current_score }
+  // severe_authorized is the load-bearing flag · only true when the
+  // trend confirms the elevation isn't a one-off bad-sleep spike.
+  function damperCheck(uid) {
+    uid = uid || _activeUid();
+    var history = _frictionHistory(uid);
+    var current = history[0] ? history[0].score : null;
+    var streak = 0;
+    for (var i = 0; i < history.length; i++) {
+      if (history[i].score >= FRICTION_ELEVATED_THRESHOLD) streak++;
+      else break;
+    }
+    var elevated_now = current != null && current >= FRICTION_ELEVATED_THRESHOLD;
+    var severe_now   = current != null && current >= FRICTION_SEVERE_THRESHOLD;
+    return {
+      current_score:           current,
+      elevated_now:            elevated_now,
+      severe_now:              severe_now,
+      elevated_streak_days:    streak,
+      severe_authorized:       severe_now && streak >= TREND_DAYS_FOR_SEVERE,
+      damper_engaged:          severe_now && streak < TREND_DAYS_FOR_SEVERE,
+      window_days:             history.length,
+    };
+  }
+
+  // ── 4. REGRESSION FLOOR ───────────────────────────────────────
+  // Enforces the 60% rule. Caller proposes a regression as a 0-1 mult;
+  // this clamps it to >= REGRESSION_FLOOR_PCT and audits the clamp.
+  function applyRegressionFloor(proposedMult, opts) {
+    opts = opts || {};
+    var orig = Number(proposedMult);
+    if (!isFinite(orig)) return { ok: false, error: 'invalid_mult' };
+    var clamped = Math.max(REGRESSION_FLOOR_PCT, orig);
+    var floored = clamped > orig;
+    var result = {
+      ok:                  true,
+      proposed_mult:       orig,
+      applied_mult:        clamped,
+      floor_pct:           REGRESSION_FLOOR_PCT,
+      floor_engaged:       floored,
+      reason:              opts.reason || null,
+    };
+    if (floored) {
+      auditTransientReduction({
+        target_uid: opts.uid || _activeUid(),
+        proposed:   orig,
+        applied:    clamped,
+        floor_pct:  REGRESSION_FLOOR_PCT,
+        reason:     opts.reason || 'agentic_regression',
+        context:    opts.context || {},
+      });
+    }
+    return result;
+  }
+
+  // ── AUDIT EMISSION · transient live reductions ──────────────────
+  function auditTransientReduction(detail) {
+    try {
+      var token = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('BBF_ADMIN_TOKEN')) || '';
+      if (!token) return; // best-effort · skip silently if no admin token cached
+      fetch('https://buildbelievefit.onrender.com/api/audit-log', {
+        method:  'POST',
+        headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+        body:    JSON.stringify({
+          action_type:   'prehab_transient_reduction',
+          agent:         'BBF_PREHAB_INTEL',
+          target_uid:    detail.target_uid || null,
+          payload:       detail,
+          success:       true,
+        })
+      }).catch(function(){});
+    } catch (_) {}
+  }
+
+  // ── FORECASTING INVOCATION · cold-start gated · proposal routing ─
+  // Fires the bbf-agentic-forecasting edge fn. The edge fn itself
+  // enforces baseline_status='valid' before doing predictive work
+  // (cold-start lock per the Phase 0 contract), and any structural
+  // change becomes a /api/proposal-submit row · never executes live.
+  function runForecast(uid, opts) {
+    uid = uid || _activeUid();
+    if (!uid) return Promise.resolve({ ok: false, reason: 'no_uid' });
+    opts = opts || {};
+    var supaUrl = (window.ENV_SUPABASE_URL || 'https://ihclbceghxpuawymlvgi.supabase.co').replace(/\/$/, '');
+    var headers = { 'Content-Type':'application/json' };
+    var anon = (window.ENV_SUPABASE_KEY) ? String(window.ENV_SUPABASE_KEY) : '';
+    if (anon) { headers['Authorization'] = 'Bearer ' + anon; headers['apikey'] = anon; }
+    var token = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('BBF_ADMIN_TOKEN')) || '';
+    if (token) headers['X-BBF-Admin-Token'] = token;
+    var snap = snapshot(uid);
+    var dmp  = damperCheck(uid);
+    return fetch(supaUrl + FORECAST_ENDPOINT, {
+      method:  'POST',
+      headers: headers,
+      body:    JSON.stringify({
+        uid:                 uid,
+        cns_snapshot:        snap,
+        damper:              dmp,
+        client_context: {
+          goal:    opts.goal     || null,
+          today:   (new Date()).toISOString().slice(0,10),
+          partner: opts.partner  || null,
+        },
+      })
+    }).then(function(r){ return r.json().catch(function(){ return null; }); })
+      .catch(function(e){
+        console.warn('[BBF_PREHAB_INTEL] forecast fetch failed:', e && e.message);
+        return { ok: false, reason: 'fetch_failed' };
+      });
+  }
+
+  // ── PUBLIC RENDER COORDINATOR ──────────────────────────────────
+  // Called by renderPrehab() each time the tab opens or a CNS update
+  // fires. Returns a structured payload the UI can render against:
+  //   { readiness, snapshot, damper, suppressions:{}, forecast_eligible }
+  function evaluate(uid) {
+    uid = uid || _activeUid();
+    var r = readinessForToday(uid);
+    var snap = snapshot(uid);
+    var dmp = damperCheck(uid);
+    var d = (typeof GD === 'function') ? GD() : null;
+    var u = (d && d.u && d.u[uid]) || {};
+    var baseline_status = u.baseline_status || 'building';
+    var suppressions = {
+      severe_regression: !r.ready,                    // no readiness → no severe regression
+      autonomous_deload: !r.ready || baseline_status !== 'valid',  // structural changes blocked too
+      autonomous_forecast: baseline_status !== 'valid',
+    };
+    if (dmp.damper_engaged) {
+      suppressions.severe_regression = true;          // damper still engages even on ready days
+      suppressions.damper_reason = 'single_day_spike_not_yet_confirmed_trend';
+    }
+    return {
+      readiness:           r,
+      snapshot:            snap,
+      damper:              dmp,
+      baseline_status:     baseline_status,
+      suppressions:        suppressions,
+      forecast_eligible:   baseline_status === 'valid',
+      regression_floor_pct: REGRESSION_FLOOR_PCT,
+    };
+  }
+
+  // ── PROPOSE CNS STATE UPDATES THROUGH THE SINGLE-WRITER PATH ────
+  // Prehab signals (e.g. user reports new friction zone) route here.
+  function reportLocalizedFriction(uid, region_alerts) {
+    if (typeof BBF_CNS_AGENT === 'undefined') return { ok: false, error: 'no_cns_agent' };
+    return BBF_CNS_AGENT.proposeLocalizedUpdate(uid || _activeUid(), {
+      region_alerts: region_alerts || {}
+    });
+  }
+  function reportSystemicSignal(uid, patch) {
+    if (typeof BBF_CNS_AGENT === 'undefined') return { ok: false, error: 'no_cns_agent' };
+    return BBF_CNS_AGENT.proposeSystemicUpdate(uid || _activeUid(), patch || {});
+  }
+
+  return {
+    REGRESSION_FLOOR_PCT:    REGRESSION_FLOOR_PCT,
+    snapshot:                snapshot,
+    ensureListener:          ensureListener,
+    readinessForToday:       readinessForToday,
+    damperCheck:             damperCheck,
+    applyRegressionFloor:    applyRegressionFloor,
+    auditTransientReduction: auditTransientReduction,
+    runForecast:             runForecast,
+    evaluate:                evaluate,
+    reportLocalizedFriction: reportLocalizedFriction,
+    reportSystemicSignal:    reportSystemicSignal,
+  };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
@@ -17839,6 +18162,88 @@ function renderPrehab() {
   // Re-bind the Kinematic Scan button (idempotent — checks data-bbfBound).
   if (typeof BBF_KINEMATICS !== 'undefined' && BBF_KINEMATICS.init) {
     try { BBF_KINEMATICS.init(); } catch (_) {}
+  }
+  // ── Operation Pantheon · Phase 1 Keystone banner ─────────────────
+  // Render readiness gate + damper status + baseline badge from the
+  // canonical contracts (BBF_CNS_AGENT snapshot + BBF_DATA). Install the
+  // event listener ONCE so any mid-session CNS update re-renders the tab.
+  if (typeof BBF_PREHAB_INTEL !== 'undefined') {
+    try { BBF_PREHAB_INTEL.ensureListener(); } catch(_) {}
+    try { _renderPrehabIntelBanner(); } catch(e) { console.warn('[BBF_PREHAB_INTEL] banner render failed:', e && e.message); }
+  }
+}
+
+function _renderPrehabIntelBanner() {
+  if (typeof BBF_PREHAB_INTEL === 'undefined') return;
+  var con = document.getElementById('prehab-cues');
+  if (!con) return;
+  var evaluation = BBF_PREHAB_INTEL.evaluate();
+  if (!evaluation) return;
+
+  var banner = document.getElementById('prehab-intel-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'prehab-intel-banner';
+    banner.className = 'prehab-intel-banner';
+    con.parentNode.insertBefore(banner, con);
+  }
+
+  var r = evaluation.readiness;
+  var d = evaluation.damper;
+  var s = evaluation.suppressions || {};
+  var base = evaluation.baseline_status;
+  var pills = [];
+
+  // Readiness pill
+  if (r.ready) {
+    pills.push('<span class="prehab-intel-pill prehab-intel-pill--ok">&#x25C7; Readiness ' + Math.round(r.score) + '/100</span>');
+  } else {
+    var label = r.reason === 'readiness_stale' ? 'STALE READINESS' : 'READINESS NEEDED';
+    pills.push('<span class="prehab-intel-pill prehab-intel-pill--alert" onclick="(function(){try{ if(typeof showSomaticMatrix===\'function\') showSomaticMatrix(); else if(typeof TAB===\'function\') TAB(\'home\'); }catch(_){}})();" style="cursor:pointer">&#x26A0; ' + label + ' &middot; tap to log Somatic Matrix</span>');
+  }
+
+  // Damper pill
+  if (d.severe_now && d.severe_authorized) {
+    pills.push('<span class="prehab-intel-pill prehab-intel-pill--alert">&#x1F525; SEVERE LOAD ALERT &middot; ' + d.elevated_streak_days + 'd streak &middot; severe regression authorized</span>');
+  } else if (d.severe_now && !d.severe_authorized) {
+    pills.push('<span class="prehab-intel-pill prehab-intel-pill--caution">&#x26A1; DAMPER ENGAGED &middot; spike day 1 &middot; severe regression held until confirmed trend</span>');
+  } else if (d.elevated_now) {
+    pills.push('<span class="prehab-intel-pill prehab-intel-pill--caution">&#x26A1; Elevated friction &middot; streak ' + d.elevated_streak_days + 'd</span>');
+  } else if (d.current_score != null) {
+    pills.push('<span class="prehab-intel-pill prehab-intel-pill--ok">&#x25C7; Friction ' + Math.round(d.current_score) + '/100</span>');
+  }
+
+  // Baseline status pill
+  if (base === 'valid') {
+    pills.push('<span class="prehab-intel-pill prehab-intel-pill--ok">&#x25C7; Baseline valid &middot; forecast active</span>');
+  } else if (base === 'building') {
+    pills.push('<span class="prehab-intel-pill prehab-intel-pill--neutral">&#x23F3; Baseline building &middot; autonomous forecasting locked</span>');
+  } else {
+    pills.push('<span class="prehab-intel-pill prehab-intel-pill--caution">&#x26A1; Baseline expired &middot; re-baseline required</span>');
+  }
+
+  // Regression floor pill — always visible · brand contract
+  pills.push('<span class="prehab-intel-pill prehab-intel-pill--neutral">&#x25C7; Regression floor ' + Math.round(evaluation.regression_floor_pct * 100) + '% &middot; detraining-proof</span>');
+
+  banner.innerHTML =
+    '<div class="prehab-intel-kicker">&#x25C7; Operation Pantheon &middot; Live Intelligence</div>' +
+    '<div class="prehab-intel-pills">' + pills.join('') + '</div>' +
+    (s.severe_regression && !r.ready ? '<div class="prehab-intel-note">Severe regressions suppressed &middot; readiness signal required before the agent will drop volume.</div>' : '') +
+    (s.autonomous_deload ? '<div class="prehab-intel-note">Structural changes (deload weeks) will be routed to your approval queue rather than executed live.</div>' : '');
+
+  // Fire forecast quietly when baseline is valid · result either updates
+  // CNS state (which re-renders this banner via the event listener) or
+  // posts a proposal that the admin queue surfaces separately.
+  if (evaluation.forecast_eligible && r.ready) {
+    try {
+      BBF_PREHAB_INTEL.runForecast(null, {}).then(function(f) {
+        if (f && f.ok && f.proposal_id) {
+          console.log('[BBF_PREHAB_INTEL] forecast proposed structural change · proposal_id=' + f.proposal_id);
+        } else if (f && f.ok) {
+          console.log('[BBF_PREHAB_INTEL] forecast ok · advisory only · zone=' + (f.zone || 'n/a'));
+        }
+      });
+    } catch (_) {}
   }
 }
 function togglePrehab(i) {
