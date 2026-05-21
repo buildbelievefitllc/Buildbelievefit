@@ -1,9 +1,18 @@
-// bbf-agentic-peaking — Game-Day Peaking Engine Edge Function (Phase 2)
+// bbf-agentic-peaking v2 — Game-Day Peaking + Mesocycle Restructure (Phase 2 + Phase 4)
 // ─────────────────────────────────────────────────────────────────────
-// Intercepts the athlete's scheduled heavy workout when CNS readiness is
-// compromised (sleep < 6 OR soreness > 7) and asks Claude Opus 4.7 to
-// generate 2 CNS-friendly replacement lifts. Frontend renders the
-// override on top of the static program.
+// DEFAULT INTENT (legacy Phase 2):
+//   Intercepts the athlete's scheduled heavy workout when CNS readiness
+//   is compromised (sleep < 6 OR soreness > 7) and asks Claude Opus 4.7
+//   to generate 2 CNS-friendly replacement lifts. Frontend renders the
+//   override on top of the static program.
+//
+// PHASE 4 INTENT · `intent: 'restructure'`:
+//   Fired by bbf-agentic-forecasting when systemic-overtraining is
+//   detected. Computes a mesocycle restructure (block priority shift
+//   from current → recovery/maintenance, deload-week framing) and
+//   STAGES the proposal to bbf_pending_review via /api/proposal-submit.
+//   NEVER live · founder approval gates the actual write.
+//   Returns: { staged: true, proposal_id, restructure_spec }.
 //
 // Request shape:
 //   POST /functions/v1/bbf-agentic-peaking
@@ -238,6 +247,149 @@ function extractTextBlock(content: any[]): string | null {
   return null;
 }
 
+// ─── Phase 4 · Mesocycle restructure handler ──────────────────────────
+// Deterministic restructure computation + queue staging. NO Claude on
+// this path · the restructure pattern is fixed (current block →
+// recovery + 1-week deload framing) so it stays predictable for the
+// founder reviewing the queue. Returns the staged proposal id.
+function computeRestructureSpec(currentBlock: string | null, otSignal: any) {
+  // Map current block → recovery target. Anything above recovery
+  // drops to recovery for one mesocycle; rehab stays rehab.
+  const block = String(currentBlock || 'maintenance').toLowerCase();
+  let targetBlock = 'recovery';
+  if (block === 'rehab')        targetBlock = 'rehab';
+  if (block === 'recovery')     targetBlock = 'recovery';
+  if (block === 'maintenance')  targetBlock = 'recovery';
+  if (block === 'hypertrophy')  targetBlock = 'recovery';
+  if (block === 'strength')     targetBlock = 'recovery';
+  if (block === 'peaking')      targetBlock = 'recovery';
+  return {
+    current_block:        block,
+    target_block:         targetBlock,
+    deload_weeks:         1,
+    volume_reduction_pct: 40,
+    intensity_cap_pct:    65,
+    triggered_by:         'bbf-agentic-peaking.v2',
+    ot_signal_summary: {
+      ac_ratio:             otSignal && otSignal.ac_ratio || null,
+      rpe_recent_avg:       otSignal && otSignal.rpe_recent_avg || null,
+      session_count_recent: otSignal && otSignal.session_count_recent || 0,
+      rationale:            otSignal && otSignal.rationale || null,
+    },
+  };
+}
+
+async function fetchCurrentBlock(
+  uuid: string, supabaseUrl: string, supabaseKey: string,
+): Promise<{ block_priority: string | null; cns_friction_score: number | null }> {
+  const url = `${supabaseUrl}/rest/v1/bbf_users?id=eq.${encodeURIComponent(uuid)}&select=block_priority,cns_friction_score&limit=1`;
+  try {
+    const res = await fetch(url, {
+      headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` },
+    });
+    if (!res.ok) return { block_priority: null, cns_friction_score: null };
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      return {
+        block_priority:     rows[0].block_priority     != null ? String(rows[0].block_priority) : null,
+        cns_friction_score: rows[0].cns_friction_score != null ? Number(rows[0].cns_friction_score) : null,
+      };
+    }
+  } catch (_) {}
+  return { block_priority: null, cns_friction_score: null };
+}
+
+async function stageRestructureProposal(
+  uidSlug: string, restructureSpec: any, currentBlock: string | null,
+  cnsScore: number | null, otSignal: any,
+): Promise<{ staged: boolean; proposal_id: string | null; error?: string }> {
+  // Route to the Render proxy /api/proposal-submit just like every
+  // other agent does · it owns the whitelist enforcement, RLS, and
+  // audit. We do NOT bypass to direct PostgREST insert · the proxy
+  // is the load-bearing safeguard from Phase 0.
+  const renderOrigin = Deno.env.get('BBF_RENDER_PROXY_ORIGIN') || 'https://buildbelievefit.onrender.com';
+  const adminToken   = Deno.env.get('BBF_ADMIN_TOKEN') || '';
+  if (!adminToken) {
+    return { staged: false, proposal_id: null, error: 'missing_BBF_ADMIN_TOKEN' };
+  }
+  const body = {
+    proposal_type: 'block_priority_shift',
+    risk_level:    'high',
+    population:    { uids: [uidSlug], cohort: 'single' },
+    diff: {
+      target_table: 'bbf_users',
+      target_uid:   uidSlug,
+      before:       { block_priority: currentBlock, cns_friction_score: cnsScore },
+      after:        { block_priority: restructureSpec.target_block },
+      fields:       ['block_priority'],
+    },
+    rationale: 'Systemic overtraining detected (' + (otSignal && otSignal.rationale || 'OT signal triggered') +
+               '). bbf-agentic-peaking.v2 proposes deload restructure: ' +
+               restructureSpec.current_block + ' → ' + restructureSpec.target_block +
+               ' · ' + restructureSpec.deload_weeks + '-week deload · volume -' +
+               restructureSpec.volume_reduction_pct + '% · intensity cap ' +
+               restructureSpec.intensity_cap_pct + '% 1RM. Founder approval required.',
+    proposed_by: 'bbf-agentic-peaking.v2',
+    metadata: {
+      restructure_spec:    restructureSpec,
+      ot_signal:           otSignal,
+      cns_friction_score:  cnsScore,
+      triggered_at:        new Date().toISOString(),
+    },
+  };
+  try {
+    const res = await fetch(`${renderOrigin}/api/proposal-submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-BBF-Admin-Token': adminToken,
+        'Origin': renderOrigin,  // satisfy the proxy's origin allowlist
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error(`[bbf-agentic-peaking:restructure] proxy HTTP ${res.status}: ${txt.slice(0,300)}`);
+      return { staged: false, proposal_id: null, error: `proxy_http_${res.status}` };
+    }
+    const j = await res.json().catch(() => null) as any;
+    return {
+      staged:      !!(j && j.ok && j.proposal && j.proposal.id),
+      proposal_id: (j && j.proposal && j.proposal.id) || null,
+    };
+  } catch (e) {
+    console.error(`[bbf-agentic-peaking:restructure] proxy fetch threw: ${(e as Error).message}`);
+    return { staged: false, proposal_id: null, error: (e as Error).message };
+  }
+}
+
+async function handleRestructureIntent(
+  uidRaw: string, otSignal: any,
+  supabaseUrl: string, supabaseKey: string,
+) {
+  const uuid = await resolveUuid(uidRaw, supabaseUrl, supabaseKey);
+  if (!uuid) return jsonResponse({ error: 'uid_not_resolvable', uid: uidRaw }, 400);
+  const userState = await fetchCurrentBlock(uuid, supabaseUrl, supabaseKey);
+  const restructureSpec = computeRestructureSpec(userState.block_priority, otSignal);
+  const staging = await stageRestructureProposal(
+    uidRaw, restructureSpec, userState.block_priority, userState.cns_friction_score, otSignal,
+  );
+  if (!staging.staged) {
+    return jsonResponse({
+      staged:           false,
+      proposal_id:      null,
+      restructure_spec: restructureSpec,
+      error:            staging.error || 'unknown_staging_error',
+    }, 502);
+  }
+  console.log(`[bbf-agentic-peaking:restructure] STAGED · uid=${uidRaw} · proposal_id=${staging.proposal_id} · ${restructureSpec.current_block}→${restructureSpec.target_block}`);
+  return jsonResponse({
+    staged:           true,
+    proposal_id:      staging.proposal_id,
+    restructure_spec: restructureSpec,
+  }, 200);
+}
+
 // ─── Handler ───────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -261,6 +413,7 @@ serve(async (req: Request) => {
   if (typeof uidRaw !== 'string' || !uidRaw) {
     return jsonResponse({ error: 'missing_uid' }, 400);
   }
+  const intent        = (payload && typeof payload.intent === 'string') ? payload.intent : null;
   const adminOverride = !!payload?.admin_override;
 
   // ─── 1. Omniscience Protocol · Admin Override ──────────────────
@@ -276,6 +429,14 @@ serve(async (req: Request) => {
   const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return jsonResponse({ error: 'config_missing_supabase' }, 503);
+  }
+
+  // ─── Phase 4 · restructure intent · stage proposal · never live ──
+  // Fired by bbf-agentic-forecasting when systemic OT signal trips.
+  // Routes through /api/proposal-submit so the founder approves the
+  // block_priority_shift before any bbf_users.block_priority write.
+  if (intent === 'restructure') {
+    return await handleRestructureIntent(uidRaw, payload?.ot_signal || null, SUPABASE_URL, SUPABASE_SERVICE_KEY);
   }
 
   // Resolve the slug → UUID (bbf_readiness.user_id is uuid).

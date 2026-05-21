@@ -1,9 +1,25 @@
-// bbf-agentic-forecasting — Predictive Trajectory Forecaster (Phase 3)
+// bbf-agentic-forecasting v6 — Predictive Trajectory + OT Signal (Phase 3 + Phase 4)
 // ─────────────────────────────────────────────────────────────────────
 // Reads the athlete's recent bbf_sets (last ~60 sets, descending by
 // day_key for trajectory relevance), asks Claude Opus 4.7 to project
 // their 1RM 30 days out for a named lift, returns a confidence score
 // and a one-sentence training micro-adjustment.
+//
+// Phase 4 EXTENSION · Autonomous Periodization (Task 4):
+//   · Computes a deterministic OT (overtraining) signal in parallel
+//     with the 1RM forecast: 7-day acute set volume vs 28-day chronic
+//     average + heaviest-set RPE trend.
+//   · When OT signal is detected (acute_to_chronic > 1.4 with
+//     sustained RPE ≥ 8.5 across the last 6 sessions), POSTs to
+//     bbf-agentic-peaking with intent=restructure so the restructure
+//     proposal is STAGED to bbf_pending_review for founder approval.
+//     NEVER live · gated through the proposal queue.
+//   · The 1RM response shape stays unchanged for backward compat;
+//     `ot_signal` is an ADDITIONAL field (optional consumers can
+//     ignore it).
+//   · Explicit `intent: 'systemic_ot_scan'` skips the 1RM Claude call
+//     entirely and returns just the OT signal for the BBF_PROGRAM_INTEL
+//     dashboard widget.
 //
 // SCHEMA NOTES (deviations from the CEO scaffold, called out in PR):
 //   - bbf_sets has no `created_at` column — substituted `day_key` (text,
@@ -130,6 +146,134 @@ async function resolveUuid(uid: string, supabaseUrl: string, supabaseKey: string
   }
 }
 
+// ─── Phase 4 · Deterministic OT signal computation ────────────────────
+// Pure math · no LLM. Acute (7d) vs chronic (28d) set volume ratio +
+// heaviest-set RPE trend across the last 6 sessions. Triggers when:
+//   · acute_to_chronic > 1.4  (volume spike past Gabbett caution zone)
+//   · RPE_recent_avg ≥ 8.5    (sustained heavy intent)
+//   · session_count_recent ≥ 6 (enough signal · avoid first-session false alarms)
+const OT_ACUTE_DAYS         = 7;
+const OT_CHRONIC_DAYS       = 28;
+const OT_AC_RATIO_THRESHOLD = 1.4;
+const OT_RPE_THRESHOLD      = 8.5;
+const OT_MIN_SESSIONS       = 6;
+
+function _dayKeyToTs(dk: string | null): number | null {
+  if (!dk || typeof dk !== 'string') return null;
+  const dayStr = dk.split('_d')[0] || '';
+  if (!dayStr) return null;
+  const ts = new Date(dayStr + 'T12:00:00').getTime();
+  return isNaN(ts) ? null : ts;
+}
+
+function computeOtSignal(setsData: Array<any>): {
+  detected: boolean;
+  ac_ratio: number | null;
+  rpe_recent_avg: number | null;
+  session_count_recent: number;
+  rationale: string;
+  acute_volume: number;
+  chronic_volume: number;
+} {
+  if (!Array.isArray(setsData) || setsData.length === 0) {
+    return {
+      detected: false, ac_ratio: null, rpe_recent_avg: null,
+      session_count_recent: 0, rationale: 'no_sets_data',
+      acute_volume: 0, chronic_volume: 0,
+    };
+  }
+  const nowMs = Date.now();
+  const acuteCutoff   = nowMs - OT_ACUTE_DAYS   * 86400000;
+  const chronicCutoff = nowMs - OT_CHRONIC_DAYS * 86400000;
+
+  let acuteVol = 0, chronicVol = 0;
+  const acuteSessions = new Set<string>();
+  const rpeValues: number[] = [];
+
+  for (const s of setsData) {
+    const ts = _dayKeyToTs(s && s.day_key);
+    if (ts == null) continue;
+    const reps = Number(s.reps) || 0;
+    const weight = Number(s.weight_lbs) || 0;
+    const setVol = reps * (weight > 0 ? weight : 1);
+    if (ts >= chronicCutoff) chronicVol += setVol;
+    if (ts >= acuteCutoff) {
+      acuteVol += setVol;
+      acuteSessions.add(s.day_key);
+      if (s.rpe != null && Number(s.rpe) > 0) rpeValues.push(Number(s.rpe));
+    }
+  }
+  // Mean-daily normalization · acute/chronic ratio per Gabbett
+  const acuteMean   = acuteVol   / OT_ACUTE_DAYS;
+  const chronicMean = chronicVol / OT_CHRONIC_DAYS;
+  const acRatio = chronicMean > 0 ? (acuteMean / chronicMean) : null;
+  const rpeAvg  = rpeValues.length > 0
+    ? rpeValues.reduce((a, b) => a + b, 0) / rpeValues.length
+    : null;
+  const sessionCount = acuteSessions.size;
+
+  const ratioBreach   = acRatio != null && acRatio > OT_AC_RATIO_THRESHOLD;
+  const rpeBreach     = rpeAvg  != null && rpeAvg  >= OT_RPE_THRESHOLD;
+  const enoughSignal  = sessionCount >= OT_MIN_SESSIONS;
+  const detected      = enoughSignal && ratioBreach && rpeBreach;
+
+  let rationale = 'no_breach';
+  if (!enoughSignal) rationale = 'insufficient_sessions:' + sessionCount + '/' + OT_MIN_SESSIONS;
+  else if (detected) rationale = 'ac_ratio=' + (acRatio || 0).toFixed(2) + ' (>' + OT_AC_RATIO_THRESHOLD + ') · rpe_recent=' + (rpeAvg || 0).toFixed(1) + ' (>=' + OT_RPE_THRESHOLD + ')';
+  else if (ratioBreach && !rpeBreach) rationale = 'volume_spike_without_rpe_confirmation:ac=' + (acRatio || 0).toFixed(2);
+  else if (rpeBreach && !ratioBreach) rationale = 'rpe_high_without_volume_spike:rpe=' + (rpeAvg || 0).toFixed(1);
+
+  return {
+    detected,
+    ac_ratio:               acRatio,
+    rpe_recent_avg:         rpeAvg,
+    session_count_recent:   sessionCount,
+    rationale,
+    acute_volume:           acuteVol,
+    chronic_volume:         chronicVol,
+  };
+}
+
+// ─── Phase 4 · Peaking fan-out for OT-triggered restructure ───────────
+// Calls bbf-agentic-peaking with intent=restructure so the restructure
+// is computed and STAGED to bbf_pending_review (founder approval).
+// Best-effort · forecasting response succeeds even if this fails so
+// the 1RM trajectory is never starved by a peaking outage.
+async function fanOutToPeaking(
+  uidRaw: string,
+  otSignal: ReturnType<typeof computeOtSignal>,
+  supabaseUrl: string,
+): Promise<{ staged: boolean; proposal_id: string | null; error?: string }> {
+  const adminToken = Deno.env.get('BBF_COACH_AGENT_TOKEN') || '';
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
+    const res = await fetch(`${supabaseUrl}/functions/v1/bbf-agentic-peaking`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        uid:    uidRaw,
+        intent: 'restructure',
+        ot_signal: otSignal,
+        admin_override: false,
+      }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error(`[bbf-agentic-forecasting] peaking fan-out HTTP ${res.status}: ${txt.slice(0,300)}`);
+      return { staged: false, proposal_id: null, error: `peaking_http_${res.status}` };
+    }
+    const j = await res.json().catch(() => null) as any;
+    return {
+      staged:      !!(j && j.staged),
+      proposal_id: (j && j.proposal_id) || null,
+    };
+  } catch (e) {
+    console.error(`[bbf-agentic-forecasting] peaking fan-out threw: ${(e as Error).message}`);
+    return { staged: false, proposal_id: null, error: (e as Error).message };
+  }
+}
+
 // ─── Recent-sets fetch ────────────────────────────────────────────────
 async function fetchRecentSets(
   uuid: string,
@@ -233,12 +377,15 @@ serve(async (req: Request) => {
 
   const uidRaw    = payload?.uid;
   const liftName  = payload?.lift_name;
+  const intent    = (payload && typeof payload.intent === 'string') ? payload.intent : null;
   const adminOverride = !!payload?.admin_override;
 
   if (typeof uidRaw !== 'string' || !uidRaw) {
     return jsonResponse({ error: 'missing_uid' }, 400);
   }
-  if (typeof liftName !== 'string' || !liftName) {
+  // lift_name is required for the default 1RM forecast path · for the
+  // pure OT-scan intent it's optional (the OT signal is lift-agnostic).
+  if (intent !== 'systemic_ot_scan' && (typeof liftName !== 'string' || !liftName)) {
     return jsonResponse({ error: 'missing_lift_name' }, 400);
   }
 
@@ -248,6 +395,7 @@ serve(async (req: Request) => {
       projected_1rm:    'ADMIN BYPASS: 500 lbs',
       confidence_score: '100%',
       agent_insight:    'Master Override Active. Trajectory limits removed.',
+      ot_signal:        { detected: false, admin_override: true },
     });
   }
 
@@ -265,11 +413,40 @@ serve(async (req: Request) => {
 
   const setsData = await fetchRecentSets(uuid, SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+  // ─── Phase 4 · Compute OT signal in parallel · stage to peaking ──
+  // Computed FIRST so it's available on both the early-return data-
+  // insufficient path and the full Claude 1RM path. When detected,
+  // fan out to peaking for restructure staging — best-effort.
+  const otSignal = computeOtSignal(setsData || []);
+  let peakingStaging: { staged: boolean; proposal_id: string | null; error?: string } | null = null;
+  if (otSignal.detected) {
+    peakingStaging = await fanOutToPeaking(uidRaw, otSignal, SUPABASE_URL);
+    console.log(`[bbf-agentic-forecasting] OT detected · uid=${uidRaw} · ratio=${(otSignal.ac_ratio || 0).toFixed(2)} · rpe=${(otSignal.rpe_recent_avg || 0).toFixed(1)} · peaking_staged=${peakingStaging && peakingStaging.staged}`);
+  }
+  const otSignalForResponse = Object.assign({}, otSignal, {
+    staged_proposal_id: peakingStaging ? peakingStaging.proposal_id : null,
+    peaking_error:      peakingStaging && peakingStaging.error || null,
+  });
+
+  // ─── Phase 4 · systemic_ot_scan early exit · skip 1RM Claude ─────
+  // BBF_PROGRAM_INTEL dashboard widget hits this path when it just
+  // wants the OT signal · no need to burn tokens on the 1RM forecast.
+  if (intent === 'systemic_ot_scan') {
+    return jsonResponse({
+      ot_signal:        otSignalForResponse,
+      projected_1rm:    null,
+      confidence_score: null,
+      agent_insight:    null,
+      sets_inspected:   (setsData || []).length,
+    }, 200);
+  }
+
   if (!setsData || setsData.length < MIN_SETS_REQUIRED) {
     return jsonResponse({
       projected_1rm:    'N/A',
       confidence_score: 'Low',
       agent_insight:    'Insufficient data velocity. Complete 3 more sessions to unlock forecasting.',
+      ot_signal:        otSignalForResponse,
     });
   }
 
@@ -315,11 +492,13 @@ serve(async (req: Request) => {
 
   console.log(`[bbf-agentic-forecasting] uid=${uidRaw} · lift=${liftName} · sets=${setsData.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
 
-  // Frontend expects the bare 3-field shape per the scaffold. Surface
-  // the LLM fields directly; debug metadata goes in console only.
+  // Frontend expects the bare 3-field shape per the original scaffold;
+  // Phase 4 adds an OPTIONAL ot_signal field that consumers can ignore.
+  // Surface the LLM fields directly; debug metadata stays in console.
   return jsonResponse({
     projected_1rm:    parsed.projected_1rm,
     confidence_score: parsed.confidence_score,
     agent_insight:    parsed.agent_insight,
+    ot_signal:        otSignalForResponse,
   }, 200);
 });

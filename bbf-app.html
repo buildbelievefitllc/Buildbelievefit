@@ -10742,6 +10742,32 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
       return;
     }
 
+    // ── PHANTOM EYE · Kinematic deviation event router (Phase 4) ───
+    // The WS bridge emits messages of shape:
+    //   { type: 'kinematic-event', uid, exercise_key, exercise_name,
+    //     deviation: <canonical_key>, severity: 0-1, rep_index, ts }
+    // Dispatched as a window CustomEvent so BBF_PROGRAM_INTEL picks
+    // it up via its installed listener. NO Claude on this hot path —
+    // BBF_PROGRAM_INTEL handles the deterministic-first cascade.
+    if (msg.type === 'kinematic-event' && typeof msg.deviation === 'string') {
+      try {
+        window.dispatchEvent(new CustomEvent('bbf:kinematic:event', {
+          detail: {
+            uid:           msg.uid           || ((typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null),
+            exercise_key:  msg.exercise_key  || null,
+            exercise_name: msg.exercise_name || '',
+            deviation:     msg.deviation,
+            severity:      Number(msg.severity) || 0,
+            rep_index:     (msg.rep_index != null) ? Number(msg.rep_index) : null,
+            ts:            msg.ts || Date.now(),
+          }
+        }));
+      } catch (e) {
+        console.warn('[Phantom Eye] kinematic-event dispatch failed:', e && e.message);
+      }
+      return;
+    }
+
     // ── ElevenLabs side-channel (Julius / Kelli LaShae) ──────────
     // Proxy emits {type:'gemini-text', text} from outputAudioTranscription
     // and {type:'gemini-turn-complete'} at end-of-turn. Route both to
@@ -14218,6 +14244,620 @@ var BBF_CARDIO_INTEL = (function() {
 })();
 
 // ════════════════════════════════════════════════════════════════════════
+// BBF_PROGRAM_INTEL · Operation Pantheon · Phase 4 Program Tab Coordinator
+// ────────────────────────────────────────────────────────────────────────
+// Single coordinator for the program tab's agentic surface:
+//   · PHANTOM EYE kinematic event ingestion (strict JSON deviation
+//     schema · no Claude on the real-time path)
+//   · Sustained-Redline gate (N reps OR severity > T) — fires the
+//     token cascade only in the rest gap, never mid-rep
+//   · Deterministic redline lookup table FIRST · Claude (comlink v3)
+//     ONLY for novel deviations, wrapped in BBF_INTERCEPT rate-cap
+//   · Hypertrophy Heatmap · 7-day localized fatigue forecast over
+//     BBF_DATA.MUSCLE_GROUPS · paints before the athlete's next set
+//   · Autonomous Periodization · forecasting OT signal flows into
+//     a STAGED mesocycle restructure proposal in bbf_pending_review
+//     (NEVER live · founder approves every block-priority shift)
+//
+// Honors the Phase 0 contract:
+//   · Reads CNS state ONLY via BBF_CNS_AGENT.snapshot()
+//   · Installs bbf:cns:updated listener
+//   · Routes every structural change through /api/proposal-submit
+//   · Sanitizes every coach-voice cue via BBF_OT_PROMPT.passThrough()
+//   · Audits every live action via /api/audit-log
+//
+// KINEMATIC EVENT SCHEMA (strict · the WS bridge emits this shape):
+//   {
+//     type: 'kinematic-event',          // ws-message envelope (router strips)
+//     uid: 'akeem',                     // active athlete slug
+//     exercise_key: 'ex_2',             // matches the .eb set-input data-ek
+//     exercise_name: 'Back Squat',      // human name for cueing
+//     deviation: 'valgus_collapse',     // canonical deviation key (see DETERMINISTIC_LOOKUP)
+//     severity: 0.0-1.0,                // model confidence × magnitude
+//     rep_index: 1-N,                   // which rep within the current set
+//     ts: 1717000000000                 // epoch ms
+//   }
+// Debug: window.BBF_PROGRAM_INTEL.debugFireKinematicEvent(...) bypasses WS.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_PROGRAM_INTEL = (function() {
+  var VERSION = 'BBF_PROGRAM_INTEL.v1';
+
+  // ── Triggers · Sustained-Redline parameters ────────────────────
+  var REDLINE_REPS_THRESHOLD = 2;     // same deviation across N reps in a set
+  var REDLINE_SEVERITY_T     = 0.7;   // OR severity past T → flag immediately
+
+  // ── Deterministic redline → swap table ─────────────────────────
+  // CHECKED FIRST in the token cascade. Only if a deviation is NOT
+  // in this table do we fire Claude (comlink v3). Founder-curated
+  // mappings · expand here before adding LLM heuristics.
+  var DETERMINISTIC_LOOKUP = {
+    'lumbar_flexion':       { swap_to: 'Hack Squat',           cue: 'Hold the brace. Switching to hack squat to take spinal shear off the lift.',                  region: 'spine'    },
+    'valgus_collapse':      { swap_to: 'Cable Hip Abduction',  cue: 'Knees tracking inward. Cable hip abduction to reset glute medius firing before reloading.',  region: 'knee'     },
+    'butt_wink':            { swap_to: 'Box Squat to Parallel',cue: 'Pelvis tucking under load. Box squat above the wink point preserves the quad bias.',         region: 'hip'      },
+    'shoulder_impingement': { swap_to: 'Landmine Press',       cue: 'Elbow flaring. Landmine press uses the scapular plane to spare the shoulder.',               region: 'shoulder' },
+    'spinal_extension':     { swap_to: 'Z-Press',              cue: 'Anti-extension fail. Seated Z-press locks the lumbar and keeps the brace honest.',           region: 'spine'    },
+    'forward_head':         { swap_to: 'Chest-Supported Row',  cue: 'Neck driving forward. Chest-supported row removes the postural compensation.',               region: 'spine'    },
+    'elbow_flare':          { swap_to: 'Close-Grip Bench',     cue: 'Elbow flare past 85 degrees. Close-grip bench keeps the elbows tight to the ribs.',          region: 'shoulder' },
+    'knee_cave':            { swap_to: 'Goblet Squat',         cue: 'Knee cave detected. Goblet squat resets the hip pattern with a lighter load profile.',       region: 'knee'     },
+    'bar_path_drift':       { swap_to: 'Smith Machine Squat',  cue: 'Bar drifting forward. Smith machine locks the path so you can re-groove the pattern.',       region: 'spine'    },
+    'heel_lift':            { swap_to: 'Heel-Elevated Goblet', cue: 'Heels coming up. Heel-elevated goblet squat preserves depth without ankle compromise.',      region: 'ankle'    },
+  };
+
+  // ── Internal state ─────────────────────────────────────────────
+  var _listenerInstalled = false;
+  var _deviationBuffer   = {};   // { exercise_key: [{deviation, severity, rep_index, ts}, ...] }
+  var _heatmapDebounceTs = 0;
+
+  function _activeUid() {
+    return (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  }
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  // Edge functions (Supabase /functions/v1/*) use the COACH agent token.
+  function _adminToken() {
+    try {
+      if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+    } catch (_) {}
+    return '';
+  }
+  // Render proxy (/api/*) uses a DIFFERENT token, sourced from
+  // sessionStorage by the admin-bootstrap flow. Matches the pattern
+  // every other coordinator (BBF_PREHAB_INTEL · BBF_ATHLETE_INTEL ·
+  // BBF_CARDIO_INTEL) uses for /api/proposal-submit and /api/audit-log.
+  function _renderToken() {
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        return sessionStorage.getItem('BBF_ADMIN_TOKEN') || '';
+      }
+    } catch (_) {}
+    return '';
+  }
+  function _renderProxyOrigin() {
+    return 'https://buildbelievefit.onrender.com';
+  }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // ── Audit · best-effort, non-blocking, never throws ────────────
+  function audit(action_type, payload, opts) {
+    opts = opts || {};
+    try {
+      var body = {
+        action_type:   action_type,
+        agent:         VERSION,
+        target_uid:    _activeUid(),
+        payload:       payload || null,
+        success:       opts.success !== false,
+        error_message: opts.error_message || null,
+      };
+      var tok = _renderToken();
+      var headers = { 'Content-Type': 'application/json' };
+      if (tok) headers['X-BBF-Admin-Token'] = tok;
+      fetch(_renderProxyOrigin() + '/api/audit-log', {
+        method:    'POST',
+        headers:   headers,
+        body:      JSON.stringify(body),
+        keepalive: true,
+      }).catch(function(){});
+    } catch (_) {}
+  }
+
+  // ── CNS snapshot read · the ONLY way to read CNS state ─────────
+  function snapshot(uid) {
+    if (typeof BBF_CNS_AGENT === 'undefined' || !BBF_CNS_AGENT.snapshot) return null;
+    try { return BBF_CNS_AGENT.snapshot(uid || _activeUid()); }
+    catch (_) { return null; }
+  }
+
+  // ── Event listener · re-render on CNS + set + kinematic events ─
+  function ensureListener() {
+    if (_listenerInstalled) return;
+    window.addEventListener('bbf:cns:updated', function(e) {
+      var detail = e && e.detail || {};
+      if (detail.uid !== _activeUid()) return;
+      var pane = document.getElementById('tp-workout');
+      if (!pane || !pane.classList.contains('on')) return;
+      console.log('[BBF_PROGRAM_INTEL] CNS state changed · re-rendering heatmap');
+      try { renderHypertrophyHeatmap(); } catch (_) {}
+    });
+    window.addEventListener('bbf:set:completed', function(e) {
+      var detail = e && e.detail || {};
+      if (!detail.uid || detail.uid !== _activeUid()) return;
+      // Re-render heatmap before the athlete's next set
+      try { renderHypertrophyHeatmap(); } catch (_) {}
+      // Drain buffered kinematic deviations for this exercise (rest gap)
+      var ek = detail.ek;
+      var bucket = ek ? _deviationBuffer[ek] : null;
+      if (bucket && bucket.length) {
+        delete _deviationBuffer[ek];
+        try { executeTokenCascade(detail.uid, bucket, ek, detail.exerciseName); }
+        catch (e2) { console.warn('[BBF_PROGRAM_INTEL] cascade threw:', e2 && e2.message); }
+      }
+    });
+    window.addEventListener('bbf:kinematic:event', function(e) {
+      try { handleKinematicEvent(e.detail || {}); }
+      catch (e2) { console.warn('[BBF_PROGRAM_INTEL] kinematic handler threw:', e2 && e2.message); }
+    });
+    _listenerInstalled = true;
+    console.log('[BBF_PROGRAM_INTEL] listeners installed · v=' + VERSION);
+  }
+
+  // ── PHANTOM EYE handler · NO Claude on the real-time path ──────
+  // Renders to the KINEMATIC FORM HUD immediately, plays a templated
+  // corrective cue via BBF_TTS, buffers for the rest-gap cascade.
+  function handleKinematicEvent(ev) {
+    if (!ev || typeof ev.deviation !== 'string' || !ev.deviation) return;
+    var ek = ev.exercise_key || '_unknown';
+    var sev = Number(ev.severity) || 0;
+    var rep = (ev.rep_index != null) ? Number(ev.rep_index) : null;
+
+    // 1. KINEMATIC FORM HUD render (instant)
+    try { _renderHudDeviation(ev); } catch (_) {}
+
+    // 2. Mid-set corrective cue (templated · NO LLM)
+    try { _playCorrectiveCue(ev); } catch (_) {}
+
+    // 3. Buffer for sustained-redline gate (fires in rest gap)
+    if (!_deviationBuffer[ek]) _deviationBuffer[ek] = [];
+    _deviationBuffer[ek].push({
+      deviation: ev.deviation,
+      severity:  sev,
+      rep_index: rep,
+      ts:        ev.ts || Date.now(),
+    });
+    // Cap buffer to prevent memory accumulation
+    if (_deviationBuffer[ek].length > 30) _deviationBuffer[ek] = _deviationBuffer[ek].slice(-30);
+
+    // 4. Severity-immediate audit (cascade still defers to rest gap
+    // so we don't yank the bar mid-rep, but the breach is logged now)
+    if (sev >= REDLINE_SEVERITY_T) {
+      audit('kinematic_severity_breach', {
+        exercise_key: ek, exercise_name: ev.exercise_name,
+        deviation: ev.deviation, severity: sev, rep_index: rep,
+        threshold: REDLINE_SEVERITY_T,
+      });
+    }
+    audit('kinematic_event_buffered', {
+      exercise_key: ek, exercise_name: ev.exercise_name,
+      deviation: ev.deviation, severity: sev, rep_index: rep,
+    });
+  }
+
+  function _renderHudDeviation(ev) {
+    var root = document.getElementById('kfh-root');
+    if (!root) return;
+    var line = document.createElement('div');
+    line.className = 'kfh-live-event';
+    line.style.cssText = 'padding:4px 8px;margin-top:4px;font-size:.78rem;background:rgba(255,59,48,.12);border-left:3px solid #ff3b30;color:#ff8866;font-family:ui-monospace,monospace';
+    var sevPct = Math.round((Number(ev.severity) || 0) * 100);
+    line.textContent = '⚠ ' + String(ev.deviation || '').replace(/_/g, ' ') +
+                       ' · rep ' + (ev.rep_index || '?') +
+                       ' · severity ' + sevPct + '%';
+    root.appendChild(line);
+    var entries = root.querySelectorAll('.kfh-live-event');
+    if (entries.length > 6) entries[0].remove();
+  }
+
+  function _playCorrectiveCue(ev) {
+    var dev = String(ev.deviation || '');
+    var lookup = DETERMINISTIC_LOOKUP[dev];
+    var cue = lookup
+      ? lookup.cue
+      : ('Pattern variance · rep ' + (ev.rep_index || '?') + '. Reset the brace, retract scaps, finish the rep with control.');
+    if (typeof BBF_OT_PROMPT !== 'undefined' && BBF_OT_PROMPT.passThrough) {
+      try { cue = BBF_OT_PROMPT.passThrough(cue, { agent: VERSION, surface: 'kinematic_cue' }); }
+      catch (_) {}
+    }
+    if (typeof BBF_TTS !== 'undefined' && BBF_TTS.speak) {
+      try { BBF_TTS.speak('virtual_coach', cue); } catch (_) {}
+    }
+  }
+
+  // ── Sustained-Redline gate + Token Cascade ─────────────────────
+  // Fired by bbf:set:completed handler · NEVER mid-rep.
+  function executeTokenCascade(uid, deviations, exerciseKey, exerciseName) {
+    if (!Array.isArray(deviations) || !deviations.length) return;
+
+    // Find the dominant deviation across the set
+    var counts = {}; var maxSev = 0;
+    deviations.forEach(function(d) {
+      counts[d.deviation] = (counts[d.deviation] || 0) + 1;
+      if (d.severity > maxSev) maxSev = d.severity;
+    });
+    var dominant = null, dominantCount = 0;
+    Object.keys(counts).forEach(function(k) {
+      if (counts[k] > dominantCount) { dominant = k; dominantCount = counts[k]; }
+    });
+    var sustainedBreach = dominantCount >= REDLINE_REPS_THRESHOLD;
+    var severityBreach  = maxSev >= REDLINE_SEVERITY_T;
+    if (!sustainedBreach && !severityBreach) {
+      audit('redline_no_trigger', {
+        exercise_key: exerciseKey, exercise_name: exerciseName,
+        dominant: dominant, count: dominantCount, max_severity: maxSev,
+        reps_threshold: REDLINE_REPS_THRESHOLD, severity_threshold: REDLINE_SEVERITY_T,
+      });
+      return;
+    }
+
+    // Phase 0 contract · always re-snapshot CNS before a decision
+    var snap = snapshot(uid);
+    var cnsRedline = !!(snap && snap.Localized && snap.Localized.biomechanical_redline);
+    audit('redline_triggered', {
+      exercise_key: exerciseKey, exercise_name: exerciseName,
+      dominant_deviation: dominant, sustained_count: dominantCount,
+      max_severity: maxSev, cns_redline_active: cnsRedline,
+      gate: sustainedBreach ? 'sustained_reps' : 'severity_immediate',
+    });
+
+    // ── Cascade Step 1 · Deterministic lookup (LIVE) ─────────
+    var det = DETERMINISTIC_LOOKUP[dominant];
+    if (det) {
+      _executeDeterministicSwap(uid, exerciseKey, exerciseName, dominant, det);
+      return;
+    }
+
+    // ── Cascade Step 2 · Claude fallback (RATE-CAPPED) ────────
+    var allowed = true;
+    if (typeof BBF_INTERCEPT !== 'undefined' && BBF_INTERCEPT.rateLimit) {
+      allowed = BBF_INTERCEPT.rateLimit('kinematic_correction', {
+        windowMs: 5 * 60 * 1000,  // 5-min rolling window
+        maxFires: 2,              // ≤ 2 Claude form-correction fires per window
+      });
+    }
+    if (!allowed) {
+      audit('redline_claude_rate_capped', {
+        exercise_key: exerciseKey, exercise_name: exerciseName,
+        deviation: dominant,
+      });
+      _executeGenericTemplate(uid, exerciseKey, exerciseName, dominant);
+      return;
+    }
+    _executeClaudeFallback(uid, exerciseKey, exerciseName, dominant, deviations);
+  }
+
+  function _executeDeterministicSwap(uid, exerciseKey, exerciseName, deviation, det) {
+    var cue = det.cue;
+    if (typeof BBF_OT_PROMPT !== 'undefined' && BBF_OT_PROMPT.passThrough) {
+      try { cue = BBF_OT_PROMPT.passThrough(cue, { agent: VERSION, surface: 'redline_swap_deterministic' }); }
+      catch (_) {}
+    }
+    if (typeof BBF_TTS !== 'undefined' && BBF_TTS.speak) {
+      try { BBF_TTS.speak('virtual_coach', cue + ' Swap target: ' + det.swap_to + '.'); } catch (_) {}
+    }
+    _renderSwapBanner(exerciseName, det.swap_to, cue, 'deterministic_table');
+    audit('redline_swap_executed', {
+      source: 'deterministic_table', exercise_key: exerciseKey,
+      from: exerciseName, to: det.swap_to, deviation: deviation,
+      region: det.region,
+    });
+    _logSwapToCloud(uid, exerciseName, det.swap_to, deviation, 'deterministic');
+  }
+
+  function _executeGenericTemplate(uid, exerciseKey, exerciseName, deviation) {
+    var cue = 'Sustained pattern variance · ' + String(deviation || '').replace(/_/g, ' ') +
+              '. Reset, lighten the load 20 percent, finish the set with strict tempo.';
+    if (typeof BBF_OT_PROMPT !== 'undefined' && BBF_OT_PROMPT.passThrough) {
+      try { cue = BBF_OT_PROMPT.passThrough(cue, { agent: VERSION, surface: 'redline_template' }); }
+      catch (_) {}
+    }
+    if (typeof BBF_TTS !== 'undefined' && BBF_TTS.speak) {
+      try { BBF_TTS.speak('virtual_coach', cue); } catch (_) {}
+    }
+    _renderSwapBanner(exerciseName, exerciseName + ' (lightened)', cue, 'generic_template');
+    audit('redline_template_executed', {
+      source: 'generic_template', exercise_key: exerciseKey,
+      exercise_name: exerciseName, deviation: deviation,
+    });
+  }
+
+  function _executeClaudeFallback(uid, exerciseKey, exerciseName, deviation, deviations) {
+    var systemContext = '';
+    if (typeof BBF_OT_PROMPT !== 'undefined' && BBF_OT_PROMPT.systemContext) {
+      try { systemContext = BBF_OT_PROMPT.systemContext({ scope: 'fitness', clientFirstName: '' }); }
+      catch (_) {}
+    }
+    var snap = snapshot(uid);
+    var headers = { 'Content-Type': 'application/json' };
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+
+    fetch(_supabaseUrl() + '/functions/v1/bbf-agentic-comlink', {
+      method:  'POST',
+      headers: headers,
+      body: JSON.stringify({
+        intent:         'form_correction',
+        uid:            uid,
+        exercise_name:  exerciseName,
+        deviation:      deviation,
+        recent_events:  deviations.slice(-6),
+        client_context: { systemContext: systemContext, cns_snapshot: snap },
+        admin_override: !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true),
+      }),
+    })
+      .then(function(r) { return r.json().catch(function(){ return null; }); })
+      .then(function(j) {
+        if (!j || typeof j.corrective_cue !== 'string' || !j.corrective_cue) {
+          audit('redline_claude_fallback_failed', { exercise_key: exerciseKey, deviation: deviation });
+          _executeGenericTemplate(uid, exerciseKey, exerciseName, deviation);
+          return;
+        }
+        var cue = String(j.corrective_cue);
+        if (typeof BBF_OT_PROMPT !== 'undefined' && BBF_OT_PROMPT.passThrough) {
+          try { cue = BBF_OT_PROMPT.passThrough(cue, { agent: VERSION, surface: 'redline_claude_v3' }); }
+          catch (_) {}
+        }
+        var swapTo = (j.swap_to && String(j.swap_to)) || (exerciseName + ' (modified)');
+        if (typeof BBF_TTS !== 'undefined' && BBF_TTS.speak) {
+          try { BBF_TTS.speak('virtual_coach', cue); } catch (_) {}
+        }
+        _renderSwapBanner(exerciseName, swapTo, cue, 'claude_v3');
+        audit('redline_swap_executed', {
+          source: 'comlink_claude_v3', exercise_key: exerciseKey,
+          from: exerciseName, to: swapTo, deviation: deviation,
+        });
+        _logSwapToCloud(uid, exerciseName, swapTo, deviation, 'claude_v3');
+      })
+      .catch(function(err) {
+        audit('redline_claude_fallback_error', {
+          exercise_key: exerciseKey, deviation: deviation,
+        }, { success: false, error_message: err && err.message });
+        _executeGenericTemplate(uid, exerciseKey, exerciseName, deviation);
+      });
+  }
+
+  function _renderSwapBanner(fromName, toName, cue, source) {
+    var pane = document.getElementById('wcon');
+    if (!pane) return;
+    var existing = document.getElementById('bbf-program-intel-swap-banner');
+    if (existing) existing.remove();
+    var div = document.createElement('div');
+    div.id = 'bbf-program-intel-swap-banner';
+    div.className = 'comlink-verdict-banner';
+    div.style.cssText = 'background:linear-gradient(90deg,#ff8b3d 0%,#c41e3a 100%);color:#fff;padding:.75rem 1rem;border-radius:10px;margin:.5rem 0;font-weight:700;box-shadow:0 4px 14px rgba(196,30,58,.4);';
+    div.innerHTML =
+      '⚠ <strong>FORM SWAP</strong> · ' + _esc(fromName) + ' &rarr; <strong>' + _esc(toName) + '</strong>' +
+      '<br><span style="font-weight:400;font-size:.85rem;display:block;margin-top:.2rem">' + _esc(cue) + '</span>' +
+      '<span style="font-size:.65rem;opacity:.85;display:block;margin-top:.3rem">source: ' + _esc(source) + '</span>';
+    pane.insertBefore(div, pane.firstChild);
+  }
+
+  function _logSwapToCloud(uid, fromName, toName, deviation, source) {
+    if (typeof BBF_SYNC === 'undefined' || !BBF_SYNC.syncLog) return;
+    try {
+      BBF_SYNC.syncLog(uid, {
+        date:  new Date().toISOString().slice(0,10),
+        notes: 'Form swap · ' + fromName + ' → ' + toName + ' · deviation=' + deviation + ' · source=' + source + ' · ' + VERSION,
+      }).catch(function(err) {
+        console.warn('[BBF_PROGRAM_INTEL] cloud swap log rejected:', err && err.message);
+      });
+    } catch (e) {
+      console.warn('[BBF_PROGRAM_INTEL] cloud swap log threw:', e && e.message);
+    }
+  }
+
+  // ── Hypertrophy Heatmap · 7-day localized fatigue forecast ─────
+  // Aggregates per-muscle-group fatigue AU from the local set log
+  // (mirrors what cloud holds in bbf_sets), runs each set through
+  // BBF_DATA.estimateSetFatigueAU(), bins into 4 color levels.
+  // Paints at the top of #wcon before the athlete's next set.
+  function forecastFatigueForUid(uid) {
+    if (typeof BBF_DATA === 'undefined' || !BBF_DATA.estimateSetFatigueAU) return {};
+    if (typeof GD !== 'function') return {};
+    var d = GD();
+    var wl = (d.w && d.w[uid]) || {};
+    var totals = {};
+    var plan = (typeof PLAN !== 'undefined') ? PLAN : null;
+    var nowMs = Date.now();
+    var acuteCutoff = nowMs - 7 * 86400000;
+    Object.keys(wl).forEach(function(dk) {
+      var dayBuckets = wl[dk] || {};
+      var dayStr = (dk.split('_d')[0] || '');
+      if (!dayStr) return;
+      var dayTs = new Date(dayStr + 'T12:00:00').getTime();
+      if (isNaN(dayTs) || dayTs < acuteCutoff) return;
+      var dayIdx = parseInt((dk.split('_d')[1]) || '0');
+      Object.keys(dayBuckets).forEach(function(ek) {
+        var exIdx = parseInt((ek.split('_')[1]) || '0');
+        var exName = (plan && plan[dayIdx] && plan[dayIdx].exercises && plan[dayIdx].exercises[exIdx] && plan[dayIdx].exercises[exIdx].name) || ek;
+        (dayBuckets[ek] || []).forEach(function(setObj) {
+          if (!setObj || !setObj.r) return;
+          var au = BBF_DATA.estimateSetFatigueAU(exName, setObj.r, setObj.w, setObj.rpe);
+          Object.keys(au).forEach(function(g) { totals[g] = (totals[g] || 0) + au[g]; });
+        });
+      });
+    });
+    return totals;
+  }
+
+  function _fatigueColorFor(au) {
+    if (au < 50)  return { color: '#1e8a3b', label: 'fresh'      };  // green
+    if (au < 120) return { color: '#d4a017', label: 'productive' };  // yellow
+    if (au < 200) return { color: '#e67e22', label: 'high'       };  // orange
+    return                 { color: '#c41e3a', label: 'forecast overload' }; // red
+  }
+
+  function renderHypertrophyHeatmap() {
+    var pane = document.getElementById('wcon');
+    if (!pane) return;
+    var uid = _activeUid();
+    if (!uid) return;
+    // Debounce against thrashing from rapid set saves
+    var nowTs = Date.now();
+    if (nowTs - _heatmapDebounceTs < 200) return;
+    _heatmapDebounceTs = nowTs;
+
+    var existing = document.getElementById('bbf-hypertrophy-heatmap');
+    if (existing) existing.remove();
+    var totals = forecastFatigueForUid(uid);
+    var groups = (typeof BBF_DATA !== 'undefined' && BBF_DATA.MUSCLE_GROUPS) ? BBF_DATA.MUSCLE_GROUPS : [];
+    if (!groups.length) return;
+    var cells = groups.map(function(g) {
+      var au = Math.round(totals[g] || 0);
+      var fc = _fatigueColorFor(au);
+      var label = g.replace(/_/g, ' ');
+      return '<div class="hh-cell" style="background:' + fc.color + ';color:#fff;padding:.45rem .3rem;border-radius:6px;text-align:center;font-size:.62rem;font-weight:800;line-height:1.2">' +
+               '<div style="text-transform:uppercase;letter-spacing:1px;opacity:.95">' + _esc(label) + '</div>' +
+               '<div style="font-size:.9rem;margin-top:.1rem">' + au + '</div>' +
+               '<div style="font-size:.55rem;opacity:.85;font-weight:600">' + _esc(fc.label) + '</div>' +
+             '</div>';
+    }).join('');
+    var wrap = document.createElement('div');
+    wrap.id = 'bbf-hypertrophy-heatmap';
+    wrap.style.cssText = 'background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:.6rem;margin:.5rem 0';
+    wrap.innerHTML =
+      '<div style="font-size:.62rem;font-weight:800;letter-spacing:2px;color:#888;margin-bottom:.4rem;text-transform:uppercase">' +
+        '■ Hypertrophy Heatmap · 7-day localized fatigue forecast' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem">' + cells + '</div>';
+    pane.insertBefore(wrap, pane.firstChild);
+  }
+
+  // ── Phase 4 Task 4 · Mesocycle restructure proposal ────────────
+  // STAGES a block_priority_shift proposal to bbf_pending_review
+  // for founder approval. NEVER executes live. Includes the current
+  // cns_friction_score in metadata so the founder has full context.
+  function proposeMesocycleRestructure(opts) {
+    opts = opts || {};
+    var uid = opts.uid || _activeUid();
+    if (!uid) return Promise.reject(new Error('no_active_uid'));
+    var snap = snapshot(uid);
+    var cnsScore = (snap && snap.Systemic && typeof snap.Systemic.cns_friction_score === 'number')
+      ? snap.Systemic.cns_friction_score : null;
+    var afterPayload = Object.assign({ block_priority: 'recovery' }, opts.after || {});
+    var body = {
+      proposal_type: 'block_priority_shift',
+      risk_level:    opts.risk_level || 'high',
+      population:    { uids: [uid], cohort: opts.cohort || 'single' },
+      diff: {
+        target_table: 'bbf_users',
+        target_uid:   uid,
+        before:       { block_priority: opts.current_block || null, cns_friction_score: cnsScore },
+        after:        afterPayload,
+        fields:       Object.keys(afterPayload),
+      },
+      rationale: opts.rationale || 'Mesocycle restructure proposed by ' + VERSION + ' due to systemic overtraining signal. Founder approval required before block priority shift goes live.',
+      proposed_by: VERSION,
+      metadata: {
+        cns_snapshot:          snap,
+        ot_signal:             opts.ot_signal || null,
+        proposed_restructure:  opts.restructure_spec || null,
+        triggered_at:          new Date().toISOString(),
+      },
+    };
+    var headers = { 'Content-Type': 'application/json' };
+    var tok = _renderToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+    return fetch(_renderProxyOrigin() + '/api/proposal-submit', {
+      method: 'POST', headers: headers, body: JSON.stringify(body),
+    })
+      .then(function(r) { return r.json().catch(function(){ return null; }); })
+      .then(function(j) {
+        audit('mesocycle_restructure_proposed', {
+          ok: !!(j && j.ok),
+          proposal_id: j && j.proposal && j.proposal.id,
+          target_uid: uid,
+        });
+        return j;
+      });
+  }
+
+  // ── Forecast invocation · routes through bbf-agentic-forecasting ─
+  function runForecast(uid, opts) {
+    uid = uid || _activeUid();
+    opts = opts || {};
+    if (!uid) return Promise.reject(new Error('no_active_uid'));
+    var headers = { 'Content-Type': 'application/json' };
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+    return fetch(_supabaseUrl() + '/functions/v1/bbf-agentic-forecasting', {
+      method: 'POST', headers: headers,
+      body: JSON.stringify({
+        uid:            uid,
+        lift_name:      opts.lift_name || 'Back Squat',
+        intent:         opts.intent || null,  // null → 1RM forecast · 'systemic_ot_scan' → OT scan branch
+        admin_override: !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true),
+      }),
+    })
+      .then(function(r) { return r.json().catch(function(){ return null; }); })
+      .then(function(j) {
+        if (j && j.ot_signal && j.ot_signal.detected) {
+          audit('forecast_ot_detected', {
+            ot_signal:          j.ot_signal,
+            staged_proposal_id: j.ot_signal.staged_proposal_id || null,
+            target_uid:         uid,
+          });
+        }
+        return j;
+      });
+  }
+
+  // ── Debug · fire a kinematic event manually for QA (admin console) ─
+  // Usage:
+  //   BBF_PROGRAM_INTEL.debugFireKinematicEvent('valgus_collapse', 0.85, 3, 'ex_0', 'Back Squat')
+  function debugFireKinematicEvent(deviation, severity, rep_index, exercise_key, exercise_name) {
+    var ev = {
+      uid:           _activeUid(),
+      exercise_key:  exercise_key  || 'ex_0',
+      exercise_name: exercise_name || 'Test Exercise',
+      deviation:     deviation     || 'valgus_collapse',
+      severity:      (severity != null) ? severity : 0.5,
+      rep_index:     (rep_index != null) ? rep_index : 1,
+      ts:            Date.now(),
+    };
+    handleKinematicEvent(ev);
+    return ev;
+  }
+
+  return {
+    VERSION:                     VERSION,
+    DETERMINISTIC_LOOKUP:        DETERMINISTIC_LOOKUP,
+    REDLINE_REPS_THRESHOLD:      REDLINE_REPS_THRESHOLD,
+    REDLINE_SEVERITY_T:          REDLINE_SEVERITY_T,
+    ensureListener:              ensureListener,
+    snapshot:                    snapshot,
+    audit:                       audit,
+    handleKinematicEvent:        handleKinematicEvent,
+    executeTokenCascade:         executeTokenCascade,
+    forecastFatigueForUid:       forecastFatigueForUid,
+    renderHypertrophyHeatmap:    renderHypertrophyHeatmap,
+    proposeMesocycleRestructure: proposeMesocycleRestructure,
+    runForecast:                 runForecast,
+    debugFireKinematicEvent:     debugFireKinematicEvent,
+  };
+})();
+
+// Install listeners + initial heatmap at script-load. Heatmap render
+// is best-effort · the workout pane may not exist yet at load time.
+try { if (typeof BBF_PROGRAM_INTEL !== 'undefined') BBF_PROGRAM_INTEL.ensureListener(); } catch (_) {}
+
+// ════════════════════════════════════════════════════════════════════════
 // BBF_KINEMATICS · Phase 6 — Live Kinematic Mapping (Form Check)
 // ────────────────────────────────────────────────────────────────────────
 // "🎥 Form Check" button injected by RDW() at the bottom of every primary
@@ -15244,7 +15884,56 @@ var BBF_INTERCEPT = (function() {
     try { localStorage.removeItem(STORE_PREFIX + (featureKey || '')); } catch (_) {}
   }
 
-  return { check: check, reset: reset };
+  // ── Rate-cap layer · Phase 4 token-burn guard ────────────────────
+  // Separate from the first-click education flow above. Callers use
+  // this to put a hard ceiling on Claude fires for token-sensitive
+  // surfaces (e.g., live form-correction cascades). Returns true if
+  // this fire is allowed; false if the caller is over budget.
+  //
+  // Usage:
+  //   var ok = BBF_INTERCEPT.rateLimit('kinematic_correction', {
+  //     windowMs: 5 * 60 * 1000,  // 5-min rolling window
+  //     maxFires: 2,              // ≤ 2 fires in the window
+  //   });
+  //   if (ok) { fireClaude(); }
+  //
+  // State is stored in localStorage as a small JSON timestamp array
+  // per key. Old timestamps fall out of the window automatically.
+  var RATE_PREFIX = 'rate_limit.';
+  function rateLimit(featureKey, opts) {
+    if (!featureKey) return true;
+    opts = opts || {};
+    var windowMs = Math.max(1000, Number(opts.windowMs) || 5 * 60 * 1000);
+    var maxFires = Math.max(1, Number(opts.maxFires) || 3);
+    var now      = Date.now();
+    var cutoff   = now - windowMs;
+    var key      = RATE_PREFIX + featureKey;
+    var arr;
+    try { arr = JSON.parse(localStorage.getItem(key) || '[]'); }
+    catch (_) { arr = []; }
+    if (!Array.isArray(arr)) arr = [];
+    arr = arr.filter(function(ts) { return Number(ts) > cutoff; });
+    if (arr.length >= maxFires) {
+      // Over budget · do NOT record this attempt, just refuse.
+      console.warn('[BBF_INTERCEPT] rateLimit refused · ' + featureKey + ' · ' + arr.length + '/' + maxFires + ' fires in window');
+      return false;
+    }
+    arr.push(now);
+    try { localStorage.setItem(key, JSON.stringify(arr.slice(-50))); } catch (_) {}
+    return true;
+  }
+
+  // QA helper · clears rate-limit state for a feature key.
+  function rateLimitReset(featureKey) {
+    try { localStorage.removeItem(RATE_PREFIX + (featureKey || '')); } catch (_) {}
+  }
+
+  return {
+    check:           check,
+    reset:           reset,
+    rateLimit:       rateLimit,
+    rateLimitReset:  rateLimitReset,
+  };
 })();
 
 // ════════════════════════════════════════════════════════════════════════
@@ -16972,6 +17661,17 @@ function RDW() {
   if (typeof BBF_PEAKING_ENGINE !== 'undefined' && !day.isRest) {
     BBF_PEAKING_ENGINE.fire(day, dk, uid);
   }
+
+  // ─── Phase 4 · Hypertrophy Heatmap render ─────────────────────
+  // BBF_PROGRAM_INTEL.renderHypertrophyHeatmap() inserts a 12-cell
+  // muscle-group fatigue forecast at the top of #wcon before every
+  // workout view paint. Color-shifts per muscle group based on 7-day
+  // bbf_sets telemetry so the athlete can see localized fatigue
+  // before they start the next set. Skipped on rest days.
+  if (typeof BBF_PROGRAM_INTEL !== 'undefined' && !day.isRest) {
+    try { BBF_PROGRAM_INTEL.renderHypertrophyHeatmap(); }
+    catch (e) { console.warn('[RDW] heatmap render threw:', e && e.message); }
+  }
 }
 
 function TEX(hdr) {
@@ -17003,6 +17703,35 @@ function SVS(inp) {
   inp.classList.add('done');
   saveSetToSession(inp.dataset.dk, inp.dataset.ek, parseInt(inp.dataset.s), inp.dataset.f, v);
   queueSync({uid:uid, dk:inp.dataset.dk, ek:inp.dataset.ek, s:parseInt(inp.dataset.s), f:inp.dataset.f, v:v});
+  // Phase 4 · dispatch bbf:set:completed so BBF_PROGRAM_INTEL can
+  // (a) re-render the Hypertrophy Heatmap before the next set and
+  // (b) drain any buffered kinematic deviations through the
+  // Sustained-Redline gate during the rest gap. Idempotent · the
+  // buffer is consumed once per set, subsequent field saves are no-ops.
+  try {
+    var setObj = (d.w[uid] && d.w[uid][dk] && d.w[uid][dk][ek] && d.w[uid][dk][ek][s]) || {};
+    var exName = '';
+    try {
+      var dayIdx = parseInt((dk.split('_d')[1]) || '0');
+      var exIdx  = parseInt((ek.split('_')[1])  || '0');
+      if (typeof PLAN !== 'undefined' && PLAN && PLAN[dayIdx] && PLAN[dayIdx].exercises && PLAN[dayIdx].exercises[exIdx]) {
+        exName = PLAN[dayIdx].exercises[exIdx].name || '';
+      }
+    } catch (_) {}
+    window.dispatchEvent(new CustomEvent('bbf:set:completed', {
+      detail: {
+        uid:          uid,
+        dk:           dk,
+        ek:           ek,
+        s:            s,
+        f:            f,
+        v:            v,
+        exerciseName: exName,
+        setObj:       setObj,
+        ts:           Date.now(),
+      }
+    }));
+  } catch (_) {}
 }
 
 async function CWO(day, dk) {

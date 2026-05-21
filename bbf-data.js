@@ -1255,6 +1255,100 @@ var BBF_DATA = (function() {
     return 'systemic';
   }
 
+  // ── Canonical muscle-group taxonomy · Phase 4 Hypertrophy Heatmap ─
+  // Parallel to JOINT_REGIONS but oriented to muscle development
+  // tracking (hypertrophy is muscle-centric · injury surveillance is
+  // joint-centric). Used by BBF_PROGRAM_INTEL to compute localized
+  // fatigue forecasts before the athlete's next set.
+  var MUSCLE_GROUPS = [
+    'quads','hams','glutes','calves',
+    'chest','back_lats','back_traps','delts',
+    'biceps','triceps','core','posterior_chain'
+  ];
+
+  // Exercise-name pattern → muscle-group set. Each pattern can map to
+  // 1-3 muscle groups (primary mover + dominant accessories). The
+  // entire list is scanned; matches accumulate so a "Bench Press"
+  // contributes to chest + delts + triceps in proportion to standard
+  // EMG-weighted recruitment.
+  var MUSCLE_PATTERNS = [
+    { re: /\bback\s*squat|front\s*squat|goblet\s*squat|hack\s*squat|sissy\s*squat|leg press|smith\s*squat\b/i,
+      groups: ['quads','glutes','core'] },
+    { re: /\b(rdl|romanian\s*deadlift|good[- ]?morning|hip thrust|cable pull[- ]?through|glute bridge)\b/i,
+      groups: ['hams','glutes','posterior_chain'] },
+    { re: /\bdeadlift|sumo|trap[- ]?bar\b/i,
+      groups: ['hams','glutes','back_traps','posterior_chain'] },
+    { re: /\blunge|split squat|step[- ]?up|bulgarian\b/i,
+      groups: ['quads','glutes','hams'] },
+    { re: /\bleg extension|sissy\b/i,
+      groups: ['quads'] },
+    { re: /\bleg curl|hamstring curl|nordic\b/i,
+      groups: ['hams'] },
+    { re: /\babduction|abductor|clamshell\b/i,
+      groups: ['glutes'] },
+    { re: /\bcalf raise|gastroc|soleus|tibial|pogo|jump rope\b/i,
+      groups: ['calves'] },
+    { re: /\bbench press|incline press|decline press|chest press|push[- ]?up|dip|pec deck|fly\b/i,
+      groups: ['chest','delts','triceps'] },
+    { re: /\b(lat\s*pull|pulldown|chin[- ]?up|pull[- ]?up|seal\s*row|mts\s*pull)\b/i,
+      groups: ['back_lats','biceps'] },
+    { re: /\b(seated\s*row|cable\s*row|bent[- ]?over\s*row|t[- ]?bar\s*row|single\s*arm\s*row|inverted\s*row|barbell\s*row|chest[- ]?supported\s*row)\b/i,
+      groups: ['back_lats','back_traps','biceps'] },
+    { re: /\bface pull|rear delt|reverse fly\b/i,
+      groups: ['delts','back_traps'] },
+    { re: /\b(shoulder press|overhead press|ohp|military press|arnold press|push press|landmine press|z[- ]?press)\b/i,
+      groups: ['delts','triceps','core'] },
+    { re: /\blateral raise|front raise|side raise\b/i,
+      groups: ['delts'] },
+    { re: /\bshrug\b/i,
+      groups: ['back_traps'] },
+    { re: /\b(curl|preacher|hammer)\b/i,
+      groups: ['biceps'] },
+    { re: /\b(tricep|pushdown|skull|kickback|overhead extension)\b/i,
+      groups: ['triceps'] },
+    { re: /\bplank|crunch|sit[- ]?up|hollow|dead bug|pallof|woodchop|side bend|hanging leg|bird[- ]?dog|knee raise|russian twist|heel tap\b/i,
+      groups: ['core'] },
+    { re: /\bback extension|hyperextension|farmer|carry|swing|kettlebell swing\b/i,
+      groups: ['posterior_chain','glutes','core'] },
+  ];
+
+  function classifyExerciseToMuscleGroups(name) {
+    if (!name) return [];
+    var s = String(name);
+    var hits = {};
+    for (var i = 0; i < MUSCLE_PATTERNS.length; i++) {
+      if (MUSCLE_PATTERNS[i].re.test(s)) {
+        MUSCLE_PATTERNS[i].groups.forEach(function(g) { hits[g] = true; });
+      }
+    }
+    return Object.keys(hits);
+  }
+
+  // Per-set fatigue contribution in arbitrary units (AU). Mirrors the
+  // joint-region load model · sets × reps × intensity-coefficient.
+  // RPE (Rate of Perceived Exertion, 1-10) scales the AU since the
+  // last 1-2 reps of an RPE-9 set drive most hypertrophic stimulus.
+  //   AU(set) = reps × intensity_factor × rpe_weight
+  // Returns a per-muscle-group map · split evenly across the resolved
+  // muscle groups so a compound contributes proportionally.
+  function estimateSetFatigueAU(exerciseName, reps, weightLbs, rpe) {
+    var groups = classifyExerciseToMuscleGroups(exerciseName);
+    if (!groups.length) return {};
+    var r = Number(reps) || 0;
+    var w = Number(weightLbs) || 0;
+    // Intensity factor: bodyweight or light dumbbell at the floor (1.0).
+    // Heavy barbell sets ramp via a log-scaled coefficient capped at 3.0.
+    var intensity = w > 0 ? Math.min(3.0, 1.0 + Math.log10(1 + w / 50)) : 1.0;
+    var rpeWeight = (rpe != null && Number(rpe) > 0)
+      ? Math.max(0.5, Math.min(1.4, Number(rpe) / 7))
+      : 1.0;
+    var au = r * intensity * rpeWeight;
+    var perGroup = au / groups.length;
+    var out = {};
+    groups.forEach(function(g) { out[g] = perGroup; });
+    return out;
+  }
+
   // ── Canonical ACWR computation ───────────────────────────────────
   // Acute = mean daily load over the last 7 days.
   // Chronic = mean daily load over the last 28 days.
@@ -1379,15 +1473,18 @@ var BBF_DATA = (function() {
   }
 
   return {
-    JOINT_REGIONS:            JOINT_REGIONS,
-    BASELINE_STATUS:          BASELINE_STATUS,
-    BLOCK_PRIORITIES:         BLOCK_PRIORITIES,
-    CARDIAC_CLEARANCE:        CARDIAC_CLEARANCE,
-    classifyExerciseToRegion: classifyExerciseToRegion,
-    computeACWR:              computeACWR,
-    acwrForUserRegion:        acwrForUserRegion,
-    computeBaselineStatus:    computeBaselineStatus,
-    invalidateCache:          invalidateCache,
+    JOINT_REGIONS:                  JOINT_REGIONS,
+    MUSCLE_GROUPS:                  MUSCLE_GROUPS,
+    BASELINE_STATUS:                BASELINE_STATUS,
+    BLOCK_PRIORITIES:               BLOCK_PRIORITIES,
+    CARDIAC_CLEARANCE:              CARDIAC_CLEARANCE,
+    classifyExerciseToRegion:       classifyExerciseToRegion,
+    classifyExerciseToMuscleGroups: classifyExerciseToMuscleGroups,
+    estimateSetFatigueAU:           estimateSetFatigueAU,
+    computeACWR:                    computeACWR,
+    acwrForUserRegion:              acwrForUserRegion,
+    computeBaselineStatus:          computeBaselineStatus,
+    invalidateCache:                invalidateCache,
   };
 })();
 

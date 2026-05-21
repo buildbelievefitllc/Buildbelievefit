@@ -1,6 +1,6 @@
-// bbf-agentic-comlink — Sovereign Comlink (Phase 7 + Warheads 2/3)
+// bbf-agentic-comlink v3 — Sovereign Comlink (Phase 7 + Warheads 2/3 + Phase 4)
 // ─────────────────────────────────────────────────────────────────────
-// SINGLE-FN ROUTER. Three intents, one entrypoint:
+// SINGLE-FN ROUTER. FOUR intents, one entrypoint:
 //
 //   (a) constraint   — athlete states a time / equipment / minor-pain
 //                      constraint mid-session. Agent rewrites today's
@@ -25,9 +25,17 @@
 //                      ({ drill_index, coaching_verdict, why }) so the
 //                      Athlete Portal can render a drill card.
 //
+//   (d) form_correction (Phase 4 · Sustained-Redline cascade) — fired
+//                      by BBF_PROGRAM_INTEL when the deterministic
+//                      redline lookup table MISSES on a novel kinematic
+//                      deviation. Rate-capped via BBF_INTERCEPT before
+//                      it gets here so this code path is never hot.
+//                      Returns { corrective_cue, swap_to } so the Form
+//                      Swap banner can render in the rest gap.
+//
 // Routing: intents (a) and (b) are auto-classified by Claude inside ONE
 // prompt (the default flow when `intent` is missing or = "constraint").
-// Intent (c) is explicit — frontend sets `intent: "positional_drill"`.
+// Intents (c) and (d) are explicit — frontend sets `intent` accordingly.
 //
 // Request shape:
 //   POST /functions/v1/bbf-agentic-comlink
@@ -230,6 +238,121 @@ const RESPONSE_SCHEMA_POSITIONAL = {
   required: ['drill_index', 'coaching_verdict', 'why'],
   additionalProperties: false,
 };
+
+// ═══════════════════════════════════════════════════════════════════════
+// (d) — Form Correction (Phase 4 · Sustained-Redline cascade)
+// ═══════════════════════════════════════════════════════════════════════
+const SYSTEM_PROMPT_FORM_CORRECTION = [
+  'You are the BBF Form-Correction Comlink. The athlete is mid-session. The deterministic redline lookup table has MISSED — this is a NOVEL kinematic deviation that has persisted across multiple reps. The Sustained-Redline gate has already fired, the rate-cap has already cleared. Your only job: return ONE direct corrective cue and the single best alternate exercise to swap to.',
+  '',
+  '# YOU RECEIVE',
+  '- exercise_name — the lift the athlete is currently performing.',
+  '- deviation — a canonical key for the kinematic fault (e.g. "valgus_collapse", "lumbar_flexion", "elbow_flare", or something novel the vision agent flagged).',
+  '- recent_events — array of up to 6 most-recent flagged reps: { deviation, severity (0-1), rep_index, ts }.',
+  '- client_context.systemContext — the BBF Occupational Therapy reasoning frame (MEANINGFUL OCCUPATION + GRADED PROGRESSION + ADAPTIVE COMPENSATION). Honor it.',
+  '- client_context.cns_snapshot — the athlete\'s current Systemic / Localized / Axial state.',
+  '',
+  '# YOUR OUTPUT',
+  '- corrective_cue — ONE direct sentence (under 140 chars). Sharp coach voice. Imperative. Describes (a) what the deviation IS in plain English and (b) the specific fix the athlete should apply on the next attempt. Examples:',
+  '    · "Pelvis rotating left on the descent. Brace harder on the right oblique, mid-foot pressure."',
+  '    · "Bar drifting forward on the second pull. Reset stance two inches narrower, pull through the heels."',
+  '- swap_to — the SINGLE best alternate exercise to switch to (string · specific movement name). If the deviation is mild AND the athlete can correct it with the cue alone, return the same exercise_name (it signals "stay on the lift, apply the cue"). Otherwise pick a movement that delivers the same training stimulus but removes the friction pattern.',
+  '',
+  '# CONSTRAINTS',
+  '- ADAPTIVE COMPENSATION — never push through. The swap exercise must REMOVE the friction, not work around it.',
+  '- Direct voice. No "consider", "perhaps", "may want to". Imperatives only.',
+  '- The cue is read aloud mid-session — keep it tight, no preamble, NO clinical vocabulary (no "pathology", "diagnosis", "dysfunction"; use "friction", "pattern variance", "load alert").',
+  '- If the deviation is severe AND recurring, bias toward a machine or regression (e.g. hack squat instead of back squat, landmine press instead of OHP).',
+  '',
+  'Return ONLY structured JSON matching the response schema. No markdown, no preamble.',
+].join('\n');
+
+const RESPONSE_SCHEMA_FORM_CORRECTION = {
+  type: 'object',
+  properties: {
+    corrective_cue: {
+      type: 'string',
+      description: 'One direct coach sentence under 140 chars describing the deviation and the fix.',
+    },
+    swap_to: {
+      type: 'string',
+      description: 'Single best alternate exercise name. May equal exercise_name when the cue alone suffices.',
+    },
+  },
+  required: ['corrective_cue', 'swap_to'],
+  additionalProperties: false,
+};
+
+function adminOverrideMockFormCorrection() {
+  return {
+    corrective_cue: 'MASTER KEY: Form correction bypassed · admin override active.',
+    swap_to:        'ADMIN BYPASS: Hack Squat',
+  };
+}
+function defaultFormCorrectionFallback(exerciseName: string, deviation: string, reason: string) {
+  return {
+    corrective_cue: 'Comlink offline (' + reason + '). Sustained ' + (deviation || 'pattern') + ' variance · lighten the load 20% and finish the set with strict tempo.',
+    swap_to:        exerciseName || 'Same exercise (lightened)',
+  };
+}
+
+async function handleFormCorrection(payload: any, apiKey: string) {
+  const uid           = payload && payload.uid;
+  const exerciseName  = payload && payload.exercise_name;
+  const deviation     = payload && payload.deviation;
+  const recentEvents  = Array.isArray(payload && payload.recent_events) ? payload.recent_events.slice(0, 6) : [];
+  const clientContext = (payload && typeof payload.client_context === 'object') ? payload.client_context : {};
+
+  if (typeof uid !== 'string' || !uid)                        return jsonResponse({ error: 'missing_uid' }, 400);
+  if (typeof exerciseName !== 'string' || !exerciseName)      return jsonResponse({ error: 'missing_exercise_name' }, 400);
+  if (typeof deviation !== 'string' || !deviation)            return jsonResponse({ error: 'missing_deviation' }, 400);
+
+  const systemContext = (clientContext && typeof clientContext.systemContext === 'string')
+    ? clientContext.systemContext : '';
+
+  const userMessage =
+    '## athlete profile\n' +
+    '```json\n' + JSON.stringify({ uid }, null, 2) + '\n```\n\n' +
+    '## current exercise\n' +
+    '"' + exerciseName + '"\n\n' +
+    '## deviation (novel · not in deterministic lookup)\n' +
+    '"' + deviation + '"\n\n' +
+    '## recent_events (last ' + recentEvents.length + ' flagged reps)\n' +
+    '```json\n' + JSON.stringify(recentEvents, null, 2) + '\n```\n\n' +
+    '## client_context\n' +
+    '```json\n' + JSON.stringify(clientContext, null, 2) + '\n```\n\n' +
+    (systemContext ? '## OT reasoning frame (injected from BBF_OT_PROMPT.systemContext)\n' + systemContext + '\n\n' : '') +
+    'Return ONLY the JSON schema response.';
+
+  const t0     = Date.now();
+  const result = await callClaude(userMessage, SYSTEM_PROMPT_FORM_CORRECTION, RESPONSE_SCHEMA_FORM_CORRECTION, apiKey);
+  const dur    = Date.now() - t0;
+
+  if (!result.ok) {
+    console.warn(`[bbf-agentic-comlink:form_correction] Claude failed (${result.error}) after ${dur}ms — fallback`);
+    return jsonResponse(defaultFormCorrectionFallback(exerciseName, deviation, 'claude_failed'), 200);
+  }
+  const respBody: any = result.body;
+  const text = extractTextBlock(respBody?.content);
+  if (!text) return jsonResponse(defaultFormCorrectionFallback(exerciseName, deviation, 'no_text_block'), 200);
+
+  let parsed: any;
+  try { parsed = JSON.parse(text); }
+  catch (e) {
+    console.warn(`[bbf-agentic-comlink:form_correction] parse failed (${(e as Error).message}) — fallback`);
+    return jsonResponse(defaultFormCorrectionFallback(exerciseName, deviation, 'parse_failed'), 200);
+  }
+  if (!parsed || typeof parsed.corrective_cue !== 'string' || typeof parsed.swap_to !== 'string') {
+    console.warn(`[bbf-agentic-comlink:form_correction] schema mismatch — fallback. got=${JSON.stringify(parsed).slice(0,200)}`);
+    return jsonResponse(defaultFormCorrectionFallback(exerciseName, deviation, 'schema_mismatch'), 200);
+  }
+
+  console.log(`[bbf-agentic-comlink:form_correction] uid=${uid} · ex=${exerciseName} · dev=${deviation} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  return jsonResponse({
+    corrective_cue: parsed.corrective_cue.slice(0, 240),
+    swap_to:        parsed.swap_to.slice(0, 120),
+  }, 200);
+}
 
 // ─── Omniscience Mocks (CEO spec, verbatim) ────────────────────────────
 function adminOverrideMockRewrite() {
@@ -455,6 +578,18 @@ serve(async (req: Request) => {
       return jsonResponse(defaultPositionalFallback('config_missing'), 200);
     }
     return await handlePositionalDrill(payload, ANTHROPIC_API_KEY);
+  }
+
+  // ─── Route to form_correction flow (Phase 4 cascade fallback) ──
+  if (intent === 'form_correction') {
+    if (payload.admin_override === true) {
+      return jsonResponse(adminOverrideMockFormCorrection(), 200);
+    }
+    if (!ANTHROPIC_API_KEY) {
+      console.error('[bbf-agentic-comlink:form_correction] missing ANTHROPIC_API_KEY — fallback');
+      return jsonResponse(defaultFormCorrectionFallback(payload?.exercise_name || '', payload?.deviation || '', 'config_missing'), 200);
+    }
+    return await handleFormCorrection(payload, ANTHROPIC_API_KEY);
   }
 
   // ─── Default flow — constraint OR friction (Warhead 3) ─────────
