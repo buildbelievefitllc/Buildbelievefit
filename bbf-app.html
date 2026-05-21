@@ -12058,7 +12058,157 @@ var BBF_CNS_AGENT = (function() {
   // cardio/timed exercises (no rep-band semantics).
   function renderExerciseOverlayHTML(rx, exReps) { return ""; /* NUKED per CEO directive */ }
 
+  // ── Phase 0 · Single-Writer State Registry ────────────────────────
+  // BBF_CNS_AGENT is the SOLE authorized writer of:
+  //   bbf_users.cns_friction_score
+  //   bbf_users.biomechanical_redline
+  //   bbf_users.somatic_cognitive_load
+  // No other module / consumer / engine may write these fields directly.
+  // A WRITE_TOKEN is generated once at module-load; only internal _set*
+  // functions hold the token. External callers MUST route through the
+  // public propose* methods which validate + emit events.
+  //
+  // 3-D STATE OBJECT · canonical shape every consumer reads from:
+  //   { Systemic:  { cns_friction_score, somatic_cognitive_load, computed_at },
+  //     Localized: { biomechanical_redline, region_alerts:{} , computed_at },
+  //     Axial:     { posture_load, axial_compression_flag, computed_at } }
+  // EVENT EMITTER · 'bbf:cns:updated' fires on every state change;
+  // consumer tabs MUST re-snapshot before any agentic decision.
+  var _WRITE_TOKEN = (function() {
+    try {
+      var arr = new Uint8Array(16);
+      crypto.getRandomValues(arr);
+      return Array.prototype.map.call(arr, function(b){ return ('00'+b.toString(16)).slice(-2); }).join('');
+    } catch (_) { return 'bbf_cns_' + Math.random().toString(36).slice(2) + '_' + Date.now(); }
+  })();
+  var _stateByUid = {}; // { uid: { Systemic, Localized, Axial, _rev } }
+
+  function _ensureState(uid) {
+    if (!uid) return null;
+    if (!_stateByUid[uid]) {
+      var dGD = _GD();
+      var u = (dGD.u && dGD.u[uid]) || {};
+      _stateByUid[uid] = {
+        Systemic:  {
+          cns_friction_score:     (u.cns_friction_score != null) ? Number(u.cns_friction_score) : null,
+          somatic_cognitive_load: (u.somatic_cognitive_load != null) ? Number(u.somatic_cognitive_load) : null,
+          computed_at: u.cns_friction_updated_at || null,
+        },
+        Localized: {
+          biomechanical_redline: !!u.biomechanical_redline,
+          region_alerts:         {},
+          computed_at:           u.biomechanical_redline_at || null,
+        },
+        Axial:     {
+          posture_load:            null,
+          axial_compression_flag:  false,
+          computed_at:             null,
+        },
+        _rev: 0,
+      };
+    }
+    return _stateByUid[uid];
+  }
+
+  function snapshot(uid) {
+    if (!uid) return null;
+    var s = _ensureState(uid);
+    return s ? JSON.parse(JSON.stringify(s)) : null;  // deep copy · consumers can't mutate via reference
+  }
+
+  function _emit(uid, dimension, changes) {
+    try {
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('bbf:cns:updated', {
+          detail: { uid: uid, dimension: dimension, changes: changes, rev: _stateByUid[uid]._rev, ts: Date.now() }
+        }));
+      }
+    } catch (_) {}
+  }
+
+  function _write(uid, dimension, patch, token) {
+    if (token !== _WRITE_TOKEN) {
+      console.error('[BBF_CNS_AGENT] write blocked · invalid token · attempt from outside the single-writer boundary');
+      return { ok: false, error: 'unauthorized_writer' };
+    }
+    if (!uid || !dimension || !patch) return { ok: false, error: 'bad_args' };
+    var s = _ensureState(uid);
+    if (!s[dimension]) return { ok: false, error: 'unknown_dimension' };
+    var changes = {};
+    Object.keys(patch).forEach(function(k) {
+      if (s[dimension][k] !== patch[k]) {
+        changes[k] = { before: s[dimension][k], after: patch[k] };
+        s[dimension][k] = patch[k];
+      }
+    });
+    if (Object.keys(changes).length === 0) return { ok: true, no_change: true };
+    s[dimension].computed_at = new Date().toISOString();
+    s._rev++;
+    // Mirror back to localStorage so legacy readers still see fresh data.
+    try {
+      var d = _GD();
+      if (!d.u[uid]) d.u[uid] = {};
+      if (dimension === 'Systemic') {
+        if ('cns_friction_score' in patch)     d.u[uid].cns_friction_score = patch.cns_friction_score;
+        if ('somatic_cognitive_load' in patch) d.u[uid].somatic_cognitive_load = patch.somatic_cognitive_load;
+        d.u[uid].cns_friction_updated_at = s[dimension].computed_at;
+      } else if (dimension === 'Localized') {
+        if ('biomechanical_redline' in patch) {
+          d.u[uid].biomechanical_redline = !!patch.biomechanical_redline;
+          d.u[uid].biomechanical_redline_at = s[dimension].computed_at;
+        }
+      }
+      _SD(d);
+    } catch (_) {}
+    _emit(uid, dimension, changes);
+    return { ok: true, changes: changes, rev: s._rev };
+  }
+
+  // ── PUBLIC PROPOSE* methods · the ONLY way external callers write
+  // Each accepts a structured patch · validation runs before _write.
+  function proposeSystemicUpdate(uid, patch) {
+    if (!uid || !patch) return { ok: false, error: 'bad_args' };
+    var clean = {};
+    if (patch.cns_friction_score != null) {
+      var v = Number(patch.cns_friction_score);
+      if (!isFinite(v) || v < 0 || v > 100) return { ok: false, error: 'cns_friction_score_out_of_range' };
+      clean.cns_friction_score = v;
+    }
+    if (patch.somatic_cognitive_load != null) {
+      var l = Number(patch.somatic_cognitive_load);
+      if (!isFinite(l) || l < 0 || l > 10) return { ok: false, error: 'somatic_cognitive_load_out_of_range' };
+      clean.somatic_cognitive_load = l;
+    }
+    if (Object.keys(clean).length === 0) return { ok: false, error: 'no_valid_fields' };
+    return _write(uid, 'Systemic', clean, _WRITE_TOKEN);
+  }
+  function proposeLocalizedUpdate(uid, patch) {
+    if (!uid || !patch) return { ok: false, error: 'bad_args' };
+    var clean = {};
+    if (patch.biomechanical_redline != null) clean.biomechanical_redline = !!patch.biomechanical_redline;
+    if (patch.region_alerts && typeof patch.region_alerts === 'object') {
+      // Validate against BBF_DATA.JOINT_REGIONS when available.
+      var allowed = (window.BBF_DATA && BBF_DATA.JOINT_REGIONS) || ['shoulder','elbow_wrist','spine','hip','knee','ankle','core','systemic'];
+      var alerts = {};
+      Object.keys(patch.region_alerts).forEach(function(k) {
+        if (allowed.indexOf(k) !== -1) alerts[k] = patch.region_alerts[k];
+      });
+      clean.region_alerts = alerts;
+    }
+    if (Object.keys(clean).length === 0) return { ok: false, error: 'no_valid_fields' };
+    return _write(uid, 'Localized', clean, _WRITE_TOKEN);
+  }
+  function proposeAxialUpdate(uid, patch) {
+    if (!uid || !patch) return { ok: false, error: 'bad_args' };
+    var clean = {};
+    if (patch.posture_load != null)            clean.posture_load = Number(patch.posture_load) || 0;
+    if (patch.axial_compression_flag != null)  clean.axial_compression_flag = !!patch.axial_compression_flag;
+    if (Object.keys(clean).length === 0) return { ok: false, error: 'no_valid_fields' };
+    return _write(uid, 'Axial', clean, _WRITE_TOKEN);
+  }
+
   return {
+    // Legacy prescription engine API (unchanged)
     analyze:                  analyze,
     persist:                  persist,
     getCached:                getCached,
@@ -12069,7 +12219,157 @@ var BBF_CNS_AGENT = (function() {
     renderExerciseOverlayHTML:renderExerciseOverlayHTML,
     seedDefaultGoalIfNeeded:  seedDefaultGoalIfNeeded,
     classifyZone:             classifyZone,
-    inferGoal:                inferGoal
+    inferGoal:                inferGoal,
+    // Phase 0 · Single-writer state registry
+    snapshot:                 snapshot,
+    proposeSystemicUpdate:    proposeSystemicUpdate,
+    proposeLocalizedUpdate:   proposeLocalizedUpdate,
+    proposeAxialUpdate:       proposeAxialUpdate,
+  };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_OT_PROMPT · Phase 0 · Occupational-Therapy reasoning + vocab filter
+// ────────────────────────────────────────────────────────────────────────
+// Shared system-prompt module + deterministic banned-term sanitizer.
+// Every agentic surface that calls an LLM (Phantom Eye, Virtual Coach,
+// Nutrition Vision, Chef on Call, Auto-Rotate Protocol, future tabs)
+// imports the OT reasoning template via BBF_OT_PROMPT.systemContext(opts)
+// and runs every model output through BBF_OT_PROMPT.sanitize(text) before
+// it reaches the user · either as TTS or as on-screen copy.
+//
+// THE BAN · clinical / diagnostic vocabulary is replaced with Sovereign
+// coaching language. This is BBF's brand contract: athletes hear
+// EMPOWERED FRAMING (friction detected, load alert, restoration window)
+// instead of MEDICAL FRAMING (dysfunction, injury risk, therapy).
+// Order of substitution matters — longer phrases run first so we don't
+// accidentally short-circuit a longer term to a one-word replacement.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_OT_PROMPT = (function() {
+
+  var SYSTEM_CONTEXT_HEADER =
+    "BBF OCCUPATIONAL-THERAPY REASONING FRAME · Every recommendation you " +
+    "make MUST be grounded in three OT principles: " +
+    "(1) MEANINGFUL OCCUPATION — what does this client need to be able " +
+    "to do in their daily life or sport, beyond the gym floor; " +
+    "(2) GRADED PROGRESSION — every change scales from the client's " +
+    "current capacity, never their aspirational target; " +
+    "(3) ADAPTIVE COMPENSATION — when a movement pattern shows friction, " +
+    "the response is to MODIFY the pattern (substitute, regress, change " +
+    "tempo), not to push through and not to diagnose. " +
+    "\n\nVOCABULARY CONTRACT · You are a Sovereign Coach, not a clinician. " +
+    "NEVER use the words 'dysfunction', 'pathology', 'injury risk', " +
+    "'diagnosis', 'patient', 'therapy', 'treatment', 'disease', " +
+    "'chronic condition', or 'acute injury'. Instead use 'friction " +
+    "detected', 'load alert', 'pattern variance', 'protocol', 'athlete', " +
+    "'restoration', and 'recurring pattern' respectively. If you cannot " +
+    "frame a response without clinical vocabulary, STOP and respond with " +
+    "'Outside coaching scope · escalate to a qualified provider.'";
+
+  // Ordered substitution map · longer / more specific first.
+  // Each rule: { re, replace, audit_label }
+  var BAN_LIST = [
+    // Compound clinical phrases (run before single-word terms)
+    { re: /\binjury risk\b/gi,           replace: 'load alert',           label: 'injury_risk' },
+    { re: /\binjury prevention\b/gi,     replace: 'load management',      label: 'injury_prevention' },
+    { re: /\bchronic injury\b/gi,        replace: 'recurring pattern',    label: 'chronic_injury' },
+    { re: /\bchronic condition\b/gi,     replace: 'recurring pattern',    label: 'chronic_condition' },
+    { re: /\bacute injury\b/gi,          replace: 'fresh load incident',  label: 'acute_injury' },
+    { re: /\bacute pain\b/gi,            replace: 'fresh friction',       label: 'acute_pain' },
+    { re: /\bchronic pain\b/gi,          replace: 'recurring friction',   label: 'chronic_pain' },
+    { re: /\binflammatory response\b/gi, replace: 'recovery signal',      label: 'inflammatory_response' },
+    { re: /\bmedical advice\b/gi,        replace: 'coaching guidance',    label: 'medical_advice' },
+    { re: /\bdiagnose(d|s)?\b/gi,        replace: 'flag$1',               label: 'diagnose' },
+    { re: /\bdiagnosis\b/gi,             replace: 'assessment note',      label: 'diagnosis' },
+    { re: /\bdiagnostic\b/gi,            replace: 'assessment',           label: 'diagnostic' },
+    { re: /\bdysfunctions?\b/gi,         replace: 'friction detected',    label: 'dysfunction' },
+    { re: /\bdysfunctional\b/gi,         replace: 'friction-loaded',      label: 'dysfunctional' },
+    { re: /\bpathology\b/gi,             replace: 'pattern variance',     label: 'pathology' },
+    { re: /\bpathological\b/gi,          replace: 'variance-pattern',     label: 'pathological' },
+    { re: /\bpatients?\b/gi,             replace: 'athlete$1',            label: 'patient' },
+    { re: /\btherapy\b/gi,               replace: 'restoration',          label: 'therapy' },
+    { re: /\btherapist\b/gi,             replace: 'restoration coach',    label: 'therapist' },
+    { re: /\btherapeutic\b/gi,           replace: 'restorative',          label: 'therapeutic' },
+    { re: /\btreatments?\b/gi,           replace: 'protocol$1',           label: 'treatment' },
+    { re: /\btreating\b/gi,              replace: 'protocolizing',        label: 'treating' },
+    { re: /\bdiseases?\b/gi,             replace: 'condition$1',          label: 'disease' },
+    { re: /\bsymptoms?\b/gi,             replace: 'signal$1',             label: 'symptom' },
+    { re: /\bprognosis\b/gi,             replace: 'projected arc',        label: 'prognosis' },
+    { re: /\billness\b/gi,               replace: 'low-state',            label: 'illness' },
+    { re: /\bclinic(al|ally)\b/gi,       replace: 'precise$1',            label: 'clinical' },
+    { re: /\bdisord(er|ered)\b/gi,       replace: 'variance',             label: 'disorder' },
+  ];
+
+  // Build the system-prompt block injected into every LLM call's
+  // client_context. Optional opts let the caller scope (e.g. fitness vs.
+  // nutrition) so the OT frame still feels native to the active surface.
+  function systemContext(opts) {
+    opts = opts || {};
+    var scope = opts.scope ? '\n\nACTIVE SCOPE · ' + String(opts.scope) : '';
+    var clientHint = opts.clientFirstName
+      ? '\n\nCLIENT FIRST NAME · ' + String(opts.clientFirstName) + ' · address by first name when natural.'
+      : '';
+    return SYSTEM_CONTEXT_HEADER + scope + clientHint;
+  }
+
+  // Run model output through the deterministic substitution. Returns
+  // { text, substitutions: [{label, count}] }. Audit hook fires when
+  // any substitution happens so the audit trail records the catch.
+  // Pure function · no side effects except the optional audit POST.
+  function sanitize(input, opts) {
+    if (input == null) return { text: '', substitutions: [] };
+    var text = String(input);
+    var subs = [];
+    BAN_LIST.forEach(function(rule) {
+      var before = text;
+      var count = 0;
+      text = text.replace(rule.re, function(match) {
+        count++;
+        // $1-style backrefs are preserved by String.replace · here we
+        // compute replacement manually so we can count cleanly.
+        return rule.replace.replace(/\$1/g, (arguments[1] || ''));
+      });
+      if (count > 0) subs.push({ label: rule.label, count: count });
+    });
+    if (subs.length > 0 && opts && opts.audit) {
+      // Best-effort POST · failure must not break the user-facing flow.
+      try {
+        var token = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('BBF_ADMIN_TOKEN')) || '';
+        if (token) {
+          fetch('https://buildbelievefit.onrender.com/api/audit-log', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+            body: JSON.stringify({
+              action_type: 'vocab_sanitize',
+              agent: opts.agent || 'BBF_OT_PROMPT',
+              target_uid: opts.target_uid || null,
+              payload: { surface: opts.surface || null, substitutions: subs, input_len: input.length },
+              success: true,
+            })
+          }).catch(function(){});
+        }
+      } catch (_) {}
+    }
+    return { text: text, substitutions: subs };
+  }
+
+  // Wrap a model-generated text + assert the contract pre-render.
+  // Returns the sanitized string. Use this at every TTS / on-screen
+  // text boundary so banned terms never reach the user.
+  function passThrough(text, opts) {
+    return sanitize(text, opts).text;
+  }
+
+  // Expose the ban list (read-only copy) so admin tools can render it.
+  function getBanList() {
+    return BAN_LIST.map(function(r) { return { pattern: r.re.source, replace: r.replace, label: r.label }; });
+  }
+
+  return {
+    systemContext: systemContext,
+    sanitize:      sanitize,
+    passThrough:   passThrough,
+    getBanList:    getBanList,
   };
 })();
 
@@ -13884,6 +14184,15 @@ var BBF_TTS = (function() {
 
   function speak(featureKey, text, opts) {
     text = String(text == null ? '' : text).trim();
+    // Phase 0 · OT vocabulary contract · sanitize at the boundary so
+    // banned terms never reach the user's speakers regardless of which
+    // upstream emitted them (Gemini, Anthropic, templated copy, anything).
+    if (typeof BBF_OT_PROMPT !== 'undefined' && BBF_OT_PROMPT.sanitize) {
+      try {
+        var r = BBF_OT_PROMPT.sanitize(text, { agent: 'BBF_TTS', surface: featureKey, audit: true });
+        text = r.text;
+      } catch (_) {}
+    }
     if (!featureKey || !text) return Promise.resolve();
 
     var headers = { 'Content-Type': 'application/json' };

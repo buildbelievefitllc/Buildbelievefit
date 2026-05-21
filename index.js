@@ -1858,6 +1858,315 @@ app.post('/api/admin-check-cloud', async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════════
+// PHASE 0 · APPROVAL QUEUE + AGENTIC AUDIT
+// ───────────────────────────────────────────────────────────────────────
+// All agentic mutations route through bbf_pending_review. Founder
+// approves; executor performs the write with explicit DB-success
+// confirmation (RETURNING * via Prefer: return=representation). NO
+// silent HTTP 200 stubs — execution_success boolean is true ONLY when
+// the target write returned the affected row.
+//
+// Audit ledger · every submit/approve/reject/execute writes to
+// bbf_audit_logs with action_type, agent, payload, result, success.
+// ═══════════════════════════════════════════════════════════════════════
+
+// Whitelist of tables that proposals can target. Anything else is a hard
+// reject — keeps the executor from being abused to write arbitrary rows.
+// Each entry maps to the column safe-list it can mutate.
+const PROPOSAL_TARGET_WHITELIST = {
+  bbf_users: new Set([
+    'subscription_tier','baseline_status','cardiac_clearance','block_priority',
+    'dietary_profile','allergens','food_likes','food_dislikes',
+    'tdee_target','macro_p','macro_c','macro_f',
+    'nutrition_plan','nutrition_plan_updated_at',
+    'biomechanical_redline','biomechanical_redline_at',
+    'cns_friction_score','cns_friction_updated_at',
+    'somatic_cognitive_load','somatic_fasting_hours',
+    'ghost_intervention_needed','ghost_flagged_at',
+    'access_status','auto_lock_enabled','daily_brief'
+  ]),
+  bbf_active_clients: new Set([
+    'dietary_profile','allergens','food_likes','food_dislikes',
+    'tdee_target','macro_p','macro_c','macro_f',
+    'workout_plan','meal_plan','plans_generated_at',
+    'training_protocol','clinical_history'
+  ]),
+};
+
+function _sanitizeProposalDiff(diff) {
+  if (!diff || typeof diff !== 'object') return { ok: false, reason: 'diff_missing' };
+  const t = diff.target_table;
+  const u = diff.target_uid;
+  const a = diff.after;
+  if (typeof t !== 'string' || !PROPOSAL_TARGET_WHITELIST[t]) {
+    return { ok: false, reason: 'target_table_not_whitelisted' };
+  }
+  if (typeof u !== 'string' || !u.trim()) return { ok: false, reason: 'target_uid_required' };
+  if (!a || typeof a !== 'object')         return { ok: false, reason: 'diff_after_required' };
+  const allowed = PROPOSAL_TARGET_WHITELIST[t];
+  const safe = {};
+  let any = false;
+  for (const k of Object.keys(a)) {
+    if (allowed.has(k)) { safe[k] = a[k]; any = true; }
+  }
+  if (!any) return { ok: false, reason: 'no_whitelisted_fields_in_diff' };
+  return { ok: true, target_table: t, target_uid: u.trim().toLowerCase(), after: safe };
+}
+
+async function _writeAuditLog(row) {
+  // Best-effort · audit failure must never block the primary action,
+  // but it's logged loudly so the gap is visible.
+  try {
+    const payload = Object.assign({}, row, { created_at: new Date().toISOString() });
+    const { error } = await supabase.from('bbf_audit_logs').insert(payload);
+    if (error) console.warn('[audit] insert failed (non-fatal):', error.message);
+  } catch (e) {
+    console.warn('[audit] threw (non-fatal):', e && e.message);
+  }
+}
+
+// ── POST /api/proposal-submit — any agent (server-side) creates a proposal
+app.post('/api/proposal-submit', async (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  }
+  // Same admin-token gate so only admin-trusted callers can submit.
+  // Future: open a separate AGENT_TOKEN for autonomous agents.
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) return res.status(503).json({ ok: false, error: 'config_missing' });
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) {
+    return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+  }
+
+  const body = req.body || {};
+  const proposed_by = typeof body.proposed_by === 'string' ? body.proposed_by.trim().slice(0, 80) : '';
+  if (!proposed_by) return res.status(400).json({ ok: false, error: 'proposed_by_required' });
+  if (typeof body.rationale !== 'string' || !body.rationale.trim()) return res.status(400).json({ ok: false, error: 'rationale_required' });
+
+  // Sanitize diff up-front · reject anything outside the whitelist.
+  const diffCheck = _sanitizeProposalDiff(body.diff || {});
+  if (!diffCheck.ok) {
+    return res.status(400).json({ ok: false, error: 'diff_invalid', reason: diffCheck.reason });
+  }
+  const safeDiff = {
+    target_table: diffCheck.target_table,
+    target_uid:   diffCheck.target_uid,
+    after:        diffCheck.after,
+    before:       (body.diff && body.diff.before) || null,
+    fields:       Object.keys(diffCheck.after),
+  };
+
+  const row = {
+    proposal_type: body.proposal_type || 'custom',
+    risk_level:    body.risk_level    || 'medium',
+    population:    body.population    || {},
+    diff:          safeDiff,
+    rationale:     String(body.rationale).slice(0, 2000),
+    proposed_by:   proposed_by,
+    expires_at:    body.expires_at || null,
+    metadata:      body.metadata || {},
+  };
+
+  try {
+    const { data, error } = await supabase
+      .from('bbf_pending_review')
+      .insert(row)
+      .select()
+      .single();
+    if (error) {
+      console.error('[proposal-submit] insert failed:', error.message);
+      return res.status(500).json({ ok: false, error: 'insert_failed', detail: error.message });
+    }
+    await _writeAuditLog({
+      action_type: 'proposal_submit', agent: proposed_by,
+      proposal_id: data.id, target_uid: safeDiff.target_uid,
+      payload: { proposal_type: row.proposal_type, risk_level: row.risk_level, fields: safeDiff.fields },
+      result: { id: data.id }, success: true,
+    });
+    return res.status(200).json({ ok: true, proposal: data });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: 'unexpected', detail: err && err.message });
+  }
+});
+
+// ── POST /api/proposal-list — admin reads the queue
+app.post('/api/proposal-list', async (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) return res.status(503).json({ ok: false, error: 'config_missing' });
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+
+  const body = req.body || {};
+  const status = typeof body.status === 'string' ? body.status : 'pending';
+  const limit  = Math.max(1, Math.min(200, Number(body.limit) || 50));
+
+  try {
+    let q = supabase.from('bbf_pending_review').select('*').order('proposed_at', { ascending: false }).limit(limit);
+    if (status !== 'all') q = q.eq('status', status);
+    const { data, error } = await q;
+    if (error) return res.status(500).json({ ok: false, error: error.message });
+    return res.status(200).json({ ok: true, total: (data || []).length, proposals: data || [] });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: 'unexpected' });
+  }
+});
+
+// ── POST /api/proposal-approve — execute with explicit DB success confirmation
+// Per the directive: "upon approval, the payload executes a secure write
+// with explicit DB success confirmation. No silent HTTP 200 fallback
+// stubs are allowed on the write path."
+app.post('/api/proposal-approve', async (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) return res.status(503).json({ ok: false, error: 'config_missing' });
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+
+  const body = req.body || {};
+  const id = typeof body.id === 'string' ? body.id.trim() : '';
+  const approver = typeof body.approver === 'string' ? body.approver.trim().slice(0, 80) : 'akeem';
+  if (!id) return res.status(400).json({ ok: false, error: 'id_required' });
+
+  // 1. Fetch the proposal · must be pending
+  const { data: prop, error: pErr } = await supabase
+    .from('bbf_pending_review').select('*').eq('id', id).single();
+  if (pErr || !prop) return res.status(404).json({ ok: false, error: 'proposal_not_found' });
+  if (prop.status !== 'pending') {
+    return res.status(409).json({ ok: false, error: 'proposal_not_pending', current_status: prop.status });
+  }
+
+  const diff = prop.diff || {};
+  const check = _sanitizeProposalDiff(diff);
+  if (!check.ok) {
+    await supabase.from('bbf_pending_review').update({
+      status: 'execution_failed', approver, decided_at: new Date().toISOString(),
+      execution_success: false, execution_error: 'diff_sanitize_failed:' + check.reason,
+    }).eq('id', id);
+    await _writeAuditLog({
+      action_type: 'proposal_approve', agent: 'render_proxy', proposal_id: id,
+      target_uid: diff.target_uid || null,
+      payload: diff, result: { reason: check.reason }, success: false,
+      error_message: 'diff_sanitize_failed:' + check.reason,
+    });
+    return res.status(400).json({ ok: false, error: 'diff_invalid_at_execute_time', reason: check.reason });
+  }
+
+  // 2. Execute the write with Prefer: return=representation. This forces
+  // PostgREST to return the affected row(s). If zero rows come back,
+  // the write was a silent no-op (no matching row, RLS, etc) — we mark
+  // execution_failed loudly. This is the load-bearing safeguard.
+  const updatePayload = Object.assign({ updated_at: new Date().toISOString() }, check.after);
+
+  let returnedRows = null;
+  let executionError = null;
+  try {
+    const eq = (check.target_table === 'bbf_users') ? 'uid' : 'vault_email';
+    const r = await supabase
+      .from(check.target_table)
+      .update(updatePayload)
+      .eq(eq, check.target_uid)
+      .select();
+    if (r.error) {
+      executionError = r.error.message || 'unknown_error';
+    } else {
+      returnedRows = Array.isArray(r.data) ? r.data : (r.data ? [r.data] : []);
+    }
+  } catch (e) {
+    executionError = (e && e.message) || 'execute_threw';
+  }
+
+  const success = !executionError && Array.isArray(returnedRows) && returnedRows.length > 0;
+
+  // 3. Update the proposal · decided + execution result
+  const finalStatus = success ? 'executed' : 'execution_failed';
+  const closeError  = executionError || (success ? null : 'write_affected_zero_rows');
+  await supabase.from('bbf_pending_review').update({
+    status: finalStatus, approver, decided_at: new Date().toISOString(),
+    execution_success: !!success,
+    execution_result: returnedRows,
+    execution_error:  closeError,
+  }).eq('id', id);
+
+  // 4. Audit · loudly capture the outcome
+  await _writeAuditLog({
+    action_type: 'proposal_execute', agent: 'render_proxy', proposal_id: id,
+    target_uid: check.target_uid,
+    payload: { table: check.target_table, after: check.after },
+    result: { rows_affected: (returnedRows || []).length, rows: returnedRows },
+    success: !!success, error_message: closeError,
+  });
+
+  if (!success) {
+    return res.status(500).json({ ok: false, error: 'write_failed', detail: closeError, rows_affected: (returnedRows || []).length });
+  }
+  return res.status(200).json({ ok: true, status: finalStatus, rows_affected: returnedRows.length, rows: returnedRows });
+});
+
+// ── POST /api/proposal-reject — admin declines a proposal
+app.post('/api/proposal-reject', async (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) return res.status(503).json({ ok: false, error: 'config_missing' });
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+
+  const body = req.body || {};
+  const id = typeof body.id === 'string' ? body.id.trim() : '';
+  const approver = typeof body.approver === 'string' ? body.approver.trim().slice(0, 80) : 'akeem';
+  const reason   = typeof body.reason === 'string' ? body.reason.trim().slice(0, 500) : '';
+  if (!id) return res.status(400).json({ ok: false, error: 'id_required' });
+
+  const { data, error } = await supabase
+    .from('bbf_pending_review')
+    .update({ status: 'rejected', approver, decided_at: new Date().toISOString(), execution_error: reason || null })
+    .eq('id', id)
+    .eq('status', 'pending')
+    .select()
+    .single();
+  if (error) return res.status(500).json({ ok: false, error: error.message });
+  if (!data)  return res.status(409).json({ ok: false, error: 'proposal_not_pending_or_not_found' });
+
+  await _writeAuditLog({
+    action_type: 'proposal_reject', agent: 'render_proxy', proposal_id: id,
+    target_uid: data.diff && data.diff.target_uid || null,
+    payload: { reason }, success: true,
+  });
+  return res.status(200).json({ ok: true, proposal: data });
+});
+
+// ── POST /api/audit-log — generic AI-action audit ingester
+// Allows any agentic surface (server or client-side via admin token)
+// to append a structured audit record. Useful for vocab-filter
+// sanitizations, CNS writes, etc.
+app.post('/api/audit-log', async (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) return res.status(503).json({ ok: false, error: 'config_missing' });
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+
+  const body = req.body || {};
+  if (!body.action_type) return res.status(400).json({ ok: false, error: 'action_type_required' });
+  await _writeAuditLog({
+    action_type:   String(body.action_type).slice(0, 80),
+    agent:         body.agent ? String(body.agent).slice(0, 80) : null,
+    target_uid:    body.target_uid ? String(body.target_uid).slice(0, 80) : null,
+    payload:       body.payload || null,
+    result:        body.result || null,
+    success:       body.success != null ? !!body.success : null,
+    error_message: body.error_message ? String(body.error_message).slice(0, 1000) : null,
+  });
+  return res.status(200).json({ ok: true });
+});
+
 // ───────────────────────────────────────────────────────────────
 // /provision — Phase 4 Step E
 // Called by Zapier after Stripe payment success. Generates a 6-digit PIN,

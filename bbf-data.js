@@ -1190,3 +1190,205 @@ if (typeof window !== 'undefined') {
   };
 }
 
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_DATA · Phase 0 Canonical Data Module
+// ────────────────────────────────────────────────────────────────────────
+// SINGLE SOURCE OF TRUTH for cross-tab computations:
+//   · BBF_DATA.computeACWR(bouts, opts)          · pure ACWR math
+//   · BBF_DATA.acwrForUserRegion(uid, region)    · async · fetches + computes
+//   · BBF_DATA.classifyExerciseToRegion(name)    · exercise → joint region
+//   · BBF_DATA.JOINT_REGIONS                     · canonical region list
+//   · BBF_DATA.BASELINE_STATUS / BLOCK_PRIORITIES / CARDIAC_CLEARANCE
+//   · BBF_DATA.computeBaselineStatus(uid)        · gate for agentic decisions
+//
+// HARD RULE · NO consumer tab may compute ACWR locally. Every Prehab,
+// Athlete, Cardio, Program tab MUST call BBF_DATA.acwrForUserRegion()
+// or operate on the cached snapshot. Future drift gets caught by a
+// codebase grep for 'acwr' or 'acute' outside this file.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_DATA = (function() {
+
+  // ── Canonical joint-region taxonomy ──────────────────────────────
+  // Every exercise rolls up into ONE of these. Cross-region exercises
+  // (e.g. deadlift = hip + spine) are classified by the dominant joint
+  // for ACWR · injury surveillance prioritizes the area most stressed.
+  var JOINT_REGIONS = ['shoulder','elbow_wrist','spine','hip','knee','ankle','core','systemic'];
+
+  // ── Lifecycle states · enums consumed by every agentic tab ───────
+  var BASELINE_STATUS = { BUILDING: 'building', VALID: 'valid', EXPIRED: 'expired' };
+  var BLOCK_PRIORITIES = {
+    MAINTENANCE: 'maintenance', RECOVERY: 'recovery',
+    HYPERTROPHY: 'hypertrophy', STRENGTH: 'strength',
+    PEAKING:     'peaking',     REHAB:    'rehab'
+  };
+  var CARDIAC_CLEARANCE = {
+    UNVERIFIED:      'unverified',
+    SELF_ATTESTED:   'self_attested',
+    PROVIDER_CLEARED:'provider_cleared',
+    RESTRICTED:      'restricted',
+    CONTRAINDICATED: 'contraindicated'
+  };
+
+  // ── Exercise → region map ────────────────────────────────────────
+  // Patterns matched in order · first match wins. Conservative · the
+  // unknown bucket is 'systemic' so the load still counts somewhere
+  // (vs being dropped entirely).
+  var REGION_PATTERNS = [
+    { re: /\b(shoulder|press|overhead|ohp|lateral raise|front raise|rear delt|push press|landmine|arnold)\b/i, region: 'shoulder' },
+    { re: /\b(curl|tricep|pushdown|skull|kickback|chin[- ]?up|pull[- ]?up|preacher|hammer)\b/i,                region: 'elbow_wrist' },
+    { re: /\b(deadlift|sumo|good[- ]?morning|rdl|romanian|hip thrust|hip hinge|kettlebell swing|swing)\b/i,    region: 'hip' },
+    { re: /\b(squat|lunge|leg press|leg extension|leg curl|hack squat|step[- ]?up|split squat|sissy)\b/i,     region: 'knee' },
+    { re: /\b(calf|tibial|ankle|gastroc|soleus|jump rope|pogo)\b/i,                                            region: 'ankle' },
+    { re: /\b(plank|ab|crunch|sit[- ]?up|hollow|dead bug|pallof|woodchop|side bend|hanging leg)\b/i,           region: 'core' },
+    { re: /\b(back extension|hyperextension|spine|trap|shrug|farmer|carry)\b/i,                                region: 'spine' },
+    { re: /\b(row|pull[- ]?down|lat|chest[- ]?supported|seal row|t[- ]?bar)\b/i,                              region: 'spine' },
+    { re: /\b(bench press|incline|decline|fly|dip|push[- ]?up|pec)\b/i,                                       region: 'shoulder' },
+    { re: /\b(run|sprint|jog|treadmill|bike|cycle|cycling|row erg|rower|stair|elliptical|airdyne)\b/i,         region: 'systemic' },
+  ];
+  function classifyExerciseToRegion(name) {
+    if (!name) return 'systemic';
+    var s = String(name);
+    for (var i = 0; i < REGION_PATTERNS.length; i++) {
+      if (REGION_PATTERNS[i].re.test(s)) return REGION_PATTERNS[i].region;
+    }
+    return 'systemic';
+  }
+
+  // ── Canonical ACWR computation ───────────────────────────────────
+  // Acute = mean daily load over the last 7 days.
+  // Chronic = mean daily load over the last 28 days.
+  // ratio = acute / chronic (per Gabbett's running-mean form).
+  // Returns null when chronic load is insufficient (baseline_building);
+  // returns 0 when chronic > 0 but acute = 0 (true detraining).
+  // ZONES: 'undertrained' <0.8 · 'optimal' 0.8-1.3 · 'caution' 1.3-1.5 · 'overload' >1.5
+  // Mirrors the Soligo et al. follow-up to Gabbett 2016 · widely used
+  // in sports-med practice.
+  function _meanDailyLoad(bouts, sinceMs, nowMs) {
+    if (!Array.isArray(bouts) || bouts.length === 0) return { mean: 0, daysWithLoad: 0, totalLoad: 0 };
+    var dayBuckets = {};
+    bouts.forEach(function(b) {
+      var t = b.start_timestamp || b.created_at || b.session_timestamp || null;
+      if (!t) return;
+      var ts = new Date(t).getTime();
+      if (isNaN(ts) || ts < sinceMs || ts > nowMs) return;
+      var dayKey = new Date(ts).toISOString().slice(0,10);
+      var load = Number(b.load_au) > 0 ? Number(b.load_au) : 1; // 1 unit per bout if no AU
+      dayBuckets[dayKey] = (dayBuckets[dayKey] || 0) + load;
+    });
+    var days = Object.keys(dayBuckets);
+    var total = days.reduce(function(s, k) { return s + dayBuckets[k]; }, 0);
+    var windowDays = Math.max(1, Math.round((nowMs - sinceMs) / 86400000));
+    return { mean: total / windowDays, daysWithLoad: days.length, totalLoad: total };
+  }
+  function computeACWR(bouts, opts) {
+    opts = opts || {};
+    var now = opts.nowMs || Date.now();
+    var ACUTE_DAYS = opts.acuteDays   || 7;
+    var CHRONIC_DAYS = opts.chronicDays || 28;
+    var MIN_CHRONIC_DAYS = opts.minChronicDays || 14;  // baseline gate
+    var acute   = _meanDailyLoad(bouts, now - ACUTE_DAYS   * 86400000, now);
+    var chronic = _meanDailyLoad(bouts, now - CHRONIC_DAYS * 86400000, now);
+    var ratio   = null;
+    if (chronic.daysWithLoad < MIN_CHRONIC_DAYS) {
+      // Not enough chronic data · baseline still building.
+      return {
+        ratio: null, zone: 'baseline_building',
+        acute: acute, chronic: chronic,
+        baseline_days_needed: MIN_CHRONIC_DAYS - chronic.daysWithLoad,
+        computed_at: new Date(now).toISOString(),
+      };
+    }
+    ratio = chronic.mean > 0 ? acute.mean / chronic.mean : 0;
+    var zone = 'optimal';
+    if (ratio === 0)            zone = 'detraining';
+    else if (ratio < 0.8)        zone = 'undertrained';
+    else if (ratio > 1.5)        zone = 'overload';
+    else if (ratio > 1.3)        zone = 'caution';
+    return {
+      ratio: ratio, zone: zone,
+      acute: acute, chronic: chronic,
+      computed_at: new Date(now).toISOString(),
+    };
+  }
+
+  // ── Async fetch + per-region ACWR for a single user ──────────────
+  // Pulls bouts from bbf_athlete_load_bouts joined to load_logs to get
+  // the athlete_id filter. Returns a { region: <acwr-result> } map.
+  // Caches per (uid, region) for 5 minutes to prevent thundering-herd
+  // when multiple tabs read on the same session.
+  var _acwrCache = {}; // { uid+':'+region: { result, expiresAt } }
+  var ACWR_CACHE_TTL_MS = 5 * 60 * 1000;
+  function _cacheKey(uid, region) { return uid + '::' + (region || '*'); }
+
+  function _supabaseClient() {
+    // Use whatever auth helper the app exposes. BBF_SYNC supa()
+    // through PostgREST is the right path · the helper rewrites the
+    // user_id slug → uuid via resolveUid before the actual call.
+    return (typeof window !== 'undefined' && window.BBF_SYNC && typeof window.BBF_SYNC.fetchSets === 'function')
+      ? window.BBF_SYNC
+      : null;
+  }
+
+  async function acwrForUserRegion(uid, region, opts) {
+    opts = opts || {};
+    var key = _cacheKey(uid, region);
+    if (!opts.force && _acwrCache[key] && _acwrCache[key].expiresAt > Date.now()) {
+      return _acwrCache[key].result;
+    }
+    var sync = _supabaseClient();
+    if (!sync || typeof sync.fetchAthleteLoadBouts !== 'function') {
+      // Fallback · agent-side caller can pass bouts directly via opts.bouts
+      if (Array.isArray(opts.bouts)) {
+        var filtered = region
+          ? opts.bouts.filter(function(b){ return classifyExerciseToRegion(b.exercise_name) === region; })
+          : opts.bouts;
+        var r = computeACWR(filtered, opts);
+        _acwrCache[key] = { result: r, expiresAt: Date.now() + ACWR_CACHE_TTL_MS };
+        return r;
+      }
+      return { ratio: null, zone: 'no_data_source', computed_at: new Date().toISOString() };
+    }
+    var bouts;
+    try { bouts = await sync.fetchAthleteLoadBouts(uid); }
+    catch (e) { return { ratio: null, zone: 'fetch_failed', error: e && e.message, computed_at: new Date().toISOString() }; }
+    if (!Array.isArray(bouts)) bouts = [];
+    var pool = region
+      ? bouts.filter(function(b) { return classifyExerciseToRegion(b.exercise_name) === region; })
+      : bouts;
+    var result = computeACWR(pool, opts);
+    result.region = region || 'all';
+    _acwrCache[key] = { result: result, expiresAt: Date.now() + ACWR_CACHE_TTL_MS };
+    return result;
+  }
+
+  // ── Baseline-status helper · gates agentic decisions ──────────────
+  // Returns 'valid' when the client has chronic load data over the
+  // last 28 days (>= 14 days with logged bouts). Otherwise 'building'.
+  // Called by Prehab + Program tabs before issuing prescriptions.
+  async function computeBaselineStatus(uid, opts) {
+    var r = await acwrForUserRegion(uid, null, opts);
+    if (!r || r.zone === 'no_data_source' || r.zone === 'fetch_failed') return BASELINE_STATUS.BUILDING;
+    if (r.zone === 'baseline_building') return BASELINE_STATUS.BUILDING;
+    return BASELINE_STATUS.VALID;
+  }
+
+  function invalidateCache(uid) {
+    if (!uid) { _acwrCache = {}; return; }
+    Object.keys(_acwrCache).forEach(function(k) { if (k.indexOf(uid + '::') === 0) delete _acwrCache[k]; });
+  }
+
+  return {
+    JOINT_REGIONS:            JOINT_REGIONS,
+    BASELINE_STATUS:          BASELINE_STATUS,
+    BLOCK_PRIORITIES:         BLOCK_PRIORITIES,
+    CARDIAC_CLEARANCE:        CARDIAC_CLEARANCE,
+    classifyExerciseToRegion: classifyExerciseToRegion,
+    computeACWR:              computeACWR,
+    acwrForUserRegion:        acwrForUserRegion,
+    computeBaselineStatus:    computeBaselineStatus,
+    invalidateCache:          invalidateCache,
+  };
+})();
+
+if (typeof window !== 'undefined') window.BBF_DATA = BBF_DATA;

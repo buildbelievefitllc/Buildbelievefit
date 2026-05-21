@@ -434,6 +434,44 @@ var BBF_SYNC = (function() {
     return supa('GET', 'bbf_sets', null, '?user_id=eq.' + uid + '&order=day_key.desc&limit=500');
   }
 
+  // ─── FETCH: ATHLETE LOAD BOUTS (Phase 0 · ACWR source) ───
+  // Joins bbf_athlete_load_bouts → bbf_athlete_load_logs via log_id
+  // so we can filter by athlete_id (the load_logs FK) AND inherit
+  // session_timestamp + load_au for the per-day rollup BBF_DATA needs.
+  // Returns a flat array of { exercise_name, bout_type, start_timestamp,
+  // end_timestamp, load_au, session_timestamp }. Empty array on any
+  // failure so BBF_DATA.computeACWR can fall through to baseline_building.
+  async function fetchAthleteLoadBouts(uid) {
+    if (!uid) return [];
+    try {
+      var q = '?select=set_id,log_id,bout_type,exercise_name,start_timestamp,end_timestamp,'
+            + 'bbf_athlete_load_logs!inner(athlete_id,session_timestamp,session_type,duration_minutes,srpe_intensity,load_au)'
+            + '&bbf_athlete_load_logs.athlete_id=eq.' + encodeURIComponent(uid)
+            + '&order=start_timestamp.desc&limit=1000';
+      var rows = await supa('GET', 'bbf_athlete_load_bouts', null, q);
+      if (!Array.isArray(rows)) return [];
+      return rows.map(function(r) {
+        var parent = r.bbf_athlete_load_logs || {};
+        return {
+          set_id:            r.set_id,
+          log_id:            r.log_id,
+          bout_type:         r.bout_type,
+          exercise_name:     r.exercise_name,
+          start_timestamp:   r.start_timestamp,
+          end_timestamp:     r.end_timestamp,
+          session_timestamp: parent.session_timestamp,
+          session_type:      parent.session_type,
+          duration_minutes:  parent.duration_minutes,
+          srpe_intensity:    parent.srpe_intensity,
+          load_au:           parent.load_au || 0
+        };
+      });
+    } catch (e) {
+      console.warn('BBF_SYNC fetchAthleteLoadBouts error:', e && e.message);
+      return [];
+    }
+  }
+
   // ─── FETCH: ALL USERS (TRAINER VIEW) ─────────────────────
   function fetchAllUsers() {
     return supa('GET', 'bbf_users', null, '?order=name.asc');
@@ -2610,6 +2648,7 @@ var BBF_SYNC = (function() {
     resolveAudit: resolveAudit,
     saveMealPlan: saveMealPlan,
     fetchMealPlan: fetchMealPlan,
+    fetchAthleteLoadBouts: fetchAthleteLoadBouts,
     fetchProfileMetrics: fetchProfileMetrics,
     fetchLastWeights: fetchLastWeights,
     syncSession: syncSession,
