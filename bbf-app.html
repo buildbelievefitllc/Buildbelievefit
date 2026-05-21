@@ -686,6 +686,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .cardio-generate-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,69,0,.55)}
 .cardio-generate-btn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.4)}
 .cardio-results{margin-top:1.2rem}
+.cardio-safety{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(245,200,0,.06));border:1px solid rgba(239,68,68,.42);border-radius:10px;padding:.75rem .9rem;margin-bottom:.85rem;color:#FFB6B6;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.82rem;line-height:1.55;letter-spacing:.5px}
+.cardio-safety strong{color:#FFD0D0}
 .cardio-modality{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:2.2rem;letter-spacing:2.6px;color:#fff;text-transform:uppercase;line-height:1.05;text-shadow:0 0 14px rgba(255,69,0,.35);margin-bottom:.85rem;text-align:center}
 .cardio-protocol{background:#0a0405;border:2px solid #FF4500;border-radius:10px;padding:1.1rem 1.2rem;font-family:ui-monospace,SFMono-Regular,Menlo,'Courier New',monospace;font-size:1.02rem;line-height:1.65;color:#fff;white-space:pre-wrap;word-break:break-word;letter-spacing:.4px;margin-bottom:1rem}
 .cardio-roi-banner{background:rgba(255,69,0,.12);border-left:4px solid #FF4500;color:#FFB89E;padding:14px 16px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px;font-size:.82rem;line-height:1.55;border-radius:0 6px 6px 0}
@@ -13778,6 +13780,444 @@ window.FUNCTIONAL_MATRIX = {
 };
 
 // ════════════════════════════════════════════════════════════════════════
+// BBF_CARDIO_INTEL · Operation Pantheon · Phase 3 Smart Cardio Keystone
+// ────────────────────────────────────────────────────────────────────────
+// Coordinator for the Smart Cardio tab. Reads the four canonical Phase 0
+// contracts to mediate the antagonism between strength + conditioning:
+//   · BBF_DATA.acwrForUserRegion        · per-region ACWR (localized load)
+//   · BBF_CNS_AGENT.snapshot            · cns_friction_score (systemic)
+//   · same-day bbf_sets summary         · today's loaded work (live)
+//   · bbf_users.block_priority          · strength vs. conditioning intent
+//
+// FIVE RESPONSIBILITIES:
+//   1. ANTAGONISM ARBITRATOR · weights interference by modality + AM/PM
+//      separation + block_priority → decides which side gets downgraded.
+//   2. COLD-START FALLBACK · baseline_status='building' still gets a cap
+//      from raw same-day sets + CNS + RPE. Athletes are protected before
+//      28 days have passed.
+//   3. MEDICAL ROUTING · reads cardiac_clearance (set by PAR-Q+ self-
+//      screen · NEVER by AI). Unverified or restricted → conservative HR
+//      floor + physician escalation. Disclaimer at FEATURE ENTRY, not
+//      per-output.
+//   4. TRANSIENT (UNGATED) · deterministic in-session intensity
+//      downgrades fire live · audit to bbf_audit_logs.
+//   5. PERSISTENT (GATED) · weekly structure changes route through
+//      bbf-agentic-forecasting and stage to bbf_pending_review as
+//      proposal_type='cardio_structure_change'.
+// ════════════════════════════════════════════════════════════════════════
+var BBF_CARDIO_INTEL = (function() {
+
+  // ── MODALITY INTERFERENCE WEIGHTS ─────────────────────────────────
+  // Schoenfeld + Wilson 2012 interference effect rankings · concurrent
+  // training compromise factor (1.0 = no interference, > 1.0 = high).
+  // Running > Cycling > Rowing > Swim (re. lower-body strength carry-over).
+  var MODALITY_INTERFERENCE = {
+    'running':       1.00,
+    'sprint':        1.00,
+    'incline_walk':  0.45,
+    'hill':          0.85,
+    'cycling':       0.60,
+    'bike':          0.60,
+    'rowing':        0.55,
+    'row_erg':       0.55,
+    'swim':          0.30,
+    'elliptical':    0.45,
+    'stair':         0.70,
+    'assault_bike':  0.55,
+    'jump_rope':     0.65,
+  };
+
+  // ── CARDIO ZONE ANCHORS · 1-5 (Friel) ─────────────────────────────
+  // Used both for downgrade decisions and for the conservative HR floor
+  // applied when cardiac_clearance != 'provider_cleared'.
+  var ZONE_BAND = {
+    1: { label: 'Z1 · Active Recovery',  hr_pct: [50, 60] },
+    2: { label: 'Z2 · Aerobic Base',     hr_pct: [60, 70] },
+    3: { label: 'Z3 · Tempo',            hr_pct: [70, 80] },
+    4: { label: 'Z4 · Threshold',        hr_pct: [80, 90] },
+    5: { label: 'Z5 · VO2 Max',          hr_pct: [90, 100] },
+  };
+  var CARDIAC_RESTRICTED_ZONE_CAP = 3;   // restricted clients capped at Z3
+  var CARDIAC_UNVERIFIED_ZONE_CAP = 2;   // unverified clients capped at Z2
+
+  // ── DETERMINISTIC TRANSIENT DOWNGRADE RULES ───────────────────────
+  // In-session intensity downgrades · execute LIVE · audit only · no
+  // Claude. Each rule: { match(ctx) → bool, downgrade: { zone, modality? },
+  // reason, protocol_id }
+  var DOWNGRADE_RULES = [
+    {
+      protocol_id: 'high_knee_acwr_zone_drop',
+      match: function(ctx) {
+        return ctx.baseline_status === 'valid' &&
+               ctx.acwr_by_region && ctx.acwr_by_region.knee && ctx.acwr_by_region.knee.zone === 'overload' &&
+               (ctx.requested_zone >= 4) && /run|sprint|hill|stair|jump/i.test(ctx.modality || '');
+      },
+      downgrade: { zone: 2, modality_swap: 'cycling' },
+      reason: 'Knee ACWR overload + Zone 4+ impact modality requested · downgrade to Z2 cycling preserves systemic stimulus without compounding the localized spike.',
+    },
+    {
+      protocol_id: 'high_systemic_acwr_zone_drop',
+      match: function(ctx) {
+        return ctx.baseline_status === 'valid' &&
+               ctx.acwr_by_region && ctx.acwr_by_region.systemic && ctx.acwr_by_region.systemic.zone === 'overload' &&
+               ctx.requested_zone >= 4;
+      },
+      downgrade: { zone: 2 },
+      reason: 'Systemic ACWR in overload band · drop to Zone 2 today · the projected arc shows this trims the spike without losing the aerobic stimulus.',
+    },
+    {
+      protocol_id: 'cns_redline_zone_floor',
+      match: function(ctx) { return ctx.cns_snapshot && ctx.cns_snapshot.Localized && ctx.cns_snapshot.Localized.biomechanical_redline === true; },
+      downgrade: { zone: 1 },
+      reason: 'CNS redline flagged · floor today at Zone 1 active recovery · resume planned intensity once redline clears.',
+    },
+    {
+      protocol_id: 'same_day_heavy_lift_downgrade',
+      match: function(ctx) {
+        // Cold-start safe · same-day sets are RAW DATA · no baseline needed.
+        return ctx.same_day_total_volume_kg > 5000 &&
+               ctx.same_day_lower_body_load_kg > 2500 &&
+               ctx.requested_zone >= 4 &&
+               /run|sprint|hill|stair|jump/i.test(ctx.modality || '');
+      },
+      downgrade: { zone: 2, modality_swap: 'cycling' },
+      reason: 'Heavy lower-body lifting already in the bank today (> 2,500kg leg volume) · downgrade impact cardio to Zone 2 cycling to prevent the interference effect.',
+    },
+    {
+      protocol_id: 'elevated_cns_friction_zone_drop',
+      match: function(ctx) {
+        return ctx.cns_snapshot && ctx.cns_snapshot.Systemic &&
+               Number(ctx.cns_snapshot.Systemic.cns_friction_score) >= 75 &&
+               ctx.requested_zone >= 4;
+      },
+      downgrade: { zone: 3 },
+      reason: 'CNS friction score elevated (≥ 75/100) · downgrade Z4+ to Tempo Z3 · keeps the work stimulus without piling onto systemic fatigue.',
+    },
+    {
+      protocol_id: 'ghost_intervention_conservative',
+      match: function(ctx) { return !!ctx.ghost_intervention_needed; },
+      downgrade: { zone: 2 },
+      reason: 'Ghost intervention is active for this athlete · conservative Z2 cap until the head coach lifts the flag.',
+    },
+  ];
+
+  // ── STATE ACCESSORS ───────────────────────────────────────────────
+  function _activeUid() {
+    return (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  }
+  function _userRecord(uid) {
+    var d = (typeof GD === 'function') ? GD() : null;
+    return (d && d.u && d.u[uid]) || {};
+  }
+  function _todayLocal() {
+    var x = new Date();
+    return x.getFullYear() + '-' + String(x.getMonth()+1).padStart(2,'0') + '-' + String(x.getDate()).padStart(2,'0');
+  }
+  function _classifyModality(m) {
+    if (!m) return 'cycling';
+    var s = String(m).toLowerCase();
+    if (/run|jog|sprint/.test(s))    return 'running';
+    if (/cycl|bike/.test(s))          return 'cycling';
+    if (/row/.test(s))                return 'rowing';
+    if (/swim/.test(s))               return 'swim';
+    if (/elliptical|stair|hill/.test(s)) return s.match(/hill|stair|elliptical/)[0];
+    if (/jump rope|jump_rope/.test(s)) return 'jump_rope';
+    if (/assault/.test(s))            return 'assault_bike';
+    return 'cycling';
+  }
+
+  // ── 2. COLD-START SAME-DAY LOAD ROLLUP ─────────────────────────────
+  // Walks d.w[uid] for today's day_keys, sums tonnage + lower-body
+  // tonnage. Pure local read · no network · always available even on
+  // Week 1 of the athlete. This protects athletes before the 28-day
+  // ACWR baseline is valid.
+  var LOWER_BODY_PATTERNS = /\b(squat|leg press|lunge|deadlift|rdl|romanian|hack squat|split squat|hip thrust|leg curl|leg extension|sissy|step[- ]?up|good[- ]?morning)\b/i;
+  function _sameDayLoadRollup(uid) {
+    var d = (typeof GD === 'function') ? GD() : null;
+    var wl = (d && d.w && d.w[uid]) || {};
+    var today = _todayLocal();
+    var totalKg = 0, lowerKg = 0, exercisesCount = 0;
+    Object.keys(wl).forEach(function(dk) {
+      if (dk.indexOf(today) !== 0) return;
+      var perDay = wl[dk] || {};
+      Object.keys(perDay).forEach(function(ek) {
+        var sets = perDay[ek] || [];
+        exercisesCount++;
+        var isLower = LOWER_BODY_PATTERNS.test(ek) || LOWER_BODY_PATTERNS.test(String(ek).replace(/_/g, ' '));
+        sets.forEach(function(s) {
+          if (!s) return;
+          var w = Number(s.w) || 0;
+          var r = Number(s.r) || 0;
+          var tonnage = w * r * 0.4536; // lbs → kg approx
+          if (tonnage <= 0) return;
+          totalKg += tonnage;
+          if (isLower) lowerKg += tonnage;
+        });
+      });
+    });
+    return {
+      same_day_exercises:        exercisesCount,
+      same_day_total_volume_kg:  Math.round(totalKg),
+      same_day_lower_body_load_kg: Math.round(lowerKg),
+      session_separation:        _inferSessionSeparation(),
+    };
+  }
+  function _inferSessionSeparation() {
+    // Rough AM/PM check · if current time > 4 PM AND a lift already
+    // landed today, treat as PM-cardio (less interference than back-
+    // to-back). The actual session timestamps aren't tracked yet · this
+    // is a heuristic the v2 model can refine when timestamps land.
+    var h = new Date().getHours();
+    return h >= 16 ? 'pm_after_am' : 'concurrent';
+  }
+
+  // ── 1. ANTAGONISM CORE EVALUATION ─────────────────────────────────
+  // Returns the full antagonism payload the renderer + edge fn consume.
+  async function evaluate(opts) {
+    opts = opts || {};
+    var uid = opts.uid || _activeUid();
+    var u   = _userRecord(uid);
+    var requestedMinutes = Number(opts.minutes) || 30;
+    var modality = _classifyModality(opts.modality || '');
+    var requestedZone = Number(opts.zone) || _inferZoneFromMinutes(requestedMinutes);
+
+    // CARDIAC GATE · drives the zone ceiling. NEVER inferred · always
+    // from the canonical cardiac_clearance string.
+    var cardiac_clearance = u.cardiac_clearance || 'unverified';
+    var cardiac_zone_cap = (cardiac_clearance === 'provider_cleared') ? 5
+                          : (cardiac_clearance === 'restricted')      ? CARDIAC_RESTRICTED_ZONE_CAP
+                          : (cardiac_clearance === 'contraindicated') ? 1
+                          : CARDIAC_UNVERIFIED_ZONE_CAP;
+
+    // CNS + ACWR snapshot · canonical reads only
+    var cns_snapshot = (typeof BBF_CNS_AGENT !== 'undefined' && BBF_CNS_AGENT.snapshot) ? BBF_CNS_AGENT.snapshot(uid) : null;
+    var baseline_status = u.baseline_status || 'building';
+    var block_priority  = u.block_priority || 'maintenance';
+    var ghost_intervention_needed = !!u.ghost_intervention_needed;
+    var by_region = {};
+    if (baseline_status === 'valid' && window.BBF_DATA && BBF_DATA.acwrForUserRegion) {
+      var REGIONS = (BBF_DATA.JOINT_REGIONS || []);
+      for (var i = 0; i < REGIONS.length; i++) {
+        try { by_region[REGIONS[i]] = await BBF_DATA.acwrForUserRegion(uid, REGIONS[i]); }
+        catch(_) { by_region[REGIONS[i]] = null; }
+      }
+    }
+
+    // Same-day load rollup · ALWAYS runs (cold-start protection)
+    var sameDay = _sameDayLoadRollup(uid);
+
+    // Build the rule context
+    var ctx = Object.assign({
+      uid:                uid,
+      modality:           opts.modality || modality,
+      requested_zone:     requestedZone,
+      cns_snapshot:       cns_snapshot,
+      acwr_by_region:     by_region,
+      baseline_status:    baseline_status,
+      block_priority:     block_priority,
+      ghost_intervention_needed: ghost_intervention_needed,
+    }, sameDay);
+
+    // Run deterministic rules · take the MOST conservative downgrade
+    // (lowest zone clamp · longest list of audit fires)
+    var firedRules = [];
+    var clampedZone = requestedZone;
+    var swappedModality = null;
+    for (var j = 0; j < DOWNGRADE_RULES.length; j++) {
+      var rule = DOWNGRADE_RULES[j];
+      var matched = false;
+      try { matched = !!rule.match(ctx); } catch(_) {}
+      if (!matched) continue;
+      firedRules.push({ protocol_id: rule.protocol_id, reason: rule.reason });
+      if (rule.downgrade.zone && rule.downgrade.zone < clampedZone) clampedZone = rule.downgrade.zone;
+      if (rule.downgrade.modality_swap && !swappedModality) swappedModality = rule.downgrade.modality_swap;
+    }
+    // Cardiac cap always wins
+    if (clampedZone > cardiac_zone_cap) clampedZone = cardiac_zone_cap;
+
+    // Audit any live downgrade
+    if (firedRules.length > 0) {
+      _emitAudit(uid, {
+        action: 'transient_intensity_downgrade',
+        from_zone: requestedZone, to_zone: clampedZone,
+        from_modality: modality, to_modality: swappedModality || modality,
+        rules_fired: firedRules,
+        baseline_status: baseline_status,
+        block_priority:  block_priority,
+        cardiac_clearance: cardiac_clearance,
+        same_day_rollup: sameDay,
+      });
+    }
+
+    return {
+      uid:                uid,
+      modality_in:        modality,
+      modality_applied:   swappedModality || modality,
+      modality_swapped:   !!swappedModality,
+      requested_zone:     requestedZone,
+      applied_zone:       clampedZone,
+      zone_clamped:       clampedZone < requestedZone,
+      zone_label:         ZONE_BAND[clampedZone] ? ZONE_BAND[clampedZone].label : 'Z' + clampedZone,
+      hr_pct_band:        ZONE_BAND[clampedZone] ? ZONE_BAND[clampedZone].hr_pct : null,
+      cardiac_clearance:  cardiac_clearance,
+      cardiac_zone_cap:   cardiac_zone_cap,
+      requires_physician_escalation: cardiac_clearance === 'restricted' || cardiac_clearance === 'contraindicated',
+      baseline_status:    baseline_status,
+      block_priority:     block_priority,
+      ghost_intervention_needed: ghost_intervention_needed,
+      cns_snapshot:       cns_snapshot,
+      acwr_by_region:     by_region,
+      same_day_rollup:    sameDay,
+      rules_fired:        firedRules,
+      interference_weight: MODALITY_INTERFERENCE[(swappedModality || modality)] || 0.5,
+      session_separation: sameDay.session_separation,
+      antagonism_source:  (baseline_status === 'valid') ? 'acwr_canonical' : 'cold_start_fallback',
+    };
+  }
+  function _inferZoneFromMinutes(m) {
+    if (m < 20)  return 5;   // HIIT
+    if (m <= 35) return 3;   // Tempo
+    return 2;                // LISS
+  }
+
+  // ── 4. TRANSIENT DOWNGRADE AUDIT EMISSION ─────────────────────────
+  function _emitAudit(uid, detail) {
+    try {
+      var token = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('BBF_ADMIN_TOKEN')) || '';
+      if (!token) return;
+      fetch('https://buildbelievefit.onrender.com/api/audit-log', {
+        method:  'POST',
+        headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+        body:    JSON.stringify({
+          action_type: 'cardio_intensity_downgrade',
+          agent:       'BBF_CARDIO_INTEL.v1',
+          target_uid:  uid,
+          payload:     detail,
+          success:     true,
+        })
+      }).catch(function(){});
+    } catch(_) {}
+  }
+
+  // ── 5. PERSISTENT STRUCTURE CHANGE · PROPOSAL QUEUE ──────────────
+  // Any change to the prescribed weekly cardio structure routes through
+  // the founder-gated approval queue. NEVER auto-applied.
+  async function proposeCardioStructureChange(opts) {
+    opts = opts || {};
+    var uid = opts.uid || _activeUid();
+    if (!uid) return { ok: false, error: 'no_uid' };
+    var token = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('BBF_ADMIN_TOKEN')) || '';
+    if (!token) return { ok: false, error: 'no_admin_token' };
+    var cns = (typeof BBF_CNS_AGENT !== 'undefined' && BBF_CNS_AGENT.snapshot) ? BBF_CNS_AGENT.snapshot(uid) : null;
+    var payload = {
+      proposal_type: 'cardio_structure_change',
+      risk_level:    opts.risk_level || 'medium',
+      population:    { uids: [uid], cohort: 'single' },
+      diff:          {
+        target_table: 'bbf_users',
+        target_uid:   uid,
+        before:       opts.before || null,
+        after:        opts.after || {},
+        fields:       Object.keys(opts.after || {}),
+      },
+      rationale:     opts.rationale || 'Smart Cardio Engine recommends a structural change to the weekly cardio cadence.',
+      proposed_by:   'BBF_CARDIO_INTEL.v1',
+      metadata:      {
+        change_description: opts.change_description || null,
+        weekly_volume_before: opts.weekly_volume_before || null,
+        weekly_volume_after:  opts.weekly_volume_after  || null,
+        cns_snapshot:    cns,
+      },
+    };
+    return fetch('https://buildbelievefit.onrender.com/api/proposal-submit', {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify(payload),
+    }).then(function(r){ return r.json().catch(function(){ return null; }); })
+      .catch(function(e){ return { ok: false, error: (e && e.message) || 'fetch_failed' }; });
+  }
+
+  // ── 3. PAR-Q+ SELF-SCREEN · cardiac_clearance writer ──────────────
+  // NEVER set by AI. User self-attests via 7 standard PAR-Q+ questions.
+  // Any single yes → 'restricted' + physician escalation. Two+ yes →
+  // 'contraindicated'. All seven no → 'self_attested'. Provider override
+  // requires a separate provider-letter upload flow (out of scope here).
+  var PAR_Q_QUESTIONS = [
+    { id: 'q1', text: 'Has a doctor ever said you have a heart condition OR high blood pressure?' },
+    { id: 'q2', text: 'Do you feel chest pain at rest, during daily activities, or during physical activity?' },
+    { id: 'q3', text: 'Do you lose balance because of dizziness OR have you lost consciousness in the last 12 months?' },
+    { id: 'q4', text: 'Have you been diagnosed with another chronic medical condition (other than heart disease or high blood pressure)?' },
+    { id: 'q5', text: 'Are you currently taking prescribed medications for a chronic medical condition?' },
+    { id: 'q6', text: 'Do you have a bone or joint problem that could be made worse by becoming more physically active?' },
+    { id: 'q7', text: 'Has your doctor ever said you should only do medically supervised physical activity?' },
+  ];
+  function _classifyPARQ(answers) {
+    var yes = 0;
+    Object.keys(answers || {}).forEach(function(k){ if (answers[k] === true || answers[k] === 'yes') yes++; });
+    if (yes === 0) return 'self_attested';
+    if (yes === 1) return 'restricted';
+    return 'contraindicated';
+  }
+  async function submitPARQScreen(uid, answers, opts) {
+    uid = uid || _activeUid();
+    opts = opts || {};
+    if (!uid) return { ok: false, error: 'no_uid' };
+    var classification = _classifyPARQ(answers);
+    var snapshot = {
+      version:      'parq+_2014',
+      answers:      answers,
+      classified:   classification,
+      screened_at:  new Date().toISOString(),
+      attested_by:  uid,
+    };
+    // Local write first so the UI updates immediately
+    try {
+      var d = GD();
+      if (d.u[uid]) {
+        d.u[uid].cardiac_clearance     = classification;
+        d.u[uid].par_q_screen          = snapshot;
+        d.u[uid].par_q_screened_at     = snapshot.screened_at;
+        SD(d);
+      }
+    } catch(_) {}
+    // Cloud sync via the Phase 1 admin-upsert path (works even when the
+    // self-attesting user is the active CU, NOT just admin viewing a client)
+    if (window.BBF_CLOUDSYNC && typeof BBF_CLOUDSYNC.upsert === 'function') {
+      try {
+        await BBF_CLOUDSYNC.upsert(uid, {
+          cardiac_clearance: classification,
+        });
+      } catch(_) {}
+    }
+    // Audit emission · attested action
+    _emitAudit(uid, {
+      action:           'par_q_screen_submitted',
+      classification:   classification,
+      questions_count:  PAR_Q_QUESTIONS.length,
+      yes_count:        Object.values(answers || {}).filter(function(v){ return v === true || v === 'yes'; }).length,
+    });
+    return { ok: true, classification: classification, snapshot: snapshot };
+  }
+
+  function hasValidPARQ(uid) {
+    var u = _userRecord(uid || _activeUid());
+    return !!(u.par_q_screen && u.par_q_screened_at && u.cardiac_clearance);
+  }
+
+  return {
+    MODALITY_INTERFERENCE:   MODALITY_INTERFERENCE,
+    ZONE_BAND:               ZONE_BAND,
+    CARDIAC_RESTRICTED_ZONE_CAP: CARDIAC_RESTRICTED_ZONE_CAP,
+    CARDIAC_UNVERIFIED_ZONE_CAP: CARDIAC_UNVERIFIED_ZONE_CAP,
+    PAR_Q_QUESTIONS:         PAR_Q_QUESTIONS,
+    evaluate:                evaluate,
+    submitPARQScreen:        submitPARQScreen,
+    hasValidPARQ:            hasValidPARQ,
+    proposeCardioStructureChange: proposeCardioStructureChange,
+  };
+})();
+
+// ════════════════════════════════════════════════════════════════════════
 // BBF_KINEMATICS · Phase 6 — Live Kinematic Mapping (Form Check)
 // ────────────────────────────────────────────────────────────────────────
 // "🎥 Form Check" button injected by RDW() at the bottom of every primary
@@ -15892,8 +16332,15 @@ var BBF_CARDIO = (function() {
     var modality = _esc((payload && payload.modality)  || '—');
     var protocol = _esc((payload && payload.protocol)  || '—');
     var roi      = _esc((payload && payload.roi_toast) || '—');
+    // Phase 3 · cardiac disclaimer surfaces at the OUTPUT boundary as
+    // a single banner · NOT repeated inside the protocol body. The
+    // banner sits above the modality so users see it before reading
+    // the prescription. Driven by the server-side safety_disclaimer.
+    var safety   = payload && payload.safety_disclaimer ? _esc(payload.safety_disclaimer) : '';
+    var clamped  = (payload && payload.applied_zone != null) ? ' &middot; Zone ' + payload.applied_zone : '';
     con.innerHTML =
-      '<div class="cardio-modality">' + modality + '</div>' +
+      (safety ? '<div class="cardio-safety">&#x26A0; ' + safety + '</div>' : '') +
+      '<div class="cardio-modality">' + modality + clamped + '</div>' +
       '<pre class="cardio-protocol">' + protocol + '</pre>' +
       '<div class="cardio-roi-banner">&#x1F525; ' + roi + '</div>';
   }
@@ -15919,13 +16366,35 @@ var BBF_CARDIO = (function() {
     var tok = _adminToken();
     if (tok) headers['X-BBF-Admin-Token'] = tok;
 
-    var body = {
-      uid:               uid,
-      available_minutes: minutes,
-      admin_override:    !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
-    };
+    // Phase 3 · run the antagonism evaluation BEFORE the edge fn fires
+    // so the protocol generator sees the applied zone / modality / caps
+    // and the audit trail captures the deterministic downgrade.
+    var bodyPromise;
+    if (typeof BBF_CARDIO_INTEL !== 'undefined' && BBF_CARDIO_INTEL.evaluate) {
+      bodyPromise = BBF_CARDIO_INTEL.evaluate({ uid: uid, minutes: minutes }).then(function(ev) {
+        return {
+          uid:               uid,
+          available_minutes: minutes,
+          antagonism:        ev,
+          applied_zone:      ev.applied_zone,
+          applied_modality:  ev.modality_applied,
+          cardiac_clearance: ev.cardiac_clearance,
+          baseline_status:   ev.baseline_status,
+          block_priority:    ev.block_priority,
+          admin_override:    !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+        };
+      });
+    } else {
+      bodyPromise = Promise.resolve({
+        uid:               uid,
+        available_minutes: minutes,
+        admin_override:    !!(typeof window !== 'undefined' && window.BBF_ADMIN_OVERRIDE === true)
+      });
+    }
 
-    window.fetch(_supabaseUrl() + ENDPOINT, {
+    bodyPromise.then(function(body) {
+
+    return window.fetch(_supabaseUrl() + ENDPOINT, {
       method:  'POST',
       headers: headers,
       body:    JSON.stringify(body)
@@ -15947,6 +16416,10 @@ var BBF_CARDIO = (function() {
         ? 'Lost connection to the cardio engine. Check your signal and tap Generate Protocol.'
         : raw;
       _renderError(friendly);
+    });
+    }).catch(function(err) {
+      console.warn('[BBF_CARDIO] antagonism evaluation threw:', err && err.message);
+      _renderError('Cardio antagonism gate failed. Tap Generate Protocol to retry.');
     }).then(function() {
       _inFlight = false;
       _resetButton();
