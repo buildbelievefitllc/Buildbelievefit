@@ -5768,13 +5768,74 @@ window.ADMIN_CREATE_CLIENT = function ADMIN_CREATE_CLIENT(){
     console.warn('[BBF] ADMIN_CREATE_CLIENT blocked — current user is not Akeem.');
     return;
   }
+  // Capture Sovereign Intake fields BEFORE REGISTER (they live in the
+  // admin-create-modal DOM, separate from REGISTER's auth-pane inputs).
+  var userField  = document.getElementById('admin-create-user');
+  var intakeUser = userField ? String(userField.value || '').trim().toLowerCase() : '';
+  var intake     = (typeof _readAdminCreateIntake === 'function') ? _readAdminCreateIntake() : null;
+
   window._bbfAdminProvisioning = true;
   try {
     REGISTER();
   } finally {
     window._bbfAdminProvisioning = false;
   }
+
+  // After REGISTER, if a new user record exists, stamp the dietary
+  // intake fields onto it and persist. REGISTER may set the username
+  // to a slug variant — if intakeUser isn't found, look for the most
+  // recent freshly-created provisioned record.
+  try {
+    if (!intake) return;
+    var d2 = GD();
+    if (!d2 || !d2.u) return;
+    var target = null;
+    if (intakeUser && d2.u[intakeUser]) {
+      target = d2.u[intakeUser];
+    } else {
+      // Fallback: find a record stamped with admin_override that
+      // doesn't yet have a dietary_profile attached.
+      Object.keys(d2.u).forEach(function(k) {
+        var u = d2.u[k] || {};
+        if (u.provisioning === 'admin_override' && !u.dietary_profile && !target) target = u;
+      });
+    }
+    if (!target) return;
+    target.dietary_profile = intake.dietary_profile || 'Omnivore';
+    target.allergens       = intake.allergens || [];
+    target.food_likes      = intake.food_likes || [];
+    target.food_dislikes   = intake.food_dislikes || [];
+    SD(d2);
+    console.log('[BBF] dietary intake stamped on new client:', target.name || '(no name)', JSON.stringify({
+      diet: target.dietary_profile, allergens: target.allergens.length, likes: target.food_likes.length, dislikes: target.food_dislikes.length
+    }));
+  } catch (e) {
+    console.warn('[BBF] admin-create intake stamp failed:', e && e.message);
+  }
 };
+
+// Helper · reads the Sovereign Intake fields out of admin-create-modal
+// and normalizes them (comma-split, trim, lowercase keys for allergens).
+function _readAdminCreateIntake() {
+  function parseCsv(id) {
+    var el = document.getElementById(id);
+    var raw = el ? String(el.value || '').trim() : '';
+    if (!raw) return [];
+    return raw.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  }
+  function gatherChecked(containerId) {
+    var c = document.getElementById(containerId);
+    if (!c) return [];
+    return Array.from(c.querySelectorAll('input[type="checkbox"]:checked')).map(function(i){ return i.value; });
+  }
+  var dietEl = document.getElementById('admin-create-diet');
+  return {
+    dietary_profile: dietEl ? dietEl.value : 'Omnivore',
+    allergens:       gatherChecked('admin-create-allergens'),
+    food_likes:      parseCsv('admin-create-likes'),
+    food_dislikes:   parseCsv('admin-create-dislikes')
+  };
+}
 
 // Wire buttons immediately
 document.addEventListener('DOMContentLoaded',function(){
@@ -7455,6 +7516,37 @@ window.onload=function(){
     <div class="af"><label>6-digit PIN (share with client)</label><input type="password" id="admin-create-pin" placeholder="set a PIN" maxlength="6" inputmode="numeric"/></div>
     <div class="af"><label>Training Type</label><select id="admin-create-type"><option>In-Person</option><option>Online / Remote</option></select></div>
     <div class="af"><label>Goal (optional)</label><input type="text" id="admin-create-goal" placeholder="e.g. Lose 20lbs by summer"/></div>
+
+    <!-- ── Sovereign Nutrition Intake (Tier 1) · scope-locked dietary controls -->
+    <div style="margin:1rem 0 .4rem 0;padding-top:.85rem;border-top:1px solid #1a1a1a;font-family:var(--hb);font-size:.72rem;letter-spacing:2.5px;color:var(--yel)">&#x25C7; SOVEREIGN NUTRITION INTAKE</div>
+    <div class="af">
+      <label>Dietary Profile</label>
+      <select id="admin-create-diet">
+        <option value="Omnivore">Omnivore</option>
+        <option value="Vegetarian">Vegetarian</option>
+        <option value="Pescatarian">Pescatarian</option>
+        <option value="Vegan">Vegan</option>
+        <option value="Keto-Friendly">Keto-Friendly</option>
+      </select>
+    </div>
+    <div class="af">
+      <label>Allergen Restrictions <span style="color:var(--mut2);font-weight:500">(check all that apply)</span></label>
+      <div id="admin-create-allergens" class="bbf-allergen-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem .8rem;margin-top:.3rem">
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Gluten"/> Gluten</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Dairy"/> Dairy</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Peanut"/> Peanut</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Tree Nut"/> Tree Nut</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Soy"/> Soy</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Egg"/> Egg</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Shellfish"/> Shellfish</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Fish"/> Fish</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Coconut"/> Coconut</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Sesame"/> Sesame</label>
+      </div>
+    </div>
+    <div class="af"><label>Foods They Love <span style="color:var(--mut2);font-weight:500">(comma-separated)</span></label><input type="text" id="admin-create-likes" placeholder="e.g. chicken, sweet potato, salmon" autocorrect="off"/></div>
+    <div class="af"><label>Foods They Avoid <span style="color:var(--mut2);font-weight:500">(comma-separated, not allergens)</span></label><input type="text" id="admin-create-dislikes" placeholder="e.g. cilantro, tilapia, bell peppers" autocorrect="off"/></div>
+
     <div class="amsg" id="admin-create-msg" style="margin-top:.6rem"></div>
     <div class="ma" style="margin-top:1rem;display:flex;gap:.6rem">
       <button class="mc3" onclick="closeAdminCreateClient()" style="flex:1">Cancel</button>
@@ -7462,6 +7554,140 @@ window.onload=function(){
     </div>
   </div>
 </div>
+
+<!-- ═══ ADMIN: EDIT DIETARY PROFILE MODAL (Tier 1 · per-client override) ═══
+     Opened from the Nutrition tab when CU==='akeem' && VC && VC!==CU via
+     the "Dietary Profile" Sovereign button. Same field set as the
+     provisioning modal but operates on an existing user. The "Generate
+     via AI" button (Tier 3) opens a quick 5-question wizard that calls
+     /api/diagnose-profile and pre-fills the form.                       -->
+<div class="modal" id="bbf-dietary-modal">
+  <div class="msh">
+    <div class="mhd"></div>
+    <div class="mt" style="display:flex;align-items:center;gap:.5rem">&#x25C7; Sovereign Nutrition Profile</div>
+    <div style="font-size:.78rem;font-weight:600;color:var(--mut2);margin-bottom:1rem;line-height:1.55">
+      Editing <code style="background:#1a1a1a;padding:.05rem .4rem;border-radius:3px;color:var(--yel)" id="bbf-diet-client-tag">—</code>'s dietary profile. Changes save to the client profile and gate the next AI rotation. The 40-meal Sovereign library is filtered against these constraints before Gemini picks anything.
+    </div>
+
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+      <button class="ms" id="bbf-diet-ai-btn" onclick="window.BBF_DIETARY && BBF_DIETARY.openDiagnose()" style="flex:1;background:linear-gradient(135deg,#1a1a1a 0%,#0a0a0a 100%);color:var(--yel);border:1px solid var(--yel);font-family:var(--hb);letter-spacing:2px;font-size:.72rem;padding:.7rem .5rem">&#x2728; GENERATE VIA AI</button>
+    </div>
+
+    <div class="af">
+      <label>Dietary Profile</label>
+      <select id="bbf-diet-profile">
+        <option value="Omnivore">Omnivore</option>
+        <option value="Vegetarian">Vegetarian</option>
+        <option value="Pescatarian">Pescatarian</option>
+        <option value="Vegan">Vegan</option>
+        <option value="Keto-Friendly">Keto-Friendly</option>
+      </select>
+    </div>
+    <div class="af">
+      <label>Allergen Restrictions</label>
+      <div id="bbf-diet-allergens" class="bbf-allergen-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem .8rem;margin-top:.3rem">
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Gluten"/> Gluten</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Dairy"/> Dairy</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Peanut"/> Peanut</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Tree Nut"/> Tree Nut</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Soy"/> Soy</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Egg"/> Egg</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Shellfish"/> Shellfish</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Fish"/> Fish</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Coconut"/> Coconut</label>
+        <label class="bbf-allergen-chk"><input type="checkbox" value="Sesame"/> Sesame</label>
+      </div>
+    </div>
+    <div class="af"><label>Foods They Love <span style="color:var(--mut2);font-weight:500">(comma-separated)</span></label><input type="text" id="bbf-diet-likes" placeholder="e.g. chicken, sweet potato, salmon" autocorrect="off"/></div>
+    <div class="af"><label>Foods They Avoid <span style="color:var(--mut2);font-weight:500">(comma-separated, not allergens)</span></label><input type="text" id="bbf-diet-dislikes" placeholder="e.g. cilantro, tilapia, bell peppers" autocorrect="off"/></div>
+
+    <div class="amsg" id="bbf-diet-msg" style="margin-top:.6rem"></div>
+    <div class="ma" style="margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap">
+      <button class="mc3" onclick="window.BBF_DIETARY && BBF_DIETARY.close()" style="flex:1;min-width:120px">Cancel</button>
+      <button class="ms" onclick="window.BBF_DIETARY && BBF_DIETARY.save()" style="flex:1;min-width:120px;background:var(--yel);color:#000;font-family:var(--hb);letter-spacing:2px">Save</button>
+      <button class="ms" onclick="window.BBF_DIETARY && BBF_DIETARY.saveAndRotate()" style="flex:1;min-width:160px;background:linear-gradient(135deg,#6a0dad 0%,#8b1abf 100%);color:var(--yel);border:1px solid var(--yel);font-family:var(--hb);letter-spacing:2px;font-size:.72rem">Save &amp; Re-Rotate &#x2192;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN: AI DIETARY DIAGNOSE WIZARD (Tier 3) ═══════════════════════
+     Quick 5-question intake. Admin types answers, edge function returns
+     a structured { dietary_profile, allergens[], likes[], dislikes[],
+     rationale }. Admin reviews + edits in the parent modal before
+     saving. Sovereign-styled (gold accents, dark gradient).             -->
+<div class="modal" id="bbf-diagnose-modal">
+  <div class="msh">
+    <div class="mhd"></div>
+    <div class="mt" style="display:flex;align-items:center;gap:.5rem">&#x2728; AI Profile Diagnostic</div>
+    <div style="font-size:.78rem;font-weight:600;color:var(--mut2);margin-bottom:1rem;line-height:1.55">
+      Five quick questions. Answer in plain English — the AI synthesizes the dietary profile, allergens, likes, and dislikes into a structured intake. You review + edit before saving.
+    </div>
+    <div class="af"><label>1 &mdash; What did they eat yesterday? <span style="color:var(--mut2);font-weight:500">(meals, snacks, drinks)</span></label><textarea id="bbf-dx-q1" rows="2" placeholder="e.g. Oatmeal with banana, chicken Caesar wrap, salmon and rice, protein shake" style="width:100%;padding:.5rem;background:#0a0a0a;color:var(--wht);border:1px solid #2a2a2a;border-radius:6px;font-family:inherit;font-size:.82rem;resize:vertical"></textarea></div>
+    <div class="af"><label>2 &mdash; Anything they actively dislike or avoid?</label><textarea id="bbf-dx-q2" rows="2" placeholder="e.g. Can't stand cilantro, doesn't eat pork, hates seafood texture" style="width:100%;padding:.5rem;background:#0a0a0a;color:var(--wht);border:1px solid #2a2a2a;border-radius:6px;font-family:inherit;font-size:.82rem;resize:vertical"></textarea></div>
+    <div class="af"><label>3 &mdash; Any sensitivities or reactions <span style="color:var(--mut2);font-weight:500">(even unconfirmed)</span>?</label><textarea id="bbf-dx-q3" rows="2" placeholder="e.g. Bloated after dairy, suspects gluten, never tested for nut allergy" style="width:100%;padding:.5rem;background:#0a0a0a;color:var(--wht);border:1px solid #2a2a2a;border-radius:6px;font-family:inherit;font-size:.82rem;resize:vertical"></textarea></div>
+    <div class="af"><label>4 &mdash; Cultural, religious, or lifestyle preferences?</label><textarea id="bbf-dx-q4" rows="2" placeholder="e.g. Halal, kosher, plant-based by choice, only grass-fed beef" style="width:100%;padding:.5rem;background:#0a0a0a;color:var(--wht);border:1px solid #2a2a2a;border-radius:6px;font-family:inherit;font-size:.82rem;resize:vertical"></textarea></div>
+    <div class="af"><label>5 &mdash; Energy level &amp; current goal focus?</label><textarea id="bbf-dx-q5" rows="2" placeholder="e.g. Energy crashes at 3pm, training for fat loss, wants more carbs around workouts" style="width:100%;padding:.5rem;background:#0a0a0a;color:var(--wht);border:1px solid #2a2a2a;border-radius:6px;font-family:inherit;font-size:.82rem;resize:vertical"></textarea></div>
+
+    <div class="amsg" id="bbf-dx-msg" style="margin-top:.6rem"></div>
+    <div class="ma" style="margin-top:1rem;display:flex;gap:.6rem">
+      <button class="mc3" onclick="window.BBF_DIETARY && BBF_DIETARY.closeDiagnose()" style="flex:1">Cancel</button>
+      <button class="ms" id="bbf-dx-go" onclick="window.BBF_DIETARY && BBF_DIETARY.runDiagnose()" style="flex:1;background:var(--yel);color:#000;font-family:var(--hb);letter-spacing:2px">Diagnose &#x2192;</button>
+    </div>
+  </div>
+</div>
+
+<style id="bbf-sovereign-intake-styles">
+  .bbf-allergen-chk { display:flex; align-items:center; gap:.4rem; font-size:.82rem; color:var(--wht); cursor:pointer; padding:.3rem .4rem; border-radius:4px; transition:background .15s ease; }
+  .bbf-allergen-chk:hover { background:#1a1a1a; }
+  .bbf-allergen-chk input[type="checkbox"] { accent-color:var(--yel); width:14px; height:14px; cursor:pointer; }
+  .bbf-allergen-chk input[type="checkbox"]:checked + label, .bbf-allergen-chk:has(input:checked) { color:var(--yel); }
+
+  #bbfAdminRotateMeals, #bbfAdminDietaryProfile {
+    display:block;
+    width:100%;
+    margin-bottom:.6rem;
+    padding:.85rem 1rem;
+    background:linear-gradient(135deg,#080808 0%,#1a0a2a 100%);
+    color:var(--yel);
+    border:1px solid var(--yel);
+    border-radius:8px;
+    font-family:var(--hb);
+    font-size:.78rem;
+    letter-spacing:2.5px;
+    text-align:center;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 0 0 0 rgba(245,200,0,0);
+    transition:box-shadow .18s ease, transform .12s ease, background .18s ease;
+  }
+  #bbfAdminRotateMeals:hover:not(:disabled), #bbfAdminDietaryProfile:hover:not(:disabled) {
+    box-shadow:0 0 22px -4px rgba(245,200,0,0.55);
+    transform:translateY(-1px);
+    background:linear-gradient(135deg,#1a0a2a 0%,#2a0e44 100%);
+  }
+  #bbfAdminRotateMeals:disabled, #bbfAdminDietaryProfile:disabled {
+    opacity:.55; cursor:wait; transform:none; box-shadow:none;
+  }
+  #bbfAdminDietaryProfile {
+    background:linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 100%);
+  }
+  .bbf-sovereign-rotator-strip {
+    border:1px solid #1a1a1a;
+    border-radius:10px;
+    padding:.8rem;
+    margin-bottom:1rem;
+    background:radial-gradient(ellipse at top, rgba(106,13,173,0.08) 0%, transparent 70%);
+  }
+  .bbf-sovereign-rotator-strip .bbf-strip-label {
+    font-family:var(--hb);
+    font-size:.62rem;
+    letter-spacing:3px;
+    color:var(--yel);
+    text-align:center;
+    margin-bottom:.6rem;
+    opacity:.85;
+  }
+</style>
 
 <!-- PRE-HAB AUDIT MODAL -->
 <div class="modal" id="prehab-audit-modal">
@@ -15588,14 +15814,36 @@ var BBF_NUTRITION_ROTATOR = (function() {
 
   function injectButton(con) {
     if (!con || !isAdminView()) return;
-    if (con.querySelector('#bbfAdminRotateMeals')) return; // idempotent
-    var btn = document.createElement('button');
-    btn.id = 'bbfAdminRotateMeals';
-    btn.className = 'bbf-primary-btn';
-    btn.style.cssText = 'background:#FF00ff;color:#fff;margin-bottom:15px;';
-    btn.textContent = '🔄 AI Auto-Rotate Protocol';
-    btn.addEventListener('click', onRotateClick);
-    con.insertBefore(btn, con.firstChild);
+    if (con.querySelector('.bbf-sovereign-rotator-strip')) return; // idempotent
+
+    // Sovereign Admin Console strip · purple radial accent, gold typography,
+    // both controls grouped under one banner. Replaces the legacy magenta
+    // standalone button. CSS lives in #bbf-sovereign-intake-styles.
+    var strip = document.createElement('div');
+    strip.className = 'bbf-sovereign-rotator-strip';
+
+    var label = document.createElement('div');
+    label.className = 'bbf-strip-label';
+    label.textContent = '◇ SOVEREIGN ADMIN CONSOLE ◇';
+    strip.appendChild(label);
+
+    var rotateBtn = document.createElement('button');
+    rotateBtn.id = 'bbfAdminRotateMeals';
+    rotateBtn.type = 'button';
+    rotateBtn.textContent = '◇ AI AUTO-ROTATE PROTOCOL';
+    rotateBtn.addEventListener('click', onRotateClick);
+    strip.appendChild(rotateBtn);
+
+    var dietBtn = document.createElement('button');
+    dietBtn.id = 'bbfAdminDietaryProfile';
+    dietBtn.type = 'button';
+    dietBtn.textContent = '◇ DIETARY PROFILE & ALLERGENS';
+    dietBtn.addEventListener('click', function() {
+      if (window.BBF_DIETARY && typeof BBF_DIETARY.open === 'function') BBF_DIETARY.open();
+    });
+    strip.appendChild(dietBtn);
+
+    con.insertBefore(strip, con.firstChild);
   }
 
   function onRotateClick(e) {
@@ -15616,13 +15864,22 @@ var BBF_NUTRITION_ROTATOR = (function() {
     btn.disabled = true;
     btn.textContent = '🔄 Formulating New Protocol...';
 
+    // Tier 2 · ship the structured Sovereign Intake to the server so the
+    // 40-meal matrix can be filtered before Gemini ever sees a prompt.
+    // The server pre-filters BBF_MEALS_MATRIX by dietary_profile +
+    // allergens and tells Gemini "you may ONLY use these meals."
+    var uRec = (typeof d !== 'undefined' && d && d.u && d.u[uid]) || {};
     var payload = {
-      uid:          uid,
-      tdee:         inferTdee(uid),
-      constraints:  buildConstraints(uid),
-      previousPlan: summarizePreviousPlan((typeof MP !== 'undefined' && MP[uid]) || null),
-      clientTier:   inferTier(uid),
-      clientName:   inferName(uid)
+      uid:             uid,
+      tdee:            inferTdee(uid),
+      constraints:     buildConstraints(uid),
+      previousPlan:    summarizePreviousPlan((typeof MP !== 'undefined' && MP[uid]) || null),
+      clientTier:      inferTier(uid),
+      clientName:      inferName(uid),
+      dietary_profile: uRec.dietary_profile || 'Omnivore',
+      allergens:       Array.isArray(uRec.allergens)     ? uRec.allergens     : [],
+      food_likes:      Array.isArray(uRec.food_likes)    ? uRec.food_likes    : [],
+      food_dislikes:   Array.isArray(uRec.food_dislikes) ? uRec.food_dislikes : []
     };
 
     fetch(ENDPOINT, {
@@ -15687,6 +15944,246 @@ var BBF_NUTRITION_ROTATOR = (function() {
     injectButton: injectButton,
     hydrateOnce: hydrateOnce,
     clearAdminToken: clearAdminToken
+  };
+})();
+
+// ═════════════════════════════════════════════════════════════════════
+// BBF_DIETARY · Admin-only dietary-profile editor + AI diagnose wizard
+// ─────────────────────────────────────────────────────────────────────
+// Opens via the "Dietary Profile & Allergens" Sovereign button on the
+// Nutrition tab (admin viewing a client). Reads/writes:
+//   d.u[uid].dietary_profile  · 'Omnivore' | 'Vegetarian' | 'Pescatarian' | 'Vegan' | 'Keto-Friendly'
+//   d.u[uid].allergens[]      · ['Gluten','Dairy','Peanut',…]
+//   d.u[uid].food_likes[]     · ['chicken','sweet potato',…]
+//   d.u[uid].food_dislikes[]  · ['cilantro','tilapia',…]
+// Persists locally via SD(); cloud sync (BBF_SYNC.saveProfile, when
+// present) is best-effort. The "Save & Re-Rotate" CTA flows straight
+// into BBF_NUTRITION_ROTATOR so the new meal plan respects the just-saved
+// constraints. The "Generate via AI" CTA opens the 5-question wizard
+// that hits /api/diagnose-profile and pre-fills the parent modal.
+// ═════════════════════════════════════════════════════════════════════
+var BBF_DIETARY = (function() {
+  var DIAGNOSE_ENDPOINT = 'https://buildbelievefit.onrender.com/api/diagnose-profile';
+  var TOKEN_KEY         = 'BBF_ADMIN_TOKEN';
+
+  function _activeUid() {
+    return (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  }
+  function _isAdminContext() {
+    return (typeof CU !== 'undefined' && CU === 'akeem')
+        && (typeof VC !== 'undefined' && VC && VC !== CU);
+  }
+  function _adminToken() {
+    var t = null;
+    try { t = sessionStorage.getItem(TOKEN_KEY); } catch(_) {}
+    if (t) return t;
+    var entered = (typeof prompt === 'function')
+      ? prompt('Enter BBF Admin Token to run the AI diagnostic:') : null;
+    if (!entered) return null;
+    entered = entered.trim(); if (!entered) return null;
+    try { sessionStorage.setItem(TOKEN_KEY, entered); } catch(_) {}
+    return entered;
+  }
+  function _parseCsv(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw.map(function(s){ return String(s).trim(); }).filter(Boolean);
+    return String(raw).split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  }
+  function _setAllergenChecks(allergens) {
+    var c = document.getElementById('bbf-diet-allergens');
+    if (!c) return;
+    var set = {}; (allergens || []).forEach(function(a){ set[String(a).toLowerCase()] = true; });
+    c.querySelectorAll('input[type="checkbox"]').forEach(function(i) {
+      i.checked = !!set[String(i.value || '').toLowerCase()];
+    });
+  }
+  function _readAllergenChecks() {
+    var c = document.getElementById('bbf-diet-allergens');
+    if (!c) return [];
+    return Array.from(c.querySelectorAll('input[type="checkbox"]:checked')).map(function(i){ return i.value; });
+  }
+  function _populateFromUser() {
+    var uid = _activeUid();
+    var u = (uid && typeof d !== 'undefined' && d && d.u && d.u[uid]) || {};
+    var tag = document.getElementById('bbf-diet-client-tag');
+    if (tag) tag.textContent = (u.name || uid || '—');
+    var profEl = document.getElementById('bbf-diet-profile');
+    if (profEl) profEl.value = u.dietary_profile || 'Omnivore';
+    _setAllergenChecks(u.allergens || []);
+    var likesEl = document.getElementById('bbf-diet-likes');
+    var dislikesEl = document.getElementById('bbf-diet-dislikes');
+    if (likesEl)    likesEl.value    = (u.food_likes || []).join(', ');
+    if (dislikesEl) dislikesEl.value = (u.food_dislikes || []).join(', ');
+    var msgEl = document.getElementById('bbf-diet-msg');
+    if (msgEl) { msgEl.textContent = ''; msgEl.style.color = ''; }
+  }
+
+  function open() {
+    if (!_isAdminContext()) {
+      console.warn('[BBF_DIETARY] open blocked — must be admin viewing a client');
+      return;
+    }
+    _populateFromUser();
+    var modal = document.getElementById('bbf-dietary-modal');
+    if (modal) modal.classList.add('on');
+  }
+  function close() {
+    var modal = document.getElementById('bbf-dietary-modal');
+    if (modal) modal.classList.remove('on');
+  }
+
+  // Returns the just-saved record so saveAndRotate can chain off it.
+  function _commit() {
+    var uid = _activeUid();
+    if (!uid) return null;
+    var d2 = GD();
+    if (!d2 || !d2.u || !d2.u[uid]) return null;
+    var profEl = document.getElementById('bbf-diet-profile');
+    var likesEl = document.getElementById('bbf-diet-likes');
+    var dislikesEl = document.getElementById('bbf-diet-dislikes');
+    d2.u[uid].dietary_profile = profEl ? (profEl.value || 'Omnivore') : 'Omnivore';
+    d2.u[uid].allergens       = _readAllergenChecks();
+    d2.u[uid].food_likes      = _parseCsv(likesEl    ? likesEl.value    : '');
+    d2.u[uid].food_dislikes   = _parseCsv(dislikesEl ? dislikesEl.value : '');
+    SD(d2);
+    console.log('[BBF_DIETARY] saved for ' + uid + ':', JSON.stringify({
+      diet: d2.u[uid].dietary_profile,
+      allergens: d2.u[uid].allergens,
+      likes_n: d2.u[uid].food_likes.length,
+      dislikes_n: d2.u[uid].food_dislikes.length
+    }));
+    // Best-effort cloud sync — only if BBF_SYNC exposes a profile patcher.
+    if (window.BBF_SYNC && typeof BBF_SYNC.saveProfile === 'function') {
+      try { BBF_SYNC.saveProfile(uid, {
+        dietary_profile: d2.u[uid].dietary_profile,
+        allergens:       d2.u[uid].allergens,
+        food_likes:      d2.u[uid].food_likes,
+        food_dislikes:   d2.u[uid].food_dislikes
+      }); } catch (_) {}
+    }
+    return d2.u[uid];
+  }
+  function save() {
+    var rec = _commit();
+    var msg = document.getElementById('bbf-diet-msg');
+    if (rec && msg) { msg.textContent = '◇ Saved · ' + (rec.dietary_profile || '') + ' · ' + (rec.allergens || []).length + ' allergens · ' + (rec.food_likes || []).length + ' likes / ' + (rec.food_dislikes || []).length + ' avoids'; msg.style.color = 'var(--yel)'; }
+    setTimeout(close, 1100);
+  }
+  function saveAndRotate() {
+    var rec = _commit();
+    if (!rec) return;
+    close();
+    // Trigger the rotator by synthesizing a click on the Sovereign button.
+    setTimeout(function() {
+      var rb = document.getElementById('bbfAdminRotateMeals');
+      if (rb) rb.click();
+    }, 250);
+  }
+
+  // ── AI Diagnose wizard (Tier 3) ──────────────────────────────────
+  function openDiagnose() {
+    if (!_isAdminContext()) return;
+    var m = document.getElementById('bbf-diagnose-modal');
+    if (m) m.classList.add('on');
+    var msg = document.getElementById('bbf-dx-msg');
+    if (msg) { msg.textContent = ''; msg.style.color = ''; }
+  }
+  function closeDiagnose() {
+    var m = document.getElementById('bbf-diagnose-modal');
+    if (m) m.classList.remove('on');
+  }
+  function _readDxAnswers() {
+    function val(id){ var el=document.getElementById(id); return el?String(el.value||'').trim():''; }
+    return {
+      ate_yesterday:       val('bbf-dx-q1'),
+      dislikes_freeform:   val('bbf-dx-q2'),
+      sensitivities:       val('bbf-dx-q3'),
+      cultural_prefs:      val('bbf-dx-q4'),
+      energy_and_goal:     val('bbf-dx-q5')
+    };
+  }
+  function runDiagnose() {
+    var uid = _activeUid();
+    if (!uid) return;
+    var u = (typeof d !== 'undefined' && d && d.u && d.u[uid]) || {};
+    var answers = _readDxAnswers();
+    var anyAnswered = Object.keys(answers).some(function(k){ return answers[k]; });
+    var msg = document.getElementById('bbf-dx-msg');
+    if (!anyAnswered) {
+      if (msg) { msg.textContent = 'Answer at least one question to give the AI signal to work with.'; msg.style.color = 'var(--red,#ef4444)'; }
+      return;
+    }
+    var token = _adminToken();
+    if (!token) {
+      if (msg) { msg.textContent = 'Admin token required.'; msg.style.color = 'var(--red,#ef4444)'; }
+      return;
+    }
+    var goBtn = document.getElementById('bbf-dx-go');
+    if (goBtn) { goBtn.disabled = true; goBtn.textContent = '◇ Diagnosing...'; }
+    if (msg) { msg.textContent = 'Synthesizing intake from your answers...'; msg.style.color = 'var(--mut2)'; }
+
+    var payload = {
+      uid:        uid,
+      clientName: (u.name && u.name.split(' ')[0]) || uid,
+      age:        u.age || null,
+      goal:       u.goal || null,
+      answers:    answers
+    };
+
+    fetch(DIAGNOSE_ENDPOINT, {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify(payload)
+    }).then(function(r){
+      return r.json().catch(function(){ return null; }).then(function(body){
+        return { status: r.status, ok: r.ok, body: body };
+      });
+    }).then(function(resp){
+      if (resp.status === 401) {
+        try { sessionStorage.removeItem(TOKEN_KEY); } catch(_) {}
+        if (msg) { msg.textContent = 'Admin token rejected. Try again.'; msg.style.color = 'var(--red,#ef4444)'; }
+        return;
+      }
+      if (resp.status === 429) {
+        if (msg) { msg.textContent = 'Rate limit hit. Wait a minute and retry.'; msg.style.color = 'var(--red,#ef4444)'; }
+        return;
+      }
+      if (!resp.ok || !resp.body || !resp.body.ok || !resp.body.diagnosis) {
+        var err = resp.body && resp.body.error || 'unknown';
+        if (msg) { msg.textContent = 'Diagnose failed (' + err + ')'; msg.style.color = 'var(--red,#ef4444)'; }
+        return;
+      }
+      var dx = resp.body.diagnosis;
+      // Pre-fill the parent modal — admin reviews + edits before saving.
+      var profEl = document.getElementById('bbf-diet-profile');
+      if (profEl && dx.dietary_profile) profEl.value = dx.dietary_profile;
+      _setAllergenChecks(dx.allergens || []);
+      var likesEl = document.getElementById('bbf-diet-likes');
+      var dislikesEl = document.getElementById('bbf-diet-dislikes');
+      if (likesEl)    likesEl.value    = (dx.food_likes    || []).join(', ');
+      if (dislikesEl) dislikesEl.value = (dx.food_dislikes || []).join(', ');
+      var parentMsg = document.getElementById('bbf-diet-msg');
+      if (parentMsg) {
+        parentMsg.textContent = '◇ AI diagnosed: ' + (dx.dietary_profile || '') + ' · ' + (dx.allergens || []).length + ' allergens flagged' + (dx.rationale ? ' · ' + String(dx.rationale).slice(0, 100) : '');
+        parentMsg.style.color = 'var(--yel)';
+      }
+      closeDiagnose();
+    }).catch(function(err){
+      console.error('[BBF_DIETARY] diagnose fetch threw:', err);
+      if (msg) { msg.textContent = '[NETWORK] ' + (err && err.message || 'unknown'); msg.style.color = 'var(--red,#ef4444)'; }
+    }).then(function(){
+      if (goBtn) { goBtn.disabled = false; goBtn.textContent = 'Diagnose →'; }
+    });
+  }
+
+  return {
+    open:          open,
+    close:         close,
+    save:          save,
+    saveAndRotate: saveAndRotate,
+    openDiagnose:  openDiagnose,
+    closeDiagnose: closeDiagnose,
+    runDiagnose:   runDiagnose
   };
 })();
 

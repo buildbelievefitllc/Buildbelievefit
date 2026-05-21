@@ -1096,6 +1096,12 @@ app.post('/api/rotate-nutrition', async (req, res) => {
   const previousPlan = typeof body.previousPlan === 'string'  ? body.previousPlan.trim()  : '';
   const clientTier   = typeof body.clientTier === 'string'    ? body.clientTier.trim()    : 'gateway';
   const clientName   = typeof body.clientName === 'string'    ? body.clientName.trim()    : '';
+  // Phase 22 Sovereign Intake · structured filters · empty/missing all
+  // degrade gracefully to legacy behavior (no filtering, free-form Gemini).
+  const dietaryProfile = typeof body.dietary_profile === 'string' ? body.dietary_profile.trim() : 'Omnivore';
+  const allergens      = Array.isArray(body.allergens)      ? body.allergens.map(s => String(s).trim()).filter(Boolean)      : [];
+  const foodLikes      = Array.isArray(body.food_likes)     ? body.food_likes.map(s => String(s).trim()).filter(Boolean)     : [];
+  const foodDislikes   = Array.isArray(body.food_dislikes)  ? body.food_dislikes.map(s => String(s).trim()).filter(Boolean)  : [];
   if (!uid)  return res.status(400).json({ ok: false, error: 'uid_missing' });
   if (!tdee) return res.status(400).json({ ok: false, error: 'tdee_missing' });
 
@@ -1109,28 +1115,113 @@ app.post('/api/rotate-nutrition', async (req, res) => {
     return res.status(429).json({ ok: false, error: 'rate_limited_uid' });
   }
 
-  // Prompt mirrors the CEO's blueprint verbatim, but the JSON-key
-  // wording is rewritten to the LIVE MP shape ({m,i}) so the response
-  // drops straight into MP[uid] with zero transform.
-  const prompt =
-    "You are Lance, a clinical sports nutritionist. Generate a brand new " +
-    "7-day meal plan for a client on the " + clientTier + " tier. " +
-    "Target Calories: " + tdee + ". " +
-    "Strict Medical Constraints: " + (constraints || 'none stated') + ". " +
-    "Previous Plan: " + (previousPlan || 'none provided') + ". " +
-    "Do not repeat the exact main dishes from the previous plan. " +
-    "Provide high-protein, clean-carb meals. " +
-    "Return a single JSON object with the following keys: " +
-    "'name' (the client's first name — use '" + (clientName || uid) + "'), " +
-    "'cal' (a one-line calorie/protein summary, e.g. '~1,652 cal/day · High Protein'), " +
-    "'goal' (one short sentence summarizing the protocol; if there are medical constraints, restate them inline), " +
-    "and 'days' (an array of exactly 7 objects — one per day, or grouped days like 'Day 1 & 4'). " +
-    "Each day object MUST have a 'day' string (e.g. 'Day 1') and a 'meals' array. " +
-    "Each meal object MUST have an 'm' (meal label, e.g. 'Breakfast', 'Lunch', 'Snack', 'Dinner') " +
-    "and an 'i' (exact portioned ingredients with calories and protein, " +
-    "e.g. '4 oz Grilled Chicken, 1/2 cup Brown Rice, 1 cup Mixed Greens (~385 cal / 40g P)'). " +
-    "Do not include any prose, headers, or markdown outside the JSON. " +
-    "ABSOLUTELY honor every medical constraint listed above — those are non-negotiable.";
+  // Phase 22 · Sovereign Library filter. Before Gemini generates anything
+  // we pre-filter the 40-meal matrix by dietary_profile + allergens so the
+  // model picks from a curated, compliant universe — eliminates the prior
+  // hallucination risk where Gemini would invent meals not in our library.
+  // Filter logic:
+  //   • meal.dietary_profile must include the requested profile
+  //   • for each chosen allergen, meal.restrictions_safe must include
+  //     the matching "<Allergen>-Free" tag (Tree Nut → "Tree-Nut-Free"
+  //     or "Nut-Free" both pass; Coconut → "Coconut-Free")
+  function _allergenSafeTags(allergenName) {
+    const a = String(allergenName || '').trim();
+    if (!a) return [];
+    const tags = [];
+    tags.push(a + '-Free');
+    tags.push(a.replace(/\s+/g, '-') + '-Free');
+    tags.push(a.replace(/\s+/g, '') + '-Free');
+    if (/^tree[\s-]?nut$/i.test(a)) { tags.push('Tree-Nut-Free'); tags.push('Nut-Free'); }
+    if (/^(peanut|nut)$/i.test(a))  { tags.push('Nut-Free'); }
+    return Array.from(new Set(tags));
+  }
+  let mealPool = Array.isArray(BBF_MEALS_MATRIX) ? BBF_MEALS_MATRIX.slice() : [];
+  const poolBefore = mealPool.length;
+  if (dietaryProfile) {
+    const dp = dietaryProfile.toLowerCase();
+    mealPool = mealPool.filter(m => Array.isArray(m && m.dietary_profile)
+      && m.dietary_profile.some(p => String(p).toLowerCase() === dp));
+  }
+  if (allergens.length) {
+    mealPool = mealPool.filter(m => {
+      const safe = Array.isArray(m && m.restrictions_safe) ? m.restrictions_safe.map(t => String(t).toLowerCase()) : [];
+      return allergens.every(a => {
+        const accepted = _allergenSafeTags(a).map(t => t.toLowerCase());
+        return accepted.some(t => safe.indexOf(t) !== -1);
+      });
+    });
+  }
+  console.log('[rotate-nutrition] meal-pool filtered · before=' + poolBefore +
+              ' · diet=' + dietaryProfile + ' · allergens=[' + allergens.join(',') + ']' +
+              ' · after=' + mealPool.length);
+
+  // Compact library card for the prompt — keep it small (Gemini bills by
+  // token). Include just what the model needs to pick + portion.
+  const libraryCards = mealPool.map(m => ({
+    id:       m.id,
+    name:     (m.name && (m.name.en || Object.values(m.name)[0])) || m.id,
+    type:     m.meal_type,
+    cuisine:  m.cuisine,
+    cal:      m.calories,
+    p:        m.protein_g,
+    c:        m.carbs_g,
+    f:        m.fat_g,
+    serving:  m.serving_g,
+    ingredients: (m.core_ingredients || []).slice(0, 8)
+  }));
+
+  // Soft-bias likes/dislikes via prompt (not filter) — these are
+  // preferences, not hard constraints.
+  const likesLine    = foodLikes.length    ? "Bias toward meals featuring: " + foodLikes.join(', ') + ". "    : "";
+  const dislikesLine = foodDislikes.length ? "Avoid meals featuring: "      + foodDislikes.join(', ') + ". " : "";
+
+  // Two prompt modes:
+  //   A) FILTERED LIBRARY mode (mealPool.length > 0): tell Gemini to ONLY
+  //      use meals from libraryCards. Echo back chosen meal IDs.
+  //   B) FALLBACK mode (mealPool empty — e.g. legacy client no intake):
+  //      generate free-form clean meals respecting only constraints text.
+  let prompt;
+  if (mealPool.length > 0) {
+    prompt =
+      "You are Lance, a clinical sports nutritionist. Generate a brand new " +
+      "7-day meal plan for a client on the " + clientTier + " tier. " +
+      "Target Calories: " + tdee + ". " +
+      "Dietary Profile: " + dietaryProfile + ". " +
+      "Allergen Restrictions: " + (allergens.length ? allergens.join(', ') : 'none') + ". " +
+      likesLine + dislikesLine +
+      "Strict Medical Constraints: " + (constraints || 'none stated') + ". " +
+      "Previous Plan: " + (previousPlan || 'none provided') + ". " +
+      "Do not repeat the exact main dishes from the previous plan. " +
+      "\n\nSOVEREIGN MEAL LIBRARY · you MUST select every meal from the " +
+      "following pre-filtered library of " + mealPool.length + " compliant meals. " +
+      "Do NOT invent meals not in this library. You may adjust portion sizes " +
+      "to hit calorie targets, but ingredient composition must match. " +
+      "Library JSON:\n" + JSON.stringify(libraryCards) + "\n\n" +
+      "Return a single JSON object with: " +
+      "'name' (the client's first name — use '" + (clientName || uid) + "'), " +
+      "'cal' (a one-line calorie/protein summary, e.g. '~1,652 cal/day · High Protein'), " +
+      "'goal' (one short sentence; if medical constraints exist, restate inline), " +
+      "'days' (array of exactly 7 day objects, each with 'day' string and 'meals' array, " +
+      "each meal having 'm' label and 'i' portioned ingredients with calories+protein), " +
+      "and 'meal_ids_used' (an array of the meal IDs from the library you actually used). " +
+      "No prose or markdown outside the JSON. ABSOLUTELY honor every constraint above.";
+  } else {
+    // Fallback — legacy compatibility when filter culls everything (e.g.
+    // dietary profile + allergens combo with no library coverage).
+    console.warn('[rotate-nutrition] meal-pool empty after filter · falling back to free-form');
+    prompt =
+      "You are Lance, a clinical sports nutritionist. Generate a brand new " +
+      "7-day meal plan for a client on the " + clientTier + " tier. " +
+      "Target Calories: " + tdee + ". " +
+      "Dietary Profile: " + dietaryProfile + ". " +
+      "Allergen Restrictions: " + (allergens.length ? allergens.join(', ') : 'none') + ". " +
+      likesLine + dislikesLine +
+      "Strict Medical Constraints: " + (constraints || 'none stated') + ". " +
+      "Previous Plan: " + (previousPlan || 'none provided') + ". " +
+      "Provide high-protein, clean-carb meals respecting every constraint above. " +
+      "Return JSON with 'name', 'cal', 'goal', 'days' (7 day objects with 'day' + 'meals' [{m,i}]). " +
+      "No prose outside JSON. ABSOLUTELY honor every constraint.";
+  }
 
   const responseSchema = {
     type: 'object',
@@ -1158,6 +1249,10 @@ app.post('/api/rotate-nutrition', async (req, res) => {
           },
           required: ['day', 'meals']
         }
+      },
+      meal_ids_used: {
+        type: 'array',
+        items: { type: 'string' }
       }
     },
     required: ['name', 'cal', 'goal', 'days']
@@ -1217,7 +1312,191 @@ app.post('/api/rotate-nutrition', async (req, res) => {
     return res.status(502).json({ ok: false, error: 'gemini_plan_shape' });
   }
 
-  return res.status(200).json({ ok: true, plan });
+  // Audit echo · which library meals did Gemini actually use, plus the
+  // intake filter that produced the pool. Useful for the admin to verify
+  // compliance at a glance and for future spend analytics.
+  return res.status(200).json({
+    ok:   true,
+    plan: plan,
+    meta: {
+      dietary_profile:    dietaryProfile,
+      allergens:          allergens,
+      pool_size_before:   poolBefore,
+      pool_size_after:    mealPool.length,
+      meal_ids_used:      Array.isArray(plan.meal_ids_used) ? plan.meal_ids_used : null,
+      fallback_free_form: mealPool.length === 0
+    }
+  });
+});
+
+// ───────────────────────────────────────────────────────────────
+// POST /api/diagnose-profile — Phase 22 Sovereign Intake AI Diagnostic
+// ───────────────────────────────────────────────────────────────
+// Admin-only · accepts 5 plain-English answers about a client's eating
+// habits and synthesizes a structured dietary intake:
+//   { dietary_profile, allergens[], food_likes[], food_dislikes[], rationale }
+// Frontend (BBF_DIETARY.runDiagnose) pre-fills the parent modal with
+// the result. Admin reviews + edits before saving — the AI never
+// writes to d.u[uid] directly.
+//
+// Auth      · X-BBF-Admin-Token header (same gate as rotate-nutrition)
+// Rate cap  · per-IP 8/min · per-UID 4/day (lighter than rotate-nutrition)
+// Model     · gemini-1.5-flash · schema-locked JSON response.
+// ───────────────────────────────────────────────────────────────
+const DIAGNOSE_IP_WINDOW_MS  = 60 * 1000;
+const DIAGNOSE_IP_MAX        = 8;
+const DIAGNOSE_UID_WINDOW_MS = 24 * 60 * 60 * 1000;
+const DIAGNOSE_UID_MAX       = 4;
+const _diagnoseIpBuckets  = new Map();
+const _diagnoseUidBuckets = new Map();
+function _diagnoseIpRateOk(ip) {
+  const now = Date.now();
+  let arr = _diagnoseIpBuckets.get(ip) || [];
+  arr = arr.filter(t => t > now - DIAGNOSE_IP_WINDOW_MS);
+  if (arr.length >= DIAGNOSE_IP_MAX) { _diagnoseIpBuckets.set(ip, arr); return false; }
+  arr.push(now); _diagnoseIpBuckets.set(ip, arr); return true;
+}
+function _diagnoseUidRateOk(uid) {
+  const now = Date.now();
+  let arr = _diagnoseUidBuckets.get(uid) || [];
+  arr = arr.filter(t => t > now - DIAGNOSE_UID_WINDOW_MS);
+  if (arr.length >= DIAGNOSE_UID_MAX) { _diagnoseUidBuckets.set(uid, arr); return false; }
+  arr.push(now); _diagnoseUidBuckets.set(uid, arr); return true;
+}
+
+app.post('/api/diagnose-profile', async (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+  }
+  const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
+  if (!expectedAdminToken) {
+    console.error('[diagnose-profile] rejected — BBF_ADMIN_TOKEN env var is not set on this instance.');
+    return res.status(503).json({ ok: false, error: 'config_missing' });
+  }
+  const provided = req.headers['x-bbf-admin-token'];
+  if (!provided || provided !== expectedAdminToken) {
+    console.warn('[diagnose-profile] rejected — bad/missing X-BBF-Admin-Token');
+    return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
+  }
+  if (!GEMINI_API_KEY) {
+    return res.status(503).json({ ok: false, error: 'config_missing' });
+  }
+
+  const body = req.body || {};
+  const uid        = typeof body.uid === 'string'        ? body.uid.trim()        : '';
+  const clientName = typeof body.clientName === 'string' ? body.clientName.trim() : '';
+  const age        = body.age != null ? String(body.age) : '';
+  const goal       = typeof body.goal === 'string'       ? body.goal.trim()       : '';
+  const ans        = body.answers || {};
+  const ate        = typeof ans.ate_yesterday === 'string'     ? ans.ate_yesterday.trim().slice(0, 800)     : '';
+  const dislikes   = typeof ans.dislikes_freeform === 'string' ? ans.dislikes_freeform.trim().slice(0, 800) : '';
+  const sens       = typeof ans.sensitivities === 'string'     ? ans.sensitivities.trim().slice(0, 800)     : '';
+  const culture    = typeof ans.cultural_prefs === 'string'    ? ans.cultural_prefs.trim().slice(0, 600)    : '';
+  const energy     = typeof ans.energy_and_goal === 'string'   ? ans.energy_and_goal.trim().slice(0, 800)   : '';
+  if (!uid) return res.status(400).json({ ok: false, error: 'uid_missing' });
+  if (!ate && !dislikes && !sens && !culture && !energy) {
+    return res.status(400).json({ ok: false, error: 'no_answers_provided' });
+  }
+
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+  if (!_diagnoseIpRateOk(ip))   return res.status(429).json({ ok: false, error: 'rate_limited_ip' });
+  if (!_diagnoseUidRateOk(uid)) return res.status(429).json({ ok: false, error: 'rate_limited_uid' });
+
+  // Tight prompt · Gemini synthesizes the five free-form answers into
+  // the structured intake the BBF frontend writes to d.u[uid].
+  const prompt =
+    "You are a clinical sports nutritionist conducting a fast intake. " +
+    "From the client's answers below, synthesize a structured dietary " +
+    "profile. Be decisive · pick ONE primary dietary_profile (Omnivore, " +
+    "Vegetarian, Pescatarian, Vegan, or Keto-Friendly) based on the " +
+    "strongest signal in the answers. If signals conflict, default to " +
+    "Omnivore. List allergen restrictions only when the client explicitly " +
+    "states an allergy OR describes a reaction (bloating, hives, GI " +
+    "distress). Suspected sensitivities go into food_dislikes, NOT allergens. " +
+    "Use the EXACT allergen names from this list (case-sensitive): " +
+    "Gluten, Dairy, Peanut, Tree Nut, Soy, Egg, Shellfish, Fish, Coconut, Sesame. " +
+    "Likes + dislikes should be specific ingredients (e.g. 'chicken', " +
+    "'cilantro') — not categories. " +
+    "\n\nCLIENT CONTEXT: " +
+    (clientName ? "Name: " + clientName + ". " : '') +
+    (age ? "Age: " + age + ". " : '') +
+    (goal ? "Goal: " + goal + ". " : '') +
+    "\n\nANSWERS:\n" +
+    "1. Ate yesterday: " + (ate || '(no answer)') + "\n" +
+    "2. Dislikes/avoids: " + (dislikes || '(no answer)') + "\n" +
+    "3. Sensitivities: " + (sens || '(no answer)') + "\n" +
+    "4. Cultural/religious: " + (culture || '(no answer)') + "\n" +
+    "5. Energy/goal: " + (energy || '(no answer)') + "\n\n" +
+    "Return a single JSON object with keys: 'dietary_profile' (string), " +
+    "'allergens' (array of strings from the exact list above), " +
+    "'food_likes' (array of ingredient strings, max 10), " +
+    "'food_dislikes' (array of ingredient strings, max 10), " +
+    "'rationale' (one short sentence explaining the profile choice). " +
+    "No prose or markdown outside the JSON.";
+
+  const responseSchema = {
+    type: 'object',
+    properties: {
+      dietary_profile: { type: 'string' },
+      allergens:       { type: 'array', items: { type: 'string' } },
+      food_likes:      { type: 'array', items: { type: 'string' } },
+      food_dislikes:   { type: 'array', items: { type: 'string' } },
+      rationale:       { type: 'string' }
+    },
+    required: ['dietary_profile', 'allergens', 'food_likes', 'food_dislikes', 'rationale']
+  };
+
+  const model = 'gemini-1.5-flash';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+              model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
+  const payload = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.4,
+      maxOutputTokens: 800,
+      responseMimeType: 'application/json',
+      responseSchema: responseSchema
+    }
+  };
+
+  let upstream;
+  try {
+    upstream = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error('[diagnose-profile] gemini fetch threw:', err && err.message);
+    return res.status(502).json({ ok: false, error: 'gemini_unreachable' });
+  }
+  let gBody = null;
+  try { gBody = await upstream.json(); } catch (_) {}
+  if (!upstream.ok) {
+    const msg = gBody?.error?.message || ('gemini ' + upstream.status);
+    console.error('[diagnose-profile] gemini non-2xx:', upstream.status, msg);
+    return res.status(502).json({ ok: false, error: 'gemini_error', detail: msg });
+  }
+  const rawText = gBody?.candidates?.[0]?.content?.parts?.map(p => p?.text || '').join('').trim();
+  if (!rawText) return res.status(502).json({ ok: false, error: 'gemini_empty' });
+  let dx;
+  try { dx = JSON.parse(rawText); }
+  catch (e) {
+    console.error('[diagnose-profile] JSON.parse failed:', e && e.message);
+    return res.status(502).json({ ok: false, error: 'gemini_bad_json' });
+  }
+  if (!dx || typeof dx !== 'object' || !dx.dietary_profile) {
+    return res.status(502).json({ ok: false, error: 'gemini_shape' });
+  }
+  // Allergen sanitization · clamp to known list to keep frontend checkboxes happy.
+  const ALLOWED_ALLERGENS = ['Gluten','Dairy','Peanut','Tree Nut','Soy','Egg','Shellfish','Fish','Coconut','Sesame'];
+  dx.allergens     = (Array.isArray(dx.allergens)     ? dx.allergens     : []).filter(a => ALLOWED_ALLERGENS.indexOf(a) !== -1);
+  dx.food_likes    = (Array.isArray(dx.food_likes)    ? dx.food_likes    : []).slice(0, 10);
+  dx.food_dislikes = (Array.isArray(dx.food_dislikes) ? dx.food_dislikes : []).slice(0, 10);
+  console.log('[diagnose-profile] uid=' + uid + ' · ' + dx.dietary_profile + ' · ' + dx.allergens.length + ' allergens · ' + dx.food_likes.length + ' likes · ' + dx.food_dislikes.length + ' avoids');
+
+  return res.status(200).json({ ok: true, diagnosis: dx });
 });
 
 // ───────────────────────────────────────────────────────────────
