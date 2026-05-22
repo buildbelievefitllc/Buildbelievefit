@@ -49,14 +49,15 @@ const ELEVEN_TIMEOUT_MS     = 20000;
 // To override per-request: POST with { model_id: 'eleven_turbo_v2_5' }.
 const DEFAULT_MODEL_ID      = 'eleven_flash_v2_5';
 const DEFAULT_VOICE_SETTINGS = {
-  stability:         0.55,   // Bumped from 0.40 · pitch wobble report 2026-05-22.
-                             // 0.40 was below ElevenLabs' "balanced" point (0.50)
-                             // and produced mid-sentence pitch drift on both the
-                             // Live Coach (Phantom Eye / Virtual Coach / Food Frame /
-                             // Chef on Call) and the narrators (Julius / Kelli LaShae).
-                             // 0.55 is just above balanced · still expressive,
-                             // significantly less drift. Roll back to 0.40 if the
-                             // voice starts sounding monotone.
+  stability:         0.40,   // RESTORED from a brief 0.55 excursion on 2026-05-22.
+                             // The 0.55 bump was an attempt to kill pitch wobble
+                             // but stripped voice personality — Julius and Kelli
+                             // LaShae sounded "factory generic" per CEO smoke test.
+                             // 0.40 is the tuned-for-character default. The wobble
+                             // (if it persists) is likely server-side timing drift
+                             // in gemini-2.5-flash-native-audio-latest, NOT a
+                             // voice_settings issue — that path needs a different
+                             // investigation, not a stability bump.
   similarity_boost:  0.85,
   style:             0.00,   // Style transfer adds latency; off for snappier first-byte.
   use_speaker_boost: true,
