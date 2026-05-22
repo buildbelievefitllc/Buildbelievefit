@@ -871,12 +871,32 @@ var BBF_COACH_AGENT = (function() {
   }
 
   function _adminToken() {
-    // Optional. If BBF_COACH_AGENT_TOKEN is set as a Supabase secret AND
-    // window.BBF_COACH_AGENT_TOKEN is set on this page (e.g. via env.js),
-    // we forward it. Without it the Edge Function is open to any caller
-    // that knows the URL; with it, it's locked down to admin sessions.
+    // Phase 7 token resolution chain · the Supabase edge functions (bbf-co-coach
+    // and the bbf-agentic-* family) verify X-BBF-Admin-Token against the
+    // BBF_COACH_AGENT_TOKEN env. Resolution order:
+    //   1. window.BBF_COACH_AGENT_TOKEN (env.js · build-time injection)
+    //   2. sessionStorage.BBF_COACH_AGENT_TOKEN (durable cache for this session)
+    //   3. one-time prompt(), stash result in sessionStorage
+    // Founder enters the token once per browser session; subsequent calls hit
+    // the cache. window.__BBF_COACH_AGENT_TOKEN_PROMPTED is the global guard
+    // so the prompt fires at most once across all coordinators.
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof sessionStorage !== 'undefined') {
+        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (cached) return cached;
+      }
+      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
+        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        var entered = (typeof prompt === 'function')
+          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
+          : null;
+        if (entered && entered.trim()) {
+          var clean = entered.trim();
+          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          return clean;
+        }
+      }
     } catch (_) {}
     return '';
   }
@@ -1381,8 +1401,24 @@ var BBF_COMLINK_DISPATCH = (function() {
     return '';
   }
   function _adminToken() {
+    // Phase 7 token resolution chain · mirrors the helper defined above.
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof sessionStorage !== 'undefined') {
+        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (cached) return cached;
+      }
+      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
+        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        var entered = (typeof prompt === 'function')
+          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
+          : null;
+        if (entered && entered.trim()) {
+          var clean = entered.trim();
+          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          return clean;
+        }
+      }
     } catch (_) {}
     return '';
   }
