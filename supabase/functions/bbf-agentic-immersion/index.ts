@@ -45,7 +45,11 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL              = 'claude-opus-4-7';
+// Phase 7 Workstream B · Sport-immersion roleplay seed · static content
+// generation, doesn't need peak reasoning. Haiku 4.5 per CEO routing.
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const MODEL              = routeAndLog('bbf-agentic-immersion', 'sport_immersion_seed');
 const MAX_TOKENS         = 1024;
 const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 12000;

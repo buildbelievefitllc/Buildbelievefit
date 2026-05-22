@@ -15769,14 +15769,47 @@ var BBF_ORCHESTRATOR = (function() {
     var win    = Math.floor(Date.now() / (IDEMPOTENCY_WINDOW_MIN * 60 * 1000));
     return sha256Hex(uid + '|' + at + '|' + target + '|' + win);
   }
+  // ── Magnitude bucket · Phase 7 Workstream C ────────────────────
+  // Max absolute pct delta across numeric fields in (after - before).
+  // Buckets: none · small (<5%) · moderate (5-15%) · large (15-30%) ·
+  // severe (>30%). Folded into the pattern hash so the Greenline can
+  // NEVER batch-approve a 35% macro cut on the back of an 8% precedent.
+  function computeMagnitudeBucket(before, after) {
+    if (!before || !after || typeof before !== 'object' || typeof after !== 'object') return 'none';
+    var maxPct = 0;
+    var sawNumeric = false;
+    var keys = Object.keys(after);
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      var a = Number(after[k]);
+      var b = Number(before[k]);
+      if (!isFinite(a) || !isFinite(b)) continue;
+      sawNumeric = true;
+      if (b === 0) { if (a !== 0) maxPct = Math.max(maxPct, 1); continue; }
+      var pct = Math.abs((a - b) / b);
+      if (pct > maxPct) maxPct = pct;
+    }
+    if (!sawNumeric) return 'none';
+    if (maxPct < 0.05) return 'small';
+    if (maxPct < 0.15) return 'moderate';
+    if (maxPct < 0.30) return 'large';
+    return 'severe';
+  }
+
   function computePatternHash(action) {
-    // Pattern hash is uid-AGNOSTIC · captures the shape of the action
-    // so the Greenline can find common patterns across the roster.
+    // Pattern hash is uid-AGNOSTIC · captures the shape AND magnitude
+    // of the action so the Greenline can find common patterns across
+    // the roster while keeping severe changes individually-reviewed.
     var at      = action.action_type || 'unknown';
     var tier    = action.priority_tier || 'performance';
     var fields  = (action.diff && action.diff.fields) ? action.diff.fields.slice().sort().join(',') : '';
     var summary = action.pattern_summary || fields;
-    return sha256Hex('pattern|' + at + '|' + tier + '|' + summary);
+    var bucket  = action.magnitude_bucket
+      || computeMagnitudeBucket(action.diff && action.diff.before, action.diff && action.diff.after);
+    // Format MUST mirror Render proxy _computePatternHash so client
+    // and server agree on hash for the same action shape:
+    //   pattern|<action_type>|<tier>|<sorted_fields>|<bucket>
+    return sha256Hex('pattern|' + at + '|' + tier + '|' + summary + '|' + bucket);
   }
 
   function _checkIdempotency(key) {
@@ -15976,6 +16009,10 @@ var BBF_ORCHESTRATOR = (function() {
         _recordIdempotency(idempotencyKey, action);
 
         var snap = snapshot(action.uid);
+        var magnitudeBucket = computeMagnitudeBucket(
+          action.diff && action.diff.before,
+          action.diff && action.diff.after
+        );
         var proposal = {
           proposal_type: action.action_type || 'custom',
           risk_level:    action.risk_level  || 'medium',
@@ -15986,8 +16023,11 @@ var BBF_ORCHESTRATOR = (function() {
           metadata: Object.assign({}, action.metadata || {}, {
             orchestrator_idempotency_key: idempotencyKey,
             orchestrator_pattern_hash:    patternHash,
+            orchestrator_pipeline_version:'phase-7-client-v1',
             priority_tier:                action.priority_tier || 'performance',
+            magnitude_bucket:             magnitudeBucket,
             proposed_at:                  new Date().toISOString(),
+            cns_snapshot:                 snap || null,
             cns_snapshot_rev:             snap && snap._rev || null,
           }),
         };
@@ -16392,6 +16432,7 @@ var BBF_ORCHESTRATOR = (function() {
     sha256Hex:                    sha256Hex,
     computeIdempotencyKey:        computeIdempotencyKey,
     computePatternHash:           computePatternHash,
+    computeMagnitudeBucket:       computeMagnitudeBucket,
     verifyWithSentinel:           verifyWithSentinel,
     canRetrySentinelKickback:     canRetrySentinelKickback,
     triggerRollback:              triggerRollback,

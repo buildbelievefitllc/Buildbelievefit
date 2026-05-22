@@ -1869,6 +1869,269 @@ app.post('/api/admin-check-cloud', async (req, res) => {
 //
 // Audit ledger · every submit/approve/reject/execute writes to
 // bbf_audit_logs with action_type, agent, payload, result, success.
+//
+// PHASE 7 EXTENSION · THE CHOKEPOINT (Workstream A)
+// ───────────────────────────────────────────────────────────────────────
+// /api/proposal-submit and /api/proposal-approve now host the full
+// Phase 6 Connective-Layer pipeline server-side:
+//   submit:  idempotency dedup → in-flight conflict + priority arbiter
+//          → CNS snapshot fetch → Sentinel two-bin verify (fail-CLOSED
+//            for safety/vulnerable tiers) → insert → orchestrator memory
+//   approve: stale revalidation (CNS field drift > 1 OR age > 6h)
+//          → executor with zero-row .select() confirmation (preserved)
+//          → orchestrator memory with founder_response
+// The frontend BBF_ORCHESTRATOR pipeline is now best-effort UX (it
+// dedups + arbitrates client-side for fast feedback) — the server
+// is the load-bearing chokepoint and recomputes everything regardless.
+// ═══════════════════════════════════════════════════════════════════════
+
+const crypto = require('crypto');
+
+// ─── Phase 7 · Chokepoint tunables ─────────────────────────────────────
+const IDEMPOTENCY_WINDOW_MIN          = 5;
+const IDEMPOTENCY_TTL_SECONDS         = 3600;
+const STALE_FIELD_DRIFT_THRESHOLD     = 1;
+const STALE_AGE_MS                    = 6 * 60 * 60 * 1000;
+const PRIORITY_TIERS                  = { safety: 4, vulnerable: 3, recovery: 2, performance: 1 };
+const SENTINEL_TIMEOUT_MS             = 10000;
+const SENTINEL_FAIL_CLOSED_TIERS      = new Set(['safety', 'vulnerable']);
+
+function _sha256Hex(text) {
+  return crypto.createHash('sha256').update(String(text)).digest('hex');
+}
+
+// Magnitude bucket · max absolute percentage delta across numeric fields
+// in (after − before) / before. Boolean/string fields yield 'none'.
+// Buckets per Phase 7 directive: small <5% · moderate 5–15% · large
+// 15–30% · severe >30%. The bucket is folded into the pattern hash so
+// the Greenline cannot batch-approve a severe change off the back of a
+// small-magnitude precedent.
+function _computeMagnitudeBucket(before, after) {
+  if (!before || !after || typeof before !== 'object' || typeof after !== 'object') return 'none';
+  let maxPct = 0;
+  let sawNumeric = false;
+  for (const k of Object.keys(after)) {
+    const a = Number(after[k]);
+    const b = Number(before[k]);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
+    sawNumeric = true;
+    if (b === 0) {
+      if (a !== 0) maxPct = Math.max(maxPct, 1);
+      continue;
+    }
+    const pct = Math.abs((a - b) / b);
+    if (pct > maxPct) maxPct = pct;
+  }
+  if (!sawNumeric) return 'none';
+  if (maxPct < 0.05) return 'small';
+  if (maxPct < 0.15) return 'moderate';
+  if (maxPct < 0.30) return 'large';
+  return 'severe';
+}
+
+// Idempotency key · binned to a 5-min window so a coordinator firing
+// the same proposal 3× in a session collapses to one queue row.
+function _computeIdempotencyKey(uid, action_type, target, winMin) {
+  const windowBin = Math.floor(Date.now() / ((winMin || IDEMPOTENCY_WINDOW_MIN) * 60 * 1000));
+  const targetStr = target ? JSON.stringify(target) : '';
+  return _sha256Hex(
+    String(uid || 'unknown') + '|' +
+    String(action_type || 'unknown') + '|' +
+    targetStr + '|' +
+    String(windowBin)
+  );
+}
+
+// Pattern hash · uid-AGNOSTIC. Captures action shape so Greenline can
+// recognize routine patterns across the roster. INCLUDES magnitude
+// bucket per Phase 7 Workstream C.
+function _computePatternHash(action_type, tier, fields, magnitudeBucket) {
+  const sortedFields = Array.isArray(fields) ? fields.slice().sort().join(',') : '';
+  return _sha256Hex(
+    'pattern|' + String(action_type || 'unknown') +
+    '|' + String(tier || 'performance') +
+    '|' + sortedFields +
+    '|' + String(magnitudeBucket || 'none')
+  );
+}
+
+function _priorityRank(tier) {
+  return PRIORITY_TIERS[String(tier || 'performance').toLowerCase()] || 1;
+}
+
+// Idempotency table lookup · returns the original proposal_id if a
+// duplicate is recorded for this key, or null otherwise.
+async function _lookupIdempotency(key) {
+  if (!key) return null;
+  try {
+    const { data } = await supabase
+      .from('bbf_action_idempotency')
+      .select('idempotency_key,payload_summary,uid,action_type,created_at')
+      .eq('idempotency_key', key)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
+    return data || null;
+  } catch (_) { return null; }
+}
+
+async function _recordIdempotency(key, uid, action_type, payload_summary) {
+  if (!key) return;
+  try {
+    await supabase.from('bbf_action_idempotency').insert({
+      idempotency_key: key,
+      uid:             String(uid || 'unknown'),
+      action_type:     String(action_type || 'unknown'),
+      payload_summary: payload_summary || null,
+      expires_at:      new Date(Date.now() + IDEMPOTENCY_TTL_SECONDS * 1000).toISOString(),
+    });
+  } catch (e) {
+    console.warn('[chokepoint] idempotency record failed (non-fatal):', e && e.message);
+  }
+}
+
+// Resolve the athlete slug → bbf_users row with the CNS columns the
+// staleness check needs. Works for every target_table by going through
+// the slug, not the table-specific key.
+async function _fetchUserCnsRow(athleteSlug) {
+  if (!athleteSlug) return null;
+  try {
+    const { data, error } = await supabase
+      .from('bbf_users')
+      .select('id,uid,cns_friction_score,biomechanical_redline,somatic_cognitive_load,cns_friction_updated_at,biomechanical_redline_at')
+      .eq('uid', athleteSlug)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data;
+  } catch (_) { return null; }
+}
+
+// In-flight conflict scan · pulls pending proposals for the same
+// athlete + target_table and returns rows whose diff.fields overlap
+// the incoming fields. Caller arbitrates by priority tier.
+async function _scanInFlightConflicts(athleteSlug, target_table, incomingFields) {
+  if (!athleteSlug || !target_table) return [];
+  try {
+    const { data, error } = await supabase
+      .from('bbf_pending_review')
+      .select('id,proposal_type,risk_level,diff,metadata,proposed_at,status')
+      .eq('status', 'pending')
+      .order('proposed_at', { ascending: false })
+      .limit(40);
+    if (error || !Array.isArray(data)) return [];
+    const incoming = new Set(Array.isArray(incomingFields) ? incomingFields : []);
+    return data.filter((row) => {
+      const d = row && row.diff;
+      if (!d || d.target_table !== target_table) return false;
+      if (d.target_uid !== athleteSlug) return false;
+      const f = Array.isArray(d.fields) ? d.fields : [];
+      for (const x of f) if (incoming.has(x)) return true;
+      return false;
+    });
+  } catch (_) { return []; }
+}
+
+// Sentinel v11 two-bin verifier · server-side caller. Returns:
+//   { verdict, reason, findings, duration_ms, raw }
+// On any unreachable / non-200 condition the verdict collapses to
+// 'not_verified' so the priority-tier fail-closed gate can decide
+// whether to refuse or pass.
+async function _verifyWithSentinel(proposal, athleteSlug) {
+  const token = process.env.BBF_COACH_AGENT_TOKEN || '';
+  if (!token) {
+    return { verdict: 'not_verified', reason: 'sentinel_token_missing', findings: [] };
+  }
+  const sentinelUrl = (process.env.SUPABASE_URL || '').replace(/\/$/, '') + '/functions/v1/bbf-sentinel';
+  if (!sentinelUrl.startsWith('http')) {
+    return { verdict: 'not_verified', reason: 'sentinel_url_missing', findings: [] };
+  }
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), SENTINEL_TIMEOUT_MS);
+  try {
+    const r = await fetch(sentinelUrl, {
+      method: 'POST',
+      signal:  ctl.signal,
+      headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': token },
+      body:    JSON.stringify({ intent: 'verify_proposal', uid: athleteSlug || null, proposal }),
+    });
+    clearTimeout(timer);
+    if (!r.ok) {
+      return { verdict: 'not_verified', reason: 'sentinel_status_' + r.status, findings: [] };
+    }
+    const j = await r.json().catch(() => null);
+    if (!j || typeof j !== 'object') {
+      return { verdict: 'not_verified', reason: 'sentinel_invalid_body', findings: [] };
+    }
+    return {
+      verdict:      j.verdict || 'not_verified',
+      reason:       j.reason || null,
+      findings:     Array.isArray(j.findings) ? j.findings : [],
+      duration_ms:  j.duration_ms || null,
+      raw:          j,
+    };
+  } catch (e) {
+    clearTimeout(timer);
+    const msg = (e && e.name === 'AbortError') ? 'sentinel_timeout' : ('sentinel_unreachable:' + (e && e.message || 'unknown'));
+    return { verdict: 'not_verified', reason: msg, findings: [] };
+  }
+}
+
+// Orchestrator episodic memory · every chokepoint arbitration writes
+// one row regardless of outcome (duplicate · suppressed · kickback ·
+// allowed · stale-held). Best-effort, never blocks the primary path.
+async function _recordOrchestratorMemory(row) {
+  if (!row || !row.uid || !row.action_type || !row.pattern_hash) return;
+  try {
+    const payload = Object.assign({ created_at: new Date().toISOString() }, row);
+    const { error } = await supabase.from('bbf_orchestrator_memory').insert(payload);
+    if (error) console.warn('[chokepoint] memory insert failed (non-fatal):', error.message);
+  } catch (e) {
+    console.warn('[chokepoint] memory insert threw (non-fatal):', e && e.message);
+  }
+}
+
+// Staleness evaluator · CNS field drift count > 1 OR proposal age > 6h.
+// Field drift compares (cns_friction_score · biomechanical_redline ·
+// somatic_cognitive_load) at proposal time vs current bbf_users row.
+function _computeStaleness(proposal, currentCnsRow) {
+  const proposedAtMs = proposal && proposal.proposed_at ? Date.parse(proposal.proposed_at) : 0;
+  const ageMs = proposedAtMs > 0 ? (Date.now() - proposedAtMs) : 0;
+  const ageStale = proposedAtMs > 0 && ageMs > STALE_AGE_MS;
+
+  let driftCount = 0;
+  const snap = proposal && proposal.metadata && proposal.metadata.cns_snapshot;
+  if (snap && currentCnsRow) {
+    const snapSys = snap.Systemic || snap;
+    const diffField = (a, b) => {
+      if (a == null && b == null) return false;
+      if (a == null || b == null) return true;
+      return Number(a) !== Number(b);
+    };
+    if (diffField(snapSys.cns_friction_score,     currentCnsRow.cns_friction_score))     driftCount++;
+    if (diffField(snapSys.biomechanical_redline,  currentCnsRow.biomechanical_redline))  driftCount++;
+    if (diffField(snapSys.somatic_cognitive_load, currentCnsRow.somatic_cognitive_load)) driftCount++;
+  }
+  const stale = ageStale || driftCount > STALE_FIELD_DRIFT_THRESHOLD;
+  return {
+    stale,
+    age_ms:         ageMs,
+    age_stale:      ageStale,
+    drift_count:    driftCount,
+    has_snapshot:   !!snap,
+    snapshot_seen:  !!currentCnsRow,
+  };
+}
+
+// Extract the canonical athlete slug from a proposal · population.uids
+// preferred, falls back to diff.target_uid.
+function _extractAthleteSlug(proposal) {
+  if (!proposal) return null;
+  const pop = proposal.population;
+  if (pop && Array.isArray(pop.uids) && pop.uids[0]) return String(pop.uids[0]);
+  const d = proposal.diff;
+  if (d && d.target_uid) return String(d.target_uid).toLowerCase();
+  return null;
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 
 // Whitelist of tables that proposals can target. Anything else is a hard
@@ -1935,14 +2198,20 @@ async function _writeAuditLog(row) {
   }
 }
 
-// ── POST /api/proposal-submit — any agent (server-side) creates a proposal
+// ═══════════════════════════════════════════════════════════════════════
+// POST /api/proposal-submit · THE CHOKEPOINT (Phase 7 Workstream A)
+// ───────────────────────────────────────────────────────────────────────
+// Receive proposal → idempotency dedup → CNS snapshot fetch → in-flight
+// conflict + priority arbitration → Sentinel two-bin verify (fail-CLOSED
+// on safety/vulnerable when Sentinel unreachable) → insert with risk
+// escalation when warranted → orchestrator memory record → return.
+// ═══════════════════════════════════════════════════════════════════════
 app.post('/api/proposal-submit', async (req, res) => {
+  const t0 = Date.now();
   const origin = req.headers.origin;
   if (origin && !ALLOWED_ORIGINS.has(origin)) {
     return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
   }
-  // Same admin-token gate so only admin-trusted callers can submit.
-  // Future: open a separate AGENT_TOKEN for autonomous agents.
   const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
   if (!expectedAdminToken) return res.status(503).json({ ok: false, error: 'config_missing' });
   const provided = req.headers['x-bbf-admin-token'];
@@ -1955,28 +2224,240 @@ app.post('/api/proposal-submit', async (req, res) => {
   if (!proposed_by) return res.status(400).json({ ok: false, error: 'proposed_by_required' });
   if (typeof body.rationale !== 'string' || !body.rationale.trim()) return res.status(400).json({ ok: false, error: 'rationale_required' });
 
-  // Sanitize diff up-front · reject anything outside the whitelist.
+  // ── 1. Sanitize the diff against the whitelist (Phase 0) ──────────────
   const diffCheck = _sanitizeProposalDiff(body.diff || {});
   if (!diffCheck.ok) {
     return res.status(400).json({ ok: false, error: 'diff_invalid', reason: diffCheck.reason });
   }
+  const beforeBlock = (body.diff && body.diff.before) || null;
   const safeDiff = {
     target_table: diffCheck.target_table,
     target_uid:   diffCheck.target_uid,
     after:        diffCheck.after,
-    before:       (body.diff && body.diff.before) || null,
+    before:       beforeBlock,
     fields:       Object.keys(diffCheck.after),
   };
 
-  const row = {
+  // ── 2. Pull priority tier + athlete slug + magnitude bucket ───────────
+  const incomingMeta = body.metadata || {};
+  const incomingTier = String(incomingMeta.priority_tier || 'performance').toLowerCase();
+  const incomingTierRank = _priorityRank(incomingTier);
+  const athleteSlug = _extractAthleteSlug({ population: body.population, diff: safeDiff });
+  const magnitudeBucket = _computeMagnitudeBucket(beforeBlock, safeDiff.after);
+
+  // ── 3. Detect legacy direct-POST · deprecation header + audit warn ────
+  // BBF_ORCHESTRATOR.submitProposal() sets metadata.orchestrator_idempotency_key
+  // and metadata.orchestrator_pattern_hash · proposals lacking BOTH came
+  // through a legacy coordinator direct-POST. Log loudly so Workstream A
+  // sweep can target the remaining call sites.
+  const legacyDirect = !(incomingMeta.orchestrator_idempotency_key || incomingMeta.orchestrator_pattern_hash);
+  if (legacyDirect) {
+    res.set('Deprecation', 'true');
+    res.set('Sunset', 'Wed, 31 Dec 2026 23:59:59 GMT');
+    res.set('Link', '<https://buildbelievefit.onrender.com/docs/orchestrator>; rel="successor-version"');
+    console.warn(
+      '[chokepoint] legacy direct-POST detected · proposed_by=' + proposed_by +
+      ' · type=' + (body.proposal_type || 'custom') +
+      ' · uid=' + (athleteSlug || 'unknown') +
+      ' · refactor to BBF_ORCHESTRATOR.submitProposal()'
+    );
+  }
+
+  // ── 4. Server-authoritative idempotency key (window-binned) ───────────
+  const idempotencyTarget = { table: safeDiff.target_table, uid: safeDiff.target_uid, fields: safeDiff.fields };
+  const idempotencyKey = _computeIdempotencyKey(
+    athleteSlug || safeDiff.target_uid,
+    body.proposal_type || 'custom',
+    idempotencyTarget
+  );
+  const patternHash = _computePatternHash(
+    body.proposal_type || 'custom',
+    incomingTier,
+    safeDiff.fields,
+    magnitudeBucket
+  );
+
+  // ── 5. Idempotency lookup · structural duplicate rejection ────────────
+  const seen = await _lookupIdempotency(idempotencyKey);
+  if (seen) {
+    await _recordOrchestratorMemory({
+      uid: athleteSlug || safeDiff.target_uid,
+      action_type: body.proposal_type || 'custom',
+      priority_tier: incomingTier,
+      proposed_action: { idempotency_key: idempotencyKey, target: idempotencyTarget, source: legacyDirect ? 'legacy_direct_post' : 'orchestrator' },
+      arbitration_result: 'duplicate_idempotency',
+      arbitration_detail: { idempotency_key: idempotencyKey, original_seen_at: seen.created_at },
+      pattern_hash: patternHash,
+      agent: proposed_by,
+    });
+    await _writeAuditLog({
+      action_type: 'proposal_submit_dedup', agent: proposed_by,
+      target_uid: safeDiff.target_uid,
+      payload: { idempotency_key: idempotencyKey, type: body.proposal_type, legacy_direct: legacyDirect },
+      success: true,
+    });
+    return res.status(409).json({
+      ok: false,
+      error: 'duplicate_idempotency',
+      idempotency_key: idempotencyKey,
+      original_seen_at: seen.created_at,
+    });
+  }
+
+  // ── 6. In-flight conflict scan + priority arbitration ─────────────────
+  const conflicts = await _scanInFlightConflicts(safeDiff.target_uid, safeDiff.target_table, safeDiff.fields);
+  if (conflicts.length > 0) {
+    // Find the highest-tier pending conflict.
+    let highest = null;
+    for (const c of conflicts) {
+      const cTier = (c.metadata && c.metadata.priority_tier) || 'performance';
+      const cRank = _priorityRank(cTier);
+      if (!highest || cRank > highest.rank) highest = { row: c, rank: cRank, tier: cTier };
+    }
+    if (highest && incomingTierRank <= highest.rank) {
+      await _recordOrchestratorMemory({
+        uid: athleteSlug || safeDiff.target_uid,
+        action_type: body.proposal_type || 'custom',
+        priority_tier: incomingTier,
+        proposed_action: { target: idempotencyTarget, source: legacyDirect ? 'legacy_direct_post' : 'orchestrator' },
+        arbitration_result: 'suppressed_by_higher_priority',
+        arbitration_detail: { conflict_with: highest.row.id, existing_tier: highest.tier, incoming_tier: incomingTier, fields: safeDiff.fields },
+        pattern_hash: patternHash,
+        agent: proposed_by,
+      });
+      await _writeAuditLog({
+        action_type: 'proposal_submit_suppressed', agent: proposed_by,
+        target_uid: safeDiff.target_uid,
+        payload: { conflict_with: highest.row.id, existing_tier: highest.tier, incoming_tier: incomingTier },
+        success: true,
+      });
+      return res.status(409).json({
+        ok: false,
+        error: 'suppressed_by_higher_priority',
+        conflict_with: highest.row.id,
+        existing_tier: highest.tier,
+        incoming_tier: incomingTier,
+      });
+    }
+  }
+
+  // ── 7. Fetch CNS snapshot · captured for staleness check at approve ───
+  const currentCnsRow = athleteSlug ? await _fetchUserCnsRow(athleteSlug) : null;
+
+  // ── 8. Build the proposal payload for Sentinel verification ───────────
+  const proposalForVerify = {
     proposal_type: body.proposal_type || 'custom',
     risk_level:    body.risk_level    || 'medium',
-    population:    body.population    || {},
+    population:    body.population    || (athleteSlug ? { uids: [athleteSlug], cohort: 'single' } : {}),
+    diff:          safeDiff,
+    rationale:     String(body.rationale).slice(0, 2000),
+    proposed_by:   proposed_by,
+    metadata:      incomingMeta,
+  };
+
+  // ── 9. Sentinel two-bin verify · fail-CLOSED on safety/vulnerable ─────
+  const sentinel = await _verifyWithSentinel(proposalForVerify, athleteSlug);
+  const sentinelUnreachable = sentinel.verdict === 'not_verified';
+
+  if (sentinelUnreachable && SENTINEL_FAIL_CLOSED_TIERS.has(incomingTier)) {
+    await _recordOrchestratorMemory({
+      uid: athleteSlug || safeDiff.target_uid,
+      action_type: body.proposal_type || 'custom',
+      priority_tier: incomingTier,
+      proposed_action: { target: idempotencyTarget, fail_closed_reason: sentinel.reason },
+      arbitration_result: 'sentinel_fail_closed',
+      arbitration_detail: { tier: incomingTier, reason: sentinel.reason },
+      sentinel_verdict: 'not_verified',
+      sentinel_detail:  sentinel,
+      pattern_hash: patternHash,
+      agent: proposed_by,
+    });
+    await _writeAuditLog({
+      action_type: 'proposal_submit_fail_closed', agent: proposed_by,
+      target_uid: safeDiff.target_uid,
+      payload: { tier: incomingTier, sentinel_reason: sentinel.reason },
+      success: false, error_message: 'sentinel_fail_closed',
+    });
+    return res.status(503).json({
+      ok: false,
+      error: 'sentinel_fail_closed',
+      tier: incomingTier,
+      sentinel: { verdict: sentinel.verdict, reason: sentinel.reason },
+    });
+  }
+
+  if (sentinel.verdict === 'recoverable') {
+    // Recoverable kickback · DO NOT insert. Caller retries with corrected
+    // vocab/schema. 422 distinguishes "you can fix and retry" from 409
+    // dedup or 503 fail-closed.
+    await _recordOrchestratorMemory({
+      uid: athleteSlug || safeDiff.target_uid,
+      action_type: body.proposal_type || 'custom',
+      priority_tier: incomingTier,
+      proposed_action: { target: idempotencyTarget, source: legacyDirect ? 'legacy_direct_post' : 'orchestrator' },
+      arbitration_result: 'sentinel_recoverable',
+      arbitration_detail: { reason: sentinel.reason, findings: sentinel.findings },
+      sentinel_verdict: 'recoverable',
+      sentinel_detail:  sentinel,
+      pattern_hash: patternHash,
+      agent: proposed_by,
+    });
+    await _writeAuditLog({
+      action_type: 'proposal_submit_recoverable_kickback', agent: proposed_by,
+      target_uid: safeDiff.target_uid,
+      payload: { reason: sentinel.reason, findings: sentinel.findings },
+      success: false, error_message: sentinel.reason,
+    });
+    return res.status(422).json({
+      ok: false,
+      error: 'sentinel_recoverable_kickback',
+      sentinel: sentinel,
+    });
+  }
+
+  // verdict ∈ { clean, substantive, not_verified-with-performance-tier }
+  const isSubstantive = sentinel.verdict === 'substantive';
+  const finalRiskLevel = isSubstantive ? 'critical' : (body.risk_level || 'medium');
+
+  // ── 10. Record idempotency BEFORE insert (atomicity is best-effort) ───
+  await _recordIdempotency(idempotencyKey, athleteSlug || safeDiff.target_uid, body.proposal_type || 'custom', {
+    target: idempotencyTarget, priority_tier: incomingTier, pattern_hash: patternHash,
+  });
+
+  // ── 11. Compose the queue row · stamp orchestrator markers ────────────
+  const proposedAtIso = new Date().toISOString();
+  const enrichedMetadata = Object.assign({}, incomingMeta, {
+    orchestrator_idempotency_key: idempotencyKey,
+    orchestrator_pattern_hash:    patternHash,
+    orchestrator_pipeline_version:'phase-7-chokepoint-v1',
+    orchestrator_source:          legacyDirect ? 'legacy_direct_post' : 'orchestrator_client',
+    priority_tier:                incomingTier,
+    magnitude_bucket:             magnitudeBucket,
+    proposed_at:                  proposedAtIso,
+    cns_snapshot:                 incomingMeta.cns_snapshot || (currentCnsRow ? {
+      cns_friction_score:        currentCnsRow.cns_friction_score,
+      biomechanical_redline:     currentCnsRow.biomechanical_redline,
+      somatic_cognitive_load:    currentCnsRow.somatic_cognitive_load,
+      cns_friction_updated_at:   currentCnsRow.cns_friction_updated_at,
+      biomechanical_redline_at:  currentCnsRow.biomechanical_redline_at,
+      captured_by:               'render_proxy_chokepoint',
+    } : null),
+    sentinel_verdict:             sentinel.verdict,
+    sentinel_reason:              sentinel.reason || null,
+    sentinel_findings:            sentinel.findings || null,
+    sentinel_flag:                isSubstantive ? 'substantive_violation' : null,
+  });
+
+  const row = {
+    proposal_type: body.proposal_type || 'custom',
+    risk_level:    finalRiskLevel,
+    population:    body.population    || (athleteSlug ? { uids: [athleteSlug], cohort: 'single' } : {}),
     diff:          safeDiff,
     rationale:     String(body.rationale).slice(0, 2000),
     proposed_by:   proposed_by,
     expires_at:    body.expires_at || null,
-    metadata:      body.metadata || {},
+    metadata:      enrichedMetadata,
+    proposed_at:   proposedAtIso,
   };
 
   try {
@@ -1986,16 +2467,56 @@ app.post('/api/proposal-submit', async (req, res) => {
       .select()
       .single();
     if (error) {
-      console.error('[proposal-submit] insert failed:', error.message);
+      console.error('[chokepoint] insert failed:', error.message);
       return res.status(500).json({ ok: false, error: 'insert_failed', detail: error.message });
     }
+    await _recordOrchestratorMemory({
+      uid: athleteSlug || safeDiff.target_uid,
+      action_type: body.proposal_type || 'custom',
+      priority_tier: incomingTier,
+      proposed_action: {
+        proposal_id: data.id,
+        target: idempotencyTarget,
+        magnitude_bucket: magnitudeBucket,
+        source: legacyDirect ? 'legacy_direct_post' : 'orchestrator_client',
+        risk_level: finalRiskLevel,
+      },
+      arbitration_result: 'allowed',
+      arbitration_detail: { magnitude_bucket: magnitudeBucket, escalated: isSubstantive },
+      sentinel_verdict:   sentinel.verdict,
+      sentinel_detail:    sentinel,
+      proposal_id:        data.id,
+      pattern_hash:       patternHash,
+      cns_snapshot_at_proposal: currentCnsRow || null,
+      agent:              proposed_by,
+    });
     await _writeAuditLog({
       action_type: 'proposal_submit', agent: proposed_by,
       proposal_id: data.id, target_uid: safeDiff.target_uid,
-      payload: { proposal_type: row.proposal_type, risk_level: row.risk_level, fields: safeDiff.fields },
+      payload: {
+        proposal_type: row.proposal_type,
+        risk_level:    row.risk_level,
+        fields:        safeDiff.fields,
+        sentinel_verdict: sentinel.verdict,
+        magnitude_bucket: magnitudeBucket,
+        legacy_direct:    legacyDirect,
+        duration_ms:      Date.now() - t0,
+      },
       result: { id: data.id }, success: true,
     });
-    return res.status(200).json({ ok: true, proposal: data });
+    return res.status(200).json({
+      ok:           true,
+      proposal:     data,
+      sentinel:     { verdict: sentinel.verdict, reason: sentinel.reason },
+      orchestrator: {
+        idempotency_key:  idempotencyKey,
+        pattern_hash:     patternHash,
+        magnitude_bucket: magnitudeBucket,
+        priority_tier:    incomingTier,
+        legacy_direct:    legacyDirect,
+        duration_ms:      Date.now() - t0,
+      },
+    });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'unexpected', detail: err && err.message });
   }
@@ -2025,10 +2546,17 @@ app.post('/api/proposal-list', async (req, res) => {
   }
 });
 
-// ── POST /api/proposal-approve — execute with explicit DB success confirmation
-// Per the directive: "upon approval, the payload executes a secure write
-// with explicit DB success confirmation. No silent HTTP 200 fallback
-// stubs are allowed on the write path."
+// ═══════════════════════════════════════════════════════════════════════
+// POST /api/proposal-approve · STALE-REVALIDATION EXECUTOR (Phase 7)
+// ───────────────────────────────────────────────────────────────────────
+// Pre-approve gate: re-fetch the target athlete's CNS row via service
+// role and compare to the snapshot captured at proposal time. If
+// CNS field drift > 1 OR proposal age > 6h, mark the row stale_hold
+// instead of executing. Founder must re-fire the coordinator so the
+// proposal recomputes against the current CNS state.
+// Existing executor logic (whitelist + .select() zero-row confirmation)
+// is preserved verbatim downstream of the staleness gate.
+// ═══════════════════════════════════════════════════════════════════════
 app.post('/api/proposal-approve', async (req, res) => {
   const origin = req.headers.origin;
   if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
@@ -2051,6 +2579,63 @@ app.post('/api/proposal-approve', async (req, res) => {
   }
 
   const diff = prop.diff || {};
+
+  // 1b. STALENESS GATE (Phase 7) · re-fetch current CNS row, compare to
+  // the snapshot stored on the proposal. If stale, hold instead of
+  // executing. The founder must re-fire the coordinator to recompute.
+  const athleteSlug = _extractAthleteSlug({ population: prop.population, diff });
+  const currentCnsRow = athleteSlug ? await _fetchUserCnsRow(athleteSlug) : null;
+  const proposalForStaleness = {
+    proposed_at: prop.proposed_at || (prop.metadata && prop.metadata.proposed_at) || null,
+    metadata:    prop.metadata || {},
+  };
+  const staleness = _computeStaleness(proposalForStaleness, currentCnsRow);
+
+  if (staleness.stale) {
+    await supabase.from('bbf_pending_review').update({
+      status:           'stale_hold',
+      decided_at:       new Date().toISOString(),
+      approver:         approver,
+      execution_error:  'stale_holds_required_recompute',
+      execution_success: false,
+    }).eq('id', id);
+
+    const incomingTier = (prop.metadata && prop.metadata.priority_tier) || 'performance';
+    const patternHash = (prop.metadata && prop.metadata.orchestrator_pattern_hash) ||
+                        _computePatternHash(prop.proposal_type, incomingTier, diff.fields || [],
+                                            (prop.metadata && prop.metadata.magnitude_bucket) || 'none');
+
+    await _recordOrchestratorMemory({
+      uid: athleteSlug || diff.target_uid,
+      action_type:        prop.proposal_type || 'custom',
+      priority_tier:      incomingTier,
+      proposed_action:    { proposal_id: id, staleness },
+      arbitration_result: 'stale_held',
+      arbitration_detail: staleness,
+      proposal_id:        id,
+      pattern_hash:       patternHash,
+      cns_snapshot_at_proposal: prop.metadata && prop.metadata.cns_snapshot || null,
+      cns_snapshot_at_decision: currentCnsRow || null,
+      is_stale_at_decision: true,
+      founder_response:    'stale_hold',
+      founder_response_at: new Date().toISOString(),
+      founder_actor:       approver,
+      agent: 'render_proxy_chokepoint',
+    });
+    await _writeAuditLog({
+      action_type: 'proposal_approve_stale_held', agent: 'render_proxy', proposal_id: id,
+      target_uid: diff.target_uid || null,
+      payload: { staleness, approver },
+      success: false, error_message: 'stale_holds_required_recompute',
+    });
+    return res.status(409).json({
+      ok: false,
+      error: 'stale_holds_required_recompute',
+      staleness: staleness,
+      proposal_id: id,
+    });
+  }
+
   const check = _sanitizeProposalDiff(diff);
   if (!check.ok) {
     await supabase.from('bbf_pending_review').update({
@@ -2132,6 +2717,30 @@ app.post('/api/proposal-approve', async (req, res) => {
     payload: { table: check.target_table, after: check.after },
     result: { rows_affected: (returnedRows || []).length, rows: returnedRows },
     success: !!success, error_message: closeError,
+  });
+
+  // 5. Orchestrator memory · founder_response='approve'. Closes the
+  // loop on bbf_orchestrator_memory so the Greenline pattern-confidence
+  // counter increments only when the executor write actually succeeds.
+  const approveTier = (prop.metadata && prop.metadata.priority_tier) || 'performance';
+  const approvePatternHash = (prop.metadata && prop.metadata.orchestrator_pattern_hash) ||
+                             _computePatternHash(prop.proposal_type, approveTier, diff.fields || [],
+                                                 (prop.metadata && prop.metadata.magnitude_bucket) || 'none');
+  await _recordOrchestratorMemory({
+    uid: athleteSlug || check.target_uid,
+    action_type:        prop.proposal_type || 'custom',
+    priority_tier:      approveTier,
+    proposed_action:    { proposal_id: id, executed: !!success, rows_affected: (returnedRows || []).length },
+    arbitration_result: 'executor_complete',
+    arbitration_detail: { staleness_skipped: false, executor_success: !!success, error: closeError },
+    proposal_id:        id,
+    pattern_hash:       approvePatternHash,
+    cns_snapshot_at_proposal: prop.metadata && prop.metadata.cns_snapshot || null,
+    cns_snapshot_at_decision: currentCnsRow || null,
+    founder_response:    success ? 'approve' : 'execution_failed',
+    founder_response_at: new Date().toISOString(),
+    founder_actor:       approver,
+    agent: 'render_proxy_chokepoint',
   });
 
   if (!success) {

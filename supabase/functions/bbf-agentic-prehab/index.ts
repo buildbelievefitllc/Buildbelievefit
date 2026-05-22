@@ -47,7 +47,12 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL             = 'claude-opus-4-7';
+// Phase 7 Workstream B · Prehab assignment leverages ACWR + cold-start
+// inputs. Sonnet 4.6 is the right tier per CEO routing rules · enough
+// reasoning for the 3-movement matrix without Opus-tier overspend.
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const MODEL             = routeAndLog('bbf-agentic-prehab', 'prehab_assignment');
 const MAX_TOKENS        = 2048;
 const EFFORT_DEFAULT    = 'high';
 const CLAUDE_TIMEOUT_MS = 12000;

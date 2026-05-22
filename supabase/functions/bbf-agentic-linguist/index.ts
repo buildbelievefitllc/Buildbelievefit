@@ -40,7 +40,11 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL              = 'claude-opus-4-7';
+// Phase 7 Workstream B · i18n translation · low-stakes, deterministic-
+// schema output. Haiku 4.5 per CEO routing rules.
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const MODEL              = routeAndLog('bbf-agentic-linguist', 'i18n_translation');
 const MAX_TOKENS         = 512;
 const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 10000;

@@ -42,6 +42,7 @@
 // Errors return non-2xx with { "error": "<slug>", "detail"?: ... }.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { routeAndLog } from '../_shared/model-router.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -57,10 +58,12 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 // ─── Model + request tuning ───────────────────────────────────────────
-// Opus 4.7 with adaptive thinking + effort high — same defaults as
-// bbf-co-coach. The peaking decision is high-stakes (you're overriding
-// the athlete's prescribed training) so we don't downgrade intelligence.
-const MODEL          = 'claude-opus-4-7';
+// Phase 7 Workstream B · Mesocycle rationale and CNS-readiness override
+// narration is deterministic-shaped output (banner + two replacement
+// lifts). Haiku 4.5 is the right tier per the CEO routing rules ·
+// Opus 4.7 was overspend for a fixed-schema response. Routing is
+// centralized in _shared/model-router.ts so future tuning is one-file.
+const MODEL          = routeAndLog('bbf-agentic-peaking', 'mesocycle_rationale');
 const MAX_TOKENS     = 4096;
 const EFFORT_DEFAULT = 'high';
 

@@ -49,7 +49,11 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL           = 'claude-opus-4-7';
+// Phase 7 Workstream B · Routine audit · single-turn interview with
+// structured output. Sonnet 4.6 is the right tier per CEO routing.
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const MODEL           = routeAndLog('bbf-agentic-interrogator', 'onboarding_interview');
 const MAX_TOKENS      = 2048;
 const EFFORT_DEFAULT  = 'high';
 const CLAUDE_TIMEOUT_MS = 16000;

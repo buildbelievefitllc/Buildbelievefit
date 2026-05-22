@@ -90,7 +90,14 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL              = 'claude-opus-4-7';
+// Phase 7 Workstream B · Comlink classifies the transcript (constraint
+// vs friction) then rewrites the day's workout · including the
+// form_correction intent for novel kinematic deviations. Sonnet 4.6
+// handles vision-adjacent reasoning and structured rewrites at lower
+// cost than Opus, per CEO routing rules.
+// TODO Phase 7.x · migrate to _shared/model-router.ts once shared-file
+// deploy is wired up. For now this matches routeModel('novel_form_correction').
+const MODEL              = 'claude-sonnet-4-6';
 const MAX_TOKENS         = 2048;
 const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 14000;

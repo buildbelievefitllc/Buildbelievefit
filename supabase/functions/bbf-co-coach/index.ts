@@ -57,7 +57,12 @@ function jsonResponse(body: unknown, status = 200): Response {
 // the only thinking mode supported on 4.7. Effort `high` is the minimum
 // recommended for intelligence-sensitive work. Structured output via
 // output_config.format guarantees the frontend gets a parseable JSON.
-const MODEL          = 'claude-opus-4-7';
+// Phase 7 Workstream B · Sovereign nightly brief synthesis · founder-facing,
+// short narrative output. Haiku 4.5 is sufficient per CEO routing
+// (narration/digest tier).
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const MODEL          = routeAndLog('bbf-co-coach', 'sovereign_brief');
 const MAX_TOKENS     = 8192;
 const EFFORT_DEFAULT = 'high';
 

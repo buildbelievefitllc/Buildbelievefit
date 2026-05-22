@@ -21,6 +21,9 @@
 // Failure posture: every code path returns 200 with a structured body.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+// Phase 7 Workstream B · Slow-path nightly synthesis · Haiku already
+// per Phase 6. Route through the central router for observability.
+import { routeAndLog } from '../_shared/model-router.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -31,7 +34,7 @@ function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 }
 
-const MODEL          = 'claude-haiku-4-5';
+const MODEL          = routeAndLog('bbf-agentic-orchestrator', 'snapshot_synthesis');
 const MAX_TOKENS     = 320;       // 2–4 sentences ≈ 120–220 output tokens
 const MEMORY_LOOKBACK_DAYS = 7;
 const MEAL_LOOKBACK_DAYS   = 7;

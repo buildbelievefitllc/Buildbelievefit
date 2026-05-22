@@ -56,7 +56,11 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL              = 'claude-opus-4-7';
+// Phase 7 Workstream B · TDEE-fueled onboarding dialog. Sonnet 4.6 is
+// the right tier per CEO routing rules.
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const MODEL              = routeAndLog('bbf-agentic-pathfinder', 'onboarding_interview');
 const MAX_TOKENS         = 1024;
 const CLAUDE_TIMEOUT_MS  = 18000;
 const MAX_MESSAGES       = 24;        // hard ceiling on conversation depth per request

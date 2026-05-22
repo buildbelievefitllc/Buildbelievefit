@@ -51,7 +51,12 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL              = 'claude-opus-4-7';
+// Phase 7 Workstream B · Single-image form scoring is a bounded vision
+// task with a structured response (form_score + 2-3 cues). Sonnet 4.6
+// is the right tier · Opus 4.7 was overspend for the bounded output.
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const MODEL              = routeAndLog('bbf-agentic-kinematics', 'kinematic_form_score', { vision: true });
 const MAX_TOKENS         = 1024;
 const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 18000;        // vision calls are slower than text-only

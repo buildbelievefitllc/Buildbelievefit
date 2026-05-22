@@ -71,6 +71,9 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 // ─── Constants ────────────────────────────────────────────────────────
+// Phase 7 Workstream B · Nightly digest synthesis · already on Haiku.
+// TODO Phase 7.x · migrate to _shared/model-router.ts when shared-file
+// deploy is wired up. For now this matches routeModel('snapshot_synthesis').
 const MODEL          = 'claude-haiku-4-5';
 const MAX_TOKENS     = 220; // 2–3 sentences ≈ 100–150 output tokens; small buffer.
 const BATCH_SIZE     = 5;   // Concurrent Anthropic calls per batch.

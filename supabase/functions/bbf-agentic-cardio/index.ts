@@ -44,7 +44,14 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL              = 'claude-opus-4-7';
+// Phase 7 Workstream B · Cardio routing is PAR-Q+ adjacent (cardiac
+// inference is forbidden to AI; the engine pre-filters via PAR-Q+
+// classification then asks Claude to ONLY narrate the routing).
+// Opus 4.7 stays per CEO routing rules · cardiac safety is one of
+// the three categories that earn peak reasoning.
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const MODEL              = routeAndLog('bbf-agentic-cardio', 'cardiac_intercept');
 const MAX_TOKENS         = 1024;
 const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 12000;

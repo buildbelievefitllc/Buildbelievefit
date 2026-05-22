@@ -62,7 +62,12 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-const MODEL          = 'claude-opus-4-7';
+// Phase 7 Workstream B · 1RM linear-regression narration · the math is
+// deterministic upstream; Claude just narrates the trajectory. Haiku
+// 4.5 is the right tier per CEO routing.
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const MODEL          = routeAndLog('bbf-agentic-forecasting', 'forecast_1rm');
 const MAX_TOKENS     = 2048;
 const EFFORT_DEFAULT = 'high';
 const SET_LIMIT      = 60;           // descending by day_key, sufficient for 30-day forecast
