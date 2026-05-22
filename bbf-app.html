@@ -3222,7 +3222,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v220';
+  var EXPECTED_CACHE = 'bbf-v221';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -12583,15 +12583,28 @@ var BBF_PEAKING_ENGINE = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -12782,15 +12795,28 @@ var BBF_FORECAST_ENGINE = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -12991,15 +13017,28 @@ var BBF_PREHAB_MATRIX = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -14569,15 +14608,28 @@ var BBF_PROGRAM_INTEL = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -15935,15 +15987,28 @@ var BBF_ORCHESTRATOR = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -16771,15 +16836,28 @@ var BBF_KINEMATICS = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -17055,15 +17133,28 @@ var BBF_COMLINK = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -17402,15 +17493,28 @@ var BBF_POSITIONAL_INTEL = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -18552,15 +18656,28 @@ var BBF_IMMERSION = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -18831,15 +18948,28 @@ var BBF_LINGUIST = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -19026,15 +19156,28 @@ var BBF_CARDIO = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
-      // Phase 7.x · STRICT FOUNDER GATE on the prompt step (CEO
-      // directive). The agent token prompt MUST NEVER fire on page
-      // load or for any non-founder user. Normal athletes that hit a
-      // _adminToken() read silently get '' and the agentic call
-      // either no-ops or 401s server-side — never a UX hazard.
-      // The gate matches the rest of the codebase (CU === 'akeem'
-      // is the founder identity).
+      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
+      // (CEO directive). The agent token prompt MUST NEVER fire on
+      // page load or for any non-founder user. Reads the current user
+      // record and allows the prompt only when role === 'trainer' or
+      // role === 'admin' — matches the established admin pattern at
+      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
+      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
+      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
+      // co-admins. Pre-login, paying clients, household roles, missing
+      // user record, and GD() unavailability all return '' silently —
+      // the agentic call no-ops or 401s server-side rather than
+      // leaking a VIP prompt to a non-founder user.
       var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (_bbfCU !== 'akeem') return '';
+      if (!_bbfCU) return '';
+      try {
+        var _bbfData = (typeof GD === 'function') ? GD() : null;
+        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
+        var _bbfRole = _bbfUser && _bbfUser.role;
+        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
+      } catch (_) {
+        return '';
+      }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
