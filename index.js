@@ -1088,8 +1088,8 @@ app.post('/api/vision-coach', async (req, res) => {
   // gemini-3.5-flash: GA vision-capable, fast, low-cost. Bumped from
   // gemini-1.5-flash post Google I/O 2026-05-19 release (Google
   // skipped 3.0 and went GA directly to 3.5). The Phantom Eye Live
-  // bridge stays on gemini-2.5-flash-native-audio-latest — that model
-  // requires the native-audio suffix and is on a separate lifecycle.
+  // bridge also moved to the 3.5 native-audio variant in the same
+  // cycle — see GEMINI_LIVE_MODEL below.
   const model = 'gemini-3.5-flash';
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
               model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
@@ -3054,7 +3054,13 @@ app.use((err, req, res, next) => {
 // upgrades. If the key is missing, upgrades are rejected with 503.
 // ───────────────────────────────────────────────────────────────
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_LIVE_MODEL = 'models/gemini-2.5-flash-native-audio-latest';
+// Live model · bumped 2.5 → 3.5 on 2026-05-22 per CEO directive after
+// Google I/O 2026-05-19 GA release. Pattern-matched the native-audio
+// variant suffix that was already in use; if Google changed the Live
+// API naming convention with the 3.5 release this will need a different
+// suffix (e.g., -live, drop -latest, etc.) — the symptom would be a
+// 503/closed-immediately on the WebSocket upgrade.
+const GEMINI_LIVE_MODEL = 'models/gemini-3.5-flash-native-audio-latest';
 // Phase 15 Slice 15 — Gemini Live endpoint reverted to v1alpha and
 // the model swapped to the stable 2.5 native-audio string. CEO live-
 // fire confirmed Google's routing layer for the 3.1-flash-live-preview
