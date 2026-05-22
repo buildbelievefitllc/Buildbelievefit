@@ -3206,6 +3206,21 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 <script src="bbf-lang.js"></script>
 <script src="bbf-plan-i18n.js"></script>
 <script src="env.js"></script>
+<script>
+// ─── Phase 7 hotfix · BBF_COACH_AGENT_TOKEN recovery utility ──────
+// If the founder accidentally dismisses the one-time token prompt OR
+// enters the wrong value and gets stuck with 401s on the agentic edge
+// functions, run `bbfResetAdminToken()` in DevTools console. Clears the
+// sessionStorage cache + cooldown so the next admin call re-prompts.
+window.bbfResetAdminToken = function bbfResetAdminToken() {
+  try {
+    sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN');
+    sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT');
+  } catch (_) {}
+  window.__BBF_COACH_AGENT_TOKEN_PROMPTED = false;
+  console.log('[BBF] coach agent token cleared · next admin call will re-prompt');
+};
+</script>
 <script src="bbf-sync.js"></script>
 <script src="bbf-intelligence-engine.js"></script>
 <script src="render-engine.js"></script>
@@ -12507,15 +12522,26 @@ var BBF_PEAKING_ENGINE = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -12686,15 +12712,26 @@ var BBF_FORECAST_ENGINE = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -12875,15 +12912,26 @@ var BBF_PREHAB_MATRIX = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -14433,15 +14481,26 @@ var BBF_PROGRAM_INTEL = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -15779,15 +15838,26 @@ var BBF_ORCHESTRATOR = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -16595,15 +16665,26 @@ var BBF_KINEMATICS = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -16859,15 +16940,26 @@ var BBF_COMLINK = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -17186,15 +17278,26 @@ var BBF_POSITIONAL_INTEL = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -18316,15 +18419,26 @@ var BBF_IMMERSION = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -18575,15 +18689,26 @@ var BBF_LINGUIST = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -18750,15 +18875,26 @@ var BBF_CARDIO = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
+        // coordinators read _adminToken() back-to-back. The guard is only set
+        // AFTER a successful entry — dismissing the prompt records a timestamp
+        // so the next call within 30 sec returns silently, but past that we
+        // re-prompt (recovers from accidental cancels without locking the
+        // session). bbfResetAdminToken() (DevTools) bypasses both.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';

@@ -7,6 +7,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/bbf-tokens.css"/>
 <script src="env.js"></script>
+<script>
+// ─── Phase 7 hotfix · BBF_COACH_AGENT_TOKEN recovery utility ──────
+// Run `bbfResetAdminToken()` in DevTools console to clear the cached
+// token + cooldown so the next admin call re-prompts. Useful when the
+// prompt was accidentally dismissed or the wrong value was entered.
+window.bbfResetAdminToken = function bbfResetAdminToken() {
+  try {
+    sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN');
+    sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT');
+  } catch (_) {}
+  window.__BBF_COACH_AGENT_TOKEN_PROMPTED = false;
+  console.log('[BBF] coach agent token cleared · next admin call will re-prompt');
+};
+</script>
 <script src="bbf-sync.js"></script>
 <script src="portal-engine.js"></script>
 <script src="comlink-engine.js"></script>
@@ -887,15 +901,22 @@ var BBF_COACH_AGENT = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · see bbf-app.html for the rationale.
+        // bbfResetAdminToken() in DevTools clears the cache + cooldown.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
@@ -1409,15 +1430,22 @@ var BBF_COMLINK_DISPATCH = (function() {
         if (cached) return cached;
       }
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
+        // 30-sec dismissal cooldown · see bbf-app.html for the rationale.
+        // bbfResetAdminToken() in DevTools clears the cache + cooldown.
+        var _dismissedAt = 0;
+        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
+        if (Date.now() - _dismissedAt < 30000) return '';
         var entered = (typeof prompt === 'function')
           ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
           : null;
         if (entered && entered.trim()) {
           var clean = entered.trim();
+          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
           try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
           return clean;
         }
+        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
       }
     } catch (_) {}
     return '';
