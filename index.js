@@ -1085,9 +1085,12 @@ app.post('/api/vision-coach', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'prompt_missing' });
   }
 
-  // gemini-1.5-flash: GA vision-capable, fast, low-cost. Same family as
-  // the Live model used by the Phantom Eye bridge.
-  const model = 'gemini-1.5-flash';
+  // gemini-3.5-flash: GA vision-capable, fast, low-cost. Bumped from
+  // gemini-1.5-flash post Google I/O 2026-05-19 release (Google
+  // skipped 3.0 and went GA directly to 3.5). The Phantom Eye Live
+  // bridge stays on gemini-2.5-flash-native-audio-latest — that model
+  // requires the native-audio suffix and is on a separate lifecycle.
+  const model = 'gemini-3.5-flash';
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
               model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
   const payload = {
@@ -1378,7 +1381,7 @@ app.post('/api/rotate-nutrition', async (req, res) => {
     required: ['name', 'cal', 'goal', 'days']
   };
 
-  const model = 'gemini-1.5-flash';
+  const model = 'gemini-3.5-flash';
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
               model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
   const payload = {
@@ -1461,7 +1464,7 @@ app.post('/api/rotate-nutrition', async (req, res) => {
 //
 // Auth      · X-BBF-Admin-Token header (same gate as rotate-nutrition)
 // Rate cap  · per-IP 8/min · per-UID 4/day (lighter than rotate-nutrition)
-// Model     · gemini-1.5-flash · schema-locked JSON response.
+// Model     · gemini-3.5-flash · schema-locked JSON response.
 // ───────────────────────────────────────────────────────────────
 const DIAGNOSE_IP_WINDOW_MS  = 60 * 1000;
 const DIAGNOSE_IP_MAX        = 8;
@@ -1567,7 +1570,7 @@ app.post('/api/diagnose-profile', async (req, res) => {
     required: ['dietary_profile', 'allergens', 'food_likes', 'food_dislikes', 'rationale']
   };
 
-  const model = 'gemini-1.5-flash';
+  const model = 'gemini-3.5-flash';
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
               model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
   const payload = {
