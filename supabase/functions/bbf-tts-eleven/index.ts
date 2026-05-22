@@ -49,7 +49,14 @@ const ELEVEN_TIMEOUT_MS     = 20000;
 // To override per-request: POST with { model_id: 'eleven_turbo_v2_5' }.
 const DEFAULT_MODEL_ID      = 'eleven_flash_v2_5';
 const DEFAULT_VOICE_SETTINGS = {
-  stability:         0.40,
+  stability:         0.55,   // Bumped from 0.40 · pitch wobble report 2026-05-22.
+                             // 0.40 was below ElevenLabs' "balanced" point (0.50)
+                             // and produced mid-sentence pitch drift on both the
+                             // Live Coach (Phantom Eye / Virtual Coach / Food Frame /
+                             // Chef on Call) and the narrators (Julius / Kelli LaShae).
+                             // 0.55 is just above balanced · still expressive,
+                             // significantly less drift. Roll back to 0.40 if the
+                             // voice starts sounding monotone.
   similarity_boost:  0.85,
   style:             0.00,   // Style transfer adds latency; off for snappier first-byte.
   use_speaker_boost: true,
