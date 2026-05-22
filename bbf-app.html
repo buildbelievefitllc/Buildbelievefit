@@ -3222,7 +3222,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v222';
+  var EXPECTED_CACHE = 'bbf-v223';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -3257,18 +3257,36 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
   }
 })();
 
-// ─── Phase 7 hotfix · BBF_COACH_AGENT_TOKEN recovery utility ──────
-// If the founder accidentally dismisses the one-time token prompt OR
-// enters the wrong value and gets stuck with 401s on the agentic edge
-// functions, run `bbfResetAdminToken()` in DevTools console. Clears the
-// sessionStorage cache + cooldown so the next admin call re-prompts.
+// ─── Phase 7.x · BBF_COACH_AGENT_TOKEN management utilities ──────
+// The prompt UX has been removed. The token reaches the browser via
+// the /api/founder-bootstrap-token endpoint after PIN verify for
+// trainer/admin roles (writes to localStorage + sessionStorage).
+// These utilities exist for the rare manual cases:
+//   bbfSetAdminToken('paste-value')   set in localStorage · persists
+//                                     across sessions on this device.
+//                                     Use when the bootstrap fails
+//                                     repeatedly (network blocked,
+//                                     Render env misconfigured, etc.)
+//   bbfResetAdminToken()              clear everywhere on this device.
+//                                     Use after rotating the secret in
+//                                     Render + Supabase env.
+window.bbfSetAdminToken = function bbfSetAdminToken(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    console.warn('[BBF] bbfSetAdminToken(value) · pass a non-empty string'); return;
+  }
+  var clean = value.trim();
+  try { localStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+  try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+  console.log('[BBF] coach agent token stored in localStorage + sessionStorage');
+};
 window.bbfResetAdminToken = function bbfResetAdminToken() {
   try {
+    localStorage.removeItem('BBF_COACH_AGENT_TOKEN');
     sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN');
     sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT');
   } catch (_) {}
   window.__BBF_COACH_AGENT_TOKEN_PROMPTED = false;
-  console.log('[BBF] coach agent token cleared · next admin call will re-prompt');
+  console.log('[BBF] coach agent token cleared everywhere on this device');
 };
 </script>
 <script src="bbf-sync.js"></script>
@@ -5635,8 +5653,12 @@ async function LOGIN(){
           return r.json().catch(function() { return null; });
         }).then(function(body) {
           if (body && body.ok && body.token) {
+            // Persist in BOTH storages · localStorage so subsequent
+            // sessions on this device skip the bootstrap race entirely
+            // (token already cached at _adminToken() time on next login).
+            try { localStorage.setItem('BBF_COACH_AGENT_TOKEN', body.token); } catch(_) {}
             try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', body.token); } catch(_) {}
-            console.log('[BBF Bootstrap] founder agent token cached · prompt suppressed');
+            console.log('[BBF Bootstrap] founder agent token cached in localStorage + sessionStorage');
           } else {
             console.warn('[BBF Bootstrap] release failed:', (body && body.error) || 'unknown');
           }
@@ -12609,55 +12631,29 @@ var BBF_PEAKING_ENGINE = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -12821,55 +12817,29 @@ var BBF_FORECAST_ENGINE = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -13043,55 +13013,29 @@ var BBF_PREHAB_MATRIX = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -14634,55 +14578,29 @@ var BBF_PROGRAM_INTEL = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -16013,55 +15931,29 @@ var BBF_ORCHESTRATOR = (function() {
   function _adminToken() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Same logic as the dominant pattern · kept on the BBF_ORCHESTRATOR side too.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -16862,55 +16754,29 @@ var BBF_KINEMATICS = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -17159,55 +17025,29 @@ var BBF_COMLINK = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -17519,55 +17359,29 @@ var BBF_POSITIONAL_INTEL = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -18682,55 +18496,29 @@ var BBF_IMMERSION = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -18974,55 +18762,29 @@ var BBF_LINGUIST = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -19182,55 +18944,29 @@ var BBF_CARDIO = (function() {
     // Phase 7 token resolution chain: env.js → sessionStorage cache → one-time prompt.
     // Multiple coordinators define their own _adminToken() · they all hit the same
     // sessionStorage key + global prompt guard so the founder enters the token once.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS.
+    // /api/founder-bootstrap-token writes the token to localStorage
+    // AND sessionStorage after PIN verify for trainer/admin roles.
+    // Resolution chain · all three are read-only silent steps:
+    //   1. window.BBF_COACH_AGENT_TOKEN  (env.js · build-time inject)
+    //   2. localStorage.BBF_COACH_AGENT_TOKEN  (persists across sessions
+    //      on this device — eliminates the bootstrap race for 2nd+ logins)
+    //   3. sessionStorage.BBF_COACH_AGENT_TOKEN  (legacy / first-session)
+    // Removed: role-gated prompt step. The race window between LOGIN()
+    // firing the bootstrap and home-tab renders calling _adminToken()
+    // was wide enough to surface the prompt before the bootstrap response
+    // landed. Manual fallback for stuck cases (DevTools console):
+    //   bbfSetAdminToken('value')   // localStorage · persists
+    //   bbfResetAdminToken()        // clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
+      }
       if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
-      }
-      // Phase 7.x · STRICT FOUNDER GATE — role-based, not UID-hardcoded
-      // (CEO directive). The agent token prompt MUST NEVER fire on
-      // page load or for any non-founder user. Reads the current user
-      // record and allows the prompt only when role === 'trainer' or
-      // role === 'admin' — matches the established admin pattern at
-      // line 8801 (`meRole === 'admin' || meRole === 'trainer'`).
-      // 'trainer' is seeded for the founder (plan: 'akeem_ceo' ·
-      // type: 'Trainer' · Head Coach); 'admin' is reserved for future
-      // co-admins. Pre-login, paying clients, household roles, missing
-      // user record, and GD() unavailability all return '' silently —
-      // the agentic call no-ops or 401s server-side rather than
-      // leaking a VIP prompt to a non-founder user.
-      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
-      if (!_bbfCU) return '';
-      try {
-        var _bbfData = (typeof GD === 'function') ? GD() : null;
-        var _bbfUser = (_bbfData && _bbfData.u && _bbfData.u[_bbfCU]) || null;
-        var _bbfRole = _bbfUser && _bbfUser.role;
-        if (_bbfRole !== 'trainer' && _bbfRole !== 'admin') return '';
-      } catch (_) {
-        return '';
-      }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · avoids cascading prompts when multiple
-        // coordinators read _adminToken() back-to-back. The guard is only set
-        // AFTER a successful entry — dismissing the prompt records a timestamp
-        // so the next call within 30 sec returns silently, but past that we
-        // re-prompt (recovers from accidental cancels without locking the
-        // session). bbfResetAdminToken() (DevTools) bypasses both.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';

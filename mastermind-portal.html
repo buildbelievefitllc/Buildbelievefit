@@ -12,13 +12,23 @@
 // Run `bbfResetAdminToken()` in DevTools console to clear the cached
 // token + cooldown so the next admin call re-prompts. Useful when the
 // prompt was accidentally dismissed or the wrong value was entered.
+window.bbfSetAdminToken = function bbfSetAdminToken(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    console.warn('[BBF] bbfSetAdminToken(value) · pass a non-empty string'); return;
+  }
+  var clean = value.trim();
+  try { localStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+  try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
+  console.log('[BBF] coach agent token stored in localStorage + sessionStorage');
+};
 window.bbfResetAdminToken = function bbfResetAdminToken() {
   try {
+    localStorage.removeItem('BBF_COACH_AGENT_TOKEN');
     sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN');
     sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT');
   } catch (_) {}
   window.__BBF_COACH_AGENT_TOKEN_PROMPTED = false;
-  console.log('[BBF] coach agent token cleared · next admin call will re-prompt');
+  console.log('[BBF] coach agent token cleared everywhere on this device');
 };
 </script>
 <script src="bbf-sync.js"></script>
@@ -894,29 +904,20 @@ var BBF_COACH_AGENT = (function() {
     // Founder enters the token once per browser session; subsequent calls hit
     // the cache. window.__BBF_COACH_AGENT_TOKEN_PROMPTED is the global guard
     // so the prompt fires at most once across all coordinators.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS. See bbf-app.html
+    // for full notes. Bootstrap endpoint writes to BOTH localStorage and
+    // sessionStorage so 2nd+ logins skip the bootstrap race.
+    //   bbfSetAdminToken('value')   localStorage · persists
+    //   bbfResetAdminToken()        clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
-      if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
       }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · see bbf-app.html for the rationale.
-        // bbfResetAdminToken() in DevTools clears the cache + cooldown.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+      if (typeof sessionStorage !== 'undefined') {
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
@@ -1423,29 +1424,20 @@ var BBF_COMLINK_DISPATCH = (function() {
   }
   function _adminToken() {
     // Phase 7 token resolution chain · mirrors the helper defined above.
+    // Phase 7.x · race-fix · silent resolver, NO PROMPTS. See bbf-app.html
+    // for full notes. Bootstrap endpoint writes to BOTH localStorage and
+    // sessionStorage so 2nd+ logins skip the bootstrap race.
+    //   bbfSetAdminToken('value')   localStorage · persists
+    //   bbfResetAdminToken()        clear everywhere on this device
     try {
       if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
-      if (typeof sessionStorage !== 'undefined') {
-        var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
-        if (cached) return cached;
+      if (typeof localStorage !== 'undefined') {
+        var _stored = localStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_stored) return _stored;
       }
-      if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
-        // 30-sec dismissal cooldown · see bbf-app.html for the rationale.
-        // bbfResetAdminToken() in DevTools clears the cache + cooldown.
-        var _dismissedAt = 0;
-        try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
-        if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+      if (typeof sessionStorage !== 'undefined') {
+        var _cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
+        if (_cached) return _cached;
       }
     } catch (_) {}
     return '';
