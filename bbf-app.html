@@ -10882,7 +10882,12 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
       }
 
       // ── Strike accounting · runs after every Gemini turn ─────
-      var STRIKE_LIMIT = 2;  // first refusal = warning · second off-topic = out
+      // Phase 7 hotfix · bumped 2 → 3 alongside loosened backend prompts.
+      // Backend prompts now reserve [BBF_OFF_TOPIC] for RADICALLY off-topic
+      // queries only · fitness-adjacent + nutrition-adjacent questions
+      // answer normally without firing a strike. Three strikes still
+      // triggers the 15-min lockout for genuinely abusive sessions.
+      var STRIKE_LIMIT = 3;
       if (lc.thisTurnIsOffTopic) {
         lc.offTopicStrikes = (lc.offTopicStrikes || 0) + 1;
         console.warn('[Phantom Eye] off-topic strike ' + lc.offTopicStrikes + ' / ' + STRIKE_LIMIT);
