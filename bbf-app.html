@@ -3222,7 +3222,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v223';
+  var EXPECTED_CACHE = 'bbf-v224';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -24299,10 +24299,15 @@ window.onload = function() {
   <div class="lid-b"><div class="lashes"></div></div>
 </div>
 <div class="threshold-flash" id="thresh-flash"></div>
+<!-- Phase 7.x · Pulse button removed · same rationale as index.html ·
+     overlay was conflicting with the chatbot widget on the marketing
+     site and the bottom-nav on the app. JS handler is defensive (null-
+     check on audBtn), CSS + audio engine stay dormant.
 <button class="audio-toggle" id="audio-toggle" aria-label="Toggle ambient pulse sound">
   <span class="bars"><span></span><span></span><span></span></span>
   <span>pulse</span>
 </button>
+-->
 <script id="promethean-vault-iife">
 /* === MAX MODE engine: sibling IIFE; never touches app state === */
 

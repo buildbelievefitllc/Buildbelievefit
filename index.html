@@ -3626,10 +3626,16 @@ function pbRenderPositions(){
   <div class="lid-b"><div class="lashes"></div></div>
 </div>
 <div class="threshold-flash" id="thresh-flash" aria-hidden="true"></div>
+<!-- Phase 7.x · Pulse button removed · was overlaying the front-end chatbot
+     widget in the bottom-right corner and hurting conversion. The audio
+     engine + CSS + JS handler below remain dormant (the handler is
+     defensive via `if(audBtn){...}`) so the button can be re-introduced
+     later behind a different trigger if desired.
 <button class="audio-toggle" id="audio-toggle" aria-label="Toggle ambient pulse sound">
   <span class="bars"><span></span><span></span><span></span></span>
   <span>pulse</span>
 </button>
+-->
 <!-- 4th canvas per spec: bio-ecg lives inside HUD when mounted; included for parity -->
 <canvas class="bio-ecg-standalone" id="bio-ecg" aria-hidden="true" width="400" height="56" style="position:fixed;right:14px;top:14px;width:220px;height:34px;background:rgba(6,6,6,.72);border:1px solid rgba(245,200,0,.22);z-index:95;pointer-events:none;opacity:.85;"></canvas>
 <script id="promethean-engine-iife">
