@@ -3222,7 +3222,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v221';
+  var EXPECTED_CACHE = 'bbf-v222';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -5614,6 +5614,38 @@ async function LOGIN(){
     CU=user;
     VC=(user==='akeem')?null:user;
     if(msg)msg.textContent='';
+
+    // ─── Phase 7.x · Founder Bootstrap Token ────────────────────
+    // If the verified user is a founder/admin role, fetch the agent
+    // token from the Render proxy and cache in sessionStorage so the
+    // 11 _adminToken() helpers short-circuit at the env.js →
+    // sessionStorage step, never reaching the role-gated prompt.
+    // Fire-and-forget · non-blocking · ENTER() proceeds immediately.
+    // Token never lives in static JS · Render proxy validates the
+    // PIN (lockout-aware) + reads role from bbf_users service-side
+    // before releasing.
+    try {
+      var _bbfBootUser = (d && d.u && d.u[user]) || null;
+      if (_bbfBootUser && (_bbfBootUser.role === 'trainer' || _bbfBootUser.role === 'admin')) {
+        fetch('https://buildbelievefit.onrender.com/api/founder-bootstrap-token', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ uid: user, pin: pin })
+        }).then(function(r) {
+          return r.json().catch(function() { return null; });
+        }).then(function(body) {
+          if (body && body.ok && body.token) {
+            try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', body.token); } catch(_) {}
+            console.log('[BBF Bootstrap] founder agent token cached · prompt suppressed');
+          } else {
+            console.warn('[BBF Bootstrap] release failed:', (body && body.error) || 'unknown');
+          }
+        }).catch(function(e) {
+          console.warn('[BBF Bootstrap] fetch threw:', e && e.message);
+        });
+      }
+    } catch (e) { console.warn('[BBF Bootstrap] init threw:', e && e.message); }
+
     // Phase 17 — The Bouncer. PIN verified, but before we hand the user
     // to the dashboard we check subscription_tier + trial_expires_at.
     // Admin (akeem) short-circuits straight to ENTER. Anyone with

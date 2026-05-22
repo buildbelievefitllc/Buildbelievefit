@@ -684,6 +684,90 @@ app.post('/api/auth/ws-ticket', async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════════
+// POST /api/founder-bootstrap-token · Phase 7.x · founder UX
+// ───────────────────────────────────────────────────────────────────────
+// Server-side replacement for "paste the BBF Coach Agent Token into a
+// prompt" UX. The 11 _adminToken() helpers in bbf-app.html resolve via
+// (env.js → sessionStorage → role-gated prompt). Putting the token in
+// env.js exposes it to every visitor (env.js is a public static file).
+// This endpoint releases the token to the founder only, after the
+// frontend re-submits the credentials that just succeeded at login.
+// Frontend caches the response in sessionStorage so the helpers
+// short-circuit at the second link in the chain, never reaching the
+// prompt.
+//
+// Body: { uid, pin }
+//
+// Auth: re-verifies the PIN against bbf_verify_user_pin (lockout-aware)
+// and then service-role-reads bbf_users.role to confirm the caller is
+// role: 'trainer' or 'admin'. Anything else gets 403 — never the token.
+//
+// Rate-limited (5/hr per IP, shared bucket with start-trial), audited
+// on every successful release.
+// ═══════════════════════════════════════════════════════════════════════
+app.post('/api/founder-bootstrap-token', async (req, res) => {
+  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+  if (!_ironVaultRateLimitOk(ip)) {
+    return res.status(429).json({ ok: false, error: 'rate_limited' });
+  }
+  const uid = req.body && typeof req.body.uid === 'string' ? req.body.uid.trim().toLowerCase() : '';
+  const pin = req.body && typeof req.body.pin === 'string' ? req.body.pin.trim() : '';
+  if (!uid || !pin) {
+    return res.status(400).json({ ok: false, error: 'missing_field' });
+  }
+  const token = process.env.BBF_COACH_AGENT_TOKEN || '';
+  if (!token) {
+    console.error('[Founder Bootstrap] BBF_COACH_AGENT_TOKEN env var not set');
+    return res.status(503).json({ ok: false, error: 'token_unconfigured' });
+  }
+  try {
+    // Step 1 — re-verify the PIN via the same lockout-aware RPC the
+    // frontend LOGIN() just used. NEVER trust a client-supplied claim
+    // of identity without re-checking the credential.
+    const { data: verifyData, error: verifyErr } = await supabase.rpc('bbf_verify_user_pin', {
+      uid,
+      pin_attempt: pin,
+    });
+    if (verifyErr) {
+      console.warn('[Founder Bootstrap] bbf_verify_user_pin error:', verifyErr.message || verifyErr);
+      return res.status(500).json({ ok: false, error: 'verify_rpc_failed' });
+    }
+    if (!verifyData || verifyData.ok !== true) {
+      return res.status(401).json({ ok: false, error: 'invalid_credentials' });
+    }
+    // Step 2 — service-role read on bbf_users for role. RLS is bypassed
+    // (service_role) so the read succeeds regardless of session.
+    const { data: userRow, error: userErr } = await supabase
+      .from('bbf_users')
+      .select('uid, role')
+      .eq('uid', uid)
+      .maybeSingle();
+    if (userErr) {
+      console.warn('[Founder Bootstrap] bbf_users read error:', userErr.message || userErr);
+      return res.status(500).json({ ok: false, error: 'user_lookup_failed' });
+    }
+    const role = userRow && userRow.role;
+    if (role !== 'trainer' && role !== 'admin') {
+      // Non-founder user — never release the token, never leak the reason.
+      return res.status(403).json({ ok: false, error: 'not_founder' });
+    }
+    // Step 3 — audit-log the release (fire-and-forget). Never blocks
+    // the response. Failure is logged but does not abort.
+    _writeAuditLog({
+      action_type:   'founder_bootstrap_token_released',
+      agent:         'render_proxy',
+      target_uid:    uid,
+      payload:       { ip, role },
+      success:       true,
+    });
+    return res.status(200).json({ ok: true, token });
+  } catch (e) {
+    console.error('[Founder Bootstrap] threw:', e && e.message);
+    return res.status(500).json({ ok: false, error: 'internal' });
+  }
+});
+
 // ───────────────────────────────────────────────────────────────
 // Phase 15 Slice 4 — Wearable API Bridge
 // /api/wearable-sync/health-connect
