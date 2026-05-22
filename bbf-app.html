@@ -12533,6 +12533,13 @@ var BBF_PEAKING_ENGINE = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -12723,6 +12730,13 @@ var BBF_FORECAST_ENGINE = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -12923,6 +12937,13 @@ var BBF_PREHAB_MATRIX = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -14492,6 +14513,13 @@ var BBF_PROGRAM_INTEL = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -15849,6 +15877,13 @@ var BBF_ORCHESTRATOR = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -16676,6 +16711,13 @@ var BBF_KINEMATICS = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -16951,6 +16993,13 @@ var BBF_COMLINK = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -17289,6 +17338,13 @@ var BBF_POSITIONAL_INTEL = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -18430,6 +18486,13 @@ var BBF_IMMERSION = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -18700,6 +18763,13 @@ var BBF_LINGUIST = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
@@ -18886,6 +18956,13 @@ var BBF_CARDIO = (function() {
         var cached = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN');
         if (cached) return cached;
       }
+      // Phase 7.x · auth gate on the prompt step. The agent token is
+      // only used by authenticated edge function calls, so we must not
+      // surface the prompt over the auth screen. CU is the
+      // post-login user identifier; if it's unset, return silently so
+      // any stray pre-login _adminToken() read does not block boot.
+      var _bbfCU = (typeof CU !== 'undefined') ? CU : null;
+      if (!_bbfCU) return '';
       if (typeof window !== 'undefined' && !window.__BBF_COACH_AGENT_TOKEN_PROMPTED) {
         // 30-sec dismissal cooldown · avoids cascading prompts when multiple
         // coordinators read _adminToken() back-to-back. The guard is only set
