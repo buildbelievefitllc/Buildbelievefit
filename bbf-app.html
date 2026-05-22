@@ -8880,16 +8880,23 @@ function RH() {
       return '<div class="cn2"><div class="cnh"><span>&#x1F4CB;</span><span class="cnl">Coach Note</span><span class="cnd">' + FMT(n.date) + '</span></div><div class="cnt">' + escapeHTML(n.notes) + '</div></div>';
     }).join('');
   } else { cnw.style.display = 'none'; }
-  // ── TRAINER DASHBOARD ─────────────────────────────────────────
+  // ── TRAINER DASHBOARD + FOUNDER CLIENT PARITY (Phase 7.x) ────
+  // When the founder is on the roster view (CU==='akeem' && VC===null),
+  // render the trainer roster AND fall through to the client widgets so
+  // the founder can dogfood Somatic Readiness, BHM, CNS Heatmap, etc.
+  // on their own profile. Per founder directive: admin should see all
+  // client-grade tools when training themselves. Trainer dashboard
+  // writes to #rlist + orchestrator panels; client widgets live in
+  // separate DOM nodes so there is no conflict.
   if (CU === 'akeem' && VC === null) {
     // Defensive: a prior selectClient() could have left the youth
-    // Player Card visible. Force-hide it before rendering the roster
-    // so the trainer's home view is never contaminated with the last
-    // client's avatar / stat bars.
+    // Player Card visible. renderPlayerCard() below will hide it again
+    // for akeem (no attributes / not youth), but force-hide first so
+    // there is never a flash of the previous client's card.
     var _bbfRosterPCard = document.getElementById('player-card');
     if (_bbfRosterPCard) _bbfRosterPCard.style.display = 'none';
     renderTrainerDashboard(d);
-    return;
+    // intentional fall-through — founder also wants the client widgets
   }
   renderCNSHeatmap();
   renderBiomechHeatMap();
@@ -10062,7 +10069,9 @@ function _frictionPaintRecoveryTracker(uid) {
 function renderBiomechHeatMap() {
   var uid = VC || CU;
   if (!uid) return;
-  if (CU === 'akeem' && VC === null) return; // trainer view: skip
+  // Phase 7.x · founder dogfood parity — removed the
+  // `if (CU === 'akeem' && VC === null) return` skip so the founder
+  // sees their own BHM widget when training themselves on the home tab.
   // Paint from cache first (instant), then refresh from Supabase.
   _bhmApplyCached(uid);
   // Phase 15 Slice 3 — friction recovery trajectory (synchronous; uses
@@ -10337,7 +10346,10 @@ function _somApplyCached() {
 function renderSomaticMap() {
   var uid = VC || CU;
   if (!uid) return;
-  if (CU === 'akeem' && VC === null) return;
+  // Phase 7.x · founder dogfood parity — removed the
+  // `if (CU === 'akeem' && VC === null) return` skip so the Somatic
+  // Matrix submit UI renders on the founder's own home tab. Required
+  // for live-fire prehab "Readiness Needed" testing.
   _somApplyCached();
   // Prefer the Titan-2 intelligence layer when available; fall back to
   // the Triple-Crown raw signal so we degrade gracefully if
