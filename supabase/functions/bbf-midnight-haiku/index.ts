@@ -1,13 +1,14 @@
-// bbf-midnight-haiku v2 — Midnight Haiku Engine + Sunday Macro Reconciliation
+// bbf-midnight-haiku v3 — Daily Brief + Sunday Recon + Orchestrator Synthesis
 // ─────────────────────────────────────────────────────────────────────
-// Asynchronous, cron-triggered batch that generates the next-day
-// daily_brief for every Sovereign-tier athlete. Reads each user's last
-// 24h of training (bbf_logs) + autonomic readiness (bbf_readiness), asks
-// Claude Haiku to write a 2–3 sentence clinical intelligence brief in
-// the voice of a Sovereign-tier hypertrophy + biomechanics coach, then
-// UPDATEs bbf_users.daily_brief with the result. The brief surfaces on
-// the next render of the Sovereign Intelligence Brief widget on the
-// Workout tab (see window.BBF_SOVEREIGN_INTEL.render).
+// Phase 6 EXTENSION · Nightly Athlete Snapshot fan-out:
+//   · For EVERY Sovereign athlete in the nightly batch, after the
+//     daily brief is persisted, fan out to bbf-agentic-orchestrator
+//     with intent='synthesize_athlete_snapshot'. The orchestrator's
+//     Slow Path reads the 7-day episodic memory + CNS slice + meal +
+//     set aggregates and writes a 2-4 sentence synthesis back to
+//     bbf_orchestrator_memory as action_type='athlete_snapshot_synthesis'.
+//   · Best-effort · a synthesis failure NEVER blocks the brief flow.
+//   · Skipped in dry_run mode.
 //
 // Phase 5 EXTENSION · Sunday Macro Reconciliation (callable subsystem):
 //   · On Sundays (UTC), every Sovereign athlete additionally gets a
@@ -22,6 +23,16 @@
 //     proposal is generated for that user. Logged loudly to audit.
 //   · The recalc is NEVER live · founder approves every target change
 //     through the existing proposal queue.
+//
+// Phase 0-4 BASE · Daily Brief generation:
+// Asynchronous, cron-triggered batch that generates the next-day
+// daily_brief for every Sovereign-tier athlete. Reads each user's last
+// 24h of training (bbf_logs) + autonomic readiness (bbf_readiness), asks
+// Claude Haiku to write a 2–3 sentence clinical intelligence brief in
+// the voice of a Sovereign-tier hypertrophy + biomechanics coach, then
+// UPDATEs bbf_users.daily_brief with the result. The brief surfaces on
+// the next render of the Sovereign Intelligence Brief widget on the
+// Workout tab.
 //
 // CEO directive specified `claude-3-haiku-20240307` — that model is
 // retired (2026 sunset). This function uses the current Haiku 4.5
@@ -576,6 +587,55 @@ async function persistBrief(
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// Phase 6 · Orchestrator Slow-Path fan-out · per-user nightly synthesis
+// ───────────────────────────────────────────────────────────────────────
+// Fires bbf-agentic-orchestrator with intent=synthesize_athlete_snapshot.
+// Result is persisted server-side to bbf_orchestrator_memory by the
+// orchestrator itself; we only forward the snapshot text for the
+// response payload.
+// ═══════════════════════════════════════════════════════════════════════
+
+type SynthesisResult = { uid: string; ok: boolean; snapshot?: string; error?: string };
+
+async function fetchUserSlug(
+  uuid: string, supabaseUrl: string, supabaseKey: string,
+): Promise<string | null> {
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/bbf_users?id=eq.${encodeURIComponent(uuid)}&select=uid&limit=1`, {
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0 && rows[0].uid) return String(rows[0].uid);
+    return null;
+  } catch (_) { return null; }
+}
+
+async function runOrchestratorSynthesisForUser(
+  user: SovereignUser, supabaseUrl: string, agentToken: string,
+): Promise<SynthesisResult> {
+  // Orchestrator expects the slug · resolve uuid → slug first.
+  const slug = await fetchUserSlug(user.id, supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '');
+  const uid = slug || user.id;
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/bbf-agentic-orchestrator`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': agentToken },
+      body: JSON.stringify({ intent: 'synthesize_athlete_snapshot', uid: uid }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.warn(`[bbf-midnight-haiku:orchestrator] uid=${uid} HTTP ${res.status}: ${txt.slice(0,200)}`);
+      return { uid, ok: false, error: `orchestrator_http_${res.status}` };
+    }
+    const j = await res.json().catch(() => null) as any;
+    return { uid, ok: !!(j && j.ok), snapshot: j && j.snapshot };
+  } catch (e) {
+    return { uid, ok: false, error: (e as Error).message };
+  }
+}
+
 // ─── Per-user pipeline ────────────────────────────────────────────────
 async function processUser(
   user: SovereignUser,
@@ -587,7 +647,8 @@ async function processUser(
   isSunday: boolean,
   renderOrigin: string,
   adminToken: string,
-): Promise<{ uid: string; brief: string; sunday_recon: SundayReconResult | null }> {
+  agentToken: string,
+): Promise<{ uid: string; brief: string; sunday_recon: SundayReconResult | null; orchestrator_synth: SynthesisResult | null }> {
   const [logs, readiness] = await Promise.all([
     fetchRecentLogs(user.id, sinceIso, supabaseUrl, supabaseKey),
     fetchRecentReadiness(user.id, sinceIso, supabaseUrl, supabaseKey),
@@ -598,7 +659,6 @@ async function processUser(
   }
   // Phase 5 · Sunday-only macro reconciliation · runs AFTER the brief
   // is persisted so a recon failure never blocks the daily brief flow.
-  // Skips entirely on non-Sundays, or when adminToken is missing.
   let sundayRecon: SundayReconResult | null = null;
   if (isSunday && !dryRun && adminToken) {
     try {
@@ -610,7 +670,20 @@ async function processUser(
       sundayRecon = { uid: user.id, skipped: true, reason: 'exception_' + (e as Error).message.slice(0, 80) };
     }
   }
-  return { uid: user.id, brief, sunday_recon: sundayRecon };
+  // Phase 6 · Orchestrator Slow-Path synthesis · runs EVERY night for
+  // every Sovereign athlete · best-effort, skipped in dry_run and when
+  // the agent token is unset (so dev environments don't burn Anthropic
+  // budget by accident).
+  let orchestratorSynth: SynthesisResult | null = null;
+  if (!dryRun && agentToken) {
+    try {
+      orchestratorSynth = await runOrchestratorSynthesisForUser(user, supabaseUrl, agentToken);
+    } catch (e) {
+      console.error(`[bbf-midnight-haiku:orchestrator] uid=${user.id} threw: ${(e as Error).message}`);
+      orchestratorSynth = { uid: user.id, ok: false, error: 'exception_' + (e as Error).message.slice(0, 80) };
+    }
+  }
+  return { uid: user.id, brief, sunday_recon: sundayRecon, orchestrator_synth: orchestratorSynth };
 }
 
 // ─── Batch orchestration ──────────────────────────────────────────────
@@ -624,16 +697,18 @@ async function runBatch(
   isSunday: boolean,
   renderOrigin: string,
   adminToken: string,
+  agentToken: string,
 ) {
   const errors: { uid: string; message: string }[] = [];
   const sundayReconResults: SundayReconResult[] = [];
+  const orchestratorResults: SynthesisResult[] = [];
   let succeeded = 0;
 
   for (let i = 0; i < roster.length; i += BATCH_SIZE) {
     const slice = roster.slice(i, i + BATCH_SIZE);
     const results = await Promise.allSettled(
       slice.map((user) =>
-        processUser(user, sinceIso, supabaseUrl, supabaseKey, apiKey, dryRun, isSunday, renderOrigin, adminToken)
+        processUser(user, sinceIso, supabaseUrl, supabaseKey, apiKey, dryRun, isSunday, renderOrigin, adminToken, agentToken)
       ),
     );
     results.forEach((r, idx) => {
@@ -641,6 +716,7 @@ async function runBatch(
       if (r.status === 'fulfilled') {
         succeeded++;
         if (r.value.sunday_recon) sundayReconResults.push(r.value.sunday_recon);
+        if (r.value.orchestrator_synth) orchestratorResults.push(r.value.orchestrator_synth);
         console.log(`[bbf-midnight-haiku] OK uid=${user.id} brief="${r.value.brief.slice(0, 80)}..."`);
       } else {
         const message = r.reason instanceof Error ? r.reason.message : String(r.reason);
@@ -650,7 +726,13 @@ async function runBatch(
     });
   }
 
-  return { succeeded, failed: errors.length, errors, sunday_recon: sundayReconResults };
+  return {
+    succeeded,
+    failed: errors.length,
+    errors,
+    sunday_recon: sundayReconResults,
+    orchestrator_synth: orchestratorResults,
+  };
 }
 
 // ─── Entry point ──────────────────────────────────────────────────────
@@ -698,8 +780,9 @@ serve(async (req: Request) => {
 
   // Phase 5 · Sunday-only branch · UTC day-of-week 0 = Sunday
   const isSunday = (new Date().getUTCDay() === 0) || forceSunday;
-  const RENDER_ORIGIN     = Deno.env.get('BBF_RENDER_PROXY_ORIGIN') || 'https://buildbelievefit.onrender.com';
-  const BBF_ADMIN_TOKEN   = Deno.env.get('BBF_ADMIN_TOKEN') || '';
+  const RENDER_ORIGIN          = Deno.env.get('BBF_RENDER_PROXY_ORIGIN') || 'https://buildbelievefit.onrender.com';
+  const BBF_ADMIN_TOKEN        = Deno.env.get('BBF_ADMIN_TOKEN') || '';
+  const BBF_COACH_AGENT_TOKEN  = Deno.env.get('BBF_COACH_AGENT_TOKEN') || '';
 
   let roster: SovereignUser[];
   try {
@@ -714,20 +797,21 @@ serve(async (req: Request) => {
 
   if (roster.length === 0) {
     return jsonResponse({
-      ok:           true,
-      processed:    0,
-      succeeded:    0,
-      failed:       0,
-      model:        MODEL,
-      dry_run:      dryRun,
-      batch_size:   BATCH_SIZE,
-      sunday:       isSunday,
-      sunday_recon: [],
-      errors:       [],
+      ok:                 true,
+      processed:          0,
+      succeeded:          0,
+      failed:             0,
+      model:              MODEL,
+      dry_run:            dryRun,
+      batch_size:         BATCH_SIZE,
+      sunday:             isSunday,
+      sunday_recon:       [],
+      orchestrator_synth: [],
+      errors:             [],
     });
   }
 
-  const { succeeded, failed, errors, sunday_recon } = await runBatch(
+  const { succeeded, failed, errors, sunday_recon, orchestrator_synth } = await runBatch(
     roster,
     sinceIso,
     SUPABASE_URL,
@@ -737,18 +821,20 @@ serve(async (req: Request) => {
     isSunday,
     RENDER_ORIGIN,
     BBF_ADMIN_TOKEN,
+    BBF_COACH_AGENT_TOKEN,
   );
 
   return jsonResponse({
-    ok:           true,
-    processed:    roster.length,
+    ok:                 true,
+    processed:          roster.length,
     succeeded,
     failed,
-    model:        MODEL,
-    dry_run:      dryRun,
-    batch_size:   BATCH_SIZE,
-    sunday:       isSunday,
+    model:              MODEL,
+    dry_run:            dryRun,
+    batch_size:         BATCH_SIZE,
+    sunday:             isSunday,
     sunday_recon,
+    orchestrator_synth,
     errors,
   });
 });

@@ -8951,9 +8951,23 @@ function renderTrainerDashboard(d) {
       '</div></div>';
   });
   html += '</div>';
+  // Phase 6 · Orchestrator dashboard panels (founder-only, render
+  // after the roster). Greenline batches routine high-confidence
+  // proposals; the gauge shows the 7-day autonomous ratio. Both pull
+  // from bbf_orchestrator_memory · they render asynchronously so the
+  // roster card never blocks on PostgREST round-trips.
+  html += '<div id="orchestrator-gauge" style="margin-top:1.2rem;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:.7rem .9rem"></div>';
+  html += '<div id="orchestrator-greenline" style="margin-top:.8rem;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:.7rem .9rem"></div>';
   html += '<div id="admin-audit-feed" style="margin-top:1.2rem"></div>';
   rosterWrap.innerHTML = html;
   renderAdminAuditFeed(d);
+  // Phase 6 · async-paint orchestrator panels after the synchronous
+  // roster paint finishes. Both methods are no-ops when their DOM
+  // targets aren't present, so the call is safe across all views.
+  if (typeof BBF_ORCHESTRATOR !== 'undefined') {
+    try { BBF_ORCHESTRATOR.renderFreedomGauge(); }    catch (e) { console.warn('[renderTrainerDashboard] freedom gauge:', e && e.message); }
+    try { BBF_ORCHESTRATOR.renderGreenlineDigest(); } catch (e) { console.warn('[renderTrainerDashboard] greenline:', e && e.message); }
+  }
 }
 
 // ─── ADMIN AUDIT FEED ─────────────────────────────────────
@@ -15582,6 +15596,820 @@ var BBF_NUTRITION_INTEL = (function() {
 })();
 
 try { if (typeof BBF_NUTRITION_INTEL !== 'undefined') BBF_NUTRITION_INTEL.ensureListener(); } catch (_) {}
+
+// ════════════════════════════════════════════════════════════════════════
+// BBF_ORCHESTRATOR · Operation Pantheon · Phase 6 Connective Layer
+// ────────────────────────────────────────────────────────────────────────
+// The deterministic arbiter sitting above every per-tab coordinator.
+// Owns: in-session conflict resolution, idempotency, Sentinel v11
+// two-bin verification, episodic memory recording, Sovereign Rollback,
+// Greenline Digest, "Am I Free?" gauge, stale-escalation revalidation.
+//
+// FAST PATH (this IIFE · in-session, no Claude):
+//   · Listens for `bbf:proposed:action` events from every coordinator
+//   · Idempotency check via bbf_action_idempotency (sha256 dedup keys)
+//   · Conflict resolution via strict priority hierarchy:
+//       Safety > Vulnerable > Recovery > Performance
+//   · Calls bbf-sentinel verify_proposal (server-side) for two-bin
+//     sorting · recoverable kickback (retry capped via BBF_INTERCEPT)
+//     OR substantive flag (critical risk, NEVER retry)
+//   · Submits to /api/proposal-submit only when verdict ∈ {clean, substantive}
+//   · Records every decision to bbf_orchestrator_memory
+//
+// SLOW PATH (edge function bbf-agentic-orchestrator · invoked nightly
+// from bbf-midnight-haiku): synthesizes an Athlete Snapshot via Claude
+// using the episodic memory + CNS snapshot + 7-day windows. The frontend
+// IIFE does not call Claude directly.
+//
+// ABSOLUTE EXCLUSION (NEVER batch-approve regardless of pattern
+// confidence): safety-tier · vulnerable-tier · cardiac action_types ·
+// cns_intervention · wellbeing_halt · youth_athlete / elderly cohorts.
+// These ALWAYS require individual founder review.
+//
+// PROPOSED-ACTION EVENT SCHEMA (the contract every coordinator emits):
+//   window.dispatchEvent(new CustomEvent('bbf:proposed:action', {
+//     detail: {
+//       uid: 'akeem',
+//       action_type: 'kinematic_swap',            // ∈ proposal_type CHECK
+//       priority_tier: 'safety'|'vulnerable'|'recovery'|'performance',
+//       risk_level: 'low'|'medium'|'high'|'critical',
+//       target: { table, uid, field_key },        // for idempotency hash
+//       population: { uids:[uid], cohort:'single' },
+//       diff: { target_table, target_uid, before, after, fields },
+//       rationale: 'human-readable why',
+//       proposed_by: 'BBF_PROGRAM_INTEL.v1',
+//       metadata: { ... any extra context ... }
+//     }
+//   }));
+// ════════════════════════════════════════════════════════════════════════
+var BBF_ORCHESTRATOR = (function() {
+  var VERSION = 'BBF_ORCHESTRATOR.v1';
+
+  // ── Priority hierarchy · strict ordering ───────────────────────
+  var PRIORITY_TIERS = {
+    safety:      4,   // highest · always wins
+    vulnerable:  3,   // youth / elderly / at-risk
+    recovery:    2,   // CNS protect / deload / mobility
+    performance: 1,   // default · lowest
+  };
+
+  // ── Absolute exclusion (Greenline never batches these) ─────────
+  var ABSOLUTE_EXCLUSION_TIER  = ['safety', 'vulnerable'];
+  var ABSOLUTE_EXCLUSION_TYPES = [
+    'cns_intervention',           // wellbeing / ED escalation
+    'cardio_structure_change',    // cardiac
+    'cardio_intensity_shift',     // cardiac
+    'cardio_prescription',        // cardiac (PAR-Q gated)
+    'youth_load_progression',     // vulnerable population
+    'redline_override',           // safety override
+  ];
+  var ABSOLUTE_EXCLUSION_COHORTS = ['youth_athlete', 'elderly'];
+
+  // ── Tuning ─────────────────────────────────────────────────────
+  var IDEMPOTENCY_WINDOW_MIN   = 5;       // bin events into 5-min windows
+  var IDEMPOTENCY_TTL_SECONDS  = 3600;    // 1-hour TTL on dedup keys
+  var STALE_REVALIDATE_MAX_REV_DRIFT = 3; // CNS revs since proposal creation
+  var STALE_REVALIDATE_MAX_AGE_MS    = 6 * 60 * 60 * 1000; // 6 hours
+  var GREENLINE_MIN_PATTERN_COUNT    = 5; // pattern needs ≥ N prior approves
+  var GREENLINE_PATTERN_LOOKBACK_DAYS = 30;
+  var SENTINEL_RETRY_WINDOW_MS = 60 * 1000; // 1-min retry budget window
+  var SENTINEL_RETRY_MAX_FIRES = 3;          // ≤ 3 Claude retries per window
+
+  // ── Internal state ─────────────────────────────────────────────
+  var _inSessionQueue   = {};      // { uid: [{action, _ts}, ...] · 5-min window }
+  var _listenerInstalled = false;
+
+  function _activeUid() {
+    return (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  }
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try { if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY); } catch (_) {}
+    return '';
+  }
+  function _adminToken() {
+    try { if (typeof window !== 'undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN); } catch (_) {}
+    return '';
+  }
+  function _renderToken() {
+    try { if (typeof sessionStorage !== 'undefined') return sessionStorage.getItem('BBF_ADMIN_TOKEN') || ''; } catch (_) {}
+    return '';
+  }
+  function _renderProxyOrigin() { return 'https://buildbelievefit.onrender.com'; }
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // ── sha256 via Web Crypto · used for idempotency + pattern hashing ─
+  function sha256Hex(text) {
+    try {
+      var enc = new TextEncoder().encode(String(text));
+      return crypto.subtle.digest('SHA-256', enc).then(function(buf) {
+        var bytes = new Uint8Array(buf);
+        var hex = '';
+        for (var i = 0; i < bytes.length; i++) {
+          hex += (bytes[i] < 16 ? '0' : '') + bytes[i].toString(16);
+        }
+        return hex;
+      });
+    } catch (_) {
+      // Fallback · no crypto.subtle (legacy / file://). Cheap djb2 hash.
+      return Promise.resolve((function() {
+        var h = 5381; var s = String(text);
+        for (var i = 0; i < s.length; i++) h = ((h << 5) + h) + s.charCodeAt(i);
+        return ('fallback_' + (h >>> 0).toString(16));
+      })());
+    }
+  }
+
+  // ── Audit · best-effort fire-and-forget to /api/audit-log ──────
+  function audit(action_type, payload, opts) {
+    opts = opts || {};
+    try {
+      var headers = { 'Content-Type': 'application/json' };
+      var tok = _renderToken();
+      if (tok) headers['X-BBF-Admin-Token'] = tok;
+      fetch(_renderProxyOrigin() + '/api/audit-log', {
+        method: 'POST', headers: headers,
+        body: JSON.stringify({
+          action_type:   action_type,
+          agent:         VERSION,
+          target_uid:    _activeUid(),
+          payload:       payload || null,
+          success:       opts.success !== false,
+          error_message: opts.error_message || null,
+        }),
+        keepalive: true,
+      }).catch(function(){});
+    } catch (_) {}
+  }
+
+  // ── CNS snapshot · the SINGLE read path (Phase 0 contract) ─────
+  function snapshot(uid) {
+    if (typeof BBF_CNS_AGENT === 'undefined' || !BBF_CNS_AGENT.snapshot) return null;
+    try { return BBF_CNS_AGENT.snapshot(uid || _activeUid()); } catch (_) { return null; }
+  }
+
+  // ── Idempotency · structural duplicate-event rejection ─────────
+  // Key = sha256(uid | action_type | target_serialized | window_bin)
+  // window_bin = floor(now_ms / (IDEMPOTENCY_WINDOW_MIN × 60_000))
+  function computeIdempotencyKey(action) {
+    var uid    = action.uid || _activeUid() || 'unknown';
+    var at     = action.action_type || 'unknown';
+    var target = action.target
+      ? JSON.stringify(action.target)
+      : JSON.stringify((action.diff && { table: action.diff.target_table, uid: action.diff.target_uid, fields: action.diff.fields }) || {});
+    var win    = Math.floor(Date.now() / (IDEMPOTENCY_WINDOW_MIN * 60 * 1000));
+    return sha256Hex(uid + '|' + at + '|' + target + '|' + win);
+  }
+  function computePatternHash(action) {
+    // Pattern hash is uid-AGNOSTIC · captures the shape of the action
+    // so the Greenline can find common patterns across the roster.
+    var at      = action.action_type || 'unknown';
+    var tier    = action.priority_tier || 'performance';
+    var fields  = (action.diff && action.diff.fields) ? action.diff.fields.slice().sort().join(',') : '';
+    var summary = action.pattern_summary || fields;
+    return sha256Hex('pattern|' + at + '|' + tier + '|' + summary);
+  }
+
+  function _checkIdempotency(key) {
+    var anonKey = _anonKey();
+    var url = _supabaseUrl() + '/rest/v1/bbf_action_idempotency?idempotency_key=eq.' + encodeURIComponent(key) + '&select=idempotency_key&limit=1';
+    var headers = anonKey ? { apikey: anonKey, Authorization: 'Bearer ' + anonKey } : {};
+    return fetch(url, { headers: headers })
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(rows) { return Array.isArray(rows) && rows.length > 0; })
+      .catch(function() { return false; });
+  }
+  function _recordIdempotency(key, action) {
+    var anonKey = _anonKey();
+    var headers = { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+    if (anonKey) { headers.apikey = anonKey; headers.Authorization = 'Bearer ' + anonKey; }
+    return fetch(_supabaseUrl() + '/rest/v1/bbf_action_idempotency', {
+      method: 'POST', headers: headers,
+      body: JSON.stringify({
+        idempotency_key: key,
+        uid:             action.uid || _activeUid() || 'unknown',
+        action_type:     action.action_type || 'unknown',
+        payload_summary: { target: action.target, priority_tier: action.priority_tier, action_type: action.action_type },
+        expires_at:      new Date(Date.now() + IDEMPOTENCY_TTL_SECONDS * 1000).toISOString(),
+      }),
+    }).catch(function(){});
+  }
+
+  // ── Conflict resolution · strict priority hierarchy ────────────
+  // Returns { suppress, existing_tier?, incoming_tier?, conflict_with? }.
+  // Same uid + same target = collision. Higher-priority wins, lower
+  // is recorded as suppressed in memory but NEVER submitted.
+  function _resolveConflicts(action) {
+    var uid = action.uid || _activeUid();
+    if (!_inSessionQueue[uid]) _inSessionQueue[uid] = [];
+    // Drop expired (older than the idempotency window)
+    var now = Date.now();
+    _inSessionQueue[uid] = _inSessionQueue[uid].filter(function(a) {
+      return (now - a._ts) < IDEMPOTENCY_WINDOW_MIN * 60 * 1000;
+    });
+    var incomingTier = PRIORITY_TIERS[action.priority_tier || 'performance'] || 1;
+    var bucket = _inSessionQueue[uid];
+    for (var i = 0; i < bucket.length; i++) {
+      var existing = bucket[i];
+      var sameAt   = existing.action_type === action.action_type;
+      var sameTgt  = JSON.stringify(existing.target || existing.diff || {}) === JSON.stringify(action.target || action.diff || {});
+      if (!sameAt || !sameTgt) continue;
+      var existingTier = PRIORITY_TIERS[existing.priority_tier || 'performance'] || 1;
+      if (existingTier >= incomingTier) {
+        return {
+          suppress: true,
+          existing_tier: existing.priority_tier,
+          incoming_tier: action.priority_tier,
+          conflict_with: { action_type: existing.action_type, ts: existing._ts },
+        };
+      }
+      // incoming wins · replace
+      bucket.splice(i, 1); i--;
+    }
+    return { suppress: false };
+  }
+  function _enqueueInSession(action) {
+    var uid = action.uid || _activeUid();
+    if (!_inSessionQueue[uid]) _inSessionQueue[uid] = [];
+    _inSessionQueue[uid].push(Object.assign({ _ts: Date.now() }, action));
+  }
+
+  // ── Sentinel v11 verify_proposal · two-bin sorting ─────────────
+  // Returns { verdict: 'clean'|'recoverable'|'substantive'|'not_verified', reason, findings }
+  function verifyWithSentinel(proposal) {
+    var headers = { 'Content-Type': 'application/json' };
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+    return fetch(_supabaseUrl() + '/functions/v1/bbf-sentinel', {
+      method: 'POST', headers: headers,
+      body: JSON.stringify({
+        intent:   'verify_proposal',
+        uid:      proposal.population && proposal.population.uids && proposal.population.uids[0],
+        proposal: proposal,
+      }),
+    })
+      .then(function(r) { return r.json().catch(function(){ return null; }); })
+      .catch(function(err) {
+        // Sentinel unreachable · fail-OPEN with not_verified so proposals
+        // still reach the founder · the gap is audited loudly so the
+        // outage is visible. Closing the proxy here would trade safety
+        // for availability and silently break every coordinator.
+        console.warn('[BBF_ORCHESTRATOR] sentinel unreachable:', err && err.message);
+        return { verdict: 'not_verified', reason: 'sentinel_unreachable: ' + (err && err.message || 'unknown') };
+      });
+  }
+
+  // ── Memory recording · bbf_orchestrator_memory ─────────────────
+  function recordMemory(record) {
+    var anonKey = _anonKey();
+    var headers = { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+    if (anonKey) { headers.apikey = anonKey; headers.Authorization = 'Bearer ' + anonKey; }
+    record.created_at = new Date().toISOString();
+    return fetch(_supabaseUrl() + '/rest/v1/bbf_orchestrator_memory', {
+      method: 'POST', headers: headers, body: JSON.stringify(record),
+    }).catch(function(){});
+  }
+
+  // ── Stale-escalation revalidation ──────────────────────────────
+  // Founder console MUST call this before executing /api/proposal-approve.
+  // Returns true if proposal is stale and should be HELD (degrade to
+  // last-approved plan). The CNS revision counter is the primary signal;
+  // wall-clock age is the secondary.
+  function isProposalStale(proposal) {
+    if (!proposal || !proposal.metadata) return false;
+    var uid = proposal.population && proposal.population.uids && proposal.population.uids[0];
+    if (!uid) return false;
+    var proposedAtMs = Date.parse(proposal.metadata.proposed_at || proposal.proposed_at || 0);
+    if (proposedAtMs && (Date.now() - proposedAtMs > STALE_REVALIDATE_MAX_AGE_MS)) return true;
+    var savedRev = proposal.metadata.cns_snapshot_rev;
+    var snap = snapshot(uid);
+    var currentRev = snap && snap._rev;
+    if (savedRev != null && currentRev != null && (currentRev - savedRev) > STALE_REVALIDATE_MAX_REV_DRIFT) return true;
+    return false;
+  }
+  function checkStaleAndDegrade(proposal) {
+    if (isProposalStale(proposal)) {
+      audit('stale_escalation_held', {
+        proposal_id: proposal.id,
+        proposed_at: proposal.metadata && proposal.metadata.proposed_at,
+        cns_snapshot_rev_at_proposal: proposal.metadata && proposal.metadata.cns_snapshot_rev,
+        current_rev: (snapshot() || {})._rev || null,
+      });
+      return true;
+    }
+    return false;
+  }
+
+  // ── Exclusion gate · Greenline absolute exclusions ─────────────
+  function isExcludedProposal(proposal) {
+    if (!proposal) return true;
+    var tier = (proposal.metadata && proposal.metadata.priority_tier) || 'performance';
+    if (ABSOLUTE_EXCLUSION_TIER.indexOf(tier) >= 0) return true;
+    if (ABSOLUTE_EXCLUSION_TYPES.indexOf(proposal.proposal_type) >= 0) return true;
+    var cohort = proposal.population && proposal.population.cohort;
+    if (cohort && ABSOLUTE_EXCLUSION_COHORTS.indexOf(cohort) >= 0) return true;
+    if (proposal.metadata && proposal.metadata.wellbeing_halt === true) return true;
+    if (proposal.risk_level === 'critical') return true;
+    if (proposal.metadata && proposal.metadata.sentinel_flag === 'substantive_violation') return true;
+    return false;
+  }
+
+  // ── submitProposal · the unified proposal pipeline ─────────────
+  // Coordinators that opt into orchestration call this directly OR
+  // dispatch bbf:proposed:action and let the listener route here.
+  // Returns: Promise<{ ok, proposal_id?, suppressed?, sentinel_kickback?, ... }>
+  function submitProposal(action) {
+    var startTs = Date.now();
+    action = action || {};
+    action.uid = action.uid || _activeUid();
+    if (!action.uid) return Promise.resolve({ ok: false, reason: 'no_active_uid' });
+
+    var idempotencyKey = null;
+    var patternHash    = null;
+
+    return Promise.all([computeIdempotencyKey(action), computePatternHash(action)])
+      .then(function(pair) {
+        idempotencyKey = pair[0];
+        patternHash    = pair[1];
+        return _checkIdempotency(idempotencyKey);
+      })
+      .then(function(seen) {
+        if (seen) {
+          audit('orchestrator_duplicate_rejected', { idempotency_key: idempotencyKey, action_type: action.action_type });
+          return recordMemory({
+            uid: action.uid, action_type: action.action_type || 'unknown',
+            priority_tier: action.priority_tier || 'performance',
+            proposed_action: Object.assign({}, action, { orchestrator_idempotency_key: idempotencyKey }),
+            arbitration_result: 'duplicate_idempotency',
+            arbitration_detail: { idempotency_key: idempotencyKey },
+            pattern_hash: patternHash,
+            agent: action.proposed_by || null,
+          }).then(function() {
+            return { ok: false, suppressed: true, reason: 'duplicate_idempotency' };
+          });
+        }
+        var conflict = _resolveConflicts(action);
+        if (conflict.suppress) {
+          audit('orchestrator_suppressed_by_priority', conflict);
+          return recordMemory({
+            uid: action.uid, action_type: action.action_type || 'unknown',
+            priority_tier: action.priority_tier || 'performance',
+            proposed_action: Object.assign({}, action, { orchestrator_idempotency_key: idempotencyKey }),
+            arbitration_result: 'suppressed_by_higher_priority',
+            arbitration_detail: conflict,
+            pattern_hash: patternHash,
+            agent: action.proposed_by || null,
+          }).then(function() {
+            return { ok: false, suppressed: true, reason: 'suppressed_by_higher_priority', conflict: conflict };
+          });
+        }
+        _enqueueInSession(action);
+        _recordIdempotency(idempotencyKey, action);
+
+        var snap = snapshot(action.uid);
+        var proposal = {
+          proposal_type: action.action_type || 'custom',
+          risk_level:    action.risk_level  || 'medium',
+          population:    action.population  || { uids: [action.uid], cohort: 'single' },
+          diff:          action.diff        || {},
+          rationale:     action.rationale   || ('Proposed by ' + VERSION),
+          proposed_by:   action.proposed_by || VERSION,
+          metadata: Object.assign({}, action.metadata || {}, {
+            orchestrator_idempotency_key: idempotencyKey,
+            orchestrator_pattern_hash:    patternHash,
+            priority_tier:                action.priority_tier || 'performance',
+            proposed_at:                  new Date().toISOString(),
+            cns_snapshot_rev:             snap && snap._rev || null,
+          }),
+        };
+
+        return verifyWithSentinel(proposal).then(function(sentinelResult) {
+          var verdict = (sentinelResult && sentinelResult.verdict) || 'not_verified';
+          if (verdict === 'recoverable') {
+            // Two-bin: recoverable kickback. DO NOT submit. Caller is
+            // responsible for re-firing Claude with the failure reason.
+            // BBF_INTERCEPT.rateLimit caps Claude retries at 3/min/uid.
+            audit('sentinel_recoverable_kickback', {
+              reason: sentinelResult.reason, findings: sentinelResult.findings,
+              action_type: action.action_type,
+            });
+            return recordMemory({
+              uid: action.uid, action_type: action.action_type || 'unknown',
+              priority_tier: action.priority_tier || 'performance',
+              proposed_action: Object.assign({}, action, { orchestrator_idempotency_key: idempotencyKey }),
+              arbitration_result: 'sentinel_recoverable',
+              sentinel_verdict: 'recoverable', sentinel_detail: sentinelResult,
+              pattern_hash: patternHash, agent: action.proposed_by || null,
+              cns_snapshot_at_proposal: snap,
+            }).then(function() {
+              return { ok: false, sentinel_kickback: true, verdict: 'recoverable',
+                       reason: sentinelResult.reason, sentinel: sentinelResult };
+            });
+          }
+          if (verdict === 'substantive') {
+            // NEVER retry safety violations. Force-submit with critical
+            // flag so the founder queue makes it loud.
+            proposal.risk_level = 'critical';
+            proposal.metadata.sentinel_flag    = 'substantive_violation';
+            proposal.metadata.sentinel_reason  = sentinelResult.reason || null;
+            proposal.metadata.sentinel_findings = sentinelResult.findings || null;
+            audit('sentinel_substantive_escalated', {
+              reason: sentinelResult.reason, findings: sentinelResult.findings,
+              action_type: action.action_type, original_risk_level: action.risk_level || 'medium',
+            });
+          }
+          return _submitToProxy(proposal).then(function(j) {
+            var proposalId = j && j.proposal && j.proposal.id;
+            audit('orchestrator_proposal_submitted', {
+              proposal_id: proposalId, sentinel_verdict: verdict,
+              action_type: action.action_type, duration_ms: Date.now() - startTs,
+            });
+            return recordMemory({
+              uid: action.uid, action_type: action.action_type || 'unknown',
+              priority_tier: action.priority_tier || 'performance',
+              proposed_action: Object.assign({}, action, { orchestrator_idempotency_key: idempotencyKey }),
+              arbitration_result: 'allowed',
+              sentinel_verdict: verdict, sentinel_detail: sentinelResult,
+              proposal_id: proposalId,
+              pattern_hash: patternHash,
+              cns_snapshot_at_proposal: snap,
+              agent: action.proposed_by || null,
+            }).then(function() {
+              return { ok: !!(j && j.ok), proposal_id: proposalId, sentinel: sentinelResult, verdict: verdict, duration_ms: Date.now() - startTs };
+            });
+          });
+        });
+      });
+  }
+
+  function _submitToProxy(proposal) {
+    var headers = { 'Content-Type': 'application/json' };
+    var tok = _renderToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+    return fetch(_renderProxyOrigin() + '/api/proposal-submit', {
+      method: 'POST', headers: headers, body: JSON.stringify(proposal),
+    }).then(function(r) { return r.json().catch(function(){ return null; }); });
+  }
+
+  // ── Sentinel retry budget · rate-cap Claude re-fires ───────────
+  function canRetrySentinelKickback(uid) {
+    if (typeof BBF_INTERCEPT === 'undefined' || !BBF_INTERCEPT.rateLimit) return true;
+    return BBF_INTERCEPT.rateLimit('sentinel_retry_' + (uid || _activeUid() || 'global'), {
+      windowMs: SENTINEL_RETRY_WINDOW_MS,
+      maxFires: SENTINEL_RETRY_MAX_FIRES,
+    });
+  }
+
+  // ── Sovereign Rollback · flag bad input, recompute, restore ────
+  // NEVER arbitrarily reverses derived math. Steps:
+  //   1. Flag the bad input row (table+id) with metadata.is_flagged=true
+  //   2. Dispatch bbf:rollback:triggered so BBF_CNS_AGENT consumers
+  //      reload (the agent re-reads from clean inputs · single-writer
+  //      contract preserved)
+  //   3. Restore the preserved prior state (caller passes prior_snapshot
+  //      or we use the last memory record's cns_snapshot_at_proposal)
+  //   4. Record memory with negative_learning=true · the pattern is
+  //      weighted cautiously in future Greenline eligibility
+  function triggerRollback(opts) {
+    opts = opts || {};
+    var uid = opts.uid || _activeUid();
+    var reason = opts.reason || 'unspecified';
+    var badInputRef = opts.bad_input_ref || null;
+    var priorSnap = opts.prior_snapshot || null;
+
+    // 1. Flag bad input (best-effort)
+    var flagPromise = Promise.resolve(null);
+    if (badInputRef && badInputRef.table && badInputRef.id) {
+      flagPromise = _flagBadInput(badInputRef.table, badInputRef.id, reason);
+    }
+    return flagPromise.then(function() {
+      // 2. Dispatch rollback event so consumers (CNS agent, tab coordinators)
+      //    re-evaluate from clean inputs.
+      try {
+        window.dispatchEvent(new CustomEvent('bbf:rollback:triggered', {
+          detail: { uid: uid, reason: reason, bad_input_ref: badInputRef, ts: Date.now() },
+        }));
+      } catch (_) {}
+      // 3. Restore preserved prior state (caller-supplied · NOT recomputed)
+      var currentSnap = snapshot(uid);
+      // 4. Negative-learning memory record · marks pattern cautiously
+      audit('sovereign_rollback_triggered', {
+        uid: uid, reason: reason, bad_input_ref: badInputRef,
+        had_prior_snapshot: !!priorSnap,
+      });
+      var patternHashPromise = computePatternHash({
+        action_type: 'sovereign_rollback', priority_tier: 'safety',
+        pattern_summary: reason,
+      });
+      return patternHashPromise.then(function(ph) {
+        return recordMemory({
+          uid: uid, action_type: 'sovereign_rollback', priority_tier: 'safety',
+          proposed_action: {
+            reason: reason, bad_input_ref: badInputRef,
+            prior_snapshot_provided: !!priorSnap, rolled_back_at: new Date().toISOString(),
+          },
+          arbitration_result: 'allowed',
+          pattern_hash: ph, negative_learning: true,
+          cns_snapshot_at_decision: currentSnap,
+          agent: VERSION,
+        }).then(function() {
+          return { ok: true, uid: uid, reason: reason, prior_snapshot: priorSnap };
+        });
+      });
+    });
+  }
+  function _flagBadInput(table, id, reason) {
+    var anonKey = _anonKey();
+    var headers = { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+    if (anonKey) { headers.apikey = anonKey; headers.Authorization = 'Bearer ' + anonKey; }
+    var url = _supabaseUrl() + '/rest/v1/' + encodeURIComponent(table) + '?id=eq.' + encodeURIComponent(id);
+    return fetch(url, {
+      method: 'PATCH', headers: headers,
+      body: JSON.stringify({
+        metadata: { is_flagged: true, flag_reason: reason, flagged_at: new Date().toISOString() },
+      }),
+    }).catch(function(err) {
+      console.warn('[BBF_ORCHESTRATOR] _flagBadInput failed:', err && err.message);
+    });
+  }
+
+  // ── "Am I Free?" gauge · 7-day autonomous ratio ────────────────
+  function computeFreedomGauge() {
+    var anonKey = _anonKey();
+    var sinceIso = new Date(Date.now() - 7 * 86400000).toISOString();
+    var qs = 'created_at=gte.' + encodeURIComponent(sinceIso) +
+             '&select=arbitration_result,founder_response,founder_actor';
+    var headers = anonKey ? { apikey: anonKey, Authorization: 'Bearer ' + anonKey } : {};
+    return fetch(_supabaseUrl() + '/rest/v1/bbf_orchestrator_memory?' + qs, { headers: headers })
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(rows) {
+        if (!Array.isArray(rows)) return { total: 0, autonomous: 0, manual: 0, ratio: null };
+        var total = rows.length;
+        var autonomous = rows.filter(function(r) {
+          // Autonomous = orchestrator self-resolved (dedup / suppress /
+          // sentinel-kickback) OR founder batched via Greenline.
+          if (r.arbitration_result === 'duplicate_idempotency')      return true;
+          if (r.arbitration_result === 'suppressed_by_higher_priority') return true;
+          if (r.arbitration_result === 'sentinel_recoverable')       return true;
+          if (r.founder_actor === 'greenline_batch')                 return true;
+          return false;
+        }).length;
+        return {
+          total:      total,
+          autonomous: autonomous,
+          manual:     total - autonomous,
+          ratio:      total > 0 ? (autonomous / total) : null,
+        };
+      })
+      .catch(function() { return { total: 0, autonomous: 0, manual: 0, ratio: null }; });
+  }
+
+  function renderFreedomGauge() {
+    var pane = document.getElementById('orchestrator-gauge');
+    if (!pane) return;
+    pane.innerHTML = '<div style="font-size:.62rem;color:#666">Loading orchestrator gauge…</div>';
+    computeFreedomGauge().then(function(g) {
+      var pct = g.ratio != null ? Math.round(g.ratio * 100) : null;
+      var barColor = pct == null ? '#666' : pct >= 70 ? '#1e8a3b' : pct >= 40 ? '#d4a017' : '#e67e22';
+      pane.innerHTML =
+        '<div style="font-size:.62rem;font-weight:800;letter-spacing:2px;color:#888;text-transform:uppercase;margin-bottom:.35rem">🟢 AM I FREE? · 7-day autonomous ratio</div>' +
+        '<div style="font-size:1.4rem;color:' + barColor + ';font-weight:800;line-height:1">' + (pct != null ? pct + '%' : '—') + '</div>' +
+        '<div style="font-size:.72rem;color:#aaa;margin-top:.2rem">' +
+          g.autonomous + ' autonomous · ' + g.manual + ' manual · ' + g.total + ' decisions' +
+        '</div>' +
+        (g.total > 0
+          ? '<div style="height:6px;background:#1a1a1a;border-radius:3px;margin-top:.45rem;overflow:hidden"><div style="height:100%;background:' + barColor + ';width:' + (pct || 0) + '%"></div></div>'
+          : '');
+    });
+  }
+
+  // ── Greenline Digest · batch-approval UI for routine patterns ──
+  // Pulls bbf_orchestrator_memory for prior-approved patterns (≥ N hits,
+  // last 30 days, NOT in absolute exclusion list). Matches against
+  // pending bbf_pending_review proposals. ALWAYS individual-only for
+  // safety/vulnerable/cardiac/wellbeing rows.
+  function fetchGreenlinePatterns() {
+    var anonKey = _anonKey();
+    var sinceIso = new Date(Date.now() - GREENLINE_PATTERN_LOOKBACK_DAYS * 86400000).toISOString();
+    var qs = 'founder_response=eq.approve' +
+             '&negative_learning=eq.false' +
+             '&created_at=gte.' + encodeURIComponent(sinceIso) +
+             '&select=pattern_hash,action_type,priority_tier';
+    var headers = anonKey ? { apikey: anonKey, Authorization: 'Bearer ' + anonKey } : {};
+    return fetch(_supabaseUrl() + '/rest/v1/bbf_orchestrator_memory?' + qs, { headers: headers })
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(rows) {
+        if (!Array.isArray(rows)) return {};
+        var counts = {};
+        rows.forEach(function(row) {
+          if (!row || !row.pattern_hash) return;
+          if (ABSOLUTE_EXCLUSION_TYPES.indexOf(row.action_type) >= 0) return;
+          if (ABSOLUTE_EXCLUSION_TIER.indexOf(row.priority_tier)  >= 0) return;
+          if (!counts[row.pattern_hash]) counts[row.pattern_hash] = { count: 0, action_type: row.action_type, priority_tier: row.priority_tier };
+          counts[row.pattern_hash].count++;
+        });
+        var eligible = {};
+        Object.keys(counts).forEach(function(h) {
+          if (counts[h].count >= GREENLINE_MIN_PATTERN_COUNT) eligible[h] = counts[h];
+        });
+        return eligible;
+      })
+      .catch(function() { return {}; });
+  }
+
+  function _fetchPendingProposals() {
+    var headers = { 'Content-Type': 'application/json' };
+    var tok = _renderToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+    return fetch(_renderProxyOrigin() + '/api/proposal-list', {
+      method: 'POST', headers: headers,
+      body: JSON.stringify({ status: 'pending', limit: 100 }),
+    })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(j) { return (j && j.proposals) || []; })
+      .catch(function() { return []; });
+  }
+
+  function renderGreenlineDigest() {
+    var pane = document.getElementById('orchestrator-greenline');
+    if (!pane) return;
+    pane.innerHTML = '<div style="font-size:.62rem;color:#666">Loading Greenline digest…</div>';
+    Promise.all([fetchGreenlinePatterns(), _fetchPendingProposals()]).then(function(arr) {
+      var patterns = arr[0]; var pending = arr[1];
+      var greenline = pending.filter(function(p) {
+        if (isExcludedProposal(p)) return false;
+        var h = p.metadata && p.metadata.orchestrator_pattern_hash;
+        return h && patterns[h];
+      });
+      var excludedCount = pending.length - greenline.length;
+      var head = '<div style="font-size:.62rem;font-weight:800;letter-spacing:2px;color:#1e8a3b;text-transform:uppercase;margin-bottom:.4rem">🟩 GREENLINE DIGEST · ' + greenline.length + ' routine · ' + excludedCount + ' need individual review</div>';
+      if (greenline.length === 0) {
+        pane.innerHTML = head +
+          '<div style="font-size:.78rem;color:#aaa;line-height:1.45">No routine high-confidence proposals to batch-approve. Vulnerable populations, disordered-eating, and cardiac actions are NEVER eligible regardless of pattern confidence — each one needs individual review.</div>';
+        return;
+      }
+      var rows = greenline.map(function(p) {
+        var targetUid = (p.diff && p.diff.target_uid) || '?';
+        var rationale = _esc((p.rationale || '').slice(0, 160)) + ((p.rationale || '').length > 160 ? '…' : '');
+        return '<li style="margin:.4rem 0;padding:.55rem;background:#161616;border-radius:6px;font-size:.78rem">' +
+                 '<div style="font-weight:700;color:#e8e8e8">' + _esc(p.proposal_type) + ' · <code style="color:#bbf;font-size:.7rem">' + _esc(targetUid) + '</code></div>' +
+                 '<div style="font-size:.7rem;color:#999;margin-top:.2rem;line-height:1.4">' + rationale + '</div>' +
+               '</li>';
+      }).join('');
+      pane.innerHTML = head +
+        '<ul style="list-style:none;padding:0;margin:.3rem 0 .55rem">' + rows + '</ul>' +
+        '<button id="orchestrator-greenline-approve-all" type="button" style="background:#1e8a3b;color:#fff;border:0;border-radius:8px;padding:.6rem .9rem;font-weight:800;cursor:pointer;width:100%">Approve all ' + greenline.length + ' · Greenline batch</button>' +
+        '<div style="font-size:.62rem;color:#666;margin-top:.45rem;line-height:1.5">Vulnerable populations · disordered-eating · cardiac actions are NEVER eligible. ' + excludedCount + ' proposal' + (excludedCount === 1 ? '' : 's') + ' in queue need individual review.</div>';
+      var btn = document.getElementById('orchestrator-greenline-approve-all');
+      if (btn) btn.onclick = function() { batchApproveGreenline(greenline); };
+    });
+  }
+
+  function batchApproveGreenline(proposals) {
+    if (!Array.isArray(proposals) || !proposals.length) return Promise.resolve({ approved: 0, failed: 0 });
+    audit('greenline_batch_initiated', { count: proposals.length });
+    var promises = proposals.map(function(p) {
+      // Stale check first — never auto-approve a proposal whose CNS
+      // baseline has drifted past the threshold.
+      if (checkStaleAndDegrade(p)) {
+        return Promise.resolve({ stale: true, proposal_id: p.id });
+      }
+      return _approveProposal(p.id, 'greenline_batch').then(function(j) {
+        var ok = !!(j && j.ok);
+        if (ok) {
+          // Update memory: founder_response='approve', actor='greenline_batch'
+          var idk = p.metadata && p.metadata.orchestrator_idempotency_key;
+          if (idk) _updateMemoryFounderResponse(idk, 'approve', 'greenline_batch');
+        }
+        return { ok: ok, proposal_id: p.id, result: j };
+      }).catch(function() { return { ok: false, proposal_id: p.id }; });
+    });
+    return Promise.all(promises).then(function(results) {
+      var approved = results.filter(function(r) { return r.ok === true; }).length;
+      var stale    = results.filter(function(r) { return r.stale === true; }).length;
+      var failed   = results.length - approved - stale;
+      audit('greenline_batch_completed', { approved: approved, stale: stale, failed: failed, total: results.length });
+      if (typeof TOAST === 'function') {
+        TOAST('Greenline · ' + approved + ' approved' + (stale ? ' · ' + stale + ' held (stale)' : '') + (failed ? ' · ' + failed + ' failed' : ''));
+      }
+      renderGreenlineDigest();
+      renderFreedomGauge();
+      return { approved: approved, stale: stale, failed: failed };
+    });
+  }
+
+  function _approveProposal(id, approver) {
+    var headers = { 'Content-Type': 'application/json' };
+    var tok = _renderToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+    return fetch(_renderProxyOrigin() + '/api/proposal-approve', {
+      method: 'POST', headers: headers,
+      body: JSON.stringify({ id: id, approver: approver || 'greenline_batch' }),
+    }).then(function(r) { return r.json().catch(function(){ return null; }); });
+  }
+
+  function _updateMemoryFounderResponse(idempotencyKey, response, actor) {
+    if (!idempotencyKey) return Promise.resolve();
+    var anonKey = _anonKey();
+    var headers = { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
+    if (anonKey) { headers.apikey = anonKey; headers.Authorization = 'Bearer ' + anonKey; }
+    return fetch(_supabaseUrl() + '/rest/v1/bbf_orchestrator_memory?proposed_action->>orchestrator_idempotency_key=eq.' + encodeURIComponent(idempotencyKey), {
+      method: 'PATCH', headers: headers,
+      body: JSON.stringify({
+        founder_response:    response,
+        founder_response_at: new Date().toISOString(),
+        founder_actor:       actor,
+      }),
+    }).catch(function(){});
+  }
+
+  // Public hook · founder console calls this when manually approving
+  // a proposal so episodic memory tracks the response source.
+  function recordFounderDecision(proposalOrIdempotencyKey, response, actor) {
+    var idk = (typeof proposalOrIdempotencyKey === 'string')
+      ? proposalOrIdempotencyKey
+      : (proposalOrIdempotencyKey && proposalOrIdempotencyKey.metadata && proposalOrIdempotencyKey.metadata.orchestrator_idempotency_key);
+    return _updateMemoryFounderResponse(idk, response, actor || 'manual');
+  }
+
+  // ── Listener install ────────────────────────────────────────────
+  function ensureListener() {
+    if (_listenerInstalled) return;
+    window.addEventListener('bbf:proposed:action', function(e) {
+      try { submitProposal(e.detail || {}).catch(function(){}); } catch (_) {}
+    });
+    window.addEventListener('bbf:state:update', function(e) {
+      var detail = e && e.detail || {};
+      audit('state_update_received', { source: detail.source, uid: detail.uid, kind: detail.kind });
+    });
+    window.addEventListener('bbf:rollback:triggered', function(e) {
+      // Re-render the founder dashboard panels if the rollback is for
+      // the currently-viewed athlete · the gauge + digest need refresh.
+      var detail = e && e.detail || {};
+      audit('rollback_event_received', { uid: detail.uid, reason: detail.reason });
+      try { renderFreedomGauge(); renderGreenlineDigest(); } catch (_) {}
+    });
+    _listenerInstalled = true;
+    console.log('[BBF_ORCHESTRATOR] listeners installed · v=' + VERSION);
+  }
+
+  // ── Debug · fire a synthetic proposed action from console ──────
+  function debugFireProposedAction(action_type, priority_tier, rationale) {
+    var detail = {
+      uid:           _activeUid(),
+      action_type:   action_type   || 'program_swap',
+      priority_tier: priority_tier || 'performance',
+      risk_level:    'medium',
+      rationale:     rationale || 'Debug fire from console',
+      proposed_by:   VERSION + '.debug',
+      diff: { target_table: 'bbf_users', target_uid: _activeUid(), fields: ['daily_brief'] },
+    };
+    window.dispatchEvent(new CustomEvent('bbf:proposed:action', { detail: detail }));
+    return detail;
+  }
+
+  return {
+    VERSION:                      VERSION,
+    PRIORITY_TIERS:               PRIORITY_TIERS,
+    ABSOLUTE_EXCLUSION_TIER:      ABSOLUTE_EXCLUSION_TIER,
+    ABSOLUTE_EXCLUSION_TYPES:     ABSOLUTE_EXCLUSION_TYPES,
+    ABSOLUTE_EXCLUSION_COHORTS:   ABSOLUTE_EXCLUSION_COHORTS,
+    GREENLINE_MIN_PATTERN_COUNT:  GREENLINE_MIN_PATTERN_COUNT,
+    SENTINEL_RETRY_MAX_FIRES:     SENTINEL_RETRY_MAX_FIRES,
+    ensureListener:               ensureListener,
+    submitProposal:               submitProposal,
+    audit:                        audit,
+    snapshot:                     snapshot,
+    sha256Hex:                    sha256Hex,
+    computeIdempotencyKey:        computeIdempotencyKey,
+    computePatternHash:           computePatternHash,
+    verifyWithSentinel:           verifyWithSentinel,
+    canRetrySentinelKickback:     canRetrySentinelKickback,
+    triggerRollback:              triggerRollback,
+    isProposalStale:              isProposalStale,
+    checkStaleAndDegrade:         checkStaleAndDegrade,
+    isExcludedProposal:           isExcludedProposal,
+    recordMemory:                 recordMemory,
+    recordFounderDecision:        recordFounderDecision,
+    computeFreedomGauge:          computeFreedomGauge,
+    renderFreedomGauge:           renderFreedomGauge,
+    fetchGreenlinePatterns:       fetchGreenlinePatterns,
+    renderGreenlineDigest:        renderGreenlineDigest,
+    batchApproveGreenline:        batchApproveGreenline,
+    debugFireProposedAction:      debugFireProposedAction,
+  };
+})();
+
+try { if (typeof BBF_ORCHESTRATOR !== 'undefined') BBF_ORCHESTRATOR.ensureListener(); } catch (_) {}
 
 // ════════════════════════════════════════════════════════════════════════
 // BBF_KINEMATICS · Phase 6 — Live Kinematic Mapping (Form Check)

@@ -1,27 +1,28 @@
 // ═══════════════════════════════════════════════════════════════
-// supabase/functions/bbf-sentinel/index.ts
-// Sentinel Protocol — daily roster audit. Runs the entire active
-// roster through the BBF Intelligence Engine; if any athlete
-// trips the ACWR or Micro-Recovery guardrails (the RED zone),
-// posts a structured payload to the Zapier webhook so the CEO
-// gets a Slack/Email/SMS alert.
+// supabase/functions/bbf-sentinel/index.ts · v11
+// Sentinel Protocol — TWO modes, single endpoint:
 //
-// Auth model (CEO-approved):
-//   - verify_jwt: false (cron-invoked, no user JWT available)
-//   - x-cron-secret header must match Deno.env.get("CRON_SECRET")
+//   (A) Default · daily roster audit (legacy):
+//       Runs the active roster through the BBF Intelligence Engine.
+//       Red-zone athletes get a Zapier webhook POST. Cron-invoked
+//       at 08:00 UTC. Auth: x-cron-secret matches CRON_SECRET env.
 //
-// Triggers:
-//   - pg_cron daily at 08:00 UTC (08:00 UTC = 01:00 MST briefing slot)
-//   - Manual ad-hoc invocation: curl -X POST <url> -H "x-cron-secret: …"
+//   (B) Phase 6 · intent='verify_proposal' (NEW v11):
+//       Two-bin sorting on Claude proposals BEFORE they reach the
+//       founder queue. Deterministic checks (no Claude) categorize
+//       failures as either RECOVERABLE (vocab/syntax — retry via
+//       BBF_INTERCEPT budget, ≤ 3) or SUBSTANTIVE (scope/safety/
+//       cardiac — NEVER retry · escalate to founder as critical).
+//       Auth: x-bbf-admin-token matches BBF_COACH_AGENT_TOKEN env.
+//       Routed from BBF_ORCHESTRATOR.submitProposal · also callable
+//       from any server-side agent that wants pre-queue verification.
 //
 // Required environment variables (set in Supabase Dashboard):
-//   CRON_SECRET           shared secret matching pg_cron's GUC value
-//   ZAPIER_WEBHOOK_URL    Catch Hook URL from the Zapier Zap (optional —
-//                         function still runs and returns the audit result
-//                         when unset; just skips the POST)
+//   CRON_SECRET             shared secret for the audit path (cron-only)
+//   BBF_COACH_AGENT_TOKEN   shared secret for the verifier path
+//   ZAPIER_WEBHOOK_URL      Catch Hook URL (optional · audit path only)
 // Auto-injected by Supabase:
-//   SUPABASE_URL                  the project's REST URL
-//   SUPABASE_SERVICE_ROLE_KEY     elevated DB access (bypasses RLS)
+//   SUPABASE_URL · SUPABASE_SERVICE_ROLE_KEY
 // ═══════════════════════════════════════════════════════════════
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -177,8 +178,270 @@ function buildWebhookPayload(redZone: any[], counts: Record<string, number>) {
   };
 }
 
+// ═══════════════════════════════════════════════════════════════
+// Phase 6 · Sentinel v11 · verify_proposal · Two-Bin Sorting
+// ───────────────────────────────────────────────────────────────
+// Deterministic verifier · NO Claude on this path. Mirrors the
+// BBF_OT_PROMPT vocab contract server-side for the recoverable bin
+// and runs a fixed safety checklist for the substantive bin.
+// ═══════════════════════════════════════════════════════════════
+
+// Banned-term substitutions · mirrors BBF_OT_PROMPT.getBanList()
+// shape but uses regex sources directly so we can flag matches
+// without rewriting the text. ANY match flips the proposal to
+// 'recoverable' so Claude retries with the failure reason and
+// substitutes correct vocabulary on the next pass.
+const VOCAB_BAN_LIST: Array<{ re: RegExp; label: string }> = [
+  { re: /\binjury risk\b/i,        label: 'injury_risk' },
+  { re: /\bchronic pain\b/i,       label: 'chronic_pain' },
+  { re: /\bchronic condition\b/i,  label: 'chronic_condition' },
+  { re: /\bacute injury\b/i,       label: 'acute_injury' },
+  { re: /\bdysfunctions?\b/i,      label: 'dysfunction' },
+  { re: /\bpathology\b/i,          label: 'pathology' },
+  { re: /\bdiagnos(?:e|ed|es|is)\b/i, label: 'diagnose' },
+  { re: /\bpatients?\b/i,          label: 'patient' },
+  { re: /\btherap(?:y|ist)\b/i,    label: 'therapy' },
+  { re: /\btreatments?\b/i,        label: 'treatment' },
+  { re: /\bdiseases?\b/i,          label: 'disease' },
+  { re: /\bsymptoms?\b/i,          label: 'symptom' },
+  { re: /\bprognosis\b/i,          label: 'prognosis' },
+  { re: /\billness\b/i,            label: 'illness' },
+  { re: /\bclinical(?:ly)?\b/i,    label: 'clinical' },
+  { re: /\bdisorder(?:ed)?\b/i,    label: 'disorder' },
+];
+
+// Cardiac vocabulary · ANY match in a non-cardio proposal is a
+// substantive violation (Phase 0 contract rule #9 · no LLM may
+// infer cardiac risk · PAR-Q+ is the only path).
+const CARDIAC_VOCAB: RegExp[] = [
+  /\b(?:heart\s*rate|HR|bpm|beats\s*per\s*minute)\b/i,
+  /\b(?:cardiac|cardiovascular)\b/i,
+  /\bzone\s*[1-5]\b/i,
+  /\b(?:VO2\s*max|max\s*HR|target\s*HR)\b/i,
+  /\b(?:angina|arrhythmia|hypertension|hypotension)\b/i,
+];
+const CARDIO_PROPOSAL_TYPES = new Set([
+  'cardio_prescription', 'cardio_intensity_shift', 'cardio_structure_change',
+]);
+
+// Whitelisted target tables per the Render proxy PROPOSAL_TARGET_WHITELIST.
+// Mismatch = substantive scope violation.
+const ALLOWED_TARGET_TABLES = new Set([
+  'bbf_users', 'bbf_active_clients', 'bbf_athlete_progression',
+]);
+
+// Required proposal fields.
+const REQUIRED_PROPOSAL_FIELDS = ['proposal_type', 'rationale', 'proposed_by', 'diff'];
+const REQUIRED_DIFF_FIELDS     = ['target_table', 'target_uid', 'after'];
+
+// Action-type vs target-table affinity. Substantive scope violation
+// when the proposal_type doesn't match the table it claims to mutate.
+const TABLE_AFFINITY: Record<string, Set<string>> = {
+  // bbf_users actions
+  'bbf_users': new Set([
+    'cns_intervention','redline_override','block_priority_shift','tier_upgrade',
+    'provision_override','baseline_recompute','nutrition_swap','nutrition_rotate',
+    'nutrition_macro_adjust','nutrition_target_recalc','cardio_prescription',
+    'cardio_intensity_shift','cardio_structure_change','program_swap','program_create',
+    'program_progress','prehab_assignment','prehab_escalation','athlete_evolution',
+    'roster_action','custom','transient_swap',
+  ]),
+  // bbf_active_clients actions
+  'bbf_active_clients': new Set([
+    'nutrition_swap','nutrition_rotate','nutrition_macro_adjust','nutrition_target_recalc',
+    'program_swap','program_create','program_progress','custom','roster_action',
+  ]),
+  // bbf_athlete_progression actions
+  'bbf_athlete_progression': new Set([
+    'phase_advancement','adaptive_drill_candidate','athlete_evolution',
+    'youth_load_progression','baseline_recompute','custom',
+  ]),
+};
+
+type VerifyVerdict = 'clean' | 'recoverable' | 'substantive' | 'not_verified';
+type VerifyResult = {
+  verdict: VerifyVerdict;
+  reason?: string;
+  findings: Array<{ kind: string; detail: string }>;
+};
+
+function _scanText(text: string, banList: Array<{ re: RegExp; label: string }>): string[] {
+  const out: string[] = [];
+  if (typeof text !== 'string' || !text) return out;
+  for (const b of banList) {
+    if (b.re.test(text)) out.push(b.label);
+  }
+  return out;
+}
+function _scanTextRegex(text: string, regexList: RegExp[]): string[] {
+  const out: string[] = [];
+  if (typeof text !== 'string' || !text) return out;
+  for (const r of regexList) {
+    const m = text.match(r);
+    if (m) out.push(m[0]);
+  }
+  return out;
+}
+
+function _collectProposalText(proposal: any): string {
+  const parts: string[] = [];
+  if (proposal && typeof proposal.rationale === 'string') parts.push(proposal.rationale);
+  const after = proposal && proposal.diff && proposal.diff.after;
+  if (after && typeof after === 'object') {
+    for (const k of Object.keys(after)) {
+      const v = after[k];
+      if (typeof v === 'string') parts.push(v);
+    }
+  }
+  if (proposal && proposal.metadata) {
+    for (const k of Object.keys(proposal.metadata)) {
+      const v = proposal.metadata[k];
+      if (typeof v === 'string') parts.push(v);
+    }
+  }
+  return parts.join(' \n ');
+}
+
+function verifyProposal(proposal: any): VerifyResult {
+  const findings: Array<{ kind: string; detail: string }> = [];
+  // ── 1. Required-field check (recoverable) ──────────────────────
+  for (const f of REQUIRED_PROPOSAL_FIELDS) {
+    if (!proposal || proposal[f] == null || proposal[f] === '') {
+      findings.push({ kind: 'schema_missing', detail: 'proposal.' + f + ' required' });
+    }
+  }
+  const diff = proposal && proposal.diff;
+  if (diff && typeof diff === 'object') {
+    for (const f of REQUIRED_DIFF_FIELDS) {
+      if (diff[f] == null || diff[f] === '') {
+        findings.push({ kind: 'schema_missing', detail: 'diff.' + f + ' required' });
+      }
+    }
+  }
+  // ── 2. Target table whitelist (substantive) ────────────────────
+  const targetTable: string | undefined = diff && diff.target_table;
+  if (targetTable && !ALLOWED_TARGET_TABLES.has(targetTable)) {
+    return {
+      verdict: 'substantive',
+      reason:  'target_table_not_whitelisted: ' + targetTable,
+      findings: [...findings, { kind: 'scope', detail: 'target_table=' + targetTable + ' not in whitelist' }],
+    };
+  }
+  // ── 3. Action-type affinity (substantive scope check) ──────────
+  const proposalType: string | undefined = proposal && proposal.proposal_type;
+  if (proposalType && targetTable) {
+    const allowedTypes = TABLE_AFFINITY[targetTable];
+    if (allowedTypes && !allowedTypes.has(proposalType)) {
+      return {
+        verdict: 'substantive',
+        reason:  'scope_mismatch: proposal_type=' + proposalType + ' cannot target table=' + targetTable,
+        findings: [...findings, { kind: 'scope', detail: proposalType + ' incompatible with ' + targetTable }],
+      };
+    }
+  }
+  // ── 4. Cardiac-inference check (substantive · Phase 0 rule #9) ──
+  const proposalText = _collectProposalText(proposal);
+  if (proposalType && !CARDIO_PROPOSAL_TYPES.has(proposalType)) {
+    const cardiacHits = _scanTextRegex(proposalText, CARDIAC_VOCAB);
+    if (cardiacHits.length > 0) {
+      return {
+        verdict: 'substantive',
+        reason:  'cardiac_inference_in_non_cardio_proposal',
+        findings: [...findings, { kind: 'cardiac', detail: 'matched terms: ' + cardiacHits.slice(0, 3).join(', ') }],
+      };
+    }
+  }
+  // ── 5. Vulnerable-population check (substantive) ───────────────
+  const cohort = proposal && proposal.population && proposal.population.cohort;
+  if (cohort === 'youth_athlete' || cohort === 'elderly') {
+    // Youth + adult-progression fields = substantive violation.
+    const adultProgressionFields = ['phase', 'target_phase', 'mesocycle_week'];
+    if (proposalType !== 'youth_load_progression' && diff && diff.after) {
+      const touchedAdult = adultProgressionFields.filter(function(f) { return Object.prototype.hasOwnProperty.call(diff.after, f); });
+      if (touchedAdult.length > 0) {
+        return {
+          verdict: 'substantive',
+          reason:  'vulnerable_population_mismatch: ' + cohort + ' touched ' + touchedAdult.join(','),
+          findings: [...findings, { kind: 'vulnerable', detail: cohort + ' progression must use youth_load_progression action_type' }],
+        };
+      }
+    }
+  }
+  // ── 6. Wellbeing-halt safety check (substantive) ───────────────
+  // A wellbeing halt already escalates as critical · don't let any
+  // restrictive numeric proposal slip through alongside it.
+  if (proposal && proposal.metadata && proposal.metadata.wellbeing_halt === true
+      && proposalType === 'nutrition_target_recalc') {
+    return {
+      verdict: 'substantive',
+      reason:  'wellbeing_halt_supersedes_target_recalc',
+      findings: [...findings, { kind: 'safety', detail: 'restrictive target recalc cannot run alongside wellbeing halt' }],
+    };
+  }
+  // ── 7. Vocab check (recoverable · clinical-vocabulary contract) ─
+  const banHits = _scanText(proposalText, VOCAB_BAN_LIST);
+  if (banHits.length > 0) {
+    findings.push({ kind: 'vocab', detail: 'banned terms detected: ' + banHits.join(',') });
+    return {
+      verdict: 'recoverable',
+      reason:  'clinical_vocabulary_violation: ' + banHits.slice(0, 5).join(','),
+      findings,
+    };
+  }
+  // ── 8. Schema-missing findings → recoverable (after all substantive checks pass) ─
+  if (findings.length > 0) {
+    return {
+      verdict: 'recoverable',
+      reason:  'schema_missing: ' + findings.map(function(f) { return f.detail; }).join(' · '),
+      findings,
+    };
+  }
+  return { verdict: 'clean', findings };
+}
+
 // ─── Handler ────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
+  // ── Phase 6 · intent router · check verify_proposal FIRST ─────────
+  // The verifier path uses X-BBF-Admin-Token (BBF_COACH_AGENT_TOKEN).
+  // The cron audit path keeps the legacy x-cron-secret gate untouched.
+  let parsedBody: any = null;
+  try {
+    if (req.method === 'POST') {
+      const txt = await req.clone().text();
+      if (txt) parsedBody = JSON.parse(txt);
+    }
+  } catch (_) { parsedBody = null; }
+  const intent = parsedBody && typeof parsedBody.intent === 'string' ? parsedBody.intent : null;
+
+  if (intent === 'verify_proposal') {
+    const verifierExpected = Deno.env.get('BBF_COACH_AGENT_TOKEN');
+    if (verifierExpected) {
+      const sent = req.headers.get('x-bbf-admin-token') || '';
+      if (sent !== verifierExpected) {
+        console.warn('[bbf-sentinel:verify_proposal] auth rejected (bad/missing x-bbf-admin-token)');
+        return new Response(JSON.stringify({ verdict: 'not_verified', reason: 'unauthorized' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+    const proposal = parsedBody && parsedBody.proposal;
+    if (!proposal || typeof proposal !== 'object') {
+      return new Response(JSON.stringify({ verdict: 'not_verified', reason: 'missing_proposal' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    const t0 = Date.now();
+    const verdict = verifyProposal(proposal);
+    const dur = Date.now() - t0;
+    console.log(`[bbf-sentinel:verify_proposal] verdict=${verdict.verdict} reason=${verdict.reason || 'n/a'} dur=${dur}ms type=${proposal.proposal_type} uid=${parsedBody.uid || 'n/a'}`);
+    return new Response(JSON.stringify({
+      verdict:  verdict.verdict,
+      reason:   verdict.reason || null,
+      findings: verdict.findings,
+      duration_ms: dur,
+      sentinel_version: 'v11',
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  // ── Default · daily roster audit (legacy cron path) ──────────────
   // Auth gate — shared CRON_SECRET header
   const expected = Deno.env.get("CRON_SECRET");
   if (!expected) {
