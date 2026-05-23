@@ -20439,27 +20439,73 @@ var BBF_NUTRITION_TRACKER = (function() {
   }
 
   // ─────────────────────────────────────────────────────────────────
-  // OPTIMISTIC TOTALS · sum {kcal, p, c, f} for every meal whose
-  // checkbox is in today's localStorage set. Walks all 7 days because
-  // the set is already today-scoped (load() filters by date).
+  // OPTIMISTIC TOTALS · DOM-first failsafe path.
+  //
+  // BBF_MEAL_CATALOG fuzzy-match returns 0 for some meals, leaving
+  // m._decorated = false and the wheel dead. Failsafe: scrape the
+  // macro pill text rendered on each .nutr-card directly. Order of
+  // attempts per checked meal:
+  //   (1) BBF_MEAL_CATALOG.match(mealName)  ← primary
+  //   (2) Regex on the card's pill text     ← failsafe
+  //
+  // Tradeoff: iterates only checkboxes currently in the DOM (visible
+  // day-tab). Meals checked on other day-tabs aren't in the DOM, so
+  // their macros aren't summed here. The localStorage set still
+  // persists their checked state across day-tab swaps; this function
+  // just won't re-credit them until that tab is the visible one.
+  // Acceptable for the typical "user is on today's tab" path.
   // ─────────────────────────────────────────────────────────────────
   function computeOptimisticTotals(uid) {
     var totals = { kcal: 0, p: 0, c: 0, f: 0 };
-    if (!uid || typeof MP === 'undefined' || !MP[uid] || !Array.isArray(MP[uid].days)) return totals;
-    var checkedSet = load(uid);
-    if (!checkedSet.size) return totals;
-    MP[uid].days.forEach(function(day, idx) {
-      if (!day || !Array.isArray(day.meals)) return;
-      day.meals.forEach(function(meal) {
-        if (!meal || !meal.m || !meal._decorated) return;
-        var mealId = 'd' + idx + '-' + slugMeal(meal.m);
-        if (!checkedSet.has(mealId)) return;
-        totals.kcal += Number(meal.kcal) || 0;
-        totals.p    += Number(meal.p)    || 0;
-        totals.c    += Number(meal.c)    || 0;
-        totals.f    += Number(meal.f)    || 0;
-      });
-    });
+    var checks = document.querySelectorAll('#ndaycon .meal-check:checked');
+
+    for (var i = 0; i < checks.length; i++) {
+      var chk = checks[i];
+      var parentCard = chk.closest('.nutr-card') || chk.closest('div');
+      var nameEl     = parentCard ? parentCard.querySelector('.nutr-ml') : null;
+      var mealName   = chk.value
+                    || chk.getAttribute('data-meal-name')
+                    || (nameEl && nameEl.textContent ? nameEl.textContent.trim() : '')
+                    || chk.getAttribute('data-meal-id')
+                    || 'Unknown Meal';
+
+      var mealKcal = 0, mealP = 0, mealC = 0, mealF = 0;
+
+      // (1) PRIMARY · BBF_MEAL_CATALOG fuzzy match.
+      var catMatch = (typeof BBF_MEAL_CATALOG !== 'undefined' && BBF_MEAL_CATALOG.match)
+                   ? BBF_MEAL_CATALOG.match(mealName)
+                   : null;
+
+      if (catMatch && Number(catMatch.kcal) > 0) {
+        mealKcal = Number(catMatch.kcal) || 0;
+        mealP    = Number(catMatch.p)    || 0;
+        mealC    = Number(catMatch.c)    || 0;
+        mealF    = Number(catMatch.f)    || 0;
+      } else {
+        // (2) FAILSAFE · regex over the card text. The pill renders as
+        //     "557 kcal · 27p / 19c / 42f" (with optional "~ " prefix
+        //     for estimated). Regex tolerates brackets, caps, and both
+        //     middle-dot variants so the same pattern works if the
+        //     pill format gets cosmetically updated upstream.
+        var cardText = parentCard ? (parentCard.innerText || parentCard.textContent || '') : '';
+        var regex    = /\[?\s*(\d+)\s*kcal\s*[·•]\s*(\d+)\s*p\s*\/\s*(\d+)\s*c\s*\/\s*(\d+)\s*f\s*\]?/i;
+        var regMatch = cardText.match(regex);
+
+        if (regMatch) {
+          mealKcal = parseInt(regMatch[1], 10) || 0;
+          mealP    = parseInt(regMatch[2], 10) || 0;
+          mealC    = parseInt(regMatch[3], 10) || 0;
+          mealF    = parseInt(regMatch[4], 10) || 0;
+        } else {
+          console.warn('[BBF_NUTRITION_TRACKER] Both catalog and DOM extraction failed for: ' + mealName);
+        }
+      }
+
+      totals.kcal += mealKcal;
+      totals.p    += mealP;
+      totals.c    += mealC;
+      totals.f    += mealF;
+    }
     return totals;
   }
   function computeMealProgress(uid, dayIdx) {
