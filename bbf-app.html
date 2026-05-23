@@ -22669,7 +22669,7 @@ function RN() {
   // /api/vision-coach, and "Lance" speaks his review via Web Speech API.
   // Nothing is rendered to the DOM; the response is audio-only.
   h += '<button type="button" id="audioMealScannerBtn" class="bbf-primary-btn">&#x1F399;&#xFE0F; Scan Meal</button>';
-  h += '<div id="mealScannerContainer" style="display: none; width: 100%; max-width: 400px; margin: 10px auto; border-radius: 8px; overflow: hidden; position: relative;">' +
+  h += '<div id="mealScannerContainer" style="display: none; width: 100%; max-width: 720px; margin: 14px auto; border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 4 / 3; background: #0a0a0a; box-shadow: 0 4px 24px rgba(0,0,0,.4);">' +
          '<video id="mealVideoFeed" autoplay playsinline style="width: 100%; height: auto; display: block;"></video>' +
          '<canvas id="mealCaptureCanvas" style="display: none;"></canvas>' +
          '<button id="captureMealBtn" class="bbf-primary-btn" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 10;">&#x1F4F8; Take Photo</button>' +
