@@ -20288,6 +20288,159 @@ var BBF_MEAL_CATALOG = (function() {
   return { load: load, findMacros: findMacros, decoratePlan: decoratePlan, decorateAsync: decorateAsync, diag: diag };
 })();
 
+// ═══════════════════════════════════════════════════════════════════════
+// BBF_MEAL_MACROS_API · Claude Haiku LLM upgrade for catalog-miss meals.
+// ───────────────────────────────────────────────────────────────────────
+// When BBF_MEAL_CATALOG.decoratePlan falls back to the slot estimator
+// (m._estimated = true), this module POSTs the meal name to the
+// bbf-meal-macros edge function, which checks the bbf_meal_macros server
+// cache and on miss asks Claude Haiku for a per-serving estimate. The
+// result upgrades the meal in MP[uid] in place and flips _estimated off
+// so the macro pill shows real numbers and the wheel sums against them.
+//
+// Three caching layers stack to drive cost to near zero:
+//   1. localStorage         (per-device, 30-day TTL)
+//   2. bbf_meal_macros table (global, shared across every user/device)
+//   3. Claude Haiku call     (only when both caches miss)
+// ═══════════════════════════════════════════════════════════════════════
+var BBF_MEAL_MACROS_API = (function() {
+  'use strict';
+
+  var CACHE_KEY    = 'bbf_meal_macros_cache';
+  var CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+  var ENDPOINT_SUFFIX = '/functions/v1/bbf-meal-macros';
+
+  // Normalization MUST match the edge function's normalize() so client
+  // and server agree on cache hits regardless of formatting drift.
+  function _normalize(name) {
+    return String(name || '').toLowerCase()
+      .replace(/[^a-z0-9\s]+/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+  }
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) {
+        return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+      }
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) {
+        return String(window.ENV_SUPABASE_KEY);
+      }
+    } catch (_) {}
+    return '';
+  }
+  function _loadCache() {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {}; }
+    catch (_) { return {}; }
+  }
+  function _saveCache(c) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch (_) {}
+  }
+  function _cacheGet(nameNorm) {
+    var c   = _loadCache();
+    var hit = c[nameNorm];
+    if (!hit || !hit.ts) return null;
+    if ((Date.now() - hit.ts) > CACHE_TTL_MS) return null;
+    if (!(Number(hit.kcal) > 0)) return null;
+    return hit;
+  }
+  function _cacheSet(nameNorm, v) {
+    var c = _loadCache();
+    c[nameNorm] = {
+      kcal:       v.kcal,
+      p:          v.p,
+      c:          v.c,
+      f:          v.f,
+      confidence: v.confidence,
+      source:     v.source,
+      ts:         Date.now(),
+    };
+    _saveCache(c);
+  }
+
+  // lookup(mealName, ingredients?) -> Promise<MacroResult | null>
+  //   localStorage → edge fn → null. Never throws · null on any failure.
+  function lookup(mealName, ingredients) {
+    var nameNorm = _normalize(mealName);
+    if (!nameNorm) return Promise.resolve(null);
+
+    var hit = _cacheGet(nameNorm);
+    if (hit) return Promise.resolve(hit);
+
+    var url = _supabaseUrl() + ENDPOINT_SUFFIX;
+    var key = _anonKey();
+    if (!url || !key) return Promise.resolve(null);
+
+    var headers = {
+      'Content-Type':  'application/json',
+      'apikey':         key,
+      'Authorization': 'Bearer ' + key,
+    };
+    var body = JSON.stringify({
+      name:        mealName,
+      ingredients: ingredients || '',
+    });
+
+    return fetch(url, { method: 'POST', headers: headers, body: body })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(b) {
+        if (!b || !b.ok || !(Number(b.kcal) > 0)) return null;
+        var v = {
+          kcal:       Number(b.kcal)       || 0,
+          p:          Number(b.protein_g)  || 0,
+          c:          Number(b.carbs_g)    || 0,
+          f:          Number(b.fat_g)      || 0,
+          confidence: Number(b.confidence) || 0.7,
+          source:     b.source || 'claude_haiku',
+        };
+        _cacheSet(nameNorm, v);
+        return v;
+      })
+      .catch(function(e) {
+        console.warn('[BBF_MEAL_MACROS_API] lookup failed:', e && e.message);
+        return null;
+      });
+  }
+
+  // upgradePlan(plan) -> Promise<boolean>
+  //   For every meal in plan.days marked _estimated, fire lookup() and
+  //   overwrite kcal/p/c/f in place when the API returns a hit. Resolves
+  //   to true if ANY meal got upgraded so the caller can re-render.
+  function upgradePlan(plan) {
+    if (!plan || !Array.isArray(plan.days)) return Promise.resolve(false);
+    var pending = [];
+    plan.days.forEach(function(day) {
+      if (!day || !Array.isArray(day.meals)) return;
+      day.meals.forEach(function(meal) {
+        if (!meal || !meal.m) return;
+        if (!meal._estimated) return; // catalog hit · nothing to upgrade
+        pending.push(lookup(meal.m, meal.i).then(function(macros) {
+          if (!macros || !(macros.kcal > 0)) return false;
+          meal.kcal            = macros.kcal;
+          meal.p               = macros.p;
+          meal.c               = macros.c;
+          meal.f               = macros.f;
+          meal._estimated      = false;
+          meal._llm_upgraded   = true;
+          meal._llm_confidence = macros.confidence;
+          meal._llm_source     = macros.source;
+          return true;
+        }));
+      });
+    });
+    if (!pending.length) return Promise.resolve(false);
+    return Promise.all(pending).then(function(results) {
+      return results.some(function(r) { return r; });
+    });
+  }
+
+  return { lookup: lookup, upgradePlan: upgradePlan };
+})();
+
 // WAR ROOM Feature 1 · Shaker-bottle daily-fuel progress.
 // Per-uid + per-ISO-date localStorage so meal checks auto-reset at midnight.
 // Event delegation on #ncon so the listener survives day-swap re-renders.
@@ -22205,6 +22358,16 @@ function RN() {
       }
       if (BBF_MEAL_CATALOG.decorateAsync) {
         BBF_MEAL_CATALOG.decorateAsync(plan).then(function() {
+          // Phase 7.y · LLM upgrade pass · for any meal the catalog
+          // missed and the slot estimator filled (m._estimated = true),
+          // ask the bbf-meal-macros edge function for a real per-serving
+          // estimate via Claude Haiku. localStorage + bbf_meal_macros
+          // table cache keep cost near zero after the first lookup.
+          var upgrade = (typeof BBF_MEAL_MACROS_API !== 'undefined' && BBF_MEAL_MACROS_API.upgradePlan)
+            ? BBF_MEAL_MACROS_API.upgradePlan(plan)
+            : Promise.resolve(false);
+          return upgrade;
+        }).then(function() {
           var pane = document.getElementById('tp-nutrition');
           if (pane && pane.classList.contains('on') && typeof RN === 'function') RN();
         }).catch(function() {});

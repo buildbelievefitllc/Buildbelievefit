@@ -39,6 +39,7 @@ export type UseCase =
   | 'i18n_translation'        // Linguist · language pack rotation
   | 'forecast_1rm'            // Forecasting · linear-regression narration
   | 'sport_immersion_seed'    // Immersion · static sport-immersion seed
+  | 'meal_macros_lookup'      // Meal Macros · per-meal nutrition estimation
   // ── SONNET tier · vision + mid-complexity reasoning ───────────────
   | 'kinematic_form_score'    // Single-image biomechanics scoring (vision)
   | 'novel_form_correction'   // Comlink · novel deviation correction (vision-adjacent)
@@ -60,6 +61,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   i18n_translation:      MODELS.HAIKU,
   forecast_1rm:          MODELS.HAIKU,
   sport_immersion_seed:  MODELS.HAIKU,
+  meal_macros_lookup:    MODELS.HAIKU,
   kinematic_form_score:  MODELS.SONNET,
   novel_form_correction: MODELS.SONNET,
   onboarding_interview:  MODELS.SONNET,
