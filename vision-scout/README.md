@@ -23,9 +23,11 @@ review, and forwards the verdict to Slack / Discord plus the server log.
 | `SLACK_WEBHOOK_URL`     | no       | —                                                                      | Incoming webhook URL · results post here if set      |
 | `DISCORD_WEBHOOK_URL`   | no       | —                                                                      | Incoming webhook URL · results post here if set      |
 | `PROD_URL`              | no       | `https://buildbelievefit.com`                                          | URL to smoke-test                                    |
+| `DEFAULT_JOURNEY`       | no       | `[]`                                                                   | JSON-stringified actions array · drives `/smoke-test` and is the fallback for `/scan` |
 | `ALLOWED_HOSTS`         | no       | `buildbelievefit.com,buildbelievefit.onrender.com`                     | CSV of hostnames `/scan` may target                  |
 | `VISION_MODEL`          | no       | `claude-sonnet-4-6`                                                    | Override the Claude model id                         |
-| `PLAYWRIGHT_TIMEOUT_MS` | no       | `30000`                                                                | Page-load timeout                                    |
+| `PLAYWRIGHT_TIMEOUT_MS` | no       | `30000`                                                                | Page-load (`networkidle`) timeout                    |
+| `ACTION_TIMEOUT_MS`     | no       | `15000`                                                                | Per-action timeout                                   |
 | `ANTHROPIC_TIMEOUT_MS`  | no       | `60000`                                                                | Claude API call timeout                              |
 
 \* If `GITHUB_WEBHOOK_SECRET` is unset, the service accepts unsigned
@@ -71,6 +73,92 @@ After Render gives you a public URL (e.g. `https://vision-scout.onrender.com`):
    - **Events**: **Just the `push` event**
 3. Save.
 4. Push something and watch Render logs for `[scout] start ...`.
+
+## Interactive user journeys ("hands" mode)
+
+`/scan` and `/smoke-test` accept an `actions` array that Playwright runs
+after the initial navigation, before the screenshot is taken. If any
+action fails (a selector vanished, a wait timed out, etc.), the service
+catches the error, screenshots the broken state, and sends BOTH the
+screenshot AND the journey trace to Claude. The server never crashes on
+a journey failure.
+
+### Action types
+
+| Type              | Required fields              | Maps to                                                |
+|-------------------|------------------------------|--------------------------------------------------------|
+| `click`           | `selector`                   | `page.click(selector, { timeout })`                    |
+| `fill`            | `selector`, `text`           | `page.fill(selector, text, { timeout })`               |
+| `press`           | `selector`, `key`            | `page.press(selector, key, { timeout })`               |
+| `waitForTimeout`  | `ms`                         | `page.waitForTimeout(ms)`                              |
+| `waitForSelector` | `selector`                   | `page.waitForSelector(selector, { timeout })`          |
+
+Selectors accept anything Playwright understands — CSS, `text=...`,
+`role=...`, XPath via `xpath=...`, etc.
+
+### Body example
+
+```bash
+curl -X POST https://vision-scout.onrender.com/scan \
+  -H "Authorization: Bearer $SCAN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://buildbelievefit.com",
+    "actions": [
+      { "type": "click",           "selector": "text=Sign In" },
+      { "type": "fill",            "selector": "input[name=email]",    "text": "demo@bbf.app" },
+      { "type": "fill",            "selector": "input[name=password]", "text": "demo-password" },
+      { "type": "press",           "selector": "input[name=password]", "key":  "Enter" },
+      { "type": "waitForSelector", "selector": "#tp-nutrition" },
+      { "type": "click",           "selector": "#tp-nutrition" },
+      { "type": "waitForTimeout",  "ms": 1500 }
+    ]
+  }'
+```
+
+### Configuring the GitHub-webhook journey
+
+The webhook from GitHub does not include actions, so `/smoke-test` reads
+the journey from `DEFAULT_JOURNEY` (a JSON-stringified array). Example
+Render env value:
+
+```
+[{"type":"click","selector":"text=Sign In"},{"type":"fill","selector":"input[name=email]","text":"demo@bbf.app"},{"type":"fill","selector":"input[name=password]","text":"demo-password"},{"type":"press","selector":"input[name=password]","key":"Enter"},{"type":"waitForSelector","selector":"#tp-nutrition"}]
+```
+
+If `DEFAULT_JOURNEY` is empty or unset, `/smoke-test` falls back to a
+plain navigation-only check (the original Build A behavior).
+
+### Failure-mode response shape
+
+```json
+{
+  "ok": true,
+  "url": "https://buildbelievefit.com",
+  "analysis": {
+    "status":  "FAIL",
+    "summary": "Sign-in submit landed on a 500 page; nutrition tab unreachable.",
+    "issues": [
+      { "severity": "high", "description": "Red error banner after submit, no token returned." }
+    ]
+  },
+  "journey": {
+    "trace": [
+      { "step": 0, "action": "goto(https://buildbelievefit.com)",     "status": "ok" },
+      { "step": 1, "action": "click(text=Sign In)",                   "status": "ok" },
+      { "step": 2, "action": "fill(input[name=email], \"demo@...\")", "status": "ok" },
+      { "step": 3, "action": "fill(input[name=password], ...)",       "status": "ok" },
+      { "step": 4, "action": "press(input[name=password], Enter)",    "status": "ok" },
+      { "step": 5, "action": "waitForSelector(#tp-nutrition)",        "status": "failed", "error": "action_timeout: ..." }
+    ],
+    "failedStep": 5,
+    "pageError":  "action_timeout: waitForSelector(#tp-nutrition) did not complete within 15000ms"
+  },
+  "consoleErrors": ["console.error: 500 (Internal Server Error)"],
+  "meta":         { "source": "manual" },
+  "duration_ms":  18204
+}
+```
 
 ## Test it before wiring the webhook
 
