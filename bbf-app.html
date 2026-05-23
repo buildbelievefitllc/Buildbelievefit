@@ -788,6 +788,21 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
    + u.tdee_target / u.macro_p / u.macro_c / u.macro_f for targets.
    Refreshes on 'bbf:meal:logged' events for real-time progress. */
 .bbf-macro-wheel-container{display:flex;flex-direction:column;align-items:center;gap:.55rem;margin:.4rem 0 1.1rem;padding:1rem .9rem;background:linear-gradient(180deg,rgba(20,15,30,.85),rgba(10,10,15,.7));border:1px solid rgba(212,175,55,.18);border-radius:14px}
+/* Phase 7.x · linear meal progress bar (re-brought-back health-bar) ·
+   sits below the wheel · fills gold->green as meals are checked off ·
+   gives at-a-glance "how much is left" without parsing the four arcs. */
+.bbf-meal-progress{margin:.2rem 0 1rem;padding:.7rem .9rem;background:linear-gradient(180deg,rgba(106,13,173,.10),rgba(106,13,173,.03));border:1px solid rgba(106,13,173,.28);border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.bbf-meal-progress-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.55rem;gap:.6rem;flex-wrap:wrap}
+.bbf-meal-progress-count{display:flex;align-items:baseline;gap:.4rem;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif)}
+.bbf-meal-progress-count #bbf-meal-progress-checked{font-size:1.7rem;font-weight:900;color:#F5CF60;letter-spacing:2px;line-height:1}
+.bbf-meal-progress-divider{font-size:.78rem;color:#888;text-transform:uppercase;letter-spacing:1.5px}
+.bbf-meal-progress-count #bbf-meal-progress-total{font-size:1.2rem;color:#d9d9d9;font-weight:700}
+.bbf-meal-progress-tag{font-size:.62rem;letter-spacing:1.4px;color:#999;margin-left:.5rem;text-transform:uppercase;font-family:'Barlow Condensed',var(--bd,sans-serif);font-weight:700}
+.bbf-meal-progress-pct{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1rem;letter-spacing:2px;color:#F5CF60;font-weight:900}
+.bbf-meal-progress-track{width:100%;height:10px;background:rgba(0,0,0,.45);border-radius:6px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.5),inset 0 -1px 0 rgba(255,255,255,.03)}
+.bbf-meal-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#F5CF60 0%,#F5CF60 60%,#00ff88 100%);border-radius:6px;transition:width .5s cubic-bezier(.34,1.56,.64,1),background .3s ease,box-shadow .3s ease;box-shadow:0 0 12px rgba(245,200,0,.35)}
+.bbf-meal-progress-fill[data-pct="100"]{background:linear-gradient(90deg,#00ff88 0%,#00ff88 100%);box-shadow:0 0 18px rgba(0,255,136,.55)}
+.bbf-meal-progress-fill[data-pct="100"]+*,.bbf-meal-progress:has(.bbf-meal-progress-fill[data-pct="100"]) .bbf-meal-progress-pct{color:#00ff88}
 .bbf-macro-wheel-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.72rem;letter-spacing:3.5px;color:var(--yel);text-transform:uppercase}
 .bbf-macro-wheel-svg{width:200px;height:200px;display:block}
 .bbf-macro-wheel-svg .bbf-mw-arc{transition:stroke-dasharray .55s ease-out;stroke-linecap:butt}
@@ -3278,7 +3293,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v228';
+  var EXPECTED_CACHE = 'bbf-v229';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -20236,6 +20251,89 @@ var BBF_NUTRITION_TRACKER = (function() {
     var el = document.getElementById(id);
     if (el) el.textContent = val;
   }
+  // ── Phase 7.x · INSTANT FEEDBACK helpers ──────────────────────
+  // computeOptimisticTotals: sums {kcal,p,c,f} across every meal whose
+  // checkbox-id sits in today's localStorage set. Lets the wheel paint
+  // the moment a meal is checked, before the bbf_meal_logs POST round-
+  // trips. Walks all 7 days because the localStorage set is already
+  // today-scoped (load() filters by date), so any id in there counts.
+  function computeOptimisticTotals(uid) {
+    var totals = { kcal: 0, p: 0, c: 0, f: 0 };
+    if (typeof MP === 'undefined' || !MP[uid] || !Array.isArray(MP[uid].days)) return totals;
+    var checkedSet = load(uid);
+    if (!checkedSet || checkedSet.size === 0) return totals;
+    MP[uid].days.forEach(function(day, idx) {
+      if (!day || !Array.isArray(day.meals)) return;
+      day.meals.forEach(function(meal) {
+        if (!meal || !meal.m || !meal._decorated) return;
+        var mealId = 'd' + idx + '-' + slugMeal(meal.m);
+        if (!checkedSet.has(mealId)) return;
+        totals.kcal += Number(meal.kcal) || 0;
+        totals.p    += Number(meal.p)    || 0;
+        totals.c    += Number(meal.c)    || 0;
+        totals.f    += Number(meal.f)    || 0;
+      });
+    });
+    return totals;
+  }
+  // computeMealProgress: checked/total count for ONE day · drives the
+  // linear "X of Y meals logged" bar (re-bring-back of the old health
+  // bar per CEO directive · sits below the wheel for at-a-glance fill).
+  function computeMealProgress(uid, dayIdx) {
+    var out = { checked: 0, total: 0 };
+    if (typeof MP === 'undefined' || !MP[uid] || !MP[uid].days || !MP[uid].days[dayIdx]) return out;
+    var meals = MP[uid].days[dayIdx].meals;
+    if (!Array.isArray(meals)) return out;
+    var checkedSet = load(uid);
+    meals.forEach(function(meal) {
+      if (!meal || !meal.m) return;
+      out.total++;
+      var mealId = 'd' + dayIdx + '-' + slugMeal(meal.m);
+      if (checkedSet.has(mealId)) out.checked++;
+    });
+    return out;
+  }
+  // _maxTotals: server reconciliation never causes a downward flicker.
+  // If a POST is in flight, server total < optimistic · take optimistic.
+  // If Scan Meal entries exist beyond meal-plan-checks, server > optimistic
+  // · take server. Either way, the bar never appears to "un-fill" during
+  // the round-trip.
+  function _maxTotals(a, b) {
+    return {
+      kcal: Math.max(a.kcal || 0, b.kcal || 0),
+      p:    Math.max(a.p    || 0, b.p    || 0),
+      c:    Math.max(a.c    || 0, b.c    || 0),
+      f:    Math.max(a.f    || 0, b.f    || 0),
+    };
+  }
+  // Detect which day-tab is currently visible (the .dbn.on button) so
+  // the progress bar refreshes for the right day when SNDAY swaps days.
+  function _currentDayIdx() {
+    var bs = document.querySelectorAll('#nnav .dbn');
+    for (var i = 0; i < bs.length; i++) {
+      if (bs[i].classList.contains('on')) return i;
+    }
+    return 0;
+  }
+  // Paint the linear meal-progress bar · called on RN render, day swap,
+  // and after every check/uncheck.
+  function refreshMealProgress(dayIdx) {
+    var bar = document.getElementById('bbf-meal-progress-fill');
+    if (!bar) return;
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return;
+    if (dayIdx == null) dayIdx = _currentDayIdx();
+    var p = computeMealProgress(uid, dayIdx);
+    var pct = p.total > 0 ? Math.round((p.checked / p.total) * 100) : 0;
+    bar.style.width = pct + '%';
+    bar.setAttribute('data-pct', pct);
+    var ck = document.getElementById('bbf-meal-progress-checked');
+    var tt = document.getElementById('bbf-meal-progress-total');
+    var pc = document.getElementById('bbf-meal-progress-pct');
+    if (ck) ck.textContent = String(p.checked);
+    if (tt) tt.textContent = String(p.total);
+    if (pc) pc.textContent = pct + '%';
+  }
   function applyMacroWheel(actual, target) {
     actual = actual || {};
     target = target || {};
@@ -20273,23 +20371,27 @@ var BBF_NUTRITION_TRACKER = (function() {
       c:    Number(u.macro_c)     || 0,
       f:    Number(u.macro_f)     || 0,
     };
-    // Paint zeros + targets immediately so the UI doesn't look stuck.
-    applyMacroWheel({ kcal: 0, p: 0, c: 0, f: 0 }, target);
-    // Then fetch today's actual totals from bbf_meal_logs.
+    // INSTANT · sum checked-meal macros from MP[uid] (decorated by
+    // BBF_MEAL_CATALOG). Wheel jumps the moment the gold CTA is tapped,
+    // before the POST resolves · this is the "fill while they eat"
+    // feedback the CEO asked for.
+    var optimistic = computeOptimisticTotals(uid);
+    applyMacroWheel(optimistic, target);
+    refreshMealProgress();
+    // RECONCILE · fetch server totals (covers Scan Meal entries that
+    // aren't in the checked-set + cross-device check state). Apply
+    // max(optimistic, server) so an in-flight POST never causes the
+    // wheel to flicker downward.
     if (typeof BBF_NUTRITION_INTEL !== 'undefined' && BBF_NUTRITION_INTEL.fetchDailyTotals) {
       try {
         BBF_NUTRITION_INTEL.fetchDailyTotals(uid, 1).then(function(rows) {
           var today = todayISO();
           var row = (rows || []).filter(function(r){ return r && r.date === today; })[0];
-          if (row) {
-            applyMacroWheel({
-              kcal: row.kcal || 0,
-              p:    row.p    || 0,
-              c:    row.c    || 0,
-              f:    row.f    || 0,
-            }, target);
-          }
-        }).catch(function() { /* keep zeros · network hiccup */ });
+          var server = row
+            ? { kcal: row.kcal || 0, p: row.p || 0, c: row.c || 0, f: row.f || 0 }
+            : { kcal: 0, p: 0, c: 0, f: 0 };
+          applyMacroWheel(_maxTotals(optimistic, server), target);
+        }).catch(function() { /* keep optimistic · network hiccup */ });
       } catch (_) { /* coordinator not ready yet */ }
     }
   }
@@ -20317,6 +20419,7 @@ var BBF_NUTRITION_TRACKER = (function() {
       var card = box.closest('.nutr-card');
       if (card) card.classList.toggle('is-checked', on);
     });
+    refreshMealProgress();
     applyVisual();
   }
   // Resolve a meal object from MP[uid] using the checkbox id format
@@ -20347,12 +20450,19 @@ var BBF_NUTRITION_TRACKER = (function() {
     var card = t.closest('.nutr-card');
     if (card) card.classList.toggle('is-checked', t.checked);
 
+    // INSTANT · paint the wheel + progress bar BEFORE the POST resolves.
+    // refreshMacroWheel reads the localStorage set we just persisted,
+    // sums decorated macros, and applies them. Wheel jumps the moment
+    // the gold CTA flips · zero perceived latency. Server POST below
+    // is for cross-device sync + analytics, not for the visible update.
+    try { refreshMacroWheel(); } catch (_) {}
+
     // Phase 7.x · log to bbf_meal_logs when the meal has catalog macros
     // attached. POST/DELETE both dispatch 'bbf:meal:logged', which the
-    // macro spin wheel listens for · arcs animate to new totals once
-    // the round-trip resolves (~300ms). Meals that didn't match the
-    // catalog fall through to applyVisual() (paints zeros · wheel
-    // doesn't move because no macros to add).
+    // macro spin wheel listens for · the second refresh reconciles
+    // optimistic totals with server totals (max() keeps the bar from
+    // flickering downward). Meals without catalog macros: instant fill
+    // skips (no macros to add) but checkbox state still persists.
     var meal = _resolveMealFromCheckboxId(uid, id);
     if (meal && meal._decorated && typeof BBF_NUTRITION_INTEL !== 'undefined') {
       console.log('[BBF_NUTRITION_TRACKER] ' + (t.checked ? 'log' : 'unlog') +
@@ -20399,7 +20509,10 @@ var BBF_NUTRITION_TRACKER = (function() {
   function slugMeal(name) {
     return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'meal';
   }
-  return { init: init, restore: restore, applyVisual: applyVisual, slugMeal: slugMeal, applyMacroWheel: applyMacroWheel, refreshMacroWheel: refreshMacroWheel };
+  return { init: init, restore: restore, applyVisual: applyVisual, slugMeal: slugMeal,
+           applyMacroWheel: applyMacroWheel, refreshMacroWheel: refreshMacroWheel,
+           refreshMealProgress: refreshMealProgress, computeOptimisticTotals: computeOptimisticTotals,
+           computeMealProgress: computeMealProgress };
 })();
 
 // ─── WAR ROOM Feature 2 · BBF Vision Coach (audio-only meal scan) ───
@@ -21742,6 +21855,25 @@ function RN() {
               '<div class="bbf-mw-leg bbf-mw-leg--kcal"><span class="bbf-mw-leg-label">Kcal</span><span class="bbf-mw-leg-val" id="bbf-mw-val-kcal">0</span><span class="bbf-mw-leg-tgt" id="bbf-mw-tgt-kcal">/ 0</span></div>' +
             '</div>' +
           '</div>';
+  // Phase 7.x · linear meal-progress bar · brings back the "health bar"
+  // pattern the CEO had pre-wheel. Sits directly below the wheel · fills
+  // gold->green as meals are checked off · "X / Y · NN% LOGGED" label.
+  // Updates instantly via BBF_NUTRITION_TRACKER.refreshMealProgress on
+  // every check, day swap, and initial render.
+  h += '<div class="bbf-meal-progress" role="progressbar" aria-label="Daily meals logged">' +
+         '<div class="bbf-meal-progress-row">' +
+           '<div class="bbf-meal-progress-count">' +
+             '<span id="bbf-meal-progress-checked">0</span>' +
+             '<span class="bbf-meal-progress-divider">of</span>' +
+             '<span id="bbf-meal-progress-total">0</span>' +
+             '<span class="bbf-meal-progress-tag">MEALS LOGGED</span>' +
+           '</div>' +
+           '<div class="bbf-meal-progress-pct" id="bbf-meal-progress-pct">0%</div>' +
+         '</div>' +
+         '<div class="bbf-meal-progress-track">' +
+           '<div class="bbf-meal-progress-fill" id="bbf-meal-progress-fill" data-pct="0" style="width:0%"></div>' +
+         '</div>' +
+       '</div>';
   // Feature 2 · Scan Meal — fires an in-app WebRTC camera stream (rear-
   // facing on mobile), client takes a still, POSTs base64 to
   // /api/vision-coach, and "Lance" speaks his review via Web Speech API.
