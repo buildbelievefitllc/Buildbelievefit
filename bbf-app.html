@@ -728,11 +728,18 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .rdt{font-size:1.8rem;font-weight:900;letter-spacing:2px;margin-bottom:.5rem;color:var(--yel)}
 .rds{font-size:.88rem;color:var(--mut);line-height:1.6}
 /* NUTRITION */
-.nutr-card{background:var(--gry);border:1px solid #1a1a1a;border-left:3px solid var(--yel);border-radius:0 12px 12px 0;padding:1rem;margin-bottom:.7rem;position:relative}
+/* Phase 7.x · ANTI-COLLAPSE · meal card stability ·
+   - explicit flex column so the gold CTA never escapes the card flow
+   - min-height covers title + ingredients + pill + CTA without clipping
+   - box-sizing border-box so padding doesn't push width past 100%
+   - overflow:hidden on the card contains any oversize children
+   - the CTA's letter-spacing shrinks on mobile so the label doesn't
+     wrap and warp the card (handled in the mobile @media block) */
+.nutr-card{display:flex;flex-direction:column;gap:.45rem;min-height:140px;width:100%;box-sizing:border-box;background:var(--gry);border:1px solid #1a1a1a;border-left:3px solid var(--yel);border-radius:0 12px 12px 0;padding:1rem;margin-bottom:.75rem;position:relative;overflow:hidden}
 .nutr-snack{border-left-color:var(--purl)}
-.nutr-ml{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--yel);margin-bottom:.3rem}
+.nutr-ml{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--yel);margin-bottom:0;word-break:break-word}
 .nutr-snack .nutr-ml{color:var(--purl)}
-.nutr-mi{font-size:.88rem;color:#ddd;line-height:1.6}
+.nutr-mi{font-size:.88rem;color:#ddd;line-height:1.55;margin:0;word-break:break-word;flex:1 1 auto}
 /* ═ WAR ROOM Feature 1 — Shaker bottle daily-fuel progress + meal checks ═
    Per-day percent of meals checked off lifts the gold liquid up the bottle;
    at 100% the fill flips neon-green with a glow. localStorage state keyed
@@ -754,7 +761,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .nutr-card.is-checked .nutr-ml{color:#00ff88}
 /* Phase 7.x · "Mark Meal Complete" gold CTA · mirrors .ap-progression-cta
    from the Programs side so the affordance is identical across tabs. */
-.nutr-complete-cta{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.18rem;width:100%;padding:.85rem 1rem;margin-top:.75rem;background:linear-gradient(180deg,#F5CF60 0%,#D4AF37 100%);border:none;border-radius:10px;cursor:pointer;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);color:#1B1106;text-align:center;box-shadow:0 6px 18px rgba(245,200,0,.30),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease,background .25s ease,color .25s ease;-webkit-tap-highlight-color:transparent;user-select:none}
+.nutr-complete-cta{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.18rem;width:100%;box-sizing:border-box;padding:.85rem 1rem;margin-top:auto;background:linear-gradient(180deg,#F5CF60 0%,#D4AF37 100%);border:none;border-radius:10px;cursor:pointer;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);color:#1B1106;text-align:center;box-shadow:0 6px 18px rgba(245,200,0,.30),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease,background .25s ease,color .25s ease;-webkit-tap-highlight-color:transparent;user-select:none;min-height:54px}
 .nutr-complete-cta:hover{filter:brightness(1.05);box-shadow:0 8px 22px rgba(245,200,0,.4),inset 0 1px 0 rgba(255,255,255,.5)}
 .nutr-complete-cta:active{transform:translateY(1px);box-shadow:0 3px 10px rgba(245,200,0,.25),inset 0 1px 0 rgba(255,255,255,.3)}
 .nutr-complete-cta-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#1B1106;color:#F5CF60;font-size:.72rem;font-weight:900;margin-bottom:.1rem;transition:background .25s ease,color .25s ease}
@@ -771,13 +778,26 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .nutr-card.is-checked .nutr-complete-cta:hover{filter:none;box-shadow:inset 0 0 0 1px rgba(0,255,136,.5),0 4px 14px rgba(0,255,136,.22)}
 .nutr-card.is-checked .nutr-complete-cta-ic{background:#00ff88;color:#0a0a0a}
 .nutr-card.is-checked .nutr-complete-cta-s{color:rgba(0,255,136,.72)}
+/* Mobile narrow · shrink the CTA letter-spacing so "MARK MEAL COMPLETE"
+   stays on one line down to 320 px viewports without warping the card. */
+@media (max-width:480px){
+  .nutr-card{padding:.85rem .9rem;min-height:130px}
+  .nutr-complete-cta{padding:.75rem .7rem;min-height:50px}
+  .nutr-complete-cta-t{font-size:.82rem;letter-spacing:2px}
+  .nutr-complete-cta-s{font-size:.62rem;letter-spacing:1px}
+  .nutr-complete-cta-ic{width:20px;height:20px;font-size:.66rem}
+}
+@media (max-width:360px){
+  .nutr-complete-cta-t{font-size:.74rem;letter-spacing:1.5px}
+  .nutr-complete-cta-s{display:none}
+}
 /* Phase 7.x · macro pill — appears on each meal card whose name matched
    the bbf_meals.json catalog. Doubles as a visual cue that checking this
    box will move the macro wheel · meals without a pill won't. */
 .nutr-macro-pill{display:inline-block;margin-top:.5rem;padding:.25rem .55rem;background:linear-gradient(180deg,rgba(106,13,173,.22),rgba(106,13,173,.12));border:1px solid rgba(106,13,173,.42);border-radius:6px;font-size:.7rem;letter-spacing:1.2px;color:#d9c2f0;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);text-transform:uppercase}
 .nutr-card.is-checked .nutr-macro-pill{background:linear-gradient(180deg,rgba(0,255,136,.22),rgba(0,255,136,.10));border-color:rgba(0,255,136,.55);color:#a8ffd0}
-.nutr-macro-pill--miss{background:linear-gradient(180deg,rgba(255,165,0,.20),rgba(255,165,0,.08));border-color:rgba(255,165,0,.45);color:#ffd591;cursor:help}
-.nutr-card.is-checked .nutr-macro-pill--miss{background:linear-gradient(180deg,rgba(255,165,0,.20),rgba(255,165,0,.08));border-color:rgba(255,165,0,.45);color:#ffd591}
+.nutr-macro-pill--est{background:linear-gradient(180deg,rgba(255,165,0,.18),rgba(255,165,0,.06));border-color:rgba(255,165,0,.42);color:#ffd591;cursor:help}
+.nutr-card.is-checked .nutr-macro-pill--est{background:linear-gradient(180deg,rgba(255,200,80,.22),rgba(255,200,80,.08));border-color:rgba(255,200,80,.48);color:#ffe2a8}
 /* ═ Phase 7.x — Macro Spin Wheel (replaces the shaker progress bar) ═
    Single SVG donut split into 4 quadrants: Protein (purple · top) ·
    Carbs (green · right) · Fats (yellow · bottom) · Calories (orange ·
@@ -791,6 +811,33 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 /* Phase 7.x · linear meal progress bar (re-brought-back health-bar) ·
    sits below the wheel · fills gold->green as meals are checked off ·
    gives at-a-glance "how much is left" without parsing the four arcs. */
+/* Phase 7.x · LOGGED / REMAINING readout panel · explicit numeric
+   answer to "where am I on today's fuel" · sits between wheel and
+   linear progress bar. Two-column on mobile, four-column on wider. */
+.bbf-fuel-readout{margin:.4rem 0 .9rem;padding:.85rem .9rem;background:linear-gradient(180deg,rgba(20,15,30,.85),rgba(10,10,15,.7));border:1px solid rgba(212,175,55,.25);border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.bbf-fuel-readout.is-complete{border-color:rgba(0,255,136,.42);box-shadow:0 0 16px rgba(0,255,136,.18),inset 0 1px 0 rgba(0,255,136,.12)}
+.bbf-fuel-readout-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.7rem;gap:.6rem;flex-wrap:wrap}
+.bbf-fuel-readout-title{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.78rem;letter-spacing:2.2px;color:#F5CF60;text-transform:uppercase;font-weight:900}
+.bbf-fuel-readout.is-complete .bbf-fuel-readout-title{color:#00ff88}
+.bbf-fuel-readout-pct{display:flex;align-items:baseline;gap:.3rem}
+.bbf-fuel-readout-pct #bbf-fuel-overall-pct{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:1.35rem;font-weight:900;letter-spacing:1.5px;color:#F5CF60;line-height:1}
+.bbf-fuel-readout.is-complete .bbf-fuel-readout-pct #bbf-fuel-overall-pct{color:#00ff88}
+.bbf-fuel-readout-pct-lbl{font-size:.6rem;letter-spacing:1.3px;color:#999;text-transform:uppercase;font-family:'Barlow Condensed',var(--bd,sans-serif);font-weight:700}
+.bbf-fuel-readout-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.55rem}
+@media (min-width:560px){.bbf-fuel-readout-grid{grid-template-columns:repeat(4,1fr)}}
+.bbf-fuel-cell{padding:.55rem .6rem;background:rgba(0,0,0,.32);border-radius:8px;border:1px solid rgba(255,255,255,.05);box-sizing:border-box}
+.bbf-fuel-cell-lbl{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.62rem;letter-spacing:1.6px;text-transform:uppercase;color:#aaa;margin-bottom:.35rem;font-weight:800}
+.bbf-fuel-cell--kcal .bbf-fuel-cell-lbl{color:#FF9500}
+.bbf-fuel-cell--p .bbf-fuel-cell-lbl{color:#a070d0}
+.bbf-fuel-cell--c .bbf-fuel-cell-lbl{color:#22c55e}
+.bbf-fuel-cell--f .bbf-fuel-cell-lbl{color:#f5c800}
+.bbf-fuel-cell-row{display:flex;align-items:baseline;justify-content:space-between;gap:.4rem;margin-top:.18rem}
+.bbf-fuel-tag{font-size:.56rem;letter-spacing:1.1px;text-transform:uppercase;color:#888;font-family:'Barlow Condensed',var(--bd,sans-serif);font-weight:700}
+.bbf-fuel-tag--left{color:#bbb}
+.bbf-fuel-val{font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.95rem;font-weight:900;color:#e8e8e8;letter-spacing:.5px;line-height:1}
+.bbf-fuel-val--left{color:#F5CF60}
+.bbf-fuel-readout.is-complete .bbf-fuel-val--left{color:#00ff88}
+/* Phase 7.x · linear meal progress bar (re-brought-back health-bar) */
 .bbf-meal-progress{margin:.2rem 0 1rem;padding:.7rem .9rem;background:linear-gradient(180deg,rgba(106,13,173,.10),rgba(106,13,173,.03));border:1px solid rgba(106,13,173,.28);border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
 .bbf-meal-progress-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.55rem;gap:.6rem;flex-wrap:wrap}
 .bbf-meal-progress-count{display:flex;align-items:baseline;gap:.4rem;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif)}
@@ -3293,7 +3340,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v229';
+  var EXPECTED_CACHE = 'bbf-v230';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -20147,7 +20194,7 @@ var BBF_MEAL_CATALOG = (function() {
   }
   function decoratePlan(plan) {
     if (!plan || !Array.isArray(plan.days)) return plan;
-    var matched = 0, total = 0, misses = [];
+    var matched = 0, estimated = 0, total = 0, misses = [];
     plan.days.forEach(function(day) {
       if (!day || !Array.isArray(day.meals)) return;
       day.meals.forEach(function(meal) {
@@ -20156,28 +20203,69 @@ var BBF_MEAL_CATALOG = (function() {
         if (meal._decorated) { matched++; return; }
         var hit = findMacros(meal.m);
         if (hit) {
-          meal.catalog_id  = hit.id;
+          meal.catalog_id   = hit.id;
           meal.catalog_name = hit.name;
-          meal.kcal        = hit.kcal;
-          meal.p           = hit.p;
-          meal.c           = hit.c;
-          meal.f           = hit.f;
-          meal._decorated  = true;
+          meal.kcal         = hit.kcal;
+          meal.p            = hit.p;
+          meal.c            = hit.c;
+          meal.f            = hit.f;
+          meal._decorated   = true;
+          meal._estimated   = false;
           matched++;
         } else {
-          meal._catalog_miss = true;
-          misses.push(meal.m);
+          // Phase 7.x · fallback estimate so the wheel ALWAYS moves on
+          // check · pill flips amber "Estimated" and console logs the
+          // miss so we can grow the catalog or tighten the fuzzy match.
+          var est = _estimateMacros(meal.m);
+          meal.kcal       = est.kcal;
+          meal.p          = est.p;
+          meal.c          = est.c;
+          meal.f          = est.f;
+          meal._decorated = true;
+          meal._estimated = true;
+          meal._slot      = est.slot;
+          estimated++;
+          misses.push(meal.m + ' [' + est.slot + ']');
         }
       });
     });
     if (total > 0) {
-      console.log('[BBF_MEAL_CATALOG] decorated ' + matched + '/' + total + ' meals' +
-                  (misses.length ? ' · misses: ' + misses.slice(0,5).join(' | ') : ''));
+      console.log('[BBF_MEAL_CATALOG] ' + matched + ' catalog · ' + estimated + ' estimated · ' + total + ' total meals' +
+                  (misses.length ? ' · estimates: ' + misses.slice(0,5).join(' | ') : ''));
     }
     return plan;
   }
   function decorateAsync(plan) {
     return load().then(function() { return decoratePlan(plan); });
+  }
+  // Phase 7.x · slot-based fallback macros · guarantees the wheel
+  // moves even when a meal name doesn't fuzzy-match the catalog. The
+  // CEO directive is unambiguous: tap -> wheel fills, every time, no
+  // silent dead ends. Estimates are educated defaults for a recomp
+  // athlete (1.6+ g/kg protein, 40/30/30-ish split) sized per slot.
+  // Decorated meals keep their catalog-real macros (preferred); only
+  // unmatched meals fall back to these · they're flagged _estimated
+  // so the UI can show an amber "Estimated" pill instead of "Not in
+  // catalog" (zero-noise honesty about the data source).
+  var _SLOT_DEFAULTS = {
+    breakfast: { kcal: 450, p: 32, c: 48, f: 16 },
+    snack:     { kcal: 220, p: 14, c: 22, f: 10 },
+    lunch:     { kcal: 600, p: 45, c: 58, f: 20 },
+    dinner:    { kcal: 650, p: 50, c: 55, f: 22 },
+    other:     { kcal: 500, p: 35, c: 50, f: 18 },
+  };
+  function _slotFromName(name) {
+    var n = String(name || '').toLowerCase();
+    if (/(breakfast|desayuno|caf[eé]\s+da\s+manh)/.test(n)) return 'breakfast';
+    if (/(snack|merienda|lanche)/.test(n))                  return 'snack';
+    if (/(lunch|almuerzo|almo[cç]o)/.test(n))               return 'lunch';
+    if (/(dinner|cena|jantar)/.test(n))                     return 'dinner';
+    return 'other';
+  }
+  function _estimateMacros(mealName) {
+    var slot = _slotFromName(mealName);
+    var d = _SLOT_DEFAULTS[slot] || _SLOT_DEFAULTS.other;
+    return { kcal: d.kcal, p: d.p, c: d.c, f: d.f, slot: slot };
   }
   // Diagnostic: returns a printable summary of one user's current plan
   // showing the per-meal catalog-match status. Call from DevTools as
@@ -20315,6 +20403,65 @@ var BBF_NUTRITION_TRACKER = (function() {
     }
     return 0;
   }
+  // Phase 7.x · SMART FUEL CALCULATOR · single source of truth for the
+  // wheel, the linear bar, and the LOGGED/REMAINING readout panel.
+  // Returns a normalized snapshot so every UI element paints from the
+  // same numbers · no drift between displays.
+  //   target    -> user's daily macro targets (TDEE + macro_p/c/f)
+  //   logged    -> sum of checked-meal macros (today-scoped via load())
+  //   server    -> {kcal,p,c,f} from bbf_meal_logs (optional, async)
+  //   actual    -> max(logged, server) · server reconciliation can only
+  //                INCREASE the displayed value (Scan Meal entries
+  //                lift it above the checked-meal sum)
+  //   remaining -> target - actual, clamped to 0
+  //   pct       -> actual / target * 100 per macro (capped at 100)
+  function computeFuelStatus(uid, serverTotals) {
+    var d = (typeof GD === 'function') ? GD() : null;
+    var u = (d && d.u && d.u[uid]) || {};
+    var target = {
+      kcal: Number(u.tdee_target) || 0,
+      p:    Number(u.macro_p)     || 0,
+      c:    Number(u.macro_c)     || 0,
+      f:    Number(u.macro_f)     || 0,
+    };
+    var logged = computeOptimisticTotals(uid);
+    var actual = serverTotals ? _maxTotals(logged, serverTotals) : logged;
+    var remaining = {
+      kcal: Math.max(0, target.kcal - actual.kcal),
+      p:    Math.max(0, target.p    - actual.p),
+      c:    Math.max(0, target.c    - actual.c),
+      f:    Math.max(0, target.f    - actual.f),
+    };
+    var pct = {
+      kcal: target.kcal > 0 ? Math.min(100, Math.round(actual.kcal / target.kcal * 100)) : 0,
+      p:    target.p    > 0 ? Math.min(100, Math.round(actual.p    / target.p    * 100)) : 0,
+      c:    target.c    > 0 ? Math.min(100, Math.round(actual.c    / target.c    * 100)) : 0,
+      f:    target.f    > 0 ? Math.min(100, Math.round(actual.f    / target.f    * 100)) : 0,
+    };
+    return { target: target, logged: logged, actual: actual, remaining: remaining, pct: pct };
+  }
+  // Repaint the explicit LOGGED / REMAINING readout · called from
+  // refreshMacroWheel so the numbers always match the wheel arcs.
+  function refreshFuelReadout(serverTotals) {
+    var panel = document.getElementById('bbf-fuel-readout');
+    if (!panel) return;
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return;
+    var s = computeFuelStatus(uid, serverTotals);
+    function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+    setText('bbf-fuel-logged-kcal', Math.round(s.actual.kcal));
+    setText('bbf-fuel-left-kcal',   Math.round(s.remaining.kcal));
+    setText('bbf-fuel-logged-p',    Math.round(s.actual.p)    + 'g');
+    setText('bbf-fuel-left-p',      Math.round(s.remaining.p) + 'g');
+    setText('bbf-fuel-logged-c',    Math.round(s.actual.c)    + 'g');
+    setText('bbf-fuel-left-c',      Math.round(s.remaining.c) + 'g');
+    setText('bbf-fuel-logged-f',    Math.round(s.actual.f)    + 'g');
+    setText('bbf-fuel-left-f',      Math.round(s.remaining.f) + 'g');
+    var pctEl = document.getElementById('bbf-fuel-overall-pct');
+    if (pctEl) pctEl.textContent = s.pct.kcal + '%';
+    panel.setAttribute('data-pct', s.pct.kcal);
+    panel.classList.toggle('is-complete', s.pct.kcal >= 100);
+  }
   // Paint the linear meal-progress bar · called on RN render, day swap,
   // and after every check/uncheck.
   function refreshMealProgress(dayIdx) {
@@ -20378,6 +20525,7 @@ var BBF_NUTRITION_TRACKER = (function() {
     var optimistic = computeOptimisticTotals(uid);
     applyMacroWheel(optimistic, target);
     refreshMealProgress();
+    refreshFuelReadout();
     // RECONCILE · fetch server totals (covers Scan Meal entries that
     // aren't in the checked-set + cross-device check state). Apply
     // max(optimistic, server) so an in-flight POST never causes the
@@ -20391,6 +20539,7 @@ var BBF_NUTRITION_TRACKER = (function() {
             ? { kcal: row.kcal || 0, p: row.p || 0, c: row.c || 0, f: row.f || 0 }
             : { kcal: 0, p: 0, c: 0, f: 0 };
           applyMacroWheel(_maxTotals(optimistic, server), target);
+          refreshFuelReadout(server);
         }).catch(function() { /* keep optimistic · network hiccup */ });
       } catch (_) { /* coordinator not ready yet */ }
     }
@@ -20511,8 +20660,9 @@ var BBF_NUTRITION_TRACKER = (function() {
   }
   return { init: init, restore: restore, applyVisual: applyVisual, slugMeal: slugMeal,
            applyMacroWheel: applyMacroWheel, refreshMacroWheel: refreshMacroWheel,
-           refreshMealProgress: refreshMealProgress, computeOptimisticTotals: computeOptimisticTotals,
-           computeMealProgress: computeMealProgress };
+           refreshMealProgress: refreshMealProgress, refreshFuelReadout: refreshFuelReadout,
+           computeOptimisticTotals: computeOptimisticTotals,
+           computeMealProgress: computeMealProgress, computeFuelStatus: computeFuelStatus };
 })();
 
 // ─── WAR ROOM Feature 2 · BBF Vision Coach (audio-only meal scan) ───
@@ -21855,11 +22005,42 @@ function RN() {
               '<div class="bbf-mw-leg bbf-mw-leg--kcal"><span class="bbf-mw-leg-label">Kcal</span><span class="bbf-mw-leg-val" id="bbf-mw-val-kcal">0</span><span class="bbf-mw-leg-tgt" id="bbf-mw-tgt-kcal">/ 0</span></div>' +
             '</div>' +
           '</div>';
+  // Phase 7.x · explicit LOGGED / REMAINING readout · the CEO directive
+  // is unambiguous: the UI must SAY "You have X logged, Y left." Sits
+  // between the wheel and the linear bar so it answers the "where am I"
+  // question without parsing arcs. Updates instantly via
+  // BBF_NUTRITION_TRACKER.refreshFuelReadout on every check/uncheck.
+  h += '<div class="bbf-fuel-readout" id="bbf-fuel-readout" data-pct="0">' +
+         '<div class="bbf-fuel-readout-head">' +
+           '<div class="bbf-fuel-readout-title">Daily Fuel Status</div>' +
+           '<div class="bbf-fuel-readout-pct"><span id="bbf-fuel-overall-pct">0%</span><span class="bbf-fuel-readout-pct-lbl">of target</span></div>' +
+         '</div>' +
+         '<div class="bbf-fuel-readout-grid">' +
+           '<div class="bbf-fuel-cell bbf-fuel-cell--kcal">' +
+             '<div class="bbf-fuel-cell-lbl">Calories</div>' +
+             '<div class="bbf-fuel-cell-row"><span class="bbf-fuel-tag">Logged</span><span class="bbf-fuel-val" id="bbf-fuel-logged-kcal">0</span></div>' +
+             '<div class="bbf-fuel-cell-row"><span class="bbf-fuel-tag bbf-fuel-tag--left">Remaining</span><span class="bbf-fuel-val bbf-fuel-val--left" id="bbf-fuel-left-kcal">0</span></div>' +
+           '</div>' +
+           '<div class="bbf-fuel-cell bbf-fuel-cell--p">' +
+             '<div class="bbf-fuel-cell-lbl">Protein</div>' +
+             '<div class="bbf-fuel-cell-row"><span class="bbf-fuel-tag">Logged</span><span class="bbf-fuel-val" id="bbf-fuel-logged-p">0g</span></div>' +
+             '<div class="bbf-fuel-cell-row"><span class="bbf-fuel-tag bbf-fuel-tag--left">Remaining</span><span class="bbf-fuel-val bbf-fuel-val--left" id="bbf-fuel-left-p">0g</span></div>' +
+           '</div>' +
+           '<div class="bbf-fuel-cell bbf-fuel-cell--c">' +
+             '<div class="bbf-fuel-cell-lbl">Carbs</div>' +
+             '<div class="bbf-fuel-cell-row"><span class="bbf-fuel-tag">Logged</span><span class="bbf-fuel-val" id="bbf-fuel-logged-c">0g</span></div>' +
+             '<div class="bbf-fuel-cell-row"><span class="bbf-fuel-tag bbf-fuel-tag--left">Remaining</span><span class="bbf-fuel-val bbf-fuel-val--left" id="bbf-fuel-left-c">0g</span></div>' +
+           '</div>' +
+           '<div class="bbf-fuel-cell bbf-fuel-cell--f">' +
+             '<div class="bbf-fuel-cell-lbl">Fats</div>' +
+             '<div class="bbf-fuel-cell-row"><span class="bbf-fuel-tag">Logged</span><span class="bbf-fuel-val" id="bbf-fuel-logged-f">0g</span></div>' +
+             '<div class="bbf-fuel-cell-row"><span class="bbf-fuel-tag bbf-fuel-tag--left">Remaining</span><span class="bbf-fuel-val bbf-fuel-val--left" id="bbf-fuel-left-f">0g</span></div>' +
+           '</div>' +
+         '</div>' +
+       '</div>';
   // Phase 7.x · linear meal-progress bar · brings back the "health bar"
-  // pattern the CEO had pre-wheel. Sits directly below the wheel · fills
-  // gold->green as meals are checked off · "X / Y · NN% LOGGED" label.
-  // Updates instantly via BBF_NUTRITION_TRACKER.refreshMealProgress on
-  // every check, day swap, and initial render.
+  // pattern the CEO had pre-wheel. Sits directly below the readout panel
+  // · fills gold->green as meals are checked off · "X of Y · NN%" label.
   h += '<div class="bbf-meal-progress" role="progressbar" aria-label="Daily meals logged">' +
          '<div class="bbf-meal-progress-row">' +
            '<div class="bbf-meal-progress-count">' +
@@ -21928,13 +22109,14 @@ function RNDAY(plan, idx) {
     // ahead of clicking why their click does or doesn't move arcs).
     var pill = '';
     if (m && m._decorated) {
-      pill = '<div class="nutr-macro-pill">' +
+      var pillCls = m._estimated ? 'nutr-macro-pill nutr-macro-pill--est' : 'nutr-macro-pill';
+      var pillTip = m._estimated ? 'Slot-based estimate · catalog match unavailable · tap still moves the wheel' : 'Real macros from bbf_meals.json catalog';
+      pill = '<div class="' + pillCls + '" title="' + pillTip + '">' +
+        (m._estimated ? '~ ' : '') +
         Math.round(m.kcal) + ' kcal · ' +
         Math.round(m.p) + 'p / ' +
         Math.round(m.c) + 'c / ' +
         Math.round(m.f) + 'f</div>';
-    } else if (m && m._catalog_miss) {
-      pill = '<div class="nutr-macro-pill nutr-macro-pill--miss" title="No matching entry in bbf_meals.json catalog · check won\'t move the macro wheel">Not in catalog</div>';
     }
     // Phase 7.x · CEO directive — mirror the Programs-side gold CTA
     // ("Mark Protocol Complete") so meals have an unmissable affordance.
