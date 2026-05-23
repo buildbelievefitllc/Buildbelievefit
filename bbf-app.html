@@ -745,9 +745,32 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .shaker-fill.full{background:#00ff88;box-shadow:0 0 22px rgba(0,255,136,.55),inset 0 0 16px rgba(0,255,136,.35)}
 #shakerText{margin:0;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);font-size:.78rem;letter-spacing:3px;color:var(--yel);text-transform:uppercase}
 .shaker-fill.full ~ #shakerText,.shaker-container[data-state="full"] #shakerText{color:#00ff88}
-.meal-check{position:absolute;top:.7rem;right:.7rem;width:22px;height:22px;cursor:pointer;accent-color:#00ff88;margin:0}
-.nutr-card.is-checked{opacity:.7;border-left-color:#00ff88}
+/* Phase 7.x · the checkbox is now wrapped in .nutr-complete-cta and
+   hidden · keep the input itself non-interactive so screen readers
+   still see it as the source of state but mouse/touch clicks the
+   gold button (the <label> propagates the toggle). */
+.meal-check{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;margin:0}
+.nutr-card.is-checked{border-left-color:#00ff88}
 .nutr-card.is-checked .nutr-ml{color:#00ff88}
+/* Phase 7.x · "Mark Meal Complete" gold CTA · mirrors .ap-progression-cta
+   from the Programs side so the affordance is identical across tabs. */
+.nutr-complete-cta{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.18rem;width:100%;padding:.85rem 1rem;margin-top:.75rem;background:linear-gradient(180deg,#F5CF60 0%,#D4AF37 100%);border:none;border-radius:10px;cursor:pointer;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);color:#1B1106;text-align:center;box-shadow:0 6px 18px rgba(245,200,0,.30),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .15s ease,box-shadow .15s ease,filter .15s ease,background .25s ease,color .25s ease;-webkit-tap-highlight-color:transparent;user-select:none}
+.nutr-complete-cta:hover{filter:brightness(1.05);box-shadow:0 8px 22px rgba(245,200,0,.4),inset 0 1px 0 rgba(255,255,255,.5)}
+.nutr-complete-cta:active{transform:translateY(1px);box-shadow:0 3px 10px rgba(245,200,0,.25),inset 0 1px 0 rgba(255,255,255,.3)}
+.nutr-complete-cta-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#1B1106;color:#F5CF60;font-size:.72rem;font-weight:900;margin-bottom:.1rem;transition:background .25s ease,color .25s ease}
+.nutr-complete-cta-t{font-size:.95rem;letter-spacing:3px;font-weight:900;text-transform:uppercase;line-height:1}
+.nutr-complete-cta-s{font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.68rem;letter-spacing:1.3px;text-transform:uppercase;color:rgba(27,17,6,.72);font-weight:700;line-height:1}
+/* Label state swap · default shows "Mark Meal Complete" / "Adds to..."
+   Checked card swaps to "Meal Logged" / "Tap to undo". */
+.nutr-complete-cta .nutr-cta-done{display:none}
+.nutr-card.is-checked .nutr-complete-cta .nutr-cta-do{display:none}
+.nutr-card.is-checked .nutr-complete-cta .nutr-cta-done{display:inline-block}
+/* Checked card · neon-green inverted style so logged meals visually
+   distinguish from pending without losing the "tap to undo" cue. */
+.nutr-card.is-checked .nutr-complete-cta{background:linear-gradient(180deg,rgba(0,255,136,.22) 0%,rgba(0,200,108,.10) 100%);color:#00ff88;box-shadow:inset 0 0 0 1px rgba(0,255,136,.5),0 4px 14px rgba(0,255,136,.16)}
+.nutr-card.is-checked .nutr-complete-cta:hover{filter:none;box-shadow:inset 0 0 0 1px rgba(0,255,136,.5),0 4px 14px rgba(0,255,136,.22)}
+.nutr-card.is-checked .nutr-complete-cta-ic{background:#00ff88;color:#0a0a0a}
+.nutr-card.is-checked .nutr-complete-cta-s{color:rgba(0,255,136,.72)}
 /* Phase 7.x · macro pill — appears on each meal card whose name matched
    the bbf_meals.json catalog. Doubles as a visual cue that checking this
    box will move the macro wheel · meals without a pill won't. */
@@ -3255,7 +3278,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v227';
+  var EXPECTED_CACHE = 'bbf-v228';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -21781,11 +21804,23 @@ function RNDAY(plan, idx) {
     } else if (m && m._catalog_miss) {
       pill = '<div class="nutr-macro-pill nutr-macro-pill--miss" title="No matching entry in bbf_meals.json catalog · check won\'t move the macro wheel">Not in catalog</div>';
     }
+    // Phase 7.x · CEO directive — mirror the Programs-side gold CTA
+    // ("Mark Protocol Complete") so meals have an unmissable affordance.
+    // The <label> wraps the hidden checkbox · clicking anywhere on the
+    // button toggles the input + fires handleChange · same data path as
+    // before, drastically clearer UX.
     return '<div class="nutr-card' + (isSnack ? ' nutr-snack' : '') + '">' +
-      '<input type="checkbox" class="meal-check" data-meal-id="' + mealId + '" aria-label="Mark ' + m.m + ' as eaten">' +
       '<div class="nutr-ml">' + m.m + '</div>' +
       '<div class="nutr-mi">' + m.i + '</div>' +
       pill +
+      '<label class="nutr-complete-cta" aria-label="Mark ' + m.m + ' as eaten">' +
+        '<input type="checkbox" class="meal-check" data-meal-id="' + mealId + '">' +
+        '<span class="nutr-complete-cta-ic" aria-hidden="true">&#x2713;</span>' +
+        '<span class="nutr-complete-cta-t nutr-cta-do">Mark Meal Complete</span>' +
+        '<span class="nutr-complete-cta-t nutr-cta-done">Meal Logged</span>' +
+        '<span class="nutr-complete-cta-s nutr-cta-do">Adds to today\'s macro wheel</span>' +
+        '<span class="nutr-complete-cta-s nutr-cta-done">Tap to undo</span>' +
+      '</label>' +
       '</div>';
   }).join('');
 }
