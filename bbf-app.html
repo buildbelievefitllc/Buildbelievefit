@@ -20292,6 +20292,43 @@ var BBF_MEAL_CATALOG = (function() {
 // Per-uid + per-ISO-date localStorage so meal checks auto-reset at midnight.
 // Event delegation on #ncon so the listener survives day-swap re-renders.
 var BBF_NUTRITION_TRACKER = (function() {
+  'use strict';
+
+  // ─────────────────────────────────────────────────────────────────
+  // CONSTANTS · wheel geometry + macro split for kcal-only targets
+  // 35% protein / 40% carbs / 25% fat · BBF recomp parent protocol.
+  // ─────────────────────────────────────────────────────────────────
+  var MW_R              = 80;
+  var MW_CIRC           = 2 * Math.PI * MW_R;     // ≈ 502.655
+  var MW_QUAD           = MW_CIRC / 4;            // ≈ 125.664 per 90° slice
+  var DEFAULT_SPLIT     = { p: 0.35, c: 0.40, f: 0.25 };
+  var KCAL_PER_G        = { p: 4,    c: 4,    f: 9    };
+  var HARD_DEFAULT_KCAL = 2000;
+
+  // ─────────────────────────────────────────────────────────────────
+  // EXPLICIT INGESTION · the parent (RN, profile sync, plan loader)
+  // pushes daily macro targets in via setDailyTargets({uid, kcal,
+  // p, c, f}) instead of hoping the component sniffs them off globals.
+  // This is the "props" path · always wins over the cascade.
+  // ─────────────────────────────────────────────────────────────────
+  var _injectedTargets = Object.create(null);
+  function setDailyTargets(targets) {
+    if (!targets || !targets.uid) return;
+    var uid = String(targets.uid);
+    _injectedTargets[uid] = {
+      kcal: Number(targets.kcal) || 0,
+      p:    Number(targets.p)    || 0,
+      c:    Number(targets.c)    || 0,
+      f:    Number(targets.f)    || 0,
+    };
+    try { refreshMacroWheel(); } catch (e) {
+      console.error('[BBF_NUTRITION_TRACKER] setDailyTargets repaint failed:', e);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // STORAGE · today's checked-meal set (localStorage, day-scoped)
+  // ─────────────────────────────────────────────────────────────────
   function todayISO() {
     var d = new Date();
     return d.getFullYear() + '-' +
@@ -20318,38 +20355,99 @@ var BBF_NUTRITION_TRACKER = (function() {
       }));
     } catch (_) {}
   }
-  // ─── Macro spin wheel geometry + helpers ─────────────────────────
-  // Phase 7.x · replaced the single-fill shaker with a 4-quadrant donut.
-  // Each macro fills 0-100% within its 90° slice; clamps cleanly at
-  // the quadrant boundary if intake exceeds target.
-  var MW_R    = 80;
-  var MW_CIRC = 2 * Math.PI * MW_R;        // ≈ 502.655
-  var MW_QUAD = MW_CIRC / 4;                // ≈ 125.664
-  function _mwPctToArc(pct) {
-    var p = Math.max(0, Math.min(100, pct));
-    return (p / 100) * MW_QUAD;
+
+  // ─────────────────────────────────────────────────────────────────
+  // ACTIVE-USER RESOLVER · try every known source. The old version
+  // only checked VC/CU and silently bailed if both were null · that
+  // was the root cause of "wheel never paints, bar still works" (the
+  // bar was downstream of refreshMacroWheel's early-return).
+  // ─────────────────────────────────────────────────────────────────
+  function _activeUid() {
+    if (typeof VC !== 'undefined' && VC) return VC;
+    if (typeof CU !== 'undefined' && CU) return CU;
+    try {
+      var snap = (typeof d !== 'undefined' && d) ? d
+               : (typeof GD === 'function' ? GD() : null);
+      if (snap && snap.cu) return snap.cu;
+    } catch (_) {}
+    return null;
   }
-  function _mwSetArc(arcId, pct) {
-    var arc = document.getElementById(arcId);
-    if (!arc) return;
-    var len = _mwPctToArc(pct);
-    arc.setAttribute('stroke-dasharray', len.toFixed(2) + ' ' + (MW_CIRC - len).toFixed(2));
+  function slugMeal(name) {
+    return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'meal';
   }
-  function _mwSetText(id, val) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = val;
+
+  // ─────────────────────────────────────────────────────────────────
+  // TARGET RESOLVER · 5-tier cascade. Always returns non-zero kcal so
+  // the wheel can never paint "/ 0 KCAL" or remaining=0 due to a missing
+  // target. _source is included for the audit log so we can see at a
+  // glance which tier won.
+  //
+  //   (1) Explicit injection via setDailyTargets()  ← React-prop style
+  //   (2) User profile · tdee_target + macro_p/c/f  ← full profile
+  //   (3) Meal plan calorie string · "~2,200 cal/day" (parse + split)
+  //   (4) User profile · tdee_target alone          (kcal + split)
+  //   (5) Hard default · 2000 kcal + split          (median BBF client)
+  // ─────────────────────────────────────────────────────────────────
+  function _resolveTarget(uid) {
+    if (uid && _injectedTargets[uid] && _injectedTargets[uid].kcal > 0) {
+      var t = _injectedTargets[uid];
+      return {
+        kcal: t.kcal,
+        p:    t.p > 0 ? t.p : Math.round(t.kcal * DEFAULT_SPLIT.p / KCAL_PER_G.p),
+        c:    t.c > 0 ? t.c : Math.round(t.kcal * DEFAULT_SPLIT.c / KCAL_PER_G.c),
+        f:    t.f > 0 ? t.f : Math.round(t.kcal * DEFAULT_SPLIT.f / KCAL_PER_G.f),
+        _source: 'injected',
+      };
+    }
+    var u = {};
+    try {
+      var snap = (typeof d !== 'undefined' && d) ? d
+               : (typeof GD === 'function' ? GD() : null);
+      if (snap && snap.u && uid && snap.u[uid]) u = snap.u[uid];
+    } catch (_) {}
+    if (u.tdee_target && u.macro_p && u.macro_c && u.macro_f) {
+      return {
+        kcal: Number(u.tdee_target) || 0,
+        p:    Number(u.macro_p)     || 0,
+        c:    Number(u.macro_c)     || 0,
+        f:    Number(u.macro_f)     || 0,
+        _source: 'profile',
+      };
+    }
+    var mp   = (typeof MP !== 'undefined' && uid && MP[uid]) || {};
+    var kcal = 0;
+    var src  = 'default';
+    if (mp.cal) {
+      var m = String(mp.cal).match(/(\d[\d,]*)/);
+      if (m) {
+        kcal = Number(m[1].replace(/,/g,'')) || 0;
+        if (kcal) src = 'plan';
+      }
+    }
+    if (!kcal && u.tdee_target) {
+      kcal = Number(u.tdee_target) || 0;
+      if (kcal) src = 'profile_kcal';
+    }
+    if (!kcal) kcal = HARD_DEFAULT_KCAL;
+    return {
+      kcal: kcal,
+      p:    Math.round(kcal * DEFAULT_SPLIT.p / KCAL_PER_G.p),
+      c:    Math.round(kcal * DEFAULT_SPLIT.c / KCAL_PER_G.c),
+      f:    Math.round(kcal * DEFAULT_SPLIT.f / KCAL_PER_G.f),
+      _source: src,
+    };
   }
-  // ── Phase 7.x · INSTANT FEEDBACK helpers ──────────────────────
-  // computeOptimisticTotals: sums {kcal,p,c,f} across every meal whose
-  // checkbox-id sits in today's localStorage set. Lets the wheel paint
-  // the moment a meal is checked, before the bbf_meal_logs POST round-
-  // trips. Walks all 7 days because the localStorage set is already
-  // today-scoped (load() filters by date), so any id in there counts.
+
+  // ─────────────────────────────────────────────────────────────────
+  // OPTIMISTIC TOTALS · sum {kcal, p, c, f} for every meal whose
+  // checkbox is in today's localStorage set. Walks all 7 days because
+  // the set is already today-scoped (load() filters by date).
+  // ─────────────────────────────────────────────────────────────────
   function computeOptimisticTotals(uid) {
     var totals = { kcal: 0, p: 0, c: 0, f: 0 };
-    if (typeof MP === 'undefined' || !MP[uid] || !Array.isArray(MP[uid].days)) return totals;
+    if (!uid || typeof MP === 'undefined' || !MP[uid] || !Array.isArray(MP[uid].days)) return totals;
     var checkedSet = load(uid);
-    if (!checkedSet || checkedSet.size === 0) return totals;
+    if (!checkedSet.size) return totals;
     MP[uid].days.forEach(function(day, idx) {
       if (!day || !Array.isArray(day.meals)) return;
       day.meals.forEach(function(meal) {
@@ -20364,12 +20462,9 @@ var BBF_NUTRITION_TRACKER = (function() {
     });
     return totals;
   }
-  // computeMealProgress: checked/total count for ONE day · drives the
-  // linear "X of Y meals logged" bar (re-bring-back of the old health
-  // bar per CEO directive · sits below the wheel for at-a-glance fill).
   function computeMealProgress(uid, dayIdx) {
     var out = { checked: 0, total: 0 };
-    if (typeof MP === 'undefined' || !MP[uid] || !MP[uid].days || !MP[uid].days[dayIdx]) return out;
+    if (!uid || typeof MP === 'undefined' || !MP[uid] || !MP[uid].days || !MP[uid].days[dayIdx]) return out;
     var meals = MP[uid].days[dayIdx].meals;
     if (!Array.isArray(meals)) return out;
     var checkedSet = load(uid);
@@ -20381,191 +20476,167 @@ var BBF_NUTRITION_TRACKER = (function() {
     });
     return out;
   }
-  // _maxTotals: server reconciliation never causes a downward flicker.
-  // If a POST is in flight, server total < optimistic · take optimistic.
-  // If Scan Meal entries exist beyond meal-plan-checks, server > optimistic
-  // · take server. Either way, the bar never appears to "un-fill" during
-  // the round-trip.
+
+  // ─────────────────────────────────────────────────────────────────
+  // THE COMPUTATION ENGINE · pure, explicit, bulletproof.
+  //
+  //   Remaining[k] = max(0, Target[k] - Actual[k])
+  //   Pct[k]       = Target[k] > 0 ? min(100, round(Actual[k] / Target[k] * 100)) : 0
+  //
+  // for k ∈ {kcal, p, c, f}. No globals read, no DOM touched, no
+  // side effects. Trivially testable; trivially correct.
+  // ─────────────────────────────────────────────────────────────────
+  function _num(v) { var n = Number(v); return isFinite(n) ? n : 0; }
   function _maxTotals(a, b) {
     return {
-      kcal: Math.max(a.kcal || 0, b.kcal || 0),
-      p:    Math.max(a.p    || 0, b.p    || 0),
-      c:    Math.max(a.c    || 0, b.c    || 0),
-      f:    Math.max(a.f    || 0, b.f    || 0),
+      kcal: Math.max(_num(a.kcal), _num(b.kcal)),
+      p:    Math.max(_num(a.p),    _num(b.p)),
+      c:    Math.max(_num(a.c),    _num(b.c)),
+      f:    Math.max(_num(a.f),    _num(b.f)),
     };
   }
-  // Detect which day-tab is currently visible (the .dbn.on button) so
-  // the progress bar refreshes for the right day when SNDAY swaps days.
-  function _currentDayIdx() {
-    var bs = document.querySelectorAll('#nnav .dbn');
-    for (var i = 0; i < bs.length; i++) {
-      if (bs[i].classList.contains('on')) return i;
-    }
-    return 0;
-  }
-  // Phase 7.x · TARGET RESOLVER · 4-tier cascade · the root cause of
-  // "wheel doesn't move" was target={0,0,0,0} for users without
-  // tdee_target/macro_p/macro_c/macro_f populated. Arcs and remaining
-  // both go to zero when target is zero · linear bar (meal-count) was
-  // the only thing that worked, which is what the CEO observed.
-  //
-  // Cascade:
-  //   1. user record has explicit tdee_target + macro_p/c/f -> use them
-  //   2. parse MP[uid].cal ("~2,200 cal/day") for kcal, split 35/40/25
-  //      (high-protein recomp default · matches the parent protocol)
-  //   3. user record has tdee_target alone -> kcal + 35/40/25 split
-  //   4. hard default 2000 kcal + 35/40/25 split (median BBF client)
-  //
-  // Macro split rationale: 35% kcal from protein (4 cal/g),
-  // 40% from carbs (4 cal/g), 25% from fats (9 cal/g). Aligns with
-  // 1.6+ g/kg protein for an 80 kg recomp athlete on 2000 kcal/day.
-  function _resolveTarget(uid) {
-    var u = ((typeof d !== 'undefined' && d && d.u && d.u[uid]) || {});
-    if (u.tdee_target && u.macro_p && u.macro_c && u.macro_f) {
-      return {
-        kcal: Number(u.tdee_target) || 0,
-        p:    Number(u.macro_p)     || 0,
-        c:    Number(u.macro_c)     || 0,
-        f:    Number(u.macro_f)     || 0,
-        _source: 'profile',
-      };
-    }
-    var mp = (typeof MP !== 'undefined' && MP[uid]) || {};
-    var kcal = 0;
-    var src  = 'default';
-    if (mp.cal) {
-      var match = String(mp.cal).match(/(\d[\d,]*)/);
-      if (match) {
-        kcal = Number(match[1].replace(/,/g,'')) || 0;
-        if (kcal) src = 'plan';
-      }
-    }
-    if (!kcal && u.tdee_target) {
-      kcal = Number(u.tdee_target) || 0;
-      if (kcal) src = 'profile_kcal';
-    }
-    if (!kcal) kcal = 2000;
+  function computeRemaining(target, actual) {
     return {
-      kcal: kcal,
-      p:    Math.round(kcal * 0.35 / 4),
-      c:    Math.round(kcal * 0.40 / 4),
-      f:    Math.round(kcal * 0.25 / 9),
-      _source: src,
+      kcal: Math.max(0, _num(target.kcal) - _num(actual.kcal)),
+      p:    Math.max(0, _num(target.p)    - _num(actual.p)),
+      c:    Math.max(0, _num(target.c)    - _num(actual.c)),
+      f:    Math.max(0, _num(target.f)    - _num(actual.f)),
     };
   }
-  // Phase 7.x · SMART FUEL CALCULATOR · single source of truth for the
-  // wheel, the linear bar, and the LOGGED/REMAINING readout panel.
-  // Returns a normalized snapshot so every UI element paints from the
-  // same numbers · no drift between displays.
-  //   target    -> user's daily macro targets (TDEE + macro_p/c/f)
-  //   logged    -> sum of checked-meal macros (today-scoped via load())
-  //   server    -> {kcal,p,c,f} from bbf_meal_logs (optional, async)
-  //   actual    -> max(logged, server) · server reconciliation can only
-  //                INCREASE the displayed value (Scan Meal entries
-  //                lift it above the checked-meal sum)
-  //   remaining -> target - actual, clamped to 0
-  //   pct       -> actual / target * 100 per macro (capped at 100)
+  function computePct(target, actual) {
+    function pct(act, tgt) {
+      var a = _num(act);
+      var t = _num(tgt);
+      return t > 0 ? Math.min(100, Math.round(a / t * 100)) : 0;
+    }
+    return {
+      kcal: pct(actual.kcal, target.kcal),
+      p:    pct(actual.p,    target.p),
+      c:    pct(actual.c,    target.c),
+      f:    pct(actual.f,    target.f),
+    };
+  }
   function computeFuelStatus(uid, serverTotals) {
     var target = _resolveTarget(uid);
     var logged = computeOptimisticTotals(uid);
     var actual = serverTotals ? _maxTotals(logged, serverTotals) : logged;
-    var remaining = {
-      kcal: Math.max(0, target.kcal - actual.kcal),
-      p:    Math.max(0, target.p    - actual.p),
-      c:    Math.max(0, target.c    - actual.c),
-      f:    Math.max(0, target.f    - actual.f),
+    return {
+      target:    target,
+      logged:    logged,
+      actual:    actual,
+      remaining: computeRemaining(target, actual),
+      pct:       computePct(target, actual),
     };
-    var pct = {
-      kcal: target.kcal > 0 ? Math.min(100, Math.round(actual.kcal / target.kcal * 100)) : 0,
-      p:    target.p    > 0 ? Math.min(100, Math.round(actual.p    / target.p    * 100)) : 0,
-      c:    target.c    > 0 ? Math.min(100, Math.round(actual.c    / target.c    * 100)) : 0,
-      f:    target.f    > 0 ? Math.min(100, Math.round(actual.f    / target.f    * 100)) : 0,
-    };
-    return { target: target, logged: logged, actual: actual, remaining: remaining, pct: pct };
   }
-  // Repaint the explicit LOGGED / REMAINING readout · called from
-  // refreshMacroWheel so the numbers always match the wheel arcs.
-  function refreshFuelReadout(serverTotals) {
+
+  // ─────────────────────────────────────────────────────────────────
+  // DOM PAINTERS · the only place the IIFE touches the DOM. Each one
+  // takes a pre-computed snapshot and writes it. Missing elements are
+  // silent (panel not mounted); the snapshot itself is logged on error
+  // so we always know what was tried.
+  // ─────────────────────────────────────────────────────────────────
+  function _setArc(arcId, pct) {
+    var arc = document.getElementById(arcId);
+    if (!arc) return;
+    var p   = Math.max(0, Math.min(100, _num(pct)));
+    var len = (p / 100) * MW_QUAD;
+    arc.setAttribute('stroke-dasharray', len.toFixed(2) + ' ' + (MW_CIRC - len).toFixed(2));
+  }
+  function _setText(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+  function _paintWheel(snapshot) {
+    var t = snapshot.target;
+    var a = snapshot.actual;
+    var p = snapshot.pct;
+    var wrap = document.querySelector('.bbf-macro-wheel-container');
+    if (wrap) wrap.setAttribute('data-state', 'ready');
+    _setArc('bbf-mw-arc-protein', p.p);
+    _setArc('bbf-mw-arc-carbs',   p.c);
+    _setArc('bbf-mw-arc-fats',    p.f);
+    _setArc('bbf-mw-arc-kcal',    p.kcal);
+    _setText('bbf-mw-kcal-current', Math.round(_num(a.kcal)));
+    _setText('bbf-mw-kcal-target',  '/ ' + Math.round(_num(t.kcal)) + ' KCAL');
+    _setText('bbf-mw-val-protein',  Math.round(_num(a.p)) + 'g');
+    _setText('bbf-mw-tgt-protein',  '/ ' + Math.round(_num(t.p)) + 'g');
+    _setText('bbf-mw-val-carbs',    Math.round(_num(a.c)) + 'g');
+    _setText('bbf-mw-tgt-carbs',    '/ ' + Math.round(_num(t.c)) + 'g');
+    _setText('bbf-mw-val-fats',     Math.round(_num(a.f)) + 'g');
+    _setText('bbf-mw-tgt-fats',     '/ ' + Math.round(_num(t.f)) + 'g');
+    _setText('bbf-mw-val-kcal',     Math.round(_num(a.kcal)));
+    _setText('bbf-mw-tgt-kcal',     '/ ' + Math.round(_num(t.kcal)));
+  }
+  function _paintReadout(snapshot) {
     var panel = document.getElementById('bbf-fuel-readout');
     if (!panel) return;
-    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
-    if (!uid) return;
-    var s = computeFuelStatus(uid, serverTotals);
-    function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
-    setText('bbf-fuel-logged-kcal', Math.round(s.actual.kcal));
-    setText('bbf-fuel-left-kcal',   Math.round(s.remaining.kcal));
-    setText('bbf-fuel-logged-p',    Math.round(s.actual.p)    + 'g');
-    setText('bbf-fuel-left-p',      Math.round(s.remaining.p) + 'g');
-    setText('bbf-fuel-logged-c',    Math.round(s.actual.c)    + 'g');
-    setText('bbf-fuel-left-c',      Math.round(s.remaining.c) + 'g');
-    setText('bbf-fuel-logged-f',    Math.round(s.actual.f)    + 'g');
-    setText('bbf-fuel-left-f',      Math.round(s.remaining.f) + 'g');
-    var pctEl = document.getElementById('bbf-fuel-overall-pct');
-    if (pctEl) pctEl.textContent = s.pct.kcal + '%';
-    panel.setAttribute('data-pct', s.pct.kcal);
-    panel.classList.toggle('is-complete', s.pct.kcal >= 100);
+    var a = snapshot.actual;
+    var r = snapshot.remaining;
+    _setText('bbf-fuel-logged-kcal', Math.round(_num(a.kcal)));
+    _setText('bbf-fuel-left-kcal',   Math.round(_num(r.kcal)));
+    _setText('bbf-fuel-logged-p',    Math.round(_num(a.p)) + 'g');
+    _setText('bbf-fuel-left-p',      Math.round(_num(r.p)) + 'g');
+    _setText('bbf-fuel-logged-c',    Math.round(_num(a.c)) + 'g');
+    _setText('bbf-fuel-left-c',      Math.round(_num(r.c)) + 'g');
+    _setText('bbf-fuel-logged-f',    Math.round(_num(a.f)) + 'g');
+    _setText('bbf-fuel-left-f',      Math.round(_num(r.f)) + 'g');
+    _setText('bbf-fuel-overall-pct', snapshot.pct.kcal + '%');
+    panel.setAttribute('data-pct', snapshot.pct.kcal);
+    panel.classList.toggle('is-complete', snapshot.pct.kcal >= 100);
   }
-  // Paint the linear meal-progress bar · called on RN render, day swap,
-  // and after every check/uncheck.
+  function _currentDayIdx() {
+    var bs = document.querySelectorAll('#nnav .dbn');
+    for (var i = 0; i < bs.length; i++) if (bs[i].classList.contains('on')) return i;
+    return 0;
+  }
   function refreshMealProgress(dayIdx) {
     var bar = document.getElementById('bbf-meal-progress-fill');
     if (!bar) return;
-    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    var uid = _activeUid();
     if (!uid) return;
     if (dayIdx == null) dayIdx = _currentDayIdx();
     var p = computeMealProgress(uid, dayIdx);
     var pct = p.total > 0 ? Math.round((p.checked / p.total) * 100) : 0;
     bar.style.width = pct + '%';
     bar.setAttribute('data-pct', pct);
-    var ck = document.getElementById('bbf-meal-progress-checked');
-    var tt = document.getElementById('bbf-meal-progress-total');
-    var pc = document.getElementById('bbf-meal-progress-pct');
-    if (ck) ck.textContent = String(p.checked);
-    if (tt) tt.textContent = String(p.total);
-    if (pc) pc.textContent = pct + '%';
+    _setText('bbf-meal-progress-checked', String(p.checked));
+    _setText('bbf-meal-progress-total',   String(p.total));
+    _setText('bbf-meal-progress-pct',     pct + '%');
   }
+  // Legacy entry · used by callers that already have totals + target
+  // computed and just want to paint the wheel without recomputing.
   function applyMacroWheel(actual, target) {
-    actual = actual || {};
-    target = target || {};
-    var container = document.querySelector('.bbf-macro-wheel-container');
-    if (container) container.setAttribute('data-state', 'ready');
-    var protPct = target.p    ? (actual.p    / target.p)    * 100 : 0;
-    var carbPct = target.c    ? (actual.c    / target.c)    * 100 : 0;
-    var fatPct  = target.f    ? (actual.f    / target.f)    * 100 : 0;
-    var kcalPct = target.kcal ? (actual.kcal / target.kcal) * 100 : 0;
-    _mwSetArc('bbf-mw-arc-protein', protPct);
-    _mwSetArc('bbf-mw-arc-carbs',   carbPct);
-    _mwSetArc('bbf-mw-arc-fats',    fatPct);
-    _mwSetArc('bbf-mw-arc-kcal',    kcalPct);
-    _mwSetText('bbf-mw-kcal-current', Math.round(actual.kcal || 0));
-    _mwSetText('bbf-mw-kcal-target',  '/ ' + (Math.round(target.kcal) || 0) + ' KCAL');
-    _mwSetText('bbf-mw-val-protein', Math.round(actual.p || 0) + 'g');
-    _mwSetText('bbf-mw-tgt-protein', '/ ' + (Math.round(target.p) || 0) + 'g');
-    _mwSetText('bbf-mw-val-carbs',   Math.round(actual.c || 0) + 'g');
-    _mwSetText('bbf-mw-tgt-carbs',   '/ ' + (Math.round(target.c) || 0) + 'g');
-    _mwSetText('bbf-mw-val-fats',    Math.round(actual.f || 0) + 'g');
-    _mwSetText('bbf-mw-tgt-fats',    '/ ' + (Math.round(target.f) || 0) + 'g');
-    _mwSetText('bbf-mw-val-kcal',    Math.round(actual.kcal || 0));
-    _mwSetText('bbf-mw-tgt-kcal',    '/ ' + (Math.round(target.kcal) || 0));
+    actual = actual || { kcal:0, p:0, c:0, f:0 };
+    target = target || { kcal:0, p:0, c:0, f:0 };
+    _paintWheel({ target: target, actual: actual, pct: computePct(target, actual) });
   }
-  function refreshMacroWheel() {
-    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  function refreshFuelReadout(serverTotals) {
+    var uid = _activeUid();
     if (!uid) return;
-    var svgWrap = document.querySelector('.bbf-macro-wheel-container');
-    if (!svgWrap) return;                // wheel not on screen
-    // CASCADED TARGET · profile -> plan.cal -> default · never 0/0/0/0.
-    var target = _resolveTarget(uid);
-    // INSTANT · sum checked-meal macros from MP[uid] (decorated by
-    // BBF_MEAL_CATALOG with real or estimated values).
-    var optimistic = computeOptimisticTotals(uid);
-    console.log('[BBF_WHEEL] target=' + JSON.stringify(target) + ' optimistic=' + JSON.stringify(optimistic));
-    applyMacroWheel(optimistic, target);
+    _paintReadout(computeFuelStatus(uid, serverTotals));
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // ORCHESTRATOR · the ONE function callers invoke on any change.
+  // Computes a single snapshot, paints every surface from it, then
+  // reconciles with the server in the background. Errors are logged
+  // loudly so the next regression isn't invisible.
+  // ─────────────────────────────────────────────────────────────────
+  function refreshMacroWheel() {
+    var uid = _activeUid();
+    if (!uid) {
+      console.warn('[BBF_NUTRITION_TRACKER] refreshMacroWheel skipped · no active uid');
+      return;
+    }
+    var snapshot = computeFuelStatus(uid);
+    console.log('[BBF_NUTRITION_TRACKER] paint',
+                'target=' + JSON.stringify(snapshot.target),
+                'actual=' + JSON.stringify(snapshot.actual),
+                'remaining=' + JSON.stringify(snapshot.remaining),
+                'pct=' + JSON.stringify(snapshot.pct));
+    _paintWheel(snapshot);
+    _paintReadout(snapshot);
     refreshMealProgress();
-    refreshFuelReadout();
-    // RECONCILE · fetch server totals (covers Scan Meal entries that
-    // aren't in the checked-set + cross-device check state). Apply
-    // max(optimistic, server) so an in-flight POST never causes the
-    // wheel to flicker downward.
     if (typeof BBF_NUTRITION_INTEL !== 'undefined' && BBF_NUTRITION_INTEL.fetchDailyTotals) {
       try {
         BBF_NUTRITION_INTEL.fetchDailyTotals(uid, 1).then(function(rows) {
@@ -20574,27 +20645,29 @@ var BBF_NUTRITION_TRACKER = (function() {
           var server = row
             ? { kcal: row.kcal || 0, p: row.p || 0, c: row.c || 0, f: row.f || 0 }
             : { kcal: 0, p: 0, c: 0, f: 0 };
-          applyMacroWheel(_maxTotals(optimistic, server), target);
-          refreshFuelReadout(server);
+          var reconciled = computeFuelStatus(uid, server);
+          _paintWheel(reconciled);
+          _paintReadout(reconciled);
         }).catch(function() { /* keep optimistic · network hiccup */ });
-      } catch (_) { /* coordinator not ready yet */ }
+      } catch (e) {
+        console.warn('[BBF_NUTRITION_TRACKER] server reconcile threw:', e && e.message);
+      }
     }
   }
-  // Keep the legacy applyVisual signature so callers (handleChange,
-  // restore, etc.) work unchanged · it now drives the macro wheel.
   function applyVisual() {
-    try { refreshMacroWheel(); } catch (_) {}
+    try { refreshMacroWheel(); }
+    catch (e) { console.error('[BBF_NUTRITION_TRACKER] applyVisual failed:', e); }
   }
-  // Real-time refresh: when BBF_NUTRITION_INTEL.logMeal writes to
-  // bbf_meal_logs it dispatches 'bbf:meal:logged' · re-fetch today's
-  // totals and re-paint the wheel so the arcs move while the user eats.
+
+  // ─────────────────────────────────────────────────────────────────
+  // EVENTING · upstream meal-log writes dispatch 'bbf:meal:logged'.
+  // ─────────────────────────────────────────────────────────────────
   if (typeof window !== 'undefined' && window.addEventListener) {
-    window.addEventListener('bbf:meal:logged', function() {
-      try { refreshMacroWheel(); } catch (_) {}
-    });
+    window.addEventListener('bbf:meal:logged', applyVisual);
   }
+
   function restore() {
-    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    var uid = _activeUid();
     if (!uid) { applyVisual(); return; }
     var checkedSet = load(uid);
     document.querySelectorAll('#ndaycon .meal-check').forEach(function(box) {
@@ -20604,12 +20677,8 @@ var BBF_NUTRITION_TRACKER = (function() {
       var card = box.closest('.nutr-card');
       if (card) card.classList.toggle('is-checked', on);
     });
-    refreshMealProgress();
     applyVisual();
   }
-  // Resolve a meal object from MP[uid] using the checkbox id format
-  // (`d{dayIdx}-{slugMeal(m.m)}`). Returns the meal record so the
-  // checkbox handler can read its catalog-attached macros.
   function _resolveMealFromCheckboxId(uid, mealId) {
     if (!mealId || typeof MP === 'undefined' || !MP[uid]) return null;
     var match = /^d(\d+)-(.+)$/.exec(mealId);
@@ -20623,35 +20692,36 @@ var BBF_NUTRITION_TRACKER = (function() {
     }
     return null;
   }
+
+  // ─────────────────────────────────────────────────────────────────
+  // CHANGE HANDLER · single mutation entry point. Persists, fires the
+  // orchestrator synchronously (zero perceived latency), then kicks
+  // the async server log for cross-device sync + analytics.
+  // ─────────────────────────────────────────────────────────────────
   function handleChange(ev) {
     var t = ev.target;
     if (!t || !t.classList || !t.classList.contains('meal-check')) return;
-    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
-    if (!uid) return;
-    var id = t.getAttribute('data-meal-id');
+    var uid = _activeUid();
+    if (!uid) {
+      console.warn('[BBF_NUTRITION_TRACKER] handleChange skipped · no active uid');
+      return;
+    }
+    var id  = t.getAttribute('data-meal-id');
     var set = load(uid);
     if (t.checked) set.add(id); else set.delete(id);
     persist(uid, set);
     var card = t.closest('.nutr-card');
     if (card) card.classList.toggle('is-checked', t.checked);
 
-    // INSTANT · paint the wheel + progress bar BEFORE the POST resolves.
-    // refreshMacroWheel reads the localStorage set we just persisted,
-    // sums decorated macros, and applies them. Wheel jumps the moment
-    // the gold CTA flips · zero perceived latency. Server POST below
-    // is for cross-device sync + analytics, not for the visible update.
-    try { refreshMacroWheel(); } catch (_) {}
+    // Synchronous repaint · wheel + readout + bar all reflect the new
+    // checked-set BEFORE the server POST resolves.
+    refreshMacroWheel();
 
-    // Phase 7.x · log to bbf_meal_logs when the meal has catalog macros
-    // attached. POST/DELETE both dispatch 'bbf:meal:logged', which the
-    // macro spin wheel listens for · the second refresh reconciles
-    // optimistic totals with server totals (max() keeps the bar from
-    // flickering downward). Meals without catalog macros: instant fill
-    // skips (no macros to add) but checkbox state still persists.
     var meal = _resolveMealFromCheckboxId(uid, id);
     if (meal && meal._decorated && typeof BBF_NUTRITION_INTEL !== 'undefined') {
       console.log('[BBF_NUTRITION_TRACKER] ' + (t.checked ? 'log' : 'unlog') +
-                  ' · ' + meal.m + ' · ' + meal.kcal + 'kcal/' + meal.p + 'p/' + meal.c + 'c/' + meal.f + 'f');
+                  ' · ' + meal.m + ' · ' + meal.kcal + 'kcal/' + meal.p + 'p/' +
+                  meal.c + 'c/' + meal.f + 'f');
       if (t.checked && BBF_NUTRITION_INTEL.logMeal) {
         BBF_NUTRITION_INTEL.logMeal({
           uid:       uid,
@@ -20663,7 +20733,6 @@ var BBF_NUTRITION_TRACKER = (function() {
           source:    'meal_plan_check',
         }).catch(function(e) {
           console.warn('[BBF_NUTRITION_TRACKER] meal-plan log FAILED:', e && e.message);
-          alert('Meal log failed: ' + (e && e.message || 'unknown') + '\n\nThe macro wheel will not move. Check console for full diagnostic.');
         });
       } else if (!t.checked && BBF_NUTRITION_INTEL.deleteMealLog) {
         BBF_NUTRITION_INTEL.deleteMealLog({
@@ -20674,15 +20743,12 @@ var BBF_NUTRITION_TRACKER = (function() {
           console.warn('[BBF_NUTRITION_TRACKER] meal-plan unlog FAILED:', e && e.message);
         });
       }
+    } else if (meal) {
+      console.warn('[BBF_NUTRITION_TRACKER] no catalog macros for "' + meal.m +
+                   '" · wheel arcs will not move for this meal.');
     } else {
-      if (meal) {
-        console.warn('[BBF_NUTRITION_TRACKER] no catalog macros for "' + meal.m +
-                     '" · wheel will not move. Run BBF_MEAL_CATALOG.diag() for full match status.');
-      } else {
-        console.warn('[BBF_NUTRITION_TRACKER] could not resolve meal for checkbox id="' + id +
-                     '" · MP[' + uid + '] may not be loaded yet.');
-      }
-      applyVisual();
+      console.warn('[BBF_NUTRITION_TRACKER] could not resolve meal for id="' + id +
+                   '" · MP[' + uid + '] may not be hydrated yet.');
     }
   }
   function init() {
@@ -20691,26 +20757,22 @@ var BBF_NUTRITION_TRACKER = (function() {
     ncon.addEventListener('change', handleChange);
     ncon.dataset.bbfTrackerWired = '1';
   }
-  function slugMeal(name) {
-    return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'meal';
-  }
-  // Phase 7.x · END-TO-END AUDIT · run in DevTools:
-  //   window.BBF_NUTRITION_TRACKER.audit()
-  // Prints the full pipeline state · target source, catalog status,
-  // checked set, optimistic totals, server totals, wheel DOM, what
-  // would paint right now. Use when the CEO reports "X doesn't work"
-  // to pinpoint the broken link without 6 round-trips.
+
+  // ─────────────────────────────────────────────────────────────────
+  // DIAGNOSTICS · window.BBF_NUTRITION_TRACKER.audit()
+  // ─────────────────────────────────────────────────────────────────
   function audit() {
-    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    var uid = _activeUid();
     var lines = ['========== BBF NUTRITION AUDIT =========='];
     lines.push('active uid: ' + uid);
-    lines.push('');
-    // 1. Target resolution
     if (uid) {
-      var t = _resolveTarget(uid);
-      lines.push('TARGET (source=' + t._source + '): kcal=' + t.kcal + ' p=' + t.p + ' c=' + t.c + ' f=' + t.f);
+      var snap = computeFuelStatus(uid);
+      lines.push('TARGET    (source=' + snap.target._source + '): ' + JSON.stringify(snap.target));
+      lines.push('LOGGED:    ' + JSON.stringify(snap.logged));
+      lines.push('ACTUAL:    ' + JSON.stringify(snap.actual));
+      lines.push('REMAINING: ' + JSON.stringify(snap.remaining));
+      lines.push('PCT:       ' + JSON.stringify(snap.pct));
     }
-    // 2. Plan + catalog status
     if (uid && typeof MP !== 'undefined' && MP[uid]) {
       var mp = MP[uid];
       var totalMeals = 0, decorated = 0, estimated = 0;
@@ -20724,39 +20786,41 @@ var BBF_NUTRITION_TRACKER = (function() {
       lines.push('PLAN: ' + (mp.cal || 'no cal') + ' · ' + (mp.days || []).length + ' days · ' +
                  totalMeals + ' meals · ' + decorated + ' decorated · ' + estimated + ' estimated');
     } else {
-      lines.push('PLAN: MP[' + uid + '] is empty · nothing to log');
+      lines.push('PLAN: MP[' + uid + '] is empty');
     }
-    // 3. Checked set + optimistic totals
     if (uid) {
       var set = load(uid);
-      lines.push('CHECKED: ' + set.size + ' meal-ids in today\'s set: ' + Array.from(set).slice(0,8).join(', '));
-      var opt = computeOptimisticTotals(uid);
-      lines.push('OPTIMISTIC: kcal=' + opt.kcal + ' p=' + opt.p + ' c=' + opt.c + ' f=' + opt.f);
+      lines.push('CHECKED: ' + set.size + ' meal-ids: ' + Array.from(set).slice(0,8).join(', '));
     }
-    // 4. DOM presence
     lines.push('DOM: wheel=' + (!!document.querySelector('.bbf-macro-wheel-container')) +
                ' readout=' + (!!document.getElementById('bbf-fuel-readout')) +
                ' bar=' + (!!document.getElementById('bbf-meal-progress-fill')) +
-               ' ncon-wired=' + (document.getElementById('ncon') && document.getElementById('ncon').dataset.bbfTrackerWired === '1'));
-    // 5. Server fetch (async tail)
-    if (uid && typeof BBF_NUTRITION_INTEL !== 'undefined' && BBF_NUTRITION_INTEL.fetchDailyTotals) {
-      BBF_NUTRITION_INTEL.fetchDailyTotals(uid, 1).then(function(rows) {
-        var today = todayISO();
-        var row = (rows || []).filter(function(r){ return r && r.date === today; })[0];
-        console.log('SERVER (' + today + '): ' + (row ? JSON.stringify(row) : 'no row for today'));
-      }).catch(function(e) {
-        console.log('SERVER: fetch failed · ' + (e && e.message));
-      });
-    }
+               ' wired=' + (document.getElementById('ncon') && document.getElementById('ncon').dataset.bbfTrackerWired === '1'));
     console.log(lines.join('\n'));
     return { ok: true, uid: uid };
   }
-  return { init: init, restore: restore, applyVisual: applyVisual, slugMeal: slugMeal,
-           applyMacroWheel: applyMacroWheel, refreshMacroWheel: refreshMacroWheel,
-           refreshMealProgress: refreshMealProgress, refreshFuelReadout: refreshFuelReadout,
-           computeOptimisticTotals: computeOptimisticTotals,
-           computeMealProgress: computeMealProgress, computeFuelStatus: computeFuelStatus,
-           _resolveTarget: _resolveTarget, audit: audit };
+
+  // ─────────────────────────────────────────────────────────────────
+  // PUBLIC API
+  // ─────────────────────────────────────────────────────────────────
+  return {
+    init:                    init,
+    restore:                 restore,
+    applyVisual:             applyVisual,
+    slugMeal:                slugMeal,
+    setDailyTargets:         setDailyTargets,
+    applyMacroWheel:         applyMacroWheel,
+    refreshMacroWheel:       refreshMacroWheel,
+    refreshMealProgress:     refreshMealProgress,
+    refreshFuelReadout:      refreshFuelReadout,
+    computeOptimisticTotals: computeOptimisticTotals,
+    computeMealProgress:     computeMealProgress,
+    computeFuelStatus:       computeFuelStatus,
+    computeRemaining:        computeRemaining,
+    computePct:              computePct,
+    _resolveTarget:          _resolveTarget,
+    audit:                   audit,
+  };
 })();
 
 // ─── WAR ROOM Feature 2 · BBF Vision Coach (audio-only meal scan) ───
