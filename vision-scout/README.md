@@ -35,9 +35,9 @@ webhooks (logs a warning). Do not deploy without it.
 
 1. Push this repo to GitHub.
 2. Render dashboard → **New +** → **Blueprint**.
-3. Pick this repo. Render reads `vision-scout/render.yaml` and creates a
-   Web Service named `vision-scout` on the **Starter** plan with
-   `vision-scout/` as the root directory, Docker runtime,
+3. Pick this repo. Render reads `render.yaml` at the repo root and
+   creates a Web Service named `vision-scout` on the **Starter** plan
+   with `vision-scout/` as the root directory, Docker runtime,
    `/health` as the health check path, and auto-deploy on.
 4. Fill in `ANTHROPIC_API_KEY` and `GITHUB_WEBHOOK_SECRET` when
    prompted. Add `SLACK_WEBHOOK_URL` / `DISCORD_WEBHOOK_URL` /
