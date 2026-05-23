@@ -3340,7 +3340,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v230';
+  var EXPECTED_CACHE = 'bbf-v231';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -20403,6 +20403,56 @@ var BBF_NUTRITION_TRACKER = (function() {
     }
     return 0;
   }
+  // Phase 7.x · TARGET RESOLVER · 4-tier cascade · the root cause of
+  // "wheel doesn't move" was target={0,0,0,0} for users without
+  // tdee_target/macro_p/macro_c/macro_f populated. Arcs and remaining
+  // both go to zero when target is zero · linear bar (meal-count) was
+  // the only thing that worked, which is what the CEO observed.
+  //
+  // Cascade:
+  //   1. user record has explicit tdee_target + macro_p/c/f -> use them
+  //   2. parse MP[uid].cal ("~2,200 cal/day") for kcal, split 35/40/25
+  //      (high-protein recomp default · matches the parent protocol)
+  //   3. user record has tdee_target alone -> kcal + 35/40/25 split
+  //   4. hard default 2000 kcal + 35/40/25 split (median BBF client)
+  //
+  // Macro split rationale: 35% kcal from protein (4 cal/g),
+  // 40% from carbs (4 cal/g), 25% from fats (9 cal/g). Aligns with
+  // 1.6+ g/kg protein for an 80 kg recomp athlete on 2000 kcal/day.
+  function _resolveTarget(uid) {
+    var u = ((typeof d !== 'undefined' && d && d.u && d.u[uid]) || {});
+    if (u.tdee_target && u.macro_p && u.macro_c && u.macro_f) {
+      return {
+        kcal: Number(u.tdee_target) || 0,
+        p:    Number(u.macro_p)     || 0,
+        c:    Number(u.macro_c)     || 0,
+        f:    Number(u.macro_f)     || 0,
+        _source: 'profile',
+      };
+    }
+    var mp = (typeof MP !== 'undefined' && MP[uid]) || {};
+    var kcal = 0;
+    var src  = 'default';
+    if (mp.cal) {
+      var match = String(mp.cal).match(/(\d[\d,]*)/);
+      if (match) {
+        kcal = Number(match[1].replace(/,/g,'')) || 0;
+        if (kcal) src = 'plan';
+      }
+    }
+    if (!kcal && u.tdee_target) {
+      kcal = Number(u.tdee_target) || 0;
+      if (kcal) src = 'profile_kcal';
+    }
+    if (!kcal) kcal = 2000;
+    return {
+      kcal: kcal,
+      p:    Math.round(kcal * 0.35 / 4),
+      c:    Math.round(kcal * 0.40 / 4),
+      f:    Math.round(kcal * 0.25 / 9),
+      _source: src,
+    };
+  }
   // Phase 7.x · SMART FUEL CALCULATOR · single source of truth for the
   // wheel, the linear bar, and the LOGGED/REMAINING readout panel.
   // Returns a normalized snapshot so every UI element paints from the
@@ -20416,14 +20466,7 @@ var BBF_NUTRITION_TRACKER = (function() {
   //   remaining -> target - actual, clamped to 0
   //   pct       -> actual / target * 100 per macro (capped at 100)
   function computeFuelStatus(uid, serverTotals) {
-    var d = (typeof GD === 'function') ? GD() : null;
-    var u = (d && d.u && d.u[uid]) || {};
-    var target = {
-      kcal: Number(u.tdee_target) || 0,
-      p:    Number(u.macro_p)     || 0,
-      c:    Number(u.macro_c)     || 0,
-      f:    Number(u.macro_f)     || 0,
-    };
+    var target = _resolveTarget(uid);
     var logged = computeOptimisticTotals(uid);
     var actual = serverTotals ? _maxTotals(logged, serverTotals) : logged;
     var remaining = {
@@ -20510,19 +20553,12 @@ var BBF_NUTRITION_TRACKER = (function() {
     if (!uid) return;
     var svgWrap = document.querySelector('.bbf-macro-wheel-container');
     if (!svgWrap) return;                // wheel not on screen
-    var d = (typeof GD === 'function') ? GD() : null;
-    var u = (d && d.u && d.u[uid]) || {};
-    var target = {
-      kcal: Number(u.tdee_target) || 0,
-      p:    Number(u.macro_p)     || 0,
-      c:    Number(u.macro_c)     || 0,
-      f:    Number(u.macro_f)     || 0,
-    };
+    // CASCADED TARGET · profile -> plan.cal -> default · never 0/0/0/0.
+    var target = _resolveTarget(uid);
     // INSTANT · sum checked-meal macros from MP[uid] (decorated by
-    // BBF_MEAL_CATALOG). Wheel jumps the moment the gold CTA is tapped,
-    // before the POST resolves · this is the "fill while they eat"
-    // feedback the CEO asked for.
+    // BBF_MEAL_CATALOG with real or estimated values).
     var optimistic = computeOptimisticTotals(uid);
+    console.log('[BBF_WHEEL] target=' + JSON.stringify(target) + ' optimistic=' + JSON.stringify(optimistic));
     applyMacroWheel(optimistic, target);
     refreshMealProgress();
     refreshFuelReadout();
@@ -20658,11 +20694,69 @@ var BBF_NUTRITION_TRACKER = (function() {
   function slugMeal(name) {
     return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'meal';
   }
+  // Phase 7.x · END-TO-END AUDIT · run in DevTools:
+  //   window.BBF_NUTRITION_TRACKER.audit()
+  // Prints the full pipeline state · target source, catalog status,
+  // checked set, optimistic totals, server totals, wheel DOM, what
+  // would paint right now. Use when the CEO reports "X doesn't work"
+  // to pinpoint the broken link without 6 round-trips.
+  function audit() {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    var lines = ['========== BBF NUTRITION AUDIT =========='];
+    lines.push('active uid: ' + uid);
+    lines.push('');
+    // 1. Target resolution
+    if (uid) {
+      var t = _resolveTarget(uid);
+      lines.push('TARGET (source=' + t._source + '): kcal=' + t.kcal + ' p=' + t.p + ' c=' + t.c + ' f=' + t.f);
+    }
+    // 2. Plan + catalog status
+    if (uid && typeof MP !== 'undefined' && MP[uid]) {
+      var mp = MP[uid];
+      var totalMeals = 0, decorated = 0, estimated = 0;
+      (mp.days || []).forEach(function(day) {
+        (day.meals || []).forEach(function(m) {
+          totalMeals++;
+          if (m._decorated) decorated++;
+          if (m._estimated) estimated++;
+        });
+      });
+      lines.push('PLAN: ' + (mp.cal || 'no cal') + ' · ' + (mp.days || []).length + ' days · ' +
+                 totalMeals + ' meals · ' + decorated + ' decorated · ' + estimated + ' estimated');
+    } else {
+      lines.push('PLAN: MP[' + uid + '] is empty · nothing to log');
+    }
+    // 3. Checked set + optimistic totals
+    if (uid) {
+      var set = load(uid);
+      lines.push('CHECKED: ' + set.size + ' meal-ids in today\'s set: ' + Array.from(set).slice(0,8).join(', '));
+      var opt = computeOptimisticTotals(uid);
+      lines.push('OPTIMISTIC: kcal=' + opt.kcal + ' p=' + opt.p + ' c=' + opt.c + ' f=' + opt.f);
+    }
+    // 4. DOM presence
+    lines.push('DOM: wheel=' + (!!document.querySelector('.bbf-macro-wheel-container')) +
+               ' readout=' + (!!document.getElementById('bbf-fuel-readout')) +
+               ' bar=' + (!!document.getElementById('bbf-meal-progress-fill')) +
+               ' ncon-wired=' + (document.getElementById('ncon') && document.getElementById('ncon').dataset.bbfTrackerWired === '1'));
+    // 5. Server fetch (async tail)
+    if (uid && typeof BBF_NUTRITION_INTEL !== 'undefined' && BBF_NUTRITION_INTEL.fetchDailyTotals) {
+      BBF_NUTRITION_INTEL.fetchDailyTotals(uid, 1).then(function(rows) {
+        var today = todayISO();
+        var row = (rows || []).filter(function(r){ return r && r.date === today; })[0];
+        console.log('SERVER (' + today + '): ' + (row ? JSON.stringify(row) : 'no row for today'));
+      }).catch(function(e) {
+        console.log('SERVER: fetch failed · ' + (e && e.message));
+      });
+    }
+    console.log(lines.join('\n'));
+    return { ok: true, uid: uid };
+  }
   return { init: init, restore: restore, applyVisual: applyVisual, slugMeal: slugMeal,
            applyMacroWheel: applyMacroWheel, refreshMacroWheel: refreshMacroWheel,
            refreshMealProgress: refreshMealProgress, refreshFuelReadout: refreshFuelReadout,
            computeOptimisticTotals: computeOptimisticTotals,
-           computeMealProgress: computeMealProgress, computeFuelStatus: computeFuelStatus };
+           computeMealProgress: computeMealProgress, computeFuelStatus: computeFuelStatus,
+           _resolveTarget: _resolveTarget, audit: audit };
 })();
 
 // ─── WAR ROOM Feature 2 · BBF Vision Coach (audio-only meal scan) ───
