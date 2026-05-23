@@ -748,6 +748,11 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .meal-check{position:absolute;top:.7rem;right:.7rem;width:22px;height:22px;cursor:pointer;accent-color:#00ff88;margin:0}
 .nutr-card.is-checked{opacity:.7;border-left-color:#00ff88}
 .nutr-card.is-checked .nutr-ml{color:#00ff88}
+/* Phase 7.x · macro pill — appears on each meal card whose name matched
+   the bbf_meals.json catalog. Doubles as a visual cue that checking this
+   box will move the macro wheel · meals without a pill won't. */
+.nutr-macro-pill{display:inline-block;margin-top:.5rem;padding:.25rem .55rem;background:linear-gradient(180deg,rgba(106,13,173,.22),rgba(106,13,173,.12));border:1px solid rgba(106,13,173,.42);border-radius:6px;font-size:.7rem;letter-spacing:1.2px;color:#d9c2f0;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);text-transform:uppercase}
+.nutr-card.is-checked .nutr-macro-pill{background:linear-gradient(180deg,rgba(0,255,136,.22),rgba(0,255,136,.10));border-color:rgba(0,255,136,.55);color:#a8ffd0}
 /* ═ Phase 7.x — Macro Spin Wheel (replaces the shaker progress bar) ═
    Single SVG donut split into 4 quadrants: Protein (purple · top) ·
    Carbs (green · right) · Fats (yellow · bottom) · Calories (orange ·
@@ -3248,7 +3253,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v225';
+  var EXPECTED_CACHE = 'bbf-v226';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -5622,6 +5627,18 @@ async function LOGIN(){
           var mealParsed = JSON.parse(window._bbfPlans.meal_plan);
           if (mealParsed && Array.isArray(mealParsed.days) && mealParsed.days.length) {
             MP[user] = mealParsed;
+            // Phase 7.x · async catalog decoration so checkbox-check
+            // can log real {kcal, p, c, f} to bbf_meal_logs.
+            try {
+              if (typeof BBF_MEAL_CATALOG !== 'undefined') {
+                BBF_MEAL_CATALOG.decorateAsync(MP[user]).then(function() {
+                  if (typeof RN === 'function') {
+                    var pane = document.getElementById('tp-nutrition');
+                    if (pane && pane.classList.contains('on')) RN();
+                  }
+                });
+              }
+            } catch (_) {}
           }
         }
       } catch(e) { /* legacy Markdown content — RN will render as <pre> */ }
@@ -6037,6 +6054,10 @@ document.addEventListener('DOMContentLoaded',function(){
   if(ebtn)ebtn.onclick=function(){SS('auth');};
   if(pFld)pFld.addEventListener('keydown',function(e){if(e.key==='Enter')LOGIN();});
   if(uFld)uFld.addEventListener('keydown',function(e){if(e.key==='Enter'){var p=document.getElementById('p')||document.getElementById('pw');if(p)p.focus();}});
+  // Phase 7.x · preload the meal catalog so by the time the user reaches
+  // the Nutrition tab the macro lookup is in memory and pills render on
+  // the first paint (no decorate-then-rerender flash).
+  try { if (typeof BBF_MEAL_CATALOG !== 'undefined') BBF_MEAL_CATALOG.load(); } catch (_) {}
 });
 window.onload=function(){
   var ebtn=document.getElementById('ebtn');
@@ -15421,6 +15442,51 @@ var BBF_NUTRITION_INTEL = (function() {
     });
   }
 
+  // ── Cloud delete · bbf_meal_logs (used by checkbox-uncheck) ────
+  // Phase 7.x · removes the most recent matching log row so unchecking
+  // a meal in the day view also reverses its macro contribution to the
+  // macro spin wheel. Composite match on (uid, log_date, meal_name,
+  // source='meal_plan_check') so it doesn't touch Scan-Meal entries.
+  function deleteMealLog(opts) {
+    opts = opts || {};
+    var uid = opts.uid || _activeUid();
+    if (!uid) return Promise.reject(new Error('no_active_uid'));
+    if (!opts.meal_name) return Promise.reject(new Error('no_meal_name'));
+    var logDate = opts.log_date || new Date().toISOString().slice(0,10);
+    var source  = opts.source || 'meal_plan_check';
+    return _resolveUidUuid(uid).then(function(uuid) {
+      if (!uuid) throw new Error('uid_not_resolvable');
+      var anonKey = _anonKey();
+      var headers = { 'Prefer': 'return=minimal' };
+      if (anonKey) {
+        headers['apikey']        = anonKey;
+        headers['Authorization'] = 'Bearer ' + anonKey;
+      }
+      var qs = 'user_id=eq.'   + encodeURIComponent(uuid) +
+               '&log_date=eq.' + encodeURIComponent(logDate) +
+               '&meal_name=eq.'+ encodeURIComponent(opts.meal_name) +
+               '&source=eq.'   + encodeURIComponent(source);
+      return fetch(_supabaseUrl() + '/rest/v1/bbf_meal_logs?' + qs, {
+        method: 'DELETE', headers: headers,
+      }).then(function(r) {
+        if (!r.ok) {
+          return r.text().then(function(t) {
+            throw new Error('bbf_meal_logs DELETE HTTP ' + r.status + ': ' + t.slice(0, 200));
+          });
+        }
+        // Same signal the macro wheel listens for · re-fetch totals.
+        try {
+          if (typeof window !== 'undefined' && window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('bbf:meal:logged', {
+              detail: { uid: uid, log_date: logDate, meal_name: opts.meal_name, deleted: true },
+            }));
+          }
+        } catch (_) {}
+        return true;
+      });
+    });
+  }
+
   // ── 7-day daily totals from bbf_meal_logs ──────────────────────
   function fetchDailyTotals(uid, days) {
     days = days || 7;
@@ -15857,6 +15923,7 @@ var BBF_NUTRITION_INTEL = (function() {
     setLocalHalt:                  setLocalHalt,
     clearLocalHalt:                clearLocalHalt,
     logMeal:                       logMeal,
+    deleteMealLog:                 deleteMealLog,
     fetchDailyTotals:              fetchDailyTotals,
     handleNutritionVisionEvent:    handleNutritionVisionEvent,
     logEstimateAnyway:             logEstimateAnyway,
@@ -19924,6 +19991,113 @@ async function CWO(day, dk) {
 }
 
 // ─── NUTRITION ────────────────────────────────────────────
+// Phase 7.x · BBF_MEAL_CATALOG — client-side macro decoration
+// Loads bbf_meals.json once (lives in the same repo as the source of
+// truth used by the Render meal-plan generator) and exposes:
+//   · load()            → resolves the in-memory catalog lookup
+//   · findMacros(name)  → fuzzy-matches a meal name (en/es/pt names,
+//                         lowercase + token-overlap) to a catalog entry
+//                         and returns {id, name, kcal, p, c, f} or null
+//   · decoratePlan(p)   → walks plan.days[].meals[], attaches
+//                         {catalog_id, kcal, p, c, f} to each meal that
+//                         matches a catalog entry. Idempotent — already
+//                         decorated meals are skipped.
+//   · decorateAsync(p)  → loads the catalog if needed, then decorates
+// Used at every MP[uid] write site so the meal-plan checkboxes carry
+// real macros and can drive BBF_NUTRITION_INTEL.logMeal() directly.
+// A later cleanup will move this lookup server-side (Render backend
+// would attach macros at /api/rotate-nutrition response time and
+// the client would just consume them).
+var BBF_MEAL_CATALOG = (function() {
+  var _lookup  = null;
+  var _loading = null;
+  function _normalize(name) {
+    return String(name || '').toLowerCase()
+      .replace(/[^a-z0-9\s]+/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+  }
+  function _tokens(name) {
+    return _normalize(name).split(' ').filter(function(t) { return t.length > 2; });
+  }
+  function load() {
+    if (_lookup)  return Promise.resolve(_lookup);
+    if (_loading) return _loading;
+    _loading = fetch('bbf_meals.json', { cache: 'force-cache' })
+      .then(function(r) { if (!r.ok) throw new Error('catalog HTTP ' + r.status); return r.json(); })
+      .then(function(arr) {
+        _lookup = {};
+        (Array.isArray(arr) ? arr : []).forEach(function(m) {
+          if (!m || !m.name) return;
+          var canon = {
+            id:   m.id,
+            name: (m.name && m.name.en) || '',
+            kcal: Number(m.calories)  || 0,
+            p:    Number(m.protein_g) || 0,
+            c:    Number(m.carbs_g)   || 0,
+            f:    Number(m.fat_g)     || 0,
+          };
+          ['en','es','pt'].forEach(function(lang) {
+            if (m.name[lang]) _lookup[_normalize(m.name[lang])] = canon;
+          });
+        });
+        console.log('[BBF_MEAL_CATALOG] loaded · ' + Object.keys(_lookup).length + ' name variants');
+        return _lookup;
+      })
+      .catch(function(e) {
+        console.warn('[BBF_MEAL_CATALOG] load failed:', e && e.message);
+        _lookup = {};
+        return _lookup;
+      });
+    return _loading;
+  }
+  function findMacros(mealName) {
+    if (!_lookup || !mealName) return null;
+    var norm = _normalize(mealName);
+    if (_lookup[norm]) return _lookup[norm];
+    var inputT = _tokens(mealName);
+    if (inputT.length === 0) return null;
+    var bestEntry = null, bestScore = 0;
+    Object.keys(_lookup).forEach(function(k) {
+      var catT = k.split(' ').filter(function(t) { return t.length > 2; });
+      if (catT.length === 0) return;
+      var hit = 0;
+      for (var i = 0; i < inputT.length; i++) {
+        if (catT.indexOf(inputT[i]) !== -1) hit++;
+      }
+      var score = hit / Math.max(inputT.length, catT.length);
+      if (score > bestScore) { bestScore = score; bestEntry = _lookup[k]; }
+    });
+    return bestScore >= 0.5 ? bestEntry : null;
+  }
+  function decoratePlan(plan) {
+    if (!plan || !Array.isArray(plan.days)) return plan;
+    var matched = 0, total = 0;
+    plan.days.forEach(function(day) {
+      if (!day || !Array.isArray(day.meals)) return;
+      day.meals.forEach(function(meal) {
+        if (!meal || !meal.m) return;
+        total++;
+        if (meal.kcal != null && meal.p != null) { matched++; return; }
+        var hit = findMacros(meal.m);
+        if (hit) {
+          meal.catalog_id = hit.id;
+          meal.kcal = hit.kcal;
+          meal.p    = hit.p;
+          meal.c    = hit.c;
+          meal.f    = hit.f;
+          matched++;
+        }
+      });
+    });
+    if (total > 0) console.log('[BBF_MEAL_CATALOG] decorated ' + matched + '/' + total + ' meals');
+    return plan;
+  }
+  function decorateAsync(plan) {
+    return load().then(function() { return decoratePlan(plan); });
+  }
+  return { load: load, findMacros: findMacros, decoratePlan: decoratePlan, decorateAsync: decorateAsync };
+})();
+
 // WAR ROOM Feature 1 · Shaker-bottle daily-fuel progress.
 // Per-uid + per-ISO-date localStorage so meal checks auto-reset at midnight.
 // Event delegation on #ncon so the listener survives day-swap re-renders.
@@ -20058,6 +20232,22 @@ var BBF_NUTRITION_TRACKER = (function() {
     });
     applyVisual();
   }
+  // Resolve a meal object from MP[uid] using the checkbox id format
+  // (`d{dayIdx}-{slugMeal(m.m)}`). Returns the meal record so the
+  // checkbox handler can read its catalog-attached macros.
+  function _resolveMealFromCheckboxId(uid, mealId) {
+    if (!mealId || typeof MP === 'undefined' || !MP[uid]) return null;
+    var match = /^d(\d+)-(.+)$/.exec(mealId);
+    if (!match) return null;
+    var idx  = parseInt(match[1], 10);
+    var slug = match[2];
+    var day  = MP[uid].days && MP[uid].days[idx];
+    if (!day || !Array.isArray(day.meals)) return null;
+    for (var i = 0; i < day.meals.length; i++) {
+      if (slugMeal(day.meals[i].m) === slug) return day.meals[i];
+    }
+    return null;
+  }
   function handleChange(ev) {
     var t = ev.target;
     if (!t || !t.classList || !t.classList.contains('meal-check')) return;
@@ -20069,7 +20259,39 @@ var BBF_NUTRITION_TRACKER = (function() {
     persist(uid, set);
     var card = t.closest('.nutr-card');
     if (card) card.classList.toggle('is-checked', t.checked);
-    applyVisual();
+
+    // Phase 7.x · log to bbf_meal_logs when the meal has catalog macros
+    // attached. POST/DELETE both dispatch 'bbf:meal:logged', which the
+    // macro spin wheel listens for · arcs animate to new totals once
+    // the round-trip resolves (~300ms). Meals that didn't match the
+    // catalog fall through to applyVisual() (paints zeros · wheel
+    // doesn't move because no macros to add).
+    var meal = _resolveMealFromCheckboxId(uid, id);
+    if (meal && meal.kcal != null && typeof BBF_NUTRITION_INTEL !== 'undefined') {
+      if (t.checked && BBF_NUTRITION_INTEL.logMeal) {
+        BBF_NUTRITION_INTEL.logMeal({
+          uid:       uid,
+          meal_name: meal.m,
+          calories:  meal.kcal,
+          protein_g: meal.p,
+          carbs_g:   meal.c,
+          fats_g:    meal.f,
+          source:    'meal_plan_check',
+        }).catch(function(e) {
+          console.warn('[BBF_NUTRITION_TRACKER] meal-plan log failed:', e && e.message);
+        });
+      } else if (!t.checked && BBF_NUTRITION_INTEL.deleteMealLog) {
+        BBF_NUTRITION_INTEL.deleteMealLog({
+          uid:       uid,
+          meal_name: meal.m,
+          source:    'meal_plan_check',
+        }).catch(function(e) {
+          console.warn('[BBF_NUTRITION_TRACKER] meal-plan unlog failed:', e && e.message);
+        });
+      }
+    } else {
+      applyVisual();
+    }
   }
   function init() {
     var ncon = document.getElementById('ncon');
@@ -20418,6 +20640,11 @@ var BBF_NUTRITION_ROTATOR = (function() {
       if (!res || !res.plan || !Array.isArray(res.plan.days)) return false;
       if (typeof MP === 'undefined') return false;
       MP[uid] = res.plan;
+      // Phase 7.x · attach catalog macros before returning so the next
+      // RN() render has real {kcal, p, c, f} on every matched meal.
+      if (typeof BBF_MEAL_CATALOG !== 'undefined') {
+        return BBF_MEAL_CATALOG.decorateAsync(MP[uid]).then(function() { return true; });
+      }
       return true;
     }).catch(function() { return false; });
   }
@@ -20521,6 +20748,12 @@ var BBF_NUTRITION_ROTATOR = (function() {
       }
       // Cloud overwrite — same shape RN() reads.
       if (typeof MP !== 'undefined') MP[uid] = resp.body.plan;
+      // Phase 7.x · decorate with catalog macros immediately so the
+      // re-render that follows shows real numbers on the cards and the
+      // checkbox-check path can log them to bbf_meal_logs.
+      if (typeof MP !== 'undefined' && typeof BBF_MEAL_CATALOG !== 'undefined') {
+        try { BBF_MEAL_CATALOG.decorateAsync(MP[uid]); } catch (_) {}
+      }
       // Cloud persist path · saveMealPlan PATCHes bbf_users.nutrition_plan
       // by uid, but PATCH against a non-existent row is a silent no-op
       // (zero rows affected, no error). Fall through to admin-upsert-client
@@ -21451,10 +21684,23 @@ function RNDAY(plan, idx) {
   return day.meals.map(function(m) {
     var isSnack = m.m.toLowerCase().indexOf('snack') > -1 || m.m.toLowerCase().indexOf('merienda') > -1;
     var mealId = 'd' + idx + '-' + BBF_NUTRITION_TRACKER.slugMeal(m.m);
+    // Phase 7.x · render macro pill if BBF_MEAL_CATALOG decorated this
+    // meal with real {kcal, p, c, f}. Pill doubles as a visual cue: meals
+    // that show one will move the wheel on check; meals without won't.
+    var pill = '';
+    if (m && m.kcal != null && m.p != null) {
+      pill = '<div class="nutr-macro-pill">' +
+        Math.round(m.kcal) + ' kcal · ' +
+        Math.round(m.p) + 'p / ' +
+        Math.round(m.c) + 'c / ' +
+        Math.round(m.f) + 'f</div>';
+    }
     return '<div class="nutr-card' + (isSnack ? ' nutr-snack' : '') + '">' +
       '<input type="checkbox" class="meal-check" data-meal-id="' + mealId + '" aria-label="Mark ' + m.m + ' as eaten">' +
       '<div class="nutr-ml">' + m.m + '</div>' +
-      '<div class="nutr-mi">' + m.i + '</div></div>';
+      '<div class="nutr-mi">' + m.i + '</div>' +
+      pill +
+      '</div>';
   }).join('');
 }
 
