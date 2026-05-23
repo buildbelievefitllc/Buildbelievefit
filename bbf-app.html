@@ -753,6 +753,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
    box will move the macro wheel · meals without a pill won't. */
 .nutr-macro-pill{display:inline-block;margin-top:.5rem;padding:.25rem .55rem;background:linear-gradient(180deg,rgba(106,13,173,.22),rgba(106,13,173,.12));border:1px solid rgba(106,13,173,.42);border-radius:6px;font-size:.7rem;letter-spacing:1.2px;color:#d9c2f0;font-family:var(--hb,'Bebas Neue','Barlow Condensed',sans-serif);text-transform:uppercase}
 .nutr-card.is-checked .nutr-macro-pill{background:linear-gradient(180deg,rgba(0,255,136,.22),rgba(0,255,136,.10));border-color:rgba(0,255,136,.55);color:#a8ffd0}
+.nutr-macro-pill--miss{background:linear-gradient(180deg,rgba(255,165,0,.20),rgba(255,165,0,.08));border-color:rgba(255,165,0,.45);color:#ffd591;cursor:help}
+.nutr-card.is-checked .nutr-macro-pill--miss{background:linear-gradient(180deg,rgba(255,165,0,.20),rgba(255,165,0,.08));border-color:rgba(255,165,0,.45);color:#ffd591}
 /* ═ Phase 7.x — Macro Spin Wheel (replaces the shaker progress bar) ═
    Single SVG donut split into 4 quadrants: Protein (purple · top) ·
    Carbs (green · right) · Fats (yellow · bottom) · Calories (orange ·
@@ -3253,7 +3255,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v226';
+  var EXPECTED_CACHE = 'bbf-v227';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -15311,6 +15313,19 @@ var BBF_NUTRITION_INTEL = (function() {
     return (d.u && d.u[uid]) || {};
   }
 
+  // ── LOCAL ISO date · Phase 7.x bugfix ──────────────────────────
+  // Was using new Date().toISOString().slice(0,10) for log_date, but
+  // that returns UTC date. East-coast user logs at 9 PM → UTC = next day
+  // → log row's log_date is tomorrow → refreshMacroWheel filters for
+  // local today → mismatch → wheel never moves. Use local date to match
+  // the BBF_NUTRITION_TRACKER.todayISO() that drives the wheel filter.
+  function _localISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  }
+
   // ── Slug → UUID resolver ───────────────────────────────────────
   function _resolveUidUuid(uidSlug) {
     if (typeof BBF_SYNC !== 'undefined' && typeof BBF_SYNC.resolveUid === 'function') {
@@ -15400,7 +15415,7 @@ var BBF_NUTRITION_INTEL = (function() {
       if (!uuid) throw new Error('uid_not_resolvable');
       var row = {
         user_id:            uuid,
-        log_date:           meal.log_date || new Date().toISOString().slice(0,10),
+        log_date:           meal.log_date || _localISO(),
         meal_slot:          meal.meal_slot || null,
         meal_name:          meal.meal_name || null,
         calories:           (meal.calories != null) ? Number(meal.calories) : null,
@@ -15452,7 +15467,7 @@ var BBF_NUTRITION_INTEL = (function() {
     var uid = opts.uid || _activeUid();
     if (!uid) return Promise.reject(new Error('no_active_uid'));
     if (!opts.meal_name) return Promise.reject(new Error('no_meal_name'));
-    var logDate = opts.log_date || new Date().toISOString().slice(0,10);
+    var logDate = opts.log_date || _localISO();
     var source  = opts.source || 'meal_plan_check';
     return _resolveUidUuid(uid).then(function(uuid) {
       if (!uuid) throw new Error('uid_not_resolvable');
@@ -20050,52 +20065,101 @@ var BBF_MEAL_CATALOG = (function() {
       });
     return _loading;
   }
+  // Heuristic stopwords that appear in many meal names and shouldn't
+  // count toward a match · "bowl", "wrap", "salad" alone shouldn't pair
+  // "Power Bowl" with "Tofu & Kale Power Bowl" unless the noun-rich
+  // tokens also overlap.
+  var _STOP = { bowl:1, wrap:1, salad:1, plate:1, dish:1, meal:1, with:1, and:1,
+                the:1, fresh:1, grilled:1, roasted:1, baked:1, easy:1, quick:1,
+                style:1, classic:1, simple:1, light:1 };
+  function _contentTokens(name) {
+    return _tokens(name).filter(function(t) { return !_STOP[t]; });
+  }
   function findMacros(mealName) {
     if (!_lookup || !mealName) return null;
     var norm = _normalize(mealName);
     if (_lookup[norm]) return _lookup[norm];
-    var inputT = _tokens(mealName);
+    var inputT = _contentTokens(mealName);
     if (inputT.length === 0) return null;
-    var bestEntry = null, bestScore = 0;
+    var bestEntry = null, bestScore = 0, bestOverlap = 0;
     Object.keys(_lookup).forEach(function(k) {
-      var catT = k.split(' ').filter(function(t) { return t.length > 2; });
+      var catT = _contentTokens(k);
       if (catT.length === 0) return;
       var hit = 0;
       for (var i = 0; i < inputT.length; i++) {
         if (catT.indexOf(inputT[i]) !== -1) hit++;
       }
-      var score = hit / Math.max(inputT.length, catT.length);
-      if (score > bestScore) { bestScore = score; bestEntry = _lookup[k]; }
+      var smaller = Math.min(inputT.length, catT.length);
+      // Jaccard against the smaller side · "Bison Hash" (2 tokens) vs
+      // "American Grass-fed Bison & Sweet Potato Hash" (~5 content tokens):
+      // 2/2 = 100% match on the smaller side, instead of 2/5 = 40%.
+      var score = smaller > 0 ? hit / smaller : 0;
+      if (score > bestScore || (score === bestScore && hit > bestOverlap)) {
+        bestScore = score; bestEntry = _lookup[k]; bestOverlap = hit;
+      }
     });
-    return bestScore >= 0.5 ? bestEntry : null;
+    // Need at least 2 overlapping content tokens AND >= 60% of the
+    // smaller side · prevents single-word coincidences like "Salmon
+    // anything" matching "Salmon & Asparagus Foil Pack".
+    if (bestOverlap >= 2 && bestScore >= 0.6) return bestEntry;
+    // Fall back to single-token match only if the input is itself a
+    // single content token (e.g., "Salmon") · honest best guess.
+    if (bestOverlap >= 1 && inputT.length === 1) return bestEntry;
+    return null;
   }
   function decoratePlan(plan) {
     if (!plan || !Array.isArray(plan.days)) return plan;
-    var matched = 0, total = 0;
+    var matched = 0, total = 0, misses = [];
     plan.days.forEach(function(day) {
       if (!day || !Array.isArray(day.meals)) return;
       day.meals.forEach(function(meal) {
         if (!meal || !meal.m) return;
         total++;
-        if (meal.kcal != null && meal.p != null) { matched++; return; }
+        if (meal._decorated) { matched++; return; }
         var hit = findMacros(meal.m);
         if (hit) {
-          meal.catalog_id = hit.id;
-          meal.kcal = hit.kcal;
-          meal.p    = hit.p;
-          meal.c    = hit.c;
-          meal.f    = hit.f;
+          meal.catalog_id  = hit.id;
+          meal.catalog_name = hit.name;
+          meal.kcal        = hit.kcal;
+          meal.p           = hit.p;
+          meal.c           = hit.c;
+          meal.f           = hit.f;
+          meal._decorated  = true;
           matched++;
+        } else {
+          meal._catalog_miss = true;
+          misses.push(meal.m);
         }
       });
     });
-    if (total > 0) console.log('[BBF_MEAL_CATALOG] decorated ' + matched + '/' + total + ' meals');
+    if (total > 0) {
+      console.log('[BBF_MEAL_CATALOG] decorated ' + matched + '/' + total + ' meals' +
+                  (misses.length ? ' · misses: ' + misses.slice(0,5).join(' | ') : ''));
+    }
     return plan;
   }
   function decorateAsync(plan) {
     return load().then(function() { return decoratePlan(plan); });
   }
-  return { load: load, findMacros: findMacros, decoratePlan: decoratePlan, decorateAsync: decorateAsync };
+  // Diagnostic: returns a printable summary of one user's current plan
+  // showing the per-meal catalog-match status. Call from DevTools as
+  // window.BBF_MEAL_CATALOG.diag('akeem') to debug "wheel not moving".
+  function diag(uid) {
+    uid = uid || (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU);
+    if (typeof MP === 'undefined' || !MP[uid]) return { ok: false, error: 'no plan for ' + uid };
+    var lines = ['[BBF_MEAL_CATALOG.diag] uid=' + uid];
+    (MP[uid].days || []).forEach(function(day, di) {
+      lines.push('  day ' + di + ':');
+      (day.meals || []).forEach(function(m, mi) {
+        var tag = m._decorated ? '[OK]' : '[MISS]';
+        var mac = m._decorated ? ' · ' + m.kcal + 'kcal/' + m.p + 'p/' + m.c + 'c/' + m.f + 'f' : '';
+        lines.push('    ' + mi + ' ' + tag + ' ' + m.m + mac);
+      });
+    });
+    console.log(lines.join('\n'));
+    return { ok: true };
+  }
+  return { load: load, findMacros: findMacros, decoratePlan: decoratePlan, decorateAsync: decorateAsync, diag: diag };
 })();
 
 // WAR ROOM Feature 1 · Shaker-bottle daily-fuel progress.
@@ -20267,7 +20331,9 @@ var BBF_NUTRITION_TRACKER = (function() {
     // catalog fall through to applyVisual() (paints zeros · wheel
     // doesn't move because no macros to add).
     var meal = _resolveMealFromCheckboxId(uid, id);
-    if (meal && meal.kcal != null && typeof BBF_NUTRITION_INTEL !== 'undefined') {
+    if (meal && meal._decorated && typeof BBF_NUTRITION_INTEL !== 'undefined') {
+      console.log('[BBF_NUTRITION_TRACKER] ' + (t.checked ? 'log' : 'unlog') +
+                  ' · ' + meal.m + ' · ' + meal.kcal + 'kcal/' + meal.p + 'p/' + meal.c + 'c/' + meal.f + 'f');
       if (t.checked && BBF_NUTRITION_INTEL.logMeal) {
         BBF_NUTRITION_INTEL.logMeal({
           uid:       uid,
@@ -20278,7 +20344,8 @@ var BBF_NUTRITION_TRACKER = (function() {
           fats_g:    meal.f,
           source:    'meal_plan_check',
         }).catch(function(e) {
-          console.warn('[BBF_NUTRITION_TRACKER] meal-plan log failed:', e && e.message);
+          console.warn('[BBF_NUTRITION_TRACKER] meal-plan log FAILED:', e && e.message);
+          alert('Meal log failed: ' + (e && e.message || 'unknown') + '\n\nThe macro wheel will not move. Check console for full diagnostic.');
         });
       } else if (!t.checked && BBF_NUTRITION_INTEL.deleteMealLog) {
         BBF_NUTRITION_INTEL.deleteMealLog({
@@ -20286,10 +20353,17 @@ var BBF_NUTRITION_TRACKER = (function() {
           meal_name: meal.m,
           source:    'meal_plan_check',
         }).catch(function(e) {
-          console.warn('[BBF_NUTRITION_TRACKER] meal-plan unlog failed:', e && e.message);
+          console.warn('[BBF_NUTRITION_TRACKER] meal-plan unlog FAILED:', e && e.message);
         });
       }
     } else {
+      if (meal) {
+        console.warn('[BBF_NUTRITION_TRACKER] no catalog macros for "' + meal.m +
+                     '" · wheel will not move. Run BBF_MEAL_CATALOG.diag() for full match status.');
+      } else {
+        console.warn('[BBF_NUTRITION_TRACKER] could not resolve meal for checkbox id="' + id +
+                     '" · MP[' + uid + '] may not be loaded yet.');
+      }
       applyVisual();
     }
   }
@@ -20748,30 +20822,38 @@ var BBF_NUTRITION_ROTATOR = (function() {
       }
       // Cloud overwrite — same shape RN() reads.
       if (typeof MP !== 'undefined') MP[uid] = resp.body.plan;
-      // Phase 7.x · decorate with catalog macros immediately so the
-      // re-render that follows shows real numbers on the cards and the
-      // checkbox-check path can log them to bbf_meal_logs.
-      if (typeof MP !== 'undefined' && typeof BBF_MEAL_CATALOG !== 'undefined') {
-        try { BBF_MEAL_CATALOG.decorateAsync(MP[uid]); } catch (_) {}
-      }
-      // Cloud persist path · saveMealPlan PATCHes bbf_users.nutrition_plan
-      // by uid, but PATCH against a non-existent row is a silent no-op
-      // (zero rows affected, no error). Fall through to admin-upsert-client
-      // when the local user lacks a cloud row, which UPSERTs the meal
-      // plan + creates the row if needed. Surfaces the failure mode loud.
-      var persist;
-      if (window.BBF_CLOUDSYNC) {
-        persist = BBF_CLOUDSYNC.upsert(uid, { nutrition_plan: resp.body.plan }).then(function(r) {
-          if (!r.ok) console.warn('[BBF_NUTRITION_ROTATOR] cloud upsert FAILED · ' + uid + ' · ' + r.error);
-          else        console.log('[BBF_NUTRITION_ROTATOR] meal plan synced to cloud for ' + uid);
-          return r;
-        });
-      } else if (window.BBF_SYNC && typeof BBF_SYNC.saveMealPlan === 'function') {
-        persist = BBF_SYNC.saveMealPlan(uid, resp.body.plan);
-      } else {
-        persist = Promise.resolve({ ok: true });
-      }
-      return persist.then(function() { return resp.body.plan; });
+      // Phase 7.x · decorate BEFORE persist + re-render so (a) the cards
+      // paint with macros on the first frame, and (b) bbf_users.nutrition_plan
+      // stores the decorated plan · next session's load skips fuzzy
+      // matching entirely (the _decorated sentinel makes decoratePlan
+      // idempotent).
+      var decorate = (typeof MP !== 'undefined' && typeof BBF_MEAL_CATALOG !== 'undefined')
+        ? BBF_MEAL_CATALOG.decorateAsync(MP[uid]).catch(function(e) {
+            console.warn('[BBF_NUTRITION_ROTATOR] decorate failed:', e && e.message);
+            return null;
+          })
+        : Promise.resolve();
+      return decorate.then(function() {
+        var planForPersist = (typeof MP !== 'undefined' && MP[uid]) || resp.body.plan;
+        // Cloud persist · saveMealPlan PATCHes bbf_users.nutrition_plan
+        // by uid, but PATCH against a non-existent row is a silent no-op
+        // (zero rows affected, no error). Fall through to admin-upsert-client
+        // when the local user lacks a cloud row, which UPSERTs the meal
+        // plan + creates the row if needed. Surfaces the failure mode loud.
+        var persist;
+        if (window.BBF_CLOUDSYNC) {
+          persist = BBF_CLOUDSYNC.upsert(uid, { nutrition_plan: planForPersist }).then(function(r) {
+            if (!r.ok) console.warn('[BBF_NUTRITION_ROTATOR] cloud upsert FAILED · ' + uid + ' · ' + r.error);
+            else        console.log('[BBF_NUTRITION_ROTATOR] meal plan synced to cloud for ' + uid);
+            return r;
+          });
+        } else if (window.BBF_SYNC && typeof BBF_SYNC.saveMealPlan === 'function') {
+          persist = BBF_SYNC.saveMealPlan(uid, planForPersist);
+        } else {
+          persist = Promise.resolve({ ok: true });
+        }
+        return persist.then(function() { return planForPersist; });
+      });
     }).then(function(newPlan) {
       if (newPlan && typeof RN === 'function') {
         try { RN(); } catch(_) {}
@@ -21686,14 +21768,18 @@ function RNDAY(plan, idx) {
     var mealId = 'd' + idx + '-' + BBF_NUTRITION_TRACKER.slugMeal(m.m);
     // Phase 7.x · render macro pill if BBF_MEAL_CATALOG decorated this
     // meal with real {kcal, p, c, f}. Pill doubles as a visual cue: meals
-    // that show one will move the wheel on check; meals without won't.
+    // that show a purple pill will move the wheel on check · meals with
+    // the amber "Not in catalog" pill won't (transparency · user knows
+    // ahead of clicking why their click does or doesn't move arcs).
     var pill = '';
-    if (m && m.kcal != null && m.p != null) {
+    if (m && m._decorated) {
       pill = '<div class="nutr-macro-pill">' +
         Math.round(m.kcal) + ' kcal · ' +
         Math.round(m.p) + 'p / ' +
         Math.round(m.c) + 'c / ' +
         Math.round(m.f) + 'f</div>';
+    } else if (m && m._catalog_miss) {
+      pill = '<div class="nutr-macro-pill nutr-macro-pill--miss" title="No matching entry in bbf_meals.json catalog · check won\'t move the macro wheel">Not in catalog</div>';
     }
     return '<div class="nutr-card' + (isSnack ? ' nutr-snack' : '') + '">' +
       '<input type="checkbox" class="meal-check" data-meal-id="' + mealId + '" aria-label="Mark ' + m.m + ' as eaten">' +
