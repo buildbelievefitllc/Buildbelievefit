@@ -737,6 +737,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
      wrap and warp the card (handled in the mobile @media block) */
 .nutr-card{display:flex;flex-direction:column;gap:.45rem;min-height:140px;width:100%;box-sizing:border-box;background:var(--gry);border:1px solid #1a1a1a;border-left:3px solid var(--yel);border-radius:0 12px 12px 0;padding:1rem;margin-bottom:.75rem;position:relative;overflow:hidden}
 .nutr-snack{border-left-color:var(--purl)}
+.nutr-img{display:block;width:100%;height:160px;object-fit:cover;border-radius:8px;margin:-.3rem 0 .25rem 0;background:linear-gradient(135deg,rgba(106,13,173,.10),rgba(245,200,0,.10));box-shadow:0 2px 10px rgba(0,0,0,.25)}
 .nutr-ml{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--yel);margin-bottom:0;word-break:break-word}
 .nutr-snack .nutr-ml{color:var(--purl)}
 .nutr-mi{font-size:.88rem;color:#ddd;line-height:1.55;margin:0;word-break:break-word;flex:1 1 auto}
@@ -20441,6 +20442,213 @@ var BBF_MEAL_MACROS_API = (function() {
   return { lookup: lookup, upgradePlan: upgradePlan };
 })();
 
+// ═══════════════════════════════════════════════════════════════════════
+// BBF_MEAL_IMAGE_API · Gemini Imagen 3 per-meal photograph generation.
+// ───────────────────────────────────────────────────────────────────────
+// Companion to BBF_MEAL_MACROS_API · same name_normalized lookup key, same
+// 3-tier cache. Posts a meal name (+ optional ingredients) to the
+// bbf-meal-image edge fn, which checks bbf_meal_macros.image_url, on miss
+// calls Imagen 3, uploads PNG to the meal-images storage bucket, and
+// upserts the URL back to the same row.
+//
+// On the client, streamPaint() walks #ndaycon's .meal-check inputs, fires
+// lookup() per visible meal in parallel, and injects an <img class=
+// "nutr-img"> at the top of each .nutr-card as each lookup resolves.
+// Cached meals appear instantly; fresh ones stream in over 5-10s without
+// blocking the rest of the page.
+// ═══════════════════════════════════════════════════════════════════════
+var BBF_MEAL_IMAGE_API = (function() {
+  'use strict';
+
+  var CACHE_KEY       = 'bbf_meal_images_cache';
+  var CACHE_TTL_MS    = 90 * 24 * 60 * 60 * 1000; // 90 days · images don't change
+  var ENDPOINT_SUFFIX = '/functions/v1/bbf-meal-image';
+
+  function _normalize(name) {
+    return String(name || '').toLowerCase()
+      .replace(/[^a-z0-9\s]+/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+  }
+  function _supabaseUrl() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_URL) {
+        return String(window.ENV_SUPABASE_URL).replace(/\/$/, '');
+      }
+    } catch (_) {}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anonKey() {
+    try {
+      if (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) {
+        return String(window.ENV_SUPABASE_KEY);
+      }
+    } catch (_) {}
+    return '';
+  }
+  function _loadCache() {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {}; }
+    catch (_) { return {}; }
+  }
+  function _saveCache(c) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch (_) {}
+  }
+  function _cacheGet(nameNorm) {
+    var c   = _loadCache();
+    var hit = c[nameNorm];
+    if (!hit || !hit.ts || !hit.url) return null;
+    if ((Date.now() - hit.ts) > CACHE_TTL_MS) return null;
+    return hit.url;
+  }
+  function _cacheSet(nameNorm, url) {
+    var c = _loadCache();
+    c[nameNorm] = { url: url, ts: Date.now() };
+    _saveCache(c);
+  }
+
+  // _inflight de-dupes concurrent lookups of the same meal name so a 4-card
+  // initial render doesn't make 4 redundant edge-fn POSTs for the same meal.
+  var _inflight = Object.create(null);
+
+  function lookup(mealName, ingredients) {
+    var nameNorm = _normalize(mealName);
+    if (!nameNorm) return Promise.resolve(null);
+
+    var cached = _cacheGet(nameNorm);
+    if (cached) return Promise.resolve(cached);
+
+    if (_inflight[nameNorm]) return _inflight[nameNorm];
+
+    var url = _supabaseUrl() + ENDPOINT_SUFFIX;
+    var key = _anonKey();
+    if (!url || !key) return Promise.resolve(null);
+
+    var headers = {
+      'Content-Type':  'application/json',
+      'apikey':         key,
+      'Authorization': 'Bearer ' + key,
+    };
+    var body = JSON.stringify({
+      name:        mealName,
+      ingredients: ingredients || '',
+    });
+
+    var p = fetch(url, { method: 'POST', headers: headers, body: body })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(b) {
+        if (!b || !b.ok || !b.image_url) return null;
+        _cacheSet(nameNorm, b.image_url);
+        return b.image_url;
+      })
+      .catch(function(e) {
+        console.warn('[BBF_MEAL_IMAGE_API] lookup failed:', e && e.message);
+        return null;
+      })
+      .then(function(out) { delete _inflight[nameNorm]; return out; });
+
+    _inflight[nameNorm] = p;
+    return p;
+  }
+
+  function _paintCardImage(card, url, alt) {
+    if (!card) return;
+    var existing = card.querySelector('.nutr-img');
+    if (existing) {
+      if (existing.getAttribute('src') !== url) existing.setAttribute('src', url);
+      return;
+    }
+    var img = document.createElement('img');
+    img.className = 'nutr-img';
+    img.alt       = alt || '';
+    img.loading   = 'lazy';
+    img.decoding  = 'async';
+    img.src       = url;
+    card.insertBefore(img, card.firstChild);
+  }
+
+  // streamPaint() walks every .meal-check currently in #ndaycon, resolves
+  // each one's meal record from MP[uid], and injects an image into its
+  // card · cached meals paint synchronously, fresh ones stream in as
+  // Imagen resolves. Safe to call repeatedly · idempotent on the DOM
+  // side (checks for existing .nutr-img before inserting).
+  function streamPaint() {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid || typeof MP === 'undefined' || !MP[uid]) return;
+    var inputs = document.querySelectorAll('#ndaycon .meal-check');
+    for (var i = 0; i < inputs.length; i++) {
+      var input  = inputs[i];
+      var card   = input.closest('.nutr-card');
+      if (!card) continue;
+      var mealId = input.getAttribute('data-meal-id') || '';
+      var m      = /^d(\d+)-(.+)$/.exec(mealId);
+      if (!m) continue;
+      var dayIdx = parseInt(m[1], 10);
+      var slug   = m[2];
+      var day    = MP[uid].days && MP[uid].days[dayIdx];
+      if (!day || !Array.isArray(day.meals)) continue;
+      var meal = null;
+      for (var k = 0; k < day.meals.length; k++) {
+        if (BBF_NUTRITION_TRACKER.slugMeal(day.meals[k].m) === slug) { meal = day.meals[k]; break; }
+      }
+      if (!meal || !meal.m) continue;
+
+      if (meal._image_url) {
+        _paintCardImage(card, meal._image_url, meal.m);
+        continue;
+      }
+      (function(meal, card) {
+        lookup(meal.m, meal.i).then(function(url) {
+          if (!url) return;
+          meal._image_url = url;
+          // Card may have been replaced by a re-render in the interim ·
+          // re-find it by checkbox id so we paint the live DOM, not a
+          // detached node.
+          var liveCard = null;
+          var liveInput = document.querySelector('#ndaycon .meal-check[data-meal-id="d' +
+            (function(){
+              for (var di = 0; di < MP[uid].days.length; di++) {
+                var d = MP[uid].days[di];
+                if (!d || !Array.isArray(d.meals)) continue;
+                for (var mi = 0; mi < d.meals.length; mi++) {
+                  if (d.meals[mi] === meal) return di;
+                }
+              }
+              return -1;
+            })() +
+            '-' + BBF_NUTRITION_TRACKER.slugMeal(meal.m) + '"]');
+          if (liveInput) liveCard = liveInput.closest('.nutr-card');
+          _paintCardImage(liveCard || card, url, meal.m);
+        });
+      })(meal, card);
+    }
+  }
+
+  // upgradePlan(plan) eagerly resolves images for every meal across all
+  // days. Use sparingly · prefer streamPaint() which scopes to the
+  // currently-visible day to avoid burning Imagen calls on meals the
+  // user may never see this week.
+  function upgradePlan(plan) {
+    if (!plan || !Array.isArray(plan.days)) return Promise.resolve(false);
+    var pending = [];
+    plan.days.forEach(function(day) {
+      if (!day || !Array.isArray(day.meals)) return;
+      day.meals.forEach(function(meal) {
+        if (!meal || !meal.m || meal._image_url) return;
+        pending.push(lookup(meal.m, meal.i).then(function(url) {
+          if (!url) return false;
+          meal._image_url = url;
+          return true;
+        }));
+      });
+    });
+    if (!pending.length) return Promise.resolve(false);
+    return Promise.all(pending).then(function(rs) {
+      return rs.some(function(r) { return r; });
+    });
+  }
+
+  return { lookup: lookup, upgradePlan: upgradePlan, streamPaint: streamPaint };
+})();
+
 // WAR ROOM Feature 1 · Shaker-bottle daily-fuel progress.
 // Per-uid + per-ISO-date localStorage so meal checks auto-reset at midnight.
 // Event delegation on #ncon so the listener survives day-swap re-renders.
@@ -22477,6 +22685,13 @@ function RN() {
   BBF_NUTRITION_TRACKER.init();
   BBF_NUTRITION_TRACKER.restore();
   BBF_VISION_COACH.init();
+  // Phase 7.y · stream Imagen-3 meal photos into every .nutr-card.
+  // Cached meals paint instantly · fresh ones stream in over 5-10s as
+  // bbf-meal-image edge fn resolves. Re-fired by SNDAY on day-swap.
+  if (typeof BBF_MEAL_IMAGE_API !== 'undefined' && BBF_MEAL_IMAGE_API.streamPaint) {
+    try { BBF_MEAL_IMAGE_API.streamPaint(); }
+    catch (e) { console.warn('[RN] meal-image streamPaint threw:', e && e.message); }
+  }
   // Phase 10 — admin-only "🔄 AI Auto-Rotate Protocol" button. No-op for
   // clients and for Akeem on his own Nutrition tab; only renders when
   // Akeem is viewing a client's profile via the Command Center.
@@ -22548,6 +22763,10 @@ function SNDAY(i) {
   var dc = document.getElementById('ndaycon');
   if (dc) dc.innerHTML = RNDAY(plan, i);
   BBF_NUTRITION_TRACKER.restore();
+  if (typeof BBF_MEAL_IMAGE_API !== 'undefined' && BBF_MEAL_IMAGE_API.streamPaint) {
+    try { BBF_MEAL_IMAGE_API.streamPaint(); }
+    catch (_) {}
+  }
 }
 
 // Phase 10 — SAVELOG() and the entire legacy Free Log surface were ripped
