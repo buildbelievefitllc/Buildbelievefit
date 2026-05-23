@@ -1,0 +1,29 @@
+# Render Blueprint · paste this repo's URL into Render's
+# "New +" → "Blueprint" picker and Render reads this file.
+services:
+  - type:            web
+    name:            vision-scout
+    runtime:         docker
+    rootDir:         vision-scout
+    plan:            starter
+    healthCheckPath: /health
+    autoDeploy:      true
+    envVars:
+      - key:  ANTHROPIC_API_KEY
+        sync: false
+      - key:  GITHUB_WEBHOOK_SECRET
+        sync: false
+      - key:  SCAN_API_KEY
+        sync: false
+      - key:  SLACK_WEBHOOK_URL
+        sync: false
+      - key:  DISCORD_WEBHOOK_URL
+        sync: false
+      - key:   PROD_URL
+        value: https://buildbelievefit.com
+      - key:   VISION_MODEL
+        value: claude-sonnet-4-6
+      - key:   PLAYWRIGHT_TIMEOUT_MS
+        value: "30000"
+      - key:   ANTHROPIC_TIMEOUT_MS
+        value: "60000"
