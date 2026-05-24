@@ -59,7 +59,21 @@ app.use(express.json({ limit: '1mb' }));
 
 // Marketing engine · mounted at /api/v1/marketing.
 // Routes: /ingest /analyze /dispatch /inbound /unsubscribe /health
-app.use('/api/v1/marketing', buildMarketingRouter());
+//
+// Build wrapped in try/catch so a module-load failure in any agent
+// (missing env, bad dep, etc.) cannot take down the whole server ·
+// vision-scout's /scan + /smoke-test + /health stay up regardless.
+try {
+  app.use('/api/v1/marketing', buildMarketingRouter());
+  console.log('[server] marketing router mounted at /api/v1/marketing');
+} catch (err) {
+  console.error('[server] marketing router build failed · serving stub:', err?.message);
+  app.use('/api/v1/marketing', (req, res) => res.status(503).json({
+    ok:     false,
+    error:  'marketing_module_unavailable',
+    detail: err?.message || 'unknown',
+  }));
+}
 
 function verifyGitHubSignature(rawBody, sigHeader) {
   if (!GITHUB_WEBHOOK_SECRET) {
@@ -581,6 +595,18 @@ const server = app.listen(PORT, () => {
   console.log('[vision-scout] model=' + VISION_MODEL + ' prod=' + PROD_URL);
   console.log('[vision-scout] allowed=' + JSON.stringify(ALLOWED_HOSTS));
   console.log('[vision-scout] action_timeout=' + ACTION_TIMEOUT_MS + 'ms · default_journey=' + DEFAULT_JOURNEY.length + ' steps');
+  // Env wiring snapshot · no secrets, just presence flags so the
+  // operator can see at boot which routes will work without curling
+  // /health or /api/v1/marketing/health.
+  console.log('[vision-scout] env: ' + JSON.stringify({
+    anthropic:    !!process.env.ANTHROPIC_API_KEY,
+    gemini:       !!process.env.GEMINI_API_KEY,
+    resend:       !!process.env.RESEND_API_KEY,
+    supabase_url: !!process.env.SUPABASE_URL,
+    service_role: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    admin_token:  !!process.env.BBF_MARKETING_ADMIN_TOKEN,
+    github_secret: !!process.env.GITHUB_WEBHOOK_SECRET,
+  }));
 });
 
 // Graceful shutdown so in-flight scans get a chance to finish their

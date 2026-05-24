@@ -5,7 +5,7 @@
 // Classifies intent via gemini-3.5-flash, transitions status, drafts a
 // contextual reply for the CEO to send manually, and emits a console
 // alert containing the athlete dossier.
-import { sb, TABLE }            from '../db.js';
+import { sb, requireSb, TABLE }   from '../db.js';
 import { generate, extractJSON } from '../gemini.js';
 
 const INTENT_SYSTEM = [
@@ -68,6 +68,7 @@ function extractSenderAndBody(payload) {
 }
 
 export async function inbound(req, res) {
+  if (!requireSb(res)) return;
   const payload = req.body || {};
   const { from, body } = extractSenderAndBody(payload);
 

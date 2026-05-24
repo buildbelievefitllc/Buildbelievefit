@@ -4,7 +4,7 @@
 //
 // Pulls analyzed leads, sends via Resend, flips status to 'contacted'.
 // Manual trigger now; cron this once Resend domain is verified.
-import { sb, TABLE } from '../db.js';
+import { sb, requireSb, TABLE } from '../db.js';
 import { sendPitch } from '../resend.js';
 
 const DEFAULT_BATCH = 5;
@@ -27,6 +27,7 @@ async function dispatchOne(lead) {
 }
 
 export async function dispatch(req, res) {
+  if (!requireSb(res)) return;
   const body      = req.body || {};
   const leadId    = body.lead_id ? String(body.lead_id) : null;
   const batchSize = Math.min(MAX_BATCH, Math.max(1, Number(body.batch_size) || DEFAULT_BATCH));

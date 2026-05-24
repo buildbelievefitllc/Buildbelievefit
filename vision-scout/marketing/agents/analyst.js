@@ -5,7 +5,7 @@
 // Pulls raw leads, generates hyper-technical pitches via gemini-3.5-flash,
 // flips status to 'analyzed'. Manual trigger now; wire pg_cron or a
 // Render cron job to fire this on a schedule once verified.
-import { sb, TABLE } from '../db.js';
+import { sb, requireSb, TABLE } from '../db.js';
 import { generate, MODEL_NAME } from '../gemini.js';
 
 const DEFAULT_BATCH = 5;
@@ -48,6 +48,7 @@ async function analyzeOne(lead) {
 }
 
 export async function analyze(req, res) {
+  if (!requireSb(res)) return;
   const body = req.body || {};
   const leadId    = body.lead_id ? String(body.lead_id) : null;
   const batchSize = Math.min(MAX_BATCH, Math.max(1, Number(body.batch_size) || DEFAULT_BATCH));

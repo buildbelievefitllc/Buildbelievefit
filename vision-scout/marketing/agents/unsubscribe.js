@@ -3,7 +3,7 @@
 // POST /api/v1/marketing/unsubscribe?t=<token>   · RFC 8058 List-Unsubscribe-Post
 //
 // Flips status to 'unsubscribed'. Idempotent. No auth · token is the auth.
-import { sb, TABLE } from '../db.js';
+import { sb, requireSb, TABLE } from '../db.js';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({
@@ -12,6 +12,7 @@ function esc(s) {
 }
 
 export async function unsubscribe(req, res) {
+  if (!requireSb(res)) return;
   const token = String(req.query?.t || req.body?.t || '').trim();
   if (!token) return res.status(400).send('Missing token.');
 

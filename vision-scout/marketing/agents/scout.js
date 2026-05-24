@@ -5,11 +5,12 @@
 //
 // Safe upsert on email. Status / personalized_pitch / funnel state on
 // EXISTING rows is preserved · only descriptive fields refresh.
-import { sb, TABLE } from '../db.js';
+import { sb, requireSb, TABLE } from '../db.js';
 
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function ingest(req, res) {
+  if (!requireSb(res)) return;
   const payload = req.body || {};
   const rawLeads = Array.isArray(payload.leads) ? payload.leads
                  : payload.athlete_name ? [payload]

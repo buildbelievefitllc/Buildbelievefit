@@ -1,20 +1,30 @@
 // Resend wrapper · uses the official `resend` npm package. Outbound
 // email + List-Unsubscribe headers (RFC 8058 one-click) baked in so we
 // don't get dunked into the spam folder.
+//
+// LAZY INIT · client built only when RESEND_API_KEY is present. Missing
+// key → sendPitch returns ok:false:resend_unconfigured, server stays up.
 import { Resend } from 'resend';
 
-const RESEND_API_KEY     = process.env.RESEND_API_KEY;
+const RESEND_API_KEY     = process.env.RESEND_API_KEY     || '';
 const BBF_FROM_NAME      = process.env.BBF_FROM_NAME      || 'Akeem Brown';
 const BBF_FROM_EMAIL     = process.env.BBF_FROM_EMAIL     || 'akeem@buildbelievefit.fitness';
 const BBF_REPLY_TO       = process.env.BBF_REPLY_TO       || BBF_FROM_EMAIL;
 const BBF_BUSINESS_ADDR  = process.env.BBF_BUSINESS_ADDRESS || 'Build Believe Fit · USA';
-const BBF_UNSUB_BASE_URL = process.env.BBF_UNSUB_BASE_URL || ''; // e.g. https://vision-scout.onrender.com
+const BBF_UNSUB_BASE_URL = process.env.BBF_UNSUB_BASE_URL || '';
 
-if (!RESEND_API_KEY) {
-  console.error('[marketing/resend] WARN · RESEND_API_KEY unset · dispatcher will 500');
+let _resend = null;
+if (RESEND_API_KEY) {
+  try {
+    _resend = new Resend(RESEND_API_KEY);
+    console.log('[marketing/resend] client ready · from=' + BBF_FROM_EMAIL);
+  } catch (err) {
+    console.error('[marketing/resend] constructor threw · dispatcher will 503:', err?.message);
+    _resend = null;
+  }
+} else {
+  console.warn('[marketing/resend] RESEND_API_KEY unset · dispatcher will return resend_unconfigured · server still boots');
 }
-
-const resend = new Resend(RESEND_API_KEY || 'missing');
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({
@@ -27,12 +37,10 @@ export function unsubscribeUrl(token) {
   return `${base}/api/v1/marketing/unsubscribe?t=${encodeURIComponent(token)}`;
 }
 
-// sendPitch · transmits an athlete-personalized pitch with full
-// CAN-SPAM compliance (clear sender, physical address, unsub link)
-// AND RFC 8058 one-click unsubscribe headers (List-Unsubscribe +
-// List-Unsubscribe-Post). Returns { ok, message_id?, error?, detail? }.
+export function isResendReady() { return _resend != null; }
+
 export async function sendPitch(lead) {
-  if (!RESEND_API_KEY) return { ok: false, error: 'resend_key_missing' };
+  if (!_resend)        return { ok: false, error: 'resend_unconfigured' };
   if (!lead?.email)    return { ok: false, error: 'lead_email_missing' };
   if (!lead?.personalized_pitch) return { ok: false, error: 'lead_pitch_missing' };
 
@@ -61,7 +69,7 @@ export async function sendPitch(lead) {
   ].join('');
 
   try {
-    const result = await resend.emails.send({
+    const result = await _resend.emails.send({
       from:     `${BBF_FROM_NAME} <${BBF_FROM_EMAIL}>`,
       to:       [lead.email],
       reply_to: BBF_REPLY_TO,
