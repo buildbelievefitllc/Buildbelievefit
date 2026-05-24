@@ -1,0 +1,73 @@
+// Gemini wrapper · used by the Analyst (pitch writing) and Triage
+// (intent classification + reply drafting). Native fetch, no SDK.
+//
+// Model: gemini-3.5-flash (matches the rest of the BBF stack · see
+// index.js:1088, 1384, 1573). Override via GEMINI_MODEL env.
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL   = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 30_000;
+
+if (!GEMINI_API_KEY) {
+  console.error('[marketing/gemini] WARN · GEMINI_API_KEY unset · analyst + triage will 500');
+}
+
+function endpointFor(model) {
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+}
+
+// Low-level call · returns { ok, text? , error?, status? }
+export async function generate({ system, user, temperature = 0.7, maxOutputTokens = 512, responseSchema = null }) {
+  if (!GEMINI_API_KEY) return { ok: false, error: 'gemini_key_missing' };
+
+  const body = {
+    system_instruction: { parts: [{ text: system }] },
+    contents:           [{ role: 'user', parts: [{ text: user }] }],
+    generationConfig: {
+      temperature,
+      maxOutputTokens,
+      ...(responseSchema ? { responseMimeType: 'application/json', responseSchema } : {}),
+    },
+  };
+
+  const controller = new AbortController();
+  const timer      = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  let res;
+  try {
+    res = await fetch(`${endpointFor(GEMINI_MODEL)}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+      method:  'POST',
+      headers: { 'content-type': 'application/json' },
+      body:    JSON.stringify(body),
+      signal:  controller.signal,
+    });
+  } catch (err) {
+    if (err?.name === 'AbortError') return { ok: false, error: 'gemini_timeout' };
+    return { ok: false, error: 'gemini_fetch_failed', detail: err?.message };
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    console.error(`[marketing/gemini] status=${res.status} body=${detail.slice(0, 400)}`);
+    return { ok: false, error: `gemini_${res.status}`, detail: detail.slice(0, 400), status: res.status };
+  }
+
+  const payload = await res.json().catch(() => null);
+  const text    = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) return { ok: false, error: 'gemini_no_text', detail: JSON.stringify(payload).slice(0, 400) };
+  return { ok: true, text: text.trim() };
+}
+
+// Pull the first {...} JSON object out of a model reply, even if the
+// model wrapped it in prose despite our instructions.
+export function extractJSON(text) {
+  if (!text) return null;
+  const start = text.indexOf('{');
+  const end   = text.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  try { return JSON.parse(text.slice(start, end + 1)); }
+  catch { return null; }
+}
+
+export const MODEL_NAME = GEMINI_MODEL;

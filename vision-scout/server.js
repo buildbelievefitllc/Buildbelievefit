@@ -23,6 +23,7 @@ import express  from 'express';
 import crypto   from 'node:crypto';
 import { chromium } from 'playwright';
 import Anthropic    from '@anthropic-ai/sdk';
+import { buildMarketingRouter } from './marketing/router.js';
 
 // ─── Config ─────────────────────────────────────────────────────────────
 const PORT                  = Number(process.env.PORT) || 3000;
@@ -55,6 +56,10 @@ const app       = express();
 // GitHub signed. Everything else uses normal JSON parsing.
 app.use('/smoke-test', express.raw({ type: '*/*', limit: '5mb' }));
 app.use(express.json({ limit: '1mb' }));
+
+// Marketing engine · mounted at /api/v1/marketing.
+// Routes: /ingest /analyze /dispatch /inbound /unsubscribe /health
+app.use('/api/v1/marketing', buildMarketingRouter());
 
 function verifyGitHubSignature(rawBody, sigHeader) {
   if (!GITHUB_WEBHOOK_SECRET) {
