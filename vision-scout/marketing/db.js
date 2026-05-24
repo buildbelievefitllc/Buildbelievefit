@@ -17,6 +17,7 @@
 // but never opens a WebSocket; the override was prophylactic, not
 // load-bearing.
 import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ihclbceghxpuawymlvgi.supabase.co';
 
@@ -48,30 +49,27 @@ function buildClient() {
   _lastBuildError = null;
   _usedFallback   = false;
 
-  // Path A · CEO-requested realtime override.
+  // Path A · CEO-requested realtime override + ws transport.
+  // The `ws` transport is REQUIRED · supabase-js@2.45+ rejects
+  // construction on Node 20 without a WebSocket implementation.
   const withOverride = tryCreate({
     auth:     { persistSession: false },
-    realtime: { config: { broadcast: { self: false }, presence: { key: '' } } },
+    realtime: {
+      transport: ws,
+      config:    { broadcast: { self: false }, presence: { key: '' } },
+    },
   }, 'with_realtime_override');
   if (withOverride) return withOverride;
 
-  // Path B · fallback · default options. The realtime override is not
-  // load-bearing for our usage (no channel subscriptions).
+  // Path B · fallback · transport only, no extra config.
   const fallback = tryCreate({
-    auth: { persistSession: false },
+    auth:     { persistSession: false },
+    realtime: { transport: ws },
   }, 'default_options_fallback');
   if (fallback) {
     _usedFallback = true;
     console.warn('[marketing/db] using default-options fallback · last_error:', _lastBuildError);
     return fallback;
-  }
-
-  // Path C · last-resort · no options at all.
-  const bare = tryCreate(undefined, 'bare_no_options');
-  if (bare) {
-    _usedFallback = true;
-    console.warn('[marketing/db] using bare-no-options fallback · last_error:', _lastBuildError);
-    return bare;
   }
 
   return null;
