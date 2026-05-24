@@ -32,7 +32,10 @@ async function analyzeOne(lead) {
     system:          SYSTEM_PROMPT,
     user:            buildUserPrompt(lead),
     temperature:     0.7,
-    maxOutputTokens: 400,
+    // 1200 tokens · room for whatever preamble Flash adds (numbered
+    // list, recap, etc.) plus the 3-sentence pitch itself without
+    // mid-sentence truncation. First test at 400 cut off mid-word.
+    maxOutputTokens: 1200,
   });
   if (!out.ok) {
     await sb.from(TABLE).update({ last_error: `${out.error}: ${out.detail || ''}`.slice(0, 500) }).eq('id', lead.id);
