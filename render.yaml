@@ -20,7 +20,7 @@ services:
       - key:  DISCORD_WEBHOOK_URL
         sync: false
       - key:   PROD_URL
-        value: https://buildbelievefit.com
+        value: https://buildbelievefit.fitness
       - key:   VISION_MODEL
         value: claude-sonnet-4-6
       - key:   PLAYWRIGHT_TIMEOUT_MS

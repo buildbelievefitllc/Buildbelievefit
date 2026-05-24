@@ -30,12 +30,12 @@ const ANTHROPIC_API_KEY     = process.env.ANTHROPIC_API_KEY;
 const GITHUB_WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || '';
 const SLACK_WEBHOOK_URL     = process.env.SLACK_WEBHOOK_URL || '';
 const DISCORD_WEBHOOK_URL   = process.env.DISCORD_WEBHOOK_URL || '';
-const PROD_URL              = process.env.PROD_URL || 'https://buildbelievefit.com';
+const PROD_URL              = process.env.PROD_URL || 'https://buildbelievefit.fitness';
 const SCAN_API_KEY          = process.env.SCAN_API_KEY || '';
 const PLAYWRIGHT_TIMEOUT_MS = Number(process.env.PLAYWRIGHT_TIMEOUT_MS) || 30_000;
 const ACTION_TIMEOUT_MS     = Number(process.env.ACTION_TIMEOUT_MS)     || 15_000;
 const ANTHROPIC_TIMEOUT_MS  = Number(process.env.ANTHROPIC_TIMEOUT_MS)  || 60_000;
-const ALLOWED_HOSTS         = (process.env.ALLOWED_HOSTS || 'buildbelievefit.com,buildbelievefit.onrender.com')
+const ALLOWED_HOSTS         = (process.env.ALLOWED_HOSTS || 'buildbelievefit.fitness,buildbelievefit.com,buildbelievefit.onrender.com')
   .split(',').map((s) => s.trim()).filter(Boolean);
 
 // claude-sonnet-4-6 is the current latest vision-capable Sonnet · upgrade

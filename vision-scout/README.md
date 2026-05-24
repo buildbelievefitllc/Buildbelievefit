@@ -22,9 +22,9 @@ review, and forwards the verdict to Slack / Discord plus the server log.
 | `SCAN_API_KEY`          | no       | —                                                                      | Bearer token gating `/scan`. Omit for open endpoint  |
 | `SLACK_WEBHOOK_URL`     | no       | —                                                                      | Incoming webhook URL · results post here if set      |
 | `DISCORD_WEBHOOK_URL`   | no       | —                                                                      | Incoming webhook URL · results post here if set      |
-| `PROD_URL`              | no       | `https://buildbelievefit.com`                                          | URL to smoke-test                                    |
+| `PROD_URL`              | no       | `https://buildbelievefit.fitness`                                          | URL to smoke-test                                    |
 | `DEFAULT_JOURNEY`       | no       | `[]`                                                                   | JSON-stringified actions array · drives `/smoke-test` and is the fallback for `/scan` |
-| `ALLOWED_HOSTS`         | no       | `buildbelievefit.com,buildbelievefit.onrender.com`                     | CSV of hostnames `/scan` may target                  |
+| `ALLOWED_HOSTS`         | no       | `buildbelievefit.fitness,buildbelievefit.com,buildbelievefit.onrender.com` | CSV of hostnames `/scan` may target                  |
 | `VISION_MODEL`          | no       | `claude-sonnet-4-6`                                                    | Override the Claude model id                         |
 | `PLAYWRIGHT_TIMEOUT_MS` | no       | `30000`                                                                | Page-load (`networkidle`) timeout                    |
 | `ACTION_TIMEOUT_MS`     | no       | `15000`                                                                | Per-action timeout                                   |
@@ -103,7 +103,7 @@ curl -X POST https://vision-scout.onrender.com/scan \
   -H "Authorization: Bearer $SCAN_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "url": "https://buildbelievefit.com",
+    "url": "https://buildbelievefit.fitness",
     "actions": [
       { "type": "click",           "selector": "text=Sign In" },
       { "type": "fill",            "selector": "input[name=email]",    "text": "demo@bbf.app" },
@@ -134,7 +134,7 @@ plain navigation-only check (the original Build A behavior).
 ```json
 {
   "ok": true,
-  "url": "https://buildbelievefit.com",
+  "url": "https://buildbelievefit.fitness",
   "analysis": {
     "status":  "FAIL",
     "summary": "Sign-in submit landed on a 500 page; nutrition tab unreachable.",
@@ -144,7 +144,7 @@ plain navigation-only check (the original Build A behavior).
   },
   "journey": {
     "trace": [
-      { "step": 0, "action": "goto(https://buildbelievefit.com)",     "status": "ok" },
+      { "step": 0, "action": "goto(https://buildbelievefit.fitness)",     "status": "ok" },
       { "step": 1, "action": "click(text=Sign In)",                   "status": "ok" },
       { "step": 2, "action": "fill(input[name=email], \"demo@...\")", "status": "ok" },
       { "step": 3, "action": "fill(input[name=password], ...)",       "status": "ok" },
@@ -171,7 +171,7 @@ curl https://vision-scout.onrender.com/health
 curl -X POST https://vision-scout.onrender.com/scan \
   -H "Authorization: Bearer $SCAN_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://buildbelievefit.com"}'
+  -d '{"url": "https://buildbelievefit.fitness"}'
 ```
 
 Expected response (after ~20-40s):
@@ -179,7 +179,7 @@ Expected response (after ~20-40s):
 ```json
 {
   "ok": true,
-  "url": "https://buildbelievefit.com",
+  "url": "https://buildbelievefit.fitness",
   "analysis": {
     "status":  "PASS",
     "summary": "Home page renders cleanly with hero, CTAs, and nutrition wheel intact.",
