@@ -32,10 +32,10 @@ async function analyzeOne(lead) {
     system:          SYSTEM_PROMPT,
     user:            buildUserPrompt(lead),
     temperature:     0.7,
-    // 1200 tokens · room for whatever preamble Flash adds (numbered
-    // list, recap, etc.) plus the 3-sentence pitch itself without
-    // mid-sentence truncation. First test at 400 cut off mid-word.
-    maxOutputTokens: 1200,
+    // 1024 tokens of pure output (thinking is disabled in gemini.js)
+    // is plenty for a 3-sentence pitch (~80 words / ~120 tokens) plus
+    // any restatement preamble.
+    maxOutputTokens: 1024,
   });
   if (!out.ok) {
     await sb.from(TABLE).update({ last_error: `${out.error}: ${out.detail || ''}`.slice(0, 500) }).eq('id', lead.id);
@@ -47,7 +47,7 @@ async function analyzeOne(lead) {
     last_error:         null,
   }).eq('id', lead.id);
   if (updErr) return { id: lead.id, email: lead.email, ok: false, error: 'db_update_failed', detail: updErr.message };
-  return { id: lead.id, email: lead.email, ok: true };
+  return { id: lead.id, email: lead.email, ok: true, finishReason: out.finishReason, pitch_chars: out.text.length };
 }
 
 export async function analyze(req, res) {

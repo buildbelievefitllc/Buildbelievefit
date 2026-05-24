@@ -3,10 +3,25 @@
 //
 // Model: gemini-3.5-flash (matches the rest of the BBF stack · see
 // index.js:1088, 1384, 1573). Override via GEMINI_MODEL env.
+//
+// THINKING DISABLED · gemini-3.x models include implicit thinking
+// tokens that count against maxOutputTokens. Pitch generation hit
+// a hard ~220-char ceiling regardless of token budget because the
+// thinking budget consumed most of it. thinkingConfig:{thinkingBudget:0}
+// turns it off so the full budget is available for visible output.
+//
+// MULTI-PART RESPONSES · concatenate every text part returned, not
+// just parts[0] · Gemini occasionally splits long replies across
+// multiple parts which would otherwise look like silent truncation.
+//
+// FINISH REASON · captured + returned in {finishReason} so the
+// caller can distinguish natural completion (STOP) from token
+// limit (MAX_TOKENS), safety filter (SAFETY), recitation, etc.
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL   = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
-const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 30_000;
+const GEMINI_API_KEY     = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL       = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+const GEMINI_TIMEOUT_MS  = Number(process.env.GEMINI_TIMEOUT_MS) || 30_000;
+const GEMINI_THINKING    = Number(process.env.GEMINI_THINKING_BUDGET ?? 0); // 0 = off
 
 if (!GEMINI_API_KEY) {
   console.error('[marketing/gemini] WARN · GEMINI_API_KEY unset · analyst + triage will 500');
@@ -16,18 +31,20 @@ function endpointFor(model) {
   return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 }
 
-// Low-level call · returns { ok, text? , error?, status? }
 export async function generate({ system, user, temperature = 0.7, maxOutputTokens = 512, responseSchema = null }) {
   if (!GEMINI_API_KEY) return { ok: false, error: 'gemini_key_missing' };
+
+  const generationConfig = {
+    temperature,
+    maxOutputTokens,
+    thinkingConfig: { thinkingBudget: GEMINI_THINKING }, // 0 by default · pure output
+    ...(responseSchema ? { responseMimeType: 'application/json', responseSchema } : {}),
+  };
 
   const body = {
     system_instruction: { parts: [{ text: system }] },
     contents:           [{ role: 'user', parts: [{ text: user }] }],
-    generationConfig: {
-      temperature,
-      maxOutputTokens,
-      ...(responseSchema ? { responseMimeType: 'application/json', responseSchema } : {}),
-    },
+    generationConfig,
   };
 
   const controller = new AbortController();
@@ -53,14 +70,37 @@ export async function generate({ system, user, temperature = 0.7, maxOutputToken
     return { ok: false, error: `gemini_${res.status}`, detail: detail.slice(0, 400), status: res.status };
   }
 
-  const payload = await res.json().catch(() => null);
-  const text    = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) return { ok: false, error: 'gemini_no_text', detail: JSON.stringify(payload).slice(0, 400) };
-  return { ok: true, text: text.trim() };
+  const payload      = await res.json().catch(() => null);
+  const candidate    = payload?.candidates?.[0];
+  const finishReason = candidate?.finishReason || null;
+  const parts        = candidate?.content?.parts || [];
+
+  // Concatenate EVERY text part · Gemini occasionally splits long
+  // replies across multiple parts which would look like truncation.
+  const text = parts
+    .filter((p) => p && typeof p.text === 'string')
+    .map((p) => p.text)
+    .join('')
+    .trim();
+
+  if (!text) {
+    return {
+      ok:          false,
+      error:       'gemini_no_text',
+      finishReason,
+      detail:      JSON.stringify(payload).slice(0, 400),
+    };
+  }
+
+  // Surface MAX_TOKENS even on apparent success so the caller can
+  // detect mid-sentence cutoffs and decide whether to widen the budget.
+  if (finishReason === 'MAX_TOKENS') {
+    console.warn(`[marketing/gemini] finishReason=MAX_TOKENS · output may be truncated · chars=${text.length}`);
+  }
+
+  return { ok: true, text, finishReason };
 }
 
-// Pull the first {...} JSON object out of a model reply, even if the
-// model wrapped it in prose despite our instructions.
 export function extractJSON(text) {
   if (!text) return null;
   const start = text.indexOf('{');
