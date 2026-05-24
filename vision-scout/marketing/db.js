@@ -1,39 +1,80 @@
 // Supabase service-role client · bypasses RLS. Only the marketing
 // worker layer talks to bbf_outbound_athletes; no client-side reads.
 //
-// LAZY INIT · the client is built at module load when the service-role
-// key is present, and rebuilt on demand at request time if the boot
-// attempt found no key (the "env added after process start" failure
-// mode). Once built, the cached client is reused forever (until next
-// restart). Importers get a LIVE binding via `export { _sb as sb }`
-// so a post-boot rebuild is visible without re-importing.
+// LAZY INIT · client built at module load when the service-role key is
+// present, rebuilt on demand at request time if the boot attempt found
+// no key (the "env added after process start" failure mode). Importers
+// get a LIVE binding via `export { _sb as sb }`.
 //
-// REALTIME OVERRIDE · explicitly pass the realtime config so the
-// internal Realtime client never spins up a WebSocket handshake at
-// boot (suppresses Node 20 WS noise and prevents init-time crashes).
+// CREATECLIENT FAILURE CAPTURE · the createClient error message is
+// recorded in _lastBuildError and surfaced via sbBuildError() so the
+// /health snapshot can show it · saves the operator a Render log dive.
+//
+// REALTIME CONFIG FALLBACK · attempts the CEO-requested realtime
+// override first; on construction failure (wrong shape for this
+// supabase-js version, etc.) falls back to default options. We never
+// call .channel().subscribe() so the Realtime client is constructed
+// but never opens a WebSocket; the override was prophylactic, not
+// load-bearing.
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ihclbceghxpuawymlvgi.supabase.co';
 
 export const TABLE = 'bbf_outbound_athletes';
 
-let _sb       = null;
-let _builtAt  = null;          // when the client was first built
-let _bootKeyPresent = false;   // snapshot of env state at module load · for /health diagnostics
+let _sb              = null;
+let _builtAt         = null;
+let _bootKeyPresent  = false;
+let _lastBuildError  = null;
+let _usedFallback    = false;
 
-function buildClient() {
+function tryCreate(opts, label) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-  if (!key) return null;
-  try {
-    const c = createClient(SUPABASE_URL, key, {
-      auth:     { persistSession: false },
-      realtime: { config: { broadcast: { self: false }, presence: { key: '' } } },
-    });
-    return c;
-  } catch (err) {
-    console.error('[marketing/db] createClient threw:', err?.message);
+  if (!key) {
+    _lastBuildError = 'no_service_role_key_in_env';
     return null;
   }
+  try {
+    return createClient(SUPABASE_URL, key, opts);
+  } catch (err) {
+    const msg = err?.message || String(err);
+    _lastBuildError = `[${label}] ${msg}`;
+    console.error(`[marketing/db] createClient ${label} threw:`, msg);
+    return null;
+  }
+}
+
+function buildClient() {
+  _lastBuildError = null;
+  _usedFallback   = false;
+
+  // Path A · CEO-requested realtime override.
+  const withOverride = tryCreate({
+    auth:     { persistSession: false },
+    realtime: { config: { broadcast: { self: false }, presence: { key: '' } } },
+  }, 'with_realtime_override');
+  if (withOverride) return withOverride;
+
+  // Path B · fallback · default options. The realtime override is not
+  // load-bearing for our usage (no channel subscriptions).
+  const fallback = tryCreate({
+    auth: { persistSession: false },
+  }, 'default_options_fallback');
+  if (fallback) {
+    _usedFallback = true;
+    console.warn('[marketing/db] using default-options fallback · last_error:', _lastBuildError);
+    return fallback;
+  }
+
+  // Path C · last-resort · no options at all.
+  const bare = tryCreate(undefined, 'bare_no_options');
+  if (bare) {
+    _usedFallback = true;
+    console.warn('[marketing/db] using bare-no-options fallback · last_error:', _lastBuildError);
+    return bare;
+  }
+
+  return null;
 }
 
 // Boot-time attempt
@@ -42,41 +83,32 @@ if (_bootKeyPresent) {
   _sb = buildClient();
   if (_sb) {
     _builtAt = new Date().toISOString();
-    console.log('[marketing/db] Supabase client ready · url=' + SUPABASE_URL + ' · built_at=' + _builtAt);
+    console.log('[marketing/db] Supabase client ready · url=' + SUPABASE_URL + ' · built_at=' + _builtAt + ' · fallback=' + _usedFallback);
   } else {
-    console.warn('[marketing/db] boot · key present but createClient failed · will retry on first request');
+    console.warn('[marketing/db] boot · all build paths failed · last_error:', _lastBuildError);
   }
 } else {
   console.warn('[marketing/db] boot · SUPABASE_SERVICE_ROLE_KEY unset · will lazy-retry on first request');
 }
 
-// getSb · returns the cached client OR attempts a fresh build from
-// current process.env. Recovers from "env added after boot" without
-// requiring a process restart.
 export function getSb() {
   if (_sb) return _sb;
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
     _sb = buildClient();
     if (_sb) {
       _builtAt = new Date().toISOString();
-      console.log('[marketing/db] lazy re-init succeeded · built_at=' + _builtAt);
-    } else {
-      console.warn('[marketing/db] lazy re-init failed · createClient returned null');
+      console.log('[marketing/db] lazy re-init succeeded · built_at=' + _builtAt + ' · fallback=' + _usedFallback);
     }
   }
   return _sb;
 }
 
-// Diagnostic accessors · powered by /health to surface the boot-time
-// vs request-time env mismatch (the "key set true but client null"
-// footgun that bit us once).
-export function isSbBuilt()      { return !!_sb; }
+export function isSbBuilt()        { return !!_sb; }
 export function sbBootKeyPresent() { return _bootKeyPresent; }
-export function sbBuiltAt()      { return _builtAt; }
+export function sbBuiltAt()        { return _builtAt; }
+export function sbBuildError()     { return _lastBuildError; }
+export function sbUsedFallback()   { return _usedFallback; }
 
-// Guard · every agent calls this before touching the live binding.
-// Triggers a lazy re-init attempt as a side effect. 503s with a
-// precise reason so the operator can fix it without log-diving.
 export function requireSb(res) {
   const client = getSb();
   if (client) return true;
@@ -84,16 +116,17 @@ export function requireSb(res) {
     res.status(503).json({
       ok:     false,
       error:  'supabase_unconfigured',
-      detail: 'SUPABASE_SERVICE_ROLE_KEY missing at boot AND at request-time retry. Set in Render env and restart the service.',
+      detail: 'createClient() never succeeded · see diag.build_error for the underlying exception.',
       diag: {
         boot_key_present: _bootKeyPresent,
         req_key_present:  !!process.env.SUPABASE_SERVICE_ROLE_KEY,
         sb_client_built:  !!_sb,
+        used_fallback:    _usedFallback,
+        build_error:      _lastBuildError,
       },
     });
   }
   return false;
 }
 
-// Live binding · importers see post-init updates without re-importing.
 export { _sb as sb };

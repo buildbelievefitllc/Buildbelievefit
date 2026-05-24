@@ -8,7 +8,7 @@ import { analyze }   from './agents/analyst.js';
 import { dispatch } from './agents/dispatcher.js';
 import { inbound }   from './agents/triage.js';
 import { unsubscribe } from './agents/unsubscribe.js';
-import { isSbBuilt, sbBootKeyPresent, sbBuiltAt } from './db.js';
+import { isSbBuilt, sbBootKeyPresent, sbBuiltAt, sbBuildError, sbUsedFallback } from './db.js';
 import { isResendReady } from './resend.js';
 
 const MARKETING_ADMIN_TOKEN = process.env.BBF_MARKETING_ADMIN_TOKEN || '';
@@ -60,6 +60,8 @@ export function buildMarketingRouter() {
       sb_client_built:          isSbBuilt(),
       sb_boot_key_present:      sbBootKeyPresent(),
       sb_built_at:              sbBuiltAt(),
+      sb_used_fallback:         sbUsedFallback(),
+      sb_build_error:           sbBuildError(),
       resend_client_built:      isResendReady(),
     },
     model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
