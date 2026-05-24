@@ -8,7 +8,7 @@ import { Resend } from 'resend';
 
 const RESEND_API_KEY     = process.env.RESEND_API_KEY     || '';
 const BBF_FROM_NAME      = process.env.BBF_FROM_NAME      || 'Akeem Brown';
-const BBF_FROM_EMAIL     = process.env.BBF_FROM_EMAIL     || 'akeem@buildbelievefit.fitness';
+const BBF_FROM_EMAIL     = process.env.BBF_FROM_EMAIL     || 'buildbelievefitllc@buildbelievefit.fitness';
 const BBF_REPLY_TO       = process.env.BBF_REPLY_TO       || BBF_FROM_EMAIL;
 const BBF_BUSINESS_ADDR  = process.env.BBF_BUSINESS_ADDRESS || 'Build Believe Fit · USA';
 const BBF_UNSUB_BASE_URL = process.env.BBF_UNSUB_BASE_URL || '';

@@ -43,9 +43,9 @@ services:
       - key:   BBF_FROM_NAME
         value: Akeem Brown
       - key:   BBF_FROM_EMAIL
-        value: akeem@buildbelievefit.fitness
+        value: buildbelievefitllc@buildbelievefit.fitness
       - key:   BBF_REPLY_TO
-        value: akeem@buildbelievefit.fitness
+        value: buildbelievefitllc@buildbelievefit.fitness
       - key:   BBF_BUSINESS_ADDRESS
         value: Build Believe Fit · USA
       - key:   BBF_UNSUB_BASE_URL

@@ -34,7 +34,7 @@ table in the BBF Supabase project (`ihclbceghxpuawymlvgi`).
 | `SUPABASE_SERVICE_ROLE_KEY` | yes      | Bypass RLS on `bbf_outbound_athletes`                     |
 | `BBF_MARKETING_ADMIN_TOKEN` | yes      | Bearer token gating admin worker routes                   |
 | `BBF_FROM_NAME`             | no       | Default `Akeem Brown`                                     |
-| `BBF_FROM_EMAIL`            | no       | Default `akeem@buildbelievefit.fitness`                   |
+| `BBF_FROM_EMAIL`            | no       | Default `buildbelievefitllc@buildbelievefit.fitness`      |
 | `BBF_REPLY_TO`              | no       | Default same as `BBF_FROM_EMAIL`                          |
 | `BBF_BUSINESS_ADDRESS`      | no       | CAN-SPAM footer · physical mailing address                |
 | `BBF_UNSUB_BASE_URL`        | yes      | Public base URL for unsub links · e.g. `https://vision-scout.onrender.com` |
