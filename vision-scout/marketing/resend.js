@@ -42,15 +42,19 @@ export function isResendReady() { return _resend != null; }
 export async function sendPitch(lead) {
   if (!_resend)        return { ok: false, error: 'resend_unconfigured' };
   if (!lead?.email)    return { ok: false, error: 'lead_email_missing' };
-  if (!lead?.personalized_pitch) return { ok: false, error: 'lead_pitch_missing' };
+
+  // Dispatcher-supplied split (preferred) or fall back to raw pitch
+  // as body with a generic subject.
+  const subject = lead._subject || `Performance audit · ${lead.athlete_name}`;
+  const body    = (lead._body   || lead.personalized_pitch || '').trim();
+  if (!body)    return { ok: false, error: 'lead_body_missing' };
 
   const unsubUrl = unsubscribeUrl(lead.unsubscribe_token);
-  const subject  = `Performance audit · ${lead.athlete_name}`;
 
   const text = [
     `${lead.athlete_name},`,
     '',
-    lead.personalized_pitch,
+    body,
     '',
     '— Akeem · Build Believe Fit',
     '',
@@ -60,7 +64,7 @@ export async function sendPitch(lead) {
 
   const html = [
     `<p>${esc(lead.athlete_name)},</p>`,
-    `<p>${esc(lead.personalized_pitch).replace(/\n/g, '<br>')}</p>`,
+    `<p>${esc(body).replace(/\n/g, '<br>')}</p>`,
     `<p>— Akeem · Build Believe Fit</p>`,
     `<hr style="border:0;border-top:1px solid #ddd">`,
     `<p style="font-size:11px;color:#888">`,
