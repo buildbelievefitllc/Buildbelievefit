@@ -25,7 +25,7 @@ const DEFAULT_BATCH = 5;
 const MAX_BATCH     = 20;
 
 const TEST_LEAD_EMAIL           = 'bbf_test_lead@bbf-marketing-sentinel.dev';
-const TEST_OVERRIDE_DESTINATION = 'akeemkaronbrown@gmail.com';
+const TEST_OVERRIDE_DESTINATION = 'akeemkbrown@gmail.com';
 
 function splitPitch(rawPitch, athleteName) {
   const pitch = String(rawPitch || '').trim();
