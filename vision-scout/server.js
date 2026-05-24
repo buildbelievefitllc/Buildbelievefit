@@ -312,8 +312,36 @@ async function runJourney(url, actions) {
   let screenshot      = null;
 
   try {
+    // Low-RAM Chromium launch · tuned for Render starter plan (512 MB).
+    // CEO directive flag set.
+    //
+    // ⚠ Two flags here are known-fragile · keeping them per CEO request:
+    //   --single-process       : prevents per-renderer process forks (saves
+    //                            ~80-120 MB) but Playwright/Chromium docs
+    //                            warn this causes navigation flakiness and
+    //                            blank screenshots on some pages. If Vision
+    //                            Scout starts returning empty PNGs or hung
+    //                            sessions, this is the first suspect.
+    //   --max-old-space-size=150 : caps V8 old generation at 150 MB. Heavy
+    //                            real-world PWAs (deep DOM, large SVG)
+    //                            can hit this and fatal · raise to 256-384
+    //                            if we see "JavaScript heap out of memory"
+    //                            in Render logs.
+    //
+    // The durable fix for OOM is bumping the Render plan to standard
+    // (2 GB RAM); these flags are a short-term measure.
     browser = await chromium.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',          // use disk, not /dev/shm
+        '--disable-accelerated-2d-canvas',  // CPU canvas, no GPU memory
+        '--no-first-run',
+        '--no-zygote',                      // skip zygote process spawning
+        '--single-process',                 // ⚠ see note above
+        '--disable-gpu',                    // no GPU process
+        '--js-flags=--max-old-space-size=150', // ⚠ see note above
+      ],
     });
     const context = await browser.newContext({
       viewport:  { width: 1280, height: 2000 },
