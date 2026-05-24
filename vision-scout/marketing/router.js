@@ -8,6 +8,8 @@ import { analyze }   from './agents/analyst.js';
 import { dispatch } from './agents/dispatcher.js';
 import { inbound }   from './agents/triage.js';
 import { unsubscribe } from './agents/unsubscribe.js';
+import { isSbBuilt, sbBootKeyPresent, sbBuiltAt } from './db.js';
+import { isResendReady } from './resend.js';
 
 const MARKETING_ADMIN_TOKEN = process.env.BBF_MARKETING_ADMIN_TOKEN || '';
 
@@ -40,7 +42,11 @@ export function buildMarketingRouter() {
   r.get('/unsubscribe',  asyncHandler(unsubscribe));
   r.post('/unsubscribe', asyncHandler(unsubscribe));
 
-  // Health snapshot · confirms env wiring without revealing secrets.
+  // Health snapshot · reports both env presence (request-time read)
+  // AND whether the underlying clients were actually built (boot-time
+  // outcome). Mismatch between the two surfaces the "key added after
+  // process start" footgun automatically · operator sees it in one curl
+  // instead of via a failed end-to-end test.
   r.get('/health', (req, res) => res.json({
     ok: true,
     env: {
@@ -49,6 +55,12 @@ export function buildMarketingRouter() {
       service_role_set:         !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       admin_token_set:          !!process.env.BBF_MARKETING_ADMIN_TOKEN,
       unsub_base_url_set:       !!process.env.BBF_UNSUB_BASE_URL,
+    },
+    clients: {
+      sb_client_built:          isSbBuilt(),
+      sb_boot_key_present:      sbBootKeyPresent(),
+      sb_built_at:              sbBuiltAt(),
+      resend_client_built:      isResendReady(),
     },
     model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
   }));
