@@ -214,7 +214,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 - **Done when:** Grep for hardcoded hex colors / px values in non-token CSS returns zero results.
 - **Effort:** 3 days.
 
-## [~] 4.3 · Split bbf-app.html into per-feature modules · Stage 1 CLOSED · commit `<PHASE_2_1_SHA>` · 2026-05-25
+## [~] 4.3 · Split bbf-app.html into per-feature modules · Stage 1 CLOSED · commit `29c4ee1` · 2026-05-25
 - **Why:** 22k lines in one file is unmaintainable. Closes gap #6.
 - **How (Stage 1 · Phase 2.1 in operator's nomenclature · zero-breakage extraction):** Pull all 10 inline `<style>` blocks and the 5 named peripheral inline `<script>` blocks out of `bbf-app.html` into `src/styles/` + `src/state/` + `src/components/`. Re-link via `<link rel="stylesheet">` and `<script src="...">` at the same document positions to preserve cascade + execution order. The 17,544-line core inline script stays put · its split is Stage 2 and requires a real bundler (gated on Phase 4.1).
 - **How (Stage 2 · deferred, multi-session):** Per-feature directories `src/nutrition/`, `src/coach/`, etc. Each exports a mount function. Requires Vite or equivalent (Phase 4.1) so ES-module imports resolve in the browser.
