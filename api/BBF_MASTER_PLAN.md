@@ -273,7 +273,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 
 # Phase 6 · Security Hardening (Week 5)
 
-## [x] 6.0 · High-privilege credential sweep · CLOSED · commit `<PHASE_2_2_SHA>` · 2026-05-25
+## [x] 6.0 · High-privilege credential sweep · CLOSED · commit `64a90e8` · 2026-05-25
 - **Why:** Defense against the single most preventable production incident: a hardcoded `service_role` JWT, `sb_secret_*` key, `whsec_*` webhook secret, or vendor API key sitting in tracked source.
 - **How:** Multi-pass `grep` sweep across every tracked source file (172 files: `.js / .ts / .mjs / .cjs / .jsx / .tsx / .json / .yaml / .yml / .toml / .sh / .html / .md / .sql / Dockerfile* / Procfile / .env*` minus `node_modules/`, `.git/`, `voiceover/`). Pattern set covers the Supabase service_role JWT shape (`eyJ.<base64>.<base64>`), the new `sb_secret_*` format, Stripe (`sk_live_/sk_test_/rk_live_/rk_test_`), webhook secrets (`whsec_*`), Resend (`re_*`), Brevo (`xkeysib-*`), AWS (`AKIA*`), Google (`AIza*`), GitHub (`ghp_/gho_/ghu_/github_pat_*`), Slack (`xoxb-/xoxp-`), Anthropic (`sk-ant-*`), Twilio (`AC<32hex>`), naked database URLs with embedded creds (`postgres(ql)?/mysql/mongodb/redis://user:pass@host`), literal `Bearer <token>` strings, suspicious 40+ char key/secret/token literal pairings, and any non-canonical `<projectref>.supabase.co` URL.
 - **Done when:** Sweep returns zero hardcoded credentials AND every server-side reference goes through `process.env` (Node) or `Deno.env.get` (Deno).
