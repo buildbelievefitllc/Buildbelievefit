@@ -2,7 +2,7 @@
 
 **Status:** Living document · update items as they complete · do not delete
 **Generated:** 2026-05-25
-**Premise:** This plan addresses every gap surfaced in the honest dissection delivered by Claude on 2026-05-25 (see `api/BBF_PASSOVER_2026_05_25.md` § "Dissection scope" for the gap catalog). It's organized by **dependency**, not just impact — Phase 0 unblocks Phase 1, which unblocks Phase 2, etc.
+**Premise:** This plan addresses every gap surfaced in the honest dissection delivered by Claude on 2026-05-25. It's organized by **dependency**, not just impact — Phase 0 unblocks Phase 1, which unblocks Phase 2, etc. The original `api/BBF_PASSOVER_2026_05_25.md` dissection was purged in Phase 0.4 along with 18 other fragmented handoff/directive/passover docs · the gap catalog is now distributed across phase entries below. For the live system map (tables, env vars, model routing), see `ARCHITECTURE.md` at the repo root.
 
 ---
 
@@ -58,11 +58,15 @@ Without these, every other improvement is built on sand.
   - Directory presence · all 24 deployed functions have a repo twin at `supabase/functions/<slug>/index.ts` (verified via parallel `ls` check).
 - **Drift status: ZERO in both directions.** Repository is the single source of truth; production reflects what is committed.
 
-## [ ] 0.4 · Single canonical `ARCHITECTURE.md` at repo root
-- **Why:** Closes gap #1 (meta-problem). The 12+ phase-handoff docs in `api/` cause context-loss between AI sessions.
+## [x] 0.4 · Single canonical `ARCHITECTURE.md` at repo root · CLOSED · commit `<PHASE_0_4_SHA>` · 2026-05-25
+- **Why:** Closes gap #1 (meta-problem). The 12+ phase-handoff docs in `api/` and at root caused context-loss between AI sessions.
 - **How:** New `ARCHITECTURE.md` at repo root: one-page system diagram, table of every component (service, language, deploy target, owner), env var catalog, table-by-table schema brief. Phase docs in `api/` get a "see ARCHITECTURE.md" header.
 - **Done when:** Any AI agent (Claude/Gemini/etc.) can read this single file and understand the system in 5 minutes.
-- **Effort:** 4 hours.
+- **Shipped (this session):**
+  - **Purged 19 fragmented docs** matching the `PHASE_*` / `*HANDOFF*` / `*DIRECTIVE*` / `*PASSOVER*` naming patterns from both root and `api/`. Full delete list captured in the commit message.
+  - **Created `ARCHITECTURE.md`** at repo root with 8 sections: TL;DR component map · repo layout · full Postgres schema (24 public tables grouped by domain, with row counts, FK topology, and the two stored procedures used by the payment path) · component-call diagram · edge function inventory (all 24 functions with auth gate, AI model, use-case tag, purpose) · model routing rules (Haiku/Sonnet/Opus tiering) · Render service breakdown (`vision-scout`) · complete env var catalog (32 Supabase secrets + 27 Render env vars sourced from `render.yaml` + `Deno.env.get` + `process.env` grep) · migration-source guidance · maintenance instructions.
+  - **Patched `BBF_MASTER_PLAN.md`** premise line to drop the dead `BBF_PASSOVER_2026_05_25.md` reference and point readers to `ARCHITECTURE.md` for the live system map.
+- **Validation:** Doc references no deleted files; all 24 deployed edge functions appear in §4; all 32 `Deno.env.get` names appear in §6.1; all 27 `render.yaml` env vars appear in §6.2; all 24 `public.*` tables (per `list_tables`) appear in §2.
 
 ---
 
