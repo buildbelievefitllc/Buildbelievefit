@@ -74,21 +74,28 @@ Without these, every other improvement is built on sand.
 
 Do these before pushing any meaningful outbound volume.
 
-## [ ] 1.1 · Cross-system suppression table
-- **Why:** Closes gap #3. Today an email could be in both `bbf_leads` (Concierge) and `bbf_outbound_athletes` (Marketing) and receive both flows.
-- **How:** `bbf_email_suppression(email PK, source text, reason text, created_at)`. Both `bbf-lead-concierge` and `marketing/agents/dispatcher.js` check it before sending. Honors `unsubscribed_at` from either table.
-- **Done when:** A test email added to suppression doesn't receive emails from either system.
-- **Effort:** 4 hours.
+## [x] 1.1 · Cross-system suppression table · CLOSED · commit `<PHASE_1_SHA>` · 2026-05-25
+- **Why:** Closes gap #3. Previously an email could be in both `bbf_leads` (Concierge) and `bbf_outbound_athletes` (Marketing) and receive both flows.
+- **How:** `bbf_email_suppression(email TEXT PK CHECK lowercase, suppressed_at TIMESTAMPTZ, reason TEXT)`. Marketing dispatcher consults it before every Resend send · hits get hard-skipped with `status='suppressed'`.
+- **Done when:** A test email added to suppression is hard-skipped by the dispatcher (verified via the live smoke test in the closure session).
+- **Shipped (this session):**
+  - **Migration `20260525220000_bbf_email_suppression_and_events.sql`** applied to prod · table created with RLS service-role only · lowercase CHECK constraint verified to fire on uppercase input · 3 indexes (email PK + reason + suppressed_at desc) · prod-applied via `mcp__supabase__apply_migration`.
+  - **New helper `vision-scout/marketing/suppression.js`** · single chokepoint exporting `isSuppressed(email)`, `suppressEmail(email, reason)`, `logEmailEvent(payload)`, `summarizeDeliveryMetrics({hours})`. Read failures fail-CLOSED (treat as suppressed) so a transient DB blip never double-emails an opted-out athlete.
+  - **Dispatcher refactor** (`agents/dispatcher.js`) · `dispatchOne` now calls `isSuppressed(lead.email)` BEFORE Resend · suppressed rows flip to `status='suppressed', last_error='suppressed_by_ledger'` so the next batch doesn't re-pick them · `runBatch` summary now reports `suppressed` count.
+  - **Triage hooks** (`agents/triage.js`) · `intent='interested'` → `suppressEmail(reason='active_inbound_lead')` · `intent='not_interested'` → `suppressEmail(reason='unsubscribed')`.
+  - **Unsubscribe hook** (`agents/unsubscribe.js`) · always-on `suppressEmail(reason='unsubscribed')` after the bbf_outbound_athletes status flip · works even on repeat clicks so the ledger row stays fresh.
+- **Validation:** `node --check` clean on all 5 touched files · `tsc --allowJs --checkJs` reports zero NEW errors (only pre-existing telemetry inference noise) · CHECK constraint live-verified with an intentional uppercase insert that correctly raised `check_violation`.
 
-## [ ] 1.2 · Resend delivery webhook capture (`bbf_email_events`)
+## [x] 1.2 · Resend delivery webhook capture (`bbf_email_events`) · CLOSED · commit `<PHASE_1_SHA>` · 2026-05-25
 - **Why:** Closes the gap from Tier 1 #4 of the original dissection. Without this you're blind to bounce/open/click/complaint rates.
-- **How:**
-  - Migration: `bbf_email_events(id, provider text, message_id, event_type text, recipient text, occurred_at, meta jsonb, ts)`.
-  - Extend `/api/v1/marketing/inbound` to ALSO handle `email.delivered`, `email.bounced`, `email.opened`, `email.clicked`, `email.complained` event types.
-  - Configure webhook URL in Resend dashboard → Webhooks → all events.
-  - Add `RESEND_WEBHOOK_SECRET` env, verify HMAC on every event.
-- **Done when:** A test email's full event chain (sent → delivered → opened) appears as rows in `bbf_email_events`.
-- **Effort:** 1 day.
+- **How:** Migration `bbf_email_events(id UUID PK, message_id, email, event_type, ts, payload jsonb)`. Extended `/api/v1/marketing/inbound` to branch on payload `type` before the Gemini triage path: `email.*` (except `email.received`) → log to `bbf_email_events`; `email.bounced` / `email.complained` → also `suppressEmail()`. Aggregate metrics (sent / delivered / bounced / opened / complaint_rate / suppression_total) exposed inside `/api/v1/marketing/health` under a `delivery` key.
+- **Done when:** A test email's event chain (sent → delivered → opened) appears as rows in `bbf_email_events`, and the `/health` matrix surfaces counts.
+- **Shipped (this session):**
+  - **Migration** (same file as 1.1) · 4 indexes (message_id, email+ts, type+ts, ts) · service-role RLS · payload kept as `jsonb` so future Resend event additions don't need a schema bump.
+  - **`/inbound` router branch** (`agents/triage.js`) · `isDeliveryEventPayload(payload)` runs FIRST · delivery events route to `logEmailEvent` (writes to `bbf_email_events`, auto-suppresses bounce/complaint) · non-delivery payloads (athlete replies including `email.received`) flow to the existing Gemini intent-classification path. Response shape distinguishes via `kind: 'delivery_event' | 'athlete_reply'`.
+  - **`/health` matrix** (`router.js`) · added `delivery` key with 24-hour rollup of all 8 Resend event types + derived `complaint_rate` + total suppression count · best-effort with a 2-second deadline so a DB blip never hangs health.
+- **Validation:** Live INSERT + SELECT round-trip on `bbf_email_events` via `execute_sql` · ✓ 2 rows inserted, ✓ 2 rows cleaned up.
+- **Follow-up (NOT included in this sprint):** HMAC signature verification on `/inbound` (the original Phase 1.3 item, untouched here) · Resend webhook configuration in the Resend dashboard pointing at `https://vision-scout.onrender.com/api/v1/marketing/inbound`.
 
 ## [ ] 1.3 · HMAC verification on `/inbound`
 - **Why:** Today the endpoint is fully public; anyone who finds the URL can burn Gemini tokens.

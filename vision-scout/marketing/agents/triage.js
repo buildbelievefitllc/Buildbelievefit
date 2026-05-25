@@ -8,8 +8,15 @@
 import { sb, requireSb, TABLE }   from '../db.js';
 import { generate, extractJSON, MODEL_NAME } from '../gemini.js';
 import { logRun, logLlmCall, newRunId } from '../telemetry.js';
+import {
+  isDeliveryEventPayload,
+  logEmailEvent,
+  suppressEmail,
+  REASON,
+} from '../suppression.js';
 
 const AGENT                 = 'marketing.triage';
+const EVENTS_AGENT          = 'marketing.events';
 const PROMPT_INTENT         = 'marketing.triage.intent';
 const PROMPT_INTENT_VER     = 1;
 const PROMPT_DRAFT          = 'marketing.triage.reply_draft';
@@ -78,8 +85,44 @@ function extractSenderAndBody(payload) {
 export async function inbound(req, res) {
   if (!requireSb(res)) return;
   const startedAt = Date.now();
-  const runId     = newRunId('triage');
   const payload   = req.body || {};
+
+  // Phase 1.1 · Resend delivery-event branch · runs BEFORE the athlete-
+  // reply path so a delivery webhook never falls through to Gemini.
+  // Resend ships these with type: 'email.delivered' | 'email.bounced'
+  // | 'email.opened' | 'email.complained' | etc. Inbound athlete
+  // replies use 'email.received' (or no type at all from non-Resend
+  // providers) · those flow to the existing triage logic below.
+  if (isDeliveryEventPayload(payload)) {
+    const eventsRunId = newRunId('events');
+    const result = await logEmailEvent(payload);
+    await logRun({
+      agent: EVENTS_AGENT, runId: eventsRunId, source: 'webhook',
+      startedAt, finishedAt: Date.now(), ok: !!result.ok,
+      error: result.ok ? null : result.error,
+      summary: {
+        event_type:         result.type || null,
+        message_id:         result.message_id || null,
+        email:              result.email || null,
+        auto_suppressed:    !!result.suppressed,
+        suppression_reason: result.suppression_reason || null,
+      },
+    });
+    if (!result.ok) {
+      return res.status(500).json({ ok: false, error: result.error, detail: result.detail });
+    }
+    return res.json({
+      ok:               true,
+      kind:             'delivery_event',
+      event_type:       result.type,
+      message_id:       result.message_id,
+      email:            result.email,
+      auto_suppressed:  result.suppressed,
+      run_id:           eventsRunId,
+    });
+  }
+
+  const runId          = newRunId('triage');
   const { from, body } = extractSenderAndBody(payload);
 
   if (!from || !body) {
@@ -151,11 +194,19 @@ export async function inbound(req, res) {
   const nowIso = new Date().toISOString();
   const update = { intent, replied_at: nowIso };
 
+  // Phase 1.3 · suppression hooks · this athlete is no longer a cold-
+  // outreach target regardless of which way they replied. Both branches
+  // record into the cross-system ledger so any future scout/analyst
+  // pass that re-discovers them gets dispatcher-side-blocked.
+  let suppressionWritten = null;
+
   if (intent === 'not_interested') {
     update.status = 'bounced';
+    suppressionWritten = await suppressEmail(lead.email, REASON.UNSUBSCRIBED);
   } else {
     update.status = 'replied';
     if (intent === 'interested') {
+      suppressionWritten = await suppressEmail(lead.email, REASON.ACTIVE_INBOUND_LEAD);
       // Draft a contextual reply for the CEO to review + send manually.
       const draftPrompt = [
         `Original pitch you sent:`,
@@ -225,19 +276,22 @@ export async function inbound(req, res) {
     startedAt, finishedAt: Date.now(), ok: true,
     summary: {
       from,
-      lead_id:       lead.id,
+      lead_id:        lead.id,
       intent,
-      new_status:    update.status,
+      new_status:     update.status,
       draft_attached: !!update.draft_reply,
+      suppressed:     !!suppressionWritten?.ok,
     },
   });
 
   return res.json({
-    ok:            true,
-    lead_id:       lead.id,
+    ok:             true,
+    kind:           'athlete_reply',
+    lead_id:        lead.id,
     intent,
-    new_status:    update.status,
+    new_status:     update.status,
     draft_attached: !!update.draft_reply,
+    suppressed:     !!suppressionWritten?.ok,
     run_id:         runId,
   });
 }

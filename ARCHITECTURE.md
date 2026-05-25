@@ -122,6 +122,13 @@ Project ref: `ihclbceghxpuawymlvgi` · RLS enabled on every table · service-rol
 | **`bbf_agent_runs`** | 10 | 5 | One row per agent invocation · `agent`, `run_id`, `started_at`, `finished_at`, `ok`, `summary jsonb`. Marketing pipeline writes here on every invocation |
 | **`bbf_llm_calls`** | 15 | 0 | Per-call cost ledger · `model`, `prompt_name`, `input_tokens`, `output_tokens`, `cost_usd`, `latency_ms`. Cost rate card pre-seeded for `claude-opus-4-7`, `claude-sonnet-4-6`, `claude-haiku-4-5`, `gemini-3.5-flash`, `gemini-3.5-pro` |
 
+### 2.6a Email defense + delivery telemetry (Phase 1.1 + 1.3)
+
+| Table | Cols | Live rows | Notes |
+|---|---:|---:|---|
+| **`bbf_email_suppression`** | 3 | 0 | Cross-system do-not-contact ledger · `email TEXT PK` (lowercase enforced via CHECK constraint), `suppressed_at`, `reason`. Reasons: `active_inbound_lead`, `unsubscribed`, `bounced`, `complaint`. **Marketing dispatcher consults this before EVERY send · hits get hard-skipped.** Writers: `marketing/agents/triage.js` (interested + not_interested replies), `marketing/agents/unsubscribe.js` (one-click), `marketing/suppression.js → logEmailEvent` (bounced/complained delivery events) |
+| **`bbf_email_events`** | 6 | 0 | Resend delivery webhook flight recorder · `id UUID PK`, `message_id`, `email`, `event_type`, `ts`, `payload jsonb`. Event types: `email.sent / delivered / delivery_delayed / bounced / opened / clicked / complained / failed`. Writer: `marketing/suppression.js → logEmailEvent` (invoked from `/api/v1/marketing/inbound` when payload `type` matches `email.*` and is NOT `email.received`). Powers the delivery diagnostic matrix in `/api/v1/marketing/health` |
+
 ### 2.7 Misc
 
 | Table | Cols | Live rows | Notes |

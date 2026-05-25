@@ -20,6 +20,7 @@
 import { sb, requireSb, getSb, TABLE } from '../db.js';
 import { sendPitch } from '../resend.js';
 import { logRun, newRunId } from '../telemetry.js';
+import { isSuppressed } from '../suppression.js';
 
 const AGENT         = 'marketing.dispatcher';
 const DEFAULT_BATCH = 5;
@@ -45,6 +46,29 @@ function splitPitch(rawPitch, athleteName) {
 }
 
 async function dispatchOne(client, lead) {
+  // Phase 1.3 · cross-system suppression gate · BEFORE we spend a Resend
+  // credit, before we touch the lead row, before we do anything. Hits
+  // are flipped to status='suppressed' so the dispatcher doesn't loop
+  // back on the same row at the next batch cycle.
+  // Note: the gate runs on the ORIGINAL lead.email, not the test
+  // override · the override is a dispatch-time visual redirect for
+  // QA, the suppression ledger is keyed to the real recipient.
+  if (await isSuppressed(lead.email)) {
+    await client.from(TABLE).update({
+      status:     'suppressed',
+      last_error: 'suppressed_by_ledger',
+    }).eq('id', lead.id);
+    console.log(`[marketing/dispatcher] skipped (suppressed) · ${lead.email}`);
+    return {
+      id:           lead.id,
+      email:        lead.email,
+      delivered_to: null,
+      intercepted:  false,
+      ok:           false,
+      skipped:      'suppressed',
+    };
+  }
+
   const { subject, body } = splitPitch(lead.personalized_pitch, lead.athlete_name);
 
   const destinationEmail = (lead.email === TEST_LEAD_EMAIL)
@@ -152,7 +176,8 @@ export async function runBatch({ batchSize, leadId, runId, source } = {}) {
   }
   const ok          = results.filter((r) => r.ok).length;
   const intercepted = results.filter((r) => r.intercepted).length;
-  console.log(`[marketing/dispatcher] sent=${ok}/${results.length}`);
+  const suppressed  = results.filter((r) => r.skipped === 'suppressed').length;
+  console.log(`[marketing/dispatcher] sent=${ok}/${results.length} suppressed=${suppressed}`);
   await logRun({
     agent:      AGENT,
     runId:      effectiveRunId,
@@ -163,13 +188,14 @@ export async function runBatch({ batchSize, leadId, runId, source } = {}) {
     summary:    {
       dispatched: results.length,
       succeeded:  ok,
-      failed:     results.length - ok,
+      failed:     results.length - ok - suppressed,
+      suppressed,
       intercepted,
       batch_size: size,
       lead_id:    leadId || null,
     },
   });
-  return { ok: true, dispatched: results.length, succeeded: ok, results, run_id: effectiveRunId };
+  return { ok: true, dispatched: results.length, succeeded: ok, suppressed, results, run_id: effectiveRunId };
 }
 
 // HTTP handler · thin wrapper.

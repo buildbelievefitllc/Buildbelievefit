@@ -5,6 +5,7 @@
 // Flips status to 'unsubscribed'. Idempotent. No auth · token is the auth.
 import { sb, requireSb, TABLE } from '../db.js';
 import { logRun, newRunId } from '../telemetry.js';
+import { suppressEmail, REASON } from '../suppression.js';
 
 const AGENT = 'marketing.unsubscribe';
 
@@ -46,6 +47,14 @@ export async function unsubscribe(req, res) {
   }
 
   const lead = data?.[0];
+
+  // Phase 1.3 · cross-system suppression · always-on so a repeat click
+  // (already_unsubscribed branch) still keeps the ledger row fresh.
+  let suppressionWritten = null;
+  if (lead?.email) {
+    suppressionWritten = await suppressEmail(lead.email, REASON.UNSUBSCRIBED);
+  }
+
   console.log(`[marketing/unsubscribe] token=${token.slice(0, 8)}… lead=${lead?.email || '(already unsubscribed or unknown token)'}`);
   await logRun({
     agent: AGENT, runId, source: req.method === 'POST' ? 'one_click' : 'browser',
@@ -53,6 +62,7 @@ export async function unsubscribe(req, res) {
     summary: {
       token_prefix: token.slice(0, 8),
       email:        lead?.email || null,
+      suppressed:   !!suppressionWritten?.ok,
       already_unsubscribed_or_unknown: !lead,
     },
   });
