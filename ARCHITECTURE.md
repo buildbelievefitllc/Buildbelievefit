@@ -342,6 +342,7 @@ Defined in `render.yaml` (`sync: false` means stored in Render secret manager; `
 | `BBF_TELEMETRY_DISABLED` | (optional, default off) | Set `true` to silence telemetry writes |
 | `GEMINI_TIMEOUT_MS` | (optional, default 30000) | Gemini call timeout |
 | `GEMINI_THINKING_BUDGET` | (optional, default 0) | Override the disabled-thinking default |
+| `RESEND_WEBHOOK_SECRET` | **secret · REQUIRED** | Phase 1.3 · Svix-format webhook signing secret (`whsec_<base64>`) · `/api/v1/marketing/inbound` returns 503 when unset, 401 on signature failure. Set in Resend dashboard → Webhooks → Signing Secret, paste into Render env, redeploy |
 
 ---
 

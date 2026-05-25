@@ -23,6 +23,7 @@ import { isSbBuilt, sbBootKeyPresent, sbBuiltAt, sbBuildError, sbUsedFallback } 
 import { isResendReady } from './resend.js';
 import { summarizeTelemetry } from './telemetry.js';
 import { summarizeDeliveryMetrics } from './suppression.js';
+import { isResendWebhookSecretConfigured } from './svix-verify.js';
 
 const MARKETING_ADMIN_TOKEN = process.env.BBF_MARKETING_ADMIN_TOKEN || '';
 
@@ -108,11 +109,13 @@ export function buildMarketingRouter() {
     return res.json({
       ok: true,
       env: {
-        gemini_key_set:           !!process.env.GEMINI_API_KEY,
-        resend_key_set:           !!process.env.RESEND_API_KEY,
-        service_role_set:         !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-        admin_token_set:          !!process.env.BBF_MARKETING_ADMIN_TOKEN,
-        unsub_base_url_set:       !!process.env.BBF_UNSUB_BASE_URL,
+        gemini_key_set:                 !!process.env.GEMINI_API_KEY,
+        resend_key_set:                 !!process.env.RESEND_API_KEY,
+        service_role_set:               !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        admin_token_set:                !!process.env.BBF_MARKETING_ADMIN_TOKEN,
+        unsub_base_url_set:             !!process.env.BBF_UNSUB_BASE_URL,
+        resend_webhook_secret_set:      !!process.env.RESEND_WEBHOOK_SECRET,
+        resend_webhook_secret_valid:    isResendWebhookSecretConfigured(),
       },
       clients: {
         sb_client_built:          isSbBuilt(),

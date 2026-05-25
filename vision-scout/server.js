@@ -56,8 +56,17 @@ const app       = express();
 // ─── Middleware ─────────────────────────────────────────────────────────
 // /smoke-test uses raw body so HMAC verification gets the EXACT bytes
 // GitHub signed. Everything else uses normal JSON parsing.
+//
+// Phase 1.3 · the JSON parser ALSO stashes the raw buffer on req.rawBody
+// via the `verify` callback so /api/v1/marketing/inbound can compute a
+// Svix HMAC over the original bytes without re-encoding the parsed
+// payload (JSON canonicalization would change the byte stream and break
+// the signature).
 app.use('/smoke-test', express.raw({ type: '*/*', limit: '5mb' }));
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({
+  limit:  '1mb',
+  verify: (req, _res, buf) => { if (buf && buf.length) req.rawBody = Buffer.from(buf); },
+}));
 
 // Marketing engine · mounted at /api/v1/marketing.
 // Routes: /ingest /analyze /dispatch /inbound /unsubscribe /health

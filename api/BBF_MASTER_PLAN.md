@@ -97,11 +97,23 @@ Do these before pushing any meaningful outbound volume.
 - **Validation:** Live INSERT + SELECT round-trip on `bbf_email_events` via `execute_sql` · ✓ 2 rows inserted, ✓ 2 rows cleaned up.
 - **Follow-up (NOT included in this sprint):** HMAC signature verification on `/inbound` (the original Phase 1.3 item, untouched here) · Resend webhook configuration in the Resend dashboard pointing at `https://vision-scout.onrender.com/api/v1/marketing/inbound`.
 
-## [ ] 1.3 · HMAC verification on `/inbound`
-- **Why:** Today the endpoint is fully public; anyone who finds the URL can burn Gemini tokens.
-- **How:** Verify `Svix-Signature` (Resend uses Svix) on every POST. Reject 401 if invalid. `RESEND_WEBHOOK_SECRET` env.
-- **Done when:** Curl without signature returns 401. Valid Resend webhook returns 200.
-- **Effort:** 2 hours.
+## [x] 1.3 · HMAC verification on `/inbound` · CLOSED · commit `<PHASE_1_3_SHA>` · 2026-05-25
+- **Why:** Endpoint was fully public · anyone with the URL could burn Gemini tokens, spam `bbf_email_events`, or forge bounce/complaint events to push real customers onto the suppression ledger.
+- **How:** Strict Svix verification (Resend uses Svix) is the FIRST gate before any payload routing. Headers required: `svix-id`, `svix-timestamp`, `svix-signature`. HMAC-SHA256 over `${svix_id}.${svix_timestamp}.${rawBody}` with `whsec_`-prefixed base64-decoded secret. Replay window enforced at ±5 minutes. Constant-time compare via `crypto.timingSafeEqual`.
+- **Done when:** Curl without signature returns 401. Valid Resend webhook signature returns 200. Stale timestamp returns 401. Tampered body returns 401.
+- **Shipped (this session):**
+  - **New helper `vision-scout/marketing/svix-verify.js`** · pure native `node:crypto` · zero new deps · exports `verifySvixSignature({id, timestamp, signature, rawBody, secret, toleranceSec})` and `isResendWebhookSecretConfigured()`. Handles space-separated multi-signature header (Svix key-rotation format), unknown future schemes (forward-compat), and the `whsec_` prefix on the secret env var.
+  - **Raw-body capture hook** (`server.js`) · added `verify: (req, _res, buf) => { req.rawBody = Buffer.from(buf); }` to the global `express.json({ limit: '1mb' })` so the inbound handler can compute HMAC over original bytes without JSON canonicalization drift.
+  - **Gate in `agents/triage.js → inbound`** · STRICT, FIRST: secret unset → 503 (config gap signal), missing headers / bad signature / replay window blown → 401. Every failure mode writes a `marketing.inbound.hmac` agent run with the failure slug (`missing_svix_id`, `signature_mismatch`, `timestamp_out_of_tolerance`, etc.).
+  - **`/health` signals** · added `env.resend_webhook_secret_set` (presence) and `env.resend_webhook_secret_valid` (parses as `whsec_<base64>` or raw base64) so the operator can confirm the gate is armed in one curl.
+  - **ARCHITECTURE.md** · added `RESEND_WEBHOOK_SECRET` to the env catalog as `secret · REQUIRED` with the operator handoff path (Resend dashboard → Render env → redeploy).
+- **Validation (this session):** `node --check` clean on all 4 touched files. Live HMAC self-test exercised 11 distinct paths against the verifier, all PASS:
+  - ✓ valid signature  · ✓ missing svix-id  · ✓ missing svix-timestamp  · ✓ missing svix-signature
+  - ✓ tampered body  · ✓ stale timestamp >5min  · ✓ unknown signature scheme
+  - ✓ multiple signatures, one valid (key-rotation case)
+  - ✓ secret without `whsec_` prefix (self-hosted Svix case)
+  - ✓ empty secret → `invalid_secret_config`  · ✓ missing rawBody buffer → `missing_raw_body`
+- **Operator follow-up (NOT code work):** Set `RESEND_WEBHOOK_SECRET` in Render dashboard → vision-scout → Environment. Copy value from Resend dashboard → Webhooks → Signing Secret. Until set, `/inbound` returns 503 — Phase 1.2 delivery events will not flow until this env var is configured.
 
 ## [ ] 1.4 · Cost ceiling + daily alerts
 - **Why:** Closes Tier 1 #5. No spending cap; runaway loop could burn $200/night.

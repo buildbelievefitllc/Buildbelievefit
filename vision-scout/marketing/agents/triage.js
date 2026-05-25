@@ -14,9 +14,11 @@ import {
   suppressEmail,
   REASON,
 } from '../suppression.js';
+import { verifySvixSignature, isResendWebhookSecretConfigured } from '../svix-verify.js';
 
 const AGENT                 = 'marketing.triage';
 const EVENTS_AGENT          = 'marketing.events';
+const HMAC_AGENT            = 'marketing.inbound.hmac';
 const PROMPT_INTENT         = 'marketing.triage.intent';
 const PROMPT_INTENT_VER     = 1;
 const PROMPT_DRAFT          = 'marketing.triage.reply_draft';
@@ -83,8 +85,63 @@ function extractSenderAndBody(payload) {
 }
 
 export async function inbound(req, res) {
-  if (!requireSb(res)) return;
   const startedAt = Date.now();
+
+  // ── Phase 1.3 · Svix HMAC gate ────────────────────────────────────
+  // STRICT. Must be the FIRST gate before requireSb, before any payload
+  // parsing decisions. An attacker without the webhook secret cannot:
+  //   · burn Gemini tokens (triage branch costs LLM calls)
+  //   · spam bbf_email_events (delivery branch is a free DB write)
+  //   · forge bounce/complaint events to push real customers onto the
+  //     suppression ledger
+  // Resend signs with the Svix scheme (https://docs.svix.com/receiving/verifying-payloads/how-manual)
+  // · headers: svix-id, svix-timestamp, svix-signature. We compute the
+  // HMAC over req.rawBody (captured by the express.json verify hook in
+  // server.js) so JSON re-encoding can't shift any bytes.
+  //
+  // Missing secret in env  → 503 (server misconfigured · distinct signal
+  //                          to the operator that the gate is not armed)
+  // Missing headers / bad signature / replay window blown → 401
+  const hmacRunId = newRunId('inbound_hmac');
+  if (!isResendWebhookSecretConfigured()) {
+    console.error('[marketing/inbound] RESEND_WEBHOOK_SECRET unset · refusing webhook (set the secret in Render dashboard before re-enabling)');
+    await logRun({
+      agent: HMAC_AGENT, runId: hmacRunId, source: 'webhook',
+      startedAt, finishedAt: Date.now(), ok: false, error: 'secret_unconfigured',
+      summary: { gate: 'svix', reason: 'config_missing' },
+    });
+    return res.status(503).json({ ok: false, error: 'webhook_secret_unconfigured' });
+  }
+
+  const svixId        = req.get('svix-id')        || '';
+  const svixTimestamp = req.get('svix-timestamp') || '';
+  const svixSignature = req.get('svix-signature') || '';
+
+  const verdict = verifySvixSignature({
+    id:        svixId,
+    timestamp: svixTimestamp,
+    signature: svixSignature,
+    rawBody:   req.rawBody, // captured by express.json verify hook
+    secret:    process.env.RESEND_WEBHOOK_SECRET,
+  });
+  if (!verdict.ok) {
+    console.warn(`[marketing/inbound] svix verify rejected · reason=${verdict.error} svix_id_prefix=${svixId.slice(0, 12)}`);
+    await logRun({
+      agent: HMAC_AGENT, runId: hmacRunId, source: 'webhook',
+      startedAt, finishedAt: Date.now(), ok: false, error: verdict.error,
+      summary: {
+        gate:                 'svix',
+        svix_id_prefix:       svixId.slice(0, 12),
+        had_svix_id:          !!svixId,
+        had_svix_timestamp:   !!svixTimestamp,
+        had_svix_signature:   !!svixSignature,
+        had_raw_body:         Buffer.isBuffer(req.rawBody) && req.rawBody.length > 0,
+      },
+    });
+    return res.status(401).json({ ok: false, error: 'unauthorized', detail: verdict.error });
+  }
+
+  if (!requireSb(res)) return;
   const payload   = req.body || {};
 
   // Phase 1.1 · Resend delivery-event branch · runs BEFORE the athlete-
