@@ -214,11 +214,28 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 - **Done when:** Grep for hardcoded hex colors / px values in non-token CSS returns zero results.
 - **Effort:** 3 days.
 
-## [ ] 4.3 · Split bbf-app.html into per-feature modules
+## [~] 4.3 · Split bbf-app.html into per-feature modules · Stage 1 CLOSED · commit `<PHASE_2_1_SHA>` · 2026-05-25
 - **Why:** 22k lines in one file is unmaintainable. Closes gap #6.
-- **How:** Per-feature directories: `src/nutrition/`, `src/coach/`, `src/concierge/`, `src/cardio/`, `src/admin/`. Each exports a single mount function. The HTML shell becomes a thin router + slot.
-- **Done when:** Feature additions/edits happen in a 500-line file, not a 22k-line file.
-- **Effort:** 1-2 weeks of focused work. Can be done incrementally (move one feature per PR).
+- **How (Stage 1 · Phase 2.1 in operator's nomenclature · zero-breakage extraction):** Pull all 10 inline `<style>` blocks and the 5 named peripheral inline `<script>` blocks out of `bbf-app.html` into `src/styles/` + `src/state/` + `src/components/`. Re-link via `<link rel="stylesheet">` and `<script src="...">` at the same document positions to preserve cascade + execution order. The 17,544-line core inline script stays put · its split is Stage 2 and requires a real bundler (gated on Phase 4.1).
+- **How (Stage 2 · deferred, multi-session):** Per-feature directories `src/nutrition/`, `src/coach/`, etc. Each exports a mount function. Requires Vite or equivalent (Phase 4.1) so ES-module imports resolve in the browser.
+- **Done when (full):** Feature additions/edits happen in a 500-line file, not a 22k-line file.
+- **Shipped (Stage 1, this session):**
+  - `bbf-app.html`: **26,832 → 19,754 lines** (Δ −7,078 · −387 KB).
+  - **`src/styles/bbf-main.css`** (5,129 lines · 306 KB): all 10 originally-inline `<style>` blocks consolidated in original source order. Cascade preserved. CSS braces verified balanced 2231/2231 with comment- and string-aware parser. Pre-existing defect found + fixed: block #1 (`promethean-vault-engine`) had an unclosed `@media(max-width:980px){` that originally relied on `</style>` as an implicit terminator and scoped 273 lines of rules (`.vitals-intro`, `.vi-title`, `.vi-lines`, `.audio-toggle`, `.scr`) to small viewports. Extractor appends the implicit `}` so observable cascade matches the original.
+  - **`src/state/bbf-auth-engine.js`** (967 lines · 46 KB) · login/PIN/session flow · formerly `<script id="bbf-auth-engine">`.
+  - **`src/components/promethean-vault-iife.js`** (594 lines · 23 KB) · vault mount IIFE.
+  - **`src/components/surprise-layer.js`** (111 lines · 5.3 KB) · surprise IIFE.
+  - **`src/components/pantheon-layer.js`** (96 lines · 4.5 KB) · pantheon IIFE.
+  - **`src/components/ultra-instinct-layer.js`** (254 lines · 12 KB) · ultra-instinct IIFE.
+  - **`bbf-app.html`** re-linked: `<link rel="stylesheet" href="src/styles/bbf-main.css"/>` in `<head>` at the position the first `<style>` block formerly occupied. Five `<script id="..." src="src/..."></script>` stubs at the original positions of the inline scripts so execution order is byte-identical to before. All 5 ID attributes preserved. All 36 `<script>` tags retain their original ordinal positions.
+- **Validation:**
+  - `node --check` clean on all 5 extracted `.js` files.
+  - CSS parsed via comment- and string-aware Node validator · 2231 opens / 2231 closes · min_depth=0 (no negative-depth excursions).
+  - Self-introspection grep: zero `getElementById('<extracted-id>')` references that would break on externalization · safe to externalize.
+  - Originally `@media`-scoped rules confirmed present in consolidated CSS (`.vitals-intro`, `.vi-title`, `.vi-lines`, `.audio-toggle`, `.scr` all found).
+  - GitHub Pages serve-path verified: `.nojekyll` present, `src/` not in `.gitignore`, CNAME points at `buildbelievefit.fitness` · relative paths resolve correctly.
+  - Pre-check: ALL 5 script IDs and ALL 9 style IDs have zero introspection from the remaining HTML/JS · no broken refs.
+- **Out of scope (intentional):** the 17,544-line core inline `<script>` block (script #29) stays inline · splitting it requires a bundler (Phase 4.1) so we don't break the unbundled GitHub Pages deploy.
 
 ## [ ] 4.4 · Frontend telemetry (`bbf_events`)
 - **Why:** Closes gap #13. Features ship without measurement.

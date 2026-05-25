@@ -51,7 +51,18 @@ External providers: **Anthropic** (Claude · Opus 4.7, Sonnet 4.6, Haiku 4.5) ·
 │   │   └── agents/              ← scout · scout-engine · analyst · triage · dispatcher · unsubscribe
 │   ├── package.json             ← Deps: @anthropic-ai/sdk, @supabase/supabase-js, express, playwright, resend, node-cron
 │   └── Dockerfile (implied by `runtime: docker` in render.yaml)
-├── public/                      ← Static storefront + bbf-app.html vault
+├── bbf-app.html                 ← Vault SPA · monolithic HTML (now 19.7K lines, was 26.8K · Phase 2.1 surgical extraction moved styles + peripheral scripts to src/)
+├── src/                         ← Phase 2.1 extraction target · loaded by bbf-app.html via <link> / <script src=>
+│   ├── styles/
+│   │   └── bbf-main.css         ← All 10 originally-inline <style> blocks consolidated · cascade order preserved · unbalanced @media{ braces explicitly closed
+│   ├── state/
+│   │   └── bbf-auth-engine.js   ← Login + session + PIN flow (formerly <script id="bbf-auth-engine">)
+│   └── components/
+│       ├── promethean-vault-iife.js   ← Vault mount IIFE (formerly <script id="promethean-vault-iife">)
+│       ├── surprise-layer.js          ← Surprise layer IIFE
+│       ├── pantheon-layer.js          ← Pantheon layer IIFE
+│       └── ultra-instinct-layer.js    ← Ultra-instinct layer IIFE
+├── public/                      ← Other static storefront assets
 ├── voiceover/                   ← Marketing-page audio assets (.mp3)
 ├── styles/                      ← CSS for the storefront
 ├── playbooks/                   ← Reference content (programmatic, not docs)
