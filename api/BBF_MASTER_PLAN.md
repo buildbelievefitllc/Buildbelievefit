@@ -58,7 +58,7 @@ Without these, every other improvement is built on sand.
   - Directory presence · all 24 deployed functions have a repo twin at `supabase/functions/<slug>/index.ts` (verified via parallel `ls` check).
 - **Drift status: ZERO in both directions.** Repository is the single source of truth; production reflects what is committed.
 
-## [x] 0.4 · Single canonical `ARCHITECTURE.md` at repo root · CLOSED · commit `<PHASE_0_4_SHA>` · 2026-05-25
+## [x] 0.4 · Single canonical `ARCHITECTURE.md` at repo root · CLOSED · commit `f28c80d` · 2026-05-25
 - **Why:** Closes gap #1 (meta-problem). The 12+ phase-handoff docs in `api/` and at root caused context-loss between AI sessions.
 - **How:** New `ARCHITECTURE.md` at repo root: one-page system diagram, table of every component (service, language, deploy target, owner), env var catalog, table-by-table schema brief. Phase docs in `api/` get a "see ARCHITECTURE.md" header.
 - **Done when:** Any AI agent (Claude/Gemini/etc.) can read this single file and understand the system in 5 minutes.
