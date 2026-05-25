@@ -97,7 +97,7 @@ Do these before pushing any meaningful outbound volume.
 - **Validation:** Live INSERT + SELECT round-trip on `bbf_email_events` via `execute_sql` · ✓ 2 rows inserted, ✓ 2 rows cleaned up.
 - **Follow-up (NOT included in this sprint):** HMAC signature verification on `/inbound` (the original Phase 1.3 item, untouched here) · Resend webhook configuration in the Resend dashboard pointing at `https://vision-scout.onrender.com/api/v1/marketing/inbound`.
 
-## [x] 1.3 · HMAC verification on `/inbound` · CLOSED · commit `<PHASE_1_3_SHA>` · 2026-05-25
+## [x] 1.3 · HMAC verification on `/inbound` · CLOSED · commit `39474b4` · 2026-05-25
 - **Why:** Endpoint was fully public · anyone with the URL could burn Gemini tokens, spam `bbf_email_events`, or forge bounce/complaint events to push real customers onto the suppression ledger.
 - **How:** Strict Svix verification (Resend uses Svix) is the FIRST gate before any payload routing. Headers required: `svix-id`, `svix-timestamp`, `svix-signature`. HMAC-SHA256 over `${svix_id}.${svix_timestamp}.${rawBody}` with `whsec_`-prefixed base64-decoded secret. Replay window enforced at ±5 minutes. Constant-time compare via `crypto.timingSafeEqual`.
 - **Done when:** Curl without signature returns 401. Valid Resend webhook signature returns 200. Stale timestamp returns 401. Tampered body returns 401.
