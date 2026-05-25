@@ -690,6 +690,15 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .cardio-safety strong{color:#FFD0D0}
 .cardio-modality{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:2.2rem;letter-spacing:2.6px;color:#fff;text-transform:uppercase;line-height:1.05;text-shadow:0 0 14px rgba(255,69,0,.35);margin-bottom:.85rem;text-align:center}
 .cardio-protocol{background:#0a0405;border:2px solid #FF4500;border-radius:10px;padding:1.1rem 1.2rem;font-family:ui-monospace,SFMono-Regular,Menlo,'Courier New',monospace;font-size:1.02rem;line-height:1.65;color:#fff;white-space:pre-wrap;word-break:break-word;letter-spacing:.4px;margin-bottom:1rem}
+/* Phase 7.x · BBF #2b · Smart Cardio config-missing banner · surfaces
+   the silent edge-function fallback so the CEO knows when ANTHROPIC_API_KEY
+   isn't set on Supabase (engine returns HTTP 200 with a hardcoded protocol
+   instead of a real Claude prescription). */
+.cardio-config-warn{background:linear-gradient(180deg,rgba(255,69,0,.22),rgba(255,69,0,.08));border:2px solid #FF4500;border-radius:10px;padding:.95rem 1.1rem;margin-bottom:1rem;font-family:'Barlow Condensed',var(--bd,sans-serif);font-size:.85rem;line-height:1.55;color:#FFE0CC;letter-spacing:.4px}
+.cardio-config-warn strong{display:block;color:#FF8B5E;font-weight:900;letter-spacing:2px;text-transform:uppercase;margin-bottom:.4rem;font-size:.92rem;font-family:var(--hb,'Bebas Neue',sans-serif)}
+.cardio-config-warn-body{color:#FFD8C2}
+.cardio-config-warn code{background:rgba(0,0,0,.45);padding:.1rem .35rem;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#FFB48A;font-size:.78rem;border:1px solid rgba(255,139,94,.25)}
+.cardio-config-warn em{color:#FF8B5E;font-style:italic;font-weight:700}
 .cardio-roi-banner{background:rgba(255,69,0,.12);border-left:4px solid #FF4500;color:#FFB89E;padding:14px 16px;font-weight:bold;text-transform:uppercase;letter-spacing:1.2px;font-size:.82rem;line-height:1.55;border-radius:0 6px 6px 0}
 .cardio-loading{text-align:center;padding:1.4rem;font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.2rem;letter-spacing:3px;color:#FF6B35;text-transform:uppercase;border:1px dashed rgba(255,107,53,.45);border-radius:10px;animation:bbfCardioPulse 1.4s ease-in-out infinite}
 .cardio-error{padding:1rem 1.1rem;border:1px solid rgba(255,69,0,.5);border-left:3px solid #FF4500;background:rgba(255,69,0,.08);color:#FF8866;font-size:.85rem;border-radius:6px;line-height:1.5}
@@ -3341,7 +3350,7 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 // reload loop. On a clean session (only EXPECTED_CACHE present) the
 // flag is cleared, restoring a fresh budget for the next deploy.
 (function bbfAutonomousCacheNuke(){
-  var EXPECTED_CACHE = 'bbf-v231';
+  var EXPECTED_CACHE = 'bbf-v232';
   var NUKE_FLAG      = 'bbf_cache_nuke_at';
   try {
     if (typeof window === 'undefined' || !('caches' in window) || !navigator.serviceWorker) return;
@@ -19239,7 +19248,28 @@ var BBF_CARDIO = (function() {
     // the prescription. Driven by the server-side safety_disclaimer.
     var safety   = payload && payload.safety_disclaimer ? _esc(payload.safety_disclaimer) : '';
     var clamped  = (payload && payload.applied_zone != null) ? ' &middot; Zone ' + payload.applied_zone : '';
+    // Phase 7.x · BBF #2b · surface edge-function config failures · the
+    // bbf-agentic-cardio edge fn returns a hardcoded fallback protocol
+    // (HTTP 200, NOT an error) when ANTHROPIC_API_KEY is unset on the
+    // Supabase project · payload.reason === 'config_missing' is the
+    // tell. Without this banner the CEO sees a generic "Assault Bike ·
+    // HIIT" protocol every time and assumes the engine is "broken"
+    // when actually it's a one-line config fix on Supabase.
+    var configWarn = '';
+    if (payload && payload.reason === 'config_missing') {
+      console.warn('[BBF_CARDIO] engine returned config_missing · ANTHROPIC_API_KEY likely unset on Supabase');
+      configWarn = '<div class="cardio-config-warn">' +
+        '<strong>&#x26A0; Engine Fallback Active</strong>' +
+        '<div class="cardio-config-warn-body">' +
+        'The Smart Cardio edge function is returning a <em>hardcoded</em> protocol because ' +
+        '<code>ANTHROPIC_API_KEY</code> is missing from the Supabase project secrets. ' +
+        'What you\'re seeing below is NOT Claude\'s prescription. Set the env var on the ' +
+        'Supabase project (Settings &rarr; Edge Functions &rarr; Secrets) and redeploy ' +
+        '<code>bbf-agentic-cardio</code> to restore the AI engine.' +
+        '</div></div>';
+    }
     con.innerHTML =
+      configWarn +
       (safety ? '<div class="cardio-safety">&#x26A0; ' + safety + '</div>' : '') +
       '<div class="cardio-modality">' + modality + clamped + '</div>' +
       '<pre class="cardio-protocol">' + protocol + '</pre>' +
@@ -19766,6 +19796,21 @@ function RDW() {
       else {
         var _rs = String(_cnsRx.rep_band).match(/(\d+)/);
         if (_rs) _prefillReps = _rs[1];
+      }
+    }
+    // Phase 7.x · BBF #2a · prefill fallback for NEW clients · _cnsRx.rep_band
+    // is null until the user completes Somatic Matrix at least once · fresh
+    // client introductions (Jacky, the other client the CEO mentioned)
+    // have no readiness score so the rep prefill silently stays empty.
+    // Cascade to the exercise plan's prescribed rep target (ex.reps · e.g.,
+    // "12" or "8-12") so the input always shows the intended rep target
+    // on the client's first session.
+    if (!_prefillReps && !_isCardio && exReps) {
+      var _em = String(exReps).match(/(\d+)\s*-\s*(\d+)/);
+      if (_em) _prefillReps = _em[2];
+      else {
+        var _es = String(exReps).match(/(\d+)/);
+        if (_es) _prefillReps = _es[1];
       }
     }
     var _prefillWeight = (_arTarget && _arTarget.weight != null) ? String(_arTarget.weight) : '';
