@@ -6,7 +6,14 @@
 // contextual reply for the CEO to send manually, and emits a console
 // alert containing the athlete dossier.
 import { sb, requireSb, TABLE }   from '../db.js';
-import { generate, extractJSON } from '../gemini.js';
+import { generate, extractJSON, MODEL_NAME } from '../gemini.js';
+import { logRun, logLlmCall, newRunId } from '../telemetry.js';
+
+const AGENT                 = 'marketing.triage';
+const PROMPT_INTENT         = 'marketing.triage.intent';
+const PROMPT_INTENT_VER     = 1;
+const PROMPT_DRAFT          = 'marketing.triage.reply_draft';
+const PROMPT_DRAFT_VER      = 1;
 
 const INTENT_SYSTEM = [
   'You classify cold-outreach email replies into a single intent.',
@@ -70,11 +77,18 @@ function extractSenderAndBody(payload) {
 
 export async function inbound(req, res) {
   if (!requireSb(res)) return;
-  const payload = req.body || {};
+  const startedAt = Date.now();
+  const runId     = newRunId('triage');
+  const payload   = req.body || {};
   const { from, body } = extractSenderAndBody(payload);
 
   if (!from || !body) {
     console.warn('[marketing/triage] missing from or body · raw payload keys:', Object.keys(payload));
+    await logRun({
+      agent: AGENT, runId, source: 'webhook',
+      startedAt, finishedAt: Date.now(), ok: false, error: 'missing_from_or_body',
+      summary: { payload_keys: Object.keys(payload) },
+    });
     return res.status(400).json({ ok: false, error: 'missing_from_or_body' });
   }
 
@@ -82,10 +96,20 @@ export async function inbound(req, res) {
     .from(TABLE).select('*').eq('email', from).maybeSingle();
   if (lookupErr) {
     console.error('[marketing/triage] lookup failed:', lookupErr);
+    await logRun({
+      agent: AGENT, runId, source: 'webhook',
+      startedAt, finishedAt: Date.now(), ok: false, error: lookupErr.message,
+      summary: { from, phase: 'lookup' },
+    });
     return res.status(500).json({ ok: false, error: 'db_lookup_failed', detail: lookupErr.message });
   }
   if (!lead) {
     console.warn('[marketing/triage] unknown sender · skipping:', from);
+    await logRun({
+      agent: AGENT, runId, source: 'webhook',
+      startedAt, finishedAt: Date.now(), ok: true,
+      summary: { from, skipped: 'unknown_sender' },
+    });
     return res.json({ ok: true, skipped: 'unknown_sender' });
   }
 
@@ -96,8 +120,26 @@ export async function inbound(req, res) {
     temperature:     0,
     maxOutputTokens: 64,
   });
+  await logLlmCall({
+    agent: AGENT, runId,
+    provider:      classify.provider || 'gemini',
+    model:         classify.model    || MODEL_NAME,
+    promptName:    PROMPT_INTENT,
+    promptVersion: PROMPT_INTENT_VER,
+    inputTokens:   classify.input_tokens,
+    outputTokens:  classify.output_tokens,
+    latencyMs:     classify.latency_ms,
+    finishReason:  classify.finishReason,
+    ok:            classify.ok,
+    error:         classify.ok ? null : `${classify.error}: ${classify.detail || ''}`,
+  });
   if (!classify.ok) {
     console.error('[marketing/triage] classify failed:', classify);
+    await logRun({
+      agent: AGENT, runId, source: 'webhook',
+      startedAt, finishedAt: Date.now(), ok: false, error: classify.error,
+      summary: { from, lead_id: lead.id, phase: 'classify' },
+    });
     return res.status(502).json({ ok: false, error: 'intent_classify_failed', detail: classify.error });
   }
   const parsed = extractJSON(classify.text);
@@ -128,6 +170,19 @@ export async function inbound(req, res) {
         temperature:     0.6,
         maxOutputTokens: 220,
       });
+      await logLlmCall({
+        agent: AGENT, runId,
+        provider:      draft.provider || 'gemini',
+        model:         draft.model    || MODEL_NAME,
+        promptName:    PROMPT_DRAFT,
+        promptVersion: PROMPT_DRAFT_VER,
+        inputTokens:   draft.input_tokens,
+        outputTokens:  draft.output_tokens,
+        latencyMs:     draft.latency_ms,
+        finishReason:  draft.finishReason,
+        ok:            draft.ok,
+        error:         draft.ok ? null : `${draft.error}: ${draft.detail || ''}`,
+      });
       if (draft.ok) update.draft_reply = draft.text;
     }
   }
@@ -135,6 +190,11 @@ export async function inbound(req, res) {
   const { error: updErr } = await sb.from(TABLE).update(update).eq('id', lead.id);
   if (updErr) {
     console.error('[marketing/triage] update failed:', updErr);
+    await logRun({
+      agent: AGENT, runId, source: 'webhook',
+      startedAt, finishedAt: Date.now(), ok: false, error: updErr.message,
+      summary: { from, lead_id: lead.id, intent, phase: 'update' },
+    });
     return res.status(500).json({ ok: false, error: 'db_update_failed', detail: updErr.message });
   }
 
@@ -160,11 +220,24 @@ export async function inbound(req, res) {
     console.log(`[marketing/triage] not_interested → bounced · ${lead.email}`);
   }
 
+  await logRun({
+    agent: AGENT, runId, source: 'webhook',
+    startedAt, finishedAt: Date.now(), ok: true,
+    summary: {
+      from,
+      lead_id:       lead.id,
+      intent,
+      new_status:    update.status,
+      draft_attached: !!update.draft_reply,
+    },
+  });
+
   return res.json({
     ok:            true,
     lead_id:       lead.id,
     intent,
     new_status:    update.status,
     draft_attached: !!update.draft_reply,
+    run_id:         runId,
   });
 }

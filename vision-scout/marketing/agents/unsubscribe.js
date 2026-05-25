@@ -4,6 +4,9 @@
 //
 // Flips status to 'unsubscribed'. Idempotent. No auth · token is the auth.
 import { sb, requireSb, TABLE } from '../db.js';
+import { logRun, newRunId } from '../telemetry.js';
+
+const AGENT = 'marketing.unsubscribe';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({
@@ -13,8 +16,17 @@ function esc(s) {
 
 export async function unsubscribe(req, res) {
   if (!requireSb(res)) return;
-  const token = String(req.query?.t || req.body?.t || '').trim();
-  if (!token) return res.status(400).send('Missing token.');
+  const startedAt = Date.now();
+  const runId     = newRunId('unsub');
+  const token     = String(req.query?.t || req.body?.t || '').trim();
+  if (!token) {
+    await logRun({
+      agent: AGENT, runId, source: req.method === 'POST' ? 'one_click' : 'browser',
+      startedAt, finishedAt: Date.now(), ok: false, error: 'missing_token',
+      summary: { method: req.method },
+    });
+    return res.status(400).send('Missing token.');
+  }
 
   const { data, error } = await sb
     .from(TABLE)
@@ -25,11 +37,25 @@ export async function unsubscribe(req, res) {
 
   if (error) {
     console.error('[marketing/unsubscribe] failed:', error);
+    await logRun({
+      agent: AGENT, runId, source: req.method === 'POST' ? 'one_click' : 'browser',
+      startedAt, finishedAt: Date.now(), ok: false, error: error.message,
+      summary: { token_prefix: token.slice(0, 8) },
+    });
     return res.status(500).send('Internal error.');
   }
 
   const lead = data?.[0];
   console.log(`[marketing/unsubscribe] token=${token.slice(0, 8)}… lead=${lead?.email || '(already unsubscribed or unknown token)'}`);
+  await logRun({
+    agent: AGENT, runId, source: req.method === 'POST' ? 'one_click' : 'browser',
+    startedAt, finishedAt: Date.now(), ok: true,
+    summary: {
+      token_prefix: token.slice(0, 8),
+      email:        lead?.email || null,
+      already_unsubscribed_or_unknown: !lead,
+    },
+  });
 
   // Lightweight HTML confirmation · email clients open it in-browser.
   const html = [

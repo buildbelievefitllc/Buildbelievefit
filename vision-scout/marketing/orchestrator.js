@@ -13,39 +13,47 @@
 import { runOnce as scoutRunOnce }       from './agents/scout-engine.js';
 import { runBatch as analystRunBatch }   from './agents/analyst.js';
 import { runBatch as dispatcherRunBatch } from './agents/dispatcher.js';
+import { logRun, newRunId }              from './telemetry.js';
 
+const AGENT          = 'marketing.orchestrator';
 const ANALYZE_BATCH  = Number(process.env.BBF_ORCH_ANALYZE_BATCH)  || 25;
 const DISPATCH_BATCH = Number(process.env.BBF_ORCH_DISPATCH_BATCH) || 25;
 
 export async function runOrchestrator(meta = {}) {
+  // One run_id threaded through scout → analyst → dispatcher so
+  // bbf_agent_runs rows for a single orchestrator pass share a key.
+  const runId     = newRunId('orch');
+  const source    = meta.source || 'unknown';
   const startedAt = new Date().toISOString();
   const t0        = Date.now();
-  console.log('[marketing/orchestrator] START source=' + (meta.source || 'unknown') +
+  console.log('[marketing/orchestrator] START source=' + source +
+              ' run_id=' + runId +
               ' analyze_batch=' + ANALYZE_BATCH + ' dispatch_batch=' + DISPATCH_BATCH);
 
   const summary = {
     ok:         true,
+    run_id:     runId,
     started_at: startedAt,
-    source:     meta.source || 'unknown',
+    source,
     steps:      {},
   };
 
   try {
-    summary.steps.scout = await scoutRunOnce();
+    summary.steps.scout = await scoutRunOnce({ runId, source });
   } catch (err) {
     console.error('[marketing/orchestrator] scout threw:', err?.message);
     summary.steps.scout = { ok: false, error: 'threw', detail: err?.message };
   }
 
   try {
-    summary.steps.analyze = await analystRunBatch({ batchSize: ANALYZE_BATCH });
+    summary.steps.analyze = await analystRunBatch({ batchSize: ANALYZE_BATCH, runId, source });
   } catch (err) {
     console.error('[marketing/orchestrator] analyst threw:', err?.message);
     summary.steps.analyze = { ok: false, error: 'threw', detail: err?.message };
   }
 
   try {
-    summary.steps.dispatch = await dispatcherRunBatch({ batchSize: DISPATCH_BATCH });
+    summary.steps.dispatch = await dispatcherRunBatch({ batchSize: DISPATCH_BATCH, runId, source });
   } catch (err) {
     console.error('[marketing/orchestrator] dispatcher threw:', err?.message);
     summary.steps.dispatch = { ok: false, error: 'threw', detail: err?.message };
@@ -56,10 +64,38 @@ export async function runOrchestrator(meta = {}) {
   summary.ok = ['scout', 'analyze', 'dispatch'].every((k) => summary.steps[k]?.ok !== false);
 
   console.log('[marketing/orchestrator] DONE ok=' + summary.ok +
+              ' run_id=' + runId +
               ' duration_ms=' + summary.duration_ms +
               ' · scout.accepted=' + (summary.steps.scout?.accepted ?? '?') +
               ' · analyze.succeeded=' + (summary.steps.analyze?.succeeded ?? '?') +
               ' · dispatch.succeeded=' + (summary.steps.dispatch?.succeeded ?? '?'));
+
+  // Wrapper row · one per orchestrator invocation. Step rows are written
+  // by each agent so this stays a thin summary referencing the same runId.
+  await logRun({
+    agent: AGENT, runId, source,
+    startedAt: t0, finishedAt: Date.now(), ok: summary.ok,
+    error: summary.ok ? null : 'one_or_more_steps_failed',
+    summary: {
+      analyze_batch:  ANALYZE_BATCH,
+      dispatch_batch: DISPATCH_BATCH,
+      scout: {
+        ok:       summary.steps.scout?.ok,
+        accepted: summary.steps.scout?.accepted,
+        rejected: Array.isArray(summary.steps.scout?.rejected) ? summary.steps.scout.rejected.length : null,
+      },
+      analyze: {
+        ok:        summary.steps.analyze?.ok,
+        processed: summary.steps.analyze?.processed,
+        succeeded: summary.steps.analyze?.succeeded,
+      },
+      dispatch: {
+        ok:         summary.steps.dispatch?.ok,
+        dispatched: summary.steps.dispatch?.dispatched,
+        succeeded:  summary.steps.dispatch?.succeeded,
+      },
+    },
+  });
 
   return summary;
 }

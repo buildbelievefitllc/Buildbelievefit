@@ -6,16 +6,27 @@
 // Safe upsert on email. Status / personalized_pitch / funnel state on
 // EXISTING rows is preserved · only descriptive fields refresh.
 import { sb, requireSb, TABLE } from '../db.js';
+import { logRun, newRunId } from '../telemetry.js';
 
+const AGENT    = 'marketing.scout';
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function ingest(req, res) {
   if (!requireSb(res)) return;
-  const payload = req.body || {};
+  const startedAt = Date.now();
+  const runId     = newRunId('ingest');
+  const payload   = req.body || {};
   const rawLeads = Array.isArray(payload.leads) ? payload.leads
                  : payload.athlete_name ? [payload]
                  : [];
-  if (!rawLeads.length) return res.status(400).json({ ok: false, error: 'no_leads' });
+  if (!rawLeads.length) {
+    await logRun({
+      agent: AGENT, runId, source: 'http',
+      startedAt, finishedAt: Date.now(), ok: false, error: 'no_leads',
+      summary: { payload_keys: Object.keys(payload) },
+    });
+    return res.status(400).json({ ok: false, error: 'no_leads' });
+  }
 
   const sanitized = [];
   const rejected  = [];
@@ -35,7 +46,14 @@ export async function ingest(req, res) {
     });
   }
 
-  if (!sanitized.length) return res.status(400).json({ ok: false, error: 'all_rejected', rejected });
+  if (!sanitized.length) {
+    await logRun({
+      agent: AGENT, runId, source: 'http',
+      startedAt, finishedAt: Date.now(), ok: false, error: 'all_rejected',
+      summary: { rejected_count: rejected.length },
+    });
+    return res.status(400).json({ ok: false, error: 'all_rejected', rejected });
+  }
 
   // Upsert by email · we only write the descriptive fields, so existing
   // status / personalized_pitch / funnel timestamps are preserved on
@@ -47,8 +65,18 @@ export async function ingest(req, res) {
 
   if (error) {
     console.error('[marketing/scout] upsert failed:', error);
+    await logRun({
+      agent: AGENT, runId, source: 'http',
+      startedAt, finishedAt: Date.now(), ok: false, error: error.message,
+      summary: { phase: 'upsert', sanitized: sanitized.length, rejected: rejected.length },
+    });
     return res.status(500).json({ ok: false, error: 'db_upsert_failed', detail: error.message });
   }
 
-  return res.json({ ok: true, accepted: data?.length || 0, rejected, leads: data });
+  await logRun({
+    agent: AGENT, runId, source: 'http',
+    startedAt, finishedAt: Date.now(), ok: true,
+    summary: { accepted: data?.length || 0, rejected: rejected.length },
+  });
+  return res.json({ ok: true, accepted: data?.length || 0, rejected, leads: data, run_id: runId });
 }

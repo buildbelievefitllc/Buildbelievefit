@@ -16,9 +16,12 @@
 // below. The framework handles sanitize + upsert + dedup uniformly.
 
 import { getSb, TABLE } from '../db.js';
+import { logRun, newRunId } from '../telemetry.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+
+const AGENT = 'marketing.scout-engine';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SEED_FILE = join(__dirname, '..', 'sources', 'seed-leads.json');
@@ -95,10 +98,12 @@ const SOURCES = [
 // runOnce · pull, sanitize, upsert. Returns a per-source summary +
 // final accept/reject counts. Used by the orchestrator AND the
 // manual-trigger HTTP handler.
-export async function runOnce() {
+export async function runOnce({ runId, source: callerSource } = {}) {
+  const startedAt = Date.now();
   const sb = getSb();
   if (!sb) return { ok: false, error: 'supabase_unconfigured' };
 
+  const effectiveRunId = runId || newRunId('scout');
   const sourceResults = [];
   const allCandidates = [];
 
@@ -116,7 +121,13 @@ export async function runOnce() {
   const { ok: sanitized, rejected } = sanitizeLeads(allCandidates);
   if (!sanitized.length) {
     console.log('[marketing/scout-engine] no candidates from any source · sources=' + JSON.stringify(sourceResults));
-    return { ok: true, sources: sourceResults, accepted: 0, rejected, note: 'no_candidates' };
+    const result = { ok: true, sources: sourceResults, accepted: 0, rejected, note: 'no_candidates', run_id: effectiveRunId };
+    await logRun({
+      agent: AGENT, runId: effectiveRunId, source: callerSource || 'standalone',
+      startedAt, finishedAt: Date.now(), ok: true,
+      summary: { sources: sourceResults, accepted: 0, rejected: rejected.length, note: 'no_candidates' },
+    });
+    return result;
   }
 
   const { data, error } = await sb
@@ -125,11 +136,22 @@ export async function runOnce() {
     .select('id, email, status, athlete_name, created_at');
   if (error) {
     console.error('[marketing/scout-engine] upsert failed:', error);
+    await logRun({
+      agent: AGENT, runId: effectiveRunId, source: callerSource || 'standalone',
+      startedAt, finishedAt: Date.now(), ok: false, error: error.message,
+      summary: { sources: sourceResults, phase: 'upsert' },
+    });
     return { ok: false, error: 'db_upsert_failed', detail: error.message };
   }
 
   console.log('[marketing/scout-engine] sources=' + JSON.stringify(sourceResults) +
               ' accepted=' + (data?.length || 0) + ' rejected=' + rejected.length);
+
+  await logRun({
+    agent: AGENT, runId: effectiveRunId, source: callerSource || 'standalone',
+    startedAt, finishedAt: Date.now(), ok: true,
+    summary: { sources: sourceResults, accepted: data?.length || 0, rejected: rejected.length },
+  });
 
   return {
     ok:       true,
@@ -137,12 +159,13 @@ export async function runOnce() {
     accepted: data?.length || 0,
     rejected,
     leads:    data?.map((l) => ({ email: l.email, status: l.status })) || [],
+    run_id:   effectiveRunId,
   };
 }
 
 // HTTP handler · POST /api/v1/marketing/scout-engine (admin-gated)
 export async function scoutEngine(req, res) {
-  const summary = await runOnce();
+  const summary = await runOnce({ source: 'http' });
   if (!summary.ok) return res.status(503).json(summary);
   return res.json(summary);
 }

@@ -2,7 +2,16 @@
 // Bearer-token gates the admin endpoints (ingest/analyze/dispatch); the
 // inbound webhook and unsubscribe handler are intentionally public so
 // the email provider + email clients can hit them.
+//
+// AUTH · admin token comparison uses crypto.timingSafeEqual so an attacker
+// cannot mount a timing oracle against the secret. Bare `===` short-circuits
+// on the first mismatched byte · revealing length + prefix info to anyone
+// patient enough to measure response time. timingSafeEqual is constant-time
+// on equal-length buffers; we equalize length first by hashing both sides
+// to SHA-256 (always 32 bytes) before the compare, which means a
+// short/long candidate also doesn't leak length.
 import { Router }    from 'express';
+import crypto        from 'node:crypto';
 import { ingest }    from './agents/scout.js';
 import { analyze }   from './agents/analyst.js';
 import { dispatch } from './agents/dispatcher.js';
@@ -12,8 +21,27 @@ import { scoutEngine }         from './agents/scout-engine.js';
 import { runOrchestratorRoute } from './orchestrator.js';
 import { isSbBuilt, sbBootKeyPresent, sbBuiltAt, sbBuildError, sbUsedFallback } from './db.js';
 import { isResendReady } from './resend.js';
+import { summarizeTelemetry } from './telemetry.js';
 
 const MARKETING_ADMIN_TOKEN = process.env.BBF_MARKETING_ADMIN_TOKEN || '';
+
+// Pre-hashed expected token · digest once at module load, compare per
+// request with timingSafeEqual. Empty string → null (open mode).
+const EXPECTED_TOKEN_DIGEST = MARKETING_ADMIN_TOKEN
+  ? crypto.createHash('sha256').update(MARKETING_ADMIN_TOKEN).digest()
+  : null;
+
+function constantTimeTokenMatch(candidate) {
+  if (!EXPECTED_TOKEN_DIGEST) return false;
+  if (typeof candidate !== 'string' || candidate.length === 0) return false;
+  const candidateDigest = crypto.createHash('sha256').update(candidate).digest();
+  // Both digests are guaranteed 32 bytes; timingSafeEqual is safe.
+  try {
+    return crypto.timingSafeEqual(candidateDigest, EXPECTED_TOKEN_DIGEST);
+  } catch {
+    return false;
+  }
+}
 
 function requireAdmin(req, res, next) {
   if (!MARKETING_ADMIN_TOKEN) {
@@ -21,7 +49,7 @@ function requireAdmin(req, res, next) {
     return next();
   }
   const token = (req.get('Authorization') || '').replace(/^Bearer\s+/i, '');
-  if (token !== MARKETING_ADMIN_TOKEN) {
+  if (!constantTimeTokenMatch(token)) {
     return res.status(401).json({ ok: false, error: 'unauthorized' });
   }
   return next();
@@ -36,6 +64,15 @@ export function buildMarketingRouter() {
   r.post('/dispatch',         requireAdmin, asyncHandler(dispatch));
   r.post('/scout-engine',     requireAdmin, asyncHandler(scoutEngine));
   r.post('/run-orchestrator', requireAdmin, asyncHandler(runOrchestratorRoute));
+
+  // Admin-gated telemetry rollup · GET /telemetry?hours=24
+  // Returns aggregated bbf_agent_runs + bbf_llm_calls counts/costs.
+  r.get('/telemetry', requireAdmin, asyncHandler(async (req, res) => {
+    const hours   = Number(req.query?.hours) || 24;
+    const summary = await summarizeTelemetry({ hours });
+    if (!summary.ok) return res.status(503).json(summary);
+    return res.json(summary);
+  }));
 
   // Public webhooks · no JWT, no admin token. The webhook payload itself
   // is the only auth (and Resend should be configured to sign the body

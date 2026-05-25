@@ -32,7 +32,10 @@ function endpointFor(model) {
 }
 
 export async function generate({ system, user, temperature = 0.7, maxOutputTokens = 512, responseSchema = null }) {
-  if (!GEMINI_API_KEY) return { ok: false, error: 'gemini_key_missing' };
+  const t0 = Date.now();
+  if (!GEMINI_API_KEY) {
+    return { ok: false, error: 'gemini_key_missing', provider: 'gemini', model: GEMINI_MODEL, latency_ms: 0 };
+  }
 
   const generationConfig = {
     temperature,
@@ -58,8 +61,11 @@ export async function generate({ system, user, temperature = 0.7, maxOutputToken
       signal:  controller.signal,
     });
   } catch (err) {
-    if (err?.name === 'AbortError') return { ok: false, error: 'gemini_timeout' };
-    return { ok: false, error: 'gemini_fetch_failed', detail: err?.message };
+    const latency_ms = Date.now() - t0;
+    if (err?.name === 'AbortError') {
+      return { ok: false, error: 'gemini_timeout', provider: 'gemini', model: GEMINI_MODEL, latency_ms };
+    }
+    return { ok: false, error: 'gemini_fetch_failed', detail: err?.message, provider: 'gemini', model: GEMINI_MODEL, latency_ms };
   } finally {
     clearTimeout(timer);
   }
@@ -67,13 +73,25 @@ export async function generate({ system, user, temperature = 0.7, maxOutputToken
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
     console.error(`[marketing/gemini] status=${res.status} body=${detail.slice(0, 400)}`);
-    return { ok: false, error: `gemini_${res.status}`, detail: detail.slice(0, 400), status: res.status };
+    return {
+      ok: false,
+      error: `gemini_${res.status}`,
+      detail: detail.slice(0, 400),
+      status: res.status,
+      provider: 'gemini',
+      model: GEMINI_MODEL,
+      latency_ms: Date.now() - t0,
+    };
   }
 
   const payload      = await res.json().catch(() => null);
   const candidate    = payload?.candidates?.[0];
   const finishReason = candidate?.finishReason || null;
   const parts        = candidate?.content?.parts || [];
+  // usageMetadata is Gemini's official token accounting · prefer it.
+  const usage         = payload?.usageMetadata || {};
+  const inputTokens   = Number.isFinite(usage.promptTokenCount)     ? usage.promptTokenCount     : null;
+  const outputTokens  = Number.isFinite(usage.candidatesTokenCount) ? usage.candidatesTokenCount : null;
 
   // Concatenate EVERY text part · Gemini occasionally splits long
   // replies across multiple parts which would look like truncation.
@@ -83,12 +101,19 @@ export async function generate({ system, user, temperature = 0.7, maxOutputToken
     .join('')
     .trim();
 
+  const latency_ms = Date.now() - t0;
+
   if (!text) {
     return {
       ok:          false,
       error:       'gemini_no_text',
       finishReason,
       detail:      JSON.stringify(payload).slice(0, 400),
+      provider:    'gemini',
+      model:       GEMINI_MODEL,
+      input_tokens:  inputTokens,
+      output_tokens: outputTokens,
+      latency_ms,
     };
   }
 
@@ -98,7 +123,16 @@ export async function generate({ system, user, temperature = 0.7, maxOutputToken
     console.warn(`[marketing/gemini] finishReason=MAX_TOKENS · output may be truncated · chars=${text.length}`);
   }
 
-  return { ok: true, text, finishReason };
+  return {
+    ok: true,
+    text,
+    finishReason,
+    provider:      'gemini',
+    model:         GEMINI_MODEL,
+    input_tokens:  inputTokens,
+    output_tokens: outputTokens,
+    latency_ms,
+  };
 }
 
 export function extractJSON(text) {

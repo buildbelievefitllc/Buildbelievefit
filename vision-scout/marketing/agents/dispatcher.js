@@ -19,7 +19,9 @@
 // original email value untouched.
 import { sb, requireSb, getSb, TABLE } from '../db.js';
 import { sendPitch } from '../resend.js';
+import { logRun, newRunId } from '../telemetry.js';
 
+const AGENT         = 'marketing.dispatcher';
 const DEFAULT_BATCH = 5;
 const MAX_BATCH     = 20;
 
@@ -109,11 +111,13 @@ async function dispatchOne(client, lead) {
 // runBatch · pure worker · used by both the HTTP handler and the
 // orchestrator. Sequential per-lead so Resend rate limits + the
 // ordered log are clean.
-export async function runBatch({ batchSize, leadId } = {}) {
-  const client = getSb();
+export async function runBatch({ batchSize, leadId, runId, source } = {}) {
+  const startedAt = Date.now();
+  const client    = getSb();
   if (!client) return { ok: false, error: 'supabase_unconfigured' };
 
-  const size = Math.min(MAX_BATCH, Math.max(1, Number(batchSize) || DEFAULT_BATCH));
+  const effectiveRunId = runId || newRunId('dispatch');
+  const size           = Math.min(MAX_BATCH, Math.max(1, Number(batchSize) || DEFAULT_BATCH));
 
   let q = client.from(TABLE).select('id, athlete_name, email, personalized_pitch, unsubscribe_token, discipline, public_profile_url');
   if (leadId) {
@@ -123,16 +127,49 @@ export async function runBatch({ batchSize, leadId } = {}) {
   }
 
   const { data: leads, error } = await q;
-  if (error)          return { ok: false, error: 'db_fetch_failed', detail: error.message };
-  if (!leads?.length) return { ok: true, dispatched: 0, results: [], note: 'no analyzed leads ready to send' };
+  if (error) {
+    const result = { ok: false, error: 'db_fetch_failed', detail: error.message };
+    await logRun({
+      agent: AGENT, runId: effectiveRunId, source: source || 'standalone',
+      startedAt, finishedAt: Date.now(), ok: false, error: result.detail,
+      summary: { phase: 'fetch' },
+    });
+    return result;
+  }
+  if (!leads?.length) {
+    const result = { ok: true, dispatched: 0, results: [], note: 'no analyzed leads ready to send' };
+    await logRun({
+      agent: AGENT, runId: effectiveRunId, source: source || 'standalone',
+      startedAt, finishedAt: Date.now(), ok: true,
+      summary: { dispatched: 0, succeeded: 0, note: 'no_analyzed_leads' },
+    });
+    return result;
+  }
 
   const results = [];
   for (const lead of leads) {
     results.push(await dispatchOne(client, lead));
   }
-  const ok = results.filter((r) => r.ok).length;
+  const ok          = results.filter((r) => r.ok).length;
+  const intercepted = results.filter((r) => r.intercepted).length;
   console.log(`[marketing/dispatcher] sent=${ok}/${results.length}`);
-  return { ok: true, dispatched: results.length, succeeded: ok, results };
+  await logRun({
+    agent:      AGENT,
+    runId:      effectiveRunId,
+    source:     source || 'standalone',
+    startedAt,
+    finishedAt: Date.now(),
+    ok:         true,
+    summary:    {
+      dispatched: results.length,
+      succeeded:  ok,
+      failed:     results.length - ok,
+      intercepted,
+      batch_size: size,
+      lead_id:    leadId || null,
+    },
+  });
+  return { ok: true, dispatched: results.length, succeeded: ok, results, run_id: effectiveRunId };
 }
 
 // HTTP handler · thin wrapper.
@@ -141,6 +178,6 @@ export async function dispatch(req, res) {
   const body      = req.body || {};
   const leadId    = body.lead_id ? String(body.lead_id) : null;
   const batchSize = Number(body.batch_size) || DEFAULT_BATCH;
-  const summary   = await runBatch({ batchSize, leadId });
+  const summary   = await runBatch({ batchSize, leadId, source: 'http' });
   return res.json(summary);
 }
