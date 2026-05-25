@@ -129,6 +129,16 @@ Project ref: `ihclbceghxpuawymlvgi` · RLS enabled on every table · service-rol
 | **`bbf_email_suppression`** | 3 | 0 | Cross-system do-not-contact ledger · `email TEXT PK` (lowercase enforced via CHECK constraint), `suppressed_at`, `reason`. Reasons: `active_inbound_lead`, `unsubscribed`, `bounced`, `complaint`. **Marketing dispatcher consults this before EVERY send · hits get hard-skipped.** Writers: `marketing/agents/triage.js` (interested + not_interested replies), `marketing/agents/unsubscribe.js` (one-click), `marketing/suppression.js → logEmailEvent` (bounced/complained delivery events) |
 | **`bbf_email_events`** | 6 | 0 | Resend delivery webhook flight recorder · `id UUID PK`, `message_id`, `email`, `event_type`, `ts`, `payload jsonb`. Event types: `email.sent / delivered / delivery_delayed / bounced / opened / clicked / complained / failed`. Writer: `marketing/suppression.js → logEmailEvent` (invoked from `/api/v1/marketing/inbound` when payload `type` matches `email.*` and is NOT `email.received`). Powers the delivery diagnostic matrix in `/api/v1/marketing/health` |
 
+### 2.6b Budget kill-switch (Phase 1.4)
+
+| Table / RPC / Cron | Notes |
+|---|---|
+| **`bbf_system_config`** (single-row, `id=1` CHECK-enforced) | Global config · `emergency_stop BOOLEAN`, `daily_spend_ceiling_usd NUMERIC(10,2) DEFAULT 10.00`, `emergency_stop_reason`, `emergency_stop_at`, `ceiling_tripped_at`, `updated_at`. **Service-role writes only.** Operator-controlled · clear the trip via `UPDATE public.bbf_system_config SET emergency_stop=false, emergency_stop_reason=null, emergency_stop_at=null WHERE id=1;` |
+| **`public.bbf_check_daily_spend()`** | Aggregates `sum(cost_usd)` from `bbf_llm_calls` over the last 24h, flips `emergency_stop=true` if it exceeds the ceiling. Returns `{spend_24h_usd, call_count_24h, ceiling_usd, tripped_now, was_stopped, currently_stopped, checked_at}`. Will NOT auto-clear · operator must explicitly acknowledge the trip · prevents flapping. |
+| **pg_cron job `bbf_daily_spend_check`** | Runs `select public.bbf_check_daily_spend();` at `5 0 * * *` UTC (daily floor). Orchestrators also call this RPC on every invocation as mid-day defense-in-depth. |
+| **Gate helpers** | `supabase/functions/_shared/spend-gate.ts` (Deno · for edge functions) and `vision-scout/marketing/spend-gate.js` (Node · for Render service). Both export `checkSpendGate()` returning `{stopped, reason, spend_24h_usd, ceiling_usd, ...}` with fail-CLOSED posture (DB error → treated as stopped). |
+| **Wired into** | `supabase/functions/bbf-agentic-orchestrator/index.ts` (first gate after auth · returns HTTP 429 SpendLimitExceeded via `spendLimitResponse`) · `vision-scout/marketing/orchestrator.js` (aborts the daily scout→analyst→dispatch pipeline before scout fires) · `/api/v1/marketing/health` surfaces current `spend_gate` state to the operator |
+
 ### 2.7 Misc
 
 | Table | Cols | Live rows | Notes |

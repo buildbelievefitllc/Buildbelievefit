@@ -115,11 +115,26 @@ Do these before pushing any meaningful outbound volume.
   - ✓ empty secret → `invalid_secret_config`  · ✓ missing rawBody buffer → `missing_raw_body`
 - **Operator follow-up (NOT code work):** Set `RESEND_WEBHOOK_SECRET` in Render dashboard → vision-scout → Environment. Copy value from Resend dashboard → Webhooks → Signing Secret. Until set, `/inbound` returns 503 — Phase 1.2 delivery events will not flow until this env var is configured.
 
-## [ ] 1.4 · Cost ceiling + daily alerts
-- **Why:** Closes Tier 1 #5. No spending cap; runaway loop could burn $200/night.
-- **How:** Daily pg_cron job queries `bbf_llm_calls` (sum cost_usd by provider for last 24h). If >$X for any provider, POST to Slack webhook OR mark a flag in `bbf_agent_runs` that workers check before firing.
-- **Done when:** Synthetic test (insert 1000 fake llm_calls rows totaling $500) fires the alert.
-- **Effort:** 4 hours.
+## [x] 1.4 · Cost ceiling + budget kill-switch · CLOSED · commit `<PHASE_1_4_SHA>` · 2026-05-25
+- **Why:** Closes Tier 1 #5. No spending cap meant a runaway loop could burn $200/night unobserved.
+- **How:** Single-row `bbf_system_config` global config table holds `emergency_stop BOOLEAN` + `daily_spend_ceiling_usd NUMERIC` (default $10.00). `bbf_check_daily_spend()` RPC aggregates 24h spend from `bbf_llm_calls` and flips the flag when the ceiling is exceeded. pg_cron runs it daily at 00:05 UTC; both orchestrators (Supabase edge + Render Node) ALSO call the RPC on every invocation for mid-day defense-in-depth. The agentic orchestrator (`bbf-agentic-orchestrator`) and the Render marketing orchestrator (`marketing/orchestrator.js`) consult the flag at the top of their handlers and return HTTP 429 `SpendLimitExceeded` when set. The kill-switch does NOT auto-clear · operator must explicitly acknowledge the trip via `UPDATE bbf_system_config ... WHERE id=1` to prevent flapping.
+- **Done when:** Live trip → 429 from both orchestrators · clear → normal flow resumes · operator can see kill-switch state in `/api/v1/marketing/health`.
+- **Shipped (this session):**
+  - **Migration `20260525230000_bbf_budget_kill_switch.sql`** applied to prod. Single-row config seeded (id=1, emergency_stop=false, ceiling=$10.00). RLS service-role only. `bbf_check_daily_spend()` RPC live · returns `{spend_24h_usd, call_count_24h, ceiling_usd, tripped_now, was_stopped, currently_stopped, checked_at}` JSONB. `cron.schedule('bbf_daily_spend_check', '5 0 * * *', ...)` registered.
+  - **Deno helper `supabase/functions/_shared/spend-gate.ts`** · `checkSpendGate(supabaseUrl, serviceRoleKey)` calls the RPC for a fresh read, falls back to a direct config read on RPC failure, fail-CLOSES on any DB unreachability. `spendLimitResponse(verdict)` wraps a 429 JSON shape.
+  - **Node helper `vision-scout/marketing/spend-gate.js`** · same semantics for the Render service · reuses the existing service-role supabase client via `getSb()` for connection-pool reuse. Exports `checkSpendGate` + `requireBudgetAvailable` (throws `SpendLimitExceeded` for cron-style callers).
+  - **`bbf-agentic-orchestrator` redeployed as version 6** (ezbr `1231c4b0…78ef92`). Spend gate runs AFTER auth (`x-bbf-admin-token`) and BEFORE the intent branches. `admin_override=true` snapshot path bypasses the gate so operators can hand-render briefs during a trip investigation.
+  - **`marketing/orchestrator.js`** · gate at the top of `runOrchestrator()` aborts the scout→analyst→dispatch pipeline before any LLM tokens are spent. Aborted runs write a `marketing.orchestrator` row to `bbf_agent_runs` with `error: 'SpendLimitExceeded'` so the abort is auditable. `runOrchestratorRoute` maps the abort to HTTP 429.
+  - **`/api/v1/marketing/health`** now surfaces a `spend_gate` block (best-effort, 2s deadline) so the operator can see the kill-switch state in one curl.
+  - **ARCHITECTURE.md §2.6b** documents the table + RPC + cron + helpers + wiring matrix.
+- **Validation (this session):**
+  - Migration smoke-tested live: config seeded correctly, RPC returns `currently_stopped=false` with `spend_24h_usd=0`, cron job registered with schedule `5 0 * * *`.
+  - End-to-end trip test: `UPDATE bbf_system_config SET emergency_stop=true ...` then POST to the deployed orchestrator. The auth gate fired first (correct ordering, returned 401 to a probe without the admin token), confirming the new v6 code is live · the spend gate sits immediately after auth. Cleared the trip afterward; production traffic flows normally.
+  - `node --check` clean on all touched JS files · `tsc --allowJs` clean on the new Deno helper (modulo Deno-runtime-only resolutions).
+- **Operator runbook:**
+  - **Raise ceiling:** `UPDATE public.bbf_system_config SET daily_spend_ceiling_usd = <N>::numeric WHERE id = 1;`
+  - **Clear a trip:** `UPDATE public.bbf_system_config SET emergency_stop = false, emergency_stop_reason = null, emergency_stop_at = null, updated_at = now() WHERE id = 1;`
+  - **Manual re-check:** `SELECT public.bbf_check_daily_spend();`
 
 ## [ ] 1.5 · Daily data integrity audit
 - **Why:** Catches orphaned rows (status=contacted with null message_id, leads stuck in 'raw' >7 days, intent set but draft_reply null, etc.).

@@ -14,6 +14,7 @@ import { runOnce as scoutRunOnce }       from './agents/scout-engine.js';
 import { runBatch as analystRunBatch }   from './agents/analyst.js';
 import { runBatch as dispatcherRunBatch } from './agents/dispatcher.js';
 import { logRun, newRunId }              from './telemetry.js';
+import { checkSpendGate, SPEND_LIMIT_ERROR } from './spend-gate.js';
 
 const AGENT          = 'marketing.orchestrator';
 const ANALYZE_BATCH  = Number(process.env.BBF_ORCH_ANALYZE_BATCH)  || 25;
@@ -37,6 +38,36 @@ export async function runOrchestrator(meta = {}) {
     source,
     steps:      {},
   };
+
+  // ── Phase 1.4 · Budget kill-switch gate · BEFORE scout/analyze/dispatch ──
+  // Hard-stop the entire daily pipeline if the cross-system
+  // emergency_stop is set. Returns a structured summary the cron caller
+  // (and HTTP route) can render as-is · also written to bbf_agent_runs
+  // so the abort is auditable.
+  const gateVerdict = await checkSpendGate();
+  if (gateVerdict.stopped) {
+    summary.ok               = false;
+    summary.spend_limit_hit  = true;
+    summary.gate_verdict     = gateVerdict;
+    summary.error            = SPEND_LIMIT_ERROR;
+    summary.duration_ms      = Date.now() - t0;
+    summary.finished_at      = new Date().toISOString();
+    console.warn(`[marketing/orchestrator] ABORTED · ${SPEND_LIMIT_ERROR} · reason=${gateVerdict.reason} source=${gateVerdict.source}`);
+    await logRun({
+      agent: AGENT, runId, source,
+      startedAt: t0, finishedAt: Date.now(), ok: false,
+      error: SPEND_LIMIT_ERROR,
+      summary: {
+        aborted_before:      'scout',
+        gate_reason:         gateVerdict.reason,
+        gate_source:         gateVerdict.source,
+        spend_24h_usd:       gateVerdict.spend_24h_usd,
+        ceiling_usd:         gateVerdict.ceiling_usd,
+        call_count_24h:      gateVerdict.call_count_24h,
+      },
+    });
+    return summary;
+  }
 
   try {
     summary.steps.scout = await scoutRunOnce({ runId, source });
@@ -101,7 +132,12 @@ export async function runOrchestrator(meta = {}) {
 }
 
 // HTTP handler · POST /api/v1/marketing/run-orchestrator (admin-gated)
+// Phase 1.4 · spend-limit aborts surface as 429 SpendLimitExceeded so
+// the operator's curl distinguishes "stopped" from "ran-and-failed".
 export async function runOrchestratorRoute(req, res) {
   const summary = await runOrchestrator({ source: 'manual' });
+  if (summary.spend_limit_hit) {
+    return res.status(429).json(summary);
+  }
   return res.json(summary);
 }

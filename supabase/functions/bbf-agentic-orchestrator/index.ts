@@ -24,6 +24,9 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 // Phase 7 Workstream B · Slow-path nightly synthesis · Haiku already
 // per Phase 6. Route through the central router for observability.
 import { routeAndLog } from '../_shared/model-router.ts';
+// Phase 1.4 · Budget kill-switch · 429 SpendLimitExceeded when the
+// global emergency_stop flag is set in bbf_system_config.
+import { checkSpendGate, spendLimitResponse } from '../_shared/spend-gate.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -361,6 +364,22 @@ serve(async (req: Request) => {
   const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return jsonResponse({ error: 'config_missing_supabase' }, 503);
+  }
+
+  // ── Phase 1.4 · Budget kill-switch gate ────────────────────────────
+  // Runs BEFORE every intent branch · synthesize_athlete_snapshot fires
+  // a Claude Haiku call (Anthropic spend) and compute_greenline_patterns
+  // hits Supabase a few times (cheap but still part of the kill-switch
+  // contract since the orchestrator is the canonical pre-spend gateway
+  // for the agentic fleet). admin_override on the snapshot path bypasses
+  // even this gate · operators can still hand-render a brief while
+  // investigating a trip.
+  if (!(intent === 'synthesize_athlete_snapshot' && payload && payload.admin_override === true)) {
+    const verdict = await checkSpendGate(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    if (verdict.stopped) {
+      console.warn(`[bbf-agentic-orchestrator] 429 SpendLimitExceeded · ${verdict.reason} (source=${verdict.source})`);
+      return spendLimitResponse(verdict);
+    }
   }
 
   if (intent === 'compute_greenline_patterns') {

@@ -24,6 +24,7 @@ import { isResendReady } from './resend.js';
 import { summarizeTelemetry } from './telemetry.js';
 import { summarizeDeliveryMetrics } from './suppression.js';
 import { isResendWebhookSecretConfigured } from './svix-verify.js';
+import { checkSpendGate } from './spend-gate.js';
 
 const MARKETING_ADMIN_TOKEN = process.env.BBF_MARKETING_ADMIN_TOKEN || '';
 
@@ -96,14 +97,21 @@ export function buildMarketingRouter() {
   r.get('/health', asyncHandler(async (req, res) => {
     const deliveryWindowHours = Number(req.query?.delivery_hours) || 24;
     const deliveryDeadlineMs  = 2000;
-    let delivery;
+    let delivery, spendGate;
     try {
-      delivery = await Promise.race([
-        summarizeDeliveryMetrics({ hours: deliveryWindowHours }),
-        new Promise((resolve) => setTimeout(() => resolve({ ok: false, error: 'delivery_timeout' }), deliveryDeadlineMs)),
+      [delivery, spendGate] = await Promise.all([
+        Promise.race([
+          summarizeDeliveryMetrics({ hours: deliveryWindowHours }),
+          new Promise((resolve) => setTimeout(() => resolve({ ok: false, error: 'delivery_timeout' }), deliveryDeadlineMs)),
+        ]),
+        Promise.race([
+          checkSpendGate({ refresh: false }), // /health is hot-path · skip the rpc refresh
+          new Promise((resolve) => setTimeout(() => resolve({ stopped: null, reason: 'spend_gate_timeout', source: 'fail_closed' }), deliveryDeadlineMs)),
+        ]),
       ]);
     } catch (e) {
-      delivery = { ok: false, error: 'delivery_threw', detail: e?.message };
+      delivery  = { ok: false, error: 'delivery_threw', detail: e?.message };
+      spendGate = { stopped: null, reason: 'spend_gate_threw', source: 'fail_closed' };
     }
 
     return res.json({
@@ -132,6 +140,7 @@ export function buildMarketingRouter() {
         demo_seeds_active:    String(process.env.BBF_SCOUT_USE_DEMO_SEEDS || '').toLowerCase() === 'true',
       },
       delivery,
+      spend_gate: spendGate,
       model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
     });
   }));
