@@ -365,6 +365,16 @@ Defined in `render.yaml` (`sync: false` means stored in Render secret manager; `
 | `GEMINI_THINKING_BUDGET` | (optional, default 0) | Override the disabled-thinking default |
 | `RESEND_WEBHOOK_SECRET` | **secret · REQUIRED** | Phase 1.3 · Svix-format webhook signing secret (`whsec_<base64>`) · `/api/v1/marketing/inbound` returns 503 when unset, 401 on signature failure. Set in Resend dashboard → Webhooks → Signing Secret, paste into Render env, redeploy |
 
+### 6.3 Browser-exposed credential surface · the only one that exists
+
+| File | Contents | Why this is safe |
+|---|---|---|
+| `env.js` (root, served as a `<script src="env.js">` by `bbf-app.html`) | `window.ENV_SUPABASE_URL` = canonical project URL · `window.ENV_SUPABASE_KEY` = `sb_publishable_…` | The `sb_publishable_*` prefix is Supabase's NEW publishable key format (the replacement for the old anon-JWT). It has zero service-role privileges and is **specifically designed for browser exposure**. RLS protects every table; the publishable key cannot bypass it. **DO NOT** ever replace this with an `sb_secret_*` or a service_role JWT · those go in Supabase function secrets / Render env only. |
+
+### 6.4 Credential audit posture (Phase 2.2 sweep · 2026-05-25)
+
+Multi-pass `grep` sweep across all 172 tracked source files returned **zero hardcoded high-privilege credentials**. Every server-side credential reference flows through `process.env` (Node) or `Deno.env.get` (Deno). The 11-pattern class checked: JWT 3-segment (`eyJ.<base64>.<base64>`), `sb_secret_*`, `sk_live_/sk_test_/rk_live_/rk_test_`, `whsec_*`, `re_*`, `AIza*`, `AKIA*`, `sk-ant-*`, `ghp_/gho_/ghu_/github_pat_*`, `AC<32hex>` Twilio SIDs, `xkeysib-*` Brevo. The 17,544-line inline script inside `bbf-app.html` was scanned with the full pattern set independently · zero matches. See MASTER_PLAN.md §6.0 for the audit log.
+
 ---
 
 ## 7 · Schema migrations

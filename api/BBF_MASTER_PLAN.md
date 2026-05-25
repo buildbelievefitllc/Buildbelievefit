@@ -273,6 +273,26 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 
 # Phase 6 · Security Hardening (Week 5)
 
+## [x] 6.0 · High-privilege credential sweep · CLOSED · commit `<PHASE_2_2_SHA>` · 2026-05-25
+- **Why:** Defense against the single most preventable production incident: a hardcoded `service_role` JWT, `sb_secret_*` key, `whsec_*` webhook secret, or vendor API key sitting in tracked source.
+- **How:** Multi-pass `grep` sweep across every tracked source file (172 files: `.js / .ts / .mjs / .cjs / .jsx / .tsx / .json / .yaml / .yml / .toml / .sh / .html / .md / .sql / Dockerfile* / Procfile / .env*` minus `node_modules/`, `.git/`, `voiceover/`). Pattern set covers the Supabase service_role JWT shape (`eyJ.<base64>.<base64>`), the new `sb_secret_*` format, Stripe (`sk_live_/sk_test_/rk_live_/rk_test_`), webhook secrets (`whsec_*`), Resend (`re_*`), Brevo (`xkeysib-*`), AWS (`AKIA*`), Google (`AIza*`), GitHub (`ghp_/gho_/ghu_/github_pat_*`), Slack (`xoxb-/xoxp-`), Anthropic (`sk-ant-*`), Twilio (`AC<32hex>`), naked database URLs with embedded creds (`postgres(ql)?/mysql/mongodb/redis://user:pass@host`), literal `Bearer <token>` strings, suspicious 40+ char key/secret/token literal pairings, and any non-canonical `<projectref>.supabase.co` URL.
+- **Done when:** Sweep returns zero hardcoded credentials AND every server-side reference goes through `process.env` (Node) or `Deno.env.get` (Deno).
+- **Shipped (this session):**
+  - **Pass 1 · JWT-shaped tokens (`eyJ.<base64>.<base64>`)** · zero hits across all 172 files including the 17,544-line inline `<script>` block in `bbf-app.html`.
+  - **Pass 2 · Vendor-prefixed API keys** · zero hits.
+  - **Pass 3 · DB connection URLs with embedded creds** · zero hits.
+  - **Pass 4 · Literal `Bearer <token>` strings** · zero hits (every `Authorization: Bearer …` goes through template interpolation of an env-sourced secret).
+  - **Pass 5 · Twilio `AC<32hex>` SID literals** · zero hits.
+  - **Pass 6 · Suspicious 40+ char key/secret/token literal pairings** · zero hits.
+  - **Pass 7 · Non-canonical Supabase URLs** · only `ihclbceghxpuawymlvgi.supabase.co` (the canonical production project) found; no staging/test leak.
+  - **Pass 8 · Tracked credential-shaped filenames (`*key.pem`, `serviceAccount*.json`, `id_rsa*`, `*.p12`, `*.pfx`)** · zero tracked.
+  - **Server entrypoint check (`index.js` · 3,490 lines)** · every credential reference goes through `process.env.{ANTHROPIC_API_KEY, BBF_WS_TICKET_SECRET, BBF_COACH_AGENT_TOKEN, GEMINI_API_KEY, BBF_ADMIN_TOKEN}`.
+  - **17,544-line inline `<script>` block in `bbf-app.html`** · scanned with all 11 credential pattern classes (JWT 3-segment, sb_secret_, sk_live_/test, whsec_, re_, AIza, AKIA, sk-ant-, ghp_/gho_/ghu_, AC+32hex, xkeysib-) · ZERO matches.
+  - **Git history check** · `git log --all --diff-filter=D --name-only` for deleted credential-shaped files · zero hits.
+  - **`env.js` triage (browser-served file)** · contains `window.ENV_SUPABASE_URL = '<canonical-public-project>.supabase.co'` and `window.ENV_SUPABASE_KEY = 'sb_publishable_…'`. The `sb_publishable_*` prefix is Supabase's NEW key format SPECIFICALLY designed for browser exposure (it is the replacement for the old anon-key JWT and has zero service-role privileges). **Not a violation** · documented in ARCHITECTURE.md as the intended browser-side surface so future devs do not accidentally upgrade it to a `sb_secret_*`.
+- **Verdict: ZERO hardcoded high-privilege credentials in the repository.** Every server-side credential reference flows through `process.env` (Node) or `Deno.env.get` (Deno); the single browser-exposed key is intentionally publishable. No extraction or replacement required.
+- **Note for future audits:** Re-run with `bash /tmp/scan_secrets.sh` style multi-pass · the 11-pattern class set is the load-bearing surface for Supabase / Stripe / Resend / Brevo / Twilio / AWS / Google / GitHub / Anthropic / Slack credential shapes.
+
 ## [ ] 6.1 · RLS audit on every public table
 - **Why:** Closes Tier 1 #10 of the original list. Coverage isn't audited.
 - **How:** For each table in `public`, document: who can SELECT, who can INSERT/UPDATE/DELETE, why. Add missing policies. Block anything that should be service-role-only.
