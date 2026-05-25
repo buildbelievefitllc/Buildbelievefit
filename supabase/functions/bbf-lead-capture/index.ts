@@ -3,7 +3,7 @@
 // bbf_leads, fires Brevo admin notification, fires Brevo welcome
 // email to lite-tier leads.
 //
-// Phase 6 (Turnstile armor) — every payload now carries a Turnstile
+// Phase 6 (Turnstile armor) - every payload now carries a Turnstile
 // invisible-mode token in `turnstile_token`. We POST it to Cloudflare's
 // siteverify endpoint with the server-side secret. If verification
 // fails we 403 the request and never touch bbf_leads or Brevo. The
@@ -56,7 +56,7 @@ function jsonResponse(body, status, origin) {
   });
 }
 
-// Phase 6 — Cloudflare Turnstile siteverify. Returns { ok, codes } where
+// Phase 6 - Cloudflare Turnstile siteverify. Returns { ok, codes } where
 // `ok` is true iff Cloudflare reports success. Network errors / non-2xx
 // from Cloudflare fail-closed (treated as invalid) per the CEO directive
 // to "reject botnet spam".
@@ -171,14 +171,14 @@ serve(async (req) => {
   const BREVO_FROM_EMAIL = Deno.env.get('BREVO_FROM_EMAIL') || 'buildbelievefitllc@buildbelievefit.fitness';
   const BREVO_FROM_NAME = Deno.env.get('BREVO_FROM_NAME') || 'Build Believe Fit';
   const ADMIN_TO = Deno.env.get('ADMIN_LEAD_NOTIFY_EMAIL') || 'buildbelievefitllc@buildbelievefit.fitness';
-  // Phase 6 — Turnstile secret. Set via:
+  // Phase 6 - Turnstile secret. Set via:
   //   supabase secrets set TURNSTILE_SECRET_KEY=... --project-ref ihclbceghxpuawymlvgi
   const TURNSTILE_SECRET = Deno.env.get('TURNSTILE_SECRET_KEY');
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     return jsonResponse({ ok: false, error: 'config_missing' }, 503, origin);
   }
   if (!TURNSTILE_SECRET) {
-    console.error('[bbf-lead-capture] TURNSTILE_SECRET_KEY not set — refusing to accept lead. Set the secret via supabase secrets set.');
+    console.error('[bbf-lead-capture] TURNSTILE_SECRET_KEY not set - refusing to accept lead. Set the secret via supabase secrets set.');
     return jsonResponse({ ok: false, error: 'config_missing_turnstile' }, 503, origin);
   }
 
@@ -194,7 +194,7 @@ serve(async (req) => {
   if (!source || !email) return jsonResponse({ ok: false, error: 'missing_source_or_email' }, 400, origin);
   if (!email.includes('@')) return jsonResponse({ ok: false, error: 'invalid_email' }, 400, origin);
 
-  // Phase 6 — Turnstile gate. Token comes from the invisible-mode widget
+  // Phase 6 - Turnstile gate. Token comes from the invisible-mode widget
   // in the storefront (index.html). On verification failure: 403 and
   // bail BEFORE touching bbf_leads or Brevo so botnet spam costs us
   // nothing downstream.
@@ -209,7 +209,7 @@ serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Strip the token from the stored payload — no value keeping a spent
+  // Strip the token from the stored payload - no value keeping a spent
   // single-use credential at rest in bbf_leads.
   const persistPayload = { ...payload };
   delete persistPayload.turnstile_token;

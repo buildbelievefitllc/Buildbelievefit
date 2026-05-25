@@ -1,4 +1,4 @@
-// vapi-sms-closer — Vapi Custom Tool webhook that texts a Stripe checkout
+// vapi-sms-closer - Vapi Custom Tool webhook that texts a Stripe checkout
 // link to the prospect's phone via Twilio. Wired to the "Lance" Vapi
 // agent so he can close a verbal commit by handing the prospect a
 // tappable payment link in SMS while the call is still live.
@@ -45,8 +45,8 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-// ── Tier → Stripe Payment Link map ─────────────────────────────────────
-// Placeholders per CEO directive — swap in the real Stripe URLs once the
+// -- Tier -> Stripe Payment Link map ----------------------------------
+// Placeholders per CEO directive - swap in the real Stripe URLs once the
 // dashboard is updated, no code change required for Lance's flow.
 const TIER_MAP: Record<string, { url: string; label: string }> = {
   gateway:        { url: 'https://buy.stripe.com/test_placeholder_gateway',    label: 'Gateway' },
@@ -73,7 +73,7 @@ function normalizePhone(raw: string): string {
   const digits = trimmed.replace(/\D/g, '');
   if (digits.length === 10) return '+1' + digits;
   if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
-  // Unknown format — return cleaned digits with + so Twilio surfaces the
+  // Unknown format - return cleaned digits with + so Twilio surfaces the
   // real validation error in its response (logged below).
   return '+' + digits;
 }
@@ -141,22 +141,22 @@ async function processToolCall(
   const rawTier  = String((args as any).tier_name || (args as any).tier || '').trim();
 
   if (!rawPhone) {
-    return { toolCallId, result: 'Could not send the link — no phone number was provided. Ask the prospect to confirm their mobile number.' };
+    return { toolCallId, result: 'Could not send the link - no phone number was provided. Ask the prospect to confirm their mobile number.' };
   }
   if (!rawTier) {
-    return { toolCallId, result: 'Could not send the link — no tier was provided. Confirm which tier the prospect committed to (Gateway, Essentials, or Sovereign).' };
+    return { toolCallId, result: 'Could not send the link - no tier was provided. Confirm which tier the prospect committed to (Gateway, Essentials, or Sovereign).' };
   }
 
   const phone = normalizePhone(rawPhone);
   if (!isValidE164(phone)) {
-    return { toolCallId, result: `Could not send the link — "${rawPhone}" is not a valid phone number. Ask the prospect to repeat it digit-by-digit.` };
+    return { toolCallId, result: `Could not send the link - "${rawPhone}" is not a valid phone number. Ask the prospect to repeat it digit-by-digit.` };
   }
 
   const tierKey = normalizeTier(rawTier);
   const tier = TIER_MAP[tierKey];
   if (!tier) {
     const allowed = Object.values(TIER_MAP).map(t => t.label).join(', ');
-    return { toolCallId, result: `Could not send the link — "${rawTier}" is not a recognized tier. Confirm one of: ${allowed}.` };
+    return { toolCallId, result: `Could not send the link - "${rawTier}" is not a recognized tier. Confirm one of: ${allowed}.` };
   }
 
   const messageBody = `Here is your secure checkout link for the BBF ${tier.label} Protocol: ${tier.url}`;
@@ -169,10 +169,10 @@ async function processToolCall(
   });
 
   if (!send.ok) {
-    return { toolCallId, result: `Could not send the SMS to ${phone} — Twilio rejected the request (${send.error}). Apologize to the prospect and re-confirm the number.` };
+    return { toolCallId, result: `Could not send the SMS to ${phone} - Twilio rejected the request (${send.error}). Apologize to the prospect and re-confirm the number.` };
   }
 
-  console.log(`[vapi-sms-closer] sms sent · tier=${tierKey} to=${phone} sid=${send.sid}`);
+  console.log(`[vapi-sms-closer] sms sent - tier=${tierKey} to=${phone} sid=${send.sid}`);
   return { toolCallId, result: 'SMS successfully sent with the payment link.' };
 }
 
@@ -206,7 +206,7 @@ serve(async (req: Request) => {
   catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
   // Vapi has shipped the toolCall list under both `toolCallList` and
-  // `toolCalls` across versions — accept either, and fall back to a
+  // `toolCalls` across versions - accept either, and fall back to a
   // single-tool-call shape if Vapi ever flattens the payload.
   const msg = payload?.message || payload || {};
   const toolCalls: any[] =
