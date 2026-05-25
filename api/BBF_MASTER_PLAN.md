@@ -293,6 +293,30 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 - **Verdict: ZERO hardcoded high-privilege credentials in the repository.** Every server-side credential reference flows through `process.env` (Node) or `Deno.env.get` (Deno); the single browser-exposed key is intentionally publishable. No extraction or replacement required.
 - **Note for future audits:** Re-run with `bash /tmp/scan_secrets.sh` style multi-pass · the 11-pattern class set is the load-bearing surface for Supabase / Stripe / Resend / Brevo / Twilio / AWS / Google / GitHub / Anthropic / Slack credential shapes.
 
+## [~] 6.0a · Schema normalization · ghost column sweep · DRAFTED · commit `<PHASE_2_3_SHA>` · 2026-05-25
+- **Why:** Dead columns drift the DB shape away from the app's actual contract · the longer they sit the harder it is to tell intentional state from legacy debris.
+- **How:** 5-layer dependency check on every column of every `public.bbf_*` table (308 columns across 24 tables): (1) live application code grep · (2) stored functions in public schema · (3) views · (4) foreign-key constraints · (5) triggers + indexes + cross-schema function bodies. A column counts as a ghost only when ALL FIVE layers return zero references AND the column data is either empty or fully null.
+- **Done when:** Ghost migration applied · schema introspection re-run reports zero unreferenced columns.
+- **Audit findings (this session):**
+  - **Pass 1 (app-code grep)** flagged 12 zero-reference candidates after excluding the 36 universal platform columns (id/created_at/updated_at/inserted_at).
+  - **Pass 2 (pg_proc public)** eliminated 7 candidates — DB-internal use found:
+    - `bbf_pin_attempts.{failed_count, last_attempt_at, locked_until, window_started_at}` — read/written by `bbf_admin_clear_lockout`, `bbf_verify_admin_pin`, `bbf_verify_user_pin`.
+    - `bbf_system_config.ceiling_tripped_at` — written by `bbf_check_daily_spend` (Phase 1.4).
+    - `bbf_vapi_calls.{call_status, called_at}` — read by `bbf_evaluate_abandoned_carts`, `bbf_evaluate_streaks`.
+  - **Pass 3 (views)** zero hits.
+  - **Pass 4 (FKs)** zero hits on remaining 5.
+  - **Pass 5 (triggers / cross-schema / indexes)** the lone index `idx_bbf_stripe_events_received_at` cascades on column drop · benign (empty table).
+- **Confirmed ghost columns (5 total) · drop-safety verified:**
+
+| # | Table | Column | Type | Rows | Non-null | Distinct | Triggers | Views | FKs | Cross-fns | Verdict |
+|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|
+| 1 | `bbf_active_clients` | `liability_agreement` | boolean | 5 | 1 (value `true`) | 1 | 0 | 0 | 0 | 0 | DROP · superseded by `liability_cleared` (stripe-webhook writes the active path) |
+| 2 | `bbf_meal_macros` | `ingredients_hash` | text | 0 | 0 | 0 | 0 | 0 | 0 | 0 | DROP · cache keys on `name_normalized` instead · never wired up |
+| 3 | `bbf_stripe_events` | `received_at` | timestamptz | 0 | 0 | 0 | 0 | 0 | 0 | 0 | DROP · index `idx_bbf_stripe_events_received_at` cascades · `created_at` covers the same semantics |
+| 4 | `bbf_users` | `last_login` | timestamptz | 7 | **0 (100% null)** | 0 | 0 | 0 | 0 | 0 | DROP · never populated by any path · login telemetry deferred to Phase 4.4 `bbf_events` |
+| 5 | `bbf_vapi_calls` | `vapi_call_id` | text | 0 | 0 | 0 | 0 | 0 | 0 | 0 | DROP · sibling cols stay (used by stored fns) · this one is orphaned |
+- **Migration drafted (NOT YET APPLIED):** `supabase/migrations/20260525240000_bbf_ghost_column_sweep.sql` · `alter table … drop column if exists …` for each of the 5 ghosts. Committed to repo so the change history is preserved; apply via `mcp__supabase__apply_migration` on operator go-signal. **Destructive DDL deliberately gated · awaiting CEO sign-off.**
+
 ## [ ] 6.1 · RLS audit on every public table
 - **Why:** Closes Tier 1 #10 of the original list. Coverage isn't audited.
 - **How:** For each table in `public`, document: who can SELECT, who can INSERT/UPDATE/DELETE, why. Add missing policies. Block anything that should be service-role-only.
