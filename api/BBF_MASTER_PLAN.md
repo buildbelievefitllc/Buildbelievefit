@@ -293,7 +293,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 - **Verdict: ZERO hardcoded high-privilege credentials in the repository.** Every server-side credential reference flows through `process.env` (Node) or `Deno.env.get` (Deno); the single browser-exposed key is intentionally publishable. No extraction or replacement required.
 - **Note for future audits:** Re-run with `bash /tmp/scan_secrets.sh` style multi-pass · the 11-pattern class set is the load-bearing surface for Supabase / Stripe / Resend / Brevo / Twilio / AWS / Google / GitHub / Anthropic / Slack credential shapes.
 
-## [~] 6.0a · Schema normalization · ghost column sweep · DRAFTED · commit `<PHASE_2_3_SHA>` · 2026-05-25
+## [~] 6.0a · Schema normalization · ghost column sweep · DRAFTED · commit `31ae9e1` · 2026-05-25
 - **Why:** Dead columns drift the DB shape away from the app's actual contract · the longer they sit the harder it is to tell intentional state from legacy debris.
 - **How:** 5-layer dependency check on every column of every `public.bbf_*` table (308 columns across 24 tables): (1) live application code grep · (2) stored functions in public schema · (3) views · (4) foreign-key constraints · (5) triggers + indexes + cross-schema function bodies. A column counts as a ghost only when ALL FIVE layers return zero references AND the column data is either empty or fully null.
 - **Done when:** Ghost migration applied · schema introspection re-run reports zero unreferenced columns.
