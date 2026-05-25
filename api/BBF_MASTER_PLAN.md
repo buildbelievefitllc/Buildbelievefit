@@ -74,7 +74,7 @@ Without these, every other improvement is built on sand.
 
 Do these before pushing any meaningful outbound volume.
 
-## [x] 1.1 · Cross-system suppression table · CLOSED · commit `<PHASE_1_SHA>` · 2026-05-25
+## [x] 1.1 · Cross-system suppression table · CLOSED · commit `2bf7847` · 2026-05-25
 - **Why:** Closes gap #3. Previously an email could be in both `bbf_leads` (Concierge) and `bbf_outbound_athletes` (Marketing) and receive both flows.
 - **How:** `bbf_email_suppression(email TEXT PK CHECK lowercase, suppressed_at TIMESTAMPTZ, reason TEXT)`. Marketing dispatcher consults it before every Resend send · hits get hard-skipped with `status='suppressed'`.
 - **Done when:** A test email added to suppression is hard-skipped by the dispatcher (verified via the live smoke test in the closure session).
@@ -86,7 +86,7 @@ Do these before pushing any meaningful outbound volume.
   - **Unsubscribe hook** (`agents/unsubscribe.js`) · always-on `suppressEmail(reason='unsubscribed')` after the bbf_outbound_athletes status flip · works even on repeat clicks so the ledger row stays fresh.
 - **Validation:** `node --check` clean on all 5 touched files · `tsc --allowJs --checkJs` reports zero NEW errors (only pre-existing telemetry inference noise) · CHECK constraint live-verified with an intentional uppercase insert that correctly raised `check_violation`.
 
-## [x] 1.2 · Resend delivery webhook capture (`bbf_email_events`) · CLOSED · commit `<PHASE_1_SHA>` · 2026-05-25
+## [x] 1.2 · Resend delivery webhook capture (`bbf_email_events`) · CLOSED · commit `2bf7847` · 2026-05-25
 - **Why:** Closes the gap from Tier 1 #4 of the original dissection. Without this you're blind to bounce/open/click/complaint rates.
 - **How:** Migration `bbf_email_events(id UUID PK, message_id, email, event_type, ts, payload jsonb)`. Extended `/api/v1/marketing/inbound` to branch on payload `type` before the Gemini triage path: `email.*` (except `email.received`) → log to `bbf_email_events`; `email.bounced` / `email.complained` → also `suppressEmail()`. Aggregate metrics (sent / delivered / bounced / opened / complaint_rate / suppression_total) exposed inside `/api/v1/marketing/health` under a `delivery` key.
 - **Done when:** A test email's event chain (sent → delivered → opened) appears as rows in `bbf_email_events`, and the `/health` matrix surfaces counts.
