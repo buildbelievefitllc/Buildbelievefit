@@ -1,0 +1,11 @@
+{
+  "_documentation": "Build Believe Fit · Scout Engine seed file. Populate the leads[] array with athletes to ingest on the next orchestrator cycle. Schema matches the /api/v1/marketing/ingest body. Safe upsert by email · existing rows keep their funnel state. Real Playwright/HTTP scrapers should be added as new sources under marketing/agents/scout-engine.js _registerSources(), not by editing this file.",
+  "_example_lead": {
+    "athlete_name":       "Required: full name as it appears publicly",
+    "email":              "Required: lowercased, deduplicated",
+    "discipline":         "Optional: e.g. Bodybuilding | Hybrid Athlete | Endurance | Powerlifting",
+    "public_profile_url": "Optional: Strava | IG | YouTube | personal site",
+    "performance_notes":  "Optional: free-text · scraped training metrics, plateaus, observed bottlenecks"
+  },
+  "leads": []
+}

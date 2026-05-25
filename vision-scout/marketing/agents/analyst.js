@@ -3,9 +3,9 @@
 //   { batch_size?: 1-50, lead_id?: uuid }
 //
 // Pulls raw leads, generates hyper-technical pitches via gemini-3.5-flash,
-// flips status to 'analyzed'. Manual trigger now; wire pg_cron or a
-// Render cron job to fire this on a schedule once verified.
-import { sb, requireSb, TABLE } from '../db.js';
+// flips status to 'analyzed'. Also exposes runBatch() so the daily
+// orchestrator can drive it in-process without an HTTP round-trip.
+import { sb, requireSb, getSb, TABLE } from '../db.js';
 import { generate, MODEL_NAME } from '../gemini.js';
 
 const DEFAULT_BATCH = 5;
@@ -27,7 +27,7 @@ function buildUserPrompt(lead) {
   ].join('\n');
 }
 
-async function analyzeOne(lead) {
+async function analyzeOne(client, lead) {
   const out = await generate({
     system:          SYSTEM_PROMPT,
     user:            buildUserPrompt(lead),
@@ -38,10 +38,10 @@ async function analyzeOne(lead) {
     maxOutputTokens: 1024,
   });
   if (!out.ok) {
-    await sb.from(TABLE).update({ last_error: `${out.error}: ${out.detail || ''}`.slice(0, 500) }).eq('id', lead.id);
+    await client.from(TABLE).update({ last_error: `${out.error}: ${out.detail || ''}`.slice(0, 500) }).eq('id', lead.id);
     return { id: lead.id, email: lead.email, ok: false, error: out.error };
   }
-  const { error: updErr } = await sb.from(TABLE).update({
+  const { error: updErr } = await client.from(TABLE).update({
     personalized_pitch: out.text,
     status:             'analyzed',
     last_error:         null,
@@ -50,24 +50,36 @@ async function analyzeOne(lead) {
   return { id: lead.id, email: lead.email, ok: true, finishReason: out.finishReason, pitch_chars: out.text.length };
 }
 
-export async function analyze(req, res) {
-  if (!requireSb(res)) return;
-  const body = req.body || {};
-  const leadId    = body.lead_id ? String(body.lead_id) : null;
-  const batchSize = Math.min(MAX_BATCH, Math.max(1, Number(body.batch_size) || DEFAULT_BATCH));
+// runBatch · pure worker · used by both the HTTP handler and the
+// orchestrator. Does not depend on a request/response pair.
+export async function runBatch({ batchSize, leadId } = {}) {
+  const client = getSb();
+  if (!client) return { ok: false, error: 'supabase_unconfigured' };
 
-  let q = sb.from(TABLE).select('id, athlete_name, email, discipline, public_profile_url, performance_notes');
-  if (leadId) q = q.eq('id', leadId);
-  else        q = q.eq('status', 'raw').order('created_at', { ascending: true }).limit(batchSize);
+  const size = Math.min(MAX_BATCH, Math.max(1, Number(batchSize) || DEFAULT_BATCH));
+
+  let q = client.from(TABLE).select('id, athlete_name, email, discipline, public_profile_url, performance_notes');
+  if (leadId) q = q.eq('id', String(leadId));
+  else        q = q.eq('status', 'raw').order('created_at', { ascending: true }).limit(size);
 
   const { data: leads, error } = await q;
-  if (error)        return res.status(500).json({ ok: false, error: 'db_fetch_failed', detail: error.message });
-  if (!leads?.length) return res.json({ ok: true, processed: 0, results: [], model: MODEL_NAME, note: 'no raw leads' });
+  if (error)        return { ok: false, error: 'db_fetch_failed', detail: error.message };
+  if (!leads?.length) return { ok: true, processed: 0, results: [], model: MODEL_NAME, note: 'no raw leads' };
 
   // Run in parallel · Gemini Flash is fast and tolerates concurrency.
-  const results = await Promise.all(leads.map(analyzeOne));
+  const results = await Promise.all(leads.map((l) => analyzeOne(client, l)));
   const ok      = results.filter((r) => r.ok).length;
 
   console.log(`[marketing/analyst] processed=${results.length} ok=${ok} model=${MODEL_NAME}`);
-  return res.json({ ok: true, processed: results.length, succeeded: ok, results, model: MODEL_NAME });
+  return { ok: true, processed: results.length, succeeded: ok, results, model: MODEL_NAME };
+}
+
+// HTTP handler · thin wrapper around runBatch.
+export async function analyze(req, res) {
+  if (!requireSb(res)) return;
+  const body      = req.body || {};
+  const leadId    = body.lead_id ? String(body.lead_id) : null;
+  const batchSize = Number(body.batch_size) || DEFAULT_BATCH;
+  const summary   = await runBatch({ batchSize, leadId });
+  return res.json(summary);
 }

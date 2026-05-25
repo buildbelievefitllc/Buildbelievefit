@@ -50,3 +50,12 @@ services:
         value: Build Believe Fit · USA
       - key:   BBF_UNSUB_BASE_URL
         value: https://vision-scout.onrender.com
+      # ── Orchestrator (daily marketing cron) ───────────────────────
+      - key:   BBF_ORCHESTRATOR_CRON
+        value: 0 14 * * *
+      - key:   BBF_ORCH_ANALYZE_BATCH
+        value: "25"
+      - key:   BBF_ORCH_DISPATCH_BATCH
+        value: "25"
+      - key:   BBF_SCOUT_USE_DEMO_SEEDS
+        value: "false"

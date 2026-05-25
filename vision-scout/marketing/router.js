@@ -8,6 +8,8 @@ import { analyze }   from './agents/analyst.js';
 import { dispatch } from './agents/dispatcher.js';
 import { inbound }   from './agents/triage.js';
 import { unsubscribe } from './agents/unsubscribe.js';
+import { scoutEngine }         from './agents/scout-engine.js';
+import { runOrchestratorRoute } from './orchestrator.js';
 import { isSbBuilt, sbBootKeyPresent, sbBuiltAt, sbBuildError, sbUsedFallback } from './db.js';
 import { isResendReady } from './resend.js';
 
@@ -29,9 +31,11 @@ export function buildMarketingRouter() {
   const r = Router();
 
   // Admin-gated worker triggers.
-  r.post('/ingest',   requireAdmin, asyncHandler(ingest));
-  r.post('/analyze',  requireAdmin, asyncHandler(analyze));
-  r.post('/dispatch', requireAdmin, asyncHandler(dispatch));
+  r.post('/ingest',           requireAdmin, asyncHandler(ingest));
+  r.post('/analyze',          requireAdmin, asyncHandler(analyze));
+  r.post('/dispatch',         requireAdmin, asyncHandler(dispatch));
+  r.post('/scout-engine',     requireAdmin, asyncHandler(scoutEngine));
+  r.post('/run-orchestrator', requireAdmin, asyncHandler(runOrchestratorRoute));
 
   // Public webhooks · no JWT, no admin token. The webhook payload itself
   // is the only auth (and Resend should be configured to sign the body
@@ -63,6 +67,12 @@ export function buildMarketingRouter() {
       sb_used_fallback:         sbUsedFallback(),
       sb_build_error:           sbBuildError(),
       resend_client_built:      isResendReady(),
+    },
+    orchestrator: {
+      cron_schedule:        process.env.BBF_ORCHESTRATOR_CRON   || '(disabled · set BBF_ORCHESTRATOR_CRON)',
+      analyze_batch:        Number(process.env.BBF_ORCH_ANALYZE_BATCH)  || 25,
+      dispatch_batch:       Number(process.env.BBF_ORCH_DISPATCH_BATCH) || 25,
+      demo_seeds_active:    String(process.env.BBF_SCOUT_USE_DEMO_SEEDS || '').toLowerCase() === 'true',
     },
     model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
   }));

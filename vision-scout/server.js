@@ -23,7 +23,9 @@ import express  from 'express';
 import crypto   from 'node:crypto';
 import { chromium } from 'playwright';
 import Anthropic    from '@anthropic-ai/sdk';
+import cron         from 'node-cron';
 import { buildMarketingRouter } from './marketing/router.js';
+import { runOrchestrator }      from './marketing/orchestrator.js';
 
 // ─── Config ─────────────────────────────────────────────────────────────
 const PORT                  = Number(process.env.PORT) || 3000;
@@ -645,4 +647,30 @@ for (const sig of ['SIGINT', 'SIGTERM']) {
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 10_000).unref();
   });
+}
+
+// ─── Marketing orchestrator cron ────────────────────────────────────────
+// Schedule the daily run. Env-controlled · BBF_ORCHESTRATOR_CRON empty/unset
+// disables the in-process cron (useful for tests + when an external
+// scheduler is preferred). Default '0 14 * * *' UTC = 10am ET / 7am PT,
+// firing the full Scout -> Analyst -> Dispatcher chain.
+const ORCH_CRON = process.env.BBF_ORCHESTRATOR_CRON || '';
+if (ORCH_CRON) {
+  if (cron.validate(ORCH_CRON)) {
+    cron.schedule(ORCH_CRON, async () => {
+      console.log('[vision-scout] cron tick · firing marketing orchestrator');
+      try {
+        const result = await runOrchestrator({ source: 'cron' });
+        console.log('[vision-scout] orchestrator finished ok=' + result.ok +
+                    ' duration_ms=' + result.duration_ms);
+      } catch (err) {
+        console.error('[vision-scout] orchestrator threw:', err?.message);
+      }
+    }, { timezone: 'UTC' });
+    console.log('[vision-scout] orchestrator cron registered · schedule=' + ORCH_CRON + ' UTC');
+  } else {
+    console.warn('[vision-scout] BBF_ORCHESTRATOR_CRON invalid: "' + ORCH_CRON + '" · cron disabled');
+  }
+} else {
+  console.log('[vision-scout] orchestrator cron disabled · set BBF_ORCHESTRATOR_CRON to enable');
 }

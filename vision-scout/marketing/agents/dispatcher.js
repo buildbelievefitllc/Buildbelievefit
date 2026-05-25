@@ -3,14 +3,13 @@
 //   { batch_size?: 1-20, lead_id?: uuid }
 //
 // Pulls analyzed leads, splits the LLM pitch into subject + body,
-// sends via Resend, flips status to 'contacted'.
+// sends via Resend, flips status to 'contacted'. Also exposes
+// runBatch() for in-process orchestrator use.
 //
 // SUBJECT/BODY SPLIT · The Performance Analyst writes pitches that
 // start with "Subject: <line>" on line 1, then a blank line, then the
 // body sentences. splitPitch() extracts the subject (stripping the
 // literal "Subject:" prefix), and uses the rest as the email body.
-// If the pitch has no blank line, falls back to a generic subject and
-// uses the entire pitch as the body.
 //
 // CEO TESTING OVERRIDE · the placeholder email
 // bbf_test_lead@bbf-marketing-sentinel.dev is intercepted at dispatch
@@ -18,7 +17,7 @@
 // format + inbox delivery path without polluting a real athlete's
 // inbox. The intercept is dispatch-only · the lead row keeps its
 // original email value untouched.
-import { sb, requireSb, TABLE } from '../db.js';
+import { sb, requireSb, getSb, TABLE } from '../db.js';
 import { sendPitch } from '../resend.js';
 
 const DEFAULT_BATCH = 5;
@@ -32,19 +31,10 @@ function splitPitch(rawPitch, athleteName) {
   const fallbackSubject = `Performance audit · ${athleteName}`;
   if (!pitch) return { subject: fallbackSubject, body: '' };
 
-  // Gemini writes:
-  //   Subject: <one-line subject>
-  //   <blank line>
-  //   <body sentences>
-  // Split on the first double newline.
   const idx = pitch.indexOf('\n\n');
-  if (idx < 0) {
-    // No blank-line break · whole pitch is body, default subject.
-    return { subject: fallbackSubject, body: pitch };
-  }
+  if (idx < 0) return { subject: fallbackSubject, body: pitch };
 
   let subject = pitch.slice(0, idx).trim();
-  // Strip a literal "Subject:" / "subject:" / "SUBJECT:" prefix.
   subject = subject.replace(/^\s*subject\s*:\s*/i, '').trim();
   if (!subject) subject = fallbackSubject;
 
@@ -52,7 +42,7 @@ function splitPitch(rawPitch, athleteName) {
   return { subject, body };
 }
 
-async function dispatchOne(lead) {
+async function dispatchOne(client, lead) {
   const { subject, body } = splitPitch(lead.personalized_pitch, lead.athlete_name);
 
   const destinationEmail = (lead.email === TEST_LEAD_EMAIL)
@@ -65,13 +55,13 @@ async function dispatchOne(lead) {
 
   const out = await sendPitch({
     ...lead,
-    email:           destinationEmail, // override To: address
-    _subject:        subject,
-    _body:           body,
+    email:    destinationEmail,
+    _subject: subject,
+    _body:    body,
   });
 
   if (!out.ok) {
-    await sb.from(TABLE).update({
+    await client.from(TABLE).update({
       last_error: `${out.error}: ${out.detail || ''}`.slice(0, 500),
     }).eq('id', lead.id);
     return {
@@ -85,7 +75,7 @@ async function dispatchOne(lead) {
     };
   }
 
-  const { error: updErr } = await sb.from(TABLE).update({
+  const { error: updErr } = await client.from(TABLE).update({
     status:            'contacted',
     contacted_at:      new Date().toISOString(),
     resend_message_id: out.message_id,
@@ -116,31 +106,41 @@ async function dispatchOne(lead) {
   };
 }
 
+// runBatch · pure worker · used by both the HTTP handler and the
+// orchestrator. Sequential per-lead so Resend rate limits + the
+// ordered log are clean.
+export async function runBatch({ batchSize, leadId } = {}) {
+  const client = getSb();
+  if (!client) return { ok: false, error: 'supabase_unconfigured' };
+
+  const size = Math.min(MAX_BATCH, Math.max(1, Number(batchSize) || DEFAULT_BATCH));
+
+  let q = client.from(TABLE).select('id, athlete_name, email, personalized_pitch, unsubscribe_token, discipline, public_profile_url');
+  if (leadId) {
+    q = q.eq('id', String(leadId)).eq('status', 'analyzed');
+  } else {
+    q = q.eq('status', 'analyzed').not('personalized_pitch', 'is', null).order('updated_at', { ascending: true }).limit(size);
+  }
+
+  const { data: leads, error } = await q;
+  if (error)          return { ok: false, error: 'db_fetch_failed', detail: error.message };
+  if (!leads?.length) return { ok: true, dispatched: 0, results: [], note: 'no analyzed leads ready to send' };
+
+  const results = [];
+  for (const lead of leads) {
+    results.push(await dispatchOne(client, lead));
+  }
+  const ok = results.filter((r) => r.ok).length;
+  console.log(`[marketing/dispatcher] sent=${ok}/${results.length}`);
+  return { ok: true, dispatched: results.length, succeeded: ok, results };
+}
+
+// HTTP handler · thin wrapper.
 export async function dispatch(req, res) {
   if (!requireSb(res)) return;
   const body      = req.body || {};
   const leadId    = body.lead_id ? String(body.lead_id) : null;
-  const batchSize = Math.min(MAX_BATCH, Math.max(1, Number(body.batch_size) || DEFAULT_BATCH));
-
-  let q = sb.from(TABLE).select('id, athlete_name, email, personalized_pitch, unsubscribe_token, discipline, public_profile_url');
-  if (leadId) {
-    // Manual single-lead send · gated by status to prevent double-sends.
-    q = q.eq('id', leadId).eq('status', 'analyzed');
-  } else {
-    q = q.eq('status', 'analyzed').not('personalized_pitch', 'is', null).order('updated_at', { ascending: true }).limit(batchSize);
-  }
-
-  const { data: leads, error } = await q;
-  if (error)          return res.status(500).json({ ok: false, error: 'db_fetch_failed', detail: error.message });
-  if (!leads?.length) return res.json({ ok: true, dispatched: 0, results: [], note: 'no analyzed leads ready to send' });
-
-  // Sequential · don't burn Resend rate limits + lets us see ordered
-  // failures in the log.
-  const results = [];
-  for (const lead of leads) {
-    results.push(await dispatchOne(lead));
-  }
-  const ok = results.filter((r) => r.ok).length;
-  console.log(`[marketing/dispatcher] sent=${ok}/${results.length}`);
-  return res.json({ ok: true, dispatched: results.length, succeeded: ok, results });
+  const batchSize = Number(body.batch_size) || DEFAULT_BATCH;
+  const summary   = await runBatch({ batchSize, leadId });
+  return res.json(summary);
 }
