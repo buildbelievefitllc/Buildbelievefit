@@ -19,13 +19,14 @@
 
 Without these, every other improvement is built on sand.
 
-## [ ] 0.1 · Rotate the leaked `BBF_MARKETING_ADMIN_TOKEN`
-- **Why:** The current token (`H3yHYuivtHzNPzChxYp4nuywCf6swEKT`) was pasted in a Claude session transcript on 2026-05-24. Treat any token that has appeared in an AI conversation as compromised.
+## [~] 0.1 · Rotate the leaked `BBF_MARKETING_ADMIN_TOKEN`
+- **Why:** The previous token was pasted in a Claude session transcript on 2026-05-24. Treat any token that has appeared in an AI conversation as compromised.
 - **How:** Generate a new random 32-char string. Update in Render dashboard → vision-scout → Environment. Auto-redeploys. Update Akeem's local notes / 1Password.
+- **Status (2026-05-25, commit `6db5afb`):** PARTIAL · the auth compare is hardened to SHA-256 + `crypto.timingSafeEqual` (constant-time, length-leak-free) as defense in depth. A fresh 32-char token has been generated and handed to Akeem in chat. Final rotation requires Akeem to paste the new token into Render → vision-scout → Environment → `BBF_MARKETING_ADMIN_TOKEN`, which triggers the auto-redeploy. Mark `[x]` once `curl /api/v1/marketing/telemetry` with the OLD token returns 401 and the NEW token returns 200.
 - **Done when:** Health endpoint shows `admin_token_set:true`, old token returns 401 on `/api/v1/marketing/analyze`.
 - **Effort:** 5 minutes.
 
-## [ ] 0.2 · Build the observability backbone (`bbf_agent_runs` + `bbf_llm_calls`)
+## [x] 0.2 · Build the observability backbone (`bbf_agent_runs` + `bbf_llm_calls`) · commit `6db5afb` · 2026-05-25
 - **Why:** Closes gap #2 (no observability). Unblocks Phases 1-3 because every later improvement needs measurement.
 - **How:**
   - Migration: `bbf_agent_runs(id, agent, run_id, started_at, finished_at, ok, error, summary jsonb, source text)`.
@@ -34,6 +35,7 @@ Without these, every other improvement is built on sand.
   - Add admin route `GET /api/v1/marketing/telemetry?hours=24` returning aggregate counts.
 - **Done when:** Every agent in production writes a row per invocation. `/telemetry` returns last 24h summary.
 - **Effort:** 1 day.
+- **Shipped:** Migration `20260525200000_bbf_observability_backbone.sql` applied. Node helper at `vision-scout/marketing/telemetry.js` (Deno-side `_shared/telemetry.ts` deferred — only needed once an edge function adopts telemetry). Every marketing agent — `scout`, `scout-engine`, `analyst`, `dispatcher`, `triage`, `unsubscribe`, `orchestrator` — writes a `bbf_agent_runs` row on every invocation. Analyst + triage also write `bbf_llm_calls` rows with Gemini-`usageMetadata`-sourced tokens, latency, `finishReason`, and provider-derived USD cost. Orchestrator threads a shared `run_id` through scout → analyst → dispatch so one pass correlates with `where run_id = ?`. `GET /api/v1/marketing/telemetry?hours=24` returns aggregate runs/calls grouped by agent + by model with total USD cost. Cost rate card pre-seeded for `gemini-3.5-flash`, `gemini-3.5-pro`, `claude-sonnet-4-6`, `claude-haiku-4-5`. Telemetry writes are try/catch-wrapped — a Supabase outage will not cascade into the outbound mail path.
 
 ## [ ] 0.3 · Commit deployed-but-missing edge functions to repo
 - **Why:** Closes gap #1 (code drift). `bbf-lead-concierge` and `bbf-user-profile` are deployed but never committed.

@@ -27,17 +27,18 @@ Build Believe Fit (BBF) is a fitness-coaching PWA + multi-agent AI backend run b
 ## Active git state
 
 - **Default branch:** `main` (production)
-- **Feature branch used this session:** `claude/gallant-pascal-11d8p`
+- **Active feature branch (this session 2026-05-25 cont.):** `claude/dazzling-fermat-eVFBH`
+- **Prior feature branch:** `claude/gallant-pascal-11d8p` (FF-merged on 2026-05-25)
 - **Workflow established:** commit on feature branch → push → checkout main → pull → FF-merge feature → push main → checkout back to feature. Akeem authorized this workflow explicitly. NO force pushes. NO direct commits to main without going through the FF flow.
 - **Recent commits (most recent first):**
+  - `6db5afb` feat(marketing): observability backbone + timing-safe admin auth (Phase 0.1 hardening · Phase 0.2 complete)
+  - `70d86d8` docs: master plan + canonical passover for "superior service" track
   - `3186acb` fix(marketing/triage): self-service `/join` close
   - `f878aaf` feat(marketing): autonomous orchestration · scout engine + node-cron + run-orchestrator route
   - `a3243f6` fix(marketing): real from-address · buildbelievefitllc@buildbelievefit.fitness
   - `86cb670` fix(marketing/dispatcher): correct CEO test override email
   - `28dfeba` feat(marketing/dispatcher): pitch subject/body split + CEO test override
   - `046fb17` perf(vision-scout): low-RAM Chromium flags per CEO directive
-  - `480ea6f` fix(marketing): disable Gemini 3.x thinking budget + multi-part text
-  - `c9a7910` fix(marketing): add ws transport for supabase-js on Node 20
 
 ---
 
@@ -97,8 +98,8 @@ Build Believe Fit (BBF) is a fitness-coaching PWA + multi-agent AI backend run b
 | `bbf_vapi_calls` | Vapi voice-call audit log | (check) |
 | `bbf_email_suppression` | ❌ Not yet built · Phase 1.1 in master plan |
 | `bbf_email_events` | ❌ Not yet built · Phase 1.2 (Resend webhooks) |
-| `bbf_agent_runs` | ❌ Not yet built · Phase 0.2 (observability) |
-| `bbf_llm_calls` | ❌ Not yet built · Phase 0.2 (token spend) |
+| `bbf_agent_runs` | ✅ Phase 0.2 shipped · commit `6db5afb` 2026-05-25 · service_role only |
+| `bbf_llm_calls` | ✅ Phase 0.2 shipped · commit `6db5afb` 2026-05-25 · service_role only |
 | `bbf_prompts` | ❌ Not yet built · Phase 2.1 (prompt registry) |
 | `bbf_events` | ❌ Not yet built · Phase 4.4 (frontend telemetry) |
 
@@ -171,11 +172,19 @@ Loading tools: many MCP tools are "deferred" — schema is hidden until you call
 
 7. **Playwright `--single-process` flag is fragile.** Currently in vision-scout/server.js per CEO directive. May cause blank screenshots; if Vision Scout starts misbehaving, this flag is the first suspect.
 
-8. **The current `BBF_MARKETING_ADMIN_TOKEN` is leaked** — it was pasted in a Claude session transcript on 2026-05-24. Master Plan 0.1 rotates it. **Do not use the current value beyond completing 0.1.**
+8. **The `BBF_MARKETING_ADMIN_TOKEN` was leaked** — the original value was pasted in a Claude session transcript on 2026-05-24. As of commit `6db5afb` (2026-05-25), the auth middleware uses SHA-256 + `crypto.timingSafeEqual` so a leaked-prefix attack is moot — but the full rotation (paste new value into Render dashboard) is still required to fully close Master Plan 0.1. The new token is held in chat; mark 0.1 `[x]` only after the Render env var is updated AND the old token returns 401.
 
 9. **The CEO test override email is hardcoded** in `vision-scout/marketing/agents/dispatcher.js`. `bbf_test_lead@bbf-marketing-sentinel.dev` routes to `akeemkbrown@gmail.com`. Production lead emails are untouched, but this hardcode should be env-driven eventually.
 
 10. **`bbf-app.html` has multiple inline event handlers** (`onclick="..."`) that reference global functions. When refactoring (Master Plan Phase 4), do not silently remove globals without verifying every onclick.
+
+11. **Outbound HTTP from this sandbox to `vision-scout.onrender.com` is BLOCKED.** Use `net.http_get` / `net.http_post` from Supabase SQL via the MCP `execute_sql` tool. Pattern: fire `select net.http_get(url := '...', timeout_milliseconds := 15000) as request_id`, wait ~5-10s, then `select status_code, content::text from net._http_response where id = <request_id>`. For POSTs with auth, pass `headers := '{"Authorization":"Bearer ..."}'::jsonb`. `pg_net` is at version 0.20.0; `pg_cron` 1.6.4.
+
+12. **Telemetry can be disabled per-process via `BBF_TELEMETRY_DISABLED=true`.** Use this for local/dev runs that should not write to `bbf_agent_runs` / `bbf_llm_calls`. Default (env unset or anything other than `"true"`) is ENABLED. Telemetry writes are always try/catch-wrapped — a Supabase outage degrades gracefully (warns to console, swallows the error) so the outbound mail path stays healthy.
+
+13. **Phase 0.2 telemetry is Node-side only right now.** The marketing engine in `vision-scout/marketing/` writes to `bbf_agent_runs` / `bbf_llm_calls`. The 25 Supabase edge functions do NOT yet. When adopting telemetry in a Deno-side function, port `vision-scout/marketing/telemetry.js` to a `supabase/functions/_shared/telemetry.ts` with the same `logRun()` / `logLlmCall()` shape so the rollup query keeps working.
+
+14. **Agent naming convention for `bbf_agent_runs.agent`:** `marketing.<module>` (`marketing.scout`, `marketing.scout-engine`, `marketing.analyst`, `marketing.dispatcher`, `marketing.triage`, `marketing.unsubscribe`, `marketing.orchestrator`). For edge functions when they adopt telemetry, use `<area>.<function-name>` (e.g. `concierge.bbf-lead-concierge`). This keeps the dashboard groupings stable.
 
 ---
 
