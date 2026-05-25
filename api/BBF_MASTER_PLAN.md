@@ -37,11 +37,21 @@ Without these, every other improvement is built on sand.
 - **Effort:** 1 day.
 - **Shipped:** Migration `20260525200000_bbf_observability_backbone.sql` applied. Node helper at `vision-scout/marketing/telemetry.js` (Deno-side `_shared/telemetry.ts` deferred — only needed once an edge function adopts telemetry). Every marketing agent — `scout`, `scout-engine`, `analyst`, `dispatcher`, `triage`, `unsubscribe`, `orchestrator` — writes a `bbf_agent_runs` row on every invocation. Analyst + triage also write `bbf_llm_calls` rows with Gemini-`usageMetadata`-sourced tokens, latency, `finishReason`, and provider-derived USD cost. Orchestrator threads a shared `run_id` through scout → analyst → dispatch so one pass correlates with `where run_id = ?`. `GET /api/v1/marketing/telemetry?hours=24` returns aggregate runs/calls grouped by agent + by model with total USD cost. Cost rate card pre-seeded for `gemini-3.5-flash`, `gemini-3.5-pro`, `claude-sonnet-4-6`, `claude-haiku-4-5`. Telemetry writes are try/catch-wrapped — a Supabase outage will not cascade into the outbound mail path.
 
-## [ ] 0.3 · Commit deployed-but-missing edge functions to repo
+## [~] 0.3 · Commit deployed-but-missing edge functions to repo · partial · commit `6916a46` · 2026-05-25
 - **Why:** Closes gap #1 (code drift). `bbf-lead-concierge` and `bbf-user-profile` are deployed but never committed.
 - **How:** Pull source via `mcp__supabase__get_edge_function`. Save to `supabase/functions/<name>/index.ts`. Commit with note "import drifted production function into repo".
 - **Done when:** `ls supabase/functions/` matches the deployed function list with zero drift.
 - **Effort:** 30 minutes.
+- **Shipped (directory-list sync):** Pulled three deployed-but-not-in-repo functions and committed verbatim — `bbf-lead-concierge`, `bbf-user-profile`, and `bbf_vision_scout` (the third was undocumented in the original passover; slug uses underscores, distinct from the Render `vision-scout` service · Browserless + Claude wrapper). `ls supabase/functions/` now mirrors the 24 ACTIVE deployed functions exactly.
+- **Drift detected (REVERSE direction · repo is ahead of deployed):** A subsequent byte-equality audit of all 24 functions surfaced six cases where the REPO has changes that were never pushed via `supabase functions deploy`:
+  - `stripe-webhook` · repo has a 49-line doc header + a 21-line trailing TODO about idempotency (the TODO's described follow-up — `bbf_stripe_events` insert with ON CONFLICT — IS already implemented in the deployed code · TODO is stale).
+  - `bbf-meal-macros` · structural · repo imports `routeAndLog` from `_shared/model-router.ts`; deployed inlines a hardcoded `claude-haiku-4-5` model id. Repo is an aborted/incomplete model-router refactor.
+  - `bbf-meal-image` · repo prepends a 31-line doc header missing from deployed; otherwise body close to deployed.
+  - `bbf-sentinel` · repo header `v11 · Sentinel Protocol — TWO modes, single endpoint` vs deployed `v11 · Two-Bin Verifier + Cron Audit`. Repo uses long-form multi-line query chains; deployed has single-line dense form. 546 repo lines vs much fewer deployed.
+  - `vapi-sms-closer` · cosmetic typography · repo has em-dashes (—) + middle-dots (·) where deployed has plain hyphens.
+  - `bbf-lead-capture` · same em-dash cosmetic drift.
+- **What this means:** Phase 0.3 as written assumes one-way drift (deployed→missing-from-repo). The real state is two-way drift: three were missing from repo (now fixed), six have un-deployed local changes. Decision needed per function — deploy repo→prod, revert repo to match prod, or investigate. Do NOT autopilot a `supabase functions deploy` on these without per-function review — `stripe-webhook` and `bbf-meal-macros` in particular sit in critical paths.
+- **To close fully:** decide+execute per function (deploy or revert), then re-run the byte-equality audit and confirm zero drift in both directions.
 
 ## [ ] 0.4 · Single canonical `ARCHITECTURE.md` at repo root
 - **Why:** Closes gap #1 (meta-problem). The 12+ phase-handoff docs in `api/` cause context-loss between AI sessions.

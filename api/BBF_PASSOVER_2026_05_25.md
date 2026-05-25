@@ -186,6 +186,16 @@ Loading tools: many MCP tools are "deferred" — schema is hidden until you call
 
 14. **Agent naming convention for `bbf_agent_runs.agent`:** `marketing.<module>` (`marketing.scout`, `marketing.scout-engine`, `marketing.analyst`, `marketing.dispatcher`, `marketing.triage`, `marketing.unsubscribe`, `marketing.orchestrator`). For edge functions when they adopt telemetry, use `<area>.<function-name>` (e.g. `concierge.bbf-lead-concierge`). This keeps the dashboard groupings stable.
 
+15. **Edge-function drift is BIDIRECTIONAL · the original passover only flagged one direction.** Phase 0.3's audit (2026-05-25, commit `6916a46`) confirmed `ls supabase/functions/` matches the 24 ACTIVE deployed functions exactly — but byte-equality showed SIX functions where the REPO has changes that were never deployed:
+    - `stripe-webhook` · stale TODO comment + 49-line doc header in repo
+    - `bbf-meal-macros` · repo has model-router refactor, deployed has hardcoded `claude-haiku-4-5` (incomplete refactor)
+    - `bbf-meal-image` · repo has 31-line doc header
+    - `bbf-sentinel` · repo has reformatted code body + different header text
+    - `vapi-sms-closer` + `bbf-lead-capture` · cosmetic em-dash typography in repo only
+    Decisions per function are pending (deploy repo → prod, or revert repo to match prod). Do NOT push `supabase functions deploy` on these without per-function review · `stripe-webhook` and `bbf-meal-macros` touch critical paths.
+
+16. **`bbf_vision_scout` (Supabase edge fn) is NOT the Render `vision-scout` service.** Two completely different things sharing a confusing name. The Supabase one (slug uses underscores) is a small Browserless screenshot + Claude vision wrapper · model `claude-opus-4-7`. The Render one (path `vision-scout/`) is the Playwright smoke-test service + the entire outbound marketing engine. Don't conflate them in commits or env-var conversations.
+
 ---
 
 ## How Akeem operates (observed in this session)
