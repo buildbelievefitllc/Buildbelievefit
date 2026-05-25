@@ -115,7 +115,7 @@ Do these before pushing any meaningful outbound volume.
   - ✓ empty secret → `invalid_secret_config`  · ✓ missing rawBody buffer → `missing_raw_body`
 - **Operator follow-up (NOT code work):** Set `RESEND_WEBHOOK_SECRET` in Render dashboard → vision-scout → Environment. Copy value from Resend dashboard → Webhooks → Signing Secret. Until set, `/inbound` returns 503 — Phase 1.2 delivery events will not flow until this env var is configured.
 
-## [x] 1.4 · Cost ceiling + budget kill-switch · CLOSED · commit `<PHASE_1_4_SHA>` · 2026-05-25
+## [x] 1.4 · Cost ceiling + budget kill-switch · CLOSED · commit `c7103b8` · 2026-05-25
 - **Why:** Closes Tier 1 #5. No spending cap meant a runaway loop could burn $200/night unobserved.
 - **How:** Single-row `bbf_system_config` global config table holds `emergency_stop BOOLEAN` + `daily_spend_ceiling_usd NUMERIC` (default $10.00). `bbf_check_daily_spend()` RPC aggregates 24h spend from `bbf_llm_calls` and flips the flag when the ceiling is exceeded. pg_cron runs it daily at 00:05 UTC; both orchestrators (Supabase edge + Render Node) ALSO call the RPC on every invocation for mid-day defense-in-depth. The agentic orchestrator (`bbf-agentic-orchestrator`) and the Render marketing orchestrator (`marketing/orchestrator.js`) consult the flag at the top of their handlers and return HTTP 429 `SpendLimitExceeded` when set. The kill-switch does NOT auto-clear · operator must explicitly acknowledge the trip via `UPDATE bbf_system_config ... WHERE id=1` to prevent flapping.
 - **Done when:** Live trip → 429 from both orchestrators · clear → normal flow resumes · operator can see kill-switch state in `/api/v1/marketing/health`.
