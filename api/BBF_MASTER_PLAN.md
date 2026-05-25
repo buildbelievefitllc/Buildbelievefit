@@ -37,7 +37,7 @@ Without these, every other improvement is built on sand.
 - **Effort:** 1 day.
 - **Shipped:** Migration `20260525200000_bbf_observability_backbone.sql` applied. Node helper at `vision-scout/marketing/telemetry.js` (Deno-side `_shared/telemetry.ts` deferred — only needed once an edge function adopts telemetry). Every marketing agent — `scout`, `scout-engine`, `analyst`, `dispatcher`, `triage`, `unsubscribe`, `orchestrator` — writes a `bbf_agent_runs` row on every invocation. Analyst + triage also write `bbf_llm_calls` rows with Gemini-`usageMetadata`-sourced tokens, latency, `finishReason`, and provider-derived USD cost. Orchestrator threads a shared `run_id` through scout → analyst → dispatch so one pass correlates with `where run_id = ?`. `GET /api/v1/marketing/telemetry?hours=24` returns aggregate runs/calls grouped by agent + by model with total USD cost. Cost rate card pre-seeded for `gemini-3.5-flash`, `gemini-3.5-pro`, `claude-sonnet-4-6`, `claude-haiku-4-5`. Telemetry writes are try/catch-wrapped — a Supabase outage will not cascade into the outbound mail path.
 
-## [x] 0.3 · Commit deployed-but-missing edge functions to repo · CLOSED · final commit `879fbfe` · 2026-05-25
+## [x] 0.3 · Commit deployed-but-missing edge functions to repo · CLOSED · final commit `1aff9f4` · 2026-05-25
 - **Why:** Closes gap #1 (code drift). `bbf-lead-concierge` and `bbf-user-profile` were deployed but never committed.
 - **How:** Pull source via `mcp__supabase__get_edge_function`. Save to `supabase/functions/<name>/index.ts`. Commit with note "import drifted production function into repo".
 - **Done when:** `ls supabase/functions/` matches the deployed function list with zero drift, in both directions, byte-for-byte.
