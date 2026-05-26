@@ -225,7 +225,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
   2. First workflow run after the toggle will produce a build at `https://buildbelievefit.fitness/vault/` confirming "BBF Vault React Architecture Active" while `/bbf-app.html` continues to serve byte-identically.
 - **Effort (Stage 2 · remaining):** weeks of per-feature React migration · scoped per feature, not as a single sprint.
 
-## [x] 4.1a · State engine shred · Phase 4.2 in operator's nomenclature · foundation for 4.3 Stage 2
+## [x] 4.1a · State engine shred · commit `ea8c8d7` · 2026-05-26 · Phase 4.2 in operator's nomenclature · foundation for 4.3 Stage 2
 - **Why:** The data-communication layer was scattered across the 17,544-line inline `<script>` in `bbf-app.html` as ~30 duplicate `_supabaseUrl()`/`_supabaseKey()` helpers plus the Phase 2.1 Stage-1 extraction file `src/state/bbf-auth-engine.js` (K constant + CU/VC globals + GD/SD payload accessors + raw-fetch PIN-verify). Per the PASSOVER §5 directive React + TS is a REWRITE, not a port · the typed `supabaseClient.ts` is the foundation module every Phase 4.3 Stage-2 React component will import for env access, payload sync, session tracking, and auth verification.
 - **How (this session · scaffold-only · zero live-surface change):**
   1. New `/vault/src/services/` subtree · holds the data layer separate from `components/` and (future) `features/`.
