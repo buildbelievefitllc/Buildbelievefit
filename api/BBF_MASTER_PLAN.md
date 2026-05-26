@@ -280,6 +280,31 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
   - Pre-check: ALL 5 script IDs and ALL 9 style IDs have zero introspection from the remaining HTML/JS · no broken refs.
 - **Out of scope (intentional):** the 17,544-line core inline `<script>` block (script #29) stays inline · splitting it requires a bundler (Phase 4.1) so we don't break the unbundled GitHub Pages deploy.
 
+## [~] 4.3a · Layout panel componentization pass · Phase 4.3 Stage 2 partial · operator's "Phase 4.3"
+- **Why:** Stage 1 (commit `29c4ee1`) only extracted the peripheral inline scripts and the 10 inline `<style>` blocks. The 17,544-line core inline `<script>` is still inline because every feature pane inside it (roster grid, nutrition vision viewport, workout, cardio, prehab, profile) couples directly to global `CU` / `VC` / `GD()` / `SD()` / `TAB()` / `selectClient()`. Stage 2 is per-feature React/TS rewrites that bind to the typed `vault/src/services/supabaseClient.ts` layer (Phase 4.1a) and reproduce each pane's chrome + behavior as a self-contained component. This entry tracks the first two panes shipped: Client Dashboard (admin roster + drill-in) and Nutrition Vision Viewport (live food analysis chrome).
+- **How (this session · scaffold-level shells with visual fixes enforced):**
+  1. **`vault/src/components/ClientDashboard.tsx`** (271 lines) · trainer/admin roster grid + adjacent client-detail panel. Imports `getActiveUid` / `setViewingAsClient` / `getUserRecord` / `isAdmin` from `supabaseClient.ts` so the React state mirror stays coherent with the legacy module-level `VC` tracker.
+     - **VISUAL FIX ENFORCED (selectClient state guard).** Port of the bbf-app.html:2921 Phase 2-emergency repair: if the click target uid equals the currently-selected uid, the handler `return`s BEFORE `setSelectedUid` is called · React never re-renders · the right-hand detail panel is not re-evaluated. The detail panel JSX is rendered WITHOUT a `key={selectedUid}` prop so React reuses the same component instance across client switches (in-place data re-render, no unmount, no child-state drop). Same-client no-op + non-keyed remount = the exact semantics the legacy fix delivered.
+  2. **`vault/src/components/NutritionVision.tsx`** (333 lines) · React extraction of bbf-app.html:928-953 (`#nutrition-vision-module` → `.pe-widget` → `.pe-head` + `.pe-frame` + `.pe-hero` + media controls). Layout mirrors the legacy 4-bracket + scanline + hero chrome and adds a metric chip strip (Calories / Protein / Carbs / Fat / Confidence) for the macro readback.
+     - **VISUAL FIX ENFORCED (mobile responsiveness).** Three horizontal strips (header / controlBar / metricStrip) all use `flexWrap: 'wrap'` plus `flex: '1 1 <basis>'` on each child so:
+       - Wide viewport · children sit side-by-side with even spacing.
+       - Narrow viewport · each child wraps to its own row at the basis-width threshold instead of being crushed into unreadable slivers.
+       - Sub-280px viewport · `minWidth: 0` on the chip + button children prevents horizontal overflow on the parent · the chip strip collapses to a single column.
+       - No media queries needed · wrap behavior is intrinsic to the flex container + basis pair.
+  3. **`vault/src/App.tsx`** · mounts both components in a `gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))'` twin layout that collapses to one column under ~600px viewport and expands to two columns when there's room. Header preserves the Phase 4.1 placeholder confirmation ("BBF Vault React Architecture Active") plus a Phase 4.3 sub-label.
+- **Done when (this entry):** `tsc -b` clean · `npm run build` emits a single bundled artifact with both components actually included (verified by transformed-module count jumping 30 → 74 and bundle size growing 143 KB → 153 KB · the supabaseClient import path is live).
+- **Done when (Phase 4.3 Stage 2 full):** Every pane inside the legacy 17,544-line inline `<script>` is replaced by a `vault/src/components/<name>.tsx` · `bbf-app.html` becomes a redirect to `/vault/` · legacy `src/state/` + `src/components/` IIFEs are deleted.
+- **Shipped (this session):**
+  - `vault/src/components/ClientDashboard.tsx` (271 lines)
+  - `vault/src/components/NutritionVision.tsx` (333 lines)
+  - `vault/src/App.tsx` rewritten · twin-panel mount of both components.
+- **Validation (this session):**
+  - `npm run typecheck` (tsc -b --noEmit) · zero errors against `strict` + `noUnusedLocals` + `noUnusedParameters` + `noFallthroughCasesInSwitch`.
+  - `npm run build` · vite emits 74 modules transformed → `dist/index.html` (680 B · env.js script tag preserved) + `dist/assets/index-CrGOgBAC.js` (153 KB · 49 KB gzip · +10 KB / +3 KB gzip vs Phase 4.1a baseline · delta is the @supabase/supabase-js module side-effects now reaching the bundle via the live supabaseClient import). 1.43 s build.
+  - selectClient guard live-verified by reading the handler · early return before `setSelectedUid` makes React skip the re-render on same-client clicks · detail panel is unkeyed so it re-renders in place across switches.
+  - Flex-wrap responsive layout verified by reading the styles · 3 wrap containers, every child has a basis + `minWidth: 0`, no media queries needed.
+- **Out of scope (next Stage 2 entries):** Wiring live camera (getUserMedia) into NutritionVision · Phase 4.3+ will mount the legacy `initLiveCoach('vision')` chrome (bbf-app.html:5442) into the existing `viewport` div. Wiring the bbf-meal-macros edge function into the macro chips. Porting workout / cardio / prehab / profile panes. Each lands as a separate Stage 2 sub-entry.
+
 ## [ ] 4.4 · Frontend telemetry (`bbf_events`)
 - **Why:** Closes gap #13. Features ship without measurement.
 - **How:** Migration: `bbf_events(id, uid, event_type, meta jsonb, ts)`. Helper `BBF_TELEMETRY.log(eventType, meta)` called at key moments (nutrition tab open, meal checked, scan meal triggered, etc.). Privacy: no PII in `meta`.
