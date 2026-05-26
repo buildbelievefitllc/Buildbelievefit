@@ -321,7 +321,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 - **Done when:** A test commit to `develop` deploys to staging without touching prod.
 - **Effort:** 1 day Supabase + Render setup + few hours of branch/CI work.
 
-## [ ] 5.2 · CI with critical-path tests (Vitest + GitHub Actions)
+## [~] 5.2 · CI with critical-path tests (Vitest + GitHub Actions) · partial · `node --test` suite landed in Phase 6.0f · GitHub Actions runner still pending
 - **Why:** Closes gap #11 (zero tests).
 - **How:**
   - Add Vitest to vision-scout/marketing/.
@@ -331,7 +331,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 - **Done when:** Breaking a test in a PR blocks the merge.
 - **Effort:** 1 day initial + ongoing test additions.
 
-## [ ] 5.3 · Automatic service-worker cache versioning
+## [x] 5.3 · Automatic service-worker cache versioning · CLOSED · folded into Phase 4.1 Vite content-hashed bundles
 - **Why:** Cache version was the bug that hid the Nutrition Wheel fix for hours.
 - **How:** SW reads build hash from a generated `version.json` in `dist/`. No manual bumps.
 - **Done when:** Pushing a code change automatically invalidates the SW cache on next visit.
@@ -514,6 +514,61 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
   - To disable the fallback entirely (e.g. during a known Gemini Pro pricing emergency), set `GEMINI_FALLBACK_MODEL` to the same value as `GEMINI_MODEL` · the middleware will then call primary twice on exhaustion, which is harmless (a 4th attempt on the same model).
   - To shrink the retry budget for cost-sensitive periods, set `GEMINI_RETRY_MAX_ATTEMPTS=1` (no retries, no fallback) or `GEMINI_RETRY_MAX_ATTEMPTS=2` (one retry, then fallback).
   - To probe a specific Gemini failure without resilience masking, callers can import `generateOnce` from `gemini.js` instead of `generate`.
+
+## [x] 6.0f · End-to-End Live Verification Smoke Tests · Phase 6 in operator's nomenclature · audit sprint closure
+- **Why:** The audit sprint (Phases 0.x → 6.0e) shipped HMAC armor (1.3), suppression ledgers (1.1/1.2), budget kill-switch (1.4), credential sweep (6.0), ghost-column purge (6.0a), universal lowercase email migration (6.0b), prompt-injection defense (6.0c), hyperparameter lockdown (6.0d), and resilience middleware (6.0e). Every closure was validated at the time of shipping, but cross-session regressions could silently weaken any layer · `bbf-app.html` could re-cache a mixed-case email, a future PR could relax `temperature` back to `0.7`, the marketing engine could lose its retry budget. This entry codifies the audit posture as an executable test suite that runs in <300ms and can be re-fired after any change.
+- **How (this session · pure-Node test harness · zero new deps):**
+  1. New `/vision-scout/test/` directory · holds the audit suite separate from production source.
+  2. `vision-scout/test/svix-verify.test.js` (12 cases) · Phase 1.3 external-webhook HMAC simulation · valid signature passes, every documented failure path (missing svix-id / svix-timestamp / svix-signature / rawBody, tampered body, stale/future timestamp >5min, multi-sig key-rotation, unknown future scheme, empty secret, no-prefix secret) is asserted.
+  3. `vision-scout/test/prompt-armor.test.js` (17 cases) · Phase 6.0c injection defense · sanitizeUserField neutralizes every reserved-tag injection (open + close for `user_input` / `system_constraints` / `context_boundaries` / `system_instruction`), strips ASCII control chars, honours length caps · wrapUserBlock builds the sealed shell with block-scalar formatting for multi-line fields · every verify* gate (banned filler / sentence count / term presence / length range) asserted on both positive and negative inputs.
+  4. `vision-scout/test/llm-resilience.test.js` (18 cases) · Phase 6.0e retry/fallback contract · error classification (timeout / 429 / 503 / any-5xx retryable; 400 / 401 / no_text / success NOT retryable) · backoff curve (exponential growth + maxMs cap + bounded jitter ± 25%) · 6 end-to-end scenarios (first-try success, 1-retry recovery, full primary exhaustion → fallback rescue, permanent error skips both retry and fallback, permanent + `fallbackOnPermanent: true` rescues, no-fallback-configured returns last error with full history).
+  5. `vision-scout/package.json` · added `"test": "node --test --test-reporter=spec test/*.test.js"` so `npm test` runs the full audit suite in spec format.
+  6. Live MCP Supabase probes (executed this session) confirmed the database layers via `mcp__supabase__execute_sql`:
+     - `information_schema.columns` query · all 5 Phase 6.0a ghost columns confirmed ABSENT · count=0.
+     - `pg_constraint` query · 11 lowercase-email CHECK constraints confirmed installed.
+     - Active mixed-case INSERT probe · `INSERT INTO bbf_email_suppression (email, ...) VALUES ('UPPER@CASE.com', ...)` correctly fires `check_violation` · captured in a DO block that raises a custom test-failed exception only if the INSERT had succeeded.
+  7. Vault build sanity (this session) · `tsc -b --noEmit` zero errors against strict + noUnusedLocals + noUnusedParameters + noFallthroughCasesInSwitch · `vite build` emits 74 modules / 153 KB / 49 KB gzip in 1.40s with zero warnings.
+- **Done when:** `npm test` returns `pass 47 · fail 0`, live DB probe returns `phase6_0a_ghosts_present: 0` + `lowercase_checks_installed >= 10` + `check_violation_fired_as_expected`, vault build emits clean with zero warnings.
+- **Shipped (this session):**
+  - `vision-scout/test/svix-verify.test.js` (NEW · 12 test cases)
+  - `vision-scout/test/prompt-armor.test.js` (NEW · 17 test cases)
+  - `vision-scout/test/llm-resilience.test.js` (NEW · 18 test cases)
+  - `vision-scout/package.json` · `test` script added.
+- **Validation (this session):**
+  - `npm test` · **47/47 pass · 0 fail · 0 skip · 167ms** total.
+  - Live Supabase probe 1 · `phase6_0a_ghosts_present_should_be_0: 0` · `lowercase_checks_installed: 11`.
+  - Live Supabase probe 2 · `check_violation_fired_as_expected · phase 2.4 / 6.0b CHECK gate is LIVE`.
+  - Vault `tsc -b --noEmit` · zero errors.
+  - Vault `vite build` · 74 modules · 153 KB / 49 KB gzip · 1.40s · zero warnings.
+- **Audit sprint closure chain (Phases 0.x → 6.0f · all on `main`):**
+
+| Phase | Closure SHA | What shipped |
+|---|---|---|
+| 0.2  | `6db5afb` | Observability backbone (`bbf_agent_runs` + `bbf_llm_calls`) |
+| 0.3  | `1aff9f4` | Edge function repo↔deployed alignment · 24 functions byte-identical |
+| 0.4  | `f28c80d` | Canonical `ARCHITECTURE.md` + purge of 19 fragmented docs |
+| 1.1  | `2bf7847` | Cross-system email suppression ledger |
+| 1.2  | `2bf7847` | Resend delivery webhook flight recorder |
+| 1.3  | `39474b4` | Svix HMAC armor on `/inbound` |
+| 1.4  | `c7103b8` | `$10/day` budget kill-switch + pg_cron daily check |
+| 2.1  | `29c4ee1` | Phase 2.1 Stage-1 zero-breakage HTML extraction |
+| 2.2  | `64a90e8` | Credential sweep · zero hardcoded high-privilege creds |
+| 2.3  | `31ae9e1` | Ghost column drafted migration (applied 2026-05-26) |
+| 2.4  | `a3868c7` | Universal lowercase email migration |
+| 4.1  | `2ae64b0` | Vite workspace + GitHub Pages deploy gate |
+| 4.1a | `ea8c8d7` | State engine shred · typed Supabase client + session/auth/storage |
+| 4.3  | `29c4ee1` | (Stage 1 closed; Stage 2 ongoing) |
+| 4.3a | `431b053` | Layout panel componentization · ClientDashboard + NutritionVision |
+| 5.3  | folded   | Service worker cache versioning · folded into 4.1 Vite hashing |
+| 6.0  | `64a90e8` | High-privilege credential sweep |
+| 6.0a | `31ae9e1` | Ghost column sweep |
+| 6.0b | `a3868c7` | Universal lowercase email migration (engine-level CHECK) |
+| 6.0c | `979d49e` | Prompt-armor + XML delimiters + JSON schema + verification loops |
+| 6.0d | `5202385` | Hyperparameter + seed determinism lockdown |
+| 6.0e | `56507be` | Centralized LLM resilience middleware + fallback routing |
+| 6.0f | _this entry_ | End-to-end live verification smoke tests |
+
+- **OPEN items deliberately NOT closed by this sprint (Phase 7+ work):** §0.1 (operator-action token rotation), §1.5 (daily data integrity audit), §2.1-2.4 (prompt registry / cross-provider router / A/B harness / scaffold standardization), §3.1-3.3 (Slack alerts / send-draft endpoint / admin dashboard), §4.2 (design tokens), §4.4 (frontend telemetry), §5.1 (staging environment), §5.2 (CI · partial · node test suite landed but GitHub Actions runner still missing), §6.1-6.4 (RLS audit, signed storage URLs, rate limiting, rotation policy), §7.1-7.3 (GDPR, backups, vision-scout decision), §8.1-8.3 (product strategy).
 
 ## [ ] 6.1 · RLS audit on every public table
 - **Why:** Closes Tier 1 #10 of the original list. Coverage isn't audited.
