@@ -1,47 +1,50 @@
-import type { CSSProperties } from 'react';
-import ClientDashboard from './components/ClientDashboard';
-import NutritionVision from './components/NutritionVision';
+// ═══════════════════════════════════════════════════════════════════════
+// Build Believe Fit · vault/src/App.tsx
+//
+// Phase 4.3 Stage 2 · Authentication gate · routes the React tree
+// between <Login /> and <VaultShell /> based on session state.
+//
+// Reads the initial uid from getCurrentUser() — which was already
+// populated synchronously by hydrateSessionFromStorage() in main.tsx
+// (Phase 6.0h Bootstrapper) BEFORE createRoot — so a returning
+// athlete with a valid sigil drops straight into the VaultShell with
+// no Login flash. New / signed-out athletes see <Login />.
+//
+// onAuthenticated is the upward boundary from <Login />: by the time
+// it fires, setCurrentUser + setCurrentUserSigil have already run in
+// supabaseClient.ts, so this component only mirrors the uid into
+// React state to trigger the re-render that swaps to <VaultShell />.
+//
+// onLogout clears the in-memory tracker AND the localStorage sigil ·
+// the storage-event listener in main.tsx will then propagate the
+// logout to other tabs on the same origin via window.location.reload().
+// ═══════════════════════════════════════════════════════════════════════
+
+import { useState, useCallback } from 'react';
+import {
+  getCurrentUser,
+  clearActiveSession,
+  setCurrentUserSigil,
+} from './services/supabaseClient';
+import Login from './components/Login';
+import VaultShell from './components/VaultShell';
 
 export default function App() {
-  return (
-    <main style={styles.root}>
-      <header style={styles.header}>
-        <div style={styles.title}>BBF Vault React Architecture Active</div>
-        <div style={styles.sub}>
-          Phase 4.3 · twin-panel development surface · ClientDashboard ╳ NutritionVision
-        </div>
-      </header>
-      <section style={styles.twin}>
-        <ClientDashboard />
-        <NutritionVision />
-      </section>
-    </main>
-  );
-}
+  const [uid, setUid] = useState<string | null>(getCurrentUser());
 
-const styles: Record<string, CSSProperties> = {
-  root: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.25rem',
-    padding: '1.5rem',
-    background: '#0b0d10',
-    color: '#e8eaed',
-    fontFamily:
-      'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  },
-  header: { display: 'flex', flexDirection: 'column', gap: '0.2rem' },
-  title: { fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.01em' },
-  sub: { fontSize: '0.85rem', opacity: 0.65 },
-  twin: {
-    display: 'grid',
-    // auto-fit + minmax = the twin layout collapses to a single column
-    // when the viewport is under ~600px (mobile portrait) and expands
-    // to two columns when there's room. No media queries needed.
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '1rem',
-    flex: 1,
-    minHeight: 0,
-  },
-};
+  const handleAuthenticated = useCallback((nextUid: string) => {
+    // Login already wrote module state + sigil · just mirror to React.
+    setUid(nextUid);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    clearActiveSession();
+    setCurrentUserSigil(null);
+    setUid(null);
+  }, []);
+
+  if (!uid) {
+    return <Login onAuthenticated={handleAuthenticated} />;
+  }
+  return <VaultShell uid={uid} onLogout={handleLogout} />;
+}
