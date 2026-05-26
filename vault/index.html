@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BBF Vault · React Workspace</title>
+    <!--
+      env.js is rsynced from repo root into the Pages artifact (see
+      .github/workflows/pages.yml) and exposes window.ENV_SUPABASE_URL +
+      window.ENV_SUPABASE_KEY. Loaded BEFORE the vault bundle so
+      services/supabaseClient.ts can read it during lazy singleton init.
+    -->
+    <script src="/env.js"></script>
   </head>
   <body>
     <div id="root"></div>

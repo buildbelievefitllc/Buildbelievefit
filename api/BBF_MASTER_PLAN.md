@@ -225,6 +225,32 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
   2. First workflow run after the toggle will produce a build at `https://buildbelievefit.fitness/vault/` confirming "BBF Vault React Architecture Active" while `/bbf-app.html` continues to serve byte-identically.
 - **Effort (Stage 2 · remaining):** weeks of per-feature React migration · scoped per feature, not as a single sprint.
 
+## [x] 4.1a · State engine shred · Phase 4.2 in operator's nomenclature · foundation for 4.3 Stage 2
+- **Why:** The data-communication layer was scattered across the 17,544-line inline `<script>` in `bbf-app.html` as ~30 duplicate `_supabaseUrl()`/`_supabaseKey()` helpers plus the Phase 2.1 Stage-1 extraction file `src/state/bbf-auth-engine.js` (K constant + CU/VC globals + GD/SD payload accessors + raw-fetch PIN-verify). Per the PASSOVER §5 directive React + TS is a REWRITE, not a port · the typed `supabaseClient.ts` is the foundation module every Phase 4.3 Stage-2 React component will import for env access, payload sync, session tracking, and auth verification.
+- **How (this session · scaffold-only · zero live-surface change):**
+  1. New `/vault/src/services/` subtree · holds the data layer separate from `components/` and (future) `features/`.
+  2. New `/vault/src/services/supabaseClient.ts` · typed extraction covering:
+     - **Singleton typed `SupabaseClient`** via lazy `getSupabaseClient()` · `auth.persistSession=false / autoRefreshToken=false / detectSessionInUrl=false` because BBF uses a custom PIN-RPC session model.
+     - **Env accessors** `getSupabaseUrl()` + `getSupabaseKey()` + `isSupabaseEnvReady()` reading `window.ENV_SUPABASE_URL` / `window.ENV_SUPABASE_KEY` (the verified browser-safe `sb_publishable_*` surface per ARCHITECTURE.md §6.3). Throws a clean diagnostic when env.js never loaded · the legacy pattern silently fell through to a hardcoded fallback URL.
+     - **`STORAGE_KEYS` constant** · centralised string registry for `bbf_v7` (master payload), `bbf_pathfinder`, `bbf_lang`, `bbf_athlete_portal_v2`, `bbf_sync_q`, `BBF_COACH_AGENT_TOKEN`, `bbf_seq_ack_` prefix.
+     - **Payload sync** `getPayload()` / `setPayload()` / `getUserRecord()` / `setUserRecord()` · TS parity for the GD/SD pair at `src/state/bbf-auth-engine.js:416-417` with shape `{u: Record<string, BBFUserRecord>, l: {}, w: {}}`. `BBFUserRecord` typed for the live fields (tier / subscription_tier / trial_expires_at / dietary_profile / allergens / food_likes / food_dislikes / tdee_target / macro_p|c|f / baseline_status) with `[key: string]: unknown` extension hatch for the dozens of feature-specific fields the inline block adds at runtime.
+     - **Typed satellite sync** `syncToStorage<T>()` / `readFromStorage<T>()` / `removeFromStorage()` · best-effort try/catch matching the inline pattern.
+     - **Active-session trackers** `getCurrentUser()` / `setCurrentUser()` / `getViewingAsClient()` / `setViewingAsClient()` / `getActiveUid()` / `clearActiveSession()` · TS parity for the `CU` (current user uid) and `VC` (viewing-as-client uid) module-level globals from bbf-auth-engine.js line 11. `getActiveUid()` mirrors the `(typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU)` pattern repeated throughout the inline block.
+     - **Auth verification** `isAdmin()` (CU === 'akeem') / `getTrialState()` (three-state `'null' | 'active' | 'expired'` port of `BBF_TRIAL_STATE` at bbf-auth-engine.js:69-83) / `isTrialActive()` / `verifyUserPin(uid, pin, {timeoutMs})` (raw `/rest/v1/rpc/bbf_verify_user_pin` POST mirroring `LOGIN()` at bbf-auth-engine.js:446-461, lowercases the uid to satisfy the Phase 2.4 universal-lowercase-email CHECK constraints).
+     - **Coach agent token** `getCoachAgentToken()` / `setCoachAgentToken()` / `clearCoachAgentToken()` · dual-storage parity (localStorage + sessionStorage) matching the founder bootstrap at bbf-auth-engine.js:599-604.
+  3. **Dep added** · `@supabase/supabase-js@^2.46.1` to `vault/package.json` · 10 packages added to lockfile.
+  4. **Boot wiring** · `vault/index.html` now loads `/env.js` BEFORE the Vite bundle so `supabaseClient.ts` reads populated globals on first call. The script path is absolute (`/env.js`) so it resolves to the rsync'd root copy in the deployed artifact at `_site/env.js`. New `vault/public/env.js` stub (URL set · key blank) gives `npm run dev` a working /env.js path without exposing the real publishable key on disk in dev contexts.
+- **Done when:** `tsc -b` clean on the workspace · `npm run build` emits the bundle with `dist/index.html` referencing both `/env.js` and the React module · supabaseClient.ts is importable and ready for Phase 4.3 Stage 2 components.
+- **Shipped (this session):**
+  - `vault/src/services/supabaseClient.ts` (433 lines · ~14 KB) · 6 sections, 23 exported symbols.
+  - `vault/package.json` + `vault/package-lock.json` · @supabase/supabase-js added.
+  - `vault/index.html` · `<script src="/env.js"></script>` added before the module bundle script.
+  - `vault/public/env.js` · dev stub.
+- **Validation (this session):**
+  - `npm run typecheck` (tsc -b --noEmit) · zero errors · supabaseClient.ts compiles clean against the strict settings (`strict`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`).
+  - `npm run build` · tsc-b clean → vite emits `dist/index.html` (680 B · was 345 B · delta is the new env.js script tag) + `dist/assets/index-CXjsvNRa.js` (143 KB · unchanged because nothing imports supabaseClient.ts yet · tree-shaking working as expected). 30 modules transformed in 992 ms.
+- **Out of scope (Phase 4.3 Stage 2 onward):** Wiring the typed module into actual React components (login screen → vault mount → nutrition tab → workout tab → readiness submit → trainer roster → client drill-in). Each feature lands as a `vault/src/features/<name>/` directory and imports from `services/supabaseClient`.
+
 ## [ ] 4.2 · Design system tokens + primitives
 - **Why:** Closes gap #7. Current CSS is "vibes-based".
 - **How:** `src/styles/tokens.css` with color/spacing/typography/motion vars only. `src/styles/components.css` with primitives (`.bbf-card`, `.bbf-button-primary`, `.bbf-button-ghost`, `.bbf-input`, `.bbf-pill`). All feature CSS composes from these.
