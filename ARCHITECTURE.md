@@ -317,6 +317,8 @@ grep -nE "temperature:|topP:|topK:|seed:" vision-scout/marketing/agents/{analyst
 
 **Drift detection:** the orchestrator's `summary.steps.analyze.tally` (Phase 6.0c) surfaces `verify_rejected` + `model_refused` counts per run · a non-zero `verify_rejected` rate with the locked hyperparams above is a strong signal of either prompt-injection attempts or a server-side model swap, not parameter drift.
 
+**Related error classification (Phase 6.0g):** the resilience layer's retry/fallback classification depends on the `finishReason` field returned alongside Gemini's `gemini_no_text` failures · SAFETY / BLOCKLIST / RECITATION = permanent, null / undefined / OTHER = transient (retryable). Full classification table lives in §5.4 alongside the rest of the resilience contract.
+
 ### 5.4 Marketing engine · LLM resilience standard (Phase 6.0e)
 
 `vision-scout/marketing/llm-resilience.js` exports a higher-order `withResilience(primaryFn, fallbackFn, opts)` middleware. Every public `generate()` call inside `gemini.js` is wrapped by it, so every analyst + triage Gemini call inherits retry-with-backoff + fallback-to-pro semantics with zero per-caller code change.
@@ -337,7 +339,8 @@ The backoff curve doubles per attempt (1s → 2s → 4s) capped at `GEMINI_RETRY
 | Class | Errors | Action |
 |---|---|---|
 | Retryable transient | `gemini_timeout`, `gemini_fetch_failed`, `gemini_429`, `gemini_500`, `gemini_502`, `gemini_503`, `gemini_504`, any 5xx status | Backoff + retry up to `maxAttempts` · then fallback |
-| Permanent | `gemini_400`, `gemini_401`, `gemini_403`, `gemini_404`, `gemini_no_text`, parse failures, safety blocks | Skip retry loop · skip fallback (the same input will fail on fallback too · `fallbackOnPermanent: false` by default) |
+| Retryable conditional · Phase 6.0g | `gemini_no_text` AND `finishReason ∈ { null, undefined, 'OTHER', <unknown> }` · HTTP 200 with empty body from a transient internal error or an unmapped finish state | Backoff + retry up to `maxAttempts` · then fallback |
+| Permanent | `gemini_400`, `gemini_401`, `gemini_403`, `gemini_404`, parse failures · AND `gemini_no_text` with `finishReason ∈ { 'SAFETY', 'BLOCKLIST', 'RECITATION' }` (Phase 6.0g · model REFUSED to emit content for this exact input · retrying always re-blocks · token-burn guard) | Skip retry loop · skip fallback (the same input will fail on fallback too · `fallbackOnPermanent: false` by default) |
 | Success | `ok: true` with non-empty text | Return immediately with `attempts` count + `fallback_used: false` |
 
 **Byte-compatibility guarantee:** The fallback path calls `_generateOnce(GEMINI_FALLBACK_MODEL, opts)` with the SAME `opts` object as the primary · same `temperature` / `topP` / `topK` / `seed` (§5.3 matrix) · same `responseSchema` · same `maxOutputTokens` · same `thinkingConfig`. The result shape returned to the caller is identical to a primary success; the only signal that fallback was used is the `fallback_used: true` flag on the augmented return.

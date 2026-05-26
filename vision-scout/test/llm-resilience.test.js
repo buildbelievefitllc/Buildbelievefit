@@ -40,11 +40,35 @@ describe('Phase 6.0e · llm-resilience · error classification', () => {
   test('gemini_401 is permanent', () => {
     assert.equal(isRetryableFailure({ ok: false, error: 'gemini_401', status: 401 }), false);
   });
-  test('gemini_no_text is permanent (parse / safety failure)', () => {
-    assert.equal(isRetryableFailure({ ok: false, error: 'gemini_no_text' }), false);
-  });
   test('successful results are NOT retryable', () => {
     assert.equal(isRetryableFailure({ ok: true, text: 'pitch' }), false);
+  });
+});
+
+describe('Phase 6.0g · llm-resilience · gemini_no_text finishReason-aware classification', () => {
+  test('gemini_no_text + finishReason=SAFETY · permanent (no token burn on safety blocks)', () => {
+    assert.equal(isRetryableFailure({ ok: false, error: 'gemini_no_text', finishReason: 'SAFETY' }), false);
+  });
+  test('gemini_no_text + finishReason=BLOCKLIST · permanent', () => {
+    assert.equal(isRetryableFailure({ ok: false, error: 'gemini_no_text', finishReason: 'BLOCKLIST' }), false);
+  });
+  test('gemini_no_text + finishReason=RECITATION · permanent', () => {
+    assert.equal(isRetryableFailure({ ok: false, error: 'gemini_no_text', finishReason: 'RECITATION' }), false);
+  });
+  test('gemini_no_text + finishReason=null · retryable (transient internal)', () => {
+    assert.equal(isRetryableFailure({ ok: false, error: 'gemini_no_text', finishReason: null }), true);
+  });
+  test('gemini_no_text + finishReason=undefined · retryable (transient internal)', () => {
+    assert.equal(isRetryableFailure({ ok: false, error: 'gemini_no_text', finishReason: undefined }), true);
+  });
+  test('gemini_no_text + finishReason=OTHER · retryable (transient internal)', () => {
+    assert.equal(isRetryableFailure({ ok: false, error: 'gemini_no_text', finishReason: 'OTHER' }), true);
+  });
+  test('gemini_no_text without finishReason field at all · retryable (transient default)', () => {
+    assert.equal(isRetryableFailure({ ok: false, error: 'gemini_no_text' }), true);
+  });
+  test('gemini_no_text + unknown finishReason · retryable (lean toward recovery)', () => {
+    assert.equal(isRetryableFailure({ ok: false, error: 'gemini_no_text', finishReason: 'FUTURE_UNKNOWN_REASON' }), true);
   });
 });
 

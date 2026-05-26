@@ -570,6 +570,32 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 
 - **OPEN items deliberately NOT closed by this sprint (Phase 7+ work):** §0.1 (operator-action token rotation), §1.5 (daily data integrity audit), §2.1-2.4 (prompt registry / cross-provider router / A/B harness / scaffold standardization), §3.1-3.3 (Slack alerts / send-draft endpoint / admin dashboard), §4.2 (design tokens), §4.4 (frontend telemetry), §5.1 (staging environment), §5.2 (CI · partial · node test suite landed but GitHub Actions runner still missing), §6.1-6.4 (RLS audit, signed storage URLs, rate limiting, rotation policy), §7.1-7.3 (GDPR, backups, vision-scout decision), §8.1-8.3 (product strategy).
 
+## [~] 6.0g · Calibrated remediations · finishReason-aware no_text classification + TRIM lock drafted
+- **Why:** Post-audit-sprint hardening pass · two surgical reinforcements to the layers shipped in §6.0e (resilience) and §6.0b (email CHECK constraints) that close known edge-cases without expanding scope. (1) The Phase 6.0e classifier treated all `gemini_no_text` failures as permanent · this is correct for `finishReason='SAFETY'/'BLOCKLIST'/'RECITATION'` (model REFUSED · same input always re-blocks · retrying burns tokens) but WRONG for `finishReason=null/'OTHER'` (transient internal · retry plausibly recovers). (2) The Phase 2.4/6.0b CHECK constraints enforce `email = LOWER(email)` · accidental leading/trailing whitespace slips past because `LOWER('  user@x.com  ') = '  user@x.com  '` still satisfies the equality. The app-layer `.trim().toLowerCase()` sanitizers at all 18 ingestion sites already strip whitespace, so this is engine-level defense-in-depth.
+- **How (this session · pure code + drafted migration · no DDL applied):**
+  1. **`vision-scout/marketing/llm-resilience.js`** · added `PERMANENT_NO_TEXT_FINISH_REASONS = { 'SAFETY', 'BLOCKLIST', 'RECITATION' }` · refactored `isRetryableFailure` to inspect `out.finishReason` when `out.error === 'gemini_no_text'`. Retry when finishReason ∈ {null, undefined, 'OTHER', unknown}; permanent when finishReason ∈ {SAFETY, BLOCKLIST, RECITATION}. Unknown future values lean toward retry (recovery bias) rather than silent loss. `gemini_no_text` removed from `RETRYABLE_ERRORS` set so the new conditional branch is the single classification site for this error.
+  2. **`vision-scout/test/llm-resilience.test.js`** · removed the old unconditional `gemini_no_text is permanent` test · added 8 new finishReason-aware cases (SAFETY/BLOCKLIST/RECITATION permanent, null/undefined/OTHER/unknown/missing all retryable).
+  3. **Pre-flight whitespace probe** (executed this session via `mcp__supabase__execute_sql`) · all 10 in-scope email columns return `count(*) = 0` for `WHERE email <> TRIM(email)`. The dataset is whitespace-clean today, so the stricter CHECK is safe to apply.
+  4. **`supabase/migrations/20260526020000_bbf_email_trim_lock.sql`** · DRAFTED migration that (a) UPDATEs every row to `LOWER(TRIM(...))` form (no-op on today's data, defensive guard for forked datasets) and (b) DROPs each existing `LOWER`-only CHECK and re-adds it as `LOWER(TRIM(...))`. Same constraint NAMES preserved so any future migration referencing them by identifier stays valid. Single `ALTER TABLE ... DROP ..., ADD ...` per relation so DROP+ADD is atomic per table. FK safety preserved (child `bbf_vapi_calls.client_email` UPDATE before parent `bbf_active_clients.client_email`).
+  5. **`ARCHITECTURE.md` §5.4 error classification table** · split the Permanent row · added a new "Retryable conditional · Phase 6.0g" row for `gemini_no_text + finishReason ∈ {null, undefined, OTHER, unknown}` · refined the Permanent row to enumerate the SAFETY/BLOCKLIST/RECITATION token-burn guard.
+  6. **`ARCHITECTURE.md` §5.3** · added a cross-reference note pointing readers to §5.4 for the full finishReason classification table (the operator's instruction targeted §5.3 but the error-classification surface lives in §5.4 alongside the rest of the resilience contract · cross-ref bridges the two).
+- **Done when:** `npm test` returns `pass 54 · fail 0` (was 47 · +7 finishReason cases, -1 obsolete unconditional case · +1 unknown-future-value), pre-flight probe returns `0` whitespace anomalies across all 10 columns, vault `npm run build` continues to emit zero warnings.
+- **Shipped (this session):**
+  - `vision-scout/marketing/llm-resilience.js` (+~25 lines · `PERMANENT_NO_TEXT_FINISH_REASONS` set + finishReason-aware branch in `isRetryableFailure`).
+  - `vision-scout/test/llm-resilience.test.js` (+8 cases · -1 obsolete · 1 new suite `Phase 6.0g · gemini_no_text finishReason-aware classification`).
+  - `supabase/migrations/20260526020000_bbf_email_trim_lock.sql` (NEW · 162 lines · DRAFTED, NOT APPLIED · queued artifact awaiting operator go-signal).
+  - `ARCHITECTURE.md` §5.4 classification table refined · §5.3 cross-reference added.
+- **Validation (this session):**
+  - `npm test` · **54/54 pass · 0 fail · 0 skip · 275ms** total (vs 47/47 pre-remediation · +7 net).
+  - Live whitespace probe · 10 columns · all return `whitespace_rows: 0`.
+  - Vault `npm run typecheck` (tsc -b --noEmit) · zero errors.
+  - Vault `npm run build` · 74 modules · 153 KB / 49 KB gzip · 1.75s · zero warnings.
+- **Deploy posture:** the JS code (resilience + tests) goes live on push to main · Render auto-redeploys vision-scout · next 14:00 UTC cron exercises the new finishReason branch. The SQL migration is DRAFTED ONLY · operator must explicitly request `mcp__supabase__apply_migration` before the TRIM CHECK reaches the live database. Until then, the existing Phase 2.4/6.0b LOWER-only CHECKs stay in force and the app-layer sanitizers continue to catch whitespace at the ingestion boundary.
+- **Operator follow-up to apply the TRIM lock (when ready):**
+  - Re-run the whitespace pre-flight probe to confirm 0 rows have drifted since draft time.
+  - Issue "apply 20260526020000_bbf_email_trim_lock.sql" to trigger `mcp__supabase__apply_migration`.
+  - Post-apply, re-run the Phase 6.0f live constraint probe with a whitespace-padded INSERT (e.g. `'  user@x.com  '`) to confirm the stricter CHECK now fires.
+
 ## [ ] 6.1 · RLS audit on every public table
 - **Why:** Closes Tier 1 #10 of the original list. Coverage isn't audited.
 - **How:** For each table in `public`, document: who can SELECT, who can INSERT/UPDATE/DELETE, why. Add missing policies. Block anything that should be service-role-only.

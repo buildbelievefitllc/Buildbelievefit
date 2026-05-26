@@ -33,9 +33,11 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 // Errors that justify a retry · transient or load-related. Anything else
-// (400 bad request, 401/403 auth, 404, gemini_no_text, parse failures,
-// safety blocks) is permanent and skips the retry loop so we don't burn
-// 7 seconds of backoff on a misconfigured request.
+// (400 bad request, 401/403 auth, 404, parse failures, safety blocks) is
+// permanent and skips the retry loop so we don't burn 7 seconds of
+// backoff on a misconfigured request. `gemini_no_text` is handled
+// separately by `isRetryableFailure` because its classification depends
+// on the `finishReason` accompanying it (see Phase 6.0g calibration).
 const RETRYABLE_ERRORS = new Set([
   'gemini_timeout',
   'gemini_fetch_failed',
@@ -44,6 +46,22 @@ const RETRYABLE_ERRORS = new Set([
   'gemini_502',
   'gemini_503',
   'gemini_504',
+]);
+
+// Phase 6.0g · `gemini_no_text` (HTTP 200 with empty `text` body) covers
+// TWO distinct upstream causes with opposite remediation:
+//   - finishReason ∈ { 'SAFETY', 'BLOCKLIST', 'RECITATION' } · model
+//     REFUSED to emit content for this exact input · retrying burns
+//     tokens for zero recovery upside · classified as PERMANENT.
+//   - finishReason ∈ { null, undefined, 'OTHER' } · transient internal
+//     error or unmapped finish state · retry plausibly helps · classified
+//     as RETRYABLE.
+//   - any other unknown finishReason value · treated as retryable by
+//     default to lean toward recovery rather than silent loss.
+const PERMANENT_NO_TEXT_FINISH_REASONS = new Set([
+  'SAFETY',
+  'BLOCKLIST',
+  'RECITATION',
 ]);
 
 export const RETRY_DEFAULTS = Object.freeze({
@@ -58,13 +76,30 @@ export const RETRY_DEFAULTS = Object.freeze({
  * Returns true when the supplied generate-result is a transient failure
  * that should be retried. False for permanent failures and for successes.
  *
- * Two retry triggers:
+ * Retry triggers:
  *   1. The known retryable error tag set above (timeout / 429 / 5xx).
  *   2. ANY HTTP status in the 500-599 range that wasn't enumerated, since
  *      Gemini occasionally surfaces ad-hoc 5xx codes.
+ *   3. Phase 6.0g · `gemini_no_text` ONLY when the accompanying
+ *      `finishReason` is NOT in `PERMANENT_NO_TEXT_FINISH_REASONS`
+ *      (i.e. not a safety / blocklist / recitation refusal). Empty
+ *      responses with finishReason ∈ { null, undefined, 'OTHER' } are
+ *      transient internal errors and benefit from retry; safety-blocked
+ *      empties always re-block on retry and waste tokens.
  */
 export function isRetryableFailure(out) {
   if (!out || out.ok) return false;
+
+  // Phase 6.0g · finishReason-aware classification for the
+  // HTTP-200-with-empty-text case. Must precede the generic
+  // RETRYABLE_ERRORS lookup because `gemini_no_text` is intentionally
+  // NOT in that set anymore.
+  if (out.error === 'gemini_no_text') {
+    const fr = out.finishReason;
+    if (fr && PERMANENT_NO_TEXT_FINISH_REASONS.has(fr)) return false;
+    return true;
+  }
+
   if (typeof out.error === 'string' && RETRYABLE_ERRORS.has(out.error)) return true;
   if (typeof out.status === 'number' && out.status >= 500 && out.status < 600) return true;
   return false;
