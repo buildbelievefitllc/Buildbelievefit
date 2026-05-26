@@ -1,0 +1,211 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Build Believe Fit · ProfileSettings.module.css
+   Phase 4.3e · User biometrics + macro target editor
+
+   VISUAL CONTRACT (CEO directive · Phase 4.3 architecture)
+     · Intrinsic CSS Grid · field rows use `repeat(auto-fit,
+       minmax(min(100%, 12rem), 1fr))` so 1-column on phones and
+       2-up grid on wide monitors with zero @media branches.
+     · clamp() typography on every text scale · zero hardcoded font
+       sizes.
+     · Every text input gets `max-width: 100%; min-width: 0;
+       box-sizing: border-box` so the native browser intrinsic width
+       (e.g. Chrome's 169px default on <input>) never bleeds past
+       the grid cell. Same containment discipline as the Phase 4.3c
+       slider work.
+     · Submit button capped at `max-width: 400px; margin-inline: auto`.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: #11151a;
+  color: #e8eaed;
+  border-radius: 0.75rem;
+  border: 1px solid #1f262f;
+  min-height: 0;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.headerKicker {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: clamp(0.66rem, 1.8vw, 0.74rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fbbf24;
+}
+
+.headerTitle {
+  font-size: clamp(1.05rem, 3.4vw, 1.4rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.headerSub {
+  font-size: clamp(0.74rem, 2.2vw, 0.84rem);
+  opacity: 0.65;
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sectionTitle {
+  font-size: clamp(0.74rem, 2vw, 0.84rem);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  color: #fbbf24;
+  opacity: 0.85;
+}
+
+/* ─── Field grid ────────────────────────────────────────────────────── */
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0.65rem;
+}
+
+.field {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 0.3rem;
+  padding: 0.65rem 0.8rem;
+  background: #1a2028;
+  border: 1px solid #2a323d;
+  border-radius: 0.55rem;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: clamp(0.66rem, 1.8vw, 0.74rem);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  min-width: 0;
+}
+
+.input,
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #0a0f14;
+  color: #e8eaed;
+  border: 1px solid #2a323d;
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.65rem;
+  font-size: clamp(0.88rem, 2.6vw, 1rem);
+  font-weight: 600;
+  font-family: inherit;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 120ms;
+}
+
+.input:focus-visible,
+.select:focus-visible { border-color: #34d399; }
+
+.inputNumeric {
+  font-variant-numeric: tabular-nums;
+  color: #fbbf24;
+  text-align: right;
+}
+
+/* Strip the native number-input spinner buttons (the tiny arrows that
+   appear on Chrome / Edge / Safari) so the column stays clean. */
+.input::-webkit-outer-spin-button,
+.input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.select {
+  background-image: linear-gradient(45deg, transparent 50%, #fbbf24 50%),
+                    linear-gradient(135deg, #fbbf24 50%, transparent 50%);
+  background-position: calc(100% - 0.95rem) 50%, calc(100% - 0.55rem) 50%;
+  background-size: 0.4rem 0.4rem;
+  background-repeat: no-repeat;
+  padding-right: 1.6rem;
+}
+
+/* ─── Macros 3-column row ──────────────────────────────────────────── */
+.macrosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 6.5rem), 1fr));
+  gap: 0.5rem;
+}
+
+/* ─── Submit + status ──────────────────────────────────────────────── */
+.submitWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+.submit {
+  appearance: none;
+  background: #34d399;
+  color: #062e1e;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2.6vw, 1rem);
+  cursor: pointer;
+  width: 100%;
+  max-width: 400px;
+  margin-inline: auto;
+  transition: background 120ms, transform 120ms;
+}
+
+.submit:hover  { background: #22c39a; }
+.submit:active { transform: translateY(1px); }
+.submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.submitNote {
+  font-size: clamp(0.66rem, 1.8vw, 0.74rem);
+  opacity: 0.55;
+  text-align: center;
+}
+
+.errorBanner {
+  padding: 0.7rem 0.85rem;
+  background: #2b1416;
+  border: 1px solid #7f1d1d;
+  color: #fca5a5;
+  border-radius: 0.5rem;
+  font-size: clamp(0.74rem, 2.1vw, 0.84rem);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.cloudPending {
+  padding: 0.55rem 0.8rem;
+  background: #1a2028;
+  border: 1px dashed #2a323d;
+  border-radius: 0.4rem;
+  font-size: clamp(0.7rem, 1.95vw, 0.78rem);
+  opacity: 0.7;
+  line-height: 1.35;
+}

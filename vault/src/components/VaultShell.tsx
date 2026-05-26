@@ -32,6 +32,8 @@ import ClientDashboard from './ClientDashboard';
 import NutritionVision from './NutritionVision';
 import WorkoutTracker from './WorkoutTracker';
 import PrehabReadiness from './PrehabReadiness';
+import CardioTracker from './CardioTracker';
+import ProfileSettings from './ProfileSettings';
 
 export type VaultTabId =
   | 'home'
@@ -118,13 +120,13 @@ export default function VaultShell({ uid, onLogout, initialTab = 'home' }: Vault
           <WorkoutTracker />
         </TabPanel>
         <TabPanel id="cardio"    active={activeTab === 'cardio'}>
-          <PlaceholderTab name="Cardio" />
+          <CardioTracker />
         </TabPanel>
         <TabPanel id="prehab"    active={activeTab === 'prehab'}>
           <PrehabReadiness />
         </TabPanel>
         <TabPanel id="profile"   active={activeTab === 'profile'}>
-          <PlaceholderTab name="Profile" />
+          <ProfileSettings />
         </TabPanel>
       </section>
     </main>
@@ -148,19 +150,6 @@ function TabPanel({ id, active, children }: TabPanelProps) {
       style={{ display: active ? 'block' : 'none' }}
     >
       {children}
-    </div>
-  );
-}
-
-function PlaceholderTab({ name }: { name: string }) {
-  return (
-    <div style={styles.placeholder}>
-      <div style={styles.placeholderKicker}>Phase 4.3 Stage 2+</div>
-      <div style={styles.placeholderTitle}>{name}</div>
-      <div style={styles.placeholderSub}>
-        Live wire-up pending · legacy bbf-app.html still serves this surface
-        for paying clients while the React port lands.
-      </div>
     </div>
   );
 }
@@ -245,26 +234,4 @@ const styles: Record<string, CSSProperties> = {
     color: '#e8eaed',
   },
   tabContent: { flex: 1, minHeight: 0 },
-  placeholder: {
-    padding: '2rem 1rem',
-    border: '1px dashed #2a323d',
-    borderRadius: '0.75rem',
-    background: '#11151a',
-    color: '#e8eaed',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.4rem',
-    textAlign: 'center',
-    alignItems: 'center',
-  },
-  placeholderKicker: {
-    fontSize: '0.7rem',
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-    opacity: 0.6,
-    color: '#fbbf24',
-    fontWeight: 600,
-  },
-  placeholderTitle: { fontSize: '1.4rem', fontWeight: 700 },
-  placeholderSub: { fontSize: '0.85rem', opacity: 0.7, maxWidth: '36ch' },
 };

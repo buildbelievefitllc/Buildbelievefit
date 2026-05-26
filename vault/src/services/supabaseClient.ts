@@ -842,3 +842,234 @@ async function _bestEffortDeleteLog(logId: string): Promise<boolean> {
     return false;
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// Phase 4.3e · Cardio + Profile + Edge-function bindings
+// (PASSOVER §5 steps c + f · final UI grocery-list closeout)
+//
+// Three additions:
+//   1. `insertCardioSession(uid, payload)` writes one row to
+//      `public.bbf_athlete_load_logs` (anon INSERT confirmed via
+//      pg_policy · client generates the log_id uuid since the column
+//      is NOT NULL with no default).
+//   2. `updateUserProfile(uidSlug, patch)` writes to the local
+//      BBFPayload via `setUserRecord`. Anon has only SELECT on
+//      bbf_users · a cloud-sync RPC `bbf_update_profile` does not
+//      exist yet · the patch lands in localStorage immediately and
+//      the future sync RPC will drain it to bbf_users.
+//   3. `callEdgeFunction<T>(name, body)` is the typed POST helper
+//      for `/functions/v1/<name>` · used by `generateMealImage` and
+//      `analyzeMealMacros` (the NutritionVision live-wire targets).
+//      Edge functions return `{ ok: false, error }` on validation
+//      failure so the helper normalises both transport-level errors
+//      (HTTP 4xx/5xx) and application-level errors (`ok: false`)
+//      into a single discriminated union the React caller can
+//      surface in a UI banner.
+// ═══════════════════════════════════════════════════════════════════════
+
+// ─── insertCardioSession · PASSOVER §5c ────────────────────────────────
+export interface CardioSessionInsert {
+  /** 'cardio_run' | 'cardio_bike' | 'cardio_swim' | 'cardio_row' | 'cardio_other'. */
+  session_type: string;
+  duration_minutes: number;
+  /** Session RPE 1-10. */
+  srpe_intensity: number;
+  /** Optional · defaults to `duration_minutes * srpe_intensity` (Foster sRPE-load). */
+  load_au?: number;
+  /** Optional ISO timestamp · defaults to now. */
+  session_timestamp?: string;
+}
+
+export type InsertCardioResult =
+  | { ok: true; log_id: string }
+  | { ok: false; error: string };
+
+/**
+ * Write one row to `public.bbf_athlete_load_logs`. The column
+ * `log_id` is NOT NULL with no default, so we generate a uuid
+ * client-side via `crypto.randomUUID()` (universally available in
+ * the evergreen browsers Vite targets). `load_au` defaults to the
+ * Foster sRPE-load product (duration × sRPE) when the caller doesn't
+ * supply one · sentinel guarantees the column stays meaningful even
+ * when callers omit the explicit value.
+ */
+export async function insertCardioSession(
+  uidSlugOrUuid: string,
+  payload: CardioSessionInsert
+): Promise<InsertCardioResult> {
+  const uuid = await resolveUserUuid(uidSlugOrUuid);
+  if (!uuid) return { ok: false, error: 'uid_not_resolvable' };
+
+  const logId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+    ? crypto.randomUUID()
+    : _fallbackUuid();
+
+  const row = {
+    log_id: logId,
+    athlete_id: uuid,
+    session_timestamp: payload.session_timestamp ?? new Date().toISOString(),
+    session_type: payload.session_type,
+    duration_minutes: payload.duration_minutes,
+    srpe_intensity: payload.srpe_intensity,
+    load_au: payload.load_au ?? (payload.duration_minutes * payload.srpe_intensity),
+  };
+
+  try {
+    const res = await fetch(`${getSupabaseUrl()}/rest/v1/bbf_athlete_load_logs`, {
+      method: 'POST',
+      headers: { ..._restHeaders(), Prefer: 'return=minimal' },
+      body: JSON.stringify(row),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      return { ok: false, error: `bbf_athlete_load_logs HTTP ${res.status}: ${text.slice(0, 200)}` };
+    }
+    return { ok: true, log_id: logId };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: `bbf_athlete_load_logs network: ${msg}` };
+  }
+}
+
+function _fallbackUuid(): string {
+  // Best-effort v4-shaped string for the rare environment without
+  // crypto.randomUUID (e.g. some older Safari iframes). The DB
+  // accepts any uuid-shaped value · this is purely a graceful
+  // degradation path, not a security-grade source of randomness.
+  const r = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).slice(1);
+  return `${r()}${r()}-${r()}-4${r().slice(1)}-${(8 + Math.floor(Math.random() * 4)).toString(16)}${r().slice(1)}-${r()}${r()}${r()}`;
+}
+
+// ─── updateUserProfile · PASSOVER §5f (local-write path) ───────────────
+export interface ProfilePatch {
+  name?: string;
+  email?: string;
+  tdee_target?: number;
+  macro_p?: number;
+  macro_c?: number;
+  macro_f?: number;
+  dietary_profile?: string;
+}
+
+export type UpdateProfileResult =
+  | { ok: true; persisted_locally: true }
+  | { ok: false; error: string };
+
+/**
+ * Write profile fields to the local BBFPayload via `setUserRecord`.
+ *
+ * Why local-only: anon's RLS on `bbf_users` permits SELECT only ·
+ * a `bbf_update_profile` SECURITY DEFINER RPC does not exist (only
+ * `bbf_get_profile_metrics`, `bbf_soft_delete_user`, and
+ * `bbf_verify_user_pin` are present per pg_proc). The legacy
+ * `bbf-sync.js` queue drains these patches to the server via the
+ * batched outbound sync pipeline · until that pipeline is ported to
+ * React, the patches survive only on the device.
+ *
+ * The return shape is intentionally async (Promise) so React callers
+ * can apply the same double-submit shield they use for the cloud
+ * inserts · the awaited resolution is effectively zero-latency but
+ * the contract is identical.
+ */
+export async function updateUserProfile(
+  uidSlug: string,
+  patch: ProfilePatch
+): Promise<UpdateProfileResult> {
+  if (!uidSlug) return { ok: false, error: 'no_uid' };
+  const ok = setUserRecord(uidSlug, patch as Partial<BBFUserRecord>);
+  if (!ok) return { ok: false, error: 'localStorage_write_failed' };
+  return { ok: true, persisted_locally: true };
+}
+
+// ─── Edge-function caller + Nutrition wire-ups ──────────────────────────
+export type EdgeFunctionResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: string; status?: number };
+
+/**
+ * Typed POST to `${SUPABASE_URL}/functions/v1/<name>`. Normalises
+ * three failure modes into a single error path:
+ *
+ *   1. Network failure (`fetch` rejection) · returns
+ *      `{ok:false,error:'network: <msg>'}`.
+ *   2. Transport-level HTTP error (4xx / 5xx) · returns
+ *      `{ok:false,error:<body.error || 'HTTP <n>'>, status:<n>}`.
+ *   3. Application-level error · the function returned 200 but with
+ *      `{ ok: false, error: <msg> }` per the BBF edge-function
+ *      convention · returns `{ok:false,error:<msg>}`.
+ *
+ * On success returns `{ok:true,data:<parsed JSON>}`. Callers cast
+ * the generic via the explicit type parameter.
+ */
+export async function callEdgeFunction<T>(name: string, body: unknown): Promise<EdgeFunctionResult<T>> {
+  try {
+    const res = await fetch(`${getSupabaseUrl()}/functions/v1/${name}`, {
+      method: 'POST',
+      headers: _restHeaders(),
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    let parsed: unknown = null;
+    try { parsed = text ? JSON.parse(text) : null; } catch { /* not JSON */ }
+
+    if (!res.ok) {
+      const msg = (parsed && typeof parsed === 'object' && 'error' in parsed && typeof (parsed as { error: unknown }).error === 'string')
+        ? (parsed as { error: string }).error
+        : `HTTP ${res.status}`;
+      return { ok: false, error: msg, status: res.status };
+    }
+    if (parsed && typeof parsed === 'object' && 'ok' in parsed && (parsed as { ok: unknown }).ok === false) {
+      const err = (parsed as { error?: unknown }).error;
+      return { ok: false, error: typeof err === 'string' ? err : 'edge_function_error' };
+    }
+    return { ok: true, data: parsed as T };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: `network: ${msg}` };
+  }
+}
+
+export interface MealImageResponse {
+  ok: true;
+  image_url: string;
+  source: 'cache' | 'gemini_imagen_3';
+  name_display: string;
+}
+
+/**
+ * Generate (or fetch from cache) a top-down stock photograph for a
+ * named meal · powers the NutritionVision "Scan Meal" button.
+ */
+export function generateMealImage(
+  name: string,
+  ingredients?: string
+): Promise<EdgeFunctionResult<MealImageResponse>> {
+  return callEdgeFunction<MealImageResponse>('bbf-meal-image', { name, ingredients });
+}
+
+export interface MealMacrosResponse {
+  ok: true;
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  confidence: number;
+  source: 'cache' | 'claude_haiku';
+  name_display: string;
+}
+
+/**
+ * Resolve macros (kcal + P/C/F) for a named meal · cache-first, then
+ * Claude Haiku · powers the NutritionVision "Generate Protocol"
+ * button.
+ */
+export function analyzeMealMacros(
+  name: string,
+  opts: { ingredients?: string; lang?: 'en' | 'es' | 'pt' } = {}
+): Promise<EdgeFunctionResult<MealMacrosResponse>> {
+  return callEdgeFunction<MealMacrosResponse>('bbf-meal-macros', {
+    name,
+    ingredients: opts.ingredients,
+    lang: opts.lang ?? 'en',
+  });
+}

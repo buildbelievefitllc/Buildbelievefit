@@ -245,3 +245,80 @@
   opacity: 0.7;
   white-space: nowrap;
 }
+
+/* ─── Phase 4.3e · meal-name input + edge-function wire surfaces ───── */
+.nameField {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 0.3rem;
+}
+
+.nameLabel {
+  font-size: clamp(0.66rem, 1.8vw, 0.74rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.nameInput {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #0a0f14;
+  color: #e8eaed;
+  border: 1px solid #2a323d;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: clamp(0.88rem, 2.6vw, 1rem);
+  font-weight: 600;
+  font-family: inherit;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 120ms;
+}
+
+.nameInput:focus-visible { border-color: #34d399; }
+
+.scannedImage {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 1px #1f262f;
+}
+
+.sourceTag {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  font-size: clamp(0.6rem, 1.7vw, 0.7rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  background: rgba(10, 15, 20, 0.78);
+  color: #fbbf24;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.errorBanner {
+  padding: 0.7rem 0.85rem;
+  background: #2b1416;
+  border: 1px solid #7f1d1d;
+  color: #fca5a5;
+  border-radius: 0.5rem;
+  font-size: clamp(0.74rem, 2.1vw, 0.84rem);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.confidenceCaption {
+  font-size: clamp(0.66rem, 1.85vw, 0.74rem);
+  opacity: 0.6;
+  text-align: center;
+}
