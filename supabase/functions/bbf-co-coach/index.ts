@@ -179,14 +179,22 @@ async function callClaude(bundles: unknown[], apiKey: string) {
     'Return ONLY JSON matching the response schema.\n\n' +
     '```json\n' + userPayload + '\n```';
 
+  // Phase 2-emergency repair: this function was originally written for
+  // Claude Opus 4.7 (adaptive thinking + effort=high + structured-output
+  // JSON schema). The model router moved it to Haiku 4.5 per the
+  // sovereign_brief routing rule, but the request body kept the Opus-only
+  // params · Anthropic 4xx'd every call, which the catch path surfaces
+  // as HTTP 502 from this function. The SYSTEM_PROMPT already mandates
+  // "Return ONLY structured JSON conforming to the response schema" so
+  // we still get a JSON.parse-able reply, and the existing extractTextBlock
+  // + JSON.parse(text) flow below handles it. Removed params:
+  //   · thinking: { type: 'adaptive' }  · Opus-only
+  //   · output_config.effort: 'high'    · Opus-only
+  //   · output_config.format            · removed to keep the call schema
+  //                                        clean across Haiku/Sonnet/Opus
   const requestBody = {
     model:      MODEL,
     max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
     // Cacheable system prompt — stable across requests, dominant cost.
     // Top-level cache_control auto-places on the last cacheable block.
     system: [

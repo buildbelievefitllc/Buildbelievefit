@@ -3054,19 +3054,19 @@ app.use((err, req, res, next) => {
 // upgrades. If the key is missing, upgrades are rejected with 503.
 // ───────────────────────────────────────────────────────────────
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-// Live model · bumped 2.5 → 3.5 on 2026-05-22 per CEO directive after
-// Google I/O 2026-05-19 GA release. Pattern-matched the native-audio
-// variant suffix that was already in use; if Google changed the Live
-// API naming convention with the 3.5 release this will need a different
-// suffix (e.g., -live, drop -latest, etc.) — the symptom would be a
-// 503/closed-immediately on the WebSocket upgrade.
-const GEMINI_LIVE_MODEL = 'models/gemini-3.5-flash-native-audio-latest';
-// Phase 15 Slice 15 — Gemini Live endpoint reverted to v1alpha and
-// the model swapped to the stable 2.5 native-audio string. CEO live-
-// fire confirmed Google's routing layer for the 3.1-flash-live-preview
-// model is broken on both v1alpha and v1beta; abandoning that string.
-// The 2.5-flash-native-audio-latest model is the registered Tier 1
-// stable target and is registered for bidiGenerateContent on v1alpha.
+// Live model · REVERTED 3.5 → 2.5 on 2026-05-26 per emergency repair sprint.
+// The 2026-05-22 bump to gemini-3.5-flash-native-audio-latest had the exact
+// symptom predicted in the prior comment block: WebSocket upgrades to the
+// bidiGenerateContent endpoint were closing immediately (Akeem caught the
+// dropped handshake on live video audit). Google's GA 3.5 release did not
+// register a native-audio variant with the -latest suffix on this endpoint.
+// The 2.5-flash-native-audio-latest model IS registered for bidiGenerateContent
+// on v1alpha and was the Tier 1 stable target before the bump · explicitly
+// re-pinned here. Single-shot vision (/api/vision-coach) keeps using
+// 'gemini-3.5-flash' via the generateContent REST endpoint, which is the
+// correct surface for the 3.5 GA release · those two endpoints diverged
+// because the Live API and the REST API ship under different model strings.
+const GEMINI_LIVE_MODEL = 'models/gemini-2.5-flash-native-audio-latest';
 const GEMINI_LIVE_URL_BASE =
   'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent';
 const PHANTOM_EYE_PROXY_PATH = '/ws/phantom-eye';

@@ -2919,6 +2919,13 @@ function LP() {
 }
 
 function selectClient(uid) {
+  // Phase 2-emergency repair · clicking the SAME client (e.g. tapping
+  // Ana while already viewing Ana on the Nutrition tab) was forcing a
+  // TAB('home') swap and tearing down the right-hand nutrition telemetry
+  // panel the trainer was inspecting. Re-selecting the active client is
+  // now a no-op fast path · the data is already loaded.
+  if (VC === uid) return;
+
   VC = uid;
   LP();
   RA();
@@ -2927,7 +2934,18 @@ function selectClient(uid) {
   // Signal the guard to skip this one navigation so the trainer can
   // actually drill into a client view via the roster click.
   window._bbfSkipBleedGuard = true;
-  try { TAB('home'); } finally { window._bbfSkipBleedGuard = false; }
+  try {
+    // Phase 2-emergency repair · only force-switch to the Home tab when
+    // the trainer is ALREADY on Home (the original roster-click case).
+    // If they're on Nutrition / Workout / Cardio / Profile inspecting a
+    // panel, drilling into a new client must NOT yank the active tab out
+    // from under them. RA() above already re-rendered every panel against
+    // the new VC, so the visible tab updates in place with the new
+    // client's data.
+    var activePane = document.querySelector('.tp.on');
+    var onHome = !activePane || activePane.id === 'tp-home';
+    if (onHome) TAB('home');
+  } finally { window._bbfSkipBleedGuard = false; }
   updateAdminBackButton();
   // Hydrate this client's logs from Supabase so Total Sessions
   // reflects cloud state when the trainer drills in.
