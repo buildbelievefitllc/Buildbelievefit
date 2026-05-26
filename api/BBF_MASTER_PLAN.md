@@ -317,7 +317,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 | 5 | `bbf_vapi_calls` | `vapi_call_id` | text | 0 | 0 | 0 | 0 | 0 | 0 | 0 | DROP · sibling cols stay (used by stored fns) · this one is orphaned |
 - **Migration applied (2026-05-26):** `supabase/migrations/20260525240000_bbf_ghost_column_sweep.sql` executed via `mcp__supabase__apply_migration` on operator go-signal. Post-DDL `information_schema.columns` query confirmed all 5 (table, column) pairs are gone · zero rows match.
 
-## [x] 6.0b · Universal lowercase email migration · CLOSED · commit `<PHASE_2_4_SHA>` · 2026-05-26
+## [x] 6.0b · Universal lowercase email migration · CLOSED · commit `a3868c7` · 2026-05-26
 - **Why:** Case-sensitive email columns are an authentication-bypass / profile-splitting vector: `User@x.com` and `user@x.com` resolving to separate rows breaks idempotency in stripe-webhook, lead-capture, suppression, and every "find user by email" lookup. Engine-level enforcement makes the bypass structurally impossible.
 - **How:** (1) Atomic SQL migration: `UPDATE … SET col = LOWER(col)` per email column + permanent `CHECK (col IS NULL OR col = LOWER(col))` constraint per column. (2) Application-layer audit · inject `.toLowerCase().trim()` at every entry point where an email arrives from a user.
 - **Done when:** Live `UPDATE … SET col = upper(col)` probe fires `check_violation` on every constrained column · every app entry point lowercases before the DB write.
