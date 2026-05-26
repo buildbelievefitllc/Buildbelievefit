@@ -1898,6 +1898,32 @@ app.post('/api/admin-upsert-client', async (req, res) => {
   }
 
   try {
+    // Phase 6.0i · soft-delete gate · refuse to upsert (and accidentally
+    // resurrect) a soft-deleted user. The pre-check uses the canonical
+    // bbf_users_active view so a ghost row is invisible from this path.
+    const { data: liveRow, error: liveErr } = await supabase
+      .from('bbf_users_active')
+      .select('uid')
+      .eq('uid', uid)
+      .maybeSingle();
+    if (liveErr) {
+      console.error('[admin-upsert-client] active-check failed:', liveErr.message);
+      return res.status(500).json({ ok: false, error: 'precheck_failed', detail: liveErr.message });
+    }
+    // If the uid exists in bbf_users but NOT in bbf_users_active, it's
+    // soft-deleted · reject the upsert with a clear diagnostic.
+    if (!liveRow) {
+      const { data: ghostRow } = await supabase
+        .from('bbf_users')
+        .select('uid, deleted_at')
+        .eq('uid', uid)
+        .maybeSingle();
+      if (ghostRow && ghostRow.deleted_at) {
+        console.warn(`[admin-upsert-client] refusing resurrect · uid=${uid} · soft-deleted at ${ghostRow.deleted_at}`);
+        return res.status(409).json({ ok: false, error: 'user_soft_deleted', deleted_at: ghostRow.deleted_at });
+      }
+    }
+
     const { data, error } = await supabase
       .from('bbf_users')
       .upsert(row, { onConflict: 'uid' })
@@ -1935,8 +1961,12 @@ app.post('/api/admin-check-cloud', async (req, res) => {
   const uid  = typeof body.uid === 'string' ? body.uid.trim().toLowerCase() : '';
   if (!uid) return res.status(400).json({ ok: false, error: 'uid_required' });
   try {
+    // Phase 6.0i · soft-delete gate · admin dashboard reads from the
+    // canonical bbf_users_active view so a soft-deleted user shows as
+    // exists=false (the Command Center then correctly renders LOCAL-ONLY
+    // rather than SYNCED).
     const { data, error } = await supabase
-      .from('bbf_users')
+      .from('bbf_users_active')
       .select('uid, name, email, subscription_tier, dietary_profile, allergens, food_likes, food_dislikes, tdee_target, macro_p, macro_c, macro_f, nutrition_plan, nutrition_plan_updated_at, updated_at')
       .eq('uid', uid)
       .maybeSingle();

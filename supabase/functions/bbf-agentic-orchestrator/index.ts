@@ -88,7 +88,12 @@ async function resolveUuid(uid: string, supabaseUrl: string, supabaseKey: string
 }
 
 async function fetchUserSlice(uuid: string, supabaseUrl: string, supabaseKey: string) {
-  const url = `${supabaseUrl}/rest/v1/bbf_users?id=eq.${encodeURIComponent(uuid)}&select=uid,name,subscription_tier,baseline_status,block_priority,cardiac_clearance,cns_friction_score,biomechanical_redline,somatic_cognitive_load,tdee_target,macro_p,macro_c,macro_f,ghost_intervention_needed,par_q_screened_at&limit=1`;
+  // Phase 6.0i · soft-delete gate · `&deleted_at=is.null` excludes
+  // soft-deleted users from the snapshot synthesizer so the orchestrator
+  // never generates a brief about a ghost user. service-role bypasses
+  // RLS so this explicit filter is load-bearing (the
+  // bbf_users_hide_soft_deleted policy alone would not gate this call).
+  const url = `${supabaseUrl}/rest/v1/bbf_users?id=eq.${encodeURIComponent(uuid)}&deleted_at=is.null&select=uid,name,subscription_tier,baseline_status,block_priority,cardiac_clearance,cns_friction_score,biomechanical_redline,somatic_cognitive_load,tdee_target,macro_p,macro_c,macro_f,ghost_intervention_needed,par_q_screened_at&limit=1`;
   try {
     const res = await fetch(url, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } });
     if (!res.ok) return null;
