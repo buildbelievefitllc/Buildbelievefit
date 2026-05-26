@@ -294,7 +294,13 @@ function normalizeClientPayload(body) {
   const b = body || {};
   return {
     client_name: String(b.client_name || 'Unknown Client'),
-    vault_email: String(b.vault_email || ''),
+    // Phase 2.4 · universal lowercase email normalization. The
+    // bbf_active_clients.vault_email column has a CHECK constraint
+    // (vault_email = LOWER(vault_email)) at the engine level; if the
+    // payload arrives with mixed case the upsert would 23514 here.
+    // Lowercase + trim at the front door so case-sensitive auth bypass
+    // and profile-splitting are both structurally impossible.
+    vault_email: String(b.vault_email || '').trim().toLowerCase(),
     age: b.age != null ? String(b.age) : '',
     height_weight: String(b.height_weight || ''),
     clinical_history: String(b.clinical_history || ''),

@@ -293,7 +293,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 - **Verdict: ZERO hardcoded high-privilege credentials in the repository.** Every server-side credential reference flows through `process.env` (Node) or `Deno.env.get` (Deno); the single browser-exposed key is intentionally publishable. No extraction or replacement required.
 - **Note for future audits:** Re-run with `bash /tmp/scan_secrets.sh` style multi-pass · the 11-pattern class set is the load-bearing surface for Supabase / Stripe / Resend / Brevo / Twilio / AWS / Google / GitHub / Anthropic / Slack credential shapes.
 
-## [~] 6.0a · Schema normalization · ghost column sweep · DRAFTED · commit `31ae9e1` · 2026-05-25
+## [x] 6.0a · Schema normalization · ghost column sweep · CLOSED · drafted `31ae9e1` · applied 2026-05-26
 - **Why:** Dead columns drift the DB shape away from the app's actual contract · the longer they sit the harder it is to tell intentional state from legacy debris.
 - **How:** 5-layer dependency check on every column of every `public.bbf_*` table (308 columns across 24 tables): (1) live application code grep · (2) stored functions in public schema · (3) views · (4) foreign-key constraints · (5) triggers + indexes + cross-schema function bodies. A column counts as a ghost only when ALL FIVE layers return zero references AND the column data is either empty or fully null.
 - **Done when:** Ghost migration applied · schema introspection re-run reports zero unreferenced columns.
@@ -315,7 +315,23 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 | 3 | `bbf_stripe_events` | `received_at` | timestamptz | 0 | 0 | 0 | 0 | 0 | 0 | 0 | DROP · index `idx_bbf_stripe_events_received_at` cascades · `created_at` covers the same semantics |
 | 4 | `bbf_users` | `last_login` | timestamptz | 7 | **0 (100% null)** | 0 | 0 | 0 | 0 | 0 | DROP · never populated by any path · login telemetry deferred to Phase 4.4 `bbf_events` |
 | 5 | `bbf_vapi_calls` | `vapi_call_id` | text | 0 | 0 | 0 | 0 | 0 | 0 | 0 | DROP · sibling cols stay (used by stored fns) · this one is orphaned |
-- **Migration drafted (NOT YET APPLIED):** `supabase/migrations/20260525240000_bbf_ghost_column_sweep.sql` · `alter table … drop column if exists …` for each of the 5 ghosts. Committed to repo so the change history is preserved; apply via `mcp__supabase__apply_migration` on operator go-signal. **Destructive DDL deliberately gated · awaiting CEO sign-off.**
+- **Migration applied (2026-05-26):** `supabase/migrations/20260525240000_bbf_ghost_column_sweep.sql` executed via `mcp__supabase__apply_migration` on operator go-signal. Post-DDL `information_schema.columns` query confirmed all 5 (table, column) pairs are gone · zero rows match.
+
+## [x] 6.0b · Universal lowercase email migration · CLOSED · commit `<PHASE_2_4_SHA>` · 2026-05-26
+- **Why:** Case-sensitive email columns are an authentication-bypass / profile-splitting vector: `User@x.com` and `user@x.com` resolving to separate rows breaks idempotency in stripe-webhook, lead-capture, suppression, and every "find user by email" lookup. Engine-level enforcement makes the bypass structurally impossible.
+- **How:** (1) Atomic SQL migration: `UPDATE … SET col = LOWER(col)` per email column + permanent `CHECK (col IS NULL OR col = LOWER(col))` constraint per column. (2) Application-layer audit · inject `.toLowerCase().trim()` at every entry point where an email arrives from a user.
+- **Done when:** Live `UPDATE … SET col = upper(col)` probe fires `check_violation` on every constrained column · every app entry point lowercases before the DB write.
+- **Shipped (this session):**
+  - **Migration `20260526010000_bbf_email_lowercase_universal.sql`** applied to prod. 9 columns normalized + locked (`bbf_active_clients.client_email`, `bbf_active_clients.vault_email`, `bbf_email_events.email`, `bbf_lead_actions.lead_email`, `bbf_leads.email`, `bbf_outbound_athletes.email`, `bbf_stripe_events.email`, `bbf_users.email`, `bbf_vapi_calls.client_email`). One was already locked in Phase 1.3 (`bbf_email_suppression.email`) · the schema now has 10 lowercase-email CHECK constraints total. Pre-migration audit: zero rows in any column had `col <> LOWER(col)` · the existing app-layer sanitization had been doing this defensively for a long time. The CHECK is the engine-level lock that prevents future regression.
+  - **FK safety**: `bbf_vapi_calls.client_email → bbf_active_clients.client_email` (NO ACTION on update, not deferrable). Migration UPDATEs child first then parent so any future dirty-data re-run produces a clean diagnostic instead of a silent cascade. Today's data is 100% clean so the UPDATE is a no-op.
+  - **App-layer audit · 19 email write sites scanned** across `supabase/functions/`, `vision-scout/marketing/`, and `index.js`:
+    - **Already sanitized (18 sites)** · `bbf-lead-capture`, `stripe-webhook`, `bbf-lead-concierge`, `marketing/agents/{scout,scout-engine,triage,unsubscribe,dispatcher,analyst}.js`, `marketing/suppression.js`, `index.js /provision` (line 2928) — all explicitly `.trim().toLowerCase()` before any DB call.
+    - **Single gap fixed**: `index.js → normalizeClientPayload()` was returning `vault_email: String(b.vault_email || '')` without `.trim().toLowerCase()`. Patched to `String(b.vault_email || '').trim().toLowerCase()` so the upsert into `bbf_active_clients` never hits the engine-level `check_violation` from a mixed-case payload.
+- **Validation (this session):**
+  - Post-migration `pg_constraint` query confirms all 10 CHECK constraints installed (9 new + 1 from Phase 1.3).
+  - Live `UPDATE … SET col = upper(col)` probe on each constrained column · 7 of 9 fire `check_violation` immediately (the other 2 are on empty tables · UPDATE is a no-op, constraint is confirmed installed via `pg_constraint`).
+  - `node --check index.js` clean post-patch.
+- **Operator note:** Any future Supabase MCP-driven write attempting to insert/upsert a non-lowercase email value now fails immediately with `check_violation` · the engine is the source of truth. App-layer `.toLowerCase().trim()` remains as belt-and-suspenders for cleaner UX (avoids the `check_violation` surfacing to the user).
 
 ## [ ] 6.1 · RLS audit on every public table
 - **Why:** Closes Tier 1 #10 of the original list. Coverage isn't audited.
