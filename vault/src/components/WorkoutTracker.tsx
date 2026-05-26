@@ -29,6 +29,11 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 import { useCallback, useMemo, useState } from 'react';
+import {
+  getActiveUid,
+  insertWorkoutSession,
+  type WorkoutSessionSetInsert,
+} from '../services/supabaseClient';
 import styles from './WorkoutTracker.module.css';
 
 export interface ExerciseEntry {
@@ -74,6 +79,7 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
   const plan = props.plan ?? DEMO_PLAN;
   const [loggedIds, setLoggedIds] = useState<ReadonlySet<string>>(() => new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [errorsById, setErrorsById] = useState<Record<string, string>>({});
 
   const totalExercises = plan.exercises.length;
   const completed = useMemo(
@@ -86,18 +92,48 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
       if (busyId === entry.id) return;
       if (loggedIds.has(entry.id)) return;
       setBusyId(entry.id);
+      setErrorsById((prev) => {
+        if (!prev[entry.id]) return prev;
+        const next = { ...prev };
+        delete next[entry.id];
+        return next;
+      });
       try {
         if (props.onLogExercise) {
           await props.onLogExercise(entry);
-        } else if (typeof console !== 'undefined' && console.log) {
-          console.log('[workout-tracker] log entry (stub · no live insert):', entry);
+          setLoggedIds((prev) => addId(prev, entry.id));
+        } else {
+          const uid = getActiveUid();
+          if (!uid) {
+            setErrorsById((prev) => ({ ...prev, [entry.id]: 'No active session · sign in to log this set.' }));
+            return;
+          }
+          const reps   = coerceNumber(entry.reps);
+          const weight = coerceNumber(entry.weight);
+          const sets: WorkoutSessionSetInsert[] = [];
+          const total = Math.max(1, Math.floor(entry.sets) || 1);
+          for (let i = 1; i <= total; i++) {
+            sets.push({
+              set_number: i,
+              reps,
+              weight_lbs: weight,
+              exercise_key: entry.id,
+            });
+          }
+          const result = await insertWorkoutSession(
+            uid,
+            { drill_name: entry.name, coach_notes: entry.notes, language: 'en' },
+            sets
+          );
+          if (result.ok) {
+            setLoggedIds((prev) => addId(prev, entry.id));
+          } else {
+            setErrorsById((prev) => ({ ...prev, [entry.id]: result.error }));
+          }
         }
-        setLoggedIds((prev) => {
-          if (prev.has(entry.id)) return prev;
-          const next = new Set(prev);
-          next.add(entry.id);
-          return next;
-        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setErrorsById((prev) => ({ ...prev, [entry.id]: msg }));
       } finally {
         setBusyId(null);
       }
@@ -134,6 +170,7 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
             {plan.exercises.map((entry) => {
               const isLogged = loggedIds.has(entry.id);
               const isBusy   = busyId === entry.id;
+              const rowError = errorsById[entry.id];
               return (
                 <article
                   key={entry.id}
@@ -168,6 +205,10 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
                   >
                     {isLogged ? 'Logged' : isBusy ? 'Logging…' : 'Log'}
                   </button>
+
+                  {rowError && (
+                    <div className={styles.rowError} role="alert">{rowError}</div>
+                  )}
                 </article>
               );
             })}
@@ -176,4 +217,20 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
       )}
     </section>
   );
+}
+
+function coerceNumber(v: unknown): number | null {
+  if (typeof v === 'number' && isFinite(v)) return v;
+  if (typeof v === 'string') {
+    const n = Number(v);
+    if (isFinite(n)) return n;
+  }
+  return null;
+}
+
+function addId(prev: ReadonlySet<string>, id: string): ReadonlySet<string> {
+  if (prev.has(id)) return prev;
+  const next = new Set(prev);
+  next.add(id);
+  return next;
 }

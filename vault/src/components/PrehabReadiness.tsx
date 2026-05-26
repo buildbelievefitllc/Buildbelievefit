@@ -27,6 +27,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 import { useCallback, useMemo, useState } from 'react';
+import { getActiveUid, insertSomaticReadiness } from '../services/supabaseClient';
 import styles from './PrehabReadiness.module.css';
 
 export interface ReadinessDimension {
@@ -85,6 +86,7 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
   }));
   const [submitting, setSubmitting] = useState(false);
   const [lastSubmittedAt, setLastSubmittedAt] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const composite = useMemo(() => calcComposite(scores), [scores]);
 
@@ -98,6 +100,7 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
   const handleSubmit = useCallback(async () => {
     if (submitting) return;
     setSubmitting(true);
+    setLastError(null);
     const payload: ReadinessPayload = {
       scores,
       composite,
@@ -106,13 +109,27 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
     try {
       if (props.onSubmit) {
         await props.onSubmit(payload);
+        setLastSubmittedAt(payload.recorded_at);
       } else {
-        // Stub · the live wire-up to bbf_readiness lands in PASSOVER §5e.
-        if (typeof console !== 'undefined' && console.log) {
-          console.log('[prehab-readiness] payload (stub · no live insert):', payload);
+        const uid = getActiveUid();
+        if (!uid) {
+          setLastError('No active session · sign in to log readiness.');
+          return;
+        }
+        const result = await insertSomaticReadiness(uid, {
+          score: composite,
+          sleep_quality: scores.sleep,
+          soreness_level: scores.soreness,
+          timestamp: payload.recorded_at,
+        });
+        if (result.ok) {
+          setLastSubmittedAt(payload.recorded_at);
+        } else {
+          setLastError(result.error);
         }
       }
-      setLastSubmittedAt(payload.recorded_at);
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : String(err));
     } finally {
       setSubmitting(false);
     }
@@ -183,10 +200,14 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
         </button>
       </div>
 
+      {lastError && (
+        <div className={styles.errorBanner} role="alert">{lastError}</div>
+      )}
+
       <div className={styles.submitNote}>
         {lastSubmittedAt
-          ? `Logged locally at ${formatTime(lastSubmittedAt)} · live wire to bbf_readiness pending`
-          : 'Live wire to bbf_readiness pending · payload logs to console for now'}
+          ? `Logged to bbf_readiness at ${formatTime(lastSubmittedAt)}`
+          : 'Tap "Log readiness" to record today’s score · writes to bbf_readiness'}
       </div>
     </section>
   );

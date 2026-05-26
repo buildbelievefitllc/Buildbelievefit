@@ -254,3 +254,14 @@
   opacity: 0.55;
   text-align: center;
 }
+
+.errorBanner {
+  padding: 0.7rem 0.85rem;
+  background: #2b1416;
+  border: 1px solid #7f1d1d;
+  color: #fca5a5;
+  border-radius: 0.5rem;
+  font-size: clamp(0.74rem, 2.1vw, 0.84rem);
+  font-weight: 600;
+  word-break: break-word;
+}

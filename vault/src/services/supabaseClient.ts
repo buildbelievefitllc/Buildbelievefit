@@ -530,3 +530,315 @@ export function clearCoachAgentToken(): void {
     /* best-effort */
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// Phase 4.3d · Live-Wire Data Layer (PASSOVER §5 steps d + e)
+//
+// All public.bbf_readiness + public.bbf_logs + public.bbf_sets writes go
+// through this section. React components NEVER hit fetch / supabase
+// directly · they call the named insert function below.
+//
+// SLUG → UUID RESOLVER
+// The React layer identifies users by stable text slugs ('akeem',
+// 'ana_bbf', etc.) stored in bbf_users.uid. The relational FK target
+// for log tables is bbf_users.id (uuid). The legacy bbf-sync.js solved
+// this with a `bbf_get_uid_map()` SECURITY DEFINER RPC that returns
+// `TABLE(uid text, id uuid)` · we mirror the pattern here with a
+// promise-shared one-flight bootstrap + Map cache so concurrent
+// callers share a single network round-trip.
+// ═══════════════════════════════════════════════════════════════════════
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const _uidMap: Map<string, string> = new Map();
+let _uidMapPromise: Promise<void> | null = null;
+
+function _restHeaders(): Record<string, string> {
+  const key = getSupabaseKey();
+  return {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    'Content-Type': 'application/json',
+  };
+}
+
+async function _ensureUidMap(): Promise<void> {
+  if (_uidMapPromise) return _uidMapPromise;
+  _uidMapPromise = (async () => {
+    try {
+      const res = await fetch(`${getSupabaseUrl()}/rest/v1/rpc/bbf_get_uid_map`, {
+        method: 'POST',
+        headers: _restHeaders(),
+        body: '{}',
+      });
+      if (!res.ok) return;
+      const rows: unknown = await res.json();
+      if (!Array.isArray(rows)) return;
+      for (const r of rows) {
+        if (r && typeof r === 'object') {
+          const slug = (r as { uid?: unknown }).uid;
+          const id = (r as { id?: unknown }).id;
+          if (typeof slug === 'string' && typeof id === 'string') {
+            _uidMap.set(slug, id);
+          }
+        }
+      }
+    } catch {
+      /* network failure · leave cache empty · resolve() returns null */
+    }
+  })();
+  return _uidMapPromise;
+}
+
+/**
+ * Convert a slug (e.g. 'akeem') OR a raw uuid pass-through into the
+ * bbf_users.id uuid. Returns null when the slug isn't known to the
+ * server (RPC empty, network failure, or genuinely missing user).
+ * Idempotent · safe to call concurrently · the bootstrap RPC is
+ * one-flight via a shared promise.
+ */
+export async function resolveUserUuid(slugOrUuid: string | null | undefined): Promise<string | null> {
+  if (!slugOrUuid) return null;
+  const trimmed = slugOrUuid.trim();
+  if (!trimmed) return null;
+  if (UUID_RE.test(trimmed)) return trimmed;
+  const lowered = trimmed.toLowerCase();
+  await _ensureUidMap();
+  return _uidMap.get(lowered) ?? _uidMap.get(trimmed) ?? null;
+}
+
+/** Test/diagnostic · drop the cached uid map so the next resolve re-fetches. */
+export function resetUidMapCache(): void {
+  _uidMap.clear();
+  _uidMapPromise = null;
+}
+
+// ─── insertSomaticReadiness · PASSOVER §5e ──────────────────────────────
+/**
+ * Caller-facing payload for `insertSomaticReadiness`. The composite
+ * `score` is the 0-100 readiness band; `sleep_quality` and
+ * `soreness_level` are the 1-10 raw slider dimensions persisted as
+ * their own columns. Energy / mood / stress feed into the composite
+ * but have no dedicated column on `bbf_readiness` (6-col schema).
+ */
+export interface SomaticReadinessInsert {
+  /** Composite 0-100 · the headline score the coach reads. */
+  score: number;
+  /** Optional · 1-10 raw slider value. */
+  sleep_quality?: number;
+  /** Optional · 1-10 raw slider value. */
+  soreness_level?: number;
+  /** Optional ISO timestamp · defaults to server `now()`. */
+  timestamp?: string;
+}
+
+export type InsertReadinessResult =
+  | { ok: true; id: string | null }
+  | { ok: false; error: string };
+
+/**
+ * Write one row to `public.bbf_readiness`. Resolves the caller's slug
+ * to the bbf_users.id uuid first, then POSTs the row via PostgREST
+ * (`Prefer: return=representation` so we hand the created id back to
+ * the caller for any follow-on writes). The anon role has INSERT
+ * policy `Allow Anon Insert Readiness` (with_check true) so the
+ * publishable key alone is sufficient · no service_role needed.
+ */
+export async function insertSomaticReadiness(
+  uidSlugOrUuid: string,
+  payload: SomaticReadinessInsert
+): Promise<InsertReadinessResult> {
+  const uuid = await resolveUserUuid(uidSlugOrUuid);
+  if (!uuid) return { ok: false, error: 'uid_not_resolvable' };
+
+  const row: Record<string, unknown> = {
+    user_id: uuid,
+    score: payload.score,
+  };
+  if (payload.sleep_quality  !== undefined) row.sleep_quality  = payload.sleep_quality;
+  if (payload.soreness_level !== undefined) row.soreness_level = payload.soreness_level;
+  if (payload.timestamp) row.timestamp = payload.timestamp;
+
+  try {
+    const res = await fetch(`${getSupabaseUrl()}/rest/v1/bbf_readiness`, {
+      method: 'POST',
+      headers: { ..._restHeaders(), Prefer: 'return=representation' },
+      body: JSON.stringify(row),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      return { ok: false, error: `bbf_readiness HTTP ${res.status}: ${text.slice(0, 200)}` };
+    }
+    const created: unknown = await res.json();
+    const id = Array.isArray(created) && created[0] && typeof (created[0] as { id?: unknown }).id === 'string'
+      ? (created[0] as { id: string }).id
+      : null;
+    return { ok: true, id };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: `bbf_readiness network: ${msg}` };
+  }
+}
+
+// ─── insertWorkoutSession · PASSOVER §5d ────────────────────────────────
+/**
+ * One `bbf_logs` row · the session header. All columns are optional
+ * per the loose 10-col schema · `date` defaults to CURRENT_DATE
+ * server-side and `language` defaults to 'en'.
+ */
+export interface WorkoutSessionLogInsert {
+  date?: string;          // YYYY-MM-DD · defaults server-side
+  sport?: string;
+  position?: string;
+  drill_name?: string;
+  coach_notes?: string;
+  language?: string;      // 'en' | 'es' | 'pt'
+  body_fat?: string;
+  duration?: string;
+}
+
+/**
+ * One `bbf_sets` row · per-set tonnage. `log_id` and `user_id` are
+ * injected by `insertWorkoutSession` from the parent log + the
+ * resolved uuid · callers never specify them.
+ */
+export interface WorkoutSessionSetInsert {
+  set_number?: number;
+  reps?: number | null;
+  weight_lbs?: number | null;
+  rpe?: number | null;
+  day_key?: string | null;
+  exercise_key?: string | null;
+}
+
+export type InsertWorkoutSessionResult =
+  | { ok: true; log_id: string; sets_inserted: number }
+  | { ok: false; error: string; partial?: { log_id?: string; cleanup_ok?: boolean } };
+
+/**
+ * Relational write to `public.bbf_logs` + `public.bbf_sets`. PostgREST
+ * has no multi-table transaction primitive so we order the inserts
+ * carefully and fall back to a best-effort orphan cleanup on the
+ * second-step failure:
+ *
+ *   1. POST /rest/v1/bbf_logs (Prefer: return=representation) → log_id
+ *   2. POST /rest/v1/bbf_sets (bulk array body · single request) ·
+ *      each set gets `log_id` + `user_id` injected
+ *   3. If step 2 fails, DELETE /rest/v1/bbf_logs?id=eq.<log_id> ·
+ *      anon has DELETE policy `Allow Anon Delete Logs` · cleanup_ok
+ *      flag reports whether the deletion 200'd
+ *
+ * Returns the inserted log_id + set count on full success, or a
+ * structured error with the partial state on failure so the caller
+ * can surface a diagnostic without ambiguity about whether a row was
+ * left behind.
+ *
+ * NOTE on transactional integrity: true ACID requires a server-side
+ * RPC that wraps both inserts in BEGIN/COMMIT. That path lands when
+ * the operator authorizes a `bbf_insert_workout_session` migration ·
+ * for now the orphan-cleanup fallback is the best the REST layer can
+ * offer without DDL.
+ */
+export async function insertWorkoutSession(
+  uidSlugOrUuid: string,
+  logPayload: WorkoutSessionLogInsert,
+  setsPayload: ReadonlyArray<WorkoutSessionSetInsert>
+): Promise<InsertWorkoutSessionResult> {
+  const uuid = await resolveUserUuid(uidSlugOrUuid);
+  if (!uuid) return { ok: false, error: 'uid_not_resolvable' };
+
+  const url = getSupabaseUrl();
+  const headers = _restHeaders();
+
+  // ── Step 1 · insert bbf_logs row ────────────────────────────────────
+  const logRow: Record<string, unknown> = { user_id: uuid };
+  if (logPayload.date)        logRow.date = logPayload.date;
+  if (logPayload.sport)       logRow.sport = logPayload.sport;
+  if (logPayload.position)    logRow.position = logPayload.position;
+  if (logPayload.drill_name)  logRow.drill_name = logPayload.drill_name;
+  if (logPayload.coach_notes) logRow.coach_notes = logPayload.coach_notes;
+  if (logPayload.language)    logRow.language = logPayload.language;
+  if (logPayload.body_fat)    logRow.body_fat = logPayload.body_fat;
+  if (logPayload.duration)    logRow.duration = logPayload.duration;
+
+  let logId: string;
+  try {
+    const res = await fetch(`${url}/rest/v1/bbf_logs`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'return=representation' },
+      body: JSON.stringify(logRow),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      return { ok: false, error: `bbf_logs HTTP ${res.status}: ${text.slice(0, 200)}` };
+    }
+    const created: unknown = await res.json();
+    const candidate = Array.isArray(created) && created[0] && typeof (created[0] as { id?: unknown }).id === 'string'
+      ? (created[0] as { id: string }).id
+      : null;
+    if (!candidate) return { ok: false, error: 'bbf_logs response missing id' };
+    logId = candidate;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: `bbf_logs network: ${msg}` };
+  }
+
+  // ── Step 2 · early-return when no sets queued ──────────────────────
+  if (setsPayload.length === 0) {
+    return { ok: true, log_id: logId, sets_inserted: 0 };
+  }
+
+  // ── Step 3 · bulk insert bbf_sets · single round-trip ──────────────
+  const setRows: Record<string, unknown>[] = setsPayload.map((s, idx) => {
+    const row: Record<string, unknown> = {
+      log_id: logId,
+      user_id: uuid,
+      set_number: s.set_number ?? idx + 1,
+    };
+    if (s.reps         != null) row.reps         = s.reps;
+    if (s.weight_lbs   != null) row.weight_lbs   = s.weight_lbs;
+    if (s.rpe          != null) row.rpe          = s.rpe;
+    if (s.day_key)              row.day_key      = s.day_key;
+    if (s.exercise_key)         row.exercise_key = s.exercise_key;
+    return row;
+  });
+
+  try {
+    const res = await fetch(`${url}/rest/v1/bbf_sets`, {
+      method: 'POST',
+      headers: { ...headers, Prefer: 'return=minimal' },
+      body: JSON.stringify(setRows),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      const cleanupOk = await _bestEffortDeleteLog(logId);
+      return {
+        ok: false,
+        error: `bbf_sets HTTP ${res.status}: ${text.slice(0, 200)}`,
+        partial: { log_id: logId, cleanup_ok: cleanupOk },
+      };
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const cleanupOk = await _bestEffortDeleteLog(logId);
+    return {
+      ok: false,
+      error: `bbf_sets network: ${msg}`,
+      partial: { log_id: logId, cleanup_ok: cleanupOk },
+    };
+  }
+
+  return { ok: true, log_id: logId, sets_inserted: setRows.length };
+}
+
+async function _bestEffortDeleteLog(logId: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${getSupabaseUrl()}/rest/v1/bbf_logs?id=eq.${encodeURIComponent(logId)}`,
+      { method: 'DELETE', headers: _restHeaders() }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
