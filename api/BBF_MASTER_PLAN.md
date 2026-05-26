@@ -280,7 +280,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
   - Pre-check: ALL 5 script IDs and ALL 9 style IDs have zero introspection from the remaining HTML/JS · no broken refs.
 - **Out of scope (intentional):** the 17,544-line core inline `<script>` block (script #29) stays inline · splitting it requires a bundler (Phase 4.1) so we don't break the unbundled GitHub Pages deploy.
 
-## [~] 4.3a · Layout panel componentization pass · Phase 4.3 Stage 2 partial · operator's "Phase 4.3"
+## [~] 4.3a · Layout panel componentization pass · commit `431b053` · 2026-05-26 · Phase 4.3 Stage 2 partial · operator's "Phase 4.3"
 - **Why:** Stage 1 (commit `29c4ee1`) only extracted the peripheral inline scripts and the 10 inline `<style>` blocks. The 17,544-line core inline `<script>` is still inline because every feature pane inside it (roster grid, nutrition vision viewport, workout, cardio, prehab, profile) couples directly to global `CU` / `VC` / `GD()` / `SD()` / `TAB()` / `selectClient()`. Stage 2 is per-feature React/TS rewrites that bind to the typed `vault/src/services/supabaseClient.ts` layer (Phase 4.1a) and reproduce each pane's chrome + behavior as a self-contained component. This entry tracks the first two panes shipped: Client Dashboard (admin roster + drill-in) and Nutrition Vision Viewport (live food analysis chrome).
 - **How (this session · scaffold-level shells with visual fixes enforced):**
   1. **`vault/src/components/ClientDashboard.tsx`** (271 lines) · trainer/admin roster grid + adjacent client-detail panel. Imports `getActiveUid` / `setViewingAsClient` / `getUserRecord` / `isAdmin` from `supabaseClient.ts` so the React state mirror stays coherent with the legacy module-level `VC` tracker.
