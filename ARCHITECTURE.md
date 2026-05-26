@@ -363,6 +363,68 @@ The backoff curve doubles per attempt (1s → 2s → 4s) capped at `GEMINI_RETRY
 
 **Escape hatch:** `gemini.js` also exports `generateOnce(opts)` · a single-shot call that bypasses the resilience layer entirely. Reserved for one-shot diagnostic probes (e.g. `/health` endpoint test calls) where retry latency would mask the very signal the operator is probing for. Production code should always use `generate()`.
 
+### 5.5 In-vault agents · Anthropic hardening standard (Phase 6.0j)
+
+The Claude-driven edge functions in `supabase/functions/bbf-agentic-*` + `bbf-co-coach` + `bbf-midnight-haiku` now share a 3-file Deno-side hardening layer at `supabase/functions/_shared/`. Mirror of the marketing-engine pattern from §5.3 + §5.4, adapted to Anthropic's request/response shape.
+
+**The three shared helpers:**
+
+| File | Role | Mirror of |
+|---|---|---|
+| `_shared/anthropic-armor.ts` | Sanitize / wrap UNTRUSTED user fields in `<context_boundaries>` + `<user_input>` shells · neutralize tag tunneling for the 4-tag reserved set · JSON-Schema → Anthropic `input_schema` adapter · `tool_use` + `text` + `refusal` content-block extractors | `vision-scout/marketing/prompt-armor.js` |
+| `_shared/anthropic-resilience.ts` | Retry-with-backoff middleware · per-use-case `FALLBACK_POLICY` · classifies HTTP 429/5xx + `overloaded_error` + network/timeout as retryable, treats 400/401/403/404 + refusal blocks + `stop_reason='refusal'` as permanent | `vision-scout/marketing/llm-resilience.js` |
+| `_shared/anthropic-call.ts` | The canonical `callClaude(args)` entrypoint that ties armor + resilience together · routes via `model-router.routeAndLog` · returns `{ ok, text\|toolInput, usage, model, stop_reason, attempts, fallback_used, retry_history }` | `vision-scout/marketing/gemini.js → generate()` |
+
+**Per-use-case fallback policy (`FALLBACK_POLICY` in `anthropic-resilience.ts`):**
+
+| Use-case tier | Primary | Fallback on transient | Rationale |
+|---|---|---|---|
+| Haiku-tier (`vocab_retry`, `syntax_retry`, `mesocycle_rationale`, `snapshot_synthesis`, `sovereign_brief`, `i18n_translation`, `forecast_1rm`, `sport_immersion_seed`, `meal_macros_lookup`) | `claude-haiku-4-5` | `claude-sonnet-4-6` | Escalate up the tier ladder · transient Haiku failure rescued by Sonnet |
+| Sonnet-tier (`kinematic_form_score`, `novel_form_correction`, `onboarding_interview`, `prehab_assignment`) | `claude-sonnet-4-6` | `claude-opus-4-7` | Escalate further · vision + onboarding pathways tolerate Opus cost on rescue |
+| Opus-tier (`parq_assessment`, `wellbeing_escalation`, `cardiac_intercept`) | `claude-opus-4-7` | `null` (NO fallback) | CEO directive · safety-critical · do NOT demote · retry on Opus, accept failure if Anthropic is fully down |
+
+**Structured-output enforcement (vs Gemini's `responseSchema`):**
+
+Anthropic's equivalent of Gemini's API-enforced JSON output is `tools` + `tool_choice: { type: 'tool', name: <toolName> }`. When `callClaude({ toolSchema, toolName })` is supplied, the helper:
+1. Wraps the JSON schema via `toAnthropicInputSchema()` (pass-through adapter today · the chokepoint for future Anthropic-specific schema massaging).
+2. Sends `tools: [{ name, description, input_schema }]` + `tool_choice: { type: 'tool', name }` so Anthropic forces a `tool_use` block in the response.
+3. Extracts `tool_use.input` via `extractToolUseBlock()` and returns it as `result.toolInput`.
+
+The model literally cannot emit prose / markdown / commentary outside the tool call · no `JSON.parse(text)` defensive code needed at the caller.
+
+**Retry budget (per call · default):**
+
+| Attempt | Delay | Model | Notes |
+|---:|---|---|---|
+| 1 | `0 ms`    | primary  | First shot · routes via `routeAndLog(agentTag, useCase)` |
+| 2 | `1000 ms` | primary  | After 1st retryable failure (±25% jitter) |
+| 3 | `2000 ms` | primary  | After 2nd retryable failure |
+| 4 | `4000 ms` | **fallback** OR none | Per-use-case `FALLBACK_POLICY` · Opus-tier returns the last error with full `retry_history` |
+
+**Tag tunneling defense:** the same 4-tag reserved set as `prompt-armor.js` (`user_input`, `system_constraints`, `context_boundaries`, `system_instruction`) · open + close variants both stripped to `[REDACTED_TAG]` before user content reaches the model.
+
+**Refusal-block detection:** when Anthropic returns a `refusal` content block (safety system response · newer API versions) OR `stop_reason: 'refusal'`, the helper classifies it as PERMANENT · no retry · no fallback · returns `{ ok: false, error: 'anthropic_refusal', detail: <reason> }`. Same input would re-block on fallback, so token-burn is prevented.
+
+**Agent adoption matrix (Phase 6.0j):**
+
+| Agent | Status | Notes |
+|---|---|---|
+| `bbf-co-coach` | ✓ Phase 6.0j v13 deployed | Canonical conversion · sovereign_brief use case · tool_use with `submit_co_coach_analysis` schema |
+| `bbf-agentic-orchestrator` | ☐ pending §6.0h-followup | snapshot_synthesis use case · v8 deployed for Phase 6.0i soft-delete filter only |
+| `bbf-midnight-haiku` | ☐ pending §6.0h-followup | sovereign_brief / snapshot_synthesis hybrid · nightly cron |
+| `bbf-agentic-cardio` | ☐ pending §6.0h-followup | cardiac_intercept · Opus-tier · NO fallback policy |
+| `bbf-agentic-pathfinder` | ☐ pending §6.0h-followup | onboarding_interview |
+| `bbf-agentic-interrogator` | ☐ pending §6.0h-followup | onboarding_interview |
+| `bbf-agentic-prehab` | ☐ pending §6.0h-followup | prehab_assignment |
+| `bbf-agentic-forecasting` | ☐ pending §6.0h-followup | forecast_1rm |
+| `bbf-agentic-kinematics` | ☐ pending §6.0h-followup | kinematic_form_score · vision flag |
+| `bbf-agentic-comlink` | ☐ pending §6.0h-followup | novel_form_correction |
+| `bbf-agentic-immersion` | ☐ pending §6.0h-followup | sport_immersion_seed |
+| `bbf-agentic-peaking` | ☐ pending §6.0h-followup | mesocycle_rationale |
+| `bbf-agentic-linguist` | ☐ pending §6.0h-followup | i18n_translation |
+
+Each pending agent is a single-session conversion · adopt `callClaude({ useCase, system, userFields, toolSchema?, maxTokens, ... })` and delete the local fetch-to-Anthropic boilerplate.
+
 ---
 
 ## 6 · Environment variable catalog

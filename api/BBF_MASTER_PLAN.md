@@ -596,6 +596,85 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
   - Issue "apply 20260526020000_bbf_email_trim_lock.sql" to trigger `mcp__supabase__apply_migration`.
   - Post-apply, re-run the Phase 6.0f live constraint probe with a whitespace-padded INSERT (e.g. `'  user@x.com  '`) to confirm the stricter CHECK now fires.
 
+## [x] 6.0h · Maximum-Tier · React Bootstrapper · commit `aec4da2` · 2026-05-26 · session hydration + cross-tab drift watcher
+- **Why:** Red-team audit cracks 1.1 + 1.2 · the vault React entry point never hydrated `_currentUser` from `localStorage` on boot, so `getActiveUid()` returned null on first render even with a logged-in user in `localStorage.bbf_v7`. Compounding: neither surface had a `storage` event listener, so cross-tab session mutations silently drifted module state. Closed both cracks for the current placeholder; Stage-2 swap to a `useSession()` hook queued in §6.0h-stage2-followup.
+- **Shipped:**
+  - `vault/src/services/supabaseClient.ts` · `hydrateSessionFromStorage()` synchronous boot scanner · priority sigil > admin > sovereign > non-expired trial > none · `setCurrentUserSigil()` for future React login flow.
+  - `vault/src/main.tsx` · `bootstrapVault()` runs hydrate BEFORE `createRoot` · `storage` event listener triggers `window.location.reload()` on `bbf_v7` / `bbf_current_user` / full-clear drift.
+- **Validation:** `tsc -b --noEmit` clean · `vite build` emits new hash `index-C0YpTZ_v.js` confirming the hydrate code bundled.
+
+## [x] 6.0i · Maximum-Tier · Soft-Delete Foundation · commit `510e6c4` · 2026-05-26 · migration APPLIED + 3 readers patched
+- **Why:** Red-team audit cracks 3.1 / 3.2 / 3.3 · `bbf_audit_logs` CASCADE on user delete wipes forensic trail · `bbf_logs` + `bbf_readiness` NO ACTION blocks `DELETE FROM bbf_users` for 5/7 live users · half-cascade inconsistency confuses operators. Soft-delete eliminates the entire class · no hard delete ever fires, audit trail preserved by construction, FK matrix becomes moot.
+- **Shipped:**
+  - `supabase/migrations/20260526030000_bbf_user_soft_delete_foundation.sql` (DRAFTED + COMMITTED + APPLIED 2026-05-26 via `mcp__supabase__apply_migration` `{"success": true}`):
+    - `bbf_users.deleted_at` + `deleted_reason` + `deleted_by` columns.
+    - Partial index `idx_bbf_users_active_uid` ON `(uid) WHERE deleted_at IS NULL`.
+    - RLS RESTRICTIVE policy `bbf_users_hide_soft_deleted` (anon + authenticated gated · service_role bypasses RLS via BYPASSRLS).
+    - View `public.bbf_users_active` · GRANTed to anon + authenticated + service_role.
+    - SP `bbf_soft_delete_user(uid, reason, actor)` · SECURITY DEFINER · FOR UPDATE row lock.
+    - `bbf_verify_user_pin` RPC patched · 3 explicit `AND deleted_at IS NULL` filters added · LOAD-BEARING because SECURITY DEFINER bypasses RLS via owner BYPASSRLS.
+  - `supabase/functions/bbf-agentic-orchestrator/index.ts:91` · `fetchUserSlice` adds `&deleted_at=is.null` to the PostgREST query. Deployed live as version 8 · ezbr `7d0b8910...0eacd79c`.
+  - `index.js:1862` (`/api/admin-upsert-client`) · pre-check via `bbf_users_active` before upsert · refuses with 409 `user_soft_deleted` if uid is in `bbf_users` but not in the view (prevents accidental resurrection).
+  - `index.js:1923` (`/api/admin-check-cloud`) · reads from `bbf_users_active` view so soft-deleted uids surface as `exists=false` to the Command Center.
+- **Validation:**
+  - Install probe · 6/6 asserts green (`soft_delete_cols=3` · `active_view=1` · `rls_policy=1` · `soft_delete_sp=1` · `auth_rpc_deleted_at_filters=3` · `partial_index=1`).
+  - Live end-to-end smoke (sandbox uid · auto-cleaned) · 6/6 asserts pass: sandbox PIN verifies pre-delete · view shows it · SP returns non-null deleted_at · view excludes it · auth RPC rejects PIN post-delete · sandbox cleaned.
+- **Why soft-delete metadata lives on `bbf_users`, NOT `bbf_audit_logs`:** `bbf_audit_logs.movement_name` + `.tension_zone` are NOT NULL with a kinematic-vocabulary enum CHECK · writing a user-lifecycle audit row requires semantically wrong placeholder values · cleaner self-contained on `bbf_users`. General-purpose user-lifecycle audit table queued for a future phase.
+- **Debt remaining (queued in §6.0i-followup):** ~10 lower-risk reader sites continue to read raw `bbf_users` · RLS hides soft-deleted rows from anon/authenticated already · UX-only leak · no security exposure since auth RPC enforces the gate server-side.
+
+## [~] 6.0j · Maximum-Tier · Claude Proxy Infrastructure · commit `<TBD>` · 2026-05-26 · 3 shared Deno helpers + bbf-co-coach canonical conversion · 12 agents pending
+- **Why:** Red-team audit crack 2.1 · the 13 in-vault Anthropic agents (`bbf-agentic-*` + `bbf-co-coach` + `bbf-midnight-haiku`) received ZERO of the Phase 6.0c → 6.0e marketing-engine hardening. Athletes could inject prompts into their own `performance_notes` / `dietary_profile` / readiness comments and reach Claude unfiltered. No retry budget, no fallback, no API-enforced structured output. PASSOVER §2 documented the canonical `bbf-co-coach` 502 cascade from this gap. This entry installs the load-bearing infrastructure and converts the canonical agent end-to-end.
+- **Shipped (this session · 3 shared Deno helpers + 1 agent converted):**
+  - **`supabase/functions/_shared/anthropic-armor.ts`** (NEW · 221 lines) · Deno port of `prompt-armor.js` adapted for Anthropic's request/response shape:
+    - `sanitizeUserField` · strip 4-tag reserved set + control chars + length cap (4000 default).
+    - `wrapUserBlock` · build `<context_boundaries>` + sealed `<user_input>` shell · block-scalar shape for multi-line values.
+    - `BANNED_FILLER_PHRASES` + `verifyNoBannedFiller` · shared with marketing-engine.
+    - `toAnthropicInputSchema` · JSON-Schema → Anthropic `input_schema` adapter (pass-through chokepoint for future Anthropic-specific schema massaging).
+    - `extractTextBlock` / `extractToolUseBlock` / `extractRefusalBlock` · canonical content-block extractors.
+  - **`supabase/functions/_shared/anthropic-resilience.ts`** (NEW · 279 lines) · per-use-case fallback policy adaptation of `llm-resilience.js`:
+    - `FALLBACK_POLICY: Record<UseCase, Model | null>` · Haiku→Sonnet · Sonnet→Opus · Opus→null (CEO directive · NO demotion on safety-critical).
+    - `isRetryableAnthropicFailure` · classifies 429/5xx/network/timeout/overloaded_error as transient · 400/401/403/404 + refusal blocks + `stop_reason='refusal'` as permanent.
+    - `anthropicBackoffDelayMs` · exponential curve + ±25% jitter · same math as Gemini-side.
+    - `withAnthropicResilience(primaryFn, fallbackFn, opts)` · the middleware wrapper · augments result with `{ attempts, fallback_used, retry_history }`.
+  - **`supabase/functions/_shared/anthropic-call.ts`** (NEW · 296 lines) · canonical `callClaude(args)` entrypoint:
+    - Routes via `model-router.routeAndLog` · resolves per-use-case fallback via `fallbackModelFor`.
+    - Wraps `_callClaudeOnce(primaryModel, args)` in `withAnthropicResilience`.
+    - Tool-use mode · when `toolSchema` + `toolName` supplied, sends `tools` + `tool_choice` for API-enforced structured output · returns `result.toolInput` verbatim.
+    - Text mode · when `toolSchema` absent, returns `result.text`.
+    - Refusal detection · sets `error: 'anthropic_refusal'` + `stop_reason: 'refusal'` for permanent classification.
+    - 60s default timeout via `AbortController` · cleanup via `finally clearTimeout`.
+    - Escape hatch · `callClaudeOnce(args)` bypasses resilience (diagnostic probes).
+  - **`supabase/functions/bbf-co-coach/index.ts`** rewritten (~360 lines · was 399) · canonical Phase 6.0j conversion:
+    - System prompt wrapped in `<system_constraints>` framing · explicit security posture instructing the model to treat `<user_input>` as data, not control.
+    - `bundles` array passed via `userFields: { bundles_json: ... }` so `sanitizeUserField` neutralizes any `</user_input>` tag tunneling in `coach_notes` or `audit` fields.
+    - `RESPONSE_SCHEMA` (the existing JSON Schema) passed to `callClaude` as `toolSchema` + `toolName: 'submit_co_coach_analysis'` for tool-use enforcement.
+    - Response shape returns `attempts` + `fallback_used` so callers (mastermind-portal.html · founder cockpit) can surface drift telemetry.
+    - PASSOVER §2 502-cascade root cause eliminated · the Opus-only `thinking` / `output_config` params that caused the cascade are gone · resilience layer absorbs any future model-routing mismatch.
+    - Deployed live as version 13 · ezbr `f4d7cbaa8838972a...c2e2770`.
+  - **`ARCHITECTURE.md` new §5.5** "In-vault agents · Anthropic hardening standard (Phase 6.0j)" · documents the 3 shared helpers, the per-use-case `FALLBACK_POLICY`, the tool-use enforcement contract vs Gemini's `responseSchema`, the retry budget table, refusal-block detection, and the 13-agent adoption matrix.
+- **Validation (this session):**
+  - 5-file deploy bundle uploaded to bbf-co-coach v13 · `{"success": true}` · entrypoint `source/index.ts` (single source/) · `_shared/` siblings · imports resolve via `../_shared/<file>.ts` paths.
+  - Bundle line counts · `index.ts` 360 · `model-router.ts` 106 · `anthropic-armor.ts` 221 · `anthropic-resilience.ts` 279 · `anthropic-call.ts` 296 · 1262 total.
+  - Note: full Deno typecheck not run locally (this environment doesn't have Deno installed); deploy succeeded which surfaces TS errors as deploy failures (none returned).
+- **Debt remaining · §6.0h-followup queue · 12 in-vault agents pending Anthropic-armor conversion:**
+
+| # | Agent | Use case | Notes |
+|---:|---|---|---|
+| 1 | `bbf-agentic-orchestrator` | `snapshot_synthesis` | v8 deployed for §6.0i soft-delete filter only · armor conversion pending |
+| 2 | `bbf-midnight-haiku` | `sovereign_brief` / `snapshot_synthesis` | Nightly cron · highest-volume Anthropic spend |
+| 3 | `bbf-agentic-cardio` | `cardiac_intercept` | **Opus-tier · NO fallback policy** · safety-critical |
+| 4 | `bbf-agentic-pathfinder` | `onboarding_interview` | Sonnet → Opus fallback |
+| 5 | `bbf-agentic-interrogator` | `onboarding_interview` | Sonnet → Opus fallback |
+| 6 | `bbf-agentic-prehab` | `prehab_assignment` | Sonnet → Opus fallback |
+| 7 | `bbf-agentic-forecasting` | `forecast_1rm` | Haiku → Sonnet fallback |
+| 8 | `bbf-agentic-kinematics` | `kinematic_form_score` | Sonnet · `vision: true` flag |
+| 9 | `bbf-agentic-comlink` | `novel_form_correction` | Sonnet · vision-adjacent |
+| 10 | `bbf-agentic-immersion` | `sport_immersion_seed` | Haiku → Sonnet fallback |
+| 11 | `bbf-agentic-peaking` | `mesocycle_rationale` | Haiku → Sonnet fallback |
+| 12 | `bbf-agentic-linguist` | `i18n_translation` | Haiku → Sonnet fallback |
+
+Each pending agent is a single-session conversion · the pattern from `bbf-co-coach` v13 is the template · adopt `callClaude({ useCase, system, userFields, toolSchema?, maxTokens, ... })` and delete the local raw-fetch boilerplate. Until each agent is converted, athletes can still inject prompts into the affected surface and the function has no retry/fallback.
+
 ## [ ] 6.1 · RLS audit on every public table
 - **Why:** Closes Tier 1 #10 of the original list. Coverage isn't audited.
 - **How:** For each table in `public`, document: who can SELECT, who can INSERT/UPDATE/DELETE, why. Add missing policies. Block anything that should be service-role-only.
