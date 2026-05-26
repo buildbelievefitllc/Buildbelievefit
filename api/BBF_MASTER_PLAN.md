@@ -202,7 +202,7 @@ Do these before pushing any meaningful outbound volume.
 
 The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeline introduction since it changes deploy mechanics.
 
-## [~] 4.1 · Introduce a build pipeline (Vite) · Stage 1 CLOSED · scaffold + deploy gate live
+## [~] 4.1 · Introduce a build pipeline (Vite) · Stage 1 CLOSED · commit `2ae64b0` · 2026-05-26 · scaffold + deploy gate live
 - **Why:** Closes gap #6 (bbf-app.html monolith). Today no bundler, no minification, no automatic cache-busting. Phase 2.1 Stage 1 extracted the styles + peripheral IIFEs but the 17,544-line core inline `<script>` block (script #29) is still inline · splitting it requires a bundler.
 - **How (Stage 1 · this session · scaffold-only · zero live-surface change):**
   1. **Topology · Option B (nested workspace).** New `/vault/` directory holds the entire Vite + React + TypeScript app · isolated `package.json` · zero overlap with root webhook (`bbf-vault-webhook`) or the Render service (`vision-scout/`). Legacy `/src/` (Phase 2.1 Stage 1 IIFE extractions) is UNTOUCHED · `bbf-app.html` continues loading it byte-identically.
