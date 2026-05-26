@@ -316,6 +316,105 @@ export function clearActiveSession(): void {
   _viewingAsClient = null;
 }
 
+// ─── Boot-time session hydration (Phase 6.0h) ────────────────────────
+/**
+ * Synchronous boot-time session restorer. Read the master payload from
+ * localStorage, pick the most plausible active uid (priority: ADMIN_UID
+ * present → sovereign tier → non-expired trial), and populate the
+ * module-level `_currentUser`. Returns the chosen uid + the routing
+ * source so the boot caller can log it.
+ *
+ * Idempotent · safe to call multiple times (each call re-reads
+ * localStorage and overwrites the module state from scratch).
+ *
+ * Best-effort · the legacy auth flow never wrote a "logged-in uid"
+ * sentinel to localStorage (CU lives only in memory). This hydrate
+ * therefore picks the BEST CANDIDATE from cached records rather than
+ * the AUTHORITATIVE current user. Stage 2 will add a
+ * `bbf_current_user` localStorage sigil written by the React login
+ * flow · this function will then prefer that explicit sigil when
+ * present.
+ *
+ * The real auth gate is server-side (the `bbf_verify_user_pin` RPC).
+ * This function never asserts that the chosen uid is authorized;
+ * it only restores the in-memory tracker so React components don't
+ * see `null` on first render.
+ */
+export type HydrationSource = 'admin' | 'sovereign' | 'trial' | 'none' | 'sigil';
+
+export interface HydrationResult {
+  uid: string | null;
+  source: HydrationSource;
+}
+
+const CURRENT_USER_SIGIL_KEY = 'bbf_current_user';
+
+export function hydrateSessionFromStorage(): HydrationResult {
+  // 1. Explicit sigil (Stage 2 forward-compat · written by future React login)
+  try {
+    const sigil = localStorage.getItem(CURRENT_USER_SIGIL_KEY);
+    if (sigil && typeof sigil === 'string' && sigil.trim().length > 0) {
+      _currentUser = sigil.trim().toLowerCase();
+      return { uid: _currentUser, source: 'sigil' };
+    }
+  } catch {
+    /* localStorage disabled · fall through to payload scan */
+  }
+
+  // 2. Master payload scan · priority order
+  const payload = getPayload();
+
+  // 2a · admin first
+  if (payload.u[ADMIN_UID]) {
+    _currentUser = ADMIN_UID;
+    return { uid: ADMIN_UID, source: 'admin' };
+  }
+
+  // 2b · sovereign tier (paid annual / lifetime)
+  for (const uid of Object.keys(payload.u)) {
+    const record = payload.u[uid];
+    if (record && record.subscription_tier === 'sovereign') {
+      _currentUser = uid;
+      return { uid, source: 'sovereign' };
+    }
+  }
+
+  // 2c · non-expired trial
+  const now = Date.now();
+  for (const uid of Object.keys(payload.u)) {
+    const record = payload.u[uid];
+    if (record && record.trial_expires_at) {
+      const expiresMs = new Date(record.trial_expires_at).getTime();
+      if (Number.isFinite(expiresMs) && expiresMs > now) {
+        _currentUser = uid;
+        return { uid, source: 'trial' };
+      }
+    }
+  }
+
+  // 3. No active candidate · leave module state explicitly null
+  _currentUser = null;
+  return { uid: null, source: 'none' };
+}
+
+/**
+ * Set the boot sigil (Phase 6.0h · Stage 2 forward-compat). When the
+ * React login flow eventually exists, it should call this after a
+ * successful PIN verify so subsequent hydrate() calls find the explicit
+ * uid without scanning the payload.
+ */
+export function setCurrentUserSigil(uid: string | null): void {
+  try {
+    if (uid === null || uid === '') {
+      localStorage.removeItem(CURRENT_USER_SIGIL_KEY);
+    } else {
+      localStorage.setItem(CURRENT_USER_SIGIL_KEY, uid.trim().toLowerCase());
+    }
+  } catch {
+    /* best-effort */
+  }
+}
+
 // ─── Auth state verification ─────────────────────────────────────────
 export const ADMIN_UID = 'akeem' as const;
 
