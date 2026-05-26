@@ -515,7 +515,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
   - To shrink the retry budget for cost-sensitive periods, set `GEMINI_RETRY_MAX_ATTEMPTS=1` (no retries, no fallback) or `GEMINI_RETRY_MAX_ATTEMPTS=2` (one retry, then fallback).
   - To probe a specific Gemini failure without resilience masking, callers can import `generateOnce` from `gemini.js` instead of `generate`.
 
-## [x] 6.0f · End-to-End Live Verification Smoke Tests · Phase 6 in operator's nomenclature · audit sprint closure
+## [x] 6.0f · End-to-End Live Verification Smoke Tests · commit `178874a` · 2026-05-26 · Phase 6 in operator's nomenclature · audit sprint closure
 - **Why:** The audit sprint (Phases 0.x → 6.0e) shipped HMAC armor (1.3), suppression ledgers (1.1/1.2), budget kill-switch (1.4), credential sweep (6.0), ghost-column purge (6.0a), universal lowercase email migration (6.0b), prompt-injection defense (6.0c), hyperparameter lockdown (6.0d), and resilience middleware (6.0e). Every closure was validated at the time of shipping, but cross-session regressions could silently weaken any layer · `bbf-app.html` could re-cache a mixed-case email, a future PR could relax `temperature` back to `0.7`, the marketing engine could lose its retry budget. This entry codifies the audit posture as an executable test suite that runs in <300ms and can be re-fired after any change.
 - **How (this session · pure-Node test harness · zero new deps):**
   1. New `/vision-scout/test/` directory · holds the audit suite separate from production source.
@@ -566,7 +566,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 | 6.0c | `979d49e` | Prompt-armor + XML delimiters + JSON schema + verification loops |
 | 6.0d | `5202385` | Hyperparameter + seed determinism lockdown |
 | 6.0e | `56507be` | Centralized LLM resilience middleware + fallback routing |
-| 6.0f | _this entry_ | End-to-end live verification smoke tests |
+| 6.0f | `178874a` | End-to-end live verification smoke tests |
 
 - **OPEN items deliberately NOT closed by this sprint (Phase 7+ work):** §0.1 (operator-action token rotation), §1.5 (daily data integrity audit), §2.1-2.4 (prompt registry / cross-provider router / A/B harness / scaffold standardization), §3.1-3.3 (Slack alerts / send-draft endpoint / admin dashboard), §4.2 (design tokens), §4.4 (frontend telemetry), §5.1 (staging environment), §5.2 (CI · partial · node test suite landed but GitHub Actions runner still missing), §6.1-6.4 (RLS audit, signed storage URLs, rate limiting, rotation policy), §7.1-7.3 (GDPR, backups, vision-scout decision), §8.1-8.3 (product strategy).
 
