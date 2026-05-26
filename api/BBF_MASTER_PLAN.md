@@ -202,11 +202,28 @@ Do these before pushing any meaningful outbound volume.
 
 The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeline introduction since it changes deploy mechanics.
 
-## [ ] 4.1 · Introduce a build pipeline (Vite)
-- **Why:** Closes gap #6 (bbf-app.html monolith). Today no bundler, no minification, no automatic cache-busting.
-- **How:** Add Vite to repo root. `src/` directory created. Entry point `src/main.js`. Vite emits content-hashed bundles to `dist/`. GitHub Pages serves `dist/`. Service worker cache key derived from build hash, not manual `bbf-v232` strings.
-- **Done when:** `npm run build` produces bundled assets; SW cache versioning is automatic; deploy still serves at `buildbelievefit.fitness`.
-- **Effort:** 3 days.
+## [~] 4.1 · Introduce a build pipeline (Vite) · Stage 1 CLOSED · scaffold + deploy gate live
+- **Why:** Closes gap #6 (bbf-app.html monolith). Today no bundler, no minification, no automatic cache-busting. Phase 2.1 Stage 1 extracted the styles + peripheral IIFEs but the 17,544-line core inline `<script>` block (script #29) is still inline · splitting it requires a bundler.
+- **How (Stage 1 · this session · scaffold-only · zero live-surface change):**
+  1. **Topology · Option B (nested workspace).** New `/vault/` directory holds the entire Vite + React + TypeScript app · isolated `package.json` · zero overlap with root webhook (`bbf-vault-webhook`) or the Render service (`vision-scout/`). Legacy `/src/` (Phase 2.1 Stage 1 IIFE extractions) is UNTOUCHED · `bbf-app.html` continues loading it byte-identically.
+  2. **Build · React 18.3 + Vite 5.4 + TS 5.6** · `vite.config.ts` with `base: '/vault/'` so the compiled SPA is reachable at `https://buildbelievefit.fitness/vault/` while customers stay on `/bbf-app.html`. Output: content-hashed bundle to `vault/dist/` (cache-busting comes for free via Vite hash, closes Phase 5.3 implicitly).
+  3. **Deploy gate · Option β (`actions/deploy-pages`).** New `.github/workflows/pages.yml` checks out repo → Node 20 → `npm ci && npm run build` inside `/vault/` → rsync-deny stages the legacy root verbatim into `_site/` (excludes only backend / schema / docs / CI surfaces) → overlays compiled bundle at `_site/vault/` → `upload-pages-artifact@v3` → `deploy-pages@v4`. Single atomic artifact, rollback = re-deploy a prior workflow run.
+  4. **env.js un-gitignored.** Was listed in root `.gitignore` line 4 (legacy defense-in-depth · file was already committed in `fd19191`). Line removed so the Actions runner's `checkout@v4` sees it natively. Per ARCHITECTURE.md §6.3 the `sb_publishable_*` key inside is intentionally browser-safe.
+- **How (Stage 2 · deferred, multi-session · gated on operator sequencing of feature migrations):**
+  - Per-feature React/TS re-implementation of script #29: auth/login → vault mount → nutrition tab → workout tab → readiness submit → trainer roster → client drill-in. Each feature lands as a `vault/src/features/<name>/` directory.
+  - Cutover when feature-parity reached: `bbf-app.html` becomes a redirect to `/vault/` · legacy `/src/` deleted in one commit.
+- **Done when (full):** `bbf-app.html` is a redirect, legacy `/src/` removed, all features served from compiled `dist/` with content-hashed cache-busting.
+- **Done when (Stage 1):** Local `npm run build` emits clean bundle · workflow file lands on `main` · operator toggles GitHub Pages source to "GitHub Actions" (Settings → Pages → Source) · first workflow run produces a green deploy serving both `/bbf-app.html` (legacy, unchanged) and `/vault/` (placeholder React app reporting "BBF Vault React Architecture Active").
+- **Shipped (Stage 1, this session):**
+  - `/vault/` workspace · `package.json`, `vite.config.ts`, `tsconfig.json` + `tsconfig.app.json` + `tsconfig.node.json` (Vite-standard project references), `index.html`, `src/main.tsx`, `src/App.tsx`, `src/vite-env.d.ts`, `.gitignore` (with `!package-lock.json` negation so the lockfile tracks while root .gitignore still ignores it elsewhere).
+  - `.github/workflows/pages.yml` · permissions `pages: write` + `id-token: write` · `concurrency: pages` (cancel-in-progress: false) · Node 20 + npm cache keyed on `vault/package-lock.json` · rsync-deny exclusion list covers `.git`, `.github`, `_site`, `vault`, `vision-scout`, `supabase`, `migrations`, `api`, `docs`, `node_modules`, `*.md`, `*.test.js`, `replace.py`, `desktop.ini`, `simulate-webhook.js`, `benchmark.js`, root `package.json`/`package-lock.json`, `render.yaml`, `env.example.js`, `index.js`.
+  - `vault/package-lock.json` (58 KB · 67 packages) committed so `npm ci` is reproducible in CI.
+  - Local validation: `npm install` clean · `npm run build` → tsc -b clean → vite build emits `dist/index.html` (345 B) + `dist/assets/index-<hash>.js` (143 KB · 46 KB gzip) + sourcemap · 30 modules transformed · 824 ms.
+  - `.gitignore` patched: removed legacy `env.js` line (file was already tracked since `fd19191`).
+- **Operator follow-up to activate live serving (NOT code work):**
+  1. After this commit lands on `main`, navigate to **Settings → Pages → Source** in the GitHub repo UI and toggle from "Deploy from a branch" to **"GitHub Actions"**. Until that toggle flips, the workflow runs but does not publish.
+  2. First workflow run after the toggle will produce a build at `https://buildbelievefit.fitness/vault/` confirming "BBF Vault React Architecture Active" while `/bbf-app.html` continues to serve byte-identically.
+- **Effort (Stage 2 · remaining):** weeks of per-feature React migration · scoped per feature, not as a single sprint.
 
 ## [ ] 4.2 · Design system tokens + primitives
 - **Why:** Closes gap #7. Current CSS is "vibes-based".

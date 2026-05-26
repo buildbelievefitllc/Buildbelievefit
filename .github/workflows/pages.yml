@@ -1,0 +1,96 @@
+name: Deploy site to GitHub Pages
+
+# Phase 4.1 deploy gate · single-artifact strategy.
+# Legacy storefront + Vault HTML are copied verbatim from repo root via
+# rsync-deny so all 5 paying customers keep hitting byte-identical
+# /bbf-app.html, while the compiled Vite output is overlaid at /vault/.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: vault/package-lock.json
+
+      - name: Install vault dependencies
+        working-directory: vault
+        run: npm ci
+
+      - name: Build vault (Vite)
+        working-directory: vault
+        run: npm run build
+
+      - name: Stage Pages artifact (legacy root + compiled vault overlay)
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          # Copy every legacy customer-facing surface at repo root.
+          # Denylist excludes backend logic, schema, docs, CI, and the
+          # build workspace itself · everything else (HTML pages,
+          # icons, manifest, sw.js, src/, public/, styles/, voiceover/,
+          # .well-known/, root .js modules, env.js, CNAME, .nojekyll,
+          # _headers, _redirects, PDFs, hero video) reaches the artifact.
+          rsync -a ./ _site/ \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=_site \
+            --exclude=vault \
+            --exclude=vision-scout \
+            --exclude=supabase \
+            --exclude=migrations \
+            --exclude=api \
+            --exclude=docs \
+            --exclude=node_modules \
+            --exclude='*.md' \
+            --exclude='*.test.js' \
+            --exclude=replace.py \
+            --exclude=desktop.ini \
+            --exclude=simulate-webhook.js \
+            --exclude=benchmark.js \
+            --exclude=package.json \
+            --exclude=package-lock.json \
+            --exclude=render.yaml \
+            --exclude=env.example.js \
+            --exclude=index.js
+          # Overlay the freshly compiled Vault SPA at /vault/.
+          mkdir -p _site/vault
+          cp -r vault/dist/. _site/vault/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

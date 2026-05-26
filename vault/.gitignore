@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vite/
+*.local
+*.tsbuildinfo
+
+# Override root .gitignore · vault lockfile MUST be tracked
+# so `npm ci` works in the GitHub Pages deploy workflow.
+!package-lock.json
