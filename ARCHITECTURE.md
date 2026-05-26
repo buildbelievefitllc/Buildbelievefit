@@ -317,6 +317,49 @@ grep -nE "temperature:|topP:|topK:|seed:" vision-scout/marketing/agents/{analyst
 
 **Drift detection:** the orchestrator's `summary.steps.analyze.tally` (Phase 6.0c) surfaces `verify_rejected` + `model_refused` counts per run · a non-zero `verify_rejected` rate with the locked hyperparams above is a strong signal of either prompt-injection attempts or a server-side model swap, not parameter drift.
 
+### 5.4 Marketing engine · LLM resilience standard (Phase 6.0e)
+
+`vision-scout/marketing/llm-resilience.js` exports a higher-order `withResilience(primaryFn, fallbackFn, opts)` middleware. Every public `generate()` call inside `gemini.js` is wrapped by it, so every analyst + triage Gemini call inherits retry-with-backoff + fallback-to-pro semantics with zero per-caller code change.
+
+**Retry budget (per Gemini call):**
+
+| Attempt | Delay before (default · jittered ±25%) | Model | Notes |
+|---:|---|---|---|
+| 1 | `0 ms`     | primary  (`gemini-3.5-flash`) | First shot · no backoff |
+| 2 | `1000 ms`  | primary  (`gemini-3.5-flash`) | After 1st retryable failure |
+| 3 | `2000 ms`  | primary  (`gemini-3.5-flash`) | After 2nd retryable failure |
+| 4 | `4000 ms`  | fallback (`gemini-3.5-pro`)   | Primary exhausted · single fallback shot · uses identical hyperparams + responseSchema |
+
+The backoff curve doubles per attempt (1s → 2s → 4s) capped at `GEMINI_RETRY_MAX_DELAY_MS` (default 8000ms) with a ±25% jitter so multiple concurrent calls don't synchronize their retry timing.
+
+**Error classification:**
+
+| Class | Errors | Action |
+|---|---|---|
+| Retryable transient | `gemini_timeout`, `gemini_fetch_failed`, `gemini_429`, `gemini_500`, `gemini_502`, `gemini_503`, `gemini_504`, any 5xx status | Backoff + retry up to `maxAttempts` · then fallback |
+| Permanent | `gemini_400`, `gemini_401`, `gemini_403`, `gemini_404`, `gemini_no_text`, parse failures, safety blocks | Skip retry loop · skip fallback (the same input will fail on fallback too · `fallbackOnPermanent: false` by default) |
+| Success | `ok: true` with non-empty text | Return immediately with `attempts` count + `fallback_used: false` |
+
+**Byte-compatibility guarantee:** The fallback path calls `_generateOnce(GEMINI_FALLBACK_MODEL, opts)` with the SAME `opts` object as the primary · same `temperature` / `topP` / `topK` / `seed` (§5.3 matrix) · same `responseSchema` · same `maxOutputTokens` · same `thinkingConfig`. The result shape returned to the caller is identical to a primary success; the only signal that fallback was used is the `fallback_used: true` flag on the augmented return.
+
+**Return shape augmentation:** every `generate()` call now returns the underlying `_generateOnce` result with three additional fields:
+- `attempts` · primary attempts made (1 on first-try success · up to `maxAttempts` on exhaustion)
+- `fallback_used` · `true` iff the result came from the fallback model
+- `retry_history` · `[{ error, status, latency_ms }]` array · one entry per failed primary attempt
+
+**Telemetry surfacing:** `bbf_llm_calls` rows still log the FINAL outcome (one row per `generate()` call, not per retry attempt) · the retry breadcrumb is surfaced in `bbf_agent_runs.summary` as `tally.retried` (count of calls that succeeded after at least one retry) and `tally.fallback_used` (count of calls that ended on the fallback model) for the analyst batch, and as `intent_attempts` / `intent_fallback_used` / `draft_attempts` / `draft_fallback_used` for triage webhook runs.
+
+**Env knobs (all optional · safe defaults):**
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `GEMINI_FALLBACK_MODEL` | `gemini-3.5-pro` | Backup model dispatched after primary exhausts retries |
+| `GEMINI_RETRY_MAX_ATTEMPTS` | `3` | Total primary attempts before fallback |
+| `GEMINI_RETRY_BASE_DELAY_MS` | `1000` | Delay before the 2nd attempt |
+| `GEMINI_RETRY_MAX_DELAY_MS` | `8000` | Cap for any single backoff |
+
+**Escape hatch:** `gemini.js` also exports `generateOnce(opts)` · a single-shot call that bypasses the resilience layer entirely. Reserved for one-shot diagnostic probes (e.g. `/health` endpoint test calls) where retry latency would mask the very signal the operator is probing for. Production code should always use `generate()`.
+
 ---
 
 ## 6 · Environment variable catalog
@@ -390,6 +433,10 @@ Defined in `render.yaml` (`sync: false` means stored in Render secret manager; `
 | `BBF_TELEMETRY_DISABLED` | (optional, default off) | Set `true` to silence telemetry writes |
 | `GEMINI_TIMEOUT_MS` | (optional, default 30000) | Gemini call timeout |
 | `GEMINI_THINKING_BUDGET` | (optional, default 0) | Override the disabled-thinking default |
+| `GEMINI_FALLBACK_MODEL` | (optional, default `gemini-3.5-pro`) | Phase 6.0e · backup model used by `llm-resilience.js` when primary exhausts retries · see §5.4 |
+| `GEMINI_RETRY_MAX_ATTEMPTS` | (optional, default `3`) | Phase 6.0e · total primary attempts before fallback dispatch |
+| `GEMINI_RETRY_BASE_DELAY_MS` | (optional, default `1000`) | Phase 6.0e · delay (ms) before 2nd retry attempt · doubles per subsequent attempt |
+| `GEMINI_RETRY_MAX_DELAY_MS` | (optional, default `8000`) | Phase 6.0e · ceiling (ms) for any single retry backoff |
 | `RESEND_WEBHOOK_SECRET` | **secret · REQUIRED** | Phase 1.3 · Svix-format webhook signing secret (`whsec_<base64>`) · `/api/v1/marketing/inbound` returns 503 when unset, 401 on signature failure. Set in Resend dashboard → Webhooks → Signing Secret, paste into Render env, redeploy |
 
 ### 6.3 Browser-exposed credential surface · the only one that exists

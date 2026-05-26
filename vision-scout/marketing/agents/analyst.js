@@ -151,7 +151,13 @@ async function analyzeOne(client, lead, runId) {
     seed:            42,
     maxOutputTokens: 1024,
     responseSchema:  PITCH_RESPONSE_SCHEMA,
+    // Phase 6.0e · tag the resilience layer so console.warn lines on
+    // retry/fallback identify which agent is interceding.
+    tag:             'gemini.analyst.pitch',
   });
+  // Phase 6.0e · capture resilience metadata for batch-level tally.
+  const attempts      = Number(out.attempts) || 1;
+  const fallbackUsed  = out.fallback_used === true;
   await logLlmCall({
     agent:          AGENT,
     runId,
@@ -169,7 +175,7 @@ async function analyzeOne(client, lead, runId) {
 
   if (!out.ok) {
     await client.from(TABLE).update({ last_error: `${out.error}: ${out.detail || ''}`.slice(0, 500) }).eq('id', lead.id);
-    return { id: lead.id, email: lead.email, ok: false, error: out.error, phase: 'gemini' };
+    return { id: lead.id, email: lead.email, ok: false, error: out.error, phase: 'gemini', attempts, fallback_used: fallbackUsed };
   }
 
   // Parse the JSON envelope. Gemini honors responseSchema strictly when
@@ -180,13 +186,13 @@ async function analyzeOne(client, lead, runId) {
   catch { parsed = extractJSON(out.text); }
   if (!parsed || typeof parsed !== 'object') {
     await client.from(TABLE).update({ last_error: 'pitch_parse_failed' }).eq('id', lead.id);
-    return { id: lead.id, email: lead.email, ok: false, error: 'pitch_parse_failed', phase: 'parse' };
+    return { id: lead.id, email: lead.email, ok: false, error: 'pitch_parse_failed', phase: 'parse', attempts, fallback_used: fallbackUsed };
   }
 
   if (parsed.ok === false) {
     const reasonSlug = String(parsed.reason || 'unspecified').slice(0, 200);
     await client.from(TABLE).update({ last_error: 'model_refused:' + reasonSlug }).eq('id', lead.id);
-    return { id: lead.id, email: lead.email, ok: false, error: 'model_refused', reason: reasonSlug, phase: 'refusal' };
+    return { id: lead.id, email: lead.email, ok: false, error: 'model_refused', reason: reasonSlug, phase: 'refusal', attempts, fallback_used: fallbackUsed };
   }
 
   const pitch = String(parsed.pitch_text || '').trim();
@@ -194,7 +200,7 @@ async function analyzeOne(client, lead, runId) {
   if (!verify.ok) {
     const slug = verify.issues.join(',').slice(0, 400);
     await client.from(TABLE).update({ last_error: 'pitch_verify_failed:' + slug }).eq('id', lead.id);
-    return { id: lead.id, email: lead.email, ok: false, error: 'pitch_verify_failed', issues: verify.issues, phase: 'verify' };
+    return { id: lead.id, email: lead.email, ok: false, error: 'pitch_verify_failed', issues: verify.issues, phase: 'verify', attempts, fallback_used: fallbackUsed };
   }
 
   const { error: updErr } = await client.from(TABLE).update({
@@ -202,8 +208,8 @@ async function analyzeOne(client, lead, runId) {
     status:             'analyzed',
     last_error:         null,
   }).eq('id', lead.id);
-  if (updErr) return { id: lead.id, email: lead.email, ok: false, error: 'db_update_failed', detail: updErr.message, phase: 'db' };
-  return { id: lead.id, email: lead.email, ok: true, finishReason: out.finishReason, pitch_chars: pitch.length };
+  if (updErr) return { id: lead.id, email: lead.email, ok: false, error: 'db_update_failed', detail: updErr.message, phase: 'db', attempts, fallback_used: fallbackUsed };
+  return { id: lead.id, email: lead.email, ok: true, finishReason: out.finishReason, pitch_chars: pitch.length, attempts, fallback_used: fallbackUsed };
 }
 
 // runBatch · pure worker · used by both the HTTP handler and the
@@ -249,17 +255,24 @@ export async function runBatch({ batchSize, leadId, runId, source } = {}) {
   // Per-phase failure tally · powers the orchestrator's verification-rate
   // detector. A spike in `verify_rejected` is the canonical signal of
   // either prompt-injection attempts or model drift.
+  // Phase 6.0e additions · `retried` and `fallback_used` track the
+  // resilience interceptions (transient-error retries that succeeded +
+  // calls that ended on the fallback model). A non-zero `fallback_used`
+  // means primary Gemini was unhealthy at cron time.
   const tally = {
     gemini_failed:    results.filter((r) => !r.ok && r.phase === 'gemini').length,
     parse_failed:     results.filter((r) => !r.ok && r.phase === 'parse').length,
     model_refused:    results.filter((r) => !r.ok && r.phase === 'refusal').length,
     verify_rejected:  results.filter((r) => !r.ok && r.phase === 'verify').length,
     db_failed:        results.filter((r) => !r.ok && r.phase === 'db').length,
+    retried:          results.filter((r) => Number(r.attempts) > 1).length,
+    fallback_used:    results.filter((r) => r.fallback_used === true).length,
   };
 
   console.log(`[marketing/analyst] processed=${results.length} ok=${ok} ` +
               `verify_rejected=${tally.verify_rejected} model_refused=${tally.model_refused} ` +
-              `parse_failed=${tally.parse_failed} model=${MODEL_NAME}`);
+              `parse_failed=${tally.parse_failed} retried=${tally.retried} ` +
+              `fallback_used=${tally.fallback_used} model=${MODEL_NAME}`);
   await logRun({
     agent:      AGENT,
     runId:      effectiveRunId,

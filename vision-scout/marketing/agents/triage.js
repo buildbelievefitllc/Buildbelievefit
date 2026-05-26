@@ -289,7 +289,12 @@ export async function inbound(req, res) {
     seed:            42,
     maxOutputTokens: 64,
     responseSchema:  INTENT_RESPONSE_SCHEMA,
+    // Phase 6.0e · resilience tag for console.warn lines on retry/fallback.
+    tag:             'gemini.triage.intent',
   });
+  // Phase 6.0e · capture intent-call resilience metadata for the run summary.
+  const classifyAttempts = Number(classify.attempts) || 1;
+  const classifyFallback = classify.fallback_used === true;
   await logLlmCall({
     agent: AGENT, runId,
     provider:      classify.provider || 'gemini',
@@ -323,6 +328,11 @@ export async function inbound(req, res) {
   const update = { intent, replied_at: nowIso };
   let suppressionWritten = null;
   let draftVerifyIssues  = null;
+  // Phase 6.0e · lifted to outer scope so the bottom logRun() summary
+  // can surface draft-call resilience telemetry even though the draft
+  // generate() call lives inside the `intent === 'interested'` branch.
+  let draftAttempts      = null;
+  let draftFallback      = false;
 
   if (intent === 'not_interested') {
     update.status = 'bounced';
@@ -350,7 +360,12 @@ export async function inbound(req, res) {
         topK:            40,
         seed:            42,
         maxOutputTokens: 220,
+        // Phase 6.0e · resilience tag for console.warn lines on retry/fallback.
+        tag:             'gemini.triage.draft',
       });
+      // Phase 6.0e · capture draft-call resilience metadata for the run summary.
+      draftAttempts = Number(draft.attempts) || 1;
+      draftFallback = draft.fallback_used === true;
       await logLlmCall({
         agent: AGENT, runId,
         provider:      draft.provider || 'gemini',
@@ -422,13 +437,18 @@ export async function inbound(req, res) {
     startedAt, finishedAt: Date.now(), ok: true,
     summary: {
       from,
-      lead_id:           lead.id,
+      lead_id:               lead.id,
       intent,
-      new_status:        update.status,
-      draft_attached:    !!update.draft_reply,
-      draft_rejected:    !!draftVerifyIssues,
-      draft_reject_hits: draftVerifyIssues,
-      suppressed:        !!suppressionWritten?.ok,
+      new_status:            update.status,
+      draft_attached:        !!update.draft_reply,
+      draft_rejected:        !!draftVerifyIssues,
+      draft_reject_hits:     draftVerifyIssues,
+      suppressed:            !!suppressionWritten?.ok,
+      // Phase 6.0e · resilience telemetry · null on calls that didn't fire.
+      intent_attempts:       classifyAttempts,
+      intent_fallback_used:  classifyFallback,
+      draft_attempts:        draftAttempts,
+      draft_fallback_used:   draftFallback,
     },
   });
 

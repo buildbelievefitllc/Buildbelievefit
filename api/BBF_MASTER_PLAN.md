@@ -475,6 +475,46 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 - **Operator note on Gemini seed posture:** `gemini-3.5-flash` (the live production model · `GEMINI_MODEL` env) does NOT currently honour the `seed` field in `generationConfig` · the field is forwarded for forward-compat with Gemini 4.x SKUs that DO honour it. The other 3 levers (`temperature`, `topP`, `topK`) ARE honoured by 3.5-flash today and deliver the actual determinism contraction.
 - **Production deploy posture:** Render service `vision-scout` auto-redeploys on push to `main` · next 14:00 UTC orchestrator cron will exercise the locked-down hyperparameters against any `raw` leads in the queue. Monitor `bbf_llm_calls` for the first post-deploy run · expect `output_tokens` distribution to narrow (tighter distribution = fewer tokens drawn from low-probability tail) and `latency_ms` to drop slightly (greedier sampling = less computation per step).
 
+## [x] 6.0e · Centralized LLM Resilience Middleware and Fallback Routing · Phase 5.3 in operator's nomenclature
+- **Why:** Phase 6.0c hardened the prompts against injection and Phase 6.0d pinned the hyperparameters · but every Gemini call site still ran on a single-shot fetch with no retry budget and no fallback. A transient Gemini 503 during the 14:00 UTC cron failed the entire batch's affected leads (lead stays `raw`, picked up tomorrow); a sustained outage stalled marketing for the entire window. This entry installs a centralized resilience middleware that wraps every Gemini call with exponential-backoff retries on transient errors plus a single fallback dispatch to `gemini-3.5-pro` after the primary exhausts. The fallback uses byte-identical hyperparameters + responseSchema so the downstream data tables (`bbf_outbound_athletes.personalized_pitch`, `update.draft_reply`) can't tell which model produced the result.
+- **How (this session · zero schema migration · marketing-engine code + docs only):**
+  1. **New `vision-scout/marketing/llm-resilience.js`** (164 lines · 4 exports):
+     - `withResilience(primaryFn, fallbackFn, opts)` · higher-order middleware. Calls `primaryFn` up to `maxAttempts` times with exponential backoff between attempts (1s → 2s → 4s default · capped at `maxDelayMs` · ±25% jitter to desync concurrent callers). On retryable-error exhaustion, calls `fallbackFn` once and returns its result. On permanent error (400 / 401 / 403 / 404 / no_text / safety blocks / parse failures), skips the retry loop AND skips fallback by default (the same input will fail on fallback too · operator can opt in via `fallbackOnPermanent: true`). Returns the underlying result shape augmented with `attempts` / `fallback_used` / `retry_history` so callers can tally resilience telemetry into `bbf_agent_runs.summary` without a schema migration on `bbf_llm_calls`.
+     - `isRetryableFailure(out)` · enumerates the retryable error tags + treats any 5xx status as retryable. Permanent errors are everything else.
+     - `backoffDelayMs(attemptIndex, baseMs, maxMs, jitterRatio)` · exponential curve with bounded jitter. Pure function · easy to unit-test.
+     - `RETRY_DEFAULTS` · frozen constants object: `{ maxAttempts: 3, baseDelayMs: 1000, maxDelayMs: 8000, jitterRatio: 0.25, tag: 'llm' }`.
+  2. **`vision-scout/marketing/gemini.js`** rewritten · existing single-shot logic factored into private `_generateOnce(modelName, opts)`; new public `generate(opts)` wraps that with `withResilience`. Adds `GEMINI_FALLBACK_MODEL` env (default `gemini-3.5-pro`), `GEMINI_RETRY_MAX_ATTEMPTS` (default 3), `GEMINI_RETRY_BASE_DELAY_MS` (default 1000), `GEMINI_RETRY_MAX_DELAY_MS` (default 8000). Exports new `generateOnce(opts)` as an escape hatch for one-shot diagnostic probes that need to bypass the resilience layer. Exports `FALLBACK_MODEL_NAME` for telemetry visibility.
+  3. **`vision-scout/marketing/agents/analyst.js`** · captures `out.attempts` + `out.fallback_used` from every `generate()` return and threads them through all 5 return shapes (gemini / parse / refusal / verify / db / success). The per-batch `tally` now includes `retried` (count of successful pitches that recovered after at least one retry) and `fallback_used` (count of pitches that ended on the fallback model). Tagged the call site `tag: 'gemini.analyst.pitch'` so console.warn lines on retry/fallback identify the agent.
+  4. **`vision-scout/marketing/agents/triage.js`** · captures resilience metadata for BOTH the intent classifier and the reply drafter. `draftAttempts` + `draftFallback` lifted to outer scope so the bottom `logRun()` summary can surface them even though the draft `generate()` call lives inside the `intent === 'interested'` branch. Tagged both call sites (`gemini.triage.intent`, `gemini.triage.draft`).
+  5. **`ARCHITECTURE.md` new §5.4 "Marketing engine · LLM resilience standard"** · retry budget table, error classification table, byte-compatibility guarantee, return shape augmentation, telemetry surfacing, env knob table, escape hatch documentation.
+  6. **`ARCHITECTURE.md` §6.2 env catalog** · added 4 new rows for `GEMINI_FALLBACK_MODEL` + `GEMINI_RETRY_MAX_ATTEMPTS` + `GEMINI_RETRY_BASE_DELAY_MS` + `GEMINI_RETRY_MAX_DELAY_MS` with §5.4 cross-references.
+- **Done when:**
+  - `node --check` clean on all 4 modified JS files.
+  - 6-scenario smoke test pass · classification + backoff curve + first-try success + 1-retry recovery + full exhaust → fallback + permanent skip-retry + permanent + fallbackOnPermanent + no-fallback exhaust.
+  - Worst-case latency added per call: ~7s (1s + 2s + 4s backoff between attempts · plus 1 fallback dispatch). Acceptable for batch processor at 14:00 UTC cron · matters less for the inbound webhook (Resend retries on >30s anyway).
+- **Shipped (this session):**
+  - `vision-scout/marketing/llm-resilience.js` (NEW · 164 lines · 4 exports).
+  - `vision-scout/marketing/gemini.js` (167 → 197 lines · +30 · primary/fallback split + public `generate()` wrap + `generateOnce()` escape hatch + 4 new env knobs).
+  - `vision-scout/marketing/agents/analyst.js` (291 → 302 lines · +11 · attempts/fallback capture + tally fields).
+  - `vision-scout/marketing/agents/triage.js` (446 → 470 lines · +24 · classify + draft resilience capture + lifted vars + summary fields).
+  - `ARCHITECTURE.md` §5.4 inserted (+48 lines) · §6.2 env catalog (+4 lines).
+- **Validation (this session):**
+  - `node --check` clean on `llm-resilience.js` + `gemini.js` + `analyst.js` + `triage.js`.
+  - 6-scenario smoke test (zero-jitter mode for reproducibility):
+    1. Success on first try: 1 call · attempts=1 · fallback=false · text preserved
+    2. 1 retryable failure → success on 2nd try: 2 calls · attempts=2 · fallback=false · history.len=1 · text from 2nd primary attempt
+    3. All retries fail (3 attempts) → fallback rescue: 3 primary calls · 1 fallback call · attempts=3 · fallback_used=true · text from fallback · model=`gemini-3.5-pro`
+    4. Permanent error (400): 1 primary call · 0 fallback calls (default) · error returned immediately · no backoff burned
+    5. Permanent error + `fallbackOnPermanent: true`: 1 primary · 1 fallback · fallback rescues
+    6. All retries fail with NO fallback configured: 2 primary calls (maxAttempts=2) · attempts=2 · fallback_used=false · history.len=2
+  - Backoff curve verified: attempt indices 0,1,2,3 → 1000, 2000, 4000, 8000 ms (capped at maxMs).
+  - Error classification verified: timeout/429/503/599 retryable · 400/401/no_text/success NOT retryable.
+- **Production deploy posture:** Render service `vision-scout` auto-redeploys on push to `main`. Next 14:00 UTC orchestrator cron exercises the new middleware against any `raw` leads. Watch `summary.steps.analyze.tally.fallback_used` in the orchestrator's run log · expect it to be `0` under normal conditions · a non-zero value indicates primary Gemini was unhealthy at cron time and the fallback rescued the pipeline. The retry latency (~7s worst case per failing lead) is bounded by `maxAttempts × baseDelay × 2^(attempts-1)`; the Render `vision-scout` orchestrator handler timeout (default Express, no Render limit on Standard plan) accommodates this comfortably for batches up to 25 leads.
+- **Operator notes:**
+  - To disable the fallback entirely (e.g. during a known Gemini Pro pricing emergency), set `GEMINI_FALLBACK_MODEL` to the same value as `GEMINI_MODEL` · the middleware will then call primary twice on exhaustion, which is harmless (a 4th attempt on the same model).
+  - To shrink the retry budget for cost-sensitive periods, set `GEMINI_RETRY_MAX_ATTEMPTS=1` (no retries, no fallback) or `GEMINI_RETRY_MAX_ATTEMPTS=2` (one retry, then fallback).
+  - To probe a specific Gemini failure without resilience masking, callers can import `generateOnce` from `gemini.js` instead of `generate`.
+
 ## [ ] 6.1 · RLS audit on every public table
 - **Why:** Closes Tier 1 #10 of the original list. Coverage isn't audited.
 - **How:** For each table in `public`, document: who can SELECT, who can INSERT/UPDATE/DELETE, why. Add missing policies. Block anything that should be service-role-only.
