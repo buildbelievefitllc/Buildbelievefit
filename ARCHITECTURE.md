@@ -268,6 +268,8 @@ Source of truth for model selection: `supabase/functions/_shared/model-router.ts
 
 CEO directive: **PAR-Q+ and cardiac routing stay on Opus regardless of cost.** Wellbeing halt + ED triage stay on Opus.
 
+> **Marketing engine note** · the `vision-scout/marketing/*` pipeline runs on **Google Gemini 3.5 Flash**, not Claude, and is governed by a separate determinism standard · see **§5.3 Marketing engine · Gemini hyperparameter standard** for the authoritative `temperature` / `topP` / `topK` / `seed` matrix.
+
 ---
 
 ## 5 · Render service (`vision-scout`)
@@ -289,6 +291,31 @@ Single Docker web service hosting two responsibilities:
 - Telemetry: every agent writes a `bbf_agent_runs` row · analyst + triage also write `bbf_llm_calls` rows with Gemini `usageMetadata`-derived tokens, latency, `finishReason`, USD cost
 
 `render.yaml` is the deploy blueprint · `runtime: docker` · `rootDir: vision-scout` · health check `/health` · auto-deploy on push to `main`.
+
+### 5.3 Marketing engine · Gemini hyperparameter standard (Phase 6.0d)
+
+Authoritative determinism matrix for every live Gemini call inside the marketing pipeline. Set verbatim at each call site; do NOT relax without a corresponding update to this table and a PROMPT_VERSION bump on the affected prompt. The `gemini.js` wrapper forwards `temperature` / `topP` / `topK` / `seed` into `generationConfig` only when the caller passes them, so non-marketing callers (none today) stay on Gemini defaults.
+
+| # | Call site | File | `temperature` | `topP` | `topK` | `seed` | `thinkingBudget` | `maxOutputTokens` | `responseSchema` |
+|---:|---|---|---:|---:|---:|---:|---:|---:|---|
+| 1 | Intent classifier | `vision-scout/marketing/agents/triage.js` | `0.0` | `1.0` | `1`  | `42` | `0` | `64`   | enum: `interested \| not_interested \| support` |
+| 2 | Pitch generation  | `vision-scout/marketing/agents/analyst.js` | `0.2` | `1.0` | `40` | `42` | `0` | `1024` | object: `{ ok, pitch_text, reason }` |
+| 3 | Reply drafter     | `vision-scout/marketing/agents/triage.js` | `0.2` | `1.0` | `40` | `42` | `0` | `220`  | (none · free text · banned-filler verified post-hoc) |
+
+**Rationale per lever:**
+- **`temperature`** · `0.0` for classification (greedy decode · same input → same label) · `0.2` for generative copy (tight distribution around the top mode while preserving cross-athlete differentiation · was `0.7` pre-Phase 6.0d for the pitch site and `0.6` for the draft site).
+- **`topP`** · `1.0` everywhere · delegates the truncation entirely to `topK` so the two levers don't fight (lower `topP` would re-introduce nucleus-sampling variance).
+- **`topK`** · `1` on the classifier (collapses sampling to a single deterministic pick) · `40` on the generative sites (wide enough for natural phrasing variation, narrow enough to suppress drift into off-brand vocabulary).
+- **`seed`** · `42` everywhere · `gemini-3.5-flash` does not currently honour the seed parameter (it's a no-op on this SKU) but the field is forwarded for forward-compat with Gemini 4.x SKUs that DO honour it. Plumbing it now means future model swaps inherit deterministic-where-supported behavior without code changes.
+- **`thinkingBudget`** · `0` everywhere · Gemini 3.x implicit-thinking tokens are subtracted from `maxOutputTokens` so leaving thinking on truncates visible output. Disabled in `gemini.js` for the whole stack.
+- **`responseMimeType` + `responseSchema`** · live on calls 1 + 2 · API-enforced structured output so the model literally cannot emit free prose / markdown fences (Phase 6.0c lockdown). Call 3 (reply drafter) intentionally stays free-text because the draft is sent verbatim to the CEO inbox; banned-filler verification (`prompt-armor.verifyNoBannedFiller`) is the post-hoc gate.
+
+**Audit:** to confirm the live config matches this matrix, grep the call sites:
+```
+grep -nE "temperature:|topP:|topK:|seed:" vision-scout/marketing/agents/{analyst,triage}.js
+```
+
+**Drift detection:** the orchestrator's `summary.steps.analyze.tally` (Phase 6.0c) surfaces `verify_rejected` + `model_refused` counts per run · a non-zero `verify_rejected` rate with the locked hyperparams above is a strong signal of either prompt-injection attempts or a server-side model swap, not parameter drift.
 
 ---
 

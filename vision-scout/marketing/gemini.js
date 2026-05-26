@@ -31,7 +31,21 @@ function endpointFor(model) {
   return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 }
 
-export async function generate({ system, user, temperature = 0.7, maxOutputTokens = 512, responseSchema = null }) {
+export async function generate({
+  system,
+  user,
+  temperature     = 0.7,
+  maxOutputTokens = 512,
+  responseSchema  = null,
+  // Phase 6.0d · Hyperparameter lockdown · forwarded into generationConfig
+  // only when set so non-marketing callers keep their current behaviour.
+  // topP / topK pin the token-selection distribution; seed is forward-compat
+  // for Gemini SKUs that honour it (gemini-3.5-flash silently ignores it
+  // today · safe to send).
+  topP            = null,
+  topK            = null,
+  seed            = null,
+}) {
   const t0 = Date.now();
   if (!GEMINI_API_KEY) {
     return { ok: false, error: 'gemini_key_missing', provider: 'gemini', model: GEMINI_MODEL, latency_ms: 0 };
@@ -42,6 +56,12 @@ export async function generate({ system, user, temperature = 0.7, maxOutputToken
     maxOutputTokens,
     thinkingConfig: { thinkingBudget: GEMINI_THINKING }, // 0 by default · pure output
     ...(responseSchema ? { responseMimeType: 'application/json', responseSchema } : {}),
+    // Phase 6.0d · only forward determinism levers when the caller set them
+    // explicitly. null = "leave Gemini's default in place" so we don't
+    // accidentally lock down unrelated callers.
+    ...(topP !== null && Number.isFinite(topP) ? { topP } : {}),
+    ...(topK !== null && Number.isFinite(topK) ? { topK } : {}),
+    ...(seed !== null && Number.isFinite(seed) ? { seed } : {}),
   };
 
   const body = {

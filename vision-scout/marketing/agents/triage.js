@@ -278,7 +278,15 @@ export async function inbound(req, res) {
   const classify = await generate({
     system:          INTENT_SYSTEM,
     user:            wrapUserBlock({ reply_body: body.slice(0, 4000) }),
-    temperature:     0,
+    // Phase 6.0d · Hyperparameter lockdown · intent classifier site ·
+    // strict greedy decode (temp=0 + topK=1) so the same reply text always
+    // resolves to the same intent label. topP=1.0 is a no-op alongside
+    // topK=1 but documented explicitly to keep all 3 levers visible at
+    // every call site (ARCHITECTURE.md §5.3).
+    temperature:     0.0,
+    topP:            1.0,
+    topK:            1,
+    seed:            42,
     maxOutputTokens: 64,
     responseSchema:  INTENT_RESPONSE_SCHEMA,
   });
@@ -334,7 +342,13 @@ export async function inbound(req, res) {
           original_pitch_you_sent: sanitizeUserField(lead.personalized_pitch || '(pitch missing)', { maxLength: 2000 }),
           athlete_reply:           sanitizeUserField(body, { maxLength: 2000 }),
         }) + '\n\nDraft the reply per the system contract now.',
-        temperature:     0.6,
+        // Phase 6.0d · Hyperparameter lockdown · reply drafter site ·
+        // tightened from 0.6 to 0.2 to suppress filler variance while
+        // preserving per-athlete personalization (was: 0.6 free decode).
+        temperature:     0.2,
+        topP:            1.0,
+        topK:            40,
+        seed:            42,
         maxOutputTokens: 220,
       });
       await logLlmCall({

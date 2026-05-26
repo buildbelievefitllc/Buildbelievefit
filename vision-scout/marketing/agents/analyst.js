@@ -139,7 +139,16 @@ async function analyzeOne(client, lead, runId) {
   const out = await generate({
     system:          SYSTEM_PROMPT,
     user:            buildUserPrompt(lead),
-    temperature:     0.7,
+    // Phase 6.0d · Hyperparameter lockdown · pitch generation site.
+    // temp 0.2 collapses the sampling cone to a tight band around the
+    // top-mode while preserving cross-athlete differentiation; topP=1.0
+    // delegates the truncation entirely to topK=40 so the two levers
+    // don't fight; seed=42 is forward-compat for Gemini SKUs that honour
+    // it (no-op on gemini-3.5-flash today · ARCHITECTURE.md §5.3).
+    temperature:     0.2,
+    topP:            1.0,
+    topK:            40,
+    seed:            42,
     maxOutputTokens: 1024,
     responseSchema:  PITCH_RESPONSE_SCHEMA,
   });

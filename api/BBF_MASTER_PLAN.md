@@ -450,6 +450,31 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
   - If verification rejects too aggressively, the per-issue tags in `bbf_outbound_athletes.last_error` (`pitch_verify_failed:sentence_count=1`, `pitch_verify_failed:missing_bbf_reference`, `pitch_verify_failed:banned_filler:circle back`) tell you which assertion to relax.
   - PROMPT_VERSION bumps (1 → 2) make a clean A/B query plane: `bbf_llm_calls WHERE prompt_name='marketing.analyst.system' AND prompt_version=2` returns hardened-only rows.
 
+## [x] 6.0d · Hyperparameter and Seed Determinism Lockdown · Phase 5.2 in operator's nomenclature · marketing-engine token-variance pinning
+- **Why:** Phase 6.0c closed the prompt-injection vector (XML delimiters + responseSchema + verification loops) but the Gemini call sites still ran on loose hyperparameters · pitch generation at `temperature: 0.7` and reply drafting at `0.6` left the sampler in a wide nucleus that produced cross-run output variance even on identical inputs. Without a documented standard, future PRs could silently re-raise temperature or drop the schema. This entry pins the determinism levers (`temperature` / `topP` / `topK` / `seed`) at every Gemini call site, plumbs them through `gemini.js`, and anchors the matrix in `ARCHITECTURE.md §5.3` so any future drift requires an explicit doc update.
+- **How (this session · zero schema migration · marketing-engine + ARCHITECTURE doc):**
+  1. **`vision-scout/marketing/gemini.js`** · `generate()` signature extended to accept `topP`, `topK`, `seed` as named params (defaulting to `null`). Each is conditionally spread into `generationConfig` only when the caller passes a finite number · null = "leave Gemini's default" so non-marketing callers (none today, but the wrapper is shared) keep current behavior.
+  2. **`vision-scout/marketing/agents/analyst.js`** (pitch generation site) · `temperature: 0.7 → 0.2`, added `topP: 1.0` + `topK: 40` + `seed: 42`. Tight distribution around the top mode, preserves cross-athlete differentiation.
+  3. **`vision-scout/marketing/agents/triage.js` intent classifier** · `temperature: 0 → 0.0` (explicit), added `topP: 1.0` + `topK: 1` + `seed: 42`. Strict greedy decode · same reply text → same intent label.
+  4. **`vision-scout/marketing/agents/triage.js` reply drafter** · `temperature: 0.6 → 0.2`, added `topP: 1.0` + `topK: 40` + `seed: 42`.
+  5. **`ARCHITECTURE.md` new §5.3 "Marketing engine · Gemini hyperparameter standard"** · 3-row determinism matrix (intent / pitch / draft) with `temperature` / `topP` / `topK` / `seed` / `thinkingBudget` / `maxOutputTokens` / `responseSchema` for each site · per-lever rationale · audit grep one-liner · drift-detection cross-reference to Phase 6.0c orchestrator `tally`.
+  6. **`ARCHITECTURE.md` §4 model routing rules** · cross-reference note added pointing readers to §5.3 for the Gemini standard (clarifies that the Claude routing rules don't govern marketing engine).
+- **Done when:**
+  - `node --check` clean on `gemini.js` + `analyst.js` + `triage.js`.
+  - Live smoke test of `gemini.js` confirms `topP` / `topK` / `seed` are forwarded into `generationConfig` when set and OMITTED when null.
+  - Audit grep `grep -nE "temperature:|topP:|topK:|seed:" vision-scout/marketing/agents/{analyst,triage}.js` shows the exact 12-line matrix matching ARCHITECTURE.md §5.3.
+- **Shipped (this session):**
+  - `vision-scout/marketing/gemini.js` (147 → 162 lines · +15 · param plumbing + conditional generationConfig spread).
+  - `vision-scout/marketing/agents/analyst.js` (282 → 290 lines · +8 · pitch-site lockdown).
+  - `vision-scout/marketing/agents/triage.js` (432 → 450 lines · +18 · intent + draft site lockdowns).
+  - `ARCHITECTURE.md` §5.3 inserted (33 new lines) · §4 cross-reference added (2 lines).
+- **Validation (this session):**
+  - `node --check` clean on all 3 touched JS files.
+  - Smoke test via `node --input-type=module` with mocked `fetch`: `generationConfig` body contains `{temperature: 0.2, topP: 1, topK: 40, seed: 42, thinkingConfig: {thinkingBudget: 0}, maxOutputTokens: 64}` when lockdown params are passed · contains `{temperature: 0.7, maxOutputTokens: 64, thinkingConfig: {thinkingBudget: 0}}` only when no lockdown params are passed (proves null-omission works).
+  - Audit grep returns 12 lines · 3 sites × 4 levers · all values match ARCHITECTURE.md §5.3 exactly.
+- **Operator note on Gemini seed posture:** `gemini-3.5-flash` (the live production model · `GEMINI_MODEL` env) does NOT currently honour the `seed` field in `generationConfig` · the field is forwarded for forward-compat with Gemini 4.x SKUs that DO honour it. The other 3 levers (`temperature`, `topP`, `topK`) ARE honoured by 3.5-flash today and deliver the actual determinism contraction.
+- **Production deploy posture:** Render service `vision-scout` auto-redeploys on push to `main` · next 14:00 UTC orchestrator cron will exercise the locked-down hyperparameters against any `raw` leads in the queue. Monitor `bbf_llm_calls` for the first post-deploy run · expect `output_tokens` distribution to narrow (tighter distribution = fewer tokens drawn from low-probability tail) and `latency_ms` to drop slightly (greedier sampling = less computation per step).
+
 ## [ ] 6.1 · RLS audit on every public table
 - **Why:** Closes Tier 1 #10 of the original list. Coverage isn't audited.
 - **How:** For each table in `public`, document: who can SELECT, who can INSERT/UPDATE/DELETE, why. Add missing policies. Block anything that should be service-role-only.
