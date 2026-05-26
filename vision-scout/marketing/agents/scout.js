@@ -7,6 +7,7 @@
 // EXISTING rows is preserved · only descriptive fields refresh.
 import { sb, requireSb, TABLE } from '../db.js';
 import { logRun, newRunId } from '../telemetry.js';
+import { sanitizeUserField } from '../prompt-armor.js';
 
 const AGENT    = 'marketing.scout';
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,9 +41,12 @@ export async function ingest(req, res) {
     sanitized.push({
       athlete_name:       name,
       email,
-      discipline:         lead.discipline         ? String(lead.discipline).trim()         : null,
-      public_profile_url: lead.public_profile_url ? String(lead.public_profile_url).trim() : null,
-      performance_notes:  lead.performance_notes  ? String(lead.performance_notes).trim()  : null,
+      // Phase 6.0c · defense-in-depth · sanitizeUserField strips XML tag
+      // tunneling, control chars, and caps length so the analyst's
+      // <user_input> wrap can't be escaped from an ingested field.
+      discipline:         lead.discipline         ? sanitizeUserField(lead.discipline)         : null,
+      public_profile_url: lead.public_profile_url ? sanitizeUserField(lead.public_profile_url) : null,
+      performance_notes:  lead.performance_notes  ? sanitizeUserField(lead.performance_notes)  : null,
     });
   }
 

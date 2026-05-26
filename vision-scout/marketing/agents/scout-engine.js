@@ -17,6 +17,7 @@
 
 import { getSb, TABLE } from '../db.js';
 import { logRun, newRunId } from '../telemetry.js';
+import { sanitizeUserField } from '../prompt-armor.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -60,9 +61,13 @@ function sanitizeLeads(rawLeads) {
     ok.push({
       athlete_name:       name,
       email,
-      discipline:         lead.discipline       ? String(lead.discipline).trim()       : null,
-      public_profile_url: lead.public_profile_url ? String(lead.public_profile_url).trim() : null,
-      performance_notes:  lead.performance_notes ? String(lead.performance_notes).trim() : null,
+      // Phase 6.0c · defense-in-depth at the source ingest boundary ·
+      // sanitizeUserField neutralizes <user_input> tag tunneling, strips
+      // control characters, and caps length so a poisoned seed file or
+      // scraped source can't break out of the analyst's prompt wrap.
+      discipline:         lead.discipline       ? sanitizeUserField(lead.discipline)       : null,
+      public_profile_url: lead.public_profile_url ? sanitizeUserField(lead.public_profile_url) : null,
+      performance_notes:  lead.performance_notes ? sanitizeUserField(lead.performance_notes) : null,
     });
   }
   return { ok, rejected };

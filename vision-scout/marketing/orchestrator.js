@@ -94,11 +94,23 @@ export async function runOrchestrator(meta = {}) {
   summary.finished_at = new Date().toISOString();
   summary.ok = ['scout', 'analyze', 'dispatch'].every((k) => summary.steps[k]?.ok !== false);
 
+  // Phase 6.0c · surface analyst verification telemetry. A spike in
+  // verify_rejected or model_refused is the canonical signal of
+  // prompt-injection attempts or model drift · the operator's
+  // /api/v1/marketing/health and run-orchestrator response both echo
+  // this through the summary.steps.analyze.tally object verbatim.
+  const analyzeTally = summary.steps.analyze?.tally || null;
+
   console.log('[marketing/orchestrator] DONE ok=' + summary.ok +
               ' run_id=' + runId +
               ' duration_ms=' + summary.duration_ms +
               ' · scout.accepted=' + (summary.steps.scout?.accepted ?? '?') +
               ' · analyze.succeeded=' + (summary.steps.analyze?.succeeded ?? '?') +
+              (analyzeTally
+                ? ' · analyze.verify_rejected=' + analyzeTally.verify_rejected +
+                  ' · analyze.model_refused=' + analyzeTally.model_refused +
+                  ' · analyze.parse_failed=' + analyzeTally.parse_failed
+                : '') +
               ' · dispatch.succeeded=' + (summary.steps.dispatch?.succeeded ?? '?'));
 
   // Wrapper row · one per orchestrator invocation. Step rows are written
@@ -119,6 +131,10 @@ export async function runOrchestrator(meta = {}) {
         ok:        summary.steps.analyze?.ok,
         processed: summary.steps.analyze?.processed,
         succeeded: summary.steps.analyze?.succeeded,
+        // Phase 6.0c · prompt-armor verification telemetry · per-phase
+        // failure counts (gemini / parse / model_refused / verify /
+        // db). Powers the dashboard's drift-detection panel.
+        tally:     summary.steps.analyze?.tally || null,
       },
       dispatch: {
         ok:         summary.steps.dispatch?.ok,
