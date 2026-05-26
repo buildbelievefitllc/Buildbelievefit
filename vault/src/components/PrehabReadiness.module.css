@@ -1,0 +1,256 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Build Believe Fit · PrehabReadiness.module.css
+   Phase 4.3c · Somatic Readiness Matrix · slider containment hardening
+
+   PRIOR FAILURE MODE
+   The legacy bbf-app.html readiness sliders used inline styles on the
+   <input type="range"> with no parent containment · on sub-320px
+   viewports the native slider's intrinsic width (chrome default
+   ~129px + thumb overhang) would bleed past the parent's text-label
+   column and overlap the on-row value readout. Z-index workarounds
+   were brittle and inconsistent across Chrome / Firefox / Safari.
+
+   CONTAINMENT CONTRACT (CEO directive)
+     · Each readiness dimension renders inside `.row` · a strict
+       CSS Grid with grid-template-rows: auto auto auto. Label + value
+       occupy row 1 (label on grid-column 1, value on grid-column 2).
+       The track wrapper spans grid-column 1 / -1 on row 2. The help
+       hint sits on row 3 also spanning. Labels and tracks NEVER
+       share a grid cell · the Z-index argument is moot because they
+       are not co-located in the painting flow.
+     · `.trackWrap` clamps `width: 100%; max-width: 100%; min-width: 0`
+       so any intrinsic browser default that would push the slider
+       past the parent is overridden at the wrapper.
+     · The <input type="range"> itself gets `display: block;
+       width: 100%; max-width: 100%; margin: 0; padding: 0;` (the
+       native default is `display: inline-block` with non-zero
+       margin which is the actual root cause of the bleed) PLUS
+       `box-sizing: border-box` so the thumb's outline counts
+       against the wrapper's width budget.
+     · Custom thumb on ::-webkit-slider-thumb + ::-moz-range-thumb
+       keeps the visual identity tight across engines.
+     · clamp() typography on every text scale · ZERO hardcoded
+       sizes · matches the Phase 4.3b NutritionVision module pattern.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: #11151a;
+  color: #e8eaed;
+  border-radius: 0.75rem;
+  border: 1px solid #1f262f;
+  min-height: 0;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.headerLabel {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: clamp(0.66rem, 1.8vw, 0.74rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  min-width: 0;
+}
+
+.headerTitle {
+  font-size: clamp(1rem, 3.2vw, 1.3rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.headerSub {
+  font-size: clamp(0.74rem, 2.2vw, 0.84rem);
+  opacity: 0.65;
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+/* ─── Composite score readback ──────────────────────────────────────── */
+.composite {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.9rem;
+  background: #0a0f14;
+  border: 1px solid #1f262f;
+  border-radius: 0.6rem;
+}
+
+.compositeLabel {
+  font-size: clamp(0.7rem, 2vw, 0.78rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.compositeSub {
+  font-size: clamp(0.66rem, 1.8vw, 0.72rem);
+  opacity: 0.5;
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.compositeValue {
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 700;
+  color: #34d399;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  white-space: nowrap;
+}
+
+/* ─── Matrix of slider rows ─────────────────────────────────────────── */
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+/* Each row is a 2-column × 3-row grid · containment-by-construction:
+     row 1 col 1 = label    | row 1 col 2 = value readout
+     row 2 span both         = track wrapper
+     row 3 span both         = help hint
+   The slider can never overlap the label because they sit in
+   different grid cells · no Z-index, no overflow:hidden hacks. */
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+  padding: 0.7rem 0.8rem;
+  background: #1a2028;
+  border: 1px solid #2a323d;
+  border-radius: 0.55rem;
+}
+
+.rowLabel {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: clamp(0.82rem, 2.4vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #e8eaed;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rowValue {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: clamp(0.95rem, 2.8vw, 1.15rem);
+  font-weight: 700;
+  color: #fbbf24;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.trackWrap {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  /* Containment guarantee: max-width caps the wrapper at the parent
+     grid cell width · the slider inside can be no wider than this. */
+}
+
+/* Native range input · stripped of inline-block + intrinsic-width
+   defaults and re-styled as a block-level full-width control. */
+.track {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: #2a323d;
+  outline: none;
+  cursor: pointer;
+}
+
+.track:focus-visible { box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.5); }
+
+/* Thumb · cross-engine identical visual */
+.track::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: #34d399;
+  cursor: pointer;
+  border: 2px solid #062e1e;
+  margin-top: -0.4rem;
+}
+
+.track::-moz-range-thumb {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: #34d399;
+  cursor: pointer;
+  border: 2px solid #062e1e;
+}
+
+.rowHelp {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  font-size: clamp(0.66rem, 1.9vw, 0.74rem);
+  opacity: 0.55;
+  line-height: 1.3;
+}
+
+/* ─── Submit (stub · live wire to bbf_readiness in PASSOVER §5e) ───── */
+.submitWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+.submit {
+  appearance: none;
+  background: #34d399;
+  color: #062e1e;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2.6vw, 1rem);
+  cursor: pointer;
+  width: 100%;
+  max-width: 400px;
+  margin-inline: auto;
+  transition: background 120ms, transform 120ms;
+}
+
+.submit:hover  { background: #22c39a; }
+.submit:active { transform: translateY(1px); }
+.submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.submitNote {
+  font-size: clamp(0.66rem, 1.8vw, 0.74rem);
+  opacity: 0.55;
+  text-align: center;
+}

@@ -1,0 +1,179 @@
+// ═══════════════════════════════════════════════════════════════════════
+// Build Believe Fit · vault/src/components/WorkoutTracker.tsx
+//
+// Phase 4.3c · Today's Program · React port of the legacy bbf-app.html
+// RW() render-workout flow. Today's plan renders as a list of exercises
+// with the canonical four-column shape (Exercise · Sets · Reps ·
+// Weight) and an inline per-row log button.
+//
+// RESPONSIVE CONTRACT (CEO directive · see .module.css)
+//   · Wide layout (>600px): 4-column grid · column headers in
+//     `.rowHeader` · each row a horizontal data line.
+//   · Mobile layout (<=600px): @media flips each row into a
+//     vertical-stacked data card · exercise name on top with
+//     bottom-border separator · each metric becomes its own
+//     "Label · Value" pair line · the column-header strip hides
+//     because the per-cell labels carry meaning.
+//   · clamp() typography on EVERY text scale · exercise titles use
+//     clamp(0.95rem, 2.8vw, 1.15rem) so multi-word names read
+//     cleanly at every breakpoint without truncation or overflow.
+//
+// DATA FLOW
+// The component accepts a `plan` prop · for the Phase 4.3c scaffold
+// it defaults to DEMO_PLAN (5 representative exercises). The next
+// sprint will swap this for a derivation from
+// `getUserRecord(getActiveUid())?.workout_plan` (the JSON column
+// hydrated by `verifyUserPin` per Phase 4.1a). Per-row log state is
+// local · the live wire to `bbf_logs` + `bbf_sets` lands in the
+// PASSOVER §5d follow-up sprint.
+// ═══════════════════════════════════════════════════════════════════════
+
+import { useCallback, useMemo, useState } from 'react';
+import styles from './WorkoutTracker.module.css';
+
+export interface ExerciseEntry {
+  id: string;
+  name: string;
+  sets: number;
+  reps: number | string;     // "5" or "8-10" or "AMRAP"
+  weight: number | string;   // "225" or "bodyweight" or "RPE 8"
+  weightUnit?: string;       // "lb" · "kg" · "%1RM" · etc.
+  notes?: string;
+}
+
+export interface WorkoutPlan {
+  title: string;
+  sub?: string;
+  exercises: ReadonlyArray<ExerciseEntry>;
+}
+
+export interface WorkoutTrackerProps {
+  /** Optional plan override · defaults to the demo plan for the scaffold. */
+  plan?: WorkoutPlan;
+  /**
+   * Per-set log hook · invoked when the user taps "Log" on a row.
+   * Returning a promise lets the caller surface a busy state.
+   * Live wire to `bbf_logs` + `bbf_sets` lands in PASSOVER §5d.
+   */
+  onLogExercise?: (entry: ExerciseEntry) => void | Promise<void>;
+}
+
+const DEMO_PLAN: WorkoutPlan = {
+  title: "Today's Program",
+  sub: 'Lower Body Strength · Block 2 · Day 3',
+  exercises: [
+    { id: 'squat',    name: 'Barbell Back Squat',     sets: 5, reps: 5,   weight: 225, weightUnit: 'lb',          notes: 'Hit depth · pause 1 ct at bottom' },
+    { id: 'rdl',      name: 'Romanian Deadlift',      sets: 4, reps: 8,   weight: 185, weightUnit: 'lb',          notes: 'Slow eccentric · feel the hamstring lengthen' },
+    { id: 'split',    name: 'Bulgarian Split Squat',  sets: 3, reps: 10,  weight: 50,  weightUnit: 'lb (DB each side)' },
+    { id: 'lunges',   name: 'Walking Lunges',         sets: 3, reps: 20,  weight: 30,  weightUnit: 'lb DB' },
+    { id: 'curl',     name: 'Lying Leg Curl',         sets: 3, reps: 12,  weight: 80,  weightUnit: 'lb' },
+  ],
+};
+
+export default function WorkoutTracker(props: WorkoutTrackerProps) {
+  const plan = props.plan ?? DEMO_PLAN;
+  const [loggedIds, setLoggedIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const totalExercises = plan.exercises.length;
+  const completed = useMemo(
+    () => plan.exercises.reduce((n, e) => n + (loggedIds.has(e.id) ? 1 : 0), 0),
+    [plan.exercises, loggedIds]
+  );
+
+  const handleLog = useCallback(
+    async (entry: ExerciseEntry) => {
+      if (busyId === entry.id) return;
+      if (loggedIds.has(entry.id)) return;
+      setBusyId(entry.id);
+      try {
+        if (props.onLogExercise) {
+          await props.onLogExercise(entry);
+        } else if (typeof console !== 'undefined' && console.log) {
+          console.log('[workout-tracker] log entry (stub · no live insert):', entry);
+        }
+        setLoggedIds((prev) => {
+          if (prev.has(entry.id)) return prev;
+          const next = new Set(prev);
+          next.add(entry.id);
+          return next;
+        });
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [busyId, loggedIds, props]
+  );
+
+  return (
+    <section className={styles.root} aria-labelledby="workout-tracker-title">
+      <header className={styles.header}>
+        <div className={styles.headerKicker}>Phase 4.3 Stage 2</div>
+        <h2 id="workout-tracker-title" className={styles.headerTitle}>{plan.title}</h2>
+        <div className={styles.headerMeta} aria-label="progress">
+          {completed}/{totalExercises} logged
+        </div>
+        {plan.sub && <div className={styles.headerSub}>{plan.sub}</div>}
+      </header>
+
+      {plan.exercises.length === 0 ? (
+        <div className={styles.empty}>
+          No exercises queued for today · check the program page once your coach updates the block.
+        </div>
+      ) : (
+        <>
+          <div className={styles.rowHeader} role="row" aria-hidden="true">
+            <div className={styles.rowHeaderName}>Exercise</div>
+            <div className={styles.rowHeaderSets}>Sets</div>
+            <div className={styles.rowHeaderReps}>Reps</div>
+            <div className={styles.rowHeaderWeight}>Weight</div>
+            <div />
+          </div>
+
+          <div className={styles.list} role="list">
+            {plan.exercises.map((entry) => {
+              const isLogged = loggedIds.has(entry.id);
+              const isBusy   = busyId === entry.id;
+              return (
+                <article
+                  key={entry.id}
+                  role="listitem"
+                  className={`${styles.row} ${isLogged ? styles.logged : ''}`}
+                >
+                  <div className={styles.exerciseName}>{entry.name}</div>
+                  {entry.notes && <div className={styles.exerciseNotes}>{entry.notes}</div>}
+
+                  <div className={`${styles.metricCell} ${styles.sets}`}>
+                    <span className={styles.metricLabel}>Sets</span>
+                    <span className={styles.metricValue}>{entry.sets}</span>
+                  </div>
+
+                  <div className={`${styles.metricCell} ${styles.reps}`}>
+                    <span className={styles.metricLabel}>Reps</span>
+                    <span className={styles.metricValue}>{entry.reps}</span>
+                  </div>
+
+                  <div className={`${styles.metricCell} ${styles.weight}`}>
+                    <span className={styles.metricLabel}>Weight</span>
+                    <span className={styles.metricValue}>{entry.weight}</span>
+                    {entry.weightUnit && <span className={styles.metricUnit}>{entry.weightUnit}</span>}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleLog(entry)}
+                    disabled={isBusy || isLogged}
+                    className={`${styles.logBtn} ${isLogged ? styles.loggedBtn : ''}`}
+                    aria-label={isLogged ? `Logged · ${entry.name}` : `Log ${entry.name}`}
+                  >
+                    {isLogged ? 'Logged' : isBusy ? 'Logging…' : 'Log'}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </section>
+  );
+}

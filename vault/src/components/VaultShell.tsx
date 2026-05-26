@@ -30,6 +30,8 @@ import { useState, useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import ClientDashboard from './ClientDashboard';
 import NutritionVision from './NutritionVision';
+import WorkoutTracker from './WorkoutTracker';
+import PrehabReadiness from './PrehabReadiness';
 
 export type VaultTabId =
   | 'home'
@@ -113,13 +115,13 @@ export default function VaultShell({ uid, onLogout, initialTab = 'home' }: Vault
           <NutritionVision />
         </TabPanel>
         <TabPanel id="workout"   active={activeTab === 'workout'}>
-          <PlaceholderTab name="Workout" />
+          <WorkoutTracker />
         </TabPanel>
         <TabPanel id="cardio"    active={activeTab === 'cardio'}>
           <PlaceholderTab name="Cardio" />
         </TabPanel>
         <TabPanel id="prehab"    active={activeTab === 'prehab'}>
-          <PlaceholderTab name="Prehab" />
+          <PrehabReadiness />
         </TabPanel>
         <TabPanel id="profile"   active={activeTab === 'profile'}>
           <PlaceholderTab name="Profile" />
