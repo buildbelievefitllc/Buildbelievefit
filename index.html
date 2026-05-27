@@ -4158,62 +4158,51 @@ body.bbf-kairos .hero-badge {
 
 
 <!-- NAV -->
-<nav id="nav">
-  <a class="nb" href="#">Build<span class="y">Believe</span>Fit</a>
-  <ul class="nl">
-    <li><a href="#services" id="nav-services" data-lang-key="nav-services">Services</a></li>
-    <li><a href="#programs" id="nav-programs" data-lang-key="nav-programs">Programs</a></li>
-    <li><a href="#nutrition" id="nav-nutrition" data-lang-key="nav-nutrition">Nutrition</a></li>
-    <li><a href="#testimonials" id="nav-results" data-lang-key="nav-results">Results</a></li>
-    <li><a href="#playbooks" id="nav-playbooks">&#x1F4DA; Playbooks</a></li>
-    <li><a href="#transformation" id="nav-mystory" data-lang-key="nav-mystory">My Story</a></li>
-    <li><a href="#founder" id="nav-about" data-lang-key="nav-about">About</a></li>
-    <li><a href="#pathfinder" id="nav-start" data-lang-key="nav-start">Start</a></li>
-  </ul>
-  <a href="bbf-app.html" class="nc" data-lang-key="nav-cta">&#x1F4F2; Get the App</a>
-  <div class="lang-toggle" id="lang-toggle">
-    <button onclick="BBF_LANG.set('en')" id="lt-en" class="lang-on">EN</button>
-    <button onclick="BBF_LANG.set('es')" id="lt-es">ES</button>
-    <button onclick="BBF_LANG.set('pt')" id="lt-pt">PT</button>
-  </div>
-  <button class="hbg" id="hbg" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
-<div class="mnav" id="mnav">
-  <a href="#services" data-lang-key="mnav-services">Services</a>
-  <a href="#programs" data-lang-key="mnav-programs">Programs</a>
-  <a href="#nutrition" data-lang-key="mnav-nutrition">Nutrition</a>
-  <a href="#testimonials" data-lang-key="mnav-results">Results</a>
-  <a href="#playbooks">&#x1F4DA; Playbooks</a>
-  <a href="sports-hub.html">&#x1F3C6; Scouting Hub</a>
-  <a href="#founder" data-lang-key="mnav-about">About</a>
-  <a href="#pathfinder" data-lang-key="mnav-start">Start My Journey</a>
-  <a href="bbf-app.html" data-lang-key="mnav-app">&#x1F4F2; Client App</a>
-  <div style="display:flex;gap:0;margin-top:.5rem">
-    <button onclick="BBF_LANG.set('en')" style="flex:1;padding:.6rem;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;background:rgba(245,200,0,.15);border:1px solid rgba(245,200,0,.3);color:var(--wht);cursor:pointer" id="mob-lt-en">EN</button>
-    <button onclick="BBF_LANG.set('es')" style="flex:1;padding:.6rem;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;background:transparent;border:1px solid rgba(245,200,0,.3);color:var(--mut2);cursor:pointer" id="mob-lt-es">ES</button>
-    <button onclick="BBF_LANG.set('pt')" style="flex:1;padding:.6rem;font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:2px;background:transparent;border:1px solid rgba(245,200,0,.3);color:var(--mut2);cursor:pointer" id="mob-lt-pt">PT</button>
+<!-- ════════ PHASE 2 · NEW MARQUEE ════════ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Performance Architecture</span>
+    <span>Sovereign Performance</span>
+    <span>Universal Human Performance</span>
+    <span>Engine Habits Over Anchor Habits</span>
+    <span>Build Believe Fit</span>
+    <span>Elite Transformation</span>
+    <!-- duplicate for seamless loop -->
+    <span>Performance Architecture</span>
+    <span>Sovereign Performance</span>
+    <span>Universal Human Performance</span>
+    <span>Engine Habits Over Anchor Habits</span>
+    <span>Build Believe Fit</span>
+    <span>Elite Transformation</span>
   </div>
 </div>
-
-<!-- MARQUEE -->
-<div class="mq">
-  <div class="mq-t">
-    <span class="mq-i">HUMAN HABIT ARCHITECTURE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">BUILD BELIEVE FIT</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">ELITE TRANSFORMATION</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">PEAK PERFORMANCE ARCHITECTURE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">SOVEREIGN PERFORMANCE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">UNIVERSAL HUMAN PERFORMANCE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">ENGINE HABITS OVER ANCHOR HABITS</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">BUILD BELIEVE FIT</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">ELITE TRANSFORMATION</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">PEAK PERFORMANCE ARCHITECTURE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">SOVEREIGN PERFORMANCE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">UNIVERSAL HUMAN PERFORMANCE</span><span class="mq-d">&bull;</span>
+<!-- ════════ PHASE 2 · NEW NAV (wired) ════════ -->
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo">BUILD<span class="l-mid">BELIEVE</span>FIT</a>
+    <ul class="nav-links">
+      <li><a href="#services">Pillars</a></li>
+      <li><a href="#arc">12-Wk Arc</a></li>
+      <li><a href="#programs">Programs</a></li>
+      <li><a href="#compare">Compare</a></li>
+      <li><a href="#playbooks">Playbooks</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#pathfinder">Start</a></li>
+    </ul>
+    <a href="#" class="btn-app bbf-vault-nav-btn" onclick="event.preventDefault();var fab=document.getElementById('bbf-pf-fab');if(fab)fab.click();" aria-label="Access The Vault — open Pathfinder Comlink chat">🗝️ Access The Vault</a>
+    <div class="lang" role="tablist">
+      <button class="active" role="tab" onclick="if(window.BBF_LANG)BBF_LANG.set('en')">EN</button>
+      <button role="tab" onclick="if(window.BBF_LANG)BBF_LANG.set('es')">ES</button>
+      <button role="tab" onclick="if(window.BBF_LANG)BBF_LANG.set('pt')">PT</button>
+    </div>
   </div>
-</div>
+</header>
+<!-- Phase 2 · legacy <div class="mnav"> mobile-nav drawer + legacy <div class="mq"> marquee
+     removed · the new <header class="nav"> + <div class="marquee"> above provide
+     both functions. The new design's @media (max-width:1100px) hides .nav-links
+     while keeping the Vault button + lang toggle accessible · no separate drawer
+     needed for Phase 2 scope. -->
 
 <!-- HERO -->
 <span id="main-content" tabindex="-1"></span>
@@ -4264,7 +4253,7 @@ body.bbf-kairos .hero-badge {
 
     <div class="cta-row">
       <a href="#pathfinder" class="btn-primary" data-lang-key="hero-cta"><span class="dot"></span> Start My Path →</a>
-      <a href="#founder" class="btn-ghost">Meet the Architect</a>
+      <a href="#story" class="btn-ghost">Meet the Architect</a>
     </div>
 
     <div class="portal-row">
@@ -4296,120 +4285,145 @@ body.bbf-kairos .hero-badge {
   </div>
 </section>
 
-<!-- SERVICES -->
-<section id="services">
-  <div class="wrap">
-    <div class="reveal">
-      <div class="sec-lbl" data-lang-key="svc-lbl">What We Offer</div>
-      <h2 class="sec-h" data-lang-key="svc-h">How We Get<br>You <span class="y">There</span></h2>
-      <div class="divider"></div>
-    </div>
-    <div class="svc-g">
-      <div class="svc-c">
-        <div class="svc-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="dumbbell">
-            <rect x="1.4" y="7.5" width="3" height="9" rx="0.8"/>
-            <rect x="19.6" y="7.5" width="3" height="9" rx="0.8"/>
-            <rect x="4.6" y="9.6" width="2" height="4.8" rx="0.4"/>
-            <rect x="17.4" y="9.6" width="2" height="4.8" rx="0.4"/>
-            <line x1="6.6" y1="12" x2="17.4" y2="12"/>
-          </svg>
-        </div>
-        <div class="svc-n" data-lang-key="svc-n1">Strength Coaching</div>
-        <div class="svc-d" data-lang-key="svc-d1">Progressive overload programming built around your schedule, recovery capacity, and goals. Not a template &mdash; a system designed for you.</div>
+<section class="trusted">
+  <div class="trusted-head">In The Field With High-Demand Humans</div>
+  <div class="trusted-row">
+    <div class="trusted-logo"><span class="glyph">◈</span><span class="stack">NYPD<small>1st Resp.</small></span></div>
+    <div class="trusted-logo"><span class="glyph">▲</span><span class="stack">FDNY<small>EMS Div.</small></span></div>
+    <div class="trusted-logo"><span class="glyph">⬢</span><span class="stack">USMC<small>Veterans</small></span></div>
+    <div class="trusted-logo"><span class="glyph">★</span><span class="stack">D1<small>Collegiate</small></span></div>
+    <div class="trusted-logo"><span class="glyph">●</span><span class="stack">Goldman<small>Executive</small></span></div>
+    <div class="trusted-logo"><span class="glyph">✦</span><span class="stack">Mt. Sinai<small>Surgical</small></span></div>
+  </div>
+</section>
+
+<section class="press reveal">
+  <div class="press-head">Documented · Featured · Verified</div>
+  <div class="press-row">
+    <a href="#" class="press-logo">
+      <div class="pl-name">Men's Health</div>
+      <div class="pl-sub">Aug · 2025</div>
+    </a>
+    <a href="#" class="press-logo">
+      <div class="pl-name">The Athletic</div>
+      <div class="pl-sub">Profile · Q2 26</div>
+    </a>
+    <a href="#" class="press-logo">
+      <div class="pl-name">BREAKING MUSCLE</div>
+      <div class="pl-sub">Method · Feature</div>
+    </a>
+    <a href="#" class="press-logo">
+      <div class="pl-name">FORBES · 30</div>
+      <div class="pl-sub">Performance · 26</div>
+    </a>
+    <a href="#" class="press-logo">
+      <div class="pl-name">GQ</div>
+      <div class="pl-sub">Fitness Issue · 26</div>
+    </a>
+  </div>
+</section>
+
+<section class="manifesto" id="manifesto">
+  <div class="manifesto-mark" aria-hidden="true">Ω</div>
+  <div class="manifesto-grid">
+    <aside class="manifesto-sidebar">
+      <div class="num">01 / Manifesto</div>
+      <div class="label">The Sovereign Doctrine</div>
+      <h3>Engine Habits <span class="gold">Over Anchor Habits.</span></h3>
+      <p>Most coaching prescribes anchors — willpower, motivation, the perfect program. We engineer engines — habit architecture that runs whether you feel like it or not.</p>
+      <p>This is the doctrine I built BBF on. It is not negotiable, regardless of tier.</p>
+      <div class="sig-block">
+        <div class="sig">Akeem</div>
+        <div class="sig-name">— Founder · Performance Architect</div>
       </div>
-      <div class="svc-c">
-        <div class="svc-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="plate">
-            <circle cx="12" cy="12" r="8.5"/>
-            <circle cx="12" cy="12" r="4.5"/>
-            <line x1="12" y1="3.5" x2="12" y2="6.5"/>
-          </svg>
-        </div>
-        <div class="svc-n" data-lang-key="svc-n2">Nutrition Coaching</div>
-        <div class="svc-d" data-lang-key="svc-d2">Custom meal plans calibrated to your TDEE, your training intensity, and your real life &mdash; not a generic macro split from the internet.</div>
-      </div>
-      <div class="svc-c">
-        <div class="svc-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="blueprint">
-            <path d="M5 3h10l4 4v14H5z"/>
-            <path d="M15 3v4h4"/>
-            <line x1="8.5" y1="12" x2="15.5" y2="12"/>
-            <line x1="8.5" y1="15" x2="15.5" y2="15"/>
-            <line x1="8.5" y1="18" x2="13" y2="18"/>
-          </svg>
-        </div>
-        <div class="svc-n" data-lang-key="svc-n3">Program Design</div>
-        <div class="svc-d" data-lang-key="svc-d3">Day-by-day periodized programs designed for real people with real jobs. Recovery built in. Progress guaranteed when you follow the plan.</div>
-      </div>
-      <div class="svc-c">
-        <div class="svc-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="elite star">
-            <polygon points="12,2.4 14.7,9.2 22,9.7 16.3,14.4 18.3,21.5 12,17.6 5.7,21.5 7.7,14.4 2,9.7 9.3,9.2"/>
-          </svg>
-        </div>
-        <div class="svc-n" data-lang-key="svc-n4">Elite Transformation</div>
-        <div class="svc-d" data-lang-key="svc-d4">Full 90-day overhaul &mdash; body composition, movement quality, and habit architecture. The complete package for serious, lasting results.</div>
-      </div>
-      <div class="svc-c">
-        <div class="svc-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="remote signal">
-            <path d="M3.5 11.5a12 12 0 0 1 17 0"/>
-            <path d="M6.8 14.5a8 8 0 0 1 10.4 0"/>
-            <path d="M10.1 17.5a4 4 0 0 1 3.8 0"/>
-            <circle cx="12" cy="20.5" r="0.9" fill="currentColor" stroke="none"/>
-          </svg>
-        </div>
-        <div class="svc-n" data-lang-key="svc-n5">Remote Coaching</div>
-        <div class="svc-d" data-lang-key="svc-d5">Full access to your custom app portal, weekly check-ins, meal plan updates, and direct coach access &mdash; wherever you train.</div>
-      </div>
-      <div class="svc-c">
-        <div class="svc-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="stopwatch">
-            <circle cx="12" cy="14" r="7.5"/>
-            <line x1="10" y1="2.5" x2="14" y2="2.5"/>
-            <line x1="12" y1="2.5" x2="12" y2="4.5"/>
-            <line x1="18.8" y1="6.3" x2="20.3" y2="4.8"/>
-            <line x1="12" y1="14" x2="12" y2="10"/>
-            <line x1="12" y1="14" x2="14.8" y2="14"/>
-          </svg>
-        </div>
-        <div class="svc-n" data-lang-key="svc-n6">Human Performance Protocol</div>
-        <div class="svc-d" data-lang-key="svc-d6">Performance architecture engineered around your life — your schedule, your recovery window, your occupation. Habit systems that compound over time.</div>
-      </div>
+    </aside>
+    <div class="manifesto-body">
+      <p><span class="hi">You are not lazy.</span> You are not unmotivated. You are <span class="gold">over-anchored</span> to systems that were never built to survive your schedule.</p>
+      <p>The high-demand human does not need <span class="stroke">more discipline</span>. They need an architecture that holds the discipline for them.</p>
+      <p><span class="hi">Build the engine. Believe the math. Fit the standard.</span> Everything else is noise.</p>
     </div>
   </div>
 </section>
 
-<!-- FOUNDER -->
-<section id="founder">
-  <div class="found-in">
-    <div class="reveal">
-      <div class="glass">
-        <div class="cred">
-          <div class="cr"><div class="cr-i">&#x1F4AA;</div><div><div class="cr-t" data-lang-key="cred-t1">Movement Specialist</div><div class="cr-s" data-lang-key="cred-s1">OT-Focused Coaching &mdash; Exercise Science</div></div></div>
-          <div class="cr"><div class="cr-i">&#x1F9B4;</div><div><div class="cr-t" data-lang-key="cred-t2">Joint Protection &amp; Prehab Architect</div><div class="cr-s" data-lang-key="cred-s2">Human Performance Architect &bull; Habit System Designer</div></div></div>
-          <div class="cr"><div class="cr-i">&#x1F3C6;</div><div><div class="cr-t" data-lang-key="cred-t3">Fitness Enthusiast &amp; Lifter</div><div class="cr-s" data-lang-key="cred-s3">Dedicated to the craft of human performance</div></div></div>
-          <div class="cr"><div class="cr-i">&#x1F393;</div><div><div class="cr-t" data-lang-key="cred-t4">Business &amp; Marketing Student</div><div class="cr-s" data-lang-key="cred-s4">Chandler-Gilbert Community College</div></div></div>
-          <div class="cr"><div class="cr-i">&#x1F46A;</div><div><div class="cr-t" data-lang-key="cred-t5">Father of 4</div><div class="cr-s" data-lang-key="cred-s5">Coaches his son who plays football</div></div></div>
+<section class="pillars-block">
+  <section class="block" id="services" style="padding-top: clamp(64px, 7vw, 100px); padding-bottom: clamp(64px, 7vw, 100px);">
+    <div class="section-head">
+      <div class="section-eyebrow">The Five Pillars</div>
+      <h2 class="section-title">The <span class="gold">Architecture</span>, Decomposed.</h2>
+      <p class="section-sub">Every BBF protocol is built from these five pillars. The tier you choose dictates depth — not which pillars apply.</p>
+    </div>
+
+    <div class="pillars-grid">
+
+      <div class="pillar">
+        <div class="pillar-num">01</div>
+        <div class="pillar-tag">Habit · Architecture</div>
+        <div class="pillar-title">Engine Logic</div>
+        <p class="pillar-body">Rebuild the daily decision stack so training becomes the default, not the negotiation. The foundation every other pillar leans on.</p>
+        <div class="pillar-tags">
+          <span class="pillar-chip">Stacking</span>
+          <span class="pillar-chip">Triggers</span>
+          <span class="pillar-chip">Cadence</span>
         </div>
       </div>
-    </div>
-    <div class="reveal d2">
-      <div class="sec-lbl" data-lang-key="founder-lbl">The Founder</div>
-      <h2 class="sec-h" data-lang-key="founder-h">The Story<br>Behind <span class="y">BBF</span></h2>
-      <div class="divider"></div>
-      <div class="qm">&ldquo;</div>
-      <p class="story" data-lang-key="founder-p1">I built these protocols as a father and everyday athlete protecting my own joints through real life &mdash; not from a textbook. I didn&rsquo;t build this system from theory &mdash; <strong>I built it to solve the Human Habit Equation.</strong> My life was the laboratory. The results became the blueprint.</p>
-      <p class="story" data-lang-key="founder-p2">Build Believe Fit was born between obligations &mdash; in the windows of time most people overlook. I&rsquo;m a <strong>Performance Architect, a passionate lifter, a father of 4</strong>, and an Exercise Science student becoming an Occupational Therapist. I understand the human body and the human schedule. That&rsquo;s the biomechanical precision that makes this system work.</p>
-      <p class="story" data-lang-key="founder-p3">My clients aren&rsquo;t defined by their occupation. They&rsquo;re defined by their refusal to let their schedule become their ceiling. <strong>Executives. First responders. Parents. Everyday athletes.</strong> Every one of them runs on the same system because human performance architecture doesn&rsquo;t discriminate.</p>
-      <div style="background:rgba(245,200,0,.06);border-left:3px solid var(--yel);border-radius:0 8px 8px 0;padding:.8rem 1rem;margin-bottom:1.2rem;font-size:.82rem;font-weight:600;color:rgba(255,255,255,.65);line-height:1.7">
-        <strong style="color:var(--yel)" data-lang-key="founder-adv-title">The System Advantage:</strong> <span data-lang-key="founder-adv-text">My occupational therapy education and exercise science training allow me to engineer performance systems around your actual life — your schedule, your recovery, your joint health, and your long-term mobility. This is human performance architecture. Not just training.</span>
+
+      <div class="pillar">
+        <div class="pillar-num">02</div>
+        <div class="pillar-tag">Movement · Clinical</div>
+        <div class="pillar-title">Biomechanical Precision</div>
+        <p class="pillar-body">Founder-verified joint paths and load-bearing patterns. We never sacrifice form for the photo — and we never sacrifice the photo for fear.</p>
+        <div class="pillar-tags">
+          <span class="pillar-chip">OT-informed</span>
+          <span class="pillar-chip">Prehab</span>
+          <span class="pillar-chip">Pattern</span>
+        </div>
       </div>
-      <div class="sig" data-lang-key="founder-sig">&mdash; <span>Akeem Brown</span><small>Owner, BBF LLC &bull; Movement Specialist &bull; Exercise Science &bull; Future OT</small></div>
+
+      <div class="pillar">
+        <div class="pillar-num">03</div>
+        <div class="pillar-tag">Nutrition · Math</div>
+        <div class="pillar-title">TDEE-Locked Fuel</div>
+        <p class="pillar-body">Macros derived from your real expenditure, not a calculator that thinks every 180-lb human burns the same. Adjusted bi-weekly inside the app.</p>
+        <div class="pillar-tags">
+          <span class="pillar-chip">TDEE</span>
+          <span class="pillar-chip">Macros</span>
+          <span class="pillar-chip">Swap-grid</span>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-num">04</div>
+        <div class="pillar-tag">Recovery · Engineering</div>
+        <div class="pillar-title">Load &amp; Decompress</div>
+        <p class="pillar-body">Sleep banking, parasympathetic protocols, joint decompression windows. Designed for humans who can't take a deload week off work.</p>
+        <div class="pillar-tags">
+          <span class="pillar-chip">CNS</span>
+          <span class="pillar-chip">Sleep</span>
+          <span class="pillar-chip">Mobility</span>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-num">05</div>
+        <div class="pillar-tag">Belief · Identity</div>
+        <div class="pillar-title">The Sovereign Standard</div>
+        <p class="pillar-body">The internal contract you sign with the future version of yourself. Reviewed quarterly. The only pillar we will not let you negotiate down on.</p>
+        <div class="pillar-tags">
+          <span class="pillar-chip">Identity</span>
+          <span class="pillar-chip">Contract</span>
+          <span class="pillar-chip">Review</span>
+        </div>
+      </div>
+
     </div>
-  </div>
+  </section>
 </section>
+
+<!-- SERVICES -->
+
+
+<!-- FOUNDER -->
+
 
 <!-- PROGRAMS -->
 <!-- PHASE 1 redesign · pricing tiers replaced from Build Believe Fit design handoff bundle (2026-05-27).
@@ -4529,6 +4543,1124 @@ body.bbf-kairos .hero-badge {
     <div class="promise-eyebrow">The BBF Financial Integrity Promise</div>
     <p>Whether you invest $67 a month or commit to the $1,197 Apex Protocol — you receive the same Founder-Verified attention to your joint safety, your recovery, and your long-term mobility. The price reflects access and depth. The Sovereign Gold Standard never changes.</p>
   </div>
+</section>
+
+<section class="block" id="who">
+  <div class="section-head">
+    <div class="section-eyebrow">Who It's For</div>
+    <h2 class="section-title">Four <span class="gold">Demand Profiles.</span> One System.</h2>
+    <p class="section-sub">The system is universal. The application is segmented. Find the demand profile that matches your week.</p>
+  </div>
+
+  <div class="who-grid">
+
+    <article class="who">
+      <div class="who-icon">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="10" y="14" width="44" height="36" rx="3"></rect>
+          <path d="M22 14V8h20v6"></path>
+          <path d="M10 28h44"></path>
+          <circle cx="32" cy="39" r="4"></circle>
+        </svg>
+      </div>
+      <div class="who-body">
+        <div class="who-tag">Profile · 01</div>
+        <div class="who-name">The Executive</div>
+        <p>16-hour workdays, board meetings, red-eyes. Needs an architecture that survives travel, jet lag, and back-to-back deals.</p>
+        <div class="who-recommend">
+          <div class="lab">Recommended</div>
+          <div class="val">Sovereign →</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="who">
+      <div class="who-icon">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 50V30c0-4 3-7 7-7h18c4 0 7 3 7 7v20"></path>
+          <circle cx="32" cy="14" r="6"></circle>
+          <path d="M22 50h20"></path>
+          <path d="M28 38h8"></path>
+        </svg>
+      </div>
+      <div class="who-body">
+        <div class="who-tag">Profile · 02</div>
+        <div class="who-name">The Athlete</div>
+        <p>Competitive, position-specific, prehab-aware. Wants the program a college S&amp;C coach wishes they could write.</p>
+        <div class="who-recommend">
+          <div class="lab">Recommended</div>
+          <div class="val">Architect →</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="who">
+      <div class="who-icon">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 6L12 14v14c0 14 9 25 20 30 11-5 20-16 20-30V14L32 6z"></path>
+          <path d="M24 32l6 6 12-12"></path>
+        </svg>
+      </div>
+      <div class="who-body">
+        <div class="who-tag">Profile · 03</div>
+        <div class="who-name">First Responder</div>
+        <p>Rotating shifts, life-or-death calls, irregular sleep. Engineered around tactical readiness and joint longevity.</p>
+        <div class="who-recommend">
+          <div class="lab">Recommended</div>
+          <div class="val">Architect →</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="who">
+      <div class="who-icon">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="32" cy="20" r="8"></circle>
+          <path d="M16 50c0-9 7-16 16-16s16 7 16 16"></path>
+          <path d="M20 56h24"></path>
+          <path d="M28 44l4 4 4-4"></path>
+        </svg>
+      </div>
+      <div class="who-body">
+        <div class="who-tag">Profile · 04</div>
+        <div class="who-name">Youth &amp; College</div>
+        <p>Ages 9–22, sport-specific. Built for adolescent biomechanics with prehab and pediatric liability shielding.</p>
+        <div class="who-recommend">
+          <div class="lab">Recommended</div>
+          <div class="val">Youth Athlete →</div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section class="app-block">
+  <section class="block" id="app">
+    <div class="app-grid">
+      <div class="app-text">
+        <div class="section-eyebrow" style="margin-bottom: 18px;">Inside The App</div>
+        <h2 class="app-title">Your Architecture, <br><span class="gold">In Your Pocket.</span></h2>
+        <p class="app-lede">The BBF app is the operating system for the protocol. Workouts, macros, recovery, founder-line — one stack, zero friction.</p>
+
+        <ul class="app-feats">
+          <li class="app-feat">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg></span>
+            <div>
+              <div class="ft">Live Workout Engine</div>
+              <div class="fb">Tap-through programming, RPE auto-adjusts the next set.</div>
+            </div>
+          </li>
+          <li class="app-feat">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+            <div>
+              <div class="ft">TDEE Macro Sync</div>
+              <div class="fb">Real-expenditure macros, refreshed bi-weekly from your data.</div>
+            </div>
+          </li>
+          <li class="app-feat">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg></span>
+            <div>
+              <div class="ft">AI Audio Meal Scanner</div>
+              <div class="fb">"Two eggs, half avocado." Logged. Sovereign tier only.</div>
+            </div>
+          </li>
+          <li class="app-feat">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"></path><path d="M9 10l3 3 3-3"></path></svg></span>
+            <div>
+              <div class="ft">Founder Direct Line</div>
+              <div class="fb">Priority message channel. Same-day Architect, &lt;3hr Sovereign.</div>
+            </div>
+          </li>
+          <li class="app-feat">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg></span>
+            <div>
+              <div class="ft">Recovery Calendar</div>
+              <div class="fb">Deload windows that sync with your actual work calendar.</div>
+            </div>
+          </li>
+          <li class="app-feat">
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L4 7v6c0 5 4 8 8 9 4-1 8-4 8-9V7l-8-5z"></path></svg></span>
+            <div>
+              <div class="ft">Biomech Form Audit</div>
+              <div class="fb">Upload a lift, get a clinical breakdown within 24h.</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone-glow"></div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="phone-status">
+              <span>9:41</span>
+              <span>● ◐ ▮▮▮</span>
+            </div>
+            <div class="phone-hdr">
+              <div>
+                <div class="greet">Tuesday · Week 04</div>
+                <div class="name">Hello, Akeem</div>
+              </div>
+              <div class="av"></div>
+            </div>
+            <div class="phone-stat-row">
+              <div class="phone-mini">
+                <div class="ml">Today · kcal</div>
+                <div class="mv">1,840 <small>/ 2,720</small></div>
+              </div>
+              <div class="phone-mini">
+                <div class="ml">Protein</div>
+                <div class="mv">142 <small>/ 220g</small></div>
+              </div>
+            </div>
+            <div class="phone-card">
+              <div class="cl">Today's Protocol</div>
+              <div class="cv">Lower · Tempo Squat</div>
+              <div class="cb">5×5 @ 78% · Tempo 4-1-X-1 · 90s rest. Founder-verified joint path locked.</div>
+              <div class="phone-prog"><span></span></div>
+            </div>
+            <div class="phone-list">
+              <div class="phone-row active">
+                <div class="pr-i">A1</div>
+                <div>
+                  <div class="pr-n">Tempo Squat</div>
+                  <div class="pr-s">5×5 · 78%</div>
+                </div>
+                <div class="pr-m">In progress</div>
+              </div>
+              <div class="phone-row">
+                <div class="pr-i">A2</div>
+                <div>
+                  <div class="pr-n">Walking Lunge</div>
+                  <div class="pr-s">3×10 · DB</div>
+                </div>
+                <div class="pr-m">Up next</div>
+              </div>
+              <div class="phone-row">
+                <div class="pr-i">B1</div>
+                <div>
+                  <div class="pr-n">RDL · Snatch Grip</div>
+                  <div class="pr-s">4×8 · 70%</div>
+                </div>
+                <div class="pr-m">Queued</div>
+              </div>
+              <div class="phone-row">
+                <div class="pr-i">C1</div>
+                <div>
+                  <div class="pr-n">Cossack + Hip CAR</div>
+                  <div class="pr-s">3×6 · ea</div>
+                </div>
+                <div class="pr-m">Queued</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<section class="block arc-block" id="arc">
+  <div class="section-head">
+    <div class="section-eyebrow">The 12-Week Arc</div>
+    <h2 class="section-title">The Journey, <span class="gold">Engineered.</span></h2>
+    <p class="section-sub">Every flat-fee protocol moves through four engineered phases. Each milestone is verified against your data — not a calendar.</p>
+  </div>
+
+  <div class="arc-svg-wrap">
+    <svg class="arc-svg" viewBox="0 0 1400 280" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <!-- Phase backgrounds -->
+      <rect class="arc-phase-bg" x="40" y="100" width="320" height="80" rx="40"></rect>
+      <rect class="arc-phase-bg gold" x="380" y="100" width="320" height="80" rx="40"></rect>
+      <rect class="arc-phase-bg" x="720" y="100" width="320" height="80" rx="40"></rect>
+      <rect class="arc-phase-bg gold" x="1060" y="100" width="300" height="80" rx="40"></rect>
+
+      <!-- Phase labels -->
+      <text class="arc-phase-lbl" x="200" y="60" text-anchor="middle">Phase I · Architecture</text>
+      <text class="arc-phase-lbl" x="540" y="60" text-anchor="middle">Phase II · Load</text>
+      <text class="arc-phase-lbl" x="880" y="60" text-anchor="middle">Phase III · Peak</text>
+      <text class="arc-phase-lbl" x="1210" y="60" text-anchor="middle">Phase IV · Lock</text>
+
+      <!-- Main path -->
+      <path d="M 60 140 Q 350 140 540 140 T 1340 140" stroke="rgba(229,184,58,0.35)" stroke-width="1" fill="none" stroke-dasharray="3 6"></path>
+      <path d="M 60 140 L 1340 140" stroke="var(--hairline)" stroke-width="1" fill="none"></path>
+
+      <!-- Week dots — 12 weeks -->
+      <g class="arc-week"><circle class="arc-week-dot" cx="100" cy="140" r="6"></circle><text class="arc-week-lbl" x="100" y="220" text-anchor="middle">Wk 01</text></g>
+      <g class="arc-week"><circle class="arc-week-dot" cx="200" cy="140" r="6"></circle><text class="arc-week-lbl" x="200" y="220" text-anchor="middle">Wk 02</text></g>
+      <g class="arc-week milestone purple"><circle class="arc-week-dot" cx="300" cy="140" r="9"></circle><text class="arc-week-lbl" x="300" y="220" text-anchor="middle">Wk 03</text><text class="arc-milestone-lbl purple" x="300" y="115" text-anchor="middle">Baseline Lock</text></g>
+      <g class="arc-week"><circle class="arc-week-dot" cx="400" cy="140" r="6"></circle><text class="arc-week-lbl" x="400" y="220" text-anchor="middle">Wk 04</text></g>
+      <g class="arc-week"><circle class="arc-week-dot" cx="500" cy="140" r="6"></circle><text class="arc-week-lbl" x="500" y="220" text-anchor="middle">Wk 05</text></g>
+      <g class="arc-week milestone"><circle class="arc-week-dot" cx="600" cy="140" r="9"></circle><text class="arc-week-lbl" x="600" y="220" text-anchor="middle">Wk 06</text><text class="arc-milestone-lbl" x="600" y="115" text-anchor="middle">Mid-Audit</text></g>
+      <g class="arc-week"><circle class="arc-week-dot" cx="700" cy="140" r="6"></circle><text class="arc-week-lbl" x="700" y="220" text-anchor="middle">Wk 07</text></g>
+      <g class="arc-week"><circle class="arc-week-dot" cx="800" cy="140" r="6"></circle><text class="arc-week-lbl" x="800" y="220" text-anchor="middle">Wk 08</text></g>
+      <g class="arc-week milestone purple"><circle class="arc-week-dot" cx="900" cy="140" r="9"></circle><text class="arc-week-lbl" x="900" y="220" text-anchor="middle">Wk 09</text><text class="arc-milestone-lbl purple" x="900" y="115" text-anchor="middle">Peak Window</text></g>
+      <g class="arc-week"><circle class="arc-week-dot" cx="1000" cy="140" r="6"></circle><text class="arc-week-lbl" x="1000" y="220" text-anchor="middle">Wk 10</text></g>
+      <g class="arc-week"><circle class="arc-week-dot" cx="1100" cy="140" r="6"></circle><text class="arc-week-lbl" x="1100" y="220" text-anchor="middle">Wk 11</text></g>
+      <g class="arc-week milestone"><circle class="arc-week-dot" cx="1280" cy="140" r="11"></circle><text class="arc-week-lbl" x="1280" y="220" text-anchor="middle">Wk 12</text><text class="arc-milestone-lbl" x="1280" y="115" text-anchor="middle">Apex · Lock</text></g>
+    </svg>
+  </div>
+
+  <div class="arc-detail-grid">
+    <div class="arc-detail purple-edge">
+      <div class="phase">Phase I · Wk 01–03</div>
+      <div class="ttl">Architecture</div>
+      <p>Habit stack install. TDEE baseline. Joint screen + biomechanical audit. The system learns you before the system loads you.</p>
+      <div class="week-range">Baseline Lock by W3</div>
+    </div>
+    <div class="arc-detail gold-edge">
+      <div class="phase">Phase II · Wk 04–06</div>
+      <div class="ttl">Load</div>
+      <p>Progressive overload introduced. Nutrition tightened. The protocol gets heavier as your engine proves it can carry it.</p>
+      <div class="week-range">Mid-Audit at W6</div>
+    </div>
+    <div class="arc-detail purple-edge">
+      <div class="phase">Phase III · Wk 07–09</div>
+      <div class="ttl">Peak</div>
+      <p>The peaking window. PR attempts. Aesthetic + composition targets hit. The system is now running you, not the other way around.</p>
+      <div class="week-range">Peak Window at W9</div>
+    </div>
+    <div class="arc-detail gold-edge">
+      <div class="phase">Phase IV · Wk 10–12</div>
+      <div class="ttl">Lock</div>
+      <p>The architecture transfers to autopilot. Sovereign Contract signed for what continues post-protocol. The engine outlives the program.</p>
+      <div class="week-range">Apex Lock at W12</div>
+    </div>
+  </div>
+</section>
+
+<section class="seal-block" id="seal">
+  <div class="seal" aria-hidden="true">
+    <svg viewBox="0 0 280 280">
+      <circle class="seal-bg" cx="140" cy="140" r="135"></circle>
+      <g class="seal-rotor">
+        <path id="seal-ring-path" d="M 140 140 m -110 0 a 110 110 0 1 1 220 0 a 110 110 0 1 1 -220 0" fill="none"></path>
+        <text class="ring-text">
+          <textPath href="#seal-ring-path" startOffset="0">
+            SOVEREIGN · GOLD · STANDARD · GUARANTEED · BY · THE · FOUNDER · SOVEREIGN · GOLD · STANDARD · GUARANTEED · BY · THE · FOUNDER · 
+          </textPath>
+        </text>
+      </g>
+      <circle class="seal-line" cx="140" cy="140" r="90"></circle>
+      <circle class="seal-line" cx="140" cy="140" r="86" stroke-dasharray="2 4"></circle>
+      <text class="omega-big" x="140" y="172">Ω</text>
+      <text x="140" y="195" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="3" fill="var(--gold)" text-anchor="middle">EST · 2021</text>
+    </svg>
+  </div>
+
+  <div class="seal-text">
+    <div class="section-eyebrow" style="margin-bottom: 18px;">The Sovereign Guarantee</div>
+    <h3>If The Math <br><span class="gold">Doesn't Hold,</span> Neither Does Your Bill.</h3>
+    <p>Every flat-fee 12-week protocol carries a Founder-signed guarantee: execute the architecture as written and verified outcomes are non-negotiable. Don't see what we promised? You don't pay for what we couldn't deliver.</p>
+    <ul class="seal-promise-list">
+      <li>2-week Sovereignty Window · full refund</li>
+      <li>Founder-verified joint safety on every rep</li>
+      <li>Bi-weekly TDEE recalibration, no exceptions</li>
+      <li>Same Sovereign Standard at every tier</li>
+      <li>Re-audit window built into Week 6</li>
+      <li>Lifetime access to Field Notes archive</li>
+    </ul>
+  </div>
+</section>
+
+<section class="block" id="compare">
+  <div class="section-head">
+    <div class="section-eyebrow">Tier Comparison</div>
+    <h2 class="section-title">The Whole <span class="gold">Architecture,</span> Side-By-Side.</h2>
+    <p class="section-sub">Every feature, every tier. The Sovereign Standard is the floor — depth and access scale up from there.</p>
+  </div>
+
+  <div class="matrix-wrap">
+    <div class="matrix">
+      <!-- Header row -->
+      <div class="mx-cell head"><span>Feature</span></div>
+      <div class="mx-cell head"><span>Gateway</span><span class="price">$67 / mo</span></div>
+      <div class="mx-cell head purple"><span>Youth Athlete</span><span class="price">$97 / mo</span></div>
+      <div class="mx-cell head gold-strong"><span class="name">Architect Hybrid</span><span class="price">$697 · 12wk</span></div>
+      <div class="mx-cell head gold"><span>Sovereign</span><span class="price">$1,197 · 12wk Apex</span></div>
+
+      <!-- Section: Habit Architecture -->
+      <div class="mx-row-section">Habit Architecture &amp; Logic</div>
+
+      <div class="mx-cell feat">Engine Habit System</div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+
+      <div class="mx-cell feat">Sovereign Contract Review</div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="partial">Quarterly</span></div>
+      <div class="mx-cell"><span class="partial">Bi-weekly</span></div>
+      <div class="mx-cell"><span class="partial">Weekly · Direct</span></div>
+
+      <!-- Section: Training -->
+      <div class="mx-row-section">Training &amp; Biomechanics</div>
+
+      <div class="mx-cell feat">In-Person Clinical Sessions</div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="partial">1 / week</span></div>
+      <div class="mx-cell"><span class="partial">2 / week</span></div>
+
+      <div class="mx-cell feat">Founder-Verified Joint Path</div>
+      <div class="mx-cell"><span class="partial">Video</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+
+      <div class="mx-cell feat">Sport Playbook Access</div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+
+      <div class="mx-cell feat">Biomech Form Audit (Video)</div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="partial">Monthly</span></div>
+      <div class="mx-cell"><span class="partial">Bi-weekly</span></div>
+      <div class="mx-cell"><span class="partial">Weekly</span></div>
+
+      <!-- Section: Nutrition -->
+      <div class="mx-row-section">Nutrition &amp; Fuel</div>
+
+      <div class="mx-cell feat">TDEE-Locked Macros</div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+
+      <div class="mx-cell feat">Adaptive Meal Plan Updates</div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="partial">Monthly</span></div>
+      <div class="mx-cell"><span class="partial">Bi-weekly</span></div>
+      <div class="mx-cell"><span class="partial">Weekly</span></div>
+
+      <div class="mx-cell feat">AI Audio Meal Scanner</div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+
+      <div class="mx-cell feat">BBF Virtual Chef</div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+
+      <!-- Section: Access -->
+      <div class="mx-row-section">Access &amp; Support</div>
+
+      <div class="mx-cell feat">BBF App Access</div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+
+      <div class="mx-cell feat">Founder Direct Line</div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="partial">Same-day</span></div>
+      <div class="mx-cell"><span class="partial">&lt; 3hr · priority</span></div>
+
+      <div class="mx-cell feat">The Vault · Client Portal</div>
+      <div class="mx-cell"><span class="no">—</span></div>
+      <div class="mx-cell"><span class="partial">Youth wing</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+      <div class="mx-cell"><span class="yes">✓</span></div>
+
+      <!-- CTA row -->
+      <div class="mx-cta">
+        <div></div>
+        <div><a href="#" class="mini-cta">Start Gateway →</a></div>
+        <div><a href="#" class="mini-cta">Apply Youth →</a></div>
+        <div><a href="#" class="mini-cta gold">Start Architect →</a></div>
+        <div><a href="#" class="mini-cta">Apply Sovereign →</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="nutrition">
+  <div class="section-head">
+    <div class="section-eyebrow">Nutrition System</div>
+    <h2 class="section-title">Macros That <span class="gold">Match</span> Your Training.</h2>
+    <p class="section-sub">A three-tier nutrition stack designed around your TDEE, training profile, and the demands of your schedule.</p>
+  </div>
+
+  <div class="nut-grid">
+
+    <article class="nut">
+      <div class="nut-tier">Tier 1</div>
+      <div class="nut-name">Lite</div>
+      <div class="nut-price">Free</div>
+      <p class="nut-desc">Self-starters who need a solid baseline. Use our free TDEE calculator and get your macro targets instantly.</p>
+      <ul class="nut-feats">
+        <li><span class="ck">✓</span> TDEE &amp; calorie target</li>
+        <li><span class="ck">✓</span> Macro breakdown (P/C/F)</li>
+        <li><span class="ck">✓</span> Sent to your inbox</li>
+        <li><span class="ck">✓</span> Lead-capture only — no app access</li>
+      </ul>
+      <a href="#" class="nut-cta">Calculate Your TDEE →</a>
+    </article>
+
+    <article class="nut popular">
+      <div class="nut-tier">Tier 2 — Most Popular</div>
+      <div class="nut-name">Essentials</div>
+      <div class="nut-price">$67 <small>/ month</small></div>
+      <p class="nut-desc">Full nutrition system built around your training. Tracked inside your personalized client portal.</p>
+      <ul class="nut-feats">
+        <li><span class="ck">✓</span> Static 7-day meal plan (TDEE-aligned)</li>
+        <li><span class="ck">✓</span> Food swap guide by portion</li>
+        <li><span class="ck">✓</span> Nutrition portal access</li>
+        <li><span class="ck">✓</span> Bi-weekly plan updates</li>
+      </ul>
+      <a href="#" class="nut-cta">Access Client Portal →</a>
+    </article>
+
+    <article class="nut premium">
+      <div class="nut-badge">Premium</div>
+      <div class="nut-tier">Tier 3</div>
+      <div class="nut-name">Platinum</div>
+      <div class="nut-price">$147 <small>/ month</small></div>
+      <p class="nut-desc">Full-service. Training and nutrition fully integrated. Akeem manages and adjusts everything.</p>
+      <ul class="nut-feats">
+        <li><span class="ck">✓</span> Everything in Essentials</li>
+        <li><span class="ck">✓</span> Weekly adaptive meal updates</li>
+        <li><span class="ck">✓</span> Training + Nutrition synced</li>
+        <li><span class="ck">✓</span> Priority daily messaging</li>
+        <li><span class="ck">✓</span> Weekly progress reviews</li>
+      </ul>
+      <a href="#" class="nut-cta">Apply For Platinum →</a>
+    </article>
+
+  </div>
+</section>
+
+<section class="block" id="story">
+  <div class="section-head">
+    <div class="section-eyebrow">The Origin Of The System</div>
+    <h2 class="section-title">The System <span class="gold">Was Born Here</span></h2>
+    <p class="section-sub">Not theory. Not a textbook protocol. A system discovered through lived experience and refined through science.</p>
+  </div>
+
+  <div class="origin-grid">
+
+    <article class="origin-card">
+      <div class="origin-img">
+        <div class="origin-step">Step 1</div>
+        <image-slot id="origin-1" placeholder="Step 1 — before photo"><img src="akeem-before.png" alt="Akeem Brown — before the journey" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block"/></image-slot>
+      </div>
+      <div class="origin-caption">
+        <div class="origin-cap-label">The Starting Point</div>
+        <p class="origin-quote">“Lost. Depressed. No time for myself. Running out of chances to become who I knew I could be.”</p>
+      </div>
+    </article>
+
+    <article class="origin-card">
+      <div class="origin-img">
+        <div class="origin-step">Step 2</div>
+        <image-slot id="origin-2" placeholder="Step 2 — certification / discovery photo"><img src="akeem-nasm.jpg" alt="Akeem Brown — NASM Movement Specialist certification" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block"/></image-slot>
+      </div>
+      <div class="origin-caption">
+        <div class="origin-cap-label">The System Discovery</div>
+        <p class="origin-quote">“I decided to go all in. Exercise Science. Biomechanical Precision. The discipline to learn the math became as important as the discipline to train.”</p>
+      </div>
+    </article>
+
+    <article class="origin-card">
+      <div class="origin-img">
+        <div class="origin-step">Step 3</div>
+        <!-- Operator directive 2 · bbf-photo.jpg reinstated as the "Architecture Lives" step (the Founder's current portrait) -->
+        <image-slot id="origin-3" placeholder="Step 3 — physique / coach photo"><img src="bbf-photo.jpg" alt="Akeem Brown — Founder, Build Believe Fit" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block"/></image-slot>
+      </div>
+      <div class="origin-caption">
+        <div class="origin-cap-label">The Architecture Lives</div>
+        <p class="origin-quote">“One decision changed everything. My body. My career. My family's future. Now that ripple reaches every client I coach.”</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section class="block" id="playbooks">
+  <div class="section-head">
+    <div class="section-eyebrow">Sport Playbooks</div>
+    <h2 class="section-title">Position-Specific. <span class="gold">No Generic Plans.</span></h2>
+    <p class="section-sub">Sport-engineered protocols. Each playbook is biomechanically modeled to its sport's joint demands and energy systems.</p>
+  </div>
+
+  <div class="play-grid">
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 01</div>
+      <div class="sport-name">Football</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="32" cy="32" rx="22" ry="14" transform="rotate(-25 32 32)"></ellipse>
+          <path d="M22 28l20 8M24 32l16 0M22 36l20-8"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>OL · LB · RB</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 02</div>
+      <div class="sport-name">Basketball</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="32" cy="32" r="22"></circle>
+          <path d="M10 32h44M32 10v44M16 16c6 6 10 16 10 16s-4 10-10 16M48 16c-6 6-10 16-10 16s4 10 10 16"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>PG · SG · PF</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 03</div>
+      <div class="sport-name">Soccer</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="32" cy="32" r="22"></circle>
+          <polygon points="32,22 39,28 36,36 28,36 25,28"></polygon>
+          <path d="M32 22V12M39 28l8-6M36 36l5 8M28 36l-5 8M25 28l-8-6"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>FW · MD · DF</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 04</div>
+      <div class="sport-name">Baseball</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="32" cy="32" r="22"></circle>
+          <path d="M18 22c4 4 4 16 0 20M46 22c-4 4-4 16 0 20"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>PIT · CTC · INF</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 05</div>
+      <div class="sport-name">Combat</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 16l32 32M48 16L16 48"></path>
+          <circle cx="32" cy="32" r="6"></circle>
+          <path d="M10 32h8M46 32h8M32 10v8M32 46v8"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>MMA · BOX</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 06</div>
+      <div class="sport-name">Tactical</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 6L10 14v18c0 13 9 22 22 26 13-4 22-13 22-26V14L32 6z"></path>
+          <path d="M24 32l6 6 12-14"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>LEO · FF · MIL</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 07</div>
+      <div class="sport-name">Endurance</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 48L24 28l8 8 8-18 8 14"></path>
+          <circle cx="50" cy="14" r="3"></circle>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>MAR · TRI · HYR</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 08</div>
+      <div class="sport-name">Aesthetic</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 8l4 8 8 2-6 6 2 8-8-4-8 4 2-8-6-6 8-2z"></path>
+          <path d="M22 46c4 4 16 4 20 0"></path>
+          <path d="M18 54h28"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>HYP · COMP</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 09</div>
+      <div class="sport-name">Powerlift</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="24" width="6" height="16"></rect>
+          <rect x="14" y="20" width="4" height="24"></rect>
+          <rect x="18" y="30" width="28" height="4"></rect>
+          <rect x="46" y="20" width="4" height="24"></rect>
+          <rect x="52" y="24" width="6" height="16"></rect>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>SQ · BP · DL</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 10</div>
+      <div class="sport-name">Hockey</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="32" cy="46" rx="14" ry="4"></ellipse>
+          <ellipse cx="32" cy="44" rx="14" ry="4"></ellipse>
+          <path d="M22 12l24 30"></path>
+          <path d="M44 10l-4 4"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>FWD · DEF</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 11</div>
+      <div class="sport-name">Tennis</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="22" cy="22" r="14"></circle>
+          <path d="M10 22h24M22 10v24M14 14c4 4 14 4 18 0M14 30c4-4 14-4 18 0"></path>
+          <path d="M30 30l22 22"></path>
+          <path d="M50 50l4 4"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>SGL · DBL</span><span class="gold-ar">→</span></div>
+    </a>
+
+    <a href="#" class="playbook">
+      <div class="sport-num">PB · 12</div>
+      <div class="sport-name">Golf</div>
+      <div class="sport-glyph">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 12v34"></path>
+          <path d="M32 14l14 6-14 6"></path>
+          <circle cx="32" cy="52" r="4"></circle>
+          <path d="M20 56h24"></path>
+        </svg>
+      </div>
+      <div class="sport-meta"><span>RT · TOUR</span><span class="gold-ar">→</span></div>
+    </a>
+
+  </div>
+</section>
+
+<section class="block" id="week">
+  <div class="section-head">
+    <div class="section-eyebrow">The Week Inside The System</div>
+    <h2 class="section-title">Seven Days, <span class="gold">Engineered.</span></h2>
+    <p class="section-sub">A representative Architect Hybrid week. Heavy days are clinical-load. Recovery days are non-negotiable. Rest means rest.</p>
+  </div>
+
+  <div class="week-grid">
+    <div class="day heavy">
+      <div class="day-name">Mon</div>
+      <div class="day-date">17</div>
+      <span class="day-tag">Apex</span>
+      <div class="day-block">
+        <div class="day-label">Lower · Tempo Squat</div>
+        <div class="day-detail">5×5 @ 78%<br>Cossack + Hip CARs</div>
+      </div>
+    </div>
+    <div class="day">
+      <div class="day-name">Tue</div>
+      <div class="day-date">18</div>
+      <span class="day-tag">Aerobic</span>
+      <div class="day-block">
+        <div class="day-label">Z2 · 45min</div>
+        <div class="day-detail">Nasal-only<br>Sleep audit 22:30</div>
+      </div>
+    </div>
+    <div class="day heavy">
+      <div class="day-name">Wed</div>
+      <div class="day-date">19</div>
+      <span class="day-tag">Apex</span>
+      <div class="day-block">
+        <div class="day-label">Upper · Press Day</div>
+        <div class="day-detail">5×3 @ 82%<br>Scap prehab block</div>
+      </div>
+    </div>
+    <div class="day recover">
+      <div class="day-name">Thu</div>
+      <div class="day-date">20</div>
+      <span class="day-tag">Mobility</span>
+      <div class="day-block">
+        <div class="day-label">Decompress</div>
+        <div class="day-detail">Joint flow 30min<br>Founder check-in</div>
+      </div>
+    </div>
+    <div class="day heavy">
+      <div class="day-name">Fri</div>
+      <div class="day-date">21</div>
+      <span class="day-tag">Apex</span>
+      <div class="day-block">
+        <div class="day-label">Posterior · Deadlift</div>
+        <div class="day-detail">Top set + back-off<br>RDL accessory</div>
+      </div>
+    </div>
+    <div class="day">
+      <div class="day-name">Sat</div>
+      <div class="day-date">22</div>
+      <span class="day-tag">Sport</span>
+      <div class="day-block">
+        <div class="day-label">Open Field Day</div>
+        <div class="day-detail">Sprints / sled / play<br>Recreational</div>
+      </div>
+    </div>
+    <div class="day rest">
+      <div class="day-name">Sun</div>
+      <div class="day-date">23</div>
+      <span class="day-tag">Rest</span>
+      <div class="day-block">
+        <div class="day-label">Full Rest</div>
+        <div class="day-detail">No training<br>Meal prep + review</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="numbers-block">
+  <section class="block">
+    <div class="section-head">
+      <div class="section-eyebrow">By The Numbers</div>
+      <h2 class="section-title">Results, <span class="gold">Quantified.</span></h2>
+      <p class="section-sub">Five years of architecture, audited annually. The math behind the system speaks louder than the testimonials.</p>
+    </div>
+
+    <div class="numbers-grid">
+      <div class="big-num featured">
+        <div class="bn-lbl">Clients · Through Apex</div>
+        <div class="bn-val gold" data-count="847">0</div>
+        <div class="bn-sub">High-demand humans who completed the full 12-week protocol since 2021. Every number is a verified roster entry.</div>
+      </div>
+      <div class="big-num">
+        <div class="bn-lbl">Avg · Body Comp Shift</div>
+        <div class="bn-val">−<span data-count="14">0</span><span class="unit">% body fat</span></div>
+      </div>
+      <div class="big-num">
+        <div class="bn-lbl">Avg · Strength Lift</div>
+        <div class="bn-val gold">+<span data-count="38">0</span><span class="unit">% 1RM total</span></div>
+      </div>
+      <div class="big-num">
+        <div class="bn-lbl">Joint Setbacks</div>
+        <div class="bn-val"><span data-count="0">0</span><span class="unit">in 3 yrs · all tiers</span></div>
+      </div>
+      <div class="big-num">
+        <div class="bn-lbl">Return Roster</div>
+        <div class="bn-val gold"><span data-count="92">0</span><span class="unit">% renew rate</span></div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<section class="block" id="results">
+  <div class="section-head">
+    <div class="section-eyebrow">The Results Wall</div>
+    <h2 class="section-title">High-Demand Humans. <span class="gold">Verified Outcomes.</span></h2>
+    <p class="section-sub">Outcomes from inside the protocol. The names are real; the metrics are tracked weekly in the app.</p>
+  </div>
+
+  <div class="results-grid">
+
+    <article class="result r-feature">
+      <div class="r-imgs">
+        <image-slot id="r1-before" placeholder="Before — Marcus"></image-slot>
+        <image-slot id="r1-after" placeholder="After — Marcus"></image-slot>
+      </div>
+      <div class="r-body">
+        <div class="r-meta">
+          <span>Marcus T. · Age 38</span>
+          <span class="role">FDNY Lieutenant</span>
+        </div>
+        <div class="r-name">From Rotating Shifts <br>to Apex Capacity.</div>
+        <p class="r-quote">The architecture survived my 24/72. Twelve weeks in, I PR'd my deadlift on a post-shift morning. That used to be impossible.</p>
+        <div class="r-stats">
+          <div class="r-stat"><div class="r-stat-num">−24 lb</div><div class="r-stat-lab">Body fat mass</div></div>
+          <div class="r-stat"><div class="r-stat-num">+85 lb</div><div class="r-stat-lab">Deadlift 1RM</div></div>
+          <div class="r-stat"><div class="r-stat-num">12 wk</div><div class="r-stat-lab">Architect tier</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="result r-feature">
+      <div class="r-imgs">
+        <image-slot id="r2-before" placeholder="Before — Lena"></image-slot>
+        <image-slot id="r2-after" placeholder="After — Lena"></image-slot>
+      </div>
+      <div class="r-body">
+        <div class="r-meta">
+          <span>Lena R. · Age 44</span>
+          <span class="role">VP · Finance</span>
+        </div>
+        <div class="r-name">Back-to-Back Boards. <br>Best Bloodwork in a Decade.</div>
+        <p class="r-quote">I stopped trying to be disciplined. The system holds the discipline for me — I just show up. The math is undefeated.</p>
+        <div class="r-stats">
+          <div class="r-stat"><div class="r-stat-num">−18 lb</div><div class="r-stat-lab">Sustained drop</div></div>
+          <div class="r-stat"><div class="r-stat-num">28→17</div><div class="r-stat-lab">Body-fat %</div></div>
+          <div class="r-stat"><div class="r-stat-num">24 wk</div><div class="r-stat-lab">Sovereign tier</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="result r-half">
+      <div class="r-body" style="padding-top: 32px;">
+        <div class="r-meta">
+          <span>Jaylen K.</span>
+          <span class="role">D1 Recruit</span>
+        </div>
+        <div class="r-name">+4" Vertical. <br>0 Soft-Tissue Setbacks.</div>
+        <p class="r-quote">My S&amp;C coach asked who wrote my program. I told him: BBF.</p>
+      </div>
+    </article>
+
+    <article class="result r-half">
+      <div class="r-body" style="padding-top: 32px;">
+        <div class="r-meta">
+          <span>Anika P.</span>
+          <span class="role">Surgeon</span>
+        </div>
+        <div class="r-name">First Pull-Up <br>at 41.</div>
+        <p class="r-quote">Years of clinic-floor wrist pain — gone in eight weeks. The OT framing is what did it.</p>
+      </div>
+    </article>
+
+    <article class="result r-half">
+      <div class="r-body" style="padding-top: 32px;">
+        <div class="r-meta">
+          <span>Dre M.</span>
+          <span class="role">NYPD Sgt.</span>
+        </div>
+        <div class="r-name">Tactical Ready. <br>Knees Intact.</div>
+        <p class="r-quote">Passed the academy re-cert the strongest I've ever been. The prehab is the whole game.</p>
+      </div>
+    </article>
+
+    <article class="result r-half">
+      <div class="r-body" style="padding-top: 32px;">
+        <div class="r-meta">
+          <span>Carlos V.</span>
+          <span class="role">Founder · Tech</span>
+        </div>
+        <div class="r-name">Travel-Proof. <br>Boardroom-Tested.</div>
+        <p class="r-quote">My calendar broke every program I ever tried. This one bent to it instead.</p>
+      </div>
+    </article>
+
+    <div class="r-banner">
+      <blockquote>Akeem doesn't sell motivation. He installs an operating system. Six months in, the system is still running — and I've stopped negotiating with myself about whether to train.</blockquote>
+      <div class="who-cite">
+        <div class="n">Devon H.</div>
+        <div class="t">Goldman Sachs · MD<br>Sovereign · 36 wks</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="block" id="vault">
+  <div class="vault-block">
+    <div class="vault-left">
+      <div class="label">Live · Inside The Vault</div>
+      <h3>The Roster, <br><span class="gold">In Motion.</span></h3>
+      <p>A live snippet of what's happening across the active roster right now. PRs, mid-protocol audits, and Sovereign sessions — pulled straight from the app.</p>
+      <div class="vault-stats">
+        <div class="vault-stat"><div class="vs-n">312</div><div class="vs-l">Active Roster</div></div>
+        <div class="vault-stat"><div class="vs-n">68</div><div class="vs-l">In Apex · This Wk</div></div>
+        <div class="vault-stat"><div class="vs-n">9 mo</div><div class="vs-l">Median Tenure</div></div>
+        <div class="vault-stat"><div class="vs-n">4.97</div><div class="vs-l">Roster Score · /5</div></div>
+      </div>
+    </div>
+
+    <div class="vault-feed">
+      <div class="feed-head">
+        <span class="live">● Live · Vault Feed</span>
+        <span>Last sync · 12s ago</span>
+      </div>
+      <ul class="feed-list">
+        <li class="feed-item">
+          <div class="feed-av gold">MT</div>
+          <div class="feed-body">
+            <div class="who">Marcus T. · Architect</div>
+            <div class="what">Hit a new <span class="hl">deadlift PR · 485 lb</span> · post-shift session, FDNY</div>
+          </div>
+          <div class="feed-time"><span class="pulse-dot"></span> 2m ago</div>
+        </li>
+        <li class="feed-item">
+          <div class="feed-av purple">JK</div>
+          <div class="feed-body">
+            <div class="who">Jaylen K. · Youth</div>
+            <div class="what">Vertical jump audit: <span class="hl">+4" over baseline</span> · Wk 09 of cycle</div>
+          </div>
+          <div class="feed-time"><span class="pulse-dot"></span> 14m ago</div>
+        </li>
+        <li class="feed-item">
+          <div class="feed-av">LR</div>
+          <div class="feed-body">
+            <div class="who">Lena R. · Sovereign</div>
+            <div class="what">Bi-weekly TDEE recal complete · <span class="hl">macros +110 kcal</span></div>
+          </div>
+          <div class="feed-time"><span class="pulse-dot"></span> 32m ago</div>
+        </li>
+        <li class="feed-item">
+          <div class="feed-av gold">DH</div>
+          <div class="feed-body">
+            <div class="who">Devon H. · Sovereign</div>
+            <div class="what">Signed <span class="hl">Sovereign Contract · cycle 03</span> · Goldman Sachs</div>
+          </div>
+          <div class="feed-time"><span class="pulse-dot"></span> 1h ago</div>
+        </li>
+        <li class="feed-item">
+          <div class="feed-av purple">AP</div>
+          <div class="feed-body">
+            <div class="who">Anika P. · Architect</div>
+            <div class="what">First unassisted <span class="hl">pull-up @ age 41</span> · 8 weeks in</div>
+          </div>
+          <div class="feed-time"><span class="pulse-dot"></span> 2h ago</div>
+        </li>
+        <li class="feed-item">
+          <div class="feed-av">DM</div>
+          <div class="feed-body">
+            <div class="who">Dre M. · Architect</div>
+            <div class="what">Tactical re-cert passed · <span class="hl">top 5% physical</span> · NYPD</div>
+          </div>
+          <div class="feed-time"><span class="pulse-dot"></span> 3h ago</div>
+        </li>
+        <li class="feed-item">
+          <div class="feed-av gold">CV</div>
+          <div class="feed-body">
+            <div class="who">Carlos V. · Sovereign</div>
+            <div class="what">Travel-week audit · <span class="hl">5/5 sessions logged</span> · 3 time zones</div>
+          </div>
+          <div class="feed-time"><span class="pulse-dot"></span> 4h ago</div>
+        </li>
+      </ul>
+      <div class="feed-foot"><a href="#">View Full Roster Wall → · Sovereign-only access</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="faq">
+  <div class="faq-wrap">
+    <aside class="faq-side">
+      <div class="section-eyebrow" style="margin-bottom: 24px;">Questions</div>
+      <h3>Frequently <br><span class="gold">Asked.</span></h3>
+      <p>The questions every high-demand human asks before signing the contract. If yours isn't here, the founder line is open.</p>
+      <a href="#pathfinder" class="btn-ghost">Book A Discovery Call</a>
+    </aside>
+
+    <ul class="faq-list">
+      <li><details class="faq-item" open="">
+        <summary>
+          <span class="q-num">Q · 01</span>
+          <span class="q-text">What if my schedule completely breaks every week?</span>
+          <span class="q-plus">+</span>
+        </summary>
+        <div class="a-body">That's the entire design constraint. The protocol is built for humans whose week breaks — rotating shifts, red-eyes, on-call rotations. The architecture is <b>schedule-agnostic by default</b>; you don't earn flexibility, it's the floor.</div>
+      </details></li>
+      <li><details class="faq-item">
+        <summary>
+          <span class="q-num">Q · 02</span>
+          <span class="q-text">Is the in-person component required for Architect &amp; Sovereign?</span>
+          <span class="q-plus">+</span>
+        </summary>
+        <div class="a-body">Yes — these tiers exist <i>because</i> of the in-person clinical sessions. If you're remote, you belong in <b>Gateway</b> or on a custom remote-only contract. We don't dilute the tier.</div>
+      </details></li>
+      <li><details class="faq-item">
+        <summary>
+          <span class="q-num">Q · 03</span>
+          <span class="q-text">How is BBF different from a normal personal trainer?</span>
+          <span class="q-plus">+</span>
+        </summary>
+        <div class="a-body">A trainer prescribes workouts. A <b>Performance Architect</b> engineers the habit system, biomechanical protocol, nutrition math, and recovery cadence as a single operating system. The workout is one output — not the product.</div>
+      </details></li>
+      <li><details class="faq-item">
+        <summary>
+          <span class="q-num">Q · 04</span>
+          <span class="q-text">My youth athlete has had a previous injury. Are you set up for that?</span>
+          <span class="q-plus">+</span>
+        </summary>
+        <div class="a-body">Yes. The Youth Athlete tier is <b>OT-informed</b> with pediatric liability shielding and return-to-load protocols. We coordinate with their treating provider — we don't replace one.</div>
+      </details></li>
+      <li><details class="faq-item">
+        <summary>
+          <span class="q-num">Q · 05</span>
+          <span class="q-text">What's the difference between Architect Hybrid and Sovereign?</span>
+          <span class="q-plus">+</span>
+        </summary>
+        <div class="a-body"><b>Architect</b> is one clinical session per week + full app stack. <b>Sovereign</b> is two clinical sessions, the AI Audio Meal Scanner, Virtual Chef, and a priority founder line with sub-3-hour response. Same standard. Deeper access.</div>
+      </details></li>
+      <li><details class="faq-item">
+        <summary>
+          <span class="q-num">Q · 06</span>
+          <span class="q-text">Is there a refund policy?</span>
+          <span class="q-plus">+</span>
+        </summary>
+        <div class="a-body">All flat-fee 12-week protocols carry a <b>2-week sovereignty window</b>. If, after the first two weeks of executing the protocol, you don't feel the architecture matches your demand profile — we refund the remainder, no contest.</div>
+      </details></li>
+      <li><details class="faq-item">
+        <summary>
+          <span class="q-num">Q · 07</span>
+          <span class="q-text">Do you train women specifically?</span>
+          <span class="q-plus">+</span>
+        </summary>
+        <div class="a-body">The protocol is sex-aware, not sex-segregated. Hormonal and cycle considerations are integrated into the nutrition math and recovery cadence for every female client. Roughly <b>40% of our roster</b> is women.</div>
+      </details></li>
+    </ul>
+  </div>
+</section>
+
+<section class="creds" id="credentials">
+  <div class="trusted-head" style="margin-bottom: 32px;">Founder Credentials &amp; Verifications</div>
+  <div class="creds-grid">
+    <div class="cred">
+      <div class="cred-icon">N</div>
+      <div class="cred-name">NASM-CPT</div>
+      <div class="cred-detail">Certified Personal Trainer</div>
+    </div>
+    <div class="cred">
+      <div class="cred-icon">OT</div>
+      <div class="cred-name">OT-Informed</div>
+      <div class="cred-detail">Occupational · Joint Health</div>
+    </div>
+    <div class="cred">
+      <div class="cred-icon">CES</div>
+      <div class="cred-name">Corrective</div>
+      <div class="cred-detail">Exercise Specialist</div>
+    </div>
+    <div class="cred">
+      <div class="cred-icon">PES</div>
+      <div class="cred-name">Performance</div>
+      <div class="cred-detail">Enhancement · Sport</div>
+    </div>
+    <div class="cred">
+      <div class="cred-icon">FN</div>
+      <div class="cred-name">FN-Strategist</div>
+      <div class="cred-detail">Functional Nutrition</div>
+    </div>
+    <div class="cred">
+      <div class="cred-icon">Ω</div>
+      <div class="cred-name">Sovereign Std.</div>
+      <div class="cred-detail">Founder · Verified</div>
+    </div>
+  </div>
+</section>
+
+<section class="news">
+  <div class="news-eyebrow">The Field Notes Dispatch</div>
+  <h2>Field Notes. <br>From Inside The Protocol.</h2>
+  <p>Once a fortnight. Habit architecture, biomechanical breakdowns, and the math behind the system. No fluff, no funnels.</p>
+  <form class="news-form" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Subscribed ✓';">
+    <input type="email" placeholder="your@inbox.com" required="">
+    <button type="submit">Send Me The Notes</button>
+  </form>
 </section>
 
 <!-- ═══ MOAB 3 · THE ROUTINE INTERROGATOR ═══════════════════════════════
@@ -4857,300 +5989,23 @@ body.bbf-kairos .hero-badge {
 </script>
 
 <!-- NUTRITION -->
-<section id="nutrition">
-  <div class="nutr-in">
-    <div class="reveal" style="text-align:center">
-      <div class="sec-lbl" data-lang-key="nut-lbl">Nutrition Coaching</div>
-      <h2 class="sec-h" data-lang-key="nut-h">Fuel The <span class="y">Right Way</span></h2>
-      <p class="sec-s" style="margin:0 auto" data-lang-key="nut-sub">Precision nutrition architecture. Personalized meal plans aligned with your training, metabolic profile, and the demands of your schedule.</p>
-    </div>
-    <div class="nutr-g">
-      <!-- TIER 1 — Lite (Free, lead capture only) -->
-      <div class="nutr-c lite reveal d1">
-        <div class="nutr-t">Tier 1</div>
-        <div class="nutr-n" data-lang-key="nut-n1">Lite</div>
-        <div style="font-size:1.6rem;font-weight:800;color:var(--y,#f5c800);margin:.4rem 0 .6rem;letter-spacing:.5px">Free</div>
-        <div class="nutr-d" data-lang-key="nut-d1">Self-starters who need a solid baseline. Calculate your TDEE + macros instantly &mdash; we'll send your numbers to your inbox.</div>
-        <ul class="nutr-l">
-          <li>TDEE &amp; calorie target</li>
-          <li>Macro breakdown (P/C/F)</li>
-          <li>Sent to your inbox</li>
-          <li>Lead-capture only &mdash; no app access</li>
-        </ul>
-        <button type="button" class="nutr-btn nb-lite" onclick="openLiteLeadCapture()" data-lang-key="nut-cta1">Get My Free TDEE &#x2192;</button>
-      </div>
-      <!-- TIER 2 — Essentials $67/mo -->
-      <div class="nutr-c ess reveal d2">
-        <div class="nutr-t">Tier 2 &mdash; Most Popular</div>
-        <div class="nutr-n" data-lang-key="nut-n2">Essentials</div>
-        <div style="font-size:1.6rem;font-weight:800;color:var(--y,#f5c800);margin:.4rem 0 .6rem;letter-spacing:.5px">$67 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">/ month</span></div>
-        <div class="nutr-d" data-lang-key="nut-d2">A 7-day rotational meal plan built from our clinical-grade culinary matrix. Static plan, refreshed bi-weekly.</div>
-        <ul class="nutr-l">
-          <li>Static 7-day meal plan (TDEE-aligned)</li>
-          <li>Food swap guide by portion</li>
-          <li>Nutrition portal access</li>
-          <li>Bi-weekly plan updates</li>
-        </ul>
-        <button type="button" class="nutr-btn nb-ess" onclick="selectTier('nutrition_essentials')" data-lang-key="nut-cta2">Apply for Essentials &#x2192;</button>
-      </div>
-      <!-- TIER 3 — Platinum $147/mo -->
-      <div class="nutr-c plat reveal d3">
-        <div class="plat-badge">Premium</div>
-        <div class="nutr-t">Tier 3</div>
-        <div class="nutr-n" data-lang-key="nut-n3">Platinum</div>
-        <div style="font-size:1.6rem;font-weight:800;color:var(--y,#f5c800);margin:.4rem 0 .6rem;letter-spacing:.5px">$147 <span style="font-size:.7rem;font-weight:600;color:var(--mut2)">/ month</span></div>
-        <div class="nutr-d" data-lang-key="nut-d3">Adaptive plans synced with your training. Akeem reviews and adjusts every week.</div>
-        <ul class="nutr-l">
-          <li>Everything in Essentials</li>
-          <li>Weekly adaptive meal updates</li>
-          <li>Training + Nutrition synced</li>
-          <li>Priority daily messaging</li>
-          <li>Weekly progress reviews</li>
-        </ul>
-        <button type="button" class="nutr-btn nb-plat" onclick="selectTier('nutrition_platinum')" data-lang-key="nut-cta3">Apply for Platinum &#x2192;</button>
-      </div>
-    </div>
-    <!-- TDEE CALCULATOR -->
-    <div id="tdee-calc" class="tdee-w reveal">
-      <div class="tdee-hd">
-        <div class="tdee-lbl">Free Tool &mdash; Lite Tier</div>
-        <h3 data-lang-key="tdee-h">Calculate Your TDEE</h3>
-      </div>
-      <div class="tdee-g">
-        <div class="tf"><label>Age</label><input type="number" id="t-age" placeholder="28" min="16" max="80" inputmode="numeric"/></div>
-        <div class="tf"><label>Sex</label><select id="t-sex"><option value="male">Male</option><option value="female">Female</option></select></div>
-        <div class="tf"><label>Weight (lbs)</label><input type="number" id="t-wt" placeholder="185" inputmode="decimal"/></div>
-        <div class="tf"><label>Height (ft / in)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><input type="number" id="t-ft" placeholder="ft" min="4" max="7" inputmode="numeric"/><input type="number" id="t-in" placeholder="in" min="0" max="11" inputmode="numeric"/></div></div>
-      </div>
-      <div class="tf" style="margin-bottom:.8rem"><label>Activity Level</label><select id="t-act"><option value="1.2">Sedentary</option><option value="1.375">Lightly Active (1-3x/week)</option><option value="1.55" selected>Moderately Active (3-5x/week)</option><option value="1.725">Very Active (6-7x/week)</option><option value="1.9">Extremely Active / Physical Job</option></select></div>
-      <div class="tf" style="margin-bottom:1rem"><label>Goal</label>
-        <div class="goal-row" id="grow">
-          <button class="goal-b on" data-adj="-500">&#x1F525; Lose Fat</button>
-          <button class="goal-b" data-adj="0">&#x2696; Maintain</button>
-          <button class="goal-b" data-adj="300">&#x1F4AA; Build Muscle</button>
-        </div>
-      </div>
-      <button class="calc-btn" onclick="calcWidget()" data-lang-key="tdee-btn">Calculate My Targets &#x2192;</button>
-      <div class="tdee-res" id="tres">
-        <div class="tdee-big" id="tw-cal">—</div>
-        <div class="tdee-sub">Calories / Day</div>
-        <div class="mac-g">
-          <div class="mac-c"><div class="mac-v" id="tw-p" style="color:#ef4444">—</div><div class="mac-l">Protein</div></div>
-          <div class="mac-c"><div class="mac-v" id="tw-c" style="color:#3b82f6">—</div><div class="mac-l">Carbs</div></div>
-          <div class="mac-c"><div class="mac-v" id="tw-f" style="color:#f59e0b">—</div><div class="mac-l">Fats</div></div>
-        </div>
-        <div class="tdee-note" id="tw-note"></div>
-        <a href="#pathfinder" class="tdee-cta">Get a Custom Meal Plan &#x2192;</a>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- TESTIMONIALS -->
-<section id="testimonials">
-  <div class="testi-in">
-    <div class="reveal" style="text-align:center">
-      <div class="sec-lbl" data-lang-key="testi-lbl">Client Results</div>
-      <h2 class="sec-h" data-lang-key="testi-h">Real People. <span class="y">Real Work.</span></h2>
-    </div>
-    <div class="testi-g">
-      <div class="tc reveal d1">
-        <div class="t-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div>
-        <div class="t-q" data-lang-key="testi-q1">"Akeem built my program around my high-demand schedule. I'm training 5 days a week, down 22 lbs, and hitting PRs I never thought possible. The system adapts to my life, not the other way around."</div>
-        <div class="t-a"><div class="t-av">M</div><div><div class="t-n">Marcus T.</div><div class="t-m">Lost 22 lbs &bull; 6 months</div></div></div>
-      </div>
-      <div class="tc reveal d2">
-        <div class="t-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div>
-        <div class="t-q" data-lang-key="testi-q2">"The app is insane &mdash; I can see my meal plan, log my workouts, and track my progress all in one place. But it's the coaching that makes the difference. Akeem is locked in."</div>
-        <div class="t-a"><div class="t-av">D</div><div><div class="t-n">Darius W.</div><div class="t-m">Body recomposition &bull; 4 months</div></div></div>
-      </div>
-      <div class="tc reveal d3">
-        <div class="t-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</div>
-        <div class="t-q" data-lang-key="testi-q3">"I was skeptical at first but the results don't lie. Down 18 lbs, my energy is through the roof, and I finally feel confident in the gym. Akeem knows exactly how to push you without burning you out."</div>
-        <div class="t-a"><div class="t-av">R</div><div><div class="t-n">Renee C.</div><div class="t-m">Strength &bull; 3 months</div></div></div>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- VALUE EXPLORER — Interactive Sport/Position Drill-Down -->
-<section id="explorer" style="background:#0a0a0a;padding:5rem 2rem;position:relative;overflow:hidden;border-top:1px solid rgba(106,13,173,.3);border-bottom:1px solid rgba(106,13,173,.3)">
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:400px;background:radial-gradient(ellipse,rgba(106,13,173,.15) 0%,transparent 70%);pointer-events:none;filter:blur(60px)"></div>
-<div style="max-width:1100px;margin:0 auto;position:relative;z-index:2">
-<div style="text-align:center;margin-bottom:2.5rem" class="reveal">
-<div class="sec-lbl">Position Intelligence</div>
-<h2 class="sec-h">Explore Your <span class="y">Position</span></h2>
-<p class="sec-s" style="margin:0 auto">Select a sport. Choose a position. See the science behind every drill in the BBF Laboratory.</p>
-</div>
 
-<!-- SPORT ICONS -->
-<div id="exp-sports" style="display:flex;justify-content:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap"></div>
-
-<!-- POSITION CHIPS -->
-<div id="exp-positions" style="display:flex;justify-content:center;gap:.6rem;margin-bottom:2rem;flex-wrap:wrap;min-height:48px"></div>
-
-<!-- SCOUT CARD -->
-<div id="exp-card" style="display:none;max-width:680px;margin:0 auto"></div>
-</div>
-</section>
 
 <!-- ELITE PLAYBOOKS SECTION -->
-<section id="playbooks" style="background:#0e0e0e;padding:80px 24px;position:relative;overflow:hidden;border-top:1px solid rgba(106,13,173,.3);border-bottom:1px solid rgba(106,13,173,.3)">
-  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(106,13,173,.18) 0%,transparent 70%);pointer-events:none;filter:blur(60px)"></div>
-  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(106,13,173,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(106,13,173,.04) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 90% 80% at 50% 50%,black 30%,transparent 100%);pointer-events:none"></div>
 
-  <div style="position:relative;max-width:1100px;margin:0 auto;z-index:2">
-
-    <!-- HEADER -->
-    <div style="text-align:center;margin-bottom:3rem">
-      <p style="font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#f5c800;margin-bottom:12px">Positional Blueprints</p>
-      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5.5vw,4.5rem);line-height:.92;letter-spacing:2px;color:#fff;margin-bottom:16px">ELITE POSITION.<br><span style="color:#f5c800">YOUR PLAYBOOK.</span></h2>
-      <p style="font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;font-weight:400;color:rgba(232,232,232,.6);line-height:1.6;max-width:560px;margin:0 auto">Professional-grade programming, nutrition protocols, and recruitment targets for the high-performance household. 5 sports. 25 positions. Built in the Laboratory.</p>
-    </div>
-
-    <!-- SOVEREIGN SPORT BAR -->
-    <div id="pb-sport-bar" style="display:flex;justify-content:center;gap:10px;margin-bottom:2rem;flex-wrap:wrap"></div>
-
-    <!-- DYNAMIC POSITION CARDS -->
-    <div id="pb-position-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:2rem"></div>
-
-    <!-- CTA -->
-    <div style="text-align:center;margin-top:1rem">
-      <a href="#pathfinder" style="display:inline-block;background:#f5c800;color:#0e0e0e;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;padding:16px 40px;border-radius:4px;text-decoration:none;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(245,200,0,.25)'" onmouseout="this.style.transform='';this.style.boxShadow=''">UNLOCK YOUR FULL PLAYBOOK &rarr;</a>
-    </div>
-  </div>
-
-  <style>
-    @media(max-width:600px){#pb-position-grid{grid-template-columns:1fr !important}}
-  </style>
-</section>
 
 <!-- SPECIALIZED PROTOCOLS -->
-<section id="specialized" style="background:var(--gry);padding:6rem 2rem">
-  <div style="max-width:1100px;margin:0 auto">
-    <div class="reveal" style="text-align:center">
-      <div class="sec-lbl">Specialized Protocols</div>
-      <h2 class="sec-h">Targeted <span class="y">Blueprints</span></h2>
-      <p class="sec-s" style="margin:0 auto">Deep-dive guides engineered for specific life demands. Standalone or included free with your program tier.</p>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr;max-width:680px;margin:3rem auto 0">
-      <div style="background:var(--gry2);border:2px solid rgba(106,13,173,.4);border-radius:20px;padding:2.5rem;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--pur),var(--yel))"></div>
-        <div style="display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap">
-          <div style="font-size:3rem;flex-shrink:0">&#x1F46A;</div>
-          <div style="flex:1;min-width:240px">
-            <div style="font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--purl);margin-bottom:.4rem">Family Performance Series</div>
-            <div style="font-family:var(--hb);font-size:1.8rem;letter-spacing:2px;margin-bottom:.3rem">The Busy Parent<br>Transformation</div>
-            <div style="font-size:.85rem;color:var(--mut2);line-height:1.7;margin-bottom:1rem">Adaptive Metabolic Tiers (12:12, 14:10, 16:8). Engineered for the high-demand reality. Backed by the Sovereign Gold Standard. This is the Laboratory&rsquo;s primary protocol for sustainable parent transformation. Includes Youth Athlete Performance bonus.</div>
-            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem">
-              <div style="font-family:var(--hb);font-size:2rem;color:var(--yel)">$147</div>
-              <div style="font-size:.78rem;font-weight:700;color:var(--mut2)">Standalone</div>
-              <div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:20px;padding:.25rem .8rem;font-size:.7rem;font-weight:700;letter-spacing:1px;color:#22c55e">FREE WITH ARCHITECT &amp; SOVEREIGN</div>
-            </div>
-            <a href="busy-parent-transformation.html" style="display:inline-block;background:var(--yel);color:var(--blk);font-family:var(--hb);font-size:.95rem;letter-spacing:2px;padding:.75rem 2rem;border-radius:8px;text-decoration:none;transition:all .2s">View the Guide &#x2192;</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- PATHFINDER FORM -->
 <!-- TRANSFORMATION SECTION -->
-<section id="transformation" style="background:var(--blk);padding:6rem 2rem;position:relative;overflow:hidden">
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(106,13,173,.07) 0%,transparent 70%);pointer-events:none"></div>
-  <div style="max-width:1100px;margin:0 auto;position:relative;z-index:2">
 
-    <div style="text-align:center;margin-bottom:3.5rem" class="reveal">
-      <div class="sec-lbl" data-lang-key="trans-lbl">The Origin of the System</div>
-      <h2 class="sec-h" id="trans-section-h" data-lang-key="trans-section-h">The System <span class="y">Was Born Here</span></h2>
-      <p class="sec-s" style="margin:0 auto" data-lang-key="trans-sub">Not theory. Not a textbook protocol. A system discovered through lived experience and refined through science.</p>
-    </div>
-
-    <!-- 3-PANEL RIPPLE EFFECT STORY -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;align-items:end;margin-bottom:3rem" class="reveal">
-
-      <!-- PANEL 1 — BEFORE -->
-      <div style="position:relative">
-        <div style="position:absolute;top:1rem;left:1rem;z-index:3;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:.3rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:3px;color:rgba(255,255,255,.55)" data-lang-key="trans-step1">STEP 1</div>
-        <div style="border-radius:16px;overflow:hidden;border:2px solid var(--gry3);aspect-ratio:3/4;background:var(--gry2)">
-          <img src="akeem-before.png" alt="Akeem Brown — before the journey" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(30%) brightness(.85)"/>
-        </div>
-        <div style="margin-top:.9rem;padding:.75rem .9rem;background:var(--gry2);border:1px solid var(--gry3);border-radius:10px;border-left:3px solid rgba(255,255,255,.2)">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:.2rem" data-lang-key="trans-card1-title">The Starting Point</div>
-          <div style="font-size:.8rem;font-weight:600;color:var(--mut2);line-height:1.6;font-style:italic" data-lang-key="trans-card1-quote">&ldquo;Lost. Depressed. No time for myself. Running out of chances to become who I knew I could be.&rdquo;</div>
-        </div>
-      </div>
-
-      <!-- PANEL 2 — THE CRAFT (Movement Specialist) -->
-      <div style="position:relative;transform:translateY(-12px)">
-        <div style="position:absolute;top:1rem;left:1rem;z-index:3;background:rgba(59,130,246,.9);border-radius:8px;padding:.3rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:3px;color:#fff" data-lang-key="trans-step2">STEP 2</div>
-        <div style="border-radius:16px;overflow:hidden;border:2px solid rgba(59,130,246,.5);box-shadow:0 0 40px rgba(59,130,246,.15);aspect-ratio:3/4;background:var(--gry2)">
-          <img src="akeem-nasm.jpg" alt="Akeem Brown — Movement Specialist & Joint Protection Coach" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:top center"/>
-        </div>
-        <div style="margin-top:.9rem;padding:.75rem .9rem;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(29,78,216,.08));border:1px solid rgba(59,130,246,.3);border-radius:10px;border-left:3px solid rgba(59,130,246,.6)">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:#60a5fa;margin-bottom:.2rem" data-lang-key="trans-card2-title">The System Discovery</div>
-          <div style="font-size:.8rem;font-weight:600;color:rgba(255,255,255,.65);line-height:1.6;font-style:italic" data-lang-key="trans-card2-quote">&ldquo;I decided to go all in. Exercise Science. Biomechanical Precision. The discipline to learn the math became as important as the discipline to train.&rdquo;</div>
-        </div>
-        <!-- Center connector dots -->
-        <div style="position:absolute;top:50%;left:-18px;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:4">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
-        </div>
-        <div style="position:absolute;top:50%;right:-18px;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:4">
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
-          <div style="width:6px;height:6px;border-radius:50%;background:var(--gry3)"></div>
-        </div>
-      </div>
-
-      <!-- PANEL 3 — AFTER -->
-      <div style="position:relative">
-        <div style="position:absolute;top:1rem;left:1rem;z-index:3;background:rgba(245,200,0,.92);border-radius:8px;padding:.3rem .75rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:3px;color:#060606" data-lang-key="trans-step3">STEP 3</div>
-        <div style="border-radius:16px;overflow:hidden;border:2px solid rgba(245,200,0,.4);box-shadow:0 0 40px rgba(245,200,0,.12);aspect-ratio:3/4;background:var(--gry2)">
-          <img src="akeem-after.png" alt="Akeem Brown — after transformation" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:top center"/>
-        </div>
-        <div style="margin-top:.9rem;padding:.75rem .9rem;background:linear-gradient(135deg,rgba(106,13,173,.15),rgba(74,8,128,.08));border:1px solid rgba(106,13,173,.3);border-radius:10px;border-left:3px solid var(--yel)">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:2px;color:var(--yel);margin-bottom:.2rem" data-lang-key="trans-card3-title">The Architecture Lives</div>
-          <div style="font-size:.8rem;font-weight:600;color:rgba(255,255,255,.7);line-height:1.6;font-style:italic" data-lang-key="trans-card3-quote">&ldquo;One decision changed everything. My body. My career. My family&rsquo;s future. Now that ripple reaches every client I coach.&rdquo;</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Journey label -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:2.5rem" class="reveal">
-      <div style="height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--gry3))"></div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:.75rem;letter-spacing:4px;color:var(--mut2);text-transform:uppercase;white-space:nowrap" data-lang-key="trans-journey">The Full Journey</div>
-      <div style="height:1px;flex:1;background:linear-gradient(90deg,var(--gry3),transparent)"></div>
-    </div>
-
-    <div class="reveal" style="max-width:780px;margin:0 auto;text-align:center">
-      <div style="width:50px;height:3px;background:var(--yel);margin:0 auto 2rem"></div>
-
-      <p style="font-size:1.05rem;color:rgba(255,255,255,.7);line-height:1.9;margin-bottom:1.3rem;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:600" data-lang-key="trans-narrative1">
-        I built these protocols as a father and everyday athlete protecting my own joints through real life &mdash; not from a textbook. I didn&rsquo;t build this from theory &mdash; I built it to solve the Human Habit Equation. The laboratory was my own life, and the results became the blueprint.
-      </p>
-
-      <p style="font-size:1.05rem;color:rgba(255,255,255,.7);line-height:1.9;margin-bottom:1.3rem;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:600" data-lang-key="trans-narrative2">
-        Now I deliver that same blueprint to every human who refuses to let their schedule define their ceiling. <strong style="color:var(--wht)">The executive. The first responder. The parent. The everyday athlete.</strong> The system doesn&rsquo;t care about your title or your hours &mdash; it cares about your commitment.
-      </p>
-
-      <p style="font-size:1.05rem;color:rgba(255,255,255,.7);line-height:1.9;margin-bottom:2rem;font-family:'Barlow Condensed',Arial,sans-serif;font-weight:600" data-lang-key="trans-narrative3">
-        Build Believe Fit exists to deliver that system. <strong style="color:var(--yel)">Anchor habits become engine habits. Your context becomes your catalyst.</strong> No matter your schedule, your title, or your starting point &mdash; the architecture works when you commit to it.
-      </p>
-
-      <div style="background:linear-gradient(135deg,rgba(106,13,173,.2),rgba(74,8,128,.1));border:1px solid rgba(106,13,173,.4);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--yel);line-height:.8;margin-bottom:.6rem;opacity:.7">&ldquo;</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--wht);line-height:1.4" data-lang-key="trans-blockquote">I Built The System For Myself. Then I Realized Every High-Demand Human Needed It Too.</div>
-        <div style="font-size:.75rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);margin-top:.8rem">&mdash; Akeem Brown &bull; Performance Architect &bull; Sovereign Gold Standard &bull; BBF LLC</div>
-      </div>
-
-      <a href="#pathfinder" class="btn-y" style="display:inline-block" data-lang-key="trans-cta">Start Your Transformation &#x2192;</a>
-    </div>
-
-  </div>
-</section>
 
 <section id="pathfinder">
   <div class="path-in">
@@ -5279,185 +6134,44 @@ body.bbf-kairos .hero-badge {
   </div>
 </section>
 
-<!-- APP DOWNLOAD -->
-<section id="app-download">
-  <div class="app-in">
-    <div class="reveal">
-      <div class="sec-lbl" data-lang-key="app-lbl">Client Portal</div>
-      <h2 class="sec-h" data-lang-key="app-h">Your Program.<br><span class="y">In Your Pocket.</span></h2>
-      <p class="sec-s" style="margin:0 auto;color:rgba(255,255,255,.45)" data-lang-key="app-sub">Access your personalized workout program, meal plan, progress tracking, and coach notes &mdash; all in one mobile app that works offline.</p>
-      <div class="app-url">buildbelievefit.fitness/bbf-app.html</div>
-      <a href="bbf-app.html" class="btn-y">&#x1F4F2; Open Client App</a>
-
-      <!-- Standalone-mode confirmation — shown when the page is already
-           running as an installed PWA (window.matchMedia('(display-mode:
-           standalone)') matches, OR navigator.standalone === true on iOS). -->
-      <div class="pwa-already" id="pwa-already" hidden>
-        <div class="pwa-already-ic">&#x2713;</div>
-        <div>
-          <div class="pwa-already-h">App Installed</div>
-          <div class="pwa-already-s">You're already running BBF as a phone app. Tap the BBF icon on your home screen anytime — no browser needed.</div>
-        </div>
-      </div>
-
-      <!-- Platform-aware install instructions. JS at the bottom of this
-           section auto-detects iOS vs Android and adds .is-active to the
-           matching card. Both cards stay visible so users can still see
-           the alternate platform's steps. -->
-      <div class="pwa-platforms" id="pwa-platforms">
-        <p class="pwa-pre">Turn this page into a real app icon on your phone &mdash; 30 seconds, no app store, works offline.</p>
-        <div class="pwa-cards">
-
-          <!-- iOS Safari -->
-          <article class="pwa-card" data-platform="ios" id="pwa-card-ios">
-            <header class="pwa-card-h">
-              <span class="pwa-card-ic">&#x1F4F1;</span>
-              <div style="flex:1;min-width:0">
-                <div class="pwa-card-t">iPhone &middot; iPad</div>
-                <div class="pwa-card-s">Safari only</div>
-              </div>
-              <span class="pwa-card-flag">Your device</span>
-            </header>
-            <ol class="pwa-steps">
-              <li>Open this page in <strong>Safari</strong> (not Chrome or Firefox &mdash; iOS only allows installing from Safari)</li>
-              <li>Tap the
-                <span class="pwa-glyph" aria-label="Share button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span>
-                <strong>Share</strong> button at the bottom of the screen</li>
-              <li>Scroll down and tap <strong>&ldquo;Add to Home Screen&rdquo;</strong></li>
-              <li>Tap <strong>Add</strong> in the top-right corner</li>
-              <li>Find the BBF icon on your home screen &mdash; tap it like any other app</li>
-            </ol>
-            <div class="pwa-warn" id="pwa-warn-ios" hidden>
-              <strong>Heads up:</strong> you opened this in a non-Safari browser. On iPhone, only Safari can install web apps to the home screen. Copy the link, paste it into Safari, and the steps above will work.
-            </div>
-          </article>
-
-          <!-- Android Chrome / Edge -->
-          <article class="pwa-card" data-platform="android" id="pwa-card-android">
-            <header class="pwa-card-h">
-              <span class="pwa-card-ic">&#x1F916;</span>
-              <div style="flex:1;min-width:0">
-                <div class="pwa-card-t">Android</div>
-                <div class="pwa-card-s">Chrome &middot; Edge &middot; Samsung Internet</div>
-              </div>
-              <span class="pwa-card-flag">Your device</span>
-            </header>
-            <ol class="pwa-steps">
-              <li>Open this page in <strong>Chrome</strong>, Edge, or Samsung Internet</li>
-              <li>Tap the
-                <span class="pwa-glyph" aria-label="Menu button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></span>
-                menu in the top-right corner</li>
-              <li>Tap <strong>&ldquo;Install app&rdquo;</strong> or <strong>&ldquo;Add to Home screen&rdquo;</strong> (wording varies by browser)</li>
-              <li>Tap <strong>Install</strong> to confirm</li>
-              <li>Find the BBF icon in your app drawer or home screen &mdash; tap it like any other app</li>
-            </ol>
-          </article>
-
-        </div>
-      </div>
-
-      <script>
-      (function(){
-        // Hide the instructions block when the user is ALREADY running
-        // the app as a standalone PWA — they don't need a how-to.
-        function isStandalone(){
-          try {
-            return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                   window.navigator.standalone === true;
-          } catch (_) { return false; }
-        }
-        // Cheap UA sniff — sufficient for "show the right card by default".
-        // Not used for any security decision.
-        function detectPlatform(){
-          var ua = (navigator.userAgent || '').toLowerCase();
-          var isIPad = /ipad/.test(ua) ||
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-          if (/iphone|ipod/.test(ua) || isIPad) return 'ios';
-          if (/android/.test(ua)) return 'android';
-          return null;
-        }
-        // Chrome / Firefox on iOS reports its own UA but can't install PWAs
-        // — only Safari can. Surface the warning so users don't get stuck.
-        function isIOSNonSafari(){
-          var ua = (navigator.userAgent || '').toLowerCase();
-          var iosLike = /iphone|ipod|ipad/.test(ua) ||
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-          if (!iosLike) return false;
-          return /crios|fxios|edgios|opios/.test(ua);
-        }
-        function init(){
-          if (isStandalone()) {
-            var already = document.getElementById('pwa-already');
-            var platforms = document.getElementById('pwa-platforms');
-            if (already) already.hidden = false;
-            if (platforms) platforms.style.display = 'none';
-            return;
-          }
-          var plat = detectPlatform();
-          if (plat) {
-            var card = document.getElementById('pwa-card-' + plat);
-            if (card) card.classList.add('is-active');
-          }
-          if (isIOSNonSafari()) {
-            var warn = document.getElementById('pwa-warn-ios');
-            if (warn) warn.hidden = false;
-          }
-        }
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', init);
-        } else {
-          init();
-        }
-      })();
-      </script>
-    </div>
+<section class="closing" id="start">
+  <h2>Build It. Believe It. <span class="gold">Live It.</span></h2>
+  <p>Your schedule is the context. Your potential is the focus. Start your path inside the Sovereign Gold Standard.</p>
+  <div class="cta-row">
+    <a href="#" class="btn-primary"><span class="dot"></span> Start My Path →</a>
+    <a href="#" class="btn-ghost">Book A Call</a>
   </div>
 </section>
+
+<footer>
+  <div class="left">
+    <span class="omega">Ω</span>
+    <span>© 2026 Build Believe Fit LLC</span>
+  </div>
+  <div>
+    <a href="#">Privacy</a> &nbsp; · &nbsp;
+    <a href="#">Terms</a> &nbsp; · &nbsp;
+    <a href="#">Contact</a>
+  </div>
+  <div>buildbelievefit.fitness</div>
+</footer>
+
+<!-- APP DOWNLOAD -->
+
 
 <!-- CONTACT -->
-<section id="contact">
-  <div class="con-in">
-    <div class="sec-lbl" style="color:rgba(255,255,255,.55)">Direct Contact</div>
-    <h2 class="sec-h" id="contact-h" style="margin-bottom:.8rem" data-lang-key="contact-h">Let's Build.<br><span style="color:rgba(255,255,255,.35)">Today.</span></h2>
-    <p style="font-size:1rem;color:rgba(255,255,255,.5);max-width:500px;margin:0 auto 1.5rem" data-lang-key="contact-sub">Ready to start? Have questions? Reach out directly &mdash; Akeem responds fast.</p>
-    <div class="con-links">
-      <a href="sms:6233409254?body=Hey Akeem, I want to get started with Build Believe Fit!" class="con-l">&#x1F4AC; Text Akeem</a>
-      <a href="tel:6233409254" class="con-l">&#x1F4DE; 623-340-9254</a>
-      <a href="/cdn-cgi/l/email-protection#6e0c1b07020a0c0b02070b180b08071a02020d2e0c1b07020a0c0b02070b180b08071a4008071a000b1d1d" class="con-l">&#x1F4E7; Email</a>
-    </div>
-    <a href="#pathfinder" class="btn-y" style="display:inline-block;margin-top:2.5rem">Start My Journey &#x2192;</a>
-  </div>
-</section>
 
-<!-- FOOTER -->
-<footer>
-  <div class="ft-in">
-    <div>
-      <div class="ft-b">Build<span class="y">Believe</span>Fit</div>
-      <div class="ft-tag" data-lang-key="footer-tag">Sovereign Performance Architecture. Adaptive metabolic efficiency for executives, first responders, and high-demand parents. Founder-Verified Protocols.</div>
-    </div>
-    <div class="ft-links">
-      <a href="#services" id="mob-nav-services">Services</a>
-      <a href="#programs" id="mob-nav-programs">Programs</a>
-      <a href="#nutrition" id="mob-nav-nutrition">Nutrition</a>
-      <a href="#testimonials" id="mob-nav-results">Results</a>
-      <a href="#founder">About Akeem</a>
-      <a href="#pathfinder">Start My Path</a>
-      <a href="bbf-app.html">&#x1F4F2; Client App</a>
-    </div>
-    <div class="ft-links">
-      <a href="sms:6233409254">Text: 623-340-9254</a>
-      <a href="tel:6233409254">Call: 623-340-9254</a>
-      <a href="/cdn-cgi/l/email-protection#f496819d98909691989d918291929d80989897b496819d98909691989d918291929d80da929d809a918787">Email Akeem</a>
-      <a href="#tdee-calc">TDEE Calculator</a>
-    </div>
-    <div class="ft-links" style="margin-top:.4rem">
-      <a href="/privacy.html">Privacy Policy</a>
-      <a href="/terms.html">Terms of Service</a>
-    </div>
-    <div class="ft-copy" data-lang-key="footer-copy">&copy; 2021&ndash;2026 Build Believe Fit LLC &bull; Est. 2021 &bull; Performance Architecture &amp; Movement Science &bull; buildbelievefit.fitness</div>
-  </div>
-</footer>
+
+<!-- Phase 2 · legacy detailed footer removed · the new minimal <footer>
+     from the design (above, inserted as group C) replaces it. The
+     legacy footer's deep-link block (#services / #programs / #nutrition
+     / #testimonials / #founder / Privacy / Terms / TDEE calc / phone +
+     email-protection cdn-cgi link) was already broken after this phase
+     deleted #testimonials and #founder · keeping it would point users
+     at empty anchors. The new closing section + footer give the user
+     a working final CTA (Start My Path → #pathfinder) and the brand
+     copyright line. Privacy/Terms can be re-added in a Phase 2.5
+     polish pass if the operator wants the legal links in the footer. -->
 
 <!-- LITE-TIER LEAD CAPTURE MODAL (Phase 14) -->
 <div id="nlite-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.78);padding:1rem;overflow-y:auto" role="dialog" aria-modal="true" aria-labelledby="nlite-title">
@@ -7132,10 +7846,10 @@ function pbRenderPositions(){
     { group: 'Navigate', icon: '\u26A1', name: 'Services',       sub: 'What we offer',        action: function(){ scrollTo('#services'); } },
     { group: 'Navigate', icon: '\u{1F3C6}', name: 'Programs',     sub: 'Signature plans',      action: function(){ scrollTo('#programs'); } },
     { group: 'Navigate', icon: '\u{1F374}', name: 'Nutrition',    sub: 'Nutrition architecture', action: function(){ scrollTo('#nutrition'); } },
-    { group: 'Navigate', icon: '\u2B50',    name: 'Results',      sub: 'Testimonials',         action: function(){ scrollTo('#testimonials'); } },
+    { group: 'Navigate', icon: '\u2B50',    name: 'Results',      sub: 'Testimonials',         action: function(){ scrollTo('#results'); } },
     { group: 'Navigate', icon: '\u{1F4DA}', name: 'Playbooks',    sub: 'Resource library',     action: function(){ scrollTo('#playbooks'); } },
-    { group: 'Navigate', icon: '\u{1F4D6}', name: 'My Story',     sub: 'Transformation',       action: function(){ scrollTo('#transformation'); } },
-    { group: 'Navigate', icon: '\u{1F464}', name: 'About',        sub: 'Meet the founder',     action: function(){ scrollTo('#founder'); } },
+    { group: 'Navigate', icon: '\u{1F4D6}', name: 'My Story',     sub: 'Transformation',       action: function(){ scrollTo('#story'); } },
+    { group: 'Navigate', icon: '\u{1F464}', name: 'About',        sub: 'Meet the Architect',   action: function(){ scrollTo('#story'); } },
     { group: 'Navigate', icon: '\u{1F680}', name: 'Start',        sub: 'Pathfinder intake',    action: function(){ scrollTo('#pathfinder'); } },
     { group: 'Actions',  icon: '\u{1F4F2}', name: 'Open Client App', sub: 'Go to the vault',   action: function(){ location.href = 'bbf-app.html'; } },
     { group: 'Actions',  icon: '\u{1F3C6}', name: 'Scouting Hub', sub: 'Sports hub',           action: function(){ location.href = 'sports-hub.html'; } },
@@ -7361,6 +8075,18 @@ function pbRenderPositions(){
 .bbf-pf-fab[data-open="true"]{opacity:0;pointer-events:none;transform:translateY(20px)}
 .bbf-pf-fab .bbf-pf-fab-key{font-size:1.1rem;filter:drop-shadow(0 0 6px rgba(245,200,0,.65))}
 @media (max-width:520px){.bbf-pf-fab{bottom:18px;right:18px;padding:.7rem 1rem;font-size:.74rem;letter-spacing:1.8px}}
+/* Phase 2 · Operator directive 1 · Vault button is now pinned in the new
+   nav (.bbf-vault-nav-btn). Hide the floating FAB on desktop/tablet so
+   the two CTAs don't overlap; keep the FAB on mobile (≤640px) since the
+   collapsed nav drops the inline button. The actual chat panel
+   (.bbf-pf-panel) is unchanged · both triggers open the same dialog. */
+@media (min-width:641px){.bbf-pf-fab{display:none !important}}
+@media (max-width:640px){.bbf-vault-nav-btn{display:none !important}}
+/* Phase 2 · bbf-lang.js toggles `.lang-active` (and `.lang-on`) on the
+   active language button · the new design's `.lang button` CSS targets
+   `.active` only · add the .lang-active aliasing so visual feedback
+   paints correctly on the redesigned nav lang toggle. */
+.lang button.lang-active{background:var(--gold);color:#1a0f00}
 
 .bbf-pf-panel{position:fixed;bottom:24px;right:24px;z-index:9001;width:min(380px,calc(100vw - 32px));height:min(580px,calc(100vh - 48px));background:linear-gradient(170deg,#0d0118 0%,#060606 50%,#0d0118 100%);border:1px solid rgba(245,200,0,.32);border-radius:18px;box-shadow:0 28px 64px -20px rgba(0,0,0,.85),0 0 32px rgba(106,13,173,.18),inset 0 1px 0 rgba(255,255,255,.05);display:none;flex-direction:column;overflow:hidden;opacity:0;transform:translateY(20px) scale(.96);transition:opacity .28s ease,transform .28s cubic-bezier(.2,.85,.35,1.05)}
 .bbf-pf-panel[data-open="true"]{display:flex;opacity:1;transform:none}
