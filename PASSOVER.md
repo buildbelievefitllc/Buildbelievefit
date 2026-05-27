@@ -2,7 +2,7 @@
 
 **Status:** living handover · the single canonical state document for cross-session context transfer
 **Companion docs:**  `ARCHITECTURE.md` (live system map · tables / env vars / model routing) · `api/BBF_MASTER_PLAN.md` (living roadmap · phase status with closure SHAs)
-**Last updated:** 2026-05-26 (session 2 · post-Maximum-Tier triple)
+**Last updated:** 2026-05-27 (session 3 · marketing-site redesign Phase 1 + 2 live on main)
 
 ---
 
@@ -20,14 +20,14 @@
 
 | | |
 |---|---|
-| `main` HEAD | `819c7a4` (Maximum-Tier remediation triple SHA-pinned · all 6.0h/6.0i/6.0j entries live) |
-| Last prior pins | `c2dc6fa` (4.1) · `8225258` (4.1a) · `def045e` (4.3a) · `d3df6ec` (6.0c) · `d8bf71c` (6.0d) · `76d3748` (6.0e) · `227bf2c` (6.0f) · `8c91364` (6.0g · TRIM lock applied) |
-| Feature branch (this session) | `claude/keen-bardeen-0SVb1` (in sync with main) |
+| `main` HEAD | **`4b5630b`** (Phase 2 marketing redesign · index.html structurally complete with new design across all surfaces) |
+| Tip of last session's work | `0340379` (Phase 4.3h pin · Vault SPA Friction Scanner + Linguistics) · everything since is Phase 6.0k agentic sweep + this session's marketing redesign |
+| Feature branch (this session) | `claude/exciting-dirac-e4mME` (in sync with main · zero divergence) |
 | Live Supabase project | `ihclbceghxpuawymlvgi` · `https://ihclbceghxpuawymlvgi.supabase.co` |
 | Live Render service | `vision-scout` · `https://vision-scout.onrender.com` (auto-deploys on push to `main`) |
-| Live storefront | `https://buildbelievefit.fitness` (GitHub Pages · auto-deploys on push to `main`) |
-| Live Vault SPA (legacy) | `https://buildbelievefit.fitness/bbf-app.html` (5 paying clients · 19,754 lines · 17,544-line core inline `<script>` still inline) |
-| New Vault SPA (compiled) | `https://buildbelievefit.fitness/vault/` (Vite + React + TS placeholder · awaits operator GitHub Pages source toggle) |
+| Live storefront | `https://buildbelievefit.fitness` (GitHub Pages · auto-deploys on push to `main`) · **NEW design now live across hero / nav / marquee / manifesto / pillars / tiers / who / app / arc / seal / compare / nutrition / story / playbooks / week / numbers / results / vault-preview / faq / credentials / news / closing / footer** |
+| Live Vault SPA (legacy) | `https://buildbelievefit.fitness/bbf-app.html` (5 paying clients · 19,754 lines · UNTOUCHED this session) |
+| New Vault SPA (compiled) | `https://buildbelievefit.fitness/vault/` (Vite + React + TS · 6 tabs live · awaits operator GitHub Pages source toggle) |
 
 ---
 
@@ -77,12 +77,35 @@ Every closed item has a corresponding entry in `api/BBF_MASTER_PLAN.md` with the
 | 6.0f · End-to-end live verification suite · 47/47 Node tests · `vision-scout/test/*.test.js` · live SQL probes for ghost columns + CHECK constraints | `178874a` |
 | 6.0g · Calibrated remediations · finishReason-aware `gemini_no_text` classification · email TRIM lock migration drafted (`20260526020000_bbf_email_trim_lock.sql`) | `d781f19` (code) · `8c91364` (TRIM applied · 54/54 tests) |
 
-### Phase 6 · Maximum-Tier Remediation Triple (session 2 · current)
+### Phase 6 · Maximum-Tier Remediation Triple (session 2)
 | Item | Closure |
 |---|---|
 | 6.0h · React Bootstrapper · `hydrateSessionFromStorage()` synchronous boot · `storage` event listener forces `window.location.reload()` on cross-tab drift | `aec4da2` |
 | 6.0i · Soft-Delete Foundation · migration `20260526030000_bbf_user_soft_delete_foundation.sql` APPLIED · `bbf_users.deleted_at` + `bbf_users_active` view + RLS RESTRICTIVE policy + `bbf_soft_delete_user(uid, reason, actor)` SP + `bbf_verify_user_pin` patched (3 explicit `deleted_at IS NULL` filters) · bbf-agentic-orchestrator v8 + index.js admin endpoints updated | `510e6c4` |
 | 6.0j · Claude proxy infrastructure · 3 shared Deno helpers (`_shared/anthropic-armor.ts` + `_shared/anthropic-resilience.ts` + `_shared/anthropic-call.ts`) · per-use-case `FALLBACK_POLICY` (Haiku→Sonnet · Sonnet→Opus · Opus→null) · `callClaude(args)` canonical entrypoint · tool_use schema enforcement · bbf-co-coach v13 converted end-to-end | `951941f` |
+
+### Vault React SPA Phase 4.3 chain (session 2 → 3 · 6 tabs live + functional gauntlet + reliability fixes)
+| Item | Closure |
+|---|---|
+| 4.3b · Auth gate + `VaultShell.tsx` (6 pre-mounted tab panels · same-tab no-op fast path) + NutritionVision visual purge | `f2a5405` |
+| 4.3c · `PrehabReadiness.tsx` Somatic Readiness sliders (5-dim composite · containment-by-grid) + `WorkoutTracker.tsx` Today's Program (table-to-card responsive flip) | `89ef9a6` |
+| 4.3d · Live-wire data layer · `insertSomaticReadiness` + `insertWorkoutSession` (two-step `bbf_logs` + `bbf_sets` with orphan-cleanup fallback) + double-submit shield primitives | `e3918dc` |
+| 4.3e · `CardioTracker.tsx` (Foster sRPE-load → `bbf_athlete_load_logs`) + `ProfileSettings.tsx` (local BBFPayload write · cloud RPC pending) + `NutritionVision.tsx` rewrite (live wire to `bbf-meal-image` + `bbf-meal-macros` edge functions · X-BBF-Admin-Token forwarding) | `391e0bb` |
+| 4.3f · Playwright E2E smoke suite (3 tests · Router Lock · Double-Submit Shield · Data Layer Intercept) | `dd87c15` |
+| 4.3g · Red-team patch · synchronous `useRef`-backed shield across all 5 action surfaces + `_ensureUidMap` clear-on-failure + lowercase-at-store + retry-on-miss | `34e572d` |
+| 4.3h · Friction Scanner card in `PrehabReadiness` (wires to `bbf-agentic-prehab`) + Sovereign Linguistics card in `ProfileSettings` (wires to `bbf-agentic-linguist`) + `_agentHeaders()` helper forwards `X-BBF-Admin-Token` to all `bbf-agentic-*` POSTs | `08b6524` |
+
+### Phase 6.0k · Anthropic Proxy Lockdown (session 2 · drains the §6.0j 12-agent debt)
+| Item | Closure |
+|---|---|
+| 6.0k · 12 remaining agents converted to canonical `callClaude` (helper extended with `userImages` param for vision · cardio explicit `fallbackOverride: null` · 11 agentic-* + bbf-midnight-haiku) · `bbf-agentic-cardio` (cardiac_intercept Opus) · `bbf-agentic-comlink` (3 intents) · `bbf-agentic-forecasting` · `bbf-agentic-immersion` · `bbf-agentic-interrogator` · `bbf-agentic-kinematics` (vision) · `bbf-agentic-linguist` · `bbf-agentic-orchestrator` · `bbf-agentic-pathfinder` · `bbf-agentic-peaking` · `bbf-agentic-prehab` · `bbf-midnight-haiku` · §6.0j status flipped to [x] | `4d826e5` |
+
+### Phase 1 + 2 · Marketing-site redesign (session 3 · current · LIVE)
+| Item | Closure |
+|---|---|
+| Marketing P1 · Hero + Pricing Tiers replaced from new design handoff bundle (`0c586912-Build_Believe_Fit__standalone_.html`) · Stripe map gains `architect_hybrid` alias · "Enter The Vault" portal-cards → `/vault/` (was `bbf-app.html`) · 4 tier cards live (Gateway $67/mo · Youth Athlete $97/mo · Architect Hybrid $697 flat · Sovereign $1,197 flat) · old `#hero` + `#programs` CSS rules commented out · ~80K of design CSS scrubbed (globals stripped) injected into the main `<style>` block | `0b81453` |
+| Marketing P1 polish · `selectTier()` querySelector `.prog-c` → `.tier` + `.tier.sel/.tier.dim` highlight CSS using `--gold` token | `903668b` |
+| Marketing P2 · Replaced 10 legacy sections (services/founder/nutrition/testimonials/explorer/specialized/transformation/playbooks/app-download/contact + legacy nav + legacy mobile drawer + legacy marquee + legacy footer) with 22 new design sections (marquee + new nav + trusted + press + manifesto + pillars-block · who · app-block · arc · seal · compare · nutrition · story · playbooks · week · numbers-block · results · vault-preview · faq · credentials · news · closing + new footer) · KEPT `#interrogator` + `#pathfinder` + all bottom-of-body scripts (FAB chat panel · Turnstile · Nutrition Lite modal · BBF_LANG · selectTier · BBF_STRIPE_BY_TIER) · Operator directive 1 · Access The Vault button pinned to new nav on desktop (`.bbf-vault-nav-btn` calls `#bbf-pf-fab.click()` · FAB hidden on ≥641px · nav button hidden on ≤640px) · Operator directive 2 · `bbf-photo.jpg` reinstated in `#story` origin slot 3 ("The Architecture Lives") + `akeem-before.png` slot 1 + `akeem-nasm.jpg` slot 2 | `4b5630b` |
 
 ### Emergency video-audit repair sprint (session 1)
 | Bug | Fix | Where |
@@ -120,44 +143,65 @@ Every closed item has a corresponding entry in `api/BBF_MASTER_PLAN.md` with the
 
 ---
 
-## 5 · Next-phase directive · Phase 4.3 Stage 2 (Frontend Componentization)
+## 5 · Next-phase directive · Apply marketing design language to the APP side
 
-The Maximum-Tier remediation triple landed last session (6.0h + 6.0i + 6.0j). The infrastructure backbone is built · the next session resumes **active frontend feature work**: porting more panes out of the 17,544-line bbf-app.html inline `<script>` into React components under `/vault/`.
+The marketing landing page is live in the new design (commits `0b81453` + `903668b` + `4b5630b`). The operator's next sprint is to **mirror that same flow, aesthetic, and design system on the APP side** — meaning the customer-facing client portal experience, which today exists in two places:
 
-### What's already in `/vault/`
-- `vault/package.json` · React 18.3 + Vite 5.4 + TS 5.6 + `@supabase/supabase-js@^2.46.1` · `npm run dev` / `npm run build` / `npm run typecheck`
-- `vault/src/services/supabaseClient.ts` (Phase 4.1a · 433 lines · 23 exports) · the data layer (singleton SupabaseClient, payload sync, session trackers, auth verification, hydration)
-- `vault/src/main.tsx` (Phase 6.0h) · synchronous `bootstrapVault()` runs `hydrateSessionFromStorage()` BEFORE `createRoot` · attaches `storage` event listener for cross-tab drift
-- `vault/src/App.tsx` (Phase 4.3a) · twin-panel mount of ClientDashboard + NutritionVision
-- `vault/src/components/ClientDashboard.tsx` (Phase 4.3a) · trainer/admin roster grid + adjacent client-detail panel · `selectClient` no-op fast path enforced · detail panel renders WITHOUT a key so React reuses the instance across selections (in-place re-render, no unmount)
-- `vault/src/components/NutritionVision.tsx` (Phase 4.3a) · live-food-analysis chrome (`pe-frame` with 4 brackets + scanline + hero) + media controls + macro chip strip · 3 horizontal strips use `flexWrap: 'wrap'` + `flex: '1 1 <basis>'` for mobile responsiveness without media queries
+| Surface | Where | State |
+|---|---|---|
+| Legacy client portal | `bbf-app.html` (root · 19,754 lines · 17,544-line inline `<script>` core) | 5 paying clients depend on it · **untouched this session** · serves at `https://buildbelievefit.fitness/bbf-app.html` |
+| New React Vault | `vault/src/components/*.tsx` · `VaultShell.tsx` with 6 tabs (Home / Nutrition / Workout / Cardio / Prehab / Profile) | All 6 tabs LIVE with real edge-function wires (Phase 4.3a→h chain · §2 above) · serves at `https://buildbelievefit.fitness/vault/` once operator toggles Pages source to "GitHub Actions" |
 
-### Suggested next per-feature ports (the legacy "golden path" from PASSOVER §5 sessions 1)
-1. **Login + PIN entry** · the React equivalent of `src/state/bbf-auth-engine.js` `LOGIN()` · call `verifyUserPin(uid, pin)` from `supabaseClient.ts` (already exported) · on success call `setCurrentUser(uid)` + `setCurrentUserSigil(uid)` so the hydrate path on the next reload finds the explicit uid.
-2. **Vault mount sequence** · the post-login splash + tab nav (Home / Nutrition / Workout / Cardio / Prehab / Profile).
-3. **Nutrition tab full feature** · wire the existing `NutritionVision.tsx` shell to the live `bbf-meal-macros` + `bbf-meal-image` edge functions · macro chip strip becomes live readback.
-4. **Workout tab** · the largest inline-script surface · port `RW()` (render workout) + the set/log/readiness submit flows.
-5. **Readiness submit** · `bbf_readiness` insert path · CNS score 0-100.
-6. **Trainer roster + client drill-in** · `ClientDashboard.tsx` already has the shell · wire the live `bbf_users_active` view query (Phase 6.0i) for the real roster · `setViewingAsClient(uid)` in `supabaseClient.ts` is the canonical state setter.
+The operator will **re-attach the same standalone design HTML** at the start of the next session as the visual reference (it's the file at `/root/.claude/uploads/.../0c586912-Build_Believe_Fit__standalone_.html` from this session). The standalone has all 25 sections — Phase 1 + 2 of the marketing redesign consumed those — and the same tokens / patterns apply to the app side. Mimic the flow, not the literal content.
+
+### Design system established in `index.html` (the patterns to mirror)
+
+| Layer | What |
+|---|---|
+| **Color tokens** | `--bg: #0B0418` (deep eggplant base) · `--bg-2: #16092B` · `--gold: #E5B83A` (primary action) · `--gold-soft: #F2C94C` · `--gold-deep: #B58A18` · `--purple: #6A2DAB` · `--purple-bright: #8E4FD4` · `--purple-deep: #3D1A6B` · `--purple-glow: rgba(142,79,212,0.45)` · `--text: #F5EFE2` · `--surface: rgba(255,255,255,0.035)` · `--hairline: rgba(255,255,255,0.08)` · all defined in the injected design CSS at the top of `index.html`'s `<style>` block. |
+| **Type** | Display: Oswald 400-700 · Body: Geist 300-700 · Mono: JetBrains Mono. Loaded via the Google Fonts `<link>` at line 11 of `index.html`. The vault React side currently uses Anton + Bebas + Barlow Condensed (legacy) — typography port is part of the app-side reskin. |
+| **Spacing scale** | `--pad-page: clamp(20px, 4vw, 64px)` |
+| **Section pattern** | `<section class="block" id="X">` wraps `<div class="section-head">` with `.section-eyebrow` + `.section-title` (with optional `<span class="gold">accent</span>`) + `.section-sub` lede. |
+| **Card pattern** | Tier-style cards use `<article class="tier">` with `.tier-tag` / `.tier-name` / `.tier-meta` / `.tier-price` / `.tier-protocol` / `.tier-flag green\|blue\|gold\|purple` / `.tier-feats` ul with `.check` icons / `.tier-cta` button. Origin-story cards use `.origin-card` with `.origin-img` (containing `<image-slot>` or `<img>`) + `.origin-caption` (`.origin-cap-label` + `.origin-quote`). |
+| **Hero ornamentation** | Faint Ω SVG (`.hero-omega`) · HUD coordinates (`.hud > .ln`) · horizontal scrolling tickers (`.hero-ticker.t-left/.t-right`) · portrait frame with corner accents (`.portrait-wrap > .portrait-corner + .portrait-frame > image-slot + .pulse`) + badge below. |
+| **CTA pattern** | Primary: `.btn-primary` (gold bg with status `.dot`) · Ghost: `.btn-ghost` (outline) · Portal cards: `.portal-card` (with `.portal-tag` / `.portal-title` / `.portal-sub`). |
+| **Backdrop** | Each section sits on the `--bg` eggplant with subtle radial gradients. Some sections use seal/arc decorative blocks (`.seal`, `.arc-svg`) for visual rhythm. |
+| **Responsive** | All grids use intrinsic `grid-template-columns: repeat(auto-fit, minmax(min(100%, Nrem), 1fr))` patterns · clamp() typography on every text scale · `@media (max-width: 1100px)` collapses nav-links and reduces grid columns · `@media (max-width: 640px)` further compacts. NO hardcoded pixel sizes for typography or layout. |
+| **Custom element** | `<image-slot id="X" placeholder="...">` for drag-drop photo placeholders · falls back to its `<img>` child when `image-slot.js` isn't loaded. Used in hero portrait (line 4307) + 3 origin slots in `#story` (lines ~5083, 5094, 5106). The operator will likely ship `image-slot.js` later; the fallback keeps photos visible today. |
+
+### Surfaces to consider for the next sprint
+
+The operator's voice transcript said "we're gonna work on the app side ... mimic the same flow and style of what we just added into the index dot HTML." Two interpretations · ask which (or both) is in scope:
+
+1. **`vault/` React SPA reskin** — the 7 components (`VaultShell.tsx`, `ClientDashboard.tsx`, `NutritionVision.tsx`, `WorkoutTracker.tsx`, `CardioTracker.tsx`, `PrehabReadiness.tsx`, `ProfileSettings.tsx`) + their CSS modules currently use the LEGACY token system (`--pur` / `--yel` / Bebas Neue / Barlow Condensed). Reskin = update CSS modules to the new design tokens (`--gold` / `--purple` / Geist / Oswald), apply `.tier`/`.section-head`/`.portal-card` patterns to the equivalent vault surfaces. The COMPONENT LOGIC and BACKEND WIRES stay verbatim (every component is fully wired post Phase 4.3a→h).
+2. **Legacy `bbf-app.html` reskin** — much larger surface (19,754 lines · most logic is in the inline `<script>`) and much higher risk (5 paying clients). Surgical approach matching the Phase 1+2 pattern on index.html (section-by-section visual replacement; backend wires untouchable). This is a multi-session sprint, not a single one.
+
+**Recommended starting point**: option 1 (`vault/` React reskin) — the components are already split, the data wires are stable, and `npm run typecheck && npm run build` provides a tight verification loop after each component is restyled. Once the React vault is wearing the new design, the operator can decide whether to also reskin the legacy or just route traffic to the new vault and sunset `bbf-app.html`.
 
 ### Operational reality the next session must respect
-- The legacy `bbf-app.html` is still THE customer surface · 5 paying clients depend on it · do not break it.
-- The vault `/vault/` route is a placeholder · operator hasn't toggled GitHub Pages source to "GitHub Actions" yet (pending action in §3) · once toggled, both `/bbf-app.html` (legacy) and `/vault/index.html` (compiled React) serve from the same atomic artifact.
-- All vault React code must import the data layer from `services/supabaseClient.ts` (no direct `createClient` calls) so the singleton + soft-delete filters + session state stay coherent.
-- Per Phase 4.3a contract · `selectClient`-equivalent state changes must NOT unmount the detail panel · re-render in place.
 
-### Deferred work streams (parallel · NOT blocking frontend)
-- **6.0h-followup · 12 in-vault Anthropic agents pending Anthropic-armor conversion** (queued in `MASTER_PLAN.md §6.0j` adoption matrix · each is a single-session conversion using the `bbf-co-coach` v13 template):
-  `bbf-agentic-orchestrator` · `bbf-midnight-haiku` · `bbf-agentic-cardio` (Opus · NO fallback) · `bbf-agentic-pathfinder` · `bbf-agentic-interrogator` · `bbf-agentic-prehab` · `bbf-agentic-forecasting` · `bbf-agentic-kinematics` (vision flag) · `bbf-agentic-comlink` · `bbf-agentic-immersion` · `bbf-agentic-peaking` · `bbf-agentic-linguist`.
-- **6.0i-followup · ~10 lower-risk readers of raw `bbf_users`** · convert to `bbf_users_active` view or add `WHERE deleted_at IS NULL` filter when touched. RLS gate already hides soft-deleted rows from anon/authenticated; this is UX hygiene, not security.
-- **5.2 · GitHub Actions CI runner** · the `node --test` suite at `vision-scout/test/*.test.js` (54 passing) needs the workflow file to fire on PRs.
+- The legacy `bbf-app.html` is still THE customer surface for 5 paying clients · do not break it. If touching it, hold the FF-merge until the operator confirms.
+- The `index.html` marketing redesign is LIVE on `main` (`4b5630b`) · the design system tokens and the design CSS block live in `index.html`'s inline `<style>`. To extract those tokens for the vault React side, copy the `:root { --bg / --gold / --purple / ... }` block from the top of the injected design CSS (the banner comment that says "PHASE 1 redesign · injected from Build Believe Fit design handoff bundle" marks the start).
+- All vault React code must continue importing the data layer from `services/supabaseClient.ts` (no direct `createClient` calls) · the Phase 4.3a→h wires depend on it.
+- The Pathfinder Comlink FAB (`#bbf-pf-fab`) is currently desktop-hidden / mobile-only in `index.html` (per Phase 2 directive). If the new app-side has its own FAB equivalent, mirror the same responsive pattern.
+- The operator's pattern · MAP FIRST (list keep/replace/wire-in), then surgical strikes (each phase commits its own SHA), hold FF-merge until they review. Mixed typography intermediate states are OK during a multi-phase sprint.
+
+### Deferred work streams (parallel · NOT blocking the app-side reskin)
+
+- **Phase 2.5 marketing polish** — the closing CTA buttons in `index.html`'s `#start` section currently have `href="#"` (inert). Wire them when ready. Also: provision a dedicated Stripe Payment Link for `architect_hybrid` (currently aliased to the `architect` URL · `BBF_STRIPE_BY_TIER` map at line ~5594 of index.html post-Phase-2). Also: re-add Privacy/Terms/phone/TDEE-calc links to the minimal new footer if the legal anchors are required.
+- **Phase 2.5 marketing language pack** — the new Phase 2 sections have NO `data-lang-key` attributes · the EN/ES/PT toggle only translates Phase 1 hero strings and the nav lang buttons. Add keys to `bbf-lang.js` and the new markup in a sweep when the operator prioritizes it.
+- **`BBF-App-Ascendant.html`** — the file the operator named in Phase 2 but didn't upload. The operator confirmed it's "for a future sprint" — keep an eye out for it.
+- **5.2 · GitHub Actions CI runner** for the `vision-scout/test/*.test.js` suite (54 tests passing).
+- **6.0i-followup · ~10 lower-risk readers of raw `bbf_users`** — convert to `bbf_users_active` view or add `WHERE deleted_at IS NULL` filter when touched.
 
 ### Where to look first when you boot the next session
-1. This file (`PASSOVER.md`) · §0-§5
-2. `ARCHITECTURE.md` (root) · especially §5.3 (Gemini hyperparameter standard), §5.4 (Gemini resilience), §5.5 (Anthropic hardening · Phase 6.0j)
-3. `api/BBF_MASTER_PLAN.md` · scan top-down · every `[x]` carries a SHA · §6.0h/§6.0i/§6.0j are the last-touched entries
-4. `git log --oneline -25 main` · the recent commit chain
-5. `vault/src/` · the live React workspace · this is where the next feature work lands
+
+1. This file (`PASSOVER.md`) · §0 → §5
+2. `git log --oneline -30 main` · the full recent commit chain (Phase 4.3 vault chain + 6.0k agentic sweep + Phase 1+2 marketing redesign)
+3. `index.html` · search for "PHASE 1 redesign · injected from Build Believe Fit design handoff bundle" to find the design token block at the top of the inline `<style>` (the `:root { --bg / --gold / --purple / ... }` definitions live there)
+4. `vault/src/components/*.module.css` · the 6 component CSS modules using the LEGACY token system · these are what need restyling for option 1
+5. `vault/src/components/VaultShell.tsx` · the tab shell · its `<header>` is the most-visible component to reskin first (analogous to the new `<header class="nav">` in `index.html`)
+6. The standalone design HTML the operator re-attaches · cross-reference visual patterns against the index.html implementation
 
 ---
 
@@ -165,12 +209,14 @@ The Maximum-Tier remediation triple landed last session (6.0h + 6.0i + 6.0j). Th
 
 | Question | Answer |
 |---|---|
-| Current main HEAD | `819c7a4` |
-| What's deployed live but pending operator UI toggle | GitHub Pages source · Settings → Pages → Source → "GitHub Actions" |
+| Current main HEAD | `4b5630b` · Phase 2 marketing redesign live |
+| What's deployed live but pending operator UI toggle | GitHub Pages source · Settings → Pages → Source → "GitHub Actions" (unblocks `/vault/` from serving the React build) |
 | Last applied SQL migration | `20260526030000_bbf_user_soft_delete_foundation.sql` (Phase 6.0i) |
-| Last applied prior migration | `20260526020000_bbf_email_trim_lock.sql` (Phase 6.0g) |
-| Last edge-function deploy | `bbf-co-coach` v13 · ezbr `f4d7cbaa...c2e2770` · Phase 6.0j canonical Anthropic-armor conversion |
-| Test suite status | 54/54 Node tests pass at `vision-scout/test/*.test.js` (`cd vision-scout && npm test`) |
-| Vault build status | `cd vault && npm run typecheck && npm run build` · zero errors · 74 modules · `dist/assets/index-C0YpTZ_v.js` 154KB / 49.5KB gzip |
-| Soft-delete posture | `bbf_users.deleted_at` live · `bbf_users_active` view · RLS RESTRICTIVE policy · `bbf_soft_delete_user(uid, reason, actor)` SP available to service_role · auth RPC gated · 3 high-risk readers patched · 10 low-risk readers queued |
-| Anthropic-armor adoption | 1/13 (bbf-co-coach v13) · 12 queued in MASTER_PLAN §6.0j |
+| Last edge-function deploys | 13/13 Anthropic agents converted to canonical `callClaude` (Phase 6.0j shipped `bbf-co-coach` v13 · Phase 6.0k shipped the 12 remaining agents to repo with all conversions applied; redeploys land on Supabase when push triggers) |
+| Test suite status (vision-scout) | 54/54 Node tests pass at `vision-scout/test/*.test.js` (`cd vision-scout && npm test`) |
+| Test suite status (vault E2E) | Playwright suite scaffolded (Phase 4.3f · 3 tests · Router Lock / Double-Submit Shield / Data Layer Intercept) · `cd vault && npm run test:e2e` after `npx playwright install chromium` |
+| Vault build status | `cd vault && npm run typecheck && npm run build` · zero errors · 85 modules · `dist/assets/index-*.js` 196.29 kB / 62.14 kB gzip · 6 tabs fully wired |
+| Soft-delete posture | `bbf_users.deleted_at` live · `bbf_users_active` view · RLS RESTRICTIVE policy · `bbf_soft_delete_user(uid, reason, actor)` SP available to service_role · auth RPC gated |
+| Anthropic-armor adoption | **13/13** · all in-vault agents on canonical `callClaude` (Phase 6.0j seeded the helper trio + bbf-co-coach · Phase 6.0k drained the 12-agent debt · §6.0j flipped to [x]) |
+| Marketing redesign status | LIVE on `main` · Phase 1 (hero + tiers) + Phase 1 polish + Phase 2 (all remaining sections) · `index.html` 4,953 → 8,343 lines · backend wires (env.js · Pathfinder · Stripe map · Comlink FAB · Interrogator · Nutrition Lite · Turnstile · BBF_LANG · selectTier) all preserved |
+| Phase 2 ops directives delivered | Vault button pinned to nav on desktop (`.bbf-vault-nav-btn`) / FAB-only on mobile via `@media (min-width:641px){.bbf-pf-fab{display:none}}` + reverse for nav button · founder portrait `bbf-photo.jpg` reinstated in `#story` origin slot 3 |
