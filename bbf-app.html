@@ -4974,6 +4974,18 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
     // if BBF_TTS isn't available (legacy path).
     var featureKey = null;
     try { featureKey = (typeof BBF_TTS !== 'undefined') ? BBF_TTS.featureForMode(lc.mode) : null; } catch (_) {}
+    // Latch ttsHealthy ONCE per session. Per-chunk re-evaluation race · two
+    // concurrent speak() promises last-write-wins on _lastFail · gate could
+    // flip mid-session and bleed Gemini PCM over still-draining ElevenLabs
+    // audio (operator's "two voice response" symptom). One decision per
+    // session: if BBF_TTS soft-fails on chunk N, no audio plays for the rest
+    // of the session — acceptable vs the dual-voice bug.
+    try {
+      lc.ttsHealthy = (typeof BBF_TTS !== 'undefined')
+        && !!BBF_TTS.featureForMode(lc.mode)
+        && !BBF_TTS.lastFailure();
+    } catch (_) { lc.ttsHealthy = false; }
+    console.log('[Phantom Eye] ttsHealthy latched · ' + lc.ttsHealthy + ' (mode=' + lc.mode + ', feature=' + featureKey + ')');
     try { ws.send(JSON.stringify({ type: 'context', mode: lc.mode, feature: featureKey, payload: ctx })); }
     catch (e) { console.error('[Phantom Eye] context send failed:', e && e.message); }
   });
@@ -5176,22 +5188,13 @@ function _lcAttachWsHandlers(ws, lc, msgEl) {
     }
 
     // Gemini Live serverContent — extract any audio inlineData parts.
-    // PCM is suppressed whenever BBF_TTS is loaded AND has not soft-failed
-    // on this session. That way ElevenLabs is the single voice the user
-    // hears from turn 1 — no Gemini "general voice" bleed-through during
-    // the warmup of the first ElevenLabs round-trip. If BBF_TTS soft-fails
-    // (lastFailure() returns non-null), the gate flips and Gemini PCM
-    // plays through as the safety-net fallback.
+    // PCM is suppressed when lc.ttsHealthy was true at WS open (latched
+    // once per session above · NOT re-evaluated per chunk). When false,
+    // Gemini PCM plays as the safety-net fallback.
     if (msg.serverContent && msg.serverContent.modelTurn && Array.isArray(msg.serverContent.modelTurn.parts)) {
-      var ttsHealthy = false;
-      try {
-        ttsHealthy = (typeof BBF_TTS !== 'undefined')
-          && !!BBF_TTS.featureForMode(lc.mode)
-          && !BBF_TTS.lastFailure();
-      } catch (_) { ttsHealthy = false; }
       msg.serverContent.modelTurn.parts.forEach(function(part) {
         if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.indexOf('audio/pcm') === 0) {
-          if (ttsHealthy) return;
+          if (lc.ttsHealthy) return;
           _lcQueuePlayback(lc, part.inlineData.data);
         }
       });
