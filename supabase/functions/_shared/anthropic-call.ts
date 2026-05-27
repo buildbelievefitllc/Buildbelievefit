@@ -52,10 +52,24 @@ const ANTHROPIC_API_VERSION = '2023-06-01';
 const ANTHROPIC_ENDPOINT    = 'https://api.anthropic.com/v1/messages';
 const DEFAULT_TIMEOUT_MS    = 60_000;
 
+/**
+ * Image attachment for vision-capable use cases (kinematic_form_score,
+ * novel_form_correction, etc.). Each entry produces an
+ * `image` content block alongside the wrapped <user_input> text in
+ * the user message · the model sees the image + the sealed text
+ * together. Base64-encoded raw bytes; the helper does NOT re-encode.
+ */
+export interface UserImageBlock {
+  mime_type: string;   // 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif'
+  data:      string;   // base64 bytes (no data:URI prefix)
+}
+
 export interface CallClaudeArgs {
   useCase:           UseCase;
   system:            string;
   userFields:        Record<string, unknown>;
+  /** Optional vision input · enables kinematics + comlink form-score paths. */
+  userImages?:       ReadonlyArray<UserImageBlock>;
   toolSchema?:       unknown;
   toolName?:         string;
   toolDescription?:  string;
@@ -96,11 +110,22 @@ async function _callClaudeOnce(
   }
 
   // Build the user message · always wrap user-controlled fields in the
-  // sealed <user_input> shell.
+  // sealed <user_input> shell. Optional image blocks ride alongside
+  // the wrapped text so vision-capable agents (kinematics + comlink
+  // form-score) get the canonical armor without losing image input.
   const wrappedUser = wrapUserBlock(args.userFields);
-  const userMessage = args.toolSchema
+  const userText = args.toolSchema
     ? wrappedUser + `\n\nReturn the result by calling the ${args.toolName} tool. Do not emit prose.`
     : wrappedUser;
+  const userContent: unknown = args.userImages && args.userImages.length > 0
+    ? [
+        ...args.userImages.map((img) => ({
+          type: 'image' as const,
+          source: { type: 'base64' as const, media_type: img.mime_type, data: img.data },
+        })),
+        { type: 'text' as const, text: userText },
+      ]
+    : userText;
 
   // System block · optional prompt-caching wrapper.
   const systemBlock = args.systemCacheable === false
@@ -124,7 +149,7 @@ async function _callClaudeOnce(
     model:      modelName,
     max_tokens: args.maxTokens,
     system:     systemBlock,
-    messages:   [{ role: 'user', content: userMessage }],
+    messages:   [{ role: 'user', content: userContent }],
   };
   if (tools)                              requestBody.tools       = tools;
   if (tool_choice)                        requestBody.tool_choice = tool_choice;

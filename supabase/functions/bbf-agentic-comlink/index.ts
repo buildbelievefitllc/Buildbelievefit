@@ -92,14 +92,14 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 // Phase 7 Workstream B · Comlink classifies the transcript (constraint
 // vs friction) then rewrites the day's workout · including the
-// form_correction intent for novel kinematic deviations. Sonnet 4.6
-// handles vision-adjacent reasoning and structured rewrites at lower
-// cost than Opus, per CEO routing rules.
-// TODO Phase 7.x · migrate to _shared/model-router.ts once shared-file
-// deploy is wired up. For now this matches routeModel('novel_form_correction').
-const MODEL              = 'claude-sonnet-4-6';
+// Phase 6.0h-followup · raw fetch → canonical callClaude · use-case
+// `novel_form_correction` routes to SONNET · fallback escalates to OPUS.
+// All three intent paths (form_correction · positional · rewrite) share
+// the same agent + use-case · the per-intent schema variation lives in
+// each handler's toolSchema arg.
+import { callClaude } from '../_shared/anthropic-call.ts';
+
 const MAX_TOKENS         = 2048;
-const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 14000;
 const MAX_TRANSCRIPT_LEN = 800;
 const MAX_CANDIDATES     = 12;
@@ -317,44 +317,40 @@ async function handleFormCorrection(payload: any, apiKey: string) {
   const systemContext = (clientContext && typeof clientContext.systemContext === 'string')
     ? clientContext.systemContext : '';
 
-  const userMessage =
-    '## athlete profile\n' +
-    '```json\n' + JSON.stringify({ uid }, null, 2) + '\n```\n\n' +
-    '## current exercise\n' +
-    '"' + exerciseName + '"\n\n' +
-    '## deviation (novel · not in deterministic lookup)\n' +
-    '"' + deviation + '"\n\n' +
-    '## recent_events (last ' + recentEvents.length + ' flagged reps)\n' +
-    '```json\n' + JSON.stringify(recentEvents, null, 2) + '\n```\n\n' +
-    '## client_context\n' +
-    '```json\n' + JSON.stringify(clientContext, null, 2) + '\n```\n\n' +
-    (systemContext ? '## OT reasoning frame (injected from BBF_OT_PROMPT.systemContext)\n' + systemContext + '\n\n' : '') +
-    'Return ONLY the JSON schema response.';
-
   const t0     = Date.now();
-  const result = await callClaude(userMessage, SYSTEM_PROMPT_FORM_CORRECTION, RESPONSE_SCHEMA_FORM_CORRECTION, apiKey);
-  const dur    = Date.now() - t0;
+  const result = await callClaude({
+    useCase:         'novel_form_correction',
+    system:          SYSTEM_PROMPT_FORM_CORRECTION,
+    userFields:      {
+      uid:               uid,
+      exercise_name:     exerciseName,
+      deviation:         deviation,
+      recent_events_json: JSON.stringify(recentEvents),
+      client_context_json: JSON.stringify(clientContext),
+      ot_reasoning_frame: systemContext || '',
+      task: 'Emit corrective_cue + swap_to per the form-correction schema.',
+    },
+    toolSchema:      RESPONSE_SCHEMA_FORM_CORRECTION,
+    toolName:        'submit_form_correction',
+    toolDescription: 'Emit the corrective_cue + recommended swap_to drill for the novel kinematic deviation.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-comlink.form_correction',
+    apiKey:          apiKey,
+    timeoutMs:       CLAUDE_TIMEOUT_MS,
+  });
+  const dur = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-comlink:form_correction] Claude failed (${result.error}) after ${dur}ms — fallback`);
+    console.warn(`[bbf-agentic-comlink:form_correction] Claude failed (${result.error}) after ${dur}ms · attempts=${result.attempts} fallback_used=${result.fallback_used} — fallback`);
     return jsonResponse(defaultFormCorrectionFallback(exerciseName, deviation, 'claude_failed'), 200);
   }
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) return jsonResponse(defaultFormCorrectionFallback(exerciseName, deviation, 'no_text_block'), 200);
-
-  let parsed: any;
-  try { parsed = JSON.parse(text); }
-  catch (e) {
-    console.warn(`[bbf-agentic-comlink:form_correction] parse failed (${(e as Error).message}) — fallback`);
-    return jsonResponse(defaultFormCorrectionFallback(exerciseName, deviation, 'parse_failed'), 200);
-  }
+  const parsed = result.toolInput as { corrective_cue?: unknown; swap_to?: unknown } | null;
   if (!parsed || typeof parsed.corrective_cue !== 'string' || typeof parsed.swap_to !== 'string') {
-    console.warn(`[bbf-agentic-comlink:form_correction] schema mismatch — fallback. got=${JSON.stringify(parsed).slice(0,200)}`);
+    console.warn(`[bbf-agentic-comlink:form_correction] tool_use shape mismatch — fallback. got=${JSON.stringify(parsed).slice(0,200)}`);
     return jsonResponse(defaultFormCorrectionFallback(exerciseName, deviation, 'schema_mismatch'), 200);
   }
 
-  console.log(`[bbf-agentic-comlink:form_correction] uid=${uid} · ex=${exerciseName} · dev=${deviation} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-comlink:form_correction] uid=${uid} · ex=${exerciseName} · dev=${deviation} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
   return jsonResponse({
     corrective_cue: parsed.corrective_cue.slice(0, 240),
     swap_to:        parsed.swap_to.slice(0, 120),
@@ -402,70 +398,9 @@ function defaultPositionalFallback(reason: string) {
   };
 }
 
-// ─── Anthropic call w/ AbortController timeout ─────────────────────────
-async function callClaude(userMessage: string, systemPrompt: string, schema: unknown, apiKey: string) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
-
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: schema },
-    },
-    system: [
-      {
-        type:          'text',
-        text:          systemPrompt,
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
-    messages: [
-      { role: 'user', content: userMessage },
-    ],
-  };
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
-      },
-      body:   JSON.stringify(requestBody),
-      signal: controller.signal,
-    });
-
-    let body: any;
-    try { body = await res.json(); }
-    catch (_) { body = null; }
-
-    if (!res.ok) {
-      const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-      console.error(`[bbf-agentic-comlink] Anthropic API error: status=${res.status} body=${JSON.stringify(body).slice(0,600)}`);
-      return { ok: false as const, status: res.status, error: errMsg, raw: body };
-    }
-    return { ok: true as const, status: res.status, body };
-  } catch (e) {
-    const err = e as Error;
-    const reason = err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message;
-    console.error(`[bbf-agentic-comlink] Claude fetch threw: ${reason}`);
-    return { ok: false as const, status: 0, error: reason, raw: null };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaude` + `extractTextBlock` removed · canonical
+//  helper from _shared/anthropic-call.ts replaces both for all three
+//  intents.)
 
 // ═══════════════════════════════════════════════════════════════════════
 // Intent (c) handler — positional drill selector
@@ -503,34 +438,35 @@ async function handlePositionalDrill(payload: any, apiKey: string) {
     };
   });
 
-  const userMessage =
-    '## athlete\n' +
-    '```json\n' + JSON.stringify({ uid, sport, position, lang: safeLang }, null, 2) + '\n```\n\n' +
-    '## query\n' +
-    '"' + safeQuery + '"\n\n' +
-    '## candidates (founder-verified drills for ' + sport + ' / ' + position + ')\n' +
-    '```json\n' + JSON.stringify(summary, null, 2) + '\n```\n\n' +
-    'Select the best-fit drill index. Return ONLY the JSON schema response.';
-
   const t0     = Date.now();
-  const result = await callClaude(userMessage, SYSTEM_PROMPT_POSITIONAL, RESPONSE_SCHEMA_POSITIONAL, apiKey);
-  const dur    = Date.now() - t0;
+  const result = await callClaude({
+    useCase:         'novel_form_correction',
+    system:          SYSTEM_PROMPT_POSITIONAL,
+    userFields:      {
+      uid:               uid,
+      sport:             sport,
+      position:          position,
+      lang:              safeLang,
+      query:             safeQuery,
+      candidates_json:   JSON.stringify(summary),
+      task: 'Select the best-fit drill index from the candidates per the schema.',
+    },
+    toolSchema:      RESPONSE_SCHEMA_POSITIONAL,
+    toolName:        'submit_positional_drill_pick',
+    toolDescription: 'Emit the chosen drill_index + coaching_verdict + why for the positional drill selection.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-comlink.positional',
+    apiKey:          apiKey,
+    timeoutMs:       CLAUDE_TIMEOUT_MS,
+  });
+  const dur = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-comlink:positional] Claude failed (${result.error}) after ${dur}ms — fallback`);
+    console.warn(`[bbf-agentic-comlink:positional] Claude failed (${result.error}) after ${dur}ms · attempts=${result.attempts} fallback_used=${result.fallback_used} — fallback`);
     return jsonResponse(defaultPositionalFallback('claude_failed'), 200);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) return jsonResponse(defaultPositionalFallback('no_text_block'), 200);
-
-  let parsed: any;
-  try { parsed = JSON.parse(text); }
-  catch (e) {
-    console.warn(`[bbf-agentic-comlink:positional] parse failed (${(e as Error).message}) — fallback`);
-    return jsonResponse(defaultPositionalFallback('parse_failed'), 200);
-  }
+  const parsed = result.toolInput as any;
 
   const rawIdx = (parsed && typeof parsed.drill_index === 'number') ? Math.floor(parsed.drill_index) : -1;
   if (
@@ -544,7 +480,7 @@ async function handlePositionalDrill(payload: any, apiKey: string) {
     return jsonResponse(defaultPositionalFallback('schema_mismatch'), 200);
   }
 
-  console.log(`[bbf-agentic-comlink:positional] uid=${uid} · sport=${sport} · pos=${position} · query_len=${safeQuery.length} · idx=${rawIdx} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-comlink:positional] uid=${uid} · sport=${sport} · pos=${position} · query_len=${safeQuery.length} · idx=${rawIdx} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   return jsonResponse({
     drill_index:      rawIdx,
@@ -617,36 +553,34 @@ serve(async (req: Request) => {
     return jsonResponse(defaultPassThrough(workout, 'config_missing'), 200);
   }
 
-  const userMessage =
-    '## athlete profile\n' +
-    '```json\n' + JSON.stringify({ uid: uid, goal: ctx.goal || null, partner: ctx.partner || null }, null, 2) + '\n```\n\n' +
-    '## current_workout (' + workout.length + ' planned exercises)\n' +
-    '```json\n' + JSON.stringify(workout, null, 2) + '\n```\n\n' +
-    '## transcript (athlete radio transmission)\n' +
-    '"' + safeTranscript + '"\n\n' +
-    'Classify constraint vs friction silently, then rewrite the workout per your system instructions. Return ONLY the JSON schema response.';
-
   const t0     = Date.now();
-  const result = await callClaude(userMessage, SYSTEM_PROMPT_REWRITE, RESPONSE_SCHEMA_REWRITE, ANTHROPIC_API_KEY);
-  const dur    = Date.now() - t0;
+  const result = await callClaude({
+    useCase:         'novel_form_correction',
+    system:          SYSTEM_PROMPT_REWRITE,
+    userFields:      {
+      uid:               uid,
+      goal:              ctx.goal || '',
+      partner:           ctx.partner || '',
+      current_workout_json: JSON.stringify(workout),
+      transcript:        safeTranscript,
+      task: 'Classify constraint vs friction silently, then rewrite the workout per system instructions.',
+    },
+    toolSchema:      RESPONSE_SCHEMA_REWRITE,
+    toolName:        'submit_comlink_rewrite',
+    toolDescription: 'Emit comlink_verdict + updated_workout array per the rewrite schema.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-comlink.rewrite',
+    apiKey:          ANTHROPIC_API_KEY,
+    timeoutMs:       CLAUDE_TIMEOUT_MS,
+  });
+  const dur = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-comlink] Claude failed (${result.error}) after ${dur}ms — passing through`);
+    console.warn(`[bbf-agentic-comlink] Claude failed (${result.error}) after ${dur}ms · attempts=${result.attempts} fallback_used=${result.fallback_used} — passing through`);
     return jsonResponse(defaultPassThrough(workout, 'claude_failed'), 200);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) {
-    console.warn('[bbf-agentic-comlink] no text block in response — passing through');
-    return jsonResponse(defaultPassThrough(workout, 'no_text_block'), 200);
-  }
-
-  let parsed: any;
-  try { parsed = JSON.parse(text); }
-  catch (e) {
-    console.warn(`[bbf-agentic-comlink] parse failed (${(e as Error).message}) — passing through`);
-    return jsonResponse(defaultPassThrough(workout, 'parse_failed'), 200);
+  const parsed = result.toolInput as any;
   }
 
   if (
@@ -665,7 +599,7 @@ serve(async (req: Request) => {
     weight_lbs: String((ex && ex.weight_lbs) || ''),
   }));
 
-  console.log(`[bbf-agentic-comlink] uid=${uid} · transcript_len=${safeTranscript.length} · workout_in=${workout.length} · workout_out=${cleanWorkout.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-comlink] uid=${uid} · transcript_len=${safeTranscript.length} · workout_in=${workout.length} · workout_out=${cleanWorkout.length} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   return jsonResponse({
     comlink_verdict: parsed.comlink_verdict.slice(0, 240),

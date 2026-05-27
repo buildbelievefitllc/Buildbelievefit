@@ -49,11 +49,19 @@ function jsonResponse(body: unknown, status = 200): Response {
 // classification then asks Claude to ONLY narrate the routing).
 // Opus 4.7 stays per CEO routing rules · cardiac safety is one of
 // the three categories that earn peak reasoning.
-import { routeAndLog } from '../_shared/model-router.ts';
+//
+// Phase 6.0h-followup (this commit) · raw fetch to Anthropic deleted ·
+// canonical `callClaude` from _shared/anthropic-call.ts replaces it ·
+// `cardiac_intercept` use-case routes to OPUS per model-router · the
+// Opus-tier fallback policy is `null` (CEO directive · never demote
+// medical reasoning to a weaker model on transient failure · retry
+// on Opus and surface the failure if Anthropic itself is down).
+// `fallbackOverride: null` is passed explicitly at the call site so a
+// future edit to FALLBACK_POLICY can never silently demote this
+// surface · code-as-policy defense in depth.
+import { callClaude } from '../_shared/anthropic-call.ts';
 
-const MODEL              = routeAndLog('bbf-agentic-cardio', 'cardiac_intercept');
 const MAX_TOKENS         = 1024;
-const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 12000;
 const MIN_MINUTES        = 5;
 const MAX_MINUTES        = 120;
@@ -151,64 +159,9 @@ function defaultCardioResponse(minutes: number, reason: string) {
   };
 }
 
-async function callClaude(userMessage: string, apiKey: string) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
-
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
-    system: [
-      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-    ],
-    messages: [
-      { role: 'user', content: userMessage },
-    ],
-  };
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
-      },
-      body:   JSON.stringify(requestBody),
-      signal: controller.signal,
-    });
-
-    let body: any;
-    try { body = await res.json(); } catch (_) { body = null; }
-
-    if (!res.ok) {
-      const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-      console.error(`[bbf-agentic-cardio] Anthropic API error: status=${res.status} body=${JSON.stringify(body).slice(0,600)}`);
-      return { ok: false as const, status: res.status, error: errMsg, raw: body };
-    }
-    return { ok: true as const, status: res.status, body };
-  } catch (e) {
-    const err = e as Error;
-    const reason = err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message;
-    console.error(`[bbf-agentic-cardio] Claude fetch threw: ${reason}`);
-    return { ok: false as const, status: 0, error: reason, raw: null };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaude` + `extractTextBlock` removed in this commit ·
+//  the canonical `_shared/anthropic-call.ts` helper handles fetch +
+//  retry + per-use-case fallback + armor wrap + tool_use extraction.)
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -254,49 +207,55 @@ serve(async (req: Request) => {
     return jsonResponse(defaultCardioResponse(minutes, 'config_missing'), 200);
   }
 
-  const userMessage =
-    'available_minutes: ' + minutes + '\n' +
-    'strategy_tier (mandated by deterministic router — DO NOT OVERRIDE): "' + strategyTier + '"\n' +
-    'tier_short_label: "' + shortLabel + '"\n\n' +
-    '1. Pick the best gym modality for this tier.\n' +
-    '2. Write a precise minute-by-minute protocol that fits EXACTLY into ' + minutes + ' minutes.\n' +
-    '3. Write a one-sentence Sovereign Toast explaining the physiological ROI.\n\n' +
-    'Append " — ' + shortLabel + '" to your modality string so the athlete sees the tier on screen.\n\n' +
-    'Return ONLY the JSON schema response.';
-
   const t0     = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
-  const dur    = Date.now() - t0;
+  const result = await callClaude({
+    useCase:         'cardiac_intercept',
+    system:          SYSTEM_PROMPT,
+    userFields:      {
+      athlete_uid:        uid,
+      available_minutes:  String(minutes),
+      strategy_tier:      strategyTier,
+      tier_short_label:   shortLabel,
+      task: [
+        '1. Pick the best gym modality for this tier.',
+        `2. Write a precise minute-by-minute protocol that fits EXACTLY into ${minutes} minutes.`,
+        '3. Write a one-sentence Sovereign Toast explaining the physiological ROI.',
+        `Append " — ${shortLabel}" to your modality string so the athlete sees the tier on screen.`,
+      ].join('\n'),
+    },
+    toolSchema:      RESPONSE_SCHEMA,
+    toolName:        'submit_cardio_protocol',
+    toolDescription: 'Emit the cardio modality + minute-by-minute protocol + ROI toast for the deterministically routed strategy tier.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-cardio',
+    apiKey:          ANTHROPIC_API_KEY,
+    // CEO directive · Opus-tier safety-critical · NEVER demote on
+    // transient failure · the resilience layer retries on Opus and
+    // surfaces the failure if Anthropic is fully down. Setting this
+    // explicitly (rather than relying on the FALLBACK_POLICY default
+    // for `cardiac_intercept`) is defense-in-depth code-as-policy.
+    fallbackOverride: null,
+    timeoutMs:       CLAUDE_TIMEOUT_MS,
+  });
+  const dur = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-cardio] Claude failed (${result.error}) after ${dur}ms — returning default`);
+    console.warn(`[bbf-agentic-cardio] Claude failed (${result.error}) after ${dur}ms · attempts=${result.attempts} fallback_used=${result.fallback_used} — returning default`);
     return jsonResponse(defaultCardioResponse(minutes, 'claude_failed'), 200);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) {
-    console.warn('[bbf-agentic-cardio] no text block in response — returning default');
-    return jsonResponse(defaultCardioResponse(minutes, 'no_text_block'), 200);
-  }
-
-  let parsed: any;
-  try { parsed = JSON.parse(text); } catch (e) {
-    console.warn(`[bbf-agentic-cardio] parse failed (${(e as Error).message}) — returning default`);
-    return jsonResponse(defaultCardioResponse(minutes, 'parse_failed'), 200);
-  }
-
+  const parsed = result.toolInput as { modality?: unknown; protocol?: unknown; roi_toast?: unknown } | null;
   if (
     !parsed ||
-    typeof parsed.modality !== 'string'  ||
-    typeof parsed.protocol !== 'string'  ||
+    typeof parsed.modality  !== 'string' ||
+    typeof parsed.protocol  !== 'string' ||
     typeof parsed.roi_toast !== 'string'
   ) {
-    console.warn(`[bbf-agentic-cardio] schema shape mismatch — returning default. got=${JSON.stringify(parsed).slice(0,200)}`);
+    console.warn(`[bbf-agentic-cardio] tool_use shape mismatch — returning default. got=${JSON.stringify(parsed).slice(0,200)}`);
     return jsonResponse(defaultCardioResponse(minutes, 'schema_mismatch'), 200);
   }
 
-  console.log(`[bbf-agentic-cardio] uid=${uid} · minutes=${minutes} · tier=${shortLabel} · modality="${parsed.modality}" · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-cardio] uid=${uid} · minutes=${minutes} · tier=${shortLabel} · modality="${parsed.modality}" · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   return jsonResponse({
     modality:  parsed.modality,

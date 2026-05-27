@@ -42,7 +42,9 @@
 // Errors return non-2xx with { "error": "<slug>", "detail"?: ... }.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { routeAndLog } from '../_shared/model-router.ts';
+// Phase 6.0h-followup · raw fetch → canonical callClaude · use-case
+// `mesocycle_rationale` routes to HAIKU · fallback escalates to SONNET.
+import { callClaude } from '../_shared/anthropic-call.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -63,9 +65,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 // lifts). Haiku 4.5 is the right tier per the CEO routing rules ·
 // Opus 4.7 was overspend for a fixed-schema response. Routing is
 // centralized in _shared/model-router.ts so future tuning is one-file.
-const MODEL          = routeAndLog('bbf-agentic-peaking', 'mesocycle_rationale');
 const MAX_TOKENS     = 4096;
-const EFFORT_DEFAULT = 'high';
 
 // Trigger thresholds (CEO scaffold).
 const SLEEP_FLOOR     = 6;   // sleep_quality < 6 → CNS compromised
@@ -198,57 +198,8 @@ async function fetchLatestReadiness(
   }
 }
 
-// ─── Anthropic call ────────────────────────────────────────────────────
-async function callClaude(userMessage: string, apiKey: string) {
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
-    system: [
-      {
-        type: 'text',
-        text: SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
-    messages: [
-      { role: 'user', content: userMessage },
-    ],
-  };
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key':         apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type':      'application/json',
-    },
-    body: JSON.stringify(requestBody),
-  });
-
-  let body: any;
-  try { body = await res.json(); }
-  catch (_) { body = null; }
-
-  if (!res.ok) {
-    const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-    console.error(`[bbf-agentic-peaking] Anthropic API error: status=${res.status} body=${JSON.stringify(body)}`);
-    return { ok: false as const, status: res.status, error: errMsg, raw: body };
-  }
-  return { ok: true as const, status: res.status, body };
-}
-
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaude` + `extractTextBlock` removed · canonical
+//  helper from _shared/anthropic-call.ts replaces both.)
 
 // ─── Phase 4 · Mesocycle restructure handler ──────────────────────────
 // Deterministic restructure computation + queue staging. NO Claude on
@@ -480,16 +431,24 @@ serve(async (req: Request) => {
     ? payload.scheduled_lifts.filter((s: unknown) => typeof s === 'string' && s.length > 0)
     : [];
 
-  const userMessage =
-    'Athlete state today:\n' +
-    '- sleep_quality: ' + sleep + '/10\n' +
-    '- soreness_level: ' + stress + '/10\n' +
-    '- scheduled_focus: ' + focus + '\n' +
-    '- scheduled_lifts: ' + (lifts.length ? lifts.join(', ') : '(none provided)') + '\n\n' +
-    'Generate the warning banner + 2 CNS-friendly replacement lifts per the schema.';
-
   const t0 = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
+  const result = await callClaude({
+    useCase:         'mesocycle_rationale',
+    system:          SYSTEM_PROMPT,
+    userFields:      {
+      sleep_quality:    String(sleep) + '/10',
+      soreness_level:   String(stress) + '/10',
+      scheduled_focus:  focus,
+      scheduled_lifts:  lifts.length ? lifts.join(', ') : '(none provided)',
+      task: 'Emit the warning banner + 2 CNS-friendly replacement lifts per the schema.',
+    },
+    toolSchema:      RESPONSE_SCHEMA,
+    toolName:        'submit_peaking_intercept',
+    toolDescription: 'Emit the CNS-readiness warning banner + 2 mobility/recovery replacement lifts.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-peaking',
+    apiKey:          ANTHROPIC_API_KEY,
+  });
   const dur = Date.now() - t0;
 
   if (!result.ok) {
@@ -498,32 +457,26 @@ serve(async (req: Request) => {
       detail: result.error,
       status: result.status,
       raw: result.raw,
+      attempts:      result.attempts,
+      fallback_used: result.fallback_used,
     }, 502);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) {
-    console.error(`[bbf-agentic-peaking] no text block in response. content=${JSON.stringify(respBody?.content)}`);
-    return jsonResponse({ error: 'no_text_block_in_response', raw: respBody }, 502);
+  const parsed = result.toolInput as { warning_banner?: unknown; replacement_lifts?: unknown } | null;
+  if (!parsed || typeof parsed.warning_banner !== 'string' || !Array.isArray(parsed.replacement_lifts)) {
+    console.error(`[bbf-agentic-peaking] tool_use shape mismatch · got=${JSON.stringify(parsed).slice(0, 200)}`);
+    return jsonResponse({ error: 'schema_mismatch', raw: parsed }, 502);
   }
 
-  let parsed: any;
-  try { parsed = JSON.parse(text); }
-  catch (e) {
-    console.error(`[bbf-agentic-peaking] parse failed: ${(e as Error).message}. text=${text.slice(0, 400)}`);
-    return jsonResponse({ error: 'parse_failed', detail: (e as Error).message, raw_text: text }, 502);
-  }
-
-  console.log(`[bbf-agentic-peaking] intercept · uid=${uidRaw} · sleep=${sleep} stress=${stress} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-peaking] intercept · uid=${uidRaw} · sleep=${sleep} stress=${stress} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   return jsonResponse({
     override_active:    true,
     warning_banner:     parsed.warning_banner,
     replacement_lifts:  parsed.replacement_lifts,
     readiness_snapshot: { sleep, stress, has_data: hasReadiness },
-    model:              respBody.model,
-    usage:              respBody.usage,
+    model:              result.model,
+    usage:              result.usage,
     duration_ms:        dur,
   }, 200);
 });

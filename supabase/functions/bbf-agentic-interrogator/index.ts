@@ -51,11 +51,10 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 // Phase 7 Workstream B · Routine audit · single-turn interview with
 // structured output. Sonnet 4.6 is the right tier per CEO routing.
-import { routeAndLog } from '../_shared/model-router.ts';
-
-const MODEL           = routeAndLog('bbf-agentic-interrogator', 'onboarding_interview');
+// Phase 6.0h-followup · raw fetch → canonical callClaude · use-case
+// `onboarding_interview` routes to SONNET · fallback escalates to OPUS.
+import { callClaude } from '../_shared/anthropic-call.ts';
 const MAX_TOKENS      = 2048;
-const EFFORT_DEFAULT  = 'high';
 const CLAUDE_TIMEOUT_MS = 16000;
 const MAX_ROUTINE_LEN = 4000;
 
@@ -176,70 +175,8 @@ function defaultFallback(reason: string) {
   };
 }
 
-// ─── Anthropic call w/ AbortController timeout ────────────────────────
-async function callClaude(userMessage: string, apiKey: string) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
-
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
-    system: [
-      {
-        type:          'text',
-        text:          SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
-    messages: [
-      { role: 'user', content: userMessage },
-    ],
-  };
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
-      },
-      body:   JSON.stringify(requestBody),
-      signal: controller.signal,
-    });
-
-    let body: any;
-    try { body = await res.json(); }
-    catch (_) { body = null; }
-
-    if (!res.ok) {
-      const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-      console.error(`[bbf-agentic-interrogator] Anthropic API error: status=${res.status} body=${JSON.stringify(body).slice(0,600)}`);
-      return { ok: false as const, status: res.status, error: errMsg, raw: body };
-    }
-    return { ok: true as const, status: res.status, body };
-  } catch (e) {
-    const err = e as Error;
-    const reason = err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message;
-    console.error(`[bbf-agentic-interrogator] Claude fetch threw: ${reason}`);
-    return { ok: false as const, status: 0, error: reason, raw: null };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaude` + `extractTextBlock` removed · canonical
+//  helper from _shared/anthropic-call.ts replaces both.)
 
 // ─── Handler ──────────────────────────────────────────────────────────
 serve(async (req: Request) => {
@@ -264,35 +201,34 @@ serve(async (req: Request) => {
     return jsonResponse(defaultFallback('config_missing'), 200);
   }
 
-  const userMessage =
-    '## prospect routine submission\n' +
-    'session_id: ' + safeSession + '\n' +
-    'length_chars: ' + safeRoutine.length + '\n\n' +
-    '```\n' + safeRoutine + '\n```\n\n' +
-    'Audit per your system instructions. Return ONLY the JSON schema response — { gaps, sovereign_contrast, verdict }.';
-
   const t0     = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
-  const dur    = Date.now() - t0;
+  const result = await callClaude({
+    useCase:         'onboarding_interview',
+    system:          SYSTEM_PROMPT,
+    userFields:      {
+      session_id:    safeSession,
+      length_chars:  String(safeRoutine.length),
+      routine_text:  safeRoutine,
+      task: 'Audit per system instructions; emit { gaps, sovereign_contrast, verdict } per the schema.',
+    },
+    toolSchema:      RESPONSE_SCHEMA,
+    toolName:        'submit_interrogator_audit',
+    toolDescription: 'Emit the routine audit · gaps + sovereign_contrast + verdict per the BBF interrogator schema.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-interrogator',
+    apiKey:          ANTHROPIC_API_KEY,
+    timeoutMs:       CLAUDE_TIMEOUT_MS,
+  });
+  const dur = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-interrogator] Claude failed (${result.error}) after ${dur}ms — returning fallback`);
+    console.warn(`[bbf-agentic-interrogator] Claude failed (${result.error}) after ${dur}ms · attempts=${result.attempts} fallback_used=${result.fallback_used} — returning fallback`);
     return jsonResponse(defaultFallback('claude_failed'), 200);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) {
-    console.warn('[bbf-agentic-interrogator] no text block in response — returning fallback');
-    return jsonResponse(defaultFallback('no_text_block'), 200);
-  }
-
-  let parsed: any;
-  try { parsed = JSON.parse(text); }
-  catch (e) {
-    console.warn(`[bbf-agentic-interrogator] parse failed (${(e as Error).message}) — returning fallback`);
-    return jsonResponse(defaultFallback('parse_failed'), 200);
-  }
+  // Legacy validator below uses `any`-style structural checks · preserve
+  // the loose typing so the shape coercion logic remains unchanged.
+  const parsed = result.toolInput as any;
 
   if (
     !parsed ||
@@ -322,7 +258,7 @@ serve(async (req: Request) => {
     rationale:        String(parsed.verdict.rationale).slice(0, 400),
   };
 
-  console.log(`[bbf-agentic-interrogator] session=${safeSession} · routine_len=${safeRoutine.length} · gaps=${cleanGaps.length} · contrast=${cleanContrast.length} · tier=${cleanVerdict.recommended_tier} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-interrogator] session=${safeSession} · routine_len=${safeRoutine.length} · gaps=${cleanGaps.length} · contrast=${cleanContrast.length} · tier=${cleanVerdict.recommended_tier} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   return jsonResponse({
     gaps:               cleanGaps,

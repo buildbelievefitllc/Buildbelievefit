@@ -42,11 +42,10 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 // Phase 7 Workstream B · i18n translation · low-stakes, deterministic-
 // schema output. Haiku 4.5 per CEO routing rules.
-import { routeAndLog } from '../_shared/model-router.ts';
-
-const MODEL              = routeAndLog('bbf-agentic-linguist', 'i18n_translation');
+// Phase 6.0h-followup · raw fetch → canonical callClaude · use-case
+// `i18n_translation` routes to HAIKU · fallback escalates to SONNET.
+import { callClaude } from '../_shared/anthropic-call.ts';
 const MAX_TOKENS         = 512;
-const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 10000;
 const MAX_CUE_LEN        = 240;
 
@@ -109,64 +108,8 @@ function normalizeLanguage(lang: string): string {
   return lang || 'Spanish';
 }
 
-async function callClaude(userMessage: string, apiKey: string) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
-
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
-    system: [
-      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-    ],
-    messages: [
-      { role: 'user', content: userMessage },
-    ],
-  };
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
-      },
-      body:   JSON.stringify(requestBody),
-      signal: controller.signal,
-    });
-
-    let body: any;
-    try { body = await res.json(); } catch (_) { body = null; }
-
-    if (!res.ok) {
-      const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-      console.error(`[bbf-agentic-linguist] Anthropic API error: status=${res.status} body=${JSON.stringify(body).slice(0,600)}`);
-      return { ok: false as const, status: res.status, error: errMsg, raw: body };
-    }
-    return { ok: true as const, status: res.status, body };
-  } catch (e) {
-    const err = e as Error;
-    const reason = err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message;
-    console.error(`[bbf-agentic-linguist] Claude fetch threw: ${reason}`);
-    return { ok: false as const, status: 0, error: reason, raw: null };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaude` + `extractTextBlock` removed · canonical
+//  helper from _shared/anthropic-call.ts replaces both.)
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -203,44 +146,42 @@ serve(async (req: Request) => {
     return jsonResponse(defaultLinguistResponse('config_missing'), 200);
   }
 
-  const userMessage =
-    'Target language: ' + languageLabel + '\n\n' +
-    'English coaching cue: "' + safeCue + '"\n\n' +
-    'Translate per your system instructions. Return ONLY the JSON schema response.';
-
   const t0     = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
-  const dur    = Date.now() - t0;
+  const result = await callClaude({
+    useCase:         'i18n_translation',
+    system:          SYSTEM_PROMPT,
+    userFields:      {
+      target_language:    languageLabel,
+      english_cue:        safeCue,
+      task: 'Translate per system instructions; emit translation + phonetic + literal_meaning.',
+    },
+    toolSchema:      RESPONSE_SCHEMA,
+    toolName:        'submit_translation',
+    toolDescription: 'Emit the localized coaching cue with phonetic + literal meaning fields.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-linguist',
+    apiKey:          ANTHROPIC_API_KEY,
+    timeoutMs:       CLAUDE_TIMEOUT_MS,
+  });
+  const dur = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-linguist] Claude failed (${result.error}) after ${dur}ms — returning default`);
+    console.warn(`[bbf-agentic-linguist] Claude failed (${result.error}) after ${dur}ms · attempts=${result.attempts} fallback_used=${result.fallback_used} — returning default`);
     return jsonResponse(defaultLinguistResponse('claude_failed'), 200);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) {
-    console.warn('[bbf-agentic-linguist] no text block in response — returning default');
-    return jsonResponse(defaultLinguistResponse('no_text_block'), 200);
-  }
-
-  let parsed: any;
-  try { parsed = JSON.parse(text); } catch (e) {
-    console.warn(`[bbf-agentic-linguist] parse failed (${(e as Error).message}) — returning default`);
-    return jsonResponse(defaultLinguistResponse('parse_failed'), 200);
-  }
-
+  const parsed = result.toolInput as { translation?: unknown; phonetic?: unknown; literal_meaning?: unknown } | null;
   if (
     !parsed ||
-    typeof parsed.translation !== 'string' ||
-    typeof parsed.phonetic !== 'string' ||
+    typeof parsed.translation     !== 'string' ||
+    typeof parsed.phonetic        !== 'string' ||
     typeof parsed.literal_meaning !== 'string'
   ) {
-    console.warn(`[bbf-agentic-linguist] schema shape mismatch — returning default. got=${JSON.stringify(parsed).slice(0,200)}`);
+    console.warn(`[bbf-agentic-linguist] tool_use shape mismatch — returning default. got=${JSON.stringify(parsed).slice(0,200)}`);
     return jsonResponse(defaultLinguistResponse('schema_mismatch'), 200);
   }
 
-  console.log(`[bbf-agentic-linguist] uid=${uid} · lang=${languageLabel} · cue_len=${safeCue.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-linguist] uid=${uid} · lang=${languageLabel} · cue_len=${safeCue.length} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   return jsonResponse({
     translation:     parsed.translation,

@@ -47,11 +47,10 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 // Phase 7 Workstream B · Sport-immersion roleplay seed · static content
 // generation, doesn't need peak reasoning. Haiku 4.5 per CEO routing.
-import { routeAndLog } from '../_shared/model-router.ts';
-
-const MODEL              = routeAndLog('bbf-agentic-immersion', 'sport_immersion_seed');
+// Phase 6.0h-followup · raw fetch → canonical callClaude · use-case
+// `sport_immersion_seed` routes to HAIKU · fallback escalates to SONNET.
+import { callClaude } from '../_shared/anthropic-call.ts';
 const MAX_TOKENS         = 1024;
-const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 12000;
 const MAX_TURNS          = 12;     // cap conversation_history to avoid runaway context
 const MAX_MSG_LEN        = 500;
@@ -121,60 +120,13 @@ function normalizeLanguage(lang: string): string {
   return lang || 'Spanish';
 }
 
-async function callClaude(systemMessages: any[], messages: any[], apiKey: string) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
-
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
-    system: systemMessages,
-    messages,
-  };
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
-      },
-      body:   JSON.stringify(requestBody),
-      signal: controller.signal,
-    });
-
-    let body: any;
-    try { body = await res.json(); } catch (_) { body = null; }
-
-    if (!res.ok) {
-      const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-      console.error(`[bbf-agentic-immersion] Anthropic API error: status=${res.status} body=${JSON.stringify(body).slice(0,600)}`);
-      return { ok: false as const, status: res.status, error: errMsg, raw: body };
-    }
-    return { ok: true as const, status: res.status, body };
-  } catch (e) {
-    const err = e as Error;
-    const reason = err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message;
-    console.error(`[bbf-agentic-immersion] Claude fetch threw: ${reason}`);
-    return { ok: false as const, status: 0, error: reason, raw: null };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaude` + `extractTextBlock` removed · canonical
+//  helper from _shared/anthropic-call.ts replaces both. The multi-
+//  message conversation history collapses into a single serialized
+//  userField so the helper's sealed-boundary armor wraps it as
+//  UNTRUSTED data · the assistant's own prior turns are also treated
+//  as untrusted because a hijacked history could be injected by a
+//  caller, so re-interpreting them as instructions would be unsafe.)
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -214,57 +166,58 @@ serve(async (req: Request) => {
     return jsonResponse(defaultImmersionResponse('config_missing'), 200);
   }
 
-  // System prompt is split: stable global SYSTEM_PROMPT (cacheable) +
-  // scenario/language framing (per-session). The cacheable block keeps
-  // the dominant token cost down across turns of the same chat.
-  const systemMessages = [
-    { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-    { type: 'text', text: '# THIS SESSION\nScenario: ' + safeScenario + '\nTarget language: ' + languageLabel + '\nStay in character as a native speaker the athlete is interacting with in this scenario.' },
-  ];
+  // Conversation history collapses into a serialized userField so the
+  // helper's <user_input> shell wraps it as untrusted data. Per-session
+  // scenario + language framing also rides inside the user block (the
+  // stable SYSTEM_PROMPT stays as `system` for prompt-caching).
+  const cleanHistory = history
+    .filter((m: { role?: unknown; content?: unknown }) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+    .map((m: { role: string; content: string }) => ({ role: m.role, content: String(m.content).slice(0, MAX_MSG_LEN) }));
 
-  // Roll conversation_history through as proper messages. Filter to
-  // valid role+content shape. The current user_message is appended last.
-  const cleanHistory = history.filter((m: any) => {
-    return m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string';
-  }).map((m: any) => ({ role: m.role, content: String(m.content).slice(0, MAX_MSG_LEN) }));
-
-  const messages = cleanHistory.concat([{ role: 'user', content: safeMessage }]);
+  const historySerialized = cleanHistory.length
+    ? cleanHistory.map((m, i) => `[turn ${i + 1} · ${m.role}] ${m.content}`).join('\n')
+    : '(no prior turns)';
 
   const t0     = Date.now();
-  const result = await callClaude(systemMessages, messages, ANTHROPIC_API_KEY);
-  const dur    = Date.now() - t0;
+  const result = await callClaude({
+    useCase:         'sport_immersion_seed',
+    system:          SYSTEM_PROMPT,
+    userFields:      {
+      scenario:             safeScenario,
+      target_language:      languageLabel,
+      conversation_history: historySerialized,
+      current_user_message: safeMessage,
+      task: 'Stay in character as a native speaker. Emit ai_reply + grammar_correction + fluency_score per the schema.',
+    },
+    toolSchema:      RESPONSE_SCHEMA,
+    toolName:        'submit_immersion_turn',
+    toolDescription: 'Emit the next conversational reply, grammar correction, and fluency score for the language-immersion scenario.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-immersion',
+    apiKey:          ANTHROPIC_API_KEY,
+    timeoutMs:       CLAUDE_TIMEOUT_MS,
+  });
+  const dur = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-immersion] Claude failed (${result.error}) after ${dur}ms — returning default`);
+    console.warn(`[bbf-agentic-immersion] Claude failed (${result.error}) after ${dur}ms · attempts=${result.attempts} fallback_used=${result.fallback_used} — returning default`);
     return jsonResponse(defaultImmersionResponse('claude_failed'), 200);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) {
-    console.warn('[bbf-agentic-immersion] no text block in response — returning default');
-    return jsonResponse(defaultImmersionResponse('no_text_block'), 200);
-  }
-
-  let parsed: any;
-  try { parsed = JSON.parse(text); } catch (e) {
-    console.warn(`[bbf-agentic-immersion] parse failed (${(e as Error).message}) — returning default`);
-    return jsonResponse(defaultImmersionResponse('parse_failed'), 200);
-  }
-
+  const parsed = result.toolInput as { ai_reply?: unknown; grammar_correction?: unknown; fluency_score?: unknown } | null;
   if (
     !parsed ||
-    typeof parsed.ai_reply !== 'string' ||
+    typeof parsed.ai_reply           !== 'string' ||
     typeof parsed.grammar_correction !== 'string' ||
-    typeof parsed.fluency_score !== 'number'
+    typeof parsed.fluency_score      !== 'number'
   ) {
-    console.warn(`[bbf-agentic-immersion] schema shape mismatch — returning default. got=${JSON.stringify(parsed).slice(0,200)}`);
+    console.warn(`[bbf-agentic-immersion] tool_use shape mismatch — returning default. got=${JSON.stringify(parsed).slice(0,200)}`);
     return jsonResponse(defaultImmersionResponse('schema_mismatch'), 200);
   }
 
   const clampedScore = Math.max(0, Math.min(100, Math.round(parsed.fluency_score)));
 
-  console.log(`[bbf-agentic-immersion] uid=${uid} · lang=${languageLabel} · turns=${cleanHistory.length} · score=${clampedScore} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-immersion] uid=${uid} · lang=${languageLabel} · turns=${cleanHistory.length} · score=${clampedScore} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   return jsonResponse({
     ai_reply:           parsed.ai_reply,

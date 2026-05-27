@@ -65,11 +65,14 @@ function jsonResponse(body: unknown, status = 200): Response {
 // Phase 7 Workstream B · 1RM linear-regression narration · the math is
 // deterministic upstream; Claude just narrates the trajectory. Haiku
 // 4.5 is the right tier per CEO routing.
-import { routeAndLog } from '../_shared/model-router.ts';
+//
+// Phase 6.0h-followup (this commit) · raw fetch to Anthropic deleted ·
+// canonical `callClaude` from _shared/anthropic-call.ts replaces it ·
+// `forecast_1rm` use-case routes to HAIKU per model-router · per-use-
+// case fallback policy escalates Haiku→Sonnet on transient failure.
+import { callClaude } from '../_shared/anthropic-call.ts';
 
-const MODEL          = routeAndLog('bbf-agentic-forecasting', 'forecast_1rm');
 const MAX_TOKENS     = 2048;
-const EFFORT_DEFAULT = 'high';
 const SET_LIMIT      = 60;           // descending by day_key, sufficient for 30-day forecast
 const MIN_SETS_REQUIRED = 3;         // matches CEO scaffold threshold
 
@@ -310,57 +313,9 @@ async function fetchRecentSets(
   }
 }
 
-// ─── Anthropic call ────────────────────────────────────────────────────
-async function callClaude(userMessage: string, apiKey: string) {
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
-    system: [
-      {
-        type: 'text',
-        text: SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' },  // CEO directive
-      },
-    ],
-    messages: [
-      { role: 'user', content: userMessage },
-    ],
-  };
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key':         apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type':      'application/json',
-    },
-    body: JSON.stringify(requestBody),
-  });
-
-  let body: any;
-  try { body = await res.json(); }
-  catch (_) { body = null; }
-
-  if (!res.ok) {
-    const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-    console.error(`[bbf-agentic-forecasting] Anthropic API error: status=${res.status} body=${JSON.stringify(body)}`);
-    return { ok: false as const, status: res.status, error: errMsg, raw: body };
-  }
-  return { ok: true as const, status: res.status, body };
-}
-
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaude` + `extractTextBlock` removed · canonical
+//  `_shared/anthropic-call.ts` handles fetch + retry + per-use-case
+//  fallback + armor wrap + tool_use extraction.)
 
 // ─── Handler ───────────────────────────────────────────────────────────
 serve(async (req: Request) => {
@@ -462,14 +417,22 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'config_missing_anthropic_key' }, 503);
   }
 
-  const userMessage =
-    'Athlete asks about: ' + liftName + '\n\n' +
-    'Recent training data (most-recent first, all lifts mixed — cluster by exercise_key + day_key to identify the target cluster):\n\n' +
-    '```json\n' + JSON.stringify(setsData, null, 2) + '\n```\n\n' +
-    'Return ONLY the JSON schema response. Project the 30-day 1RM, score your confidence, and give ONE direct micro-adjustment to hit the projection.';
-
   const t0 = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
+  const result = await callClaude({
+    useCase:         'forecast_1rm',
+    system:          SYSTEM_PROMPT,
+    userFields:      {
+      lift_name:       liftName,
+      recent_sets_json: JSON.stringify(setsData),
+      task: 'Cluster sets by exercise_key + day_key, identify the cluster matching lift_name, project the 30-day 1RM, score confidence, emit ONE direct micro-adjustment.',
+    },
+    toolSchema:      RESPONSE_SCHEMA,
+    toolName:        'submit_1rm_forecast',
+    toolDescription: 'Emit the 30-day projected 1RM, confidence band, and one-sentence training micro-adjustment.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-forecasting',
+    apiKey:          ANTHROPIC_API_KEY,
+  });
   const dur = Date.now() - t0;
 
   if (!result.ok) {
@@ -478,24 +441,18 @@ serve(async (req: Request) => {
       detail: result.error,
       status: result.status,
       raw:    result.raw,
+      attempts:      result.attempts,
+      fallback_used: result.fallback_used,
     }, 502);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) {
-    console.error(`[bbf-agentic-forecasting] no text block in response. content=${JSON.stringify(respBody?.content)}`);
-    return jsonResponse({ error: 'no_text_block_in_response', raw: respBody }, 502);
+  const parsed = result.toolInput as { projected_1rm?: unknown; confidence_score?: unknown; agent_insight?: unknown } | null;
+  if (!parsed || typeof parsed.projected_1rm !== 'string' || typeof parsed.confidence_score !== 'string' || typeof parsed.agent_insight !== 'string') {
+    console.error(`[bbf-agentic-forecasting] tool_use shape mismatch · got=${JSON.stringify(parsed).slice(0, 200)}`);
+    return jsonResponse({ error: 'schema_mismatch', raw: parsed }, 502);
   }
 
-  let parsed: any;
-  try { parsed = JSON.parse(text); }
-  catch (e) {
-    console.error(`[bbf-agentic-forecasting] parse failed: ${(e as Error).message}. text=${text.slice(0, 400)}`);
-    return jsonResponse({ error: 'parse_failed', detail: (e as Error).message, raw_text: text }, 502);
-  }
-
-  console.log(`[bbf-agentic-forecasting] uid=${uidRaw} · lift=${liftName} · sets=${setsData.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-forecasting] uid=${uidRaw} · lift=${liftName} · sets=${setsData.length} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   // Frontend expects the bare 3-field shape per the original scaffold;
   // Phase 4 adds an OPTIONAL ot_signal field that consumers can ignore.

@@ -22,8 +22,10 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 // Phase 7 Workstream B · Slow-path nightly synthesis · Haiku already
-// per Phase 6. Route through the central router for observability.
-import { routeAndLog } from '../_shared/model-router.ts';
+// Phase 6.0h-followup · raw fetch → canonical callClaude · use-case
+// `snapshot_synthesis` routes to HAIKU · fallback escalates to SONNET.
+// Free-text path (no toolSchema · the 2-4 sentence snapshot is prose).
+import { callClaude } from '../_shared/anthropic-call.ts';
 // Phase 1.4 · Budget kill-switch · 429 SpendLimitExceeded when the
 // global emergency_stop flag is set in bbf_system_config.
 import { checkSpendGate, spendLimitResponse } from '../_shared/spend-gate.ts';
@@ -37,7 +39,6 @@ function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 }
 
-const MODEL          = routeAndLog('bbf-agentic-orchestrator', 'snapshot_synthesis');
 const MAX_TOKENS     = 320;       // 2–4 sentences ≈ 120–220 output tokens
 const MEMORY_LOOKBACK_DAYS = 7;
 const MEAL_LOOKBACK_DAYS   = 7;
@@ -168,35 +169,10 @@ async function fetchSetSlice(uuid: string, supabaseUrl: string, supabaseKey: str
   } catch (_) { return []; }
 }
 
-async function callClaude(userMessage: string, apiKey: string) {
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
-    messages: [{ role: 'user', content: userMessage }],
-  };
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-    body: JSON.stringify(requestBody),
-  });
-  let body: any;
-  try { body = await res.json(); } catch (_) { body = null; }
-  if (!res.ok) {
-    const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-    console.error(`[bbf-agentic-orchestrator] Anthropic API error: status=${res.status} body=${JSON.stringify(body)}`);
-    return { ok: false as const, error: errMsg, raw: body };
-  }
-  return { ok: true as const, body };
-}
-
-function extractTextBlock(content: any): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaude` + `extractTextBlock` removed · canonical
+//  helper handles fetch + retry + per-use-case fallback + armor wrap.
+//  Free-text path: this agent emits a 2-4 sentence snapshot · no
+//  toolSchema · the helper returns `result.text` directly.)
 
 async function persistSnapshotToMemory(
   uidSlug: string, snapshotText: string, sources: any, supabaseUrl: string, supabaseKey: string,
@@ -284,36 +260,44 @@ async function handleSynthesizeAthleteSnapshot(uidRaw: string, supabaseUrl: stri
     sets_inspected:  setSlice.length,
   };
 
-  const userMessage =
-    '## athlete\n' +
-    '```json\n' + JSON.stringify(userSlice || { uid: uidRaw }, null, 2) + '\n```\n\n' +
-    '## orchestrator memory · last 7 days · aggregated\n' +
-    '```json\n' + JSON.stringify(memorySummary, null, 2) + '\n```\n\n' +
-    '## nutrition · 7-day rolling averages\n' +
-    '```json\n' + JSON.stringify(mealAgg || { days_logged: 0 }, null, 2) + '\n```\n\n' +
-    '## recent sets · most-recent ' + setSlice.length + ' rows\n' +
-    '```json\n' + JSON.stringify(setSlice.slice(0, 20), null, 2) + '\n```\n\n' +
-    'Synthesize the 2–4 sentence Athlete Snapshot per your system instructions.';
-
   const t0 = Date.now();
-  const result = await callClaude(userMessage, apiKey);
+  const result = await callClaude({
+    useCase:     'snapshot_synthesis',
+    system:      SYSTEM_PROMPT,
+    userFields:  {
+      athlete_uid:                 uidRaw,
+      athlete_slice_json:          JSON.stringify(userSlice || { uid: uidRaw }),
+      memory_7d_aggregated_json:   JSON.stringify(memorySummary),
+      nutrition_7d_averages_json:  JSON.stringify(mealAgg || { days_logged: 0 }),
+      recent_sets_json:            JSON.stringify((setSlice || []).slice(0, 20)),
+      task: 'Synthesize the 2-4 sentence Athlete Snapshot per your system instructions.',
+    },
+    maxTokens:   MAX_TOKENS,
+    agentTag:    'bbf-agentic-orchestrator',
+    apiKey:      apiKey,
+  });
   const dur = Date.now() - t0;
   if (!result.ok) {
-    return jsonResponse({ ok: false, error: 'anthropic_call_failed', detail: result.error }, 502);
+    return jsonResponse({
+      ok: false,
+      error: 'anthropic_call_failed',
+      detail: result.error,
+      attempts:      result.attempts,
+      fallback_used: result.fallback_used,
+    }, 502);
   }
-  const text = extractTextBlock((result.body as any).content);
-  if (!text) return jsonResponse({ ok: false, error: 'no_text_block_in_response' }, 502);
-  const snapshotText = text.trim();
+  const snapshotText = typeof result.text === 'string' ? result.text.trim() : '';
+  if (!snapshotText) return jsonResponse({ ok: false, error: 'no_text_block_in_response' }, 502);
 
   await persistSnapshotToMemory(uidRaw, snapshotText, sources, supabaseUrl, supabaseKey);
 
-  console.log(`[bbf-agentic-orchestrator] synthesis · uid=${uidRaw} · model=${(result.body as any).model} · dur=${dur}ms · decisions_7d=${memorySlice.length}`);
+  console.log(`[bbf-agentic-orchestrator] synthesis · uid=${uidRaw} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · dur=${dur}ms · decisions_7d=${memorySlice.length}`);
   return jsonResponse({
     ok:           true,
     uid:          uidRaw,
     snapshot:     snapshotText,
     sources:      sources,
-    model:        (result.body as any).model,
+    model:        result.model,
     duration_ms:  dur,
   }, 200);
 }

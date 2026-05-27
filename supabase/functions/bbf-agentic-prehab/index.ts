@@ -50,11 +50,12 @@ function jsonResponse(body: unknown, status = 200): Response {
 // Phase 7 Workstream B · Prehab assignment leverages ACWR + cold-start
 // inputs. Sonnet 4.6 is the right tier per CEO routing rules · enough
 // reasoning for the 3-movement matrix without Opus-tier overspend.
-import { routeAndLog } from '../_shared/model-router.ts';
+//
+// Phase 6.0h-followup · raw fetch → canonical callClaude · use-case
+// `prehab_assignment` routes to SONNET · fallback escalates to OPUS.
+import { callClaude } from '../_shared/anthropic-call.ts';
 
-const MODEL             = routeAndLog('bbf-agentic-prehab', 'prehab_assignment');
 const MAX_TOKENS        = 2048;
-const EFFORT_DEFAULT    = 'high';
 const CLAUDE_TIMEOUT_MS = 12000;
 
 const SYSTEM_PROMPT = [
@@ -227,70 +228,8 @@ async function fetchTodaySets(
   }
 }
 
-// ─── Anthropic call w/ 12s AbortController timeout ─────────────────────
-async function callClaude(userMessage: string, apiKey: string) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
-
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
-    system: [
-      {
-        type:          'text',
-        text:          SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' },  // CEO directive
-      },
-    ],
-    messages: [
-      { role: 'user', content: userMessage },
-    ],
-  };
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
-      },
-      body:   JSON.stringify(requestBody),
-      signal: controller.signal,
-    });
-
-    let body: any;
-    try { body = await res.json(); }
-    catch (_) { body = null; }
-
-    if (!res.ok) {
-      const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-      console.error(`[bbf-agentic-prehab v2] Anthropic API error: status=${res.status} body=${JSON.stringify(body)}`);
-      return { ok: false as const, status: res.status, error: errMsg, raw: body };
-    }
-    return { ok: true as const, status: res.status, body };
-  } catch (e) {
-    const err = e as Error;
-    const reason = err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message;
-    console.error(`[bbf-agentic-prehab v2] Claude fetch threw: ${reason}`);
-    return { ok: false as const, status: 0, error: reason, raw: null };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaude` + `extractTextBlock` removed · canonical
+//  helper from _shared/anthropic-call.ts replaces both.)
 
 function utcToday(): string {
   const d = new Date();
@@ -370,43 +309,39 @@ serve(async (req: Request) => {
     return jsonResponse(defaultBaselineMatrix(), 200);
   }
 
-  const userMessage =
-    'Generate a 3-movement recovery / prehab matrix for this athlete.\n\n' +
-    '## profile\n```json\n' + JSON.stringify(userProfile, null, 2) + '\n```\n\n' +
-    '## today_workload (' + todayWorkload.length + ' set' + (todayWorkload.length === 1 ? '' : 's') + ' completed on ' + todayDate + ')\n' +
-    '```json\n' + JSON.stringify(todayWorkload, null, 2) + '\n```\n\n' +
-    '## reported_friction\n' + (friction ? '"' + friction + '"' : '(none reported)') + '\n\n' +
-    'Return ONLY the JSON schema response. Exactly 3 entries in matrix.';
-
   const t0     = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
-  const dur    = Date.now() - t0;
+  const result = await callClaude({
+    useCase:         'prehab_assignment',
+    system:          SYSTEM_PROMPT,
+    userFields:      {
+      profile_json:       JSON.stringify(userProfile),
+      today_date:         todayDate,
+      today_workload_json: JSON.stringify(todayWorkload),
+      reported_friction:  friction || '(none reported)',
+      task: 'Emit exactly 3 movement entries in the matrix per the schema.',
+    },
+    toolSchema:      RESPONSE_SCHEMA,
+    toolName:        'submit_prehab_matrix',
+    toolDescription: 'Emit the 3-movement recovery / prehab matrix tailored to this athlete\'s profile + today\'s workload + reported friction.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-prehab',
+    apiKey:          ANTHROPIC_API_KEY,
+    timeoutMs:       CLAUDE_TIMEOUT_MS,
+  });
+  const dur = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-prehab v2] Claude failed (${result.error}) after ${dur}ms — returning baseline fallback`);
+    console.warn(`[bbf-agentic-prehab v2] Claude failed (${result.error}) after ${dur}ms · attempts=${result.attempts} fallback_used=${result.fallback_used} — returning baseline fallback`);
     return jsonResponse(defaultBaselineMatrix(), 200);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) {
-    console.warn('[bbf-agentic-prehab v2] no text block in response — returning baseline fallback');
-    return jsonResponse(defaultBaselineMatrix(), 200);
-  }
-
-  let parsed: any;
-  try { parsed = JSON.parse(text); }
-  catch (e) {
-    console.warn(`[bbf-agentic-prehab v2] parse failed (${(e as Error).message}) — returning baseline fallback`);
-    return jsonResponse(defaultBaselineMatrix(), 200);
-  }
-
+  const parsed = result.toolInput as { matrix?: unknown } | null;
   if (!parsed || !Array.isArray(parsed.matrix) || parsed.matrix.length !== 3) {
-    console.warn(`[bbf-agentic-prehab v2] schema shape mismatch (got ${JSON.stringify(parsed).slice(0,200)}) — returning baseline fallback`);
+    console.warn(`[bbf-agentic-prehab v2] tool_use shape mismatch (got ${JSON.stringify(parsed).slice(0,200)}) — returning baseline fallback`);
     return jsonResponse(defaultBaselineMatrix(), 200);
   }
 
-  console.log(`[bbf-agentic-prehab v2] uid=${uid} · today=${todayDate} · sets=${todayWorkload.length} · friction_len=${friction.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-prehab v2] uid=${uid} · today=${todayDate} · sets=${todayWorkload.length} · friction_len=${friction.length} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   // Strict response per CEO spec — only { matrix }. No extra metadata.
   return jsonResponse({ matrix: parsed.matrix }, 200);

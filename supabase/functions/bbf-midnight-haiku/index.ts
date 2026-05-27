@@ -69,16 +69,22 @@
 //     model, dry_run, batch_size, errors: [{ uid, message }] }
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+// Phase 6.0h-followup · raw fetch + bespoke retry → canonical
+// callClaude · use-case `snapshot_synthesis` routes to HAIKU ·
+// fallback escalates to SONNET · the helper's withAnthropicResilience
+// supersedes the local RETRY_LIMIT/RETRY_BASE_MS loop with the same
+// classification + jitter math as the rest of the agent fleet.
+import { callClaude } from '../_shared/anthropic-call.ts';
 
 // ─── Constants ────────────────────────────────────────────────────────
 // Phase 7 Workstream B · Nightly digest synthesis · already on Haiku.
 // TODO Phase 7.x · migrate to _shared/model-router.ts when shared-file
 // deploy is wired up. For now this matches routeModel('snapshot_synthesis').
-const MODEL          = 'claude-haiku-4-5';
 const MAX_TOKENS     = 220; // 2–3 sentences ≈ 100–150 output tokens; small buffer.
 const BATCH_SIZE     = 5;   // Concurrent Anthropic calls per batch.
-const RETRY_LIMIT    = 3;   // Per-user retry attempts on transient API failures.
-const RETRY_BASE_MS  = 800; // Exponential backoff base (800ms, 1.6s, 3.2s).
+// (Retry budget now lives in _shared/anthropic-resilience.ts ·
+//  ANTHROPIC_RETRY_DEFAULTS provides identical 3-attempt exponential
+//  backoff to the legacy 800ms × 2^n curve · removed here.)
 const LOOKBACK_HOURS = 24;
 
 const CORS = {
@@ -120,10 +126,6 @@ function jsonResponse(body: unknown, status = 200): Response {
     status,
     headers: { ...CORS, 'Content-Type': 'application/json' },
   });
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // ─── Types ────────────────────────────────────────────────────────────
@@ -233,77 +235,27 @@ async function generateBrief(
     bbf_readiness: readiness,
   };
 
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    // System prompt is cacheable — identical across every user in the
-    // batch. The first request writes; the rest read at ~0.1×.
-    system: [
-      {
-        type: 'text',
-        text: SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
-    messages: [
-      {
-        role: 'user',
-        content:
-          'Last 24h telemetry for one Sovereign-tier athlete. Write the brief.\n\n' +
-          '```json\n' + JSON.stringify(userPayload, null, 2) + '\n```',
-      },
-    ],
-  };
+  const result = await callClaude({
+    useCase:     'snapshot_synthesis',
+    system:      SYSTEM_PROMPT,
+    userFields:  {
+      window_hours:      String(LOOKBACK_HOURS),
+      athlete_name:      user.name || 'Athlete',
+      athlete_uid:       user.id,
+      telemetry_json:    JSON.stringify(userPayload),
+      task: 'Write the nightly Sovereign brief · 2-3 sentences max · per system instructions.',
+    },
+    maxTokens:   MAX_TOKENS,
+    agentTag:    'bbf-midnight-haiku',
+    apiKey:      apiKey,
+  });
 
-  let lastError: Error | null = null;
-  for (let attempt = 0; attempt < RETRY_LIMIT; attempt++) {
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'x-api-key':         apiKey,
-          'anthropic-version': '2023-06-01',
-          'content-type':      'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      // Retry transient: 408 timeout, 409, 429 rate limit, 5xx server.
-      if (res.status === 408 || res.status === 409 || res.status === 429 || res.status >= 500) {
-        const detail = await res.text().catch(() => '');
-        lastError = new Error(`anthropic_${res.status}: ${detail.slice(0, 200)}`);
-      } else if (!res.ok) {
-        // Non-transient — fail fast.
-        const detail = await res.text().catch(() => '');
-        throw new Error(`anthropic_${res.status}: ${detail.slice(0, 200)}`);
-      } else {
-        const body = await res.json();
-        const text = extractTextBlock(body?.content);
-        if (!text) throw new Error('anthropic_empty_response');
-        return text.trim();
-      }
-    } catch (e) {
-      // Network-level failure — count as transient.
-      lastError = e instanceof Error ? e : new Error(String(e));
-    }
-
-    if (attempt < RETRY_LIMIT - 1) {
-      await sleep(RETRY_BASE_MS * Math.pow(2, attempt));
-    }
+  if (!result.ok) {
+    throw new Error(`${result.error}${result.detail ? ': ' + result.detail : ''}`);
   }
-
-  throw lastError ?? new Error('anthropic_unknown_error');
-}
-
-function extractTextBlock(content: unknown): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && typeof block === 'object' && (block as { type?: string }).type === 'text') {
-      const text = (block as { text?: unknown }).text;
-      if (typeof text === 'string') return text;
-    }
-  }
-  return null;
+  const text = typeof result.text === 'string' ? result.text.trim() : '';
+  if (!text) throw new Error('anthropic_empty_response');
+  return text;
 }
 
 // ═══════════════════════════════════════════════════════════════════════

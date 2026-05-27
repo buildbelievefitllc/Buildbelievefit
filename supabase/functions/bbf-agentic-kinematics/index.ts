@@ -54,11 +54,14 @@ function jsonResponse(body: unknown, status = 200): Response {
 // Phase 7 Workstream B · Single-image form scoring is a bounded vision
 // task with a structured response (form_score + 2-3 cues). Sonnet 4.6
 // is the right tier · Opus 4.7 was overspend for the bounded output.
-import { routeAndLog } from '../_shared/model-router.ts';
+// Phase 6.0h-followup · raw fetch → canonical callClaude · use-case
+// `kinematic_form_score` routes to SONNET (vision-capable tier) ·
+// fallback escalates to OPUS · helper's `userImages` parameter carries
+// the base64-encoded form-check photo alongside the wrapped <user_input>
+// armor block in one user-message content array.
+import { callClaude } from '../_shared/anthropic-call.ts';
 
-const MODEL              = routeAndLog('bbf-agentic-kinematics', 'kinematic_form_score', { vision: true });
 const MAX_TOKENS         = 1024;
-const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 18000;        // vision calls are slower than text-only
 const MAX_IMAGE_BYTES    = 4 * 1024 * 1024;  // 4MB base64-decoded ceiling
 
@@ -139,89 +142,9 @@ function defaultKinematicResponse(reason: string) {
 }
 
 // ─── Anthropic vision call w/ AbortController timeout ──────────────────
-async function callClaudeVision(
-  imageBase64: string,
-  mimeType: string,
-  liftName: string,
-  apiKey: string,
-) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
-
-  const userMessage = [
-    'Lift attempted: **' + liftName + '**',
-    '',
-    'Analyze the attached image per your system instructions. Return ONLY the JSON schema response with exactly 2 kinematic_flags and 1 correction_cue.',
-  ].join('\n');
-
-  const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
-    system: [
-      {
-        type:          'text',
-        text:          SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type:   'image',
-            source: { type: 'base64', media_type: mimeType, data: imageBase64 },
-          },
-          { type: 'text', text: userMessage },
-        ],
-      },
-    ],
-  };
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
-      },
-      body:   JSON.stringify(requestBody),
-      signal: controller.signal,
-    });
-
-    let body: any;
-    try { body = await res.json(); }
-    catch (_) { body = null; }
-
-    if (!res.ok) {
-      const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-      console.error(`[bbf-agentic-kinematics] Anthropic API error: status=${res.status} body=${JSON.stringify(body).slice(0, 600)}`);
-      return { ok: false as const, status: res.status, error: errMsg, raw: body };
-    }
-    return { ok: true as const, status: res.status, body };
-  } catch (e) {
-    const err = e as Error;
-    const reason = err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message;
-    console.error(`[bbf-agentic-kinematics] Claude vision fetch threw: ${reason}`);
-    return { ok: false as const, status: 0, error: reason, raw: null };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
-}
+// (legacy local `callClaudeVision` + `extractTextBlock` removed ·
+//  canonical helper from _shared/anthropic-call.ts replaces both ·
+//  vision input rides via the new `userImages` parameter.)
 
 function stripDataUriPrefix(s: string): string {
   // Accept either "data:image/jpeg;base64,..." or raw base64.
@@ -285,30 +208,33 @@ serve(async (req: Request) => {
   }
 
   const t0     = Date.now();
-  const result = await callClaudeVision(cleanBase64, cleanMime, lift_name, ANTHROPIC_API_KEY);
-  const dur    = Date.now() - t0;
+  const result = await callClaude({
+    useCase:         'kinematic_form_score',
+    system:          SYSTEM_PROMPT,
+    userFields:      {
+      lift_name:    lift_name,
+      task: 'Analyze the attached image per system instructions; emit exactly 2 kinematic_flags and 1 correction_cue.',
+    },
+    userImages: [{ mime_type: cleanMime, data: cleanBase64 }],
+    toolSchema:      RESPONSE_SCHEMA,
+    toolName:        'submit_kinematic_form_score',
+    toolDescription: 'Emit the biomechanics form_score 0-100 + exactly 2 kinematic_flags + 1 correction_cue.',
+    maxTokens:       MAX_TOKENS,
+    agentTag:        'bbf-agentic-kinematics',
+    apiKey:          ANTHROPIC_API_KEY,
+    timeoutMs:       CLAUDE_TIMEOUT_MS,
+  });
+  const dur = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-kinematics] vision failed (${result.error}) after ${dur}ms — returning default`);
+    console.warn(`[bbf-agentic-kinematics] vision failed (${result.error}) after ${dur}ms · attempts=${result.attempts} fallback_used=${result.fallback_used} — returning default`);
     return jsonResponse(defaultKinematicResponse('vision_call_failed'), 200);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
-  if (!text) {
-    console.warn('[bbf-agentic-kinematics] no text block in response — returning default');
-    return jsonResponse(defaultKinematicResponse('no_text_block'), 200);
-  }
-
-  let parsed: any;
-  try { parsed = JSON.parse(text); }
-  catch (e) {
-    console.warn(`[bbf-agentic-kinematics] parse failed (${(e as Error).message}) — returning default`);
-    return jsonResponse(defaultKinematicResponse('parse_failed'), 200);
-  }
+  const parsed = result.toolInput as { form_score?: unknown; kinematic_flags?: unknown; correction_cue?: unknown } | null;
 
   // Shape check — enforce form_score range + 2-element kinematic_flags
-  // (Anthropic JSON Schema can't express numerical min/max or array
+  // (Anthropic tool_use schema can't express numerical min/max or array
   // length constraints; we enforce here at parse time).
   if (
     !parsed ||
@@ -317,13 +243,13 @@ serve(async (req: Request) => {
     parsed.kinematic_flags.length !== 2 ||
     typeof parsed.correction_cue !== 'string'
   ) {
-    console.warn(`[bbf-agentic-kinematics] schema shape mismatch (got ${JSON.stringify(parsed).slice(0,200)}) — returning default`);
+    console.warn(`[bbf-agentic-kinematics] tool_use shape mismatch (got ${JSON.stringify(parsed).slice(0,200)}) — returning default`);
     return jsonResponse(defaultKinematicResponse('schema_mismatch'), 200);
   }
 
   const clampedScore = Math.max(0, Math.min(100, Math.round(parsed.form_score)));
 
-  console.log(`[bbf-agentic-kinematics] uid=${uid} · lift="${lift_name}" · score=${clampedScore} · b64_len=${cleanBase64.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-kinematics] uid=${uid} · lift="${lift_name}" · score=${clampedScore} · b64_len=${cleanBase64.length} · model=${result.model} · attempts=${result.attempts} · fallback_used=${result.fallback_used} · duration=${dur}ms · usage=${JSON.stringify(result.usage)}`);
 
   return jsonResponse({
     form_score:      clampedScore,

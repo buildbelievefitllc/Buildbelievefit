@@ -58,9 +58,17 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 // Phase 7 Workstream B · TDEE-fueled onboarding dialog. Sonnet 4.6 is
 // the right tier per CEO routing rules.
-import { routeAndLog } from '../_shared/model-router.ts';
+//
+// Phase 6.0h-followup · raw fetch → canonical callClaude · use-case
+// `onboarding_interview` routes to SONNET · fallback escalates to OPUS.
+// Free-text path (no toolSchema · this agent emits prose with the
+// `[[RECOMMEND:<tier>]]` marker the widget parses out). The multi-
+// turn conversation collapses into a serialized userField so the
+// helper's <user_input> shell wraps it as untrusted data · assistant
+// prior turns also treated as untrusted because a hijacked history
+// could be injected by a caller.
+import { callClaude } from '../_shared/anthropic-call.ts';
 
-const MODEL              = routeAndLog('bbf-agentic-pathfinder', 'onboarding_interview');
 const MAX_TOKENS         = 1024;
 const CLAUDE_TIMEOUT_MS  = 18000;
 const MAX_MESSAGES       = 24;        // hard ceiling on conversation depth per request
@@ -132,51 +140,10 @@ const SYSTEM_PROMPT = [
   'The widget parses this and renders a clickable tier card. Do NOT mention the marker text in any other context. Only use it once per conversation.',
 ].join('\n');
 
-async function callClaude(
-  messages: Array<{ role: string; content: string }>,
-  apiKey: string,
-): Promise<{ ok: true; text: string; usage: { input: number; output: number } } | { ok: false; error: string }> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type':      'application/json',
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model:       MODEL,
-        max_tokens:  MAX_TOKENS,
-        system:      SYSTEM_PROMPT,
-        messages,
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      return { ok: false, error: 'Anthropic ' + res.status + ': ' + txt.slice(0, 200) };
-    }
-
-    const data = await res.json();
-    const block = (data.content || []).find((c: { type: string }) => c.type === 'text');
-    const text  = block && typeof block.text === 'string' ? block.text : '';
-    const usage = {
-      input:  (data.usage && data.usage.input_tokens)  || 0,
-      output: (data.usage && data.usage.output_tokens) || 0,
-    };
-    return { ok: true, text, usage };
-  } catch (e) {
-    clearTimeout(timeout);
-    const msg = e && (e as Error).message ? (e as Error).message : String(e);
-    return { ok: false, error: 'fetch ' + msg };
-  }
-}
+// (legacy local `callClaude` removed · canonical helper from
+//  _shared/anthropic-call.ts replaces it. The multi-turn conversation
+//  serializes into a single userField so the sealed armor wraps it
+//  as untrusted data.)
 
 /**
  * Pulls the [[RECOMMEND:<tier>]] marker out of Claude's reply if present.
@@ -241,40 +208,67 @@ serve(async (req: Request) => {
   // ─── Parse + validate ─────────────────────────────────────
   let payload: { messages?: unknown; session_id?: unknown } = {};
   try { payload = await req.json(); }
-  catch { return jsonResponse({ ...fallbackReply(), model_used: MODEL, tokens_used: { input: 0, output: 0 } }); }
+  catch { return jsonResponse({ ...fallbackReply(), model_used: null, tokens_used: { input: 0, output: 0 } }); }
 
   const messages = sanitizeMessages(payload.messages);
   if (!messages.length) {
     return jsonResponse({
       reply:          'Welcome to BBF Pathfinder. State your training goal or your weekly time availability — whichever is the binding constraint.',
       recommendation: null,
-      model_used:     MODEL,
+      model_used:     null,
       tokens_used:    { input: 0, output: 0 },
     });
   }
   if (messages[messages.length - 1].role !== 'user') {
-    return jsonResponse({ ...fallbackReply(), model_used: MODEL, tokens_used: { input: 0, output: 0 } });
+    return jsonResponse({ ...fallbackReply(), model_used: null, tokens_used: { input: 0, output: 0 } });
   }
 
   // ─── Anthropic call ───────────────────────────────────────
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   if (!ANTHROPIC_API_KEY) {
     console.error('[bbf-agentic-pathfinder] ANTHROPIC_API_KEY missing — fallback');
-    return jsonResponse({ ...fallbackReply(), model_used: MODEL, tokens_used: { input: 0, output: 0 } });
+    return jsonResponse({ ...fallbackReply(), model_used: null, tokens_used: { input: 0, output: 0 } });
   }
 
-  const result = await callClaude(messages, ANTHROPIC_API_KEY);
+  // Serialize the multi-turn conversation into one userField · the
+  // sealed <user_input> shell wraps the whole thing as untrusted data ·
+  // the marker pattern `[[RECOMMEND:<tier>]]` is parsed from the
+  // emitted text after the call resolves.
+  const conversationSerialized = messages
+    .map((m, i) => `[turn ${i + 1} · ${m.role}] ${m.content}`)
+    .join('\n');
+  const lastUserMessage = messages[messages.length - 1]?.content || '';
+
+  const result = await callClaude({
+    useCase:     'onboarding_interview',
+    system:      SYSTEM_PROMPT,
+    userFields:  {
+      conversation_history: conversationSerialized,
+      current_user_message: lastUserMessage,
+      task: 'Continue the Pathfinder dialog per system instructions. When you commit to a tier, append [[RECOMMEND:<tier>]] on its own line at the end.',
+    },
+    maxTokens:   MAX_TOKENS,
+    agentTag:    'bbf-agentic-pathfinder',
+    apiKey:      ANTHROPIC_API_KEY,
+    timeoutMs:   CLAUDE_TIMEOUT_MS,
+  });
+
   if (!result.ok) {
-    console.error('[bbf-agentic-pathfinder] Claude failure:', result.error);
-    return jsonResponse({ ...fallbackReply(), model_used: MODEL, tokens_used: { input: 0, output: 0 } });
+    console.error(`[bbf-agentic-pathfinder] Claude failure: ${result.error} · attempts=${result.attempts} fallback_used=${result.fallback_used}`);
+    return jsonResponse({ ...fallbackReply(), model_used: null, tokens_used: { input: 0, output: 0 } });
   }
 
-  const { cleaned, recommendation } = extractRecommendation(result.text);
+  const replyText = typeof result.text === 'string' ? result.text : '';
+  const { cleaned, recommendation } = extractRecommendation(replyText);
+  const usage = result.usage as { input_tokens?: number; output_tokens?: number } | undefined;
 
   return jsonResponse({
     reply:          cleaned || fallbackReply().reply,
     recommendation: recommendation,
-    model_used:     MODEL,
-    tokens_used:    result.usage,
+    model_used:     result.model,
+    tokens_used: {
+      input:  (usage && usage.input_tokens)  || 0,
+      output: (usage && usage.output_tokens) || 0,
+    },
   });
 });
