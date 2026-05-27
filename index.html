@@ -114,6 +114,14 @@ h1 .ol{-webkit-text-stroke:2px var(--yel);color:transparent}
 .hero-stats{display:flex;gap:2.5rem}
 .hs-n{font-family:var(--hb);font-size:2rem;color:var(--yel);line-height:1}
 .hs-l{font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut2);margin-top:.15rem}
+/* Phase 3 hotfix · restored stats strip in the new hero · 4-stat grid
+   (2021 · NASM · 100% · 12 wk) · uses new design tokens (--gold / Oswald /
+   Geist · hairline divider). Stacks 2×2 on mobile via auto-fit grid. */
+.hero-stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,7rem),1fr));gap:1.25rem 1.5rem;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--hairline,rgba(255,255,255,0.08))}
+.hero-stats-row .hs-cell{display:flex;flex-direction:column;gap:.2rem}
+.hero-stats-row .hs-n{font-family:var(--display,"Oswald",sans-serif);font-size:clamp(1.4rem,3.6vw,1.95rem);font-weight:700;letter-spacing:1px;color:var(--gold,#E5B83A);line-height:1}
+.hero-stats-row .hs-l{font-family:var(--mono,"JetBrains Mono",monospace);font-size:clamp(.58rem,1.5vw,.66rem);font-weight:700;letter-spacing:2.2px;text-transform:uppercase;color:var(--text-dim,rgba(245,239,226,0.62));margin-top:.15rem}
+@media(max-width:640px){.hero-stats-row{grid-template-columns:1fr 1fr;gap:1rem 1.25rem}}
 .hero-img-wrap{position:relative}
 .hero-img{border-radius:18px;overflow:hidden;border:2px solid rgba(106,13,173,.4);box-shadow:0 0 50px rgba(106,13,173,.25);aspect-ratio:4/5;background:linear-gradient(135deg,var(--purp),var(--purd))}
 .hero-img img{width:100%;height:100%;object-fit:cover;object-position:top center}
@@ -1312,7 +1320,22 @@ footer a:hover { color: #D4AF37; }
     text-transform: uppercase;
     color: var(--text-mute);
   }
-footer .left{ display:flex; gap: 22px; align-items: center; }
+footer .left{ display:flex; gap: 22px; align-items: flex-start; }
+/* Phase 3 footer · multi-column layout (brand · pillars/programs links ·
+   contact/legal links · full-width copy line) · uses design tokens
+   throughout · stacks on mobile via auto-fit. */
+footer .ft-stack{ display:flex; flex-direction:column; gap:.55rem; }
+footer .ft-brand{ font-family: var(--display,"Oswald",sans-serif); font-size: 1.05rem; letter-spacing: 0.18em; font-weight: 700; color: var(--text,#F5EFE2); }
+footer .ft-brand .gold{ color: var(--gold,#E5B83A); }
+footer .ft-tagline{ font-family: var(--body,"Geist",sans-serif); font-size: .76rem; line-height: 1.55; color: var(--text-dim,rgba(245,239,226,0.62)); max-width: 240px; }
+footer .ft-col{ display:flex; flex-direction:column; gap: .55rem; }
+footer .ft-col a{ font-family: var(--body,"Geist",sans-serif); font-size: .82rem; font-weight: 500; letter-spacing: .03em; color: var(--text-dim,rgba(245,239,226,0.62)); transition: color .18s ease; }
+footer .ft-col a:hover{ color: var(--gold,#E5B83A); }
+footer .ft-copy{ grid-column: 1 / -1; font-family: var(--mono,"JetBrains Mono",monospace); font-size: .68rem; letter-spacing: .04em; color: var(--text-mute,rgba(245,239,226,0.40)); padding-top: 1.5rem; margin-top: 1.5rem; border-top: 1px solid var(--hairline,rgba(255,255,255,0.08)); text-align: center; width: 100%; }
+@media(max-width:640px){
+  footer{ flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+  footer .left{ width: 100%; }
+}
 footer .omega{
     width: 32px; height: 32px;
     border-radius: 50%;
@@ -4188,9 +4211,8 @@ body.bbf-kairos .hero-badge {
     <a href="#" class="logo">BUILD<span class="l-mid">BELIEVE</span>FIT</a>
     <ul class="nav-links">
       <li><a href="#services">Pillars</a></li>
-      <li><a href="#arc">12-Wk Arc</a></li>
       <li><a href="#programs">Programs</a></li>
-      <li><a href="#compare">Compare</a></li>
+      <li><a href="#nutrition">Nutrition</a></li>
       <li><a href="#playbooks">Playbooks</a></li>
       <li><a href="#results">Results</a></li>
       <li><a href="#faq">FAQ</a></li>
@@ -4274,6 +4296,27 @@ body.bbf-kairos .hero-badge {
         <div class="portal-sub" data-lang-key="hero-door-athlete-sub">Performance &amp; Pre-Hab</div>
       </a>
     </div>
+
+    <!-- Stats strip · restored from legacy hero per operator directive (2021 / NASM / 100% / 12 wk).
+         Inherits font + spacing from the design's hero token system. -->
+    <div class="hero-stats-row">
+      <div class="hs-cell">
+        <div class="hs-n" data-countup="2021">2021</div>
+        <div class="hs-l" data-lang-key="stat-clients">Est. &middot; Founded</div>
+      </div>
+      <div class="hs-cell">
+        <div class="hs-n">NASM</div>
+        <div class="hs-l" data-lang-key="stat-cert">Certified Standard</div>
+      </div>
+      <div class="hs-cell">
+        <div class="hs-n" data-countup="100" data-suffix="%">100%</div>
+        <div class="hs-l" data-lang-key="stat-plans">Custom Plans</div>
+      </div>
+      <div class="hs-cell">
+        <div class="hs-n">12 wk</div>
+        <div class="hs-l">Apex Protocol</div>
+      </div>
+    </div>
   </div>
 
   <div class="portrait-wrap">
@@ -4303,31 +4346,7 @@ body.bbf-kairos .hero-badge {
   </div>
 </section>
 
-<section class="press reveal">
-  <div class="press-head">Documented · Featured · Verified</div>
-  <div class="press-row">
-    <a href="#" class="press-logo">
-      <div class="pl-name">Men's Health</div>
-      <div class="pl-sub">Aug · 2025</div>
-    </a>
-    <a href="#" class="press-logo">
-      <div class="pl-name">The Athletic</div>
-      <div class="pl-sub">Profile · Q2 26</div>
-    </a>
-    <a href="#" class="press-logo">
-      <div class="pl-name">BREAKING MUSCLE</div>
-      <div class="pl-sub">Method · Feature</div>
-    </a>
-    <a href="#" class="press-logo">
-      <div class="pl-name">FORBES · 30</div>
-      <div class="pl-sub">Performance · 26</div>
-    </a>
-    <a href="#" class="press-logo">
-      <div class="pl-name">GQ</div>
-      <div class="pl-sub">Fitness Issue · 26</div>
-    </a>
-  </div>
-</section>
+
 
 <section class="manifesto" id="manifesto">
   <div class="manifesto-mark" aria-hidden="true">Ω</div>
@@ -4551,95 +4570,7 @@ body.bbf-kairos .hero-badge {
   </div>
 </section>
 
-<section class="block" id="who">
-  <div class="section-head">
-    <div class="section-eyebrow">Who It's For</div>
-    <h2 class="section-title">Four <span class="gold">Demand Profiles.</span> One System.</h2>
-    <p class="section-sub">The system is universal. The application is segmented. Find the demand profile that matches your week.</p>
-  </div>
 
-  <div class="who-grid">
-
-    <article class="who">
-      <div class="who-icon">
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="10" y="14" width="44" height="36" rx="3"></rect>
-          <path d="M22 14V8h20v6"></path>
-          <path d="M10 28h44"></path>
-          <circle cx="32" cy="39" r="4"></circle>
-        </svg>
-      </div>
-      <div class="who-body">
-        <div class="who-tag">Profile · 01</div>
-        <div class="who-name">The Executive</div>
-        <p>16-hour workdays, board meetings, red-eyes. Needs an architecture that survives travel, jet lag, and back-to-back deals.</p>
-        <div class="who-recommend">
-          <div class="lab">Recommended</div>
-          <div class="val">Sovereign →</div>
-        </div>
-      </div>
-    </article>
-
-    <article class="who">
-      <div class="who-icon">
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 50V30c0-4 3-7 7-7h18c4 0 7 3 7 7v20"></path>
-          <circle cx="32" cy="14" r="6"></circle>
-          <path d="M22 50h20"></path>
-          <path d="M28 38h8"></path>
-        </svg>
-      </div>
-      <div class="who-body">
-        <div class="who-tag">Profile · 02</div>
-        <div class="who-name">The Athlete</div>
-        <p>Competitive, position-specific, prehab-aware. Wants the program a college S&amp;C coach wishes they could write.</p>
-        <div class="who-recommend">
-          <div class="lab">Recommended</div>
-          <div class="val">Architect →</div>
-        </div>
-      </div>
-    </article>
-
-    <article class="who">
-      <div class="who-icon">
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M32 6L12 14v14c0 14 9 25 20 30 11-5 20-16 20-30V14L32 6z"></path>
-          <path d="M24 32l6 6 12-12"></path>
-        </svg>
-      </div>
-      <div class="who-body">
-        <div class="who-tag">Profile · 03</div>
-        <div class="who-name">First Responder</div>
-        <p>Rotating shifts, life-or-death calls, irregular sleep. Engineered around tactical readiness and joint longevity.</p>
-        <div class="who-recommend">
-          <div class="lab">Recommended</div>
-          <div class="val">Architect →</div>
-        </div>
-      </div>
-    </article>
-
-    <article class="who">
-      <div class="who-icon">
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="32" cy="20" r="8"></circle>
-          <path d="M16 50c0-9 7-16 16-16s16 7 16 16"></path>
-          <path d="M20 56h24"></path>
-          <path d="M28 44l4 4 4-4"></path>
-        </svg>
-      </div>
-      <div class="who-body">
-        <div class="who-tag">Profile · 04</div>
-        <div class="who-name">Youth &amp; College</div>
-        <p>Ages 9–22, sport-specific. Built for adolescent biomechanics with prehab and pediatric liability shielding.</p>
-        <div class="who-recommend">
-          <div class="lab">Recommended</div>
-          <div class="val">Youth Athlete →</div>
-        </div>
-      </div>
-    </article>
-
-  </div>
-</section>
 
 <section class="app-block">
   <section class="block" id="app">
@@ -4768,226 +4699,11 @@ body.bbf-kairos .hero-badge {
   </section>
 </section>
 
-<section class="block arc-block" id="arc">
-  <div class="section-head">
-    <div class="section-eyebrow">The 12-Week Arc</div>
-    <h2 class="section-title">The Journey, <span class="gold">Engineered.</span></h2>
-    <p class="section-sub">Every flat-fee protocol moves through four engineered phases. Each milestone is verified against your data — not a calendar.</p>
-  </div>
 
-  <div class="arc-svg-wrap">
-    <svg class="arc-svg" viewBox="0 0 1400 280" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-      <!-- Phase backgrounds -->
-      <rect class="arc-phase-bg" x="40" y="100" width="320" height="80" rx="40"></rect>
-      <rect class="arc-phase-bg gold" x="380" y="100" width="320" height="80" rx="40"></rect>
-      <rect class="arc-phase-bg" x="720" y="100" width="320" height="80" rx="40"></rect>
-      <rect class="arc-phase-bg gold" x="1060" y="100" width="300" height="80" rx="40"></rect>
 
-      <!-- Phase labels -->
-      <text class="arc-phase-lbl" x="200" y="60" text-anchor="middle">Phase I · Architecture</text>
-      <text class="arc-phase-lbl" x="540" y="60" text-anchor="middle">Phase II · Load</text>
-      <text class="arc-phase-lbl" x="880" y="60" text-anchor="middle">Phase III · Peak</text>
-      <text class="arc-phase-lbl" x="1210" y="60" text-anchor="middle">Phase IV · Lock</text>
 
-      <!-- Main path -->
-      <path d="M 60 140 Q 350 140 540 140 T 1340 140" stroke="rgba(229,184,58,0.35)" stroke-width="1" fill="none" stroke-dasharray="3 6"></path>
-      <path d="M 60 140 L 1340 140" stroke="var(--hairline)" stroke-width="1" fill="none"></path>
 
-      <!-- Week dots — 12 weeks -->
-      <g class="arc-week"><circle class="arc-week-dot" cx="100" cy="140" r="6"></circle><text class="arc-week-lbl" x="100" y="220" text-anchor="middle">Wk 01</text></g>
-      <g class="arc-week"><circle class="arc-week-dot" cx="200" cy="140" r="6"></circle><text class="arc-week-lbl" x="200" y="220" text-anchor="middle">Wk 02</text></g>
-      <g class="arc-week milestone purple"><circle class="arc-week-dot" cx="300" cy="140" r="9"></circle><text class="arc-week-lbl" x="300" y="220" text-anchor="middle">Wk 03</text><text class="arc-milestone-lbl purple" x="300" y="115" text-anchor="middle">Baseline Lock</text></g>
-      <g class="arc-week"><circle class="arc-week-dot" cx="400" cy="140" r="6"></circle><text class="arc-week-lbl" x="400" y="220" text-anchor="middle">Wk 04</text></g>
-      <g class="arc-week"><circle class="arc-week-dot" cx="500" cy="140" r="6"></circle><text class="arc-week-lbl" x="500" y="220" text-anchor="middle">Wk 05</text></g>
-      <g class="arc-week milestone"><circle class="arc-week-dot" cx="600" cy="140" r="9"></circle><text class="arc-week-lbl" x="600" y="220" text-anchor="middle">Wk 06</text><text class="arc-milestone-lbl" x="600" y="115" text-anchor="middle">Mid-Audit</text></g>
-      <g class="arc-week"><circle class="arc-week-dot" cx="700" cy="140" r="6"></circle><text class="arc-week-lbl" x="700" y="220" text-anchor="middle">Wk 07</text></g>
-      <g class="arc-week"><circle class="arc-week-dot" cx="800" cy="140" r="6"></circle><text class="arc-week-lbl" x="800" y="220" text-anchor="middle">Wk 08</text></g>
-      <g class="arc-week milestone purple"><circle class="arc-week-dot" cx="900" cy="140" r="9"></circle><text class="arc-week-lbl" x="900" y="220" text-anchor="middle">Wk 09</text><text class="arc-milestone-lbl purple" x="900" y="115" text-anchor="middle">Peak Window</text></g>
-      <g class="arc-week"><circle class="arc-week-dot" cx="1000" cy="140" r="6"></circle><text class="arc-week-lbl" x="1000" y="220" text-anchor="middle">Wk 10</text></g>
-      <g class="arc-week"><circle class="arc-week-dot" cx="1100" cy="140" r="6"></circle><text class="arc-week-lbl" x="1100" y="220" text-anchor="middle">Wk 11</text></g>
-      <g class="arc-week milestone"><circle class="arc-week-dot" cx="1280" cy="140" r="11"></circle><text class="arc-week-lbl" x="1280" y="220" text-anchor="middle">Wk 12</text><text class="arc-milestone-lbl" x="1280" y="115" text-anchor="middle">Apex · Lock</text></g>
-    </svg>
-  </div>
 
-  <div class="arc-detail-grid">
-    <div class="arc-detail purple-edge">
-      <div class="phase">Phase I · Wk 01–03</div>
-      <div class="ttl">Architecture</div>
-      <p>Habit stack install. TDEE baseline. Joint screen + biomechanical audit. The system learns you before the system loads you.</p>
-      <div class="week-range">Baseline Lock by W3</div>
-    </div>
-    <div class="arc-detail gold-edge">
-      <div class="phase">Phase II · Wk 04–06</div>
-      <div class="ttl">Load</div>
-      <p>Progressive overload introduced. Nutrition tightened. The protocol gets heavier as your engine proves it can carry it.</p>
-      <div class="week-range">Mid-Audit at W6</div>
-    </div>
-    <div class="arc-detail purple-edge">
-      <div class="phase">Phase III · Wk 07–09</div>
-      <div class="ttl">Peak</div>
-      <p>The peaking window. PR attempts. Aesthetic + composition targets hit. The system is now running you, not the other way around.</p>
-      <div class="week-range">Peak Window at W9</div>
-    </div>
-    <div class="arc-detail gold-edge">
-      <div class="phase">Phase IV · Wk 10–12</div>
-      <div class="ttl">Lock</div>
-      <p>The architecture transfers to autopilot. Sovereign Contract signed for what continues post-protocol. The engine outlives the program.</p>
-      <div class="week-range">Apex Lock at W12</div>
-    </div>
-  </div>
-</section>
-
-<section class="seal-block" id="seal">
-  <div class="seal" aria-hidden="true">
-    <svg viewBox="0 0 280 280">
-      <circle class="seal-bg" cx="140" cy="140" r="135"></circle>
-      <g class="seal-rotor">
-        <path id="seal-ring-path" d="M 140 140 m -110 0 a 110 110 0 1 1 220 0 a 110 110 0 1 1 -220 0" fill="none"></path>
-        <text class="ring-text">
-          <textPath href="#seal-ring-path" startOffset="0">
-            SOVEREIGN · GOLD · STANDARD · GUARANTEED · BY · THE · FOUNDER · SOVEREIGN · GOLD · STANDARD · GUARANTEED · BY · THE · FOUNDER · 
-          </textPath>
-        </text>
-      </g>
-      <circle class="seal-line" cx="140" cy="140" r="90"></circle>
-      <circle class="seal-line" cx="140" cy="140" r="86" stroke-dasharray="2 4"></circle>
-      <text class="omega-big" x="140" y="172">Ω</text>
-      <text x="140" y="195" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="3" fill="var(--gold)" text-anchor="middle">EST · 2021</text>
-    </svg>
-  </div>
-
-  <div class="seal-text">
-    <div class="section-eyebrow" style="margin-bottom: 18px;">The Sovereign Guarantee</div>
-    <h3>If The Math <br><span class="gold">Doesn't Hold,</span> Neither Does Your Bill.</h3>
-    <p>Every flat-fee 12-week protocol carries a Founder-signed guarantee: execute the architecture as written and verified outcomes are non-negotiable. Don't see what we promised? You don't pay for what we couldn't deliver.</p>
-    <ul class="seal-promise-list">
-      <li>2-week Sovereignty Window · full refund</li>
-      <li>Founder-verified joint safety on every rep</li>
-      <li>Bi-weekly TDEE recalibration, no exceptions</li>
-      <li>Same Sovereign Standard at every tier</li>
-      <li>Re-audit window built into Week 6</li>
-      <li>Lifetime access to Field Notes archive</li>
-    </ul>
-  </div>
-</section>
-
-<section class="block" id="compare">
-  <div class="section-head">
-    <div class="section-eyebrow">Tier Comparison</div>
-    <h2 class="section-title">The Whole <span class="gold">Architecture,</span> Side-By-Side.</h2>
-    <p class="section-sub">Every feature, every tier. The Sovereign Standard is the floor — depth and access scale up from there.</p>
-  </div>
-
-  <div class="matrix-wrap">
-    <div class="matrix">
-      <!-- Header row -->
-      <div class="mx-cell head"><span>Feature</span></div>
-      <div class="mx-cell head"><span>Gateway</span><span class="price">$67 / mo</span></div>
-      <div class="mx-cell head purple"><span>Youth Athlete</span><span class="price">$97 / mo</span></div>
-      <div class="mx-cell head gold-strong"><span class="name">Architect Hybrid</span><span class="price">$697 · 12wk</span></div>
-      <div class="mx-cell head gold"><span>Sovereign</span><span class="price">$1,197 · 12wk Apex</span></div>
-
-      <!-- Section: Habit Architecture -->
-      <div class="mx-row-section">Habit Architecture &amp; Logic</div>
-
-      <div class="mx-cell feat">Engine Habit System</div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-
-      <div class="mx-cell feat">Sovereign Contract Review</div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="partial">Quarterly</span></div>
-      <div class="mx-cell"><span class="partial">Bi-weekly</span></div>
-      <div class="mx-cell"><span class="partial">Weekly · Direct</span></div>
-
-      <!-- Section: Training -->
-      <div class="mx-row-section">Training &amp; Biomechanics</div>
-
-      <div class="mx-cell feat">In-Person Clinical Sessions</div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="partial">1 / week</span></div>
-      <div class="mx-cell"><span class="partial">2 / week</span></div>
-
-      <div class="mx-cell feat">Founder-Verified Joint Path</div>
-      <div class="mx-cell"><span class="partial">Video</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-
-      <div class="mx-cell feat">Sport Playbook Access</div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-
-      <div class="mx-cell feat">Biomech Form Audit (Video)</div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="partial">Monthly</span></div>
-      <div class="mx-cell"><span class="partial">Bi-weekly</span></div>
-      <div class="mx-cell"><span class="partial">Weekly</span></div>
-
-      <!-- Section: Nutrition -->
-      <div class="mx-row-section">Nutrition &amp; Fuel</div>
-
-      <div class="mx-cell feat">TDEE-Locked Macros</div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-
-      <div class="mx-cell feat">Adaptive Meal Plan Updates</div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="partial">Monthly</span></div>
-      <div class="mx-cell"><span class="partial">Bi-weekly</span></div>
-      <div class="mx-cell"><span class="partial">Weekly</span></div>
-
-      <div class="mx-cell feat">AI Audio Meal Scanner</div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-
-      <div class="mx-cell feat">BBF Virtual Chef</div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-
-      <!-- Section: Access -->
-      <div class="mx-row-section">Access &amp; Support</div>
-
-      <div class="mx-cell feat">BBF App Access</div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-
-      <div class="mx-cell feat">Founder Direct Line</div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="partial">Same-day</span></div>
-      <div class="mx-cell"><span class="partial">&lt; 3hr · priority</span></div>
-
-      <div class="mx-cell feat">The Vault · Client Portal</div>
-      <div class="mx-cell"><span class="no">—</span></div>
-      <div class="mx-cell"><span class="partial">Youth wing</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-      <div class="mx-cell"><span class="yes">✓</span></div>
-
-      <!-- CTA row -->
-      <div class="mx-cta">
-        <div></div>
-        <div><a href="#" class="mini-cta">Start Gateway →</a></div>
-        <div><a href="#" class="mini-cta">Apply Youth →</a></div>
-        <div><a href="#" class="mini-cta gold">Start Architect →</a></div>
-        <div><a href="#" class="mini-cta">Apply Sovereign →</a></div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <section class="block" id="nutrition">
   <div class="section-head">
@@ -5259,299 +4975,61 @@ body.bbf-kairos .hero-badge {
   </div>
 </section>
 
-<section class="block" id="week">
-  <div class="section-head">
-    <div class="section-eyebrow">The Week Inside The System</div>
-    <h2 class="section-title">Seven Days, <span class="gold">Engineered.</span></h2>
-    <p class="section-sub">A representative Architect Hybrid week. Heavy days are clinical-load. Recovery days are non-negotiable. Rest means rest.</p>
-  </div>
 
-  <div class="week-grid">
-    <div class="day heavy">
-      <div class="day-name">Mon</div>
-      <div class="day-date">17</div>
-      <span class="day-tag">Apex</span>
-      <div class="day-block">
-        <div class="day-label">Lower · Tempo Squat</div>
-        <div class="day-detail">5×5 @ 78%<br>Cossack + Hip CARs</div>
-      </div>
-    </div>
-    <div class="day">
-      <div class="day-name">Tue</div>
-      <div class="day-date">18</div>
-      <span class="day-tag">Aerobic</span>
-      <div class="day-block">
-        <div class="day-label">Z2 · 45min</div>
-        <div class="day-detail">Nasal-only<br>Sleep audit 22:30</div>
-      </div>
-    </div>
-    <div class="day heavy">
-      <div class="day-name">Wed</div>
-      <div class="day-date">19</div>
-      <span class="day-tag">Apex</span>
-      <div class="day-block">
-        <div class="day-label">Upper · Press Day</div>
-        <div class="day-detail">5×3 @ 82%<br>Scap prehab block</div>
-      </div>
-    </div>
-    <div class="day recover">
-      <div class="day-name">Thu</div>
-      <div class="day-date">20</div>
-      <span class="day-tag">Mobility</span>
-      <div class="day-block">
-        <div class="day-label">Decompress</div>
-        <div class="day-detail">Joint flow 30min<br>Founder check-in</div>
-      </div>
-    </div>
-    <div class="day heavy">
-      <div class="day-name">Fri</div>
-      <div class="day-date">21</div>
-      <span class="day-tag">Apex</span>
-      <div class="day-block">
-        <div class="day-label">Posterior · Deadlift</div>
-        <div class="day-detail">Top set + back-off<br>RDL accessory</div>
-      </div>
-    </div>
-    <div class="day">
-      <div class="day-name">Sat</div>
-      <div class="day-date">22</div>
-      <span class="day-tag">Sport</span>
-      <div class="day-block">
-        <div class="day-label">Open Field Day</div>
-        <div class="day-detail">Sprints / sled / play<br>Recreational</div>
-      </div>
-    </div>
-    <div class="day rest">
-      <div class="day-name">Sun</div>
-      <div class="day-date">23</div>
-      <span class="day-tag">Rest</span>
-      <div class="day-block">
-        <div class="day-label">Full Rest</div>
-        <div class="day-detail">No training<br>Meal prep + review</div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section class="numbers-block">
-  <section class="block">
-    <div class="section-head">
-      <div class="section-eyebrow">By The Numbers</div>
-      <h2 class="section-title">Results, <span class="gold">Quantified.</span></h2>
-      <p class="section-sub">Five years of architecture, audited annually. The math behind the system speaks louder than the testimonials.</p>
-    </div>
 
-    <div class="numbers-grid">
-      <div class="big-num featured">
-        <div class="bn-lbl">Clients · Through Apex</div>
-        <div class="bn-val gold" data-count="847">0</div>
-        <div class="bn-sub">High-demand humans who completed the full 12-week protocol since 2021. Every number is a verified roster entry.</div>
-      </div>
-      <div class="big-num">
-        <div class="bn-lbl">Avg · Body Comp Shift</div>
-        <div class="bn-val">−<span data-count="14">0</span><span class="unit">% body fat</span></div>
-      </div>
-      <div class="big-num">
-        <div class="bn-lbl">Avg · Strength Lift</div>
-        <div class="bn-val gold">+<span data-count="38">0</span><span class="unit">% 1RM total</span></div>
-      </div>
-      <div class="big-num">
-        <div class="bn-lbl">Joint Setbacks</div>
-        <div class="bn-val"><span data-count="0">0</span><span class="unit">in 3 yrs · all tiers</span></div>
-      </div>
-      <div class="big-num">
-        <div class="bn-lbl">Return Roster</div>
-        <div class="bn-val gold"><span data-count="92">0</span><span class="unit">% renew rate</span></div>
-      </div>
-    </div>
-  </section>
-</section>
 
+<!-- Phase 3 hotfix · #results re-populated with the REAL legacy testimonials
+     (Marcus T · Darius W · Renee C) per operator directive · all fake
+     personas + ghost before/after image-slots stripped. Card structure
+     reuses the new design's .result.r-half styling for visual continuity
+     with the rest of the redesigned page. -->
 <section class="block" id="results">
   <div class="section-head">
-    <div class="section-eyebrow">The Results Wall</div>
-    <h2 class="section-title">High-Demand Humans. <span class="gold">Verified Outcomes.</span></h2>
-    <p class="section-sub">Outcomes from inside the protocol. The names are real; the metrics are tracked weekly in the app.</p>
+    <div class="section-eyebrow" data-lang-key="testi-lbl">Client Results</div>
+    <h2 class="section-title" data-lang-key="testi-h">Real People. <span class="gold">Real Work.</span></h2>
+    <p class="section-sub">Outcomes from inside the protocol. Tracked weekly in the app.</p>
   </div>
 
   <div class="results-grid">
 
-    <article class="result r-feature">
-      <div class="r-imgs">
-        <image-slot id="r1-before" placeholder="Before — Marcus"></image-slot>
-        <image-slot id="r1-after" placeholder="After — Marcus"></image-slot>
-      </div>
-      <div class="r-body">
+    <article class="result r-half">
+      <div class="r-body" style="padding-top:32px">
         <div class="r-meta">
-          <span>Marcus T. · Age 38</span>
-          <span class="role">FDNY Lieutenant</span>
+          <span>Marcus T.</span>
+          <span class="role">Lost 22 lbs · 6 months</span>
         </div>
-        <div class="r-name">From Rotating Shifts <br>to Apex Capacity.</div>
-        <p class="r-quote">The architecture survived my 24/72. Twelve weeks in, I PR'd my deadlift on a post-shift morning. That used to be impossible.</p>
-        <div class="r-stats">
-          <div class="r-stat"><div class="r-stat-num">−24 lb</div><div class="r-stat-lab">Body fat mass</div></div>
-          <div class="r-stat"><div class="r-stat-num">+85 lb</div><div class="r-stat-lab">Deadlift 1RM</div></div>
-          <div class="r-stat"><div class="r-stat-num">12 wk</div><div class="r-stat-lab">Architect tier</div></div>
-        </div>
-      </div>
-    </article>
-
-    <article class="result r-feature">
-      <div class="r-imgs">
-        <image-slot id="r2-before" placeholder="Before — Lena"></image-slot>
-        <image-slot id="r2-after" placeholder="After — Lena"></image-slot>
-      </div>
-      <div class="r-body">
-        <div class="r-meta">
-          <span>Lena R. · Age 44</span>
-          <span class="role">VP · Finance</span>
-        </div>
-        <div class="r-name">Back-to-Back Boards. <br>Best Bloodwork in a Decade.</div>
-        <p class="r-quote">I stopped trying to be disciplined. The system holds the discipline for me — I just show up. The math is undefeated.</p>
-        <div class="r-stats">
-          <div class="r-stat"><div class="r-stat-num">−18 lb</div><div class="r-stat-lab">Sustained drop</div></div>
-          <div class="r-stat"><div class="r-stat-num">28→17</div><div class="r-stat-lab">Body-fat %</div></div>
-          <div class="r-stat"><div class="r-stat-num">24 wk</div><div class="r-stat-lab">Sovereign tier</div></div>
-        </div>
+        <div class="r-name">Architecture That <br>Adapts To Life.</div>
+        <p class="r-quote" data-lang-key="testi-q1">Akeem built my program around my high-demand schedule. I'm training 5 days a week, down 22 lbs, and hitting PRs I never thought possible. The system adapts to my life, not the other way around.</p>
       </div>
     </article>
 
     <article class="result r-half">
-      <div class="r-body" style="padding-top: 32px;">
+      <div class="r-body" style="padding-top:32px">
         <div class="r-meta">
-          <span>Jaylen K.</span>
-          <span class="role">D1 Recruit</span>
+          <span>Darius W.</span>
+          <span class="role">Body recomposition · 4 months</span>
         </div>
-        <div class="r-name">+4" Vertical. <br>0 Soft-Tissue Setbacks.</div>
-        <p class="r-quote">My S&amp;C coach asked who wrote my program. I told him: BBF.</p>
+        <div class="r-name">App + Coaching. <br>One Stack.</div>
+        <p class="r-quote" data-lang-key="testi-q2">The app is insane — I can see my meal plan, log my workouts, and track my progress all in one place. But it's the coaching that makes the difference. Akeem is locked in.</p>
       </div>
     </article>
 
     <article class="result r-half">
-      <div class="r-body" style="padding-top: 32px;">
+      <div class="r-body" style="padding-top:32px">
         <div class="r-meta">
-          <span>Anika P.</span>
-          <span class="role">Surgeon</span>
+          <span>Renee C.</span>
+          <span class="role">Strength · 3 months</span>
         </div>
-        <div class="r-name">First Pull-Up <br>at 41.</div>
-        <p class="r-quote">Years of clinic-floor wrist pain — gone in eight weeks. The OT framing is what did it.</p>
+        <div class="r-name">Down 18 lbs. <br>Confidence Back.</div>
+        <p class="r-quote" data-lang-key="testi-q3">I was skeptical at first but the results don't lie. Down 18 lbs, my energy is through the roof, and I finally feel confident in the gym. Akeem knows exactly how to push you without burning you out.</p>
       </div>
     </article>
-
-    <article class="result r-half">
-      <div class="r-body" style="padding-top: 32px;">
-        <div class="r-meta">
-          <span>Dre M.</span>
-          <span class="role">NYPD Sgt.</span>
-        </div>
-        <div class="r-name">Tactical Ready. <br>Knees Intact.</div>
-        <p class="r-quote">Passed the academy re-cert the strongest I've ever been. The prehab is the whole game.</p>
-      </div>
-    </article>
-
-    <article class="result r-half">
-      <div class="r-body" style="padding-top: 32px;">
-        <div class="r-meta">
-          <span>Carlos V.</span>
-          <span class="role">Founder · Tech</span>
-        </div>
-        <div class="r-name">Travel-Proof. <br>Boardroom-Tested.</div>
-        <p class="r-quote">My calendar broke every program I ever tried. This one bent to it instead.</p>
-      </div>
-    </article>
-
-    <div class="r-banner">
-      <blockquote>Akeem doesn't sell motivation. He installs an operating system. Six months in, the system is still running — and I've stopped negotiating with myself about whether to train.</blockquote>
-      <div class="who-cite">
-        <div class="n">Devon H.</div>
-        <div class="t">Goldman Sachs · MD<br>Sovereign · 36 wks</div>
-      </div>
-    </div>
 
   </div>
 </section>
 
-<section class="block" id="vault">
-  <div class="vault-block">
-    <div class="vault-left">
-      <div class="label">Live · Inside The Vault</div>
-      <h3>The Roster, <br><span class="gold">In Motion.</span></h3>
-      <p>A live snippet of what's happening across the active roster right now. PRs, mid-protocol audits, and Sovereign sessions — pulled straight from the app.</p>
-      <div class="vault-stats">
-        <div class="vault-stat"><div class="vs-n">312</div><div class="vs-l">Active Roster</div></div>
-        <div class="vault-stat"><div class="vs-n">68</div><div class="vs-l">In Apex · This Wk</div></div>
-        <div class="vault-stat"><div class="vs-n">9 mo</div><div class="vs-l">Median Tenure</div></div>
-        <div class="vault-stat"><div class="vs-n">4.97</div><div class="vs-l">Roster Score · /5</div></div>
-      </div>
-    </div>
 
-    <div class="vault-feed">
-      <div class="feed-head">
-        <span class="live">● Live · Vault Feed</span>
-        <span>Last sync · 12s ago</span>
-      </div>
-      <ul class="feed-list">
-        <li class="feed-item">
-          <div class="feed-av gold">MT</div>
-          <div class="feed-body">
-            <div class="who">Marcus T. · Architect</div>
-            <div class="what">Hit a new <span class="hl">deadlift PR · 485 lb</span> · post-shift session, FDNY</div>
-          </div>
-          <div class="feed-time"><span class="pulse-dot"></span> 2m ago</div>
-        </li>
-        <li class="feed-item">
-          <div class="feed-av purple">JK</div>
-          <div class="feed-body">
-            <div class="who">Jaylen K. · Youth</div>
-            <div class="what">Vertical jump audit: <span class="hl">+4" over baseline</span> · Wk 09 of cycle</div>
-          </div>
-          <div class="feed-time"><span class="pulse-dot"></span> 14m ago</div>
-        </li>
-        <li class="feed-item">
-          <div class="feed-av">LR</div>
-          <div class="feed-body">
-            <div class="who">Lena R. · Sovereign</div>
-            <div class="what">Bi-weekly TDEE recal complete · <span class="hl">macros +110 kcal</span></div>
-          </div>
-          <div class="feed-time"><span class="pulse-dot"></span> 32m ago</div>
-        </li>
-        <li class="feed-item">
-          <div class="feed-av gold">DH</div>
-          <div class="feed-body">
-            <div class="who">Devon H. · Sovereign</div>
-            <div class="what">Signed <span class="hl">Sovereign Contract · cycle 03</span> · Goldman Sachs</div>
-          </div>
-          <div class="feed-time"><span class="pulse-dot"></span> 1h ago</div>
-        </li>
-        <li class="feed-item">
-          <div class="feed-av purple">AP</div>
-          <div class="feed-body">
-            <div class="who">Anika P. · Architect</div>
-            <div class="what">First unassisted <span class="hl">pull-up @ age 41</span> · 8 weeks in</div>
-          </div>
-          <div class="feed-time"><span class="pulse-dot"></span> 2h ago</div>
-        </li>
-        <li class="feed-item">
-          <div class="feed-av">DM</div>
-          <div class="feed-body">
-            <div class="who">Dre M. · Architect</div>
-            <div class="what">Tactical re-cert passed · <span class="hl">top 5% physical</span> · NYPD</div>
-          </div>
-          <div class="feed-time"><span class="pulse-dot"></span> 3h ago</div>
-        </li>
-        <li class="feed-item">
-          <div class="feed-av gold">CV</div>
-          <div class="feed-body">
-            <div class="who">Carlos V. · Sovereign</div>
-            <div class="what">Travel-week audit · <span class="hl">5/5 sessions logged</span> · 3 time zones</div>
-          </div>
-          <div class="feed-time"><span class="pulse-dot"></span> 4h ago</div>
-        </li>
-      </ul>
-      <div class="feed-foot"><a href="#">View Full Roster Wall → · Sovereign-only access</a></div>
-    </div>
-  </div>
-</section>
 
 <section class="block" id="faq">
   <div class="faq-wrap">
@@ -5659,15 +5137,7 @@ body.bbf-kairos .hero-badge {
   </div>
 </section>
 
-<section class="news">
-  <div class="news-eyebrow">The Field Notes Dispatch</div>
-  <h2>Field Notes. <br>From Inside The Protocol.</h2>
-  <p>Once a fortnight. Habit architecture, biomechanical breakdowns, and the math behind the system. No fluff, no funnels.</p>
-  <form class="news-form" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Subscribed ✓';">
-    <input type="email" placeholder="your@inbox.com" required="">
-    <button type="submit">Send Me The Notes</button>
-  </form>
-</section>
+
 
 <!-- ═══ MOAB 3 · THE ROUTINE INTERROGATOR ═══════════════════════════════
      Brutalist lead-gen audit. Prospect pastes their split → Claude
@@ -6155,17 +5625,35 @@ body.bbf-kairos .hero-badge {
   </div>
 </section>
 
+<!-- Phase 3 hotfix · footer · new design layout (3 columns) with the
+     legacy detailed links restored per operator directive (Privacy /
+     Terms / phone SMS+CALL / Email Akeem / TDEE calc + section anchors).
+     Wires preserved verbatim from the pre-Phase-2 footer. -->
 <footer>
   <div class="left">
     <span class="omega">Ω</span>
-    <span>© 2026 Build Believe Fit LLC</span>
+    <div class="ft-stack">
+      <div class="ft-brand">BUILD<span class="gold">BELIEVE</span>FIT</div>
+      <div class="ft-tagline" data-lang-key="footer-tag">Sovereign Performance Architecture. Adaptive metabolic efficiency for executives, first responders, and high-demand parents. Founder-Verified Protocols.</div>
+    </div>
   </div>
-  <div>
-    <a href="#">Privacy</a> &nbsp; · &nbsp;
-    <a href="#">Terms</a> &nbsp; · &nbsp;
-    <a href="#">Contact</a>
+  <div class="ft-col">
+    <a href="#services" id="mob-nav-services">Pillars</a>
+    <a href="#programs" id="mob-nav-programs">Programs</a>
+    <a href="#nutrition" id="mob-nav-nutrition">Nutrition</a>
+    <a href="#results" id="mob-nav-results">Results</a>
+    <a href="#story">About Akeem</a>
+    <a href="#pathfinder">Start My Path</a>
+    <a href="/vault/">🔑 The Vault</a>
   </div>
-  <div>buildbelievefit.fitness</div>
+  <div class="ft-col">
+    <a href="sms:6233409254">Text: 623-340-9254</a>
+    <a href="tel:6233409254">Call: 623-340-9254</a>
+    <a href="/cdn-cgi/l/email-protection#f496819d98909691989d918291929d80989897b496819d98909691989d918291929d80da929d809a918787">Email Akeem</a>
+    <a href="/privacy.html">Privacy Policy</a>
+    <a href="/terms.html">Terms of Service</a>
+  </div>
+  <div class="ft-copy" data-lang-key="footer-copy">&copy; 2021&ndash;2026 Build Believe Fit LLC &middot; Est. 2021 &middot; Performance Architecture &amp; Movement Science &middot; buildbelievefit.fitness</div>
 </footer>
 
 <!-- APP DOWNLOAD -->
