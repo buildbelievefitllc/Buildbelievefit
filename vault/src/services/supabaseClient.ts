@@ -562,29 +562,50 @@ function _restHeaders(): Record<string, string> {
   };
 }
 
-async function _ensureUidMap(): Promise<void> {
-  if (_uidMapPromise) return _uidMapPromise;
+async function _ensureUidMap(force = false): Promise<void> {
+  if (_uidMapPromise && !force) return _uidMapPromise;
   _uidMapPromise = (async () => {
+    let success = false;
     try {
       const res = await fetch(`${getSupabaseUrl()}/rest/v1/rpc/bbf_get_uid_map`, {
         method: 'POST',
         headers: _restHeaders(),
         body: '{}',
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.error(`[supabaseClient] bbf_get_uid_map HTTP ${res.status}`);
+        return;
+      }
       const rows: unknown = await res.json();
-      if (!Array.isArray(rows)) return;
+      if (!Array.isArray(rows)) {
+        console.error('[supabaseClient] bbf_get_uid_map non-array response');
+        return;
+      }
       for (const r of rows) {
         if (r && typeof r === 'object') {
           const slug = (r as { uid?: unknown }).uid;
           const id = (r as { id?: unknown }).id;
-          if (typeof slug === 'string' && typeof id === 'string') {
-            _uidMap.set(slug, id);
+          if (typeof slug === 'string' && typeof id === 'string' && slug && id) {
+            // Normalize slug case at STORE time · the legacy server
+            // sometimes returns mixed-case slugs (`Akeem`) while the
+            // React layer always lowercases (Login.tsx::canonical).
+            // Storing lower-case keeps lookups O(1) regardless of
+            // server casing without a second pass at lookup time.
+            _uidMap.set(slug.toLowerCase(), id);
+            success = true;
           }
         }
       }
-    } catch {
-      /* network failure · leave cache empty · resolve() returns null */
+    } catch (err) {
+      console.error(`[supabaseClient] bbf_get_uid_map threw: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      // Clear the cached promise on failure so the NEXT caller retries.
+      // Without this, a single transient RPC failure (network blip,
+      // 401 during a key rotation, etc.) wedged the resolver for the
+      // lifetime of the page · `uid_not_resolvable` forever.
+      if (!success) {
+        _uidMapPromise = null;
+      }
     }
   })();
   return _uidMapPromise;
@@ -596,6 +617,12 @@ async function _ensureUidMap(): Promise<void> {
  * server (RPC empty, network failure, or genuinely missing user).
  * Idempotent · safe to call concurrently · the bootstrap RPC is
  * one-flight via a shared promise.
+ *
+ * Cache-miss retry · if the first lookup misses (stale cache from a
+ * prior failed RPC, or a user provisioned server-side AFTER the cache
+ * warmed), one forced refresh runs before giving up. This means a
+ * just-signed-up user can submit on their first session without
+ * waiting for a page reload to drop the cache.
  */
 export async function resolveUserUuid(slugOrUuid: string | null | undefined): Promise<string | null> {
   if (!slugOrUuid) return null;
@@ -603,8 +630,20 @@ export async function resolveUserUuid(slugOrUuid: string | null | undefined): Pr
   if (!trimmed) return null;
   if (UUID_RE.test(trimmed)) return trimmed;
   const lowered = trimmed.toLowerCase();
+
   await _ensureUidMap();
-  return _uidMap.get(lowered) ?? _uidMap.get(trimmed) ?? null;
+  const cached = _uidMap.get(lowered);
+  if (cached) return cached;
+
+  // Cache miss · force a refresh and try once more. Covers two cases:
+  //   1. The first _ensureUidMap call failed (network blip) and left
+  //      the cache empty · the retry now hits a working endpoint.
+  //   2. The user was provisioned server-side AFTER the cache
+  //      warmed (e.g. stripe-webhook fulfilment between page load
+  //      and the user's first action) · the retry pulls the fresh
+  //      slug → uuid row.
+  await _ensureUidMap(true);
+  return _uidMap.get(lowered) ?? null;
 }
 
 /** Test/diagnostic · drop the cached uid map so the next resolve re-fetches. */

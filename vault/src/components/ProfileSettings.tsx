@@ -27,7 +27,7 @@
 // · early-return in the handler bounces spam-clicks.
 // ═══════════════════════════════════════════════════════════════════════
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   getActiveUid,
   getUserRecord,
@@ -85,6 +85,10 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
 
+  // Synchronous shield · React state batching window protection · see
+  // PrehabReadiness for the full rationale.
+  const submittingRef = useRef(false);
+
   const set = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
   }, []);
@@ -106,7 +110,8 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
   }, [form]);
 
   const handleSubmit = useCallback(async () => {
-    if (submitting) return;
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setLastError(null);
     try {
@@ -132,9 +137,10 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
     } catch (err) {
       setLastError(err instanceof Error ? err.message : String(err));
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
-  }, [submitting, uid, patch, props]);
+  }, [uid, patch, props]);
 
   return (
     <section className={styles.root} aria-labelledby="profile-settings-title">

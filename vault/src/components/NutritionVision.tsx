@@ -42,7 +42,7 @@
 //     from the edge function instead of perpetual em-dashes.
 // ═══════════════════════════════════════════════════════════════════════
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   analyzeMealMacros,
   generateMealImage,
@@ -81,12 +81,19 @@ export default function NutritionVision(props: NutritionVisionProps) {
   const [analyzing, setAnalyzing] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
 
+  // Synchronous shields · one per independent action button · React
+  // state batching window protection · see PrehabReadiness for the
+  // full rationale.
+  const scanningRef = useRef(false);
+  const analyzingRef = useRef(false);
+
   const trimmedName = name.trim();
   const canAct = trimmedName.length > 0;
   const hasScannedImage = imageUrl !== null;
 
   const handleScan = useCallback(async () => {
-    if (scanning || !canAct) return;
+    if (scanningRef.current || !canAct) return;
+    scanningRef.current = true;
     setScanning(true);
     setLastError(null);
     try {
@@ -100,12 +107,14 @@ export default function NutritionVision(props: NutritionVisionProps) {
     } catch (err) {
       setLastError(`Scan failed · ${err instanceof Error ? err.message : String(err)}`);
     } finally {
+      scanningRef.current = false;
       setScanning(false);
     }
-  }, [scanning, canAct, trimmedName]);
+  }, [canAct, trimmedName]);
 
   const handleProtocol = useCallback(async () => {
-    if (analyzing || !canAct) return;
+    if (analyzingRef.current || !canAct) return;
+    analyzingRef.current = true;
     setAnalyzing(true);
     setLastError(null);
     try {
@@ -125,9 +134,10 @@ export default function NutritionVision(props: NutritionVisionProps) {
     } catch (err) {
       setLastError(`Protocol failed · ${err instanceof Error ? err.message : String(err)}`);
     } finally {
+      analyzingRef.current = false;
       setAnalyzing(false);
     }
-  }, [analyzing, canAct, trimmedName]);
+  }, [canAct, trimmedName]);
 
   const handleReset = useCallback(() => {
     setImageUrl(null);

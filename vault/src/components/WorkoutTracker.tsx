@@ -28,7 +28,7 @@
 // PASSOVER §5d follow-up sprint.
 // ═══════════════════════════════════════════════════════════════════════
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   getActiveUid,
   insertWorkoutSession,
@@ -81,6 +81,16 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [errorsById, setErrorsById] = useState<Record<string, string>>({});
 
+  // Synchronous shield · the `busyId` React state guards via the
+  // `disabled` attribute + the closure-captured early-return below,
+  // but React batches state updates so a sub-millisecond spam burst
+  // (10 clicks in one event-loop tick) sees the OLD busyId in every
+  // handler invocation and bypasses both guards. This ref locks
+  // synchronously the moment the FIRST click enters the handler ·
+  // immune to React's scheduling window.
+  const busyRef = useRef<string | null>(null);
+  const loggedRef = useRef<Set<string>>(new Set());
+
   const totalExercises = plan.exercises.length;
   const completed = useMemo(
     () => plan.exercises.reduce((n, e) => n + (loggedIds.has(e.id) ? 1 : 0), 0),
@@ -89,8 +99,15 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
 
   const handleLog = useCallback(
     async (entry: ExerciseEntry) => {
-      if (busyId === entry.id) return;
-      if (loggedIds.has(entry.id)) return;
+      // Synchronous shield · these refs update inside the same JS tick
+      // so a spam burst sees the locked state on click #2-N without
+      // waiting for React to re-render. The React state mirrors them
+      // for the disabled attribute + the "Logging…" label · the refs
+      // are the actual race-immune guard.
+      if (busyRef.current === entry.id) return;
+      if (loggedRef.current.has(entry.id)) return;
+      busyRef.current = entry.id;
+
       setBusyId(entry.id);
       setErrorsById((prev) => {
         if (!prev[entry.id]) return prev;
@@ -101,6 +118,7 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
       try {
         if (props.onLogExercise) {
           await props.onLogExercise(entry);
+          loggedRef.current.add(entry.id);
           setLoggedIds((prev) => addId(prev, entry.id));
         } else {
           const uid = getActiveUid();
@@ -126,6 +144,7 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
             sets
           );
           if (result.ok) {
+            loggedRef.current.add(entry.id);
             setLoggedIds((prev) => addId(prev, entry.id));
           } else {
             setErrorsById((prev) => ({ ...prev, [entry.id]: result.error }));
@@ -135,10 +154,11 @@ export default function WorkoutTracker(props: WorkoutTrackerProps) {
         const msg = err instanceof Error ? err.message : String(err);
         setErrorsById((prev) => ({ ...prev, [entry.id]: msg }));
       } finally {
+        busyRef.current = null;
         setBusyId(null);
       }
     },
-    [busyId, loggedIds, props]
+    [props]
   );
 
   return (

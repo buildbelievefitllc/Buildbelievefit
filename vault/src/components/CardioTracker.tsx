@@ -34,7 +34,7 @@
 // spam-clicks before any state mutation.
 // ═══════════════════════════════════════════════════════════════════════
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   getActiveUid,
   insertCardioSession,
@@ -86,6 +86,10 @@ export default function CardioTracker(props: CardioTrackerProps) {
   const [lastLoggedAt, setLastLoggedAt] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
 
+  // Synchronous shield · React state batching window protection · see
+  // PrehabReadiness for the full rationale.
+  const submittingRef = useRef(false);
+
   const loadAu = useMemo(() => duration * srpe, [duration, srpe]);
 
   const handleDuration = useCallback((raw: string) => {
@@ -96,7 +100,8 @@ export default function CardioTracker(props: CardioTrackerProps) {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (submitting) return;
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setLastError(null);
     const payload: CardioSessionInsert = {
@@ -126,9 +131,10 @@ export default function CardioTracker(props: CardioTrackerProps) {
     } catch (err) {
       setLastError(err instanceof Error ? err.message : String(err));
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
-  }, [submitting, activity, duration, srpe, loadAu, props]);
+  }, [activity, duration, srpe, loadAu, props]);
 
   const rpeBand = RPE_BAND[srpe] ?? '';
 

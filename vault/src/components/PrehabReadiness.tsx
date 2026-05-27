@@ -26,7 +26,7 @@
 // submit-to-db wire.
 // ═══════════════════════════════════════════════════════════════════════
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { getActiveUid, insertSomaticReadiness } from '../services/supabaseClient';
 import styles from './PrehabReadiness.module.css';
 
@@ -88,6 +88,13 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
   const [lastSubmittedAt, setLastSubmittedAt] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
 
+  // Synchronous shield · the React `submitting` state still drives the
+  // button's `disabled` attribute and "Logging…" label, but React
+  // batches state updates so a sub-millisecond spam burst sees the
+  // OLD submitting=false value in every handler invocation. This ref
+  // locks synchronously the moment the FIRST click enters the handler.
+  const submittingRef = useRef(false);
+
   const composite = useMemo(() => calcComposite(scores), [scores]);
 
   const handleChange = useCallback(
@@ -98,7 +105,8 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
   );
 
   const handleSubmit = useCallback(async () => {
-    if (submitting) return;
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setLastError(null);
     const payload: ReadinessPayload = {
@@ -131,9 +139,10 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
     } catch (err) {
       setLastError(err instanceof Error ? err.message : String(err));
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
-  }, [submitting, scores, composite, props]);
+  }, [scores, composite, props]);
 
   return (
     <section className={styles.root} aria-labelledby="prehab-readiness-title">
