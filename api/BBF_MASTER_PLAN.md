@@ -748,7 +748,7 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 - **Why soft-delete metadata lives on `bbf_users`, NOT `bbf_audit_logs`:** `bbf_audit_logs.movement_name` + `.tension_zone` are NOT NULL with a kinematic-vocabulary enum CHECK · writing a user-lifecycle audit row requires semantically wrong placeholder values · cleaner self-contained on `bbf_users`. General-purpose user-lifecycle audit table queued for a future phase.
 - **Debt remaining (queued in §6.0i-followup):** ~10 lower-risk reader sites continue to read raw `bbf_users` · RLS hides soft-deleted rows from anon/authenticated already · UX-only leak · no security exposure since auth RPC enforces the gate server-side.
 
-## [~] 6.0j · Maximum-Tier · Claude Proxy Infrastructure · commit `951941f` · 2026-05-26 · 3 shared Deno helpers + bbf-co-coach canonical conversion · 12 agents pending
+## [x] 6.0j · Maximum-Tier · Claude Proxy Infrastructure · commit `951941f` · 2026-05-26 · 3 shared Deno helpers + bbf-co-coach canonical conversion · CLOSED by §6.0k (`4d826e5`) which converted the remaining 12 agents
 - **Why:** Red-team audit crack 2.1 · the 13 in-vault Anthropic agents (`bbf-agentic-*` + `bbf-co-coach` + `bbf-midnight-haiku`) received ZERO of the Phase 6.0c → 6.0e marketing-engine hardening. Athletes could inject prompts into their own `performance_notes` / `dietary_profile` / readiness comments and reach Claude unfiltered. No retry budget, no fallback, no API-enforced structured output. PASSOVER §2 documented the canonical `bbf-co-coach` 502 cascade from this gap. This entry installs the load-bearing infrastructure and converts the canonical agent end-to-end.
 - **Shipped (this session · 3 shared Deno helpers + 1 agent converted):**
   - **`supabase/functions/_shared/anthropic-armor.ts`** (NEW · 221 lines) · Deno port of `prompt-armor.js` adapted for Anthropic's request/response shape:
@@ -799,7 +799,55 @@ The biggest sustained effort. Worth it. Pick a quiet window for the build-pipeli
 | 11 | `bbf-agentic-peaking` | `mesocycle_rationale` | Haiku → Sonnet fallback |
 | 12 | `bbf-agentic-linguist` | `i18n_translation` | Haiku → Sonnet fallback |
 
-Each pending agent is a single-session conversion · the pattern from `bbf-co-coach` v13 is the template · adopt `callClaude({ useCase, system, userFields, toolSchema?, maxTokens, ... })` and delete the local raw-fetch boilerplate. Until each agent is converted, athletes can still inject prompts into the affected surface and the function has no retry/fallback.
+Each pending agent is a single-session conversion · the pattern from `bbf-co-coach` v13 is the template · adopt `callClaude({ useCase, system, userFields, toolSchema?, maxTokens, ... })` and delete the local raw-fetch boilerplate. Until each agent is converted, athletes can still inject prompts into the affected surface and the function has no retry/fallback. **CLOSED by §6.0k below (`4d826e5`) · all 12 agents converted in one sweeping commit.**
+
+## [x] 6.0k · Maximum-Tier · Anthropic Proxy Lockdown · commit `4d826e5` · 2026-05-26 · 12 remaining agents converted to canonical `callClaude` · PASSOVER §5 Anthropic Agents queue FULLY DRAINED
+- **Why:** §6.0j (`951941f`) shipped the 3-file shared Deno hardening infrastructure (`anthropic-armor.ts` + `anthropic-resilience.ts` + `anthropic-call.ts`) and converted `bbf-co-coach` as the canonical reference, but left the 12 remaining Anthropic-driven edge functions (11 `bbf-agentic-*` + `bbf-midnight-haiku`) making RAW `fetch('https://api.anthropic.com/...')` calls with no per-use-case fallback, no prompt armor, no tool_use schema enforcement, and no uniform tag-tunneling defense. CEO directive ("Anthropic Proxy Lockdown") closes the gap in one sweep · all 12 agents now route through the canonical helper · zero raw Anthropic fetches remain anywhere in the agentic fleet.
+- **How (this session · 12-agent sweep + 1 helper extension):**
+  - **`_shared/anthropic-call.ts` (helper extension · +21 lines)** · `CallClaudeArgs` gains `userImages?: ReadonlyArray<{ mime_type, data }>` · base64-encoded image content blocks ride alongside the wrapped `<user_input>` text in a single user-message content array · required by `bbf-agentic-kinematics` (the only vision-capable agent in this sweep · the canonical helper was text-only before). Wrap discipline preserved · armor is identical to text-only calls · images prepend so the model sees image-then-text in the order the legacy code used.
+  - **`bbf-agentic-cardio`** · use-case `cardiac_intercept` (Opus-tier) · **explicit `fallbackOverride: null` at the call site** even though it's the FALLBACK_POLICY default for cardiac_intercept · defense-in-depth code-as-policy · a future edit to FALLBACK_POLICY can never silently demote the medical-reasoning path to a weaker model. Tool name `submit_cardio_protocol`.
+  - **`bbf-agentic-comlink`** · use-case `novel_form_correction` (Sonnet → Opus) · **3 distinct intent paths** (form_correction · positional · rewrite) share the same agent + use-case · per-intent schema variation lives in each handler's `toolSchema` arg · tool names `submit_form_correction` / `submit_positional_drill_pick` / `submit_comlink_rewrite`.
+  - **`bbf-agentic-forecasting`** · use-case `forecast_1rm` (Haiku → Sonnet) · tool name `submit_1rm_forecast`. Recent `bbf_sets` data passed as a serialized JSON userField so the armor wraps it as untrusted data.
+  - **`bbf-agentic-immersion`** · use-case `sport_immersion_seed` (Haiku → Sonnet) · multi-turn conversation history collapses into a single `conversation_history` userField with `[turn N · role] content` formatting · assistant prior turns ALSO treated as untrusted (hijacked-history defense). Tool name `submit_immersion_turn`.
+  - **`bbf-agentic-interrogator`** · use-case `onboarding_interview` (Sonnet → Opus) · tool name `submit_interrogator_audit` · parsed result keeps `as any` typing to preserve the existing structural validator without rewriting.
+  - **`bbf-agentic-kinematics`** · use-case `kinematic_form_score` (Sonnet · vision-tier) · uses the new `userImages` param to ride the base64 form-check photo alongside the wrapped text · tool name `submit_kinematic_form_score`.
+  - **`bbf-agentic-linguist`** · use-case `i18n_translation` (Haiku → Sonnet) · tool name `submit_translation`.
+  - **`bbf-agentic-orchestrator`** · use-case `snapshot_synthesis` (Haiku → Sonnet) · **free-text path** (no toolSchema · the 2-4 sentence athlete snapshot is prose) · helper returns `result.text` directly.
+  - **`bbf-agentic-pathfinder`** · use-case `onboarding_interview` (Sonnet → Opus) · **free-text path** (the marker `[[RECOMMEND:<tier>]]` is parsed post-call by `extractRecommendation`) · multi-turn conversation collapses into one serialized userField (same pattern as immersion).
+  - **`bbf-agentic-peaking`** · use-case `mesocycle_rationale` (Haiku → Sonnet) · tool name `submit_peaking_intercept`.
+  - **`bbf-agentic-prehab`** · use-case `prehab_assignment` (Sonnet → Opus) · tool name `submit_prehab_matrix`.
+  - **`bbf-midnight-haiku`** · use-case `snapshot_synthesis` (Haiku → Sonnet) · **free-text path** for the nightly Sovereign brief · bespoke RETRY_LIMIT × RETRY_BASE_MS loop + companion `sleep()` helper deleted · `withAnthropicResilience` from `_shared/anthropic-resilience.ts` provides identical 3-attempt exponential backoff with the same classification math.
+- **Uniform per-agent file pattern (~12-line delta core · same 6 steps applied to every agent):**
+  1. `import { routeAndLog } from '../_shared/model-router.ts'` → `import { callClaude } from '../_shared/anthropic-call.ts'`.
+  2. `const MODEL = routeAndLog(...)` constant deleted (helper resolves model from use-case tag internally).
+  3. `const EFFORT_DEFAULT = 'high'` constant deleted (helper doesn't surface effort as a knob today · adaptive-thinking decisions live inside Anthropic).
+  4. Local `async function callClaude(...)` + companion `extractTextBlock(...)` helper deleted · canonical helper replaces both.
+  5. Call site rewritten · `result.toolInput as <Shape>` for structured-output paths or `result.text` for free-text paths · log lines pick up `result.attempts` + `result.fallback_used` for observability into the retry/escalation path.
+  6. Residual `respBody.model` / `respBody.usage` references rewired to `result.model` / `result.usage`.
+- **Prompt-armor delivery contract:** Every athlete-controlled field that previously concatenated into a raw user-message string now flows through `userFields: Record<string, unknown>` · `wrapUserBlock()` sanitizes (strip control chars · neutralize `<user_input>` / `<system_constraints>` / `<context_boundaries>` / `<system_instruction>` tag-tunneling attempts via `[REDACTED_TAG]` substitution · enforce 4KB field cap) and wraps in the sealed `<context_boundaries>` + `<user_input>` shell. Multi-turn agents (immersion · pathfinder) serialize history into one userField · prior assistant turns also treated as untrusted (hijacked-history defense). The CEO's directive paraphrase "inject `<athlete_raw_input>` delimiters" maps to the canonical `<user_input>` tag in the shipped armor · the wrapping contract is the same.
+- **Tool_use structured output:** Every agent that previously used the legacy `output_config: { format: { type: 'json_schema', schema: ... } }` now passes `toolSchema` + `toolName` + `toolDescription` to callClaude · helper builds the canonical `tools` array + `tool_choice: { type: 'tool', name: <toolName> }` request shape · Anthropic guarantees the response contains exactly one `tool_use` content block with `name === toolName` and `input` matching the declared `input_schema`. Structured output extraction (legacy `extractTextBlock(content) → JSON.parse(text)`) collapses to a single `result.toolInput as <ResponseShape>` cast.
+- **Done when (this entry):** All 12 agents have `0 raw fetches to api.anthropic.com` + `1 import { callClaude } from '../_shared/anthropic-call.ts'` + `0 direct routeAndLog invocations` (grep-verified). `bbf-agentic-cardio` is the SOLE agent with explicit `fallbackOverride: null` (the Opus-tier safety-critical signal). All 12 use-case tags + per-agent fallback policies match ARCHITECTURE.md §5.5 verbatim.
+- **Shipped (this session):**
+  - `supabase/functions/_shared/anthropic-call.ts` (edit · +21 lines · `userImages` param + image content-block assembly).
+  - `supabase/functions/bbf-agentic-cardio/index.ts` (edit · -100 lines · explicit `fallbackOverride: null`).
+  - `supabase/functions/bbf-agentic-comlink/index.ts` (edit · -150 lines · 3 call sites converted).
+  - `supabase/functions/bbf-agentic-forecasting/index.ts` (edit · -65 lines).
+  - `supabase/functions/bbf-agentic-immersion/index.ts` (edit · -95 lines · multi-turn flatten).
+  - `supabase/functions/bbf-agentic-interrogator/index.ts` (edit · -85 lines).
+  - `supabase/functions/bbf-agentic-kinematics/index.ts` (edit · -85 lines · uses new `userImages`).
+  - `supabase/functions/bbf-agentic-linguist/index.ts` (edit · -75 lines).
+  - `supabase/functions/bbf-agentic-orchestrator/index.ts` (edit · -55 lines · free-text path).
+  - `supabase/functions/bbf-agentic-pathfinder/index.ts` (edit · -55 lines · free-text path · multi-turn flatten).
+  - `supabase/functions/bbf-agentic-peaking/index.ts` (edit · -75 lines).
+  - `supabase/functions/bbf-agentic-prehab/index.ts` (edit · -85 lines).
+  - `supabase/functions/bbf-midnight-haiku/index.ts` (edit · -70 lines · bespoke retry loop deleted).
+- **Validation (this session):**
+  - 13 files · +496 / -1047 lines · -551 net (~50 % reduction in per-agent boilerplate).
+  - grep audit · `api.anthropic.com` occurrences across the 12 agent files = 0 · `import { callClaude } from '../_shared/anthropic-call.ts'` occurrences per file = 1 · direct `routeAndLog` invocations per agent file = 0 · `cardio` agent has exactly 1 `fallbackOverride: null` at the call site + 1 prose mention in the import-block comment.
+  - `npm run typecheck` in `/vault` still passes zero errors (Deno-side edits disjoint from Vite/React build).
+  - Per-agent use-case tags match ARCHITECTURE.md §5.5 mapping verbatim · the 16 declared use-cases (9 Haiku · 4 Sonnet · 3 Opus) all have a consumer.
+  - Full Deno typecheck not run locally (this environment doesn't have Deno installed); Supabase Functions deploy surfaces TS errors as deploy failures · deploys queued for the operator's next push window.
+- **Out of scope (next sprint targets):** The `effort: 'high'` legacy knob is gone today · if Anthropic surfaces a per-call adaptive-thinking effort flag in the future it can be wired through callClaude in one place. Server-side idempotency (`bbf_action_idempotency`) for true network-retry safety is still a separate sprint · this commit is about the call SHAPE, not at-most-once semantics. The marketing-engine Gemini stack (`vision-scout/marketing/*`) lives on the analogous `prompt-armor.js` + `llm-resilience.js` and is unaffected by this commit.
 
 ## [ ] 6.1 · RLS audit on every public table
 - **Why:** Closes Tier 1 #10 of the original list. Coverage isn't audited.
