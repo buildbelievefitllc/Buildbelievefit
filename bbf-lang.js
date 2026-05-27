@@ -520,11 +520,91 @@ var D = {
 'render-submitting':   { en:'Submitting\u2026',     es:'Enviando\u2026',         pt:'Enviando\u2026' },
 'render-syncing':      { en:'\u26a1 Syncing...',    es:'\u26a1 Sincronizando...', pt:'\u26a1 Sincronizando...' },
 'som-sync-failed':     { en:'\u26a0 Somatic sync failed.', es:'\u26a0 Sincronizaci\u00f3n som\u00e1tica fallida.', pt:'\u26a0 Falha na sincroniza\u00e7\u00e3o som\u00e1tica.' },
-'som-toast-synced':    { en:'\u269b Somatic SYNCED', es:'\u269b Som\u00e1tico SINCRONIZADO', pt:'\u269b Som\u00e1tico SINCRONIZADO' }
+'som-toast-synced':    { en:'\u269b Somatic SYNCED', es:'\u269b Som\u00e1tico SINCRONIZADO', pt:'\u269b Som\u00e1tico SINCRONIZADO' },
+
+// \u2550\u2550\u2550 PHASE 2 \u00b7 TRILINGUAL COVERAGE EXTENSION (2026-05-27) \u2550\u2550\u2550
+// Orphan fix \u00b7 was referenced in bbf-app.html:1687 but missing from D
+'app-nav-cardio':              { en:'Smart Cardio',             es:'Cardio Inteligente',                  pt:'Cardio Inteligente' },
+
+// Login screen \u00b7 paying-client surface \u00b7 placeholders + labels + CTAs
+'app-login-user-label':        { en:'Username',                 es:'Usuario',                              pt:'Usu\u00e1rio' },
+'app-login-user-placeholder':  { en:'your username',            es:'tu usuario',                           pt:'seu usu\u00e1rio' },
+'app-login-pin-label':         { en:'PIN (6 digits)',           es:'PIN (6 d\u00edgitos)',                 pt:'PIN (6 d\u00edgitos)' },
+'app-login-pin-placeholder':   { en:'enter PIN',                es:'ingresa el PIN',                       pt:'digite o PIN' },
+'app-login-signin':            { en:'Sign In \u2192',           es:'Iniciar Sesi\u00f3n \u2192',           pt:'Entrar \u2192' },
+'app-login-forgot':            { en:'Forgot PIN?',              es:'\u00bfOlvidaste tu PIN?',              pt:'Esqueceu o PIN?' },
+
+// New client registration form \u00b7 admin-only surface but still part of the legacy DOM
+'app-newclient-name-label':       { en:'Full Name',                es:'Nombre Completo',                      pt:'Nome Completo' },
+'app-newclient-name-placeholder': { en:'e.g. Marcus Johnson',      es:'ej. Marcus Johnson',                   pt:'ex. Marcus Johnson' },
+'app-newclient-user-label':       { en:'Username (no spaces)',     es:'Usuario (sin espacios)',               pt:'Usu\u00e1rio (sem espa\u00e7os)' },
+'app-newclient-user-placeholder': { en:'e.g. marcus_j',            es:'ej. marcus_j',                         pt:'ex. marcus_j' },
+'app-newclient-pin-label':        { en:'6-digit PIN',              es:'PIN de 6 d\u00edgitos',                pt:'PIN de 6 d\u00edgitos' },
+'app-newclient-pin-placeholder':  { en:'choose a PIN',             es:'elige un PIN',                         pt:'escolha um PIN' },
+'app-newclient-type-label':       { en:'Training Type',            es:'Tipo de Entrenamiento',                pt:'Tipo de Treino' },
+'app-newclient-type-inperson':    { en:'In-Person',                es:'Presencial',                           pt:'Presencial' },
+'app-newclient-type-remote':      { en:'Online / Remote',          es:'En L\u00ednea / Remoto',               pt:'Online / Remoto' },
+'app-newclient-goal-label':       { en:'Goal (optional)',          es:'Meta (opcional)',                      pt:'Meta (opcional)' },
+'app-newclient-goal-placeholder': { en:'e.g. Lose 20lbs by summer',es:'ej. Bajar 20 lbs antes del verano',    pt:'ex. Perder 20 lbs at\u00e9 o ver\u00e3o' },
+'app-newclient-submit':           { en:'Create Profile \u2192',    es:'Crear Perfil \u2192',                  pt:'Criar Perfil \u2192' },
+
+// Intake form validation TOASTs \u00b7 every new client hits these
+'intake-validate-age':            { en:'Enter your age',           es:'Ingresa tu edad',                      pt:'Digite sua idade' },
+'intake-validate-goal':           { en:'Select a goal',            es:'Selecciona una meta',                  pt:'Selecione uma meta' },
+'intake-validate-exp':            { en:'Select your experience level', es:'Selecciona tu nivel de experiencia', pt:'Selecione seu n\u00edvel de experi\u00eancia' },
+
+// \u2550\u2550\u2550 PHASE 3 \u00b7 INDEX.HTML LEGACY GAPS (2026-05-27) \u2550\u2550\u2550
+// Accessibility \u00b7 skip-link + hamburger Menu aria
+'a11y-skip-main':              { en:'Skip to main content',     es:'Saltar al contenido principal',        pt:'Pular para o conte\u00fado principal' },
+'a11y-menu':                   { en:'Menu',                     es:'Men\u00fa',                            pt:'Menu' },
+
+// Hero marquee \u00b7 6 unique scrolling phrases
+'mq-habit-arch':               { en:'HUMAN HABIT ARCHITECTURE', es:'ARQUITECTURA DE H\u00c1BITOS HUMANOS', pt:'ARQUITETURA DE H\u00c1BITOS HUMANOS' },
+'mq-elite-trans':              { en:'ELITE TRANSFORMATION',     es:'TRANSFORMACI\u00d3N DE \u00c9LITE',         pt:'TRANSFORMA\u00c7\u00c3O DE ELITE' },
+'mq-peak-perf':                { en:'PEAK PERFORMANCE ARCHITECTURE', es:'ARQUITECTURA DE M\u00c1XIMO RENDIMIENTO', pt:'ARQUITETURA DE PERFORMANCE M\u00c1XIMA' },
+'mq-sovereign':                { en:'SOVEREIGN PERFORMANCE',    es:'RENDIMIENTO SOBERANO',                 pt:'PERFORMANCE SOBERANA' },
+'mq-universal':                { en:'UNIVERSAL HUMAN PERFORMANCE', es:'RENDIMIENTO HUMANO UNIVERSAL',       pt:'PERFORMANCE HUMANA UNIVERSAL' },
+'mq-engine-anchor':            { en:'ENGINE HABITS OVER ANCHOR HABITS', es:'H\u00c1BITOS MOTOR SOBRE H\u00c1BITOS ANCLA', pt:'H\u00c1BITOS MOTOR SOBRE H\u00c1BITOS \u00c2NCORA' },
+
+// TDEE quick-calculator form \u00b7 widely used free tool
+'tdee-tag-lite':               { en:'Free Tool \u2014 Lite Tier',  es:'Herramienta Gratis \u2014 Nivel Lite',   pt:'Ferramenta Gr\u00e1tis \u2014 N\u00edvel Lite' },
+'tdee-lbl-age':                { en:'Age',                      es:'Edad',                                 pt:'Idade' },
+'tdee-lbl-sex':                { en:'Sex',                      es:'Sexo',                                 pt:'Sexo' },
+'tdee-opt-male':               { en:'Male',                     es:'Masculino',                            pt:'Masculino' },
+'tdee-opt-female':             { en:'Female',                   es:'Femenino',                             pt:'Feminino' },
+'tdee-lbl-weight':             { en:'Weight (lbs)',             es:'Peso (lbs)',                           pt:'Peso (lbs)' },
+'tdee-lbl-height':             { en:'Height (ft / in)',         es:'Altura (pies / pulg)',                 pt:'Altura (p\u00e9s / pol)' },
+'tdee-ph-ft':                  { en:'ft',                       es:'pies',                                 pt:'p\u00e9s' },
+'tdee-ph-in':                  { en:'in',                       es:'pulg',                                 pt:'pol' },
+'tdee-lbl-activity':           { en:'Activity Level',           es:'Nivel de Actividad',                   pt:'N\u00edvel de Atividade' },
+'tdee-act-sed':                { en:'Sedentary',                es:'Sedentario',                           pt:'Sedent\u00e1rio' },
+'tdee-act-light':              { en:'Lightly Active (1-3x/week)', es:'Poco Activo (1-3x/sem)',             pt:'Pouco Ativo (1-3x/sem)' },
+'tdee-act-mod':                { en:'Moderately Active (3-5x/week)', es:'Moderadamente Activo (3-5x/sem)', pt:'Moderadamente Ativo (3-5x/sem)' },
+'tdee-act-very':               { en:'Very Active (6-7x/week)',  es:'Muy Activo (6-7x/sem)',                pt:'Muito Ativo (6-7x/sem)' },
+'tdee-act-extreme':            { en:'Extremely Active / Physical Job', es:'Extremadamente Activo / Trabajo F\u00edsico', pt:'Extremamente Ativo / Trabalho F\u00edsico' },
+'tdee-lbl-goal':               { en:'Goal',                     es:'Meta',                                 pt:'Meta' },
+'tdee-goal-lose':              { en:'\ud83d\udd25 Lose Fat',           es:'\ud83d\udd25 Bajar Grasa',                    pt:'\ud83d\udd25 Perder Gordura' },
+'tdee-goal-maintain':          { en:'\u2696 Maintain',            es:'\u2696 Mantener',                        pt:'\u2696 Manter' },
+'tdee-goal-build':             { en:'\ud83d\udcaa Build Muscle',       es:'\ud83d\udcaa Ganar M\u00fasculo',                pt:'\ud83d\udcaa Ganhar M\u00fasculo' },
+'tdee-cal-day':                { en:'Calories / Day',           es:'Calor\u00edas / D\u00eda',                  pt:'Calorias / Dia' },
+'tdee-mac-protein':            { en:'Protein',                  es:'Prote\u00edna',                            pt:'Prote\u00edna' },
+'tdee-mac-carbs':              { en:'Carbs',                    es:'Carbohidratos',                        pt:'Carboidratos' },
+'tdee-mac-fats':               { en:'Fats',                     es:'Grasas',                               pt:'Gorduras' },
+'tdee-cta-plan':               { en:'Get a Custom Meal Plan \u2192', es:'Obt\u00e9n un Plan Alimenticio \u2192',  pt:'Obtenha um Plano Alimentar \u2192' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
+// Element-level: data-lang-key="K"   → swaps textContent (or innerHTML if value contains '<').
+// Attribute-level: data-lang-attr-<NAME>="K" → swaps the <NAME> attribute.
+//   Supported NAMEs: placeholder, aria-label, title, alt, value · cover the
+//   gaps that pure textContent translation can't reach (form inputs, ARIA,
+//   image alts, button value attrs).
+// Both can coexist on the same element. Missing dict entries are skipped
+// silently so partial coverage during a rollout doesn't blank the UI.
+var LANG_ATTR_TARGETS = ['placeholder', 'aria-label', 'title', 'alt', 'value'];
+
 function apply() {
+  // 1 · Text content
   var els = document.querySelectorAll('[data-lang-key]');
   for (var i = 0; i < els.length; i++) {
     var k = els[i].getAttribute('data-lang-key');
@@ -533,6 +613,18 @@ function apply() {
         els[i].innerHTML = D[k][LANG];
       } else {
         els[i].textContent = D[k][LANG];
+      }
+    }
+  }
+  // 2 · Attribute translations
+  for (var a = 0; a < LANG_ATTR_TARGETS.length; a++) {
+    var attrName = LANG_ATTR_TARGETS[a];
+    var dataAttr = 'data-lang-attr-' + attrName;
+    var attrEls  = document.querySelectorAll('[' + dataAttr + ']');
+    for (var j = 0; j < attrEls.length; j++) {
+      var ak = attrEls[j].getAttribute(dataAttr);
+      if (D[ak] && D[ak][LANG] !== undefined && D[ak][LANG] !== '') {
+        attrEls[j].setAttribute(attrName, D[ak][LANG]);
       }
     }
   }

@@ -234,24 +234,24 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
          tool can clone its fields, and REGISTER() is gated to admin-only. -->
     <div id="pane-si">
       <div class="af">
-        <label>Username</label>
-        <input type="text" id="u" placeholder="your username" autocomplete="username" autocorrect="off" autocapitalize="none" spellcheck="false"/>
+        <label data-lang-key="app-login-user-label">Username</label>
+        <input type="text" id="u" placeholder="your username" data-lang-attr-placeholder="app-login-user-placeholder" autocomplete="username" autocorrect="off" autocapitalize="none" spellcheck="false"/>
       </div>
       <div class="af">
-        <label>PIN (6 digits)</label>
-        <input type="password" id="p" placeholder="enter PIN" maxlength="6" inputmode="numeric"/>
+        <label data-lang-key="app-login-pin-label">PIN (6 digits)</label>
+        <input type="password" id="p" placeholder="enter PIN" data-lang-attr-placeholder="app-login-pin-placeholder" maxlength="6" inputmode="numeric"/>
       </div>
-      <button class="abtn" id="signin-btn" onclick="LOGIN()">Sign In &#8594;</button>
+      <button class="abtn" id="signin-btn" data-lang-key="app-login-signin" onclick="LOGIN()">Sign In &#8594;</button>
       <div class="amsg" id="lmsg"></div>
-      <a class="vault-forgot" href="mailto:akeem@buildbelievefit.fitness?subject=PIN%20Reset%20Request">Forgot PIN?</a>
+      <a class="vault-forgot" data-lang-key="app-login-forgot" href="mailto:akeem@buildbelievefit.fitness?subject=PIN%20Reset%20Request">Forgot PIN?</a>
     </div>
     <div id="pane-nc" style="display:none" data-bbf-admin-only="1" aria-hidden="true">
-      <div class="af"><label>Full Name</label><input type="text" id="rn" placeholder="e.g. Marcus Johnson"/></div>
-      <div class="af"><label>Username (no spaces)</label><input type="text" id="ru" placeholder="e.g. marcus_j" autocorrect="off" autocapitalize="none" spellcheck="false"/></div>
-      <div class="af"><label>6-digit PIN</label><input type="password" id="rp" placeholder="choose a PIN" maxlength="6" inputmode="numeric"/></div>
-      <div class="af"><label>Training Type</label><select id="rt"><option>In-Person</option><option>Online / Remote</option></select></div>
-      <div class="af"><label>Goal (optional)</label><input type="text" id="rg" placeholder="e.g. Lose 20lbs by summer"/></div>
-      <button class="abtn" id="register-btn" onclick="REGISTER()">Create Profile &#8594;</button>
+      <div class="af"><label data-lang-key="app-newclient-name-label">Full Name</label><input type="text" id="rn" placeholder="e.g. Marcus Johnson" data-lang-attr-placeholder="app-newclient-name-placeholder"/></div>
+      <div class="af"><label data-lang-key="app-newclient-user-label">Username (no spaces)</label><input type="text" id="ru" placeholder="e.g. marcus_j" data-lang-attr-placeholder="app-newclient-user-placeholder" autocorrect="off" autocapitalize="none" spellcheck="false"/></div>
+      <div class="af"><label data-lang-key="app-newclient-pin-label">6-digit PIN</label><input type="password" id="rp" placeholder="choose a PIN" data-lang-attr-placeholder="app-newclient-pin-placeholder" maxlength="6" inputmode="numeric"/></div>
+      <div class="af"><label data-lang-key="app-newclient-type-label">Training Type</label><select id="rt"><option data-lang-key="app-newclient-type-inperson">In-Person</option><option data-lang-key="app-newclient-type-remote">Online / Remote</option></select></div>
+      <div class="af"><label data-lang-key="app-newclient-goal-label">Goal (optional)</label><input type="text" id="rg" placeholder="e.g. Lose 20lbs by summer" data-lang-attr-placeholder="app-newclient-goal-placeholder"/></div>
+      <button class="abtn" id="register-btn" data-lang-key="app-newclient-submit" onclick="REGISTER()">Create Profile &#8594;</button>
       <div class="amsg" id="rmsg"></div>
     </div>
   </div>
@@ -3688,9 +3688,9 @@ function siShowStep(n) {
   }
 }
 function siNext(from) {
-  if (from === 0 && !document.getElementById('si-age').value) { TOAST('Enter your age'); return; }
-  if (from === 0 && !document.querySelector('#si-goal-chips .si-chip.on')) { TOAST('Select a goal'); return; }
-  if (from === 1 && !document.querySelector('#si-exp-chips .si-chip.on')) { TOAST('Select your experience level'); return; }
+  if (from === 0 && !document.getElementById('si-age').value) { TOAST(_t('intake-validate-age', 'Enter your age')); return; }
+  if (from === 0 && !document.querySelector('#si-goal-chips .si-chip.on')) { TOAST(_t('intake-validate-goal', 'Select a goal')); return; }
+  if (from === 1 && !document.querySelector('#si-exp-chips .si-chip.on')) { TOAST(_t('intake-validate-exp', 'Select your experience level')); return; }
   siShowStep(from + 1);
 }
 function siPrev(from) { siShowStep(from - 1); }

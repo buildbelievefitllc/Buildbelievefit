@@ -1565,7 +1565,7 @@ body.bbf-kairos .hero-badge {
 </script>
 </head>
 <body>
-<a href="#main-content" class="skip-to-main">Skip to main content</a>
+<a href="#main-content" class="skip-to-main" data-lang-key="a11y-skip-main">Skip to main content</a>
 
 
 <!-- NAV -->
@@ -1587,7 +1587,7 @@ body.bbf-kairos .hero-badge {
     <button onclick="BBF_LANG.set('es')" id="lt-es">ES</button>
     <button onclick="BBF_LANG.set('pt')" id="lt-pt">PT</button>
   </div>
-  <button class="hbg" id="hbg" aria-label="Menu">
+  <button class="hbg" id="hbg" aria-label="Menu" data-lang-attr-aria-label="a11y-menu">
     <span></span><span></span><span></span>
   </button>
 </nav>
@@ -1611,18 +1611,18 @@ body.bbf-kairos .hero-badge {
 <!-- MARQUEE -->
 <div class="mq">
   <div class="mq-t">
-    <span class="mq-i">HUMAN HABIT ARCHITECTURE</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-habit-arch">HUMAN HABIT ARCHITECTURE</span><span class="mq-d">&bull;</span>
     <span class="mq-i">BUILD BELIEVE FIT</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">ELITE TRANSFORMATION</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">PEAK PERFORMANCE ARCHITECTURE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">SOVEREIGN PERFORMANCE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">UNIVERSAL HUMAN PERFORMANCE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">ENGINE HABITS OVER ANCHOR HABITS</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-elite-trans">ELITE TRANSFORMATION</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-peak-perf">PEAK PERFORMANCE ARCHITECTURE</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-sovereign">SOVEREIGN PERFORMANCE</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-universal">UNIVERSAL HUMAN PERFORMANCE</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-engine-anchor">ENGINE HABITS OVER ANCHOR HABITS</span><span class="mq-d">&bull;</span>
     <span class="mq-i">BUILD BELIEVE FIT</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">ELITE TRANSFORMATION</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">PEAK PERFORMANCE ARCHITECTURE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">SOVEREIGN PERFORMANCE</span><span class="mq-d">&bull;</span>
-    <span class="mq-i">UNIVERSAL HUMAN PERFORMANCE</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-elite-trans">ELITE TRANSFORMATION</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-peak-perf">PEAK PERFORMANCE ARCHITECTURE</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-sovereign">SOVEREIGN PERFORMANCE</span><span class="mq-d">&bull;</span>
+    <span class="mq-i" data-lang-key="mq-universal">UNIVERSAL HUMAN PERFORMANCE</span><span class="mq-d">&bull;</span>
   </div>
 </div>
 
@@ -2257,34 +2257,34 @@ body.bbf-kairos .hero-badge {
     <!-- TDEE CALCULATOR -->
     <div id="tdee-calc" class="tdee-w reveal">
       <div class="tdee-hd">
-        <div class="tdee-lbl">Free Tool &mdash; Lite Tier</div>
+        <div class="tdee-lbl" data-lang-key="tdee-tag-lite">Free Tool &mdash; Lite Tier</div>
         <h3 data-lang-key="tdee-h">Calculate Your TDEE</h3>
       </div>
       <div class="tdee-g">
-        <div class="tf"><label>Age</label><input type="number" id="t-age" placeholder="28" min="16" max="80" inputmode="numeric"/></div>
-        <div class="tf"><label>Sex</label><select id="t-sex"><option value="male">Male</option><option value="female">Female</option></select></div>
-        <div class="tf"><label>Weight (lbs)</label><input type="number" id="t-wt" placeholder="185" inputmode="decimal"/></div>
-        <div class="tf"><label>Height (ft / in)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><input type="number" id="t-ft" placeholder="ft" min="4" max="7" inputmode="numeric"/><input type="number" id="t-in" placeholder="in" min="0" max="11" inputmode="numeric"/></div></div>
+        <div class="tf"><label data-lang-key="tdee-lbl-age">Age</label><input type="number" id="t-age" placeholder="28" min="16" max="80" inputmode="numeric"/></div>
+        <div class="tf"><label data-lang-key="tdee-lbl-sex">Sex</label><select id="t-sex"><option value="male" data-lang-key="tdee-opt-male">Male</option><option value="female" data-lang-key="tdee-opt-female">Female</option></select></div>
+        <div class="tf"><label data-lang-key="tdee-lbl-weight">Weight (lbs)</label><input type="number" id="t-wt" placeholder="185" inputmode="decimal"/></div>
+        <div class="tf"><label data-lang-key="tdee-lbl-height">Height (ft / in)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem"><input type="number" id="t-ft" placeholder="ft" data-lang-attr-placeholder="tdee-ph-ft" min="4" max="7" inputmode="numeric"/><input type="number" id="t-in" placeholder="in" data-lang-attr-placeholder="tdee-ph-in" min="0" max="11" inputmode="numeric"/></div></div>
       </div>
-      <div class="tf" style="margin-bottom:.8rem"><label>Activity Level</label><select id="t-act"><option value="1.2">Sedentary</option><option value="1.375">Lightly Active (1-3x/week)</option><option value="1.55" selected>Moderately Active (3-5x/week)</option><option value="1.725">Very Active (6-7x/week)</option><option value="1.9">Extremely Active / Physical Job</option></select></div>
-      <div class="tf" style="margin-bottom:1rem"><label>Goal</label>
+      <div class="tf" style="margin-bottom:.8rem"><label data-lang-key="tdee-lbl-activity">Activity Level</label><select id="t-act"><option value="1.2" data-lang-key="tdee-act-sed">Sedentary</option><option value="1.375" data-lang-key="tdee-act-light">Lightly Active (1-3x/week)</option><option value="1.55" selected data-lang-key="tdee-act-mod">Moderately Active (3-5x/week)</option><option value="1.725" data-lang-key="tdee-act-very">Very Active (6-7x/week)</option><option value="1.9" data-lang-key="tdee-act-extreme">Extremely Active / Physical Job</option></select></div>
+      <div class="tf" style="margin-bottom:1rem"><label data-lang-key="tdee-lbl-goal">Goal</label>
         <div class="goal-row" id="grow">
-          <button class="goal-b on" data-adj="-500">&#x1F525; Lose Fat</button>
-          <button class="goal-b" data-adj="0">&#x2696; Maintain</button>
-          <button class="goal-b" data-adj="300">&#x1F4AA; Build Muscle</button>
+          <button class="goal-b on" data-adj="-500" data-lang-key="tdee-goal-lose">&#x1F525; Lose Fat</button>
+          <button class="goal-b" data-adj="0" data-lang-key="tdee-goal-maintain">&#x2696; Maintain</button>
+          <button class="goal-b" data-adj="300" data-lang-key="tdee-goal-build">&#x1F4AA; Build Muscle</button>
         </div>
       </div>
       <button class="calc-btn" onclick="calcWidget()" data-lang-key="tdee-btn">Calculate My Targets &#x2192;</button>
       <div class="tdee-res" id="tres">
         <div class="tdee-big" id="tw-cal">—</div>
-        <div class="tdee-sub">Calories / Day</div>
+        <div class="tdee-sub" data-lang-key="tdee-cal-day">Calories / Day</div>
         <div class="mac-g">
-          <div class="mac-c"><div class="mac-v" id="tw-p" style="color:#ef4444">—</div><div class="mac-l">Protein</div></div>
-          <div class="mac-c"><div class="mac-v" id="tw-c" style="color:#3b82f6">—</div><div class="mac-l">Carbs</div></div>
-          <div class="mac-c"><div class="mac-v" id="tw-f" style="color:#f59e0b">—</div><div class="mac-l">Fats</div></div>
+          <div class="mac-c"><div class="mac-v" id="tw-p" style="color:#ef4444">—</div><div class="mac-l" data-lang-key="tdee-mac-protein">Protein</div></div>
+          <div class="mac-c"><div class="mac-v" id="tw-c" style="color:#3b82f6">—</div><div class="mac-l" data-lang-key="tdee-mac-carbs">Carbs</div></div>
+          <div class="mac-c"><div class="mac-v" id="tw-f" style="color:#f59e0b">—</div><div class="mac-l" data-lang-key="tdee-mac-fats">Fats</div></div>
         </div>
         <div class="tdee-note" id="tw-note"></div>
-        <a href="#pathfinder" class="tdee-cta">Get a Custom Meal Plan &#x2192;</a>
+        <a href="#pathfinder" class="tdee-cta" data-lang-key="tdee-cta-plan">Get a Custom Meal Plan &#x2192;</a>
       </div>
     </div>
   </div>
