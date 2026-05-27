@@ -1326,8 +1326,14 @@ footer a:hover{ color: var(--gold); }
 /* ─────────────────────────────────────────── */
   /* SCROLL REVEAL                               */
   /* ─────────────────────────────────────────── */
+  /* HOTFIX · the new design ships .reveal { opacity:0 } expecting an
+     IntersectionObserver that adds .in on visible. The legacy IIFE in
+     this file adds .vis (not .in) · so Pathfinder + every other legacy
+     .reveal element stayed invisible. Accept BOTH classes so the legacy
+     observer paints the visible state correctly while still leaving the
+     new-design .in class working if new-design JS is ever loaded. */
   .reveal{ opacity: 0; transform: translateY(28px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
-.reveal.in{ opacity: 1; transform: translateY(0); }
+.reveal.in, .reveal.vis{ opacity: 1; transform: translateY(0); }
 .reveal.delay-1{ transition-delay: .08s; }
 .reveal.delay-2{ transition-delay: .16s; }
 .reveal.delay-3{ transition-delay: .24s; }
@@ -6007,14 +6013,20 @@ body.bbf-kairos .hero-badge {
 <!-- TRANSFORMATION SECTION -->
 
 
+<!-- Phase 2 HOTFIX · .reveal classes REMOVED from Pathfinder header + card
+     · this surface is the conversion funnel · it must NEVER be gated on a
+     scroll-into-view observer for any reason. The legacy IIFE at line
+     ~6278 was adding .vis on intersection · the new design's CSS at
+     line ~1329 was overriding with opacity:0 default · users saw an empty
+     section before the observer could fire. Always-visible from now on. -->
 <section id="pathfinder">
   <div class="path-in">
-    <div style="text-align:center;margin-bottom:2rem" class="reveal">
+    <div style="text-align:center;margin-bottom:2rem">
       <div class="sec-lbl" id="sec-path-lbl" data-lang-key="path-lbl">Start Your Journey</div>
       <h2 class="sec-h" id="path-h" data-lang-key="path-h">The <span class="y">Pathfinder</span></h2>
       <p class="sec-s" style="margin:0 auto" id="path-sub" data-lang-key="path-sub">4 quick steps. We'll calculate your personalized targets and Akeem will reach out within 24 hours.</p>
     </div>
-    <div class="path-card reveal">
+    <div class="path-card">
       <input type="hidden" id="f-tier" name="tier" value=""/>
       <div class="steps-ind">
         <div class="si act" id="si0"></div>
