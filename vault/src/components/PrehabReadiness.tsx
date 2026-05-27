@@ -27,8 +27,15 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { getActiveUid, insertSomaticReadiness } from '../services/supabaseClient';
+import {
+  getActiveUid,
+  generatePrehabMatrix,
+  insertSomaticReadiness,
+  type PrehabMovement,
+} from '../services/supabaseClient';
 import styles from './PrehabReadiness.module.css';
+
+const MAX_FRICTION_LEN = 600;
 
 export interface ReadinessDimension {
   key: keyof ReadinessPayload['scores'];
@@ -88,12 +95,21 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
   const [lastSubmittedAt, setLastSubmittedAt] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
 
-  // Synchronous shield · the React `submitting` state still drives the
-  // button's `disabled` attribute and "Logging…" label, but React
-  // batches state updates so a sub-millisecond spam burst sees the
-  // OLD submitting=false value in every handler invocation. This ref
-  // locks synchronously the moment the FIRST click enters the handler.
+  // Friction Scanner · independent UI surface that talks to the
+  // bbf-agentic-prehab edge function to generate a 3-movement
+  // recovery matrix from the athlete's free-text friction report.
+  const [friction, setFriction] = useState('');
+  const [matrix, setMatrix] = useState<ReadonlyArray<PrehabMovement> | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [matrixError, setMatrixError] = useState<string | null>(null);
+
+  // Synchronous shields · the React `submitting`/`generating` state
+  // drives the visual `disabled` + "Logging…"/"Generating…" labels,
+  // but React batches state updates so a sub-millisecond spam burst
+  // sees the OLD value in every handler invocation. These refs lock
+  // synchronously the moment the FIRST click enters the handler.
   const submittingRef = useRef(false);
+  const generatingRef = useRef(false);
 
   const composite = useMemo(() => calcComposite(scores), [scores]);
 
@@ -143,6 +159,34 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
       setSubmitting(false);
     }
   }, [scores, composite, props]);
+
+  const handleGenerateMatrix = useCallback(async () => {
+    if (generatingRef.current) return;
+    generatingRef.current = true;
+    setGenerating(true);
+    setMatrixError(null);
+    try {
+      const uid = getActiveUid();
+      if (!uid) {
+        setMatrixError('No active session · sign in to generate a recovery matrix.');
+        return;
+      }
+      const trimmed = friction.trim().slice(0, MAX_FRICTION_LEN);
+      const result = await generatePrehabMatrix(uid, { reported_friction: trimmed });
+      if (result.ok && Array.isArray(result.data?.matrix)) {
+        setMatrix(result.data.matrix);
+      } else if (!result.ok) {
+        setMatrixError(result.error);
+      } else {
+        setMatrixError('Recovery engine returned no matrix.');
+      }
+    } catch (err) {
+      setMatrixError(err instanceof Error ? err.message : String(err));
+    } finally {
+      generatingRef.current = false;
+      setGenerating(false);
+    }
+  }, [friction]);
 
   return (
     <section className={styles.root} aria-labelledby="prehab-readiness-title">
@@ -218,6 +262,65 @@ export default function PrehabReadiness(props: PrehabReadinessProps) {
           ? `Logged to bbf_readiness at ${formatTime(lastSubmittedAt)}`
           : 'Tap "Log readiness" to record today’s score · writes to bbf_readiness'}
       </div>
+
+      <div className={styles.scannerHeader}>
+        <div className={styles.scannerKicker}>Friction Scanner</div>
+        <h3 className={styles.scannerTitle}>Generate Recovery Matrix</h3>
+        <div className={styles.scannerSub}>
+          Describe where you’re tight, sore, or hurting. The prehab engine returns
+          a 3-movement recovery matrix scoped to your last training block + the
+          friction you report.
+        </div>
+      </div>
+
+      <div className={styles.frictionField}>
+        <label htmlFor="prehab-friction" className={styles.frictionLabel}>
+          Reported friction
+        </label>
+        <textarea
+          id="prehab-friction"
+          value={friction}
+          onChange={(e) => setFriction(e.target.value)}
+          className={styles.frictionInput}
+          placeholder="e.g. Left knee soreness · tight low back · grumpy right shoulder"
+          maxLength={MAX_FRICTION_LEN}
+          rows={3}
+        />
+        <div className={styles.frictionMeta}>
+          {friction.trim().length} / {MAX_FRICTION_LEN}
+        </div>
+      </div>
+
+      <div className={styles.submitWrap}>
+        <button
+          type="button"
+          onClick={handleGenerateMatrix}
+          disabled={generating}
+          className={styles.submit}
+        >
+          {generating ? 'Generating…' : 'Generate Recovery Matrix'}
+        </button>
+      </div>
+
+      {matrixError && (
+        <div className={styles.errorBanner} role="alert">{matrixError}</div>
+      )}
+
+      {matrix && matrix.length > 0 && (
+        <ul className={styles.matrixList} aria-label="Recovery matrix">
+          {matrix.map((m, idx) => (
+            <li key={`${m.name}-${idx}`} className={styles.matrixCard}>
+              <div className={styles.matrixCardHead}>
+                <span className={styles.matrixCardIndex}>{idx + 1}</span>
+                <span className={styles.matrixCardName}>{m.name}</span>
+                <span className={styles.matrixCardDuration}>{m.duration}</span>
+              </div>
+              <div className={styles.matrixCardFocus}>{m.focus}</div>
+              <div className={styles.matrixCardReason}>{m.reason}</div>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

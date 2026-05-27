@@ -1039,12 +1039,21 @@ export type EdgeFunctionResult<T> =
  *
  * On success returns `{ok:true,data:<parsed JSON>}`. Callers cast
  * the generic via the explicit type parameter.
+ *
+ * The optional `headers` field merges into the base apikey +
+ * Authorization + Content-Type triplet · agentic-* functions that
+ * env-gate on `X-BBF-Admin-Token` rely on this so the legacy admin
+ * path keeps working from the React layer.
  */
-export async function callEdgeFunction<T>(name: string, body: unknown): Promise<EdgeFunctionResult<T>> {
+export async function callEdgeFunction<T>(
+  name: string,
+  body: unknown,
+  opts: { headers?: Record<string, string> } = {}
+): Promise<EdgeFunctionResult<T>> {
   try {
     const res = await fetch(`${getSupabaseUrl()}/functions/v1/${name}`, {
       method: 'POST',
-      headers: _restHeaders(),
+      headers: { ..._restHeaders(), ...(opts.headers ?? {}) },
       body: JSON.stringify(body),
     });
     const text = await res.text();
@@ -1066,6 +1075,20 @@ export async function callEdgeFunction<T>(name: string, body: unknown): Promise<
     const msg = err instanceof Error ? err.message : String(err);
     return { ok: false, error: `network: ${msg}` };
   }
+}
+
+/**
+ * Build the optional admin-token header for `bbf-agentic-*` edge
+ * functions. The functions env-gate on `BBF_COACH_AGENT_TOKEN` ·
+ * if the token is set server-side, callers MUST forward it as
+ * `X-BBF-Admin-Token` or the function returns 401. Coaches have the
+ * token in localStorage/sessionStorage; athletes don't, so for
+ * athlete-facing surfaces this returns an empty object and the
+ * function defaults to allow when env unset.
+ */
+function _agentHeaders(): Record<string, string> {
+  const tok = getCoachAgentToken();
+  return tok ? { 'X-BBF-Admin-Token': tok } : {};
 }
 
 export interface MealImageResponse {
@@ -1111,4 +1134,87 @@ export function analyzeMealMacros(
     ingredients: opts.ingredients,
     lang: opts.lang ?? 'en',
   });
+}
+
+// ─── Phase 4.3h · Prehab Friction Scanner + Linguist wire-ups ──────────
+// Both surfaces talk to the existing Phase 6.0k-converted edge
+// functions (`bbf-agentic-prehab` + `bbf-agentic-linguist`) which
+// route through the canonical _shared/anthropic-call.ts helper. The
+// response shapes were preserved verbatim across that conversion ·
+// these client helpers map 1:1 onto the edge functions' JSON
+// contracts.
+
+export interface PrehabMovement {
+  name:     string;
+  duration: string;
+  focus:    string;
+  reason:   string;
+}
+
+export interface PrehabMatrixResponse {
+  matrix: ReadonlyArray<PrehabMovement>;
+}
+
+export interface PrehabMatrixRequest {
+  reported_friction?: string;
+  goal?:    string;
+  partner?: string;
+}
+
+/**
+ * Generate a 3-movement recovery / prehab matrix for the active
+ * athlete · powers the Friction Scanner "Generate Recovery Matrix"
+ * button. The edge function pre-resolves the uid via its own RPC
+ * lookup; we forward a hint `actual_uuid` from our local resolver
+ * when it's already warm to save the round-trip.
+ */
+export async function generatePrehabMatrix(
+  uidSlug: string,
+  payload: PrehabMatrixRequest = {}
+): Promise<EdgeFunctionResult<PrehabMatrixResponse>> {
+  const actualUuid = await resolveUserUuid(uidSlug);
+  const today = new Date().toISOString().slice(0, 10);
+  return callEdgeFunction<PrehabMatrixResponse>(
+    'bbf-agentic-prehab',
+    {
+      uid:               uidSlug,
+      actual_uuid:       actualUuid,
+      reported_friction: payload.reported_friction ?? '',
+      client_context:    {
+        today,
+        goal:    payload.goal,
+        partner: payload.partner,
+      },
+      admin_override:    false,
+    },
+    { headers: _agentHeaders() }
+  );
+}
+
+export interface TranslationResponse {
+  translation:     string;
+  phonetic:        string;
+  literal_meaning: string;
+}
+
+/**
+ * Translate an English coaching cue into the target language with a
+ * phonetic guide + literal back-translation · powers the Sovereign
+ * Linguistics card. Backed by `bbf-agentic-linguist` (Haiku-tier ·
+ * fallback escalates to Sonnet per FALLBACK_POLICY).
+ */
+export function translateCoachingCue(
+  uidSlug: string,
+  englishCue: string,
+  targetLanguage: string = 'es'
+): Promise<EdgeFunctionResult<TranslationResponse>> {
+  return callEdgeFunction<TranslationResponse>(
+    'bbf-agentic-linguist',
+    {
+      uid:             uidSlug,
+      english_cue:     englishCue,
+      target_language: targetLanguage,
+    },
+    { headers: _agentHeaders() }
+  );
 }

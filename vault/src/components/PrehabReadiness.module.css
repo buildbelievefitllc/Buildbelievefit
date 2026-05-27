@@ -265,3 +265,162 @@
   font-weight: 600;
   word-break: break-word;
 }
+
+/* ─── Phase 4.3h · Friction Scanner + Recovery Matrix ─────────────────
+   New cards appended after the readiness submit · reuse the existing
+   visual primitives (auto-fit grid · clamp() typography · max-width
+   100% input containment) so the operator's "don't touch the CSS
+   grids" directive stays honored. The matrix list uses
+   `repeat(auto-fit, minmax(min(100%, 14rem), 1fr))` so 1-up on phones
+   and 3-up on wide monitors with zero @media branches. */
+
+.scannerHeader {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 0.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid #1f262f;
+  margin-top: 0.5rem;
+}
+
+.scannerKicker {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: clamp(0.66rem, 1.8vw, 0.74rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fbbf24;
+}
+
+.scannerTitle {
+  margin: 0;
+  font-size: clamp(1rem, 3.2vw, 1.3rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.scannerSub {
+  font-size: clamp(0.74rem, 2.2vw, 0.84rem);
+  opacity: 0.65;
+  line-height: 1.4;
+}
+
+.frictionField {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  background: #1a2028;
+  border: 1px solid #2a323d;
+  border-radius: 0.55rem;
+}
+
+.frictionLabel {
+  font-size: clamp(0.66rem, 1.8vw, 0.74rem);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.frictionInput {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #0a0f14;
+  color: #e8eaed;
+  border: 1px solid #2a323d;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: clamp(0.88rem, 2.6vw, 1rem);
+  font-family: inherit;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  outline: none;
+  resize: vertical;
+  line-height: 1.4;
+  transition: border-color 120ms;
+}
+
+.frictionInput:focus-visible { border-color: #34d399; }
+
+.frictionMeta {
+  font-size: clamp(0.62rem, 1.7vw, 0.7rem);
+  opacity: 0.5;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.matrixList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 0.6rem;
+}
+
+.matrixCard {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 0.4rem;
+  padding: 0.75rem 0.85rem;
+  background: #1a2028;
+  border: 1px solid #2a323d;
+  border-radius: 0.55rem;
+  min-width: 0;
+}
+
+.matrixCardHead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.matrixCardIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: #34d399;
+  color: #062e1e;
+  font-size: clamp(0.7rem, 1.9vw, 0.78rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.matrixCardName {
+  font-size: clamp(0.88rem, 2.5vw, 1rem);
+  font-weight: 700;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.matrixCardDuration {
+  font-size: clamp(0.66rem, 1.8vw, 0.74rem);
+  font-weight: 600;
+  color: #fbbf24;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.matrixCardFocus {
+  font-size: clamp(0.72rem, 2vw, 0.8rem);
+  font-weight: 600;
+  opacity: 0.85;
+  letter-spacing: 0.02em;
+}
+
+.matrixCardReason {
+  font-size: clamp(0.72rem, 2vw, 0.8rem);
+  opacity: 0.65;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}

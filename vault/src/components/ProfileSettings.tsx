@@ -31,10 +31,21 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   getActiveUid,
   getUserRecord,
+  translateCoachingCue,
   updateUserProfile,
   type ProfilePatch,
+  type TranslationResponse,
 } from '../services/supabaseClient';
 import styles from './ProfileSettings.module.css';
+
+const MAX_CUE_LEN = 200;
+
+const LANGUAGE_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
+  { value: 'es', label: 'Spanish' },
+  { value: 'pt', label: 'Portuguese (Brazilian)' },
+  { value: 'fr', label: 'French' },
+  { value: 'de', label: 'German' },
+];
 
 const DIETARY_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
   { value: '',           label: 'No preference set' },
@@ -85,9 +96,20 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
 
-  // Synchronous shield · React state batching window protection · see
-  // PrehabReadiness for the full rationale.
+  // Sovereign Linguistics · independent UI surface that talks to the
+  // bbf-agentic-linguist edge function to translate an English coaching
+  // cue into a target language with phonetic + literal_meaning guides.
+  const [englishCue, setEnglishCue] = useState('');
+  const [targetLanguage, setTargetLanguage] = useState<string>('es');
+  const [translation, setTranslation] = useState<TranslationResponse | null>(null);
+  const [translating, setTranslating] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
+
+  // Synchronous shields · two action surfaces in this component, two
+  // refs. React state batching window protection · see PrehabReadiness
+  // for the full rationale.
   const submittingRef = useRef(false);
+  const translatingRef = useRef(false);
 
   const set = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
@@ -141,6 +163,34 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
       setSubmitting(false);
     }
   }, [uid, patch, props]);
+
+  const handleTranslate = useCallback(async () => {
+    if (translatingRef.current) return;
+    const trimmed = englishCue.trim().slice(0, MAX_CUE_LEN);
+    if (!trimmed) {
+      setTranslationError('Enter an English coaching cue to translate.');
+      return;
+    }
+    translatingRef.current = true;
+    setTranslating(true);
+    setTranslationError(null);
+    try {
+      const activeUid = uid ?? 'anonymous';
+      const result = await translateCoachingCue(activeUid, trimmed, targetLanguage);
+      if (result.ok && result.data?.translation) {
+        setTranslation(result.data);
+      } else if (!result.ok) {
+        setTranslationError(result.error);
+      } else {
+        setTranslationError('Linguist engine returned an empty translation.');
+      }
+    } catch (err) {
+      setTranslationError(err instanceof Error ? err.message : String(err));
+    } finally {
+      translatingRef.current = false;
+      setTranslating(false);
+    }
+  }, [englishCue, targetLanguage, uid]);
 
   return (
     <section className={styles.root} aria-labelledby="profile-settings-title">
@@ -293,6 +343,77 @@ export default function ProfileSettings(props: ProfileSettingsProps) {
             ? `Editing profile for ${uid}`
             : 'Sign in to edit your profile.'}
       </div>
+
+      <div className={styles.linguistHeader}>
+        <div className={styles.linguistKicker}>Sovereign Linguistics</div>
+        <h3 className={styles.linguistTitle}>Coaching cue translator</h3>
+        <div className={styles.linguistSub}>
+          Convert an English coaching cue into a gym-floor phrase in the target
+          language. Phonetic + literal-meaning included so you can verify and
+          pronounce on the floor.
+        </div>
+      </div>
+
+      <div className={styles.linguistRow}>
+        <div className={styles.linguistField}>
+          <label htmlFor="linguist-cue" className={styles.fieldLabel}>English coaching cue</label>
+          <input
+            id="linguist-cue"
+            type="text"
+            value={englishCue}
+            onChange={(e) => setEnglishCue(e.target.value)}
+            className={styles.input}
+            placeholder="e.g. Drive your knees out!"
+            maxLength={MAX_CUE_LEN}
+            autoComplete="off"
+          />
+        </div>
+        <div className={styles.linguistField}>
+          <label htmlFor="linguist-lang" className={styles.fieldLabel}>Target language</label>
+          <select
+            id="linguist-lang"
+            value={targetLanguage}
+            onChange={(e) => setTargetLanguage(e.target.value)}
+            className={styles.select}
+          >
+            {LANGUAGE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className={styles.submitWrap}>
+        <button
+          type="button"
+          onClick={handleTranslate}
+          disabled={translating}
+          className={styles.submit}
+        >
+          {translating ? 'Translating…' : 'Translate to Gym-Floor Slang'}
+        </button>
+      </div>
+
+      {translationError && (
+        <div className={styles.errorBanner} role="alert">{translationError}</div>
+      )}
+
+      {translation && (
+        <div className={styles.translationCard} aria-label="Translation result">
+          <div className={styles.translationRow}>
+            <div className={styles.translationRowLabel}>Gym-floor phrase</div>
+            <div className={styles.translationRowPrimary}>{translation.translation}</div>
+          </div>
+          <div className={styles.translationRow}>
+            <div className={styles.translationRowLabel}>Phonetic</div>
+            <div className={styles.translationRowSecondary}>{translation.phonetic}</div>
+          </div>
+          <div className={styles.translationRow}>
+            <div className={styles.translationRowLabel}>Literal meaning</div>
+            <div className={styles.translationRowSecondary}>{translation.literal_meaning}</div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
