@@ -672,7 +672,42 @@ var D = {
 'omni-label-on':                   { en:'OMNISCIENCE&nbsp;ON',         es:'OMNISCIENCIA&nbsp;ACTIVA',        pt:'ONISCI\u00caNCIA&nbsp;ATIVA' },
 'omni-sub-on':                     { en:'all agents bypassed',         es:'todos los agentes bypassados',    pt:'todos os agentes desviados' },
 'omni-label-off':                  { en:'OMNISCIENCE',                 es:'OMNISCIENCIA',                    pt:'ONISCI\u00caNCIA' },
-'omni-sub-off':                    { en:'tap to engage',               es:'toca para activar',               pt:'toque para ativar' }
+'omni-sub-off':                    { en:'tap to engage',               es:'toca para activar',               pt:'toque para ativar' },
+
+// ═══ PHASE 5 · DEEP SWEEP · NUTRITION + CARDIO + PREHAB STATIC LABELS (2026-05-27) ═══
+
+// Nutrition tab · Virtual Chef + Nutrition Vision viewport (paying-client surface)
+'app-nutr-loading':                { en:'Loading...',                  es:'Cargando...',                     pt:'Carregando...' },
+'nv-viewport-lbl':                 { en:'🥗 Nutrition Vision Viewport · Live Food Analysis', es:'🥗 Visor de Visión Nutricional · Análisis de Comida en Vivo', pt:'🥗 Visor de Visão Nutricional · Análise de Comida ao Vivo' },
+'nv-status-idle':                  { en:'Idle',                        es:'Inactivo',                        pt:'Inativo' },
+'nv-hero-kicker':                  { en:'Multimodal AI Nutritionist',  es:'Nutricionista IA Multimodal',     pt:'Nutricionista IA Multimodal' },
+'nv-hero-title':                   { en:'Real-time Nutrition Vision',  es:'Visión Nutricional en Tiempo Real', pt:'Visão Nutricional em Tempo Real' },
+'nv-hero-sub':                     { en:'Point your camera at what you\'re about to eat. Instant macro + calorie estimates aligned with your day\'s TDEE target.', es:'Apunta tu cámara a lo que vas a comer. Estimación instantánea de macros + calorías alineada con tu meta TDEE del día.', pt:'Aponte sua câmera para o que você vai comer. Estimativa instantânea de macros + calorias alinhada com sua meta TDEE do dia.' },
+'nv-init-label':                   { en:'Nutrition Vision',            es:'Visión Nutricional',              pt:'Visão Nutricional' },
+'nv-init-sub':                     { en:'Live Food Check',             es:'Análisis de Comida en Vivo',      pt:'Análise de Comida ao Vivo' },
+'vc-init-label':                   { en:'BBF Virtual Chef',            es:'Chef Virtual BBF',                pt:'Chef Virtual BBF' },
+'vc-init-sub':                     { en:'Recipes · TDEE Talk-Through', es:'Recetas · Guía TDEE',             pt:'Receitas · Guia TDEE' },
+
+// Cardio tab · Smart Cardio header (paying-client surface)
+'cardio-kicker':                   { en:'Smart Cardio',                es:'Cardio Inteligente',              pt:'Cardio Inteligente' },
+'cardio-title':                    { en:'How much time do you have?',  es:'¿Cuánto tiempo tienes?',     pt:'Quanto tempo você tem?' },
+'cardio-sub':                      { en:'The engine routes between HIIT (< 20 min), Tempo (20-35 min), and Zone 2 (> 35 min) — then Claude writes the precise protocol for your time budget.', es:'El motor enruta entre HIIT (< 20 min), Tempo (20-35 min), y Zona 2 (> 35 min) — luego Claude escribe el protocolo preciso para tu presupuesto de tiempo.', pt:'O motor roteia entre HIIT (< 20 min), Tempo (20-35 min), e Zona 2 (> 35 min) — então Claude escreve o protocolo preciso para seu orçamento de tempo.' },
+'cardio-lbl-mins':                 { en:'Available Minutes',           es:'Minutos Disponibles',             pt:'Minutos Disponíveis' },
+'cardio-strategy':                 { en:'Strategy ·',                  es:'Estrategia ·',                    pt:'Estratégia ·' },
+'cardio-tier-tempo':               { en:'Tempo (Caloric Burn)',        es:'Tempo (Quema Calórica)',          pt:'Tempo (Queima Calórica)' },
+'cardio-generate-btn':             { en:'🔥 Generate Protocol',     es:'🔥 Generar Protocolo',          pt:'🔥 Gerar Protocolo' },
+
+// Prehab tab · Sovereign Prehabilitation Tracker (paying-client surface)
+'sov-prehab-kicker':               { en:'Clinical Protocol · OT-Informed', es:'Protocolo Clínico · Basado en TO', pt:'Protocolo Clínico · Baseado em TO' },
+'sov-prehab-title':                { en:'Sovereign Prehabilitation Tracker', es:'Rastreador de Prehabilitación Soberana', pt:'Rastreador de Prehabilitação Soberana' },
+'sov-prehab-sub':                  { en:'Daily checklist of evidence-based routines. Complete each movement to log the session.', es:'Lista de verificación diaria de rutinas basadas en evidencia. Completa cada movimiento para registrar la sesión.', pt:'Lista de verificação diária de rotinas baseadas em evidência. Complete cada movimento para registrar a sessão.' },
+'sov-pill-surgery':                { en:'Surgery Recovery',            es:'Recuperación Quirúrgica',         pt:'Recuperação Cirúrgica' },
+'sov-pill-fall':                   { en:'Fall Prevention',             es:'Prevención de Caídas',            pt:'Prevenção de Quedas' },
+'sov-progress-lbl':                { en:'Today\'s Protocol Completion', es:'Completado del Protocolo de Hoy', pt:'Conclusão do Protocolo de Hoje' },
+'sov-progress-meta-tmpl':          { en:'0 of 0 complete',             es:'0 de 0 completos',                pt:'0 de 0 completos' },
+'prehab-ot-kicker':                { en:'🧠 The OT Advantage',     es:'🧠 La Ventaja de la TO',         pt:'🧠 A Vantagem da TO' },
+'prehab-ot-body':                  { en:'Your coach is an <strong style="color:var(--wht)">Exercise Science student and future Occupational Therapist.</strong> Every prehab cue in this section is grounded in OT principles — joint mechanics, movement longevity, and occupation-specific load patterns. This is clinical-level precision that most personal trainers cannot offer.', es:'Tu coach es un <strong style="color:var(--wht)">estudiante de Ciencias del Ejercicio y futuro Terapeuta Ocupacional.</strong> Cada indicación de prehab en esta sección está basada en principios de TO — mecánica articular, longevidad del movimiento y patrones de carga específicos de la ocupación. Esto es precisión a nivel clínico que la mayoría de los entrenadores personales no pueden ofrecer.', pt:'Seu coach é um <strong style="color:var(--wht)">estudante de Ciências do Exercício e futuro Terapeuta Ocupacional.</strong> Cada dica de prehab nesta seção é baseada em princípios de TO — mecânica articular, longevidade do movimento e padrões de carga específicos da ocupação. Esta é precisão de nível clínico que a maioria dos personal trainers não pode oferecer.' },
+'prehab-daily-kicker':             { en:'Daily Protocol',              es:'Protocolo Diario',                pt:'Protocolo Diário' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────

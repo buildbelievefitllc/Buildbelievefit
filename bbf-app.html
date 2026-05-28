@@ -914,23 +914,23 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
       <div id="nutrition-tab-wrapper">
         <div id="active-nutrition-plan">
           <div style="margin-bottom:1rem"><div style="font-size:1.8rem;font-weight:900;letter-spacing:2px" data-lang-key="app-nutr-title">Nutrition Plan</div><div style="font-size:.83rem;color:var(--mut);margin-top:.2rem" data-lang-key="app-nutr-sub">Your personalized 7-day meal plan</div></div>
-          <div id="ncon"><div class="emp"><div class="ei">&#x1F957;</div><div class="et">Loading...</div></div></div>
+          <div id="ncon"><div class="emp"><div class="ei">&#x1F957;</div><div class="et" data-lang-key="app-nutr-loading">Loading...</div></div></div>
         </div>
         <div id="nutrition-tools-stack">
           <div id="virtual-chef-module">
             <!-- BBF VIRTUAL CHEF — full-width audio-only CTA (clone of #pe-init-voice-btn). -->
             <button type="button" class="pe-init-btn pe-init-btn--voice pe-init-btn--block pe-init-btn--standalone" id="nv-init-chef-btn" onclick="(typeof BBF_INTERCEPT!=='undefined'&&BBF_INTERCEPT.check)?BBF_INTERCEPT.check('virtual_chef',function(){initLiveCoach('voice');}):initLiveCoach('voice');">
               <span class="pe-init-icon" aria-hidden="true">&#x1F468;&#x200D;&#x1F373;</span>
-              <span class="pe-init-label">BBF Virtual Chef</span>
-              <span class="pe-init-sub">Recipes &middot; TDEE Talk-Through</span>
+              <span class="pe-init-label" data-lang-key="vc-init-label">BBF Virtual Chef</span>
+              <span class="pe-init-sub" data-lang-key="vc-init-sub">Recipes &middot; TDEE Talk-Through</span>
             </button>
           </div>
           <div id="nutrition-vision-module">
             <!-- NUTRITION VISION — Live AI Food Analysis (clone of #phantom-eye). -->
             <div id="nutrition-vision" class="pe-widget">
               <div class="pe-head">
-                <div class="pe-label">&#x1F957; Nutrition Vision Viewport &middot; Live Food Analysis</div>
-                <div class="pe-status-badge" id="nv-status-badge">Idle</div>
+                <div class="pe-label" data-lang-key="nv-viewport-lbl">&#x1F957; Nutrition Vision Viewport &middot; Live Food Analysis</div>
+                <div class="pe-status-badge" id="nv-status-badge" data-lang-key="nv-status-idle">Idle</div>
               </div>
               <div class="pe-frame" id="nv-frame">
                 <span class="pe-bracket pe-bracket--tl" aria-hidden="true"></span>
@@ -940,13 +940,13 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
                 <div class="pe-scanline" aria-hidden="true"></div>
                 <div class="pe-hero" id="nv-hero">
                   <div class="pe-hero-eye" aria-hidden="true">&#x1F957;</div>
-                  <div class="pe-hero-kicker">Multimodal AI Nutritionist</div>
-                  <div class="pe-hero-title">Real-time Nutrition Vision</div>
-                  <div class="pe-hero-sub">Point your camera at what you're about to eat. Instant macro + calorie estimates aligned with your day's TDEE target.</div>
+                  <div class="pe-hero-kicker" data-lang-key="nv-hero-kicker">Multimodal AI Nutritionist</div>
+                  <div class="pe-hero-title" data-lang-key="nv-hero-title">Real-time Nutrition Vision</div>
+                  <div class="pe-hero-sub" data-lang-key="nv-hero-sub">Point your camera at what you're about to eat. Instant macro + calorie estimates aligned with your day's TDEE target.</div>
                   <button type="button" class="pe-init-btn pe-init-btn--vision pe-init-btn--block" id="nv-init-vision-btn" onclick="(typeof BBF_INTERCEPT!=='undefined'&&BBF_INTERCEPT.check)?BBF_INTERCEPT.check('nutrition_vision',function(){initLiveCoach('vision');}):initLiveCoach('vision');">
                     <span class="pe-init-icon" aria-hidden="true">&#x1F441;&#xFE0F;</span>
-                    <span class="pe-init-label">Nutrition Vision</span>
-                    <span class="pe-init-sub">Live Food Check</span>
+                    <span class="pe-init-label" data-lang-key="nv-init-label">Nutrition Vision</span>
+                    <span class="pe-init-sub" data-lang-key="nv-init-sub">Live Food Check</span>
                   </button>
                 </div>
               </div>
@@ -963,22 +963,22 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
          protocol + a Sovereign Toast explaining the physiological ROI. -->
     <div class="tp" id="tp-cardio">
       <div class="cardio-hero">
-        <div class="cardio-kicker">Smart Cardio</div>
-        <div class="cardio-title">How much time do you have?</div>
-        <div class="cardio-sub">The engine routes between HIIT (&lt; 20 min), Tempo (20-35 min), and Zone 2 (&gt; 35 min) — then Claude writes the precise protocol for your time budget.</div>
+        <div class="cardio-kicker" data-lang-key="cardio-kicker">Smart Cardio</div>
+        <div class="cardio-title" data-lang-key="cardio-title">How much time do you have?</div>
+        <div class="cardio-sub" data-lang-key="cardio-sub">The engine routes between HIIT (&lt; 20 min), Tempo (20-35 min), and Zone 2 (&gt; 35 min) — then Claude writes the precise protocol for your time budget.</div>
       </div>
 
       <div class="cardio-input-wrap">
-        <label class="cardio-input-lbl" for="bbf-cardio-minutes">Available Minutes</label>
+        <label class="cardio-input-lbl" for="bbf-cardio-minutes" data-lang-key="cardio-lbl-mins">Available Minutes</label>
         <div class="cardio-input-row">
           <input type="range"  id="bbf-cardio-slider" class="cardio-slider" min="5" max="60" step="1" value="20" />
           <input type="number" id="bbf-cardio-minutes" class="cardio-number" min="5" max="120" step="1" value="20" inputmode="numeric" />
           <span class="cardio-units">min</span>
         </div>
-        <div class="cardio-tier-hint" id="bbf-cardio-tier-hint">Strategy &middot; <span id="bbf-cardio-tier-label">Tempo (Caloric Burn)</span></div>
+        <div class="cardio-tier-hint" id="bbf-cardio-tier-hint"><span data-lang-key="cardio-strategy">Strategy &middot;</span> <span id="bbf-cardio-tier-label" data-lang-key="cardio-tier-tempo">Tempo (Caloric Burn)</span></div>
       </div>
 
-      <button type="button" id="bbf-cardio-generate-btn" class="cardio-generate-btn">&#x1F525; Generate Protocol</button>
+      <button type="button" id="bbf-cardio-generate-btn" class="cardio-generate-btn" data-lang-key="cardio-generate-btn">&#x1F525; Generate Protocol</button>
 
       <div id="bbf-cardio-results" class="cardio-results" aria-live="polite"></div>
     </div>
@@ -992,28 +992,28 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
       <!-- ═══ SOVEREIGN PREHABILITATION TRACKER ═══ -->
       <div class="sov-prehab-tracker">
         <div class="sov-prehab-head">
-          <div class="sov-prehab-kicker">Clinical Protocol &middot; OT-Informed</div>
-          <div class="sov-prehab-title">Sovereign Prehabilitation Tracker</div>
-          <div class="sov-prehab-sub">Daily checklist of evidence-based routines. Complete each movement to log the session.</div>
+          <div class="sov-prehab-kicker" data-lang-key="sov-prehab-kicker">Clinical Protocol &middot; OT-Informed</div>
+          <div class="sov-prehab-title" data-lang-key="sov-prehab-title">Sovereign Prehabilitation Tracker</div>
+          <div class="sov-prehab-sub" data-lang-key="sov-prehab-sub">Daily checklist of evidence-based routines. Complete each movement to log the session.</div>
         </div>
         <div class="sov-protocol-switch" role="tablist">
-          <button type="button" class="sov-protocol-pill on" data-protocol="surgery" role="tab" aria-selected="true">Surgery Recovery</button>
-          <button type="button" class="sov-protocol-pill" data-protocol="fall" role="tab" aria-selected="false">Fall Prevention</button>
+          <button type="button" class="sov-protocol-pill on" data-protocol="surgery" role="tab" aria-selected="true" data-lang-key="sov-pill-surgery">Surgery Recovery</button>
+          <button type="button" class="sov-protocol-pill" data-protocol="fall" role="tab" aria-selected="false" data-lang-key="sov-pill-fall">Fall Prevention</button>
         </div>
         <div class="sov-progress-wrap" aria-label="Daily completion">
           <div class="sov-progress-row">
-            <div class="sov-progress-lbl">Today&rsquo;s Protocol Completion</div>
+            <div class="sov-progress-lbl" data-lang-key="sov-progress-lbl">Today&rsquo;s Protocol Completion</div>
             <div class="sov-progress-pct" id="sov-prehab-pct">0%</div>
           </div>
           <div class="sov-progress-track"><div class="sov-progress-bar" id="sov-prehab-bar" style="width:0%"></div></div>
-          <div class="sov-progress-meta" id="sov-prehab-meta">0 of 0 complete</div>
+          <div class="sov-progress-meta" id="sov-prehab-meta" data-lang-key="sov-progress-meta-tmpl">0 of 0 complete</div>
         </div>
         <div class="sov-checklist" id="sov-prehab-list" role="list"></div>
       </div>
 
       <div id="prehab-ot-banner" style="background:linear-gradient(135deg,rgba(106,13,173,.15),rgba(74,8,128,.1));border:1px solid rgba(106,13,173,.3);border-radius:14px;padding:1rem;margin-bottom:1rem">
-        <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-bottom:.4rem">&#x1F9E0; The OT Advantage</div>
-        <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.75);line-height:1.65">Your coach is an <strong style="color:var(--wht)">Exercise Science student and future Occupational Therapist.</strong> Every prehab cue in this section is grounded in OT principles — joint mechanics, movement longevity, and occupation-specific load patterns. This is clinical-level precision that most personal trainers cannot offer.</div>
+        <div style="font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-bottom:.4rem" data-lang-key="prehab-ot-kicker">&#x1F9E0; The OT Advantage</div>
+        <div style="font-size:.82rem;font-weight:600;color:rgba(255,255,255,.75);line-height:1.65" data-lang-key="prehab-ot-body">Your coach is an <strong style="color:var(--wht)">Exercise Science student and future Occupational Therapist.</strong> Every prehab cue in this section is grounded in OT principles — joint mechanics, movement longevity, and occupation-specific load patterns. This is clinical-level precision that most personal trainers cannot offer.</div>
       </div>
 
       <!-- OT Joint Health Cues (language controlled by global header toggle) -->
@@ -1021,7 +1021,7 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
 
       <!-- Daily Routine -->
       <div style="background:linear-gradient(135deg,var(--purp),var(--purd));border-radius:16px;padding:1.3rem;margin-top:1rem">
-        <div style="font-size:.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.5rem">Daily Protocol</div>
+        <div style="font-size:.65rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.5rem" data-lang-key="prehab-daily-kicker">Daily Protocol</div>
         <div id="daily-protocol" style="font-size:.85rem;font-weight:600;color:rgba(255,255,255,.75);line-height:1.7"></div>
       </div>
     </div>
@@ -2665,6 +2665,28 @@ function TAB(name) {
     try { BBF_LANG.apply(); } catch(_) {}
   }
 }
+
+// Re-fire the active tab's render function when the language toggle flips.
+// Without this, dynamic content rendered via _t() / _trDay() / _trEx() (Day
+// buttons, exercise rows, nutrition cards, etc.) stays in the prior language
+// until the user manually switches tabs · the "sticky toggle" symptom from
+// operator video audit (2026-05-27 Phase 5 directive). bbf-lang.js dispatches
+// 'bbf-lang-changed' on every setLang() · this listener catches it and asks
+// TAB() to re-render the currently-visible pane. Idempotent · TAB's render
+// functions are designed to be re-runnable.
+(function _wireLangChangeRefire() {
+  try {
+    document.addEventListener('bbf-lang-changed', function() {
+      try {
+        var active = document.querySelector('.nv.on');
+        var name   = (active && active.dataset && active.dataset.tab) || 'home';
+        if (typeof TAB === 'function') TAB(name);
+      } catch (e) {
+        console.warn('[BBF_LANG refire] failed to re-render active tab:', e && e.message);
+      }
+    });
+  } catch (_) {}
+})();
 
 function today() {
   // Use local date (not UTC) to prevent timezone shift
@@ -13562,9 +13584,24 @@ function RW() {
 }
 
 function SELDAY(i) {
-  SDAY = i;
-  document.querySelectorAll('.dbn').forEach(function(b, idx) { b.classList.toggle('on', idx === i); });
-  RDW();
+  // Defensive guards · log to console rather than silently fail.
+  // Operator-visible debug surface when "Day N tab unresponsive" symptom appears.
+  try {
+    if (!PLAN || !Array.isArray(PLAN)) {
+      console.warn('[SELDAY] PLAN is null/not-array · click ignored · idx=' + i);
+      return;
+    }
+    if (i < 0 || i >= PLAN.length) {
+      console.warn('[SELDAY] index ' + i + ' out of range · PLAN.length=' + PLAN.length);
+      return;
+    }
+    SDAY = i;
+    document.querySelectorAll('.dbn').forEach(function(b, idx) { b.classList.toggle('on', idx === i); });
+    if (typeof RDW === 'function') RDW();
+    else console.warn('[SELDAY] RDW function not defined');
+  } catch (e) {
+    console.error('[SELDAY] threw exception · idx=' + i + ' ·', e && e.message, e);
+  }
 }
 
 // Sovereign Mobility / Pre-Hab day — rendered after Ghost Protocol restoration.
