@@ -3461,6 +3461,22 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 
 // ─── PLAYBOOK SPORT BAR ────────────────────────────────────
 var pbActiveSport='football';
+function _trSport(id, fallback){
+  if(typeof BBF_LANG==='undefined'||!BBF_LANG.t) return fallback;
+  var v=BBF_LANG.t('pb-sport-'+id);
+  return (v==='pb-sport-'+id) ? fallback : v;
+}
+function _trKpi(label){
+  if(typeof BBF_LANG==='undefined'||!BBF_LANG.t) return label;
+  var slug='kpi-'+String(label||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  var v=BBF_LANG.t(slug);
+  return (v===slug) ? label : v;
+}
+function _trL(key, fallback){
+  if(typeof BBF_LANG==='undefined'||!BBF_LANG.t) return fallback;
+  var v=BBF_LANG.t(key);
+  return (v===key) ? fallback : v;
+}
 function initPlaybookBar(){
   var bar=document.getElementById('pb-sport-bar');if(!bar)return;
   var sports=[
@@ -3472,7 +3488,8 @@ function initPlaybookBar(){
   ];
   bar.innerHTML=sports.map(function(s){
     var active=s.id===pbActiveSport;
-    return '<button onclick="pbSelectSport(\''+s.id+'\')" style="display:flex;align-items:center;gap:.5rem;padding:.7rem 1.3rem;background:'+(active?'rgba(106,13,173,.35)':'rgba(20,20,20,.9)')+';border:'+(active?'2px solid #f5c800':'2px solid #2a2a2a')+';border-radius:10px;cursor:pointer;transition:all .25s;font-family:\'Bebas Neue\',sans-serif;font-size:.9rem;letter-spacing:2px;color:'+(active?'#f5c800':'#aaa')+'"><span style="font-size:1.5rem">'+s.icon+'</span>'+s.name+'</button>';
+    var displayName=_trSport(s.id,s.name);
+    return '<button onclick="pbSelectSport(\''+s.id+'\')" style="display:flex;align-items:center;gap:.5rem;padding:.7rem 1.3rem;background:'+(active?'rgba(106,13,173,.35)':'rgba(20,20,20,.9)')+';border:'+(active?'2px solid #f5c800':'2px solid #2a2a2a')+';border-radius:10px;cursor:pointer;transition:all .25s;font-family:\'Bebas Neue\',sans-serif;font-size:.9rem;letter-spacing:2px;color:'+(active?'#f5c800':'#aaa')+'"><span style="font-size:1.5rem">'+s.icon+'</span>'+displayName+'</button>';
   }).join('');
   pbRenderPositions();
 }
@@ -3482,6 +3499,8 @@ function pbRenderPositions(){
   if(typeof WORKOUT_CATALOG==='undefined'||!WORKOUT_CATALOG[pbActiveSport]){grid.innerHTML='';return;}
   var L=(typeof BBF_LANG!=='undefined'&&BBF_LANG.get)?BBF_LANG.get():'en';
   var positions=Object.keys(WORKOUT_CATALOG[pbActiveSport]);
+  var labVerifiedShort=_trL('pb-lab-verified-drill-short','LAB-VERIFIED DRILL');
+  var founderShort=_trL('pb-founder-verified-short','Founder-Verified Protocols. The Sovereign Gold Standard for the high-performance athlete.');
   grid.innerHTML=positions.map(function(pos){
     var drills=WORKOUT_CATALOG[pbActiveSport][pos];
     var kpis=EXP_KPI[pos]||[];
@@ -3490,12 +3509,20 @@ function pbRenderPositions(){
     return '<div style="background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:1.5rem;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;cursor:default" onmouseover="this.style.borderColor=\'#6a0dad\';this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.borderColor=\'#2a2a2a\';this.style.transform=\'\'">'+
       '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6a0dad,#f5c800)"></div>'+
       '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.6rem;letter-spacing:2px;color:#fff;margin-bottom:.5rem">'+pos+'</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.8rem">'+kpis.slice(0,3).map(function(k){return '<span style="font-size:.6rem;font-weight:700;letter-spacing:1px;padding:2px 6px;background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.15);border-radius:10px;color:#f5c800">'+k+'</span>';}).join('')+'</div>'+
-      (firstDrill?'<div style="background:#0a0a0a;border-left:3px solid #6a0dad;border-radius:0 6px 6px 0;padding:.6rem .8rem;margin-bottom:.8rem"><div style="font-size:.55rem;font-weight:700;letter-spacing:2px;color:#8b1abf;margin-bottom:.2rem">LAB-VERIFIED DRILL</div><div style="font-size:.85rem;font-weight:700;color:#ddd">'+firstDrill+'</div><div style="font-size:.7rem;color:#888;margin-top:.2rem;line-height:1.4">'+firstFocus.substring(0,80)+'</div></div>':'')+
-      '<div style="font-size:.58rem;color:#555;font-style:italic;text-align:center">Founder-Verified Protocols. The Sovereign Gold Standard for the high-performance athlete.</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.8rem">'+kpis.slice(0,3).map(function(k){return '<span style="font-size:.6rem;font-weight:700;letter-spacing:1px;padding:2px 6px;background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.15);border-radius:10px;color:#f5c800">'+_trKpi(k)+'</span>';}).join('')+'</div>'+
+      (firstDrill?'<div style="background:#0a0a0a;border-left:3px solid #6a0dad;border-radius:0 6px 6px 0;padding:.6rem .8rem;margin-bottom:.8rem"><div style="font-size:.55rem;font-weight:700;letter-spacing:2px;color:#8b1abf;margin-bottom:.2rem">'+labVerifiedShort+'</div><div style="font-size:.85rem;font-weight:700;color:#ddd">'+firstDrill+'</div><div style="font-size:.7rem;color:#888;margin-top:.2rem;line-height:1.4">'+firstFocus.substring(0,80)+'</div></div>':'')+
+      '<div style="font-size:.58rem;color:#555;font-style:italic;text-align:center">'+founderShort+'</div>'+
     '</div>';
   }).join('');
 }
+(function _wireMarketingLangChange(){
+  try{
+    document.addEventListener('bbf-lang-changed',function(){
+      try{if(typeof initPlaybookBar==='function')initPlaybookBar();}catch(_){}
+      try{if(typeof initExplorer==='function')initExplorer();}catch(_){}
+    });
+  }catch(_){}
+})();
 </script>
 
 <!-- Phase 4 — pricing checkmark draw-in on scroll. Vanilla, ~0.5 KB. -->
