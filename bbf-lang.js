@@ -520,11 +520,293 @@ var D = {
 'render-submitting':   { en:'Submitting\u2026',     es:'Enviando\u2026',         pt:'Enviando\u2026' },
 'render-syncing':      { en:'\u26a1 Syncing...',    es:'\u26a1 Sincronizando...', pt:'\u26a1 Sincronizando...' },
 'som-sync-failed':     { en:'\u26a0 Somatic sync failed.', es:'\u26a0 Sincronizaci\u00f3n som\u00e1tica fallida.', pt:'\u26a0 Falha na sincroniza\u00e7\u00e3o som\u00e1tica.' },
-'som-toast-synced':    { en:'\u269b Somatic SYNCED', es:'\u269b Som\u00e1tico SINCRONIZADO', pt:'\u269b Som\u00e1tico SINCRONIZADO' }
+'som-toast-synced':    { en:'\u269b Somatic SYNCED', es:'\u269b Som\u00e1tico SINCRONIZADO', pt:'\u269b Som\u00e1tico SINCRONIZADO' },
+
+// \u2550\u2550\u2550 PHASE 2 \u00b7 TRILINGUAL COVERAGE EXTENSION (2026-05-27) \u2550\u2550\u2550
+// Orphan fix \u00b7 was referenced in bbf-app.html:1687 but missing from D
+'app-nav-cardio':              { en:'Smart Cardio',             es:'Cardio Inteligente',                  pt:'Cardio Inteligente' },
+
+// Login screen \u00b7 paying-client surface \u00b7 placeholders + labels + CTAs
+'app-login-user-label':        { en:'Username',                 es:'Usuario',                              pt:'Usu\u00e1rio' },
+'app-login-user-placeholder':  { en:'your username',            es:'tu usuario',                           pt:'seu usu\u00e1rio' },
+'app-login-pin-label':         { en:'PIN (6 digits)',           es:'PIN (6 d\u00edgitos)',                 pt:'PIN (6 d\u00edgitos)' },
+'app-login-pin-placeholder':   { en:'enter PIN',                es:'ingresa el PIN',                       pt:'digite o PIN' },
+'app-login-signin':            { en:'Sign In \u2192',           es:'Iniciar Sesi\u00f3n \u2192',           pt:'Entrar \u2192' },
+'app-login-forgot':            { en:'Forgot PIN?',              es:'\u00bfOlvidaste tu PIN?',              pt:'Esqueceu o PIN?' },
+
+// New client registration form \u00b7 admin-only surface but still part of the legacy DOM
+'app-newclient-name-label':       { en:'Full Name',                es:'Nombre Completo',                      pt:'Nome Completo' },
+'app-newclient-name-placeholder': { en:'e.g. Marcus Johnson',      es:'ej. Marcus Johnson',                   pt:'ex. Marcus Johnson' },
+'app-newclient-user-label':       { en:'Username (no spaces)',     es:'Usuario (sin espacios)',               pt:'Usu\u00e1rio (sem espa\u00e7os)' },
+'app-newclient-user-placeholder': { en:'e.g. marcus_j',            es:'ej. marcus_j',                         pt:'ex. marcus_j' },
+'app-newclient-pin-label':        { en:'6-digit PIN',              es:'PIN de 6 d\u00edgitos',                pt:'PIN de 6 d\u00edgitos' },
+'app-newclient-pin-placeholder':  { en:'choose a PIN',             es:'elige un PIN',                         pt:'escolha um PIN' },
+'app-newclient-type-label':       { en:'Training Type',            es:'Tipo de Entrenamiento',                pt:'Tipo de Treino' },
+'app-newclient-type-inperson':    { en:'In-Person',                es:'Presencial',                           pt:'Presencial' },
+'app-newclient-type-remote':      { en:'Online / Remote',          es:'En L\u00ednea / Remoto',               pt:'Online / Remoto' },
+'app-newclient-goal-label':       { en:'Goal (optional)',          es:'Meta (opcional)',                      pt:'Meta (opcional)' },
+'app-newclient-goal-placeholder': { en:'e.g. Lose 20lbs by summer',es:'ej. Bajar 20 lbs antes del verano',    pt:'ex. Perder 20 lbs at\u00e9 o ver\u00e3o' },
+'app-newclient-submit':           { en:'Create Profile \u2192',    es:'Crear Perfil \u2192',                  pt:'Criar Perfil \u2192' },
+
+// Intake form validation TOASTs \u00b7 every new client hits these
+'intake-validate-age':            { en:'Enter your age',           es:'Ingresa tu edad',                      pt:'Digite sua idade' },
+'intake-validate-goal':           { en:'Select a goal',            es:'Selecciona una meta',                  pt:'Selecione uma meta' },
+'intake-validate-exp':            { en:'Select your experience level', es:'Selecciona tu nivel de experiencia', pt:'Selecione seu n\u00edvel de experi\u00eancia' },
+
+// \u2550\u2550\u2550 PHASE 3 \u00b7 INDEX.HTML LEGACY GAPS (2026-05-27) \u2550\u2550\u2550
+// Accessibility \u00b7 skip-link + hamburger Menu aria
+'a11y-skip-main':              { en:'Skip to main content',     es:'Saltar al contenido principal',        pt:'Pular para o conte\u00fado principal' },
+'a11y-menu':                   { en:'Menu',                     es:'Men\u00fa',                            pt:'Menu' },
+
+// Hero marquee \u00b7 6 unique scrolling phrases
+'mq-habit-arch':               { en:'HUMAN HABIT ARCHITECTURE', es:'ARQUITECTURA DE H\u00c1BITOS HUMANOS', pt:'ARQUITETURA DE H\u00c1BITOS HUMANOS' },
+'mq-elite-trans':              { en:'ELITE TRANSFORMATION',     es:'TRANSFORMACI\u00d3N DE \u00c9LITE',         pt:'TRANSFORMA\u00c7\u00c3O DE ELITE' },
+'mq-peak-perf':                { en:'PEAK PERFORMANCE ARCHITECTURE', es:'ARQUITECTURA DE M\u00c1XIMO RENDIMIENTO', pt:'ARQUITETURA DE PERFORMANCE M\u00c1XIMA' },
+'mq-sovereign':                { en:'SOVEREIGN PERFORMANCE',    es:'RENDIMIENTO SOBERANO',                 pt:'PERFORMANCE SOBERANA' },
+'mq-universal':                { en:'UNIVERSAL HUMAN PERFORMANCE', es:'RENDIMIENTO HUMANO UNIVERSAL',       pt:'PERFORMANCE HUMANA UNIVERSAL' },
+'mq-engine-anchor':            { en:'ENGINE HABITS OVER ANCHOR HABITS', es:'H\u00c1BITOS MOTOR SOBRE H\u00c1BITOS ANCLA', pt:'H\u00c1BITOS MOTOR SOBRE H\u00c1BITOS \u00c2NCORA' },
+
+// TDEE quick-calculator form \u00b7 widely used free tool
+'tdee-tag-lite':               { en:'Free Tool \u2014 Lite Tier',  es:'Herramienta Gratis \u2014 Nivel Lite',   pt:'Ferramenta Gr\u00e1tis \u2014 N\u00edvel Lite' },
+'tdee-lbl-age':                { en:'Age',                      es:'Edad',                                 pt:'Idade' },
+'tdee-lbl-sex':                { en:'Sex',                      es:'Sexo',                                 pt:'Sexo' },
+'tdee-opt-male':               { en:'Male',                     es:'Masculino',                            pt:'Masculino' },
+'tdee-opt-female':             { en:'Female',                   es:'Femenino',                             pt:'Feminino' },
+'tdee-lbl-weight':             { en:'Weight (lbs)',             es:'Peso (lbs)',                           pt:'Peso (lbs)' },
+'tdee-lbl-height':             { en:'Height (ft / in)',         es:'Altura (pies / pulg)',                 pt:'Altura (p\u00e9s / pol)' },
+'tdee-ph-ft':                  { en:'ft',                       es:'pies',                                 pt:'p\u00e9s' },
+'tdee-ph-in':                  { en:'in',                       es:'pulg',                                 pt:'pol' },
+'tdee-lbl-activity':           { en:'Activity Level',           es:'Nivel de Actividad',                   pt:'N\u00edvel de Atividade' },
+'tdee-act-sed':                { en:'Sedentary',                es:'Sedentario',                           pt:'Sedent\u00e1rio' },
+'tdee-act-light':              { en:'Lightly Active (1-3x/week)', es:'Poco Activo (1-3x/sem)',             pt:'Pouco Ativo (1-3x/sem)' },
+'tdee-act-mod':                { en:'Moderately Active (3-5x/week)', es:'Moderadamente Activo (3-5x/sem)', pt:'Moderadamente Ativo (3-5x/sem)' },
+'tdee-act-very':               { en:'Very Active (6-7x/week)',  es:'Muy Activo (6-7x/sem)',                pt:'Muito Ativo (6-7x/sem)' },
+'tdee-act-extreme':            { en:'Extremely Active / Physical Job', es:'Extremadamente Activo / Trabajo F\u00edsico', pt:'Extremamente Ativo / Trabalho F\u00edsico' },
+'tdee-lbl-goal':               { en:'Goal',                     es:'Meta',                                 pt:'Meta' },
+'tdee-goal-lose':              { en:'\ud83d\udd25 Lose Fat',           es:'\ud83d\udd25 Bajar Grasa',                    pt:'\ud83d\udd25 Perder Gordura' },
+'tdee-goal-maintain':          { en:'\u2696 Maintain',            es:'\u2696 Mantener',                        pt:'\u2696 Manter' },
+'tdee-goal-build':             { en:'\ud83d\udcaa Build Muscle',       es:'\ud83d\udcaa Ganar M\u00fasculo',                pt:'\ud83d\udcaa Ganhar M\u00fasculo' },
+'tdee-cal-day':                { en:'Calories / Day',           es:'Calor\u00edas / D\u00eda',                  pt:'Calorias / Dia' },
+'tdee-mac-protein':            { en:'Protein',                  es:'Prote\u00edna',                            pt:'Prote\u00edna' },
+'tdee-mac-carbs':              { en:'Carbs',                    es:'Carbohidratos',                        pt:'Carboidratos' },
+'tdee-mac-fats':               { en:'Fats',                     es:'Grasas',                               pt:'Gorduras' },
+'tdee-cta-plan':               { en:'Get a Custom Meal Plan \u2192', es:'Obt\u00e9n un Plan Alimenticio \u2192',  pt:'Obtenha um Plano Alimentar \u2192' },
+
+// \u2550\u2550\u2550 PHASE 4 \u00b7 TACTICAL STRIKE \u00b7 OPERATOR VIDEO-AUDIT GAPS (2026-05-27) \u2550\u2550\u2550
+
+// Nav \u00b7 Playbooks (desktop + mobile) + Scouting Hub (mobile only)
+'nav-playbooks':                   { en:'\ud83d\udcda Playbooks',         es:'\ud83d\udcda Manuales',                pt:'\ud83d\udcda Manuais' },
+'mnav-playbooks':                  { en:'\ud83d\udcda Playbooks',         es:'\ud83d\udcda Manuales',                pt:'\ud83d\udcda Manuais' },
+'mnav-scouting':                   { en:'\ud83c\udfc6 Scouting Hub',      es:'\ud83c\udfc6 Centro de Scouting',      pt:'\ud83c\udfc6 Centro de Scouting' },
+
+// Playbooks section \u00b7 static headers (dynamic sport/position cards are JS-rendered, deferred)
+'pb-kicker':                       { en:'Positional Blueprints',     es:'Planos Posicionales',         pt:'Planos Posicionais' },
+'pb-title':                        { en:'ELITE POSITION.<br><span style="color:#f5c800">YOUR PLAYBOOK.</span>', es:'POSICI\u00d3N DE \u00c9LITE.<br><span style="color:#f5c800">TU MANUAL.</span>', pt:'POSI\u00c7\u00c3O DE ELITE.<br><span style="color:#f5c800">SEU MANUAL.</span>' },
+'pb-sub':                          { en:'Professional-grade programming, nutrition protocols, and recruitment targets for the high-performance household. 5 sports. 25 positions. Built in the Laboratory.', es:'Programaci\u00f3n profesional, protocolos nutricionales y objetivos de reclutamiento para el hogar de alto rendimiento. 5 deportes. 25 posiciones. Construido en el Laboratorio.', pt:'Programa\u00e7\u00e3o profissional, protocolos nutricionais e objetivos de recrutamento para o lar de alto desempenho. 5 esportes. 25 posi\u00e7\u00f5es. Constru\u00eddo no Laborat\u00f3rio.' },
+'pb-cta':                          { en:'UNLOCK YOUR FULL PLAYBOOK \u2192', es:'DESBLOQUEA TU MANUAL COMPLETO \u2192', pt:'DESBLOQUEIE SEU MANUAL COMPLETO \u2192' },
+
+// Testimonials \u00b7 metric subtitles under each client name
+'testi-1-meta':                    { en:'Lost 22 lbs \u2022 6 months',     es:'Baj\u00f3 22 lbs \u2022 6 meses',           pt:'Perdeu 22 lbs \u2022 6 meses' },
+'testi-2-meta':                    { en:'Body recomposition \u2022 4 months', es:'Recomposici\u00f3n corporal \u2022 4 meses', pt:'Recomposi\u00e7\u00e3o corporal \u2022 4 meses' },
+'testi-3-meta':                    { en:'Strength \u2022 3 months',         es:'Fuerza \u2022 3 meses',                pt:'For\u00e7a \u2022 3 meses' },
+
+// Interrogator form \u00b7 full coverage (kicker, title, sub, label, placeholder, aria, counter, button)
+'intg-kicker':                     { en:'MOAB 3 \u00b7 Lead-Gen Audit',     es:'MOAB 3 \u00b7 Auditor\u00eda de Captaci\u00f3n', pt:'MOAB 3 \u00b7 Auditoria de Capta\u00e7\u00e3o' },
+'intg-title':                      { en:'The Routine <b>Interrogator</b>', es:'El <b>Interrogador</b> de Rutina', pt:'O <b>Interrogador</b> de Rotina' },
+'intg-sub':                        { en:'Paste your current workout split. The audit engine surfaces the structural gaps your program is hiding and prescribes the exact BBF architecture that closes them. No email. No friction.', es:'Pega tu rutina actual. El motor de auditor\u00eda revela los vac\u00edos estructurales que tu programa esconde y prescribe la arquitectura BBF exacta que los cierra. Sin email. Sin fricci\u00f3n.', pt:'Cole sua rotina atual. O motor de auditoria revela as lacunas estruturais que seu programa esconde e prescreve a arquitetura BBF exata que as fecha. Sem email. Sem fric\u00e7\u00e3o.' },
+'intg-label-l':                    { en:'> PASTE YOUR PROTOCOL',       es:'> PEGA TU PROTOCOLO',             pt:'> COLE SEU PROTOCOLO' },
+'intg-placeholder':                { en:'MON \u2014 Chest + Triceps\nBench Press 4x8 / Incline DB 3x10 / Cable Fly 3x12 / Skullcrushers 4x10 / Pushdowns 3x15\n\nTUE \u2014 Back + Biceps\nPull-ups 4xAMRAP / Barbell Row 4x8 / Lat Pulldown 3x12 / DB Curl 4x10 / Hammer Curl 3x12\n\nWED \u2014 Legs\nSquat 5x5 / RDL 4x8 / Leg Press 3x12 / Calf Raises 4x15\n\nTHU \u2014 Shoulders\nOHP 4x6 / Lateral Raise 4x12 / Rear Delt Fly 3x15 / Shrugs 4x10\n\nFRI \u2014 Arms\nCable Curl 4x12 / Tricep Pushdown 4x12 / Hammer Curl 3x10 / Overhead Tricep 3x12\n\nSAT \u2014 Cardio (45 min Zone 2)\nSUN \u2014 Rest', es:'LUN \u2014 Pecho + Tr\u00edceps\nPress Banca 4x8 / Inclinado DB 3x10 / Aperturas 3x12 / Patada Trasera 4x10 / Triceps Polea 3x15\n\nMAR \u2014 Espalda + B\u00edceps\nDominadas 4xAMRAP / Remo Barra 4x8 / Polea al Pecho 3x12 / Curl DB 4x10 / Curl Martillo 3x12\n\nMIE \u2014 Piernas\nSentadilla 5x5 / Peso Muerto Rumano 4x8 / Prensa 3x12 / Pantorrillas 4x15\n\nJUE \u2014 Hombros\nPress Militar 4x6 / Elevaci\u00f3n Lateral 4x12 / Posterior 3x15 / Encogimientos 4x10\n\nVIE \u2014 Brazos\nCurl Polea 4x12 / Triceps Polea 4x12 / Curl Martillo 3x10 / Triceps Sobre Cabeza 3x12\n\nSAB \u2014 Cardio (45 min Zona 2)\nDOM \u2014 Descanso', pt:'SEG \u2014 Peito + Tr\u00edceps\nSupino 4x8 / Inclinado Halteres 3x10 / Crucifixo Cabo 3x12 / Coice 4x10 / Tr\u00edceps Pulley 3x15\n\nTER \u2014 Costas + B\u00edceps\nBarra 4xAMRAP / Remada Curvada 4x8 / Pulldown 3x12 / Rosca Halteres 4x10 / Rosca Martelo 3x12\n\nQUA \u2014 Pernas\nAgachamento 5x5 / Stiff 4x8 / Leg Press 3x12 / Panturrilha 4x15\n\nQUI \u2014 Ombros\nDesenvolvimento 4x6 / Eleva\u00e7\u00e3o Lateral 4x12 / Crucifixo Inverso 3x15 / Encolhimento 4x10\n\nSEX \u2014 Bra\u00e7os\nRosca Pulley 4x12 / Tr\u00edceps Pulley 4x12 / Rosca Martelo 3x10 / Tr\u00edceps Franc\u00eas 3x12\n\nSAB \u2014 Cardio (45 min Zona 2)\nDOM \u2014 Descanso' },
+'intg-aria':                       { en:'Paste your current workout routine for clinical audit', es:'Pega tu rutina actual para auditor\u00eda cl\u00ednica', pt:'Cole sua rotina atual para auditoria cl\u00ednica' },
+'intg-counter-tmpl':               { en:'0 / 4000 chars',              es:'0 / 4000 carac',                  pt:'0 / 4000 carac' },
+'intg-button':                     { en:'Audit My Protocol \u2192',       es:'Auditar Mi Protocolo \u2192',        pt:'Auditar Meu Protocolo \u2192' },
+'intg-button-sub':                 { en:'Clinical breakdown \u00b7 ~10-second read', es:'An\u00e1lisis cl\u00ednico \u00b7 lectura de ~10 seg', pt:'An\u00e1lise cl\u00ednica \u00b7 leitura de ~10 seg' },
+
+// Athlete Portal (Vault tp-athlete panel) \u00b7 header + 3 setup steps + protocol grid
+'ap-kicker':                       { en:'Athlete Portal \u2022 Phase 1',   es:'Portal de Atleta \u2022 Fase 1',      pt:'Portal do Atleta \u2022 Fase 1' },
+'ap-title-html':                   { en:'Athlete Portal<span class="y">:</span> Prepare for <span class="y">Game Day</span>', es:'Portal de Atleta<span class="y">:</span> Prep\u00e1rate para el <span class="y">D\u00eda del Juego</span>', pt:'Portal do Atleta<span class="y">:</span> Prepare-se para o <span class="y">Dia do Jogo</span>' },
+'ap-sub':                          { en:'A dedicated command deck for youth and collegiate athletes. Dial in your sport, position, and season phase \u2014 we\'ll do the rest.', es:'Una plataforma de comando dedicada para atletas juveniles y universitarios. Ajusta tu deporte, posici\u00f3n y fase de temporada \u2014 nosotros hacemos el resto.', pt:'Uma plataforma de comando dedicada para atletas jovens e universit\u00e1rios. Ajuste seu esporte, posi\u00e7\u00e3o e fase da temporada \u2014 n\u00f3s cuidamos do resto.' },
+'ap-step1-badge':                  { en:'Step 1',                      es:'Paso 1',                          pt:'Passo 1' },
+'ap-step1-label':                  { en:'Select Sport',                es:'Selecciona Deporte',              pt:'Selecione o Esporte' },
+'ap-sport-opt-choose':             { en:'\u2014 Choose sport \u2014',            es:'\u2014 Elige deporte \u2014',               pt:'\u2014 Escolha o esporte \u2014' },
+'ap-sport-opt-football':           { en:'\ud83c\udfc8 American Football',        es:'\ud83c\udfc8 F\u00fatbol Americano',           pt:'\ud83c\udfc8 Futebol Americano' },
+'ap-sport-opt-soccer':             { en:'\u26bd Soccer',                  es:'\u26bd F\u00fatbol',                       pt:'\u26bd Futebol' },
+'ap-sport-opt-basketball':         { en:'\ud83c\udfc0 Basketball',              es:'\ud83c\udfc0 Baloncesto',                   pt:'\ud83c\udfc0 Basquete' },
+'ap-sport-opt-baseball':           { en:'\u26be Baseball',                es:'\u26be B\u00e9isbol',                     pt:'\u26be Beisebol' },
+'ap-sport-opt-volleyball':         { en:'\ud83c\udfd0 Volleyball',              es:'\ud83c\udfd0 Voleibol',                     pt:'\ud83c\udfd0 V\u00f4lei' },
+'ap-sport-hint':                   { en:'Your sport shapes force-curve demands.', es:'Tu deporte define las demandas de curva de fuerza.', pt:'Seu esporte define as demandas de curva de for\u00e7a.' },
+'ap-step2-badge':                  { en:'Step 2',                      es:'Paso 2',                          pt:'Passo 2' },
+'ap-step2-label':                  { en:'Select Position Group',       es:'Selecciona Grupo de Posici\u00f3n',    pt:'Selecione o Grupo de Posi\u00e7\u00e3o' },
+'ap-position-opt-choose':          { en:'\u2014 Choose sport first \u2014',      es:'\u2014 Elige deporte primero \u2014',       pt:'\u2014 Escolha o esporte primeiro \u2014' },
+'ap-position-hint':                { en:'Position groups share training demands.', es:'Los grupos de posici\u00f3n comparten demandas de entrenamiento.', pt:'Grupos de posi\u00e7\u00e3o compartilham demandas de treino.' },
+'ap-step3-badge':                  { en:'Step 3',                      es:'Paso 3',                          pt:'Passo 3' },
+'ap-step3-label':                  { en:'Current Season Phase',        es:'Fase de Temporada Actual',        pt:'Fase Atual da Temporada' },
+'ap-toggle-off-t':                 { en:'Off-Season',                  es:'Pretemporada',                    pt:'Pr\u00e9-Temporada' },
+'ap-toggle-off-s':                 { en:'Hypertrophy',                 es:'Hipertrofia',                     pt:'Hipertrofia' },
+'ap-toggle-in-t':                  { en:'In-Season',                   es:'En Temporada',                    pt:'Em Temporada' },
+'ap-toggle-in-s':                  { en:'Game Day',                    es:'D\u00eda del Juego',                   pt:'Dia do Jogo' },
+'ap-toggle-hint':                  { en:'Toggle anytime \u2014 protocol updates live.', es:'Cambia en cualquier momento \u2014 el protocolo se actualiza al instante.', pt:'Alterne a qualquer momento \u2014 o protocolo atualiza ao vivo.' },
+'ap-protocol-kicker':              { en:'Clinical Protocol',           es:'Protocolo Cl\u00ednico',               pt:'Protocolo Cl\u00ednico' },
+'ap-protocol-title-empty':         { en:'Awaiting Selection',          es:'Esperando Selecci\u00f3n',             pt:'Aguardando Sele\u00e7\u00e3o' },
+'ap-protocol-meta-empty':          { en:'Choose your sport, position, and season phase to unlock your protocol.', es:'Elige tu deporte, posici\u00f3n y fase de temporada para desbloquear tu protocolo.', pt:'Escolha seu esporte, posi\u00e7\u00e3o e fase da temporada para desbloquear seu protocolo.' },
+'ap-empty-t':                      { en:'Protocol locked',             es:'Protocolo bloqueado',             pt:'Protocolo bloqueado' },
+'ap-empty-s':                      { en:'Complete all three selections above to reveal your Clinical Goal, Primary Lifts, Movement Science Drills, and Nutrition Protocol.', es:'Completa las tres selecciones arriba para revelar tu Meta Cl\u00ednica, Levantamientos Principales, Drills de Ciencia del Movimiento y Protocolo de Nutrici\u00f3n.', pt:'Complete as tr\u00eas sele\u00e7\u00f5es acima para revelar sua Meta Cl\u00ednica, Levantamentos Principais, Drills de Ci\u00eancia do Movimento e Protocolo de Nutri\u00e7\u00e3o.' },
+'ap-proto-goal-h':                 { en:'Clinical Goal',               es:'Meta Cl\u00ednica',                    pt:'Meta Cl\u00ednica' },
+'ap-proto-lifts-h':                { en:'Primary Lifts',               es:'Levantamientos Principales',      pt:'Levantamentos Principais' },
+'ap-proto-drills-h':               { en:'Movement Science Drills',     es:'Drills de Ciencia del Movimiento', pt:'Drills de Ci\u00eancia do Movimento' },
+'ap-proto-nutri-h':                { en:'Nutrition Protocol',          es:'Protocolo de Nutrici\u00f3n',          pt:'Protocolo de Nutri\u00e7\u00e3o' },
+'pic-kicker':                      { en:'Positional Intelligence',     es:'Inteligencia Posicional',         pt:'Intelig\u00eancia Posicional' },
+'pic-title':                       { en:'Explore Your Position',       es:'Explora Tu Posici\u00f3n',             pt:'Explore Sua Posi\u00e7\u00e3o' },
+'pic-sub':                         { en:'State an athletic improvement you want to develop. The comlink queries the BBF founder-verified drill catalog for your sport & position and surfaces the right drill.', es:'Indica una mejora atl\u00e9tica que quieras desarrollar. El comlink consulta el cat\u00e1logo de drills verificado por el fundador BBF para tu deporte y posici\u00f3n y muestra el drill adecuado.', pt:'Indique uma melhoria atl\u00e9tica que queira desenvolver. O comlink consulta o cat\u00e1logo de drills verificado pelo fundador BBF para seu esporte e posi\u00e7\u00e3o e mostra o drill certo.' },
+'pic-input-placeholder':           { en:'e.g. "I need a faster first step"', es:'ej. "Necesito un primer paso m\u00e1s r\u00e1pido"', pt:'ex. "Preciso de um primeiro passo mais r\u00e1pido"' },
+'pic-input-aria':                  { en:'Athletic improvement query',  es:'Consulta de mejora atl\u00e9tica',     pt:'Consulta de melhoria atl\u00e9tica' },
+'pic-submit':                      { en:'Query',                       es:'Consultar',                       pt:'Consultar' },
+'pic-hint':                        { en:'Try: faster first step \u00b7 higher vertical \u00b7 lateral agility \u00b7 more rotational power', es:'Prueba: primer paso m\u00e1s r\u00e1pido \u00b7 salto vertical m\u00e1s alto \u00b7 agilidad lateral \u00b7 m\u00e1s potencia rotacional', pt:'Tente: primeiro passo mais r\u00e1pido \u00b7 salto vertical maior \u00b7 agilidade lateral \u00b7 mais pot\u00eancia rotacional' },
+'ap-prog-cta-t':                   { en:'Mark Protocol Complete',      es:'Marcar Protocolo Completo',       pt:'Marcar Protocolo Completo' },
+'ap-prog-cta-s':                   { en:'Unlocks the Athlete Form HUD', es:'Desbloquea el HUD de Forma del Atleta', pt:'Desbloqueia o HUD de Forma do Atleta' },
+'ap-lock-t':                       { en:'Phase 2 \u00b7 Form HUD Locked',   es:'Fase 2 \u00b7 HUD de Forma Bloqueado', pt:'Fase 2 \u00b7 HUD de Forma Bloqueado' },
+'ap-lock-s':                       { en:'Acknowledge protocol completion above to unlock the Athlete Kinematic Form HUD \u2014 biomechanical scanner with valgus collapse and ACL shear detection.', es:'Confirma la finalizaci\u00f3n del protocolo arriba para desbloquear el HUD de Forma Cinem\u00e1tica del Atleta \u2014 esc\u00e1ner biomec\u00e1nico con detecci\u00f3n de colapso de valgo y cizallamiento del LCA.', pt:'Confirme a conclus\u00e3o do protocolo acima para desbloquear o HUD de Forma Cinem\u00e1tica do Atleta \u2014 scanner biomec\u00e2nico com detec\u00e7\u00e3o de colapso de valgo e cisalhamento do LCA.' },
+
+// Omniscience Toggle \u00b7 JS-rendered button (admin-only floating control \u00b7 paying clients never see it \u00b7 operator does)
+'omni-title-on':                   { en:'Omniscience ON \u2014 all 4 agents bypassed with admin mocks. Tap to disengage.', es:'Omnisciencia ACTIVA \u2014 los 4 agentes bypassados con mocks de admin. Toca para desactivar.', pt:'Onisci\u00eancia ATIVA \u2014 todos os 4 agentes desviados com mocks de admin. Toque para desativar.' },
+'omni-title-off':                  { en:'Omniscience OFF \u2014 agents fire live Claude calls. Tap to engage admin mock mode.', es:'Omnisciencia INACTIVA \u2014 los agentes disparan llamadas Claude en vivo. Toca para activar modo mock de admin.', pt:'Onisci\u00eancia INATIVA \u2014 os agentes disparam chamadas Claude ao vivo. Toque para ativar modo mock de admin.' },
+'omni-label-on':                   { en:'OMNISCIENCE&nbsp;ON',         es:'OMNISCIENCIA&nbsp;ACTIVA',        pt:'ONISCI\u00caNCIA&nbsp;ATIVA' },
+'omni-sub-on':                     { en:'all agents bypassed',         es:'todos los agentes bypassados',    pt:'todos os agentes desviados' },
+'omni-label-off':                  { en:'OMNISCIENCE',                 es:'OMNISCIENCIA',                    pt:'ONISCI\u00caNCIA' },
+'omni-sub-off':                    { en:'tap to engage',               es:'toca para activar',               pt:'toque para ativar' },
+
+// ═══ PHASE 5 · DEEP SWEEP · NUTRITION + CARDIO + PREHAB STATIC LABELS (2026-05-27) ═══
+
+// Nutrition tab · Virtual Chef + Nutrition Vision viewport (paying-client surface)
+'app-nutr-loading':                { en:'Loading...',                  es:'Cargando...',                     pt:'Carregando...' },
+'nv-viewport-lbl':                 { en:'🥗 Nutrition Vision Viewport · Live Food Analysis', es:'🥗 Visor de Visión Nutricional · Análisis de Comida en Vivo', pt:'🥗 Visor de Visão Nutricional · Análise de Comida ao Vivo' },
+'nv-status-idle':                  { en:'Idle',                        es:'Inactivo',                        pt:'Inativo' },
+'nv-hero-kicker':                  { en:'Multimodal AI Nutritionist',  es:'Nutricionista IA Multimodal',     pt:'Nutricionista IA Multimodal' },
+'nv-hero-title':                   { en:'Real-time Nutrition Vision',  es:'Visión Nutricional en Tiempo Real', pt:'Visão Nutricional em Tempo Real' },
+'nv-hero-sub':                     { en:'Point your camera at what you\'re about to eat. Instant macro + calorie estimates aligned with your day\'s TDEE target.', es:'Apunta tu cámara a lo que vas a comer. Estimación instantánea de macros + calorías alineada con tu meta TDEE del día.', pt:'Aponte sua câmera para o que você vai comer. Estimativa instantânea de macros + calorias alinhada com sua meta TDEE do dia.' },
+'nv-init-label':                   { en:'Nutrition Vision',            es:'Visión Nutricional',              pt:'Visão Nutricional' },
+'nv-init-sub':                     { en:'Live Food Check',             es:'Análisis de Comida en Vivo',      pt:'Análise de Comida ao Vivo' },
+'vc-init-label':                   { en:'BBF Virtual Chef',            es:'Chef Virtual BBF',                pt:'Chef Virtual BBF' },
+'vc-init-sub':                     { en:'Recipes · TDEE Talk-Through', es:'Recetas · Guía TDEE',             pt:'Receitas · Guia TDEE' },
+
+// Cardio tab · Smart Cardio header (paying-client surface)
+'cardio-kicker':                   { en:'Smart Cardio',                es:'Cardio Inteligente',              pt:'Cardio Inteligente' },
+'cardio-title':                    { en:'How much time do you have?',  es:'¿Cuánto tiempo tienes?',     pt:'Quanto tempo você tem?' },
+'cardio-sub':                      { en:'The engine routes between HIIT (< 20 min), Tempo (20-35 min), and Zone 2 (> 35 min) — then Claude writes the precise protocol for your time budget.', es:'El motor enruta entre HIIT (< 20 min), Tempo (20-35 min), y Zona 2 (> 35 min) — luego Claude escribe el protocolo preciso para tu presupuesto de tiempo.', pt:'O motor roteia entre HIIT (< 20 min), Tempo (20-35 min), e Zona 2 (> 35 min) — então Claude escreve o protocolo preciso para seu orçamento de tempo.' },
+'cardio-lbl-mins':                 { en:'Available Minutes',           es:'Minutos Disponibles',             pt:'Minutos Disponíveis' },
+'cardio-strategy':                 { en:'Strategy ·',                  es:'Estrategia ·',                    pt:'Estratégia ·' },
+'cardio-tier-tempo':               { en:'Tempo (Caloric Burn)',        es:'Tempo (Quema Calórica)',          pt:'Tempo (Queima Calórica)' },
+'cardio-generate-btn':             { en:'🔥 Generate Protocol',     es:'🔥 Generar Protocolo',          pt:'🔥 Gerar Protocolo' },
+
+// Prehab tab · Sovereign Prehabilitation Tracker (paying-client surface)
+'sov-prehab-kicker':               { en:'Clinical Protocol · OT-Informed', es:'Protocolo Clínico · Basado en TO', pt:'Protocolo Clínico · Baseado em TO' },
+'sov-prehab-title':                { en:'Sovereign Prehabilitation Tracker', es:'Rastreador de Prehabilitación Soberana', pt:'Rastreador de Prehabilitação Soberana' },
+'sov-prehab-sub':                  { en:'Daily checklist of evidence-based routines. Complete each movement to log the session.', es:'Lista de verificación diaria de rutinas basadas en evidencia. Completa cada movimiento para registrar la sesión.', pt:'Lista de verificação diária de rotinas baseadas em evidência. Complete cada movimento para registrar a sessão.' },
+'sov-pill-surgery':                { en:'Surgery Recovery',            es:'Recuperación Quirúrgica',         pt:'Recuperação Cirúrgica' },
+'sov-pill-fall':                   { en:'Fall Prevention',             es:'Prevención de Caídas',            pt:'Prevenção de Quedas' },
+'sov-progress-lbl':                { en:'Today\'s Protocol Completion', es:'Completado del Protocolo de Hoy', pt:'Conclusão do Protocolo de Hoje' },
+'sov-progress-meta-tmpl':          { en:'0 of 0 complete',             es:'0 de 0 completos',                pt:'0 de 0 completos' },
+'prehab-ot-kicker':                { en:'🧠 The OT Advantage',     es:'🧠 La Ventaja de la TO',         pt:'🧠 A Vantagem da TO' },
+'prehab-ot-body':                  { en:'Your coach is an <strong style="color:var(--wht)">Exercise Science student and future Occupational Therapist.</strong> Every prehab cue in this section is grounded in OT principles — joint mechanics, movement longevity, and occupation-specific load patterns. This is clinical-level precision that most personal trainers cannot offer.', es:'Tu coach es un <strong style="color:var(--wht)">estudiante de Ciencias del Ejercicio y futuro Terapeuta Ocupacional.</strong> Cada indicación de prehab en esta sección está basada en principios de TO — mecánica articular, longevidad del movimiento y patrones de carga específicos de la ocupación. Esto es precisión a nivel clínico que la mayoría de los entrenadores personales no pueden ofrecer.', pt:'Seu coach é um <strong style="color:var(--wht)">estudante de Ciências do Exercício e futuro Terapeuta Ocupacional.</strong> Cada dica de prehab nesta seção é baseada em princípios de TO — mecânica articular, longevidade do movimento e padrões de carga específicos da ocupação. Esta é precisão de nível clínico que a maioria dos personal trainers não pode oferecer.' },
+'prehab-daily-kicker':             { en:'Daily Protocol',              es:'Protocolo Diario',                pt:'Protocolo Diário' },
+
+// ═══ PHASE 6 · PLAYBOOKS + EXPLORER DYNAMIC JS (2026-05-27 · zero-backlog) ═══
+
+// Sport names (Playbook sport bar + Explorer)
+'pb-sport-football':               { en:'Football',                    es:'Fútbol Americano',                pt:'Futebol Americano' },
+'pb-sport-basketball':             { en:'Basketball',                  es:'Baloncesto',                      pt:'Basquete' },
+'pb-sport-soccer':                 { en:'Soccer',                      es:'Fútbol',                          pt:'Futebol' },
+'pb-sport-baseball':               { en:'Baseball',                    es:'Béisbol',                         pt:'Beisebol' },
+'pb-sport-volleyball':             { en:'Volleyball',                  es:'Voleibol',                        pt:'Vôlei' },
+
+// Static labels inside the playbook renderer (renderer reads via BBF_LANG.t())
+'pb-position-analysis-suffix':     { en:'Position Analysis',           es:'Análisis de Posición',            pt:'Análise de Posição' },
+'pb-primary-kpis':                 { en:'PRIMARY KPIs',                es:'KPIs PRINCIPALES',                pt:'KPIs PRINCIPAIS' },
+'pb-lab-verified-drill-full':      { en:'LABORATORY VERIFIED DRILL',   es:'EJERCICIO VERIFICADO EN LABORATORIO', pt:'EXERCÍCIO VERIFICADO EM LABORATÓRIO' },
+'pb-lab-verified-drill-short':     { en:'LAB-VERIFIED DRILL',          es:'EJERCICIO DE LABORATORIO',        pt:'EXERCÍCIO DE LABORATÓRIO' },
+'pb-unlock-full-playbook':         { en:'UNLOCK FULL PLAYBOOK →',    es:'DESBLOQUEAR MANUAL COMPLETO →', pt:'DESBLOQUEAR MANUAL COMPLETO →' },
+'pb-founder-verified-long':        { en:'Founder-Verified Biomechanical Protocols. The Sovereign Gold Standard for every athlete.', es:'Protocolos Biomecánicos Verificados por el Fundador. El Estándar de Oro Soberano para cada atleta.', pt:'Protocolos Biomecânicos Verificados pelo Fundador. O Padrão de Ouro Soberano para todo atleta.' },
+'pb-founder-verified-short':       { en:'Founder-Verified Protocols. The Sovereign Gold Standard for the high-performance athlete.', es:'Protocolos Verificados por el Fundador. El Estándar de Oro Soberano para el atleta de alto rendimiento.', pt:'Protocolos Verificados pelo Fundador. O Padrão de Ouro Soberano para o atleta de alto desempenho.' },
+
+// KPIs · technical biomechanical metrics · slugified keys (renderer normalizes the English string)
+'kpi-rotational-torque':           { en:'Rotational Torque',           es:'Par Rotacional',                  pt:'Torque Rotacional' },
+'kpi-pocket-maneuverability':      { en:'Pocket Maneuverability',      es:'Maniobrabilidad en el Bolsillo',  pt:'Manobrabilidade no Pocket' },
+'kpi-throwing-velocity':           { en:'Throwing Velocity',           es:'Velocidad de Lanzamiento',        pt:'Velocidade de Arremesso' },
+'kpi-lateral-agility':             { en:'Lateral Agility',             es:'Agilidad Lateral',                pt:'Agilidade Lateral' },
+'kpi-triple-extension-power':      { en:'Triple Extension Power',      es:'Potencia de Triple Extensión',    pt:'Potência de Tripla Extensão' },
+'kpi-ball-security':               { en:'Ball Security',               es:'Seguridad del Balón',             pt:'Segurança da Bola' },
+'kpi-linear-acceleration':         { en:'Linear Acceleration',         es:'Aceleración Lineal',              pt:'Aceleração Linear' },
+'kpi-change-of-direction':         { en:'Change of Direction',         es:'Cambio de Dirección',             pt:'Mudança de Direção' },
+'kpi-grip-strength':               { en:'Grip Strength',               es:'Fuerza de Agarre',                pt:'Força de Pegada' },
+'kpi-blocking-leverage':           { en:'Blocking Leverage',           es:'Apalancamiento de Bloqueo',       pt:'Alavancagem de Bloqueio' },
+'kpi-versatility-endurance':       { en:'Versatility Endurance',       es:'Resistencia Versátil',            pt:'Resistência Versátil' },
+'kpi-static-strength':             { en:'Static Strength',             es:'Fuerza Estática',                 pt:'Força Estática' },
+'kpi-lateral-displacement':        { en:'Lateral Displacement',        es:'Desplazamiento Lateral',          pt:'Deslocamento Lateral' },
+'kpi-core-stability':              { en:'Core Stability',              es:'Estabilidad del Core',            pt:'Estabilidade do Core' },
+'kpi-peak-explosive-power':        { en:'Peak Explosive Power',        es:'Potencia Explosiva Máxima',       pt:'Potência Explosiva Máxima' },
+'kpi-shedding-torque':             { en:'Shedding Torque',             es:'Par de Desprendimiento',          pt:'Torque de Desvencilhamento' },
+'kpi-first-step-velocity':         { en:'First-Step Velocity',         es:'Velocidad del Primer Paso',       pt:'Velocidade do Primeiro Passo' },
+'kpi-lateral-tracking':            { en:'Lateral Tracking',            es:'Seguimiento Lateral',             pt:'Rastreamento Lateral' },
+'kpi-tackling-force':              { en:'Tackling Force',              es:'Fuerza de Placaje',               pt:'Força de Tackle' },
+'kpi-reactive-agility':            { en:'Reactive Agility',            es:'Agilidad Reactiva',               pt:'Agilidade Reativa' },
+'kpi-top-end-speed':               { en:'Top-End Speed',               es:'Velocidad Máxima',                pt:'Velocidade Máxima' },
+'kpi-transition-velocity':         { en:'Transition Velocity',         es:'Velocidad de Transición',         pt:'Velocidade de Transição' },
+'kpi-vertical-displacement':       { en:'Vertical Displacement',       es:'Desplazamiento Vertical',         pt:'Deslocamento Vertical' },
+'kpi-repeat-sprint-ability':       { en:'Repeat Sprint Ability',       es:'Capacidad de Sprints Repetidos',  pt:'Capacidade de Sprints Repetidos' },
+'kpi-ball-handling-precision':     { en:'Ball Handling Precision',     es:'Precisión de Manejo del Balón',   pt:'Precisão de Manejo de Bola' },
+'kpi-peripheral-vision':           { en:'Peripheral Vision',           es:'Visión Periférica',               pt:'Visão Periférica' },
+'kpi-shooting-velocity':           { en:'Shooting Velocity',           es:'Velocidad de Tiro',               pt:'Velocidade de Arremesso' },
+'kpi-transition-speed':            { en:'Transition Speed',            es:'Velocidad de Transición',         pt:'Velocidade de Transição' },
+'kpi-lateral-flow':                { en:'Lateral Flow',                es:'Fluidez Lateral',                 pt:'Fluidez Lateral' },
+'kpi-multi-directional-quickness': { en:'Multi-Directional Quickness', es:'Rapidez Multidireccional',        pt:'Agilidade Multidirecional' },
+'kpi-triple-threat-torque':        { en:'Triple-Threat Torque',        es:'Par de Triple Amenaza',           pt:'Torque de Tríplice Ameaça' },
+'kpi-rebounding-force':            { en:'Rebounding Force',            es:'Fuerza de Rebote',                pt:'Força de Rebote' },
+'kpi-post-stability':              { en:'Post-Stability',              es:'Estabilidad en el Poste',         pt:'Estabilidade no Poste' },
+'kpi-rim-protection-power':        { en:'Rim Protection Power',        es:'Potencia de Protección del Aro',  pt:'Potência de Proteção do Aro' },
+'kpi-pivot-speed':                 { en:'Pivot Speed',                 es:'Velocidad de Pivote',             pt:'Velocidade de Pivô' },
+'kpi-sprint-velocity':             { en:'Sprint Velocity',             es:'Velocidad de Sprint',             pt:'Velocidade de Sprint' },
+'kpi-shot-conversion-rate':        { en:'Shot Conversion Rate',        es:'Tasa de Conversión de Tiros',     pt:'Taxa de Conversão de Chutes' },
+'kpi-off-ball-acceleration':       { en:'Off-Ball Acceleration',       es:'Aceleración sin Balón',           pt:'Aceleração sem Bola' },
+'kpi-total-distance':              { en:'Total Distance',              es:'Distancia Total',                 pt:'Distância Total' },
+'kpi-pass-completion':             { en:'Pass Completion',             es:'Pases Completados',               pt:'Passes Completos' },
+'kpi-interception-anticipation':   { en:'Interception Anticipation',   es:'Anticipación de Intercepción',    pt:'Antecipação de Interceptação' },
+'kpi-aerial-duel-win-':            { en:'Aerial Duel Win%',            es:'% Duelos Aéreos Ganados',         pt:'% Duelos Aéreos Ganhos' },
+'kpi-recovery-sprint-speed':       { en:'Recovery Sprint Speed',       es:'Velocidad de Sprint de Recuperación', pt:'Velocidade de Sprint de Recuperação' },
+'kpi-tackling-efficiency':         { en:'Tackling Efficiency',         es:'Eficiencia de Placaje',           pt:'Eficiência de Tackle' },
+'kpi-reaction-time':               { en:'Reaction Time',               es:'Tiempo de Reacción',              pt:'Tempo de Reação' },
+'kpi-lateral-displacement-power':  { en:'Lateral Displacement Power',  es:'Potencia de Desplazamiento Lateral', pt:'Potência de Deslocamento Lateral' },
+'kpi-distribution-accuracy':       { en:'Distribution Accuracy',       es:'Precisión de Distribución',       pt:'Precisão de Distribuição' },
+'kpi-pitch-velocity':              { en:'Pitch Velocity',              es:'Velocidad de Pitcheo',            pt:'Velocidade do Arremesso' },
+'kpi-scapular-deceleration':       { en:'Scapular Deceleration',       es:'Desaceleración Escapular',        pt:'Desaceleração Escapular' },
+'kpi-kinetic-sequencing':          { en:'Kinetic Sequencing',          es:'Secuenciación Cinética',          pt:'Sequenciamento Cinético' },
+'kpi-ball-exchange-speed':         { en:'Ball Exchange Speed',         es:'Velocidad de Cambio de Bola',     pt:'Velocidade de Troca de Bola' },
+'kpi-rotational-throw-force':      { en:'Rotational Throw Force',      es:'Fuerza de Lanzamiento Rotacional', pt:'Força de Arremesso Rotacional' },
+'kpi-drop-step-efficiency':        { en:'Drop-Step Efficiency',        es:'Eficiencia de Drop-Step',         pt:'Eficiência de Drop-Step' },
+'kpi-arm-strength':                { en:'Arm Strength',                es:'Fuerza del Brazo',                pt:'Força do Braço' },
+'kpi-vertical-jump-height':        { en:'Vertical Jump Height',        es:'Altura del Salto Vertical',       pt:'Altura do Salto Vertical' },
+'kpi-spike-velocity':              { en:'Spike Velocity',              es:'Velocidad de Remate',             pt:'Velocidade de Cortada' },
+'kpi-explosive-acceleration':      { en:'Explosive Acceleration',      es:'Aceleración Explosiva',           pt:'Aceleração Explosiva' },
+'kpi-agility-reaction-speed':      { en:'Agility / Reaction Speed',    es:'Agilidad / Velocidad de Reacción', pt:'Agilidade / Velocidade de Reação' },
+'kpi-dig-accuracy':                { en:'Dig Accuracy',                es:'Precisión de Defensa',            pt:'Precisão de Defesa' },
+'kpi-low-center-stability':        { en:'Low-Center Stability',        es:'Estabilidad de Centro Bajo',      pt:'Estabilidade de Centro Baixo' },
+'kpi-block-reach-height':          { en:'Block Reach Height',          es:'Altura de Alcance de Bloqueo',    pt:'Altura de Alcance de Bloqueio' },
+'kpi-lateral-closing-speed':       { en:'Lateral Closing Speed',       es:'Velocidad de Cierre Lateral',     pt:'Velocidade de Fechamento Lateral' },
+'kpi-performance':                 { en:'Performance',                 es:'Rendimiento',                     pt:'Desempenho' },
+'kpi-speed':                       { en:'Speed',                       es:'Velocidad',                       pt:'Velocidade' },
+'kpi-power':                       { en:'Power',                       es:'Potencia',                        pt:'Potência' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
+// Element-level: data-lang-key="K"   → swaps textContent (or innerHTML if value contains '<').
+// Attribute-level: data-lang-attr-<NAME>="K" → swaps the <NAME> attribute.
+//   Supported NAMEs: placeholder, aria-label, title, alt, value · cover the
+//   gaps that pure textContent translation can't reach (form inputs, ARIA,
+//   image alts, button value attrs).
+// Both can coexist on the same element. Missing dict entries are skipped
+// silently so partial coverage during a rollout doesn't blank the UI.
+var LANG_ATTR_TARGETS = ['placeholder', 'aria-label', 'title', 'alt', 'value'];
+
 function apply() {
+  // 1 · Text content
   var els = document.querySelectorAll('[data-lang-key]');
   for (var i = 0; i < els.length; i++) {
     var k = els[i].getAttribute('data-lang-key');
@@ -536,6 +818,18 @@ function apply() {
       }
     }
   }
+  // 2 · Attribute translations
+  for (var a = 0; a < LANG_ATTR_TARGETS.length; a++) {
+    var attrName = LANG_ATTR_TARGETS[a];
+    var dataAttr = 'data-lang-attr-' + attrName;
+    var attrEls  = document.querySelectorAll('[' + dataAttr + ']');
+    for (var j = 0; j < attrEls.length; j++) {
+      var ak = attrEls[j].getAttribute(dataAttr);
+      if (D[ak] && D[ak][LANG] !== undefined && D[ak][LANG] !== '') {
+        attrEls[j].setAttribute(attrName, D[ak][LANG]);
+      }
+    }
+  }
 }
 
 function setLang(l) {
@@ -543,6 +837,14 @@ function setLang(l) {
   localStorage.setItem('bbf_lang', l);
   apply();
   updateToggles(l);
+  // Notify JS-rendered UIs that build innerHTML via _t() lookups · they don't
+  // carry data-lang-key tags so apply() doesn't reach them. Listeners should
+  // re-render themselves to pick up the new language.
+  try {
+    if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
+      document.dispatchEvent(new CustomEvent('bbf-lang-changed', { detail: { lang: l } }));
+    }
+  } catch (_) {}
 }
 
 function getLang() { return LANG; }

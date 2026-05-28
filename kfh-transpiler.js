@@ -282,7 +282,7 @@ var BBF_KFH_TRANSPILER = (function () {
   }
 
   // ─── CALLOUT EMITTER ─────────────────────────────────────
-  function _emitCallout(parts, co, mode, bp) {
+  function _emitCallout(parts, co, mode, bp, lang) {
     var fp = _initialPos(bp, co.from);
     var to = co.to || { x: 0.10, y: 0.80 };
     parts.push(
@@ -292,7 +292,7 @@ var BBF_KFH_TRANSPILER = (function () {
     );
     var lines = co.lines || [];
     for (var li = 0; li < lines.length; li++) {
-      var txt = pickLang(lines[li], 'en');
+      var txt = pickLang(lines[li], lang);
       var lx = (to.x * W - 16);
       var ly = (to.y * H + 12 + li * 12);
       parts.push(
@@ -302,7 +302,7 @@ var BBF_KFH_TRANSPILER = (function () {
   }
 
   // ─── SVG SKELETON EMITTER ────────────────────────────────
-  function _emitSVG(bp) {
+  function _emitSVG(bp, lang) {
     var parts = [];
     var jointSpec = bp.jointSpec || {};
 
@@ -345,7 +345,7 @@ var BBF_KFH_TRANSPILER = (function () {
       (bp.kineticPath.endpoints || []).forEach(function (ep) {
         parts.push('<circle cx="' + num(ep.x * W) + '" cy="' + num(ep.y * H) + '" r="2.5" fill="#00E5FF"/>');
       });
-      var kpLabel = pickLang(kp.label, 'en');
+      var kpLabel = pickLang(kp.label, lang);
       if (kpLabel && bp.kineticPath.endpoints && bp.kineticPath.endpoints.length) {
         var mid = bp.kineticPath.endpoints[Math.floor(bp.kineticPath.endpoints.length / 2)];
         parts.push(
@@ -353,7 +353,7 @@ var BBF_KFH_TRANSPILER = (function () {
         );
       }
       (bp.kineticPath.labels || []).forEach(function (lb) {
-        var t = pickLang(lb.text, 'en');
+        var t = pickLang(lb.text, lang);
         parts.push(
           '<text class="kfh-bar-label" x="' + num(lb.x * W, 1) + '" y="' + num(lb.y * H, 1) + '">' + esc(t) + '</text>'
         );
@@ -392,12 +392,12 @@ var BBF_KFH_TRANSPILER = (function () {
     // Callouts (preserve legacy id="kfh-callout-ok|warn" for KFH_SET_FORM toggle)
     parts.push('<g id="kfh-callout-ok">');
     ((bp.forms.ok && bp.forms.ok.callouts) || []).forEach(function (co) {
-      _emitCallout(parts, co, 'ok', bp);
+      _emitCallout(parts, co, 'ok', bp, lang);
     });
     parts.push('</g>');
     parts.push('<g id="kfh-callout-warn" style="display:none">');
     ((bp.forms.warn && bp.forms.warn.callouts) || []).forEach(function (co) {
-      _emitCallout(parts, co, 'warn', bp);
+      _emitCallout(parts, co, 'warn', bp, lang);
     });
     parts.push('</g>');
 
@@ -431,9 +431,20 @@ var BBF_KFH_TRANSPILER = (function () {
   }
 
   // ─── TRANSPILE ───────────────────────────────────────────
-  function transpile(bp) {
+  function transpile(bp, langArg) {
     validate(bp);
-    var lang = 'en';
+    // Phase 7 i18n · the transpiler now respects the user's selected language.
+    // Priority · explicit `langArg` (e.g. from re-transpile on bbf-lang-changed)
+    // → window.BBF_LANG.get() → 'en' fallback. ALL pickLang calls inside this
+    // function, _emitSVG, and _emitCallout flow through this single `lang`
+    // value · the deep anatomical labels ("Max Stretch", "Elbow Securely
+    // Anchored", "Humerus Fixed") shipped trilingual in kfh-blueprints.js
+    // were silently English-only because lang was hardcoded here. Fixed.
+    var lang = (typeof langArg === 'string' && (langArg === 'es' || langArg === 'pt' || langArg === 'en'))
+      ? langArg
+      : ((typeof window !== 'undefined' && window.BBF_LANG && typeof window.BBF_LANG.get === 'function')
+          ? (window.BBF_LANG.get() || 'en')
+          : 'en');
 
     var entry = {
       // Blueprint identity — preserved so the IIFE can route a
@@ -450,7 +461,7 @@ var BBF_KFH_TRANSPILER = (function () {
       mediaSrc:  '',
       mediaType: 'image',
 
-      svgMarkup: _emitSVG(bp),
+      svgMarkup: _emitSVG(bp, lang),
 
       chipOkLabel:   pickLang(bp.forms.ok.chipLabel,   lang),
       chipWarnLabel: pickLang(bp.forms.warn.chipLabel, lang),
