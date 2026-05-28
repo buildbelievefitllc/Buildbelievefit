@@ -2,7 +2,7 @@
 
 **Status:** living handover · the single canonical state document for cross-session context transfer
 **Companion docs:**  `ARCHITECTURE.md` (live system map · tables / env vars / model routing) · `api/BBF_MASTER_PLAN.md` (living roadmap · phase status with closure SHAs)
-**Last updated:** 2026-05-27 (session 3 · marketing-site redesign Phase 1 + 2 live on main)
+**Last updated:** 2026-05-28 (session 4 · marketing redesign REVERTED · P0 production sprint · trilingual coverage sweep complete · KFH transpiler root-cause fix · main at `6ca9bf3`)
 
 ---
 
@@ -20,14 +20,14 @@
 
 | | |
 |---|---|
-| `main` HEAD | **`4b5630b`** (Phase 2 marketing redesign · index.html structurally complete with new design across all surfaces) |
-| Tip of last session's work | `0340379` (Phase 4.3h pin · Vault SPA Friction Scanner + Linguistics) · everything since is Phase 6.0k agentic sweep + this session's marketing redesign |
-| Feature branch (this session) | `claude/exciting-dirac-e4mME` (in sync with main · zero divergence) |
+| `main` HEAD | **`6ca9bf3`** (Phase 7 zero-backlog i18n closeout · KFH transpiler lang-aware · bbf-meal-macros lang directive · Playbooks dynamic JS i18n) |
+| Tip of last session's work | `4b5630b` (Phase 2 marketing redesign · session 3 closing state) · all session 4 work landed in 7 commits between `ad31a86` (revert) and `6ca9bf3` (KFH fix) |
+| Feature branch (this session) | `claude/lucid-curie-0xwqK` (in sync with main · zero divergence) |
 | Live Supabase project | `ihclbceghxpuawymlvgi` · `https://ihclbceghxpuawymlvgi.supabase.co` |
-| Live Render service | `vision-scout` · `https://vision-scout.onrender.com` (auto-deploys on push to `main`) |
-| Live storefront | `https://buildbelievefit.fitness` (GitHub Pages · auto-deploys on push to `main`) · **NEW design now live across hero / nav / marquee / manifesto / pillars / tiers / who / app / arc / seal / compare / nutrition / story / playbooks / week / numbers / results / vault-preview / faq / credentials / news / closing / footer** |
-| Live Vault SPA (legacy) | `https://buildbelievefit.fitness/bbf-app.html` (5 paying clients · 19,754 lines · UNTOUCHED this session) |
-| New Vault SPA (compiled) | `https://buildbelievefit.fitness/vault/` (Vite + React + TS · 6 tabs live · awaits operator GitHub Pages source toggle) |
+| Live Render service | `vision-scout` · `https://vision-scout.onrender.com` (auto-deploys on push to `main`) · plus a SECOND Render service `https://buildbelievefit.onrender.com` (BBF VAULT engine · root `index.js` · Phantom Eye WS proxy at `/ws/phantom-eye`) discovered this session · ARCHITECTURE.md §5 says vision-scout is the only Render service · OUTDATED · two services exist |
+| Live storefront | `https://buildbelievefit.fitness` (GitHub Pages · auto-deploys on push to `main`) · **LEGACY DESIGN now serving** (Phase 1+2+3 marketing redesign REVERTED in session 4 · operator call · "if it ain't broke, don't fix it") |
+| Live Vault SPA (legacy) | `https://buildbelievefit.fitness/bbf-app.html` (5 paying clients · 19,754 lines · received Phantom Eye ttsHealthy latch + sticky-toggle wire-up + defensive SELDAY + trilingual coverage tags this session) |
+| New Vault SPA (compiled) | `https://buildbelievefit.fitness/vault/` (Vite + React + TS · 6 tabs live · awaits operator GitHub Pages source toggle · **still untouched by session 4**) |
 
 ---
 
@@ -114,16 +114,35 @@ Every closed item has a corresponding entry in `api/BBF_MASTER_PLAN.md` with the
 | Nutrition Vision · Gemini Live WebSocket handshake dropping | `GEMINI_LIVE_MODEL` reverted `3.5 → 2.5 native-audio-latest` | `index.js:3063` |
 | Clicking active client unmounts right-hand nutrition telemetry | Two-part `selectClient` guard · re-clicking same client = no-op · only force `TAB('home')` when already on Home | `bbf-app.html:2921` (legacy) + `vault/src/components/ClientDashboard.tsx` (React port) |
 
+### Session 4 · Marketing redesign REVERT + P0 production sprint + Trilingual coverage sweep
+| Item | Closure |
+|---|---|
+| **Marketing redesign FULL REVERT** · operator call · "Pathfinder hidden by .reveal opacity-0 cascade conflict · mobile layout clunkiness · two-step recovery already in flight · if it ain't broke don't fix it" · `git checkout 0340379 -- index.html` rolled back to pre-Phase-1 legacy state (BBF portrait hero · Start My Path · Enter The Vault → bbf-app.html · #services/#founder/#programs/#interrogator/#nutrition/#testimonials/#explorer/#playbooks/#specialized/#transformation/#pathfinder/#app-download/#contact · legacy detailed footer · 3612 lines deleted / 724 inserted) · env.js / doSubmit / bbf-lead-capture / Pathfinder / Interrogator / BBF_STRIPE_BY_TIER / Turnstile / BBF_LANG / vault/src/* / PASSOVER / api/BBF_MASTER_PLAN.md / supabase/functions/* all UNTOUCHED | `ad31a86` |
+| **Phantom Eye dual-voice fix** · operator video audit "did a two voice response and it choked out" → root cause = per-PCM-chunk evaluation of `BBF_TTS.lastFailure()` racing async with `_lastFail` set/cleared on speak() completion (bbf-app.html:12219/12231) · two concurrent speaks last-write-wins on `_lastFail` · gate flips mid-session → Gemini PCM bleeds over draining ElevenLabs · FIX latches `lc.ttsHealthy` ONCE at WS open (`_lcAttachWsHandlers` line 4968 area) · gate now reads `lc.ttsHealthy` per chunk · trade · if ElevenLabs soft-fails mid-session no audio plays for rest of session (acceptable vs dual-voice bug) | `79e5141` |
+| **`bbf-tts-eleven` 401 cascade** · ROOT CAUSE = function deployed with `verify_jwt: true` (sole anomaly across all bbf-* edge functions · all others vt:false) · every browser POST gateway-rejected with 401 for 12+ hours · ElevenLabs fully dead in production · FIX redeployed v10 → v11 with `verify_jwt: false` · no source code change · probe via `net.http_post` from Supabase SQL · status_code=200 · 71 KB MP3 from Julius confirmed | function `bbf-tts-eleven` v11 (Supabase) · no git commit |
+| **`bbf-meal-image` Imagen 3 sunset** · symptom = POST 502 `{ok:false, error:'imagen_generation_failed'}` · diagnostic via added `?list-models=1` GET ops endpoint with `filter=predict` · Google returned 404 NOT_FOUND on `models/imagen-3.0-generate-002` · current Imagen registry = Imagen 4 family only (`imagen-4.0-generate-001` · `-fast-generate-001` · `-ultra-generate-001`) · FIX bumped `IMAGEN_MODEL` to `imagen-4.0-generate-001` · verified cache hit returns image_url at `https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/meal-images/bbf_imagen_4_probe_bowl.png` · first-call latency 30-50s (vs Imagen 3's 8-12s) · cache layer protects against this for repeats · added `?list-models=1` permanent ops diagnostic (filters: `predict`, `bidi`, `native-audio`) | `8f15ce6` (source) + function `bbf-meal-image` v7 (Supabase) |
+| **`bbf-meal-macros` 401 + same verify_jwt bug** + `bbf_vision_scout` same (admin tool · unused · low priority) · FIX redeployed bbf-meal-macros v3 → v4 with `verify_jwt: false` · Anthropic Haiku 4.5 round-trip verified 200 with macros payload · `bbf_vision_scout` left at verify_jwt:true (admin tool · zero recent traffic · ok) | function `bbf-meal-macros` v4 (Supabase) |
+| **Full integration audit · Anthropic / Gemini / ElevenLabs** · live probes confirmed: Anthropic API healthy (Sonnet via pathfinder · Haiku via meal-macros · Opus via cardio · all 200) · Gemini Imagen 4 healthy (post fix) · ElevenLabs healthy (post verify_jwt fix) · Gemini Live model `gemini-2.5-flash-native-audio-latest` STILL REGISTERED on bidiGenerateContent (Hypothesis 1 FALSE · model not deprecated) · new Gemini 3.1 Flash Live Preview also available for future upgrade · Voices table verified · Julius (`VlUmeC1Uzj3NnwiVR9K9`) + Kelli LaShae (`Z5JpFCNFIz8Nhe4KEikq`) live | no commit (audit only) |
+| **i18n Phase 1+2+3 · Trilingual coverage groundwork** · ENGINE EXTENSION at `bbf-lang.js` apply() · now also handles `data-lang-attr-<NAME>` for `placeholder`/`aria-label`/`title`/`alt`/`value` (was textContent-only) · setLang() now also dispatches `bbf-lang-changed` CustomEvent for JS-rendered UIs · PLUS 54 dict keys (cardio orphan fix · login user/PIN + placeholders · new-client form · intake validation TOASTs · index.html marquee + TDEE form + hamburger aria + skip-to-main) · `data-lang-key` count bbf-app.html 173 → 183 / index.html 125 → 151 / `data-lang-attr-*` 0 → 8 | `81cf5c2` |
+| **i18n Phase 4 · Tactical strike** · 68 new dict keys · Athlete Portal (tp-athlete · 38 keys including 3 setup steps + 5 sport options + season phase + Clinical Protocol + Positional Intelligence Comlink + Progression Gate) · Omniscience toggle JS-rendered button text wrapped with `_t()` + listener added inside IIFE for `bbf-lang-changed` → calls `_renderAll()` · Interrogator form (10 keys · multi-line workout placeholder translated · localized day abbreviations LUN-DOM/SEG-DOM) · Playbooks static headers (kicker/title/sub/CTA) · Testimonial metric subtitles · nav Playbooks (desktop + mobile) + Scouting Hub | `7df3bde` |
+| **P0 defensive SELDAY + sticky-toggle + Phase 5 deep sweep** · DIAGNOSTIC · operator reported Day-tab unresponsive · 100% evidence-based finding · ZERO overlap between Phase 4 edits (lines 234-258 / 1030-1199 / 3688 / 13414-13530) and Day-tab code (581-595 / 13527+ / 13564+ / 13610+) · no data-lang-key was added to #tp-workout or ancestors · apply() can't reach #dnav · 'bbf-lang-changed' fires only on setLang() not at boot · pushed back on Big Jim's attribution while shipping defensive instrumentation · SELDAY(i) now wraps in try/catch · logs `[SELDAY] PLAN is null` / `[SELDAY] index out of range` / `[SELDAY] threw exception` to console for surfacing actual cause · STICKY-TOGGLE FIX · added module-level listener at bbf-app.html:2669 (post TAB() closing brace) that calls `TAB(activeName)` on `bbf-lang-changed` so dynamic content (Day buttons, exercise rows, nutrition cards) refresh in place without sport-switching workaround · Phase 5 deep sweep · 27 new dict keys · Nutrition tab (Virtual Chef · Nutrition Vision viewport · 10 keys) · Cardio tab (Smart Cardio header · 7 keys) · Prehab tab (Sovereign Prehab Tracker · 10 keys) | `f62ca0f` |
+| **i18n Phase 6 · Target Alpha · Playbooks dynamic JS** · 77 new dict keys (5 sports + 65 KPIs slugified `kpi-<slug>` + 7 static renderer labels + 3 generic KPI fallbacks) · index.html `_trSport(id, fallback)` / `_trKpi(label)` / `_trL(key, fallback)` helpers added · `initPlaybookBar()` + `pbRenderPositions()` refactored to flow through them · `_wireMarketingLangChange()` IIFE listens to `bbf-lang-changed` and re-fires `initPlaybookBar()` + `initExplorer()` so marketing site has sticky-toggle behavior (no TAB() to refire) | `b952b42` |
+| **i18n Phase 7 · Target Bravo (partial) + Target Charlie (root-cause fix)** · `_shared/lang-directive.ts` NEW shared helper (49 lines · `BbfLang` type · `normalizeLang(raw)` · `langDirective(lang)` returns empty for 'en' · ES/PT directives bind output language while keeping JSON keys English) · `bbf-meal-macros` v5/v6 deployed with `payload.lang` extraction + `systemPromptFor(lang)` injecting LANGUAGE NOTE for regional dish interpretation · v5 attempted composite `onConflict: 'name_normalized,lang'` but rolled back to v6 single-col onConflict because the table's UNIQUE is on `name_normalized` only · cache stays language-agnostic until composite-UNIQUE migration · client-side `bbf-app.html` meal-macros lookup now sends `lang: BBF_LANG.get()` · TARGET CHARLIE = KFH transpiler · OPERATOR/Big Jim flagged "Max Stretch" / "Elbow Securely Anchored" / "Humerus Fixed" as untranslated · INVESTIGATION revealed kfh-blueprints.js (332 KB · 33 blueprints) is ALREADY fully trilingual `{en,es,pt}` per the file header · ACTUAL bug = `var lang = 'en';` HARDCODED at kfh-transpiler.js:436 inside transpile(bp) + 3 more hardcoded `'en'` at lines 295/348/356 inside `_emitCallout` / `_emitSVG` · 9 surgical edits added optional `langArg` to transpile + propagated lang to `_emitSVG(bp, lang)` + `_emitCallout(parts, co, mode, bp, lang)` · all internal pickLang calls now use the lang variable · transpile priority `langArg → window.BBF_LANG.get() → 'en'` · ADDED bbf-lang-changed listener at end of kfh-blueprints.js IIFE that re-iterates BLUEPRINTS array and re-calls registerBlueprint(bp) so the catalog overwrites entries with new-language SVG markup · BLUEPRINT data was always there · pipeline couldn't reach it | `6ca9bf3` |
+| **6 remaining agent deploys for langDirective DEFERRED** · local source files in `supabase/functions/bbf-{agentic-*,co-coach}/` have drifted from deployed versions post Phase 6.0k (local pathfinder is 275 lines vs deployed 460+ canonical Anthropic-armor) · mass-redeploying from local would revert 6.0k · each remaining agent needs `mcp__supabase__get_edge_function` → import langDirective → 3-line patch in handler → `mcp__supabase__deploy_edge_function` cycle per agent · pattern documented in `lang-directive.ts` comments | deferred (see §3) |
+
 ---
 
 ## 3 · Pending operator actions (manual · can't be done from here)
 
 | Item | What's needed |
 |---|---|
-| **Vault deploy activation** (Phase 4.1 closure) | GitHub repo → **Settings → Pages → Source** → toggle from "Deploy from a branch" to **"GitHub Actions"**. Until that flips, `pages.yml` runs but does not publish. After toggle, first run produces `/vault/` build at `https://buildbelievefit.fitness/vault/` confirming "BBF Vault React Architecture Active" · legacy `/bbf-app.html` continues serving byte-identically. |
+| **Vault deploy activation** (Phase 4.1 closure) | GitHub repo → **Settings → Pages → Source** → toggle from "Deploy from a branch" to **"GitHub Actions"**. Until that flips, `pages.yml` runs but does not publish. After toggle, first run produces `/vault/` build at `https://buildbelievefit.fitness/vault/` confirming "BBF Vault React Architecture Active" · legacy `/bbf-app.html` continues serving byte-identically. Still pending end of session 4. |
 | Phase 0.1 · `BBF_MARKETING_ADMIN_TOKEN` rotation | Paste fresh 32-char token into Render dashboard → `vision-scout` → Environment → `BBF_MARKETING_ADMIN_TOKEN`. Test: old token returns 401 on `/api/v1/marketing/telemetry`, new token returns 200. |
 | Resend webhook config (for Phase 1.2 events to flow) | Resend dashboard → Webhooks → set endpoint to `https://vision-scout.onrender.com/api/v1/marketing/inbound` · copy Signing Secret · paste into Render → vision-scout → Environment → `RESEND_WEBHOOK_SECRET`. |
 | Optional · Stripe Payment Link configuration | `vapi-sms-closer` ships with placeholder `https://buy.stripe.com/test_placeholder_*` URLs. Swap to real Stripe Payment Link URLs when ready · no code change required. |
+| **NEW · 6 agent redeploys for `langDirective`** (Phase 7 Target Bravo finish) | The shared helper `supabase/functions/_shared/lang-directive.ts` is committed. The agents `bbf-co-coach` · `bbf-agentic-cardio` · `bbf-agentic-comlink` · `bbf-agentic-peaking` · `bbf-agentic-prehab` · `bbf-agentic-pathfinder` · `bbf-agentic-interrogator` each need: (1) `mcp__supabase__get_edge_function` to fetch CURRENT deployed source (NOT the drifted local file), (2) add `import { langDirective, normalizeLang } from '../_shared/lang-directive.ts';`, (3) inside handler after payload parse · `const _bbfLang = normalizeLang(payload?.lang);`, (4) at the callClaude invocation change `system: SYSTEM_PROMPT` → `system: SYSTEM_PROMPT + langDirective(_bbfLang)`, (5) `mcp__supabase__deploy_edge_function` to redeploy with `verify_jwt: false` (keep existing). Pattern verbatim per agent · do NOT mass-deploy from local source · Phase 6.0k callClaude conversion lives in deployed source and would be reverted. Plus client-side: every `fetch()` to one of these agents in `bbf-app.html` should include `lang: (typeof BBF_LANG !== 'undefined' && BBF_LANG.get) ? BBF_LANG.get() : 'en'` in the body (see the meal-macros pattern around bbf-app.html:14440). |
+| **NEW · `bbf_meal_macros` composite UNIQUE migration** | Currently `UNIQUE (name_normalized)` only · so first-user's language wins the cache slot per meal name (`avena con leche` cached as English oatmeal if EN-user queries first; Spanish user gets that English row). DRAFT migration `ALTER TABLE bbf_meal_macros DROP CONSTRAINT bbf_meal_macros_name_normalized_key; ALTER TABLE bbf_meal_macros ADD CONSTRAINT bbf_meal_macros_name_lang_key UNIQUE (name_normalized, lang);` then re-deploy bbf-meal-macros with `onConflict: 'name_normalized,lang'` (the v5 attempt that got rolled back). Table is currently empty so no data conflicts. Operator go-signal required (destructive DDL). |
+| **NEW · Visual verification of session 4 wins** | Operator hard-refresh on iPhone safari (Service Worker caches bbf-app.html aggressively · cache clear required) · then: (1) Open Phantom Eye / Nutrition Vision · expect single voice (Julius or Kelli LaShae) · NO Gemini PCM bleed (2) Open ANY exercise's Kinematic Form HUD · switch language toggle · expect `[KFH_BLUEPRINTS] re-registered 33 blueprints for new language` in console + all anatomical overlays render in ES/PT (3) Open Playbooks section on marketing site · click ES · sport bar + position cards + KPI chips translate in place without sport-switching (4) Type Spanish meal name in nutrition tab when in ES · bbf-meal-macros now interprets natively |
 
 ---
 
@@ -143,9 +162,80 @@ Every closed item has a corresponding entry in `api/BBF_MASTER_PLAN.md` with the
 
 ---
 
-## 5 · Next-phase directive · Apply marketing design language to the APP side
+## 5 · Next-phase directive · Finish Phase 7 Target Bravo + verify session 4 wins
 
-The marketing landing page is live in the new design (commits `0b81453` + `903668b` + `4b5630b`). The operator's next sprint is to **mirror that same flow, aesthetic, and design system on the APP side** — meaning the customer-facing client portal experience, which today exists in two places:
+**Session 3's "apply marketing design language to the app side" directive is MOOT** · the marketing redesign was fully reverted in session 4 (operator call · production fragility). The new design tokens / typography port to the vault React side is no longer the next sprint · re-prioritize when/if a marketing rebuild happens.
+
+### The immediate next sprint is to FINISH Phase 7 Target Bravo (6 agent redeploys) + apply the bbf-meal-macros composite-UNIQUE migration
+
+#### Phase 7 Target Bravo · 6 agent langDirective redeploys
+
+The pattern is now documented in `supabase/functions/_shared/lang-directive.ts`. For each of `bbf-co-coach` · `bbf-agentic-cardio` · `bbf-agentic-comlink` · `bbf-agentic-peaking` · `bbf-agentic-prehab` · `bbf-agentic-pathfinder` · `bbf-agentic-interrogator`:
+
+1. **Fetch current deployed source** · `mcp__supabase__get_edge_function({ project_id: 'ihclbceghxpuawymlvgi', function_slug: '<name>' })` · the returned `files[]` will include both `source/index.ts` AND any `_shared/*.ts` dependencies the function uses. DO NOT skip this step — local repo files are stale post Phase 6.0k.
+2. **Add import** near top of `index.ts` (after existing _shared imports):
+   ```ts
+   import { langDirective, normalizeLang } from '../_shared/lang-directive.ts';
+   ```
+3. **Extract lang from payload** inside the serve handler, after the existing `payload = await req.json()`:
+   ```ts
+   const _bbfLang = normalizeLang(payload?.lang);
+   ```
+4. **Append directive to system prompt** at the callClaude invocation — change:
+   ```ts
+   system: SYSTEM_PROMPT,
+   ```
+   to:
+   ```ts
+   system: SYSTEM_PROMPT + langDirective(_bbfLang),
+   ```
+   For agents that build the system prompt inline (rare), append `langDirective(_bbfLang)` to the joined string.
+5. **Redeploy** · pass the modified `index.ts` plus the unchanged `_shared/*.ts` files (verbatim from step 1's get_edge_function result) PLUS the new `_shared/lang-directive.ts` file:
+   ```ts
+   mcp__supabase__deploy_edge_function({
+     project_id: 'ihclbceghxpuawymlvgi',
+     name: '<agent>',
+     entrypoint_path: 'index.ts',
+     verify_jwt: false,   // KEEP current setting · all are vt:false post Phase 6.0l audit
+     files: [
+       { name: 'index.ts', content: '<modified source>' },
+       { name: '../_shared/anthropic-call.ts', content: '<unchanged from get>' },
+       { name: '../_shared/anthropic-armor.ts', content: '<unchanged>' },
+       { name: '../_shared/anthropic-resilience.ts', content: '<unchanged>' },
+       { name: '../_shared/model-router.ts', content: '<unchanged>' },
+       { name: '../_shared/lang-directive.ts', content: '<read from local supabase/functions/_shared/lang-directive.ts>' },
+     ],
+   })
+   ```
+6. **Client-side wire-up** · in `bbf-app.html`, find every `fetch()` call to `/functions/v1/<agent>` and add `lang: (typeof BBF_LANG !== 'undefined' && BBF_LANG.get) ? BBF_LANG.get() : 'en'` to the body. Reference call sites (from session 4 grep):
+   - bbf-agentic-peaking: 6735, 6751
+   - bbf-agentic-forecasting: 6925, 6935, 7496, 9216
+   - bbf-agentic-prehab: 7113, 7128
+   - bbf-agentic-comlink: 9008, 11208, 11548
+   - bbf-agentic-kinematics: 10930, 10939
+   - bbf-agentic-immersion: 12667, 12673
+   - bbf-agentic-linguist: 12945, 12949
+   - bbf-agentic-cardio: 13129
+   - bbf-meal-macros: 14374 (ALREADY DONE in session 4)
+   - bbf-meal-image: 14527 (lang field useful for system-prompt translation if image-gen ever needs it · low priority)
+
+#### Composite UNIQUE migration for `bbf_meal_macros`
+
+Required for per-language cache (right now first-user's language wins the cache slot per meal name). Draft:
+
+```sql
+-- supabase/migrations/<timestamp>_bbf_meal_macros_per_language_cache.sql
+ALTER TABLE bbf_meal_macros DROP CONSTRAINT bbf_meal_macros_name_normalized_key;
+ALTER TABLE bbf_meal_macros ADD CONSTRAINT bbf_meal_macros_name_lang_key UNIQUE (name_normalized, lang);
+```
+
+Then re-deploy `bbf-meal-macros` v7 with `onConflict: 'name_normalized,lang'` in the upsert call AND `.eq('name_normalized', nameKey).eq('lang', lang)` in the cache lookup. Table is empty so no data conflicts. Destructive DDL · OPERATOR GO-SIGNAL required per §4 conv 4.
+
+#### Deferred (from earlier sessions · still on the queue)
+
+### Session 3 deferred · marketing → app-side design language port [STILL DEFERRED]
+
+The marketing landing page WAS live in the new design (commits `0b81453` + `903668b` + `4b5630b`) but was reverted in session 4. The previous "mirror that same flow, aesthetic, and design system on the APP side" directive is MOOT until the design redesign is re-pursued. Original surface map (vault React reskin · option 1) and section/legacy reskin (option 2) below for reference if/when the marketing rebuild happens:
 
 | Surface | Where | State |
 |---|---|---|
@@ -209,14 +299,19 @@ The operator's voice transcript said "we're gonna work on the app side ... mimic
 
 | Question | Answer |
 |---|---|
-| Current main HEAD | `4b5630b` · Phase 2 marketing redesign live |
-| What's deployed live but pending operator UI toggle | GitHub Pages source · Settings → Pages → Source → "GitHub Actions" (unblocks `/vault/` from serving the React build) |
-| Last applied SQL migration | `20260526030000_bbf_user_soft_delete_foundation.sql` (Phase 6.0i) |
-| Last edge-function deploys | 13/13 Anthropic agents converted to canonical `callClaude` (Phase 6.0j shipped `bbf-co-coach` v13 · Phase 6.0k shipped the 12 remaining agents to repo with all conversions applied; redeploys land on Supabase when push triggers) |
+| Current main HEAD | `6ca9bf3` · Phase 7 zero-backlog i18n closeout (KFH transpiler lang-aware · bbf-meal-macros lang directive · Playbooks dynamic JS i18n) |
+| Marketing site state | **LEGACY DESIGN serving on prod** · Phase 1+2+3 redesign FULLY REVERTED in session 4 (`ad31a86`) · operator call for production fragility |
+| Live edge-function deploys | 13/13 Anthropic agents on canonical `callClaude` · PLUS session 4 fixes: `bbf-tts-eleven` v11 (verify_jwt:false) · `bbf-meal-image` v7 (Imagen 4 · imagen-4.0-generate-001 · `?list-models=1` ops diag) · `bbf-meal-macros` v6 (verify_jwt:false + lang directive) |
+| What's deployed live but pending operator UI toggle | GitHub Pages source · Settings → Pages → Source → "GitHub Actions" (unblocks `/vault/` from serving the React build · still pending) |
+| Last applied SQL migration | `20260526030000_bbf_user_soft_delete_foundation.sql` (Phase 6.0i) · NOTE: pending `bbf_meal_macros` composite-UNIQUE drafted but not applied (operator go-signal required) |
+| Test suite status (bbf-lang.test.js) | 5/5 pass · 679 dictionary keys · zero duplicate keys · engine extension verified |
 | Test suite status (vision-scout) | 54/54 Node tests pass at `vision-scout/test/*.test.js` (`cd vision-scout && npm test`) |
 | Test suite status (vault E2E) | Playwright suite scaffolded (Phase 4.3f · 3 tests · Router Lock / Double-Submit Shield / Data Layer Intercept) · `cd vault && npm run test:e2e` after `npx playwright install chromium` |
 | Vault build status | `cd vault && npm run typecheck && npm run build` · zero errors · 85 modules · `dist/assets/index-*.js` 196.29 kB / 62.14 kB gzip · 6 tabs fully wired |
 | Soft-delete posture | `bbf_users.deleted_at` live · `bbf_users_active` view · RLS RESTRICTIVE policy · `bbf_soft_delete_user(uid, reason, actor)` SP available to service_role · auth RPC gated |
 | Anthropic-armor adoption | **13/13** · all in-vault agents on canonical `callClaude` (Phase 6.0j seeded the helper trio + bbf-co-coach · Phase 6.0k drained the 12-agent debt · §6.0j flipped to [x]) |
-| Marketing redesign status | LIVE on `main` · Phase 1 (hero + tiers) + Phase 1 polish + Phase 2 (all remaining sections) · `index.html` 4,953 → 8,343 lines · backend wires (env.js · Pathfinder · Stripe map · Comlink FAB · Interrogator · Nutrition Lite · Turnstile · BBF_LANG · selectTier) all preserved |
-| Phase 2 ops directives delivered | Vault button pinned to nav on desktop (`.bbf-vault-nav-btn`) / FAB-only on mobile via `@media (min-width:641px){.bbf-pf-fab{display:none}}` + reverse for nav button · founder portrait `bbf-photo.jpg` reinstated in `#story` origin slot 3 |
+| i18n stack state (post session 4) | **679 dict keys** · **250 data-lang-key in bbf-app.html** · **168 in index.html** · **11 data-lang-attr-* bindings** · `bbf-lang-changed` CustomEvent fires on every setLang() · listeners wired in BBF_OMNISCIENCE_TOGGLE (admin toggle re-render) · bbf-app.html module level (TAB(activeName) refire for sticky toggle) · marketing site (initPlaybookBar + initExplorer refire) · kfh-blueprints.js (re-register all 33 blueprints with new lang) · KFH transpiler now flows lang through transpile → _emitSVG → _emitCallout · all blueprint anatomical labels (Max Stretch / Elbow Securely Anchored / Humerus Fixed / Lockout / Max Depth / kineticPath labels / form callouts) reachable in ES/PT |
+| Two Render services (NEW finding) | `vision-scout` (marketing engine · starter plan · `https://vision-scout.onrender.com`) + `buildbelievefit` (BBF VAULT engine · root `index.js` · Phantom Eye WS proxy at `https://buildbelievefit.onrender.com/ws/phantom-eye`) · ARCHITECTURE.md §5 says only vision-scout exists · OUTDATED |
+| Permanent ops diagnostic | `GET /functions/v1/bbf-meal-image?list-models=1` returns Google's registered models · `?filter=predict` for Imagen · `?filter=bidi` for Gemini Live · `?filter=native-audio` for native-audio variants · use this BEFORE assuming a Gemini model is sunset |
+| Operator complained · Day-tab unresponsive | Pre-existing or environmental · session 4 audit proved ZERO overlap between i18n edits and Day-tab code path · added defensive SELDAY console.warn/error for next click to surface real cause |
+| Operator complained · sticky toggle "have to change sport before language registers" | FIXED in `f62ca0f` · bbf-app.html module-level listener calls `TAB(activeName)` on bbf-lang-changed |
