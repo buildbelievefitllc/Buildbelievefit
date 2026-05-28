@@ -1030,9 +1030,9 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
     <div class="tp" id="tp-athlete" role="tabpanel" aria-labelledby="ap-title">
       <div class="ap-shell">
         <header class="ap-header">
-          <div class="ap-kicker" aria-hidden="true">Athlete Portal &bull; Phase 1</div>
-          <h1 class="ap-title" id="ap-title">Athlete Portal<span class="y">:</span> Prepare for <span class="y">Game Day</span></h1>
-          <p class="ap-sub">A dedicated command deck for youth and collegiate athletes. Dial in your sport, position, and season phase &mdash; we&rsquo;ll do the rest.</p>
+          <div class="ap-kicker" aria-hidden="true" data-lang-key="ap-kicker">Athlete Portal &bull; Phase 1</div>
+          <h1 class="ap-title" id="ap-title" data-lang-key="ap-title-html">Athlete Portal<span class="y">:</span> Prepare for <span class="y">Game Day</span></h1>
+          <p class="ap-sub" data-lang-key="ap-sub">A dedicated command deck for youth and collegiate athletes. Dial in your sport, position, and season phase &mdash; we&rsquo;ll do the rest.</p>
         </header>
 
         <!-- ═ Phase 5 — Telemetry Ingestion · /log interface ═ -->
@@ -1083,56 +1083,56 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
 
         <div class="ap-grid" role="list" aria-label="Athlete profile setup">
           <div class="ap-control" role="listitem">
-            <span class="ap-badge">Step 1</span>
+            <span class="ap-badge" data-lang-key="ap-step1-badge">Step 1</span>
             <div class="ap-card-head">
               <div class="ap-icon" aria-hidden="true">&#x1F3C8;</div>
-              <label class="ap-card-label" for="ap-sport-select">Select Sport</label>
+              <label class="ap-card-label" for="ap-sport-select" data-lang-key="ap-step1-label">Select Sport</label>
             </div>
             <div class="ap-select-wrap">
               <select class="ap-select" id="ap-sport-select" aria-label="Select your sport" aria-describedby="ap-sport-hint">
-                <option value="">&mdash; Choose sport &mdash;</option>
-                <option value="football">&#x1F3C8; American Football</option>
-                <option value="soccer">&#x26BD; Soccer</option>
-                <option value="basketball">&#x1F3C0; Basketball</option>
-                <option value="baseball">&#x26BE; Baseball</option>
-                <option value="volleyball">&#x1F3D0; Volleyball</option>
+                <option value="" data-lang-key="ap-sport-opt-choose">&mdash; Choose sport &mdash;</option>
+                <option value="football" data-lang-key="ap-sport-opt-football">&#x1F3C8; American Football</option>
+                <option value="soccer" data-lang-key="ap-sport-opt-soccer">&#x26BD; Soccer</option>
+                <option value="basketball" data-lang-key="ap-sport-opt-basketball">&#x1F3C0; Basketball</option>
+                <option value="baseball" data-lang-key="ap-sport-opt-baseball">&#x26BE; Baseball</option>
+                <option value="volleyball" data-lang-key="ap-sport-opt-volleyball">&#x1F3D0; Volleyball</option>
               </select>
             </div>
-            <div class="ap-card-hint" id="ap-sport-hint">Your sport shapes force-curve demands.</div>
+            <div class="ap-card-hint" id="ap-sport-hint" data-lang-key="ap-sport-hint">Your sport shapes force-curve demands.</div>
           </div>
           <div class="ap-control" role="listitem">
-            <span class="ap-badge">Step 2</span>
+            <span class="ap-badge" data-lang-key="ap-step2-badge">Step 2</span>
             <div class="ap-card-head">
               <div class="ap-icon" aria-hidden="true">&#x1F3AF;</div>
-              <label class="ap-card-label" for="ap-position-select">Select Position Group</label>
+              <label class="ap-card-label" for="ap-position-select" data-lang-key="ap-step2-label">Select Position Group</label>
             </div>
             <div class="ap-select-wrap">
               <select class="ap-select" id="ap-position-select" aria-label="Select your position group" aria-describedby="ap-position-hint" disabled>
-                <option value="">&mdash; Choose sport first &mdash;</option>
+                <option value="" data-lang-key="ap-position-opt-choose">&mdash; Choose sport first &mdash;</option>
               </select>
             </div>
-            <div class="ap-card-hint" id="ap-position-hint">Position groups share training demands.</div>
+            <div class="ap-card-hint" id="ap-position-hint" data-lang-key="ap-position-hint">Position groups share training demands.</div>
           </div>
           <div class="ap-control ap-control--wide" role="listitem">
-            <span class="ap-badge">Step 3</span>
+            <span class="ap-badge" data-lang-key="ap-step3-badge">Step 3</span>
             <div class="ap-card-head">
               <div class="ap-icon" aria-hidden="true">&#x1F4C5;</div>
-              <div class="ap-card-label" id="ap-phase-label">Current Season Phase</div>
+              <div class="ap-card-label" id="ap-phase-label" data-lang-key="ap-step3-label">Current Season Phase</div>
             </div>
             <div class="ap-toggle" role="radiogroup" aria-labelledby="ap-phase-label">
               <button type="button" class="ap-toggle-seg on" id="ap-phase-off" role="radio" aria-checked="true" data-phase="off">
                 <span class="ap-toggle-ic" aria-hidden="true">&#x1F3CB;</span>
-                <span class="ap-toggle-t">Off-Season</span>
-                <span class="ap-toggle-s">Hypertrophy</span>
+                <span class="ap-toggle-t" data-lang-key="ap-toggle-off-t">Off-Season</span>
+                <span class="ap-toggle-s" data-lang-key="ap-toggle-off-s">Hypertrophy</span>
               </button>
               <button type="button" class="ap-toggle-seg" id="ap-phase-in" role="radio" aria-checked="false" data-phase="in">
                 <span class="ap-toggle-ic" aria-hidden="true">&#x1F3C6;</span>
-                <span class="ap-toggle-t">In-Season</span>
-                <span class="ap-toggle-s">Game Day</span>
+                <span class="ap-toggle-t" data-lang-key="ap-toggle-in-t">In-Season</span>
+                <span class="ap-toggle-s" data-lang-key="ap-toggle-in-s">Game Day</span>
               </button>
               <span class="ap-toggle-thumb" aria-hidden="true"></span>
             </div>
-            <div class="ap-card-hint">Toggle anytime &mdash; protocol updates live.</div>
+            <div class="ap-card-hint" data-lang-key="ap-toggle-hint">Toggle anytime &mdash; protocol updates live.</div>
           </div>
         </div>
 
@@ -1140,32 +1140,32 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
         <section class="ap-protocol" id="ap-protocol" aria-labelledby="ap-protocol-title" aria-live="polite" data-state="empty">
           <div class="ap-protocol-head">
             <div class="ap-protocol-kicker" aria-hidden="true">
-              <span class="ap-protocol-dot"></span> Clinical Protocol
+              <span class="ap-protocol-dot"></span> <span data-lang-key="ap-protocol-kicker">Clinical Protocol</span>
             </div>
-            <h2 class="ap-protocol-title" id="ap-protocol-title">Awaiting Selection</h2>
-            <p class="ap-protocol-meta" id="ap-protocol-meta">Choose your sport, position, and season phase to unlock your protocol.</p>
+            <h2 class="ap-protocol-title" id="ap-protocol-title" data-lang-key="ap-protocol-title-empty">Awaiting Selection</h2>
+            <p class="ap-protocol-meta" id="ap-protocol-meta" data-lang-key="ap-protocol-meta-empty">Choose your sport, position, and season phase to unlock your protocol.</p>
           </div>
           <div class="ap-protocol-body" id="ap-protocol-body">
             <div class="ap-protocol-empty" id="ap-protocol-empty">
               <div class="ap-protocol-empty-ic" aria-hidden="true">&#x1F512;</div>
-              <div class="ap-protocol-empty-t">Protocol locked</div>
-              <div class="ap-protocol-empty-s">Complete all three selections above to reveal your Clinical Goal, Primary Lifts, Movement Science Drills, and Nutrition Protocol.</div>
+              <div class="ap-protocol-empty-t" data-lang-key="ap-empty-t">Protocol locked</div>
+              <div class="ap-protocol-empty-s" data-lang-key="ap-empty-s">Complete all three selections above to reveal your Clinical Goal, Primary Lifts, Movement Science Drills, and Nutrition Protocol.</div>
             </div>
             <div class="ap-protocol-grid" id="ap-protocol-grid" hidden>
               <article class="ap-proto-sec ap-proto-sec--goal">
-                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x1F3AF;</span><h3 class="ap-proto-sec-t">Clinical Goal</h3></div>
+                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x1F3AF;</span><h3 class="ap-proto-sec-t" data-lang-key="ap-proto-goal-h">Clinical Goal</h3></div>
                 <p class="ap-proto-sec-body" id="ap-proto-goal">&mdash;</p>
               </article>
               <article class="ap-proto-sec ap-proto-sec--lifts">
-                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x1F3CB;</span><h3 class="ap-proto-sec-t">Primary Lifts</h3></div>
+                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x1F3CB;</span><h3 class="ap-proto-sec-t" data-lang-key="ap-proto-lifts-h">Primary Lifts</h3></div>
                 <ul class="ap-proto-list" id="ap-proto-lifts"></ul>
               </article>
               <article class="ap-proto-sec ap-proto-sec--drills">
-                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x26A1;</span><h3 class="ap-proto-sec-t">Movement Science Drills</h3></div>
+                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x26A1;</span><h3 class="ap-proto-sec-t" data-lang-key="ap-proto-drills-h">Movement Science Drills</h3></div>
                 <ul class="ap-proto-list" id="ap-proto-drills"></ul>
               </article>
               <article class="ap-proto-sec ap-proto-sec--nutri">
-                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x1F957;</span><h3 class="ap-proto-sec-t">Nutrition Protocol</h3></div>
+                <div class="ap-proto-sec-head"><span class="ap-proto-ic" aria-hidden="true">&#x1F957;</span><h3 class="ap-proto-sec-t" data-lang-key="ap-proto-nutri-h">Nutrition Protocol</h3></div>
                 <p class="ap-proto-sec-body" id="ap-proto-nutri">&mdash;</p>
               </article>
             </div>
@@ -1173,15 +1173,15 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
             <!-- ═ Warhead 2 — Positional Intelligence Comlink (dynamic drill query) ═ -->
             <section class="pic-wrap" id="pic-wrap" hidden aria-labelledby="pic-title">
               <div class="pic-kicker" aria-hidden="true">
-                <span class="pic-kicker-dot"></span> Positional Intelligence
+                <span class="pic-kicker-dot"></span> <span data-lang-key="pic-kicker">Positional Intelligence</span>
               </div>
-              <h3 class="pic-title" id="pic-title">Explore Your Position</h3>
-              <p class="pic-sub">State an athletic improvement you want to develop. The comlink queries the BBF founder-verified drill catalog for your sport &amp; position and surfaces the right drill.</p>
+              <h3 class="pic-title" id="pic-title" data-lang-key="pic-title">Explore Your Position</h3>
+              <p class="pic-sub" data-lang-key="pic-sub">State an athletic improvement you want to develop. The comlink queries the BBF founder-verified drill catalog for your sport &amp; position and surfaces the right drill.</p>
               <form class="pic-form" id="pic-form" autocomplete="off">
-                <input class="pic-input" id="pic-input" type="text" maxlength="240" aria-label="Athletic improvement query" placeholder='e.g. "I need a faster first step"'>
-                <button class="pic-submit" id="pic-submit" type="submit">Query</button>
+                <input class="pic-input" id="pic-input" type="text" maxlength="240" data-lang-attr-aria-label="pic-input-aria" data-lang-attr-placeholder="pic-input-placeholder" aria-label="Athletic improvement query" placeholder='e.g. "I need a faster first step"'>
+                <button class="pic-submit" id="pic-submit" type="submit" data-lang-key="pic-submit">Query</button>
               </form>
-              <div class="pic-hint" id="pic-hint">Try: faster first step &middot; higher vertical &middot; lateral agility &middot; more rotational power</div>
+              <div class="pic-hint" id="pic-hint" data-lang-key="pic-hint">Try: faster first step &middot; higher vertical &middot; lateral agility &middot; more rotational power</div>
               <div class="pic-status" id="pic-status" role="status" aria-live="polite"></div>
               <div id="pic-result"></div>
             </section>
@@ -1190,13 +1190,13 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
             <div class="ap-progression-gate" id="ap-progression-gate" hidden>
               <button class="ap-progression-cta" id="ap-protocol-complete-btn" type="button" aria-controls="ap-kfh-wrap">
                 <span class="ap-progression-cta-ic" aria-hidden="true">&#x2713;</span>
-                <span class="ap-progression-cta-t">Mark Protocol Complete</span>
-                <span class="ap-progression-cta-s">Unlocks the Athlete Form HUD</span>
+                <span class="ap-progression-cta-t" data-lang-key="ap-prog-cta-t">Mark Protocol Complete</span>
+                <span class="ap-progression-cta-s" data-lang-key="ap-prog-cta-s">Unlocks the Athlete Form HUD</span>
               </button>
               <div class="ap-progression-lock" id="ap-phase2-lock" data-state="locked">
                 <div class="ap-progression-lock-ic" aria-hidden="true">&#x1F512;</div>
-                <div class="ap-progression-lock-t">Phase 2 &middot; Form HUD Locked</div>
-                <div class="ap-progression-lock-s">Acknowledge protocol completion above to unlock the Athlete Kinematic Form HUD &mdash; biomechanical scanner with valgus collapse and ACL shear detection.</div>
+                <div class="ap-progression-lock-t" data-lang-key="ap-lock-t">Phase 2 &middot; Form HUD Locked</div>
+                <div class="ap-progression-lock-s" data-lang-key="ap-lock-s">Acknowledge protocol completion above to unlock the Athlete Kinematic Form HUD &mdash; biomechanical scanner with valgus collapse and ACL shear detection.</div>
               </div>
             </div>
 
@@ -13414,15 +13414,15 @@ var BBF_OMNISCIENCE_TOGGLE = (function() {
     btn.classList.toggle('omni-toggle--on', on);
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.title = on
-      ? 'Omniscience ON — all 4 agents bypassed with admin mocks. Tap to disengage.'
-      : 'Omniscience OFF — agents fire live Claude calls. Tap to engage admin mock mode.';
+      ? _t('omni-title-on',  'Omniscience ON — all 4 agents bypassed with admin mocks. Tap to disengage.')
+      : _t('omni-title-off', 'Omniscience OFF — agents fire live Claude calls. Tap to engage admin mock mode.');
     btn.innerHTML = on
       ? '<span class="omni-toggle__dot"></span>' +
-        '<span class="omni-toggle__label">OMNISCIENCE&nbsp;ON</span>' +
-        '<span class="omni-toggle__sub">all agents bypassed</span>'
+        '<span class="omni-toggle__label">' + _t('omni-label-on', 'OMNISCIENCE&nbsp;ON') + '</span>' +
+        '<span class="omni-toggle__sub">'   + _t('omni-sub-on',   'all agents bypassed') + '</span>'
       : '<span class="omni-toggle__dot omni-toggle__dot--off"></span>' +
-        '<span class="omni-toggle__label">OMNISCIENCE</span>' +
-        '<span class="omni-toggle__sub">tap to engage</span>';
+        '<span class="omni-toggle__label">' + _t('omni-label-off', 'OMNISCIENCE') + '</span>' +
+        '<span class="omni-toggle__sub">'   + _t('omni-sub-off',   'tap to engage') + '</span>';
   }
 
   function _renderAll() {
@@ -13513,6 +13513,16 @@ var BBF_OMNISCIENCE_TOGGLE = (function() {
     _mountFloating();
     _mountPanopticon();
   }
+
+  // Re-render on language change · the toggle's button text + tooltip are
+  // built via _t() lookups at innerHTML construction time, so a language
+  // flip won't reach them through bbf-lang.js apply(). Listening for the
+  // engine's 'bbf-lang-changed' event keeps both toggles in sync.
+  try {
+    document.addEventListener('bbf-lang-changed', function() {
+      try { _renderAll(); } catch (_) {}
+    });
+  } catch (_) {}
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', mount);

@@ -590,7 +590,89 @@ var D = {
 'tdee-mac-protein':            { en:'Protein',                  es:'Prote\u00edna',                            pt:'Prote\u00edna' },
 'tdee-mac-carbs':              { en:'Carbs',                    es:'Carbohidratos',                        pt:'Carboidratos' },
 'tdee-mac-fats':               { en:'Fats',                     es:'Grasas',                               pt:'Gorduras' },
-'tdee-cta-plan':               { en:'Get a Custom Meal Plan \u2192', es:'Obt\u00e9n un Plan Alimenticio \u2192',  pt:'Obtenha um Plano Alimentar \u2192' }
+'tdee-cta-plan':               { en:'Get a Custom Meal Plan \u2192', es:'Obt\u00e9n un Plan Alimenticio \u2192',  pt:'Obtenha um Plano Alimentar \u2192' },
+
+// \u2550\u2550\u2550 PHASE 4 \u00b7 TACTICAL STRIKE \u00b7 OPERATOR VIDEO-AUDIT GAPS (2026-05-27) \u2550\u2550\u2550
+
+// Nav \u00b7 Playbooks (desktop + mobile) + Scouting Hub (mobile only)
+'nav-playbooks':                   { en:'\ud83d\udcda Playbooks',         es:'\ud83d\udcda Manuales',                pt:'\ud83d\udcda Manuais' },
+'mnav-playbooks':                  { en:'\ud83d\udcda Playbooks',         es:'\ud83d\udcda Manuales',                pt:'\ud83d\udcda Manuais' },
+'mnav-scouting':                   { en:'\ud83c\udfc6 Scouting Hub',      es:'\ud83c\udfc6 Centro de Scouting',      pt:'\ud83c\udfc6 Centro de Scouting' },
+
+// Playbooks section \u00b7 static headers (dynamic sport/position cards are JS-rendered, deferred)
+'pb-kicker':                       { en:'Positional Blueprints',     es:'Planos Posicionales',         pt:'Planos Posicionais' },
+'pb-title':                        { en:'ELITE POSITION.<br><span style="color:#f5c800">YOUR PLAYBOOK.</span>', es:'POSICI\u00d3N DE \u00c9LITE.<br><span style="color:#f5c800">TU MANUAL.</span>', pt:'POSI\u00c7\u00c3O DE ELITE.<br><span style="color:#f5c800">SEU MANUAL.</span>' },
+'pb-sub':                          { en:'Professional-grade programming, nutrition protocols, and recruitment targets for the high-performance household. 5 sports. 25 positions. Built in the Laboratory.', es:'Programaci\u00f3n profesional, protocolos nutricionales y objetivos de reclutamiento para el hogar de alto rendimiento. 5 deportes. 25 posiciones. Construido en el Laboratorio.', pt:'Programa\u00e7\u00e3o profissional, protocolos nutricionais e objetivos de recrutamento para o lar de alto desempenho. 5 esportes. 25 posi\u00e7\u00f5es. Constru\u00eddo no Laborat\u00f3rio.' },
+'pb-cta':                          { en:'UNLOCK YOUR FULL PLAYBOOK \u2192', es:'DESBLOQUEA TU MANUAL COMPLETO \u2192', pt:'DESBLOQUEIE SEU MANUAL COMPLETO \u2192' },
+
+// Testimonials \u00b7 metric subtitles under each client name
+'testi-1-meta':                    { en:'Lost 22 lbs \u2022 6 months',     es:'Baj\u00f3 22 lbs \u2022 6 meses',           pt:'Perdeu 22 lbs \u2022 6 meses' },
+'testi-2-meta':                    { en:'Body recomposition \u2022 4 months', es:'Recomposici\u00f3n corporal \u2022 4 meses', pt:'Recomposi\u00e7\u00e3o corporal \u2022 4 meses' },
+'testi-3-meta':                    { en:'Strength \u2022 3 months',         es:'Fuerza \u2022 3 meses',                pt:'For\u00e7a \u2022 3 meses' },
+
+// Interrogator form \u00b7 full coverage (kicker, title, sub, label, placeholder, aria, counter, button)
+'intg-kicker':                     { en:'MOAB 3 \u00b7 Lead-Gen Audit',     es:'MOAB 3 \u00b7 Auditor\u00eda de Captaci\u00f3n', pt:'MOAB 3 \u00b7 Auditoria de Capta\u00e7\u00e3o' },
+'intg-title':                      { en:'The Routine <b>Interrogator</b>', es:'El <b>Interrogador</b> de Rutina', pt:'O <b>Interrogador</b> de Rotina' },
+'intg-sub':                        { en:'Paste your current workout split. The audit engine surfaces the structural gaps your program is hiding and prescribes the exact BBF architecture that closes them. No email. No friction.', es:'Pega tu rutina actual. El motor de auditor\u00eda revela los vac\u00edos estructurales que tu programa esconde y prescribe la arquitectura BBF exacta que los cierra. Sin email. Sin fricci\u00f3n.', pt:'Cole sua rotina atual. O motor de auditoria revela as lacunas estruturais que seu programa esconde e prescreve a arquitetura BBF exata que as fecha. Sem email. Sem fric\u00e7\u00e3o.' },
+'intg-label-l':                    { en:'> PASTE YOUR PROTOCOL',       es:'> PEGA TU PROTOCOLO',             pt:'> COLE SEU PROTOCOLO' },
+'intg-placeholder':                { en:'MON \u2014 Chest + Triceps\nBench Press 4x8 / Incline DB 3x10 / Cable Fly 3x12 / Skullcrushers 4x10 / Pushdowns 3x15\n\nTUE \u2014 Back + Biceps\nPull-ups 4xAMRAP / Barbell Row 4x8 / Lat Pulldown 3x12 / DB Curl 4x10 / Hammer Curl 3x12\n\nWED \u2014 Legs\nSquat 5x5 / RDL 4x8 / Leg Press 3x12 / Calf Raises 4x15\n\nTHU \u2014 Shoulders\nOHP 4x6 / Lateral Raise 4x12 / Rear Delt Fly 3x15 / Shrugs 4x10\n\nFRI \u2014 Arms\nCable Curl 4x12 / Tricep Pushdown 4x12 / Hammer Curl 3x10 / Overhead Tricep 3x12\n\nSAT \u2014 Cardio (45 min Zone 2)\nSUN \u2014 Rest', es:'LUN \u2014 Pecho + Tr\u00edceps\nPress Banca 4x8 / Inclinado DB 3x10 / Aperturas 3x12 / Patada Trasera 4x10 / Triceps Polea 3x15\n\nMAR \u2014 Espalda + B\u00edceps\nDominadas 4xAMRAP / Remo Barra 4x8 / Polea al Pecho 3x12 / Curl DB 4x10 / Curl Martillo 3x12\n\nMIE \u2014 Piernas\nSentadilla 5x5 / Peso Muerto Rumano 4x8 / Prensa 3x12 / Pantorrillas 4x15\n\nJUE \u2014 Hombros\nPress Militar 4x6 / Elevaci\u00f3n Lateral 4x12 / Posterior 3x15 / Encogimientos 4x10\n\nVIE \u2014 Brazos\nCurl Polea 4x12 / Triceps Polea 4x12 / Curl Martillo 3x10 / Triceps Sobre Cabeza 3x12\n\nSAB \u2014 Cardio (45 min Zona 2)\nDOM \u2014 Descanso', pt:'SEG \u2014 Peito + Tr\u00edceps\nSupino 4x8 / Inclinado Halteres 3x10 / Crucifixo Cabo 3x12 / Coice 4x10 / Tr\u00edceps Pulley 3x15\n\nTER \u2014 Costas + B\u00edceps\nBarra 4xAMRAP / Remada Curvada 4x8 / Pulldown 3x12 / Rosca Halteres 4x10 / Rosca Martelo 3x12\n\nQUA \u2014 Pernas\nAgachamento 5x5 / Stiff 4x8 / Leg Press 3x12 / Panturrilha 4x15\n\nQUI \u2014 Ombros\nDesenvolvimento 4x6 / Eleva\u00e7\u00e3o Lateral 4x12 / Crucifixo Inverso 3x15 / Encolhimento 4x10\n\nSEX \u2014 Bra\u00e7os\nRosca Pulley 4x12 / Tr\u00edceps Pulley 4x12 / Rosca Martelo 3x10 / Tr\u00edceps Franc\u00eas 3x12\n\nSAB \u2014 Cardio (45 min Zona 2)\nDOM \u2014 Descanso' },
+'intg-aria':                       { en:'Paste your current workout routine for clinical audit', es:'Pega tu rutina actual para auditor\u00eda cl\u00ednica', pt:'Cole sua rotina atual para auditoria cl\u00ednica' },
+'intg-counter-tmpl':               { en:'0 / 4000 chars',              es:'0 / 4000 carac',                  pt:'0 / 4000 carac' },
+'intg-button':                     { en:'Audit My Protocol \u2192',       es:'Auditar Mi Protocolo \u2192',        pt:'Auditar Meu Protocolo \u2192' },
+'intg-button-sub':                 { en:'Clinical breakdown \u00b7 ~10-second read', es:'An\u00e1lisis cl\u00ednico \u00b7 lectura de ~10 seg', pt:'An\u00e1lise cl\u00ednica \u00b7 leitura de ~10 seg' },
+
+// Athlete Portal (Vault tp-athlete panel) \u00b7 header + 3 setup steps + protocol grid
+'ap-kicker':                       { en:'Athlete Portal \u2022 Phase 1',   es:'Portal de Atleta \u2022 Fase 1',      pt:'Portal do Atleta \u2022 Fase 1' },
+'ap-title-html':                   { en:'Athlete Portal<span class="y">:</span> Prepare for <span class="y">Game Day</span>', es:'Portal de Atleta<span class="y">:</span> Prep\u00e1rate para el <span class="y">D\u00eda del Juego</span>', pt:'Portal do Atleta<span class="y">:</span> Prepare-se para o <span class="y">Dia do Jogo</span>' },
+'ap-sub':                          { en:'A dedicated command deck for youth and collegiate athletes. Dial in your sport, position, and season phase \u2014 we\'ll do the rest.', es:'Una plataforma de comando dedicada para atletas juveniles y universitarios. Ajusta tu deporte, posici\u00f3n y fase de temporada \u2014 nosotros hacemos el resto.', pt:'Uma plataforma de comando dedicada para atletas jovens e universit\u00e1rios. Ajuste seu esporte, posi\u00e7\u00e3o e fase da temporada \u2014 n\u00f3s cuidamos do resto.' },
+'ap-step1-badge':                  { en:'Step 1',                      es:'Paso 1',                          pt:'Passo 1' },
+'ap-step1-label':                  { en:'Select Sport',                es:'Selecciona Deporte',              pt:'Selecione o Esporte' },
+'ap-sport-opt-choose':             { en:'\u2014 Choose sport \u2014',            es:'\u2014 Elige deporte \u2014',               pt:'\u2014 Escolha o esporte \u2014' },
+'ap-sport-opt-football':           { en:'\ud83c\udfc8 American Football',        es:'\ud83c\udfc8 F\u00fatbol Americano',           pt:'\ud83c\udfc8 Futebol Americano' },
+'ap-sport-opt-soccer':             { en:'\u26bd Soccer',                  es:'\u26bd F\u00fatbol',                       pt:'\u26bd Futebol' },
+'ap-sport-opt-basketball':         { en:'\ud83c\udfc0 Basketball',              es:'\ud83c\udfc0 Baloncesto',                   pt:'\ud83c\udfc0 Basquete' },
+'ap-sport-opt-baseball':           { en:'\u26be Baseball',                es:'\u26be B\u00e9isbol',                     pt:'\u26be Beisebol' },
+'ap-sport-opt-volleyball':         { en:'\ud83c\udfd0 Volleyball',              es:'\ud83c\udfd0 Voleibol',                     pt:'\ud83c\udfd0 V\u00f4lei' },
+'ap-sport-hint':                   { en:'Your sport shapes force-curve demands.', es:'Tu deporte define las demandas de curva de fuerza.', pt:'Seu esporte define as demandas de curva de for\u00e7a.' },
+'ap-step2-badge':                  { en:'Step 2',                      es:'Paso 2',                          pt:'Passo 2' },
+'ap-step2-label':                  { en:'Select Position Group',       es:'Selecciona Grupo de Posici\u00f3n',    pt:'Selecione o Grupo de Posi\u00e7\u00e3o' },
+'ap-position-opt-choose':          { en:'\u2014 Choose sport first \u2014',      es:'\u2014 Elige deporte primero \u2014',       pt:'\u2014 Escolha o esporte primeiro \u2014' },
+'ap-position-hint':                { en:'Position groups share training demands.', es:'Los grupos de posici\u00f3n comparten demandas de entrenamiento.', pt:'Grupos de posi\u00e7\u00e3o compartilham demandas de treino.' },
+'ap-step3-badge':                  { en:'Step 3',                      es:'Paso 3',                          pt:'Passo 3' },
+'ap-step3-label':                  { en:'Current Season Phase',        es:'Fase de Temporada Actual',        pt:'Fase Atual da Temporada' },
+'ap-toggle-off-t':                 { en:'Off-Season',                  es:'Pretemporada',                    pt:'Pr\u00e9-Temporada' },
+'ap-toggle-off-s':                 { en:'Hypertrophy',                 es:'Hipertrofia',                     pt:'Hipertrofia' },
+'ap-toggle-in-t':                  { en:'In-Season',                   es:'En Temporada',                    pt:'Em Temporada' },
+'ap-toggle-in-s':                  { en:'Game Day',                    es:'D\u00eda del Juego',                   pt:'Dia do Jogo' },
+'ap-toggle-hint':                  { en:'Toggle anytime \u2014 protocol updates live.', es:'Cambia en cualquier momento \u2014 el protocolo se actualiza al instante.', pt:'Alterne a qualquer momento \u2014 o protocolo atualiza ao vivo.' },
+'ap-protocol-kicker':              { en:'Clinical Protocol',           es:'Protocolo Cl\u00ednico',               pt:'Protocolo Cl\u00ednico' },
+'ap-protocol-title-empty':         { en:'Awaiting Selection',          es:'Esperando Selecci\u00f3n',             pt:'Aguardando Sele\u00e7\u00e3o' },
+'ap-protocol-meta-empty':          { en:'Choose your sport, position, and season phase to unlock your protocol.', es:'Elige tu deporte, posici\u00f3n y fase de temporada para desbloquear tu protocolo.', pt:'Escolha seu esporte, posi\u00e7\u00e3o e fase da temporada para desbloquear seu protocolo.' },
+'ap-empty-t':                      { en:'Protocol locked',             es:'Protocolo bloqueado',             pt:'Protocolo bloqueado' },
+'ap-empty-s':                      { en:'Complete all three selections above to reveal your Clinical Goal, Primary Lifts, Movement Science Drills, and Nutrition Protocol.', es:'Completa las tres selecciones arriba para revelar tu Meta Cl\u00ednica, Levantamientos Principales, Drills de Ciencia del Movimiento y Protocolo de Nutrici\u00f3n.', pt:'Complete as tr\u00eas sele\u00e7\u00f5es acima para revelar sua Meta Cl\u00ednica, Levantamentos Principais, Drills de Ci\u00eancia do Movimento e Protocolo de Nutri\u00e7\u00e3o.' },
+'ap-proto-goal-h':                 { en:'Clinical Goal',               es:'Meta Cl\u00ednica',                    pt:'Meta Cl\u00ednica' },
+'ap-proto-lifts-h':                { en:'Primary Lifts',               es:'Levantamientos Principales',      pt:'Levantamentos Principais' },
+'ap-proto-drills-h':               { en:'Movement Science Drills',     es:'Drills de Ciencia del Movimiento', pt:'Drills de Ci\u00eancia do Movimento' },
+'ap-proto-nutri-h':                { en:'Nutrition Protocol',          es:'Protocolo de Nutrici\u00f3n',          pt:'Protocolo de Nutri\u00e7\u00e3o' },
+'pic-kicker':                      { en:'Positional Intelligence',     es:'Inteligencia Posicional',         pt:'Intelig\u00eancia Posicional' },
+'pic-title':                       { en:'Explore Your Position',       es:'Explora Tu Posici\u00f3n',             pt:'Explore Sua Posi\u00e7\u00e3o' },
+'pic-sub':                         { en:'State an athletic improvement you want to develop. The comlink queries the BBF founder-verified drill catalog for your sport & position and surfaces the right drill.', es:'Indica una mejora atl\u00e9tica que quieras desarrollar. El comlink consulta el cat\u00e1logo de drills verificado por el fundador BBF para tu deporte y posici\u00f3n y muestra el drill adecuado.', pt:'Indique uma melhoria atl\u00e9tica que queira desenvolver. O comlink consulta o cat\u00e1logo de drills verificado pelo fundador BBF para seu esporte e posi\u00e7\u00e3o e mostra o drill certo.' },
+'pic-input-placeholder':           { en:'e.g. "I need a faster first step"', es:'ej. "Necesito un primer paso m\u00e1s r\u00e1pido"', pt:'ex. "Preciso de um primeiro passo mais r\u00e1pido"' },
+'pic-input-aria':                  { en:'Athletic improvement query',  es:'Consulta de mejora atl\u00e9tica',     pt:'Consulta de melhoria atl\u00e9tica' },
+'pic-submit':                      { en:'Query',                       es:'Consultar',                       pt:'Consultar' },
+'pic-hint':                        { en:'Try: faster first step \u00b7 higher vertical \u00b7 lateral agility \u00b7 more rotational power', es:'Prueba: primer paso m\u00e1s r\u00e1pido \u00b7 salto vertical m\u00e1s alto \u00b7 agilidad lateral \u00b7 m\u00e1s potencia rotacional', pt:'Tente: primeiro passo mais r\u00e1pido \u00b7 salto vertical maior \u00b7 agilidade lateral \u00b7 mais pot\u00eancia rotacional' },
+'ap-prog-cta-t':                   { en:'Mark Protocol Complete',      es:'Marcar Protocolo Completo',       pt:'Marcar Protocolo Completo' },
+'ap-prog-cta-s':                   { en:'Unlocks the Athlete Form HUD', es:'Desbloquea el HUD de Forma del Atleta', pt:'Desbloqueia o HUD de Forma do Atleta' },
+'ap-lock-t':                       { en:'Phase 2 \u00b7 Form HUD Locked',   es:'Fase 2 \u00b7 HUD de Forma Bloqueado', pt:'Fase 2 \u00b7 HUD de Forma Bloqueado' },
+'ap-lock-s':                       { en:'Acknowledge protocol completion above to unlock the Athlete Kinematic Form HUD \u2014 biomechanical scanner with valgus collapse and ACL shear detection.', es:'Confirma la finalizaci\u00f3n del protocolo arriba para desbloquear el HUD de Forma Cinem\u00e1tica del Atleta \u2014 esc\u00e1ner biomec\u00e1nico con detecci\u00f3n de colapso de valgo y cizallamiento del LCA.', pt:'Confirme a conclus\u00e3o do protocolo acima para desbloquear o HUD de Forma Cinem\u00e1tica do Atleta \u2014 scanner biomec\u00e2nico com detec\u00e7\u00e3o de colapso de valgo e cisalhamento do LCA.' },
+
+// Omniscience Toggle \u00b7 JS-rendered button (admin-only floating control \u00b7 paying clients never see it \u00b7 operator does)
+'omni-title-on':                   { en:'Omniscience ON \u2014 all 4 agents bypassed with admin mocks. Tap to disengage.', es:'Omnisciencia ACTIVA \u2014 los 4 agentes bypassados con mocks de admin. Toca para desactivar.', pt:'Onisci\u00eancia ATIVA \u2014 todos os 4 agentes desviados com mocks de admin. Toque para desativar.' },
+'omni-title-off':                  { en:'Omniscience OFF \u2014 agents fire live Claude calls. Tap to engage admin mock mode.', es:'Omnisciencia INACTIVA \u2014 los agentes disparan llamadas Claude en vivo. Toca para activar modo mock de admin.', pt:'Onisci\u00eancia INATIVA \u2014 os agentes disparam chamadas Claude ao vivo. Toque para ativar modo mock de admin.' },
+'omni-label-on':                   { en:'OMNISCIENCE&nbsp;ON',         es:'OMNISCIENCIA&nbsp;ACTIVA',        pt:'ONISCI\u00caNCIA&nbsp;ATIVA' },
+'omni-sub-on':                     { en:'all agents bypassed',         es:'todos los agentes bypassados',    pt:'todos os agentes desviados' },
+'omni-label-off':                  { en:'OMNISCIENCE',                 es:'OMNISCIENCIA',                    pt:'ONISCI\u00caNCIA' },
+'omni-sub-off':                    { en:'tap to engage',               es:'toca para activar',               pt:'toque para ativar' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────
@@ -635,6 +717,14 @@ function setLang(l) {
   localStorage.setItem('bbf_lang', l);
   apply();
   updateToggles(l);
+  // Notify JS-rendered UIs that build innerHTML via _t() lookups · they don't
+  // carry data-lang-key tags so apply() doesn't reach them. Listeners should
+  // re-render themselves to pick up the new language.
+  try {
+    if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
+      document.dispatchEvent(new CustomEvent('bbf-lang-changed', { detail: { lang: l } }));
+    }
+  } catch (_) {}
 }
 
 function getLang() { return LANG; }
