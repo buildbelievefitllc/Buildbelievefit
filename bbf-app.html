@@ -686,6 +686,13 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
 
             /* Currently loaded exercise — KFH_SET_FORM reads its formStates. */
             var currentExercise = null;
+            /* Last name passed to KFH_LOAD_EXERCISE · used by KFH_RELOAD_CURRENT
+               to re-render after a lang flip (kfh-blueprints.js re-registers
+               BLUEPRINTS on bbf-lang-changed; the catalog entries refresh but
+               the already-mounted #kfh-svg-stage innerHTML + header text fields
+               carry the previous-language snapshot until something re-fires
+               KFH_LOAD_EXERCISE). */
+            var _kfhCurrentName = '';
             /* Active rAF animator handle — null when no exercise is animating
                (legacy static entries) or after stop(). KFH_LOAD_EXERCISE
                manages the lifecycle; KFH_SET_FORM forwards mode changes. */
@@ -732,6 +739,7 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
 
             window.KFH_LOAD_EXERCISE = function(name){
               console.log('[KFH] LOAD_EXERCISE invoked, name=', JSON.stringify(name));
+              _kfhCurrentName = name || '';
               var match = lookupExercise(name);
               console.log('[KFH] lookupExercise →', match ? ('HIT: ' + (match.title || name)) : 'MISS — using catalog default');
               var data  = match || getDefaultExercise() || {};
@@ -841,6 +849,20 @@ window.bbfResetAdminToken = function bbfResetAdminToken() {
               setText('kfh-m-tuck', state.tuck);
               setText('kfh-m-load', state.load);
               setText('kfh-fn',     state.fn);
+            };
+
+            /* Phase 7 i18n · kfh-blueprints.js re-registers BLUEPRINTS on
+               bbf-lang-changed (catalog entries refresh with new-language SVG
+               markup + text labels), but the currently-mounted #kfh-svg-stage
+               innerHTML + header text fields stay frozen on the previous
+               language until something re-runs KFH_LOAD_EXERCISE. This export
+               lets the blueprints IIFE re-fire LOAD on the last-loaded name
+               after the catalog refresh so the displayed overlay updates in
+               place. Idempotent · falls through when no exercise is loaded. */
+            window.KFH_RELOAD_CURRENT = function(){
+              if (!_kfhCurrentName) return;
+              try { window.KFH_LOAD_EXERCISE(_kfhCurrentName); }
+              catch(e){ console.warn('[KFH] reload-current failed:', e && e.message); }
             };
 
             /* Bootstrap the HUD with the reference state so it never paints blank

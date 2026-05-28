@@ -4931,6 +4931,16 @@
             BBF_KFH_CATALOG.registerBlueprint(bp);
           });
           console.log('[KFH_BLUEPRINTS] re-registered ' + BLUEPRINTS.length + ' blueprints for new language');
+          // Session 5 P1 fix · catalog refresh alone left the currently-mounted
+          // SVG + header text frozen on the previous language (KFH_LOAD_EXERCISE
+          // injected svgMarkup into #kfh-svg-stage.innerHTML at load time; no
+          // one re-fires LOAD after the catalog refresh). Re-fire on the last
+          // loaded name so the displayed overlay re-paints with new-language
+          // entries · idempotent, no-op when no exercise is loaded.
+          if (typeof window !== 'undefined' && typeof window.KFH_RELOAD_CURRENT === 'function') {
+            try { window.KFH_RELOAD_CURRENT(); }
+            catch (e) { console.warn('[KFH_BLUEPRINTS] reload-current failed:', e && e.message); }
+          }
         } catch (e) {
           console.warn('[KFH_BLUEPRINTS] lang-change re-registration failed:', e && e.message);
         }
