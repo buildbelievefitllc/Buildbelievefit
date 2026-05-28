@@ -2666,25 +2666,37 @@ function TAB(name) {
   }
 }
 
-// Re-fire the active tab's render function when the language toggle flips.
-// Without this, dynamic content rendered via _t() / _trDay() / _trEx() (Day
-// buttons, exercise rows, nutrition cards, etc.) stays in the prior language
-// until the user manually switches tabs · the "sticky toggle" symptom from
-// operator video audit (2026-05-27 Phase 5 directive). bbf-lang.js dispatches
-// 'bbf-lang-changed' on every setLang() · this listener catches it and asks
-// TAB() to re-render the currently-visible pane. Idempotent · TAB's render
-// functions are designed to be re-runnable.
+// Re-render the active tab's dynamic content when the language toggle flips.
+// Session 4 routed this through TAB(activeName) which re-fired the FULL tab
+// lifecycle: BBF_TOUR.init() (onboarding modal scheduler · 900ms setTimeout
+// without re-entry guard → spammed "Your Daily Program" / "Daily Nutrition"
+// on every toggle), PTAB('overview') (force-jumped Profile sub-tab), the
+// admin home-state-bleed guard (nuked PLAN when admin+VC mismatch). Session
+// 5 collapses the re-fire to a SURGICAL render-only path: just the active
+// tab's render fn + BBF_LANG.apply() for static data-lang-key elements. No
+// mount(), no init(), no PTAB. Dynamic content (Day buttons, exercise rows,
+// nutrition cards) still refreshes; modal/state side-effects do not.
 (function _wireLangChangeRefire() {
-  try {
-    document.addEventListener('bbf-lang-changed', function() {
-      try {
-        var active = document.querySelector('.nv.on');
-        var name   = (active && active.dataset && active.dataset.tab) || 'home';
-        if (typeof TAB === 'function') TAB(name);
-      } catch (e) {
-        console.warn('[BBF_LANG refire] failed to re-render active tab:', e && e.message);
+  function _relangActiveTab() {
+    try {
+      var active = document.querySelector('.nv.on');
+      var name   = (active && active.dataset && active.dataset.tab) || 'home';
+      if (name === 'home'     && typeof RH === 'function')          RH();
+      else if (name === 'workout'  && typeof RW === 'function')          RW();
+      else if (name === 'nutrition' && typeof RN === 'function')         RN();
+      else if (name === 'cardio'   && typeof BBF_CARDIO !== 'undefined' && BBF_CARDIO.render) BBF_CARDIO.render();
+      else if (name === 'prehab'   && typeof renderPrehab === 'function') renderPrehab();
+      // 'profile' intentionally omitted · PTAB('overview') would force a
+      // sub-tab change. apply() below retranslates the visible Profile pane.
+      if (typeof BBF_LANG !== 'undefined' && BBF_LANG.apply) {
+        try { BBF_LANG.apply(); } catch (_) {}
       }
-    });
+    } catch (e) {
+      console.warn('[BBF_LANG refire] failed to re-render active tab:', e && e.message);
+    }
+  }
+  try {
+    document.addEventListener('bbf-lang-changed', _relangActiveTab);
   } catch (_) {}
 })();
 
