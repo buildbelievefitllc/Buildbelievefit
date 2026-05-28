@@ -13596,12 +13596,24 @@ function RW() {
 }
 
 function SELDAY(i) {
-  // Defensive guards · log to console rather than silently fail.
+  // Defensive guards · self-heal via LP() rather than silently fail.
   // Operator-visible debug surface when "Day N tab unresponsive" symptom appears.
+  // Session 5 P0 hotfix · the previous behavior bailed silently on null PLAN,
+  // which felt "frozen" to the operator when state-bleed or a refire path had
+  // nulled PLAN out from under the dnav buttons. Now we attempt to re-hydrate
+  // PLAN from disk/cloud via LP() before bailing · idempotent, fast, and
+  // visibly recovers the tab if the cache still holds the program.
   try {
     if (!PLAN || !Array.isArray(PLAN)) {
-      console.warn('[SELDAY] PLAN is null/not-array · click ignored · idx=' + i);
-      return;
+      console.warn('[SELDAY] PLAN is null/not-array · attempting LP() rehydrate · idx=' + i);
+      if (typeof LP === 'function') { try { LP(); } catch (_) {} }
+      if (!PLAN || !Array.isArray(PLAN)) {
+        console.warn('[SELDAY] PLAN still null after LP() · click ignored · idx=' + i);
+        return;
+      }
+      // PLAN recovered · re-render the dnav with the rehydrated program so
+      // subsequent clicks find live buttons.
+      if (typeof RW === 'function') { try { RW(); } catch (_) {} }
     }
     if (i < 0 || i >= PLAN.length) {
       console.warn('[SELDAY] index ' + i + ' out of range · PLAN.length=' + PLAN.length);
