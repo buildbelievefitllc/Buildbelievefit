@@ -14443,9 +14443,14 @@ var BBF_MEAL_MACROS_API = (function() {
       'apikey':         key,
       'Authorization': 'Bearer ' + key,
     };
+    // Phase 7 i18n · include user's selected language so bbf-meal-macros'
+    // langDirective() can ask Haiku to interpret meal names with regional
+    // dish conventions (es/pt). Falls back to 'en' when BBF_LANG isn't loaded.
+    var _bbfLang = (typeof BBF_LANG !== 'undefined' && BBF_LANG.get) ? BBF_LANG.get() : 'en';
     var body = JSON.stringify({
       name:        mealName,
       ingredients: ingredients || '',
+      lang:        _bbfLang,
     });
 
     return fetch(url, { method: 'POST', headers: headers, body: body })
