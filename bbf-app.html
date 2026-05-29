@@ -20257,6 +20257,70 @@ var BBF_MACRO_WHEEL = (function() {
     return t;
   }
 
+  // Resolve macros for EVERY meal of a day — the wheel's data source.
+  // Most plan days carry no inline "(~320 cal/32g P)" annotation (only
+  // Day 1 of the seed plans does), so parseMeal returns zeros for them and
+  // completing a meal would add nothing. Here, meals WITH an explicit
+  // annotation keep their parsed macros; meals WITHOUT one split the day's
+  // REMAINING kcal target evenly, with a protein-forward macro breakdown.
+  // Net effect: completing any meal always moves the wheel, and a fully
+  // logged day lands ≈ the client's daily target. Returns an array aligned
+  // 1:1 with day.meals.
+  function resolveDayMacros(plan, idx, uid) {
+    var day = (plan && plan.days && plan.days[idx]) || { meals: [] };
+    var meals = day.meals || [];
+    var parsed = meals.map(function(m) { return parseMeal(m && m.i); });
+    // Day kcal target: client's resolved target first, else the plan's "~X cal/day".
+    var dayKcal = 0;
+    try { dayKcal = targets(uid).kcal || 0; } catch (_) {}
+    if (!dayKcal) {
+      var pm = String((plan && plan.cal) || '').match(/([\d,]{3,5})/);
+      dayKcal = pm ? parseInt(pm[1].replace(/,/g, ''), 10) : 0;
+    }
+    var explicitSum = 0, nMissing = 0;
+    parsed.forEach(function(p) { if (p.kcal > 0) explicitSum += p.kcal; else nMissing++; });
+    var shareKcal = 0;
+    if (nMissing > 0) {
+      if (dayKcal > 0) {
+        var remaining = Math.max(0, dayKcal - explicitSum);
+        shareKcal = Math.round(remaining / nMissing);
+        // explicit meals already meet/exceed target → still give missing meals
+        // an even slice of the full target so the wheel never stalls on a click.
+        if (shareKcal <= 0) shareKcal = Math.round(dayKcal / Math.max(1, meals.length));
+      } else {
+        shareKcal = 350; // no target anywhere → sane per-meal default
+      }
+    }
+    return parsed.map(function(p) {
+      if (p.kcal > 0) return p;
+      var k = shareKcal;
+      return {
+        kcal: k,
+        p: Math.round((k * SPLIT_P) / KCAL_P),
+        c: Math.round((k * SPLIT_C) / KCAL_C),
+        f: Math.round((k * SPLIT_F) / KCAL_F),
+        est: true
+      };
+    });
+  }
+
+  // Delegated click wiring for the "Mark Meal Complete" buttons. Attached
+  // ONCE to the persistent #ncon container (survives RN()/SNDAY() innerHTML
+  // re-renders, which only replace descendants). Replaces the per-button
+  // inline onclick so completion never depends on inline-handler global
+  // scope and can't double-fire. Reads data-meal-id off the button.
+  function init() {
+    var ncon = document.getElementById('ncon');
+    if (!ncon || ncon.dataset.bbfWheelWired === '1') return;
+    ncon.addEventListener('click', function(e) {
+      var btn = e.target && e.target.closest ? e.target.closest('.meal-complete-btn') : null;
+      if (!btn || !ncon.contains(btn)) return;
+      var id = btn.getAttribute('data-meal-id');
+      if (id) toggle(id);   // toggle() → synchronous repaint()
+    });
+    ncon.dataset.bbfWheelWired = '1';
+  }
+
   function photoHtml(meal) {
     // Real image URL wins whenever data carries one. Resolution order:
     //   meal.photo / meal.img / meal.image_url  →  <img>
@@ -20449,6 +20513,7 @@ var BBF_MACRO_WHEEL = (function() {
 
   return { parseMeal: parseMeal, targets: targets, photoHtml: photoHtml,
            shellHtml: shellHtml, repaint: repaint, toggle: toggle,
+           resolveDayMacros: resolveDayMacros, init: init,
            hydratePhotos: hydratePhotos };
 })();
 
@@ -21845,6 +21910,7 @@ function RN() {
   con.innerHTML = h;
   BBF_NUTRITION_TRACKER.init();
   BBF_NUTRITION_TRACKER.restore();
+  try { BBF_MACRO_WHEEL.init(); } catch(_) {}   // delegated "Mark Complete" click wiring (idempotent)
   BBF_MACRO_WHEEL.repaint(uid);   // Phase 11 · paint wheel + status from logged set
   try { BBF_MACRO_WHEEL.hydratePhotos(); } catch(_) {}   // async Gemini meal photos
   BBF_VISION_COACH.init();
@@ -21871,12 +21937,17 @@ function RN() {
 
 function RNDAY(plan, idx) {
   var day = plan.days[idx];
-  return day.meals.map(function(m) {
+  var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  // Resolve macros for the whole day up front: explicit "(~cal/g P)" meals
+  // keep their values; meals without an annotation split the day's remaining
+  // kcal target so completing ANY meal moves the wheel (see resolveDayMacros).
+  var resolved = BBF_MACRO_WHEEL.resolveDayMacros(plan, idx, uid);
+  return day.meals.map(function(m, mi) {
     var isSnack = m.m.toLowerCase().indexOf('snack') > -1 || m.m.toLowerCase().indexOf('merienda') > -1;
     var mealId  = 'd' + idx + '-' + BBF_NUTRITION_TRACKER.slugMeal(m.m);
-    var macros  = BBF_MACRO_WHEEL.parseMeal(m.i);   // {kcal,p,c,f} parsed from the meal string
+    var macros  = resolved[mi] || { kcal:0, p:0, c:0, f:0 };
     // Always print a full numeric KCAL · P/C/F line so the DOM scraper can read
-    // it. parseMeal estimates carbs/fats from kcal+protein when absent.
+    // it. Values are explicit when annotated, otherwise an even target share.
     var macroLine = macros.kcal + ' KCAL · ' + macros.p + 'P / ' + macros.c + 'C / ' + macros.f + 'F';
     return '<div class="bbf-meal' + (isSnack ? ' snack' : '') + '" id="meal-' + mealId + '" data-meal-id="' + mealId + '"' +
              ' data-meal-name="' + escapeHTML(m.i || m.m) + '"' +
@@ -21887,8 +21958,7 @@ function RNDAY(plan, idx) {
           '<div class="bbf-meal-slot">' + escapeHTML(m.m) + '</div>' +
           '<div class="bbf-meal-ing">' + escapeHTML(m.i) + '</div>' +
           '<div class="bbf-meal-macros">' + macroLine + '</div>' +
-          '<button type="button" class="meal-complete-btn" data-meal-id="' + mealId + '" ' +
-            'onclick="BBF_MACRO_WHEEL.toggle(\'' + mealId + '\')">' +
+          '<button type="button" class="meal-complete-btn" data-meal-id="' + mealId + '">' +
             '<span class="mc-main"><span class="mc-ck">&#x2713;</span> <span class="mc-txt">Mark Meal Complete</span></span>' +
             '<span class="mc-sub">Adds to today\'s Macro Wheel</span>' +
           '</button>' +
@@ -21905,6 +21975,7 @@ function SNDAY(i) {
   var dc = document.getElementById('ndaycon');
   if (dc) dc.innerHTML = RNDAY(plan, i);
   BBF_NUTRITION_TRACKER.restore();
+  try { BBF_MACRO_WHEEL.init(); } catch(_) {}   // ensure delegated click wiring (idempotent)
   try { BBF_MACRO_WHEEL.repaint(uid); } catch(_) {}
   try { BBF_MACRO_WHEEL.hydratePhotos(); } catch(_) {}   // async Gemini meal photos on day-switch
 }
