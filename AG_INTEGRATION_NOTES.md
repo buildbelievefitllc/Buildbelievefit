@@ -143,13 +143,13 @@ Every deliverable lands as a commit + PR. Claude verifies it against production 
 
 | Question | File |
 |---|---|
-| What does the closed loop actually do? | `api/PHASE_4_LIVE_CONFIG.md` (dashboard config + smoke test path) |
-| What's the founder's V12 vision? | `api/BIGJIM_V12_DIRECTIVE.md` (verbatim + Claude's reconciliation) |
+| What does the closed loop actually do? | `api/PHASE_4_LIVE_CONFIG.md` — archived in git history (summary in `CLAUDE.md` §3) |
+| What's the founder's V12 vision? | `api/BIGJIM_V12_DIRECTIVE.md` — archived in git history |
 | Why was the sync re-route Option A vs Option B? | `api/SYNC_REROUTE_DESIGN.md` (Option B was the original recommendation; user ratified Option A — PIN-based, trainer-curated. Doc has the decision rationale) |
 | What does production actually look like? | `api/supabase-schema-actual.sql` (canonical) |
 | What was wrong with the old schema doc? | `api/SCHEMA_DRIFT_REPORT.md` (14 catalogued items) |
 | Why was RLS hardened? | `api/RLS_HARDENING_AUDIT.md` (security gap analysis) |
-| Phase 2 PIN+lockout design | `api/PHASE2_DESIGN.md`, `api/AUTH_TOUCHPOINT_AUDIT.md` |
+| Phase 2 PIN+lockout design | `api/AUTH_TOUCHPOINT_AUDIT.md` (`api/PHASE2_DESIGN.md` archived in git history) |
 | How do migrations work now? | `supabase/README.md` |
 | What format does Anthropic output now? | See `index.js` SYSTEM_PROMPT_HYPERTROPHY and SYSTEM_PROMPT_NUTRITION — both require strict JSON in WP/MP shapes |
 
