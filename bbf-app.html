@@ -3252,6 +3252,73 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 </style>
 <link rel="stylesheet" href="styles/bbf-tokens.css"/>
 <link rel="stylesheet" href="styles/bbf-vault.css"/>
+<style id="bbf-studio-css">
+/* ═══ AI STUDIO GRAFT · Science Hub · Workout Generator · Mindset Engine ═══
+   Brutalist Sovereign-tier surfaces. Matte-black canvas, hard edges,
+   BBF Purple (#6a0dad) structure + BBF Gold (#f5c800) signal. CTAs never black. */
+#tp-studio{padding-bottom:6rem}
+.studio-head{margin-bottom:1.1rem}
+.studio-kicker{font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--yel);margin-bottom:.35rem}
+.studio-title{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:2.1rem;letter-spacing:2px;color:#fff;line-height:1}
+.studio-sub{font-size:.8rem;font-weight:600;color:rgba(255,255,255,.55);margin-top:.25rem}
+.studio-mod{background:#0c0c0c;border:1px solid rgba(106,13,173,.5);border-left:3px solid var(--yel);border-radius:4px;padding:1.15rem;margin-bottom:1.4rem}
+.studio-modhead{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem;border-bottom:1px solid rgba(245,200,0,.18);padding-bottom:.6rem;margin-bottom:.9rem}
+.studio-modhead h3{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.5rem;letter-spacing:2px;color:#fff;margin:0}
+.studio-modhead .sx{font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4)}
+/* Phase 1 · Science Hub */
+.sci-bar{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.85rem;flex-wrap:wrap}
+.sci-stamp{font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.sci-stamp b{color:var(--yel)}
+.sci-refresh{display:none;align-items:center;gap:.5rem;font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.6)}
+.sci-refresh.on{display:inline-flex}
+.sci-btn{font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:2px;font-size:.85rem;background:var(--yel);color:#090909;border:none;border-radius:4px;padding:.45rem 1rem;cursor:pointer}
+.sci-btn:disabled{opacity:.45;cursor:wait}
+.sci-feed{display:grid;gap:.7rem}
+.sci-study{background:#0a0a0a;border:1px solid rgba(255,255,255,.08);border-left:2px solid var(--pur);border-radius:3px;padding:.85rem .95rem}
+.sci-tag{display:inline-block;font-size:.55rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--yel);background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.25);border-radius:3px;padding:.2rem .45rem;margin-bottom:.5rem}
+.sci-finding{font-size:.9rem;font-weight:600;color:rgba(255,255,255,.9);line-height:1.55}
+.sci-cite{font-size:.66rem;font-weight:700;letter-spacing:.3px;color:rgba(255,255,255,.42);margin-top:.5rem;font-style:italic}
+.sci-note{font-size:.62rem;color:rgba(255,255,255,.35);margin-top:.7rem;line-height:1.5}
+/* Phase 2 · Workout Generator */
+.gen-form{display:grid;grid-template-columns:repeat(2,1fr);gap:.7rem;margin-bottom:1rem}
+.gen-field{display:flex;flex-direction:column;gap:.3rem}
+.gen-field label{font-size:.58rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.gen-field select{background:#090909;border:1px solid rgba(106,13,173,.6);color:#fff;padding:.7rem .6rem;border-radius:3px;font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.95rem;-webkit-appearance:none;appearance:none;cursor:pointer}
+.gen-field select:focus{outline:none;border-color:var(--yel)}
+.gen-cta{width:100%;font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:3px;font-size:1.15rem;background:var(--yel);color:#090909;border:none;border-radius:4px;padding:.9rem;cursor:pointer;margin-top:.2rem}
+.gen-guard{font-size:.6rem;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.45);margin-top:.6rem;line-height:1.6}
+.gen-guard b{color:#ff6b6b;font-weight:800}
+.gen-out{margin-top:1.1rem;display:grid;gap:.9rem}
+.gen-day{background:#0a0a0a;border:1px solid rgba(255,255,255,.08);border-top:3px solid var(--pur);border-radius:3px;overflow:hidden}
+.gen-dayhead{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,rgba(106,13,173,.25),transparent);padding:.7rem .9rem}
+.gen-dayhead .d{font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:2px;font-size:1.2rem;color:#fff}
+.gen-dayhead .f{font-size:.62rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--yel)}
+.gen-ex{display:flex;align-items:center;gap:.75rem;padding:.7rem .9rem;border-top:1px solid rgba(255,255,255,.05)}
+.gen-vid{flex-shrink:0;width:54px;height:40px;border-radius:3px;background:#000;border:1px solid rgba(245,200,0,.4);display:flex;align-items:center;justify-content:center;text-decoration:none;position:relative}
+.gen-vid::after{content:"";width:0;height:0;border-left:11px solid var(--yel);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px}
+.gen-vid:hover{border-color:var(--yel);box-shadow:0 0 0 1px var(--yel)}
+.gen-exmain{flex:1;min-width:0}
+.gen-exname{font-size:.92rem;font-weight:700;color:#fff;line-height:1.25}
+.gen-exname a{color:#fff;text-decoration:none}.gen-exname a:hover{color:var(--yel)}
+.gen-exmeta{font-size:.66rem;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,.5);margin-top:.2rem}
+.gen-exmeta .mg{color:var(--yel)}
+.gen-prescribe{flex-shrink:0;text-align:right}
+.gen-prescribe .sr{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.15rem;letter-spacing:1px;color:#fff}
+.gen-prescribe .rest{font-size:.58rem;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.4)}
+.gen-empty{font-size:.8rem;color:rgba(255,255,255,.4);text-align:center;padding:1.5rem .5rem;border:1px dashed rgba(255,255,255,.12);border-radius:4px;line-height:1.5}
+/* Phase 3 · Mindset Engine */
+.mind-grid{display:grid;gap:.8rem}
+.mind-card{background:#0a0a0a;border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--yel);border-radius:3px;padding:1rem 1.05rem}
+.mind-card.focus{border-left-color:var(--pur)}
+.mind-card.viz{border-left-color:#8b1abf}
+.mind-icn{font-size:1.2rem;margin-bottom:.4rem}
+.mind-lbl{font-size:.58rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:.45rem}
+.mind-body{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.35rem;letter-spacing:.5px;line-height:1.2;color:#fff}
+.mind-card.focus .mind-body,.mind-card.viz .mind-body{font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:.98rem;font-weight:600;letter-spacing:0;line-height:1.55;color:rgba(255,255,255,.85)}
+.mind-cycle{margin-top:.7rem;font-size:.6rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--yel);background:none;border:none;cursor:pointer;padding:0}
+.mind-cycle:hover{text-decoration:underline}
+@media(max-width:420px){.gen-form{grid-template-columns:1fr}}
+</style>
 <script src="bbf-lang.js"></script>
 <script src="bbf-plan-i18n.js"></script>
 <script src="env.js"></script>
@@ -7506,6 +7573,65 @@ window.onload=function(){
       </div>
     </div>
   </div>
+    <!-- ═══ AI STUDIO — Science Hub · Workout Generator · Mindset Engine ═══ -->
+    <div class="tp" id="tp-studio" role="tabpanel" aria-label="AI Studio">
+      <div class="studio-head">
+        <div class="studio-kicker">Sovereign Intelligence</div>
+        <div class="studio-title" data-lang-key="app-studio-title">AI Studio</div>
+        <div class="studio-sub" data-lang-key="app-studio-sub">Evidence engine · dynamic programming · mental performance</div>
+      </div>
+
+      <!-- PHASE 1 · SCIENCE HUB -->
+      <section class="studio-mod" id="sci-hub" aria-labelledby="sci-hub-h">
+        <div class="studio-modhead"><h3 id="sci-hub-h">Science Hub</h3><span class="sx">Peer-Reviewed</span></div>
+        <div class="sci-bar">
+          <div class="sci-stamp" id="sci-stamp">Loading clinical feed…</div>
+          <label class="sci-refresh" id="sci-refresh-wrap">Admin Refresh
+            <button type="button" class="sci-btn" id="sci-refresh-btn">Pull Now</button>
+          </label>
+        </div>
+        <div class="sci-feed" id="sci-feed"></div>
+        <div class="sci-note">Weekly clinical synthesis. Auto-refreshes every 7 days to conserve compute; established baseline literature is shown when the live feed is unavailable.</div>
+      </section>
+
+      <!-- PHASE 2 · WORKOUT GENERATOR -->
+      <section class="studio-mod" id="gen-hub" aria-labelledby="gen-hub-h">
+        <div class="studio-modhead"><h3 id="gen-hub-h">Workout Generator</h3><span class="sx">Parameter-Driven</span></div>
+        <div class="gen-form">
+          <div class="gen-field"><label>Goal</label><select id="gen-goal">
+            <option value="hypertrophy">Hypertrophy</option><option value="strength">Strength</option>
+            <option value="power">Power</option><option value="fatloss">Fat Loss / Conditioning</option>
+            <option value="general">General Fitness</option></select></div>
+          <div class="gen-field"><label>Focus Group</label><select id="gen-focus">
+            <option value="full">Full Body</option><option value="upper">Upper Body</option>
+            <option value="lower">Lower Body</option><option value="push">Push</option>
+            <option value="pull">Pull</option><option value="legs-glutes">Glutes &amp; Legs</option>
+            <option value="arms">Arms &amp; Shoulders</option><option value="core">Core &amp; Stability</option></select></div>
+          <div class="gen-field"><label>Experience</label><select id="gen-level">
+            <option value="1">Beginner</option><option value="2" selected>Intermediate</option><option value="3">Advanced</option></select></div>
+          <div class="gen-field"><label>Gym Location</label><select id="gen-loc">
+            <option value="commercial">Commercial Gym</option><option value="planet">Planet Fitness</option>
+            <option value="home-min">Home (Minimal)</option><option value="home-bar">Home Gym (Barbell)</option>
+            <option value="travel">Hotel / Travel</option></select></div>
+          <div class="gen-field"><label>Days / Week</label><select id="gen-days">
+            <option value="2">2 Days</option><option value="3">3 Days</option><option value="4" selected>4 Days</option>
+            <option value="5">5 Days</option><option value="6">6 Days</option></select></div>
+          <div class="gen-field"><label>Duration</label><select id="gen-dur">
+            <option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>60 min</option>
+            <option value="75">75 min</option><option value="90">90 min</option></select></div>
+        </div>
+        <button type="button" class="gen-cta" id="gen-run">Generate Program</button>
+        <div class="gen-guard">Contraindicated movements are auto-excluded from every program: <b>barbell back squat</b> · <b>abdominal crunches</b>. Every exercise ships with a form-demo video.</div>
+        <div class="gen-out" id="gen-out"><div class="gen-empty">Set your parameters and generate a day-by-day program. Tap any exercise tile for a form demonstration.</div></div>
+      </section>
+
+      <!-- PHASE 3 · MINDSET ENGINE -->
+      <section class="studio-mod" id="mind-hub" aria-labelledby="mind-hub-h">
+        <div class="studio-modhead"><h3 id="mind-hub-h">Mindset Engine</h3><span class="sx">Mental Performance</span></div>
+        <div class="mind-grid" id="mind-grid"></div>
+      </section>
+    </div>
+
   <!-- NAV -->
   <div class="bn">
     <button class="nv on" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-lang-key="app-nav-home">Home</span></button>
@@ -7514,6 +7640,7 @@ window.onload=function(){
     <button class="nv" data-tab="cardio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span data-lang-key="app-nav-cardio">Smart Cardio</span></button>
     <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span data-lang-key="app-nav-prehab">Prehab</span></button>
     <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-lang-key="app-nav-profile">Profile</span></button>
+    <button class="nv" data-tab="studio" aria-label="AI Studio"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span data-lang-key="app-nav-studio">Studio</span></button>
     <button class="nv pf-admin-nav" data-tab="recalibrate" id="pf-admin-nav-btn" hidden aria-label="Sports Admin Console"><svg viewBox="0 0 24 24"><path d="M6 9V6a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3"/><path d="M5 9h14"/><path d="M8 9v3a4 4 0 0 0 8 0V9"/><path d="M10 17v4"/><path d="M14 17v4"/><path d="M9 21h6"/></svg><span>Sports Admin</span></button>
     <button class="nv pf-admin-nav" data-tab="panopticon" id="panopticon-nav-btn" hidden aria-label="Sovereign Panopticon · Command Center"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span>Command</span></button>
   </div>
@@ -8520,6 +8647,7 @@ function TAB(name) {
   if (name === 'nutrition') RN();
   if (name === 'cardio') { if (typeof BBF_CARDIO !== 'undefined') BBF_CARDIO.render(); }
   if (name === 'prehab') renderPrehab();
+  if (name === 'studio') { if (typeof BBF_STUDIO !== 'undefined') BBF_STUDIO.render(); }
   if (name === 'profile') {
     PTAB('overview');
     // Phase 8+9 — bind the Mastery Protocol controls on every Profile open
@@ -25954,5 +26082,418 @@ window.onload = function() {
 <!-- Sovereign Readiness IIFE removed — backend Progression Gatekeeper still
      reads bbf_readiness scores via getReadinessZone()/computeTargetWeight()
      to clamp working weights. No DOM surface. No pixel. -->
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   BBF AI STUDIO GRAFT — pure Vanilla JS / IIFE modules (no framework, no VDOM)
+   Phase 1 Science Hub · Phase 2 Workout Generator · Phase 3 Mindset Engine
+   Mounted in #tp-studio; TAB('studio') calls BBF_STUDIO.render().
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+  // ─── shared backend helpers — mirror the existing edge-function callers ───
+  function _supaUrl(){
+    try { if (typeof window!=='undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/,''); } catch(_){}
+    return 'https://ihclbceghxpuawymlvgi.supabase.co';
+  }
+  function _anon(){
+    try { if (typeof window!=='undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY); } catch(_){}
+    return '';
+  }
+  function _adminTok(){
+    try { if (typeof window!=='undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN); } catch(_){}
+    try { if (typeof sessionStorage!=='undefined'){ var c=sessionStorage.getItem('BBF_COACH_AGENT_TOKEN'); if(c) return c; } } catch(_){}
+    return '';
+  }
+  function _isAdmin(){
+    try { if (typeof BBF_STRIKE_LOCKOUT!=='undefined' && BBF_STRIKE_LOCKOUT.isAdmin) return !!BBF_STRIKE_LOCKOUT.isAdmin(); } catch(_){}
+    return !!_adminTok();
+  }
+  function _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function _$(id){ return document.getElementById(id); }
+
+  /* ═══════════════ PHASE 1 · SCIENCE HUB ═══════════════
+     Real-time analysis of exercise-science literature with a TRIGGER GATE:
+     fetches fresh data at most weekly (localStorage timestamp) or on an
+     Admin "Pull Now" override — preventing token bleed. Falls back to an
+     established clinical baseline so the feed is never empty or broken. */
+  window.BBF_SCIENCE_HUB = (function(){
+    var ENDPOINT = '/functions/v1/bbf-science-digest';
+    var LS_DATA = 'bbf_sci_cache_v1', LS_TIME = 'bbf_sci_fetched_v1';
+    var WEEK_MS = 7*24*60*60*1000;
+    var _busy = false;
+
+    // Established, well-documented findings. The live admin-controlled feed is
+    // authoritative and replaces this on a successful weekly pull.
+    var SEED = [
+      { tag:'Hypertrophy · Volume', finding:'Muscle growth follows a dose-response to weekly hard-set volume; roughly 10+ challenging sets per muscle per week drive more hypertrophy than lower volumes.', cite:'Schoenfeld, Ogborn & Krieger, 2017 — Journal of Sports Sciences (meta-analysis)' },
+      { tag:'Protein · Intake', finding:'Resistance-training gains in lean mass are maximized near ~1.6 g of protein per kg of bodyweight per day; intake beyond this yields little additional benefit for most lifters.', cite:'Morton et al., 2018 — British Journal of Sports Medicine (meta-analysis)' },
+      { tag:'Training Frequency', finding:'When weekly volume is equated, training a muscle group at least twice per week tends to produce greater hypertrophy than training it once per week.', cite:'Schoenfeld, Ogborn & Krieger, 2016 — Sports Medicine (meta-analysis)' },
+      { tag:'Effort · Proximity to Failure', finding:'Hypertrophy is driven by high effort. Sets taken close to failure maximize the growth stimulus; the final few hard reps carry the bulk of the adaptive signal.', cite:'Schoenfeld & Grgic, 2019 — Strength & Conditioning Journal (review)' },
+      { tag:'Range of Motion', finding:'Training through a full range of motion — emphasizing the lengthened (stretched) position of the muscle — generally produces superior hypertrophy compared with partial-range work.', cite:'Schoenfeld & Grgic, 2020 — exercise-science review' },
+      { tag:'Progressive Overload', finding:'Adaptation requires progressively increasing mechanical tension over time via load, reps, or total volume. Without progression, gains plateau.', cite:'ACSM Position Stand — Progression Models in Resistance Training, Med Sci Sports Exerc' }
+    ];
+
+    function _fmtDate(ms){
+      var d = ms ? new Date(ms) : new Date();
+      return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    }
+    function _stamp(when, live){
+      var el=_$('sci-stamp'); if(!el) return;
+      el.innerHTML = (live ? 'Live feed · updated <b>' : 'Clinical baseline · <b>') + _fmtDate(when) + '</b>';
+    }
+    function _renderFeed(items, when, live){
+      var feed=_$('sci-feed'); if(!feed) return;
+      if(!items || !items.length){ feed.innerHTML='<div class="gen-empty">No clinical entries available.</div>'; return; }
+      var h='';
+      for(var i=0;i<items.length;i++){
+        var it=items[i]||{};
+        h += '<div class="sci-study"><span class="sci-tag">'+_esc(it.tag||'Evidence')+'</span>'+
+             '<div class="sci-finding">'+_esc(it.finding||'')+'</div>'+
+             (it.cite ? '<div class="sci-cite">'+_esc(it.cite)+'</div>' : '')+'</div>';
+      }
+      feed.innerHTML=h;
+      _stamp(when, live);
+    }
+    function _seed(){ _renderFeed(SEED, Date.now(), false); }
+    function _cacheRead(){
+      try { var raw=localStorage.getItem(LS_DATA), t=parseInt(localStorage.getItem(LS_TIME),10);
+        if(raw && t){ return { items:JSON.parse(raw), at:t }; } } catch(_){}
+      return null;
+    }
+    function _cacheWrite(items){
+      try { localStorage.setItem(LS_DATA, JSON.stringify(items)); localStorage.setItem(LS_TIME, String(Date.now())); } catch(_){}
+    }
+    function _fetch(force){
+      if(_busy) return; _busy=true;
+      var btn=_$('sci-refresh-btn'); if(btn){ btn.disabled=true; btn.textContent='Pulling…'; }
+      var headers={ 'Content-Type':'application/json' };
+      var anon=_anon(); if(anon){ headers['Authorization']='Bearer '+anon; headers['apikey']=anon; }
+      var tok=_adminTok(); if(tok) headers['X-BBF-Admin-Token']=tok;
+      function _fallback(){
+        var c=_cacheRead();
+        if(c && c.items && c.items.length){ _renderFeed(c.items, c.at, true); } else { _seed(); }
+      }
+      window.fetch(_supaUrl()+ENDPOINT, {
+        method:'POST', headers:headers,
+        body: JSON.stringify({ scope:'exercise-science', max_items:8, force:!!force })
+      }).then(function(res){
+        return res.text().then(function(t){
+          var p=null; try{ p=JSON.parse(t); }catch(_){}
+          if(!res.ok || !p || !Array.isArray(p.items) || !p.items.length){
+            console.warn('[BBF_SCIENCE] feed unavailable (HTTP '+(res&&res.status)+') — baseline retained'); _fallback(); return;
+          }
+          _cacheWrite(p.items); _renderFeed(p.items, Date.now(), true);
+        });
+      }).catch(function(err){
+        console.warn('[BBF_SCIENCE] fetch failed:', err && err.message || err); _fallback();
+      }).then(function(){
+        _busy=false; var b=_$('sci-refresh-btn'); if(b){ b.disabled=false; b.textContent='Pull Now'; }
+      });
+    }
+    function render(){
+      var wrap=_$('sci-refresh-wrap'); if(wrap){ if(_isAdmin()) wrap.classList.add('on'); else wrap.classList.remove('on'); }
+      var c=_cacheRead();
+      if(c && c.items && c.items.length){
+        _renderFeed(c.items, c.at, true);
+        if((Date.now()-c.at) > WEEK_MS) _fetch(false);     // weekly gate → background refresh
+      } else {
+        _seed();                                            // instant baseline, never empty
+        _fetch(false);                                      // first live pull attempt
+      }
+    }
+    function init(){
+      var btn=_$('sci-refresh-btn');
+      if(btn && !btn.dataset.bound){ btn.dataset.bound='1'; btn.addEventListener('click', function(){ _fetch(true); }); }
+    }
+    return { render:render, init:init, _seed:SEED };
+  })();
+
+  /* ═══════════════ PHASE 2 · WORKOUT GENERATOR ═══════════════
+     Parameter-driven, day-by-day program builder. Every generated exercise
+     ships a form-demo video link (Titanium Rule). The barbell back squat and
+     abdominal crunches are forbidden by construction AND by a final guard. */
+  window.BBF_PROGRAM_GENERATOR = (function(){
+    // ─── BLACKLIST (LOCKED) — never program these movements, under any circumstance ───
+    var BLACKLIST = ['back squat','barbell back squat','crunch','abdominal crunch','crunches'];
+    function _norm(s){ return String(s||'').toLowerCase().replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim(); }
+    function isBlacklisted(name){
+      var n=_norm(name);
+      for(var i=0;i<BLACKLIST.length;i++){ if(n.indexOf(BLACKLIST[i])!==-1) return true; }
+      return false;
+    }
+    // ─── EXERCISE LIBRARY · g=group p=pattern eq=equipment lvl=min experience(1-3) ───
+    var LIB = [
+      {n:'Machine Chest Press',g:'chest',p:'push',eq:['machine'],lvl:1},
+      {n:'Flat Dumbbell Press',g:'chest',p:'push',eq:['dumbbell'],lvl:1},
+      {n:'Incline Dumbbell Press',g:'chest',p:'push',eq:['dumbbell'],lvl:2},
+      {n:'Cable Chest Fly',g:'chest',p:'push',eq:['cable'],lvl:2},
+      {n:'Pec Deck Machine',g:'chest',p:'push',eq:['machine'],lvl:1},
+      {n:'Push-Up',g:'chest',p:'push',eq:['bodyweight'],lvl:1},
+      {n:'Incline Barbell Bench Press',g:'chest',p:'push',eq:['barbell'],lvl:2},
+      {n:'Barbell Bench Press',g:'chest',p:'push',eq:['barbell'],lvl:2},
+      {n:'Lat Pulldown',g:'back',p:'pull',eq:['machine','cable'],lvl:1},
+      {n:'Seated Cable Row',g:'back',p:'pull',eq:['cable'],lvl:1},
+      {n:'Chest-Supported Row',g:'back',p:'pull',eq:['machine','dumbbell'],lvl:2},
+      {n:'One-Arm Dumbbell Row',g:'back',p:'pull',eq:['dumbbell'],lvl:1},
+      {n:'Pull-Up',g:'back',p:'pull',eq:['bodyweight'],lvl:2},
+      {n:'Inverted Row',g:'back',p:'pull',eq:['bodyweight'],lvl:1},
+      {n:'Barbell Bent-Over Row',g:'back',p:'pull',eq:['barbell'],lvl:2},
+      {n:'Straight-Arm Pulldown',g:'back',p:'pull',eq:['cable'],lvl:2},
+      {n:'Dumbbell Shoulder Press',g:'shoulders',p:'push',eq:['dumbbell'],lvl:1},
+      {n:'Machine Shoulder Press',g:'shoulders',p:'push',eq:['machine'],lvl:1},
+      {n:'Dumbbell Lateral Raise',g:'shoulders',p:'push',eq:['dumbbell'],lvl:1},
+      {n:'Cable Lateral Raise',g:'shoulders',p:'push',eq:['cable'],lvl:2},
+      {n:'Reverse Pec Deck',g:'shoulders',p:'pull',eq:['machine'],lvl:1},
+      {n:'Cable Face Pull',g:'shoulders',p:'pull',eq:['cable'],lvl:1},
+      {n:'Band Pull-Apart',g:'shoulders',p:'pull',eq:['bands'],lvl:1},
+      {n:'Dumbbell Biceps Curl',g:'biceps',p:'pull',eq:['dumbbell'],lvl:1},
+      {n:'Cable Biceps Curl',g:'biceps',p:'pull',eq:['cable'],lvl:1},
+      {n:'Incline Dumbbell Curl',g:'biceps',p:'pull',eq:['dumbbell'],lvl:2},
+      {n:'Hammer Curl',g:'biceps',p:'pull',eq:['dumbbell'],lvl:1},
+      {n:'Resistance Band Curl',g:'biceps',p:'pull',eq:['bands'],lvl:1},
+      {n:'Cable Triceps Pushdown',g:'triceps',p:'push',eq:['cable'],lvl:1},
+      {n:'Overhead Cable Triceps Extension',g:'triceps',p:'push',eq:['cable'],lvl:2},
+      {n:'Dumbbell Skull Crusher',g:'triceps',p:'push',eq:['dumbbell'],lvl:2},
+      {n:'Triceps Dip',g:'triceps',p:'push',eq:['bodyweight'],lvl:2},
+      {n:'Bench Dip',g:'triceps',p:'push',eq:['bodyweight'],lvl:1},
+      {n:'Leg Press',g:'quads',p:'squat',eq:['machine'],lvl:1},
+      {n:'Hack Squat Machine',g:'quads',p:'squat',eq:['machine'],lvl:2},
+      {n:'Goblet Squat',g:'quads',p:'squat',eq:['dumbbell','kettlebell'],lvl:1},
+      {n:'Bulgarian Split Squat',g:'quads',p:'lunge',eq:['dumbbell','bodyweight'],lvl:2},
+      {n:'Walking Lunge',g:'quads',p:'lunge',eq:['dumbbell','bodyweight'],lvl:1},
+      {n:'Leg Extension',g:'quads',p:'isolation',eq:['machine'],lvl:1},
+      {n:'Front Squat',g:'quads',p:'squat',eq:['barbell'],lvl:3},
+      {n:'Dumbbell Step-Up',g:'quads',p:'lunge',eq:['dumbbell','bodyweight'],lvl:1},
+      {n:'Dumbbell Romanian Deadlift',g:'hamstrings',p:'hinge',eq:['dumbbell'],lvl:2},
+      {n:'Barbell Romanian Deadlift',g:'hamstrings',p:'hinge',eq:['barbell'],lvl:2},
+      {n:'Seated Leg Curl',g:'hamstrings',p:'hinge',eq:['machine'],lvl:1},
+      {n:'Lying Leg Curl',g:'hamstrings',p:'hinge',eq:['machine'],lvl:1},
+      {n:'Barbell Hip Thrust',g:'glutes',p:'hinge',eq:['barbell'],lvl:2},
+      {n:'Dumbbell Hip Thrust',g:'glutes',p:'hinge',eq:['dumbbell'],lvl:1},
+      {n:'Glute Bridge',g:'glutes',p:'hinge',eq:['bodyweight'],lvl:1},
+      {n:'Cable Pull-Through',g:'glutes',p:'hinge',eq:['cable'],lvl:1},
+      {n:'Back Extension',g:'hamstrings',p:'hinge',eq:['bodyweight'],lvl:1},
+      {n:'Single-Leg Dumbbell RDL',g:'hamstrings',p:'hinge',eq:['dumbbell'],lvl:2},
+      {n:'Standing Calf Raise',g:'calves',p:'isolation',eq:['machine','bodyweight'],lvl:1},
+      {n:'Seated Calf Raise',g:'calves',p:'isolation',eq:['machine'],lvl:1},
+      {n:'Front Plank',g:'core',p:'core',eq:['bodyweight'],lvl:1},
+      {n:'Side Plank',g:'core',p:'core',eq:['bodyweight'],lvl:1},
+      {n:'Hanging Leg Raise',g:'core',p:'core',eq:['bodyweight'],lvl:2},
+      {n:'Cable Woodchop',g:'core',p:'core',eq:['cable'],lvl:2},
+      {n:'Pallof Press',g:'core',p:'core',eq:['cable','bands'],lvl:2},
+      {n:'Dead Bug',g:'core',p:'core',eq:['bodyweight'],lvl:1},
+      {n:'Ab Wheel Rollout',g:'core',p:'core',eq:['bodyweight'],lvl:3},
+      {n:'Hollow Body Hold',g:'core',p:'core',eq:['bodyweight'],lvl:2},
+      {n:'Kettlebell Swing',g:'glutes',p:'power',eq:['kettlebell'],lvl:2},
+      {n:'Dumbbell Thruster',g:'fullbody',p:'power',eq:['dumbbell'],lvl:2},
+      {n:'Box Jump',g:'quads',p:'power',eq:['bodyweight'],lvl:2},
+      {n:'Rowing Machine Intervals',g:'fullbody',p:'conditioning',eq:['machine'],lvl:1},
+      {n:'Battle Ropes',g:'fullbody',p:'conditioning',eq:['machine','bands'],lvl:1}
+    ];
+    var LOC_EQ = {
+      commercial:['machine','dumbbell','barbell','cable','bodyweight','bands','kettlebell','smith'],
+      planet:['machine','dumbbell','cable','bodyweight','smith'],
+      'home-min':['dumbbell','bodyweight','bands'],
+      'home-bar':['barbell','dumbbell','bodyweight','bands','kettlebell'],
+      travel:['bodyweight','bands','dumbbell']
+    };
+    var FOCUS_GROUPS = {
+      full:['chest','back','quads','hamstrings','glutes','shoulders','core'],
+      upper:['chest','back','shoulders','biceps','triceps'],
+      lower:['quads','hamstrings','glutes','calves'],
+      push:['chest','shoulders','triceps'],
+      pull:['back','biceps','shoulders'],
+      'legs-glutes':['quads','hamstrings','glutes','calves'],
+      arms:['biceps','triceps','shoulders'],
+      core:['core']
+    };
+    function _splitFor(days, focusGroups, focusKey){
+      if(focusKey && focusKey!=='full'){
+        var lbl = ({upper:'Upper',lower:'Lower',push:'Push',pull:'Pull','legs-glutes':'Legs & Glutes',arms:'Arms & Delts',core:'Core'})[focusKey] || 'Session';
+        var out=[]; for(var i=0;i<days;i++){ out.push([lbl+' '+String.fromCharCode(65+i), focusGroups.slice()]); }
+        return out;
+      }
+      var tpl = {
+        2:[['Full Body A',['chest','back','quads','shoulders','core']],['Full Body B',['hamstrings','glutes','back','shoulders','core']]],
+        3:[['Full Body A',['chest','back','quads','core']],['Full Body B',['shoulders','hamstrings','glutes','core']],['Full Body C',['back','quads','biceps','triceps']]],
+        4:[['Upper',['chest','back','shoulders','triceps','biceps']],['Lower',['quads','hamstrings','glutes','calves']],['Upper',['back','chest','shoulders','biceps','triceps']],['Lower',['glutes','hamstrings','quads','core']]],
+        5:[['Push',['chest','shoulders','triceps']],['Pull',['back','biceps','shoulders']],['Legs',['quads','hamstrings','glutes','calves']],['Upper',['chest','back','shoulders']],['Lower',['glutes','hamstrings','quads','core']]],
+        6:[['Push',['chest','shoulders','triceps']],['Pull',['back','biceps','shoulders']],['Legs',['quads','hamstrings','glutes']],['Push',['shoulders','chest','triceps']],['Pull',['back','biceps','shoulders']],['Legs',['glutes','hamstrings','quads','calves']]]
+      };
+      return tpl[days] || tpl[4];
+    }
+    function _prescribe(goal){
+      switch(goal){
+        case 'strength': return {sets:'4-5',reps:'3-6',rest:'2-3 min'};
+        case 'power':    return {sets:'4-5',reps:'2-5',rest:'2-3 min'};
+        case 'fatloss':  return {sets:'3',reps:'12-20',rest:'30-45s'};
+        case 'general':  return {sets:'3',reps:'8-12',rest:'60-90s'};
+        default:         return {sets:'3-4',reps:'8-12',rest:'60-90s'};
+      }
+    }
+    function _countFor(dur){ var d=parseInt(dur,10)||60; return d<=30?4:d<=45?5:d<=60?6:d<=75?7:8; }
+    function _rng(seed){ var s=(seed||1)%2147483647; if(s<=0)s+=2147483646; return function(){ s=s*16807%2147483647; return (s-1)/2147483646; }; }
+    function _shuffle(arr, rnd){ var a=arr.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(rnd()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+    function _videoURL(name){ return 'https://www.youtube.com/results?search_query='+encodeURIComponent(name+' proper form technique'); }
+    function _eligible(locEq, level){
+      var out=[];
+      for(var i=0;i<LIB.length;i++){
+        var x=LIB[i];
+        if(isBlacklisted(x.n)) continue;
+        if(x.lvl>level) continue;
+        var ok=false; for(var j=0;j<x.eq.length;j++){ if(locEq.indexOf(x.eq[j])!==-1){ ok=true; break; } }
+        if(ok) out.push(x);
+      }
+      return out;
+    }
+    function generate(params){
+      params=params||{};
+      var goal=params.goal||'hypertrophy', level=parseInt(params.level,10)||2, days=parseInt(params.days,10)||4;
+      var locEq=LOC_EQ[params.loc]||LOC_EQ.commercial;
+      var focusKey=params.focus||'full', focusGroups=FOCUS_GROUPS[focusKey]||FOCUS_GROUPS.full;
+      var perDay=_countFor(params.dur), rx=_prescribe(goal), pool=_eligible(locEq, level);
+      var split=_splitFor(days, focusGroups, focusKey);
+      var seed=(params.regen||0)*7919 + days*131 + level*17 + (String(goal).charCodeAt(0)||65) + (String(focusKey).charCodeAt(0)||70);
+      var rnd=_rng(seed), program=[];
+      for(var d=0; d<split.length; d++){
+        var label=split[d][0], groups=split[d][1];
+        var cand=[]; for(var i=0;i<pool.length;i++){ if(groups.indexOf(pool[i].g)!==-1) cand.push(pool[i]); }
+        cand=_shuffle(cand, rnd);
+        var picks=[], names={};
+        for(var g=0; g<groups.length && picks.length<perDay; g++){
+          for(var k=0;k<cand.length;k++){ if(cand[k].g===groups[g] && !names[cand[k].n]){ picks.push(cand[k]); names[cand[k].n]=1; break; } }
+        }
+        for(var k2=0;k2<cand.length && picks.length<perDay;k2++){ if(!names[cand[k2].n]){ picks.push(cand[k2]); names[cand[k2].n]=1; } }
+        picks=picks.filter(function(x){ if(isBlacklisted(x.n)){ console.warn('[BBF_GEN] blacklist guard removed:', x.n); return false; } return true; });
+        program.push({ label:label, exercises:picks, rx:rx });
+      }
+      return { days:days, goal:goal, focus:focusKey, level:level, program:program };
+    }
+    function _render(result){
+      var out=_$('gen-out'); if(!out) return;
+      if(!result || !result.program || !result.program.length){ out.innerHTML='<div class="gen-empty">No exercises matched those parameters. Try a different location or focus.</div>'; return; }
+      var h='';
+      for(var d=0; d<result.program.length; d++){
+        var day=result.program[d];
+        h+='<div class="gen-day"><div class="gen-dayhead"><span class="d">Day '+(d+1)+'</span><span class="f">'+_esc(day.label)+'</span></div>';
+        if(!day.exercises.length){ h+='<div class="gen-ex"><div class="gen-exmain"><div class="gen-exname">Rest / Active Recovery</div></div></div>'; }
+        for(var e=0;e<day.exercises.length;e++){
+          var ex=day.exercises[e], url=_videoURL(ex.n);
+          h+='<div class="gen-ex">'+
+               '<a class="gen-vid" href="'+url+'" target="_blank" rel="noopener" aria-label="Form demo: '+_esc(ex.n)+'"></a>'+
+               '<div class="gen-exmain"><div class="gen-exname"><a href="'+url+'" target="_blank" rel="noopener">'+_esc(ex.n)+'</a></div>'+
+                 '<div class="gen-exmeta"><span class="mg">'+_esc(ex.g.toUpperCase())+'</span> · '+_esc(ex.p)+'</div></div>'+
+               '<div class="gen-prescribe"><div class="sr">'+_esc(day.rx.sets)+'×'+_esc(day.rx.reps)+'</div><div class="rest">rest '+_esc(day.rx.rest)+'</div></div>'+
+             '</div>';
+        }
+        h+='</div>';
+      }
+      out.innerHTML=h;
+    }
+    var _regen=0;
+    function run(){
+      var params={
+        goal:(_$('gen-goal')||{}).value || 'hypertrophy',
+        focus:(_$('gen-focus')||{}).value || 'full',
+        level:(_$('gen-level')||{}).value || '2',
+        loc:(_$('gen-loc')||{}).value || 'commercial',
+        days:(_$('gen-days')||{}).value || '4',
+        dur:(_$('gen-dur')||{}).value || '60',
+        regen:_regen++
+      };
+      _render(generate(params));
+    }
+    function init(){ var btn=_$('gen-run'); if(btn && !btn.dataset.bound){ btn.dataset.bound='1'; btn.addEventListener('click', run); } }
+    function render(){ /* static form — nothing to repaint on tab-enter */ }
+    return { init:init, render:render, generate:generate, isBlacklisted:isBlacklisted, _lib:LIB };
+  })();
+
+  /* ═══════════════ PHASE 3 · MINDSET ENGINE ═══════════════
+     Daily Affirmations · Focus Strategies · Visualization Drills.
+     DOM receives a dynamic text payload via setPayload(); ships a deterministic
+     daily-rotating seed so it is never empty offline. */
+  window.BBF_MINDSET_ENGINE = (function(){
+    var SEED = {
+      affirmation:[
+        'I am the architect of my own strength.',
+        'Discipline is the bridge between my goals and my results.',
+        'I do not negotiate with the part of me that wants to quit.',
+        'Every rep is a vote for the person I am becoming.',
+        'I train for the body I am earning, not the one I was given.',
+        'Pressure is the price of a standard I refuse to lower.'
+      ],
+      focus:[
+        'Box-breathe before your top set — inhale 4, hold 4, exhale 4, hold 4. Three rounds locks the nervous system in.',
+        'Pick one cue per lift and ignore the rest. Today: drive through mid-foot.',
+        'Phone in the bag between sets. Rest is training, not scroll time.',
+        'Name your intention for this session in one sentence before you touch a weight.',
+        'Train the set in front of you. The next one does not exist yet.'
+      ],
+      visualization:[
+        'Before your heaviest set, run the full rep in your mind three times in real time — setup, brace, drive, lockout.',
+        'See the bar moving fast even when it is heavy. The brain rehearses what the body executes.',
+        'Picture the last, hardest rep first. If you can see it clean, you can own it.',
+        'Walk through the entire session start to finish with your eyes closed before you begin.'
+      ]
+    };
+    var _payload=null;
+    var _idx={ affirmation:-1, focus:-1, visualization:-1 };
+    var CARDS=[
+      { key:'affirmation', cls:'affirm', icn:'🔥', lbl:'Daily Affirmation' },
+      { key:'focus', cls:'focus', icn:'🎯', lbl:'Focus Strategy' },
+      { key:'visualization', cls:'viz', icn:'🧠', lbl:'Visualization Drill' }
+    ];
+    function _src(){ return _payload || SEED; }
+    function _dayIndex(len){ if(!len) return 0; return Math.floor(Date.now()/86400000) % len; }
+    function _pick(key){ var arr=_src()[key]||[]; if(!arr.length) return ''; return arr[((_idx[key]%arr.length)+arr.length)%arr.length]; }
+    function render(){
+      var grid=_$('mind-grid'); if(!grid) return;
+      for(var i=0;i<CARDS.length;i++){ var k=CARDS[i].key; if(_idx[k]<0) _idx[k]=_dayIndex((_src()[k]||[]).length); }
+      var h='';
+      for(var c=0;c<CARDS.length;c++){
+        var card=CARDS[c];
+        h+='<div class="mind-card '+card.cls+'">'+
+             '<div class="mind-icn">'+card.icn+'</div>'+
+             '<div class="mind-lbl">'+card.lbl+'</div>'+
+             '<div class="mind-body" id="mind-body-'+card.key+'">'+_esc(_pick(card.key))+'</div>'+
+             '<button type="button" class="mind-cycle" data-mind="'+card.key+'">Next ›</button>'+
+           '</div>';
+      }
+      grid.innerHTML=h;
+    }
+    function _cycle(key){ if(_idx[key]==null) return; _idx[key]=_idx[key]+1; var el=_$('mind-body-'+key); if(el) el.textContent=_pick(key); }
+    function setPayload(p){ if(p && typeof p==='object'){ _payload=p; _idx={affirmation:-1,focus:-1,visualization:-1}; render(); } }
+    function init(){
+      var grid=_$('mind-grid');
+      if(grid && !grid.dataset.bound){
+        grid.dataset.bound='1';
+        grid.addEventListener('click', function(ev){
+          var t=ev.target;
+          while(t && t!==grid){ if(t.classList && t.classList.contains('mind-cycle')){ _cycle(t.getAttribute('data-mind')); return; } t=t.parentNode; }
+        });
+      }
+    }
+    return { init:init, render:render, setPayload:setPayload };
+  })();
+
+  /* ═══════════════ STUDIO COORDINATOR ═══════════════ */
+  window.BBF_STUDIO = (function(){
+    function render(){
+      try { window.BBF_SCIENCE_HUB.render(); } catch(e){ console.warn('[BBF_STUDIO] science', e); }
+      try { window.BBF_PROGRAM_GENERATOR.render(); } catch(e){ console.warn('[BBF_STUDIO] generator', e); }
+      try { window.BBF_MINDSET_ENGINE.render(); } catch(e){ console.warn('[BBF_STUDIO] mindset', e); }
+    }
+    function init(){
+      try { window.BBF_SCIENCE_HUB.init(); } catch(_){}
+      try { window.BBF_PROGRAM_GENERATOR.init(); } catch(_){}
+      try { window.BBF_MINDSET_ENGINE.init(); } catch(_){}
+    }
+    return { render:render, init:init };
+  })();
+
+  // Boot: wire controls once; paint the Mindset cards immediately so the tab is never blank.
+  function _boot(){ try { window.BBF_STUDIO.init(); window.BBF_MINDSET_ENGINE.render(); } catch(_){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', _boot); else _boot();
+})();
+</script>
 </body>
 </html>
