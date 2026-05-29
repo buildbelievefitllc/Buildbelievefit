@@ -756,6 +756,53 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .bbf-primary-btn:active{transform:translateY(0)}
 .bbf-primary-btn:disabled,.bbf-primary-btn[data-state="analyzing"]{opacity:.7;cursor:wait;transform:none}
 .bbf-primary-btn[data-state="analyzing"]{background:linear-gradient(180deg,rgba(212,175,55,.55),rgba(168,124,0,.55));animation:bbfPulse 1.4s ease-in-out infinite}
+/* ═ Smart Macro Wheel · Daily Fuel dashboard (Phase 11 rebuild) ═══════ */
+.bbf-fuel-wrap{margin:.2rem 0 1.1rem}
+.bbf-fuel-card{background:linear-gradient(180deg,rgba(20,15,30,.9),rgba(10,10,15,.8));border:1px solid rgba(212,175,55,.18);border-radius:16px;padding:1.1rem 1rem 1.2rem;margin-bottom:.9rem}
+.bbf-fuel-title{text-align:center;font-family:var(--hb,'Bebas Neue',sans-serif);font-size:.95rem;letter-spacing:4px;color:var(--yel);text-transform:uppercase;margin-bottom:1rem}
+.bbf-wheel{position:relative;width:200px;height:200px;margin:0 auto;border-radius:50%}
+.bbf-wheel-ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(#241a32 0 100%);transition:background .5s ease}
+.bbf-wheel-hole{position:absolute;inset:24px;border-radius:50%;background:#0b0710;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 18px rgba(0,0,0,.6)}
+.bbf-wheel-kcal{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:2.7rem;line-height:1;color:#fff}
+.bbf-wheel-sub{font-size:.62rem;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-top:.3rem}
+.bbf-legend{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-top:1.1rem}
+.bbf-legend-box{border-top:2px solid;border-radius:0 0 8px 8px;background:#111016;padding:.5rem .3rem;text-align:center}
+.bbf-legend-lbl{font-size:.55rem;letter-spacing:1.5px;color:#999;font-weight:800}
+.bbf-legend-val{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:1.05rem;color:#fff;margin-top:.15rem}
+.bbf-legend-tgt{font-size:.55rem;color:#666;margin-top:.05rem}
+.bbf-status-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+.bbf-status-h{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:.85rem;letter-spacing:3px;color:var(--yel)}
+.bbf-status-pct{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:1.15rem;color:var(--yel)}
+.bbf-status-pct span{font-size:.6rem;color:#888;letter-spacing:2px;margin-left:.25rem}
+.bbf-status-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.bbf-status-cell{background:#0d0b12;border:1px solid #221c30;border-radius:10px;padding:.6rem .7rem}
+.bbf-status-cell .lbl{font-size:.58rem;letter-spacing:2px;font-weight:800;margin-bottom:.4rem}
+.bbf-status-row{display:flex;justify-content:space-between;align-items:baseline;font-size:.62rem;letter-spacing:1.5px;color:#888;margin-top:.2rem}
+.bbf-status-row b{color:#fff;font-family:var(--hb,'Anton','Bebas Neue',sans-serif);font-size:1rem;letter-spacing:.5px}
+.bbf-mealprog-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.45rem}
+.bbf-mealprog-x{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);color:var(--yel);font-size:1.25rem}
+.bbf-mealprog-x small{color:#888;font-size:.6rem;letter-spacing:2px;margin-left:.35rem;font-family:var(--bd,sans-serif)}
+.bbf-mealprog-pct{font-family:var(--hb,'Anton','Bebas Neue',sans-serif);color:var(--yel);font-size:1.15rem}
+.bbf-mealprog-track{height:10px;border-radius:6px;background:#1a1424;overflow:hidden}
+.bbf-mealprog-fill{height:100%;width:0;background:linear-gradient(90deg,#6a0dad,#f5c800);border-radius:6px;transition:width .45s ease}
+.bbf-meal{background:linear-gradient(180deg,rgba(18,14,26,.92),rgba(10,8,14,.92));border:1px solid #221c30;border-left:3px solid var(--yel);border-radius:0 14px 14px 0;margin-bottom:1rem;overflow:hidden}
+.bbf-meal.snack{border-left-color:var(--purl)}
+.bbf-meal.done{border-left-color:#00ff88}
+.bbf-meal-photo{position:relative;width:100%;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;font-size:2.8rem;background:radial-gradient(120% 90% at 18% 8%,rgba(106,13,173,.42),transparent 55%),radial-gradient(120% 90% at 92% 92%,rgba(245,200,0,.18),transparent 55%),linear-gradient(160deg,#161020,#0a0710)}
+.bbf-meal-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.bbf-meal-photo .ph-cap{position:absolute;bottom:.5rem;left:.65rem;font-size:.58rem;letter-spacing:2px;color:rgba(255,255,255,.55);text-transform:uppercase}
+.bbf-meal-body{padding:1rem}
+.bbf-meal-slot{font-size:.66rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--yel)}
+.bbf-meal.snack .bbf-meal-slot{color:var(--purl)}
+.bbf-meal.done .bbf-meal-slot{color:#00ff88}
+.bbf-meal-ing{font-size:.9rem;color:#e3e3e3;line-height:1.55;margin:.35rem 0 .65rem}
+.bbf-meal-macros{display:inline-block;font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:1.5px;font-size:.82rem;color:#f5c800;background:rgba(245,200,0,.08);border:1px solid rgba(245,200,0,.25);border-radius:8px;padding:.32rem .6rem;margin-bottom:.75rem}
+.meal-complete-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:.8rem 1rem;background:linear-gradient(180deg,var(--yel),#d4a800);color:#0e0e0e;border:none;border-radius:12px;cursor:pointer;font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:3px;text-transform:uppercase;transition:transform .15s,box-shadow .25s,opacity .2s;box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.meal-complete-btn .mc-main{font-size:1rem;display:flex;align-items:center;gap:.5rem}
+.meal-complete-btn .mc-sub{font-size:.56rem;letter-spacing:2px;opacity:.82;margin-top:.18rem}
+.meal-complete-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(212,175,55,.28)}
+.meal-complete-btn:active{transform:translateY(0)}
+.bbf-meal.done .meal-complete-btn{background:linear-gradient(180deg,#10c46a,#0a8f4e);color:#04210f}
 @keyframes bbfPulse{0%,100%{opacity:.65}50%{opacity:.95}}
 /* LOG */
 .lf2{display:flex;flex-direction:column;gap:.9rem}
@@ -20186,6 +20233,208 @@ async function CWO(day, dk) {
 // WAR ROOM Feature 1 · Shaker-bottle daily-fuel progress.
 // Per-uid + per-ISO-date localStorage so meal checks auto-reset at midnight.
 // Event delegation on #ncon so the listener survives day-swap re-renders.
+// ═══════════════════════════════════════════════════════════════════════
+// BBF_MACRO_WHEEL · Phase 11 rebuild — Smart Macro Wheel + Daily Fuel Status
+// ───────────────────────────────────────────────────────────────────────
+// Replaces the legacy shaker-bottle bar. Parses macros from each assigned
+// meal string (instant/offline), and on "Mark Meal Complete" accumulates
+// them into a conic-gradient wheel + status cards + meal-progress bar.
+// Completion set persists per uid+date in localStorage (shares the same
+// store the old tracker used so existing check state carries over).
+// Macro TARGETS derive from the client's kcal target using a 35P/40C/25F
+// energy split (matches the prior production gram targets exactly:
+// 1520→133/152/42 · 1652→145/165/46).
+// ═══════════════════════════════════════════════════════════════════════
+var BBF_MACRO_WHEEL = (function() {
+  var KCAL_P = 4, KCAL_C = 4, KCAL_F = 9;
+  var SPLIT_P = 0.35, SPLIT_C = 0.40, SPLIT_F = 0.25;
+
+  function _activeUid() {
+    return (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+  }
+  function _todayISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  // Shares the tracker's storage key so prior completion state is honored.
+  function _storeKey(uid) { return 'bbf_nutrition_progress_' + uid; }
+  function _loadSet(uid) {
+    if (!uid) return {};
+    try {
+      var raw = localStorage.getItem(_storeKey(uid));
+      if (!raw) return {};
+      var p = JSON.parse(raw);
+      if (!p || p.date !== _todayISO()) return {};
+      var out = {}; (Array.isArray(p.checked) ? p.checked : []).forEach(function(id){ out[id] = true; });
+      return out;
+    } catch (_) { return {}; }
+  }
+  function _saveSet(uid, setObj) {
+    if (!uid) return;
+    try {
+      localStorage.setItem(_storeKey(uid), JSON.stringify({ date: _todayISO(), checked: Object.keys(setObj) }));
+    } catch (_) {}
+  }
+
+  // ── Macro parser ── tolerant of the real bbf-data.js formats:
+  //   "... (~525 cal/45g P)"   "610 KCAL · 36P / 35C / 40F"  "~320 cal/32g P"
+  function parseMeal(str) {
+    var s = String(str || '');
+    var out = { kcal: 0, p: 0, c: 0, f: 0 };
+    var kc = s.match(/(\d{2,4})\s*(?:kcal|cal)/i);   if (kc) out.kcal = parseInt(kc[1], 10);
+    // explicit "36P / 35C / 40F" or "45g P" style
+    var pm = s.match(/(\d{1,3})\s*g?\s*P\b/i);        if (pm) out.p = parseInt(pm[1], 10);
+    var cm = s.match(/(\d{1,3})\s*g?\s*C\b/i);        if (cm) out.c = parseInt(cm[1], 10);
+    var fm = s.match(/(\d{1,3})\s*g?\s*F\b/i);        if (fm) out.f = parseInt(fm[1], 10);
+    // If carbs/fats absent but kcal+protein present, estimate the remainder
+    // with the standard split so the wheel still balances.
+    if (out.kcal && !out.c && !out.f) {
+      var pCal = out.p * KCAL_P;
+      var rem  = Math.max(0, out.kcal - pCal);
+      out.c = Math.round((rem * 0.62) / KCAL_C);   // ~62% of remaining kcal to carbs
+      out.f = Math.round((rem * 0.38) / KCAL_F);   // ~38% to fats
+    }
+    return out;
+  }
+
+  // Target grams from the client's kcal target string (e.g. "~1,520 cal/day").
+  function targets(uid) {
+    var t = { kcal: 0, p: 0, c: 0, f: 0 };
+    try {
+      var d = (typeof GD === 'function') ? GD() : null;
+      var u = (d && d.u && d.u[uid]) || {};
+      var plan = (typeof MP !== 'undefined' && MP[uid]) || {};
+      var src = String(u.tdee_target || plan.cal || '');
+      var km = src.match(/([\d,]{3,5})/);
+      t.kcal = km ? parseInt(km[1].replace(/,/g,''), 10) : 0;
+    } catch (_) {}
+    if (t.kcal) {
+      t.p = Math.round((t.kcal * SPLIT_P) / KCAL_P);
+      t.c = Math.round((t.kcal * SPLIT_C) / KCAL_C);
+      t.f = Math.round((t.kcal * SPLIT_F) / KCAL_F);
+    }
+    return t;
+  }
+
+  function photoHtml(meal) {
+    // bbf-meal-image edge fn is not yet serving per-meal URLs into bbf-data.js;
+    // use a themed emoji-on-gradient placeholder until a photo field exists.
+    if (meal && meal.photo) return '<img src="' + escapeHTML(meal.photo) + '" alt="' + escapeHTML(meal.m) + '" loading="lazy">';
+    var slot = String(meal && meal.m || '').toLowerCase();
+    var icon = slot.indexOf('break') > -1 ? '🍳'
+             : slot.indexOf('lunch') > -1 ? '🍗'
+             : slot.indexOf('dinner') > -1 ? '🥩'
+             : slot.indexOf('snack') > -1 ? '🥜' : '🍽️';
+    return '<span aria-hidden="true">' + icon + '</span>';
+  }
+
+  function shellHtml(uid) {
+    var t = targets(uid);
+    return '<div class="bbf-fuel-wrap">' +
+        '<div class="bbf-fuel-card">' +
+          '<div class="bbf-fuel-title">Daily Fuel</div>' +
+          '<div class="bbf-wheel"><div class="bbf-wheel-ring" id="bbf-wheel-ring"></div>' +
+            '<div class="bbf-wheel-hole"><div class="bbf-wheel-kcal" id="bbf-wheel-kcal">0</div>' +
+              '<div class="bbf-wheel-sub" id="bbf-wheel-sub">/ ' + (t.kcal || 0) + ' kcal</div></div></div>' +
+          '<div class="bbf-legend">' +
+            _lg('PRO','#6a0dad','bbf-lg-p', t.p) + _lg('CARB','#22c55e','bbf-lg-c', t.c) +
+            _lg('FAT','#f5c800','bbf-lg-f', t.f) + _lg('KCAL','#ef7d00','bbf-lg-k', t.kcal) +
+          '</div>' +
+        '</div>' +
+        '<div class="bbf-fuel-card">' +
+          '<div class="bbf-status-head"><div class="bbf-status-h">Daily Fuel Status</div>' +
+            '<div class="bbf-status-pct" id="bbf-status-pct">0<span>% of target</span></div></div>' +
+          '<div class="bbf-status-grid">' +
+            _cell('Calories','#ef7d00','k', t.kcal) + _cell('Protein','#6a0dad','p', t.p) +
+            _cell('Carbs','#22c55e','c', t.c) + _cell('Fats','#f5c800','f', t.f) +
+          '</div>' +
+        '</div>' +
+        '<div class="bbf-fuel-card">' +
+          '<div class="bbf-mealprog-top"><div class="bbf-mealprog-x"><span id="bbf-mp-done">0</span>' +
+            '<small>of <span id="bbf-mp-total">0</span> meals logged</small></div>' +
+            '<div class="bbf-mealprog-pct" id="bbf-mp-pct">0%</div></div>' +
+          '<div class="bbf-mealprog-track"><div class="bbf-mealprog-fill" id="bbf-mp-fill"></div></div>' +
+        '</div>' +
+      '</div>';
+  }
+  function _lg(lbl,color,id,tgt){
+    return '<div class="bbf-legend-box" style="border-top-color:' + color + '">' +
+      '<div class="bbf-legend-lbl" style="color:' + color + '">' + lbl + '</div>' +
+      '<div class="bbf-legend-val" id="' + id + '">0' + (lbl==='KCAL'?'':'g') + '</div>' +
+      '<div class="bbf-legend-tgt">/ ' + (tgt||0) + (lbl==='KCAL'?'':'g') + '</div></div>';
+  }
+  function _cell(lbl,color,k,tgt){
+    return '<div class="bbf-status-cell">' +
+      '<div class="lbl" style="color:' + color + '">' + lbl.toUpperCase() + '</div>' +
+      '<div class="bbf-status-row">Logged <b id="bbf-cell-' + k + '-log">0</b></div>' +
+      '<div class="bbf-status-row">Remaining <b id="bbf-cell-' + k + '-rem">' + (tgt||0) + '</b></div></div>';
+  }
+
+  // Sum macros across all currently-completed meal cards in the DOM.
+  function _sumLogged() {
+    var sum = { kcal:0, p:0, c:0, f:0, done:0, total:0 };
+    document.querySelectorAll('#ndaycon .bbf-meal').forEach(function(card){
+      sum.total++;
+      if (card.classList.contains('done')) {
+        sum.done++;
+        sum.kcal += parseInt(card.getAttribute('data-kcal'),10) || 0;
+        sum.p    += parseInt(card.getAttribute('data-p'),10) || 0;
+        sum.c    += parseInt(card.getAttribute('data-c'),10) || 0;
+        sum.f    += parseInt(card.getAttribute('data-f'),10) || 0;
+      }
+    });
+    return sum;
+  }
+
+  function repaint(uid) {
+    uid = uid || _activeUid();
+    // restore completion state onto cards
+    var set = _loadSet(uid);
+    document.querySelectorAll('#ndaycon .bbf-meal').forEach(function(card){
+      var id = card.getAttribute('data-meal-id');
+      var done = !!set[id];
+      card.classList.toggle('done', done);
+      var txt = card.querySelector('.mc-txt');
+      if (txt) txt.textContent = done ? 'Completed' : 'Mark Meal Complete';
+    });
+    var s = _sumLogged();
+    var t = targets(uid);
+    // wheel ring — proportion of kcal target consumed (gold sweep)
+    var pctK = (t.kcal > 0) ? Math.min(100, Math.round((s.kcal / t.kcal) * 100)) : 0;
+    var ring = document.getElementById('bbf-wheel-ring');
+    if (ring) ring.style.background = 'conic-gradient(#f5c800 0 ' + pctK + '%, #6a0dad ' + pctK + '% ' + Math.min(100,pctK+0.5) + '%, #241a32 ' + pctK + '% 100%)';
+    _set('bbf-wheel-kcal', s.kcal);
+    _set('bbf-wheel-sub', '/ ' + (t.kcal||0) + ' kcal');
+    _set('bbf-lg-p', s.p + 'g'); _set('bbf-lg-c', s.c + 'g'); _set('bbf-lg-f', s.f + 'g'); _set('bbf-lg-k', s.kcal);
+    _set('bbf-status-pct', pctK, '<span>% of target</span>');
+    _cellset('k', s.kcal, Math.max(0,(t.kcal||0)-s.kcal));
+    _cellset('p', s.p, Math.max(0,(t.p||0)-s.p));
+    _cellset('c', s.c, Math.max(0,(t.c||0)-s.c));
+    _cellset('f', s.f, Math.max(0,(t.f||0)-s.f));
+    var mp = (s.total>0) ? Math.round((s.done/s.total)*100) : 0;
+    _set('bbf-mp-done', s.done); _set('bbf-mp-total', s.total); _set('bbf-mp-pct', mp + '%');
+    var fill = document.getElementById('bbf-mp-fill'); if (fill) fill.style.width = mp + '%';
+  }
+  function _set(id, val, htmlSuffix) {
+    var el = document.getElementById(id); if (!el) return;
+    if (htmlSuffix) el.innerHTML = val + htmlSuffix; else el.textContent = val;
+  }
+  function _cellset(k, log, rem) { _set('bbf-cell-'+k+'-log', log); _set('bbf-cell-'+k+'-rem', rem); }
+
+  function toggle(mealId) {
+    var uid = _activeUid(); if (!uid) return;
+    var card = document.getElementById('meal-' + mealId); if (!card) return;
+    var set = _loadSet(uid);
+    if (set[mealId]) { delete set[mealId]; card.classList.remove('done'); }
+    else { set[mealId] = true; card.classList.add('done'); }
+    _saveSet(uid, set);
+    repaint(uid);
+  }
+
+  return { parseMeal: parseMeal, targets: targets, photoHtml: photoHtml,
+           shellHtml: shellHtml, repaint: repaint, toggle: toggle };
+})();
+
 var BBF_NUTRITION_TRACKER = (function() {
   function todayISO() {
     var d = new Date();
@@ -21556,12 +21805,9 @@ function RN() {
   var todayIdx = new Date().getDay();
   todayIdx = todayIdx === 0 ? 6 : todayIdx - 1;
   if (todayIdx >= plan.days.length) todayIdx = 0;
-  // Shaker-bottle daily fuel progress — sits above the day-nav so it's the
-  // first thing the client sees when they open the Nutrition tab.
-  var h = '<div class="shaker-container" data-state="partial">' +
-            '<div class="shaker-outline"><div class="shaker-fill" id="shakerFill"></div></div>' +
-            '<p id="shakerText">0% Daily Fuel</p>' +
-          '</div>';
+  // Smart Macro Wheel + Daily Fuel Status (Phase 11 rebuild) — sits above
+  // the day-nav. Macros accumulate live as meals are marked complete.
+  var h = BBF_MACRO_WHEEL.shellHtml(uid);
   // Feature 2 · Scan Meal — fires an in-app WebRTC camera stream (rear-
   // facing on mobile), client takes a still, POSTs base64 to
   // /api/vision-coach, and "Lance" speaks his review via Web Speech API.
@@ -21582,6 +21828,7 @@ function RN() {
   con.innerHTML = h;
   BBF_NUTRITION_TRACKER.init();
   BBF_NUTRITION_TRACKER.restore();
+  BBF_MACRO_WHEEL.repaint(uid);   // Phase 11 · paint wheel + status from logged set
   BBF_VISION_COACH.init();
   // Phase 10 — admin-only "🔄 AI Auto-Rotate Protocol" button. No-op for
   // clients and for Akeem on his own Nutrition tab; only renders when
@@ -21608,11 +21855,26 @@ function RNDAY(plan, idx) {
   var day = plan.days[idx];
   return day.meals.map(function(m) {
     var isSnack = m.m.toLowerCase().indexOf('snack') > -1 || m.m.toLowerCase().indexOf('merienda') > -1;
-    var mealId = 'd' + idx + '-' + BBF_NUTRITION_TRACKER.slugMeal(m.m);
-    return '<div class="nutr-card' + (isSnack ? ' nutr-snack' : '') + '">' +
-      '<input type="checkbox" class="meal-check" data-meal-id="' + mealId + '" aria-label="Mark ' + m.m + ' as eaten">' +
-      '<div class="nutr-ml">' + m.m + '</div>' +
-      '<div class="nutr-mi">' + m.i + '</div></div>';
+    var mealId  = 'd' + idx + '-' + BBF_NUTRITION_TRACKER.slugMeal(m.m);
+    var macros  = BBF_MACRO_WHEEL.parseMeal(m.i);   // {kcal,p,c,f} parsed from the meal string
+    var macroLine = macros.kcal
+      ? macros.kcal + ' KCAL · ' + macros.p + 'P / ' + macros.c + 'C / ' + macros.f + 'F'
+      : 'Tap to log · macros estimated';
+    return '<div class="bbf-meal' + (isSnack ? ' snack' : '') + '" id="meal-' + mealId + '" data-meal-id="' + mealId + '"' +
+             ' data-kcal="' + macros.kcal + '" data-p="' + macros.p + '" data-c="' + macros.c + '" data-f="' + macros.f + '">' +
+        '<div class="bbf-meal-photo">' + BBF_MACRO_WHEEL.photoHtml(m) +
+          '<span class="ph-cap">' + escapeHTML(m.m) + '</span></div>' +
+        '<div class="bbf-meal-body">' +
+          '<div class="bbf-meal-slot">' + escapeHTML(m.m) + '</div>' +
+          '<div class="bbf-meal-ing">' + escapeHTML(m.i) + '</div>' +
+          '<div class="bbf-meal-macros">' + macroLine + '</div>' +
+          '<button type="button" class="meal-complete-btn" data-meal-id="' + mealId + '" ' +
+            'onclick="BBF_MACRO_WHEEL.toggle(\'' + mealId + '\')">' +
+            '<span class="mc-main"><span class="mc-ck">&#x2713;</span> <span class="mc-txt">Mark Meal Complete</span></span>' +
+            '<span class="mc-sub">Adds to today\'s Macro Wheel</span>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
   }).join('');
 }
 
