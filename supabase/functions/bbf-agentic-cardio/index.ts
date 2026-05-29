@@ -1,33 +1,18 @@
-// bbf-agentic-cardio — Smart Cardio Engine (Phase 10)
+// bbf-agentic-cardio — Smart Cardio Engine (Phase 10 · Phase 11 Gap #3)
 // ─────────────────────────────────────────────────────────────────────
-// Proactive cardio protocol generator. The athlete inputs how many
-// minutes they have. The edge function uses DETERMINISTIC LOGIC to pick
-// the modality tier (HIIT vs Tempo vs LISS) — the strategy is not left
-// to Claude. Claude then generates a specific minute-by-minute protocol
-// + a "Sovereign Toast" explaining the physiological ROI.
+// Proactive cardio protocol generator. Deterministic tier router (by
+// minutes) picks HIIT/Tempo/LISS; Claude (opus-4-8) writes the protocol.
+//
+// Phase 11 · cardiac_intercept resolves to opus-4-8 via the router.
+// Phase 11 Gap #3 · same-day strength antagonism: before the model call
+// we fetch the athlete's strength volume already logged TODAY and inject
+// it so Opus can down-regulate intensity/modality WITHIN the mandated
+// tier (never changing the tier). The fetch degrades gracefully to 0.
 //
 // Deterministic router (CEO spec):
 //   available_minutes < 20  → HIIT  (Max EPOC)
 //   available_minutes <= 35 → Tempo (Caloric Burn)
 //   available_minutes > 35  → LISS / Zone 2 (Fat Oxidation & CNS Sparing)
-//
-// Request shape:
-//   POST /functions/v1/bbf-agentic-cardio
-//   Content-Type: application/json
-//   X-BBF-Admin-Token: <optional shared secret>
-//   Body:
-//   {
-//     "uid": "akeem",
-//     "available_minutes": 18,
-//     "admin_override": false
-//   }
-//
-// Response shape (200 OK):
-//   {
-//     "modality":  string,   // gym machine + tier label e.g. "Assault Bike — HIIT"
-//     "protocol":  string,   // minute-by-minute breakdown, multiline allowed
-//     "roi_toast": string    // one-sentence physiological ROI summary
-//   }
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -44,19 +29,16 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-// Phase 7 Workstream B · Cardio routing is PAR-Q+ adjacent (cardiac
-// inference is forbidden to AI; the engine pre-filters via PAR-Q+
-// classification then asks Claude to ONLY narrate the routing).
-// Opus 4.7 stays per CEO routing rules · cardiac safety is one of
-// the three categories that earn peak reasoning.
 import { routeAndLog } from '../_shared/model-router.ts';
 
-const MODEL              = routeAndLog('bbf-agentic-cardio', 'cardiac_intercept');
-const MAX_TOKENS         = 1024;
-const EFFORT_DEFAULT     = 'high';
-const CLAUDE_TIMEOUT_MS  = 20000;
-const MIN_MINUTES        = 5;
-const MAX_MINUTES        = 120;
+const MODEL                    = routeAndLog('bbf-agentic-cardio', 'cardiac_intercept');
+const MAX_TOKENS               = 1024;
+const EFFORT_DEFAULT           = 'high';
+const CLAUDE_TIMEOUT_MS        = 20000;
+const SAME_DAY_LOAD_TIMEOUT_MS = 3000;
+const MIN_MINUTES              = 5;
+const MAX_MINUTES              = 120;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const SYSTEM_PROMPT = [
   'You are the BBF Smart Cardio Engine — an elite endurance coach generating a precise, minute-by-minute cardio protocol that fits PERFECTLY into the athlete\'s available time window. The strategy tier (HIIT / Tempo / LISS) has already been deterministically chosen by the platform; you do NOT override it. Your job is to pick the best gym modality and write the protocol.',
@@ -82,6 +64,13 @@ const SYSTEM_PROMPT = [
   '- Include a warm-up phase (1-3 min) and a cool-down phase (1-3 min) where the strategy allows it. For sub-12-minute sessions, compress warm-up to 1 min.',
   '- Use real gym equipment. Don\'t invent novel machines.',
   '- Direct voice. Imperative. No hedging.',
+  '',
+  '# SAME-DAY STRENGTH ANTAGONISM',
+  'You also receive same_day_strength_load — the athlete\'s strength work already logged TODAY (volume_lbs = sum of weight x reps, working_sets, peak_rpe 0-10). Use it to DOWN-REGULATE WITHIN the mandated tier — never to change the tier (the tier is fixed by the platform):',
+  '- High load (e.g. high volume_lbs AND peak_rpe >= 8): pick the lowest-CNS-cost modality in the tier, gentler work:rest ratios, a longer warm-up/cool-down, and conservative intensity cues. The goal is to avoid stacking CNS/systemic fatigue on top of today\'s lifting.',
+  '- data_available false, or load near 0: program the tier normally.',
+  '- When load is high, reflect the antagonism in roi_toast in one clause (e.g. "...dialed back to protect a CNS already taxed by today\'s session.").',
+  '- Do NOT change strategy_tier. You are modulating intensity and modality choice, not the tier.',
   '',
   'Return ONLY structured JSON matching the response schema. No markdown, no preamble.',
 ].join('\n');
@@ -121,7 +110,7 @@ function adminOverrideMock() {
 function defaultCardioResponse(minutes: number, reason: string) {
   const { shortLabel } = routeStrategy(minutes);
   if (shortLabel === 'HIIT') {
-    const intervals = Math.max(4, Math.floor((minutes - 4) / 1));  // 1-min cycles after warm-up/cool-down
+    const intervals = Math.max(4, Math.floor((minutes - 4) / 1));
     return {
       modality:  'Assault Bike — HIIT',
       protocol:
@@ -149,6 +138,62 @@ function defaultCardioResponse(minutes: number, reason: string) {
       (minutes - 3) + ':00–' + minutes + ':00   Cool-down · 3.0 mph flat',
     roi_toast: minutes + '-min Zone 2 (' + reason + ' fallback) maximizes mitochondrial density and fat oxidation while sparing CNS for tomorrow\'s lift.',
   };
+}
+
+// ─── Gap #3 · same-day strength antagonism (CNS-load proxy) ────────────
+// Fetches today's accumulated strength volume + peak RPE so the model can
+// down-regulate within the tier. Every failure path returns 0 load with
+// data_available:false — this MUST NOT crash the cardio hot-path.
+interface SameDayLoad { volume_lbs: number; working_sets: number; peak_rpe: number; data_available: boolean; }
+
+function isUuid(s: string): boolean { return UUID_RE.test(s); }
+
+async function resolveUuid(uid: string, url: string, key: string): Promise<string | null> {
+  if (isUuid(uid)) return uid;
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/bbf_get_uid_map`, {
+      method: 'POST',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return null;
+    for (const r of rows) if (r && r.uid === uid && r.id) return r.id;
+    return null;
+  } catch (_) { return null; }
+}
+
+async function fetchSameDayLoad(uid: string): Promise<SameDayLoad> {
+  const EMPTY: SameDayLoad = { volume_lbs: 0, working_sets: 0, peak_rpe: 0, data_available: false };
+  const url = Deno.env.get('SUPABASE_URL');
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
+  if (!url || !key) return EMPTY;
+
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), SAME_DAY_LOAD_TIMEOUT_MS);
+  try {
+    const uuid = await resolveUuid(uid, url, key);
+    if (!uuid) return EMPTY;
+    const today = new Date().toISOString().slice(0, 10); // UTC YYYY-MM-DD (day_key prefix)
+    const q = `${url}/rest/v1/bbf_sets?user_id=eq.${encodeURIComponent(uuid)}`
+            + `&day_key=like.${encodeURIComponent(today)}*&select=weight_lbs,reps,rpe`;
+    const res = await fetch(q, { headers: { apikey: key, Authorization: `Bearer ${key}` }, signal: controller.signal });
+    if (!res.ok) return EMPTY;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return { volume_lbs: 0, working_sets: 0, peak_rpe: 0, data_available: true };
+    let volume = 0, peak = 0;
+    for (const r of rows) {
+      volume += (Number(r.weight_lbs) || 0) * (Number(r.reps) || 0);
+      const rpe = Number(r.rpe) || 0; if (rpe > peak) peak = rpe;
+    }
+    return { volume_lbs: Math.round(volume), working_sets: rows.length, peak_rpe: peak, data_available: true };
+  } catch (e) {
+    console.warn(`[bbf-agentic-cardio] same-day load fetch failed (${(e as Error).message}) — defaulting to 0`);
+    return EMPTY;
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 async function callClaude(userMessage: string, apiKey: string) {
@@ -235,9 +280,6 @@ serve(async (req: Request) => {
 
   if (typeof uid !== 'string' || !uid) return jsonResponse({ error: 'missing_uid' }, 400);
 
-  // Coerce + clamp available_minutes into [MIN, MAX]. Treats strings,
-  // floats, garbage all defensively. CEO didn't spec floor/ceiling but
-  // a 0-min or 999-min request is nonsensical for cardio programming.
   let minutes = Number(available_minutes);
   if (!isFinite(minutes) || minutes <= 0) {
     return jsonResponse({ error: 'invalid_minutes' }, 400);
@@ -254,10 +296,19 @@ serve(async (req: Request) => {
     return jsonResponse(defaultCardioResponse(minutes, 'config_missing'), 200);
   }
 
+  // Gap #3 · same-day strength antagonism — fetch BEFORE the model call.
+  // Never throws; worst case is a 0-load proxy and normal tier programming.
+  const load = await fetchSameDayLoad(uid);
+
   const userMessage =
     'available_minutes: ' + minutes + '\n' +
     'strategy_tier (mandated by deterministic router — DO NOT OVERRIDE): "' + strategyTier + '"\n' +
     'tier_short_label: "' + shortLabel + '"\n\n' +
+    'same_day_strength_load (already logged TODAY):\n' +
+    '  volume_lbs: ' + load.volume_lbs + '\n' +
+    '  working_sets: ' + load.working_sets + '\n' +
+    '  peak_rpe: ' + load.peak_rpe + '\n' +
+    '  data_available: ' + load.data_available + '\n\n' +
     '1. Pick the best gym modality for this tier.\n' +
     '2. Write a precise minute-by-minute protocol that fits EXACTLY into ' + minutes + ' minutes.\n' +
     '3. Write a one-sentence Sovereign Toast explaining the physiological ROI.\n\n' +
@@ -296,7 +347,7 @@ serve(async (req: Request) => {
     return jsonResponse(defaultCardioResponse(minutes, 'schema_mismatch'), 200);
   }
 
-  console.log(`[bbf-agentic-cardio] uid=${uid} · minutes=${minutes} · tier=${shortLabel} · modality="${parsed.modality}" · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-cardio] uid=${uid} · minutes=${minutes} · tier=${shortLabel} · load=${JSON.stringify(load)} · modality="${parsed.modality}" · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
 
   return jsonResponse({
     modality:  parsed.modality,
