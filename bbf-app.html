@@ -791,6 +791,8 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .bbf-meal-photo{position:relative;width:100%;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;font-size:2.8rem;background:radial-gradient(120% 90% at 18% 8%,rgba(106,13,173,.42),transparent 55%),radial-gradient(120% 90% at 92% 92%,rgba(245,200,0,.18),transparent 55%),linear-gradient(160deg,#161020,#0a0710)}
 .bbf-meal-photo img{width:100%;height:100%;object-fit:cover;display:block}
 .bbf-meal-photo .ph-cap{position:absolute;bottom:.5rem;left:.65rem;font-size:.58rem;letter-spacing:2px;color:rgba(255,255,255,.55);text-transform:uppercase}
+.bbf-meal-photo-ph{position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(245,200,0,.05) 0 14px,rgba(106,13,173,.08) 14px 28px),radial-gradient(120% 90% at 18% 8%,rgba(106,13,173,.4),transparent 55%),linear-gradient(160deg,#161020,#0a0710)}
+.bbf-meal-photo-ph::after{content:"BBF";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.6rem;letter-spacing:6px;color:rgba(245,200,0,.22)}
 .bbf-meal-body{padding:1rem}
 .bbf-meal-slot{font-size:.66rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--yel)}
 .bbf-meal.snack .bbf-meal-slot{color:var(--purl)}
@@ -8961,6 +8963,11 @@ function SETUP_TRAINER() {
 
 function RA() {
   RT(); RH(); RP(); RW();
+  // Phase 11 mount fix — render the Nutrition tab on profile load too, so the
+  // Macro Wheel + tracker wire immediately on first client login instead of
+  // only after a tab round-trip. RN() is idempotent (init guards on a dataset
+  // flag), so this is safe even though the nutrition pane starts hidden.
+  try { if (typeof RN === 'function') RN(); } catch (e) { console.warn('[RA] nutrition warm-up failed:', e && e.message); }
   var uid = VC || CU;
   renderPersonaBadge(uid);
   var d = GD(); var u = d.u[uid] || {};
@@ -12694,17 +12701,11 @@ var BBF_PEAKING_ENGINE = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -12906,17 +12907,11 @@ var BBF_FORECAST_ENGINE = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -13128,17 +13123,11 @@ var BBF_PREHAB_MATRIX = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -14719,17 +14708,11 @@ var BBF_PROGRAM_INTEL = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -16130,17 +16113,11 @@ var BBF_ORCHESTRATOR = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -16979,17 +16956,11 @@ var BBF_KINEMATICS = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -17276,17 +17247,11 @@ var BBF_COMLINK = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -17636,17 +17601,11 @@ var BBF_POSITIONAL_INTEL = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -18799,17 +18758,11 @@ var BBF_IMMERSION = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -19091,17 +19044,11 @@ var BBF_LINGUIST = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -19299,17 +19246,11 @@ var BBF_CARDIO = (function() {
         var _dismissedAt = 0;
         try { _dismissedAt = Number(sessionStorage.getItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT')) || 0; } catch (_) {}
         if (Date.now() - _dismissedAt < 30000) return '';
-        var entered = (typeof prompt === 'function')
-          ? prompt('Enter BBF Coach Agent Token (one-time, cached for this session):')
-          : null;
-        if (entered && entered.trim()) {
-          var clean = entered.trim();
-          window.__BBF_COACH_AGENT_TOKEN_PROMPTED = true;
-          try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', clean); } catch (_) {}
-          try { sessionStorage.removeItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT'); } catch (_) {}
-          return clean;
-        }
-        try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN_DISMISSED_AT', String(Date.now())); } catch (_) {}
+        // Phase 11 auth fix — NO popups. Founder token arrives silently via
+        // the login bootstrap prefetch (founder-bootstrap-token → sessionStorage).
+        // If it's not cached yet, fail silently; agentic calls 401 server-side
+        // rather than ever showing a window.prompt() on page load.
+        return '';
       }
     } catch (_) {}
     return '';
@@ -20317,15 +20258,13 @@ var BBF_MACRO_WHEEL = (function() {
   }
 
   function photoHtml(meal) {
-    // bbf-meal-image edge fn is not yet serving per-meal URLs into bbf-data.js;
-    // use a themed emoji-on-gradient placeholder until a photo field exists.
-    if (meal && meal.photo) return '<img src="' + escapeHTML(meal.photo) + '" alt="' + escapeHTML(meal.m) + '" loading="lazy">';
-    var slot = String(meal && meal.m || '').toLowerCase();
-    var icon = slot.indexOf('break') > -1 ? '🍳'
-             : slot.indexOf('lunch') > -1 ? '🍗'
-             : slot.indexOf('dinner') > -1 ? '🥩'
-             : slot.indexOf('snack') > -1 ? '🥜' : '🍽️';
-    return '<span aria-hidden="true">' + icon + '</span>';
+    // Real image URL wins whenever data carries one. Resolution order:
+    //   meal.photo / meal.img / meal.image_url  →  <img>
+    // No URL yet → clean themed placeholder (NO emoji), img-ready the moment
+    // a backend populates a photo field per meal.
+    var url = meal && (meal.photo || meal.img || meal.image_url || meal.imageUrl);
+    if (url) return '<img src="' + escapeHTML(url) + '" alt="' + escapeHTML(meal.m || 'meal') + '" loading="lazy">';
+    return '<span class="bbf-meal-photo-ph" aria-hidden="true"></span>';
   }
 
   function shellHtml(uid) {
@@ -20371,16 +20310,37 @@ var BBF_MACRO_WHEEL = (function() {
   }
 
   // Sum macros across all currently-completed meal cards in the DOM.
+  // Sum macros across completed meal cards. TITANIUM FALLBACK (Big Jim spec):
+  // scrape the printed macro text off each card's UI ("610 KCAL · 36P / 35C / 40F")
+  // as the source of truth; fall back to data-* attrs only if the text is absent.
+  // Absence-of-catalog can never zero the wheel when the number is on screen.
+  function _scrapeCard(card) {
+    var m = { kcal:0, p:0, c:0, f:0 };
+    var el = card.querySelector('.bbf-meal-macros');
+    var txt = el ? (el.textContent || '') : '';
+    var kc = txt.match(/(\d{2,4})\s*KCAL/i);
+    var pp = txt.match(/(\d{1,3})\s*P\b/i);
+    var cc = txt.match(/(\d{1,3})\s*C\b/i);
+    var ff = txt.match(/(\d{1,3})\s*F\b/i);
+    if (kc) m.kcal = parseInt(kc[1],10);
+    if (pp) m.p = parseInt(pp[1],10);
+    if (cc) m.c = parseInt(cc[1],10);
+    if (ff) m.f = parseInt(ff[1],10);
+    // fallback to data-* attrs if the printed line had no usable numbers
+    if (!m.kcal) m.kcal = parseInt(card.getAttribute('data-kcal'),10) || 0;
+    if (!m.p)    m.p    = parseInt(card.getAttribute('data-p'),10) || 0;
+    if (!m.c)    m.c    = parseInt(card.getAttribute('data-c'),10) || 0;
+    if (!m.f)    m.f    = parseInt(card.getAttribute('data-f'),10) || 0;
+    return m;
+  }
   function _sumLogged() {
     var sum = { kcal:0, p:0, c:0, f:0, done:0, total:0 };
     document.querySelectorAll('#ndaycon .bbf-meal').forEach(function(card){
       sum.total++;
       if (card.classList.contains('done')) {
         sum.done++;
-        sum.kcal += parseInt(card.getAttribute('data-kcal'),10) || 0;
-        sum.p    += parseInt(card.getAttribute('data-p'),10) || 0;
-        sum.c    += parseInt(card.getAttribute('data-c'),10) || 0;
-        sum.f    += parseInt(card.getAttribute('data-f'),10) || 0;
+        var m = _scrapeCard(card);
+        sum.kcal += m.kcal; sum.p += m.p; sum.c += m.c; sum.f += m.f;
       }
     });
     return sum;
@@ -21857,9 +21817,9 @@ function RNDAY(plan, idx) {
     var isSnack = m.m.toLowerCase().indexOf('snack') > -1 || m.m.toLowerCase().indexOf('merienda') > -1;
     var mealId  = 'd' + idx + '-' + BBF_NUTRITION_TRACKER.slugMeal(m.m);
     var macros  = BBF_MACRO_WHEEL.parseMeal(m.i);   // {kcal,p,c,f} parsed from the meal string
-    var macroLine = macros.kcal
-      ? macros.kcal + ' KCAL · ' + macros.p + 'P / ' + macros.c + 'C / ' + macros.f + 'F'
-      : 'Tap to log · macros estimated';
+    // Always print a full numeric KCAL · P/C/F line so the DOM scraper can read
+    // it. parseMeal estimates carbs/fats from kcal+protein when absent.
+    var macroLine = macros.kcal + ' KCAL · ' + macros.p + 'P / ' + macros.c + 'C / ' + macros.f + 'F';
     return '<div class="bbf-meal' + (isSnack ? ' snack' : '') + '" id="meal-' + mealId + '" data-meal-id="' + mealId + '"' +
              ' data-kcal="' + macros.kcal + '" data-p="' + macros.p + '" data-c="' + macros.c + '" data-f="' + macros.f + '">' +
         '<div class="bbf-meal-photo">' + BBF_MACRO_WHEEL.photoHtml(m) +
