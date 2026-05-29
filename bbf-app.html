@@ -15470,7 +15470,7 @@ var BBF_NUTRITION_INTEL = (function() {
   function fetchDailyTotals(uid, days) {
     days = days || 7;
     return _resolveUidUuid(uid || _activeUid()).then(function(uuid) {
-      if (!uuid) return [];
+      if (!uuid) return null;   // Phase 11: null = unavailable (cannot resolve), distinct from [] = no rows
       var anonKey = _anonKey();
       var sinceDate = new Date(Date.now() - days * 86400000).toISOString().slice(0,10);
       var qs = 'user_id=eq.' + encodeURIComponent(uuid) +
@@ -15483,9 +15483,9 @@ var BBF_NUTRITION_INTEL = (function() {
         headers['Authorization'] = 'Bearer ' + anonKey;
       }
       return fetch(_supabaseUrl() + '/rest/v1/bbf_meal_logs?' + qs, { headers: headers })
-        .then(function(r) { if (!r.ok) return []; return r.json(); })
+        .then(function(r) { if (!r.ok) return null; return r.json(); })   // Phase 11: fetch failure → null, not []
         .then(function(rows) {
-          if (!Array.isArray(rows)) return [];
+          if (!Array.isArray(rows)) return null;
           var buckets = {};
           rows.forEach(function(row) {
             var d = row.log_date;
@@ -15643,6 +15643,11 @@ var BBF_NUTRITION_INTEL = (function() {
     });
     var personalFloor = bmr ? Math.round(bmr * (1 - WELLBEING_BMR_DEFICIT_PCT)) : WELLBEING_FLOOR_KCAL;
     return fetchDailyTotals(uid, 7).then(function(daily) {
+      // Phase 11: if data is unavailable (fetch failed / uid unresolved), do NOT
+      // evaluate — an outage must never be read as zero-calorie days → false halt.
+      if (daily === null) {
+        return { concern: false, reason: 'data_unavailable' };
+      }
       var underFloor = 0;
       var zeroLogDays = 0;
       var todayMs = Date.now();
@@ -15658,9 +15663,13 @@ var BBF_NUTRITION_INTEL = (function() {
           windowResults.push({ date: d, kcal: match.kcal, logged: true });
         }
       }
-      var sharpDropOff     = zeroLogDays  >= LOGGING_DROPOFF_DAYS;
+      // Phase 11: never infer starvation from ABSENCE of data. Require positive
+      // proof of prior logging history before a sharp-drop-off halt can fire —
+      // a never-logged (or empty-fetch) user must not auto-trip the wellbeing halt.
+      var hasAnyData       = (daily || []).some(function(b) { return b.entries > 0; });
+      var sharpDropOff     = hasAnyData && (zeroLogDays >= LOGGING_DROPOFF_DAYS);
       var sustainedDeficit = underFloor   >= sustainedThreshold;
-      var concern          = sharpDropOff || sustainedDeficit;
+      var concern          = hasAnyData && (sharpDropOff || sustainedDeficit);
       return {
         concern:                    concern,
         reason:                     sharpDropOff ? 'logging_dropoff' : sustainedDeficit ? 'sustained_deficit' : 'normal',
@@ -15914,6 +15923,29 @@ var BBF_NUTRITION_INTEL = (function() {
 })();
 
 try { if (typeof BBF_NUTRITION_INTEL !== 'undefined') BBF_NUTRITION_INTEL.ensureListener(); } catch (_) {}
+
+// Phase 11 one-time sweep — clear false-positive wellbeing halts caused by the
+// null-vs-zero trap (reason 'logging_dropoff'), where absence of meal data was
+// misread as a sharp drop-off. Runs once per browser. NEVER clears a
+// 'sustained_deficit' halt (those reflect real logged intake under floor).
+(function bbfSweepFalseHalts() {
+  try {
+    if (localStorage.getItem('bbf_halt_sweep_v1_done')) return;
+    var toClear = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf('bbf_wellbeing_halt_') === 0) {
+        try {
+          var v = JSON.parse(localStorage.getItem(k) || '{}');
+          if (v && v.active && v.reason === 'logging_dropoff') toClear.push(k);
+        } catch (_) { toClear.push(k); }   // corrupt entry → clear
+      }
+    }
+    toClear.forEach(function(k) { try { localStorage.removeItem(k); } catch (_) {} });
+    localStorage.setItem('bbf_halt_sweep_v1_done', '1');
+    if (toClear.length) console.log('[BBF Sweep] cleared ' + toClear.length + ' false-positive wellbeing halt(s)');
+  } catch (_) {}
+})();
 
 // ════════════════════════════════════════════════════════════════════════
 // BBF_ORCHESTRATOR · Operation Pantheon · Phase 6 Connective Layer
