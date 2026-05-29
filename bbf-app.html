@@ -20260,11 +20260,67 @@ var BBF_MACRO_WHEEL = (function() {
   function photoHtml(meal) {
     // Real image URL wins whenever data carries one. Resolution order:
     //   meal.photo / meal.img / meal.image_url  →  <img>
-    // No URL yet → clean themed placeholder (NO emoji), img-ready the moment
-    // a backend populates a photo field per meal.
+    // Otherwise a clean themed placeholder; hydratePhotos() fills it async
+    // from the bbf-meal-image edge fn (Gemini Imagen 4 · cached per meal).
     var url = meal && (meal.photo || meal.img || meal.image_url || meal.imageUrl);
     if (url) return '<img src="' + escapeHTML(url) + '" alt="' + escapeHTML(meal.m || 'meal') + '" loading="lazy">';
     return '<span class="bbf-meal-photo-ph" aria-hidden="true"></span>';
+  }
+
+  // ── Gemini meal-photo hydration ──────────────────────────────────────
+  // bbf-meal-image (Imagen 4) returns a cached Supabase Storage URL per meal
+  // (generate-once, then free forever). We POST the meal's ingredient text as
+  // both name + ingredients so cache keys match and new dishes render accurately.
+  var _imgMem = {};   // in-session url cache, keyed by normalized meal text
+  function _normName(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9\s]+/g,' ').replace(/\s+/g,' ').trim();
+  }
+  function _imgEndpoint() {
+    var base = (typeof window !== 'undefined' && window.ENV_SUPABASE_URL)
+      ? String(window.ENV_SUPABASE_URL).replace(/\/$/,'')
+      : 'https://ihclbceghxpuawymlvgi.supabase.co';
+    return base + '/functions/v1/bbf-meal-image';
+  }
+  function _anon() {
+    return (typeof window !== 'undefined' && window.ENV_SUPABASE_KEY) ? String(window.ENV_SUPABASE_KEY) : '';
+  }
+  function hydratePhotos() {
+    var cards = document.querySelectorAll('#ndaycon .bbf-meal');
+    if (!cards.length) return;
+    var anon = _anon();
+    cards.forEach(function(card) {
+      var photoBox = card.querySelector('.bbf-meal-photo');
+      if (!photoBox || photoBox.querySelector('img')) return;     // already has a real image
+      if (photoBox.getAttribute('data-img-tried') === '1') return; // don't refetch this paint
+      photoBox.setAttribute('data-img-tried', '1');
+      var rawName = card.getAttribute('data-meal-name') || '';
+      if (!rawName) return;
+      // Clean the name for Imagen: drop the trailing macro annotation
+      // "(~320 cal/32g P)" so the prompt is food-only (better plate + tighter
+      // cache key). Imagen sees the dish; the wheel still uses the full string.
+      var nameText = rawName.replace(/\s*\(~?[^)]*\b(?:cal|kcal|g\s*P)[^)]*\)\s*$/i, '').trim() || rawName;
+      var key = _normName(nameText);
+      if (_imgMem[key]) { _applyPhoto(photoBox, _imgMem[key], nameText); return; }
+      var headers = { 'Content-Type': 'application/json' };
+      if (anon) { headers['apikey'] = anon; headers['Authorization'] = 'Bearer ' + anon; }
+      fetch(_imgEndpoint(), {
+        method: 'POST', headers: headers,
+        body: JSON.stringify({ name: nameText, ingredients: nameText })
+      }).then(function(r){ return r.json().catch(function(){ return null; }); })
+        .then(function(j){
+          if (j && j.ok && j.image_url) { _imgMem[key] = j.image_url; _applyPhoto(photoBox, j.image_url, nameText); }
+          // no url → leave the themed placeholder in place (never an error state)
+        }).catch(function(){ /* offline / 5xx → keep placeholder silently */ });
+    });
+  }
+  function _applyPhoto(box, url, alt) {
+    if (!box || box.querySelector('img')) return;
+    var ph = box.querySelector('.bbf-meal-photo-ph');
+    var img = document.createElement('img');
+    img.src = url; img.alt = alt || 'meal'; img.loading = 'lazy';
+    img.style.opacity = '0'; img.style.transition = 'opacity .4s ease';
+    img.onload = function(){ img.style.opacity = '1'; if (ph) ph.remove(); };
+    box.insertBefore(img, box.firstChild);
   }
 
   function shellHtml(uid) {
@@ -20392,7 +20448,8 @@ var BBF_MACRO_WHEEL = (function() {
   }
 
   return { parseMeal: parseMeal, targets: targets, photoHtml: photoHtml,
-           shellHtml: shellHtml, repaint: repaint, toggle: toggle };
+           shellHtml: shellHtml, repaint: repaint, toggle: toggle,
+           hydratePhotos: hydratePhotos };
 })();
 
 var BBF_NUTRITION_TRACKER = (function() {
@@ -21789,6 +21846,7 @@ function RN() {
   BBF_NUTRITION_TRACKER.init();
   BBF_NUTRITION_TRACKER.restore();
   BBF_MACRO_WHEEL.repaint(uid);   // Phase 11 · paint wheel + status from logged set
+  try { BBF_MACRO_WHEEL.hydratePhotos(); } catch(_) {}   // async Gemini meal photos
   BBF_VISION_COACH.init();
   // Phase 10 — admin-only "🔄 AI Auto-Rotate Protocol" button. No-op for
   // clients and for Akeem on his own Nutrition tab; only renders when
@@ -21821,6 +21879,7 @@ function RNDAY(plan, idx) {
     // it. parseMeal estimates carbs/fats from kcal+protein when absent.
     var macroLine = macros.kcal + ' KCAL · ' + macros.p + 'P / ' + macros.c + 'C / ' + macros.f + 'F';
     return '<div class="bbf-meal' + (isSnack ? ' snack' : '') + '" id="meal-' + mealId + '" data-meal-id="' + mealId + '"' +
+             ' data-meal-name="' + escapeHTML(m.i || m.m) + '"' +
              ' data-kcal="' + macros.kcal + '" data-p="' + macros.p + '" data-c="' + macros.c + '" data-f="' + macros.f + '">' +
         '<div class="bbf-meal-photo">' + BBF_MACRO_WHEEL.photoHtml(m) +
           '<span class="ph-cap">' + escapeHTML(m.m) + '</span></div>' +
@@ -21846,6 +21905,8 @@ function SNDAY(i) {
   var dc = document.getElementById('ndaycon');
   if (dc) dc.innerHTML = RNDAY(plan, i);
   BBF_NUTRITION_TRACKER.restore();
+  try { BBF_MACRO_WHEEL.repaint(uid); } catch(_) {}
+  try { BBF_MACRO_WHEEL.hydratePhotos(); } catch(_) {}   // async Gemini meal photos on day-switch
 }
 
 // Phase 10 — SAVELOG() and the entire legacy Free Log surface were ripped
