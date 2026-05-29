@@ -21,7 +21,7 @@
 export const MODELS = {
   HAIKU:  'claude-haiku-4-5',
   SONNET: 'claude-sonnet-4-6',
-  OPUS:   'claude-opus-4-7',
+  OPUS:   'claude-opus-4-8',
 } as const;
 
 export type Model = typeof MODELS[keyof typeof MODELS];

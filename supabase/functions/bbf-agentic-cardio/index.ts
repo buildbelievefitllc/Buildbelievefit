@@ -54,7 +54,7 @@ import { routeAndLog } from '../_shared/model-router.ts';
 const MODEL              = routeAndLog('bbf-agentic-cardio', 'cardiac_intercept');
 const MAX_TOKENS         = 1024;
 const EFFORT_DEFAULT     = 'high';
-const CLAUDE_TIMEOUT_MS  = 12000;
+const CLAUDE_TIMEOUT_MS  = 20000;
 const MIN_MINUTES        = 5;
 const MAX_MINUTES        = 120;
 
