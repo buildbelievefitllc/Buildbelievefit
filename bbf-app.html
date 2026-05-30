@@ -5401,6 +5401,10 @@ window.BBF_APPLY_TRIAL_GATE = function() {
   if (typeof window.BBF_APPLY_STUDIO_GATE === 'function') {
     try { window.BBF_APPLY_STUDIO_GATE(); } catch (_) {}
   }
+  // Phase 5.1 — Client Database Hub admin gate (shares this lifecycle).
+  if (typeof window.BBF_APPLY_HUB_GATE === 'function') {
+    try { window.BBF_APPLY_HUB_GATE(); } catch (_) {}
+  }
 };
 
 // ═════════════════════════════════════════════════════════════════════
@@ -7700,6 +7704,110 @@ window.onload=function(){
         <div class="pf-denied-s">The Sovereign Panopticon is reserved for the administrative tier. Contact the head coach if you believe this is in error.</div>
       </div>
     </div>
+
+    <!-- ═════════ PHASE 5.1 · CLIENT DATABASE HUB · ADMIN-ONLY ═════════
+         Strict RBAC mirrors the Panopticon/Studio pattern: the nav button
+         (#hub-nav-btn) is [hidden] for non-admins, and BBF_APPLY_HUB_GATE
+         physically DETACHES this entire pane from a non-admin's DOM. All
+         client data flows through the secure bbf-admin-roster edge function
+         (service-role read + X-BBF-Admin-Token gate) — the browser never
+         reads bbf_users with the anon key. Pure Vanilla JS. ════════════ -->
+    <style id="bbf-hub-styles">
+      #tp-hub .hub-banner{display:flex;align-items:center;gap:.55rem;padding:.6rem .9rem;margin:.25rem 0 1rem;border:1px solid rgba(106,13,173,.32);border-radius:10px;background:linear-gradient(90deg,rgba(106,13,173,.12),rgba(245,200,0,.06));font-size:.74rem;letter-spacing:.5px;color:#D8A8FF}
+      #tp-hub .hub-pulse{width:9px;height:9px;border-radius:50%;background:#f5c800;box-shadow:0 0 8px rgba(245,200,0,.85);animation:hubPulse 1.8s ease-in-out infinite;flex:0 0 auto}
+      @keyframes hubPulse{0%,100%{opacity:1}50%{opacity:.35}}
+      .hub-wrap{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:1rem;align-items:start}
+      @media(max-width:760px){.hub-wrap{grid-template-columns:1fr}}
+      .hub-roster{background:#0e0e0e;border:1px solid #1e1e1e;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;max-height:70vh}
+      .hub-roster-head{display:flex;gap:.4rem;padding:.6rem;border-bottom:1px solid #1e1e1e}
+      .hub-search{flex:1;min-width:0;background:#141414;border:1px solid #2a2a2a;border-radius:8px;color:#f9f5ff;padding:.45rem .6rem;font:inherit;font-size:.8rem}
+      .hub-refresh-btn{flex:0 0 auto;width:36px;border:1px solid #2a2a2a;border-radius:8px;background:#141414;color:#f5c800;font-size:1rem;cursor:pointer}
+      .hub-refresh-btn:hover{border-color:#6a0dad}
+      .hub-roster-list{overflow-y:auto;flex:1}
+      .hub-row{display:flex;align-items:center;gap:.6rem;padding:.6rem .75rem;border-bottom:1px solid #161616;cursor:pointer;transition:background .15s}
+      .hub-row:hover{background:#161029}
+      .hub-row.on{background:linear-gradient(90deg,rgba(106,13,173,.28),transparent);border-left:3px solid #f5c800}
+      .hub-av{width:34px;height:34px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:#090909;background:linear-gradient(135deg,#f5c800,#6a0dad)}
+      .hub-row-meta{min-width:0}
+      .hub-row-name{font-weight:700;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .hub-row-sub{font-size:.66rem;color:#888;text-transform:uppercase;letter-spacing:.5px}
+      .hub-detail{background:#0e0e0e;border:1px solid #1e1e1e;border-radius:12px;padding:1rem;min-height:340px}
+      .hub-detail-empty,.hub-empty{color:#666;font-size:.85rem;padding:1.2rem;text-align:center}
+      .hub-dossier-head{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap}
+      .hub-dossier-head .hub-av{width:46px;height:46px;font-size:1.1rem}
+      .hub-dossier-name{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;letter-spacing:1px}
+      .hub-dossier-sub{font-size:.7rem;color:#9a9a9a;text-transform:uppercase;letter-spacing:1px}
+      .hub-chip{display:inline-block;padding:.15rem .5rem;border-radius:999px;font-size:.6rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;background:rgba(106,13,173,.25);color:#D8A8FF;border:1px solid rgba(106,13,173,.45)}
+      .hub-macrobar{display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;margin-bottom:1rem}
+      @media(max-width:480px){.hub-macrobar{grid-template-columns:repeat(2,1fr)}}
+      .hub-macro{background:#141414;border:1px solid #242424;border-radius:10px;padding:.6rem;text-align:center}
+      .hub-macro .v{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;line-height:1;color:#f5c800}
+      .hub-macro .l{font-size:.6rem;color:#8a8a8a;text-transform:uppercase;letter-spacing:1px;margin-top:.2rem}
+      .hub-subtabs{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.9rem;border-bottom:1px solid #1e1e1e;padding-bottom:.6rem}
+      .hub-subtab{background:#141414;border:1px solid #242424;border-radius:8px;color:#cfcfcf;padding:.4rem .7rem;font:inherit;font-size:.72rem;font-weight:700;cursor:pointer;letter-spacing:.3px}
+      .hub-subtab.on{background:linear-gradient(135deg,#6a0dad,#8b1abf);color:#fff;border-color:#8b1abf}
+      .hub-panel{display:none}.hub-panel.on{display:block;animation:hubFade .2s ease}
+      @keyframes hubFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+      .hub-day{background:#121212;border:1px solid #1f1f1f;border-radius:10px;margin-bottom:.6rem;overflow:hidden}
+      .hub-day-h{padding:.5rem .7rem;background:#170f29;font-weight:800;font-size:.78rem;letter-spacing:.5px;color:#D8A8FF;display:flex;justify-content:space-between}
+      .hub-day-b{padding:.4rem .7rem}
+      .hub-item{display:flex;justify-content:space-between;gap:.6rem;padding:.32rem 0;border-bottom:1px dashed #1c1c1c;font-size:.78rem}
+      .hub-item:last-child{border-bottom:0}
+      .hub-item .mu{color:#9a9a9a;flex:0 0 auto}
+      .hub-canvas-wrap{background:#0b0b0b;border:1px solid #1f1f1f;border-radius:10px;padding:.7rem;margin-bottom:.7rem}
+      .hub-canvas-wrap h4{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:#8a8a8a;margin-bottom:.4rem;font-weight:700}
+      .hub-canvas-wrap canvas{width:100%;height:auto;display:block}
+      .hub-form-row{display:flex;flex-direction:column;gap:.25rem;margin-bottom:.7rem}
+      .hub-form-row label{font-size:.66rem;text-transform:uppercase;letter-spacing:1px;color:#8a8a8a;font-weight:700}
+      .hub-input{background:#141414;border:1px solid #2a2a2a;border-radius:8px;color:#f9f5ff;padding:.5rem .6rem;font:inherit}
+      .hub-input:focus{outline:none;border-color:#6a0dad}
+      .hub-btn{background:linear-gradient(135deg,#6a0dad,#8b1abf);color:#fff;border:0;border-radius:9px;padding:.6rem 1rem;font:inherit;font-weight:800;letter-spacing:.5px;cursor:pointer;text-transform:uppercase;font-size:.74rem}
+      .hub-btn:hover{filter:brightness(1.12)}
+      .hub-btn[disabled]{opacity:.55;cursor:not-allowed}
+      .hub-btn-gold{background:linear-gradient(135deg,#f5c800,#e0a800);color:#090909}
+      .hub-msg{font-size:.74rem;margin-top:.5rem;min-height:1em}
+      .hub-coach{margin-top:1.1rem;border-top:1px solid #1e1e1e;padding-top:.9rem}
+      .hub-coach h4{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;margin-bottom:.2rem}
+      .hub-coach-sub{font-size:.66rem;color:#8a8a8a;margin-bottom:.6rem}
+      .hub-coach textarea{width:100%;min-height:64px;resize:vertical;background:#141414;border:1px solid #2a2a2a;border-radius:8px;color:#f9f5ff;padding:.55rem .6rem;font:inherit;font-size:.82rem}
+      .hub-coach textarea:focus{outline:none;border-color:#6a0dad}
+      .hub-coach-quick{display:flex;gap:.35rem;flex-wrap:wrap;margin:.5rem 0}
+      .hub-qbtn{background:#141414;border:1px solid #2a2a2a;border-radius:999px;color:#cfcfcf;padding:.28rem .6rem;font:inherit;font-size:.68rem;cursor:pointer}
+      .hub-qbtn:hover{border-color:#6a0dad;color:#D8A8FF}
+      .hub-coach-out{margin-top:.7rem;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:10px;padding:.75rem;font-size:.82rem;line-height:1.5;white-space:pre-wrap;min-height:2em;color:#e8e0f5}
+      .hub-coach-out:empty{display:none}
+      .hub-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(245,200,0,.3);border-top-color:#f5c800;border-radius:50%;animation:hubSpin .7s linear infinite;vertical-align:-2px;margin-right:.4rem}
+      @keyframes hubSpin{to{transform:rotate(360deg)}}
+    </style>
+    <div class="tp" id="tp-hub" role="tabpanel" aria-label="Client Database Hub">
+      <div id="hub-admin-view">
+        <div class="sh"><span class="stt">Client Database Hub</span></div>
+        <div class="hub-banner" role="status">
+          <span class="hub-pulse" aria-hidden="true"></span>
+          <span>Live Roster &middot; Secure Service-Role Feed &middot; Sovereign Admin Only</span>
+        </div>
+        <div class="hub-wrap">
+          <aside class="hub-roster" aria-label="Client roster">
+            <div class="hub-roster-head">
+              <input type="search" id="hub-roster-search" class="hub-search" placeholder="Search clients…" aria-label="Search clients" autocomplete="off">
+              <button type="button" id="hub-roster-refresh" class="hub-refresh-btn" aria-label="Refresh roster" title="Refresh">&#x21bb;</button>
+            </div>
+            <div class="hub-roster-list" id="hub-roster-list" aria-live="polite">
+              <div class="hub-empty">Loading roster&hellip;</div>
+            </div>
+          </aside>
+          <section class="hub-detail" id="hub-detail" aria-live="polite">
+            <div class="hub-detail-empty" id="hub-detail-empty">Select a client from the roster to open their Sovereign dossier.</div>
+            <div id="hub-detail-body" hidden></div>
+          </section>
+        </div>
+      </div>
+      <div id="hub-denied-view" class="pf-denied" hidden role="alert">
+        <div class="pf-denied-ic" aria-hidden="true">&#x1F6AB;</div>
+        <div class="pf-denied-t">Access Denied</div>
+        <div class="pf-denied-s">The Client Database Hub is reserved for the Sovereign administrative tier. Contact the head coach if you believe this is in error.</div>
+      </div>
+    </div>
   </div>
     <!-- ═══ AI STUDIO — Science Hub · Workout Generator · Mindset Engine ═══ -->
     <div class="tp" id="tp-studio" role="tabpanel" aria-label="AI Studio">
@@ -7800,6 +7908,7 @@ window.onload=function(){
     <button class="nv pf-admin-nav" data-tab="studio" id="studio-nav-btn" hidden aria-label="AI Studio · Admin"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span data-lang-key="app-nav-studio">Studio</span></button>
     <button class="nv pf-admin-nav" data-tab="recalibrate" id="pf-admin-nav-btn" hidden aria-label="Sports Admin Console"><svg viewBox="0 0 24 24"><path d="M6 9V6a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3"/><path d="M5 9h14"/><path d="M8 9v3a4 4 0 0 0 8 0V9"/><path d="M10 17v4"/><path d="M14 17v4"/><path d="M9 21h6"/></svg><span>Sports Admin</span></button>
     <button class="nv pf-admin-nav" data-tab="panopticon" id="panopticon-nav-btn" hidden aria-label="Sovereign Panopticon · Command Center"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span>Command</span></button>
+    <button class="nv pf-admin-nav" data-tab="hub" id="hub-nav-btn" hidden aria-label="Client Database Hub · Admin"><svg viewBox="0 0 24 24"><path d="M3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5"/><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="21"/></svg><span>Client Hub</span></button>
   </div>
 
   <!-- ═══ BIOMETRIC YIELD REPORT — Sovereign Clinical Synthesis ═══ -->
@@ -8826,6 +8935,10 @@ function TAB(name) {
   // Phase 4 — re-assert the AI Studio admin gate after every tab switch.
   if (typeof window.BBF_APPLY_STUDIO_GATE === 'function') {
     try { window.BBF_APPLY_STUDIO_GATE(); } catch(_) {}
+  }
+  // Phase 5.1 — re-assert the Client Database Hub admin gate after every tab switch.
+  if (typeof window.BBF_APPLY_HUB_GATE === 'function') {
+    try { window.BBF_APPLY_HUB_GATE(); } catch(_) {}
   }
   // Phase 4.1 — idempotent mount of the Omniscience toggle so the button
   // appears as soon as CU is set post-login (DOMContentLoaded may fire
@@ -26913,6 +27026,415 @@ window.onload = function() {
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', _boot); else _boot();
 })();
+</script>
+<script>
+/* ═══════════════ PHASE 5.1 · CLIENT DATABASE HUB — Sovereign dossier ═══════════════
+   Admin-only. LIVE data via the secure bbf-admin-roster edge function
+   (service-role read behind the X-BBF-Admin-Token gate). The browser NEVER
+   reads bbf_users with the anon key — RLS exposure is bypassed server-side only.
+     · Left pane  : live roster (role IN client|athlete) — action=roster
+     · Right pane : macro bar + 4 sub-tabs (Nutrition / Workouts / Analytics / Update Target)
+     · Analytics  : 90-day readiness + training-volume on NATIVE <canvas> (no libs)
+     · Co-Coach   : wired to the Gemini agent — action=coach
+   IMMUTABLE LAWS: Vanilla JS only · blacklist holds · native canvas. */
+(function(){
+  'use strict';
+  var EP = '/functions/v1/bbf-admin-roster';
+  // Contraindicated movements (BBF blacklist) — enforced again client-side on
+  // render so a blacklisted lift can never paint, even if a legacy plan stored one.
+  var BLACKLIST = [/barbell\s+back\s+squat/i, /\bback\s+squat\b/i, /abdominal\s+crunch/i, /\bcrunch(es)?\b/i];
+  function _blacklisted(name){ var n=String(name||''); for (var i=0;i<BLACKLIST.length;i++){ if (BLACKLIST[i].test(n)) return true; } return false; }
+
+  var S = { roster:[], filtered:[], selId:null, detail:null, sub:'nutrition', busy:false };
+
+  function _$(id){ return document.getElementById(id); }
+  function _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function _supaUrl(){ try { if (typeof window!=='undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/,''); } catch(_){} return 'https://ihclbceghxpuawymlvgi.supabase.co'; }
+  function _adminToken(){
+    try {
+      if (typeof window!=='undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
+      var c = sessionStorage.getItem('BBF_COACH_AGENT_TOKEN'); if (c) return c;
+    } catch(_){}
+    return null;
+  }
+  function _initials(name){ var p=String(name||'?').trim().split(/\s+/); return ((p[0]||'?')[0]+((p[1]||'')[0]||'')).toUpperCase(); }
+  function _num(v){ return (v==null||v==='')?'—':String(v); }
+
+  function _post(action, extra){
+    var headers = { 'Content-Type':'application/json' };
+    var tok = _adminToken();
+    if (tok) headers['X-BBF-Admin-Token'] = tok;
+    var payload = { action: action };
+    if (extra) for (var k in extra){ if (Object.prototype.hasOwnProperty.call(extra,k)) payload[k]=extra[k]; }
+    return fetch(_supaUrl()+EP, { method:'POST', headers:headers, body: JSON.stringify(payload) })
+      .then(function(r){ return r.json().catch(function(){ return { error:'bad_response', _status:r.status }; })
+        .then(function(j){ if (j && typeof j==='object') j._status=r.status; return j; }); });
+  }
+
+  // Inline auth prompt for the admin token (reuses the shared sessionStorage key).
+  function _promptToken(){
+    var t = null;
+    try { t = window.prompt('Enter BBF Coach Agent Token to unlock the Client Hub:'); } catch(_){}
+    if (t && String(t).trim()){
+      try { sessionStorage.setItem('BBF_COACH_AGENT_TOKEN', String(t).trim()); } catch(_){}
+      try { window.BBF_COACH_AGENT_TOKEN = String(t).trim(); } catch(_){}
+      return true;
+    }
+    return false;
+  }
+
+  /* ─── ROSTER (left pane) ──────────────────────────────────────────────── */
+  function loadRoster(){
+    var list = _$('hub-roster-list'); if (!list) return;
+    if (S.busy) return;
+    S.busy = true;
+    list.innerHTML = '<div class="hub-empty">Loading roster…</div>';
+    _post('roster').then(function(res){
+      S.busy = false;
+      if (!res || res.error){
+        if (res && (res._status===401 || res.error==='unauthorized')){
+          list.innerHTML = '<div class="hub-empty">Admin token required.<br><button type="button" class="hub-btn" id="hub-auth-btn" style="margin-top:.6rem">Enter Admin Token</button></div>';
+          var ab=_$('hub-auth-btn'); if (ab) ab.onclick=function(){ if (_promptToken()) loadRoster(); };
+          return;
+        }
+        list.innerHTML = '<div class="hub-empty">Could not load roster ('+_esc((res&&res.error)||'network')+').</div>';
+        return;
+      }
+      S.roster = (res.clients||[]).slice();
+      S.filtered = S.roster.slice();
+      renderRoster();
+    }).catch(function(){ S.busy=false; list.innerHTML='<div class="hub-empty">Network error loading roster.</div>'; });
+  }
+
+  function renderRoster(){
+    var list = _$('hub-roster-list'); if (!list) return;
+    if (!S.filtered.length){ list.innerHTML = '<div class="hub-empty">No clients match.</div>'; return; }
+    var html = '';
+    for (var i=0;i<S.filtered.length;i++){
+      var c = S.filtered[i];
+      var sub = (c.role||'client') + (c.metabolic_tier ? (' · '+c.metabolic_tier) : '');
+      html += '<div class="hub-row'+(c.id===S.selId?' on':'')+'" data-id="'+_esc(c.id)+'" role="button" tabindex="0">'
+            +   '<div class="hub-av">'+_esc(_initials(c.name||c.uid))+'</div>'
+            +   '<div class="hub-row-meta">'
+            +     '<div class="hub-row-name">'+_esc(c.name||c.uid||'Unnamed')+'</div>'
+            +     '<div class="hub-row-sub">'+_esc(sub)+'</div>'
+            +   '</div>'
+            + '</div>';
+    }
+    list.innerHTML = html;
+    var rows = list.querySelectorAll('.hub-row');
+    for (var j=0;j<rows.length;j++){
+      (function(row){
+        function go(){ selectClient(row.getAttribute('data-id')); }
+        row.addEventListener('click', go);
+        row.addEventListener('keydown', function(e){ if (e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+      })(rows[j]);
+    }
+  }
+
+  function filterRoster(q){
+    q = String(q||'').toLowerCase().trim();
+    S.filtered = !q ? S.roster.slice() : S.roster.filter(function(c){
+      return (String(c.name||'')+' '+String(c.uid||'')+' '+String(c.email||'')).toLowerCase().indexOf(q)>=0;
+    });
+    renderRoster();
+  }
+
+  /* ─── DETAIL (right pane) ─────────────────────────────────────────────── */
+  function selectClient(id){
+    S.selId = id; renderRoster();
+    var empty=_$('hub-detail-empty'), body=_$('hub-detail-body');
+    if (empty) empty.hidden = true;
+    if (body){ body.hidden = false; body.innerHTML = '<div class="hub-empty"><span class="hub-spin"></span>Pulling dossier…</div>'; }
+    _post('detail', { id:id }).then(function(res){
+      if (!res || res.error || !res.client){
+        if (body) body.innerHTML = '<div class="hub-empty">Could not load client ('+_esc((res&&res.error)||'error')+').</div>';
+        return;
+      }
+      S.detail = res.client; S.sub = 'nutrition';
+      renderDetail();
+    }).catch(function(){ if (body) body.innerHTML='<div class="hub-empty">Network error loading client.</div>'; });
+  }
+
+  function renderDetail(){
+    var body=_$('hub-detail-body'); if (!body || !S.detail) return;
+    var c = S.detail;
+    var tierChip = c.subscription_tier ? '<span class="hub-chip">'+_esc(c.subscription_tier)+'</span>' : '';
+    var blockChip = c.block_priority ? '<span class="hub-chip">'+_esc(c.block_priority)+'</span>' : '';
+    var html = ''
+      + '<div class="hub-dossier-head">'
+      +   '<div class="hub-av">'+_esc(_initials(c.name||c.uid))+'</div>'
+      +   '<div style="flex:1;min-width:0">'
+      +     '<div class="hub-dossier-name">'+_esc(c.name||c.uid||'Unnamed')+'</div>'
+      +     '<div class="hub-dossier-sub">'+_esc((c.role||'client'))+(c.email?(' · '+_esc(c.email)):'')+'</div>'
+      +   '</div>'
+      +   tierChip + ' ' + blockChip
+      + '</div>'
+      // Macro bar
+      + '<div class="hub-macrobar">'
+      +   '<div class="hub-macro"><div class="v">'+_num(c.tdee_target)+'</div><div class="l">kcal / day</div></div>'
+      +   '<div class="hub-macro"><div class="v">'+_num(c.macro_p)+'</div><div class="l">Protein g</div></div>'
+      +   '<div class="hub-macro"><div class="v">'+_num(c.macro_c)+'</div><div class="l">Carbs g</div></div>'
+      +   '<div class="hub-macro"><div class="v">'+_num(c.macro_f)+'</div><div class="l">Fat g</div></div>'
+      + '</div>'
+      // Sub-tab nav
+      + '<div class="hub-subtabs" role="tablist">'
+      +   '<button type="button" class="hub-subtab" data-sub="nutrition">7-Day Nutrition</button>'
+      +   '<button type="button" class="hub-subtab" data-sub="workouts">7-Day Workouts</button>'
+      +   '<button type="button" class="hub-subtab" data-sub="analytics">90-Day Analytics</button>'
+      +   '<button type="button" class="hub-subtab" data-sub="target">Update Target</button>'
+      + '</div>'
+      + '<div class="hub-panel" id="hub-panel-nutrition"></div>'
+      + '<div class="hub-panel" id="hub-panel-workouts"></div>'
+      + '<div class="hub-panel" id="hub-panel-analytics"></div>'
+      + '<div class="hub-panel" id="hub-panel-target"></div>'
+      // Co-Coach
+      + '<div class="hub-coach">'
+      +   '<h4>Co-Coach Intelligence</h4>'
+      +   '<div class="hub-coach-sub">Gemini-backed assistant coach · grounded in this client’s live data</div>'
+      +   '<textarea id="hub-coach-q" placeholder="Ask about '+_esc((c.name||"this client").split(" ")[0])+'’s training, macros, recovery…"></textarea>'
+      +   '<div class="hub-coach-quick">'
+      +     '<button type="button" class="hub-qbtn" data-q="Summarize this client’s current status and the single highest-priority action for me today.">Priority action</button>'
+      +     '<button type="button" class="hub-qbtn" data-q="Are the macro targets appropriate for this client’s block priority and goals? Recommend adjustments.">Macro check</button>'
+      +     '<button type="button" class="hub-qbtn" data-q="Review recovery/readiness trends and flag any overtraining or injury risk.">Recovery risk</button>'
+      +   '</div>'
+      +   '<button type="button" class="hub-btn" id="hub-coach-ask">Ask Co-Coach</button>'
+      +   '<div class="hub-coach-out" id="hub-coach-out" aria-live="polite"></div>'
+      + '</div>';
+    body.innerHTML = html;
+
+    // Wire sub-tabs
+    var tabs = body.querySelectorAll('.hub-subtab');
+    for (var i=0;i<tabs.length;i++){ (function(t){ t.addEventListener('click', function(){ switchSub(t.getAttribute('data-sub')); }); })(tabs[i]); }
+    // Wire co-coach
+    var quick = body.querySelectorAll('.hub-qbtn');
+    for (var k=0;k<quick.length;k++){ (function(b){ b.addEventListener('click', function(){ var ta=_$('hub-coach-q'); if (ta){ ta.value=b.getAttribute('data-q'); } askCoach(); }); })(quick[k]); }
+    var askBtn=_$('hub-coach-ask'); if (askBtn) askBtn.addEventListener('click', askCoach);
+
+    switchSub(S.sub || 'nutrition');
+  }
+
+  function switchSub(sub){
+    S.sub = sub;
+    var body=_$('hub-detail-body'); if (!body) return;
+    var tabs = body.querySelectorAll('.hub-subtab');
+    for (var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-sub')===sub); }
+    var panels = body.querySelectorAll('.hub-panel');
+    for (var j=0;j<panels.length;j++){ panels[j].classList.remove('on'); }
+    var panel = _$('hub-panel-'+sub); if (panel) panel.classList.add('on');
+    if (sub==='nutrition') renderNutrition();
+    else if (sub==='workouts') renderWorkouts();
+    else if (sub==='analytics') renderAnalytics();
+    else if (sub==='target') renderTarget();
+  }
+
+  /* ─── 7-Day Nutrition ─────────────────────────────────────────────────── */
+  function renderNutrition(){
+    var p=_$('hub-panel-nutrition'); if (!p) return;
+    var np = S.detail && S.detail.nutrition_plan;
+    if (typeof np==='string'){ try { np=JSON.parse(np); } catch(_){ np=null; } }
+    if (!np || !np.days || !np.days.length){
+      p.innerHTML = '<div class="hub-empty">No nutrition plan on file. Use the AI Studio rotator or Update Target to drive a generation.</div>';
+      return;
+    }
+    var head = '<div style="margin-bottom:.6rem;font-size:.78rem;color:#9a9a9a">'
+             + (np.goal?('<strong style="color:#f5c800">'+_esc(np.goal)+'</strong> · '):'')
+             + (np.cal?_esc(np.cal):'') + '</div>';
+    var days='';
+    for (var i=0;i<np.days.length;i++){
+      var d=np.days[i]; var meals=(d&&d.meals)||[];
+      var items='';
+      for (var m=0;m<meals.length;m++){
+        items += '<div class="hub-item"><span class="mu">'+_esc(meals[m].m||'')+'</span><span>'+_esc(meals[m].i||'')+'</span></div>';
+      }
+      days += '<div class="hub-day"><div class="hub-day-h"><span>'+_esc(d.day||('Day '+(i+1)))+'</span></div><div class="hub-day-b">'+(items||'<div class="hub-item">—</div>')+'</div></div>';
+    }
+    p.innerHTML = head + days;
+  }
+
+  /* ─── 7-Day Workouts (blacklist enforced) ─────────────────────────────── */
+  function renderWorkouts(){
+    var p=_$('hub-panel-workouts'); if (!p) return;
+    var wp = S.detail && S.detail.workout_plan;
+    if (typeof wp==='string'){ var t=wp.trim(); if (t && (t[0]==='['||t[0]==='{')){ try { wp=JSON.parse(t); } catch(_){ /* keep string */ } } }
+    if (Array.isArray(wp)){
+      var days='', removed=0;
+      for (var i=0;i<wp.length;i++){
+        var d=wp[i]; var ex=(d&&d.exercises)||[]; var items='';
+        for (var e=0;e<ex.length;e++){
+          if (_blacklisted(ex[e]&&ex[e].name)){ removed++; continue; }
+          var meta=[]; if (ex[e].sets) meta.push(ex[e].sets+'×'+(ex[e].reps||'')); if (ex[e].equipment) meta.push(ex[e].equipment);
+          items += '<div class="hub-item"><span>'+_esc(ex[e].name||'')+'</span><span class="mu">'+_esc(meta.join(' · '))+'</span></div>';
+        }
+        var focus = d.isRest ? 'Rest' : (d.focus||'');
+        days += '<div class="hub-day"><div class="hub-day-h"><span>'+_esc(d.day||('Day '+(i+1)))+'</span><span class="mu">'+_esc(focus)+'</span></div><div class="hub-day-b">'+(items||'<div class="hub-item mu">Rest / recovery</div>')+'</div></div>';
+      }
+      p.innerHTML = days + (removed?('<div class="hub-coach-sub" style="margin-top:.5rem">⛨ '+removed+' contraindicated movement(s) filtered by the BBF blacklist.</div>'):'');
+      return;
+    }
+    if (typeof wp==='string' && wp.trim()){
+      // Non-JSON (markdown/text) plan — display verbatim; generation + backend already scrub the blacklist.
+      p.innerHTML = '<div class="hub-day"><div class="hub-day-b" style="white-space:pre-wrap;font-size:.8rem;line-height:1.5">'+_esc(wp)+'</div></div>';
+      return;
+    }
+    p.innerHTML = '<div class="hub-empty">No workout plan on file for this client.</div>';
+  }
+
+  /* ─── 90-Day Analytics (native canvas) ────────────────────────────────── */
+  function renderAnalytics(){
+    var p=_$('hub-panel-analytics'); if (!p) return;
+    p.innerHTML = '<div class="hub-canvas-wrap"><h4>CNS Readiness · last 90 days (0–100)</h4><canvas id="hub-cv-readiness" height="140"></canvas></div>'
+                + '<div class="hub-canvas-wrap"><h4>Training Volume · last 90 days (lbs·reps)</h4><canvas id="hub-cv-volume" height="140"></canvas></div>'
+                + '<div class="hub-coach-sub" id="hub-analytics-note">Loading telemetry…</div>';
+    _post('analytics', { id:S.detail.id }).then(function(res){
+      if (!res || res.error){ var n=_$('hub-analytics-note'); if (n) n.textContent='Could not load analytics ('+((res&&res.error)||'error')+').'; return; }
+      var rd = (res.readiness||[]).map(function(r){ return { x:r.t, y:Number(r.score)||0 }; });
+      var vol = (res.volume||[]).map(function(v){ return { x:v.date, y:Number(v.volume)||0 }; });
+      _drawLine(_$('hub-cv-readiness'), rd, { max:100, min:0, color:'#f5c800' });
+      _drawBars(_$('hub-cv-volume'), vol, { color:'#8b1abf' });
+      var n=_$('hub-analytics-note');
+      if (n) n.textContent = rd.length||vol.length ? (rd.length+' readiness check-ins · '+vol.length+' training days on record.') : 'No telemetry recorded in the last 90 days.';
+    }).catch(function(){ var n=_$('hub-analytics-note'); if (n) n.textContent='Network error loading analytics.'; });
+  }
+
+  function _setup(cv, h){
+    var ratio = window.devicePixelRatio||1;
+    var w = cv.clientWidth || (cv.parentNode&&cv.parentNode.clientWidth) || 320;
+    cv.width = Math.round(w*ratio); cv.height = Math.round(h*ratio); cv.style.height=h+'px';
+    var ctx = cv.getContext('2d'); ctx.setTransform(ratio,0,0,ratio,0,0);
+    return { ctx:ctx, w:w, h:h, pad:26 };
+  }
+  function _empty(ctx,w,h){ ctx.clearRect(0,0,w,h); ctx.fillStyle='#5a5a5a'; ctx.font='12px Barlow Condensed,Arial,sans-serif'; ctx.fillText('No data', 8, h/2); }
+  function _grid(ctx,w,h,pad){ ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1; for (var g=0;g<=3;g++){ var y=pad+(h-pad*1.4)*g/3; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-6,y); ctx.stroke(); } }
+  function _drawLine(cv, pts, o){
+    if (!cv) return; var s=_setup(cv,140), ctx=s.ctx, w=s.w, h=s.h, pad=s.pad;
+    ctx.clearRect(0,0,w,h);
+    if (!pts.length){ _empty(ctx,w,h); return; }
+    _grid(ctx,w,h,pad);
+    var max=(o&&o.max!=null)?o.max:Math.max.apply(null,pts.map(function(p){return p.y;})), min=(o&&o.min!=null)?o.min:0;
+    var plotW=w-pad-6, plotH=h-pad-18, col=(o&&o.color)||'#f5c800';
+    function X(i){ return pad + (pts.length<=1?plotW/2:plotW*i/(pts.length-1)); }
+    function Y(v){ return pad + plotH*(1-((v-min)/((max-min)||1))); }
+    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath();
+    for (var i=0;i<pts.length;i++){ var x=X(i),y=Y(pts[i].y); if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+    ctx.stroke();
+    ctx.fillStyle=col; for (var j=0;j<pts.length;j++){ ctx.beginPath(); ctx.arc(X(j),Y(pts[j].y),2.2,0,Math.PI*2); ctx.fill(); }
+    ctx.fillStyle='#8a8a8a'; ctx.font='10px Barlow Condensed,Arial,sans-serif';
+    ctx.fillText(String(Math.round(max)), 2, pad+4); ctx.fillText(String(Math.round(min)), 2, pad+plotH+2);
+  }
+  function _drawBars(cv, pts, o){
+    if (!cv) return; var s=_setup(cv,140), ctx=s.ctx, w=s.w, h=s.h, pad=s.pad;
+    ctx.clearRect(0,0,w,h);
+    if (!pts.length){ _empty(ctx,w,h); return; }
+    _grid(ctx,w,h,pad);
+    var max=Math.max.apply(null,pts.map(function(p){return p.y;}))||1;
+    var plotW=w-pad-6, plotH=h-pad-18, col=(o&&o.color)||'#8b1abf';
+    var bw=Math.max(1, plotW/pts.length*0.72);
+    for (var i=0;i<pts.length;i++){
+      var x=pad + plotW*i/pts.length + (plotW/pts.length-bw)/2;
+      var bh=plotH*(pts[i].y/max); var y=pad+plotH-bh;
+      ctx.fillStyle=col; ctx.fillRect(x,y,bw,bh);
+    }
+    ctx.fillStyle='#8a8a8a'; ctx.font='10px Barlow Condensed,Arial,sans-serif';
+    ctx.fillText(String(Math.round(max)), 2, pad+4); ctx.fillText('0', 2, pad+plotH+2);
+  }
+
+  /* ─── Update Target ───────────────────────────────────────────────────── */
+  function renderTarget(){
+    var p=_$('hub-panel-target'); if (!p) return; var c=S.detail;
+    p.innerHTML = ''
+      + '<div class="hub-form-row"><label>Daily Calories (kcal)</label><input class="hub-input" type="number" id="hub-t-cal" min="0" max="20000" value="'+_esc(c.tdee_target!=null?c.tdee_target:'')+'"></div>'
+      + '<div class="hub-form-row"><label>Protein (g)</label><input class="hub-input" type="number" id="hub-t-p" min="0" max="2000" value="'+_esc(c.macro_p!=null?c.macro_p:'')+'"></div>'
+      + '<div class="hub-form-row"><label>Carbs (g)</label><input class="hub-input" type="number" id="hub-t-c" min="0" max="2000" value="'+_esc(c.macro_c!=null?c.macro_c:'')+'"></div>'
+      + '<div class="hub-form-row"><label>Fat (g)</label><input class="hub-input" type="number" id="hub-t-f" min="0" max="2000" value="'+_esc(c.macro_f!=null?c.macro_f:'')+'"></div>'
+      + '<button type="button" class="hub-btn hub-btn-gold" id="hub-t-save">Save Macro Target</button>'
+      + '<div class="hub-msg" id="hub-t-msg"></div>';
+    var btn=_$('hub-t-save');
+    if (btn) btn.addEventListener('click', function(){
+      var msg=_$('hub-t-msg'); var payload={ id:c.id };
+      function g(id){ var v=_$(id); return (v&&v.value!=='')?Number(v.value):null; }
+      payload.tdee_target=g('hub-t-cal'); payload.macro_p=g('hub-t-p'); payload.macro_c=g('hub-t-c'); payload.macro_f=g('hub-t-f');
+      btn.disabled=true; if (msg){ msg.style.color='#9a9a9a'; msg.textContent='Saving…'; }
+      _post('update_target', payload).then(function(res){
+        btn.disabled=false;
+        if (!res || res.error || !res.client){ if (msg){ msg.style.color='#ef4444'; msg.textContent='Failed: '+_esc((res&&res.error)||'error'); } return; }
+        // Sync local state + macro bar.
+        c.tdee_target=res.client.tdee_target; c.macro_p=res.client.macro_p; c.macro_c=res.client.macro_c; c.macro_f=res.client.macro_f;
+        var idx; for (var i=0;i<S.roster.length;i++){ if (S.roster[i].id===c.id){ S.roster[i].tdee_target=c.tdee_target; } }
+        if (msg){ msg.style.color='#22c55e'; msg.textContent='Target updated.'; }
+        var mb=document.querySelector('#hub-detail-body .hub-macrobar');
+        if (mb){ var vs=mb.querySelectorAll('.hub-macro .v'); if (vs.length===4){ vs[0].textContent=_num(c.tdee_target); vs[1].textContent=_num(c.macro_p); vs[2].textContent=_num(c.macro_c); vs[3].textContent=_num(c.macro_f); } }
+      }).catch(function(){ btn.disabled=false; if (msg){ msg.style.color='#ef4444'; msg.textContent='Network error.'; } });
+    });
+  }
+
+  /* ─── Co-Coach (Gemini) ───────────────────────────────────────────────── */
+  function askCoach(){
+    var ta=_$('hub-coach-q'), out=_$('hub-coach-out'), btn=_$('hub-coach-ask');
+    if (!ta || !out) return;
+    var q=String(ta.value||'').trim();
+    if (!q){ out.textContent='Type a question for the Co-Coach.'; return; }
+    if (!S.detail || !S.detail.id){ out.textContent='Select a client first.'; return; }
+    if (btn) btn.disabled=true;
+    out.innerHTML='<span class="hub-spin"></span>Co-Coach is analyzing…';
+    _post('coach', { id:S.detail.id, question:q }).then(function(res){
+      if (btn) btn.disabled=false;
+      if (!res || res.error || !res.answer){
+        out.textContent = 'Co-Coach unavailable ('+((res&&res.error)||'error')+').';
+        return;
+      }
+      out.textContent = res.answer;
+    }).catch(function(){ if (btn) btn.disabled=false; out.textContent='Network error reaching the Co-Coach.'; });
+  }
+
+  /* ─── public render (called by TAB('hub')) ────────────────────────────── */
+  function render(){
+    if (typeof window.BBF_IS_HUB_ADMIN==='function' && !window.BBF_IS_HUB_ADMIN()) return;
+    var search=_$('hub-roster-search'), refresh=_$('hub-roster-refresh');
+    if (search && !search._bbfBound){ search._bbfBound=true; search.addEventListener('input', function(){ filterRoster(search.value); }); }
+    if (refresh && !refresh._bbfBound){ refresh._bbfBound=true; refresh.addEventListener('click', function(){ S.selId=null; S.detail=null; var e=_$('hub-detail-empty'), b=_$('hub-detail-body'); if (e) e.hidden=false; if (b){ b.hidden=true; b.innerHTML=''; } loadRoster(); }); }
+    // Load roster once per session unless empty.
+    if (!S.roster.length) loadRoster(); else renderRoster();
+  }
+
+  window.BBF_DATABASE_HUB = { render: render, _loadRoster: loadRoster };
+})();
+
+/* ─── PHASE 5.1 · Hub RBAC gate (mirrors BBF_APPLY_STUDIO_GATE) ─── */
+window.BBF_IS_HUB_ADMIN = function(){
+  try {
+    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
+    if (!uid) return false;
+    if (uid === 'akeem') return true;
+    if (typeof GD === 'function'){
+      var d = GD(); var u = d && d.u && d.u[uid];
+      if (u && (u.role === 'trainer' || u.role === 'admin')) return true;
+    }
+  } catch(_){}
+  return false;
+};
+window.BBF_APPLY_HUB_GATE = function(){
+  try {
+    var isAdmin = window.BBF_IS_HUB_ADMIN();
+    var btn  = document.getElementById('hub-nav-btn');
+    var pane = document.getElementById('tp-hub');
+    if (isAdmin){
+      if (btn) btn.hidden = false;
+      if (!pane && window._bbfHubPaneHolder){
+        var tc = document.querySelector('.tc');
+        if (tc){ tc.appendChild(window._bbfHubPaneHolder); window._bbfHubPaneHolder = null; }
+      }
+    } else {
+      if (btn){ btn.hidden = true; btn.classList.remove('on'); }
+      if (pane){
+        if (pane.classList.contains('on') && typeof TAB === 'function') TAB('home');
+        window._bbfHubPaneHolder = pane;
+        if (pane.parentNode) pane.parentNode.removeChild(pane);
+      }
+    }
+  } catch(_){}
+};
+try { if (document.readyState!=='loading') window.BBF_APPLY_HUB_GATE(); else document.addEventListener('DOMContentLoaded', function(){ try { window.BBF_APPLY_HUB_GATE(); } catch(_){} }); } catch(_){}
 </script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════════════
