@@ -5401,10 +5401,6 @@ window.BBF_APPLY_TRIAL_GATE = function() {
   if (typeof window.BBF_APPLY_STUDIO_GATE === 'function') {
     try { window.BBF_APPLY_STUDIO_GATE(); } catch (_) {}
   }
-  // Phase 5.1 — Client Database Hub admin gate (shares this lifecycle).
-  if (typeof window.BBF_APPLY_HUB_GATE === 'function') {
-    try { window.BBF_APPLY_HUB_GATE(); } catch (_) {}
-  }
 };
 
 // ═════════════════════════════════════════════════════════════════════
@@ -7625,6 +7621,42 @@ window.onload=function(){
     ═════════════════════════════════════════════════════════════════════ -->
     <div class="tp" id="tp-panopticon" role="tabpanel" aria-labelledby="panopticon-title">
       <div id="panopticon-admin-view">
+        <!-- ═════════ PHASE 5.2 · Command Center sub-navigation ═════════
+             Client Hub (database) · Risk Telemetry (Panopticon) · Comlink (leads).
+             The whole subtree is gated by resolvePanopticonRBAC() — the Command
+             Center Liability Gate — so the Hub inherits admin-only protection
+             with no separate gate of its own. -->
+        <div class="cc-subnav" role="tablist" aria-label="Command Center views">
+          <button type="button" class="cc-subtab on" data-cc="hub" role="tab">Client Hub</button>
+          <button type="button" class="cc-subtab" data-cc="risk" role="tab">Risk Telemetry</button>
+          <button type="button" class="cc-subtab" data-cc="comlink" role="tab">Comlink</button>
+        </div>
+
+        <!-- ─── CLIENT HUB view · database roster + Sovereign dossier ─── -->
+        <div class="cc-view on" id="cc-view-hub" role="tabpanel" aria-label="Client Database Hub">
+          <div class="hub-banner" role="status">
+            <span class="hub-pulse" aria-hidden="true"></span>
+            <span>Live Roster &middot; Secure Service-Role Feed &middot; Sovereign Admin Only</span>
+          </div>
+          <div class="hub-wrap">
+            <aside class="hub-roster" aria-label="Client roster">
+              <div class="hub-roster-head">
+                <input type="search" id="hub-roster-search" class="hub-search" placeholder="Search clients…" aria-label="Search clients" autocomplete="off">
+                <button type="button" id="hub-roster-refresh" class="hub-refresh-btn" aria-label="Refresh roster" title="Refresh">&#x21bb;</button>
+              </div>
+              <div class="hub-roster-list" id="hub-roster-list" aria-live="polite">
+                <div class="hub-empty">Loading roster&hellip;</div>
+              </div>
+            </aside>
+            <section class="hub-detail" id="hub-detail" aria-live="polite">
+              <div class="hub-detail-empty" id="hub-detail-empty">Select a client from the roster to open their Sovereign dossier.</div>
+              <div id="hub-detail-body" hidden></div>
+            </section>
+          </div>
+        </div>
+
+        <!-- ─── RISK TELEMETRY view · Sovereign Panopticon ─── -->
+        <div class="cc-view" id="cc-view-risk" role="tabpanel" aria-label="Risk Telemetry">
         <div class="sh"><span class="stt" id="panopticon-title">Sovereign Panopticon</span></div>
         <div class="panopticon-banner" role="status">
           <span class="panopticon-pulse" aria-hidden="true"></span>
@@ -7643,7 +7675,10 @@ window.onload=function(){
         </div>
 
         <div class="panopticon-grid" id="panopticon-grid" aria-live="polite"></div>
+        </div><!-- /cc-view-risk -->
 
+        <!-- ─── COMLINK view · Concierge + Incoming Leads ─── -->
+        <div class="cc-view" id="cc-view-comlink" role="tabpanel" aria-label="Comlink">
         <!-- ═══ SOVEREIGN CONCIERGE · 24/7 lead re-engagement agent ════
              Templated outreach worker that runs daily via pg_cron.
              Scores each pending lead by intake completeness, sends a
@@ -7695,6 +7730,7 @@ window.onload=function(){
         </div>
 
         <div id="bbf-leads-list" class="bbf-leads-list" aria-live="polite"></div>
+        </div><!-- /cc-view-comlink -->
       </div>
 
       <!-- Defensive Access Denied (non-admin direct-link/hash entry) -->
@@ -7705,16 +7741,22 @@ window.onload=function(){
       </div>
     </div>
 
-    <!-- ═════════ PHASE 5.1 · CLIENT DATABASE HUB · ADMIN-ONLY ═════════
-         Strict RBAC mirrors the Panopticon/Studio pattern: the nav button
-         (#hub-nav-btn) is [hidden] for non-admins, and BBF_APPLY_HUB_GATE
-         physically DETACHES this entire pane from a non-admin's DOM. All
-         client data flows through the secure bbf-admin-roster edge function
-         (service-role read + X-BBF-Admin-Token gate) — the browser never
-         reads bbf_users with the anon key. Pure Vanilla JS. ════════════ -->
+    <!-- ═════════ PHASE 5.2 · CLIENT DATABASE HUB styles ═════════
+         The Hub now lives INSIDE the Sovereign Command Center
+         (#panopticon-admin-view → #cc-view-hub), so it inherits the
+         Command Center's resolvePanopticonRBAC() Liability Gate. No
+         separate nav tab, no separate gate. All client data flows
+         through the secure bbf-admin-roster edge function (service-role
+         read + apikey/Authorization + X-BBF-Admin-Token). Vanilla JS. -->
     <style id="bbf-hub-styles">
-      #tp-hub .hub-banner{display:flex;align-items:center;gap:.55rem;padding:.6rem .9rem;margin:.25rem 0 1rem;border:1px solid rgba(106,13,173,.32);border-radius:10px;background:linear-gradient(90deg,rgba(106,13,173,.12),rgba(245,200,0,.06));font-size:.74rem;letter-spacing:.5px;color:#D8A8FF}
-      #tp-hub .hub-pulse{width:9px;height:9px;border-radius:50%;background:#f5c800;box-shadow:0 0 8px rgba(245,200,0,.85);animation:hubPulse 1.8s ease-in-out infinite;flex:0 0 auto}
+      /* Command Center sub-navigation */
+      .cc-subnav{display:flex;gap:.4rem;flex-wrap:wrap;margin:.25rem 0 1rem;border-bottom:1px solid #1e1e1e;padding-bottom:.6rem}
+      .cc-subtab{background:#121212;border:1px solid #242424;border-radius:9px;color:#cfcfcf;padding:.5rem .9rem;font:inherit;font-size:.76rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;cursor:pointer}
+      .cc-subtab:hover{border-color:#6a0dad;color:#D8A8FF}
+      .cc-subtab.on{background:linear-gradient(135deg,#6a0dad,#8b1abf);color:#fff;border-color:#8b1abf}
+      .cc-view{display:none}.cc-view.on{display:block}
+      #cc-view-hub .hub-banner{display:flex;align-items:center;gap:.55rem;padding:.6rem .9rem;margin:.25rem 0 1rem;border:1px solid rgba(106,13,173,.32);border-radius:10px;background:linear-gradient(90deg,rgba(106,13,173,.12),rgba(245,200,0,.06));font-size:.74rem;letter-spacing:.5px;color:#D8A8FF}
+      #cc-view-hub .hub-pulse{width:9px;height:9px;border-radius:50%;background:#f5c800;box-shadow:0 0 8px rgba(245,200,0,.85);animation:hubPulse 1.8s ease-in-out infinite;flex:0 0 auto}
       @keyframes hubPulse{0%,100%{opacity:1}50%{opacity:.35}}
       .hub-wrap{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:1rem;align-items:start}
       @media(max-width:760px){.hub-wrap{grid-template-columns:1fr}}
@@ -7779,35 +7821,6 @@ window.onload=function(){
       .hub-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(245,200,0,.3);border-top-color:#f5c800;border-radius:50%;animation:hubSpin .7s linear infinite;vertical-align:-2px;margin-right:.4rem}
       @keyframes hubSpin{to{transform:rotate(360deg)}}
     </style>
-    <div class="tp" id="tp-hub" role="tabpanel" aria-label="Client Database Hub">
-      <div id="hub-admin-view">
-        <div class="sh"><span class="stt">Client Database Hub</span></div>
-        <div class="hub-banner" role="status">
-          <span class="hub-pulse" aria-hidden="true"></span>
-          <span>Live Roster &middot; Secure Service-Role Feed &middot; Sovereign Admin Only</span>
-        </div>
-        <div class="hub-wrap">
-          <aside class="hub-roster" aria-label="Client roster">
-            <div class="hub-roster-head">
-              <input type="search" id="hub-roster-search" class="hub-search" placeholder="Search clients…" aria-label="Search clients" autocomplete="off">
-              <button type="button" id="hub-roster-refresh" class="hub-refresh-btn" aria-label="Refresh roster" title="Refresh">&#x21bb;</button>
-            </div>
-            <div class="hub-roster-list" id="hub-roster-list" aria-live="polite">
-              <div class="hub-empty">Loading roster&hellip;</div>
-            </div>
-          </aside>
-          <section class="hub-detail" id="hub-detail" aria-live="polite">
-            <div class="hub-detail-empty" id="hub-detail-empty">Select a client from the roster to open their Sovereign dossier.</div>
-            <div id="hub-detail-body" hidden></div>
-          </section>
-        </div>
-      </div>
-      <div id="hub-denied-view" class="pf-denied" hidden role="alert">
-        <div class="pf-denied-ic" aria-hidden="true">&#x1F6AB;</div>
-        <div class="pf-denied-t">Access Denied</div>
-        <div class="pf-denied-s">The Client Database Hub is reserved for the Sovereign administrative tier. Contact the head coach if you believe this is in error.</div>
-      </div>
-    </div>
   </div>
     <!-- ═══ AI STUDIO — Science Hub · Workout Generator · Mindset Engine ═══ -->
     <div class="tp" id="tp-studio" role="tabpanel" aria-label="AI Studio">
@@ -7908,7 +7921,6 @@ window.onload=function(){
     <button class="nv pf-admin-nav" data-tab="studio" id="studio-nav-btn" hidden aria-label="AI Studio · Admin"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span data-lang-key="app-nav-studio">Studio</span></button>
     <button class="nv pf-admin-nav" data-tab="recalibrate" id="pf-admin-nav-btn" hidden aria-label="Sports Admin Console"><svg viewBox="0 0 24 24"><path d="M6 9V6a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3"/><path d="M5 9h14"/><path d="M8 9v3a4 4 0 0 0 8 0V9"/><path d="M10 17v4"/><path d="M14 17v4"/><path d="M9 21h6"/></svg><span>Sports Admin</span></button>
     <button class="nv pf-admin-nav" data-tab="panopticon" id="panopticon-nav-btn" hidden aria-label="Sovereign Panopticon · Command Center"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span>Command</span></button>
-    <button class="nv pf-admin-nav" data-tab="hub" id="hub-nav-btn" hidden aria-label="Client Database Hub · Admin"><svg viewBox="0 0 24 24"><path d="M3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5"/><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="21"/></svg><span>Client Hub</span></button>
   </div>
 
   <!-- ═══ BIOMETRIC YIELD REPORT — Sovereign Clinical Synthesis ═══ -->
@@ -8935,10 +8947,6 @@ function TAB(name) {
   // Phase 4 — re-assert the AI Studio admin gate after every tab switch.
   if (typeof window.BBF_APPLY_STUDIO_GATE === 'function') {
     try { window.BBF_APPLY_STUDIO_GATE(); } catch(_) {}
-  }
-  // Phase 5.1 — re-assert the Client Database Hub admin gate after every tab switch.
-  if (typeof window.BBF_APPLY_HUB_GATE === 'function') {
-    try { window.BBF_APPLY_HUB_GATE(); } catch(_) {}
   }
   // Phase 4.1 — idempotent mount of the Omniscience toggle so the button
   // appears as soon as CU is set post-login (DOMContentLoaded may fire
@@ -27050,6 +27058,10 @@ window.onload = function() {
   function _$(id){ return document.getElementById(id); }
   function _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
   function _supaUrl(){ try { if (typeof window!=='undefined' && window.ENV_SUPABASE_URL) return String(window.ENV_SUPABASE_URL).replace(/\/$/,''); } catch(_){} return 'https://ihclbceghxpuawymlvgi.supabase.co'; }
+  // Supabase anon/publishable key — REQUIRED by the edge gateway to route any
+  // request (even with verify_jwt:false). Phase 5.1 omitted this, so the gateway
+  // 401'd before the function ran (zero invocation logs) and the UI hung. (Fix.)
+  function _anonKey(){ try { if (typeof window!=='undefined' && window.ENV_SUPABASE_KEY) return String(window.ENV_SUPABASE_KEY); } catch(_){} return ''; }
   function _adminToken(){
     try {
       if (typeof window!=='undefined' && window.BBF_COACH_AGENT_TOKEN) return String(window.BBF_COACH_AGENT_TOKEN);
@@ -27060,15 +27072,42 @@ window.onload = function() {
   function _initials(name){ var p=String(name||'?').trim().split(/\s+/); return ((p[0]||'?')[0]+((p[1]||'')[0]||'')).toUpperCase(); }
   function _num(v){ return (v==null||v==='')?'—':String(v); }
 
+  // Human-readable failure message from a normalized _post() result. Used by
+  // every view so the UI surfaces the EXACT failure instead of hanging.
+  function _errMsg(res){
+    if (!res) return 'Network/CORS error — request never reached the server.';
+    if (res._network) return 'Network/CORS error — ' + _esc(res._detail || 'request blocked') + '.';
+    var st = res._status;
+    if (st === 401) return 'Error: 401 Unauthorized — admin token missing or mismatched.';
+    if (st === 403) return 'Error: 403 Forbidden — gateway rejected the request (check apikey).';
+    if (st === 404) return 'Error: 404 — record not found.';
+    if (st === 503) return 'Error: 503 — backend not configured (missing secret).';
+    var slug = (res && res.error) ? _esc(res.error) : 'unknown';
+    return 'Error' + (st ? (' ' + st) : '') + ' — ' + slug + (res && res.detail ? (' (' + _esc(res.detail) + ')') : '') + '.';
+  }
+  function _is401(res){ return !!(res && (res._status === 401 || res.error === 'unauthorized')); }
+
+  // Single POST helper. NEVER rejects — always resolves to a normalized object
+  // carrying { _status, _ok, _network?, _detail?, ...body } so callers can render
+  // a precise error instead of failing silently. Sends the gateway-required
+  // apikey + Authorization headers PLUS the X-BBF-Admin-Token function gate.
   function _post(action, extra){
+    var anon = _anonKey();
     var headers = { 'Content-Type':'application/json' };
+    if (anon){ headers['apikey'] = anon; headers['Authorization'] = 'Bearer ' + anon; }
     var tok = _adminToken();
     if (tok) headers['X-BBF-Admin-Token'] = tok;
     var payload = { action: action };
     if (extra) for (var k in extra){ if (Object.prototype.hasOwnProperty.call(extra,k)) payload[k]=extra[k]; }
     return fetch(_supaUrl()+EP, { method:'POST', headers:headers, body: JSON.stringify(payload) })
-      .then(function(r){ return r.json().catch(function(){ return { error:'bad_response', _status:r.status }; })
-        .then(function(j){ if (j && typeof j==='object') j._status=r.status; return j; }); });
+      .then(function(r){
+        return r.json().catch(function(){ return { error:'bad_response' }; })
+          .then(function(j){ if (!j || typeof j!=='object') j={ error:'bad_response' }; j._status=r.status; j._ok=r.ok; return j; });
+      })
+      .catch(function(e){
+        // Thrown fetch = network failure or CORS preflight block. Surface it.
+        return { _network:true, _detail:(e && e.message) || 'fetch failed', _status:0, _ok:false, error:'network_error' };
+      });
   }
 
   // Inline auth prompt for the admin token (reuses the shared sessionStorage key).
@@ -27091,19 +27130,19 @@ window.onload = function() {
     list.innerHTML = '<div class="hub-empty">Loading roster…</div>';
     _post('roster').then(function(res){
       S.busy = false;
-      if (!res || res.error){
-        if (res && (res._status===401 || res.error==='unauthorized')){
-          list.innerHTML = '<div class="hub-empty">Admin token required.<br><button type="button" class="hub-btn" id="hub-auth-btn" style="margin-top:.6rem">Enter Admin Token</button></div>';
+      if (!res || !res._ok || res.error){
+        if (_is401(res)){
+          list.innerHTML = '<div class="hub-empty">' + _errMsg(res) + '<br><button type="button" class="hub-btn" id="hub-auth-btn" style="margin-top:.6rem">Enter Admin Token</button></div>';
           var ab=_$('hub-auth-btn'); if (ab) ab.onclick=function(){ if (_promptToken()) loadRoster(); };
           return;
         }
-        list.innerHTML = '<div class="hub-empty">Could not load roster ('+_esc((res&&res.error)||'network')+').</div>';
+        list.innerHTML = '<div class="hub-empty">'+_errMsg(res)+'</div>';
         return;
       }
       S.roster = (res.clients||[]).slice();
       S.filtered = S.roster.slice();
       renderRoster();
-    }).catch(function(){ S.busy=false; list.innerHTML='<div class="hub-empty">Network error loading roster.</div>'; });
+    });
   }
 
   function renderRoster(){
@@ -27147,13 +27186,13 @@ window.onload = function() {
     if (empty) empty.hidden = true;
     if (body){ body.hidden = false; body.innerHTML = '<div class="hub-empty"><span class="hub-spin"></span>Pulling dossier…</div>'; }
     _post('detail', { id:id }).then(function(res){
-      if (!res || res.error || !res.client){
-        if (body) body.innerHTML = '<div class="hub-empty">Could not load client ('+_esc((res&&res.error)||'error')+').</div>';
+      if (!res || !res._ok || res.error || !res.client){
+        if (body) body.innerHTML = '<div class="hub-empty">'+_errMsg(res)+'</div>';
         return;
       }
       S.detail = res.client; S.sub = 'nutrition';
       renderDetail();
-    }).catch(function(){ if (body) body.innerHTML='<div class="hub-empty">Network error loading client.</div>'; });
+    });
   }
 
   function renderDetail(){
@@ -27287,14 +27326,14 @@ window.onload = function() {
                 + '<div class="hub-canvas-wrap"><h4>Training Volume · last 90 days (lbs·reps)</h4><canvas id="hub-cv-volume" height="140"></canvas></div>'
                 + '<div class="hub-coach-sub" id="hub-analytics-note">Loading telemetry…</div>';
     _post('analytics', { id:S.detail.id }).then(function(res){
-      if (!res || res.error){ var n=_$('hub-analytics-note'); if (n) n.textContent='Could not load analytics ('+((res&&res.error)||'error')+').'; return; }
+      var n=_$('hub-analytics-note');
+      if (!res || !res._ok || res.error){ if (n) n.textContent=_errMsg(res).replace(/<[^>]*>/g,''); return; }
       var rd = (res.readiness||[]).map(function(r){ return { x:r.t, y:Number(r.score)||0 }; });
       var vol = (res.volume||[]).map(function(v){ return { x:v.date, y:Number(v.volume)||0 }; });
       _drawLine(_$('hub-cv-readiness'), rd, { max:100, min:0, color:'#f5c800' });
       _drawBars(_$('hub-cv-volume'), vol, { color:'#8b1abf' });
-      var n=_$('hub-analytics-note');
       if (n) n.textContent = rd.length||vol.length ? (rd.length+' readiness check-ins · '+vol.length+' training days on record.') : 'No telemetry recorded in the last 90 days.';
-    }).catch(function(){ var n=_$('hub-analytics-note'); if (n) n.textContent='Network error loading analytics.'; });
+    });
   }
 
   function _setup(cv, h){
@@ -27357,14 +27396,14 @@ window.onload = function() {
       btn.disabled=true; if (msg){ msg.style.color='#9a9a9a'; msg.textContent='Saving…'; }
       _post('update_target', payload).then(function(res){
         btn.disabled=false;
-        if (!res || res.error || !res.client){ if (msg){ msg.style.color='#ef4444'; msg.textContent='Failed: '+_esc((res&&res.error)||'error'); } return; }
+        if (!res || !res._ok || res.error || !res.client){ if (msg){ msg.style.color='#ef4444'; msg.textContent=_errMsg(res).replace(/<[^>]*>/g,''); } return; }
         // Sync local state + macro bar.
         c.tdee_target=res.client.tdee_target; c.macro_p=res.client.macro_p; c.macro_c=res.client.macro_c; c.macro_f=res.client.macro_f;
         var idx; for (var i=0;i<S.roster.length;i++){ if (S.roster[i].id===c.id){ S.roster[i].tdee_target=c.tdee_target; } }
         if (msg){ msg.style.color='#22c55e'; msg.textContent='Target updated.'; }
         var mb=document.querySelector('#hub-detail-body .hub-macrobar');
         if (mb){ var vs=mb.querySelectorAll('.hub-macro .v'); if (vs.length===4){ vs[0].textContent=_num(c.tdee_target); vs[1].textContent=_num(c.macro_p); vs[2].textContent=_num(c.macro_c); vs[3].textContent=_num(c.macro_f); } }
-      }).catch(function(){ btn.disabled=false; if (msg){ msg.style.color='#ef4444'; msg.textContent='Network error.'; } });
+      });
     });
   }
 
@@ -27379,17 +27418,20 @@ window.onload = function() {
     out.innerHTML='<span class="hub-spin"></span>Co-Coach is analyzing…';
     _post('coach', { id:S.detail.id, question:q }).then(function(res){
       if (btn) btn.disabled=false;
-      if (!res || res.error || !res.answer){
-        out.textContent = 'Co-Coach unavailable ('+((res&&res.error)||'error')+').';
+      if (!res || !res._ok || res.error || !res.answer){
+        out.textContent = 'Co-Coach unavailable — ' + _errMsg(res).replace(/<[^>]*>/g,'');
         return;
       }
       out.textContent = res.answer;
-    }).catch(function(){ if (btn) btn.disabled=false; out.textContent='Network error reaching the Co-Coach.'; });
+    });
   }
 
-  /* ─── public render (called by TAB('hub')) ────────────────────────────── */
+  /* ─── render the Client Hub view (roster + dossier) ──────────────────────
+     Phase 5.2 — the Hub lives inside the Sovereign Command Center
+     (#panopticon-admin-view), which is already gated by resolvePanopticonRBAC().
+     So there is NO separate hub RBAC gate here — if the Command Center is
+     visible, the user is admin. We just (idempotently) bind controls and load. */
   function render(){
-    if (typeof window.BBF_IS_HUB_ADMIN==='function' && !window.BBF_IS_HUB_ADMIN()) return;
     var search=_$('hub-roster-search'), refresh=_$('hub-roster-refresh');
     if (search && !search._bbfBound){ search._bbfBound=true; search.addEventListener('input', function(){ filterRoster(search.value); }); }
     if (refresh && !refresh._bbfBound){ refresh._bbfBound=true; refresh.addEventListener('click', function(){ S.selId=null; S.detail=null; var e=_$('hub-detail-empty'), b=_$('hub-detail-body'); if (e) e.hidden=false; if (b){ b.hidden=true; b.innerHTML=''; } loadRoster(); }); }
@@ -27397,44 +27439,51 @@ window.onload = function() {
     if (!S.roster.length) loadRoster(); else renderRoster();
   }
 
-  window.BBF_DATABASE_HUB = { render: render, _loadRoster: loadRoster };
-})();
+  /* ─── Command Center sub-navigation (Client Hub | Risk Telemetry | Comlink) ──
+     Wires the sub-tabs once. Switching to the Client Hub triggers render();
+     Risk + Comlink are pre-existing surfaces (Panopticon grid + Leads), whose
+     own refresh handlers already populate them. Idempotent. */
+  function mountSubnav(){
+    var subnav = document.querySelector('.cc-subnav');
+    if (!subnav || subnav._bbfBound) return;
+    subnav._bbfBound = true;
+    var tabs = subnav.querySelectorAll('.cc-subtab');
+    function show(which){
+      for (var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-cc')===which); }
+      ['hub','risk','comlink'].forEach(function(v){ var el=_$('cc-view-'+v); if (el) el.classList.toggle('on', v===which); });
+      if (which==='hub') render();
+    }
+    for (var i=0;i<tabs.length;i++){ (function(t){ t.addEventListener('click', function(){ show(t.getAttribute('data-cc')); }); })(tabs[i]); }
+  }
 
-/* ─── PHASE 5.1 · Hub RBAC gate (mirrors BBF_APPLY_STUDIO_GATE) ─── */
-window.BBF_IS_HUB_ADMIN = function(){
-  try {
-    var uid = (typeof VC !== 'undefined' && VC) || (typeof CU !== 'undefined' && CU) || null;
-    if (!uid) return false;
-    if (uid === 'akeem') return true;
-    if (typeof GD === 'function'){
-      var d = GD(); var u = d && d.u && d.u[uid];
-      if (u && (u.role === 'trainer' || u.role === 'admin')) return true;
+  // Auto-render the Hub whenever the Command Center tab (#tp-panopticon)
+  // activates, mirroring the panopticon portal's own MutationObserver. This is
+  // what makes the roster actually fetch — Phase 5.1's missing TAB() wiring was
+  // a root cause of the silent "Loading roster…" hang.
+  function observeCommandCenter(){
+    var pane = document.getElementById('tp-panopticon');
+    if (!pane || pane._bbfHubObserved) return;
+    pane._bbfHubObserved = true;
+    mountSubnav();
+    if (pane.classList.contains('on')) { var h=_$('cc-view-hub'); if (h && h.classList.contains('on')) render(); }
+    if ('MutationObserver' in window){
+      new MutationObserver(function(muts){
+        for (var i=0;i<muts.length;i++){
+          if (muts[i].attributeName==='class' && pane.classList.contains('on')){
+            mountSubnav();
+            var hub=_$('cc-view-hub');
+            if (hub && hub.classList.contains('on')) render();
+            break;
+          }
+        }
+      }).observe(pane, { attributes:true, attributeFilter:['class'] });
     }
-  } catch(_){}
-  return false;
-};
-window.BBF_APPLY_HUB_GATE = function(){
-  try {
-    var isAdmin = window.BBF_IS_HUB_ADMIN();
-    var btn  = document.getElementById('hub-nav-btn');
-    var pane = document.getElementById('tp-hub');
-    if (isAdmin){
-      if (btn) btn.hidden = false;
-      if (!pane && window._bbfHubPaneHolder){
-        var tc = document.querySelector('.tc');
-        if (tc){ tc.appendChild(window._bbfHubPaneHolder); window._bbfHubPaneHolder = null; }
-      }
-    } else {
-      if (btn){ btn.hidden = true; btn.classList.remove('on'); }
-      if (pane){
-        if (pane.classList.contains('on') && typeof TAB === 'function') TAB('home');
-        window._bbfHubPaneHolder = pane;
-        if (pane.parentNode) pane.parentNode.removeChild(pane);
-      }
-    }
-  } catch(_){}
-};
-try { if (document.readyState!=='loading') window.BBF_APPLY_HUB_GATE(); else document.addEventListener('DOMContentLoaded', function(){ try { window.BBF_APPLY_HUB_GATE(); } catch(_){} }); } catch(_){}
+  }
+  if (document.readyState!=='loading') observeCommandCenter();
+  else document.addEventListener('DOMContentLoaded', observeCommandCenter);
+
+  window.BBF_DATABASE_HUB = { render: render, _loadRoster: loadRoster, _mount: observeCommandCenter };
+})();
 </script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════════════
