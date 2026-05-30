@@ -3376,6 +3376,16 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .ags-warm .h,.ags-cool .h{font-size:.58rem;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:.45rem}
 .ags-warm .h{color:var(--yel)}.ags-cool .h{color:#3b82f6}
 .ags-warm ul,.ags-cool ul{margin:0;padding-left:1.1rem;font-size:.8rem;line-height:1.7;color:rgba(255,255,255,.78)}
+/* Phase 4 · UI Transfusion — form-video thumbnail grafted onto the client
+   Program .eh exercise header. Additive; .eh stays display:flex. */
+.eh-vid{flex-shrink:0;width:60px;height:44px;border-radius:4px;background:#000;border:1px solid rgba(245,200,0,.4);display:block;position:relative;overflow:hidden;text-decoration:none;margin-right:.8rem}
+.eh-vid img{width:100%;height:100%;object-fit:cover;opacity:.82;display:block}
+.eh-vid::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:0;height:0;border-left:12px solid var(--yel);border-top:7px solid transparent;border-bottom:7px solid transparent;filter:drop-shadow(0 0 2px #000)}
+.eh-vid:hover{border-color:var(--yel);box-shadow:0 0 0 1px var(--yel)}
+.eh-vid:hover img{opacity:1}
+.eh-vid.novid{border-style:dashed;border-color:rgba(255,255,255,.18)}
+.eh-vid.novid::after{border-left-color:rgba(255,255,255,.28)}
+.eh-main{flex:1;min-width:0}
 </style>
 <script src="bbf-lang.js"></script>
 <script src="bbf-plan-i18n.js"></script>
@@ -19853,6 +19863,26 @@ var BBF_OMNISCIENCE_TOGGLE = (function() {
 })();
 
 // ─── WORKOUT ──────────────────────────────────────────────
+// Phase 4 · UI Transfusion — global video-thumbnail helper for the client
+// Program tab. Reads window.BBF_VIDEO_MAP (the locked hardwired map). Returns
+// a clickable thumbnail tile for the .eh exercise header, or a dashed
+// placeholder when an exercise has no mapped form video. Additive only —
+// does not touch any existing .eh data-binding.
+function BBF_EX_THUMB_HTML(exName) {
+  try {
+    var map = window.BBF_VIDEO_MAP || {};
+    var id = map[exName] || null;
+    if (id) {
+      var watch = 'https://www.youtube.com/watch?v=' + id;
+      var thumb = 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg';
+      return '<a class="eh-vid" href="' + watch + '" target="_blank" rel="noopener" ' +
+        'onclick="event.stopPropagation();" aria-label="Form demo: ' + String(exName).replace(/"/g,'&quot;') + '">' +
+        '<img src="' + thumb + '" alt="" loading="lazy" referrerpolicy="no-referrer"></a>';
+    }
+  } catch (_) {}
+  return '<span class="eh-vid novid" aria-hidden="true"></span>';
+}
+
 function RW() {
   var nav = document.getElementById('dnav');
   var con = document.getElementById('wcon');
@@ -19999,6 +20029,12 @@ function RDW() {
   h += '<button type="button" class="dbtn" style="margin-top:.2rem;margin-bottom:.9rem" ' +
     'onclick="if(window.BBF_ACTIVE_SESSION)BBF_ACTIVE_SESSION.open();">&#x25B6; ' +
     _t('app-ags-startday','Start Day') + '</button>';
+  // Phase 4 · UI Transfusion — Evidence-Based Dynamic Warm-Up card (mirrors the
+  // Active Session). Static guidance; no new bindings.
+  h += '<div class="ags-warm" style="margin-bottom:.9rem"><div class="h">' + _t('app-ags-warmup','Evidence-Based Dynamic Warm-Up') + '</div><ul>' +
+    '<li>' + _t('app-ags-warm1','5 min easy cardio — raise core temperature') + '</li>' +
+    '<li>' + _t('app-ags-warm2','Dynamic mobility for today’s primary joints') + '</li>' +
+    '<li>' + _t('app-ags-warm3','2 light ramp-up sets on your first lift') + '</li></ul></div>';
   // Phase 11 — BBF_CNS_AGENT banner replaces the legacy readiness
   // banner at the top of the workout day. Single unified high-signal
   // surface: zone + score + mentor coaching + today's adjustments.
@@ -20052,7 +20088,11 @@ function RDW() {
     // KFH HUD listener (L13474 + #kfh-ex-name binder L6214) resolves
     // the catalog entry correctly; the visible .en text node gets the
     // translated label via _trEx().
-    h += '<div class="eb"><div class="eh" data-ex-name="' + exName.replace(/"/g,'&quot;') + '" onclick="TEX(this)"><div><div class="en">' + _trEx(exName) + shiftBadge + '</div>' +
+    // Phase 4 · UI Transfusion — graft the form-video thumbnail into the .eh
+    // header (first flex child). The data-ex-name, onclick="TEX(this)", .en,
+    // .em and .ec bindings are preserved verbatim so KFH, autoreg, RPE, the
+    // expand toggle and every other subsystem keep their DOM contract.
+    h += '<div class="eb"><div class="eh" data-ex-name="' + exName.replace(/"/g,'&quot;') + '" onclick="TEX(this)">' + BBF_EX_THUMB_HTML(exName) + '<div class="eh-main"><div class="en">' + _trEx(exName) + shiftBadge + '</div>' +
       '<div class="em">' + _trEq(exEquip) + ' &middot; ' + exSets + ' sets &times; ' + exReps + '</div></div>' +
       '<div class="ec">&#9662;</div></div><div class="ebody">';
     h += '<button class="aud-btn" onclick="event.stopPropagation();if(typeof BBF_AUDITOR!==\'undefined\')BBF_AUDITOR.trigger(\'' + ex.name.replace(/'/g,"\\'") + '\',function(r){if(typeof LOG_AUDIT_ENTRY===\'function\')LOG_AUDIT_ENTRY(\'' + uid + '\',r);TOAST(\'🧪 Audit logged: \'+r.areaLabel)})">&#x1F9EA; AUDIT FORM</button>';
@@ -20144,6 +20184,12 @@ function RDW() {
     }
     h += '</div></div>';
   });
+  // Phase 4 · UI Transfusion — Static Cool-Down card after the exercise list
+  // (mirrors the Active Session). Sits above the Mark Session Complete button.
+  h += '<div class="ags-cool" style="margin-top:.4rem;margin-bottom:.4rem"><div class="h">' + _t('app-ags-cooldown','Static Cool-Down') + '</div><ul>' +
+    '<li>' + _t('app-ags-cool1','Hold each stretch 30s on the muscles trained') + '</li>' +
+    '<li>' + _t('app-ags-cool2','Nasal breathing to down-regulate the nervous system') + '</li>' +
+    '<li>' + _t('app-ags-cool3','Hydrate + log how the session felt') + '</li></ul></div>';
   // Readiness gate · Admin Master Key. Clients can't mark a session
   // complete until they've logged today's Morning Lab Audit, but the
   // trainer/admin (viewing via VC) is allowed to FORCE COMPLETE so
