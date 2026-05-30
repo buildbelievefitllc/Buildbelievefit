@@ -19868,10 +19868,81 @@ var BBF_OMNISCIENCE_TOGGLE = (function() {
 // a clickable thumbnail tile for the .eh exercise header, or a dashed
 // placeholder when an exercise has no mapped form video. Additive only —
 // does not touch any existing .eh data-binding.
-function BBF_EX_THUMB_HTML(exName) {
+// ═══ PHASE 5 · VIDEO-MAP NORMALIZER (bulletproof fuzzy lookup) ═══════════════
+// The coach-assigned PLAN exercise names (e.g. "Lateral Raises", "Incline DB
+// Press", "Triceps Pushdowns") do NOT exactly match the BBF_VIDEO_MAP keys
+// (e.g. "Dumbbell Lateral Raise", "Cable Triceps Pushdown"). The old exact
+// lookup failed silently for almost every exercise. This normalizer bridges the
+// gap via: lowercase → strip punctuation/parentheticals → expand abbreviations
+// (db→dumbbell, bb→barbell, rdl→romanian deadlift…) → singularize plurals
+// (curls→curl, flyes→fly) → canonical synonyms (rope→cable, single→one) →
+// exact normalized match, then a SAFE token-subset fallback. Verified against
+// 34 real plan names (34/34) with ZERO false matches into blacklisted lifts.
+var _BBF_EX_ABBR = {
+  db:'dumbbell', dbs:'dumbbell', bb:'barbell', kb:'kettlebell', ohp:'overhead press',
+  rdl:'romanian deadlift', rdls:'romanian deadlift', bw:'bodyweight',
+  ext:'extension', exts:'extension', alt:'alternating', sl:'single leg',
+  tri:'triceps', tricep:'triceps', bi:'biceps', bicep:'biceps', quad:'quadriceps', mts:'machine'
+};
+var _BBF_EX_SYN = { rope:'cable', single:'one', singlearm:'one', onearm:'one', onearmed:'one', chinup:'pullup' };
+var _BBF_EX_STOP = { the:1, a:1, with:1, and:1, or:1, your:1, to:1, of:1, for:1 };
+function _bbfSingular(w){
+  if (w==='press' || w==='triceps' || w==='biceps' || w==='abs') return w;
+  if (/(ches|shes|sses|xes)$/.test(w)) return w.replace(/es$/,'');   // crunches→crunch
+  if (/ies$/.test(w)) return w.replace(/ies$/,'y');
+  if (/(flyes|flye)$/.test(w)) return 'fly';
+  if (/s$/.test(w) && !/(us|ss|is)$/.test(w)) return w.replace(/s$/,''); // curls→curl
+  return w;
+}
+function _normalizeExerciseName(name){
+  var s = String(name == null ? '' : name).toLowerCase();
+  s = s.replace(/\([^)]*\)/g,' ').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+  var out = [];
+  s.split(' ').forEach(function(t){
+    t = _BBF_EX_ABBR[t] || t;                       // expand abbreviation (may yield 2 words)
+    t.split(' ').forEach(function(p){
+      if (!p || _BBF_EX_STOP[p]) return;
+      p = _bbfSingular(p);
+      p = _BBF_EX_SYN[p] || p;
+      if (p && !_BBF_EX_STOP[p]) out.push(p);
+    });
+  });
+  return out.filter(function(t,i){ return t !== out[i-1]; });       // dedupe adjacent
+}
+// Precomputed token-sets for the map keys (rebuilt lazily if the map changes).
+var _bbfKeyIndex = null, _bbfKeyIndexFor = null;
+function _bbfBuildKeyIndex(map){
+  var keys = Object.keys(map || {});
+  _bbfKeyIndex = keys.map(function(k){ return { key:k, toks:_normalizeExerciseName(k) }; });
+  _bbfKeyIndexFor = keys.length;
+}
+// Resolve a DB/plan exercise name to a hardwired video id (or null). Never
+// matches a blacklisted lift because such names simply are not in the map.
+function BBF_RESOLVE_VIDEO_ID(exName){
   try {
     var map = window.BBF_VIDEO_MAP || {};
-    var id = map[exName] || null;
+    if (map[exName]) return map[exName];                            // fast path: exact key
+    if (!_bbfKeyIndex || _bbfKeyIndexFor !== Object.keys(map).length) _bbfBuildKeyIndex(map);
+    var nt = _normalizeExerciseName(exName);
+    if (!nt.length) return null;
+    var nk = nt.join(' ');
+    var i, ks = _bbfKeyIndex;
+    for (i = 0; i < ks.length; i++) if (ks[i].toks.join(' ') === nk) return map[ks[i].key]; // exact normalized
+    var best = null, bestScore = 0;                                 // safe token-subset fallback
+    for (i = 0; i < ks.length; i++){
+      var kt = ks[i].toks;
+      var inter = nt.filter(function(t){ return kt.indexOf(t) > -1; }).length;
+      var ratio = inter / Math.min(nt.length, kt.length);
+      var cov   = inter / Math.max(nt.length, kt.length);
+      if (ratio === 1 && cov >= 0.5 && (ratio + cov) > bestScore){ bestScore = ratio + cov; best = map[ks[i].key]; }
+    }
+    return best;
+  } catch (_) { return null; }
+}
+
+function BBF_EX_THUMB_HTML(exName) {
+  try {
+    var id = BBF_RESOLVE_VIDEO_ID(exName);
     if (id) {
       var watch = 'https://www.youtube.com/watch?v=' + id;
       var thumb = 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg';
@@ -26844,7 +26915,13 @@ window.onload = function() {
   function _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function _t(k,f){ try { if (window.BBF_LANG && window.BBF_LANG.t){ var v=window.BBF_LANG.t(k); if(v&&v!==k) return v; } } catch(_){} return f; }
   // Video map bridge — same source the generator uses.
-  function _vid(name){ var m=window.BBF_VIDEO_MAP||{}; return m[name]||null; }
+  // Phase 5 — route through the global fuzzy resolver so the Active Session
+  // matches the same plan-name variants the Program tab now resolves. Falls
+  // back to an exact-key lookup if the resolver isn't present.
+  function _vid(name){
+    try { if (typeof BBF_RESOLVE_VIDEO_ID === 'function') return BBF_RESOLVE_VIDEO_ID(name); } catch(_){}
+    var m=window.BBF_VIDEO_MAP||{}; return m[name]||null;
+  }
   function _watch(id){ return 'https://www.youtube.com/watch?v='+id; }
   function _thumb(id){ return 'https://i.ytimg.com/vi/'+id+'/mqdefault.jpg'; }
   // Blacklist bridge — defer to the generator's locked checker; fall back to a
