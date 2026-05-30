@@ -27374,6 +27374,7 @@ window.onload = function() {
     if (!ta || !out) return;
     var q=String(ta.value||'').trim();
     if (!q){ out.textContent='Type a question for the Co-Coach.'; return; }
+    if (!S.detail || !S.detail.id){ out.textContent='Select a client first.'; return; }
     if (btn) btn.disabled=true;
     out.innerHTML='<span class="hub-spin"></span>Co-Coach is analyzing…';
     _post('coach', { id:S.detail.id, question:q }).then(function(res){

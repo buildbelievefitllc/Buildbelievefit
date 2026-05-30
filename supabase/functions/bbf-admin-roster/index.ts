@@ -105,7 +105,61 @@ async function geminiCoach(prompt: string) {
   return { text, model: GEMINI_MODEL };
 }
 
-function buildCoachPrompt(client: Record<string, unknown> | null, question: string): string {
+// Compact LIVE telemetry summary for the agentic Co-Coach context:
+// readiness trend (bbf_readiness) + recent training volume (bbf_sets⋈bbf_logs).
+// Pulled server-side with the service role so the agent reasons on real data,
+// never on browser-supplied claims.
+async function fetchTelemetry(id: string) {
+  const since = new Date(Date.now() - 90 * 864e5).toISOString();
+  let readiness: any[] = [];
+  let sets: any[] = [];
+  try {
+    readiness = await pgGet(
+      `bbf_readiness?select=score,timestamp&user_id=eq.${encodeURIComponent(id)}` +
+      `&timestamp=gte.${since}&order=timestamp.asc`,
+    );
+  } catch (_) { /* readiness optional */ }
+  try {
+    sets = await pgGet(
+      `bbf_sets?select=weight_lbs,reps,bbf_logs!inner(date)&user_id=eq.${encodeURIComponent(id)}`,
+    );
+  } catch (_) { /* sets optional */ }
+
+  const scores = (Array.isArray(readiness) ? readiness : [])
+    .map((r) => Number(r.score) || 0).filter((n) => n > 0);
+  const n = scores.length;
+  const avg = n ? Math.round(scores.reduce((a, b) => a + b, 0) / n) : null;
+  const last = n ? scores[n - 1] : null;
+  const last7 = scores.slice(-7);
+  const prev7 = scores.slice(-14, -7);
+  const a7 = last7.length ? last7.reduce((a, b) => a + b, 0) / last7.length : null;
+  const p7 = prev7.length ? prev7.reduce((a, b) => a + b, 0) / prev7.length : null;
+  const trend = (a7 != null && p7 != null)
+    ? (a7 > p7 + 1 ? 'improving' : a7 < p7 - 1 ? 'declining' : 'flat')
+    : 'insufficient_data';
+
+  const volByDay: Record<string, number> = {};
+  for (const s of (Array.isArray(sets) ? sets : [])) {
+    const d = s?.bbf_logs?.date;
+    if (!d || d < since.slice(0, 10)) continue;
+    volByDay[d] = (volByDay[d] || 0) + (Number(s.weight_lbs) || 0) * (Number(s.reps) || 0);
+  }
+  const days = Object.keys(volByDay).sort();
+
+  return {
+    readiness: { checkins_90d: n, avg_score: avg, last_score: last, trend_7d_vs_prior_7d: trend },
+    training: {
+      days_logged_90d: days.length,
+      last7_daily_volume: days.slice(-7).map((d) => Math.round(volByDay[d])),
+    },
+  };
+}
+
+function buildCoachPrompt(
+  client: Record<string, unknown> | null,
+  question: string,
+  telemetry: unknown = null,
+): string {
   const ctx = {
     name: client?.name ?? 'the client',
     role: client?.role ?? 'client',
@@ -121,6 +175,7 @@ function buildCoachPrompt(client: Record<string, unknown> | null, question: stri
     allergens: client?.allergens ?? [],
     nutrition_plan: client?.nutrition_plan ?? null,
     workout_plan: client?.workout_plan ?? null,
+    live_telemetry: telemetry ?? null,
   };
   return [
     'You are the BBF Co-Coach, an evidence-based strength & conditioning assistant.',
@@ -128,6 +183,8 @@ function buildCoachPrompt(client: Record<string, unknown> | null, question: stri
     'Be concise, specific, and actionable. Reference the actual data you used.',
     'Never discuss backend systems, models, databases, or internal tooling.',
     'If macro targets or plans are missing, say so plainly and recommend a next step.',
+    'Weigh the live_telemetry block (CNS readiness trend + recent training volume) when',
+    'assessing recovery, overtraining risk, and whether load/macros should change.',
     '',
     'CLIENT CONTEXT (JSON):',
     JSON.stringify(ctx, null, 2),
@@ -300,8 +357,12 @@ serve(async (req) => {
         );
         client = Array.isArray(rows) && rows.length ? rows[0] : null;
       }
-      const { text, model } = await geminiCoach(buildCoachPrompt(client, question));
-      return jsonResponse({ ok: true, provider: 'gemini', model, answer: text });
+      // Agentic enrichment — fold LIVE readiness + training-volume telemetry into
+      // the prompt so the Co-Coach reasons on the client's real recent state.
+      let telemetry: unknown = null;
+      if (body?.id) { try { telemetry = await fetchTelemetry(String(body.id)); } catch (_) { /* non-fatal */ } }
+      const { text, model } = await geminiCoach(buildCoachPrompt(client, question, telemetry));
+      return jsonResponse({ ok: true, provider: 'gemini', model, answer: text, telemetry });
     }
 
     return jsonResponse({ error: 'unknown_action', detail: action }, 400);
