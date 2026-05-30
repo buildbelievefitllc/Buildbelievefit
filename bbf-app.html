@@ -26558,8 +26558,13 @@ window.onload = function() {
     // ─── HARDWIRED VIDEO MAP (CEO Sovereign standard) — exact YouTube IDs only ───
     // Sourced from the live search index, exact-title matched, reputable channels
     // (ATHLEAN-X, NASM, Renaissance Periodization, ScottHerman, Mind Pump, Buff Dudes…).
-    // Extend in one line: window.BBF_VIDEO_MAP['Exercise Name'] = '<youtubeId>';
+    // Phase 6 expansion: extended from the core 37 to the full seeded-program library
+    // so the normalizer (BBF_RESOLVE_VIDEO_ID) resolves a video for every coach-
+    // assigned exercise. Keys include canonical names AND the exact plan-name
+    // spellings the fuzzy layer cannot bridge. Blacklisted lifts (barbell back
+    // squat, crunches) are intentionally absent. Extend in one line.
     window.BBF_VIDEO_MAP = window.BBF_VIDEO_MAP || {
+      // ─── CORE 37 (Phase 2 hardwired) ───
       'Barbell Bench Press':'vthMCtgVtFw','Incline Dumbbell Press':'awEEyL5zGvU','Machine Chest Press':'pLofEAcfsO8','Push-Up':'uXC_3Gs9Yr0','Cable Chest Fly':'ovFc-5YdcXw',
       'Lat Pulldown':'CAwf7n6Luuc','Seated Cable Row':'EU7bOadUsNI','One-Arm Dumbbell Row':'pYcpY20QaE8','Pull-Up':'rmdn5X_KLkY','Barbell Bent-Over Row':'rqTOAM8WoeM',
       'Dumbbell Shoulder Press':'E9ShwbwZ1zw','Dumbbell Lateral Raise':'4hTUCDUQaNA','Cable Face Pull':'ljgqer1ZpXg','Band Pull-Apart':'smSSXITNpCI',
@@ -26569,7 +26574,21 @@ window.onload = function() {
       'Dumbbell Romanian Deadlift':'aa57T45iFSE','Seated Leg Curl':'S367qaHeYWU',
       'Barbell Hip Thrust':'S_uZP4UH6J0','Dumbbell Hip Thrust':'29OfN4ztW_g','Glute Bridge':'8bbE64NuDTU','Cable Pull-Through':'yXopOhzEoeo',
       'Standing Calf Raise':'SVtg-1loH4c',
-      'Front Plank':'mwlp75MS6Rg','Side Plank':'Ujf5ELfqI7o','Hanging Leg Raise':'Pr1ieGZ5atk','Cable Woodchop':'Gwcf4TOj1hc','Dead Bug':'bxn9FBrt4-A'
+      'Front Plank':'mwlp75MS6Rg','Side Plank':'Ujf5ELfqI7o','Hanging Leg Raise':'Pr1ieGZ5atk','Cable Woodchop':'Gwcf4TOj1hc','Dead Bug':'bxn9FBrt4-A',
+      // ─── EXPANSION (Phase 6 · seeded-library coverage) · chest/press ───
+      'Cable Crossover':'JUDTGZh4rhg','Dumbbell Fly':'eozdVDA78K0','Machine Chest Fly':'hZ0CGRaKwbQ','Incline Barbell Bench Press':'jPLdzuHckI8','Close-Grip Bench Press':'cXbSJHtjrQQ','Dumbbell Chest Press':'jRUC6IVav30','DB Flat Bench Press':'jRUC6IVav30',
+      // shoulders
+      'Overhead Press':'a81SaIpjGlA','Dumbbell Overhead Press':'1jYq9QQEWqE','Dumbbell Front Raise':'-t7fuZ0KhDA',
+      // biceps
+      'Barbell Curl':'JJB8XgKltA8','Preacher Curl':'fIWP-FRFNU0','Concentration Curl':'Jvj2wV0vOYU',
+      // triceps
+      'Overhead Triceps Extension':'DZgpCf5alfI','Triceps Dip':'U7HeutDqS_w',
+      // legs / posterior
+      'Hack Squat':'hglQExHCM9Q','Barbell Deadlift':'GxsLrTzyGUU','Lying Leg Curl':'vl5nUdE9mWM','Hamstring Curls':'vl5nUdE9mWM','Seated Calf Raise':'ORY-ke6vcgk',
+      // glutes / posterior chain
+      'Hip Abduction Machine':'OjI5OpV6IWA','Hip Abductors':'OjI5OpV6IWA','Abductor Machine':'OjI5OpV6IWA','Back Extension':'gLT-WLH84B4','Cable Hip Extension':'yXopOhzEoeo','Cable Glute Kickback':'bVrmtCI00Ys','Reverse Kickbacks':'bVrmtCI00Ys',
+      // core / misc
+      'Bird Dog':'ZdAHe9_HeEw','Russian Twist':'wkD8rjkodUI','Heel Tap':'jfXcyLTuKP4','MTS Pulldown':'CAwf7n6Luuc'
     };
     // Library is intentionally aligned 1:1 with the video map — every movement here has a
     // hardwired demo. Add a new exercise ONLY after adding its verified video id above.
