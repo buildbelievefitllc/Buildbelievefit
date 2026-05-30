@@ -24949,8 +24949,38 @@ function saveSetToSession(dk,ek,s,f,v){
 
 
 // ─── SERVICE WORKER ──────────────────────────────────────
+// Hardened update flow (v227): on every deploy we (a) register, (b) poll for an
+// updated sw.js, (c) tell a freshly-installed worker to skipWaiting, and
+// (d) reload exactly once when the new worker takes control — so a cache-key
+// bump reaches the live floor on the NEXT load instead of the one after.
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(function() {});
+  (function() {
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+      // Poke for an update on load, and whenever the tab regains focus.
+      try { reg.update(); } catch (_) {}
+      window.addEventListener('focus', function() { try { reg.update(); } catch (_) {} });
+      function promote(worker) {
+        if (!worker) return;
+        worker.addEventListener('statechange', function() {
+          // A new worker has installed while an old one controls the page →
+          // activate it now so the controllerchange handler above can reload.
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            try { worker.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
+          }
+        });
+      }
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        try { reg.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
+      }
+      reg.addEventListener('updatefound', function() { promote(reg.installing); });
+    }).catch(function() {});
+  })();
 }
 window.onload = function() {
   var b = document.getElementById('ebtn');

@@ -14,7 +14,7 @@
 // The prior version cached ALL successful GETs, including PostgREST
 // rows. That left clients pinned to stale workout sets / dietary
 // fields / meal plans for the lifetime of the cache entry. Closed.
-var CACHE = 'bbf-v226';
+var CACHE = 'bbf-v227';
 var CORE  = ['/bbf-app.html', '/manifest.json', '/bbf-icon-192.png', '/bbf-icon-512.png', '/bbf-apple-touch-180.jpg', '/bbf-photo.jpg'];
 
 // Hosts that serve dynamic data — NEVER cache anything from these.
@@ -45,10 +45,26 @@ function isDynamic(url) {
 }
 
 // ─── INSTALL ─────────────────────────────────────────────────
+// v227 fix: the app shell (bbf-app.html + manifest) is fetched NETWORK-FIRST
+// at install with cache:'reload', so a version bump can never seed the new
+// cache with a stale shell from the HTTP/SW cache. Without this, the prior
+// stale-while-revalidate fetch handler would serve the OLD bbf-app.html on the
+// first load after a deploy — which is exactly why the AI Studio nav button +
+// #tp-studio pane appeared "missing" on the live floor even though the markup
+// was correct and the cache key had bumped.
+var SHELL = ['/bbf-app.html', '/manifest.json'];
 self.addEventListener('install', function(e) {
   e.waitUntil(
     caches.open(CACHE).then(function(c) {
-      return c.addAll(CORE);
+      // Force-revalidate the shell against the network (bypass HTTP cache),
+      // then add the remaining core assets best-effort.
+      var shellFresh = Promise.all(SHELL.map(function(url) {
+        return fetch(new Request(url, { cache: 'reload' }))
+          .then(function(res) { if (res && res.ok) return c.put(url, res.clone()); })
+          .catch(function() {});
+      }));
+      var restCached = c.addAll(CORE.filter(function(u) { return SHELL.indexOf(u) === -1; })).catch(function() {});
+      return Promise.all([shellFresh, restCached]);
     }).catch(function() {})
   );
   self.skipWaiting();
