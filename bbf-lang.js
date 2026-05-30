@@ -891,7 +891,34 @@ var D = {
 'app-mind-affirm':  { en:'Daily Affirmation', es:'Afirmación Diaria', pt:'Afirmação Diária' },
 'app-mind-focus':   { en:'Focus Strategy', es:'Estrategia de Enfoque', pt:'Estratégia de Foco' },
 'app-mind-viz':     { en:'Visualization Drill', es:'Ejercicio de Visualización', pt:'Exercício de Visualização' },
-'app-mind-next':    { en:'Next ›', es:'Siguiente ›', pt:'Próximo ›' }
+'app-mind-next':    { en:'Next ›', es:'Siguiente ›', pt:'Próximo ›' },
+
+// ─── ACTIVE GYM SESSION (Phase 4 live tracker) ───
+'app-ags-startday':      { en:'Start Day', es:'Iniciar Día', pt:'Iniciar Dia' },
+'app-ags-kicker':        { en:'Active Session', es:'Sesión Activa', pt:'Sessão Ativa' },
+'app-ags-rest':          { en:'Rest', es:'Descanso', pt:'Descanso' },
+'app-ags-start-rest':    { en:'Start Rest', es:'Iniciar Descanso', pt:'Iniciar Descanso' },
+'app-ags-pause-rest':    { en:'Pause', es:'Pausar', pt:'Pausar' },
+'app-ags-rest-over':     { en:'Rest complete — next set', es:'Descanso completo — siguiente serie', pt:'Descanso completo — próxima série' },
+'app-ags-lbs':           { en:'Lbs', es:'Lbs', pt:'Lbs' },
+'app-ags-reps':          { en:'Reps', es:'Reps', pt:'Reps' },
+'app-ags-warmup':        { en:'Evidence-Based Dynamic Warm-Up', es:'Calentamiento Dinámico Basado en Evidencia', pt:'Aquecimento Dinâmico Baseado em Evidência' },
+'app-ags-warm1':         { en:'5 min easy cardio — raise core temperature', es:'5 min de cardio suave — eleva la temperatura central', pt:'5 min de cardio leve — eleva a temperatura central' },
+'app-ags-warm2':         { en:'Dynamic mobility for today’s primary joints', es:'Movilidad dinámica para las articulaciones principales de hoy', pt:'Mobilidade dinâmica para as articulações principais de hoje' },
+'app-ags-warm3':         { en:'2 light ramp-up sets on your first lift', es:'2 series ligeras de aproximación en tu primer ejercicio', pt:'2 séries leves de aproximação no seu primeiro exercício' },
+'app-ags-cooldown':      { en:'Static Cool-Down', es:'Enfriamiento Estático', pt:'Desaquecimento Estático' },
+'app-ags-cool1':         { en:'Hold each stretch 30s on the muscles trained', es:'Mantén cada estiramiento 30s en los músculos trabajados', pt:'Mantenha cada alongamento 30s nos músculos treinados' },
+'app-ags-cool2':         { en:'Nasal breathing to down-regulate the nervous system', es:'Respiración nasal para relajar el sistema nervioso', pt:'Respiração nasal para relaxar o sistema nervoso' },
+'app-ags-cool3':         { en:'Hydrate + log how the session felt', es:'Hidrátate + registra cómo se sintió la sesión', pt:'Hidrate-se + registre como foi a sessão' },
+'app-ags-abort':         { en:'Abort Session', es:'Abortar Sesión', pt:'Abortar Sessão' },
+'app-ags-finish':        { en:'Record in Training Ledger', es:'Registrar en el Libro de Entrenamiento', pt:'Registrar no Livro de Treino' },
+'app-ags-recording':     { en:'Recording…', es:'Registrando…', pt:'Registrando…' },
+'app-ags-abort-confirm': { en:'Abort this session? Your typed sets stay saved but nothing is logged to the ledger.', es:'¿Abortar esta sesión? Tus series quedan guardadas pero nada se registra en el libro.', pt:'Abortar esta sessão? Suas séries ficam salvas, mas nada é registrado no livro.' },
+'app-ags-aborted':       { en:'Session aborted — nothing logged.', es:'Sesión abortada — nada registrado.', pt:'Sessão abortada — nada registrado.' },
+'app-ags-noplan':        { en:'No program assigned yet.', es:'Aún no hay programa asignado.', pt:'Nenhum programa atribuído ainda.' },
+'app-ags-noex':          { en:'No trainable exercises in today’s program.', es:'No hay ejercicios entrenables en el programa de hoy.', pt:'Nenhum exercício treinável no programa de hoje.' },
+'app-ags-recording-done':{ en:'Logged to Training Ledger', es:'Registrado en el Libro de Entrenamiento', pt:'Registrado no Livro de Treino' },
+'app-ags-ledger-offline':{ en:'Ledger offline — sets saved locally.', es:'Libro sin conexión — series guardadas localmente.', pt:'Livro offline — séries salvas localmente.' }
 };
 
 // ─── ENGINE ────────────────────────────────────────────────────

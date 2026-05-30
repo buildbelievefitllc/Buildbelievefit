@@ -3320,6 +3320,62 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .mind-cycle{margin-top:.7rem;font-size:.6rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--yel);background:none;border:none;cursor:pointer;padding:0}
 .mind-cycle:hover{text-decoration:underline}
 @media(max-width:420px){.gen-form{grid-template-columns:1fr}}
+/* ═══ PHASE 4 · ACTIVE GYM SESSION (live tracker overlay) ═══════════════════
+   Full-screen brutalist session engine. BBF Purple structure, Gold signal,
+   matte-black canvas. Launched by "Start Day" on the client Program tab. */
+.ags-overlay{position:fixed;inset:0;background:#070707;z-index:9998;display:none;flex-direction:column;overflow:hidden}
+.ags-overlay.on{display:flex}
+.ags-head{flex-shrink:0;background:#0c0c0c;border-bottom:1px solid rgba(106,13,173,.5);padding:1rem 1.1rem;display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding-top:calc(env(safe-area-inset-top,0px) + 1rem)}
+.ags-head .ags-kick{font-size:.56rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--yel)}
+.ags-head .ags-day{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1.5rem;letter-spacing:2px;color:#fff;line-height:1}
+.ags-head .ags-x{flex-shrink:0;background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);width:34px;height:34px;border-radius:4px;font-size:1.1rem;cursor:pointer;line-height:1}
+.ags-head .ags-x:hover{border-color:var(--yel);color:var(--yel)}
+/* Rest timer */
+.ags-timer{flex-shrink:0;background:#0a0a0a;border-bottom:1px solid rgba(255,255,255,.07);padding:.7rem 1.1rem;display:flex;align-items:center;gap:.8rem}
+.ags-timer .tl{font-size:.56rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.ags-clock{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:2rem;letter-spacing:2px;color:#fff;min-width:3.4ch;text-align:center;transition:color .2s}
+.ags-timer.active .ags-clock{color:var(--yel)}
+.ags-timer.active{box-shadow:inset 0 0 0 1px rgba(245,200,0,.25)}
+.ags-tbtns{display:flex;gap:.4rem;margin-left:auto;flex-wrap:wrap}
+.ags-tbtn{font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:1px;font-size:.82rem;background:#111;border:1px solid rgba(106,13,173,.6);color:#fff;border-radius:4px;padding:.35rem .55rem;cursor:pointer;min-width:38px}
+.ags-tbtn:hover{border-color:var(--yel)}
+.ags-tbtn.go{background:var(--yel);color:#090909;border-color:var(--yel)}
+.ags-tadj{display:flex;align-items:center;gap:.3rem}
+.ags-tadj button{width:26px;height:26px;border-radius:4px;background:#111;border:1px solid rgba(255,255,255,.18);color:#fff;font-size:1rem;cursor:pointer;line-height:1}
+.ags-tadj span{font-size:.62rem;font-weight:700;color:rgba(255,255,255,.6);min-width:5ch;text-align:center}
+/* Body / exercise cards */
+.ags-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem 1.1rem 1.2rem}
+.ags-ex{background:#0c0c0c;border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--pur);border-radius:4px;margin-bottom:1rem;overflow:hidden}
+.ags-exhead{display:flex;align-items:center;gap:.7rem;padding:.75rem .85rem;background:linear-gradient(90deg,rgba(106,13,173,.22),transparent)}
+.ags-vid{flex-shrink:0;width:58px;height:42px;border-radius:3px;background:#000;border:1px solid rgba(245,200,0,.4);display:block;position:relative;overflow:hidden;text-decoration:none}
+.ags-vid img{width:100%;height:100%;object-fit:cover;opacity:.82}
+.ags-vid::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:0;height:0;border-left:12px solid var(--yel);border-top:7px solid transparent;border-bottom:7px solid transparent;filter:drop-shadow(0 0 2px #000)}
+.ags-vid.novid{border-style:dashed;border-color:rgba(255,255,255,.2)}
+.ags-vid.novid::after{border-left-color:rgba(255,255,255,.3)}
+.ags-exmain{flex:1;min-width:0}
+.ags-exname{font-size:.95rem;font-weight:700;color:#fff;line-height:1.2}
+.ags-exmeta{font-size:.62rem;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,.5);margin-top:.2rem}
+.ags-exmeta .mg{color:var(--yel)}
+.ags-sets{padding:.3rem .85rem .7rem}
+.ags-setrow{display:grid;grid-template-columns:34px 1fr 1fr 40px;gap:.5rem;align-items:center;margin-top:.5rem}
+.ags-setrow .sn{font-family:var(--hb,'Bebas Neue',sans-serif);font-size:.95rem;color:rgba(255,255,255,.5);text-align:center}
+.ags-setrow.head .sl{font-size:.54rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);text-align:center}
+.ags-inp{width:100%;background:#090909;border:1px solid rgba(106,13,173,.55);color:#fff;padding:.6rem .4rem;border-radius:4px;font-family:var(--bd,'Barlow Condensed',sans-serif);font-size:1.05rem;text-align:center;-webkit-appearance:none;appearance:none}
+.ags-inp:focus{outline:none;border-color:var(--yel)}
+.ags-inp.done{border-color:#10c46a;background:rgba(16,196,106,.08)}
+.ags-setdone{width:30px;height:30px;border-radius:4px;border:1px solid rgba(255,255,255,.2);background:#111;color:rgba(255,255,255,.4);cursor:pointer;font-size:.9rem;line-height:1}
+.ags-setdone.on{background:#10c46a;border-color:#10c46a;color:#04210f}
+/* Sticky action bar */
+.ags-actions{flex-shrink:0;display:flex;gap:.6rem;padding:.8rem 1.1rem;padding-bottom:calc(env(safe-area-inset-bottom,0px) + .8rem);background:#0c0c0c;border-top:1px solid rgba(245,200,0,.25)}
+.ags-abort{flex:0 0 38%;font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:2px;font-size:.92rem;background:transparent;border:1px solid rgba(239,68,68,.55);color:#ef4444;border-radius:6px;padding:.85rem;cursor:pointer}
+.ags-abort:hover{background:rgba(239,68,68,.1)}
+.ags-finish{flex:1;font-family:var(--hb,'Bebas Neue',sans-serif);letter-spacing:2px;font-size:1rem;background:var(--yel);color:#090909;border:none;border-radius:6px;padding:.85rem;cursor:pointer}
+.ags-finish:disabled{opacity:.5;cursor:wait}
+.ags-warm{background:rgba(106,13,173,.1);border:1px solid rgba(106,13,173,.35);border-left:3px solid var(--pur);border-radius:4px;padding:.8rem .9rem;margin-bottom:1rem}
+.ags-cool{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.3);border-left:3px solid #3b82f6;border-radius:4px;padding:.8rem .9rem;margin:.4rem 0 1rem}
+.ags-warm .h,.ags-cool .h{font-size:.58rem;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:.45rem}
+.ags-warm .h{color:var(--yel)}.ags-cool .h{color:#3b82f6}
+.ags-warm ul,.ags-cool ul{margin:0;padding-left:1.1rem;font-size:.8rem;line-height:1.7;color:rgba(255,255,255,.78)}
 </style>
 <script src="bbf-lang.js"></script>
 <script src="bbf-plan-i18n.js"></script>
@@ -5331,6 +5387,10 @@ window.BBF_APPLY_TRIAL_GATE = function() {
   if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
     try { window.BBF_APPLY_TIER_GATE(); } catch (_) {}
   }
+  // Phase 4 — AI Studio admin-only liability gate (shares this lifecycle).
+  if (typeof window.BBF_APPLY_STUDIO_GATE === 'function') {
+    try { window.BBF_APPLY_STUDIO_GATE(); } catch (_) {}
+  }
 };
 
 // ═════════════════════════════════════════════════════════════════════
@@ -5436,6 +5496,62 @@ window.BBF_APPLY_TIER_GATE = function() {
       }
     });
   } catch(_) {}
+};
+
+// ═══ PHASE 4 · AI STUDIO LIABILITY GATE (Admin/Coach only) ═══════════════
+// CEO directive: the AI Studio tab is an API-burn liability and must be
+// invisible — and physically ABSENT from the DOM — for standard clients.
+// Visibility is tied to Mastermind/admin status: role 'admin'|'trainer',
+// uid 'akeem', or the unified window.BBF_ADMIN_OVERRIDE flag.
+//
+// Enforcement is belt-and-suspenders:
+//   1. Nav button (#studio-nav-btn) starts [hidden]; revealed only for admins.
+//   2. The #tp-studio pane is DETACHED from the DOM for non-admins (parked in
+//      a holder), so a standard client cannot reach it via inspector/JS at all.
+//   3. TAB('studio') refuses to switch for non-admins (final guard).
+// Re-runs on the same lifecycle as the tier gate (login, tab switch, restore),
+// so a mid-session VC/role swap flips the tab in or out correctly.
+window._bbfStudioPaneHolder = window._bbfStudioPaneHolder || null;
+window.BBF_IS_STUDIO_ADMIN = function() {
+  try {
+    if (window.BBF_ADMIN_OVERRIDE === true) return true;
+    var uid = (typeof CU !== 'undefined' && CU) || null;   // gate on the LOGGED-IN user, not the viewed client
+    if (!uid) return false;
+    if (uid === 'akeem') return true;
+    if (typeof GD === 'function') {
+      var d = GD();
+      var u = d && d.u && d.u[uid];
+      if (u && (u.role === 'trainer' || u.role === 'admin')) return true;
+    }
+  } catch (_) {}
+  return false;
+};
+window.BBF_APPLY_STUDIO_GATE = function() {
+  try {
+    var isAdmin = window.BBF_IS_STUDIO_ADMIN();
+    var btn  = document.getElementById('studio-nav-btn');
+    var pane = document.getElementById('tp-studio');
+
+    if (isAdmin) {
+      // Reveal the nav button.
+      if (btn) btn.hidden = false;
+      // Re-attach the pane if we previously parked it.
+      if (!pane && window._bbfStudioPaneHolder) {
+        var tc = document.querySelector('.tc');
+        if (tc) { tc.appendChild(window._bbfStudioPaneHolder); window._bbfStudioPaneHolder = null; }
+      }
+    } else {
+      // Hide + disable the nav button.
+      if (btn) { btn.hidden = true; btn.classList.remove('on'); }
+      // Physically DETACH the pane so it isn't in a client's DOM.
+      if (pane) {
+        // If the client was somehow on the studio tab, bounce home first.
+        if (pane.classList.contains('on') && typeof TAB === 'function') TAB('home');
+        window._bbfStudioPaneHolder = pane;
+        if (pane.parentNode) pane.parentNode.removeChild(pane);
+      }
+    }
+  } catch (_) {}
 };
 
 // Wearables "Coming Soon" — always-on greyed overlay regardless of trial
@@ -7634,6 +7750,35 @@ window.onload=function(){
       </section>
     </div>
 
+  <!-- ═══ PHASE 4 · ACTIVE GYM SESSION overlay (live tracker) ═══ -->
+  <div class="ags-overlay" id="ags-overlay" role="dialog" aria-modal="true" aria-label="Active Gym Session">
+    <div class="ags-head">
+      <div>
+        <div class="ags-kick" data-lang-key="app-ags-kicker">Active Session</div>
+        <div class="ags-day" id="ags-day-title">—</div>
+      </div>
+      <button type="button" class="ags-x" id="ags-close" aria-label="Minimize session">&#x2715;</button>
+    </div>
+    <div class="ags-timer" id="ags-timer">
+      <div class="tl" data-lang-key="app-ags-rest">Rest</div>
+      <div class="ags-clock" id="ags-clock">0:00</div>
+      <div class="ags-tadj">
+        <button type="button" id="ags-rest-dec" aria-label="Less rest">&minus;</button>
+        <span id="ags-rest-int">90s</span>
+        <button type="button" id="ags-rest-inc" aria-label="More rest">+</button>
+      </div>
+      <div class="ags-tbtns">
+        <button type="button" class="ags-tbtn go" id="ags-rest-start" data-lang-key="app-ags-start-rest">Start Rest</button>
+        <button type="button" class="ags-tbtn" id="ags-rest-reset" aria-label="Reset timer">&#8634;</button>
+      </div>
+    </div>
+    <div class="ags-body" id="ags-body"></div>
+    <div class="ags-actions">
+      <button type="button" class="ags-abort" id="ags-abort" data-lang-key="app-ags-abort">Abort Session</button>
+      <button type="button" class="ags-finish" id="ags-finish" data-lang-key="app-ags-finish">Record in Training Ledger</button>
+    </div>
+  </div>
+
   <!-- NAV -->
   <div class="bn">
     <button class="nv on" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-lang-key="app-nav-home">Home</span></button>
@@ -7642,7 +7787,7 @@ window.onload=function(){
     <button class="nv" data-tab="cardio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span data-lang-key="app-nav-cardio">Smart Cardio</span></button>
     <button class="nv" data-tab="prehab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg><span data-lang-key="app-nav-prehab">Prehab</span></button>
     <button class="nv" data-tab="profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-lang-key="app-nav-profile">Profile</span></button>
-    <button class="nv" data-tab="studio" aria-label="AI Studio"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span data-lang-key="app-nav-studio">Studio</span></button>
+    <button class="nv pf-admin-nav" data-tab="studio" id="studio-nav-btn" hidden aria-label="AI Studio · Admin"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span data-lang-key="app-nav-studio">Studio</span></button>
     <button class="nv pf-admin-nav" data-tab="recalibrate" id="pf-admin-nav-btn" hidden aria-label="Sports Admin Console"><svg viewBox="0 0 24 24"><path d="M6 9V6a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v3"/><path d="M5 9h14"/><path d="M8 9v3a4 4 0 0 0 8 0V9"/><path d="M10 17v4"/><path d="M14 17v4"/><path d="M9 21h6"/></svg><span>Sports Admin</span></button>
     <button class="nv pf-admin-nav" data-tab="panopticon" id="panopticon-nav-btn" hidden aria-label="Sovereign Panopticon · Command Center"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span>Command</span></button>
   </div>
@@ -8601,6 +8746,12 @@ var WC = null, SDAY = 0, PLAN = null;
 // ─── CORE UI ──────────────────────────────────────────────
 
 function TAB(name) {
+  // Phase 4 — AI Studio liability guard: non-admins can never switch to the
+  // Studio tab even via a synthetic TAB('studio') call. The pane is also
+  // detached from their DOM by BBF_APPLY_STUDIO_GATE, so this is a backstop.
+  if (name === 'studio' && typeof window.BBF_IS_STUDIO_ADMIN === 'function' && !window.BBF_IS_STUDIO_ADMIN()) {
+    name = 'home';
+  }
   document.querySelectorAll('.tp').forEach(function(p) { p.classList.remove('on'); });
   document.querySelectorAll('.nv').forEach(function(b) { b.classList.remove('on'); });
   var pane = document.getElementById('tp-' + name);
@@ -8661,6 +8812,10 @@ function TAB(name) {
   // rendered surfaces (Scan Meal, day-swapped meals, etc.) re-mask.
   if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
     try { window.BBF_APPLY_TIER_GATE(); } catch(_) {}
+  }
+  // Phase 4 — re-assert the AI Studio admin gate after every tab switch.
+  if (typeof window.BBF_APPLY_STUDIO_GATE === 'function') {
+    try { window.BBF_APPLY_STUDIO_GATE(); } catch(_) {}
   }
   // Phase 4.1 — idempotent mount of the Omniscience toggle so the button
   // appears as soon as CU is set post-login (DOMContentLoaded may fire
@@ -19838,6 +19993,12 @@ function RDW() {
   var dhClass = readyTier === 'god' ? ' god-glow' : '';
   var h = '<div class="dh' + dhClass + '"><div class="dl">' + _trDay(day.day) + '</div><div class="dn2">' + _trFocus(day.focus) + '</div>' +
     '<div class="df2">' + day.exercises.length + ' ' + _t('app-wo-exercises','exercises') + (day.focus_cue ? ' &nbsp;&#x2022;&nbsp; &#x1F3AF; ' + _trNote(day.focus_cue) : '') + '</div></div>';
+  // Phase 4 — "Start Day" launches the Active Gym Session live tracker
+  // (rest timer + Lbs/Reps inputs + sticky ledger action bar). Non-destructive:
+  // sits above the existing clinical RDW list, which remains fully intact.
+  h += '<button type="button" class="dbtn" style="margin-top:.2rem;margin-bottom:.9rem" ' +
+    'onclick="if(window.BBF_ACTIVE_SESSION)BBF_ACTIVE_SESSION.open();">&#x25B6; ' +
+    _t('app-ags-startday','Start Day') + '</button>';
   // Phase 11 — BBF_CNS_AGENT banner replaces the legacy readiness
   // banner at the top of the workout day. Single unified high-signal
   // surface: zone + score + mentor coaching + today's adjustments.
@@ -26599,6 +26760,10 @@ window.onload = function() {
 
   // Boot: wire controls once; paint the Mindset cards immediately so the tab is never blank.
   function _boot(){
+    // Phase 4 — assert the admin-only liability gate at first paint so a
+    // standard client never has the #tp-studio pane in their DOM, even for
+    // the frame before login/TAB lifecycle runs. Safe + idempotent.
+    try { if (typeof window.BBF_APPLY_STUDIO_GATE === 'function') window.BBF_APPLY_STUDIO_GATE(); } catch(_){}
     try { window.BBF_STUDIO.init(); window.BBF_MINDSET_ENGINE.render(); } catch(_){}
     // Re-render JS-generated Studio content on language change. Static [data-lang-key]
     // nodes are handled by BBF_LANG.apply(); this covers the feed/program/mindset text.
@@ -26611,6 +26776,227 @@ window.onload = function() {
     } catch(_){}
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', _boot); else _boot();
+})();
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   BBF ACTIVE GYM SESSION — Phase 4 live tracker (pure Vanilla JS / IIFE)
+   Launched by "Start Day" on the client Program tab. Renders the current
+   PLAN[SDAY] day as interactive cards (video thumbnails + Lbs/Reps inputs),
+   a live rest timer, and a sticky action bar.
+
+   LEDGER INTEGRATION (CEO order): set inputs write into the SAME
+   d.w[uid][dk][ek] localStorage structure that SVS() uses, and
+   "Record in Training Ledger" calls the EXISTING CWO(day, dk) commit path
+   → BBF_SYNC.syncSession → bbf_logs + bbf_sets. No parallel logger.
+
+   IMMUTABLE LAWS: blacklisted movements (barbell back squat, abdominal
+   crunches) are filtered out of the session; window.BBF_VIDEO_MAP feeds the
+   thumbnails. ═══════════════════════════════════════════════════════════ */
+(function(){
+  function _$(id){ return document.getElementById(id); }
+  function _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function _t(k,f){ try { if (window.BBF_LANG && window.BBF_LANG.t){ var v=window.BBF_LANG.t(k); if(v&&v!==k) return v; } } catch(_){} return f; }
+  // Video map bridge — same source the generator uses.
+  function _vid(name){ var m=window.BBF_VIDEO_MAP||{}; return m[name]||null; }
+  function _watch(id){ return 'https://www.youtube.com/watch?v='+id; }
+  function _thumb(id){ return 'https://i.ytimg.com/vi/'+id+'/mqdefault.jpg'; }
+  // Blacklist bridge — defer to the generator's locked checker; fall back to a
+  // local copy so the law holds even if the generator IIFE is absent.
+  function _blacklisted(name){
+    try { if (window.BBF_PROGRAM_GENERATOR && window.BBF_PROGRAM_GENERATOR.isBlacklisted) return window.BBF_PROGRAM_GENERATOR.isBlacklisted(name); } catch(_){}
+    var n=String(name||'').toLowerCase().replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim();
+    var bl=['back squat','barbell back squat','crunch','abdominal crunch','crunches'];
+    for(var i=0;i<bl.length;i++){ if(n.indexOf(bl[i])!==-1) return true; }
+    return false;
+  }
+
+  var _state = null;   // { day, dk, uid, exercises:[{name,equip,sets,reps}] }
+  // ─── Rest timer ───────────────────────────────────────────────
+  var _restInt = 90, _restLeft = 0, _restTick = null;
+  function _fmtClock(s){ var m=Math.floor(s/60), ss=s%60; return m+':'+(ss<10?'0':'')+ss; }
+  function _paintClock(){ var c=_$('ags-clock'); if(c) c.textContent=_fmtClock(_restLeft); }
+  function _paintInt(){ var e=_$('ags-rest-int'); if(e) e.textContent=_restInt+'s'; }
+  function _timerActive(on){ var t=_$('ags-timer'); if(t) t.classList.toggle('active', !!on); var b=_$('ags-rest-start'); if(b) b.textContent = on ? _t('app-ags-pause-rest','Pause') : _t('app-ags-start-rest','Start Rest'); }
+  function _stopTick(){ if(_restTick){ clearInterval(_restTick); _restTick=null; } _timerActive(false); }
+  function _startRest(){
+    if(_restTick){ _stopTick(); return; }       // toggle → pause
+    if(_restLeft<=0) _restLeft=_restInt;
+    _timerActive(true);
+    _restTick=setInterval(function(){
+      _restLeft--; _paintClock();
+      if(_restLeft<=0){
+        _stopTick(); _restLeft=0; _paintClock();
+        try { if(navigator.vibrate) navigator.vibrate([120,60,120]); } catch(_){}
+        if(typeof TOAST==='function') TOAST('⏱ '+_t('app-ags-rest-over','Rest complete — next set'));
+      }
+    },1000);
+  }
+  function _resetRest(){ _stopTick(); _restLeft=0; _paintClock(); }
+  function _adjRest(delta){ _restInt=Math.max(15, Math.min(300, _restInt+delta)); _paintInt(); }
+
+  // ─── Build session model from the active program day ───────────
+  function _buildFromDay(day, dk, uid){
+    var out=[];
+    var list = (day && Array.isArray(day.exercises)) ? day.exercises : [];
+    for(var i=0;i<list.length;i++){
+      var ex=list[i]||{}; var name=ex.name||'';
+      if(!name) continue;
+      if(_blacklisted(name)) { console.warn('[BBF_AGS] blacklist guard skipped:', name); continue; }
+      var reps=String(ex.reps||'');
+      var isTimed = reps.indexOf('min')>-1 || reps.indexOf('sec')>-1;
+      var nSets = isTimed ? 1 : (parseInt(ex.sets,10)||3);
+      out.push({ idx:i, ek:'ex_'+i, name:name, equip:ex.equipment||'', sets:nSets, reps:reps, timed:isTimed });
+    }
+    return out;
+  }
+
+  function _warmupHTML(){
+    return '<div class="ags-warm"><div class="h">'+_esc(_t('app-ags-warmup','Evidence-Based Dynamic Warm-Up'))+'</div><ul>'+
+      '<li>'+_esc(_t('app-ags-warm1','5 min easy cardio — raise core temperature'))+'</li>'+
+      '<li>'+_esc(_t('app-ags-warm2','Dynamic mobility for today’s primary joints'))+'</li>'+
+      '<li>'+_esc(_t('app-ags-warm3','2 light ramp-up sets on your first lift'))+'</li></ul></div>';
+  }
+  function _cooldownHTML(){
+    return '<div class="ags-cool"><div class="h">'+_esc(_t('app-ags-cooldown','Static Cool-Down'))+'</div><ul>'+
+      '<li>'+_esc(_t('app-ags-cool1','Hold each stretch 30s on the muscles trained'))+'</li>'+
+      '<li>'+_esc(_t('app-ags-cool2','Nasal breathing to down-regulate the nervous system'))+'</li>'+
+      '<li>'+_esc(_t('app-ags-cool3','Hydrate + log how the session felt'))+'</li></ul></div>';
+  }
+
+  // Read any already-saved set values for this day so reopening is lossless.
+  function _savedSets(uid, dk, ek){
+    try { var d=GD(); return (((d.w||{})[uid]||{})[dk]||{})[ek]||[]; } catch(_){ return []; }
+  }
+
+  function _exerciseHTML(ex, uid, dk){
+    var id=_vid(ex.name), watch=id?_watch(id):null, thumb=id?_thumb(id):null;
+    var sv=_savedSets(uid, dk, ex.ek);
+    var vidCell = id
+      ? '<a class="ags-vid" href="'+watch+'" target="_blank" rel="noopener" aria-label="Form demo"><img src="'+thumb+'" alt="" loading="lazy" referrerpolicy="no-referrer"></a>'
+      : '<span class="ags-vid novid" aria-hidden="true"></span>';
+    var h='<div class="ags-ex" data-ek="'+ex.ek+'">'+
+      '<div class="ags-exhead">'+vidCell+
+        '<div class="ags-exmain"><div class="ags-exname">'+_esc(ex.name)+'</div>'+
+        '<div class="ags-exmeta">'+(ex.equip?'<span class="mg">'+_esc(ex.equip)+'</span> · ':'')+_esc(ex.sets)+' × '+_esc(ex.reps||'—')+'</div></div></div>'+
+      '<div class="ags-sets">'+
+        '<div class="ags-setrow head"><span class="sn"></span><span class="sl">'+_esc(_t('app-ags-lbs','Lbs'))+'</span><span class="sl">'+_esc(_t('app-ags-reps','Reps'))+'</span><span></span></div>';
+    for(var s=0;s<ex.sets;s++){
+      var row=sv[s]||{};
+      var wv=(row.w!=null?row.w:''), rv=(row.r!=null?row.r:'');
+      h+='<div class="ags-setrow" data-s="'+s+'">'+
+          '<span class="sn">'+(s+1)+'</span>'+
+          '<input class="ags-inp ags-w'+(wv!==''?' done':'')+'" type="number" inputmode="decimal" min="0" step="0.5" value="'+_esc(wv)+'" data-uid="'+_esc(uid)+'" data-dk="'+_esc(dk)+'" data-ek="'+ex.ek+'" data-s="'+s+'" data-f="w" aria-label="Weight set '+(s+1)+'">'+
+          '<input class="ags-inp ags-r'+(rv!==''?' done':'')+'" type="number" inputmode="numeric" min="0" step="1" value="'+_esc(rv)+'" data-uid="'+_esc(uid)+'" data-dk="'+_esc(dk)+'" data-ek="'+ex.ek+'" data-s="'+s+'" data-f="r" aria-label="Reps set '+(s+1)+'">'+
+          '<button type="button" class="ags-setdone'+((wv!==''&&rv!=='')?' on':'')+'" data-act="setdone" aria-label="Mark set done + start rest">&#x2713;</button>'+
+        '</div>';
+    }
+    h+='</div></div>';
+    return h;
+  }
+
+  function _render(){
+    if(!_state) return;
+    var body=_$('ags-body'); if(!body) return;
+    var dt=_$('ags-day-title'); if(dt) dt.textContent = (_state.day && _state.day.focus) ? _state.day.focus : _t('app-ags-kicker','Active Session');
+    var h=_warmupHTML();
+    if(!_state.exercises.length){
+      h+='<div class="gen-empty" style="color:rgba(255,255,255,.5)">'+_esc(_t('app-ags-noex','No trainable exercises in today’s program.'))+'</div>';
+    } else {
+      for(var i=0;i<_state.exercises.length;i++) h+=_exerciseHTML(_state.exercises[i], _state.uid, _state.dk);
+    }
+    h+=_cooldownHTML();
+    body.innerHTML=h;
+  }
+
+  // ─── Persist a single field into the SAME structure SVS()/CWO use ──
+  function _saveField(uid, dk, ek, s, f, v){
+    try {
+      var d=GD();
+      if(!d.w) d.w={};
+      if(!d.w[uid]) d.w[uid]={};
+      if(!d.w[uid][dk]) d.w[uid][dk]={};
+      if(!d.w[uid][dk][ek]) d.w[uid][dk][ek]=[];
+      while(d.w[uid][dk][ek].length<=s) d.w[uid][dk][ek].push({});
+      d.w[uid][dk][ek][s][f]=v;
+      SD(d);
+      // Mirror SVS's session cache so a mid-session refresh of the legacy
+      // RDW view stays in sync too.
+      if(typeof saveSetToSession==='function') saveSetToSession(dk, ek, s, f, v);
+      // Reuse the existing cloud queue so per-set telemetry still flows.
+      if(typeof queueSync==='function') queueSync({uid:uid, dk:dk, ek:ek, s:s, f:f, v:v});
+    } catch(e){ console.warn('[BBF_AGS] save failed:', e&&e.message); }
+  }
+
+  function _onInput(e){
+    var inp=e.target; if(!inp.classList || !inp.classList.contains('ags-inp')) return;
+    var v=inp.value;
+    if(v==='') { inp.classList.remove('done'); return; }
+    _saveField(inp.dataset.uid, inp.dataset.dk, inp.dataset.ek, parseInt(inp.dataset.s,10), inp.dataset.f, v);
+    inp.classList.add('done');
+  }
+  function _onClick(e){
+    var t=e.target;
+    if(t && t.dataset && t.dataset.act==='setdone'){
+      var row=t.closest('.ags-setrow'); if(row){ var inps=row.querySelectorAll('.ags-inp'); var filled=true;
+        inps.forEach(function(i){ if(i.value==='') filled=false; }); t.classList.toggle('on', filled); }
+      _resetRest(); _startRest();   // mark done → kick the rest timer
+    }
+  }
+
+  // ─── Public: open / close / commit ─────────────────────────────
+  function open(){
+    var uid = (typeof VC!=='undefined' && VC) || (typeof CU!=='undefined' && CU) || null;
+    if(typeof PLAN==='undefined' || !PLAN || !PLAN.length){ if(typeof TOAST==='function') TOAST('⚠ '+_t('app-ags-noplan','No program assigned yet.')); return; }
+    var sday = (typeof SDAY!=='undefined') ? SDAY : 0;
+    var day = PLAN[sday];
+    if(!day){ return; }
+    var dk = (typeof today==='function' ? today() : new Date().toISOString().slice(0,10)) + '_d' + sday;
+    _state = { day:day, dk:dk, uid:uid, sday:sday, exercises:_buildFromDay(day, dk, uid) };
+    _restInt=90; _resetRest(); _paintInt(); _paintClock();
+    _render();
+    var ov=_$('ags-overlay'); if(ov) ov.classList.add('on');
+    document.body.style.overflow='hidden';
+  }
+  function close(){
+    _stopTick();
+    var ov=_$('ags-overlay'); if(ov) ov.classList.remove('on');
+    document.body.style.overflow='';
+  }
+  function abort(){
+    if(!window.confirm(_t('app-ags-abort-confirm','Abort this session? Your typed sets stay saved but nothing is logged to the ledger.'))) return;
+    close();
+    if(typeof TOAST==='function') TOAST(_t('app-ags-aborted','Session aborted — nothing logged.'));
+  }
+  function finish(){
+    if(!_state) { close(); return; }
+    // Hand off to the EXISTING ledger commit. CWO reads d.w[uid][dk][ek]
+    // (which we've been writing) → BBF_SYNC.syncSession → bbf_logs + bbf_sets.
+    var btn=_$('ags-finish'); if(btn){ btn.disabled=true; btn.textContent=_t('app-ags-recording','Recording…'); }
+    close();
+    try {
+      if(typeof CWO==='function'){ CWO(_state.day, _state.dk); }
+      else if(typeof TOAST==='function'){ TOAST('⚠ '+_t('app-ags-ledger-offline','Ledger offline — sets saved locally.')); }
+    } catch(e){ console.error('[BBF_AGS] finish→CWO failed:', e); }
+    setTimeout(function(){ if(btn){ btn.disabled=false; btn.textContent=_t('app-ags-finish','Record in Training Ledger'); } }, 1500);
+  }
+
+  function init(){
+    var ov=_$('ags-overlay'); if(!ov || ov.dataset.bound) return; ov.dataset.bound='1';
+    var body=_$('ags-body');
+    if(body){ body.addEventListener('input', _onInput); body.addEventListener('change', _onInput); body.addEventListener('click', _onClick); }
+    var bind=function(id,fn){ var el=_$(id); if(el) el.addEventListener('click', fn); };
+    bind('ags-close', close);
+    bind('ags-abort', abort);
+    bind('ags-finish', finish);
+    bind('ags-rest-start', _startRest);
+    bind('ags-rest-reset', _resetRest);
+    bind('ags-rest-inc', function(){ _adjRest(15); });
+    bind('ags-rest-dec', function(){ _adjRest(-15); });
+  }
+
+  window.BBF_ACTIVE_SESSION = { open:open, close:close, init:init };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
 </body>
