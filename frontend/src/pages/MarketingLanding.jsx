@@ -2,212 +2,343 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 14 — the Build Believe Fit marketing site, restored into React.
 //
-// Faithful rebuild of the legacy index.html landing (copy, layout, brand, media)
-// translated to JSX with inline styles mirroring the originals — responsive via
-// the same clamp() typography + auto-fit grids the legacy used (no media queries
-// required). Media assets migrated to /public/media. The Phase 13 lead engine is
-// embedded VERBATIM as <PathfinderForm> at the #pathfinder anchor, exactly where
-// the legacy application form sat — its data contract is unchanged.
+// Faithful rebuild of the legacy index.html landing — copy, tiers, pricing,
+// founder positioning, and media taken VERBATIM from the source (no invented
+// figures). Responsive via clamp() typography + auto-fit grids (no media queries).
+// The Phase 13 lead engine is embedded as <PathfinderForm> at #pathfinder.
 //
-// Deferred (interactive engines, follow-up phases): the live TDEE calculator, the
-// AI "Interrogator" quiz, trilingual i18n runtime, and the secondary nutrition-
-// lite form. The brand surface + primary conversion funnel are restored here.
+// Deferred (interactive engines, follow-up phases): live TDEE calculator, the AI
+// "Interrogator" quiz, the 4-step Pathfinder wizard, trilingual i18n, Stripe tier
+// checkout (tier CTAs route to the application form). The brand surface + funnel
+// are restored.
 
 import { useNavigate } from 'react-router-dom';
 import PathfinderForm from '../components/PathfinderForm.jsx';
 
 const GOLD = '#f5c800';
+const PURL = '#8b1abf';
 const BODY = "'Barlow Condensed',sans-serif";
 const HEAD = "'Bebas Neue',sans-serif";
 const DISPLAY = "'Anton',sans-serif";
+
+const SERVICES = [
+  ['Strength Coaching', 'Progressive overload programming built around your schedule, recovery capacity, and goals. Not a template — a system designed for you.'],
+  ['Nutrition Coaching', 'Custom meal plans calibrated to your TDEE, your training intensity, and your real life — not a generic macro split from the internet.'],
+  ['Program Design', 'Day-by-day periodized programs designed for real people with real jobs. Recovery built in. Progress when you follow the plan.'],
+  ['Elite Transformation', 'Full 90-day overhaul — body composition, movement quality, and habit architecture. The complete package for lasting results.'],
+  ['Remote Coaching', 'Full access to your custom app portal, weekly check-ins, meal plan updates, and direct coach access — wherever you train.'],
+  ['Human Performance Protocol', 'Performance architecture engineered around your life — your schedule, your recovery window, your occupation. Habits that compound.'],
+];
+
+const TIERS = [
+  { name: 'Gateway', price: '$67', per: '/mo', tag: 'Foundational Habit Logic', accent: '#22c55e',
+    blurb: 'Self-guided roadmap — high value, zero fluff.',
+    feats: ['Full self-guided Habit Architecture system', 'TDEE calculator + macro blueprint', 'BBF App access (workout tracking)', 'OT-informed joint health guide'] },
+  { name: 'Youth Athlete', price: '$97', per: '/mo', tag: 'Clinical Youth Protocol · Ages 9–17', accent: '#0ea5e9',
+    blurb: 'Sport-specific — pediatric liability shield.',
+    feats: ['Position-specific programming', 'Biomechanical prehab protocols', 'Video form checks', 'Monthly progress review'] },
+  { name: 'Architect Hybrid', price: '$697', per: 'Flat · 12-Week Protocol', accent: GOLD, featured: true,
+    blurb: 'In-person + app — high-performance sync.',
+    feats: ['1 in-person clinical session / week', 'Full BBF App access (workouts & nutrition)', 'Periodized 12-week protocol'] },
+  { name: 'Sovereign', price: '$1,197', per: 'Flat · 12-Week Apex', accent: PURL,
+    blurb: 'Bespoke executive 1-on-1 apex protocol.',
+    feats: ['2 in-person clinical sessions / week', 'Full BBF App access', 'Real-time AI audio meal scanner', 'BBF Virtual Chef'] },
+];
+
+const CREDENTIALS = [
+  ['Movement Specialist', 'OT-focused coaching · Exercise Science'],
+  ['Joint Protection & Prehab Architect', 'Human performance architect · habit system designer'],
+  ['Fitness Enthusiast & Lifter', 'Dedicated to the craft of human performance'],
+  ['Business & Marketing Student', 'Chandler-Gilbert Community College'],
+  ['Father of 4', 'Coaches his son who plays football'],
+];
+
+const ORIGIN = [
+  ['Step 1', 'The Starting Point', 'Lost. Depressed. No time for myself. Running out of chances to become who I knew I could be.'],
+  ['Step 2', 'The System Discovery', 'I decided to go all in. Exercise Science. Biomechanical precision. The discipline to learn the math became as important as the discipline to train.'],
+  ['Step 3', 'The Architecture Lives', 'One decision changed everything. My body. My career. My family’s future. Now that ripple reaches every client I coach.'],
+];
 
 export default function MarketingLanding() {
   const navigate = useNavigate();
 
   return (
-    <div style={styles.page}>
+    <div style={s.page}>
       {/* ── NAV ── */}
-      <nav style={styles.nav}>
-        <a href="#hero" style={styles.navLogo} aria-label="Build Believe Fit home">
-          <span style={styles.navLogoText}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></span>
-        </a>
-        <div style={styles.navLinks}>
-          <a href="#programs" style={styles.navLink}>Programs</a>
-          <a href="#founder" style={styles.navLink}>Founder</a>
-          <a href="#transformation" style={styles.navLink}>Results</a>
-          <button type="button" style={styles.navSignIn} onClick={() => navigate('/login')}>Sign In</button>
-          <a href="#pathfinder" style={styles.navCta}>Apply Now</a>
+      <nav style={s.nav}>
+        <a href="#hero" style={s.navLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></a>
+        <div style={s.navLinks}>
+          <a href="#services" style={s.navLink}>Services</a>
+          <a href="#programs" style={s.navLink}>Programs</a>
+          <a href="#founder" style={s.navLink}>About</a>
+          <a href="#origin" style={s.navLink}>My Story</a>
+          <button type="button" style={s.navSignIn} onClick={() => navigate('/login')}>Sign In</button>
+          <a href="#pathfinder" style={s.navCta}>Start</a>
         </div>
       </nav>
 
       {/* ── HERO ── */}
-      <section id="hero" style={styles.hero}>
-        <video autoPlay muted loop playsInline poster="/media/bbf-photo.jpg" style={styles.heroVideo}>
-          <source src="/media/bbf_source_v2_compressed.mp4" type="video/mp4" />
-        </video>
-        <div style={styles.heroScrim} />
-        <div style={styles.heroInner}>
-          <h1 style={styles.heroStack} aria-label="Build Believe Fit">
+      <section id="hero" style={s.hero}>
+        <div style={s.heroText}>
+          <div style={s.heroBadge}>⚡ Performance Architect · Sovereign Gold Standard</div>
+          <h1 style={s.heroStack} aria-label="Build Believe Fit">
             <span style={{ display: 'block' }}>BUILD</span>
-            <span style={{ display: 'block' }}>BELIEVE</span>
+            <span style={{ display: 'block', color: GOLD }}>BELIEVE</span>
             <span style={{ display: 'block' }}>FIT</span>
           </h1>
-          <p style={styles.heroTag}>Universal Human Optimization</p>
-          <p style={styles.heroSub}>Strength · Joint Health · Cardio</p>
-          <a href="#pathfinder" style={styles.heroCta}>START YOUR PATH</a>
+          <p style={s.heroSub}>
+            Universal performance for the <strong style={{ color: '#fff' }}>high-demand human.</strong> We optimize the
+            habit architecture of everyday athletes, executives, and first responders. <strong style={{ color: '#fff' }}>Your
+            schedule is the context. Your potential is the focus.</strong>
+          </p>
+          <a href="#pathfinder" style={s.heroCta}>Start My Path →</a>
+          <div style={s.doors}>
+            <button type="button" style={s.door} onClick={() => navigate('/login')}>
+              <span style={s.doorKicker}>For Adults</span>
+              <span style={s.doorTitle}>Enter The Vault</span>
+              <span style={s.doorSub}>Sovereign Client Portal →</span>
+            </button>
+            <button type="button" style={s.door} onClick={() => navigate('/login')}>
+              <span style={s.doorKicker}>Youth &amp; Collegiate</span>
+              <span style={s.doorTitle}>Youth Athlete Portal</span>
+              <span style={s.doorSub}>Performance &amp; Pre-Hab →</span>
+            </button>
+          </div>
+          <div style={s.stats}>
+            <Stat n="2021" l="Est. · Founded" />
+            <Stat n="🛡" l="Sovereign Standard" />
+            <Stat n="100%" l="Custom Plans" />
+          </div>
+        </div>
+        <div style={s.heroImgWrap}>
+          <img src="/media/bbf-photo.jpg" alt="Akeem Brown — Build Believe Fit" loading="eager" style={s.heroImg} />
         </div>
       </section>
 
-      {/* ── PROGRAMS ── */}
-      <section id="programs" style={styles.sectionWide}>
-        <h2 style={styles.secH}>CHOOSE YOUR PATH</h2>
-        <p style={styles.secSub}>Three ways to train with BBF</p>
-        <div style={styles.progGrid}>
-          <ProgramCard name="YOUTH ATHLETE" price="$197" copy="Sport-specific strength & conditioning for the next generation. Build the engine early." />
-          <ProgramCard name="SOVEREIGN ADULT" price="$297" copy="16/8 intermittent fasting protocol fused with clinical hypertrophy. For the disciplined professional." />
-          <ProgramCard name="NUTRITION" price="$67" copy="Personalized meal architecture aligned to your training and metabolic profile." />
+      {/* ── SERVICES ── */}
+      <section id="services" style={s.section}>
+        <div style={s.secLbl}>What We Offer</div>
+        <h2 style={s.secH}>How We Get You <span style={{ color: GOLD }}>There</span></h2>
+        <div style={s.svcGrid}>
+          {SERVICES.map(([n, d]) => (
+            <article key={n} style={s.svcCard}>
+              <div style={s.svcName}>{n}</div>
+              <p style={s.svcDesc}>{d}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* ── PROGRAMS (real tiers + pricing) ── */}
+      <section id="programs" style={s.sectionWide}>
+        <div style={s.secLbl}>Choose Your Path</div>
+        <h2 style={s.secH}>Spectrum of <span style={{ color: GOLD }}>Success</span></h2>
+        <p style={s.secSub}>
+          We respect every dollar you invest — whether it&apos;s $67/month or the $1,197 Apex Protocol, you receive
+          Founder-Verified biomechanical protocols backed by the Sovereign Gold Standard.
+        </p>
+        <div style={s.progGrid}>
+          {TIERS.map((t) => (
+            <article key={t.name} style={{ ...s.progCard, ...(t.featured ? s.progCardFeatured : null) }}>
+              {t.featured ? <div style={s.progBadge}>Most Popular</div> : null}
+              <div style={{ ...s.progTag, color: t.accent }}>{t.tag}</div>
+              <div style={s.progName}>{t.name}</div>
+              <div style={s.progPrice}>{t.price}<span style={s.progPer}> {t.per}</span></div>
+              <div style={{ ...s.progBlurb, color: t.accent }}>{t.blurb}</div>
+              <ul style={s.progFeats}>
+                {t.feats.map((f) => <li key={f} style={s.progFeat}>✓ {f}</li>)}
+              </ul>
+              <a href="#pathfinder" style={{ ...s.progCta, ...(t.featured ? { background: GOLD, color: '#090909' } : null) }}>
+                Apply →
+              </a>
+            </article>
+          ))}
+        </div>
+        <div style={s.promise}>
+          <div style={s.promiseLbl}>The BBF Financial Integrity Promise</div>
+          <p style={s.promiseText}>
+            “Whether you invest $67 a month or commit to the $1,197 Apex Protocol — you receive the same Founder-Verified
+            attention to your joint safety, recovery, and long-term mobility. The price reflects access and depth. The
+            Sovereign Gold Standard never changes.” <span style={{ color: GOLD }}>— Akeem Brown</span>
+          </p>
         </div>
       </section>
 
       <Divider />
 
       {/* ── FOUNDER ── */}
-      <section id="founder" style={styles.section}>
-        <h2 style={styles.secH}>THE FOUNDER</h2>
-        <p style={styles.founderKicker}>NASM Certified Personal Trainer</p>
-        <div style={styles.founderGrid}>
-          <img src="/media/akeem-nasm.jpg" alt="Akeem — NASM Certified Personal Trainer" loading="lazy" style={styles.founderImg} />
+      <section id="founder" style={s.section}>
+        <div style={s.secLbl}>The Founder</div>
+        <h2 style={s.secH}>The Story Behind <span style={{ color: GOLD }}>BBF</span></h2>
+        <div style={s.founderGrid}>
           <div>
-            <p style={styles.founderP}>
-              I&apos;m Akeem — founder of Build Believe Fit. After years in the trenches of strength &amp;
-              conditioning, I built BBF to deliver one thing: <strong style={{ color: GOLD }}>elite coaching,
-              engineered for your life.</strong>
+            <img src="/media/akeem-nasm.jpg" alt="Akeem Brown" loading="lazy" style={s.founderImg} />
+            <div style={s.credCard}>
+              {CREDENTIALS.map(([t, sub]) => (
+                <div key={t} style={s.cred}>
+                  <div style={s.credT}>{t}</div>
+                  <div style={s.credS}>{sub}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p style={s.story}>
+              I built these protocols as a father and everyday athlete protecting my own joints through real life — not from
+              a textbook. <strong style={{ color: GOLD }}>I built it to solve the Human Habit Equation.</strong> My life was
+              the laboratory. The results became the blueprint.
             </p>
-            <p style={styles.founderP}>
-              Every program is built on NASM-certified methodology, periodized for real progress, and backed
-              by a nutrition system that actually fits how you live.
+            <p style={s.story}>
+              Build Believe Fit was born between obligations — in the windows of time most people overlook. I&apos;m a
+              <strong style={{ color: '#fff' }}> Performance Architect, a passionate lifter, a father of 4</strong>, and an
+              Exercise Science student becoming an Occupational Therapist. I understand the human body and the human schedule.
             </p>
+            <p style={s.story}>
+              My clients aren&apos;t defined by their occupation. They&apos;re defined by their refusal to let their schedule
+              become their ceiling. <strong style={{ color: '#fff' }}>Executives. First responders. Parents. Everyday athletes.</strong>
+            </p>
+            <div style={s.sig}>— Akeem Brown<br /><span style={s.sigSmall}>Owner, BBF LLC · Movement Specialist · Exercise Science · Future OT</span></div>
           </div>
         </div>
       </section>
 
       <Divider />
 
-      {/* ── TRANSFORMATION ── */}
-      <section id="transformation" style={styles.section}>
-        <h2 style={styles.secH}>THE BBF STANDARD</h2>
-        <p style={styles.secSub}>Engineered, not guessed. Every protocol is periodized, tracked, and adjusted.</p>
-        <div style={styles.proofGrid}>
-          <figure style={styles.proofFig}>
-            <img src="/media/akeem-before.png" alt="Before" loading="lazy" style={styles.proofImg} />
-            <figcaption style={styles.proofCap}>Before</figcaption>
+      {/* ── ORIGIN STORY ── */}
+      <section id="origin" style={s.section}>
+        <div style={s.secLbl}>The Origin of the System</div>
+        <h2 style={s.secH}>The System Was <span style={{ color: GOLD }}>Born Here</span></h2>
+        <p style={s.secSub}>Not theory. Not a textbook protocol. A system discovered through lived experience and refined through science.</p>
+        <div style={s.proofGrid}>
+          <figure style={s.proofFig}>
+            <img src="/media/akeem-before.png" alt="Before" loading="lazy" style={s.proofImg} />
+            <figcaption style={s.proofCap}>Before</figcaption>
           </figure>
-          <figure style={styles.proofFig}>
-            <img src="/media/akeem-after.png" alt="After" loading="lazy" style={styles.proofImg} />
-            <figcaption style={{ ...styles.proofCap, color: GOLD }}>After</figcaption>
+          <figure style={s.proofFig}>
+            <img src="/media/akeem-after.png" alt="After" loading="lazy" style={s.proofImg} />
+            <figcaption style={{ ...s.proofCap, color: GOLD }}>After</figcaption>
           </figure>
-          <figure style={styles.proofFig}>
-            <img src="/media/verification5.png" alt="Verified results" loading="lazy" style={styles.proofImg} />
-            <figcaption style={styles.proofCap}>Verified</figcaption>
-          </figure>
+        </div>
+        <div style={s.originGrid}>
+          {ORIGIN.map(([step, t, q]) => (
+            <div key={step} style={s.originCard}>
+              <div style={s.originStep}>{step}</div>
+              <div style={s.originT}>{t}</div>
+              <p style={s.originQ}>“{q}”</p>
+            </div>
+          ))}
         </div>
       </section>
 
       <Divider />
 
       {/* ── PATHFINDER (the embedded Phase 13 form) ── */}
-      <section id="pathfinder" style={styles.sectionWide}>
-        <p style={styles.pfKicker}>The Pathfinder Protocol</p>
-        <h2 style={styles.secH}>FIND YOUR PATH</h2>
-        <p style={styles.secSub}>
-          The Pathfinder analyzes your goals, body, and schedule to architect your ideal program.
-        </p>
-        <div style={{ marginTop: '2rem' }}>
-          <PathfinderForm />
-        </div>
+      <section id="pathfinder" style={s.sectionWide}>
+        <div style={s.secLbl}>Start Your Journey</div>
+        <h2 style={s.secH}>The <span style={{ color: GOLD }}>Pathfinder</span></h2>
+        <p style={s.secSub}>Tell us about yourself — we&apos;ll personalize everything and Akeem will reach out within 24 hours.</p>
+        <div style={{ marginTop: '2rem' }}><PathfinderForm /></div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={styles.footer}>
-        <div style={styles.footLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></div>
-        <p style={styles.footTag}>Universal Human Optimization · Strength · Joint Health · Cardio</p>
-        <div style={styles.footLinks}>
-          <button type="button" style={styles.footLink} onClick={() => navigate('/login')}>Member Sign In</button>
-          <a style={styles.footLink} href="mailto:buildbelievefit@gmail.com">Contact</a>
+      <footer style={s.footer}>
+        <div style={s.footLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></div>
+        <p style={s.footTag}>Performance Architecture &amp; Movement Science · Est. 2021</p>
+        <div style={s.footLinks}>
+          <button type="button" style={s.footLink} onClick={() => navigate('/login')}>Member Sign In</button>
+          <a style={s.footLink} href="mailto:buildbelievefit@gmail.com">Contact</a>
         </div>
-        <p style={styles.footCopy}>© {new Date().getFullYear()} Build Believe Fit LLC. All rights reserved.</p>
+        <p style={s.footCopy}>© 2021–{new Date().getFullYear()} Build Believe Fit LLC · buildbelievefit.fitness · All rights reserved.</p>
       </footer>
     </div>
   );
 }
 
-function ProgramCard({ name, price, copy }) {
-  return (
-    <article style={styles.progCard}>
-      <div style={styles.progName}>{name}</div>
-      <p style={styles.progCopy}>{copy}</p>
-      <div style={styles.progPrice}>{price}<span style={styles.progPer}>/mo</span></div>
-    </article>
-  );
+function Stat({ n, l }) {
+  return <div style={{ textAlign: 'center' }}><div style={s.statN}>{n}</div><div style={s.statL}>{l}</div></div>;
 }
+function Divider() { return <div style={s.divider} />; }
 
-function Divider() {
-  return <div style={styles.divider} />;
-}
-
-const styles = {
+const s = {
   page: { background: '#090909', color: '#fff', minHeight: '100%', overflowX: 'hidden' },
 
-  nav: {
-    position: 'sticky', top: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '0 clamp(16px,4vw,40px)', height: 64, background: 'rgba(9,9,9,.72)',
-    backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)',
-    borderBottom: '1px solid rgba(245,200,0,.12)',
-  },
-  navLogo: { display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' },
-  navLogoText: { fontFamily: HEAD, fontSize: '1.5rem', letterSpacing: '2px', color: '#fff' },
-  navLinks: { display: 'flex', alignItems: 'center', gap: 'clamp(10px,2.5vw,24px)' },
-  navLink: { fontFamily: BODY, fontSize: '.95rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', textDecoration: 'none', textTransform: 'uppercase', fontWeight: 600 },
-  navSignIn: { fontFamily: BODY, fontSize: '.95rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 600, padding: 0 },
-  navCta: { fontFamily: BODY, fontSize: '.9rem', letterSpacing: '1px', padding: '8px 20px', background: GOLD, color: '#090909', borderRadius: 6, textDecoration: 'none', textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' },
+  nav: { position: 'sticky', top: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 clamp(16px,4vw,40px)', height: 64, background: 'rgba(9,9,9,.72)', backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)', borderBottom: '1px solid rgba(245,200,0,.12)', flexWrap: 'wrap', gap: '8px' },
+  navLogo: { fontFamily: HEAD, fontSize: '1.4rem', letterSpacing: '2px', color: '#fff', textDecoration: 'none', whiteSpace: 'nowrap' },
+  navLinks: { display: 'flex', alignItems: 'center', gap: 'clamp(8px,2vw,22px)', flexWrap: 'wrap' },
+  navLink: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', textDecoration: 'none', textTransform: 'uppercase', fontWeight: 600 },
+  navSignIn: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 600, padding: 0 },
+  navCta: { fontFamily: BODY, fontSize: '.88rem', letterSpacing: '1px', padding: '8px 18px', background: GOLD, color: '#090909', borderRadius: 6, textDecoration: 'none', textTransform: 'uppercase', fontWeight: 700 },
 
-  hero: { position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden' },
-  heroVideo: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 },
-  heroScrim: { position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(9,9,9,.55),rgba(9,9,9,.8))', zIndex: 1 },
-  heroInner: { position: 'relative', zIndex: 2, padding: '0 clamp(16px,4vw,40px)', maxWidth: 900 },
-  heroStack: { fontFamily: DISPLAY, fontSize: 'clamp(3rem,12vw,8rem)', lineHeight: .9, letterSpacing: '1px', color: '#fff', margin: '0 0 16px' },
-  heroTag: { fontFamily: BODY, fontSize: 'clamp(1.1rem,3vw,1.6rem)', letterSpacing: '1px', color: 'rgba(255,255,255,.9)', margin: '0 0 8px' },
-  heroSub: { fontFamily: BODY, fontSize: 'clamp(.95rem,2vw,1.2rem)', color: GOLD, letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 32px' },
-  heroCta: { display: 'inline-block', fontFamily: HEAD, fontSize: '1.3rem', letterSpacing: '2px', padding: '16px 48px', background: GOLD, color: '#090909', borderRadius: 8, textDecoration: 'none' },
+  hero: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 'clamp(24px,5vw,56px)', alignItems: 'center', maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
+  heroText: {},
+  heroBadge: { display: 'inline-block', fontFamily: BODY, fontSize: '.8rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: GOLD, border: '1px solid rgba(245,200,0,.3)', borderRadius: 99, padding: '6px 16px', marginBottom: 20 },
+  heroStack: { fontFamily: DISPLAY, fontSize: 'clamp(3rem,9vw,6rem)', lineHeight: .9, letterSpacing: '1px', color: '#fff', margin: '0 0 20px' },
+  heroSub: { fontFamily: BODY, fontSize: 'clamp(1rem,2vw,1.2rem)', lineHeight: 1.6, color: 'rgba(255,255,255,.7)', margin: '0 0 28px', maxWidth: '52ch' },
+  heroCta: { display: 'inline-block', fontFamily: HEAD, fontSize: '1.2rem', letterSpacing: '2px', padding: '14px 40px', background: GOLD, color: '#090909', borderRadius: 8, textDecoration: 'none' },
+  doors: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, margin: '28px 0' },
+  door: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, textAlign: 'left', background: 'rgba(20,20,20,.8)', border: '1px solid rgba(245,200,0,.18)', borderRadius: 12, padding: '14px 16px', cursor: 'pointer' },
+  doorKicker: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,.5)' },
+  doorTitle: { fontFamily: HEAD, fontSize: '1.15rem', letterSpacing: '1px', color: '#fff' },
+  doorSub: { fontFamily: BODY, fontSize: '.82rem', fontWeight: 600, color: GOLD },
+  stats: { display: 'flex', gap: 'clamp(16px,4vw,40px)', flexWrap: 'wrap' },
+  statN: { fontFamily: HEAD, fontSize: '1.8rem', color: GOLD, letterSpacing: '1px' },
+  statL: { fontFamily: BODY, fontSize: '.72rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,.5)' },
+  heroImgWrap: { display: 'flex', justifyContent: 'center' },
+  heroImg: { width: '100%', maxWidth: 460, borderRadius: 20, border: '1px solid rgba(245,200,0,.2)', objectFit: 'cover' },
 
-  section: { maxWidth: 1100, margin: '0 auto', padding: 'clamp(40px,8vw,90px) clamp(16px,4vw,40px)' },
-  sectionWide: { maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px,8vw,90px) clamp(16px,4vw,40px)' },
-  secH: { fontFamily: HEAD, fontSize: 'clamp(2rem,5vw,3.4rem)', letterSpacing: '1px', color: '#fff', textAlign: 'center', margin: '0 0 8px' },
-  secSub: { textAlign: 'center', color: 'rgba(255,255,255,.6)', fontFamily: BODY, fontSize: '1.05rem', letterSpacing: '1px', margin: '0 auto 48px', maxWidth: '60ch' },
+  section: { maxWidth: 1100, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
+  sectionWide: { maxWidth: 1240, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
+  secLbl: { textAlign: 'center', fontFamily: BODY, fontSize: '.78rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: GOLD, marginBottom: 10 },
+  secH: { fontFamily: HEAD, fontSize: 'clamp(2rem,5vw,3.4rem)', letterSpacing: '1px', color: '#fff', textAlign: 'center', margin: '0 0 12px' },
+  secSub: { textAlign: 'center', color: 'rgba(255,255,255,.6)', fontFamily: BODY, fontSize: '1.02rem', lineHeight: 1.5, margin: '0 auto 40px', maxWidth: '64ch' },
   divider: { maxWidth: 900, margin: '0 auto', height: 1, background: 'linear-gradient(90deg,transparent,rgba(245,200,0,.3),transparent)' },
 
-  progGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 24 },
-  progCard: { background: 'linear-gradient(180deg,rgba(20,20,20,.9),rgba(9,9,9,.9))', border: '1px solid rgba(245,200,0,.15)', borderRadius: 16, padding: 32, position: 'relative', overflow: 'hidden' },
-  progName: { fontFamily: HEAD, fontSize: '1.8rem', letterSpacing: '1px', color: '#fff', marginBottom: 8 },
-  progCopy: { fontFamily: BODY, color: 'rgba(255,255,255,.65)', fontSize: '1rem', lineHeight: 1.5, marginBottom: 20 },
-  progPrice: { fontFamily: HEAD, fontSize: '2.4rem', color: GOLD },
-  progPer: { fontSize: '1rem', color: 'rgba(255,255,255,.5)' },
+  svcGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 20 },
+  svcCard: { background: 'rgba(20,20,20,.8)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, padding: 26 },
+  svcName: { fontFamily: HEAD, fontSize: '1.4rem', letterSpacing: '1px', color: GOLD, marginBottom: 10 },
+  svcDesc: { fontFamily: BODY, fontSize: '.98rem', lineHeight: 1.55, color: 'rgba(255,255,255,.66)', margin: 0 },
 
-  founderKicker: { textAlign: 'center', color: GOLD, fontFamily: BODY, fontSize: '1.05rem', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 40px' },
-  founderGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 32, alignItems: 'center' },
-  founderImg: { width: '100%', borderRadius: 16, border: '1px solid rgba(245,200,0,.2)', display: 'block' },
-  founderP: { fontFamily: BODY, fontSize: '1.15rem', lineHeight: 1.7, color: 'rgba(255,255,255,.86)', marginBottom: 20 },
+  progGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: 20 },
+  progCard: { position: 'relative', background: 'linear-gradient(180deg,rgba(22,22,22,.9),rgba(9,9,9,.9))', border: '1px solid rgba(255,255,255,.1)', borderRadius: 16, padding: 26, display: 'flex', flexDirection: 'column' },
+  progCardFeatured: { border: '1px solid rgba(245,200,0,.5)', boxShadow: '0 0 40px rgba(245,200,0,.1)' },
+  progBadge: { position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: GOLD, color: '#090909', fontFamily: HEAD, fontSize: '.7rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 14px', borderRadius: 99, whiteSpace: 'nowrap' },
+  progTag: { fontFamily: BODY, fontSize: '.68rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 6 },
+  progName: { fontFamily: HEAD, fontSize: '1.7rem', letterSpacing: '1px', color: '#fff' },
+  progPrice: { fontFamily: HEAD, fontSize: '2.2rem', color: GOLD, margin: '4px 0' },
+  progPer: { fontFamily: BODY, fontSize: '.78rem', fontWeight: 600, color: 'rgba(255,255,255,.5)' },
+  progBlurb: { fontFamily: BODY, fontSize: '.82rem', fontWeight: 700, marginBottom: 14 },
+  progFeats: { listStyle: 'none', margin: '0 0 18px', padding: 0, flex: 1 },
+  progFeat: { fontFamily: BODY, fontSize: '.9rem', color: 'rgba(255,255,255,.72)', padding: '5px 0', lineHeight: 1.4 },
+  progCta: { display: 'block', textAlign: 'center', fontFamily: HEAD, fontSize: '.95rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '12px', borderRadius: 8, textDecoration: 'none', color: GOLD, border: `1px solid ${GOLD}` },
+  promise: { maxWidth: 760, margin: '40px auto 0', textAlign: 'center', background: 'rgba(106,13,173,.06)', border: '1px solid rgba(106,13,173,.18)', borderRadius: 14, padding: 24 },
+  promiseLbl: { fontFamily: BODY, fontSize: '.66rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL, marginBottom: 8 },
+  promiseText: { fontFamily: BODY, fontSize: '.95rem', fontWeight: 600, lineHeight: 1.65, color: 'rgba(255,255,255,.68)', margin: 0 },
 
-  proofGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 20 },
+  founderGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 36, alignItems: 'start' },
+  founderImg: { width: '100%', borderRadius: 16, border: '1px solid rgba(245,200,0,.2)', display: 'block', marginBottom: 16 },
+  credCard: { background: 'rgba(20,20,20,.8)', border: '1px solid rgba(245,200,0,.15)', borderRadius: 14, padding: 18 },
+  cred: { padding: '8px 0', borderBottom: '1px dotted rgba(255,255,255,.08)' },
+  credT: { fontFamily: HEAD, fontSize: '.95rem', letterSpacing: '1px', color: '#fff' },
+  credS: { fontFamily: BODY, fontSize: '.8rem', color: 'rgba(255,255,255,.55)' },
+  story: { fontFamily: BODY, fontSize: '1.1rem', lineHeight: 1.7, color: 'rgba(255,255,255,.84)', marginBottom: 18 },
+  sig: { fontFamily: HEAD, fontSize: '1.2rem', letterSpacing: '1px', color: GOLD, marginTop: 8 },
+  sigSmall: { fontFamily: BODY, fontSize: '.78rem', fontWeight: 600, letterSpacing: '.5px', color: 'rgba(255,255,255,.5)', textTransform: 'none' },
+
+  proofGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 20, maxWidth: 600, margin: '0 auto 40px' },
   proofFig: { margin: 0 },
   proofImg: { width: '100%', borderRadius: 14, border: '1px solid rgba(245,200,0,.18)', display: 'block', objectFit: 'cover' },
-  proofCap: { fontFamily: HEAD, fontSize: '1rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.7)', textAlign: 'center', marginTop: 12 },
-
-  pfKicker: { textAlign: 'center', color: GOLD, fontFamily: BODY, fontSize: '1rem', letterSpacing: '3px', textTransform: 'uppercase', margin: '0 0 8px' },
+  proofCap: { fontFamily: HEAD, fontSize: '1rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.7)', textAlign: 'center', marginTop: 10 },
+  originGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 20 },
+  originCard: { background: 'rgba(20,20,20,.8)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, padding: 24 },
+  originStep: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: GOLD, marginBottom: 8 },
+  originT: { fontFamily: HEAD, fontSize: '1.3rem', letterSpacing: '1px', color: '#fff', marginBottom: 10 },
+  originQ: { fontFamily: BODY, fontSize: '.98rem', lineHeight: 1.55, fontStyle: 'italic', color: 'rgba(255,255,255,.68)', margin: 0 },
 
   footer: { borderTop: '1px solid rgba(245,200,0,.12)', padding: 'clamp(32px,6vw,56px) clamp(16px,4vw,40px)', textAlign: 'center', background: '#070707' },
   footLogo: { fontFamily: HEAD, fontSize: '1.6rem', letterSpacing: '2px', color: '#fff', marginBottom: 10 },
-  footTag: { fontFamily: BODY, fontSize: '.9rem', letterSpacing: '1px', color: 'rgba(255,255,255,.5)', margin: '0 0 18px' },
+  footTag: { fontFamily: BODY, fontSize: '.88rem', letterSpacing: '1px', color: 'rgba(255,255,255,.5)', margin: '0 0 18px' },
   footLinks: { display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 18 },
   footLink: { fontFamily: HEAD, fontSize: '.78rem', letterSpacing: '2px', textTransform: 'uppercase', color: GOLD, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'none' },
   footCopy: { fontFamily: BODY, fontSize: '.78rem', letterSpacing: '.5px', color: 'rgba(255,255,255,.35)', margin: 0 },
