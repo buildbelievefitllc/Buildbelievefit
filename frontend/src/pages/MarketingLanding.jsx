@@ -34,14 +34,16 @@ const BODY = "'Barlow Condensed',sans-serif";
 const HEAD = "'Bebas Neue',sans-serif";
 const DISPLAY = "'Anton',sans-serif";
 
-const SERVICES = [
-  ['Strength Coaching', 'Progressive overload programming built around your schedule, recovery capacity, and goals. Not a template — a system designed for you.'],
-  ['Nutrition Coaching', 'Custom meal plans calibrated to your TDEE, your training intensity, and your real life — not a generic macro split from the internet.'],
-  ['Program Design', 'Day-by-day periodized programs designed for real people with real jobs. Recovery built in. Progress when you follow the plan.'],
-  ['Elite Transformation', 'Full 90-day overhaul — body composition, movement quality, and habit architecture. The complete package for lasting results.'],
-  ['Remote Coaching', 'Full access to your custom app portal, weekly check-ins, meal plan updates, and direct coach access — wherever you train.'],
-  ['Human Performance Protocol', 'Performance architecture engineered around your life — your schedule, your recovery window, your occupation. Habits that compound.'],
+// Translation-key pairs (resolved through t() at render so they switch with lang).
+const SERVICE_KEYS = [
+  ['svc-n1', 'svc-d1'], ['svc-n2', 'svc-d2'], ['svc-n3', 'svc-d3'],
+  ['svc-n4', 'svc-d4'], ['svc-n5', 'svc-d5'], ['svc-n6', 'svc-d6'],
 ];
+const CRED_KEYS = [
+  ['cred-t1', 'cred-s1'], ['cred-t2', 'cred-s2'], ['cred-t3', 'cred-s3'],
+  ['cred-t4', 'cred-s4'], ['cred-t5', 'cred-s5'],
+];
+const ORIGIN_KEYS = ['origin-n1', 'origin-n2', 'origin-n3'];
 
 // Phase 15 — Revenue Matrix Pivot: two pillars. Autonomous (scalable, app/AI,
 // self-directed) and Sovereign (premium hybrid, Founder-direct human-in-the-loop).
@@ -75,19 +77,6 @@ const TIERS = [
   },
 ];
 
-const CREDENTIALS = [
-  ['Movement Specialist', 'OT-focused coaching · Exercise Science'],
-  ['Joint Protection & Prehab Architect', 'Human performance architect · habit system designer'],
-  ['Fitness Enthusiast & Lifter', 'Dedicated to the craft of human performance'],
-  ['Business & Marketing Student', 'Chandler-Gilbert Community College'],
-  ['Father of 4', 'Coaches his son who plays football'],
-];
-
-const ORIGIN = [
-  ['Step 1', 'The Starting Point', 'Lost. Depressed. No time for myself. Running out of chances to become who I knew I could be.'],
-  ['Step 2', 'The System Discovery', 'I decided to go all in. Exercise Science. Biomechanical precision. The discipline to learn the math became as important as the discipline to train.'],
-  ['Step 3', 'The Architecture Lives', 'One decision changed everything. My body. My career. My family’s future. Now that ripple reaches every client I coach.'],
-];
 
 export default function MarketingLanding() {
   const navigate = useNavigate();
@@ -125,28 +114,24 @@ export default function MarketingLanding() {
             <span style={{ display: 'block', color: GOLD }}>BELIEVE</span>
             <span style={{ display: 'block' }}>FIT</span>
           </h1>
-          <p style={s.heroSub}>
-            Universal performance for the <strong style={{ color: '#fff' }}>high-demand human.</strong> We optimize the
-            habit architecture of everyday athletes, executives, and first responders. <strong style={{ color: '#fff' }}>Your
-            schedule is the context. Your potential is the focus.</strong>
-          </p>
-          <a href="#pathfinder" style={s.heroCta}>Start My Path →</a>
+          <p style={s.heroSub}>{t('hero-sub')}</p>
+          <a href="#pathfinder" style={s.heroCta}>{t('hero-cta')}</a>
           <div style={s.doors}>
             <button type="button" style={s.door} onClick={() => navigate('/login')}>
-              <span style={s.doorKicker}>For Adults</span>
-              <span style={s.doorTitle}>Enter The Vault</span>
-              <span style={s.doorSub}>Sovereign Client Portal →</span>
+              <span style={s.doorKicker}>{t('door-adults')}</span>
+              <span style={s.doorTitle}>{t('door-vault')}</span>
+              <span style={s.doorSub}>{t('door-vault-sub')}</span>
             </button>
             <button type="button" style={s.door} onClick={() => navigate('/login')}>
-              <span style={s.doorKicker}>Youth &amp; Collegiate</span>
-              <span style={s.doorTitle}>Youth Athlete Portal</span>
-              <span style={s.doorSub}>Performance &amp; Pre-Hab →</span>
+              <span style={s.doorKicker}>{t('door-youth')}</span>
+              <span style={s.doorTitle}>{t('door-athlete')}</span>
+              <span style={s.doorSub}>{t('door-athlete-sub')}</span>
             </button>
           </div>
           <div style={s.stats}>
-            <Stat n="2021" l="Est. · Founded" />
-            <Stat n="🛡" l="Sovereign Standard" />
-            <Stat n="100%" l="Custom Plans" />
+            <Stat n="2021" l={t('stat-founded')} />
+            <Stat n="🛡" l={t('stat-cert')} />
+            <Stat n="100%" l={t('stat-plans-2')} />
           </div>
         </div>
         <div style={s.heroImgWrap}>
@@ -159,10 +144,10 @@ export default function MarketingLanding() {
         <div style={s.secLbl}>{t('svc-lbl')}</div>
         <h2 style={s.secH}>{t('svc-h')}</h2>
         <div style={s.svcGrid}>
-          {SERVICES.map(([n, d]) => (
-            <article key={n} style={s.svcCard}>
-              <div style={s.svcName}>{n}</div>
-              <p style={s.svcDesc}>{d}</p>
+          {SERVICE_KEYS.map(([nk, dk]) => (
+            <article key={nk} style={s.svcCard}>
+              <div style={s.svcName}>{t(nk)}</div>
+              <p style={s.svcDesc}>{t(dk)}</p>
             </article>
           ))}
         </div>
@@ -174,33 +159,28 @@ export default function MarketingLanding() {
       <section id="programs" style={s.sectionWide}>
         <div style={s.secLbl}>{t('prog-lbl')}</div>
         <h2 style={s.secH}>{t('prog-h')}</h2>
-        <p style={s.secSub}>
-          Run the system yourself with the Autonomous Engine, or go Founder-Direct with the Sovereign Standard.
-          Same biomechanical precision, same Sovereign Gold Standard — your choice of autonomy or access.
-        </p>
+        <p style={s.secSub}>{t('prog-sub')}</p>
         <div style={s.progGrid}>
-          {TIERS.map((t) => (
-            <article key={t.name} style={{ ...s.progCard, ...(t.featured ? s.progCardFeatured : null) }}>
-              {t.featured ? <div style={s.progBadge}>{t.badge || 'Most Popular'}</div> : null}
-              <div style={{ ...s.progTag, color: t.accent }}>{t.tag}</div>
-              <div style={s.progName}>{t.name}</div>
-              <div style={s.progPrice}>{t.price}<span style={s.progPer}> {t.per}</span></div>
-              <div style={{ ...s.progBlurb, color: t.accent }}>{t.blurb}</div>
+          {TIERS.map((tier) => (
+            <article key={tier.name} style={{ ...s.progCard, ...(tier.featured ? s.progCardFeatured : null) }}>
+              {tier.featured ? <div style={s.progBadge}>{tier.badge || 'Most Popular'}</div> : null}
+              <div style={{ ...s.progTag, color: tier.accent }}>{tier.tag}</div>
+              <div style={s.progName}>{tier.name}</div>
+              <div style={s.progPrice}>{tier.price}<span style={s.progPer}> {tier.per}</span></div>
+              <div style={{ ...s.progBlurb, color: tier.accent }}>{tier.blurb}</div>
               <ul style={s.progFeats}>
-                {t.feats.map((f) => <li key={f} style={s.progFeat}>✓ {f}</li>)}
+                {tier.feats.map((f) => <li key={f} style={s.progFeat}>✓ {f}</li>)}
               </ul>
-              <a href="#pathfinder" style={{ ...s.progCta, ...(t.featured ? { background: GOLD, color: '#090909' } : null) }}>
-                {t.cta || 'Apply →'}
+              <a href="#pathfinder" style={{ ...s.progCta, ...(tier.featured ? { background: GOLD, color: '#090909' } : null) }}>
+                {tier.cta || 'Apply →'}
               </a>
             </article>
           ))}
         </div>
         <div style={s.promise}>
-          <div style={s.promiseLbl}>The BBF Financial Integrity Promise</div>
+          <div style={s.promiseLbl}>{t('promise-lbl')}</div>
           <p style={s.promiseText}>
-            “Whether you run the Autonomous Engine at $47 a month or commit to the Sovereign Standard, you receive the
-            same Founder-Verified attention to your joint safety, recovery, and long-term mobility. The price reflects
-            access and depth — the Sovereign Gold Standard never changes.” <span style={{ color: GOLD }}>— Akeem Brown</span>
+            “{t('promise-text')}” <span style={{ color: GOLD }}>{t('founder-sig-name')}</span>
           </p>
         </div>
       </section>
@@ -213,36 +193,25 @@ export default function MarketingLanding() {
       {/* ── FOUNDER ── */}
       <section id="founder" style={{ ...s.sectionPurple }}>
         <div style={s.section}>
-        <div style={s.secLbl}>The Founder</div>
-        <h2 style={s.secH}>The Story Behind <span style={{ color: GOLD }}>BBF</span></h2>
+        <div style={s.secLbl}>{t('founder-lbl')}</div>
+        <h2 style={s.secH}>{t('founder-h')}</h2>
         <div style={s.founderGrid}>
           <div>
             <img src="/media/akeem-nasm.jpg" alt="Akeem Brown" loading="lazy" style={s.founderImg} />
             <div style={s.credCard}>
-              {CREDENTIALS.map(([t, sub]) => (
-                <div key={t} style={s.cred}>
-                  <div style={s.credT}>{t}</div>
-                  <div style={s.credS}>{sub}</div>
+              {CRED_KEYS.map(([tk, sk]) => (
+                <div key={tk} style={s.cred}>
+                  <div style={s.credT}>{t(tk)}</div>
+                  <div style={s.credS}>{t(sk)}</div>
                 </div>
               ))}
             </div>
           </div>
           <div>
-            <p style={s.story}>
-              I built these protocols as a father and everyday athlete protecting my own joints through real life — not from
-              a textbook. <strong style={{ color: GOLD }}>I built it to solve the Human Habit Equation.</strong> My life was
-              the laboratory. The results became the blueprint.
-            </p>
-            <p style={s.story}>
-              Build Believe Fit was born between obligations — in the windows of time most people overlook. I&apos;m a
-              <strong style={{ color: '#fff' }}> Performance Architect, a passionate lifter, a father of 4</strong>, and an
-              Exercise Science student becoming an Occupational Therapist. I understand the human body and the human schedule.
-            </p>
-            <p style={s.story}>
-              My clients aren&apos;t defined by their occupation. They&apos;re defined by their refusal to let their schedule
-              become their ceiling. <strong style={{ color: '#fff' }}>Executives. First responders. Parents. Everyday athletes.</strong>
-            </p>
-            <div style={s.sig}>— Akeem Brown<br /><span style={s.sigSmall}>Owner, BBF LLC · Movement Specialist · Exercise Science · Future OT</span></div>
+            <p style={s.story}>{t('founder-p1')}</p>
+            <p style={s.story}>{t('founder-p2')}</p>
+            <p style={s.story}>{t('founder-p3')}</p>
+            <div style={s.sig}>{t('founder-sig-name')}<br /><span style={s.sigSmall}>{t('founder-sig-sub')}</span></div>
           </div>
         </div>
         </div>
@@ -252,25 +221,24 @@ export default function MarketingLanding() {
 
       {/* ── ORIGIN STORY ── */}
       <section id="origin" style={s.section}>
-        <div style={s.secLbl}>The Origin of the System</div>
-        <h2 style={s.secH}>The System Was <span style={{ color: GOLD }}>Born Here</span></h2>
-        <p style={s.secSub}>Not theory. Not a textbook protocol. A system discovered through lived experience and refined through science.</p>
+        <div style={s.secLbl}>{t('origin-lbl')}</div>
+        <h2 style={s.secH}>{t('origin-h')}</h2>
+        <p style={s.secSub}>{t('origin-sub')}</p>
         <div style={s.proofGrid}>
           <figure style={s.proofFig}>
             <img src="/media/akeem-before.png" alt="Before" loading="lazy" style={s.proofImg} />
-            <figcaption style={s.proofCap}>Before</figcaption>
+            <figcaption style={s.proofCap}>{t('origin-cap-before')}</figcaption>
           </figure>
           <figure style={s.proofFig}>
             <img src="/media/akeem-after.png" alt="After" loading="lazy" style={s.proofImg} />
-            <figcaption style={{ ...s.proofCap, color: GOLD }}>After</figcaption>
+            <figcaption style={{ ...s.proofCap, color: GOLD }}>{t('origin-cap-after')}</figcaption>
           </figure>
         </div>
         <div style={s.originGrid}>
-          {ORIGIN.map(([step, t, q]) => (
-            <div key={step} style={s.originCard}>
-              <div style={s.originStep}>{step}</div>
-              <div style={s.originT}>{t}</div>
-              <p style={s.originQ}>“{q}”</p>
+          {ORIGIN_KEYS.map((k, i) => (
+            <div key={k} style={s.originCard}>
+              <div style={s.originStep}>0{i + 1}</div>
+              <p style={s.originQ}>{t(k)}</p>
             </div>
           ))}
         </div>
@@ -296,10 +264,10 @@ export default function MarketingLanding() {
       {/* ── FOOTER ── */}
       <footer style={s.footer}>
         <div style={s.footLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></div>
-        <p style={s.footTag}>Performance Architecture &amp; Movement Science · Est. 2021</p>
+        <p style={s.footTag}>{t('foot-tag')}</p>
         <div style={s.footLinks}>
           <button type="button" style={s.footLink} onClick={() => navigate('/login')}>{t('nav-signin')}</button>
-          <a style={s.footLink} href="mailto:buildbelievefit@gmail.com">Contact</a>
+          <a style={s.footLink} href="mailto:buildbelievefit@gmail.com">{t('foot-contact')}</a>
         </div>
         <p style={s.footCopy}>© 2021–{new Date().getFullYear()} Build Believe Fit LLC · buildbelievefit.fitness · All rights reserved.</p>
       </footer>
