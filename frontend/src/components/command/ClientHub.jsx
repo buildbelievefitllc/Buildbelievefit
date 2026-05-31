@@ -1,105 +1,47 @@
 // src/components/command/ClientHub.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 5 — Client Hub, live-wired to the Sovereign Roster.
+// Phase 5 — Client Hub (live Sovereign Roster).
+// Phase 6 — drill-in: clicking a card opens the <ClientDossier/> for that client.
 //
-// Data path — mirrors the legacy monolith EXACTLY (bbf-app.html BBF_DATABASE_HUB
-// `loadRoster` → `_post('roster')`):
+// Data path lives in lib/rosterApi.rosterCall (single source of the gateway +
+// admin auth, shared with the Dossier so the two can't drift). Roster pull:
 //
-//   POST {FUNCTIONS_BASE}/bbf-admin-roster
-//   headers: apikey + Authorization: Bearer <anon>   (gateway routing — REQUIRED
-//            even though the function is verify_jwt:false; omit it and the gateway
-//            401s before the function runs — the monolith learned this the hard way)
-//            X-BBF-Admin-Token: <admin secret>        (the real authorization gate)
-//   body:    { action: 'roster' }
-//   200 →    { ok:true, count, clients:[{ id, uid, name, email, role,
-//              metabolic_tier, subscription_tier, tdee_target, updated_at }] }
-//   401 →    { error:'unauthorized' }   (bad/missing admin token)
-//   503 →    { error:'backend_unconfigured' }
-//   500 →    { error:'server_error', detail }
+//   POST {FUNCTIONS_BASE}/bbf-admin-roster  { action:'roster' }
+//   200 → { ok:true, count, clients:[{ id, uid, name, email, role,
+//           metabolic_tier, subscription_tier, tdee_target, updated_at }] }
 //
-// Why the edge function and not supabase.from('bbf_users'): the roster is a
-// service-role (RLS-bypassing) read so the trainer sees EVERY client. That key
-// lives ONLY inside the function. The browser authorizes with X-BBF-Admin-Token.
-//
-// SECURITY (CLAUDE.md §7): the admin token is a shared secret, NEVER bundled (no
-// VITE_ var). Supplied at runtime, kept in sessionStorage under the monolith's
-// own key (BBF_COACH_AGENT_TOKEN) so the two surfaces share the convention. No
-// token → a token gate, not a silent failure.
+// In-component routing: `activeClient` (the selected roster row | null) decides
+// list-vs-dossier. We hold the WHOLE row, not a bare uid — the detail action keys
+// on the `id` PK (not uid), and the row gives the dossier instant header context.
 //
 // State contract: { data, isLoading, error } — no silent failures, no infinite
 // spinners. A failed fetch renders the EXACT server string in var(--red).
 
 import { useCallback, useEffect, useState } from 'react';
-import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from '../../lib/supabaseClient.js';
+import { readToken, writeToken, clearToken, rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
 import CommandSurface from './CommandSurface.jsx';
-
-// Mirror the monolith's token storage (sessionStorage · BBF_COACH_AGENT_TOKEN).
-const TOKEN_KEY = 'BBF_COACH_AGENT_TOKEN';
-const readToken = () => {
-  try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
-};
-const writeToken = (t) => { try { sessionStorage.setItem(TOKEN_KEY, t); } catch { /* blocked */ } };
-const clearToken = () => { try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* blocked */ } };
-
-// Human-readable line for an HTTP status, so the surfaced error is precise rather
-// than a bare code (parity with the monolith's _errMsg).
-function statusHint(status) {
-  if (status === 401) return 'admin token missing or mismatched';
-  if (status === 403) return 'gateway rejected the request (check anon apikey)';
-  if (status === 404) return 'not found';
-  if (status === 503) return 'backend not configured (missing secret)';
-  return 'request failed';
-}
+import ClientDossier from './ClientDossier.jsx';
 
 export default function ClientHub() {
-  const [token, setToken] = useState(readToken);   // stored token ('' = none)
-  const [tokenInput, setTokenInput] = useState(''); // controlled gate input
+  const [token, setToken] = useState(readToken);    // stored token ('' = none)
+  const [tokenInput, setTokenInput] = useState('');  // controlled gate input
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [activeClient, setActiveClient] = useState(null); // selected row | null
 
   const fetchRoster = useCallback(async () => {
-    const t = readToken();
-    if (!t) {
+    if (!readToken()) {
       setError('Admin token required — authenticate to load the live roster.');
       return;
     }
     setIsLoading(true);
     setError(null);
     try {
-      const headers = { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': t };
-      // Gateway routing headers — without these the request never reaches the
-      // function (it 401s at the edge). The anon key is safe in the bundle.
-      if (SUPABASE_ANON_KEY) {
-        headers.apikey = SUPABASE_ANON_KEY;
-        headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
-      }
-
-      const res = await fetch(`${FUNCTIONS_BASE}/bbf-admin-roster`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ action: 'roster' }),
-      });
-
-      // Read the body once as text so we can surface the EXACT server string
-      // whether the response is ok or an error envelope.
-      const raw = await res.text();
-      let body = null;
-      try { body = raw ? JSON.parse(raw) : null; } catch { /* non-JSON body */ }
-
-      if (!res.ok) {
-        const slug = body?.detail || body?.error || raw || 'unknown error';
-        throw new Error(`Error ${res.status} — ${statusHint(res.status)} (${slug}).`);
-      }
-      if (!body?.ok) {
-        throw new Error(body?.error || body?.detail || 'Malformed roster response.');
-      }
-
+      const body = await rosterCall('roster');
       setData(Array.isArray(body.clients) ? body.clients : []);
     } catch (e) {
-      // Network/CORS throws land here too — surface them, never swallow.
-      const msg = e?.message || String(e);
-      setError(/^Error /.test(msg) ? msg : `Network/CORS error — ${msg}.`);
+      setError(toErrorMessage(e));
       setData([]);
     } finally {
       setIsLoading(false);
@@ -132,9 +74,17 @@ export default function ClientHub() {
     setToken('');
     setError(null);
     setData([]);
+    setActiveClient(null);
   }
 
   const hasToken = !!token;
+
+  // ── Drill-in: a selected client replaces the whole surface with the dossier.
+  // Placed AFTER every hook so the rules of hooks hold. Roster state survives
+  // underneath, so Back is instant and needs no refetch.
+  if (hasToken && activeClient) {
+    return <ClientDossier client={activeClient} onBack={() => setActiveClient(null)} />;
+  }
 
   return (
     <CommandSurface
@@ -173,7 +123,7 @@ export default function ClientHub() {
           {!isLoading && !error && data.length > 0 ? (
             <ul style={styles.list}>
               {data.map((c) => (
-                <ClientRow key={c.id ?? c.uid ?? c.email} client={c} />
+                <ClientRow key={c.id ?? c.uid ?? c.email} client={c} onSelect={setActiveClient} />
               ))}
             </ul>
           ) : null}
@@ -232,24 +182,27 @@ function ErrorBanner({ message, onRetry, onResetToken }) {
   );
 }
 
-// ── One client card. Maps the fields the roster query actually returns. ────────
-function ClientRow({ client }) {
+// ── One client card — clickable, drills into the dossier. ──────────────────────
+function ClientRow({ client, onSelect }) {
   const name = client.name || client.uid || 'Unnamed';
   const tier = client.subscription_tier || null;
   const color = tierColor(tier);
   const roleLine = [client.role || 'client', client.metabolic_tier].filter(Boolean).join(' · ');
   return (
-    <li style={styles.row}>
-      <span style={{ ...styles.avatar, borderColor: color }}>{initials(name)}</span>
-      <span style={styles.rowMain}>
-        <span style={styles.rowName}>{name}</span>
-        <span style={styles.rowSub}>{client.email || '—'}</span>
-      </span>
-      <span style={styles.rowMeta}>
-        <span style={styles.rowRole}>{roleLine}</span>
-        <span style={styles.rowSub}>{client.tdee_target ? `${client.tdee_target} kcal` : '—'}</span>
-      </span>
-      <span style={{ ...styles.badge, color, borderColor: color }}>{tier || (client.role || '—')}</span>
+    <li>
+      <button type="button" style={styles.row} onClick={() => onSelect(client)} aria-label={`Open dossier for ${name}`}>
+        <span style={{ ...styles.avatar, borderColor: color }}>{initials(name)}</span>
+        <span style={styles.rowMain}>
+          <span style={styles.rowName}>{name}</span>
+          <span style={styles.rowSub}>{client.email || '—'}</span>
+        </span>
+        <span style={styles.rowMeta}>
+          <span style={styles.rowRole}>{roleLine}</span>
+          <span style={styles.rowSub}>{client.tdee_target ? `${client.tdee_target} kcal` : '—'}</span>
+        </span>
+        <span style={{ ...styles.badge, color, borderColor: color }}>{tier || (client.role || '—')}</span>
+        <span style={styles.chevron} aria-hidden="true">›</span>
+      </button>
     </li>
   );
 }
@@ -297,7 +250,7 @@ const styles = {
 
   list: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '.6rem' },
   row: {
-    display: 'flex', alignItems: 'center', gap: '1rem',
+    display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', textAlign: 'left', cursor: 'pointer',
     background: 'var(--gry)', border: '1px solid var(--line)', borderRadius: 14, padding: '.9rem 1.1rem',
   },
   avatar: {
@@ -314,4 +267,5 @@ const styles = {
     fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '1.5px', textTransform: 'uppercase',
     border: '1px solid var(--mut)', borderRadius: 6, padding: '.25rem .55rem', whiteSpace: 'nowrap',
   },
+  chevron: { fontFamily: 'var(--bd)', fontSize: '1.5rem', color: 'var(--mut)', lineHeight: 1, flexShrink: 0 },
 };
