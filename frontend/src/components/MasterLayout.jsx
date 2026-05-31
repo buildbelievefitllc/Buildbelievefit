@@ -16,14 +16,17 @@ const NAV_ITEMS = ['Command Center', 'Program', 'Nutrition', 'Settings'];
 export default function MasterLayout({ children }) {
   const { user, signOut } = useAuth();
 
+  // Layout lives in index.css classes (bbf-shell / bbf-sidebar / …) so it can go
+  // responsive — inline styles can't express the media query the mobile collapse
+  // needs. Purely visual, non-conflicting styles stay inline.
   return (
-    <div style={styles.shell}>
-      <aside style={styles.sidebar}>
+    <div className="bbf-shell">
+      <aside className="bbf-sidebar">
         <div style={styles.brand}>
           BBF<span style={{ color: 'var(--yel)' }}>.</span>
         </div>
 
-        <nav style={styles.nav}>
+        <nav className="bbf-sidebar-nav">
           {NAV_ITEMS.map((item, i) => (
             <button
               key={item}
@@ -35,7 +38,7 @@ export default function MasterLayout({ children }) {
           ))}
         </nav>
 
-        <div style={styles.sidebarFoot}>
+        <div className="bbf-sidebar-foot">
           {user?.username ? <div style={styles.who}>@{user.username}</div> : null}
           <button type="button" style={styles.signout} onClick={signOut}>
             Sign Out
@@ -43,28 +46,14 @@ export default function MasterLayout({ children }) {
         </div>
       </aside>
 
-      <main style={styles.viewport}>{children}</main>
+      <main className="bbf-viewport">{children}</main>
     </div>
   );
 }
 
 const styles = {
-  shell: {
-    display: 'flex',
-    height: '100%',
-    minHeight: '100%',
-    background: 'var(--blk)',
-    color: 'var(--wht)',
-  },
-  sidebar: {
-    width: 248,
-    flexShrink: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '1.5rem 1rem',
-    background: 'linear-gradient(180deg, var(--purp) 0%, var(--blk) 60%)',
-    borderRight: '1px solid var(--line)',
-  },
+  // Layout (shell / sidebar / nav / foot / viewport) now lives in index.css so it
+  // can respond to viewport width; only non-layout visual styles remain inline.
   brand: {
     fontFamily: 'var(--hb)',
     fontSize: '1.8rem',
@@ -72,7 +61,6 @@ const styles = {
     letterSpacing: '2px',
     padding: '0 .4rem 1.5rem',
   },
-  nav: { display: 'flex', flexDirection: 'column', gap: '.25rem', flex: 1 },
   navItem: {
     textAlign: 'left',
     fontFamily: 'var(--hb)',
@@ -92,7 +80,6 @@ const styles = {
     borderColor: 'rgba(245,200,0,.3)',
     borderLeft: '3px solid var(--yel)',
   },
-  sidebarFoot: { borderTop: '1px solid var(--line)', paddingTop: '1rem', marginTop: '1rem' },
   who: { fontSize: '.72rem', letterSpacing: '1px', color: 'var(--mut)', marginBottom: '.6rem' },
   signout: {
     width: '100%',
@@ -107,5 +94,4 @@ const styles = {
     padding: '.6rem',
     cursor: 'pointer',
   },
-  viewport: { flex: 1, overflowY: 'auto', padding: '2rem' },
 };

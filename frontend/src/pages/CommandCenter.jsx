@@ -51,7 +51,9 @@ export default function CommandCenter() {
         })}
       </nav>
 
-      <div style={styles.panel}>
+      {/* key={activeTab} forces a clean unmount/remount on every swap — no state
+          can bleed between surfaces, and the swap is unambiguous. */}
+      <div style={styles.panel} key={activeTab}>
         <ActivePanel />
       </div>
     </div>
@@ -75,8 +77,15 @@ const styles = {
     gap: '.4rem',
     borderBottom: '1px solid var(--line)',
     marginBottom: '2rem',
+    // Horizontally scrollable so the full tab set stays reachable on a narrow
+    // (mobile) column instead of overflowing off-screen — the Phase 9.5 defect.
+    overflowX: 'auto',
+    flexWrap: 'nowrap',
+    WebkitOverflowScrolling: 'touch',
   },
   tab: {
+    flex: '0 0 auto',
+    whiteSpace: 'nowrap',
     fontFamily: 'var(--hb)',
     fontSize: '.82rem',
     letterSpacing: '2px',
