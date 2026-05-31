@@ -15,6 +15,10 @@
 import { useNavigate } from 'react-router-dom';
 import PathfinderForm from '../components/PathfinderForm.jsx';
 import Interrogator from '../components/Interrogator.jsx';
+import TDEECalculator from '../components/TDEECalculator.jsx';
+import BBFChatbox from '../components/BBFChatbox.jsx';
+import { useLang } from '../context/LangContext.jsx';
+import { LANGS } from '../context/langs.js';
 
 // ── True legacy palette (verbatim from styles/bbf-tokens.css) ───────────────────
 // Victory Gold is RESERVED for primary CTAs only (scarcity = value). Purple is the
@@ -87,12 +91,14 @@ const ORIGIN = [
 
 export default function MarketingLanding() {
   const navigate = useNavigate();
+  const { t } = useLang();
 
-  // Interrogator verdict CTAs + tier CTAs all funnel to the Pathfinder form.
-  function scrollToPathfinder() {
-    const el = document.getElementById('pathfinder');
+  // Smooth-scroll helper — Interrogator/TDEE/Chatbox CTAs funnel to these anchors.
+  function scrollTo(id) {
+    const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   }
+  const scrollToPathfinder = () => scrollTo('pathfinder');
 
   return (
     <div style={s.page}>
@@ -100,19 +106,20 @@ export default function MarketingLanding() {
       <nav style={s.nav}>
         <a href="#hero" style={s.navLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></a>
         <div style={s.navLinks}>
-          <a href="#services" style={s.navLink}>Services</a>
-          <a href="#programs" style={s.navLink}>Programs</a>
-          <a href="#interrogator" style={s.navLink}>Audit</a>
-          <a href="#founder" style={s.navLink}>About</a>
-          <button type="button" style={s.navSignIn} onClick={() => navigate('/login')}>Sign In</button>
-          <a href="#pathfinder" style={s.navCta}>Start</a>
+          <a href="#services" style={s.navLink}>{t('nav-services')}</a>
+          <a href="#programs" style={s.navLink}>{t('nav-programs')}</a>
+          <a href="#interrogator" style={s.navLink}>{t('nav-audit')}</a>
+          <a href="#founder" style={s.navLink}>{t('nav-about')}</a>
+          <button type="button" style={s.navSignIn} onClick={() => navigate('/login')}>{t('nav-signin')}</button>
+          <a href="#pathfinder" style={s.navCta}>{t('nav-start')}</a>
+          <LangToggle />
         </div>
       </nav>
 
       {/* ── HERO ── */}
       <section id="hero" style={s.hero}>
         <div style={s.heroText}>
-          <div style={s.heroBadge}>⚡ Performance Architect · Sovereign Gold Standard</div>
+          <div style={s.heroBadge}>⚡ {t('hero-badge')}</div>
           <h1 style={s.heroStack} aria-label="Build Believe Fit">
             <span style={{ display: 'block' }}>BUILD</span>
             <span style={{ display: 'block', color: GOLD }}>BELIEVE</span>
@@ -149,8 +156,8 @@ export default function MarketingLanding() {
 
       {/* ── SERVICES ── */}
       <section id="services" style={s.section}>
-        <div style={s.secLbl}>What We Offer</div>
-        <h2 style={s.secH}>How We Get You <span style={{ color: GOLD }}>There</span></h2>
+        <div style={s.secLbl}>{t('svc-lbl')}</div>
+        <h2 style={s.secH}>{t('svc-h')}</h2>
         <div style={s.svcGrid}>
           {SERVICES.map(([n, d]) => (
             <article key={n} style={s.svcCard}>
@@ -165,8 +172,8 @@ export default function MarketingLanding() {
 
       {/* ── PROGRAMS (real tiers + pricing) ── */}
       <section id="programs" style={s.sectionWide}>
-        <div style={s.secLbl}>Choose Your Path</div>
-        <h2 style={s.secH}>Two Paths. One <span style={{ color: GOLD }}>Standard.</span></h2>
+        <div style={s.secLbl}>{t('prog-lbl')}</div>
+        <h2 style={s.secH}>{t('prog-h')}</h2>
         <p style={s.secSub}>
           Run the system yourself with the Autonomous Engine, or go Founder-Direct with the Sovereign Standard.
           Same biomechanical precision, same Sovereign Gold Standard — your choice of autonomy or access.
@@ -271,11 +278,18 @@ export default function MarketingLanding() {
 
       <Divider />
 
+      {/* ── TDEE CALCULATOR (free tool → feeds the Pathfinder) ── */}
+      <section id="tdee" style={s.sectionWide}>
+        <TDEECalculator onUseResults={scrollToPathfinder} />
+      </section>
+
+      <Divider />
+
       {/* ── PATHFINDER (the embedded Phase 13 form) ── */}
       <section id="pathfinder" style={s.sectionWide}>
-        <div style={s.secLbl}>Start Your Journey</div>
-        <h2 style={s.secH}>The <span style={{ color: GOLD }}>Pathfinder</span></h2>
-        <p style={s.secSub}>Tell us about yourself — we&apos;ll personalize everything and Akeem will reach out within 24 hours.</p>
+        <div style={s.secLbl}>{t('pf-lbl')}</div>
+        <h2 style={s.secH}>{t('pf-h')}</h2>
+        <p style={s.secSub}>{t('pf-sub')}</p>
         <div style={{ marginTop: '2rem' }}><PathfinderForm /></div>
       </section>
 
@@ -284,11 +298,35 @@ export default function MarketingLanding() {
         <div style={s.footLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></div>
         <p style={s.footTag}>Performance Architecture &amp; Movement Science · Est. 2021</p>
         <div style={s.footLinks}>
-          <button type="button" style={s.footLink} onClick={() => navigate('/login')}>Member Sign In</button>
+          <button type="button" style={s.footLink} onClick={() => navigate('/login')}>{t('nav-signin')}</button>
           <a style={s.footLink} href="mailto:buildbelievefit@gmail.com">Contact</a>
         </div>
         <p style={s.footCopy}>© 2021–{new Date().getFullYear()} Build Believe Fit LLC · buildbelievefit.fitness · All rights reserved.</p>
       </footer>
+
+      {/* ── BBF CHATBOX (floating assistant) — CTAs route to TDEE / Pathfinder ── */}
+      <BBFChatbox onCta={(target) => scrollTo(target === 'tdee' ? 'tdee' : 'pathfinder')} />
+    </div>
+  );
+}
+
+// Trilingual EN / ES / PT switcher — legacy nav placement. Active language gets
+// the brand purple pill (legacy #bbf-lang-toggle .lang-active: bg purple).
+function LangToggle() {
+  const { lang, setLang } = useLang();
+  return (
+    <div style={s.langToggle} role="group" aria-label="Language">
+      {LANGS.map((l) => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => setLang(l)}
+          aria-pressed={lang === l}
+          style={{ ...s.langBtn, ...(lang === l ? s.langBtnActive : null) }}
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
     </div>
   );
 }
@@ -308,6 +346,9 @@ const s = {
   navLink: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', textDecoration: 'none', textTransform: 'uppercase', fontWeight: 600 },
   navSignIn: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 600, padding: 0 },
   navCta: { fontFamily: BODY, fontSize: '.88rem', letterSpacing: '1px', padding: '8px 18px', background: GOLD, color: '#090909', borderRadius: 6, textDecoration: 'none', textTransform: 'uppercase', fontWeight: 700, boxShadow: `0 4px 18px rgba(245,200,0,.25)` },
+  langToggle: { display: 'inline-flex', border: `1px solid rgba(157,39,201,.45)`, borderRadius: 8, overflow: 'hidden' },
+  langBtn: { fontFamily: HEAD, fontSize: '.82rem', letterSpacing: '1.5px', color: 'rgba(255,255,255,.6)', background: 'transparent', border: 'none', padding: '.35rem .6rem', cursor: 'pointer' },
+  langBtnActive: { background: PUR, color: GOLD },
 
   hero: { position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 'clamp(24px,5vw,56px)', alignItems: 'center', maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
   heroText: {},

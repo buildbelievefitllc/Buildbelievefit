@@ -16,6 +16,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+// Phase 17 — brand correction: the legacy Interrogator leaned RED, which clashes
+// with BBF. Re-skinned to Purple/Gold. Cyan is retained ONLY as the subtle
+// "diagnostic scan" accent (legacy lab motif); the dominant accents are purple +
+// gold, and Victory Gold stays reserved for the recommended CTA.
 const C = {
   goldVictory: '#F5C800',   // RESERVED — recommended CTA only
   gold: '#D4AF37',          // laboratory gold (accents)
@@ -24,8 +28,7 @@ const C = {
   purple: '#6A0DAD',
   purpleDeep: '#2D0555',
   purpleNear: '#110128',
-  cyan: '#22D3EE',
-  red: '#EF4444',
+  cyan: '#22D3EE',          // diagnostic-scan accent only
   ink: '#E8FBFF',
 };
 const HEAD = "'Bebas Neue',sans-serif";
@@ -130,7 +133,7 @@ export default function Interrogator({ onChooseTier }) {
           <form onSubmit={runAudit} style={st.form}>
             <div style={st.labelRow}>
               <span style={st.labelL}>&gt; PASTE YOUR PROTOCOL</span>
-              <span style={{ ...st.labelR, color: counterState === 'cap' ? C.red : counterState === 'warn' ? C.goldVictory : 'rgba(255,255,255,.32)' }}>
+              <span style={{ ...st.labelR, color: counterState === 'cap' ? C.goldVictory : counterState === 'warn' ? C.gold : 'rgba(255,255,255,.32)' }}>
                 {len} / {MAX_LEN}
               </span>
             </div>
@@ -173,10 +176,10 @@ function AuditBlock({ data, onChooseTier }) {
 
       {Array.isArray(data.gaps) && data.gaps.length ? (
         <div style={st.section}>
-          <h3 style={{ ...st.sectionH, color: C.red }}>[ 01 ] THE GAPS</h3>
+          <h3 style={{ ...st.sectionH, color: C.purpleRoyal }}>[ 01 ] THE GAPS</h3>
           {data.gaps.map((g, i) => (
             <div key={i} style={st.entry}>
-              <div style={{ ...st.entryT, color: '#FCA5A5' }}>{g.title}</div>
+              <div style={{ ...st.entryT, color: C.goldSoft }}>{g.title}</div>
               <p style={st.entryB}>{g.body}</p>
             </div>
           ))}
@@ -210,11 +213,11 @@ function AuditBlock({ data, onChooseTier }) {
 }
 
 const st = {
-  shell: { position: 'relative', background: `linear-gradient(180deg, ${C.purpleNear} 0%, #050507 60%, ${C.purpleNear} 100%)`, padding: 'clamp(48px,8vw,80px) clamp(16px,4vw,40px)', borderTop: `2px solid rgba(157,39,201,.45)`, borderBottom: `2px solid rgba(34,211,238,.4)`, overflow: 'hidden', isolation: 'isolate' },
-  scanline: { position: 'absolute', left: 0, right: 0, top: 0, height: 1, background: `linear-gradient(90deg, transparent, ${C.red} 22%, ${C.goldVictory} 50%, ${C.cyan} 78%, transparent)`, opacity: .85, zIndex: 1 },
+  shell: { position: 'relative', background: `linear-gradient(180deg, ${C.purpleNear} 0%, #050507 60%, ${C.purpleNear} 100%)`, padding: 'clamp(48px,8vw,80px) clamp(16px,4vw,40px)', borderTop: `2px solid rgba(157,39,201,.5)`, borderBottom: `2px solid rgba(245,200,0,.35)`, overflow: 'hidden', isolation: 'isolate' },
+  scanline: { position: 'absolute', left: 0, right: 0, top: 0, height: 1, background: `linear-gradient(90deg, transparent, ${C.purple} 22%, ${C.goldVictory} 50%, ${C.purpleRoyal} 78%, transparent)`, opacity: .85, zIndex: 1 },
   inner: { position: 'relative', zIndex: 2, maxWidth: 920, margin: '0 auto' },
-  kicker: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '.55rem', fontFamily: HEAD, fontSize: '.72rem', letterSpacing: '4px', textTransform: 'uppercase', color: C.red, marginBottom: '.7rem' },
-  kickerDot: { width: 9, height: 9, borderRadius: '50%', background: C.red, boxShadow: `0 0 14px ${C.red}` },
+  kicker: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '.55rem', fontFamily: HEAD, fontSize: '.72rem', letterSpacing: '4px', textTransform: 'uppercase', color: C.purpleRoyal, marginBottom: '.7rem' },
+  kickerDot: { width: 9, height: 9, borderRadius: '50%', background: C.purpleRoyal, boxShadow: `0 0 14px ${C.purpleRoyal}` },
   title: { fontFamily: HEAD, fontSize: 'clamp(2rem,7vw,3.4rem)', lineHeight: .95, letterSpacing: '2px', textTransform: 'uppercase', textAlign: 'center', margin: '0 0 .55rem', color: '#fff' },
   titleGold: { background: `linear-gradient(90deg, ${C.goldSoft} 0%, ${C.goldVictory} 45%, ${C.gold} 100%)`, WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent' },
   sub: { textAlign: 'center', maxWidth: 640, margin: '0 auto 2rem', fontFamily: BODY, fontSize: '1rem', lineHeight: 1.55, color: 'rgba(255,255,255,.62)' },
@@ -233,8 +236,8 @@ const st = {
   labelL: { fontFamily: HEAD, fontSize: '.66rem', letterSpacing: '3px', textTransform: 'uppercase', color: C.cyan },
   labelR: { fontFamily: MONO, fontSize: '.62rem', letterSpacing: '2px', textTransform: 'uppercase' },
   textarea: { width: '100%', boxSizing: 'border-box', background: '#04040a', border: `1px solid rgba(34,211,238,.32)`, color: C.ink, fontFamily: MONO, fontSize: '.9rem', lineHeight: 1.55, padding: '1rem', borderRadius: 10, minHeight: 170, resize: 'vertical', outline: 'none' },
-  error: { fontFamily: MONO, fontSize: '.82rem', color: '#FCA5A5', background: 'rgba(239,68,68,.06)', border: '1px dashed rgba(239,68,68,.35)', borderRadius: 8, padding: '.7rem .9rem', marginTop: '.7rem' },
-  go: { display: 'block', width: '100%', marginTop: '1rem', background: `linear-gradient(180deg, ${C.red} 0%, #B91C1C 100%)`, color: '#fff', border: `1px solid ${C.red}`, borderRadius: 12, padding: '1.1rem 1rem', fontFamily: HEAD, fontSize: '1.15rem', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 12px 32px rgba(239,68,68,.4)' },
+  error: { fontFamily: MONO, fontSize: '.82rem', color: C.goldSoft, background: 'rgba(106,13,173,.12)', border: `1px dashed rgba(157,39,201,.45)`, borderRadius: 8, padding: '.7rem .9rem', marginTop: '.7rem' },
+  go: { display: 'block', width: '100%', marginTop: '1rem', background: `linear-gradient(180deg, ${C.goldVictory} 0%, ${C.gold} 100%)`, color: '#1B1106', border: `1px solid ${C.goldSoft}`, borderRadius: 12, padding: '1.1rem 1rem', fontFamily: HEAD, fontSize: '1.15rem', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 12px 32px rgba(245,200,0,.4)' },
   goSub: { display: 'block', fontFamily: BODY, fontSize: '.66rem', letterSpacing: '2.5px', fontWeight: 700, marginTop: '.25rem', color: 'rgba(255,255,255,.85)' },
 
   audit: { marginTop: '1.2rem', background: '#020208', border: `1px solid rgba(34,211,238,.45)`, borderRadius: 12, padding: 'clamp(16px,3vw,20px)', boxShadow: 'inset 0 0 32px rgba(34,211,238,.05), 0 18px 50px rgba(0,0,0,.45)' },
