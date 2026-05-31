@@ -1,11 +1,15 @@
 // src/context/AuthContext.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Global auth/session context for the BBF React app.
+// Phase 2 — The Authentication Context ("nervous system" of the app).
 //
-// Phase 1 (scaffolding): provides the shape and the Supabase session wiring so
-// later phases can drop in the real login flow + role gating (admin / trainer /
-// client) that the monolith currently enforces via BBF_IS_*_ADMIN(). No routing
-// or RBAC decisions are made yet — this just exposes { session, user, loading }.
+// Responsibilities:
+//   • Initialize the Supabase session on first load (getSession).
+//   • Subscribe to auth changes (onAuthStateChange) for live login/logout.
+//   • Expose { session, user, loading } to the whole tree via useAuth().
+//
+// `loading` is true until the initial session resolves — consumers (e.g. the
+// protected route) MUST gate on it to avoid redirecting before auth is known.
+// No UI, RBAC, or login flow is implemented here yet — that lands in later phases.
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
@@ -19,12 +23,21 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active) return;
-      setSession(data?.session ?? null);
-      setLoading(false);
-    });
+    // 1) Resolve the session that already exists at load time.
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!active) return;
+        setSession(data?.session ?? null);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setSession(null);
+        setLoading(false);
+      });
 
+    // 2) Keep it in sync with every subsequent auth change.
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next ?? null);
     });
