@@ -138,3 +138,31 @@ export async function updateTargets(id, fields) {
   }
   return rosterCall('update_target', { id, ...patch });
 }
+
+// Max question length accepted by the coach action (mirrors index.ts).
+export const COACH_MAX = 2000;
+
+// Ask the Gemini Co-Coach about a client (keys on the `id` PK).
+//
+// ⚠️ WIRE-SHAPE (verified against bbf-admin-roster index.ts, NOT assumed):
+//   • the edge function reads `question` — NOT `query`. We accept the caller's
+//     `query` for ergonomics and map it to the `question` field on the wire.
+//   • the answer text comes back in `answer` — NOT `response`.
+// We mirror the server's empty/length guards so bad input fails fast.
+//   → { ok:true, provider:'gemini', model, answer:"<text/markdown>",
+//       telemetry:{ readiness:{checkins_90d,avg_score,last_score,trend_7d_vs_prior_7d},
+//                   training:{days_logged_90d,last7_daily_volume} } }
+export async function askCoCoach(id, query) {
+  const question = String(query ?? '').trim();
+  if (!question) {
+    const e = new Error('Enter a question for the Co-Coach.');
+    e.code = 'missing_question';
+    throw e;
+  }
+  if (question.length > COACH_MAX) {
+    const e = new Error(`Question too long — keep it under ${COACH_MAX.toLocaleString()} characters.`);
+    e.code = 'question_too_long';
+    throw e;
+  }
+  return rosterCall('coach', { id, question });
+}

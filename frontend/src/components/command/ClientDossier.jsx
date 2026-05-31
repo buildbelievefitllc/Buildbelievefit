@@ -17,7 +17,7 @@
 // infinite spinners. BACK is ALWAYS rendered so the coach is never trapped.
 
 import { useCallback, useEffect, useState } from 'react';
-import { rosterCall, fetchAnalytics, updateTargets, toErrorMessage, TARGET_MAX } from '../../lib/rosterApi.js';
+import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
 import CommandSurface from './CommandSurface.jsx';
 
 export default function ClientDossier({ client, onBack }) {
@@ -137,6 +137,9 @@ function DossierBody({ c, clientId, onPatched, analytics }) {
 
   return (
     <div style={styles.body}>
+      {/* ── Co-Coach intelligence console (action: coach) — the agentic centerpiece. ── */}
+      <CoCoach clientId={clientId} clientName={c.name || c.uid || 'this client'} />
+
       {/* ── Macro targets — now editable (action: update_target). ── */}
       <MacroTargets c={c} clientId={clientId} onPatched={onPatched} />
 
@@ -205,6 +208,86 @@ function DossierBody({ c, clientId, onPatched, analytics }) {
       </Section>
 
       <div style={styles.footer}>Last updated {fmtDate(c.updated_at) || '—'}</div>
+    </div>
+  );
+}
+
+// ── Co-Coach — interactive Gemini Q&A about this client (action: coach). ───────
+// FULLY ISOLATED { response, isLoading, error } state so it never interferes with
+// the dossier/analytics data. The edge function reads `question` and returns the
+// text in `answer` (+ the live telemetry it reasoned over) — mapping handled in
+// rosterApi.askCoCoach. AI text is rendered as plain pre-wrapped text (no markdown
+// lib, no innerHTML) so line breaks survive and there is no XSS surface.
+function CoCoach({ clientId, clientName }) {
+  const [query, setQuery] = useState('');
+  const [response, setResponse] = useState(null);
+  const [telemetry, setTelemetry] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function dispatch(e) {
+    e.preventDefault();
+    if (isLoading) return; // hard guard against double-dispatch
+    if (!query.trim()) { setError('Enter a question for the Co-Coach.'); return; }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const body = await askCoCoach(clientId, query);
+      setResponse(body.answer ?? '');     // ← `answer`, NOT `response`
+      setTelemetry(body.telemetry ?? null);
+    } catch (err) {
+      setError(toErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const blocked = isLoading || !query.trim();
+
+  return (
+    <div style={styles.coachPanel}>
+      <div style={styles.coachHead}>
+        <span style={styles.coachKicker}>Co-Coach · Intelligence</span>
+        <span style={styles.coachOnline}>● Online</span>
+      </div>
+
+      <form onSubmit={dispatch}>
+        <textarea
+          style={styles.coachTextarea}
+          rows={3}
+          maxLength={COACH_MAX}
+          placeholder={`Analyze ${clientName}'s readiness trends and recommend a macro adjustment…`}
+          value={query}
+          disabled={isLoading}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <div style={styles.coachActions}>
+          <button type="submit" style={{ ...styles.dispatchBtn, opacity: blocked ? 0.55 : 1 }} disabled={blocked}>
+            {isLoading ? 'Dispatching…' : 'Dispatch to Co-Coach'}
+          </button>
+          <span style={styles.coachCounter}>{query.length}/{COACH_MAX}</span>
+        </div>
+      </form>
+
+      {isLoading ? (
+        <div style={styles.coachLoading} role="status" aria-live="polite">
+          <span style={styles.spinnerDot} />
+          {`Co-Coach is analyzing 90 days of ${clientName}'s telemetry…`}
+        </div>
+      ) : null}
+
+      {!isLoading && error ? <div style={styles.saveError} role="alert">{error}</div> : null}
+
+      {!isLoading && !error && response ? (
+        <div style={styles.coachAnswer}>
+          <div style={styles.coachAnswerText}>{response}</div>
+          {telemetry ? (
+            <div style={styles.coachFoot}>
+              {`Reasoned over ${telemetry?.readiness?.checkins_90d ?? 0} readiness check-ins · ${telemetry?.training?.days_logged_90d ?? 0} training days (90d)`}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -566,6 +649,32 @@ const styles = {
     fontFamily: 'var(--bd)', fontSize: '.92rem', fontWeight: 700, color: 'var(--red)',
     marginTop: '.7rem', border: '1px solid var(--red)', borderRadius: 8, padding: '.5rem .75rem',
   },
+
+  // ── Co-Coach console — a distinct, gold-accented agentic panel. ──
+  coachPanel: { border: '1px solid rgba(245,200,0,.4)', borderRadius: 14, padding: '1.2rem 1.3rem', background: 'rgba(245,200,0,.04)' },
+  coachHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.8rem' },
+  coachKicker: { fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: 'var(--gold-soft)' },
+  coachOnline: { fontFamily: 'var(--hb)', fontSize: '.64rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--grn)' },
+  coachTextarea: {
+    width: '100%', boxSizing: 'border-box', resize: 'vertical', minHeight: 64,
+    background: '#050505', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--wht)',
+    fontFamily: 'var(--bd)', fontSize: '1rem', fontWeight: 600, padding: '.7rem .9rem', outline: 'none',
+  },
+  coachActions: { display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '.7rem' },
+  dispatchBtn: {
+    fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '2px', textTransform: 'uppercase',
+    color: '#090909', background: 'var(--yel)', border: '1px solid var(--yel)', borderRadius: 8,
+    padding: '.6rem 1.4rem', cursor: 'pointer',
+  },
+  coachCounter: { fontFamily: 'var(--bd)', fontSize: '.75rem', fontWeight: 700, color: 'var(--mut)' },
+  coachLoading: {
+    display: 'flex', alignItems: 'center', gap: '.6rem', marginTop: '1rem', padding: '.8rem 1rem',
+    border: '1px solid rgba(245,200,0,.3)', borderRadius: 10, color: 'var(--gold-soft)',
+    fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '1.5px', textTransform: 'uppercase',
+  },
+  coachAnswer: { marginTop: '1rem', borderTop: '1px solid var(--line)', paddingTop: '1rem' },
+  coachAnswerText: { fontFamily: 'var(--bd)', fontSize: '1rem', fontWeight: 500, lineHeight: 1.6, color: 'var(--wht)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
+  coachFoot: { fontFamily: 'var(--bd)', fontSize: '.76rem', fontWeight: 700, color: 'var(--mut)', marginTop: '.8rem', letterSpacing: '.3px' },
 
   analytics: { display: 'flex', flexDirection: 'column', gap: '.7rem' },
   subhead: { fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--gold-soft)', marginTop: '.3rem' },
