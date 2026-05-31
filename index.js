@@ -536,8 +536,10 @@ const ALLOWED_ORIGINS = new Set([
   'https://buildbelievefitllc.github.io',
   // React Command Center static site (Phase 10) — required so the Comlink's
   // /api/leads-list + /api/concierge-log calls aren't 403'd / CORS-blocked.
-  // If the static site uses a different/custom domain, update this entry.
-  'https://bbf-command-center.onrender.com',
+  // Render appends a per-service hash to the URL (here: -d1br); this is the
+  // CEO-confirmed live origin. If the static site moves to a custom domain,
+  // update this entry.
+  'https://bbf-command-center-d1br.onrender.com',
 ]);
 app.use((req, res, next) => {
   const origin = req.headers.origin;
