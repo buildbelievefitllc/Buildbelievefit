@@ -88,11 +88,53 @@ export async function rosterCall(action, payload = {}) {
   return body;
 }
 
-// Normalise any thrown value into a display string. Network/CORS failures (which
-// throw before we ever see a status) are labelled as such; server errors already
-// carry their "Error NNN — …" prefix from rosterCall.
+// Normalise any thrown value into a display string. Our coded client-side errors
+// (no_token / invalid_value / no_fields) already carry a friendly message; server
+// errors carry their "Error NNN — …" prefix from rosterCall; anything else that
+// threw before a status is a network/CORS failure.
 export function toErrorMessage(e) {
   const msg = e?.message || String(e);
-  if (e?.code === 'no_token') return msg;
+  if (e?.code) return msg;
   return /^Error /.test(msg) ? msg : `Network/CORS error — ${msg}.`;
+}
+
+// ── Action wrappers — thin, contract-documenting callers of rosterCall. ─────────
+
+// The editable macro target fields and the server-side numeric cap. Mirrored from
+// bbf-admin-roster update_target (index.ts) so client + server agree on bounds.
+export const TARGET_FIELDS = ['tdee_target', 'macro_p', 'macro_c', 'macro_f'];
+export const TARGET_MAX = 20000;
+
+// 90-day analytics for a client (keys on the `id` PK).
+//   → { ok:true, readiness:[{ score, sleep_quality, soreness_level, t }],
+//                 volume:[{ date, volume }] }
+export function fetchAnalytics(id) {
+  return rosterCall('analytics', { id });
+}
+
+// Persist edited macro targets. `fields` is a subset of TARGET_FIELDS; empty /
+// null / '' entries are skipped (treated as "leave unchanged"). We mirror the
+// server guard (finite, 0..TARGET_MAX) so bad input fails fast without a round
+// trip, and require at least one field (the server 400s with no_fields otherwise).
+//   → { ok:true, client:{ id, tdee_target, macro_p, macro_c, macro_f } }  ← PARTIAL
+//     row: merge it into existing detail state, never replace.
+export async function updateTargets(id, fields) {
+  const patch = {};
+  for (const k of TARGET_FIELDS) {
+    const v = fields?.[k];
+    if (v === undefined || v === null || v === '') continue;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < 0 || n > TARGET_MAX) {
+      const e = new Error(`Invalid ${k.replace('macro_', '').toUpperCase()}: enter a number between 0 and ${TARGET_MAX.toLocaleString()}.`);
+      e.code = 'invalid_value';
+      throw e;
+    }
+    patch[k] = Math.round(n);
+  }
+  if (!Object.keys(patch).length) {
+    const e = new Error('No changes to save.');
+    e.code = 'no_fields';
+    throw e;
+  }
+  return rosterCall('update_target', { id, ...patch });
 }

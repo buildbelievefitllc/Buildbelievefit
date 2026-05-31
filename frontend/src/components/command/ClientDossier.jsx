@@ -1,33 +1,36 @@
 // src/components/command/ClientDossier.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 6 — Client Detail Dossier. The drill-in from a Roster card.
+// Phase 6 — Client Detail Dossier (the drill-in from a Roster card).
+// Phase 7 — + 90-day analytics (read) and editable macro targets (mutation).
 //
-// Data path (shared with the Roster via lib/rosterApi.rosterCall — IDENTICAL
-// gateway + admin auth):
+// Data path (all via lib/rosterApi — IDENTICAL gateway + admin auth):
+//   detail        { action:'detail', id }         → { ok, client:{…full row} }
+//   analytics     { action:'analytics', id }       → { ok, readiness:[…], volume:[…] }
+//   update_target { action:'update_target', id,… } → { ok, client:{ id, tdee_target,
+//                                                       macro_p, macro_c, macro_f } }  ← PARTIAL
 //
-//   POST {FUNCTIONS_BASE}/bbf-admin-roster  { action:'detail', id }
-//   200 → { ok:true, client:{ id, uid, name, email, role, metabolic_tier,
-//           subscription_tier, dietary_profile, allergens[], food_likes[],
-//           food_dislikes[], tdee_target, macro_p, macro_c, macro_f,
-//           block_priority, baseline_status, cardiac_clearance, nutrition_plan,
-//           nutrition_plan_updated_at, workout_plan, meal_plan, plans_generated_at,
-//           workout_blacklist_hits, current_streak, updated_at } }
+// ⚠️ All three key on the `id` PK, NOT `uid` (the function 400s on missing_id).
+// ⚠️ update_target returns ONLY the 5 macro fields — we MERGE them into detail
+//    state so name / plans / etc. survive, and the tiles update without a refetch.
 //
-// ⚠️ CONTRACT NOTE: the edge function reads `id` (the bbf_users PK), NOT `uid` —
-// it 400s with `missing_id` otherwise (index.ts L227-228). The roster row carries
-// both, so the parent hands us the whole row and we drill in by `client.id`.
-//
-// State contract: { data, isLoading, error } — no silent failures, no infinite
-// spinners. The BACK control is ALWAYS rendered so the coach is never trapped.
+// State contract per request: { data, isLoading, error } — no silent failures, no
+// infinite spinners. BACK is ALWAYS rendered so the coach is never trapped.
 
 import { useCallback, useEffect, useState } from 'react';
-import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
+import { rosterCall, fetchAnalytics, updateTargets, toErrorMessage, TARGET_MAX } from '../../lib/rosterApi.js';
 import CommandSurface from './CommandSurface.jsx';
 
 export default function ClientDossier({ client, onBack }) {
+  // Detail (full client row).
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Analytics (90-day readiness + training volume) — its own state machine so a
+  // slow/failed analytics pull never blocks the dossier body.
+  const [analytics, setAnalytics] = useState(null);
+  const [anLoading, setAnLoading] = useState(false);
+  const [anError, setAnError] = useState(null);
 
   const fetchDetail = useCallback(async () => {
     setIsLoading(true);
@@ -44,17 +47,40 @@ export default function ClientDossier({ client, onBack }) {
     }
   }, [client.id]);
 
-  // Auto-load on mount. Deferred via microtask so the initial setState lands
-  // outside the synchronous effect body (satisfies react-hooks/set-state-in-effect)
-  // and StrictMode's double-mount is cancelled cleanly.
+  const fetchAnalyticsData = useCallback(async () => {
+    setAnLoading(true);
+    setAnError(null);
+    try {
+      const body = await fetchAnalytics(client.id);
+      setAnalytics({ readiness: body.readiness ?? [], volume: body.volume ?? [] });
+    } catch (e) {
+      setAnError(toErrorMessage(e));
+      setAnalytics(null);
+    } finally {
+      setAnLoading(false);
+    }
+  }, [client.id]);
+
+  // Fire detail + analytics CONCURRENTLY on mount. Deferred via microtask so the
+  // initial setState lands outside the synchronous effect body (satisfies
+  // react-hooks/set-state-in-effect); cancel-guarded against unmount.
   useEffect(() => {
     let cancelled = false;
-    queueMicrotask(() => { if (!cancelled) fetchDetail(); });
+    queueMicrotask(() => {
+      if (cancelled) return;
+      fetchDetail();
+      fetchAnalyticsData();
+    });
     return () => { cancelled = true; };
-  }, [fetchDetail]);
+  }, [fetchDetail, fetchAnalyticsData]);
 
-  // Fall back to the roster row's fields while the detail request is in flight, so
-  // the header has context immediately instead of a contextless spinner.
+  // Merge a partial update_target row into detail state — instant UI, no refetch.
+  const applyTargetPatch = useCallback((patch) => {
+    setData((prev) => (prev ? { ...prev, ...patch } : prev));
+  }, []);
+
+  // Fall back to the roster row's fields while detail is in flight, so the header
+  // has context immediately instead of a contextless spinner.
   const head = data ?? client;
   const name = head.name || head.uid || 'Unnamed';
   const tier = head.subscription_tier || null;
@@ -75,7 +101,7 @@ export default function ClientDossier({ client, onBack }) {
           {data?.current_streak ? <Badge label={`Streak · ${data.current_streak}`} color="var(--grn)" /> : null}
         </div>
 
-        {isLoading ? <Loading /> : null}
+        {isLoading ? <Loading label="Loading dossier…" /> : null}
 
         {!isLoading && error ? (
           <div style={styles.errorBox} role="alert">
@@ -88,14 +114,21 @@ export default function ClientDossier({ client, onBack }) {
           </div>
         ) : null}
 
-        {!isLoading && !error && data ? <DossierBody c={data} /> : null}
+        {!isLoading && !error && data ? (
+          <DossierBody
+            c={data}
+            clientId={client.id}
+            onPatched={applyTargetPatch}
+            analytics={{ data: analytics, loading: anLoading, error: anError, onRetry: fetchAnalyticsData }}
+          />
+        ) : null}
       </CommandSurface>
     </div>
   );
 }
 
 // ── The full dossier once detail data has loaded. ──────────────────────────────
-function DossierBody({ c }) {
+function DossierBody({ c, clientId, onPatched, analytics }) {
   const workoutDays = asArray(c.workout_plan);
   const workoutText = !workoutDays && typeof c.workout_plan === 'string' ? c.workout_plan.trim() : '';
   const mealDays = asMealDays(c.meal_plan);
@@ -104,15 +137,11 @@ function DossierBody({ c }) {
 
   return (
     <div style={styles.body}>
-      {/* ── Macro targets — the headline numbers. ── */}
-      <Section title="Macro Targets">
-        <div style={styles.tiles}>
-          <Tile label="Calories" value={c.tdee_target} unit="kcal" accent="var(--yel)" />
-          <Tile label="Protein" value={c.macro_p} unit="g" accent="var(--grn)" />
-          <Tile label="Carbs" value={c.macro_c} unit="g" accent="var(--blu)" />
-          <Tile label="Fat" value={c.macro_f} unit="g" accent="var(--orn)" />
-        </div>
-      </Section>
+      {/* ── Macro targets — now editable (action: update_target). ── */}
+      <MacroTargets c={c} clientId={clientId} onPatched={onPatched} />
+
+      {/* ── 90-day analytics (action: analytics) — read-only, below macros. ── */}
+      <AnalyticsSection {...analytics} />
 
       {/* ── Training & medical profile — the metabolic-tier details. ── */}
       <Section title="Training & Medical Profile">
@@ -180,6 +209,147 @@ function DossierBody({ c }) {
   );
 }
 
+// ── Macro targets — read-only tiles that flip to an editable form. ─────────────
+function MacroTargets({ c, clientId, onPatched }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+
+  function startEdit() {
+    setDraft({
+      tdee_target: c.tdee_target ?? '',
+      macro_p: c.macro_p ?? '',
+      macro_c: c.macro_c ?? '',
+      macro_f: c.macro_f ?? '',
+    });
+    setSaveError(null);
+    setEditing(true);
+  }
+  function cancel() { setEditing(false); setSaveError(null); }
+  const setField = (k, v) => setDraft((d) => ({ ...d, [k]: v }));
+
+  async function save(e) {
+    e.preventDefault();
+    if (saving) return; // hard guard against double-submit
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const body = await updateTargets(clientId, draft);
+      onPatched(body.client ?? {}); // merge PARTIAL row into detail state → instant tiles
+      setEditing(false);
+    } catch (err) {
+      setSaveError(toErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!editing) {
+    return (
+      <Section
+        title="Macro Targets"
+        action={<button type="button" style={styles.editBtn} onClick={startEdit}>Edit Macros</button>}
+      >
+        <div style={styles.tiles}>
+          <Tile label="Calories" value={c.tdee_target} unit="kcal" accent="var(--yel)" />
+          <Tile label="Protein" value={c.macro_p} unit="g" accent="var(--grn)" />
+          <Tile label="Carbs" value={c.macro_c} unit="g" accent="var(--blu)" />
+          <Tile label="Fat" value={c.macro_f} unit="g" accent="var(--orn)" />
+        </div>
+      </Section>
+    );
+  }
+
+  return (
+    <Section title="Macro Targets">
+      <form onSubmit={save}>
+        <div style={styles.tiles}>
+          <MacroInput label="Calories" unit="kcal" accent="var(--yel)" value={draft.tdee_target} onChange={(v) => setField('tdee_target', v)} disabled={saving} />
+          <MacroInput label="Protein" unit="g" accent="var(--grn)" value={draft.macro_p} onChange={(v) => setField('macro_p', v)} disabled={saving} />
+          <MacroInput label="Carbs" unit="g" accent="var(--blu)" value={draft.macro_c} onChange={(v) => setField('macro_c', v)} disabled={saving} />
+          <MacroInput label="Fat" unit="g" accent="var(--orn)" value={draft.macro_f} onChange={(v) => setField('macro_f', v)} disabled={saving} />
+        </div>
+        <div style={styles.saveRow}>
+          <button type="submit" style={{ ...styles.saveBtn, opacity: saving ? 0.6 : 1 }} disabled={saving}>
+            {saving ? 'Saving…' : 'Update Macros'}
+          </button>
+          <button type="button" style={styles.cancelBtn} onClick={cancel} disabled={saving}>Cancel</button>
+        </div>
+        {saveError ? <div style={styles.saveError} role="alert">{saveError}</div> : null}
+      </form>
+    </Section>
+  );
+}
+
+function MacroInput({ label, unit, accent, value, onChange, disabled }) {
+  return (
+    <label style={{ ...styles.tile, borderTopColor: accent, cursor: 'text' }}>
+      <span style={styles.tileLabel}>{label}</span>
+      <input
+        style={styles.macroInput}
+        type="number"
+        min="0"
+        max={TARGET_MAX}
+        step="1"
+        inputMode="numeric"
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <span style={styles.tileUnit}>{unit}</span>
+    </label>
+  );
+}
+
+// ── 90-day analytics — summarised from the raw arrays, rendered as Tiles/Fields.
+function AnalyticsSection({ data, loading, error, onRetry }) {
+  return (
+    <Section title="90-Day Analytics">
+      {loading ? <Loading label="Loading analytics…" /> : null}
+      {!loading && error ? (
+        <div style={styles.inlineError} role="alert">
+          <span style={styles.errorMsg}>{error}</span>
+          <button type="button" style={styles.retry} onClick={onRetry}>Retry</button>
+        </div>
+      ) : null}
+      {!loading && !error && data ? <AnalyticsBody data={data} /> : null}
+    </Section>
+  );
+}
+
+function AnalyticsBody({ data }) {
+  const readiness = Array.isArray(data.readiness) ? data.readiness : [];
+  const volume = Array.isArray(data.volume) ? data.volume : [];
+  if (!readiness.length && !volume.length) {
+    return <Empty>No readiness or training data in the last 90 days.</Empty>;
+  }
+  const r = summarizeReadiness(readiness);
+  const v = summarizeVolume(volume);
+  return (
+    <div style={styles.analytics}>
+      <div style={styles.subhead}>Readiness</div>
+      <div style={styles.tiles}>
+        <Tile label="Check-ins" value={r.n} unit="logs" accent="var(--grn)" />
+        <Tile label="Avg Score" value={r.avg} unit="" accent="var(--yel)" />
+        <Tile label="Latest" value={r.last} unit="" accent="var(--blu)" />
+      </div>
+      <div style={styles.kv}>
+        <Field label="7-Day Trend" value={r.trend} color={trendColor(r.trend)} />
+        <Field label="Latest Sleep" value={fmtMetric(r.sleep)} />
+        <Field label="Latest Soreness" value={fmtMetric(r.soreness)} />
+      </div>
+
+      <div style={styles.subhead}>Training Volume</div>
+      <div style={styles.tiles}>
+        <Tile label="Days Trained" value={v.days} unit="days" accent="var(--grn)" />
+        <Tile label="Last Session" value={v.last} unit="vol" accent="var(--yel)" />
+        <Tile label="Avg / Day" value={v.avg} unit="vol" accent="var(--blu)" />
+      </div>
+    </div>
+  );
+}
+
 // ── One workout day from the structured plan. ─────────────────────────────────
 function WorkoutDay({ day, index }) {
   const exercises = Array.isArray(day?.exercises) ? day.exercises : [];
@@ -203,12 +373,12 @@ function WorkoutDay({ day, index }) {
 }
 
 // ── Small presentational pieces ────────────────────────────────────────────────
-function Section({ title, meta, children }) {
+function Section({ title, meta, action, children }) {
   return (
     <section style={styles.section}>
       <div style={styles.sectionHead}>
         <span style={styles.sectionTitle}>{title}</span>
-        {meta ? <span style={styles.sectionMeta}>{meta}</span> : null}
+        {action || (meta ? <span style={styles.sectionMeta}>{meta}</span> : null)}
       </div>
       {children}
     </section>
@@ -248,11 +418,11 @@ function Chips({ label, items, tone }) {
 function Badge({ label, color }) {
   return <span style={{ ...styles.badge, color, borderColor: color }}>{label}</span>;
 }
-function Loading() {
+function Loading({ label }) {
   return (
     <div style={styles.loading} role="status" aria-live="polite">
       <span style={styles.spinnerDot} />
-      Loading dossier…
+      {label || 'Loading…'}
     </div>
   );
 }
@@ -293,6 +463,33 @@ function fmtDate(v) {
   if (Number.isNaN(d.getTime())) return '';
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
+function fmtMetric(v) {
+  return v === null || v === undefined || v === '' ? '—' : String(v);
+}
+// Mirrors the backend's own readiness summary (fetchTelemetry in index.ts) so the
+// dossier and the Co-Coach reason on the same numbers and thresholds.
+function summarizeReadiness(readiness) {
+  const scores = readiness.map((r) => Number(r.score) || 0).filter((n) => n > 0);
+  const n = scores.length;
+  const avg = n ? Math.round(scores.reduce((a, b) => a + b, 0) / n) : null;
+  const last = n ? scores[n - 1] : null;
+  const last7 = scores.slice(-7);
+  const prev7 = scores.slice(-14, -7);
+  const a7 = last7.length ? last7.reduce((a, b) => a + b, 0) / last7.length : null;
+  const p7 = prev7.length ? prev7.reduce((a, b) => a + b, 0) / prev7.length : null;
+  const trend = (a7 != null && p7 != null)
+    ? (a7 > p7 + 1 ? 'improving' : a7 < p7 - 1 ? 'declining' : 'flat')
+    : 'insufficient data';
+  const latest = readiness.length ? readiness[readiness.length - 1] : null;
+  return { n, avg, last, trend, sleep: latest?.sleep_quality, soreness: latest?.soreness_level };
+}
+function summarizeVolume(volume) {
+  const days = volume.length;
+  const last = days ? volume[days - 1].volume : null;
+  const total = volume.reduce((a, x) => a + (Number(x.volume) || 0), 0);
+  const avg = days ? Math.round(total / days) : null;
+  return { days, last, avg };
+}
 function tierColor(tier) {
   const map = { platinum: 'var(--yel)', essentials: 'var(--grn)', sovereign: 'var(--purl)' };
   return map[String(tier || '').toLowerCase()] || 'var(--mut)';
@@ -310,6 +507,12 @@ function cardiacColor(s) {
   if (v === 'contraindicated') return 'var(--red)';
   return 'var(--mut)';
 }
+function trendColor(t) {
+  if (t === 'improving') return 'var(--grn)';
+  if (t === 'declining') return 'var(--red)';
+  if (t === 'flat') return 'var(--gold-soft)';
+  return 'var(--mut)';
+}
 
 const styles = {
   back: {
@@ -325,7 +528,7 @@ const styles = {
 
   body: { display: 'flex', flexDirection: 'column', gap: '1.6rem', marginTop: '1.4rem' },
   section: { borderTop: '1px solid var(--line)', paddingTop: '1.1rem' },
-  sectionHead: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '.9rem' },
+  sectionHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.9rem', gap: '1rem' },
   sectionTitle: { fontFamily: 'var(--hb)', fontSize: '.92rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: 'var(--wht)' },
   sectionMeta: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 700, color: 'var(--mut)' },
 
@@ -337,6 +540,36 @@ const styles = {
   tileLabel: { fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--mut)' },
   tileValue: { fontFamily: 'var(--display)', fontSize: '2rem', lineHeight: 1.1, color: 'var(--wht)', margin: '.25rem 0 0' },
   tileUnit: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 700, color: 'var(--mut)' },
+  macroInput: {
+    width: '100%', margin: '.2rem 0', padding: '.3rem .1rem', background: 'transparent',
+    border: 'none', borderBottom: '2px solid var(--line)', color: 'var(--wht)',
+    fontFamily: 'var(--display)', fontSize: '1.8rem', lineHeight: 1.1, outline: 'none',
+  },
+
+  editBtn: {
+    fontFamily: 'var(--hb)', fontSize: '.7rem', letterSpacing: '2px', textTransform: 'uppercase',
+    color: 'var(--gold-soft)', background: 'none', border: '1px solid rgba(245,200,0,.35)',
+    borderRadius: 8, padding: '.4rem .8rem', cursor: 'pointer', whiteSpace: 'nowrap',
+  },
+  saveRow: { display: 'flex', alignItems: 'center', gap: '.7rem', marginTop: '1rem' },
+  saveBtn: {
+    fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '2px', textTransform: 'uppercase',
+    color: '#090909', background: 'var(--yel)', border: '1px solid var(--yel)', borderRadius: 8,
+    padding: '.6rem 1.4rem', cursor: 'pointer',
+  },
+  cancelBtn: {
+    fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '2px', textTransform: 'uppercase',
+    color: 'var(--mut)', background: 'none', border: '1px solid var(--line)', borderRadius: 8,
+    padding: '.6rem 1.2rem', cursor: 'pointer',
+  },
+  saveError: {
+    fontFamily: 'var(--bd)', fontSize: '.92rem', fontWeight: 700, color: 'var(--red)',
+    marginTop: '.7rem', border: '1px solid var(--red)', borderRadius: 8, padding: '.5rem .75rem',
+  },
+
+  analytics: { display: 'flex', flexDirection: 'column', gap: '.7rem' },
+  subhead: { fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--gold-soft)', marginTop: '.3rem' },
+  inlineError: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '1px solid var(--red)', borderRadius: 10, padding: '.7rem 1rem' },
 
   kv: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '.7rem' },
   field: { display: 'flex', flexDirection: 'column', gap: '.2rem' },
@@ -387,6 +620,6 @@ const styles = {
   errorActions: { display: 'flex', gap: '.6rem', marginTop: '.8rem' },
   retry: {
     fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '2px', textTransform: 'uppercase',
-    color: 'var(--red)', background: 'none', border: '1px solid var(--red)', borderRadius: 8, padding: '.45rem .9rem', cursor: 'pointer',
+    color: 'var(--red)', background: 'none', border: '1px solid var(--red)', borderRadius: 8, padding: '.45rem .9rem', cursor: 'pointer', whiteSpace: 'nowrap',
   },
 };
