@@ -17,6 +17,7 @@ import PathfinderForm from '../components/PathfinderForm.jsx';
 import Interrogator from '../components/Interrogator.jsx';
 import TDEECalculator from '../components/TDEECalculator.jsx';
 import BBFChatbox from '../components/BBFChatbox.jsx';
+import PositionalBlueprints from '../components/PositionalBlueprints.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { LANGS } from '../context/langs.js';
 
@@ -184,6 +185,9 @@ export default function MarketingLanding() {
           </p>
         </div>
       </section>
+
+      {/* ── POSITIONAL BLUEPRINTS — "Elite Position. Your Playbook." (5 sports · 25 positions) ── */}
+      <PositionalBlueprints />
 
       {/* ── THE INTERROGATOR (BBF Chatbox) — interactive audit → tier guidance ── */}
       <Interrogator onChooseTier={scrollToPathfinder} />
