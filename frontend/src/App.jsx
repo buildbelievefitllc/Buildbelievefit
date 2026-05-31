@@ -20,13 +20,13 @@ import AdminGuard from './components/AdminGuard.jsx';
 import Login from './pages/Login.jsx';
 import CommandCenter from './pages/CommandCenter.jsx';
 import ClientVault from './pages/ClientVault.jsx';
-import PublicTerminal from './pages/PublicTerminal.jsx';
+import MarketingLanding from './pages/MarketingLanding.jsx';
 
 // Role-aware dispatcher for the apex root.
 function RootRoute() {
   const { user, loading, isAdmin } = useAuth();
   if (loading) return <div style={bootStyle}>Loading…</div>;
-  if (!user) return <PublicTerminal />;
+  if (!user) return <MarketingLanding />;
   if (isAdmin) return <AdminGuard><CommandCenter /></AdminGuard>;
   return <ClientVault />;
 }
