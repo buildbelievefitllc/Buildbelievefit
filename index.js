@@ -534,6 +534,10 @@ const ALLOWED_ORIGINS = new Set([
   'https://buildbelievefit.fitness',
   'https://www.buildbelievefit.fitness',
   'https://buildbelievefitllc.github.io',
+  // React Command Center static site (Phase 10) — required so the Comlink's
+  // /api/leads-list + /api/concierge-log calls aren't 403'd / CORS-blocked.
+  // If the static site uses a different/custom domain, update this entry.
+  'https://bbf-command-center.onrender.com',
 ]);
 app.use((req, res, next) => {
   const origin = req.headers.origin;
