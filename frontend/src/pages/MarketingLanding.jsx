@@ -14,9 +14,18 @@
 
 import { useNavigate } from 'react-router-dom';
 import PathfinderForm from '../components/PathfinderForm.jsx';
+import Interrogator from '../components/Interrogator.jsx';
 
-const GOLD = '#f5c800';
-const PURL = '#8b1abf';
+// ── True legacy palette (verbatim from styles/bbf-tokens.css) ───────────────────
+// Victory Gold is RESERVED for primary CTAs only (scarcity = value). Purple is the
+// load-bearing brand color; gold accents are the laboratory/soft golds.
+const GOLD = '#F5C800';        // Victory Gold — primary CTAs ONLY
+const GOLD_LAB = '#D4AF37';    // laboratory gold — accents/borders
+const GOLD_SOFT = '#F5CF60';
+const PUR = '#6A0DAD';         // brand purple
+const PURL = '#9D27C9';        // electric royal — kickers, hero badge
+const PURX = '#1E0340';        // near-black eggplant (section gradients)
+const PURP = '#110128';        // deepest
 const BODY = "'Barlow Condensed',sans-serif";
 const HEAD = "'Bebas Neue',sans-serif";
 const DISPLAY = "'Anton',sans-serif";
@@ -79,6 +88,12 @@ const ORIGIN = [
 export default function MarketingLanding() {
   const navigate = useNavigate();
 
+  // Interrogator verdict CTAs + tier CTAs all funnel to the Pathfinder form.
+  function scrollToPathfinder() {
+    const el = document.getElementById('pathfinder');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
   return (
     <div style={s.page}>
       {/* ── NAV ── */}
@@ -87,8 +102,8 @@ export default function MarketingLanding() {
         <div style={s.navLinks}>
           <a href="#services" style={s.navLink}>Services</a>
           <a href="#programs" style={s.navLink}>Programs</a>
+          <a href="#interrogator" style={s.navLink}>Audit</a>
           <a href="#founder" style={s.navLink}>About</a>
-          <a href="#origin" style={s.navLink}>My Story</a>
           <button type="button" style={s.navSignIn} onClick={() => navigate('/login')}>Sign In</button>
           <a href="#pathfinder" style={s.navCta}>Start</a>
         </div>
@@ -183,10 +198,14 @@ export default function MarketingLanding() {
         </div>
       </section>
 
+      {/* ── THE INTERROGATOR (BBF Chatbox) — interactive audit → tier guidance ── */}
+      <Interrogator onChooseTier={scrollToPathfinder} />
+
       <Divider />
 
       {/* ── FOUNDER ── */}
-      <section id="founder" style={s.section}>
+      <section id="founder" style={{ ...s.sectionPurple }}>
+        <div style={s.section}>
         <div style={s.secLbl}>The Founder</div>
         <h2 style={s.secH}>The Story Behind <span style={{ color: GOLD }}>BBF</span></h2>
         <div style={s.founderGrid}>
@@ -218,6 +237,7 @@ export default function MarketingLanding() {
             </p>
             <div style={s.sig}>— Akeem Brown<br /><span style={s.sigSmall}>Owner, BBF LLC · Movement Specialist · Exercise Science · Future OT</span></div>
           </div>
+        </div>
         </div>
       </section>
 
@@ -279,63 +299,73 @@ function Stat({ n, l }) {
 function Divider() { return <div style={s.divider} />; }
 
 const s = {
-  page: { background: '#090909', color: '#fff', minHeight: '100%', overflowX: 'hidden' },
+  // Purple atmospheric floor — the brand's load-bearing color (legacy body/--purx).
+  page: { background: `radial-gradient(1200px 600px at 50% -5%, rgba(106,13,173,.22), transparent 60%), linear-gradient(180deg, ${PURP} 0%, #060507 30%)`, color: '#fff', minHeight: '100%', overflowX: 'hidden' },
 
-  nav: { position: 'sticky', top: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 clamp(16px,4vw,40px)', height: 64, background: 'rgba(9,9,9,.72)', backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)', borderBottom: '1px solid rgba(245,200,0,.12)', flexWrap: 'wrap', gap: '8px' },
+  nav: { position: 'sticky', top: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 clamp(16px,4vw,40px)', height: 64, background: 'rgba(17,1,40,.72)', backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)', borderBottom: `1px solid rgba(157,39,201,.25)`, flexWrap: 'wrap', gap: '8px' },
   navLogo: { fontFamily: HEAD, fontSize: '1.4rem', letterSpacing: '2px', color: '#fff', textDecoration: 'none', whiteSpace: 'nowrap' },
   navLinks: { display: 'flex', alignItems: 'center', gap: 'clamp(8px,2vw,22px)', flexWrap: 'wrap' },
   navLink: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', textDecoration: 'none', textTransform: 'uppercase', fontWeight: 600 },
   navSignIn: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 600, padding: 0 },
-  navCta: { fontFamily: BODY, fontSize: '.88rem', letterSpacing: '1px', padding: '8px 18px', background: GOLD, color: '#090909', borderRadius: 6, textDecoration: 'none', textTransform: 'uppercase', fontWeight: 700 },
+  navCta: { fontFamily: BODY, fontSize: '.88rem', letterSpacing: '1px', padding: '8px 18px', background: GOLD, color: '#090909', borderRadius: 6, textDecoration: 'none', textTransform: 'uppercase', fontWeight: 700, boxShadow: `0 4px 18px rgba(245,200,0,.25)` },
 
-  hero: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 'clamp(24px,5vw,56px)', alignItems: 'center', maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
+  hero: { position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 'clamp(24px,5vw,56px)', alignItems: 'center', maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
   heroText: {},
-  heroBadge: { display: 'inline-block', fontFamily: BODY, fontSize: '.8rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: GOLD, border: '1px solid rgba(245,200,0,.3)', borderRadius: 99, padding: '6px 16px', marginBottom: 20 },
+  // Purple badge — legacy .hero-badge is purple, NOT gold.
+  heroBadge: { display: 'inline-block', fontFamily: BODY, fontSize: '.8rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: PURL, background: 'rgba(106,13,173,.22)', border: `1px solid rgba(106,13,173,.5)`, borderRadius: 99, padding: '6px 16px', marginBottom: 20 },
   heroStack: { fontFamily: DISPLAY, fontSize: 'clamp(3rem,9vw,6rem)', lineHeight: .9, letterSpacing: '1px', color: '#fff', margin: '0 0 20px' },
   heroSub: { fontFamily: BODY, fontSize: 'clamp(1rem,2vw,1.2rem)', lineHeight: 1.6, color: 'rgba(255,255,255,.7)', margin: '0 0 28px', maxWidth: '52ch' },
-  heroCta: { display: 'inline-block', fontFamily: HEAD, fontSize: '1.2rem', letterSpacing: '2px', padding: '14px 40px', background: GOLD, color: '#090909', borderRadius: 8, textDecoration: 'none' },
+  heroCta: { display: 'inline-block', fontFamily: HEAD, fontSize: '1.2rem', letterSpacing: '2px', padding: '14px 40px', background: GOLD, color: '#090909', borderRadius: 8, textDecoration: 'none', boxShadow: `0 8px 28px rgba(245,200,0,.3)` },
   doors: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, margin: '28px 0' },
-  door: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, textAlign: 'left', background: 'rgba(20,20,20,.8)', border: '1px solid rgba(245,200,0,.18)', borderRadius: 12, padding: '14px 16px', cursor: 'pointer' },
-  doorKicker: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,.5)' },
+  // Doors use the legacy purple glass treatment + purple accent edge.
+  door: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, textAlign: 'left', background: `linear-gradient(145deg, rgba(30,3,56,.78) 0%, rgba(10,8,28,.82) 100%)`, border: `1px solid rgba(157,39,201,.4)`, borderLeft: `3px solid ${PURL}`, borderRadius: 12, padding: '14px 16px', cursor: 'pointer' },
+  doorKicker: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: PURL },
   doorTitle: { fontFamily: HEAD, fontSize: '1.15rem', letterSpacing: '1px', color: '#fff' },
-  doorSub: { fontFamily: BODY, fontSize: '.82rem', fontWeight: 600, color: GOLD },
+  doorSub: { fontFamily: BODY, fontSize: '.82rem', fontWeight: 600, color: GOLD_SOFT },
   stats: { display: 'flex', gap: 'clamp(16px,4vw,40px)', flexWrap: 'wrap' },
-  statN: { fontFamily: HEAD, fontSize: '1.8rem', color: GOLD, letterSpacing: '1px' },
+  statN: { fontFamily: HEAD, fontSize: '1.8rem', color: GOLD_SOFT, letterSpacing: '1px' },
   statL: { fontFamily: BODY, fontSize: '.72rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,.5)' },
   heroImgWrap: { display: 'flex', justifyContent: 'center' },
-  heroImg: { width: '100%', maxWidth: 460, borderRadius: 20, border: '1px solid rgba(245,200,0,.2)', objectFit: 'cover' },
+  heroImg: { width: '100%', maxWidth: 460, borderRadius: 20, border: `2px solid rgba(106,13,173,.45)`, boxShadow: `0 0 50px rgba(106,13,173,.3)`, objectFit: 'cover' },
 
   section: { maxWidth: 1100, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
   sectionWide: { maxWidth: 1240, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
-  secLbl: { textAlign: 'center', fontFamily: BODY, fontSize: '.78rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: GOLD, marginBottom: 10 },
+  // Purple section atmosphere for Founder/Origin (legacy #founder is purple-gradient).
+  sectionPurple: { position: 'relative', background: `linear-gradient(135deg, ${PURX} 0%, ${PURP} 100%)`, borderTop: `1px solid rgba(106,13,173,.25)`, borderBottom: `1px solid rgba(106,13,173,.25)` },
+  // Section kicker is PURPLE (legacy .sec-lbl color:var(--purl)), not gold.
+  secLbl: { textAlign: 'center', fontFamily: BODY, fontSize: '.78rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL, marginBottom: 10 },
   secH: { fontFamily: HEAD, fontSize: 'clamp(2rem,5vw,3.4rem)', letterSpacing: '1px', color: '#fff', textAlign: 'center', margin: '0 0 12px' },
   secSub: { textAlign: 'center', color: 'rgba(255,255,255,.6)', fontFamily: BODY, fontSize: '1.02rem', lineHeight: 1.5, margin: '0 auto 40px', maxWidth: '64ch' },
-  divider: { maxWidth: 900, margin: '0 auto', height: 1, background: 'linear-gradient(90deg,transparent,rgba(245,200,0,.3),transparent)' },
+  // Divider is purple→gold→purple (the brand sweep), not flat gold.
+  divider: { maxWidth: 900, margin: '0 auto', height: 1, background: `linear-gradient(90deg, transparent, ${PUR} 30%, ${GOLD_LAB} 50%, ${PUR} 70%, transparent)`, opacity: .5 },
 
   svcGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 20 },
-  svcCard: { background: 'rgba(20,20,20,.8)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, padding: 26 },
-  svcName: { fontFamily: HEAD, fontSize: '1.4rem', letterSpacing: '1px', color: GOLD, marginBottom: 10 },
+  // Service cards: purple→royal top accent bar (legacy .svc-c::before).
+  svcCard: { position: 'relative', background: 'rgba(20,12,32,.7)', border: `1px solid rgba(157,39,201,.18)`, borderTop: `3px solid transparent`, borderImage: `linear-gradient(90deg, ${PUR}, ${PURL}) 1`, borderRadius: 14, padding: 26 },
+  svcName: { fontFamily: HEAD, fontSize: '1.4rem', letterSpacing: '1px', color: GOLD_SOFT, marginBottom: 10 },
   svcDesc: { fontFamily: BODY, fontSize: '.98rem', lineHeight: 1.55, color: 'rgba(255,255,255,.66)', margin: 0 },
 
   progGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,440px))', gap: 24, justifyContent: 'center' },
-  progCard: { position: 'relative', background: 'linear-gradient(180deg,rgba(22,22,22,.9),rgba(9,9,9,.9))', border: '1px solid rgba(255,255,255,.1)', borderRadius: 16, padding: 26, display: 'flex', flexDirection: 'column' },
-  progCardFeatured: { border: '1px solid rgba(245,200,0,.5)', boxShadow: '0 0 40px rgba(245,200,0,.1)' },
-  progBadge: { position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: GOLD, color: '#090909', fontFamily: HEAD, fontSize: '.7rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 14px', borderRadius: 99, whiteSpace: 'nowrap' },
+  // Autonomous tier card carries a purple identity; the featured Sovereign card a gold rim.
+  progCard: { position: 'relative', background: `linear-gradient(160deg, rgba(30,3,64,.6) 0%, rgba(13,1,26,.92) 100%)`, border: `1px solid rgba(157,39,201,.3)`, borderTop: `4px solid ${PUR}`, borderRadius: 16, padding: 26, display: 'flex', flexDirection: 'column' },
+  progCardFeatured: { border: `1px solid rgba(245,200,0,.45)`, borderTop: `4px solid ${GOLD}`, boxShadow: `0 0 40px rgba(245,200,0,.12), 0 0 0 1px rgba(212,175,55,.2)` },
+  progBadge: { position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: `linear-gradient(180deg, ${GOLD} 0%, ${GOLD_LAB} 100%)`, color: '#1B1106', fontFamily: HEAD, fontSize: '.7rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 14px', borderRadius: 99, whiteSpace: 'nowrap', boxShadow: `0 6px 18px rgba(245,200,0,.4)` },
   progTag: { fontFamily: BODY, fontSize: '.68rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 6 },
   progName: { fontFamily: HEAD, fontSize: '1.7rem', letterSpacing: '1px', color: '#fff' },
-  progPrice: { fontFamily: HEAD, fontSize: '2.2rem', color: GOLD, margin: '4px 0' },
+  progPrice: { fontFamily: HEAD, fontSize: '2.2rem', color: GOLD_SOFT, margin: '4px 0' },
   progPer: { fontFamily: BODY, fontSize: '.78rem', fontWeight: 600, color: 'rgba(255,255,255,.5)' },
   progBlurb: { fontFamily: BODY, fontSize: '.82rem', fontWeight: 700, marginBottom: 14 },
   progFeats: { listStyle: 'none', margin: '0 0 18px', padding: 0, flex: 1 },
   progFeat: { fontFamily: BODY, fontSize: '.9rem', color: 'rgba(255,255,255,.72)', padding: '5px 0', lineHeight: 1.4 },
-  progCta: { display: 'block', textAlign: 'center', fontFamily: HEAD, fontSize: '.95rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '12px', borderRadius: 8, textDecoration: 'none', color: GOLD, border: `1px solid ${GOLD}` },
+  // Non-featured CTA: purple outline. Featured CTA overrides to Victory Gold fill inline.
+  progCta: { display: 'block', textAlign: 'center', fontFamily: HEAD, fontSize: '.95rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '12px', borderRadius: 8, textDecoration: 'none', color: '#fff', background: `linear-gradient(180deg, ${PURL}, ${PUR})`, border: `1px solid rgba(157,39,201,.6)` },
   promise: { maxWidth: 760, margin: '40px auto 0', textAlign: 'center', background: 'rgba(106,13,173,.06)', border: '1px solid rgba(106,13,173,.18)', borderRadius: 14, padding: 24 },
   promiseLbl: { fontFamily: BODY, fontSize: '.66rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL, marginBottom: 8 },
   promiseText: { fontFamily: BODY, fontSize: '.95rem', fontWeight: 600, lineHeight: 1.65, color: 'rgba(255,255,255,.68)', margin: 0 },
 
   founderGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 36, alignItems: 'start' },
-  founderImg: { width: '100%', borderRadius: 16, border: '1px solid rgba(245,200,0,.2)', display: 'block', marginBottom: 16 },
-  credCard: { background: 'rgba(20,20,20,.8)', border: '1px solid rgba(245,200,0,.15)', borderRadius: 14, padding: 18 },
+  founderImg: { width: '100%', borderRadius: 16, border: `2px solid rgba(106,13,173,.45)`, boxShadow: `0 0 40px rgba(106,13,173,.25)`, display: 'block', marginBottom: 16 },
+  credCard: { background: 'rgba(13,1,26,.6)', border: `1px solid rgba(157,39,201,.3)`, borderRadius: 14, padding: 18 },
   cred: { padding: '8px 0', borderBottom: '1px dotted rgba(255,255,255,.08)' },
   credT: { fontFamily: HEAD, fontSize: '.95rem', letterSpacing: '1px', color: '#fff' },
   credS: { fontFamily: BODY, fontSize: '.8rem', color: 'rgba(255,255,255,.55)' },
@@ -345,15 +375,15 @@ const s = {
 
   proofGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 20, maxWidth: 600, margin: '0 auto 40px' },
   proofFig: { margin: 0 },
-  proofImg: { width: '100%', borderRadius: 14, border: '1px solid rgba(245,200,0,.18)', display: 'block', objectFit: 'cover' },
+  proofImg: { width: '100%', borderRadius: 14, border: `1px solid rgba(106,13,173,.4)`, display: 'block', objectFit: 'cover' },
   proofCap: { fontFamily: HEAD, fontSize: '1rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.7)', textAlign: 'center', marginTop: 10 },
   originGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 20 },
-  originCard: { background: 'rgba(20,20,20,.8)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, padding: 24 },
+  originCard: { background: 'rgba(13,1,26,.55)', border: `1px solid rgba(157,39,201,.22)`, borderRadius: 14, padding: 24 },
   originStep: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: GOLD, marginBottom: 8 },
   originT: { fontFamily: HEAD, fontSize: '1.3rem', letterSpacing: '1px', color: '#fff', marginBottom: 10 },
   originQ: { fontFamily: BODY, fontSize: '.98rem', lineHeight: 1.55, fontStyle: 'italic', color: 'rgba(255,255,255,.68)', margin: 0 },
 
-  footer: { borderTop: '1px solid rgba(245,200,0,.12)', padding: 'clamp(32px,6vw,56px) clamp(16px,4vw,40px)', textAlign: 'center', background: '#070707' },
+  footer: { borderTop: `1px solid rgba(106,13,173,.25)`, padding: 'clamp(32px,6vw,56px) clamp(16px,4vw,40px)', textAlign: 'center', background: `linear-gradient(180deg, #060507, ${PURP})` },
   footLogo: { fontFamily: HEAD, fontSize: '1.6rem', letterSpacing: '2px', color: '#fff', marginBottom: 10 },
   footTag: { fontFamily: BODY, fontSize: '.88rem', letterSpacing: '1px', color: 'rgba(255,255,255,.5)', margin: '0 0 18px' },
   footLinks: { display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 18 },
