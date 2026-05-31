@@ -30,19 +30,36 @@ const SERVICES = [
   ['Human Performance Protocol', 'Performance architecture engineered around your life — your schedule, your recovery window, your occupation. Habits that compound.'],
 ];
 
+// Phase 15 — Revenue Matrix Pivot: two pillars. Autonomous (scalable, app/AI,
+// self-directed) and Sovereign (premium hybrid, Founder-direct human-in-the-loop).
+// Placeholder pricing pending Stripe migration; both CTAs route to #pathfinder.
 const TIERS = [
-  { name: 'Gateway', price: '$67', per: '/mo', tag: 'Foundational Habit Logic', accent: '#22c55e',
-    blurb: 'Self-guided roadmap — high value, zero fluff.',
-    feats: ['Full self-guided Habit Architecture system', 'TDEE calculator + macro blueprint', 'BBF App access (workout tracking)', 'OT-informed joint health guide'] },
-  { name: 'Youth Athlete', price: '$97', per: '/mo', tag: 'Clinical Youth Protocol · Ages 9–17', accent: '#0ea5e9',
-    blurb: 'Sport-specific — pediatric liability shield.',
-    feats: ['Position-specific programming', 'Biomechanical prehab protocols', 'Video form checks', 'Monthly progress review'] },
-  { name: 'Architect Hybrid', price: '$697', per: 'Flat · 12-Week Protocol', accent: GOLD, featured: true,
-    blurb: 'In-person + app — high-performance sync.',
-    feats: ['1 in-person clinical session / week', 'Full BBF App access (workouts & nutrition)', 'Periodized 12-week protocol'] },
-  { name: 'Sovereign', price: '$1,197', per: 'Flat · 12-Week Apex', accent: PURL,
-    blurb: 'Bespoke executive 1-on-1 apex protocol.',
-    feats: ['2 in-person clinical sessions / week', 'Full BBF App access', 'Real-time AI audio meal scanner', 'BBF Virtual Chef'] },
+  {
+    name: 'The Autonomous Engine', price: '$47', per: '/mo',
+    tag: 'Autonomous Tier · Online Only', accent: '#22c55e',
+    cta: 'Start the Engine →',
+    blurb: 'The full system, self-directed. Scalable, affordable, relentless.',
+    feats: [
+      'Full BBF App — workout + nutrition tracking',
+      'AI-driven periodization that adapts to your logged data',
+      'Strict progress tracking + metabolic data capture',
+      'TDEE calculator + macro blueprint',
+      'Self-directed — you run the engine, it adjusts to you',
+    ],
+  },
+  {
+    name: 'The Sovereign Standard', price: '$897', per: 'Flat · 12-Week Protocol',
+    tag: 'Apex Tier · Hybrid · In-Person + App', accent: GOLD, featured: true,
+    badge: 'Founder-Direct', cta: 'Apply for Sovereign →',
+    blurb: 'Maximum access plus the human touch no algorithm replaces.',
+    feats: [
+      'Everything in the Autonomous Engine — fully unlocked',
+      'Direct 1-on-1 with Akeem — in-person biomechanics',
+      'Hands-on protocol adjustments + live form correction',
+      'Human-in-the-loop coaching, not just an algorithm',
+      'Founder-Verified joint protection + prehab architecture',
+    ],
+  },
 ];
 
 const CREDENTIALS = [
@@ -134,15 +151,15 @@ export default function MarketingLanding() {
       {/* ── PROGRAMS (real tiers + pricing) ── */}
       <section id="programs" style={s.sectionWide}>
         <div style={s.secLbl}>Choose Your Path</div>
-        <h2 style={s.secH}>Spectrum of <span style={{ color: GOLD }}>Success</span></h2>
+        <h2 style={s.secH}>Two Paths. One <span style={{ color: GOLD }}>Standard.</span></h2>
         <p style={s.secSub}>
-          We respect every dollar you invest — whether it&apos;s $67/month or the $1,197 Apex Protocol, you receive
-          Founder-Verified biomechanical protocols backed by the Sovereign Gold Standard.
+          Run the system yourself with the Autonomous Engine, or go Founder-Direct with the Sovereign Standard.
+          Same biomechanical precision, same Sovereign Gold Standard — your choice of autonomy or access.
         </p>
         <div style={s.progGrid}>
           {TIERS.map((t) => (
             <article key={t.name} style={{ ...s.progCard, ...(t.featured ? s.progCardFeatured : null) }}>
-              {t.featured ? <div style={s.progBadge}>Most Popular</div> : null}
+              {t.featured ? <div style={s.progBadge}>{t.badge || 'Most Popular'}</div> : null}
               <div style={{ ...s.progTag, color: t.accent }}>{t.tag}</div>
               <div style={s.progName}>{t.name}</div>
               <div style={s.progPrice}>{t.price}<span style={s.progPer}> {t.per}</span></div>
@@ -151,7 +168,7 @@ export default function MarketingLanding() {
                 {t.feats.map((f) => <li key={f} style={s.progFeat}>✓ {f}</li>)}
               </ul>
               <a href="#pathfinder" style={{ ...s.progCta, ...(t.featured ? { background: GOLD, color: '#090909' } : null) }}>
-                Apply →
+                {t.cta || 'Apply →'}
               </a>
             </article>
           ))}
@@ -159,9 +176,9 @@ export default function MarketingLanding() {
         <div style={s.promise}>
           <div style={s.promiseLbl}>The BBF Financial Integrity Promise</div>
           <p style={s.promiseText}>
-            “Whether you invest $67 a month or commit to the $1,197 Apex Protocol — you receive the same Founder-Verified
-            attention to your joint safety, recovery, and long-term mobility. The price reflects access and depth. The
-            Sovereign Gold Standard never changes.” <span style={{ color: GOLD }}>— Akeem Brown</span>
+            “Whether you run the Autonomous Engine at $47 a month or commit to the Sovereign Standard, you receive the
+            same Founder-Verified attention to your joint safety, recovery, and long-term mobility. The price reflects
+            access and depth — the Sovereign Gold Standard never changes.” <span style={{ color: GOLD }}>— Akeem Brown</span>
           </p>
         </div>
       </section>
@@ -300,7 +317,7 @@ const s = {
   svcName: { fontFamily: HEAD, fontSize: '1.4rem', letterSpacing: '1px', color: GOLD, marginBottom: 10 },
   svcDesc: { fontFamily: BODY, fontSize: '.98rem', lineHeight: 1.55, color: 'rgba(255,255,255,.66)', margin: 0 },
 
-  progGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: 20 },
+  progGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,440px))', gap: 24, justifyContent: 'center' },
   progCard: { position: 'relative', background: 'linear-gradient(180deg,rgba(22,22,22,.9),rgba(9,9,9,.9))', border: '1px solid rgba(255,255,255,.1)', borderRadius: 16, padding: 26, display: 'flex', flexDirection: 'column' },
   progCardFeatured: { border: '1px solid rgba(245,200,0,.5)', boxShadow: '0 0 40px rgba(245,200,0,.1)' },
   progBadge: { position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: GOLD, color: '#090909', fontFamily: HEAD, fontSize: '.7rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 14px', borderRadius: 99, whiteSpace: 'nowrap' },
