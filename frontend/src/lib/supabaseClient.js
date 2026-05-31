@@ -29,4 +29,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+// Edge-function base + anon key for privileged, token-gated calls (e.g. the
+// Client Hub roster via bbf-admin-roster). The anon/publishable key is REQUIRED
+// by the Supabase gateway to route ANY request to a function — even one with
+// verify_jwt:false — so it must ride along on every call; the real authorization
+// is the X-BBF-Admin-Token the caller adds on top. Centralised here so components
+// never hardcode project URLs or keys.
+export const SUPABASE_ANON_KEY = supabaseAnonKey;
+export const FUNCTIONS_BASE = `${(supabaseUrl || '').replace(/\/$/, '')}/functions/v1`;
+
 export default supabase;
