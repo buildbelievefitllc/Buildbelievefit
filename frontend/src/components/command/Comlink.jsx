@@ -1,22 +1,27 @@
 // src/components/command/Comlink.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 10 — The Sovereign Comlink, live-wired.
+// Phase 10 — The Sovereign Comlink, live-wired.   Phase 10.7 — silent-auth hotfix.
 //
 // Data (via lib/comlinkApi → Render Express backend, X-BBF-Admin-Token):
 //   • Incoming Leads  (/api/leads-list)    — Pathfinder submissions; PENDING vs
 //     PROVISIONED. PENDING = unconverted = the high-priority triage signal.
 //   • Concierge log   (/api/concierge-log) — autonomous re-engagement runs;
-//     FAILED sends + HOT priority are the red/orange escalations.
+//     FAILED sends are the red escalations.
 //
 // There is NO separate "SOS Queue" in the backend — the triage signal is PENDING
-// leads (var(--orn)) + Concierge failures (var(--red)). Mapped the intent (high
-// priority = high visibility) onto the real data rather than inventing a feed.
+// leads (var(--orn)) + Concierge failures (var(--red)).
 //
 // Auth: the Comlink's BBF_ADMIN_TOKEN is a DIFFERENT secret than the Client Hub's
 // token, so it has its own gate (sessionStorage key BBF_ADMIN_TOKEN).
 //
-// State: leads + concierge are independent { data, isLoading, error } machines —
-// a Concierge failure never blocks the (primary) leads feed. No silent failures.
+// 10.7 FIX — the silent trap: the old catch called setToken('') on a 401, which
+// flipped hasToken→false and UNMOUNTED the very <ErrorBox> that was rendering the
+// error, dropping the user to a gate with no message. Now:
+//   • authenticate() VALIDATES by awaiting the leads fetch, shows a distinct
+//     "Authenticating…" state, and flips to the authed view ONLY on success.
+//   • ANY auth failure (401 / 503 / network) is rendered in red BELOW THE GATE.
+//   • in the authed view, transient errors render in-place; a fresh 401 returns
+//     to the gate WITH the error shown. No state is ever set then hidden.
 
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -29,6 +34,8 @@ import { Tile, Badge, Loading, Empty } from './primitives.jsx';
 export default function Comlink() {
   const [token, setToken] = useState(readAdminToken);
   const [tokenInput, setTokenInput] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);   // gate "Authenticating…" state
+  const [authError, setAuthError] = useState(null);  // shown BELOW the gate, in red
 
   const [leads, setLeads] = useState(null);
   const [leadsLoading, setLeadsLoading] = useState(false);
@@ -38,17 +45,25 @@ export default function Comlink() {
   const [conciergeLoading, setConciergeLoading] = useState(false);
   const [conciergeError, setConciergeError] = useState(null);
 
+  // Authed-view leads loader (mount + refresh). A fresh 401 drops back to the gate
+  // WITH the error surfaced (authError); any other error renders in-place. Never
+  // sets an error into a branch it then unmounts.
   const loadLeads = useCallback(async () => {
-    if (!readAdminToken()) return;
+    if (!readAdminToken()) { setToken(''); return; }
     setLeadsLoading(true);
     setLeadsError(null);
     try {
-      const body = await fetchLeads(100);
-      setLeads(body);
+      setLeads(await fetchLeads(100));
     } catch (e) {
-      setLeadsError(toErrorMessage(e));
-      setLeads(null);
-      if (e?.code === 'unauthorized') setToken(''); // token cleared by the api layer
+      const msg = toErrorMessage(e);
+      if (e?.code === 'unauthorized') {
+        clearAdminToken();
+        setToken('');           // back to the gate…
+        setAuthError(msg);      // …and the gate shows WHY (in red)
+      } else {
+        setLeads(null);
+        setLeadsError(msg);     // transient error → in-place, authed view stays
+      }
     } finally {
       setLeadsLoading(false);
     }
@@ -59,18 +74,17 @@ export default function Comlink() {
     setConciergeLoading(true);
     setConciergeError(null);
     try {
-      const body = await fetchConciergeLog(80);
-      setConcierge(body);
+      setConcierge(await fetchConciergeLog(80));
     } catch (e) {
-      setConciergeError(toErrorMessage(e));
       setConcierge(null);
+      setConciergeError(toErrorMessage(e));
     } finally {
       setConciergeLoading(false);
     }
   }, []);
 
-  // Auto-load both (concurrently) on mount when a token already exists. Deferred
-  // so the initial setState lands outside the synchronous effect body.
+  // Auto-load on mount when a token already exists. Deferred so the initial
+  // setState lands outside the synchronous effect body.
   useEffect(() => {
     if (!readAdminToken()) return undefined;
     let cancelled = false;
@@ -82,19 +96,36 @@ export default function Comlink() {
     return () => { cancelled = true; };
   }, [loadLeads, loadConcierge]);
 
-  function authenticate(e) {
+  // Gate submit — VALIDATE before flipping. The gate stays mounted (showing the
+  // loading + any error) until the leads fetch actually succeeds.
+  async function authenticate(e) {
     e.preventDefault();
+    if (authBusy) return; // guard double-submit
     const next = tokenInput.trim();
-    if (!next) return;
+    if (!next) { setAuthError('Enter the admin token to continue.'); return; }
+    setAuthBusy(true);
+    setAuthError(null);
     writeAdminToken(next);
-    setToken(next);
-    setTokenInput('');
-    loadLeads();
-    loadConcierge();
+    try {
+      const body = await fetchLeads(100);   // validates token + connectivity
+      setLeads(body);
+      setLeadsError(null);
+      setTokenInput('');
+      setToken(next);                        // SUCCESS → flip to the authed view
+      loadConcierge();                       // load the secondary feed (independent)
+    } catch (err) {
+      clearAdminToken();                     // unverified/bad token — drop it
+      setToken('');                          // stay on the gate
+      setAuthError(toErrorMessage(err));     // ← explicit failure, below the gate, in red
+    } finally {
+      setAuthBusy(false);
+    }
   }
+
   function resetToken() {
     clearAdminToken();
     setToken('');
+    setAuthError(null);
     setLeads(null);
     setConcierge(null);
     setLeadsError(null);
@@ -110,7 +141,13 @@ export default function Comlink() {
       lede="Incoming Pathfinder leads and the autonomous Concierge log. Unconverted (PENDING) leads and Concierge failures surface first."
     >
       {!hasToken ? (
-        <TokenGate value={tokenInput} onChange={setTokenInput} onSubmit={authenticate} />
+        <TokenGate
+          value={tokenInput}
+          onChange={(v) => { setTokenInput(v); if (authError) setAuthError(null); }}
+          onSubmit={authenticate}
+          busy={authBusy}
+          error={authError}
+        />
       ) : (
         <>
           <div style={styles.toolbar}>
@@ -235,7 +272,9 @@ function ConciergeLog({ runs }) {
 }
 
 // ── Token gate (BBF_ADMIN_TOKEN — distinct from the Client Hub token). ─────────
-function TokenGate({ value, onChange, onSubmit }) {
+// Renders its own loading ("Authenticating…") AND any auth error, in red, BELOW
+// the form — so a failed auth is never silent.
+function TokenGate({ value, onChange, onSubmit, busy, error }) {
   return (
     <form style={styles.gate} onSubmit={onSubmit}>
       <label className="bbf-label" htmlFor="bbf-comlink-token">Admin Token</label>
@@ -248,10 +287,14 @@ function TokenGate({ value, onChange, onSubmit }) {
           spellCheck={false}
           placeholder="Paste BBF Admin Token"
           value={value}
+          disabled={busy}
           onChange={(e) => onChange(e.target.value)}
         />
-        <button className="bbf-btn" type="submit" style={styles.gateBtn}>Authenticate</button>
+        <button className="bbf-btn" type="submit" style={styles.gateBtn} disabled={busy}>
+          {busy ? 'Authenticating…' : 'Authenticate'}
+        </button>
       </div>
+      {error ? <div className="bbf-msg bbf-msg--error" role="alert" style={styles.gateError}>{error}</div> : null}
       <div style={styles.gateNote}>The Comlink uses the BBF_ADMIN_TOKEN secret (the leads/concierge gate), which may differ from the Client Hub token.</div>
     </form>
   );
@@ -294,6 +337,7 @@ const styles = {
   gate: { maxWidth: 480, marginTop: '.5rem' },
   gateRow: { display: 'flex', gap: '.6rem', alignItems: 'stretch' },
   gateBtn: { width: 'auto', whiteSpace: 'nowrap', padding: '0 1.2rem' },
+  gateError: { fontWeight: 700 },
   gateNote: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 600, color: 'var(--mut)', marginTop: '.6rem', lineHeight: 1.4 },
 
   toolbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' },
