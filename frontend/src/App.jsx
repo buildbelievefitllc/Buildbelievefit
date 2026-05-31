@@ -1,27 +1,29 @@
 // src/App.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 2 — Barebones router with auth-gated routing. No styling (intentional).
+// Phase 3 — Router with auth-gated routing + persistent MasterLayout shell.
 //
-//   /login  → public placeholder
-//   /       → protected: renders the Dashboard if a user exists, else redirects
-//             to /login. Gated on `loading` so we never redirect before the
-//             initial Supabase session has resolved.
+//   /login  → public Login gate (username + PIN)
+//   /       → protected: Dashboard rendered INSIDE MasterLayout if a user exists,
+//             else redirect to /login. Gated on `loading` so we never redirect
+//             before the persisted session has rehydrated.
 //
-// Placeholder route bodies are temporary and live in src/pages/. Real views land
-// in later phases.
+// Future protected routes nest inside MasterLayout the same way.
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
+import MasterLayout from './components/MasterLayout.jsx';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
-  // Don't decide until the initial session is known (avoids redirect flash).
-  if (loading) return <p>Loading…</p>;
+  // Don't decide until the persisted session is known (avoids redirect flash).
+  if (loading) {
+    return <div style={{ padding: '2rem', color: 'var(--mut)' }}>Loading…</div>;
+  }
   if (!user) return <Navigate to="/login" replace />;
-  return children;
+  return <MasterLayout>{children}</MasterLayout>;
 }
 
 export default function App() {
