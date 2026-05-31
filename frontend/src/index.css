@@ -1,0 +1,136 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   BBF — Sovereign global stylesheet (Phase 3)
+   Brand tokens ported verbatim from the legacy monolith :root (bbf-app.html:17)
+   and locked per CLAUDE.md §2:
+     • BBF Purple  #6a0dad   • BBF Gold #f5c800   (permanent identity)
+     • Matte black #080808/#090909 = approved SURFACE/canvas ONLY — never a CTA,
+       header, brand mark, or load-bearing identity color.
+   Typography: Bebas Neue / Anton (headers), Barlow Condensed (body). No subs.
+   Aesthetic: brutalist, high-contrast, dark.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* — core palette (monolith-exact) — */
+  --blk: #080808;   /* matte black surface/canvas — NOT for CTAs/headers */
+  --pur: #6a0dad;   /* BBF Purple (LOCKED) */
+  --purl: #8b1abf;  /* purple light */
+  --purd: #4a0880;  /* purple deep */
+  --purp: #1e0338;  /* purple-black, splash/auth gradient floor */
+  --yel: #f5c800;   /* BBF Gold (LOCKED) */
+  --gold-soft: #f5cf60;
+  --gold-deep: #d4af37;
+  --wht: #f9f5ff;   /* off-white ink */
+  --gry: #111;      /* panel surface */
+  --mut: #666;      /* muted text */
+  --line: #1e1e1e;  /* hairline border */
+
+  /* — status — */
+  --grn: #22c55e;
+  --red: #ef4444;
+  --blu: #3b82f6;
+  --orn: #f59e0b;
+
+  /* — type — */
+  --hb: 'Bebas Neue', 'Barlow Condensed', sans-serif;   /* headers */
+  --display: 'Anton', 'Bebas Neue', sans-serif;          /* heavy display */
+  --bd: 'Barlow Condensed', Arial, sans-serif;           /* body */
+
+  /* — safe-area insets (PWA) — */
+  --st: env(safe-area-inset-top, 0px);
+  --sb: env(safe-area-inset-bottom, 0px);
+
+  color-scheme: dark;
+}
+
+/* ── reset / base ─────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--blk);
+  color: var(--wht);
+  font-family: var(--bd);
+  font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+h1, h2, h3 {
+  font-family: var(--hb);
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--wht);
+  margin: 0 0 .5rem;
+}
+
+a { color: var(--gold-soft); text-decoration: none; }
+
+/* ── brutalist primitives (shared by Login / MasterLayout) ──────────────────── */
+
+/* Gold CTA — matches the monolith sign-in button (#ebtn): gold fill, black ink.
+   Gold/black is the LOCKED CTA treatment; black is the ink here, not the surface. */
+.bbf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  width: 100%;
+  font-family: var(--hb);
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--blk);
+  background: var(--yel);
+  border: none;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: transform .12s ease, filter .15s ease, opacity .15s ease;
+}
+.bbf-btn:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.bbf-btn:active:not(:disabled) { transform: translateY(0); }
+.bbf-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Stark input — dark surface, gold focus ring, mono-ish numeric feel. */
+.bbf-input {
+  width: 100%;
+  font-family: var(--bd);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--wht);
+  background: #050505;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: .85rem .9rem;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.bbf-input::placeholder { color: var(--mut); letter-spacing: 1px; }
+.bbf-input:focus {
+  border-color: rgba(245, 200, 0, .55);
+  box-shadow: 0 0 0 3px rgba(245, 200, 0, .12);
+}
+
+.bbf-label {
+  display: block;
+  font-family: var(--hb);
+  font-size: .68rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  margin: 0 0 .35rem;
+}
+
+/* Inline error / status line. */
+.bbf-msg { font-size: .8rem; letter-spacing: 1px; min-height: 1.1rem; margin-top: .65rem; }
+.bbf-msg--error { color: var(--red); }
+.bbf-msg--info { color: var(--yel); }
