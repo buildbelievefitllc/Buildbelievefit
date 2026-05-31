@@ -23,6 +23,7 @@ const AuthContext = createContext({
   session: null,
   user: null,
   loading: true,
+  isAdmin: false,
   signInWithPin: async () => ({ ok: false }),
   signOut: () => {},
 });
@@ -104,10 +105,20 @@ export function AuthProvider({ children }) {
     setSession(null);
   }, []);
 
+  // Authorization derived from the session role. Admin tier = role admin/trainer.
+  // The `akeem` username fallback mirrors the monolith (bbf-app.html:5530) so a
+  // missing/stale role in a persisted session can never lock the head coach out of
+  // his own Command Center. Fail-closed: any unknown/empty role is NOT admin.
+  const currentUser = session?.user ?? null;
+  const role = String(currentUser?.role || '').trim().toLowerCase();
+  const isAdmin = role === 'admin' || role === 'trainer'
+    || String(currentUser?.username || '').trim().toLowerCase() === 'akeem';
+
   const value = {
     session,
-    user: session?.user ?? null,
+    user: currentUser,
     loading,
+    isAdmin,
     signInWithPin,
     signOut,
   };

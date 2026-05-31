@@ -1,30 +1,18 @@
 // src/App.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 3 — Router with auth-gated routing + persistent MasterLayout shell.
+// Phase 11 — the protected root is now RBAC-gated by <AdminGuard>: only the
+// admin/coach tier (role admin/trainer, or the akeem CEO fallback) may mount the
+// Command Center. Everyone else is redirected (no session) or shown a standalone
+// denial screen (authenticated non-admin) — they never render the shell.
 //
 //   /login  → public Login gate (username + PIN)
-//   /       → protected: Command Center rendered INSIDE MasterLayout if a user
-//             exists, else redirect to /login. Gated on `loading` so we never
-//             redirect before the persisted session has rehydrated.
-//
-// Future protected routes nest inside MasterLayout the same way.
+//   /       → AdminGuard → MasterLayout → CommandCenter   (admin tier only)
 
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext.jsx';
-import MasterLayout from './components/MasterLayout.jsx';
+import AdminGuard from './components/AdminGuard.jsx';
 import Login from './pages/Login.jsx';
 import CommandCenter from './pages/CommandCenter.jsx';
-
-function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
-
-  // Don't decide until the persisted session is known (avoids redirect flash).
-  if (loading) {
-    return <div style={{ padding: '2rem', color: 'var(--mut)' }}>Loading…</div>;
-  }
-  if (!user) return <Navigate to="/login" replace />;
-  return <MasterLayout>{children}</MasterLayout>;
-}
 
 export default function App() {
   return (
@@ -33,9 +21,9 @@ export default function App() {
       <Route
         path="/"
         element={
-          <ProtectedRoute>
+          <AdminGuard>
             <CommandCenter />
-          </ProtectedRoute>
+          </AdminGuard>
         }
       />
       {/* Unknown paths fall back to the protected root, which itself gates. */}
