@@ -9,7 +9,9 @@
 
 import { useAuth } from '../context/AuthContext.jsx';
 
-const NAV_ITEMS = ['Command Center', 'Program', 'Nutrition', 'Client Hub', 'Settings'];
+// Client Hub is intentionally NOT a top-level item: per the monolith's Phase 5.2,
+// it lives *inside* Command Center as a sub-surface (see pages/CommandCenter.jsx).
+const NAV_ITEMS = ['Command Center', 'Program', 'Nutrition', 'Settings'];
 
 export default function MasterLayout({ children }) {
   const { user, signOut } = useAuth();

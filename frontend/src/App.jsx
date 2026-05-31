@@ -3,9 +3,9 @@
 // Phase 3 — Router with auth-gated routing + persistent MasterLayout shell.
 //
 //   /login  → public Login gate (username + PIN)
-//   /       → protected: Dashboard rendered INSIDE MasterLayout if a user exists,
-//             else redirect to /login. Gated on `loading` so we never redirect
-//             before the persisted session has rehydrated.
+//   /       → protected: Command Center rendered INSIDE MasterLayout if a user
+//             exists, else redirect to /login. Gated on `loading` so we never
+//             redirect before the persisted session has rehydrated.
 //
 // Future protected routes nest inside MasterLayout the same way.
 
@@ -13,7 +13,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
 import MasterLayout from './components/MasterLayout.jsx';
 import Login from './pages/Login.jsx';
-import Dashboard from './pages/Dashboard.jsx';
+import CommandCenter from './pages/CommandCenter.jsx';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -34,7 +34,7 @@ export default function App() {
         path="/"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <CommandCenter />
           </ProtectedRoute>
         }
       />
