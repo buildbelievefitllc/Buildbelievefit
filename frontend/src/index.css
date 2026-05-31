@@ -134,3 +134,32 @@ a { color: var(--gold-soft); text-decoration: none; }
 .bbf-msg { font-size: .8rem; letter-spacing: 1px; min-height: 1.1rem; margin-top: .65rem; }
 .bbf-msg--error { color: var(--red); }
 .bbf-msg--info { color: var(--yel); }
+
+/* ── Authenticated shell — RESPONSIVE (Phase 9.5 hotfix) ──────────────────────
+   The shell + sub-nav were inline-styled, and inline styles cannot express media
+   queries — so on a phone the fixed 248px sidebar starved the content column to
+   a sliver and the Command Center tab bar overflowed OFF-SCREEN (the tab logic
+   was fine; the tabs were physically unreachable, which read as "dead"). Layout
+   now lives in classes so it can collapse to a stacked layout on small screens.
+   The base (desktop) rules below replicate the previous inline styles verbatim;
+   ONLY the @media block changes behavior, so desktop is unchanged. */
+.bbf-shell { display: flex; min-height: 100%; background: var(--blk); color: var(--wht); }
+.bbf-sidebar {
+  width: 248px; flex-shrink: 0; display: flex; flex-direction: column; padding: 1.5rem 1rem;
+  background: linear-gradient(180deg, var(--purp) 0%, var(--blk) 60%); border-right: 1px solid var(--line);
+}
+.bbf-sidebar-nav { display: flex; flex-direction: column; gap: .25rem; flex: 1; }
+.bbf-sidebar-foot { border-top: 1px solid var(--line); padding-top: 1rem; margin-top: 1rem; }
+.bbf-viewport { flex: 1 1 auto; min-width: 0; overflow-y: auto; padding: 2rem; }
+
+@media (max-width: 768px) {
+  .bbf-shell { flex-direction: column; }
+  .bbf-sidebar {
+    width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .7rem 1rem;
+    background: linear-gradient(90deg, var(--purp) 0%, var(--blk) 85%);
+    border-right: 0; border-bottom: 1px solid var(--line);
+  }
+  .bbf-sidebar-nav { flex-direction: row; flex-wrap: wrap; flex: 1 1 100%; }
+  .bbf-sidebar-foot { border-top: 0; padding-top: 0; margin-top: 0; margin-left: auto; }
+  .bbf-viewport { padding: 1.1rem; }
+}
