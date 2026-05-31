@@ -137,6 +137,19 @@ const DICT = {
   // contact / footer
   'foot-tag': { en: 'Performance Architecture & Movement Science · Est. 2021', es: 'Arquitectura de Rendimiento & Ciencia del Movimiento · Est. 2021', pt: 'Arquitetura de Performance & Ciência do Movimento · Est. 2021' },
   'foot-contact': { en: 'Contact', es: 'Contacto', pt: 'Contato' },
+
+  // ── Phase 17.8 — Positional Blueprints (verbatim from bbf-lang.js) ───────────
+  'pb-kicker': { en: 'Positional Blueprints', es: 'Planos Posicionales', pt: 'Planos Posicionais' },
+  'pb-title': { en: 'Elite Position. Your Playbook.', es: 'Posición de Élite. Tu Manual.', pt: 'Posição de Elite. Seu Manual.' },
+  'pb-sub': { en: 'Professional-grade programming, nutrition protocols, and recruitment targets for the high-performance household. 5 sports. 25 positions. Built in the Laboratory.', es: 'Programación profesional, protocolos nutricionales y objetivos de reclutamiento para el hogar de alto rendimiento. 5 deportes. 25 posiciones. Construido en el Laboratorio.', pt: 'Programação profissional, protocolos nutricionais e objetivos de recrutamento para o lar de alto desempenho. 5 esportes. 25 posições. Construído no Laboratório.' },
+  'pb-cta': { en: 'Unlock Your Full Playbook →', es: 'Desbloquea Tu Manual Completo →', pt: 'Desbloqueie Seu Manual Completo →' },
+  'pb-lab-verified': { en: 'Lab-Verified Drill', es: 'Ejercicio de Laboratorio', pt: 'Exercício de Laboratório' },
+  'pb-founder-note': { en: 'Founder-Verified Protocols · The Sovereign Gold Standard.', es: 'Protocolos Verificados por el Fundador · El Estándar Soberano de Oro.', pt: 'Protocolos Verificados pelo Fundador · O Padrão Soberano de Ouro.' },
+  'pb-sport-football': { en: 'Football', es: 'Fútbol Americano', pt: 'Futebol Americano' },
+  'pb-sport-basketball': { en: 'Basketball', es: 'Baloncesto', pt: 'Basquete' },
+  'pb-sport-soccer': { en: 'Soccer', es: 'Fútbol', pt: 'Futebol' },
+  'pb-sport-baseball': { en: 'Baseball', es: 'Béisbol', pt: 'Beisebol' },
+  'pb-sport-volleyball': { en: 'Volleyball', es: 'Voleibol', pt: 'Vôlei' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });
