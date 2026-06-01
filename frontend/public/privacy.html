@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="description" content="Build Believe Fit LLC Privacy Policy — how we collect, use, disclose, and safeguard your information."/>
+<meta name="robots" content="index, follow"/>
+<meta name="theme-color" content="#080808"/>
+<title>Privacy Policy · Build Believe Fit LLC</title>
+<link rel="canonical" href="https://buildbelievefit.fitness/privacy.html"/>
+<style>
+:root {
+  --blk:#080808; --gry:#0f0f12; --gry2:#1a1a1a;
+  --pur:#6a0dad; --purl:#8b1abf;
+  --yel:#f5c800; --yel-soft:rgba(245,200,0,.62);
+  --wht:#f9f5ff; --mut:rgba(255,255,255,.62); --mut2:rgba(255,255,255,.45);
+  --hb:'Bebas Neue','Barlow Condensed',Impact,sans-serif;
+  --bd:'Barlow Condensed','Helvetica Neue',Arial,sans-serif;
+}
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; background:var(--blk); color:var(--wht); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; line-height:1.7; -webkit-font-smoothing:antialiased; }
+a { color:var(--yel); text-decoration:none; border-bottom:1px solid var(--yel-soft); transition:border-color .15s ease; }
+a:hover { border-bottom-color:var(--yel); }
+
+/* ── Top nav · matches main site Sovereign aesthetic ── */
+.topbar { position:sticky; top:0; z-index:20; background:rgba(8,8,8,.92); border-bottom:1px solid rgba(245,200,0,.18); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+.topbar-inner { max-width:780px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.brand { font-family:var(--hb); font-size:1.05rem; letter-spacing:3px; font-weight:900; color:#fff; text-decoration:none; border:0; }
+.brand .y { color:var(--yel); }
+.back { font-family:var(--bd); font-size:.75rem; letter-spacing:1.8px; text-transform:uppercase; color:var(--mut); border:0; }
+
+/* ── Hero ── */
+.hero { padding:64px 24px 32px; text-align:center; max-width:780px; margin:0 auto; }
+.hero-eyebrow { font-family:var(--hb); font-size:.78rem; letter-spacing:4px; color:var(--yel); text-transform:uppercase; margin-bottom:14px; opacity:.85; }
+.hero h1 { font-family:var(--hb); font-size:clamp(2.4rem, 6vw, 3.6rem); letter-spacing:3px; font-weight:900; margin:0 0 12px; text-transform:uppercase; line-height:1; }
+.hero h1 .y { color:var(--yel); }
+.hero-meta { font-family:var(--bd); font-size:.84rem; letter-spacing:1.5px; color:var(--mut); text-transform:uppercase; }
+.hero-divider { width:80px; height:2px; background:linear-gradient(90deg,transparent,var(--yel),transparent); margin:28px auto; }
+
+/* ── Body content ── */
+.doc { max-width:760px; margin:0 auto; padding:0 24px 80px; }
+.doc h2 {
+  font-family:var(--hb); font-size:1.45rem; letter-spacing:2.4px; font-weight:900;
+  color:var(--yel); text-transform:uppercase; margin:48px 0 16px;
+  padding-bottom:10px; border-bottom:1px solid rgba(245,200,0,.22);
+}
+.doc h3 { font-family:var(--bd); font-size:1.08rem; letter-spacing:1.4px; color:#fff; text-transform:uppercase; margin:28px 0 10px; }
+.doc p, .doc li { font-size:1rem; color:var(--wht); margin:0 0 14px; }
+.doc ul, .doc ol { padding-left:1.4em; }
+.doc strong { color:#fff; font-weight:700; }
+.doc code { background:var(--gry2); color:var(--yel); padding:1px 6px; border-radius:3px; font-size:.92em; }
+
+/* Section card · for the SMS-specific compliance block · easier for Twilio bot scrape */
+.compliance-card {
+  background:linear-gradient(135deg,rgba(106,13,173,.08),rgba(245,200,0,.04));
+  border:1px solid rgba(245,200,0,.28);
+  border-radius:12px;
+  padding:22px 24px;
+  margin:32px 0;
+}
+.compliance-card .badge {
+  display:inline-block; font-family:var(--hb); font-size:.7rem; letter-spacing:2.4px;
+  color:var(--yel); background:rgba(245,200,0,.1); padding:4px 10px; border-radius:99px;
+  text-transform:uppercase; margin-bottom:10px;
+}
+.compliance-card h2 { border:0; padding:0; margin:0 0 12px; font-size:1.2rem; }
+
+/* Footer */
+.foot {
+  border-top:1px solid rgba(245,200,0,.18);
+  padding:32px 24px 56px;
+  text-align:center;
+  font-family:var(--bd); font-size:.78rem; letter-spacing:1.4px;
+  color:var(--mut2); text-transform:uppercase;
+}
+.foot .links { margin-bottom:14px; }
+.foot .links a { margin:0 12px; color:var(--yel-soft); border:0; }
+.foot .links a:hover { color:var(--yel); }
+.foot .stamp { font-family:var(--hb); font-size:.9rem; letter-spacing:3px; color:var(--mut); }
+
+@media (max-width:520px) {
+  .doc h2 { font-size:1.25rem; }
+  .doc p, .doc li { font-size:.96rem; }
+  .topbar-inner { padding:12px 18px; }
+  .hero { padding:48px 18px 24px; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">Build<span class="y">Believe</span>Fit</a>
+    <a class="back" href="/">&larr; Back to Site</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow">&#x25C7; Legal &middot; Sovereign Protocol</div>
+  <h1>Privacy <span class="y">Policy</span></h1>
+  <div class="hero-meta">Effective Date · May 21, 2026 &nbsp;&middot;&nbsp; Build Believe Fit LLC</div>
+  <div class="hero-divider"></div>
+</section>
+
+<main class="doc">
+
+  <h2>1. Introduction</h2>
+  <p>Build Believe Fit LLC ("<strong>Company</strong>," "<strong>we</strong>," "<strong>us</strong>," or "<strong>our</strong>") operates the website <a href="https://buildbelievefit.fitness">buildbelievefit.fitness</a> and the BBF Client App, including all in-app agentic tools such as the Sovereign Phantom Eye, Virtual Coach, Nutrition Vision, and Chef on Call (collectively, the "<strong>Services</strong>"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Services. Please read this policy carefully. If you disagree with its terms, please discontinue use of our Services.</p>
+
+  <h2>2. Information We Collect</h2>
+  <p>We may collect personal information that you voluntarily provide to us, including but not limited to:</p>
+  <ul>
+    <li><strong>Identity and contact</strong> &mdash; name, email address, phone number.</li>
+    <li><strong>Health and performance intake</strong> &mdash; age, sex, height, weight, training experience, primary goals, dietary profile, allergens, food preferences, reported pain or joint friction, medical disclosures you provide voluntarily.</li>
+    <li><strong>Training and nutrition data</strong> &mdash; workouts logged, sets and reps completed, body composition entries, meal plan adherence.</li>
+    <li><strong>Live coaching data</strong> &mdash; when you initiate a live session with Phantom Eye, Virtual Coach, Nutrition Vision, or Chef on Call, your microphone audio and (in vision modes) camera frames are streamed to our proxy infrastructure and our AI provider for the duration of the session. We do not retain raw audio or video after the session ends.</li>
+    <li><strong>Payment information</strong> &mdash; processed by our payment provider (Stripe); we do not store full card numbers on our servers.</li>
+    <li><strong>Technical information</strong> &mdash; IP address, browser type, device identifiers, and usage data collected through cookies and similar technologies.</li>
+  </ul>
+
+  <h2>3. How We Use Your Information</h2>
+  <p>We use the information we collect to:</p>
+  <ol>
+    <li>Provide, operate, and maintain our Services.</li>
+    <li>Create and manage your client account.</li>
+    <li>Personalize your training program, nutrition protocol, and coaching recommendations &mdash; including filtering meal libraries against your dietary profile and allergens before any AI-generated plan reaches you.</li>
+    <li>Communicate with you regarding your program, progress, account updates, and lead follow-up.</li>
+    <li>Process payments and prevent fraud.</li>
+    <li>Comply with legal obligations.</li>
+    <li>Improve our Services through aggregated, anonymized analytics.</li>
+  </ol>
+
+  <h2>4. Disclosure of Your Information</h2>
+  <p>We do not sell, rent, or trade your personal information to third parties. We may share information with trusted service providers who assist us in operating our Services, including:</p>
+  <ul>
+    <li><strong>Payment processors</strong> (Stripe) &mdash; for subscription and one-time payment processing.</li>
+    <li><strong>Email and SMS providers</strong> (Brevo, Twilio) &mdash; for transactional and re-engagement communication you have opted into.</li>
+    <li><strong>AI providers</strong> (Anthropic, Google) &mdash; for live coaching sessions, nutrition planning, and form analysis. These providers process data on our behalf under their own privacy and security commitments.</li>
+    <li><strong>Cloud infrastructure</strong> (Supabase, Render) &mdash; for hosting your account, training history, and meal plans.</li>
+  </ul>
+  <p>Each provider agrees by contract to keep your information confidential and use it solely for the purposes we direct. We may also disclose information when required by law, court order, or to protect the rights and safety of our clients and the public.</p>
+
+  <div class="compliance-card">
+    <div class="badge">&#x25C7; SMS &middot; Twilio &middot; A2P 10DLC</div>
+    <h2 style="color:var(--yel)">5. SMS / Text Message Communications</h2>
+    <p>If you provide your mobile number through the Pathfinder intake form, your client portal, or another opt-in surface, we may send you text messages from a number registered to Build Believe Fit LLC via our SMS provider, Twilio. These messages include:</p>
+    <ul>
+      <li><strong>Transactional</strong> &mdash; account credentials, appointment reminders, training-session confirmations.</li>
+      <li><strong>Coaching follow-up</strong> &mdash; check-ins on your protocol or program adherence.</li>
+      <li><strong>Re-engagement</strong> &mdash; if you began an intake but did not complete checkout, we may send one or more follow-up texts inviting you to finish.</li>
+    </ul>
+    <p><strong>Message frequency varies.</strong> Message and data rates may apply (your carrier's standard rates). Carriers are not liable for delayed or undelivered messages.</p>
+    <p><strong>Opt out at any time</strong> by replying <code>STOP</code> to any message we send. Reply <code>HELP</code> for assistance, or contact us at <a href="mailto:privacy@buildbelievefit.fitness">privacy@buildbelievefit.fitness</a>.</p>
+    <p><strong>Mobile information sharing.</strong> No mobile information will be shared with third parties or affiliates for marketing or promotional purposes. Information sharing is limited to subprocessors that support the Services (e.g., Twilio for message delivery). This carve-out applies to all SMS opt-in data, including phone numbers and opt-in metadata.</p>
+  </div>
+
+  <h2>6. Data Security</h2>
+  <p>We implement commercially reasonable technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. These measures include encrypted transport (HTTPS / WSS) for all client communication, row-level security on our database tables, scoped administrative tokens for privileged operations, and short-lived signed URLs for live coaching sessions. However, no method of transmission over the Internet or electronic storage is 100% secure, and we cannot guarantee absolute security.</p>
+
+  <h2>7. Your Rights</h2>
+  <p>You have the right to:</p>
+  <ul>
+    <li><strong>Access</strong> &mdash; request a copy of the personal information we hold about you.</li>
+    <li><strong>Update or correct</strong> &mdash; ask us to fix inaccurate or incomplete information.</li>
+    <li><strong>Delete</strong> &mdash; request deletion of your personal information, subject to legitimate business or legal retention obligations.</li>
+    <li><strong>Opt out</strong> &mdash; unsubscribe from marketing communications at any time (every email includes an unsubscribe link; SMS opt-out via <code>STOP</code>).</li>
+    <li><strong>Portability</strong> &mdash; receive your data in a structured, commonly-used format.</li>
+  </ul>
+  <p>To exercise these rights, contact us at <a href="mailto:privacy@buildbelievefit.fitness">privacy@buildbelievefit.fitness</a>. We will respond to verified requests within thirty (30) days.</p>
+
+  <h2>8. Children's Privacy</h2>
+  <p>Our Services are not directed to individuals under the age of 18. We do not knowingly collect personal information from minors. If we learn that we have inadvertently collected personal information from a minor, we will take steps to delete it promptly. If you believe we have collected information from someone under 18, please contact us immediately.</p>
+
+  <h2>9. International Visitors</h2>
+  <p>Our Services are operated from the United States. If you access them from outside the United States, your information may be transferred to, stored, and processed in the United States, which may have data protection laws different from those of your jurisdiction.</p>
+
+  <h2>10. Changes to This Policy</h2>
+  <p>We reserve the right to update this Privacy Policy at any time. We will notify you of material changes by posting the updated policy on this page and updating the effective date above. Continued use of our Services after such changes constitutes your acceptance of the revised policy.</p>
+
+  <h2>11. Contact Us</h2>
+  <p>If you have questions, concerns, or requests regarding this Privacy Policy, contact us at:</p>
+  <p>
+    <strong>Build Believe Fit LLC</strong><br/>
+    Email: <a href="mailto:privacy@buildbelievefit.fitness">privacy@buildbelievefit.fitness</a><br/>
+    General: <a href="mailto:buildbelievefitllc@buildbelievefit.fitness">buildbelievefitllc@buildbelievefit.fitness</a><br/>
+    Website: <a href="https://buildbelievefit.fitness">buildbelievefit.fitness</a>
+  </p>
+
+</main>
+
+<footer class="foot">
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/terms.html">Terms of Service</a>
+    <a href="/privacy.html">Privacy Policy</a>
+    <a href="/privacy-policy.pdf">Privacy Policy (PDF)</a>
+  </div>
+  <div class="stamp">&copy; 2021&ndash;2026 Build Believe Fit LLC</div>
+</footer>
+
+</body>
+</html>
