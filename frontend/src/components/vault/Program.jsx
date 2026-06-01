@@ -1,14 +1,19 @@
 // src/components/vault/Program.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 18 — Client Vault · Program. The athlete's assigned training protocol.
+// Phase 18 → 18.1 — Client Vault · Program.
 //
-// Source: session.plans.workout_plan, delivered by Supabase at sign-in via the
-// bbf_verify_user_pin RPC and normalized by vaultApi.selectPlans(). Rendered as
-// pre-wrapped text so the coach-authored protocol keeps its line structure
-// without pulling in a markdown engine. A profile streak line gives live
-// context from the same fetch the Hub uses.
+// Primary surface is now the dense, clinical 7-day <ProgramGrid> reconstructed
+// from the legacy monolith (day pills → exercise tables → per-set weight
+// tracking with server autoregulation). Exercises render STRICTLY from the
+// authorized program catalog — see components/vault/programData.js.
+//
+// The AI-generated text protocol delivered at sign-in (session.plans.workout_plan,
+// Phase 18 data wiring) is preserved below the grid as a collapsible reference so
+// nothing from the auth payload is lost.
 
-import { Badge, Empty } from '../command/primitives.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { Badge } from '../command/primitives.jsx';
+import ProgramGrid from './ProgramGrid.jsx';
 
 function formatStamp(iso) {
   if (!iso) return null;
@@ -18,7 +23,9 @@ function formatStamp(iso) {
 }
 
 export default function Program({ plans, profile }) {
-  const protocol = plans?.workoutPlan || '';
+  const { user } = useAuth();
+  const uid = user?.username || user?.id || '';
+  const textPlan = plans?.workoutPlan || '';
   const stamp = formatStamp(plans?.generatedAt);
 
   return (
@@ -33,40 +40,38 @@ export default function Program({ plans, profile }) {
         ) : null}
       </div>
 
-      {stamp ? <div style={styles.meta}>Generated {stamp}</div> : null}
+      <ProgramGrid uid={uid} />
 
-      {protocol ? (
-        <pre style={styles.protocol}>{protocol}</pre>
-      ) : (
-        <Empty>
-          No training protocol assigned yet — your coach is building it. It will
-          appear here automatically the next time you sign in.
-        </Empty>
-      )}
+      {textPlan ? (
+        <details style={styles.details}>
+          <summary style={styles.summary}>
+            Coach&apos;s written protocol{stamp ? ` · ${stamp}` : ''}
+          </summary>
+          <pre style={styles.protocol}>{textPlan}</pre>
+        </details>
+      ) : null}
     </div>
   );
 }
 
 const styles = {
-  bar: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '1rem',
-    marginBottom: '.4rem',
+  bar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' },
+  head: { fontFamily: 'var(--display)', fontSize: '1.5rem', letterSpacing: '.5px', margin: 0 },
+  details: {
+    marginTop: '1.4rem',
+    background: 'var(--gry)',
+    border: '1px solid var(--line)',
+    borderRadius: 12,
+    padding: '.4rem .9rem',
   },
-  head: {
-    fontFamily: 'var(--display)',
-    fontSize: '1.5rem',
-    letterSpacing: '.5px',
-    margin: 0,
-  },
-  meta: {
-    fontFamily: 'var(--bd)',
-    fontSize: '.8rem',
-    fontWeight: 600,
-    color: 'var(--mut)',
-    marginBottom: '1rem',
+  summary: {
+    fontFamily: 'var(--hb)',
+    fontSize: '.78rem',
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    color: 'var(--gold-soft)',
+    cursor: 'pointer',
+    padding: '.6rem 0',
   },
   protocol: {
     fontFamily: 'var(--bd)',
@@ -75,10 +80,6 @@ const styles = {
     color: 'var(--wht)',
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
-    background: 'var(--gry)',
-    border: '1px solid var(--line)',
-    borderRadius: 12,
-    padding: '1.2rem',
-    margin: 0,
+    margin: '.4rem 0 .6rem',
   },
 };
