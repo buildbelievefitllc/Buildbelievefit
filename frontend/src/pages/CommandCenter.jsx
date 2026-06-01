@@ -20,6 +20,7 @@ import { useMemo, useState } from 'react';
 import CommandRoster from '../components/command/CommandRoster.jsx';
 import ClientHub from '../components/command/ClientHub.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
+import ClientAnalytics from '../components/command/ClientAnalytics.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 import Program from '../components/vault/Program.jsx';
 import Nutrition from '../components/vault/Nutrition.jsx';
@@ -33,6 +34,7 @@ const TABS = [
   { id: 'command', label: 'Command', Panel: CommandRoster },
   { id: 'roster', label: 'Client Hub', Panel: ClientHub },
   { id: 'telemetry', label: 'Risk Telemetry', Panel: RiskTelemetry },
+  { id: 'analytics', label: 'Analytics', Panel: ClientAnalytics },
   { id: 'comlink', label: 'Comlink', Panel: Comlink },
   // Player-Coach surfaces — the admin's own training view.
   { id: 'program', label: 'Program', Panel: Program },

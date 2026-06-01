@@ -1,0 +1,51 @@
+/* src/components/command/analytics.css
+   Phase 22.x — Coach Client Analytics. Purple/Gold brutalist, scoped under
+   .bbf-an so it never bleeds into other command surfaces. No chart library —
+   hand-rolled SVG. */
+
+.bbf-an { color: var(--wht); }
+
+/* PIN gate */
+.bbf-an__gate { max-width: 460px; }
+.bbf-an__gate-row { display: flex; gap: .6rem; align-items: stretch; }
+.bbf-an__gate-note { font-family: var(--bd); font-size: .8rem; font-weight: 600; color: var(--mut); margin-top: .6rem; line-height: 1.45; }
+
+/* Toolbar: client + window selectors */
+.bbf-an__toolbar { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+.bbf-an__windows { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.bbf-an__win { font-family: var(--hb); font-size: .82rem; letter-spacing: 1.5px; color: rgba(249,245,255,.55); background: none; border: none; padding: .5rem .95rem; cursor: pointer; }
+.bbf-an__win.is-active { background: rgba(106,13,173,.3); color: var(--yel); }
+.bbf-an__refresh { font-family: var(--hb); font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); background: none; border: 1px solid rgba(245,200,0,.3); border-radius: 8px; padding: .45rem .8rem; cursor: pointer; }
+.bbf-an__client { font-family: var(--bd); font-size: .9rem; font-weight: 700; color: var(--mut); }
+
+/* Summary stat tiles */
+.bbf-an__summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .7rem; margin-bottom: 1.6rem; }
+.bbf-an__stat { background: var(--gry); border: 1px solid var(--line); border-top: 3px solid var(--zone, var(--pur)); border-radius: 12px; padding: 1rem; }
+.bbf-an__stat-val { font-family: var(--display); font-size: 1.9rem; line-height: 1; color: var(--wht); }
+.bbf-an__stat-lbl { font-family: var(--bd); font-size: .66rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); margin-top: .35rem; }
+
+/* Chart cards */
+.bbf-an__chart { background: var(--gry); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.2rem; margin-bottom: 1.2rem; }
+.bbf-an__chart-h { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .9rem; }
+.bbf-an__chart-title { font-family: var(--hb); font-size: .95rem; letter-spacing: 2px; text-transform: uppercase; color: var(--wht); }
+.bbf-an__chart-meta { font-family: var(--bd); font-size: .76rem; font-weight: 700; color: var(--mut); }
+.bbf-an__svg { display: block; width: 100%; height: auto; overflow: visible; }
+.bbf-an__axis { font-family: var(--bd); font-size: 9px; fill: var(--mut); }
+.bbf-an__legend { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: .6rem; }
+.bbf-an__legend span { font-family: var(--bd); font-size: .74rem; font-weight: 700; color: var(--mut); display: inline-flex; align-items: center; gap: .35rem; }
+.bbf-an__swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
+
+/* Body-composition progression line */
+.bbf-an__prog { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.bbf-an__prog-delta { font-family: var(--display); font-size: 2rem; line-height: 1; }
+.bbf-an__prog-delta.is-down { color: var(--grn); }   /* fat % down = good */
+.bbf-an__prog-delta.is-up { color: var(--orn); }
+.bbf-an__prog-sub { font-family: var(--bd); font-size: .82rem; font-weight: 700; color: var(--mut); }
+
+/* States */
+.bbf-an__empty { font-family: var(--bd); font-size: .9rem; font-weight: 600; color: var(--mut); padding: 1.2rem 0; text-align: center; }
+.bbf-an__loading { display: flex; align-items: center; gap: .6rem; padding: 1.4rem .2rem; color: var(--mut); font-family: var(--bd); letter-spacing: .5px; }
+.bbf-an__err { border: 1px solid var(--red); border-radius: 12px; padding: 1rem 1.2rem; background: rgba(239,68,68,.06); }
+.bbf-an__err-title { font-family: var(--hb); font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: .35rem; }
+.bbf-an__err-msg { font-family: var(--bd); font-size: .95rem; color: var(--red); }
+.bbf-an__lockout { font-family: var(--display); font-size: 2.4rem; color: var(--red); letter-spacing: 1px; margin: .4rem 0; }
