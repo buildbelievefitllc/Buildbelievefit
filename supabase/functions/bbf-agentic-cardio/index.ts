@@ -308,12 +308,15 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST')    return jsonResponse({ error: 'method_not_allowed' }, 405);
 
-  const expectedToken = Deno.env.get('BBF_COACH_AGENT_TOKEN');
-  if (expectedToken) {
-    if ((req.headers.get('x-bbf-admin-token') || '') !== expectedToken) {
-      return jsonResponse({ error: 'unauthorized' }, 401);
-    }
-  }
+  // Client-facing endpoint: athletes call with the anon key (gateway routing),
+  // NOT the admin token — so the old X-BBF-Admin-Token gate is removed (it locked
+  // out real clients). Matches the bbf-agentic-prehab client pattern.
+  //
+  // TODO(auth): enforce per-user auth.uid() once the Supabase Auth client-login
+  // cutover ships. auth.users is already backfilled with id=bbf_users.id
+  // (migration 20260601120000), but clients cannot obtain a user JWT yet, so a
+  // hard auth.uid() check would 401 every athlete today. Until that lands this
+  // rides anon-key routing — recommend per-IP rate limiting to cap Opus burn.
 
   let payload: any;
   try { payload = await req.json(); } catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
