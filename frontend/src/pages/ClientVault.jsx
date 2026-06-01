@@ -21,6 +21,7 @@
 // MarketingLanding route or the admin Command Center.
 
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 import VaultHub from '../components/vault/VaultHub.jsx';
@@ -43,12 +44,13 @@ const TABS = [
 ];
 
 export default function ClientVault() {
-  const { user, session, signOut } = useAuth();
+  const { user, session, signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(TABS[0].id);
 
   // The login slug IS the profile key (bbf_get_profile_metrics resolves uid).
   const uid = user?.username || user?.id || '';
-  const who = user?.username ? `@${user.username}` : 'Athlete';
+  const displayName = user?.displayName || 'Athlete';
 
   // Single fetch-on-land; shared across every tab.
   const { data: profile, isLoading: profileLoading, error: profileError } = useVaultProfile(uid);
@@ -62,7 +64,19 @@ export default function ClientVault() {
           <span className="cv-kicker">Sovereign Vault</span>
         </div>
         <div className="cv-who">
-          <span className="cv-greet">Welcome, {who}</span>
+          <span className="cv-greet">{displayName}</span>
+          {/* Secure cross-over to the admin side — rendered only for the admin
+              tier (akeem / coach / trainer). /command is AdminGuard-gated, so the
+              toggle is a convenience, never the security boundary. */}
+          {isAdmin ? (
+            <button
+              type="button"
+              className="cv-command"
+              onClick={() => navigate('/command')}
+            >
+              Command Center
+            </button>
+          ) : null}
           <button type="button" className="cv-signout" onClick={signOut}>Sign Out</button>
         </div>
       </header>
@@ -91,7 +105,12 @@ export default function ClientVault() {
             bleed between surfaces (same guard the Command Center uses). */}
         <div key={activeTab}>
           {activeTab === 'hub' && (
-            <VaultHub profile={profile} isLoading={profileLoading} error={profileError} />
+            <VaultHub
+              profile={profile}
+              isLoading={profileLoading}
+              error={profileError}
+              displayName={displayName}
+            />
           )}
           {activeTab === 'program' && <Program plans={plans} profile={profile} />}
           {activeTab === 'generator' && <Generator />}

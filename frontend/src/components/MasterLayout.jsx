@@ -7,6 +7,7 @@
 // land in later phases. Brand tokens per CLAUDE.md §2 (Purple/Gold locked; black
 // is surface only). signOut is wired so the gate is exit-able during testing.
 
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 // Client Hub is intentionally NOT a top-level item: per the monolith's Phase 5.2,
@@ -15,6 +16,7 @@ const NAV_ITEMS = ['Command Center', 'Program', 'Nutrition', 'Settings'];
 
 export default function MasterLayout({ children }) {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   // Layout lives in index.css classes (bbf-shell / bbf-sidebar / …) so it can go
   // responsive — inline styles can't express the media query the mobile collapse
@@ -40,6 +42,10 @@ export default function MasterLayout({ children }) {
 
         <div className="bbf-sidebar-foot">
           {user?.username ? <div style={styles.who}>@{user.username}</div> : null}
+          {/* Cross back to the athlete Vault — the admin is an athlete first. */}
+          <button type="button" style={styles.toVault} onClick={() => navigate('/')}>
+            ← Athlete Vault
+          </button>
           <button type="button" style={styles.signout} onClick={signOut}>
             Sign Out
           </button>
@@ -81,6 +87,20 @@ const styles = {
     borderLeft: '3px solid var(--yel)',
   },
   who: { fontSize: '.72rem', letterSpacing: '1px', color: 'var(--mut)', marginBottom: '.6rem' },
+  toVault: {
+    width: '100%',
+    fontFamily: 'var(--hb)',
+    fontSize: '.72rem',
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    color: 'var(--wht)',
+    background: 'rgba(106,13,173,.22)',
+    border: '1px solid rgba(139,26,191,.5)',
+    borderRadius: 8,
+    padding: '.6rem',
+    cursor: 'pointer',
+    marginBottom: '.6rem',
+  },
   signout: {
     width: '100%',
     fontFamily: 'var(--hb)',

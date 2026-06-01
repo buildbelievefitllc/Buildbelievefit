@@ -1,18 +1,17 @@
 // src/App.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 12 — Apex routing matrix. The root now serves THREE audiences so the
-// production-domain cutover drops no one:
+// Phase 23 — Client-Zero routing. EVERY authenticated user — athletes and admins
+// alike — lands on the Sovereign Vault first ("everyone is an athlete first").
+// Admins cross into the Command Center via the in-Vault toggle, which routes to
+// the dedicated /command path; <AdminGuard> still gates that route (admin /
+// trainer / akeem only), so a non-admin who hits /command directly is denied.
 //
-//   unauthenticated  → <PublicTerminal>   (marketing / catch-all root)
-//   authed admin/coach → <AdminGuard> → <CommandCenter>   (admin console)
-//   authed client/athlete → <ClientVault>   (client catch-surface)
+//   unauthenticated     → <MarketingLanding>   (marketing / catch-all root)
+//   authed (any role)   → <ClientVault>        (the apex home surface)
+//   /command            → <AdminGuard> → <CommandCenter>  (admin console)
 //
-// <AdminGuard> is unchanged — it remains the authoritative gate for the Command
-// Center (admin/trainer/akeem only); RootRoute simply routes the other audiences
-// to their own surfaces before they would ever reach the denial branch.
-//
-//   /login → public Login gate (username + PIN); on success → '/' (dispatched here)
-//   *      → bounce to '/' (which itself dispatches by audience)
+//   /login → public Login gate (username + PIN); on success → '/' (the Vault)
+//   *      → bounce to '/'
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
@@ -22,12 +21,11 @@ import CommandCenter from './pages/CommandCenter.jsx';
 import ClientVault from './pages/ClientVault.jsx';
 import MarketingLanding from './pages/MarketingLanding.jsx';
 
-// Role-aware dispatcher for the apex root.
+// Apex root: marketing for guests, the Vault for everyone authenticated.
 function RootRoute() {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading } = useAuth();
   if (loading) return <div style={bootStyle}>Loading…</div>;
   if (!user) return <MarketingLanding />;
-  if (isAdmin) return <AdminGuard><CommandCenter /></AdminGuard>;
   return <ClientVault />;
 }
 
@@ -41,6 +39,8 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<RootRoute />} />
+      {/* Admin console — AdminGuard denies non-admins before the shell mounts. */}
+      <Route path="/command" element={<AdminGuard><CommandCenter /></AdminGuard>} />
       {/* Any unknown path (e.g. an old monolith deep link like /bbf-app.html)
           falls back to the root, which dispatches by audience — never a 404. */}
       <Route path="*" element={<Navigate to="/" replace />} />
