@@ -59,7 +59,7 @@ its Terminal-3 RPC are deployed:
 
 | Spec | Enable with | Data RPC the test mocks | Required UI `data-testid`s |
 |---|---|---|---|
-| `prehab.spec.ts` | `BBF_PREHAB_READY=1` | `bbf_get_prehab_routines` | `vault-tab-prehab`, `prehab-module`, `prehab-routine[-name/-sets/-reps/-cue]`, `prehab-empty` |
+| `prehab.spec.ts` | `BBF_PREHAB_READY=1` | `bbf_get_client_prehab` *(proposed — T3 shipped `bbf_prehab_catalog`+`bbf_client_prehab` tables; read endpoint TBD)* | `vault-tab-prehab`, `prehab-module`, `prehab-routine[-name/-sets/-reps/-cue]`, `prehab-empty` |
 | `smart-cardio.spec.ts` | `BBF_CARDIO_READY=1` | `bbf_get_cardio_plan` | `vault-tab-cardio`, `smart-cardio-module`, `cardio-readiness[data-tier]`, `cardio-ratio`, `cardio-session[-modality/-zone/-duration/-cue]`, `cardio-empty` |
 
 Each spec's header block is the authoritative contract (RPC payload shape + the
