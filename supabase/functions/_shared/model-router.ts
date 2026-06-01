@@ -44,6 +44,7 @@ export type UseCase =
   | 'novel_form_correction'   // Comlink · novel deviation correction (vision-adjacent)
   | 'onboarding_interview'    // Pathfinder/Interrogator dialog
   | 'prehab_assignment'       // Prehab · ACWR + cold-start assignment
+  | 'sales_chat'              // AI Hub · BBF Chatbox sales-closer dialog
   // ── OPUS tier · peak reasoning · safety-critical only ─────────────
   | 'parq_assessment'         // PAR-Q+ classification + cardiac routing
   | 'wellbeing_escalation'    // ED triage / wellbeing halt
@@ -64,6 +65,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   novel_form_correction: MODELS.SONNET,
   onboarding_interview:  MODELS.SONNET,
   prehab_assignment:     MODELS.SONNET,
+  sales_chat:            MODELS.SONNET,
   parq_assessment:       MODELS.OPUS,
   wellbeing_escalation:  MODELS.OPUS,
   cardiac_intercept:     MODELS.OPUS,

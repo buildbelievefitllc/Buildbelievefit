@@ -1,0 +1,320 @@
+// ═══════════════════════════════════════════════════════════════════════
+// supabase/functions/bbf-ai-hub/index.ts
+// Phase 19 · AI API Injection — the BBF AI Hub (chatbox brain)
+// ───────────────────────────────────────────────────────────────────────
+// Backend brain for the public-facing BBF Chatbox. Phase 17/18 built the
+// React chat UI (`frontend/src/components/BBFChatbox.jsx`) with a
+// keyword-routed PLACEHOLDER reply; Phase 18 established the dynamic
+// TIER_MATRIX + SALES_DIRECTIVES + system-prompt builder in
+// `frontend/src/lib/chatboxContext.js`. This function is the live
+// Anthropic wiring that replaces the placeholder.
+//
+// The chatbox is a SALES CLOSER, not a generic FAQ bot — it qualifies the
+// prospect, recommends ONE tier, and drives toward the Pathfinder
+// application. Guardrails (no improvised prices, no medical advice, route
+// health concerns to PAR-Q) live in the system prompt below.
+//
+// Request shape:
+//   POST /functions/v1/bbf-ai-hub
+//   Content-Type: application/json
+//   Body:
+//   {
+//     "messages": [
+//       { "role": "user",      "content": "how much is it?" },
+//       { "role": "assistant", "content": "..." },
+//       { "role": "user",      "content": "I have a bad knee" }
+//     ],
+//     "lang": "en" | "es" | "pt",        // optional · default: mirror user
+//     "tierMatrix": [ ...TierObjects ]   // optional · see note below
+//   }
+//
+// Response shape (200 OK):
+//   {
+//     "ok": true,
+//     "reply": "2-4 sentence closer reply",
+//     "cta":   "pathfinder" | "tdee" | null,   // drop-in for BBFChatbox cta
+//     "model": "claude-sonnet-4-6",
+//     "usage": { input_tokens, output_tokens, cache_read_input_tokens, ... }
+//   }
+//
+// Errors return non-2xx with { "error": "<slug>", "detail"?: "..." }.
+//
+// ⚠️ PRICING SINGLE-SOURCE-OF-TRUTH NOTE:
+//   Prices are business-critical. The authoritative TIER_MATRIX lives in
+//   `frontend/src/lib/chatboxContext.js` (CEO-owned, Phase 18). A Deno edge
+//   function cannot import that frontend ESM module, so to avoid silent
+//   price drift the frontend SHOULD pass its live matrix in the request
+//   body (`tierMatrix`) — that always wins. The DEFAULT_TIER_MATRIX below
+//   is a fallback mirror for standalone/uncooperative callers and MUST be
+//   kept in sync with chatboxContext.js until a shared module is extracted.
+// ═══════════════════════════════════════════════════════════════════════
+
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { routeAndLog } from '../_shared/model-router.ts';
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'apikey, authorization, content-type',
+};
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...CORS, 'Content-Type': 'application/json' },
+  });
+}
+
+// ─── Model selection (router — never hardcode a model string · CLAUDE.md §4)
+const MODEL      = routeAndLog('bbf-ai-hub', 'sales_chat');
+const MAX_TOKENS = 1024; // closer replies are tight (2-4 sentences)
+
+// ─── Request guardrails (public endpoint — basic abuse limits) ──────────
+const MAX_MESSAGES     = 40;   // a long but bounded conversation
+const MAX_CONTENT_CHARS = 4000; // per message
+
+// ─── Fallback tier matrix · KEEP IN SYNC with chatboxContext.js ─────────
+// Mirror of Phase 18 `frontend/src/lib/chatboxContext.js`. Used ONLY when
+// the request omits `tierMatrix`. See the single-source-of-truth note above.
+interface Tier {
+  id: string;
+  name: string;
+  price: string;
+  cadence: string;
+  model: string;
+  bestFor: string;
+  highlights: string[];
+}
+
+const DEFAULT_TIER_MATRIX: Tier[] = [
+  {
+    id: 'autonomous',
+    name: 'The Autonomous Engine',
+    price: '$47',
+    cadence: '/mo',
+    model: 'Online only · app + AI · self-directed',
+    bestFor: 'Self-motivated clients who want elite programming at scale and will run the system themselves.',
+    highlights: [
+      'Full BBF App — workout + nutrition tracking',
+      'AI-driven periodization that adapts to logged data',
+      'Strict progress tracking + metabolic data capture',
+      'TDEE calculator + macro blueprint',
+    ],
+  },
+  {
+    id: 'sovereign',
+    name: 'The Sovereign Standard',
+    price: '$897',
+    cadence: '/ 12-week protocol',
+    model: 'Premium hybrid · in-person + app · Founder-Direct',
+    bestFor: 'Clients who want Akeem directly in the loop — hands-on biomechanics, live protocol adjustments, the human touch.',
+    highlights: [
+      'Everything in the Autonomous Engine, fully unlocked',
+      'Direct 1-on-1 with Akeem — in-person biomechanics',
+      'Hands-on protocol adjustments + live form correction',
+      'Founder-Verified joint protection + prehab architecture',
+    ],
+  },
+];
+
+const SALES_DIRECTIVES = [
+  'You are the BBF closer — warm, confident, and consultative. Your job is to move the prospect toward an application, not just answer questions.',
+  'Qualify first: ask about their goal, training history, and whether they want to self-run (Autonomous) or want Akeem hands-on (Sovereign). Then recommend ONE tier and say why.',
+  'Quote prices ONLY from the tier matrix provided. Never invent, discount, or estimate a price. If asked about a price not in the matrix, say it is not yet available and offer to connect them with Akeem.',
+  'Always end a recommendation with a clear next step: route the prospect to the Pathfinder application (cta="pathfinder") or, for macro/calorie questions, the TDEE calculator (cta="tdee").',
+  'Never give medical advice. If a prospect raises an injury or health condition, note the PAR-Q intake captures it and Akeem reviews it personally — set cta="pathfinder".',
+  'Never disparage competitors. Sell BBF on the Sovereign Gold Standard: biomechanical precision, joint protection, real periodization.',
+  'Keep replies tight — 2-4 sentences. You are a conversation, not a brochure.',
+  'BBF is trilingual: reply in the prospect\'s language (English, Spanish, or Portuguese). If a language is specified, use it; otherwise mirror the language of their last message.',
+];
+
+// ─── System prompt builder · generated from the matrix (not hardcoded) ──
+function buildSystemPrompt(matrix: Tier[], lang?: string): string {
+  const tierLines = matrix.map((t, i) => {
+    const hl = t.highlights.map((h) => `      - ${h}`).join('\n');
+    return [
+      `  ${i + 1}. ${t.name} — ${t.price} ${t.cadence}`,
+      `     Model: ${t.model}`,
+      `     Best for: ${t.bestFor}`,
+      `     Includes:`,
+      hl,
+    ].join('\n');
+  }).join('\n\n');
+
+  const langLine = lang
+    ? `The prospect's preferred language is "${lang}" (en=English, es=Spanish, pt=Portuguese). Reply in that language.`
+    : 'Reply in the language of the prospect\'s most recent message (English, Spanish, or Portuguese).';
+
+  return [
+    'You are the Build Believe Fit AI assistant — a knowledgeable sales closer for BBF LLC.',
+    'Build Believe Fit is a universal human-performance coaching company founded by Akeem Brown',
+    '(Movement Specialist · Exercise Science · future Occupational Therapist). The brand standard',
+    'is the "Sovereign Gold Standard": biomechanical precision, joint protection, and real periodization.',
+    '',
+    langLine,
+    '',
+    `CURRENT TIER MATRIX (${matrix.length} tier${matrix.length === 1 ? '' : 's'} — quote prices ONLY from this list):`,
+    tierLines,
+    '',
+    'SALES DIRECTIVES:',
+    ...SALES_DIRECTIVES.map((d) => `  • ${d}`),
+    '',
+    '# OUTPUT',
+    'Return ONLY structured JSON matching the response schema: a `reply` (your message to the',
+    'prospect) and a `cta` routing hint. Use cta="pathfinder" to push toward the application,',
+    'cta="tdee" for macro/calorie questions, or cta="none" when no call-to-action fits yet.',
+  ].join('\n');
+}
+
+// Structured output — guarantees the frontend gets { reply, cta } without
+// defensive parsing. Mirrors the BBFChatbox { text, cta } drop-in shape.
+const RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    reply: {
+      type: 'string',
+      description: 'The closer reply to the prospect. Tight, 2-4 sentences, in the prospect\'s language.',
+    },
+    cta: {
+      type: 'string',
+      enum: ['pathfinder', 'tdee', 'none'],
+      description: 'Call-to-action routing hint. "pathfinder"=the application, "tdee"=TDEE calculator, "none"=no CTA yet.',
+    },
+  },
+  required: ['reply', 'cta'],
+  additionalProperties: false,
+};
+
+// ─── Validate + normalize the conversation turns ────────────────────────
+type Turn = { role: 'user' | 'assistant'; content: string };
+
+function normalizeMessages(raw: unknown): { ok: true; turns: Turn[] } | { ok: false; error: string; detail: string } {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return { ok: false, error: 'no_messages', detail: 'POST body must include a non-empty `messages` array.' };
+  }
+  if (raw.length > MAX_MESSAGES) {
+    return { ok: false, error: 'too_many_messages', detail: `Max ${MAX_MESSAGES} messages per call.` };
+  }
+  const turns: Turn[] = [];
+  for (const m of raw as any[]) {
+    const role = m?.role === 'assistant' ? 'assistant' : m?.role === 'user' ? 'user' : null;
+    const content = typeof m?.content === 'string' ? m.content : (typeof m?.text === 'string' ? m.text : null);
+    if (!role || content === null) {
+      return { ok: false, error: 'invalid_message', detail: 'Each message needs a role ("user"|"assistant") and string content.' };
+    }
+    if (content.length > MAX_CONTENT_CHARS) {
+      return { ok: false, error: 'message_too_long', detail: `Each message must be ≤ ${MAX_CONTENT_CHARS} chars.` };
+    }
+    turns.push({ role, content });
+  }
+  // Anthropic requires the conversation to begin with a user turn.
+  if (turns[0].role !== 'user') {
+    return { ok: false, error: 'must_start_with_user', detail: 'The first message must have role "user".' };
+  }
+  return { ok: true, turns };
+}
+
+// ─── Anthropic call ─────────────────────────────────────────────────────
+async function callClaude(turns: Turn[], systemPrompt: string, apiKey: string) {
+  const requestBody = {
+    model:      MODEL,
+    max_tokens: MAX_TOKENS,
+    output_config: {
+      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
+    },
+    // Cacheable system prompt — stable across a conversation, dominant cost.
+    system: [
+      { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } },
+    ],
+    messages: turns.map((t) => ({ role: t.role, content: t.content })),
+  };
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key':         apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type':      'application/json',
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  let body: any;
+  try { body = await res.json(); }
+  catch (_) { body = null; }
+
+  if (!res.ok) {
+    const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
+    console.error(`[bbf-ai-hub] Anthropic API error: status=${res.status} body=${JSON.stringify(body)}`);
+    return { ok: false as const, status: res.status, error: errMsg, raw: body };
+  }
+  return { ok: true as const, status: res.status, body };
+}
+
+function extractTextBlock(content: any[]): string | null {
+  if (!Array.isArray(content)) return null;
+  for (const block of content) {
+    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
+  }
+  return null;
+}
+
+// ─── Handler ─────────────────────────────────────────────────────────────
+serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (req.method !== 'POST')    return jsonResponse({ error: 'method_not_allowed' }, 405);
+
+  let payload: any;
+  try { payload = await req.json(); }
+  catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
+
+  const norm = normalizeMessages(payload?.messages);
+  if (!norm.ok) return jsonResponse({ error: norm.error, detail: norm.detail }, 400);
+
+  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+  if (!ANTHROPIC_API_KEY) {
+    console.error('[bbf-ai-hub] missing ANTHROPIC_API_KEY in Supabase secrets.');
+    return jsonResponse({ error: 'config_missing_anthropic_key' }, 503);
+  }
+
+  // The frontend's live matrix (single source of truth) wins; fall back to
+  // the in-function mirror only if the request omits it.
+  const matrix: Tier[] = Array.isArray(payload?.tierMatrix) && payload.tierMatrix.length > 0
+    ? payload.tierMatrix
+    : DEFAULT_TIER_MATRIX;
+  const lang = typeof payload?.lang === 'string' ? payload.lang : undefined;
+  const systemPrompt = buildSystemPrompt(matrix, lang);
+
+  const t0 = Date.now();
+  const result = await callClaude(norm.turns, systemPrompt, ANTHROPIC_API_KEY);
+  const dur = Date.now() - t0;
+
+  if (!result.ok) {
+    return jsonResponse({ error: 'anthropic_call_failed', detail: result.error, status: result.status }, 502);
+  }
+
+  const respBody: any = result.body;
+  const text = extractTextBlock(respBody?.content);
+  if (!text) {
+    console.error(`[bbf-ai-hub] no text block in Anthropic response. content=${JSON.stringify(respBody?.content)}`);
+    return jsonResponse({ error: 'no_text_block_in_response' }, 502);
+  }
+
+  let parsed: any;
+  try { parsed = JSON.parse(text); }
+  catch (e) {
+    console.error(`[bbf-ai-hub] failed to parse JSON from Claude: ${(e as Error).message}. text=${text.slice(0, 400)}`);
+    return jsonResponse({ error: 'bad_model_json' }, 502);
+  }
+
+  const cta = parsed?.cta === 'pathfinder' || parsed?.cta === 'tdee' ? parsed.cta : null;
+
+  return jsonResponse({
+    ok:          true,
+    reply:       typeof parsed?.reply === 'string' ? parsed.reply : '',
+    cta,
+    model:       MODEL,
+    usage:       respBody?.usage ?? null,
+    duration_ms: dur,
+  }, 200);
+});
