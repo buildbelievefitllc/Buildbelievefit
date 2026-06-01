@@ -1,0 +1,21 @@
+{
+  "name": "bbf-playstore-assets",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Build Believe Fit — headless Google Play Store visual-asset generator (Terminal 6 / Mobile Distribution). Isolated from the root webhook service.",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "bin": {
+    "bbf-playstore": "./generate-assets.js"
+  },
+  "scripts": {
+    "generate": "node generate-assets.js",
+    "check": "node generate-assets.js --check",
+    "fastlane": "node generate-assets.js --fastlane --zip"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

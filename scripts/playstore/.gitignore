@@ -1,0 +1,5 @@
+# Generated artifacts — never commit binary outputs, regenerate on demand.
+node_modules/
+dist/
+bbf-playstore-assets.zip
+package-lock.json

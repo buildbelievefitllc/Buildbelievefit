@@ -1,0 +1,24 @@
+{
+  "_comment": "Source-image map for the Play Store pipeline. Paths are resolved relative to the REPO ROOT so brand assets stay in their canonical location. Edit this file to swap sources — never hardcode paths in generate-assets.js.",
+
+  "packageName": "fitness.buildbelievefit.twa",
+  "defaultLocale": "en-US",
+
+  "icon": {
+    "source": "bbf-icon-512.png"
+  },
+
+  "feature": {
+    "logo": "bbf-icon-512.png",
+    "headline": "BUILD BELIEVE FIT",
+    "subhead": "Universal performance for the high-demand human"
+  },
+
+  "phone": [
+    { "source": "bbf-photo.jpg", "caption": "Elite strength & movement coaching" },
+    { "source": "akeem-after.png", "caption": "Real transformations. Real science." }
+  ],
+
+  "tablet7": [],
+  "tablet10": []
+}
