@@ -11,13 +11,13 @@
 // Center (admin/trainer/akeem only); RootRoute simply routes the other audiences
 // to their own surfaces before they would ever reach the denial branch.
 //
-//   /login → public Login gate (username + PIN); on success → '/' (dispatched here)
+//   /login → Supabase Auth gate (LoginV2, email + password); on success → '/'
 //   *      → bounce to '/' (which itself dispatches by audience)
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
 import AdminGuard from './components/AdminGuard.jsx';
-import Login from './pages/Login.jsx';
+import LoginV2 from './pages/LoginV2.jsx';
 import CommandCenter from './pages/CommandCenter.jsx';
 import ClientVault from './pages/ClientVault.jsx';
 import MarketingLanding from './pages/MarketingLanding.jsx';
@@ -39,7 +39,7 @@ const bootStyle = {
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<LoginV2 />} />
       <Route path="/" element={<RootRoute />} />
       {/* Any unknown path (e.g. an old monolith deep link like /bbf-app.html)
           falls back to the root, which dispatches by audience — never a 404. */}
