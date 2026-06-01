@@ -21,7 +21,21 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 
-const ALLOWED_TIERS = ['lite','gateway','architect','sovereign','youth_athlete','nutrition_essentials','nutrition_platinum'];
+// Canonical pricing slugs (marketing matrix 2026-06) UNION the 7 legacy
+// slugs. The legacy set is retained while the monolith storefront is still
+// live (it sends legacy slugs); strip it once the React storefront cuts over.
+// Keep in sync with bbf_tiers + the bbf_admin_set_tier allowlist.
+const ALLOWED_TIERS = [
+  // 13 canonical
+  'catalyst','momentum','autonomous',
+  'fuel_foundation','fuel_performance','fuel_sovereign',
+  'rising_athlete',
+  'kickstart_6wk_3x','kickstart_6wk_4x',
+  'transformation_8wk_3x','transformation_8wk_4x',
+  'sovereign_12wk_3x','sovereign_12wk_4x',
+  // 7 legacy (monolith storefront — keep until retired)
+  'lite','gateway','architect','sovereign','youth_athlete','nutrition_essentials','nutrition_platinum',
+];
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
