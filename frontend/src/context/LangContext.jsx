@@ -142,6 +142,17 @@ const DICT = {
   'app-band-h': { en: 'Take the Vault with you', es: 'Lleva el Vault contigo', pt: 'Leve o Vault com você' },
   'app-band-sub': { en: 'Get the Build Believe Fit companion app on Google Play — your program, fueling plan, and coaching in your pocket. Install it, then sign in with the username and PIN your coach sent you.', es: 'Descarga la app oficial de Build Believe Fit en Google Play — tu programa, plan de nutrición y coaching en tu bolsillo. Instálala e inicia sesión con el usuario y PIN que te envió tu coach.', pt: 'Baixe o app oficial Build Believe Fit no Google Play — seu programa, plano alimentar e coaching no seu bolso. Instale e entre com o usuário e PIN que seu coach enviou.' },
   'app-badge-alt': { en: 'Get it on Google Play', es: 'Disponible en Google Play', pt: 'Disponível no Google Play' },
+  'app-pwa-tag': { en: 'No store needed', es: 'Sin tienda', pt: 'Sem loja' },
+  'app-pwa-h': { en: 'Direct Web App Install', es: 'Instalación Directa de la Web App', pt: 'Instalação Direta do Web App' },
+  'app-pwa-sub': { en: 'Waiting on the store? Install Build Believe Fit straight from your browser in seconds — it runs full-screen like a native app, right from your home screen.', es: '¿Esperando la tienda? Instala Build Believe Fit directamente desde tu navegador en segundos — funciona a pantalla completa como una app nativa, desde tu pantalla de inicio.', pt: 'Esperando a loja? Instale o Build Believe Fit direto do seu navegador em segundos — funciona em tela cheia como um app nativo, direto da sua tela inicial.' },
+  'app-ios-h': { en: 'iPhone / iPad · Safari', es: 'iPhone / iPad · Safari', pt: 'iPhone / iPad · Safari' },
+  'app-ios-1': { en: "Tap the Share icon at the bottom of Safari.", es: 'Toca el ícono de Compartir en la parte inferior de Safari.', pt: 'Toque no ícone de Compartilhar na parte inferior do Safari.' },
+  'app-ios-2': { en: "Scroll down and tap 'Add to Home Screen'.", es: "Desplázate hacia abajo y toca 'Agregar a pantalla de inicio'.", pt: "Role para baixo e toque em 'Adicionar à Tela de Início'." },
+  'app-ios-3': { en: "Tap 'Add' — the Vault lands on your home screen.", es: "Toca 'Agregar' — el Vault aparece en tu pantalla de inicio.", pt: "Toque em 'Adicionar' — o Vault aparece na sua tela inicial." },
+  'app-android-h': { en: 'Android · Chrome', es: 'Android · Chrome', pt: 'Android · Chrome' },
+  'app-android-1': { en: 'Tap the three-dot menu at the top right.', es: 'Toca el menú de tres puntos en la parte superior derecha.', pt: 'Toque no menu de três pontos no canto superior direito.' },
+  'app-android-2': { en: "Tap 'Add to Home Screen' (or 'Install App').", es: "Toca 'Agregar a pantalla de inicio' (o 'Instalar app').", pt: "Toque em 'Adicionar à Tela de Início' (ou 'Instalar app')." },
+  'app-android-3': { en: 'Confirm — it installs and opens like a native app.', es: 'Confirma — se instala y abre como una app nativa.', pt: 'Confirme — instala e abre como um app nativo.' },
 
   // ── Phase 17.8 — Positional Blueprints (verbatim from bbf-lang.js) ───────────
   'pb-kicker': { en: 'Positional Blueprints', es: 'Planos Posicionales', pt: 'Planos Posicionais' },

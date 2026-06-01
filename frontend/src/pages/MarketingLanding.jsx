@@ -265,27 +265,50 @@ export default function MarketingLanding() {
         <div style={{ marginTop: '2rem' }}><PathfinderForm /></div>
       </section>
 
-      {/* ── COMPANION APP (Google Play funnel) ── */}
+      {/* ── COMPANION APP (Google Play funnel + PWA direct install) ── */}
       <section id="app" style={s.appBand}>
-        <div style={s.appText}>
-          <div style={s.secLbl}>Google Play</div>
-          <h2 style={s.secH}>{t('app-band-h')}</h2>
-          <p style={s.secSub}>{t('app-band-sub')}</p>
+        <div style={s.appTop}>
+          <div style={s.appText}>
+            <div style={s.secLbl}>Google Play</div>
+            <h2 style={s.secH}>{t('app-band-h')}</h2>
+            <p style={s.secSub}>{t('app-band-sub')}</p>
+          </div>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.buildbelievefit.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={s.appBadge}
+            aria-label={t('app-badge-alt')}
+          >
+            <img
+              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+              alt={t('app-badge-alt')}
+              style={{ height: '64px', width: 'auto', display: 'block' }}
+              loading="lazy"
+            />
+          </a>
         </div>
-        <a
-          href="https://play.google.com/store/apps/details?id=com.buildbelievefit.app"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={s.appBadge}
-          aria-label={t('app-badge-alt')}
-        >
-          <img
-            src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-            alt={t('app-badge-alt')}
-            style={{ height: '64px', width: 'auto', display: 'block' }}
-            loading="lazy"
-          />
-        </a>
+
+        {/* Direct Web App (PWA) install — store-free alternative for iOS + Android */}
+        <div style={s.pwaBlock}>
+          <div style={s.pwaHead}>
+            <span style={s.pwaTag}>{t('app-pwa-tag')}</span>
+            <h3 style={s.pwaH}>{t('app-pwa-h')}</h3>
+            <p style={s.pwaSub}>{t('app-pwa-sub')}</p>
+          </div>
+          <div style={s.pwaCols}>
+            <PwaCard
+              platform=""
+              title={t('app-ios-h')}
+              steps={[t('app-ios-1'), t('app-ios-2'), t('app-ios-3')]}
+            />
+            <PwaCard
+              platform="🤖"
+              title={t('app-android-h')}
+              steps={[t('app-android-1'), t('app-android-2'), t('app-android-3')]}
+            />
+          </div>
+        </div>
       </section>
 
       {/* ── FOOTER ── */}
@@ -332,6 +355,26 @@ function Stat({ n, l }) {
   return <div style={{ textAlign: 'center' }}><div style={s.statN}>{n}</div><div style={s.statL}>{l}</div></div>;
 }
 function Divider() { return <div style={s.divider} />; }
+
+// PWA install card — one platform, three numbered steps (brutalist step list).
+function PwaCard({ platform, title, steps }) {
+  return (
+    <div style={s.pwaCard}>
+      <div style={s.pwaCardHead}>
+        <span style={s.pwaIcon} aria-hidden="true">{platform}</span>
+        <span style={s.pwaCardTitle}>{title}</span>
+      </div>
+      <ol style={s.pwaSteps}>
+        {steps.map((step, i) => (
+          <li key={i} style={s.pwaStep}>
+            <span style={s.pwaStepNum}>{i + 1}</span>
+            <span style={s.pwaStepTxt}>{step}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 const s = {
   // Purple atmospheric floor — the brand's load-bearing color (legacy body/--purx).
@@ -427,13 +470,36 @@ const s = {
   originQ: { fontFamily: BODY, fontSize: '.98rem', lineHeight: 1.55, fontStyle: 'italic', color: 'rgba(255,255,255,.68)', margin: 0 },
 
   appBand: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(20px,4vw,48px)',
-    flexWrap: 'wrap', padding: 'clamp(28px,5vw,52px) clamp(16px,4vw,40px)',
+    display: 'flex', flexDirection: 'column', gap: 'clamp(28px,4vw,44px)',
+    padding: 'clamp(28px,5vw,52px) clamp(16px,4vw,40px)',
     background: `linear-gradient(135deg, rgba(106,13,173,.18), rgba(9,9,9,.4))`,
     borderTop: `1px solid rgba(157,39,201,.22)`, borderBottom: `1px solid rgba(157,39,201,.22)`,
   },
+  appTop: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    gap: 'clamp(20px,4vw,48px)', flexWrap: 'wrap',
+  },
   appText: { flex: '1 1 320px', maxWidth: 640 },
   appBadge: { display: 'inline-flex', flex: '0 0 auto', borderRadius: 8, transition: 'transform .15s ease' },
+
+  // Direct Web App (PWA) install — store-free alternative.
+  pwaBlock: { borderTop: `1px dashed rgba(157,39,201,.3)`, paddingTop: 'clamp(24px,3.5vw,36px)' },
+  pwaHead: { marginBottom: 'clamp(18px,2.5vw,26px)' },
+  pwaTag: { fontFamily: HEAD, fontSize: '.72rem', fontWeight: 700, letterSpacing: '2.5px', textTransform: 'uppercase', color: GOLD },
+  pwaH: { fontFamily: HEAD, fontSize: 'clamp(1.5rem,3vw,2rem)', letterSpacing: '1px', color: '#fff', margin: '8px 0 6px' },
+  pwaSub: { fontFamily: BODY, fontSize: '.95rem', lineHeight: 1.55, color: 'rgba(255,255,255,.62)', maxWidth: 640, margin: 0 },
+  pwaCols: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'clamp(14px,2vw,22px)' },
+  pwaCard: { background: 'rgba(9,9,9,.55)', border: `1px solid rgba(157,39,201,.28)`, borderRadius: 14, padding: 'clamp(18px,2.5vw,26px)' },
+  pwaCardHead: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid rgba(157,39,201,.2)` },
+  pwaIcon: { fontSize: '1.5rem', lineHeight: 1 },
+  pwaCardTitle: { fontFamily: HEAD, fontSize: '1.15rem', letterSpacing: '1px', textTransform: 'uppercase', color: '#fff' },
+  pwaSteps: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 14 },
+  pwaStep: { display: 'flex', alignItems: 'flex-start', gap: 12 },
+  pwaStepNum: {
+    flex: '0 0 auto', width: 28, height: 28, borderRadius: 8, background: GOLD, color: '#090909',
+    fontFamily: HEAD, fontSize: '1rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  pwaStepTxt: { fontFamily: BODY, fontSize: '.96rem', lineHeight: 1.5, color: 'rgba(255,255,255,.85)', paddingTop: 3 },
 
   footer: { borderTop: `1px solid rgba(106,13,173,.25)`, padding: 'clamp(32px,6vw,56px) clamp(16px,4vw,40px)', textAlign: 'center', background: `linear-gradient(180deg, #060507, ${PURP})` },
   footLogo: { fontFamily: HEAD, fontSize: '1.6rem', letterSpacing: '2px', color: '#fff', marginBottom: 10 },
