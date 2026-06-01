@@ -1,0 +1,105 @@
+/* src/pages/login.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Phase 20.4 — Sovereign Access gate (Login) premium styling.
+   Scoped under `.lg-*` (same scoped-CSS standard as vault.css / command.css) so
+   it never touches the global bbf-* primitives shared with the marketing forms.
+   Deep-purple field, stark white ink, gold-gradient CTA. LOCKED palette only. */
+
+.lg-screen {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: calc(var(--st) + 1.5rem) 1.25rem calc(var(--sb) + 2rem);
+  background: radial-gradient(125% 80% at 50% 0%, var(--purd) 0%, var(--purp) 38%, #050505 82%);
+  overflow-y: auto;
+}
+
+.lg-top { text-align: center; margin-bottom: 1.8rem; }
+.lg-logo { font-family: var(--hb); font-size: 2.2rem; font-weight: 900; letter-spacing: 3px; color: var(--wht); }
+.lg-logo b { color: var(--yel); }
+.lg-sub { font-family: var(--hb); font-size: .72rem; letter-spacing: 4px; text-transform: uppercase; color: var(--gold-deep); margin-top: .45rem; }
+
+.lg-card {
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(20, 20, 20, .92), rgba(10, 10, 10, .96));
+  border: 1px solid rgba(245, 200, 0, .18);
+  border-radius: 18px;
+  padding: 1.6rem 1.4rem;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, .9), 0 0 40px -20px rgba(106, 13, 173, .6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.lg-field + .lg-field { margin-top: 1.1rem; }
+.lg-label { display: block; font-family: var(--hb); font-size: .7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); margin-bottom: .45rem; }
+
+.lg-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #0b0b0b;
+  border: 1px solid #262626;
+  border-radius: 11px;
+  color: var(--wht);
+  font-family: var(--bd);
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: .85rem .9rem;
+  min-height: 48px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.lg-input::placeholder { color: #555; font-weight: 500; }
+.lg-input:focus { border-color: var(--yel); box-shadow: 0 0 0 3px rgba(245, 200, 0, .22); background: #0d0b06; }
+.lg-input:disabled { opacity: .55; cursor: not-allowed; }
+/* PIN field renders as numeric password — strip the spinner just in case */
+.lg-input::-webkit-outer-spin-button,
+.lg-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.lg-btn {
+  width: 100%;
+  margin-top: 1.5rem;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  cursor: pointer;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--hb);
+  font-size: 1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #0c0a02;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  box-shadow: 0 12px 30px -12px rgba(245, 200, 0, .6);
+  transition: transform .12s ease, box-shadow .18s ease, opacity .18s ease, filter .18s ease;
+}
+.lg-btn:hover:not(:disabled) { box-shadow: 0 16px 34px -12px rgba(245, 200, 0, .78); }
+.lg-btn:active:not(:disabled) { transform: translateY(1px) scale(.997); }
+.lg-btn:focus-visible { outline: 2px solid var(--wht); outline-offset: 2px; }
+.lg-btn:disabled { cursor: not-allowed; filter: saturate(.55); opacity: .8; }
+
+.lg-spinner {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(12, 10, 2, .35); border-top-color: #0c0a02;
+  animation: lg-spin .7s linear infinite;
+}
+@keyframes lg-spin { to { transform: rotate(360deg); } }
+
+.lg-msg { min-height: 1.2rem; margin-top: 1rem; text-align: center; font-family: var(--bd); font-size: .9rem; font-weight: 600; line-height: 1.4; }
+.lg-msg.is-error { color: var(--red); }
+.lg-msg.is-info { color: var(--gold-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-spinner { animation: none; }
+  .lg-btn { transition: none; }
+}
+@media (max-width: 400px) {
+  .lg-logo { font-size: 1.9rem; }
+  .lg-card { padding: 1.4rem 1.1rem; }
+}
