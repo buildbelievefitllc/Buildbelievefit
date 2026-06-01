@@ -25,6 +25,7 @@ import Program from '../components/vault/Program.jsx';
 import Nutrition from '../components/vault/Nutrition.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
+import Prehab from '../components/vault/Prehab.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 
@@ -36,6 +37,7 @@ const TABS = [
   // Player-Coach surfaces — the admin's own training view.
   { id: 'program', label: 'Program', Panel: Program },
   { id: 'generator', label: 'Generator', Panel: Generator },
+  { id: 'prehab', label: 'Prehab', Panel: Prehab },
   { id: 'nutrition', label: 'Nutrition', Panel: Nutrition },
   { id: 'settings', label: 'Settings', Panel: Settings },
 ];

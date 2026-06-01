@@ -29,6 +29,7 @@ import Nutrition from '../components/vault/Nutrition.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import SmartCardio from '../components/vault/SmartCardio.jsx';
 import Generator from '../components/vault/Generator.jsx';
+import Prehab from '../components/vault/Prehab.jsx';
 import '../components/vault/vault.css';
 
 const TABS = [
@@ -36,6 +37,7 @@ const TABS = [
   { id: 'program', label: 'Program' },
   { id: 'generator', label: 'Generator' },
   { id: 'cardio', label: 'Smart Cardio' },
+  { id: 'prehab', label: 'Prehab', testid: 'vault-tab-prehab' },
   { id: 'nutrition', label: 'Nutrition' },
   { id: 'settings', label: 'Settings' },
 ];
@@ -77,6 +79,7 @@ export default function ClientVault() {
                 aria-selected={active}
                 onClick={() => setActiveTab(t.id)}
                 className={`cv-tab${active ? ' is-active' : ''}`}
+                data-testid={t.testid}
               >
                 {t.label}
               </button>
@@ -93,6 +96,7 @@ export default function ClientVault() {
           {activeTab === 'program' && <Program plans={plans} profile={profile} />}
           {activeTab === 'generator' && <Generator />}
           {activeTab === 'cardio' && <SmartCardio />}
+          {activeTab === 'prehab' && <Prehab />}
           {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
           {activeTab === 'settings' && <Settings />}
         </div>
