@@ -12,11 +12,13 @@
 // State is local (`activeTab`); no routing per-tab yet.
 
 import { useState } from 'react';
+import CommandRoster from '../components/command/CommandRoster.jsx';
 import ClientHub from '../components/command/ClientHub.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 
 const TABS = [
+  { id: 'command', label: 'Command', Panel: CommandRoster },
   { id: 'roster', label: 'Client Hub', Panel: ClientHub },
   { id: 'telemetry', label: 'Risk Telemetry', Panel: RiskTelemetry },
   { id: 'comlink', label: 'Comlink', Panel: Comlink },
@@ -28,9 +30,10 @@ export default function CommandCenter() {
 
   return (
     <div style={styles.page}>
+      {/* Slim brand strip — each tab owns its own hero heading (the Command tab
+          renders the "SOVEREIGN COMMAND CENTER" header), so no duplicate title. */}
       <header style={styles.head}>
-        <div style={styles.kicker}>Sovereign Command</div>
-        <h1 style={styles.title}>Command Center</h1>
+        <div style={styles.kicker}>Build Believe Fit · Admin</div>
       </header>
 
       <nav style={styles.tabs} role="tablist" aria-label="Command Center surfaces">

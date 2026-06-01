@@ -1,0 +1,90 @@
+/* src/components/command/command.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Phase 20.3 — Sovereign Command Center (admin roster) premium styling.
+   Scoped under `.cc` — same scoped-CSS standard as the Vault's vault.css, in the
+   LOCKED brand palette (var(--yel)/--pur/--purd/--purp + Bebas/Anton/Barlow).
+   Dark-mode roster with per-client module toggles + status pills. Mobile-first
+   (rows collapse to stacked cards on narrow viewports). */
+
+.cc { display: block; }
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.cc-head { margin-bottom: 1.25rem; }
+.cc-kicker {
+  font-family: var(--hb); font-size: .7rem; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--gold-deep); margin-bottom: .35rem;
+}
+.cc-title {
+  font-family: var(--display); font-size: 2.1rem; letter-spacing: 1.5px; line-height: 1.02;
+  margin: 0; color: var(--yel); text-shadow: 0 2px 22px rgba(245, 200, 0, .25);
+}
+.cc-rule { height: 3px; width: 72px; margin-top: .55rem; border-radius: 999px; background: linear-gradient(90deg, var(--pur), var(--yel)); }
+
+/* ── Quick-stat chips ────────────────────────────────────────────────────── */
+.cc-stats { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+.cc-chip {
+  display: inline-flex; align-items: baseline; gap: .45rem;
+  background: linear-gradient(180deg, #161616, #0e0e0e); border: 1px solid #1f1f1f; border-radius: 999px;
+  padding: .55rem .95rem; font-family: var(--bd); font-size: .82rem; font-weight: 700; color: var(--mut);
+}
+.cc-chip b { font-family: var(--display); font-size: 1.2rem; color: var(--yel); line-height: 1; }
+.cc-chip.is-alert b { color: var(--orn); }
+
+/* ── Roster rows ─────────────────────────────────────────────────────────── */
+.cc-roster { display: flex; flex-direction: column; gap: .6rem; }
+.cc-row {
+  display: flex; align-items: center; gap: 1rem; padding: .85rem 1rem;
+  background: linear-gradient(180deg, #141414, #0e0e0e); border: 1px solid #1c1c1c; border-radius: 14px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.cc-row:hover { border-color: rgba(245, 200, 0, .22); box-shadow: 0 12px 28px -20px rgba(0, 0, 0, .9); }
+
+.cc-client { display: flex; align-items: center; gap: .7rem; flex: 0 0 auto; min-width: 150px; }
+.cc-avatar {
+  width: 40px; height: 40px; border-radius: 11px; flex: 0 0 auto;
+  background: linear-gradient(135deg, var(--purd), var(--purp)); border: 1px solid rgba(245, 200, 0, .25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--hb); font-size: .95rem; letter-spacing: 1px; color: var(--yel);
+}
+.cc-client-meta { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.cc-name { font-family: var(--bd); font-weight: 700; font-size: 1.02rem; color: var(--wht); }
+.cc-sub { font-family: var(--bd); font-size: .72rem; font-weight: 600; color: var(--mut); }
+
+.cc-toggles { display: flex; gap: .5rem; flex-wrap: wrap; flex: 1 1 auto; justify-content: center; }
+
+/* toggle switch */
+.cc-toggle {
+  display: inline-flex; align-items: center; gap: .55rem; cursor: pointer;
+  background: #0d0d0d; border: 1px solid #1f1f1f; border-radius: 999px; padding: .35rem .6rem .35rem .75rem;
+  transition: border-color .15s ease, background .15s ease;
+}
+.cc-toggle:hover { border-color: #333; }
+.cc-toggle:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.cc-toggle-label { font-family: var(--hb); font-size: .62rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); white-space: nowrap; transition: color .15s ease; }
+.cc-toggle.is-on { border-color: rgba(245, 200, 0, .4); }
+.cc-toggle.is-on .cc-toggle-label { color: var(--gold-soft); }
+.cc-switch { position: relative; width: 34px; height: 18px; flex: 0 0 auto; border-radius: 999px; background: #242424; border: 1px solid #2c2c2c; transition: background .18s ease, border-color .18s ease; }
+.cc-knob { position: absolute; top: 1px; left: 1px; width: 14px; height: 14px; border-radius: 50%; background: #666; transition: transform .18s ease, background .18s ease; }
+.cc-toggle.is-on .cc-switch { background: rgba(245, 200, 0, .22); border-color: var(--yel); }
+.cc-toggle.is-on .cc-knob { transform: translateX(16px); background: var(--yel); box-shadow: 0 0 8px rgba(245, 200, 0, .7); }
+
+/* status pill */
+.cc-status {
+  flex: 0 0 auto; font-family: var(--hb); font-size: .66rem; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: .32rem .75rem; border-radius: 999px; white-space: nowrap;
+}
+.cc-status.is-active { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); }
+.cc-status.is-paused { color: var(--mut); background: rgba(120, 120, 120, .12); border: 1px solid var(--line); }
+
+/* ── Mobile — rows collapse to stacked cards ─────────────────────────────── */
+@media (max-width: 680px) {
+  .cc-row { flex-direction: column; align-items: stretch; gap: .8rem; }
+  .cc-client { min-width: 0; }
+  .cc-toggles { justify-content: flex-start; }
+  .cc-toggle { flex: 1 1 auto; justify-content: space-between; }
+  .cc-status { align-self: flex-start; }
+}
+@media (max-width: 400px) {
+  .cc-title { font-size: 1.7rem; }
+  .cc-toggle { flex: 1 1 100%; }
+}
