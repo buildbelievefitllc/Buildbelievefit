@@ -10,9 +10,8 @@
 //   biometrics.status → BIOMETRICS toggle   (not in the contract yet → off)
 //   overall_status    → Active/Paused pill
 //
-// Auth: the feed is admin-gated (X-BBF-Admin-Token = BBF_COACH_AGENT_TOKEN, the
-// same secret Client Hub uses). If no token is present, we show an inline gate
-// so the coach can authenticate on this surface and load immediately.
+// Zero-friction (Phase 23): the feed loads via the standard anon-key pattern —
+// no token gate. The roster auto-loads on mount.
 //
 // The toggles reflect LIVE compliance from the feed. They remain clickable as a
 // local visual affordance (override map) — there is no write-back endpoint yet,
@@ -20,7 +19,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchCommandFeed } from '../../lib/commandFeedApi.js';
-import { writeToken } from '../../lib/rosterApi.js';
 import './command.css';
 
 const MODULES = [
@@ -37,8 +35,6 @@ export default function CommandRoster() {
   const [clients, setClients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [needsAuth, setNeedsAuth] = useState(false);
-  const [tokenInput, setTokenInput] = useState('');
   const [overrides, setOverrides] = useState({}); // `${id}:${key}` → bool (local visual)
   const mounted = useRef(true);
 
@@ -47,11 +43,10 @@ export default function CommandRoster() {
   // Kicks the async fetch; no synchronous setState here (clears the effect lint).
   const load = useCallback(() => {
     fetchCommandFeed()
-      .then((cs) => { if (mounted.current) { setClients(cs); setNeedsAuth(false); setError(null); } })
+      .then((cs) => { if (mounted.current) { setClients(cs); setError(null); } })
       .catch((e) => {
         if (!mounted.current) return;
-        if (e.code === 'no_token') setNeedsAuth(true);
-        else setError(e.message || 'Failed to load the command feed.');
+        setError(e.message || 'Failed to load the command feed.');
       })
       .finally(() => { if (mounted.current) setIsLoading(false); });
   }, []);
@@ -59,15 +54,6 @@ export default function CommandRoster() {
   useEffect(() => { load(); }, [load]);
 
   const reload = () => { setIsLoading(true); setError(null); load(); };
-  const authenticate = () => {
-    const t = tokenInput.trim();
-    if (!t) return;
-    writeToken(t);
-    setTokenInput('');
-    setIsLoading(true);
-    setNeedsAuth(false);
-    load();
-  };
 
   const toggle = (id, key) => {
     setOverrides((o) => {
@@ -97,23 +83,6 @@ export default function CommandRoster() {
 
       {isLoading ? (
         <div className="cc-state"><span className="cc-state-spinner" aria-hidden="true" /> Loading live roster…</div>
-      ) : needsAuth ? (
-        <div className="cc-state">
-          <div>Enter the coach admin token to load the live roster.</div>
-          <div className="cc-auth">
-            <input
-              className="cc-auth-input"
-              type="password"
-              autoComplete="off"
-              placeholder="X-BBF-Admin-Token"
-              value={tokenInput}
-              onChange={(e) => setTokenInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') authenticate(); }}
-              aria-label="Coach admin token"
-            />
-            <button type="button" className="cc-retry" onClick={authenticate}>Authenticate</button>
-          </div>
-        </div>
       ) : error ? (
         <div className="cc-state is-error">
           <div>{error}</div>

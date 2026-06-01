@@ -7,7 +7,7 @@
 //   • bbf_coach_body_composition → body-fat % series + progression.
 //
 // Flow: admin-PIN gate (cached in module memory for the session — typed once) →
-// pick a client (token-gated roster reuse) → switch 30/60/90 windows freely.
+// pick a client (roster reuse via the anon-key pattern) → switch 30/60/90 windows.
 // Charts are hand-rolled SVG in the BBF purple/gold brutalist system (no chart
 // lib). Per contract, readiness avg_score may be null on no-reading days — the
 // line SEGMENTS across nulls (skips, never zero-fills or breaks). Unauthorized
@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import CommandSurface from './CommandSurface.jsx';
 import { Loading } from './primitives.jsx';
-import { rosterCall, readToken } from '../../lib/rosterApi.js';
+import { rosterCall } from '../../lib/rosterApi.js';
 import {
   setAdminPin, hasAdminPin, clearAdminPin,
   fetchClientAnalytics, fetchBodyComposition,
@@ -61,9 +61,9 @@ export default function ClientAnalytics() {
     return () => clearInterval(id);
   }, [lockout?.retryAfter]);
 
-  // ── Load roster once authed (needs the BBF_COACH_AGENT_TOKEN, same as Client Hub) ──
+  // ── Load roster once authed (anon-key pattern, same as Client Hub) ──
   useEffect(() => {
-    if (!authed || !readToken()) return undefined;
+    if (!authed) return undefined;
     let cancelled = false;
     rosterCall('roster')
       .then((body) => {

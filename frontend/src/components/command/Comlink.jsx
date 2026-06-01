@@ -11,66 +11,38 @@
 // There is NO separate "SOS Queue" in the backend — the triage signal is PENDING
 // leads (var(--orn)) + Concierge failures (var(--red)).
 //
-// Auth: the Comlink's BBF_ADMIN_TOKEN is a DIFFERENT secret than the Client Hub's
-// token, so it has its own gate (sessionStorage key BBF_ADMIN_TOKEN).
-//
-// 10.7 FIX — the silent trap: the old catch called setToken('') on a 401, which
-// flipped hasToken→false and UNMOUNTED the very <ErrorBox> that was rendering the
-// error, dropping the user to a gate with no message. Now:
-//   • authenticate() VALIDATES by awaiting the leads fetch, shows a distinct
-//     "Authenticating…" state, and flips to the authed view ONLY on success.
-//   • ANY auth failure (401 / 503 / network) is rendered in red BELOW THE GATE.
-//   • in the authed view, transient errors render in-place; a fresh 401 returns
-//     to the gate WITH the error shown. No state is ever set then hidden.
+// Zero-friction (Phase 23): the BBF_ADMIN_TOKEN gate has been eradicated. Both
+// feeds auto-load on mount; transient errors render in-place with a Retry.
 
 import { useCallback, useEffect, useState } from 'react';
-import {
-  readAdminToken, writeAdminToken, clearAdminToken, fetchLeads, fetchConciergeLog,
-} from '../../lib/comlinkApi.js';
+import { fetchLeads, fetchConciergeLog } from '../../lib/comlinkApi.js';
 import { toErrorMessage } from '../../lib/rosterApi.js';
 import CommandSurface from './CommandSurface.jsx';
 import { Tile, Badge, Loading, Empty } from './primitives.jsx';
 
 export default function Comlink() {
-  const [token, setToken] = useState(readAdminToken);
-  const [tokenInput, setTokenInput] = useState('');
-  const [authBusy, setAuthBusy] = useState(false);   // gate "Authenticating…" state
-  const [authError, setAuthError] = useState(null);  // shown BELOW the gate, in red
-
   const [leads, setLeads] = useState(null);
-  const [leadsLoading, setLeadsLoading] = useState(false);
+  const [leadsLoading, setLeadsLoading] = useState(true);
   const [leadsError, setLeadsError] = useState(null);
 
   const [concierge, setConcierge] = useState(null);
-  const [conciergeLoading, setConciergeLoading] = useState(false);
+  const [conciergeLoading, setConciergeLoading] = useState(true);
   const [conciergeError, setConciergeError] = useState(null);
 
-  // Authed-view leads loader (mount + refresh). A fresh 401 drops back to the gate
-  // WITH the error surfaced (authError); any other error renders in-place. Never
-  // sets an error into a branch it then unmounts.
   const loadLeads = useCallback(async () => {
-    if (!readAdminToken()) { setToken(''); return; }
     setLeadsLoading(true);
     setLeadsError(null);
     try {
       setLeads(await fetchLeads(100));
     } catch (e) {
-      const msg = toErrorMessage(e);
-      if (e?.code === 'unauthorized') {
-        clearAdminToken();
-        setToken('');           // back to the gate…
-        setAuthError(msg);      // …and the gate shows WHY (in red)
-      } else {
-        setLeads(null);
-        setLeadsError(msg);     // transient error → in-place, authed view stays
-      }
+      setLeads(null);
+      setLeadsError(toErrorMessage(e));
     } finally {
       setLeadsLoading(false);
     }
   }, []);
 
   const loadConcierge = useCallback(async () => {
-    if (!readAdminToken()) return;
     setConciergeLoading(true);
     setConciergeError(null);
     try {
@@ -83,10 +55,9 @@ export default function Comlink() {
     }
   }, []);
 
-  // Auto-load on mount when a token already exists. Deferred so the initial
-  // setState lands outside the synchronous effect body.
+  // Auto-load both feeds on mount. Deferred so the initial setState lands outside
+  // the synchronous effect body.
   useEffect(() => {
-    if (!readAdminToken()) return undefined;
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
@@ -96,114 +67,64 @@ export default function Comlink() {
     return () => { cancelled = true; };
   }, [loadLeads, loadConcierge]);
 
-  // Gate submit — VALIDATE before flipping. The gate stays mounted (showing the
-  // loading + any error) until the leads fetch actually succeeds.
-  async function authenticate(e) {
-    e.preventDefault();
-    if (authBusy) return; // guard double-submit
-    const next = tokenInput.trim();
-    if (!next) { setAuthError('Enter the admin token to continue.'); return; }
-    setAuthBusy(true);
-    setAuthError(null);
-    writeAdminToken(next);
-    try {
-      const body = await fetchLeads(100);   // validates token + connectivity
-      setLeads(body);
-      setLeadsError(null);
-      setTokenInput('');
-      setToken(next);                        // SUCCESS → flip to the authed view
-      loadConcierge();                       // load the secondary feed (independent)
-    } catch (err) {
-      clearAdminToken();                     // unverified/bad token — drop it
-      setToken('');                          // stay on the gate
-      setAuthError(toErrorMessage(err));     // ← explicit failure, below the gate, in red
-    } finally {
-      setAuthBusy(false);
-    }
-  }
-
-  function resetToken() {
-    clearAdminToken();
-    setToken('');
-    setAuthError(null);
-    setLeads(null);
-    setConcierge(null);
-    setLeadsError(null);
-    setConciergeError(null);
-  }
-
-  const hasToken = !!token;
-
   return (
     <CommandSurface
       kicker="Comlink · Concierge Matrix"
       title="The Comlink"
       lede="Incoming Pathfinder leads and the autonomous Concierge log. Unconverted (PENDING) leads and Concierge failures surface first."
     >
-      {!hasToken ? (
-        <TokenGate
-          value={tokenInput}
-          onChange={(v) => { setTokenInput(v); if (authError) setAuthError(null); }}
-          onSubmit={authenticate}
-          busy={authBusy}
-          error={authError}
-        />
-      ) : (
-        <>
-          <div style={styles.toolbar}>
-            <span style={styles.count}>
-              {leadsLoading ? 'Loading…' : leads ? `${leads.total} lead${leads.total === 1 ? '' : 's'}` : '—'}
-            </span>
-            <button
-              type="button"
-              style={styles.refresh}
-              onClick={() => { loadLeads(); loadConcierge(); }}
-              disabled={leadsLoading || conciergeLoading}
-            >
-              ↻ Refresh
-            </button>
+      <div style={styles.toolbar}>
+        <span style={styles.count}>
+          {leadsLoading ? 'Loading…' : leads ? `${leads.total} lead${leads.total === 1 ? '' : 's'}` : '—'}
+        </span>
+        <button
+          type="button"
+          style={styles.refresh}
+          onClick={() => { loadLeads(); loadConcierge(); }}
+          disabled={leadsLoading || conciergeLoading}
+        >
+          ↻ Refresh
+        </button>
+      </div>
+
+      {/* ── Leads summary (shared Tile primitive). ── */}
+      {!leadsLoading && !leadsError && leads ? (
+        <div style={styles.summary}>
+          <Tile label="Total" value={leads.total} unit="leads" accent="var(--gold-soft)" />
+          <Tile label="Pending" value={leads.pending} unit="to convert" accent="var(--orn)" />
+          <Tile label="Provisioned" value={leads.provisioned} unit="onboarded" accent="var(--grn)" />
+        </div>
+      ) : null}
+
+      {/* ── Incoming leads (primary feed). ── */}
+      <Section title="Incoming Leads">
+        {leadsLoading ? <Loading label="Loading leads…" /> : null}
+        {!leadsLoading && leadsError ? (
+          <ErrorBox message={leadsError} onRetry={loadLeads} />
+        ) : null}
+        {!leadsLoading && !leadsError && leads && (leads.leads || []).length === 0 ? (
+          <Empty>No leads in the queue yet. New Pathfinder submissions land here.</Empty>
+        ) : null}
+        {!leadsLoading && !leadsError && leads && (leads.leads || []).length > 0 ? (
+          <div style={styles.list}>
+            {leads.leads.map((lead) => <LeadRow key={lead.id ?? lead.email} lead={lead} />)}
           </div>
+        ) : null}
+      </Section>
 
-          {/* ── Leads summary (shared Tile primitive). ── */}
-          {!leadsLoading && !leadsError && leads ? (
-            <div style={styles.summary}>
-              <Tile label="Total" value={leads.total} unit="leads" accent="var(--gold-soft)" />
-              <Tile label="Pending" value={leads.pending} unit="to convert" accent="var(--orn)" />
-              <Tile label="Provisioned" value={leads.provisioned} unit="onboarded" accent="var(--grn)" />
-            </div>
-          ) : null}
-
-          {/* ── Incoming leads (primary feed). ── */}
-          <Section title="Incoming Leads">
-            {leadsLoading ? <Loading label="Loading leads…" /> : null}
-            {!leadsLoading && leadsError ? (
-              <ErrorBox message={leadsError} onRetry={loadLeads} onResetToken={resetToken} />
-            ) : null}
-            {!leadsLoading && !leadsError && leads && (leads.leads || []).length === 0 ? (
-              <Empty>No leads in the queue yet. New Pathfinder submissions land here.</Empty>
-            ) : null}
-            {!leadsLoading && !leadsError && leads && (leads.leads || []).length > 0 ? (
-              <div style={styles.list}>
-                {leads.leads.map((lead) => <LeadRow key={lead.id ?? lead.email} lead={lead} />)}
-              </div>
-            ) : null}
-          </Section>
-
-          {/* ── Concierge log (secondary, read-only). ── */}
-          <Section title="Concierge Activity">
-            {conciergeLoading ? <Loading label="Loading Concierge log…" /> : null}
-            {!conciergeLoading && conciergeError ? (
-              <div style={styles.inlineErr} role="alert">
-                <span style={styles.errMsg}>{conciergeError}</span>
-                <button type="button" style={styles.retry} onClick={loadConcierge}>Retry</button>
-              </div>
-            ) : null}
-            {!conciergeLoading && !conciergeError && concierge ? (
-              <ConciergeLog runs={concierge.runs || []} />
-            ) : null}
-          </Section>
-        </>
-      )}
+      {/* ── Concierge log (secondary, read-only). ── */}
+      <Section title="Concierge Activity">
+        {conciergeLoading ? <Loading label="Loading Concierge log…" /> : null}
+        {!conciergeLoading && conciergeError ? (
+          <div style={styles.inlineErr} role="alert">
+            <span style={styles.errMsg}>{conciergeError}</span>
+            <button type="button" style={styles.retry} onClick={loadConcierge}>Retry</button>
+          </div>
+        ) : null}
+        {!conciergeLoading && !conciergeError && concierge ? (
+          <ConciergeLog runs={concierge.runs || []} />
+        ) : null}
+      </Section>
     </CommandSurface>
   );
 }
@@ -271,35 +192,6 @@ function ConciergeLog({ runs }) {
   );
 }
 
-// ── Token gate (BBF_ADMIN_TOKEN — distinct from the Client Hub token). ─────────
-// Renders its own loading ("Authenticating…") AND any auth error, in red, BELOW
-// the form — so a failed auth is never silent.
-function TokenGate({ value, onChange, onSubmit, busy, error }) {
-  return (
-    <form style={styles.gate} onSubmit={onSubmit}>
-      <label className="bbf-label" htmlFor="bbf-comlink-token">Admin Token</label>
-      <div style={styles.gateRow}>
-        <input
-          id="bbf-comlink-token"
-          className="bbf-input"
-          type="password"
-          autoComplete="off"
-          spellCheck={false}
-          placeholder="Paste BBF Admin Token"
-          value={value}
-          disabled={busy}
-          onChange={(e) => onChange(e.target.value)}
-        />
-        <button className="bbf-btn" type="submit" style={styles.gateBtn} disabled={busy}>
-          {busy ? 'Authenticating…' : 'Authenticate'}
-        </button>
-      </div>
-      {error ? <div className="bbf-msg bbf-msg--error" role="alert" style={styles.gateError}>{error}</div> : null}
-      <div style={styles.gateNote}>The Comlink uses the BBF_ADMIN_TOKEN secret (the leads/concierge gate), which may differ from the Client Hub token.</div>
-    </form>
-  );
-}
-
 function Section({ title, children }) {
   return (
     <section style={styles.section}>
@@ -308,14 +200,13 @@ function Section({ title, children }) {
     </section>
   );
 }
-function ErrorBox({ message, onRetry, onResetToken }) {
+function ErrorBox({ message, onRetry }) {
   return (
     <div style={styles.errorBox} role="alert">
       <div style={styles.errorTitle}>Comlink fetch failed</div>
       <div style={styles.errMsg}>{message}</div>
       <div style={styles.errActions}>
         <button type="button" style={styles.retry} onClick={onRetry}>Retry</button>
-        <button type="button" style={styles.retry} onClick={onResetToken}>Re-enter token</button>
       </div>
     </div>
   );
@@ -334,12 +225,6 @@ function timeAgo(iso) {
 }
 
 const styles = {
-  gate: { maxWidth: 480, marginTop: '.5rem' },
-  gateRow: { display: 'flex', gap: '.6rem', alignItems: 'stretch' },
-  gateBtn: { width: 'auto', whiteSpace: 'nowrap', padding: '0 1.2rem' },
-  gateError: { fontWeight: 700 },
-  gateNote: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 600, color: 'var(--mut)', marginTop: '.6rem', lineHeight: 1.4 },
-
   toolbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' },
   count: { fontFamily: 'var(--hb)', fontSize: '.78rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--mut)' },
   refresh: {

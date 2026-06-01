@@ -18,23 +18,17 @@
 // spinners. A failed fetch renders the EXACT server string in var(--red).
 
 import { useCallback, useEffect, useState } from 'react';
-import { readToken, writeToken, clearToken, rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
+import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
 import CommandSurface from './CommandSurface.jsx';
 import ClientDossier from './ClientDossier.jsx';
 
 export default function ClientHub() {
-  const [token, setToken] = useState(readToken);    // stored token ('' = none)
-  const [tokenInput, setTokenInput] = useState('');  // controlled gate input
   const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeClient, setActiveClient] = useState(null); // selected row | null
 
   const fetchRoster = useCallback(async () => {
-    if (!readToken()) {
-      setError('Admin token required — authenticate to load the live roster.');
-      return;
-    }
     setIsLoading(true);
     setError(null);
     try {
@@ -48,41 +42,19 @@ export default function ClientHub() {
     }
   }, []);
 
-  // Auto-load on mount when a token is already present. Deferred via microtask so
+  // Zero-friction auto-load on mount — no token gate. Deferred via microtask so
   // the initial setState lands outside the synchronous effect body (satisfies
   // react-hooks/set-state-in-effect); cancel-guarded against unmount.
   useEffect(() => {
-    if (!readToken()) return undefined;
     let cancelled = false;
     queueMicrotask(() => { if (!cancelled) fetchRoster(); });
     return () => { cancelled = true; };
   }, [fetchRoster]);
 
-  function handleAuthenticate(e) {
-    e.preventDefault();
-    const next = tokenInput.trim();
-    if (!next) return;
-    writeToken(next);
-    setToken(next);
-    setTokenInput('');
-    fetchRoster();
-  }
-
-  // Recovery path for a wrong/expired token — clear it so the gate returns.
-  function resetToken() {
-    clearToken();
-    setToken('');
-    setError(null);
-    setData([]);
-    setActiveClient(null);
-  }
-
-  const hasToken = !!token;
-
   // ── Drill-in: a selected client replaces the whole surface with the dossier.
   // Placed AFTER every hook so the rules of hooks hold. Roster state survives
   // underneath, so Back is instant and needs no refetch.
-  if (hasToken && activeClient) {
+  if (activeClient) {
     return <ClientDossier client={activeClient} onBack={() => setActiveClient(null)} />;
   }
 
@@ -90,69 +62,35 @@ export default function ClientHub() {
     <CommandSurface
       kicker="Roster · Secure Service-Role"
       title="Client Hub"
-      lede="The live Sovereign Roster — every client and athlete, A→Z, via the admin-gated service-role feed."
+      lede="The live Sovereign Roster — every client and athlete, A→Z, via the service-role feed."
     >
-      {!hasToken ? (
-        <TokenGate
-          value={tokenInput}
-          onChange={setTokenInput}
-          onSubmit={handleAuthenticate}
-          error={error}
-        />
-      ) : (
-        <>
-          <div style={styles.toolbar}>
-            <span style={styles.count}>
-              {isLoading ? 'Loading…' : `${data.length} client${data.length === 1 ? '' : 's'}`}
-            </span>
-            <button type="button" style={styles.refresh} onClick={fetchRoster} disabled={isLoading}>
-              ↻ Refresh
-            </button>
-          </div>
-
-          {isLoading ? <Loading /> : null}
-
-          {!isLoading && error ? (
-            <ErrorBanner message={error} onRetry={fetchRoster} onResetToken={resetToken} />
-          ) : null}
-
-          {!isLoading && !error && data.length === 0 ? (
-            <div style={styles.empty}>No clients on the roster yet.</div>
-          ) : null}
-
-          {!isLoading && !error && data.length > 0 ? (
-            <ul style={styles.list}>
-              {data.map((c) => (
-                <ClientRow key={c.id ?? c.uid ?? c.email} client={c} onSelect={setActiveClient} />
-              ))}
-            </ul>
-          ) : null}
-        </>
-      )}
-    </CommandSurface>
-  );
-}
-
-// ── Token gate — the secret is never bundled, only entered at runtime. ─────────
-function TokenGate({ value, onChange, onSubmit, error }) {
-  return (
-    <form style={styles.gate} onSubmit={onSubmit}>
-      <label className="bbf-label" htmlFor="bbf-admin-token">Admin Token</label>
-      <div style={styles.gateRow}>
-        <input
-          id="bbf-admin-token"
-          className="bbf-input"
-          type="password"
-          autoComplete="off"
-          spellCheck={false}
-          placeholder="Paste BBF Coach Agent Token"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-        <button className="bbf-btn" type="submit" style={styles.gateBtn}>Authenticate</button>
+      <div style={styles.toolbar}>
+        <span style={styles.count}>
+          {isLoading ? 'Loading…' : `${data.length} client${data.length === 1 ? '' : 's'}`}
+        </span>
+        <button type="button" style={styles.refresh} onClick={fetchRoster} disabled={isLoading}>
+          ↻ Refresh
+        </button>
       </div>
-      {error ? <div className="bbf-msg bbf-msg--error">{error}</div> : null}
-    </form>
+
+      {isLoading ? <Loading /> : null}
+
+      {!isLoading && error ? (
+        <ErrorBanner message={error} onRetry={fetchRoster} />
+      ) : null}
+
+      {!isLoading && !error && data.length === 0 ? (
+        <div style={styles.empty}>No clients on the roster yet.</div>
+      ) : null}
+
+      {!isLoading && !error && data.length > 0 ? (
+        <ul style={styles.list}>
+          {data.map((c) => (
+            <ClientRow key={c.id ?? c.uid ?? c.email} client={c} onSelect={setActiveClient} />
+          ))}
+        </ul>
+      ) : null}
+    </CommandSurface>
   );
 }
 
@@ -167,16 +105,13 @@ function Loading() {
 }
 
 // ── Error surface — exact failure string, high-contrast red, with recovery. ────
-function ErrorBanner({ message, onRetry, onResetToken }) {
+function ErrorBanner({ message, onRetry }) {
   return (
     <div style={styles.errorBox} role="alert">
       <div style={styles.errorTitle}>Roster fetch failed</div>
       <div style={styles.errorMsg}>{message}</div>
       <div style={styles.errorActions}>
         <button type="button" style={styles.retry} onClick={onRetry}>Retry</button>
-        {onResetToken ? (
-          <button type="button" style={styles.retry} onClick={onResetToken}>Re-enter token</button>
-        ) : null}
       </div>
     </div>
   );
@@ -222,10 +157,6 @@ function tierColor(tier) {
 }
 
 const styles = {
-  gate: { maxWidth: 480, marginTop: '.5rem' },
-  gateRow: { display: 'flex', gap: '.6rem', alignItems: 'stretch' },
-  gateBtn: { width: 'auto', whiteSpace: 'nowrap', padding: '0 1.2rem' },
-
   toolbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' },
   count: { fontFamily: 'var(--hb)', fontSize: '.78rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--mut)' },
   refresh: {
