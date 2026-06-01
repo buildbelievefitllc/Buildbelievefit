@@ -39,10 +39,6 @@ const EXP_OPTIONS = [
 // Standard PAR-Q items (7). Stored as a flags map keyed by these ids.
 const PARQ_KEYS = ['f-parq1', 'f-parq2', 'f-parq3', 'f-parq4', 'f-parq5', 'f-parq6', 'f-parq7'];
 
-// ⚠️ LEGAL PLACEHOLDER — the official BBF LLC waiver PDF text drops in here.
-// Do NOT replace with drafted/invented legal copy.
-const WAIVER_PLACEHOLDER = '[INSERT_BBF_OFFICIAL_LLC_WAIVER_HERE]';
-
 export default function PathfinderForm() {
   const { t } = useLang();
   const { containerRef, obtainToken, error: tsError } = useTurnstile(TURNSTILE_SITE_KEY);
@@ -51,7 +47,7 @@ export default function PathfinderForm() {
     fullName: '', email: '', phone: '', goal: '', experience: '',
     injuries: '', medicalConditions: '', medications: '',
     parq: {}, // { 'f-parq1': true, ... } — standard PAR-Q flags
-    waiverAgreed: false, marketingConsent: false,
+    marketingConsent: false,
   });
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -67,9 +63,7 @@ export default function PathfinderForm() {
     if (!form.email.trim()) e.email = t('f-required');
     else if (!EMAIL_RE.test(form.email.trim())) e.email = 'Enter a valid email';
     if (!form.goal) e.goal = t('f-required');
-    // LIABILITY GATE — the waiver/Terms consent is mandatory; submission is
-    // hard-blocked until it is checked.
-    if (!form.waiverAgreed) e.consent = t('f-must-agree');
+    // Waiver checkbox removed per CEO funnel-friction directive — no consent gate.
     return Object.keys(e).length ? e : null;
   }
 
@@ -105,8 +99,6 @@ export default function PathfinderForm() {
           // boolean so the backend can route anyone who flagged any item.
           parq_flags: PARQ_KEYS.filter((k) => form.parq[k]),
           parq_any: PARQ_KEYS.some((k) => form.parq[k]),
-          liability_cleared: form.waiverAgreed,
-          terms_agreed: form.waiverAgreed,
           marketing_consent: form.marketingConsent,
         },
         token,
@@ -183,17 +175,9 @@ export default function PathfinderForm() {
           onChange={(v) => toggleParq(k, v)} label={t(k)} />
       ))}
 
-      {/* ── Liability waiver — OFFICIAL text drops into the placeholder below ── */}
-      <div style={styles.waiverHeader}>{t('f-waiver-title')}</div>
-      <div style={styles.waiverBox} aria-label="Liability waiver text">{WAIVER_PLACEHOLDER}</div>
-
-      {/* ── Required consent — hard gate ── */}
-      <CheckRow id="pf-liability" required checked={form.waiverAgreed} disabled={submitting}
-        onChange={(v) => set('waiverAgreed', v)} label={t('f-liability')} />
+      {/* Liability waiver checkbox removed per CEO funnel-friction directive. */}
       <CheckRow id="pf-marketing" checked={form.marketingConsent} disabled={submitting}
         onChange={(v) => set('marketingConsent', v)} label={t('f-marketing')} />
-
-      {fieldErrors.consent ? <div style={styles.consentErr} role="alert">{fieldErrors.consent}</div> : null}
 
       {/* Invisible Turnstile widget — executed on submit (renders nothing). */}
       <div ref={containerRef} aria-hidden="true" />

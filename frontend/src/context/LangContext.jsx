@@ -137,6 +137,8 @@ const DICT = {
   // contact / footer
   'foot-tag': { en: 'Performance Architecture & Movement Science · Est. 2021', es: 'Arquitectura de Rendimiento & Ciencia del Movimiento · Est. 2021', pt: 'Arquitetura de Performance & Ciência do Movimento · Est. 2021' },
   'foot-contact': { en: 'Contact', es: 'Contacto', pt: 'Contato' },
+  'foot-privacy': { en: 'Privacy Policy', es: 'Política de Privacidad', pt: 'Política de Privacidade' },
+  'foot-terms': { en: 'Terms of Service', es: 'Términos de Servicio', pt: 'Termos de Serviço' },
 
   // ── Phase 17.8 — Positional Blueprints (verbatim from bbf-lang.js) ───────────
   'pb-kicker': { en: 'Positional Blueprints', es: 'Planos Posicionales', pt: 'Planos Posicionais' },

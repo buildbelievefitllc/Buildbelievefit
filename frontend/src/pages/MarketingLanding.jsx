@@ -272,6 +272,8 @@ export default function MarketingLanding() {
         <div style={s.footLinks}>
           <button type="button" style={s.footLink} onClick={() => navigate('/login')}>{t('nav-signin')}</button>
           <a style={s.footLink} href="mailto:buildbelievefit@gmail.com">{t('foot-contact')}</a>
+          <a style={s.footLink} href="/privacy.html">{t('foot-privacy')}</a>
+          <a style={s.footLink} href="/terms.html">{t('foot-terms')}</a>
         </div>
         <p style={s.footCopy}>© 2021–{new Date().getFullYear()} Build Believe Fit LLC · buildbelievefit.fitness · All rights reserved.</p>
       </footer>
