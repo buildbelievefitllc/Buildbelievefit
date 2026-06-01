@@ -23,7 +23,9 @@
 // authorized plan.
 
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getProgram } from './programData.js';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { exKey, useLastWeights, readDayEntries, writeDayEntry, syncSessionToCloud } from './programApi.js';
 import './vault.css';
 
@@ -86,6 +88,8 @@ function DayView({ uid, day, dayIdx }) {
   // Cloud-sync status for this day's session. Local buffer persists on every
   // keystroke regardless; this drives the explicit "push session" action.
   const [sync, setSync] = useState({ status: 'idle', msg: '' });
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const onSync = async () => {
     setSync({ status: 'syncing', msg: '' });
@@ -97,7 +101,15 @@ function DayView({ uid, day, dayIdx }) {
         setSync({ status: 'idle', msg: 'Log a weight or reps first, then sync.' });
       }
     } catch (e) {
-      // Local buffer is untouched — the athlete can retry once back online.
+      // Expired/missing vault token → clear the stale session and route back to
+      // the PIN screen to mint a fresh one. The local set buffer is untouched,
+      // so re-syncing after re-login pushes the same sets — nothing is lost.
+      if (e?.code === 'SESSION_EXPIRED') {
+        signOut();
+        navigate('/login', { replace: true });
+        return;
+      }
+      // Any other failure — local buffer is intact; the athlete can retry.
       setSync({ status: 'error', msg: e.message || 'Sync failed — your sets are still saved on this device.' });
     }
   };

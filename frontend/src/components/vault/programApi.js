@@ -17,22 +17,21 @@
 //      This is the OFFLINE BUFFER: every keystroke persists here first so a
 //      network drop never loses a logged set.
 //
-//   3. CLOUD set-logging (Phase 18.2) — the atomic write transaction that pushes
-//      the buffered session to Supabase, mirroring the legacy bbf-sync.syncSession:
-//        a. resolve the internal UUID from the login slug via bbf_get_uid_map()
-//           (the slug→uuid resolver; bbf_sets.user_id / bbf_logs.user_id are uuid,
-//           never the slug).
-//        b. POST one parent row to bbf_logs → capture log_id (NOT NULL FK).
-//        c. inject log_id into every set row and bulk-POST the append-only data
-//           to bbf_sets in a single request (uniform key set → no PGRST102).
-//        d. on any failure / partial write, DELETE the parent log so no orphan
-//           rows survive (the FK is ON DELETE CASCADE), then surface the error.
-//      RLS is intentionally UNCHANGED — the live anon INSERT/SELECT (+ anon DELETE
-//      on bbf_logs for rollback) policies already permit this exact path. Identity
-//      hardening waits for the future GoTrue auth migration.
+//   3. CLOUD set-logging (Phase 21.1) — the atomic write now routes through the
+//      SECURITY DEFINER RPC `bbf_sync_vault_session`. RLS on bbf_logs/bbf_sets has
+//      been locked down (no anon INSERT), so the client no longer asserts identity
+//      or writes rows directly. Instead it POSTs:
+//        { p_uid, p_session_token, p_session, p_sets }
+//      The server validates the vault_token (minted at PIN login, 24h TTL),
+//      resolves the user_id ITSELF from that token (the client can no longer spoof
+//      identity), then creates the parent bbf_logs row + bulk-inserts the children
+//      atomically in one transaction. On a missing/expired token the RPC returns
+//      { ok:false, error:'invalid_session' } → we throw a SESSION_EXPIRED error so
+//      the UI can force a fresh PIN login. The PIN itself is never sent or cached.
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
+import { getStoredVaultToken } from '../../context/AuthContext.jsx';
 
 export const exKey = (i) => `ex_${i}`;
 
@@ -127,33 +126,23 @@ export function writeDayEntry(uid, dayIdx, key, setIdx, field, value) {
   }
 }
 
-// ── Cloud write (Phase 18.2) ─────────────────────────────────────────────────
+// ── Cloud write (Phase 21.1 — token-authorized RPC) ──────────────────────────
 
-// Slug → internal UUID, resolved via the anon-GRANTed bbf_get_uid_map() →
-// TABLE(uid text, id uuid). Memoized for the tab so a session sync resolves once.
-const _uuidCache = Object.create(null);
-
-export async function resolveUserId(uid) {
-  const slug = String(uid || '').trim().toLowerCase();
-  if (!slug) throw new Error('Missing user id — cannot sync.');
-  if (_uuidCache[slug]) return _uuidCache[slug];
-
-  const { data, error } = await supabase.rpc('bbf_get_uid_map');
-  if (error) throw new Error(`Identity resolve failed — ${error.message || 'uid_map RPC error'}.`);
-
-  const row = (data || []).find((r) => String(r.uid || '').toLowerCase() === slug);
-  if (!row || !row.id) {
-    throw new Error('No backend profile is linked to this account yet — sets can’t sync.');
-  }
-  _uuidCache[slug] = row.id;
-  return row.id;
+// SESSION_EXPIRED sentinel — thrown whenever the vault_token is absent or the
+// server rejects it (invalid_session). The UI catches `.code === 'SESSION_EXPIRED'`
+// and routes back to the PIN screen to mint a fresh token. The local set buffer
+// is never cleared on this path, so nothing the athlete logged is lost.
+function sessionExpiredError() {
+  const e = new Error('Your secure session has expired — please sign in again.');
+  e.code = 'SESSION_EXPIRED';
+  return e;
 }
 
-// Build the append-only bbf_sets rows from the local buffer. Uniform key set
-// across every row (reps + weight_lbs always present, null when blank) so the
-// bulk POST never trips PostgREST's PGRST102 "all object keys must match".
-// Skips fully-empty sets (neither reps nor weight entered).
-function buildSetRows(userId, dayIdx, entries) {
+// Build the append-only set rows from the local buffer. The server resolves
+// user_id from the token and assigns log_id, so the client sends only the
+// per-set payload. Uniform key set across every row (reps + weight_lbs always
+// present, null when blank) keeps the JSON array clean. Skips fully-empty sets.
+function buildSetRows(dayIdx, entries) {
   const dk = dayKeyFor(dayIdx);
   const rows = [];
   Object.keys(entries || {}).forEach((ek) => {
@@ -168,7 +157,6 @@ function buildSetRows(userId, dayIdx, entries) {
       const weightVal = Number.isNaN(weight) ? null : weight;
       if (repsVal == null && weightVal == null) return; // nothing logged
       rows.push({
-        user_id: userId,
         day_key: dk,
         exercise_key: ek,
         set_number: i + 1,
@@ -180,43 +168,69 @@ function buildSetRows(userId, dayIdx, entries) {
   return rows;
 }
 
-// Atomic session sync: pushes the buffered local sets for one day to the cloud.
+// Atomic session sync via the SECURITY DEFINER RPC bbf_sync_vault_session.
 // Returns { ok, count, logId } on success, { ok:false, reason:'empty' } when
-// there is nothing to log. Throws (with a human message) on a real failure —
+// there is nothing to log. Throws SESSION_EXPIRED when the token is missing/
+// rejected (UI forces re-login), or a human-readable error on other failures —
 // the local buffer is left intact so the athlete can retry.
 export async function syncSessionToCloud(uid, dayIdx) {
+  const slug = String(uid || '').trim().toLowerCase();
   const entries = readDayEntries(uid, dayIdx);
-  const userId = await resolveUserId(uid);
-  const rows = buildSetRows(userId, dayIdx, entries);
+  const rows = buildSetRows(dayIdx, entries);
   if (!rows.length) return { ok: false, reason: 'empty', count: 0 };
 
-  // (b) Parent log — date defaults to CURRENT_DATE server-side; we set it
-  // explicitly for determinism. return=representation via .select() gives the id.
-  const today = new Date().toISOString().slice(0, 10);
-  const { data: logData, error: logErr } = await supabase
-    .from('bbf_logs')
-    .insert({ user_id: userId, date: today })
-    .select('id')
-    .single();
-  if (logErr || !logData?.id) {
-    throw new Error(`Session log failed — ${logErr?.message || 'no log id returned'}.`);
+  const token = getStoredVaultToken();
+  if (!token) throw sessionExpiredError();
+
+  const { data, error } = await supabase.rpc('bbf_sync_vault_session', {
+    p_uid: slug,
+    p_session_token: token,
+    p_session: {
+      date: new Date().toISOString().slice(0, 10),
+      day_key: dayKeyFor(dayIdx),
+      day_idx: dayIdx,
+    },
+    p_sets: rows,
+  });
+
+  if (error) {
+    throw new Error(`Set sync failed — ${error.message || 'RPC error'}. Nothing saved to the cloud.`);
   }
-  const logId = logData.id;
-
-  // (c) Children — inject the FK and bulk-insert in one request.
-  const withLog = rows.map((r) => ({ ...r, log_id: logId }));
-  const { data: setData, error: setErr } = await supabase
-    .from('bbf_sets')
-    .insert(withLog)
-    .select('id');
-
-  // (d) Validate the whole batch landed; otherwise roll back the parent log
-  // (ON DELETE CASCADE sweeps any partial children) and surface the error.
-  if (setErr || !Array.isArray(setData) || setData.length !== withLog.length) {
-    await supabase.from('bbf_logs').delete().eq('id', logId);
-    const detail = setErr?.message || `partial write ${setData?.length || 0}/${withLog.length}`;
-    throw new Error(`Set sync failed — ${detail}. Rolled back; nothing saved to the cloud.`);
+  if (!data?.ok) {
+    if (data?.error === 'invalid_session') throw sessionExpiredError();
+    throw new Error(`Set sync failed — ${data?.error || 'unknown error'}. Nothing saved to the cloud.`);
   }
 
-  return { ok: true, count: setData.length, logId };
+  return { ok: true, count: data.count ?? rows.length, logId: data.log_id ?? null };
+}
+
+// Readiness sync — token-authorized mirror of the session sync, routed through
+// the SECURITY DEFINER RPC bbf_sync_readiness (same vault_token contract, same
+// invalid_session → re-login behavior).
+//
+// STAGED / NOT YET WIRED: there is no readiness check-in surface in the React app
+// today, and Terminal 5 has not published the readiness payload param name. This
+// follows the natural mirror (`p_readiness`) so the secure RPC has a client the
+// moment a check-in UI exists. FLAG: confirm the p_readiness shape with Terminal 5
+// before the first real caller is added.
+export async function syncReadinessToCloud(uid, readiness) {
+  const slug = String(uid || '').trim().toLowerCase();
+  const token = getStoredVaultToken();
+  if (!token) throw sessionExpiredError();
+
+  const { data, error } = await supabase.rpc('bbf_sync_readiness', {
+    p_uid: slug,
+    p_session_token: token,
+    p_readiness: readiness,
+  });
+
+  if (error) {
+    throw new Error(`Readiness sync failed — ${error.message || 'RPC error'}.`);
+  }
+  if (!data?.ok) {
+    if (data?.error === 'invalid_session') throw sessionExpiredError();
+    throw new Error(`Readiness sync failed — ${data?.error || 'unknown error'}.`);
+  }
+
+  return { ok: true, ...data };
 }

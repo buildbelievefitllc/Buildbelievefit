@@ -13,6 +13,13 @@
 // loading }. Added: signInWithPin(uid, pin) and signOut(). Because the PIN RPC
 // issues no JWT/refresh token, the authenticated identity is persisted to
 // localStorage and rehydrated on load (parity with the monolith's GD() store).
+//
+// Phase 21.1 — Vault session token. The PIN RPC now mints a short-lived (24h),
+// server-revocable `vault_token` at login. We persist THAT token in the session
+// envelope (never the raw PIN) so the cloud-write RPCs (bbf_sync_vault_session /
+// bbf_sync_readiness) can authorize a SECURITY DEFINER write without ever seeing
+// the PIN again. `getStoredVaultToken()` is the single, shared read-side accessor
+// for non-React callers (programApi.js) — keeping STORAGE_KEY owned by this file.
 
 import { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
@@ -36,6 +43,15 @@ function readStoredSession() {
   } catch {
     return null;
   }
+}
+
+// Shared read-side accessor for the persisted vault session token. Lives here so
+// STORAGE_KEY has exactly one owner; programApi.js imports this instead of
+// reaching into localStorage with a duplicated key. Returns '' when absent —
+// callers treat the empty/expired case identically (force a re-login).
+// eslint-disable-next-line react-refresh/only-export-components
+export function getStoredVaultToken() {
+  return readStoredSession()?.vaultToken || '';
 }
 
 export function AuthProvider({ children }) {
@@ -75,9 +91,12 @@ export function AuthProvider({ children }) {
       return { ok: false, reason: 'invalid', message: 'Incorrect username or PIN.' };
     }
 
-    // Success — build a lightweight session and persist it.
+    // Success — build a lightweight session and persist it. We store the
+    // server-minted vault_token (NOT the PIN) — this is the credential the cloud
+    // write RPCs replay. Absent token ⇒ '' so downstream sync force-relogins.
     const nextSession = {
       uid: username,
+      vaultToken: data.vault_token ?? '',
       user: {
         id: username,
         username,
