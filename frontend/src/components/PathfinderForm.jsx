@@ -36,6 +36,12 @@ const EXP_OPTIONS = [
   ['intermediate', 'f-exp-int'],
   ['advanced', 'f-exp-adv'],
 ];
+// Standard PAR-Q items (7). Stored as a flags map keyed by these ids.
+const PARQ_KEYS = ['f-parq1', 'f-parq2', 'f-parq3', 'f-parq4', 'f-parq5', 'f-parq6', 'f-parq7'];
+
+// ⚠️ LEGAL PLACEHOLDER — the official BBF LLC waiver PDF text drops in here.
+// Do NOT replace with drafted/invented legal copy.
+const WAIVER_PLACEHOLDER = '[INSERT_BBF_OFFICIAL_LLC_WAIVER_HERE]';
 
 export default function PathfinderForm() {
   const { t } = useLang();
@@ -44,8 +50,8 @@ export default function PathfinderForm() {
   const [form, setForm] = useState({
     fullName: '', email: '', phone: '', goal: '', experience: '',
     injuries: '', medicalConditions: '', medications: '',
-    parqHeart: false, parqChestPain: false,
-    liabilityCleared: false, termsAgreed: false, marketingConsent: false,
+    parq: {}, // { 'f-parq1': true, ... } — standard PAR-Q flags
+    waiverAgreed: false, marketingConsent: false,
   });
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -53,6 +59,7 @@ export default function PathfinderForm() {
   const [error, setError] = useState(null);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const toggleParq = (key, on) => setForm((f) => ({ ...f, parq: { ...f.parq, [key]: on } }));
 
   function validate() {
     const e = {};
@@ -60,8 +67,9 @@ export default function PathfinderForm() {
     if (!form.email.trim()) e.email = t('f-required');
     else if (!EMAIL_RE.test(form.email.trim())) e.email = 'Enter a valid email';
     if (!form.goal) e.goal = t('f-required');
-    // LIABILITY GATE — both consents are mandatory (legacy `required`).
-    if (!form.liabilityCleared || !form.termsAgreed) e.consent = t('f-must-agree');
+    // LIABILITY GATE — the waiver/Terms consent is mandatory; submission is
+    // hard-blocked until it is checked.
+    if (!form.waiverAgreed) e.consent = t('f-must-agree');
     return Object.keys(e).length ? e : null;
   }
 
@@ -93,10 +101,12 @@ export default function PathfinderForm() {
           injuries: form.injuries.trim() || undefined,
           medical_conditions: form.medicalConditions.trim() || undefined,
           medications: form.medications.trim() || undefined,
-          parq_heart: form.parqHeart,
-          parq_chest_pain: form.parqChestPain,
-          liability_cleared: form.liabilityCleared,
-          terms_agreed: form.termsAgreed,
+          // Standard PAR-Q: list the ids the applicant flagged "yes" + a quick
+          // boolean so the backend can route anyone who flagged any item.
+          parq_flags: PARQ_KEYS.filter((k) => form.parq[k]),
+          parq_any: PARQ_KEYS.some((k) => form.parq[k]),
+          liability_cleared: form.waiverAgreed,
+          terms_agreed: form.waiverAgreed,
           marketing_consent: form.marketingConsent,
         },
         token,
@@ -165,18 +175,21 @@ export default function PathfinderForm() {
           value={form.medications} disabled={submitting} onChange={(e) => set('medications', e.target.value)} />
       </Field>
 
-      {/* ── PAR-Q+ screening ── */}
+      {/* ── PAR-Q · standard physical-activity readiness screening (7 items) ── */}
       <div style={styles.parqHeader}>{t('f-health-q')}</div>
-      <CheckRow id="pf-parq1" checked={form.parqHeart} disabled={submitting}
-        onChange={(v) => set('parqHeart', v)} label={t('f-parq1')} />
-      <CheckRow id="pf-parq2" checked={form.parqChestPain} disabled={submitting}
-        onChange={(v) => set('parqChestPain', v)} label={t('f-parq2')} />
+      <div style={styles.parqNote}>{t('f-parq-note')}</div>
+      {PARQ_KEYS.map((k) => (
+        <CheckRow key={k} id={`pf-${k}`} checked={!!form.parq[k]} disabled={submitting}
+          onChange={(v) => toggleParq(k, v)} label={t(k)} />
+      ))}
 
-      {/* ── Required consents — the legal gate ── */}
-      <CheckRow id="pf-liability" required checked={form.liabilityCleared} disabled={submitting}
-        onChange={(v) => set('liabilityCleared', v)} label={t('f-liability')} />
-      <CheckRow id="pf-terms" required checked={form.termsAgreed} disabled={submitting}
-        onChange={(v) => set('termsAgreed', v)} label={t('f-terms')} />
+      {/* ── Liability waiver — OFFICIAL text drops into the placeholder below ── */}
+      <div style={styles.waiverHeader}>{t('f-waiver-title')}</div>
+      <div style={styles.waiverBox} aria-label="Liability waiver text">{WAIVER_PLACEHOLDER}</div>
+
+      {/* ── Required consent — hard gate ── */}
+      <CheckRow id="pf-liability" required checked={form.waiverAgreed} disabled={submitting}
+        onChange={(v) => set('waiverAgreed', v)} label={t('f-liability')} />
       <CheckRow id="pf-marketing" checked={form.marketingConsent} disabled={submitting}
         onChange={(v) => set('marketingConsent', v)} label={t('f-marketing')} />
 
@@ -223,7 +236,10 @@ const styles = {
   card: { background: 'rgba(20,12,32,.92)', border: '1px solid rgba(157,39,201,.3)', borderRadius: 16, padding: '1.8rem 1.6rem', maxWidth: 480, width: '100%', margin: '0 auto' },
   field: { marginBottom: '1rem' },
   fieldErr: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.78rem', fontWeight: 700, color: '#ef4444', marginTop: '.3rem', letterSpacing: '.3px' },
-  parqHeader: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '.9rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#f5c800', margin: '1.2rem 0 .6rem', paddingTop: '.6rem', borderTop: '1px solid rgba(157,39,201,.25)' },
+  parqHeader: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '.9rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#f5c800', margin: '1.2rem 0 .3rem', paddingTop: '.6rem', borderTop: '1px solid rgba(157,39,201,.25)' },
+  parqNote: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.82rem', fontWeight: 600, color: 'rgba(255,255,255,.55)', marginBottom: '.7rem' },
+  waiverHeader: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '.9rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#f5c800', margin: '1.4rem 0 .5rem', paddingTop: '.6rem', borderTop: '1px solid rgba(157,39,201,.25)' },
+  waiverBox: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.85rem', fontWeight: 700, letterSpacing: '.5px', color: '#f5cf60', background: 'rgba(245,200,0,.06)', border: '1px dashed rgba(245,200,0,.5)', borderRadius: 10, padding: '1rem', marginBottom: '.9rem', textAlign: 'center', wordBreak: 'break-word' },
   checkRow: { display: 'flex', alignItems: 'flex-start', gap: '.6rem', marginBottom: '.7rem', cursor: 'pointer' },
   checkbox: { width: 18, height: 18, marginTop: 2, flexShrink: 0, accentColor: '#6a0dad', cursor: 'pointer' },
   checkLabel: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.9rem', fontWeight: 600, lineHeight: 1.45, color: 'rgba(255,255,255,.8)' },
