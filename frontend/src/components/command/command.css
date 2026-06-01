@@ -88,3 +88,27 @@
   .cc-title { font-size: 1.7rem; }
   .cc-toggle { flex: 1 1 100%; }
 }
+
+/* ── Live-feed states (loading / auth gate / error) ──────────────────────── */
+.cc-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .85rem; padding: 2.5rem 1rem; text-align: center;
+  font-family: var(--bd); font-weight: 600; color: var(--mut);
+}
+.cc-state-spinner { width: 26px; height: 26px; border-radius: 50%; border: 3px solid #222; border-top-color: var(--yel); animation: cc-spin .7s linear infinite; }
+@keyframes cc-spin { to { transform: rotate(360deg); } }
+.cc-state.is-error { color: var(--red); }
+.cc-retry {
+  font-family: var(--hb); font-size: .8rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: none; border-radius: 10px; padding: .65rem 1.2rem; min-height: 44px; cursor: pointer;
+}
+.cc-auth { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: .7rem; }
+.cc-auth-input {
+  width: 100%; box-sizing: border-box; text-align: center;
+  background: #0b0b0b; border: 1px solid #262626; border-radius: 10px; color: var(--wht);
+  font-family: var(--bd); font-size: 1rem; padding: .75rem .85rem; min-height: 48px; outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.cc-auth-input:focus { border-color: var(--yel); box-shadow: 0 0 0 3px rgba(245, 200, 0, .22); }
+@media (prefers-reduced-motion: reduce) { .cc-state-spinner { animation: none; } }

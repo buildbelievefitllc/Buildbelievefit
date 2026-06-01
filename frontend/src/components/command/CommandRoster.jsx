@@ -1,26 +1,26 @@
 // src/components/command/CommandRoster.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 20.3 — Sovereign Command Center · roster reconstruction (admin).
+// Phase 20.3 — Sovereign Command Center · roster (admin).
+// Phase 20.5 — Live data wiring: fetches the bbf-command-feed payload (Terminal 3)
+// instead of mocked state. Styling in the scoped command.css (.cc-*).
 //
-// Premium dark-mode roster: a header, quick-stat chips, and one row per client
-// with three module toggles (Biometrics / Nutrition / Form Check, gold active
-// state) and a status pill. Styling lives in the scoped command.css (.cc-*).
+// Feed → row mapping (see lib/commandFeedApi.js):
+//   training.status   → FORM CHECK toggle   (green ⇒ on)
+//   nutrition.status  → NUTRITION toggle    (green ⇒ on)
+//   biometrics.status → BIOMETRICS toggle   (not in the contract yet → off)
+//   overall_status    → Active/Paused pill
 //
-// DATA CONTRACT — anticipates the JSON array from the bbf-command-feed API
-// (in progress, Terminal 3). Each client:
-//   {
-//     id:               string,                 // bbf_users.uid (slug)
-//     name:             string,
-//     tier?:            string,                 // e.g. "Sovereign Standard"
-//     status:           "active" | "paused",
-//     formChecksPending: number,
-//     modules: { biometrics: boolean, nutrition: boolean, formCheck: boolean }
-//   }
-// Pass that array as the `clients` prop when the feed lands. Until then we render
-// MOCK_CLIENTS, and the toggles are VISUAL ONLY — local state, no persistence
-// (a future PATCH to bbf-command-feed / an admin-token edge function wires them).
+// Auth: the feed is admin-gated (X-BBF-Admin-Token = BBF_COACH_AGENT_TOKEN, the
+// same secret Client Hub uses). If no token is present, we show an inline gate
+// so the coach can authenticate on this surface and load immediately.
+//
+// The toggles reflect LIVE compliance from the feed. They remain clickable as a
+// local visual affordance (override map) — there is no write-back endpoint yet,
+// so a flip does not persist (a future PATCH to bbf-command-feed wires that).
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { fetchCommandFeed } from '../../lib/commandFeedApi.js';
+import { writeToken } from '../../lib/rosterApi.js';
 import './command.css';
 
 const MODULES = [
@@ -29,34 +29,63 @@ const MODULES = [
   { key: 'formCheck', label: 'Form Check' },
 ];
 
-// Stand-in for the bbf-command-feed payload (shape above). Replaced by the live
-// feed via the `clients` prop.
-const MOCK_CLIENTS = [
-  { id: 'jacky_bbf', name: 'Jacky', tier: 'Sovereign Standard', status: 'active', formChecksPending: 2, modules: { biometrics: true, nutrition: true, formCheck: false } },
-  { id: 'valerie_bbf', name: 'Valerie', tier: 'Autonomous Engine', status: 'active', formChecksPending: 1, modules: { biometrics: true, nutrition: false, formCheck: true } },
-  { id: 'ana_bbf', name: 'Ana', tier: 'Sovereign Standard', status: 'active', formChecksPending: 0, modules: { biometrics: true, nutrition: true, formCheck: true } },
-  { id: 'jordan_bbf', name: 'Jordan', tier: 'Autonomous Engine', status: 'paused', formChecksPending: 0, modules: { biometrics: false, nutrition: true, formCheck: false } },
-  { id: 'wayne_bbf', name: 'Wayne', tier: 'Sovereign Standard', status: 'active', formChecksPending: 1, modules: { biometrics: true, nutrition: true, formCheck: false } },
-];
-
 function initials(name) {
   return String(name || '?').trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase();
 }
 
-export default function CommandRoster({ clients = MOCK_CLIENTS }) {
-  // Local, visual-only toggle state seeded from the feed's module flags.
-  const [modules, setModules] = useState(() => {
-    const seed = {};
-    clients.forEach((c) => { seed[c.id] = { ...(c.modules || {}) }; });
-    return seed;
-  });
+export default function CommandRoster() {
+  const [clients, setClients] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [needsAuth, setNeedsAuth] = useState(false);
+  const [tokenInput, setTokenInput] = useState('');
+  const [overrides, setOverrides] = useState({}); // `${id}:${key}` → bool (local visual)
+  const mounted = useRef(true);
+
+  useEffect(() => () => { mounted.current = false; }, []);
+
+  // Kicks the async fetch; no synchronous setState here (clears the effect lint).
+  const load = useCallback(() => {
+    fetchCommandFeed()
+      .then((cs) => { if (mounted.current) { setClients(cs); setNeedsAuth(false); setError(null); } })
+      .catch((e) => {
+        if (!mounted.current) return;
+        if (e.code === 'no_token') setNeedsAuth(true);
+        else setError(e.message || 'Failed to load the command feed.');
+      })
+      .finally(() => { if (mounted.current) setIsLoading(false); });
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const reload = () => { setIsLoading(true); setError(null); load(); };
+  const authenticate = () => {
+    const t = tokenInput.trim();
+    if (!t) return;
+    writeToken(t);
+    setTokenInput('');
+    setIsLoading(true);
+    setNeedsAuth(false);
+    load();
+  };
 
   const toggle = (id, key) => {
-    setModules((m) => ({ ...m, [id]: { ...m[id], [key]: !m[id]?.[key] } }));
+    setOverrides((o) => {
+      const k = `${id}:${key}`;
+      const client = clients.find((c) => c.id === id);
+      const live = !!client?.modules?.[key];
+      const cur = k in o ? o[k] : live;
+      return { ...o, [k]: !cur };
+    });
+  };
+
+  const moduleOn = (c, key) => {
+    const k = `${c.id}:${key}`;
+    return k in overrides ? overrides[k] : !!c.modules?.[key];
   };
 
   const activeCount = clients.filter((c) => c.status === 'active').length;
-  const formPending = clients.reduce((n, c) => n + (Number(c.formChecksPending) || 0), 0);
+  const formPending = clients.filter((c) => !moduleOn(c, 'formCheck')).length;
 
   return (
     <div className="cc">
@@ -66,52 +95,79 @@ export default function CommandRoster({ clients = MOCK_CLIENTS }) {
         <div className="cc-rule" />
       </header>
 
-      <div className="cc-stats">
-        <div className="cc-chip"><b>{activeCount}</b> Active Clients</div>
-        <div className={`cc-chip${formPending > 0 ? ' is-alert' : ''}`}><b>{formPending}</b> Form Checks Pending</div>
-        <div className="cc-chip"><b>{clients.length}</b> On Roster</div>
-      </div>
+      {isLoading ? (
+        <div className="cc-state"><span className="cc-state-spinner" aria-hidden="true" /> Loading live roster…</div>
+      ) : needsAuth ? (
+        <div className="cc-state">
+          <div>Enter the coach admin token to load the live roster.</div>
+          <div className="cc-auth">
+            <input
+              className="cc-auth-input"
+              type="password"
+              autoComplete="off"
+              placeholder="X-BBF-Admin-Token"
+              value={tokenInput}
+              onChange={(e) => setTokenInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') authenticate(); }}
+              aria-label="Coach admin token"
+            />
+            <button type="button" className="cc-retry" onClick={authenticate}>Authenticate</button>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="cc-state is-error">
+          <div>{error}</div>
+          <button type="button" className="cc-retry" onClick={reload}>Retry</button>
+        </div>
+      ) : !clients.length ? (
+        <div className="cc-state">No clients on the roster yet.</div>
+      ) : (
+        <>
+          <div className="cc-stats">
+            <div className="cc-chip"><b>{activeCount}</b> Active Clients</div>
+            <div className={`cc-chip${formPending > 0 ? ' is-alert' : ''}`}><b>{formPending}</b> Form Checks Pending</div>
+            <div className="cc-chip"><b>{clients.length}</b> On Roster</div>
+          </div>
 
-      <div className="cc-roster">
-        {clients.map((c) => {
-          const m = modules[c.id] || {};
-          return (
-            <div className="cc-row" key={c.id}>
-              <div className="cc-client">
-                <div className="cc-avatar" aria-hidden="true">{initials(c.name)}</div>
-                <div className="cc-client-meta">
-                  <span className="cc-name">{c.name}</span>
-                  <span className="cc-sub">{c.tier || 'Sovereign'}</span>
+          <div className="cc-roster">
+            {clients.map((c) => (
+              <div className="cc-row" key={c.id}>
+                <div className="cc-client">
+                  <div className="cc-avatar" aria-hidden="true">{initials(c.name)}</div>
+                  <div className="cc-client-meta">
+                    <span className="cc-name">{c.name}</span>
+                    <span className="cc-sub">{c.tier || 'Sovereign'}</span>
+                  </div>
+                </div>
+
+                <div className="cc-toggles">
+                  {MODULES.map((mod) => {
+                    const on = moduleOn(c, mod.key);
+                    return (
+                      <button
+                        key={mod.key}
+                        type="button"
+                        role="switch"
+                        aria-checked={on}
+                        aria-label={`${mod.label} for ${c.name}`}
+                        className={`cc-toggle${on ? ' is-on' : ''}`}
+                        onClick={() => toggle(c.id, mod.key)}
+                      >
+                        <span className="cc-toggle-label">{mod.label}</span>
+                        <span className="cc-switch"><span className="cc-knob" /></span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className={`cc-status is-${c.status === 'active' ? 'active' : 'paused'}`}>
+                  {c.status === 'active' ? 'Active' : 'Paused'}
                 </div>
               </div>
-
-              <div className="cc-toggles">
-                {MODULES.map((mod) => {
-                  const on = !!m[mod.key];
-                  return (
-                    <button
-                      key={mod.key}
-                      type="button"
-                      role="switch"
-                      aria-checked={on}
-                      aria-label={`${mod.label} for ${c.name}`}
-                      className={`cc-toggle${on ? ' is-on' : ''}`}
-                      onClick={() => toggle(c.id, mod.key)}
-                    >
-                      <span className="cc-toggle-label">{mod.label}</span>
-                      <span className="cc-switch"><span className="cc-knob" /></span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className={`cc-status is-${c.status === 'active' ? 'active' : 'paused'}`}>
-                {c.status === 'active' ? 'Active' : 'Paused'}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
