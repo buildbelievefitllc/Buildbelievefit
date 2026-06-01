@@ -82,12 +82,25 @@ Standard structure (see `bbf-co-coach/index.ts` as the reference implementation)
 - Deploy/inspect via the Supabase MCP tools (`deploy_edge_function`, `get_edge_function`,
   `get_logs`, `get_advisors`); use `apply_migration` for schema, never ad-hoc prod SQL.
 
-## 6 · Git hygiene (ABSOLUTE)
+## 6 · Git hygiene (Trunk-Based Deployment)
 
-- **🚫 NEVER push or commit directly to `main`.** `main` is branch-protected (push returns HTTP 403) and auto-deploys to Render + GitHub Pages on merge.
-- **Workflow:** branch from `main` (`claude/<short-name>` or `ag/<short-name>`) → commit → `git fetch origin main` → `git rebase origin/main` → `git push --force-with-lease` → open PR → **rebase-merge**.
-- Every deliverable is one bounded PR: summary, change list, test plan, risk notes. Phase closes only when smoke tests pass.
-- Use `mcp__github__*` tools for PR create/merge.
+> **Rule change (CEO order, 2026-06):** branch protection on `main` has been
+> **lifted** to accelerate the build. The previous "never push to `main` / HTTP 403"
+> constraint no longer applies and this supersedes any earlier handoff note.
+
+- **✅ Direct-to-`main` is authorized.** Commit and push UI/UX **and** backend-function
+  work **directly to `main`**. **PRs are not required.** `main` auto-deploys:
+  the **Render static site** (`bbf-command-center`) serves the React frontend from
+  `frontend/dist`; the **Render web service** (`bbf-vault-webhook`) serves the
+  Express/WS proxy; **GitHub Pages** serves the legacy root PWA.
+- **Discipline still applies — a red `main` ships a broken deploy:**
+  - Verify locally before every push — for frontend changes, `cd frontend && npm run lint && npm run build` must be green.
+  - Stay fast-forward: `git fetch origin main && git rebase origin/main` before pushing.
+  - One bounded, self-described commit per change (clear message: what + why).
+- **PRs remain available, optional.** For genuinely risky or cross-cutting work where
+  review is wanted, open one via `mcp__github__*` — a choice, not a gate.
+- **Unchanged guardrails:** never commit secrets; honor LOCKED brand (§2) and RLS (§7);
+  the `sw.js` cache-bump rule (§3) still holds for legacy PWA files.
 
 ## 7 · Security & data boundaries
 
