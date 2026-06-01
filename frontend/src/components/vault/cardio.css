@@ -1,0 +1,59 @@
+/* src/components/vault/cardio.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Phase 22 — Smart Cardio. Brutalist red/orange, treadmill-readable, monospace —
+   restored from the legacy Phase 10 engine (.cardio-protocol: #0a0405 bg, #FF4500
+   border, monospace). Scoped under .bbf-cardio so it never bleeds into T2's
+   Program grid or the rest of the Vault. */
+
+.bbf-cardio { color: var(--wht); }
+
+.bbf-cardio__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .3rem; }
+.bbf-cardio__title { font-family: var(--display); font-size: 1.5rem; letter-spacing: .5px; margin: 0; }
+.bbf-cardio__kicker { font-family: var(--bd); font-size: .72rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #FF4500; }
+.bbf-cardio__sub { font-family: var(--bd); font-size: .92rem; color: var(--mut); line-height: 1.5; margin: .2rem 0 1.4rem; max-width: 60ch; }
+
+/* Zone legend — the three legacy modes */
+.bbf-cardio__zones { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .7rem; margin-bottom: 1.6rem; }
+.bbf-cardio__zone { border: 1px solid var(--line); border-top: 3px solid var(--zone-accent, #FF4500); border-radius: 10px; padding: .8rem .9rem; background: var(--gry); }
+.bbf-cardio__zone-name { font-family: var(--hb); font-size: 1.05rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--zone-accent, #FF4500); }
+.bbf-cardio__zone-blurb { font-family: var(--bd); font-size: .78rem; font-weight: 600; color: var(--mut); margin-top: .2rem; }
+
+.bbf-cardio__section-h { font-family: var(--hb); font-size: .95rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); margin: 1.6rem 0 .8rem; }
+
+/* Active protocol cards — the prescription, monospace + treadmill-readable */
+.bbf-cardio__protocols { display: flex; flex-direction: column; gap: .8rem; }
+.bbf-cardio__protocol { background: #0a0405; border: 2px solid #FF4500; border-radius: 10px; padding: 1.1rem 1.2rem; }
+.bbf-cardio__protocol-top { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.bbf-cardio__protocol-title { font-family: var(--hb); font-size: 1.1rem; letter-spacing: 1px; color: #fff; }
+.bbf-cardio__pill { font-family: var(--hb); font-size: .66rem; letter-spacing: 1.5px; text-transform: uppercase; padding: .25rem .55rem; border-radius: 6px; border: 1px solid currentColor; white-space: nowrap; }
+.bbf-cardio__targets { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-bottom: .6rem; }
+.bbf-cardio__target { display: flex; flex-direction: column; }
+.bbf-cardio__target-val { font-family: var(--display); font-size: 1.6rem; line-height: 1; color: #FF6A33; }
+.bbf-cardio__target-lbl { font-family: var(--bd); font-size: .64rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); margin-top: .15rem; }
+.bbf-cardio__detail { font-family: ui-monospace, SFMono-Regular, Menlo, 'Courier New', monospace; font-size: .92rem; line-height: 1.65; color: #fff; white-space: pre-wrap; word-break: break-word; letter-spacing: .3px; }
+
+/* History table of logged sessions */
+.bbf-cardio__logs { display: flex; flex-direction: column; gap: .5rem; }
+.bbf-cardio__log { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .8rem; background: var(--gry); border: 1px solid var(--line); border-left: 3px solid var(--zone-accent, #FF4500); border-radius: 8px; padding: .7rem .9rem; }
+.bbf-cardio__log-date { font-family: var(--bd); font-size: .8rem; font-weight: 700; color: var(--mut); }
+.bbf-cardio__log-main { display: flex; flex-direction: column; min-width: 0; }
+.bbf-cardio__log-zone { font-family: var(--hb); font-size: .95rem; letter-spacing: 1px; text-transform: uppercase; color: var(--zone-accent, #FF4500); }
+.bbf-cardio__log-meta { font-family: var(--bd); font-size: .78rem; font-weight: 600; color: var(--mut); overflow: hidden; text-overflow: ellipsis; }
+.bbf-cardio__log-dur { font-family: var(--display); font-size: 1.3rem; color: #fff; white-space: nowrap; }
+.bbf-cardio__log-dur span { font-family: var(--bd); font-size: .6rem; font-weight: 700; letter-spacing: 1.5px; color: var(--mut); }
+
+/* Logger form */
+.bbf-cardio__logger { background: var(--gry); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; margin-top: .4rem; }
+.bbf-cardio__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .7rem; margin-bottom: .8rem; }
+.bbf-cardio__field { display: flex; flex-direction: column; gap: .3rem; }
+.bbf-cardio__field label { font-family: var(--bd); font-size: .68rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
+.bbf-cardio__actions { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+.bbf-cardio__btn { font-family: var(--hb); font-size: .9rem; letter-spacing: 2px; text-transform: uppercase; color: #fff; background: #FF4500; border: 1px solid #FF4500; border-radius: 8px; padding: .7rem 1.4rem; cursor: pointer; }
+.bbf-cardio__btn:disabled { opacity: .55; cursor: not-allowed; }
+.bbf-cardio__msg { font-family: var(--bd); font-size: .88rem; font-weight: 700; }
+.bbf-cardio__msg--err { color: var(--red); }
+.bbf-cardio__msg--ok { color: var(--grn); }
+
+.bbf-cardio__empty { font-family: var(--bd); font-size: .92rem; font-weight: 600; color: var(--mut); padding: .6rem 0; }
+.bbf-cardio__loading { display: flex; align-items: center; gap: .6rem; padding: 1.4rem .2rem; color: var(--mut); font-family: var(--bd); letter-spacing: .5px; }
+.bbf-cardio__error { border: 1px solid var(--red); border-radius: 10px; padding: 1rem 1.2rem; background: rgba(239,68,68,.06); color: var(--red); font-family: var(--bd); font-weight: 700; }
