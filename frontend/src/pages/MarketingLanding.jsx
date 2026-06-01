@@ -265,6 +265,29 @@ export default function MarketingLanding() {
         <div style={{ marginTop: '2rem' }}><PathfinderForm /></div>
       </section>
 
+      {/* ── COMPANION APP (Google Play funnel) ── */}
+      <section id="app" style={s.appBand}>
+        <div style={s.appText}>
+          <div style={s.secLbl}>Google Play</div>
+          <h2 style={s.secH}>{t('app-band-h')}</h2>
+          <p style={s.secSub}>{t('app-band-sub')}</p>
+        </div>
+        <a
+          href="https://play.google.com/store/apps/details?id=com.buildbelievefit.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={s.appBadge}
+          aria-label={t('app-badge-alt')}
+        >
+          <img
+            src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+            alt={t('app-badge-alt')}
+            style={{ height: '64px', width: 'auto', display: 'block' }}
+            loading="lazy"
+          />
+        </a>
+      </section>
+
       {/* ── FOOTER ── */}
       <footer style={s.footer}>
         <div style={s.footLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></div>
@@ -402,6 +425,15 @@ const s = {
   originStep: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: GOLD, marginBottom: 8 },
   originT: { fontFamily: HEAD, fontSize: '1.3rem', letterSpacing: '1px', color: '#fff', marginBottom: 10 },
   originQ: { fontFamily: BODY, fontSize: '.98rem', lineHeight: 1.55, fontStyle: 'italic', color: 'rgba(255,255,255,.68)', margin: 0 },
+
+  appBand: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'clamp(20px,4vw,48px)',
+    flexWrap: 'wrap', padding: 'clamp(28px,5vw,52px) clamp(16px,4vw,40px)',
+    background: `linear-gradient(135deg, rgba(106,13,173,.18), rgba(9,9,9,.4))`,
+    borderTop: `1px solid rgba(157,39,201,.22)`, borderBottom: `1px solid rgba(157,39,201,.22)`,
+  },
+  appText: { flex: '1 1 320px', maxWidth: 640 },
+  appBadge: { display: 'inline-flex', flex: '0 0 auto', borderRadius: 8, transition: 'transform .15s ease' },
 
   footer: { borderTop: `1px solid rgba(106,13,173,.25)`, padding: 'clamp(32px,6vw,56px) clamp(16px,4vw,40px)', textAlign: 'center', background: `linear-gradient(180deg, #060507, ${PURP})` },
   footLogo: { fontFamily: HEAD, fontSize: '1.6rem', letterSpacing: '2px', color: '#fff', marginBottom: 10 },

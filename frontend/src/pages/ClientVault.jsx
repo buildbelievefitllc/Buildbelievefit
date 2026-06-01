@@ -28,11 +28,13 @@ import Program from '../components/vault/Program.jsx';
 import Nutrition from '../components/vault/Nutrition.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import SmartCardio from '../components/vault/SmartCardio.jsx';
+import Generator from '../components/vault/Generator.jsx';
 import '../components/vault/vault.css';
 
 const TABS = [
   { id: 'hub', label: 'Hub' },
   { id: 'program', label: 'Program' },
+  { id: 'generator', label: 'Generator' },
   { id: 'cardio', label: 'Smart Cardio' },
   { id: 'nutrition', label: 'Nutrition' },
   { id: 'settings', label: 'Settings' },
@@ -89,6 +91,7 @@ export default function ClientVault() {
             <VaultHub profile={profile} isLoading={profileLoading} error={profileError} />
           )}
           {activeTab === 'program' && <Program plans={plans} profile={profile} />}
+          {activeTab === 'generator' && <Generator />}
           {activeTab === 'cardio' && <SmartCardio />}
           {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
           {activeTab === 'settings' && <Settings />}

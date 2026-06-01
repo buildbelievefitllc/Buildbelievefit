@@ -16,6 +16,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { Badge } from '../command/primitives.jsx';
 import { parseWorkoutPlan } from '../../lib/vaultApi.js';
 import ProgramGrid from './ProgramGrid.jsx';
+import SovereignSentinel from './SovereignSentinel.jsx';
 
 function formatStamp(iso) {
   if (!iso) return null;
@@ -46,6 +47,9 @@ export default function Program({ plans, profile }) {
           />
         ) : null}
       </div>
+
+      {/* Master visual dashboard — the Kinematic Form HUD wireframe, above the grid. */}
+      <SovereignSentinel />
 
       <ProgramGrid uid={uid} programKey={user?.programKey} dynamicPlan={dynamicPlan} />
 

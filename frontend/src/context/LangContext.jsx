@@ -139,6 +139,9 @@ const DICT = {
   'foot-contact': { en: 'Contact', es: 'Contacto', pt: 'Contato' },
   'foot-privacy': { en: 'Privacy Policy', es: 'Política de Privacidad', pt: 'Política de Privacidade' },
   'foot-terms': { en: 'Terms of Service', es: 'Términos de Servicio', pt: 'Termos de Serviço' },
+  'app-band-h': { en: 'Take the Vault with you', es: 'Lleva el Vault contigo', pt: 'Leve o Vault com você' },
+  'app-band-sub': { en: 'Get the Build Believe Fit companion app on Google Play — your program, fueling plan, and coaching in your pocket. Install it, then sign in with the username and PIN your coach sent you.', es: 'Descarga la app oficial de Build Believe Fit en Google Play — tu programa, plan de nutrición y coaching en tu bolsillo. Instálala e inicia sesión con el usuario y PIN que te envió tu coach.', pt: 'Baixe o app oficial Build Believe Fit no Google Play — seu programa, plano alimentar e coaching no seu bolso. Instale e entre com o usuário e PIN que seu coach enviou.' },
+  'app-badge-alt': { en: 'Get it on Google Play', es: 'Disponible en Google Play', pt: 'Disponível no Google Play' },
 
   // ── Phase 17.8 — Positional Blueprints (verbatim from bbf-lang.js) ───────────
   'pb-kicker': { en: 'Positional Blueprints', es: 'Planos Posicionales', pt: 'Planos Posicionais' },

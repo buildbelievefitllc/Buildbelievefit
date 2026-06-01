@@ -17,6 +17,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { parseMealPlan, mealPlanFromSeed, parseFastingWindow } from '../../lib/vaultApi.js';
 import { getMealPlan } from './mealData.js';
+import MindsetEngine from './MindsetEngine.jsx';
 import { Empty } from '../command/primitives.jsx';
 import './vault.css';
 
@@ -327,6 +328,8 @@ export default function Nutrition({ plans, profile }) {
       </div>
 
       <FastingWindow now={now} fasting={fasting} tier={profile?.metabolicTier} />
+      {/* Daily awareness module — mounted directly above the Caloric Spin Wheel. */}
+      <MindsetEngine />
       <CalorieGoal uid={uid} goal={calGoal} macros={macros} />
       <MealPlanCard meal={meal} stamp={stamp} />
     </div>
