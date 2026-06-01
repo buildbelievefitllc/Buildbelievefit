@@ -280,3 +280,121 @@
   .pg-setgrid { grid-template-columns: 22px 1fr 1fr 1fr; gap: .3rem; }
   .pg-day-focus { font-size: 1.4rem; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Nutrition dashboard — 16/8 fasting window + 2800 kcal progress (Phase 20.1)
+   Same .pg-scoped premium vocabulary; tuned to read elite at 360px.
+   ═════════════════════════════════════════════════════════════════════════ */
+.pg-nut { display: flex; flex-direction: column; gap: 1rem; }
+.pg-nut-head { font-family: var(--display); font-size: 1.5rem; letter-spacing: .5px; margin: 0; }
+.pg-nut-meta { font-family: var(--bd); font-size: .8rem; font-weight: 600; color: var(--mut); margin-top: .2rem; }
+
+/* shared surface card */
+.pg-card {
+  background: linear-gradient(180deg, #141414, #0e0e0e);
+  border: 1px solid #1c1c1c;
+  border-radius: 16px;
+  padding: 1.1rem 1.15rem;
+}
+
+/* ── Fasting window ──────────────────────────────────────────────────────── */
+.pg-fast-top { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: .9rem; }
+.pg-fast-title { font-family: var(--hb); font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
+.pg-fast-status {
+  font-family: var(--hb); font-size: .78rem; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: .32rem .7rem; border-radius: 999px; white-space: nowrap;
+}
+.pg-fast-status.is-eating { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); }
+.pg-fast-status.is-fasting { color: var(--purl); background: rgba(139, 26, 191, .15); border: 1px solid rgba(139, 26, 191, .4); }
+
+.pg-fast-track {
+  position: relative;
+  height: 34px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #1c1c1c;
+  background: repeating-linear-gradient(90deg, #0c0c0c, #0c0c0c 1px, #101010 1px, #101010 12.5%);
+}
+.pg-fast-window {
+  position: absolute; top: 0; bottom: 0;
+  background: linear-gradient(180deg, rgba(245, 200, 0, .34), rgba(245, 200, 0, .12));
+  border-left: 2px solid var(--yel);
+  border-right: 2px solid var(--yel);
+}
+.pg-fast-now { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--wht); box-shadow: 0 0 8px var(--wht); }
+.pg-fast-now::after {
+  content: ''; position: absolute; top: -4px; left: -3px;
+  width: 8px; height: 8px; border-radius: 50%; background: var(--wht); box-shadow: 0 0 8px var(--wht);
+}
+.pg-fast-axis { display: flex; justify-content: space-between; margin-top: .4rem; font-family: var(--bd); font-size: .66rem; font-weight: 700; color: #555; }
+.pg-fast-sub { margin-top: .75rem; font-family: var(--bd); font-size: .92rem; font-weight: 600; color: rgba(249, 245, 255, .85); }
+.pg-fast-sub b { color: var(--yel); font-weight: 800; }
+
+/* ── Calorie progress ────────────────────────────────────────────────────── */
+.pg-kcal-top { display: flex; align-items: flex-end; justify-content: space-between; gap: .6rem; margin-bottom: .7rem; }
+.pg-kcal-title { font-family: var(--hb); font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
+.pg-kcal-nums { font-family: var(--display); font-size: 1.55rem; color: var(--wht); line-height: 1; }
+.pg-kcal-nums b { color: var(--yel); }
+.pg-kcal-goal { font-family: var(--bd); font-size: .82rem; font-weight: 700; color: var(--mut); }
+
+.pg-kcal-bar { height: 16px; border-radius: 999px; background: #0b0b0b; border: 1px solid #242424; overflow: hidden; }
+.pg-kcal-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--purl), var(--yel));
+  box-shadow: 0 0 14px rgba(245, 200, 0, .4);
+  transition: width .35s ease;
+}
+.pg-kcal-fill.is-over { background: linear-gradient(90deg, var(--orn), var(--red)); box-shadow: 0 0 14px rgba(239, 68, 68, .4); }
+.pg-kcal-rem { margin-top: .55rem; font-family: var(--bd); font-size: .9rem; font-weight: 600; color: rgba(249, 245, 255, .85); text-align: center; }
+.pg-kcal-rem b { color: var(--yel); font-weight: 800; }
+
+.pg-kcal-chips { display: flex; gap: .4rem; margin-top: .9rem; flex-wrap: wrap; }
+.pg-kcal-chip {
+  cursor: pointer; font-family: var(--bd); font-size: .8rem; font-weight: 700;
+  color: var(--gold-soft); background: rgba(245, 200, 0, .06);
+  border: 1px solid rgba(245, 200, 0, .3); border-radius: 999px; padding: .4rem .75rem;
+  min-height: 36px; transition: background .15s ease;
+}
+.pg-kcal-chip:hover { background: rgba(245, 200, 0, .13); }
+
+.pg-kcal-log { display: flex; gap: .5rem; margin-top: .55rem; }
+.pg-kcal-input {
+  flex: 1; min-width: 0; box-sizing: border-box; text-align: center;
+  background: #0b0b0b; border: 1px solid #242424; border-radius: 9px; color: var(--wht);
+  font-family: var(--bd); font-size: 1rem; font-weight: 600; padding: .6rem; min-height: 44px; outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.pg-kcal-input:focus { border-color: var(--purl); box-shadow: 0 0 0 3px rgba(139, 26, 191, .25); }
+.pg-kcal-input::-webkit-outer-spin-button,
+.pg-kcal-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pg-kcal-input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+.pg-kcal-add {
+  flex: 0 0 auto; min-height: 44px; padding: 0 1.2rem; border: none; border-radius: 9px; cursor: pointer;
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+}
+.pg-kcal-reset {
+  margin-top: .55rem; align-self: flex-start; background: none; border: none;
+  color: var(--mut); font-family: var(--bd); font-size: .78rem; font-weight: 600; cursor: pointer; text-decoration: underline;
+}
+
+/* macro targets (from the 2800 goal) */
+.pg-macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-top: .95rem; }
+.pg-macro { background: #0b0b0b; border: 1px solid #1c1c1c; border-radius: 10px; padding: .6rem .4rem; text-align: center; }
+.pg-macro-k { font-family: var(--hb); font-size: .6rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
+.pg-macro-v { font-family: var(--display); font-size: 1.2rem; color: var(--wht); margin-top: .15rem; line-height: 1; }
+.pg-macro-u { font-family: var(--bd); font-size: .68rem; font-weight: 700; color: var(--mut); margin-top: .1rem; }
+
+/* assigned meal plan */
+.pg-meal-title { font-family: var(--hb); font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); margin-bottom: .65rem; }
+.pg-meal-text { font-family: var(--bd); font-size: 1rem; line-height: 1.6; color: var(--wht); white-space: pre-wrap; word-break: break-word; margin: 0; }
+
+@media (max-width: 360px) {
+  .pg-card { padding: 1rem .9rem; }
+  .pg-kcal-nums { font-size: 1.3rem; }
+  .pg-fast-axis { font-size: .6rem; }
+  .pg-macros { gap: .35rem; }
+  .pg-macro-v { font-size: 1.05rem; }
+  .pg-fast-status, .pg-fast-title { font-size: .7rem; }
+}
+
