@@ -17,7 +17,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import './login.css';
 
 export default function Login() {
-  const { signInWithPin } = useAuth();
+  const { signInWithPin, user, loading } = useAuth();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
@@ -28,6 +28,15 @@ export default function Login() {
   const lockTimer = useRef(null);
 
   useEffect(() => () => clearInterval(lockTimer.current), []);
+
+  // PWA route isolation: /login is the installed app's start_url. If a session
+  // already exists (returning client launching the installed app), redirect to
+  // the role dispatcher with REPLACE so /login is never left in the standalone
+  // history stack — the back button then natively closes the app. The marketing
+  // landing ("/") is never pushed under the app.
+  useEffect(() => {
+    if (!loading && user) navigate('/', { replace: true });
+  }, [loading, user, navigate]);
 
   function startLockout(seconds) {
     setLockRemaining(seconds);
@@ -64,6 +73,19 @@ export default function Login() {
       startLockout(result.retryAfter);
     }
     setMsg({ kind: 'error', text: result.message || 'Incorrect username or PIN.' });
+  }
+
+  // While resolving an existing session (or redirecting an authed user away),
+  // show a minimal boot state instead of flashing the sign-in form.
+  if (loading || user) {
+    return (
+      <div className="lg-screen">
+        <div className="lg-top">
+          <div className="lg-logo">BUILD BELIEVE <b>FIT</b></div>
+          <div className="lg-sub">Entering the Vault…</div>
+        </div>
+      </div>
+    );
   }
 
   const locked = lockRemaining > 0;

@@ -1,9 +1,9 @@
 {
-  "id": "/",
+  "id": "/login",
   "name": "Build Believe Fit",
   "short_name": "BBF",
   "description": "Universal performance for the high-demand human. Elite strength and movement coaching — your Vault, program, fueling plan, and AI coaching in one app.",
-  "start_url": "/",
+  "start_url": "/login",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
