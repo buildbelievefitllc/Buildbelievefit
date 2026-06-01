@@ -50,6 +50,27 @@ Intercepted (no live calls): every Supabase REST/RPC call —
 payload is correct **and** fails loudly if anything reaches the real project
 host. **Nothing is written to the production database.**
 
+### 3 · Held acceptance specs (contracts, ahead of the UI)
+
+`tests/prehab.spec.ts` and `tests/smart-cardio.spec.ts` are **acceptance
+contracts** for Vault modules the frontend hasn't built yet. They are
+**committed but do not run in CI** — every test self-skips until both the UI and
+its Terminal-3 RPC are deployed:
+
+| Spec | Enable with | Data RPC the test mocks | Required UI `data-testid`s |
+|---|---|---|---|
+| `prehab.spec.ts` | `BBF_PREHAB_READY=1` | `bbf_get_prehab_routines` | `vault-tab-prehab`, `prehab-module`, `prehab-routine[-name/-sets/-reps/-cue]`, `prehab-empty` |
+| `smart-cardio.spec.ts` | `BBF_CARDIO_READY=1` | `bbf_get_cardio_plan` | `vault-tab-cardio`, `smart-cardio-module`, `cardio-readiness[data-tier]`, `cardio-ratio`, `cardio-session[-modality/-zone/-duration/-cue]`, `cardio-empty` |
+
+Each spec's header block is the authoritative contract (RPC payload shape + the
+exact hooks the UI must expose). When the frontend builds to those hooks and the
+RPC ships, flip the flag to turn the spec live:
+
+```bash
+BBF_PREHAB_READY=1 npm run test:vault -- prehab
+BBF_CARDIO_READY=1 npm run test:vault -- smart-cardio
+```
+
 ## Setup
 
 ```bash
