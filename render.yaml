@@ -32,10 +32,10 @@ services:
         value: https://ihclbceghxpuawymlvgi.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
         sync: false                          # enter once in the Render dashboard
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html             # SPA fallback so any path serves the app
+    # Routing is handled by frontend/public/_redirects (copied to dist/ root):
+    # legacy .html → React route 301 bridges + the SPA catch-all. A `routes:` block
+    # here would SHADOW that file (render.yaml routes take precedence), so SPA
+    # rewriting + the legacy redirects live entirely in _redirects, not here.
     headers:
       - path: /*
         name: X-Content-Type-Options
