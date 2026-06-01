@@ -36,6 +36,13 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+// Source IP for the per-IP rate limiter (Supabase edge passes x-forwarded-for).
+function clientIp(req: Request): string {
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  return req.headers.get('x-real-ip') || 'unknown';
+}
+
 // Cardiac-adjacent → Opus tier (one of the three peak-reasoning categories).
 const MODEL             = routeAndLog('bbf-agentic-cardio', 'cardiac_intercept');
 const MAX_TOKENS        = 1536;
@@ -337,15 +344,41 @@ serve(async (req: Request) => {
   if (!isFinite(minutes) || minutes <= 0) return jsonResponse({ error: 'invalid_minutes' }, 400);
   minutes = Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, Math.round(minutes)));
 
+  // Shared Supabase client (rate limiter + CNS read).
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+  const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supa = (SUPABASE_URL && SERVICE_KEY)
+    ? createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
+    : null;
+
+  // ─── Per-IP daily rate limit (DB-backed · mirrors bbf_prehab_rate_check) ──
+  // Caps Opus spend per source IP per UTC day. Generous for genuine athletes
+  // (a few protocols/day), hard ceiling for rapid-fire scripts. Fail-OPEN on a
+  // DB hiccup so a real athlete is never blocked by infra.
+  if (supa) {
+    const ip  = clientIp(req);
+    const cap = Math.max(1, Number(Deno.env.get('BBF_CARDIO_DAILY_CAP') || 40));
+    const { data: rl, error: rlErr } = await supa.rpc('bbf_cardio_rate_check', { p_ip: ip, p_cap: cap });
+    if (rlErr) {
+      console.error('[bbf-agentic-cardio] rate-check failed (fail-open):', rlErr.message);
+    } else if (Array.isArray(rl) && rl[0] && rl[0].allowed === false) {
+      const now   = new Date();
+      const reset = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+      const retry = Math.max(1, Math.ceil((reset - now.getTime()) / 1000));
+      console.warn(`[bbf-agentic-cardio] rate-limited ip=${ip} count=${rl[0].current_count} cap=${cap}`);
+      return new Response(
+        JSON.stringify({ error: 'rate_limited', detail: 'Daily cardio limit reached. Resets at 00:00 UTC.', retry_after_seconds: retry }),
+        { status: 429, headers: { ...CORS, 'Content-Type': 'application/json', 'Retry-After': String(retry) } },
+      );
+    }
+  }
+
   // 1. Deterministic tier
   const baseTier = routeTier(minutes);
 
   // 2. CNS fatigue from bbf_sets → optional down-regulation
-  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-  const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   let cns: Cns = freshCns('unavailable', 'Supabase unavailable — CNS defaulted to fresh.');
-  if (SUPABASE_URL && SERVICE_KEY) {
-    const supa = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  if (supa) {
     cns = await evaluateCns(supa, uid);
   }
   const effTier = cns.down_regulate ? stepDown(baseTier) : baseTier;
