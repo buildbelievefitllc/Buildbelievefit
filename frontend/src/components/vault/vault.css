@@ -556,4 +556,50 @@
 }
 .pg-set-signout:hover { background: rgba(220, 60, 60, .12); border-color: rgba(220, 60, 60, .8); }
 
+/* ── Fasting tier label + structured meal-plan cards ─────────────────────── */
+.pg-fast-tier { color: var(--mut); font-weight: 600; }
+
+.pg-meal-goal { color: var(--gold-soft); font-weight: 600; }
+.pg-meal-day { margin-top: .9rem; }
+.pg-meal-day:first-of-type { margin-top: .5rem; }
+.pg-meal-dayhead {
+  font-family: var(--hb);
+  font-size: .72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  padding: .35rem 0;
+  border-bottom: 1px solid #1c1c1c;
+  margin-bottom: .5rem;
+}
+.pg-meal-item {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: .5rem .8rem;
+  padding: .45rem 0;
+  align-items: baseline;
+}
+.pg-meal-when {
+  font-family: var(--hb);
+  font-size: .68rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.pg-meal-what {
+  font-family: var(--bd);
+  font-size: .92rem;
+  line-height: 1.45;
+  color: rgba(249, 245, 255, .92);
+}
+.pg-meal-stamp {
+  font-family: var(--bd);
+  font-size: .78rem;
+  color: var(--mut);
+  margin-top: .9rem;
+}
+@media (max-width: 420px) {
+  .pg-meal-item { grid-template-columns: 1fr; gap: .15rem; }
+}
+
 

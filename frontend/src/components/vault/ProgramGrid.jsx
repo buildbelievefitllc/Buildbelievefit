@@ -37,8 +37,14 @@ function initialDayIndex(plan) {
   return i === -1 ? 0 : i;
 }
 
-export default function ProgramGrid({ uid, programKey }) {
-  const plan = useMemo(() => getProgram(programKey), [programKey]);
+export default function ProgramGrid({ uid, programKey, dynamicPlan }) {
+  // Prefer the user's assigned plan (structured AI payload) when present; fall
+  // back to the authorized static catalog by persona. Either way the grid, the
+  // per-set logging, and the form-demo video resolver work identically.
+  const plan = useMemo(
+    () => (Array.isArray(dynamicPlan) && dynamicPlan.length ? dynamicPlan : getProgram(programKey)),
+    [dynamicPlan, programKey],
+  );
   const [dayIdx, setDayIdx] = useState(() => initialDayIndex(plan));
   const day = plan[dayIdx] || plan[0];
 

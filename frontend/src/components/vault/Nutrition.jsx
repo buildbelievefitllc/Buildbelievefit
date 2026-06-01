@@ -1,34 +1,25 @@
 // src/components/vault/Nutrition.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 18 — Client Vault · Nutrition (assigned fueling plan).
-// Phase 20.1 — Visual reconstruction: the Nutrition tab becomes a premium
-// dashboard for the Sovereign Vault's 16/8 intermittent-fasting protocol —
-//   • a live 16/8 fasting-window visualizer (current-time aware, no backend),
-//   • a 2800 kcal daily-goal progress tracker with quick-log + macro targets,
-//   • the coach-assigned meal plan (session.plans.meal_plan) in a styled card.
-//
-// Styling lives in the scoped vault.css (.pg-*). The fasting clock is pure
-// client-side (current time); calorie intake is buffered locally per day
-// (parity with the weight buffer) — backend is locked, so nothing here writes
-// to Supabase. Tuned to read elite at a 360px mobile viewport (gym floor).
+// Phase 20.1 — Visual reconstruction: premium dashboard for the fueling protocol.
+// Phase 21.3 — DYNAMIC TDEE. Every target is now sourced live, never hardcoded:
+//   • Fasting window  ← the user's metabolic_tier ("12:12 Foundation", "16:8", …)
+//                       or an explicit somatic_fasting_hours (profile metrics RPC).
+//   • Calorie goal    ← the AI meal_plan payload's `cal`, or the tdee_target column.
+//   • Macros          ← the macro_p/c/f columns, else summed from the AI meal
+//                       annotations.
+//   • Meal plan       ← the structured AI payload, rendered as day/meal cards
+//                       (never raw JSON); legacy plain-text plans still render as text.
+// When a value isn't set, the UI shows an explicit empty state — it does NOT
+// substitute a generalized default. The platform stays completely dynamic.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { parseMealPlan, parseFastingWindow } from '../../lib/vaultApi.js';
 import { Empty } from '../command/primitives.jsx';
 import './vault.css';
 
-const KCAL_GOAL = 2800;   // daily calorie goal (per directive)
-const EAT_START = 12;     // 16/8 eating window opens 12:00
-const EAT_END = 20;       // closes 20:00 → 8h eat · 16h fast
 const KCAL_KEY = 'bbf.vault.kcal.v1';
-
-// Macro targets derived from the 2800 goal — a standard performance split
-// (35% protein / 40% carbs / 25% fat). Shown as targets, not tracked intake.
-const MACROS = [
-  { k: 'Protein', g: Math.round((KCAL_GOAL * 0.35) / 4) },
-  { k: 'Carbs', g: Math.round((KCAL_GOAL * 0.40) / 4) },
-  { k: 'Fat', g: Math.round((KCAL_GOAL * 0.25) / 9) },
-];
 
 function todayKey() { return new Date().toISOString().slice(0, 10); }
 
@@ -36,6 +27,13 @@ function fmtHM(hoursFloat) {
   const h = Math.floor(hoursFloat);
   const m = Math.round((hoursFloat - h) * 60);
   return `${h}h ${String(m).padStart(2, '0')}m`;
+}
+
+function fmtClock(hour24) {
+  const h = ((hour24 % 24) + 24) % 24;
+  const ampm = h < 12 ? 'a' : 'p';
+  const hr = h % 12 === 0 ? 12 : h % 12;
+  return `${hr}${ampm}`;
 }
 
 function formatStamp(iso) {
@@ -60,50 +58,73 @@ function writeKcal(uid, val) {
   } catch { /* private-mode / quota — value holds in component state */ }
 }
 
-// ── 16/8 fasting-window visualizer (current-time aware) ──────────────────────
-function FastingWindow({ now }) {
+// ── Fasting-window visualizer (dynamic, current-time aware) ──────────────────
+// `fasting` = { fast, eat } hours, resolved from the user's tier. The eating
+// window is anchored to a 20:00 (8pm) cutoff — clinically sensible and the only
+// presentation anchor; the ratio itself is fully dynamic. `tier` labels it.
+function FastingWindow({ now, fasting, tier }) {
+  if (!fasting) {
+    return (
+      <div className="pg-card">
+        <div className="pg-fast-top">
+          <span className="pg-fast-title">Fasting Window</span>
+        </div>
+        <Empty>No fasting protocol assigned yet — your coach sets your metabolic tier.</Empty>
+      </div>
+    );
+  }
+
+  const eatEnd = 20;                 // 8pm dinner cutoff (presentation anchor)
+  const eatStart = eatEnd - fasting.eat;
   const h = now.getHours() + now.getMinutes() / 60;
-  const eating = h >= EAT_START && h < EAT_END;
+  const eating = h >= eatStart && h < eatEnd;
   const nowPct = (h / 24) * 100;
-  const winLeft = (EAT_START / 24) * 100;
-  const winWidth = ((EAT_END - EAT_START) / 24) * 100;
+  const winLeft = (eatStart / 24) * 100;
+  const winWidth = (fasting.eat / 24) * 100;
+  const ratioLabel = `${fasting.fast} / ${fasting.eat}`;
 
   let sub;
   if (eating) {
-    sub = <>Eating window open — <b>{fmtHM(EAT_END - h)}</b> left to fuel.</>;
+    sub = <>Eating window open — <b>{fmtHM(eatEnd - h)}</b> left to fuel.</>;
   } else {
-    const until = h < EAT_START ? EAT_START - h : (24 - h) + EAT_START;
+    const until = h < eatStart ? eatStart - h : (24 - h) + eatStart;
     sub = <>Fasting — <b>{fmtHM(until)}</b> until your window opens.</>;
   }
 
   return (
     <div className="pg-card">
       <div className="pg-fast-top">
-        <span className="pg-fast-title">16 / 8 Fasting Window</span>
+        <span className="pg-fast-title">{ratioLabel} Fasting Window</span>
         <span className={`pg-fast-status ${eating ? 'is-eating' : 'is-fasting'}`}>
           {eating ? '🍽 Eating' : '🌙 Fasting'}
         </span>
       </div>
-      <div className="pg-fast-track" role="img" aria-label={`Eating window noon to 8pm. It is currently ${eating ? 'inside' : 'outside'} the window.`}>
+      <div className="pg-fast-track" role="img" aria-label={`Eating window ${fmtClock(eatStart)} to ${fmtClock(eatEnd)}. Currently ${eating ? 'inside' : 'outside'} the window.`}>
         <div className="pg-fast-window" style={{ left: `${winLeft}%`, width: `${winWidth}%` }} />
         <div className="pg-fast-now" style={{ left: `${nowPct}%` }} />
       </div>
       <div className="pg-fast-axis">
         <span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>12a</span>
       </div>
-      <div className="pg-fast-sub">{sub}</div>
+      <div className="pg-fast-sub">
+        {sub}
+        {tier ? <span className="pg-fast-tier"> · {tier}</span> : null}
+      </div>
     </div>
   );
 }
 
-// ── 2800 kcal daily-goal tracker (local quick-log) ───────────────────────────
-function CalorieGoal({ uid }) {
+// ── Daily-fuel tracker (dynamic goal + macros, local quick-log) ──────────────
+// `goal` (kcal) and `macros` ({p,c,f} grams) are dynamic and may be null — the
+// tracker degrades to a logger-only state rather than inventing a target.
+function CalorieGoal({ uid, goal, macros }) {
   const [consumed, setConsumed] = useState(() => readKcal(uid));
   const [input, setInput] = useState('');
 
-  const pct = Math.min(consumed / KCAL_GOAL, 1) * 100;
-  const over = consumed > KCAL_GOAL;
-  const remaining = KCAL_GOAL - consumed;
+  const hasGoal = Number.isFinite(goal) && goal > 0;
+  const pct = hasGoal ? Math.min(consumed / goal, 1) * 100 : 0;
+  const over = hasGoal && consumed > goal;
+  const remaining = hasGoal ? goal - consumed : 0;
 
   const add = (n) => {
     const v = Math.max(0, consumed + n);
@@ -116,23 +137,40 @@ function CalorieGoal({ uid }) {
   };
   const reset = () => { setConsumed(0); writeKcal(uid, 0); };
 
+  const macroList = macros
+    ? [
+        { k: 'Protein', g: macros.p },
+        { k: 'Carbs', g: macros.c },
+        { k: 'Fat', g: macros.f },
+      ].filter((m) => Number.isFinite(m.g) && m.g > 0)
+    : [];
+
   return (
     <div className="pg-card">
       <div className="pg-kcal-top">
         <span className="pg-kcal-title">Today’s Fuel</span>
         <span className="pg-kcal-nums">
-          <b>{consumed.toLocaleString()}</b> <span className="pg-kcal-goal">/ {KCAL_GOAL.toLocaleString()} kcal</span>
+          <b>{consumed.toLocaleString()}</b>
+          {hasGoal
+            ? <span className="pg-kcal-goal"> / {goal.toLocaleString()} kcal</span>
+            : <span className="pg-kcal-goal"> kcal logged</span>}
         </span>
       </div>
 
-      <div className="pg-kcal-bar">
-        <div className={`pg-kcal-fill${over ? ' is-over' : ''}`} style={{ width: `${pct}%` }} />
-      </div>
-      <div className="pg-kcal-rem">
-        {over
-          ? <><b>{Math.abs(remaining).toLocaleString()}</b> kcal over goal</>
-          : <><b>{remaining.toLocaleString()}</b> kcal remaining</>}
-      </div>
+      {hasGoal ? (
+        <>
+          <div className="pg-kcal-bar">
+            <div className={`pg-kcal-fill${over ? ' is-over' : ''}`} style={{ width: `${pct}%` }} />
+          </div>
+          <div className="pg-kcal-rem">
+            {over
+              ? <><b>{Math.abs(remaining).toLocaleString()}</b> kcal over goal</>
+              : <><b>{remaining.toLocaleString()}</b> kcal remaining</>}
+          </div>
+        </>
+      ) : (
+        <div className="pg-kcal-rem">No calorie target assigned yet — log freely; your coach will dial in your TDEE.</div>
+      )}
 
       <div className="pg-kcal-chips">
         {[300, 500, 750].map((n) => (
@@ -154,24 +192,78 @@ function CalorieGoal({ uid }) {
       </div>
       {consumed > 0 ? <button type="button" className="pg-kcal-reset" onClick={reset}>Reset today</button> : null}
 
-      <div className="pg-macros">
-        {MACROS.map((m) => (
-          <div key={m.k} className="pg-macro">
-            <div className="pg-macro-k">{m.k}</div>
-            <div className="pg-macro-v">{m.g}</div>
-            <div className="pg-macro-u">g target</div>
-          </div>
-        ))}
-      </div>
+      {macroList.length ? (
+        <div className="pg-macros">
+          {macroList.map((m) => (
+            <div key={m.k} className="pg-macro">
+              <div className="pg-macro-k">{m.k}</div>
+              <div className="pg-macro-v">{m.g}</div>
+              <div className="pg-macro-u">g target</div>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
 
-export default function Nutrition({ plans }) {
+// ── Structured meal-plan renderer (day → meal cards) ─────────────────────────
+function MealPlanCard({ meal, stamp }) {
+  if (meal.structured) {
+    return (
+      <div className="pg-card">
+        <div className="pg-meal-title">
+          Assigned Meal Plan
+          {meal.goal ? <span className="pg-meal-goal"> · {meal.goal}</span> : null}
+        </div>
+        {meal.days.map((d, di) => (
+          <div className="pg-meal-day" key={d.day + di}>
+            <div className="pg-meal-dayhead">{d.day}</div>
+            {d.meals.map((m, mi) => (
+              <div className="pg-meal-item" key={m.m + mi}>
+                <div className="pg-meal-when">{m.m}</div>
+                <div className="pg-meal-what">{m.i}</div>
+              </div>
+            ))}
+          </div>
+        ))}
+        {stamp ? <div className="pg-meal-stamp">Generated {stamp}</div> : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="pg-card">
+      <div className="pg-meal-title">Assigned Meal Plan</div>
+      {meal.text ? (
+        <pre className="pg-meal-text">{meal.text}</pre>
+      ) : (
+        <Empty>
+          No fueling plan assigned yet — your coach is dialing in your macros. It
+          will appear here automatically the next time you sign in.
+        </Empty>
+      )}
+    </div>
+  );
+}
+
+export default function Nutrition({ plans, profile }) {
   const { user } = useAuth();
   const uid = user?.username || user?.id || 'guest';
-  const mealPlan = plans?.mealPlan || '';
   const stamp = formatStamp(plans?.generatedAt);
+
+  // Dynamic sources — parse the AI payload + the live profile metrics.
+  const meal = useMemo(() => parseMealPlan(plans?.mealPlan), [plans?.mealPlan]);
+  const fasting = useMemo(
+    () => parseFastingWindow(profile?.metabolicTier, profile?.fastingHours),
+    [profile?.metabolicTier, profile?.fastingHours],
+  );
+  // Calorie target: AI meal-plan headline first, then the TDEE column.
+  const calGoal = meal.cal ?? (Number.isFinite(profile?.tdeeTarget) ? profile.tdeeTarget : null);
+  // Macros: structured columns first, then the summed AI meal annotations.
+  const macros = (Number.isFinite(profile?.macroP) || Number.isFinite(profile?.macroC) || Number.isFinite(profile?.macroF))
+    ? { p: profile?.macroP, c: profile?.macroC, f: profile?.macroF }
+    : meal.macros;
 
   // Live clock so the fasting marker + status track the real time of day.
   const [now, setNow] = useState(() => new Date());
@@ -187,20 +279,9 @@ export default function Nutrition({ plans }) {
         {stamp ? <div className="pg-nut-meta">Generated {stamp}</div> : null}
       </div>
 
-      <FastingWindow now={now} />
-      <CalorieGoal uid={uid} />
-
-      <div className="pg-card">
-        <div className="pg-meal-title">Assigned Meal Plan</div>
-        {mealPlan ? (
-          <pre className="pg-meal-text">{mealPlan}</pre>
-        ) : (
-          <Empty>
-            No fueling plan assigned yet — your coach is dialing in your macros. It
-            will appear here automatically the next time you sign in.
-          </Empty>
-        )}
-      </div>
+      <FastingWindow now={now} fasting={fasting} tier={profile?.metabolicTier} />
+      <CalorieGoal uid={uid} goal={calGoal} macros={macros} />
+      <MealPlanCard meal={meal} stamp={stamp} />
     </div>
   );
 }

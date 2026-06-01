@@ -11,8 +11,10 @@
 // Phase 18 data wiring) is preserved below the grid as a collapsible reference so
 // nothing from the auth payload is lost.
 
+import { useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { Badge } from '../command/primitives.jsx';
+import { parseWorkoutPlan } from '../../lib/vaultApi.js';
 import ProgramGrid from './ProgramGrid.jsx';
 
 function formatStamp(iso) {
@@ -28,6 +30,11 @@ export default function Program({ plans, profile }) {
   const textPlan = plans?.workoutPlan || '';
   const stamp = formatStamp(plans?.generatedAt);
 
+  // The assigned plan is a structured JSON array (day/focus/exercises) written by
+  // the AI engine. When present it IS the user's real program — render the grid
+  // from it. Falls back to the authorized static catalog (by persona) otherwise.
+  const dynamicPlan = useMemo(() => parseWorkoutPlan(textPlan), [textPlan]);
+
   return (
     <div>
       <div style={styles.bar}>
@@ -40,9 +47,12 @@ export default function Program({ plans, profile }) {
         ) : null}
       </div>
 
-      <ProgramGrid uid={uid} programKey={user?.programKey} />
+      <ProgramGrid uid={uid} programKey={user?.programKey} dynamicPlan={dynamicPlan} />
 
-      {textPlan ? (
+      {/* Only surface the raw written protocol for LEGACY plain-text plans — a
+          structured JSON plan is already rendered as the grid above, so we never
+          dump raw JSON into a <pre>. */}
+      {textPlan && !dynamicPlan ? (
         <details style={styles.details}>
           <summary style={styles.summary}>
             Coach&apos;s written protocol{stamp ? ` · ${stamp}` : ''}
