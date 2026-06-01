@@ -15,7 +15,8 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { parseMealPlan, parseFastingWindow } from '../../lib/vaultApi.js';
+import { parseMealPlan, mealPlanFromSeed, parseFastingWindow } from '../../lib/vaultApi.js';
+import { getMealPlan } from './mealData.js';
 import { Empty } from '../command/primitives.jsx';
 import './vault.css';
 
@@ -114,6 +115,54 @@ function FastingWindow({ now, fasting, tier }) {
   );
 }
 
+// ── Caloric Spin Wheel — radial intake gauge (replaces the flat bar) ─────────
+// A circular dial: the gold arc sweeps from the top clockwise to the consumed
+// fraction of the goal; turns red past 100%. Center shows consumed / goal. With
+// no goal it shows a neutral ring + the raw logged total.
+function CalorieWheel({ consumed, goal }) {
+  const SIZE = 184;
+  const STROKE = 16;
+  const r = (SIZE - STROKE) / 2;
+  const cx = SIZE / 2;
+  const circ = 2 * Math.PI * r;
+  const hasGoal = Number.isFinite(goal) && goal > 0;
+  const frac = hasGoal ? Math.min(consumed / goal, 1) : 0;
+  const over = hasGoal && consumed > goal;
+  const dash = circ * frac;
+
+  return (
+    <div className="pg-wheel" role="img" aria-label={hasGoal ? `${consumed} of ${goal} kcal consumed` : `${consumed} kcal logged`}>
+      <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
+        <defs>
+          <linearGradient id="pg-wheel-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--yel)" />
+            <stop offset="100%" stopColor="var(--gold-soft)" />
+          </linearGradient>
+        </defs>
+        <circle className="pg-wheel-track" cx={cx} cy={cx} r={r} strokeWidth={STROKE} fill="none" />
+        <circle
+          className={`pg-wheel-arc${over ? ' is-over' : ''}`}
+          cx={cx}
+          cy={cx}
+          r={r}
+          strokeWidth={STROKE}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circ}`}
+          transform={`rotate(-90 ${cx} ${cx})`}
+        />
+      </svg>
+      <div className="pg-wheel-center">
+        <span className="pg-wheel-num">{consumed.toLocaleString()}</span>
+        {hasGoal
+          ? <span className="pg-wheel-goal">/ {goal.toLocaleString()} kcal</span>
+          : <span className="pg-wheel-goal">kcal logged</span>}
+        {hasGoal ? <span className={`pg-wheel-pct${over ? ' is-over' : ''}`}>{Math.round((consumed / goal) * 100)}%</span> : null}
+      </div>
+    </div>
+  );
+}
+
 // ── Daily-fuel tracker (dynamic goal + macros, local quick-log) ──────────────
 // `goal` (kcal) and `macros` ({p,c,f} grams) are dynamic and may be null — the
 // tracker degrades to a logger-only state rather than inventing a target.
@@ -122,7 +171,6 @@ function CalorieGoal({ uid, goal, macros }) {
   const [input, setInput] = useState('');
 
   const hasGoal = Number.isFinite(goal) && goal > 0;
-  const pct = hasGoal ? Math.min(consumed / goal, 1) * 100 : 0;
   const over = hasGoal && consumed > goal;
   const remaining = hasGoal ? goal - consumed : 0;
 
@@ -149,25 +197,16 @@ function CalorieGoal({ uid, goal, macros }) {
     <div className="pg-card">
       <div className="pg-kcal-top">
         <span className="pg-kcal-title">Today’s Fuel</span>
-        <span className="pg-kcal-nums">
-          <b>{consumed.toLocaleString()}</b>
-          {hasGoal
-            ? <span className="pg-kcal-goal"> / {goal.toLocaleString()} kcal</span>
-            : <span className="pg-kcal-goal"> kcal logged</span>}
-        </span>
       </div>
 
+      <CalorieWheel consumed={consumed} goal={goal} />
+
       {hasGoal ? (
-        <>
-          <div className="pg-kcal-bar">
-            <div className={`pg-kcal-fill${over ? ' is-over' : ''}`} style={{ width: `${pct}%` }} />
-          </div>
-          <div className="pg-kcal-rem">
-            {over
-              ? <><b>{Math.abs(remaining).toLocaleString()}</b> kcal over goal</>
-              : <><b>{remaining.toLocaleString()}</b> kcal remaining</>}
-          </div>
-        </>
+        <div className="pg-kcal-rem">
+          {over
+            ? <><b>{Math.abs(remaining).toLocaleString()}</b> kcal over goal</>
+            : <><b>{remaining.toLocaleString()}</b> kcal remaining</>}
+        </div>
       ) : (
         <div className="pg-kcal-rem">No calorie target assigned yet — log freely; your coach will dial in your TDEE.</div>
       )}
@@ -252,8 +291,16 @@ export default function Nutrition({ plans, profile }) {
   const uid = user?.username || user?.id || 'guest';
   const stamp = formatStamp(plans?.generatedAt);
 
-  // Dynamic sources — parse the AI payload + the live profile metrics.
-  const meal = useMemo(() => parseMealPlan(plans?.mealPlan), [plans?.mealPlan]);
+  // Dynamic meal source: the database's AI-generated meal_plan wins; otherwise
+  // fall back to the user's authorized coach-authored plan from the MP seed
+  // catalog (keyed by login slug) — the same mechanism the workout grid uses for
+  // the WP catalog. This is what restores the Original Five's blank nutrition.
+  const dbMeal = plans?.mealPlan || '';
+  const seedMeal = useMemo(() => getMealPlan(uid), [uid]);
+  const meal = useMemo(
+    () => (dbMeal ? parseMealPlan(dbMeal) : (seedMeal ? mealPlanFromSeed(seedMeal) : parseMealPlan(''))),
+    [dbMeal, seedMeal],
+  );
   const fasting = useMemo(
     () => parseFastingWindow(profile?.metabolicTier, profile?.fastingHours),
     [profile?.metabolicTier, profile?.fastingHours],

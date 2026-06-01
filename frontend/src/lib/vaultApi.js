@@ -133,16 +133,10 @@ function sumDayMacros(day) {
   return hit ? { p, c, f } : null;
 }
 
-// Parse meal_plan → { structured, cal, goal, days:[{day,meals:[{m,i}]}], macros, text }.
-// structured:false (with raw text preserved) for legacy/plain-text plans.
-export function parseMealPlan(raw) {
-  const text = (raw || '').trim();
-  const empty = { structured: false, cal: null, goal: null, days: [], macros: null, text };
-  if (!text) return empty;
-  let obj;
-  try { obj = JSON.parse(text); } catch { return empty; }
-  if (!obj || typeof obj !== 'object' || !Array.isArray(obj.days)) return empty;
-
+// Normalize a meal-plan object (DB JSON or the MP seed catalog) to the render
+// shape, or null when it isn't a structured plan.
+function normalizeMeal(obj) {
+  if (!obj || typeof obj !== 'object' || !Array.isArray(obj.days)) return null;
   const days = obj.days.map((d) => ({
     day: d.day || '',
     meals: Array.isArray(d.meals) ? d.meals.map((m) => ({ m: m.m || '', i: m.i || '' })) : [],
@@ -153,8 +147,27 @@ export function parseMealPlan(raw) {
     goal: obj.goal || null,
     days,
     macros: sumDayMacros(days[0]),
-    text,
   };
+}
+
+// Parse meal_plan → { structured, cal, goal, days:[{day,meals:[{m,i}]}], macros, text }.
+// structured:false (with raw text preserved) for legacy/plain-text plans.
+export function parseMealPlan(raw) {
+  const text = (raw || '').trim();
+  const empty = { structured: false, cal: null, goal: null, days: [], macros: null, text };
+  if (!text) return empty;
+  let obj;
+  try { obj = JSON.parse(text); } catch { return empty; }
+  const norm = normalizeMeal(obj);
+  return norm ? { ...norm, text } : empty;
+}
+
+// Normalize an already-parsed meal-plan object (the authorized MP seed catalog)
+// to the same shape parseMealPlan returns — used as the per-persona fallback when
+// the database has no generated meal_plan for the user.
+export function mealPlanFromSeed(obj) {
+  const norm = normalizeMeal(obj);
+  return norm ? { ...norm, text: '' } : { structured: false, cal: null, goal: null, days: [], macros: null, text: '' };
 }
 
 // Resolve the fasting window from the metabolic tier ("12:12 Foundation",

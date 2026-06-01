@@ -556,6 +556,35 @@
 }
 .pg-set-signout:hover { background: rgba(220, 60, 60, .12); border-color: rgba(220, 60, 60, .8); }
 
+/* ── Caloric Spin Wheel (radial intake gauge) ───────────────────────────── */
+.pg-wheel {
+  position: relative;
+  width: 184px;
+  height: 184px;
+  margin: .6rem auto 1rem;
+}
+.pg-wheel svg { display: block; transform: rotate(0deg); }
+.pg-wheel-track { stroke: rgba(255, 255, 255, .08); }
+.pg-wheel-arc {
+  stroke: url(#pg-wheel-grad);
+  transition: stroke-dasharray .5s cubic-bezier(.22, 1, .36, 1);
+  filter: drop-shadow(0 0 6px rgba(245, 200, 0, .35));
+}
+.pg-wheel-arc.is-over { stroke: #e0524a; filter: drop-shadow(0 0 6px rgba(224, 82, 74, .4)); }
+.pg-wheel-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .1rem; text-align: center;
+}
+.pg-wheel-num { font-family: var(--display); font-size: 2.4rem; line-height: 1; color: var(--wht); letter-spacing: 1px; }
+.pg-wheel-goal { font-family: var(--bd); font-size: .82rem; color: var(--mut); }
+.pg-wheel-pct {
+  margin-top: .25rem;
+  font-family: var(--hb); font-size: .7rem; letter-spacing: 2px;
+  color: var(--gold-soft);
+}
+.pg-wheel-pct.is-over { color: #e0524a; }
+
 /* ── Fasting tier label + structured meal-plan cards ─────────────────────── */
 .pg-fast-tier { color: var(--mut); font-weight: 600; }
 
