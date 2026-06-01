@@ -73,6 +73,78 @@ const MAX_TOKENS = 1024; // closer replies are tight (2-4 sentences)
 const MAX_MESSAGES     = 40;   // a long but bounded conversation
 const MAX_CONTENT_CHARS = 4000; // per message
 
+// ─── Abuse protection (verify_jwt is false — public endpoint) ───────────
+// Two lightweight layers guard Anthropic spend before marketing traffic:
+//   1. Origin allowlist — blocks browser calls from non-BBF sites.
+//   2. Per-IP token bucket — caps burst + sustained request rate.
+// ⚠️ The token bucket is in-memory and therefore PER EDGE ISOLATE. It
+// throttles a single abuser hammering a warm instance, but is NOT a global
+// guarantee across cold starts / parallel isolates. For a hard cross-instance
+// limit, back it with Postgres/Redis (tracked follow-up). This is the
+// "lightweight" first line of defense, deliberately dependency-free.
+
+// Origin allowlist · comma-separated env (e.g. "https://buildbelievefit.fitness").
+// If unset, origin enforcement is skipped (fail-open) so we never silently
+// break the site before the list is confirmed — set BBF_ALLOWED_ORIGINS to arm it.
+const ALLOWED_ORIGINS = (Deno.env.get('BBF_ALLOWED_ORIGINS') || '')
+  .split(',').map((s) => s.trim()).filter(Boolean);
+
+// Token-bucket tuning (env-overridable). Burst = capacity; rate = refill.
+const RL_BURST         = Number(Deno.env.get('BBF_RL_BURST')   || 8);   // max burst per IP
+const RL_PER_MIN       = Number(Deno.env.get('BBF_RL_PER_MIN') || 15);  // sustained req/min per IP
+const RL_REFILL_PER_MS = RL_PER_MIN / 60_000;
+const RL_IDLE_TTL_MS   = 10 * 60_000; // prune buckets idle > 10 min
+
+interface Bucket { tokens: number; last: number }
+const buckets = new Map<string, Bucket>();
+let lastSweep = Date.now();
+
+function clientIp(req: Request): string {
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  return req.headers.get('x-real-ip') || 'unknown';
+}
+
+// Returns null if allowed, or a 403 Response if the Origin is rejected.
+function checkOrigin(req: Request): Response | null {
+  if (ALLOWED_ORIGINS.length === 0) return null;   // enforcement disabled
+  const origin = req.headers.get('origin');
+  if (!origin) return null;                         // non-browser caller — rate limit covers it
+  if (ALLOWED_ORIGINS.includes(origin)) return null;
+  console.warn(`[bbf-ai-hub] rejected origin: ${origin}`);
+  return jsonResponse({ error: 'origin_not_allowed' }, 403);
+}
+
+// Token-bucket rate limit. Returns null if allowed, or a 429 Response.
+function rateLimit(ip: string): Response | null {
+  const now = Date.now();
+
+  // Opportunistic prune so the Map can't grow unbounded under attack.
+  if (now - lastSweep > RL_IDLE_TTL_MS) {
+    for (const [k, b] of buckets) {
+      if (now - b.last > RL_IDLE_TTL_MS) buckets.delete(k);
+    }
+    lastSweep = now;
+  }
+
+  let b = buckets.get(ip);
+  if (!b) { b = { tokens: RL_BURST, last: now }; buckets.set(ip, b); }
+
+  // Refill proportional to elapsed time, capped at burst.
+  b.tokens = Math.min(RL_BURST, b.tokens + (now - b.last) * RL_REFILL_PER_MS);
+  b.last = now;
+
+  if (b.tokens < 1) {
+    const retrySec = Math.max(1, Math.ceil((1 - b.tokens) / RL_REFILL_PER_MS / 1000));
+    return new Response(
+      JSON.stringify({ error: 'rate_limited', detail: `Too many requests. Retry in ~${retrySec}s.` }),
+      { status: 429, headers: { ...CORS, 'Content-Type': 'application/json', 'Retry-After': String(retrySec) } },
+    );
+  }
+  b.tokens -= 1;
+  return null;
+}
+
 // ─── Fallback tier matrix · KEEP IN SYNC with chatboxContext.js ─────────
 // Mirror of Phase 18 `frontend/src/lib/chatboxContext.js`. Used ONLY when
 // the request omits `tierMatrix`. See the single-source-of-truth note above.
@@ -263,6 +335,12 @@ function extractTextBlock(content: any[]): string | null {
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST')    return jsonResponse({ error: 'method_not_allowed' }, 405);
+
+  // Abuse gates (verify_jwt is false): origin allowlist, then per-IP rate limit.
+  const originRejection = checkOrigin(req);
+  if (originRejection) return originRejection;
+  const limited = rateLimit(clientIp(req));
+  if (limited) return limited;
 
   let payload: any;
   try { payload = await req.json(); }
