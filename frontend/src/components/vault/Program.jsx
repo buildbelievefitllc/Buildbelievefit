@@ -40,7 +40,7 @@ export default function Program({ plans, profile }) {
         ) : null}
       </div>
 
-      <ProgramGrid uid={uid} />
+      <ProgramGrid uid={uid} programKey={user?.programKey} />
 
       {textPlan ? (
         <details style={styles.details}>
