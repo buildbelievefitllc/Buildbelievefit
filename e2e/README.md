@@ -61,6 +61,7 @@ its Terminal-3 RPC are deployed:
 |---|---|---|---|
 | `prehab.spec.ts` | `BBF_PREHAB_READY=1` | `bbf_get_client_prehab` *(proposed — T3 shipped `bbf_prehab_catalog`+`bbf_client_prehab` tables; read endpoint TBD)* | `vault-tab-prehab`, `prehab-module`, `prehab-routine[-name/-sets/-reps/-cue]`, `prehab-empty` |
 | `smart-cardio.spec.ts` | `BBF_CARDIO_READY=1` | `bbf_get_cardio` *(live — returns `{ ok, protocols[], logs[] }`)* | `vault-tab-cardio`, `smart-cardio-module`, `cardio-protocol[data-zone][-title/-zone/-duration/-intensity/-detail]`, `cardio-log[data-zone][-date/-duration]`, `cardio-empty` |
+| `smart-cardio-generator.spec.ts` | `BBF_CARDIO_READY=1` | `POST /functions/v1/bbf-agentic-cardio` *(live frozen contract — `modality`, `protocol_steps[]`, `cns_downregulation`, `roi`)* | `vault-tab-cardio`, `cardio-gen-minutes`, `cardio-gen-submit`, `cardio-gen-modality[data-tier]`, `cardio-gen-step[data-phase][-time/-label/-target]`, `cardio-gen-roi-toast`, `cardio-gen-roi-metric`, `cardio-gen-softened[data-base-tier][data-effective-tier]` |
 
 Each spec's header block is the authoritative contract (RPC payload shape + the
 exact hooks the UI must expose). When the frontend builds to those hooks and the
