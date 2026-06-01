@@ -111,9 +111,9 @@ export default function MarketingLanding() {
         <div style={s.heroText}>
           <div style={s.heroBadge}>⚡ {t('hero-badge')}</div>
           <h1 style={s.heroStack} aria-label="Build Believe Fit">
-            <span style={{ display: 'block' }}>BUILD</span>
-            <span style={{ display: 'block', color: GOLD }}>BELIEVE</span>
-            <span style={{ display: 'block' }}>FIT</span>
+            <span style={s.hsBuild}>BUILD</span>
+            <span style={s.hsBelieve}>BELIEVE</span>
+            <span style={s.hsFit}>FIT</span>
           </h1>
           <p style={s.heroSub}>{t('hero-sub')}</p>
           <a href="#pathfinder" style={s.heroCta}>{t('hero-cta')}</a>
@@ -326,7 +326,12 @@ const s = {
   heroText: {},
   // Purple badge — legacy .hero-badge is purple, NOT gold.
   heroBadge: { display: 'inline-block', fontFamily: BODY, fontSize: '.8rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: PURL, background: 'rgba(106,13,173,.22)', border: `1px solid rgba(106,13,173,.5)`, borderRadius: 99, padding: '6px 16px', marginBottom: 20 },
-  heroStack: { fontFamily: DISPLAY, fontSize: 'clamp(3rem,9vw,6rem)', lineHeight: .9, letterSpacing: '1px', color: '#fff', margin: '0 0 20px' },
+  // Legacy hero lockup (bbf-hero.css): BELIEVE is dramatically larger + gold with a
+  // glow; BUILD/FIT white at 95% opacity, smaller; tight .82 line-height stack.
+  heroStack: { display: 'flex', flexDirection: 'column', lineHeight: .82, margin: '0 0 1.5rem' },
+  hsBuild: { fontFamily: DISPLAY, textTransform: 'uppercase', letterSpacing: '1px', fontSize: 'clamp(3.2rem,8vw,6.5rem)', color: '#fff', opacity: .95 },
+  hsBelieve: { fontFamily: DISPLAY, textTransform: 'uppercase', letterSpacing: '1px', fontSize: 'clamp(4.2rem,11vw,9rem)', color: GOLD, margin: '-.05em 0', textShadow: '0 0 40px rgba(245,200,0,.3)' },
+  hsFit: { fontFamily: DISPLAY, textTransform: 'uppercase', letterSpacing: '1px', fontSize: 'clamp(3.2rem,8vw,6.5rem)', color: '#fff', opacity: .95 },
   heroSub: { fontFamily: BODY, fontSize: 'clamp(1rem,2vw,1.2rem)', lineHeight: 1.6, color: 'rgba(255,255,255,.7)', margin: '0 0 28px', maxWidth: '52ch' },
   heroCta: { display: 'inline-block', fontFamily: HEAD, fontSize: '1.2rem', letterSpacing: '2px', padding: '14px 40px', background: GOLD, color: '#090909', borderRadius: 8, textDecoration: 'none', boxShadow: `0 8px 28px rgba(245,200,0,.3)` },
   doors: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, margin: '28px 0' },
