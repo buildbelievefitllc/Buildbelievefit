@@ -161,6 +161,27 @@ serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  // ─── 5a. Idempotency check (skip already-fulfilled events) ─────
+  // Stripe delivers at-least-once: the SAME event.id can arrive again
+  // after a success (Stripe re-delivery) or after we return 5xx. If a
+  // ledger row exists for this event it was already fulfilled — skip
+  // provisioning (no PIN overwrite) and email (no duplicate send). The
+  // ledger row is written only AFTER a successful provision (step 7b),
+  // so a FAILED attempt leaves no row and Stripe's retry correctly
+  // reprocesses rather than being silently dropped.
+  const { data: priorEvent, error: priorErr } = await supabase
+    .from('bbf_stripe_events')
+    .select('event_id')
+    .eq('event_id', event.id)
+    .maybeSingle();
+  if (priorErr) {
+    // Fail OPEN: a ledger read hiccup must not block a paid customer.
+    console.error(`[stripe-webhook] idempotency check failed (event=${event.id}); proceeding without replay guard:`, priorErr.message);
+  } else if (priorEvent) {
+    console.log(`[stripe-webhook] replay detected for event ${event.id} (session=${session.id}); already fulfilled — skipping provision + email.`);
+    return jsonResponse({ ok: true, replay: true, event_id: event.id, session_id: session.id }, 200);
+  }
+
   // ─── 6. Provision (create-or-find by email; idempotent) ────────
   // bbf_provision_client_pin returns:
   //   { ok: true,  username: 'xxx', ... } on fresh provision
@@ -205,6 +226,27 @@ serve(async (req) => {
     );
   } else {
     console.log(`[stripe-webhook] tier set — ${username} → ${tier}`);
+  }
+
+  // ─── 7b. Mark event fulfilled (idempotency ledger) ─────────────
+  // Written only now that provisioning + tier set have succeeded. Any
+  // duplicate delivery from here on hits the 5a check and short-circuits
+  // BEFORE the non-idempotent Brevo send. PRIMARY KEY on event_id makes a
+  // rare concurrent double-insert a no-op error we can safely ignore.
+  const { error: ledgerErr } = await supabase
+    .from('bbf_stripe_events')
+    .insert({
+      event_id:   event.id,
+      event_type: event.type,
+      session_id: session.id,
+      email,                 // already lowercased+trimmed (satisfies the lowercase CHECK)
+      tier,
+      username,
+    });
+  if (ledgerErr) {
+    // Non-fatal: provisioning already succeeded. Worst case a later retry
+    // re-provisions the (idempotent) username at the same tier. Log loudly.
+    console.error(`[stripe-webhook] failed to write idempotency ledger for ${event.id}:`, ledgerErr.message);
   }
 
   // ─── 8. Welcome / Sentinel email (Brevo SMTP API framework) ────
@@ -290,20 +332,18 @@ function escapeHtml(input: string): string {
     .replace(/'/g, '&#39;');
 }
 
-// ─── Idempotency note (TODO phase18-followup) ─────────────────────
-// Stripe may retry webhooks on its end (network blips, our 5xx
-// responses, etc.). Today:
-//   - bbf_provision_client_pin is idempotent (returns existing user
-//     on already_provisioned).
-//   - bbf_admin_set_tier is idempotent (sets the same value twice =
-//     same outcome).
-//   - The Brevo email send is NOT idempotent — a retried event will
-//     re-send the welcome email (with a fresh PIN that's already
-//     written to bbf_users by the second provision call, but the
-//     user's existing PIN row was overwritten — a bigger problem
-//     than just a duplicate email).
-// Follow-up slice: add a `bbf_stripe_events` table keyed on event.id
-// with INSERT … ON CONFLICT DO NOTHING; if RowCount=0, exit early
-// with `ok: true, replay: true` before touching provision or email.
-// Until that lands, the webhook is "exactly-once on first delivery,
-// undefined-but-bounded on retry" — accept the risk for the v1 cut.
+// ─── Idempotency (IMPLEMENTED) ────────────────────────────────────
+// Stripe delivers at-least-once (network blips, our 5xx responses,
+// plain re-delivery). The `bbf_stripe_events` ledger (migration
+// 20260601000000) makes the whole pipeline exactly-once per event.id:
+//   - Step 5a checks the ledger BEFORE any work; a hit returns early
+//     with `{ ok: true, replay: true }` — no PIN overwrite, no email.
+//   - Step 7b writes the ledger row only AFTER provision + tier set
+//     succeed, so a FAILED attempt leaves no row and Stripe's retry
+//     correctly reprocesses (rather than being silently dropped — the
+//     trap a naive claim-before-work approach would fall into).
+// Residual edge: provision succeeds but the ledger INSERT fails (DB
+// hiccup) → a later retry re-provisions (idempotent username, same
+// tier) and could re-send one email. Narrow, logged, and bounded.
+// A truly hardened version would wrap provision + ledger write in one
+// DB transaction (RPC) — tracked as a future slice.
