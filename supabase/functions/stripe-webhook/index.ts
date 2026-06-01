@@ -2,21 +2,14 @@
 // stripe-webhook — Stripe checkout fulfillment + provisioning
 // ═══════════════════════════════════════════════════════════════
 // Receives Stripe `checkout.session.completed`, verifies the signature,
-// provisions the client, sets tier, and sends the welcome email.
+// then runs the ENTIRE fulfillment write-path as ONE atomic DB
+// transaction via the bbf_stripe_fulfillment_transaction RPC
+// (active_clients insert → provision → set tier → idempotency ledger).
+// If any step fails the RPC rolls back and we return 5xx so Stripe
+// retries — no split-brain / stranded-payment state.
 //
-// Consolidated source of truth (2026-06): this file was reconciled to the
-// live production deployment (v20 — which had been hot-patched beyond the
-// repo) and then hardened. Preserved from v20: bbf_active_clients
-// provisioning, username backfill (now folded into the post-success ledger
-// insert), and the deno.json import map.
-//
-// IDEMPOTENCY (check-at-top + record-after-success):
-//   Stripe delivers at-least-once. Previously (Phase 18.1) the event was
-//   *claimed* (ledger insert) BEFORE provisioning — so if provisioning
-//   failed after the claim, every retry saw the row and was dropped as a
-//   replay, stranding a paid customer. Now we CHECK the ledger first and
-//   RECORD only AFTER provisioning succeeds, so failed attempts leave no
-//   row and Stripe's retry correctly reprocesses.
+// IDEMPOTENCY lives in the RPC: a replay returns { replay: true } and
+// performs no writes. The ledger row is written only on full success.
 //
 // ── Env vars ── STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, BREVO_API_KEY,
 //   BREVO_FROM_EMAIL?, BREVO_FROM_NAME?, SUPABASE_URL*, SUPABASE_SERVICE_ROLE_KEY*
@@ -85,64 +78,39 @@ serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // ─── IDEMPOTENCY CHECK (check-at-top; record-after-success at the end) ───
-  // A ledger row means this exact event.id was already fully fulfilled —
-  // skip provisioning (no PIN overwrite) and email (no duplicate send). The
-  // row is written ONLY after provisioning succeeds, so a failed attempt
-  // leaves no row and Stripe's retry correctly reprocesses.
-  const { data: priorEvent, error: priorErr } = await supabase
-    .from('bbf_stripe_events')
-    .select('event_id')
-    .eq('event_id', event.id)
-    .maybeSingle();
-  if (priorErr) {
-    // Fail OPEN: a ledger read hiccup must not block a paid customer.
-    console.error(`[stripe-webhook] idempotency check failed (event=${event.id}); proceeding without replay guard:`, priorErr.message);
-  } else if (priorEvent) {
+  // ─── ATOMIC FULFILLMENT (single transactional RPC) ───
+  // active_clients insert → provision → set tier → ledger write, all-or-
+  // nothing. The pin is generated here (so we can show it in the welcome
+  // email) and passed in for the provision step.
+  const pin = generatePin();
+  const { data: txn, error: txnErr } = await supabase.rpc('bbf_stripe_fulfillment_transaction', {
+    p_event_id: event.id,
+    p_event_type: event.type,
+    p_session_id: session.id,
+    p_email: email,
+    p_full_name: fullName,
+    p_tier: tier,
+    p_pin: pin,
+  });
+
+  if (txnErr) {
+    // The transaction rolled back — return 5xx so Stripe retries. No
+    // stranded state: nothing was committed.
+    console.error(`[stripe-webhook] fulfillment transaction failed (session=${session.id}):`, txnErr.message);
+    return jsonResponse({ ok: false, error: 'fulfillment_failed', detail: txnErr.message }, 500);
+  }
+  if (txn?.replay) {
     console.log(`[stripe-webhook] replay skipped event_id=${event.id}`);
     return jsonResponse({ ok: true, replay: true, event_id: event.id }, 200);
   }
-
-  // ─── Active-client roster row (create if missing) — retained from v20 ───
-  const { data: existingClient, error: existingErr } = await supabase
-    .from('bbf_active_clients').select('id').eq('vault_email', email).limit(1).maybeSingle();
-  if (existingErr) return jsonResponse({ ok: false, error: 'active_client_lookup_failed', detail: existingErr.message }, 500);
-  if (!existingClient) {
-    const { error: insertErr } = await supabase.from('bbf_active_clients').insert({
-      client_name: fullName, client_email: email, vault_email: email,
-      spectrum_tier: tier, onboarding_status: 'Pending', liability_cleared: true,
-    });
-    if (insertErr) return jsonResponse({ ok: false, error: 'active_client_insert_failed', detail: insertErr.message }, 500);
+  const username = txn?.username;
+  if (!username) {
+    console.error('[stripe-webhook] fulfillment returned no username:', txn);
+    return jsonResponse({ ok: false, error: 'no_username', detail: txn }, 500);
   }
+  const newlyProvisioned = txn?.new_user === true;
 
-  // ─── Provision (create-or-find by email; idempotent) ───
-  const pin = generatePin();
-  const { data: provData, error: provErr } = await supabase.rpc('bbf_provision_client_pin', {
-    p_vault_email: email, p_pin: pin, p_full_name: fullName,
-  });
-  if (provErr) return jsonResponse({ ok: false, error: 'provision_rpc_failed', detail: provErr.message }, 500);
-  if (!provData || (!provData.ok && provData.reason !== 'already_provisioned')) {
-    return jsonResponse({ ok: false, error: 'provision_rejected', detail: provData }, 422);
-  }
-  const username = provData.username || provData.existing_uid;
-  if (!username) return jsonResponse({ ok: false, error: 'no_username' }, 500);
-  const newlyProvisioned = provData.ok === true;
-
-  // ─── Set tier (non-fatal on error; provision already succeeded) ───
-  const { error: tierErr } = await supabase.rpc('bbf_admin_set_tier', { p_uid: username, p_tier: tier });
-  if (tierErr) console.error(`[stripe-webhook] bbf_admin_set_tier failed:`, tierErr.message);
-
-  // ─── RECORD EVENT AFTER SUCCESS (idempotency ledger) ───
-  // Written only now that the active-client row + provisioning succeeded.
-  // Includes username (no separate backfill needed). PRIMARY KEY on event_id
-  // makes a rare concurrent double-insert a no-op error we ignore. Failure
-  // here is non-fatal (a later retry re-provisions the idempotent username).
-  const { error: ledgerErr } = await supabase
-    .from('bbf_stripe_events')
-    .insert({ event_id: event.id, event_type: event.type, session_id: session.id, email, tier, username });
-  if (ledgerErr) console.error(`[stripe-webhook] failed to write idempotency ledger for ${event.id}:`, ledgerErr.message);
-
-  // ─── Welcome / update email (Brevo; non-fatal) ───
+  // ─── Welcome / update email (Brevo; non-fatal — fulfillment already committed) ───
   const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
   const BREVO_FROM_EMAIL = Deno.env.get('BREVO_FROM_EMAIL') || 'buildbelievefitllc@buildbelievefit.fitness';
   const BREVO_FROM_NAME = Deno.env.get('BREVO_FROM_NAME') || 'Build Believe Fit';
