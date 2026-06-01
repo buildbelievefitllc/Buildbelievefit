@@ -17,3 +17,12 @@ createRoot(document.getElementById('root')).render(
     </LangProvider>
   </StrictMode>,
 );
+
+// Register the service worker so the app installs and runs as a true standalone
+// PWA (offline shell + asset caching). Registered after load so it never blocks
+// first paint; failures are non-fatal (the app works without it).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => { /* SW optional */ });
+  });
+}
