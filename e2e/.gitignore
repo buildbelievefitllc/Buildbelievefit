@@ -1,0 +1,7 @@
+# Playwright / Node — Terminal 4 e2e lane
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+*.log
