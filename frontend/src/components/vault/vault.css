@@ -1,0 +1,282 @@
+/* src/components/vault/vault.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Phase 20 — Visual reconstruction of the Vault's 7-Day Program Grid.
+   Everything is scoped under `.pg` so the premium chrome here never leaks into
+   the public marketing surface or the admin Command Center. Uses the LOCKED
+   brand palette (var(--yel)/--pur/--purd/--purp + Bebas/Barlow) and the legacy
+   monolith's dense, clinical structure, with the polish inline styles can't do:
+   :hover / :focus rings, expand/rise animations, and gym-floor mobile tuning. */
+
+.pg { display: block; }
+
+/* ── Day selector pills ──────────────────────────────────────────────────── */
+.pg-daynav {
+  display: flex;
+  gap: .45rem;
+  margin-bottom: 1.1rem;
+  overflow-x: auto;
+  padding-bottom: .4rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.pg-daynav::-webkit-scrollbar { display: none; }
+
+.pg-day-pill {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: .5rem 1.05rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--mut);
+  font-family: var(--bd);
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.pg-day-pill:hover { color: var(--wht); border-color: rgba(245, 200, 0, .45); }
+.pg-day-pill:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.pg-day-pill.is-on {
+  color: #0c0a02;
+  border-color: var(--yel);
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  box-shadow: 0 4px 16px -4px rgba(245, 200, 0, .5);
+}
+
+/* ── Day header (purple gradient hero) ───────────────────────────────────── */
+.pg-dayhead {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 72%);
+  border: 1px solid rgba(245, 200, 0, .18);
+  border-radius: 18px;
+  padding: 1.4rem 1.3rem;
+  margin-bottom: 1.1rem;
+  box-shadow: 0 18px 40px -22px rgba(106, 13, 173, .85);
+  animation: pg-rise .22s ease both;
+}
+.pg-dayhead::after {
+  content: '';
+  position: absolute;
+  top: -42%;
+  right: -8%;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 200, 0, .16), transparent 70%);
+  pointer-events: none;
+}
+.pg-day-kicker {
+  font-family: var(--hb);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .42);
+  margin-bottom: .25rem;
+}
+.pg-day-focus {
+  font-family: var(--display);
+  font-size: 1.9rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  line-height: 1.04;
+  color: var(--yel);
+  text-shadow: 0 2px 18px rgba(245, 200, 0, .22);
+}
+.pg-day-meta {
+  font-family: var(--bd);
+  font-size: .88rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, .62);
+  margin-top: .4rem;
+}
+
+/* ── Rest / recovery card ────────────────────────────────────────────────── */
+.pg-rest { text-align: center; padding: 1rem 0 .4rem; }
+.pg-rest-icon { font-size: 2.6rem; line-height: 1; }
+.pg-rest-title {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  color: var(--yel);
+  margin: .5rem 0 .35rem;
+}
+.pg-rest-sub {
+  font-family: var(--bd);
+  font-size: .96rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, .72);
+  line-height: 1.5;
+  max-width: 36ch;
+  margin: 0 auto;
+}
+
+/* ── Exercise cards (collapsible) ────────────────────────────────────────── */
+.pg-ex {
+  background: linear-gradient(180deg, #141414, #0e0e0e);
+  border: 1px solid #1c1c1c;
+  border-radius: 16px;
+  margin-bottom: .85rem;
+  overflow: hidden;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.pg-ex:hover { border-color: rgba(245, 200, 0, .22); }
+.pg-ex.is-open {
+  border-color: rgba(157, 39, 201, .4);
+  box-shadow: 0 14px 34px -20px rgba(106, 13, 173, .7);
+}
+.pg-ex-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.05rem 1.1rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.pg-ex-head:focus-visible { outline: 2px solid var(--purl); outline-offset: -2px; border-radius: 16px; }
+.pg-ex-main { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.pg-ex-name { font-family: var(--bd); font-size: 1.05rem; font-weight: 700; color: var(--wht); }
+.pg-ex-sub { font-family: var(--bd); font-size: .8rem; font-weight: 600; color: var(--mut); }
+.pg-ex-chevron {
+  color: var(--mut);
+  font-size: .85rem;
+  flex-shrink: 0;
+  transition: transform .22s ease, color .18s ease;
+}
+.pg-ex.is-open .pg-ex-chevron { transform: rotate(180deg); color: var(--yel); }
+
+.pg-ex-body {
+  padding: .1rem 1.1rem 1.15rem;
+  border-top: 1px solid #1c1c1c;
+  animation: pg-expand .2s ease both;
+}
+
+/* autoregulation target banner */
+.pg-target {
+  font-family: var(--bd);
+  font-size: .86rem;
+  font-weight: 600;
+  border-radius: 11px;
+  padding: .65rem .85rem;
+  margin: .85rem 0;
+  border: 1px solid transparent;
+}
+.pg-target.is-active { background: rgba(34, 197, 94, .07); border-color: rgba(34, 197, 94, .4); color: var(--grn); }
+.pg-target.is-none { background: rgba(80, 80, 80, .05); border-color: var(--line); color: var(--mut); }
+.pg-target strong { font-weight: 800; }
+
+.pg-note {
+  font-family: var(--bd);
+  font-size: .86rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: rgba(249, 245, 255, .9);
+  background: rgba(245, 200, 0, .05);
+  border: 1px solid rgba(245, 200, 0, .16);
+  border-radius: 11px;
+  padding: .65rem .85rem;
+}
+
+/* set-logging table */
+.pg-setgrid {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 1fr;
+  gap: .5rem;
+  align-items: center;
+}
+.pg-setgrid + .pg-setgrid { margin-top: .5rem; }
+.pg-sethead { margin-top: .85rem; }
+.pg-setlabel {
+  font-family: var(--hb);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--mut);
+  text-align: center;
+}
+.pg-setnum { font-family: var(--display); font-size: 1.05rem; font-weight: 900; color: var(--yel); text-align: center; }
+.pg-settgt { font-family: var(--bd); font-size: .95rem; font-weight: 700; color: var(--mut); text-align: center; }
+
+.pg-input {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  background: #0b0b0b;
+  border: 1px solid #242424;
+  border-radius: 9px;
+  color: var(--wht);
+  font-family: var(--bd);
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: .6rem .45rem;
+  min-height: 44px; /* gym-floor thumb target */
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.pg-input::placeholder { color: #555; font-weight: 500; }
+.pg-input:focus { border-color: var(--purl); box-shadow: 0 0 0 3px rgba(139, 26, 191, .25); background: #0e0a14; }
+.pg-input.is-done { border-color: var(--grn); background: rgba(34, 197, 94, .06); }
+.pg-input::-webkit-outer-spin-button,
+.pg-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pg-input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+
+/* ── Complete & Sync ─────────────────────────────────────────────────────── */
+.pg-syncbar { margin-top: 1.2rem; display: flex; flex-direction: column; gap: .55rem; }
+.pg-syncbtn {
+  width: 100%;
+  cursor: pointer;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem;
+  min-height: 48px;
+  font-family: var(--hb);
+  font-size: .9rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #0c0a02;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  box-shadow: 0 10px 26px -10px rgba(245, 200, 0, .55);
+  transition: transform .12s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.pg-syncbtn:hover { box-shadow: 0 14px 30px -10px rgba(245, 200, 0, .72); }
+.pg-syncbtn:active { transform: translateY(1px) scale(.997); }
+.pg-syncbtn:focus-visible { outline: 2px solid var(--wht); outline-offset: 2px; }
+.pg-syncbtn.is-busy { opacity: .6; cursor: progress; }
+.pg-syncmsg { font-family: var(--bd); font-size: .86rem; font-weight: 600; text-align: center; line-height: 1.4; color: var(--mut); }
+.pg-syncmsg.is-error { color: var(--red); }
+.pg-syncmsg.is-synced { color: var(--grn); }
+
+/* ── Motion ──────────────────────────────────────────────────────────────── */
+@keyframes pg-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes pg-expand { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .pg-dayhead, .pg-ex-body { animation: none; }
+  .pg-day-pill, .pg-ex, .pg-ex-chevron, .pg-input, .pg-syncbtn { transition: none; }
+}
+
+/* ── Mobile (gym floor — primary target viewport) ────────────────────────── */
+@media (max-width: 520px) {
+  .pg-dayhead { padding: 1.15rem 1.05rem; border-radius: 15px; }
+  .pg-day-focus { font-size: 1.55rem; }
+  .pg-ex-head { padding: .95rem .95rem; }
+  .pg-ex-name { font-size: 1rem; }
+  .pg-ex-body { padding: .1rem .85rem 1rem; }
+  .pg-setgrid { grid-template-columns: 26px 1fr 1fr 1fr; gap: .4rem; }
+  .pg-settgt { font-size: .85rem; }
+  .pg-input { font-size: 1rem; padding: .6rem .3rem; }
+}
+@media (max-width: 360px) {
+  .pg-setlabel { font-size: .55rem; letter-spacing: 1px; }
+  .pg-setgrid { grid-template-columns: 22px 1fr 1fr 1fr; gap: .3rem; }
+  .pg-day-focus { font-size: 1.4rem; }
+}
