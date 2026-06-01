@@ -9,34 +9,49 @@
 // consistency heatmap. State contract { isLoading, error, profile } is owned by
 // the shell — this component only paints it.
 
-import { Tile, Loading, Empty } from '../command/primitives.jsx';
+import { Loading, Empty } from '../command/primitives.jsx';
+import './vault.css';
+
+const STATS = [
+  { key: 'totalSessions', label: 'Total Sessions', unit: 'logged', accent: 'var(--yel)' },
+  { key: 'currentStreak', label: 'Current Streak', unit: 'days', accent: 'var(--grn)' },
+  { key: 'bestStreak', label: 'Best Streak', unit: 'days', accent: 'var(--purl)' },
+  { key: 'thisWeek', label: 'This Week', unit: 'sessions', accent: 'var(--blu)' },
+  { key: 'thisMonth', label: 'This Month', unit: 'sessions', accent: 'var(--blu)' },
+  { key: 'avgPerWeek', label: 'Avg / Week', unit: 'sessions', accent: 'var(--orn)' },
+];
 
 export default function VaultHub({ profile, isLoading, error }) {
   if (isLoading) return <Loading label="Loading your Vault…" />;
-  if (error) return <div style={styles.error}>{error}</div>;
+  if (error) return <div className="pg-hub-error">{error}</div>;
   if (!profile) return <Empty>No profile data yet.</Empty>;
 
   const fresh = profile.found && profile.totalSessions > 0;
 
   return (
-    <div>
-      <div style={styles.grid}>
-        <Tile label="Total Sessions" value={profile.totalSessions} unit="logged" accent="var(--yel)" />
-        <Tile label="Current Streak" value={profile.currentStreak} unit="days" accent="var(--grn)" />
-        <Tile label="Best Streak" value={profile.bestStreak} unit="days" accent="var(--purl)" />
-        <Tile label="This Week" value={profile.thisWeek} unit="sessions" accent="var(--blu)" />
-        <Tile label="This Month" value={profile.thisMonth} unit="sessions" accent="var(--blu)" />
-        <Tile label="Avg / Week" value={profile.avgPerWeek} unit="sessions" accent="var(--orn)" />
+    <div className="pg">
+      <div className="pg-hub-grid">
+        {STATS.map((s) => {
+          const v = profile[s.key];
+          const has = v !== null && v !== undefined && v !== '';
+          return (
+            <div key={s.key} className="pg-stat" style={{ borderTopColor: s.accent }}>
+              <div className="pg-stat-k">{s.label}</div>
+              <div className="pg-stat-v">{has ? Number(v).toLocaleString() : '—'}</div>
+              <div className="pg-stat-u">{has ? s.unit : ''}</div>
+            </div>
+          );
+        })}
       </div>
 
-      <h2 style={styles.subhead}>Last 30 Days</h2>
+      <h2 className="pg-hub-subhead">Last 30 Days</h2>
       {profile.heatmap.length ? (
-        <div style={styles.heatmap} aria-label="30-day training consistency">
+        <div className="pg-heatmap" aria-label="30-day training consistency">
           {profile.heatmap.map((d) => (
             <span
               key={d.date}
               title={`${d.date}${d.logged ? ' — trained' : ''}`}
-              style={{ ...styles.cell, ...(d.logged ? styles.cellOn : null) }}
+              className={`pg-heat-cell${d.logged ? ' is-on' : ''}`}
             />
           ))}
         </div>
@@ -50,39 +65,3 @@ export default function VaultHub({ profile, isLoading, error }) {
     </div>
   );
 }
-
-const styles = {
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '.7rem',
-    marginBottom: '2rem',
-  },
-  subhead: {
-    fontFamily: 'var(--hb)',
-    fontSize: '.8rem',
-    letterSpacing: '2px',
-    textTransform: 'uppercase',
-    color: 'var(--mut)',
-    margin: '0 0 .8rem',
-  },
-  heatmap: { display: 'flex', flexWrap: 'wrap', gap: 5 },
-  cell: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-    background: 'var(--gry)',
-    border: '1px solid var(--line)',
-  },
-  cellOn: {
-    background: 'var(--yel)',
-    borderColor: 'var(--yel)',
-    boxShadow: '0 0 8px rgba(245,200,0,.45)',
-  },
-  error: {
-    fontFamily: 'var(--bd)',
-    fontWeight: 600,
-    color: 'var(--red)',
-    padding: '1rem 0',
-  },
-};
