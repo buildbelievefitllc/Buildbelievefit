@@ -8,25 +8,47 @@
 //   Risk Telemetry  → Sovereign Panopticon (ACWR injury-risk grid)
 //   Comlink         → Concierge + incoming leads + SOS queue
 //
-// Structure only — each surface renders its own skeleton until live wiring lands.
 // State is local (`activeTab`); no routing per-tab yet.
+//
+// Phase 21.2 — "Player-Coach". The CEO trains on the platform himself, so the
+// admin surface now also carries the client training tabs (Program, Nutrition,
+// Settings) alongside the coaching consoles. These reuse the exact Vault
+// components and the same auth-session data source (selectPlans + useVaultProfile),
+// so the admin's own training view stays 1:1 with what a client sees.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import CommandRoster from '../components/command/CommandRoster.jsx';
 import ClientHub from '../components/command/ClientHub.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import Comlink from '../components/command/Comlink.jsx';
+import Program from '../components/vault/Program.jsx';
+import Nutrition from '../components/vault/Nutrition.jsx';
+import Settings from '../components/vault/Settings.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 
 const TABS = [
   { id: 'command', label: 'Command', Panel: CommandRoster },
   { id: 'roster', label: 'Client Hub', Panel: ClientHub },
   { id: 'telemetry', label: 'Risk Telemetry', Panel: RiskTelemetry },
   { id: 'comlink', label: 'Comlink', Panel: Comlink },
+  // Player-Coach surfaces — the admin's own training view.
+  { id: 'program', label: 'Program', Panel: Program },
+  { id: 'nutrition', label: 'Nutrition', Panel: Nutrition },
+  { id: 'settings', label: 'Settings', Panel: Settings },
 ];
 
 export default function CommandCenter() {
   const [activeTab, setActiveTab] = useState(TABS[0].id);
   const ActivePanel = (TABS.find((t) => t.id === activeTab) ?? TABS[0]).Panel;
+
+  // Player-Coach data: the admin's own plan envelope + profile metrics, sourced
+  // exactly like the client Vault so Program/Nutrition render identically. The
+  // coaching panels ignore these extra props.
+  const { user, session } = useAuth();
+  const uid = user?.username || user?.id || '';
+  const { data: profile } = useVaultProfile(uid);
+  const plans = useMemo(() => selectPlans(session), [session]);
 
   return (
     <div style={styles.page}>
@@ -57,7 +79,7 @@ export default function CommandCenter() {
       {/* key={activeTab} forces a clean unmount/remount on every swap — no state
           can bleed between surfaces, and the swap is unambiguous. */}
       <div style={styles.panel} key={activeTab}>
-        <ActivePanel />
+        <ActivePanel plans={plans} profile={profile} />
       </div>
     </div>
   );

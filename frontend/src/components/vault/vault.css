@@ -159,6 +159,38 @@
   animation: pg-expand .2s ease both;
 }
 
+/* form-demo video thumbnail (links to the hardwired YouTube demo) */
+.pg-video {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 16 / 9;
+  margin: .9rem 0 .2rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #000;
+  text-decoration: none;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.pg-video:hover { border-color: rgba(245, 200, 0, .55); transform: translateY(-1px); }
+.pg-video:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
+.pg-video-thumb { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .92; }
+.pg-video-play {
+  position: absolute; inset: 0; margin: auto;
+  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: #090909; padding-left: 3px;
+  background: var(--yel); border-radius: 50%;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .45);
+}
+.pg-video-label {
+  position: absolute; left: .55rem; bottom: .5rem;
+  font-family: var(--hb); font-size: .62rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--wht); background: rgba(9, 9, 9, .7);
+  padding: .2rem .5rem; border-radius: 999px;
+}
+
 /* autoregulation target banner */
 .pg-target {
   font-family: var(--bd);
@@ -484,5 +516,44 @@
   .pg-stat-v { font-size: 1.7rem; }
   .pg-heat-cell { width: 14px; height: 14px; }
 }
+
+/* ── Settings surface ───────────────────────────────────────────────────── */
+.pg-set-title {
+  font-family: var(--hb);
+  font-size: .72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  margin-bottom: .85rem;
+}
+.pg-set-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .6rem 0; border-top: 1px solid #1c1c1c; gap: 1rem;
+}
+.pg-set-row:first-of-type { border-top: none; }
+.pg-set-k { font-family: var(--bd); font-size: .9rem; color: var(--mut); }
+.pg-set-v { font-family: var(--bd); font-size: .95rem; font-weight: 700; color: var(--wht); }
+.pg-set-langs { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pg-set-lang {
+  flex: 1 1 auto; min-width: 90px;
+  font-family: var(--bd); font-size: .9rem; font-weight: 600;
+  padding: .6rem .8rem; border-radius: 10px; cursor: pointer;
+  color: var(--mut); background: transparent; border: 1px solid var(--line);
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.pg-set-lang:hover { color: var(--wht); border-color: rgba(245, 200, 0, .45); }
+.pg-set-lang.is-active {
+  color: #090909; font-weight: 800;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border-color: transparent;
+}
+.pg-set-signout {
+  width: 100%;
+  font-family: var(--hb); font-size: .85rem; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: .75rem 1rem; border-radius: 10px; cursor: pointer;
+  color: var(--wht); background: transparent; border: 1px solid rgba(220, 60, 60, .5);
+  transition: background .15s ease, border-color .15s ease;
+}
+.pg-set-signout:hover { background: rgba(220, 60, 60, .12); border-color: rgba(220, 60, 60, .8); }
 
 

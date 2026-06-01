@@ -27,6 +27,7 @@ import { useNavigate } from 'react-router-dom';
 import { getProgram } from './programData.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { exKey, useLastWeights, readDayEntries, writeDayEntry, syncSessionToCloud } from './programApi.js';
+import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
 import './vault.css';
 
 // First trainable day (skip leading rest days) so the grid never opens on a
@@ -157,6 +158,9 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
 
   const setCount = Number(ex.sets) > 0 ? Number(ex.sets) : 1;
   const lastWeight = weights?.[exKey(index)];
+  // Hardwired form-demo video for this movement (fuzzy-resolved against the
+  // authorized video map). null for the few cardio/circuit entries with no demo.
+  const videoId = resolveVideoId(ex.name);
 
   const onField = (setIdx, field, value) => {
     writeDayEntry(uid, dayIdx, exKey(index), setIdx, field, value);
@@ -184,6 +188,23 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
 
       {open ? (
         <div className="pg-ex-body">
+          {/* Form-demo video — clickable thumbnail opening the hardwired YouTube
+              demo in a new tab. Only rendered when the movement resolves to a
+              mapped video (cardio/circuit blocks have none). */}
+          {videoId ? (
+            <a
+              className="pg-video"
+              href={watchURL(videoId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Watch the form demo for ${ex.name}`}
+            >
+              <img className="pg-video-thumb" src={thumbURL(videoId)} alt="" loading="lazy" />
+              <span className="pg-video-play" aria-hidden="true">▶</span>
+              <span className="pg-video-label">Form demo</span>
+            </a>
+          ) : null}
+
           {/* Autoregulation target — the server's last working weight for this slot. */}
           <div className={`pg-target ${lastWeight ? 'is-active' : 'is-none'}`}>
             {lastWeight ? (

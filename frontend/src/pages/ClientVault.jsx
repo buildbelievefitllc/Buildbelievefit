@@ -26,12 +26,14 @@ import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 import VaultHub from '../components/vault/VaultHub.jsx';
 import Program from '../components/vault/Program.jsx';
 import Nutrition from '../components/vault/Nutrition.jsx';
+import Settings from '../components/vault/Settings.jsx';
 import '../components/vault/vault.css';
 
 const TABS = [
   { id: 'hub', label: 'Hub' },
   { id: 'program', label: 'Program' },
   { id: 'nutrition', label: 'Nutrition' },
+  { id: 'settings', label: 'Settings' },
 ];
 
 export default function ClientVault() {
@@ -86,6 +88,7 @@ export default function ClientVault() {
           )}
           {activeTab === 'program' && <Program plans={plans} profile={profile} />}
           {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
+          {activeTab === 'settings' && <Settings />}
         </div>
       </div>
     </div>

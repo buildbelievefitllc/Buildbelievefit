@@ -107,7 +107,12 @@ export function AuthProvider({ children }) {
         // for when the payload carries an explicit key.
         programKey: resolveProgramKey(username, data.workout_plan_key),
       },
-      plans: data.plans_available
+      // Inject the plan envelope whenever the RPC returns ANY plan text — do not
+      // gate solely on plans_generated_at. A client can have a coach-written
+      // workout/meal plan with a null generated-at stamp (legacy backfills), and
+      // suppressing it would blank the Program/Nutrition surfaces with data that
+      // actually exists. `plans_available` is kept as an additional signal.
+      plans: (data.plans_available || (data.workout_plan || '').trim() || (data.meal_plan || '').trim())
         ? {
             workout_plan: data.workout_plan ?? '',
             meal_plan: data.meal_plan ?? '',
