@@ -1,19 +1,20 @@
 // src/components/BBFChatbox.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 17 — The BBF Chatbox: a distinct conversational AI assistant, separate
-// from the Interrogator (which is a one-shot routine audit). This is a persistent
-// floating chat bubble → panel with a running conversation.
+// Phase 17 → 19 — The BBF Chatbox: a persistent floating chat bubble → panel
+// with a running conversation, distinct from the Interrogator (one-shot audit).
 //
-// Per Phase 17 scope (mirrors the Interrogator precedent): the full conversational
-// UI + state (message history, input, loading, open/close) is built; replies are a
-// keyword-routed PLACEHOLDER that acknowledges the user and nudges toward the right
-// tier / the Pathfinder. The real Gemini/Anthropic wiring is a later phase — the
-// message shape ({ role, text }) is API-ready.
+// Phase 17 shipped the full conversational UI + state (history, input, loading,
+// open/close) with a keyword-routed PLACEHOLDER. Phase 19 replaces that
+// placeholder with the LIVE Anthropic-backed brain: send() now POSTs the running
+// conversation to the bbf-ai-hub edge function (see lib/aiHubApi.js) and renders
+// the { reply, cta } closer response. Errors degrade gracefully to a branded
+// fallback that still routes to the Pathfinder.
 //
 // Brand: Purple panel + Gold CTA accents (no red).
 
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../context/LangContext.jsx';
+import { sendChat } from '../lib/aiHubApi.js';
 
 const GOLD = '#F5C800';
 const PURL = '#9D27C9';
@@ -22,57 +23,42 @@ const PURP = '#110128';
 const HEAD = "'Bebas Neue',sans-serif";
 const BODY = "'Barlow Condensed',sans-serif";
 
-// Keyword-routed placeholder. Returns a helpful canned reply + optional CTA intent.
-// (Drop-in target for the real agent: same { text, cta } return.)
-function placeholderReply(input) {
-  const q = input.toLowerCase();
-  if (/(price|cost|how much|\$|tier|plan)/.test(q)) {
-    return { text: 'Two paths: the Autonomous Engine ($47/mo — app + AI, self-directed) or the Sovereign Standard ($897/12-wk — Founder-Direct hybrid with Akeem). Want me to point you to the application?', cta: 'pathfinder' };
-  }
-  if (/(nutrition|diet|macro|calorie|tdee|eat|food)/.test(q)) {
-    return { text: 'Nutrition is built into both tiers — calibrated to your TDEE and training. Try the TDEE calculator just above to get your starting macros, then carry them into your application.', cta: 'tdee' };
-  }
-  if (/(youth|kid|child|teen|son|daughter|athlete|sport)/.test(q)) {
-    return { text: 'The Youth Athlete path is sport-specific with biomechanical prehab built for ages 9–17. Apply through the Pathfinder and Akeem will scope the right protocol.', cta: 'pathfinder' };
-  }
-  if (/(injur|joint|knee|back|shoulder|pain|prehab|rehab)/.test(q)) {
-    return { text: "Joint protection is the core of the BBF system — every protocol is engineered around your mobility and prehab needs. That's exactly what the Founder-Direct Sovereign tier specializes in.", cta: 'pathfinder' };
-  }
-  if (/(start|begin|sign up|join|apply|how do)/.test(q)) {
-    return { text: "Easiest first step: the Pathfinder application. Tell us your goals and Akeem reaches out within 24 hours. I'll take you there.", cta: 'pathfinder' };
-  }
-  return { text: "Good question — Akeem can give you the precise answer. The fastest path is to drop your details in the Pathfinder application and he'll reach out within 24 hours. Anything else I can point you to?", cta: 'pathfinder' };
-}
-
 export default function BBFChatbox({ onCta }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   // Seed the greeting as the initial message (lazy init — no setState-in-effect).
   const [messages, setMessages] = useState(() => [{ role: 'bot', text: t('chat-greeting') }]);
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
-  const timerRef = useRef(null);
-
-  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, loading]);
 
-  function send(e) {
+  async function send(e) {
     e.preventDefault();
     if (loading) return;
     const text = input.trim();
     if (!text) return;
-    setMessages((m) => [...m, { role: 'user', text }]);
+
+    // Optimistically append the user turn; this same history is what we POST so
+    // the brain has full conversational context (it drops the leading greeting).
+    const nextHistory = [...messages, { role: 'user', text }];
+    setMessages(nextHistory);
     setInput('');
     setLoading(true);
-    timerRef.current = setTimeout(() => {
-      const reply = placeholderReply(text);
-      setMessages((m) => [...m, { role: 'bot', text: reply.text, cta: reply.cta }]);
+
+    try {
+      const { reply, cta } = await sendChat(nextHistory, { lang });
+      setMessages((m) => [...m, { role: 'bot', text: reply, cta }]);
+    } catch (err) {
+      // Never surface a raw error — render the warm fallback (which routes to
+      // the application) so a failed call still converts.
+      setMessages((m) => [...m, { role: 'bot', text: err.message, cta: 'pathfinder' }]);
+    } finally {
       setLoading(false);
-    }, 900);
+    }
   }
 
   return (
