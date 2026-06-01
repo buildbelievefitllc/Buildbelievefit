@@ -1,0 +1,22 @@
+{
+  "name": "bbf-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Build Believe Fit — Playwright E2E browser-drone suite (Terminal 4 lane). Self-contained; does not touch the backend or frontend build.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:funnel": "playwright test sales-funnel",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:list": "playwright test --list",
+    "typecheck": "tsc --noEmit",
+    "report": "playwright show-report",
+    "install:browsers": "playwright install --with-deps chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
