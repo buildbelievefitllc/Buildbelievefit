@@ -23,7 +23,7 @@
 // ── Data sources ──
 //   bbf_users        — roster (clients only; admins/trainers + deleted excluded)
 //   bbf_logs         — training sessions (date) · windows the sets
-//   bbf_sets         — logged sets (reps) · "dropped" = reps null or <= 0
+//   bbf_sets         — logged sets · "dropped" = reps AND weight both missing
 //   bbf_meal_logs    — meal timestamps + macros · 16/8 fasting window + intake
 //   (bbf_meal_macros is a GLOBAL food-macro reference library, not per-client
 //    data, so it is intentionally NOT used for per-client compliance.)
@@ -150,7 +150,7 @@ serve(async (req: Request) => {
   // its own, so we window it via its parent log).
   let sets: any[] = [];
   if (logIds.length > 0) {
-    const setsR = await supa.from('bbf_sets').select('user_id, log_id, reps').in('log_id', logIds);
+    const setsR = await supa.from('bbf_sets').select('user_id, log_id, reps, weight_lbs').in('log_id', logIds);
     if (setsR.error) return jsonResponse({ error: 'query_failed', detail: `sets: ${setsR.error.message}` }, 502);
     sets = setsR.data ?? [];
   }
@@ -173,7 +173,13 @@ serve(async (req: Request) => {
     if (!uid) continue;
     const a = ensure(uid);
     a.setsLogged += 1;
-    if (s.reps == null || Number(s.reps) <= 0) a.setsDropped += 1;
+    // A "dropped" set = NO reps AND NO weight recorded. A weight-only log
+    // (reps null but weight present) is a completed set with reps simply
+    // not entered — the dominant pattern in bbf_sets — and must NOT count
+    // as dropped, or every active client false-flags red.
+    const noReps   = s.reps == null || Number(s.reps) <= 0;
+    const noWeight = s.weight_lbs == null || Number(s.weight_lbs) <= 0;
+    if (noReps && noWeight) a.setsDropped += 1;
     if (s.log_id) a.sessions.add(s.log_id);
   }
 
@@ -299,7 +305,10 @@ serve(async (req: Request) => {
 //   training:  green ≤10% dropped sets · yellow ≤25% · red >25% · no_data = 0 sets in window
 //   nutrition: green ≥80% fasting-compliant days · yellow ≥50% · red <50% · no_data = 0 logged days
 //   overall:   worst of training/nutrition; forced "red" if biomechanical_redline
-//   "dropped set" = a logged bbf_sets row with reps null or ≤ 0 (no target-reps column exists)
+//   "dropped set" = a bbf_sets row with BOTH reps and weight_lbs missing/≤0.
+//     (No target-reps column exists; weight-only logs = completed sets with
+//      reps simply unrecorded, so they do NOT count as dropped. This is a
+//      weak proxy — a real target-reps field would make it meaningful.)
 //   "fasting compliant day" = eating window (last−first meal timestamp) ≤ 8h (16/8)
 //
 // Errors: { "error": "<slug>", "detail"?: "..." }
