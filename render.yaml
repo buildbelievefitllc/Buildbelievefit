@@ -32,10 +32,40 @@ services:
         value: https://ihclbceghxpuawymlvgi.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
         sync: false                          # enter once in the Render dashboard
-    # Routing is handled by frontend/public/_redirects (copied to dist/ root):
-    # legacy .html → React route 301 bridges + the SPA catch-all. A `routes:` block
-    # here would SHADOW that file (render.yaml routes take precedence), so SPA
-    # rewriting + the legacy redirects live entirely in _redirects, not here.
+    # ── ROUTING (Render-native) ────────────────────────────────────────────────
+    # Render Static Sites do NOT read Netlify-style `public/_redirects` — routing
+    # MUST live here as render.yaml `routes`. (PR #219 mistakenly moved the SPA
+    # catch-all into _redirects, which Render ignored → /bbf-app.html 404'd. This
+    # restores the render.yaml routes that worked through Phases 8.5–18.)
+    #
+    # Render serves physically-present files FIRST (so dist/privacy.html and
+    # dist/terms.html are served directly — the 200 legal docs, never shadowed).
+    # Routes below are evaluated top-to-bottom, first match wins, for paths with
+    # NO matching file: legacy .html paths fall through to the SPA rewrite, then
+    # React Router redirects them client-side (App.jsx: "*" -> "/"; /bbf-app.html,
+    # /admin.html, etc. resolve to the marketing landing / auth gate in-app).
+    routes:
+      # Legacy app/admin entry points → the React auth gate (301).
+      - { type: redirect, source: /bbf-app.html, destination: /login }
+      - { type: redirect, source: /admin.html, destination: /login }
+      - { type: redirect, source: /mastermind-portal.html, destination: /login }
+      - { type: redirect, source: /coach-lab.html, destination: /login }
+      - { type: redirect, source: /lab-editor.html, destination: /login }
+      - { type: redirect, source: /app, destination: /login }
+      - { type: redirect, source: /portal, destination: /login }
+      # Legacy marketing / funnel pages → the React marketing landing (301).
+      - { type: redirect, source: /index.html, destination: / }
+      - { type: redirect, source: /sports-hub.html, destination: / }
+      - { type: redirect, source: /playbooks.html, destination: / }
+      - { type: redirect, source: /busy-parent-transformation.html, destination: / }
+      # Post-checkout / thank-you pages (no React equivalent yet) → landing (301).
+      - { type: redirect, source: /payment-success.html, destination: / }
+      - { type: redirect, source: /thank-you.html, destination: / }
+      - { type: redirect, source: /gracias.html, destination: / }
+      - { type: redirect, source: /obrigado.html, destination: / }
+      # SPA CATCH-ALL — MUST be last. Any unmatched path serves the React shell;
+      # React Router then owns all client-side routing.
+      - { type: rewrite, source: /*, destination: /index.html }
     headers:
       - path: /*
         name: X-Content-Type-Options

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<!-- BBF legacy bridge — Render serves this physical .html file (no 404), then it
+     forwards to the React app. Belt-and-suspenders: meta refresh + JS replace +
+     a visible link fallback. Destination is extension-less so the SPA rewrite
+     catches it. -->
+<meta http-equiv="refresh" content="0; url=/login" />
+<script>window.location.replace('/login');</script>
+<title>Build Believe Fit — Redirecting…</title>
+<style>
+  html,body{margin:0;height:100%;background:#110128;color:#f9f5ff;
+    font-family:'Barlow Condensed',Arial,sans-serif;display:flex;
+    align-items:center;justify-content:center;text-align:center}
+  a{color:#f5c800;font-weight:700}
+</style>
+</head>
+<body>
+<noscript><meta http-equiv="refresh" content="0; url=/login" /></noscript>
+<div>
+  <p style="letter-spacing:2px;text-transform:uppercase">Redirecting to the app…</p>
+  <p>If you are not redirected, <a href="/login">tap here</a>.</p>
+</div>
+</body>
+</html>
