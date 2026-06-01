@@ -16,6 +16,7 @@
 
 import { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
+import { resolveProgramKey } from '../lib/personaResolver.js';
 
 const STORAGE_KEY = 'bbf.session.v1';
 
@@ -77,7 +78,16 @@ export function AuthProvider({ children }) {
     // Success — build a lightweight session and persist it.
     const nextSession = {
       uid: username,
-      user: { id: username, username, role: data.role ?? null, type: data.type ?? null },
+      user: {
+        id: username,
+        username,
+        role: data.role ?? null,
+        type: data.type ?? null,
+        // Assigned program persona. The PIN RPC has no key field today, so this
+        // resolves from the slug map; `data.workout_plan_key` future-proofs it
+        // for when the payload carries an explicit key.
+        programKey: resolveProgramKey(username, data.workout_plan_key),
+      },
       plans: data.plans_available
         ? {
             workout_plan: data.workout_plan ?? '',
@@ -110,13 +120,21 @@ export function AuthProvider({ children }) {
   // missing/stale role in a persisted session can never lock the head coach out of
   // his own Command Center. Fail-closed: any unknown/empty role is NOT admin.
   const currentUser = session?.user ?? null;
-  const role = String(currentUser?.role || '').trim().toLowerCase();
+  // Resolve the program persona here too — sessions persisted BEFORE this shipped
+  // have no programKey, so re-deriving from the slug lets existing logins map
+  // correctly without forcing a re-auth. Any explicit key on the session wins.
+  const programKey = currentUser
+    ? resolveProgramKey(currentUser.username, currentUser.programKey)
+    : null;
+  const user = currentUser ? { ...currentUser, programKey } : null;
+
+  const role = String(user?.role || '').trim().toLowerCase();
   const isAdmin = role === 'admin' || role === 'trainer'
-    || String(currentUser?.username || '').trim().toLowerCase() === 'akeem';
+    || String(user?.username || '').trim().toLowerCase() === 'akeem';
 
   const value = {
     session,
-    user: currentUser,
+    user,
     loading,
     isAdmin,
     signInWithPin,
