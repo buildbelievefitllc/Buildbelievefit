@@ -17,6 +17,9 @@ const USE_LOCAL_SERVER = !process.env.BBF_BASE_URL;
 
 export default defineConfig({
   testDir: './tests',
+  // The static-PWA suite only. The React Vault suite has its own config
+  // (playwright.vault.config.ts) because it serves a Vite build, not the root.
+  testMatch: '**/sales-funnel.spec.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
