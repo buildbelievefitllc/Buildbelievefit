@@ -2,17 +2,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 22 — Smart Cardio (Client Vault surface). Restores the legacy Phase 10
 // engine with a persistent backend:
+//   • Agentic GPS — the proactive generator (bbf-agentic-cardio): enter a time
+//     budget → routed modality + CNS-aware minute-by-minute protocol + ROI.
 //   • Zone legend — HIIT / Tempo / Zone-2 (the legacy time-budget routing).
 //   • Active protocols — target duration + intensity + the minute-by-minute
 //     prescription, treadmill-readable monospace (legacy .cardio-protocol).
 //   • History — previously logged sessions.
 //   • Logger — write a completed session (token-gated RPC), then refetch.
 //
-// ISOLATION: new file; touches only cardioApi + cardio.css. Never imports or
-// edits T2's ProgramGrid / programData / programApi.
+// ISOLATION: touches only cardioApi / agenticCardioApi + cardio.css. Never imports
+// or edits T2's ProgramGrid / programData / programApi.
 
 import { useState } from 'react';
 import { useCardio, logCardio, CARDIO_ZONES } from '../../lib/cardioApi.js';
+import AgenticCardio from './AgenticCardio.jsx';
 import './cardio.css';
 
 function fmtDate(d) {
@@ -38,6 +41,9 @@ export default function SmartCardio() {
         The engine routes between HIIT (&lt; 20 min), Tempo (20–35 min), and Zone 2 (&gt; 35 min) —
         each protocol is built for your time budget. Log every session to keep your conditioning honest.
       </p>
+
+      {/* Proactive GPS generator — bbf-agentic-cardio */}
+      <AgenticCardio />
 
       {/* Zone legend */}
       <div className="bbf-cardio__zones">
