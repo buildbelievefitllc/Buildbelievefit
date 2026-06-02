@@ -18,6 +18,7 @@ import Interrogator from '../components/Interrogator.jsx';
 import TDEECalculator from '../components/TDEECalculator.jsx';
 import BBFChatbox from '../components/BBFChatbox.jsx';
 import PositionalBlueprints from '../components/PositionalBlueprints.jsx';
+import ScienceHub from '../components/ScienceHub.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { LANGS } from '../context/langs.js';
 
@@ -98,6 +99,7 @@ export default function MarketingLanding() {
         <div style={s.navLinks}>
           <a href="#services" style={s.navLink}>{t('nav-services')}</a>
           <a href="#programs" style={s.navLink}>{t('nav-programs')}</a>
+          <a href="#science" style={s.navLink}>Science</a>
           <a href="#interrogator" style={s.navLink}>{t('nav-audit')}</a>
           <a href="#founder" style={s.navLink}>{t('nav-about')}</a>
           <button type="button" style={s.navSignIn} onClick={() => navigate('/login')}>{t('nav-signin')}</button>
@@ -188,6 +190,9 @@ export default function MarketingLanding() {
 
       {/* ── POSITIONAL BLUEPRINTS — "Elite Position. Your Playbook." (5 sports · 25 positions) ── */}
       <PositionalBlueprints />
+
+      {/* ── SCIENCE HUB — clinical-studies library (peer-reviewed authority asset) ── */}
+      <ScienceHub />
 
       {/* ── THE INTERROGATOR (BBF Chatbox) — interactive audit → tier guidance ── */}
       <Interrogator onChooseTier={scrollToPathfinder} />
