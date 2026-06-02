@@ -164,6 +164,117 @@
 .bbf-metab__o2-val { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78rem; font-weight: 700; color: #fff; white-space: nowrap; }
 .bbf-metab__note { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: rgba(249,245,255,.72); }
 
+/* ═══ Metabolic Pacer graft (Phase 22.z) — prototype-fidelity config layer ════
+   Brutalist dark mode: pure blacks, deep-purple chrome, crisp borders, gold +
+   purple LOCKED-brand accents. Scoped under .bbf-cfg so it never bleeds out. */
+
+/* Dynamic caloric burn hero */
+.bbf-burn {
+  display: flex; align-items: center; gap: 1rem;
+  background: linear-gradient(135deg, #050505, #0c0410 70%);
+  border: 1px solid rgba(245, 200, 0, .28); border-radius: 14px;
+  padding: 1rem 1.2rem; margin-bottom: 1.3rem;
+}
+.bbf-burn__icon { font-size: 1.7rem; line-height: 1; filter: drop-shadow(0 0 8px rgba(245, 200, 0, .55)); }
+.bbf-burn__body { display: flex; flex-direction: column; }
+.bbf-burn__label { font-family: var(--hb); font-size: .66rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--mut); }
+.bbf-burn__val { font-family: var(--display); font-size: 2.1rem; line-height: 1; color: var(--yel); text-shadow: 0 2px 20px rgba(245, 200, 0, .25); }
+.bbf-burn__unit { font-family: var(--bd); font-size: .9rem; color: var(--gold-soft); }
+.bbf-burn__ctx { margin-left: auto; font-family: var(--bd); font-size: .78rem; font-weight: 700; letter-spacing: .4px; color: var(--mut); text-align: right; }
+
+/* Configuration layer */
+.bbf-cfg__layer { display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 1.2rem; }
+
+/* Time-duration slider with editable readout */
+.bbf-slider { border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem 1.1rem; background: #080808; }
+.bbf-slider__top { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .7rem; }
+.bbf-slider__lbl { font-family: var(--hb); font-size: .72rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--mut); }
+.bbf-slider__readout { display: inline-flex; align-items: baseline; gap: .35rem; }
+.bbf-slider__num {
+  width: 2.6em; font-family: var(--display); font-size: 1.5rem; line-height: 1; color: var(--yel);
+  background: transparent; border: none; border-bottom: 2px solid rgba(245, 200, 0, .4); text-align: right; padding: 0 .1rem .1rem;
+}
+.bbf-slider__num::-webkit-outer-spin-button, .bbf-slider__num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.bbf-slider__num:focus-visible { outline: none; border-bottom-color: var(--yel); }
+.bbf-slider__num-unit { font-family: var(--hb); font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); }
+.bbf-slider__range { width: 100%; accent-color: var(--yel); cursor: pointer; height: 22px; }
+.bbf-slider__range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--yel); border: 2px solid #0a0a0a; box-shadow: 0 0 10px rgba(245, 200, 0, .6); cursor: pointer; }
+.bbf-slider__range::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--yel); border: 2px solid #0a0a0a; box-shadow: 0 0 10px rgba(245, 200, 0, .6); cursor: pointer; }
+.bbf-slider__scale { display: flex; justify-content: space-between; gap: 1rem; margin-top: .5rem; font-family: var(--bd); font-size: .68rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--mut); }
+
+/* Dynamic CRP summary line (added to the formula card) */
+.bbf-crp__summary { font-family: var(--bd); font-size: .86rem; font-weight: 600; line-height: 1.5; color: rgba(249, 245, 255, .78); margin: .7rem 0 .1rem; }
+.bbf-crp__summary b { color: var(--gold-soft); font-weight: 800; }
+
+/* Active Kinetic Apparatus card grid */
+.bbf-app { margin-bottom: 1.2rem; }
+.bbf-app__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .7rem; }
+.bbf-app__kicker { font-family: var(--hb); font-size: .85rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); }
+.bbf-app__suite { font-family: var(--bd); font-size: .7rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--grn); }
+.bbf-app__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .7rem; }
+.bbf-app__card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: .25rem;
+  background: #080808; border: 1px solid var(--line); border-radius: 12px;
+  padding: .85rem .9rem; cursor: pointer; text-align: left;
+  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.bbf-app__card:hover { border-color: rgba(245, 200, 0, .4); transform: translateY(-1px); }
+.bbf-app__card:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
+.bbf-app__card:disabled { opacity: .55; cursor: not-allowed; }
+.bbf-app__card.is-active {
+  border-color: var(--yel); background: rgba(245, 200, 0, .07);
+  box-shadow: 0 0 0 1px var(--yel), 0 8px 26px -14px rgba(245, 200, 0, .7);
+}
+.bbf-app__glyph { font-size: 1.35rem; line-height: 1; margin-bottom: .15rem; }
+.bbf-app__name { font-family: var(--hb); font-size: .92rem; letter-spacing: 1px; text-transform: uppercase; color: var(--wht); line-height: 1.05; }
+.bbf-app__card.is-active .bbf-app__name { color: var(--yel); }
+.bbf-app__sub { font-family: var(--bd); font-size: .68rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--mut); }
+
+/* RECONSTRUCT PROTOCOL — the purple generation trigger */
+.bbf-cfg__actions { display: flex; margin-bottom: .2rem; }
+.bbf-reconstruct {
+  flex: 1 1 auto; font-family: var(--hb); font-size: 1rem; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 800;
+  color: var(--wht); background: linear-gradient(135deg, var(--pur), var(--purd));
+  border: 1px solid rgba(139, 26, 191, .8); border-radius: 12px; padding: 1rem 1.2rem; cursor: pointer;
+  box-shadow: 0 12px 32px -16px rgba(106, 13, 173, .9); transition: filter .16s ease, transform .16s ease;
+}
+.bbf-reconstruct:hover { filter: brightness(1.12); transform: translateY(-1px); }
+.bbf-reconstruct:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.bbf-reconstruct:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* Revealed active-session panel — Live Respiratory Sync */
+.bbf-session { margin-top: 1.6rem; border-top: 1px solid var(--line); padding-top: 1.4rem; animation: pg-rise .22s ease both; }
+.bbf-session__kicker { font-family: var(--hb); font-size: .95rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-soft); margin-bottom: 1rem; }
+
+/* Pacer countdown dial + controls */
+.bbf-pacer { border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(180deg, #0a0410, #050505 60%); padding: 1.4rem 1.2rem; margin-bottom: 1.2rem; }
+.bbf-pacer__dial { position: relative; display: flex; align-items: center; justify-content: center; min-height: 190px; margin-bottom: 1.2rem; }
+.bbf-pacer__ring {
+  position: absolute; width: 190px; height: 190px; border-radius: 50%;
+  border: 1px solid rgba(245, 200, 0, .18); box-shadow: 0 0 40px -10px var(--pacer-accent, #6a0dad) inset;
+}
+.bbf-pacer__time { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
+.bbf-pacer__time-kicker { font-family: var(--hb); font-size: .68rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold-soft); }
+.bbf-pacer__clock { font-family: var(--display); font-size: 3.2rem; line-height: 1; color: var(--wht); letter-spacing: 1px; }
+.bbf-pacer__elapsed { font-family: var(--bd); font-size: .72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); margin-top: .2rem; }
+.bbf-pacer__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 1rem 0; margin-bottom: 1.1rem; }
+.bbf-pacer__stat { display: flex; flex-direction: column; align-items: center; gap: .2rem; text-align: center; }
+.bbf-pacer__stat-val { font-family: var(--display); font-size: 1.3rem; line-height: 1; color: var(--yel); }
+.bbf-pacer__stat-unit { font-family: var(--bd); font-size: .72rem; color: var(--mut); }
+.bbf-pacer__stat-lbl { font-family: var(--bd); font-size: .62rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
+.bbf-pacer__controls { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.bbf-pacer__launch {
+  font-family: var(--hb); font-size: .92rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 800; color: #0c0a02;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border: none; border-radius: 10px; padding: .9rem 1rem; cursor: pointer;
+}
+.bbf-pacer__launch:hover { filter: brightness(1.06); }
+.bbf-pacer__reset { font-family: var(--hb); font-size: .92rem; letter-spacing: 2px; text-transform: uppercase; color: var(--wht); background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1rem; cursor: pointer; }
+.bbf-pacer__reset:hover { border-color: rgba(245, 200, 0, .45); }
+@media (max-width: 420px) {
+  .bbf-pacer__stats { grid-template-columns: 1fr; gap: .6rem; }
+  .bbf-pacer__controls { grid-template-columns: 1fr; }
+}
+
 /* ── Rate-limit toast (429 from bbf-agentic-cardio) — clean, auto-dismissing ── */
 .bbf-toast {
   position: fixed; right: 1rem; bottom: calc(1rem + var(--sb, 0px)); z-index: 60;
