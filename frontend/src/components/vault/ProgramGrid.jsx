@@ -182,10 +182,26 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
   const setCount = Number(ex.sets) > 0 ? Number(ex.sets) : 1;
   const lastWeight = weights?.[exKey(index)];
   // Coach-prescribed target load from the athlete's assigned plan. When present
-  // it pre-fills the grid (target chip + weight-input placeholder) so the
-  // athlete opens to real numbers, not a blank canvas.
+  // it pre-fills the grid (target chip + two-line target cell) so the athlete
+  // opens to real numbers, not a blank canvas.
   const target = prescribedWeight(ex);
-  const wPlaceholder = weightPlaceholder(target) || 'lbs';
+  // ── Pre-fill engine ─────────────────────────────────────────────────────────
+  // Inject the smart defaults the athlete would otherwise have to guess straight
+  // into the input affordances — as PLACEHOLDERS, never the controlled `value`.
+  // That is the state-safe contract: `value` stays the athlete's real entry ('')
+  // until they type, so (a) overriding is frictionless, (b) the controlled-state
+  // hooks never fight a synthetic value, and (c) syncSessionToCloud only ever
+  // pushes sets actually logged — a placeholder never becomes a phantom row in
+  // the cloud history.
+  //
+  // Reps box hints the assigned rep range straight from the workout_plan slot.
+  const repPlaceholder = ex.reps != null && String(ex.reps).trim() !== '' ? String(ex.reps) : 'reps';
+  // Weight box hints the autoregulation truth first — the server's last working
+  // weight (bbf_get_last_weights), the "match or beat it" number — then falls
+  // back to the coach-prescribed load for a lift with no history yet, then the
+  // generic prompt. weightPlaceholder() (from the prescribed-weight UI) strips
+  // "135 lb" → "135" so a non-numeric load like "Bodyweight" keeps "lbs".
+  const wPlaceholder = lastWeight != null ? `${lastWeight}` : (weightPlaceholder(target) || 'lbs');
   // Hardwired form-demo video for this movement (fuzzy-resolved against the
   // authorized video map). null for the few cardio/circuit entries with no demo.
   const videoId = resolveVideoId(ex.name);
@@ -276,7 +292,7 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
                   inputMode="numeric"
                   min="0"
                   step="1"
-                  placeholder="reps"
+                  placeholder={repPlaceholder}
                   value={rVal}
                   onChange={(e) => onField(s, 'r', e.target.value)}
                   aria-label={`${ex.name} set ${s + 1} reps`}
