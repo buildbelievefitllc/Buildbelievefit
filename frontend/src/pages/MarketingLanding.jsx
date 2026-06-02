@@ -22,7 +22,7 @@ import BBFChatbox from '../components/BBFChatbox.jsx';
 import PositionalBlueprints from '../components/PositionalBlueprints.jsx';
 import ScienceHub from '../components/ScienceHub.jsx';
 import { useLang } from '../context/LangContext.jsx';
-import { LANGS } from '../context/langs.js';
+import LangToggle from '../components/LangToggle.jsx';
 
 // ── True legacy palette (verbatim from styles/bbf-tokens.css) ───────────────────
 // Victory Gold is RESERVED for primary CTAs only (scarcity = value). Purple is the
@@ -530,27 +530,6 @@ function PricingMatrix() {
   );
 }
 
-// Trilingual EN / ES / PT switcher — legacy nav placement. Active language gets
-// the brand purple pill (legacy #bbf-lang-toggle .lang-active: bg purple).
-function LangToggle() {
-  const { lang, setLang } = useLang();
-  return (
-    <div style={s.langToggle} role="group" aria-label="Language">
-      {LANGS.map((l) => (
-        <button
-          key={l}
-          type="button"
-          onClick={() => setLang(l)}
-          aria-pressed={lang === l}
-          style={{ ...s.langBtn, ...(lang === l ? s.langBtnActive : null) }}
-        >
-          {l.toUpperCase()}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function Stat({ n, l }) {
   return <div style={{ textAlign: 'center' }}><div style={s.statN}>{n}</div><div style={s.statL}>{l}</div></div>;
 }
@@ -586,9 +565,6 @@ const s = {
   navLink: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', textDecoration: 'none', textTransform: 'uppercase', fontWeight: 600 },
   navSignIn: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 600, padding: 0 },
   navCta: { fontFamily: BODY, fontSize: '.88rem', letterSpacing: '1px', padding: '8px 18px', background: GOLD, color: '#090909', borderRadius: 6, textDecoration: 'none', textTransform: 'uppercase', fontWeight: 700, boxShadow: `0 4px 18px rgba(245,200,0,.25)` },
-  langToggle: { display: 'inline-flex', border: `1px solid rgba(157,39,201,.45)`, borderRadius: 8, overflow: 'hidden' },
-  langBtn: { fontFamily: HEAD, fontSize: '.82rem', letterSpacing: '1.5px', color: 'rgba(255,255,255,.6)', background: 'transparent', border: 'none', padding: '.35rem .6rem', cursor: 'pointer' },
-  langBtnActive: { background: PUR, color: GOLD },
 
   hero: { position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 'clamp(24px,5vw,56px)', alignItems: 'center', maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
   heroText: {},

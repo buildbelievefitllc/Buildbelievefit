@@ -53,7 +53,7 @@ function seedFromClient(c) {
 
 export default function Settings() {
   const { user, isAdmin, signOut } = useAuth();
-  const { lang, setLang } = useLang();
+  const { lang, setLang, t } = useLang();
 
   const username = user?.username || user?.id || '—';
   const role = isAdmin ? 'Admin · Coach' : (user?.role ? user.role : 'Client');
@@ -63,17 +63,17 @@ export default function Settings() {
       {isAdmin ? <AdminThresholds selfUid={user?.username || ''} /> : (
         <>
           <div>
-            <h2 className="pg-nut-head">Settings</h2>
-            <div className="pg-nut-meta">Account · preferences · session</div>
+            <h2 className="pg-nut-head">{t('vault-tab-settings')}</h2>
+            <div className="pg-nut-meta">{t('set-meta')}</div>
           </div>
           <div className="pg-card">
-            <div className="pg-set-title">Account</div>
+            <div className="pg-set-title">{t('set-account')}</div>
             <div className="pg-set-row">
-              <span className="pg-set-k">Username</span>
+              <span className="pg-set-k">{t('set-username')}</span>
               <span className="pg-set-v">@{username}</span>
             </div>
             <div className="pg-set-row">
-              <span className="pg-set-k">Access tier</span>
+              <span className="pg-set-k">{t('set-access-tier')}</span>
               <span className="pg-set-v">{role}</span>
             </div>
           </div>
@@ -81,7 +81,7 @@ export default function Settings() {
       )}
 
       <div className="pg-card">
-        <div className="pg-set-title">Language</div>
+        <div className="pg-set-title">{t('set-language')}</div>
         <div className="pg-set-langs">
           {Object.keys(LANG_LABELS).map((code) => (
             <button
@@ -98,8 +98,8 @@ export default function Settings() {
       </div>
 
       <div className="pg-card">
-        <div className="pg-set-title">Session</div>
-        <button type="button" className="pg-set-signout" onClick={signOut}>Sign Out</button>
+        <div className="pg-set-title">{t('set-session')}</div>
+        <button type="button" className="pg-set-signout" onClick={signOut}>{t('shell-signout')}</button>
       </div>
     </div>
   );
