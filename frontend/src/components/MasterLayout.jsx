@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { labelKey: 'cmd-tab-sports', to: '/command/sports', isActive: (tab) => tab === 'sports' },
   { labelKey: 'vault-tab-program', to: '/command/program', isActive: (tab) => ['program', 'generator', 'prehab'].includes(tab) },
   { labelKey: 'vault-tab-nutrition', to: '/command/nutrition', isActive: (tab) => tab === 'nutrition' },
+  { labelKey: 'cmd-tab-language', to: '/command/language', isActive: (tab) => tab === 'language' },
   { labelKey: 'vault-tab-settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },
 ];
 
