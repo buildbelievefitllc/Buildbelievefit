@@ -164,6 +164,20 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
 
   const setCount = Number(ex.sets) > 0 ? Number(ex.sets) : 1;
   const lastWeight = weights?.[exKey(index)];
+  // ── Pre-fill engine ─────────────────────────────────────────────────────────
+  // No box ever renders with a useless "reps"/"lbs" hint. We surface the smart
+  // defaults the athlete would otherwise have to guess: the assigned rep range
+  // straight from the workout_plan slot, and the server's last working weight
+  // (bbf_get_last_weights) when there is history.
+  //
+  // These are injected as PLACEHOLDERS, not as the controlled `value`. That is
+  // the state-safe contract: `value` stays the athlete's real entry ('' until
+  // they type), so (a) overriding is frictionless, (b) the controlled-state
+  // hooks never fight a synthetic value, and (c) syncSessionToCloud only ever
+  // pushes sets the athlete actually logged — a placeholder never becomes a
+  // phantom row in their cloud history.
+  const repPlaceholder = ex.reps != null && String(ex.reps).trim() !== '' ? String(ex.reps) : 'reps';
+  const weightPlaceholder = lastWeight != null ? `${lastWeight}` : 'lbs';
   // Hardwired form-demo video for this movement (fuzzy-resolved against the
   // authorized video map). null for the few cardio/circuit entries with no demo.
   const videoId = resolveVideoId(ex.name);
@@ -242,7 +256,7 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
                   inputMode="numeric"
                   min="0"
                   step="1"
-                  placeholder="reps"
+                  placeholder={repPlaceholder}
                   value={rVal}
                   onChange={(e) => onField(s, 'r', e.target.value)}
                   aria-label={`${ex.name} set ${s + 1} reps`}
@@ -253,7 +267,7 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
                   inputMode="decimal"
                   min="0"
                   step="0.5"
-                  placeholder="lbs"
+                  placeholder={weightPlaceholder}
                   value={wVal}
                   onChange={(e) => onField(s, 'w', e.target.value)}
                   aria-label={`${ex.name} set ${s + 1} weight in pounds`}
