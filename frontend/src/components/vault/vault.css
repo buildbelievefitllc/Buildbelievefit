@@ -500,80 +500,128 @@
 .cv-tab.is-active { color: var(--wht); border-bottom-color: var(--yel); text-shadow: 0 0 16px rgba(245, 200, 0, .4); }
 .cv-tab:focus-visible { outline: 2px solid var(--yel); outline-offset: -4px; }
 
-/* ── Daily Blueprint hero (brutalist, gold-on-purple) ────────────────────── */
-.cv-hero {
+/* ════════════════════════════════════════════════════════════════════════════
+   CLINICAL HUB (Phase 24) — brutalist client-profile dashboard.
+   Hard borders, pure black, deep purple, sharp geometric containers. No soft
+   gradients, no blob shadows, no rounded "pills" in the hero stack.
+   ════════════════════════════════════════════════════════════════════════════ */
+.cv-hub { margin-bottom: 1.6rem; }
+
+/* ── High-contrast banner ── */
+.cv-hub-banner {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--yel);
+  border: 2px solid var(--yel);
+  padding: .85rem 1.1rem;
+}
+.cv-hub-banner-l { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.cv-hub-eyebrow {
+  font-family: var(--mono); font-size: .58rem; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: rgba(8, 8, 8, .62);
+}
+.cv-hub-title {
+  font-family: var(--display); font-size: 1.85rem; font-weight: 900; letter-spacing: .5px;
+  line-height: .98; color: #080808; margin: 0;
+}
+.cv-hub-banner-r { display: flex; align-items: flex-end; }
+.cv-hub-id {
+  font-family: var(--mono); font-size: .72rem; font-weight: 700; letter-spacing: 1px;
+  color: #080808; background: rgba(8, 8, 8, .12);
+  border: 1px solid rgba(8, 8, 8, .35); padding: .25rem .55rem; white-space: nowrap;
+}
+
+/* ── Smart Day Sync — the massive centralized mission panel ── */
+.cv-mission {
   position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 70%);
-  border: 1px solid rgba(245, 200, 0, .22);
-  border-radius: 18px;
-  padding: 1.5rem 1.5rem 1.35rem;
-  margin-bottom: 1.6rem;
-  box-shadow: 0 20px 46px -24px rgba(106, 13, 173, .9);
+  background: var(--purp);
+  border: 2px solid var(--purl);
+  border-top: none;
+  padding: 1.6rem 1.4rem;
+  text-align: center;
 }
-.cv-hero::after {
-  content: '';
-  position: absolute; top: -45%; right: -6%;
-  width: 200px; height: 200px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(245, 200, 0, .16), transparent 70%);
-  pointer-events: none;
+.cv-mission.is-rest { border-color: #2a2a2a; background: #0b0b0b; }
+.cv-mission-tag {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-family: var(--mono); font-size: .62rem; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--gold-soft);
+  border: 1px solid rgba(245, 200, 0, .4); padding: .3rem .7rem; margin-bottom: 1rem;
 }
-.cv-hero-kicker {
-  font-family: var(--hb); font-size: .68rem; font-weight: 700; letter-spacing: 3px;
-  text-transform: uppercase; color: rgba(255, 255, 255, .46);
+.cv-mission-dot {
+  width: 7px; height: 7px; background: var(--yel); display: inline-block;
+  box-shadow: 0 0 0 3px rgba(245, 200, 0, .2);
 }
-.cv-hero-greet {
-  font-family: var(--display); font-size: 2.4rem; font-weight: 900; letter-spacing: 1px;
-  line-height: 1.02; color: var(--wht); margin: .25rem 0 .9rem;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, .35);
+.cv-mission.is-rest .cv-mission-tag { color: var(--mut); border-color: var(--line); }
+.cv-mission.is-rest .cv-mission-dot { background: var(--mut); box-shadow: none; }
+.cv-mission-focus {
+  font-family: var(--display); font-weight: 900; letter-spacing: 1px; line-height: .96;
+  font-size: clamp(2.1rem, 7vw, 3.4rem); color: var(--yel);
+  text-transform: uppercase; margin: 0 auto; max-width: 16ch;
 }
-.cv-hero-blueprint {
-  display: inline-flex; flex-direction: column; gap: .15rem;
-  border-left: 3px solid var(--yel); padding-left: .8rem; margin-bottom: 1.1rem;
-}
-.cv-hero-blueprint-k {
-  font-family: var(--hb); font-size: .64rem; letter-spacing: 2.5px; text-transform: uppercase;
-  color: rgba(255, 255, 255, .55);
-}
-.cv-hero-blueprint-v {
-  font-family: var(--display); font-size: 1.5rem; letter-spacing: .5px; color: var(--yel);
-  text-shadow: 0 2px 16px rgba(245, 200, 0, .25);
-}
-.cv-hero-macros {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: .55rem;
-  position: relative; z-index: 1;
-}
-.cv-hero-macro {
-  background: rgba(9, 9, 9, .42); border: 1px solid rgba(255, 255, 255, .1);
-  border-radius: 11px; padding: .65rem .5rem; text-align: center;
-}
-.cv-hero-macro-k { font-family: var(--hb); font-size: .58rem; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255, 255, 255, .55); }
-.cv-hero-macro-v { font-family: var(--display); font-size: 1.35rem; line-height: 1; color: var(--wht); margin-top: .2rem; }
-.cv-hero-macro-u { font-family: var(--bd); font-size: .66rem; font-weight: 700; color: rgba(255, 255, 255, .5); }
-
-@media (max-width: 520px) {
-  .cv-hero { padding: 1.25rem 1.2rem 1.1rem; }
-  .cv-hero-greet { font-size: 1.95rem; }
-  .cv-hero-blueprint-v { font-size: 1.3rem; }
-  .cv-hero-macros { grid-template-columns: repeat(2, 1fr); }
+.cv-mission.is-rest .cv-mission-focus { color: var(--wht); }
+.cv-mission-sub {
+  font-family: var(--bd); font-size: 1rem; font-weight: 600; line-height: 1.45;
+  color: rgba(249, 245, 255, .72); margin: .7rem auto 0; max-width: 42ch;
 }
 
-/* ── Hub dashboard ───────────────────────────────────────────────────────── */
-.pg-hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .7rem; margin-bottom: 1.8rem; }
+/* ── Monospace data strip — sessions · streak · macro targets ── */
+.cv-datastrip {
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  border: 2px solid #1a1a1a; border-top: none;
+  background: #000;
+}
+.cv-dp {
+  padding: .8rem .6rem; text-align: left;
+  border-left: 1px solid #1a1a1a; border-top: 3px solid #2a2a2a;
+}
+.cv-dp:first-child { border-left: none; }
+.cv-dp.is-gold { border-top-color: var(--yel); }
+.cv-dp.is-grn { border-top-color: var(--grn); }
+.cv-dp-k {
+  display: block; font-family: var(--mono); font-size: .54rem; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cv-dp-v {
+  display: block; font-family: var(--mono); font-size: 1.45rem; font-weight: 700;
+  line-height: 1; color: var(--wht); margin-top: .35rem;
+}
+.cv-dp.is-gold .cv-dp-v { color: var(--gold-soft); }
+.cv-dp.is-grn .cv-dp-v { color: var(--grn); }
+.cv-dp-u { font-family: var(--mono); font-size: .7rem; font-weight: 700; color: var(--mut); margin-left: .12rem; }
+
+@media (max-width: 640px) {
+  .cv-hub-title { font-size: 1.5rem; }
+  .cv-datastrip { grid-template-columns: repeat(3, 1fr); }
+  .cv-dp:nth-child(3n + 1) { border-left: none; }
+  .cv-dp:nth-child(n + 4) { border-top-width: 3px; }
+}
+@media (max-width: 380px) {
+  .cv-hub-banner { flex-direction: column; gap: .4rem; }
+  .cv-datastrip { grid-template-columns: repeat(2, 1fr); }
+  .cv-dp:nth-child(odd) { border-left: none; }
+  .cv-dp:nth-child(even) { border-left: 1px solid #1a1a1a; }
+}
+
+/* ── Hub dashboard (brutalist — sharp geometric stat blocks) ─────────────── */
+.pg-hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; margin-bottom: 1.8rem; border: 1px solid #1a1a1a; }
 .pg-stat {
-  background: linear-gradient(180deg, #141414, #0e0e0e);
-  border: 1px solid #1c1c1c; border-top: 3px solid var(--mut); border-radius: 14px; padding: 1rem;
-  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  background: #000;
+  border-right: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a;
+  border-top: 3px solid var(--mut); padding: 1rem;
+  transition: background .15s ease, border-color .15s ease;
 }
-.pg-stat:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgba(0, 0, 0, .8); }
-.pg-stat-k { font-family: var(--hb); font-size: .64rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
-.pg-stat-v { font-family: var(--display); font-size: 2rem; line-height: 1.05; color: var(--wht); margin-top: .25rem; }
-.pg-stat-u { font-family: var(--bd); font-size: .76rem; font-weight: 700; color: var(--mut); }
+.pg-stat:hover { background: #0c0712; }
+.pg-stat-k { font-family: var(--mono); font-size: .58rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
+.pg-stat-v { font-family: var(--mono); font-size: 1.9rem; font-weight: 700; line-height: 1.05; color: var(--wht); margin-top: .3rem; }
+.pg-stat-u { font-family: var(--mono); font-size: .68rem; font-weight: 700; color: var(--mut); }
 
 .pg-hub-subhead { font-family: var(--hb); font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); margin: 0 0 .85rem; }
-.pg-heatmap { display: flex; flex-wrap: wrap; gap: 5px; }
-.pg-heat-cell { width: 16px; height: 16px; border-radius: 4px; background: #141414; border: 1px solid var(--line); }
-.pg-heat-cell.is-on { background: var(--yel); border-color: var(--yel); box-shadow: 0 0 8px rgba(245, 200, 0, .45); }
+.pg-heatmap { display: flex; flex-wrap: wrap; gap: 4px; }
+.pg-heat-cell { width: 16px; height: 16px; border-radius: 0; background: #0d0d0d; border: 1px solid var(--line); }
+.pg-heat-cell.is-on { background: var(--yel); border-color: var(--yel); }
 .pg-hub-error { font-family: var(--bd); font-weight: 600; color: var(--red); padding: 1rem 0; }
 
 @media (max-width: 520px) {
