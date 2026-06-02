@@ -22,9 +22,13 @@
 //   analytics      → { ok, readiness:[...], volume:[...] }   (lazy, 90d)
 //   update_target  → { ok, client:{id,tdee_target,macro_p,macro_c,macro_f} }
 //   coach          → { ok, provider:'gemini', model, answer }   (Gemini Co-Coach)
+//   compile        → { ok, plan:{name,cal,goal,days[]}, meta, persisted }
+//                    (relays to Render /api/rotate-nutrition + writes the plan back)
 //
 // Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (auto-injected),
-//          BBF_COACH_AGENT_TOKEN (admin gate), GEMINI_API_KEY (+ GEMINI_MODEL).
+//          BBF_COACH_AGENT_TOKEN (admin gate), GEMINI_API_KEY (+ GEMINI_MODEL),
+//          BBF_RENDER_ADMIN_TOKEN (= Render BBF_ADMIN_TOKEN, compile relay),
+//          BBF_RENDER_BASE (optional; defaults to the prod Render host).
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -46,6 +50,23 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const ADMIN_TOKEN  = Deno.env.get('BBF_COACH_AGENT_TOKEN') ?? '';
 const GEMINI_KEY   = Deno.env.get('GEMINI_API_KEY') ?? '';
 const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
+
+// Orchestration relay (compile action). The Render Express engine owns the
+// nutrition-regeneration pipeline (/api/rotate-nutrition); we forward to it
+// server-side so the admin token never touches the browser bundle (§7).
+const RENDER_BASE        = (Deno.env.get('BBF_RENDER_BASE') ?? 'https://buildbelievefit.onrender.com').replace(/\/$/, '');
+const RENDER_ADMIN_TOKEN = Deno.env.get('BBF_RENDER_ADMIN_TOKEN') ?? '';
+
+// Numeric macro cap — mirrors rosterApi.TARGET_MAX + the update_target guard so
+// client and server agree on bounds. Returns a finite, rounded target or 0.
+const MACRO_MAX = 20000;
+function pickTarget(override: unknown, stored: unknown): number {
+  for (const v of [override, stored]) {
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0 && n <= MACRO_MAX) return Math.round(n);
+  }
+  return 0;
+}
 
 // Roster = clients + athletes only. admin/trainer are excluded by construction.
 const ROSTER_ROLES = ['client', 'athlete'];
@@ -363,6 +384,83 @@ serve(async (req) => {
       if (body?.id) { try { telemetry = await fetchTelemetry(String(body.id)); } catch (_) { /* non-fatal */ } }
       const { text, model } = await geminiCoach(buildCoachPrompt(client, question, telemetry));
       return jsonResponse({ ok: true, provider: 'gemini', model, answer: text, telemetry });
+    }
+
+    // ── compile (regenerate the athlete's AI nutrition schedule) ─────────────────
+    // Server-side relay to the Render orchestration engine (/api/rotate-nutrition).
+    // The browser reaches this via the standard anon-gateway pattern (no secret in
+    // the bundle, §7) — THIS function carries the Render admin token and forwards
+    // the athlete's stored intake so the engine regenerates against real targets.
+    if (action === 'compile') {
+      const id = String(body?.id ?? '');
+      if (!id) return jsonResponse({ error: 'missing_id' }, 400);
+      if (!RENDER_ADMIN_TOKEN) return jsonResponse({ error: 'backend_unconfigured', detail: 'render_token' }, 503);
+
+      const urows = await pgGet(
+        `bbf_users?select=id,uid,name,email,role,subscription_tier,dietary_profile,allergens,` +
+        `food_likes,food_dislikes,tdee_target,nutrition_plan&id=eq.${encodeURIComponent(id)}&limit=1`,
+      );
+      const u = Array.isArray(urows) && urows.length ? urows[0] : null;
+      if (!u) return jsonResponse({ error: 'not_found' }, 404);
+
+      // Coach's override (this compile) wins over the stored target; rotate-nutrition
+      // drives generation off the calorie target, so a missing one is a hard 400.
+      const tdee = pickTarget(body?.tdee_target, u.tdee_target);
+      if (!tdee) return jsonResponse({ error: 'tdee_missing', detail: 'set a calorie target first' }, 400);
+
+      // rotate-nutrition has no cuisine field of its own — fold the style into the
+      // free-text constraints so it genuinely steers selection rather than dropping.
+      const cuisine = String(body?.cuisine ?? '').trim();
+      const constraints = cuisine ? `Cuisine preference: ${cuisine} cuisine.` : '';
+
+      let rotateRes: Response;
+      try {
+        rotateRes = await fetch(`${RENDER_BASE}/api/rotate-nutrition`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': RENDER_ADMIN_TOKEN },
+          body: JSON.stringify({
+            uid: u.uid,
+            tdee: String(tdee),
+            clientName: u.name ?? u.uid,
+            clientTier: u.subscription_tier || 'gateway',
+            dietary_profile: u.dietary_profile || 'Omnivore',
+            allergens: Array.isArray(u.allergens) ? u.allergens : [],
+            food_likes: Array.isArray(u.food_likes) ? u.food_likes : [],
+            food_dislikes: Array.isArray(u.food_dislikes) ? u.food_dislikes : [],
+            previousPlan: typeof u.nutrition_plan === 'string' ? u.nutrition_plan : '',
+            constraints,
+          }),
+        });
+      } catch (_) {
+        return jsonResponse({ error: 'orchestrator_unreachable' }, 502);
+      }
+      const rotateJson = await rotateRes.json().catch(() => null);
+      if (!rotateRes.ok || !rotateJson?.ok || !rotateJson?.plan) {
+        return jsonResponse({ error: 'orchestrator_failed', detail: rotateJson?.error ?? `status_${rotateRes.status}` }, 502);
+      }
+
+      // Closed-loop writeback (mirrors /process): persist the regenerated plan so
+      // the athlete's Vault renders it on next login. Non-fatal — the coach still
+      // receives the plan in the response even if a write hiccups.
+      const planStr = JSON.stringify(rotateJson.plan);
+      const stamp = new Date().toISOString();
+      let persisted = false;
+      try {
+        await pgPatch(`bbf_users?id=eq.${encodeURIComponent(id)}`, {
+          nutrition_plan: planStr, nutrition_plan_updated_at: stamp,
+        });
+        persisted = true;
+      } catch (_) { /* non-fatal */ }
+      if (u.email) {
+        try {
+          await pgPatch(
+            `bbf_active_clients?or=(vault_email.eq.${encEmail(u.email)},client_email.eq.${encEmail(u.email)})`,
+            { meal_plan: planStr, plans_generated_at: stamp },
+          );
+        } catch (_) { /* non-fatal */ }
+      }
+
+      return jsonResponse({ ok: true, plan: rotateJson.plan, meta: rotateJson.meta ?? null, persisted });
     }
 
     return jsonResponse({ error: 'unknown_action', detail: action }, 400);

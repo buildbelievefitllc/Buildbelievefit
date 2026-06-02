@@ -149,3 +149,45 @@ export async function askCoCoach(id, query) {
   }
   return rosterCall('coach', { id, question });
 }
+
+// ── Compile (regenerate) an athlete's AI performance plan ──────────────────────
+// Cuisine styles the coach can bias a compiled plan toward. Kept here (not pulled
+// from cuisineMeals.js) so the admin API module carries no UI dependency, and so
+// the wire value the server folds into the generation prompt has a single owner.
+export const CUISINE_STYLES = [
+  { id: 'american', label: 'American' },
+  { id: 'mexican', label: 'Mexican' },
+  { id: 'brazilian', label: 'Brazilian' },
+];
+
+// Recompile the athlete's nutrition schedule against the live orchestration
+// engine. The browser NEVER holds the Render admin token (§7) — this relays
+// through the admin gateway (anon-key pattern), and the edge function carries the
+// secret server-side and forwards to Render's /api/rotate-nutrition.
+//
+// `opts.tdee_target` (optional) overrides the stored calorie target for THIS
+// compile; blank/absent ⇒ the server uses the athlete's saved target. `opts.cuisine`
+// is the style id from CUISINE_STYLES — the server folds it into the generation
+// prompt so it genuinely steers meal selection.
+//   → { ok:true, plan:{ name, cal, goal, days:[…] }, meta, persisted }
+export async function compilePlan(id, opts = {}) {
+  if (!id) {
+    const e = new Error('Select an athlete before compiling a plan.');
+    e.code = 'missing_id';
+    throw e;
+  }
+  const payload = { id };
+  const t = opts?.tdee_target;
+  if (t !== undefined && t !== null && t !== '') {
+    const n = Number(t);
+    if (!Number.isFinite(n) || n < 0 || n > TARGET_MAX) {
+      const e = new Error(`Invalid calorie target: enter a number between 0 and ${TARGET_MAX.toLocaleString()}.`);
+      e.code = 'invalid_value';
+      throw e;
+    }
+    payload.tdee_target = Math.round(n);
+  }
+  const cuisine = String(opts?.cuisine ?? '').trim().toLowerCase();
+  if (cuisine) payload.cuisine = cuisine;
+  return rosterCall('compile', payload);
+}
