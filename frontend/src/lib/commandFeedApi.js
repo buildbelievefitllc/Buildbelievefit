@@ -3,11 +3,11 @@
 // Phase 20.5 — Live data layer for the Sovereign Command Center roster.
 //
 // Talks to the bbf-command-feed edge function (Terminal 3). Mirrors the proven
-// bbf-admin-roster call convention (rosterApi.js): the Supabase gateway needs the
-// anon apikey + Authorization to ROUTE the request, AND the function gates every
-// call on X-BBF-Admin-Token === BBF_COACH_AGENT_TOKEN (index.ts:92 → 401 otherwise).
-// The token is hydrated at runtime from the shared adminAuth store — never bundled
-// (§7). Absent ⇒ the Command Center surfaces the unlock gate.
+// bbf-admin-roster call convention (rosterApi.js): the anon apikey ROUTES the
+// request through the gateway, and the Authorization bearer carries the SILENT
+// credential — the session vault_token the function verifies + role-checks
+// (index.ts vaultTokenIsAdmin). No shared secret in the client (§7); the legacy
+// X-BBF-Admin-Token gate remains server-side for service-to-service callers.
 //
 // Contract (per Terminal 3):
 //   POST {FUNCTIONS_BASE}/bbf-command-feed
@@ -24,7 +24,7 @@
 //   overall_status    → Active/Paused pill      (green ⇒ Active, else Paused)
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
-import { getCoachAdminToken } from './adminAuth.js';
+import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 const isGreen = (s) => String(s || '').trim().toLowerCase() === 'green';
 
@@ -48,13 +48,12 @@ function normalizeClient(c) {
 // Error(displayMessage) on failure.
 export async function fetchCommandFeed() {
   const headers = { 'Content-Type': 'application/json' };
-  if (SUPABASE_ANON_KEY) {
-    headers.apikey = SUPABASE_ANON_KEY;
-    headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
-  }
-  // Admin authorization — the function's real boundary (bbf-command-feed:92).
-  const adminToken = getCoachAdminToken();
-  if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
+  // apikey routes through the gateway; the Authorization bearer is the SILENT
+  // credential — the session vault_token the function verifies + role-checks
+  // (falls back to anon so an absent session yields the function's clean 401).
+  if (SUPABASE_ANON_KEY) headers.apikey = SUPABASE_ANON_KEY;
+  const vaultToken = getStoredVaultToken();
+  headers.Authorization = `Bearer ${vaultToken || SUPABASE_ANON_KEY}`;
 
   let res;
   try {

@@ -25,7 +25,6 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import { resolveProgramKey } from '../lib/personaResolver.js';
 import { formatDisplayName } from '../lib/displayName.js';
-import { clearAdminToken } from '../lib/adminAuth.js';
 
 const STORAGE_KEY = 'bbf.session.v1';
 
@@ -138,9 +137,8 @@ export function AuthProvider({ children }) {
     } catch {
       /* ignore */
     }
-    // Wipe the session-scoped admin token too, so the next user of this tab can't
-    // replay the Command Center secret (§7).
-    clearAdminToken();
+    // Removing the session (which holds the vault_token) is the whole logout — the
+    // admin surfaces authorize off that token, so there's nothing else to clear.
     setSession(null);
   }, []);
 

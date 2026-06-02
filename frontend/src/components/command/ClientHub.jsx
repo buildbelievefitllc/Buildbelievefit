@@ -10,9 +10,9 @@
 //   DETAIL  → <ClientDossier/> — athlete card + 7-Day Nutrition / 7-Day Workouts /
 //             90-Day Analytics / Athlete Feed Chat / Update Target.
 //
-// Data path: lib/rosterApi.rosterCall('roster'), which attaches the runtime-
-// hydrated X-BBF-Admin-Token (the Command Center unlock gate supplies it once;
-// never bundled, §7). Roster pull:
+// Data path: lib/rosterApi.rosterCall('roster'), which authorizes SILENTLY via the
+// logged-in admin's session (the vault_token rides as Authorization: Bearer and is
+// verified + role-checked server-side; no prompt, no secret in the client). Pull:
 //   POST {FUNCTIONS_BASE}/bbf-admin-roster { action:'roster' }
 //   200 → { ok:true, count, clients:[{ id, uid, name, email, role,
 //           metabolic_tier, subscription_tier, tdee_target, updated_at }] }
@@ -48,7 +48,7 @@ export default function ClientHub() {
     }
   }, []);
 
-  // Auto-load on mount (the admin token is hydrated by the Command Center gate).
+  // Auto-load on mount — authorization is silent (the session vault_token).
   // Deferred via microtask so the initial setState lands outside the synchronous
   // effect body (satisfies react-hooks/set-state-in-effect); cancel-guarded.
   useEffect(() => {

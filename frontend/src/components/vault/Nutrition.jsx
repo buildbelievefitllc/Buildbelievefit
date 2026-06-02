@@ -22,8 +22,6 @@ import {
   rosterCall, updateTargets, compilePlan, toErrorMessage,
   TARGET_MAX, CUISINE_STYLES,
 } from '../../lib/rosterApi.js';
-import { hasAdminToken } from '../../lib/adminAuth.js';
-import AdminTokenGate from '../command/AdminTokenGate.jsx';
 import { CUISINES, CUISINE_PLANS, dayTotals, todayIndex } from './cuisineMeals.js';
 import './vault.css';
 import './nutrition.css';
@@ -313,25 +311,11 @@ function NumField({ label, value, onChange, disabled, accent }) {
   );
 }
 
-// The AI Performance Studio is an ADMIN console whose calls (rosterApi) replay the
-// X-BBF-Admin-Token. The Nutrition Locker isn't behind the Command Center's token
-// gate, so mount the console only once the token is hydrated — otherwise its
-// roster/compile calls 401. Until then, the unlock gate hydrates it (shared store,
-// so unlocking any admin surface satisfies this too; never bundled, §7).
-function NutritionStudioGate() {
-  const [ready, setReady] = useState(hasAdminToken);
-  if (ready) return <NutritionCoachConsole />;
-  return (
-    <section className="nc-console" aria-label="Coach oversight console">
-      <header className="nc-head">
-        <span className="nc-badge">Coach Console</span>
-        <h3 className="nc-title">AI Performance Studio</h3>
-      </header>
-      <AdminTokenGate surface="the AI Performance Studio" onUnlock={() => setReady(true)} />
-    </section>
-  );
-}
-
+// The AI Performance Studio is an ADMIN console whose calls go through rosterApi,
+// which now authorizes SILENTLY via the logged-in session's vault_token (the
+// edge function verifies it + checks the admin role). No token gate — it renders
+// for admins exactly like every other surface; a non-admin never sees it (the
+// isAdmin guard at the render site, plus the server-side role check).
 function NutritionCoachConsole() {
   const [roster, setRoster] = useState(EMPTY);
   const [rosterErr, setRosterErr] = useState(null);
@@ -550,7 +534,7 @@ export default function Nutrition({ profile }) {
 
   return (
     <div className="pg-nut">
-      {isAdmin ? <NutritionStudioGate /> : null}
+      {isAdmin ? <NutritionCoachConsole /> : null}
 
       <div className="nl-head-row">
         <div>

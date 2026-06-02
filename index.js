@@ -47,6 +47,32 @@ const supabase = createClient(SUPABASE_URL || '', SUPABASE_SERVICE_KEY || '', {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
+// Silent session auth for the Comlink admin endpoints: verify an Authorization
+// bearer vault_token resolves to a LIVE admin/trainer session. Service-role read of
+// the RLS-locked bbf_vault_sessions (FK-joined to bbf_users); checks expiry + role.
+// The browser's automatic, role-based gate — no shared secret ships to the client.
+// A JWT-shaped bearer (the Supabase anon key, which has dots) is never a vault token.
+async function vaultTokenIsAdmin(token) {
+  if (!token || token.includes('.')) return false;
+  try {
+    const { data, error } = await supabase
+      .from('bbf_vault_sessions')
+      .select('expires_at, bbf_users!inner(role, uid, deleted_at)')
+      .eq('token', token)
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) return false;
+    if (new Date(data.expires_at).getTime() <= Date.now()) return false;
+    const u = Array.isArray(data.bbf_users) ? data.bbf_users[0] : data.bbf_users;
+    if (!u || u.deleted_at) return false;
+    const role = String(u.role || '').toLowerCase();
+    const uid = String(u.uid || '').toLowerCase();
+    return role === 'admin' || role === 'trainer' || uid === 'akeem';
+  } catch {
+    return false;
+  }
+}
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const ANTHROPIC_MODEL = 'claude-sonnet-4-6';
 
@@ -549,7 +575,7 @@ app.use((req, res, next) => {
   if (origin && ALLOWED_ORIGINS.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-BBF-Admin-Token');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-BBF-Admin-Token, Authorization');
     res.setHeader('Vary', 'Origin');
   }
   if (req.method === 'OPTIONS') return res.sendStatus(204);
@@ -1659,7 +1685,9 @@ app.post('/api/leads-list', async (req, res) => {
     return res.status(503).json({ ok: false, error: 'config_missing' });
   }
   const provided = req.headers['x-bbf-admin-token'];
-  if (!provided || provided !== expectedAdminToken) {
+  const bearer = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '').trim();
+  const sharedOk = provided && provided === expectedAdminToken;
+  if (!sharedOk && !(await vaultTokenIsAdmin(bearer))) {
     return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
   }
   const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
@@ -1796,7 +1824,9 @@ app.post('/api/concierge-log', async (req, res) => {
   const expectedAdminToken = process.env.BBF_ADMIN_TOKEN;
   if (!expectedAdminToken) return res.status(503).json({ ok: false, error: 'config_missing' });
   const provided = req.headers['x-bbf-admin-token'];
-  if (!provided || provided !== expectedAdminToken) {
+  const bearer = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '').trim();
+  const sharedOk = provided && provided === expectedAdminToken;
+  if (!sharedOk && !(await vaultTokenIsAdmin(bearer))) {
     return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
   }
 

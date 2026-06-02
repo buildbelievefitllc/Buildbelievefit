@@ -4,11 +4,11 @@
 // function and the Panopticon's anon PostgREST).
 //
 // Mirrors the monolith's BBF_LEADS / BBF_CONCIERGE: POST to the RENDER EXPRESS
-// backend (not Supabase). ADMIN-TOKEN (RESTORED): both endpoints still gate on the
-// X-BBF-Admin-Token header server-side (index.js → compares BBF_ADMIN_TOKEN, else
-// 401 admin_token_invalid). The earlier "zero-friction" change dropped the header
-// but never relaxed the gate, so the Comlink 401'd. We re-attach the token,
-// hydrated at runtime from the shared adminAuth store — never bundled (§7).
+// backend (not Supabase). SILENT SESSION AUTH: both endpoints authorize off the
+// logged-in admin's session — we send the session vault_token as Authorization:
+// Bearer, and the Render endpoint verifies it + checks the admin/trainer role
+// (index.js vaultTokenIsAdmin). No shared secret in the client (§7); the legacy
+// X-BBF-Admin-Token gate stays server-side for service-to-service callers.
 //
 //   POST {API_BASE}/api/leads-list     { limit }  → { ok, total, provisioned,
 //        pending, leads:[{ id, source, email, full_name, phone, tier, created_at,
@@ -23,12 +23,12 @@
 // browser blocks every request (surfaced here as a network/CORS error, never a
 // silent hang).
 
-import { getRenderAdminToken } from './adminAuth.js';
+import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 const API_BASE = 'https://buildbelievefit.onrender.com';
 
 function statusHint(status) {
-  if (status === 401) return 'unauthorized (admin token missing or rejected)';
+  if (status === 401) return 'unauthorized (session not cleared — sign in again)';
   if (status === 403) return 'origin not allowed — add this origin to the backend CORS allowlist';
   if (status === 429) return 'rate limited — wait a minute and retry';
   if (status === 503) return 'backend not configured (BBF_ADMIN_TOKEN unset)';
@@ -39,11 +39,11 @@ function statusHint(status) {
 // throws a display-ready, coded Error.
 async function comlinkPost(path, payload = {}) {
   const headers = { 'Content-Type': 'application/json' };
-  // Admin authorization for the Render gate (CORS already allow-lists this header,
-  // index.js:552). Hydrated at runtime, never bundled (§7); absent ⇒ the backend
-  // 401s and the Command Center surfaces the unlock gate.
-  const adminToken = getRenderAdminToken();
-  if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
+  // SILENT session auth — the Authorization bearer carries the session vault_token,
+  // which the Render endpoint verifies + role-checks (vaultTokenIsAdmin). No shared
+  // secret in the client (§7). Authorization is allow-listed in the backend CORS.
+  const vaultToken = getStoredVaultToken();
+  if (vaultToken) headers.Authorization = `Bearer ${vaultToken}`;
 
   let res;
   try {

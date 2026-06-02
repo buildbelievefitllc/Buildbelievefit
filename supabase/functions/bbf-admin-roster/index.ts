@@ -214,14 +214,47 @@ function buildCoachPrompt(
   ].join('\n');
 }
 
+// Silent session auth: verify an Authorization-bearer vault_token resolves to a
+// LIVE admin/trainer session. Service-role read of the RLS-locked
+// bbf_vault_sessions (FK-joined to bbf_users) — checks expiry + role. This is the
+// browser's automatic, role-based gate; no shared secret ever ships to the client.
+// A JWT-shaped bearer (the anon key used for gateway routing, which contains dots)
+// is never a vault token, so we skip the lookup for it.
+async function vaultTokenIsAdmin(token: string): Promise<boolean> {
+  if (!token || token.includes('.') || !SUPABASE_URL || !SERVICE_ROLE) return false;
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/bbf_vault_sessions`
+      + `?select=expires_at,bbf_users!inner(role,uid,deleted_at)`
+      + `&token=eq.${encodeURIComponent(token)}&limit=1`;
+    const r = await fetch(url, { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } });
+    if (!r.ok) return false;
+    const rows = await r.json();
+    const row = Array.isArray(rows) ? rows[0] : null;
+    if (!row || new Date(row.expires_at).getTime() <= Date.now()) return false;
+    const u = Array.isArray(row.bbf_users) ? row.bbf_users[0] : row.bbf_users;
+    if (!u || u.deleted_at) return false;
+    const role = String(u.role ?? '').toLowerCase();
+    const uid = String(u.uid ?? '').toLowerCase();
+    return role === 'admin' || role === 'trainer' || uid === 'akeem';
+  } catch {
+    return false;
+  }
+}
+
 // ─── handler ─────────────────────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return jsonResponse({ error: 'method_not_allowed' }, 405);
 
-  // Admin gate — the security boundary for every action.
+  // Admin gate — the security boundary for every action. Two accepted paths:
+  //   • X-BBF-Admin-Token === BBF_COACH_AGENT_TOKEN  (service-to-service / legacy)
+  //   • Authorization: Bearer <vault_token> for a logged-in admin/trainer session
+  //     (the browser's SILENT, role-based auth — no pasted/bundled secret).
   const provided = req.headers.get('x-bbf-admin-token') ?? '';
-  if (!ADMIN_TOKEN || provided.length === 0 || provided !== ADMIN_TOKEN) {
+  const bearer = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '').trim();
+  const sharedOk = ADMIN_TOKEN.length > 0 && provided.length > 0 && provided === ADMIN_TOKEN;
+  const sessionOk = !sharedOk && (await vaultTokenIsAdmin(bearer));
+  if (!sharedOk && !sessionOk) {
     return jsonResponse({ error: 'unauthorized' }, 401);
   }
   if (!SUPABASE_URL || !SERVICE_ROLE) {

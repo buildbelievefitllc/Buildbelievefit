@@ -2,7 +2,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 10 — The Sovereign Comlink, live-wired.   Phase 10.7 — silent-auth hotfix.
 //
-// Data (via lib/comlinkApi → Render Express backend, X-BBF-Admin-Token):
+// Data (via lib/comlinkApi → Render Express backend, silent session vault_token):
 //   • Incoming Leads  (/api/leads-list)    — Pathfinder submissions; PENDING vs
 //     PROVISIONED. PENDING = unconverted = the high-priority triage signal.
 //   • Concierge log   (/api/concierge-log) — autonomous re-engagement runs;
@@ -11,9 +11,9 @@
 // There is NO separate "SOS Queue" in the backend — the triage signal is PENDING
 // leads (var(--orn)) + Concierge failures (var(--red)).
 //
-// Auth: the X-BBF-Admin-Token is hydrated at runtime (Command Center unlock gate /
-// window global), never bundled (§7). Once hydrated, both feeds auto-load on mount;
-// transient errors render in-place with a Retry.
+// Auth: SILENT — the session vault_token rides as Authorization: Bearer and the
+// Render endpoint verifies it + checks the admin role (no prompt, no secret in the
+// client). Both feeds auto-load on mount; transient errors render with a Retry.
 
 import { useCallback, useEffect, useState } from 'react';
 import { fetchLeads, fetchConciergeLog } from '../../lib/comlinkApi.js';

@@ -17,45 +17,39 @@
 //     detail → { ok, client:{…} }   ← keys on `id` (the bbf_users PK), NOT uid
 //   401 unauthorized · 503 backend_unconfigured · 404 not_found · 500 server_error
 //
-// ADMIN-TOKEN (RESTORED): bbf-admin-roster still gates EVERY action on the
-// X-BBF-Admin-Token shared secret server-side (index.ts:223 compares it against
-// BBF_COACH_AGENT_TOKEN → 401 otherwise). The earlier "zero-friction" change
-// dropped the header from the browser but never relaxed the gate, so the roster
-// 401'd ("unauthorized"). We re-attach the token, hydrated at runtime from the
-// shared adminAuth store (window global / sessionStorage / the unlock gate) — it
-// is NEVER bundled (CLAUDE.md §7). The anon/publishable key still rides along for
-// gateway routing; the admin token is the authorization on top.
+// SILENT SESSION AUTH: bbf-admin-roster authorizes every action by the logged-in
+// admin's session — NOT a manually-pasted/bundled secret. The anon key still rides
+// in `apikey` to route the request through the gateway; the Authorization bearer
+// carries the session's `vault_token` (minted at PIN login, persisted in the
+// session), which the function verifies server-side and checks the admin/trainer
+// role on (index.ts vaultTokenIsAdmin). No shared secret ever touches the client
+// (CLAUDE.md §7); the legacy X-BBF-Admin-Token path stays for service-to-service.
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
-import { getCoachAdminToken } from './adminAuth.js';
+import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 // Human-readable line for an HTTP status, so a surfaced error is precise rather
 // than a bare code (parity with the monolith's _errMsg).
 export function statusHint(status) {
   if (status === 400) return 'bad request (missing/invalid field)';
-  if (status === 401) return 'unauthorized (admin token missing or rejected)';
+  if (status === 401) return 'unauthorized (session not cleared — sign in again)';
   if (status === 403) return 'gateway rejected the request (check anon apikey)';
   if (status === 404) return 'not found';
   if (status === 503) return 'backend not configured (missing secret)';
   return 'request failed';
 }
 
-// POST one action against bbf-admin-roster via the standard anon-key pattern.
-// Resolves to the parsed { ok:true, ... } body, or throws an Error whose message
-// is already display-ready ("Error 401 — unauthorized (…).").
+// POST one action against bbf-admin-roster. Resolves to the parsed { ok:true, ... }
+// body, or throws an Error whose message is already display-ready.
 export async function rosterCall(action, payload = {}) {
   const headers = { 'Content-Type': 'application/json' };
-  // Gateway routing headers — without these the request never reaches the
-  // function (it 401s at the edge). The anon key is safe in the bundle.
-  if (SUPABASE_ANON_KEY) {
-    headers.apikey = SUPABASE_ANON_KEY;
-    headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
-  }
-  // Admin authorization — the function's real security boundary. Hydrated at
-  // runtime (never bundled, §7); absent ⇒ the function 401s and the UI surfaces
-  // the unlock gate so the CEO can supply it once.
-  const adminToken = getCoachAdminToken();
-  if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
+  // `apikey` routes the request through the Supabase gateway; the Authorization
+  // bearer is the SILENT credential — the session vault_token (falls back to the
+  // anon key when no session, so a stale/absent session yields the function's clean
+  // 401 rather than a gateway error).
+  if (SUPABASE_ANON_KEY) headers.apikey = SUPABASE_ANON_KEY;
+  const vaultToken = getStoredVaultToken();
+  headers.Authorization = `Bearer ${vaultToken || SUPABASE_ANON_KEY}`;
 
   const res = await fetch(`${FUNCTIONS_BASE}/bbf-admin-roster`, {
     method: 'POST',

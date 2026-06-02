@@ -15,8 +15,8 @@
 // intent — high risk = high visibility — onto the real red/yellow statuses.)
 //
 // State contract: { data, isLoading, error } — no silent failures, no infinite
-// spinners. The roster read is gated by the runtime-hydrated X-BBF-Admin-Token
-// (Command Center unlock gate); the load tables stay anon + RLS.
+// spinners. The roster read authorizes SILENTLY via the session vault_token
+// (Authorization: Bearer, verified + role-checked server-side); load tables stay anon + RLS.
 
 import { useCallback, useEffect, useState } from 'react';
 import { fetchPanopticon } from '../../lib/telemetryApi.js';

@@ -5,8 +5,8 @@
 // The roster (bbf_users) is read through the SERVICE-ROLE, token-gated admin
 // function (bbf-admin-roster) — the anon role is correctly DENIED SELECT on
 // bbf_users (PII / PIN-hash shield), so the old direct PostgREST read failed with
-// "permission denied for table bbf_users". rosterCall injects the runtime-hydrated
-// X-BBF-Admin-Token (never bundled, §7) so the service role performs the read. The
+// "permission denied for table bbf_users". rosterCall authorizes SILENTLY via the
+// session vault_token (Authorization: Bearer, server-verified) so the read runs. The
 // three load tables (load_logs / _bouts / progression) carry no PII and stay on
 // anon PostgREST + RLS; they degrade gracefully if a policy is absent (athletes
 // show dormant / no sport).
@@ -52,7 +52,7 @@ export async function fetchGlobalRosterTelemetry() {
       .limit(1000),
   ]);
 
-  // The roster is the gate — a hard error here (missing admin token / 401 / network)
+  // The roster is the gate — a hard error here (no/expired session / 401 / network)
   // is fatal and surfaced. The other three degrade gracefully (athletes show
   // dormant / no sport).
   if (usersBody?.__error) {
