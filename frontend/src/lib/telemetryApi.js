@@ -2,22 +2,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Sovereign Panopticon data layer — a DISTINCT path from the Client Hub.
 //
-// Unlike rosterApi (POST bbf-admin-roster + X-BBF-Admin-Token + service role),
-// the Panopticon mirrors the monolith's bbf-sync.fetchGlobalRosterTelemetry: four
-// parallel DIRECT PostgREST reads via the ANON key, gated by RLS (the
-// `phase8_bbf_users_anon_select` policy family). No admin token — the data is
-// anon-readable by RLS design; the monolith's "admin-only" gate is client-side
-// RBAC, not a data boundary.
-//
-// ⚠️ DEPENDENCY: this works only if the prod anon-SELECT RLS policies for
-// bbf_users (id,uid,name,role) + bbf_athlete_load_logs / _bouts /
-// bbf_athlete_progression are live. If they are not, the users query errors and
-// we surface it (never a silent empty grid).
+// The roster (bbf_users) is read through the SERVICE-ROLE, token-gated admin
+// function (bbf-admin-roster) — the anon role is correctly DENIED SELECT on
+// bbf_users (PII / PIN-hash shield), so the old direct PostgREST read failed with
+// "permission denied for table bbf_users". rosterCall injects the runtime-hydrated
+// X-BBF-Admin-Token (never bundled, §7) so the service role performs the read. The
+// three load tables (load_logs / _bouts / progression) carry no PII and stay on
+// anon PostgREST + RLS; they degrade gracefully if a policy is absent (athletes
+// show dormant / no sport).
 //
 // Risk math is computed CLIENT-SIDE via intelCore (verbatim port of the canonical
 // kernel) — same algorithm the monolith and the bbf-sentinel cron share.
 
 import { supabase } from './supabaseClient.js';
+import { rosterCall } from './rosterApi.js';
 import { runLoadAudit, classifyRisk } from './intelCore.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -34,8 +32,11 @@ export async function fetchGlobalRosterTelemetry() {
   const todayISO = todayMid.toISOString();
   const tomorrowISO = new Date(todayMs + DAY_MS).toISOString();
 
-  const [usersR, logsR, boutsR, progR] = await Promise.all([
-    supabase.from('bbf_users').select('id,uid,name,role').order('name', { ascending: true }),
+  const [usersBody, logsR, boutsR, progR] = await Promise.all([
+    // Service-role roster via the token-gated admin function (replaces the
+    // anon read of bbf_users that hit "permission denied"). Wrapped so a throw
+    // (missing token / 401 / network) flows through the same fatal-gate handling.
+    rosterCall('roster').catch((err) => ({ __error: err })),
     supabase.from('bbf_athlete_load_logs')
       .select('athlete_id,session_timestamp,load_au')
       .gte('session_timestamp', sinceISO)
@@ -51,14 +52,18 @@ export async function fetchGlobalRosterTelemetry() {
       .limit(1000),
   ]);
 
-  // The users query is the gate — a hard error here (e.g. RLS block) is fatal and
-  // surfaced. The other three degrade gracefully (athletes show dormant / no sport).
-  if (usersR.error) {
-    const e = new Error(`Roster telemetry blocked — ${usersR.error.message || 'users query failed'}.`);
+  // The roster is the gate — a hard error here (missing admin token / 401 / network)
+  // is fatal and surfaced. The other three degrade gracefully (athletes show
+  // dormant / no sport).
+  if (usersBody?.__error) {
+    const e = new Error(`Roster telemetry blocked — ${usersBody.__error.message || 'admin roster fetch failed'}.`);
     e.code = 'telemetry';
     throw e;
   }
-  const users = usersR.data || [];
+  // bbf-admin-roster returns clients/athletes (admins excluded by construction) as
+  // { id, uid, name, role, … } — map to the {id,uid,name,role} shape used below.
+  const users = (Array.isArray(usersBody.clients) ? usersBody.clients : [])
+    .map((c) => ({ id: c.id, uid: c.uid, name: c.name, role: c.role }));
   const logs = logsR.data || [];
   const bouts = boutsR.data || [];
   const progressions = progR.data || [];
