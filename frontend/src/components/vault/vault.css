@@ -460,7 +460,7 @@
 .cv-logo { font-family: var(--hb); font-size: 1.35rem; font-weight: 900; letter-spacing: 3px; color: var(--wht); }
 .cv-logo b { color: var(--yel); font-weight: 900; }
 .cv-kicker { font-family: var(--hb); font-size: .66rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); }
-.cv-who { display: flex; align-items: center; gap: .9rem; }
+.cv-who { display: flex; align-items: center; gap: .7rem; }
 .cv-greet { font-family: var(--bd); font-size: .95rem; font-weight: 700; color: var(--mut); }
 .cv-signout {
   font-family: var(--hb); font-size: .74rem; letter-spacing: 2px; text-transform: uppercase;
@@ -469,6 +469,18 @@
   transition: background .15s ease, border-color .15s ease;
 }
 .cv-signout:hover { background: rgba(245, 200, 0, .08); border-color: var(--yel); }
+
+/* secure cross-over to the admin Command Center — purple-keyed so it reads as a
+   distinct "enter the console" action, not a peer of Sign Out */
+.cv-command {
+  font-family: var(--hb); font-size: .74rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--wht); background: rgba(106, 13, 173, .22);
+  border: 1px solid rgba(139, 26, 191, .55);
+  border-radius: 10px; padding: .55rem .9rem; cursor: pointer; white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.cv-command:hover { background: rgba(139, 26, 191, .34); border-color: var(--purl); box-shadow: 0 0 16px -4px rgba(139, 26, 191, .7); }
+.cv-command:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 
 .cv-container { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.2rem 0; }
 
@@ -487,6 +499,64 @@
 .cv-tab:hover { color: rgba(249, 245, 255, .85); }
 .cv-tab.is-active { color: var(--wht); border-bottom-color: var(--yel); text-shadow: 0 0 16px rgba(245, 200, 0, .4); }
 .cv-tab:focus-visible { outline: 2px solid var(--yel); outline-offset: -4px; }
+
+/* ── Daily Blueprint hero (brutalist, gold-on-purple) ────────────────────── */
+.cv-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 70%);
+  border: 1px solid rgba(245, 200, 0, .22);
+  border-radius: 18px;
+  padding: 1.5rem 1.5rem 1.35rem;
+  margin-bottom: 1.6rem;
+  box-shadow: 0 20px 46px -24px rgba(106, 13, 173, .9);
+}
+.cv-hero::after {
+  content: '';
+  position: absolute; top: -45%; right: -6%;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 200, 0, .16), transparent 70%);
+  pointer-events: none;
+}
+.cv-hero-kicker {
+  font-family: var(--hb); font-size: .68rem; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: rgba(255, 255, 255, .46);
+}
+.cv-hero-greet {
+  font-family: var(--display); font-size: 2.4rem; font-weight: 900; letter-spacing: 1px;
+  line-height: 1.02; color: var(--wht); margin: .25rem 0 .9rem;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, .35);
+}
+.cv-hero-blueprint {
+  display: inline-flex; flex-direction: column; gap: .15rem;
+  border-left: 3px solid var(--yel); padding-left: .8rem; margin-bottom: 1.1rem;
+}
+.cv-hero-blueprint-k {
+  font-family: var(--hb); font-size: .64rem; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(255, 255, 255, .55);
+}
+.cv-hero-blueprint-v {
+  font-family: var(--display); font-size: 1.5rem; letter-spacing: .5px; color: var(--yel);
+  text-shadow: 0 2px 16px rgba(245, 200, 0, .25);
+}
+.cv-hero-macros {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: .55rem;
+  position: relative; z-index: 1;
+}
+.cv-hero-macro {
+  background: rgba(9, 9, 9, .42); border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 11px; padding: .65rem .5rem; text-align: center;
+}
+.cv-hero-macro-k { font-family: var(--hb); font-size: .58rem; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255, 255, 255, .55); }
+.cv-hero-macro-v { font-family: var(--display); font-size: 1.35rem; line-height: 1; color: var(--wht); margin-top: .2rem; }
+.cv-hero-macro-u { font-family: var(--bd); font-size: .66rem; font-weight: 700; color: rgba(255, 255, 255, .5); }
+
+@media (max-width: 520px) {
+  .cv-hero { padding: 1.25rem 1.2rem 1.1rem; }
+  .cv-hero-greet { font-size: 1.95rem; }
+  .cv-hero-blueprint-v { font-size: 1.3rem; }
+  .cv-hero-macros { grid-template-columns: repeat(2, 1fr); }
+}
 
 /* ── Hub dashboard ───────────────────────────────────────────────────────── */
 .pg-hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .7rem; margin-bottom: 1.8rem; }

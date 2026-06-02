@@ -24,6 +24,7 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import { resolveProgramKey } from '../lib/personaResolver.js';
+import { formatDisplayName } from '../lib/displayName.js';
 
 const STORAGE_KEY = 'bbf.session.v1';
 
@@ -150,7 +151,11 @@ export function AuthProvider({ children }) {
   const programKey = currentUser
     ? resolveProgramKey(currentUser.username, currentUser.programKey)
     : null;
-  const user = currentUser ? { ...currentUser, programKey } : null;
+  // Presentable full name for the Vault greeting (the slug carries no display
+  // name). Client Zero `akeem` → "Akeem Brown".
+  const user = currentUser
+    ? { ...currentUser, programKey, displayName: formatDisplayName(currentUser.username) }
+    : null;
 
   const role = String(user?.role || '').trim().toLowerCase();
   const isAdmin = role === 'admin' || role === 'trainer'

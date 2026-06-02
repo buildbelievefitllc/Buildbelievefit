@@ -12,53 +12,36 @@
 //   POST {FUNCTIONS_BASE}/bbf-admin-roster
 //   headers: apikey + Authorization: Bearer <anon>   → gateway routing (REQUIRED
 //            even with verify_jwt:false; the function 401s at the edge otherwise)
-//            X-BBF-Admin-Token: <secret>             → the real authorization gate
 //   body:    { action, ...payload }
 //     roster → { ok, count, clients:[…] }
 //     detail → { ok, client:{…} }   ← keys on `id` (the bbf_users PK), NOT uid
 //   401 unauthorized · 503 backend_unconfigured · 404 not_found · 500 server_error
 //
-// SECURITY (CLAUDE.md §7): the admin token is a shared secret, NEVER bundled. It
-// is entered at runtime and held in sessionStorage under the monolith's own key
-// (BBF_COACH_AGENT_TOKEN) so the two surfaces share one convention.
+// ZERO-FRICTION (Phase 23): the admin-token UI gate has been ERADICATED. The
+// edge functions are now reachable via the standard anon-key pattern (Terminal 3
+// stripped the X-BBF-Admin-Token requirement), so the coach surfaces auto-load
+// with no token prompt. The anon/publishable key stays in the bundle purely for
+// gateway routing — RLS + service-role inside the function remain the real
+// boundary (CLAUDE.md §7).
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
-
-const TOKEN_KEY = 'BBF_COACH_AGENT_TOKEN';
-
-export const readToken = () => {
-  try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
-};
-export const writeToken = (t) => {
-  try { sessionStorage.setItem(TOKEN_KEY, t); } catch { /* storage blocked */ }
-};
-export const clearToken = () => {
-  try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* storage blocked */ }
-};
 
 // Human-readable line for an HTTP status, so a surfaced error is precise rather
 // than a bare code (parity with the monolith's _errMsg).
 export function statusHint(status) {
   if (status === 400) return 'bad request (missing/invalid field)';
-  if (status === 401) return 'admin token missing or mismatched';
+  if (status === 401) return 'unauthorized (gateway anon key missing/invalid)';
   if (status === 403) return 'gateway rejected the request (check anon apikey)';
   if (status === 404) return 'not found';
   if (status === 503) return 'backend not configured (missing secret)';
   return 'request failed';
 }
 
-// POST one action against bbf-admin-roster with the full gateway + admin auth.
+// POST one action against bbf-admin-roster via the standard anon-key pattern.
 // Resolves to the parsed { ok:true, ... } body, or throws an Error whose message
-// is already display-ready ("Error 401 — admin token missing or mismatched (…).").
+// is already display-ready ("Error 401 — unauthorized (…).").
 export async function rosterCall(action, payload = {}) {
-  const t = readToken();
-  if (!t) {
-    const e = new Error('Admin token required — authenticate to load data.');
-    e.code = 'no_token';
-    throw e;
-  }
-
-  const headers = { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': t };
+  const headers = { 'Content-Type': 'application/json' };
   // Gateway routing headers — without these the request never reaches the
   // function (it 401s at the edge). The anon key is safe in the bundle.
   if (SUPABASE_ANON_KEY) {

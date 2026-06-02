@@ -21,15 +21,61 @@ const STATS = [
   { key: 'avgPerWeek', label: 'Avg / Week', unit: 'sessions', accent: 'var(--orn)' },
 ];
 
-export default function VaultHub({ profile, isLoading, error }) {
-  if (isLoading) return <Loading label="Loading your Vault…" />;
-  if (error) return <div className="pg-hub-error">{error}</div>;
-  if (!profile) return <Empty>No profile data yet.</Empty>;
+// Daily Blueprint — static placeholders for now (Phase 23). The training split
+// and macro targets are intentionally hard-wired here; a future phase replaces
+// these with the live values from the athlete's assigned program / nutrition
+// plan (the backend wiring is out of scope for this pass).
+const BLUEPRINT_SPLIT = 'Phase 4 — Back & Biceps';
+const BLUEPRINT_MACROS = [
+  { key: 'kcal', label: 'Calories', value: '2,400', unit: 'kcal' },
+  { key: 'protein', label: 'Protein', value: '210', unit: 'g' },
+  { key: 'carbs', label: 'Carbs', value: '240', unit: 'g' },
+  { key: 'fat', label: 'Fat', value: '70', unit: 'g' },
+];
 
+// Brutalist hero at the top of the Hub — greets the athlete by formatted name and
+// surfaces today's blueprint. Always rendered (independent of the profile fetch).
+function BlueprintHero({ displayName }) {
+  return (
+    <section className="cv-hero" aria-label="Daily blueprint">
+      <div className="cv-hero-kicker">Sovereign Vault · Today</div>
+      <h1 className="cv-hero-greet">Welcome, {displayName}</h1>
+      <div className="cv-hero-blueprint">
+        <span className="cv-hero-blueprint-k">Daily Blueprint</span>
+        <span className="cv-hero-blueprint-v">{BLUEPRINT_SPLIT}</span>
+      </div>
+      <div className="cv-hero-macros">
+        {BLUEPRINT_MACROS.map((m) => (
+          <div key={m.key} className="cv-hero-macro">
+            <span className="cv-hero-macro-k">{m.label}</span>
+            <span className="cv-hero-macro-v">{m.value}</span>
+            <span className="cv-hero-macro-u">{m.unit}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default function VaultHub({ profile, isLoading, error, displayName = 'Athlete' }) {
+  return (
+    <div className="pg">
+      <BlueprintHero displayName={displayName} />
+      {isLoading ? <Loading label="Loading your Vault…" /> : null}
+      {!isLoading && error ? <div className="pg-hub-error">{error}</div> : null}
+      {!isLoading && !error && !profile ? <Empty>No profile data yet.</Empty> : null}
+      {!isLoading && !error && profile ? (
+        <HubMetrics profile={profile} />
+      ) : null}
+    </div>
+  );
+}
+
+function HubMetrics({ profile }) {
   const fresh = profile.found && profile.totalSessions > 0;
 
   return (
-    <div className="pg">
+    <>
       <div className="pg-hub-grid">
         {STATS.map((s) => {
           const v = profile[s.key];
@@ -62,6 +108,6 @@ export default function VaultHub({ profile, isLoading, error }) {
             : 'Your first logged session will light up here.'}
         </Empty>
       )}
-    </div>
+    </>
   );
 }
