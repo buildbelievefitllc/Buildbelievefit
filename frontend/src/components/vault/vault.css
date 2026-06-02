@@ -203,6 +203,14 @@
 }
 .pg-target.is-active { background: rgba(34, 197, 94, .07); border-color: rgba(34, 197, 94, .4); color: var(--grn); }
 .pg-target.is-none { background: rgba(80, 80, 80, .05); border-color: var(--line); color: var(--mut); }
+/* coach-prescribed target — gold, the athlete's pre-filled numbers */
+.pg-target.is-prescribed {
+  background: rgba(245, 200, 0, .07);
+  border-color: rgba(245, 200, 0, .42);
+  color: var(--gold-soft, #f5c800);
+  margin-bottom: .5rem;
+}
+.pg-target.is-prescribed strong { color: var(--yel); }
 .pg-target strong { font-weight: 800; }
 
 .pg-note {
@@ -236,7 +244,25 @@
   text-align: center;
 }
 .pg-setnum { font-family: var(--display); font-size: 1.05rem; font-weight: 900; color: var(--yel); text-align: center; }
-.pg-settgt { font-family: var(--bd); font-size: .95rem; font-weight: 700; color: var(--mut); text-align: center; }
+/* Target cell — clinical two-line stack: rep range over the prescribed load. */
+.pg-settgt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .1rem;
+  line-height: 1.15;
+  text-align: center;
+}
+.pg-settgt-reps { font-family: var(--bd); font-size: .95rem; font-weight: 700; color: var(--wht); }
+.pg-settgt-wt {
+  font-family: var(--hb);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-soft, #f5c800);
+}
 
 .pg-input {
   width: 100%;

@@ -37,6 +37,23 @@ function initialDayIndex(plan) {
   return i === -1 ? 0 : i;
 }
 
+// Prescribed working-load target for a dynamic-plan exercise. The AI engine
+// emits this as "weight" (~85% 1RM for primary lifts); tolerate the other field
+// names a plan could carry. Returns a trimmed display string ("135 lb",
+// "Bodyweight") or '' when the plan prescribes no explicit load.
+function prescribedWeight(ex) {
+  const raw = ex?.weight ?? ex?.target_weight ?? ex?.targetWeight ?? ex?.load ?? '';
+  return String(raw).trim();
+}
+
+// Numeric placeholder for the weight input, seeded from the prescribed load
+// ("135 lb" → "135"). Empty for non-numeric loads ("Bodyweight") so the input
+// keeps its generic "lbs" prompt rather than a misleading number.
+function weightPlaceholder(prescribed) {
+  const m = String(prescribed).match(/\d+(?:\.\d+)?/);
+  return m ? m[0] : '';
+}
+
 export default function ProgramGrid({ uid, programKey, dynamicPlan }) {
   // Prefer the user's assigned plan (structured AI payload) when present; fall
   // back to the authorized static catalog by persona. Either way the grid, the
@@ -164,20 +181,27 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
 
   const setCount = Number(ex.sets) > 0 ? Number(ex.sets) : 1;
   const lastWeight = weights?.[exKey(index)];
+  // Coach-prescribed target load from the athlete's assigned plan. When present
+  // it pre-fills the grid (target chip + two-line target cell) so the athlete
+  // opens to real numbers, not a blank canvas.
+  const target = prescribedWeight(ex);
   // ── Pre-fill engine ─────────────────────────────────────────────────────────
-  // No box ever renders with a useless "reps"/"lbs" hint. We surface the smart
-  // defaults the athlete would otherwise have to guess: the assigned rep range
-  // straight from the workout_plan slot, and the server's last working weight
-  // (bbf_get_last_weights) when there is history.
-  //
-  // These are injected as PLACEHOLDERS, not as the controlled `value`. That is
-  // the state-safe contract: `value` stays the athlete's real entry ('' until
-  // they type), so (a) overriding is frictionless, (b) the controlled-state
+  // Inject the smart defaults the athlete would otherwise have to guess straight
+  // into the input affordances — as PLACEHOLDERS, never the controlled `value`.
+  // That is the state-safe contract: `value` stays the athlete's real entry ('')
+  // until they type, so (a) overriding is frictionless, (b) the controlled-state
   // hooks never fight a synthetic value, and (c) syncSessionToCloud only ever
-  // pushes sets the athlete actually logged — a placeholder never becomes a
-  // phantom row in their cloud history.
+  // pushes sets actually logged — a placeholder never becomes a phantom row in
+  // the cloud history.
+  //
+  // Reps box hints the assigned rep range straight from the workout_plan slot.
   const repPlaceholder = ex.reps != null && String(ex.reps).trim() !== '' ? String(ex.reps) : 'reps';
-  const weightPlaceholder = lastWeight != null ? `${lastWeight}` : 'lbs';
+  // Weight box hints the autoregulation truth first — the server's last working
+  // weight (bbf_get_last_weights), the "match or beat it" number — then falls
+  // back to the coach-prescribed load for a lift with no history yet, then the
+  // generic prompt. weightPlaceholder() (from the prescribed-weight UI) strips
+  // "135 lb" → "135" so a non-numeric load like "Bodyweight" keeps "lbs".
+  const wPlaceholder = lastWeight != null ? `${lastWeight}` : (weightPlaceholder(target) || 'lbs');
   // Hardwired form-demo video for this movement (fuzzy-resolved against the
   // authorized video map). null for the few cardio/circuit entries with no demo.
   const videoId = resolveVideoId(ex.name);
@@ -225,6 +249,15 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
             </a>
           ) : null}
 
+          {/* Coach-prescribed target — reps × prescribed load from the assigned
+              plan. Always rendered when the plan carries a load, so the athlete
+              sees their pre-filled numbers even with no logged history yet. */}
+          {target ? (
+            <div className="pg-target is-prescribed">
+              🎯 <strong>Prescribed</strong> {setCount} × {ex.reps} @ <strong>{target}</strong>
+            </div>
+          ) : null}
+
           {/* Autoregulation target — the server's last working weight for this slot. */}
           <div className={`pg-target ${lastWeight ? 'is-active' : 'is-none'}`}>
             {lastWeight ? (
@@ -249,7 +282,10 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
             return (
               <div className="pg-setgrid" key={s}>
                 <div className="pg-setnum">{s + 1}</div>
-                <div className="pg-settgt">{ex.reps}</div>
+                <div className="pg-settgt">
+                  <span className="pg-settgt-reps">{ex.reps}</span>
+                  {target ? <span className="pg-settgt-wt">{target}</span> : null}
+                </div>
                 <input
                   className={`pg-input${rVal !== '' ? ' is-done' : ''}`}
                   type="number"
@@ -267,7 +303,7 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
                   inputMode="decimal"
                   min="0"
                   step="0.5"
-                  placeholder={weightPlaceholder}
+                  placeholder={wPlaceholder}
                   value={wVal}
                   onChange={(e) => onField(s, 'w', e.target.value)}
                   aria-label={`${ex.name} set ${s + 1} weight in pounds`}

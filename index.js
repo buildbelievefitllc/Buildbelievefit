@@ -91,9 +91,11 @@ const SYSTEM_PROMPT_HYPERTROPHY =
   '"equipment": e.g. "Dumbbells or Cable", ' +
   '"sets": integer number of sets, ' +
   '"reps": string like "10-12" or "8-10 per leg", ' +
+  '"weight": prescribed working-load target string the athlete sees pre-filled in their grid, ' +
+  'e.g. "135 lb" or "70 lb" — bound to ~85% of estimated 1RM for primary lifts; use "Bodyweight" for bodyweight movements, ' +
   '"notes": short clinical cue, e.g. "Control the eccentric — slow on the way down"}. ' +
   'Rules: ' +
-  '1. All primary hypertrophy lifts mathematically bound to 85% of 1RM working load. ' +
+  '1. All primary hypertrophy lifts mathematically bound to 85% of 1RM working load — surface that load in the "weight" field. ' +
   '2. Focus strictly on hypertrophy and body composition. ' +
   '3. If the clinical history indicates joint issues, prescribe 2-3 specific pre-habilitation movements as the first exercises of relevant days. ' +
   '4. Use deadpan, authoritative, clinical language in the notes field. ' +
@@ -162,6 +164,7 @@ const SYSTEM_PROMPT_YOUTH_HYPERTROPHY =
   '"equipment": e.g. "Bodyweight", "Med Ball", or "Light Band" (NEVER heavy barbell for ages 8-13), ' +
   '"sets": integer, ' +
   '"reps": string like "10-12" or "8 per leg", ' +
+  '"weight": prescribed load target shown pre-filled in the athlete grid — for ages 8-13 this must ONLY be "Bodyweight", "Light Band", or "Med Ball", NEVER a heavy external load, ' +
   '"notes": short clinical cue in deadpan, authoritative language}. ' +
   'Rules: ' +
   '1. Output exactly 7 day objects. MANDATE 2 full rest days with empty exercises arrays and a restNote. ' +
