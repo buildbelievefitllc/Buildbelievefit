@@ -47,14 +47,15 @@ const byId = (list, id) => list.find((x) => x.id === id) || list[0];
 
 // Phase → accent + glyph for the minute grid (matches the warmup/work/recovery/
 // steady/cooldown enum from the contract).
+// `o2` = approximate %VO₂max the phase drives — rendered as the telemetry metric.
 const PHASE = {
-  warmup: { accent: '#F5CF60', glyph: '◐', label: 'Warm-Up' },
-  work: { accent: '#FF4500', glyph: '▲', label: 'Work' },
-  recovery: { accent: '#22c55e', glyph: '◡', label: 'Recovery' },
-  steady: { accent: '#9D27C9', glyph: '■', label: 'Steady' },
-  cooldown: { accent: '#8b1abf', glyph: '◑', label: 'Cool-Down' },
+  warmup: { accent: '#F5CF60', glyph: '◐', label: 'Warm-Up', o2: 45 },
+  work: { accent: '#FF4500', glyph: '▲', label: 'Work', o2: 88 },
+  recovery: { accent: '#22c55e', glyph: '◡', label: 'Recovery', o2: 60 },
+  steady: { accent: '#9D27C9', glyph: '■', label: 'Steady', o2: 72 },
+  cooldown: { accent: '#8b1abf', glyph: '◑', label: 'Cool-Down', o2: 38 },
 };
-function phaseMeta(p) { return PHASE[p] || { accent: '#FF4500', glyph: '•', label: p }; }
+function phaseMeta(p) { return PHASE[p] || { accent: '#FF4500', glyph: '•', label: p, o2: 70 }; }
 function pad(n) { return String(n).padStart(2, '0'); }
 
 export default function AgenticCardio() {
@@ -194,24 +195,49 @@ function Field({ label, children }) {
   );
 }
 
+// ── Live Respiratory Sync — an animated breathing pacer above the timeline. ────
+// Pure presentation (CSS-driven 4s-in / 4s-out ring) — orients the athlete's
+// breath cadence to the protocol before they start the clock.
+function RespiratorySync({ totalMin, tier }) {
+  return (
+    <div className="bbf-resp" aria-label="Live respiratory sync">
+      <div className="bbf-resp__ring" aria-hidden="true"><span className="bbf-resp__core" /></div>
+      <div className="bbf-resp__meta">
+        <span className="bbf-resp__kicker">◉ Live Respiratory Sync</span>
+        <span className="bbf-resp__cue">Match the pacer · inhale 4 · exhale 4</span>
+        <span className="bbf-resp__clock">{pad(totalMin)}:00<span className="bbf-resp__clock-l"> total</span>{tier ? ` · ${tier}` : ''}</span>
+      </div>
+    </div>
+  );
+}
+
 function ProtocolResult({ plan }) {
   const cns = plan.cns_downregulation || {};
   const modality = plan.modality || {};
   const roi = plan.roi || {};
   const steps = Array.isArray(plan.protocol_steps) ? plan.protocol_steps : [];
+  const totalMin = steps.length
+    ? Math.max(...steps.map((s) => Number(s.end_min) || 0))
+    : (plan.available_minutes || plan.total_minutes || 0);
+  // The modality badge must reflect the EFFECTIVE (possibly down-regulated) tier.
+  const tier = modality.tier || cns.effective_tier || '';
 
   return (
     <div className="bbf-gps__result">
-      {/* Modality header */}
+      {/* Modality header — carries the effective tier for the telemetry contract */}
       <div className="bbf-gps__modality">
-        <span className="bbf-gps__modality-label">{modality.label || modality.tier}</span>
-        <span className="bbf-gps__modality-mins">{plan.available_minutes} min</span>
+        <span className="bbf-gps__modality-label" data-testid="cardio-gen-modality" data-tier={tier}>
+          {modality.label || modality.machine || tier}
+        </span>
+        <span className="bbf-gps__modality-mins">{plan.available_minutes ?? totalMin} min</span>
       </div>
       {modality.strategy ? <div className="bbf-gps__strategy">{modality.strategy}</div> : null}
 
       {/* CNS down-regulation banner — only when the system softened the tier */}
       {cns.down_regulated ? (
-        <div className="bbf-gps__cns" role="status">
+        <div className="bbf-gps__cns" role="status"
+          data-testid="cardio-gen-softened"
+          data-base-tier={cns.base_tier} data-effective-tier={cns.effective_tier}>
           <div className="bbf-gps__cns-top">
             <span className="bbf-gps__cns-icon" aria-hidden="true">🛡</span>
             <span className="bbf-gps__cns-title">CNS Protection Engaged</span>
@@ -226,22 +252,34 @@ function ProtocolResult({ plan }) {
         </div>
       ) : null}
 
-      {/* Minute-by-minute grid */}
-      <div className="bbf-gps__grid-h">Minute-by-Minute</div>
-      <div className="bbf-gps__grid" role="list">
+      {/* Live Respiratory Sync timer — above the timeline grid */}
+      <RespiratorySync totalMin={totalMin} tier={tier} />
+
+      {/* Metabolic Timeline Breakdown — telemetry rows w/ phase + VO₂ load */}
+      <div className="bbf-tl__h">
+        <span className="bbf-tl__h-title">Metabolic Timeline Breakdown</span>
+        <span className="bbf-tl__h-meta">phase telemetry · %VO₂max</span>
+      </div>
+      <div className="bbf-tl" role="list">
         {steps.map((s, i) => {
           const pm = phaseMeta(s.phase);
           const dur = Math.max(0, (Number(s.end_min) || 0) - (Number(s.start_min) || 0));
           return (
-            <div key={i} className="bbf-gps__step" role="listitem" style={{ '--phase-accent': pm.accent }}>
-              <div className="bbf-gps__step-time">
-                <span className="bbf-gps__step-range">{pad(s.start_min)}–{pad(s.end_min)}</span>
-                <span className="bbf-gps__step-dur">{dur} min</span>
+            <div key={i} className="bbf-tl__row" role="listitem"
+              data-testid="cardio-gen-step" data-phase={s.phase}
+              style={{ '--phase-accent': pm.accent }}>
+              <div className="bbf-tl__time" data-testid="cardio-gen-step-time">
+                <span className="bbf-tl__range">{pad(s.start_min)}–{pad(s.end_min)}</span>
+                <span className="bbf-tl__dur">{dur} min</span>
               </div>
-              <div className="bbf-gps__step-main">
-                <span className="bbf-gps__step-phase">{pm.glyph} {pm.label}</span>
-                <span className="bbf-gps__step-label">{s.label}</span>
-                {s.target ? <span className="bbf-gps__step-target">{s.target}</span> : null}
+              <div className="bbf-tl__o2" aria-label={`${pm.o2} percent VO2 max`}>
+                <span className="bbf-tl__o2-track"><span className="bbf-tl__o2-fill" style={{ height: `${pm.o2}%`, background: pm.accent }} /></span>
+                <span className="bbf-tl__o2-v">{pm.o2}%</span>
+              </div>
+              <div className="bbf-tl__main">
+                <span className="bbf-tl__phase">{pm.glyph} {pm.label}</span>
+                <span className="bbf-tl__label" data-testid="cardio-gen-step-label">{s.label}</span>
+                {s.target ? <span className="bbf-tl__target" data-testid="cardio-gen-step-target">{s.target}</span> : null}
               </div>
             </div>
           );
@@ -254,12 +292,12 @@ function ProtocolResult({ plan }) {
           <div className="bbf-gps__toast-glow" aria-hidden="true" />
           <div className="bbf-gps__toast-body">
             <div className="bbf-gps__toast-kicker">The Sovereign Toast</div>
-            <div className="bbf-gps__toast-headline">{roi.toast}</div>
+            <div className="bbf-gps__toast-headline" data-testid="cardio-gen-roi-toast">{roi.toast}</div>
             {roi.detail ? <div className="bbf-gps__toast-detail">{roi.detail}</div> : null}
             {roi.primary_metric ? (
               <div className="bbf-gps__toast-metric">
                 <span className="bbf-gps__toast-metric-lbl">Primary ROI</span>
-                <span className="bbf-gps__toast-metric-val">{roi.primary_metric}</span>
+                <span className="bbf-gps__toast-metric-val" data-testid="cardio-gen-roi-metric">{roi.primary_metric}</span>
               </div>
             ) : null}
           </div>
