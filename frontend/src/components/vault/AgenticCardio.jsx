@@ -15,7 +15,7 @@
 // Brand: the legacy Smart Cardio brutalist red/orange, scoped via .bbf-cardio /
 // .bbf-gps classes. Isolated — touches only agenticCardioApi.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { generateCardio } from '../../lib/agenticCardioApi.js';
 
@@ -68,6 +68,7 @@ export default function AgenticCardio() {
   const [kinetic, setKinetic] = useState('assault');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null); // rate-limit toast message | null
   const [plan, setPlan] = useState(null);
 
   // ── Dynamic CRP (Cardio-Respiratory Prescription) — reactive to the selectors. ──
@@ -91,7 +92,13 @@ export default function AgenticCardio() {
       const result = await generateCardio(uid, m);
       setPlan(result);
     } catch (e) {
-      setError(e?.message || 'Could not generate a protocol.');
+      // 429 → clean toast (resets at midnight UTC); everything else → inline error.
+      if (e?.code === 'rate_limited') {
+        setToast(e.message);
+        setError(null);
+      } else {
+        setError(e?.message || 'Could not generate a protocol.');
+      }
       setPlan(null);
     } finally {
       setBusy(false);
@@ -182,7 +189,27 @@ export default function AgenticCardio() {
       {error ? <div className="bbf-cardio__error" role="alert" style={{ marginTop: '.9rem' }}>{error}</div> : null}
 
       {plan ? <ProtocolResult plan={plan} /> : null}
+
+      {toast ? <RateLimitToast message={toast} onClose={() => setToast(null)} /> : null}
     </section>
+  );
+}
+
+// ── Rate-limit toast — clean, auto-dismissing (8s), dismissible. ───────────────
+function RateLimitToast({ message, onClose }) {
+  useEffect(() => {
+    const id = setTimeout(onClose, 8000);
+    return () => clearTimeout(id);
+  }, [onClose]);
+  return (
+    <div className="bbf-toast" role="status" aria-live="polite" data-testid="cardio-rate-toast">
+      <span className="bbf-toast__icon" aria-hidden="true">⏳</span>
+      <div className="bbf-toast__body">
+        <span className="bbf-toast__title">Smart Cardio</span>
+        <span className="bbf-toast__msg">{message}</span>
+      </div>
+      <button type="button" className="bbf-toast__close" onClick={onClose} aria-label="Dismiss">×</button>
+    </div>
   );
 }
 
