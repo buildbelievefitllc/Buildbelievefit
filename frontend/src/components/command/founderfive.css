@@ -34,8 +34,8 @@
 }
 .ff-stat--gold { border-top-color: var(--yel); }
 .ff-stat-label { display: block; font-family: var(--hb); font-size: .6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
-.ff-stat-val { font-family: var(--display); font-size: 1.6rem; line-height: 1.2; color: var(--wht); }
-.ff-stat-val em { font-family: var(--bd); font-size: .8rem; font-weight: 700; font-style: normal; color: var(--grn); }
+.ff-stat-val { font-family: var(--display); font-size: 1.6rem; line-height: 1.2; color: var(--yel); }
+.ff-stat-val em { font-family: var(--bd); font-size: .8rem; font-weight: 700; font-style: normal; color: var(--gold-soft); }
 .ff-stat--gold .ff-stat-val { color: var(--yel); }
 
 /* ── Roster section header + filter ── */
@@ -94,7 +94,7 @@
   box-shadow: 0 10px 26px -16px rgba(106, 13, 173, .8);
 }
 .ff-avatar {
-  width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--mut);
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: 11px; border: 2px solid var(--mut);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; color: var(--wht); background: #050505;
 }
