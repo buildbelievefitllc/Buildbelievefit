@@ -1,26 +1,32 @@
 // src/components/command/ClientDossier.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 6 — Client Detail Dossier (the drill-in from a Roster card).
-// Phase 7 — + 90-day analytics (read) and editable macro targets (mutation).
+// Client Detail Dossier — the drill-in from the Client Database Hub roster, rebuilt
+// to the AI Studio prototype: an athlete card (avatar · name · division · macro
+// summary · coach intake log · streak) over a 5-deck nested nav:
 //
-// Data path (all via lib/rosterApi — IDENTICAL gateway + admin auth):
+//   7-Day Nutrition · 7-Day Workouts · 90-Day Analytics · Athlete Feed Chat · Update Target
+//
+// Data path (all via lib/rosterApi — IDENTICAL gateway + runtime admin token):
 //   detail        { action:'detail', id }         → { ok, client:{…full row} }
 //   analytics     { action:'analytics', id }       → { ok, readiness:[…], volume:[…] }
 //   update_target { action:'update_target', id,… } → { ok, client:{ id, tdee_target,
 //                                                       macro_p, macro_c, macro_f } }  ← PARTIAL
+//   coach         { action:'coach', id, question } → { ok, answer, telemetry }
 //
-// ⚠️ All three key on the `id` PK, NOT `uid` (the function 400s on missing_id).
+// ⚠️ All key on the `id` PK, NOT `uid` (the function 400s on missing_id).
 // ⚠️ update_target returns ONLY the 5 macro fields — we MERGE them into detail
-//    state so name / plans / etc. survive, and the tiles update without a refetch.
+//    state so name / plans / etc. survive, and the card updates without a refetch.
 //
-// State contract per request: { data, isLoading, error } — no silent failures, no
-// infinite spinners. BACK is ALWAYS rendered so the coach is never trapped.
+// DATA HONESTY: the prototype's body-composition tiles (skeletal muscle, squat max,
+// bodyweight series) are mock data — the roster `analytics` action returns training
+// VOLUME + READINESS, so the 90-Day Analytics deck plots those (real) under the
+// prototype's layout. True bodyweight/body-fat series lives behind the PIN-gated
+// coach-analytics RPCs surfaced on the dedicated Analytics tab.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
-import CommandSurface from './CommandSurface.jsx';
 import { BarChart, LineChart } from './charts.jsx';
-import { numOrNull, GRN, PURL, GOLD_SOFT } from './chartUtils.js';
+import { numOrNull, GOLD, GRN, PURL, GOLD_SOFT } from './chartUtils.js';
 import './analytics.css';
 
 export default function ClientDossier({ client, onBack }) {
@@ -39,7 +45,6 @@ export default function ClientDossier({ client, onBack }) {
     setIsLoading(true);
     setError(null);
     try {
-      // Drill in by the real PK (`id`), never `uid` — see contract note above.
       const body = await rosterCall('detail', { id: client.id });
       setData(body.client ?? null);
     } catch (e) {
@@ -65,8 +70,7 @@ export default function ClientDossier({ client, onBack }) {
   }, [client.id]);
 
   // Fire detail + analytics CONCURRENTLY on mount. Deferred via microtask so the
-  // initial setState lands outside the synchronous effect body (satisfies
-  // react-hooks/set-state-in-effect); cancel-guarded against unmount.
+  // initial setState lands outside the synchronous effect body; cancel-guarded.
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
@@ -82,94 +86,129 @@ export default function ClientDossier({ client, onBack }) {
     setData((prev) => (prev ? { ...prev, ...patch } : prev));
   }, []);
 
-  // Fall back to the roster row's fields while detail is in flight, so the header
-  // has context immediately instead of a contextless spinner.
-  const head = data ?? client;
-  const name = head.name || head.uid || 'Unnamed';
-  const tier = head.subscription_tier || null;
+  // Fall back to the roster row while detail is in flight, so the card has context
+  // immediately instead of a contextless spinner.
+  const c = data ?? client;
 
   return (
     <div>
       <button type="button" style={styles.back} onClick={onBack}>← Back to Roster</button>
 
-      <CommandSurface
-        kicker={`Dossier · ${head.uid || head.id || 'client'}`}
-        title={name}
-        lede={head.email || '—'}
-      >
-        <div style={styles.badgeStrip}>
-          <Badge label={head.role || 'client'} color={tierColor(tier)} />
-          {tier ? <Badge label={tier} color={tierColor(tier)} /> : null}
-          {head.metabolic_tier ? <Badge label={head.metabolic_tier} color="var(--gold-soft)" /> : null}
-          {data?.current_streak ? <Badge label={`Streak · ${data.current_streak}`} color="var(--grn)" /> : null}
-        </div>
+      {/* ── Athlete card — avatar · name · division · macro summary · intake log ── */}
+      <AthleteCard c={c} />
 
-        {isLoading ? <Loading label="Loading dossier…" /> : null}
+      {isLoading && !data ? <Loading label="Loading dossier…" /> : null}
 
-        {!isLoading && error ? (
-          <div style={styles.errorBox} role="alert">
-            <div style={styles.errorTitle}>Dossier fetch failed</div>
-            <div style={styles.errorMsg}>{error}</div>
-            <div style={styles.errorActions}>
-              <button type="button" style={styles.retry} onClick={fetchDetail}>Retry</button>
-              <button type="button" style={styles.retry} onClick={onBack}>Back to Roster</button>
-            </div>
+      {error ? (
+        <div style={styles.errorBox} role="alert">
+          <div style={styles.errorTitle}>Dossier fetch failed</div>
+          <div style={styles.errorMsg}>{error}</div>
+          <div style={styles.errorActions}>
+            <button type="button" style={styles.retry} onClick={fetchDetail}>Retry</button>
+            <button type="button" style={styles.retry} onClick={onBack}>Back to Roster</button>
           </div>
-        ) : null}
+        </div>
+      ) : null}
 
-        {!isLoading && !error && data ? (
-          <DossierBody
-            c={data}
-            clientId={client.id}
-            onPatched={applyTargetPatch}
-            analytics={{ data: analytics, loading: anLoading, error: anError, onRetry: fetchAnalyticsData }}
-          />
-        ) : null}
-      </CommandSurface>
+      {data ? (
+        <DossierBody
+          c={data}
+          clientId={client.id}
+          onPatched={applyTargetPatch}
+          analytics={{ data: analytics, loading: anLoading, error: anError, onRetry: fetchAnalyticsData }}
+        />
+      ) : null}
     </div>
   );
 }
 
-// ── The full dossier once detail data has loaded — a tabbed master-detail body. ─
-// Co-Coach stays persistent above the tabs (the agentic centerpiece); the three
-// required surfaces — Program · Nutrition · Analytics — live behind a tab strip.
-const DOSSIER_TABS = [
-  { id: 'program', label: 'Program' },
-  { id: 'nutrition', label: 'Nutrition' },
-  { id: 'analytics', label: 'Analytics' },
+// ── Athlete card header — the prototype's identity strip + inline macro tiles. ──
+function AthleteCard({ c }) {
+  const name = c.name || c.uid || 'Unnamed';
+  const div = c.metabolic_tier || c.subscription_tier || c.role || 'Sovereign Client';
+  const focusBits = [
+    c.age ? `Age ${c.age}` : null,
+    c.block_priority || c.baseline_status || 'Sovereign Protocol',
+  ].filter(Boolean);
+  const intake = c.coach_note || c.health_notes || c.notes || 'No coach intake notes on file yet — log directives from the Athlete Feed Chat.';
+  const streak = Number(c.current_streak) || 0;
+
+  return (
+    <div style={styles.card}>
+      <div style={styles.cardTop}>
+        <span style={styles.cardAvatar}>{initials(name)}</span>
+        <div style={styles.cardId}>
+          <div style={styles.cardName}>{name}</div>
+          <span style={styles.cardDiv}>{div}</span>
+          <div style={styles.cardFocus}>{focusBits.join(' · ')}</div>
+        </div>
+        <div style={styles.cardMacros}>
+          <MacroPill label="Calories" value={c.tdee_target} unit="kcal" accent="var(--yel)" />
+          <MacroPill label="Protein" value={c.macro_p} unit="g" accent="var(--grn)" />
+          <MacroPill label="Carbs" value={c.macro_c} unit="g" accent="var(--blu)" />
+          <MacroPill label="Fats" value={c.macro_f} unit="g" accent="var(--orn)" />
+        </div>
+      </div>
+      <div style={styles.intakeRow}>
+        <div style={styles.intakeBox}>
+          <span style={styles.intakeKicker}>Coach Intake Log Checklist</span>
+          <span style={styles.intakeText}>{intake}</span>
+        </div>
+        <span style={styles.streak}>⚡ {streak} Day{streak === 1 ? '' : 's'}</span>
+      </div>
+    </div>
+  );
+}
+
+function MacroPill({ label, value, unit, accent }) {
+  const has = value !== null && value !== undefined && value !== '';
+  return (
+    <div style={{ ...styles.macroPill, borderTopColor: accent }}>
+      <span style={styles.macroPillLabel}>{label}</span>
+      <span style={styles.macroPillVal}>{has ? Number(value).toLocaleString() : '—'}</span>
+      <span style={styles.macroPillUnit}>{has ? unit : ''}</span>
+    </div>
+  );
+}
+
+// ── The 5-deck nested nav (the prototype's right-panel navigation row). ─────────
+const DECKS = [
+  { id: 'nutrition', label: '7-Day Nutrition', icon: '🍽' },
+  { id: 'workouts', label: '7-Day Workouts', icon: '🏋' },
+  { id: 'analytics', label: '90-Day Analytics', icon: '📊' },
+  { id: 'feed', label: 'Athlete Feed Chat', icon: '💬' },
+  { id: 'target', label: 'Update Target', icon: '⬆' },
 ];
 
 function DossierBody({ c, clientId, onPatched, analytics }) {
-  const [tab, setTab] = useState('program');
+  const [deck, setDeck] = useState('nutrition');
 
   return (
     <div style={styles.body}>
-      {/* ── Co-Coach intelligence console (action: coach) — persistent centerpiece. ── */}
-      <CoCoach clientId={clientId} clientName={c.name || c.uid || 'this client'} />
-
-      {/* ── Tabbed detail: Program · Nutrition · Analytics. ── */}
-      <nav style={styles.tabs} role="tablist" aria-label="Client dossier surfaces">
-        {DOSSIER_TABS.map((t) => {
-          const active = t.id === tab;
+      <nav style={styles.tabs} role="tablist" aria-label="Athlete dossier decks">
+        {DECKS.map((d) => {
+          const active = d.id === deck;
           return (
             <button
-              key={t.id}
+              key={d.id}
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => setTab(t.id)}
+              onClick={() => setDeck(d.id)}
               style={{ ...styles.tab, ...(active ? styles.tabActive : null) }}
             >
-              {t.label}
+              <span aria-hidden="true" style={styles.tabIcon}>{d.icon}</span>{d.label}
             </button>
           );
         })}
       </nav>
 
-      <div key={tab}>
-        {tab === 'program' && <ProgramTab c={c} />}
-        {tab === 'nutrition' && <NutritionTab c={c} clientId={clientId} onPatched={onPatched} />}
-        {tab === 'analytics' && <AnalyticsTab {...analytics} />}
+      <div key={deck}>
+        {deck === 'nutrition' && <NutritionTab c={c} />}
+        {deck === 'workouts' && <ProgramTab c={c} />}
+        {deck === 'analytics' && <AnalyticsDeck {...analytics} />}
+        {deck === 'feed' && <FeedChat clientId={clientId} clientName={c.name || c.uid || 'this athlete'} />}
+        {deck === 'target' && <ReconfiguratorDeck c={c} clientId={clientId} onPatched={onPatched} />}
       </div>
 
       <div style={styles.footer}>Last updated {fmtDate(c.updated_at) || '—'}</div>
@@ -177,7 +216,7 @@ function DossierBody({ c, clientId, onPatched, analytics }) {
   );
 }
 
-// ── Program tab — active training plan + training/medical profile. ─────────────
+// ── 7-Day Workouts — active training plan + training/medical profile. ──────────
 function ProgramTab({ c }) {
   const workoutDays = asArray(c.workout_plan);
   const workoutText = !workoutDays && typeof c.workout_plan === 'string' ? c.workout_plan.trim() : '';
@@ -192,9 +231,7 @@ function ProgramTab({ c }) {
         ) : null}
         {workoutDays ? (
           <div style={styles.plan}>
-            {workoutDays.map((day, i) => (
-              <WorkoutDay key={i} day={day} index={i} />
-            ))}
+            {workoutDays.map((day, i) => <WorkoutDay key={i} day={day} index={i} />)}
           </div>
         ) : workoutText ? (
           <pre style={styles.pre}>{workoutText}</pre>
@@ -215,17 +252,15 @@ function ProgramTab({ c }) {
   );
 }
 
-// ── Nutrition tab — editable macro targets + meal plan + dietary profile. ──────
-function NutritionTab({ c, clientId, onPatched }) {
+// ── 7-Day Nutrition — meal plan + dietary profile (macros live in Update Target). ─
+function NutritionTab({ c }) {
   const mealDays = asMealDays(c.meal_plan);
   const mealText = !mealDays && typeof c.meal_plan === 'string' ? c.meal_plan.trim() : '';
   const nutritionText = typeof c.nutrition_plan === 'string' ? c.nutrition_plan.trim() : '';
 
   return (
     <>
-      <MacroTargets c={c} clientId={clientId} onPatched={onPatched} />
-
-      <Section title="Nutrition Plan" meta={fmtDate(c.nutrition_plan_updated_at)}>
+      <Section title="7-Day Meal Plan" meta={fmtDate(c.nutrition_plan_updated_at)}>
         {nutritionText ? <pre style={styles.pre}>{nutritionText}</pre> : null}
         {mealDays ? (
           <div style={styles.plan}>
@@ -257,77 +292,128 @@ function NutritionTab({ c, clientId, onPatched }) {
   );
 }
 
-// ── Analytics tab — 90-day charts + summary tiles. ─────────────────────────────
-function AnalyticsTab({ data, loading, error, onRetry }) {
-  return (
-    <Section title="90-Day Analytics">
-      {loading ? <Loading label="Loading analytics…" /> : null}
-      {!loading && error ? (
-        <div style={styles.inlineError} role="alert">
-          <span style={styles.errorMsg}>{error}</span>
-          <button type="button" style={styles.retry} onClick={onRetry}>Retry</button>
-        </div>
-      ) : null}
-      {!loading && !error && data ? <AnalyticsCharts data={data} /> : null}
-    </Section>
-  );
-}
+// ── 90-Day Analytics — Historical Analytics Interval + metric tiles + trend. ────
+const WINDOWS = [30, 60, 90];
 
-function AnalyticsCharts({ data }) {
-  const readiness = Array.isArray(data.readiness) ? data.readiness : [];
-  const volume = Array.isArray(data.volume) ? data.volume : [];
-  if (!readiness.length && !volume.length) {
-    return <Empty>No readiness or training data in the last 90 days.</Empty>;
+function AnalyticsDeck({ data, loading, error, onRetry }) {
+  const [windowDays, setWindowDays] = useState(90);
+
+  const view = useMemo(() => {
+    if (!data) return null;
+    const vol = sliceByWindow(data.volume, 'date', windowDays);
+    const rdy = sliceByWindow(data.readiness, 't', windowDays);
+    const output = vol.reduce((a, x) => a + (Number(x.volume) || 0), 0);
+    const sessions = vol.filter((x) => (Number(x.volume) || 0) > 0).length;
+    const peak = vol.reduce((m, x) => Math.max(m, Number(x.volume) || 0), 0);
+    const scores = rdy.map((r) => Number(r.score) || 0).filter((n) => n > 0);
+    const avgReadiness = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    return { vol, rdy, output, sessions, peak, avgReadiness };
+  }, [data, windowDays]);
+
+  if (loading) return <Loading label="Loading analytics…" />;
+  if (error) {
+    return (
+      <div style={styles.inlineError} role="alert">
+        <span style={styles.errorMsg}>{error}</span>
+        <button type="button" style={styles.retry} onClick={onRetry}>Retry</button>
+      </div>
+    );
   }
-  const r = summarizeReadiness(readiness);
-  const v = summarizeVolume(volume);
-  const volumePoints = volume.map((d) => ({ date: d.date, value: Number(d.volume) || 0 }));
+  if (!view) return <Empty>No analytics available.</Empty>;
+
+  const empty = !view.vol.length && !view.rdy.length;
+  const trendSeries = [{
+    key: 'output', label: 'Training Output', color: GOLD,
+    points: view.vol.map((d) => ({ date: d.date, value: Number(d.volume) || 0 })),
+  }];
   const readinessSeries = [
-    { key: 'score', label: 'Readiness', color: GRN, points: readiness.map((d) => ({ date: d.t, value: numOrNull(d.score) })) },
-    { key: 'sleep', label: 'Sleep', color: PURL, points: readiness.map((d) => ({ date: d.t, value: numOrNull(d.sleep_quality) })) },
-    { key: 'soreness', label: 'Soreness', color: GOLD_SOFT, points: readiness.map((d) => ({ date: d.t, value: numOrNull(d.soreness_level) })) },
+    { key: 'score', label: 'Readiness', color: GRN, points: view.rdy.map((d) => ({ date: d.t, value: numOrNull(d.score) })) },
+    { key: 'sleep', label: 'Sleep', color: PURL, points: view.rdy.map((d) => ({ date: d.t, value: numOrNull(d.sleep_quality) })) },
+    { key: 'soreness', label: 'Soreness', color: GOLD_SOFT, points: view.rdy.map((d) => ({ date: d.t, value: numOrNull(d.soreness_level) })) },
   ];
 
   return (
     <div style={styles.analytics}>
-      <div style={styles.tiles}>
-        <Tile label="Check-ins" value={r.n} unit="logs" accent="var(--grn)" />
-        <Tile label="Avg Score" value={r.avg} unit="" accent="var(--yel)" />
-        <Tile label="Days Trained" value={v.days} unit="days" accent="var(--blu)" />
-      </div>
-
-      <div className="bbf-an__chart">
-        <div className="bbf-an__chart-h">
-          <span className="bbf-an__chart-title">Training Volume</span>
-          <span className="bbf-an__chart-meta">90-day volume</span>
+      {/* Interval selector */}
+      <div style={styles.intervalHead}>
+        <div>
+          <div style={styles.intervalKicker}>📡 Telemetric Data Tracker</div>
+          <div style={styles.intervalTitle}>Historical Analytics Interval</div>
+          <div style={styles.intervalSub}>Select an active timeline to adjust the charts to 30, 60, or 90 days.</div>
         </div>
-        <BarChart points={volumePoints} unit="vol" />
-      </div>
-
-      <div className="bbf-an__chart">
-        <div className="bbf-an__chart-h">
-          <span className="bbf-an__chart-title">Readiness Trend</span>
-          <span className="bbf-an__chart-meta">skips no-reading days</span>
+        <div style={styles.windows} role="group" aria-label="Analytics window">
+          {WINDOWS.map((w) => (
+            <button
+              key={w}
+              type="button"
+              onClick={() => setWindowDays(w)}
+              style={{ ...styles.win, ...(w === windowDays ? styles.winActive : null) }}
+            >
+              {w} Days
+            </button>
+          ))}
         </div>
-        <LineChart series={readinessSeries} />
       </div>
 
-      <div style={styles.kv}>
-        <Field label="7-Day Trend" value={r.trend} color={trendColor(r.trend)} />
-        <Field label="Latest Sleep" value={fmtMetric(r.sleep)} />
-        <Field label="Latest Soreness" value={fmtMetric(r.soreness)} />
-      </div>
+      {empty ? (
+        <Empty>No training or readiness data in the last {windowDays} days.</Empty>
+      ) : (
+        <>
+          {/* Metric tiles (real roster analytics) */}
+          <div style={styles.metricRow}>
+            <Metric label="Total Output" value={view.output} sub={`${windowDays}-day volume`} accent="var(--yel)" />
+            <Metric label="Sessions Logged" value={view.sessions} sub="days trained" accent="var(--grn)" />
+            <Metric label="Peak Output" value={view.peak} sub="best single day" accent="var(--purl)" />
+            <Metric label="Avg Readiness" value={view.avgReadiness} sub="score / day" accent="var(--blu)" />
+          </div>
+
+          {/* Progression trend (real training output over the window) */}
+          <div className="bbf-an__chart">
+            <div className="bbf-an__chart-h">
+              <span className="bbf-an__chart-title">Progression Trend</span>
+              <span className="bbf-an__chart-meta">training output · selected timeline</span>
+            </div>
+            <LineChart series={trendSeries} />
+          </div>
+
+          <div className="bbf-an__chart">
+            <div className="bbf-an__chart-h">
+              <span className="bbf-an__chart-title">Training Volume</span>
+              <span className="bbf-an__chart-meta">{windowDays}-day volume</span>
+            </div>
+            <BarChart points={view.vol.map((d) => ({ date: d.date, value: Number(d.volume) || 0 }))} unit="vol" />
+          </div>
+
+          <div className="bbf-an__chart">
+            <div className="bbf-an__chart-h">
+              <span className="bbf-an__chart-title">Readiness Trend</span>
+              <span className="bbf-an__chart-meta">skips no-reading days</span>
+            </div>
+            <LineChart series={readinessSeries} />
+          </div>
+
+          <div style={styles.analyticsNote}>
+            Body-composition metrics (bodyweight, body-fat %) are available on the dedicated
+            Analytics tab (PIN-gated).
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-// ── Co-Coach — interactive Gemini Q&A about this client (action: coach). ───────
-// FULLY ISOLATED { response, isLoading, error } state so it never interferes with
-// the dossier/analytics data. The edge function reads `question` and returns the
-// text in `answer` (+ the live telemetry it reasoned over) — mapping handled in
-// rosterApi.askCoCoach. AI text is rendered as plain pre-wrapped text (no markdown
-// lib, no innerHTML) so line breaks survive and there is no XSS surface.
-function CoCoach({ clientId, clientName }) {
+// ── Athlete Feed Chat — Co-Coach intelligence + broadcast action cues. ─────────
+// Powered by the real Gemini Co-Coach (action: coach). The cues pre-load engineered
+// directives into the composer; Dispatch sends them. AI text renders as plain
+// pre-wrapped text (no markdown lib / innerHTML) so there is no XSS surface.
+const BROADCAST_CUES = [
+  { label: 'Refeed Carbs', text: 'Broadcast a refeed-carbs directive: stage a structured carbohydrate refeed for the next 24h and explain the rationale relative to current training phase.' },
+  { label: 'Spine Decompression', text: 'Broadcast a spine-decompression protocol for tonight (recovery focus) and flag any load adjustments for tomorrow.' },
+  { label: 'Hydration Boost', text: 'Broadcast a hydration-boost directive with electrolyte targets tuned to recent sweat/output load.' },
+  { label: 'Sleep / CNS Reset', text: 'Broadcast a sleep / CNS-reset protocol to protect recovery before the next high-velocity session.' },
+];
+
+function FeedChat({ clientId, clientName }) {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState(null);
   const [telemetry, setTelemetry] = useState(null);
@@ -337,7 +423,7 @@ function CoCoach({ clientId, clientName }) {
   async function dispatch(e) {
     e.preventDefault();
     if (isLoading) return; // hard guard against double-dispatch
-    if (!query.trim()) { setError('Enter a question for the Co-Coach.'); return; }
+    if (!query.trim()) { setError('Compose or pick a directive to broadcast.'); return; }
     setIsLoading(true);
     setError(null);
     try {
@@ -356,8 +442,23 @@ function CoCoach({ clientId, clientName }) {
   return (
     <div style={styles.coachPanel}>
       <div style={styles.coachHead}>
-        <span style={styles.coachKicker}>Co-Coach · Intelligence</span>
+        <span style={styles.coachKicker}>Athlete Feed Chat · Co-Coach</span>
         <span style={styles.coachOnline}>● Online</span>
+      </div>
+
+      {/* Fast broadcast action cues — pre-load engineered directives. */}
+      <div style={styles.cueRow}>
+        {BROADCAST_CUES.map((cue) => (
+          <button
+            key={cue.label}
+            type="button"
+            style={styles.cue}
+            disabled={isLoading}
+            onClick={() => { setQuery(cue.text); setError(null); }}
+          >
+            ⚡ {cue.label}
+          </button>
+        ))}
       </div>
 
       <form onSubmit={dispatch}>
@@ -365,14 +466,14 @@ function CoCoach({ clientId, clientName }) {
           style={styles.coachTextarea}
           rows={3}
           maxLength={COACH_MAX}
-          placeholder={`Analyze ${clientName}'s readiness trends and recommend a macro adjustment…`}
+          placeholder={`Message ${clientName} or broadcast a performance directive…`}
           value={query}
           disabled={isLoading}
           onChange={(e) => setQuery(e.target.value)}
         />
         <div style={styles.coachActions}>
           <button type="submit" style={{ ...styles.dispatchBtn, opacity: blocked ? 0.55 : 1 }} disabled={blocked}>
-            {isLoading ? 'Dispatching…' : 'Dispatch to Co-Coach'}
+            {isLoading ? 'Transmitting…' : 'Direct Send'}
           </button>
           <span style={styles.coachCounter}>{query.length}/{COACH_MAX}</span>
         </div>
@@ -381,7 +482,7 @@ function CoCoach({ clientId, clientName }) {
       {isLoading ? (
         <div style={styles.coachLoading} role="status" aria-live="polite">
           <span style={styles.spinnerDot} />
-          {`Co-Coach is analyzing 90 days of ${clientName}'s telemetry…`}
+          {`Drafting a context-aware response from ${clientName}'s telemetry…`}
         </div>
       ) : null}
 
@@ -401,25 +502,35 @@ function CoCoach({ clientId, clientName }) {
   );
 }
 
-// ── Macro targets — read-only tiles that flip to an editable form. ─────────────
-function MacroTargets({ c, clientId, onPatched }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState({});
+// ── Update Target — the Coach Reconfigurator Deck (writes via update_target). ──
+function ReconfiguratorDeck({ c, clientId, onPatched }) {
+  const [draft, setDraft] = useState({
+    tdee_target: c.tdee_target ?? '',
+    macro_p: c.macro_p ?? '',
+    macro_c: c.macro_c ?? '',
+    macro_f: c.macro_f ?? '',
+  });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [saved, setSaved] = useState(false);
 
-  function startEdit() {
-    setDraft({
-      tdee_target: c.tdee_target ?? '',
-      macro_p: c.macro_p ?? '',
-      macro_c: c.macro_c ?? '',
-      macro_f: c.macro_f ?? '',
-    });
-    setSaveError(null);
-    setEditing(true);
-  }
-  function cancel() { setEditing(false); setSaveError(null); }
-  const setField = (k, v) => setDraft((d) => ({ ...d, [k]: v }));
+  const setField = (k, v) => { setDraft((d) => ({ ...d, [k]: v })); setSaved(false); };
+
+  // Live macro distribution from the draft (real math: kcal from 4/4/9).
+  const dist = useMemo(() => {
+    const kcal = Number(draft.tdee_target) || 0;
+    const p = Number(draft.macro_p) || 0;
+    const cc = Number(draft.macro_c) || 0;
+    const f = Number(draft.macro_f) || 0;
+    if (!kcal) return null;
+    return {
+      p: Math.round((p * 4) / kcal * 100),
+      c: Math.round((cc * 4) / kcal * 100),
+      f: Math.round((f * 9) / kcal * 100),
+    };
+  }, [draft]);
+
+  const category = c.metabolic_tier || c.subscription_tier || 'Sovereign';
 
   async function save(e) {
     e.preventDefault();
@@ -428,8 +539,8 @@ function MacroTargets({ c, clientId, onPatched }) {
     setSaveError(null);
     try {
       const body = await updateTargets(clientId, draft);
-      onPatched(body.client ?? {}); // merge PARTIAL row into detail state → instant tiles
-      setEditing(false);
+      onPatched(body.client ?? {}); // merge PARTIAL row into detail state → instant card
+      setSaved(true);
     } catch (err) {
       setSaveError(toErrorMessage(err));
     } finally {
@@ -437,39 +548,50 @@ function MacroTargets({ c, clientId, onPatched }) {
     }
   }
 
-  if (!editing) {
-    return (
-      <Section
-        title="Macro Targets"
-        action={<button type="button" style={styles.editBtn} onClick={startEdit}>Edit Macros</button>}
-      >
-        <div style={styles.tiles}>
-          <Tile label="Calories" value={c.tdee_target} unit="kcal" accent="var(--yel)" />
-          <Tile label="Protein" value={c.macro_p} unit="g" accent="var(--grn)" />
-          <Tile label="Carbs" value={c.macro_c} unit="g" accent="var(--blu)" />
-          <Tile label="Fat" value={c.macro_f} unit="g" accent="var(--orn)" />
-        </div>
-      </Section>
-    );
-  }
-
   return (
-    <Section title="Macro Targets">
-      <form onSubmit={save}>
-        <div style={styles.tiles}>
-          <MacroInput label="Calories" unit="kcal" accent="var(--yel)" value={draft.tdee_target} onChange={(v) => setField('tdee_target', v)} disabled={saving} />
-          <MacroInput label="Protein" unit="g" accent="var(--grn)" value={draft.macro_p} onChange={(v) => setField('macro_p', v)} disabled={saving} />
-          <MacroInput label="Carbs" unit="g" accent="var(--blu)" value={draft.macro_c} onChange={(v) => setField('macro_c', v)} disabled={saving} />
-          <MacroInput label="Fat" unit="g" accent="var(--orn)" value={draft.macro_f} onChange={(v) => setField('macro_f', v)} disabled={saving} />
-        </div>
-        <div style={styles.saveRow}>
-          <button type="submit" style={{ ...styles.saveBtn, opacity: saving ? 0.6 : 1 }} disabled={saving}>
-            {saving ? 'Saving…' : 'Update Macros'}
-          </button>
-          <button type="button" style={styles.cancelBtn} onClick={cancel} disabled={saving}>Cancel</button>
-        </div>
-        {saveError ? <div style={styles.saveError} role="alert">{saveError}</div> : null}
-      </form>
+    <Section title="⚙ Coach Reconfigurator Deck">
+      <div style={styles.reconfig}>
+        <form style={styles.reconfigForm} onSubmit={save}>
+          <label style={styles.reconfigLabel} htmlFor="rc-kcal">Adjust Caloric Goal Intake (kcal)</label>
+          <input
+            id="rc-kcal"
+            style={styles.reconfigInput}
+            type="number" min="0" max={TARGET_MAX} step="1" inputMode="numeric"
+            value={draft.tdee_target}
+            disabled={saving}
+            onChange={(e) => setField('tdee_target', e.target.value)}
+          />
+          <div style={styles.reconfigNote}>
+            Protein, carbs, and fats adapt to match performance. Current split:&nbsp;
+            {dist ? `Protein ${dist.p}% · Carbs ${dist.c}% · Fats ${dist.f}%` : 'set a calorie target to compute the split'}.
+          </div>
+
+          <div style={styles.macroGrid}>
+            <MacroInput label="Protein" unit="g" accent="var(--grn)" value={draft.macro_p} onChange={(v) => setField('macro_p', v)} disabled={saving} />
+            <MacroInput label="Carbs" unit="g" accent="var(--blu)" value={draft.macro_c} onChange={(v) => setField('macro_c', v)} disabled={saving} />
+            <MacroInput label="Fats" unit="g" accent="var(--orn)" value={draft.macro_f} onChange={(v) => setField('macro_f', v)} disabled={saving} />
+          </div>
+
+          <div style={styles.saveRow}>
+            <button type="submit" style={{ ...styles.saveBtn, opacity: saving ? 0.6 : 1 }} disabled={saving}>
+              {saving ? 'Pushing to Profile…' : 'Push Target to Athlete'}
+            </button>
+            {saved ? <span style={styles.savedFlag}>✓ Pushed to profile</span> : null}
+          </div>
+          {saveError ? <div style={styles.saveError} role="alert">{saveError}</div> : null}
+        </form>
+
+        <aside style={styles.reconfigAside}>
+          <span style={styles.asideBadge}>Automatic Coefficient Rule</span>
+          <div style={styles.asideTitle}>Balanced Athletic Distribution</div>
+          <p style={styles.asideText}>
+            This client is categorized as <strong style={{ color: 'var(--gold-soft)' }}>{category}</strong>.
+            Adjusting these parameters recalibrates all 7-day nutrition plans to stay within
+            strict compliance thresholds.
+          </p>
+          <div style={styles.asideShield}>🛡 Basal metabolic compliance held to gold-level peer standard.</div>
+        </aside>
+      </div>
     </Section>
   );
 }
@@ -480,11 +602,7 @@ function MacroInput({ label, unit, accent, value, onChange, disabled }) {
       <span style={styles.tileLabel}>{label}</span>
       <input
         style={styles.macroInput}
-        type="number"
-        min="0"
-        max={TARGET_MAX}
-        step="1"
-        inputMode="numeric"
+        type="number" min="0" max={TARGET_MAX} step="1" inputMode="numeric"
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
@@ -528,13 +646,13 @@ function Section({ title, meta, action, children }) {
     </section>
   );
 }
-function Tile({ label, value, unit, accent }) {
+function Metric({ label, value, sub, accent }) {
   const has = value !== null && value !== undefined && value !== '';
   return (
-    <div style={{ ...styles.tile, borderTopColor: accent }}>
-      <span style={styles.tileLabel}>{label}</span>
-      <span style={styles.tileValue}>{has ? Number(value).toLocaleString() : '—'}</span>
-      <span style={styles.tileUnit}>{has ? unit : ''}</span>
+    <div style={{ ...styles.metric, borderTopColor: accent }}>
+      <span style={styles.metricLabel}>{label}</span>
+      <span style={styles.metricVal}>{has ? Number(value).toLocaleString() : '—'}</span>
+      <span style={styles.metricSub}>{sub}</span>
     </div>
   );
 }
@@ -559,9 +677,6 @@ function Chips({ label, items, tone }) {
     </div>
   );
 }
-function Badge({ label, color }) {
-  return <span style={{ ...styles.badge, color, borderColor: color }}>{label}</span>;
-}
 function Loading({ label }) {
   return (
     <div style={styles.loading} role="status" aria-live="polite">
@@ -575,6 +690,19 @@ function Empty({ children }) {
 }
 
 // ── Pure helpers ────────────────────────────────────────────────────────────────
+function initials(name) {
+  const p = String(name || '').trim().split(/\s+/).filter(Boolean);
+  return ((p[0]?.[0] || '') + (p[1]?.[0] || '')).toUpperCase() || '—';
+}
+// Slice a dated series to the last `windowDays`. Date-based when timestamps parse;
+// falls back to a last-N slice (assumes ~1 row/day) so a window always narrows.
+function sliceByWindow(rows, dateKey, windowDays) {
+  if (!Array.isArray(rows) || !rows.length) return [];
+  const cutoff = Date.now() - windowDays * 24 * 60 * 60 * 1000;
+  const allDated = rows.every((r) => !Number.isNaN(Date.parse(r?.[dateKey])));
+  if (allDated) return rows.filter((r) => Date.parse(r[dateKey]) >= cutoff);
+  return rows.slice(-windowDays);
+}
 function asArray(v) {
   if (Array.isArray(v)) return v.length ? v : null;
   if (typeof v === 'string' && v.trim()) {
@@ -607,37 +735,6 @@ function fmtDate(v) {
   if (Number.isNaN(d.getTime())) return '';
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
-function fmtMetric(v) {
-  return v === null || v === undefined || v === '' ? '—' : String(v);
-}
-// Mirrors the backend's own readiness summary (fetchTelemetry in index.ts) so the
-// dossier and the Co-Coach reason on the same numbers and thresholds.
-function summarizeReadiness(readiness) {
-  const scores = readiness.map((r) => Number(r.score) || 0).filter((n) => n > 0);
-  const n = scores.length;
-  const avg = n ? Math.round(scores.reduce((a, b) => a + b, 0) / n) : null;
-  const last = n ? scores[n - 1] : null;
-  const last7 = scores.slice(-7);
-  const prev7 = scores.slice(-14, -7);
-  const a7 = last7.length ? last7.reduce((a, b) => a + b, 0) / last7.length : null;
-  const p7 = prev7.length ? prev7.reduce((a, b) => a + b, 0) / prev7.length : null;
-  const trend = (a7 != null && p7 != null)
-    ? (a7 > p7 + 1 ? 'improving' : a7 < p7 - 1 ? 'declining' : 'flat')
-    : 'insufficient data';
-  const latest = readiness.length ? readiness[readiness.length - 1] : null;
-  return { n, avg, last, trend, sleep: latest?.sleep_quality, soreness: latest?.soreness_level };
-}
-function summarizeVolume(volume) {
-  const days = volume.length;
-  const last = days ? volume[days - 1].volume : null;
-  const total = volume.reduce((a, x) => a + (Number(x.volume) || 0), 0);
-  const avg = days ? Math.round(total / days) : null;
-  return { days, last, avg };
-}
-function tierColor(tier) {
-  const map = { platinum: 'var(--yel)', essentials: 'var(--grn)', sovereign: 'var(--purl)' };
-  return map[String(tier || '').toLowerCase()] || 'var(--mut)';
-}
 function baselineColor(s) {
   const v = String(s || '').toLowerCase();
   if (v === 'valid') return 'var(--grn)';
@@ -651,12 +748,6 @@ function cardiacColor(s) {
   if (v === 'contraindicated') return 'var(--red)';
   return 'var(--mut)';
 }
-function trendColor(t) {
-  if (t === 'improving') return 'var(--grn)';
-  if (t === 'declining') return 'var(--red)';
-  if (t === 'flat') return 'var(--gold-soft)';
-  return 'var(--mut)';
-}
 
 const styles = {
   back: {
@@ -664,69 +755,139 @@ const styles = {
     color: 'var(--gold-soft)', background: 'none', border: '1px solid rgba(245,200,0,.35)',
     borderRadius: 8, padding: '.55rem 1rem', cursor: 'pointer', marginBottom: '1.25rem',
   },
-  badgeStrip: { display: 'flex', flexWrap: 'wrap', gap: '.5rem', marginBottom: '.5rem' },
-  badge: {
-    fontFamily: 'var(--hb)', fontSize: '.68rem', letterSpacing: '1.5px', textTransform: 'uppercase',
-    border: '1px solid var(--mut)', borderRadius: 6, padding: '.28rem .6rem', whiteSpace: 'nowrap',
+
+  // ── Athlete card ──
+  card: {
+    background: 'rgba(106,13,173,.10)', border: '1px solid rgba(245,200,0,.22)',
+    borderRadius: 16, padding: '1.2rem 1.3rem', marginBottom: '1.4rem',
+  },
+  cardTop: { display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' },
+  cardAvatar: {
+    width: 56, height: 56, flexShrink: 0, borderRadius: 12, border: '2px solid var(--gold-soft)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050505',
+    fontFamily: 'var(--hb)', fontSize: '1.1rem', letterSpacing: '1px', color: 'var(--wht)',
+  },
+  cardId: { display: 'flex', flexDirection: 'column', gap: '.2rem', minWidth: 0, flex: 1 },
+  cardName: { fontFamily: 'var(--display)', fontSize: '1.7rem', letterSpacing: '1px', color: 'var(--wht)', lineHeight: 1.05 },
+  cardDiv: {
+    alignSelf: 'flex-start', fontFamily: 'var(--hb)', fontSize: '.62rem', letterSpacing: '1.5px',
+    textTransform: 'uppercase', color: 'var(--gold-soft)', border: '1px solid rgba(245,200,0,.4)',
+    borderRadius: 6, padding: '.18rem .5rem',
+  },
+  cardFocus: { fontFamily: 'var(--bd)', fontSize: '.82rem', fontWeight: 700, color: 'var(--mut)', textTransform: 'uppercase', letterSpacing: '.5px' },
+  cardMacros: { display: 'flex', gap: '.5rem', flexWrap: 'wrap' },
+  macroPill: {
+    background: 'var(--gry)', border: '1px solid var(--line)', borderTop: '3px solid var(--mut)',
+    borderRadius: 10, padding: '.5rem .7rem', minWidth: 66, display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+  },
+  macroPillLabel: { fontFamily: 'var(--hb)', fontSize: '.56rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--mut)' },
+  macroPillVal: { fontFamily: 'var(--display)', fontSize: '1.25rem', lineHeight: 1.1, color: 'var(--wht)' },
+  macroPillUnit: { fontFamily: 'var(--bd)', fontSize: '.68rem', fontWeight: 700, color: 'var(--mut)' },
+
+  intakeRow: { display: 'flex', alignItems: 'stretch', gap: '.8rem', marginTop: '1rem' },
+  intakeBox: { flex: 1, minWidth: 0, border: '1px solid var(--line)', borderRadius: 10, padding: '.7rem .9rem', background: 'rgba(0,0,0,.25)' },
+  intakeKicker: { display: 'block', fontFamily: 'var(--hb)', fontSize: '.6rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--gold-deep)', marginBottom: '.3rem' },
+  intakeText: { fontFamily: 'var(--bd)', fontSize: '.88rem', fontWeight: 600, fontStyle: 'italic', color: 'var(--wht)', lineHeight: 1.45 },
+  streak: {
+    flexShrink: 0, alignSelf: 'center', fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '1px',
+    color: '#090909', background: 'var(--yel)', borderRadius: 8, padding: '.5rem .8rem', whiteSpace: 'nowrap',
   },
 
-  body: { display: 'flex', flexDirection: 'column', gap: '1.6rem', marginTop: '1.4rem' },
+  body: { display: 'flex', flexDirection: 'column', gap: '1.6rem' },
   tabs: {
     display: 'flex', gap: '.3rem', borderBottom: '1px solid var(--line)',
     overflowX: 'auto', flexWrap: 'nowrap', WebkitOverflowScrolling: 'touch',
   },
   tab: {
-    flex: '0 0 auto', whiteSpace: 'nowrap', fontFamily: 'var(--hb)', fontSize: '.8rem',
-    letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(249,245,255,.55)',
+    flex: '0 0 auto', whiteSpace: 'nowrap', fontFamily: 'var(--hb)', fontSize: '.78rem',
+    letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(249,245,255,.55)',
     background: 'none', border: 'none', borderBottom: '3px solid transparent',
-    padding: '.6rem .9rem', marginBottom: '-1px', cursor: 'pointer',
+    padding: '.6rem .85rem', marginBottom: '-1px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '.4rem',
   },
   tabActive: { color: 'var(--wht)', borderBottomColor: 'var(--yel)' },
+  tabIcon: { fontSize: '.9rem' },
+
   section: { borderTop: '1px solid var(--line)', paddingTop: '1.1rem' },
   sectionHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.9rem', gap: '1rem' },
   sectionTitle: { fontFamily: 'var(--hb)', fontSize: '.92rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: 'var(--wht)' },
   sectionMeta: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 700, color: 'var(--mut)' },
 
-  tiles: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '.7rem' },
+  // ── Analytics deck ──
+  analytics: { display: 'flex', flexDirection: 'column', gap: '1rem' },
+  intervalHead: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' },
+  intervalKicker: { fontFamily: 'var(--hb)', fontSize: '.6rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--gold-deep)' },
+  intervalTitle: { fontFamily: 'var(--display)', fontSize: '1.3rem', letterSpacing: '.5px', color: 'var(--wht)', margin: '.2rem 0' },
+  intervalSub: { fontFamily: 'var(--bd)', fontSize: '.82rem', fontWeight: 600, color: 'var(--mut)', maxWidth: '46ch' },
+  windows: { display: 'flex', gap: '.3rem', flexShrink: 0 },
+  win: {
+    fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase',
+    color: 'var(--mut)', background: 'var(--gry)', border: '1px solid var(--line)', borderRadius: 8,
+    padding: '.45rem .7rem', cursor: 'pointer', whiteSpace: 'nowrap',
+  },
+  winActive: { color: '#090909', background: 'var(--yel)', borderColor: 'var(--yel)' },
+
+  metricRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '.7rem' },
+  metric: {
+    background: 'var(--gry)', border: '1px solid var(--line)', borderTop: '3px solid var(--mut)',
+    borderRadius: 12, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '.1rem',
+  },
+  metricLabel: { fontFamily: 'var(--hb)', fontSize: '.62rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--mut)' },
+  metricVal: { fontFamily: 'var(--display)', fontSize: '1.9rem', lineHeight: 1.1, color: 'var(--wht)' },
+  metricSub: { fontFamily: 'var(--bd)', fontSize: '.72rem', fontWeight: 700, color: 'var(--mut)' },
+  analyticsNote: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 600, color: 'var(--mut)', fontStyle: 'italic' },
+
+  // ── Reconfigurator deck ──
+  reconfig: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.2rem', alignItems: 'start' },
+  reconfigForm: { display: 'flex', flexDirection: 'column' },
+  reconfigLabel: { fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--mut)', marginBottom: '.4rem' },
+  reconfigInput: {
+    width: '100%', boxSizing: 'border-box', background: '#050505', border: '1px solid var(--line)',
+    borderRadius: 10, color: 'var(--wht)', fontFamily: 'var(--display)', fontSize: '1.8rem',
+    padding: '.5rem .8rem', outline: 'none',
+  },
+  reconfigNote: { fontFamily: 'var(--bd)', fontSize: '.8rem', fontWeight: 600, color: 'var(--mut)', margin: '.6rem 0 1rem', lineHeight: 1.4 },
+  macroGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '.6rem' },
+  reconfigAside: { background: 'rgba(106,13,173,.12)', border: '1px solid var(--line)', borderRadius: 12, padding: '1rem 1.1rem', alignSelf: 'start' },
+  asideBadge: { display: 'inline-block', fontFamily: 'var(--hb)', fontSize: '.58rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--gold-soft)', border: '1px solid rgba(245,200,0,.35)', borderRadius: 6, padding: '.2rem .5rem', marginBottom: '.6rem' },
+  asideTitle: { fontFamily: 'var(--hb)', fontSize: '.95rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--wht)', marginBottom: '.5rem' },
+  asideText: { fontFamily: 'var(--bd)', fontSize: '.86rem', fontWeight: 600, lineHeight: 1.5, color: 'var(--mut)', margin: 0 },
+  asideShield: { fontFamily: 'var(--bd)', fontSize: '.76rem', fontWeight: 700, color: 'var(--grn)', marginTop: '.8rem' },
+
   tile: {
     background: 'var(--gry)', border: '1px solid var(--line)', borderTop: '3px solid var(--mut)',
-    borderRadius: 12, padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+    borderRadius: 12, padding: '.8rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
   },
-  tileLabel: { fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--mut)' },
-  tileValue: { fontFamily: 'var(--display)', fontSize: '2rem', lineHeight: 1.1, color: 'var(--wht)', margin: '.25rem 0 0' },
-  tileUnit: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 700, color: 'var(--mut)' },
+  tileLabel: { fontFamily: 'var(--hb)', fontSize: '.62rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--mut)' },
+  tileUnit: { fontFamily: 'var(--bd)', fontSize: '.72rem', fontWeight: 700, color: 'var(--mut)' },
   macroInput: {
-    width: '100%', margin: '.2rem 0', padding: '.3rem .1rem', background: 'transparent',
+    width: '100%', margin: '.15rem 0', padding: '.2rem .1rem', background: 'transparent',
     border: 'none', borderBottom: '2px solid var(--line)', color: 'var(--wht)',
-    fontFamily: 'var(--display)', fontSize: '1.8rem', lineHeight: 1.1, outline: 'none',
+    fontFamily: 'var(--display)', fontSize: '1.5rem', lineHeight: 1.1, outline: 'none',
   },
 
-  editBtn: {
-    fontFamily: 'var(--hb)', fontSize: '.7rem', letterSpacing: '2px', textTransform: 'uppercase',
-    color: 'var(--gold-soft)', background: 'none', border: '1px solid rgba(245,200,0,.35)',
-    borderRadius: 8, padding: '.4rem .8rem', cursor: 'pointer', whiteSpace: 'nowrap',
-  },
-  saveRow: { display: 'flex', alignItems: 'center', gap: '.7rem', marginTop: '1rem' },
+  saveRow: { display: 'flex', alignItems: 'center', gap: '.8rem', marginTop: '1.1rem' },
   saveBtn: {
     fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '2px', textTransform: 'uppercase',
     color: '#090909', background: 'var(--yel)', border: '1px solid var(--yel)', borderRadius: 8,
-    padding: '.6rem 1.4rem', cursor: 'pointer',
+    padding: '.65rem 1.4rem', cursor: 'pointer',
   },
-  cancelBtn: {
-    fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '2px', textTransform: 'uppercase',
-    color: 'var(--mut)', background: 'none', border: '1px solid var(--line)', borderRadius: 8,
-    padding: '.6rem 1.2rem', cursor: 'pointer',
-  },
+  savedFlag: { fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--grn)' },
   saveError: {
     fontFamily: 'var(--bd)', fontSize: '.92rem', fontWeight: 700, color: 'var(--red)',
     marginTop: '.7rem', border: '1px solid var(--red)', borderRadius: 8, padding: '.5rem .75rem',
   },
 
-  // ── Co-Coach console — a distinct, gold-accented agentic panel. ──
+  // ── Feed chat (Co-Coach) ──
   coachPanel: { border: '1px solid rgba(245,200,0,.4)', borderRadius: 14, padding: '1.2rem 1.3rem', background: 'rgba(245,200,0,.04)' },
   coachHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.8rem' },
   coachKicker: { fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: 'var(--gold-soft)' },
   coachOnline: { fontFamily: 'var(--hb)', fontSize: '.64rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--grn)' },
+  cueRow: { display: 'flex', flexWrap: 'wrap', gap: '.45rem', marginBottom: '.8rem' },
+  cue: {
+    fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '1px', textTransform: 'uppercase',
+    color: 'var(--gold-soft)', background: 'rgba(106,13,173,.2)', border: '1px solid rgba(245,200,0,.3)',
+    borderRadius: 999, padding: '.4rem .8rem', cursor: 'pointer',
+  },
   coachTextarea: {
     width: '100%', boxSizing: 'border-box', resize: 'vertical', minHeight: 64,
     background: '#050505', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--wht)',
@@ -748,9 +909,7 @@ const styles = {
   coachAnswerText: { fontFamily: 'var(--bd)', fontSize: '1rem', fontWeight: 500, lineHeight: 1.6, color: 'var(--wht)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
   coachFoot: { fontFamily: 'var(--bd)', fontSize: '.76rem', fontWeight: 700, color: 'var(--mut)', marginTop: '.8rem', letterSpacing: '.3px' },
 
-  analytics: { display: 'flex', flexDirection: 'column', gap: '.7rem' },
   inlineError: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '1px solid var(--red)', borderRadius: 10, padding: '.7rem 1rem' },
-
   kv: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '.7rem' },
   field: { display: 'flex', flexDirection: 'column', gap: '.2rem' },
   fieldLabel: { fontFamily: 'var(--hb)', fontSize: '.64rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--mut)' },

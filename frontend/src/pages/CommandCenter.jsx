@@ -34,14 +34,14 @@ import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 import { hasAdminToken } from '../lib/adminAuth.js';
 
 // `needsToken` marks the surfaces whose data path gates on the X-BBF-Admin-Token
-// server-side: the roster (bbf-admin-roster), the Comlink (Render leads/concierge),
-// and Analytics (its client dropdown reuses the roster). The tokenless surfaces —
-// Command (bbf-command-feed, anon), Risk Telemetry (anon + RLS), and the
+// server-side: the roster (bbf-admin-roster), the Command feed (bbf-command-feed),
+// the Comlink (Render leads/concierge), and Analytics (its client dropdown reuses
+// the roster). The tokenless surfaces — Risk Telemetry (anon + RLS) and the
 // Player-Coach training tabs (the admin's own vault session) — render directly.
 const TABS = [
   // "Founder Five" master-detail roster is the Command Center centerpiece (default).
   { id: 'roster', label: 'Founder Five', Panel: ClientHub, needsToken: true },
-  { id: 'command', label: 'Command', Panel: CommandRoster },
+  { id: 'command', label: 'Command', Panel: CommandRoster, needsToken: true },
   { id: 'telemetry', label: 'Risk Telemetry', Panel: RiskTelemetry },
   { id: 'analytics', label: 'Analytics', Panel: ClientAnalytics, needsToken: true },
   { id: 'comlink', label: 'Comlink', Panel: Comlink, needsToken: true },

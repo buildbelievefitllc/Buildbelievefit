@@ -4,9 +4,10 @@
 //
 // Talks to the bbf-command-feed edge function (Terminal 3). Mirrors the proven
 // bbf-admin-roster call convention (rosterApi.js): the Supabase gateway needs the
-// anon apikey + Authorization to ROUTE the request. ZERO-FRICTION (Phase 23): the
-// X-BBF-Admin-Token gate is gone — the feed loads via the standard anon-key
-// pattern, no token prompt.
+// anon apikey + Authorization to ROUTE the request, AND the function gates every
+// call on X-BBF-Admin-Token === BBF_COACH_AGENT_TOKEN (index.ts:92 → 401 otherwise).
+// The token is hydrated at runtime from the shared adminAuth store — never bundled
+// (§7). Absent ⇒ the Command Center surfaces the unlock gate.
 //
 // Contract (per Terminal 3):
 //   POST {FUNCTIONS_BASE}/bbf-command-feed
@@ -23,6 +24,7 @@
 //   overall_status    → Active/Paused pill      (green ⇒ Active, else Paused)
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
+import { getCoachAdminToken } from './adminAuth.js';
 
 const isGreen = (s) => String(s || '').trim().toLowerCase() === 'green';
 
@@ -50,6 +52,9 @@ export async function fetchCommandFeed() {
     headers.apikey = SUPABASE_ANON_KEY;
     headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
   }
+  // Admin authorization — the function's real boundary (bbf-command-feed:92).
+  const adminToken = getCoachAdminToken();
+  if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
 
   let res;
   try {

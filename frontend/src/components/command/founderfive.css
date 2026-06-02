@@ -18,6 +18,40 @@
   color: var(--mut); max-width: 62ch; margin: .5rem 0 0;
 }
 
+/* ── Client Database Hub header (executive suite + live stats) ── */
+.ff-hub-head { margin-bottom: 1.6rem; }
+.ff-exec-kicker {
+  font-family: var(--hb); font-size: .68rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold-deep); margin-bottom: .5rem;
+}
+.ff-hub-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.4rem; flex-wrap: wrap; }
+.ff-hub-titlewrap { min-width: 0; }
+.ff-hub-title { font-family: var(--display); font-size: 2.2rem; letter-spacing: 1px; margin: 0; color: var(--wht); }
+.ff-stats { display: flex; gap: .7rem; flex-shrink: 0; flex-wrap: wrap; }
+.ff-stat {
+  background: var(--gry); border: 1px solid var(--line); border-top: 3px solid var(--mut);
+  border-radius: 12px; padding: .7rem 1rem; min-width: 120px;
+}
+.ff-stat--gold { border-top-color: var(--yel); }
+.ff-stat-label { display: block; font-family: var(--hb); font-size: .6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
+.ff-stat-val { font-family: var(--display); font-size: 1.6rem; line-height: 1.2; color: var(--wht); }
+.ff-stat-val em { font-family: var(--bd); font-size: .8rem; font-weight: 700; font-style: normal; color: var(--grn); }
+.ff-stat--gold .ff-stat-val { color: var(--yel); }
+
+/* ── Roster section header + filter ── */
+.ff-roster-kicker { font-family: var(--hb); font-size: .66rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); }
+.ff-filter {
+  width: 100%; box-sizing: border-box; background: #050505; border: 1px solid var(--line);
+  border-radius: 10px; color: var(--wht); font-family: var(--bd); font-size: .9rem; font-weight: 600;
+  padding: .55rem .8rem; outline: none;
+}
+.ff-filter:focus { border-color: rgba(245, 200, 0, .4); }
+
+/* roster row meta column (badge + compliance flag) */
+.ff-row-meta { display: flex; flex-direction: column; align-items: flex-end; gap: .3rem; flex-shrink: 0; }
+.ff-row-flag { font-family: var(--bd); font-size: .64rem; font-weight: 700; letter-spacing: .3px; color: var(--mut); white-space: nowrap; }
+.ff-row-flag--ok { color: var(--grn); }
+
 /* ── master + detail grid ── */
 .ff-grid {
   display: grid;
