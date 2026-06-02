@@ -705,22 +705,45 @@
 
 /* ═══ Phase 21.5 — Sentinel · Generator · Mindset ═══════════════════════════ */
 
-/* ── Sovereign Sentinel (Kinematic Form HUD) ─────────────────────────────── */
-.sentinel {
+/* ── Hypertrophy Balance Analyzer (replaces the Sovereign Sentinel) ───────── */
+.hba {
   position: relative;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(245, 200, 0, .18);
   border-radius: 16px;
-  overflow: hidden;
   margin-bottom: 1.1rem;
-  background: #0a0a0a;
+  padding: 1.1rem 1.2rem 1.25rem;
+  background: linear-gradient(135deg, rgba(106, 13, 173, .12), rgba(10, 10, 10, .85));
 }
-.sentinel-kicker {
-  position: absolute; top: .6rem; left: .8rem; z-index: 2;
-  font-family: var(--hb); font-size: .62rem; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--gold-soft); background: rgba(9, 9, 9, .55);
-  padding: .2rem .55rem; border-radius: 999px; border: 1px solid rgba(245, 200, 0, .25);
+.hba-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.hba-kicker { font-family: var(--hb); font-size: .68rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-soft); }
+.hba-sub { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: var(--mut); margin-top: .25rem; }
+.hba-index { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.hba-index-val { font-family: var(--display); font-size: 2rem; line-height: 1; color: var(--yel); }
+.hba-index-pct { font-size: 1rem; color: var(--gold-soft); }
+.hba-index-lbl { font-family: var(--hb); font-size: .58rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); margin-top: .15rem; }
+
+.hba-rows { display: flex; flex-direction: column; gap: .6rem; }
+.hba-row { display: grid; grid-template-columns: 78px 1fr 62px 64px; align-items: center; gap: .7rem; }
+.hba-row-name { font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; text-transform: uppercase; color: var(--wht); }
+.hba-track {
+  position: relative; height: 14px; border-radius: 999px;
+  background: #0b0b0b; border: 1px solid #222; overflow: hidden;
 }
-.sentinel-canvas { display: block; width: 100%; }
+.hba-band {
+  position: absolute; top: 0; bottom: 0; z-index: 1;
+  background: rgba(34, 197, 94, .14); border-left: 1px solid rgba(34, 197, 94, .5); border-right: 1px solid rgba(34, 197, 94, .5);
+}
+.hba-fill { position: absolute; top: 0; bottom: 0; left: 0; z-index: 2; border-radius: 999px 0 0 999px; opacity: .92; }
+.hba-row-sets { font-family: var(--display); font-size: 1.05rem; color: var(--wht); text-align: right; }
+.hba-row-unit { font-family: var(--bd); font-size: .58rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
+.hba-row-status {
+  font-family: var(--hb); font-size: .58rem; letter-spacing: 1px; text-transform: uppercase;
+  border: 1px solid currentColor; border-radius: 6px; padding: .2rem .35rem; text-align: center; white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .hba-row { grid-template-columns: 60px 1fr 52px; }
+  .hba-row-status { display: none; }
+}
 
 /* ── Program Generator ───────────────────────────────────────────────────── */
 .gen { display: flex; flex-direction: column; gap: 1rem; }
