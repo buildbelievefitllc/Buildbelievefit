@@ -39,8 +39,12 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<RootRoute />} />
-      {/* Admin console — AdminGuard denies non-admins before the shell mounts. */}
-      <Route path="/command" element={<AdminGuard><CommandCenter /></AdminGuard>} />
+      {/* Admin console — AdminGuard denies non-admins before the shell mounts. The
+          optional :tab segment makes each surface deep-linkable; the sidebar nav
+          and the segmented tabs both push to /command/<tab>. ONE route (not two)
+          so the shell stays mounted across tab swaps — only the inner panel
+          remounts (CommandCenter keys it). */}
+      <Route path="/command/:tab?" element={<AdminGuard><CommandCenter /></AdminGuard>} />
       {/* Any unknown path (e.g. an old monolith deep link like /bbf-app.html)
           falls back to the root, which dispatches by audience — never a 404. */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -8,8 +8,9 @@
 //   DETAIL  → the selected athlete's <ClientDossier/>, a tabbed Program /
 //             Nutrition / Analytics interface, beside the roster.
 //
-// Data path: lib/rosterApi.rosterCall('roster') via the standard anon-key pattern
-// (zero-friction — no token gate). Roster pull:
+// Data path: lib/rosterApi.rosterCall('roster'), which attaches the runtime-
+// hydrated X-BBF-Admin-Token (the Command Center unlock gate supplies it once;
+// never bundled, §7). Roster pull:
 //   POST {FUNCTIONS_BASE}/bbf-admin-roster { action:'roster' }
 //   200 → { ok:true, count, clients:[{ id, uid, name, email, role,
 //           metabolic_tier, subscription_tier, tdee_target, updated_at }] }
