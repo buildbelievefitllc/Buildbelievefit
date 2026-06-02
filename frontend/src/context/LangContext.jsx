@@ -237,6 +237,7 @@ const DICT = {
   'cmd-tab-telemetry': { en: 'Risk Telemetry', es: 'Telemetría de Riesgo', pt: 'Telemetria de Risco' },
   'cmd-tab-analytics': { en: 'Analytics', es: 'Analíticas', pt: 'Análises' },
   'cmd-tab-comlink': { en: 'Comlink', es: 'Comlink', pt: 'Comlink' },
+  'cmd-tab-access': { en: 'Access Control', es: 'Control de Acceso', pt: 'Controle de Acesso' },
   'cmd-tab-sports': { en: 'Sports Portal', es: 'Portal Deportivo', pt: 'Portal Esportivo' },
   // CEO-only Language Mastery Protocol tab (Command Center + sidebar nav entry).
   'cmd-tab-language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },

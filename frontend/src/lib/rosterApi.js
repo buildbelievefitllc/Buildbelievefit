@@ -199,3 +199,66 @@ export async function compilePlan(id, opts = {}) {
   if (cuisine) payload.cuisine = cuisine;
   return rosterCall('compile', payload);
 }
+
+// ── Executive Access Control (Command Center · Access Control tab) ──────────────
+// Roster-derived account status → display label + brand-aligned accent. The server
+// owns the derivation (bbf-admin-roster deriveAccountStatus); this is presentation
+// only. Anything unrecognized renders as 'active' so a new server value never blanks
+// a row.
+export const ACCOUNT_STATUS_META = {
+  active: { label: 'Active', color: 'var(--grn)' },
+  delinquent: { label: 'Delinquent', color: 'var(--gold-deep)' },
+  locked: { label: 'Locked', color: 'var(--red)' },
+};
+export function accountStatusMeta(status) {
+  return ACCOUNT_STATUS_META[String(status || '').toLowerCase()] || ACCOUNT_STATUS_META.active;
+}
+
+// The pricing matrix (bbf_tiers) for the tier-reassignment dropdown.
+//   → { ok:true, tiers:[{ slug, display_name, category, price_cents, billing_type }] }
+export function fetchTiers() {
+  return rosterCall('tiers');
+}
+
+// Manually reassign an athlete's subscription tier (comp / up / downgrade,
+// bypassing Stripe). Keys on the uid slug. The server (bbf_admin_set_tier) owns the
+// allowlist + the akeem-locked-to-sovereign guard, so a rejected change surfaces as
+// a precise "Error 409 — … (akeem_locked_to_sovereign)." rather than failing silent.
+//   → { ok:true, uid, subscription_tier }
+export function reassignTier(uid, tier) {
+  const slug = String(uid || '').trim().toLowerCase();
+  const next = String(tier || '').trim().toLowerCase();
+  if (!slug) {
+    const e = new Error('Select an athlete before reassigning a tier.');
+    e.code = 'missing_uid';
+    throw e;
+  }
+  if (!next) {
+    const e = new Error('Choose a tier to assign.');
+    e.code = 'invalid_tier';
+    throw e;
+  }
+  return rosterCall('set_tier', { uid: slug, tier: next });
+}
+
+// THE KILL SWITCH — lock or unlock an athlete's account. Locking sets
+// access_status='locked' AND revokes every live vault_token server-side, so the
+// athlete's Vault is ejected to the public login on its next heartbeat and a
+// re-login is refused (bbf_verify_user_pin). akeem can never be locked.
+//   status: 'locked' | 'unlocked'
+//   → { ok:true, uid, access_status, sessions_revoked }
+export function setAccessStatus(uid, status) {
+  const slug = String(uid || '').trim().toLowerCase();
+  const next = String(status || '').trim().toLowerCase();
+  if (!slug) {
+    const e = new Error('Select an athlete before changing account access.');
+    e.code = 'missing_uid';
+    throw e;
+  }
+  if (next !== 'locked' && next !== 'unlocked') {
+    const e = new Error('Account status must be locked or unlocked.');
+    e.code = 'invalid_status';
+    throw e;
+  }
+  return rosterCall('set_status', { uid: slug, status: next });
+}
