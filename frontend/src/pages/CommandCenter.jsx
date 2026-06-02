@@ -31,6 +31,7 @@ import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
 import SportsPortal from '../components/sports/SportsPortal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLang } from '../context/LangContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 import { hasAdminToken } from '../lib/adminAuth.js';
 
@@ -42,21 +43,21 @@ import { hasAdminToken } from '../lib/adminAuth.js';
 // admin's own vault session) render directly.
 const TABS = [
   // "Founder Five" master-detail roster is the Command Center centerpiece (default).
-  { id: 'roster', label: 'Founder Five', Panel: ClientHub, needsToken: true },
-  { id: 'command', label: 'Command', Panel: CommandRoster, needsToken: true },
-  { id: 'telemetry', label: 'Risk Telemetry', Panel: RiskTelemetry, needsToken: true },
-  { id: 'analytics', label: 'Analytics', Panel: ClientAnalytics, needsToken: true },
-  { id: 'comlink', label: 'Comlink', Panel: Comlink, needsToken: true },
+  { id: 'roster', labelKey: 'cmd-tab-roster', Panel: ClientHub, needsToken: true },
+  { id: 'command', labelKey: 'cmd-tab-command', Panel: CommandRoster, needsToken: true },
+  { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry, needsToken: true },
+  { id: 'analytics', labelKey: 'cmd-tab-analytics', Panel: ClientAnalytics, needsToken: true },
+  { id: 'comlink', labelKey: 'cmd-tab-comlink', Panel: Comlink, needsToken: true },
   // Sports Portal & Athlete Database — youth-athlete scouting terminal. Runs on
   // bundled legacy-fusion data (no server token); the panel itself switches the
   // admin-override vs client view on isAdmin.
-  { id: 'sports', label: 'Sports Portal', Panel: SportsPortal },
+  { id: 'sports', labelKey: 'cmd-tab-sports', Panel: SportsPortal },
   // Player-Coach surfaces — the admin's own training view.
-  { id: 'program', label: 'Program', Panel: Program },
-  { id: 'generator', label: 'Generator', Panel: Generator },
-  { id: 'prehab', label: 'Prehab', Panel: Prehab },
-  { id: 'nutrition', label: 'Nutrition', Panel: Nutrition },
-  { id: 'settings', label: 'Settings', Panel: Settings },
+  { id: 'program', labelKey: 'vault-tab-program', Panel: Program },
+  { id: 'generator', labelKey: 'vault-tab-generator', Panel: Generator },
+  { id: 'prehab', labelKey: 'vault-tab-prehab', Panel: Prehab },
+  { id: 'nutrition', labelKey: 'vault-tab-nutrition', Panel: Nutrition },
+  { id: 'settings', labelKey: 'vault-tab-settings', Panel: Settings },
 ];
 
 const DEFAULT_TAB = TABS[0].id;
@@ -67,7 +68,8 @@ export default function CommandCenter() {
   // navigation is genuinely router-driven. Unknown / absent ⇒ the default roster.
   const { tab } = useParams();
   const navigate = useNavigate();
-  const activeDef = TABS.find((t) => t.id === tab) ?? TABS[0];
+  const { t } = useLang();
+  const activeDef = TABS.find((item) => item.id === tab) ?? TABS[0];
   const activeTab = activeDef.id;
   const ActivePanel = activeDef.Panel;
 
@@ -93,22 +95,22 @@ export default function CommandCenter() {
       {/* Slim brand strip — each tab owns its own hero heading (the Command tab
           renders the "SOVEREIGN COMMAND CENTER" header), so no duplicate title. */}
       <header style={styles.head}>
-        <div style={styles.kicker}>Build Believe Fit · Admin</div>
+        <div style={styles.kicker}>{t('cmd-kicker')}</div>
       </header>
 
       <nav style={styles.tabs} role="tablist" aria-label="Command Center surfaces">
-        {TABS.map((t) => {
-          const active = t.id === activeTab;
+        {TABS.map((item) => {
+          const active = item.id === activeTab;
           return (
             <button
-              key={t.id}
+              key={item.id}
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => selectTab(t.id)}
+              onClick={() => selectTab(item.id)}
               style={{ ...styles.tab, ...(active ? styles.tabActive : null) }}
             >
-              {t.label}
+              {t(item.labelKey)}
             </button>
           );
         })}
@@ -119,7 +121,7 @@ export default function CommandCenter() {
           surface shows the unlock gate until the admin token is hydrated. */}
       <div style={styles.panel} key={activeTab}>
         {gated ? (
-          <AdminTokenGate surface={activeDef.label} onUnlock={() => setTokenReady(true)} />
+          <AdminTokenGate surface={t(activeDef.labelKey)} onUnlock={() => setTokenReady(true)} />
         ) : (
           <ActivePanel plans={plans} profile={profile} />
         )}

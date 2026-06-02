@@ -12,6 +12,7 @@
 // checkout (tier CTAs route to the application form). The brand surface + funnel
 // are restored.
 
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import PathfinderForm from '../components/PathfinderForm.jsx';
@@ -21,7 +22,7 @@ import BBFChatbox from '../components/BBFChatbox.jsx';
 import PositionalBlueprints from '../components/PositionalBlueprints.jsx';
 import ScienceHub from '../components/ScienceHub.jsx';
 import { useLang } from '../context/LangContext.jsx';
-import { LANGS } from '../context/langs.js';
+import LangToggle from '../components/LangToggle.jsx';
 
 // ── True legacy palette (verbatim from styles/bbf-tokens.css) ───────────────────
 // Victory Gold is RESERVED for primary CTAs only (scarcity = value). Purple is the
@@ -48,37 +49,166 @@ const CRED_KEYS = [
 ];
 const ORIGIN_KEYS = ['origin-n1', 'origin-n2', 'origin-n3'];
 
-// Phase 15 — Revenue Matrix Pivot: two pillars. Autonomous (scalable, app/AI,
-// self-directed) and Sovereign (premium hybrid, Founder-direct human-in-the-loop).
-// Placeholder pricing pending Stripe migration; both CTAs route to #pathfinder.
-const TIERS = [
-  {
-    name: 'The Autonomous Engine', price: '$47', per: '/mo',
-    tag: 'Autonomous Tier · Online Only', accent: '#22c55e',
-    cta: 'Start the Engine →',
-    blurb: 'The full system, self-directed. Scalable, affordable, relentless.',
-    feats: [
-      'Full BBF App — workout + nutrition tracking',
-      'AI-driven periodization that adapts to your logged data',
-      'Strict progress tracking + metabolic data capture',
-      'TDEE calculator + macro blueprint',
-      'Self-directed — you run the engine, it adjusts to you',
-    ],
-  },
-  {
-    name: 'The Sovereign Standard', price: '$897', per: 'Flat · 12-Week Protocol',
-    tag: 'Apex Tier · Hybrid · In-Person + App', accent: GOLD, featured: true,
-    badge: 'Founder-Direct', cta: 'Apply for Sovereign →',
-    blurb: 'Maximum access plus the human touch no algorithm replaces.',
-    feats: [
-      'Everything in the Autonomous Engine — fully unlocked',
-      'Direct 1-on-1 with Akeem — in-person biomechanics',
-      'Hands-on protocol adjustments + live form correction',
-      'Human-in-the-loop coaching, not just an algorithm',
-      'Founder-Verified joint protection + prehab architecture',
-    ],
-  },
+// Phase 15 — Revenue Matrix: four category tabs, real Stripe pricing. Every tier's
+// purchase button is wired to a LIVE Stripe Payment Link (buy.stripe.com), provisioned
+// 2026-06-02 against acct_1TLzQCQ4j3uHTi7P ("Build Believe Fit llc"). Price IDs are
+// noted inline for traceability back to the Stripe dashboard. Feature copy is derived
+// from existing brand surfaces (CLAUDE.md §1 + the legacy tier copy) — no invented
+// figures or guarantees.
+const MATRIX_TABS = [
+  { key: 'fitness', label: 'Online Fitness' },
+  { key: 'nutrition', label: 'Online Nutrition' },
+  { key: 'youth', label: 'Youth Athlete' },
+  { key: 'hybrid', label: 'Hybrid Protocols' },
 ];
+
+const PRICING = {
+  // ── CATEGORY 1 — Online Fitness · recurring monthly ──
+  fitness: {
+    note: 'Recurring · billed monthly · cancel anytime',
+    tiers: [
+      {
+        name: 'BBF Catalyst', price: '$9.99', per: '/mo',
+        priceId: 'price_1TdtVCQ4j3uHTi7PEjvMihnk',
+        link: 'https://buy.stripe.com/fZu00lb71fMfcjE0sxaZi0k',
+        feats: [
+          'Full BBF app — workout tracking',
+          'Adaptive training programming',
+          'Strength + progress logging',
+          'Trilingual — EN / ES / PT',
+        ],
+      },
+      {
+        name: 'BBF Momentum', price: '$19.99', per: '/mo',
+        priceId: 'price_1TdtVDQ4j3uHTi7Pb2hGyXBi',
+        link: 'https://buy.stripe.com/3cIcN7b719nR6ZkcbfaZi0l',
+        feats: [
+          'Everything in Catalyst',
+          'Periodization that adapts to your logged data',
+          'TDEE calculator + macro blueprint',
+          'Metabolic capture + progress analytics',
+        ],
+      },
+      {
+        name: 'BBF Autonomous', price: '$49.99', per: '/mo',
+        featured: true, badge: 'Most Chosen',
+        priceId: 'price_1TdtVDQ4j3uHTi7PP2uWTj0y',
+        link: 'https://buy.stripe.com/9B67sN8YT1VpdnIa37aZi0m',
+        feats: [
+          'Everything in Momentum',
+          'Full AI-driven periodization engine',
+          'Workout + nutrition tracking, fully unlocked',
+          'Self-directed — the engine adapts to you',
+        ],
+      },
+    ],
+  },
+  // ── CATEGORY 2 — Online Nutrition (Fuel) · recurring monthly ──
+  nutrition: {
+    note: 'Recurring · billed monthly · cancel anytime',
+    tiers: [
+      {
+        name: 'Fuel Foundation', price: '$7.99', per: '/mo',
+        priceId: 'price_1TdtVEQ4j3uHTi7PQ0fOArfI',
+        link: 'https://buy.stripe.com/9B69AV8YTgQjabw6QVaZi0n',
+        feats: [
+          'TDEE-based macro blueprint',
+          'Core meal guidance',
+          'Daily macro targets',
+          'Trilingual — EN / ES / PT',
+        ],
+      },
+      {
+        name: 'Fuel Performance', price: '$14.99', per: '/mo',
+        priceId: 'price_1TdtVEQ4j3uHTi7PEvGYoQkW',
+        link: 'https://buy.stripe.com/9B64gB2AvcA397s4INaZi0o',
+        feats: [
+          'Everything in Foundation',
+          'Performance macro programming',
+          'Expanded meal architecture',
+          'Hydration + fueling timing',
+        ],
+      },
+      {
+        name: 'Fuel Sovereign', price: '$29.99', per: '/mo',
+        featured: true, badge: 'Most Chosen',
+        priceId: 'price_1TdtVFQ4j3uHTi7PZ65aKtTI',
+        link: 'https://buy.stripe.com/6oUbJ36QL2Ztabw4INaZi0p',
+        feats: [
+          'Everything in Performance',
+          'Premium nutrition programming',
+          'Full meal + fueling support',
+          'Priority macro recalibration',
+        ],
+      },
+    ],
+  },
+  // ── CATEGORY 3 — Youth Athlete · recurring monthly ──
+  youth: {
+    note: 'Recurring · billed monthly · cancel anytime',
+    tiers: [
+      {
+        name: 'BBF Rising Athlete', price: '$14.99', per: '/mo',
+        featured: true, badge: 'Youth Flagship',
+        priceId: 'price_1TdtVFQ4j3uHTi7Ponk5039p',
+        link: 'https://buy.stripe.com/aFa3cx5MH1Vp97sejnaZi0q',
+        feats: [
+          'Periodized sport training',
+          'Kinematic Form HUD — movement screening',
+          'Injury-prevention + prehab focus',
+          'Position-specific blueprints',
+          'Trilingual — EN / ES / PT',
+        ],
+      },
+    ],
+  },
+  // ── CATEGORY 4 — Hybrid Protocols · one-time enrollment (3× or 4× / week) ──
+  hybrid: {
+    note: 'One-time enrollment · in-person + app · pick your weekly frequency',
+    tiers: [
+      {
+        name: 'Kickstart', span: '6-Week Protocol',
+        feats: [
+          'Foundational 6-week block',
+          'In-person + app hybrid',
+          'Technique base + form correction',
+          'Joint-first progression',
+        ],
+        options: [
+          { label: '3× / week', price: '$399', priceId: 'price_1TdtVGQ4j3uHTi7P51mzlaCT', link: 'https://buy.stripe.com/5kQaEZejdbvZabwcbfaZi0r' },
+          { label: '4× / week', price: '$499', priceId: 'price_1TdtVGQ4j3uHTi7P5AZSEOoS', link: 'https://buy.stripe.com/dRmaEZb710Rl5Vg2AFaZi0s' },
+        ],
+      },
+      {
+        name: 'Transformation', span: '8-Week Protocol',
+        feats: [
+          'Progressive 8-week block',
+          'Hands-on biomechanics with Akeem',
+          'Progressive overload + prehab',
+          'Live form correction',
+        ],
+        options: [
+          { label: '3× / week', price: '$499', priceId: 'price_1TdtVHQ4j3uHTi7PMh786BoK', link: 'https://buy.stripe.com/4gM7sN3EzfMf1F0a37aZi0t' },
+          { label: '4× / week', price: '$649', priceId: 'price_1TdtVHQ4j3uHTi7PhOfSjE61', link: 'https://buy.stripe.com/6oUeVf4ID8jN6Zk6QVaZi0u' },
+        ],
+      },
+      {
+        name: 'Sovereign', span: '12-Week Protocol',
+        featured: true, badge: 'Founder-Direct',
+        feats: [
+          'Apex 12-week protocol',
+          'Founder-direct 1-on-1 coaching',
+          'Joint protection + prehab architecture',
+          'Maximum access — human-in-the-loop',
+        ],
+        options: [
+          { label: '3× / week', price: '$699', priceId: 'price_1TdtVIQ4j3uHTi7POHmPRFGn', link: 'https://buy.stripe.com/3cI6oJ8YTeIbcjEgrvaZi0v' },
+          { label: '4× / week', price: '$899', priceId: 'price_1TdtVIQ4j3uHTi7PYVF5s0dq', link: 'https://buy.stripe.com/4gMeVffnh7fJ83o0sxaZi0w' },
+        ],
+      },
+    ],
+  },
+};
 
 
 export default function MarketingLanding() {
@@ -171,22 +301,22 @@ export default function MarketingLanding() {
         <div style={s.secLbl}>{t('prog-lbl')}</div>
         <h2 style={s.secH}>{t('prog-h')}</h2>
         <p style={s.secSub}>{t('prog-sub')}</p>
-        <div style={s.progGrid}>
-          {TIERS.map((tier) => (
-            <article key={tier.name} style={{ ...s.progCard, ...(tier.featured ? s.progCardFeatured : null) }}>
-              {tier.featured ? <div style={s.progBadge}>{tier.badge || 'Most Popular'}</div> : null}
-              <div style={{ ...s.progTag, color: tier.accent }}>{tier.tag}</div>
-              <div style={s.progName}>{tier.name}</div>
-              <div style={s.progPrice}>{tier.price}<span style={s.progPer}> {tier.per}</span></div>
-              <div style={{ ...s.progBlurb, color: tier.accent }}>{tier.blurb}</div>
-              <ul style={s.progFeats}>
-                {tier.feats.map((f) => <li key={f} style={s.progFeat}>✓ {f}</li>)}
-              </ul>
-              <a href="#pathfinder" style={{ ...s.progCta, ...(tier.featured ? { background: GOLD, color: '#090909' } : null) }}>
-                {tier.cta || 'Apply →'}
-              </a>
-            </article>
-          ))}
+        <PricingMatrix />
+
+        {/* ── LOCAL WEEKLY ONGOING TRAINING — custom-quote call-out (mailto) ── */}
+        <div style={s.localCallout}>
+          <div style={s.localKicker}>Local · In-Person · Ongoing</div>
+          <h3 style={s.localH}>Local Weekly Ongoing Training</h3>
+          <p style={s.localP}>
+            Hands-on weekly training built around your schedule, goals, and capacity —
+            priced per athlete. Tell us what you&rsquo;re after and we&rsquo;ll send a custom quote.
+          </p>
+          <a
+            href="mailto:buildbelievefitllc@buildbelievefit.fitness?subject=Local%20Weekly%20Ongoing%20Training%20%E2%80%94%20Custom%20Quote%20Request"
+            style={s.localBtn}
+          >
+            Request a Custom Quote →
+          </a>
         </div>
         <div style={s.promise}>
           <div style={s.promiseLbl}>{t('promise-lbl')}</div>
@@ -343,23 +473,59 @@ export default function MarketingLanding() {
   );
 }
 
-// Trilingual EN / ES / PT switcher — legacy nav placement. Active language gets
-// the brand purple pill (legacy #bbf-lang-toggle .lang-active: bg purple).
-function LangToggle() {
-  const { lang, setLang } = useLang();
+// ── PRICING MATRIX — four category tabs → live Stripe Payment Links ──────────────
+// Each card's purchase button is an <a> to a real buy.stripe.com link (opens in a new
+// tab → Stripe-hosted checkout). Recurring tiers (Cat 1–3) carry one button; the
+// one-time Hybrid protocols carry two (3×/4× per week), each its own price/link.
+function PricingMatrix() {
+  const [tab, setTab] = useState('fitness');
+  const active = PRICING[tab];
   return (
-    <div style={s.langToggle} role="group" aria-label="Language">
-      {LANGS.map((l) => (
-        <button
-          key={l}
-          type="button"
-          onClick={() => setLang(l)}
-          aria-pressed={lang === l}
-          style={{ ...s.langBtn, ...(lang === l ? s.langBtnActive : null) }}
-        >
-          {l.toUpperCase()}
-        </button>
-      ))}
+    <div style={s.matrix}>
+      <div style={s.matrixTabs} role="tablist" aria-label="Pricing categories">
+        {MATRIX_TABS.map((mt) => (
+          <button
+            key={mt.key}
+            type="button"
+            role="tab"
+            aria-selected={tab === mt.key}
+            onClick={() => setTab(mt.key)}
+            style={{ ...s.matrixTab, ...(tab === mt.key ? s.matrixTabActive : null) }}
+          >
+            {mt.label}
+          </button>
+        ))}
+      </div>
+      <div style={s.matrixNote}>{active.note}</div>
+      <div style={s.matrixGrid}>
+        {active.tiers.map((tier) => (
+          <article key={tier.name} style={{ ...s.matrixCard, ...(tier.featured ? s.matrixCardFeatured : null) }}>
+            {tier.badge ? <div style={s.matrixBadge}>{tier.badge}</div> : null}
+            <div style={s.matrixCardName}>{tier.name}</div>
+            {tier.span ? <div style={s.matrixCardSpan}>{tier.span}</div> : null}
+            {tier.price ? (
+              <div style={s.matrixPrice}>{tier.price}<span style={s.matrixPer}>{tier.per}</span></div>
+            ) : null}
+            <ul style={s.matrixFeats}>
+              {tier.feats.map((f) => <li key={f} style={s.matrixFeat}>✓ {f}</li>)}
+            </ul>
+            {tier.options ? (
+              <div style={s.matrixOpts}>
+                {tier.options.map((o) => (
+                  <a key={o.label} href={o.link} target="_blank" rel="noopener noreferrer" style={s.matrixOptBtn}>
+                    <span style={s.matrixOptLbl}>{o.label}</span>
+                    <span style={s.matrixOptPrice}>{o.price}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <a href={tier.link} target="_blank" rel="noopener noreferrer" style={s.matrixBuy}>
+                Subscribe →
+              </a>
+            )}
+          </article>
+        ))}
+      </div>
     </div>
   );
 }
@@ -399,9 +565,6 @@ const s = {
   navLink: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', textDecoration: 'none', textTransform: 'uppercase', fontWeight: 600 },
   navSignIn: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 600, padding: 0 },
   navCta: { fontFamily: BODY, fontSize: '.88rem', letterSpacing: '1px', padding: '8px 18px', background: GOLD, color: '#090909', borderRadius: 6, textDecoration: 'none', textTransform: 'uppercase', fontWeight: 700, boxShadow: `0 4px 18px rgba(245,200,0,.25)` },
-  langToggle: { display: 'inline-flex', border: `1px solid rgba(157,39,201,.45)`, borderRadius: 8, overflow: 'hidden' },
-  langBtn: { fontFamily: HEAD, fontSize: '.82rem', letterSpacing: '1.5px', color: 'rgba(255,255,255,.6)', background: 'transparent', border: 'none', padding: '.35rem .6rem', cursor: 'pointer' },
-  langBtnActive: { background: PUR, color: GOLD },
 
   hero: { position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 'clamp(24px,5vw,56px)', alignItems: 'center', maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
   heroText: {},
@@ -461,6 +624,36 @@ const s = {
   promise: { maxWidth: 760, margin: '40px auto 0', textAlign: 'center', background: 'rgba(106,13,173,.06)', border: '1px solid rgba(106,13,173,.18)', borderRadius: 14, padding: 24 },
   promiseLbl: { fontFamily: BODY, fontSize: '.66rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL, marginBottom: 8 },
   promiseText: { fontFamily: BODY, fontSize: '.95rem', fontWeight: 600, lineHeight: 1.65, color: 'rgba(255,255,255,.68)', margin: 0 },
+
+  // ── Pricing matrix (Phase 15 — Stripe) — brutalist: square edges, thick borders,
+  // matte-black card surfaces, purple structure, Victory-Gold purchase buttons. ──
+  matrix: { marginTop: 8 },
+  matrixTabs: { display: 'flex', flexWrap: 'wrap', justifyContent: 'center', maxWidth: 880, margin: '0 auto', border: `1px solid rgba(157,39,201,.45)` },
+  matrixTab: { flex: '1 1 auto', fontFamily: HEAD, fontSize: 'clamp(.78rem,1.6vw,1rem)', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.7)', background: 'rgba(9,9,9,.7)', border: 'none', borderRight: `1px solid rgba(157,39,201,.25)`, padding: '14px 16px', cursor: 'pointer', whiteSpace: 'nowrap' },
+  matrixTabActive: { background: PUR, color: GOLD },
+  matrixNote: { textAlign: 'center', fontFamily: BODY, fontSize: '.78rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.45)', margin: '18px 0 26px' },
+  matrixGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,360px))', gap: 18, justifyContent: 'center' },
+  matrixCard: { position: 'relative', background: '#090909', border: `1px solid rgba(157,39,201,.35)`, borderTop: `4px solid ${PUR}`, padding: '28px 22px', display: 'flex', flexDirection: 'column' },
+  matrixCardFeatured: { borderColor: 'rgba(245,200,0,.5)', borderTop: `4px solid ${GOLD}`, boxShadow: `0 0 0 1px rgba(245,200,0,.25), 0 0 36px rgba(245,200,0,.1)` },
+  matrixBadge: { position: 'absolute', top: -1, right: -1, background: GOLD, color: '#090909', fontFamily: HEAD, fontSize: '.66rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 12px' },
+  matrixCardName: { fontFamily: DISPLAY, fontSize: '1.7rem', letterSpacing: '1px', textTransform: 'uppercase', color: '#fff', lineHeight: 1 },
+  matrixCardSpan: { fontFamily: BODY, fontSize: '.76rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: PURL, marginTop: 6 },
+  matrixPrice: { fontFamily: DISPLAY, fontSize: '2.6rem', color: GOLD, margin: '12px 0 4px', lineHeight: 1 },
+  matrixPer: { fontFamily: BODY, fontSize: '.9rem', fontWeight: 600, letterSpacing: '1px', color: 'rgba(255,255,255,.5)' },
+  matrixFeats: { listStyle: 'none', margin: '14px 0 22px', padding: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 9 },
+  matrixFeat: { fontFamily: BODY, fontSize: '.92rem', fontWeight: 600, color: 'rgba(255,255,255,.74)', lineHeight: 1.35, borderBottom: '1px solid rgba(255,255,255,.06)', paddingBottom: 8 },
+  matrixBuy: { display: 'block', textAlign: 'center', fontFamily: HEAD, fontSize: '1rem', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 900, color: '#090909', background: GOLD, border: 'none', padding: '14px', textDecoration: 'none' },
+  matrixOpts: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
+  matrixOptBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, color: '#090909', background: GOLD, padding: '10px 8px', textDecoration: 'none' },
+  matrixOptLbl: { fontFamily: HEAD, fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 700 },
+  matrixOptPrice: { fontFamily: DISPLAY, fontSize: '1.25rem', letterSpacing: '.5px' },
+
+  // ── Local weekly ongoing training — custom-quote call-out (mailto) ──
+  localCallout: { maxWidth: 760, margin: '44px auto 0', textAlign: 'center', background: `linear-gradient(135deg, rgba(106,13,173,.2), rgba(9,9,9,.55))`, border: `1px solid rgba(157,39,201,.4)`, borderLeft: `4px solid ${GOLD}`, padding: '28px 24px' },
+  localKicker: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL, marginBottom: 8 },
+  localH: { fontFamily: DISPLAY, fontSize: 'clamp(1.6rem,3.5vw,2.4rem)', letterSpacing: '1px', textTransform: 'uppercase', color: '#fff', margin: '0 0 10px' },
+  localP: { fontFamily: BODY, fontSize: '1rem', fontWeight: 600, lineHeight: 1.55, color: 'rgba(255,255,255,.7)', maxWidth: '52ch', margin: '0 auto 20px' },
+  localBtn: { display: 'inline-block', fontFamily: HEAD, fontSize: '.95rem', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 700, color: GOLD, background: 'transparent', border: `2px solid ${GOLD}`, padding: '12px 28px', textDecoration: 'none' },
 
   founderGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 36, alignItems: 'start' },
   founderImg: { width: '100%', borderRadius: 16, border: `2px solid rgba(106,13,173,.45)`, boxShadow: `0 0 40px rgba(106,13,173,.25)`, display: 'block', marginBottom: 16 },

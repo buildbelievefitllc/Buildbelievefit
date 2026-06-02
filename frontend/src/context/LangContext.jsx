@@ -41,8 +41,8 @@ const DICT = {
   'svc-h': { en: 'How We Get You There', es: 'Cómo Te Llevamos Allí', pt: 'Como Te Levamos Lá' },
   // programs
   'prog-lbl': { en: 'Choose Your Path', es: 'Elige Tu Camino', pt: 'Escolha Seu Caminho' },
-  'prog-h': { en: 'Two Paths. One Standard.', es: 'Dos Caminos. Un Estándar.', pt: 'Dois Caminhos. Um Padrão.' },
-  'prog-sub': { en: 'Run the system yourself with the Autonomous Engine, or go Founder-Direct with the Sovereign Standard. Same biomechanical precision, same Sovereign Gold Standard — your choice of autonomy or access.', es: 'Ejecuta el sistema tú mismo con el Motor Autónomo, o ve directo con el Fundador con el Estándar Soberano. La misma precisión biomecánica, el mismo Estándar Soberano de Oro: tu elección de autonomía o acceso.', pt: 'Rode o sistema você mesmo com o Motor Autônomo, ou vá direto com o Fundador no Padrão Soberano. A mesma precisão biomecânica, o mesmo Padrão Soberano de Ouro — sua escolha de autonomia ou acesso.' },
+  'prog-h': { en: 'Four Paths. One Standard.', es: 'Cuatro Caminos. Un Estándar.', pt: 'Quatro Caminhos. Um Padrão.' },
+  'prog-sub': { en: 'Online fitness, nutrition fueling, youth athlete development, or a Founder-direct hybrid protocol. Every path runs on the same biomechanical precision — the same Sovereign Gold Standard.', es: 'Fitness en línea, nutrición y combustible, desarrollo del atleta juvenil, o un protocolo híbrido directo con el Fundador. Cada camino corre sobre la misma precisión biomecánica: el mismo Estándar Soberano de Oro.', pt: 'Fitness online, nutrição e combustível, desenvolvimento do atleta jovem, ou um protocolo híbrido direto com o Fundador. Cada caminho corre sobre a mesma precisão biomecânica — o mesmo Padrão Soberano de Ouro.' },
   'prog-apply': { en: 'Apply →', es: 'Aplicar →', pt: 'Candidatar →' },
   // tdee
   'tdee-lbl': { en: 'Free Tool', es: 'Herramienta Gratis', pt: 'Ferramenta Grátis' },
@@ -209,6 +209,42 @@ const DICT = {
   'f-must-agree': { en: 'You must confirm the liability waiver and Terms to apply.', es: 'Debes confirmar la exención de responsabilidad y los Términos para aplicar.', pt: 'Você deve confirmar a isenção de responsabilidade e os Termos para se candidatar.' },
   'f-success-title': { en: 'Application Received', es: 'Solicitud Recibida', pt: 'Candidatura Recebida' },
   'f-success-body': { en: 'Your intake is in and securely logged. The Build Believe Fit team will reach out shortly with your next steps. Welcome to the standard.', es: 'Tu solicitud está registrada de forma segura. El equipo de Build Believe Fit te contactará pronto con los próximos pasos. Bienvenido al estándar.', pt: 'Sua candidatura está registrada com segurança. A equipe Build Believe Fit entrará em contato em breve com os próximos passos. Bem-vindo ao padrão.' },
+
+  // ── Phase 26 — Authenticated shell (Vault top bar · tabs · Command Center ·
+  // MasterLayout · Settings). Wired so the chosen language follows the athlete
+  // straight through the login gate. EN values are VERBATIM to the prior
+  // hardcoded labels, which keeps the E2E selectors that assert English text
+  // (.cv-brand "Sovereign Vault", the "Program" tab) green. ──
+  'vault-kicker': { en: 'Sovereign Vault', es: 'Bóveda Soberana', pt: 'Cofre Soberano' },
+  'vault-command': { en: 'Command Center', es: 'Centro de Comando', pt: 'Central de Comando' },
+  'shell-signout': { en: 'Sign Out', es: 'Cerrar Sesión', pt: 'Sair' },
+  'shell-athlete-vault': { en: '← Athlete Vault', es: '← Bóveda del Atleta', pt: '← Cofre do Atleta' },
+  // Vault tab labels. NOTE: EN 'Program' is asserted by vault-logging.spec via
+  // getByRole('tab', { name: 'Program' }) — do not change the English here.
+  'vault-tab-hub': { en: 'Hub', es: 'Panel', pt: 'Painel' },
+  'vault-tab-program': { en: 'Program', es: 'Programa', pt: 'Programa' },
+  'vault-tab-generator': { en: 'Generator', es: 'Generador', pt: 'Gerador' },
+  'vault-tab-cardio': { en: 'Smart Cardio', es: 'Cardio Inteligente', pt: 'Cardio Inteligente' },
+  'vault-tab-prehab': { en: 'Prehab', es: 'Pre-Hab', pt: 'Pré-Hab' },
+  'vault-tab-nutrition': { en: 'Nutrition', es: 'Nutrición', pt: 'Nutrição' },
+  'vault-tab-mindset': { en: 'Champion Mindset', es: 'Mentalidad de Campeón', pt: 'Mentalidade de Campeão' },
+  'vault-tab-settings': { en: 'Settings', es: 'Ajustes', pt: 'Configurações' },
+  // Command Center (admin) — header kicker + console tab labels. 'Founder Five'
+  // and 'Comlink' are product proper nouns (kept identical across languages).
+  'cmd-kicker': { en: 'Build Believe Fit · Admin', es: 'Build Believe Fit · Administración', pt: 'Build Believe Fit · Administração' },
+  'cmd-tab-roster': { en: 'Founder Five', es: 'Founder Five', pt: 'Founder Five' },
+  'cmd-tab-command': { en: 'Command', es: 'Comando', pt: 'Comando' },
+  'cmd-tab-telemetry': { en: 'Risk Telemetry', es: 'Telemetría de Riesgo', pt: 'Telemetria de Risco' },
+  'cmd-tab-analytics': { en: 'Analytics', es: 'Analíticas', pt: 'Análises' },
+  'cmd-tab-comlink': { en: 'Comlink', es: 'Comlink', pt: 'Comlink' },
+  'cmd-tab-sports': { en: 'Sports Portal', es: 'Portal Deportivo', pt: 'Portal Esportivo' },
+  // Settings surface — client account · preferences · session chrome.
+  'set-meta': { en: 'Account · preferences · session', es: 'Cuenta · preferencias · sesión', pt: 'Conta · preferências · sessão' },
+  'set-account': { en: 'Account', es: 'Cuenta', pt: 'Conta' },
+  'set-username': { en: 'Username', es: 'Usuario', pt: 'Usuário' },
+  'set-access-tier': { en: 'Access tier', es: 'Nivel de acceso', pt: 'Nível de acesso' },
+  'set-language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },
+  'set-session': { en: 'Session', es: 'Sesión', pt: 'Sessão' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });

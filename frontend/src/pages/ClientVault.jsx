@@ -23,6 +23,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLang } from '../context/LangContext.jsx';
+import LangToggle from '../components/LangToggle.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 import VaultHeader from '../components/vault/VaultHeader.jsx';
 import VaultHub from '../components/vault/VaultHub.jsx';
@@ -32,20 +34,24 @@ import Settings from '../components/vault/Settings.jsx';
 import SmartCardio from '../components/vault/SmartCardio.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
+import ChampionMindset from '../components/vault/ChampionMindset.jsx';
 import '../components/vault/vault.css';
 
 const TABS = [
-  { id: 'hub', label: 'Hub', icon: '▦' },
-  { id: 'program', label: 'Program', icon: '▤' },
-  { id: 'generator', label: 'Generator', icon: '✦' },
-  { id: 'cardio', label: 'Smart Cardio', icon: '♥', testid: 'vault-tab-cardio' },
-  { id: 'prehab', label: 'Prehab', icon: '✚', testid: 'vault-tab-prehab' },
-  { id: 'nutrition', label: 'Nutrition', icon: '◆' },
-  { id: 'settings', label: 'Settings', icon: '⚙' },
+  { id: 'hub', labelKey: 'vault-tab-hub', icon: '▦' },
+  { id: 'program', labelKey: 'vault-tab-program', icon: '▤' },
+  { id: 'generator', labelKey: 'vault-tab-generator', icon: '✦' },
+  { id: 'cardio', labelKey: 'vault-tab-cardio', icon: '♥', testid: 'vault-tab-cardio' },
+  { id: 'prehab', labelKey: 'vault-tab-prehab', icon: '✚', testid: 'vault-tab-prehab' },
+  { id: 'nutrition', labelKey: 'vault-tab-nutrition', icon: '◆' },
+  // Champion Mindset is open to EVERY authenticated client — no admin gate.
+  { id: 'mindset', labelKey: 'vault-tab-mindset', icon: '🧠', testid: 'vault-tab-mindset' },
+  { id: 'settings', labelKey: 'vault-tab-settings', icon: '⚙' },
 ];
 
 export default function ClientVault() {
   const { user, session, signOut, isAdmin } = useAuth();
+  const { t } = useLang();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(TABS[0].id);
 
@@ -62,12 +68,17 @@ export default function ClientVault() {
       <header className="cv-topbar">
         <div className="cv-brand">
           <span className="cv-logo">BUILD BELIEVE <b>FIT</b></span>
-          <span className="cv-kicker">Sovereign Vault</span>
+          <span className="cv-kicker">{t('vault-kicker')}</span>
         </div>
         <div className="cv-who">
           {/* Technical identity (slug) lives in the top bar; the friendly
               "Welcome, <Name>" greeting is owned by the Hub blueprint hero. */}
           <span className="cv-greet">@{user?.username || 'athlete'}</span>
+          {/* Global EN · ES · PT switcher — always reachable to the authenticated
+              athlete, sat beside the cross-over / session controls. Shares the
+              same LangContext the public landing uses, so the language the visitor
+              picked persists straight through the login gate. */}
+          <LangToggle />
           {/* Secure cross-over to the admin side — rendered only for the admin
               tier (akeem / coach / trainer). /command is AdminGuard-gated, so the
               toggle is a convenience, never the security boundary. */}
@@ -77,10 +88,10 @@ export default function ClientVault() {
               className="cv-command"
               onClick={() => navigate('/command')}
             >
-              Command Center
+              {t('vault-command')}
             </button>
           ) : null}
-          <button type="button" className="cv-signout" onClick={signOut}>Sign Out</button>
+          <button type="button" className="cv-signout" onClick={signOut}>{t('shell-signout')}</button>
         </div>
       </header>
 
@@ -97,20 +108,20 @@ export default function ClientVault() {
         />
 
         <nav className="cv-tabs" role="tablist" aria-label="Vault surfaces">
-          {TABS.map((t) => {
-            const active = t.id === activeTab;
+          {TABS.map((tab) => {
+            const active = tab.id === activeTab;
             return (
               <button
-                key={t.id}
+                key={tab.id}
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setActiveTab(t.id)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`cv-tab${active ? ' is-active' : ''}`}
-                data-testid={t.testid}
+                data-testid={tab.testid}
               >
-                {t.icon ? <span className="cv-tab-icon" aria-hidden="true">{t.icon}</span> : null}
-                {t.label}
+                {tab.icon ? <span className="cv-tab-icon" aria-hidden="true">{tab.icon}</span> : null}
+                {t(tab.labelKey)}
               </button>
             );
           })}
@@ -131,6 +142,7 @@ export default function ClientVault() {
           {activeTab === 'cardio' && <SmartCardio />}
           {activeTab === 'prehab' && <Prehab />}
           {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
+          {activeTab === 'mindset' && <ChampionMindset />}
           {activeTab === 'settings' && <Settings />}
         </div>
       </div>
