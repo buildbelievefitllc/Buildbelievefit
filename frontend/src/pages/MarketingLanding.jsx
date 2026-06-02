@@ -13,6 +13,7 @@
 // are restored.
 
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import PathfinderForm from '../components/PathfinderForm.jsx';
 import Interrogator from '../components/Interrogator.jsx';
 import TDEECalculator from '../components/TDEECalculator.jsx';
@@ -83,6 +84,13 @@ const TIERS = [
 export default function MarketingLanding() {
   const navigate = useNavigate();
   const { t } = useLang();
+  const { user } = useAuth();
+
+  // Authed visitors are NEVER auto-redirected here — App routes "/" to this page
+  // unconditionally. The navbar Sign-In and the hero doors take them INTO the Vault
+  // on demand (/vault); guests go to the login gate. One helper, used everywhere a
+  // "way in" is offered, so the manual path is consistent.
+  const enter = () => navigate(user ? '/vault' : '/login');
 
   // Smooth-scroll helper — Interrogator/TDEE/Chatbox CTAs funnel to these anchors.
   function scrollTo(id) {
@@ -102,7 +110,7 @@ export default function MarketingLanding() {
           <a href="#science" style={s.navLink}>Science</a>
           <a href="#interrogator" style={s.navLink}>{t('nav-audit')}</a>
           <a href="#founder" style={s.navLink}>{t('nav-about')}</a>
-          <button type="button" style={s.navSignIn} onClick={() => navigate('/login')}>{t('nav-signin')}</button>
+          <button type="button" style={s.navSignIn} onClick={enter}>{t('nav-signin')}</button>
           <a href="#pathfinder" style={s.navCta}>{t('nav-start')}</a>
           <LangToggle />
         </div>
@@ -120,12 +128,12 @@ export default function MarketingLanding() {
           <p style={s.heroSub}>{t('hero-sub')}</p>
           <a href="#pathfinder" style={s.heroCta}>{t('hero-cta')}</a>
           <div style={s.doors}>
-            <button type="button" style={s.door} onClick={() => navigate('/login')}>
+            <button type="button" style={s.door} onClick={enter}>
               <span style={s.doorKicker}>{t('door-adults')}</span>
               <span style={s.doorTitle}>{t('door-vault')}</span>
               <span style={s.doorSub}>{t('door-vault-sub')}</span>
             </button>
-            <button type="button" style={s.door} onClick={() => navigate('/login')}>
+            <button type="button" style={s.door} onClick={enter}>
               <span style={s.doorKicker}>{t('door-youth')}</span>
               <span style={s.doorTitle}>{t('door-athlete')}</span>
               <span style={s.doorSub}>{t('door-athlete-sub')}</span>
@@ -321,7 +329,7 @@ export default function MarketingLanding() {
         <div style={s.footLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></div>
         <p style={s.footTag}>{t('foot-tag')}</p>
         <div style={s.footLinks}>
-          <button type="button" style={s.footLink} onClick={() => navigate('/login')}>{t('nav-signin')}</button>
+          <button type="button" style={s.footLink} onClick={enter}>{t('nav-signin')}</button>
           <a style={s.footLink} href="mailto:buildbelievefit@gmail.com">{t('foot-contact')}</a>
           <a style={s.footLink} href="/privacy.html">{t('foot-privacy')}</a>
           <a style={s.footLink} href="/terms.html">{t('foot-terms')}</a>

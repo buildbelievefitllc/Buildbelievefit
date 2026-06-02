@@ -122,7 +122,7 @@ test.describe('BBF Vault — Smart Cardio generator (acceptance)', () => {
     const { realDbHits } = await installSupabaseBaseline(page);
     const posted = await mockGenerator(page, GEN_FRESH);
 
-    await page.goto('/');
+    await page.goto('/vault');
     await page.getByTestId('vault-tab-cardio').click();
     await page.getByTestId('cardio-gen-minutes').fill('18');
     await page.getByTestId('cardio-gen-submit').click();
@@ -162,7 +162,7 @@ test.describe('BBF Vault — Smart Cardio generator (acceptance)', () => {
     await installSupabaseBaseline(page);
     await mockGenerator(page, GEN_DOWNREG);
 
-    await page.goto('/');
+    await page.goto('/vault');
     await page.getByTestId('vault-tab-cardio').click();
     await page.getByTestId('cardio-gen-minutes').fill('18');
     await page.getByTestId('cardio-gen-submit').click();

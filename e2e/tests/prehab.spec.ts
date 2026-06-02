@@ -79,7 +79,7 @@ test.describe('BBF Vault — Prehab / Mobility module (acceptance)', () => {
     const { realDbHits } = await installSupabaseBaseline(page);
     await mockPrehabRpc(page, { ok: true, routines: ROUTINES });
 
-    await page.goto('/');
+    await page.goto('/vault');
     await page.getByTestId('vault-tab-prehab').click();
 
     await expect(page.getByTestId('prehab-module')).toBeVisible();
@@ -106,7 +106,7 @@ test.describe('BBF Vault — Prehab / Mobility module (acceptance)', () => {
     await installSupabaseBaseline(page);
     await mockPrehabRpc(page, { ok: true, routines: [] });
 
-    await page.goto('/');
+    await page.goto('/vault');
     await page.getByTestId('vault-tab-prehab').click();
 
     await expect(page.getByTestId('prehab-empty')).toBeVisible();
