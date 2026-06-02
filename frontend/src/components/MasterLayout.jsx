@@ -2,21 +2,36 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 3 — Persistent shell for authenticated users. Brutalist, high-contrast.
 //
-// Structure only: a left-hand navigation sidebar + a right-hand main content
-// viewport (children). Nav items are structural placeholders — real routes/icons
-// land in later phases. Brand tokens per CLAUDE.md §2 (Purple/Gold locked; black
-// is surface only). signOut is wired so the gate is exit-able during testing.
+// Structure: a left-hand navigation sidebar + a right-hand main content viewport
+// (children). The nav items push the CEO to the matching Command Center surface
+// via React Router (/command/<tab>) — Command Center groups the coaching consoles
+// (Founder Five / Risk Telemetry / Analytics / Comlink), while Program / Nutrition
+// / Settings deep-link the admin's own Player-Coach views. The active item is
+// derived from the URL, never hardcoded. Brand tokens per CLAUDE.md §2.
 
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
-// Client Hub is intentionally NOT a top-level item: per the monolith's Phase 5.2,
-// it lives *inside* Command Center as a sub-surface (see pages/CommandCenter.jsx).
-const NAV_ITEMS = ['Command Center', 'Program', 'Nutrition', 'Settings'];
+// Coaching surfaces all live under the "Command Center" item (Client Hub is a
+// sub-surface there, per the monolith's Phase 5.2). The Player-Coach tabs get their
+// own deep-link entries. `active` is matched against the current /command/<tab>.
+const COACHING_TABS = ['', 'roster', 'command', 'telemetry', 'analytics', 'comlink'];
+const NAV_ITEMS = [
+  { label: 'Command Center', to: '/command', isActive: (tab) => COACHING_TABS.includes(tab) },
+  { label: 'Program', to: '/command/program', isActive: (tab) => ['program', 'generator', 'prehab'].includes(tab) },
+  { label: 'Nutrition', to: '/command/nutrition', isActive: (tab) => tab === 'nutrition' },
+  { label: 'Settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },
+];
 
 export default function MasterLayout({ children }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Active surface = the segment after /command (empty ⇒ the default roster).
+  const activeSurface = location.pathname.startsWith('/command')
+    ? location.pathname.split('/')[2] || ''
+    : '';
 
   // Layout lives in index.css classes (bbf-shell / bbf-sidebar / …) so it can go
   // responsive — inline styles can't express the media query the mobile collapse
@@ -29,15 +44,20 @@ export default function MasterLayout({ children }) {
         </div>
 
         <nav className="bbf-sidebar-nav">
-          {NAV_ITEMS.map((item, i) => (
-            <button
-              key={item}
-              type="button"
-              style={{ ...styles.navItem, ...(i === 0 ? styles.navItemActive : null) }}
-            >
-              {item}
-            </button>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const active = item.isActive(activeSurface);
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => navigate(item.to)}
+                aria-current={active ? 'page' : undefined}
+                style={{ ...styles.navItem, ...(active ? styles.navItemActive : null) }}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="bbf-sidebar-foot">

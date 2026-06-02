@@ -4,10 +4,11 @@
 // function and the Panopticon's anon PostgREST).
 //
 // Mirrors the monolith's BBF_LEADS / BBF_CONCIERGE: POST to the RENDER EXPRESS
-// backend (not Supabase). ZERO-FRICTION (Phase 23): the BBF_ADMIN_TOKEN UI gate
-// has been ERADICATED — the Comlink now loads with no token prompt (the leads /
-// concierge endpoints are reached via the standard pattern, no shared secret in
-// the client).
+// backend (not Supabase). ADMIN-TOKEN (RESTORED): both endpoints still gate on the
+// X-BBF-Admin-Token header server-side (index.js → compares BBF_ADMIN_TOKEN, else
+// 401 admin_token_invalid). The earlier "zero-friction" change dropped the header
+// but never relaxed the gate, so the Comlink 401'd. We re-attach the token,
+// hydrated at runtime from the shared adminAuth store — never bundled (§7).
 //
 //   POST {API_BASE}/api/leads-list     { limit }  → { ok, total, provisioned,
 //        pending, leads:[{ id, source, email, full_name, phone, tier, created_at,
@@ -22,10 +23,12 @@
 // browser blocks every request (surfaced here as a network/CORS error, never a
 // silent hang).
 
+import { getRenderAdminToken } from './adminAuth.js';
+
 const API_BASE = 'https://buildbelievefit.onrender.com';
 
 function statusHint(status) {
-  if (status === 401) return 'unauthorized';
+  if (status === 401) return 'unauthorized (admin token missing or rejected)';
   if (status === 403) return 'origin not allowed — add this origin to the backend CORS allowlist';
   if (status === 429) return 'rate limited — wait a minute and retry';
   if (status === 503) return 'backend not configured (BBF_ADMIN_TOKEN unset)';
@@ -35,11 +38,18 @@ function statusHint(status) {
 // POST one Comlink endpoint. Resolves to the parsed { ok:true, ... } body or
 // throws a display-ready, coded Error.
 async function comlinkPost(path, payload = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  // Admin authorization for the Render gate (CORS already allow-lists this header,
+  // index.js:552). Hydrated at runtime, never bundled (§7); absent ⇒ the backend
+  // 401s and the Command Center surfaces the unlock gate.
+  const adminToken = getRenderAdminToken();
+  if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
+
   let res;
   try {
     res = await fetch(`${API_BASE}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload),
     });
   } catch {
