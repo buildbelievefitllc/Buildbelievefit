@@ -30,12 +30,12 @@ export default function Login() {
   useEffect(() => () => clearInterval(lockTimer.current), []);
 
   // PWA route isolation: /login is the installed app's start_url. If a session
-  // already exists (returning client launching the installed app), redirect to
-  // the role dispatcher with REPLACE so /login is never left in the standalone
-  // history stack — the back button then natively closes the app. The marketing
-  // landing ("/") is never pushed under the app.
+  // already exists (returning client launching the installed app), send them
+  // straight to the Vault with REPLACE so /login is never left in the standalone
+  // history stack — the back button then natively closes the app. ("/" is now the
+  // public landing, so we target /vault explicitly, not the root.)
   useEffect(() => {
-    if (!loading && user) navigate('/', { replace: true });
+    if (!loading && user) navigate('/vault', { replace: true });
   }, [loading, user, navigate]);
 
   function startLockout(seconds) {
@@ -64,7 +64,7 @@ export default function Login() {
     const result = await signInWithPin(username, pin);
 
     if (result.ok) {
-      navigate('/', { replace: true });
+      navigate('/vault', { replace: true });
       return;
     }
 

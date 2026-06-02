@@ -79,7 +79,7 @@ test.describe('BBF Vault — Smart Cardio module (acceptance)', () => {
     const { realDbHits } = await installSupabaseBaseline(page);
     await mockCardioRpc(page, { ok: true, protocols: PROTOCOLS, logs: [] });
 
-    await page.goto('/');
+    await page.goto('/vault');
     await page.getByTestId('vault-tab-cardio').click();
 
     await expect(page.getByTestId('smart-cardio-module')).toBeVisible();
@@ -105,7 +105,7 @@ test.describe('BBF Vault — Smart Cardio module (acceptance)', () => {
     await installSupabaseBaseline(page);
     await mockCardioRpc(page, { ok: true, protocols: PROTOCOLS, logs: LOGS });
 
-    await page.goto('/');
+    await page.goto('/vault');
     await page.getByTestId('vault-tab-cardio').click();
 
     const rows = page.getByTestId('cardio-log');
@@ -125,7 +125,7 @@ test.describe('BBF Vault — Smart Cardio module (acceptance)', () => {
     await installSupabaseBaseline(page);
     await mockCardioRpc(page, { ok: true, protocols: [], logs: [] });
 
-    await page.goto('/');
+    await page.goto('/vault');
     await page.getByTestId('vault-tab-cardio').click();
 
     await expect(page.getByTestId('cardio-empty')).toBeVisible();

@@ -20,7 +20,8 @@ import { test, expect, type Page, type Route } from '@playwright/test';
  * additionally fails loudly if anything ever reaches the real project host.
  *
  * Verified against source: AuthContext.jsx (session shape @ 79-99, rehydrate @
- * 32-45), App.jsx RootRoute (@ 26-32), ClientVault.jsx tabs (@ 31-39),
+ * 32-45), App.jsx VaultRoute (the authed Vault now lives at /vault, not "/"),
+ * ClientVault.jsx tabs (@ 31-39),
  * ProgramGrid.jsx (cards/inputs/sync @ 84-229), programApi.js (the
  * uid_map → bbf_logs → bbf_sets write transaction @ 187-222), and the
  * jacque_plan Day 1 catalog (programData.js @ 101-109).
@@ -164,8 +165,8 @@ test.describe('BBF Vault — workout set logging', () => {
     await seedAuth(page);
     const captures = await stubVaultBackends(page);
 
-    // 1) Land in the authenticated Vault.
-    await page.goto('/');
+    // 1) Land in the authenticated Vault (now at /vault — "/" is the public landing).
+    await page.goto('/vault');
     await expect(page.locator('.cv-greet')).toContainText('@jacque_bbf');
     await expect(page.locator('.cv-brand')).toContainText('Sovereign Vault');
 

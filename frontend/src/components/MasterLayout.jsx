@@ -62,8 +62,9 @@ export default function MasterLayout({ children }) {
 
         <div className="bbf-sidebar-foot">
           {user?.username ? <div style={styles.who}>@{user.username}</div> : null}
-          {/* Cross back to the athlete Vault — the admin is an athlete first. */}
-          <button type="button" style={styles.toVault} onClick={() => navigate('/')}>
+          {/* Cross back to the athlete Vault — the admin is an athlete first.
+              ("/" is the public landing now; the Vault lives at /vault.) */}
+          <button type="button" style={styles.toVault} onClick={() => navigate('/vault')}>
             ← Athlete Vault
           </button>
           <button type="button" style={styles.signout} onClick={signOut}>
