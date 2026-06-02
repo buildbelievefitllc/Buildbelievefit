@@ -41,8 +41,8 @@ const DICT = {
   'svc-h': { en: 'How We Get You There', es: 'Cómo Te Llevamos Allí', pt: 'Como Te Levamos Lá' },
   // programs
   'prog-lbl': { en: 'Choose Your Path', es: 'Elige Tu Camino', pt: 'Escolha Seu Caminho' },
-  'prog-h': { en: 'Two Paths. One Standard.', es: 'Dos Caminos. Un Estándar.', pt: 'Dois Caminhos. Um Padrão.' },
-  'prog-sub': { en: 'Run the system yourself with the Autonomous Engine, or go Founder-Direct with the Sovereign Standard. Same biomechanical precision, same Sovereign Gold Standard — your choice of autonomy or access.', es: 'Ejecuta el sistema tú mismo con el Motor Autónomo, o ve directo con el Fundador con el Estándar Soberano. La misma precisión biomecánica, el mismo Estándar Soberano de Oro: tu elección de autonomía o acceso.', pt: 'Rode o sistema você mesmo com o Motor Autônomo, ou vá direto com o Fundador no Padrão Soberano. A mesma precisão biomecânica, o mesmo Padrão Soberano de Ouro — sua escolha de autonomia ou acesso.' },
+  'prog-h': { en: 'Four Paths. One Standard.', es: 'Cuatro Caminos. Un Estándar.', pt: 'Quatro Caminhos. Um Padrão.' },
+  'prog-sub': { en: 'Online fitness, nutrition fueling, youth athlete development, or a Founder-direct hybrid protocol. Every path runs on the same biomechanical precision — the same Sovereign Gold Standard.', es: 'Fitness en línea, nutrición y combustible, desarrollo del atleta juvenil, o un protocolo híbrido directo con el Fundador. Cada camino corre sobre la misma precisión biomecánica: el mismo Estándar Soberano de Oro.', pt: 'Fitness online, nutrição e combustível, desenvolvimento do atleta jovem, ou um protocolo híbrido direto com o Fundador. Cada caminho corre sobre a mesma precisão biomecânica — o mesmo Padrão Soberano de Ouro.' },
   'prog-apply': { en: 'Apply →', es: 'Aplicar →', pt: 'Candidatar →' },
   // tdee
   'tdee-lbl': { en: 'Free Tool', es: 'Herramienta Gratis', pt: 'Ferramenta Grátis' },
