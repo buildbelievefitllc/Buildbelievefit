@@ -18,6 +18,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { parseFastingWindow } from '../../lib/vaultApi.js';
+import {
+  rosterCall, updateTargets, compilePlan, toErrorMessage,
+  TARGET_MAX, CUISINE_STYLES,
+} from '../../lib/rosterApi.js';
 import { CUISINES, CUISINE_PLANS, dayTotals, todayIndex } from './cuisineMeals.js';
 import './vault.css';
 import './nutrition.css';
@@ -217,8 +221,202 @@ function MealCard({ meal, done, onToggle }) {
   );
 }
 
+// ── Admin oversight console (coach-only) ─────────────────────────────────────
+// The administrative layer inside the Nutrition Locker. Rendered ONLY for
+// admin/trainer sessions — the boundary is enforced HERE (isAdmin gate) AND again
+// server-side by the admin gateway every rosterCall passes through. Lets the head
+// coach swap between active athletes, dial in their cuisine + macro targets, and
+// recompile their AI performance plan against the live orchestration engine.
+function cuisineLabel(id) {
+  return (CUISINE_STYLES.find((s) => s.id === id) || {}).label || id;
+}
+
+function NumField({ label, value, onChange, disabled, accent }) {
+  return (
+    <label className="nc-field" style={{ borderTopColor: accent }}>
+      <span className="nc-lbl">{label}</span>
+      <input
+        className="nc-input"
+        type="number"
+        min="0"
+        max={TARGET_MAX}
+        step="1"
+        inputMode="numeric"
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
+  );
+}
+
+function NutritionCoachConsole() {
+  const [roster, setRoster] = useState(EMPTY);
+  const [rosterErr, setRosterErr] = useState(null);
+  const [loadingRoster, setLoadingRoster] = useState(true);
+
+  const [selectedId, setSelectedId] = useState('');
+  const [detail, setDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const [cuisine, setCuisine] = useState(CUISINE_STYLES[0].id);
+  const [macros, setMacros] = useState({ tdee_target: '', macro_p: '', macro_c: '', macro_f: '' });
+
+  const [saving, setSaving] = useState(false);
+  const [compiling, setCompiling] = useState(false);
+  const [status, setStatus] = useState(null); // { kind:'ok'|'err', msg }
+
+  // Load the roster once on mount.
+  useEffect(() => {
+    let cancelled = false;
+    rosterCall('roster')
+      .then((b) => { if (!cancelled) setRoster(Array.isArray(b.clients) ? b.clients : []); })
+      .catch((e) => { if (!cancelled) setRosterErr(toErrorMessage(e)); })
+      .finally(() => { if (!cancelled) setLoadingRoster(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Load the selected athlete's detail → seed the macro inputs from their targets.
+  // State is reset synchronously in the select handler (a user event), so this
+  // effect mutates state ONLY inside the async callbacks — keeping it clear of
+  // react-hooks/set-state-in-effect (mirrors vaultApi.useVaultProfile).
+  useEffect(() => {
+    if (!selectedId) return undefined;
+    let cancelled = false;
+    rosterCall('detail', { id: selectedId })
+      .then((b) => {
+        if (cancelled) return;
+        const c = b.client || {};
+        setDetail(c);
+        setMacros({
+          tdee_target: c.tdee_target ?? '',
+          macro_p: c.macro_p ?? '',
+          macro_c: c.macro_c ?? '',
+          macro_f: c.macro_f ?? '',
+        });
+      })
+      .catch((e) => { if (!cancelled) setStatus({ kind: 'err', msg: toErrorMessage(e) }); })
+      .finally(() => { if (!cancelled) setLoadingDetail(false); });
+    return () => { cancelled = true; };
+  }, [selectedId]);
+
+  // Swap the active athlete. Resets the detail/macro/status state here (in the
+  // user event) so the effect above stays side-effect-pure on its async path.
+  function selectAthlete(id) {
+    setSelectedId(id);
+    setDetail(null);
+    setMacros({ tdee_target: '', macro_p: '', macro_c: '', macro_f: '' });
+    setStatus(null);
+    setLoadingDetail(Boolean(id));
+  }
+
+  const setField = (k, v) => setMacros((m) => ({ ...m, [k]: v }));
+  const busy = saving || compiling;
+
+  async function saveMacros() {
+    if (busy || !selectedId) return;
+    setSaving(true);
+    setStatus(null);
+    try {
+      const b = await updateTargets(selectedId, macros);
+      setDetail((d) => ({ ...(d || {}), ...(b.client || {}) }));
+      setStatus({ kind: 'ok', msg: 'Macro targets saved.' });
+    } catch (e) {
+      setStatus({ kind: 'err', msg: toErrorMessage(e) });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function compile() {
+    if (busy || !selectedId) return;
+    setCompiling(true);
+    setStatus(null);
+    try {
+      const b = await compilePlan(selectedId, { tdee_target: macros.tdee_target, cuisine });
+      const days = Array.isArray(b.plan?.days) ? b.plan.days.length : 0;
+      setStatus({
+        kind: 'ok',
+        msg: `Compiled — ${days}-day ${cuisineLabel(cuisine)} plan generated${b.persisted ? ' and saved to the athlete' : ''}.`,
+      });
+    } catch (e) {
+      setStatus({ kind: 'err', msg: toErrorMessage(e) });
+    } finally {
+      setCompiling(false);
+    }
+  }
+
+  return (
+    <section className="nc-console" aria-label="Coach oversight console">
+      <header className="nc-head">
+        <span className="nc-badge">Coach Console</span>
+        <h3 className="nc-title">AI Performance Studio</h3>
+      </header>
+
+      <label className="nc-field nc-field-wide">
+        <span className="nc-lbl">Client Roster</span>
+        <select
+          className="nc-select"
+          value={selectedId}
+          onChange={(e) => selectAthlete(e.target.value)}
+          disabled={loadingRoster || busy}
+          aria-label="Select an athlete"
+        >
+          <option value="">{loadingRoster ? 'Loading roster…' : 'Select an athlete…'}</option>
+          {roster.map((c) => (
+            <option key={c.id} value={c.id}>{c.name || c.uid}</option>
+          ))}
+        </select>
+      </label>
+      {rosterErr ? <div className="nc-status is-err" role="alert">{rosterErr}</div> : null}
+
+      {!selectedId ? (
+        <div className="nc-hint">Select an athlete to set their cuisine, macro targets, and recompile their plan.</div>
+      ) : loadingDetail ? (
+        <div className="nc-status">Loading {detail?.name || 'athlete'}…</div>
+      ) : (
+        <>
+          <div className="nc-grid">
+            <label className="nc-field">
+              <span className="nc-lbl">Cuisine Style</span>
+              <select
+                className="nc-select"
+                value={cuisine}
+                onChange={(e) => setCuisine(e.target.value)}
+                disabled={busy}
+                aria-label="Cuisine style"
+              >
+                {CUISINE_STYLES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+              </select>
+            </label>
+            <NumField label="Target KCAL" value={macros.tdee_target} onChange={(v) => setField('tdee_target', v)} disabled={busy} accent="var(--yel)" />
+            <NumField label="Protein (g)" value={macros.macro_p} onChange={(v) => setField('macro_p', v)} disabled={busy} accent="#ff5d5d" />
+            <NumField label="Carbs (g)" value={macros.macro_c} onChange={(v) => setField('macro_c', v)} disabled={busy} accent="#4dc3ff" />
+            <NumField label="Fats (g)" value={macros.macro_f} onChange={(v) => setField('macro_f', v)} disabled={busy} accent="#ffb547" />
+          </div>
+
+          <div className="nc-actions">
+            <button type="button" className="nc-btn nc-btn-ghost" onClick={saveMacros} disabled={busy}>
+              {saving ? 'Saving…' : 'Save Macros'}
+            </button>
+            <button type="button" className="nc-btn nc-btn-primary" onClick={compile} disabled={busy}>
+              {compiling ? 'Compiling…' : 'Compile AI Performance Plan'}
+            </button>
+          </div>
+        </>
+      )}
+
+      {status ? (
+        <div className={`nc-status ${status.kind === 'ok' ? 'is-ok' : 'is-err'}`} role="status">
+          {status.msg}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export default function Nutrition({ profile }) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const uid = user?.username || user?.id || 'guest';
 
   const [cuisineId, setCuisineId] = useState(CUISINES[0].id);
@@ -270,6 +468,8 @@ export default function Nutrition({ profile }) {
 
   return (
     <div className="pg-nut">
+      {isAdmin ? <NutritionCoachConsole /> : null}
+
       <div className="nl-head-row">
         <div>
           <h2 className="pg-nut-head">Nutrition Plan</h2>
