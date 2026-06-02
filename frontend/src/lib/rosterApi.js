@@ -199,3 +199,54 @@ export async function compilePlan(id, opts = {}) {
   if (cuisine) payload.cuisine = cuisine;
   return rosterCall('compile', payload);
 }
+
+// ── Assign a compiled Nutrition Locker protocol to an athlete's row ────────────
+// Wire for the admin NUTRITION LOCKER (NutritionLocker.jsx). The locker compiles a
+// 7-day diet protocol client-side from the Advanced Culinary Parameter Console, then
+// pushes it here so it persists on the SELECTED athlete's database row.
+//
+// CONTRACT (server action `assign_nutrition`, owned + built in parallel by
+// Terminal H). The browser NEVER holds the service-role key (§7) — this relays
+// through the same token-gated admin gateway as every other roster action, and the
+// edge function carries the secret server-side and writes the row. Until that action
+// ships, the gateway returns 400 `unknown_action`, which rosterCall surfaces verbatim
+// (the locker treats it as a non-fatal "endpoint provisioning" notice).
+//
+//   POST {FUNCTIONS_BASE}/bbf-admin-roster
+//   body: { action:'assign_nutrition', id, plan, tdee_target?, diet_style?,
+//           allergens?, phase?, directive?, source }
+//     • id          → bbf_users PK of the targeted scholar (REQUIRED)
+//     • plan        → { name, cal, goal, days:[{ day, meals:[{ m, i }] }] }  (the
+//                      same meal_plan JSON shape the renderer/mealData.js consume)
+//     • tdee_target → the compiled Base Daily Energy Capacity (0..TARGET_MAX)
+//     • diet_style  → DIET_STYLES id folded into the regime label
+//     • allergens   → the Allergy Restrict Exemption string
+//     • phase       → Athletic Phase Assignment (oversight console)
+//     • directive   → Coach Directive Mandate free-text (oversight console)
+//     • source      → 'scheduler' | 'oversight' (which surface pushed it)
+//   → { ok:true, persisted?, ... }
+export async function assignNutrition(id, payload = {}) {
+  if (!id) {
+    const e = new Error('Select a nutrition scholar before pushing a protocol.');
+    e.code = 'missing_id';
+    throw e;
+  }
+  const body = { id, source: payload.source || 'scheduler' };
+  if (payload.plan) body.plan = payload.plan;
+  if (payload.diet_style) body.diet_style = String(payload.diet_style);
+  if (payload.allergens) body.allergens = String(payload.allergens);
+  if (payload.phase) body.phase = String(payload.phase);
+  if (payload.directive) body.directive = String(payload.directive).slice(0, COACH_MAX);
+
+  const t = payload.tdee_target;
+  if (t !== undefined && t !== null && t !== '') {
+    const n = Number(t);
+    if (!Number.isFinite(n) || n < 0 || n > TARGET_MAX) {
+      const e = new Error(`Invalid calorie target: enter a number between 0 and ${TARGET_MAX.toLocaleString()}.`);
+      e.code = 'invalid_value';
+      throw e;
+    }
+    body.tdee_target = Math.round(n);
+  }
+  return rosterCall('assign_nutrition', body);
+}

@@ -15,7 +15,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 // Coaching surfaces all live under the "Command Center" item (Client Hub is a
 // sub-surface there, per the monolith's Phase 5.2). The Player-Coach tabs get their
 // own deep-link entries. `active` is matched against the current /command/<tab>.
-const COACHING_TABS = ['', 'roster', 'command', 'telemetry', 'analytics', 'comlink'];
+const COACHING_TABS = ['', 'roster', 'command', 'telemetry', 'analytics', 'comlink', 'nutrition-locker'];
 const NAV_ITEMS = [
   { label: 'Command Center', to: '/command', isActive: (tab) => COACHING_TABS.includes(tab) },
   { label: 'Program', to: '/command/program', isActive: (tab) => ['program', 'generator', 'prehab'].includes(tab) },

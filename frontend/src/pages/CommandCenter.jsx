@@ -23,6 +23,7 @@ import ClientHub from '../components/command/ClientHub.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import ClientAnalytics from '../components/command/ClientAnalytics.jsx';
 import Comlink from '../components/command/Comlink.jsx';
+import NutritionLocker from '../components/command/NutritionLocker.jsx';
 import AdminTokenGate from '../components/command/AdminTokenGate.jsx';
 import Program from '../components/vault/Program.jsx';
 import Nutrition from '../components/vault/Nutrition.jsx';
@@ -46,6 +47,8 @@ const TABS = [
   { id: 'telemetry', label: 'Risk Telemetry', Panel: RiskTelemetry, needsToken: true },
   { id: 'analytics', label: 'Analytics', Panel: ClientAnalytics, needsToken: true },
   { id: 'comlink', label: 'Comlink', Panel: Comlink, needsToken: true },
+  // Admin-only generative diet suite — targets another athlete (roster + assign_nutrition).
+  { id: 'nutrition-locker', label: 'Nutrition Locker', Panel: NutritionLocker, needsToken: true },
   // Player-Coach surfaces — the admin's own training view.
   { id: 'program', label: 'Program', Panel: Program },
   { id: 'generator', label: 'Generator', Panel: Generator },
