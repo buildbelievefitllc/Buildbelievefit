@@ -1,0 +1,228 @@
+/* src/components/scienceHub.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Phase 26 — Science Hub. Scoped under `.shub` so the clinical chrome never
+   leaks into the rest of the marketing page. BBF dark-mode brutalist: matte-black
+   canvas, deep-purple tints, gold accents, hairline borders, and monospace for
+   every clinical data point (journals, tabs, protocols). LOCKED palette
+   (var(--yel)/--pur + Bebas/Barlow/Anton/JetBrains Mono). */
+
+.shub {
+  --shub-surface: linear-gradient(180deg, #120c1e 0%, #0a0710 100%);
+  --shub-inset: #08060d;
+  --shub-border: #2a1f3d;
+  --shub-gold-line: rgba(245, 200, 0, .42);
+  display: block;
+  padding: 4rem 1.5rem 5rem;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(106, 13, 173, .14), transparent 60%), #090909;
+}
+
+.shub-card {
+  max-width: 1240px;
+  margin: 0 auto;
+  background: var(--shub-surface);
+  border: 1px solid var(--shub-border);
+  border-radius: 22px;
+  padding: 1.9rem 1.9rem 2rem;
+  box-shadow: 0 40px 120px -50px rgba(106, 13, 173, .8);
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.shub-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+.shub-head-l { min-width: 0; flex: 1 1 480px; }
+.shub-pill {
+  display: inline-block;
+  font-family: var(--mono); font-size: .68rem; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--gold-soft);
+  border: 1px solid var(--shub-gold-line); border-radius: 999px; padding: .35rem .8rem;
+}
+.shub-title {
+  display: flex; align-items: center; gap: .6rem;
+  font-family: var(--display); font-style: italic; font-size: 2.7rem; font-weight: 900;
+  letter-spacing: 1px; line-height: 1; color: var(--wht); margin: .85rem 0 .6rem;
+}
+.shub-title-mark { font-style: normal; color: var(--yel); }
+.shub-sub {
+  font-family: var(--bd); font-size: 1.02rem; font-weight: 500; line-height: 1.5;
+  color: rgba(249, 245, 255, .58); margin: 0; max-width: 60ch;
+}
+
+.shub-actions { display: flex; gap: .7rem; flex-shrink: 0; flex-wrap: wrap; }
+.shub-btn {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-family: var(--mono); font-size: .76rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; cursor: pointer; white-space: nowrap;
+  border-radius: 10px; padding: .8rem 1.1rem;
+  transition: box-shadow .15s ease, border-color .15s ease, background .15s ease, transform .1s ease;
+}
+.shub-btn:active { transform: translateY(1px); }
+.shub-btn-gold {
+  color: #0c0a02; border: 1px solid var(--yel);
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+}
+.shub-btn-gold:hover { box-shadow: 0 10px 26px -10px rgba(245, 200, 0, .6); }
+.shub-btn-ghost {
+  color: var(--wht); background: transparent; border: 1px solid #3a2d4f;
+}
+.shub-btn-ghost:hover { border-color: var(--gold-soft); color: var(--gold-soft); }
+
+/* ── Strategic-demographics filter ──────────────────────────────────────── */
+.shub-filterbar {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  margin: 1.6rem 0 1.5rem; padding-top: 1.4rem; border-top: 1px solid var(--shub-border);
+}
+.shub-filter-label {
+  font-family: var(--mono); font-size: .64rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--mut);
+}
+.shub-pills { display: flex; gap: .5rem; flex-wrap: wrap; }
+.shub-cat {
+  font-family: var(--hb); font-size: .82rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; cursor: pointer;
+  color: var(--mut); background: transparent;
+  border: 1px solid #2f2440; border-radius: 999px; padding: .42rem 1rem;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.shub-cat:hover { color: var(--wht); border-color: var(--gold-soft); }
+.shub-cat.is-active {
+  color: #0c0a02; border-color: var(--yel);
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+}
+
+/* ── Body grid ──────────────────────────────────────────────────────────── */
+.shub-body { display: grid; grid-template-columns: 370px 1fr; gap: 1.4rem; align-items: start; }
+
+/* Left rail */
+.shub-rail { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.shub-rail-head {
+  font-family: var(--mono); font-size: .62rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--mut);
+}
+.shub-list {
+  list-style: none; margin: 0; padding: 0 .35rem 0 0;
+  display: flex; flex-direction: column; gap: .55rem;
+  max-height: 560px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #3a2d4f transparent;
+}
+.shub-list::-webkit-scrollbar { width: 7px; }
+.shub-list::-webkit-scrollbar-thumb { background: #3a2d4f; border-radius: 99px; }
+.shub-list::-webkit-scrollbar-track { background: transparent; }
+
+.shub-study {
+  width: 100%; display: flex; gap: .75rem; text-align: left; cursor: pointer;
+  background: #100b1b; border: 1px solid var(--shub-border); border-left: 3px solid transparent;
+  border-radius: 12px; padding: .85rem .9rem;
+  transition: border-color .15s ease, background .15s ease;
+}
+.shub-study:hover { border-color: #4a3a66; background: #140e22; }
+.shub-study.is-active {
+  border-color: var(--shub-gold-line); border-left-color: var(--yel);
+  background: linear-gradient(180deg, rgba(245, 200, 0, .07), rgba(245, 200, 0, .02));
+}
+.shub-study-icon {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: .95rem;
+  color: var(--gold-soft); background: var(--shub-inset); border: 1px solid var(--shub-border);
+}
+.shub-study.is-active .shub-study-icon { color: #0c0a02; background: var(--yel); border-color: var(--yel); }
+.shub-study-main { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
+.shub-study-title {
+  font-family: var(--bd); font-size: .96rem; font-weight: 700; line-height: 1.25; color: var(--wht);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.shub-study-tag {
+  display: flex; align-items: center; gap: .3rem;
+  font-family: var(--mono); font-size: .56rem; font-weight: 700; letter-spacing: .5px;
+  color: var(--gold-deep);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.shub-study-clock { color: var(--gold-soft); }
+.shub-empty { font-family: var(--bd); font-weight: 600; color: var(--mut); padding: 1rem .2rem; }
+
+/* Clinical integrity lock footer */
+.shub-lock {
+  background: linear-gradient(180deg, rgba(106, 13, 173, .16), rgba(106, 13, 173, .05));
+  border: 1px solid #2f2440; border-radius: 12px; padding: .95rem 1rem;
+}
+.shub-lock-head {
+  font-family: var(--mono); font-size: .64rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gold-soft); margin-bottom: .4rem;
+}
+.shub-lock-body { font-family: var(--bd); font-size: .88rem; font-weight: 500; line-height: 1.5; color: rgba(249, 245, 255, .6); margin: 0; }
+
+/* ── Right rail — clinical deep-dive ────────────────────────────────────── */
+.shub-detail {
+  background: #0c0814; border: 1px solid var(--shub-border); border-radius: 16px;
+  padding: 1.5rem 1.6rem; min-height: 480px;
+}
+.shub-detail-empty { font-family: var(--bd); font-weight: 600; color: var(--mut); padding: 3rem 0; text-align: center; }
+
+.shub-view-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.shub-view-journal {
+  font-family: var(--mono); font-size: .66rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gold-soft); min-width: 0;
+}
+.shub-view-year {
+  flex-shrink: 0; font-family: var(--mono); font-size: .66rem; font-weight: 700; letter-spacing: 1px;
+  color: var(--gold-deep); border: 1px solid var(--shub-gold-line); border-radius: 6px; padding: .2rem .55rem;
+}
+.shub-view-title {
+  font-family: var(--display); font-style: italic; font-size: 1.8rem; font-weight: 900;
+  letter-spacing: .5px; line-height: 1.08; color: var(--wht); margin: .7rem 0 .65rem; text-transform: uppercase;
+}
+.shub-view-invest { font-family: var(--bd); font-size: .92rem; font-weight: 500; color: rgba(249, 245, 255, .72); }
+.shub-view-invest-k { font-family: var(--mono); font-size: .66rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-soft); }
+
+/* Nested tab bar */
+.shub-tabs {
+  display: flex; gap: 1.6rem; flex-wrap: wrap;
+  margin: 1.3rem 0 0; padding-bottom: .1rem; border-bottom: 1px solid var(--shub-border);
+}
+.shub-tab {
+  position: relative; background: none; border: none; cursor: pointer;
+  font-family: var(--mono); font-size: .76rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--mut); padding: 0 0 .85rem;
+  transition: color .15s ease;
+}
+.shub-tab:hover { color: var(--wht); }
+.shub-tab.is-active { color: var(--yel); }
+.shub-tab.is-active::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--yel);
+}
+
+/* Content panel */
+.shub-panel {
+  margin-top: 1.4rem; background: linear-gradient(180deg, #0e0a18, #0a0710);
+  border: 1px solid var(--shub-border); border-radius: 14px; padding: 1.3rem 1.4rem;
+}
+.shub-panel.is-akeem { border-color: var(--shub-gold-line); border-left: 3px solid var(--yel); }
+.shub-panel-heading {
+  font-family: var(--bd); font-size: .9rem; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--gold-soft); margin-bottom: .75rem;
+}
+.shub-panel-body { font-family: var(--bd); font-size: 1.04rem; font-weight: 500; line-height: 1.62; color: rgba(249, 245, 255, .82); margin: 0; }
+
+/* Akeem's systemic translation */
+.shub-akeem-quote {
+  font-family: var(--bd); font-style: italic; font-size: 1.1rem; font-weight: 500; line-height: 1.55;
+  color: var(--wht); margin: 0 0 1.1rem;
+}
+.shub-protocol {
+  font-family: var(--mono); font-size: .72rem; font-weight: 600; letter-spacing: 1px;
+  line-height: 1.6; color: var(--gold-soft);
+  border-top: 1px dashed var(--shub-gold-line); padding-top: .85rem;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 980px) {
+  .shub-body { grid-template-columns: 1fr; }
+  .shub-list { max-height: 340px; }
+  .shub-detail { min-height: 0; }
+}
+@media (max-width: 620px) {
+  .shub { padding: 2.5rem 1rem 3rem; }
+  .shub-card { padding: 1.3rem 1.1rem 1.5rem; border-radius: 16px; }
+  .shub-title { font-size: 2.1rem; }
+  .shub-actions { width: 100%; }
+  .shub-btn { flex: 1; justify-content: center; }
+  .shub-view-title { font-size: 1.5rem; }
+  .shub-tabs { gap: 1.1rem; }
+}
