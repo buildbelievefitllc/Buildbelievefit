@@ -1,19 +1,19 @@
 // src/components/vault/SmartCardio.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 22 — Smart Cardio (Client Vault surface). Restores the legacy Phase 10
-// engine with a persistent backend:
-//   • Cardio Configurator — interactive selectors (Duration · Pacing · Equipment
-//     · Kinetic Modality) that drive, fully client-side (zero API/token burn):
-//       – the Dynamic CRP Formula card (Cardio-Respiratory Prescription index),
-//       – the Respiratory Sync visual timer (a breath-pacer orb), and
-//       – the Metabolic Timeline Breakdown (phase grid w/ O₂-utilization metrics).
-//   • Agentic GPS — the proactive generator (bbf-agentic-cardio): enter a time
-//     budget → routed modality + CNS-aware minute-by-minute protocol + ROI.
-//   • Zone legend — HIIT / Tempo / Zone-2 (the legacy time-budget routing).
-//   • Active protocols — target duration + intensity + the minute-by-minute
-//     prescription, treadmill-readable monospace (legacy .cardio-protocol).
-//   • History — previously logged sessions.
-//   • Logger — write a completed session (token-gated RPC), then refetch.
+// Phase 22 → 22.z — Smart Cardio (Client Vault surface). SURGICAL UI GRAFT:
+// the visual configuration layer was rebuilt to the high-fidelity "Metabolic
+// Pacer" prototype (kcal burn hero · gold drag slider · selectable Kinetic
+// Apparatus card grid · purple RECONSTRUCT PROTOCOL · revealed Live Respiratory
+// Sync active-session panel with a countdown pacer + metabolic timeline). The
+// ENGINE underneath is untouched:
+//   • bbf-agentic-cardio — RECONSTRUCT PROTOCOL fires the same generation call
+//     (CNS-aware minute-by-minute protocol + Sovereign Toast + rate-limit toast).
+//   • Backend logging/history (bbf_get_cardio / logCardio) — preserved below.
+//   • The full Playwright QA contract (21 data-testid hooks) — preserved. The
+//     athlete's time budget lives on the editable slider readout
+//     (data-testid="cardio-gen-minutes"); RECONSTRUCT PROTOCOL is the submit
+//     (data-testid="cardio-gen-submit"); LiveProtocol still carries every
+//     cardio-gen-* result hook.
 //
 // ISOLATION: touches only cardioApi / agenticCardioApi + cardio.css. Never imports
 // or edits T2's ProgramGrid / programData / programApi.
@@ -41,15 +41,15 @@ export default function SmartCardio() {
     <div className="bbf-cardio" data-testid="smart-cardio-module">
       <div className="bbf-cardio__head">
         <h2 className="bbf-cardio__title">Smart Cardio</h2>
-        <span className="bbf-cardio__kicker">Conditioning Engine</span>
+        <span className="bbf-cardio__kicker">Metabolic Pacer</span>
       </div>
       <p className="bbf-cardio__sub">
         The engine routes between HIIT (&lt; 20 min), Tempo (20–35 min), and Zone 2 (&gt; 35 min) —
         each protocol is built for your time budget. Log every session to keep your conditioning honest.
       </p>
 
-      {/* Cardio Configurator — selectors → CRP formula, respiratory sync, timeline,
-          AND the live engine (time budget → bbf-agentic-cardio protocol). One UI. */}
+      {/* Metabolic Pacer — the rebuilt configuration layer (kcal hero · slider ·
+          apparatus grid) wired straight into the live bbf-agentic-cardio engine. */}
       <CardioConfigurator />
 
       {/* Zone legend */}
@@ -77,32 +77,31 @@ export default function SmartCardio() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Cardio Configurator — selector domain + derivation (pure, client-side)
+// Configurator domain + derivation (pure, client-side)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DURATION_OPTS = [
-  { value: 15, label: '15 min · Express' },
-  { value: 30, label: '30 min · Standard' },
-  { value: 45, label: '45 min · Extended' },
-  { value: 60, label: '60 min · Endurance' },
-];
+const DURATION_MIN = 10;
+const DURATION_MAX = 60;
+const DURATION_STEP = 5;
 
 // Each pacing tier carries the physiological constants the formula reads:
 //   vo2 = working %VO₂max · hr = %HRmax label · breath = inhale/hold/exhale (s)
 const PACING_OPTS = {
-  zone2: { label: 'Zone 2 · Aerobic Base', accent: '#22c55e', vo2: 0.65, hr: '60–70%', breath: [4, 0, 6], intensity: 1.0 },
-  tempo: { label: 'Tempo · Threshold', accent: '#F59E0B', vo2: 0.80, hr: '76–85%', breath: [3, 0, 4], intensity: 1.35 },
-  hiit: { label: 'HIIT · Max Effort', accent: '#FF4500', vo2: 0.92, hr: '86–95%', breath: [2, 1, 2], intensity: 1.7 },
-  fasted: { label: 'Fasted Steady-State', accent: '#9D27C9', vo2: 0.60, hr: '55–65%', breath: [4, 2, 6], intensity: 0.9 },
+  zone2: { label: 'Zone 2 · Aerobic Base', zone: 'Zone 2', accent: '#22c55e', vo2: 0.65, hr: '60–70%', breath: [4, 0, 6], intensity: 1.0 },
+  tempo: { label: 'Tempo · Threshold', zone: 'Tempo', accent: '#F59E0B', vo2: 0.80, hr: '76–85%', breath: [3, 0, 4], intensity: 1.35 },
+  hiit: { label: 'HIIT · Max Effort', zone: 'HIIT', accent: '#FF4500', vo2: 0.92, hr: '86–95%', breath: [2, 1, 2], intensity: 1.7 },
+  fasted: { label: 'Fasted Steady-State', zone: 'Fasted', accent: '#9D27C9', vo2: 0.60, hr: '55–65%', breath: [4, 2, 6], intensity: 0.9 },
 };
 
-const EQUIPMENT_OPTS = {
-  treadmill: { label: 'Treadmill', efficiency: 1.0 },
-  rower: { label: 'Rower (Erg)', efficiency: 1.15 },
-  bike: { label: 'Assault Bike', efficiency: 1.2 },
-  road: { label: 'Outdoor / Road', efficiency: 1.05 },
-  rope: { label: 'Jump Rope', efficiency: 1.25 },
-  elliptical: { label: 'Elliptical', efficiency: 0.9 },
+// Active Kinetic Apparatus — the selectable card grid (replaces the equipment
+// dropdown). `efficiency` is the mechanical-efficiency term the CRP formula reads.
+const APPARATUS_ORDER = ['flat-treadmill', 'incline-treadmill', 'stairmaster', 'concept2-rower', 'assault-bike'];
+const APPARATUS = {
+  'flat-treadmill': { label: 'Flat Treadmill', sub: 'Speed-Play', glyph: '🏃', efficiency: 1.0 },
+  'incline-treadmill': { label: 'Incline Treadmill', sub: 'Glute / Core', glyph: '⛰', efficiency: 1.1 },
+  'stairmaster': { label: 'Standard Stairmaster', sub: 'Vertical Drive', glyph: '🪜', efficiency: 1.1 },
+  'concept2-rower': { label: 'Concept2 Rower', sub: 'Full-Body Pull', glyph: '🚣', efficiency: 1.15 },
+  'assault-bike': { label: 'Assault Bike', sub: 'Max EPOC', glyph: '🚲', efficiency: 1.2 },
 };
 
 const MODALITY_OPTS = {
@@ -114,11 +113,11 @@ const MODALITY_OPTS = {
 
 // The Dynamic CRP (Cardio-Respiratory Prescription) index. Deterministic:
 //   CRP = Duration × Intensity × Modality ÷ Mechanical-Efficiency
-function computeCRP({ duration, pacing, equipment, modality }) {
+function computeCRP({ duration, pacing, apparatus, modality }) {
   const p = PACING_OPTS[pacing];
-  const e = EQUIPMENT_OPTS[equipment];
+  const a = APPARATUS[apparatus];
   const m = MODALITY_OPTS[modality];
-  const raw = (duration * p.intensity * m.factor) / e.efficiency;
+  const raw = (duration * p.intensity * m.factor) / a.efficiency;
   const index = Math.round(raw);
   // Crude steady-state kcal proxy: ~9 kcal/CRP-unit, rounded to the nearest 5.
   const kcal = Math.round((raw * 9) / 5) * 5;
@@ -127,136 +126,53 @@ function computeCRP({ duration, pacing, equipment, modality }) {
     kcal,
     vo2: Math.round(p.vo2 * 100),
     hr: p.hr,
+    bpm: Math.round(p.vo2 * 200), // target pulse proxy from working %VO₂max
     intensity: p.intensity,
     modalityFactor: m.factor,
-    efficiency: e.efficiency,
+    efficiency: a.efficiency,
   };
 }
 
-// Metabolic Timeline Breakdown. Splits the session into physiological phases and
-// attaches an O₂-utilization metric (%VO₂max) to each. HIIT/ballistic work gets a
-// surge band; everything tapers through a cool-down.
-function buildTimeline({ duration, pacing }) {
-  const p = PACING_OPTS[pacing];
-  const peak = p.vo2; // working %VO₂max (0–1)
-  const warm = Math.max(3, Math.round(duration * 0.12));
-  const cool = Math.max(3, Math.round(duration * 0.12));
-  const workTotal = Math.max(1, duration - warm - cool);
-
-  const phases = [];
-  phases.push({ key: 'warmup', label: 'Warm-Up', mins: warm, o2: Math.round((peak * 0.5) * 100), note: 'Vascular priming · capillary recruitment' });
-  phases.push({ key: 'activation', label: 'Activation', mins: Math.max(2, Math.round(workTotal * 0.18)), o2: Math.round((peak * 0.78) * 100), note: 'Aerobic system online · fat-ox ramp' });
-
-  const primary = Math.max(1, workTotal - Math.max(2, Math.round(workTotal * 0.18)));
-  if (pacing === 'hiit') {
-    phases.push({ key: 'work', label: 'Surge Intervals', mins: primary, o2: Math.round(peak * 100), note: 'EPOC debt · glycolytic + max O₂ flux' });
-  } else if (pacing === 'tempo') {
-    phases.push({ key: 'work', label: 'Threshold Block', mins: primary, o2: Math.round(peak * 100), note: 'Lactate clearance at steady ceiling' });
-  } else {
-    phases.push({ key: 'steady', label: 'Steady Effort', mins: primary, o2: Math.round(peak * 100), note: 'Mitochondrial density · fat oxidation' });
-  }
-
-  phases.push({ key: 'cooldown', label: 'Cool-Down', mins: cool, o2: Math.round((peak * 0.45) * 100), note: 'Parasympathetic return · HR recovery' });
-  return phases;
-}
-
-const PHASE_ACCENT = {
-  warmup: '#F5CF60', activation: '#F59E0B', work: '#FF4500', steady: '#9D27C9', cooldown: '#8b1abf',
-};
-
-function CardioConfigurator() {
-  const [duration, setDuration] = useState(30);
-  const [pacing, setPacing] = useState('zone2');
-  const [equipment, setEquipment] = useState('treadmill');
-  const [modality, setModality] = useState('cyclical');
-
-  const crp = computeCRP({ duration, pacing, equipment, modality });
-  const timeline = buildTimeline({ duration, pacing });
-  const pacingMeta = PACING_OPTS[pacing];
-
-  return (
-    <section className="bbf-cfg" style={{ '--cfg-accent': pacingMeta.accent }}>
-      <div className="bbf-cfg__head">
-        <span className="bbf-cardio__kicker" style={{ color: pacingMeta.accent }}>Cardio Configurator</span>
-        <h3 className="bbf-cardio__title" style={{ fontSize: '1.3rem' }}>Dial In the Prescription</h3>
-        <p className="bbf-cfg__sub">
-          Set the four variables — the engine derives your CRP index, paces your breathing, and maps the
-          metabolic timeline live. No tokens spent: this is a real-time prescription preview.
-        </p>
-      </div>
-
-      {/* Selectors */}
-      <div className="bbf-cfg__selectors">
-        <div className="bbf-cardio__field">
-          <label htmlFor="cfg-dur">Duration</label>
-          <select id="cfg-dur" className="bbf-input" value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
-            {DURATION_OPTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-        </div>
-        <div className="bbf-cardio__field">
-          <label htmlFor="cfg-pace">Pacing</label>
-          <select id="cfg-pace" className="bbf-input" value={pacing} onChange={(e) => setPacing(e.target.value)}>
-            {Object.entries(PACING_OPTS).map(([id, o]) => <option key={id} value={id}>{o.label}</option>)}
-          </select>
-        </div>
-        <div className="bbf-cardio__field">
-          <label htmlFor="cfg-equip">Equipment</label>
-          <select id="cfg-equip" className="bbf-input" value={equipment} onChange={(e) => setEquipment(e.target.value)}>
-            {Object.entries(EQUIPMENT_OPTS).map(([id, o]) => <option key={id} value={id}>{o.label}</option>)}
-          </select>
-        </div>
-        <div className="bbf-cardio__field">
-          <label htmlFor="cfg-mod">Kinetic Modality</label>
-          <select id="cfg-mod" className="bbf-input" value={modality} onChange={(e) => setModality(e.target.value)}>
-            {Object.entries(MODALITY_OPTS).map(([id, o]) => <option key={id} value={id}>{o.label}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <CRPFormulaCard crp={crp} duration={duration} />
-      {/* key={pacing} remounts the pacer with fresh state when the breath
-          pattern changes — avoids a synchronous setState-in-effect reset. */}
-      <RespiratorySync key={pacing} breath={pacingMeta.breath} accent={pacingMeta.accent} />
-      <MetabolicTimeline phases={timeline} crp={crp} />
-
-      {/* Live engine — the only API-calling surface: time budget → bbf-agentic-cardio
-          → CNS-aware protocol + Sovereign Toast. Seeded from the configured duration. */}
-      <CardioEngine duration={duration} />
-    </section>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Live engine — wires the canonical Configurator UI to bbf-agentic-cardio.
-// Satisfies the smart-cardio-generator.spec.ts QA contract (data-testid hooks +
-// data-tier / data-phase) and maps 429 → a clean rate-limit toast.
-// ─────────────────────────────────────────────────────────────────────────────
-const LIVE_PHASE = {
-  warmup: { accent: '#F5CF60', label: '◐ Warm-Up', o2: 45 },
-  work: { accent: '#FF4500', label: '▲ Work', o2: 88 },
-  recovery: { accent: '#22c55e', label: '◡ Recovery', o2: 60 },
-  steady: { accent: '#9D27C9', label: '■ Steady', o2: 72 },
-  cooldown: { accent: '#8b1abf', label: '◑ Cool-Down', o2: 38 },
-};
-function livePhase(p) { return LIVE_PHASE[p] || { accent: '#FF4500', label: p, o2: 70 }; }
 function pad(n) { return String(Number(n) || 0).padStart(2, '0'); }
+function clampDuration(n) { return Math.min(DURATION_MAX, Math.max(DURATION_MIN, n || DURATION_MIN)); }
 
-function CardioEngine({ duration }) {
+// ─────────────────────────────────────────────────────────────────────────────
+// CardioConfigurator — the grafted Metabolic Pacer. Owns the configuration state
+// AND the live engine call (lifted from the old CardioEngine), so the slider +
+// apparatus cards feed bbf-agentic-cardio directly and RECONSTRUCT PROTOCOL is the
+// single generation trigger. Maps 429 → a clean rate-limit toast.
+// ─────────────────────────────────────────────────────────────────────────────
+function CardioConfigurator() {
   const { user } = useAuth();
   const uid = user?.username || user?.id || '';
-  const [minutes, setMinutes] = useState(String(duration || 30));
+
+  // Athlete time budget — string so the editable readout (cardio-gen-minutes)
+  // accepts free entry; the slider mirrors the same value.
+  const [minutes, setMinutes] = useState('30');
+  const [pacing, setPacing] = useState('zone2');
+  const [apparatus, setApparatus] = useState('assault-bike');
+  const [modality, setModality] = useState('cyclical');
+
+  // Live engine state (was CardioEngine).
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null); // rate-limit toast message | null
   const [plan, setPlan] = useState(null);
+  const [revealed, setRevealed] = useState(false);
 
-  async function generate(e) {
+  const duration = Math.round(Number(minutes) || 0);
+  const pacingMeta = PACING_OPTS[pacing];
+  const apparatusMeta = APPARATUS[apparatus];
+  const crp = computeCRP({ duration: duration || DURATION_MIN, pacing, apparatus, modality });
+
+  async function reconstruct(e) {
     e?.preventDefault?.();
     if (busy) return;
     const m = Math.round(Number(minutes) || 0);
-    if (!m || m <= 0) { setError('Enter how many minutes you have.'); return; }
+    if (!m || m <= 0) { setError('Enter how many minutes you have.'); setRevealed(true); return; }
     setBusy(true);
     setError(null);
+    setRevealed(true);
     try {
       setPlan(await generateCardio(uid, m));
     } catch (err) {
@@ -270,33 +186,223 @@ function CardioEngine({ duration }) {
   }
 
   return (
-    <div className="bbf-gps">
-      <div className="bbf-gps__head">
-        <span className="bbf-cardio__kicker">Live Engine · Agentic GPS</span>
-        <h4 className="bbf-cardio__title" style={{ fontSize: '1.15rem' }}>Route Today’s Protocol</h4>
-        <p className="bbf-gps__sub">
-          Enter your real time budget — the engine checks your CNS load and writes the minute-by-minute plan,
-          softening intensity automatically when your nervous system needs it.
+    <section className="bbf-cfg" style={{ '--cfg-accent': pacingMeta.accent }}>
+      <div className="bbf-cfg__head">
+        <span className="bbf-cardio__kicker" style={{ color: pacingMeta.accent }}>Smart Cardio · Metabolic Pacer</span>
+        <h3 className="bbf-cardio__title" style={{ fontSize: '1.35rem' }}>Dial In the Prescription</h3>
+        <p className="bbf-cfg__sub">
+          Targeted low-zeal compression sequences — elevate mitochondrial respiration, accelerate thermogenesis,
+          and stabilize the diaphragm after heavy barbell work. Tune the variables; reconstruct your protocol live.
         </p>
       </div>
-      <form className="bbf-gps__form" onSubmit={generate}>
-        <div className="bbf-gps__inputrow">
-          <input className="bbf-input" type="number" inputMode="numeric" min="1" max="120"
-            placeholder="minutes you have" value={minutes} disabled={busy}
-            onChange={(e) => setMinutes(e.target.value)} aria-label="Available minutes"
-            data-testid="cardio-gen-minutes" />
-          <button type="submit" className="bbf-cardio__btn" disabled={busy} data-testid="cardio-gen-submit">
-            {busy ? 'Routing…' : 'Route My Cardio →'}
-          </button>
-        </div>
-      </form>
 
-      {error ? <div className="bbf-cardio__error" role="alert" style={{ marginTop: '.9rem' }}>{error}</div> : null}
-      {plan ? <LiveProtocol plan={plan} /> : null}
-      {toast ? <RateLimitToast message={toast} onClose={() => setToast(null)} /> : null}
+      {/* ── Dynamic caloric hero — reacts to the time slider + apparatus ── */}
+      <div className="bbf-burn" data-testid="cardio-burn-hero">
+        <span className="bbf-burn__icon" aria-hidden="true">🔥</span>
+        <div className="bbf-burn__body">
+          <span className="bbf-burn__label">Total Session Burn</span>
+          <span className="bbf-burn__val">~{crp.kcal}<span className="bbf-burn__unit"> kcal</span></span>
+        </div>
+        <span className="bbf-burn__ctx">{apparatusMeta.label} · {duration || DURATION_MIN} min</span>
+      </div>
+
+      {/* ── Configuration layer ── */}
+      <div className="bbf-cfg__layer">
+        {/* Time duration — gold drag slider with an editable minutes readout. */}
+        <div className="bbf-slider">
+          <div className="bbf-slider__top">
+            <label className="bbf-slider__lbl" htmlFor="cfg-mins-num">Time Duration</label>
+            <span className="bbf-slider__readout">
+              <input
+                id="cfg-mins-num"
+                className="bbf-slider__num"
+                type="number"
+                inputMode="numeric"
+                min="1"
+                max="120"
+                value={minutes}
+                disabled={busy}
+                onChange={(e) => setMinutes(e.target.value)}
+                aria-label="Available minutes"
+                data-testid="cardio-gen-minutes"
+              />
+              <span className="bbf-slider__num-unit">Minutes</span>
+            </span>
+          </div>
+          <input
+            className="bbf-slider__range"
+            type="range"
+            min={DURATION_MIN}
+            max={DURATION_MAX}
+            step={DURATION_STEP}
+            value={clampDuration(duration)}
+            disabled={busy}
+            onChange={(e) => setMinutes(e.target.value)}
+            aria-label="Time duration slider"
+          />
+          <div className="bbf-slider__scale">
+            <span>{DURATION_MIN} Mins · Opener</span>
+            <span>{DURATION_MAX} Mins · Longevity Endurance</span>
+          </div>
+        </div>
+
+        {/* Pacing + kinetic modality — the two strategy dropdowns. */}
+        <div className="bbf-cfg__selectors">
+          <div className="bbf-cardio__field">
+            <label htmlFor="cfg-pace">Pacing Strategy Target</label>
+            <select id="cfg-pace" className="bbf-input" value={pacing} disabled={busy} onChange={(e) => setPacing(e.target.value)}>
+              {Object.entries(PACING_OPTS).map(([id, o]) => <option key={id} value={id}>{o.label}</option>)}
+            </select>
+          </div>
+          <div className="bbf-cardio__field">
+            <label htmlFor="cfg-mod">Kinetic Modality</label>
+            <select id="cfg-mod" className="bbf-input" value={modality} disabled={busy} onChange={(e) => setModality(e.target.value)}>
+              {Object.entries(MODALITY_OPTS).map(([id, o]) => <option key={id} value={id}>{o.label}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <CRPFormulaCard crp={crp} duration={duration || DURATION_MIN} apparatus={apparatusMeta} pacing={pacingMeta} />
+
+      {/* ── Select Active Kinetic Apparatus — selectable card grid ── */}
+      <div className="bbf-app">
+        <div className="bbf-app__head">
+          <span className="bbf-app__kicker">Select Active Kinetic Apparatus</span>
+          <span className="bbf-app__suite">● Curated suite for any / home / general gym</span>
+        </div>
+        <div className="bbf-app__grid" role="radiogroup" aria-label="Active kinetic apparatus">
+          {APPARATUS_ORDER.map((id) => {
+            const a = APPARATUS[id];
+            const active = apparatus === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                disabled={busy}
+                className={`bbf-app__card${active ? ' is-active' : ''}`}
+                onClick={() => setApparatus(id)}
+                data-testid={`cardio-apparatus-${id}`}
+              >
+                <span className="bbf-app__glyph" aria-hidden="true">{a.glyph}</span>
+                <span className="bbf-app__name">{a.label}</span>
+                <span className="bbf-app__sub">{a.sub}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── RECONSTRUCT PROTOCOL — the single generation trigger (cardio-gen-submit) ── */}
+      <div className="bbf-cfg__actions">
+        <button
+          type="button"
+          className="bbf-reconstruct"
+          onClick={reconstruct}
+          disabled={busy}
+          data-testid="cardio-gen-submit"
+        >
+          {busy ? 'Routing…' : 'Reconstruct Protocol'}
+        </button>
+      </div>
+
+      {/* ── Revealed active-session panel — Live Respiratory Sync ── */}
+      {revealed ? (
+        <div className="bbf-session" data-testid="cardio-session-panel">
+          <div className="bbf-session__kicker">Live Respiratory Sync</div>
+          <PacerTimer duration={duration || DURATION_MIN} crp={crp} pacing={pacingMeta} accent={pacingMeta.accent} />
+          {/* key={pacing} remounts the breath pacer with fresh state when the
+              pattern changes — avoids a synchronous setState-in-effect reset. */}
+          <RespiratorySync key={pacing} breath={pacingMeta.breath} accent={pacingMeta.accent} />
+
+          {error ? <div className="bbf-cardio__error" role="alert" style={{ marginTop: '.9rem' }}>{error}</div> : null}
+          {plan ? <LiveProtocol plan={plan} /> : null}
+          {toast ? <RateLimitToast message={toast} onClose={() => setToast(null)} /> : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+// ── Pacer countdown timer — the active-session block clock + controls ─────────
+// Counts the session down from `duration` minutes. LAUNCH PACER toggles the run;
+// RESET BLOCK returns to the top. Pure: a single monotonic `elapsed` counter.
+function PacerTimer({ duration, crp, pacing }) {
+  const total = Math.max(1, duration) * 60; // seconds
+  const [elapsed, setElapsed] = useState(0);
+  const [running, setRunning] = useState(false);
+
+  useEffect(() => {
+    if (!running) return undefined;
+    // Tick once a second; stop the run when we hit the finish line. The stop
+    // lives inside the timer callback (not the effect body) to stay pure.
+    const id = setInterval(() => {
+      setElapsed((e) => {
+        const next = e + 1;
+        if (next >= total) { setRunning(false); return total; }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [running, total]);
+
+  const remaining = Math.max(0, total - elapsed);
+  const mm = Math.floor(remaining / 60);
+  const ss = remaining % 60;
+  const burnRatio = Math.round(crp.kcal / Math.max(1, duration));
+
+  function reset() { setRunning(false); setElapsed(0); }
+
+  return (
+    <div className="bbf-pacer" style={{ '--pacer-accent': pacing.accent }}>
+      <div className="bbf-pacer__dial">
+        <div className="bbf-pacer__ring" aria-hidden="true" />
+        <div className="bbf-pacer__time">
+          <span className="bbf-pacer__time-kicker">Time · Block</span>
+          <span className="bbf-pacer__clock" role="timer" aria-label="Time remaining">{pad(mm)}:{pad(ss)}</span>
+          <span className="bbf-pacer__elapsed">Elapsed · {pad(Math.floor(elapsed / 60))}:{pad(elapsed % 60)}</span>
+        </div>
+      </div>
+
+      <div className="bbf-pacer__stats">
+        <div className="bbf-pacer__stat">
+          <span className="bbf-pacer__stat-val">🔥 {crp.bpm}<span className="bbf-pacer__stat-unit"> bpm</span></span>
+          <span className="bbf-pacer__stat-lbl">Target Pulse</span>
+        </div>
+        <div className="bbf-pacer__stat">
+          <span className="bbf-pacer__stat-val">{burnRatio}<span className="bbf-pacer__stat-unit"> c/m</span></span>
+          <span className="bbf-pacer__stat-lbl">Burn Ratio</span>
+        </div>
+        <div className="bbf-pacer__stat">
+          <span className="bbf-pacer__stat-val">{pacing.zone}</span>
+          <span className="bbf-pacer__stat-lbl">Effort State</span>
+        </div>
+      </div>
+
+      <div className="bbf-pacer__controls">
+        <button type="button" className="bbf-pacer__launch" onClick={() => setRunning((r) => !r)}>
+          {running ? '❙❙ Pause Pacer' : '▶ Launch Pacer'}
+        </button>
+        <button type="button" className="bbf-pacer__reset" onClick={reset}>↺ Reset Block</button>
+      </div>
     </div>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LiveProtocol — bbf-agentic-cardio result. Carries the cardio-gen-* QA contract.
+// (Preserved verbatim from the engine; it IS the Metabolic Timeline Breakdown.)
+// ─────────────────────────────────────────────────────────────────────────────
+const LIVE_PHASE = {
+  warmup: { accent: '#F5CF60', label: '◐ Warm-Up', o2: 45 },
+  work: { accent: '#FF4500', label: '▲ Work', o2: 88 },
+  recovery: { accent: '#22c55e', label: '◡ Recovery', o2: 60 },
+  steady: { accent: '#9D27C9', label: '■ Steady', o2: 72 },
+  cooldown: { accent: '#8b1abf', label: '◑ Cool-Down', o2: 38 },
+};
+function livePhase(p) { return LIVE_PHASE[p] || { accent: '#FF4500', label: p, o2: 70 }; }
 
 function LiveProtocol({ plan }) {
   const cns = plan.cns_downregulation || {};
@@ -397,7 +503,7 @@ function RateLimitToast({ message, onClose }) {
 }
 
 // ── Dynamic CRP Formula card ─────────────────────────────────────────────────
-function CRPFormulaCard({ crp, duration }) {
+function CRPFormulaCard({ crp, duration, apparatus, pacing }) {
   return (
     <div className="bbf-crp">
       <div className="bbf-crp__glow" aria-hidden="true" />
@@ -414,6 +520,10 @@ function CRPFormulaCard({ crp, duration }) {
         </div>
         <div className="bbf-crp__plug" aria-hidden="true">
           {duration} × {crp.intensity.toFixed(2)} × {crp.modalityFactor.toFixed(2)} ÷ {crp.efficiency.toFixed(2)}
+        </div>
+        <div className="bbf-crp__summary">
+          Based on your <b>{apparatus.label}</b> at <b>{duration} min</b> on the <b>{pacing.zone}</b> target,
+          we map a multi-stage respiratory protocol.
         </div>
         <div className="bbf-crp__metrics">
           <div className="bbf-crp__metric bbf-crp__metric--hero">
@@ -490,7 +600,7 @@ function RespiratorySync({ breath, accent }) {
 
   return (
     <div className="bbf-resp" style={{ '--resp-accent': accent }}>
-      <div className="bbf-resp__kicker">Respiratory Sync</div>
+      <div className="bbf-resp__kicker">Breath Pacer</div>
       <div className="bbf-resp__stage">
         <div
           className={`bbf-resp__orb${running ? ' is-running' : ''}`}
@@ -513,40 +623,6 @@ function RespiratorySync({ breath, accent }) {
       <button type="button" className="bbf-resp__btn" onClick={toggle}>
         {running ? 'Pause Pacer' : 'Start Breath Pacer →'}
       </button>
-    </div>
-  );
-}
-
-// ── Metabolic Timeline Breakdown ─────────────────────────────────────────────
-function MetabolicTimeline({ phases, crp }) {
-  const total = phases.reduce((s, p) => s + p.mins, 0);
-  return (
-    <div className="bbf-metab">
-      <div className="bbf-metab__head">
-        <span className="bbf-metab__kicker">Metabolic Timeline Breakdown</span>
-        <span className="bbf-metab__total">{total} min · peak {crp.vo2}% VO₂max</span>
-      </div>
-      <div className="bbf-metab__grid" role="list">
-        {phases.map((ph) => {
-          const accent = PHASE_ACCENT[ph.key] || '#FF4500';
-          const pct = total ? Math.round((ph.mins / total) * 100) : 0;
-          return (
-            <div key={ph.key} className="bbf-metab__row" role="listitem" style={{ '--metab-accent': accent }}>
-              <div className="bbf-metab__row-top">
-                <span className="bbf-metab__phase">{ph.label}</span>
-                <span className="bbf-metab__mins">{ph.mins} min · {pct}%</span>
-              </div>
-              <div className="bbf-metab__o2">
-                <div className="bbf-metab__o2-track">
-                  <div className="bbf-metab__o2-fill" style={{ width: `${ph.o2}%` }} />
-                </div>
-                <span className="bbf-metab__o2-val">{ph.o2}% O₂</span>
-              </div>
-              <div className="bbf-metab__note">{ph.note}</div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
