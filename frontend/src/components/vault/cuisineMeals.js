@@ -33,11 +33,31 @@ const AMERICAN = {
   goal: 'Lean Mass · High Protein',
   days: [
     { day: 'Monday', meals: [
-      { m: 'Breakfast', i: '1 cup Oatmeal, 3 Whole Eggs, 1 cup Blueberries', kcal: 520, p: 32, c: 62, f: 16 },
-      { m: 'Lunch', i: '8 oz Grilled Chicken, 1.5 cups Jasmine Rice, 1 cup Broccoli', kcal: 660, p: 62, c: 78, f: 9 },
-      { m: 'Snack', i: '1 cup Greek Yogurt, 1 scoop Whey, 1 tbsp Honey', kcal: 280, p: 38, c: 24, f: 3 },
-      { m: 'Dinner', i: '8 oz Lean Ground Turkey, 8 oz Sweet Potato, 1 cup Asparagus', kcal: 620, p: 54, c: 58, f: 18 },
-      { m: 'Snack 2', i: '2 scoops Whey, 1 cup Milk, 1 tbsp Peanut Butter', kcal: 400, p: 50, c: 22, f: 13 },
+      { m: 'Breakfast', i: '1 cup Oatmeal, 3 Whole Eggs, 1 cup Blueberries', kcal: 520, p: 32, c: 62, f: 16,
+        instructions: [
+          'Bring 2 cups water to a boil, stir in the oats, and simmer 5 min until creamy.',
+          'Scramble the 3 eggs in a non-stick pan over medium heat — no oil needed.',
+          'Top the oats with blueberries and serve the eggs on the side.',
+        ] },
+      { m: 'Lunch', i: '8 oz Grilled Chicken, 1.5 cups Jasmine Rice, 1 cup Broccoli', kcal: 660, p: 62, c: 78, f: 9,
+        instructions: [
+          'Season the chicken and grill 6–7 min per side to 165°F internal.',
+          'Steam the broccoli 4 min until bright green and fork-tender.',
+          'Plate over the cooked jasmine rice; rest the chicken 3 min before slicing.',
+        ] },
+      { m: 'Snack', i: '1 cup Greek Yogurt, 1 scoop Whey, 1 tbsp Honey', kcal: 280, p: 38, c: 24, f: 3,
+        instructions: [
+          'Stir the whey scoop into the Greek yogurt until smooth.',
+          'Drizzle the honey on top and serve cold.',
+        ] },
+      { m: 'Dinner', i: '8 oz Lean Ground Turkey, 8 oz Sweet Potato, 1 cup Asparagus', kcal: 620, p: 54, c: 58, f: 18,
+        instructions: [
+          'Brown the ground turkey over medium-high heat, breaking it apart, 8–10 min.',
+          'Roast the sweet potato at 400°F for 35 min, or microwave 6–7 min until soft.',
+          'Pan-sear the asparagus 4 min and finish with cracked pepper.',
+        ] },
+      { m: 'Snack 2', i: '2 scoops Whey, 1 cup Milk, 1 tbsp Peanut Butter', kcal: 400, p: 50, c: 22, f: 13,
+        instructions: 'Blend the whey, milk, and peanut butter with ice until smooth and drink immediately.' },
     ] },
     { day: 'Tuesday', meals: [
       { m: 'Breakfast', i: '6 Egg Whites, 2 Whole Eggs, 2 slices Ezekiel Toast', kcal: 470, p: 38, c: 40, f: 14 },
