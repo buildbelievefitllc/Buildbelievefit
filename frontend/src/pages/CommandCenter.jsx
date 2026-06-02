@@ -31,8 +31,9 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 
 const TABS = [
+  // "Founder Five" master-detail roster is the Command Center centerpiece (default).
+  { id: 'roster', label: 'Founder Five', Panel: ClientHub },
   { id: 'command', label: 'Command', Panel: CommandRoster },
-  { id: 'roster', label: 'Client Hub', Panel: ClientHub },
   { id: 'telemetry', label: 'Risk Telemetry', Panel: RiskTelemetry },
   { id: 'analytics', label: 'Analytics', Panel: ClientAnalytics },
   { id: 'comlink', label: 'Comlink', Panel: Comlink },

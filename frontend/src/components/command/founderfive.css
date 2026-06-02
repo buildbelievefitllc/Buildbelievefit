@@ -1,0 +1,115 @@
+/* src/components/command/founderfive.css
+   ─────────────────────────────────────────────────────────────────────────────
+   "Founder Five" master-detail roster (Command Center centerpiece). Scoped under
+   .ff so nothing leaks. LOCKED brand palette (purple/gold + Bebas/Barlow).
+   Desktop: roster column (left) + detail (right). Mobile: roster on top, detail
+   below. */
+
+.ff { display: block; }
+
+.ff-head { margin-bottom: 1.4rem; }
+.ff-kicker {
+  font-family: var(--hb); font-size: .68rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold-deep); margin-bottom: .4rem;
+}
+.ff-title { font-family: var(--display); font-size: 2rem; letter-spacing: 1px; margin: 0; color: var(--wht); }
+.ff-lede {
+  font-family: var(--bd); font-size: .95rem; font-weight: 600; line-height: 1.45;
+  color: var(--mut); max-width: 62ch; margin: .5rem 0 0;
+}
+
+/* ── master + detail grid ── */
+.ff-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr;
+  gap: 1.4rem;
+  align-items: start;
+}
+
+/* ── MASTER ── */
+.ff-master {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+.ff-toolbar { display: flex; align-items: center; justify-content: space-between; }
+.ff-count { font-family: var(--hb); font-size: .74rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
+.ff-refresh {
+  font-family: var(--hb); font-size: .7rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-soft); background: none; border: 1px solid rgba(245, 200, 0, .3);
+  border-radius: 8px; padding: .42rem .75rem; cursor: pointer;
+}
+.ff-refresh:disabled { opacity: .55; cursor: progress; }
+
+.ff-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.ff-row {
+  display: flex; align-items: center; gap: .8rem; width: 100%; text-align: left; cursor: pointer;
+  background: var(--gry); border: 1px solid var(--line); border-left: 3px solid transparent;
+  border-radius: 12px; padding: .75rem .85rem;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.ff-row:hover { border-color: rgba(245, 200, 0, .3); }
+.ff-row:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
+.ff-row.is-active {
+  border-color: rgba(245, 200, 0, .45); border-left-color: var(--yel);
+  background: rgba(106, 13, 173, .16);
+  box-shadow: 0 10px 26px -16px rgba(106, 13, 173, .8);
+}
+.ff-avatar {
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--mut);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; color: var(--wht); background: #050505;
+}
+.ff-row-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.ff-row-name { font-family: var(--hb); font-size: .95rem; letter-spacing: 1px; color: var(--wht); }
+.ff-row-sub {
+  font-family: var(--bd); font-size: .74rem; font-weight: 700; color: var(--mut);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ff-badge {
+  font-family: var(--hb); font-size: .6rem; letter-spacing: 1.5px; text-transform: uppercase;
+  border: 1px solid var(--mut); border-radius: 6px; padding: .22rem .5rem; white-space: nowrap; flex-shrink: 0;
+}
+
+/* roster states */
+.ff-state {
+  display: flex; align-items: center; gap: .6rem; padding: 1.2rem .2rem;
+  color: var(--mut); font-family: var(--bd); font-weight: 600; letter-spacing: .5px;
+}
+.ff-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--yel); box-shadow: 0 0 12px rgba(245, 200, 0, .6); }
+.ff-error { border: 1px solid var(--red); border-radius: 12px; padding: .9rem 1rem; background: rgba(239, 68, 68, .06); }
+.ff-error-title { font-family: var(--hb); font-size: .76rem; letter-spacing: 2px; text-transform: uppercase; color: var(--red); margin-bottom: .3rem; }
+.ff-error-msg { font-family: var(--bd); font-size: .9rem; color: var(--red); word-break: break-word; margin-bottom: .7rem; }
+.ff-retry {
+  font-family: var(--hb); font-size: .7rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--red); background: none; border: 1px solid var(--red); border-radius: 8px; padding: .4rem .85rem; cursor: pointer;
+}
+
+/* ── DETAIL ── */
+.ff-detail {
+  min-width: 0;
+  background: rgba(255, 255, 255, .012);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.4rem 1.5rem;
+  min-height: 360px;
+}
+.ff-placeholder {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; min-height: 320px; gap: .5rem;
+}
+.ff-placeholder-mark { font-size: 2.4rem; color: rgba(245, 200, 0, .55); line-height: 1; }
+.ff-placeholder-title { font-family: var(--hb); font-size: .92rem; letter-spacing: 2px; text-transform: uppercase; color: var(--wht); }
+.ff-placeholder-note { font-family: var(--bd); font-size: .92rem; font-weight: 600; color: var(--mut); max-width: 42ch; line-height: 1.5; }
+
+/* ── Mobile: stack master over detail ── */
+@media (max-width: 860px) {
+  .ff-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .ff-master { position: static; max-height: none; overflow: visible; }
+  .ff-list { max-height: 320px; overflow-y: auto; }
+  .ff-detail { padding: 1.1rem 1.1rem; }
+}

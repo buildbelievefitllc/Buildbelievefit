@@ -19,6 +19,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
 import CommandSurface from './CommandSurface.jsx';
+import { BarChart, LineChart } from './charts.jsx';
+import { numOrNull, GRN, PURL, GOLD_SOFT } from './chartUtils.js';
+import './analytics.css';
 
 export default function ClientDossier({ client, onBack }) {
   // Detail (full client row).
@@ -127,46 +130,60 @@ export default function ClientDossier({ client, onBack }) {
   );
 }
 
-// ── The full dossier once detail data has loaded. ──────────────────────────────
+// ── The full dossier once detail data has loaded — a tabbed master-detail body. ─
+// Co-Coach stays persistent above the tabs (the agentic centerpiece); the three
+// required surfaces — Program · Nutrition · Analytics — live behind a tab strip.
+const DOSSIER_TABS = [
+  { id: 'program', label: 'Program' },
+  { id: 'nutrition', label: 'Nutrition' },
+  { id: 'analytics', label: 'Analytics' },
+];
+
 function DossierBody({ c, clientId, onPatched, analytics }) {
-  const workoutDays = asArray(c.workout_plan);
-  const workoutText = !workoutDays && typeof c.workout_plan === 'string' ? c.workout_plan.trim() : '';
-  const mealDays = asMealDays(c.meal_plan);
-  const mealText = !mealDays && typeof c.meal_plan === 'string' ? c.meal_plan.trim() : '';
-  const nutritionText = typeof c.nutrition_plan === 'string' ? c.nutrition_plan.trim() : '';
+  const [tab, setTab] = useState('program');
 
   return (
     <div style={styles.body}>
-      {/* ── Co-Coach intelligence console (action: coach) — the agentic centerpiece. ── */}
+      {/* ── Co-Coach intelligence console (action: coach) — persistent centerpiece. ── */}
       <CoCoach clientId={clientId} clientName={c.name || c.uid || 'this client'} />
 
-      {/* ── Macro targets — now editable (action: update_target). ── */}
-      <MacroTargets c={c} clientId={clientId} onPatched={onPatched} />
+      {/* ── Tabbed detail: Program · Nutrition · Analytics. ── */}
+      <nav style={styles.tabs} role="tablist" aria-label="Client dossier surfaces">
+        {DOSSIER_TABS.map((t) => {
+          const active = t.id === tab;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(t.id)}
+              style={{ ...styles.tab, ...(active ? styles.tabActive : null) }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </nav>
 
-      {/* ── 90-day analytics (action: analytics) — read-only, below macros. ── */}
-      <AnalyticsSection {...analytics} />
+      <div key={tab}>
+        {tab === 'program' && <ProgramTab c={c} />}
+        {tab === 'nutrition' && <NutritionTab c={c} clientId={clientId} onPatched={onPatched} />}
+        {tab === 'analytics' && <AnalyticsTab {...analytics} />}
+      </div>
 
-      {/* ── Training & medical profile — the metabolic-tier details. ── */}
-      <Section title="Training & Medical Profile">
-        <div style={styles.kv}>
-          <Field label="Metabolic Tier" value={c.metabolic_tier} />
-          <Field label="Block Priority" value={c.block_priority} />
-          <Field label="Baseline Status" value={c.baseline_status} color={baselineColor(c.baseline_status)} />
-          <Field label="Cardiac Clearance" value={c.cardiac_clearance} color={cardiacColor(c.cardiac_clearance)} />
-        </div>
-      </Section>
+      <div style={styles.footer}>Last updated {fmtDate(c.updated_at) || '—'}</div>
+    </div>
+  );
+}
 
-      {/* ── Dietary profile. ── */}
-      {(c.dietary_profile || hasItems(c.allergens) || hasItems(c.food_likes) || hasItems(c.food_dislikes)) ? (
-        <Section title="Dietary Profile">
-          {c.dietary_profile ? <Field label="Profile" value={c.dietary_profile} /> : null}
-          <Chips label="Allergens" items={c.allergens} tone="var(--red)" />
-          <Chips label="Likes" items={c.food_likes} tone="var(--grn)" />
-          <Chips label="Dislikes" items={c.food_dislikes} tone="var(--mut)" />
-        </Section>
-      ) : null}
+// ── Program tab — active training plan + training/medical profile. ─────────────
+function ProgramTab({ c }) {
+  const workoutDays = asArray(c.workout_plan);
+  const workoutText = !workoutDays && typeof c.workout_plan === 'string' ? c.workout_plan.trim() : '';
 
-      {/* ── Active training plan. ── */}
+  return (
+    <>
       <Section title="Active Training Plan" meta={fmtDate(c.plans_generated_at)}>
         {c.workout_blacklist_hits > 0 ? (
           <div style={styles.guardNote}>
@@ -186,8 +203,29 @@ function DossierBody({ c, clientId, onPatched, analytics }) {
         )}
       </Section>
 
-      {/* ── Nutrition plan. ── */}
-      <Section title="Nutrition" meta={fmtDate(c.nutrition_plan_updated_at)}>
+      <Section title="Training & Medical Profile">
+        <div style={styles.kv}>
+          <Field label="Metabolic Tier" value={c.metabolic_tier} />
+          <Field label="Block Priority" value={c.block_priority} />
+          <Field label="Baseline Status" value={c.baseline_status} color={baselineColor(c.baseline_status)} />
+          <Field label="Cardiac Clearance" value={c.cardiac_clearance} color={cardiacColor(c.cardiac_clearance)} />
+        </div>
+      </Section>
+    </>
+  );
+}
+
+// ── Nutrition tab — editable macro targets + meal plan + dietary profile. ──────
+function NutritionTab({ c, clientId, onPatched }) {
+  const mealDays = asMealDays(c.meal_plan);
+  const mealText = !mealDays && typeof c.meal_plan === 'string' ? c.meal_plan.trim() : '';
+  const nutritionText = typeof c.nutrition_plan === 'string' ? c.nutrition_plan.trim() : '';
+
+  return (
+    <>
+      <MacroTargets c={c} clientId={clientId} onPatched={onPatched} />
+
+      <Section title="Nutrition Plan" meta={fmtDate(c.nutrition_plan_updated_at)}>
         {nutritionText ? <pre style={styles.pre}>{nutritionText}</pre> : null}
         {mealDays ? (
           <div style={styles.plan}>
@@ -207,7 +245,78 @@ function DossierBody({ c, clientId, onPatched, analytics }) {
         {!nutritionText && !mealDays && !mealText ? <Empty>No nutrition plan on file.</Empty> : null}
       </Section>
 
-      <div style={styles.footer}>Last updated {fmtDate(c.updated_at) || '—'}</div>
+      {(c.dietary_profile || hasItems(c.allergens) || hasItems(c.food_likes) || hasItems(c.food_dislikes)) ? (
+        <Section title="Dietary Profile">
+          {c.dietary_profile ? <Field label="Profile" value={c.dietary_profile} /> : null}
+          <Chips label="Allergens" items={c.allergens} tone="var(--red)" />
+          <Chips label="Likes" items={c.food_likes} tone="var(--grn)" />
+          <Chips label="Dislikes" items={c.food_dislikes} tone="var(--mut)" />
+        </Section>
+      ) : null}
+    </>
+  );
+}
+
+// ── Analytics tab — 90-day charts + summary tiles. ─────────────────────────────
+function AnalyticsTab({ data, loading, error, onRetry }) {
+  return (
+    <Section title="90-Day Analytics">
+      {loading ? <Loading label="Loading analytics…" /> : null}
+      {!loading && error ? (
+        <div style={styles.inlineError} role="alert">
+          <span style={styles.errorMsg}>{error}</span>
+          <button type="button" style={styles.retry} onClick={onRetry}>Retry</button>
+        </div>
+      ) : null}
+      {!loading && !error && data ? <AnalyticsCharts data={data} /> : null}
+    </Section>
+  );
+}
+
+function AnalyticsCharts({ data }) {
+  const readiness = Array.isArray(data.readiness) ? data.readiness : [];
+  const volume = Array.isArray(data.volume) ? data.volume : [];
+  if (!readiness.length && !volume.length) {
+    return <Empty>No readiness or training data in the last 90 days.</Empty>;
+  }
+  const r = summarizeReadiness(readiness);
+  const v = summarizeVolume(volume);
+  const volumePoints = volume.map((d) => ({ date: d.date, value: Number(d.volume) || 0 }));
+  const readinessSeries = [
+    { key: 'score', label: 'Readiness', color: GRN, points: readiness.map((d) => ({ date: d.t, value: numOrNull(d.score) })) },
+    { key: 'sleep', label: 'Sleep', color: PURL, points: readiness.map((d) => ({ date: d.t, value: numOrNull(d.sleep_quality) })) },
+    { key: 'soreness', label: 'Soreness', color: GOLD_SOFT, points: readiness.map((d) => ({ date: d.t, value: numOrNull(d.soreness_level) })) },
+  ];
+
+  return (
+    <div style={styles.analytics}>
+      <div style={styles.tiles}>
+        <Tile label="Check-ins" value={r.n} unit="logs" accent="var(--grn)" />
+        <Tile label="Avg Score" value={r.avg} unit="" accent="var(--yel)" />
+        <Tile label="Days Trained" value={v.days} unit="days" accent="var(--blu)" />
+      </div>
+
+      <div className="bbf-an__chart">
+        <div className="bbf-an__chart-h">
+          <span className="bbf-an__chart-title">Training Volume</span>
+          <span className="bbf-an__chart-meta">90-day volume</span>
+        </div>
+        <BarChart points={volumePoints} unit="vol" />
+      </div>
+
+      <div className="bbf-an__chart">
+        <div className="bbf-an__chart-h">
+          <span className="bbf-an__chart-title">Readiness Trend</span>
+          <span className="bbf-an__chart-meta">skips no-reading days</span>
+        </div>
+        <LineChart series={readinessSeries} />
+      </div>
+
+      <div style={styles.kv}>
+        <Field label="7-Day Trend" value={r.trend} color={trendColor(r.trend)} />
+        <Field label="Latest Sleep" value={fmtMetric(r.sleep)} />
+        <Field label="Latest Soreness" value={fmtMetric(r.soreness)} />
+      </div>
     </div>
   );
 }
@@ -382,54 +491,6 @@ function MacroInput({ label, unit, accent, value, onChange, disabled }) {
       />
       <span style={styles.tileUnit}>{unit}</span>
     </label>
-  );
-}
-
-// ── 90-day analytics — summarised from the raw arrays, rendered as Tiles/Fields.
-function AnalyticsSection({ data, loading, error, onRetry }) {
-  return (
-    <Section title="90-Day Analytics">
-      {loading ? <Loading label="Loading analytics…" /> : null}
-      {!loading && error ? (
-        <div style={styles.inlineError} role="alert">
-          <span style={styles.errorMsg}>{error}</span>
-          <button type="button" style={styles.retry} onClick={onRetry}>Retry</button>
-        </div>
-      ) : null}
-      {!loading && !error && data ? <AnalyticsBody data={data} /> : null}
-    </Section>
-  );
-}
-
-function AnalyticsBody({ data }) {
-  const readiness = Array.isArray(data.readiness) ? data.readiness : [];
-  const volume = Array.isArray(data.volume) ? data.volume : [];
-  if (!readiness.length && !volume.length) {
-    return <Empty>No readiness or training data in the last 90 days.</Empty>;
-  }
-  const r = summarizeReadiness(readiness);
-  const v = summarizeVolume(volume);
-  return (
-    <div style={styles.analytics}>
-      <div style={styles.subhead}>Readiness</div>
-      <div style={styles.tiles}>
-        <Tile label="Check-ins" value={r.n} unit="logs" accent="var(--grn)" />
-        <Tile label="Avg Score" value={r.avg} unit="" accent="var(--yel)" />
-        <Tile label="Latest" value={r.last} unit="" accent="var(--blu)" />
-      </div>
-      <div style={styles.kv}>
-        <Field label="7-Day Trend" value={r.trend} color={trendColor(r.trend)} />
-        <Field label="Latest Sleep" value={fmtMetric(r.sleep)} />
-        <Field label="Latest Soreness" value={fmtMetric(r.soreness)} />
-      </div>
-
-      <div style={styles.subhead}>Training Volume</div>
-      <div style={styles.tiles}>
-        <Tile label="Days Trained" value={v.days} unit="days" accent="var(--grn)" />
-        <Tile label="Last Session" value={v.last} unit="vol" accent="var(--yel)" />
-        <Tile label="Avg / Day" value={v.avg} unit="vol" accent="var(--blu)" />
-      </div>
-    </div>
   );
 }
 
@@ -610,6 +671,17 @@ const styles = {
   },
 
   body: { display: 'flex', flexDirection: 'column', gap: '1.6rem', marginTop: '1.4rem' },
+  tabs: {
+    display: 'flex', gap: '.3rem', borderBottom: '1px solid var(--line)',
+    overflowX: 'auto', flexWrap: 'nowrap', WebkitOverflowScrolling: 'touch',
+  },
+  tab: {
+    flex: '0 0 auto', whiteSpace: 'nowrap', fontFamily: 'var(--hb)', fontSize: '.8rem',
+    letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(249,245,255,.55)',
+    background: 'none', border: 'none', borderBottom: '3px solid transparent',
+    padding: '.6rem .9rem', marginBottom: '-1px', cursor: 'pointer',
+  },
+  tabActive: { color: 'var(--wht)', borderBottomColor: 'var(--yel)' },
   section: { borderTop: '1px solid var(--line)', paddingTop: '1.1rem' },
   sectionHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.9rem', gap: '1rem' },
   sectionTitle: { fontFamily: 'var(--hb)', fontSize: '.92rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: 'var(--wht)' },
@@ -677,7 +749,6 @@ const styles = {
   coachFoot: { fontFamily: 'var(--bd)', fontSize: '.76rem', fontWeight: 700, color: 'var(--mut)', marginTop: '.8rem', letterSpacing: '.3px' },
 
   analytics: { display: 'flex', flexDirection: 'column', gap: '.7rem' },
-  subhead: { fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--gold-soft)', marginTop: '.3rem' },
   inlineError: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', border: '1px solid var(--red)', borderRadius: 10, padding: '.7rem 1rem' },
 
   kv: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '.7rem' },

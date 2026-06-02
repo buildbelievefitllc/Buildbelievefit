@@ -64,7 +64,9 @@ export default function ClientVault() {
           <span className="cv-kicker">Sovereign Vault</span>
         </div>
         <div className="cv-who">
-          <span className="cv-greet">{displayName}</span>
+          {/* Technical identity (slug) lives in the top bar; the friendly
+              "Welcome, <Name>" greeting is owned by the Hub blueprint hero. */}
+          <span className="cv-greet">@{user?.username || 'athlete'}</span>
           {/* Secure cross-over to the admin side — rendered only for the admin
               tier (akeem / coach / trainer). /command is AdminGuard-gated, so the
               toggle is a convenience, never the security boundary. */}
