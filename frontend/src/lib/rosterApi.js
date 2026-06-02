@@ -199,3 +199,45 @@ export async function compilePlan(id, opts = {}) {
   if (cuisine) payload.cuisine = cuisine;
   return rosterCall('compile', payload);
 }
+
+// ── Direct assignment (push a built plan to ONE athlete) ───────────────────────
+// The siblings of compilePlan: instead of regenerating server-side, the admin
+// builds the plan in the browser (Program Generator / Nutrition Locker) and we
+// hand the SELECTED athlete's PK `id` + the payload to the service-role edge
+// action. The cross-user write is authorized ENTIRELY by the admin token the
+// gateway attaches (§7) — the browser never touches bbf_active_clients directly.
+// `id` is the bbf_users PK (the same key detail/compile/update_target use), NOT
+// the login uid; the server resolves the uid + email itself.
+
+// Push a generated workout plan (structured day array) to the athlete. Mirrors
+// the server guard (non-empty array) so bad input fails fast without a round trip.
+//   → { ok:true, persisted, plans_generated_at, blacklist_scrubbed, target:{id,uid} }
+export async function assignProgram(id, workoutPlan) {
+  if (!id) {
+    const e = new Error('Select an athlete before assigning a program.');
+    e.code = 'missing_id';
+    throw e;
+  }
+  if (!Array.isArray(workoutPlan) || workoutPlan.length === 0) {
+    const e = new Error('Generate a program before assigning it.');
+    e.code = 'empty_plan';
+    throw e;
+  }
+  return rosterCall('assign_program', { id, workout_plan: workoutPlan });
+}
+
+// Push a meal plan ({ name?, goal?, cal?, days:[…] }) to the athlete.
+//   → { ok:true, persisted, plans_generated_at, target:{id,uid} }
+export async function assignNutrition(id, mealPlan) {
+  if (!id) {
+    const e = new Error('Select an athlete before assigning a plan.');
+    e.code = 'missing_id';
+    throw e;
+  }
+  if (!mealPlan || typeof mealPlan !== 'object' || !Array.isArray(mealPlan.days) || mealPlan.days.length === 0) {
+    const e = new Error('Pick a plan with at least one day before assigning it.');
+    e.code = 'empty_plan';
+    throw e;
+  }
+  return rosterCall('assign_nutrition', { id, meal_plan: mealPlan });
+}

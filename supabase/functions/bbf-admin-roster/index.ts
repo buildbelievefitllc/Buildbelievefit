@@ -24,6 +24,16 @@
 //   coach          → { ok, provider:'gemini', model, answer }   (Gemini Co-Coach)
 //   compile        → { ok, plan:{name,cal,goal,days[]}, meta, persisted }
 //                    (relays to Render /api/rotate-nutrition + writes the plan back)
+//   assign_program → { ok, persisted, plans_generated_at, blacklist_scrubbed, target }
+//                    (admin pushes a generated/coach workout_plan to ONE athlete)
+//   assign_nutrition → { ok, persisted, plans_generated_at, target }
+//                    (admin pushes a meal_plan / Nutrition Locker plan to ONE athlete)
+//
+// assign_* are the direct-assignment siblings of compile: the caller supplies the
+// fully-formed plan payload (no orchestrator round-trip) and we persist it to the
+// SELECTED athlete's bbf_active_clients row under the service role. The admin token
+// is still the only thing that authorizes the cross-user write — a browser can
+// never reach bbf_active_clients directly (RLS, §7).
 //
 // Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (auto-injected),
 //          BBF_COACH_AGENT_TOKEN (admin gate), GEMINI_API_KEY (+ GEMINI_MODEL),
@@ -461,6 +471,91 @@ serve(async (req) => {
       }
 
       return jsonResponse({ ok: true, plan: rotateJson.plan, meta: rotateJson.meta ?? null, persisted });
+    }
+
+    // ── assign_program (direct push of a workout plan to ONE athlete) ────────────
+    // Sibling of compile, driven by the Program Generator's "Assign to athlete"
+    // trigger: the admin builds the plan in the browser and we persist it to the
+    // SELECTED athlete (never the caller's own uid). workout_plan is the structured
+    // day array the Vault renders (vaultApi.parseWorkoutPlan → ProgramGrid).
+    // Contraindicated lifts are stripped before anything is written — defense in
+    // depth on top of the generator's own guard, so a blacklisted movement can never
+    // be persisted into a client's program.
+    if (action === 'assign_program') {
+      const id = String(body?.id ?? '');
+      if (!id) return jsonResponse({ error: 'missing_id' }, 400);
+      const plan = body?.workout_plan;
+      if (!Array.isArray(plan) || plan.length === 0) {
+        return jsonResponse({ error: 'invalid_plan', detail: 'workout_plan must be a non-empty array of day objects' }, 400);
+      }
+
+      // Resolve the athlete → email is the bbf_active_clients match key (as detail).
+      const urows = await pgGet(`bbf_users?select=id,uid,email&id=eq.${encodeURIComponent(id)}&limit=1`);
+      const u = Array.isArray(urows) && urows.length ? urows[0] : null;
+      if (!u) return jsonResponse({ error: 'not_found' }, 404);
+      if (!u.email) return jsonResponse({ error: 'no_client_record', detail: 'athlete has no email to match bbf_active_clients' }, 409);
+
+      // Strip blacklisted movements before persistence (belt-and-suspenders, §gen-guard).
+      let blacklist_scrubbed = 0;
+      const safePlan = plan.map((day: any) => {
+        if (day && Array.isArray(day.exercises)) {
+          const before = day.exercises.length;
+          const exercises = day.exercises.filter((ex: any) => !isBlacklisted(ex?.name));
+          blacklist_scrubbed += before - exercises.length;
+          return { ...day, exercises };
+        }
+        return day;
+      });
+
+      const stamp = new Date().toISOString();
+      const rows = await pgPatch(
+        `bbf_active_clients?or=(vault_email.eq.${encEmail(u.email)},client_email.eq.${encEmail(u.email)})`,
+        { workout_plan: JSON.stringify(safePlan), plans_generated_at: stamp },
+      );
+      // workout_plan lives ONLY in bbf_active_clients — if no row matched there is
+      // nowhere to persist it, so surface that honestly instead of faking success.
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return jsonResponse({ error: 'no_client_record', detail: 'no bbf_active_clients row matched this athlete' }, 409);
+      }
+      return jsonResponse({ ok: true, persisted: true, plans_generated_at: stamp, blacklist_scrubbed, target: { id: u.id, uid: u.uid } });
+    }
+
+    // ── assign_nutrition (direct push of a meal plan to ONE athlete) ─────────────
+    // Sibling of compile for the AI Performance Studio's "Assign" trigger. Unlike
+    // compile (which regenerates via the Render orchestrator), this persists a plan
+    // the admin already chose/built — e.g. a Nutrition Locker cuisine plan — to the
+    // selected athlete. Mirrors compile's writeback exactly: bbf_active_clients.
+    // meal_plan + a bbf_users.nutrition_plan mirror so the Dossier stays in sync.
+    if (action === 'assign_nutrition') {
+      const id = String(body?.id ?? '');
+      if (!id) return jsonResponse({ error: 'missing_id' }, 400);
+      const plan = body?.meal_plan as any;
+      const isObj = plan && typeof plan === 'object' && !Array.isArray(plan);
+      if (!isObj || !Array.isArray(plan.days) || plan.days.length === 0) {
+        return jsonResponse({ error: 'invalid_plan', detail: 'meal_plan must be an object with a non-empty days array' }, 400);
+      }
+
+      const urows = await pgGet(`bbf_users?select=id,uid,email&id=eq.${encodeURIComponent(id)}&limit=1`);
+      const u = Array.isArray(urows) && urows.length ? urows[0] : null;
+      if (!u) return jsonResponse({ error: 'not_found' }, 404);
+      if (!u.email) return jsonResponse({ error: 'no_client_record', detail: 'athlete has no email to match bbf_active_clients' }, 409);
+
+      const planStr = JSON.stringify(plan);
+      const stamp = new Date().toISOString();
+
+      // Mirror to bbf_users.nutrition_plan (coach Dossier reads this) — best-effort.
+      try {
+        await pgPatch(`bbf_users?id=eq.${encodeURIComponent(id)}`, { nutrition_plan: planStr, nutrition_plan_updated_at: stamp });
+      } catch (_) { /* non-fatal mirror */ }
+
+      const rows = await pgPatch(
+        `bbf_active_clients?or=(vault_email.eq.${encEmail(u.email)},client_email.eq.${encEmail(u.email)})`,
+        { meal_plan: planStr, plans_generated_at: stamp },
+      );
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return jsonResponse({ error: 'no_client_record', detail: 'no bbf_active_clients row matched this athlete' }, 409);
+      }
+      return jsonResponse({ ok: true, persisted: true, plans_generated_at: stamp, target: { id: u.id, uid: u.uid } });
     }
 
     return jsonResponse({ error: 'unknown_action', detail: action }, 400);

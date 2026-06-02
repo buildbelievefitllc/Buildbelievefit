@@ -1087,3 +1087,37 @@
 .ph-cue-text { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
 .ph-cue-label { font-family: var(--hb); font-size: .64rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); }
 .ph-cue-directive { font-family: var(--bd); font-size: .86rem; font-weight: 600; line-height: 1.35; color: rgba(249, 245, 255, .82); }
+
+/* ── Generator · Admin targeting (roster select + Preview→Assign) ───────────────
+   Dark-mode brutalist: matte surfaces, hard 1px frames, Bebas labels, brand gold +
+   purple accents (purple gradient drives the "commit to athlete" CTA — never the
+   matte-black canvas, per the LOCKED palette). */
+.gen-roster { border: 1px solid rgba(245, 200, 0, .22); }
+.gen-roster-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.gen-roster-badge {
+  font-family: var(--hb); font-size: .6rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 800;
+  color: #090909; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-radius: 999px; padding: .2rem .55rem;
+}
+.gen-roster-title { font-family: var(--display); font-size: 1.3rem; letter-spacing: .5px; margin: 0; color: var(--wht); }
+.gen-field-wide { width: 100%; }
+.gen-field-wide .gen-select { width: 100%; }
+.gen-roster-target { margin-top: .7rem; font-family: var(--bd); font-size: .85rem; color: var(--gold-soft); }
+.gen-roster-target strong { color: var(--yel); }
+.gen-roster-hint { margin-top: .7rem; font-family: var(--bd); font-size: .82rem; color: var(--mut); }
+
+.gen-assignbar { display: flex; flex-direction: column; gap: .8rem; border: 1px solid rgba(139, 26, 191, .4); }
+.gen-assign-copy { display: flex; flex-direction: column; gap: .15rem; }
+.gen-assign-lbl { font-family: var(--hb); font-size: .66rem; letter-spacing: 2px; text-transform: uppercase; color: var(--purl); }
+.gen-assign-sub { font-family: var(--bd); font-size: .9rem; color: rgba(249, 245, 255, .82); }
+.gen-assign-sub strong { color: var(--yel); }
+.gen-assign {
+  font-family: var(--hb); font-size: .9rem; letter-spacing: 2px; text-transform: uppercase; color: #fff; font-weight: 800;
+  background: linear-gradient(180deg, #7d18c9, var(--purp)); border: 1px solid rgba(245, 200, 0, .5);
+  border-radius: 10px; padding: .8rem 1rem; cursor: pointer;
+}
+.gen-assign:not(:disabled):hover { filter: brightness(1.08); }
+.gen-assign:not(:disabled):active { transform: translateY(1px); }
+.gen-assign:disabled { opacity: .5; cursor: not-allowed; }
+.gen-status { font-family: var(--bd); font-size: .82rem; border-radius: 9px; padding: .5rem .7rem; }
+.gen-status.is-ok { color: var(--grn); background: rgba(34, 197, 94, .08); border: 1px solid rgba(34, 197, 94, .3); }
+.gen-status.is-err { color: #ff8080; background: rgba(255, 80, 80, .07); border: 1px solid rgba(255, 80, 80, .3); }

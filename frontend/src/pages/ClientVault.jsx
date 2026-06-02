@@ -34,10 +34,14 @@ import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
 import '../components/vault/vault.css';
 
+// `adminOnly` tabs are coach/CEO surfaces — they are filtered out of the nav AND
+// their body is guarded below, so a standard athlete (e.g. Jacky, role 'client')
+// can neither see the chip nor force the tab into view. The real write boundary is
+// still server-side (the admin token on bbf-admin-roster); this is the UI gate.
 const TABS = [
   { id: 'hub', label: 'Hub', icon: '▦' },
   { id: 'program', label: 'Program', icon: '▤' },
-  { id: 'generator', label: 'Generator', icon: '✦' },
+  { id: 'generator', label: 'Generator', icon: '✦', adminOnly: true, testid: 'vault-tab-generator' },
   { id: 'cardio', label: 'Smart Cardio', icon: '♥', testid: 'vault-tab-cardio' },
   { id: 'prehab', label: 'Prehab', icon: '✚', testid: 'vault-tab-prehab' },
   { id: 'nutrition', label: 'Nutrition', icon: '◆' },
@@ -48,6 +52,11 @@ export default function ClientVault() {
   const { user, session, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(TABS[0].id);
+
+  // Only admins ever see admin-only surfaces (the Generator). Non-admins get a nav
+  // that doesn't contain the tab at all, so there's no chip to click and no id to
+  // route to — and the body switch below double-gates it.
+  const visibleTabs = useMemo(() => TABS.filter((t) => !t.adminOnly || isAdmin), [isAdmin]);
 
   // The login slug IS the profile key (bbf_get_profile_metrics resolves uid).
   const uid = user?.username || user?.id || '';
@@ -97,7 +106,7 @@ export default function ClientVault() {
         />
 
         <nav className="cv-tabs" role="tablist" aria-label="Vault surfaces">
-          {TABS.map((t) => {
+          {visibleTabs.map((t) => {
             const active = t.id === activeTab;
             return (
               <button
@@ -127,7 +136,7 @@ export default function ClientVault() {
             />
           )}
           {activeTab === 'program' && <Program plans={plans} profile={profile} />}
-          {activeTab === 'generator' && <Generator />}
+          {activeTab === 'generator' && isAdmin && <Generator />}
           {activeTab === 'cardio' && <SmartCardio />}
           {activeTab === 'prehab' && <Prehab />}
           {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}

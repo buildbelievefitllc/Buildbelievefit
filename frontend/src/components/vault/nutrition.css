@@ -528,6 +528,14 @@
   color: #fff;
 }
 .nc-btn-primary:not(:disabled):hover { filter: brightness(1.08); }
+/* Direct-assign sibling of compile — purple-outlined secondary so it reads as a
+   distinct "push a Locker plan now" action, not the gold compile primary. */
+.nc-btn-assign {
+  background: transparent;
+  border-color: rgba(139, 26, 191, .6);
+  color: var(--purl);
+}
+.nc-btn-assign:not(:disabled):hover { background: rgba(139, 26, 191, .12); }
 .nc-hint {
   font-family: var(--bd);
   font-size: .85rem;
