@@ -199,25 +199,86 @@ function DailyFuel({ consumed, totals, doneCount, mealCount }) {
   );
 }
 
-// ── Meal card (tap to mark done) ─────────────────────────────────────────────
+// ── Meal thumbnail — real image_url, else a brutalist BBF wireframe skeleton ──
+// The plan data MAY carry an `image_url` per meal; until the backend maps one (and
+// if a mapped URL 404s) we fall back to an intentional dark-mode placeholder so the
+// card never shows a broken-image glyph.
+function MealThumb({ src }) {
+  const [broken, setBroken] = useState(false);
+  const url = (src || '').trim();
+  if (url && !broken) {
+    return (
+      <span className="nl-meal-thumb">
+        <img src={url} alt="" loading="lazy" onError={() => setBroken(true)} />
+      </span>
+    );
+  }
+  return (
+    <span className="nl-meal-thumb nl-meal-thumb--ph" aria-hidden="true">
+      <span className="nl-meal-thumb-mark">BBF</span>
+    </span>
+  );
+}
+
+// Accept an instructions ARRAY or a newline-delimited STRING → clean step list.
+function normalizeInstructions(instructions) {
+  if (Array.isArray(instructions)) {
+    return instructions.map((s) => String(s || '').trim()).filter(Boolean);
+  }
+  if (typeof instructions === 'string') {
+    return instructions.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+// ── Meal card — thumbnail · tap-to-log body · Prep Instructions drawer ────────
+// The card is a container (not one big button) so the "mark done" control and the
+// "Prep Instructions" toggle are separate, non-nested interactive elements.
 function MealCard({ meal, done, onToggle }) {
+  const [prepOpen, setPrepOpen] = useState(false);
   const snack = isSnack(meal.m);
   const macros = `${meal.kcal} KCAL · ${meal.p}P / ${meal.c}C / ${meal.f}F`;
+  const steps = normalizeInstructions(meal.instructions);
+
   return (
-    <button
-      type="button"
-      className={`nl-meal${snack ? ' is-snack' : ''}${done ? ' is-done' : ''}`}
-      onClick={onToggle}
-      aria-pressed={done}
-      aria-label={`${meal.m}: ${meal.i}. ${macros}. ${done ? 'Completed' : 'Mark complete'}`}
-    >
-      <span className="nl-meal-check" aria-hidden="true">✓</span>
-      <span className="nl-meal-body">
-        <span className="nl-meal-slot">{meal.m}</span>
-        <div className="nl-meal-ing">{meal.i}</div>
-        <span className="nl-meal-macros">{macros}</span>
-      </span>
-    </button>
+    <div className={`nl-meal${snack ? ' is-snack' : ''}${done ? ' is-done' : ''}`}>
+      <button
+        type="button"
+        className="nl-meal-main"
+        onClick={onToggle}
+        aria-pressed={done}
+        aria-label={`${meal.m}: ${meal.i}. ${macros}. ${done ? 'Completed' : 'Mark complete'}`}
+      >
+        <span className="nl-meal-check" aria-hidden="true">✓</span>
+        <MealThumb src={meal.image_url} />
+        <span className="nl-meal-body">
+          <span className="nl-meal-slot">{meal.m}</span>
+          <div className="nl-meal-ing">{meal.i}</div>
+          <span className="nl-meal-macros">{macros}</span>
+        </span>
+      </button>
+
+      <div className="nl-meal-prep-wrap">
+        <button
+          type="button"
+          className="nl-meal-prep-btn"
+          aria-expanded={prepOpen}
+          onClick={() => setPrepOpen((o) => !o)}
+        >
+          <span>🍳 Prep Instructions</span>
+          <span className="nl-meal-prep-caret" aria-hidden="true">{prepOpen ? '▲' : '▼'}</span>
+        </button>
+        {prepOpen ? (
+          steps.length ? (
+            <ol className="nl-meal-prep-list">
+              {steps.map((s, i) => <li key={i}>{s}</li>)}
+            </ol>
+          ) : (
+            <div className="nl-meal-prep-empty">Awaiting coach protocol…</div>
+          )
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -523,7 +584,9 @@ export default function Nutrition({ profile }) {
       <div>
         <div className="nl-meal-hint">Tap a meal to log it — your fuel wheel fills as you go.</div>
         {day.meals.map((m, i) => (
-          <MealCard key={m.m + i} meal={m} done={done.includes(i)} onToggle={() => toggleMeal(i)} />
+          // key includes cuisine + day so switching tabs remounts each card —
+          // resetting its local prep-drawer / broken-thumbnail state for the new meal.
+          <MealCard key={`${cuisineId}-${dayName}-${i}`} meal={m} done={done.includes(i)} onToggle={() => toggleMeal(i)} />
         ))}
       </div>
     </div>
