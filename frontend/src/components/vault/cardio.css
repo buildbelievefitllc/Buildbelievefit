@@ -108,3 +108,58 @@
 .bbf-gps__toast-metric-val { font-family: var(--hb); font-size: 1.05rem; letter-spacing: .5px; color: #fff; }
 
 .bbf-gps__fallback { font-family: var(--bd); font-size: .76rem; font-weight: 600; font-style: italic; color: var(--mut); margin-top: .8rem; }
+
+/* ── Cardio Configurator (Phase 22.y) — client-side prescription preview ────── */
+.bbf-cfg { margin-bottom: 2rem; border: 1px solid var(--line); border-top: 3px solid var(--cfg-accent, #FF4500); border-radius: 14px; padding: 1.3rem 1.3rem 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,.015), transparent 40%); }
+.bbf-cfg__head { margin-bottom: 1.1rem; }
+.bbf-cfg__sub { font-family: var(--bd); font-size: .9rem; color: var(--mut); line-height: 1.5; margin: .3rem 0 0; max-width: 62ch; }
+.bbf-cfg__selectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .8rem; margin-bottom: 1.3rem; }
+
+/* Dynamic CRP Formula card */
+.bbf-crp { position: relative; overflow: hidden; border: 1px solid rgba(245,200,0,.4); border-radius: 12px; padding: 1.1rem 1.2rem; background: linear-gradient(135deg, rgba(245,200,0,.08), rgba(13,1,26,.7)); margin-bottom: 1.2rem; }
+.bbf-crp__glow { position: absolute; top: -45%; left: -8%; width: 220px; height: 220px; background: radial-gradient(circle, rgba(245,200,0,.16), transparent 70%); pointer-events: none; }
+.bbf-crp__body { position: relative; z-index: 1; }
+.bbf-crp__kicker { font-family: var(--hb); font-size: .7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); margin-bottom: .6rem; }
+.bbf-crp__formula { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+.bbf-crp__term { font-family: var(--display); font-size: 1.7rem; color: var(--yel); line-height: 1; }
+.bbf-crp__op { font-family: var(--display); font-size: 1.5rem; color: var(--mut); }
+.bbf-crp__frac { display: inline-flex; flex-direction: column; align-items: center; gap: .15rem; }
+.bbf-crp__num { font-family: var(--hb); font-size: .92rem; letter-spacing: 1px; text-transform: uppercase; color: var(--wht); }
+.bbf-crp__bar { width: 100%; height: 2px; background: rgba(245,200,0,.55); }
+.bbf-crp__den { font-family: var(--hb); font-size: .92rem; letter-spacing: 1px; text-transform: uppercase; color: var(--wht); }
+.bbf-crp__plug { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82rem; color: var(--gold-soft); margin: .6rem 0 .1rem; letter-spacing: .3px; }
+.bbf-crp__metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: .7rem; margin-top: 1rem; }
+.bbf-crp__metric { display: flex; flex-direction: column; gap: .2rem; border: 1px solid var(--line); border-radius: 9px; padding: .6rem .7rem; background: rgba(0,0,0,.3); }
+.bbf-crp__metric--hero { border-color: rgba(245,200,0,.45); background: rgba(245,200,0,.07); }
+.bbf-crp__metric-val { font-family: var(--display); font-size: 1.5rem; line-height: 1; color: #fff; }
+.bbf-crp__metric--hero .bbf-crp__metric-val { color: var(--yel); }
+.bbf-crp__metric-unit { font-family: var(--bd); font-size: .8rem; color: var(--mut); }
+.bbf-crp__metric-lbl { font-family: var(--bd); font-size: .62rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--mut); }
+
+/* Respiratory Sync visual timer */
+.bbf-resp { display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid var(--line); border-radius: 12px; padding: 1.2rem 1.1rem 1.3rem; background: rgba(0,0,0,.35); margin-bottom: 1.2rem; }
+.bbf-resp__kicker { font-family: var(--hb); font-size: .7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--resp-accent, #9D27C9); }
+.bbf-resp__stage { display: flex; align-items: center; justify-content: center; height: 170px; width: 100%; margin: .6rem 0 .2rem; }
+.bbf-resp__orb { display: flex; align-items: center; justify-content: center; width: 150px; height: 150px; border-radius: 50%; transition-property: transform; transition-timing-function: linear; background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--resp-accent, #9D27C9) 55%, transparent), color-mix(in srgb, var(--resp-accent, #9D27C9) 12%, transparent) 70%); border: 2px solid var(--resp-accent, #9D27C9); box-shadow: 0 0 36px -6px var(--resp-accent, #9D27C9); }
+.bbf-resp__orb.is-running { box-shadow: 0 0 50px -4px var(--resp-accent, #9D27C9); }
+.bbf-resp__count { font-family: var(--display); font-size: 2rem; color: #fff; line-height: 1; }
+.bbf-resp__phase { font-family: var(--hb); font-size: 1.05rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--resp-accent, #9D27C9); margin-top: .3rem; }
+.bbf-resp__pattern { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: var(--mut); margin-top: .35rem; }
+.bbf-resp__cycle { color: var(--wht); }
+.bbf-resp__btn { font-family: var(--hb); font-size: .88rem; letter-spacing: 2px; text-transform: uppercase; color: #fff; background: transparent; border: 1px solid var(--resp-accent, #9D27C9); border-radius: 8px; padding: .65rem 1.3rem; cursor: pointer; margin-top: 1rem; }
+.bbf-resp__btn:hover { background: color-mix(in srgb, var(--resp-accent, #9D27C9) 16%, transparent); }
+
+/* Metabolic Timeline Breakdown */
+.bbf-metab__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.bbf-metab__kicker { font-family: var(--hb); font-size: .85rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); }
+.bbf-metab__total { font-family: var(--bd); font-size: .82rem; font-weight: 700; color: var(--gold-soft); }
+.bbf-metab__grid { display: flex; flex-direction: column; gap: .55rem; }
+.bbf-metab__row { border: 1px solid var(--line); border-left: 3px solid var(--metab-accent, #FF4500); border-radius: 8px; padding: .7rem .85rem; background: #0a0405; }
+.bbf-metab__row-top { display: flex; align-items: baseline; justify-content: space-between; gap: .7rem; }
+.bbf-metab__phase { font-family: var(--hb); font-size: .95rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--metab-accent, #FF4500); }
+.bbf-metab__mins { font-family: var(--bd); font-size: .78rem; font-weight: 700; color: var(--mut); white-space: nowrap; }
+.bbf-metab__o2 { display: flex; align-items: center; gap: .6rem; margin: .5rem 0 .35rem; }
+.bbf-metab__o2-track { flex: 1; height: 7px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; }
+.bbf-metab__o2-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--metab-accent, #FF4500), color-mix(in srgb, var(--metab-accent, #FF4500) 45%, #fff)); }
+.bbf-metab__o2-val { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78rem; font-weight: 700; color: #fff; white-space: nowrap; }
+.bbf-metab__note { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: rgba(249,245,255,.72); }
