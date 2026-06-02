@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 const COACHING_TABS = ['', 'roster', 'command', 'telemetry', 'analytics', 'comlink'];
 const NAV_ITEMS = [
   { label: 'Command Center', to: '/command', isActive: (tab) => COACHING_TABS.includes(tab) },
+  { label: 'Sports Portal', to: '/command/sports', isActive: (tab) => tab === 'sports' },
   { label: 'Program', to: '/command/program', isActive: (tab) => ['program', 'generator', 'prehab'].includes(tab) },
   { label: 'Nutrition', to: '/command/nutrition', isActive: (tab) => tab === 'nutrition' },
   { label: 'Settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },
