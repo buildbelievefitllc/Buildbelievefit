@@ -24,6 +24,7 @@ import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import ClientAnalytics from '../components/command/ClientAnalytics.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 import AdminTokenGate from '../components/command/AdminTokenGate.jsx';
+import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
 import Program from '../components/vault/Program.jsx';
 import Nutrition from '../components/vault/Nutrition.jsx';
 import Settings from '../components/vault/Settings.jsx';
@@ -58,6 +59,9 @@ const TABS = [
   { id: 'prehab', labelKey: 'vault-tab-prehab', Panel: Prehab },
   { id: 'nutrition', labelKey: 'vault-tab-nutrition', Panel: Nutrition },
   { id: 'settings', labelKey: 'vault-tab-settings', Panel: Settings },
+  // CEO-only Language Mastery Protocol. Static content (no token gate); the whole
+  // /command route is AdminGuard-gated, so this tab never renders for an athlete.
+  { id: 'language', labelKey: 'cmd-tab-language', Panel: AdminLanguageRoadmap },
 ];
 
 const DEFAULT_TAB = TABS[0].id;

@@ -238,6 +238,8 @@ const DICT = {
   'cmd-tab-analytics': { en: 'Analytics', es: 'Analíticas', pt: 'Análises' },
   'cmd-tab-comlink': { en: 'Comlink', es: 'Comlink', pt: 'Comlink' },
   'cmd-tab-sports': { en: 'Sports Portal', es: 'Portal Deportivo', pt: 'Portal Esportivo' },
+  // CEO-only Language Mastery Protocol tab (Command Center + sidebar nav entry).
+  'cmd-tab-language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },
   // Settings surface — client account · preferences · session chrome.
   'set-meta': { en: 'Account · preferences · session', es: 'Cuenta · preferencias · sesión', pt: 'Conta · preferências · sessão' },
   'set-account': { en: 'Account', es: 'Cuenta', pt: 'Conta' },
