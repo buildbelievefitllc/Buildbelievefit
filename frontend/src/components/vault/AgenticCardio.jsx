@@ -56,7 +56,7 @@ const PHASE = {
   cooldown: { accent: '#8b1abf', glyph: '◑', label: 'Cool-Down', o2: 38 },
 };
 function phaseMeta(p) { return PHASE[p] || { accent: '#FF4500', glyph: '•', label: p, o2: 70 }; }
-function pad(n) { return String(n).padStart(2, '0'); }
+function pad(n) { return String(Number(n) || 0).padStart(2, '0'); }
 
 export default function AgenticCardio() {
   const { user } = useAuth();
@@ -125,10 +125,12 @@ export default function AgenticCardio() {
           <div className="bbf-lobby__grid">
             <Field label="Duration">
               <select className="bbf-input" value={durationValue} disabled={busy}
-                onChange={(e) => { if (e.target.value !== 'custom') setMinutes(e.target.value); }}
+                onChange={(e) => setMinutes(e.target.value)}
                 aria-label="Duration">
                 {DURATIONS.map((d) => <option key={d} value={d}>{d} min</option>)}
-                <option value="custom">Custom…</option>
+                {/* Display-only state when a non-preset minute count is typed below;
+                    disabled so it can never be chosen (which would be a no-op revert). */}
+                <option value="custom" disabled>Custom…</option>
               </select>
             </Field>
             <Field label="Custom Minutes">
@@ -176,12 +178,12 @@ export default function AgenticCardio() {
             <div className="bbf-crp__var"><span className="bbf-crp__var-v">×{crp.p.factor.toFixed(1)}</span><span className="bbf-crp__var-l">{crp.p.label}</span></div>
           </div>
           <div className="bbf-crp__score">
-            <span className="bbf-crp__score-v">{crp.index}</span>
+            <span className="bbf-crp__score-v">{crp.mins > 0 ? crp.index : '—'}</span>
             <span className="bbf-crp__score-l">CRP Index</span>
           </div>
           <div className="bbf-crp__proj">
-            <div className="bbf-crp__proj-cell"><span className="bbf-crp__proj-v">~{crp.kcal}</span><span className="bbf-crp__proj-l">kcal burn</span></div>
-            <div className="bbf-crp__proj-cell"><span className="bbf-crp__proj-v">~{crp.epoc}h</span><span className="bbf-crp__proj-l">EPOC window</span></div>
+            <div className="bbf-crp__proj-cell"><span className="bbf-crp__proj-v">{crp.mins > 0 ? `~${crp.kcal}` : '—'}</span><span className="bbf-crp__proj-l">kcal burn</span></div>
+            <div className="bbf-crp__proj-cell"><span className="bbf-crp__proj-v">{crp.mins > 0 ? `~${crp.epoc}h` : '—'}</span><span className="bbf-crp__proj-l">EPOC window</span></div>
           </div>
         </aside>
       </form>
