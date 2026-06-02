@@ -148,69 +148,239 @@ function rateLimit(ip: string): Response | null {
 // ─── Fallback tier matrix · KEEP IN SYNC with chatboxContext.js ─────────
 // Mirror of Phase 18 `frontend/src/lib/chatboxContext.js`. Used ONLY when
 // the request omits `tierMatrix`. See the single-source-of-truth note above.
+interface TierOption { label: string; price: string }
 interface Tier {
   id: string;
+  category: string;
   name: string;
   price: string;
   cadence: string;
   model: string;
   bestFor: string;
   highlights: string[];
+  options?: TierOption[];
 }
 
+// Custom Local Weekly training is by-quote only (no fixed price) — route to email.
+const CUSTOM_QUOTE_EMAIL = 'buildbelievefitllc@buildbelievefit.fitness';
+
+// Mirror of chatboxContext.js TIER_MATRIX (2026-06 marketing matrix). Slugs in
+// the comments map to the canonical Stripe SKUs in stripe-webhook/index.ts.
+// Hybrid dual pricing = session frequency (3x/week vs 4x/week).
 const DEFAULT_TIER_MATRIX: Tier[] = [
+  // ── Category 1 · Online Fitness — app + AI, self-directed, monthly ──
   {
-    id: 'autonomous',
-    name: 'The Autonomous Engine',
-    price: '$47',
+    id: 'catalyst', // stripe: catalyst
+    category: 'Online Fitness',
+    name: 'Catalyst',
+    price: '$9.99',
     cadence: '/mo',
     model: 'Online only · app + AI · self-directed',
-    bestFor: 'Self-motivated clients who want elite programming at scale and will run the system themselves.',
+    bestFor: 'Newcomers who want a structured starting point and will build the habit on their own.',
     highlights: [
-      'Full BBF App — workout + nutrition tracking',
-      'AI-driven periodization that adapts to logged data',
-      'Strict progress tracking + metabolic data capture',
-      'TDEE calculator + macro blueprint',
+      'Full BBF App access',
+      'Foundational strength + conditioning programs',
+      'Workout + progress tracking',
+      'Trilingual coaching (EN / ES / PT)',
     ],
   },
   {
-    id: 'sovereign',
-    name: 'The Sovereign Standard',
-    price: '$897',
-    cadence: '/ 12-week protocol',
-    model: 'Premium hybrid · in-person + app · Founder-Direct',
-    bestFor: 'Clients who want Akeem directly in the loop — hands-on biomechanics, live protocol adjustments, the human touch.',
+    id: 'momentum', // stripe: momentum
+    category: 'Online Fitness',
+    name: 'Momentum',
+    price: '$19.99',
+    cadence: '/mo',
+    model: 'Online only · app + AI · self-directed',
+    bestFor: 'Consistent trainees ready for programming that adapts to the work they log.',
     highlights: [
-      'Everything in the Autonomous Engine, fully unlocked',
-      'Direct 1-on-1 with Akeem — in-person biomechanics',
-      'Hands-on protocol adjustments + live form correction',
+      'Everything in Catalyst',
+      'AI-adaptive periodization that responds to your logs',
+      'Full exercise library + form cues',
+      'TDEE calculator + macro targets',
+    ],
+  },
+  {
+    id: 'autonomous', // stripe: autonomous
+    category: 'Online Fitness',
+    name: 'Autonomous',
+    price: '$49.99',
+    cadence: '/mo',
+    model: 'Online only · app + AI · self-directed',
+    bestFor: 'Self-motivated clients who want the complete elite engine and will run the system themselves.',
+    highlights: [
+      'Everything in Momentum',
+      'Advanced AI periodization tuned to logged data',
+      'Strict progress + metabolic data capture',
+      'Priority access to new BBF features',
+    ],
+  },
+
+  // ── Category 2 · Online Nutrition — app-based, monthly ──
+  {
+    id: 'fuel_foundation', // stripe: fuel_foundation
+    category: 'Online Nutrition',
+    name: 'Fuel Foundation',
+    price: '$7.99',
+    cadence: '/mo',
+    model: 'Online only · nutrition coaching · app-based',
+    bestFor: 'Anyone who needs to lock in the fundamentals of fueling and eat with intent.',
+    highlights: [
+      'Personalized macro blueprint',
+      'Foundational meal framework',
+      'Hydration + habit guidance',
+      'Trilingual nutrition guidance (EN / ES / PT)',
+    ],
+  },
+  {
+    id: 'fuel_performance', // stripe: fuel_performance
+    category: 'Online Nutrition',
+    name: 'Fuel Performance',
+    price: '$14.99',
+    cadence: '/mo',
+    model: 'Online only · nutrition coaching · app-based',
+    bestFor: 'Trainees who want nutrition aligned to performance and training adaptation.',
+    highlights: [
+      'Everything in Fuel Foundation',
+      'Performance macro targets',
+      'Adaptive adjustments as you progress',
+      'Recipe + meal library',
+    ],
+  },
+  {
+    id: 'fuel_sovereign', // stripe: fuel_sovereign
+    category: 'Online Nutrition',
+    name: 'Fuel Sovereign',
+    price: '$29.99',
+    cadence: '/mo',
+    model: 'Online only · nutrition coaching · app-based',
+    bestFor: 'Clients who want a precision, periodized nutrition system tied to their training blocks.',
+    highlights: [
+      'Everything in Fuel Performance',
+      'Periodized nutrition aligned to training blocks',
+      'Body-composition tracking',
+      'Advanced metabolic guidance',
+    ],
+  },
+
+  // ── Category 3 · Youth Athlete — online athletic development, monthly ──
+  {
+    id: 'rising_athlete', // stripe: rising_athlete
+    category: 'Youth Athlete',
+    name: 'Rising Athlete',
+    price: '$14.99',
+    cadence: '/mo',
+    model: 'Online only · youth athletic development · app-based',
+    bestFor: 'Youth athletes (and their parents) who want periodized sport training built on joint health.',
+    highlights: [
+      'Age-appropriate periodized programming',
+      'Kinematic Form HUD — biomechanics + injury-prevention scanner',
+      'Sport-specific athletic development',
+      'Joint-protection-first design',
+    ],
+  },
+
+  // ── Category 4 · Hybrid Packages — in-person + app, Founder-Direct ──
+  // Dual price = session frequency. stripe: *_3x ($lower) / *_4x ($higher).
+  {
+    id: 'kickstart', // stripe: kickstart_6wk_3x / kickstart_6wk_4x
+    category: 'Hybrid Packages',
+    name: 'Kickstart',
+    price: '$399–$499',
+    cadence: '/ 6-week protocol',
+    model: 'Hybrid · in-person + app · Founder-Direct with Akeem',
+    bestFor: 'Local clients who want a hands-on jump-start with Akeem in person before going self-directed.',
+    highlights: [
+      'In-person sessions with Akeem',
+      'Hands-on biomechanics + live form correction',
+      'Custom 6-week protocol',
+      'Full BBF App access included',
+    ],
+    options: [
+      { label: '3 sessions/week', price: '$399' },
+      { label: '4 sessions/week', price: '$499' },
+    ],
+  },
+  {
+    id: 'transformation', // stripe: transformation_8wk_3x / transformation_8wk_4x
+    category: 'Hybrid Packages',
+    name: 'Transformation',
+    price: '$499–$649',
+    cadence: '/ 8-week protocol',
+    model: 'Hybrid · in-person + app · Founder-Direct with Akeem',
+    bestFor: 'Clients committed to a complete 8-week transformation block with ongoing in-person coaching.',
+    highlights: [
+      'Everything in Kickstart',
+      'Deeper periodization across 8 weeks',
+      'Ongoing in-person protocol adjustments',
+      'Nutrition integration',
+    ],
+    options: [
+      { label: '3 sessions/week', price: '$499' },
+      { label: '4 sessions/week', price: '$649' },
+    ],
+  },
+  {
+    id: 'sovereign', // stripe: sovereign_12wk_3x / sovereign_12wk_4x
+    category: 'Hybrid Packages',
+    name: 'Sovereign',
+    price: '$699–$899',
+    cadence: '/ 12-week protocol',
+    model: 'Hybrid · in-person + app · Founder-Direct with Akeem',
+    bestFor: 'Clients who want Akeem fully in the loop for the flagship 12-week Sovereign Gold Standard protocol.',
+    highlights: [
+      'Everything in Transformation',
+      'Full Sovereign Gold Standard programming',
       'Founder-Verified joint protection + prehab architecture',
+      'Priority direct access to Akeem',
+    ],
+    options: [
+      { label: '3 sessions/week', price: '$699' },
+      { label: '4 sessions/week', price: '$899' },
     ],
   },
 ];
 
 const SALES_DIRECTIVES = [
-  'You are the BBF closer — warm, confident, and consultative. Your job is to move the prospect toward an application, not just answer questions.',
-  'Qualify first: ask about their goal, training history, and whether they want to self-run (Autonomous) or want Akeem hands-on (Sovereign). Then recommend ONE tier and say why.',
-  'Quote prices ONLY from the tier matrix provided. Never invent, discount, or estimate a price. If asked about a price not in the matrix, say it is not yet available and offer to connect them with Akeem.',
-  'Always end a recommendation with a clear next step: route the prospect to the Pathfinder application (cta="pathfinder") or, for macro/calorie questions, the TDEE calculator (cta="tdee").',
+  'You are the BBF closer — professional, confident, and consultative, with a closing-oriented edge. Your job is to qualify the prospect and move them to a decision, not just answer questions.',
+  'QUALIFY FIRST. Before quoting a menu, ask 1-2 sharp clarifying questions to place them. The primary fork: "Are you looking for an AI-driven, app-only experience you run yourself, or do you want direct, in-person human coaching from Akeem?" Then narrow by goal (fitness, nutrition, or youth athlete) and budget/commitment.',
+  'RECOMMEND ONE TIER. After qualifying, recommend a single specific tier by name and price and say exactly why it fits them — do not dump the whole matrix. Offer the next tier up only as a brief, honest upsell when it clearly serves their goal.',
+  'Quote prices ONLY from the tier matrix provided. Never invent, discount, bundle, or estimate a price. For Hybrid packages, state BOTH session-frequency options (e.g., "$399 for 3 sessions/week, $499 for 4").',
+  `CUSTOM LOCAL WEEKLY: if a prospect wants ongoing, bespoke weekly in-person training beyond the fixed Hybrid packages, do NOT quote a number — tell them to email ${CUSTOM_QUOTE_EMAIL} to request a custom quote, and set cta="pathfinder" so Akeem also captures them.`,
+  'ALWAYS CLOSE with a clear next step: route the prospect to the Pathfinder application (cta="pathfinder") or, for macro/calorie questions, the TDEE calculator (cta="tdee").',
   'Never give medical advice. If a prospect raises an injury or health condition, note the PAR-Q intake captures it and Akeem reviews it personally — set cta="pathfinder".',
   'Never disparage competitors. Sell BBF on the Sovereign Gold Standard: biomechanical precision, joint protection, real periodization.',
-  'Keep replies tight — 2-4 sentences. You are a conversation, not a brochure.',
+  'Keep replies tight and persuasive — 2-4 sentences. You are a closer in conversation, not a brochure.',
   'BBF is trilingual: reply in the prospect\'s language (English, Spanish, or Portuguese). If a language is specified, use it; otherwise mirror the language of their last message.',
 ];
 
 // ─── System prompt builder · generated from the matrix (not hardcoded) ──
 function buildSystemPrompt(matrix: Tier[], lang?: string): string {
-  const tierLines = matrix.map((t, i) => {
-    const hl = t.highlights.map((h) => `      - ${h}`).join('\n');
-    return [
-      `  ${i + 1}. ${t.name} — ${t.price} ${t.cadence}`,
-      `     Model: ${t.model}`,
-      `     Best for: ${t.bestFor}`,
-      `     Includes:`,
-      hl,
-    ].join('\n');
+  // Group tiers by category, preserving first-appearance order.
+  const order: string[] = [];
+  const groups = new Map<string, Tier[]>();
+  for (const t of matrix) {
+    const cat = t.category || 'Other';
+    if (!groups.has(cat)) { groups.set(cat, []); order.push(cat); }
+    groups.get(cat)!.push(t);
+  }
+
+  let n = 0;
+  const tierBlocks = order.map((cat) => {
+    const lines = groups.get(cat)!.map((t) => {
+      n += 1;
+      const hl = (t.highlights || []).map((h) => `        - ${h}`).join('\n');
+      const opt = Array.isArray(t.options) && t.options.length
+        ? `\n       Options: ${t.options.map((o) => `${o.label} → ${o.price}`).join(' · ')}`
+        : '';
+      return [
+        `    ${n}. ${t.name} — ${t.price} ${t.cadence}`,
+        `       Model: ${t.model}`,
+        `       Best for: ${t.bestFor}${opt}`,
+        '       Includes:',
+        hl,
+      ].join('\n');
+    }).join('\n\n');
+    return `  ${cat}\n${lines}`;
   }).join('\n\n');
 
   const langLine = lang
@@ -218,15 +388,18 @@ function buildSystemPrompt(matrix: Tier[], lang?: string): string {
     : 'Reply in the language of the prospect\'s most recent message (English, Spanish, or Portuguese).';
 
   return [
-    'You are the Build Believe Fit AI assistant — a knowledgeable sales closer for BBF LLC.',
+    'You are the Build Believe Fit AI assistant — a knowledgeable, closing-oriented sales agent for BBF LLC.',
     'Build Believe Fit is a universal human-performance coaching company founded by Akeem Brown',
     '(Movement Specialist · Exercise Science · future Occupational Therapist). The brand standard',
     'is the "Sovereign Gold Standard": biomechanical precision, joint protection, and real periodization.',
     '',
     langLine,
     '',
-    `CURRENT TIER MATRIX (${matrix.length} tier${matrix.length === 1 ? '' : 's'} — quote prices ONLY from this list):`,
-    tierLines,
+    'CURRENT PRICE MATRIX (quote prices ONLY from this list — never invent, discount, or estimate):',
+    tierBlocks,
+    '',
+    '  Custom Local Weekly — ongoing, fully bespoke in-person training (beyond the fixed Hybrid packages)',
+    `       Pricing is by custom quote only. Direct the prospect to email ${CUSTOM_QUOTE_EMAIL} to request a custom quote.`,
     '',
     'SALES DIRECTIVES:',
     ...SALES_DIRECTIVES.map((d) => `  • ${d}`),
