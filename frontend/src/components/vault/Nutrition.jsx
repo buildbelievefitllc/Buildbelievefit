@@ -19,7 +19,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { parseFastingWindow } from '../../lib/vaultApi.js';
 import {
-  rosterCall, updateTargets, compilePlan, toErrorMessage,
+  rosterCall, updateTargets, compilePlan, assignNutrition, toErrorMessage,
   TARGET_MAX, CUISINE_STYLES,
 } from '../../lib/rosterApi.js';
 import { CUISINES, CUISINE_PLANS, dayTotals, todayIndex } from './cuisineMeals.js';
@@ -325,6 +325,7 @@ function NutritionCoachConsole() {
 
   const [saving, setSaving] = useState(false);
   const [compiling, setCompiling] = useState(false);
+  const [assigning, setAssigning] = useState(false);
   const [status, setStatus] = useState(null); // { kind:'ok'|'err', msg }
 
   // Load the roster once on mount.
@@ -372,7 +373,7 @@ function NutritionCoachConsole() {
   }
 
   const setField = (k, v) => setMacros((m) => ({ ...m, [k]: v }));
-  const busy = saving || compiling;
+  const busy = saving || compiling || assigning;
 
   async function saveMacros() {
     if (busy || !selectedId) return;
@@ -404,6 +405,31 @@ function NutritionCoachConsole() {
       setStatus({ kind: 'err', msg: toErrorMessage(e) });
     } finally {
       setCompiling(false);
+    }
+  }
+
+  // Direct-assign (assign_nutrition): push the selected cuisine's Nutrition Locker
+  // plan straight to the athlete WITHOUT an orchestrator round-trip. The sibling of
+  // compile() for when the coach wants a known Locker plan on the athlete now. The
+  // cross-user write is authorized by the runtime admin token, server-side (§7).
+  async function assign() {
+    if (busy || !selectedId) return;
+    const src = CUISINE_PLANS[cuisine];
+    if (!src || !Array.isArray(src.days) || !src.days.length) {
+      setStatus({ kind: 'err', msg: 'No Locker plan available for that cuisine.' });
+      return;
+    }
+    const totals = dayTotals(src.days[todayIndex()] || src.days[0]);
+    const payload = { name: `${src.label} · ${src.goal}`, goal: src.goal, cal: totals?.kcal ?? null, days: src.days };
+    setAssigning(true);
+    setStatus(null);
+    try {
+      await assignNutrition(selectedId, payload);
+      setStatus({ kind: 'ok', msg: `${cuisineLabel(cuisine)} Locker plan assigned to ${detail?.name || 'the athlete'}.` });
+    } catch (e) {
+      setStatus({ kind: 'err', msg: toErrorMessage(e) });
+    } finally {
+      setAssigning(false);
     }
   }
 
@@ -462,6 +488,9 @@ function NutritionCoachConsole() {
             </button>
             <button type="button" className="nc-btn nc-btn-primary" onClick={compile} disabled={busy}>
               {compiling ? 'Compiling…' : 'Compile AI Performance Plan'}
+            </button>
+            <button type="button" className="nc-btn nc-btn-assign" onClick={assign} disabled={busy} data-testid="nc-assign-nutrition">
+              {assigning ? 'Assigning…' : `Assign ${cuisineLabel(cuisine)} Locker Plan`}
             </button>
           </div>
         </>
