@@ -209,6 +209,41 @@ const DICT = {
   'f-must-agree': { en: 'You must confirm the liability waiver and Terms to apply.', es: 'Debes confirmar la exención de responsabilidad y los Términos para aplicar.', pt: 'Você deve confirmar a isenção de responsabilidade e os Termos para se candidatar.' },
   'f-success-title': { en: 'Application Received', es: 'Solicitud Recibida', pt: 'Candidatura Recebida' },
   'f-success-body': { en: 'Your intake is in and securely logged. The Build Believe Fit team will reach out shortly with your next steps. Welcome to the standard.', es: 'Tu solicitud está registrada de forma segura. El equipo de Build Believe Fit te contactará pronto con los próximos pasos. Bienvenido al estándar.', pt: 'Sua candidatura está registrada com segurança. A equipe Build Believe Fit entrará em contato em breve com os próximos passos. Bem-vindo ao padrão.' },
+
+  // ── Phase 26 — Authenticated shell (Vault top bar · tabs · Command Center ·
+  // MasterLayout · Settings). Wired so the chosen language follows the athlete
+  // straight through the login gate. EN values are VERBATIM to the prior
+  // hardcoded labels, which keeps the E2E selectors that assert English text
+  // (.cv-brand "Sovereign Vault", the "Program" tab) green. ──
+  'vault-kicker': { en: 'Sovereign Vault', es: 'Bóveda Soberana', pt: 'Cofre Soberano' },
+  'vault-command': { en: 'Command Center', es: 'Centro de Comando', pt: 'Central de Comando' },
+  'shell-signout': { en: 'Sign Out', es: 'Cerrar Sesión', pt: 'Sair' },
+  'shell-athlete-vault': { en: '← Athlete Vault', es: '← Bóveda del Atleta', pt: '← Cofre do Atleta' },
+  // Vault tab labels. NOTE: EN 'Program' is asserted by vault-logging.spec via
+  // getByRole('tab', { name: 'Program' }) — do not change the English here.
+  'vault-tab-hub': { en: 'Hub', es: 'Panel', pt: 'Painel' },
+  'vault-tab-program': { en: 'Program', es: 'Programa', pt: 'Programa' },
+  'vault-tab-generator': { en: 'Generator', es: 'Generador', pt: 'Gerador' },
+  'vault-tab-cardio': { en: 'Smart Cardio', es: 'Cardio Inteligente', pt: 'Cardio Inteligente' },
+  'vault-tab-prehab': { en: 'Prehab', es: 'Pre-Hab', pt: 'Pré-Hab' },
+  'vault-tab-nutrition': { en: 'Nutrition', es: 'Nutrición', pt: 'Nutrição' },
+  'vault-tab-mindset': { en: 'Champion Mindset', es: 'Mentalidad de Campeón', pt: 'Mentalidade de Campeão' },
+  'vault-tab-settings': { en: 'Settings', es: 'Ajustes', pt: 'Configurações' },
+  // Command Center (admin) — header kicker + console tab labels. 'Founder Five'
+  // and 'Comlink' are product proper nouns (kept identical across languages).
+  'cmd-kicker': { en: 'Build Believe Fit · Admin', es: 'Build Believe Fit · Administración', pt: 'Build Believe Fit · Administração' },
+  'cmd-tab-roster': { en: 'Founder Five', es: 'Founder Five', pt: 'Founder Five' },
+  'cmd-tab-command': { en: 'Command', es: 'Comando', pt: 'Comando' },
+  'cmd-tab-telemetry': { en: 'Risk Telemetry', es: 'Telemetría de Riesgo', pt: 'Telemetria de Risco' },
+  'cmd-tab-analytics': { en: 'Analytics', es: 'Analíticas', pt: 'Análises' },
+  'cmd-tab-comlink': { en: 'Comlink', es: 'Comlink', pt: 'Comlink' },
+  // Settings surface — client account · preferences · session chrome.
+  'set-meta': { en: 'Account · preferences · session', es: 'Cuenta · preferencias · sesión', pt: 'Conta · preferências · sessão' },
+  'set-account': { en: 'Account', es: 'Cuenta', pt: 'Conta' },
+  'set-username': { en: 'Username', es: 'Usuario', pt: 'Usuário' },
+  'set-access-tier': { en: 'Access tier', es: 'Nivel de acceso', pt: 'Nível de acesso' },
+  'set-language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },
+  'set-session': { en: 'Session', es: 'Sesión', pt: 'Sessão' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });
