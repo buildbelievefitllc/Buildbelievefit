@@ -166,10 +166,12 @@ export const CUISINE_STYLES = [
 // secret server-side and forwards to Render's /api/rotate-nutrition.
 //
 // `opts.tdee_target` (optional) overrides the stored calorie target for THIS
-// compile; blank/absent ⇒ the server uses the athlete's saved target. `opts.cuisine`
-// is the style id from CUISINE_STYLES — the server folds it into the generation
-// prompt so it genuinely steers meal selection.
+// compile; blank/absent ⇒ the server uses the athlete's saved target. The server
+// folds the remaining hints into the generation prompt so they genuinely steer
+// meal selection: `opts.cuisine` (style id from CUISINE_STYLES), `opts.phase`
+// (athletic phase label), and `opts.directive` (the coach's free-text mandate).
 //   → { ok:true, plan:{ name, cal, goal, days:[…] }, meta, persisted }
+export const DIRECTIVE_MAX = 2000;
 export async function compilePlan(id, opts = {}) {
   if (!id) {
     const e = new Error('Select an athlete before compiling a plan.');
@@ -189,5 +191,9 @@ export async function compilePlan(id, opts = {}) {
   }
   const cuisine = String(opts?.cuisine ?? '').trim().toLowerCase();
   if (cuisine) payload.cuisine = cuisine;
+  const phase = String(opts?.phase ?? '').trim();
+  if (phase) payload.phase = phase;
+  const directive = String(opts?.directive ?? '').trim().slice(0, DIRECTIVE_MAX);
+  if (directive) payload.directive = directive;
   return rosterCall('compile', payload);
 }

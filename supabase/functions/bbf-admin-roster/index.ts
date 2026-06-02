@@ -408,10 +408,17 @@ serve(async (req) => {
       const tdee = pickTarget(body?.tdee_target, u.tdee_target);
       if (!tdee) return jsonResponse({ error: 'tdee_missing', detail: 'set a calorie target first' }, 400);
 
-      // rotate-nutrition has no cuisine field of its own — fold the style into the
-      // free-text constraints so it genuinely steers selection rather than dropping.
+      // rotate-nutrition has no cuisine/phase/directive fields of its own — fold
+      // them into the free-text constraints so the coach's oversight genuinely
+      // steers selection rather than being dropped on the floor.
       const cuisine = String(body?.cuisine ?? '').trim();
-      const constraints = cuisine ? `Cuisine preference: ${cuisine} cuisine.` : '';
+      const phase = String(body?.phase ?? '').trim();
+      const directive = String(body?.directive ?? '').trim().slice(0, 2000);
+      const constraints = [
+        cuisine ? `Cuisine preference: ${cuisine} cuisine.` : '',
+        phase ? `Athletic phase: ${phase}.` : '',
+        directive ? `Coach directive: ${directive}` : '',
+      ].filter(Boolean).join(' ');
 
       let rotateRes: Response;
       try {

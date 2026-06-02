@@ -17,10 +17,9 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { parseFastingWindow } from '../../lib/vaultApi.js';
+import { parseFastingWindow, parseMealPlan } from '../../lib/vaultApi.js';
 import {
-  rosterCall, updateTargets, compilePlan, toErrorMessage,
-  TARGET_MAX, CUISINE_STYLES,
+  rosterCall, updateTargets, compilePlan, toErrorMessage, TARGET_MAX,
 } from '../../lib/rosterApi.js';
 import { CUISINES, CUISINE_PLANS, dayTotals, todayIndex } from './cuisineMeals.js';
 import './vault.css';
@@ -221,36 +220,51 @@ function MealCard({ meal, done, onToggle }) {
   );
 }
 
-// ── Admin oversight console (coach-only) ─────────────────────────────────────
-// The administrative layer inside the Nutrition Locker. Rendered ONLY for
-// admin/trainer sessions — the boundary is enforced HERE (isAdmin gate) AND again
-// server-side by the admin gateway every rosterCall passes through. Lets the head
-// coach swap between active athletes, dial in their cuisine + macro targets, and
-// recompile their AI performance plan against the live orchestration engine.
-function cuisineLabel(id) {
-  return (CUISINE_STYLES.find((s) => s.id === id) || {}).label || id;
+// ── Coach Oversight Console (admin-only) ─────────────────────────────────────
+// The administrative layer inside the Nutrition Locker, surfaced via the
+// dual-toggle header. Rendered ONLY for admin/trainer sessions — the boundary is
+// enforced HERE (the isAdmin toggle gate) AND server-side by the admin gateway
+// every rosterCall passes through. The coach picks an athlete from the LIVE
+// Supabase roster, inspects their assigned meal blueprint, then pushes a
+// calorie/phase override + directive that commits to the client's record and
+// recompiles their plan through the orchestration engine.
+
+// Athletic phase presets (the prototype's "ATHLETIC PHASE ASSIGNMENT" select).
+const ATHLETIC_PHASES = ['Shred Phase', 'Lean Recomp', 'Athletic Base', 'Hypertrophy Power', 'Extreme Bulk'];
+
+// Monogram initials for the roster avatar (the profile payload carries no photo).
+function initials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
 }
 
-function NumField({ label, value, onChange, disabled, accent }) {
+// One athlete row in the COACH ROSTER SELECTION list.
+function RosterRow({ client, active, onSelect }) {
+  const tag = client.metabolic_tier || client.subscription_tier || client.role || 'Athlete';
   return (
-    <label className="nc-field" style={{ borderTopColor: accent }}>
-      <span className="nc-lbl">{label}</span>
-      <input
-        className="nc-input"
-        type="number"
-        min="0"
-        max={TARGET_MAX}
-        step="1"
-        inputMode="numeric"
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
+    <button type="button" className={`co-row${active ? ' is-active' : ''}`} onClick={onSelect} aria-pressed={active}>
+      <span className="co-ava" aria-hidden="true">{initials(client.name || client.uid)}</span>
+      <span className="co-row-body">
+        <span className="co-row-name">{client.name || client.uid}</span>
+        <span className="co-row-tag">{tag}</span>
+      </span>
+      {active ? <span className="co-row-dot" aria-hidden="true" /> : null}
+    </button>
   );
 }
 
-function NutritionCoachConsole() {
+// One assigned-meal card in the "ANALYZING ATHLETE MEAL BLUE-PRINTS" grid.
+function BlueprintCard({ slot, body }) {
+  return (
+    <div className="co-meal">
+      <div className="co-meal-slot">{slot}</div>
+      <div className="co-meal-body">{body || '—'}</div>
+    </div>
+  );
+}
+
+function CoachOversightConsole() {
   const [roster, setRoster] = useState(EMPTY);
   const [rosterErr, setRosterErr] = useState(null);
   const [loadingRoster, setLoadingRoster] = useState(true);
@@ -259,14 +273,15 @@ function NutritionCoachConsole() {
   const [detail, setDetail] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  const [cuisine, setCuisine] = useState(CUISINE_STYLES[0].id);
-  const [macros, setMacros] = useState({ tdee_target: '', macro_p: '', macro_c: '', macro_f: '' });
+  // Override inputs (the "AMPLIFY NUTRITIONAL PRESCRIPTIONS" section).
+  const [kcal, setKcal] = useState('');
+  const [phase, setPhase] = useState('Hypertrophy Power');
+  const [directive, setDirective] = useState('');
 
-  const [saving, setSaving] = useState(false);
-  const [compiling, setCompiling] = useState(false);
+  const [pushing, setPushing] = useState(false);
   const [status, setStatus] = useState(null); // { kind:'ok'|'err', msg }
 
-  // Load the roster once on mount.
+  // Load the live roster once — these are real Supabase client profiles.
   useEffect(() => {
     let cancelled = false;
     rosterCall('roster')
@@ -276,10 +291,9 @@ function NutritionCoachConsole() {
     return () => { cancelled = true; };
   }, []);
 
-  // Load the selected athlete's detail → seed the macro inputs from their targets.
-  // State is reset synchronously in the select handler (a user event), so this
-  // effect mutates state ONLY inside the async callbacks — keeping it clear of
-  // react-hooks/set-state-in-effect (mirrors vaultApi.useVaultProfile).
+  // Load the selected athlete's full record. State is reset synchronously in the
+  // row handler (a user event), so this effect mutates state ONLY inside the async
+  // callbacks — clear of react-hooks/set-state-in-effect (mirrors useVaultProfile).
   useEffect(() => {
     if (!selectedId) return undefined;
     let cancelled = false;
@@ -288,129 +302,168 @@ function NutritionCoachConsole() {
         if (cancelled) return;
         const c = b.client || {};
         setDetail(c);
-        setMacros({
-          tdee_target: c.tdee_target ?? '',
-          macro_p: c.macro_p ?? '',
-          macro_c: c.macro_c ?? '',
-          macro_f: c.macro_f ?? '',
-        });
+        setKcal(c.tdee_target ?? '');
       })
       .catch((e) => { if (!cancelled) setStatus({ kind: 'err', msg: toErrorMessage(e) }); })
       .finally(() => { if (!cancelled) setLoadingDetail(false); });
     return () => { cancelled = true; };
   }, [selectedId]);
 
-  // Swap the active athlete. Resets the detail/macro/status state here (in the
-  // user event) so the effect above stays side-effect-pure on its async path.
   function selectAthlete(id) {
+    if (id === selectedId) return;
     setSelectedId(id);
     setDetail(null);
-    setMacros({ tdee_target: '', macro_p: '', macro_c: '', macro_f: '' });
+    setKcal('');
+    setPhase('Hypertrophy Power');
+    setDirective('');
     setStatus(null);
     setLoadingDetail(Boolean(id));
   }
 
-  const setField = (k, v) => setMacros((m) => ({ ...m, [k]: v }));
-  const busy = saving || compiling;
+  // The athlete's assigned plan ("what they got") — parsed from their stored
+  // meal_plan; day one is surfaced as the representative blueprint.
+  const blueprint = useMemo(() => parseMealPlan(detail?.meal_plan), [detail?.meal_plan]);
+  const blueprintDay = blueprint.days[0] || null;
 
-  async function saveMacros() {
-    if (busy || !selectedId) return;
-    setSaving(true);
+  // PUSH OVERSIGHT DIRECT PROTOCOL — commit the calorie override to the client's
+  // record (update_target) AND recompile their plan with the phase + directive
+  // folded into the generation context (compile relay → Render orchestrator).
+  async function pushProtocol() {
+    if (pushing || !selectedId) return;
+    setPushing(true);
     setStatus(null);
     try {
-      const b = await updateTargets(selectedId, macros);
-      setDetail((d) => ({ ...(d || {}), ...(b.client || {}) }));
-      setStatus({ kind: 'ok', msg: 'Macro targets saved.' });
-    } catch (e) {
-      setStatus({ kind: 'err', msg: toErrorMessage(e) });
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function compile() {
-    if (busy || !selectedId) return;
-    setCompiling(true);
-    setStatus(null);
-    try {
-      const b = await compilePlan(selectedId, { tdee_target: macros.tdee_target, cuisine });
+      const saved = await updateTargets(selectedId, { tdee_target: kcal });
+      setDetail((d) => ({ ...(d || {}), ...(saved.client || {}) }));
+      const directiveLine = [`Athletic phase: ${phase}.`, directive.trim()].filter(Boolean).join(' ');
+      const b = await compilePlan(selectedId, { tdee_target: kcal, phase, directive: directiveLine });
       const days = Array.isArray(b.plan?.days) ? b.plan.days.length : 0;
       setStatus({
         kind: 'ok',
-        msg: `Compiled — ${days}-day ${cuisineLabel(cuisine)} plan generated${b.persisted ? ' and saved to the athlete' : ''}.`,
+        msg: `Protocol pushed — ${(kcal || detail?.tdee_target) ?? '—'} kcal · ${phase}${days ? ` · ${days}-day plan recompiled` : ''}${b.persisted ? ' and synced to the athlete' : ''}.`,
       });
     } catch (e) {
       setStatus({ kind: 'err', msg: toErrorMessage(e) });
     } finally {
-      setCompiling(false);
+      setPushing(false);
     }
   }
 
+  const name = detail?.name || detail?.uid || '';
+  const paradigm = detail?.metabolic_tier || detail?.block_priority || detail?.subscription_tier || 'Unassigned';
+  const macroLine = [
+    { k: 'Calories', v: detail?.tdee_target, u: ' kcal' },
+    { k: 'Protein', v: detail?.macro_p, u: 'g' },
+    { k: 'Carbs', v: detail?.macro_c, u: 'g' },
+    { k: 'Fats', v: detail?.macro_f, u: 'g' },
+  ];
+
   return (
-    <section className="nc-console" aria-label="Coach oversight console">
-      <header className="nc-head">
-        <span className="nc-badge">Coach Console</span>
-        <h3 className="nc-title">AI Performance Studio</h3>
-      </header>
-
-      <label className="nc-field nc-field-wide">
-        <span className="nc-lbl">Client Roster</span>
-        <select
-          className="nc-select"
-          value={selectedId}
-          onChange={(e) => selectAthlete(e.target.value)}
-          disabled={loadingRoster || busy}
-          aria-label="Select an athlete"
-        >
-          <option value="">{loadingRoster ? 'Loading roster…' : 'Select an athlete…'}</option>
-          {roster.map((c) => (
-            <option key={c.id} value={c.id}>{c.name || c.uid}</option>
-          ))}
-        </select>
-      </label>
-      {rosterErr ? <div className="nc-status is-err" role="alert">{rosterErr}</div> : null}
-
-      {!selectedId ? (
-        <div className="nc-hint">Select an athlete to set their cuisine, macro targets, and recompile their plan.</div>
-      ) : loadingDetail ? (
-        <div className="nc-status">Loading {detail?.name || 'athlete'}…</div>
-      ) : (
-        <>
-          <div className="nc-grid">
-            <label className="nc-field">
-              <span className="nc-lbl">Cuisine Style</span>
-              <select
-                className="nc-select"
-                value={cuisine}
-                onChange={(e) => setCuisine(e.target.value)}
-                disabled={busy}
-                aria-label="Cuisine style"
-              >
-                {CUISINE_STYLES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-              </select>
-            </label>
-            <NumField label="Target KCAL" value={macros.tdee_target} onChange={(v) => setField('tdee_target', v)} disabled={busy} accent="var(--yel)" />
-            <NumField label="Protein (g)" value={macros.macro_p} onChange={(v) => setField('macro_p', v)} disabled={busy} accent="#ff5d5d" />
-            <NumField label="Carbs (g)" value={macros.macro_c} onChange={(v) => setField('macro_c', v)} disabled={busy} accent="#4dc3ff" />
-            <NumField label="Fats (g)" value={macros.macro_f} onChange={(v) => setField('macro_f', v)} disabled={busy} accent="#ffb547" />
+    <section className="co-console" aria-label="Coach oversight console">
+      {/* ── COACH ROSTER SELECTION ── */}
+      <div className="co-roster">
+        <div className="co-section-lbl">Coach Roster Selection{roster.length ? ` (${roster.length})` : ''}</div>
+        {loadingRoster ? (
+          <div className="co-note">Loading roster from the client database…</div>
+        ) : rosterErr ? (
+          <div className="co-note is-err" role="alert">{rosterErr}</div>
+        ) : !roster.length ? (
+          <div className="co-note">No athletes on the roster yet.</div>
+        ) : (
+          <div className="co-roster-list">
+            {roster.map((c) => (
+              <RosterRow key={c.id} client={c} active={c.id === selectedId} onSelect={() => selectAthlete(c.id)} />
+            ))}
           </div>
-
-          <div className="nc-actions">
-            <button type="button" className="nc-btn nc-btn-ghost" onClick={saveMacros} disabled={busy}>
-              {saving ? 'Saving…' : 'Save Macros'}
-            </button>
-            <button type="button" className="nc-btn nc-btn-primary" onClick={compile} disabled={busy}>
-              {compiling ? 'Compiling…' : 'Compile AI Performance Plan'}
-            </button>
-          </div>
-        </>
-      )}
-
-      {status ? (
-        <div className={`nc-status ${status.kind === 'ok' ? 'is-ok' : 'is-err'}`} role="status">
-          {status.msg}
+        )}
+        <div className="co-meta">
+          Roster DB metadata — pushed modifications sync instantly with the central client database
+          and adjust the athlete dashboard.
         </div>
-      ) : null}
+      </div>
+
+      {/* ── ACTIVE ATHLETE OVERSIGHT ── */}
+      {!selectedId ? (
+        <div className="co-empty">Select an athlete to load their blueprint and override pipeline.</div>
+      ) : loadingDetail ? (
+        <div className="co-note">Loading {name || 'athlete'}…</div>
+      ) : (
+        <div className="co-active">
+          <div className="co-active-head">
+            <div>
+              <span className="co-badge">Active Athlete Locker Oversight</span>
+              <h3 className="co-name">{name}</h3>
+              <div className="co-paradigm">Current Goal Paradigm: <b>{paradigm}</b></div>
+            </div>
+            <div className="co-metric">
+              <span className="co-metric-lbl">Goal Streak</span>
+              <span className="co-metric-val">{Number(detail?.current_streak ?? 0)}</span>
+            </div>
+          </div>
+
+          <div className="co-blueprint">
+            <div className="co-section-lbl">🍴 Analyzing Athlete Meal Blue-Prints</div>
+            {blueprintDay && blueprintDay.meals.length ? (
+              <div className="co-meal-grid">
+                {blueprintDay.meals.slice(0, 4).map((m, i) => (
+                  <BlueprintCard key={i} slot={m.m || `Meal ${i + 1}`} body={m.i} />
+                ))}
+              </div>
+            ) : (
+              <div className="co-note">No structured meal blueprint assigned yet — push a protocol below to compile one.</div>
+            )}
+            <div className="co-macros">
+              {macroLine.map((m) => (
+                <div key={m.k} className="co-macro">
+                  <span className="co-macro-k">{m.k}:</span>{' '}
+                  <span className="co-macro-v">{m.v != null && m.v !== '' ? `${Number(m.v).toLocaleString()}${m.u}` : '—'}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── OVERRIDE PIPELINE ── */}
+          <div className="co-override">
+            <div className="co-section-lbl">⚙ Amplify Nutritional Prescriptions (Override Inputs)</div>
+            <div className="co-override-grid">
+              <label className="co-field">
+                <span className="co-lbl">Calorie Override Index</span>
+                <input
+                  className="co-input"
+                  type="number" min="0" max={TARGET_MAX} step="1" inputMode="numeric"
+                  value={kcal}
+                  placeholder="e.g. 2800"
+                  disabled={pushing}
+                  onChange={(e) => setKcal(e.target.value)}
+                />
+              </label>
+              <label className="co-field">
+                <span className="co-lbl">Athletic Phase Assignment</span>
+                <select className="co-input" value={phase} disabled={pushing} onChange={(e) => setPhase(e.target.value)}>
+                  {ATHLETIC_PHASES.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </label>
+            </div>
+            <label className="co-field">
+              <span className="co-lbl">Coach Directive Mandate (Feedback)</span>
+              <textarea
+                className="co-input co-textarea"
+                rows={3}
+                value={directive}
+                disabled={pushing}
+                placeholder={`Enter instructions for ${name || 'the athlete'}… e.g. Scale caloric threshold up +15% centered on the lunch sequence on heavy quad days.`}
+                onChange={(e) => setDirective(e.target.value)}
+              />
+            </label>
+            <button type="button" className="co-push" onClick={pushProtocol} disabled={pushing}>
+              {pushing ? 'Pushing Protocol…' : '⤵ Push Oversight Direct Protocol'}
+            </button>
+            {status ? (
+              <div className={`co-status ${status.kind === 'ok' ? 'is-ok' : 'is-err'}`} role="status">{status.msg}</div>
+            ) : null}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -418,6 +471,10 @@ function NutritionCoachConsole() {
 export default function Nutrition({ profile }) {
   const { user, isAdmin } = useAuth();
   const uid = user?.username || user?.id || 'guest';
+
+  // Dual-toggle: athlete-facing scheduler vs the admin Coach Oversight Console.
+  // The toggle (and the oversight view) only exist for admin/trainer sessions.
+  const [mode, setMode] = useState('scheduler');
 
   const [cuisineId, setCuisineId] = useState(CUISINES[0].id);
   const [dayIdx, setDayIdx] = useState(() => todayIndex());
@@ -466,10 +523,35 @@ export default function Nutrition({ profile }) {
 
   const todayI = todayIndex();
 
+  const oversight = isAdmin && mode === 'oversight';
+
   return (
     <div className="pg-nut">
-      {isAdmin ? <NutritionCoachConsole /> : null}
+      {isAdmin ? (
+        <div className="nlx-toggle" role="tablist" aria-label="Nutrition view">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'scheduler'}
+            className={`nlx-tog${mode === 'scheduler' ? ' is-active' : ''}`}
+            onClick={() => setMode('scheduler')}
+          >
+            🍴 Nutrition Scheduler
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'oversight'}
+            className={`nlx-tog nlx-tog-coach${mode === 'oversight' ? ' is-active' : ''}`}
+            onClick={() => setMode('oversight')}
+          >
+            🛡 Coach Oversight Console
+          </button>
+        </div>
+      ) : null}
 
+      {oversight ? <CoachOversightConsole /> : (
+      <>
       <div className="nl-head-row">
         <div>
           <h2 className="pg-nut-head">Nutrition Plan</h2>
@@ -526,6 +608,8 @@ export default function Nutrition({ profile }) {
           <MealCard key={m.m + i} meal={m} done={done.includes(i)} onToggle={() => toggleMeal(i)} />
         ))}
       </div>
+      </>
+      )}
     </div>
   );
 }
