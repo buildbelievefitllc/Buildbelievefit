@@ -34,6 +34,7 @@
   --hb: 'Bebas Neue', 'Barlow Condensed', sans-serif;   /* headers */
   --display: 'Anton', 'Bebas Neue', sans-serif;          /* heavy display */
   --bd: 'Barlow Condensed', Arial, sans-serif;           /* body */
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Roboto Mono', Menlo, monospace; /* clinical data points */
 
   /* — safe-area insets (PWA) — */
   --st: env(safe-area-inset-top, 0px);

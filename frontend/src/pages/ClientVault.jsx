@@ -112,6 +112,9 @@ export default function ClientVault() {
               isLoading={profileLoading}
               error={profileError}
               displayName={displayName}
+              slug={user?.username || ''}
+              plans={plans}
+              programKey={user?.programKey}
             />
           )}
           {activeTab === 'program' && <Program plans={plans} profile={profile} />}
