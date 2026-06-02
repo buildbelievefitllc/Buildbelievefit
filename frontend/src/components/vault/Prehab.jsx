@@ -12,6 +12,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { requestPrehabMatrix, localDateKey } from '../../lib/prehabApi.js';
+import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
 import './vault.css';
 
 // Quick-pick friction zones — specific joints/muscles the athlete taps to flag.
@@ -27,6 +28,50 @@ function composeFriction(zones, note) {
   const trimmed = note.trim();
   if (trimmed) parts.push(trimmed);
   return parts.join('. ');
+}
+
+// ── YouTube form-cue / directive scaffold ────────────────────────────────────
+// Each recovery movement gets a video directive. The engine may emit an explicit
+// `video` id and/or a `cue` directive string; when it doesn't, we fuzzy-resolve a
+// form demo from the authorized VIDEO_MAP (same resolver the Program grid uses).
+// When nothing resolves, the scaffold still renders a "form cue pending" affordance
+// so the slot is always present — no API/token call is made here.
+function PrehabVideoCue({ movement }) {
+  const explicit = typeof movement.video === 'string' ? movement.video.trim() : '';
+  const videoId = explicit || resolveVideoId(movement.name);
+  const directive = (movement.cue || '').trim() || 'Watch the form cue before you move.';
+
+  return (
+    <div className="ph-routine-cue" data-testid="prehab-routine-cue">
+      {videoId ? (
+        <a
+          className="ph-cue-link"
+          href={watchURL(videoId)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Watch the form cue for ${movement.name}`}
+          data-testid="prehab-cue-link"
+        >
+          <span className="ph-cue-thumb">
+            <img src={thumbURL(videoId)} alt="" loading="lazy" />
+            <span className="ph-cue-play" aria-hidden="true">▶</span>
+          </span>
+          <span className="ph-cue-text">
+            <span className="ph-cue-label">Video Directive</span>
+            <span className="ph-cue-directive">{directive}</span>
+          </span>
+        </a>
+      ) : (
+        <div className="ph-cue-pending" data-testid="prehab-cue-pending">
+          <span className="ph-cue-play ph-cue-play--muted" aria-hidden="true">▶</span>
+          <span className="ph-cue-text">
+            <span className="ph-cue-label">Video Directive</span>
+            <span className="ph-cue-directive">Form cue pending — follow the written focus above.</span>
+          </span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Prehab() {
@@ -145,6 +190,7 @@ export default function Prehab() {
                 {mv.duration ? <span className="ph-routine-dur" data-testid="prehab-routine-duration">{mv.duration}</span> : null}
               </div>
               {mv.reason ? <p className="ph-routine-reason" data-testid="prehab-routine-reason">{mv.reason}</p> : null}
+              <PrehabVideoCue movement={mv} />
             </div>
           ))}
         </div>
