@@ -15,11 +15,35 @@
 // Brand: the legacy Smart Cardio brutalist red/orange, scoped via .bbf-cardio /
 // .bbf-gps classes. Isolated — touches only agenticCardioApi.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { generateCardio } from '../../lib/agenticCardioApi.js';
 
-const QUICK = [12, 18, 25, 40]; // common time budgets — one tap to route a tier
+// ── Smart Cardio Lobby selectors ──
+// Duration drives the ONLY value the frozen engine contract consumes
+// (available_minutes). Pacing / Equipment / Kinetic Modality are athlete-preference
+// inputs that refine the Dynamic CRP projection (and are forward-looking for when
+// the contract expands); the engine still auto-routes the modality tier server-side.
+const DURATIONS = [12, 18, 25, 40, 60];
+const PACING = [
+  { id: 'epoc', label: 'Max EPOC', factor: 1.4 },
+  { id: 'burn', label: 'Caloric Burn', factor: 1.1 },
+  { id: 'aerobic', label: 'Aerobic Base', factor: 0.9 },
+  { id: 'negsplit', label: 'Negative Split', factor: 1.2 },
+];
+const EQUIPMENT = [
+  { id: 'full', label: 'Full Gym' },
+  { id: 'home', label: 'Home Gym' },
+  { id: 'minimal', label: 'Minimal' },
+  { id: 'bodyweight', label: 'Bodyweight' },
+];
+const MODALITIES = [
+  { id: 'treadmill', label: 'Treadmill', factor: 1.0 },
+  { id: 'incline', label: 'Incline', factor: 1.2 },
+  { id: 'assault', label: 'Assault Bike', factor: 1.4 },
+  { id: 'stairs', label: 'Stairs', factor: 1.3 },
+];
+const byId = (list, id) => list.find((x) => x.id === id) || list[0];
 
 // Phase → accent + glyph for the minute grid (matches the warmup/work/recovery/
 // steady/cooldown enum from the contract).
@@ -37,15 +61,29 @@ export default function AgenticCardio() {
   const { user } = useAuth();
   const uid = user?.username || user?.id || '';
 
-  const [minutes, setMinutes] = useState('');
+  const [minutes, setMinutes] = useState('18');
+  const [pacing, setPacing] = useState('epoc');
+  const [equipment, setEquipment] = useState('full');
+  const [kinetic, setKinetic] = useState('assault');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [plan, setPlan] = useState(null);
 
-  async function generate(mins) {
+  // ── Dynamic CRP (Cardio-Respiratory Prescription) — reactive to the selectors. ──
+  const crp = useMemo(() => {
+    const mins = Math.max(0, Math.round(Number(minutes) || 0));
+    const p = byId(PACING, pacing);
+    const m = byId(MODALITIES, kinetic);
+    const index = Math.round(mins * p.factor * m.factor);
+    const kcal = Math.round(mins * 8.5 * m.factor);
+    const epoc = Math.round((6 + mins * 0.35) * p.factor);
+    return { mins, p, m, index, kcal, epoc };
+  }, [minutes, pacing, kinetic]);
+
+  async function generate() {
     if (busy) return;
-    const m = Math.round(Number(mins) || 0);
-    if (!m || m <= 0) { setError('Enter how many minutes you have.'); return; }
+    const m = Math.round(Number(minutes) || 0);
+    if (!m || m <= 0) { setError('Pick a duration to route your cardio.'); return; }
     setBusy(true);
     setError(null);
     try {
@@ -59,39 +97,100 @@ export default function AgenticCardio() {
     }
   }
 
+  const durationValue = DURATIONS.includes(Number(minutes)) ? String(Number(minutes)) : 'custom';
+
   return (
     <section className="bbf-gps">
       <div className="bbf-gps__head">
-        <span className="bbf-cardio__kicker">Proactive GPS</span>
-        <h3 className="bbf-cardio__title" style={{ fontSize: '1.3rem' }}>Generate Today’s Protocol</h3>
+        <span className="bbf-cardio__kicker">Smart Cardio Lobby</span>
+        <h3 className="bbf-cardio__title" style={{ fontSize: '1.3rem' }}>Configure Today’s Protocol</h3>
         <p className="bbf-gps__sub">
-          Tell the engine your time budget. It routes the right modality, checks your CNS load, and writes the
-          minute-by-minute plan — softening intensity automatically when your nervous system needs it.
+          Dial in your duration, pacing, equipment, and kinetic modality. The engine routes the tier, checks your
+          CNS load, and writes the minute-by-minute plan — softening intensity automatically when your nervous
+          system needs it.
         </p>
       </div>
 
-      {/* Time-budget input */}
-      <form className="bbf-gps__form" onSubmit={(e) => { e.preventDefault(); generate(minutes); }}>
-        <div className="bbf-gps__quick">
-          {QUICK.map((q) => (
-            <button key={q} type="button" className="bbf-gps__chip" disabled={busy}
-              onClick={() => { setMinutes(String(q)); generate(q); }}>{q} min</button>
-          ))}
-        </div>
-        <div className="bbf-gps__inputrow">
-          <input className="bbf-input" type="number" inputMode="numeric" min="1" max="120"
-            placeholder="minutes you have" value={minutes} disabled={busy}
-            onChange={(e) => setMinutes(e.target.value)} aria-label="Available minutes" />
-          <button type="submit" className="bbf-cardio__btn" disabled={busy}>
+      {/* ── The Lobby: selectors (left) + Dynamic CRP Formula (right) ── */}
+      <form className="bbf-lobby" onSubmit={(e) => { e.preventDefault(); generate(); }}>
+        <div className="bbf-lobby__controls">
+          <div className="bbf-lobby__grid">
+            <Field label="Duration">
+              <select className="bbf-input" value={durationValue} disabled={busy}
+                onChange={(e) => { if (e.target.value !== 'custom') setMinutes(e.target.value); }}
+                aria-label="Duration">
+                {DURATIONS.map((d) => <option key={d} value={d}>{d} min</option>)}
+                <option value="custom">Custom…</option>
+              </select>
+            </Field>
+            <Field label="Custom Minutes">
+              <input className="bbf-input" type="number" inputMode="numeric" min="1" max="120"
+                value={minutes} disabled={busy} placeholder="minutes"
+                onChange={(e) => setMinutes(e.target.value)}
+                aria-label="Available minutes" data-testid="cardio-gen-minutes" />
+            </Field>
+            <Field label="Pacing Strategy">
+              <select className="bbf-input" value={pacing} disabled={busy}
+                onChange={(e) => setPacing(e.target.value)} aria-label="Pacing strategy">
+                {PACING.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+              </select>
+            </Field>
+            <Field label="Gym Equipment">
+              <select className="bbf-input" value={equipment} disabled={busy}
+                onChange={(e) => setEquipment(e.target.value)} aria-label="Gym equipment">
+                {EQUIPMENT.map((q) => <option key={q.id} value={q.id}>{q.label}</option>)}
+              </select>
+            </Field>
+            <Field label="Active Kinetic Modality">
+              <select className="bbf-input" value={kinetic} disabled={busy}
+                onChange={(e) => setKinetic(e.target.value)} aria-label="Active kinetic modality">
+                {MODALITIES.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+              </select>
+            </Field>
+          </div>
+          <button type="submit" className="bbf-cardio__btn bbf-lobby__go" disabled={busy}
+            data-testid="cardio-gen-submit">
             {busy ? 'Routing…' : 'Route My Cardio →'}
           </button>
         </div>
+
+        <aside className="bbf-crp" aria-label="Dynamic CRP formula">
+          <div className="bbf-crp__kicker">Dynamic CRP Formula</div>
+          <div className="bbf-crp__title">Cardio-Respiratory Prescription</div>
+          <div className="bbf-crp__formula">
+            CRP <span className="bbf-crp__op">=</span> Duration
+            <span className="bbf-crp__op">×</span> Modality
+            <span className="bbf-crp__op">×</span> Pacing
+          </div>
+          <div className="bbf-crp__vars">
+            <div className="bbf-crp__var"><span className="bbf-crp__var-v">{crp.mins}</span><span className="bbf-crp__var-l">min</span></div>
+            <div className="bbf-crp__var"><span className="bbf-crp__var-v">×{crp.m.factor.toFixed(1)}</span><span className="bbf-crp__var-l">{crp.m.label}</span></div>
+            <div className="bbf-crp__var"><span className="bbf-crp__var-v">×{crp.p.factor.toFixed(1)}</span><span className="bbf-crp__var-l">{crp.p.label}</span></div>
+          </div>
+          <div className="bbf-crp__score">
+            <span className="bbf-crp__score-v">{crp.index}</span>
+            <span className="bbf-crp__score-l">CRP Index</span>
+          </div>
+          <div className="bbf-crp__proj">
+            <div className="bbf-crp__proj-cell"><span className="bbf-crp__proj-v">~{crp.kcal}</span><span className="bbf-crp__proj-l">kcal burn</span></div>
+            <div className="bbf-crp__proj-cell"><span className="bbf-crp__proj-v">~{crp.epoc}h</span><span className="bbf-crp__proj-l">EPOC window</span></div>
+          </div>
+        </aside>
       </form>
 
       {error ? <div className="bbf-cardio__error" role="alert" style={{ marginTop: '.9rem' }}>{error}</div> : null}
 
       {plan ? <ProtocolResult plan={plan} /> : null}
     </section>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <label className="bbf-lobby__field">
+      <span className="bbf-lobby__label">{label}</span>
+      {children}
+    </label>
   );
 }
 

@@ -70,6 +70,53 @@
 .bbf-gps__inputrow { display: flex; gap: .6rem; align-items: stretch; }
 .bbf-gps__inputrow .bbf-input { flex: 1; }
 
+/* ── Smart Cardio Lobby — selectors (left) + Dynamic CRP card (right) ──────── */
+.bbf-lobby {
+  display: grid; grid-template-columns: 1fr minmax(220px, 280px); gap: 1rem; align-items: start;
+}
+.bbf-lobby__controls {
+  background: var(--gry); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem;
+  display: flex; flex-direction: column; gap: 1rem;
+}
+.bbf-lobby__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; }
+.bbf-lobby__field { display: flex; flex-direction: column; gap: .3rem; }
+.bbf-lobby__label { font-family: var(--bd); font-size: .66rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
+.bbf-lobby__go { align-self: flex-start; }
+
+/* Dynamic CRP Formula — gold telemetry card */
+.bbf-crp {
+  background: linear-gradient(160deg, rgba(245, 200, 0, .08), rgba(13, 1, 26, .8));
+  border: 1px solid rgba(245, 200, 0, .4); border-radius: 12px; padding: 1.1rem 1.2rem;
+  display: flex; flex-direction: column; gap: .7rem;
+}
+.bbf-crp__kicker { font-family: var(--hb); font-size: .66rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); }
+.bbf-crp__title { font-family: var(--display); font-size: 1.15rem; line-height: 1.1; color: var(--yel); }
+.bbf-crp__formula {
+  font-family: var(--hb); font-size: .8rem; letter-spacing: 1px; color: rgba(255, 255, 255, .82);
+  display: flex; flex-wrap: wrap; align-items: center; gap: .3rem;
+  border-top: 1px solid rgba(245, 200, 0, .2); border-bottom: 1px solid rgba(245, 200, 0, .2);
+  padding: .55rem 0;
+}
+.bbf-crp__op { color: var(--gold-soft); font-weight: 800; }
+.bbf-crp__vars { display: flex; justify-content: space-between; gap: .4rem; }
+.bbf-crp__var { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.bbf-crp__var-v { font-family: var(--display); font-size: 1.1rem; color: #fff; line-height: 1; }
+.bbf-crp__var-l { font-family: var(--bd); font-size: .58rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--mut); margin-top: .2rem; text-align: center; }
+.bbf-crp__score {
+  display: flex; flex-direction: column; align-items: center; padding: .5rem 0;
+  border-radius: 10px; background: rgba(245, 200, 0, .07); border: 1px solid rgba(245, 200, 0, .25);
+}
+.bbf-crp__score-v { font-family: var(--display); font-size: 2.4rem; line-height: 1; color: var(--yel); text-shadow: 0 2px 18px rgba(245, 200, 0, .3); }
+.bbf-crp__score-l { font-family: var(--hb); font-size: .6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); margin-top: .2rem; }
+.bbf-crp__proj { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.bbf-crp__proj-cell { display: flex; flex-direction: column; align-items: center; background: rgba(9, 9, 9, .4); border: 1px solid var(--line); border-radius: 8px; padding: .5rem .3rem; }
+.bbf-crp__proj-v { font-family: var(--display); font-size: 1.2rem; color: #fff; line-height: 1; }
+.bbf-crp__proj-l { font-family: var(--bd); font-size: .56rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--mut); margin-top: .2rem; }
+
+@media (max-width: 720px) {
+  .bbf-lobby { grid-template-columns: 1fr; }
+}
+
 .bbf-gps__result { margin-top: 1.3rem; }
 .bbf-gps__modality { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .bbf-gps__modality-label { font-family: var(--display); font-size: 1.6rem; line-height: 1; color: #FF6A33; letter-spacing: .5px; }

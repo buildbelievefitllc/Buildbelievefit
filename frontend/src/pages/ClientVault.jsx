@@ -37,7 +37,7 @@ const TABS = [
   { id: 'hub', label: 'Hub' },
   { id: 'program', label: 'Program' },
   { id: 'generator', label: 'Generator' },
-  { id: 'cardio', label: 'Smart Cardio' },
+  { id: 'cardio', label: 'Smart Cardio', testid: 'vault-tab-cardio' },
   { id: 'prehab', label: 'Prehab', testid: 'vault-tab-prehab' },
   { id: 'nutrition', label: 'Nutrition' },
   { id: 'settings', label: 'Settings' },
