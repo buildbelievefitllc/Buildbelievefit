@@ -34,11 +34,18 @@ export async function generateCardio(uid, availableMinutes) {
   });
 
   if (error) {
-    // functions.invoke surfaces non-2xx as an error; the body may carry a slug.
+    // functions.invoke surfaces non-2xx as a FunctionsHttpError carrying the
+    // Response on `.context`. Intercept 429 from the new rate-limited backend and
+    // surface it as a coded error the UI maps to a clean toast (not a raw failure).
+    if (error?.context?.status === 429) {
+      throw rateLimited();
+    }
     throw new Error(`Cardio engine unavailable — ${error.message || 'request failed'}.`);
   }
   if (!data?.ok) {
     const slug = data?.error || 'unknown';
+    // Defensive: some gateways return the limit as a 200 body slug.
+    if (slug === 'rate_limited' || slug === 'too_many_requests') throw rateLimited();
     const map = {
       unauthorized: 'Not authorized to generate a protocol.',
       missing_uid: 'No athlete on the request.',
@@ -48,4 +55,11 @@ export async function generateCardio(uid, availableMinutes) {
     throw new Error(map[slug] || 'Could not generate a protocol. Try again.');
   }
   return data;
+}
+
+// Coded rate-limit error → the UI renders it as a toast, not a generic failure.
+function rateLimited() {
+  const e = new Error('Daily limit reached. Resets at midnight UTC.');
+  e.code = 'rate_limited';
+  return e;
 }

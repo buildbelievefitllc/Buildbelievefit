@@ -19,8 +19,9 @@
 // or edits T2's ProgramGrid / programData / programApi.
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { useCardio, logCardio, CARDIO_ZONES } from '../../lib/cardioApi.js';
-import AgenticCardio from './AgenticCardio.jsx';
+import { generateCardio } from '../../lib/agenticCardioApi.js';
 import './cardio.css';
 
 function fmtDate(d) {
@@ -37,7 +38,7 @@ export default function SmartCardio() {
   const { data, isLoading, error, refetch } = useCardio();
 
   return (
-    <div className="bbf-cardio">
+    <div className="bbf-cardio" data-testid="smart-cardio-module">
       <div className="bbf-cardio__head">
         <h2 className="bbf-cardio__title">Smart Cardio</h2>
         <span className="bbf-cardio__kicker">Conditioning Engine</span>
@@ -47,12 +48,9 @@ export default function SmartCardio() {
         each protocol is built for your time budget. Log every session to keep your conditioning honest.
       </p>
 
-      {/* Cardio Configurator — selectors → CRP formula, respiratory sync, timeline.
-          Fully client-side scaffolding: it derives, it does not call the engine. */}
+      {/* Cardio Configurator — selectors → CRP formula, respiratory sync, timeline,
+          AND the live engine (time budget → bbf-agentic-cardio protocol). One UI. */}
       <CardioConfigurator />
-
-      {/* Proactive GPS generator — bbf-agentic-cardio */}
-      <AgenticCardio />
 
       {/* Zone legend */}
       <div className="bbf-cardio__zones">
@@ -220,7 +218,181 @@ function CardioConfigurator() {
           pattern changes — avoids a synchronous setState-in-effect reset. */}
       <RespiratorySync key={pacing} breath={pacingMeta.breath} accent={pacingMeta.accent} />
       <MetabolicTimeline phases={timeline} crp={crp} />
+
+      {/* Live engine — the only API-calling surface: time budget → bbf-agentic-cardio
+          → CNS-aware protocol + Sovereign Toast. Seeded from the configured duration. */}
+      <CardioEngine duration={duration} />
     </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Live engine — wires the canonical Configurator UI to bbf-agentic-cardio.
+// Satisfies the smart-cardio-generator.spec.ts QA contract (data-testid hooks +
+// data-tier / data-phase) and maps 429 → a clean rate-limit toast.
+// ─────────────────────────────────────────────────────────────────────────────
+const LIVE_PHASE = {
+  warmup: { accent: '#F5CF60', label: '◐ Warm-Up', o2: 45 },
+  work: { accent: '#FF4500', label: '▲ Work', o2: 88 },
+  recovery: { accent: '#22c55e', label: '◡ Recovery', o2: 60 },
+  steady: { accent: '#9D27C9', label: '■ Steady', o2: 72 },
+  cooldown: { accent: '#8b1abf', label: '◑ Cool-Down', o2: 38 },
+};
+function livePhase(p) { return LIVE_PHASE[p] || { accent: '#FF4500', label: p, o2: 70 }; }
+function pad(n) { return String(Number(n) || 0).padStart(2, '0'); }
+
+function CardioEngine({ duration }) {
+  const { user } = useAuth();
+  const uid = user?.username || user?.id || '';
+  const [minutes, setMinutes] = useState(String(duration || 30));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null); // rate-limit toast message | null
+  const [plan, setPlan] = useState(null);
+
+  async function generate(e) {
+    e?.preventDefault?.();
+    if (busy) return;
+    const m = Math.round(Number(minutes) || 0);
+    if (!m || m <= 0) { setError('Enter how many minutes you have.'); return; }
+    setBusy(true);
+    setError(null);
+    try {
+      setPlan(await generateCardio(uid, m));
+    } catch (err) {
+      // 429 → clean toast (resets at midnight UTC); everything else → inline error.
+      if (err?.code === 'rate_limited') { setToast(err.message); setError(null); }
+      else setError(err?.message || 'Could not generate a protocol.');
+      setPlan(null);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="bbf-gps">
+      <div className="bbf-gps__head">
+        <span className="bbf-cardio__kicker">Live Engine · Agentic GPS</span>
+        <h4 className="bbf-cardio__title" style={{ fontSize: '1.15rem' }}>Route Today’s Protocol</h4>
+        <p className="bbf-gps__sub">
+          Enter your real time budget — the engine checks your CNS load and writes the minute-by-minute plan,
+          softening intensity automatically when your nervous system needs it.
+        </p>
+      </div>
+      <form className="bbf-gps__form" onSubmit={generate}>
+        <div className="bbf-gps__inputrow">
+          <input className="bbf-input" type="number" inputMode="numeric" min="1" max="120"
+            placeholder="minutes you have" value={minutes} disabled={busy}
+            onChange={(e) => setMinutes(e.target.value)} aria-label="Available minutes"
+            data-testid="cardio-gen-minutes" />
+          <button type="submit" className="bbf-cardio__btn" disabled={busy} data-testid="cardio-gen-submit">
+            {busy ? 'Routing…' : 'Route My Cardio →'}
+          </button>
+        </div>
+      </form>
+
+      {error ? <div className="bbf-cardio__error" role="alert" style={{ marginTop: '.9rem' }}>{error}</div> : null}
+      {plan ? <LiveProtocol plan={plan} /> : null}
+      {toast ? <RateLimitToast message={toast} onClose={() => setToast(null)} /> : null}
+    </div>
+  );
+}
+
+function LiveProtocol({ plan }) {
+  const cns = plan.cns_downregulation || {};
+  const modality = plan.modality || {};
+  const roi = plan.roi || {};
+  const steps = Array.isArray(plan.protocol_steps) ? plan.protocol_steps : [];
+  // The modality badge must reflect the EFFECTIVE (possibly down-regulated) tier.
+  const tier = modality.tier || cns.effective_tier || '';
+
+  return (
+    <div className="bbf-gps__result">
+      <div className="bbf-gps__modality">
+        <span className="bbf-gps__modality-label" data-testid="cardio-gen-modality" data-tier={tier}>
+          {modality.label || modality.machine || tier}
+        </span>
+        {plan.available_minutes ? <span className="bbf-gps__modality-mins">{plan.available_minutes} min</span> : null}
+      </div>
+      {modality.strategy ? <div className="bbf-gps__strategy">{modality.strategy}</div> : null}
+
+      {cns.down_regulated ? (
+        <div className="bbf-gps__cns" role="status"
+          data-testid="cardio-gen-softened"
+          data-base-tier={cns.base_tier} data-effective-tier={cns.effective_tier}>
+          <div className="bbf-gps__cns-top">
+            <span className="bbf-gps__cns-icon" aria-hidden="true">🛡</span>
+            <span className="bbf-gps__cns-title">CNS Protection Engaged</span>
+            {Number.isFinite(Number(cns.score)) ? <span className="bbf-gps__cns-score">fatigue {cns.score}/100</span> : null}
+          </div>
+          <div className="bbf-gps__cns-body">
+            Softened from <b>{cns.base_tier}</b> to <b>{cns.effective_tier}</b> to protect tomorrow’s output.
+          </div>
+        </div>
+      ) : null}
+
+      <div className="bbf-gps__grid-h">Metabolic Timeline Breakdown</div>
+      <div className="bbf-gps__grid" role="list">
+        {steps.map((s, i) => {
+          const pm = livePhase(s.phase);
+          const dur = Math.max(0, (Number(s.end_min) || 0) - (Number(s.start_min) || 0));
+          return (
+            <div key={i} className="bbf-gps__step" role="listitem"
+              data-testid="cardio-gen-step" data-phase={s.phase} data-zone={tier}
+              style={{ '--phase-accent': pm.accent }}>
+              <div className="bbf-gps__step-time" data-testid="cardio-gen-step-time">
+                <span className="bbf-gps__step-range">{pad(s.start_min)}–{pad(s.end_min)}</span>
+                <span className="bbf-gps__step-dur">{dur} min · {pm.o2}% O₂</span>
+              </div>
+              <div className="bbf-gps__step-main">
+                <span className="bbf-gps__step-phase">{pm.label}</span>
+                <span className="bbf-gps__step-label" data-testid="cardio-gen-step-label">{s.label}</span>
+                {s.target ? <span className="bbf-gps__step-target" data-testid="cardio-gen-step-target">{s.target}</span> : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {roi.toast ? (
+        <div className="bbf-gps__toast">
+          <div className="bbf-gps__toast-glow" aria-hidden="true" />
+          <div className="bbf-gps__toast-body">
+            <div className="bbf-gps__toast-kicker">The Sovereign Toast</div>
+            <div className="bbf-gps__toast-headline" data-testid="cardio-gen-roi-toast">{roi.toast}</div>
+            {roi.detail ? <div className="bbf-gps__toast-detail">{roi.detail}</div> : null}
+            {roi.primary_metric ? (
+              <div className="bbf-gps__toast-metric">
+                <span className="bbf-gps__toast-metric-lbl">Primary ROI</span>
+                <span className="bbf-gps__toast-metric-val" data-testid="cardio-gen-roi-metric">{roi.primary_metric}</span>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {plan.meta?.source === 'fallback' ? (
+        <div className="bbf-gps__fallback">Generated from the deterministic engine (AI writer offline) — targets are sound.</div>
+      ) : null}
+    </div>
+  );
+}
+
+// Rate-limit toast — clean, auto-dismissing (8s), dismissible.
+function RateLimitToast({ message, onClose }) {
+  useEffect(() => {
+    const id = setTimeout(onClose, 8000);
+    return () => clearTimeout(id);
+  }, [onClose]);
+  return (
+    <div className="bbf-toast" role="status" aria-live="polite" data-testid="cardio-rate-toast">
+      <span className="bbf-toast__icon" aria-hidden="true">⏳</span>
+      <div className="bbf-toast__body">
+        <span className="bbf-toast__title">Smart Cardio</span>
+        <span className="bbf-toast__msg">{message}</span>
+      </div>
+      <button type="button" className="bbf-toast__close" onClick={onClose} aria-label="Dismiss">×</button>
+    </div>
   );
 }
 
@@ -384,7 +556,7 @@ function ActiveProtocols({ protocols }) {
     <section>
       <h3 className="bbf-cardio__section-h">Active Protocols</h3>
       {protocols.length === 0 ? (
-        <div className="bbf-cardio__empty">
+        <div className="bbf-cardio__empty" data-testid="cardio-empty">
           No cardio protocol assigned yet — your coach is dialing in your conditioning. It will appear here once assigned.
         </div>
       ) : (
@@ -392,24 +564,24 @@ function ActiveProtocols({ protocols }) {
           {protocols.map((p) => {
             const z = zoneMeta(p.zone);
             return (
-              <article key={p.id} className="bbf-cardio__protocol">
+              <article key={p.id} className="bbf-cardio__protocol" data-testid="cardio-protocol" data-zone={p.zone}>
                 <div className="bbf-cardio__protocol-top">
-                  <span className="bbf-cardio__protocol-title">{p.title || z.label}</span>
-                  <span className="bbf-cardio__pill" style={{ color: z.accent }}>{z.label}</span>
+                  <span className="bbf-cardio__protocol-title" data-testid="cardio-protocol-title">{p.title || z.label}</span>
+                  <span className="bbf-cardio__pill" style={{ color: z.accent }} data-testid="cardio-protocol-zone">{z.label}</span>
                 </div>
                 <div className="bbf-cardio__targets">
                   <div className="bbf-cardio__target">
-                    <span className="bbf-cardio__target-val">{p.target_duration_min}<span style={{ fontSize: '.9rem' }}> min</span></span>
+                    <span className="bbf-cardio__target-val" data-testid="cardio-protocol-duration">{p.target_duration_min}<span style={{ fontSize: '.9rem' }}> min</span></span>
                     <span className="bbf-cardio__target-lbl">Target Duration</span>
                   </div>
                   {p.intensity ? (
                     <div className="bbf-cardio__target">
-                      <span className="bbf-cardio__target-val" style={{ fontSize: '1.2rem' }}>{p.intensity}</span>
+                      <span className="bbf-cardio__target-val" style={{ fontSize: '1.2rem' }} data-testid="cardio-protocol-intensity">{p.intensity}</span>
                       <span className="bbf-cardio__target-lbl">Intensity</span>
                     </div>
                   ) : null}
                 </div>
-                {p.protocol_detail ? <div className="bbf-cardio__detail">{p.protocol_detail}</div> : null}
+                {p.protocol_detail ? <div className="bbf-cardio__detail" data-testid="cardio-protocol-detail">{p.protocol_detail}</div> : null}
               </article>
             );
           })}
@@ -431,13 +603,13 @@ function History({ logs }) {
             const z = zoneMeta(l.zone);
             const meta = [l.intensity, l.avg_hr ? `${l.avg_hr} bpm` : null, l.notes].filter(Boolean).join(' · ');
             return (
-              <div key={l.id} className="bbf-cardio__log" style={{ '--zone-accent': z.accent }}>
-                <span className="bbf-cardio__log-date">{fmtDate(l.session_date)}</span>
+              <div key={l.id} className="bbf-cardio__log" style={{ '--zone-accent': z.accent }} data-testid="cardio-log">
+                <span className="bbf-cardio__log-date" data-testid="cardio-log-date">{fmtDate(l.session_date)}</span>
                 <span className="bbf-cardio__log-main">
                   <span className="bbf-cardio__log-zone">{z.label}</span>
                   {meta ? <span className="bbf-cardio__log-meta">{meta}</span> : null}
                 </span>
-                <span className="bbf-cardio__log-dur">{l.duration_min}<span> min</span></span>
+                <span className="bbf-cardio__log-dur" data-testid="cardio-log-duration">{l.duration_min}<span> min</span></span>
               </div>
             );
           })}
