@@ -2,8 +2,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 9 — The Sovereign Panopticon, live-wired.
 //
-// Data path (lib/telemetryApi → 4 anon PostgREST reads, RLS-gated) + client-side
-// risk math (lib/intelCore, verbatim port of the canonical kernel). Athletes are
+// Data path (lib/telemetryApi → service-role roster via the token-gated
+// bbf-admin-roster + 3 anon PostgREST load reads) + client-side risk math
+// (lib/intelCore, verbatim port of the canonical kernel). Athletes are
 // classified red / yellow / green / dormant and SORTED worst-first (red→…→dormant,
 // ties by ACWR descending) — done in telemetryApi.processRoster.
 //
@@ -14,7 +15,8 @@
 // intent — high risk = high visibility — onto the real red/yellow statuses.)
 //
 // State contract: { data, isLoading, error } — no silent failures, no infinite
-// spinners. No admin token: the Panopticon reads anon + RLS, not the edge gateway.
+// spinners. The roster read is gated by the runtime-hydrated X-BBF-Admin-Token
+// (Command Center unlock gate); the load tables stay anon + RLS.
 
 import { useCallback, useEffect, useState } from 'react';
 import { fetchPanopticon } from '../../lib/telemetryApi.js';
