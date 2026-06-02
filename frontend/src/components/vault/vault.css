@@ -722,6 +722,64 @@
 }
 .sentinel-canvas { display: block; width: 100%; }
 
+/* ── Hypertrophy Balance Analyzer (Command Center · volume ratio) ─────────── */
+.hba {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  margin-bottom: 1.1rem;
+  background: #0a0a0a;
+  padding: 1.6rem 1.1rem 1.1rem;
+}
+.hba-kicker {
+  position: absolute; top: .6rem; left: .8rem;
+  font-family: var(--hb); font-size: .62rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-soft); background: rgba(9, 9, 9, .55);
+  padding: .2rem .55rem; border-radius: 999px; border: 1px solid rgba(245, 200, 0, .25);
+}
+.hba-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: .8rem;
+  flex-wrap: wrap; margin-bottom: 1rem;
+}
+.hba-title {
+  margin: 0;
+  font-family: var(--display); font-size: 1.25rem; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--wht);
+}
+.hba-sub {
+  font-family: var(--hb); font-size: .66rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--mut);
+}
+.hba-bars { display: flex; flex-direction: column; gap: .5rem; }
+.hba-row {
+  display: grid; grid-template-columns: 130px 1fr 44px; gap: .7rem; align-items: center;
+}
+.hba-muscle {
+  font-family: var(--bd); font-size: .88rem; font-weight: 700; letter-spacing: .3px;
+  color: var(--wht); text-transform: uppercase;
+}
+.hba-track {
+  height: 12px; border-radius: 3px; overflow: hidden;
+  background: #141414; border: 1px solid var(--line);
+}
+.hba-fill {
+  height: 100%; border-radius: 2px 0 0 2px;
+  background: linear-gradient(90deg, var(--pur), var(--yel));
+  transition: width .4s ease;
+}
+.hba-pct {
+  font-family: var(--hb); font-size: .92rem; letter-spacing: 1px; text-align: right;
+  color: var(--gold-soft);
+}
+.hba-foot {
+  margin-top: .9rem; padding-top: .7rem; border-top: 1px solid var(--line);
+  font-family: var(--bd); font-size: .74rem; letter-spacing: .3px; color: var(--mut);
+}
+@media (max-width: 420px) {
+  .hba-row { grid-template-columns: 96px 1fr 40px; gap: .5rem; }
+  .hba-muscle { font-size: .8rem; }
+}
+
 /* ── Program Generator ───────────────────────────────────────────────────── */
 .gen { display: flex; flex-direction: column; gap: 1rem; }
 .gen-form { display: flex; flex-direction: column; gap: 1rem; }
