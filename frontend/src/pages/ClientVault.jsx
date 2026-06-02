@@ -32,6 +32,7 @@ import Settings from '../components/vault/Settings.jsx';
 import SmartCardio from '../components/vault/SmartCardio.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
+import ChampionMindset from '../components/vault/ChampionMindset.jsx';
 import '../components/vault/vault.css';
 
 const TABS = [
@@ -41,6 +42,8 @@ const TABS = [
   { id: 'cardio', label: 'Smart Cardio', icon: '♥', testid: 'vault-tab-cardio' },
   { id: 'prehab', label: 'Prehab', icon: '✚', testid: 'vault-tab-prehab' },
   { id: 'nutrition', label: 'Nutrition', icon: '◆' },
+  // Champion Mindset is open to EVERY authenticated client — no admin gate.
+  { id: 'mindset', label: 'Champion Mindset', icon: '🧠', testid: 'vault-tab-mindset' },
   { id: 'settings', label: 'Settings', icon: '⚙' },
 ];
 
@@ -131,6 +134,7 @@ export default function ClientVault() {
           {activeTab === 'cardio' && <SmartCardio />}
           {activeTab === 'prehab' && <Prehab />}
           {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
+          {activeTab === 'mindset' && <ChampionMindset />}
           {activeTab === 'settings' && <Settings />}
         </div>
       </div>
