@@ -17,6 +17,7 @@ import { Badge } from '../command/primitives.jsx';
 import { parseWorkoutPlan } from '../../lib/vaultApi.js';
 import ProgramGrid from './ProgramGrid.jsx';
 import SovereignSentinel from './SovereignSentinel.jsx';
+import HypertrophyBalanceAnalyzer from './HypertrophyBalanceAnalyzer.jsx';
 
 function formatStamp(iso) {
   if (!iso) return null;
@@ -26,7 +27,7 @@ function formatStamp(iso) {
 }
 
 export default function Program({ plans, profile }) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const uid = user?.username || user?.id || '';
   const textPlan = plans?.workoutPlan || '';
   const stamp = formatStamp(plans?.generatedAt);
@@ -48,8 +49,10 @@ export default function Program({ plans, profile }) {
         ) : null}
       </div>
 
-      {/* Master visual dashboard — the Kinematic Form HUD wireframe, above the grid. */}
-      <SovereignSentinel />
+      {/* Master visual dashboard above the grid. From the Command Center (admin/
+          coach) this is the Hypertrophy Balance Analyzer (volume-ratio read-out);
+          the client Vault keeps the Sovereign Sentinel kinetic blueprint. */}
+      {isAdmin ? <HypertrophyBalanceAnalyzer /> : <SovereignSentinel />}
 
       <ProgramGrid uid={uid} programKey={user?.programKey} dynamicPlan={dynamicPlan} />
 
