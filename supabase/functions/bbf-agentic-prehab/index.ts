@@ -302,14 +302,12 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST')    return jsonResponse({ error: 'method_not_allowed' }, 405);
 
-  const expectedToken = Deno.env.get('BBF_COACH_AGENT_TOKEN');
-  if (expectedToken) {
-    const sent = req.headers.get('x-bbf-admin-token') || '';
-    if (sent !== expectedToken) {
-      console.warn('[bbf-agentic-prehab v2] rejected: bad/missing X-BBF-Admin-Token');
-      return jsonResponse({ error: 'unauthorized' }, 401);
-    }
-  }
+  // Client-facing endpoint: athletes call with the anon key (gateway routing),
+  // NOT the admin token — so the optional X-BBF-Admin-Token gate is removed (it
+  // locked out real clients whenever BBF_COACH_AGENT_TOKEN is set). Parity with
+  // bbf-agentic-cardio. TODO(auth): enforce per-user auth.uid() once the Supabase
+  // Auth client-login cutover ships; consider a per-IP rate limiter (mirror
+  // bbf_cardio_rate_check) to cap token burn in the interim.
 
   let payload: any;
   try { payload = await req.json(); }
