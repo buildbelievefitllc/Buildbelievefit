@@ -17,11 +17,13 @@
 // so the admin's own training view stays 1:1 with what a client sees.
 
 import { useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import CommandRoster from '../components/command/CommandRoster.jsx';
 import ClientHub from '../components/command/ClientHub.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import ClientAnalytics from '../components/command/ClientAnalytics.jsx';
 import Comlink from '../components/command/Comlink.jsx';
+import AdminTokenGate from '../components/command/AdminTokenGate.jsx';
 import Program from '../components/vault/Program.jsx';
 import Nutrition from '../components/vault/Nutrition.jsx';
 import Settings from '../components/vault/Settings.jsx';
@@ -29,14 +31,20 @@ import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
+import { hasAdminToken } from '../lib/adminAuth.js';
 
+// `needsToken` marks the surfaces whose data path gates on the X-BBF-Admin-Token
+// server-side: the roster (bbf-admin-roster), the Comlink (Render leads/concierge),
+// and Analytics (its client dropdown reuses the roster). The tokenless surfaces —
+// Command (bbf-command-feed, anon), Risk Telemetry (anon + RLS), and the
+// Player-Coach training tabs (the admin's own vault session) — render directly.
 const TABS = [
   // "Founder Five" master-detail roster is the Command Center centerpiece (default).
-  { id: 'roster', label: 'Founder Five', Panel: ClientHub },
+  { id: 'roster', label: 'Founder Five', Panel: ClientHub, needsToken: true },
   { id: 'command', label: 'Command', Panel: CommandRoster },
   { id: 'telemetry', label: 'Risk Telemetry', Panel: RiskTelemetry },
-  { id: 'analytics', label: 'Analytics', Panel: ClientAnalytics },
-  { id: 'comlink', label: 'Comlink', Panel: Comlink },
+  { id: 'analytics', label: 'Analytics', Panel: ClientAnalytics, needsToken: true },
+  { id: 'comlink', label: 'Comlink', Panel: Comlink, needsToken: true },
   // Player-Coach surfaces — the admin's own training view.
   { id: 'program', label: 'Program', Panel: Program },
   { id: 'generator', label: 'Generator', Panel: Generator },
@@ -45,9 +53,24 @@ const TABS = [
   { id: 'settings', label: 'Settings', Panel: Settings },
 ];
 
+const DEFAULT_TAB = TABS[0].id;
+
 export default function CommandCenter() {
-  const [activeTab, setActiveTab] = useState(TABS[0].id);
-  const ActivePanel = (TABS.find((t) => t.id === activeTab) ?? TABS[0]).Panel;
+  // The URL segment is the source of truth for the active surface — deep-linkable,
+  // and the left sidebar (MasterLayout) + the segmented tabs both push here so the
+  // navigation is genuinely router-driven. Unknown / absent ⇒ the default roster.
+  const { tab } = useParams();
+  const navigate = useNavigate();
+  const activeDef = TABS.find((t) => t.id === tab) ?? TABS[0];
+  const activeTab = activeDef.id;
+  const ActivePanel = activeDef.Panel;
+
+  const selectTab = (id) => navigate(id === DEFAULT_TAB ? '/command' : `/command/${id}`);
+
+  // Admin-token hydration. hasAdminToken() reads the runtime store (window global /
+  // sessionStorage) at mount, so a deploy that injects the token never shows the
+  // gate; otherwise the unlock gate flips this true for the token-gated tabs.
+  const [tokenReady, setTokenReady] = useState(hasAdminToken);
 
   // Player-Coach data: the admin's own plan envelope + profile metrics, sourced
   // exactly like the client Vault so Program/Nutrition render identically. The
@@ -56,6 +79,8 @@ export default function CommandCenter() {
   const uid = user?.username || user?.id || '';
   const { data: profile } = useVaultProfile(uid);
   const plans = useMemo(() => selectPlans(session), [session]);
+
+  const gated = activeDef.needsToken && !tokenReady;
 
   return (
     <div style={styles.page}>
@@ -74,7 +99,7 @@ export default function CommandCenter() {
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => setActiveTab(t.id)}
+              onClick={() => selectTab(t.id)}
               style={{ ...styles.tab, ...(active ? styles.tabActive : null) }}
             >
               {t.label}
@@ -84,9 +109,14 @@ export default function CommandCenter() {
       </nav>
 
       {/* key={activeTab} forces a clean unmount/remount on every swap — no state
-          can bleed between surfaces, and the swap is unambiguous. */}
+          can bleed between surfaces, and the swap is unambiguous. A token-gated
+          surface shows the unlock gate until the admin token is hydrated. */}
       <div style={styles.panel} key={activeTab}>
-        <ActivePanel plans={plans} profile={profile} />
+        {gated ? (
+          <AdminTokenGate surface={activeDef.label} onUnlock={() => setTokenReady(true)} />
+        ) : (
+          <ActivePanel plans={plans} profile={profile} />
+        )}
       </div>
     </div>
   );

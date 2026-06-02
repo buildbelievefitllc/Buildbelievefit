@@ -11,8 +11,9 @@
 // There is NO separate "SOS Queue" in the backend — the triage signal is PENDING
 // leads (var(--orn)) + Concierge failures (var(--red)).
 //
-// Zero-friction (Phase 23): the BBF_ADMIN_TOKEN gate has been eradicated. Both
-// feeds auto-load on mount; transient errors render in-place with a Retry.
+// Auth: the X-BBF-Admin-Token is hydrated at runtime (Command Center unlock gate /
+// window global), never bundled (§7). Once hydrated, both feeds auto-load on mount;
+// transient errors render in-place with a Retry.
 
 import { useCallback, useEffect, useState } from 'react';
 import { fetchLeads, fetchConciergeLog } from '../../lib/comlinkApi.js';
