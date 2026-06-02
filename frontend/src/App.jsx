@@ -12,13 +12,14 @@
 //   /login   → public Login gate (username + PIN); on success → /vault
 //   *        → bounce to '/'
 
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
 import AdminGuard from './components/AdminGuard.jsx';
 import Login from './pages/Login.jsx';
 import CommandCenter from './pages/CommandCenter.jsx';
 import ClientVault from './pages/ClientVault.jsx';
 import MarketingLanding from './pages/MarketingLanding.jsx';
+import SportsPortal from './components/sports/SportsPortal.jsx';
 
 // The Sovereign Vault — the authenticated athlete home. Guarded: an unauthenticated
 // visitor is bounced to the login gate rather than shown an empty shell. NOTE: the
@@ -36,6 +37,28 @@ const bootStyle = {
   fontFamily: 'var(--bd)', color: 'var(--mut)', letterSpacing: '.5px',
 };
 
+// The Sports Portal & Athlete Database — its own GUARDED route. Authentication is
+// required (unauth → /login), but admin is NOT: the SportsPortal component itself
+// strictly switches the Sovereign Admin Override View vs the Client View on
+// isAdmin, so a client reaches their own dossier here while an admin gets the full
+// override surface (also linked as a Command Center tab at /command/sports).
+function SportsRoute() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  if (loading) return <div style={bootStyle}>Loading…</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  return (
+    <div className="sp-route">
+      <div className="sp-route-inner">
+        <button type="button" className="sp-route-back" onClick={() => navigate('/vault')}>
+          ← Athlete Vault
+        </button>
+        <SportsPortal />
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <Routes>
@@ -45,6 +68,9 @@ export default function App() {
       <Route path="/" element={<MarketingLanding />} />
       {/* The authenticated Vault now lives at its own guarded route (was at "/"). */}
       <Route path="/vault" element={<VaultRoute />} />
+      {/* Sports Portal & Athlete Database — auth-guarded; the panel switches the
+          admin-override vs client view on isAdmin (see SportsRoute). */}
+      <Route path="/sports" element={<SportsRoute />} />
       {/* Admin console — AdminGuard denies non-admins before the shell mounts. The
           optional :tab segment makes each surface deep-linkable; the sidebar nav
           and the segmented tabs both push to /command/<tab>. ONE route (not two)

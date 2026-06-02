@@ -29,6 +29,7 @@ import Nutrition from '../components/vault/Nutrition.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
+import SportsPortal from '../components/sports/SportsPortal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
@@ -47,6 +48,10 @@ const TABS = [
   { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry, needsToken: true },
   { id: 'analytics', labelKey: 'cmd-tab-analytics', Panel: ClientAnalytics, needsToken: true },
   { id: 'comlink', labelKey: 'cmd-tab-comlink', Panel: Comlink, needsToken: true },
+  // Sports Portal & Athlete Database — youth-athlete scouting terminal. Runs on
+  // bundled legacy-fusion data (no server token); the panel itself switches the
+  // admin-override vs client view on isAdmin.
+  { id: 'sports', labelKey: 'cmd-tab-sports', Panel: SportsPortal },
   // Player-Coach surfaces — the admin's own training view.
   { id: 'program', labelKey: 'vault-tab-program', Panel: Program },
   { id: 'generator', labelKey: 'vault-tab-generator', Panel: Generator },

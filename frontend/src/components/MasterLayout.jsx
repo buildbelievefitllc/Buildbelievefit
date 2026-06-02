@@ -19,6 +19,7 @@ import { useLang } from '../context/LangContext.jsx';
 const COACHING_TABS = ['', 'roster', 'command', 'telemetry', 'analytics', 'comlink'];
 const NAV_ITEMS = [
   { labelKey: 'vault-command', to: '/command', isActive: (tab) => COACHING_TABS.includes(tab) },
+  { labelKey: 'cmd-tab-sports', to: '/command/sports', isActive: (tab) => tab === 'sports' },
   { labelKey: 'vault-tab-program', to: '/command/program', isActive: (tab) => ['program', 'generator', 'prehab'].includes(tab) },
   { labelKey: 'vault-tab-nutrition', to: '/command/nutrition', isActive: (tab) => tab === 'nutrition' },
   { labelKey: 'vault-tab-settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },

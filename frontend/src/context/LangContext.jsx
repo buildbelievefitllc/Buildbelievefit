@@ -237,6 +237,7 @@ const DICT = {
   'cmd-tab-telemetry': { en: 'Risk Telemetry', es: 'Telemetría de Riesgo', pt: 'Telemetria de Risco' },
   'cmd-tab-analytics': { en: 'Analytics', es: 'Analíticas', pt: 'Análises' },
   'cmd-tab-comlink': { en: 'Comlink', es: 'Comlink', pt: 'Comlink' },
+  'cmd-tab-sports': { en: 'Sports Portal', es: 'Portal Deportivo', pt: 'Portal Esportivo' },
   // Settings surface — client account · preferences · session chrome.
   'set-meta': { en: 'Account · preferences · session', es: 'Cuenta · preferencias · sesión', pt: 'Conta · preferências · sessão' },
   'set-account': { en: 'Account', es: 'Cuenta', pt: 'Conta' },
