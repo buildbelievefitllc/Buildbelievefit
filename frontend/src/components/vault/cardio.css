@@ -63,52 +63,12 @@
 .bbf-gps__head { margin-bottom: 1rem; }
 .bbf-gps__sub { font-family: var(--bd); font-size: .9rem; color: var(--mut); line-height: 1.5; margin: .3rem 0 0; max-width: 60ch; }
 
-/* ── Smart Cardio Lobby — selectors (left) + Dynamic CRP card (right) ──────── */
-.bbf-lobby {
-  display: grid; grid-template-columns: 1fr minmax(220px, 280px); gap: 1rem; align-items: start;
-}
-.bbf-lobby__controls {
-  background: var(--gry); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem;
-  display: flex; flex-direction: column; gap: 1rem;
-}
-.bbf-lobby__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; }
-.bbf-lobby__field { display: flex; flex-direction: column; gap: .3rem; }
-.bbf-lobby__label { font-family: var(--bd); font-size: .66rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
-.bbf-lobby__go { align-self: flex-start; }
-
-/* Dynamic CRP Formula — gold telemetry card */
-.bbf-crp {
-  background: linear-gradient(160deg, rgba(245, 200, 0, .08), rgba(13, 1, 26, .8));
-  border: 1px solid rgba(245, 200, 0, .4); border-radius: 12px; padding: 1.1rem 1.2rem;
-  display: flex; flex-direction: column; gap: .7rem;
-}
-.bbf-crp__kicker { font-family: var(--hb); font-size: .66rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); }
-.bbf-crp__title { font-family: var(--display); font-size: 1.15rem; line-height: 1.1; color: var(--yel); }
-.bbf-crp__formula {
-  font-family: var(--hb); font-size: .8rem; letter-spacing: 1px; color: rgba(255, 255, 255, .82);
-  display: flex; flex-wrap: wrap; align-items: center; gap: .3rem;
-  border-top: 1px solid rgba(245, 200, 0, .2); border-bottom: 1px solid rgba(245, 200, 0, .2);
-  padding: .55rem 0;
-}
-.bbf-crp__op { color: var(--gold-soft); font-weight: 800; }
-.bbf-crp__vars { display: flex; justify-content: space-between; gap: .4rem; }
-.bbf-crp__var { display: flex; flex-direction: column; align-items: center; flex: 1; }
-.bbf-crp__var-v { font-family: var(--display); font-size: 1.1rem; color: #fff; line-height: 1; }
-.bbf-crp__var-l { font-family: var(--bd); font-size: .58rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--mut); margin-top: .2rem; text-align: center; }
-.bbf-crp__score {
-  display: flex; flex-direction: column; align-items: center; padding: .5rem 0;
-  border-radius: 10px; background: rgba(245, 200, 0, .07); border: 1px solid rgba(245, 200, 0, .25);
-}
-.bbf-crp__score-v { font-family: var(--display); font-size: 2.4rem; line-height: 1; color: var(--yel); text-shadow: 0 2px 18px rgba(245, 200, 0, .3); }
-.bbf-crp__score-l { font-family: var(--hb); font-size: .6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); margin-top: .2rem; }
-.bbf-crp__proj { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-.bbf-crp__proj-cell { display: flex; flex-direction: column; align-items: center; background: rgba(9, 9, 9, .4); border: 1px solid var(--line); border-radius: 8px; padding: .5rem .3rem; }
-.bbf-crp__proj-v { font-family: var(--display); font-size: 1.2rem; color: #fff; line-height: 1; }
-.bbf-crp__proj-l { font-family: var(--bd); font-size: .56rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--mut); margin-top: .2rem; }
-
-@media (max-width: 720px) {
-  .bbf-lobby { grid-template-columns: 1fr; }
-}
+.bbf-gps__form { background: var(--gry); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; }
+.bbf-gps__quick { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .8rem; }
+.bbf-gps__chip { font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; color: var(--wht); background: rgba(255,69,0,.12); border: 1px solid rgba(255,69,0,.45); border-radius: 8px; padding: .5rem .9rem; cursor: pointer; }
+.bbf-gps__chip:disabled { opacity: .5; cursor: not-allowed; }
+.bbf-gps__inputrow { display: flex; gap: .6rem; align-items: stretch; }
+.bbf-gps__inputrow .bbf-input { flex: 1; }
 
 .bbf-gps__result { margin-top: 1.3rem; }
 .bbf-gps__modality { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
@@ -125,49 +85,16 @@
 .bbf-gps__cns-body { font-family: var(--bd); font-size: .92rem; font-weight: 600; line-height: 1.5; color: rgba(255,255,255,.82); }
 .bbf-gps__cns-body b { color: #fff; }
 
-/* ── Live Respiratory Sync — breathing pacer above the timeline ───────────── */
-.bbf-resp {
-  display: flex; align-items: center; gap: 1rem; margin: 1.2rem 0 .9rem;
-  background: linear-gradient(135deg, rgba(106, 13, 173, .18), rgba(10, 4, 5, .7));
-  border: 1px solid rgba(157, 39, 201, .4); border-radius: 12px; padding: .9rem 1.1rem;
-}
-.bbf-resp__ring {
-  position: relative; width: 46px; height: 46px; flex-shrink: 0; border-radius: 50%;
-  border: 2px solid rgba(245, 200, 0, .35);
-  display: flex; align-items: center; justify-content: center;
-  animation: bbf-breathe 8s ease-in-out infinite;
-}
-.bbf-resp__core { width: 16px; height: 16px; border-radius: 50%; background: var(--yel); box-shadow: 0 0 14px rgba(245, 200, 0, .7); animation: bbf-breathe-core 8s ease-in-out infinite; }
-.bbf-resp__meta { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
-.bbf-resp__kicker { font-family: var(--hb); font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--purl); }
-.bbf-resp__cue { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: rgba(255, 255, 255, .8); }
-.bbf-resp__clock { font-family: var(--display); font-size: 1.05rem; color: #fff; letter-spacing: .5px; }
-.bbf-resp__clock-l { font-family: var(--bd); font-size: .6rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
-@keyframes bbf-breathe { 0%, 100% { transform: scale(1); border-color: rgba(157, 39, 201, .5); } 50% { transform: scale(1.18); border-color: rgba(245, 200, 0, .6); } }
-@keyframes bbf-breathe-core { 0%, 100% { transform: scale(.7); opacity: .7; } 50% { transform: scale(1.15); opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .bbf-resp__ring, .bbf-resp__core { animation: none; } }
-
-/* ── Metabolic Timeline Breakdown — high-end telemetry dashboard ───────────── */
-.bbf-tl__h { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 0 0 .7rem; }
-.bbf-tl__h-title { font-family: var(--hb); font-size: .9rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); }
-.bbf-tl__h-meta { font-family: var(--bd); font-size: .72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
-.bbf-tl { display: flex; flex-direction: column; gap: .4rem; }
-.bbf-tl__row {
-  display: grid; grid-template-columns: 70px 44px 1fr; gap: .9rem; align-items: stretch;
-  background: #0a0405; border: 1px solid var(--line); border-left: 3px solid var(--phase-accent, #FF4500);
-  border-radius: 8px; padding: .65rem .85rem;
-}
-.bbf-tl__time { display: flex; flex-direction: column; justify-content: center; }
-.bbf-tl__range { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .95rem; font-weight: 700; color: #fff; letter-spacing: .5px; }
-.bbf-tl__dur { font-family: var(--bd); font-size: .62rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
-.bbf-tl__o2 { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: .25rem; }
-.bbf-tl__o2-track { position: relative; width: 8px; height: 30px; border-radius: 999px; background: rgba(255, 255, 255, .07); overflow: hidden; display: flex; align-items: flex-end; }
-.bbf-tl__o2-fill { width: 100%; border-radius: 999px; opacity: .9; }
-.bbf-tl__o2-v { font-family: var(--bd); font-size: .6rem; font-weight: 800; letter-spacing: .3px; color: var(--phase-accent, #FF4500); }
-.bbf-tl__main { display: flex; flex-direction: column; gap: .15rem; min-width: 0; justify-content: center; }
-.bbf-tl__phase { font-family: var(--hb); font-size: .74rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--phase-accent, #FF4500); }
-.bbf-tl__label { font-family: var(--bd); font-size: .95rem; font-weight: 700; color: #fff; line-height: 1.3; }
-.bbf-tl__target { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; color: var(--gold-soft); }
+.bbf-gps__grid-h { font-family: var(--hb); font-size: .9rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); margin: 1.2rem 0 .7rem; }
+.bbf-gps__grid { display: flex; flex-direction: column; gap: .45rem; }
+.bbf-gps__step { display: grid; grid-template-columns: 72px 1fr; gap: .9rem; align-items: stretch; background: #0a0405; border: 1px solid var(--line); border-left: 3px solid var(--phase-accent, #FF4500); border-radius: 8px; padding: .65rem .85rem; }
+.bbf-gps__step-time { display: flex; flex-direction: column; justify-content: center; }
+.bbf-gps__step-range { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .95rem; font-weight: 700; color: #fff; letter-spacing: .5px; }
+.bbf-gps__step-dur { font-family: var(--bd); font-size: .64rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
+.bbf-gps__step-main { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
+.bbf-gps__step-phase { font-family: var(--hb); font-size: .74rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--phase-accent, #FF4500); }
+.bbf-gps__step-label { font-family: var(--bd); font-size: .95rem; font-weight: 700; color: #fff; line-height: 1.3; }
+.bbf-gps__step-target { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; color: var(--gold-soft); }
 
 /* The Sovereign Toast — gold ROI banner */
 .bbf-gps__toast { position: relative; margin-top: 1.3rem; background: linear-gradient(135deg, rgba(245,200,0,.1), rgba(13,1,26,.75)); border: 1px solid rgba(245,200,0,.45); border-radius: 12px; padding: 1.1rem 1.2rem; overflow: hidden; }
@@ -182,7 +109,62 @@
 
 .bbf-gps__fallback { font-family: var(--bd); font-size: .76rem; font-weight: 600; font-style: italic; color: var(--mut); margin-top: .8rem; }
 
-/* ── Rate-limit toast — fixed, clean, auto-dismissing ─────────────────────── */
+/* ── Cardio Configurator (Phase 22.y) — client-side prescription preview ────── */
+.bbf-cfg { margin-bottom: 2rem; border: 1px solid var(--line); border-top: 3px solid var(--cfg-accent, #FF4500); border-radius: 14px; padding: 1.3rem 1.3rem 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,.015), transparent 40%); }
+.bbf-cfg__head { margin-bottom: 1.1rem; }
+.bbf-cfg__sub { font-family: var(--bd); font-size: .9rem; color: var(--mut); line-height: 1.5; margin: .3rem 0 0; max-width: 62ch; }
+.bbf-cfg__selectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .8rem; margin-bottom: 1.3rem; }
+
+/* Dynamic CRP Formula card */
+.bbf-crp { position: relative; overflow: hidden; border: 1px solid rgba(245,200,0,.4); border-radius: 12px; padding: 1.1rem 1.2rem; background: linear-gradient(135deg, rgba(245,200,0,.08), rgba(13,1,26,.7)); margin-bottom: 1.2rem; }
+.bbf-crp__glow { position: absolute; top: -45%; left: -8%; width: 220px; height: 220px; background: radial-gradient(circle, rgba(245,200,0,.16), transparent 70%); pointer-events: none; }
+.bbf-crp__body { position: relative; z-index: 1; }
+.bbf-crp__kicker { font-family: var(--hb); font-size: .7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); margin-bottom: .6rem; }
+.bbf-crp__formula { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+.bbf-crp__term { font-family: var(--display); font-size: 1.7rem; color: var(--yel); line-height: 1; }
+.bbf-crp__op { font-family: var(--display); font-size: 1.5rem; color: var(--mut); }
+.bbf-crp__frac { display: inline-flex; flex-direction: column; align-items: center; gap: .15rem; }
+.bbf-crp__num { font-family: var(--hb); font-size: .92rem; letter-spacing: 1px; text-transform: uppercase; color: var(--wht); }
+.bbf-crp__bar { width: 100%; height: 2px; background: rgba(245,200,0,.55); }
+.bbf-crp__den { font-family: var(--hb); font-size: .92rem; letter-spacing: 1px; text-transform: uppercase; color: var(--wht); }
+.bbf-crp__plug { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82rem; color: var(--gold-soft); margin: .6rem 0 .1rem; letter-spacing: .3px; }
+.bbf-crp__metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: .7rem; margin-top: 1rem; }
+.bbf-crp__metric { display: flex; flex-direction: column; gap: .2rem; border: 1px solid var(--line); border-radius: 9px; padding: .6rem .7rem; background: rgba(0,0,0,.3); }
+.bbf-crp__metric--hero { border-color: rgba(245,200,0,.45); background: rgba(245,200,0,.07); }
+.bbf-crp__metric-val { font-family: var(--display); font-size: 1.5rem; line-height: 1; color: #fff; }
+.bbf-crp__metric--hero .bbf-crp__metric-val { color: var(--yel); }
+.bbf-crp__metric-unit { font-family: var(--bd); font-size: .8rem; color: var(--mut); }
+.bbf-crp__metric-lbl { font-family: var(--bd); font-size: .62rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--mut); }
+
+/* Respiratory Sync visual timer */
+.bbf-resp { display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid var(--line); border-radius: 12px; padding: 1.2rem 1.1rem 1.3rem; background: rgba(0,0,0,.35); margin-bottom: 1.2rem; }
+.bbf-resp__kicker { font-family: var(--hb); font-size: .7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--resp-accent, #9D27C9); }
+.bbf-resp__stage { display: flex; align-items: center; justify-content: center; height: 170px; width: 100%; margin: .6rem 0 .2rem; }
+.bbf-resp__orb { display: flex; align-items: center; justify-content: center; width: 150px; height: 150px; border-radius: 50%; transition-property: transform; transition-timing-function: linear; background: radial-gradient(circle at 38% 32%, color-mix(in srgb, var(--resp-accent, #9D27C9) 55%, transparent), color-mix(in srgb, var(--resp-accent, #9D27C9) 12%, transparent) 70%); border: 2px solid var(--resp-accent, #9D27C9); box-shadow: 0 0 36px -6px var(--resp-accent, #9D27C9); }
+.bbf-resp__orb.is-running { box-shadow: 0 0 50px -4px var(--resp-accent, #9D27C9); }
+.bbf-resp__count { font-family: var(--display); font-size: 2rem; color: #fff; line-height: 1; }
+.bbf-resp__phase { font-family: var(--hb); font-size: 1.05rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--resp-accent, #9D27C9); margin-top: .3rem; }
+.bbf-resp__pattern { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: var(--mut); margin-top: .35rem; }
+.bbf-resp__cycle { color: var(--wht); }
+.bbf-resp__btn { font-family: var(--hb); font-size: .88rem; letter-spacing: 2px; text-transform: uppercase; color: #fff; background: transparent; border: 1px solid var(--resp-accent, #9D27C9); border-radius: 8px; padding: .65rem 1.3rem; cursor: pointer; margin-top: 1rem; }
+.bbf-resp__btn:hover { background: color-mix(in srgb, var(--resp-accent, #9D27C9) 16%, transparent); }
+
+/* Metabolic Timeline Breakdown */
+.bbf-metab__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.bbf-metab__kicker { font-family: var(--hb); font-size: .85rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); }
+.bbf-metab__total { font-family: var(--bd); font-size: .82rem; font-weight: 700; color: var(--gold-soft); }
+.bbf-metab__grid { display: flex; flex-direction: column; gap: .55rem; }
+.bbf-metab__row { border: 1px solid var(--line); border-left: 3px solid var(--metab-accent, #FF4500); border-radius: 8px; padding: .7rem .85rem; background: #0a0405; }
+.bbf-metab__row-top { display: flex; align-items: baseline; justify-content: space-between; gap: .7rem; }
+.bbf-metab__phase { font-family: var(--hb); font-size: .95rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--metab-accent, #FF4500); }
+.bbf-metab__mins { font-family: var(--bd); font-size: .78rem; font-weight: 700; color: var(--mut); white-space: nowrap; }
+.bbf-metab__o2 { display: flex; align-items: center; gap: .6rem; margin: .5rem 0 .35rem; }
+.bbf-metab__o2-track { flex: 1; height: 7px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; }
+.bbf-metab__o2-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--metab-accent, #FF4500), color-mix(in srgb, var(--metab-accent, #FF4500) 45%, #fff)); }
+.bbf-metab__o2-val { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78rem; font-weight: 700; color: #fff; white-space: nowrap; }
+.bbf-metab__note { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: rgba(249,245,255,.72); }
+
+/* ── Rate-limit toast (429 from bbf-agentic-cardio) — clean, auto-dismissing ── */
 .bbf-toast {
   position: fixed; right: 1rem; bottom: calc(1rem + var(--sb, 0px)); z-index: 60;
   display: flex; align-items: center; gap: .8rem; max-width: 360px;
@@ -195,10 +177,7 @@
 .bbf-toast__body { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
 .bbf-toast__title { font-family: var(--hb); font-size: .66rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); }
 .bbf-toast__msg { font-family: var(--bd); font-size: .92rem; font-weight: 700; color: #fff; line-height: 1.35; }
-.bbf-toast__close {
-  margin-left: auto; flex-shrink: 0; background: none; border: none; cursor: pointer;
-  font-size: 1.3rem; line-height: 1; color: var(--mut); padding: 0 .2rem;
-}
+.bbf-toast__close { margin-left: auto; flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 1.3rem; line-height: 1; color: var(--mut); padding: 0 .2rem; }
 .bbf-toast__close:hover { color: #fff; }
 @keyframes bbf-toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .bbf-toast { animation: none; } }

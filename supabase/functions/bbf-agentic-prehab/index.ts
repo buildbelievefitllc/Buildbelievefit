@@ -47,6 +47,43 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+// Source IP for the per-IP rate limiter (Supabase edge passes x-forwarded-for).
+function clientIp(req: Request): string {
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  return req.headers.get('x-real-ip') || 'unknown';
+}
+
+// Per-IP daily rate check via the bbf_prehab_ip_rate_check RPC (raw REST, the
+// same idiom this fn uses for bbf_get_uid_map). Returns null on any failure so
+// the caller can FAIL-OPEN (never block a genuine athlete on an infra hiccup).
+async function prehabRateCheck(
+  ip: string, cap: number, supabaseUrl: string, supabaseKey: string,
+): Promise<{ allowed: boolean; count: number } | null> {
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/bbf_prehab_ip_rate_check`, {
+      method: 'POST',
+      headers: {
+        'apikey':        supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({ p_ip: ip, p_cap: cap }),
+    });
+    if (!res.ok) {
+      console.error(`[bbf-agentic-prehab v2] rate-check HTTP ${res.status} — fail-open`);
+      return null;
+    }
+    const rows = await res.json();
+    const row  = Array.isArray(rows) ? rows[0] : rows;
+    if (!row || typeof row.allowed !== 'boolean') return null;
+    return { allowed: row.allowed, count: Number(row.current_count) || 0 };
+  } catch (e) {
+    console.error(`[bbf-agentic-prehab v2] rate-check threw (fail-open): ${(e as Error).message}`);
+    return null;
+  }
+}
+
 // Phase 7 Workstream B · Prehab assignment leverages ACWR + cold-start
 // inputs. Sonnet 4.6 is the right tier per CEO routing rules · enough
 // reasoning for the 3-movement matrix without Opus-tier overspend.
@@ -302,14 +339,12 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST')    return jsonResponse({ error: 'method_not_allowed' }, 405);
 
-  const expectedToken = Deno.env.get('BBF_COACH_AGENT_TOKEN');
-  if (expectedToken) {
-    const sent = req.headers.get('x-bbf-admin-token') || '';
-    if (sent !== expectedToken) {
-      console.warn('[bbf-agentic-prehab v2] rejected: bad/missing X-BBF-Admin-Token');
-      return jsonResponse({ error: 'unauthorized' }, 401);
-    }
-  }
+  // Client-facing endpoint: athletes call with the anon key (gateway routing),
+  // NOT the admin token — so the optional X-BBF-Admin-Token gate is removed (it
+  // locked out real clients whenever BBF_COACH_AGENT_TOKEN is set). Parity with
+  // bbf-agentic-cardio. TODO(auth): enforce per-user auth.uid() once the Supabase
+  // Auth client-login cutover ships; consider a per-IP rate limiter (mirror
+  // bbf_cardio_rate_check) to cap token burn in the interim.
 
   let payload: any;
   try { payload = await req.json(); }
@@ -329,13 +364,35 @@ serve(async (req: Request) => {
   const ctx      = (client_context && typeof client_context === 'object') ? client_context : {};
   const todayDate = (typeof ctx.today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ctx.today)) ? ctx.today : utcToday();
 
-  // ─── 2. Resolve uuid + pull demographics & today's workload ────
+  // ─── Supabase config (rate limiter + data fetches) ─────────────
   const SUPABASE_URL         = Deno.env.get('SUPABASE_URL');
   const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     console.error('[bbf-agentic-prehab v2] missing Supabase config — returning baseline fallback');
     return jsonResponse(defaultBaselineMatrix(), 200);
   }
+
+  // ─── Per-IP daily rate limit (DB-backed · mirrors bbf_cardio_rate_check) ──
+  // Caps Sonnet spend per source IP per UTC day. Generous for genuine athletes,
+  // hard ceiling for rapid-fire scripts. Fail-OPEN (rateCheck returns null on a
+  // DB hiccup) so a real athlete is never blocked by infra.
+  {
+    const ip  = clientIp(req);
+    const cap = Math.max(1, Number(Deno.env.get('BBF_PREHAB_DAILY_CAP') || 40));
+    const rl  = await prehabRateCheck(ip, cap, SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    if (rl && !rl.allowed) {
+      const now   = new Date();
+      const reset = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+      const retry = Math.max(1, Math.ceil((reset - now.getTime()) / 1000));
+      console.warn(`[bbf-agentic-prehab v2] rate-limited ip=${ip} count=${rl.count} cap=${cap}`);
+      return new Response(
+        JSON.stringify({ error: 'rate_limited', detail: 'Daily prehab limit reached. Resets at 00:00 UTC.', retry_after_seconds: retry }),
+        { status: 429, headers: { ...CORS, 'Content-Type': 'application/json', 'Retry-After': String(retry) } },
+      );
+    }
+  }
+
+  // ─── 2. Resolve uuid + pull demographics & today's workload ────
 
   let uuid: string | null = null;
   if (typeof actual_uuid === 'string' && isUuid(actual_uuid)) {
