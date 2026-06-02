@@ -10,6 +10,22 @@ durable architecture, standards, and guardrails previously scattered across the
 
 ---
 
+## ⛔ EXECUTIVE BOUNDARY: ZERO MANUAL LABOR
+
+> **Standing CEO order (Akeem). Highest operating precedence within this file — read before acting.**
+
+The CEO (Akeem) does not execute manual labor. Do not bounce unfinished tasks back to the executive desk.
+
+If you encounter an environmental blocker (e.g., expired tokens, missing binaries, port conflicts), you must exhaust every programmatic bypass, CLI workaround, and script injection available to you to fix it yourself.
+
+Never ask the CEO to leave the terminal, click web links, authorize external platforms manually, or copy-paste code unless there is absolutely zero programmatic path forward.
+
+**You are the machine. You do the lifting.**
+
+> *Scope:* this doctrine governs **who does the work** — it eliminates manual hand-offs to the executive desk; it does **not** suspend the LOCKED brand guardrails (§2), the security & data boundaries (§7), or the source-of-truth hierarchy above. "Zero manual labor" means the machine carries the load **inside** that constraint envelope, never by crossing it.
+
+---
+
 ## 1 · What BBF is
 
 Build Believe Fit is a universal human-optimization fitness platform (PWA + AI
