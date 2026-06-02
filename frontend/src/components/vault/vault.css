@@ -525,6 +525,14 @@
 .cv-tab:hover { color: rgba(249, 245, 255, .85); }
 .cv-tab.is-active { color: var(--wht); border-bottom-color: var(--yel); text-shadow: 0 0 16px rgba(245, 200, 0, .4); }
 .cv-tab:focus-visible { outline: 2px solid var(--yel); outline-offset: -4px; }
+/* Vault Upsell Funnel — padlocked tabs stay VISIBLE (visibility as a sales tool)
+   but read as locked: muted ink + a small lock glyph. They remain clickable — the
+   click swaps the pane for the UpgradeOverlay. Locked-active uses a purple (not
+   gold) underline so a selected-but-locked tab reads distinctly. */
+.cv-tab.is-locked { color: rgba(249, 245, 255, .4); }
+.cv-tab.is-locked:hover { color: rgba(249, 245, 255, .62); }
+.cv-tab.is-locked.is-active { color: var(--wht); border-bottom-color: var(--pur); text-shadow: none; }
+.cv-tab-lock { font-size: .72em; margin-left: .32rem; opacity: .85; vertical-align: baseline; }
 
 /* ════════════════════════════════════════════════════════════════════════════
    VAULT PROTOTYPE HEADER (Phase 25) — persistent client-profile header that sits
