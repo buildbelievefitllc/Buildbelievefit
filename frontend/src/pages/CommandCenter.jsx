@@ -20,6 +20,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import CommandRoster from '../components/command/CommandRoster.jsx';
 import ClientHub from '../components/command/ClientHub.jsx';
+import AccessControl from '../components/command/AccessControl.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import ClientAnalytics from '../components/command/ClientAnalytics.jsx';
 import Comlink from '../components/command/Comlink.jsx';
@@ -46,6 +47,9 @@ const TABS = [
   // "Founder Five" master-detail roster is the Command Center centerpiece (default).
   { id: 'roster', labelKey: 'cmd-tab-roster', Panel: ClientHub, needsToken: true },
   { id: 'command', labelKey: 'cmd-tab-command', Panel: CommandRoster, needsToken: true },
+  // Executive Access Control — tier visibility + reassignment + the account kill
+  // switch. Reads/writes through bbf-admin-roster (service-role, token-gated).
+  { id: 'access', labelKey: 'cmd-tab-access', Panel: AccessControl, needsToken: true },
   { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry, needsToken: true },
   { id: 'analytics', labelKey: 'cmd-tab-analytics', Panel: ClientAnalytics, needsToken: true },
   { id: 'comlink', labelKey: 'cmd-tab-comlink', Panel: Comlink, needsToken: true },

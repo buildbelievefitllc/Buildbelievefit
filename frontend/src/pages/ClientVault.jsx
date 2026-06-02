@@ -26,6 +26,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import LangToggle from '../components/LangToggle.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
+import { useVaultSessionGuard } from '../lib/sessionGuard.js';
 import VaultHeader from '../components/vault/VaultHeader.jsx';
 import VaultHub from '../components/vault/VaultHub.jsx';
 import Program from '../components/vault/Program.jsx';
@@ -54,6 +55,11 @@ export default function ClientVault() {
   const { t } = useLang();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(TABS[0].id);
+
+  // Kill-switch enforcement: if the CEO locks this account from the Command Center,
+  // the athlete's vault_token is revoked server-side; this heartbeat detects it and
+  // ejects to /login. No-op for admins (never lockable) and fails safe on a blip.
+  useVaultSessionGuard();
 
   // The login slug IS the profile key (bbf_get_profile_metrics resolves uid).
   const uid = user?.username || user?.id || '';
