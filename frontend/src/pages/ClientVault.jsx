@@ -24,6 +24,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
+import VaultHeader from '../components/vault/VaultHeader.jsx';
 import VaultHub from '../components/vault/VaultHub.jsx';
 import Program from '../components/vault/Program.jsx';
 import Nutrition from '../components/vault/Nutrition.jsx';
@@ -34,13 +35,13 @@ import Prehab from '../components/vault/Prehab.jsx';
 import '../components/vault/vault.css';
 
 const TABS = [
-  { id: 'hub', label: 'Hub' },
-  { id: 'program', label: 'Program' },
-  { id: 'generator', label: 'Generator' },
-  { id: 'cardio', label: 'Smart Cardio', testid: 'vault-tab-cardio' },
-  { id: 'prehab', label: 'Prehab', testid: 'vault-tab-prehab' },
-  { id: 'nutrition', label: 'Nutrition' },
-  { id: 'settings', label: 'Settings' },
+  { id: 'hub', label: 'Hub', icon: '▦' },
+  { id: 'program', label: 'Program', icon: '▤' },
+  { id: 'generator', label: 'Generator', icon: '✦' },
+  { id: 'cardio', label: 'Smart Cardio', icon: '♥', testid: 'vault-tab-cardio' },
+  { id: 'prehab', label: 'Prehab', icon: '✚', testid: 'vault-tab-prehab' },
+  { id: 'nutrition', label: 'Nutrition', icon: '◆' },
+  { id: 'settings', label: 'Settings', icon: '⚙' },
 ];
 
 export default function ClientVault() {
@@ -84,6 +85,17 @@ export default function ClientVault() {
       </header>
 
       <div className="cv-container">
+        {/* Persistent client-profile header — stays fixed above the nested nav on
+            every tab (faithful to the AI Studio prototype). */}
+        <VaultHeader
+          profile={profile}
+          plans={plans}
+          displayName={displayName}
+          slug={user?.username || ''}
+          programKey={user?.programKey}
+          isAdmin={isAdmin}
+        />
+
         <nav className="cv-tabs" role="tablist" aria-label="Vault surfaces">
           {TABS.map((t) => {
             const active = t.id === activeTab;
@@ -97,6 +109,7 @@ export default function ClientVault() {
                 className={`cv-tab${active ? ' is-active' : ''}`}
                 data-testid={t.testid}
               >
+                {t.icon ? <span className="cv-tab-icon" aria-hidden="true">{t.icon}</span> : null}
                 {t.label}
               </button>
             );
@@ -111,10 +124,6 @@ export default function ClientVault() {
               profile={profile}
               isLoading={profileLoading}
               error={profileError}
-              displayName={displayName}
-              slug={user?.username || ''}
-              plans={plans}
-              programKey={user?.programKey}
             />
           )}
           {activeTab === 'program' && <Program plans={plans} profile={profile} />}
