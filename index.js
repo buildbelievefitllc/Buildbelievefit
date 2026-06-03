@@ -117,7 +117,9 @@ const SYSTEM_PROMPT_NUTRITION =
   '"meals": array of meal objects}. ' +
   'Each meal object has: ' +
   '{"m": meal label like "Breakfast", "Lunch", "Snack", "Dinner", "Snack 2", ' +
-  '"i": food description with macros in parentheses, e.g. "5 oz Chicken, 1/2 cup Brown Rice (~385 cal/40g P)"}. ' +
+  '"i": food description with macros in parentheses, e.g. "5 oz Chicken, 1/2 cup Brown Rice (~385 cal/40g P)", ' +
+  '"instructions": an array of 3-4 short, concise prep steps generated from THIS meal\'s specific ingredients ' +
+  '(e.g. ["Season and grill the chicken 6-7 min per side to 165F.", "Steam the broccoli 4 min until fork-tender.", "Plate the chicken over the warm rice."])}. ' +
   'Rules: ' +
   '1. Schedule meals around a sustainable 12/12 intermittent fasting window (8 AM to 8 PM). ' +
   '2. Use clean whole foods (chicken breast, steak, jasmine rice, sweet potatoes, broccoli, asparagus). ' +
@@ -205,7 +207,9 @@ const SYSTEM_PROMPT_YOUTH_NUTRITION =
   '"meals": array of meal objects}. ' +
   'Each meal object has: ' +
   '{"m": meal label like "Breakfast", "Pre-Practice Snack", "Lunch", "Post-Game Recovery", "Dinner", "Snack 2", ' +
-  '"i": food description with macros in parentheses, e.g. "1 cup oatmeal + banana + 2 tbsp peanut butter (~420 cal/15g P)"}. ' +
+  '"i": food description with macros in parentheses, e.g. "1 cup oatmeal + banana + 2 tbsp peanut butter (~420 cal/15g P)", ' +
+  '"instructions": an array of 3-4 short, concise prep steps generated from THIS meal\'s specific ingredients, ' +
+  'written age-appropriately and safe for a youth athlete (no knives/heat steps a minor should not do unsupervised)}. ' +
   'Rules: ' +
   '1. Output exactly 7 day objects. ' +
   '2. Schedule meals across the full waking day. NO fasting windows. ' +
@@ -269,7 +273,9 @@ const SYSTEM_PROMPT_NUTRITION_ONLY =
   '"i": full meal description with macros in parentheses, e.g. ' +
   '"American Grass-fed Bison & Sweet Potato Hash (450g, ~557 cal/27g P/19g C/42g F)" — ' +
   'pull name.en, serving_g, calories, protein_g, carbs_g, fat_g from the matrix entry, ' +
-  'scale them in concert if you applied a serving multiplier}. ' +
+  'scale them in concert if you applied a serving multiplier, ' +
+  '"instructions": an array of 3-4 short, concise prep steps generated from THIS meal\'s ' +
+  'core_ingredients in the matrix entry — actionable cooking/assembly cues, no commentary}. ' +
   'Output exactly 7 day objects.';
 
 // JSON validation helper — strips optional Markdown code fences and
@@ -1331,7 +1337,9 @@ app.post('/api/rotate-nutrition', async (req, res) => {
       "'cal' (a one-line calorie/protein summary, e.g. '~1,652 cal/day · High Protein'), " +
       "'goal' (one short sentence; if medical constraints exist, restate inline), " +
       "'days' (array of exactly 7 day objects, each with 'day' string and 'meals' array, " +
-      "each meal having 'm' label and 'i' portioned ingredients with calories+protein), " +
+      "each meal having 'm' label, 'i' portioned ingredients with calories+protein, and " +
+      "'instructions' — an array of 3-4 short, concise prep steps generated from THAT meal's " +
+      "specific ingredients), " +
       "and 'meal_ids_used' (an array of the meal IDs from the library you actually used). " +
       "No prose or markdown outside the JSON. ABSOLUTELY honor every constraint above.";
   } else {
@@ -1348,7 +1356,9 @@ app.post('/api/rotate-nutrition', async (req, res) => {
       "Strict Medical Constraints: " + (constraints || 'none stated') + ". " +
       "Previous Plan: " + (previousPlan || 'none provided') + ". " +
       "Provide high-protein, clean-carb meals respecting every constraint above. " +
-      "Return JSON with 'name', 'cal', 'goal', 'days' (7 day objects with 'day' + 'meals' [{m,i}]). " +
+      "Return JSON with 'name', 'cal', 'goal', 'days' (7 day objects with 'day' + 'meals' " +
+      "[{m, i, instructions}], where 'instructions' is an array of 3-4 short, concise prep " +
+      "steps generated from that meal's specific ingredients). " +
       "No prose outside JSON. ABSOLUTELY honor every constraint.";
   }
 
@@ -1370,7 +1380,14 @@ app.post('/api/rotate-nutrition', async (req, res) => {
                 type: 'object',
                 properties: {
                   m: { type: 'string' },
-                  i: { type: 'string' }
+                  i: { type: 'string' },
+                  // Auto-generated prep steps (3-4) derived from the meal's
+                  // ingredients. Declared here so the schema-locked response
+                  // actually carries them through instead of stripping the field.
+                  instructions: {
+                    type: 'array',
+                    items: { type: 'string' }
+                  }
                 },
                 required: ['m', 'i']
               }

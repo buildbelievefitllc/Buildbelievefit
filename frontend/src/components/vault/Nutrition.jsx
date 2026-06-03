@@ -36,6 +36,11 @@ const DONE_KEY = 'bbf.vault.nut.done.v1';
 const PACE_KEY = 'bbf.vault.nut.fastpace.v1';
 const EMPTY = [];
 
+// Clean fallback for a meal that loads without auto-generated prep steps (legacy
+// data, or a generation that returned macros but no instructions). NEVER surface a
+// "coach protocol pending" dead-end — the workflow is automated, not coach-gated.
+const PREP_FALLBACK = 'Standard macro preparation.';
+
 // Macro accent colours (legend boxes + volume-ratio segments).
 const MACRO_COLORS = { p: '#ff5d5d', c: '#4dc3ff', f: '#ffb547' };
 
@@ -361,7 +366,11 @@ function MealCard({ meal, done, onToggle }) {
               {steps.map((s, i) => <li key={i}>{s}</li>)}
             </ol>
           ) : (
-            <div className="nl-meal-prep-empty">Awaiting coach protocol…</div>
+            // Failsafe (CEO · Zero-Labor Doctrine): prep steps are now AUTO-GENERATED
+            // by the meal engine from each meal's ingredients. Legacy/edge meals that
+            // load without an instructions array degrade to a clean macro-prep line —
+            // never the old "Awaiting coach protocol" dead placeholder.
+            <div className="nl-meal-prep-empty">{PREP_FALLBACK}</div>
           )
         ) : null}
       </div>
