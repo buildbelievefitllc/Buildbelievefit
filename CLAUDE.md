@@ -72,7 +72,7 @@ const model = routeAndLog('bbf-comlink', 'kinematic_form_score'); // → Sonnet 
 |---|---|---|
 | HAIKU | `claude-haiku-4-5` | retries, narration, i18n, snapshots, forecasts (low-stakes) |
 | SONNET | `claude-sonnet-4-6` | vision/biomechanics, onboarding dialog, prehab (mid-complexity) |
-| OPUS | `claude-opus-4-7` | PAR-Q+, wellbeing/ED escalation, cardiac intercept (**safety-critical only**) |
+| OPUS | `claude-opus-4-8` | PAR-Q+, wellbeing/ED escalation, cardiac intercept (**safety-critical only**) |
 
 Rules:
 - Add new use-cases to the `UseCase` type + `MODEL_MAP` — never inline a model string.
@@ -80,11 +80,13 @@ Rules:
 - `override` exists for emergencies only.
 - Every call should emit the `(function, use_case, model)` log triple via `routeAndLog`.
 
-> **⚠️ Open decision — Opus 4.7 → 4.8:** the router and all edge functions currently
-> pin **Opus 4.7**. If the team standardizes on Opus 4.8, change the single `MODELS.OPUS`
-> constant in `model-router.ts` (and audit the few functions that still inline a model id:
-> `bbf-co-coach`, `bbf-agentic-pathfinder`, `bbf-agentic-peaking`). Do not assume 4.8 until
-> that change lands.
+> **✅ LOCKED — Opus 4.8 (CEO order, Full Fleet Sync):** the Opus tier is standardized on
+> **`claude-opus-4-8`**. `MODELS.OPUS` in `model-router.ts` is the single source of truth and
+> is pinned to 4.8 — never inline a model string in a caller. The remaining `claude-opus-4-7`
+> strings in a few function header comments (`bbf-co-coach`, `bbf-agentic-pathfinder`,
+> `bbf-agentic-peaking`, `bbf-agentic-cardio`) are stale **doc examples only** (response-shape
+> illustrations), not live pins — refresh opportunistically. Production deploy carries this
+> 4.8 router to the live environment on the next edge push.
 
 ## 5 · Supabase edge function conventions
 
