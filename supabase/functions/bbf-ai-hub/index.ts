@@ -47,6 +47,14 @@
 //   body (`tierMatrix`) — that always wins. The DEFAULT_TIER_MATRIX below
 //   is a fallback mirror for standalone/uncooperative callers and MUST be
 //   kept in sync with chatboxContext.js until a shared module is extracted.
+//
+//   ENTITLEMENT BRIDGE: each tier may carry `unlocks[]` — the paid surfaces it
+//   unlocks vs. a lower tier (e.g. Momentum $19.99 → Prehab). On the live request
+//   this is DERIVED from frontend `lib/entitlements.js` (the Vault's unlock SoT)
+//   and arrives in `tierMatrix`; the fallback below hand-mirrors it. (We bridge
+//   entitlements.js, not the bbf_tiers table: bbf_tiers is pricing-only — no
+//   feature/unlock columns — and is RLS service-role-only, so it can't tell the
+//   agent what a tier unlocks. entitlements.js is the unlock source of truth.)
 // ═══════════════════════════════════════════════════════════════════════
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
@@ -159,6 +167,10 @@ interface Tier {
   bestFor: string;
   highlights: string[];
   options?: TierOption[];
+  // Premium surfaces this tier unlocks vs. a lower tier in the same path. On the
+  // live request this is DERIVED from entitlements.js (frontend chatboxContext.js)
+  // and shipped in `tierMatrix`; the fallback mirror below hand-mirrors it.
+  unlocks?: string[];
 }
 
 // Custom Local Weekly training is by-quote only (no fixed price) — route to email.
@@ -166,7 +178,9 @@ const CUSTOM_QUOTE_EMAIL = 'buildbelievefitllc@buildbelievefit.fitness';
 
 // Mirror of chatboxContext.js TIER_MATRIX (2026-06 marketing matrix). Slugs in
 // the comments map to the canonical Stripe SKUs in stripe-webhook/index.ts.
-// Hybrid dual pricing = session frequency (3x/week vs 4x/week).
+// Hybrid dual pricing = session frequency (3x/week vs 4x/week). `unlocks` mirrors
+// what chatboxContext.js derives from entitlements.js (Momentum/Autonomous/Hybrid
+// → Prehab; Catalyst keeps it padlocked — that gap is the upsell hook).
 const DEFAULT_TIER_MATRIX: Tier[] = [
   // ── Category 1 · Online Fitness — app + AI, self-directed, monthly ──
   {
@@ -198,6 +212,10 @@ const DEFAULT_TIER_MATRIX: Tier[] = [
       'Full exercise library + form cues',
       'TDEE calculator + macro targets',
     ],
+    // Entry tier that unlocks Prehab (entitlements.js: momentum → FITNESS_PRO).
+    unlocks: [
+      'Prehab suite — the Friction Scanner / Recovery Matrix: joint-health, mobility & injury-prevention movement protocols',
+    ],
   },
   {
     id: 'autonomous', // stripe: autonomous
@@ -212,6 +230,10 @@ const DEFAULT_TIER_MATRIX: Tier[] = [
       'Advanced AI periodization tuned to logged data',
       'Strict progress + metabolic data capture',
       'Priority access to new BBF features',
+    ],
+    // entitlements.js: autonomous → FITNESS_PRO → Prehab unlocked.
+    unlocks: [
+      'Prehab suite — the Friction Scanner / Recovery Matrix: joint-health, mobility & injury-prevention movement protocols',
     ],
   },
 
@@ -299,6 +321,10 @@ const DEFAULT_TIER_MATRIX: Tier[] = [
       { label: '3 sessions/week', price: '$399' },
       { label: '4 sessions/week', price: '$499' },
     ],
+    // Hybrid = Founder-Direct God Mode (entitlements.js: → ALL) → Prehab unlocked.
+    unlocks: [
+      'Prehab suite — the Friction Scanner / Recovery Matrix: joint-health, mobility & injury-prevention movement protocols',
+    ],
   },
   {
     id: 'transformation', // stripe: transformation_8wk_3x / transformation_8wk_4x
@@ -317,6 +343,10 @@ const DEFAULT_TIER_MATRIX: Tier[] = [
     options: [
       { label: '3 sessions/week', price: '$499' },
       { label: '4 sessions/week', price: '$649' },
+    ],
+    // Hybrid = Founder-Direct God Mode (entitlements.js: → ALL) → Prehab unlocked.
+    unlocks: [
+      'Prehab suite — the Friction Scanner / Recovery Matrix: joint-health, mobility & injury-prevention movement protocols',
     ],
   },
   {
@@ -337,6 +367,10 @@ const DEFAULT_TIER_MATRIX: Tier[] = [
       { label: '3 sessions/week', price: '$699' },
       { label: '4 sessions/week', price: '$899' },
     ],
+    // Hybrid = Founder-Direct God Mode (entitlements.js: → ALL) → Prehab unlocked.
+    unlocks: [
+      'Prehab suite — the Friction Scanner / Recovery Matrix: joint-health, mobility & injury-prevention movement protocols',
+    ],
   },
 ];
 
@@ -347,7 +381,8 @@ const SALES_DIRECTIVES = [
   'Quote prices ONLY from the tier matrix provided. Never invent, discount, bundle, or estimate a price. For Hybrid packages, state BOTH session-frequency options (e.g., "$399 for 3 sessions/week, $499 for 4").',
   `CUSTOM LOCAL WEEKLY: if a prospect wants ongoing, bespoke weekly in-person training beyond the fixed Hybrid packages, do NOT quote a number — tell them to email ${CUSTOM_QUOTE_EMAIL} to request a custom quote, and set cta="pathfinder" so Akeem also captures them.`,
   'ALWAYS CLOSE with a clear next step: route the prospect to the Pathfinder application (cta="pathfinder") or, for macro/calorie questions, the TDEE calculator (cta="tdee").',
-  'Never give medical advice. If a prospect raises an injury or health condition, note the PAR-Q intake captures it and Akeem reviews it personally — set cta="pathfinder".',
+  'JOINT / MOBILITY → PREHAB UPSELL: when a prospect raises joint health, stiffness, mobility, nagging aches, an old injury, or injury-prevention as a GOAL, lead with the Prehab suite (the in-app joint-health / mobility / injury-prevention protocols). State plainly that Momentum ($19.99/mo) is the entry tier that unlocks Prehab, and only claim an unlock the matrix marks "Unlocks" for that tier. This is product fit — NOT medical advice: never diagnose, prescribe, or promise a clinical outcome.',
+  'MEDICAL SAFETY: never give medical advice. If a prospect describes ACTIVE pain, an acute injury, or a diagnosed condition, do not assess it — note that the PAR-Q intake captures it and Akeem reviews it personally, and set cta="pathfinder".',
   'Never disparage competitors. Sell BBF on the Sovereign Gold Standard: biomechanical precision, joint protection, real periodization.',
   'Keep replies tight and persuasive — 2-4 sentences. You are a closer in conversation, not a brochure.',
   'BBF is trilingual: reply in the prospect\'s language (English, Spanish, or Portuguese). If a language is specified, use it; otherwise mirror the language of their last message.',
@@ -372,13 +407,18 @@ function buildSystemPrompt(matrix: Tier[], lang?: string): string {
       const opt = Array.isArray(t.options) && t.options.length
         ? `\n       Options: ${t.options.map((o) => `${o.label} → ${o.price}`).join(' · ')}`
         : '';
-      return [
+      const block = [
         `    ${n}. ${t.name} — ${t.price} ${t.cadence}`,
         `       Model: ${t.model}`,
         `       Best for: ${t.bestFor}${opt}`,
         '       Includes:',
         hl,
-      ].join('\n');
+      ];
+      if (Array.isArray(t.unlocks) && t.unlocks.length) {
+        block.push('       Unlocks (vs. a lower tier in this path):');
+        block.push(t.unlocks.map((u) => `        - ${u}`).join('\n'));
+      }
+      return block.join('\n');
     }).join('\n\n');
     return `  ${cat}\n${lines}`;
   }).join('\n\n');
