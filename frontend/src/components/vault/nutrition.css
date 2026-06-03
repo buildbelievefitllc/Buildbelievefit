@@ -469,3 +469,104 @@
   background: rgba(255, 80, 80, .1);
   border-color: rgba(255, 80, 80, .35);
 }
+
+/* ── Fasting Pace selector + macro tracking (CEO override: IF optional) ─────── */
+/* The pace selector and the daily macro card sit side by side on wide screens
+   and stack on mobile. */
+.nl-fastfuel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+@media (min-width: 760px) {
+  .nl-fastfuel { grid-template-columns: 1fr 1fr; }
+}
+
+.nl-fast-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-bottom: .8rem;
+}
+.nl-fast-kicker {
+  font-family: var(--hb);
+  font-size: .85rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+.nl-fast-note {
+  font-family: var(--bd);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+
+/* Pace chips — Off + the five intervals (radiogroup). */
+.nl-pace {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-bottom: 1rem;
+}
+.nl-pace-chip {
+  flex: 1 1 auto;
+  min-width: 62px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .12rem;
+  background: #0d0d0d;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: .5rem .35rem;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.nl-pace-chip:hover { border-color: rgba(245, 200, 0, .4); transform: translateY(-1px); }
+.nl-pace-chip:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
+.nl-pace-chip.is-active {
+  border-color: var(--yel);
+  background: rgba(245, 200, 0, .08);
+  box-shadow: 0 0 0 1px var(--yel);
+}
+/* "Off" reads neutral (not gold) even when active — it's the disabled state. */
+.nl-pace-chip.is-off.is-active {
+  border-color: var(--mut);
+  background: rgba(255, 255, 255, .05);
+  box-shadow: 0 0 0 1px var(--mut);
+}
+.nl-pace-ratio {
+  font-family: var(--hb);
+  font-size: .98rem;
+  letter-spacing: 1px;
+  color: var(--wht);
+}
+.nl-pace-chip.is-active .nl-pace-ratio { color: var(--yel); }
+.nl-pace-chip.is-off.is-active .nl-pace-ratio { color: var(--wht); }
+.nl-pace-desc {
+  font-family: var(--bd);
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+
+/* Nested window visualiser (no card chrome — the parent .nl-fast is the card). */
+.nl-fast-window { margin-top: .2rem; }
+.nl-fast-window.is-off { opacity: .92; }
+.nl-fast-offmsg {
+  font-family: var(--bd);
+  font-size: .85rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--mut);
+  padding: .5rem 0 .2rem;
+}
+.nl-fast-offmsg b { color: var(--wht); }
