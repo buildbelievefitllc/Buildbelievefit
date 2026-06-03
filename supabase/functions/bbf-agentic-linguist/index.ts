@@ -43,6 +43,10 @@ function jsonResponse(body: unknown, status = 200): Response {
 // Phase 7 Workstream B · i18n translation · low-stakes, deterministic-
 // schema output. Haiku 4.5 per CEO routing rules.
 import { routeAndLog } from '../_shared/model-router.ts';
+// Coordination contract: the linguist and every plan generator share ONE
+// proprietary-name locklist (Brief 4 · Trilingual Cloud Plans) so a translated
+// cue never mangles a BBF system name.
+import { PROPRIETARY_TERMS } from '../_shared/locale.ts';
 
 const MODEL              = routeAndLog('bbf-agentic-linguist', 'i18n_translation');
 const MAX_TOKENS         = 512;
@@ -68,6 +72,9 @@ const SYSTEM_PROMPT = [
   '- literal_meaning ALWAYS in English. Reflects what you wrote, not the original cue.',
   '- If the cue is ambiguous: pick the most coaching-floor-appropriate reading and translate that.',
   '- If the english_cue is empty/non-English/nonsensical: translation="—", phonetic="—", literal_meaning="Cue not recognized. Send a clear English coaching cue."',
+  '',
+  '# PROPRIETARY NAMES — keep VERBATIM in every language (never translate/transliterate/restyle):',
+  PROPRIETARY_TERMS.map((t) => '"' + t + '"').join(', '),
   '',
   'Return ONLY structured JSON matching the response schema. No markdown, no preamble.',
 ].join('\n');

@@ -69,6 +69,7 @@
 //     model, dry_run, batch_size, errors: [{ uid, message }] }
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { localeDirective, localeCode } from '../_shared/locale.ts';
 
 // ─── Constants ────────────────────────────────────────────────────────
 // Phase 7 Workstream B · Nightly digest synthesis · already on Haiku.
@@ -222,6 +223,7 @@ async function generateBrief(
   logs: LogRow[],
   readiness: ReadinessRow[],
   apiKey: string,
+  localeInput = 'en',
 ): Promise<string> {
   const userPayload = {
     athlete: {
@@ -244,6 +246,8 @@ async function generateBrief(
         text: SYSTEM_PROMPT,
         cache_control: { type: 'ephemeral' },
       },
+      // Per-locale native-generation directive (uncached — varies by EN/ES/PT).
+      { type: 'text', text: localeDirective(localeInput, 'the daily brief') },
     ],
     messages: [
       {
@@ -651,12 +655,13 @@ async function processUser(
   renderOrigin: string,
   adminToken: string,
   agentToken: string,
+  localeInput = 'en',
 ): Promise<{ uid: string; brief: string; sunday_recon: SundayReconResult | null; orchestrator_synth: SynthesisResult | null }> {
   const [logs, readiness] = await Promise.all([
     fetchRecentLogs(user.id, sinceIso, supabaseUrl, supabaseKey),
     fetchRecentReadiness(user.id, sinceIso, supabaseUrl, supabaseKey),
   ]);
-  const brief = await generateBrief(user, logs, readiness, apiKey);
+  const brief = await generateBrief(user, logs, readiness, apiKey, localeInput);
   if (!dryRun) {
     await persistBrief(user.id, brief, supabaseUrl, supabaseKey);
   }
@@ -701,6 +706,7 @@ async function runBatch(
   renderOrigin: string,
   adminToken: string,
   agentToken: string,
+  localeInput = 'en',
 ) {
   const errors: { uid: string; message: string }[] = [];
   const sundayReconResults: SundayReconResult[] = [];
@@ -711,7 +717,7 @@ async function runBatch(
     const slice = roster.slice(i, i + BATCH_SIZE);
     const results = await Promise.allSettled(
       slice.map((user) =>
-        processUser(user, sinceIso, supabaseUrl, supabaseKey, apiKey, dryRun, isSunday, renderOrigin, adminToken, agentToken)
+        processUser(user, sinceIso, supabaseUrl, supabaseKey, apiKey, dryRun, isSunday, renderOrigin, adminToken, agentToken, localeInput)
       ),
     );
     results.forEach((r, idx) => {
@@ -768,12 +774,18 @@ serve(async (req: Request) => {
   // pass { dry_run: true } and/or { force_sunday: true } for QA.
   let dryRun = false;
   let forceSunday = false;
+  // Batch locale override (EN/ES/PT). Cron POSTs no body → defaults to 'en'.
+  // TODO(per-athlete locale): once bbf_users carries a preferred_locale column,
+  // source this per-row in fetchSovereignRoster and pass it through processUser
+  // instead of one batch-wide value.
+  let batchLocale = 'en';
   try {
     const text = await req.text();
     if (text) {
       const parsed = JSON.parse(text);
       dryRun      = Boolean(parsed?.dry_run);
       forceSunday = Boolean(parsed?.force_sunday);
+      batchLocale = localeCode(parsed?.locale ?? parsed?.lang);
     }
   } catch {
     // Empty or malformed body is fine.
@@ -805,6 +817,7 @@ serve(async (req: Request) => {
       succeeded:          0,
       failed:             0,
       model:              MODEL,
+      locale:             batchLocale,
       dry_run:            dryRun,
       batch_size:         BATCH_SIZE,
       sunday:             isSunday,
@@ -825,6 +838,7 @@ serve(async (req: Request) => {
     RENDER_ORIGIN,
     BBF_ADMIN_TOKEN,
     BBF_COACH_AGENT_TOKEN,
+    batchLocale,
   );
 
   return jsonResponse({
@@ -833,6 +847,7 @@ serve(async (req: Request) => {
     succeeded,
     failed,
     model:              MODEL,
+    locale:             batchLocale,
     dry_run:            dryRun,
     batch_size:         BATCH_SIZE,
     sunday:             isSunday,

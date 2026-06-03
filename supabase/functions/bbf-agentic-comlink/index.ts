@@ -76,6 +76,7 @@
 // drill_index=0) with a verdict explaining the engine couldn't process.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { localeDirective, localeCode } from '../_shared/locale.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -309,6 +310,7 @@ async function handleFormCorrection(payload: any, apiKey: string) {
   const deviation     = payload && payload.deviation;
   const recentEvents  = Array.isArray(payload && payload.recent_events) ? payload.recent_events.slice(0, 6) : [];
   const clientContext = (payload && typeof payload.client_context === 'object') ? payload.client_context : {};
+  const locale        = localeCode(payload?.locale ?? payload?.lang);
 
   if (typeof uid !== 'string' || !uid)                        return jsonResponse({ error: 'missing_uid' }, 400);
   if (typeof exerciseName !== 'string' || !exerciseName)      return jsonResponse({ error: 'missing_exercise_name' }, 400);
@@ -332,7 +334,7 @@ async function handleFormCorrection(payload: any, apiKey: string) {
     'Return ONLY the JSON schema response.';
 
   const t0     = Date.now();
-  const result = await callClaude(userMessage, SYSTEM_PROMPT_FORM_CORRECTION, RESPONSE_SCHEMA_FORM_CORRECTION, apiKey);
+  const result = await callClaude(userMessage, SYSTEM_PROMPT_FORM_CORRECTION, RESPONSE_SCHEMA_FORM_CORRECTION, apiKey, locale);
   const dur    = Date.now() - t0;
 
   if (!result.ok) {
@@ -356,6 +358,7 @@ async function handleFormCorrection(payload: any, apiKey: string) {
 
   console.log(`[bbf-agentic-comlink:form_correction] uid=${uid} · ex=${exerciseName} · dev=${deviation} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
   return jsonResponse({
+    locale,
     corrective_cue: parsed.corrective_cue.slice(0, 240),
     swap_to:        parsed.swap_to.slice(0, 120),
   }, 200);
@@ -403,7 +406,7 @@ function defaultPositionalFallback(reason: string) {
 }
 
 // ─── Anthropic call w/ AbortController timeout ─────────────────────────
-async function callClaude(userMessage: string, systemPrompt: string, schema: unknown, apiKey: string) {
+async function callClaude(userMessage: string, systemPrompt: string, schema: unknown, apiKey: string, localeInput = 'en') {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
 
@@ -421,6 +424,8 @@ async function callClaude(userMessage: string, systemPrompt: string, schema: unk
         text:          systemPrompt,
         cache_control: { type: 'ephemeral' },
       },
+      // Per-locale native-generation directive (uncached — varies by EN/ES/PT).
+      { type: 'text', text: localeDirective(localeInput, 'all athlete-facing cues and notes') },
     ],
     messages: [
       { role: 'user', content: userMessage },
@@ -513,7 +518,7 @@ async function handlePositionalDrill(payload: any, apiKey: string) {
     'Select the best-fit drill index. Return ONLY the JSON schema response.';
 
   const t0     = Date.now();
-  const result = await callClaude(userMessage, SYSTEM_PROMPT_POSITIONAL, RESPONSE_SCHEMA_POSITIONAL, apiKey);
+  const result = await callClaude(userMessage, SYSTEM_PROMPT_POSITIONAL, RESPONSE_SCHEMA_POSITIONAL, apiKey, safeLang);
   const dur    = Date.now() - t0;
 
   if (!result.ok) {
@@ -547,6 +552,7 @@ async function handlePositionalDrill(payload: any, apiKey: string) {
   console.log(`[bbf-agentic-comlink:positional] uid=${uid} · sport=${sport} · pos=${position} · query_len=${safeQuery.length} · idx=${rawIdx} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
 
   return jsonResponse({
+    locale:           safeLang,
     drill_index:      rawIdx,
     coaching_verdict: parsed.coaching_verdict.slice(0, 200),
     why:              parsed.why.slice(0, 280),
@@ -601,6 +607,7 @@ serve(async (req: Request) => {
 
   // ─── Default flow — constraint OR friction (Warhead 3) ─────────
   const { uid, transcript, current_workout, client_context, admin_override } = payload || {};
+  const locale = localeCode(payload?.locale ?? payload?.lang);
 
   if (admin_override === true) {
     return jsonResponse(adminOverrideMockRewrite(), 200);
@@ -627,7 +634,7 @@ serve(async (req: Request) => {
     'Classify constraint vs friction silently, then rewrite the workout per your system instructions. Return ONLY the JSON schema response.';
 
   const t0     = Date.now();
-  const result = await callClaude(userMessage, SYSTEM_PROMPT_REWRITE, RESPONSE_SCHEMA_REWRITE, ANTHROPIC_API_KEY);
+  const result = await callClaude(userMessage, SYSTEM_PROMPT_REWRITE, RESPONSE_SCHEMA_REWRITE, ANTHROPIC_API_KEY, locale);
   const dur    = Date.now() - t0;
 
   if (!result.ok) {
@@ -668,6 +675,7 @@ serve(async (req: Request) => {
   console.log(`[bbf-agentic-comlink] uid=${uid} · transcript_len=${safeTranscript.length} · workout_in=${workout.length} · workout_out=${cleanWorkout.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
 
   return jsonResponse({
+    locale,
     comlink_verdict: parsed.comlink_verdict.slice(0, 240),
     updated_workout: cleanWorkout,
   }, 200);

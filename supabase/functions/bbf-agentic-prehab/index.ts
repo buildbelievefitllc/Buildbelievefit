@@ -88,6 +88,7 @@ async function prehabRateCheck(
 // inputs. Sonnet 4.6 is the right tier per CEO routing rules · enough
 // reasoning for the 3-movement matrix without Opus-tier overspend.
 import { routeAndLog } from '../_shared/model-router.ts';
+import { localeDirective, localeCode } from '../_shared/locale.ts';
 
 const MODEL             = routeAndLog('bbf-agentic-prehab', 'prehab_assignment');
 const MAX_TOKENS        = 2048;
@@ -265,7 +266,7 @@ async function fetchTodaySets(
 }
 
 // ─── Anthropic call w/ 12s AbortController timeout ─────────────────────
-async function callClaude(userMessage: string, apiKey: string) {
+async function callClaude(userMessage: string, apiKey: string, localeInput: string) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
 
@@ -283,6 +284,7 @@ async function callClaude(userMessage: string, apiKey: string) {
         text:          SYSTEM_PROMPT,
         cache_control: { type: 'ephemeral' },  // CEO directive
       },
+      { type: 'text', text: localeDirective(localeInput, 'the movement names, focus, and reason prose') },
     ],
     messages: [
       { role: 'user', content: userMessage },
@@ -351,6 +353,7 @@ serve(async (req: Request) => {
   catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
   const { uid, actual_uuid, reported_friction, client_context, admin_override } = payload || {};
+  const locale = localeCode(payload?.locale ?? payload?.lang);
 
   // ─── 1. OMNISCIENCE PROTOCOL — ABSOLUTE FIRST GATE ─────────────
   if (admin_override === true) {
@@ -436,7 +439,7 @@ serve(async (req: Request) => {
     'Return ONLY the JSON schema response. Exactly 3 entries in matrix.';
 
   const t0     = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
+  const result = await callClaude(userMessage, ANTHROPIC_API_KEY, locale);
   const dur    = Date.now() - t0;
 
   if (!result.ok) {
@@ -466,5 +469,5 @@ serve(async (req: Request) => {
   console.log(`[bbf-agentic-prehab v2] uid=${uid} · today=${todayDate} · sets=${todayWorkload.length} · friction_len=${friction.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
 
   // Strict response per CEO spec — only { matrix }. No extra metadata.
-  return jsonResponse({ matrix: parsed.matrix }, 200);
+  return jsonResponse({ locale, matrix: parsed.matrix }, 200);
 });

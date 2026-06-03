@@ -43,6 +43,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { routeAndLog } from '../_shared/model-router.ts';
+import { localeDirective, localeCode } from '../_shared/locale.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -199,7 +200,7 @@ async function fetchLatestReadiness(
 }
 
 // ─── Anthropic call ────────────────────────────────────────────────────
-async function callClaude(userMessage: string, apiKey: string) {
+async function callClaude(userMessage: string, apiKey: string, localeInput: string) {
   const requestBody = {
     model:      MODEL,
     max_tokens: MAX_TOKENS,
@@ -214,6 +215,7 @@ async function callClaude(userMessage: string, apiKey: string) {
         text: SYSTEM_PROMPT,
         cache_control: { type: 'ephemeral' },
       },
+      { type: 'text', text: localeDirective(localeInput, 'the warning banner and replacement-lift notes') },
     ],
     messages: [
       { role: 'user', content: userMessage },
@@ -416,6 +418,7 @@ serve(async (req: Request) => {
   catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
   const uidRaw = payload?.uid;
+  const locale = localeCode(payload?.locale ?? payload?.lang);
   if (typeof uidRaw !== 'string' || !uidRaw) {
     return jsonResponse({ error: 'missing_uid' }, 400);
   }
@@ -489,7 +492,7 @@ serve(async (req: Request) => {
     'Generate the warning banner + 2 CNS-friendly replacement lifts per the schema.';
 
   const t0 = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
+  const result = await callClaude(userMessage, ANTHROPIC_API_KEY, locale);
   const dur = Date.now() - t0;
 
   if (!result.ok) {
@@ -519,6 +522,7 @@ serve(async (req: Request) => {
 
   return jsonResponse({
     override_active:    true,
+    locale,
     warning_banner:     parsed.warning_banner,
     replacement_lifts:  parsed.replacement_lifts,
     readiness_snapshot: { sleep, stress, has_data: hasReadiness },

@@ -55,6 +55,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 // task with a structured response (form_score + 2-3 cues). Sonnet 4.6
 // is the right tier · Opus 4.7 was overspend for the bounded output.
 import { routeAndLog } from '../_shared/model-router.ts';
+import { localeDirective, localeCode } from '../_shared/locale.ts';
 
 const MODEL              = routeAndLog('bbf-agentic-kinematics', 'kinematic_form_score', { vision: true });
 const MAX_TOKENS         = 1024;
@@ -144,6 +145,7 @@ async function callClaudeVision(
   mimeType: string,
   liftName: string,
   apiKey: string,
+  localeInput: string,
 ) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
@@ -168,6 +170,7 @@ async function callClaudeVision(
         text:          SYSTEM_PROMPT,
         cache_control: { type: 'ephemeral' },
       },
+      { type: 'text', text: localeDirective(localeInput, 'the correction_cue') },
     ],
     messages: [
       {
@@ -248,6 +251,7 @@ serve(async (req: Request) => {
   catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
   const { uid, image_base64, mime_type, lift_name, admin_override } = payload || {};
+  const locale = localeCode(payload?.locale ?? payload?.lang);
 
   // ─── 1. OMNISCIENCE PROTOCOL — ABSOLUTE FIRST GATE ─────────────
   if (admin_override === true) {
@@ -285,7 +289,7 @@ serve(async (req: Request) => {
   }
 
   const t0     = Date.now();
-  const result = await callClaudeVision(cleanBase64, cleanMime, lift_name, ANTHROPIC_API_KEY);
+  const result = await callClaudeVision(cleanBase64, cleanMime, lift_name, ANTHROPIC_API_KEY, locale);
   const dur    = Date.now() - t0;
 
   if (!result.ok) {
@@ -326,6 +330,7 @@ serve(async (req: Request) => {
   console.log(`[bbf-agentic-kinematics] uid=${uid} · lift="${lift_name}" · score=${clampedScore} · b64_len=${cleanBase64.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
 
   return jsonResponse({
+    locale,
     form_score:      clampedScore,
     kinematic_flags: parsed.kinematic_flags.slice(0, 2),
     correction_cue:  parsed.correction_cue,
