@@ -34,7 +34,7 @@
 //   {
 //     "reply": "Conversational text with the [[RECOMMEND:x]] marker stripped",
 //     "recommendation": null | { "tier": "gateway"|"architect"|"sovereign", "headline": "...", "stripe_cta": "selectTier('gateway')" },
-//     "model_used": "claude-opus-4-7",
+//     "model_used": "claude-opus-4-8",
 //     "tokens_used": { "input": N, "output": N }
 //   }
 //
