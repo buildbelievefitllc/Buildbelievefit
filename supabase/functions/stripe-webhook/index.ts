@@ -124,6 +124,28 @@ serve(async (req) => {
   }
   const newlyProvisioned = txn?.new_user === true;
 
+  // ─── Closed-loop conversion capture (Brief 5 · best-effort, non-blocking) ───
+  // Tags the conversion to a marketing avatar (Stripe metadata.avatar, else a
+  // tier heuristic) for the monetization engine. Wrapped so a capture failure
+  // can NEVER affect fulfillment — that already committed atomically above.
+  try {
+    const avatarRaw = (session.metadata?.avatar || '').trim();
+    const { error: capErr } = await supabase.rpc('bbf_capture_conversion', {
+      p_event_id: event.id,
+      p_session_id: session.id,
+      p_user_id: txn?.user_id ?? null,
+      p_email: email,
+      p_tier: tier,
+      p_avatar_raw: avatarRaw,
+      p_amount_cents: typeof session.amount_total === 'number' ? session.amount_total : null,
+      p_currency: session.currency ?? null,
+      p_new_user: newlyProvisioned,
+    });
+    if (capErr) console.error('[stripe-webhook] conversion capture error (non-fatal):', capErr.message);
+  } catch (err) {
+    console.error('[stripe-webhook] conversion capture threw (non-fatal):', err.message);
+  }
+
   // ─── Welcome / update email (Brevo; non-fatal — fulfillment already committed) ───
   const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
   const BREVO_FROM_EMAIL = Deno.env.get('BREVO_FROM_EMAIL') || 'buildbelievefitllc@buildbelievefit.fitness';
