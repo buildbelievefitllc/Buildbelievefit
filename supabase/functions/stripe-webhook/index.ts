@@ -23,7 +23,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
-import { localeCode } from '../_shared/locale.ts';
 
 // Canonical pricing slugs (marketing matrix 2026-06) UNION the 7 legacy
 // slugs. The legacy set is retained while the monolith storefront is still
@@ -73,6 +72,15 @@ const corsHeaders = {
 function generatePin() { return String(100000 + Math.floor(Math.random()*900000)); }
 function jsonResponse(body, status=200) { return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }); }
 function escapeHtml(input) { return String(input).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+// Normalize any locale hint → one of BBF's three. Mirrors _shared/locale.ts
+// localeCode(); inlined so this payment-critical webhook stays a single source
+// file (no cross-function bundling on the fulfillment path).
+function normLocale(input) {
+  const t = String(input ?? '').trim().toLowerCase();
+  if (t === 'es' || t.startsWith('es-') || t.startsWith('es_') || t.startsWith('span') || t.startsWith('esp')) return 'es';
+  if (t === 'pt' || t.startsWith('pt-') || t.startsWith('pt_') || t.startsWith('port') || t.startsWith('por') || t.includes('brasil') || t.includes('brazil') || t === 'br') return 'pt';
+  return 'en';
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -207,7 +215,7 @@ serve(async (req) => {
       // ── Trilingual template selection ──
       // Source of truth is the athlete's bbf_users.preferred_locale; Stripe
       // checkout metadata is the fallback for a brand-new buyer whose freshly
-      // provisioned row still holds the 'en' default. localeCode() normalizes
+      // provisioned row still holds the 'en' default. normLocale() normalizes
       // any of these to one of 'en' | 'es' | 'pt' (defaulting to 'en').
       let dbLocale = null;
       try {
@@ -217,7 +225,7 @@ serve(async (req) => {
       } catch (e) {
         console.warn('[stripe-webhook] preferred_locale lookup failed (defaulting to en):', e.message);
       }
-      const lang = localeCode(
+      const lang = normLocale(
         dbLocale
         || session.metadata?.preferred_locale
         || session.metadata?.locale
