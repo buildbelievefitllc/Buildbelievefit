@@ -12,7 +12,7 @@
 // checkout (tier CTAs route to the application form). The brand surface + funnel
 // are restored.
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import PathfinderForm from '../components/PathfinderForm.jsx';
@@ -68,12 +68,31 @@ export default function MarketingLanding() {
   // "way in" is offered, so the manual path is consistent.
   const enter = () => navigate(user ? '/vault' : '/login');
 
-  // Smooth-scroll helper — Interrogator/TDEE/Chatbox CTAs funnel to these anchors.
-  function scrollTo(id) {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  }
-  const scrollToPathfinder = () => scrollTo('pathfinder');
+  // ── Brand Engine Interface — the 5-tab state machine ──────────────────────────
+  // The former vertical stack (Pricing, Six Pillars, Calculator, Pathfinder, Coach
+  // bio) is now one horizontal tabbed deck. DEFAULT = 'paths' (subscriptions first,
+  // monetization priority). The child engines (TDEE math, PAR-Q form, success
+  // mirror, Stripe matrix) are UNCHANGED — only their wrapper moved. Funnels that
+  // used to smooth-scroll now flip the active tab and bring the deck into view.
+  const [tab, setTab] = useState('paths');
+  const deckRef = useRef(null);
+  const goToTab = (key) => {
+    setTab(key);
+    // Defer the scroll a frame so the freshly-selected panel is mounted/measured.
+    requestAnimationFrame(() => {
+      deckRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+  const goToPathfinder = () => goToTab('pathfinder');
+
+  // Telemetry-tagged tab manifest. idx = lane number, tag = athletic telemetry chip.
+  const TABS = [
+    { key: 'paths',      idx: '01', label: 'Four Paths',   tag: 'SUBSCRIPTIONS' },
+    { key: 'playbooks',  idx: '02', label: 'Blueprints',   tag: 'PLAYBOOKS' },
+    { key: 'calculator', idx: '03', label: 'Fuel Target',  tag: 'TDEE · BIO-FUEL' },
+    { key: 'pathfinder', idx: '04', label: 'Pathfinder',   tag: 'INTAKE · PAR-Q' },
+    { key: 'legacy',     idx: '05', label: 'Coach Legacy', tag: 'ORIGIN STORY' },
+  ];
 
   return (
     <div style={s.page}>
@@ -81,13 +100,14 @@ export default function MarketingLanding() {
       <nav style={s.nav}>
         <a href="#hero" style={s.navLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></a>
         <div style={s.navLinks}>
-          <a href="#services" style={s.navLink}>{t('nav-services')}</a>
-          <a href="#programs" style={s.navLink}>{t('nav-programs')}</a>
+          {/* Moved sections now live inside the Brand Engine deck — these jump to a tab. */}
+          <button type="button" style={s.navSignIn} onClick={() => goToTab('playbooks')}>{t('nav-services')}</button>
+          <button type="button" style={s.navSignIn} onClick={() => goToTab('paths')}>{t('nav-programs')}</button>
           <a href="#science" style={s.navLink}>Science</a>
           <a href="#interrogator" style={s.navLink}>{t('nav-audit')}</a>
-          <a href="#founder" style={s.navLink}>{t('nav-about')}</a>
+          <button type="button" style={s.navSignIn} onClick={() => goToTab('legacy')}>{t('nav-about')}</button>
           <button type="button" style={s.navSignIn} onClick={enter}>{t('nav-signin')}</button>
-          <a href="#pathfinder" style={s.navCta}>{t('nav-start')}</a>
+          <button type="button" style={s.navCta} onClick={goToPathfinder}>{t('nav-start')}</button>
           <LangToggle />
         </div>
       </nav>
@@ -102,7 +122,7 @@ export default function MarketingLanding() {
             <span style={s.hsFit}>FIT</span>
           </h1>
           <p style={s.heroSub}>{t('hero-sub')}</p>
-          <a href="#pathfinder" style={s.heroCta}>{t('hero-cta')}</a>
+          <button type="button" style={s.heroCta} onClick={goToPathfinder}>{t('hero-cta')}</button>
           <div style={s.doors}>
             <button type="button" style={s.door} onClick={enter}>
               <span style={s.doorKicker}>{t('door-adults')}</span>
@@ -126,133 +146,168 @@ export default function MarketingLanding() {
         </div>
       </section>
 
-      {/* ── SERVICES ── */}
-      <section id="services" style={s.section}>
-        <div style={s.secLbl}>{t('svc-lbl')}</div>
-        <h2 style={s.secH}>{t('svc-h')}</h2>
-        <div style={s.svcGrid}>
-          {SERVICE_KEYS.map(([nk, dk]) => (
-            <article key={nk} style={s.svcCard}>
-              <div style={s.svcName}>{t(nk)}</div>
-              <p style={s.svcDesc}>{t(dk)}</p>
-            </article>
-          ))}
+      {/* ═══ BRAND ENGINE INTERFACE — the 5-tab telemetry deck ═══════════════════
+          Replaces the former vertical stack. Deep-purple + gold metallic border;
+          each tab carries an athletic telemetry chip. The underlying engines are
+          untouched — only the wrapper changed (vertical stack → horizontal deck). */}
+      <section id="deck" ref={deckRef} style={s.deck}>
+        <div style={s.deckFrame}>
+          <div style={s.deckInner}>
+            {/* ── Tab header bar ── */}
+            <div style={s.tabBar} role="tablist" aria-label="Brand Engine">
+              {TABS.map((tdef) => {
+                const on = tab === tdef.key;
+                return (
+                  <button
+                    key={tdef.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => setTab(tdef.key)}
+                    style={{ ...s.tab, ...(on ? s.tabActive : null) }}
+                  >
+                    <span style={{ ...s.tabIdx, ...(on ? s.tabIdxActive : null) }}>{tdef.idx}</span>
+                    <span style={s.tabLabel}>{tdef.label}</span>
+                    <span style={{ ...s.tabTag, ...(on ? s.tabTagActive : null) }}>{tdef.tag}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* ── Active panel ── */}
+            <div style={s.panel} role="tabpanel">
+              {/* TAB 1 · FOUR PATHS SUBSCRIPTIONS (default — monetization first) */}
+              {tab === 'paths' && (
+                <div id="programs">
+                  <div style={s.secLbl}>{t('prog-lbl')}</div>
+                  <h2 style={s.secH}>{t('prog-h')}</h2>
+                  <p style={s.secSub}>{t('prog-sub')}</p>
+                  <PricingMatrix />
+
+                  {/* Local Weekly Ongoing Training — custom-quote call-out (mailto) */}
+                  <div style={s.localCallout}>
+                    <div style={s.localKicker}>Local · In-Person · Ongoing</div>
+                    <h3 style={s.localH}>Local Weekly Ongoing Training</h3>
+                    <p style={s.localP}>
+                      Hands-on weekly training built around your schedule, goals, and capacity —
+                      priced per athlete. Tell us what you&rsquo;re after and we&rsquo;ll send a custom quote.
+                    </p>
+                    <a
+                      href="mailto:buildbelievefitllc@buildbelievefit.fitness?subject=Local%20Weekly%20Ongoing%20Training%20%E2%80%94%20Custom%20Quote%20Request"
+                      style={s.localBtn}
+                    >
+                      Request a Custom Quote →
+                    </a>
+                  </div>
+                  <div style={s.promise}>
+                    <div style={s.promiseLbl}>{t('promise-lbl')}</div>
+                    <p style={s.promiseText}>
+                      “{t('promise-text')}” <span style={{ color: GOLD }}>{t('founder-sig-name')}</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2 · BLUEPRINT PLAYBOOKS — Six Pillars + Positional Sport Blueprints */}
+              {tab === 'playbooks' && (
+                <div id="services">
+                  <div style={s.secLbl}>{t('svc-lbl')}</div>
+                  <h2 style={s.secH}>{t('svc-h')}</h2>
+                  <div style={s.svcGrid}>
+                    {SERVICE_KEYS.map(([nk, dk]) => (
+                      <article key={nk} style={s.svcCard}>
+                        <div style={s.svcName}>{t(nk)}</div>
+                        <p style={s.svcDesc}>{t(dk)}</p>
+                      </article>
+                    ))}
+                  </div>
+                  <div style={s.panelBreak} />
+                  {/* "Elite Position. Your Playbook." (5 sports · 25 positions) */}
+                  <PositionalBlueprints />
+                </div>
+              )}
+
+              {/* TAB 3 · FUEL TARGET CALCULATOR — dynamic bio-fuel TDEE tool */}
+              {tab === 'calculator' && (
+                <div id="tdee">
+                  <TDEECalculator onUseResults={goToPathfinder} />
+                </div>
+              )}
+
+              {/* TAB 4 · PATHFINDER APPLICATION — intake + PAR-Q + success mirror feed */}
+              {tab === 'pathfinder' && (
+                <div id="pathfinder">
+                  <div style={s.secLbl}>{t('pf-lbl')}</div>
+                  <h2 style={s.secH}>{t('pf-h')}</h2>
+                  <p style={s.secSub}>{t('pf-sub')}</p>
+                  <div style={{ marginTop: '2rem' }}><PathfinderForm /></div>
+                </div>
+              )}
+
+              {/* TAB 5 · COACH LEGACY STORY — credentials + origin bio */}
+              {tab === 'legacy' && (
+                <div id="founder">
+                  <div style={s.secLbl}>{t('founder-lbl')}</div>
+                  <h2 style={s.secH}>{t('founder-h')}</h2>
+                  <div style={s.founderGrid}>
+                    <div>
+                      <img src="/media/akeem-nasm.jpg" alt="Akeem Brown" loading="lazy" style={s.founderImg} />
+                      <div style={s.credCard}>
+                        {CRED_KEYS.map(([tk, sk]) => (
+                          <div key={tk} style={s.cred}>
+                            <div style={s.credT}>{t(tk)}</div>
+                            <div style={s.credS}>{t(sk)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p style={s.story}>{t('founder-p1')}</p>
+                      <p style={s.story}>{t('founder-p2')}</p>
+                      <p style={s.story}>{t('founder-p3')}</p>
+                      <div style={s.sig}>{t('founder-sig-name')}<br /><span style={s.sigSmall}>{t('founder-sig-sub')}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Origin transformation proof — part of the legacy story */}
+                  <div style={s.panelBreak} />
+                  <div id="origin">
+                    <div style={s.secLbl}>{t('origin-lbl')}</div>
+                    <h2 style={s.secH}>{t('origin-h')}</h2>
+                    <p style={s.secSub}>{t('origin-sub')}</p>
+                    <div style={s.proofGrid}>
+                      <figure style={s.proofFig}>
+                        <img src="/media/akeem-before.png" alt="Before" loading="lazy" style={s.proofImg} />
+                        <figcaption style={s.proofCap}>{t('origin-cap-before')}</figcaption>
+                      </figure>
+                      <figure style={s.proofFig}>
+                        <img src="/media/akeem-after.png" alt="After" loading="lazy" style={s.proofImg} />
+                        <figcaption style={{ ...s.proofCap, color: GOLD }}>{t('origin-cap-after')}</figcaption>
+                      </figure>
+                    </div>
+                    <div style={s.originGrid}>
+                      {ORIGIN_KEYS.map((k, i) => (
+                        <div key={k} style={s.originCard}>
+                          <div style={s.originStep}>0{i + 1}</div>
+                          <p style={s.originQ}>{t(k)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
-
-      <Divider />
-
-      {/* ── PROGRAMS (real tiers + pricing) ── */}
-      <section id="programs" style={s.sectionWide}>
-        <div style={s.secLbl}>{t('prog-lbl')}</div>
-        <h2 style={s.secH}>{t('prog-h')}</h2>
-        <p style={s.secSub}>{t('prog-sub')}</p>
-        <PricingMatrix />
-
-        {/* ── LOCAL WEEKLY ONGOING TRAINING — custom-quote call-out (mailto) ── */}
-        <div style={s.localCallout}>
-          <div style={s.localKicker}>Local · In-Person · Ongoing</div>
-          <h3 style={s.localH}>Local Weekly Ongoing Training</h3>
-          <p style={s.localP}>
-            Hands-on weekly training built around your schedule, goals, and capacity —
-            priced per athlete. Tell us what you&rsquo;re after and we&rsquo;ll send a custom quote.
-          </p>
-          <a
-            href="mailto:buildbelievefitllc@buildbelievefit.fitness?subject=Local%20Weekly%20Ongoing%20Training%20%E2%80%94%20Custom%20Quote%20Request"
-            style={s.localBtn}
-          >
-            Request a Custom Quote →
-          </a>
-        </div>
-        <div style={s.promise}>
-          <div style={s.promiseLbl}>{t('promise-lbl')}</div>
-          <p style={s.promiseText}>
-            “{t('promise-text')}” <span style={{ color: GOLD }}>{t('founder-sig-name')}</span>
-          </p>
-        </div>
-      </section>
-
-      {/* ── POSITIONAL BLUEPRINTS — "Elite Position. Your Playbook." (5 sports · 25 positions) ── */}
-      <PositionalBlueprints />
 
       {/* ── SCIENCE HUB — clinical-studies library (peer-reviewed authority asset) ── */}
       <ScienceHub />
 
       {/* ── THE INTERROGATOR (BBF Chatbox) — interactive audit → tier guidance ── */}
-      <Interrogator onChooseTier={scrollToPathfinder} />
+      <Interrogator onChooseTier={goToPathfinder} />
 
       <Divider />
-
-      {/* ── FOUNDER ── */}
-      <section id="founder" style={{ ...s.sectionPurple }}>
-        <div style={s.section}>
-        <div style={s.secLbl}>{t('founder-lbl')}</div>
-        <h2 style={s.secH}>{t('founder-h')}</h2>
-        <div style={s.founderGrid}>
-          <div>
-            <img src="/media/akeem-nasm.jpg" alt="Akeem Brown" loading="lazy" style={s.founderImg} />
-            <div style={s.credCard}>
-              {CRED_KEYS.map(([tk, sk]) => (
-                <div key={tk} style={s.cred}>
-                  <div style={s.credT}>{t(tk)}</div>
-                  <div style={s.credS}>{t(sk)}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p style={s.story}>{t('founder-p1')}</p>
-            <p style={s.story}>{t('founder-p2')}</p>
-            <p style={s.story}>{t('founder-p3')}</p>
-            <div style={s.sig}>{t('founder-sig-name')}<br /><span style={s.sigSmall}>{t('founder-sig-sub')}</span></div>
-          </div>
-        </div>
-        </div>
-      </section>
-
-      <Divider />
-
-      {/* ── ORIGIN STORY ── */}
-      <section id="origin" style={s.section}>
-        <div style={s.secLbl}>{t('origin-lbl')}</div>
-        <h2 style={s.secH}>{t('origin-h')}</h2>
-        <p style={s.secSub}>{t('origin-sub')}</p>
-        <div style={s.proofGrid}>
-          <figure style={s.proofFig}>
-            <img src="/media/akeem-before.png" alt="Before" loading="lazy" style={s.proofImg} />
-            <figcaption style={s.proofCap}>{t('origin-cap-before')}</figcaption>
-          </figure>
-          <figure style={s.proofFig}>
-            <img src="/media/akeem-after.png" alt="After" loading="lazy" style={s.proofImg} />
-            <figcaption style={{ ...s.proofCap, color: GOLD }}>{t('origin-cap-after')}</figcaption>
-          </figure>
-        </div>
-        <div style={s.originGrid}>
-          {ORIGIN_KEYS.map((k, i) => (
-            <div key={k} style={s.originCard}>
-              <div style={s.originStep}>0{i + 1}</div>
-              <p style={s.originQ}>{t(k)}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <Divider />
-
-      {/* ── TDEE CALCULATOR (free tool → feeds the Pathfinder) ── */}
-      <section id="tdee" style={s.sectionWide}>
-        <TDEECalculator onUseResults={scrollToPathfinder} />
-      </section>
-
-      <Divider />
-
-      {/* ── PATHFINDER (the embedded Phase 13 form) ── */}
-      <section id="pathfinder" style={s.sectionWide}>
-        <div style={s.secLbl}>{t('pf-lbl')}</div>
-        <h2 style={s.secH}>{t('pf-h')}</h2>
-        <p style={s.secSub}>{t('pf-sub')}</p>
-        <div style={{ marginTop: '2rem' }}><PathfinderForm /></div>
-      </section>
 
       {/* ── COMPANION APP (Google Play funnel + PWA direct install) ── */}
       <section id="app" style={s.appBand}>
@@ -314,7 +369,7 @@ export default function MarketingLanding() {
       </footer>
 
       {/* ── BBF CHATBOX (floating assistant) — CTAs route to TDEE / Pathfinder ── */}
-      <BBFChatbox onCta={(target) => scrollTo(target === 'tdee' ? 'tdee' : 'pathfinder')} />
+      <BBFChatbox onCta={(target) => goToTab(target === 'tdee' ? 'calculator' : 'pathfinder')} />
     </div>
   );
 }
@@ -435,6 +490,54 @@ const s = {
   statL: { fontFamily: BODY, fontSize: '.72rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,.5)' },
   heroImgWrap: { display: 'flex', justifyContent: 'center' },
   heroImg: { width: '100%', maxWidth: 460, borderRadius: 20, border: `2px solid rgba(106,13,173,.45)`, boxShadow: `0 0 50px rgba(106,13,173,.3)`, objectFit: 'cover' },
+
+  // ── Brand Engine Interface — the 5-tab telemetry deck ────────────────────────
+  // Deep-purple + gold metallic border (gradient "frame" wrapping a matte inner
+  // surface). Sits directly below the hero. Scroll-margin keeps the tab bar clear
+  // of the sticky nav when goToTab() brings the deck into view.
+  deck: { maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,4vw,40px) clamp(12px,3vw,32px)', scrollMarginTop: 72 },
+  deckFrame: {
+    padding: 2, borderRadius: 20,
+    background: `linear-gradient(135deg, ${PUR} 0%, ${GOLD_LAB} 28%, ${PURL} 52%, ${GOLD} 74%, ${PUR} 100%)`,
+    boxShadow: `0 0 60px rgba(106,13,173,.35), 0 0 0 1px rgba(245,200,0,.12)`,
+  },
+  deckInner: {
+    borderRadius: 18, background: `linear-gradient(180deg, ${PURX} 0%, #060507 100%)`,
+    overflow: 'hidden',
+  },
+  // Tab header bar — telemetry rail. Lower-edge purple→gold hairline divides it
+  // from the active panel.
+  tabBar: {
+    display: 'flex', flexWrap: 'wrap',
+    borderBottom: `1px solid rgba(245,200,0,.22)`,
+    background: 'rgba(9,9,9,.55)',
+  },
+  tab: {
+    flex: '1 1 150px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3,
+    padding: 'clamp(12px,1.6vw,18px) clamp(12px,1.8vw,22px)', cursor: 'pointer',
+    background: 'transparent', border: 'none',
+    borderRight: `1px solid rgba(157,39,201,.22)`, borderBottom: '3px solid transparent',
+    textAlign: 'left', transition: 'background .18s ease, border-color .18s ease',
+  },
+  tabActive: {
+    background: `linear-gradient(180deg, rgba(106,13,173,.32), rgba(9,9,9,.1))`,
+    borderBottom: `3px solid ${GOLD}`,
+  },
+  tabIdx: { fontFamily: DISPLAY, fontSize: '.78rem', letterSpacing: '1px', color: 'rgba(255,255,255,.35)', lineHeight: 1 },
+  tabIdxActive: { color: GOLD },
+  tabLabel: { fontFamily: HEAD, fontSize: 'clamp(1rem,1.9vw,1.3rem)', letterSpacing: '1px', textTransform: 'uppercase', color: '#fff', lineHeight: 1 },
+  // Athletic telemetry chip — monospace-styled uppercase micro-tag.
+  tabTag: {
+    fontFamily: BODY, fontSize: '.6rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase',
+    color: PURL, border: `1px solid rgba(157,39,201,.45)`, borderRadius: 4, padding: '2px 6px', marginTop: 2,
+  },
+  tabTagActive: { color: GOLD, borderColor: 'rgba(245,200,0,.5)' },
+  // Active panel surface — inherits the legacy section padding so the moved
+  // content keeps its original rhythm inside the deck.
+  panel: { padding: 'clamp(28px,5vw,56px) clamp(16px,4vw,40px)' },
+  // Spacer between stacked groups inside a single panel (Six Pillars / Blueprints,
+  // Founder / Origin) — a brand purple→gold→purple sweep, like the legacy Divider.
+  panelBreak: { maxWidth: 900, margin: 'clamp(36px,6vw,64px) auto', height: 1, background: `linear-gradient(90deg, transparent, ${PUR} 30%, ${GOLD_LAB} 50%, ${PUR} 70%, transparent)`, opacity: .5 },
 
   section: { maxWidth: 1100, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
   sectionWide: { maxWidth: 1240, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
