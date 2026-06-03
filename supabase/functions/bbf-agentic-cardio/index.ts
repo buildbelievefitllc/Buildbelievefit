@@ -469,7 +469,7 @@ serve(async (req: Request) => {
 //     "guidance": "6 high-RPE sets in 3d — CNS has headroom..."
 //   },
 //   "roi": { "toast": "...", "detail": "...", "primary_metric": "12-18h elevated EPOC" },
-//   "meta": { "source": "claude" | "fallback", "model": "claude-opus-4-7", "generated_at": "...Z" }
+//   "meta": { "source": "claude" | "fallback", "model": "claude-opus-4-8", "generated_at": "...Z" }
 // }
 //
 // phase enum: warmup | work | recovery | steady | cooldown
