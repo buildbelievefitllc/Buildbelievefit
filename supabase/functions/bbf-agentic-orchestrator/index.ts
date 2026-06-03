@@ -25,6 +25,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 // per Phase 6. Route through the central router for observability.
 import { routeAndLog } from '../_shared/model-router.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
+import { checkSpendGate, spendLimitResponse } from '../_shared/spend-gate.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -86,7 +87,9 @@ async function resolveUuid(uid: string, supabaseUrl: string, supabaseKey: string
 }
 
 async function fetchUserSlice(uuid: string, supabaseUrl: string, supabaseKey: string) {
-  const url = `${supabaseUrl}/rest/v1/bbf_users?id=eq.${encodeURIComponent(uuid)}&select=uid,name,subscription_tier,baseline_status,block_priority,cardiac_clearance,cns_friction_score,biomechanical_redline,somatic_cognitive_load,tdee_target,macro_p,macro_c,macro_f,ghost_intervention_needed,par_q_screened_at&limit=1`;
+  // Phase 6.0i · soft-delete gate · `&deleted_at=is.null` excludes soft-deleted users.
+  // service-role bypasses RLS so this explicit filter is load-bearing.
+  const url = `${supabaseUrl}/rest/v1/bbf_users?id=eq.${encodeURIComponent(uuid)}&deleted_at=is.null&select=uid,name,subscription_tier,baseline_status,block_priority,cardiac_clearance,cns_friction_score,biomechanical_redline,somatic_cognitive_load,tdee_target,macro_p,macro_c,macro_f,ghost_intervention_needed,par_q_screened_at&limit=1`;
   try {
     const res = await fetch(url, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } });
     if (!res.ok) return null;
@@ -366,6 +369,16 @@ serve(async (req: Request) => {
   const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return jsonResponse({ error: 'config_missing_supabase' }, 503);
+  }
+
+  // Daily spend kill-switch — fail-closed cost ceiling. The admin_override
+  // synthesis path is exempt so founder QA is never blocked by the gate.
+  if (!(intent === 'synthesize_athlete_snapshot' && payload && payload.admin_override === true)) {
+    const verdict = await checkSpendGate(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    if (verdict.stopped) {
+      console.warn(`[bbf-agentic-orchestrator] 429 SpendLimitExceeded · ${verdict.reason} (source=${verdict.source})`);
+      return spendLimitResponse(verdict);
+    }
   }
 
   if (intent === 'compute_greenline_patterns') {
