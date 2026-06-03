@@ -24,6 +24,7 @@ import AccessControl from '../components/command/AccessControl.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import ClientAnalytics from '../components/command/ClientAnalytics.jsx';
 import Comlink from '../components/command/Comlink.jsx';
+import NutritionLocker from '../components/command/NutritionLocker.jsx';
 import AdminTokenGate from '../components/command/AdminTokenGate.jsx';
 import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
 import Program from '../components/vault/Program.jsx';
@@ -53,6 +54,8 @@ const TABS = [
   { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry, needsToken: true },
   { id: 'analytics', labelKey: 'cmd-tab-analytics', Panel: ClientAnalytics, needsToken: true },
   { id: 'comlink', labelKey: 'cmd-tab-comlink', Panel: Comlink, needsToken: true },
+  // Admin-only generative diet suite — targets another athlete (roster + assign_nutrition).
+  { id: 'nutrition-locker', labelKey: 'cmd-tab-nutrition-locker', Panel: NutritionLocker, needsToken: true },
   // Sports Portal & Athlete Database — youth-athlete scouting terminal. Runs on
   // bundled legacy-fusion data (no server token); the panel itself switches the
   // admin-override vs client view on isAdmin.
