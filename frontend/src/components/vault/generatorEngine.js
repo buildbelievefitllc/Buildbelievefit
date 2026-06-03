@@ -53,9 +53,19 @@ const LIB = [
   { n: 'Dead Bug', g: 'core', p: 'core', eq: ['bodyweight'], lvl: 1 },
 ];
 
+// Destination Equip Priority → equipment actually available there. The engine only
+// ever programs video-backed, BBF-safe lifts that fit the destination's kit.
+// "Any / Home" is the broad default (use whatever's on hand); Planet Fitness is the
+// one meaningfully constrained floor (machines/smith/dumbbells — no free barbell).
+const FULL_GYM = ['machine', 'dumbbell', 'barbell', 'cable', 'bodyweight', 'bands', 'kettlebell', 'smith'];
 const LOC_EQ = {
-  commercial: ['machine', 'dumbbell', 'barbell', 'cable', 'bodyweight', 'bands', 'kettlebell', 'smith'],
+  'any-home': FULL_GYM,
+  eos: FULL_GYM,
   planet: ['machine', 'dumbbell', 'cable', 'bodyweight', 'smith'],
+  mountainside: FULL_GYM,
+  la: FULL_GYM,
+  // legacy equipment-profile keys, retained for back-compat (harmless if unused).
+  commercial: FULL_GYM,
   'home-min': ['dumbbell', 'bodyweight', 'bands'],
   'home-bar': ['barbell', 'dumbbell', 'bodyweight', 'bands', 'kettlebell'],
   travel: ['bodyweight', 'bands', 'dumbbell'],
@@ -97,7 +107,8 @@ const ARCH_TEMPLATES = {
 const GENDER_PRIORITY = {
   female: ['glutes', 'hamstrings', 'quads', 'back', 'shoulders', 'core'],
   male: ['chest', 'back', 'shoulders', 'quads', 'triceps', 'biceps'],
-  unisex: [],
+  any: [],
+  unisex: [], // legacy alias
 };
 
 // Warm-up / cool-down protocol pools — mobility, activation, decompression. These are
@@ -123,69 +134,82 @@ export function isBlacklisted(name) {
   return BLACKLIST.some((b) => n.indexOf(b) !== -1);
 }
 
-// Selectable parameters (label/value pairs for the UI). The 8 signature selectors of
-// the Vault Roster Engine map onto these.
+// The 8 SIGNATURE SELECTORS of the Vault Roster Engine (label/value pairs). Option
+// sets are 1:1 with the definitive UI blueprint; values map onto the locked engine.
+
+// 1 · Training Priority → drives the set/rep/rest prescription (see prescribe()).
 export const GOALS = [
   { v: 'hypertrophy', l: 'Hypertrophy' }, { v: 'strength', l: 'Strength' },
-  { v: 'power', l: 'Power' }, { v: 'fatloss', l: 'Fat Loss' }, { v: 'general', l: 'General Fitness' },
+  { v: 'endurance', l: 'Endurance' }, { v: 'general', l: 'General Fitness' },
 ];
-// Athletic Gender Focus — emphasis nudge (see GENDER_PRIORITY), never a hard gate.
+// 2 · Athletic Gender Focus — emphasis nudge (see GENDER_PRIORITY), never a hard gate.
 export const GENDERS = [
-  { v: 'unisex', l: 'Unisex · Balanced' }, { v: 'female', l: 'Female Athlete' }, { v: 'male', l: 'Male Athlete' },
+  { v: 'male', l: 'Male' }, { v: 'female', l: 'Female' }, { v: 'any', l: 'Any' },
 ];
+// 3 · Experience Level — caps the library by movement difficulty.
 export const LEVELS = [{ v: '1', l: 'Beginner' }, { v: '2', l: 'Intermediate' }, { v: '3', l: 'Advanced' }];
+// 4 · Destination Equip Priority — where you train / what kit is on hand (see LOC_EQ).
 export const LOCATIONS = [
-  { v: 'commercial', l: 'Commercial Gym' }, { v: 'planet', l: 'Planet-style' },
-  { v: 'home-min', l: 'Home · Minimal' }, { v: 'home-bar', l: 'Home · Barbell' }, { v: 'travel', l: 'Travel' },
+  { v: 'any-home', l: 'Any / Home' }, { v: 'eos', l: 'EOS Fitness' }, { v: 'planet', l: 'Planet Fitness' },
+  { v: 'mountainside', l: 'Mountainside Fitness' }, { v: 'la', l: 'LA Fitness' },
 ];
+// 5 · Weekly Frequency — training days per week.
 export const DAY_OPTIONS = ['2', '3', '4', '5', '6'];
-// Workout Pace Target — session length, which drives training density (lifts/day).
+// 6 · Workout Pace Target — session length, which drives training density (lifts/day).
 export const PACES = [
-  { v: '30', l: 'Express · ~30 min' }, { v: '45', l: 'Brisk · ~45 min' }, { v: '60', l: 'Standard · ~60 min' },
-  { v: '75', l: 'Extended · ~75 min' }, { v: '90', l: 'Marathon · ~90 min' },
+  { v: '35', l: '35 Minutes / Session' }, { v: '45', l: '45 Minutes / Session' },
+  { v: '60', l: '60 Minutes / Session' }, { v: '90', l: '90 Minutes / Session' },
+  { v: '120', l: '120 Minutes / Session' },
 ];
 export const DURATIONS = PACES; // back-compat alias (legacy callers used DURATIONS)
-// Splits Architecture — the day-by-day template the split is built from.
+// 7 · Splits Architecture — the day-by-day template the split is built from.
 export const SPLITS = [
-  { v: 'full', l: 'Full Body' }, { v: 'upper-lower', l: 'Upper / Lower' }, { v: 'ppl', l: 'Push / Pull / Legs' },
-  { v: 'bro', l: 'Body-Part (Bro) Split' }, { v: 'arnold', l: 'Arnold Antagonist' },
+  { v: 'full', l: 'Dynamic Focus Allocation' }, { v: 'upper-lower', l: 'Upper / Lower Split' },
+  { v: 'ppl', l: 'Push / Pull / Legs' }, { v: 'bro', l: 'Body-Part (Bro) Split' },
+  { v: 'arnold', l: 'Arnold Split (Chest/Back, Arms)' },
 ];
-// Intensifier Technique — a protocol overlay on every working day. FST-7 also appends
-// a real 7-set fascia finisher to each day (structural, not just a label).
+// 8 · Intensifier Technique — a protocol overlay on every working day. (FST-7 is not a
+// standard technique here — it is Chamber II, a signature preset; see PRESETS / fst7.)
 export const INTENSIFIERS = [
-  { v: 'straight', l: 'Straight Sets' }, { v: 'superset', l: 'Antagonist Supersets' }, { v: 'dropset', l: 'Drop Sets' },
-  { v: 'restpause', l: 'Rest-Pause' }, { v: 'cluster', l: 'Cluster Sets' }, { v: 'fst7', l: 'FST-7 Fascia Finisher' },
+  { v: 'none', l: 'None (Standard Muscle Overload)' }, { v: 'dropset', l: 'Drop-sets (Ultimate Pump focus)' },
+  { v: 'myoreps', l: 'Myo-reps (Efficiency Autoregulation)' }, { v: 'superset', l: 'Supersets (Fast Cardiorespiratory Pace)' },
+  { v: 'negatives', l: 'Negatives / Eccentric overload' },
 ];
 const INTENSIFIER_META = {
-  straight: { label: null, cue: null },
-  superset: { label: 'Antagonist Supersets', cue: 'Pair the opposing movements back-to-back; rest only after the pair.' },
+  none: { label: null, cue: null },
   dropset: { label: 'Drop Sets', cue: 'On the final set of each lift, strip ~20% and rep to failure ×2 drops.' },
-  restpause: { label: 'Rest-Pause', cue: 'Final set: rep to failure, rest 15s, go again ×2 mini-sets.' },
-  cluster: { label: 'Cluster Sets', cue: 'Break heavy sets into 2-rep clusters with 15s intra-set rest.' },
+  myoreps: { label: 'Myo-Reps', cue: 'Activation set to near-failure, then rest 15s and fire 3–5 mini-sets of 3–5 reps.' },
+  superset: { label: 'Supersets', cue: 'Pair the opposing movements back-to-back; rest only after the pair to hold the pace.' },
+  negatives: { label: 'Negatives', cue: 'Ride a 4–5s eccentric on every rep; on the last set, control an overloaded lower.' },
+  // FST-7 powers the Chamber II signature preset — appends a real 7-set fascia finisher.
   fst7: { label: 'FST-7', cue: 'Finish each day with 7 sets of the isolation movement · 30s rest (fascia stretch).' },
 };
 
-// Signature split presets — the 3 hard-wired buttons. Each loads a full parameter
-// envelope plus the warm-up/cool-down flag in one tap.
+// Signature Chamber Splits — the 3 hard-wired buttons (Akeem's Overwatch Override).
+// Each loads a full parameter envelope plus the warm-up/cool-down flag in one tap.
 export const PRESETS = [
-  { id: 'arnold', label: 'Arnold Era Classic', blurb: 'High-volume antagonist supersets · 6-day golden-era hypertrophy', warmups: true,
-    params: { goal: 'hypertrophy', gender: 'male', level: '3', loc: 'commercial', days: '6', dur: '90', arch: 'arnold', intensifier: 'superset' } },
-  { id: 'fst7', label: 'FST-7 Fascia Expand', blurb: 'Body-part split with 7-set fascia finishers · pump & expansion', warmups: true,
-    params: { goal: 'hypertrophy', gender: 'unisex', level: '3', loc: 'commercial', days: '5', dur: '75', arch: 'bro', intensifier: 'fst7' } },
-  { id: 'nasm', label: 'Elite NASM Clinical', blurb: 'OPT-model full body · controlled tempo · prep + recovery built in', warmups: true,
-    params: { goal: 'general', gender: 'unisex', level: '2', loc: 'commercial', days: '4', dur: '60', arch: 'full', intensifier: 'straight' } },
+  { id: 'arnold', chamber: 'Chamber I', label: 'Arnold Era Classic',
+    blurb: 'Chest/Back, Shoulders/Arms, Legs split load.', warmups: true,
+    params: { goal: 'hypertrophy', gender: 'male', level: '3', loc: 'eos', days: '6', dur: '90', arch: 'arnold', intensifier: 'superset' } },
+  { id: 'fst7', chamber: 'Chamber II', label: 'FST-7 Fascia Expand',
+    blurb: 'High volume overload finish with 7 sets rest-triggers.', warmups: true,
+    params: { goal: 'hypertrophy', gender: 'any', level: '3', loc: 'eos', days: '5', dur: '90', arch: 'bro', intensifier: 'fst7' } },
+  { id: 'nasm', chamber: 'Chamber III', label: 'Elite NASM Clinical',
+    blurb: 'Force vectors acceleration, joint prehab, kinetic speeds.', warmups: true,
+    params: { goal: 'general', gender: 'any', level: '2', loc: 'any-home', days: '4', dur: '60', arch: 'full', intensifier: 'none' } },
 ];
 
 function prescribe(goal) {
   switch (goal) {
     case 'strength': return { sets: '4-5', reps: '3-6', rest: '2-3 min' };
+    case 'endurance': return { sets: '2-3', reps: '15-25', rest: '30-45s' };
     case 'power': return { sets: '4-5', reps: '2-5', rest: '2-3 min' };
     case 'fatloss': return { sets: '3', reps: '12-20', rest: '30-45s' };
     case 'general': return { sets: '3', reps: '8-12', rest: '60-90s' };
     default: return { sets: '3-4', reps: '8-12', rest: '60-90s' };
   }
 }
-function countFor(dur) { const d = parseInt(dur, 10) || 60; return d <= 30 ? 4 : d <= 45 ? 5 : d <= 60 ? 6 : d <= 75 ? 7 : 8; }
+function countFor(dur) { const d = parseInt(dur, 10) || 60; return d <= 40 ? 4 : d <= 50 ? 5 : d <= 65 ? 6 : d <= 95 ? 7 : 8; }
 function rng(seed) { let s = (seed || 1) % 2147483647; if (s <= 0) s += 2147483646; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
 function shuffle(arr, rnd) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 

@@ -1,14 +1,15 @@
 // src/components/vault/Generator.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 // Program Generator (Vault tab) — the Vault Roster Engine. React reconstruction of
-// the legacy BBF_PROGRAM_GENERATOR studio surface, upgraded to the full studio spec:
+// the legacy BBF_PROGRAM_GENERATOR studio surface, locked to the definitive UI blueprint:
 //
-//   • 3 hard-wired SIGNATURE SPLIT presets (Arnold Era Classic · FST-7 Fascia Expand
-//     · Elite NASM Clinical) — one tap loads a coherent parameter envelope.
+//   • AKEEM'S SIGNATURE CHAMBER SPLITS (Overwatch Override) — 3 hard-wired chambers
+//     (I · Arnold Era Classic, II · FST-7 Fascia Expand, III · Elite NASM Clinical).
+//     One tap loads a coherent parameter envelope.
 //   • 8 SIGNATURE SELECTORS: Training Priority · Athletic Gender Focus · Experience
-//     Level · Destination Equip Prerequisites · Weekly Frequency · Workout Pace
-//     Target · Splits Architecture · Intensifier Technique.
-//   • ATTACH WARM-UPS & COOL-DOWN toggle — prepends a dynamic prep block and appends
+//     Level · Destination Equip Priority · Weekly Frequency · Workout Pace Target ·
+//     Splits Architecture · Intensifier Technique.
+//   • ATTACH WARM-UPS & COOL-DOWNS toggle — prepends a dynamic prep block and appends
 //     a decompression block to every training day.
 //
 // Output is a deterministic split built STRICTLY from the locked library, every
@@ -22,21 +23,26 @@ import {
 import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
 import './vault.css';
 
-// The 8 signature parameter selectors (exact Vault Roster Engine spec, in order).
+// The 8 signature parameter selectors (exact Vault Roster Engine blueprint, in order).
 const FIELDS = [
   { key: 'goal', label: 'Training Priority', options: GOALS },
   { key: 'gender', label: 'Athletic Gender Focus', options: GENDERS },
   { key: 'level', label: 'Experience Level', options: LEVELS },
-  { key: 'loc', label: 'Destination Equip Prerequisites', options: LOCATIONS },
-  { key: 'days', label: 'Weekly Frequency', options: DAY_OPTIONS.map((v) => ({ v, l: `${v} days / week` })) },
+  { key: 'loc', label: 'Destination Equip Priority', icon: '📍', options: LOCATIONS },
+  { key: 'days', label: 'Weekly Frequency', options: DAY_OPTIONS.map((v) => ({ v, l: `${v} Days / Week` })) },
   { key: 'dur', label: 'Workout Pace Target', options: PACES },
-  { key: 'arch', label: 'Splits Architecture', options: SPLITS },
-  { key: 'intensifier', label: 'Intensifier Technique', options: INTENSIFIERS },
+  { key: 'arch', label: 'Splits Architecture', icon: '⚡', options: SPLITS },
+  { key: 'intensifier', label: 'Intensifier Technique', icon: '🔥', options: INTENSIFIERS },
 ];
 
+// Labels for any param value not present in its dropdown's option list — e.g. the
+// Chamber II (FST-7) preset sets intensifier:'fst7', a signature preset rather than a
+// standard Intensifier Technique. Rendering it keeps the <select> controlled & clear.
+const EXTRA_OPTION_LABELS = { fst7: 'FST-7 Fascia Finisher' };
+
 const DEFAULTS = {
-  goal: 'hypertrophy', gender: 'unisex', level: '2', loc: 'commercial',
-  days: '4', dur: '60', arch: 'full', intensifier: 'straight',
+  goal: 'hypertrophy', gender: 'any', level: '2', loc: 'any-home',
+  days: '3', dur: '60', arch: 'full', intensifier: 'none',
 };
 
 export default function Generator() {
@@ -75,42 +81,61 @@ export default function Generator() {
   return (
     <div className="gen">
       <div>
-        <h2 className="pg-nut-head">Program Generator</h2>
+        <h2 className="pg-nut-head">⚡ Vault Roster Engine</h2>
         <div className="pg-nut-meta">
-          Vault Roster Engine — signature splits, 8-parameter control, built from the locked BBF library. Every lift ships a form demo.
+          Signature chamber splits · 8-parameter control · built strictly from the locked BBF library. Every lift ships a form demo.
         </div>
       </div>
 
-      {/* ── 3 hard-wired signature split presets ── */}
-      <div className="gen-presets" role="group" aria-label="Signature split presets">
-        {PRESETS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            className={`gen-preset${activePreset === p.id ? ' is-active' : ''}`}
-            aria-pressed={activePreset === p.id}
-            onClick={() => applyPreset(p)}
-          >
-            <span className="gen-preset-name">{p.label}</span>
-            <span className="gen-preset-sub">{p.blurb}</span>
-          </button>
-        ))}
+      {/* ── Akeem's Signature Chamber Splits (Overwatch Override) — 3 hard-wired presets ── */}
+      <div className="pg-card gen-chambers">
+        <div className="gen-chambers-head">
+          <h3 className="gen-chambers-title">
+            <span aria-hidden="true">🏆</span> Akeem&apos;s Signature Chamber Splits <span className="gen-chambers-tag">(Overwatch Override)</span>
+          </h3>
+          <p className="gen-chambers-sub">
+            Pledge dynamic pre-compiled splits modeled directly on Akeem&apos;s golden-era protocols. Zero AI waiting, maximum immediate cell recruitment.
+          </p>
+        </div>
+        <div className="gen-presets" role="group" aria-label="Signature chamber splits">
+          {PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className={`gen-preset${activePreset === p.id ? ' is-active' : ''}`}
+              aria-pressed={activePreset === p.id}
+              onClick={() => applyPreset(p)}
+            >
+              {p.chamber ? <span className="gen-preset-chamber">{p.chamber}</span> : null}
+              <span className="gen-preset-name">{p.label}</span>
+              <span className="gen-preset-sub">{p.blurb}</span>
+              <span className="gen-preset-cta" aria-hidden="true">Activate Split →</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="gen-form pg-card">
         <div className="gen-controls">
-          {FIELDS.map((f) => (
-            <label key={f.key} className="gen-field">
-              <span className="gen-field-lbl">{f.label}</span>
-              <select
-                className="gen-select"
-                value={params[f.key]}
-                onChange={(e) => set(f.key, e.target.value)}
-              >
-                {f.options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
-              </select>
-            </label>
-          ))}
+          {FIELDS.map((f) => {
+            const known = f.options.some((o) => o.v === params[f.key]);
+            return (
+              <label key={f.key} className="gen-field">
+                <span className="gen-field-lbl">
+                  {f.icon ? <span className="gen-field-ic" aria-hidden="true">{f.icon} </span> : null}{f.label}
+                </span>
+                <select
+                  className="gen-select"
+                  value={params[f.key]}
+                  onChange={(e) => set(f.key, e.target.value)}
+                >
+                  {f.options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
+                  {/* A preset can set a value outside this dropdown's list (e.g. FST-7). */}
+                  {!known ? <option value={params[f.key]}>{EXTRA_OPTION_LABELS[params[f.key]] || params[f.key]}</option> : null}
+                </select>
+              </label>
+            );
+          })}
         </div>
 
         {/* ── ATTACH WARM-UPS & COOL-DOWN toggle ── */}
@@ -122,11 +147,11 @@ export default function Generator() {
           onClick={toggleWarmups}
         >
           <span className={`gen-switch${warmups ? ' is-on' : ''}`}><span className="gen-switch-thumb" /></span>
-          <span className="gen-toggle-lbl">Attach Warm-Ups &amp; Cool-Down</span>
+          <span className="gen-toggle-lbl">Attach Warm-Ups &amp; Cool-Downs</span>
         </button>
 
         <div className="gen-actions">
-          <button type="button" className="gen-run" onClick={() => run(0)}>Generate Program</button>
+          <button type="button" className="gen-run" onClick={() => run(0)}><span aria-hidden="true">🏋 </span>Generate Designed Program Blueprint</button>
           {result ? (
             <button type="button" className="gen-regen" onClick={() => run(regen + 1)}>↻ Reshuffle</button>
           ) : null}
@@ -138,7 +163,7 @@ export default function Generator() {
 
       {result ? <GeneratorOutput result={result} /> : (
         <div className="pg-card gen-placeholder">
-          Pick a signature split or set your 8 parameters, then generate a fresh, video-backed program.
+          Activate a signature chamber split or set your 8 parameters, then generate a fresh, video-backed program.
         </div>
       )}
     </div>

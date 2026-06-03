@@ -969,20 +969,45 @@
   .gen-rx { grid-column: 2; text-align: left; }
 }
 
-/* ── Program Generator · signature split presets ─────────────────────────── */
+/* ── Akeem's Signature Chamber Splits (Overwatch Override) ───────────────── */
+.gen-chambers { border-left: 3px solid var(--yel); background: linear-gradient(135deg, rgba(106, 13, 173, .16), rgba(30, 3, 56, .10)); }
+.gen-chambers-head { margin-bottom: .9rem; }
+.gen-chambers-title {
+  margin: 0; font-family: var(--hb); font-size: 1.05rem; letter-spacing: 1.5px;
+  text-transform: uppercase; font-style: italic; color: var(--yel); line-height: 1.2;
+}
+.gen-chambers-tag { color: var(--gold-soft); opacity: .82; }
+.gen-chambers-sub {
+  margin: .35rem 0 0; font-family: var(--bd); font-size: .82rem; font-weight: 600;
+  color: var(--mut); line-height: 1.4; max-width: 78ch;
+}
+.gen-field-ic { font-size: .85em; filter: saturate(.9); }
+
+/* ── Program Generator · signature chamber preset cards ──────────────────── */
 .gen-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .7rem; }
 .gen-preset {
-  display: flex; flex-direction: column; gap: .3rem; text-align: left;
-  background: rgba(106, 13, 173, .12); border: 1px solid var(--line);
-  border-left: 3px solid var(--purl); border-radius: 12px; padding: .85rem 1rem; cursor: pointer;
+  position: relative; display: flex; flex-direction: column; gap: .3rem; text-align: left;
+  background: linear-gradient(160deg, rgba(106, 13, 173, .14), rgba(9, 9, 9, .35)); border: 1px solid var(--line);
+  border-radius: 12px; padding: .9rem 1rem; cursor: pointer;
   transition: border-color .15s ease, background .15s ease, transform .1s ease;
 }
-.gen-preset:hover { border-color: rgba(245, 200, 0, .4); transform: translateY(-1px); }
+.gen-preset:hover { border-color: rgba(245, 200, 0, .45); transform: translateY(-1px); }
 .gen-preset:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
-.gen-preset.is-active { border-color: var(--yel); border-left-color: var(--yel); background: rgba(245, 200, 0, .08); }
-.gen-preset-name { font-family: var(--hb); font-size: .9rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--wht); }
+.gen-preset.is-active { border-color: var(--yel); background: rgba(245, 200, 0, .08); }
+.gen-preset-chamber {
+  align-self: flex-start; font-family: var(--hb); font-size: .58rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold-soft);
+  background: rgba(245, 200, 0, .10); border: 1px solid rgba(245, 200, 0, .28);
+  border-radius: 5px; padding: .12rem .45rem; margin-bottom: .1rem;
+}
+.gen-preset-name { font-family: var(--hb); font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--wht); }
 .gen-preset.is-active .gen-preset-name { color: var(--yel); }
-.gen-preset-sub { font-family: var(--bd); font-size: .74rem; font-weight: 600; color: var(--mut); line-height: 1.35; }
+.gen-preset-sub { font-family: var(--bd); font-size: .78rem; font-weight: 600; color: var(--mut); line-height: 1.35; }
+.gen-preset-cta {
+  margin-top: .35rem; font-family: var(--hb); font-size: .64rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--mut); transition: color .15s ease;
+}
+.gen-preset:hover .gen-preset-cta, .gen-preset.is-active .gen-preset-cta { color: var(--gold-soft); }
 
 /* ── Warm-up / cool-down toggle switch ───────────────────────────────────── */
 .gen-toggle { display: inline-flex; align-items: center; gap: .7rem; background: none; border: none; padding: .2rem 0; cursor: pointer; }
