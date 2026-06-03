@@ -10,7 +10,7 @@
 // CEO ROUTING RULES (Phase 7 directive):
 //   · Syntax/Vocab Retries & Mesocycle Rationale → Haiku 4.5
 //   · Novel Kinematic Deviations                 → Sonnet 4.6 (vision)
-//   · PAR-Q+ Assessment & Wellbeing Escalations  → Opus 4.7
+//   · PAR-Q+ Assessment & Wellbeing Escalations  → Opus 4.8
 //
 // Every Claude call SHOULD pass through routeModel() with a use-case
 // tag. Edge functions that need peak reasoning (cardiac · ED triage)
@@ -21,7 +21,7 @@
 export const MODELS = {
   HAIKU:  'claude-haiku-4-5',
   SONNET: 'claude-sonnet-4-6',
-  OPUS:   'claude-opus-4-7',
+  OPUS:   'claude-opus-4-8',
 } as const;
 
 export type Model = typeof MODELS[keyof typeof MODELS];
