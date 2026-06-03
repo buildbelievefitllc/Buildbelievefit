@@ -26,14 +26,15 @@ const AFFIRMATION =
   'I possess the strength to overcome every challenge and the discipline to master my craft today.';
 
 // ── Championship Mindset Cinema roster ───────────────────────────────────────
-// `youtubeId` values are PLACEHOLDER embeds — swap with the final CEO-approved
-// cuts in this one array; the player builds youtube.com/embed/<id> from them.
+// Final CEO-approved cuts live in the `youtubeId` field of this one array; the
+// player builds youtube.com/embed/<id> from them. (Jordan is still a placeholder
+// embed pending its approved cut — swap it the same way.)
 const CHAMPIONS = [
   {
     id: 'kobe',
     category: 'Mamba Mentality',
     title: 'Kobe Bryant: The Mamba Mentality',
-    youtubeId: 'WiOVgRrjQDk',
+    youtubeId: 'GE0UAdxPTc0',
     objective:
       'The relentless pursuit of being the best version of yourself. Obsessive ' +
       'preparation, zero excuses, and the will to outwork every opponent in the room.',
@@ -61,7 +62,7 @@ const CHAMPIONS = [
     id: 'goggins',
     category: 'Discipline & Willpower',
     title: 'David Goggins: The 40% Mind Rule',
-    youtubeId: 'qNvAYGtFcfg',
+    youtubeId: 'ocIWBpT-AGc',
     objective:
       'When your mind says you are finished, you are only at 40% of your true ' +
       'capacity. Callous the mind, embrace the suffering, and take souls in the darkroom.',
@@ -72,17 +73,20 @@ const CHAMPIONS = [
     ],
   },
   {
-    id: 'grover',
+    id: 'et',
     category: 'Relentless Execution',
-    title: 'Tim Grover: Becoming a Cleaner',
-    youtubeId: '0XGr8a7Qv9c',
+    title: 'Discipline Yourself | Eric Thomas Motivation',
+    youtubeId: 'jsabTHhM54A',
     objective:
-      "A deep dive into the 'Cleaner' archetype. Don't think, don't celebrate, " +
-      "don't explain. Just do the work. Complete standard of execution without emotion.",
+      'Discipline is the bridge between your goals and your accomplishments. This ' +
+      'module requires you to abandon the fleeting feeling of motivation and rely ' +
+      'entirely on engineered consistency. Your emotions and fatigue are irrelevant; ' +
+      'your execution of the standard is the only metric that matters.',
     dictums: [
-      'In critical moments, reduce everything to instinct.',
-      'Demand more of yourself than anyone could ever expect.',
-      'Keep your head down and stay in the darkroom until it is done.',
+      'Motivation is a feeling; discipline is an unshakeable standard.',
+      'I do not negotiate with my own weakness or fatigue.',
+      'The work is required whether I feel like executing it or not.',
+      'I am the sole architect of my consistency and my outcomes.',
     ],
   },
 ];
