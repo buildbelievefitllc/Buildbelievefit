@@ -21,7 +21,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { parseFastingWindow } from '../../lib/vaultApi.js';
+import { parseFastingWindow, parseMealPlan } from '../../lib/vaultApi.js';
 import {
   rosterCall, updateTargets, compilePlan, toErrorMessage,
   TARGET_MAX, CUISINE_STYLES,
@@ -323,13 +323,77 @@ function normalizeInstructions(instructions) {
   return [];
 }
 
+// Short day-pill label: weekday → first 3 chars ("Monday"→"Mon"); a generated
+// "Day 1"…"Day 7" → "D1"…"D7" (so a live plan's pills don't all read "Day").
+function shortDayLabel(day) {
+  const s = String(day || '');
+  const dn = s.match(/^\s*Day\s+(\d+)/i);
+  return dn ? `D${dn[1]}` : (s.slice(0, 3) || '—');
+}
+
+// Best-effort per-meal macros parsed from the food line's "(~520 cal/38g P/42g C/
+// 18g F)" annotation. The live plan encodes macros as TEXT (unlike the static
+// catalog's numeric fields); calories + protein are reliable across engines, carbs
+// and fat vary and degrade to 0 so the wheel/legend/ratio never render NaN.
+function macrosFromText(line) {
+  const s = String(line || '');
+  const grab = (re) => { const m = s.match(re); return m ? parseInt(m[1], 10) : 0; };
+  return {
+    kcal: grab(/(\d{2,4})\s*(?:k?cal|calories)/i),
+    p: grab(/(\d+)\s*g\s*P\b/i),
+    c: grab(/(\d+)\s*g\s*C\b/i),
+    f: grab(/(\d+)\s*g\s*F\b/i),
+  };
+}
+
+// ── Live-plan adapter ─────────────────────────────────────────────────────────
+// Adapt the athlete's REAL coach-generated plan (persisted meal_plan JSON on the
+// auth envelope · plans.mealPlan) into the static catalog's render shape so the
+// existing day-tabs / cards / fuel wheel render it unchanged. This is the plan that
+// carries the auto-generated prep instructions. Returns null for a missing, legacy,
+// or plain-text plan → the UI then falls back to the static tri-cuisine catalog so
+// the tab is never empty.
+function buildLivePlan(mealPlanRaw) {
+  const parsed = parseMealPlan(mealPlanRaw);
+  if (!parsed.structured) return null;
+  const days = (parsed.days || [])
+    .filter((d) => Array.isArray(d.meals) && d.meals.length)
+    .map((d) => ({
+      day: d.day || '',
+      meals: d.meals.map((m) => ({
+        m: m.m || '',
+        i: m.i || '',
+        instructions: m.instructions,
+        ...macrosFromText(m.i),
+      })),
+    }));
+  if (!days.length) return null;
+  return {
+    id: 'live',
+    label: 'Your Coach’s Plan',
+    goal: parsed.goal || 'Personalized fueling protocol',
+    cal: parsed.cal, // plan-level daily target (number|null) — header fallback
+    days,
+  };
+}
+
 // ── Meal card — thumbnail · tap-to-log body · Prep Instructions drawer ────────
 // The card is a container (not one big button) so the "mark done" control and the
 // "Prep Instructions" toggle are separate, non-nested interactive elements.
 function MealCard({ meal, done, onToggle }) {
   const [prepOpen, setPrepOpen] = useState(false);
   const snack = isSnack(meal.m);
-  const macros = `${meal.kcal} KCAL · ${meal.p}P / ${meal.c}C / ${meal.f}F`;
+  // Build the macro chip from the parts actually present — the static catalog
+  // carries full P/C/F; a live plan may only resolve calories + protein, so we never
+  // render "undefined"/"0C / 0F" noise for the gaps.
+  const macroBits = [];
+  if (meal.kcal) macroBits.push(`${meal.kcal} KCAL`);
+  const pcf = [];
+  if (meal.p) pcf.push(`${meal.p}P`);
+  if (meal.c) pcf.push(`${meal.c}C`);
+  if (meal.f) pcf.push(`${meal.f}F`);
+  if (pcf.length) macroBits.push(pcf.join(' / '));
+  const macros = macroBits.join(' · ');
   const steps = normalizeInstructions(meal.instructions);
 
   return (
@@ -339,14 +403,14 @@ function MealCard({ meal, done, onToggle }) {
         className="nl-meal-main"
         onClick={onToggle}
         aria-pressed={done}
-        aria-label={`${meal.m}: ${meal.i}. ${macros}. ${done ? 'Completed' : 'Mark complete'}`}
+        aria-label={`${meal.m}: ${meal.i}.${macros ? ` ${macros}.` : ''} ${done ? 'Completed' : 'Mark complete'}`}
       >
         <span className="nl-meal-check" aria-hidden="true">✓</span>
         <MealThumb src={meal.image_url} />
         <span className="nl-meal-body">
           <span className="nl-meal-slot">{meal.m}</span>
           <div className="nl-meal-ing">{meal.i}</div>
-          <span className="nl-meal-macros">{macros}</span>
+          {macros ? <span className="nl-meal-macros">{macros}</span> : null}
         </span>
       </button>
 
@@ -593,7 +657,7 @@ function NutritionCoachConsole() {
   );
 }
 
-export default function Nutrition({ profile }) {
+export default function Nutrition({ plans, profile }) {
   const { user, isAdmin } = useAuth();
   const uid = user?.username || user?.id || 'guest';
 
@@ -608,34 +672,47 @@ export default function Nutrition({ profile }) {
   // do the admin controls mount.
   const onCommandSurface = useLocation().pathname.startsWith('/command');
 
+  // ── Plan source · prioritize the athlete's LIVE coach-generated plan ──────────
+  // The persisted meal_plan (auth envelope → plans.mealPlan) is the real, per-athlete
+  // protocol and carries the auto-generated prep instructions. When present we render
+  // IT; the static tri-cuisine catalog is the FALLBACK so the tab is never empty for a
+  // client who hasn't had a plan compiled yet.
+  const livePlan = useMemo(() => buildLivePlan(plans?.mealPlan), [plans?.mealPlan]);
+  const usingLive = Boolean(livePlan);
+
   const [cuisineId, setCuisineId] = useState(CUISINES[0].id);
   const [dayIdx, setDayIdx] = useState(() => todayIndex());
 
-  const plan = CUISINE_PLANS[cuisineId];
-  const day = plan.days[dayIdx];
+  // Active source: the live plan keys its done-store under 'live' so it never
+  // collides with the three static cuisines' completion state.
+  const activeKey = usingLive ? 'live' : cuisineId;
+  const plan = usingLive ? livePlan : CUISINE_PLANS[cuisineId];
+  const activeDayIdx = Math.min(dayIdx, plan.days.length - 1);
+  const day = plan.days[activeDayIdx] || plan.days[0];
   const totals = useMemo(() => dayTotals(day), [day]);
 
   // Completed-meal indexes — one persisted store for the user, keyed live by the
-  // active cuisine + day (no effect needed; the lookup is derived each render).
+  // active source (cuisine id, or 'live') + day (no effect; derived each render).
   const dayName = day.day;
   const [doneStore, setDoneStore] = useState(() => readUserDone(uid));
-  const done = doneStore?.[cuisineId]?.[dayName] || EMPTY;
+  const done = doneStore?.[activeKey]?.[dayName] || EMPTY;
 
   const toggleMeal = (idx) => {
     setDoneStore((prev) => {
-      const cur = prev?.[cuisineId]?.[dayName] || [];
+      const cur = prev?.[activeKey]?.[dayName] || [];
       const nextArr = cur.includes(idx) ? cur.filter((i) => i !== idx) : [...cur, idx];
-      const next = { ...prev, [cuisineId]: { ...(prev[cuisineId] || {}), [dayName]: nextArr } };
+      const next = { ...prev, [activeKey]: { ...(prev[activeKey] || {}), [dayName]: nextArr } };
       writeUserDone(uid, next);
       return next;
     });
   };
 
-  // Consumed macros = sum of completed meals.
+  // Consumed macros = sum of completed meals (|| 0 — a live meal may not resolve
+  // every macro from its text annotation).
   const consumed = useMemo(() => {
     return day.meals.reduce(
       (acc, m, i) => (done.includes(i)
-        ? { kcal: acc.kcal + m.kcal, p: acc.p + m.p, c: acc.c + m.c, f: acc.f + m.f }
+        ? { kcal: acc.kcal + (m.kcal || 0), p: acc.p + (m.p || 0), c: acc.c + (m.c || 0), f: acc.f + (m.f || 0) }
         : acc),
       { kcal: 0, p: 0, c: 0, f: 0 },
     );
@@ -662,6 +739,12 @@ export default function Nutrition({ profile }) {
   }, []);
 
   const todayI = todayIndex();
+  // Header calorie figure: a live plan may not resolve every meal's macros from its
+  // text, so fall back to its stated plan-level daily target when the per-meal sum is
+  // empty. The static catalog always sums to a real number, so it's unaffected.
+  const calFigure = totals.kcal > 0
+    ? totals.kcal.toLocaleString()
+    : (usingLive && plan.cal ? `~${plan.cal.toLocaleString()}` : totals.kcal.toLocaleString());
 
   return (
     <div className="pg-nut">
@@ -670,40 +753,51 @@ export default function Nutrition({ profile }) {
       <div className="nl-head-row">
         <div>
           <h2 className="pg-nut-head">Nutrition Plan</h2>
-          <div className="pg-nut-meta">Your personalized 7-day meal plan</div>
+          <div className="pg-nut-meta">
+            {usingLive ? 'Your coach-generated fueling protocol' : 'Your personalized 7-day meal plan'}
+          </div>
         </div>
-        <label className="nl-cuisine">
-          <span className="nl-cuisine-lbl">Cuisine Style</span>
-          <select
-            className="nl-cuisine-select"
-            value={cuisineId}
-            onChange={(e) => setCuisineId(e.target.value)}
-            aria-label="Cuisine style"
-          >
-            {CUISINES.map((c) => (
-              <option key={c.id} value={c.id}>{c.label}</option>
-            ))}
-          </select>
-        </label>
+        {usingLive ? (
+          // A live plan is a single personalized protocol — the tri-cuisine selector
+          // doesn't apply, so surface a source badge where the picker would sit.
+          <div className="nl-cuisine">
+            <span className="nl-cuisine-lbl">Plan Source</span>
+            <span className="nl-live-badge-val">◆ Live Coach Plan</span>
+          </div>
+        ) : (
+          <label className="nl-cuisine">
+            <span className="nl-cuisine-lbl">Cuisine Style</span>
+            <select
+              className="nl-cuisine-select"
+              value={cuisineId}
+              onChange={(e) => setCuisineId(e.target.value)}
+              aria-label="Cuisine style"
+            >
+              {CUISINES.map((c) => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
       <div className="nl-day-head">
         <div className="nl-day-head-cuisine">{plan.label} · {dayName}</div>
-        <div className="nl-day-head-cal">{totals.kcal.toLocaleString()} kcal / day</div>
+        <div className="nl-day-head-cal">{calFigure} kcal / day</div>
         <div className="nl-day-head-goal">🎯 {plan.goal}</div>
       </div>
 
-      <div className="nl-daynav" role="tablist" aria-label="Day of week">
+      <div className="nl-daynav" role="tablist" aria-label={usingLive ? 'Plan day' : 'Day of week'}>
         {plan.days.map((d, i) => (
           <button
-            key={d.day}
+            key={`${d.day}-${i}`}
             type="button"
             role="tab"
-            aria-selected={i === dayIdx}
-            className={`nl-day-pill${i === dayIdx ? ' is-active' : ''}${i === todayI ? ' is-today' : ''}`}
+            aria-selected={i === activeDayIdx}
+            className={`nl-day-pill${i === activeDayIdx ? ' is-active' : ''}${!usingLive && i === todayI ? ' is-today' : ''}`}
             onClick={() => setDayIdx(i)}
           >
-            {d.day.slice(0, 3)}
+            {shortDayLabel(d.day)}
           </button>
         ))}
       </div>
@@ -727,9 +821,9 @@ export default function Nutrition({ profile }) {
       <div>
         <div className="nl-meal-hint">Tap a meal to log it — your fuel wheel fills as you go.</div>
         {day.meals.map((m, i) => (
-          // key includes cuisine + day so switching tabs remounts each card —
-          // resetting its local prep-drawer / broken-thumbnail state for the new meal.
-          <MealCard key={`${cuisineId}-${dayName}-${i}`} meal={m} done={done.includes(i)} onToggle={() => toggleMeal(i)} />
+          // key includes the active source + day so switching tabs remounts each card
+          // — resetting its local prep-drawer / broken-thumbnail state for the new meal.
+          <MealCard key={`${activeKey}-${dayName}-${i}`} meal={m} done={done.includes(i)} onToggle={() => toggleMeal(i)} />
         ))}
       </div>
     </div>

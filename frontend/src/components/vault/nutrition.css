@@ -52,6 +52,24 @@
 }
 .nl-cuisine-select:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 
+/* Live-plan source badge — sits where the cuisine picker would, when the athlete is
+   on their real coach-generated protocol (the static catalog is only the fallback). */
+.nl-live-badge-val {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: linear-gradient(135deg, var(--purp), var(--purd));
+  border: 1px solid rgba(245, 200, 0, .55);
+  border-radius: 10px;
+  color: var(--yel);
+  font-family: var(--bd);
+  font-weight: 700;
+  font-size: .9rem;
+  letter-spacing: .5px;
+  padding: .55rem .85rem;
+  white-space: nowrap;
+}
+
 /* ── Day header (plan name · calories · goal) ────────────────────────────── */
 .nl-day-head {
   background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 72%);

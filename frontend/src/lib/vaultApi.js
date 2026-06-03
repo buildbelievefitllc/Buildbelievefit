@@ -134,12 +134,18 @@ function sumDayMacros(day) {
 }
 
 // Normalize a meal-plan object (DB JSON or the MP seed catalog) to the render
-// shape, or null when it isn't a structured plan.
+// shape, or null when it isn't a structured plan. Per-meal `instructions` (the
+// auto-generated prep steps) are carried through when present so the Nutrition
+// tab can render them — older plans simply omit the field and fall back cleanly.
 function normalizeMeal(obj) {
   if (!obj || typeof obj !== 'object' || !Array.isArray(obj.days)) return null;
   const days = obj.days.map((d) => ({
     day: d.day || '',
-    meals: Array.isArray(d.meals) ? d.meals.map((m) => ({ m: m.m || '', i: m.i || '' })) : [],
+    meals: Array.isArray(d.meals) ? d.meals.map((m) => ({
+      m: m.m || '',
+      i: m.i || '',
+      ...(m.instructions != null ? { instructions: m.instructions } : {}),
+    })) : [],
   }));
   return {
     structured: true,
