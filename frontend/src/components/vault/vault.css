@@ -939,6 +939,24 @@
   background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: .8rem 1rem; cursor: pointer;
 }
 .gen-regen:hover { border-color: rgba(245, 200, 0, .45); }
+/* Token Economy — exhausted generate button (client, monthly token spent). Drops the
+   gold CTA fill for a muted, locked surface so it never reads as a live brand CTA. */
+.gen-run.is-exhausted {
+  background: rgba(249, 245, 255, .04); color: var(--mut);
+  border: 1px solid var(--line); cursor: not-allowed; font-weight: 700;
+}
+.gen-run.is-exhausted:disabled { opacity: 1; }
+/* Failsafe — route a tokenless client back to their saved/assigned routine. */
+.gen-revert {
+  align-self: flex-start; margin-top: -.2rem;
+  font-family: var(--bd); font-size: .82rem; font-weight: 700; letter-spacing: .3px;
+  color: var(--gold-soft); background: none; border: none; padding: .2rem 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.gen-revert:hover { color: var(--yel); }
+/* Locked controls when the monthly token is exhausted. */
+.gen-preset:disabled,
+.gen-toggle:disabled { opacity: .4; cursor: not-allowed; }
 .gen-guard {
   font-family: var(--bd); font-size: .82rem; color: var(--mut);
   background: rgba(245, 200, 0, .05); border: 1px solid rgba(245, 200, 0, .16); border-radius: 10px; padding: .55rem .75rem;

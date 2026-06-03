@@ -169,7 +169,7 @@ export default function ClientVault() {
                 />
               )}
               {activeTab === 'program' && <Program plans={plans} profile={profile} />}
-              {activeTab === 'generator' && <Generator />}
+              {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
               {activeTab === 'cardio' && <SmartCardio />}
               {activeTab === 'prehab' && <Prehab />}
               {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
