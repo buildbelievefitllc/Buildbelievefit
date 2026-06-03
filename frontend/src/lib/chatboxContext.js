@@ -9,6 +9,17 @@
 // pricing here (not hardcoded in a prompt string) means the CEO can reshape the
 // matrix without touching prompt logic. The prompt is GENERATED from the array.
 //
+// ── DYNAMIC ENTITLEMENT BRIDGE (Prehab/Momentum upsell) ──────────────────────
+// Pricing alone can't tell the agent WHICH tier unlocks WHICH paid surface. That
+// fact is owned by the Vault Upsell Funnel (./entitlements.js) — e.g. Momentum
+// ($19.99) is the entry tier that unlocks Prehab. We DERIVE each tier's `unlocks`
+// straight from that module (TIER_TO_GROUP + TAB_ACCESS via canAccessTab) at load
+// time, so the sales agent and the Vault padlocks can never disagree, and the
+// "Momentum unlocks Prehab" line is never hand-typed into a prompt string. Reshape
+// the access map in entitlements.js and the agent's pitch follows automatically.
+// (We bridge entitlements.js — NOT the bbf_tiers table — because bbf_tiers is
+// pricing-only and has no feature/unlock columns; entitlements.js IS the unlock SoT.)
+//
 // ⚠️ PRICING is business-critical. The TIER_MATRIX is the authoritative pricing
 // fact the AI is allowed to state. The model must NEVER improvise, discount, or
 // estimate a price — the system prompt instructs it to quote ONLY from this matrix.
@@ -18,6 +29,8 @@
 // keep the two in sync. The Hybrid packages carry two session-frequency options
 // (3x/week vs 4x/week), which is what the dual price points represent.
 
+import { TIER_TO_GROUP, canAccessTab } from './entitlements.js';
+
 // The email a prospect uses to request a bespoke, ongoing in-person quote that
 // falls outside the fixed Hybrid packages (Custom Local Weekly training).
 export const CUSTOM_QUOTE_EMAIL = 'buildbelievefitllc@buildbelievefit.fitness';
@@ -25,8 +38,11 @@ export const CUSTOM_QUOTE_EMAIL = 'buildbelievefitllc@buildbelievefit.fitness';
 // Dynamic tier matrix — ANY length ≥1, grouped by `category`. Add or reshape
 // objects here and both the system prompt and any marketing cards can read the
 // same shape. `options` (when present) expresses sub-pricing the AI must quote
-// in full (e.g., Hybrid session-frequency tiers).
-export const TIER_MATRIX = [
+// in full (e.g., Hybrid session-frequency tiers). `entSlug` (optional) is the
+// entitlements.js lookup slug when a tier's `id` isn't itself a canonical slug
+// (the Hybrid packages collapse 3x/4x SKUs into one card). The exported,
+// entitlement-enriched TIER_MATRIX is assembled from this raw list below.
+const RAW_TIER_MATRIX = [
   // ── Category 1 · Online Fitness — app + AI, self-directed, monthly ──────────
   {
     id: 'catalyst', // stripe: catalyst
@@ -142,6 +158,7 @@ export const TIER_MATRIX = [
   // Dual price = session frequency. stripe: *_3x ($lower) / *_4x ($higher).
   {
     id: 'kickstart', // stripe: kickstart_6wk_3x / kickstart_6wk_4x
+    entSlug: 'kickstart_6wk_3x', // entitlements.js lookup (both 3x/4x → God Mode)
     category: 'Hybrid Packages',
     name: 'Kickstart',
     price: '$399–$499',
@@ -161,6 +178,7 @@ export const TIER_MATRIX = [
   },
   {
     id: 'transformation', // stripe: transformation_8wk_3x / transformation_8wk_4x
+    entSlug: 'transformation_8wk_3x', // entitlements.js lookup (both 3x/4x → God Mode)
     category: 'Hybrid Packages',
     name: 'Transformation',
     price: '$499–$649',
@@ -199,6 +217,38 @@ export const TIER_MATRIX = [
   },
 ];
 
+// ── Entitlement bridge ───────────────────────────────────────────────────────
+// Curated, sales-meaningful paid surfaces the agent may pitch as a TIER UNLOCK
+// (a higher tier's edge over a lower one in the same path). The COPY lives here;
+// the UNLOCK RELATIONSHIP (which tier actually unlocks it) is read live from
+// entitlements.js, so this stays honest the moment the access map changes. Keyed
+// by Vault tab id (must match a key in entitlements.js TAB_ACCESS).
+export const PREMIUM_FEATURES = {
+  prehab: 'Prehab suite — the Friction Scanner / Recovery Matrix: joint-health, mobility & injury-prevention movement protocols',
+};
+
+// Resolve which curated premium features a sales tier unlocks, straight from the
+// live entitlements map. tier.id (or tier.entSlug) → access group → canAccessTab.
+// Returns [] for tiers that unlock no curated premium surface (e.g. entry Catalyst,
+// which keeps Prehab padlocked — that gap IS the upsell hook).
+export function deriveTierUnlocks(tier) {
+  const slug = tier.entSlug || tier.id;
+  const group = TIER_TO_GROUP[slug];
+  if (!group) return [];
+  return Object.keys(PREMIUM_FEATURES)
+    .filter((tabId) => canAccessTab(group, tabId))
+    .map((tabId) => PREMIUM_FEATURES[tabId]);
+}
+
+// The live sales matrix shipped to bbf-ai-hub: raw tier copy enriched with the
+// `unlocks` derived from entitlements.js. This is the bridge — the agent reads
+// that Momentum ($19.99) unlocks Prehab because the access map says so, not because
+// a human typed it into a prompt. Reshape entitlements.js → this updates itself.
+export const TIER_MATRIX = RAW_TIER_MATRIX.map((tier) => {
+  const unlocks = deriveTierUnlocks(tier);
+  return unlocks.length ? { ...tier, unlocks } : { ...tier };
+});
+
 // The closer's playbook — tone + guardrails + qualification logic. Sales-forward,
 // closing-oriented, never pushy-dishonest.
 export const SALES_DIRECTIVES = [
@@ -208,7 +258,8 @@ export const SALES_DIRECTIVES = [
   'Quote prices ONLY from the matrix provided. Never invent, discount, bundle, or estimate a price. For Hybrid packages, state BOTH session-frequency options (e.g., "$399 for 3 sessions/week, $499 for 4").',
   `CUSTOM LOCAL WEEKLY: if a prospect wants ongoing, bespoke weekly in-person training beyond the fixed Hybrid packages, do NOT quote a number — tell them to email ${CUSTOM_QUOTE_EMAIL} to request a custom quote, and set cta="pathfinder" so Akeem also captures them.`,
   'ALWAYS CLOSE with a clear next step: route to the Pathfinder application (cta="pathfinder"), or to the TDEE calculator (cta="tdee") for macro/calorie questions.',
-  'Never give medical advice. If a prospect raises an injury or health condition, note the PAR-Q intake captures it and Akeem reviews it personally — set cta="pathfinder".',
+  'JOINT / MOBILITY → PREHAB UPSELL: when a prospect raises joint health, stiffness, mobility, nagging aches, an old injury, or injury-prevention as a GOAL, lead with the Prehab suite (the in-app joint-health / mobility / injury-prevention protocols). State plainly that Momentum ($19.99/mo) is the entry tier that unlocks Prehab, and only claim an unlock the matrix marks "Unlocks" for that tier. This is product fit — NOT medical advice: never diagnose, prescribe, or promise a clinical outcome.',
+  'MEDICAL SAFETY: never give medical advice. If a prospect describes ACTIVE pain, an acute injury, or a diagnosed condition, do not assess it — note that the PAR-Q intake captures it and Akeem reviews it personally, and set cta="pathfinder".',
   'Never disparage competitors. Sell BBF on the Sovereign Gold Standard: biomechanical precision, joint protection, and real periodization.',
   'Keep replies tight and persuasive — 2-4 sentences. You are a closer in conversation, not a brochure.',
   "BBF is trilingual: reply in the prospect's language (English, Spanish, or Portuguese). If a language is specified, use it; otherwise mirror the language of their last message.",
@@ -235,13 +286,18 @@ export function buildChatboxSystemPrompt(matrix = TIER_MATRIX, directives = SALE
       const opt = Array.isArray(t.options) && t.options.length
         ? `\n       Options: ${t.options.map((o) => `${o.label} → ${o.price}`).join(' · ')}`
         : '';
-      return [
+      const block = [
         `    ${n}. ${t.name} — ${t.price} ${t.cadence}`,
         `       Model: ${t.model}`,
         `       Best for: ${t.bestFor}${opt}`,
         '       Includes:',
         hl,
-      ].join('\n');
+      ];
+      if (Array.isArray(t.unlocks) && t.unlocks.length) {
+        block.push('       Unlocks (vs. a lower tier in this path):');
+        block.push(t.unlocks.map((u) => `        - ${u}`).join('\n'));
+      }
+      return block.join('\n');
     }).join('\n\n');
     return `  ${cat}\n${lines}`;
   }).join('\n\n');
