@@ -13,13 +13,17 @@
 //
 // ── Env vars ── STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, BREVO_API_KEY,
 //   BREVO_FROM_EMAIL?, BREVO_FROM_NAME?, SUPABASE_URL*, SUPABASE_SERVICE_ROLE_KEY*
-//   (* auto-injected). Deploy with --no-verify-jwt (Stripe sends a
-//   Stripe-Signature header, not a Supabase JWT; we verify it ourselves).
+//   (* auto-injected). Trilingual welcome templates (optional — inline HTML
+//   fallback if unset): BREVO_WELCOME_TEMPLATE_EN / _ES / _PT (Brevo template
+//   ids). Locale comes from bbf_users.preferred_locale (Stripe metadata fallback).
+//   Deploy with --no-verify-jwt (Stripe sends a Stripe-Signature header, not a
+//   Supabase JWT; we verify it ourselves).
 // ═══════════════════════════════════════════════════════════════
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=denonext';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import { localeCode } from '../_shared/locale.ts';
 
 // Canonical pricing slugs (marketing matrix 2026-06) UNION the 7 legacy
 // slugs. The legacy set is retained while the monolith storefront is still
@@ -153,21 +157,77 @@ serve(async (req) => {
 
   if (BREVO_API_KEY) {
     try {
-      const subject = newlyProvisioned ? 'Welcome to Build Believe Fit - Your Vault Credentials' : 'Build Believe Fit - Your subscription is updated';
-      const htmlContent = newlyProvisioned
-        ? `<p>Welcome, ${escapeHtml(fullName)}.</p><p>Your username is <b>${escapeHtml(username)}</b> and your PIN is <b>${pin}</b>.</p><p>Log in at <a href="https://buildbelievefit.fitness/bbf-app.html">the Vault</a>.</p><p>Tier: <b>${escapeHtml(tier)}</b>.</p>`
-        : `<p>${escapeHtml(fullName)}, your subscription is now active at the <b>${escapeHtml(tier)}</b> tier.</p><p>Log in at <a href="https://buildbelievefit.fitness/bbf-app.html">the Vault</a> with your existing credentials.</p>`;
-      await fetch('https://api.brevo.com/v3/smtp/email', {
+      // ── Trilingual template selection ──
+      // Source of truth is the athlete's bbf_users.preferred_locale; Stripe
+      // checkout metadata is the fallback for a brand-new buyer whose freshly
+      // provisioned row still holds the 'en' default. localeCode() normalizes
+      // any of these to one of 'en' | 'es' | 'pt' (defaulting to 'en').
+      let dbLocale = null;
+      try {
+        const { data: locRow } = await supabase
+          .from('bbf_users').select('preferred_locale').eq('uid', username).maybeSingle();
+        dbLocale = locRow?.preferred_locale ?? null;
+      } catch (e) {
+        console.warn('[stripe-webhook] preferred_locale lookup failed (defaulting to en):', e.message);
+      }
+      const lang = localeCode(
+        dbLocale
+        || session.metadata?.preferred_locale
+        || session.metadata?.locale
+        || session.metadata?.language,
+      );
+
+      const TEMPLATE_BY_LANG = {
+        en: Deno.env.get('BREVO_WELCOME_TEMPLATE_EN'),
+        es: Deno.env.get('BREVO_WELCOME_TEMPLATE_ES'),
+        pt: Deno.env.get('BREVO_WELCOME_TEMPLATE_PT'),
+      };
+      const rawTemplate = TEMPLATE_BY_LANG[lang] || TEMPLATE_BY_LANG.en;
+      const templateId = rawTemplate ? Number(rawTemplate) : null;
+      const firstName = (fullName.split(/\s+/)[0] || fullName).trim();
+
+      // Common envelope. The PIN is passed ONLY via template params / inline
+      // body below — never in tags, never logged.
+      const base = {
+        sender: { name: BREVO_FROM_NAME, email: BREVO_FROM_EMAIL },
+        to: [{ email, name: fullName }],
+        tags: ['stripe-webhook', `tier:${tier}`, `locale:${lang}`, newlyProvisioned ? 'welcome' : 'update'],
+      };
+
+      let payload;
+      if (newlyProvisioned && templateId && Number.isFinite(templateId)) {
+        // Migration target — Brevo-managed trilingual transactional template.
+        payload = {
+          ...base,
+          templateId,
+          params: { FIRSTNAME: firstName, USERNAME: username, PIN: pin, TIER: tier, LANGUAGE: lang },
+        };
+      } else {
+        // Fallback — inline HTML. Keeps the pipeline live if the template ids
+        // aren't configured yet, and serves the non-new-user "updated" email.
+        const subject = newlyProvisioned
+          ? 'Welcome to Build Believe Fit - Your Vault Credentials'
+          : 'Build Believe Fit - Your subscription is updated';
+        const htmlContent = newlyProvisioned
+          ? `<p>Welcome, ${escapeHtml(fullName)}.</p><p>Your username is <b>${escapeHtml(username)}</b> and your PIN is <b>${pin}</b>.</p><p>Log in at <a href="https://buildbelievefit.fitness/bbf-app.html">the Vault</a>.</p><p>Tier: <b>${escapeHtml(tier)}</b>.</p>`
+          : `<p>${escapeHtml(fullName)}, your subscription is now active at the <b>${escapeHtml(tier)}</b> tier.</p><p>Log in at <a href="https://buildbelievefit.fitness/bbf-app.html">the Vault</a> with your existing credentials.</p>`;
+        payload = { ...base, subject, htmlContent };
+      }
+
+      const r = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'api-key': BREVO_API_KEY, accept: 'application/json' },
-        body: JSON.stringify({
-          sender: { name: BREVO_FROM_NAME, email: BREVO_FROM_EMAIL },
-          to: [{ email, name: fullName }],
-          subject, htmlContent,
-          tags: ['stripe-webhook', `tier:${tier}`, newlyProvisioned ? 'welcome' : 'update'],
-        }),
+        body: JSON.stringify(payload),
       });
+      if (!r.ok) {
+        const txt = await r.text().catch(() => '');
+        console.error(`[stripe-webhook] Brevo send failed: status=${r.status} body=${txt.slice(0, 300)}`);
+      } else {
+        console.log(`[stripe-webhook] welcome email sent · mode=${payload.templateId ? 'template:' + payload.templateId : 'inline'} · locale=${lang} · new_user=${newlyProvisioned}`);
+      }
     } catch (err) { console.error('[stripe-webhook] Brevo fetch threw:', err.message); }
+  } else {
+    console.warn('[stripe-webhook] BREVO_API_KEY not set; welcome email skipped');
   }
 
   return jsonResponse({ ok: true, event_id: event.id, session_id: session.id, username, tier, new_user: newlyProvisioned }, 200);
