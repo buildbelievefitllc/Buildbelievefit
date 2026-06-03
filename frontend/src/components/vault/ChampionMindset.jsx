@@ -2,19 +2,21 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Champion's Mindset — Cognitive Conditioning module (client-facing Vault tab).
 //
-// A React reconstruction of the AI Studio "Champion's Mindset" prototype: mental
-// fortitude training, a daily valor affirmation, and a "Championship Mindset
-// Cinema" roster of motivational films. Four sections, faithful to the ground
-// truth:
+// A React reconstruction of the AI Studio "Champion's Mindset" prototype, now
+// expanded into a Netflix-style "Premium Video Vault & Mind-Muscle
+// Synchronization" surface: mental fortitude training, a daily valor
+// affirmation, and a searchable/filterable "Championship Mindset Cinema" roster
+// of motivational films. Four sections, faithful to the ground truth:
 //   1. Hero          — Cognitive Fortitude pill + title + framing copy.
 //   2. Affirmation   — the day's Daily Vault Affirmation quote block.
-//   3. Cinema        — 2×2 champion roster → a YouTube player + Focus Objective
-//                      panel that both track the selected film.
+//   3. Cinema        — search + category-tag filters → a responsive film grid →
+//                      a YouTube player + Focus Objective panel that both track
+//                      the selected film.
 //   4. Protocols     — the Focus Strategies / Visualization Drills split-pane.
 //
-// All copy is static ground-truth (transcribed from the prototype). Selecting a
-// champion locks the player + objective to that film; "Engage Obsession Cycle"
-// advances the roster; "Lock In This Mindset Today" persists the day's pick to
+// All copy is static ground-truth. Selecting a champion locks the player +
+// objective to that film; "Engage Obsession Cycle" advances through the films
+// currently in view; "Lock In This Mindset Today" persists the day's pick to
 // localStorage (per-day, mirroring MindsetEngine). Public to every authenticated
 // client — mounted in ClientVault with no admin gate.
 
@@ -27,8 +29,10 @@ const AFFIRMATION =
 
 // ── Championship Mindset Cinema roster ───────────────────────────────────────
 // Final CEO-approved cuts live in the `youtubeId` field of this one array; the
-// player builds youtube.com/embed/<id> from them. (Jordan is still a placeholder
-// embed pending its approved cut — swap it the same way.)
+// player builds youtube.com/embed/<id> from them. The roster is rendered as a
+// searchable, tag-filterable grid (see FILTER_BUCKETS below for the category
+// taxonomy). The Kobe, David Goggins, and Eric Thomas records are LOCKED data —
+// kept byte-for-byte intact.
 const CHAMPIONS = [
   {
     id: 'kobe',
@@ -48,7 +52,7 @@ const CHAMPIONS = [
     id: 'jordan',
     category: 'Obsession & Competition',
     title: 'Michael Jordan: Driven From Within',
-    youtubeId: 'JA7G7AV-LT8',
+    youtubeId: '2g7yEljgdN0',
     objective:
       'Channel competitive fire into fuel. Take every slight personally, turn ' +
       'failure into evidence, and let an unbreakable will separate you from the field.',
@@ -89,7 +93,119 @@ const CHAMPIONS = [
       'I am the sole architect of my consistency and my outcomes.',
     ],
   },
+  {
+    id: 'jocko',
+    category: 'Discipline = Freedom',
+    title: 'Jocko Willink: Discipline Equals Freedom',
+    youtubeId: 'eBmVv2P-v2s',
+    objective:
+      'Freedom is bought with discipline. The pre-dawn wake-up, the cold start, the ' +
+      'rep you do not feel like doing — each is a deposit. Stop waiting on motivation ' +
+      'and let the standard, not the mood, govern the day. When in doubt: default ' +
+      'aggressive and attack the task in front of you.',
+    dictums: [
+      'Discipline equals freedom — the more you impose, the more you earn.',
+      'Do not count on motivation; count on discipline.',
+      'Hit snooze and you have already lost the first battle of the day.',
+      'Whatever the setback: good. Find the advantage in it and move.',
+    ],
+  },
+  {
+    id: 'arnold',
+    category: 'Rules of Success',
+    title: 'Arnold Schwarzenegger: 6 Rules of Success',
+    youtubeId: 'vdw_JvZOpwA',
+    objective:
+      'Hold a clear vision, then back it with relentless work. Trust yourself, ' +
+      'break the rules, ignore the naysayers, and never fear failure — but above all, ' +
+      'do not just take: give something back. The reps you fear most are the exact ' +
+      'reps that build you.',
+    dictums: [
+      'Have a vision, trust yourself, and the body will follow.',
+      'The last three reps are the ones that build the muscle.',
+      'Ignore the naysayers; they cannot see what you can.',
+      'There is no self-made success — give something back.',
+    ],
+  },
+  {
+    id: 'serena',
+    category: 'Unbreakable Grace',
+    title: 'Serena Williams: Still I Rise',
+    youtubeId: '3sAckI5Ldyw',
+    objective:
+      'Greatness is a choice you defend every day, against every doubt and every ' +
+      'count-out. Carry pressure as proof that you belong, answer adversity with ' +
+      'poise, and rise — again and again — no matter who is watching or how steep ' +
+      'the deficit on the board.',
+    dictums: [
+      'I am not lucky; I have earned every inch of this.',
+      'Pressure is a privilege — it means you are in the arena.',
+      'Believe in yourself when no one else will.',
+      'Still I rise — the deficit is only the start of the comeback.',
+    ],
+  },
+  {
+    id: 'courtney',
+    category: 'The Pain Cave',
+    title: 'Courtney Dauwalter: Embracing the Pain Cave',
+    youtubeId: 'IcZipDEeezI',
+    objective:
+      'The pain cave is not a place to escape — it is a place to explore and ' +
+      'expand. When the body screams stop, go in, take the next step, and chip the ' +
+      'wall back a little further. Your perceived limit is a room with far more ' +
+      'space inside it than you think.',
+    dictums: [
+      'When it hurts, go into the pain cave and make it bigger.',
+      'The next step is always possible — take it, then the next.',
+      'Your mind quits long before your body has to.',
+      'Meet your limit with curiosity, not fear.',
+    ],
+  },
+  {
+    id: 'huberman',
+    category: 'Neuroscience of Will',
+    title: 'Andrew Huberman: Building Extreme Willpower',
+    youtubeId: '84dYijIpWjQ',
+    objective:
+      'Willpower is not a mood — it is a structure you can grow. The anterior ' +
+      'midcingulate cortex strengthens each time you do the hard thing you would ' +
+      'rather avoid. Lean into friction on purpose and you are not just finishing ' +
+      'the rep — you are building the organ of tenacity itself.',
+    dictums: [
+      'Do the thing you resist; that is what grows the will.',
+      'The anterior midcingulate cortex is the seat of the will — train it.',
+      'Discomfort, chosen on purpose, is the stimulus for grit.',
+      'Tenacity is a muscle of the mind; progressive overload applies.',
+    ],
+  },
 ];
+
+// ── Category-tag taxonomy (Netflix-style filter rails) ───────────────────────
+// Membership is declared here by champion id rather than as a field on the
+// records above, so the LOCKED data objects (kobe / goggins / et) stay intact.
+// A film may belong to more than one bucket. "All Films" is rendered implicitly.
+const FILTER_BUCKETS = [
+  { key: 'championship-drive', label: 'Championship Drive', ids: ['kobe', 'jordan', 'arnold'] },
+  { key: 'stoic-grit', label: 'Stoic Heavy Grit', ids: ['goggins', 'et', 'jocko'] },
+  { key: 'female-strength', label: 'Female Strength Grace', ids: ['serena', 'courtney'] },
+  { key: 'neuro-synapse', label: 'Neurological Synapse', ids: ['huberman'] },
+];
+
+// The bucket labels a given champion belongs to (used for the card badge search
+// surface and for tag-aware text matching).
+function bucketsFor(id) {
+  return FILTER_BUCKETS.filter((b) => b.ids.includes(id)).map((b) => b.label);
+}
+
+// Case-insensitive search across title, category badge, and tag labels.
+function matchesQuery(champion, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const haystack = [champion.title, champion.category, ...bucketsFor(champion.id)]
+    .join(' ')
+    .toLowerCase();
+  return haystack.includes(q);
+}
 
 // ── Cognitive Action Protocols (static ground-truth) ─────────────────────────
 const FOCUS_STRATEGIES = [
@@ -130,16 +246,32 @@ export default function ChampionMindset() {
   });
   const [lockedToday, setLockedToday] = useState(() => readLocked());
 
+  // Search + category-tag filter state for the cinema grid.
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('all');
+
   const active = useMemo(
     () => CHAMPIONS.find((c) => c.id === selectedId) ?? CHAMPIONS[0],
     [selectedId],
   );
 
-  // "Engage Obsession Cycle" — advance to the next champion in the roster.
+  // Films currently in view, after applying the active tag filter + search.
+  const visible = useMemo(() => {
+    const bucket = FILTER_BUCKETS.find((b) => b.key === filter);
+    return CHAMPIONS.filter((c) => {
+      const inBucket = !bucket || bucket.ids.includes(c.id);
+      return inBucket && matchesQuery(c, query);
+    });
+  }, [filter, query]);
+
+  // "Engage Obsession Cycle" — advance through the films currently in view.
   const cycle = () => {
-    const i = CHAMPIONS.findIndex((c) => c.id === selectedId);
-    setSelectedId(CHAMPIONS[(i + 1) % CHAMPIONS.length].id);
+    const pool = visible.length ? visible : CHAMPIONS;
+    const i = pool.findIndex((c) => c.id === selectedId);
+    setSelectedId(pool[(i + 1) % pool.length].id);
   };
+
+  const clearFilters = () => { setQuery(''); setFilter('all'); };
 
   // "Lock In This Mindset Today" — persist the active pick as the day's mindset.
   const lockIn = () => { writeLocked(active.id); setLockedToday(active.id); };
@@ -178,30 +310,80 @@ export default function ChampionMindset() {
           </button>
         </div>
 
-        {/* 2×2 champion roster */}
-        <div className="cm-grid" role="tablist" aria-label="Champion films">
-          {CHAMPIONS.map((c) => {
-            const on = c.id === selectedId;
-            return (
+        {/* Search + category-tag filter toolbar */}
+        <div className="cm-toolbar">
+          <div className="cm-search">
+            <span className="cm-search-ic" aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              className="cm-search-input"
+              placeholder="Search the vault — champion, theme, or tag…"
+              aria-label="Search champion films"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+          <div className="cm-filters" role="group" aria-label="Filter films by category">
+            <button
+              type="button"
+              className={`cm-chip${filter === 'all' ? ' is-active' : ''}`}
+              aria-pressed={filter === 'all'}
+              onClick={() => setFilter('all')}
+            >
+              All Films
+            </button>
+            {FILTER_BUCKETS.map((b) => (
               <button
-                key={c.id}
+                key={b.key}
                 type="button"
-                role="tab"
-                aria-selected={on}
-                className={`cm-vcard${on ? ' is-active' : ''}`}
-                data-testid={`cm-film-${c.id}`}
-                onClick={() => setSelectedId(c.id)}
+                className={`cm-chip${filter === b.key ? ' is-active' : ''}`}
+                aria-pressed={filter === b.key}
+                onClick={() => setFilter(b.key)}
               >
-                <span className="cm-vcard-cat">{c.category}</span>
-                <span className="cm-vcard-title">{c.title}</span>
-                <span className="cm-vcard-foot">
-                  <span className="cm-vcard-stream"><span aria-hidden="true">▷</span> Stream Now</span>
-                  {on ? <span className="cm-vcard-locked"><span aria-hidden="true">✓</span> Locked</span> : null}
-                </span>
+                {b.label}
               </button>
-            );
-          })}
+            ))}
+          </div>
         </div>
+
+        <div className="cm-count" aria-live="polite">
+          Showing {visible.length} of {CHAMPIONS.length} films
+        </div>
+
+        {/* Responsive film grid */}
+        {visible.length > 0 ? (
+          <div className="cm-grid" role="tablist" aria-label="Champion films">
+            {visible.map((c) => {
+              const on = c.id === selectedId;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  className={`cm-vcard${on ? ' is-active' : ''}`}
+                  data-testid={`cm-film-${c.id}`}
+                  onClick={() => setSelectedId(c.id)}
+                >
+                  <span className="cm-vcard-cat">{c.category}</span>
+                  <span className="cm-vcard-title">{c.title}</span>
+                  <span className="cm-vcard-foot">
+                    <span className="cm-vcard-stream"><span aria-hidden="true">▷</span> Stream Now</span>
+                    {on ? <span className="cm-vcard-locked"><span aria-hidden="true">✓</span> Locked</span> : null}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="cm-empty" role="status">
+            <p className="cm-empty-title">No films match your search.</p>
+            <p className="cm-empty-sub">Try a different champion, theme, or tag.</p>
+            <button type="button" className="cm-empty-clear" onClick={clearFilters}>
+              Clear filters
+            </button>
+          </div>
+        )}
 
         {/* Video player — tracks the selected champion */}
         <div className="cm-player">

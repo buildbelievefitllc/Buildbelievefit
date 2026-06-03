@@ -184,10 +184,90 @@
 }
 .cm-obsession:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 
-/* roster grid */
+/* ── Search + category-tag filter toolbar ──────────────────────────────────── */
+.cm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .85rem;
+  flex-wrap: wrap;
+}
+.cm-search {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.cm-search-ic {
+  position: absolute;
+  left: .85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  color: var(--gold-soft);
+  pointer-events: none;
+}
+.cm-search-input {
+  width: 100%;
+  font-family: var(--bd);
+  font-size: .92rem;
+  color: var(--wht);
+  background: linear-gradient(180deg, #100c1a, #0a0710);
+  border: 1px solid #211b30;
+  border-radius: 12px;
+  padding: .7rem .9rem .7rem 2.35rem;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.cm-search-input::placeholder { color: var(--mut); }
+.cm-search-input:focus-visible {
+  outline: none;
+  border-color: rgba(245, 200, 0, .55);
+  box-shadow: 0 0 0 1px rgba(245, 200, 0, .35);
+}
+/* drop the native search "clear" affordance — it clashes with the dark chrome */
+.cm-search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+
+.cm-filters {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.cm-chip {
+  cursor: pointer;
+  font-family: var(--hb);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--mut);
+  background: rgba(255, 255, 255, .02);
+  border: 1px solid #211b30;
+  border-radius: 999px;
+  padding: .5rem .85rem;
+  transition: color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.cm-chip:hover { color: var(--wht); border-color: rgba(139, 26, 191, .7); }
+.cm-chip:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
+.cm-chip.is-active {
+  color: #0c0a02;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border-color: var(--yel);
+  box-shadow: 0 4px 16px -6px rgba(245, 200, 0, .5);
+}
+
+.cm-count {
+  font-family: var(--hb);
+  font-size: .62rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+
+/* roster grid — responsive auto-fill, collapses to a single column on phones */
 .cm-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: .8rem;
 }
 .cm-vcard {
@@ -245,6 +325,52 @@
   text-transform: uppercase;
   color: var(--grn);
 }
+
+/* empty state — when search/filter clears the grid */
+.cm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  text-align: center;
+  background: linear-gradient(180deg, #100c1a, #0a0710);
+  border: 1px dashed #2a2238;
+  border-radius: 14px;
+  padding: 2.1rem 1.4rem;
+}
+.cm-empty-title {
+  font-family: var(--display, var(--hb));
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--wht);
+  margin: 0;
+}
+.cm-empty-sub {
+  font-family: var(--bd);
+  font-size: .88rem;
+  color: var(--mut);
+  margin: 0 0 .65rem;
+}
+.cm-empty-clear {
+  cursor: pointer;
+  font-family: var(--hb);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  background: rgba(245, 200, 0, .05);
+  border: 1px solid rgba(245, 200, 0, .35);
+  border-radius: 10px;
+  padding: .55rem .9rem;
+  transition: color .18s ease, background .18s ease, border-color .18s ease;
+}
+.cm-empty-clear:hover {
+  color: #0c0a02;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border-color: var(--yel);
+}
+.cm-empty-clear:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 
 /* video player — 16:9 */
 .cm-player { display: flex; flex-direction: column; gap: .55rem; }
@@ -433,4 +559,17 @@
   .cm-cinema-head { align-items: flex-start; }
   .cm-grid { grid-template-columns: 1fr; }
   .cm-protocols { grid-template-columns: 1fr; }
+
+  /* Toolbar stacks: full-width search, then a horizontally scrollable chip rail
+     so the category tags never crush into a tall wrapped stack on a phone. */
+  .cm-toolbar { flex-direction: column; align-items: stretch; }
+  .cm-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: .15rem;
+  }
+  .cm-filters::-webkit-scrollbar { display: none; }
+  .cm-chip { flex: 0 0 auto; }
 }
