@@ -229,6 +229,16 @@ const DICT = {
   'vault-tab-nutrition': { en: 'Nutrition', es: 'Nutrición', pt: 'Nutrição' },
   'vault-tab-mindset': { en: 'Champion Mindset', es: 'Mentalidad de Campeón', pt: 'Mentalidade de Campeão' },
   'vault-tab-settings': { en: 'Settings', es: 'Ajustes', pt: 'Configurações' },
+  // Vault Upsell Funnel — the UpgradeOverlay padlock chrome (tier name + price are
+  // interpolated from the live pricing matrix, so they stay out of the dictionary).
+  'uplock-kicker': { en: 'Locked', es: 'Bloqueado', pt: 'Bloqueado' },
+  'uplock-aria': { en: 'Locked feature — upgrade required', es: 'Función bloqueada — actualización requerida', pt: 'Recurso bloqueado — upgrade necessário' },
+  'uplock-body-pre': { en: 'This is part of', es: 'Esto es parte de', pt: 'Isto faz parte de' },
+  'uplock-body-post': { en: '. Upgrade to unlock it.', es: '. Mejora tu plan para desbloquearlo.', pt: '. Faça upgrade para desbloquear.' },
+  'uplock-cta': { en: 'Unlock with', es: 'Desbloquear con', pt: 'Desbloquear com' },
+  'uplock-compare': { en: 'Compare all plans →', es: 'Comparar todos los planes →', pt: 'Comparar todos os planos →' },
+  'uplock-generic-tier': { en: 'a higher tier', es: 'un plan superior', pt: 'um plano superior' },
+  'uplock-sports-feature': { en: 'Sports Hub', es: 'Centro Deportivo', pt: 'Central de Esportes' },
   // Command Center (admin) — header kicker + console tab labels. 'Founder Five'
   // and 'Comlink' are product proper nouns (kept identical across languages).
   'cmd-kicker': { en: 'Build Believe Fit · Admin', es: 'Build Believe Fit · Administración', pt: 'Build Believe Fit · Administração' },
@@ -237,7 +247,11 @@ const DICT = {
   'cmd-tab-telemetry': { en: 'Risk Telemetry', es: 'Telemetría de Riesgo', pt: 'Telemetria de Risco' },
   'cmd-tab-analytics': { en: 'Analytics', es: 'Analíticas', pt: 'Análises' },
   'cmd-tab-comlink': { en: 'Comlink', es: 'Comlink', pt: 'Comlink' },
+  'cmd-tab-nutrition-locker': { en: 'Nutrition Locker', es: 'Casillero de Nutrición', pt: 'Cofre Nutricional' },
+  'cmd-tab-access': { en: 'Access Control', es: 'Control de Acceso', pt: 'Controle de Acesso' },
   'cmd-tab-sports': { en: 'Sports Portal', es: 'Portal Deportivo', pt: 'Portal Esportivo' },
+  // CEO-only Language Mastery Protocol tab (Command Center + sidebar nav entry).
+  'cmd-tab-language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },
   // Settings surface — client account · preferences · session chrome.
   'set-meta': { en: 'Account · preferences · session', es: 'Cuenta · preferencias · sesión', pt: 'Conta · preferências · sessão' },
   'set-account': { en: 'Account', es: 'Cuenta', pt: 'Conta' },

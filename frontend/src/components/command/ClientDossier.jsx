@@ -143,10 +143,10 @@ function AthleteCard({ c }) {
           <div style={styles.cardFocus}>{focusBits.join(' · ')}</div>
         </div>
         <div style={styles.cardMacros}>
-          <MacroPill label="Calories" value={c.tdee_target} unit="kcal" accent="var(--yel)" />
-          <MacroPill label="Protein" value={c.macro_p} unit="g" accent="var(--grn)" />
-          <MacroPill label="Carbs" value={c.macro_c} unit="g" accent="var(--blu)" />
-          <MacroPill label="Fats" value={c.macro_f} unit="g" accent="var(--orn)" />
+          <MacroPill label="Calories" value={c.tdee_target} unit="kcal" accent="var(--gold-soft)" valueColor="var(--wht)" />
+          <MacroPill label="Protein" value={c.macro_p} unit="g" accent="var(--yel)" valueColor="var(--yel)" />
+          <MacroPill label="Carbs" value={c.macro_c} unit="g" accent="var(--purl)" valueColor="var(--purl)" />
+          <MacroPill label="Fats" value={c.macro_f} unit="g" accent="var(--mut)" valueColor="var(--wht)" />
         </div>
       </div>
       <div style={styles.intakeRow}>
@@ -160,12 +160,12 @@ function AthleteCard({ c }) {
   );
 }
 
-function MacroPill({ label, value, unit, accent }) {
+function MacroPill({ label, value, unit, accent, valueColor }) {
   const has = value !== null && value !== undefined && value !== '';
   return (
     <div style={{ ...styles.macroPill, borderTopColor: accent }}>
       <span style={styles.macroPillLabel}>{label}</span>
-      <span style={styles.macroPillVal}>{has ? Number(value).toLocaleString() : '—'}</span>
+      <span style={{ ...styles.macroPillVal, color: valueColor || 'var(--wht)' }}>{has ? Number(value).toLocaleString() : '—'}</span>
       <span style={styles.macroPillUnit}>{has ? unit : ''}</span>
     </div>
   );
@@ -567,9 +567,9 @@ function ReconfiguratorDeck({ c, clientId, onPatched }) {
           </div>
 
           <div style={styles.macroGrid}>
-            <MacroInput label="Protein" unit="g" accent="var(--grn)" value={draft.macro_p} onChange={(v) => setField('macro_p', v)} disabled={saving} />
-            <MacroInput label="Carbs" unit="g" accent="var(--blu)" value={draft.macro_c} onChange={(v) => setField('macro_c', v)} disabled={saving} />
-            <MacroInput label="Fats" unit="g" accent="var(--orn)" value={draft.macro_f} onChange={(v) => setField('macro_f', v)} disabled={saving} />
+            <MacroInput label="Protein" unit="g" accent="var(--yel)" value={draft.macro_p} onChange={(v) => setField('macro_p', v)} disabled={saving} />
+            <MacroInput label="Carbs" unit="g" accent="var(--purl)" value={draft.macro_c} onChange={(v) => setField('macro_c', v)} disabled={saving} />
+            <MacroInput label="Fats" unit="g" accent="var(--mut)" value={draft.macro_f} onChange={(v) => setField('macro_f', v)} disabled={saving} />
           </div>
 
           <div style={styles.saveRow}>

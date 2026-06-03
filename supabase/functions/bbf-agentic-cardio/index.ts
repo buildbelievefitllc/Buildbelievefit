@@ -22,6 +22,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { routeAndLog } from '../_shared/model-router.ts';
+import { localeDirective, localeCode } from '../_shared/locale.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -248,13 +249,18 @@ function fallbackSteps(tier: Tier, minutes: number): { machine: string; steps: a
   };
 }
 
-async function callClaude(userMessage: string, apiKey: string) {
+async function callClaude(userMessage: string, apiKey: string, localeInput: string) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
+  // Cached invariant prompt first (prefix cache hit), then the per-locale
+  // directive as a separate uncached block so EN/ES/PT share the cached prefix.
   const requestBody = {
     model: MODEL, max_tokens: MAX_TOKENS, thinking: { type: 'adaptive' },
     output_config: { effort: EFFORT_DEFAULT, format: { type: 'json_schema', schema: RESPONSE_SCHEMA } },
-    system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+    system: [
+      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: localeDirective(localeInput, 'the protocol labels, targets, and ROI prose') },
+    ],
     messages: [{ role: 'user', content: userMessage }],
   };
   try {
@@ -285,11 +291,13 @@ function extractTextBlock(content: any[]): string | null {
 function buildContract(opts: {
   uid: string; minutes: number; baseTier: Tier; effTier: Tier; cns: Cns;
   machine: string; steps: any[]; roi: any; source: 'claude' | 'fallback'; model: string | null;
+  locale?: string;
 }) {
-  const { uid, minutes, baseTier, effTier, cns, machine, steps, roi, source, model } = opts;
+  const { uid, minutes, baseTier, effTier, cns, machine, steps, roi, source, model, locale } = opts;
   return {
     ok: true,
     uid,
+    locale: localeCode(locale),
     available_minutes: minutes,
     modality: {
       tier: effTier,
@@ -328,6 +336,8 @@ serve(async (req: Request) => {
   let payload: any;
   try { payload = await req.json(); } catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
   const { uid, available_minutes, admin_override } = payload || {};
+  // Trilingual cloud generation — athlete's locale (EN/ES/PT), normalized.
+  const locale = localeCode(payload?.locale ?? payload?.lang);
 
   if (admin_override === true) {
     const minutes = 10, tier: Tier = 'HIIT';
@@ -387,7 +397,7 @@ serve(async (req: Request) => {
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   if (!ANTHROPIC_API_KEY) {
     const fb = fallbackSteps(effTier, minutes);
-    return jsonResponse(buildContract({ uid, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: null }), 200);
+    return jsonResponse(buildContract({ uid, locale, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: null }), 200);
   }
 
   const userMessage =
@@ -397,10 +407,10 @@ serve(async (req: Request) => {
     `cns_note: ${cns.guidance}\n\n` +
     `Write the machine, the full protocol_steps (ending exactly at ${minutes} min), and the ROI fields. Return ONLY the JSON schema response.`;
 
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
+  const result = await callClaude(userMessage, ANTHROPIC_API_KEY, locale);
   if (!result.ok) {
     const fb = fallbackSteps(effTier, minutes);
-    return jsonResponse(buildContract({ uid, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
+    return jsonResponse(buildContract({ uid, locale, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
   }
 
   const text = extractTextBlock(result.body?.content);
@@ -411,13 +421,13 @@ serve(async (req: Request) => {
     typeof parsed.machine === 'string' && typeof parsed.roi_toast === 'string';
   if (!stepsOk) {
     const fb = fallbackSteps(effTier, minutes);
-    return jsonResponse(buildContract({ uid, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
+    return jsonResponse(buildContract({ uid, locale, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
   }
 
   console.log(`[bbf-agentic-cardio] uid=${uid} min=${minutes} base=${baseTier} eff=${effTier} cns=${cns.fatigue_level}(${cns.score}) model=${result.body?.model}`);
 
   return jsonResponse(buildContract({
-    uid, minutes, baseTier, effTier, cns,
+    uid, locale, minutes, baseTier, effTier, cns,
     machine: parsed.machine, steps: parsed.protocol_steps,
     roi: { roi_toast: parsed.roi_toast, roi_detail: parsed.roi_detail, roi_primary_metric: parsed.roi_primary_metric },
     source: 'claude', model: result.body?.model ?? MODEL,

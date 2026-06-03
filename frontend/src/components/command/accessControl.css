@@ -1,0 +1,121 @@
+/* src/components/command/accessControl.css
+   ─────────────────────────────────────────────────────────────────────────────
+   "Access Control / Revenue Roster" — additive layer on top of founderfive.css.
+   Scoped under .ac so nothing leaks. LOCKED brand palette (purple/gold + Bebas/
+   Barlow); red is used ONLY for the destructive kill-switch affordance, never as
+   brand identity. Matte black stays a surface, never a CTA. */
+
+/* ── Header stat accents ── */
+.ac .ac-stat--amber { border-top-color: var(--gold-deep); }
+.ac .ac-stat--red { border-top-color: var(--red); }
+.ac .ac-val--amber { color: var(--gold-deep); }
+.ac .ac-val--red { color: var(--red); }
+
+/* ── Tier badge (roster row) ── */
+.ac .ac-tier-badge {
+  color: var(--gold-soft);
+  border-color: rgba(245, 200, 0, .4);
+  background: rgba(106, 13, 173, .14);
+}
+
+/* ── Account-status pill (Active / Delinquent / Locked) ── */
+.ac .ac-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-family: var(--hb);
+  font-size: .6rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: 1px solid var(--mut);
+  border-radius: 6px;
+  padding: .2rem .45rem;
+  white-space: nowrap;
+}
+.ac .ac-status--lg { font-size: .72rem; padding: .35rem .7rem; border-width: 1.5px; }
+.ac .ac-status-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ── Override console (detail pane) ── */
+.ac-console { display: flex; flex-direction: column; gap: 1.3rem; }
+.ac-console-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+  border-bottom: 1px solid var(--line); padding-bottom: 1.1rem;
+}
+.ac-console-name {
+  font-family: var(--display); font-size: 1.8rem; letter-spacing: 1px;
+  margin: 0; color: var(--wht);
+}
+.ac-console-sub {
+  font-family: var(--bd); font-size: .82rem; font-weight: 700; color: var(--mut);
+  margin-top: .25rem; word-break: break-word;
+}
+
+/* ── Override blocks ── */
+.ac-block {
+  background: var(--gry); border: 1px solid var(--line);
+  border-radius: 14px; padding: 1.1rem 1.2rem;
+}
+.ac-block-kicker {
+  font-family: var(--hb); font-size: .72rem; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--gold-soft); margin-bottom: .35rem;
+}
+.ac-block-note {
+  font-family: var(--bd); font-size: .9rem; font-weight: 600; line-height: 1.5;
+  color: var(--mut); margin: 0 0 .9rem;
+}
+.ac-block-note b { color: var(--wht); }
+.ac-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--yel); background: #050505; border: 1px solid var(--line);
+  border-radius: 5px; padding: .05rem .35rem; font-size: .85em;
+}
+
+.ac-row { display: flex; gap: .6rem; align-items: stretch; flex-wrap: wrap; }
+.ac-row > .ac-select, .ac-row > .ac-confirm { flex: 1 1 220px; min-width: 0; }
+
+/* ── Inputs ── */
+.ac-select, .ac-confirm {
+  box-sizing: border-box;
+  background: #050505; border: 1px solid var(--line); border-radius: 10px;
+  color: var(--wht); font-family: var(--bd); font-size: .92rem; font-weight: 600;
+  padding: .6rem .8rem; outline: none;
+}
+.ac-select:focus, .ac-confirm:focus { border-color: rgba(245, 200, 0, .45); }
+.ac-select:disabled { opacity: .5; cursor: not-allowed; }
+.ac-confirm::placeholder { color: #555; }
+
+/* ── Buttons ── */
+.ac-btn {
+  flex-shrink: 0;
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 2px; text-transform: uppercase;
+  border-radius: 10px; padding: .6rem 1.1rem; cursor: pointer;
+  border: 1px solid transparent; transition: filter .15s ease, opacity .15s ease;
+}
+.ac-btn:disabled { opacity: .4; cursor: not-allowed; }
+.ac-btn:not(:disabled):hover { filter: brightness(1.08); }
+
+.ac-btn--gold { background: var(--yel); border-color: var(--yel); color: #090909; }
+.ac-btn--lock { background: var(--red); border-color: var(--red); color: #fff; }
+.ac-btn--unlock { background: transparent; border-color: var(--grn); color: var(--grn); }
+
+/* ── Danger zone (kill switch) ── */
+.ac-danger {
+  border-color: rgba(239, 68, 68, .4);
+  background: linear-gradient(180deg, rgba(239, 68, 68, .07) 0%, var(--gry) 70%);
+}
+.ac-danger.is-locked { border-color: var(--red); background: rgba(239, 68, 68, .1); }
+.ac-danger-kicker { color: var(--red); }
+
+/* ── Feedback messages ── */
+.ac-msg {
+  font-family: var(--bd); font-size: .86rem; font-weight: 700; line-height: 1.45;
+  margin-top: .8rem; padding: .6rem .8rem; border-radius: 9px; border: 1px solid var(--line);
+}
+.ac-msg--ok { color: var(--grn); border-color: rgba(34, 197, 94, .4); background: rgba(34, 197, 94, .06); }
+.ac-msg--err { color: var(--red); border-color: rgba(239, 68, 68, .4); background: rgba(239, 68, 68, .06); word-break: break-word; }
+.ac-msg--lock { color: var(--red); border-color: var(--red); background: rgba(239, 68, 68, .12); }
+.ac-msg--note { color: var(--gold-soft); border-color: rgba(245, 200, 0, .3); background: rgba(245, 200, 0, .05); }

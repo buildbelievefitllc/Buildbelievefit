@@ -66,6 +66,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 // deterministic upstream; Claude just narrates the trajectory. Haiku
 // 4.5 is the right tier per CEO routing.
 import { routeAndLog } from '../_shared/model-router.ts';
+import { localeDirective, localeCode } from '../_shared/locale.ts';
 
 const MODEL          = routeAndLog('bbf-agentic-forecasting', 'forecast_1rm');
 const MAX_TOKENS     = 2048;
@@ -311,7 +312,7 @@ async function fetchRecentSets(
 }
 
 // ─── Anthropic call ────────────────────────────────────────────────────
-async function callClaude(userMessage: string, apiKey: string) {
+async function callClaude(userMessage: string, apiKey: string, localeInput: string) {
   const requestBody = {
     model:      MODEL,
     max_tokens: MAX_TOKENS,
@@ -326,6 +327,7 @@ async function callClaude(userMessage: string, apiKey: string) {
         text: SYSTEM_PROMPT,
         cache_control: { type: 'ephemeral' },  // CEO directive
       },
+      { type: 'text', text: localeDirective(localeInput, 'the agent_insight narrative') },
     ],
     messages: [
       { role: 'user', content: userMessage },
@@ -382,6 +384,7 @@ serve(async (req: Request) => {
 
   const uidRaw    = payload?.uid;
   const liftName  = payload?.lift_name;
+  const locale = localeCode(payload?.locale ?? payload?.lang);
   const intent    = (payload && typeof payload.intent === 'string') ? payload.intent : null;
   const adminOverride = !!payload?.admin_override;
 
@@ -469,7 +472,7 @@ serve(async (req: Request) => {
     'Return ONLY the JSON schema response. Project the 30-day 1RM, score your confidence, and give ONE direct micro-adjustment to hit the projection.';
 
   const t0 = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
+  const result = await callClaude(userMessage, ANTHROPIC_API_KEY, locale);
   const dur = Date.now() - t0;
 
   if (!result.ok) {
@@ -501,6 +504,7 @@ serve(async (req: Request) => {
   // Phase 4 adds an OPTIONAL ot_signal field that consumers can ignore.
   // Surface the LLM fields directly; debug metadata stays in console.
   return jsonResponse({
+    locale,
     projected_1rm:    parsed.projected_1rm,
     confidence_score: parsed.confidence_score,
     agent_insight:    parsed.agent_insight,

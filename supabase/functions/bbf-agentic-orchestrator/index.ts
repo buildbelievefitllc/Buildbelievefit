@@ -24,6 +24,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 // Phase 7 Workstream B · Slow-path nightly synthesis · Haiku already
 // per Phase 6. Route through the central router for observability.
 import { routeAndLog } from '../_shared/model-router.ts';
+import { localeDirective, localeCode } from '../_shared/locale.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -160,11 +161,14 @@ async function fetchSetSlice(uuid: string, supabaseUrl: string, supabaseKey: str
   } catch (_) { return []; }
 }
 
-async function callClaude(userMessage: string, apiKey: string) {
+async function callClaude(userMessage: string, apiKey: string, localeInput: string) {
   const requestBody = {
     model:      MODEL,
     max_tokens: MAX_TOKENS,
-    system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+    system: [
+      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: localeDirective(localeInput, 'the athlete snapshot') },
+    ],
     messages: [{ role: 'user', content: userMessage }],
   };
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -231,7 +235,7 @@ async function persistSnapshotToMemory(
   }
 }
 
-async function handleSynthesizeAthleteSnapshot(uidRaw: string, supabaseUrl: string, supabaseKey: string, apiKey: string) {
+async function handleSynthesizeAthleteSnapshot(uidRaw: string, supabaseUrl: string, supabaseKey: string, apiKey: string, locale: string) {
   const uuid = await resolveUuid(uidRaw, supabaseUrl, supabaseKey);
   if (!uuid) return jsonResponse({ ok: false, error: 'uid_not_resolvable', uid: uidRaw }, 400);
 
@@ -288,7 +292,7 @@ async function handleSynthesizeAthleteSnapshot(uidRaw: string, supabaseUrl: stri
     'Synthesize the 2–4 sentence Athlete Snapshot per your system instructions.';
 
   const t0 = Date.now();
-  const result = await callClaude(userMessage, apiKey);
+  const result = await callClaude(userMessage, apiKey, locale);
   const dur = Date.now() - t0;
   if (!result.ok) {
     return jsonResponse({ ok: false, error: 'anthropic_call_failed', detail: result.error }, 502);
@@ -303,6 +307,7 @@ async function handleSynthesizeAthleteSnapshot(uidRaw: string, supabaseUrl: stri
   return jsonResponse({
     ok:           true,
     uid:          uidRaw,
+    locale,
     snapshot:     snapshotText,
     sources:      sources,
     model:        (result.body as any).model,
@@ -373,6 +378,7 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'unknown_intent', intent: intent }, 400);
   }
   const uid = payload && payload.uid;
+  const locale = localeCode(payload?.locale ?? payload?.lang);
   if (typeof uid !== 'string' || !uid) {
     return jsonResponse({ error: 'missing_uid' }, 400);
   }
@@ -386,5 +392,5 @@ serve(async (req: Request) => {
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   if (!ANTHROPIC_API_KEY) return jsonResponse({ error: 'config_missing_anthropic_key' }, 503);
 
-  return await handleSynthesizeAthleteSnapshot(uid, SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY);
+  return await handleSynthesizeAthleteSnapshot(uid, SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY, locale);
 });

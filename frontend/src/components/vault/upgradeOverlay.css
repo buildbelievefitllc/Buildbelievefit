@@ -1,0 +1,114 @@
+/* upgradeOverlay.css — Vault Upsell Funnel padlock screen.
+   ─────────────────────────────────────────────────────────────────────────────
+   Brutalist: square edges, thick hairline-purple structure, matte-black canvas,
+   ONE dominant Victory-Gold CTA. Brand-locked palette (CLAUDE.md §2): purple
+   #6a0dad, gold #f5c800, matte black as a SURFACE/canvas only. Tokens come from
+   the shared :root in index.css (--pur / --yel / --blk / --wht / --hb / --bd). */
+
+.uplock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+  padding: 2.5rem 1.25rem;
+  background:
+    radial-gradient(900px 380px at 50% -10%, rgba(106, 13, 173, .22), transparent 60%),
+    var(--blk);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--pur);
+}
+
+.uplock__card {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  background: linear-gradient(180deg, #160a26 0%, #0a0710 100%);
+  border: 1px solid rgba(106, 13, 173, .45);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 1px rgba(106, 13, 173, .25) inset;
+  padding: 2.4rem 2rem;
+}
+
+.uplock__icon {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: .4rem;
+  filter: drop-shadow(0 0 18px rgba(245, 200, 0, .35));
+}
+
+.uplock__kicker {
+  font-family: var(--hb);
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  font-size: .82rem;
+  color: var(--yel);
+  margin-bottom: .5rem;
+}
+
+.uplock__feature {
+  font-family: var(--hb);
+  font-size: 2.1rem;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: var(--wht);
+  margin: 0 0 .7rem;
+}
+
+.uplock__body {
+  font-family: var(--bd);
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: rgba(249, 245, 255, .7);
+  margin: 0 auto 1.6rem;
+  max-width: 34ch;
+}
+
+.uplock__tier {
+  color: var(--yel);
+  font-weight: 700;
+}
+
+/* The dominant Victory-Gold CTA — the single load-bearing action on the screen. */
+.uplock__cta {
+  display: block;
+  width: 100%;
+  font-family: var(--hb);
+  font-size: 1.05rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--blk);
+  background: var(--yel);
+  border: none;
+  padding: .95rem 1.2rem;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(245, 200, 0, .28);
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.uplock__cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+  box-shadow: 0 14px 38px rgba(245, 200, 0, .38);
+}
+.uplock__cta:focus-visible {
+  outline: 3px solid var(--wht);
+  outline-offset: 2px;
+}
+
+/* Low-emphasis secondary — compare the full matrix instead of the single steer. */
+.uplock__compare {
+  display: inline-block;
+  margin-top: 1rem;
+  font-family: var(--bd);
+  font-size: .85rem;
+  letter-spacing: .04em;
+  color: rgba(249, 245, 255, .55);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.uplock__compare:hover { color: var(--wht); }
+
+@media (max-width: 480px) {
+  .uplock { min-height: 360px; padding: 1.6rem .75rem; }
+  .uplock__card { padding: 1.8rem 1.3rem; }
+  .uplock__feature { font-size: 1.7rem; }
+}

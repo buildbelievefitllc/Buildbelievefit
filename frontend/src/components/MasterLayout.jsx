@@ -17,12 +17,14 @@ import { useLang } from '../context/LangContext.jsx';
 // sub-surface there, per the monolith's Phase 5.2). The Player-Coach tabs get their
 // own deep-link entries. `active` is matched against the current /command/<tab>.
 // Executive workspace nav. The personal client tabs (Program · Prehab · Nutrition)
-// were purged — they live only in the Sovereign Client Vault now. Generator folds
-// under the Command Center group; Sports Portal + Settings get their own entries.
-const COACHING_TABS = ['', 'roster', 'command', 'telemetry', 'analytics', 'comlink', 'generator'];
+// were purged — they live only in the Sovereign Client Vault now. Generator, the
+// admin Nutrition Locker, and Access Control fold under the Command Center group;
+// Sports Portal, Language, and Settings get their own entries.
+const COACHING_TABS = ['', 'roster', 'command', 'access', 'telemetry', 'analytics', 'comlink', 'generator', 'nutrition-locker'];
 const NAV_ITEMS = [
   { labelKey: 'vault-command', to: '/command', isActive: (tab) => COACHING_TABS.includes(tab) },
   { labelKey: 'cmd-tab-sports', to: '/command/sports', isActive: (tab) => tab === 'sports' },
+  { labelKey: 'cmd-tab-language', to: '/command/language', isActive: (tab) => tab === 'language' },
   { labelKey: 'vault-tab-settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },
 ];
 

@@ -20,9 +20,12 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import CommandRoster from '../components/command/CommandRoster.jsx';
 import ClientHub from '../components/command/ClientHub.jsx';
+import AccessControl from '../components/command/AccessControl.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import ClientAnalytics from '../components/command/ClientAnalytics.jsx';
 import Comlink from '../components/command/Comlink.jsx';
+import NutritionLocker from '../components/command/NutritionLocker.jsx';
+import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import SportsPortal from '../components/sports/SportsPortal.jsx';
@@ -43,14 +46,21 @@ const TABS = [
   // "Founder Five" master-detail roster is the Command Center centerpiece (default).
   { id: 'roster', labelKey: 'cmd-tab-roster', Panel: ClientHub },
   { id: 'command', labelKey: 'cmd-tab-command', Panel: CommandRoster },
+  // Executive Access Control — tier visibility + reassignment + the account kill switch.
+  { id: 'access', labelKey: 'cmd-tab-access', Panel: AccessControl },
   { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry },
   { id: 'analytics', labelKey: 'cmd-tab-analytics', Panel: ClientAnalytics },
   { id: 'comlink', labelKey: 'cmd-tab-comlink', Panel: Comlink },
+  // Admin-only generative diet suite (Nutrition Locker) — targets another athlete.
+  { id: 'nutrition-locker', labelKey: 'cmd-tab-nutrition-locker', Panel: NutritionLocker },
   // BBF Sports Portal & Athlete Database — live youth-athlete records.
   { id: 'sports', labelKey: 'cmd-tab-sports', Panel: SportsPortal },
   // Admin tools that remain in the executive workspace.
   { id: 'generator', labelKey: 'vault-tab-generator', Panel: Generator },
   { id: 'settings', labelKey: 'vault-tab-settings', Panel: Settings },
+  // CEO-only Language Mastery Protocol. Static content (no token gate); the whole
+  // /command route is AdminGuard-gated, so this tab never renders for an athlete.
+  { id: 'language', labelKey: 'cmd-tab-language', Panel: AdminLanguageRoadmap },
 ];
 
 const DEFAULT_TAB = TABS[0].id;

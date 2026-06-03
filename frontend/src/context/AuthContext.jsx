@@ -82,6 +82,16 @@ export function AuthProvider({ children }) {
     }
 
     if (!data?.ok) {
+      // Kill switch (Access Control): the PIN was correct but the account is
+      // administratively locked — no vault_token was minted, so deny entry with a
+      // distinct, honest message rather than the generic "incorrect PIN".
+      if (data?.account_locked) {
+        return {
+          ok: false,
+          reason: 'locked',
+          message: 'This account has been locked by an administrator. Contact the head coach.',
+        };
+      }
       if (data?.lockout_active && data?.retry_after_seconds > 0) {
         return {
           ok: false,

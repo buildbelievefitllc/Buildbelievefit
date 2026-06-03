@@ -59,6 +59,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 // Phase 7 Workstream B · TDEE-fueled onboarding dialog. Sonnet 4.6 is
 // the right tier per CEO routing rules.
 import { routeAndLog } from '../_shared/model-router.ts';
+import { localeDirective, localeCode } from '../_shared/locale.ts';
 
 const MODEL              = routeAndLog('bbf-agentic-pathfinder', 'onboarding_interview');
 const MAX_TOKENS         = 1024;
@@ -135,6 +136,7 @@ const SYSTEM_PROMPT = [
 async function callClaude(
   messages: Array<{ role: string; content: string }>,
   apiKey: string,
+  localeInput: string,
 ): Promise<{ ok: true; text: string; usage: { input: number; output: number } } | { ok: false; error: string }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
@@ -150,7 +152,10 @@ async function callClaude(
       body: JSON.stringify({
         model:       MODEL,
         max_tokens:  MAX_TOKENS,
-        system:      SYSTEM_PROMPT,
+        system: [
+          { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+          { type: 'text', text: localeDirective(localeInput, 'the reply to the prospect') },
+        ],
         messages,
       }),
       signal: controller.signal,
@@ -239,11 +244,12 @@ serve(async (req: Request) => {
   }
 
   // ─── Parse + validate ─────────────────────────────────────
-  let payload: { messages?: unknown; session_id?: unknown } = {};
+  let payload: { messages?: unknown; session_id?: unknown; locale?: unknown; lang?: unknown } = {};
   try { payload = await req.json(); }
   catch { return jsonResponse({ ...fallbackReply(), model_used: MODEL, tokens_used: { input: 0, output: 0 } }); }
 
   const messages = sanitizeMessages(payload.messages);
+  const locale = localeCode((payload?.locale ?? payload?.lang) as string | null | undefined);
   if (!messages.length) {
     return jsonResponse({
       reply:          'Welcome to BBF Pathfinder. State your training goal or your weekly time availability — whichever is the binding constraint.',
@@ -263,7 +269,7 @@ serve(async (req: Request) => {
     return jsonResponse({ ...fallbackReply(), model_used: MODEL, tokens_used: { input: 0, output: 0 } });
   }
 
-  const result = await callClaude(messages, ANTHROPIC_API_KEY);
+  const result = await callClaude(messages, ANTHROPIC_API_KEY, locale);
   if (!result.ok) {
     console.error('[bbf-agentic-pathfinder] Claude failure:', result.error);
     return jsonResponse({ ...fallbackReply(), model_used: MODEL, tokens_used: { input: 0, output: 0 } });
@@ -274,6 +280,7 @@ serve(async (req: Request) => {
   return jsonResponse({
     reply:          cleaned || fallbackReply().reply,
     recommendation: recommendation,
+    locale,
     model_used:     MODEL,
     tokens_used:    result.usage,
   });

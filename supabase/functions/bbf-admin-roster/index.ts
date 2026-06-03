@@ -17,13 +17,23 @@
 //   • 90-day analytics                 ← public.bbf_readiness + public.bbf_sets⋈bbf_logs
 //
 // ACTIONS (POST JSON { action, ... }):
-//   roster         → { ok, count, clients:[{id,uid,name,email,role,...}] }
+//   roster         → { ok, count, clients:[{id,uid,name,email,role,subscription_tier,
+//                      access_status,account_status,trial_expires_at,...}] }
 //   detail         → { ok, client:{...macros, nutrition_plan, workout_plan, meta} }
 //   analytics      → { ok, readiness:[...], volume:[...] }   (lazy, 90d)
 //   update_target  → { ok, client:{id,tdee_target,macro_p,macro_c,macro_f} }
 //   coach          → { ok, provider:'gemini', model, answer }   (Gemini Co-Coach)
 //   compile        → { ok, plan:{name,cal,goal,days[]}, meta, persisted }
 //                    (relays to Render /api/rotate-nutrition + writes the plan back)
+//
+//   ── Executive Access Control (Command Center · Access Control tab) ──
+//   tiers          → { ok, tiers:[{slug,display_name,category,price_cents,billing_type}] }
+//                    (the pricing matrix from bbf_tiers — powers the tier dropdown)
+//   set_tier       → { ok, uid, subscription_tier }   (manual comp/up/downgrade;
+//                    drives public.bbf_admin_set_tier — allowlist + akeem guard)
+//   set_status     → { ok, uid, access_status, sessions_revoked }   (THE KILL SWITCH:
+//                    drives public.bbf_admin_set_access_status → flips access_status
+//                    and, on lock, revokes every live vault_token for the user)
 //
 // Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (auto-injected),
 //          BBF_COACH_AGENT_TOKEN (admin gate), GEMINI_API_KEY (+ GEMINI_MODEL),
@@ -119,6 +129,11 @@ async function pgPost(path: string, rows: unknown): Promise<any> {
   return res.json();
 }
 
+// Invoke a SECURITY DEFINER RPC as the service role (PostgREST /rpc). Used by the
+// access-control actions so the tier/lock logic + guards live in ONE place (the DB
+// functions), never duplicated in this caller. Throws `rpc_<status>:<detail>` on a
+// non-2xx so the handler can map the DB's RAISE'd slug (invalid_tier,
+// akeem_cannot_be_locked, user_not_found, …) to a clean response.
 async function pgRpc(fn: string, args: Record<string, unknown>): Promise<any> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
@@ -129,8 +144,9 @@ async function pgRpc(fn: string, args: Record<string, unknown>): Promise<any> {
     },
     body: JSON.stringify(args),
   });
-  if (!res.ok) throw new Error(`pg_rpc_${res.status}:${(await res.text()).slice(0, 200)}`);
-  return res.json();
+  const text = await res.text();
+  if (!res.ok) throw new Error(`rpc_${res.status}:${text.slice(0, 300)}`);
+  try { return text ? JSON.parse(text) : null; } catch { return text; }
 }
 
 function encEmail(e: string) { return encodeURIComponent(String(e || '').toLowerCase().trim()); }
@@ -187,6 +203,39 @@ async function isAuthorized(req: Request): Promise<boolean> {
     return false;
   }
 }
+
+// ── Account status derivation (Access Control roster) ────────────────────────────
+// One honest, server-owned status per athlete, from real columns only:
+//   locked     — access_status='locked' (manual kill switch OR Sentinel auto-lock)
+//   delinquent — not locked, non-sovereign, and the access window (trial_expires_at)
+//                has lapsed → mirrors the Iron Vault bouncer (_ironVaultHasAccess):
+//                sovereign OR a live trial = entitled; anything else that HAD a
+//                window which expired is in arrears.
+//   active     — everything else (sovereign, or a still-live access window).
+// NOTE: when the Stripe webhook persists a first-class billing status (past_due /
+// canceled) onto bbf_users, fold it in here as the primary 'delinquent' signal.
+function deriveAccountStatus(u: Record<string, unknown>): 'locked' | 'delinquent' | 'active' {
+  if (String(u?.access_status ?? '') === 'locked') return 'locked';
+  const tier = String(u?.subscription_tier ?? '');
+  const expRaw = u?.trial_expires_at as string | null | undefined;
+  const exp = expRaw ? Date.parse(expRaw) : NaN;
+  if (tier !== 'sovereign' && Number.isFinite(exp) && exp < Date.now()) return 'delinquent';
+  return 'active';
+}
+
+// Tier slugs the kill-switch/override surface may assign. Mirrors bbf_admin_set_tier's
+// allowlist (DB is the source of truth + the guard); kept here only to fail fast on
+// an obviously bad slug before the round trip.
+const SETTABLE_TIERS = new Set([
+  'catalyst', 'momentum', 'autonomous',
+  'fuel_foundation', 'fuel_performance', 'fuel_sovereign',
+  'rising_athlete',
+  'kickstart_6wk_3x', 'kickstart_6wk_4x',
+  'transformation_8wk_3x', 'transformation_8wk_4x',
+  'sovereign_12wk_3x', 'sovereign_12wk_4x',
+  'lite', 'gateway', 'architect', 'sovereign',
+  'youth_athlete', 'nutrition_essentials', 'nutrition_platinum',
+]);
 
 // ─── Gemini Co-Coach ─────────────────────────────────────────────────────────────
 async function geminiCoach(prompt: string) {
@@ -320,9 +369,16 @@ serve(async (req) => {
       const roleFilter = ROSTER_ROLES.map((r) => `"${r}"`).join(',');
       const rows = await pgGet(
         `bbf_users?select=id,uid,name,email,role,metabolic_tier,subscription_tier,` +
-        `tdee_target,updated_at&role=in.(${roleFilter})&deleted_at=is.null&order=name.asc`,
+        `access_status,trial_expires_at,tdee_target,updated_at&role=in.(${roleFilter})` +
+        `&deleted_at=is.null&order=name.asc`,
       );
-      return jsonResponse({ ok: true, count: rows.length, clients: rows });
+      // Stamp each row with a single, server-derived account_status so the Access
+      // Control grid renders one badge without re-deriving the rule client-side.
+      const clients = (Array.isArray(rows) ? rows : []).map((u: Record<string, unknown>) => ({
+        ...u,
+        account_status: deriveAccountStatus(u),
+      }));
+      return jsonResponse({ ok: true, count: clients.length, clients });
     }
 
     // ── detail ──────────────────────────────────────────────────────────────────
@@ -655,6 +711,67 @@ serve(async (req) => {
         return jsonResponse({ error: 'orchestrator_failed', detail: j?.error ?? `status_${r.status}` }, 502);
       }
       return jsonResponse(j);
+    }
+
+    // ── tiers (pricing matrix → tier-reassignment dropdown) ──────────────────────
+    if (action === 'tiers') {
+      const rows = await pgGet(
+        `bbf_tiers?select=slug,display_name,category,price_cents,billing_type` +
+        `&order=category.asc,price_cents.asc`,
+      );
+      return jsonResponse({ ok: true, tiers: Array.isArray(rows) ? rows : [] });
+    }
+
+    // ── set_tier (manual comp / up / downgrade — bypasses Stripe) ─────────────────
+    // Drives public.bbf_admin_set_tier: allowlist-validated, akeem locked to
+    // 'sovereign'. Keys on uid (the roster row carries it).
+    if (action === 'set_tier') {
+      const uid = String(body?.uid ?? '').trim().toLowerCase();
+      const tier = String(body?.tier ?? '').trim().toLowerCase();
+      if (!uid) return jsonResponse({ error: 'missing_uid' }, 400);
+      if (!tier || !SETTABLE_TIERS.has(tier)) return jsonResponse({ error: 'invalid_tier', detail: tier }, 400);
+      try {
+        await pgRpc('bbf_admin_set_tier', { p_uid: uid, p_tier: tier });
+      } catch (e) {
+        const m = String((e as Error)?.message ?? e);
+        if (m.includes('akeem_locked_to_sovereign')) return jsonResponse({ error: 'akeem_locked_to_sovereign' }, 409);
+        if (m.includes('user_not_found')) return jsonResponse({ error: 'not_found' }, 404);
+        if (m.includes('invalid_tier')) return jsonResponse({ error: 'invalid_tier', detail: tier }, 400);
+        throw e;
+      }
+      return jsonResponse({ ok: true, uid, subscription_tier: tier });
+    }
+
+    // ── set_status (THE KILL SWITCH — lock / unlock) ──────────────────────────────
+    // Drives public.bbf_admin_set_access_status: flips access_status and, on lock,
+    // DELETES every live vault_token for the user (instant session revocation) so
+    // the athlete's Vault ejects to the public login on its next heartbeat. akeem
+    // can never be locked. Service-role ONLY at the DB layer — never anon-callable.
+    if (action === 'set_status') {
+      const uid = String(body?.uid ?? '').trim().toLowerCase();
+      const status = String(body?.status ?? '').trim().toLowerCase();
+      if (!uid) return jsonResponse({ error: 'missing_uid' }, 400);
+      if (status !== 'locked' && status !== 'unlocked') {
+        return jsonResponse({ error: 'invalid_status', detail: status }, 400);
+      }
+      let result: any;
+      try {
+        result = await pgRpc('bbf_admin_set_access_status', {
+          p_uid: uid, p_status: status, p_actor: 'command_center',
+        });
+      } catch (e) {
+        const m = String((e as Error)?.message ?? e);
+        if (m.includes('akeem_cannot_be_locked')) return jsonResponse({ error: 'akeem_cannot_be_locked' }, 409);
+        if (m.includes('user_not_found')) return jsonResponse({ error: 'not_found' }, 404);
+        if (m.includes('invalid_status')) return jsonResponse({ error: 'invalid_status', detail: status }, 400);
+        throw e;
+      }
+      return jsonResponse({
+        ok: true,
+        uid,
+        access_status: result?.access_status ?? status,
+        sessions_revoked: result?.sessions_revoked ?? 0,
+      });
     }
 
     return jsonResponse({ error: 'unknown_action', detail: action }, 400);

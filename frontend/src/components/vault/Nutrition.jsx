@@ -8,8 +8,11 @@
 //   • Monday → Sunday interactive day-tabs (defaults to today).
 //   • A conic-gradient macro wheel + P/C/F/KCAL legend + macro volume-ratio bar.
 //   • Tappable meal cards (mark a meal done → the wheel + progress fill).
-// The Sovereign Vault's 16/8 fasting-window visualiser is retained at the top
-// (dynamic, sourced from the athlete's metabolic tier).
+//   • A client-selectable FASTING PACE (CEO override: intermittent fasting is now
+//     fully OPTIONAL). 16/8 is no longer hardcoded — the athlete picks a pace
+//     (Off · 12:12 · 14:10 · 16:8 · 18:6 · 20:4) and the eating-window visualiser
+//     renders dynamically from that choice. Defaults to Off unless a coach tier is
+//     assigned; the selection persists locally per user.
 //
 // NOTE: the cuisine plans are STATIC MOCK DATA (see cuisineMeals.js) driving the
 // UI; per-athlete personalisation of a cuisine plan is a backend follow-up.
@@ -29,10 +32,32 @@ import './vault.css';
 import './nutrition.css';
 
 const DONE_KEY = 'bbf.vault.nut.done.v1';
+const PACE_KEY = 'bbf.vault.nut.fastpace.v1';
 const EMPTY = [];
 
 // Macro accent colours (legend boxes + volume-ratio segments).
 const MACRO_COLORS = { p: '#ff5d5d', c: '#4dc3ff', f: '#ffb547' };
+
+// ── Fasting Pace (CEO override: intermittent fasting is OPTIONAL) ─────────────
+// The full menu of time-restricted-feeding intervals. `off` is the default state
+// for clients not fasting (no eating-window restriction). fast + eat = 24h so the
+// shape matches parseFastingWindow()'s { fast, eat } contract verbatim.
+const FASTING_PACES = [
+  { id: 'off',   short: 'Disabled',  fast: 0,  eat: 24 },
+  { id: '12:12', short: 'Circadian', fast: 12, eat: 12 },
+  { id: '14:10', short: 'Primer',    fast: 14, eat: 10 },
+  { id: '16:8',  short: 'Standard',  fast: 16, eat: 8 },
+  { id: '18:6',  short: 'Advanced',  fast: 18, eat: 6 },
+  { id: '20:4',  short: 'Warrior',   fast: 20, eat: 4 },
+];
+
+// Map a parsed { fast, eat } window onto a known pace id (for seeding the selector
+// from a coach-assigned metabolic tier). Returns null when there is no match.
+function paceIdFromWindow(win) {
+  if (!win) return null;
+  const hit = FASTING_PACES.find((p) => p.id !== 'off' && p.fast === win.fast && p.eat === win.eat);
+  return hit ? hit.id : null;
+}
 
 function fmtHM(hoursFloat) {
   const h = Math.floor(hoursFloat);
@@ -64,14 +89,35 @@ function writeUserDone(uid, node) {
   } catch { /* private-mode / quota — value holds in component state */ }
 }
 
+// ── Fasting-pace persistence (one node per uid → paceId) ─────────────────────
+function readUserPace(uid) {
+  try {
+    const all = JSON.parse(localStorage.getItem(PACE_KEY) || '{}');
+    const id = all?.[uid];
+    return FASTING_PACES.some((p) => p.id === id) ? id : null;
+  } catch { return null; }
+}
+function writeUserPace(uid, paceId) {
+  try {
+    const all = JSON.parse(localStorage.getItem(PACE_KEY) || '{}');
+    all[uid] = paceId;
+    localStorage.setItem(PACE_KEY, JSON.stringify(all));
+  } catch { /* private-mode / quota — value holds in component state */ }
+}
+
 // ── Fasting-window visualiser (dynamic, current-time aware) ──────────────────
+// `fasting` is null when the pace is Off — time-restricted feeding is optional,
+// so this renders an "unrestricted" state rather than a "not assigned" error.
 function FastingWindow({ now, fasting, tier }) {
   if (!fasting) {
     return (
-      <div className="pg-card">
-        <div className="pg-fast-top"><span className="pg-fast-title">Fasting Window</span></div>
-        <div className="pg-meal-empty" style={{ color: 'var(--mut)' }}>
-          No fasting protocol assigned yet — your coach sets your metabolic tier.
+      <div className="nl-fast-window is-off">
+        <div className="pg-fast-top">
+          <span className="pg-fast-title">Eating Window</span>
+          <span className="pg-fast-status is-eating">🍽 Unrestricted</span>
+        </div>
+        <div className="nl-fast-offmsg">
+          Time-restricted feeding is <b>off</b> — pick a Fasting Pace above to map your eating window.
         </div>
       </div>
     );
@@ -95,7 +141,7 @@ function FastingWindow({ now, fasting, tier }) {
   }
 
   return (
-    <div className="pg-card">
+    <div className="nl-fast-window">
       <div className="pg-fast-top">
         <span className="pg-fast-title">{ratioLabel} Fasting Window</span>
         <span className={`pg-fast-status ${eating ? 'is-eating' : 'is-fasting'}`}>
@@ -113,6 +159,44 @@ function FastingWindow({ now, fasting, tier }) {
         {sub}
         {tier ? <span className="pg-fast-tier"> · {tier}</span> : null}
       </div>
+    </div>
+  );
+}
+
+// ── Fasting Pace card — the client-controlled selector + the live window ─────
+// The selector is the single source of truth for the displayed eating window;
+// 16/8 is just one option, never a hardcoded default.
+function FastingPaceCard({ now, paceId, onSelectPace, tier }) {
+  const selected = FASTING_PACES.find((p) => p.id === paceId) || FASTING_PACES[0];
+  const fasting = selected.id === 'off' ? null : { fast: selected.fast, eat: selected.eat };
+
+  return (
+    <div className="pg-card nl-fast">
+      <div className="nl-fast-head">
+        <span className="nl-fast-kicker">Fasting Pace</span>
+        <span className="nl-fast-note">Time-restricted feeding · optional</span>
+      </div>
+
+      <div className="nl-pace" role="radiogroup" aria-label="Fasting pace">
+        {FASTING_PACES.map((p) => {
+          const active = p.id === paceId;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              className={`nl-pace-chip${active ? ' is-active' : ''}${p.id === 'off' ? ' is-off' : ''}`}
+              onClick={() => onSelectPace(p.id)}
+            >
+              <span className="nl-pace-ratio">{p.id === 'off' ? 'Off' : p.id}</span>
+              <span className="nl-pace-desc">{p.short}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <FastingWindow now={now} fasting={fasting} tier={tier} />
     </div>
   );
 }
@@ -534,10 +618,18 @@ export default function Nutrition({ profile }) {
     );
   }, [day, done]);
 
-  const fasting = useMemo(
-    () => parseFastingWindow(profile?.metabolicTier, profile?.fastingHours),
-    [profile?.metabolicTier, profile?.fastingHours],
-  );
+  // Fasting Pace — client-controlled (CEO override: IF is optional). Seed from a
+  // saved choice, else a coach-assigned tier, else Off. Persisted per user; never
+  // auto-overridden once the athlete has chosen.
+  const [paceId, setPaceId] = useState(() => {
+    const saved = readUserPace(uid);
+    if (saved) return saved;
+    return paceIdFromWindow(parseFastingWindow(profile?.metabolicTier, profile?.fastingHours)) || 'off';
+  });
+  const selectPace = (id) => {
+    setPaceId(id);
+    writeUserPace(uid, id);
+  };
 
   // Live clock so the fasting marker + status track the real time of day.
   const [now, setNow] = useState(() => new Date());
@@ -572,8 +664,6 @@ export default function Nutrition({ profile }) {
         </label>
       </div>
 
-      <FastingWindow now={now} fasting={fasting} tier={profile?.metabolicTier} />
-
       <div className="nl-day-head">
         <div className="nl-day-head-cuisine">{plan.label} · {dayName}</div>
         <div className="nl-day-head-cal">{totals.kcal.toLocaleString()} kcal / day</div>
@@ -595,12 +685,21 @@ export default function Nutrition({ profile }) {
         ))}
       </div>
 
-      <DailyFuel
-        consumed={consumed}
-        totals={totals}
-        doneCount={done.length}
-        mealCount={day.meals.length}
-      />
+      {/* Fasting Pace selector + daily macro tracking, side by side. */}
+      <div className="nl-fastfuel">
+        <FastingPaceCard
+          now={now}
+          paceId={paceId}
+          onSelectPace={selectPace}
+          tier={profile?.metabolicTier}
+        />
+        <DailyFuel
+          consumed={consumed}
+          totals={totals}
+          doneCount={done.length}
+          mealCount={day.meals.length}
+        />
+      </div>
 
       <div>
         <div className="nl-meal-hint">Tap a meal to log it — your fuel wheel fills as you go.</div>

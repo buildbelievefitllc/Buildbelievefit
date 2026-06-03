@@ -88,7 +88,8 @@ export default function ClientHub() {
           <div className="ff-hub-titlewrap">
             <h2 className="ff-hub-title">▦ Client Database Hub</h2>
             <p className="ff-lede">
-              Real-time coaching dashboard across the Sovereign roster.
+              Real-time coaching dashboard. Cross-tracks detailed 7-day meal plans, live
+              interactive Voice Chef cooking guidance, and 90-day progress metrics.
             </p>
           </div>
           <div className="ff-stats">
@@ -97,7 +98,7 @@ export default function ClientHub() {
               <span className="ff-stat-val">{isLoading ? '—' : total}<em> Active</em></span>
             </div>
             <div className="ff-stat ff-stat--gold">
-              <span className="ff-stat-label">Roster Configured</span>
+              <span className="ff-stat-label">Macro Compliance</span>
               <span className="ff-stat-val">{isLoading ? '—' : `${compliancePct}%`}</span>
             </div>
           </div>

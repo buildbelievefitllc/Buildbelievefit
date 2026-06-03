@@ -20,6 +20,8 @@ import CommandCenter from './pages/CommandCenter.jsx';
 import ClientVault from './pages/ClientVault.jsx';
 import MarketingLanding from './pages/MarketingLanding.jsx';
 import SportsPortal from './components/sports/SportsPortal.jsx';
+import { useEntitlement } from './lib/useEntitlement.js';
+import UpgradeOverlay from './components/vault/UpgradeOverlay.jsx';
 
 // The Sovereign Vault — the authenticated athlete home. Guarded: an unauthenticated
 // visitor is bounced to the login gate rather than shown an empty shell. NOTE: the
@@ -45,6 +47,11 @@ const bootStyle = {
 function SportsRoute() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  // Sports Hub is gated like the Vault tabs: Youth + God Mode (Hybrid / admin /
+  // active trial) enter; everyone else gets the upsell padlock in place of the
+  // portal. Fail-open on an unresolved tier (see useEntitlement) so a payer is
+  // never falsely locked out. Hooks run before the early returns (Rules of Hooks).
+  const ent = useEntitlement();
   if (loading) return <div style={bootStyle}>Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
   return (
@@ -53,7 +60,15 @@ function SportsRoute() {
         <button type="button" className="sp-route-back" onClick={() => navigate('/vault')}>
           ← Athlete Vault
         </button>
-        <SportsPortal />
+        {ent.canAccessSports() ? (
+          <SportsPortal />
+        ) : (
+          <UpgradeOverlay
+            featureLabelKey="uplock-sports-feature"
+            target={ent.upgradeTargetForSports()}
+            testId="sports-upgrade-overlay"
+          />
+        )}
       </div>
     </div>
   );

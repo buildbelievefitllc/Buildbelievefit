@@ -26,6 +26,8 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import LangToggle from '../components/LangToggle.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
+import { useVaultSessionGuard } from '../lib/sessionGuard.js';
+import { useEntitlement } from '../lib/useEntitlement.js';
 import VaultHeader from '../components/vault/VaultHeader.jsx';
 import VaultHub from '../components/vault/VaultHub.jsx';
 import Program from '../components/vault/Program.jsx';
@@ -35,6 +37,7 @@ import SmartCardio from '../components/vault/SmartCardio.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
 import ChampionMindset from '../components/vault/ChampionMindset.jsx';
+import UpgradeOverlay from '../components/vault/UpgradeOverlay.jsx';
 import '../components/vault/vault.css';
 
 const TABS = [
@@ -44,7 +47,8 @@ const TABS = [
   { id: 'cardio', labelKey: 'vault-tab-cardio', icon: '♥', testid: 'vault-tab-cardio' },
   { id: 'prehab', labelKey: 'vault-tab-prehab', icon: '✚', testid: 'vault-tab-prehab' },
   { id: 'nutrition', labelKey: 'vault-tab-nutrition', icon: '◆' },
-  // Champion Mindset is open to EVERY authenticated client — no admin gate.
+  // Champion Mindset is tier-gated by the Upsell Funnel: Online Fitness + God Mode
+  // unlock it; Online Nutrition + Youth see the UpgradeOverlay. See lib/entitlements.js.
   { id: 'mindset', labelKey: 'vault-tab-mindset', icon: '🧠', testid: 'vault-tab-mindset' },
   { id: 'settings', labelKey: 'vault-tab-settings', icon: '⚙' },
 ];
@@ -54,6 +58,19 @@ export default function ClientVault() {
   const { t } = useLang();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(TABS[0].id);
+
+  // Kill-switch enforcement: if the CEO locks this account from the Command Center,
+  // the athlete's vault_token is revoked server-side; this heartbeat detects it and
+  // ejects to /login. No-op for admins (never lockable) and fails safe on a blip.
+  useVaultSessionGuard();
+
+  // Vault Upsell Funnel — resolve the athlete's live subscription tier → which tabs
+  // unlock. Every tab stays VISIBLE; a locked tab swaps its body for the
+  // UpgradeOverlay (visibility as a sales tool). Fail-open: admins / active trial /
+  // any unresolved tier read as full access, so a payer is never falsely padlocked.
+  const ent = useEntitlement();
+  const activeMeta = TABS.find((tab) => tab.id === activeTab);
+  const activeLocked = !ent.canAccessTab(activeTab);
 
   // The login slug IS the profile key (bbf_get_profile_metrics resolves uid).
   const uid = user?.username || user?.id || '';
@@ -110,6 +127,10 @@ export default function ClientVault() {
         <nav className="cv-tabs" role="tablist" aria-label="Vault surfaces">
           {TABS.map((tab) => {
             const active = tab.id === activeTab;
+            // Padlocked tabs stay clickable — the click IS the upsell (it swaps the
+            // pane for the UpgradeOverlay). The lock glyph is aria-hidden so the
+            // tab's accessible name stays the plain label (keeps E2E role selectors green).
+            const locked = !ent.canAccessTab(tab.id);
             return (
               <button
                 key={tab.id}
@@ -117,11 +138,12 @@ export default function ClientVault() {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setActiveTab(tab.id)}
-                className={`cv-tab${active ? ' is-active' : ''}`}
+                className={`cv-tab${active ? ' is-active' : ''}${locked ? ' is-locked' : ''}`}
                 data-testid={tab.testid}
               >
                 {tab.icon ? <span className="cv-tab-icon" aria-hidden="true">{tab.icon}</span> : null}
                 {t(tab.labelKey)}
+                {locked ? <span className="cv-tab-lock" aria-hidden="true">🔒</span> : null}
               </button>
             );
           })}
@@ -130,20 +152,31 @@ export default function ClientVault() {
         {/* key={activeTab} forces a clean unmount/remount per swap — no state can
             bleed between surfaces (same guard the Command Center uses). */}
         <div key={activeTab}>
-          {activeTab === 'hub' && (
-            <VaultHub
-              profile={profile}
-              isLoading={profileLoading}
-              error={profileError}
+          {activeLocked ? (
+            // Tier doesn't unlock this surface — render the upsell padlock in place
+            // of the tool, steered to the tier that actually unlocks it.
+            <UpgradeOverlay
+              featureLabelKey={activeMeta?.labelKey}
+              target={ent.upgradeTargetForTab(activeTab)}
             />
+          ) : (
+            <>
+              {activeTab === 'hub' && (
+                <VaultHub
+                  profile={profile}
+                  isLoading={profileLoading}
+                  error={profileError}
+                />
+              )}
+              {activeTab === 'program' && <Program plans={plans} profile={profile} />}
+              {activeTab === 'generator' && <Generator />}
+              {activeTab === 'cardio' && <SmartCardio />}
+              {activeTab === 'prehab' && <Prehab />}
+              {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
+              {activeTab === 'mindset' && <ChampionMindset />}
+              {activeTab === 'settings' && <Settings />}
+            </>
           )}
-          {activeTab === 'program' && <Program plans={plans} profile={profile} />}
-          {activeTab === 'generator' && <Generator />}
-          {activeTab === 'cardio' && <SmartCardio />}
-          {activeTab === 'prehab' && <Prehab />}
-          {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
-          {activeTab === 'mindset' && <ChampionMindset />}
-          {activeTab === 'settings' && <Settings />}
         </div>
       </div>
     </div>
