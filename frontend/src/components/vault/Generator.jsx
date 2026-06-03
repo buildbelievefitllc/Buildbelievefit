@@ -87,20 +87,21 @@ export default function Generator({ onRevertToLibrary }) {
   const [result, setResult] = useState(null);
   const [regen, setRegen] = useState(0);
 
-  // ── Role gate ──────────────────────────────────────────────────────────────
-  // Gate on the ROUTE, not the role: the CEO trains as a Player-Coach and reads as
-  // admin everywhere, so a role-only check would hand his own client Vault unlimited
-  // tokens and break the monetization demo. /command IS the admin authoring surface
-  // (AdminGuard-gated) — only there is the engine unlimited. Mirrors the Nutrition
-  // Locker surface gate.
+  // ── Role gate (CEO override) ─────────────────────────────────────────────────
+  // The governor is keyed on the ADMIN ROLE, not the route. The CEO trains as a
+  // Player-Coach and reads as admin everywhere, so he runs UNLIMITED across the whole
+  // platform — including his own /vault client surface: no localStorage deduction, no
+  // "Token Exhausted" state, presets permanently live. The /command authoring surface
+  // stays unlimited too (it's AdminGuard-gated, so this is belt-and-suspenders).
+  // Standard, non-admin clients remain strictly clamped to 1 token / month.
   const onCommandSurface = useLocation().pathname.startsWith('/command');
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const uid = user?.username || user?.id || '';
+  const isUnlimited = isAdmin || onCommandSurface;
 
-  // Client token meter — seed from persisted spend so a reload can't reset it. Admins
-  // never spend, so their meter is irrelevant (canGenerate is always true for them).
-  const [tokenSpent, setTokenSpent] = useState(() => !onCommandSurface && tokenSpentThisPeriod(uid));
-  const isUnlimited = onCommandSurface;
+  // Client token meter — seed from persisted spend so a reload can't reset it. Unlimited
+  // users (admins) never read or write the meter, so it stays irrelevant for them.
+  const [tokenSpent, setTokenSpent] = useState(() => !isUnlimited && tokenSpentThisPeriod(uid));
   const canGenerate = isUnlimited || !tokenSpent;
 
   // Any manual change drops the "active preset" highlight (the program no longer
