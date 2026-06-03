@@ -131,6 +131,7 @@ function sleep(ms: number): Promise<void> {
 type SovereignUser = {
   id: string;
   name: string | null;
+  preferred_locale?: string | null;
 };
 
 type LogRow = {
@@ -155,7 +156,7 @@ async function fetchSovereignRoster(
 ): Promise<SovereignUser[]> {
   const url = `${supabaseUrl}/rest/v1/bbf_users` +
     `?subscription_tier=eq.sovereign` +
-    `&select=id,name`;
+    `&select=id,name,preferred_locale`;
   const res = await fetch(url, {
     headers: {
       'apikey':        supabaseKey,
@@ -620,7 +621,7 @@ async function fetchUserSlug(
 }
 
 async function runOrchestratorSynthesisForUser(
-  user: SovereignUser, supabaseUrl: string, agentToken: string,
+  user: SovereignUser, supabaseUrl: string, agentToken: string, locale = 'en',
 ): Promise<SynthesisResult> {
   // Orchestrator expects the slug · resolve uuid → slug first.
   const slug = await fetchUserSlug(user.id, supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '');
@@ -629,7 +630,8 @@ async function runOrchestratorSynthesisForUser(
     const res = await fetch(`${supabaseUrl}/functions/v1/bbf-agentic-orchestrator`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': agentToken },
-      body: JSON.stringify({ intent: 'synthesize_athlete_snapshot', uid: uid }),
+      // Forward the athlete's locale so the snapshot is synthesized natively (EN/ES/PT).
+      body: JSON.stringify({ intent: 'synthesize_athlete_snapshot', uid: uid, locale: locale }),
     });
     if (!res.ok) {
       const txt = await res.text();
@@ -655,13 +657,17 @@ async function processUser(
   renderOrigin: string,
   adminToken: string,
   agentToken: string,
-  localeInput = 'en',
+  localeOverride: string | null = null,
 ): Promise<{ uid: string; brief: string; sunday_recon: SundayReconResult | null; orchestrator_synth: SynthesisResult | null }> {
+  // Per-athlete locale: an explicit batch override (manual/QA) wins; otherwise
+  // the athlete's preferred_locale column (default 'en'). Drives BOTH the daily
+  // brief and the orchestrator snapshot, so nightly generation is native EN/ES/PT.
+  const userLocale = localeOverride ?? localeCode(user.preferred_locale);
   const [logs, readiness] = await Promise.all([
     fetchRecentLogs(user.id, sinceIso, supabaseUrl, supabaseKey),
     fetchRecentReadiness(user.id, sinceIso, supabaseUrl, supabaseKey),
   ]);
-  const brief = await generateBrief(user, logs, readiness, apiKey, localeInput);
+  const brief = await generateBrief(user, logs, readiness, apiKey, userLocale);
   if (!dryRun) {
     await persistBrief(user.id, brief, supabaseUrl, supabaseKey);
   }
@@ -685,7 +691,7 @@ async function processUser(
   let orchestratorSynth: SynthesisResult | null = null;
   if (!dryRun && agentToken) {
     try {
-      orchestratorSynth = await runOrchestratorSynthesisForUser(user, supabaseUrl, agentToken);
+      orchestratorSynth = await runOrchestratorSynthesisForUser(user, supabaseUrl, agentToken, userLocale);
     } catch (e) {
       console.error(`[bbf-midnight-haiku:orchestrator] uid=${user.id} threw: ${(e as Error).message}`);
       orchestratorSynth = { uid: user.id, ok: false, error: 'exception_' + (e as Error).message.slice(0, 80) };
@@ -706,7 +712,7 @@ async function runBatch(
   renderOrigin: string,
   adminToken: string,
   agentToken: string,
-  localeInput = 'en',
+  localeOverride: string | null = null,
 ) {
   const errors: { uid: string; message: string }[] = [];
   const sundayReconResults: SundayReconResult[] = [];
@@ -717,7 +723,7 @@ async function runBatch(
     const slice = roster.slice(i, i + BATCH_SIZE);
     const results = await Promise.allSettled(
       slice.map((user) =>
-        processUser(user, sinceIso, supabaseUrl, supabaseKey, apiKey, dryRun, isSunday, renderOrigin, adminToken, agentToken, localeInput)
+        processUser(user, sinceIso, supabaseUrl, supabaseKey, apiKey, dryRun, isSunday, renderOrigin, adminToken, agentToken, localeOverride)
       ),
     );
     results.forEach((r, idx) => {
@@ -775,17 +781,18 @@ serve(async (req: Request) => {
   let dryRun = false;
   let forceSunday = false;
   // Batch locale override (EN/ES/PT). Cron POSTs no body → defaults to 'en'.
-  // TODO(per-athlete locale): once bbf_users carries a preferred_locale column,
-  // source this per-row in fetchSovereignRoster and pass it through processUser
-  // instead of one batch-wide value.
-  let batchLocale = 'en';
+  // Per-athlete locale: null = source each athlete's bbf_users.preferred_locale
+  // column (the default nightly path). An explicit { locale | lang } in the body
+  // is a batch-wide override for manual/QA runs and wins for every athlete.
+  let batchLocale: string | null = null;
   try {
     const text = await req.text();
     if (text) {
       const parsed = JSON.parse(text);
       dryRun      = Boolean(parsed?.dry_run);
       forceSunday = Boolean(parsed?.force_sunday);
-      batchLocale = localeCode(parsed?.locale ?? parsed?.lang);
+      const rawLoc = parsed?.locale ?? parsed?.lang;
+      batchLocale = rawLoc ? localeCode(rawLoc) : null;
     }
   } catch {
     // Empty or malformed body is fine.
@@ -817,7 +824,7 @@ serve(async (req: Request) => {
       succeeded:          0,
       failed:             0,
       model:              MODEL,
-      locale:             batchLocale,
+      locale:             batchLocale ?? 'per_athlete',
       dry_run:            dryRun,
       batch_size:         BATCH_SIZE,
       sunday:             isSunday,
@@ -847,7 +854,7 @@ serve(async (req: Request) => {
     succeeded,
     failed,
     model:              MODEL,
-    locale:             batchLocale,
+    locale:             batchLocale ?? 'per_athlete',
     dry_run:            dryRun,
     batch_size:         BATCH_SIZE,
     sunday:             isSunday,
