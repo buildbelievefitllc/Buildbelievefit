@@ -1,66 +1,55 @@
 {
-  "_documentation": "BBF Stripe → Zapier → Brevo Webhook Schema",
-  "_version": "2.0",
-  "_updated": "2026-04-26",
-  "_flow": "Stripe Payment → Zapier Webhook → Brevo Transactional Email",
-  "_tier_directive": "Spectrum of Success — Tier 1 Gateway ($147), Tier 2 Architect Hybrid ($497), Tier 3 Sovereign Vault ($1,500).",
+  "_documentation": "BBF Stripe Webhook + Tier Mapping Schema",
+  "_version": "3.0",
+  "_updated": "2026-06-03",
+  "_flow": "Stripe Checkout (4-tab Revenue Matrix · buy.stripe.com Payment Links) → supabase/functions/stripe-webhook (authoritative fulfillment) → optional Zapier/Brevo notification",
+  "_authoritative_source": "supabase/functions/stripe-webhook/index.ts (PRICE_TO_TIER + ALLOWED_TIERS) and frontend/src/lib/pricingMatrix.js. This file documents that contract; the edge function is the source of truth.",
+  "_tier_directive": "The live storefront is the 4-tab Revenue Matrix (Online Fitness · Online Nutrition · Youth Athlete · Hybrid Protocols). Each SKU is a static Stripe Payment Link that carries NO metadata.tier, so the webhook resolves the tier from the purchased Stripe price ID (PRICE_TO_TIER). Legacy metadata.tier / client_reference_id still take priority for the retired monolith storefront.",
 
-  "stripe_to_zapier": {
-    "_trigger": "Stripe: New Payment (or Checkout Session Completed)",
-    "fields": {
-      "customer_email": "{{stripe.customer_email}}",
-      "customer_name": "{{stripe.customer_name}}",
-      "amount_paid": "{{stripe.amount / 100}}",
-      "currency": "{{stripe.currency}}",
-      "payment_id": "{{stripe.payment_intent}}",
-      "product_name": "{{stripe.line_items[0].description}}",
-      "tier": "{{stripe.metadata.tier || derived from amount: 147=gateway, 497=architect, 1500=sovereign}}",
-      "timestamp": "{{stripe.created}}"
-    }
-  },
-
-  "zapier_to_brevo": {
-    "_action": "Brevo: Send Transactional Email (Template)",
-    "contact_creation": {
-      "email": "{{customer_email}}",
-      "attributes": {
-        "FIRSTNAME": "{{customer_name.split(' ')[0]}}",
-        "LASTNAME": "{{customer_name.split(' ')[1] || ''}}",
-        "TIER": "{{tier}}",
-        "LANGUAGE": "{{language_preference || 'en'}}",
-        "PAYMENT_DATE": "{{timestamp}}",
-        "AMOUNT_PAID": "{{amount_paid}}"
-      },
-      "listIds": [1],
-      "updateEnabled": true
-    },
-    "email_trigger": {
-      "templateId_by_tier": {
-        "gateway": 1,
-        "architect": 2,
-        "sovereign": 3
-      },
-      "to": [{"email": "{{customer_email}}", "name": "{{customer_name}}"}],
-      "params": {
-        "FIRSTNAME": "{{FIRSTNAME}}",
-        "TIER": "{{tier}}",
-        "TIER_LABEL_EN": "{{tier === 'gateway' ? 'Tier 1: Gateway' : tier === 'architect' ? 'Tier 2: Architect Hybrid' : 'Tier 3: Sovereign Vault'}}",
-        "TIER_LABEL_ES": "{{tier === 'gateway' ? 'Nivel 1: Acceso Gateway' : tier === 'architect' ? 'Nivel 2: Arquitecto Híbrido' : 'Nivel 3: Bóveda Soberana'}}",
-        "TIER_LABEL_PT": "{{tier === 'gateway' ? 'Nível 1: Acesso Gateway' : tier === 'architect' ? 'Nível 2: Arquiteto Híbrido' : 'Nível 3: Cofre Soberano'}}",
-        "APP_URL": "https://buildbelievefit.fitness/bbf-app.html",
-        "AMOUNT": "{{amount_paid}}"
-      }
+  "tier_resolution": {
+    "_order": ["metadata.tier", "client_reference_id", "line_item.price.id → PRICE_TO_TIER", "gateway (fallback)"],
+    "_note": "Every resolved slug is in the DB allowlist (public.bbf_admin_set_tier), so bbf_stripe_fulfillment_transaction never raises invalid_tier.",
+    "price_to_tier": {
+      "price_1TdtVCQ4j3uHTi7PEjvMihnk": "catalyst",
+      "price_1TdtVDQ4j3uHTi7Pb2hGyXBi": "momentum",
+      "price_1TdtVDQ4j3uHTi7PP2uWTj0y": "autonomous",
+      "price_1TdtVEQ4j3uHTi7PQ0fOArfI": "fuel_foundation",
+      "price_1TdtVEQ4j3uHTi7PEvGYoQkW": "fuel_performance",
+      "price_1TdtVFQ4j3uHTi7PZ65aKtTI": "fuel_sovereign",
+      "price_1TdtVFQ4j3uHTi7Ponk5039p": "rising_athlete",
+      "price_1TdtVGQ4j3uHTi7P51mzlaCT": "kickstart_6wk_3x",
+      "price_1TdtVGQ4j3uHTi7P5AZSEOoS": "kickstart_6wk_4x",
+      "price_1TdtVHQ4j3uHTi7PMh786BoK": "transformation_8wk_3x",
+      "price_1TdtVHQ4j3uHTi7PhOfSjE61": "transformation_8wk_4x",
+      "price_1TdtVIQ4j3uHTi7POHmPRFGn": "sovereign_12wk_3x",
+      "price_1TdtVIQ4j3uHTi7PYVF5s0dq": "sovereign_12wk_4x"
     }
   },
 
   "tier_mapping": {
-    "gateway":   {"tier_number": 1, "label": "Gateway",         "price_usd": 147,  "stripe_link": "https://buy.stripe.com/cNi3cx6QL2ZtbfA0sxaZi08", "brevo_template": 1},
-    "architect": {"tier_number": 2, "label": "Architect Hybrid", "price_usd": 497,  "stripe_link": "https://buy.stripe.com/cNi4gBejd6bF3N86QVaZi09", "brevo_template": 2},
-    "sovereign": {"tier_number": 3, "label": "Sovereign Vault",  "price_usd": 1500, "stripe_link": "https://buy.stripe.com/cNibJ32AveIberMcbfaZi0a", "brevo_template": 3}
+    "catalyst":               {"category": "fitness",   "label": "BBF Catalyst",            "price_usd": 9.99,  "billing": "recurring_monthly", "stripe_price_id": "price_1TdtVCQ4j3uHTi7PEjvMihnk"},
+    "momentum":               {"category": "fitness",   "label": "BBF Momentum",            "price_usd": 19.99, "billing": "recurring_monthly", "stripe_price_id": "price_1TdtVDQ4j3uHTi7Pb2hGyXBi"},
+    "autonomous":             {"category": "fitness",   "label": "BBF Autonomous",          "price_usd": 49.99, "billing": "recurring_monthly", "stripe_price_id": "price_1TdtVDQ4j3uHTi7PP2uWTj0y", "featured": true},
+    "fuel_foundation":        {"category": "nutrition", "label": "Fuel Foundation",         "price_usd": 7.99,  "billing": "recurring_monthly", "stripe_price_id": "price_1TdtVEQ4j3uHTi7PQ0fOArfI"},
+    "fuel_performance":       {"category": "nutrition", "label": "Fuel Performance",        "price_usd": 14.99, "billing": "recurring_monthly", "stripe_price_id": "price_1TdtVEQ4j3uHTi7PEvGYoQkW"},
+    "fuel_sovereign":         {"category": "nutrition", "label": "Fuel Sovereign",          "price_usd": 29.99, "billing": "recurring_monthly", "stripe_price_id": "price_1TdtVFQ4j3uHTi7PZ65aKtTI", "featured": true},
+    "rising_athlete":         {"category": "youth",     "label": "BBF Rising Athlete",      "price_usd": 14.99, "billing": "recurring_monthly", "stripe_price_id": "price_1TdtVFQ4j3uHTi7Ponk5039p", "featured": true},
+    "kickstart_6wk_3x":       {"category": "hybrid",    "label": "Kickstart 6-Week · 3×/wk","price_usd": 399,   "billing": "one_time",          "stripe_price_id": "price_1TdtVGQ4j3uHTi7P51mzlaCT"},
+    "kickstart_6wk_4x":       {"category": "hybrid",    "label": "Kickstart 6-Week · 4×/wk","price_usd": 499,   "billing": "one_time",          "stripe_price_id": "price_1TdtVGQ4j3uHTi7P5AZSEOoS"},
+    "transformation_8wk_3x":  {"category": "hybrid",    "label": "Transformation 8-Week · 3×/wk", "price_usd": 499, "billing": "one_time",    "stripe_price_id": "price_1TdtVHQ4j3uHTi7PMh786BoK"},
+    "transformation_8wk_4x":  {"category": "hybrid",    "label": "Transformation 8-Week · 4×/wk", "price_usd": 649, "billing": "one_time",    "stripe_price_id": "price_1TdtVHQ4j3uHTi7PhOfSjE61"},
+    "sovereign_12wk_3x":      {"category": "hybrid",    "label": "Sovereign 12-Week · 3×/wk","price_usd": 699,  "billing": "one_time",          "stripe_price_id": "price_1TdtVIQ4j3uHTi7POHmPRFGn", "featured": true},
+    "sovereign_12wk_4x":      {"category": "hybrid",    "label": "Sovereign 12-Week · 4×/wk","price_usd": 899,  "billing": "one_time",          "stripe_price_id": "price_1TdtVIQ4j3uHTi7PYVF5s0dq"}
+  },
+
+  "legacy_tiers": {
+    "_note": "Retained in ALLOWED_TIERS + the DB allowlist while the monolith storefront is live (it still sends these via metadata.tier / client_reference_id). Strip once the React storefront fully cuts over.",
+    "slugs": ["lite", "gateway", "architect", "sovereign", "youth_athlete", "nutrition_essentials", "nutrition_platinum"],
+    "default_fallback": "gateway"
   },
 
   "language_detection": {
-    "_note": "Language is passed from the Pathfinder form via localStorage('bbf_lang') and included in both Zapier and Formspree payloads as 'language_preference'. If not available, default to 'en'.",
+    "_note": "Language is passed from the Pathfinder form via localStorage('bbf_lang') and included in the checkout/lead payload as 'language_preference'. If not available, default to 'en'.",
     "field": "language_preference",
     "values": ["en", "es", "pt"],
     "default": "en"

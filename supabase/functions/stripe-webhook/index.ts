@@ -40,6 +40,31 @@ const ALLOWED_TIERS = [
   // 7 legacy (monolith storefront — keep until retired)
   'lite','gateway','architect','sovereign','youth_athlete','nutrition_essentials','nutrition_platinum',
 ];
+
+// Live Stripe Payment Link price IDs → canonical tier slugs. The 4-tab Revenue
+// Matrix (fitness / nutrition / youth / hybrid) checks out via static
+// buy.stripe.com Payment Links that carry NO metadata.tier, so the SKU is
+// resolved from the purchased price. Keep in sync with
+// frontend/src/lib/pricingMatrix.js (acct_1TLzQCQ4j3uHTi7P, provisioned 2026-06-02).
+const PRICE_TO_TIER = {
+  // Online Fitness · recurring monthly
+  'price_1TdtVCQ4j3uHTi7PEjvMihnk': 'catalyst',         // BBF Catalyst · $9.99
+  'price_1TdtVDQ4j3uHTi7Pb2hGyXBi': 'momentum',         // BBF Momentum · $19.99
+  'price_1TdtVDQ4j3uHTi7PP2uWTj0y': 'autonomous',       // BBF Autonomous · $49.99
+  // Online Nutrition (Fuel) · recurring monthly
+  'price_1TdtVEQ4j3uHTi7PQ0fOArfI': 'fuel_foundation',  // Fuel Foundation · $7.99
+  'price_1TdtVEQ4j3uHTi7PEvGYoQkW': 'fuel_performance', // Fuel Performance · $14.99
+  'price_1TdtVFQ4j3uHTi7PZ65aKtTI': 'fuel_sovereign',   // Fuel Sovereign · $29.99
+  // Youth Athlete · recurring monthly
+  'price_1TdtVFQ4j3uHTi7Ponk5039p': 'rising_athlete',   // BBF Rising Athlete · $14.99
+  // Hybrid Protocols · one-time (3× / 4× weekly)
+  'price_1TdtVGQ4j3uHTi7P51mzlaCT': 'kickstart_6wk_3x',      // Kickstart 6wk · 3× · $399
+  'price_1TdtVGQ4j3uHTi7P5AZSEOoS': 'kickstart_6wk_4x',      // Kickstart 6wk · 4× · $499
+  'price_1TdtVHQ4j3uHTi7PMh786BoK': 'transformation_8wk_3x', // Transformation 8wk · 3× · $499
+  'price_1TdtVHQ4j3uHTi7PhOfSjE61': 'transformation_8wk_4x', // Transformation 8wk · 4× · $649
+  'price_1TdtVIQ4j3uHTi7POHmPRFGn': 'sovereign_12wk_3x',     // Sovereign 12wk · 3× · $699
+  'price_1TdtVIQ4j3uHTi7PYVF5s0dq': 'sovereign_12wk_4x',     // Sovereign 12wk · 4× · $899
+};
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
@@ -78,17 +103,39 @@ serve(async (req) => {
   const fullName = session.customer_details?.name?.trim() || 'BBF Client';
   const metaTier = (session.metadata?.tier || '').trim();
   const refTier  = (session.client_reference_id || '').trim();
-  const rawTier  = metaTier || refTier;
-  const tierSource = metaTier ? 'metadata.tier' : (refTier ? 'client_reference_id' : 'none');
 
   if (!email) return jsonResponse({ ok: false, error: 'missing_email' }, 400);
 
-  let tier;
-  if (rawTier && ALLOWED_TIERS.includes(rawTier)) {
-    tier = rawTier;
+  // ─── Tier resolution (4-tab Revenue Matrix aware) ───
+  // Priority: explicit metadata.tier / client_reference_id (legacy monolith
+  // storefront) → the purchased Stripe price ID mapped to its canonical SKU
+  // (the live Payment Links carry no tier metadata, so this is how new-matrix
+  // payments are classified) → gateway fallback. Every resolved slug is in the
+  // DB allowlist (bbf_admin_set_tier), so fulfillment never raises invalid_tier.
+  let tier = '';
+  let tierSource = 'none';
+  if (metaTier && ALLOWED_TIERS.includes(metaTier)) {
+    tier = metaTier; tierSource = 'metadata.tier';
+  } else if (refTier && ALLOWED_TIERS.includes(refTier)) {
+    tier = refTier; tierSource = 'client_reference_id';
+  } else {
+    // checkout.session.completed does not embed line items — fetch them and map
+    // the purchased price → tier slug.
+    try {
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 10 });
+      for (const li of (lineItems?.data || [])) {
+        const pid = li?.price?.id || '';
+        if (pid && PRICE_TO_TIER[pid]) { tier = PRICE_TO_TIER[pid]; tierSource = `price:${pid}`; break; }
+      }
+    } catch (err) {
+      console.error(`[stripe-webhook] listLineItems failed (session=${session.id}): ${err.message}`);
+    }
+  }
+
+  if (tier) {
     console.log(`[stripe-webhook] tier resolved from ${tierSource}: ${tier}`);
   } else {
-    console.warn(`[stripe-webhook] HIGH-PRIORITY: session ${session.id} has no resolvable tier. Defaulting to gateway.`);
+    console.warn(`[stripe-webhook] HIGH-PRIORITY: session ${session.id} has no resolvable tier (meta='${metaTier}' ref='${refTier}'). Defaulting to gateway.`);
     tier = 'gateway';
   }
 
