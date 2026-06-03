@@ -705,8 +705,16 @@
 }
 
 @media (max-width: 520px) {
+  /* Stack the client-profile top bar: the brand sits above a full-width action
+     row so the EN/ES/PT switcher, the admin Command Center toggle, and Sign Out
+     WRAP instead of overflowing off-screen. (Was a single nowrap flex row —
+     LangToggle + "Centro de Comando" + "Cerrar Sesión" could not fit a phone
+     viewport, pushing the admin's Command Center return toggle past the edge.) */
+  .cv-topbar { flex-direction: column; align-items: stretch; gap: .7rem; padding-left: 1rem; padding-right: 1rem; }
   .cv-logo { font-size: 1.2rem; }
-  .cv-greet { display: none; } /* keep the top bar tight on mobile; sign-out stays */
+  .cv-greet { display: none; } /* @slug is redundant with the Hub identity card on mobile */
+  .cv-who { width: 100%; flex-wrap: wrap; justify-content: flex-start; gap: .5rem; }
+  .cv-command, .cv-signout { flex: 1 1 auto; text-align: center; }
   .cv-container { padding: 1.2rem 1rem 0; }
   .cv-tab { padding: .75rem .9rem; font-size: .8rem; }
 }
