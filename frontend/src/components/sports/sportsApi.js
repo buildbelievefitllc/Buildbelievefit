@@ -13,9 +13,47 @@
 
 import { rosterCall } from '../../lib/rosterApi.js';
 
+// ─── Strict youth-roster isolation (Command Center · Sports Portal) ───────────────
+// The Sports Portal is the YOUTH surface (BBF Athlete Portal). Its data table must
+// render youth athletes ONLY — never adult lifestyle clients. The bbf-admin-roster
+// `sports_roster` action joins bbf_athlete_progression ⋈ bbf_users, so any legacy
+// adult client that happens to carry a progression row — e.g. the "Founder 5"
+// (ana_bbf / jacky_bbf / jacque_bbf / jordan_bbf / wayne_bbf, all role:'client') —
+// would otherwise BLEED into this view. We gate it here, at the single data funnel,
+// so SportsPortal stays a pure renderer (no per-component filtering to drift).
+//
+// THE YOUTH FLAG — the YOUTH access group from lib/entitlements.js (TIER_TO_GROUP):
+// the canonical Rising Athlete SKU + its legacy storefront equivalent. These are the
+// ONLY subscription tiers that denote a youth athlete; every adult/legacy lifestyle
+// tier — AND an empty/grandfathered (NULL) tier — is NOT youth and is excluded. (A
+// "treat NULL as youth" shortcut would dangerously re-admit NULL-tier grandfathered
+// legacy adults, so the gate is a strict allowlist, never a denylist.)
+export const YOUTH_TIERS = new Set(['rising_athlete', 'youth_athlete']);
+
+// True iff a roster row is a genuine youth athlete. Two positive signals, OR'd:
+//   • a youth subscription tier (a paying Rising Athlete), OR
+//   • role === 'athlete' — the identity the portal's OWN guarded inject path
+//     (sports_insert) mints for a youth athlete with no subscription tier yet.
+// An adult — standard client, legacy profile, or the Founder 5 (role:'client', adult
+// or NULL tier) — satisfies NEITHER clause, so it is filtered out of this view.
+//
+// NOTE: `role` is not yet on the sports_roster wire payload (the edge function joins
+// bbf_users.role but does not return it), so the role clause is forward-compatible —
+// inert today, it lights up injected youth the moment the backend surfaces `role`.
+// Until then a freshly-injected (tier-less) athlete must be assigned the
+// rising_athlete tier to appear; tier gating alone already delivers the strict
+// adult-exclusion this fix is for. Pure + null-safe.
+export function isYouthAthlete(row) {
+  if (!row || typeof row !== 'object') return false;
+  if (String(row.role || '').trim().toLowerCase() === 'athlete') return true;
+  return YOUTH_TIERS.has(String(row.subscription_tier || '').trim().toLowerCase());
+}
+
 export async function fetchSportsRoster() {
   const body = await rosterCall('sports_roster');
-  return Array.isArray(body.athletes) ? body.athletes : [];
+  const rows = Array.isArray(body.athletes) ? body.athletes : [];
+  // Strict youth gate — adults (incl. the Founder 5) never reach the data table.
+  return rows.filter(isYouthAthlete);
 }
 
 // Inject a real youth athlete. `guardianConsent` MUST be true — the edge function
