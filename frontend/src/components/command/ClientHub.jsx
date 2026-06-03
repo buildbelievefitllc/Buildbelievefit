@@ -80,13 +80,15 @@ export default function ClientHub() {
   return (
     <div className="ff">
       <header className="ff-hub-head">
-        <div className="ff-exec-kicker">⚡ {execName}&apos;s Executive Suite</div>
+        {/* Eyebrow tied to the "Founder Five" tab identity (was a standalone
+            "Executive Suite" header that read as a separate app on top of the
+            Command Center) — consolidated to flow within the hierarchy. */}
+        <div className="ff-exec-kicker">⚡ Founder Five · {execName}</div>
         <div className="ff-hub-row">
           <div className="ff-hub-titlewrap">
             <h2 className="ff-hub-title">▦ Client Database Hub</h2>
             <p className="ff-lede">
-              Real-time coaching dashboard — 7-day meal plans, live workouts, and 90-day
-              progress metrics across the Sovereign roster.
+              Real-time coaching dashboard across the Sovereign roster.
             </p>
           </div>
           <div className="ff-stats">

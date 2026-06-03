@@ -1,15 +1,19 @@
 // src/components/sports/AdminOverridePanel.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Sovereign Admin Override Panel — the control surface gated to isAdmin. Three
-// calibration sections drive the athlete render live:
+// Sovereign Admin Override Panel — the control surface gated to isAdmin. Sections:
 //   1. Discipline Focal Sport      — selectable sport grid
 //   2. Position Alignment Calibration — sub-menu that re-derives from the sport
 //   3. Biological & Goal Settings  — age slider + strategic focus directive
-// "Apply" flashes a confirmation; the dossier already reflects the live draft.
+//   4. Inject Youth Athlete        — GUARDED write into the live database (the
+//      selected sport+position become the new athlete's assignment; guardian
+//      consent is mandatory — the server rejects the insert without it).
+// "Apply" flashes a calibration confirmation; "Inject" executes the live insert.
 
 import { PORTAL_SPORTS, GOAL_DIRECTIVES, getPositions, getPortalSport } from './sportsData.js';
 
-export default function AdminOverridePanel({ override, onSport, onPosition, onAge, onGoal, onApply, applied }) {
+export default function AdminOverridePanel({
+  override, onSport, onPosition, onAge, onGoal, onApply, applied, inject,
+}) {
   const positions = getPositions(override.sportId);
   const sportLabel = getPortalSport(override.sportId).label;
 
@@ -117,6 +121,42 @@ export default function AdminOverridePanel({ override, onSport, onPosition, onAg
               {GOAL_DIRECTIVES.map((g) => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
+        </div>
+
+        {/* 4 — Inject Youth Athlete (guarded live write) */}
+        <div className="sp-section is-wide">
+          <div className="sp-sec-head">
+            <span className="sp-sec-num">4</span>
+            <span className="sp-sec-title">Inject Youth Athlete</span>
+            <span className="sp-sec-meta">{sportLabel} · {override.position}</span>
+          </div>
+          <p className="sp-sec-note">
+            Create a real record in the live database. The discipline and position selected above become the new
+            athlete&apos;s assignment. Guardian consent is mandatory for youth records.
+          </p>
+          <div className="sp-field">
+            <div className="sp-field-head"><span className="sp-field-label">Athlete Full Name</span></div>
+            <input
+              className="sp-excl-input"
+              value={inject.name}
+              placeholder="e.g. Jordan Rivers"
+              onChange={(e) => inject.setName(e.target.value)}
+              aria-label="New athlete full name"
+            />
+          </div>
+          <label className="sp-consent">
+            <input type="checkbox" checked={inject.consent} onChange={(e) => inject.setConsent(e.target.checked)} />
+            <span>Guardian consent is on file for this youth athlete.</span>
+          </label>
+          <button
+            type="button"
+            className={`sp-inject-btn${inject.ok ? ' is-ok' : ''}`}
+            disabled={inject.busy || !inject.name.trim() || !inject.consent}
+            onClick={inject.submit}
+          >
+            {inject.busy ? 'Injecting…' : inject.ok ? '✓ Athlete Injected' : 'Inject Athlete into Database'}
+          </button>
+          {inject.error ? <p className="sp-inject-err">{inject.error}</p> : null}
         </div>
       </div>
 

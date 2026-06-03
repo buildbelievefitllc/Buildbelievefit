@@ -35,7 +35,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token',
+  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token, x-bbf-session-token',
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -104,7 +104,89 @@ async function pgPatch(path: string, body: unknown): Promise<any> {
   return res.json();
 }
 
+async function pgPost(path: string, rows: unknown): Promise<any> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'POST',
+    headers: {
+      apikey: SERVICE_ROLE,
+      Authorization: `Bearer ${SERVICE_ROLE}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify(rows),
+  });
+  if (!res.ok) throw new Error(`pg_post_${res.status}:${(await res.text()).slice(0, 200)}`);
+  return res.json();
+}
+
+async function pgRpc(fn: string, args: Record<string, unknown>): Promise<any> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {
+      apikey: SERVICE_ROLE,
+      Authorization: `Bearer ${SERVICE_ROLE}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(args),
+  });
+  if (!res.ok) throw new Error(`pg_rpc_${res.status}:${(await res.text()).slice(0, 200)}`);
+  return res.json();
+}
+
 function encEmail(e: string) { return encodeURIComponent(String(e || '').toLowerCase().trim()); }
+
+// ─── Dual authorization (CEO directive · Elegant Auth Elevation) ─────────────────
+// A request is authorized if EITHER:
+//   • it carries the legacy shared secret  X-BBF-Admin-Token === BBF_COACH_AGENT_TOKEN
+//     (deploy-injected / monolith parity — unchanged path), OR
+//   • it carries a valid admin SESSION token  X-BBF-Session-Token  that resolves
+//     (via the canonical _bbf_uid_from_vault_token resolver) to a bbf_users row whose
+//     role is admin/trainer (or the `akeem` CEO fallback).
+// A valid NON-admin session is REJECTED — the session must belong to a Sovereign.
+// This lets a logged-in admin auto-unlock every surface without pasting the secret,
+// while the secret itself never leaves the server (CLAUDE.md §7).
+async function uidFromSession(session: string): Promise<string | null> {
+  // Primary: the canonical SECURITY DEFINER resolver the CEO directed us to use.
+  try {
+    const r = await pgRpc('_bbf_uid_from_vault_token', { p_session_token: session });
+    const id = typeof r === 'string' ? r : (Array.isArray(r) && r.length ? r[0] : null);
+    if (id) return String(id);
+  } catch (_) { /* fall through — function may not be PostgREST-exposed */ }
+  // Fallback: replicate the resolver via the service role (RLS-bypassing).
+  try {
+    const nowISO = new Date().toISOString();
+    const rows = await pgGet(
+      `bbf_vault_sessions?select=user_id&token=eq.${encodeURIComponent(session)}` +
+      `&expires_at=gt.${encodeURIComponent(nowISO)}&limit=1`,
+    );
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null;
+    return row?.user_id ? String(row.user_id) : null;
+  } catch (_) { return null; }
+}
+
+async function isAuthorized(req: Request): Promise<boolean> {
+  // 1) Legacy shared-secret path — unchanged, evaluated first (zero new latency).
+  const token = req.headers.get('x-bbf-admin-token') ?? '';
+  if (ADMIN_TOKEN && token.length > 0 && token === ADMIN_TOKEN) return true;
+
+  // 2) Admin-session path.
+  const session = req.headers.get('x-bbf-session-token') ?? '';
+  if (!session) return false;
+  const userId = await uidFromSession(session);
+  if (!userId) return false;
+  try {
+    const rows = await pgGet(
+      `bbf_users?select=uid,role&id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&limit=1`,
+    );
+    const u = Array.isArray(rows) && rows.length ? rows[0] : null;
+    if (!u) return false;
+    const role = String(u.role ?? '').toLowerCase();
+    const uname = String(u.uid ?? '').toLowerCase();
+    return role === 'admin' || role === 'trainer' || uname === 'akeem';
+  } catch (_) {
+    return false;
+  }
+}
 
 // ─── Gemini Co-Coach ─────────────────────────────────────────────────────────────
 async function geminiCoach(prompt: string) {
@@ -219,13 +301,13 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return jsonResponse({ error: 'method_not_allowed' }, 405);
 
-  // Admin gate — the security boundary for every action.
-  const provided = req.headers.get('x-bbf-admin-token') ?? '';
-  if (!ADMIN_TOKEN || provided.length === 0 || provided !== ADMIN_TOKEN) {
-    return jsonResponse({ error: 'unauthorized' }, 401);
-  }
   if (!SUPABASE_URL || !SERVICE_ROLE) {
     return jsonResponse({ error: 'backend_unconfigured' }, 503);
+  }
+  // Admin gate — the security boundary for every action. Accepts the legacy shared
+  // secret OR a validated admin session token (see isAuthorized).
+  if (!(await isAuthorized(req))) {
+    return jsonResponse({ error: 'unauthorized' }, 401);
   }
 
   let body: Record<string, unknown>;
@@ -461,6 +543,118 @@ serve(async (req) => {
       }
 
       return jsonResponse({ ok: true, plan: rotateJson.plan, meta: rotateJson.meta ?? null, persisted });
+    }
+
+    // ── sports_roster (live youth-athlete records) ───────────────────────────────
+    // Joins bbf_athlete_progression (sport/position/phase/mesocycle/load) to
+    // bbf_users (name/uid/avatar). Two-step merge (no PostgREST embed dependency) so
+    // it is resilient to FK-introspection quirks.
+    if (action === 'sports_roster') {
+      const prog = await pgGet(
+        `bbf_athlete_progression?select=id,user_id,sport,position,phase,target_phase,` +
+        `mesocycle_week,mesocycle_started_at,protocol_completed,rpe_avg_last_3,friction_avg_last_3,` +
+        `guardian_consent,guardian_consent_at,updated_at&order=updated_at.desc`,
+      );
+      const rows = Array.isArray(prog) ? prog : [];
+      const ids = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
+      const usersById: Record<string, any> = {};
+      if (ids.length) {
+        const inList = ids.map((id) => `"${id}"`).join(',');
+        const users = await pgGet(
+          `bbf_users?select=id,uid,name,email,role,avatar,subscription_tier,access_status&` +
+          `id=in.(${inList})&deleted_at=is.null`,
+        );
+        for (const u of (Array.isArray(users) ? users : [])) usersById[u.id] = u;
+      }
+      const athletes = rows.map((r) => {
+        const u = usersById[r.user_id] || null;
+        return {
+          id: r.id, user_id: r.user_id,
+          name: u?.name || u?.uid || 'Unnamed Athlete',
+          uid: u?.uid ?? null, email: u?.email ?? null, avatar: u?.avatar ?? null,
+          subscription_tier: u?.subscription_tier ?? null, access_status: u?.access_status ?? null,
+          sport: r.sport, position: r.position, phase: r.phase, target_phase: r.target_phase,
+          mesocycle_week: r.mesocycle_week, mesocycle_started_at: r.mesocycle_started_at,
+          protocol_completed: r.protocol_completed,
+          rpe_avg_last_3: r.rpe_avg_last_3, friction_avg_last_3: r.friction_avg_last_3,
+          guardian_consent: r.guardian_consent, guardian_consent_at: r.guardian_consent_at,
+          updated_at: r.updated_at,
+        };
+      });
+      return jsonResponse({ ok: true, count: athletes.length, athletes });
+    }
+
+    // ── sports_insert (guarded youth write) ──────────────────────────────────────
+    // Injects a real youth athlete: a minimal bbf_users identity + a
+    // bbf_athlete_progression record. GUARDED: youth records REQUIRE explicit
+    // guardian consent (the write 400s without it) — child-data protection.
+    if (action === 'sports_insert') {
+      const name = String(body?.name ?? '').trim();
+      const sport = String(body?.sport ?? '').trim().toLowerCase();
+      const position = String(body?.position ?? '').trim();
+      const phase = (String(body?.phase ?? 'off').trim().toLowerCase()) || 'off';
+      const guardian = body?.guardian_consent === true || body?.guardian_consent === 'true';
+      if (!name) return jsonResponse({ error: 'missing_name' }, 400);
+      if (!sport) return jsonResponse({ error: 'missing_sport' }, 400);
+      if (!position) return jsonResponse({ error: 'missing_position' }, 400);
+      if (!guardian) return jsonResponse({ error: 'guardian_consent_required' }, 400);
+
+      // 1) Identity — minimal bbf_users row (table defaults cover the rest). A unique
+      // uid slug keeps it addressable without minting login credentials.
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 36)
+        || 'athlete';
+      const uidSlug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+      const userRows = await pgPost('bbf_users?select=id,uid,name', [{ name, uid: uidSlug, role: 'athlete' }]);
+      const newUser = Array.isArray(userRows) && userRows.length ? userRows[0] : null;
+      if (!newUser?.id) return jsonResponse({ error: 'user_insert_failed' }, 500);
+
+      // 2) Progression — the sport/position assignment, consent stamped.
+      const nowISO = new Date().toISOString();
+      const progRows = await pgPost(
+        'bbf_athlete_progression?select=id,user_id,sport,position,phase,mesocycle_week,guardian_consent,guardian_consent_at,updated_at',
+        [{ user_id: newUser.id, sport, position, phase, guardian_consent: true, guardian_consent_at: nowISO }],
+      );
+      const prog = Array.isArray(progRows) && progRows.length ? progRows[0] : null;
+      if (!prog?.id) return jsonResponse({ error: 'progression_insert_failed' }, 500);
+
+      return jsonResponse({
+        ok: true,
+        athlete: {
+          id: prog.id, user_id: newUser.id, name: newUser.name, uid: newUser.uid,
+          sport: prog.sport, position: prog.position, phase: prog.phase,
+          mesocycle_week: prog.mesocycle_week ?? 1,
+          guardian_consent: prog.guardian_consent, guardian_consent_at: prog.guardian_consent_at,
+          updated_at: prog.updated_at,
+        },
+      });
+    }
+
+    // ── leads_list / concierge_log (Comlink, relayed server-side) ─────────────────
+    // Unifies Comlink behind this session-authed gate: the browser no longer hits
+    // Render directly (and no longer needs a separate Render token in the client).
+    // We forward to Render with the server-held BBF_RENDER_ADMIN_TOKEN — the exact
+    // relay pattern `compile` already uses — and return Render's body verbatim.
+    if (action === 'leads_list' || action === 'concierge_log') {
+      if (!RENDER_ADMIN_TOKEN) return jsonResponse({ error: 'backend_unconfigured', detail: 'render_token' }, 503);
+      const path = action === 'leads_list' ? '/api/leads-list' : '/api/concierge-log';
+      const limit = Number(body?.limit) || (action === 'leads_list' ? 100 : 80);
+      let r: Response;
+      try {
+        r = await fetch(`${RENDER_BASE}${path}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': RENDER_ADMIN_TOKEN },
+          body: JSON.stringify({ limit }),
+        });
+      } catch (_) {
+        return jsonResponse({ error: 'orchestrator_unreachable' }, 502);
+      }
+      const txt = await r.text();
+      let j: any = null;
+      try { j = txt ? JSON.parse(txt) : null; } catch { /* non-JSON passthrough */ }
+      if (!r.ok || !j?.ok) {
+        return jsonResponse({ error: 'orchestrator_failed', detail: j?.error ?? `status_${r.status}` }, 502);
+      }
+      return jsonResponse(j);
     }
 
     return jsonResponse({ error: 'unknown_action', detail: action }, 400);

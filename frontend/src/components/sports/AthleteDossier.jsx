@@ -1,137 +1,128 @@
 // src/components/sports/AthleteDossier.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Active Biometric Dossier — the athlete render shared by the Client View and the
-// Admin Target View. Header (identity + live biometrics + KPI traits + ported
-// collegiate benchmarks) over the six development modules. Position KPIs,
-// benchmarks, the age bracket, and the active Lifeline phase all recompute from
-// the admin override; the deeper telemetry is the athlete's own logged record.
+// LIVE athlete dossier. Renders a real bbf_athlete_progression ⋈ bbf_users record
+// — NO mock data. The top half is the athlete's LIVE record (sport, position,
+// phase, mesocycle, RPE/friction averages, guardian-consent state). The lower half
+// is the legacy-fusion REFERENCE protocol (KPI traits + Lab-Verified drills +
+// age-tier guidance + Lifeline roadmap), driven by the admin's calibration lens and
+// clearly labeled as reference — never presented as measured athlete telemetry.
 
-import DevelopmentRoadmap from './DevelopmentRoadmap.jsx';
-import AssessmentNode from './AssessmentNode.jsx';
-import DrillsSchedule from './DrillsSchedule.jsx';
 import LifelineRoadmap from './LifelineRoadmap.jsx';
-import RecruitingPortfolio from './RecruitingPortfolio.jsx';
-import KinematicsMatrix from './KinematicsMatrix.jsx';
-import { fullName, sportLabel, RISK_TONE } from './athleteRoster.js';
-import { copyText } from './clipboard.js';
-import { useState } from 'react';
+import { getPortalSport, getPositions, kpisFor, drillsFor, ageProfile } from './sportsData.js';
 
-// Friendly labels for the ported sports-hub combine benchmark keys.
-const BENCH_LABELS = {
-  forty: '40-yd', vert: 'Vert', broad: 'Broad', bench: 'Bench', height: 'Height',
-  wingspan: 'Wingspan', lane: 'Lane', beep: 'Beep', ttest: 'T-Test', sprint: 'Sprint',
-  sixty: '60-yd', velo: 'Velo', exit: 'Exit Velo', medball: 'Med-Ball', block: 'Block',
-  approach: 'Approach',
-};
+function initials(name) {
+  return String(name || '?').trim().split(/\s+/).map((w) => w[0] || '').join('').slice(0, 2).toUpperCase() || '?';
+}
+function num(v, dp = 1) {
+  return (v === null || v === undefined || v === '') ? '—' : Number(v).toFixed(dp);
+}
+const PHASE_LABEL = { off: 'Off-Season', in: 'In-Season', pre: 'Pre-Season', post: 'Post-Season', peak: 'Peak' };
+const phaseLabel = (p) => PHASE_LABEL[String(p || '').toLowerCase()] || (p || '—');
 
-export default function AthleteDossier({ athlete, view, ageInfo, kpis, benchmark, isAdmin }) {
-  const risk = athlete.biometrics.injuryRisk;
-  const riskTone = RISK_TONE[risk] || 'mut';
+export default function AthleteDossier({ athlete, view, lang }) {
+  const sport = getPortalSport(view.sportId);
+  const ageInfo = ageProfile(view.age);
+  // Reference protocol uses the calibrated position; fall back to the sport's first.
+  const positions = getPositions(view.sportId);
+  const position = positions.find((p) => p.label === view.positionLabel) || positions[0];
+  const kpis = kpisFor(position);
+  const drills = drillsFor(view.sportId, position);
+  const firstDrill = drills[0] || null;
+
+  const consent = athlete.guardian_consent === true;
 
   return (
     <>
       <section className="sp-card sp-dossier">
         <div className="sp-dossier-top">
           <div className="sp-id">
-            <div className="sp-avatar" aria-hidden="true">{athlete.initials}</div>
+            <div className="sp-avatar" aria-hidden="true">{initials(athlete.name)}</div>
             <div>
-              <div className="sp-id-kicker">Active Biometric Dossier</div>
-              <h3 className="sp-name">{fullName(athlete)}</h3>
+              <div className="sp-id-kicker">Live Athlete Record</div>
+              <h3 className="sp-name">{athlete.name}</h3>
               <div className="sp-meta">
-                <span className="sp-chip">Age: <b>{view.age}</b></span>
-                <span className="sp-chip">POS: <b>{view.positionLabel}</b></span>
-                <span className="sp-chip">{ageInfo.headerLabel}</span>
-                <span className="sp-chip">Era Phase: <b>{ageInfo.eraPhase}</b></span>
+                <span className="sp-chip">Sport: <b>{sport.icon} {sport.label}</b></span>
+                <span className="sp-chip">POS: <b>{athlete.position || '—'}</b></span>
+                <span className="sp-chip">Phase: <b>{phaseLabel(athlete.phase)}</b></span>
+                <span className="sp-chip">Meso Wk: <b>{athlete.mesocycle_week ?? '—'}</b></span>
+                {athlete.uid ? <span className="sp-chip">@{athlete.uid}</span> : null}
               </div>
             </div>
           </div>
 
           <div className="sp-bio-metrics">
             <div className="sp-metric">
-              <div className="sp-metric-l">ANS HRV Recovery</div>
-              <div className="sp-metric-v tone-grn">{athlete.biometrics.hrvRecovery}<small> ms</small></div>
+              <div className="sp-metric-l">RPE Avg (last 3)</div>
+              <div className="sp-metric-v tone-yel">{num(athlete.rpe_avg_last_3)}</div>
             </div>
             <div className="sp-metric">
-              <div className="sp-metric-l">Central Fatigue Drift</div>
-              <div className="sp-metric-v tone-yel">{athlete.biometrics.fatigueDrift}<small> %</small></div>
+              <div className="sp-metric-l">Friction Avg (last 3)</div>
+              <div className="sp-metric-v tone-grn">{num(athlete.friction_avg_last_3)}</div>
             </div>
             <div className="sp-metric">
-              <div className="sp-metric-l">Injury Risk Index</div>
-              <div><span className={`sp-pill bg-${riskTone}`}>{risk}</span></div>
+              <div className="sp-metric-l">Guardian Consent</div>
+              <div><span className={`sp-pill ${consent ? 'bg-grn' : 'bg-red'}`}>{consent ? 'On File' : 'Pending'}</span></div>
             </div>
           </div>
         </div>
 
-        {/* KPI traits for the calibrated position — straight from the legacy KPI map */}
-        {kpis.length ? (
-          <div className="sp-meta" style={{ marginTop: '1rem' }}>
-            {kpis.map((k) => <span key={k} className="sp-chip"><b>◆</b> {k}</span>)}
-          </div>
-        ) : null}
-
-        {/* Ported collegiate combine benchmarks, where legacy keys align */}
-        {benchmark ? (
-          <div style={{ marginTop: '.6rem' }}>
-            <div className="sp-foods-title">Collegiate Combine Benchmark · {sportLabel(athlete)}</div>
-            <div className="sp-meta">
-              {Object.entries(benchmark).map(([k, v]) => (
-                <span key={k} className="sp-chip">{BENCH_LABELS[k] || k}: <b>{v}</b></span>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        <div className="sp-focus">Focus Directive: <b>{view.focusDirective}</b></div>
+        <div className="sp-meta" style={{ marginTop: '1rem' }}>
+          {athlete.target_phase ? <span className="sp-chip">Target Phase: <b>{phaseLabel(athlete.target_phase)}</b></span> : null}
+          <span className="sp-chip">Protocol: <b>{athlete.protocol_completed ? 'Completed' : 'In Progress'}</b></span>
+          {athlete.subscription_tier ? <span className="sp-chip">Tier: <b>{athlete.subscription_tier}</b></span> : null}
+          {athlete.updated_at ? <span className="sp-chip">Updated {new Date(athlete.updated_at).toLocaleDateString()}</span> : null}
+        </div>
       </section>
 
-      <DevelopmentRoadmap
-        nutrition={athlete.nutrition}
-        exclusions={athlete.exclusions}
-        ageInfo={ageInfo}
-      />
-      <AssessmentNode assessment={athlete.assessment} />
-      <DrillsSchedule drills={athlete.drills} forecast={athlete.forecast} />
-      <LifelineRoadmap activePhaseId={ageInfo.lifelinePhaseId} age={view.age} />
-      <RecruitingPortfolio recruiting={athlete.recruiting} />
-      <KinematicsMatrix rows={athlete.kinematics} sportLabel={sportLabel(athlete)} />
-
-      {isAdmin ? <DeveloperHub athlete={athlete} view={view} ageInfo={ageInfo} /> : null}
-    </>
-  );
-}
-
-// Developer Integration Hub — admin/coach-only. Copies a high-level coaching
-// CONTEXT prompt (athlete framing only — no backend/model internals, per
-// CLAUDE.md §7). Gated behind isAdmin so client-facing copy never exposes it.
-function DeveloperHub({ athlete, view, ageInfo }) {
-  const [copied, setCopied] = useState(false);
-  const prompt =
-    `BBF Sovereign Co-Coach context for ${fullName(athlete)} — a ${view.age}-yr ${sportLabel(athlete)} ${view.positionLabel} ` +
-    `in the ${ageInfo.bracketLabel}. Primary directive: ${view.focusDirective}. ` +
-    `Honor the active dietary exclusions, the safe max-HR cap of ${ageInfo.maxHR} BPM, and PHV growth safeguards. ` +
-    `Periodize toward the athlete's current Lifeline phase and communicate in the athlete's language (EN/ES/PT).`;
-
-  const onCopy = async () => {
-    const ok = await copyText(prompt);
-    if (ok) { setCopied(true); setTimeout(() => setCopied(false), 1800); }
-  };
-
-  return (
-    <section className="sp-card">
-      <div className="sp-card-head">
-        <div>
-          <div className="sp-card-tag">Developer Integration Hub</div>
-          <h3 className="sp-card-title">Athlete AI Context Layer</h3>
+      {/* ── Reference protocol (legacy fusion · derived from the calibration lens) ── */}
+      <section className="sp-card">
+        <div className="sp-card-head">
+          <div>
+            <div className="sp-card-tag">Reference Protocol · {sport.label}</div>
+            <h3 className="sp-card-title">{position.label} — Development Reference</h3>
+          </div>
+          <span className="sp-sec-meta">Calibrated · not measured telemetry</span>
         </div>
-      </div>
-      <div className="sp-devhub">
-        <p className="sp-sec-note" style={{ margin: 0, flex: '1 1 280px' }}>
-          Export the athlete&apos;s framing context for the Co-Coach. Coach-only — never surfaced in client copy.
-        </p>
-        <button type="button" className={`sp-copyprompt${copied ? ' is-copied' : ''}`} onClick={onCopy}>
-          {copied ? '✓ Context Copied' : '⧉ Copy System Context'}
-        </button>
-      </div>
-    </section>
+
+        {kpis.length ? (
+          <>
+            <div className="sp-foods-title">Key Performance Vectors</div>
+            <div className="sp-meta" style={{ marginBottom: '.8rem' }}>
+              {kpis.map((k) => <span key={k} className="sp-chip"><b>◆</b> {k}</span>)}
+            </div>
+          </>
+        ) : null}
+
+        {firstDrill ? (
+          <>
+            <div className="sp-foods-title">Lab-Verified Drill</div>
+            <div className="sp-drill is-met" style={{ marginTop: '.4rem' }}>
+              <div className="sp-drill-body">
+                <div className="sp-drill-name">{firstDrill.name?.[lang] || firstDrill.name?.en}</div>
+                <div className="sp-drill-desc">{firstDrill.focus?.[lang] || firstDrill.focus?.en}</div>
+                <div className="sp-drill-metric">Sets: {firstDrill.sets} · Equipment: {firstDrill.equipment} · KPI: {firstDrill.kpi}</div>
+              </div>
+            </div>
+          </>
+        ) : null}
+
+        <div className="sp-agegrid" style={{ marginTop: '1rem' }}>
+          <div className="sp-agecell">
+            <div className="sp-agecell-l">Development Bracket</div>
+            <div className="sp-agecell-v">{ageInfo.bracketLabel}</div>
+          </div>
+          <div className="sp-agecell">
+            <div className="sp-agecell-l">Safe Max Heart Rate</div>
+            <div className="sp-agecell-v">{ageInfo.maxHR} BPM</div>
+          </div>
+          <div className="sp-agecell">
+            <div className="sp-agecell-l">Strategic Focus</div>
+            <div className="sp-agecell-v" style={{ fontSize: '.92rem' }}>{view.goal}</div>
+          </div>
+        </div>
+      </section>
+
+      <LifelineRoadmap activePhaseId={ageInfo.lifelinePhaseId} age={view.age} />
+    </>
   );
 }

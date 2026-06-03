@@ -16,12 +16,13 @@ import { useLang } from '../context/LangContext.jsx';
 // Coaching surfaces all live under the "Command Center" item (Client Hub is a
 // sub-surface there, per the monolith's Phase 5.2). The Player-Coach tabs get their
 // own deep-link entries. `active` is matched against the current /command/<tab>.
-const COACHING_TABS = ['', 'roster', 'command', 'telemetry', 'analytics', 'comlink'];
+// Executive workspace nav. The personal client tabs (Program · Prehab · Nutrition)
+// were purged — they live only in the Sovereign Client Vault now. Generator folds
+// under the Command Center group; Sports Portal + Settings get their own entries.
+const COACHING_TABS = ['', 'roster', 'command', 'telemetry', 'analytics', 'comlink', 'generator'];
 const NAV_ITEMS = [
   { labelKey: 'vault-command', to: '/command', isActive: (tab) => COACHING_TABS.includes(tab) },
   { labelKey: 'cmd-tab-sports', to: '/command/sports', isActive: (tab) => tab === 'sports' },
-  { labelKey: 'vault-tab-program', to: '/command/program', isActive: (tab) => ['program', 'generator', 'prehab'].includes(tab) },
-  { labelKey: 'vault-tab-nutrition', to: '/command/nutrition', isActive: (tab) => tab === 'nutrition' },
   { labelKey: 'vault-tab-settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },
 ];
 

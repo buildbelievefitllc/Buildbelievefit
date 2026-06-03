@@ -401,6 +401,38 @@
 .sp-clientnote { display: flex; align-items: center; gap: .6rem; background: rgba(106, 13, 173, .12); border: 1px solid rgba(139, 26, 191, .4); border-radius: 12px; padding: .8rem 1rem; margin-bottom: 1.1rem; font-size: .84rem; color: #cbb3e6; }
 .sp-clientnote b { color: var(--yel); font-family: var(--hb); letter-spacing: 1px; }
 
+/* ── Live states (loading / error / empty) ───────────────────────────────── */
+.sp-state {
+  display: flex; align-items: center; justify-content: center; gap: .7rem; flex-wrap: wrap;
+  background: var(--sp-card); border: 1px solid var(--sp-line); border-radius: 16px;
+  padding: 2rem 1.2rem; font-size: .92rem; color: var(--mut); text-align: center;
+}
+.sp-state.is-error { color: var(--red); border-color: rgba(239, 68, 68, .35); }
+.sp-state-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--yel); box-shadow: 0 0 12px rgba(245, 200, 0, .7); animation: sp-pulse 1s ease-in-out infinite; }
+@keyframes sp-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sp-state-dot { animation: none; } }
+.sp-retry {
+  font-family: var(--hb); font-size: .76rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: none; border-radius: 9px; padding: .55rem 1rem; cursor: pointer;
+}
+
+/* ── Inject Youth Athlete (guarded write) ────────────────────────────────── */
+.sp-consent {
+  display: flex; align-items: flex-start; gap: .55rem; margin: .2rem 0 .9rem;
+  font-size: .85rem; color: #cbb3e6; cursor: pointer; line-height: 1.4;
+}
+.sp-consent input { margin-top: .15rem; width: 16px; height: 16px; accent-color: var(--yel); flex: 0 0 auto; cursor: pointer; }
+.sp-inject-btn {
+  width: 100%; font-family: var(--hb); font-size: .82rem; letter-spacing: 2px; text-transform: uppercase;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border: none;
+  border-radius: 12px; padding: .85rem; cursor: pointer; transition: transform .12s ease, filter .15s ease, opacity .15s ease;
+}
+.sp-inject-btn:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.sp-inject-btn:disabled { opacity: .45; cursor: not-allowed; }
+.sp-inject-btn.is-ok { background: linear-gradient(135deg, var(--grn), #16a34a); color: #04130a; }
+.sp-inject-err { margin: .6rem 0 0; font-size: .82rem; color: var(--red); }
+
 /* standalone /sports route wrapper */
 .sp-route { min-height: 100%; background: var(--blk); padding: 1.5rem; }
 .sp-route-inner { max-width: 1040px; margin: 0 auto; }

@@ -1,85 +1,30 @@
 // src/lib/comlinkApi.js
 // ─────────────────────────────────────────────────────────────────────────────
-// Sovereign Comlink data layer — a THIRD distinct path (after the Client Hub edge
-// function and the Panopticon's anon PostgREST).
+// Sovereign Comlink data layer.
 //
-// Mirrors the monolith's BBF_LEADS / BBF_CONCIERGE: POST to the RENDER EXPRESS
-// backend (not Supabase). ADMIN-TOKEN (RESTORED): both endpoints still gate on the
-// X-BBF-Admin-Token header server-side (index.js → compares BBF_ADMIN_TOKEN, else
-// 401 admin_token_invalid). The earlier "zero-friction" change dropped the header
-// but never relaxed the gate, so the Comlink 401'd. We re-attach the token,
-// hydrated at runtime from the shared adminAuth store — never bundled (§7).
+// REWIRED (Advanced Auth Elevation): Comlink no longer calls the Render Express
+// backend directly from the browser. It now rides the SAME session-authed gate as
+// the rest of the Command Center — bbf-admin-roster relays `leads_list` /
+// `concierge_log` to Render server-side using the server-held BBF_RENDER_ADMIN_TOKEN
+// (the exact relay the `compile` action already uses). Benefits:
+//   • a logged-in admin auto-unlocks Comlink via their session token — no manual
+//     paste, no separate Render token in the browser (§7), and
+//   • the browser→Render CORS allowlist fragility disappears (the call is now
+//     same-origin to Supabase, then server-to-server to Render).
 //
-//   POST {API_BASE}/api/leads-list     { limit }  → { ok, total, provisioned,
-//        pending, leads:[{ id, source, email, full_name, phone, tier, created_at,
-//        provisioned, dietary_profile, allergens[], age, sex, height, weight,
-//        primary_goal, program, health_notes }] }
-//   POST {API_BASE}/api/concierge-log  { limit }  → { ok, runs:[{ run_id,
-//        started_at, sent, failed, skipped, actions:[{ lead_email, priority,
-//        score, action_type, email_subject, error }] }] }
-//
-// ⚠️ CORS: these endpoints HARD-403 (origin_not_allowed) any origin not in the
-// backend's ALLOWED_ORIGINS. The React app's origin must be added there or the
-// browser blocks every request (surfaced here as a network/CORS error, never a
-// silent hang).
+// Response shapes are unchanged (Render's bodies are returned verbatim):
+//   leads_list     → { ok, total, provisioned, pending, leads:[…] }
+//   concierge_log  → { ok, runs:[{ run_id, started_at, sent, failed, skipped, actions:[…] }] }
 
-import { getRenderAdminToken } from './adminAuth.js';
-
-const API_BASE = 'https://buildbelievefit.onrender.com';
-
-function statusHint(status) {
-  if (status === 401) return 'unauthorized (admin token missing or rejected)';
-  if (status === 403) return 'origin not allowed — add this origin to the backend CORS allowlist';
-  if (status === 429) return 'rate limited — wait a minute and retry';
-  if (status === 503) return 'backend not configured (BBF_ADMIN_TOKEN unset)';
-  return 'request failed';
-}
-
-// POST one Comlink endpoint. Resolves to the parsed { ok:true, ... } body or
-// throws a display-ready, coded Error.
-async function comlinkPost(path, payload = {}) {
-  const headers = { 'Content-Type': 'application/json' };
-  // Admin authorization for the Render gate (CORS already allow-lists this header,
-  // index.js:552). Hydrated at runtime, never bundled (§7); absent ⇒ the backend
-  // 401s and the Command Center surfaces the unlock gate.
-  const adminToken = getRenderAdminToken();
-  if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
-
-  let res;
-  try {
-    res = await fetch(`${API_BASE}${path}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload),
-    });
-  } catch {
-    // A cross-origin block (origin not allowlisted) rejects fetch before any
-    // status is readable — name it precisely so the fix is obvious.
-    const e = new Error('Network/CORS error — the request never reached the server. If this origin is new, it must be added to the backend CORS allowlist.');
-    e.code = 'network';
-    throw e;
-  }
-
-  const raw = await res.text();
-  let body = null;
-  try { body = raw ? JSON.parse(raw) : null; } catch { /* non-JSON */ }
-
-  if (!res.ok || !body?.ok) {
-    const slug = body?.error || raw || 'unknown error';
-    const e = new Error(`Error ${res.status} — ${statusHint(res.status)} (${slug}).`);
-    e.code = 'http';
-    throw e;
-  }
-  return body;
-}
+import { rosterCall } from './rosterApi.js';
 
 // Incoming Pathfinder leads (most recent first).
 export function fetchLeads(limit = 100) {
-  return comlinkPost('/api/leads-list', { limit });
+  return rosterCall('leads_list', { limit });
 }
 
 // Concierge run log (autonomous re-engagement audit). Read-only — the "Run Now"
 // trigger (which AUTONOMOUSLY SENDS emails) is intentionally NOT wired here.
 export function fetchConciergeLog(limit = 80) {
-  return comlinkPost('/api/concierge-log', { limit });
+  return rosterCall('concierge_log', { limit });
 }
