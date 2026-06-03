@@ -12,6 +12,7 @@ import type { Page, Route } from '@playwright/test';
  */
 export type SessionEnvelope = {
   uid: string;
+  vaultToken?: string;
   user: {
     id: string;
     username: string;

@@ -210,6 +210,18 @@ const DICT = {
   'f-success-title': { en: 'Application Received', es: 'Solicitud Recibida', pt: 'Candidatura Recebida' },
   'f-success-body': { en: 'Your intake is in and securely logged. The Build Believe Fit team will reach out shortly with your next steps. Welcome to the standard.', es: 'Tu solicitud está registrada de forma segura. El equipo de Build Believe Fit te contactará pronto con los próximos pasos. Bienvenido al estándar.', pt: 'Sua candidatura está registrada com segurança. A equipe Build Believe Fit entrará em contato em breve com os próximos passos. Bem-vindo ao padrão.' },
 
+  // ── The Sports Hub — youth first-run intake gate (PAR-Q+ + guardian auth). ──
+  'yi-title': { en: 'Athlete Intake — Required', es: 'Registro del Atleta — Obligatorio', pt: 'Cadastro do Atleta — Obrigatório' },
+  'yi-sub': { en: 'Before your first session, complete this readiness screen. Your coach reviews every answer.', es: 'Antes de tu primera sesión, completa esta evaluación de preparación. Tu entrenador revisa cada respuesta.', pt: 'Antes da sua primeira sessão, complete esta triagem de prontidão. Seu treinador revisa cada resposta.' },
+  'yi-guardian-head': { en: 'Parent / Guardian Authorization', es: 'Autorización del Padre / Tutor', pt: 'Autorização do Pai / Responsável' },
+  'yi-guardian-name': { en: 'Parent / Guardian Full Name', es: 'Nombre Completo del Padre / Tutor', pt: 'Nome Completo do Pai / Responsável' },
+  'yi-guardian-rel': { en: 'Relationship to Athlete', es: 'Relación con el Atleta', pt: 'Relação com o Atleta' },
+  'yi-guardian-consent': { en: 'I am the parent/legal guardian of this athlete and I consent to their participation in BBF youth training.', es: 'Soy el padre/tutor legal de este atleta y consiento su participación en el entrenamiento juvenil de BBF.', pt: 'Sou o pai/responsável legal deste atleta e consinto sua participação no treinamento juvenil da BBF.' },
+  'yi-clearance-flag': { en: "Based on your answers, a physician's clearance is required before training begins. Your coach will follow up.", es: 'Según tus respuestas, se requiere autorización médica antes de comenzar el entrenamiento. Tu entrenador hará seguimiento.', pt: 'Com base nas suas respostas, é necessária liberação médica antes de iniciar o treino. Seu treinador entrará em contato.' },
+  'yi-submit': { en: 'Complete Intake & Enter Hub →', es: 'Completar Registro y Entrar al Hub →', pt: 'Concluir Cadastro e Entrar no Hub →' },
+  'yi-submitting': { en: 'Securing your intake…', es: 'Asegurando tu registro…', pt: 'Protegendo seu cadastro…' },
+  'yi-error': { en: 'Could not save your intake. Please retry.', es: 'No se pudo guardar tu registro. Inténtalo de nuevo.', pt: 'Não foi possível salvar seu cadastro. Tente novamente.' },
+
   // ── Phase 26 — Authenticated shell (Vault top bar · tabs · Command Center ·
   // MasterLayout · Settings). Wired so the chosen language follows the athlete
   // straight through the login gate. EN values are VERBATIM to the prior
