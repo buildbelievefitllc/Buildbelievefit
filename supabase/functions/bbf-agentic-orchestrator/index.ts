@@ -26,6 +26,9 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { routeAndLog } from '../_shared/model-router.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
 import { checkSpendGate, spendLimitResponse } from '../_shared/spend-gate.ts';
+// Phase 7 · Wave 1 wiring — Episodic Memory adapter (cross-session recall) and
+// the wearable ACWR read boundary feed the context-gathering phase.
+import { recallMemory, formatContextBlock } from '../_shared/episodic-memory.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -57,6 +60,13 @@ const SYSTEM_PROMPT = [
   '- Where the athlete is operating right now (training drive, recovery, nutrition adherence)',
   '- One pattern the orchestrator has been resolving on their behalf this week',
   '- One thing the founder may want to inspect (only if signal is genuinely present)',
+  '',
+  '# WAVE 1 SIGNAL INPUTS',
+  '- PRIOR CONTEXT (cross-session episodic recall): durable records the fleet wrote for this athlete — prior session summaries, key decisions, and ⚑ flags. Treat a ⚑ flag as still-live unless the current telemetry clearly resolves it, and let unresolved flags shape what you surface to the founder.',
+  '- WEARABLE ACWR (acute:chronic workload ratio): acute = trailing-7-day mean strain, chronic = trailing-28-day mean strain, acwr = acute ÷ chronic. Flags: detraining (<0.8), optimal (≤1.3), caution (≤1.5), high_risk (>1.5), insufficient_data (<14 chronic days with data). When it sharpens the snapshot, cite it in output using the acronym only, as "ACWR <value> (<flag>)" — do not spell out the underlying term, which the output vocabulary contract forbids. Never infer a ratio that is absent.',
+  '',
+  '# LOAD-GATE RULE (youth athletes)',
+  '- For youth-athlete tiers (rising_athlete, youth_athlete, kickstart_*, transformation_*, sovereign_* cycles), the ACWR GATES load. When the flag is "caution" or "high_risk", do NOT endorse load progression — surface a load alert that names the acwr value and prescribes holding or reducing volume; for "high_risk" frame it explicitly as an injury-risk load alert. When the flag is "insufficient_data", say what to log rather than inferring a ratio.',
   '',
   '# TONE',
   'Clinical and brief. No greeting. No emoji. Second person. Reference real numbers when they sharpen the message; never invent numbers absent from the data.',
@@ -164,6 +174,24 @@ async function fetchSetSlice(uuid: string, supabaseUrl: string, supabaseKey: str
   } catch (_) { return []; }
 }
 
+// Phase 7 · Wearable ACWR — server-side read via the service_role uid sibling
+// bbf_get_wearable_readiness_admin (the athlete-facing bbf_get_wearable_readiness
+// is vault-session-token gated and unusable from this nightly batch). Best-effort:
+// any failure resolves to null so a wearable gap never blocks synthesis.
+async function fetchWearableReadiness(uuid: string, supabaseUrl: string, supabaseKey: string) {
+  const asOf = new Date().toISOString().slice(0, 10);
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/bbf_get_wearable_readiness_admin`, {
+      method: 'POST',
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_uid: uuid, p_as_of: asOf }),
+    });
+    if (!res.ok) return null;
+    const out = await res.json();
+    return out && out.ok === true ? out : null;
+  } catch (_) { return null; }
+}
+
 async function callClaude(userMessage: string, apiKey: string, localeInput: string) {
   const requestBody = {
     model:      MODEL,
@@ -242,13 +270,23 @@ async function handleSynthesizeAthleteSnapshot(uidRaw: string, supabaseUrl: stri
   const uuid = await resolveUuid(uidRaw, supabaseUrl, supabaseKey);
   if (!uuid) return jsonResponse({ ok: false, error: 'uid_not_resolvable', uid: uidRaw }, 400);
 
-  // Pull the four data slices in parallel for prompt efficiency.
-  const [userSlice, memorySlice, mealAgg, setSlice] = await Promise.all([
+  // Pull every context slice in parallel for prompt efficiency. Phase 7 adds two
+  // Wave 1 inputs: cross-session episodic recall (bbf_episodic_recall, via the
+  // shared adapter) and the wearable ACWR read. Both are best-effort.
+  const [userSlice, memorySlice, mealAgg, setSlice, episodic, wearable] = await Promise.all([
     fetchUserSlice(uuid, supabaseUrl, supabaseKey),
     fetchMemorySlice(uidRaw, supabaseUrl, supabaseKey),
     fetchMealAggregate(uuid, supabaseUrl, supabaseKey),
     fetchSetSlice(uuid, supabaseUrl, supabaseKey),
+    recallMemory({ uid: uidRaw, limit: 5 }),   // fleet-wide recall for this athlete
+    fetchWearableReadiness(uuid, supabaseUrl, supabaseKey),
   ]);
+
+  // Episodic recall → compact prompt block + a sources summary.
+  const episodicBlock = formatContextBlock(episodic.records);
+  const episodicSummary = { recalled: episodic.count, ok: episodic.ok };
+  // Wearable ACWR → the acwr sub-object is what gates youth-athlete load.
+  const wearableAcwr = wearable && wearable.acwr ? wearable.acwr : null;
 
   // Memory aggregation · compact summary, not the raw rows
   const memoryCounts: Record<string, number> = {};
@@ -281,11 +319,19 @@ async function handleSynthesizeAthleteSnapshot(uidRaw: string, supabaseUrl: stri
     memory_summary:  memorySummary,
     meal_aggregate:  mealAgg,
     sets_inspected:  setSlice.length,
+    episodic_recall: episodicSummary,
+    wearable_acwr:   wearableAcwr,
   };
 
+  // Per-athlete dynamic context lives in the user message (AFTER the cached
+  // system prefix) so the prompt-cache hit on SYSTEM_PROMPT is preserved.
   const userMessage =
     '## athlete\n' +
     '```json\n' + JSON.stringify(userSlice || { uid: uidRaw }, null, 2) + '\n```\n\n' +
+    '## prior context · cross-session episodic recall\n' +
+    (episodicBlock ? episodicBlock + '\n\n' : '_no prior episodic records for this athlete_\n\n') +
+    '## wearable readiness · ACWR (acute:chronic workload ratio)\n' +
+    '```json\n' + JSON.stringify(wearableAcwr || { available: false }, null, 2) + '\n```\n\n' +
     '## orchestrator memory · last 7 days · aggregated\n' +
     '```json\n' + JSON.stringify(memorySummary, null, 2) + '\n```\n\n' +
     '## nutrition · 7-day rolling averages\n' +
@@ -306,7 +352,7 @@ async function handleSynthesizeAthleteSnapshot(uidRaw: string, supabaseUrl: stri
 
   await persistSnapshotToMemory(uidRaw, snapshotText, sources, supabaseUrl, supabaseKey);
 
-  console.log(`[bbf-agentic-orchestrator] synthesis · uid=${uidRaw} · model=${(result.body as any).model} · dur=${dur}ms · decisions_7d=${memorySlice.length}`);
+  console.log(`[bbf-agentic-orchestrator] synthesis · uid=${uidRaw} · model=${(result.body as any).model} · dur=${dur}ms · decisions_7d=${memorySlice.length} · episodic_recalled=${episodic.count} · acwr=${wearableAcwr ? `${wearableAcwr.acwr ?? 'n/a'}/${wearableAcwr.flag ?? 'n/a'}` : 'none'}`);
   return jsonResponse({
     ok:           true,
     uid:          uidRaw,
