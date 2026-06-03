@@ -1,46 +1,100 @@
 // src/components/vault/Generator.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 21.5 — Program Generator (Vault tab). React reconstruction of the legacy
-// BBF_PROGRAM_GENERATOR studio surface: pick goal / focus / level / location /
-// days / duration → deterministic split built STRICTLY from the locked library,
-// every movement carrying a hardwired form-demo video. Blacklisted lifts (barbell
-// back squat, abdominal crunches) can never appear — enforced in the engine.
+// Program Generator (Vault tab) — the Vault Roster Engine. React reconstruction of
+// the legacy BBF_PROGRAM_GENERATOR studio surface, upgraded to the full studio spec:
+//
+//   • 3 hard-wired SIGNATURE SPLIT presets (Arnold Era Classic · FST-7 Fascia Expand
+//     · Elite NASM Clinical) — one tap loads a coherent parameter envelope.
+//   • 8 SIGNATURE SELECTORS: Training Priority · Athletic Gender Focus · Experience
+//     Level · Destination Equip Prerequisites · Weekly Frequency · Workout Pace
+//     Target · Splits Architecture · Intensifier Technique.
+//   • ATTACH WARM-UPS & COOL-DOWN toggle — prepends a dynamic prep block and appends
+//     a decompression block to every training day.
+//
+// Output is a deterministic split built STRICTLY from the locked library, every
+// movement carrying a hardwired form-demo video. Blacklisted lifts (barbell back
+// squat, abdominal crunches) can never appear — enforced in the engine.
 
 import { useState } from 'react';
 import {
-  generateProgram, GOALS, FOCI, LEVELS, LOCATIONS, DAY_OPTIONS, DURATIONS,
+  generateProgram, GOALS, GENDERS, LEVELS, LOCATIONS, DAY_OPTIONS, PACES, SPLITS, INTENSIFIERS, PRESETS,
 } from './generatorEngine.js';
 import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
 import './vault.css';
 
+// The 8 signature parameter selectors (exact Vault Roster Engine spec, in order).
 const FIELDS = [
-  { key: 'goal', label: 'Goal', options: GOALS },
-  { key: 'focus', label: 'Focus', options: FOCI },
-  { key: 'level', label: 'Level', options: LEVELS },
-  { key: 'loc', label: 'Location', options: LOCATIONS },
-  { key: 'days', label: 'Days / week', options: DAY_OPTIONS.map((v) => ({ v, l: v })) },
-  { key: 'dur', label: 'Session length', options: DURATIONS },
+  { key: 'goal', label: 'Training Priority', options: GOALS },
+  { key: 'gender', label: 'Athletic Gender Focus', options: GENDERS },
+  { key: 'level', label: 'Experience Level', options: LEVELS },
+  { key: 'loc', label: 'Destination Equip Prerequisites', options: LOCATIONS },
+  { key: 'days', label: 'Weekly Frequency', options: DAY_OPTIONS.map((v) => ({ v, l: `${v} days / week` })) },
+  { key: 'dur', label: 'Workout Pace Target', options: PACES },
+  { key: 'arch', label: 'Splits Architecture', options: SPLITS },
+  { key: 'intensifier', label: 'Intensifier Technique', options: INTENSIFIERS },
 ];
 
-const DEFAULTS = { goal: 'hypertrophy', focus: 'full', level: '2', loc: 'commercial', days: '4', dur: '60' };
+const DEFAULTS = {
+  goal: 'hypertrophy', gender: 'unisex', level: '2', loc: 'commercial',
+  days: '4', dur: '60', arch: 'full', intensifier: 'straight',
+};
 
 export default function Generator() {
   const [params, setParams] = useState(DEFAULTS);
+  const [warmups, setWarmups] = useState(true);
+  const [activePreset, setActivePreset] = useState(null);
   const [result, setResult] = useState(null);
   const [regen, setRegen] = useState(0);
 
-  const set = (key, value) => setParams((p) => ({ ...p, [key]: value }));
-  const run = (nextRegen) => {
-    const r = nextRegen ?? 0;
-    setRegen(r);
-    setResult(generateProgram({ ...params, regen: r }));
+  // Any manual change drops the "active preset" highlight (the program no longer
+  // matches a signature split verbatim).
+  const set = (key, value) => { setParams((p) => ({ ...p, [key]: value })); setActivePreset(null); };
+
+  const run = (nextRegen = 0) => {
+    setRegen(nextRegen);
+    setResult(generateProgram({ ...params, warmups, regen: nextRegen }));
+  };
+
+  // A signature preset overwrites the whole envelope (params + warm-up flag) and
+  // generates immediately — computed from the preset values, not async state.
+  const applyPreset = (preset) => {
+    setParams(preset.params);
+    setWarmups(preset.warmups);
+    setActivePreset(preset.id);
+    setRegen(0);
+    setResult(generateProgram({ ...preset.params, warmups: preset.warmups, regen: 0 }));
+  };
+
+  const toggleWarmups = () => {
+    const next = !warmups;
+    setWarmups(next);
+    setActivePreset(null);
+    if (result) setResult(generateProgram({ ...params, warmups: next, regen }));
   };
 
   return (
     <div className="gen">
       <div>
         <h2 className="pg-nut-head">Program Generator</h2>
-        <div className="pg-nut-meta">Built from the locked BBF library — every lift ships a form demo.</div>
+        <div className="pg-nut-meta">
+          Vault Roster Engine — signature splits, 8-parameter control, built from the locked BBF library. Every lift ships a form demo.
+        </div>
+      </div>
+
+      {/* ── 3 hard-wired signature split presets ── */}
+      <div className="gen-presets" role="group" aria-label="Signature split presets">
+        {PRESETS.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className={`gen-preset${activePreset === p.id ? ' is-active' : ''}`}
+            aria-pressed={activePreset === p.id}
+            onClick={() => applyPreset(p)}
+          >
+            <span className="gen-preset-name">{p.label}</span>
+            <span className="gen-preset-sub">{p.blurb}</span>
+          </button>
+        ))}
       </div>
 
       <div className="gen-form pg-card">
@@ -58,6 +112,19 @@ export default function Generator() {
             </label>
           ))}
         </div>
+
+        {/* ── ATTACH WARM-UPS & COOL-DOWN toggle ── */}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={warmups}
+          className={`gen-toggle${warmups ? ' is-on' : ''}`}
+          onClick={toggleWarmups}
+        >
+          <span className={`gen-switch${warmups ? ' is-on' : ''}`}><span className="gen-switch-thumb" /></span>
+          <span className="gen-toggle-lbl">Attach Warm-Ups &amp; Cool-Down</span>
+        </button>
+
         <div className="gen-actions">
           <button type="button" className="gen-run" onClick={() => run(0)}>Generate Program</button>
           {result ? (
@@ -71,7 +138,7 @@ export default function Generator() {
 
       {result ? <GeneratorOutput result={result} /> : (
         <div className="pg-card gen-placeholder">
-          Set your parameters and generate a fresh, video-backed split.
+          Pick a signature split or set your 8 parameters, then generate a fresh, video-backed program.
         </div>
       )}
     </div>
@@ -80,7 +147,7 @@ export default function Generator() {
 
 function GeneratorOutput({ result }) {
   if (!result.program?.length) {
-    return <div className="pg-card gen-placeholder">No exercises matched those parameters — try a different location or focus.</div>;
+    return <div className="pg-card gen-placeholder">No exercises matched those parameters — try a different equipment profile or architecture.</div>;
   }
   return (
     <div className="gen-out">
@@ -89,11 +156,22 @@ function GeneratorOutput({ result }) {
           <div className="gen-dayhead">
             <span className="gen-dayn">Day {di + 1}</span>
             <span className="gen-dayf">{day.label}</span>
+            {day.rx?.technique ? <span className="gen-tech">{day.rx.technique}</span> : null}
           </div>
+          {day.rx?.techniqueCue ? <div className="gen-techcue">⚡ {day.rx.techniqueCue}</div> : null}
+
+          {day.warmup?.length ? (
+            <div className="gen-warm">
+              <div className="gen-warm-h">Warm-Up</div>
+              <ul className="gen-warm-list">{day.warmup.map((w, i) => <li key={i}>{w}</li>)}</ul>
+            </div>
+          ) : null}
+
           {day.exercises.length === 0 ? (
             <div className="gen-ex"><div className="gen-exname">Rest / Active Recovery</div></div>
           ) : day.exercises.map((ex, ei) => {
             const vid = resolveVideoId(ex.n);
+            const exRx = ex.rx || day.rx;
             return (
               <div className="gen-ex" key={ex.n + ei}>
                 {vid ? (
@@ -103,16 +181,23 @@ function GeneratorOutput({ result }) {
                   </a>
                 ) : null}
                 <div className="gen-exmain">
-                  <div className="gen-exname">{ex.n}</div>
+                  <div className="gen-exname">{ex.n}{ex.fst7 ? <span className="gen-fst7">FST-7</span> : null}</div>
                   <div className="gen-exmeta"><span className="gen-mg">{ex.g.toUpperCase()}</span> · {ex.p}</div>
                 </div>
                 <div className="gen-rx">
-                  <div className="gen-sr">{day.rx.sets}×{day.rx.reps}</div>
-                  <div className="gen-rest">rest {day.rx.rest}</div>
+                  <div className="gen-sr">{exRx.sets}×{exRx.reps}</div>
+                  <div className="gen-rest">rest {exRx.rest}</div>
                 </div>
               </div>
             );
           })}
+
+          {day.cooldown?.length ? (
+            <div className="gen-warm gen-warm--cool">
+              <div className="gen-warm-h">Cool-Down</div>
+              <ul className="gen-warm-list">{day.cooldown.map((w, i) => <li key={i}>{w}</li>)}</ul>
+            </div>
+          ) : null}
         </div>
       ))}
     </div>

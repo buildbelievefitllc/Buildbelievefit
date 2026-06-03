@@ -22,7 +22,6 @@ import CommandRoster from '../components/command/CommandRoster.jsx';
 import ClientHub from '../components/command/ClientHub.jsx';
 import AccessControl from '../components/command/AccessControl.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
-import ClientAnalytics from '../components/command/ClientAnalytics.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 import NutritionLocker from '../components/command/NutritionLocker.jsx';
 import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
@@ -49,7 +48,9 @@ const TABS = [
   // Executive Access Control — tier visibility + reassignment + the account kill switch.
   { id: 'access', labelKey: 'cmd-tab-access', Panel: AccessControl },
   { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry },
-  { id: 'analytics', labelKey: 'cmd-tab-analytics', Panel: ClientAnalytics },
+  // Client Analytics no longer lives as a standalone surface — the 30/60/90-day
+  // analytics + body composition now render INSIDE the Client Database Hub dossier,
+  // scoped to the selected athlete (where their data actually lives).
   { id: 'comlink', labelKey: 'cmd-tab-comlink', Panel: Comlink },
   // Admin-only generative diet suite (Nutrition Locker) — targets another athlete.
   { id: 'nutrition-locker', labelKey: 'cmd-tab-nutrition-locker', Panel: NutritionLocker },

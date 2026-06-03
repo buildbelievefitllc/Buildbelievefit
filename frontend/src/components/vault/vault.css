@@ -961,6 +961,46 @@
   .gen-rx { grid-column: 2; text-align: left; }
 }
 
+/* ── Program Generator · signature split presets ─────────────────────────── */
+.gen-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .7rem; }
+.gen-preset {
+  display: flex; flex-direction: column; gap: .3rem; text-align: left;
+  background: rgba(106, 13, 173, .12); border: 1px solid var(--line);
+  border-left: 3px solid var(--purl); border-radius: 12px; padding: .85rem 1rem; cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .1s ease;
+}
+.gen-preset:hover { border-color: rgba(245, 200, 0, .4); transform: translateY(-1px); }
+.gen-preset:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
+.gen-preset.is-active { border-color: var(--yel); border-left-color: var(--yel); background: rgba(245, 200, 0, .08); }
+.gen-preset-name { font-family: var(--hb); font-size: .9rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--wht); }
+.gen-preset.is-active .gen-preset-name { color: var(--yel); }
+.gen-preset-sub { font-family: var(--bd); font-size: .74rem; font-weight: 600; color: var(--mut); line-height: 1.35; }
+
+/* ── Warm-up / cool-down toggle switch ───────────────────────────────────── */
+.gen-toggle { display: inline-flex; align-items: center; gap: .7rem; background: none; border: none; padding: .2rem 0; cursor: pointer; }
+.gen-toggle:focus-visible { outline: 2px solid var(--purl); outline-offset: 3px; border-radius: 999px; }
+.gen-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; border-radius: 999px; background: #1c1c1c; border: 1px solid var(--line); transition: background .15s ease, border-color .15s ease; }
+.gen-switch.is-on { background: var(--purl); border-color: var(--purl); }
+.gen-switch-thumb { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--wht); transition: transform .15s ease, background .15s ease; }
+.gen-switch.is-on .gen-switch-thumb { transform: translateX(20px); background: var(--yel); }
+.gen-toggle-lbl { font-family: var(--hb); font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
+.gen-toggle.is-on .gen-toggle-lbl { color: var(--gold-soft); }
+
+/* ── Day technique cue + FST-7 badge ─────────────────────────────────────── */
+.gen-tech { margin-left: auto; font-family: var(--hb); font-size: .62rem; letter-spacing: 1.5px; text-transform: uppercase; color: #090909; background: var(--yel); border-radius: 6px; padding: .15rem .5rem; }
+.gen-techcue { font-family: var(--bd); font-size: .78rem; font-weight: 600; color: var(--gold-soft); margin: -.2rem 0 .55rem; }
+.gen-fst7 { margin-left: .5rem; font-family: var(--hb); font-size: .55rem; letter-spacing: 1px; text-transform: uppercase; color: var(--purl); border: 1px solid var(--purl); border-radius: 5px; padding: .1rem .35rem; vertical-align: middle; }
+
+/* ── Warm-up / cool-down blocks ──────────────────────────────────────────── */
+.gen-warm { border: 1px dashed rgba(245, 200, 0, .25); border-radius: 10px; padding: .6rem .8rem; margin: .5rem 0; background: rgba(245, 200, 0, .03); }
+.gen-warm--cool { border-color: rgba(139, 26, 191, .35); background: rgba(106, 13, 173, .08); }
+.gen-warm-h { font-family: var(--hb); font-size: .64rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); margin-bottom: .35rem; }
+.gen-warm--cool .gen-warm-h { color: var(--purl); }
+.gen-warm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .25rem; }
+.gen-warm-list li { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: var(--mut); padding-left: 1rem; position: relative; }
+.gen-warm-list li::before { content: '›'; position: absolute; left: 0; color: var(--gold-soft); }
+.gen-warm--cool .gen-warm-list li::before { color: var(--purl); }
+
 /* ── Mindset Engine ──────────────────────────────────────────────────────── */
 .mind { margin-bottom: 1.1rem; }
 .mind-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .8rem; }

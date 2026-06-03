@@ -17,15 +17,17 @@
 // ⚠️ update_target returns ONLY the 5 macro fields — we MERGE them into detail
 //    state so name / plans / etc. survive, and the card updates without a refetch.
 //
-// DATA HONESTY: the prototype's body-composition tiles (skeletal muscle, squat max,
-// bodyweight series) are mock data — the roster `analytics` action returns training
-// VOLUME + READINESS, so the 90-Day Analytics deck plots those (real) under the
-// prototype's layout. True bodyweight/body-fat series lives behind the PIN-gated
-// coach-analytics RPCs surfaced on the dedicated Analytics tab.
+// DATA HONESTY: the roster `analytics` action returns training VOLUME + READINESS
+// (admin-token, frictionless), so the Analytics deck plots those (real) keyed on the
+// selected athlete's id. True bodyweight/body-fat series lives behind the PIN-gated
+// coach-analytics RPCs (keyed on uid) — now folded directly into this deck's Body
+// Composition card (admin-PIN secured), so all of an athlete's analytics live here,
+// in the Client Database Hub, instead of on a separate top-level surface.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
-import { BarChart, LineChart } from './charts.jsx';
+import { hasAdminPin, setAdminPin, fetchBodyComposition } from '../../lib/coachAnalyticsApi.js';
+import { BarChart, LineChart, BodyComp } from './charts.jsx';
 import { numOrNull, GOLD, GRN, PURL, GOLD_SOFT } from './chartUtils.js';
 import './analytics.css';
 
@@ -114,6 +116,7 @@ export default function ClientDossier({ client, onBack }) {
         <DossierBody
           c={data}
           clientId={client.id}
+          clientUid={data.uid || client.uid}
           onPatched={applyTargetPatch}
           analytics={{ data: analytics, loading: anLoading, error: anError, onRetry: fetchAnalyticsData }}
         />
@@ -175,12 +178,12 @@ function MacroPill({ label, value, unit, accent, valueColor }) {
 const DECKS = [
   { id: 'nutrition', label: '7-Day Nutrition', icon: '🍽' },
   { id: 'workouts', label: '7-Day Workouts', icon: '🏋' },
-  { id: 'analytics', label: '90-Day Analytics', icon: '📊' },
+  { id: 'analytics', label: '30/60/90 Analytics', icon: '📊' },
   { id: 'feed', label: 'Athlete Feed Chat', icon: '💬' },
   { id: 'target', label: 'Update Target', icon: '⬆' },
 ];
 
-function DossierBody({ c, clientId, onPatched, analytics }) {
+function DossierBody({ c, clientId, clientUid, onPatched, analytics }) {
   const [deck, setDeck] = useState('nutrition');
 
   return (
@@ -206,7 +209,7 @@ function DossierBody({ c, clientId, onPatched, analytics }) {
       <div key={deck}>
         {deck === 'nutrition' && <NutritionTab c={c} />}
         {deck === 'workouts' && <ProgramTab c={c} />}
-        {deck === 'analytics' && <AnalyticsDeck {...analytics} />}
+        {deck === 'analytics' && <AnalyticsDeck {...analytics} uid={clientUid} />}
         {deck === 'feed' && <FeedChat clientId={clientId} clientName={c.name || c.uid || 'this athlete'} />}
         {deck === 'target' && <ReconfiguratorDeck c={c} clientId={clientId} onPatched={onPatched} />}
       </div>
@@ -295,7 +298,7 @@ function NutritionTab({ c }) {
 // ── 90-Day Analytics — Historical Analytics Interval + metric tiles + trend. ────
 const WINDOWS = [30, 60, 90];
 
-function AnalyticsDeck({ data, loading, error, onRetry }) {
+function AnalyticsDeck({ data, loading, error, onRetry, uid }) {
   const [windowDays, setWindowDays] = useState(90);
 
   const view = useMemo(() => {
@@ -392,11 +395,98 @@ function AnalyticsDeck({ data, loading, error, onRetry }) {
             <LineChart series={readinessSeries} />
           </div>
 
-          <div style={styles.analyticsNote}>
-            Body-composition metrics (bodyweight, body-fat %) are available on the dedicated
-            Analytics tab (PIN-gated).
+        </>
+      )}
+
+      {/* Body composition — the one analytics surface the backend gates behind the
+          coach Admin PIN (sensitive health data). Folded in here so removing the
+          standalone Analytics tab loses nothing; keyed on the selected athlete's uid
+          and rendered independently of the volume/readiness window above. */}
+      <BodyCompositionCard uid={uid} />
+    </div>
+  );
+}
+
+// ── Body Composition (folded in from the former standalone Analytics tab) ───────
+// The bbf_coach_body_composition RPC is PIN-gated server-side, so this is the one
+// dossier surface that may prompt for the coach Admin PIN. The PIN is held in module
+// memory for the session (coachAnalyticsApi), so it's typed at most once. The main
+// volume/readiness analytics above need no PIN — only this sensitive series does.
+function BodyCompositionCard({ uid }) {
+  const [authed, setAuthed] = useState(hasAdminPin());
+  const [pinInput, setPinInput] = useState('');
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  // Fetch when authed + uid (and on retry/unlock). setState only fires in the
+  // promise callbacks / a microtask — never synchronously in the effect body
+  // (mirrors the set-state-in-effect-clean pattern used across this codebase).
+  useEffect(() => {
+    if (!authed || !uid) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) setLoading(true); });
+    fetchBodyComposition(uid)
+      .then((d) => { if (!cancelled) { setData(d); setError(null); } })
+      .catch((e) => {
+        if (cancelled) return;
+        if (e.code === 'unauthorized') {
+          setAuthed(false);
+          setError('Admin PIN rejected — re-enter to view body composition.');
+        } else if (e.code === 'no_pin') {
+          setAuthed(false);
+        } else {
+          setError(e.message || 'Body composition unavailable.');
+        }
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [authed, uid, reloadKey]);
+
+  function unlock(e) {
+    e.preventDefault();
+    const pin = pinInput.trim();
+    if (!pin) return;
+    setAdminPin(pin);
+    setPinInput('');
+    setError(null);
+    setAuthed(true);
+    setReloadKey((k) => k + 1);
+  }
+
+  return (
+    <div className="bbf-an__chart">
+      <div className="bbf-an__chart-h">
+        <span className="bbf-an__chart-title">Body Composition</span>
+        <span className="bbf-an__chart-meta">body-fat % · admin-PIN secured</span>
+      </div>
+      {!uid ? (
+        <div className="bbf-an__empty">No synced athlete uid for body-composition lookup.</div>
+      ) : !authed ? (
+        <>
+          <form className="bbf-an__gate-row" onSubmit={unlock}>
+            <input
+              className="bbf-input" type="password" inputMode="numeric" autoComplete="off"
+              spellCheck={false} placeholder="Admin PIN to unlock body composition"
+              value={pinInput} onChange={(ev) => setPinInput(ev.target.value.replace(/\D/g, ''))}
+            />
+            <button className="bbf-btn" type="submit" style={{ width: 'auto', whiteSpace: 'nowrap', padding: '0 1.1rem' }}>Unlock</button>
+          </form>
+          {error ? <div style={{ ...styles.errorMsg, marginTop: '.5rem' }}>{error}</div> : null}
+          <div className="bbf-an__gate-note">
+            Body composition is sensitive health data — secured behind the coach Admin PIN. Entered once, held for this session only.
           </div>
         </>
+      ) : loading ? (
+        <Loading label="Loading body composition…" />
+      ) : error ? (
+        <div style={styles.inlineError} role="alert">
+          <span style={styles.errorMsg}>{error}</span>
+          <button type="button" style={styles.retry} onClick={() => setReloadKey((k) => k + 1)}>Retry</button>
+        </div>
+      ) : (
+        <BodyComp data={data} />
       )}
     </div>
   );
