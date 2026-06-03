@@ -16,7 +16,7 @@
 // components and the same auth-session data source (selectPlans + useVaultProfile),
 // so the admin's own training view stays 1:1 with what a client sees.
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import CommandRoster from '../components/command/CommandRoster.jsx';
 import ClientHub from '../components/command/ClientHub.jsx';
@@ -25,46 +25,38 @@ import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import ClientAnalytics from '../components/command/ClientAnalytics.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 import NutritionLocker from '../components/command/NutritionLocker.jsx';
-import AdminTokenGate from '../components/command/AdminTokenGate.jsx';
 import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
-import Program from '../components/vault/Program.jsx';
-import Nutrition from '../components/vault/Nutrition.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
-import Prehab from '../components/vault/Prehab.jsx';
 import SportsPortal from '../components/sports/SportsPortal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
-import { hasAdminToken } from '../lib/adminAuth.js';
 
-// `needsToken` marks the surfaces whose data path gates on the X-BBF-Admin-Token
-// server-side: the roster (bbf-admin-roster), the Command feed (bbf-command-feed),
-// the Comlink (Render leads/concierge), Analytics (its client dropdown reuses the
-// roster), and Risk Telemetry (its bbf_users roster now reads through the service
-// role, not anon — see telemetryApi). Only the Player-Coach training tabs (the
-// admin's own vault session) render directly.
+// Command Center surfaces — the executive workspace ONLY. The personal client
+// training tabs (Program · Prehab · client Nutrition) were purged from here: they
+// belong exclusively to the Sovereign Client Vault and were cross-contaminating the
+// admin view (CEO directive · Command Center Declutter).
+//
+// AUTH: every data-backed surface here authorizes server-side. With the Advanced
+// Auth Elevation, the logged-in admin's SESSION token auto-unlocks them all (the
+// edge functions validate it via _bbf_uid_from_vault_token + an admin-role check),
+// so there is NO manual "paste admin token" step — the gate is gone.
 const TABS = [
   // "Founder Five" master-detail roster is the Command Center centerpiece (default).
-  { id: 'roster', labelKey: 'cmd-tab-roster', Panel: ClientHub, needsToken: true },
-  { id: 'command', labelKey: 'cmd-tab-command', Panel: CommandRoster, needsToken: true },
-  // Executive Access Control — tier visibility + reassignment + the account kill
-  // switch. Reads/writes through bbf-admin-roster (service-role, token-gated).
-  { id: 'access', labelKey: 'cmd-tab-access', Panel: AccessControl, needsToken: true },
-  { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry, needsToken: true },
-  { id: 'analytics', labelKey: 'cmd-tab-analytics', Panel: ClientAnalytics, needsToken: true },
-  { id: 'comlink', labelKey: 'cmd-tab-comlink', Panel: Comlink, needsToken: true },
-  // Admin-only generative diet suite — targets another athlete (roster + assign_nutrition).
-  { id: 'nutrition-locker', labelKey: 'cmd-tab-nutrition-locker', Panel: NutritionLocker, needsToken: true },
-  // Sports Portal & Athlete Database — youth-athlete scouting terminal. Runs on
-  // bundled legacy-fusion data (no server token); the panel itself switches the
-  // admin-override vs client view on isAdmin.
+  { id: 'roster', labelKey: 'cmd-tab-roster', Panel: ClientHub },
+  { id: 'command', labelKey: 'cmd-tab-command', Panel: CommandRoster },
+  // Executive Access Control — tier visibility + reassignment + the account kill switch.
+  { id: 'access', labelKey: 'cmd-tab-access', Panel: AccessControl },
+  { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry },
+  { id: 'analytics', labelKey: 'cmd-tab-analytics', Panel: ClientAnalytics },
+  { id: 'comlink', labelKey: 'cmd-tab-comlink', Panel: Comlink },
+  // Admin-only generative diet suite (Nutrition Locker) — targets another athlete.
+  { id: 'nutrition-locker', labelKey: 'cmd-tab-nutrition-locker', Panel: NutritionLocker },
+  // BBF Sports Portal & Athlete Database — live youth-athlete records.
   { id: 'sports', labelKey: 'cmd-tab-sports', Panel: SportsPortal },
-  // Player-Coach surfaces — the admin's own training view.
-  { id: 'program', labelKey: 'vault-tab-program', Panel: Program },
+  // Admin tools that remain in the executive workspace.
   { id: 'generator', labelKey: 'vault-tab-generator', Panel: Generator },
-  { id: 'prehab', labelKey: 'vault-tab-prehab', Panel: Prehab },
-  { id: 'nutrition', labelKey: 'vault-tab-nutrition', Panel: Nutrition },
   { id: 'settings', labelKey: 'vault-tab-settings', Panel: Settings },
   // CEO-only Language Mastery Protocol. Static content (no token gate); the whole
   // /command route is AdminGuard-gated, so this tab never renders for an athlete.
@@ -86,20 +78,13 @@ export default function CommandCenter() {
 
   const selectTab = (id) => navigate(id === DEFAULT_TAB ? '/command' : `/command/${id}`);
 
-  // Admin-token hydration. hasAdminToken() reads the runtime store (window global /
-  // sessionStorage) at mount, so a deploy that injects the token never shows the
-  // gate; otherwise the unlock gate flips this true for the token-gated tabs.
-  const [tokenReady, setTokenReady] = useState(hasAdminToken);
-
   // Player-Coach data: the admin's own plan envelope + profile metrics, sourced
-  // exactly like the client Vault so Program/Nutrition render identically. The
+  // exactly like the client Vault so Generator/Settings render identically. The
   // coaching panels ignore these extra props.
   const { user, session } = useAuth();
   const uid = user?.username || user?.id || '';
   const { data: profile } = useVaultProfile(uid);
   const plans = useMemo(() => selectPlans(session), [session]);
-
-  const gated = activeDef.needsToken && !tokenReady;
 
   return (
     <div style={styles.page}>
@@ -128,14 +113,10 @@ export default function CommandCenter() {
       </nav>
 
       {/* key={activeTab} forces a clean unmount/remount on every swap — no state
-          can bleed between surfaces, and the swap is unambiguous. A token-gated
-          surface shows the unlock gate until the admin token is hydrated. */}
+          can bleed between surfaces, and the swap is unambiguous. No token gate:
+          the admin session authorizes every surface server-side. */}
       <div style={styles.panel} key={activeTab}>
-        {gated ? (
-          <AdminTokenGate surface={t(activeDef.labelKey)} onUnlock={() => setTokenReady(true)} />
-        ) : (
-          <ActivePanel plans={plans} profile={profile} />
-        )}
+        <ActivePanel plans={plans} profile={profile} />
       </div>
     </div>
   );

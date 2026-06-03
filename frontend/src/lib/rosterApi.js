@@ -28,6 +28,7 @@
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { getCoachAdminToken } from './adminAuth.js';
+import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 // Human-readable line for an HTTP status, so a surfaced error is precise rather
 // than a bare code (parity with the monolith's _errMsg).
@@ -51,9 +52,14 @@ export async function rosterCall(action, payload = {}) {
     headers.apikey = SUPABASE_ANON_KEY;
     headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
   }
-  // Admin authorization — the function's real security boundary. Hydrated at
-  // runtime (never bundled, §7); absent ⇒ the function 401s and the UI surfaces
-  // the unlock gate so the CEO can supply it once.
+  // Admin authorization — the function's real security boundary, now DUAL:
+  //   • the logged-in admin's SESSION token (the zero-friction path — the edge
+  //     function validates it via _bbf_uid_from_vault_token + an admin-role check,
+  //     so a Sovereign auto-unlocks every surface with no manual paste), AND/OR
+  //   • the legacy shared secret, if a deploy injected one (kept for parity).
+  // Neither is ever bundled (§7). The server authorizes if EITHER is valid-admin.
+  const sessionToken = getStoredVaultToken();
+  if (sessionToken) headers['X-BBF-Session-Token'] = sessionToken;
   const adminToken = getCoachAdminToken();
   if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
 

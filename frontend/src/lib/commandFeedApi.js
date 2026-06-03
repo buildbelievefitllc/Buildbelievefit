@@ -25,6 +25,7 @@
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { getCoachAdminToken } from './adminAuth.js';
+import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 const isGreen = (s) => String(s || '').trim().toLowerCase() === 'green';
 
@@ -52,7 +53,11 @@ export async function fetchCommandFeed() {
     headers.apikey = SUPABASE_ANON_KEY;
     headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
   }
-  // Admin authorization — the function's real boundary (bbf-command-feed:92).
+  // Admin authorization — DUAL: the logged-in admin's session token (zero-friction,
+  // validated server-side via _bbf_uid_from_vault_token) and/or the legacy secret.
+  // Never bundled (§7); the server authorizes if EITHER is valid-admin.
+  const sessionToken = getStoredVaultToken();
+  if (sessionToken) headers['X-BBF-Session-Token'] = sessionToken;
   const adminToken = getCoachAdminToken();
   if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
 

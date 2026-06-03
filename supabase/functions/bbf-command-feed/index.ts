@@ -37,8 +37,65 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token',
+  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token, x-bbf-session-token',
 };
+
+// ─── Dual authorization (CEO directive · Elegant Auth Elevation) ─────────────────
+// Authorized if the request carries the legacy shared secret OR a validated admin
+// SESSION token (resolved via _bbf_uid_from_vault_token → admin/trainer role). A
+// valid non-admin session is rejected. Mirrors bbf-admin-roster.isAuthorized so the
+// two roster surfaces unlock identically for a logged-in Sovereign.
+async function uidFromSession(url: string, key: string, session: string): Promise<string | null> {
+  const headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/_bbf_uid_from_vault_token`, {
+      method: 'POST', headers, body: JSON.stringify({ p_session_token: session }),
+    });
+    if (r.ok) {
+      const v = await r.json();
+      const id = typeof v === 'string' ? v : (Array.isArray(v) && v.length ? v[0] : null);
+      if (id) return String(id);
+    }
+  } catch (_) { /* fall through */ }
+  try {
+    const nowISO = new Date().toISOString();
+    const r = await fetch(
+      `${url}/rest/v1/bbf_vault_sessions?select=user_id&token=eq.${encodeURIComponent(session)}` +
+      `&expires_at=gt.${encodeURIComponent(nowISO)}&limit=1`,
+      { headers },
+    );
+    if (r.ok) {
+      const rows = await r.json();
+      const row = Array.isArray(rows) && rows.length ? rows[0] : null;
+      return row?.user_id ? String(row.user_id) : null;
+    }
+  } catch (_) { /* ignore */ }
+  return null;
+}
+
+async function isAuthorized(req: Request, url: string, key: string, legacyToken: string): Promise<boolean> {
+  const token = req.headers.get('x-bbf-admin-token') || '';
+  if (legacyToken && token.length > 0 && token === legacyToken) return true;
+  const session = req.headers.get('x-bbf-session-token') || '';
+  if (!session || !url || !key) return false;
+  const userId = await uidFromSession(url, key, session);
+  if (!userId) return false;
+  try {
+    const r = await fetch(
+      `${url}/rest/v1/bbf_users?select=uid,role&id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    );
+    if (!r.ok) return false;
+    const rows = await r.json();
+    const u = Array.isArray(rows) && rows.length ? rows[0] : null;
+    if (!u) return false;
+    const role = String(u.role ?? '').toLowerCase();
+    const uname = String(u.uid ?? '').toLowerCase();
+    return role === 'admin' || role === 'trainer' || uname === 'akeem';
+  } catch (_) {
+    return false;
+  }
+}
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -84,13 +141,13 @@ serve(async (req: Request) => {
   }
 
   // ─── Auth gate (whole-roster data → admin only) ───────────────────────
-  const adminToken = Deno.env.get('BBF_COACH_AGENT_TOKEN');
-  if (!adminToken) {
-    console.error('[bbf-command-feed] BBF_COACH_AGENT_TOKEN not set');
-    return jsonResponse({ error: 'config_missing_admin_token' }, 503);
-  }
-  if ((req.headers.get('x-bbf-admin-token') || '') !== adminToken) {
-    console.warn('[bbf-command-feed] auth rejected (bad/missing x-bbf-admin-token)');
+  // Accepts the legacy shared secret OR a validated admin session token, so a
+  // logged-in Sovereign auto-unlocks this feed without pasting the secret.
+  const SUPABASE_URL_AUTH = Deno.env.get('SUPABASE_URL') || '';
+  const SERVICE_KEY_AUTH = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+  const adminToken = Deno.env.get('BBF_COACH_AGENT_TOKEN') || '';
+  if (!(await isAuthorized(req, SUPABASE_URL_AUTH, SERVICE_KEY_AUTH, adminToken))) {
+    console.warn('[bbf-command-feed] auth rejected (no valid admin token or session)');
     return jsonResponse({ error: 'unauthorized' }, 401);
   }
 
