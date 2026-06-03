@@ -19,6 +19,7 @@
 // The Mindset Engine has been removed entirely — it does not belong in Nutrition.
 
 import { useEffect, useState, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { parseFastingWindow } from '../../lib/vaultApi.js';
 import {
@@ -368,12 +369,14 @@ function MealCard({ meal, done, onToggle }) {
   );
 }
 
-// ── Admin oversight console (coach-only) ─────────────────────────────────────
-// The administrative layer inside the Nutrition Locker. Rendered ONLY for
-// admin/trainer sessions — the boundary is enforced HERE (isAdmin gate) AND again
-// server-side by the admin gateway every rosterCall passes through. Lets the head
-// coach swap between active athletes, dial in their cuisine + macro targets, and
-// recompile their AI performance plan against the live orchestration engine.
+// ── Admin oversight console (coach-only · Command Center surface) ─────────────
+// The administrative layer inside the Nutrition Locker. Rendered ONLY on the
+// Sovereign Command Center routing (/command) AND for admin/trainer sessions — the
+// boundary is enforced HERE (route + isAdmin gate, so it can never leak into the
+// personal Client Profile Hub at /vault) AND again server-side by the admin gateway
+// every rosterCall passes through. Lets the head coach swap between active athletes,
+// dial in their cuisine + macro targets, and recompile their AI performance plan
+// against the live orchestration engine.
 function cuisineLabel(id) {
   return (CUISINE_STYLES.find((s) => s.id === id) || {}).label || id;
 }
@@ -585,6 +588,17 @@ export default function Nutrition({ profile }) {
   const { user, isAdmin } = useAuth();
   const uid = user?.username || user?.id || 'guest';
 
+  // SURFACE GATE (forensic fix · Nutrition Locker logic leak) — the coach console
+  // (athlete-selection dropdown + admin-token gate) is a COMMAND CENTER surface
+  // ONLY. It must never render in the personal Client Profile Hub (/vault), where
+  // the locker defaults strictly to the AUTHENTICATED USER'S OWN profile (uid +
+  // the passed `profile`). Gate on the ROUTE, not the role: the CEO trains as a
+  // Player-Coach and reads as `isAdmin` everywhere, so the old role-only check
+  // leaked the dropdown — and its 401-on-admin-token path — into his own vault.
+  // /command is the Sovereign Command Center routing (AdminGuard-gated); only there
+  // do the admin controls mount.
+  const onCommandSurface = useLocation().pathname.startsWith('/command');
+
   const [cuisineId, setCuisineId] = useState(CUISINES[0].id);
   const [dayIdx, setDayIdx] = useState(() => todayIndex());
 
@@ -642,7 +656,7 @@ export default function Nutrition({ profile }) {
 
   return (
     <div className="pg-nut">
-      {isAdmin ? <NutritionStudioGate /> : null}
+      {isAdmin && onCommandSurface ? <NutritionStudioGate /> : null}
 
       <div className="nl-head-row">
         <div>
