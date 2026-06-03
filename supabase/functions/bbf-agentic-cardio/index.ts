@@ -21,6 +21,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import { logLlmCall } from '../_shared/llm-telemetry.ts';
 import { routeAndLog } from '../_shared/model-router.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
 
@@ -46,9 +47,17 @@ function clientIp(req: Request): string {
 
 // Cardiac-adjacent → Opus tier (one of the three peak-reasoning categories).
 const MODEL             = routeAndLog('bbf-agentic-cardio', 'cardiac_intercept');
-const MAX_TOKENS        = 1536;
+// Phase 10 hardening · the deterministic tier is decided BEFORE Claude (routeTier
+// + CNS), so Claude only writes the machine/steps/ROI prose for that mandated
+// tier — it does not need an unbounded thinking budget. Opus 4.8 + the old
+// `thinking:{type:'adaptive'}` could burn enough thinking tokens to blow the
+// hard timeout and silently drop every call to the deterministic fallback.
+// Bound the thinking budget (predictable latency) and give the wall a little
+// headroom. budget_tokens MUST be < max_tokens; max_tokens = budget + output room.
+const THINK_BUDGET      = 1024;   // bounded extended-thinking budget (was: adaptive)
+const MAX_TOKENS        = 2048;   // 1024 thinking + ~1024 structured-output room
 const EFFORT_DEFAULT    = 'high';
-const CLAUDE_TIMEOUT_MS = 12000;
+const CLAUDE_TIMEOUT_MS = 15000;  // was 12000 · modest headroom for Opus 4.8
 const MIN_MINUTES       = 5;
 const MAX_MINUTES       = 120;
 const CNS_WINDOW_DAYS   = 3;
@@ -255,7 +264,8 @@ async function callClaude(userMessage: string, apiKey: string, localeInput: stri
   // Cached invariant prompt first (prefix cache hit), then the per-locale
   // directive as a separate uncached block so EN/ES/PT share the cached prefix.
   const requestBody = {
-    model: MODEL, max_tokens: MAX_TOKENS, thinking: { type: 'adaptive' },
+    model: MODEL, max_tokens: MAX_TOKENS,
+    thinking: { type: 'enabled', budget_tokens: THINK_BUDGET },
     output_config: { effort: EFFORT_DEFAULT, format: { type: 'json_schema', schema: RESPONSE_SCHEMA } },
     system: [
       { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
@@ -263,22 +273,28 @@ async function callClaude(userMessage: string, apiKey: string, localeInput: stri
     ],
     messages: [{ role: 'user', content: userMessage }],
   };
+  const t0 = Date.now();
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify(requestBody), signal: controller.signal,
     });
+    const latencyMs = Date.now() - t0;
     let body: any; try { body = await res.json(); } catch (_) { body = null; }
     if (!res.ok) {
       const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
       console.error(`[bbf-agentic-cardio] Anthropic error: status=${res.status}`);
-      return { ok: false as const, error: errMsg };
+      return { ok: false as const, error: errMsg, latencyMs };
     }
-    return { ok: true as const, body };
+    return { ok: true as const, body, latencyMs };
   } catch (e) {
     const err = e as Error;
-    return { ok: false as const, error: err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message };
+    return {
+      ok: false as const,
+      error: err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message,
+      latencyMs: Date.now() - t0,
+    };
   } finally { clearTimeout(timeout); }
 }
 
@@ -408,7 +424,15 @@ serve(async (req: Request) => {
     `Write the machine, the full protocol_steps (ending exactly at ${minutes} min), and the ROI fields. Return ONLY the JSON schema response.`;
 
   const result = await callClaude(userMessage, ANTHROPIC_API_KEY, locale);
+
+  // Telemetry · one bbf_llm_calls row per Claude attempt (best-effort, awaited so
+  // the edge runtime doesn't freeze the insert after the response is returned).
+  const usage = result.ok ? (result.body?.usage ?? {}) : {};
   if (!result.ok) {
+    await logLlmCall(supa, {
+      agent: 'bbf-agentic-cardio', model: MODEL, ok: false,
+      latencyMs: result.latencyMs, error: result.error, promptName: 'cardiac_intercept',
+    });
     const fb = fallbackSteps(effTier, minutes);
     return jsonResponse(buildContract({ uid, locale, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
   }
@@ -420,11 +444,26 @@ serve(async (req: Request) => {
   const stepsOk = parsed && Array.isArray(parsed.protocol_steps) && parsed.protocol_steps.length > 0 &&
     typeof parsed.machine === 'string' && typeof parsed.roi_toast === 'string';
   if (!stepsOk) {
+    // HTTP 200 but the schema came back unusable → still a fallback trigger; log
+    // it as a soft failure so the dashboard separates "timeouts" from "bad output".
+    await logLlmCall(supa, {
+      agent: 'bbf-agentic-cardio', model: result.body?.model ?? MODEL, ok: false,
+      latencyMs: result.latencyMs, error: 'schema_validation_failed',
+      inputTokens: usage.input_tokens ?? null, outputTokens: usage.output_tokens ?? null,
+      finishReason: result.body?.stop_reason ?? null, promptName: 'cardiac_intercept',
+    });
     const fb = fallbackSteps(effTier, minutes);
     return jsonResponse(buildContract({ uid, locale, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
   }
 
-  console.log(`[bbf-agentic-cardio] uid=${uid} min=${minutes} base=${baseTier} eff=${effTier} cns=${cns.fatigue_level}(${cns.score}) model=${result.body?.model}`);
+  await logLlmCall(supa, {
+    agent: 'bbf-agentic-cardio', model: result.body?.model ?? MODEL, ok: true,
+    latencyMs: result.latencyMs,
+    inputTokens: usage.input_tokens ?? null, outputTokens: usage.output_tokens ?? null,
+    finishReason: result.body?.stop_reason ?? null, promptName: 'cardiac_intercept',
+  });
+
+  console.log(`[bbf-agentic-cardio] uid=${uid} min=${minutes} base=${baseTier} eff=${effTier} cns=${cns.fatigue_level}(${cns.score}) model=${result.body?.model} latency_ms=${result.latencyMs}`);
 
   return jsonResponse(buildContract({
     uid, locale, minutes, baseTier, effTier, cns,
