@@ -14,6 +14,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { homePathForUser } from '../lib/sportsRoster.js';
 import './login.css';
 
 export default function Login() {
@@ -31,11 +32,12 @@ export default function Login() {
 
   // PWA route isolation: /login is the installed app's start_url. If a session
   // already exists (returning client launching the installed app), send them
-  // straight to the Vault with REPLACE so /login is never left in the standalone
-  // history stack — the back button then natively closes the app. ("/" is now the
-  // public landing, so we target /vault explicitly, not the root.)
+  // straight to their home with REPLACE so /login is never left in the standalone
+  // history stack — the back button then natively closes the app. The Routing Fork
+  // (homePathForUser) sends a flagged sports athlete to The Sports Hub and everyone
+  // else to the Vault, so a returning youth athlete also bypasses the adult Vault.
   useEffect(() => {
-    if (!loading && user) navigate('/vault', { replace: true });
+    if (!loading && user) navigate(homePathForUser(user), { replace: true });
   }, [loading, user, navigate]);
 
   function startLockout(seconds) {
@@ -64,7 +66,10 @@ export default function Login() {
     const result = await signInWithPin(username, pin);
 
     if (result.ok) {
-      navigate('/vault', { replace: true });
+      // The Routing Fork: signInWithPin resolves the home path from the freshly
+      // built session (sports athlete → The Sports Hub, else the Vault), so we
+      // navigate deterministically without waiting on the context to re-render.
+      navigate(result.home || '/vault', { replace: true });
       return;
     }
 

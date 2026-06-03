@@ -6,11 +6,17 @@
 // when a session exists). The Vault has its own guarded route; admins cross into
 // the Command Center via the in-Vault toggle (→ /command, AdminGuard-gated).
 //
-//   /        → <MarketingLanding>             (public — ALWAYS, regardless of auth)
-//   /vault   → <ClientVault>                  (authed only; unauth → /login)
-//   /command → <AdminGuard> → <CommandCenter> (admin console)
-//   /login   → public Login gate (username + PIN); on success → /vault
-//   *        → bounce to '/'
+//   /          → <MarketingLanding>             (public — ALWAYS, regardless of auth)
+//   /vault     → <ClientVault>                  (authed only; unauth → /login; a
+//                                                flagged sports athlete is bounced
+//                                                to /sports-hub — the youth surface
+//                                                is isolated from the adult Vault)
+//   /sports-hub→ <SportsHub>                     (authed sports athlete home — THE
+//                                                post-login landing for the youth
+//                                                division; admins may preview)
+//   /command   → <AdminGuard> → <CommandCenter> (admin console)
+//   /login     → public Login gate (username + PIN); on success → home (Routing Fork)
+//   *          → bounce to '/'
 
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
@@ -18,9 +24,11 @@ import AdminGuard from './components/AdminGuard.jsx';
 import Login from './pages/Login.jsx';
 import CommandCenter from './pages/CommandCenter.jsx';
 import ClientVault from './pages/ClientVault.jsx';
+import SportsHub from './pages/SportsHub.jsx';
 import MarketingLanding from './pages/MarketingLanding.jsx';
 import SportsPortal from './components/sports/SportsPortal.jsx';
 import { useEntitlement } from './lib/useEntitlement.js';
+import { isSportsAthlete, SPORTS_HUB_PATH } from './lib/sportsRoster.js';
 import UpgradeOverlay from './components/vault/UpgradeOverlay.jsx';
 
 // The Sovereign Vault — the authenticated athlete home. Guarded: an unauthenticated
@@ -28,10 +36,28 @@ import UpgradeOverlay from './components/vault/UpgradeOverlay.jsx';
 // root "/" deliberately does NOT render this — it always serves the public landing,
 // so the Vault now has its own /vault route (it used to be rendered at "/").
 function VaultRoute() {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
   if (loading) return <div style={bootStyle}>Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
+  // Routing Fork (isolation side): a flagged sports athlete must NEVER land on the
+  // adult Sovereign Vault — if one reaches /vault directly (deep link, stale tab,
+  // bookmark), bounce them into The Sports Hub so the youth surface stays sealed
+  // off from the adult lifestyle programming. Admins are exempt: the head coach can
+  // still inspect the Vault.
+  if (isSportsAthlete(user) && !isAdmin) return <Navigate to={SPORTS_HUB_PATH} replace />;
   return <ClientVault />;
+}
+
+// The Sports Hub — the authenticated home for the youth/sports division and the
+// post-login landing for a flagged athlete. Auth-guarded (unauth → /login).
+// Symmetric isolation: an ordinary adult client who deep-links here is sent to
+// their Vault; admins may pass through to preview the youth surface.
+function SportsHubRoute() {
+  const { user, loading, isAdmin } = useAuth();
+  if (loading) return <div style={bootStyle}>Loading…</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isSportsAthlete(user) && !isAdmin) return <Navigate to="/vault" replace />;
+  return <SportsHub />;
 }
 
 const bootStyle = {
@@ -83,6 +109,9 @@ export default function App() {
       <Route path="/" element={<MarketingLanding />} />
       {/* The authenticated Vault now lives at its own guarded route (was at "/"). */}
       <Route path="/vault" element={<VaultRoute />} />
+      {/* The Sports Hub — youth/sports division home; the post-login Routing Fork
+          (Login.jsx + the /vault bounce above) lands a flagged athlete HERE. */}
+      <Route path="/sports-hub" element={<SportsHubRoute />} />
       {/* Sports Portal & Athlete Database — auth-guarded; the panel switches the
           admin-override vs client view on isAdmin (see SportsRoute). */}
       <Route path="/sports" element={<SportsRoute />} />

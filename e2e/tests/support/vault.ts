@@ -4,8 +4,27 @@
 // testMatch lists the spec files explicitly).
 import type { Page, Route } from '@playwright/test';
 
+/**
+ * The persisted PIN-RPC session envelope (AuthContext `bbf.session.v1`). Typed
+ * loosely where the real payload varies — `programKey`/`type` are null for a youth
+ * athlete or a brand-new client — so any spec can seed a custom session (not just
+ * one structurally identical to the jacque_bbf default).
+ */
+export type SessionEnvelope = {
+  uid: string;
+  user: {
+    id: string;
+    username: string;
+    role: string;
+    type: string | null;
+    programKey: string | null;
+  };
+  plans: unknown;
+  authenticatedAt: number;
+};
+
 /** A valid non-admin client session (PIN-RPC auth, persisted to localStorage). */
-export const CLIENT_SESSION = {
+export const CLIENT_SESSION: SessionEnvelope = {
   uid: 'jacque_bbf',
   user: {
     id: 'jacque_bbf',
@@ -44,7 +63,7 @@ export function isPreflight(route: Route): boolean {
 }
 
 /** Seed an authenticated client session before any app script runs. */
-export async function seedClientSession(page: Page, session = CLIENT_SESSION): Promise<void> {
+export async function seedClientSession(page: Page, session: SessionEnvelope = CLIENT_SESSION): Promise<void> {
   await page.addInitScript((s) => {
     localStorage.setItem('bbf.session.v1', JSON.stringify(s));
     localStorage.removeItem('bbf.vault.weights.v1');

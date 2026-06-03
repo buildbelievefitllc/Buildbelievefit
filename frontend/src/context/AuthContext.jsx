@@ -24,6 +24,7 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import { resolveProgramKey } from '../lib/personaResolver.js';
+import { resolveSportsProfile, homePathForUser } from '../lib/sportsRoster.js';
 import { formatDisplayName } from '../lib/displayName.js';
 import { clearAdminToken } from '../lib/adminAuth.js';
 
@@ -139,7 +140,11 @@ export function AuthProvider({ children }) {
       /* private-mode / quota — session stays in-memory for this tab */
     }
     setSession(nextSession);
-    return { ok: true };
+    // The Routing Fork target, resolved deterministically from the freshly-built
+    // session (NOT the async context `user`, which hasn't re-rendered yet): a
+    // flagged sports athlete → The Sports Hub, everyone else → the Sovereign Vault.
+    // Login.jsx navigates to this so it never races the setState above.
+    return { ok: true, home: homePathForUser(nextSession.user) };
   }, []);
 
   const signOut = useCallback(() => {
@@ -167,8 +172,14 @@ export function AuthProvider({ children }) {
     : null;
   // Presentable full name for the Vault greeting (the slug carries no display
   // name). Client Zero `akeem` → "Akeem Brown".
+  // Sports-division profile (age/sport/position/focus), resolved the same way as
+  // programKey — from a client-side seed keyed off the slug (lib/sportsRoster.js),
+  // or an explicit auth-payload flag. Non-null ⇒ this account is a sports athlete,
+  // which drives the post-login Routing Fork into The Sports Hub. Sessions persisted
+  // before this shipped re-derive on load, so no re-auth is forced.
+  const sportsProfile = currentUser ? resolveSportsProfile(currentUser) : null;
   const user = currentUser
-    ? { ...currentUser, programKey, displayName: formatDisplayName(currentUser.username) }
+    ? { ...currentUser, programKey, displayName: formatDisplayName(currentUser.username), sportsProfile }
     : null;
 
   const role = String(user?.role || '').trim().toLowerCase();
