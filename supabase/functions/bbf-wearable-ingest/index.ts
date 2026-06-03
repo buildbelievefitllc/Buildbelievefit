@@ -10,10 +10,13 @@
 // callers per CLAUDE.md §4). The name is `bbf-wearable-ingest`, not `bbf-agentic-*`,
 // to keep that distinction honest.
 //
-// AUTH (two paths, keys held in env):
+// AUTH (two paths):
 //   • Athlete sync  — body { session_token } → bbf_ingest_wearable_reading()
-//   • Server/webhook — header X-BBF-Admin-Token === BBF_WEARABLE_INGEST_TOKEN and
-//                      body { uid } → bbf_ingest_wearable_reading_admin()
+//   • Server/webhook — header X-BBF-Admin-Token validated against the Vault secret
+//                      `wearable_ingest_token` via the service_role-only RPC
+//                      bbf_check_ingest_token(); then body { uid } →
+//                      bbf_ingest_wearable_reading_admin(). No Deno.env secret —
+//                      the shared secret lives in Supabase Vault, rotatable via SQL.
 //
 // Request:  POST { source, session_token? , uid?, payload }
 // Response: { ok:true, reading_id, source, normalized, acwr } | non-2xx { error }
@@ -46,7 +49,6 @@ serve(async (req: Request) => {
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const INGEST_TOKEN = Deno.env.get('BBF_WEARABLE_INGEST_TOKEN');
   if (!SUPABASE_URL || !SERVICE_KEY) {
     return jsonResponse({ error: 'server_misconfigured' }, 500);
   }
@@ -87,7 +89,15 @@ serve(async (req: Request) => {
       p_source: source,
       p_reading: reading,
     });
-  } else if (adminToken && INGEST_TOKEN && adminToken === INGEST_TOKEN && body?.uid) {
+  } else if (adminToken && body?.uid) {
+    // Validate the webhook header against the Vault secret (service_role-only RPC).
+    const chk = await supa.rpc('bbf_check_ingest_token', { p_token: String(adminToken) });
+    if (chk.error) {
+      return jsonResponse({ error: 'auth_check_failed', detail: chk.error.message }, 502);
+    }
+    if (chk.data !== true) {
+      return jsonResponse({ error: 'unauthorized' }, 401);
+    }
     rpc = await supa.rpc('bbf_ingest_wearable_reading_admin', {
       p_uid: String(body.uid),
       p_source: source,
