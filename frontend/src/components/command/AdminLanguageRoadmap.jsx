@@ -632,12 +632,80 @@ function TabRoadmap() {
   );
 }
 
+// ─── BBF VIDEO VAULT (Task 6) ────────────────────────────────────────────────
+// Token-free, fully client-side language video library: 5 Spanish + 5 Brazilian
+// Portuguese foundational travel-dialogue / conversational-block lessons, embedded
+// as native YouTube <iframe>s (mirrors the ChampionMindset embed pattern — no
+// backend, no API tokens). IDs were sourced from live search of reputable language
+// channels (SpanishPod101 / PortuguesePod101 et al.); each card also carries a
+// direct "Watch on YouTube" link as a fallback if an embed is ever restricted.
+const videoVault = [
+  // ── 🇪🇸 Spanish basics — practical travel dialogue ──
+  { id: '0zlAehSZyQo', lang: 'ES', title: 'Survive in Spain: Essential Spanish Travel Expressions', focus: 'Travel survival dialogue' },
+  { id: 'k_gF1NegCzs', lang: 'ES', title: '50 Must-Know Survival Phrases for Travel', focus: 'Core travel phrasebook' },
+  { id: '8fKyXKSKabw', lang: 'ES', title: '20 Travel Phrases You Should Know in Spanish', focus: 'Quick-start conversation' },
+  { id: 'wPk5oZapyt4', lang: 'ES', title: 'Essential Spanish Phrases Every Traveler Must Know', focus: 'Traveler essentials' },
+  { id: '0id3_N3tbKU', lang: 'ES', title: 'Survival Spanish for Travel: 25 Key Phrases', focus: 'Foundational conversation' },
+  // ── 🇧🇷 Brazilian Portuguese basics — practical travel dialogue ──
+  { id: 'jY6WqiCKWlA', lang: 'PT', title: 'Survive in Brazil: Essential Portuguese Travel Expressions', focus: 'Travel survival dialogue' },
+  { id: 'ycjn_AiVVdg', lang: 'PT', title: 'Brazilian Portuguese: Getting Directions', focus: 'Directions & navigation' },
+  { id: 'eMsDho6otek', lang: 'PT', title: 'Phrases to Know Before You Travel to Brazil', focus: 'Pre-trip phrasebook' },
+  { id: 'gDoCk5Ozd2k', lang: 'PT', title: 'Key Brazilian Portuguese Travel Phrases', focus: 'Traveler essentials' },
+  { id: 'n2ryCCPLri8', lang: 'PT', title: 'Brazilian Portuguese Conversation Basics', focus: 'Foundational conversation' },
+];
+
+function TabVideoVault() {
+  return (
+    <div>
+      <div className="lr-section-label">TASK 6 · BBF VIDEO VAULT</div>
+      <div className="lr-section-title">🎬 VIDEO <span>LIBRARY</span></div>
+      <div className="lr-section-desc">
+        A token-free, client-side library of foundational travel dialogue and
+        conversational blocks — 5 Spanish, 5 Brazilian Portuguese. Videos stream
+        natively from YouTube; nothing touches the backend or consumes API tokens.
+      </div>
+      <div className="lr-video-grid">
+        {videoVault.map((v) => (
+          <div className="lr-video-card" key={v.id}>
+            <div className="lr-video-frame">
+              <iframe
+                className="lr-video-iframe"
+                src={`https://www.youtube.com/embed/${v.id}`}
+                title={v.title}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+            <div className="lr-video-meta">
+              <span className={`lr-video-flag lr-video-flag--${v.lang === 'ES' ? 'es' : 'pt'}`}>
+                {v.lang === 'ES' ? '🇪🇸 Español' : '🇧🇷 Português'}
+              </span>
+              <div className="lr-video-title">{v.title}</div>
+              <div className="lr-video-focus">{v.focus}</div>
+              <a
+                className="lr-video-link"
+                href={`https://www.youtube.com/watch?v=${v.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Watch on YouTube ↗
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const TABS = [
   { id: 'vocab', label: '🇪🇸 Vocab Matrix', Panel: TabVocab },
   { id: 'pt', label: '🇧🇷 Rio Ready', Panel: TabPortuguese },
   { id: 'roleplay', label: '⚡ God-Mode Drills', Panel: TabRoleplay },
   { id: 'intentions', label: '🎯 Intentions', Panel: TabIntentions },
   { id: 'roadmap', label: '📋 90-Day Roadmap', Panel: TabRoadmap },
+  { id: 'videos', label: '🎬 BBF VIDEO VAULT', Panel: TabVideoVault },
 ];
 
 // ─── SHELL ────────────────────────────────────────────────────────────────────
