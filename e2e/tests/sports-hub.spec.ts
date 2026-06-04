@@ -59,8 +59,8 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     await expect(page).toHaveURL(/\/sports-hub$/);
     await expect(page.getByTestId('sports-hub')).toBeVisible();
     await expect(page.locator('.cv-greet')).toHaveCount(0); // adult Vault never rendered
-    await expect(page.getByRole('heading', { name: 'Combine Metrics' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Positional Film Study' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Combine Metrics' })).toBeVisible(); // default tab
+    await expect(page.getByRole('tab', { name: /Positional Ability/i })).toBeVisible(); // sub-nav present
 
     expect(realDbHits).toHaveLength(0);
   });
@@ -127,6 +127,48 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
 
     expect(captured).toHaveLength(1);
     expect(captured[0]).toMatchObject({ p_uid: 'marcus_bbf', p_session_token: 'e2e-vault-token' });
+    expect(realDbHits).toHaveLength(0);
+  });
+
+  test('performance sub-nav switches views; calculators & toggles mutate live', async ({ page }) => {
+    const { realDbHits } = await installSupabaseBaseline(page);
+    await stubIntakeStatus(page, true); // cleared → Hub renders
+    await seedClientSession(page, ATHLETE_SESSION);
+
+    await page.goto('/sports-hub');
+    await expect(page.getByTestId('sports-hub')).toBeVisible();
+
+    // Default tab = Combine Metrics; the bar % is COMPUTED (5.61s vs the 5.20 OL
+    // target), and editing the mark recomputes it in real time — not a static width.
+    const fortyPct = page.getByTestId('sh-combine-pct-forty');
+    await expect(fortyPct).toHaveText('93% to target');
+    await page.getByTestId('sh-combine-input-forty').fill('5.20'); // hit the target
+    await expect(fortyPct).toHaveText('100% to target');
+
+    // Explosive Power tab → live Power Index recompute.
+    await page.getByTestId('sh-tab-power').click();
+    const idx = page.getByTestId('sh-power-index');
+    await expect(idx).toHaveText('80');
+    await page.getByTestId('sh-power-peak').fill('5200'); // peak == target → index climbs
+    await expect(idx).toHaveText('90');
+
+    // Size & Mass tab → weight calculator vs the frame target.
+    await page.getByTestId('sh-tab-size').click();
+    await page.getByTestId('sh-size-weight').fill('275');
+    await expect(page.getByTestId('sh-size-pct')).toHaveText('100% to frame target');
+
+    // Positional Ability tab → drill toggle + film status cycle (state mutation).
+    await page.getByTestId('sh-tab-positional').click();
+    const drill0 = page.getByTestId('sh-drill-toggle-0');
+    await expect(drill0).toHaveAttribute('aria-pressed', 'false');
+    await drill0.click();
+    await expect(drill0).toHaveAttribute('aria-pressed', 'true');
+
+    const film0 = page.getByTestId('sh-film-card-0');
+    await expect(film0).toContainText('Assigned');
+    await film0.click();
+    await expect(film0).toContainText('In Review');
+
     expect(realDbHits).toHaveLength(0);
   });
 });

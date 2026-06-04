@@ -1,19 +1,29 @@
 // src/components/sportshub/sections.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// The Sports Hub — dashboard section bodies (scaffold).
+// The Sports Hub — INTERACTIVE performance tab bodies.
 //
-// The four youth/lineman surfaces the CEO scoped: Combine Metrics, Explosive
-// Power Output, Lineman-Specific Drill Progress, and Positional Film Study. Each
-// is a pure presentational component painting the buildHubModel() shape — no
-// network, no state. Styling is the `.sh-*` namespace (sportsHub.css), kept
-// strictly LOCKED-brand (purple/gold, matte-black canvas) but in a varsity
-// "scoreboard" register that reads visibly younger than the adult Sovereign Vault.
+// Each section is a CONTROLLED component: it paints the lifted model from
+// SportsHub and reports edits/toggles back up via callbacks, so the CEO can drive
+// the real mechanics — editing a combine mark recomputes its % against the target
+// threshold in real time (progressToward), and drill/film items mutate state on
+// click. Styling stays in the `.sh-*` namespace (LOCKED-brand varsity register).
+
+import { progressToward } from './hubData.js';
 
 const STATUS_META = {
   assigned: { label: 'Assigned', cls: 'is-assigned' },
   'in-review': { label: 'In Review', cls: 'is-review' },
-  complete: { label: 'Watched', cls: 'is-complete' },
+  complete: { label: 'Reviewed', cls: 'is-complete' },
 };
+
+function fmt(n) {
+  return typeof n === 'number' ? Number(n).toLocaleString() : n;
+}
+function formatHeight(inches) {
+  const v = parseFloat(inches);
+  if (!Number.isFinite(v)) return '—';
+  return `${Math.floor(v / 12)}'${Math.round(v % 12)}"`;
+}
 
 // Shared card shell so every section reads as one varsity "play card".
 function SectionCard({ tag, title, meta, testId, children }) {
@@ -31,70 +41,71 @@ function SectionCard({ tag, title, meta, testId, children }) {
   );
 }
 
-function fmt(n) {
-  return typeof n === 'number' ? Number(n).toLocaleString() : n;
-}
-
-export function CombineMetrics({ combine, size }) {
+// ── Combine Metrics — editable marks, live % against the collegiate target ─────
+export function CombineMetrics({ combine, onMetricChange }) {
   return (
-    <SectionCard
-      tag="Scouting · Verified"
-      title={combine.title}
-      meta={combine.reference}
-      testId="sh-section-combine"
-    >
-      <div className="sh-sizebar">
-        <div className="sh-sizecell"><span className="sh-sizecell-l">Height</span><span className="sh-sizecell-v">{size.height}</span></div>
-        <div className="sh-sizecell"><span className="sh-sizecell-l">Weight</span><span className="sh-sizecell-v">{size.weight}<small> {size.weightUnit}</small></span></div>
-        <div className="sh-sizecell"><span className="sh-sizecell-l">Wingspan</span><span className="sh-sizecell-v">{size.wingspan}</span></div>
-        <div className="sh-sizecell"><span className="sh-sizecell-l">BF Trend</span><span className="sh-sizecell-v is-grn">{size.bodyfatTrend}</span></div>
-      </div>
-
+    <SectionCard tag="Scouting · Live Calculator" title={combine.title} meta={combine.reference} testId="sh-section-combine">
       <div className="sh-combine">
         {combine.metrics.map((m) => (
           <div key={m.key} className="sh-combine-row">
             <div className="sh-combine-head">
               <span className="sh-combine-label">{m.label}</span>
-              <span className="sh-combine-read">
-                <b>{fmt(m.current)}</b><span className="sh-combine-unit"> {m.unit}</span>
+              <span className="sh-combine-edit">
+                <input
+                  className="sh-metric-input"
+                  type="number"
+                  inputMode="decimal"
+                  step="any"
+                  value={m.current}
+                  aria-label={`${m.label} current value`}
+                  data-testid={`sh-combine-input-${m.key}`}
+                  onChange={(e) => onMetricChange(m.key, e.target.value)}
+                />
+                <span className="sh-combine-unit">{m.unit}</span>
               </span>
             </div>
             <div className="sh-track" role="progressbar" aria-valuenow={m.progress} aria-valuemin={0} aria-valuemax={100}>
               <div className="sh-track-fill" style={{ width: `${m.progress}%` }} />
             </div>
             <div className="sh-combine-foot">
-              <span>{m.progress}% to target</span>
+              <span data-testid={`sh-combine-pct-${m.key}`}>{m.progress}% to target</span>
               <span className="sh-combine-target">Target {fmt(m.target)} {m.unit}{m.lowerIsBetter ? ' ↓' : ''}</span>
             </div>
           </div>
         ))}
       </div>
+      <p className="sh-hint">Edit a mark to recompute attainment against the collegiate OL threshold in real time.</p>
     </SectionCard>
   );
 }
 
-export function ExplosivePower({ power }) {
-  const peak = Math.max(...power.series.map((s) => s.value));
+// ── Explosive Power — editable force-plate inputs drive a live Power Index ─────
+export function ExplosivePower({ power, onPowerChange }) {
+  const peak = Math.max(...power.series.map((s) => s.value), parseFloat(power.peakPowerW) || 0);
   return (
-    <SectionCard
-      tag="Force Plate · VBT"
-      title={power.title}
-      meta={`RFD ${power.rfdTrend} · 4 wk`}
-      testId="sh-section-power"
-    >
+    <SectionCard tag="Force Plate · Live VBT" title={power.title} meta={`RFD ${power.rfdTrend} · 4 wk`} testId="sh-section-power">
       <div className="sh-power-top">
         <div className="sh-gauge">
-          <div className="sh-gauge-v">{power.index}</div>
+          <div className="sh-gauge-v" data-testid="sh-power-index">{power.index}</div>
           <div className="sh-gauge-l">Power Index</div>
         </div>
         <div className="sh-power-stats">
-          <div className="sh-pstat"><span className="sh-pstat-l">Peak Power</span><span className="sh-pstat-v">{fmt(power.peakPowerW)}<small> W</small></span></div>
+          <label className="sh-pstat">
+            <span className="sh-pstat-l">Peak Power (W)</span>
+            <input className="sh-metric-input is-wide" type="number" step="any" inputMode="numeric"
+              value={power.peakPowerW} aria-label="Peak power watts" data-testid="sh-power-peak"
+              onChange={(e) => onPowerChange('peakPowerW', e.target.value)} />
+          </label>
+          <label className="sh-pstat">
+            <span className="sh-pstat-l">CMJ Power (W)</span>
+            <input className="sh-metric-input is-wide" type="number" step="any" inputMode="numeric"
+              value={power.cmjPowerW} aria-label="Countermovement jump power watts" data-testid="sh-power-cmj"
+              onChange={(e) => onPowerChange('cmjPowerW', e.target.value)} />
+          </label>
           <div className="sh-pstat"><span className="sh-pstat-l">Mean Velocity</span><span className="sh-pstat-v">{power.meanVelocity}<small> m/s</small></span></div>
           <div className="sh-pstat"><span className="sh-pstat-l">CMJ Height</span><span className="sh-pstat-v">{power.cmjHeightIn}<small> in</small></span></div>
-          <div className="sh-pstat"><span className="sh-pstat-l">CMJ Power</span><span className="sh-pstat-v">{fmt(power.cmjPowerW)}<small> W</small></span></div>
         </div>
       </div>
-
       <div className="sh-spark" aria-label="Peak power, last four sessions">
         {power.series.map((s) => (
           <div key={s.label} className="sh-spark-col">
@@ -103,61 +114,119 @@ export function ExplosivePower({ power }) {
           </div>
         ))}
       </div>
+      <p className="sh-hint">Power Index = mean attainment of peak &amp; CMJ power vs target — recomputed as you log force-plate numbers.</p>
     </SectionCard>
   );
 }
 
-export function DrillProgress({ drills }) {
+// ── Size & Mass — anthropometrics; weight tracks live toward a lineman frame ───
+export function SizeMass({ size, onSizeChange }) {
+  const weightPct = progressToward(size.weightLbs, size.weightTarget, false);
   return (
-    <SectionCard
-      tag="Trench Work · Position-Specific"
-      title={drills.title}
-      meta={`${drills.items.length} active drills`}
-      testId="sh-section-drills"
-    >
-      <div className="sh-drills">
-        {drills.items.map((d) => (
-          <div key={d.name} className={`sh-drill${d.progress >= 75 ? ' is-hot' : ''}`}>
-            <div className="sh-drill-top">
-              <span className="sh-drill-name">{d.name}</span>
-              <span className="sh-drill-pct">{d.progress}%</span>
-            </div>
-            <div className="sh-drill-desc">{d.detail}</div>
-            <div className="sh-track">
-              <div className="sh-track-fill" style={{ width: `${d.progress}%` }} />
-            </div>
-            <div className="sh-drill-reps">{d.reps}</div>
-          </div>
-        ))}
+    <SectionCard tag="Anthropometrics" title={size.title} meta={size.reference} testId="sh-section-size">
+      <div className="sh-sizebar">
+        <label className="sh-sizecell">
+          <span className="sh-sizecell-l">Weight (lbs)</span>
+          <input className="sh-metric-input" type="number" step="any" inputMode="numeric"
+            value={size.weightLbs} aria-label="Body weight pounds" data-testid="sh-size-weight"
+            onChange={(e) => onSizeChange('weightLbs', e.target.value)} />
+        </label>
+        <label className="sh-sizecell">
+          <span className="sh-sizecell-l">Height (in)</span>
+          <input className="sh-metric-input" type="number" step="any" inputMode="numeric"
+            value={size.heightIn} aria-label="Height inches"
+            onChange={(e) => onSizeChange('heightIn', e.target.value)} />
+          <span className="sh-sizecell-s">{formatHeight(size.heightIn)}</span>
+        </label>
+        <label className="sh-sizecell">
+          <span className="sh-sizecell-l">Wingspan (in)</span>
+          <input className="sh-metric-input" type="number" step="any" inputMode="numeric"
+            value={size.wingspanIn} aria-label="Wingspan inches"
+            onChange={(e) => onSizeChange('wingspanIn', e.target.value)} />
+        </label>
+        <div className="sh-sizecell"><span className="sh-sizecell-l">BF Trend</span><span className="sh-sizecell-v is-grn">{size.bodyfatTrend}</span></div>
+      </div>
+
+      <div className="sh-combine-row sh-size-goal">
+        <div className="sh-combine-head">
+          <span className="sh-combine-label">Mass Goal</span>
+          <span className="sh-combine-read"><b>{fmt(parseFloat(size.weightLbs) || 0)}</b><span className="sh-combine-unit"> / {size.weightTarget} lbs</span></span>
+        </div>
+        <div className="sh-track" role="progressbar" aria-valuenow={weightPct} aria-valuemin={0} aria-valuemax={100}>
+          <div className="sh-track-fill" style={{ width: `${weightPct}%` }} />
+        </div>
+        <div className="sh-combine-foot">
+          <span data-testid="sh-size-pct">{weightPct}% to frame target</span>
+          <span className="sh-combine-target">Collegiate OL ≈ {size.weightTarget} lbs</span>
+        </div>
       </div>
     </SectionCard>
   );
 }
 
-export function FilmStudy({ film }) {
+// ── Positional Ability — drill progress (toggle complete) + film (cycle status) ─
+export function PositionalAbility({ drills, film, onToggleDrill, onCycleStatus }) {
   const watched = film.clips.filter((c) => c.status === 'complete').length;
   return (
-    <SectionCard
-      tag="Film Room · Assigned by Coach"
-      title={film.title}
-      meta={`${watched} / ${film.clips.length} watched`}
-      testId="sh-section-film"
-    >
-      <div className="sh-film">
-        {film.clips.map((c) => {
-          const s = STATUS_META[c.status] || STATUS_META.assigned;
-          return (
-            <div key={c.title} className="sh-clip">
-              <div className="sh-clip-play" aria-hidden="true">▶</div>
-              <div className="sh-clip-body">
-                <div className="sh-clip-title">{c.title}</div>
-                <div className="sh-clip-meta">{c.concept} · {c.duration}{c.notes ? ` · ${c.notes} coach note${c.notes > 1 ? 's' : ''}` : ''}</div>
+    <>
+      <SectionCard tag="Trench Work · Position-Specific" title={drills.title} meta={`${drills.items.filter((d) => d.done).length} / ${drills.items.length} complete`} testId="sh-section-drills">
+        <div className="sh-drills">
+          {drills.items.map((d, i) => {
+            const pct = d.done ? 100 : d.progress;
+            const hot = d.done || d.progress >= 75;
+            return (
+              <div key={d.name} className={`sh-drill${hot ? ' is-hot' : ''}${d.done ? ' is-done' : ''}`}>
+                <button
+                  type="button"
+                  className={`sh-drill-check${d.done ? ' is-on' : ''}`}
+                  aria-pressed={d.done}
+                  aria-label={`Mark ${d.name} ${d.done ? 'incomplete' : 'complete'}`}
+                  data-testid={`sh-drill-toggle-${i}`}
+                  onClick={() => onToggleDrill(i)}
+                >
+                  {d.done ? '✓' : ''}
+                </button>
+                <div className="sh-drill-body">
+                  <div className="sh-drill-top">
+                    <span className="sh-drill-name">{d.name}</span>
+                    <span className="sh-drill-pct">{d.done ? 'MET' : `${d.progress}%`}</span>
+                  </div>
+                  <div className="sh-drill-desc">{d.detail}</div>
+                  <div className="sh-track">
+                    <div className="sh-track-fill" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="sh-drill-reps">{d.reps}</div>
+                </div>
               </div>
-              <span className={`sh-clip-status ${s.cls}`}>{s.label}</span>
-            </div>
-          );
-        })}
-      </div>
-    </SectionCard>
+            );
+          })}
+        </div>
+      </SectionCard>
+
+      <SectionCard tag="Film Room · Tap to Update" title={film.title} meta={`${watched} / ${film.clips.length} reviewed`} testId="sh-section-film">
+        <div className="sh-film">
+          {film.clips.map((c, i) => {
+            const s = STATUS_META[c.status] || STATUS_META.assigned;
+            return (
+              <button
+                key={c.title}
+                type="button"
+                className="sh-clip"
+                data-testid={`sh-film-card-${i}`}
+                aria-label={`${c.title} — status ${s.label}. Tap to advance status.`}
+                onClick={() => onCycleStatus(i)}
+              >
+                <span className="sh-clip-play" aria-hidden="true">▶</span>
+                <span className="sh-clip-body">
+                  <span className="sh-clip-title">{c.title}</span>
+                  <span className="sh-clip-meta">{c.concept} · {c.duration}{c.notes ? ` · ${c.notes} coach note${c.notes > 1 ? 's' : ''}` : ''}</span>
+                </span>
+                <span className={`sh-clip-status ${s.cls}`}>{s.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </SectionCard>
+    </>
   );
 }

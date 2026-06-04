@@ -2,43 +2,89 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // THE SPORTS HUB — the authenticated home for the youth/sports division.
 //
-// This is the OTHER side of the post-login Routing Fork (lib/sportsRoster.js):
-// an athlete flagged a sports athlete is sent here straight from the login gate,
-// bypassing the adult Sovereign Vault entirely (App.jsx · VaultRoute redirects a
-// flagged athlete who lands on /vault back here, so the youth surface stays
-// isolated from the adult lifestyle programming).
+// The OTHER side of the post-login Routing Fork (lib/sportsRoster.js): a flagged
+// sports athlete lands here straight from the login gate (after the first-run
+// PAR-Q+ intake gate), bypassing the adult Sovereign Vault entirely.
 //
-// Isolation: lives entirely within pages/SportsHub.jsx + components/sportshub/*;
-// it imports only the shared LangToggle and the auth context. It never touches the
-// adult Vault tabs, the public MarketingLanding, or the admin Command Center.
+// INTERACTIVE: the performance views are a live sub-nav (Combine Metrics ·
+// Explosive Power · Size & Mass · Positional Ability). The dashboard model is
+// LIFTED into local state here, so editing a combine/size/power mark recomputes
+// its % against the target threshold in real time, and drill/film items mutate on
+// click. State is client-side (mechanics test) — the mock fixture swaps for a real
+// telemetry fetch later without touching this wiring.
 //
-// SCAFFOLD: the dashboard sections paint the buildHubModel() fixture (mock youth
-// telemetry). Swap that builder for a real fetch hook when the youth backend lands
-// — the visual shell and section contract stay put.
+// Isolation: lives entirely within pages/SportsHub.jsx + components/sportshub/*.
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
 import LangToggle from '../components/LangToggle.jsx';
-import { buildHubModel } from '../components/sportshub/hubData.js';
+import { buildHubModel, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
 import {
   CombineMetrics,
   ExplosivePower,
-  DrillProgress,
-  FilmStudy,
+  SizeMass,
+  PositionalAbility,
 } from '../components/sportshub/sections.jsx';
 import '../components/sportshub/sportsHub.css';
+
+const TABS = [
+  { id: 'combine', label: 'Combine Metrics', icon: '🎯' },
+  { id: 'power', label: 'Explosive Power', icon: '⚡' },
+  { id: 'size', label: 'Size & Mass', icon: '📏' },
+  { id: 'positional', label: 'Positional Ability', icon: '🎬' },
+];
 
 export default function SportsHub() {
   const { user, signOut } = useAuth();
 
   // The profile is attached to the user by AuthContext; fall back to the resolver
   // (and its default) so the Hub can never crash on a missing profile.
-  const profile = useMemo(
-    () => user?.sportsProfile || resolveSportsProfile(user) || {},
-    [user],
-  );
-  const model = useMemo(() => buildHubModel(profile), [profile]);
+  const profile = useMemo(() => user?.sportsProfile || resolveSportsProfile(user) || {}, [user]);
+
+  // Lifted, editable dashboard model — seeded once from the fixture. Tab switches
+  // never reset it (state lives here, above the keyed panel).
+  const [model, setModel] = useState(() => buildHubModel(profile));
+  const [tab, setTab] = useState('combine');
+
+  // ── Real-time calculators ───────────────────────────────────────────────────
+  const onMetricChange = useCallback((key, raw) => {
+    setModel((m) => ({
+      ...m,
+      combine: {
+        ...m.combine,
+        metrics: m.combine.metrics.map((x) =>
+          x.key === key ? { ...x, current: raw, progress: progressToward(raw, x.target, x.lowerIsBetter) } : x),
+      },
+    }));
+  }, []);
+
+  const onPowerChange = useCallback((field, raw) => {
+    setModel((m) => {
+      const power = { ...m.power, [field]: raw };
+      power.index = computePowerIndex(power.peakPowerW, power.cmjPowerW, power);
+      return { ...m, power };
+    });
+  }, []);
+
+  const onSizeChange = useCallback((field, raw) => {
+    setModel((m) => ({ ...m, size: { ...m.size, [field]: raw } }));
+  }, []);
+
+  // ── State mutations ─────────────────────────────────────────────────────────
+  const onToggleDrill = useCallback((idx) => {
+    setModel((m) => ({
+      ...m,
+      drills: { ...m.drills, items: m.drills.items.map((d, i) => (i === idx ? { ...d, done: !d.done } : d)) },
+    }));
+  }, []);
+
+  const onCycleStatus = useCallback((idx) => {
+    setModel((m) => ({
+      ...m,
+      film: { ...m.film, clips: m.film.clips.map((c, i) => (i === idx ? { ...c, status: nextStatus(c.status) } : c)) },
+    }));
+  }, []);
 
   const name = profile.athleteName || user?.displayName || 'Athlete';
   const initials = name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -89,12 +135,41 @@ export default function SportsHub() {
           {profile.team ? <div className="sh-team">{profile.team}</div> : null}
         </section>
 
-        {/* ── Dashboard grid — the four scoped youth/lineman surfaces ─────────── */}
-        <div className="sh-grid">
-          <CombineMetrics combine={model.combine} size={model.size} />
-          <ExplosivePower power={model.power} />
-          <DrillProgress drills={model.drills} />
-          <FilmStudy film={model.film} />
+        {/* ── Performance sub-navigation ──────────────────────────────────────── */}
+        <nav className="sh-subnav" role="tablist" aria-label="Performance views">
+          {TABS.map((tb) => {
+            const active = tb.id === tab;
+            return (
+              <button
+                key={tb.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={`sh-tab${active ? ' is-active' : ''}`}
+                data-testid={`sh-tab-${tb.id}`}
+                onClick={() => setTab(tb.id)}
+              >
+                <span className="sh-tab-ico" aria-hidden="true">{tb.icon}</span>
+                {tb.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* key={tab} remounts the panel per switch → the transition fires, and the
+            section reads the lifted model fresh (no stale view bleeds across tabs). */}
+        <div className="sh-panel" key={tab}>
+          {tab === 'combine' && <CombineMetrics combine={model.combine} onMetricChange={onMetricChange} />}
+          {tab === 'power' && <ExplosivePower power={model.power} onPowerChange={onPowerChange} />}
+          {tab === 'size' && <SizeMass size={model.size} onSizeChange={onSizeChange} />}
+          {tab === 'positional' && (
+            <PositionalAbility
+              drills={model.drills}
+              film={model.film}
+              onToggleDrill={onToggleDrill}
+              onCycleStatus={onCycleStatus}
+            />
+          )}
         </div>
 
         <p className="sh-foot">
