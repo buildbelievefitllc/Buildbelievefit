@@ -24,7 +24,6 @@ import AdminGuard from './components/AdminGuard.jsx';
 import Login from './pages/Login.jsx';
 import CommandCenter from './pages/CommandCenter.jsx';
 import ClientVault from './pages/ClientVault.jsx';
-import SportsHub from './pages/SportsHub.jsx';
 import YouthIntakeGate from './components/sportshub/YouthIntakeGate.jsx';
 import MarketingLanding from './pages/MarketingLanding.jsx';
 import SportsPortal from './components/sports/SportsPortal.jsx';
@@ -62,11 +61,9 @@ function SportsHubRoute() {
   if (loading) return <div style={bootStyle}>Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
   if (!isSportsAthlete(user) && !isAdmin) return <Navigate to="/vault" replace />;
-  return (
-    <YouthIntakeGate>
-      <SportsHub />
-    </YouthIntakeGate>
-  );
+  // The gate renders the intake (until cleared) then the Hub itself, scoped to the
+  // athlete's chosen sport/position.
+  return <YouthIntakeGate />;
 }
 
 const bootStyle = {

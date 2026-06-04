@@ -40,10 +40,14 @@ export function classifyParq(answers) {
 // a result whose key doesn't match the current uid reads as 'loading'.
 export function useYouthIntakeStatus(uid, { skip = false } = {}) {
   const key = String(uid || '').trim().toLowerCase();
-  const [result, setResult] = useState({ uid: null, value: null }); // value: 'complete' | 'incomplete'
+  // value: 'complete' | 'incomplete'; selection: { sportId, positionCode } | null.
+  const [result, setResult] = useState({ uid: null, value: null, selection: null });
 
-  // Flip to complete on submit without a refetch round-trip (keyed to this uid).
-  const markComplete = useCallback(() => setResult({ uid: key, value: 'complete' }), [key]);
+  // Flip to complete on submit without a refetch round-trip (keyed to this uid),
+  // carrying the just-chosen sport/position so the Hub renders it immediately.
+  const markComplete = useCallback((selection = null) => {
+    setResult({ uid: key, value: 'complete', selection });
+  }, [key]);
 
   useEffect(() => {
     if (skip || !key) return undefined; // nothing to fetch; derived below
@@ -53,10 +57,14 @@ export function useYouthIntakeStatus(uid, { skip = false } = {}) {
       .then(({ data, error }) => {
         if (cancelled) return;
         // RETURNS json → `data` is the object. Only a definitive `completed:true`
-        // opens the gate; everything else (no row, error shape) stays closed.
-        setResult({ uid: key, value: !error && data?.completed ? 'complete' : 'incomplete' });
+        // opens the gate; everything else (no row, error shape) stays closed. The
+        // persisted sport/position (canonical ids) drive the Hub for a returning athlete.
+        const selection = (!error && data?.sport)
+          ? { sportId: data.sport, positionCode: data.position || null }
+          : null;
+        setResult({ uid: key, value: !error && data?.completed ? 'complete' : 'incomplete', selection });
       })
-      .catch(() => { if (!cancelled) setResult({ uid: key, value: 'incomplete' }); });
+      .catch(() => { if (!cancelled) setResult({ uid: key, value: 'incomplete', selection: null }); });
     return () => { cancelled = true; };
   }, [key, skip]);
 
@@ -66,7 +74,8 @@ export function useYouthIntakeStatus(uid, { skip = false } = {}) {
   else if (result.uid !== key) status = 'loading'; // current uid not yet resolved
   else status = result.value;
 
-  return { status, markComplete };
+  const selection = result.uid === key ? result.selection : null;
+  return { status, selection, markComplete };
 }
 
 // Persist the intake. Authorized server-side purely by the bearer token (the

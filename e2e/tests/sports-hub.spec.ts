@@ -115,7 +115,9 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     await page.goto('/sports-hub');
     await expect(page.getByRole('heading', { name: /Athlete Intake/i })).toBeVisible();
 
-    // The gate forces guardian authorization + the liability/terms acknowledgment.
+    // The gate forces the sport selection + guardian authorization + liability/terms.
+    await page.locator('#yi-sport').selectOption('football');
+    await page.locator('#yi-position').selectOption('OL');
     await page.locator('#yi-guardian-name').fill('Denise Vance');
     await page.locator('#yi-guardian-consent').check();
     await page.locator('#yi-liability').check();
@@ -126,7 +128,11 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     await expect(page.getByRole('heading', { name: 'Combine Metrics' })).toBeVisible();
 
     expect(captured).toHaveLength(1);
-    expect(captured[0]).toMatchObject({ p_uid: 'marcus_bbf', p_session_token: 'e2e-vault-token' });
+    expect(captured[0]).toMatchObject({
+      p_uid: 'marcus_bbf',
+      p_session_token: 'e2e-vault-token',
+      p_payload: { sport: 'football', position: 'OL' }, // selection bundled into the payload
+    });
     expect(realDbHits).toHaveLength(0);
   });
 
@@ -169,6 +175,35 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     await film0.click();
     await expect(film0).toContainText('In Review');
 
+    expect(realDbHits).toHaveLength(0);
+  });
+
+  test('intake sport selection drives the Hub (basketball / point guard)', async ({ page }) => {
+    const { realDbHits } = await installSupabaseBaseline(page);
+    await stubIntakeStatus(page, false);
+    const captured: Array<Record<string, unknown>> = [];
+    await stubIntakeSubmit(page, captured);
+    await seedClientSession(page, ATHLETE_SESSION);
+
+    await page.goto('/sports-hub');
+    await expect(page.getByRole('heading', { name: /Athlete Intake/i })).toBeVisible();
+
+    // Pick a sport + position different from the football seed (the secondary field
+    // is dependent); the choice bundles into the payload AND drives the Hub.
+    await page.locator('#yi-sport').selectOption('basketball');
+    await page.locator('#yi-position').selectOption('PG');
+    await page.locator('#yi-guardian-name').fill('Denise Vance');
+    await page.locator('#yi-guardian-consent').check();
+    await page.locator('#yi-liability').check();
+    await page.getByRole('button', { name: /Complete Intake/i }).click();
+
+    // Released into the Hub rendered for basketball / point guard.
+    await expect(page.getByTestId('sports-hub')).toBeVisible();
+    await expect(page.getByTestId('sh-hero-sport')).toContainText('Basketball');
+    await expect(page.getByTestId('sh-hero-position')).toContainText('Point Guard');
+    await expect(page.getByText('Lane Agility')).toBeVisible(); // basketball-specific combine metric
+
+    expect(captured[0]).toMatchObject({ p_payload: { sport: 'basketball', position: 'PG' } });
     expect(realDbHits).toHaveLength(0);
   });
 });

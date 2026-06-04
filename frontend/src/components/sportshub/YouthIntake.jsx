@@ -1,22 +1,23 @@
 // src/components/sportshub/YouthIntake.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// THE SPORTS HUB — first-run intake gate (forced PAR-Q+ + guardian authorization).
+// THE SPORTS HUB — first-run intake gate (PAR-Q+ + sport selection + guardian auth).
 //
 // Rendered IN PLACE OF the Sports Hub by YouthIntakeGate until the athlete has a
-// persisted screening. The athlete cannot reach the Hub without completing this:
-// guardian authorization + the liability/terms acknowledgment are REQUIRED, and
-// the 7 standard PAR-Q+ items are attested (reusing the public Pathfinder's
-// trilingual f-parq* / f-liability copy — single-sourced legal language).
+// persisted screening. Forced completion: sport + position/event, guardian
+// authorization, and the liability/terms acknowledgment are ALL required; the 7
+// standard PAR-Q+ items are attested (reusing the public Pathfinder's trilingual
+// f-parq* / f-liability copy).
 //
-// On submit the canonical PAR-Q snapshot is persisted to the athlete's profile
-// (par_q_screen / par_q_screened_at / cardiac_clearance via bbf_submit_youth_intake);
-// once the DB confirms, the gate releases them into /sports-hub.
+// On submit the canonical PAR-Q snapshot AND the sport/position selection persist
+// to the athlete's profile (par_q_screen + the sport/position columns via
+// bbf_submit_youth_intake); the chosen sport/position then drives the Hub.
 
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { resolveSportsProfile } from '../../lib/sportsRoster.js';
 import { PARQ_ITEMS, classifyParq, submitYouthIntake } from '../../lib/youthIntakeApi.js';
+import { YOUTH_SPORTS, getSport } from './youthSports.js';
 import './sportsHub.css';
 
 export default function YouthIntake({ uid, onComplete }) {
@@ -26,6 +27,11 @@ export default function YouthIntake({ uid, onComplete }) {
 
   const [parq, setParq] = useState({}); // { 'f-parq1': true, ... }
   const [health, setHealth] = useState({ injuries: '', conditions: '', medications: '' });
+  // Sport selection — pre-seeded from the athlete's profile when it maps cleanly.
+  const [sportId, setSportId] = useState(() =>
+    (YOUTH_SPORTS.some((s) => s.id === profile.sportId) ? profile.sportId : ''));
+  const [posCode, setPosCode] = useState(() =>
+    (getSport(profile.sportId)?.options.some((o) => o.legacy === profile.positionCode) ? profile.positionCode : ''));
   const [guardianName, setGuardianName] = useState('');
   const [guardianRel, setGuardianRel] = useState('');
   const [guardianConsent, setGuardianConsent] = useState(false);
@@ -37,9 +43,17 @@ export default function YouthIntake({ uid, onComplete }) {
   const classification = classifyParq(parq);
   const flagged = classification !== 'self_attested';
 
-  // Forced completion: a guardian must authorize AND the waiver/terms must be
-  // acknowledged. PAR-Q answers default to "no" (unchecked) — a valid attestation.
-  const canSubmit = guardianName.trim() && guardianConsent && liability && !busy;
+  const sportCfg = getSport(sportId);
+  const secondaryLabel = sportCfg?.field === 'event' ? t('yi-field-event') : t('yi-field-position');
+
+  // Forced completion: sport + position/event, a guardian authorization, AND the
+  // waiver/terms acknowledgment. PAR-Q answers default to "no" (a valid attestation).
+  const canSubmit = sportId && posCode && guardianName.trim() && guardianConsent && liability && !busy;
+
+  function onSportChange(next) {
+    setSportId(next);
+    setPosCode(''); // clear the dependent field — its options changed
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -53,8 +67,12 @@ export default function YouthIntake({ uid, onComplete }) {
       acc[`q${i + 1}`] = parq[k] === true;
       return acc;
     }, {});
+    const posLabel = sportCfg?.options.find((o) => o.legacy === posCode)?.label || null;
 
     const payload = {
+      // Top-level sport/position (canonical ids) → persisted to the profile columns.
+      sport: sportId,
+      position: posCode,
       answers,
       flagged_items: PARQ_ITEMS.filter((k) => parq[k]),
       classified: classification, // advisory; server is authoritative
@@ -69,13 +87,14 @@ export default function YouthIntake({ uid, onComplete }) {
         consent: true,
       },
       liability_agreed: true,
-      athlete: { age: profile.age ?? null, sport: profile.sport ?? null, position: profile.position ?? null },
+      athlete: { age: profile.age ?? null, sportId, positionCode: posCode, positionLabel: posLabel },
       locale: lang,
     };
 
     const res = await submitYouthIntake(uid, payload);
     if (res?.ok) {
-      onComplete?.();
+      // Carry the chosen sport/position so the Hub renders it immediately.
+      onComplete?.({ sportId, positionCode: posCode });
       return;
     }
     setBusy(false);
@@ -111,6 +130,25 @@ export default function YouthIntake({ uid, onComplete }) {
 
             {flagged ? (
               <div className="sh-intake-flag" role="status">⚠ {t('yi-clearance-flag')}</div>
+            ) : null}
+
+            {/* ── Sport & position/event (REQUIRED) — drives the Sports Hub ── */}
+            <div className="sh-intake-sec-title">{t('yi-sport-head')}</div>
+            <label className="bbf-label" htmlFor="yi-sport">{t('yi-field-sport')} <span className="sh-intake-req">*</span></label>
+            <select id="yi-sport" className="bbf-input" value={sportId} disabled={busy}
+              data-testid="yi-sport" onChange={(e) => onSportChange(e.target.value)}>
+              <option value="">{t('yi-choose')}</option>
+              {YOUTH_SPORTS.map((s) => <option key={s.id} value={s.id}>{t(s.labelKey)}</option>)}
+            </select>
+            {sportCfg ? (
+              <>
+                <label className="bbf-label sh-intake-gap" htmlFor="yi-position">{secondaryLabel} <span className="sh-intake-req">*</span></label>
+                <select id="yi-position" className="bbf-input" value={posCode} disabled={busy}
+                  data-testid="yi-position" onChange={(e) => setPosCode(e.target.value)}>
+                  <option value="">{t('yi-choose')}</option>
+                  {sportCfg.options.map((o) => <option key={o.legacy} value={o.legacy}>{o.label}</option>)}
+                </select>
+              </>
             ) : null}
 
             {/* ── Health disclosure (optional) ── */}

@@ -221,6 +221,18 @@ const DICT = {
   'yi-submit': { en: 'Complete Intake & Enter Hub →', es: 'Completar Registro y Entrar al Hub →', pt: 'Concluir Cadastro e Entrar no Hub →' },
   'yi-submitting': { en: 'Securing your intake…', es: 'Asegurando tu registro…', pt: 'Protegendo seu cadastro…' },
   'yi-error': { en: 'Could not save your intake. Please retry.', es: 'No se pudo guardar tu registro. Inténtalo de nuevo.', pt: 'Não foi possível salvar seu cadastro. Tente novamente.' },
+  // Youth intake — sport / position selection.
+  'yi-sport-head': { en: 'Sport & Position', es: 'Deporte y Posición', pt: 'Esporte e Posição' },
+  'yi-field-sport': { en: 'Primary Sport', es: 'Deporte Principal', pt: 'Esporte Principal' },
+  'yi-field-position': { en: 'Position', es: 'Posición', pt: 'Posição' },
+  'yi-field-event': { en: 'Event', es: 'Prueba', pt: 'Prova' },
+  'yi-choose': { en: 'Select…', es: 'Selecciona…', pt: 'Selecione…' },
+  'yi-sport-football': { en: 'American Football', es: 'Fútbol Americano', pt: 'Futebol Americano' },
+  'yi-sport-basketball': { en: 'Basketball', es: 'Baloncesto', pt: 'Basquete' },
+  'yi-sport-soccer': { en: 'Soccer', es: 'Fútbol', pt: 'Futebol' },
+  'yi-sport-baseball': { en: 'Baseball', es: 'Béisbol', pt: 'Beisebol' },
+  'yi-sport-volleyball': { en: 'Volleyball', es: 'Voleibol', pt: 'Vôlei' },
+  'yi-sport-track': { en: 'Track & Field', es: 'Atletismo', pt: 'Atletismo' },
 
   // ── Phase 26 — Authenticated shell (Vault top bar · tabs · Command Center ·
   // MasterLayout · Settings). Wired so the chosen language follows the athlete

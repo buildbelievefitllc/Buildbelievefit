@@ -17,9 +17,11 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLang } from '../context/LangContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
 import LangToggle from '../components/LangToggle.jsx';
 import { buildHubModel, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
+import { YOUTH_SPORTS, positionLabel } from '../components/sportshub/youthSports.js';
 import {
   CombineMetrics,
   ExplosivePower,
@@ -35,16 +37,30 @@ const TABS = [
   { id: 'positional', label: 'Positional Ability', icon: '🎬' },
 ];
 
-export default function SportsHub() {
+// `selection` ({ sportId, positionCode }) is the athlete's intake choice, passed
+// down by YouthIntakeGate (just-submitted or persisted). It wins over the seed so
+// every tab renders the sport they picked. The gate keys this component on the
+// selection, so a sport change cleanly re-seeds the editable model.
+export default function SportsHub({ selection = null }) {
   const { user, signOut } = useAuth();
+  const { t } = useLang();
 
   // The profile is attached to the user by AuthContext; fall back to the resolver
   // (and its default) so the Hub can never crash on a missing profile.
   const profile = useMemo(() => user?.sportsProfile || resolveSportsProfile(user) || {}, [user]);
 
-  // Lifted, editable dashboard model — seeded once from the fixture. Tab switches
-  // never reset it (state lives here, above the keyed panel).
-  const [model, setModel] = useState(() => buildHubModel(profile));
+  // Effective sport/position: the chosen/persisted selection over the seed.
+  const effProfile = useMemo(() => {
+    const sportId = selection?.sportId || profile.sportId || 'football';
+    const positionCode = selection?.positionCode || profile.positionCode || 'OL';
+    const cfg = YOUTH_SPORTS.find((s) => s.id === sportId);
+    const sport = cfg ? t(cfg.labelKey) : (profile.sport || 'Multi-Sport');
+    return { ...profile, sportId, positionCode, sport, position: positionLabel(sportId, positionCode) };
+  }, [selection, profile, t]);
+
+  // Lifted, editable dashboard model — seeded from the sport-aware effective
+  // profile. Tab switches never reset it (state lives here, above the keyed panel).
+  const [model, setModel] = useState(() => buildHubModel(effProfile));
   const [tab, setTab] = useState('combine');
 
   // ── Real-time calculators ───────────────────────────────────────────────────
@@ -115,10 +131,10 @@ export default function SportsHub() {
               <div className="sh-hero-kicker">Youth Division · Active Athlete</div>
               <h1 className="sh-hero-name">{name}</h1>
               <div className="sh-chips">
-                {profile.age != null ? <span className="sh-chip">Age <b>{profile.age}</b></span> : null}
+                {effProfile.age != null ? <span className="sh-chip">Age <b>{effProfile.age}</b></span> : null}
                 {profile.gradeLevel ? <span className="sh-chip">{profile.gradeLevel}</span> : null}
-                <span className="sh-chip">{profile.sport || 'Multi-Sport'}</span>
-                <span className="sh-chip is-pos">{profile.position || '—'}</span>
+                <span className="sh-chip" data-testid="sh-hero-sport">{effProfile.sport || 'Multi-Sport'}</span>
+                <span className="sh-chip is-pos" data-testid="sh-hero-position">{effProfile.position || '—'}</span>
               </div>
             </div>
           </div>

@@ -169,7 +169,7 @@ export function PositionalAbility({ drills, film, onToggleDrill, onCycleStatus }
   const watched = film.clips.filter((c) => c.status === 'complete').length;
   return (
     <>
-      <SectionCard tag="Trench Work · Position-Specific" title={drills.title} meta={`${drills.items.filter((d) => d.done).length} / ${drills.items.length} complete`} testId="sh-section-drills">
+      <SectionCard tag={drills.tag || 'Position-Specific'} title={drills.title} meta={`${drills.items.filter((d) => d.done).length} / ${drills.items.length} complete`} testId="sh-section-drills">
         <div className="sh-drills">
           {drills.items.map((d, i) => {
             const pct = d.done ? 100 : d.progress;
@@ -203,7 +203,7 @@ export function PositionalAbility({ drills, film, onToggleDrill, onCycleStatus }
         </div>
       </SectionCard>
 
-      <SectionCard tag="Film Room · Tap to Update" title={film.title} meta={`${watched} / ${film.clips.length} reviewed`} testId="sh-section-film">
+      <SectionCard tag={film.tag || 'Film Room · Tap to Update'} title={film.title} meta={`${watched} / ${film.clips.length} reviewed`} testId="sh-section-film">
         <div className="sh-film">
           {film.clips.map((c, i) => {
             const s = STATUS_META[c.status] || STATUS_META.assigned;
