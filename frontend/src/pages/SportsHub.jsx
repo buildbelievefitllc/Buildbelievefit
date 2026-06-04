@@ -6,12 +6,13 @@
 // sports athlete lands here straight from the login gate (after the first-run
 // PAR-Q+ intake gate), bypassing the adult Sovereign Vault entirely.
 //
-// INTERACTIVE: the performance views are a live sub-nav (Combine Metrics ·
-// Explosive Power · Size & Mass · Positional Ability). The dashboard model is
-// LIFTED into local state here, so editing a combine/size/power mark recomputes
-// its % against the target threshold in real time, and drill/film items mutate on
-// click. State is client-side (mechanics test) — the mock fixture swaps for a real
-// telemetry fetch later without touching this wiring.
+// DAILY EXECUTION PROTOCOL (CEO paradigm shift): the macro-dashboard is restructured
+// into a chronological Day 1–7 view, mirroring the adult Vault's scrolling
+// pill-navigation (Program.jsx / Nutrition.jsx). The active day shows the athlete's
+// off/in-season workload plus that day's drills + film — each a tap-to-track
+// checkoff (hubData.buildWeek distributes the sport's actionable items across the
+// week). The Combine/Power/Size calculators are preserved in a collapsible
+// "Combine & Measurables" panel so the daily view stays simple for youth execution.
 //
 // Isolation: lives entirely within pages/SportsHub.jsx + components/sportshub/*.
 
@@ -20,27 +21,26 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
 import LangToggle from '../components/LangToggle.jsx';
-import { buildHubModel, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
+import { buildHubModel, buildWeek, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
 import { YOUTH_SPORTS, positionLabel } from '../components/sportshub/youthSports.js';
 import {
   CombineMetrics,
   ExplosivePower,
   SizeMass,
-  PositionalAbility,
+  DayProtocol,
 } from '../components/sportshub/sections.jsx';
 import '../components/sportshub/sportsHub.css';
 
-const TABS = [
-  { id: 'combine', label: 'Combine Metrics', icon: '🎯' },
-  { id: 'power', label: 'Explosive Power', icon: '⚡' },
-  { id: 'size', label: 'Size & Mass', icon: '📏' },
-  { id: 'positional', label: 'Positional Ability', icon: '🎬' },
-];
+// First non-rest day, so the Hub never opens on a blank recovery card.
+function firstTrainingDay(week) {
+  const i = week.findIndex((d) => !d.rest);
+  return i === -1 ? 0 : i;
+}
 
 // `selection` ({ sportId, positionCode }) is the athlete's intake choice, passed
 // down by YouthIntakeGate (just-submitted or persisted). It wins over the seed so
-// every tab renders the sport they picked. The gate keys this component on the
-// selection, so a sport change cleanly re-seeds the editable model.
+// the protocol renders the sport they picked. The gate keys this component on the
+// selection, so a sport change cleanly re-seeds the week + editable model.
 export default function SportsHub({ selection = null }) {
   const { user, signOut } = useAuth();
   const { t } = useLang();
@@ -58,12 +58,31 @@ export default function SportsHub({ selection = null }) {
     return { ...profile, sportId, positionCode, sport, position: positionLabel(sportId, positionCode) };
   }, [selection, profile, t]);
 
-  // Lifted, editable dashboard model — seeded from the sport-aware effective
-  // profile. Tab switches never reset it (state lives here, above the keyed panel).
+  // Lifted state — seeded once from the sport-aware model. `model` powers the
+  // Combine/Power/Size calculators; `week` is the 7-day protocol with checkoff
+  // state. Switching days never resets either (state lives here, above the panel).
   const [model, setModel] = useState(() => buildHubModel(effProfile));
-  const [tab, setTab] = useState('combine');
+  const [week, setWeek] = useState(() => buildWeek(model));
+  const [activeDay, setActiveDay] = useState(() => firstTrainingDay(week));
+  const [phase, setPhase] = useState('offseason'); // 'offseason' | 'inseason'
 
-  // ── Real-time calculators ───────────────────────────────────────────────────
+  // ── Daily checkoffs — operate on the ACTIVE day's protocol ──────────────────
+  const onToggleExercise = useCallback((i) => {
+    setWeek((w) => w.map((d, di) => (di !== activeDay || d.rest ? d
+      : { ...d, exercises: d.exercises.map((e, ei) => (ei === i ? { ...e, done: !e.done } : e)) })));
+  }, [activeDay]);
+
+  const onToggleDrill = useCallback((i) => {
+    setWeek((w) => w.map((d, di) => (di !== activeDay || d.rest ? d
+      : { ...d, drills: d.drills.map((dr, j) => (j === i ? { ...dr, done: !dr.done } : dr)) })));
+  }, [activeDay]);
+
+  const onCycleStatus = useCallback((i) => {
+    setWeek((w) => w.map((d, di) => (di !== activeDay || d.rest ? d
+      : { ...d, film: d.film.map((c, j) => (j === i ? { ...c, status: nextStatus(c.status) } : c)) })));
+  }, [activeDay]);
+
+  // ── Real-time calculators (Combine & Measurables panel) ─────────────────────
   const onMetricChange = useCallback((key, raw) => {
     setModel((m) => ({
       ...m,
@@ -74,7 +93,6 @@ export default function SportsHub({ selection = null }) {
       },
     }));
   }, []);
-
   const onPowerChange = useCallback((field, raw) => {
     setModel((m) => {
       const power = { ...m.power, [field]: raw };
@@ -82,24 +100,8 @@ export default function SportsHub({ selection = null }) {
       return { ...m, power };
     });
   }, []);
-
   const onSizeChange = useCallback((field, raw) => {
     setModel((m) => ({ ...m, size: { ...m.size, [field]: raw } }));
-  }, []);
-
-  // ── State mutations ─────────────────────────────────────────────────────────
-  const onToggleDrill = useCallback((idx) => {
-    setModel((m) => ({
-      ...m,
-      drills: { ...m.drills, items: m.drills.items.map((d, i) => (i === idx ? { ...d, done: !d.done } : d)) },
-    }));
-  }, []);
-
-  const onCycleStatus = useCallback((idx) => {
-    setModel((m) => ({
-      ...m,
-      film: { ...m.film, clips: m.film.clips.map((c, i) => (i === idx ? { ...c, status: nextStatus(c.status) } : c)) },
-    }));
   }, []);
 
   const name = profile.athleteName || user?.displayName || 'Athlete';
@@ -151,42 +153,70 @@ export default function SportsHub({ selection = null }) {
           {profile.team ? <div className="sh-team">{profile.team}</div> : null}
         </section>
 
-        {/* ── Performance sub-navigation ──────────────────────────────────────── */}
-        <nav className="sh-subnav" role="tablist" aria-label="Performance views">
-          {TABS.map((tb) => {
-            const active = tb.id === tab;
-            return (
-              <button
-                key={tb.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                className={`sh-tab${active ? ' is-active' : ''}`}
-                data-testid={`sh-tab-${tb.id}`}
-                onClick={() => setTab(tb.id)}
-              >
-                <span className="sh-tab-ico" aria-hidden="true">{tb.icon}</span>
-                {tb.label}
-              </button>
-            );
-          })}
+        {/* ── Training block (off/in-season workload selector) ────────────────── */}
+        <div className="sh-phase" role="group" aria-label="Training block">
+          <span className="sh-phase-l">Block</span>
+          <button
+            type="button"
+            className={`sh-phase-btn${phase === 'offseason' ? ' is-on' : ''}`}
+            aria-pressed={phase === 'offseason'}
+            data-testid="sh-phase-off"
+            onClick={() => setPhase('offseason')}
+          >
+            Off-Season
+          </button>
+          <button
+            type="button"
+            className={`sh-phase-btn${phase === 'inseason' ? ' is-on' : ''}`}
+            aria-pressed={phase === 'inseason'}
+            data-testid="sh-phase-in"
+            onClick={() => setPhase('inseason')}
+          >
+            In-Season
+          </button>
+        </div>
+
+        {/* ── Day 1–7 scrolling pill-navigation (mirrors the Vault Program/Nutrition) ── */}
+        <nav className="sh-daynav" role="tablist" aria-label="Protocol days">
+          {week.map((d, i) => (
+            <button
+              key={d.label}
+              type="button"
+              role="tab"
+              aria-selected={i === activeDay}
+              className={`sh-day-pill${i === activeDay ? ' is-on' : ''}`}
+              data-testid={`sh-day-pill-${i}`}
+              onClick={() => setActiveDay(i)}
+            >
+              {d.label}
+            </button>
+          ))}
         </nav>
 
-        {/* key={tab} remounts the panel per switch → the transition fires, and the
-            section reads the lifted model fresh (no stale view bleeds across tabs). */}
-        <div className="sh-panel" key={tab}>
-          {tab === 'combine' && <CombineMetrics combine={model.combine} onMetricChange={onMetricChange} />}
-          {tab === 'power' && <ExplosivePower power={model.power} onPowerChange={onPowerChange} />}
-          {tab === 'size' && <SizeMass size={model.size} onSizeChange={onSizeChange} />}
-          {tab === 'positional' && (
-            <PositionalAbility
-              drills={model.drills}
-              film={model.film}
-              onToggleDrill={onToggleDrill}
-              onCycleStatus={onCycleStatus}
-            />
-          )}
+        {/* key={activeDay} remounts the panel per day → the transition fires; the
+            lifted week state survives (only the presentation div remounts). */}
+        <div className="sh-panel" key={activeDay}>
+          <DayProtocol
+            day={week[activeDay]}
+            phase={phase}
+            onToggleExercise={onToggleExercise}
+            onToggleDrill={onToggleDrill}
+            onCycleStatus={onCycleStatus}
+          />
         </div>
+
+        {/* ── Combine & Measurables — the live calculators, one tap away ──────── */}
+        <details className="sh-measurables">
+          <summary className="sh-measurables-toggle" data-testid="sh-measurables-toggle">
+            <span>Combine &amp; Measurables</span>
+            <span className="sh-measurables-caret" aria-hidden="true">▾</span>
+          </summary>
+          <div className="sh-measurables-body">
+            <CombineMetrics combine={model.combine} onMetricChange={onMetricChange} />
+            <ExplosivePower power={model.power} onPowerChange={onPowerChange} />
+            <SizeMass size={model.size} onSizeChange={onSizeChange} />
+          </div>
+        </details>
 
         <p className="sh-foot">
           BBF Athlete Portal — youth training is coach-supervised and periodized for safe long-term development.

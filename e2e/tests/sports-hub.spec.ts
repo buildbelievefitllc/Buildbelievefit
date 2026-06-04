@@ -5,22 +5,24 @@ import {
 } from './support/vault.js';
 
 /**
- * The Sports Hub — Routing Fork, youth-surface isolation & first-run intake gate
- * ============================================================================
+ * The Sports Hub — fork, isolation, first-run intake gate & Daily Execution Protocol
+ * =================================================================================
  * Browser-drone coverage of the youth/sports division (Terminal Echo):
  *
- *   1. A flagged athlete is forked at /login PAST the adult Vault into The Sports
- *      Hub (when their PAR-Q+ intake is already complete).
+ *   1. A flagged athlete is forked at /login PAST the adult Vault into the daily
+ *      protocol (when their PAR-Q+ intake is already complete).
  *   2. Isolation holds: an athlete deep-linking /vault is bounced into the Hub.
  *   3. An ordinary adult client is unaffected — still lands in the Vault.
- *   4. FIRST-RUN GATE: an athlete with NO completed intake is blocked from the Hub
- *      and shown the forced PAR-Q+ / guardian-authorization intake instead.
- *   5. Completing the intake (token-gated persist) releases them into the Hub.
+ *   4. FIRST-RUN GATE: an un-screened athlete is blocked by the forced intake.
+ *   5. Completing the intake (sport selection + token-gated persist) releases them
+ *      into the Day 1 protocol.
+ *   6. DAILY PROTOCOL: the Day 1–7 pill nav switches days, the off/in-season phase
+ *      toggle swaps the workload, and exercise/drill/film checkoffs mutate live;
+ *      the Combine calculators remain one tap away in the measurables panel.
+ *   7. The intake sport selection drives the protocol's sport-specific content.
  *
- * The "flag" is the seed in frontend/src/lib/sportsRoster.js (marcus_bbf); intake
- * status is the new bbf_get_youth_intake_status RPC, persisted via
- * bbf_submit_youth_intake. NO REAL DATABASE: every Supabase call is stubbed and a
- * tripwire asserts nothing touched the real project host.
+ * NO REAL DATABASE: every Supabase call is stubbed and a tripwire asserts nothing
+ * touched the real project host.
  */
 
 const ATHLETE_SESSION: SessionEnvelope = {
@@ -35,7 +37,7 @@ const ATHLETE_SESSION: SessionEnvelope = {
 async function stubIntakeStatus(page: Page, completed: boolean) {
   await page.route('**/rest/v1/rpc/bbf_get_youth_intake_status', (route) => {
     if (isPreflight(route)) return;
-    return json(route, 200, { ok: true, completed, screened_at: completed ? '2026-06-03T00:00:00Z' : null });
+    return json(route, 200, { ok: true, completed, screened_at: completed ? '2026-06-04T00:00:00Z' : null, sport: null, position: null });
   });
 }
 
@@ -44,12 +46,12 @@ async function stubIntakeSubmit(page: Page, captured: Array<Record<string, unkno
   await page.route('**/rest/v1/rpc/bbf_submit_youth_intake', (route) => {
     if (isPreflight(route)) return;
     try { captured.push(route.request().postDataJSON()); } catch { /* ignore */ }
-    return json(route, 200, { ok: true, screened_at: '2026-06-03T00:00:00Z', cardiac_clearance: 'self_attested' });
+    return json(route, 200, { ok: true, screened_at: '2026-06-04T00:00:00Z', cardiac_clearance: 'self_attested' });
   });
 }
 
-test.describe('The Sports Hub — fork, isolation & first-run intake gate', () => {
-  test('a cleared athlete is forked from /login straight into the Hub', async ({ page }) => {
+test.describe('The Sports Hub — fork, isolation, intake gate & daily protocol', () => {
+  test('a cleared athlete is forked from /login into the Day 1 protocol', async ({ page }) => {
     const { realDbHits } = await installSupabaseBaseline(page);
     await stubIntakeStatus(page, true); // intake already complete → gate open
     await seedClientSession(page, ATHLETE_SESSION);
@@ -59,8 +61,8 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     await expect(page).toHaveURL(/\/sports-hub$/);
     await expect(page.getByTestId('sports-hub')).toBeVisible();
     await expect(page.locator('.cv-greet')).toHaveCount(0); // adult Vault never rendered
-    await expect(page.getByRole('heading', { name: 'Combine Metrics' })).toBeVisible(); // default tab
-    await expect(page.getByRole('tab', { name: /Positional Ability/i })).toBeVisible(); // sub-nav present
+    await expect(page.getByRole('tab', { name: 'Day 1' })).toBeVisible(); // day pill nav
+    await expect(page.getByRole('heading', { name: 'Lower-Body Power' })).toBeVisible(); // Day 1 workload
 
     expect(realDbHits).toHaveLength(0);
   });
@@ -97,7 +99,6 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
 
     await page.goto('/sports-hub');
 
-    // The forced intake is shown IN PLACE OF the Hub.
     await expect(page.getByRole('heading', { name: /Athlete Intake/i })).toBeVisible();
     await expect(page.getByText('Parent / Guardian Authorization')).toBeVisible();
     await expect(page.getByTestId('sports-hub')).toHaveCount(0); // Hub is blocked
@@ -105,7 +106,7 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     expect(realDbHits).toHaveLength(0);
   });
 
-  test('completing the intake persists it and releases the athlete into the Hub', async ({ page }) => {
+  test('completing the intake persists it and releases the athlete into the protocol', async ({ page }) => {
     const { realDbHits } = await installSupabaseBaseline(page);
     await stubIntakeStatus(page, false);
     const captured: Array<Record<string, unknown>> = [];
@@ -123,9 +124,9 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     await page.locator('#yi-liability').check();
     await page.getByRole('button', { name: /Complete Intake/i }).click();
 
-    // Persisted (token-gated) → released into the Hub.
+    // Persisted (token-gated) → released into the Day 1 protocol.
     await expect(page.getByTestId('sports-hub')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Combine Metrics' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Lower-Body Power' })).toBeVisible();
 
     expect(captured).toHaveLength(1);
     expect(captured[0]).toMatchObject({
@@ -136,49 +137,57 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     expect(realDbHits).toHaveLength(0);
   });
 
-  test('performance sub-nav switches views; calculators & toggles mutate live', async ({ page }) => {
+  test('daily protocol: day nav, phase workload, and checkoffs mutate live', async ({ page }) => {
     const { realDbHits } = await installSupabaseBaseline(page);
-    await stubIntakeStatus(page, true); // cleared → Hub renders
+    await stubIntakeStatus(page, true); // cleared → protocol renders
     await seedClientSession(page, ATHLETE_SESSION);
 
     await page.goto('/sports-hub');
     await expect(page.getByTestId('sports-hub')).toBeVisible();
 
-    // Default tab = Combine Metrics; the bar % is COMPUTED (5.61s vs the 5.20 OL
-    // target), and editing the mark recomputes it in real time — not a static width.
-    const fortyPct = page.getByTestId('sh-combine-pct-forty');
-    await expect(fortyPct).toHaveText('93% to target');
-    await page.getByTestId('sh-combine-input-forty').fill('5.20'); // hit the target
-    await expect(fortyPct).toHaveText('100% to target');
+    // Day 1 (first training day) is active by default — workload visible.
+    await expect(page.getByRole('heading', { name: 'Lower-Body Power' })).toBeVisible();
+    await expect(page.getByText('Back Squat')).toBeVisible();
 
-    // Explosive Power tab → live Power Index recompute.
-    await page.getByTestId('sh-tab-power').click();
-    const idx = page.getByTestId('sh-power-index');
-    await expect(idx).toHaveText('80');
-    await page.getByTestId('sh-power-peak').fill('5200'); // peak == target → index climbs
-    await expect(idx).toHaveText('90');
+    // The off/in-season toggle swaps the workload scheme (encoding-safe: assert change).
+    const scheme = page.getByTestId('sh-ex-scheme-0');
+    const offText = await scheme.textContent();
+    expect(offText).toContain('4'); // off-season Back Squat 4 × 5
+    await page.getByTestId('sh-phase-in').click();
+    await expect(scheme).not.toHaveText(offText || '');
+    expect(await scheme.textContent()).toContain('3'); // in-season 3 × 3
 
-    // Size & Mass tab → weight calculator vs the frame target.
-    await page.getByTestId('sh-tab-size').click();
-    await page.getByTestId('sh-size-weight').fill('275');
-    await expect(page.getByTestId('sh-size-pct')).toHaveText('100% to frame target');
+    // Workout exercise checkoff.
+    const ex0 = page.getByTestId('sh-ex-0');
+    await expect(ex0).toHaveAttribute('aria-pressed', 'false');
+    await ex0.click();
+    await expect(ex0).toHaveAttribute('aria-pressed', 'true');
 
-    // Positional Ability tab → drill toggle + film status cycle (state mutation).
-    await page.getByTestId('sh-tab-positional').click();
+    // Drill checkoff (Day 1 carries a position-specific drill).
     const drill0 = page.getByTestId('sh-drill-toggle-0');
     await expect(drill0).toHaveAttribute('aria-pressed', 'false');
     await drill0.click();
     await expect(drill0).toHaveAttribute('aria-pressed', 'true');
 
+    // Switch to Day 2 → film study cycles assigned → in-review.
+    await page.getByRole('tab', { name: 'Day 2' }).click();
+    await expect(page.getByRole('heading', { name: 'Upper-Body Strength' })).toBeVisible();
     const film0 = page.getByTestId('sh-film-card-0');
     await expect(film0).toContainText('Assigned');
     await film0.click();
     await expect(film0).toContainText('In Review');
 
+    // The combine calculator still lives one tap away in the measurables panel.
+    await page.getByTestId('sh-measurables-toggle').click();
+    const fortyPct = page.getByTestId('sh-combine-pct-forty');
+    await expect(fortyPct).toHaveText('93% to target');
+    await page.getByTestId('sh-combine-input-forty').fill('5.20');
+    await expect(fortyPct).toHaveText('100% to target');
+
     expect(realDbHits).toHaveLength(0);
   });
 
-  test('intake sport selection drives the Hub (basketball / point guard)', async ({ page }) => {
+  test('intake sport selection drives the protocol (basketball / point guard)', async ({ page }) => {
     const { realDbHits } = await installSupabaseBaseline(page);
     await stubIntakeStatus(page, false);
     const captured: Array<Record<string, unknown>> = [];
@@ -188,8 +197,7 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     await page.goto('/sports-hub');
     await expect(page.getByRole('heading', { name: /Athlete Intake/i })).toBeVisible();
 
-    // Pick a sport + position different from the football seed (the secondary field
-    // is dependent); the choice bundles into the payload AND drives the Hub.
+    // Pick a sport + position different from the football seed (dependent field).
     await page.locator('#yi-sport').selectOption('basketball');
     await page.locator('#yi-position').selectOption('PG');
     await page.locator('#yi-guardian-name').fill('Denise Vance');
@@ -197,11 +205,11 @@ test.describe('The Sports Hub — fork, isolation & first-run intake gate', () =
     await page.locator('#yi-liability').check();
     await page.getByRole('button', { name: /Complete Intake/i }).click();
 
-    // Released into the Hub rendered for basketball / point guard.
+    // Released into the protocol scoped to basketball / point guard.
     await expect(page.getByTestId('sports-hub')).toBeVisible();
     await expect(page.getByTestId('sh-hero-sport')).toContainText('Basketball');
     await expect(page.getByTestId('sh-hero-position')).toContainText('Point Guard');
-    await expect(page.getByText('Lane Agility')).toBeVisible(); // basketball-specific combine metric
+    await expect(page.getByText('Closeout & Slide')).toBeVisible(); // basketball drill on Day 1
 
     expect(captured[0]).toMatchObject({ p_payload: { sport: 'basketball', position: 'PG' } });
     expect(realDbHits).toHaveLength(0);

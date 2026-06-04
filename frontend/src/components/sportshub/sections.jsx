@@ -164,18 +164,55 @@ export function SizeMass({ size, onSizeChange }) {
   );
 }
 
-// ── Positional Ability — drill progress (toggle complete) + film (cycle status) ─
-export function PositionalAbility({ drills, film, onToggleDrill, onCycleStatus }) {
-  const watched = film.clips.filter((c) => c.status === 'complete').length;
+// ── Day Protocol — the active day's workload + that day's drills + film. The
+//    actionable items (drills / film) are distributed across the 7-day week
+//    (hubData.buildWeek); every item is a tap-to-track checkoff. ──────────────────
+export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCycleStatus }) {
+  if (day.rest) {
+    return (
+      <section className="sh-card sh-restcard" data-testid="sh-day-rest">
+        <div className="sh-day-kicker">{day.label}</div>
+        <div className="sh-rest-icon" aria-hidden="true">😴</div>
+        <h2 className="sh-rest-title">{day.focus}</h2>
+        <p className="sh-rest-sub">{day.restNote}</p>
+      </section>
+    );
+  }
+
+  const exDone = day.exercises.filter((e) => e.done).length;
+  const drillDone = day.drills.filter((d) => d.done).length;
+  const watched = day.film.filter((c) => c.status === 'complete').length;
+  const phaseLabel = phase === 'inseason' ? 'In-Season' : 'Off-Season';
+
   return (
     <>
-      <SectionCard tag={drills.tag || 'Position-Specific'} title={drills.title} meta={`${drills.items.filter((d) => d.done).length} / ${drills.items.length} complete`} testId="sh-section-drills">
-        <div className="sh-drills">
-          {drills.items.map((d, i) => {
-            const pct = d.done ? 100 : d.progress;
-            const hot = d.done || d.progress >= 75;
-            return (
-              <div key={d.name} className={`sh-drill${hot ? ' is-hot' : ''}${d.done ? ' is-done' : ''}`}>
+      {/* Workout — the day's off/in-season workload, tap an exercise to mark it done. */}
+      <SectionCard tag={`${phaseLabel} · Workload`} title={day.focus} meta={`${exDone} / ${day.exercises.length} done`} testId="sh-day-workout">
+        <div className="sh-exlist">
+          {day.exercises.map((e, i) => (
+            <button
+              key={e.name}
+              type="button"
+              className={`sh-ex${e.done ? ' is-done' : ''}`}
+              aria-pressed={e.done}
+              aria-label={`Mark ${e.name} ${e.done ? 'incomplete' : 'complete'}`}
+              data-testid={`sh-ex-${i}`}
+              onClick={() => onToggleExercise(i)}
+            >
+              <span className={`sh-ex-check${e.done ? ' is-on' : ''}`} aria-hidden="true">{e.done ? '✓' : ''}</span>
+              <span className="sh-ex-name">{e.name}</span>
+              <span className="sh-ex-scheme" data-testid={`sh-ex-scheme-${i}`}>{phase === 'inseason' ? e.in : e.off}</span>
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
+      {/* Today's drills (position-specific, distributed across the week). */}
+      {day.drills.length ? (
+        <SectionCard tag="Position-Specific" title="Today’s Drills" meta={`${drillDone} / ${day.drills.length}`} testId="sh-day-drills">
+          <div className="sh-drills">
+            {day.drills.map((d, i) => (
+              <div key={d.name} className={`sh-drill${d.done ? ' is-hot is-done' : ''}`}>
                 <button
                   type="button"
                   className={`sh-drill-check${d.done ? ' is-on' : ''}`}
@@ -189,44 +226,43 @@ export function PositionalAbility({ drills, film, onToggleDrill, onCycleStatus }
                 <div className="sh-drill-body">
                   <div className="sh-drill-top">
                     <span className="sh-drill-name">{d.name}</span>
-                    <span className="sh-drill-pct">{d.done ? 'MET' : `${d.progress}%`}</span>
+                    <span className="sh-drill-pct">{d.done ? 'MET' : d.reps}</span>
                   </div>
                   <div className="sh-drill-desc">{d.detail}</div>
-                  <div className="sh-track">
-                    <div className="sh-track-fill" style={{ width: `${pct}%` }} />
-                  </div>
-                  <div className="sh-drill-reps">{d.reps}</div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </SectionCard>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
 
-      <SectionCard tag={film.tag || 'Film Room · Tap to Update'} title={film.title} meta={`${watched} / ${film.clips.length} reviewed`} testId="sh-section-film">
-        <div className="sh-film">
-          {film.clips.map((c, i) => {
-            const s = STATUS_META[c.status] || STATUS_META.assigned;
-            return (
-              <button
-                key={c.title}
-                type="button"
-                className="sh-clip"
-                data-testid={`sh-film-card-${i}`}
-                aria-label={`${c.title} — status ${s.label}. Tap to advance status.`}
-                onClick={() => onCycleStatus(i)}
-              >
-                <span className="sh-clip-play" aria-hidden="true">▶</span>
-                <span className="sh-clip-body">
-                  <span className="sh-clip-title">{c.title}</span>
-                  <span className="sh-clip-meta">{c.concept} · {c.duration}{c.notes ? ` · ${c.notes} coach note${c.notes > 1 ? 's' : ''}` : ''}</span>
-                </span>
-                <span className={`sh-clip-status ${s.cls}`}>{s.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </SectionCard>
+      {/* Today's film study (tap a card to advance assigned → in-review → reviewed). */}
+      {day.film.length ? (
+        <SectionCard tag="Film Room · Tap to Update" title="Film Study" meta={`${watched} / ${day.film.length} reviewed`} testId="sh-day-film">
+          <div className="sh-film">
+            {day.film.map((c, i) => {
+              const s = STATUS_META[c.status] || STATUS_META.assigned;
+              return (
+                <button
+                  key={c.title}
+                  type="button"
+                  className="sh-clip"
+                  data-testid={`sh-film-card-${i}`}
+                  aria-label={`${c.title} — status ${s.label}. Tap to advance status.`}
+                  onClick={() => onCycleStatus(i)}
+                >
+                  <span className="sh-clip-play" aria-hidden="true">▶</span>
+                  <span className="sh-clip-body">
+                    <span className="sh-clip-title">{c.title}</span>
+                    <span className="sh-clip-meta">{c.concept} · {c.duration}</span>
+                  </span>
+                  <span className={`sh-clip-status ${s.cls}`}>{s.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </SectionCard>
+      ) : null}
     </>
   );
 }

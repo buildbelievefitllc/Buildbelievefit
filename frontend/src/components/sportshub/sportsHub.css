@@ -210,12 +210,83 @@
 .sh-tab.is-active { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: var(--yel); }
 .sh-tab-ico { font-size: .9rem; line-height: 1; }
 
-/* Active performance panel — fades/slides in on each tab switch (keyed remount). */
+/* Active performance panel — fades/slides in on each tab/day switch (keyed remount). */
 .sh-panel { animation: sh-panel-in .26s ease both; }
 @keyframes sh-panel-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Daily Execution Protocol ─────────────────────────────────────────────────── */
+/* Training-block (off/in-season) selector */
+.sh-phase { display: flex; align-items: center; gap: .5rem; margin-bottom: .9rem; }
+.sh-phase-l { font-family: var(--hb); font-size: .62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); margin-right: .1rem; }
+.sh-phase-btn {
+  flex: 0 0 auto; cursor: pointer; font-family: var(--hb); font-size: .68rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #cbb3e6; background: var(--sh-card2); border: 1px solid var(--sh-line); border-radius: 999px; padding: .4rem .8rem;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.sh-phase-btn:hover { border-color: rgba(245, 200, 0, .4); color: var(--wht); }
+.sh-phase-btn:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.sh-phase-btn.is-on { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: var(--yel); }
+
+/* Day 1–7 scrolling pill nav (mirrors the Vault .pg-daynav / .nl-daynav) */
+.sh-daynav {
+  display: flex; gap: .45rem; margin-bottom: 1.1rem; overflow-x: auto; padding-bottom: .4rem;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.sh-daynav::-webkit-scrollbar { display: none; }
+.sh-day-pill {
+  flex: 0 0 auto; white-space: nowrap; cursor: pointer; padding: .5rem 1.05rem; border-radius: 999px;
+  border: 1px solid var(--sh-line); background: transparent; color: var(--mut);
+  font-family: var(--bd); font-size: .8rem; font-weight: 700; letter-spacing: 1px;
+  transition: color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.sh-day-pill:hover { color: var(--wht); border-color: rgba(245, 200, 0, .45); }
+.sh-day-pill:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.sh-day-pill.is-on {
+  color: #0c0a02; border-color: var(--yel); background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  box-shadow: 0 4px 16px -4px rgba(245, 200, 0, .5);
+}
+
+/* Rest / recovery card */
+.sh-restcard { text-align: center; padding: 1.6rem 1.3rem; }
+.sh-day-kicker { font-family: var(--hb); font-size: .66rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); margin-bottom: .5rem; }
+.sh-rest-icon { font-size: 2.6rem; line-height: 1; }
+.sh-rest-title { font-family: var(--display); font-size: 1.5rem; letter-spacing: 1px; text-transform: uppercase; color: var(--yel); margin: .5rem 0 .35rem; }
+.sh-rest-sub { font-size: .92rem; color: var(--mut); line-height: 1.5; max-width: 38ch; margin: 0 auto; }
+
+/* Workout exercise rows (tap to mark done) */
+.sh-exlist { display: flex; flex-direction: column; gap: .55rem; }
+.sh-ex {
+  display: flex; align-items: center; gap: .7rem; width: 100%; text-align: left; cursor: pointer;
+  background: var(--sh-card2); border: 1px solid var(--sh-line-soft); border-radius: 12px; padding: .7rem .85rem;
+  transition: border-color .15s ease, background .15s ease;
+}
+.sh-ex:hover { border-color: rgba(245, 200, 0, .35); }
+.sh-ex:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.sh-ex.is-done { background: rgba(34, 197, 94, .08); border-color: rgba(34, 197, 94, .35); }
+.sh-ex-check {
+  flex: 0 0 auto; width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; color: #04130a; background: var(--blk); border: 1px solid var(--sh-line);
+}
+.sh-ex-check.is-on { background: linear-gradient(135deg, var(--grn), #16a34a); border-color: var(--grn); }
+.sh-ex-name { flex: 1 1 auto; min-width: 0; font-family: var(--bd); font-weight: 700; font-size: .95rem; color: var(--wht); }
+.sh-ex.is-done .sh-ex-name { color: #bfe9cd; }
+.sh-ex-scheme { flex: 0 0 auto; font-family: var(--mono); font-size: .8rem; color: var(--gold-soft); }
+
+/* Combine & Measurables disclosure */
+.sh-measurables { margin-top: 1.3rem; border: 1px solid var(--sh-line); border-radius: 14px; background: var(--sh-card); overflow: hidden; }
+.sh-measurables-toggle {
+  display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none;
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft);
+  padding: .9rem 1.1rem;
+}
+.sh-measurables-toggle::-webkit-details-marker { display: none; }
+.sh-measurables-toggle:focus-visible { outline: 2px solid var(--yel); outline-offset: -2px; }
+.sh-measurables-caret { transition: transform .2s ease; color: var(--mut); }
+.sh-measurables[open] .sh-measurables-caret { transform: rotate(180deg); }
+.sh-measurables-body { padding: 0 1rem 1rem; display: flex; flex-direction: column; gap: 1.1rem; }
 
 /* ── Inline metric calculators (editable marks) ────────────────────────────────── */
 .sh-combine-edit { display: inline-flex; align-items: baseline; gap: .35rem; }

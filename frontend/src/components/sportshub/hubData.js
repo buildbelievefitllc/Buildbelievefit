@@ -267,3 +267,85 @@ export function buildHubModel(profile) {
     },
   };
 }
+
+// ── Youth Daily Execution Protocol — the 7-day week the Hub is built around. ───
+// A generic, periodized S&C week (sport-agnostic strength/power/speed sessions);
+// sport-specificity comes from the DRILLS + FILM distributed onto the training
+// days (drillIdx / filmIdx index into the sport-aware model built above). Each
+// exercise carries an off-season AND in-season scheme so the active block's
+// workload is the one shown. Rest days render a recovery card.
+const WEEK_TEMPLATE = [
+  {
+    label: 'Day 1', focus: 'Lower-Body Power',
+    exercises: [
+      { name: 'Back Squat', off: '4 × 5', in: '3 × 3' },
+      { name: 'Romanian Deadlift', off: '3 × 8', in: '3 × 5' },
+      { name: 'Box Jump', off: '4 × 4', in: '3 × 3' },
+      { name: 'Walking Lunge', off: '3 × 10', in: '2 × 8' },
+    ],
+    drillIdx: [0], filmIdx: [],
+  },
+  {
+    label: 'Day 2', focus: 'Upper-Body Strength',
+    exercises: [
+      { name: 'Bench Press', off: '4 × 5', in: '3 × 3' },
+      { name: 'Bent-Over Row', off: '4 × 8', in: '3 × 5' },
+      { name: 'Overhead Press', off: '3 × 6', in: '3 × 4' },
+      { name: 'Weighted Pull-Up', off: '3 × 6', in: '3 × 4' },
+    ],
+    drillIdx: [1], filmIdx: [0],
+  },
+  {
+    label: 'Day 3', focus: 'Speed & Agility',
+    exercises: [
+      { name: 'Sprint Intervals (30m)', off: '6 reps', in: '8 reps' },
+      { name: 'Agility Ladder', off: '4 sets', in: '4 sets' },
+      { name: '5-10-5 Pro Shuttle', off: '6 reps', in: '4 reps' },
+      { name: 'Med-Ball Rotational Throw', off: '4 × 6', in: '3 × 5' },
+    ],
+    drillIdx: [2], filmIdx: [1],
+  },
+  {
+    label: 'Day 4', focus: 'Active Recovery', rest: true,
+    restNote: 'Mobility, soft-tissue work, hydration, 9h sleep. Movement quality over intensity.',
+  },
+  {
+    label: 'Day 5', focus: 'Total-Body Power',
+    exercises: [
+      { name: 'Hang Clean', off: '5 × 3', in: '4 × 2' },
+      { name: 'Trap-Bar Jump', off: '4 × 4', in: '3 × 3' },
+      { name: 'Push Press', off: '4 × 4', in: '3 × 3' },
+      { name: 'Anti-Rotation Core Circuit', off: '3 rounds', in: '2 rounds' },
+    ],
+    drillIdx: [3], filmIdx: [2],
+  },
+  {
+    label: 'Day 6', focus: 'Position Skills & Conditioning',
+    exercises: [
+      { name: 'Tempo Runs (100m)', off: '8 reps', in: '6 reps' },
+      { name: 'Position Skill Circuit', off: '4 rounds', in: '3 rounds' },
+      { name: 'Loaded Carries (40yd)', off: '4 sets', in: '3 sets' },
+    ],
+    drillIdx: [4], filmIdx: [3],
+  },
+  {
+    label: 'Day 7', focus: 'Rest', rest: true,
+    restNote: 'Full rest. Recovery is where adaptation happens — eat, sleep, repeat.',
+  },
+];
+
+// Build the 7-day protocol from a sport-aware model: distributes that sport's
+// drills + film across the training days and attaches fresh checkoff state.
+export function buildWeek(model) {
+  return WEEK_TEMPLATE.map((d) => {
+    if (d.rest) return { label: d.label, focus: d.focus, rest: true, restNote: d.restNote };
+    return {
+      label: d.label,
+      focus: d.focus,
+      rest: false,
+      exercises: d.exercises.map((e) => ({ name: e.name, off: e.off, in: e.in, done: false })),
+      drills: d.drillIdx.map((i) => ({ ...model.drills.items[i], done: false })),
+      film: d.filmIdx.map((i) => ({ ...model.film.clips[i] })),
+    };
+  });
+}
