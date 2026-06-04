@@ -12,7 +12,7 @@
 // checkout (tier CTAs route to the application form). The brand surface + funnel
 // are restored.
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import PathfinderForm from '../components/PathfinderForm.jsx';
@@ -56,6 +56,19 @@ const ORIGIN_KEYS = ['origin-n1', 'origin-n2', 'origin-n3'];
 // lib/pricingMatrix.js (single source of truth, shared with the in-Vault
 // UpgradeOverlay so the live Stripe Payment Links can never drift). Imported above.
 
+// Landing-only responsive layer. The page is otherwise inline-styled (clamp() +
+// auto-fit, per this file's no-media-query philosophy); these few real rules keep
+// the vertical narrative tight on phones — every section clears the sticky nav on a
+// smooth-scroll jump, and the Hybrid price options collapse to a single column on
+// the narrowest screens so nothing stacks awkwardly or clips text.
+const LANDING_CSS = `
+html { scroll-behavior: smooth; }
+.bbf-landing section { scroll-margin-top: 72px; }
+.bbf-landing .lp-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 420px) {
+  .bbf-landing .lp-opts { grid-template-columns: 1fr; }
+}
+`;
 
 export default function MarketingLanding() {
   const navigate = useNavigate();
@@ -68,44 +81,29 @@ export default function MarketingLanding() {
   // "way in" is offered, so the manual path is consistent.
   const enter = () => navigate(user ? '/vault' : '/login');
 
-  // ── Brand Engine Interface — the 5-tab state machine ──────────────────────────
-  // The former vertical stack (Pricing, Six Pillars, Calculator, Pathfinder, Coach
-  // bio) is now one horizontal tabbed deck. DEFAULT = 'paths' (subscriptions first,
-  // monetization priority). The child engines (TDEE math, PAR-Q form, success
-  // mirror, Stripe matrix) are UNCHANGED — only their wrapper moved. Funnels that
-  // used to smooth-scroll now flip the active tab and bring the deck into view.
-  const [tab, setTab] = useState('paths');
-  const deckRef = useRef(null);
-  const goToTab = (key) => {
-    setTab(key);
-    // Defer the scroll a frame so the freshly-selected panel is mounted/measured.
-    requestAnimationFrame(() => {
-      deckRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  };
-  const goToPathfinder = () => goToTab('pathfinder');
-
-  // Telemetry-tagged tab manifest. idx = lane number, tag = athletic telemetry chip.
-  const TABS = [
-    { key: 'paths',      idx: '01', label: 'Four Paths',   tag: 'SUBSCRIPTIONS' },
-    { key: 'playbooks',  idx: '02', label: 'Blueprints',   tag: 'PLAYBOOKS' },
-    { key: 'calculator', idx: '03', label: 'Fuel Target',  tag: 'TDEE · BIO-FUEL' },
-    { key: 'pathfinder', idx: '04', label: 'Pathfinder',   tag: 'INTAKE · PAR-Q' },
-    { key: 'legacy',     idx: '05', label: 'Coach Legacy', tag: 'ORIGIN STORY' },
-  ];
+  // ── Conversion narrative — vertical scroll, mobile-first ───────────────────────
+  // The page reads top-to-bottom as one funnel: Hero → Playbooks → Fuel Target →
+  // Coach Legacy → Pathfinder → (Science · Interrogator · App) → Four Paths pricing.
+  // Cost lands LAST so brand identity + tools are established before the ask. In-page
+  // funnels smooth-scroll to a section by id; the sticky-nav offset is handled by
+  // `scroll-margin-top` on every section (see LANDING_CSS).
+  const scrollToId = (id) =>
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const goToPathfinder = () => scrollToId('pathfinder');
 
   return (
-    <div style={s.page}>
+    <div className="bbf-landing" style={s.page}>
+      <style>{LANDING_CSS}</style>
       {/* ── NAV ── */}
       <nav style={s.nav}>
         <a href="#hero" style={s.navLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></a>
         <div style={s.navLinks}>
-          {/* Moved sections now live inside the Brand Engine deck — these jump to a tab. */}
-          <button type="button" style={s.navSignIn} onClick={() => goToTab('playbooks')}>{t('nav-services')}</button>
-          <button type="button" style={s.navSignIn} onClick={() => goToTab('paths')}>{t('nav-programs')}</button>
+          {/* In-page jumps — smooth-scroll to the section by id. */}
+          <button type="button" style={s.navSignIn} onClick={() => scrollToId('services')}>{t('nav-services')}</button>
+          <button type="button" style={s.navSignIn} onClick={() => scrollToId('programs')}>{t('nav-programs')}</button>
           <a href="#science" style={s.navLink}>Science</a>
           <a href="#interrogator" style={s.navLink}>{t('nav-audit')}</a>
-          <button type="button" style={s.navSignIn} onClick={() => goToTab('legacy')}>{t('nav-about')}</button>
+          <button type="button" style={s.navSignIn} onClick={() => scrollToId('founder')}>{t('nav-about')}</button>
           <button type="button" style={s.navSignIn} onClick={enter}>{t('nav-signin')}</button>
           <button type="button" style={s.navCta} onClick={goToPathfinder}>{t('nav-start')}</button>
           <LangToggle />
@@ -146,160 +144,103 @@ export default function MarketingLanding() {
         </div>
       </section>
 
-      {/* ═══ BRAND ENGINE INTERFACE — the 5-tab telemetry deck ═══════════════════
-          Replaces the former vertical stack. Deep-purple + gold metallic border;
-          each tab carries an athletic telemetry chip. The underlying engines are
-          untouched — only the wrapper changed (vertical stack → horizontal deck). */}
-      <section id="deck" ref={deckRef} style={s.deck}>
-        <div style={s.deckFrame}>
-          <div style={s.deckInner}>
-            {/* ── Tab header bar ── */}
-            <div style={s.tabBar} role="tablist" aria-label="Brand Engine">
-              {TABS.map((tdef) => {
-                const on = tab === tdef.key;
-                return (
-                  <button
-                    key={tdef.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={on}
-                    onClick={() => setTab(tdef.key)}
-                    style={{ ...s.tab, ...(on ? s.tabActive : null) }}
-                  >
-                    <span style={{ ...s.tabIdx, ...(on ? s.tabIdxActive : null) }}>{tdef.idx}</span>
-                    <span style={s.tabLabel}>{tdef.label}</span>
-                    <span style={{ ...s.tabTag, ...(on ? s.tabTagActive : null) }}>{tdef.tag}</span>
-                  </button>
-                );
-              })}
+      {/* ═══ CONVERSION NARRATIVE — vertical stack (mobile-first) ════════════════
+          Brand identity + tools lead the scroll; the Four Paths pricing matrix is
+          the closing CTA at the very bottom (rendered below the App band). Order:
+          Playbooks → Fuel Target → Coach Legacy → Pathfinder → Science · Audit ·
+          App → Pricing. Every child engine is unchanged — only the order moved
+          (tabbed deck → vertical funnel) so cost is shown last. */}
+
+      {/* ── PLAYBOOKS — Six Pillars + Positional Sport Blueprints ── */}
+      <section id="services" style={s.section}>
+        <div style={s.secLbl}>{t('svc-lbl')}</div>
+        <h2 style={s.secH}>{t('svc-h')}</h2>
+        <div style={s.svcGrid}>
+          {SERVICE_KEYS.map(([nk, dk]) => (
+            <article key={nk} style={s.svcCard}>
+              <div style={s.svcName}>{t(nk)}</div>
+              <p style={s.svcDesc}>{t(dk)}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+      {/* "Elite Position. Your Playbook." (5 sports · 25 positions) */}
+      <PositionalBlueprints />
+
+      <Divider />
+
+      {/* ── FUEL TARGET — interactive TDEE calculator (build engagement early) ── */}
+      <section id="tdee" style={s.sectionWide}>
+        <TDEECalculator onUseResults={goToPathfinder} />
+      </section>
+
+      <Divider />
+
+      {/* ── COACH LEGACY — the story behind BBF (credentials + father + origin) ── */}
+      <section id="founder" style={s.sectionPurple}>
+        <div style={s.section}>
+          <div style={s.secLbl}>{t('founder-lbl')}</div>
+          <h2 style={s.secH}>{t('founder-h')}</h2>
+          <div style={s.founderGrid}>
+            <div>
+              <img src="/media/akeem-nasm.jpg" alt="Akeem Brown" loading="lazy" style={s.founderImg} />
+              <div style={s.credCard}>
+                {CRED_KEYS.map(([tk, sk]) => (
+                  <div key={tk} style={s.cred}>
+                    <div style={s.credT}>{t(tk)}</div>
+                    <div style={s.credS}>{t(sk)}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            {/* ── Active panel ── */}
-            <div style={s.panel} role="tabpanel">
-              {/* TAB 1 · FOUR PATHS SUBSCRIPTIONS (default — monetization first) */}
-              {tab === 'paths' && (
-                <div id="programs">
-                  <div style={s.secLbl}>{t('prog-lbl')}</div>
-                  <h2 style={s.secH}>{t('prog-h')}</h2>
-                  <p style={s.secSub}>{t('prog-sub')}</p>
-                  <PricingMatrix />
-
-                  {/* Local Weekly Ongoing Training — custom-quote call-out (mailto) */}
-                  <div style={s.localCallout}>
-                    <div style={s.localKicker}>Local · In-Person · Ongoing</div>
-                    <h3 style={s.localH}>Local Weekly Ongoing Training</h3>
-                    <p style={s.localP}>
-                      Hands-on weekly training built around your schedule, goals, and capacity —
-                      priced per athlete. Tell us what you&rsquo;re after and we&rsquo;ll send a custom quote.
-                    </p>
-                    <a
-                      href="mailto:buildbelievefitllc@buildbelievefit.fitness?subject=Local%20Weekly%20Ongoing%20Training%20%E2%80%94%20Custom%20Quote%20Request"
-                      style={s.localBtn}
-                    >
-                      Request a Custom Quote →
-                    </a>
-                  </div>
-                  <div style={s.promise}>
-                    <div style={s.promiseLbl}>{t('promise-lbl')}</div>
-                    <p style={s.promiseText}>
-                      “{t('promise-text')}” <span style={{ color: GOLD }}>{t('founder-sig-name')}</span>
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 2 · BLUEPRINT PLAYBOOKS — Six Pillars + Positional Sport Blueprints */}
-              {tab === 'playbooks' && (
-                <div id="services">
-                  <div style={s.secLbl}>{t('svc-lbl')}</div>
-                  <h2 style={s.secH}>{t('svc-h')}</h2>
-                  <div style={s.svcGrid}>
-                    {SERVICE_KEYS.map(([nk, dk]) => (
-                      <article key={nk} style={s.svcCard}>
-                        <div style={s.svcName}>{t(nk)}</div>
-                        <p style={s.svcDesc}>{t(dk)}</p>
-                      </article>
-                    ))}
-                  </div>
-                  <div style={s.panelBreak} />
-                  {/* "Elite Position. Your Playbook." (5 sports · 25 positions) */}
-                  <PositionalBlueprints />
-                </div>
-              )}
-
-              {/* TAB 3 · FUEL TARGET CALCULATOR — dynamic bio-fuel TDEE tool */}
-              {tab === 'calculator' && (
-                <div id="tdee">
-                  <TDEECalculator onUseResults={goToPathfinder} />
-                </div>
-              )}
-
-              {/* TAB 4 · PATHFINDER APPLICATION — intake + PAR-Q + success mirror feed */}
-              {tab === 'pathfinder' && (
-                <div id="pathfinder">
-                  <div style={s.secLbl}>{t('pf-lbl')}</div>
-                  <h2 style={s.secH}>{t('pf-h')}</h2>
-                  <p style={s.secSub}>{t('pf-sub')}</p>
-                  <div style={{ marginTop: '2rem' }}><PathfinderForm /></div>
-                </div>
-              )}
-
-              {/* TAB 5 · COACH LEGACY STORY — credentials + origin bio */}
-              {tab === 'legacy' && (
-                <div id="founder">
-                  <div style={s.secLbl}>{t('founder-lbl')}</div>
-                  <h2 style={s.secH}>{t('founder-h')}</h2>
-                  <div style={s.founderGrid}>
-                    <div>
-                      <img src="/media/akeem-nasm.jpg" alt="Akeem Brown" loading="lazy" style={s.founderImg} />
-                      <div style={s.credCard}>
-                        {CRED_KEYS.map(([tk, sk]) => (
-                          <div key={tk} style={s.cred}>
-                            <div style={s.credT}>{t(tk)}</div>
-                            <div style={s.credS}>{t(sk)}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <p style={s.story}>{t('founder-p1')}</p>
-                      <p style={s.story}>{t('founder-p2')}</p>
-                      <p style={s.story}>{t('founder-p3')}</p>
-                      <div style={s.sig}>{t('founder-sig-name')}<br /><span style={s.sigSmall}>{t('founder-sig-sub')}</span></div>
-                    </div>
-                  </div>
-
-                  {/* Origin transformation proof — part of the legacy story */}
-                  <div style={s.panelBreak} />
-                  <div id="origin">
-                    <div style={s.secLbl}>{t('origin-lbl')}</div>
-                    <h2 style={s.secH}>{t('origin-h')}</h2>
-                    <p style={s.secSub}>{t('origin-sub')}</p>
-                    <div style={s.proofGrid}>
-                      <figure style={s.proofFig}>
-                        <img src="/media/akeem-before.png" alt="Before" loading="lazy" style={s.proofImg} />
-                        <figcaption style={s.proofCap}>{t('origin-cap-before')}</figcaption>
-                      </figure>
-                      <figure style={s.proofFig}>
-                        <img src="/media/akeem-after.png" alt="After" loading="lazy" style={s.proofImg} />
-                        <figcaption style={{ ...s.proofCap, color: GOLD }}>{t('origin-cap-after')}</figcaption>
-                      </figure>
-                    </div>
-                    <div style={s.originGrid}>
-                      {ORIGIN_KEYS.map((k, i) => (
-                        <div key={k} style={s.originCard}>
-                          <div style={s.originStep}>0{i + 1}</div>
-                          <p style={s.originQ}>{t(k)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div>
+              <p style={s.story}>{t('founder-p1')}</p>
+              <p style={s.story}>{t('founder-p2')}</p>
+              <p style={s.story}>{t('founder-p3')}</p>
+              <div style={s.sig}>{t('founder-sig-name')}<br /><span style={s.sigSmall}>{t('founder-sig-sub')}</span></div>
             </div>
           </div>
         </div>
       </section>
+
+      <Divider />
+
+      {/* Origin transformation proof — part of the legacy story */}
+      <section id="origin" style={s.section}>
+        <div style={s.secLbl}>{t('origin-lbl')}</div>
+        <h2 style={s.secH}>{t('origin-h')}</h2>
+        <p style={s.secSub}>{t('origin-sub')}</p>
+        <div style={s.proofGrid}>
+          <figure style={s.proofFig}>
+            <img src="/media/akeem-before.png" alt="Before" loading="lazy" style={s.proofImg} />
+            <figcaption style={s.proofCap}>{t('origin-cap-before')}</figcaption>
+          </figure>
+          <figure style={s.proofFig}>
+            <img src="/media/akeem-after.png" alt="After" loading="lazy" style={s.proofImg} />
+            <figcaption style={{ ...s.proofCap, color: GOLD }}>{t('origin-cap-after')}</figcaption>
+          </figure>
+        </div>
+        <div style={s.originGrid}>
+          {ORIGIN_KEYS.map((k, i) => (
+            <div key={k} style={s.originCard}>
+              <div style={s.originStep}>0{i + 1}</div>
+              <p style={s.originQ}>{t(k)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* ── PATHFINDER — active tier focus + occupation-based intake (PAR-Q) ── */}
+      <section id="pathfinder" style={s.sectionWide}>
+        <div style={s.secLbl}>{t('pf-lbl')}</div>
+        <h2 style={s.secH}>{t('pf-h')}</h2>
+        <p style={s.secSub}>{t('pf-sub')}</p>
+        <div style={{ marginTop: '2rem' }}><PathfinderForm /></div>
+      </section>
+
+      <Divider />
 
       {/* ── SCIENCE HUB — clinical-studies library (peer-reviewed authority asset) ── */}
       <ScienceHub />
@@ -355,6 +296,40 @@ export default function MarketingLanding() {
         </div>
       </section>
 
+      <Divider />
+
+      {/* ═══ FOUR PATHS — the pricing matrix (closing CTA, very bottom) ═══════════
+          Catalyst · Momentum · Autonomous · Fuel. Cost lands last: identity + tools
+          come first so the price is the final, informed call to action. */}
+      <section id="programs" style={s.sectionWide}>
+        <div style={s.secLbl}>{t('prog-lbl')}</div>
+        <h2 style={s.secH}>{t('prog-h')}</h2>
+        <p style={s.secSub}>{t('prog-sub')}</p>
+        <PricingMatrix />
+
+        {/* Local Weekly Ongoing Training — custom-quote call-out (mailto) */}
+        <div style={s.localCallout}>
+          <div style={s.localKicker}>Local · In-Person · Ongoing</div>
+          <h3 style={s.localH}>Local Weekly Ongoing Training</h3>
+          <p style={s.localP}>
+            Hands-on weekly training built around your schedule, goals, and capacity —
+            priced per athlete. Tell us what you&rsquo;re after and we&rsquo;ll send a custom quote.
+          </p>
+          <a
+            href="mailto:buildbelievefitllc@buildbelievefit.fitness?subject=Local%20Weekly%20Ongoing%20Training%20%E2%80%94%20Custom%20Quote%20Request"
+            style={s.localBtn}
+          >
+            Request a Custom Quote →
+          </a>
+        </div>
+        <div style={s.promise}>
+          <div style={s.promiseLbl}>{t('promise-lbl')}</div>
+          <p style={s.promiseText}>
+            “{t('promise-text')}” <span style={{ color: GOLD }}>{t('founder-sig-name')}</span>
+          </p>
+        </div>
+      </section>
+
       {/* ── FOOTER ── */}
       <footer style={s.footer}>
         <div style={s.footLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></div>
@@ -369,7 +344,7 @@ export default function MarketingLanding() {
       </footer>
 
       {/* ── BBF CHATBOX (floating assistant) — CTAs route to TDEE / Pathfinder ── */}
-      <BBFChatbox onCta={(target) => goToTab(target === 'tdee' ? 'calculator' : 'pathfinder')} />
+      <BBFChatbox onCta={(target) => scrollToId(target === 'tdee' ? 'tdee' : 'pathfinder')} />
     </div>
   );
 }
@@ -411,7 +386,7 @@ function PricingMatrix() {
               {tier.feats.map((f) => <li key={f} style={s.matrixFeat}>✓ {f}</li>)}
             </ul>
             {tier.options ? (
-              <div style={s.matrixOpts}>
+              <div className="lp-opts">
                 {tier.options.map((o) => (
                   <a key={o.label} href={o.link} target="_blank" rel="noopener noreferrer" style={s.matrixOptBtn}>
                     <span style={s.matrixOptLbl}>{o.label}</span>
@@ -467,7 +442,7 @@ const s = {
   navSignIn: { fontFamily: BODY, fontSize: '.92rem', letterSpacing: '1px', color: 'rgba(255,255,255,.82)', background: 'none', border: 'none', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 600, padding: 0 },
   navCta: { fontFamily: BODY, fontSize: '.88rem', letterSpacing: '1px', padding: '8px 18px', background: GOLD, color: '#090909', borderRadius: 6, textDecoration: 'none', textTransform: 'uppercase', fontWeight: 700, boxShadow: `0 4px 18px rgba(245,200,0,.25)` },
 
-  hero: { position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 'clamp(24px,5vw,56px)', alignItems: 'center', maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
+  hero: { position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,300px),1fr))', gap: 'clamp(24px,5vw,56px)', alignItems: 'center', maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
   heroText: {},
   // Purple badge — legacy .hero-badge is purple, NOT gold.
   heroBadge: { display: 'inline-block', fontFamily: BODY, fontSize: '.8rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: PURL, background: 'rgba(106,13,173,.22)', border: `1px solid rgba(106,13,173,.5)`, borderRadius: 99, padding: '6px 16px', marginBottom: 20 },
@@ -479,7 +454,7 @@ const s = {
   hsFit: { fontFamily: DISPLAY, textTransform: 'uppercase', letterSpacing: '1px', fontSize: 'clamp(3.2rem,8vw,6.5rem)', color: '#fff', opacity: .95 },
   heroSub: { fontFamily: BODY, fontSize: 'clamp(1rem,2vw,1.2rem)', lineHeight: 1.6, color: 'rgba(255,255,255,.7)', margin: '0 0 28px', maxWidth: '52ch' },
   heroCta: { display: 'inline-block', fontFamily: HEAD, fontSize: '1.2rem', letterSpacing: '2px', padding: '14px 40px', background: GOLD, color: '#090909', borderRadius: 8, textDecoration: 'none', boxShadow: `0 8px 28px rgba(245,200,0,.3)` },
-  doors: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, margin: '28px 0' },
+  doors: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,180px),1fr))', gap: 12, margin: '28px 0' },
   // Doors use the legacy purple glass treatment + purple accent edge.
   door: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, textAlign: 'left', background: `linear-gradient(145deg, rgba(30,3,56,.78) 0%, rgba(10,8,28,.82) 100%)`, border: `1px solid rgba(157,39,201,.4)`, borderLeft: `3px solid ${PURL}`, borderRadius: 12, padding: '14px 16px', cursor: 'pointer' },
   doorKicker: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: PURL },
@@ -491,53 +466,8 @@ const s = {
   heroImgWrap: { display: 'flex', justifyContent: 'center' },
   heroImg: { width: '100%', maxWidth: 460, borderRadius: 20, border: `2px solid rgba(106,13,173,.45)`, boxShadow: `0 0 50px rgba(106,13,173,.3)`, objectFit: 'cover' },
 
-  // ── Brand Engine Interface — the 5-tab telemetry deck ────────────────────────
-  // Deep-purple + gold metallic border (gradient "frame" wrapping a matte inner
-  // surface). Sits directly below the hero. Scroll-margin keeps the tab bar clear
-  // of the sticky nav when goToTab() brings the deck into view.
-  deck: { maxWidth: 1280, margin: '0 auto', padding: 'clamp(20px,4vw,40px) clamp(12px,3vw,32px)', scrollMarginTop: 72 },
-  deckFrame: {
-    padding: 2, borderRadius: 20,
-    background: `linear-gradient(135deg, ${PUR} 0%, ${GOLD_LAB} 28%, ${PURL} 52%, ${GOLD} 74%, ${PUR} 100%)`,
-    boxShadow: `0 0 60px rgba(106,13,173,.35), 0 0 0 1px rgba(245,200,0,.12)`,
-  },
-  deckInner: {
-    borderRadius: 18, background: `linear-gradient(180deg, ${PURX} 0%, #060507 100%)`,
-    overflow: 'hidden',
-  },
-  // Tab header bar — telemetry rail. Lower-edge purple→gold hairline divides it
-  // from the active panel.
-  tabBar: {
-    display: 'flex', flexWrap: 'wrap',
-    borderBottom: `1px solid rgba(245,200,0,.22)`,
-    background: 'rgba(9,9,9,.55)',
-  },
-  tab: {
-    flex: '1 1 150px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3,
-    padding: 'clamp(12px,1.6vw,18px) clamp(12px,1.8vw,22px)', cursor: 'pointer',
-    background: 'transparent', border: 'none',
-    borderRight: `1px solid rgba(157,39,201,.22)`, borderBottom: '3px solid transparent',
-    textAlign: 'left', transition: 'background .18s ease, border-color .18s ease',
-  },
-  tabActive: {
-    background: `linear-gradient(180deg, rgba(106,13,173,.32), rgba(9,9,9,.1))`,
-    borderBottom: `3px solid ${GOLD}`,
-  },
-  tabIdx: { fontFamily: DISPLAY, fontSize: '.78rem', letterSpacing: '1px', color: 'rgba(255,255,255,.35)', lineHeight: 1 },
-  tabIdxActive: { color: GOLD },
-  tabLabel: { fontFamily: HEAD, fontSize: 'clamp(1rem,1.9vw,1.3rem)', letterSpacing: '1px', textTransform: 'uppercase', color: '#fff', lineHeight: 1 },
-  // Athletic telemetry chip — monospace-styled uppercase micro-tag.
-  tabTag: {
-    fontFamily: BODY, fontSize: '.6rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase',
-    color: PURL, border: `1px solid rgba(157,39,201,.45)`, borderRadius: 4, padding: '2px 6px', marginTop: 2,
-  },
-  tabTagActive: { color: GOLD, borderColor: 'rgba(245,200,0,.5)' },
-  // Active panel surface — inherits the legacy section padding so the moved
-  // content keeps its original rhythm inside the deck.
-  panel: { padding: 'clamp(28px,5vw,56px) clamp(16px,4vw,40px)' },
-  // Spacer between stacked groups inside a single panel (Six Pillars / Blueprints,
-  // Founder / Origin) — a brand purple→gold→purple sweep, like the legacy Divider.
-  panelBreak: { maxWidth: 900, margin: 'clamp(36px,6vw,64px) auto', height: 1, background: `linear-gradient(90deg, transparent, ${PUR} 30%, ${GOLD_LAB} 50%, ${PUR} 70%, transparent)`, opacity: .5 },
+  // (Former Brand Engine tab-deck styles removed — the landing is a vertical
+  //  narrative again; section wrappers below + LANDING_CSS carry the layout.)
 
   section: { maxWidth: 1100, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
   sectionWide: { maxWidth: 1240, margin: '0 auto', padding: 'clamp(40px,7vw,80px) clamp(16px,4vw,40px)' },
@@ -550,7 +480,7 @@ const s = {
   // Divider is purple→gold→purple (the brand sweep), not flat gold.
   divider: { maxWidth: 900, margin: '0 auto', height: 1, background: `linear-gradient(90deg, transparent, ${PUR} 30%, ${GOLD_LAB} 50%, ${PUR} 70%, transparent)`, opacity: .5 },
 
-  svcGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 20 },
+  svcGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,260px),1fr))', gap: 20 },
   // Service cards: purple→royal top accent bar (legacy .svc-c::before).
   svcCard: { position: 'relative', background: 'rgba(20,12,32,.7)', border: `1px solid rgba(157,39,201,.18)`, borderTop: `3px solid transparent`, borderImage: `linear-gradient(90deg, ${PUR}, ${PURL}) 1`, borderRadius: 14, padding: 26 },
   svcName: { fontFamily: HEAD, fontSize: '1.4rem', letterSpacing: '1px', color: GOLD_SOFT, marginBottom: 10 },
@@ -581,7 +511,7 @@ const s = {
   matrixTab: { flex: '1 1 auto', fontFamily: HEAD, fontSize: 'clamp(.78rem,1.6vw,1rem)', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.7)', background: 'rgba(9,9,9,.7)', border: 'none', borderRight: `1px solid rgba(157,39,201,.25)`, padding: '14px 16px', cursor: 'pointer', whiteSpace: 'nowrap' },
   matrixTabActive: { background: PUR, color: GOLD },
   matrixNote: { textAlign: 'center', fontFamily: BODY, fontSize: '.78rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.45)', margin: '18px 0 26px' },
-  matrixGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,360px))', gap: 18, justifyContent: 'center' },
+  matrixGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,260px),360px))', gap: 18, justifyContent: 'center' },
   matrixCard: { position: 'relative', background: '#090909', border: `1px solid rgba(157,39,201,.35)`, borderTop: `4px solid ${PUR}`, padding: '28px 22px', display: 'flex', flexDirection: 'column' },
   matrixCardFeatured: { borderColor: 'rgba(245,200,0,.5)', borderTop: `4px solid ${GOLD}`, boxShadow: `0 0 0 1px rgba(245,200,0,.25), 0 0 36px rgba(245,200,0,.1)` },
   matrixBadge: { position: 'absolute', top: -1, right: -1, background: GOLD, color: '#090909', fontFamily: HEAD, fontSize: '.66rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 12px' },
@@ -592,7 +522,8 @@ const s = {
   matrixFeats: { listStyle: 'none', margin: '14px 0 22px', padding: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 9 },
   matrixFeat: { fontFamily: BODY, fontSize: '.92rem', fontWeight: 600, color: 'rgba(255,255,255,.74)', lineHeight: 1.35, borderBottom: '1px solid rgba(255,255,255,.06)', paddingBottom: 8 },
   matrixBuy: { display: 'block', textAlign: 'center', fontFamily: HEAD, fontSize: '1rem', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 900, color: '#090909', background: GOLD, border: 'none', padding: '14px', textDecoration: 'none' },
-  matrixOpts: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
+  // matrixOpts grid lives in LANDING_CSS (.lp-opts) so a media query can collapse
+  // the 3×/4× Hybrid buttons to one column on the narrowest phones.
   matrixOptBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, color: '#090909', background: GOLD, padding: '10px 8px', textDecoration: 'none' },
   matrixOptLbl: { fontFamily: HEAD, fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 700 },
   matrixOptPrice: { fontFamily: DISPLAY, fontSize: '1.25rem', letterSpacing: '.5px' },
@@ -604,7 +535,7 @@ const s = {
   localP: { fontFamily: BODY, fontSize: '1rem', fontWeight: 600, lineHeight: 1.55, color: 'rgba(255,255,255,.7)', maxWidth: '52ch', margin: '0 auto 20px' },
   localBtn: { display: 'inline-block', fontFamily: HEAD, fontSize: '.95rem', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 700, color: GOLD, background: 'transparent', border: `2px solid ${GOLD}`, padding: '12px 28px', textDecoration: 'none' },
 
-  founderGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 36, alignItems: 'start' },
+  founderGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,280px),1fr))', gap: 36, alignItems: 'start' },
   founderImg: { width: '100%', borderRadius: 16, border: `2px solid rgba(106,13,173,.45)`, boxShadow: `0 0 40px rgba(106,13,173,.25)`, display: 'block', marginBottom: 16 },
   credCard: { background: 'rgba(13,1,26,.6)', border: `1px solid rgba(157,39,201,.3)`, borderRadius: 14, padding: 18 },
   cred: { padding: '8px 0', borderBottom: '1px dotted rgba(255,255,255,.08)' },
@@ -614,11 +545,11 @@ const s = {
   sig: { fontFamily: HEAD, fontSize: '1.2rem', letterSpacing: '1px', color: GOLD, marginTop: 8 },
   sigSmall: { fontFamily: BODY, fontSize: '.78rem', fontWeight: 600, letterSpacing: '.5px', color: 'rgba(255,255,255,.5)', textTransform: 'none' },
 
-  proofGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 20, maxWidth: 600, margin: '0 auto 40px' },
+  proofGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,200px),1fr))', gap: 20, maxWidth: 600, margin: '0 auto 40px' },
   proofFig: { margin: 0 },
   proofImg: { width: '100%', borderRadius: 14, border: `1px solid rgba(106,13,173,.4)`, display: 'block', objectFit: 'cover' },
   proofCap: { fontFamily: HEAD, fontSize: '1rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.7)', textAlign: 'center', marginTop: 10 },
-  originGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 20 },
+  originGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,240px),1fr))', gap: 20 },
   originCard: { background: 'rgba(13,1,26,.55)', border: `1px solid rgba(157,39,201,.22)`, borderRadius: 14, padding: 24 },
   originStep: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: GOLD, marginBottom: 8 },
   originT: { fontFamily: HEAD, fontSize: '1.3rem', letterSpacing: '1px', color: '#fff', marginBottom: 10 },
@@ -643,7 +574,7 @@ const s = {
   pwaTag: { fontFamily: HEAD, fontSize: '.72rem', fontWeight: 700, letterSpacing: '2.5px', textTransform: 'uppercase', color: GOLD },
   pwaH: { fontFamily: HEAD, fontSize: 'clamp(1.5rem,3vw,2rem)', letterSpacing: '1px', color: '#fff', margin: '8px 0 6px' },
   pwaSub: { fontFamily: BODY, fontSize: '.95rem', lineHeight: 1.55, color: 'rgba(255,255,255,.62)', maxWidth: 640, margin: 0 },
-  pwaCols: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'clamp(14px,2vw,22px)' },
+  pwaCols: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,280px), 1fr))', gap: 'clamp(14px,2vw,22px)' },
   pwaCard: { background: 'rgba(9,9,9,.55)', border: `1px solid rgba(157,39,201,.28)`, borderRadius: 14, padding: 'clamp(18px,2.5vw,26px)' },
   pwaCardHead: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid rgba(157,39,201,.2)` },
   pwaIcon: { fontSize: '1.5rem', lineHeight: 1 },
