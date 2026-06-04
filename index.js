@@ -101,6 +101,27 @@ const SYSTEM_PROMPT_HYPERTROPHY =
   '4. Use deadpan, authoritative, clinical language in the notes field. ' +
   '5. Output exactly 7 day objects. Include 1-2 rest days with empty exercises arrays.';
 
+// ── BBF Culinary Governor ─────────────────────────────────────────────────────
+// Anti-hallucination guardrail shared by EVERY meal-generation prompt (free-form
+// and closed-universe alike). The engine was inventing luxury, $400-a-plate dishes
+// that do not fit the platform's busy-athlete demographic. This locks output to the
+// three house cuisines and to simple, budget, grocery-store-accessible cooking.
+const BBF_CULINARY_GOVERNOR =
+  'BBF CULINARY GOVERNOR — NON-NEGOTIABLE CONSTRAINTS (override any conflicting instinct): ' +
+  'CUISINE LOCK: every meal MUST belong to exactly one of three culinary styles — ' +
+  'American, Mexican, or Brazilian. REJECT and never output any other regional cuisine ' +
+  '(no Italian, French, Japanese, Chinese, Indian, Thai, Mediterranean, Korean, ' +
+  'Vietnamese, Ethiopian, etc.) and no fusion or cross-cultural mashups. ' +
+  'SIMPLE, EFFECTIVE & ACCESSIBLE: use only standard, budget-friendly ingredients ' +
+  'stocked at any everyday grocery store (e.g. chicken breast, ground beef/turkey, ' +
+  'eggs, milk, Greek yogurt, rice, beans, oats, potatoes, sweet potatoes, tortillas, ' +
+  'pasta, bananas, apples, frozen or canned vegetables). ZERO luxury or specialty items ' +
+  '(no wagyu, filet mignon, bison, foie gras, truffle, saffron, caviar, lobster, ' +
+  'scallops, microgreens, or imported/artisanal goods). ZERO complex or restaurant-grade ' +
+  'techniques (no sous-vide, confit, foams, gels, reductions, plating theatrics). ZERO ' +
+  'bougie, fine-dining, or $400-a-plate concepts. Every meal must be fast, realistic, ' +
+  'meal-prep-friendly fuel that a busy athlete can batch-cook and portion for the week.';
+
 const SYSTEM_PROMPT_NUTRITION =
   'You are an elite Clinical Nutritionist for Build Believe Fit LLC. ' +
   'Generate a precise 7-day nutritional blueprint. ' +
@@ -124,7 +145,8 @@ const SYSTEM_PROMPT_NUTRITION =
   '1. Schedule meals around a sustainable 12/12 intermittent fasting window (8 AM to 8 PM). ' +
   '2. Use clean whole foods (chicken breast, steak, jasmine rice, sweet potatoes, broccoli, asparagus). ' +
   '3. Calculate estimated TDEE, subtract a safe clinical deficit for fat loss while maintaining hypertrophy, output the calorie target in the "cal" field and macros per meal in the "i" field. ' +
-  '4. Output exactly 7 day objects.';
+  '4. Output exactly 7 day objects. ' +
+  BBF_CULINARY_GOVERNOR;
 
 // ───────────────────────────────────────────────────────────────
 // Phase B2: Youth Athlete prompts (Ages 9-17)
@@ -214,7 +236,8 @@ const SYSTEM_PROMPT_YOUTH_NUTRITION =
   '1. Output exactly 7 day objects. ' +
   '2. Schedule meals across the full waking day. NO fasting windows. ' +
   '3. Use whole foods: lean proteins, whole grains, fruits, vegetables, dairy as appropriate. ' +
-  '4. Caloric target must support growth and sport demands.';
+  '4. Caloric target must support growth and sport demands. ' +
+  BBF_CULINARY_GOVERNOR;
 
 // ───────────────────────────────────────────────────────────────
 // Phase 14: Nutrition-Only prompt (Essentials / Platinum tiers)
@@ -271,12 +294,13 @@ const SYSTEM_PROMPT_NUTRITION_ONLY =
   '{"m": meal label like "Breakfast", "Lunch", "Dinner" — match the meal_type ' +
   'from the matrix; if you scale a serving, append " (1.5x)" or similar to the label, ' +
   '"i": full meal description with macros in parentheses, e.g. ' +
-  '"American Grass-fed Bison & Sweet Potato Hash (450g, ~557 cal/27g P/19g C/42g F)" — ' +
+  '"American Ground Turkey & Sweet Potato Hash (450g, ~520 cal/42g P/40g C/16g F)" — ' +
   'pull name.en, serving_g, calories, protein_g, carbs_g, fat_g from the matrix entry, ' +
   'scale them in concert if you applied a serving multiplier, ' +
   '"instructions": an array of 3-4 short, concise prep steps generated from THIS meal\'s ' +
   'core_ingredients in the matrix entry — actionable cooking/assembly cues, no commentary}. ' +
-  'Output exactly 7 day objects.';
+  'Output exactly 7 day objects. ' +
+  BBF_CULINARY_GOVERNOR;
 
 // JSON validation helper — strips optional Markdown code fences and
 // confirms the output parses. Returns the cleaned JSON string on success,
@@ -1341,7 +1365,8 @@ app.post('/api/rotate-nutrition', async (req, res) => {
       "'instructions' — an array of 3-4 short, concise prep steps generated from THAT meal's " +
       "specific ingredients), " +
       "and 'meal_ids_used' (an array of the meal IDs from the library you actually used). " +
-      "No prose or markdown outside the JSON. ABSOLUTELY honor every constraint above.";
+      "No prose or markdown outside the JSON. ABSOLUTELY honor every constraint above.\n\n" +
+      BBF_CULINARY_GOVERNOR;
   } else {
     // Fallback — legacy compatibility when filter culls everything (e.g.
     // dietary profile + allergens combo with no library coverage).
@@ -1359,7 +1384,8 @@ app.post('/api/rotate-nutrition', async (req, res) => {
       "Return JSON with 'name', 'cal', 'goal', 'days' (7 day objects with 'day' + 'meals' " +
       "[{m, i, instructions}], where 'instructions' is an array of 3-4 short, concise prep " +
       "steps generated from that meal's specific ingredients). " +
-      "No prose outside JSON. ABSOLUTELY honor every constraint.";
+      "No prose outside JSON. ABSOLUTELY honor every constraint.\n\n" +
+      BBF_CULINARY_GOVERNOR;
   }
 
   const responseSchema = {
