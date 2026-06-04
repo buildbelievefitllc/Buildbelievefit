@@ -17,20 +17,33 @@
 // TIER SLUGS — the resolver accepts BOTH families the webhook can write
 // (supabase/functions/stripe-webhook ALLOWED_TIERS): the 13 canonical marketing
 // slugs AND the 7 legacy storefront slugs (kept live until the monolith retires).
-// Legacy slugs map to their closest modern access group so legacy payers keep
-// exactly what they already bought.
+// Legacy slugs map to the smallest modern access group that still contains every
+// tab they already unlocked — a grandfathered payer is NEVER downgraded.
 //
-// PREHAB AS A MID-TIER UPSELL (CEO Value Matrix): the Online Fitness path is split
-// into two access tiers so Prehab converts at a mid price point instead of forcing
-// the $699 God-Mode jump. Entry (Catalyst $9.99) → FITNESS_BASE keeps Prehab
-// padlocked (the upsell hook). Momentum ($19.99) + Autonomous ($49.99) → FITNESS_PRO
-// unlock Prehab. Both fitness tiers keep every other Online Fitness tab.
+// STRATEGIC PRICING LADDER (CEO order — Full Fleet Sync): access is no longer flat
+// across a path. Each tier unlocks strictly MORE than the one below it, so the gaps
+// ARE the upsell. Two ascending ladders:
+//
+//   Online Fitness:   Catalyst   (FITNESS_BASE,   $9.99)  → Program, Cardio, Mindset
+//                     Momentum   (FITNESS_PRO,   $19.99)  → + Generator, Prehab
+//                     Autonomous (FITNESS_APEX,  $49.99)  → + Nutrition (full vault)
+//   Online Nutrition: Fuel Foundation  (NUTRITION_BASE,  $7.99)  → Nutrition
+//                     Fuel Performance (NUTRITION_PRO,  $14.99)  → + Cardio
+//                     Fuel Sovereign   (NUTRITION_APEX, $29.99)  → + Prehab, Mindset
+//
+// Generator is the Catalyst→Momentum hook; Nutrition is the Momentum→Autonomous hook.
+// Cross-path reach at the top of each ladder (Autonomous gets Nutrition; Fuel
+// Sovereign gets Cardio/Prehab/Mindset) makes the apex tiers feel like full access.
 
 export const GROUP = {
-  // Online Fitness path, split into two tiers so Prehab is a mid-tier upsell:
-  FITNESS_BASE: 'fitnessbase', // entry Online Fitness (Catalyst) — Prehab padlocked
-  FITNESS_PRO: 'fitnesspro',   // mid/top Online Fitness (Momentum, Autonomous) — Prehab unlocked
-  NUTRITION: 'nutrition',      // Online Nutrition (Fuel) path
+  // Online Fitness path — three ascending tiers (the upsell ladder):
+  FITNESS_BASE: 'fitnessbase',  // Catalyst   $9.99  — Program, Cardio, Mindset (Generator + Prehab padlocked)
+  FITNESS_PRO: 'fitnesspro',    // Momentum   $19.99 — adds Generator + Prehab
+  FITNESS_APEX: 'fitnessapex',  // Autonomous $49.99 — adds Nutrition (full vault across training + fuel)
+  // Online Nutrition (Fuel) path — three ascending tiers:
+  NUTRITION_BASE: 'nutritionbase', // Fuel Foundation  $7.99  — Nutrition only
+  NUTRITION_PRO: 'nutritionpro',   // Fuel Performance $14.99 — adds Cardio
+  NUTRITION_APEX: 'nutritionapex', // Fuel Sovereign   $29.99 — adds Prehab + Mindset
   YOUTH: 'youth',              // Youth Athlete path
   ALL: 'allaccess',            // Hybrid protocols + admins + active trial — God Mode
   NONE: 'none',                // no active subscription — everything sellable is padlocked
@@ -39,14 +52,14 @@ export const GROUP = {
 // slug → access group. 13 canonical + 7 legacy. Anything NOT here is treated as
 // fail-open (see resolveAccessGroup) so a future/unknown SKU never false-locks.
 export const TIER_TO_GROUP = {
-  // ── Canonical · Online Fitness (BASE = entry; PRO = mid/top → adds Prehab) ──
-  catalyst: GROUP.FITNESS_BASE,   // $9.99 entry — Prehab padlocked (the upsell hook)
-  momentum: GROUP.FITNESS_PRO,    // $19.99 — unlocks Prehab
-  autonomous: GROUP.FITNESS_PRO,  // $49.99 — unlocks Prehab
-  // ── Canonical · Online Nutrition ──
-  fuel_foundation: GROUP.NUTRITION,
-  fuel_performance: GROUP.NUTRITION,
-  fuel_sovereign: GROUP.NUTRITION,
+  // ── Canonical · Online Fitness (ascending ladder — each adds to the one below) ──
+  catalyst: GROUP.FITNESS_BASE,   // $9.99  — Program, Cardio, Mindset
+  momentum: GROUP.FITNESS_PRO,    // $19.99 — + Generator, Prehab
+  autonomous: GROUP.FITNESS_APEX, // $49.99 — + Nutrition (full vault)
+  // ── Canonical · Online Nutrition (ascending ladder) ──
+  fuel_foundation: GROUP.NUTRITION_BASE,  // $7.99  — Nutrition
+  fuel_performance: GROUP.NUTRITION_PRO,  // $14.99 — + Cardio
+  fuel_sovereign: GROUP.NUTRITION_APEX,   // $29.99 — + Prehab, Mindset
   // ── Canonical · Youth Athlete ──
   rising_athlete: GROUP.YOUTH,
   // ── Canonical · Hybrid Protocols (6 SKUs) — God Mode ──
@@ -56,39 +69,51 @@ export const TIER_TO_GROUP = {
   transformation_8wk_4x: GROUP.ALL,
   sovereign_12wk_3x: GROUP.ALL,
   sovereign_12wk_4x: GROUP.ALL,
-  // ── Legacy storefront slugs → closest modern group (don't lock out legacy payers) ──
-  lite: GROUP.FITNESS_BASE,     // entry fitness (≈ Catalyst) → Prehab padlocked
-  gateway: GROUP.FITNESS_PRO,   // online-fitness gateway (Phase 17 NULL grandfather) → keep Prehab (fail-open generous)
-  architect: GROUP.FITNESS_PRO, // higher online fitness → unlocks Prehab
-  sovereign: GROUP.ALL,         // legacy flagship — full access
-  youth_athlete: GROUP.YOUTH,   // ≈ Rising Athlete
-  nutrition_essentials: GROUP.NUTRITION,
-  nutrition_platinum: GROUP.NUTRITION,
+  // ── Legacy storefront slugs → smallest NON-REGRESSING modern group ──
+  // Grandfather law: map to the smallest new group whose tabs ⊇ what the slug used to
+  // grant, so a legacy payer keeps everything they bought (never a downgrade).
+  lite: GROUP.FITNESS_PRO,      // old entry fitness granted Generator; new BASE drops it → map up to PRO to preserve it (+Prehab)
+  gateway: GROUP.FITNESS_PRO,   // old gateway == new FITNESS_PRO tab set exactly (Program/Cardio/Mindset/Generator/Prehab)
+  architect: GROUP.FITNESS_PRO, // old higher fitness == new FITNESS_PRO tab set exactly
+  sovereign: GROUP.ALL,         // legacy flagship — full access (unchanged)
+  youth_athlete: GROUP.YOUTH,   // ≈ Rising Athlete (unchanged)
+  nutrition_essentials: GROUP.NUTRITION_BASE, // old nutrition granted Nutrition only → NUTRITION_BASE preserves it exactly
+  nutrition_platinum: GROUP.NUTRITION_BASE,   // old nutrition granted Nutrition only → NUTRITION_BASE preserves it exactly
 };
 
 // Which groups unlock each Vault tab. A tab absent from the active group's reach
 // renders the UpgradeOverlay. hub + settings are universal (never sell someone
 // their own dashboard or account screen). ALL (God Mode) reaches everything.
-//   Fitness BASE → program, generator, cardio, mindset  (padlock nutrition + prehab)
-//   Fitness PRO  → the above PLUS prehab                 (padlock nutrition)
-//   Nutrition    → nutrition                             (padlock all physical/cognitive)
-//   Youth        → (advanced tabs all locked; routed to /sports — CEO ruling)
-//   None         → (everything sellable padlocked)
+//   FITNESS_BASE   (Catalyst)         → program, cardio, mindset
+//   FITNESS_PRO    (Momentum)         → + generator, prehab
+//   FITNESS_APEX   (Autonomous)       → + nutrition (every sellable tab)
+//   NUTRITION_BASE (Fuel Foundation)  → nutrition
+//   NUTRITION_PRO  (Fuel Performance) → + cardio
+//   NUTRITION_APEX (Fuel Sovereign)   → + prehab, mindset
+//   YOUTH                             → (advanced tabs locked; routed to /sports — CEO ruling)
+//   NONE                              → (everything sellable padlocked)
 const UNIVERSAL = [
-  GROUP.FITNESS_BASE, GROUP.FITNESS_PRO, GROUP.NUTRITION, GROUP.YOUTH, GROUP.ALL, GROUP.NONE,
+  GROUP.FITNESS_BASE, GROUP.FITNESS_PRO, GROUP.FITNESS_APEX,
+  GROUP.NUTRITION_BASE, GROUP.NUTRITION_PRO, GROUP.NUTRITION_APEX,
+  GROUP.YOUTH, GROUP.ALL, GROUP.NONE,
 ];
-// Core Online Fitness tabs stay open to BOTH fitness tiers (BASE + PRO) + God Mode.
-const FITNESS_ANY = [GROUP.FITNESS_BASE, GROUP.FITNESS_PRO, GROUP.ALL];
+// Every Online Fitness tier (BASE/PRO/APEX) + God Mode — the shared floor of the fitness ladder.
+const FITNESS_ANY = [GROUP.FITNESS_BASE, GROUP.FITNESS_PRO, GROUP.FITNESS_APEX, GROUP.ALL];
 export const TAB_ACCESS = {
   hub: UNIVERSAL,
   settings: UNIVERSAL,
+  // Program — the training core: every Online Fitness tier + God Mode.
   program: FITNESS_ANY,
-  generator: FITNESS_ANY,
-  cardio: FITNESS_ANY,
-  mindset: FITNESS_ANY,
-  nutrition: [GROUP.NUTRITION, GROUP.ALL],
-  // Mid-tier upsell: FITNESS_PRO (Momentum/Autonomous) + God Mode — NOT entry Catalyst.
-  prehab: [GROUP.FITNESS_PRO, GROUP.ALL],
+  // Generator — the Catalyst→Momentum hook: mid/top fitness (Momentum/Autonomous) only.
+  generator: [GROUP.FITNESS_PRO, GROUP.FITNESS_APEX, GROUP.ALL],
+  // Cardio — every fitness tier + Nutrition PRO/APEX (Fuel Performance/Sovereign) + God Mode.
+  cardio: [...FITNESS_ANY, GROUP.NUTRITION_PRO, GROUP.NUTRITION_APEX],
+  // Mindset — every fitness tier + Nutrition APEX (Fuel Sovereign) + God Mode.
+  mindset: [...FITNESS_ANY, GROUP.NUTRITION_APEX],
+  // Nutrition — Autonomous (top fitness) + every Online Nutrition tier + God Mode.
+  nutrition: [GROUP.FITNESS_APEX, GROUP.NUTRITION_BASE, GROUP.NUTRITION_PRO, GROUP.NUTRITION_APEX, GROUP.ALL],
+  // Prehab — mid/top fitness (Momentum/Autonomous) + Nutrition APEX (Fuel Sovereign) + God Mode.
+  prehab: [GROUP.FITNESS_PRO, GROUP.FITNESS_APEX, GROUP.NUTRITION_APEX, GROUP.ALL],
 };
 
 // For a locked tab, which pricing PATH the upgrade CTA steers toward. The target

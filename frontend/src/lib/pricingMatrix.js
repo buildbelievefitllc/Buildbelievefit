@@ -31,9 +31,9 @@ export const PRICING = {
         priceId: 'price_1TdtVCQ4j3uHTi7PEjvMihnk',
         link: 'https://buy.stripe.com/fZu00lb71fMfcjE0sxaZi0k',
         feats: [
-          'Full BBF app — workout tracking',
-          'Adaptive training programming',
-          'Strength + progress logging',
+          'Adaptive training program — workout tracking + logging',
+          'Cardio engine',
+          'Champion Mindset coaching',
           'Trilingual — EN / ES / PT',
         ],
       },
@@ -43,9 +43,9 @@ export const PRICING = {
         link: 'https://buy.stripe.com/3cIcN7b719nR6ZkcbfaZi0l',
         feats: [
           'Everything in Catalyst',
+          'AI Workout Generator — on-demand session builder',
+          'Prehab suite — Friction Scanner + injury-prevention',
           'Periodization that adapts to your logged data',
-          'TDEE calculator + macro blueprint',
-          'Metabolic capture + progress analytics',
         ],
       },
       {
@@ -55,8 +55,8 @@ export const PRICING = {
         link: 'https://buy.stripe.com/9B67sN8YT1VpdnIa37aZi0m',
         feats: [
           'Everything in Momentum',
-          'Full AI-driven periodization engine',
-          'Workout + nutrition tracking, fully unlocked',
+          'Full Nutrition suite — TDEE macros + meal guidance',
+          'Complete vault — program, cardio, mindset, generator, prehab + fuel',
           'Self-directed — the engine adapts to you',
         ],
       },
@@ -83,8 +83,8 @@ export const PRICING = {
         link: 'https://buy.stripe.com/9B64gB2AvcA397s4INaZi0o',
         feats: [
           'Everything in Foundation',
+          'Cardio engine unlocked',
           'Performance macro programming',
-          'Expanded meal architecture',
           'Hydration + fueling timing',
         ],
       },
@@ -95,9 +95,9 @@ export const PRICING = {
         link: 'https://buy.stripe.com/6oUbJ36QL2Ztabw4INaZi0p',
         feats: [
           'Everything in Performance',
-          'Premium nutrition programming',
-          'Full meal + fueling support',
-          'Priority macro recalibration',
+          'Prehab suite — Friction Scanner + injury-prevention',
+          'Champion Mindset coaching unlocked',
+          'Premium nutrition programming + priority recalibration',
         ],
       },
     ],

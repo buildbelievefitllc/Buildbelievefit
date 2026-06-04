@@ -47,8 +47,9 @@ const TABS = [
   { id: 'cardio', labelKey: 'vault-tab-cardio', icon: '♥', testid: 'vault-tab-cardio' },
   { id: 'prehab', labelKey: 'vault-tab-prehab', icon: '✚', testid: 'vault-tab-prehab' },
   { id: 'nutrition', labelKey: 'vault-tab-nutrition', icon: '◆' },
-  // Champion Mindset is tier-gated by the Upsell Funnel: Online Fitness + God Mode
-  // unlock it; Online Nutrition + Youth see the UpgradeOverlay. See lib/entitlements.js.
+  // Champion Mindset is tier-gated by the Upsell Funnel: every Online Fitness tier,
+  // Fuel Sovereign (top Online Nutrition), + God Mode unlock it; lower Nutrition +
+  // Youth see the UpgradeOverlay. See lib/entitlements.js.
   { id: 'mindset', labelKey: 'vault-tab-mindset', icon: '🧠', testid: 'vault-tab-mindset' },
   { id: 'settings', labelKey: 'vault-tab-settings', icon: '⚙' },
 ];
