@@ -40,7 +40,7 @@ const EXP_OPTIONS = [
 const PARQ_KEYS = ['f-parq1', 'f-parq2', 'f-parq3', 'f-parq4', 'f-parq5', 'f-parq6', 'f-parq7'];
 
 export default function PathfinderForm() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { containerRef, obtainToken, error: tsError } = useTurnstile(TURNSTILE_SITE_KEY);
 
   const [form, setForm] = useState({
@@ -102,6 +102,7 @@ export default function PathfinderForm() {
           marketing_consent: form.marketingConsent,
         },
         token,
+        lang,
       );
       setSubmitted(true);
     } catch (err) {

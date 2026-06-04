@@ -26,6 +26,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProgram } from './programData.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useLang } from '../../context/LangContext.jsx';
+import { localizeDay } from '../../lib/trainingI18n.js';
 import { exKey, useLastWeights, readDayEntries, writeDayEntry, syncSessionToCloud } from './programApi.js';
 import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
 import './vault.css';
@@ -55,6 +57,7 @@ function weightPlaceholder(prescribed) {
 }
 
 export default function ProgramGrid({ uid, programKey, dynamicPlan }) {
+  const { lang } = useLang();
   // Prefer the user's assigned plan (structured AI payload) when present; fall
   // back to the authorized static catalog by persona. Either way the grid, the
   // per-set logging, and the form-demo video resolver work identically.
@@ -80,7 +83,7 @@ export default function ProgramGrid({ uid, programKey, dynamicPlan }) {
               onClick={() => setDayIdx(i)}
               className={`pg-day-pill${on ? ' is-on' : ''}`}
             >
-              {d.day}
+              {localizeDay(d.day, lang)}
             </button>
           );
         })}
@@ -93,9 +96,10 @@ export default function ProgramGrid({ uid, programKey, dynamicPlan }) {
 }
 
 function RestCard({ day }) {
+  const { lang } = useLang();
   return (
     <div className="pg-dayhead">
-      <div className="pg-day-kicker">{day.day}</div>
+      <div className="pg-day-kicker">{localizeDay(day.day, lang)}</div>
       <div className="pg-rest">
         <div className="pg-rest-icon" aria-hidden="true">😴</div>
         <div className="pg-rest-title">{day.focus || 'Rest & Recover'}</div>
@@ -108,6 +112,7 @@ function RestCard({ day }) {
 }
 
 function DayView({ uid, day, dayIdx }) {
+  const { lang } = useLang();
   const exercises = day.exercises || [];
   // Cloud-sync status for this day's session. Local buffer persists on every
   // keystroke regardless; this drives the explicit "push session" action.
@@ -141,7 +146,7 @@ function DayView({ uid, day, dayIdx }) {
   return (
     <div>
       <header className="pg-dayhead">
-        <div className="pg-day-kicker">{day.day}</div>
+        <div className="pg-day-kicker">{localizeDay(day.day, lang)}</div>
         <div className="pg-day-focus">{day.focus}</div>
         <div className="pg-day-meta">
           {exercises.length} exercise{exercises.length === 1 ? '' : 's'}

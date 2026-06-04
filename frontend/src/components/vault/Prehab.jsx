@@ -19,7 +19,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
-import { PLANNER, PROTOCOL, compileReport } from './prehabProtocol.js';
+import { getPrehabCatalog, compileReport } from './prehabProtocol.js';
 import './prehab.css';
 
 const PRESETS = [30, 45, 60];
@@ -259,12 +259,15 @@ function RespiratoryCoach() {
 // ── Module 2 · Dynamic Joint Symptom Mobility Planner + Diagnostic Report ─────
 function MobilityPlanner() {
   const s = usePrehabStr().mob;
+  const { lang } = useLang();
+  const { PLANNER } = getPrehabCatalog(lang);
   const [selections, setSelections] = useState(
     () => Object.fromEntries(PLANNER.map((q) => [q.id, q.default])),
   );
   const [compiled, setCompiled] = useState(false);
 
-  const report = useMemo(() => compileReport(selections), [selections]);
+  // Report resolves off the language-invariant ids/values, then renders localized.
+  const report = useMemo(() => compileReport(selections, lang), [selections, lang]);
   const setSel = (id, value) => { setSelections((p) => ({ ...p, [id]: value })); setCompiled(false); };
 
   return (
@@ -345,6 +348,8 @@ function ProtocolRing({ pct }) {
 // ── Module 3 · Protocol for Selected Region ──────────────────────────────────
 function ProtocolDeck() {
   const s = usePrehabStr().deck;
+  const { lang } = useLang();
+  const { PROTOCOL } = getPrehabCatalog(lang);
   const [done, setDone] = useState(() => new Set());
   const toggle = (key) => setDone((prev) => {
     const next = new Set(prev);

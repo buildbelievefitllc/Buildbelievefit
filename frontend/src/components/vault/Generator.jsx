@@ -24,6 +24,7 @@ import {
   generateProgram, GOALS, GENDERS, LEVELS, LOCATIONS, DAY_OPTIONS, PACES, SPLITS, INTENSIFIERS, PRESETS,
 } from './generatorEngine.js';
 import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
+import { localizeMuscle } from '../../lib/trainingI18n.js';
 import './vault.css';
 
 // Trilingual UI chrome for the Vault Roster Engine. The signature-split preset
@@ -398,7 +399,7 @@ function GeneratorOutput({ result }) {
                 ) : null}
                 <div className="gen-exmain">
                   <div className="gen-exname">{ex.n}{ex.fst7 ? <span className="gen-fst7">FST-7</span> : null}</div>
-                  <div className="gen-exmeta"><span className="gen-mg">{ex.g.toUpperCase()}</span> · {ex.p}</div>
+                  <div className="gen-exmeta"><span className="gen-mg">{localizeMuscle(ex.g, lang).toUpperCase()}</span> · {ex.p}</div>
                 </div>
                 <div className="gen-rx">
                   <div className="gen-sr">{exRx.sets}×{exRx.reps}</div>

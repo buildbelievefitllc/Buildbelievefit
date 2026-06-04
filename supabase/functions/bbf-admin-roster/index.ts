@@ -551,6 +551,14 @@ serve(async (req) => {
       const cuisine = String(body?.cuisine ?? '').trim();
       const constraints = cuisine ? `Cuisine preference: ${cuisine} cuisine.` : '';
 
+      // Active language from the coach's LangContext (forwarded by the React
+      // Nutrition console). rotate-nutrition appends the output-language clause off
+      // this so the regenerated plan is localized end-to-end. Defaults to 'en'.
+      const lang = (() => {
+        const s = String(body?.lang ?? '').trim().toLowerCase().slice(0, 2);
+        return (s === 'es' || s === 'pt') ? s : 'en';
+      })();
+
       let rotateRes: Response;
       try {
         rotateRes = await fetch(`${RENDER_BASE}/api/rotate-nutrition`, {
@@ -567,6 +575,7 @@ serve(async (req) => {
             food_dislikes: Array.isArray(u.food_dislikes) ? u.food_dislikes : [],
             previousPlan: typeof u.nutrition_plan === 'string' ? u.nutrition_plan : '',
             constraints,
+            lang,
           }),
         });
       } catch (_) {

@@ -605,6 +605,7 @@ function NutritionStudioGate() {
 
 function NutritionCoachConsole() {
   const { tr } = useNutStr();
+  const { lang } = useLang();
   const [roster, setRoster] = useState(EMPTY);
   const [rosterErr, setRosterErr] = useState(null);
   const [loadingRoster, setLoadingRoster] = useState(true);
@@ -687,7 +688,7 @@ function NutritionCoachConsole() {
     setCompiling(true);
     setStatus(null);
     try {
-      const b = await compilePlan(selectedId, { tdee_target: macros.tdee_target, cuisine });
+      const b = await compilePlan(selectedId, { tdee_target: macros.tdee_target, cuisine, lang });
       const days = Array.isArray(b.plan?.days) ? b.plan.days.length : 0;
       setStatus({
         kind: 'ok',

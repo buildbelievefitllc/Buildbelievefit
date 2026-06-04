@@ -122,6 +122,40 @@ const BBF_CULINARY_GOVERNOR =
   'bougie, fine-dining, or $400-a-plate concepts. Every meal must be fast, realistic, ' +
   'meal-prep-friendly fuel that a busy athlete can batch-cook and portion for the week.';
 
+// ── Dynamic Output-Language Governor (Terminal India · trilingual data layer) ──
+// The locked clinical prompts above stay English; this rule is APPENDED to the
+// `system` field at call time off the request's active language so the LLM emits
+// every human-readable VALUE (meal names, prep steps, workout/exercise names,
+// muscle groups, goal taglines, notes) in the athlete's language — not just the
+// React shell. The JSON structure, the `day` enum, and all numbers/units stay
+// fixed so the existing parse + render pipeline is untouched. For English it is a
+// NO-OP, so adult/youth EN output is byte-identical to the pre-i18n behavior.
+const BBF_LANG_NAMES = {
+  en: 'English',
+  es: 'Spanish (Español)',
+  pt: 'Brazilian Portuguese (Português do Brasil)',
+};
+function normalizeLang(v) {
+  const s = String(v || '').trim().toLowerCase().slice(0, 2);
+  return (s === 'es' || s === 'pt') ? s : 'en';
+}
+function languageDirective(lang) {
+  const code = normalizeLang(lang);
+  if (code === 'en') return '';
+  const name = BBF_LANG_NAMES[code];
+  return ' ' +
+    `OUTPUT LANGUAGE — STRICT, NON-NEGOTIABLE: the athlete's active language is ${name}. ` +
+    `Write EVERY human-readable VALUE in ${name}: meal labels (the "m" field), food ` +
+    `descriptions (the "i" field), every prep step in "instructions", each exercise "name" ` +
+    `and "equipment", every "focus" descriptor, all "notes", the "goal" tagline, "restNote", ` +
+    `and all muscle-group terms. DO NOT translate the JSON keys themselves. DO NOT translate ` +
+    `or localize the "day" field — keep it EXACTLY in English ("Monday"…"Sunday" or "Day 1"…` +
+    `"Day 7") as specified, because the client UI localizes day names itself. Keep all numbers, ` +
+    `macro annotations, and units (g, cal, kcal, lb, kg, min, %) exactly as specified. Translate ` +
+    `naturally for a native ${name} speaker in a high-performance athletic-training context — ` +
+    `leave no English words inside any value.`;
+}
+
 const SYSTEM_PROMPT_NUTRITION =
   'You are an elite Clinical Nutritionist for Build Believe Fit LLC. ' +
   'Generate a precise 7-day nutritional blueprint. ' +
@@ -345,6 +379,9 @@ function normalizeClientPayload(body) {
     dietary_profile: String(b.dietary_profile || 'Omnivore'),
     allergens: Array.isArray(b.allergens) ? b.allergens.map(String) : [],
     liability_cleared: b.liability_cleared !== undefined ? Boolean(b.liability_cleared) : true,
+    // Active UI language carried from LangContext → drives the LLM output language
+    // (languageDirective). Accepts lang / language / language_preference; defaults en.
+    lang: normalizeLang(b.lang || b.language || b.language_preference),
   };
 }
 
@@ -402,7 +439,7 @@ async function generateHypertrophyBlueprint(payload) {
   const response = await anthropic.messages.create({
     model: ANTHROPIC_MODEL,
     max_tokens: 4096,
-    system: SYSTEM_PROMPT_HYPERTROPHY,
+    system: SYSTEM_PROMPT_HYPERTROPHY + languageDirective(payload.lang),
     messages: [{ role: 'user', content: userMessage }],
   });
 
@@ -447,7 +484,7 @@ async function generateFuelMatrix(payload) {
   const response = await anthropic.messages.create({
     model: ANTHROPIC_MODEL,
     max_tokens: 4096,
-    system: SYSTEM_PROMPT_NUTRITION,
+    system: SYSTEM_PROMPT_NUTRITION + languageDirective(payload.lang),
     messages: [{ role: 'user', content: userMessage }],
   });
 
@@ -473,7 +510,7 @@ async function generateYouthAthleteBlueprint(payload) {
   const response = await anthropic.messages.create({
     model: ANTHROPIC_MODEL,
     max_tokens: 4096,
-    system: SYSTEM_PROMPT_YOUTH_HYPERTROPHY,
+    system: SYSTEM_PROMPT_YOUTH_HYPERTROPHY + languageDirective(payload.lang),
     messages: [{ role: 'user', content: userMessage }],
   });
 
@@ -521,7 +558,7 @@ async function generateNutritionOnlyBlueprint(payload) {
   const response = await anthropic.messages.create({
     model: ANTHROPIC_MODEL,
     max_tokens: 4096,
-    system: SYSTEM_PROMPT_NUTRITION_ONLY,
+    system: SYSTEM_PROMPT_NUTRITION_ONLY + languageDirective(payload.lang),
     messages: [{ role: 'user', content: userMessage }],
   });
 
@@ -544,7 +581,7 @@ async function generateYouthFuelMatrix(payload) {
   const response = await anthropic.messages.create({
     model: ANTHROPIC_MODEL,
     max_tokens: 4096,
-    system: SYSTEM_PROMPT_YOUTH_NUTRITION,
+    system: SYSTEM_PROMPT_YOUTH_NUTRITION + languageDirective(payload.lang),
     messages: [{ role: 'user', content: userMessage }],
   });
 
@@ -1261,6 +1298,9 @@ app.post('/api/rotate-nutrition', async (req, res) => {
   const allergens      = Array.isArray(body.allergens)      ? body.allergens.map(s => String(s).trim()).filter(Boolean)      : [];
   const foodLikes      = Array.isArray(body.food_likes)     ? body.food_likes.map(s => String(s).trim()).filter(Boolean)     : [];
   const foodDislikes   = Array.isArray(body.food_dislikes)  ? body.food_dislikes.map(s => String(s).trim()).filter(Boolean)  : [];
+  // Active language relayed from the coach's LangContext (via bbf-admin-roster
+  // compile). Drives the output-language clause appended to the Gemini prompt.
+  const lang           = normalizeLang(body.lang || body.language || body.language_preference);
   if (!uid)  return res.status(400).json({ ok: false, error: 'uid_missing' });
   if (!tdee) return res.status(400).json({ ok: false, error: 'tdee_missing' });
 
@@ -1387,6 +1427,11 @@ app.post('/api/rotate-nutrition', async (req, res) => {
       "No prose outside JSON. ABSOLUTELY honor every constraint.\n\n" +
       BBF_CULINARY_GOVERNOR;
   }
+
+  // Localize the regenerated meal plan to the athlete's active language (the
+  // coach-compile path renders straight into the React Nutrition Locker). No-op
+  // for English so existing EN plans stay byte-identical.
+  prompt += languageDirective(lang);
 
   const responseSchema = {
     type: 'object',

@@ -13,6 +13,8 @@
 // real per-program aggregation. Conditionally rendered for admins only (see
 // Program.jsx) so the client Vault keeps the Sentinel untouched.
 
+import { useLang } from '../../context/LangContext.jsx';
+import { localizeMuscle } from '../../lib/trainingI18n.js';
 import './vault.css';
 
 // Mock volume-ratio indicators (share of weekly working sets per muscle group).
@@ -29,6 +31,7 @@ const VOLUME_RATIO = [
 ];
 
 export default function HypertrophyBalanceAnalyzer() {
+  const { lang } = useLang();
   return (
     <div className="hba">
       <div className="hba-kicker">Volume Ratio</div>
@@ -38,21 +41,24 @@ export default function HypertrophyBalanceAnalyzer() {
       </div>
 
       <div className="hba-bars" role="list">
-        {VOLUME_RATIO.map(({ muscle, pct }) => (
-          <div className="hba-row" role="listitem" key={muscle}>
-            <span className="hba-muscle">{muscle}</span>
-            <div className="hba-track" aria-hidden="true">
-              <div className="hba-fill" style={{ width: `${pct}%` }} />
+        {VOLUME_RATIO.map(({ muscle, pct }) => {
+          const label = localizeMuscle(muscle, lang);
+          return (
+            <div className="hba-row" role="listitem" key={muscle}>
+              <span className="hba-muscle">{label}</span>
+              <div className="hba-track" aria-hidden="true">
+                <div className="hba-fill" style={{ width: `${pct}%` }} />
+              </div>
+              <span
+                className="hba-pct"
+                role="img"
+                aria-label={`${label}: ${pct}%`}
+              >
+                {pct}%
+              </span>
             </div>
-            <span
-              className="hba-pct"
-              role="img"
-              aria-label={`${muscle}: ${pct} percent of weekly volume`}
-            >
-              {pct}%
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="hba-foot">Static reference — live program aggregation pending</div>

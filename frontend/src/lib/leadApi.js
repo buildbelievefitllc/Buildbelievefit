@@ -35,7 +35,12 @@ function leadErrorMessage(status, slug) {
 
 // Submit a lead. `fields` carries full_name, email, phone, primary_goal, etc.
 // `turnstileToken` is the single-use token from useTurnstile.obtainToken().
-export async function submitLead(fields, turnstileToken) {
+// `lang` is the active LangContext code (en|es|pt) — persisted as the lead's
+// language_preference so downstream plan generation (the /process pipeline)
+// emits the athlete's first plans in the language they applied in.
+export async function submitLead(fields, turnstileToken, lang) {
+  const code = String(lang || '').trim().toLowerCase().slice(0, 2);
+  const language_preference = (code === 'es' || code === 'pt') ? code : 'en';
   let res;
   try {
     res = await fetch(`${FUNCTIONS_BASE}/bbf-lead-capture`, {
@@ -43,7 +48,8 @@ export async function submitLead(fields, turnstileToken) {
       headers: { 'Content-Type': 'application/json' }, // ← only this header (see note above)
       body: JSON.stringify({
         source: 'pathfinder',
-        language_preference: 'en',
+        language_preference,
+        lang: language_preference,
         timestamp: new Date().toISOString(),
         ...fields,
         turnstile_token: turnstileToken,

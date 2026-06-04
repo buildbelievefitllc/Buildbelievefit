@@ -203,6 +203,12 @@ export async function compilePlan(id, opts = {}) {
   }
   const cuisine = String(opts?.cuisine ?? '').trim().toLowerCase();
   if (cuisine) payload.cuisine = cuisine;
+  // Active UI language (LangContext) → relayed through bbf-admin-roster to
+  // /api/rotate-nutrition so the regenerated plan is generated in the athlete's
+  // language. Constrained to the supported set; omitted (server-defaults to en)
+  // for anything else.
+  const lang = String(opts?.lang ?? '').trim().toLowerCase().slice(0, 2);
+  if (lang === 'es' || lang === 'pt') payload.lang = lang;
   return rosterCall('compile', payload);
 }
 
