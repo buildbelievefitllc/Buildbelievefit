@@ -19,11 +19,109 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useLang } from '../../context/LangContext.jsx';
 import {
   generateProgram, GOALS, GENDERS, LEVELS, LOCATIONS, DAY_OPTIONS, PACES, SPLITS, INTENSIFIERS, PRESETS,
 } from './generatorEngine.js';
 import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
 import './vault.css';
+
+// Trilingual UI chrome for the Vault Roster Engine. The signature-split preset
+// content and the dropdown option values are engine data (generatorEngine.js) and
+// stay as authored; this dictionary covers the surface's own headers, field
+// labels, buttons, and status copy. EN values are verbatim to the prior strings.
+const STR = {
+  en: {
+    head: '⚡ Vault Roster Engine',
+    meta: 'Signature chamber splits · 8-parameter control · built strictly from the locked BBF library. Every lift ships a form demo.',
+    chamberTitle: 'Akeem’s Signature Chamber Splits',
+    chamberTag: '(Overwatch Override)',
+    chamberSub: 'Pledge dynamic pre-compiled splits modeled directly on Akeem’s golden-era protocols. Zero AI waiting, maximum immediate cell recruitment.',
+    chamberAria: 'Signature chamber splits',
+    activate: 'Activate Split →',
+    daysPerWeek: (v) => `${v} Days / Week`,
+    attach: 'Attach Warm-Ups & Cool-Downs',
+    genUnlimited: 'Generate Designed Program Blueprint',
+    genToken: 'Generate Blueprint (1 Token Available)',
+    genExhausted: 'Token Exhausted (Unlocks in 30 Days)',
+    reshuffle: '↻ Reshuffle',
+    revert: 'Out of tokens? Revert to your Saved Program Library →',
+    guard: '🔒 Contraindicated movements (barbell back squat · abdominal crunches) are auto-excluded.',
+    placeholder: 'Activate a signature chamber split or set your 8 parameters, then generate a fresh, video-backed program.',
+    noMatch: 'No exercises matched those parameters — try a different equipment profile or architecture.',
+    day: 'Day',
+    warmup: 'Warm-Up',
+    cooldown: 'Cool-Down',
+    rest: 'Rest / Active Recovery',
+    restLbl: 'rest',
+    formDemo: (n) => `Form demo: ${n}`,
+    fields: {
+      goal: 'Training Priority', gender: 'Athletic Gender Focus', level: 'Experience Level',
+      loc: 'Destination Equip Priority', days: 'Weekly Frequency', dur: 'Workout Pace Target',
+      arch: 'Splits Architecture', intensifier: 'Intensifier Technique',
+    },
+  },
+  es: {
+    head: '⚡ Motor de Roster del Cofre',
+    meta: 'Splits de cámara insignia · control de 8 parámetros · construidos estrictamente desde la biblioteca BBF bloqueada. Cada ejercicio incluye demo de técnica.',
+    chamberTitle: 'Splits de Cámara Insignia de Akeem',
+    chamberTag: '(Anulación Overwatch)',
+    chamberSub: 'Despliega splits pre-compilados dinámicos modelados directamente en los protocolos de la era dorada de Akeem. Cero espera de IA, máximo reclutamiento celular inmediato.',
+    chamberAria: 'Splits de cámara insignia',
+    activate: 'Activar Split →',
+    daysPerWeek: (v) => `${v} Días / Semana`,
+    attach: 'Adjuntar Calentamientos y Enfriamientos',
+    genUnlimited: 'Generar Plan de Programa Diseñado',
+    genToken: 'Generar Plan (1 Token Disponible)',
+    genExhausted: 'Token Agotado (Se Desbloquea en 30 Días)',
+    reshuffle: '↻ Rebarajar',
+    revert: '¿Sin tokens? Vuelve a tu Biblioteca de Programas Guardados →',
+    guard: '🔒 Los movimientos contraindicados (sentadilla con barra trasera · abdominales crunch) se excluyen automáticamente.',
+    placeholder: 'Activa un split de cámara insignia o ajusta tus 8 parámetros, luego genera un programa nuevo respaldado por video.',
+    noMatch: 'Ningún ejercicio coincidió con esos parámetros — prueba un perfil de equipo o arquitectura diferente.',
+    day: 'Día',
+    warmup: 'Calentamiento',
+    cooldown: 'Enfriamiento',
+    rest: 'Descanso / Recuperación Activa',
+    restLbl: 'descanso',
+    formDemo: (n) => `Demo de técnica: ${n}`,
+    fields: {
+      goal: 'Prioridad de Entrenamiento', gender: 'Enfoque de Género Atlético', level: 'Nivel de Experiencia',
+      loc: 'Prioridad de Equipo de Destino', days: 'Frecuencia Semanal', dur: 'Objetivo de Ritmo de Entrenamiento',
+      arch: 'Arquitectura de Splits', intensifier: 'Técnica Intensificadora',
+    },
+  },
+  pt: {
+    head: '⚡ Motor de Roster do Cofre',
+    meta: 'Splits de câmara assinatura · controle de 8 parâmetros · construídos estritamente a partir da biblioteca BBF bloqueada. Cada exercício inclui demo de técnica.',
+    chamberTitle: 'Splits de Câmara Assinatura do Akeem',
+    chamberTag: '(Substituição Overwatch)',
+    chamberSub: 'Implante splits pré-compilados dinâmicos modelados diretamente nos protocolos da era de ouro do Akeem. Zero espera de IA, máximo recrutamento celular imediato.',
+    chamberAria: 'Splits de câmara assinatura',
+    activate: 'Ativar Split →',
+    daysPerWeek: (v) => `${v} Dias / Semana`,
+    attach: 'Anexar Aquecimentos e Desaquecimentos',
+    genUnlimited: 'Gerar Plano de Programa Projetado',
+    genToken: 'Gerar Plano (1 Token Disponível)',
+    genExhausted: 'Token Esgotado (Desbloqueia em 30 Dias)',
+    reshuffle: '↻ Reembaralhar',
+    revert: 'Sem tokens? Volte à sua Biblioteca de Programas Salvos →',
+    guard: '🔒 Movimentos contraindicados (agachamento com barra nas costas · abdominais crunch) são excluídos automaticamente.',
+    placeholder: 'Ative um split de câmara assinatura ou ajuste seus 8 parâmetros, depois gere um programa novo com suporte de vídeo.',
+    noMatch: 'Nenhum exercício correspondeu a esses parâmetros — tente um perfil de equipamento ou arquitetura diferente.',
+    day: 'Dia',
+    warmup: 'Aquecimento',
+    cooldown: 'Desaquecimento',
+    rest: 'Descanso / Recuperação Ativa',
+    restLbl: 'descanso',
+    formDemo: (n) => `Demo de técnica: ${n}`,
+    fields: {
+      goal: 'Prioridade de Treino', gender: 'Foco de Gênero Atlético', level: 'Nível de Experiência',
+      loc: 'Prioridade de Equipamento de Destino', days: 'Frequência Semanal', dur: 'Alvo de Ritmo de Treino',
+      arch: 'Arquitetura de Splits', intensifier: 'Técnica Intensificadora',
+    },
+  },
+};
 
 // ── Token Economy (client-side monetization gate · 1 blueprint token / month) ────
 // The Vault Roster Engine is a metered premium surface. ADMINS on the Command Center
@@ -81,6 +179,8 @@ const DEFAULTS = {
 };
 
 export default function Generator({ onRevertToLibrary }) {
+  const { lang } = useLang();
+  const tr = STR[lang] || STR.en;
   const [params, setParams] = useState(DEFAULTS);
   const [warmups, setWarmups] = useState(true);
   const [activePreset, setActivePreset] = useState(null);
@@ -147,23 +247,19 @@ export default function Generator({ onRevertToLibrary }) {
   return (
     <div className="gen">
       <div>
-        <h2 className="pg-nut-head">⚡ Vault Roster Engine</h2>
-        <div className="pg-nut-meta">
-          Signature chamber splits · 8-parameter control · built strictly from the locked BBF library. Every lift ships a form demo.
-        </div>
+        <h2 className="pg-nut-head">{tr.head}</h2>
+        <div className="pg-nut-meta">{tr.meta}</div>
       </div>
 
       {/* ── Akeem's Signature Chamber Splits (Overwatch Override) — 3 hard-wired presets ── */}
       <div className="pg-card gen-chambers">
         <div className="gen-chambers-head">
           <h3 className="gen-chambers-title">
-            <span aria-hidden="true">🏆</span> Akeem&apos;s Signature Chamber Splits <span className="gen-chambers-tag">(Overwatch Override)</span>
+            <span aria-hidden="true">🏆</span> {tr.chamberTitle} <span className="gen-chambers-tag">{tr.chamberTag}</span>
           </h3>
-          <p className="gen-chambers-sub">
-            Pledge dynamic pre-compiled splits modeled directly on Akeem&apos;s golden-era protocols. Zero AI waiting, maximum immediate cell recruitment.
-          </p>
+          <p className="gen-chambers-sub">{tr.chamberSub}</p>
         </div>
-        <div className="gen-presets" role="group" aria-label="Signature chamber splits">
+        <div className="gen-presets" role="group" aria-label={tr.chamberAria}>
           {PRESETS.map((p) => (
             <button
               key={p.id}
@@ -176,7 +272,7 @@ export default function Generator({ onRevertToLibrary }) {
               {p.chamber ? <span className="gen-preset-chamber">{p.chamber}</span> : null}
               <span className="gen-preset-name">{p.label}</span>
               <span className="gen-preset-sub">{p.blurb}</span>
-              <span className="gen-preset-cta" aria-hidden="true">Activate Split →</span>
+              <span className="gen-preset-cta" aria-hidden="true">{tr.activate}</span>
             </button>
           ))}
         </div>
@@ -189,14 +285,14 @@ export default function Generator({ onRevertToLibrary }) {
             return (
               <label key={f.key} className="gen-field">
                 <span className="gen-field-lbl">
-                  {f.icon ? <span className="gen-field-ic" aria-hidden="true">{f.icon} </span> : null}{f.label}
+                  {f.icon ? <span className="gen-field-ic" aria-hidden="true">{f.icon} </span> : null}{tr.fields[f.key] || f.label}
                 </span>
                 <select
                   className="gen-select"
                   value={params[f.key]}
                   onChange={(e) => set(f.key, e.target.value)}
                 >
-                  {f.options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
+                  {f.options.map((o) => <option key={o.v} value={o.v}>{f.key === 'days' ? tr.daysPerWeek(o.v) : o.l}</option>)}
                   {/* A preset can set a value outside this dropdown's list (e.g. FST-7). */}
                   {!known ? <option value={params[f.key]}>{EXTRA_OPTION_LABELS[params[f.key]] || params[f.key]}</option> : null}
                 </select>
@@ -215,7 +311,7 @@ export default function Generator({ onRevertToLibrary }) {
           disabled={!canGenerate}
         >
           <span className={`gen-switch${warmups ? ' is-on' : ''}`}><span className="gen-switch-thumb" /></span>
-          <span className="gen-toggle-lbl">Attach Warm-Ups &amp; Cool-Downs</span>
+          <span className="gen-toggle-lbl">{tr.attach}</span>
         </button>
 
         <div className="gen-actions">
@@ -223,21 +319,21 @@ export default function Generator({ onRevertToLibrary }) {
               CLIENT: the monthly token state drives both the label and the lock. */}
           {isUnlimited ? (
             <button type="button" className="gen-run" onClick={() => run(0)}>
-              <span aria-hidden="true">🏋 </span>Generate Designed Program Blueprint
+              <span aria-hidden="true">🏋 </span>{tr.genUnlimited}
             </button>
           ) : canGenerate ? (
             <button type="button" className="gen-run" onClick={() => run(0)}>
-              <span aria-hidden="true">🏋 </span>Generate Blueprint (1 Token Available)
+              <span aria-hidden="true">🏋 </span>{tr.genToken}
             </button>
           ) : (
             <button type="button" className="gen-run is-exhausted" disabled aria-disabled="true">
-              <span aria-hidden="true">🔒 </span>Token Exhausted (Unlocks in 30 Days)
+              <span aria-hidden="true">🔒 </span>{tr.genExhausted}
             </button>
           )}
           {/* Reshuffle is another full generation — admin-only, so it can never be
               used to bypass the client's one-token-per-month hard limit. */}
           {result && isUnlimited ? (
-            <button type="button" className="gen-regen" onClick={() => run(regen + 1)}>↻ Reshuffle</button>
+            <button type="button" className="gen-regen" onClick={() => run(regen + 1)}>{tr.reshuffle}</button>
           ) : null}
         </div>
 
@@ -249,34 +345,32 @@ export default function Generator({ onRevertToLibrary }) {
             className="gen-revert"
             onClick={() => onRevertToLibrary?.()}
           >
-            Out of tokens? Revert to your Saved Program Library →
+            {tr.revert}
           </button>
         ) : null}
 
-        <div className="gen-guard">
-          🔒 Contraindicated movements (barbell back squat · abdominal crunches) are auto-excluded.
-        </div>
+        <div className="gen-guard">{tr.guard}</div>
       </div>
 
       {result ? <GeneratorOutput result={result} /> : (
-        <div className="pg-card gen-placeholder">
-          Activate a signature chamber split or set your 8 parameters, then generate a fresh, video-backed program.
-        </div>
+        <div className="pg-card gen-placeholder">{tr.placeholder}</div>
       )}
     </div>
   );
 }
 
 function GeneratorOutput({ result }) {
+  const { lang } = useLang();
+  const tr = STR[lang] || STR.en;
   if (!result.program?.length) {
-    return <div className="pg-card gen-placeholder">No exercises matched those parameters — try a different equipment profile or architecture.</div>;
+    return <div className="pg-card gen-placeholder">{tr.noMatch}</div>;
   }
   return (
     <div className="gen-out">
       {result.program.map((day, di) => (
         <div className="gen-day pg-card" key={day.label + di}>
           <div className="gen-dayhead">
-            <span className="gen-dayn">Day {di + 1}</span>
+            <span className="gen-dayn">{tr.day} {di + 1}</span>
             <span className="gen-dayf">{day.label}</span>
             {day.rx?.technique ? <span className="gen-tech">{day.rx.technique}</span> : null}
           </div>
@@ -284,20 +378,20 @@ function GeneratorOutput({ result }) {
 
           {day.warmup?.length ? (
             <div className="gen-warm">
-              <div className="gen-warm-h">Warm-Up</div>
+              <div className="gen-warm-h">{tr.warmup}</div>
               <ul className="gen-warm-list">{day.warmup.map((w, i) => <li key={i}>{w}</li>)}</ul>
             </div>
           ) : null}
 
           {day.exercises.length === 0 ? (
-            <div className="gen-ex"><div className="gen-exname">Rest / Active Recovery</div></div>
+            <div className="gen-ex"><div className="gen-exname">{tr.rest}</div></div>
           ) : day.exercises.map((ex, ei) => {
             const vid = resolveVideoId(ex.n);
             const exRx = ex.rx || day.rx;
             return (
               <div className="gen-ex" key={ex.n + ei}>
                 {vid ? (
-                  <a className="gen-vid" href={watchURL(vid)} target="_blank" rel="noopener noreferrer" aria-label={`Form demo: ${ex.n}`}>
+                  <a className="gen-vid" href={watchURL(vid)} target="_blank" rel="noopener noreferrer" aria-label={tr.formDemo(ex.n)}>
                     <img src={thumbURL(vid)} alt="" loading="lazy" referrerPolicy="no-referrer" />
                     <span className="gen-vid-play" aria-hidden="true">▶</span>
                   </a>
@@ -308,7 +402,7 @@ function GeneratorOutput({ result }) {
                 </div>
                 <div className="gen-rx">
                   <div className="gen-sr">{exRx.sets}×{exRx.reps}</div>
-                  <div className="gen-rest">rest {exRx.rest}</div>
+                  <div className="gen-rest">{tr.restLbl} {exRx.rest}</div>
                 </div>
               </div>
             );
@@ -316,7 +410,7 @@ function GeneratorOutput({ result }) {
 
           {day.cooldown?.length ? (
             <div className="gen-warm gen-warm--cool">
-              <div className="gen-warm-h">Cool-Down</div>
+              <div className="gen-warm-h">{tr.cooldown}</div>
               <ul className="gen-warm-list">{day.cooldown.map((w, i) => <li key={i}>{w}</li>)}</ul>
             </div>
           ) : null}

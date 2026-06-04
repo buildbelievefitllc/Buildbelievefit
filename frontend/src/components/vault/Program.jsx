@@ -13,11 +13,21 @@
 
 import { useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useLang } from '../../context/LangContext.jsx';
 import { Badge } from '../command/primitives.jsx';
 import { parseWorkoutPlan } from '../../lib/vaultApi.js';
 import ProgramGrid from './ProgramGrid.jsx';
 import SovereignSentinel from './SovereignSentinel.jsx';
 import HypertrophyBalanceAnalyzer from './HypertrophyBalanceAnalyzer.jsx';
+
+// Trilingual UI chrome (EN verbatim to the prior hardcoded copy so the default
+// language keeps the vault-logging E2E selectors green). Module-local dictionary
+// keyed by lang — the same convention MindsetEngine.jsx uses for vault content.
+const STR = {
+  en: { head: 'Training Protocol', streak: (n) => `${n}-day streak`, written: 'Coach’s written protocol' },
+  es: { head: 'Protocolo de Entrenamiento', streak: (n) => `racha de ${n} días`, written: 'Protocolo escrito del coach' },
+  pt: { head: 'Protocolo de Treino', streak: (n) => `sequência de ${n} dias`, written: 'Protocolo escrito do coach' },
+};
 
 function formatStamp(iso) {
   if (!iso) return null;
@@ -28,6 +38,8 @@ function formatStamp(iso) {
 
 export default function Program({ plans, profile }) {
   const { user, isAdmin } = useAuth();
+  const { lang } = useLang();
+  const tr = STR[lang] || STR.en;
   const uid = user?.username || user?.id || '';
   const textPlan = plans?.workoutPlan || '';
   const stamp = formatStamp(plans?.generatedAt);
@@ -40,10 +52,10 @@ export default function Program({ plans, profile }) {
   return (
     <div>
       <div style={styles.bar}>
-        <h2 style={styles.head}>Training Protocol</h2>
+        <h2 style={styles.head}>{tr.head}</h2>
         {profile ? (
           <Badge
-            label={`${profile.currentStreak}-day streak`}
+            label={tr.streak(profile.currentStreak)}
             color={profile.currentStreak > 0 ? 'var(--grn)' : 'var(--mut)'}
           />
         ) : null}
@@ -62,7 +74,7 @@ export default function Program({ plans, profile }) {
       {textPlan && !dynamicPlan ? (
         <details style={styles.details}>
           <summary style={styles.summary}>
-            Coach&apos;s written protocol{stamp ? ` · ${stamp}` : ''}
+            {tr.written}{stamp ? ` · ${stamp}` : ''}
           </summary>
           <pre style={styles.protocol}>{textPlan}</pre>
         </details>

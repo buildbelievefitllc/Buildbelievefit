@@ -21,6 +21,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useLang } from '../../context/LangContext.jsx';
 import { parseFastingWindow, parseMealPlan } from '../../lib/vaultApi.js';
 import {
   rosterCall, updateTargets, compilePlan, toErrorMessage,
@@ -36,10 +37,116 @@ const DONE_KEY = 'bbf.vault.nut.done.v1';
 const PACE_KEY = 'bbf.vault.nut.fastpace.v1';
 const EMPTY = [];
 
-// Clean fallback for a meal that loads without auto-generated prep steps (legacy
-// data, or a generation that returned macros but no instructions). NEVER surface a
-// "coach protocol pending" dead-end — the workflow is automated, not coach-gated.
-const PREP_FALLBACK = 'Standard macro preparation.';
+// ── Trilingual UI chrome for the Nutrition Locker ────────────────────────────
+// The tri-cuisine meal catalog (CUISINES / CUISINE_PLANS) and the coach roster's
+// cuisine styles (CUISINE_STYLES) are shared data and stay as authored; this
+// dictionary covers the surface's own headers, labels, and status copy. EN values
+// are verbatim to the prior hardcoded strings.
+const NUT_STR = {
+  en: {
+    prepFallback: 'Standard macro preparation.',
+    eatingWindow: 'Eating Window', unrestricted: '🍽 Unrestricted',
+    offMsg: <>Time-restricted feeding is <b>off</b> — pick a Fasting Pace above to map your eating window.</>,
+    fastingWindow: (r) => `${r} Fasting Window`, eating: '🍽 Eating', fastingTag: '🌙 Fasting',
+    windowAria: (s, e, inside) => `Eating window ${s} to ${e}. Currently ${inside ? 'inside' : 'outside'} the window.`,
+    eatOpen: (t) => <>Eating window open — <b>{t}</b> left to fuel.</>,
+    fastingUntil: (t) => <>Fasting — <b>{t}</b> until your window opens.</>,
+    paceKicker: 'Fasting Pace', paceNote: 'Time-restricted feeding · optional', paceAria: 'Fasting pace', off: 'Off',
+    wheelAria: (c, t) => `${c} of ${t} kcal logged`,
+    todaysFuel: 'Today’s Fuel', protein: 'PROTEIN', carbs: 'CARBS', fat: 'FAT', kcal: 'KCAL',
+    ratioAria: 'Macro volume ratio', rProtein: (n) => `Protein ${n}%`, rCarbs: (n) => `Carbs ${n}%`, rFat: (n) => `Fat ${n}%`,
+    meals: (d, m, p) => `${d} / ${m} meals · ${p}%`,
+    prepInstructions: '🍳 Prep Instructions',
+    mealAria: (slot, ing, macros, done) => `${slot}: ${ing}.${macros ? ` ${macros}.` : ''} ${done ? 'Completed' : 'Mark complete'}`,
+    coachConsole: 'Coach Console', aiStudio: 'AI Performance Studio', studioSurface: 'the AI Performance Studio',
+    clientRoster: 'Client Roster', loadingRoster: 'Loading roster…', selectAthlete: 'Select an athlete…',
+    selectAria: 'Select an athlete', cuisineStyle: 'Cuisine Style', cuisineAria: 'Cuisine style',
+    targetKcal: 'Target KCAL', proteinG: 'Protein (g)', carbsG: 'Carbs (g)', fatsG: 'Fats (g)',
+    saveMacros: 'Save Macros', saving: 'Saving…', compilePlan: 'Compile AI Performance Plan', compiling: 'Compiling…',
+    macrosSaved: 'Macro targets saved.',
+    compiled: (days, cuisine, persisted) => `Compiled — ${days}-day ${cuisine} plan generated${persisted ? ' and saved to the athlete' : ''}.`,
+    consoleHint: 'Select an athlete to set their cuisine, macro targets, and recompile their plan.',
+    loadingAthlete: (n) => `Loading ${n}…`, athlete: 'athlete',
+    nutritionPlan: 'Nutrition Plan', metaLive: 'Your coach-generated fueling protocol', metaStatic: 'Your personalized 7-day meal plan',
+    planSource: 'Plan Source', liveCoachPlan: '◆ Live Coach Plan',
+    calPerDay: 'kcal / day', planDayAria: 'Plan day', dayOfWeekAria: 'Day of week',
+    mealHint: 'Tap a meal to log it — your fuel wheel fills as you go.',
+    liveLabel: 'Your Coach’s Plan', liveGoalFallback: 'Personalized fueling protocol',
+  },
+  es: {
+    prepFallback: 'Preparación estándar de macros.',
+    eatingWindow: 'Ventana de Alimentación', unrestricted: '🍽 Sin Restricción',
+    offMsg: <>La alimentación con restricción horaria está <b>desactivada</b> — elige un Ritmo de Ayuno arriba para mapear tu ventana de alimentación.</>,
+    fastingWindow: (r) => `Ventana de Ayuno ${r}`, eating: '🍽 Comiendo', fastingTag: '🌙 Ayunando',
+    windowAria: (s, e, inside) => `Ventana de alimentación de ${s} a ${e}. Actualmente ${inside ? 'dentro' : 'fuera'} de la ventana.`,
+    eatOpen: (t) => <>Ventana de alimentación abierta — <b>{t}</b> para alimentarte.</>,
+    fastingUntil: (t) => <>Ayunando — <b>{t}</b> hasta que se abra tu ventana.</>,
+    paceKicker: 'Ritmo de Ayuno', paceNote: 'Alimentación con restricción horaria · opcional', paceAria: 'Ritmo de ayuno', off: 'Off',
+    wheelAria: (c, t) => `${c} de ${t} kcal registradas`,
+    todaysFuel: 'Combustible de Hoy', protein: 'PROTEÍNA', carbs: 'CARBOS', fat: 'GRASA', kcal: 'KCAL',
+    ratioAria: 'Proporción de volumen de macros', rProtein: (n) => `Proteína ${n}%`, rCarbs: (n) => `Carbos ${n}%`, rFat: (n) => `Grasa ${n}%`,
+    meals: (d, m, p) => `${d} / ${m} comidas · ${p}%`,
+    prepInstructions: '🍳 Instrucciones de Preparación',
+    mealAria: (slot, ing, macros, done) => `${slot}: ${ing}.${macros ? ` ${macros}.` : ''} ${done ? 'Completado' : 'Marcar completado'}`,
+    coachConsole: 'Consola del Coach', aiStudio: 'Estudio de Rendimiento IA', studioSurface: 'el Estudio de Rendimiento IA',
+    clientRoster: 'Lista de Clientes', loadingRoster: 'Cargando lista…', selectAthlete: 'Selecciona un atleta…',
+    selectAria: 'Selecciona un atleta', cuisineStyle: 'Estilo de Cocina', cuisineAria: 'Estilo de cocina',
+    targetKcal: 'KCAL Objetivo', proteinG: 'Proteína (g)', carbsG: 'Carbos (g)', fatsG: 'Grasas (g)',
+    saveMacros: 'Guardar Macros', saving: 'Guardando…', compilePlan: 'Compilar Plan de Rendimiento IA', compiling: 'Compilando…',
+    macrosSaved: 'Objetivos de macros guardados.',
+    compiled: (days, cuisine, persisted) => `Compilado — plan ${cuisine} de ${days} días generado${persisted ? ' y guardado en el atleta' : ''}.`,
+    consoleHint: 'Selecciona un atleta para definir su cocina, objetivos de macros y recompilar su plan.',
+    loadingAthlete: (n) => `Cargando ${n}…`, athlete: 'atleta',
+    nutritionPlan: 'Plan de Nutrición', metaLive: 'Tu protocolo de combustible generado por el coach', metaStatic: 'Tu plan de comidas personalizado de 7 días',
+    planSource: 'Fuente del Plan', liveCoachPlan: '◆ Plan del Coach en Vivo',
+    calPerDay: 'kcal / día', planDayAria: 'Día del plan', dayOfWeekAria: 'Día de la semana',
+    mealHint: 'Toca una comida para registrarla — tu rueda de combustible se llena a medida que avanzas.',
+    liveLabel: 'El Plan de Tu Coach', liveGoalFallback: 'Protocolo de combustible personalizado',
+  },
+  pt: {
+    prepFallback: 'Preparação padrão de macros.',
+    eatingWindow: 'Janela de Alimentação', unrestricted: '🍽 Sem Restrição',
+    offMsg: <>A alimentação com restrição de horário está <b>desativada</b> — escolha um Ritmo de Jejum acima para mapear sua janela de alimentação.</>,
+    fastingWindow: (r) => `Janela de Jejum ${r}`, eating: '🍽 Comendo', fastingTag: '🌙 Jejuando',
+    windowAria: (s, e, inside) => `Janela de alimentação de ${s} a ${e}. Atualmente ${inside ? 'dentro' : 'fora'} da janela.`,
+    eatOpen: (t) => <>Janela de alimentação aberta — <b>{t}</b> para se alimentar.</>,
+    fastingUntil: (t) => <>Jejuando — <b>{t}</b> até sua janela abrir.</>,
+    paceKicker: 'Ritmo de Jejum', paceNote: 'Alimentação com restrição de horário · opcional', paceAria: 'Ritmo de jejum', off: 'Off',
+    wheelAria: (c, t) => `${c} de ${t} kcal registradas`,
+    todaysFuel: 'Combustível de Hoje', protein: 'PROTEÍNA', carbs: 'CARBOS', fat: 'GORDURA', kcal: 'KCAL',
+    ratioAria: 'Proporção de volume de macros', rProtein: (n) => `Proteína ${n}%`, rCarbs: (n) => `Carbos ${n}%`, rFat: (n) => `Gordura ${n}%`,
+    meals: (d, m, p) => `${d} / ${m} refeições · ${p}%`,
+    prepInstructions: '🍳 Instruções de Preparo',
+    mealAria: (slot, ing, macros, done) => `${slot}: ${ing}.${macros ? ` ${macros}.` : ''} ${done ? 'Concluído' : 'Marcar concluído'}`,
+    coachConsole: 'Console do Coach', aiStudio: 'Estúdio de Performance IA', studioSurface: 'o Estúdio de Performance IA',
+    clientRoster: 'Lista de Clientes', loadingRoster: 'Carregando lista…', selectAthlete: 'Selecione um atleta…',
+    selectAria: 'Selecione um atleta', cuisineStyle: 'Estilo de Culinária', cuisineAria: 'Estilo de culinária',
+    targetKcal: 'KCAL Alvo', proteinG: 'Proteína (g)', carbsG: 'Carbos (g)', fatsG: 'Gorduras (g)',
+    saveMacros: 'Salvar Macros', saving: 'Salvando…', compilePlan: 'Compilar Plano de Performance IA', compiling: 'Compilando…',
+    macrosSaved: 'Metas de macros salvas.',
+    compiled: (days, cuisine, persisted) => `Compilado — plano ${cuisine} de ${days} dias gerado${persisted ? ' e salvo no atleta' : ''}.`,
+    consoleHint: 'Selecione um atleta para definir sua culinária, metas de macros e recompilar seu plano.',
+    loadingAthlete: (n) => `Carregando ${n}…`, athlete: 'atleta',
+    nutritionPlan: 'Plano de Nutrição', metaLive: 'Seu protocolo de combustível gerado pelo coach', metaStatic: 'Seu plano de refeições personalizado de 7 dias',
+    planSource: 'Fonte do Plano', liveCoachPlan: '◆ Plano do Coach ao Vivo',
+    calPerDay: 'kcal / dia', planDayAria: 'Dia do plano', dayOfWeekAria: 'Dia da semana',
+    mealHint: 'Toque em uma refeição para registrá-la — sua roda de combustível enche conforme você avança.',
+    liveLabel: 'O Plano do Seu Coach', liveGoalFallback: 'Protocolo de combustível personalizado',
+  },
+};
+
+// Localized short labels for the fasting-pace chips (keyed by lang → pace id). The
+// fast/eat hour constants stay in FASTING_PACES; only the descriptor is localized.
+const PACE_SHORT = {
+  en: { off: 'Disabled', '12:12': 'Circadian', '14:10': 'Primer', '16:8': 'Standard', '18:6': 'Advanced', '20:4': 'Warrior' },
+  es: { off: 'Desactivado', '12:12': 'Circadiano', '14:10': 'Iniciación', '16:8': 'Estándar', '18:6': 'Avanzado', '20:4': 'Guerrero' },
+  pt: { off: 'Desativado', '12:12': 'Circadiano', '14:10': 'Iniciação', '16:8': 'Padrão', '18:6': 'Avançado', '20:4': 'Guerreiro' },
+};
+
+function useNutStr() {
+  const { lang } = useLang();
+  return { tr: NUT_STR[lang] || NUT_STR.en, paceShort: PACE_SHORT[lang] || PACE_SHORT.en };
+}
 
 // Macro accent colours (legend boxes + volume-ratio segments).
 const MACRO_COLORS = { p: '#ff5d5d', c: '#4dc3ff', f: '#ffb547' };
@@ -115,16 +222,15 @@ function writeUserPace(uid, paceId) {
 // `fasting` is null when the pace is Off — time-restricted feeding is optional,
 // so this renders an "unrestricted" state rather than a "not assigned" error.
 function FastingWindow({ now, fasting, tier }) {
+  const { tr } = useNutStr();
   if (!fasting) {
     return (
       <div className="nl-fast-window is-off">
         <div className="pg-fast-top">
-          <span className="pg-fast-title">Eating Window</span>
-          <span className="pg-fast-status is-eating">🍽 Unrestricted</span>
+          <span className="pg-fast-title">{tr.eatingWindow}</span>
+          <span className="pg-fast-status is-eating">{tr.unrestricted}</span>
         </div>
-        <div className="nl-fast-offmsg">
-          Time-restricted feeding is <b>off</b> — pick a Fasting Pace above to map your eating window.
-        </div>
+        <div className="nl-fast-offmsg">{tr.offMsg}</div>
       </div>
     );
   }
@@ -140,21 +246,21 @@ function FastingWindow({ now, fasting, tier }) {
 
   let sub;
   if (eating) {
-    sub = <>Eating window open — <b>{fmtHM(eatEnd - h)}</b> left to fuel.</>;
+    sub = tr.eatOpen(fmtHM(eatEnd - h));
   } else {
     const until = h < eatStart ? eatStart - h : (24 - h) + eatStart;
-    sub = <>Fasting — <b>{fmtHM(until)}</b> until your window opens.</>;
+    sub = tr.fastingUntil(fmtHM(until));
   }
 
   return (
     <div className="nl-fast-window">
       <div className="pg-fast-top">
-        <span className="pg-fast-title">{ratioLabel} Fasting Window</span>
+        <span className="pg-fast-title">{tr.fastingWindow(ratioLabel)}</span>
         <span className={`pg-fast-status ${eating ? 'is-eating' : 'is-fasting'}`}>
-          {eating ? '🍽 Eating' : '🌙 Fasting'}
+          {eating ? tr.eating : tr.fastingTag}
         </span>
       </div>
-      <div className="pg-fast-track" role="img" aria-label={`Eating window ${fmtClock(eatStart)} to ${fmtClock(eatEnd)}. Currently ${eating ? 'inside' : 'outside'} the window.`}>
+      <div className="pg-fast-track" role="img" aria-label={tr.windowAria(fmtClock(eatStart), fmtClock(eatEnd), eating)}>
         <div className="pg-fast-window" style={{ left: `${winLeft}%`, width: `${winWidth}%` }} />
         <div className="pg-fast-now" style={{ left: `${nowPct}%` }} />
       </div>
@@ -173,17 +279,18 @@ function FastingWindow({ now, fasting, tier }) {
 // The selector is the single source of truth for the displayed eating window;
 // 16/8 is just one option, never a hardcoded default.
 function FastingPaceCard({ now, paceId, onSelectPace, tier }) {
+  const { tr, paceShort } = useNutStr();
   const selected = FASTING_PACES.find((p) => p.id === paceId) || FASTING_PACES[0];
   const fasting = selected.id === 'off' ? null : { fast: selected.fast, eat: selected.eat };
 
   return (
     <div className="pg-card nl-fast">
       <div className="nl-fast-head">
-        <span className="nl-fast-kicker">Fasting Pace</span>
-        <span className="nl-fast-note">Time-restricted feeding · optional</span>
+        <span className="nl-fast-kicker">{tr.paceKicker}</span>
+        <span className="nl-fast-note">{tr.paceNote}</span>
       </div>
 
-      <div className="nl-pace" role="radiogroup" aria-label="Fasting pace">
+      <div className="nl-pace" role="radiogroup" aria-label={tr.paceAria}>
         {FASTING_PACES.map((p) => {
           const active = p.id === paceId;
           return (
@@ -195,8 +302,8 @@ function FastingPaceCard({ now, paceId, onSelectPace, tier }) {
               className={`nl-pace-chip${active ? ' is-active' : ''}${p.id === 'off' ? ' is-off' : ''}`}
               onClick={() => onSelectPace(p.id)}
             >
-              <span className="nl-pace-ratio">{p.id === 'off' ? 'Off' : p.id}</span>
-              <span className="nl-pace-desc">{p.short}</span>
+              <span className="nl-pace-ratio">{p.id === 'off' ? tr.off : p.id}</span>
+              <span className="nl-pace-desc">{paceShort[p.id] || p.short}</span>
             </button>
           );
         })}
@@ -209,6 +316,7 @@ function FastingPaceCard({ now, paceId, onSelectPace, tier }) {
 
 // ── Conic macro wheel — consumed vs target (fills as meals are completed) ─────
 function MacroWheel({ consumed, target }) {
+  const { tr } = useNutStr();
   const hasTarget = target > 0;
   const frac = hasTarget ? Math.min(consumed / target, 1) : 0;
   const over = hasTarget && consumed > target;
@@ -219,7 +327,7 @@ function MacroWheel({ consumed, target }) {
   const pct = hasTarget ? Math.round((consumed / target) * 100) : 0;
 
   return (
-    <div className="nl-wheel" role="img" aria-label={`${consumed} of ${target} kcal logged`}>
+    <div className="nl-wheel" role="img" aria-label={tr.wheelAria(consumed, target)}>
       <div className="nl-wheel-ring" style={{ background: ring }} />
       <div className="nl-wheel-hole">
         <span className="nl-wheel-kcal">{consumed.toLocaleString()}</span>
@@ -232,11 +340,12 @@ function MacroWheel({ consumed, target }) {
 
 // ── Daily fuel card · wheel + P/C/F/KCAL legend + volume-ratio bar ───────────
 function DailyFuel({ consumed, totals, doneCount, mealCount }) {
+  const { tr } = useNutStr();
   const legend = [
-    { k: 'PROTEIN', cur: consumed.p, tgt: totals.p, u: 'g', color: MACRO_COLORS.p },
-    { k: 'CARBS', cur: consumed.c, tgt: totals.c, u: 'g', color: MACRO_COLORS.c },
-    { k: 'FAT', cur: consumed.f, tgt: totals.f, u: 'g', color: MACRO_COLORS.f },
-    { k: 'KCAL', cur: consumed.kcal, tgt: totals.kcal, u: '', color: 'var(--yel)' },
+    { k: 'p', lbl: tr.protein, cur: consumed.p, tgt: totals.p, u: 'g', color: MACRO_COLORS.p },
+    { k: 'c', lbl: tr.carbs, cur: consumed.c, tgt: totals.c, u: 'g', color: MACRO_COLORS.c },
+    { k: 'f', lbl: tr.fat, cur: consumed.f, tgt: totals.f, u: 'g', color: MACRO_COLORS.f },
+    { k: 'kcal', lbl: tr.kcal, cur: consumed.kcal, tgt: totals.kcal, u: '', color: 'var(--yel)' },
   ];
 
   // Macro volume ratio (share of total calories) — the day's composition.
@@ -254,35 +363,35 @@ function DailyFuel({ consumed, totals, doneCount, mealCount }) {
 
   return (
     <div className="pg-card">
-      <div className="nl-fuel-title">Today’s Fuel</div>
+      <div className="nl-fuel-title">{tr.todaysFuel}</div>
 
       <MacroWheel consumed={consumed.kcal} target={totals.kcal} />
 
       <div className="nl-legend">
         {legend.map((m) => (
           <div key={m.k} className="nl-legend-box" style={{ borderTopColor: m.color }}>
-            <div className="nl-legend-lbl">{m.k}</div>
+            <div className="nl-legend-lbl">{m.lbl}</div>
             <div className="nl-legend-val">{m.cur.toLocaleString()}{m.u}</div>
             <div className="nl-legend-tgt">/ {m.tgt.toLocaleString()}{m.u}</div>
           </div>
         ))}
       </div>
 
-      <div className="nl-ratio" aria-label="Macro volume ratio">
+      <div className="nl-ratio" aria-label={tr.ratioAria}>
         <div className="nl-ratio-track">
           <div className="nl-ratio-seg" style={{ width: `${ratio.p}%`, background: MACRO_COLORS.p }} />
           <div className="nl-ratio-seg" style={{ width: `${ratio.c}%`, background: MACRO_COLORS.c }} />
           <div className="nl-ratio-seg" style={{ width: `${ratio.f}%`, background: MACRO_COLORS.f }} />
         </div>
         <div className="nl-ratio-legend">
-          <span className="nl-ratio-key"><span className="nl-ratio-dot" style={{ background: MACRO_COLORS.p }} />Protein {ratio.p}%</span>
-          <span className="nl-ratio-key"><span className="nl-ratio-dot" style={{ background: MACRO_COLORS.c }} />Carbs {ratio.c}%</span>
-          <span className="nl-ratio-key"><span className="nl-ratio-dot" style={{ background: MACRO_COLORS.f }} />Fat {ratio.f}%</span>
+          <span className="nl-ratio-key"><span className="nl-ratio-dot" style={{ background: MACRO_COLORS.p }} />{tr.rProtein(ratio.p)}</span>
+          <span className="nl-ratio-key"><span className="nl-ratio-dot" style={{ background: MACRO_COLORS.c }} />{tr.rCarbs(ratio.c)}</span>
+          <span className="nl-ratio-key"><span className="nl-ratio-dot" style={{ background: MACRO_COLORS.f }} />{tr.rFat(ratio.f)}</span>
         </div>
       </div>
 
       <div className="nl-mealprog">
-        <span className="nl-mealprog-lbl">{doneCount} / {mealCount} meals · {progPct}%</span>
+        <span className="nl-mealprog-lbl">{tr.meals(doneCount, mealCount, progPct)}</span>
         <div className="nl-mealprog-track">
           <div className="nl-mealprog-fill" style={{ width: `${progPct}%` }} />
         </div>
@@ -353,7 +462,7 @@ function macrosFromText(line) {
 // carries the auto-generated prep instructions. Returns null for a missing, legacy,
 // or plain-text plan → the UI then falls back to the static tri-cuisine catalog so
 // the tab is never empty.
-function buildLivePlan(mealPlanRaw) {
+function buildLivePlan(mealPlanRaw, labels) {
   const parsed = parseMealPlan(mealPlanRaw);
   if (!parsed.structured) return null;
   const days = (parsed.days || [])
@@ -370,8 +479,8 @@ function buildLivePlan(mealPlanRaw) {
   if (!days.length) return null;
   return {
     id: 'live',
-    label: 'Your Coach’s Plan',
-    goal: parsed.goal || 'Personalized fueling protocol',
+    label: labels.liveLabel,
+    goal: parsed.goal || labels.liveGoalFallback,
     cal: parsed.cal, // plan-level daily target (number|null) — header fallback
     days,
   };
@@ -381,6 +490,7 @@ function buildLivePlan(mealPlanRaw) {
 // The card is a container (not one big button) so the "mark done" control and the
 // "Prep Instructions" toggle are separate, non-nested interactive elements.
 function MealCard({ meal, done, onToggle }) {
+  const { tr } = useNutStr();
   const [prepOpen, setPrepOpen] = useState(false);
   const snack = isSnack(meal.m);
   // Build the macro chip from the parts actually present — the static catalog
@@ -403,7 +513,7 @@ function MealCard({ meal, done, onToggle }) {
         className="nl-meal-main"
         onClick={onToggle}
         aria-pressed={done}
-        aria-label={`${meal.m}: ${meal.i}.${macros ? ` ${macros}.` : ''} ${done ? 'Completed' : 'Mark complete'}`}
+        aria-label={tr.mealAria(meal.m, meal.i, macros, done)}
       >
         <span className="nl-meal-check" aria-hidden="true">✓</span>
         <MealThumb src={meal.image_url} />
@@ -421,7 +531,7 @@ function MealCard({ meal, done, onToggle }) {
           aria-expanded={prepOpen}
           onClick={() => setPrepOpen((o) => !o)}
         >
-          <span>🍳 Prep Instructions</span>
+          <span>{tr.prepInstructions}</span>
           <span className="nl-meal-prep-caret" aria-hidden="true">{prepOpen ? '▲' : '▼'}</span>
         </button>
         {prepOpen ? (
@@ -434,7 +544,7 @@ function MealCard({ meal, done, onToggle }) {
             // by the meal engine from each meal's ingredients. Legacy/edge meals that
             // load without an instructions array degrade to a clean macro-prep line —
             // never the old "Awaiting coach protocol" dead placeholder.
-            <div className="nl-meal-prep-empty">{PREP_FALLBACK}</div>
+            <div className="nl-meal-prep-empty">{tr.prepFallback}</div>
           )
         ) : null}
       </div>
@@ -479,20 +589,22 @@ function NumField({ label, value, onChange, disabled, accent }) {
 // roster/compile calls 401. Until then, the unlock gate hydrates it (shared store,
 // so unlocking any admin surface satisfies this too; never bundled, §7).
 function NutritionStudioGate() {
+  const { tr } = useNutStr();
   const [ready, setReady] = useState(hasAdminToken);
   if (ready) return <NutritionCoachConsole />;
   return (
     <section className="nc-console" aria-label="Coach oversight console">
       <header className="nc-head">
-        <span className="nc-badge">Coach Console</span>
-        <h3 className="nc-title">AI Performance Studio</h3>
+        <span className="nc-badge">{tr.coachConsole}</span>
+        <h3 className="nc-title">{tr.aiStudio}</h3>
       </header>
-      <AdminTokenGate surface="the AI Performance Studio" onUnlock={() => setReady(true)} />
+      <AdminTokenGate surface={tr.studioSurface} onUnlock={() => setReady(true)} />
     </section>
   );
 }
 
 function NutritionCoachConsole() {
+  const { tr } = useNutStr();
   const [roster, setRoster] = useState(EMPTY);
   const [rosterErr, setRosterErr] = useState(null);
   const [loadingRoster, setLoadingRoster] = useState(true);
@@ -562,7 +674,7 @@ function NutritionCoachConsole() {
     try {
       const b = await updateTargets(selectedId, macros);
       setDetail((d) => ({ ...(d || {}), ...(b.client || {}) }));
-      setStatus({ kind: 'ok', msg: 'Macro targets saved.' });
+      setStatus({ kind: 'ok', msg: tr.macrosSaved });
     } catch (e) {
       setStatus({ kind: 'err', msg: toErrorMessage(e) });
     } finally {
@@ -579,7 +691,7 @@ function NutritionCoachConsole() {
       const days = Array.isArray(b.plan?.days) ? b.plan.days.length : 0;
       setStatus({
         kind: 'ok',
-        msg: `Compiled — ${days}-day ${cuisineLabel(cuisine)} plan generated${b.persisted ? ' and saved to the athlete' : ''}.`,
+        msg: tr.compiled(days, cuisineLabel(cuisine), b.persisted),
       });
     } catch (e) {
       setStatus({ kind: 'err', msg: toErrorMessage(e) });
@@ -591,20 +703,20 @@ function NutritionCoachConsole() {
   return (
     <section className="nc-console" aria-label="Coach oversight console">
       <header className="nc-head">
-        <span className="nc-badge">Coach Console</span>
-        <h3 className="nc-title">AI Performance Studio</h3>
+        <span className="nc-badge">{tr.coachConsole}</span>
+        <h3 className="nc-title">{tr.aiStudio}</h3>
       </header>
 
       <label className="nc-field nc-field-wide">
-        <span className="nc-lbl">Client Roster</span>
+        <span className="nc-lbl">{tr.clientRoster}</span>
         <select
           className="nc-select"
           value={selectedId}
           onChange={(e) => selectAthlete(e.target.value)}
           disabled={loadingRoster || busy}
-          aria-label="Select an athlete"
+          aria-label={tr.selectAria}
         >
-          <option value="">{loadingRoster ? 'Loading roster…' : 'Select an athlete…'}</option>
+          <option value="">{loadingRoster ? tr.loadingRoster : tr.selectAthlete}</option>
           {roster.map((c) => (
             <option key={c.id} value={c.id}>{c.name || c.uid}</option>
           ))}
@@ -613,36 +725,36 @@ function NutritionCoachConsole() {
       {rosterErr ? <div className="nc-status is-err" role="alert">{rosterErr}</div> : null}
 
       {!selectedId ? (
-        <div className="nc-hint">Select an athlete to set their cuisine, macro targets, and recompile their plan.</div>
+        <div className="nc-hint">{tr.consoleHint}</div>
       ) : loadingDetail ? (
-        <div className="nc-status">Loading {detail?.name || 'athlete'}…</div>
+        <div className="nc-status">{tr.loadingAthlete(detail?.name || tr.athlete)}</div>
       ) : (
         <>
           <div className="nc-grid">
             <label className="nc-field">
-              <span className="nc-lbl">Cuisine Style</span>
+              <span className="nc-lbl">{tr.cuisineStyle}</span>
               <select
                 className="nc-select"
                 value={cuisine}
                 onChange={(e) => setCuisine(e.target.value)}
                 disabled={busy}
-                aria-label="Cuisine style"
+                aria-label={tr.cuisineAria}
               >
                 {CUISINE_STYLES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             </label>
-            <NumField label="Target KCAL" value={macros.tdee_target} onChange={(v) => setField('tdee_target', v)} disabled={busy} accent="var(--yel)" />
-            <NumField label="Protein (g)" value={macros.macro_p} onChange={(v) => setField('macro_p', v)} disabled={busy} accent="#ff5d5d" />
-            <NumField label="Carbs (g)" value={macros.macro_c} onChange={(v) => setField('macro_c', v)} disabled={busy} accent="#4dc3ff" />
-            <NumField label="Fats (g)" value={macros.macro_f} onChange={(v) => setField('macro_f', v)} disabled={busy} accent="#ffb547" />
+            <NumField label={tr.targetKcal} value={macros.tdee_target} onChange={(v) => setField('tdee_target', v)} disabled={busy} accent="var(--yel)" />
+            <NumField label={tr.proteinG} value={macros.macro_p} onChange={(v) => setField('macro_p', v)} disabled={busy} accent="#ff5d5d" />
+            <NumField label={tr.carbsG} value={macros.macro_c} onChange={(v) => setField('macro_c', v)} disabled={busy} accent="#4dc3ff" />
+            <NumField label={tr.fatsG} value={macros.macro_f} onChange={(v) => setField('macro_f', v)} disabled={busy} accent="#ffb547" />
           </div>
 
           <div className="nc-actions">
             <button type="button" className="nc-btn nc-btn-ghost" onClick={saveMacros} disabled={busy}>
-              {saving ? 'Saving…' : 'Save Macros'}
+              {saving ? tr.saving : tr.saveMacros}
             </button>
             <button type="button" className="nc-btn nc-btn-primary" onClick={compile} disabled={busy}>
-              {compiling ? 'Compiling…' : 'Compile AI Performance Plan'}
+              {compiling ? tr.compiling : tr.compilePlan}
             </button>
           </div>
         </>
@@ -659,6 +771,8 @@ function NutritionCoachConsole() {
 
 export default function Nutrition({ plans, profile }) {
   const { user, isAdmin } = useAuth();
+  const { lang } = useLang();
+  const tr = NUT_STR[lang] || NUT_STR.en;
   const uid = user?.username || user?.id || 'guest';
 
   // SURFACE GATE (forensic fix · Nutrition Locker logic leak) — the coach console
@@ -677,7 +791,10 @@ export default function Nutrition({ plans, profile }) {
   // protocol and carries the auto-generated prep instructions. When present we render
   // IT; the static tri-cuisine catalog is the FALLBACK so the tab is never empty for a
   // client who hasn't had a plan compiled yet.
-  const livePlan = useMemo(() => buildLivePlan(plans?.mealPlan), [plans?.mealPlan]);
+  const livePlan = useMemo(
+    () => buildLivePlan(plans?.mealPlan, { liveLabel: tr.liveLabel, liveGoalFallback: tr.liveGoalFallback }),
+    [plans?.mealPlan, tr],
+  );
   const usingLive = Boolean(livePlan);
 
   const [cuisineId, setCuisineId] = useState(CUISINES[0].id);
@@ -752,26 +869,26 @@ export default function Nutrition({ plans, profile }) {
 
       <div className="nl-head-row">
         <div>
-          <h2 className="pg-nut-head">Nutrition Plan</h2>
+          <h2 className="pg-nut-head">{tr.nutritionPlan}</h2>
           <div className="pg-nut-meta">
-            {usingLive ? 'Your coach-generated fueling protocol' : 'Your personalized 7-day meal plan'}
+            {usingLive ? tr.metaLive : tr.metaStatic}
           </div>
         </div>
         {usingLive ? (
           // A live plan is a single personalized protocol — the tri-cuisine selector
           // doesn't apply, so surface a source badge where the picker would sit.
           <div className="nl-cuisine">
-            <span className="nl-cuisine-lbl">Plan Source</span>
-            <span className="nl-live-badge-val">◆ Live Coach Plan</span>
+            <span className="nl-cuisine-lbl">{tr.planSource}</span>
+            <span className="nl-live-badge-val">{tr.liveCoachPlan}</span>
           </div>
         ) : (
           <label className="nl-cuisine">
-            <span className="nl-cuisine-lbl">Cuisine Style</span>
+            <span className="nl-cuisine-lbl">{tr.cuisineStyle}</span>
             <select
               className="nl-cuisine-select"
               value={cuisineId}
               onChange={(e) => setCuisineId(e.target.value)}
-              aria-label="Cuisine style"
+              aria-label={tr.cuisineAria}
             >
               {CUISINES.map((c) => (
                 <option key={c.id} value={c.id}>{c.label}</option>
@@ -783,11 +900,11 @@ export default function Nutrition({ plans, profile }) {
 
       <div className="nl-day-head">
         <div className="nl-day-head-cuisine">{plan.label} · {dayName}</div>
-        <div className="nl-day-head-cal">{calFigure} kcal / day</div>
+        <div className="nl-day-head-cal">{calFigure} {tr.calPerDay}</div>
         <div className="nl-day-head-goal">🎯 {plan.goal}</div>
       </div>
 
-      <div className="nl-daynav" role="tablist" aria-label={usingLive ? 'Plan day' : 'Day of week'}>
+      <div className="nl-daynav" role="tablist" aria-label={usingLive ? tr.planDayAria : tr.dayOfWeekAria}>
         {plan.days.map((d, i) => (
           <button
             key={`${d.day}-${i}`}
@@ -819,7 +936,7 @@ export default function Nutrition({ plans, profile }) {
       </div>
 
       <div>
-        <div className="nl-meal-hint">Tap a meal to log it — your fuel wheel fills as you go.</div>
+        <div className="nl-meal-hint">{tr.mealHint}</div>
         {day.meals.map((m, i) => (
           // key includes the active source + day so switching tabs remounts each card
           // — resetting its local prep-drawer / broken-thumbnail state for the new meal.

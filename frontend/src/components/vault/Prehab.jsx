@@ -18,13 +18,165 @@
 // Command Center Player-Coach panel — both render <Prehab /> (no props).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLang } from '../../context/LangContext.jsx';
 import { PLANNER, PROTOCOL, compileReport } from './prehabProtocol.js';
 import './prehab.css';
 
 const PRESETS = [30, 45, 60];
 
+// Trilingual UI chrome for the Prehab & Recovery Matrix. The clinical PLANNER /
+// PROTOCOL ground-truth (movement names, cues, rep schemes) lives in
+// prehabProtocol.js and stays as authored; this dictionary covers the module's
+// own headers, labels, and dynamic breathing cues. EN values are verbatim.
+const STR = {
+  en: {
+    resp: {
+      kicker: 'Decompression Engine',
+      title: 'Respiratory Infrastructure Coach',
+      badgeInhale: 'Inhale Phase',
+      badgeExhale: 'Exhale Phase',
+      desc: 'Performance breathing expands cellular water distribution, lowers cortisol parameters, and stabilizes muscle fibers. Synchronize your prehab holdings under the expanding respiratory cue below.',
+      cueIdle: 'Hold ready — press start',
+      cueInhale: 'Breathe in deeply (expand diaphragm)',
+      cueExhale: 'Breathe out slowly (full release)',
+      subIdle: 'Synchronize the hold under the expanding respiratory cue',
+      subInhale: 'Focus on expanding intercostal rib structures wide',
+      subExhale: 'Empty the lungs and sink the ribs down',
+      timerLabel: 'Static Release Hold Timer',
+      holdDuration: 'Hold duration',
+      seconds: (s) => `${s} Seconds`,
+      start: '▶ Start Hold',
+      pause: '⏸ Pause',
+      reset: '↻ Reset',
+      ariaCoach: 'Respiratory Infrastructure Coach',
+      secsRemaining: (n) => `${n} seconds remaining`,
+    },
+    mob: {
+      kicker: 'Structural Assessment',
+      title: 'Dynamic Joint Symptom Mobility Planner',
+      desc: 'Evaluate physical thresholds before high-load squats or bench presses. Answer the biomechanical range selectors to compile a customized corrective activation protocol immediately.',
+      run: 'Run Mobility Compilation',
+      reportHead: '⚠ Diagnostic Report Keyed Codes:',
+      compiled: '### BBF Biomechanical Correction Strategy Compiled',
+      actionable: '↳ Actionable: Load your pre-selected Prehab Exercise protocols from the listing deck below to unlock these restricted pathways.',
+      ariaPlanner: 'Dynamic Joint Symptom Mobility Planner',
+    },
+    deck: {
+      kicker: 'Protocol for Selected Region',
+      cues: 'Cues & Directives',
+      done: '✓ Done',
+      mark: '› Mark Done',
+      sets: (n) => `${n} Sets`,
+      videoCap: 'Video Directive',
+      ariaRegion: 'Protocol for selected region',
+      demoVideo: (name) => `${name} demonstration video`,
+      playDemo: 'Play demonstration',
+      ringL1: 'Protocol',
+      ringL2: 'Done',
+    },
+  },
+  es: {
+    resp: {
+      kicker: 'Motor de Descompresión',
+      title: 'Coach de Infraestructura Respiratoria',
+      badgeInhale: 'Fase de Inhalación',
+      badgeExhale: 'Fase de Exhalación',
+      desc: 'La respiración de rendimiento expande la distribución celular de agua, baja los parámetros de cortisol y estabiliza las fibras musculares. Sincroniza tus retenciones de prehab bajo la guía respiratoria expansiva de abajo.',
+      cueIdle: 'Retención lista — presiona iniciar',
+      cueInhale: 'Inhala profundamente (expande el diafragma)',
+      cueExhale: 'Exhala lentamente (liberación total)',
+      subIdle: 'Sincroniza la retención bajo la guía respiratoria expansiva',
+      subInhale: 'Concéntrate en expandir las estructuras intercostales de par en par',
+      subExhale: 'Vacía los pulmones y hunde las costillas',
+      timerLabel: 'Temporizador de Retención de Liberación Estática',
+      holdDuration: 'Duración de retención',
+      seconds: (s) => `${s} Segundos`,
+      start: '▶ Iniciar Retención',
+      pause: '⏸ Pausar',
+      reset: '↻ Reiniciar',
+      ariaCoach: 'Coach de Infraestructura Respiratoria',
+      secsRemaining: (n) => `${n} segundos restantes`,
+    },
+    mob: {
+      kicker: 'Evaluación Estructural',
+      title: 'Planificador Dinámico de Movilidad por Síntoma Articular',
+      desc: 'Evalúa los umbrales físicos antes de sentadillas o press de banca de alta carga. Responde los selectores de rango biomecánico para compilar al instante un protocolo de activación correctiva personalizado.',
+      run: 'Ejecutar Compilación de Movilidad',
+      reportHead: '⚠ Códigos Clave del Informe Diagnóstico:',
+      compiled: '### Estrategia de Corrección Biomecánica BBF Compilada',
+      actionable: '↳ Accionable: Carga tus protocolos de Ejercicios de Prehab preseleccionados desde el panel de abajo para desbloquear estas vías restringidas.',
+      ariaPlanner: 'Planificador Dinámico de Movilidad por Síntoma Articular',
+    },
+    deck: {
+      kicker: 'Protocolo para la Región Seleccionada',
+      cues: 'Señales y Directivas',
+      done: '✓ Hecho',
+      mark: '› Marcar Hecho',
+      sets: (n) => `${n} Series`,
+      videoCap: 'Directiva en Video',
+      ariaRegion: 'Protocolo para la región seleccionada',
+      demoVideo: (name) => `Video de demostración: ${name}`,
+      playDemo: 'Reproducir demostración',
+      ringL1: 'Protocolo',
+      ringL2: 'Hecho',
+    },
+  },
+  pt: {
+    resp: {
+      kicker: 'Motor de Descompressão',
+      title: 'Coach de Infraestrutura Respiratória',
+      badgeInhale: 'Fase de Inspiração',
+      badgeExhale: 'Fase de Expiração',
+      desc: 'A respiração de performance expande a distribuição celular de água, reduz os parâmetros de cortisol e estabiliza as fibras musculares. Sincronize suas retenções de prehab sob a guia respiratória expansiva abaixo.',
+      cueIdle: 'Retenção pronta — pressione iniciar',
+      cueInhale: 'Inspire profundamente (expanda o diafragma)',
+      cueExhale: 'Expire lentamente (liberação total)',
+      subIdle: 'Sincronize a retenção sob a guia respiratória expansiva',
+      subInhale: 'Concentre-se em expandir bem as estruturas intercostais',
+      subExhale: 'Esvazie os pulmões e afunde as costelas',
+      timerLabel: 'Cronômetro de Retenção de Liberação Estática',
+      holdDuration: 'Duração da retenção',
+      seconds: (s) => `${s} Segundos`,
+      start: '▶ Iniciar Retenção',
+      pause: '⏸ Pausar',
+      reset: '↻ Reiniciar',
+      ariaCoach: 'Coach de Infraestrutura Respiratória',
+      secsRemaining: (n) => `${n} segundos restantes`,
+    },
+    mob: {
+      kicker: 'Avaliação Estrutural',
+      title: 'Planejador Dinâmico de Mobilidade por Sintoma Articular',
+      desc: 'Avalie os limiares físicos antes de agachamentos ou supinos de alta carga. Responda aos seletores de amplitude biomecânica para compilar imediatamente um protocolo de ativação corretiva personalizado.',
+      run: 'Executar Compilação de Mobilidade',
+      reportHead: '⚠ Códigos-Chave do Relatório Diagnóstico:',
+      compiled: '### Estratégia de Correção Biomecânica BBF Compilada',
+      actionable: '↳ Acionável: Carregue seus protocolos de Exercícios de Prehab pré-selecionados no painel abaixo para desbloquear estas vias restritas.',
+      ariaPlanner: 'Planejador Dinâmico de Mobilidade por Sintoma Articular',
+    },
+    deck: {
+      kicker: 'Protocolo para a Região Selecionada',
+      cues: 'Comandos e Diretrizes',
+      done: '✓ Feito',
+      mark: '› Marcar Feito',
+      sets: (n) => `${n} Séries`,
+      videoCap: 'Diretriz em Vídeo',
+      ariaRegion: 'Protocolo para a região selecionada',
+      demoVideo: (name) => `Vídeo de demonstração: ${name}`,
+      playDemo: 'Reproduzir demonstração',
+      ringL1: 'Protocolo',
+      ringL2: 'Feito',
+    },
+  },
+};
+
+function usePrehabStr() {
+  const { lang } = useLang();
+  return STR[lang] || STR.en;
+}
+
 // ── Module 1 · Respiratory Infrastructure Coach ──────────────────────────────
 function RespiratoryCoach() {
+  const s = usePrehabStr().resp;
   const [duration, setDuration] = useState(30); // mission default: 30s
   const [remaining, setRemaining] = useState(30);
   const [running, setRunning] = useState(false);
@@ -55,27 +207,20 @@ function RespiratoryCoach() {
   const elapsed = duration - remaining;
   const inhaling = running && (elapsed % 8) < 4;
   const orbState = !running ? 'is-idle' : (inhaling ? 'is-inhale' : 'is-exhale');
-  const cue = !running
-    ? 'Hold ready — press start'
-    : (inhaling ? 'Breathe in deeply (expand diaphragm)' : 'Breathe out slowly (full release)');
-  const sub = !running
-    ? 'Synchronize the hold under the expanding respiratory cue'
-    : (inhaling ? 'Focus on expanding intercostal rib structures wide' : 'Empty the lungs and sink the ribs down');
+  const cue = !running ? s.cueIdle : (inhaling ? s.cueInhale : s.cueExhale);
+  const sub = !running ? s.subIdle : (inhaling ? s.subInhale : s.subExhale);
 
   return (
-    <section className="pde-card" aria-label="Respiratory Infrastructure Coach">
-      <div className="pde-kicker">Decompression Engine</div>
+    <section className="pde-card" aria-label={s.ariaCoach}>
+      <div className="pde-kicker">{s.kicker}</div>
       <div className="pde-titlerow">
-        <h3 className="pde-title"><span className="pde-spark">✦</span> Respiratory Infrastructure Coach</h3>
-        <span className="pde-badge">{inhaling ? 'Inhale Phase' : running ? 'Exhale Phase' : 'Inhale Phase'}</span>
+        <h3 className="pde-title"><span className="pde-spark">✦</span> {s.title}</h3>
+        <span className="pde-badge">{inhaling ? s.badgeInhale : running ? s.badgeExhale : s.badgeInhale}</span>
       </div>
-      <p className="pde-desc">
-        Performance breathing expands cellular water distribution, lowers cortisol parameters, and
-        stabilizes muscle fibers. Synchronize your prehab holdings under the expanding respiratory cue below.
-      </p>
+      <p className="pde-desc">{s.desc}</p>
 
       <div className="pde-orb-wrap">
-        <div className={`pde-orb ${orbState}`} role="timer" aria-label={`${remaining} seconds remaining`}>
+        <div className={`pde-orb ${orbState}`} role="timer" aria-label={s.secsRemaining(remaining)}>
           <div className="pde-orb-core"><span className="pde-orb-count">{remaining}s</span></div>
         </div>
         <div className="pde-orb-cue"><span aria-hidden="true">🫁</span> {cue}</div>
@@ -84,27 +229,27 @@ function RespiratoryCoach() {
 
       <div className="pde-timer">
         <div className="pde-timer-top">
-          <span className="pde-timer-lbl">Static Release Hold Timer</span>
-          <div className="pde-presets" role="group" aria-label="Hold duration">
-            {PRESETS.map((s) => (
+          <span className="pde-timer-lbl">{s.timerLabel}</span>
+          <div className="pde-presets" role="group" aria-label={s.holdDuration}>
+            {PRESETS.map((sec) => (
               <button
-                key={s}
+                key={sec}
                 type="button"
-                className={`pde-preset${duration === s ? ' is-active' : ''}`}
-                aria-pressed={duration === s}
-                onClick={() => selectPreset(s)}
+                className={`pde-preset${duration === sec ? ' is-active' : ''}`}
+                aria-pressed={duration === sec}
+                onClick={() => selectPreset(sec)}
               >
-                {s} Seconds
+                {s.seconds(sec)}
               </button>
             ))}
           </div>
         </div>
         <div className="pde-transport">
           <button type="button" className="pde-btn pde-btn--primary" onClick={start} disabled={running || remaining === 0}>
-            ▶ Start Hold
+            {s.start}
           </button>
-          <button type="button" className="pde-btn" onClick={pause} disabled={!running}>⏸ Pause</button>
-          <button type="button" className="pde-btn" onClick={reset}>↻ Reset</button>
+          <button type="button" className="pde-btn" onClick={pause} disabled={!running}>{s.pause}</button>
+          <button type="button" className="pde-btn" onClick={reset}>{s.reset}</button>
         </div>
       </div>
     </section>
@@ -113,6 +258,7 @@ function RespiratoryCoach() {
 
 // ── Module 2 · Dynamic Joint Symptom Mobility Planner + Diagnostic Report ─────
 function MobilityPlanner() {
+  const s = usePrehabStr().mob;
   const [selections, setSelections] = useState(
     () => Object.fromEntries(PLANNER.map((q) => [q.id, q.default])),
   );
@@ -122,13 +268,10 @@ function MobilityPlanner() {
   const setSel = (id, value) => { setSelections((p) => ({ ...p, [id]: value })); setCompiled(false); };
 
   return (
-    <section className="pde-card" aria-label="Dynamic Joint Symptom Mobility Planner">
-      <div className="pde-kicker">Structural Assessment</div>
-      <h3 className="pde-title"><span className="pde-spark">〽</span> Dynamic Joint Symptom Mobility Planner</h3>
-      <p className="pde-desc">
-        Evaluate physical thresholds before high-load squats or bench presses. Answer the biomechanical
-        range selectors to compile a customized corrective activation protocol immediately.
-      </p>
+    <section className="pde-card" aria-label={s.ariaPlanner}>
+      <div className="pde-kicker">{s.kicker}</div>
+      <h3 className="pde-title"><span className="pde-spark">〽</span> {s.title}</h3>
+      <p className="pde-desc">{s.desc}</p>
 
       <div className="pde-grid3">
         {PLANNER.map((q) => (
@@ -148,14 +291,14 @@ function MobilityPlanner() {
       </div>
 
       <button type="button" className="pde-run" onClick={() => setCompiled(true)}>
-        Run Mobility Compilation
+        {s.run}
       </button>
 
       {compiled ? (
         <div className="pde-report" role="status">
-          <div className="pde-report-head">⚠ Diagnostic Report Keyed Codes:</div>
+          <div className="pde-report-head">{s.reportHead}</div>
           <pre className="pde-report-body">
-            <span className="h">### BBF Biomechanical Correction Strategy Compiled</span>
+            <span className="h">{s.compiled}</span>
             {report.map((r, i) => (
               <span key={i}>
                 {'\n\n'}
@@ -164,7 +307,7 @@ function MobilityPlanner() {
               </span>
             ))}
             {'\n\n'}
-            <span className="act">↳ Actionable: Load your pre-selected Prehab Exercise protocols from the listing deck below to unlock these restricted pathways.</span>
+            <span className="act">{s.actionable}</span>
           </pre>
         </div>
       ) : null}
@@ -174,6 +317,7 @@ function MobilityPlanner() {
 
 // ── Circular % tracker ───────────────────────────────────────────────────────
 function ProtocolRing({ pct }) {
+  const s = usePrehabStr().deck;
   const SIZE = 52;
   const STROKE = 5;
   const r = (SIZE - STROKE) / 2;
@@ -193,13 +337,14 @@ function ProtocolRing({ pct }) {
         </svg>
         <span className="pde-ring-num">{pct}%</span>
       </div>
-      <span className="pde-ring-lbl">Protocol<br />Done</span>
+      <span className="pde-ring-lbl">{s.ringL1}<br />{s.ringL2}</span>
     </div>
   );
 }
 
 // ── Module 3 · Protocol for Selected Region ──────────────────────────────────
 function ProtocolDeck() {
+  const s = usePrehabStr().deck;
   const [done, setDone] = useState(() => new Set());
   const toggle = (key) => setDone((prev) => {
     const next = new Set(prev);
@@ -211,10 +356,10 @@ function ProtocolDeck() {
   const pct = total ? Math.round((done.size / total) * 100) : 0;
 
   return (
-    <section className="pde-card" aria-label="Protocol for selected region">
+    <section className="pde-card" aria-label={s.ariaRegion}>
       <div className="pde-proto-head">
         <div>
-          <div className="pde-kicker">Protocol for Selected Region</div>
+          <div className="pde-kicker">{s.kicker}</div>
           <h3 className="pde-proto-title"><span aria-hidden="true">🦴</span> {PROTOCOL.title}</h3>
         </div>
         <ProtocolRing pct={pct} />
@@ -243,12 +388,12 @@ function ProtocolDeck() {
                   aria-pressed={isDone}
                   onClick={() => toggle(ex.key)}
                 >
-                  {isDone ? '✓ Done' : '› Mark Done'}
+                  {isDone ? s.done : s.mark}
                 </button>
               </div>
 
               <div className="pde-chips">
-                <span className="pde-chip" data-testid="prehab-routine-sets">{ex.sets} Sets</span>
+                <span className="pde-chip" data-testid="prehab-routine-sets">{s.sets(ex.sets)}</span>
                 <span className="pde-chip" data-testid="prehab-routine-reps">{ex.reps}</span>
                 <span className="pde-chip">{ex.duration}</span>
               </div>
@@ -256,7 +401,7 @@ function ProtocolDeck() {
               <p className="pde-ex-desc" data-testid="prehab-routine-cue">{ex.desc}</p>
 
               <div className="pde-cues">
-                <div className="pde-cues-head">Cues &amp; Directives</div>
+                <div className="pde-cues-head">{s.cues}</div>
                 {ex.cues.map((c, ci) => (
                   <div className="pde-cue" key={ci}>
                     <span className="pde-cue-arrow" aria-hidden="true">›</span>
@@ -266,9 +411,9 @@ function ProtocolDeck() {
               </div>
             </div>
 
-            <div className="pde-video" aria-label={`${ex.name} demonstration video`}>
-              <button type="button" className="pde-video-btn" aria-label="Play demonstration">▶</button>
-              <span className="pde-video-cap">Video Directive</span>
+            <div className="pde-video" aria-label={s.demoVideo(ex.name)}>
+              <button type="button" className="pde-video-btn" aria-label={s.playDemo}>▶</button>
+              <span className="pde-video-cap">{s.videoCap}</span>
             </div>
           </article>
         );

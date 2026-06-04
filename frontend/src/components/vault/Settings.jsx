@@ -25,6 +25,81 @@ import './vault.css';
 
 const LANG_LABELS = { en: 'English', es: 'Español', pt: 'Português' };
 
+// Trilingual chrome for the admin-only Personal Threshold Settings dashboard. The
+// client surface above already routes through the shared t() dictionary; this
+// covers the previously-hardcoded coach console. EN values are verbatim.
+const ADM = {
+  en: {
+    kicker: 'Admin Level Dashboard Configuration',
+    title: 'Personal Threshold Settings',
+    sub: 'Edit physical parameter baseline limits. Changes are bundled into a migration payload on save.',
+    rosterLabel: 'Active Athlete Profile',
+    rosterUnavailable: 'Roster unavailable',
+    rosterLoading: 'Loading roster…',
+    fName: 'Athlete / Coach Name',
+    fPhase: 'Current Phase Name',
+    fAge: 'Age Bracket (Years)',
+    fHr: 'Resting Heart Rate (BPM)',
+    secMacros: 'Daily Macronutrient Targets',
+    fKcal: 'Calories (kcal)',
+    fProtein: 'Protein (g)',
+    fCarbs: 'Carbohydrates (g)',
+    fFats: 'Fats (g)',
+    secPr: 'Core Lifelong Lifting Milestones (PR)',
+    fBench: 'Bench Press (Max lbs)',
+    fSquat: 'Olympic Squat (Max lbs)',
+    fDead: 'Conventional Deadlift (Max lbs)',
+    save: 'Save Thresholds',
+    saved: 'Payload emitted to console — schema migration pending (Age · Resting HR · 1RM columns).',
+  },
+  es: {
+    kicker: 'Configuración del Panel de Nivel Administrativo',
+    title: 'Ajustes de Umbrales Personales',
+    sub: 'Edita los límites base de los parámetros físicos. Los cambios se agrupan en un paquete de migración al guardar.',
+    rosterLabel: 'Perfil del Atleta Activo',
+    rosterUnavailable: 'Lista no disponible',
+    rosterLoading: 'Cargando lista…',
+    fName: 'Nombre del Atleta / Coach',
+    fPhase: 'Nombre de la Fase Actual',
+    fAge: 'Rango de Edad (Años)',
+    fHr: 'Frecuencia Cardíaca en Reposo (LPM)',
+    secMacros: 'Objetivos Diarios de Macronutrientes',
+    fKcal: 'Calorías (kcal)',
+    fProtein: 'Proteína (g)',
+    fCarbs: 'Carbohidratos (g)',
+    fFats: 'Grasas (g)',
+    secPr: 'Marcas de Fuerza Fundamentales (PR)',
+    fBench: 'Press de Banca (Máx lbs)',
+    fSquat: 'Sentadilla Olímpica (Máx lbs)',
+    fDead: 'Peso Muerto Convencional (Máx lbs)',
+    save: 'Guardar Umbrales',
+    saved: 'Paquete enviado a la consola — migración de esquema pendiente (Edad · FC en reposo · columnas 1RM).',
+  },
+  pt: {
+    kicker: 'Configuração do Painel de Nível Administrativo',
+    title: 'Ajustes de Limites Pessoais',
+    sub: 'Edite os limites-base dos parâmetros físicos. As alterações são agrupadas em um pacote de migração ao salvar.',
+    rosterLabel: 'Perfil do Atleta Ativo',
+    rosterUnavailable: 'Lista indisponível',
+    rosterLoading: 'Carregando lista…',
+    fName: 'Nome do Atleta / Coach',
+    fPhase: 'Nome da Fase Atual',
+    fAge: 'Faixa Etária (Anos)',
+    fHr: 'Frequência Cardíaca em Repouso (BPM)',
+    secMacros: 'Metas Diárias de Macronutrientes',
+    fKcal: 'Calorias (kcal)',
+    fProtein: 'Proteína (g)',
+    fCarbs: 'Carboidratos (g)',
+    fFats: 'Gorduras (g)',
+    secPr: 'Marcas de Força Fundamentais (PR)',
+    fBench: 'Supino (Máx lbs)',
+    fSquat: 'Agachamento Olímpico (Máx lbs)',
+    fDead: 'Levantamento Terra Convencional (Máx lbs)',
+    save: 'Salvar Limites',
+    saved: 'Pacote enviado ao console — migração de esquema pendente (Idade · FC em repouso · colunas 1RM).',
+  },
+};
+
 // Blank threshold profile — the controlled-state shape the dashboard edits.
 const EMPTY_FORM = {
   athleteName: '',
@@ -107,6 +182,8 @@ export default function Settings() {
 
 // ── Admin · Personal Threshold Settings dashboard ────────────────────────────
 function AdminThresholds({ selfUid }) {
+  const { lang } = useLang();
+  const a = ADM[lang] || ADM.en;
   const [roster, setRoster] = useState([]);
   const [rosterError, setRosterError] = useState('');
   const [activeUid, setActiveUid] = useState('');
@@ -179,16 +256,14 @@ function AdminThresholds({ selfUid }) {
   return (
     <form className="cv-adm" onSubmit={onSave}>
       <header className="cv-adm-head">
-        <span className="cv-adm-kicker">Admin Level Dashboard Configuration</span>
-        <h2 className="cv-adm-title">Personal Threshold Settings</h2>
-        <p className="cv-adm-sub">
-          Edit physical parameter baseline limits. Changes are bundled into a migration payload on save.
-        </p>
+        <span className="cv-adm-kicker">{a.kicker}</span>
+        <h2 className="cv-adm-title">{a.title}</h2>
+        <p className="cv-adm-sub">{a.sub}</p>
       </header>
 
       {/* Client roster dropdown — switch the active athlete's profile. */}
       <div className="cv-adm-field cv-adm-roster">
-        <label className="cv-adm-label" htmlFor="cv-adm-athlete">Active Athlete Profile</label>
+        <label className="cv-adm-label" htmlFor="cv-adm-athlete">{a.rosterLabel}</label>
         <select
           id="cv-adm-athlete"
           className="cv-adm-input cv-adm-select"
@@ -196,7 +271,7 @@ function AdminThresholds({ selfUid }) {
           onChange={(e) => onPickAthlete(e.target.value)}
           disabled={!roster.length}
         >
-          {!roster.length ? <option value="">{rosterError ? 'Roster unavailable' : 'Loading roster…'}</option> : null}
+          {!roster.length ? <option value="">{rosterError ? a.rosterUnavailable : a.rosterLoading}</option> : null}
           {roster.map((c) => (
             <option key={c.uid} value={c.uid}>{c.name || c.uid}</option>
           ))}
@@ -206,35 +281,33 @@ function AdminThresholds({ selfUid }) {
 
       {/* Identity */}
       <div className="cv-adm-grid cv-adm-grid-2">
-        <Field id="athleteName" label="Athlete / Coach Name" value={form.athleteName} onChange={setField('athleteName')} placeholder="Akeem Brown" />
-        <Field id="phaseName" label="Current Phase Name" value={form.phaseName} onChange={setField('phaseName')} placeholder="Phase 4 - Back & Biceps" />
-        <Field id="age" label="Age Bracket (Years)" value={form.age} onChange={setField('age')} type="number" placeholder="34" />
-        <Field id="restingHr" label="Resting Heart Rate (BPM)" value={form.restingHr} onChange={setField('restingHr')} type="number" placeholder="62" />
+        <Field id="athleteName" label={a.fName} value={form.athleteName} onChange={setField('athleteName')} placeholder="Akeem Brown" />
+        <Field id="phaseName" label={a.fPhase} value={form.phaseName} onChange={setField('phaseName')} placeholder="Phase 4 - Back & Biceps" />
+        <Field id="age" label={a.fAge} value={form.age} onChange={setField('age')} type="number" placeholder="34" />
+        <Field id="restingHr" label={a.fHr} value={form.restingHr} onChange={setField('restingHr')} type="number" placeholder="62" />
       </div>
 
       {/* Daily macronutrient targets */}
-      <div className="cv-adm-section">Daily Macronutrient Targets</div>
+      <div className="cv-adm-section">{a.secMacros}</div>
       <div className="cv-adm-grid cv-adm-grid-4">
-        <Field id="calories" label="Calories (kcal)" value={form.calories} onChange={setField('calories')} type="number" placeholder="2400" />
-        <Field id="protein" label="Protein (g)" value={form.protein} onChange={setField('protein')} type="number" placeholder="210" />
-        <Field id="carbs" label="Carbohydrates (g)" value={form.carbs} onChange={setField('carbs')} type="number" placeholder="240" />
-        <Field id="fats" label="Fats (g)" value={form.fats} onChange={setField('fats')} type="number" placeholder="70" />
+        <Field id="calories" label={a.fKcal} value={form.calories} onChange={setField('calories')} type="number" placeholder="2400" />
+        <Field id="protein" label={a.fProtein} value={form.protein} onChange={setField('protein')} type="number" placeholder="210" />
+        <Field id="carbs" label={a.fCarbs} value={form.carbs} onChange={setField('carbs')} type="number" placeholder="240" />
+        <Field id="fats" label={a.fFats} value={form.fats} onChange={setField('fats')} type="number" placeholder="70" />
       </div>
 
       {/* Core lifelong lifting milestones (PR) */}
-      <div className="cv-adm-section">Core Lifelong Lifting Milestones (PR)</div>
+      <div className="cv-adm-section">{a.secPr}</div>
       <div className="cv-adm-grid cv-adm-grid-3">
-        <Field id="bench" label="Bench Press (Max lbs)" value={form.bench} onChange={setField('bench')} type="number" placeholder="315" />
-        <Field id="squat" label="Olympic Squat (Max lbs)" value={form.squat} onChange={setField('squat')} type="number" placeholder="425" />
-        <Field id="deadlift" label="Conventional Deadlift (Max lbs)" value={form.deadlift} onChange={setField('deadlift')} type="number" placeholder="515" />
+        <Field id="bench" label={a.fBench} value={form.bench} onChange={setField('bench')} type="number" placeholder="315" />
+        <Field id="squat" label={a.fSquat} value={form.squat} onChange={setField('squat')} type="number" placeholder="425" />
+        <Field id="deadlift" label={a.fDead} value={form.deadlift} onChange={setField('deadlift')} type="number" placeholder="515" />
       </div>
 
       <div className="cv-adm-actions">
-        <button type="submit" className="cv-adm-save">Save Thresholds</button>
+        <button type="submit" className="cv-adm-save">{a.save}</button>
         {saved ? (
-          <span className="cv-adm-note is-ok">
-            Payload emitted to console — schema migration pending (Age · Resting HR · 1RM columns).
-          </span>
+          <span className="cv-adm-note is-ok">{a.saved}</span>
         ) : null}
       </div>
     </form>
