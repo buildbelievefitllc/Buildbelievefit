@@ -629,6 +629,9 @@ serve(async (req) => {
           name: u?.name || u?.uid || 'Unnamed Athlete',
           uid: u?.uid ?? null, email: u?.email ?? null, avatar: u?.avatar ?? null,
           subscription_tier: u?.subscription_tier ?? null, access_status: u?.access_status ?? null,
+          // role surfaced so the Sports Portal's youth gate (sportsApi.isYouthAthlete)
+          // keeps portal-injected athletes (role:'athlete', no tier yet) visible.
+          role: u?.role ?? null,
           sport: r.sport, position: r.position, phase: r.phase, target_phase: r.target_phase,
           mesocycle_week: r.mesocycle_week, mesocycle_started_at: r.mesocycle_started_at,
           protocol_completed: r.protocol_completed,
