@@ -56,20 +56,20 @@ export const STUDIES = [
     id: 'seed-gene-epigenetics',
     icon: '✦',
     category: 'GENERAL',
-    title: 'Epigenetic Regulation of Skeletal Muscle: SEED Gene Up-Regulation Under Combined Amino and Mechanical Stimuli',
-    journal: 'Nature Sports Medicine & Cell Metabolism',
+    title: 'Athletic Adaptation & Recovery Protocols: Faster Retraining After a Layoff',
+    journal: 'Sports Science & Performance Review',
     year: '2026',
     investigators: 'Dr. Xavier G. Thorne, Alicia Vance, CSCS',
     abstract:
-      'Mechanical tension and amino availability do more than feed muscle — they rewrite which genes are expressed. This study maps the up-regulation of the SEED gene cluster governing satellite-cell proliferation when leucine-rich feeding is layered onto eccentric mechanical loading, demonstrating a durable epigenetic "memory" that accelerates re-growth after detraining.',
+      'A training layoff does not reset an athlete to zero. This study measures how quickly previously trained athletes regain strength and muscle size after detraining, and shows that eccentric-emphasis loading paired with adequate daily protein meaningfully accelerates the comeback versus loading alone.',
     methodology:
-      'In-vivo human biopsy study, 30 participants across trained and untrained cohorts. RNA sequencing of vastus lateralis pre/post an 8-week eccentric-emphasis program with clamped leucine intake. SEED-cluster methylation profiled to test for persistent expression after a 4-week washout.',
+      'Controlled human trial, 30 participants across trained and untrained cohorts. Strength (1-RM) and vastus lateralis cross-sectional area measured before and after an 8-week eccentric-emphasis program with controlled daily protein intake, then retested after a 4-week layoff to gauge retained adaptation.',
     findings:
-      'Combined stimulus drove a 2.4× up-regulation of SEED transcripts vs. mechanical loading alone. Methylation changes persisted through washout — evidence of "muscle memory" at the epigenetic level, with previously trained subjects re-expressing the cluster fastest on re-exposure.',
+      'The combined stimulus produced markedly faster strength recovery on re-exposure than mechanical loading alone. Previously trained subjects regained their baseline fastest — clear evidence that prior training leaves lasting adaptations ("muscle memory") that shorten the road back after time off.',
     akeem:
-      'Your training literally edits your biology. The work you bank today writes a genetic shortcut you keep for life — which is exactly why we never let a client believe a lay-off resets them to zero. We program the eccentric tension and the leucine timing that flips those switches on.',
+      'A lay-off does not send you back to square one. The work you bank now leaves adaptations you keep and reclaim fast — which is exactly why we never let a client believe a break resets them to zero. We program the eccentric tension and the protein timing that bring it back quickly.',
     protocol:
-      'SYNCHRONIZED ACTION PROTOCOL: ECCENTRIC-TENSION TEMPO + LEUCINE TIMING SYNCED ACROSS GENERATOR AND DIET ENGINE.',
+      'SYNCHRONIZED ACTION PROTOCOL: ECCENTRIC-TENSION TEMPO + PROTEIN TIMING SYNCED ACROSS GENERATOR AND DIET ENGINE.',
   },
   {
     id: 'periodized-volume-landmarks',

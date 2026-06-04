@@ -186,8 +186,8 @@ export default function NutritionLocker() {
         <span className="nl-pill-badge">🏆 7-Day Athlete Nutritional Lock</span>
         <h1 className="nl-title">Nutrition Locker &amp; Diet Plan</h1>
         <p className="nl-lede">
-          Gold-standard diet prescription blueprints. Restructure macro distributions, customize
-          food-allergy exemption rules, and generate structured 7-day culinary guides instantly.
+          Standard diet plans. Restructure macro distributions, customize food-allergy
+          exemptions, and generate structured 7-day meal plans instantly.
         </p>
 
         <div className="nl-modebar" role="tablist" aria-label="Locker console">
@@ -262,8 +262,7 @@ export default function NutritionLocker() {
         <section className="nl-panel" aria-label="Advanced culinary parameter console">
           <h2 className="nl-section-h">⚙ Advanced Culinary Parameter Console</h2>
           <p className="nl-help" style={{ marginTop: '-.6rem' }}>
-            Tune the biological engines. These custom parameters directly re-signal model compilation
-            pathways to construct a personalized 7-day cellular matrix.
+            Configure macronutrient distribution and build a functional 7-day meal plan.
           </p>
 
           <div className="nl-console-grid">
