@@ -20,8 +20,9 @@ import { useCallback, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
+import { logYouthProgress } from '../lib/youthIntakeApi.js';
 import LangToggle from '../components/LangToggle.jsx';
-import { buildHubModel, buildWeek, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
+import { buildHubModel, buildWeek, applyProgress, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
 import { YOUTH_SPORTS, positionLabel } from '../components/sportshub/youthSports.js';
 import {
   CombineMetrics,
@@ -37,13 +38,14 @@ function firstTrainingDay(week) {
   return i === -1 ? 0 : i;
 }
 
-// `selection` ({ sportId, positionCode }) is the athlete's intake choice, passed
-// down by YouthIntakeGate (just-submitted or persisted). It wins over the seed so
-// the protocol renders the sport they picked. The gate keys this component on the
-// selection, so a sport change cleanly re-seeds the week + editable model.
-export default function SportsHub({ selection = null }) {
+// `selection` ({ sportId, positionCode }) is the athlete's intake choice and
+// `progress` the persisted per-day check-off map (bbf_users.youth_progress) — both
+// passed down by YouthIntakeGate. The gate keys this component on the selection, so
+// a sport change cleanly re-seeds the week + editable model.
+export default function SportsHub({ selection = null, progress = null }) {
   const { user, signOut } = useAuth();
   const { t } = useLang();
+  const uid = user?.username || user?.id || '';
 
   // The profile is attached to the user by AuthContext; fall back to the resolver
   // (and its default) so the Hub can never crash on a missing profile.
@@ -60,27 +62,41 @@ export default function SportsHub({ selection = null }) {
 
   // Lifted state — seeded once from the sport-aware model. `model` powers the
   // Combine/Power/Size calculators; `week` is the 7-day protocol with checkoff
-  // state. Switching days never resets either (state lives here, above the panel).
+  // state, restored from the persisted progress map. Switching days never resets it.
   const [model, setModel] = useState(() => buildHubModel(effProfile));
-  const [week, setWeek] = useState(() => buildWeek(model));
+  const [week, setWeek] = useState(() => applyProgress(buildWeek(model), progress));
   const [activeDay, setActiveDay] = useState(() => firstTrainingDay(week));
   const [phase, setPhase] = useState('offseason'); // 'offseason' | 'inseason'
 
-  // ── Daily checkoffs — operate on the ACTIVE day's protocol ──────────────────
+  // ── Daily checkoffs — mutate the ACTIVE day optimistically, then persist the
+  //    single check-off to the athlete's row (bbf_log_youth_progress). The server
+  //    is the source of truth on the next load (refresh/logout restores state). ──
   const onToggleExercise = useCallback((i) => {
+    const day = week[activeDay];
+    if (!day || day.rest) return;
+    const next = !day.exercises[i].done;
     setWeek((w) => w.map((d, di) => (di !== activeDay || d.rest ? d
-      : { ...d, exercises: d.exercises.map((e, ei) => (ei === i ? { ...e, done: !e.done } : e)) })));
-  }, [activeDay]);
+      : { ...d, exercises: d.exercises.map((e, ei) => (ei === i ? { ...e, done: next } : e)) })));
+    logYouthProgress(uid, day.label, 'ex', i, next);
+  }, [week, activeDay, uid]);
 
   const onToggleDrill = useCallback((i) => {
+    const day = week[activeDay];
+    if (!day || day.rest) return;
+    const next = !day.drills[i].done;
     setWeek((w) => w.map((d, di) => (di !== activeDay || d.rest ? d
-      : { ...d, drills: d.drills.map((dr, j) => (j === i ? { ...dr, done: !dr.done } : dr)) })));
-  }, [activeDay]);
+      : { ...d, drills: d.drills.map((dr, j) => (j === i ? { ...dr, done: next } : dr)) })));
+    logYouthProgress(uid, day.label, 'dr', i, next);
+  }, [week, activeDay, uid]);
 
   const onCycleStatus = useCallback((i) => {
+    const day = week[activeDay];
+    if (!day || day.rest) return;
+    const next = nextStatus(day.film[i].status);
     setWeek((w) => w.map((d, di) => (di !== activeDay || d.rest ? d
-      : { ...d, film: d.film.map((c, j) => (j === i ? { ...c, status: nextStatus(c.status) } : c)) })));
-  }, [activeDay]);
+      : { ...d, film: d.film.map((c, j) => (j === i ? { ...c, status: next } : c)) })));
+    logYouthProgress(uid, day.label, 'fm', i, next);
+  }, [week, activeDay, uid]);
 
   // ── Real-time calculators (Combine & Measurables panel) ─────────────────────
   const onMetricChange = useCallback((key, raw) => {

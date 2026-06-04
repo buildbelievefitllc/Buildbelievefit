@@ -40,13 +40,15 @@ export function classifyParq(answers) {
 // a result whose key doesn't match the current uid reads as 'loading'.
 export function useYouthIntakeStatus(uid, { skip = false } = {}) {
   const key = String(uid || '').trim().toLowerCase();
-  // value: 'complete' | 'incomplete'; selection: { sportId, positionCode } | null.
-  const [result, setResult] = useState({ uid: null, value: null, selection: null });
+  // value: 'complete' | 'incomplete'; selection: { sportId, positionCode } | null;
+  // progress: the persisted per-day check-off map (bbf_users.youth_progress) | null.
+  const [result, setResult] = useState({ uid: null, value: null, selection: null, progress: null });
 
   // Flip to complete on submit without a refetch round-trip (keyed to this uid),
-  // carrying the just-chosen sport/position so the Hub renders it immediately.
+  // carrying the just-chosen sport/position so the Hub renders it immediately. A
+  // just-onboarded athlete has no progress yet (null → a fresh, unchecked week).
   const markComplete = useCallback((selection = null) => {
-    setResult({ uid: key, value: 'complete', selection });
+    setResult({ uid: key, value: 'complete', selection, progress: null });
   }, [key]);
 
   useEffect(() => {
@@ -58,13 +60,19 @@ export function useYouthIntakeStatus(uid, { skip = false } = {}) {
         if (cancelled) return;
         // RETURNS json → `data` is the object. Only a definitive `completed:true`
         // opens the gate; everything else (no row, error shape) stays closed. The
-        // persisted sport/position (canonical ids) drive the Hub for a returning athlete.
+        // persisted sport/position (canonical ids) drive the Hub for a returning
+        // athlete; youth_progress restores their check-offs.
         const selection = (!error && data?.sport)
           ? { sportId: data.sport, positionCode: data.position || null }
           : null;
-        setResult({ uid: key, value: !error && data?.completed ? 'complete' : 'incomplete', selection });
+        setResult({
+          uid: key,
+          value: !error && data?.completed ? 'complete' : 'incomplete',
+          selection,
+          progress: (!error && data?.youth_progress) || null,
+        });
       })
-      .catch(() => { if (!cancelled) setResult({ uid: key, value: 'incomplete', selection: null }); });
+      .catch(() => { if (!cancelled) setResult({ uid: key, value: 'incomplete', selection: null, progress: null }); });
     return () => { cancelled = true; };
   }, [key, skip]);
 
@@ -75,7 +83,8 @@ export function useYouthIntakeStatus(uid, { skip = false } = {}) {
   else status = result.value;
 
   const selection = result.uid === key ? result.selection : null;
-  return { status, selection, markComplete };
+  const progress = result.uid === key ? result.progress : null;
+  return { status, selection, progress, markComplete };
 }
 
 // Persist the intake. Authorized server-side purely by the bearer token (the
@@ -88,6 +97,26 @@ export async function submitYouthIntake(uid, payload) {
     p_uid: String(uid || '').trim().toLowerCase(),
     p_session_token: token,
     p_payload: payload,
+  });
+  if (error) return { ok: false, error: 'network' };
+  return data || { ok: false, error: 'unknown' };
+}
+
+// Persist a single Daily Protocol check-off to the athlete's row. Token-gated
+// (the bearer token authorizes; the user is resolved server-side). `kind` is
+// 'ex' (workout) | 'dr' (drill) | 'fm' (film); `value` is a boolean for ex/dr or
+// the film status string. Optimistic UI — fire-and-forget; the server is the
+// source of truth on the next load. Never throws (errors resolve to { ok:false }).
+export async function logYouthProgress(uid, day, kind, index, value) {
+  const token = getStoredVaultToken();
+  if (!token) return { ok: false, error: 'invalid_session' };
+  const { data, error } = await supabase.rpc('bbf_log_youth_progress', {
+    p_uid: String(uid || '').trim().toLowerCase(),
+    p_session_token: token,
+    p_day: day,
+    p_kind: kind,
+    p_index: String(index),
+    p_value: value,
   });
   if (error) return { ok: false, error: 'network' };
   return data || { ok: false, error: 'unknown' };

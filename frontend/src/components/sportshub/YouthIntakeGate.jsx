@@ -23,7 +23,7 @@ import './sportsHub.css';
 export default function YouthIntakeGate() {
   const { user, isAdmin } = useAuth();
   const uid = user?.username || user?.id || '';
-  const { status, selection, markComplete } = useYouthIntakeStatus(uid, { skip: isAdmin });
+  const { status, selection, progress, markComplete } = useYouthIntakeStatus(uid, { skip: isAdmin });
 
   if (status === 'loading') {
     return (
@@ -36,5 +36,5 @@ export default function YouthIntakeGate() {
     return <YouthIntake uid={uid} onComplete={markComplete} />;
   }
   const selKey = selection ? `${selection.sportId}:${selection.positionCode}` : 'seed';
-  return <SportsHub key={selKey} selection={selection} />;
+  return <SportsHub key={selKey} selection={selection} progress={progress} />;
 }

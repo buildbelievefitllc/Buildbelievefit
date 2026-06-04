@@ -349,3 +349,20 @@ export function buildWeek(model) {
     };
   });
 }
+
+// Overlay the persisted per-day progress map (bbf_users.youth_progress) onto a
+// freshly-built week so completed check-offs render checked on load / after a
+// refresh. Shape: { "Day 1": { ex: {"0":true}, dr: {"0":true}, fm: {"0":"complete"} }, … }.
+export function applyProgress(week, progress) {
+  if (!progress || typeof progress !== 'object') return week;
+  return week.map((d) => {
+    if (d.rest) return d;
+    const p = progress[d.label] || {};
+    return {
+      ...d,
+      exercises: d.exercises.map((e, i) => ({ ...e, done: p.ex?.[i] === true })),
+      drills: d.drills.map((dr, i) => ({ ...dr, done: p.dr?.[i] === true })),
+      film: d.film.map((c, i) => ({ ...c, status: p.fm?.[i] || c.status })),
+    };
+  });
+}

@@ -33,11 +33,15 @@ const ATHLETE_SESSION: SessionEnvelope = {
   authenticatedAt: Date.now(),
 };
 
-/** Stub the first-run gate STATUS read (completed = gate open → Hub renders). */
-async function stubIntakeStatus(page: Page, completed: boolean) {
+/** Stub the first-run gate STATUS read (completed = gate open → Hub renders).
+ *  `progress` seeds the persisted per-day check-off map (bbf_users.youth_progress). */
+async function stubIntakeStatus(page: Page, completed: boolean, progress: Record<string, unknown> = {}) {
   await page.route('**/rest/v1/rpc/bbf_get_youth_intake_status', (route) => {
     if (isPreflight(route)) return;
-    return json(route, 200, { ok: true, completed, screened_at: completed ? '2026-06-04T00:00:00Z' : null, sport: null, position: null });
+    return json(route, 200, {
+      ok: true, completed, screened_at: completed ? '2026-06-04T00:00:00Z' : null,
+      sport: null, position: null, youth_progress: progress,
+    });
   });
 }
 
@@ -47,6 +51,15 @@ async function stubIntakeSubmit(page: Page, captured: Array<Record<string, unkno
     if (isPreflight(route)) return;
     try { captured.push(route.request().postDataJSON()); } catch { /* ignore */ }
     return json(route, 200, { ok: true, screened_at: '2026-06-04T00:00:00Z', cardiac_clearance: 'self_attested' });
+  });
+}
+
+/** Stub the per-tap check-off WRITE → success (records each captured call). */
+async function stubProgressLog(page: Page, captured: Array<Record<string, unknown>>) {
+  await page.route('**/rest/v1/rpc/bbf_log_youth_progress', (route) => {
+    if (isPreflight(route)) return;
+    try { captured.push(route.request().postDataJSON()); } catch { /* ignore */ }
+    return json(route, 200, { ok: true, youth_progress: {} });
   });
 }
 
@@ -212,6 +225,48 @@ test.describe('The Sports Hub — fork, isolation, intake gate & daily protocol'
     await expect(page.getByText('Closeout & Slide')).toBeVisible(); // basketball drill on Day 1
 
     expect(captured[0]).toMatchObject({ p_payload: { sport: 'basketball', position: 'PG' } });
+    expect(realDbHits).toHaveLength(0);
+  });
+
+  test('persistence: completed check-offs are restored from the DB on load', async ({ page }) => {
+    const { realDbHits } = await installSupabaseBaseline(page);
+    // The status read carries a persisted progress map for this athlete.
+    await stubIntakeStatus(page, true, { 'Day 1': { ex: { '0': true }, dr: { '0': true } } });
+    await seedClientSession(page, ATHLETE_SESSION);
+
+    await page.goto('/sports-hub');
+    await expect(page.getByTestId('sports-hub')).toBeVisible();
+
+    // Day 1's first exercise + first drill open already checked (restored, not reset).
+    await expect(page.getByTestId('sh-ex-0')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('sh-drill-toggle-0')).toHaveAttribute('aria-pressed', 'true');
+
+    expect(realDbHits).toHaveLength(0);
+  });
+
+  test('persistence: tapping a check-off fires bbf_log_youth_progress', async ({ page }) => {
+    const { realDbHits } = await installSupabaseBaseline(page);
+    await stubIntakeStatus(page, true); // cleared, no prior progress
+    const logs: Array<Record<string, unknown>> = [];
+    await stubProgressLog(page, logs);
+    await seedClientSession(page, ATHLETE_SESSION);
+
+    await page.goto('/sports-hub');
+    const ex0 = page.getByTestId('sh-ex-0');
+    await expect(ex0).toHaveAttribute('aria-pressed', 'false');
+    await ex0.click();
+    await expect(ex0).toHaveAttribute('aria-pressed', 'true');
+
+    // The tap persisted the single check-off to the athlete's row (token-gated).
+    await expect.poll(() => logs.length).toBeGreaterThan(0);
+    expect(logs[0]).toMatchObject({
+      p_uid: 'marcus_bbf',
+      p_session_token: 'e2e-vault-token',
+      p_day: 'Day 1',
+      p_kind: 'ex',
+      p_index: '0',
+      p_value: true,
+    });
     expect(realDbHits).toHaveLength(0);
   });
 });
