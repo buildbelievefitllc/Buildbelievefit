@@ -79,3 +79,22 @@ export function injectErrorMessage(e) {
   if (/missing_position/.test(m)) return 'Select a position.';
   return m;
 }
+
+// ── Sovereign Override · persist discipline + position ─────────────────────────
+// Writes the override's selected sport + position to the athlete's canonical
+// bbf_users profile (the single source of truth; bbf_athlete_progression is
+// deprecated for sport assignment). Routes through the session-authed admin gate —
+// the browser NEVER writes the DB directly (CLAUDE.md §7). `position` is the
+// canonical legacy code. Biological age is intentionally NOT sent (no column; the
+// slider stays a reference lens). `userId` is the athlete's bbf_users PK (the roster
+// row's user_id). Resolves to the persisted { sport, position }.
+export async function setAthleteSport({ userId, sport, position }) {
+  const id = String(userId || '').trim();
+  if (!id) { const e = new Error('Select an athlete before applying the override.'); e.code = 'missing_id'; throw e; }
+  const s = String(sport || '').trim();
+  if (!s) { const e = new Error('Select a discipline (sport).'); e.code = 'missing_sport'; throw e; }
+  const p = String(position || '').trim();
+  if (!p) { const e = new Error('Select a position.'); e.code = 'missing_position'; throw e; }
+  const body = await rosterCall('sports_set_profile', { id, sport: s, position: p });
+  return { sport: body.sport ?? s, position: body.position ?? p };
+}

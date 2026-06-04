@@ -626,7 +626,7 @@ serve(async (req) => {
       if (ids.length) {
         const inList = ids.map((id) => `"${id}"`).join(',');
         const users = await pgGet(
-          `bbf_users?select=id,uid,name,email,role,avatar,subscription_tier,access_status&` +
+          `bbf_users?select=id,uid,name,email,role,avatar,subscription_tier,access_status,sport,position&` +
           `id=in.(${inList})&deleted_at=is.null`,
         );
         for (const u of (Array.isArray(users) ? users : [])) usersById[u.id] = u;
@@ -641,7 +641,10 @@ serve(async (req) => {
           // role surfaced so the Sports Portal's youth gate (sportsApi.isYouthAthlete)
           // keeps portal-injected athletes (role:'athlete', no tier yet) visible.
           role: u?.role ?? null,
-          sport: r.sport, position: r.position, phase: r.phase, target_phase: r.target_phase,
+          // bbf_users is the SoT for sport/position (the Sovereign Override writes there);
+          // bbf_athlete_progression is the legacy fallback so pre-migration athletes resolve.
+          sport: u?.sport ?? r.sport, position: u?.position ?? r.position,
+          phase: r.phase, target_phase: r.target_phase,
           mesocycle_week: r.mesocycle_week, mesocycle_started_at: r.mesocycle_started_at,
           protocol_completed: r.protocol_completed,
           rpe_avg_last_3: r.rpe_avg_last_3, friction_avg_last_3: r.friction_avg_last_3,
@@ -695,6 +698,28 @@ serve(async (req) => {
           updated_at: prog.updated_at,
         },
       });
+    }
+
+    // ── sports_set_profile (Sovereign Override — persist discipline + position) ───
+    // The Admin Override Panel's "Apply" writes the selected sport + position to the
+    // athlete's canonical bbf_users columns — now the SINGLE SOURCE OF TRUTH for sport
+    // assignment (bbf_athlete_progression is deprecated for this). Service-role pgPatch
+    // keyed on the bbf_users PK (the roster row's user_id). Biological age is NOT
+    // persisted — there is no column; the slider stays a reference lens.
+    if (action === 'sports_set_profile') {
+      const id = String(body?.id ?? '').trim();
+      const sport = String(body?.sport ?? '').trim().toLowerCase().slice(0, 40);
+      const position = String(body?.position ?? '').trim().slice(0, 40);
+      if (!id) return jsonResponse({ error: 'missing_id' }, 400);
+      if (!sport) return jsonResponse({ error: 'missing_sport' }, 400);
+      if (!position) return jsonResponse({ error: 'missing_position' }, 400);
+      const updated = await pgPatch(
+        `bbf_users?id=eq.${encodeURIComponent(id)}&deleted_at=is.null&select=id,uid,sport,position`,
+        { sport, position },
+      );
+      const row = Array.isArray(updated) && updated.length ? updated[0] : null;
+      if (!row) return jsonResponse({ error: 'not_found' }, 404);
+      return jsonResponse({ ok: true, id: row.id, uid: row.uid, sport: row.sport, position: row.position });
     }
 
     // ── leads_list / concierge_log (Comlink, relayed server-side) ─────────────────

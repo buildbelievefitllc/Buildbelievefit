@@ -77,14 +77,19 @@ export const LOWER_IS_BETTER = ['forty', 'shuttle', 'lane', 'ttest', 'sprint', '
 // Baseball corpus (the legacy hub combined them: "Baseball / Softball"); the
 // Combat/Multi slot is a cross-discipline extensibility node with no single
 // legacy sport, so it carries its own generic position set below.
+// `labelKey` resolves the trilingual sport name (yi-sport-* in LangContext) so the
+// admin grid matches Echo's canonical taxonomy; `label` is the English fallback. The
+// first six are Echo's canonical youth set, in Echo's order; Softball + Combat/Multi
+// are kept (additive, admin-only) per CEO directive.
 export const PORTAL_SPORTS = [
-  { id: 'football', label: 'Football', icon: '🏈', legacy: 'football' },
-  { id: 'soccer', label: 'Soccer', icon: '⚽', legacy: 'soccer' },
-  { id: 'baseball', label: 'Baseball', icon: '⚾', legacy: 'baseball' },
-  { id: 'softball', label: 'Softball', icon: '🥎', legacy: 'baseball' },
-  { id: 'volleyball', label: 'Volleyball', icon: '🏐', legacy: 'volleyball' },
-  { id: 'basketball', label: 'Basketball', icon: '🏀', legacy: 'basketball' },
-  { id: 'multi', label: 'Combat/Multi', icon: '🥊', legacy: null },
+  { id: 'football', label: 'American Football', labelKey: 'yi-sport-football', icon: '🏈', legacy: 'football' },
+  { id: 'basketball', label: 'Basketball', labelKey: 'yi-sport-basketball', icon: '🏀', legacy: 'basketball' },
+  { id: 'soccer', label: 'Soccer', labelKey: 'yi-sport-soccer', icon: '⚽', legacy: 'soccer' },
+  { id: 'baseball', label: 'Baseball', labelKey: 'yi-sport-baseball', icon: '⚾', legacy: 'baseball' },
+  { id: 'volleyball', label: 'Volleyball', labelKey: 'yi-sport-volleyball', icon: '🏐', legacy: 'volleyball' },
+  { id: 'track', label: 'Track & Field', labelKey: 'yi-sport-track', icon: '🏃', legacy: 'track' },
+  { id: 'softball', label: 'Softball', labelKey: 'yi-sport-softball', icon: '🥎', legacy: 'baseball' },
+  { id: 'multi', label: 'Combat/Multi', labelKey: 'yi-sport-multi', icon: '🥊', legacy: null },
 ];
 
 // ─── Position Alignment Calibration ──────────────────────────────────────────
@@ -129,6 +134,16 @@ export const POSITION_GROUPS = {
     { label: 'Middle Blocker', legacy: 'MB' },
     { label: 'Setter', legacy: 'S' },
     { label: 'Libero', legacy: 'LIB' },
+  ],
+  // Track & Field — Echo's canonical EVENT groups (the secondary input is an Event,
+  // not a position). Codes resolve the Hub's TRACK_BENCHMARKS; this is the single
+  // taxonomy youthSports.YOUTH_SPORTS reuses, so the admin Portal and the youth
+  // intake share ONE position/event-id system.
+  track: [
+    { label: 'Sprints (100 / 200m)', legacy: 'sprints' },
+    { label: 'Distance (800m+)', legacy: 'distance' },
+    { label: 'Jumps', legacy: 'jumps' },
+    { label: 'Throws', legacy: 'throws' },
   ],
   // Cross-discipline node — no single legacy sport. Generic KPI traits are
   // supplied here since positionalBlueprints has no entries for these roles.

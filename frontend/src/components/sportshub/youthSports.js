@@ -11,14 +11,9 @@
 
 import { POSITION_GROUPS } from '../sports/sportsData.js';
 
-// Track is not in the legacy ball-sport taxonomy — it carries its own EVENT groups
-// (codes resolve hubData.TRACK_BENCHMARKS) and uses the "Event" secondary label.
-const TRACK_EVENTS = [
-  { label: 'Sprints (100 / 200m)', legacy: 'sprints' },
-  { label: 'Distance (800m+)', legacy: 'distance' },
-  { label: 'Jumps', legacy: 'jumps' },
-  { label: 'Throws', legacy: 'throws' },
-];
+// Track carries EVENT groups (not ball positions) and uses the "Event" secondary
+// label. Those events now live in the Sports Portal's canonical POSITION_GROUPS.track
+// (one shared taxonomy with the admin Portal); codes resolve hubData.TRACK_BENCHMARKS.
 
 export const YOUTH_SPORTS = [
   { id: 'football', labelKey: 'yi-sport-football', field: 'position', options: POSITION_GROUPS.football },
@@ -26,7 +21,7 @@ export const YOUTH_SPORTS = [
   { id: 'soccer', labelKey: 'yi-sport-soccer', field: 'position', options: POSITION_GROUPS.soccer },
   { id: 'baseball', labelKey: 'yi-sport-baseball', field: 'position', options: POSITION_GROUPS.baseball },
   { id: 'volleyball', labelKey: 'yi-sport-volleyball', field: 'position', options: POSITION_GROUPS.volleyball },
-  { id: 'track', labelKey: 'yi-sport-track', field: 'event', options: TRACK_EVENTS },
+  { id: 'track', labelKey: 'yi-sport-track', field: 'event', options: POSITION_GROUPS.track },
 ];
 
 export function getSport(id) {

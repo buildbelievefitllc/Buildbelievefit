@@ -14,8 +14,8 @@ import { useLang } from '../../context/LangContext.jsx';
 import { toErrorMessage } from '../../lib/rosterApi.js';
 import AdminOverridePanel from './AdminOverridePanel.jsx';
 import AthleteDossier from './AthleteDossier.jsx';
-import { fetchSportsRoster, insertAthlete, injectErrorMessage } from './sportsApi.js';
-import { PORTAL_SPORTS, GOAL_DIRECTIVES, getPositions, getPortalSport } from './sportsData.js';
+import { fetchSportsRoster, insertAthlete, injectErrorMessage, setAthleteSport } from './sportsApi.js';
+import { PORTAL_SPORTS, GOAL_DIRECTIVES, getPositions, getPosition, getPortalSport } from './sportsData.js';
 import './sports.css';
 
 const toSportId = (s) => {
@@ -23,9 +23,10 @@ const toSportId = (s) => {
   return PORTAL_SPORTS.some((p) => p.id === id) ? id : PORTAL_SPORTS[0].id;
 };
 
-// Calibration lens for a live athlete. Age isn't a stored column, so the slider
-// defaults to a youth midpoint — it drives the REFERENCE protocol only, never the
-// live record.
+// Initial override for a selected athlete: discipline seeds from the live record;
+// position defaults to that sport's first group. The Sovereign Override's "Apply"
+// now PERSISTS the chosen sport + position back to bbf_users (the source of truth).
+// Age has no column, so the slider stays a pure reference lens, never written.
 const initOverride = (a) => {
   const sportId = toSportId(a?.sport);
   return { sportId, position: getPositions(sportId)[0].label, age: 16, goal: GOAL_DIRECTIVES[0] };
@@ -33,7 +34,7 @@ const initOverride = (a) => {
 
 export default function SportsPortal() {
   const { isAdmin } = useAuth();
-  const { lang } = useLang();
+  const { t, lang } = useLang();
 
   const [athletes, setAthletes] = useState([]);
   const [loading, setLoading] = useState(isAdmin);
@@ -41,6 +42,8 @@ export default function SportsPortal() {
   const [selectedId, setSelectedId] = useState(null);
   const [override, setOverride] = useState(() => initOverride(null));
   const [applied, setApplied] = useState(false);
+  const [applyBusy, setApplyBusy] = useState(false);
+  const [applyError, setApplyError] = useState(null);
 
   // Inject form state (admin write path).
   const [injName, setInjName] = useState('');
@@ -84,12 +87,36 @@ export default function SportsPortal() {
     return () => { cancelled = true; };
   }, [isAdmin, load]);
 
-  const patch = (next) => { setOverride((o) => ({ ...o, ...next })); setApplied(false); };
+  const patch = (next) => { setOverride((o) => ({ ...o, ...next })); setApplied(false); setApplyError(null); };
   const onSport = (sportId) => patch({ sportId, position: getPositions(sportId)[0].label });
   const onPosition = (position) => patch({ position });
   const onAge = (age) => patch({ age });
   const onGoal = (goal) => patch({ goal });
-  const onApply = () => { setApplied(true); setTimeout(() => setApplied(false), 2000); };
+
+  // Apply now PERSISTS the override's discipline + position to the selected athlete's
+  // canonical bbf_users profile (via the session-authed admin gate), then reloads so
+  // the file tile reflects the new sport. Age stays reference-only (never written).
+  const onApply = async () => {
+    const target = athletes.find((a) => a.id === selectedId);
+    if (!target) return;
+    setApplyBusy(true);
+    setApplyError(null);
+    try {
+      const pos = getPosition(override.sportId, override.position);
+      await setAthleteSport({
+        userId: target.user_id,
+        sport: override.sportId,
+        position: pos?.legacy ?? override.position,
+      });
+      await load(true); // reload + keep selection so the file tile reflects the new sport
+      setApplied(true);
+      setTimeout(() => setApplied(false), 2000);
+    } catch (e) {
+      setApplyError(toErrorMessage(e));
+    } finally {
+      setApplyBusy(false);
+    }
+  };
 
   const submitInject = async () => {
     setInjBusy(true); setInjError(null); setInjOk(false);
@@ -143,7 +170,7 @@ export default function SportsPortal() {
                 >
                   <span className="sp-file-dot" aria-hidden="true">{sp.icon}</span>
                   <span className="sp-file-name">{a.name}</span>
-                  <span className="sp-file-sport">{sp.label}</span>
+                  <span className="sp-file-sport">{sp.labelKey ? t(sp.labelKey) : sp.label}</span>
                 </button>
               );
             })}
@@ -173,6 +200,8 @@ export default function SportsPortal() {
             onGoal={onGoal}
             onApply={onApply}
             applied={applied}
+            applyBusy={applyBusy}
+            applyError={applyError}
             inject={{
               name: injName, setName: setInjName,
               consent: injConsent, setConsent: setInjConsent,

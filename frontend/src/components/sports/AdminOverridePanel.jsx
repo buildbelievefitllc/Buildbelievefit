@@ -7,15 +7,21 @@
 //   4. Inject Youth Athlete        — GUARDED write into the live database (the
 //      selected sport+position become the new athlete's assignment; guardian
 //      consent is mandatory — the server rejects the insert without it).
-// "Apply" flashes a calibration confirmation; "Inject" executes the live insert.
+// "Apply" PERSISTS the selected discipline + position to the athlete's canonical
+// bbf_users profile (via the secure admin gate); "Inject" creates a new record. The
+// age slider is a reference lens only — there is no age column, so it is never written.
 
+import { useLang } from '../../context/LangContext.jsx';
 import { PORTAL_SPORTS, GOAL_DIRECTIVES, getPositions, getPortalSport } from './sportsData.js';
 
 export default function AdminOverridePanel({
-  override, onSport, onPosition, onAge, onGoal, onApply, applied, inject,
+  override, onSport, onPosition, onAge, onGoal, onApply, applied, applyBusy, applyError, inject,
 }) {
+  const { t } = useLang();
+  // Trilingual sport name (yi-sport-* keys), English label as fallback.
+  const sportName = (s) => (s?.labelKey ? t(s.labelKey) : s?.label || '');
   const positions = getPositions(override.sportId);
-  const sportLabel = getPortalSport(override.sportId).label;
+  const sportLabel = sportName(getPortalSport(override.sportId));
 
   return (
     <section className="sp-panel">
@@ -54,7 +60,7 @@ export default function AdminOverridePanel({
                 onClick={() => onSport(s.id)}
               >
                 <span className="sp-sport-ico" aria-hidden="true">{s.icon}</span>
-                <span className="sp-sport-label">{s.label}</span>
+                <span className="sp-sport-label">{sportName(s)}</span>
               </button>
             ))}
           </div>
@@ -166,9 +172,15 @@ export default function AdminOverridePanel({
           restructures daily calendar goals, realigns the baseline orthopedic target, and shifts safe development
           phase limits.
         </p>
-        <button type="button" className={`sp-apply${applied ? ' is-applied' : ''}`} onClick={onApply}>
-          {applied ? '✓ Override Applied' : 'Apply Sovereign Calibration Override'}
+        <button
+          type="button"
+          className={`sp-apply${applied ? ' is-applied' : ''}`}
+          disabled={applyBusy}
+          onClick={onApply}
+        >
+          {applyBusy ? 'Saving…' : applied ? '✓ Override Applied' : 'Apply Sovereign Calibration Override'}
         </button>
+        {applyError ? <p className="sp-inject-err">{applyError}</p> : null}
       </div>
     </section>
   );

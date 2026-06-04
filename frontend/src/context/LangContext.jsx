@@ -233,6 +233,9 @@ const DICT = {
   'yi-sport-baseball': { en: 'Baseball', es: 'Béisbol', pt: 'Beisebol' },
   'yi-sport-volleyball': { en: 'Volleyball', es: 'Voleibol', pt: 'Vôlei' },
   'yi-sport-track': { en: 'Track & Field', es: 'Atletismo', pt: 'Atletismo' },
+  // Admin Sports Portal extras (kept beyond Echo's canonical 6 — additive).
+  'yi-sport-softball': { en: 'Softball', es: 'Sóftbol', pt: 'Softbol' },
+  'yi-sport-multi': { en: 'Combat/Multi', es: 'Combate/Multi', pt: 'Combate/Multi' },
 
   // ── Phase 26 — Authenticated shell (Vault top bar · tabs · Command Center ·
   // MasterLayout · Settings). Wired so the chosen language follows the athlete
