@@ -11,18 +11,16 @@
 // amplitude, so the on-screen plan genuinely re-derives from the parameters.
 
 // ── Parameter-console option sets ───────────────────────────────────────────
-// Diet Style — evocative regional regimes (prototype: "Mexico: Baja Coastal
-// Seafood…", "US Pacific Northwest Hunter-Gatherer…"). The `id` is the wire value
-// folded into the assign_nutrition payload; the label is the display string.
+// Diet Style — straightforward, utilitarian performance categories (BBF_CULINARY_
+// GOVERNOR: no pretentious regional or pseudo-scientific framing). The `id` is the
+// wire value folded into the assign_nutrition payload; the label is the display string.
 export const DIET_STYLES = [
-  { id: 'baja_seafood', label: 'Mexico: Baja Coastal Seafood Lean-Bulk' },
-  { id: 'pnw_hunter', label: 'US Pacific Northwest Hunter-Gatherer' },
-  { id: 'med_sovereign', label: 'Mediterranean Sovereign Longevity' },
-  { id: 'andes_endurance', label: 'Andes High-Altitude Endurance Load' },
-  { id: 'nordic_cold', label: 'Nordic Cold-Adaptation Protocol' },
-  { id: 'apex_carnivore', label: 'Apex Carnivore Metabolic Reset' },
-  { id: 'paddy_glycogen', label: 'Pan-Asian Rice-Paddy Glycogen Load' },
-  { id: 'savanna_lean', label: 'East-African Savanna Lean-Run' },
+  { id: 'standard_balance', label: 'Standard Macro Balance' },
+  { id: 'high_protein', label: 'High-Protein Builder' },
+  { id: 'carb_load', label: 'Performance Carb-Load' },
+  { id: 'lean_deficit', label: 'Lean Deficit' },
+  { id: 'anabolic_surplus', label: 'Anabolic Mass Surplus' },
+  { id: 'maintenance_recomp', label: 'Maintenance Recomp' },
 ];
 
 // Allergy Restrict Exemption — compounds to filter out of the compiled matrix.
@@ -102,14 +100,14 @@ export const ADAPT_BANDS = [
   { id: 1, key: 'bulk', label: 'Anabolic Bulk', tag: 'Anabolic', kcal: 1.14, carb: 1.2, prot: 1.06 },
 ];
 
-// EPIGENETIC CELL SIGNALING INDEX bars. `base` is the anchor %; the live value is
-// re-derived per meal from its macro profile so the index shifts as you scan the
-// week (see signalingFor()). The two-stop gradient is the prototype's per-bar fill.
+// PERFORMANCE SIGNAL bars. `base` is the anchor %; the live value is re-derived per
+// meal from its macro profile so the index shifts as you scan the week (see
+// signalingFor()). The two-stop gradient is the per-bar fill.
 export const EPIGENETIC_SIGNALS = [
-  { key: 'mtor', label: 'mTOR Hypertrophy Synthesis', base: 68, from: 'var(--pur)', to: 'var(--yel)' },
-  { key: 'satiety', label: 'Strategic Satiety Receptor Load', base: 55, from: 'var(--pur)', to: 'var(--grn)' },
-  { key: 'endocrine', label: 'Endocrine Optimization Index', base: 50, from: 'var(--purd)', to: 'var(--gold-soft)' },
-  { key: 'dna', label: 'Intra-Cellular DNA Repair Activation', base: 65, from: 'var(--purl)', to: 'var(--blu)' },
+  { key: 'mtor', label: 'Muscle-Building Drive', base: 68, from: 'var(--pur)', to: 'var(--yel)' },
+  { key: 'satiety', label: 'Fullness & Satiety', base: 55, from: 'var(--pur)', to: 'var(--grn)' },
+  { key: 'endocrine', label: 'Hormone Support', base: 50, from: 'var(--purd)', to: 'var(--gold-soft)' },
+  { key: 'dna', label: 'Recovery & Repair', base: 65, from: 'var(--purl)', to: 'var(--blu)' },
 ];
 
 // Macro accent colors for the doughnut + legend + pills (prototype: Carbs gold,
@@ -120,335 +118,346 @@ export const MACRO_META = [
   { key: 'p', label: 'Protein', color: 'var(--purl)' },
 ];
 
-// ── The preloaded 7-day protocol (ancestral / hunter-gatherer regime) ─────────
-// Shape per meal: { name, tag, kcal, macros:{p,c,f}, blurb, ingredients:[{q,item,tip}],
-// prep:[step…], tutorialClass }. `tag` (e.g. 'SEED GENE') paints the gold meal badge.
+// ── The preloaded 7-day protocol (budget meal-prep regime) ────────────────────
+// Simple, accessible, grocery-store fuel rotating American / Mexican / Brazilian
+// cuisines (BBF_CULINARY_GOVERNOR). Shape per meal: { name, tag, kcal, macros:{p,c,f},
+// blurb, ingredients:[{q,item,tip}], prep:[step…], tutorialClass }. `tag` (e.g.
+// 'HIGH PROTEIN') paints the gold meal badge.
 const m = (name, kcal, p, c, f, blurb, ingredients, prep, tag = null, tutorialClass) => ({
   name, kcal, macros: { p, c, f }, blurb, ingredients, prep, tag,
   tutorialClass: tutorialClass || `#${400 + Math.floor(kcal % 90)}`,
 });
 
 export const WEEK_PROTOCOL = {
+  // ── Monday · American ───────────────────────────────────────────────────────
   mon: {
     breakfast: m(
-      "Hunter's Morning Bison Scramble", 575, 45, 65, 15,
-      'High-retinol ancestral open with pasture eggs and grass-fed bison for dense morning amino loading and steady cognitive clarity.',
+      'Turkey & Egg Breakfast Scramble', 575, 45, 65, 15,
+      'Simple high-protein American breakfast — lean ground turkey and eggs over sweet potato to start the day.',
       [
-        { q: '6 oz', item: 'Ground Bison', tip: 'Sear hot and fast — bison is leaner than beef, so it overcooks in seconds.' },
-        { q: '3 whole', item: 'Pasture-Raised Eggs', tip: 'Yolks carry the choline; never discard them on a hypertrophy block.' },
-        { q: '1 cup', item: 'Cubed Sweet Potato', tip: 'Pre-roast in batches — the resistant starch feeds gut flora.' },
-        { q: '1 handful', item: 'Wilted Kale', tip: 'Fold in off-heat to preserve heat-sensitive vitamin K.' },
+        { q: '6 oz', item: 'Lean Ground Turkey', tip: 'Brown it first, then push aside to cook the eggs.' },
+        { q: '3 whole', item: 'Eggs', tip: 'Soft-scramble them right in with the turkey.' },
+        { q: '1 cup', item: 'Diced Sweet Potato', tip: 'Microwave 4 min first to speed up the cook.' },
+        { q: '1 handful', item: 'Spinach', tip: 'Stir in at the end until just wilted.' },
       ],
-      ['Render bison in a hot cast-iron skillet, 3–4 min.', 'Push to the side; soft-scramble the eggs in the rendered fat.', 'Fold in roasted sweet potato and kale, plate immediately.'],
+      ['Brown the turkey in a non-stick pan, 5-6 min.', 'Push aside and soft-scramble the eggs.', 'Fold in sweet potato and spinach, plate hot.'],
       null, '#415',
     ),
     lunch: m(
-      'Coastal Cedar-Plank Salmon Bowl', 690, 48, 58, 26,
-      'Omega-dense midday intercept — wild salmon over fermented rice to synchronize anti-inflammatory signaling.',
+      'Grilled Chicken & Rice Bowl', 690, 48, 58, 26,
+      'Classic American meal-prep bowl — grilled chicken over jasmine rice with steamed broccoli.',
       [
-        { q: '7 oz', item: 'Wild Sockeye Salmon', tip: 'Skin-on, skin-down first — it crisps into a protective crust.' },
-        { q: '3/4 cup', item: 'Fermented Jasmine Rice', tip: 'Day-old rice resists glucose spikes better than fresh.' },
-        { q: '1 cup', item: 'Charred Broccolini', tip: 'Char develops sulforaphane precursors.' },
+        { q: '7 oz', item: 'Chicken Breast', tip: 'Grill to 165F internal, then rest before slicing.' },
+        { q: '3/4 cup', item: 'Jasmine Rice', tip: 'Cook a big batch on prep day.' },
+        { q: '1 cup', item: 'Broccoli', tip: 'Steam 4 min until bright green.' },
       ],
-      ['Roast salmon on a soaked cedar plank at 400°F, 12 min.', 'Char broccolini in a dry pan.', 'Build the bowl rice-first, flake salmon on top.'],
+      ['Season and grill the chicken to 165F.', 'Steam the broccoli.', 'Build the bowl rice-first, slice chicken on top.'],
       null, '#421',
     ),
     dinner: m(
-      'Slow-Braised Elk Osso Buco', 760, 62, 44, 32,
-      'Collagen-rich evening anabolic anchor — connective-tissue braise for joint-matrix repair during sleep.',
+      'Lean Beef & Potato Skillet', 760, 62, 44, 32,
+      'Hearty American skillet — lean ground beef with potatoes and green beans.',
       [
-        { q: '10 oz', item: 'Elk Shank', tip: 'Low and slow only — shank is pure connective tissue.' },
-        { q: '2 cups', item: 'Bone Broth', tip: 'Reduce by a third to concentrate glycine.' },
-        { q: '1 cup', item: 'Root Vegetable Medley', tip: 'Add in the final hour so they hold shape.' },
+        { q: '8 oz', item: '93% Lean Ground Beef', tip: 'Drain any excess fat after browning.' },
+        { q: '2 cups', item: 'Diced Potatoes', tip: 'Parboil 5 min so they crisp fast.' },
+        { q: '1 cup', item: 'Green Beans', tip: 'Add in the last few minutes to keep the snap.' },
       ],
-      ['Sear shank on all sides, deglaze with broth.', 'Braise covered at 300°F for 3 hours.', 'Add roots for the final 60 minutes; rest before plating.'],
+      ['Brown the beef, then set aside.', 'Crisp the potatoes in the same pan.', 'Add beef and green beans, toss and serve.'],
       null, '#438',
     ),
     snack: m(
-      'Collagen Berry Cryo-Smoothie', 295, 28, 30, 8,
-      'Post-loading recovery whip — hydrolyzed collagen plus dark berries for connective repair and polyphenol cover.',
+      'Greek Yogurt & Berry Protein Cup', 295, 28, 30, 8,
+      'Quick high-protein snack — Greek yogurt with a scoop of whey and blueberries.',
       [
-        { q: '2 scoops', item: 'Hydrolyzed Collagen', tip: 'Pairs with vitamin C for synthesis — keep the berries.' },
-        { q: '1 cup', item: 'Wild Blueberries', tip: 'Smaller wild berries pack more anthocyanin per gram.' },
-        { q: '1/2 cup', item: 'Coconut Kefir', tip: 'Live cultures aid the satiety-receptor load.' },
+        { q: '1 cup', item: 'Non-Fat Greek Yogurt', tip: 'Plain — you control the sugar.' },
+        { q: '1 scoop', item: 'Whey Protein', tip: 'Stir in until smooth.' },
+        { q: '1/2 cup', item: 'Blueberries', tip: 'Frozen works and costs less.' },
       ],
-      ['Blend frozen berries and kefir until smooth.', 'Add collagen last, pulse to combine without foaming.'],
+      ['Stir the whey into the yogurt.', 'Top with blueberries and serve cold.'],
       null, '#404',
     ),
   },
+  // ── Tuesday · Mexican ───────────────────────────────────────────────────────
   tue: {
     breakfast: m(
-      'Smoked Trout & Sweet Potato Hash', 540, 40, 60, 16,
-      'Cold-smoked omega open with a slow-burning tuber base for sustained morning training fuel.',
+      'Egg & Black Bean Breakfast Tacos', 540, 40, 60, 16,
+      'Budget Mexican breakfast — scrambled eggs and black beans in warm corn tortillas.',
       [
-        { q: '5 oz', item: 'Cold-Smoked Trout', tip: 'Flake at the end so it does not turn rubbery.' },
-        { q: '1.5 cups', item: 'Diced Sweet Potato', tip: 'Parboil 4 min before crisping for the perfect interior.' },
-        { q: '2 whole', item: 'Soft-Poached Eggs', tip: 'The runny yolk is the sauce.' },
+        { q: '3 whole', item: 'Eggs', tip: 'Scramble soft so they stay tender.' },
+        { q: '1/2 cup', item: 'Black Beans', tip: 'Canned and rinsed — fast and cheap.' },
+        { q: '3', item: 'Corn Tortillas', tip: 'Warm in a dry pan to make them flexible.' },
+        { q: '2 tbsp', item: 'Salsa', tip: 'Jarred salsa is a free flavor win.' },
       ],
-      ['Crisp sweet potato in ghee until golden.', 'Fold in flaked trout off-heat.', 'Crown with poached eggs.'],
+      ['Scramble the eggs.', 'Warm the beans and tortillas.', 'Fill the tortillas with egg and beans, top with salsa.'],
       null, '#410',
     ),
     lunch: m(
-      'Seed Gene Epigenetic Block', 660, 50, 52, 24,
-      'Anti-inflammatory protein with raw complex seed-oil carriers and deliberately low-glycemic timing to bias chromatin signaling.',
+      'Chicken Burrito Bowl', 660, 50, 52, 24,
+      'High-protein Mexican burrito bowl — chicken, rice, black beans, and peppers.',
       [
-        { q: '7 oz', item: 'Pasture Chicken Thigh', tip: 'Thigh out-performs breast on iron and zinc.' },
-        { q: '3 tbsp', item: 'Raw Pumpkin-Seed Oil', tip: 'Never heat it — the signaling lipids are heat-fragile.' },
-        { q: '2 cups', item: 'Bitter Greens', tip: 'Bitterness primes bile flow for the seed-oil carriers.' },
+        { q: '7 oz', item: 'Chicken Breast', tip: 'Season with cumin and chili powder.' },
+        { q: '3/4 cup', item: 'White Rice', tip: 'Squeeze lime over it for cilantro-lime rice.' },
+        { q: '1/2 cup', item: 'Black Beans', tip: 'Warm with a pinch of cumin.' },
+        { q: '1 cup', item: 'Peppers & Onions', tip: 'Saute until just charred.' },
       ],
-      ['Grill chicken thigh to 165°F internal.', 'Dress greens raw with the seed oil.', 'Slice chicken over the dressed greens; do not cook the oil.'],
-      'SEED GENE', '#447',
+      ['Grill and slice the chicken.', 'Saute the peppers and onions.', 'Layer rice, beans, peppers, then chicken.'],
+      'HIGH PROTEIN', '#447',
     ),
     dinner: m(
-      'Wild Boar Chops & Charred Fennel', 720, 58, 40, 34,
-      'Lean game protein with anise-forward fennel to support the evening endocrine optimization window.',
+      'Ground Turkey Taco Skillet', 720, 58, 40, 34,
+      'One-pan Mexican dinner — seasoned ground turkey with rice, peppers, and onions.',
       [
-        { q: '2', item: 'Wild Boar Chops', tip: 'Rest 8 minutes — game meat reabsorbs juices slowly.' },
-        { q: '1 bulb', item: 'Charred Fennel', tip: 'Char concentrates the natural sweetness.' },
-        { q: '1 tbsp', item: 'Tallow', tip: 'Stable at high heat, unlike seed oils.' },
+        { q: '8 oz', item: 'Lean Ground Turkey', tip: 'Season with a taco spice blend.' },
+        { q: '3/4 cup', item: 'Rice', tip: 'Stir it right into the skillet.' },
+        { q: '1 cup', item: 'Peppers & Onions', tip: 'The base of any good taco filling.' },
       ],
-      ['Sear chops in tallow, 4 min per side.', 'Char fennel wedges in the same pan.', 'Rest the chops, then plate with fennel.'],
+      ['Brown the turkey with taco seasoning.', 'Add peppers and onions, soften.', 'Fold in the cooked rice and serve.'],
       null, '#452',
     ),
     snack: m(
-      'Raw Cacao Bone-Broth Cortado', 240, 22, 18, 9,
-      'Savory-bitter recovery sip — glycine-rich broth with raw cacao for a magnesium and theobromine nudge.',
+      'Cottage Cheese & Pineapple Cup', 240, 22, 18, 9,
+      'Simple high-protein snack — cottage cheese with pineapple.',
       [
-        { q: '1 cup', item: 'Reduced Bone Broth', tip: 'Glycine here calms the nervous system pre-sleep.' },
-        { q: '1 tbsp', item: 'Raw Cacao', tip: 'Raw retains far more magnesium than dutched.' },
+        { q: '1 cup', item: 'Low-Fat Cottage Cheese', tip: 'A cheap, slow-digesting protein.' },
+        { q: '1/2 cup', item: 'Pineapple', tip: 'Canned in juice works fine.' },
       ],
-      ['Warm broth gently — do not boil.', 'Whisk in cacao until frothy.'],
+      ['Spoon cottage cheese into a cup.', 'Top with pineapple.'],
       null, '#406',
     ),
   },
+  // ── Wednesday · Brazilian ───────────────────────────────────────────────────
   wed: {
     breakfast: m(
-      'Grass-Fed Beef Liver and Onions', 575, 45, 65, 15,
-      'A classic ancestral breakfast providing the highest concentration of retinol and B-vitamins for cognitive clarity.',
+      'Brazilian Eggs, Rice & Beans', 575, 45, 65, 15,
+      'Everyday Brazilian breakfast — eggs over rice and black beans with a side of banana.',
       [
-        { q: '6 oz', item: 'Beef Liver', tip: 'Soak in lemon water 30 min to mellow the iron bite.' },
-        { q: '1 large', item: 'White Onion', tip: 'Caramelize slowly to balance the liver minerality.' },
-        { q: '1 cup', item: 'Boiled Potatoes', tip: 'A cooled potato gains resistant starch.' },
-        { q: '1 tsp', item: 'Ghee', tip: 'High smoke point — protects the fat-soluble vitamins.' },
+        { q: '3 whole', item: 'Eggs', tip: 'Fry or scramble, your call.' },
+        { q: '3/4 cup', item: 'White Rice', tip: 'Leftover rice from prep day is perfect.' },
+        { q: '1/2 cup', item: 'Black Beans', tip: 'Simmer with garlic for real feijao flavor.' },
+        { q: '1', item: 'Banana', tip: 'A cheap, fast carb on the side.' },
       ],
-      ['Caramelize onions low and slow in ghee.', 'Sear liver 90 seconds per side — no more.', 'Plate over boiled potatoes, blanket with onions.'],
+      ['Warm the rice and beans.', 'Fry the eggs.', 'Plate eggs over rice and beans, banana on the side.'],
       null, '#415',
     ),
     lunch: m(
-      'Oyster & Seaweed Mineral Bowl', 600, 42, 50, 22,
-      'Zinc-saturated midday reset — raw and lightly poached oysters over iodine-dense seaweed.',
+      'Frango com Arroz e Feijao', 600, 42, 50, 22,
+      'Brazilian staple lunch — grilled chicken with rice and black beans.',
       [
-        { q: '8', item: 'Pacific Oysters', tip: 'The most zinc-dense food on the planet — key for testosterone.' },
-        { q: '1 cup', item: 'Wakame Seaweed', tip: 'Rinse to control the sodium load.' },
-        { q: '3/4 cup', item: 'Black Rice', tip: 'Anthocyanin-rich — the dark pigment is the medicine.' },
+        { q: '6 oz', item: 'Chicken Breast', tip: 'Season simply with salt, garlic, and lime.' },
+        { q: '3/4 cup', item: 'White Rice', tip: 'The foundation of the plate.' },
+        { q: '1/2 cup', item: 'Black Beans', tip: 'Budget protein that stretches the meal.' },
       ],
-      ['Poach half the oysters 60 seconds; keep half raw.', 'Hydrate wakame in cold water.', 'Layer rice, seaweed, then oysters.'],
+      ['Grill the chicken and slice.', 'Warm the rice and beans.', 'Plate it all together, family-style.'],
       null, '#430',
     ),
     dinner: m(
-      'Venison Tenderloin Over Squash', 740, 60, 46, 28,
-      'Ultra-lean game tenderloin with roasted squash for a clean evening glycogen top-off.',
+      'Brazilian Beef & Rice with Collard Greens', 740, 60, 46, 28,
+      'Simple Brazilian dinner — lean beef over rice with sauteed collard greens.',
       [
-        { q: '8 oz', item: 'Venison Tenderloin', tip: 'Pull at 130°F — venison goes to leather past medium-rare.' },
-        { q: '2 cups', item: 'Roasted Kabocha', tip: 'Skin is edible and fiber-dense.' },
-        { q: '1 tbsp', item: 'Juniper-Berry Rub', tip: 'Juniper cuts the gaminess beautifully.' },
+        { q: '8 oz', item: 'Lean Ground Beef', tip: 'Brown well for the best flavor.' },
+        { q: '3/4 cup', item: 'White Rice', tip: 'Cooks while the beef browns.' },
+        { q: '2 cups', item: 'Collard Greens', tip: 'Slice thin and saute with garlic — classic couve.' },
       ],
-      ['Rub tenderloin, sear hard, finish in a 375°F oven.', 'Roast kabocha wedges until caramelized.', 'Rest venison 10 min, slice against the grain.'],
+      ['Brown the beef with garlic and onion.', 'Saute the sliced collards quickly over high heat.', 'Plate the beef and greens over rice.'],
       null, '#444',
     ),
     snack: m(
-      'Sprouted Pumpkin-Seed Trail Cluster', 310, 16, 28, 18,
-      'Crunchy mineral cluster — sprouted seeds and cacao nibs for a portable magnesium and zinc hit.',
+      'Banana & Peanut Butter Oats', 310, 16, 28, 18,
+      'Portable snack — oats with banana and peanut butter.',
       [
-        { q: '1/3 cup', item: 'Sprouted Pumpkin Seeds', tip: 'Sprouting neutralizes phytic acid for better absorption.' },
-        { q: '2 tbsp', item: 'Cacao Nibs', tip: 'Unsweetened — the bitterness blunts appetite.' },
-        { q: '1 tbsp', item: 'Raw Honey', tip: 'Just enough to bind the cluster.' },
+        { q: '1/2 cup', item: 'Rolled Oats', tip: 'No-cook overnight oats save time.' },
+        { q: '1', item: 'Banana', tip: 'Mash half of it in for natural sweetness.' },
+        { q: '1 tbsp', item: 'Peanut Butter', tip: 'A cheap source of calories and healthy fat.' },
       ],
-      ['Warm honey, toss seeds and nibs to coat.', 'Press flat and chill until set, then break into clusters.'],
+      ['Stir oats, mashed banana, and peanut butter together.', 'Eat right away or chill overnight.'],
       null, '#408',
     ),
   },
+  // ── Thursday · American ─────────────────────────────────────────────────────
   thu: {
     breakfast: m(
-      'Pemmican Power Skillet', 560, 44, 54, 20,
-      'The original performance fuel — rendered tallow and dried meat reworked into a hot, dense morning skillet.',
+      'Beef & Egg Breakfast Skillet', 560, 44, 54, 20,
+      'Hearty American breakfast — lean ground beef and eggs with potatoes.',
       [
-        { q: '4 oz', item: 'Bison Pemmican', tip: 'Crumble it — it melts into the skillet as the binder.' },
-        { q: '2 whole', item: 'Duck Eggs', tip: 'Larger yolks, richer fat-soluble vitamin profile.' },
-        { q: '1 cup', item: 'Shredded Cassava', tip: 'A clean, grain-free starch base.' },
+        { q: '4 oz', item: '93% Lean Ground Beef', tip: 'Brown it first for the base.' },
+        { q: '3 whole', item: 'Eggs', tip: 'Scramble them into the beef.' },
+        { q: '1 cup', item: 'Diced Potatoes', tip: 'Parboil to crisp them faster.' },
       ],
-      ['Crisp shredded cassava in the rendered pemmican fat.', 'Fold in crumbled pemmican.', 'Nestle in duck eggs, cover until set.'],
+      ['Crisp the potatoes in the pan.', 'Brown the beef alongside.', 'Scramble in the eggs and serve.'],
       null, '#412',
     ),
     lunch: m(
-      'Sardine & Caper Power Salad', 580, 46, 36, 28,
-      'Calcium-and-omega bomb — whole sardines deliver the bones, the brine drives the satiety load.',
+      'Tuna & Rice Power Bowl', 580, 46, 36, 28,
+      'Cheap, fast protein bowl — canned tuna over rice with mixed vegetables.',
       [
-        { q: '2 tins', item: 'Wild Sardines', tip: 'Eat the soft bones — that is the calcium.' },
-        { q: '2 tbsp', item: 'Capers', tip: 'The brine is a potent satiety signal.' },
-        { q: '3 cups', item: 'Arugula', tip: 'Peppery greens prime digestion.' },
+        { q: '2 cans', item: 'Canned Tuna', tip: 'In water; drain well. One of the cheapest proteins there is.' },
+        { q: '3/4 cup', item: 'Rice', tip: 'Leftover rice keeps this a 5-minute lunch.' },
+        { q: '1 cup', item: 'Mixed Vegetables', tip: 'Frozen steam-bag veg is fine.' },
       ],
-      ['Flake sardines over arugula.', 'Scatter capers, dress with olive oil and lemon.'],
+      ['Flake the tuna over the rice.', 'Steam the vegetables.', 'Combine and season to taste.'],
       null, '#427',
     ),
     dinner: m(
-      'Lamb Heart & Root Skewers', 700, 56, 42, 30,
-      'Organ-meat skewers — CoQ10-dense heart for mitochondrial density and evening cardiac support.',
+      'Grilled Chicken & Sweet Potato Plate', 700, 56, 42, 30,
+      'Clean American dinner — grilled chicken with roasted sweet potato and green beans.',
       [
-        { q: '8 oz', item: 'Lamb Heart', tip: 'Heart is lean muscle, not offal-flavored — grill it like steak.' },
-        { q: '1 cup', item: 'Cubed Beetroot', tip: 'Nitrates support the nightly endothelial reset.' },
-        { q: '1 tbsp', item: 'Chimichurri', tip: 'Fresh herbs add polyphenol cover.' },
+        { q: '8 oz', item: 'Chicken Breast', tip: 'Grill to 165F and rest before slicing.' },
+        { q: '1', item: 'Sweet Potato', tip: 'Roast or microwave until soft.' },
+        { q: '1 cup', item: 'Green Beans', tip: 'Quick saute with a little salt.' },
       ],
-      ['Thread heart and beet onto skewers.', 'Grill over high heat to medium-rare.', 'Finish with a spoon of chimichurri.'],
+      ['Grill the chicken.', 'Roast or microwave the sweet potato.', 'Saute the green beans and plate.'],
       null, '#449',
     ),
     snack: m(
-      'Greek-Style Tallow Whip', 280, 24, 16, 14,
-      'Dense protein isolate whipped ice-cream style with a tallow base for a satisfying recovery dessert.',
+      'Whey & Peanut Butter Shake', 280, 24, 16, 14,
+      'Fast recovery shake — whey, milk, and peanut butter blended.',
       [
-        { q: '1 scoop', item: 'Grass-Fed Whey Isolate', tip: 'Isolate is near lactose-free for sensitive guts.' },
-        { q: '1 tbsp', item: 'Whipped Tallow', tip: 'Whips to a surprisingly light, airy texture.' },
-        { q: '1/2 cup', item: 'Frozen Cherries', tip: 'Tart cherries aid sleep via natural melatonin.' },
+        { q: '1 scoop', item: 'Whey Protein', tip: 'Vanilla or chocolate both work.' },
+        { q: '1 cup', item: 'Milk', tip: 'Adds protein and carbs cheaply.' },
+        { q: '1 tbsp', item: 'Peanut Butter', tip: 'Blend in for richness.' },
       ],
-      ['Whip tallow until airy.', 'Fold in whey and cherries, freeze 20 min.'],
+      ['Blend everything with ice until smooth.', 'Drink right away.'],
       null, '#405',
     ),
   },
+  // ── Friday · Mexican ────────────────────────────────────────────────────────
   fri: {
     breakfast: m(
-      'Wild Salmon Roe & Avocado Toast', 590, 38, 56, 24,
-      'Phospholipid-rich roe over sourdough — omega-3 and choline for an end-of-week cognitive surge.',
+      'Egg & Avocado Breakfast Burrito', 590, 38, 56, 24,
+      'Filling Mexican breakfast — scrambled eggs, beans, and avocado in a flour tortilla.',
       [
-        { q: '3 tbsp', item: 'Wild Salmon Roe', tip: 'The membrane carries phospholipid-bound DHA.' },
-        { q: '1 slice', item: 'Sourdough', tip: 'Long ferment lowers the glycemic hit.' },
-        { q: '1/2', item: 'Avocado', tip: 'The fat carries the fat-soluble vitamins.' },
+        { q: '3 whole', item: 'Eggs', tip: 'Soft-scramble for the best texture.' },
+        { q: '1', item: 'Flour Tortilla', tip: 'Warm it so it folds without cracking.' },
+        { q: '1/2 cup', item: 'Pinto Beans', tip: 'Mash them slightly to hold the burrito together.' },
+        { q: '1/2', item: 'Avocado', tip: 'A budget-friendly healthy fat.' },
       ],
-      ['Toast sourdough, smash avocado over it.', 'Spoon roe across the top, finish with sea salt.'],
+      ['Scramble the eggs.', 'Warm the tortilla and beans.', 'Fill, add avocado, and roll.'],
       null, '#414',
     ),
     lunch: m(
-      'Bison Tartare Power Plate', 640, 52, 30, 34,
-      'Raw lean bison preserves heat-fragile enzymes — the cleanest expression of ancestral protein.',
+      'Beef & Bean Burrito Bowl', 640, 52, 30, 34,
+      'High-protein Mexican bowl — seasoned lean beef with beans and rice.',
       [
-        { q: '6 oz', item: 'Sushi-Grade Bison', tip: 'Hand-chop, never grind, for the right texture.' },
-        { q: '1 whole', item: 'Quail Egg Yolk', tip: 'The yolk emulsifies the tartare.' },
-        { q: '1 tbsp', item: 'Cold-Pressed Olive Oil', tip: 'Adds monounsaturated fat without heat damage.' },
+        { q: '6 oz', item: 'Lean Ground Beef', tip: 'Brown with taco seasoning.' },
+        { q: '1/2 cup', item: 'Pinto Beans', tip: 'Warm with a little of the beef.' },
+        { q: '1/2 cup', item: 'Rice', tip: 'Lime and salt make it pop.' },
       ],
-      ['Hand-chop bison fine, season aggressively.', 'Fold in olive oil, crown with the quail yolk.'],
+      ['Brown the beef with seasoning.', 'Warm the beans and rice.', 'Layer it all in a bowl.'],
       null, '#433',
     ),
     dinner: m(
-      'Duck Confit Over Cauliflower', 780, 54, 38, 42,
-      'Slow-confit duck leg — a rich, fat-forward close to a hard training week.',
+      'Chicken Fajita Rice Plate', 780, 54, 38, 42,
+      'Mexican fajita dinner — chicken with peppers and onions over rice.',
       [
-        { q: '1', item: 'Duck Leg', tip: 'Confit in its own fat for fall-off-the-bone texture.' },
-        { q: '2 cups', item: 'Roasted Cauliflower', tip: 'Roast until deeply browned for nuttiness.' },
-        { q: '1 tbsp', item: 'Duck Fat', tip: 'Reuse the confit fat to roast the cauliflower.' },
+        { q: '8 oz', item: 'Chicken Breast', tip: 'Slice thin so it cooks fast.' },
+        { q: '1.5 cups', item: 'Peppers & Onions', tip: 'High heat for that fajita char.' },
+        { q: '3/4 cup', item: 'Rice', tip: 'Serve underneath to catch the juices.' },
       ],
-      ['Confit duck leg low (250°F) until tender.', 'Crisp the skin under a broiler.', 'Roast cauliflower in the rendered duck fat.'],
+      ['Sear the sliced chicken.', 'Add the peppers and onions, char quickly.', 'Pile it over the rice.'],
       null, '#455',
     ),
     snack: m(
-      'Fermented Honey Yogurt Cup', 260, 20, 26, 8,
-      'Probiotic close — live-culture yogurt with fermented honey for gut-flora and satiety support.',
+      'Greek Yogurt & Honey Cup', 260, 20, 26, 8,
+      'Simple snack — Greek yogurt with honey and banana.',
       [
-        { q: '3/4 cup', item: 'Sheep-Milk Yogurt', tip: 'Often tolerated where cow dairy is not.' },
-        { q: '1 tbsp', item: 'Fermented Honey', tip: 'The ferment adds wild probiotics.' },
-        { q: '1 tbsp', item: 'Bee Pollen', tip: 'A trace-nutrient and amino dense topper.' },
+        { q: '3/4 cup', item: 'Greek Yogurt', tip: 'Plain, non-fat keeps it lean.' },
+        { q: '1 tbsp', item: 'Honey', tip: 'A small drizzle is plenty.' },
+        { q: '1/2', item: 'Banana', tip: 'Slice it on top.' },
       ],
-      ['Spoon yogurt, swirl in fermented honey.', 'Top with bee pollen.'],
+      ['Spoon yogurt into a cup.', 'Drizzle honey and add banana.'],
       null, '#403',
     ),
   },
+  // ── Saturday · Brazilian ────────────────────────────────────────────────────
   sat: {
     breakfast: m(
-      'Elk Breakfast Sausage & Eggs', 600, 46, 50, 22,
-      'House-ground elk sausage with pasture eggs — a hearty, slow-morning recovery plate.',
+      'Turkey Sausage & Eggs with Rice', 600, 46, 50, 22,
+      'Hearty Brazilian-style breakfast — turkey sausage and eggs with a side of rice.',
       [
-        { q: '5 oz', item: 'Ground Elk', tip: 'Season with sage and fennel for a true breakfast-sausage profile.' },
-        { q: '3 whole', item: 'Pasture Eggs', tip: 'Cook to your preference — the protein lands either way.' },
-        { q: '1 cup', item: 'Hash-Browned Parsnip', tip: 'A sweeter, lower-glycemic potato swap.' },
+        { q: '5 oz', item: 'Turkey Sausage', tip: 'A leaner swap for pork sausage.' },
+        { q: '3 whole', item: 'Eggs', tip: 'Fry or scramble to taste.' },
+        { q: '3/4 cup', item: 'White Rice', tip: 'Leftover rice reheats perfectly.' },
       ],
-      ['Form elk into patties, season, and sear.', 'Hash-brown parsnip in the rendered fat.', 'Fry eggs to finish the plate.'],
+      ['Brown the sausage.', 'Cook the eggs alongside.', 'Serve with warm rice.'],
       null, '#416',
     ),
     lunch: m(
-      'Mussels in Saffron Bone Broth', 560, 44, 44, 18,
-      'Iron-and-iodine shellfish steam — mussels poached in a golden, mineral-dense broth.',
+      'Canja — Brazilian Chicken & Rice Soup', 560, 44, 44, 18,
+      'Comforting Brazilian chicken-and-rice soup — simple, cheap, and filling.',
       [
-        { q: '1.5 lb', item: 'Fresh Mussels', tip: 'Discard any that stay open before cooking.' },
-        { q: '2 cups', item: 'Saffron Bone Broth', tip: 'Saffron adds crocin, a potent antioxidant.' },
-        { q: '1', item: 'Grilled Sourdough', tip: 'For sopping the broth — eat every drop.' },
+        { q: '6 oz', item: 'Chicken Breast', tip: 'Shred it into the broth.' },
+        { q: '3/4 cup', item: 'Rice', tip: 'Cook it right in the soup.' },
+        { q: '1 cup', item: 'Carrots & Celery', tip: 'The cheap aromatic base.' },
       ],
-      ['Bring saffron broth to a simmer.', 'Add mussels, cover, steam until they open.', 'Serve with grilled sourdough.'],
+      ['Simmer the chicken in broth, then shred.', 'Add rice, carrots, and celery.', 'Cook until the rice is tender.'],
       null, '#429',
     ),
     dinner: m(
-      'Tomahawk Ribeye & Bone Marrow', 880, 64, 22, 56,
-      'The weekend anabolic centerpiece — dry-aged ribeye with roasted marrow for maximal fat-soluble loading.',
+      'Bife com Arroz — Brazilian Steak & Rice', 760, 62, 50, 28,
+      'Weekend Brazilian plate — grilled sirloin with rice and black beans.',
       [
-        { q: '14 oz', item: 'Dry-Aged Ribeye', tip: 'Reverse-sear for an edge-to-edge medium-rare.' },
-        { q: '2', item: 'Marrow Bones', tip: 'Roast cut-side up until the marrow loosens.' },
-        { q: '1 cup', item: 'Grilled Asparagus', tip: 'A clean green to cut the richness.' },
+        { q: '8 oz', item: 'Top Sirloin', tip: 'An affordable steak cut — slice thin against the grain.' },
+        { q: '3/4 cup', item: 'White Rice', tip: 'The classic base.' },
+        { q: '1/2 cup', item: 'Black Beans', tip: 'Feijao rounds out the plate.' },
       ],
-      ['Reverse-sear ribeye: low oven, then a blazing pan.', 'Roast marrow bones at 425°F, 15 min.', 'Grill asparagus, plate everything family-style.'],
+      ['Grill the sirloin to medium, rest, and slice.', 'Warm the rice and beans.', 'Plate together with a simple side salad.'],
       null, '#458',
     ),
     snack: m(
-      'Dark Chocolate Brazil-Nut Bark', 320, 12, 24, 22,
-      'Selenium-loaded bark — two Brazil nuts cover the daily requirement; 90% chocolate keeps sugar negligible.',
+      'Banana Oat Energy Bites', 320, 12, 24, 22,
+      'No-bake snack — oats, banana, and peanut butter rolled into bites.',
       [
-        { q: '2 oz', item: '90% Dark Chocolate', tip: 'The higher the cacao, the lower the sugar.' },
-        { q: '4', item: 'Brazil Nuts', tip: 'Two nuts is a full day of selenium — do not overdo it.' },
-        { q: '1 pinch', item: 'Flaky Sea Salt', tip: 'Salt sharpens the chocolate.' },
+        { q: '1 cup', item: 'Rolled Oats', tip: 'The base of the bite.' },
+        { q: '1', item: 'Banana', tip: 'Mash it to bind everything.' },
+        { q: '2 tbsp', item: 'Peanut Butter', tip: 'Holds the bites together.' },
       ],
-      ['Melt chocolate gently, fold in chopped Brazil nuts.', 'Spread thin, salt, and chill until snappable.'],
+      ['Mash the banana with the peanut butter.', 'Fold in the oats, roll into bites, and chill.'],
       null, '#407',
     ),
   },
+  // ── Sunday · American ───────────────────────────────────────────────────────
   sun: {
     breakfast: m(
-      'Sunday Sovereign Steak & Eggs', 620, 50, 48, 24,
-      'The flagship recovery breakfast — a clean sirloin with eggs to anchor the rest-day rebuild.',
+      'Steak & Eggs with Potatoes', 620, 50, 48, 24,
+      'Classic American rest-day breakfast — lean sirloin with eggs and potatoes.',
       [
-        { q: '6 oz', item: 'Top Sirloin', tip: 'A leaner cut for a rest-day calorie profile.' },
-        { q: '3 whole', item: 'Pasture Eggs', tip: 'Basted in the steak drippings for flavor.' },
-        { q: '1 cup', item: 'Sautéed Mushrooms', tip: 'Mushrooms add ergothioneine, a longevity antioxidant.' },
+        { q: '6 oz', item: 'Top Sirloin', tip: 'A lean, affordable cut for steak and eggs.' },
+        { q: '3 whole', item: 'Eggs', tip: 'Baste them in the pan drippings.' },
+        { q: '1 cup', item: 'Diced Potatoes', tip: 'Crisp them while the steak rests.' },
       ],
-      ['Sear sirloin to medium-rare, rest.', 'Baste eggs in the drippings.', 'Sauté mushrooms, plate alongside the sliced steak.'],
+      ['Sear the sirloin to medium, rest.', 'Crisp the potatoes.', 'Fry the eggs and plate with the sliced steak.'],
       null, '#418',
     ),
     lunch: m(
-      'Slow-Roast Lamb Shoulder Bowl', 700, 52, 50, 30,
-      'A communal rest-day roast — falling-apart lamb over herbed cauliflower rice.',
+      'Chicken & Rice Meal-Prep Bowl', 700, 52, 50, 30,
+      'The workhorse American prep bowl — chicken thigh over rice with vegetables.',
       [
-        { q: '8 oz', item: 'Pulled Lamb Shoulder', tip: 'Hours-long roast renders the connective tissue to silk.' },
-        { q: '1.5 cups', item: 'Herbed Cauliflower Rice', tip: 'A low-carb base that soaks up the jus.' },
-        { q: '2 tbsp', item: 'Mint Gremolata', tip: 'Mint cuts the lamb fat brilliantly.' },
+        { q: '8 oz', item: 'Chicken Thigh', tip: 'Cheaper than breast and stays juicy.' },
+        { q: '1 cup', item: 'Rice', tip: 'Batch-cook it for the week.' },
+        { q: '1 cup', item: 'Mixed Vegetables', tip: 'Frozen veg keeps cost and waste down.' },
       ],
-      ['Slow-roast lamb shoulder until it shreds.', 'Pulse cauliflower into rice, sauté with herbs.', 'Pile lamb over the rice, finish with gremolata.'],
+      ['Season and roast the chicken thighs.', 'Cook the rice.', 'Portion rice, veg, and chicken into containers.'],
       null, '#435',
     ),
     dinner: m(
-      'Whole Roasted Branzino', 660, 50, 34, 34,
-      'A light, clean close to the week — whole-roasted fish for easy, complete protein before the next block.',
+      'Baked Tilapia & Rice Plate', 660, 50, 34, 34,
+      'Light, cheap American fish dinner — baked tilapia with rice and broccoli.',
       [
-        { q: '1 whole', item: 'Branzino', tip: 'Roasting on the bone keeps the flesh moist.' },
-        { q: '1', item: 'Charred Lemon', tip: 'Charring sweetens and softens the acid.' },
-        { q: '2 cups', item: 'Braised Greens', tip: 'A mineral-dense, low-calorie side.' },
+        { q: '8 oz', item: 'Tilapia', tip: 'An inexpensive, mild white fish.' },
+        { q: '3/4 cup', item: 'Rice', tip: 'A neutral base for the fish.' },
+        { q: '1.5 cups', item: 'Broccoli', tip: 'Roast it alongside the fish.' },
       ],
-      ['Stuff branzino with lemon and herbs, roast at 425°F.', 'Braise greens in broth.', 'Serve the whole fish over the greens.'],
+      ['Season and bake the tilapia at 400F, 12 min.', 'Roast the broccoli.', 'Serve over the rice.'],
       null, '#451',
     ),
     snack: m(
-      'Tart Cherry & Gelatin Recovery Gummies', 230, 18, 24, 4,
-      'Sleep-priming gummies — tart-cherry melatonin and gelatin glycine to set up the next training week.',
+      'Cottage Cheese & Berries', 230, 18, 24, 4,
+      'Light high-protein close — cottage cheese with berries.',
       [
-        { q: '1 cup', item: 'Tart Cherry Juice', tip: 'A natural source of sleep-supporting melatonin.' },
-        { q: '3 tbsp', item: 'Grass-Fed Gelatin', tip: 'Glycine here supports overnight tissue repair.' },
-        { q: '1 tbsp', item: 'Raw Honey', tip: 'Just enough to round the tartness.' },
+        { q: '3/4 cup', item: 'Low-Fat Cottage Cheese', tip: 'Slow protein before bed.' },
+        { q: '1/2 cup', item: 'Mixed Berries', tip: 'Frozen and thawed works great.' },
       ],
-      ['Warm juice, bloom and dissolve gelatin.', 'Pour into molds, chill until set.'],
+      ['Spoon cottage cheese into a bowl.', 'Top with the berries.'],
       null, '#402',
     ),
   },
@@ -459,10 +468,10 @@ export const WEEK_PROTOCOL = {
 // regime; the name is personalized at render time.
 export const OVERSIGHT_BLUEPRINT = {
   cards: [
-    { slot: 'Breakfast Repast', name: "{name}'s Energy Scramble", note: 'Pasture whole eggs, mineral oil, custom greens.' },
-    { slot: 'Lunch Diet Sequence', name: 'SEED Gene Epigenetic Block', note: 'Anti-inflammatory proteins, raw complex seed-oil carriers, low-glycemic timing.', tag: 'SEED GENE' },
-    { slot: 'Dinner Repast', name: 'Succulent Seared Protein Basin', note: 'High-density amino cutlets with steamed asparagus.' },
-    { slot: 'Recovery Snack', name: 'Micellar Amino Satiety Whip', note: 'Dense protein isolates whipped ice-cream style.' },
+    { slot: 'Breakfast', name: "{name}'s Protein Scramble", note: 'Eggs, lean ground turkey, potatoes, and spinach.' },
+    { slot: 'Lunch', name: 'Chicken & Rice Power Bowl', note: 'Grilled chicken, rice, black beans, and vegetables.', tag: 'HIGH PROTEIN' },
+    { slot: 'Dinner', name: 'Lean Beef & Potato Skillet', note: 'Lean ground beef, potatoes, and green beans.' },
+    { slot: 'Recovery Snack', name: 'Greek Yogurt Protein Cup', note: 'Greek yogurt, whey, and berries.' },
   ],
   macros: { kcal: 2200, p: 175, c: 310, f: 75 },
 };
@@ -471,7 +480,7 @@ export const OVERSIGHT_BLUEPRINT = {
 
 const clampPct = (v) => Math.max(2, Math.min(100, Math.round(v)));
 
-// Re-derive the EPIGENETIC signaling bars for a meal: each bar's base anchor nudged
+// Re-derive the performance signal bars for a meal: each bar's base anchor nudged
 // by the meal's macro emphasis, so scanning the week visibly moves the index.
 export function signalingFor(meal) {
   const { p = 0, c = 0, f = 0 } = meal?.macros || {};

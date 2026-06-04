@@ -329,26 +329,25 @@ export default function NutritionLocker() {
         </section>
       ) : null}
 
-      {/* ── SEED GENE B-B-F IDEOLOGY banner ──────────────────────────────────── */}
-      <section className="nl-seed" aria-label="Seed gene ideology">
+      {/* ── BBF nutrition standard banner ────────────────────────────────────── */}
+      <section className="nl-seed" aria-label="Nutrition standard">
         <span className="nl-seed-icon" aria-hidden="true">✷</span>
         <div className="nl-seed-body">
-          <div className="nl-seed-title">The Seed Gene B-B-F Ideology</div>
+          <div className="nl-seed-title">The BBF Nutrition Standard</div>
           <div className="nl-seed-text">
-            Unlock clinical performance through cell signaling. Epigenetic chromatin triggers are
-            synchronized strictly around post-loading rest states.
+            Simple, effective, and accessible. Every plate is built from standard, budget-friendly
+            grocery staples and timed around training and recovery.
           </div>
           {showScience ? (
             <div className="nl-seed-science">
-              Seeding protocols time micronutrient-dense, low-glycemic intercepts to the post-training
-              rest window — when chromatin is most receptive — to bias mTOR synthesis and DNA-repair
-              activation without spiking the endocrine load. This is presentation framing for the
-              prototype, not a medical claim.
+              No luxury ingredients and no complex techniques — just consistent, high-protein,
+              meal-prep-friendly fuel a busy athlete can batch-cook and hit every week across
+              American, Mexican, and Brazilian cooking.
             </div>
           ) : null}
         </div>
         <button type="button" className="nl-btn nl-btn--gold" onClick={() => setShowScience((v) => !v)}>
-          {showScience ? 'Hide Seeding Science' : 'Expose Seeding Science'}
+          {showScience ? 'Hide Details' : 'Show Details'}
         </button>
       </section>
 
@@ -490,9 +489,9 @@ export default function NutritionLocker() {
               >+ Anabolic Bulk</button>
             </div>
 
-            {/* Epigenetic cell signaling index */}
+            {/* Performance signal index */}
             <div className="nl-signals">
-              <div className="nl-section-h" style={{ marginBottom: '.8rem' }}>✦ Epigenetic Cell Signaling Index</div>
+              <div className="nl-section-h" style={{ marginBottom: '.8rem' }}>✦ Performance Signal Index</div>
               {signals.map((s) => (
                 <div className="nl-sig" key={s.key}>
                   <div className="nl-sig-top">

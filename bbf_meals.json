@@ -2,19 +2,19 @@
  {
  "id": "bbf-brk-001",
  "name": {
- "en": "American Grass-fed Bison & Sweet Potato Hash"
+ "en": "American Ground Turkey & Sweet Potato Hash"
  },
  "cuisine": "American",
  "meal_type": "Breakfast",
  "dietary_profile": ["Omnivore"],
  "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
- "core_ingredients": ["Ground bison (90% lean)", "sweet potatoes", "red onions", "kale", "avocado oil", "garlic powder", "cumin", "chili powder"],
+ "core_ingredients": ["Lean ground turkey (93% lean)", "sweet potatoes", "red onions", "kale", "avocado oil", "garlic powder", "cumin", "chili powder"],
  "serving_g": 450,
- "calories": 557,
- "protein_g": 27,
- "carbs_g": 19,
- "fat_g": 42,
- "notes": "Bison is a nutrient-dense alternative to beef, providing higher levels of iron and zinc, which are essential for oxygen transport and immune function in athletes. The sweet potatoes provide a low-glycemic carbohydrate source that supports sustained energy without the insulin spikes of refined grains. "
+ "calories": 520,
+ "protein_g": 40,
+ "carbs_g": 45,
+ "fat_g": 18,
+ "notes": "Lean ground turkey is an affordable, everyday-grocery protein that is high in protein and low in saturated fat, supporting muscle repair without the cost of specialty meats. The sweet potatoes provide a budget-friendly, low-glycemic carbohydrate source for sustained energy."
  },
  {
  "id": "bbf-brk-002",
@@ -512,19 +512,19 @@
  {
  "id": "bbf-din-006",
  "name": {
- "en": "American Grass-fed Bison & Sweet Potato Hash (Dinner Portion)"
+ "en": "American Lean Beef & Sweet Potato Hash (Dinner Portion)"
  },
  "cuisine": "American",
  "meal_type": "Dinner",
  "dietary_profile": ["Omnivore"],
  "restrictions_safe": ["Gluten-Free", "Dairy-Free", "Nut-Free", "Soy-Free", "Egg-Free"],
- "core_ingredients": ["Ground bison", "sweet potatoes", "red onions", "kale", "avocado oil"],
+ "core_ingredients": ["93% lean ground beef", "sweet potatoes", "red onions", "kale", "avocado oil"],
  "serving_g": 500,
  "calories": 610,
- "protein_g": 36,
- "carbs_g": 35,
- "fat_g": 40,
- "notes": "The increased portion size for dinner ensures that the body has a consistent supply of amino acids throughout the sleep cycle, preventing nocturnal catabolism. "
+ "protein_g": 42,
+ "carbs_g": 48,
+ "fat_g": 24,
+ "notes": "Lean ground beef is a staple, budget-friendly protein that delivers iron and a full amino acid profile for overnight muscle repair. The larger dinner portion keeps protein intake steady through the evening."
  },
  {
  "id": "bbf-din-007",
