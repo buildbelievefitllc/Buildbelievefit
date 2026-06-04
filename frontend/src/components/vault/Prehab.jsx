@@ -9,17 +9,21 @@
 //      Start / Pause / Reset transport.
 //   2. Dynamic Joint Symptom Mobility Planner — three biomechanical range
 //      selectors that compile into a clinical DIAGNOSTIC REPORT (keyed codes).
-//   3. Protocol for Selected Region — the corrective movement deck with pill
-//      data-chips (sets/reps/duration), cue directives, an embedded video slot,
-//      and a circular "% PROTOCOL DONE" tracker driven by Mark-Done state.
+//   3. Friction-Area Selector + Protocol for Selected Region — the joint/friction
+//      area menu (Lower Back · Knee · Shoulder · Elbow · Wrist & Hand) drives the
+//      corrective movement deck: pill data-chips (sets/reps/duration), cue
+//      directives, a WIRED form-demo video player (thumbnail → autoplay embed, real
+//      curated YouTube ids), and a circular "% PROTOCOL DONE" tracker.
 //
-// All copy + protocol data is static ground-truth (see prehabProtocol.js); the
-// per-athlete read path is a backend follow-up. Mounted in ClientVault and the
-// Command Center Player-Coach panel — both render <Prehab /> (no props).
+// All copy + protocol data is static trilingual ground-truth (see prehabProtocol.js:
+// REGIONS + PROTOCOLS per region + the EX_VIDEO map); the per-athlete read path is a
+// backend follow-up. Mounted in ClientVault and the Command Center Player-Coach
+// panel — both render <Prehab /> (no props).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
-import { getPrehabCatalog, compileReport } from './prehabProtocol.js';
+import { getPrehabCatalog, compileReport, REGION_ICONS, EX_VIDEO } from './prehabProtocol.js';
+import { resolveVideoId, thumbURL } from './exerciseVideos.js';
 import './prehab.css';
 
 const PRESETS = [30, 45, 60];
@@ -63,6 +67,8 @@ const STR = {
     },
     deck: {
       kicker: 'Protocol for Selected Region',
+      regionKicker: 'Select Friction Area',
+      regionAria: 'Friction area selector',
       cues: 'Cues & Directives',
       done: '✓ Done',
       mark: '› Mark Done',
@@ -109,6 +115,8 @@ const STR = {
     },
     deck: {
       kicker: 'Protocolo para la Región Seleccionada',
+      regionKicker: 'Selecciona el Área de Fricción',
+      regionAria: 'Selector de área de fricción',
       cues: 'Señales y Directivas',
       done: '✓ Hecho',
       mark: '› Marcar Hecho',
@@ -155,6 +163,8 @@ const STR = {
     },
     deck: {
       kicker: 'Protocolo para a Região Selecionada',
+      regionKicker: 'Selecione a Área de Fricção',
+      regionAria: 'Seletor de área de fricção',
       cues: 'Comandos e Diretrizes',
       done: '✓ Feito',
       mark: '› Marcar Feito',
@@ -345,37 +355,109 @@ function ProtocolRing({ pct }) {
   );
 }
 
-// ── Module 3 · Protocol for Selected Region ──────────────────────────────────
+// Form-demo video player — resolves each exercise to a real curated YouTube id
+// (EX_VIDEO by key, falling back to the fuzzy name resolver). Shows the thumbnail
+// with a play overlay; a tap swaps in an autoplay embed so the demo actually plays
+// inside the card. No id → a clean caption-only state (never a dead button).
+function VideoSlot({ ex, s }) {
+  const [playing, setPlaying] = useState(false);
+  const id = EX_VIDEO[ex.key] || resolveVideoId(ex.name);
+
+  if (!id) {
+    return (
+      <div className="pde-video is-empty" aria-label={s.demoVideo(ex.name)}>
+        <span className="pde-video-cap">{s.videoCap}</span>
+      </div>
+    );
+  }
+  if (playing) {
+    return (
+      <div className="pde-video is-playing">
+        <iframe
+          className="pde-video-frame"
+          src={`https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`}
+          title={s.demoVideo(ex.name)}
+          loading="lazy"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="pde-video pde-video--thumb"
+      onClick={() => setPlaying(true)}
+      aria-label={`${s.demoVideo(ex.name)} — ${s.playDemo}`}
+    >
+      <img className="pde-video-thumb" src={thumbURL(id)} alt="" loading="lazy" />
+      <span className="pde-video-btn" aria-hidden="true">▶</span>
+      <span className="pde-video-cap">{s.videoCap}</span>
+    </button>
+  );
+}
+
+// ── Module 3 · Friction-Area Selector + Protocol for Selected Region ──────────
 function ProtocolDeck() {
   const s = usePrehabStr().deck;
   const { lang } = useLang();
-  const { PROTOCOL } = getPrehabCatalog(lang);
+  const { REGIONS, PROTOCOLS } = getPrehabCatalog(lang);
+  const [region, setRegion] = useState(REGIONS[0].id);
   const [done, setDone] = useState(() => new Set());
+
+  const protocol = PROTOCOLS[region] || PROTOCOLS[REGIONS[0].id];
+
+  // Switching the friction area loads a fresh protocol — clear the done state so
+  // the % tracker reflects the newly selected region, not the previous one.
+  const selectRegion = (id) => { setRegion(id); setDone(new Set()); };
   const toggle = (key) => setDone((prev) => {
     const next = new Set(prev);
     if (next.has(key)) next.delete(key); else next.add(key);
     return next;
   });
 
-  const total = PROTOCOL.exercises.length;
+  const total = protocol.exercises.length;
   const pct = total ? Math.round((done.size / total) * 100) : 0;
 
   return (
     <section className="pde-card" aria-label={s.ariaRegion}>
+      {/* Friction-area selection menu — pick the painful joint to load its protocol. */}
+      <div className="pde-kicker">{s.regionKicker}</div>
+      <div className="pde-regions" role="tablist" aria-label={s.regionAria}>
+        {REGIONS.map((r) => {
+          const on = r.id === region;
+          return (
+            <button
+              key={r.id}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              className={`pde-region${on ? ' is-active' : ''}`}
+              data-testid={`prehab-region-${r.id}`}
+              onClick={() => selectRegion(r.id)}
+            >
+              <span className="pde-region-ic" aria-hidden="true">{REGION_ICONS[r.id]}</span>
+              {r.label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="pde-proto-head">
         <div>
           <div className="pde-kicker">{s.kicker}</div>
-          <h3 className="pde-proto-title"><span aria-hidden="true">🦴</span> {PROTOCOL.title}</h3>
+          <h3 className="pde-proto-title"><span aria-hidden="true">{REGION_ICONS[region]}</span> {protocol.title}</h3>
         </div>
         <ProtocolRing pct={pct} />
       </div>
 
       <div className="pde-quote">
         <span className="pde-quote-ic" aria-hidden="true">ⓘ</span>
-        <p className="pde-quote-txt">{PROTOCOL.quote}</p>
+        <p className="pde-quote-txt">{protocol.quote}</p>
       </div>
 
-      {PROTOCOL.exercises.map((ex, i) => {
+      {protocol.exercises.map((ex, i) => {
         const isDone = done.has(ex.key);
         return (
           <article
@@ -416,10 +498,7 @@ function ProtocolDeck() {
               </div>
             </div>
 
-            <div className="pde-video" aria-label={s.demoVideo(ex.name)}>
-              <button type="button" className="pde-video-btn" aria-label={s.playDemo}>▶</button>
-              <span className="pde-video-cap">{s.videoCap}</span>
-            </div>
+            <VideoSlot ex={ex} s={s} />
           </article>
         );
       })}
