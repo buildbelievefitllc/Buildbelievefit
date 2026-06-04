@@ -1,0 +1,238 @@
+{
+  "audit": "BBF Tier × Feature Mapping — System Reality Audit",
+  "generated": "2026-06-04",
+  "method": "Read-only. Live Supabase project ihclbceghxpuawymlvgi (execute_sql/list_tables/list_edge_functions), frontend entitlement source, and a live Stripe spot-check (acct_1TLzQCQ4j3uHTi7P). No mutations.",
+  "headline_findings": [
+    "Pricing reality = 13 CANONICAL tiers in bbf_tiers (catalyst/momentum/autonomous, fuel_*, rising_athlete, 6 hybrids). The brief's 'gateway/architect/sovereign' are LEGACY slugs — still honored for grandfathering, NOT in the canonical matrix.",
+    "33 edge functions are deployed & ACTIVE (brief assumed 22). 25 live in the repo; 8 are deployed-only.",
+    "There is NO bbf_feature_gates table. Feature gating lives entirely in the frontend (entitlements.js) and is — by its own header — a COSMETIC, FAIL-OPEN upsell funnel, not a server-side access boundary.",
+    "bbf_tiers rows carry NULL stripe_price_id / stripe_payment_link; the LIVE checkout links exist only in frontend/pricingMatrix.js + stripe-webhook PRICE_TO_TIER. Source-of-truth drift.",
+    "Wearable DEVICE sync (bbf_wearable_readings) is DORMANT (0 rows). In-app readiness self-report (bbf_readiness) is LIVE (721 rows). The brief conflates the two.",
+    "Access-Control kill-switch is in-repo but NOT applied to prod: bbf_validate_vault_session + bbf_admin_set_access_status absent, and verify_user_pin/sync_* bodies lack the lock guard."
+  ],
+  "tiers": [
+    {
+      "slug": "catalyst", "display_name": "BBF Catalyst", "category": "fitness",
+      "price_usd": 9.99, "billing": "recurring_monthly",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVCQ4j3uHTi7PEjvMihnk",
+      "payment_link_live": "https://buy.stripe.com/fZu00lb71fMfcjE0sxaZi0k",
+      "entitlement_group": "FITNESS_BASE",
+      "features_unlocked": ["BBF app + workout tracking", "Adaptive programming", "Strength/progress logging", "Trilingual EN/ES/PT"],
+      "vault_tabs_unlocked": ["hub", "settings", "program", "generator", "cardio", "mindset"],
+      "padlocked": ["prehab", "nutrition"],
+      "edge_functions_feeding_surface": ["bbf-co-coach", "bbf-agentic-pathfinder", "bbf-agentic-orchestrator", "bbf-ai-hub", "bbf-agentic-cardio", "bbf-midnight-haiku"],
+      "status": "live_seeded"
+    },
+    {
+      "slug": "momentum", "display_name": "BBF Momentum", "category": "fitness",
+      "price_usd": 19.99, "billing": "recurring_monthly",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVDQ4j3uHTi7Pb2hGyXBi",
+      "payment_link_live": "https://buy.stripe.com/3cIcN7b719nR6ZkcbfaZi0l",
+      "entitlement_group": "FITNESS_PRO",
+      "features_unlocked": ["Everything in Catalyst", "Data-adaptive periodization", "TDEE + macro blueprint", "Metabolic capture + analytics", "+ Prehab tab"],
+      "vault_tabs_unlocked": ["hub", "settings", "program", "generator", "cardio", "mindset", "prehab"],
+      "padlocked": ["nutrition"],
+      "edge_functions_feeding_surface": ["bbf-co-coach", "bbf-agentic-pathfinder", "bbf-agentic-orchestrator", "bbf-ai-hub", "bbf-agentic-cardio", "bbf-midnight-haiku", "bbf-agentic-prehab"],
+      "status": "live_seeded"
+    },
+    {
+      "slug": "autonomous", "display_name": "BBF Autonomous", "category": "fitness",
+      "price_usd": 49.99, "billing": "recurring_monthly", "featured": "Most Chosen",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVDQ4j3uHTi7PP2uWTj0y",
+      "payment_link_live": "https://buy.stripe.com/9B67sN8YT1VpdnIa37aZi0m",
+      "stripe_verified_live": "unit_amount 4999 USD, product prod_Ud9oPO5expfgqt",
+      "entitlement_group": "FITNESS_PRO",
+      "features_unlocked": ["Everything in Momentum", "Full AI periodization engine", "Workout + nutrition tracking fully unlocked (marketing copy)", "Self-directed adaptive engine"],
+      "vault_tabs_unlocked": ["hub", "settings", "program", "generator", "cardio", "mindset", "prehab"],
+      "padlocked": ["nutrition"],
+      "note": "Same entitlement group as Momentum — identical UI tab access despite 2.5x price. Differentiation is marketing copy/AI-depth, NOT gated surfaces. Marketing copy says 'nutrition fully unlocked' but the nutrition tab maps to GROUP.NUTRITION, not FITNESS_PRO.",
+      "edge_functions_feeding_surface": ["bbf-co-coach", "bbf-agentic-pathfinder", "bbf-agentic-orchestrator", "bbf-ai-hub", "bbf-agentic-cardio", "bbf-midnight-haiku", "bbf-agentic-prehab"],
+      "status": "live_seeded"
+    },
+    {
+      "slug": "fuel_foundation", "display_name": "Fuel: Foundation", "category": "nutrition",
+      "price_usd": 7.99, "billing": "recurring_monthly",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVEQ4j3uHTi7PQ0fOArfI",
+      "payment_link_live": "https://buy.stripe.com/9B69AV8YTgQjabw6QVaZi0n",
+      "entitlement_group": "NUTRITION",
+      "features_unlocked": ["TDEE macro blueprint", "Core meal guidance", "Daily macro targets", "Trilingual EN/ES/PT"],
+      "vault_tabs_unlocked": ["hub", "settings", "nutrition"],
+      "padlocked": ["program", "generator", "cardio", "mindset", "prehab"],
+      "edge_functions_feeding_surface": ["bbf-meal-macros", "bbf-meal-image", "bbf-co-coach"],
+      "status": "live_seeded"
+    },
+    {
+      "slug": "fuel_performance", "display_name": "Fuel: Performance", "category": "nutrition",
+      "price_usd": 14.99, "billing": "recurring_monthly",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVEQ4j3uHTi7PEvGYoQkW",
+      "payment_link_live": "https://buy.stripe.com/9B64gB2AvcA397s4INaZi0o",
+      "entitlement_group": "NUTRITION",
+      "features_unlocked": ["Everything in Foundation", "Performance macro programming", "Expanded meal architecture", "Hydration/fueling timing"],
+      "vault_tabs_unlocked": ["hub", "settings", "nutrition"],
+      "note": "Identical entitlement group/UI access to Fuel: Foundation and Fuel: Sovereign — the 3 Fuel tiers are NOT differentiated by gated surfaces.",
+      "edge_functions_feeding_surface": ["bbf-meal-macros", "bbf-meal-image", "bbf-co-coach"],
+      "status": "live_seeded"
+    },
+    {
+      "slug": "fuel_sovereign", "display_name": "Fuel: Sovereign", "category": "nutrition",
+      "price_usd": 29.99, "billing": "recurring_monthly", "featured": "Most Chosen",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVFQ4j3uHTi7PZ65aKtTI",
+      "payment_link_live": "https://buy.stripe.com/6oUbJ36QL2Ztabw4INaZi0p",
+      "entitlement_group": "NUTRITION",
+      "features_unlocked": ["Everything in Performance", "Premium nutrition programming", "Full meal + fueling support", "Priority macro recalibration"],
+      "vault_tabs_unlocked": ["hub", "settings", "nutrition"],
+      "edge_functions_feeding_surface": ["bbf-meal-macros", "bbf-meal-image", "bbf-co-coach"],
+      "status": "live_seeded"
+    },
+    {
+      "slug": "rising_athlete", "display_name": "BBF Rising Athlete", "category": "youth",
+      "price_usd": 14.99, "billing": "recurring_monthly", "featured": "Youth Flagship",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVFQ4j3uHTi7Ponk5039p",
+      "payment_link_live": "https://buy.stripe.com/aFa3cx5MH1Vp97sejnaZi0q",
+      "entitlement_group": "YOUTH",
+      "features_unlocked": ["Periodized sport training", "Kinematic Form HUD (movement screening)", "Injury-prevention + prehab", "Position-specific blueprints", "Trilingual EN/ES/PT"],
+      "surface_unlocked": ["/sports route (Sports Hub)"],
+      "vault_advanced_tabs": "padlocked (routed to /sports per CEO ruling)",
+      "edge_functions_feeding_surface": ["bbf-agentic-kinematics", "bbf_vision_scout", "bbf-agentic-comlink", "bbf-agentic-peaking", "bbf-agentic-forecasting", "bbf-agentic-prehab", "bbf-admin-roster"],
+      "status": "live_seeded",
+      "live_users_on_slug": 1
+    },
+    {
+      "slug": "kickstart_6wk_3x", "display_name": "Kickstart 6-Week (3x/wk)", "category": "hybrid_6wk",
+      "price_usd": 399.00, "billing": "one_time",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVGQ4j3uHTi7P51mzlaCT",
+      "payment_link_live": "https://buy.stripe.com/5kQaEZejdbvZabwcbfaZi0r",
+      "entitlement_group": "ALL (God Mode)",
+      "features_unlocked": ["Foundational 6-week block", "In-person + app hybrid", "Technique/form correction", "Joint-first progression", "Every Vault surface unlocked"],
+      "edge_functions_feeding_surface": ["ALL user-facing functions"],
+      "status": "live_seeded"
+    },
+    {
+      "slug": "kickstart_6wk_4x", "display_name": "Kickstart 6-Week (4x/wk)", "category": "hybrid_6wk",
+      "price_usd": 499.00, "billing": "one_time",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVGQ4j3uHTi7P5AZSEOoS",
+      "payment_link_live": "https://buy.stripe.com/dRmaEZb710Rl5Vg2AFaZi0s",
+      "entitlement_group": "ALL (God Mode)", "status": "live_seeded"
+    },
+    {
+      "slug": "transformation_8wk_3x", "display_name": "Transformation 8-Week (3x/wk)", "category": "hybrid_8wk",
+      "price_usd": 499.00, "billing": "one_time",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVHQ4j3uHTi7PMh786BoK",
+      "payment_link_live": "https://buy.stripe.com/4gM7sN3EzfMf1F0a37aZi0t",
+      "entitlement_group": "ALL (God Mode)", "status": "live_seeded"
+    },
+    {
+      "slug": "transformation_8wk_4x", "display_name": "Transformation 8-Week (4x/wk)", "category": "hybrid_8wk",
+      "price_usd": 649.00, "billing": "one_time",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVHQ4j3uHTi7PhOfSjE61",
+      "payment_link_live": "https://buy.stripe.com/6oUeVf4ID8jN6Zk6QVaZi0u",
+      "entitlement_group": "ALL (God Mode)", "status": "live_seeded"
+    },
+    {
+      "slug": "sovereign_12wk_3x", "display_name": "Sovereign 12-Week (3x/wk)", "category": "hybrid_12wk",
+      "price_usd": 699.00, "billing": "one_time", "featured": "Founder-Direct",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVIQ4j3uHTi7POHmPRFGn",
+      "payment_link_live": "https://buy.stripe.com/3cI6oJ8YTeIbcjEgrvaZi0v",
+      "entitlement_group": "ALL (God Mode)",
+      "features_unlocked": ["Apex 12-week protocol", "Founder-direct 1-on-1 coaching", "Joint protection + prehab architecture", "Human-in-the-loop max access"],
+      "status": "live_seeded"
+    },
+    {
+      "slug": "sovereign_12wk_4x", "display_name": "Sovereign 12-Week (4x/wk)", "category": "hybrid_12wk",
+      "price_usd": 899.00, "billing": "one_time",
+      "stripe_price_id_in_db": null, "stripe_price_id_live": "price_1TdtVIQ4j3uHTi7PYVF5s0dq",
+      "payment_link_live": "https://buy.stripe.com/4gMeVffnh7fJ83o0sxaZi0w",
+      "entitlement_group": "ALL (God Mode)", "status": "live_seeded"
+    }
+  ],
+  "legacy_tiers_still_honored": {
+    "note": "NOT in bbf_tiers. Accepted by stripe-webhook ALLOWED_TIERS + entitlements TIER_TO_GROUP for grandfathering until the monolith storefront retires.",
+    "map": {
+      "lite": "FITNESS_BASE", "gateway": "FITNESS_PRO", "architect": "FITNESS_PRO",
+      "sovereign": "ALL (God Mode)", "youth_athlete": "YOUTH",
+      "nutrition_essentials": "NUTRITION", "nutrition_platinum": "NUTRITION"
+    },
+    "webhook_default_on_unresolved_tier": "gateway"
+  },
+  "live_user_tier_distribution": {
+    "total_users": 8,
+    "by_tier": {"sovereign": 6, "gateway": 1, "rising_athlete": 1},
+    "by_role": {"client": 7, "trainer": 1},
+    "access_status": {"unlocked": 8},
+    "observation": "No live user is on any of the 3 fitness or 3 nutrition canonical slugs yet; real users sit on legacy slugs + 1 rising_athlete."
+  },
+  "edge_functions": {
+    "deployed_active_total": 33,
+    "in_repo_total": 25,
+    "verify_jwt_true": ["bbf_vision_scout", "bbf-science-digest"],
+    "deployed_but_not_in_repo": [
+      "bbf-user-profile", "bbf-lead-concierge", "bbf_vision_scout",
+      "bbf-meal-macros", "bbf-meal-image",
+      "bbf-agentic-cardio-shadow", "bbf-agentic-cardio-antagonism-shadow", "bbf-agentic-prehab-shadow"
+    ],
+    "tier_gating_note": "Edge functions are NOT tier-gated server-side. entitlements.js gates only the UI tab; the underlying (paid) function remains callable. 'Accessible per tier' below means 'feeds a tab that tier's UI unlocks'.",
+    "by_purpose": {
+      "fitness_core": ["bbf-co-coach", "bbf-agentic-pathfinder", "bbf-agentic-orchestrator", "bbf-ai-hub", "bbf-agentic-cardio", "bbf-agentic-cardio-shadow", "bbf-agentic-cardio-antagonism-shadow", "bbf-midnight-haiku"],
+      "prehab_pro": ["bbf-agentic-prehab", "bbf-agentic-prehab-shadow"],
+      "nutrition": ["bbf-meal-macros", "bbf-meal-image"],
+      "youth_sports_kinematics": ["bbf-agentic-kinematics", "bbf_vision_scout", "bbf-agentic-comlink", "bbf-agentic-peaking", "bbf-agentic-forecasting", "bbf-admin-roster"],
+      "i18n_comms_voice": ["bbf-agentic-linguist", "bbf-agentic-immersion", "bbf-agentic-interrogator", "bbf-tts-eleven"],
+      "science": ["bbf-science-digest"],
+      "lead_sales_prepurchase": ["bbf-lead-capture", "bbf-lead-concierge", "bbf-agentic-sales-router", "vapi-sms-closer", "vapi-outbound-trigger"],
+      "billing": ["stripe-webhook"],
+      "ops_system": ["bbf-sentinel", "bbf-command-feed", "bbf-user-profile", "bbf-wearable-ingest"]
+    }
+  },
+  "feature_gate_audit": {
+    "bbf_feature_gates_table_exists": false,
+    "actual_mechanism": "frontend/src/lib/entitlements.js (TIER_TO_GROUP + TAB_ACCESS), read via RPC bbf_get_trial_state (LIVE).",
+    "self_described_as": "COSMETIC upsell funnel, FAIL-OPEN, explicitly 'not an access-control security boundary'.",
+    "binary_access_gate": "bbf_users.access_status (locked|unlocked) — all 8 users currently 'unlocked'.",
+    "access_groups": {
+      "FITNESS_BASE": "program, generator, cardio, mindset (prehab + nutrition padlocked)",
+      "FITNESS_PRO": "FITNESS_BASE + prehab (nutrition padlocked)",
+      "NUTRITION": "nutrition only",
+      "YOUTH": "/sports route + Kinematic Form HUD (advanced Vault tabs padlocked)",
+      "ALL": "God Mode — every surface (hybrids, legacy sovereign, admins, active trial)",
+      "NONE": "no active subscription — everything sellable padlocked"
+    },
+    "universal_tabs": ["hub", "settings"]
+  },
+  "surface_status": {
+    "wearable_device_sync": {
+      "table": "bbf_wearable_readings", "rows": 0, "status": "DORMANT",
+      "ingest_fn": "bbf-wearable-ingest (deployed v5)",
+      "acwr_layer": "bbf_wearable_acwr RPC NOT deployed to prod",
+      "flag": "No live device/wearable data flowing — dormant pending real feed/app review."
+    },
+    "in_app_readiness": {
+      "table": "bbf_readiness", "rows": 721, "range": "2026-05-13 to 2026-05-31", "status": "LIVE",
+      "note": "Manual self-report (score/sleep_quality/soreness) via bbf_sync_readiness. NOT the same as wearable sync."
+    },
+    "sports_hub": {
+      "status": "LIVE — real data, not mock",
+      "evidence": "bbf_athlete_progression 11 rows (basketball x5, football x5, soccer x1) through 2026-05-30; bbf_admin_roster deployed v13; coach_analytics RPCs present.",
+      "caveat": "bbf_active_clients (5 rows) = 4 real 'Pending' + 1 'BBF Webhook Test' artifact."
+    },
+    "nutrition_locker": {
+      "status": "LIVE & callable",
+      "evidence": "bbf-meal-macros (v9) + bbf-meal-image (v10) deployed; bbf_meal_macros 53 rows (to 5/31), bbf_meal_logs 10 rows (to 5/29).",
+      "gating": "NUTRITION + God Mode groups (cosmetic)."
+    },
+    "vault_core": {"status": "LIVE", "evidence": "bbf_logs 62 rows to 2026-06-03; bbf_vault_sessions latest 2026-06-04; bbf_agent_runs 45."},
+    "cardio_engine": {"status": "IN-PROGRESS / DEPLOYED-NO-DATA", "evidence": "bbf-agentic-cardio v19 + 2 shadows deployed; bbf_cardio_protocols 0, bbf_cardio_logs 0."},
+    "conversions_capture": {"status": "STAGED / EMPTY", "evidence": "bbf_conversions 0 rows despite live payment links; bbf_completion_events 1; bbf_monetization_metrics deployed but unwired."}
+  },
+  "flagged_discrepancies": [
+    "BRIEF vs REALITY — tier names: brief lists gateway/architect/sovereign (legacy); canonical live set is 13 different slugs.",
+    "BRIEF vs REALITY — edge count: brief says 22; 33 are deployed & ACTIVE.",
+    "NO bbf_feature_gates table — gating is frontend-only, cosmetic, fail-open.",
+    "bbf_tiers stripe linkage NULL — live price IDs/links live only in frontend + webhook (source-of-truth drift).",
+    "Within-category access collapse — 3 Fuel tiers share one entitlement group; Momentum & Autonomous share one — price tiers not backed by distinct gated surfaces.",
+    "Autonomous marketing copy claims nutrition 'fully unlocked' but nutrition tab is gated to GROUP.NUTRITION, not FITNESS_PRO.",
+    "Access-Control kill-switch (migration 20260602120000) committed but NOT applied to prod — kill switch non-functional; sessionGuard heartbeat fails open.",
+    "Wearable device sync dormant (0 rows); ACWR RPC undeployed.",
+    "Cardio engine deployed with zero protocols/logs.",
+    "Zero conversions captured via the new pipeline despite live Stripe links."
+  ]
+}
