@@ -329,3 +329,43 @@ export function generateProgram(params = {}) {
 
   return { days, goal, gender, arch, intensifier, level, warmups: withWarmups, program };
 }
+
+// ─── Push bridge: generated program → assignable workout_plan ─────────────────
+// Transforms a generateProgram() result into the canonical workout_plan shape the
+// Client Vault renders (vaultApi.parseWorkoutPlan → ProgramGrid):
+//   [{ day:'Day N', focus, focus_cue?, exercises:[{ name, equipment, sets:<int>,
+//      reps, notes }] }]  (rest days → { isRest:true, restNote }).
+// Two faithful conversions: ProgramGrid counts set rows via Number(ex.sets), so the
+// engine's set RANGES ("3-4") resolve to the upper-bound integer here; and the
+// warm-up / cool-down protocol blocks are dropped — the grid logs working sets, not
+// mobility steps. This is what the Command Center "Push to Athlete" persists.
+const capWord = (s) => { const t = String(s || ''); return t ? t[0].toUpperCase() + t.slice(1) : t; };
+const upperSetCount = (s) => { const m = String(s ?? '').match(/\d+/g); return m ? Number(m[m.length - 1]) : 3; };
+
+export function toAssignedPlan(result) {
+  const program = Array.isArray(result?.program) ? result.program : [];
+  return program.map((d, i) => {
+    const dayRx = d.rx || {};
+    const exercises = (Array.isArray(d.exercises) ? d.exercises : []).map((ex) => {
+      const rx = ex.rx || dayRx;
+      const notes = [
+        ex.g ? capWord(ex.g) : null,
+        ex.fst7 ? 'FST-7 fascia finisher' : null,
+        rx.rest ? `rest ${rx.rest}` : null,
+      ].filter(Boolean).join(' · ');
+      return {
+        name: ex.n,
+        equipment: capWord(Array.isArray(ex.eq) ? ex.eq[0] : ex.eq) || '—',
+        sets: upperSetCount(rx.sets),
+        reps: String(rx.reps ?? ''),
+        notes,
+      };
+    });
+    if (!exercises.length) {
+      return { day: `Day ${i + 1}`, focus: d.label || 'Rest', isRest: true, restNote: 'Active recovery — stretch, hydrate, sleep.' };
+    }
+    const out = { day: `Day ${i + 1}`, focus: d.label || `Day ${i + 1}`, exercises };
+    if (dayRx.techniqueCue) out.focus_cue = dayRx.techniqueCue;
+    return out;
+  });
+}

@@ -962,6 +962,27 @@
   background: rgba(245, 200, 0, .05); border: 1px solid rgba(245, 200, 0, .16); border-radius: 10px; padding: .55rem .75rem;
 }
 .gen-placeholder { font-family: var(--bd); color: var(--mut); text-align: center; padding: 1.4rem; }
+/* ── Roster Deployment Bay (Command Center authoring surface) ── push a generated
+   blueprint to a live athlete. Brand framing: BBF purple border, gold push CTA. */
+.gen-assign { display: flex; flex-direction: column; gap: .9rem; border: 1px solid rgba(106, 13, 173, .35); }
+.gen-assign-head { display: flex; flex-direction: column; gap: .25rem; }
+.gen-assign-title { font-family: var(--hb); font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--wht); margin: 0; }
+.gen-assign-sub { font-family: var(--bd); font-size: .82rem; color: var(--mut); margin: 0; }
+.gen-assign-row { display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap; }
+.gen-assign-field { flex: 1 1 240px; }
+.gen-assign-state { font-family: var(--bd); font-size: .85rem; color: var(--mut); padding: .55rem .1rem; }
+.gen-assign-state.is-error { color: var(--gold-soft); }
+.gen-assign-link { font-family: var(--bd); font-size: .85rem; color: var(--yel); background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.gen-assign-btn {
+  flex: 0 0 auto; min-width: 180px;
+  font-family: var(--hb); font-size: .85rem; letter-spacing: 2px; text-transform: uppercase; color: #090909;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border: none; border-radius: 10px;
+  padding: .75rem 1.1rem; cursor: pointer; font-weight: 800;
+}
+.gen-assign-btn:disabled { background: rgba(249, 245, 255, .05); color: var(--mut); cursor: not-allowed; }
+.gen-assign-msg { font-family: var(--bd); font-size: .85rem; border-radius: 9px; padding: .55rem .75rem; }
+.gen-assign-msg.is-ok { color: var(--grn); background: rgba(54, 211, 153, .08); border: 1px solid rgba(54, 211, 153, .25); }
+.gen-assign-msg.is-err { color: var(--red); background: rgba(255, 90, 90, .08); border: 1px solid rgba(255, 90, 90, .22); }
 .gen-out { display: flex; flex-direction: column; gap: 1rem; }
 .gen-day { padding: 1rem 1.1rem; }
 .gen-dayhead { display: flex; align-items: baseline; gap: .6rem; padding-bottom: .6rem; border-bottom: 1px solid #1c1c1c; margin-bottom: .6rem; }

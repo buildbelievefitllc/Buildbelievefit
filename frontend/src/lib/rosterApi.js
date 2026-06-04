@@ -329,3 +329,35 @@ export async function assignNutrition(id, payload = {}) {
   }
   return rosterCall('assign_nutrition', body);
 }
+
+// ── Live roster (clients + athletes) for the admin targeting dropdowns ──────────
+//   → { ok:true, count, clients:[{ id, uid, name, email, role, subscription_tier,
+//                                  metabolic_tier, account_status, … }] }
+// `id` is the bbf_users PK (the key assignWorkout / detail / analytics target).
+export function fetchRoster() {
+  return rosterCall('roster');
+}
+
+// ── Push a generated workout blueprint to an athlete's active program state ─────
+// Writes the structured workout_plan to the selected athlete's bbf_users row — the
+// PRIMARY source bbf_verify_user_pin reads at login, so it surfaces on the athlete's
+// Program tab on next sign-in — and stamps plans_generated_at (which flips
+// plans_available true). The browser NEVER holds the service-role key (§7); this
+// relays through the token-gated admin gateway and the edge function does the write.
+// `id` is the bbf_users PK; `plan` is the canonical array from
+// generatorEngine.toAssignedPlan ([{ day, focus, exercises:[{name,equipment,sets,
+// reps,notes}] }]).
+//   → { ok:true, persisted, plans_generated_at, days }
+export async function assignWorkout(id, plan) {
+  if (!id) {
+    const e = new Error('Select an athlete before pushing a program.');
+    e.code = 'missing_id';
+    throw e;
+  }
+  if (!Array.isArray(plan) || !plan.length) {
+    const e = new Error('Generate a blueprint before pushing it to an athlete.');
+    e.code = 'empty_plan';
+    throw e;
+  }
+  return rosterCall('assign_workout', { id, plan });
+}

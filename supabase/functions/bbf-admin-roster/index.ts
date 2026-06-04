@@ -722,6 +722,56 @@ serve(async (req) => {
       return jsonResponse({ ok: true, id: row.id, uid: row.uid, sport: row.sport, position: row.position });
     }
 
+    // ── assign_workout (push a generated program to an athlete's active state) ────
+    // Writes the structured workout blueprint (the Command Center Generator output,
+    // already transformed to the Vault's ProgramGrid shape) to the selected athlete's
+    // bbf_users.workout_plan — the PRIMARY source bbf_verify_user_pin reads at login —
+    // and stamps plans_generated_at so plans_available flips true and the Program tab
+    // renders it on next sign-in. Best-effort mirror to bbf_active_clients (by email)
+    // keeps the admin Client Hub dossier (detail) consistent. Service-role write
+    // behind the admin gate; the browser never writes the DB directly (§7).
+    if (action === 'assign_workout') {
+      const id = String(body?.id ?? '').trim();
+      if (!id) return jsonResponse({ error: 'missing_id' }, 400);
+      const plan = body?.plan;
+      if (!Array.isArray(plan) || !plan.length) return jsonResponse({ error: 'empty_plan' }, 400);
+      if (plan.length > 14) return jsonResponse({ error: 'plan_too_large' }, 400);
+
+      // Defense in depth — strip any contraindicated movement (the engine already
+      // forbids them and `detail` scrubs on read; scrub on write too).
+      const safePlan = (plan as any[]).map((d) => (
+        d && Array.isArray(d.exercises)
+          ? { ...d, exercises: d.exercises.filter((ex: any) => !isBlacklisted(ex?.name)) }
+          : d
+      ));
+      const planStr = JSON.stringify(safePlan);
+      const stamp = new Date().toISOString();
+
+      // Resolve the athlete (id → email) so the active_clients mirror can match.
+      const urows = await pgGet(`bbf_users?select=id,uid,email&id=eq.${encodeURIComponent(id)}&limit=1`);
+      const u = Array.isArray(urows) && urows.length ? urows[0] : null;
+      if (!u) return jsonResponse({ error: 'not_found' }, 404);
+
+      // PRIMARY write — bbf_users (the login's first plan source). Keyed on the PK.
+      const updated = await pgPatch(
+        `bbf_users?id=eq.${encodeURIComponent(id)}&select=id`,
+        { workout_plan: planStr, plans_generated_at: stamp },
+      );
+      if (!(Array.isArray(updated) && updated.length)) return jsonResponse({ error: 'not_found' }, 404);
+
+      // Best-effort mirror — bbf_active_clients (the admin detail view reads here). Non-fatal.
+      if (u.email) {
+        try {
+          await pgPatch(
+            `bbf_active_clients?or=(vault_email.eq.${encEmail(u.email)},client_email.eq.${encEmail(u.email)})`,
+            { workout_plan: planStr, plans_generated_at: stamp },
+          );
+        } catch (_) { /* non-fatal — the primary write already landed */ }
+      }
+
+      return jsonResponse({ ok: true, persisted: true, plans_generated_at: stamp, days: safePlan.length });
+    }
+
     // ── leads_list / concierge_log (Comlink, relayed server-side) ─────────────────
     // Unifies Comlink behind this session-authed gate: the browser no longer hits
     // Render directly (and no longer needs a separate Render token in the client).

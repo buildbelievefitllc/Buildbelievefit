@@ -16,15 +16,17 @@
 // movement carrying a hardwired form-demo video. Blacklisted lifts (barbell back
 // squat, abdominal crunches) can never appear — enforced in the engine.
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import {
-  generateProgram, GOALS, GENDERS, LEVELS, LOCATIONS, DAY_OPTIONS, PACES, SPLITS, INTENSIFIERS, PRESETS,
+  generateProgram, toAssignedPlan,
+  GOALS, GENDERS, LEVELS, LOCATIONS, DAY_OPTIONS, PACES, SPLITS, INTENSIFIERS, PRESETS,
 } from './generatorEngine.js';
 import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
 import { localizeMuscle } from '../../lib/trainingI18n.js';
+import { fetchRoster, assignWorkout, toErrorMessage } from '../../lib/rosterApi.js';
 import './vault.css';
 
 // Trilingual UI chrome for the Vault Roster Engine. The signature-split preset
@@ -124,6 +126,15 @@ const STR = {
   },
 };
 
+// Targeting i18n for the Command Center authoring surface (roster select + push).
+// Kept as its own dictionary so the client-Vault token-economy strings above stay
+// untouched; resolved by active lang with an EN fallback.
+const ASSIGN_STR = {
+  en: { head: '🎯 Roster Deployment Bay', sub: 'Target a live athlete, generate the blueprint, then push it straight to their program.', select: 'Select Athlete', placeholder: '— Select an athlete to target —', loading: 'Loading live roster…', error: 'Could not load the roster.', retry: 'Retry', push: '🚀 Push to Athlete', pushing: 'Pushing…', needResult: 'Generate a blueprint first, then push it.', needClient: 'Select an athlete to receive this program.', ok: (n) => `Program deployed — ${n} now holds this blueprint on their Program tab.` },
+  es: { head: '🎯 Bahía de Despliegue del Roster', sub: 'Selecciona un atleta en vivo, genera el plan y envíalo directo a su programa.', select: 'Seleccionar Atleta', placeholder: '— Selecciona un atleta objetivo —', loading: 'Cargando roster en vivo…', error: 'No se pudo cargar el roster.', retry: 'Reintentar', push: '🚀 Enviar al Atleta', pushing: 'Enviando…', needResult: 'Genera un plan primero, luego envíalo.', needClient: 'Selecciona un atleta para recibir este programa.', ok: (n) => `Programa desplegado — ${n} ahora tiene este plan en su pestaña de Programa.` },
+  pt: { head: '🎯 Baía de Implantação do Roster', sub: 'Selecione um atleta ao vivo, gere o plano e envie direto para o programa dele.', select: 'Selecionar Atleta', placeholder: '— Selecione um atleta alvo —', loading: 'Carregando roster ao vivo…', error: 'Não foi possível carregar o roster.', retry: 'Tentar novamente', push: '🚀 Enviar ao Atleta', pushing: 'Enviando…', needResult: 'Gere um plano primeiro, depois envie.', needClient: 'Selecione um atleta para receber este programa.', ok: (n) => `Programa implantado — ${n} agora tem este plano na aba Programa.` },
+};
+
 // ── Token Economy (client-side monetization gate · 1 blueprint token / month) ────
 // The Vault Roster Engine is a metered premium surface. ADMINS on the Command Center
 // route (`onCommandSurface`) run UNLIMITED — it is their authoring console. A standard
@@ -179,9 +190,15 @@ const DEFAULTS = {
   days: '3', dur: '60', arch: 'full', intensifier: 'none',
 };
 
+// Roster-row identity + division label for the targeting dropdown (mirrors the
+// NutritionLocker helpers so the two admin push surfaces read a client the same way).
+const clientId = (c) => c?.id ?? c?.uid ?? c?.email ?? '';
+const division = (c) => c?.metabolic_tier || c?.subscription_tier || c?.role || 'Sovereign Client';
+
 export default function Generator({ onRevertToLibrary }) {
   const { lang } = useLang();
   const tr = STR[lang] || STR.en;
+  const at = ASSIGN_STR[lang] || ASSIGN_STR.en;
   const [params, setParams] = useState(DEFAULTS);
   const [warmups, setWarmups] = useState(true);
   const [activePreset, setActivePreset] = useState(null);
@@ -204,6 +221,51 @@ export default function Generator({ onRevertToLibrary }) {
   // users (admins) never read or write the meter, so it stays irrelevant for them.
   const [tokenSpent, setTokenSpent] = useState(() => !isUnlimited && tokenSpentThisPeriod(uid));
   const canGenerate = isUnlimited || !tokenSpent;
+
+  // ── Command Center targeting (admin authoring surface only) ──────────────────
+  // On /command the Generator is an authoring console: pick a live athlete and push
+  // the generated blueprint straight to their program (bbf_users.workout_plan). The
+  // client Vault surface never shows this — athletes generate only for themselves.
+  const [clients, setClients] = useState([]);
+  const [rosterState, setRosterState] = useState({ loading: onCommandSurface, error: null });
+  const [targetId, setTargetId] = useState('');
+  const [pushState, setPushState] = useState({ busy: false, ok: null, err: null });
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
+
+  const loadRoster = useCallback(async () => {
+    setRosterState({ loading: true, error: null });
+    try {
+      const body = await fetchRoster();
+      if (mounted.current) { setClients(Array.isArray(body.clients) ? body.clients : []); setRosterState({ loading: false, error: null }); }
+    } catch (e) {
+      if (mounted.current) { setClients([]); setRosterState({ loading: false, error: toErrorMessage(e) }); }
+    }
+  }, []);
+
+  // Auto-load the roster once, only on the command authoring surface. Deferred to a
+  // microtask so the initial setState lands outside the effect body (matches
+  // NutritionLocker — satisfies react-hooks/set-state-in-effect).
+  useEffect(() => {
+    if (!onCommandSurface) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) loadRoster(); });
+    return () => { cancelled = true; };
+  }, [onCommandSurface, loadRoster]);
+
+  const pushToAthlete = async () => {
+    if (!result?.program?.length) { setPushState({ busy: false, ok: null, err: at.needResult }); return; }
+    if (!targetId) { setPushState({ busy: false, ok: null, err: at.needClient }); return; }
+    setPushState({ busy: true, ok: null, err: null });
+    try {
+      await assignWorkout(targetId, toAssignedPlan(result));
+      if (!mounted.current) return;
+      const who = clients.find((c) => clientId(c) === targetId);
+      setPushState({ busy: false, ok: at.ok(who?.name || who?.uid || 'The athlete'), err: null });
+    } catch (e) {
+      if (mounted.current) setPushState({ busy: false, ok: null, err: toErrorMessage(e) });
+    }
+  };
 
   // Any manual change drops the "active preset" highlight (the program no longer
   // matches a signature split verbatim).
@@ -352,6 +414,50 @@ export default function Generator({ onRevertToLibrary }) {
 
         <div className="gen-guard">{tr.guard}</div>
       </div>
+
+      {/* ── Roster Deployment Bay — Command Center authoring surface only ──────── */}
+      {onCommandSurface ? (
+        <section className="pg-card gen-assign" aria-label={at.head}>
+          <div className="gen-assign-head">
+            <h3 className="gen-assign-title">{at.head}</h3>
+            <p className="gen-assign-sub">{at.sub}</p>
+          </div>
+          <div className="gen-assign-row">
+            <label className="gen-field gen-assign-field">
+              <span className="gen-field-lbl">{at.select}</span>
+              {rosterState.loading ? (
+                <div className="gen-assign-state">{at.loading}</div>
+              ) : rosterState.error ? (
+                <div className="gen-assign-state is-error">
+                  {rosterState.error}{' '}
+                  <button type="button" className="gen-assign-link" onClick={loadRoster}>{at.retry}</button>
+                </div>
+              ) : (
+                <select
+                  className="gen-select"
+                  value={targetId}
+                  onChange={(e) => { setTargetId(e.target.value); setPushState({ busy: false, ok: null, err: null }); }}
+                >
+                  <option value="">{at.placeholder}</option>
+                  {clients.map((c) => (
+                    <option key={clientId(c)} value={clientId(c)}>{(c.name || c.uid || 'Unnamed')} · {division(c)}</option>
+                  ))}
+                </select>
+              )}
+            </label>
+            <button
+              type="button"
+              className="gen-assign-btn"
+              onClick={pushToAthlete}
+              disabled={pushState.busy || !result?.program?.length || !targetId}
+            >
+              {pushState.busy ? at.pushing : at.push}
+            </button>
+          </div>
+          {pushState.ok ? <div className="gen-assign-msg is-ok" role="status">✓ {pushState.ok}</div> : null}
+          {pushState.err ? <div className="gen-assign-msg is-err" role="alert">⚠ {pushState.err}</div> : null}
+        </section>
+      ) : null}
 
       {result ? <GeneratorOutput result={result} /> : (
         <div className="pg-card gen-placeholder">{tr.placeholder}</div>
