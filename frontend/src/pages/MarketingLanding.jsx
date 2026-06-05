@@ -16,9 +16,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import PathfinderForm from '../components/PathfinderForm.jsx';
+import Interrogator from '../components/Interrogator.jsx';
 import TDEECalculator from '../components/TDEECalculator.jsx';
 import BBFChatbox from '../components/BBFChatbox.jsx';
 import PositionalBlueprints from '../components/PositionalBlueprints.jsx';
+import ScienceHub from '../components/ScienceHub.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import LangToggle from '../components/LangToggle.jsx';
 // Live Stripe pricing (the Revenue Matrix) — single source of truth shared with
@@ -80,11 +82,11 @@ export default function MarketingLanding() {
   const enter = () => navigate(user ? '/vault' : '/login');
 
   // ── Conversion narrative — vertical scroll, mobile-first ───────────────────────
-  // The page reads top-to-bottom as one six-step funnel: Hero → Playbooks → Fuel
-  // Target → Coach Legacy → Pathfinder → Four Paths pricing. Cost lands LAST so brand
-  // identity + tools are established before the ask. In-page funnels smooth-scroll to
-  // a section by id; the sticky-nav offset is handled by `scroll-margin-top` on every
-  // section (see LANDING_CSS).
+  // The page reads top-to-bottom as a six-step funnel: Hero → Playbooks → Fuel Target
+  // → Coach Legacy → Pathfinder → Four Paths pricing. The supporting modules (Science
+  // · Interrogator · App) are KEPT but parked at the very bottom, below the funnel.
+  // In-page funnels smooth-scroll to a section by id; the sticky-nav offset is handled
+  // by `scroll-margin-top` on every section (see LANDING_CSS).
   const scrollToId = (id) =>
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const goToPathfinder = () => scrollToId('pathfinder');
@@ -99,6 +101,8 @@ export default function MarketingLanding() {
           {/* In-page jumps — smooth-scroll to the section by id. */}
           <button type="button" style={s.navSignIn} onClick={() => scrollToId('services')}>{t('nav-services')}</button>
           <button type="button" style={s.navSignIn} onClick={() => scrollToId('programs')}>{t('nav-programs')}</button>
+          <a href="#science" style={s.navLink}>Science</a>
+          <a href="#interrogator" style={s.navLink}>{t('nav-audit')}</a>
           <button type="button" style={s.navSignIn} onClick={() => scrollToId('founder')}>{t('nav-about')}</button>
           <button type="button" style={s.navSignIn} onClick={enter}>{t('nav-signin')}</button>
           <button type="button" style={s.navCta} onClick={goToPathfinder}>{t('nav-start')}</button>
@@ -142,9 +146,10 @@ export default function MarketingLanding() {
 
       {/* ═══ CONVERSION NARRATIVE — vertical stack (mobile-first) ════════════════
           Brand identity + tools lead the scroll; the Four Paths pricing matrix is
-          the closing CTA at the very bottom. Order: Playbooks → Fuel Target → Coach
-          Legacy → Pathfinder → Pricing. Every child engine is unchanged — only the
-          order moved (tabbed deck → vertical funnel) so cost is shown last. */}
+          the closing CTA at the very bottom (rendered below the App band). Order:
+          Playbooks → Fuel Target → Coach Legacy → Pathfinder → Science · Audit ·
+          App → Pricing. Every child engine is unchanged — only the order moved
+          (tabbed deck → vertical funnel) so cost is shown last. */}
 
       {/* ── PLAYBOOKS — Six Pillars + Positional Sport Blueprints ── */}
       <section id="services" style={s.section}>
@@ -237,9 +242,9 @@ export default function MarketingLanding() {
 
       <Divider />
 
-      {/* ═══ FOUR PATHS — the pricing matrix (closing CTA, very bottom) ═══════════
-          Catalyst · Momentum · Autonomous · Fuel. Cost lands last: identity + tools
-          come first so the price is the final, informed call to action. */}
+      {/* ── 6 · FOUR PATHS — the pricing matrix (closes the core six-step funnel) ──
+          Catalyst · Momentum · Autonomous · Fuel. The funnel ends here; the
+          supporting modules (Science · Interrogator · App) follow below. */}
       <section id="programs" style={s.sectionWide}>
         <div style={s.secLbl}>{t('prog-lbl')}</div>
         <h2 style={s.secH}>{t('prog-h')}</h2>
@@ -266,6 +271,66 @@ export default function MarketingLanding() {
           <p style={s.promiseText}>
             “{t('promise-text')}” <span style={{ color: GOLD }}>{t('founder-sig-name')}</span>
           </p>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* ═══ SUPPORTING MODULES — parked below the core funnel (KEPT, not deleted) ══
+          Science Hub, the Routine Interrogator, and the App-Install band. Not part of
+          the 6-step funnel, so they live at the very bottom of the page sequence. */}
+
+      {/* ── SCIENCE HUB — clinical-studies library (peer-reviewed authority asset) ── */}
+      <ScienceHub />
+
+      {/* ── THE INTERROGATOR (BBF Chatbox) — interactive audit → tier guidance ── */}
+      <Interrogator onChooseTier={goToPathfinder} />
+
+      <Divider />
+
+      {/* ── COMPANION APP (Google Play funnel + PWA direct install) ── */}
+      <section id="app" style={s.appBand}>
+        <div style={s.appTop}>
+          <div style={s.appText}>
+            <div style={s.secLbl}>Google Play</div>
+            <h2 style={s.secH}>{t('app-band-h')}</h2>
+            <p style={s.secSub}>{t('app-band-sub')}</p>
+          </div>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.buildbelievefit.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={s.appBadge}
+            aria-label={t('app-badge-alt')}
+          >
+            <img
+              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+              alt={t('app-badge-alt')}
+              style={{ height: '64px', width: 'auto', display: 'block' }}
+              loading="lazy"
+            />
+          </a>
+        </div>
+
+        {/* Direct Web App (PWA) install — store-free alternative for iOS + Android */}
+        <div style={s.pwaBlock}>
+          <div style={s.pwaHead}>
+            <span style={s.pwaTag}>{t('app-pwa-tag')}</span>
+            <h3 style={s.pwaH}>{t('app-pwa-h')}</h3>
+            <p style={s.pwaSub}>{t('app-pwa-sub')}</p>
+          </div>
+          <div style={s.pwaCols}>
+            <PwaCard
+              platform=""
+              title={t('app-ios-h')}
+              steps={[t('app-ios-1'), t('app-ios-2'), t('app-ios-3')]}
+            />
+            <PwaCard
+              platform="🤖"
+              title={t('app-android-h')}
+              steps={[t('app-android-1'), t('app-android-2'), t('app-android-3')]}
+            />
+          </div>
         </div>
       </section>
 
@@ -350,7 +415,25 @@ function Stat({ n, l }) {
 }
 function Divider() { return <div style={s.divider} />; }
 
-// (PwaCard helper removed — the App-Install band was pulled from the funnel.)
+// PWA install card — one platform, three numbered steps (brutalist step list).
+function PwaCard({ platform, title, steps }) {
+  return (
+    <div style={s.pwaCard}>
+      <div style={s.pwaCardHead}>
+        <span style={s.pwaIcon} aria-hidden="true">{platform}</span>
+        <span style={s.pwaCardTitle}>{title}</span>
+      </div>
+      <ol style={s.pwaSteps}>
+        {steps.map((step, i) => (
+          <li key={i} style={s.pwaStep}>
+            <span style={s.pwaStepNum}>{i + 1}</span>
+            <span style={s.pwaStepTxt}>{step}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 const s = {
   // Purple atmospheric floor — the brand's load-bearing color (legacy body/--purx).
