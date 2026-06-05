@@ -87,11 +87,11 @@ export default function MarketingLanding() {
 
   // Telemetry-tagged tab manifest. idx = lane number, tag = athletic telemetry chip.
   const TABS = [
-    { key: 'paths',      idx: '01', label: 'Four Paths',   tag: 'SUBSCRIPTIONS' },
+    { key: 'legacy',     idx: '01', label: 'Coach Legacy', tag: 'ORIGIN STORY' },
     { key: 'playbooks',  idx: '02', label: 'Blueprints',   tag: 'PLAYBOOKS' },
     { key: 'calculator', idx: '03', label: 'Fuel Target',  tag: 'TDEE · BIO-FUEL' },
     { key: 'pathfinder', idx: '04', label: 'Pathfinder',   tag: 'INTAKE · PAR-Q' },
-    { key: 'legacy',     idx: '05', label: 'Coach Legacy', tag: 'ORIGIN STORY' },
+    { key: 'paths',      idx: '05', label: 'Four Paths',   tag: 'SUBSCRIPTIONS' },
   ];
 
   return (
