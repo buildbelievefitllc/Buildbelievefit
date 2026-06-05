@@ -1,0 +1,15 @@
+import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
+import { writeFileSync } from 'node:fs';
+GlobalFonts.registerFromPath('fonts/BebasNeue-Regular.ttf', 'Bebas Neue');
+GlobalFonts.registerFromPath('fonts/BarlowCondensed-Medium.ttf', 'BC Medium');
+GlobalFonts.registerFromPath('fonts/BarlowCondensed-Bold.ttf', 'BC Bold');
+const ctx = createCanvas(10, 10).getContext('2d');
+const extra = [0x2022,0x2014,0x2013,0x2018,0x2019,0x201C,0x201D,0x2026,0x2122,0x00AE,0x00B0,0x00E9,0x00ED,0x00E1,0x00F3,0x00FA,0x00F1];
+const chars = [];
+for (let c = 32; c <= 126; c++) chars.push(String.fromCharCode(c));
+for (const u of extra) chars.push(String.fromCharCode(u));
+const table = (font) => { ctx.font = `1000px ${font}`; const m = {}; for (const ch of chars) m[ch.codePointAt(0)] = +(ctx.measureText(ch).width / 1000).toFixed(4); return m; };
+const out = { bebas: table("'Bebas Neue'"), med: table("'BC Medium'"), bold: table("'BC Bold'") };
+writeFileSync('metrics.json', JSON.stringify(out));
+console.log('charset size:', chars.length, '| bebas "A"=', out.bebas[65], '| med space=', out.med[32], '| bold "I"=', out.bold[73]);
+console.log('bytes:', JSON.stringify(out).length);

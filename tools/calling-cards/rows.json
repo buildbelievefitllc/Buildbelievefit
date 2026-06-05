@@ -1,0 +1,38 @@
+[
+  {
+    "id": "e2be43b9-cff7-42f6-b00c-cdd254ca4388",
+    "headline": "EVERYTHING<br>THE BIG APPS<br>DO. PLUS AI<br>THEY <span class='yl'>DON'T.</span>",
+    "body": "A full AI coaching suite for $9.99/mo. Not a logbook — a system.",
+    "eye_label": "Online",
+    "cta": "Link in bio",
+    "color_palette": "purDeep",
+    "platform_target": "online"
+  },
+  {
+    "id": "39bf3289-1848-4e49-9bf4-cbcf383cdde1",
+    "headline": "$9.99<br>A MONTH.<br>ZERO<br><span class='gl'>EXCUSES.</span>",
+    "body": "Your entire AI training system, in your pocket, today.",
+    "eye_label": "Online &bull; Catalyst",
+    "cta": "Link in bio",
+    "color_palette": "green",
+    "platform_target": "online"
+  },
+  {
+    "id": "9f87e4b4-0178-4abb-9fef-8ad70e93a44d",
+    "headline": "STOP<br>PAYING FOR<br>A <span class='yl'>LOGBOOK.</span>",
+    "body": "Other apps track your sets. BBF coaches your reps — AI form checks, voice coaching, live readiness.",
+    "eye_label": "Online",
+    "cta": "Link in bio",
+    "color_palette": "blue",
+    "platform_target": "online"
+  },
+  {
+    "id": "67ce1305-40a2-4ae4-9b33-9d5787ac46ad",
+    "headline": "YOUR AI<br>COACH.<br>UNDER <span class='yl'>$10.</span>",
+    "body": "Form AI, voice coach, nutrition, live metrics — all of it. Less than your streaming service.",
+    "eye_label": "Online &bull; BBF Catalyst",
+    "cta": "Link in bio",
+    "color_palette": "yellow",
+    "platform_target": "online"
+  }
+]
