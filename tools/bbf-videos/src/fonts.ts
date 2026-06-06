@@ -1,6 +1,6 @@
 // Loads the LOCKED BBF brand fonts (OFL) bundled in public/fonts and blocks the
 // render until they are ready, so headless Chrome never rasterizes a fallback.
-import { staticFile, delayRender, continueRender, cancelRender } from 'remotion';
+import { staticFile, delayRender, continueRender } from 'remotion';
 
 export const FONT_DISPLAY = 'Bebas Neue'; // headers (CLAUDE.md §2)
 export const FONT_BODY = 'Barlow Condensed'; // body
@@ -12,7 +12,16 @@ export function ensureFonts(): void {
   if (started || typeof document === 'undefined') return;
   started = true;
 
-  const handle = delayRender('Loading BBF brand fonts');
+  const handle = delayRender('Loading BBF brand fonts', {
+    timeoutInMilliseconds: 120000,
+  });
+  let cleared = false;
+  const clear = () => {
+    if (!cleared) {
+      cleared = true;
+      continueRender(handle);
+    }
+  };
 
   const css = `
     @font-face { font-family: 'Bebas Neue'; font-weight: 400; font-display: block;
@@ -35,6 +44,9 @@ export function ensureFonts(): void {
     document.fonts.load("700 100px 'Barlow Condensed'"),
   ])
     .then(() => document.fonts.ready)
-    .then(() => continueRender(handle))
-    .catch((err) => cancelRender(err));
+    .then(clear)
+    .catch(clear);
+
+  // Safety net: never block the render if a font load stalls under heavy load.
+  setTimeout(clear, 15000);
 }
