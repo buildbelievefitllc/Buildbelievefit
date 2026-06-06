@@ -1,0 +1,23 @@
+{
+  "name": "bbf-videos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BBF animated marketing videos (Remotion). 1080x1350 vertical, LOCKED brand (Purple #6a0dad / Gold #f5c800, Bebas Neue / Barlow Condensed).",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts CtaCard out/bbf-cta-awaken.mp4 --codec=h264",
+    "still": "remotion still src/index.ts CtaCard out/preview.png"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.473",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.473"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "typescript": "5.6.3"
+  }
+}

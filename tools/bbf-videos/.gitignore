@@ -1,0 +1,5 @@
+node_modules/
+.remotion/
+*.log
+# Rendered artifacts in out/ ARE tracked (the deliverable persists across the
+# ephemeral build container) — do not ignore out/.
