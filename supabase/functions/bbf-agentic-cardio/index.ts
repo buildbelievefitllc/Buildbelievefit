@@ -378,13 +378,13 @@ serve(async (req: Request) => {
   // Cardio routes to Opus 4.8 (cardiac_intercept). It must NEVER be triggerable
   // by an unentitled / anonymous caller bypassing the cosmetic UI lock. Identity
   // is resolved SERVER-SIDE from the vault bearer token (the body `uid` is not
-  // trusted for auth). Cardio is a FITNESS feature (BASE/PRO) + God Mode; a
-  // none/nutrition/youth/unmapped/locked tier → 403 tier_not_entitled.
+  // trusted for auth). smart_cardio unlocks at Autonomous and up (Autonomous /
+  // Fuel / God) per the CEO hierarchy; Baseline / Youth / none / locked → 403.
   const gate = await requireEntitlement({
     supabaseUrl: SUPABASE_URL,
     serviceKey:  SERVICE_KEY,
     vaultToken:  payload?.vault_token ?? req.headers.get('x-bbf-vault-token'),
-    feature:     'cardio',
+    feature:     'smart_cardio',
   });
   if (!gate.ok) return jsonResponse({ error: gate.denial.error, detail: gate.denial.detail }, gate.denial.status);
   const uid = gate.ctx.uid || gate.ctx.user_id;   // server-authoritative identity

@@ -27,9 +27,8 @@ import ClientVault from './pages/ClientVault.jsx';
 import YouthIntakeGate from './components/sportshub/YouthIntakeGate.jsx';
 import MarketingLanding from './pages/MarketingLanding.jsx';
 import SportsPortal from './components/sports/SportsPortal.jsx';
-import { useEntitlement } from './lib/useEntitlement.js';
+import TierGate from './components/TierGate.jsx';
 import { isSportsAthlete, SPORTS_HUB_PATH } from './lib/sportsRoster.js';
-import UpgradeOverlay from './components/vault/UpgradeOverlay.jsx';
 
 // The Sovereign Vault — the authenticated athlete home. Guarded: an unauthenticated
 // visitor is bounced to the login gate rather than shown an empty shell. NOTE: the
@@ -83,7 +82,6 @@ function SportsRoute() {
   // active trial) enter; everyone else gets the upsell padlock in place of the
   // portal. Fail-open on an unresolved tier (see useEntitlement) so a payer is
   // never falsely locked out. Hooks run before the early returns (Rules of Hooks).
-  const ent = useEntitlement();
   if (loading) return <div style={bootStyle}>Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
   return (
@@ -92,15 +90,11 @@ function SportsRoute() {
         <button type="button" className="sp-route-back" onClick={() => navigate('/vault')}>
           ← Athlete Vault
         </button>
-        {ent.canAccessSports() ? (
+        {/* Phase 2: Sports Hub gated via the declarative primitive (feature:
+            sports_hub → Youth + God Tier). Fail-open while the tier resolves. */}
+        <TierGate feature="sports_hub" featureLabelKey="uplock-sports-feature" testId="sports-upgrade-overlay">
           <SportsPortal />
-        ) : (
-          <UpgradeOverlay
-            featureLabelKey="uplock-sports-feature"
-            target={ent.upgradeTargetForSports()}
-            testId="sports-upgrade-overlay"
-          />
-        )}
+        </TierGate>
       </div>
     </div>
   );

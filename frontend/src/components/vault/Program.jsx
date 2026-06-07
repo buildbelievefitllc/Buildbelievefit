@@ -20,6 +20,7 @@ import ProgramGrid from './ProgramGrid.jsx';
 import SovereignSentinel from './SovereignSentinel.jsx';
 import HypertrophyBalanceAnalyzer from './HypertrophyBalanceAnalyzer.jsx';
 import VoiceCoachButton from './VoiceCoachButton.jsx';
+import TierGate from '../TierGate.jsx';
 import { buildCoachCue } from './coachCue.js';
 
 // Trilingual UI chrome (EN verbatim to the prior hardcoded copy so the default
@@ -68,7 +69,11 @@ export default function Program({ plans, profile }) {
               bbf-tts-eleven (virtual_coach → Julius), falling back to the device's
               built-in stock voice when ElevenLabs is unavailable. Live Vision
               camera stays deprecated to protect UI performance. */}
-          <VoiceCoachButton text={coachCue} lang={lang} />
+          {/* Phase 2: AI Voice Coach gated to voice_coach (Autonomous / Fuel / God);
+              hidden for Baseline + Youth. Assimilated ElevenLabs→stock-voice button. */}
+          <TierGate feature="voice_coach" render="hide">
+            <VoiceCoachButton text={coachCue} lang={lang} />
+          </TierGate>
           {profile ? (
             <Badge
               label={tr.streak(profile.currentStreak)}

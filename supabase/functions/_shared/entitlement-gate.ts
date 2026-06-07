@@ -40,7 +40,7 @@ export type Group = typeof GROUP[keyof typeof GROUP];
 export const TIER_TO_GROUP: Record<string, Group> = {
   // ── Canonical · Online Fitness (BASE = entry; PRO = mid/top → adds Prehab) ──
   catalyst:   GROUP.FITNESS_BASE,
-  momentum:   GROUP.FITNESS_PRO,
+  momentum:   GROUP.FITNESS_BASE,   // CEO Phase 2: Baseline (no voice/cardio/prehab)
   autonomous: GROUP.FITNESS_PRO,
   // ── Canonical · Online Nutrition ──
   fuel_foundation:  GROUP.NUTRITION,
@@ -65,15 +65,33 @@ export const TIER_TO_GROUP: Record<string, Group> = {
   nutrition_platinum:   GROUP.NUTRITION,
 };
 
-// Feature key → the groups that unlock it. Mirrors frontend TAB_ACCESS but
-// FEATURE-grained so a single tab can host several independently-gated tools.
+// Feature key → the groups that unlock it. CEO Phase-2 hierarchy. KEEP IN LOCKSTEP
+// with frontend/src/lib/entitlements.js FEATURE_ACCESS — one canonical map, two layers.
+const EVERY_PAYING: Group[] = [GROUP.FITNESS_BASE, GROUP.FITNESS_PRO, GROUP.NUTRITION, GROUP.YOUTH, GROUP.ALL];
+const AUTONOMOUS_UP: Group[] = [GROUP.FITNESS_PRO, GROUP.NUTRITION, GROUP.ALL]; // Autonomous, Fuel, God
 export const FEATURE_ACCESS: Record<string, Group[]> = {
-  cardio:           [GROUP.FITNESS_BASE, GROUP.FITNESS_PRO, GROUP.ALL],
-  prehab:           [GROUP.FITNESS_PRO, GROUP.ALL],
-  nutrition_macros: [GROUP.NUTRITION, GROUP.ALL],
-  nutrition_image:  [GROUP.NUTRITION, GROUP.ALL],
-  kinematics:       [GROUP.YOUTH, GROUP.ALL],
-  comlink:          [GROUP.FITNESS_BASE, GROUP.FITNESS_PRO, GROUP.YOUTH, GROUP.ALL],
+  // Baseline — every paying path (Fuel/Youth inherit Baseline).
+  grid:               EVERY_PAYING,
+  form_videos:        EVERY_PAYING,
+  base_nutrition:     EVERY_PAYING,
+  readiness:          EVERY_PAYING,
+  mindset:            EVERY_PAYING,
+  // Autonomous tier and up (NOT Baseline Catalyst/Momentum, NOT Youth).
+  voice_coach:        AUTONOMOUS_UP,
+  smart_cardio:       AUTONOMOUS_UP,
+  cardio:             AUTONOMOUS_UP, // legacy alias for smart_cardio
+  prehab:             AUTONOMOUS_UP,
+  // Fuel Series + God only.
+  advanced_nutrition: [GROUP.NUTRITION, GROUP.ALL],
+  nutrition_macros:   [GROUP.NUTRITION, GROUP.ALL],
+  nutrition_image:    [GROUP.NUTRITION, GROUP.ALL],
+  // Youth Division + God only.
+  sports_hub:         [GROUP.YOUTH, GROUP.ALL],
+  roster:             [GROUP.YOUTH, GROUP.ALL],
+  kinematics:         [GROUP.YOUTH, GROUP.ALL],
+  // God Tier only.
+  sovereign_comlink:  [GROUP.ALL],
+  coach_orchestration:[GROUP.ALL],
 };
 
 export interface EntitlementContext {

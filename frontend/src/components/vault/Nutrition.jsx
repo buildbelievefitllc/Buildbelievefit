@@ -29,6 +29,7 @@ import {
 } from '../../lib/rosterApi.js';
 import { hasAdminToken } from '../../lib/adminAuth.js';
 import AdminTokenGate from '../command/AdminTokenGate.jsx';
+import TierGate from '../TierGate.jsx';
 import { CUISINES, CUISINE_PLANS, dayTotals, todayIndex } from './cuisineMeals.js';
 import './vault.css';
 import './nutrition.css';
@@ -770,6 +771,24 @@ function NutritionCoachConsole() {
   );
 }
 
+// Phase 2 · advanced_nutrition surface — the Meal Scanner entry (Fuel Series + God
+// Tier only). The TierGate wrapper is the deliverable; full vision/macro wiring
+// (bbf-meal-macros / camera) is a follow-up. Rendered only when entitled.
+function MealScannerCard() {
+  const card = {
+    border: '1px solid #6a0dad', borderRadius: '12px', padding: '12px 14px',
+    margin: '0 0 14px', background: 'rgba(106,13,173,.08)',
+  };
+  const head = { display: 'flex', alignItems: 'center', gap: '.5rem', fontWeight: 700, color: '#f5c800', letterSpacing: '.5px' };
+  const body = { margin: '.4rem 0 0', fontSize: '.9rem', color: 'var(--mut, #9aa)', lineHeight: 1.4 };
+  return (
+    <div style={card} data-testid="vault-meal-scanner">
+      <div style={head}><span aria-hidden="true">📷</span> Meal Scanner</div>
+      <p style={body}>Snap or describe a meal and get an instant macro read-out — included with your Fuel plan.</p>
+    </div>
+  );
+}
+
 export default function Nutrition({ plans, profile }) {
   const { user, isAdmin } = useAuth();
   const { lang } = useLang();
@@ -898,6 +917,11 @@ export default function Nutrition({ plans, profile }) {
           </label>
         )}
       </div>
+
+      {/* Phase 2: advanced_nutrition (Meal Scanner) — Fuel Series + God Tier only. */}
+      <TierGate feature="advanced_nutrition" render="hide">
+        <MealScannerCard />
+      </TierGate>
 
       <div className="nl-day-head">
         <div className="nl-day-head-cuisine">{plan.label} · {dayName}</div>

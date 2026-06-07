@@ -37,7 +37,9 @@ import SmartCardio from '../components/vault/SmartCardio.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
 import ChampionMindset from '../components/vault/ChampionMindset.jsx';
-import UpgradeOverlay from '../components/vault/UpgradeOverlay.jsx';
+import TierGate from '../components/TierGate.jsx';
+import ComlinkFAB from '../components/vault/ComlinkFAB.jsx';
+import { TAB_FEATURE } from '../lib/entitlements.js';
 import '../components/vault/vault.css';
 
 const TABS = [
@@ -71,7 +73,6 @@ export default function ClientVault() {
   // any unresolved tier read as full access, so a payer is never falsely padlocked.
   const ent = useEntitlement();
   const activeMeta = TABS.find((tab) => tab.id === activeTab);
-  const activeLocked = !ent.canAccessTab(activeTab);
 
   // The login slug IS the profile key (bbf_get_profile_metrics resolves uid).
   const uid = user?.username || user?.id || '';
@@ -153,33 +154,33 @@ export default function ClientVault() {
         {/* key={activeTab} forces a clean unmount/remount per swap — no state can
             bleed between surfaces (same guard the Command Center uses). */}
         <div key={activeTab}>
-          {activeLocked ? (
-            // Tier doesn't unlock this surface — render the upsell padlock in place
-            // of the tool, steered to the tier that actually unlocks it.
-            <UpgradeOverlay
-              featureLabelKey={activeMeta?.labelKey}
-              target={ent.upgradeTargetForTab(activeTab)}
-            />
-          ) : (
-            <>
-              {activeTab === 'hub' && (
-                <VaultHub
-                  profile={profile}
-                  isLoading={profileLoading}
-                  error={profileError}
-                />
-              )}
-              {activeTab === 'program' && <Program plans={plans} profile={profile} />}
-              {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
-              {activeTab === 'cardio' && <SmartCardio />}
-              {activeTab === 'prehab' && <Prehab />}
-              {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
-              {activeTab === 'mindset' && <ChampionMindset />}
-              {activeTab === 'settings' && <Settings />}
-            </>
-          )}
+          {/* Phase 2: per-feature gating via the declarative <TierGate> primitive.
+              hub/settings map to a null feature (never gated); the rest gate on
+              TAB_FEATURE and fail-open while the tier resolves (never padlock a payer). */}
+          <TierGate
+            feature={TAB_FEATURE[activeTab]}
+            featureLabelKey={activeMeta?.labelKey}
+            testId="vault-upgrade-overlay"
+          >
+            {activeTab === 'hub' && (
+              <VaultHub
+                profile={profile}
+                isLoading={profileLoading}
+                error={profileError}
+              />
+            )}
+            {activeTab === 'program' && <Program plans={plans} profile={profile} />}
+            {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
+            {activeTab === 'cardio' && <SmartCardio />}
+            {activeTab === 'prehab' && <Prehab />}
+            {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
+            {activeTab === 'mindset' && <ChampionMindset />}
+            {activeTab === 'settings' && <Settings />}
+          </TierGate>
         </div>
       </div>
+      {/* Phase 2: Sovereign Comlink FAB — granularly gated (sovereign_comlink → God Tier). */}
+      <ComlinkFAB />
     </div>
   );
 }

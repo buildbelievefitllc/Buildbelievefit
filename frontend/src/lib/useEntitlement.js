@@ -22,8 +22,10 @@ import {
   resolveAccessGroup,
   canAccessTab,
   canAccessSports,
+  canAccessFeature,
   TAB_UPGRADE_PATH,
   SPORTS_UPGRADE_PATH,
+  FEATURE_UPGRADE_PATH,
 } from './entitlements.js';
 
 export function useEntitlement() {
@@ -74,6 +76,11 @@ export function useEntitlement() {
     isResolving: soft,
     canAccessTab: (tabId) => canAccessTab(group, tabId),
     canAccessSports: () => canAccessSports(group),
+    // Feature-grained gate (Phase 2) — the primitive <TierGate> consumes this.
+    canAccessFeature: (feature) => canAccessFeature(group, feature),
+    // Upgrade CTA target for a locked FEATURE (real Stripe link / pricing anchor).
+    upgradeTargetForFeature: (feature) =>
+      upgradeTargetForPath(FEATURE_UPGRADE_PATH[feature] || 'fitness'),
     // Upgrade CTA target (real Stripe link / pricing-matrix anchor) for a locked
     // tab or the sports route. Falls back to the fitness path for an unmapped tab.
     upgradeTargetForTab: (tabId) => upgradeTargetForPath(TAB_UPGRADE_PATH[tabId] || 'fitness'),
