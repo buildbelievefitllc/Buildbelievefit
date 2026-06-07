@@ -25,73 +25,78 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const GROUP = {
-  FITNESS_BASE: 'fitnessbase', // entry Online Fitness (Catalyst) — Prehab padlocked
-  FITNESS_PRO:  'fitnesspro',  // Momentum / Autonomous — Prehab unlocked
-  NUTRITION:    'nutrition',   // Online Nutrition (Fuel)
-  YOUTH:        'youth',       // Youth Athlete → Sports Hub
-  ALL:          'allaccess',   // Hybrid protocols + admins + active trial — God Mode
-  NONE:         'none',        // no active subscription — everything sellable locked
+  BASELINE:   'baseline',    // Baseline band — catalyst, momentum, fuel_foundation
+  AUTONOMOUS: 'autonomous',  // Autonomous band — autonomous, fuel_performance (+ voice/cardio/prehab)
+  APEX:       'apex',        // Apex band — fuel_sovereign + 6 Hybrid protocols (+ comlink/orchestration/meal-scanner)
+  YOUTH:      'youth',       // Youth Athlete → Sports Hub + roster
+  ALL:        'allaccess',   // God Mode ONLY — admins / coach / akeem / active trial (no tier maps here)
+  NONE:       'none',        // no active subscription — everything sellable locked
 } as const;
 export type Group = typeof GROUP[keyof typeof GROUP];
 
-// Canonical 13 + 7 legacy → access group. PORTED VERBATIM from
+// Canonical 13 + legacy → access BAND. PORTED VERBATIM from
 // frontend/src/lib/entitlements.js TIER_TO_GROUP. These two maps MUST stay in
 // lockstep — adding a SKU to bbf_tiers means adding it HERE and in the frontend.
+// CEO Master Feature Map (Final Gating Sweep): the Online Nutrition (Fuel) tiers no
+// longer form their own group — they slot into the same Baseline/Autonomous/Apex
+// ladder as Online Fitness, with the Meal Scanner (advanced_nutrition) an Apex unlock.
 export const TIER_TO_GROUP: Record<string, Group> = {
-  // ── Canonical · Online Fitness (BASE = entry; PRO = mid/top → adds Prehab) ──
-  catalyst:   GROUP.FITNESS_BASE,
-  momentum:   GROUP.FITNESS_BASE,   // CEO Phase 2: Baseline (no voice/cardio/prehab)
-  autonomous: GROUP.FITNESS_PRO,
-  // ── Canonical · Online Nutrition ──
-  fuel_foundation:  GROUP.NUTRITION,
-  fuel_performance: GROUP.NUTRITION,
-  fuel_sovereign:   GROUP.NUTRITION,
-  // ── Canonical · Youth Athlete ──
+  // ── Baseline band — grid · form_videos · base_nutrition · readiness ──
+  catalyst:         GROUP.BASELINE,
+  momentum:         GROUP.BASELINE,
+  fuel_foundation:  GROUP.BASELINE,
+  // ── Autonomous band — Baseline + voice_coach · smart_cardio · prehab ──
+  autonomous:       GROUP.AUTONOMOUS,
+  fuel_performance: GROUP.AUTONOMOUS,
+  // ── Apex band — Autonomous + advanced_nutrition · sovereign_comlink · coach_orchestration ──
+  fuel_sovereign:        GROUP.APEX,
+  kickstart_6wk_3x:      GROUP.APEX,
+  kickstart_6wk_4x:      GROUP.APEX,
+  transformation_8wk_3x: GROUP.APEX,
+  transformation_8wk_4x: GROUP.APEX,
+  sovereign_12wk_3x:     GROUP.APEX,
+  sovereign_12wk_4x:     GROUP.APEX,
+  // ── Youth band — Baseline + sports_hub · roster ──
   rising_athlete:   GROUP.YOUTH,
-  // ── Canonical · Hybrid Protocols (6 SKUs) — God Mode ──
-  kickstart_6wk_3x:      GROUP.ALL,
-  kickstart_6wk_4x:      GROUP.ALL,
-  transformation_8wk_3x: GROUP.ALL,
-  transformation_8wk_4x: GROUP.ALL,
-  sovereign_12wk_3x:     GROUP.ALL,
-  sovereign_12wk_4x:     GROUP.ALL,
-  // ── Legacy storefront slugs → closest modern group (grandfathered) ──
-  lite:      GROUP.FITNESS_BASE,
-  gateway:   GROUP.FITNESS_PRO,
-  architect: GROUP.FITNESS_PRO,
-  sovereign: GROUP.ALL,
+  // ── Legacy storefront slugs → closest modern band (grandfathered) ──
+  lite:                 GROUP.BASELINE,
+  gateway:              GROUP.AUTONOMOUS,
+  architect:            GROUP.AUTONOMOUS,
+  sovereign:            GROUP.APEX,
   youth_athlete:        GROUP.YOUTH,
-  nutrition_essentials: GROUP.NUTRITION,
-  nutrition_platinum:   GROUP.NUTRITION,
+  nutrition_essentials: GROUP.BASELINE,
+  nutrition_platinum:   GROUP.APEX,
 };
 
-// Feature key → the groups that unlock it. CEO Phase-2 hierarchy. KEEP IN LOCKSTEP
-// with frontend/src/lib/entitlements.js FEATURE_ACCESS — one canonical map, two layers.
-const EVERY_PAYING: Group[] = [GROUP.FITNESS_BASE, GROUP.FITNESS_PRO, GROUP.NUTRITION, GROUP.YOUTH, GROUP.ALL];
-const AUTONOMOUS_UP: Group[] = [GROUP.FITNESS_PRO, GROUP.NUTRITION, GROUP.ALL]; // Autonomous, Fuel, God
+// Feature key → the BANDS that unlock it. CEO Master Feature Map (cumulative ladder).
+// KEEP IN LOCKSTEP with frontend/src/lib/entitlements.js FEATURE_ACCESS. GROUP.ALL
+// (God Mode) is in every list; higher bands inherit everything below them.
+const BASE_BAND:  Group[] = [GROUP.BASELINE, GROUP.AUTONOMOUS, GROUP.APEX, GROUP.YOUTH, GROUP.ALL]; // every paying path + God
+const AUTO_BAND:  Group[] = [GROUP.AUTONOMOUS, GROUP.APEX, GROUP.ALL]; // Autonomous + Apex + God
+const APEX_BAND:  Group[] = [GROUP.APEX, GROUP.ALL];                   // Apex + God
+const YOUTH_BAND: Group[] = [GROUP.YOUTH, GROUP.ALL];                  // Youth + God
 export const FEATURE_ACCESS: Record<string, Group[]> = {
-  // Baseline — every paying path (Fuel/Youth inherit Baseline).
-  grid:               EVERY_PAYING,
-  form_videos:        EVERY_PAYING,
-  base_nutrition:     EVERY_PAYING,
-  readiness:          EVERY_PAYING,
-  mindset:            EVERY_PAYING,
-  // Autonomous tier and up (NOT Baseline Catalyst/Momentum, NOT Youth).
-  voice_coach:        AUTONOMOUS_UP,
-  smart_cardio:       AUTONOMOUS_UP,
-  cardio:             AUTONOMOUS_UP, // legacy alias for smart_cardio
-  prehab:             AUTONOMOUS_UP,
-  // Fuel Series + God only.
-  advanced_nutrition: [GROUP.NUTRITION, GROUP.ALL],
-  nutrition_macros:   [GROUP.NUTRITION, GROUP.ALL],
-  nutrition_image:    [GROUP.NUTRITION, GROUP.ALL],
-  // Youth Division + God only.
-  sports_hub:         [GROUP.YOUTH, GROUP.ALL],
-  roster:             [GROUP.YOUTH, GROUP.ALL],
-  kinematics:         [GROUP.YOUTH, GROUP.ALL],
-  // God Tier only.
-  sovereign_comlink:  [GROUP.ALL],
-  coach_orchestration:[GROUP.ALL],
+  // Baseline — every paying path (Autonomous/Apex/Youth inherit it).
+  grid:               BASE_BAND,
+  form_videos:        BASE_BAND,
+  base_nutrition:     BASE_BAND,
+  readiness:          BASE_BAND,
+  mindset:            BASE_BAND,
+  // Autonomous band and up (NOT Baseline, NOT Youth).
+  voice_coach:        AUTO_BAND,
+  smart_cardio:       AUTO_BAND,
+  cardio:             AUTO_BAND, // legacy alias for smart_cardio
+  prehab:             AUTO_BAND,
+  // Apex band only (+ God) — the premium adult unlocks.
+  advanced_nutrition: APEX_BAND, // Meal Scanner
+  nutrition_macros:   APEX_BAND,
+  nutrition_image:    APEX_BAND, // Meal Scanner (image)
+  sovereign_comlink:  APEX_BAND,
+  coach_orchestration:APEX_BAND,
+  // Youth band only (+ God) — the Athlete Portal suite.
+  sports_hub:         YOUTH_BAND,
+  roster:             YOUTH_BAND,
+  kinematics:         YOUTH_BAND,
 };
 
 export interface EntitlementContext {

@@ -102,7 +102,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 const MODEL              = 'claude-sonnet-4-6';
 const MAX_TOKENS         = 2048;
 const EFFORT_DEFAULT     = 'high';
-const CLAUDE_TIMEOUT_MS  = 14000;
+const CLAUDE_TIMEOUT_MS  = 20000;
 const MAX_TRANSCRIPT_LEN = 800;
 const MAX_CANDIDATES     = 12;
 
