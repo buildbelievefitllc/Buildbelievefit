@@ -37,6 +37,19 @@ coaching backend). Two primary product surfaces:
 Mission: transform bodies and lives through joint health, strength, and cardio.
 Trilingual (EN / ES / PT) is **structural, not optional**.
 
+### Pricing
+
+> **SOT:** live prices + Stripe Payment Links live in `frontend/src/lib/pricingMatrix.js`
+> (live `buy.stripe.com` links, provisioned 2026-06-02). This block is a **read-only mirror**
+> for at-a-glance reference — change the code file (and the Stripe dashboard) **first**, then
+> sync this table. The legacy `gateway / architect / sovereign` ladder is **retired**.
+
+- **Online Fitness** (recurring · /mo): Catalyst `$9.99` · Momentum `$19.99` · Autonomous `$49.99` *(Most Chosen)*.
+- **Online Nutrition — Fuel** (recurring · /mo): Foundation `$7.99` · Performance `$14.99` · Sovereign `$29.99` *(Most Chosen)*.
+- **Youth Athlete** (recurring · /mo): Rising Athlete `$14.99`.
+- **Hybrid Protocols** (one-time · in-person + app · 3× / 4× per week):
+  Kickstart 6-wk `$399 / $499` · Transformation 8-wk `$499 / $649` · Sovereign 12-wk `$699 / $899` *(Founder-Direct)*.
+
 ## 2 · Brand non-negotiables (LOCKED — do not move without CEO order)
 
 - **Colors:** BBF Purple `#6a0dad`, BBF Gold `#f5c800` (permanent identity). Matte Black `#090909` is an *approved surface/canvas only* — never for primary CTAs, brand marks, headers, or load-bearing identity.
