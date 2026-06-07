@@ -1,14 +1,14 @@
--- bbf-card-distributor — Terminal Charlie · 12-hour autonomous drip scheduler.
+-- bbf-card-distributor — Terminal Charlie · once-daily autonomous drip scheduler.
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Applied to project ihclbceghxpuawymlvgi via apply_migration (mirrored here for
 -- repo source-of-truth, matching the bbf_posting_history convention).
 --
--- pg_cron fires the EXISTING bbf-card-distributor twice daily via pg_net; the
+-- pg_cron fires the EXISTING bbf-card-distributor once daily via pg_net; the
 -- distributor owns the atomic queue claim + flip rule, so this adds NO second
 -- consumer of bbf_calling_cards_batch_v1 — it just automates the trigger.
---   • Cadence:  '0 0,13 * * *'  → 00:00 + 13:00 UTC = 5:00 PM + 6:00 AM MST (peak windows)
---   • Volume:   limit:1 per fire = ~2 cards/day → drains the 100-card queue in ~50 days
---   • Channels: instagram + facebook only (TikTok benched)
+--   • Cadence:  '0 13 * * *'  → 13:00 UTC = 6:00 AM local (UTC-7, market does not observe DST)
+--   • Volume:   limit:1 per fire = 1 card/day → drains the 100-card queue in ~100 days
+--   • Channels: instagram + facebook (FB filtered out until META_FB_PAGE_ID exists; TikTok benched)
 --   • Auth:     X-BBF-Admin-Token read INLINE from vault.decrypted_secrets (never in git)
 --   • Timeout:  45s for Meta upload/status-poll latency
 --
@@ -24,7 +24,7 @@ end $$;
 
 select cron.schedule(
   'bbf_card_distributor_drip',
-  '0 0,13 * * *',                       -- 00:00 + 13:00 UTC = 5pm + 6am MST
+  '0 13 * * *',                         -- 13:00 UTC = 6:00 AM local (UTC-7)
   $cron$
     select net.http_post(
       url := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-card-distributor',
