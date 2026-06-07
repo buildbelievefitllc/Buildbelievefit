@@ -64,10 +64,11 @@ export default function Program({ plans, profile }) {
       <div style={styles.bar}>
         <h2 style={styles.head}>{tr.head}</h2>
         <div style={styles.actions}>
-          {/* AI Voice Coach (RESTORED) — synthesizes today's session briefing via
-              bbf-tts-eleven (virtual_coach → Julius). Live Vision camera stays
-              deprecated to protect UI performance. */}
-          <VoiceCoachButton text={coachCue} />
+          {/* AI Voice Coach (RESTORED) — speaks today's session briefing via
+              bbf-tts-eleven (virtual_coach → Julius), falling back to the device's
+              built-in stock voice when ElevenLabs is unavailable. Live Vision
+              camera stays deprecated to protect UI performance. */}
+          <VoiceCoachButton text={coachCue} lang={lang} />
           {profile ? (
             <Badge
               label={tr.streak(profile.currentStreak)}
