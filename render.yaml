@@ -63,6 +63,11 @@ services:
       - { type: redirect, source: /thank-you.html, destination: / }
       - { type: redirect, source: /gracias.html, destination: / }
       - { type: redirect, source: /obrigado.html, destination: / }
+      # Content Studio — clean /studio alias for the standalone owner content tool.
+      # The physical file (frontend/public/bbf-studio.html → dist) is served directly
+      # at /bbf-studio.html; this rewrite adds the short alias. MUST precede the SPA
+      # catch-all below (routes are first-match-wins, top-to-bottom).
+      - { type: rewrite, source: /studio, destination: /bbf-studio.html }
       # SPA CATCH-ALL — MUST be last. Any unmatched path serves the React shell;
       # React Router then owns all client-side routing.
       - { type: rewrite, source: /*, destination: /index.html }

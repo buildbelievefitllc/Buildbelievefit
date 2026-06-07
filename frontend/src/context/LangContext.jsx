@@ -279,6 +279,9 @@ const DICT = {
   'cmd-tab-sports': { en: 'Sports Portal', es: 'Portal Deportivo', pt: 'Portal Esportivo' },
   // CEO-only Language Mastery Protocol tab (Command Center + sidebar nav entry).
   'cmd-tab-language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },
+  // Content Studio launcher (admin sidebar) — opens the standalone
+  // /bbf-studio.html "Sovereign Studio" content tool in a new tab.
+  'cmd-studio': { en: 'Content Studio', es: 'Estudio de Contenido', pt: 'Estúdio de Conteúdo' },
   // Settings surface — client account · preferences · session chrome.
   'set-meta': { en: 'Account · preferences · session', es: 'Cuenta · preferencias · sesión', pt: 'Conta · preferências · sessão' },
   'set-account': { en: 'Account', es: 'Cuenta', pt: 'Conta' },

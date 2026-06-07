@@ -64,6 +64,19 @@ export default function MasterLayout({ children }) {
               </button>
             );
           })}
+          {/* Content Studio — a standalone, full-screen HTML content tool (NOT a
+              React route), so it opens in a NEW TAB via a real browser navigation.
+              Router navigate() would hit the SPA '*' fallback and bounce to '/';
+              the physical file at /bbf-studio.html (served from frontend/public →
+              dist) is what actually loads. Admin-only — the shell is AdminGuard-gated. */}
+          <a
+            href="/bbf-studio.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...styles.navItem, ...styles.navLaunch }}
+          >
+            {t('cmd-studio')} ↗
+          </a>
         </nav>
 
         <div className="bbf-sidebar-foot">
@@ -113,6 +126,9 @@ const styles = {
     borderColor: 'rgba(245,200,0,.3)',
     borderLeft: '3px solid var(--yel)',
   },
+  // Content Studio launcher — an <a> styled like a nav item but gold-tinted to read
+  // as an external action (new tab), distinct from the router-driven nav tabs.
+  navLaunch: { display: 'block', textDecoration: 'none', color: 'var(--gold-soft)' },
   who: { fontSize: '.72rem', letterSpacing: '1px', color: 'var(--mut)', marginBottom: '.6rem' },
   toVault: {
     width: '100%',
