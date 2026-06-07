@@ -53,12 +53,12 @@ const MODEL             = routeAndLog('bbf-agentic-cardio', 'cardiac_intercept')
 // tier — it does not need an unbounded thinking budget. Opus 4.8 + the old
 // `thinking:{type:'adaptive'}` could burn enough thinking tokens to blow the
 // hard timeout and silently drop every call to the deterministic fallback.
-// Bound the thinking budget (predictable latency) and give the wall a little
-// headroom. budget_tokens MUST be < max_tokens; max_tokens = budget + output room.
-const THINK_BUDGET      = 1024;   // bounded extended-thinking budget (was: adaptive)
-const MAX_TOKENS        = 2048;   // 1024 thinking + ~1024 structured-output room
-const EFFORT_DEFAULT    = 'high';
-const CLAUDE_TIMEOUT_MS = 15000;  // was 12000 · modest headroom for Opus 4.8
+// Opus 4.8 uses ADAPTIVE thinking — thinking:{type:'enabled',budget_tokens} is a hard
+// 400 on this model ("Use thinking.type.adaptive and output_config.effort"). effort:'low'
+// keeps the structured-output generation well under the wall.
+const MAX_TOKENS        = 2048;   // structured-output room (adaptive thinking self-budgets)
+const EFFORT_DEFAULT    = 'low';
+const CLAUDE_TIMEOUT_MS = 20000;  // adaptive + effort:low keeps Opus 4.8 comfortably under this
 const MIN_MINUTES       = 5;
 const MAX_MINUTES       = 120;
 const CNS_WINDOW_DAYS   = 3;
@@ -266,7 +266,7 @@ async function callClaude(userMessage: string, apiKey: string, localeInput: stri
   // directive as a separate uncached block so EN/ES/PT share the cached prefix.
   const requestBody = {
     model: MODEL, max_tokens: MAX_TOKENS,
-    thinking: { type: 'enabled', budget_tokens: THINK_BUDGET },
+    thinking: { type: 'adaptive' },
     output_config: { effort: EFFORT_DEFAULT, format: { type: 'json_schema', schema: RESPONSE_SCHEMA } },
     system: [
       { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },

@@ -101,7 +101,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 // deploy is wired up. For now this matches routeModel('novel_form_correction').
 const MODEL              = 'claude-sonnet-4-6';
 const MAX_TOKENS         = 2048;
-const EFFORT_DEFAULT     = 'high';
+const EFFORT_DEFAULT     = 'low';  // structured rewrite — low effort keeps it under the 20s timeout
 const CLAUDE_TIMEOUT_MS  = 20000;
 const MAX_TRANSCRIPT_LEN = 800;
 const MAX_CANDIDATES     = 12;
@@ -184,6 +184,7 @@ const RESPONSE_SCHEMA_REWRITE = {
           weight_lbs: { type: 'string', description: 'Numeric weight as a string, or "BW", or "".' },
         },
         required: ['name', 'target', 'weight_lbs'],
+        additionalProperties: false,
       },
     },
   },
@@ -414,7 +415,7 @@ async function callClaude(userMessage: string, systemPrompt: string, schema: unk
   const requestBody = {
     model:      MODEL,
     max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
+    thinking:   { type: 'disabled' },  // structured classify+rewrite — no extended thinking, stays well under the 20s wall
     output_config: {
       effort: EFFORT_DEFAULT,
       format: { type: 'json_schema', schema: schema },

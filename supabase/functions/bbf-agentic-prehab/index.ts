@@ -93,7 +93,7 @@ import { requireEntitlement } from '../_shared/entitlement-gate.ts';
 
 const MODEL             = routeAndLog('bbf-agentic-prehab', 'prehab_assignment');
 const MAX_TOKENS        = 2048;
-const EFFORT_DEFAULT    = 'high';
+const EFFORT_DEFAULT    = 'low';  // simple 3-movement structured task — low effort keeps it well under timeout
 const CLAUDE_TIMEOUT_MS = 20000;
 
 const SYSTEM_PROMPT = [
@@ -144,6 +144,7 @@ const RESPONSE_SCHEMA = {
           reason:   { type: 'string', description: 'One tactical sentence linking this movement to the athlete\'s specific context.' },
         },
         required: ['name', 'duration', 'focus', 'reason'],
+        additionalProperties: false,
       },
     },
   },
