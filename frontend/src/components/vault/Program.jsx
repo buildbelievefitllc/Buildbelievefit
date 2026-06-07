@@ -19,6 +19,8 @@ import { parseWorkoutPlan } from '../../lib/vaultApi.js';
 import ProgramGrid from './ProgramGrid.jsx';
 import SovereignSentinel from './SovereignSentinel.jsx';
 import HypertrophyBalanceAnalyzer from './HypertrophyBalanceAnalyzer.jsx';
+import VoiceCoachButton from './VoiceCoachButton.jsx';
+import { buildCoachCue } from './coachCue.js';
 
 // Trilingual UI chrome (EN verbatim to the prior hardcoded copy so the default
 // language keeps the vault-logging E2E selectors green). Module-local dictionary
@@ -49,16 +51,30 @@ export default function Program({ plans, profile }) {
   // from it. Falls back to the authorized static catalog (by persona) otherwise.
   const dynamicPlan = useMemo(() => parseWorkoutPlan(textPlan), [textPlan]);
 
+  // Spoken briefing for the AI Voice Coach — derived from the athlete's OWN lead
+  // session and streak, trilingual (follows the active language). Recomputed only
+  // when the plan, profile, or language changes.
+  const coachCue = useMemo(
+    () => buildCoachCue({ plan: dynamicPlan, profile, lang }),
+    [dynamicPlan, profile, lang],
+  );
+
   return (
     <div>
       <div style={styles.bar}>
         <h2 style={styles.head}>{tr.head}</h2>
-        {profile ? (
-          <Badge
-            label={tr.streak(profile.currentStreak)}
-            color={profile.currentStreak > 0 ? 'var(--grn)' : 'var(--mut)'}
-          />
-        ) : null}
+        <div style={styles.actions}>
+          {/* AI Voice Coach (RESTORED) — synthesizes today's session briefing via
+              bbf-tts-eleven (virtual_coach → Julius). Live Vision camera stays
+              deprecated to protect UI performance. */}
+          <VoiceCoachButton text={coachCue} />
+          {profile ? (
+            <Badge
+              label={tr.streak(profile.currentStreak)}
+              color={profile.currentStreak > 0 ? 'var(--grn)' : 'var(--mut)'}
+            />
+          ) : null}
+        </div>
       </div>
 
       {/* Master visual dashboard above the grid. From the Command Center (admin/
@@ -84,7 +100,8 @@ export default function Program({ plans, profile }) {
 }
 
 const styles = {
-  bar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' },
+  bar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' },
+  actions: { display: 'flex', alignItems: 'center', gap: '.6rem', flexWrap: 'wrap' },
   head: { fontFamily: 'var(--display)', fontSize: '1.5rem', letterSpacing: '.5px', margin: 0 },
   details: {
     marginTop: '1.4rem',

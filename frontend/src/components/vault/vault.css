@@ -1207,3 +1207,69 @@
 .ph-cue-text { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
 .ph-cue-label { font-family: var(--hb); font-size: .64rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); }
 .ph-cue-directive { font-family: var(--bd); font-size: .86rem; font-weight: 600; line-height: 1.35; color: rgba(249, 245, 255, .82); }
+
+/* ═══ AI Voice Coach button (Program tab · bbf-tts-eleven / virtual_coach) ═════
+   Sleek brutalist mic trigger. Idle = outlined gold-on-dark (the Vault's signout /
+   pill vocabulary); playing = the LOCKED gold→gold-soft fill with black ink (the
+   day-pill / sync-button treatment). Gold is the ACCENT, black is the ink — never
+   the brand surface (CLAUDE.md §2). */
+.bbf-voice {
+  display: inline-flex; align-items: center; gap: .5rem; flex: 0 0 auto;
+  cursor: pointer; white-space: nowrap;
+  font-family: var(--hb); font-size: .76rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-soft);
+  background: rgba(245, 200, 0, .05);
+  border: 1px solid rgba(245, 200, 0, .38);
+  border-radius: 10px; padding: .5rem .85rem; min-height: 40px;
+  transition: color .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .12s ease;
+}
+.bbf-voice:hover:not(:disabled) {
+  color: var(--yel); border-color: var(--yel);
+  background: rgba(245, 200, 0, .1);
+  box-shadow: 0 0 16px -4px rgba(245, 200, 0, .55);
+  transform: translateY(-1px);
+}
+.bbf-voice:active:not(:disabled) { transform: translateY(0); }
+.bbf-voice:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.bbf-voice:disabled { opacity: .45; cursor: not-allowed; }
+
+.bbf-voice-icon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; }
+.bbf-voice-label { line-height: 1; }
+
+/* Loading — gold pulse dot (parity with the command-primitives spinner). */
+.bbf-voice.is-loading { cursor: progress; }
+.bbf-voice-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--yel); box-shadow: 0 0 12px rgba(245, 200, 0, .6);
+  animation: bbf-voice-pulse 1s infinite ease-in-out;
+}
+
+/* Playing — LOCKED gold fill, black ink; animated equalizer reads "audio live". */
+.bbf-voice.is-playing {
+  color: #0c0a02; border-color: transparent;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  box-shadow: 0 8px 22px -10px rgba(245, 200, 0, .6);
+}
+.bbf-voice.is-playing:hover { box-shadow: 0 10px 26px -10px rgba(245, 200, 0, .75); }
+.bbf-voice-eq { display: inline-flex; align-items: flex-end; gap: 2px; width: 18px; height: 14px; }
+.bbf-voice-eq span {
+  flex: 1 1 auto; width: 3px; height: 35%; border-radius: 1px; background: #0c0a02;
+  animation: bbf-voice-eq .9s infinite ease-in-out;
+}
+.bbf-voice-eq span:nth-child(2) { animation-delay: .15s; }
+.bbf-voice-eq span:nth-child(3) { animation-delay: .3s; }
+.bbf-voice-eq span:nth-child(4) { animation-delay: .45s; }
+
+/* Error — red outline, soft-red ink (parity with .ph-error). */
+.bbf-voice.is-error {
+  color: #f3b0ab; border-color: rgba(224, 82, 74, .5);
+  background: rgba(224, 82, 74, .08); box-shadow: none;
+}
+
+@keyframes bbf-voice-pulse { 0%, 100% { transform: scale(.6); opacity: .45; } 50% { transform: scale(1); opacity: 1; } }
+@keyframes bbf-voice-eq { 0%, 100% { height: 35%; } 50% { height: 100%; } }
+@media (prefers-reduced-motion: reduce) {
+  .bbf-voice { transition: none; }
+  .bbf-voice-dot, .bbf-voice-eq span { animation: none; }
+  .bbf-voice-eq span { height: 70%; }
+}
