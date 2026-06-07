@@ -6,7 +6,7 @@
 -- pg_cron fires the EXISTING bbf-card-distributor twice daily via pg_net; the
 -- distributor owns the atomic queue claim + flip rule, so this adds NO second
 -- consumer of bbf_calling_cards_batch_v1 — it just automates the trigger.
---   • Cadence:  '0 */12 * * *'  → 00:00 and 12:00 UTC daily (every 12h)
+--   • Cadence:  '0 0,13 * * *'  → 00:00 + 13:00 UTC = 5:00 PM + 6:00 AM MST (peak windows)
 --   • Volume:   limit:1 per fire = ~2 cards/day → drains the 100-card queue in ~50 days
 --   • Channels: instagram + facebook only (TikTok benched)
 --   • Auth:     X-BBF-Admin-Token read INLINE from vault.decrypted_secrets (never in git)
@@ -24,7 +24,7 @@ end $$;
 
 select cron.schedule(
   'bbf_card_distributor_drip',
-  '0 */12 * * *',
+  '0 0,13 * * *',                       -- 00:00 + 13:00 UTC = 5pm + 6am MST
   $cron$
     select net.http_post(
       url := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-card-distributor',
