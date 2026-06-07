@@ -5,6 +5,8 @@
 
 > Machine-readable companion: `tier-feature-audit.json`.
 
+> **UPDATE 2026-06-07:** The Access-Control kill-switch (flag #7 below) has since been **applied to production** by parallel swarm work — `20260604174357 bbf_access_control_kill_switch` + `20260604230927 bbf_verify_user_pin_restore_plan_source` (a regression fix for its plan-source read). Verified live: `bbf_validate_vault_session` + `bbf_admin_set_access_status` exist, and `bbf_verify_user_pin` / `bbf_sync_vault_session` / `bbf_sync_readiness` all carry the `access_status` lock guard. **Do NOT re-run the raw `20260602120000` migration file — it predates the RESTORE fix and would reintroduce the login-path regression.** Flag #7 is RESOLVED.
+
 ---
 
 ## TL;DR — what's real vs. what the brief assumed
@@ -112,6 +114,6 @@ The Gateway→X / Architect→X+Y / Sovereign→X+Y+Z model the brief asked for 
 4. **Stripe-link drift** — backfill `bbf_tiers.stripe_price_id` / `stripe_payment_link` from `pricingMatrix.js`, or have the frontend read the table, so one source of truth exists.
 5. **Within-category access collapse** — the 3 Fuel tiers grant identical UI access; Momentum & Autonomous grant identical UI access. Price ladders aren't backed by distinct gated surfaces.
 6. **Autonomous copy mismatch** — says nutrition "fully unlocked," but the nutrition tab maps to `GROUP.NUTRITION`, not `FITNESS_PRO`.
-7. **Kill-switch not deployed** — migration `20260602120000` is in-repo only; live `verify_user_pin`/`sync_*` lack the lock guard and the kill-switch RPCs are absent → the CEO "Lock Account" control is **non-functional in prod**.
+7. ~~**Kill-switch not deployed**~~ → **RESOLVED 2026-06-07.** Applied to prod (`20260604174357` + `20260604230927` RESTORE fix); all three functions now carry the `access_status` guard and both kill-switch RPCs exist. The CEO "Lock Account" control is **live**. ⚠️ Do not re-run the raw `20260602120000` file — it predates the RESTORE fix.
 8. **Wearable device sync dormant** (0 rows); ACWR RPC undeployed.
 9. **Zero conversions captured** through the new pipeline despite live Stripe links.

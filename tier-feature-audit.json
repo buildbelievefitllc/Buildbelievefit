@@ -8,7 +8,7 @@
     "There is NO bbf_feature_gates table. Feature gating lives entirely in the frontend (entitlements.js) and is — by its own header — a COSMETIC, FAIL-OPEN upsell funnel, not a server-side access boundary.",
     "bbf_tiers rows carry NULL stripe_price_id / stripe_payment_link; the LIVE checkout links exist only in frontend/pricingMatrix.js + stripe-webhook PRICE_TO_TIER. Source-of-truth drift.",
     "Wearable DEVICE sync (bbf_wearable_readings) is DORMANT (0 rows). In-app readiness self-report (bbf_readiness) is LIVE (721 rows). The brief conflates the two.",
-    "Access-Control kill-switch is in-repo but NOT applied to prod: bbf_validate_vault_session + bbf_admin_set_access_status absent, and verify_user_pin/sync_* bodies lack the lock guard."
+    "[RESOLVED 2026-06-07] Access-Control kill-switch is NOW applied to prod (migrations 20260604174357 bbf_access_control_kill_switch + 20260604230927 bbf_verify_user_pin_restore_plan_source). All three functions carry the access_status guard; both RPCs exist. Do NOT re-run the raw 20260602120000 file — it predates the RESTORE fix and would regress the login plan-source read. (Was absent at original audit time.)"
   ],
   "tiers": [
     {
@@ -230,7 +230,7 @@
     "bbf_tiers stripe linkage NULL — live price IDs/links live only in frontend + webhook (source-of-truth drift).",
     "Within-category access collapse — 3 Fuel tiers share one entitlement group; Momentum & Autonomous share one — price tiers not backed by distinct gated surfaces.",
     "Autonomous marketing copy claims nutrition 'fully unlocked' but nutrition tab is gated to GROUP.NUTRITION, not FITNESS_PRO.",
-    "Access-Control kill-switch (migration 20260602120000) committed but NOT applied to prod — kill switch non-functional; sessionGuard heartbeat fails open.",
+    "[RESOLVED 2026-06-07] Access-Control kill-switch now applied to prod (20260604174357 + 20260604230927 RESTORE). Live 'Lock Account' is functional. Caveat: do not re-run the stale 20260602120000 file.",
     "Wearable device sync dormant (0 rows); ACWR RPC undeployed.",
     "Cardio engine deployed with zero protocols/logs.",
     "Zero conversions captured via the new pipeline despite live Stripe links."
