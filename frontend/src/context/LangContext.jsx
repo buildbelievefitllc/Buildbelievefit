@@ -289,6 +289,15 @@ const DICT = {
   'set-access-tier': { en: 'Access tier', es: 'Nivel de acceso', pt: 'Nível de acesso' },
   'set-language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },
   'set-session': { en: 'Session', es: 'Sesión', pt: 'Sessão' },
+
+  // ── Self-Serve Concierge — first-login welcome modal chrome. The greeting,
+  // feature titles/blurbs, and first-move are generated NATIVELY per locale by
+  // the bbf-agentic-concierge edge fn; only this static chrome is dictionary-driven.
+  'concierge-kicker': { en: 'BBF Lab Concierge', es: 'Conserje del Lab BBF', pt: 'Concierge do Lab BBF' },
+  'concierge-access': { en: 'Your access', es: 'Tu acceso', pt: 'Seu acesso' },
+  'concierge-unlocked-h': { en: 'Unlocked for you', es: 'Desbloqueado para ti', pt: 'Desbloqueado para você' },
+  'concierge-firstmove-h': { en: 'Your first move', es: 'Tu primer paso', pt: 'Seu primeiro passo' },
+  'concierge-dismiss': { en: "Let's get to work →", es: 'Manos a la obra →', pt: 'Vamos ao trabalho →' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });
