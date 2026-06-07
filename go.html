@@ -243,9 +243,58 @@
     footer{padding-bottom:130px}
   }
   @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
+
+  /* ---------- Pathfinder safety-screening gate ---------- */
+  /* Offer sections stay hidden until the screening clears the visitor. */
+  body.gated #tiers,
+  body.gated #nutrition,
+  body.gated #youth,
+  body.gated #hybrid,
+  body.gated #local{display:none!important}
+  [hidden]{display:none!important}
+
+  .pf-card{max-width:680px;margin:0 auto;background:var(--bg-card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:34px 30px;box-shadow:var(--glow-soft)}
+  .pf-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .pf-field{margin-bottom:16px;display:flex;flex-direction:column}
+  .pf-label{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);margin-bottom:7px}
+  .pf-label .opt{color:var(--text-faint);font-weight:400;text-transform:none;letter-spacing:0}
+  .pf-input{width:100%;background:#0a0710;border:1px solid var(--line);border-radius:10px;color:var(--text);
+    font-family:"Barlow Condensed",sans-serif;font-size:17px;font-weight:500;padding:12px 14px;outline:none;
+    transition:border-color .15s ease,box-shadow .2s ease}
+  textarea.pf-input{resize:vertical;min-height:60px}
+  .pf-input::placeholder{color:var(--text-faint)}
+  .pf-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,0,.16)}
+  select.pf-input{appearance:none;-webkit-appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--gold) 50%),linear-gradient(135deg,var(--gold) 50%,transparent 50%);
+    background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:40px}
+  .pf-parq{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+  .pf-parq h3{font-family:"Bebas Neue";font-size:24px;letter-spacing:1px;color:var(--gold)}
+  .pf-parq .note{color:var(--text-faint);font-size:15px;margin:2px 0 14px;font-weight:300}
+  .pf-check{display:flex;gap:11px;align-items:flex-start;margin-bottom:11px;cursor:pointer}
+  .pf-check input{width:20px;height:20px;margin-top:2px;flex:0 0 auto;accent-color:var(--purple);cursor:pointer}
+  .pf-check span{font-size:16px;color:var(--text-dim);line-height:1.4}
+  .pf-confirm{display:flex;gap:11px;align-items:flex-start;margin:18px 0 6px;cursor:pointer;
+    padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:rgba(106,13,173,.08)}
+  .pf-confirm input{width:20px;height:20px;margin-top:1px;flex:0 0 auto;accent-color:var(--gold);cursor:pointer}
+  .pf-confirm span{font-size:16px;color:var(--text);font-weight:500}
+  .pf-err{display:none;margin-top:14px;color:#fca5a5;font-weight:600;font-size:15px}
+  .pf-err.show{display:block}
+  .pf-reassure{text-align:center;color:var(--text-faint);font-size:14px;margin-top:14px;font-weight:300}
+  .pf-cleared{max-width:760px;margin:0 auto 30px;text-align:center;border:1px solid rgba(245,200,0,.45);
+    border-top:4px solid var(--gold);border-radius:14px;padding:24px;
+    background:linear-gradient(180deg,rgba(245,200,0,.08),rgba(106,13,173,.05))}
+  .pf-cleared .badge2{display:inline-block;font-family:"Bebas Neue";font-size:14px;letter-spacing:2px;color:#22c55e;text-transform:uppercase}
+  .pf-cleared h2{font-size:clamp(30px,4vw,46px);margin:6px 0 8px}
+  .pf-flag{max-width:680px;margin:0 auto;background:var(--bg-card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:34px 30px;text-align:center;box-shadow:var(--glow-soft)}
+  .pf-flag .ic{width:54px;height:54px;border-radius:50%;border:2px solid var(--gold);display:grid;place-items:center;font-size:24px;color:var(--gold);margin:0 auto 16px}
+  .pf-flag h2{font-size:clamp(28px,4vw,42px);margin:6px 0 12px}
+  .pf-flag p{color:var(--text-dim);font-weight:300;max-width:54ch;margin:0 auto 12px}
+  @media(max-width:640px){.pf-grid2{grid-template-columns:1fr}.pf-card,.pf-flag{padding:24px 18px}}
 </style>
 </head>
-<body>
+<body class="gated">
 
 <!-- ===================== TOP BAR ===================== -->
 <header class="topbar">
@@ -275,9 +324,95 @@
       </div>
       <div class="hero-cta">
         <a class="btn btn-gold" id="hero-cta" data-cta="primary"></a>
-        <a class="btn btn-ghost" href="#tiers">View All Plans</a>
+        <a class="btn btn-ghost" href="#pathfinder">View All Plans</a>
       </div>
       <p class="tagline">Your schedule is the <b>context.</b> Your potential is the <b>focus.</b></p>
+    </div>
+  </section>
+
+  <!-- ===================== PATHFINDER · SAFETY SCREENING (gate before checkout) ===================== -->
+  <section class="block" id="pathfinder">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Step 1 · Safety Screening</div>
+        <h2>The Pathfinder</h2>
+        <p>Before we show you protocols, we make sure training is safe for <em>you</em>. This is the standard Physical Activity Readiness check — the same screening a clinician uses. Be honest; it protects you.</p>
+      </div>
+
+      <form class="pf-card" id="pf-form" novalidate>
+        <div class="pf-grid2">
+          <div class="pf-field"><label class="pf-label" for="pf-name">Full Name</label>
+            <input class="pf-input" id="pf-name" name="name" type="text" autocomplete="name" required placeholder="Your name" /></div>
+          <div class="pf-field"><label class="pf-label" for="pf-age">Age</label>
+            <input class="pf-input" id="pf-age" name="age" type="number" min="13" max="100" inputmode="numeric" required placeholder="e.g. 34" /></div>
+        </div>
+        <div class="pf-grid2">
+          <div class="pf-field"><label class="pf-label" for="pf-email">Email</label>
+            <input class="pf-input" id="pf-email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required placeholder="you@email.com" /></div>
+          <div class="pf-field"><label class="pf-label" for="pf-phone">Phone <span class="opt">(optional)</span></label>
+            <input class="pf-input" id="pf-phone" name="phone" type="tel" autocomplete="tel" placeholder="+1 …" /></div>
+        </div>
+        <div class="pf-grid2">
+          <div class="pf-field"><label class="pf-label" for="pf-goal">Primary Goal</label>
+            <select class="pf-input" id="pf-goal" name="goal" required>
+              <option value="">Select your main goal…</option>
+              <option value="fat-loss">Fat Loss / Weight Management</option>
+              <option value="muscle">Muscle Building</option>
+              <option value="performance">Athletic Performance</option>
+              <option value="health">General Health &amp; Longevity</option>
+              <option value="recovery">Injury Recovery / Rehab</option>
+            </select></div>
+          <div class="pf-field"><label class="pf-label" for="pf-exp">Training Experience</label>
+            <select class="pf-input" id="pf-exp" name="experience">
+              <option value="">Select…</option>
+              <option value="beginner">Beginner (0-1 yr)</option>
+              <option value="intermediate">Intermediate (1-3 yrs)</option>
+              <option value="advanced">Advanced (3+ yrs)</option>
+            </select></div>
+        </div>
+        <div class="pf-field"><label class="pf-label" for="pf-injuries">Current Injuries or Physical Limitations</label>
+          <textarea class="pf-input" id="pf-injuries" name="injuries" rows="2" placeholder="List any injuries or limitations we should know about…"></textarea></div>
+        <div class="pf-field"><label class="pf-label" for="pf-conditions">Medical Conditions</label>
+          <textarea class="pf-input" id="pf-conditions" name="medical_conditions" rows="2" placeholder="Diabetes, heart conditions, high blood pressure, etc…"></textarea></div>
+        <div class="pf-field"><label class="pf-label" for="pf-medications">Current Medications</label>
+          <textarea class="pf-input" id="pf-medications" name="medications" rows="2" placeholder="List any medications that may affect your training…"></textarea></div>
+        <div class="pf-field"><label class="pf-label" for="pf-surgeries">Previous Surgeries</label>
+          <textarea class="pf-input" id="pf-surgeries" name="previous_surgeries" rows="2" placeholder="List any past surgeries and roughly when…"></textarea></div>
+
+        <div class="pf-parq">
+          <h3>Physical Activity Readiness (PAR-Q)</h3>
+          <p class="note">Check any that apply to you.</p>
+          <label class="pf-check" for="pf-parq1"><input type="checkbox" id="pf-parq1" data-parq /><span>Has your doctor ever said that you have a heart condition and that you should only do physical activity recommended by a doctor?</span></label>
+          <label class="pf-check" for="pf-parq2"><input type="checkbox" id="pf-parq2" data-parq /><span>Do you feel pain in your chest when you do physical activity?</span></label>
+          <label class="pf-check" for="pf-parq3"><input type="checkbox" id="pf-parq3" data-parq /><span>In the past month, have you had chest pain when you were not doing physical activity?</span></label>
+          <label class="pf-check" for="pf-parq4"><input type="checkbox" id="pf-parq4" data-parq /><span>Do you lose your balance because of dizziness, or do you ever lose consciousness?</span></label>
+          <label class="pf-check" for="pf-parq5"><input type="checkbox" id="pf-parq5" data-parq /><span>Do you have a bone or joint problem that could be made worse by a change in your physical activity?</span></label>
+          <label class="pf-check" for="pf-parq6"><input type="checkbox" id="pf-parq6" data-parq /><span>Is your doctor currently prescribing drugs for your blood pressure or heart condition?</span></label>
+          <label class="pf-check" for="pf-parq7"><input type="checkbox" id="pf-parq7" data-parq /><span>Do you know of any other reason why you should not do physical activity?</span></label>
+        </div>
+
+        <label class="pf-confirm" for="pf-confirm"><input type="checkbox" id="pf-confirm" required /><span>I confirm this information is accurate.</span></label>
+        <button class="btn btn-gold btn-block" id="pf-analyze" type="submit" style="margin-top:14px">Analyze My Fitness</button>
+        <div class="pf-err" id="pf-err" role="alert"></div>
+        <p class="pf-reassure">🔒 Reviewed by a Certified Movement Specialist. Your answers are logged securely and never sold.</p>
+      </form>
+
+      <!-- Revealed on clearance (offers unlock below) -->
+      <div class="pf-cleared" id="pf-cleared" hidden>
+        <span class="badge2">✓ You're Cleared</span>
+        <h2>Great — here are your recommended protocols.</h2>
+        <p style="color:var(--text-dim);font-weight:300">Your screening came back clean. Choose the protocol that matches your goal below.</p>
+      </div>
+
+      <!-- Revealed on flag (offers stay locked; route to a human) -->
+      <div class="pf-flag" id="pf-flagged" hidden>
+        <div class="ic">✓</div>
+        <div class="kicker" style="color:var(--gold)">Thank you for your honesty</div>
+        <h2>Let's make sure this is safe for you.</h2>
+        <p>A couple of your answers tell us we should <b style="color:var(--text)">talk with you directly before you start</b> — so your plan is built around your health, not in spite of it. This isn't a no, and it isn't permanent: it's a quick safety check a real human reviews personally.</p>
+        <p>Send us a note and we'll map out a safe path forward with you — often the same week.</p>
+        <a class="btn btn-purple btn-block" id="pf-contact" style="max-width:460px;margin:10px auto 0" href="#">Contact us: buildbelievefitllc@buildbelievefit.fitness</a>
+      </div>
     </div>
   </section>
 
@@ -744,9 +879,10 @@ const CONFIG = {
       window.location.href = mailto("Hybrid Protocol "+(product||"")+" — "+CONFIG.KEYWORDS.hybrid);
       return;
     }
-    /* primary / tiers */
-    const tiers = document.getElementById("tiers");
-    if(tiers) tiers.scrollIntoView({behavior:"smooth"});
+    /* primary / tiers — while the screening gate is up, send them to it first */
+    const gate = document.body.classList.contains("gated") && document.getElementById("pathfinder");
+    const target = gate || document.getElementById("tiers");
+    if(target) target.scrollIntoView({behavior:"smooth"});
   }
 
   /* one delegated listener for every CTA on the page */
@@ -768,6 +904,97 @@ const CONFIG = {
     }
   });
 
+})();
+</script>
+
+<!-- ============================================================= -->
+<!--  PATHFINDER GATE — screens BEFORE checkout. Reuses CONFIG.    -->
+<!-- ============================================================= -->
+<script>
+(function(){
+  "use strict";
+  var form = document.getElementById("pf-form");
+  if(!form) return;
+  var EMAIL = (typeof CONFIG !== "undefined" && CONFIG.QUOTE_EMAIL)  || "buildbelievefitllc@buildbelievefit.fitness";
+  var FID   = (typeof CONFIG !== "undefined" && CONFIG.FORMSPREE_ID) || "mwvwjokw";
+
+  /* flagged-path contact button → mailto */
+  var contact = document.getElementById("pf-contact");
+  if(contact){
+    contact.setAttribute("href", "mailto:"+EMAIL+"?subject="+encodeURIComponent("Pathfinder Review Request"));
+    contact.textContent = "Contact us: " + EMAIL;
+  }
+
+  function val(id){ var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+
+  /* Live BBF flag rule: flagged if ANY of the 7 PAR-Q items is checked. */
+  function checkedParq(){
+    var hits = [], boxes = form.querySelectorAll("input[data-parq]");
+    for(var i=0;i<boxes.length;i++){
+      if(boxes[i].checked){
+        var span = boxes[i].parentNode.querySelector("span");
+        hits.push(span ? span.textContent.trim() : boxes[i].id);
+      }
+    }
+    return hits;
+  }
+
+  /* Audit-trail log (fire-and-forget — never blocks the visitor). */
+  function logScreening(payload){
+    try{
+      fetch("https://formspree.io/f/"+FID, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "Accept":"application/json" },
+        body: JSON.stringify(payload), keepalive:true, mode:"cors"
+      }).catch(function(){});
+    }catch(e){/* never block */}
+  }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    document.getElementById("pf-err").classList.remove("show");
+    if(typeof form.checkValidity === "function" && !form.checkValidity()){
+      if(typeof form.reportValidity === "function") form.reportValidity();
+      return;
+    }
+    var btn = document.getElementById("pf-analyze");
+    btn.disabled = true; btn.textContent = "Analyzing…";
+
+    var flags  = checkedParq();
+    var status = flags.length > 0 ? "flagged" : "cleared";
+
+    logScreening({
+      _subject: "BBF Pathfinder — " + status.toUpperCase() + " — " + (val("pf-name") || "unknown"),
+      event: "pathfinder_screening",
+      clearanceStatus: status,
+      name: val("pf-name"),
+      age: val("pf-age"),
+      email: val("pf-email").toLowerCase(),
+      phone: val("pf-phone"),
+      goal: val("pf-goal"),
+      experience: val("pf-exp"),
+      injuries: val("pf-injuries"),
+      medical_conditions: val("pf-conditions"),
+      medications: val("pf-medications"),
+      previous_surgeries: val("pf-surgeries"),
+      parq_flagged: flags,
+      parq_flag_count: flags.length,
+      parq_any: flags.length > 0,
+      confirm_accurate: !!document.getElementById("pf-confirm").checked,
+      page: location.href,
+      timestamp: (new Date()).toISOString()
+    });
+
+    form.hidden = true;
+    if(status === "cleared"){
+      document.getElementById("pf-cleared").hidden = false;
+      document.body.classList.remove("gated");                 // unlock the offers
+      document.getElementById("pf-cleared").scrollIntoView({behavior:"smooth", block:"start"});
+    }else{
+      document.getElementById("pf-flagged").hidden = false;     // offers stay locked
+      document.getElementById("pf-flagged").scrollIntoView({behavior:"smooth", block:"start"});
+    }
+  });
 })();
 </script>
 </body>
