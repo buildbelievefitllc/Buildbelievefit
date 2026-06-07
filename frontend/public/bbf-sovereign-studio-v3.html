@@ -2268,10 +2268,14 @@ async function ensureReelFonts(){
   try{ await document.fonts.ready; }catch(e){}
 }
 
-// Prefer MP4 (Instagram-friendly); fall back to webm.
+// Prefer real MP4 (h264) → real WebM codecs → bare containers LAST. Some Chromium
+// builds report isTypeSupported('video/mp4')===true for the bare container but then
+// record 0 bytes (can't actually encode mp4), so the bare strings are last-resort
+// only (keeps Safari — which has no webm — on mp4, while Chrome lands on real webm).
 function pickRecorderMime(){
-  const tries=['video/mp4;codecs=h264','video/mp4;codecs=avc1.42E01E','video/mp4',
-               'video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
+  const tries=['video/mp4;codecs=h264','video/mp4;codecs=avc1.42E01E',
+               'video/webm;codecs=vp9','video/webm;codecs=vp8',
+               'video/mp4','video/webm'];
   for(const m of tries){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; }
   return '';
 }
@@ -2369,6 +2373,8 @@ $('reel-export-vid').onclick=async ()=>{
   reelVid.onended=finish; const killTimer=setTimeout(finish,(dur+1.5)*1000);
   rec.onstop=()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop());
     const ext=(mime&&mime.indexOf('mp4')>=0)?'mp4':'webm'; const blob=new Blob(chunks,{type:mime||('video/'+ext)});
+    if(!blob.size){ note.className='vid-note active warn'; note.textContent='Recording produced no data — this browser couldn’t encode '+(mime||'video')+'. Try EXPORT IMAGE, or update your browser.';
+      reelRecording=false; btn.disabled=false; btn.textContent=orig; prog.classList.remove('active'); reelVid.loop=true; reelVid.play().catch(()=>{}); return; }
     const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.download='bbf-reel-'+Date.now()+'.'+ext; a.href=url; a.click();
     setTimeout(()=>URL.revokeObjectURL(url),4000);
     if(ext==='webm'){ note.className='vid-note active warn'; note.textContent='Exported as .webm — your browser can’t record MP4 directly; convert before posting to IG.'; }

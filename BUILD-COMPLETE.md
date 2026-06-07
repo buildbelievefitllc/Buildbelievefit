@@ -88,16 +88,27 @@ Per your direction, v3 replaces v2 as the live tool (v2 files stay in the repo, 
 
 ## Verification
 
-**Done automatically (in this build):**
-- Inline JS syntax-checked; HTML tag/`<div>` balance verified (172/172).
-- All new wiring present: `reel-file-vid`, `reel-export-vid`, hidden `#reel-vid`, progress bar/note,
-  and functions `drawReelOverlay`, `drawVideoCover`, `pickRecorderMime`, `ensureReelFonts`.
-- `exportStage` confirmed to include `document.fonts.ready`, `scale:2`, `useCORS:true`, `onclone`.
-- The canvas overlay functions were run against a stub context (no logo / with logo / low darkness /
-  landscape footage / unready-video guard) — **no runtime errors**.
-- `frontend` **lint + build green**; `dist/bbf-sovereign-studio-v3.html` confirmed present.
+**Headless browser test — real Chromium via Playwright (11/11 passed):**
+- Page loads with no uncaught JS exceptions; reel controls wired (video button/input, hidden `<video>`).
+- `drawReelOverlay` renders the gold strip + white headline + gold watch pill on a real 1080×1920
+  canvas, with **Bebas/Barlow actually loaded**.
+- **Upgrade 1**: `exportStage` calls html2canvas with `scale:2` + `useCORS`, and its `onclone`
+  neutralizes the `.stage-scaler` transform and forces full 1080×1920 (verified `transform→none`,
+  `stage→1080px`); a PNG downloads.
+- **Upgrade 2**: `captureStream`→`MediaRecorder` yields a non-empty Blob, and the full **EXPORT VIDEO
+  button** flow (generate clip → upload → record → download) emits a playable file.
+- Codec detection resolves a **real** codec (this Chromium → `video/webm;codecs=vp9`).
 
-**You should validate visually (can't be done headlessly here):**
+**A real bug the test caught (and that's now fixed):** this Chromium reports
+`MediaRecorder.isTypeSupported('video/mp4') === true` for the *bare* container, then records **0 bytes**
+(it can't actually encode mp4). `pickRecorderMime()` was hardened to prefer real WebM codecs over the
+bare `video/mp4` string (bare mp4 kept only as a last resort for Safari, which lacks WebM), and a
+**0-byte-blob guard** now warns instead of downloading an empty file.
+
+**Static checks:** inline JS syntax + `<div>` balance (172/172); overlay functions run against a stub
+ctx; `frontend` **lint + build green**; `dist/bbf-sovereign-studio-v3.html` present.
+
+**Still worth your eyes on a real device (can't be auto-checked):**
 1. Desktop Chrome → Reel → upload a short MP4 → preview shows moving footage under the overlay.
 2. **EXPORT IMAGE** → open the PNG: fonts crisp, overlay matches the preview (validates Upgrade 1 +
    poster path).
