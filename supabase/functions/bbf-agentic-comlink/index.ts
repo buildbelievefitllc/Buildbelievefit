@@ -77,11 +77,12 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
+import { requireEntitlement } from '../_shared/entitlement-gate.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token',
+  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token, x-bbf-vault-token',
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -564,22 +565,33 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST')    return jsonResponse({ error: 'method_not_allowed' }, 405);
 
-  const expectedToken = Deno.env.get('BBF_COACH_AGENT_TOKEN');
-  if (expectedToken) {
-    const sent = req.headers.get('x-bbf-admin-token') || '';
-    if (sent !== expectedToken) {
-      console.warn('[bbf-agentic-comlink] rejected: bad/missing X-BBF-Admin-Token');
-      return jsonResponse({ error: 'unauthorized' }, 401);
-    }
-  }
-
   let payload: any;
   try { payload = await req.json(); }
   catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-
   const intent = (payload && typeof payload.intent === 'string') ? payload.intent : 'constraint';
+
+  // ─── STRICT ENTITLEMENT GATE (FAIL-CLOSED · burns the legacy anon loophole) ──
+  // Every intent now requires a valid vault SESSION token, resolved server-side
+  // (the public anon key NO LONGER grants access to ANY intent). Per-intent tier:
+  //   · constraint / friction (Sovereign Comlink FAB) → sovereign_comlink (God Tier)
+  //   · positional_drill / form_correction (youth)     → sports_hub (Youth + God)
+  // The body `uid` is never trusted for auth. admin_override is POST-auth only now
+  // (it can no longer bypass authentication for any intent).
+  {
+    const feature = (intent === 'positional_drill' || intent === 'form_correction')
+      ? 'sports_hub'
+      : 'sovereign_comlink';
+    const gate = await requireEntitlement({
+      supabaseUrl: Deno.env.get('SUPABASE_URL'),
+      serviceKey:  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY'),
+      vaultToken:  payload?.vault_token ?? req.headers.get('x-bbf-vault-token'),
+      feature,
+    });
+    if (!gate.ok) return jsonResponse({ error: gate.denial.error, detail: gate.denial.detail }, gate.denial.status);
+  }
+
+  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
 
   // ─── Route to positional drill flow (Warhead 2) ────────────────
   if (intent === 'positional_drill') {
