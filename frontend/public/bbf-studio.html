@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>BBF Sovereign Studio — All-In-One Content Machine</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -11,7 +11,8 @@
   :root { --pur:#6a0dad; --purl:#8b1abf; --purx:#0d0118; --yel:#f5c800; --wht:#f9f5ff;
     --gry:#0e0e0e; --gry2:#141414; --gry3:#1e1e1e; --mut:#888; --green:#4ade80;
     --hb:'Bebas Neue',sans-serif; --bd:'Barlow Condensed',sans-serif; }
-  body { background:#0a0a0a; color:var(--wht); font-family:var(--bd); font-weight:600; min-height:100vh; }
+  body { background:#0a0a0a; color:var(--wht); font-family:var(--bd); font-weight:600; min-height:100vh; -webkit-text-size-adjust:100%; }
+  html, body { overflow-x:hidden; max-width:100%; }
 
   /* ===== SHELL ===== */
   .topbar { background:linear-gradient(135deg,#0d0118,#0a0a0a); border-bottom:2px solid var(--yel);
@@ -26,7 +27,24 @@
   .mode-tab.active { background:var(--pur); color:var(--wht); border-color:rgba(245,200,0,0.5); }
 
   .layout { display:grid; grid-template-columns:360px 1fr; min-height:calc(100vh - 64px); }
-  @media (max-width:980px){ .layout { grid-template-columns:1fr; } .preview-wrap{order:-1; max-height:62vh;} }
+  @media (max-width:980px){
+    .layout { grid-template-columns:1fr; }
+    /* Controls flow in the natural page scroll on mobile — no nested scrollbox. */
+    .controls { max-height:none; overflow-y:visible; border-right:none; border-bottom:1px solid var(--gry3); padding:18px; }
+    /* Preview sits up top with a definite pane height (svh tracks mobile chrome),
+       so fitPreview() always scales the card to fit instead of overflowing. */
+    .preview-wrap { order:-1; height:56vh; height:56svh; min-height:320px; padding:14px; }
+    .topbar { padding:11px 14px; gap:8px; }
+    .tb-brand { font-size:1rem; }
+    /* Mode tabs become their own full-width, horizontally-scrollable row. */
+    .mode-tabs { flex:1 1 100%; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+    .mode-tab { flex:0 0 auto; font-size:0.72rem; padding:8px 14px; }
+  }
+  @media (max-width:430px){
+    .mode-tab { font-size:0.66rem; padding:7px 11px; letter-spacing:1px; }
+    .controls { padding:14px; }
+    .preview-wrap { height:52vh; height:52svh; padding:10px; }
+  }
   .controls { background:var(--gry); border-right:1px solid var(--gry3); padding:22px; overflow-y:auto; max-height:calc(100vh - 64px); }
   .panel { display:none; } .panel.active { display:block; }
   .ctl-group { margin-bottom:18px; }
@@ -1915,13 +1933,26 @@ document.querySelectorAll('.mode-tab').forEach(t=>{
 });
 function fitPreview(){
   const wrap=document.querySelector('.preview-wrap');
-  const d=DIMS[mode]();
-  const avail=Math.min(wrap.clientWidth-50, d.h>1500?460:640);
-  const s=Math.min(avail/d.w, (window.innerHeight-200)/d.h);
   const sc=$('scaler-'+mode);
+  if(!wrap||!sc) return;
+  const d=DIMS[mode]();
+  const cs=getComputedStyle(wrap);
+  const padX=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight);
+  const padY=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);
+  const availW=Math.max(120, wrap.clientWidth-padX);
+  // Fit to the VISIBLE height of the preview pane (its top → viewport bottom) so the
+  // card never spills past the screen on phone or desktop.
+  const visibleH=window.innerHeight-wrap.getBoundingClientRect().top;
+  const availH=Math.max(160, Math.min(wrap.clientHeight, visibleH)-padY-8);
+  // Desktop comfort cap (unchanged 460/640 ceilings) so the card doesn't balloon on
+  // a large monitor; on mobile we fill the available pane.
+  const wide=window.innerWidth>980;
+  const capS=wide?(d.h>1500?460:640)/d.w:Infinity;
+  const s=Math.min(availW/d.w, availH/d.h, capS);
   sc.style.transform='scale('+s+')'; sc.style.width=(d.w*s)+'px'; sc.style.height=(d.h*s)+'px';
 }
-window.addEventListener('resize',fitPreview);
+['resize','orientationchange','load'].forEach(ev=>window.addEventListener(ev,fitPreview));
+if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(fitPreview); }
 
 /* ===== FILE HELPER ===== */
 function bindFile(inputId, lblId, cb){
