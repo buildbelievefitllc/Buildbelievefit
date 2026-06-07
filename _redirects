@@ -14,7 +14,7 @@
 /portal         /bbf-app.html        200
 
 # Clean URL for the content studio (owner content-creation tool)
-/studio         /bbf-studio.html     200
+/studio         /bbf-sovereign-studio-v3.html     200
 
 # Fallback — send all unmatched routes to index
 /*              /index.html          200

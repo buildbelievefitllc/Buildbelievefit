@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BBF Sovereign Studio — All-In-One Content Machine</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --pur:#6a0dad; --purl:#8b1abf; --purx:#0d0118; --yel:#f5c800; --wht:#f9f5ff;
+    --gry:#0e0e0e; --gry2:#141414; --gry3:#1e1e1e; --mut:#888; --green:#4ade80;
+    --hb:'Bebas Neue',sans-serif; --bd:'Barlow Condensed',sans-serif; }
+  body { background:#0a0a0a; color:var(--wht); font-family:var(--bd); font-weight:600; min-height:100vh; -webkit-text-size-adjust:100%; }
+  html, body { overflow-x:hidden; max-width:100%; }
+
+  /* ===== SHELL ===== */
+  .topbar { background:linear-gradient(135deg,#0d0118,#0a0a0a); border-bottom:2px solid var(--yel);
+    padding:14px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; position:sticky; top:0; z-index:100; }
+  .tb-brand { font-family:var(--hb); font-size:1.15rem; letter-spacing:3px; }
+  .tb-brand span { color:var(--yel); }
+  .tb-sub { font-size:0.58rem; font-weight:700; letter-spacing:2.5px; color:var(--mut); text-transform:uppercase; }
+  .mode-tabs { display:flex; gap:6px; flex-wrap:wrap; }
+  .mode-tab { font-family:var(--hb); font-size:0.78rem; letter-spacing:1.5px; color:var(--mut); background:var(--gry2);
+    border:1px solid var(--gry3); border-radius:30px; padding:9px 18px; cursor:pointer; transition:all .15s; }
+  .mode-tab:hover { color:var(--wht); border-color:var(--pur); }
+  .mode-tab.active { background:var(--pur); color:var(--wht); border-color:rgba(245,200,0,0.5); }
+
+  .layout { display:grid; grid-template-columns:360px 1fr; min-height:calc(100vh - 64px); }
+  @media (max-width:980px){
+    .layout { grid-template-columns:1fr; }
+    /* Controls flow in the natural page scroll on mobile — no nested scrollbox. */
+    .controls { max-height:none; overflow-y:visible; border-right:none; border-bottom:1px solid var(--gry3); padding:18px; }
+    /* Preview sits up top with a definite pane height (svh tracks mobile chrome),
+       so fitPreview() always scales the card to fit instead of overflowing. */
+    .preview-wrap { order:-1; height:56vh; height:56svh; min-height:320px; padding:14px; }
+    .topbar { padding:11px 14px; gap:8px; }
+    .tb-brand { font-size:1rem; }
+    /* Mode tabs become their own full-width, horizontally-scrollable row. */
+    .mode-tabs { flex:1 1 100%; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+    .mode-tab { flex:0 0 auto; font-size:0.72rem; padding:8px 14px; }
+  }
+  @media (max-width:430px){
+    .mode-tab { font-size:0.66rem; padding:7px 11px; letter-spacing:1px; }
+    .controls { padding:14px; }
+    .preview-wrap { height:52vh; height:52svh; padding:10px; }
+  }
+  .controls { background:var(--gry); border-right:1px solid var(--gry3); padding:22px; overflow-y:auto; max-height:calc(100vh - 64px); }
+  .panel { display:none; } .panel.active { display:block; }
+  .ctl-group { margin-bottom:18px; }
+  .ctl-label { font-size:0.6rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--mut); margin-bottom:7px; display:block; }
+  input[type=text], textarea, select { width:100%; background:var(--gry2); border:1px solid var(--gry3); border-radius:6px;
+    color:var(--wht); font-family:var(--bd); font-weight:600; font-size:0.93rem; padding:9px 11px; }
+  textarea { resize:vertical; min-height:58px; }
+  input:focus, textarea:focus, select:focus { outline:none; border-color:var(--pur); }
+  input[type=range] { width:100%; accent-color:var(--yel); }
+  .range-val { font-family:var(--hb); color:var(--yel); font-size:0.82rem; letter-spacing:1px; margin-left:8px; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .seg { display:flex; gap:6px; }
+  .seg button { flex:1; background:var(--gry2); border:1px solid var(--gry3); border-radius:6px; color:var(--mut);
+    font-family:var(--hb); font-size:0.74rem; letter-spacing:1.2px; padding:9px 5px; cursor:pointer; transition:all .15s; }
+  .seg button.active { background:var(--pur); color:var(--wht); border-color:var(--pur); }
+  .upload-btn { display:block; width:100%; text-align:center; background:linear-gradient(135deg,var(--pur),#4a0880);
+    border:1px solid rgba(245,200,0,0.3); border-radius:8px; color:var(--wht);
+    font-family:var(--hb); font-size:0.8rem; letter-spacing:1.5px; padding:11px; cursor:pointer; transition:all .2s; }
+  .upload-btn:hover { filter:brightness(1.2); }
+  .upload-btn.done { background:linear-gradient(135deg,#1a4d2e,#0d3320); border-color:rgba(74,222,128,0.4); }
+  input[type=file] { display:none; }
+  .swatches { display:flex; gap:7px; flex-wrap:wrap; }
+  .sw { width:32px; height:32px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:all .15s; }
+  .sw.active { border-color:#fff; transform:scale(1.12); }
+  .pal-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+  .pal { height:44px; border-radius:8px; cursor:pointer; border:2px solid transparent; transition:all .15s; display:flex; align-items:flex-end; padding:4px 6px; }
+  .pal.active { border-color:#fff; transform:scale(1.05); }
+  .pal span { font-family:var(--hb); font-size:0.5rem; letter-spacing:1px; color:rgba(255,255,255,0.75); }
+  .pal[data-p="yellow"] span { color:rgba(0,0,0,0.6); }
+  .spin-btn { display:block; width:100%; text-align:center; border-radius:8px;
+    background:linear-gradient(135deg,var(--pur),var(--purl)); color:var(--wht); border:1px solid rgba(245,200,0,0.4);
+    font-family:var(--hb); font-size:1rem; letter-spacing:2px; padding:14px; cursor:pointer; transition:all .15s; }
+  .spin-btn:hover { filter:brightness(1.25); }
+  .ghost-btn { display:block; width:100%; text-align:center; border-radius:8px; background:var(--gry2); color:var(--mut);
+    border:1px solid var(--gry3); font-family:var(--hb); font-size:0.82rem; letter-spacing:1.5px; padding:11px; cursor:pointer; transition:all .15s; }
+  .ghost-btn:hover { color:var(--wht); border-color:var(--pur); }
+  .export-btn { display:block; width:100%; text-align:center; background:var(--yel); border:none; border-radius:8px;
+    color:#000; font-family:var(--hb); font-size:0.95rem; letter-spacing:2px; padding:15px; cursor:pointer; }
+  .export-btn:hover { filter:brightness(1.1); }
+  .export-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .hint { font-size:0.7rem; color:var(--mut); line-height:1.45; margin-top:7px; }
+  .hint b { color:var(--yel); }
+  .divider { border-top:1px solid var(--gry3); margin:20px 0; }
+
+  /* caption box */
+  .caption-box { background:var(--gry2); border:1px solid var(--gry3); border-radius:8px; padding:12px;
+    font-size:0.82rem; line-height:1.5; color:#cfc7dd; white-space:pre-wrap; max-height:180px; overflow-y:auto; margin-top:8px; }
+  .copy-cap { margin-top:8px; }
+
+  /* preview */
+  .preview-wrap { display:flex; flex-direction:column; align-items:center; padding:26px; overflow:auto;
+    background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(106,13,173,0.08), transparent 60%); }
+  .stage-scaler { transform-origin:top center; }
+  .stage-host { display:none; } .stage-host.active { display:block; }
+
+  /* history strip */
+  .history { width:100%; max-width:720px; margin-top:18px; }
+  .hist-label { font-size:0.58rem; font-weight:700; letter-spacing:2px; color:var(--mut); text-transform:uppercase; margin-bottom:8px; }
+  .hist-strip { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; }
+  .hist-item { flex-shrink:0; width:74px; height:92px; border-radius:6px; overflow:hidden; border:1px solid var(--gry3); cursor:pointer; position:relative; }
+  .hist-item img { width:100%; height:100%; object-fit:cover; }
+  .hist-item:hover { border-color:var(--yel); }
+  .hist-item .hm { position:absolute; bottom:0; left:0; right:0; font-family:var(--hb); font-size:0.5rem; letter-spacing:1px;
+    background:rgba(0,0,0,0.75); color:var(--yel); text-align:center; padding:2px 0; }
+
+  /* ============ STAGES ============ */
+  /* CTA stage */
+  #stage-cta { width:1080px; height:1350px; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; padding:88px 84px; }
+  #stage-cta.story { height:1920px; padding:110px 90px; }
+  .tbar { position:absolute; top:0; left:0; right:0; height:10px; z-index:5; }
+  .glowEl { position:absolute; width:75%; padding-bottom:75%; border-radius:50%; bottom:-20%; right:-20%; filter:blur(30px); z-index:1; }
+  .borderbox { position:absolute; inset:0; border:6px solid var(--yel); z-index:4; pointer-events:none; display:none; }
+  .z { position:relative; z-index:6; }
+  .s-eye { font-weight:800; font-size:30px; letter-spacing:7px; text-transform:uppercase; }
+  .s-hl { font-family:var(--hb); font-size:150px; line-height:0.92; color:var(--wht); white-space:pre-line; margin-top:10px; }
+  #stage-cta.story .s-hl { font-size:170px; }
+  .s-rule { height:8px; width:88px; margin:42px 0; }
+  .s-body { font-weight:600; font-size:40px; line-height:1.5; color:rgba(255,255,255,0.62); max-width:880px; white-space:pre-line; }
+  .s-body b { color:var(--wht); font-weight:800; }
+  .s-foot { display:flex; justify-content:space-between; align-items:center; }
+  .s-brand { font-family:var(--hb); font-size:28px; letter-spacing:7px; color:rgba(255,255,255,0.25); }
+  .s-brand span { color:var(--yel); }
+  .s-cta { font-family:var(--hb); font-size:30px; letter-spacing:3px; padding:20px 42px; border-radius:60px;
+    background:linear-gradient(135deg,var(--pur),var(--purl)); color:var(--wht); border:2px solid rgba(245,200,0,0.4); }
+  #stage-cta.ylbg .s-hl { color:#060606; }
+  #stage-cta.ylbg .s-body { color:rgba(0,0,0,0.55); }
+  #stage-cta.ylbg .s-body b { color:#060606; }
+  #stage-cta.ylbg .s-brand { color:rgba(0,0,0,0.3); }
+  #stage-cta.ylbg .s-brand span { color:var(--pur); }
+  #stage-cta.ylbg .s-cta { background:#060606; color:var(--yel); border-color:rgba(0,0,0,0.4); }
+
+  /* PHONE stage */
+  #stage-phone { width:1080px; height:1350px; position:relative; overflow:hidden; background:linear-gradient(180deg,#0d0118 0%, #08060a 100%); }
+  .p-strip { position:absolute; top:0; left:0; right:0; height:7px; background:linear-gradient(90deg,var(--pur),var(--yel)); z-index:5; }
+  .p-glow { position:absolute; width:900px; height:900px; left:90px; top:700px; border-radius:50%;
+    background:radial-gradient(circle, rgba(106,13,173,0.45) 0%, transparent 65%); filter:blur(60px); z-index:1; }
+  .p-text { position:absolute; top:64px; left:70px; right:70px; z-index:4; }
+  .p-brand { font-family:var(--hb); font-size:27px; letter-spacing:5px; }
+  .p-brand span { color:var(--yel); }
+  .p-eye { font-weight:800; font-size:30px; letter-spacing:6px; text-transform:uppercase; margin-top:26px; }
+  .p-hl { font-family:var(--hb); font-size:96px; line-height:0.92; color:var(--wht); margin-top:16px; white-space:pre-line; }
+  .p-benefit { font-weight:600; font-size:34px; line-height:1.35; color:#b4aac3; margin-top:18px; max-width:920px; }
+  .phone-anchor { position:absolute; left:50%; bottom:-160px; z-index:3; }
+  .phone-anchor.back { z-index:2; filter:brightness(0.72); }
+  .phone { width:660px; height:1445px; position:relative; transform-origin:center bottom; border-radius:88px;
+    background:linear-gradient(160deg,#3a3744 0%, #232029 45%, #17151c 100%);
+    box-shadow:0 60px 120px rgba(0,0,0,0.75), 0 24px 48px rgba(0,0,0,0.6), inset 0 0 0 3px rgba(130,122,148,0.55), inset 0 0 0 7px #0c0b10; }
+  .phone::before { content:''; position:absolute; right:-5px; top:330px; width:6px; height:150px; border-radius:4px; background:linear-gradient(90deg,#2a2733,#454152); }
+  .phone::after { content:''; position:absolute; left:-5px; top:280px; width:6px; height:230px; border-radius:4px; background:linear-gradient(90deg,#454152,#2a2733); }
+  .phone-screen { position:absolute; inset:14px; border-radius:74px; overflow:hidden; background:#000; }
+  .phone-screen img { width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
+  .screen-ph { width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    color:#564f66; font-family:var(--hb); font-size:34px; letter-spacing:4px; text-align:center;
+    background:repeating-linear-gradient(45deg,#0d0b12,#0d0b12 26px,#100d16 26px,#100d16 52px); }
+  .punch { position:absolute; top:30px; left:50%; transform:translateX(-50%); width:34px; height:34px; border-radius:50%;
+    background:#06060a; box-shadow:inset 0 0 6px rgba(40,50,90,0.9), 0 0 0 3px rgba(0,0,0,0.55); z-index:3; }
+  .glare { position:absolute; inset:14px; border-radius:74px; z-index:2; pointer-events:none;
+    background:linear-gradient(115deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 18%, transparent 32%); }
+  .p-wm { position:absolute; bottom:28px; right:40px; z-index:6; font-family:var(--hb); font-size:22px; letter-spacing:4px; color:rgba(255,255,255,0.28); }
+  .p-wm span { color:rgba(245,200,0,0.55); }
+
+  /* SPOTLIGHT stage */
+  #stage-spot { width:1080px; height:1350px; position:relative; overflow:hidden; background:#08060a; display:flex; flex-direction:column; }
+  .sp-strip { height:10px; background:linear-gradient(90deg,var(--pur),var(--yel)); flex-shrink:0; }
+  .sp-hdr { background:linear-gradient(180deg,#1c0433 0%, var(--purx) 100%); padding:32px 60px 28px; display:flex; align-items:center; gap:30px; flex-shrink:0; }
+  .sp-logo { width:146px; height:146px; border-radius:50%; overflow:hidden; flex-shrink:0; display:none; }
+  .sp-logo img { width:100%; height:100%; object-fit:cover; }
+  .sp-htext { flex:1; text-align:center; }
+  .sp-eye { font-weight:800; font-size:30px; letter-spacing:10px; color:var(--yel); text-transform:uppercase; }
+  .sp-name { font-family:var(--hb); font-size:102px; line-height:0.95; color:var(--wht); letter-spacing:6px; margin-top:6px; }
+  .sp-sub { font-weight:700; font-size:24px; letter-spacing:3px; color:rgba(235,225,250,0.85); margin-top:8px; }
+  .sp-photos { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px 14px; min-height:0; position:relative; }
+  .sp-ph { position:relative; overflow:hidden; border-radius:6px; background:#141218; display:flex; align-items:center; justify-content:center; }
+  .sp-ph img.photo { width:100%; height:100%; object-fit:cover; display:block; position:absolute; inset:0; }
+  .sp-ph .placeholder { color:#564f66; font-family:var(--hb); font-size:34px; letter-spacing:3px; text-align:center; }
+  .sp-badge { position:absolute; bottom:34px; left:50%; transform:translateX(-50%); font-family:var(--hb); font-size:34px; letter-spacing:6px;
+    padding:14px 38px; border-radius:8px; border:3px solid; z-index:2; white-space:nowrap; }
+  .sp-badge.before { background:rgba(8,8,12,0.92); color:var(--wht); border-color:var(--wht); }
+  .sp-badge.after { background:var(--yel); color:#060606; border-color:#060606; }
+  .sp-wm { position:absolute; bottom:22px; right:26px; width:106px; height:106px; border-radius:50%; overflow:hidden; z-index:3; display:none; }
+  .sp-wm img { width:100%; height:100%; object-fit:cover; }
+  .sp-ftr { background:linear-gradient(180deg,#3a0668 0%, var(--purx) 100%); padding:32px 70px 28px; text-align:center; flex-shrink:0; position:relative; }
+  .sp-ftr::before { content:''; position:absolute; top:0; left:0; right:0; height:6px; background:linear-gradient(90deg,var(--pur),var(--yel)); }
+  .sp-fhead { font-family:var(--hb); font-size:54px; letter-spacing:3px; color:var(--yel); }
+  .sp-l1 { font-style:italic; font-weight:600; font-size:31px; color:var(--wht); margin-top:10px; }
+  .sp-l2 { font-style:italic; font-weight:600; font-size:29px; color:rgba(235,225,250,0.8); margin-top:6px; }
+  .sp-cta { font-weight:800; font-size:25px; letter-spacing:2px; color:rgba(235,225,250,0.85); margin-top:15px; }
+
+  /* REEL stage */
+  #stage-reel { width:1080px; height:1920px; position:relative; overflow:hidden; background:#08060a; }
+  #reel-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; }
+  .reel-ph { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:#564f66; font-family:var(--hb); font-size:44px; letter-spacing:4px; text-align:center;
+    background:repeating-linear-gradient(45deg,#0d0b12,#0d0b12 34px,#100d16 34px,#100d16 68px); }
+  .reel-ov { position:absolute; inset:0; z-index:2;
+    background:linear-gradient(180deg, rgba(8,6,10,0.55) 0%, rgba(8,6,10,0.15) 35%, rgba(8,6,10,0.25) 55%, rgba(8,6,10,0.92) 100%); }
+  .reel-strip { position:absolute; top:0; left:0; right:0; height:12px; z-index:5; background:linear-gradient(90deg,var(--pur),var(--yel)); }
+  .reel-top { position:absolute; top:70px; left:70px; right:70px; z-index:4; }
+  .reel-brand { font-family:var(--hb); font-size:34px; letter-spacing:7px; color:var(--wht); }
+  .reel-brand span { color:var(--yel); }
+  .reel-eye { display:inline-block; font-weight:800; font-size:30px; letter-spacing:6px; text-transform:uppercase;
+    margin-top:24px; padding:12px 28px; border-radius:50px; border:3px solid; background:rgba(8,6,10,0.55); }
+  .reel-logo { position:absolute; top:58px; right:64px; width:128px; height:128px; border-radius:50%; overflow:hidden; z-index:6;
+    box-shadow:0 6px 24px rgba(0,0,0,0.6), 0 0 0 3px rgba(245,200,0,0.35); display:none; }
+  .reel-logo img { width:100%; height:100%; object-fit:cover; }
+  .reel-bottom { position:absolute; left:70px; right:70px; bottom:90px; z-index:4; }
+  .reel-hl { font-family:var(--hb); font-size:148px; line-height:0.94; color:var(--wht); white-space:pre-line; text-shadow:0 6px 30px rgba(0,0,0,0.7); }
+  .reel-sub { font-weight:700; font-size:38px; color:rgba(255,255,255,0.78); margin-top:22px; text-shadow:0 3px 14px rgba(0,0,0,0.7); }
+  .reel-watch { display:inline-flex; align-items:center; gap:14px; margin-top:34px; font-family:var(--hb); font-size:36px; letter-spacing:3px;
+    padding:20px 46px; border-radius:60px; background:var(--yel); color:#060606; }
+
+  /* video-export progress + codec note (reel only) */
+  .vid-progress { height:8px; background:var(--gry3); border-radius:5px; overflow:hidden; margin-top:10px; display:none; }
+  .vid-progress.active { display:block; }
+  .vid-progress-bar { height:100%; width:0%; background:linear-gradient(90deg,var(--pur),var(--yel)); transition:width .12s linear; }
+  .vid-note { font-size:0.72rem; line-height:1.4; margin-top:8px; color:var(--yel); display:none; }
+  .vid-note.active { display:block; }
+  .vid-note.warn { color:#fb923c; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="tb-brand">Build<span>Believe</span>Fit</div>
+    <div class="tb-sub">Sovereign Studio V2 · 200-Card Arsenal · All-In-One</div>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-m="cta">🃏 CTA CARDS</button>
+    <button class="mode-tab" data-m="phone">📱 PHONE</button>
+    <button class="mode-tab" data-m="spot">🏆 SPOTLIGHT</button>
+    <button class="mode-tab" data-m="reel">🎬 REEL COVER</button>
+  </div>
+</div>
+
+<div class="layout">
+<div class="controls">
+
+  <!-- ============ CTA PANEL ============ -->
+  <div class="panel active" id="panel-cta">
+    <div class="ctl-group">
+      <label class="ctl-label">⚡ Catalog — pick a vibe, spin</label>
+      <select id="cta-lane">
+        <option value="all">ALL LANES (full shuffle)</option>
+        <option value="capable">I AM CAPABLE</option>
+        <option value="discipline">DISCIPLINE & STACKING DAYS</option>
+        <option value="time">TIME & THE BOX</option>
+        <option value="comeback">THE COMEBACK</option>
+        <option value="fence">FEAR & THE FENCE</option>
+        <option value="identity">IDENTITY & LEGACY</option>
+        <option value="parent">THE WORKING PARENT</option>
+        <option value="responder">FIRST RESPONDER</option>
+        <option value="vision">VISION & MANIFESTATION</option>
+        <option value="youthparent">THE ATHLETE'S PARENT</option>
+        <option value="custom">⭐ MY CUSTOM CARDS</option>
+      </select>
+    </div>
+    <div class="ctl-group"><button class="spin-btn" id="cta-spin">🎰 SPIN A CARD</button><div class="hint">Pulls from the <b>200-card catalog</b> + a random palette. Everything stays editable.</div></div>
+    <div class="ctl-group row2">
+      <button class="ghost-btn" id="cta-shuffle-pal">🎨 SHUFFLE PALETTE</button>
+      <button class="ghost-btn" id="cta-save">⭐ SAVE TO CATALOG</button>
+    </div>
+    <div class="divider"></div>
+    <div class="ctl-group">
+      <label class="ctl-label">Format</label>
+      <div class="seg" id="cta-format">
+        <button class="active" data-f="feed">FEED 4:5</button>
+        <button data-f="story">STORY 9:16</button>
+      </div>
+    </div>
+    <div class="ctl-group"><label class="ctl-label">Palette</label><div class="pal-grid" id="cta-palettes"></div></div>
+    <div class="ctl-group"><label class="ctl-label">Eyebrow</label><input type="text" id="cta-eye" value="BUILD BELIEVE FIT • THE WHY"></div>
+    <div class="ctl-group"><label class="ctl-label">Headline — *stars* = highlight</label>
+      <textarea id="cta-hl">STOP WAITING
+FOR A SIGN.
+*THIS IS IT.*</textarea></div>
+    <div class="ctl-group"><label class="ctl-label">Body — **double stars** = bold white</label>
+      <textarea id="cta-body">No pressure. No judgment. Just a conversation.
+**DM me "PATHFINDER" and let's talk.**</textarea></div>
+    <div class="ctl-group"><label class="ctl-label">CTA Button</label><input type="text" id="cta-btn" value="DM PATHFINDER"></div>
+    <div class="ctl-group">
+      <button class="export-btn" id="cta-export">⬇ EXPORT PNG</button>
+    </div>
+    <div class="divider"></div>
+    <div class="ctl-group">
+      <label class="ctl-label">📝 Auto-Caption</label>
+      <div class="caption-box" id="cta-caption"></div>
+      <button class="ghost-btn copy-cap" id="cta-copycap">📋 COPY CAPTION</button>
+    </div>
+  </div>
+
+  <!-- ============ PHONE PANEL ============ -->
+  <div class="panel" id="panel-phone">
+    <div class="ctl-group">
+      <label class="ctl-label">Feature Preset</label>
+      <select id="ph-preset">
+        <option value="">— pick a preset or write your own —</option>
+        <option value="fasting">FUEL ON YOUR CLOCK (fasting)</option>
+        <option value="hyper">SEE EVERY MUSCLE (hypertrophy)</option>
+        <option value="cardio">CARDIO, PRESCRIBED (smart cardio)</option>
+        <option value="splits">SIGNATURE CHAMBER SPLITS (vault)</option>
+        <option value="interro">EXPOSE YOUR PROGRAM'S GAPS (audit)</option>
+        <option value="prehab">TRAIN HARD. STAY HEALTHY. (prehab)</option>
+        <option value="biomech">MOVE BETTER. LAST LONGER. (biomech)</option>
+        <option value="locker">NUTRITION, LOCKED IN (locker)</option>
+        <option value="haiku">FUEL FOR THE MIND (midnight haiku)</option>
+        <option value="sports">TRAIN THE POSITION (sports hub)</option>
+        <option value="readiness">PUSH OR REST (readiness)</option>
+        <option value="pricing">YOUR AI COACH, $9.99 (pricing)</option>
+        <option value="lab">IT'S A LABORATORY (full suite)</option>
+        <option value="pathfinder">3 MINUTES TO YOUR PLAN (pathfinder)</option>
+      </select>
+    </div>
+    <div class="ctl-group">
+      <label class="ctl-label">Layout</label>
+      <div class="seg" id="ph-layout">
+        <button class="active" data-l="single">SINGLE</button>
+        <button data-l="dual">DUAL</button>
+        <button data-l="trio">TRIO FAN</button>
+        <button data-l="lean">LEAN RIGHT</button>
+      </div>
+      <div class="hint">Single = centered hero. Dual = two screens overlapped. Trio = three-screen fan. Lean = phone pushed right, text owns the left.</div>
+    </div>
+    <div class="ctl-group">
+      <label class="ctl-label">Main Screenshot</label>
+      <label class="upload-btn" id="ph-lbl1" for="ph-file1">UPLOAD SCREENSHOT</label>
+      <input type="file" id="ph-file1" accept="image/*">
+    </div>
+    <div class="ctl-group" id="ph-file2-group" style="display:none;">
+      <label class="ctl-label">2nd Screenshot (dual / trio)</label>
+      <label class="upload-btn" id="ph-lbl2" for="ph-file2">UPLOAD 2ND SCREENSHOT</label>
+      <input type="file" id="ph-file2" accept="image/*">
+    </div>
+    <div class="ctl-group" id="ph-file3-group" style="display:none;">
+      <label class="ctl-label">3rd Screenshot (trio)</label>
+      <label class="upload-btn" id="ph-lbl3" for="ph-file3">UPLOAD 3RD SCREENSHOT</label>
+      <input type="file" id="ph-file3" accept="image/*">
+    </div>
+    <div class="ctl-group"><label class="ctl-label">Eyebrow</label><input type="text" id="ph-eye" value="NUTRITION  •  ADAPTIVE FASTING"></div>
+    <div class="ctl-group"><label class="ctl-label">Eyebrow Color</label><div class="swatches" id="ph-swatches"></div></div>
+    <div class="ctl-group"><label class="ctl-label">Headline</label>
+      <textarea id="ph-hl">FUEL ON
+YOUR CLOCK</textarea></div>
+    <div class="ctl-group"><label class="ctl-label">Benefit</label>
+      <textarea id="ph-benefit">Six fasting protocols, a live eating window, and your macros tracked in real time.</textarea></div>
+    <div class="ctl-group"><label class="ctl-label">Tilt <span class="range-val" id="ph-tilt-val">-5°</span></label>
+      <input type="range" id="ph-tilt" min="-12" max="12" value="-5"></div>
+    <div class="ctl-group"><label class="ctl-label">Size <span class="range-val" id="ph-size-val">100%</span></label>
+      <input type="range" id="ph-size" min="80" max="120" value="100"></div>
+    <div class="ctl-group"><label class="ctl-label">Reveal <span class="range-val" id="ph-lift-val">0</span></label>
+      <input type="range" id="ph-lift" min="-100" max="300" value="0"></div>
+    <div class="ctl-group"><button class="export-btn" id="ph-export">⬇ EXPORT 1080×1350</button></div>
+    <div class="divider"></div>
+    <div class="ctl-group">
+      <label class="ctl-label">📝 Auto-Caption</label>
+      <div class="caption-box" id="ph-caption"></div>
+      <button class="ghost-btn copy-cap" id="ph-copycap">📋 COPY CAPTION</button>
+    </div>
+  </div>
+
+  <!-- ============ SPOTLIGHT PANEL ============ -->
+  <div class="panel" id="panel-spot">
+    <div class="ctl-group"><label class="ctl-label">Before Photo</label>
+      <label class="upload-btn" id="sp-lbl-b" for="sp-file-b">UPLOAD BEFORE</label><input type="file" id="sp-file-b" accept="image/*"></div>
+    <div class="ctl-group"><label class="ctl-label">After Photo</label>
+      <label class="upload-btn" id="sp-lbl-a" for="sp-file-a">UPLOAD AFTER</label><input type="file" id="sp-file-a" accept="image/*"></div>
+    <div class="ctl-group"><label class="ctl-label">Logo (optional)</label>
+      <label class="upload-btn" id="sp-lbl-l" for="sp-file-l">UPLOAD LOGO</label><input type="file" id="sp-file-l" accept="image/*"></div>
+    <div class="ctl-group"><label class="ctl-label">Client Name</label><input type="text" id="sp-name" value="JACKY"></div>
+    <div class="ctl-group"><label class="ctl-label">Sub-line</label><input type="text" id="sp-sub" value="Performance Laboratory • West Valley AZ"></div>
+    <div class="ctl-group"><label class="ctl-label">Gold Shoutout</label><input type="text" id="sp-fhead" value="INCREDIBLE WORK, JACKY."></div>
+    <div class="ctl-group"><label class="ctl-label">Quote Line 1 — pick from the bank or write your own</label>
+      <select id="sp-l1-pick"><option value="">— quote bank (16) —</option></select>
+      <input type="text" id="sp-l1" style="margin-top:6px;" value="This is what showing up — week after week — looks like."></div>
+    <div class="ctl-group"><label class="ctl-label">Quote Line 2 — pick from the bank or write your own</label>
+      <select id="sp-l2-pick"><option value="">— quote bank (16) —</option></select>
+      <input type="text" id="sp-l2" style="margin-top:6px;" value="Proud to be part of your journey."></div>
+    <div class="ctl-group"><button class="spin-btn" id="sp-spinq">🎰 SPIN QUOTE PAIR</button></div>
+    <div class="ctl-group"><label class="ctl-label">CTA Line</label><input type="text" id="sp-cta" value='READY FOR YOURS?  DM "PATHFINDER"  •  buildbelievefit.fitness'></div>
+    <div class="ctl-group"><button class="export-btn" id="sp-export">⬇ EXPORT 1080×1350</button></div>
+    <div class="divider"></div>
+    <div class="ctl-group">
+      <label class="ctl-label">📝 Auto-Caption</label>
+      <div class="caption-box" id="sp-caption"></div>
+      <button class="ghost-btn copy-cap" id="sp-copycap">📋 COPY CAPTION</button>
+    </div>
+  </div>
+
+  <!-- ============ REEL PANEL ============ -->
+  <div class="panel" id="panel-reel">
+    <div class="ctl-group">
+      <label class="ctl-label">🎬 Series Preset</label>
+      <select id="reel-series">
+        <option value="">— pick a series —</option>
+        <option value="formfix">FORM FIX (gold)</option>
+        <option value="sovereign">SOVEREIGN SUNDAY (purple)</option>
+        <option value="fuel">FUEL FILES (green)</option>
+        <option value="lab">THE LAB (cyan)</option>
+        <option value="athlete">RISING ATHLETE (blue)</option>
+        <option value="protocol">35-MIN PROTOCOL (orange)</option>
+      </select>
+      <div class="hint">Locks the series color + tag, loads the hook bank.</div>
+    </div>
+    <div class="ctl-group"><button class="spin-btn" id="reel-spin">🎰 SPIN A HOOK</button></div>
+    <div class="divider"></div>
+    <div class="ctl-group"><label class="ctl-label">Background (video frame)</label>
+      <label class="upload-btn" id="reel-lbl-bg" for="reel-file-bg">UPLOAD BACKGROUND</label><input type="file" id="reel-file-bg" accept="image/*"></div>
+    <div class="ctl-group"><label class="ctl-label">Logo (optional corner badge)</label>
+      <label class="upload-btn" id="reel-lbl-l" for="reel-file-l">UPLOAD LOGO</label><input type="file" id="reel-file-l" accept="image/*"></div>
+    <div class="ctl-group"><label class="ctl-label">🎬 Reel Footage (MP4 / MOV)</label>
+      <label class="upload-btn" id="reel-lbl-vid" for="reel-file-vid">UPLOAD VIDEO</label><input type="file" id="reel-file-vid" accept="video/*">
+      <div class="hint">Loads moving footage behind the overlay. <b>Video wins over image</b> when both are set.</div></div>
+    <div class="ctl-group"><label class="ctl-label">Darkness <span class="range-val" id="reel-dark-val">100%</span></label>
+      <input type="range" id="reel-dark" min="30" max="150" value="100"></div>
+    <div class="ctl-group"><label class="ctl-label">Series Tag</label><input type="text" id="reel-eye" value="FORM FIX • EP. 1"></div>
+    <div class="ctl-group"><label class="ctl-label">Accent</label><div class="swatches" id="reel-swatches"></div></div>
+    <div class="ctl-group"><label class="ctl-label">Hook Headline</label>
+      <textarea id="reel-hl">STOP PRESSING
+STRAIGHT UP</textarea></div>
+    <div class="ctl-group"><label class="ctl-label">Sub-line</label><input type="text" id="reel-sub" value="The 2-inch fix your shoulders will thank you for."></div>
+    <div class="ctl-group"><label class="ctl-label">Button</label><input type="text" id="reel-watch" value="▶  WATCH THE FIX"></div>
+    <div class="ctl-group"><button class="export-btn" id="reel-export">⬇ EXPORT IMAGE 1080×1920</button></div>
+    <div class="ctl-group"><button class="export-btn" id="reel-export-vid">🎬 EXPORT VIDEO</button>
+      <div class="vid-progress" id="reel-vid-progress"><div class="vid-progress-bar" id="reel-vid-bar"></div></div>
+      <div class="vid-note" id="reel-vid-note"></div>
+      <div class="hint">Bakes the overlay onto your footage. Records up to 60s.</div></div>
+    <div class="divider"></div>
+    <div class="ctl-group">
+      <label class="ctl-label">📝 Auto-Caption</label>
+      <div class="caption-box" id="reel-caption"></div>
+      <button class="ghost-btn copy-cap" id="reel-copycap">📋 COPY CAPTION</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ PREVIEW ============ -->
+<div class="preview-wrap">
+  <div class="stage-host active" id="host-cta"><div class="stage-scaler" id="scaler-cta">
+    <div id="stage-cta">
+      <div class="tbar" id="cta-el-tbar"></div>
+      <div class="glowEl" id="cta-el-glow"></div>
+      <div class="borderbox" id="cta-el-border"></div>
+      <div class="z">
+        <div class="s-eye" id="cta-out-eye"></div>
+        <div class="s-hl" id="cta-out-hl"></div>
+        <div class="s-rule" id="cta-el-rule"></div>
+        <div class="s-body" id="cta-out-body"></div>
+      </div>
+      <div class="z s-foot">
+        <div class="s-brand">BUILD<span>BELIEVE</span>FIT</div>
+        <div class="s-cta" id="cta-out-btn"></div>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="stage-host" id="host-phone"><div class="stage-scaler" id="scaler-phone">
+    <div id="stage-phone">
+      <div class="p-strip"></div><div class="p-glow"></div>
+      <div class="p-text">
+        <div class="p-brand">BUILD <span>BELIEVE</span> FIT</div>
+        <div class="p-eye" id="ph-out-eye" style="color:#f5c800;">NUTRITION  •  ADAPTIVE FASTING</div>
+        <div class="p-hl" id="ph-out-hl">FUEL ON
+YOUR CLOCK</div>
+        <div class="p-benefit" id="ph-out-benefit">Six fasting protocols, a live eating window, and your macros tracked in real time.</div>
+      </div>
+      <div class="phone-anchor back" id="ph-anchor2" style="display:none;">
+        <div class="phone" id="ph-phone2">
+          <div class="phone-screen" id="ph-screen2"><div class="screen-ph">2ND<br>SHOT</div></div>
+          <div class="glare"></div><div class="punch"></div>
+        </div>
+      </div>
+      <div class="phone-anchor back" id="ph-anchor3" style="display:none;">
+        <div class="phone" id="ph-phone3">
+          <div class="phone-screen" id="ph-screen3"><div class="screen-ph">3RD<br>SHOT</div></div>
+          <div class="glare"></div><div class="punch"></div>
+        </div>
+      </div>
+      <div class="phone-anchor" id="ph-anchor1">
+        <div class="phone" id="ph-phone1">
+          <div class="phone-screen" id="ph-screen1"><div class="screen-ph">UPLOAD A<br>SCREENSHOT 📱</div></div>
+          <div class="glare"></div><div class="punch"></div>
+        </div>
+      </div>
+      <div class="p-wm">BUILD<span>BELIEVE</span>FIT</div>
+    </div>
+  </div></div>
+
+  <div class="stage-host" id="host-spot"><div class="stage-scaler" id="scaler-spot">
+    <div id="stage-spot">
+      <div class="sp-strip"></div>
+      <div class="sp-hdr">
+        <div class="sp-logo" id="sp-logo1"><img id="sp-logoimg1" alt=""></div>
+        <div class="sp-htext">
+          <div class="sp-eye">CLIENT SPOTLIGHT</div>
+          <div class="sp-name" id="sp-out-name">JACKY</div>
+          <div class="sp-sub" id="sp-out-sub">Performance Laboratory • West Valley AZ</div>
+        </div>
+        <div class="sp-logo" style="visibility:hidden;"></div>
+      </div>
+      <div class="sp-photos">
+        <div class="sp-ph" id="sp-ph-b"><div class="placeholder">UPLOAD<br>BEFORE 📷</div><div class="sp-badge before">BEFORE</div></div>
+        <div class="sp-ph" id="sp-ph-a"><div class="placeholder">UPLOAD<br>AFTER 📷</div><div class="sp-badge after">AFTER</div>
+          <div class="sp-wm" id="sp-wm"><img id="sp-logoimg2" alt=""></div></div>
+      </div>
+      <div class="sp-ftr">
+        <div class="sp-fhead" id="sp-out-fhead">INCREDIBLE WORK, JACKY.</div>
+        <div class="sp-l1" id="sp-out-l1">This is what showing up — week after week — looks like.</div>
+        <div class="sp-l2" id="sp-out-l2">Proud to be part of your journey.</div>
+        <div class="sp-cta" id="sp-out-cta">READY FOR YOURS?  DM "PATHFINDER"  •  buildbelievefit.fitness</div>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="stage-host" id="host-reel"><div class="stage-scaler" id="scaler-reel">
+    <div id="stage-reel">
+      <img id="reel-bg" alt="">
+      <video id="reel-vid" playsinline muted loop preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;"></video>
+      <div class="reel-ph" id="reel-bgph">UPLOAD A<br>VIDEO FRAME 🎬</div>
+      <div class="reel-ov" id="reel-ov"></div>
+      <div class="reel-strip"></div>
+      <div class="reel-logo" id="reel-logo"><img id="reel-logoimg" alt=""></div>
+      <div class="reel-top">
+        <div class="reel-brand">BUILD <span>BELIEVE</span> FIT</div>
+        <div class="reel-eye" id="reel-out-eye" style="color:#f5c800;border-color:#f5c800;">FORM FIX • EP. 1</div>
+      </div>
+      <div class="reel-bottom">
+        <div class="reel-hl" id="reel-out-hl">STOP PRESSING
+STRAIGHT UP</div>
+        <div class="reel-sub" id="reel-out-sub">The 2-inch fix your shoulders will thank you for.</div>
+        <div class="reel-watch" id="reel-out-watch">▶  WATCH THE FIX</div>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="history">
+    <div class="hist-label">⏱ Session History — click any to reload its settings</div>
+    <div class="hist-strip" id="hist-strip"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ===== SAFE STORAGE (persists in claude.ai artifacts; in-memory fallback elsewhere) ===== */
+const mem = {};
+const store = {
+  async get(k){ try{ if(window.storage){ const r=await window.storage.get(k); return r?JSON.parse(r.value):null; } }catch(e){} return mem[k]||null; },
+  async set(k,v){ mem[k]=v; try{ if(window.storage){ await window.storage.set(k, JSON.stringify(v)); } }catch(e){} }
+};
+
+/* ===== SHARED DATA ===== */
+const PALETTES = {
+  purDeep:{label:'PUR DEEP', bg:'linear-gradient(155deg,#0d0118 0%,#12001e 55%,#000 100%)', tbar:'linear-gradient(90deg,#6a0dad,#f5c800)', eye:'#8b1abf', glow:'radial-gradient(circle,rgba(106,13,173,0.4) 0%,transparent 70%)', rule:'#f5c800', hi:'#f5c800'},
+  purMid:{label:'PUR MID', bg:'linear-gradient(155deg,#0d0020 0%,#000 100%)', tbar:'#6a0dad', eye:'#8b1abf', glow:'radial-gradient(circle,rgba(106,13,173,0.3) 0%,transparent 70%)', rule:'#f5c800', hi:'#f5c800'},
+  blue:{label:'BLUE', bg:'linear-gradient(155deg,#001020 0%,#000 100%)', tbar:'linear-gradient(90deg,#38bdf8,#6a0dad)', eye:'#38bdf8', glow:'radial-gradient(circle,rgba(56,189,248,0.16) 0%,transparent 70%)', rule:'#38bdf8', hi:'#38bdf8'},
+  cyan:{label:'CYAN', bg:'linear-gradient(155deg,#001518 0%,#000 100%)', tbar:'linear-gradient(90deg,#00e5ff,#6a0dad)', eye:'#00e5ff', glow:'radial-gradient(circle,rgba(0,229,255,0.14) 0%,transparent 70%)', rule:'#00e5ff', hi:'#00e5ff'},
+  teal:{label:'TEAL', bg:'linear-gradient(155deg,#00201c 0%,#000 100%)', tbar:'linear-gradient(90deg,#2dd4bf,#6a0dad)', eye:'#2dd4bf', glow:'radial-gradient(circle,rgba(45,212,191,0.16) 0%,transparent 70%)', rule:'#2dd4bf', hi:'#2dd4bf'},
+  green:{label:'GREEN', bg:'linear-gradient(155deg,#001a08 0%,#000 100%)', tbar:'linear-gradient(90deg,#4ade80,#f5c800)', eye:'#4ade80', glow:'radial-gradient(circle,rgba(74,222,128,0.16) 0%,transparent 70%)', rule:'#4ade80', hi:'#4ade80'},
+  orange:{label:'ORANGE', bg:'linear-gradient(155deg,#1a0800 0%,#000 100%)', tbar:'linear-gradient(90deg,#fb923c,#f5c800)', eye:'#fb923c', glow:'radial-gradient(circle,rgba(251,146,60,0.14) 0%,transparent 70%)', rule:'#fb923c', hi:'#fb923c'},
+  yellow:{label:'YELLOW', bg:'#f5c800', tbar:'none', eye:'rgba(0,0,0,0.45)', glow:'none', rule:'#6a0dad', hi:'#6a0dad', yl:true},
+  border:{label:'BORDER', bg:'#000', tbar:'linear-gradient(90deg,#6a0dad,#f5c800)', eye:'#f5c800', glow:'radial-gradient(circle,rgba(245,200,0,0.08) 0%,transparent 70%)', rule:'#f5c800', hi:'#f5c800', border:true}
+};
+const ACCENTS=['#f5c800','#8b1abf','#4ade80','#38bdf8','#00e5ff','#fb923c'];
+
+const CATALOG = {
+ "capable": [
+  [
+   "BBF • I AM CAPABLE",
+   "I AM\n*CAPABLE.*",
+   "Not a hope. A fact you buried under everyone else's doubt.\n**Say it until the body believes it.**",
+   "CLAIM IT"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "YOUR LIMITS\nARE\n*BORROWED.*",
+   "Most were handed to you. None are yours to keep.\n**Hand them back.**",
+   "BREAK THROUGH"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "THE DOUBT\nISN'T\n*YOURS.*",
+   "You inherited it. You can return it.\n**Capability was always the factory setting.**",
+   "BEGIN"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "YOU WERE\nBUILT FOR\n*MORE.*",
+   "A blueprint written into you before the world talked you out of it.\n**Time to read it again.**",
+   "ACTIVATE"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "CAPABLE IS A\n*DECISION.*",
+   "Not a gift some got and others didn't.\n**A line you cross the second you decide to.**",
+   "DECIDE"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "STOP ASKING\n*PERMISSION.*",
+   "To start. To want more. To take up space.\n**The permission was always yours to give.**",
+   "TAKE IT"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "THE GIANT\nWAS ALWAYS\n*YOU.*",
+   "You kept waiting for someone to save you. Look in the mirror.\n**They already showed up.**",
+   "RISE"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "POTENTIAL ISN'T\nREAL UNTIL\nYOU *MOVE.*",
+   "Until then it's just a story you tell yourself at 11pm.\n**Movement makes it true.**",
+   "MOVE"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "YOU ARE\nTHE\n*PROOF.*",
+   "Every rep is evidence. Every stacked day is testimony.\n**Build the case for who you are.**",
+   "PROVE IT"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "SAY IT LIKE YOU\nMEAN IT.\n*I AM CAPABLE.*",
+   "The body follows the words. The life follows the body.\n**It all starts in your mouth.**",
+   "SPEAK IT"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "NOBODY'S COMING.\n*GOOD.*",
+   "You stopped needing rescue the day you started training.\n**Self-reliance is built, rep by rep.**",
+   "BUILD IT"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "YOU'VE DONE\nHARDER THINGS\nTHAN *THIS.*",
+   "Raising kids. Surviving losses. Starting over.\n**The workout is not the hard part. Believing is.**",
+   "BELIEVE"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "SMALL TALK SAYS\n'I CAN'T.'\nTRAINING SAYS\n*WATCH ME.*",
+   "Stop narrating your limits at the table.\n**Start disproving them in the gym.**",
+   "WATCH ME"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "CAPABLE ISN'T\nLOUD. IT'S\n*CONSISTENT.*",
+   "It doesn't announce itself. It just keeps showing up.\n**Quietly become undeniable.**",
+   "SHOW UP"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "THE BODY KEEPS\nEVERY PROMISE\nYOU *KEEP.*",
+   "Every session is recorded in muscle and mind.\n**Make a deposit today.**",
+   "KEEP ONE"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "DOUBT KNOCKED.\nNOBODY\n*ANSWERED.*",
+   "Too busy training to entertain it.\n**Stay busy becoming.**",
+   "STAY BUSY"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "YOU'RE ONE\nDECISION FROM A\nDIFFERENT *LIFE.*",
+   "Not one year. Not one transformation. One decision.\n**Everything else follows it.**",
+   "DECIDE NOW"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "STOP SHRINKING\nTO FIT ROOMS\nYOU'VE\n*OUTGROWN.*",
+   "Train like the bigger life is already yours.\n**Because it is.**",
+   "EXPAND"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "PROVE IT TO\n*YOURSELF*\nFIRST.",
+   "The world's opinion changes when yours does.\n**Start with the mirror.**",
+   "START THERE"
+  ],
+  [
+   "BBF • I AM CAPABLE",
+   "BUILT.\nNOT\n*BORN.*",
+   "Nobody arrives strong. They construct it.\n**Pick up the tools.**",
+   "CONSTRUCT"
+  ]
+ ],
+ "discipline": [
+  [
+   "BBF • STACKING DAYS",
+   "STACK THE DAY.\nSTACK\n*ANOTHER.*",
+   "That's the whole secret. No magic.\n**Just days laid on days until they become a life.**",
+   "STACK IT"
+  ],
+  [
+   "BBF • STACKING DAYS",
+   "ONE DAY IS A REP.\nA YEAR IS A\n*TRANSFORMATION.*",
+   "You don't see it daily. You feel it yearly.\n**Keep stacking the quiet reps.**",
+   "KEEP GOING"
+  ],
+  [
+   "BBF • STACKING DAYS",
+   "CONSISTENCY\nIS THE\n*CHEAT CODE.*",
+   "Everyone hunts the hack. This is the hack.\n**Show up again. And again. And again.**",
+   "SHOW UP"
+  ],
+  [
+   "BBF • STACKING DAYS",
+   "MOMENTUM IS\nEARNED\n*DAILY.*",
+   "It's not a mood. It's a deposit.\n**Make one today. Withdraw it for life.**",
+   "DEPOSIT"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "DISCIPLINE IS\nSELF-RESPECT\nIN *MOTION.*",
+   "Every promise you keep to yourself rebuilds the trust.\n**Start keeping promises to you.**",
+   "KEEP ONE TODAY"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "DON'T BREAK\nTHE\n*CHAIN.*",
+   "Each day a link. Skip one and you feel it.\n**Stack one and you're undeniable.**",
+   "KEEP THE CHAIN"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "SMALL DAILY.\nMASSIVE\n*YEARLY.*",
+   "The math nobody respects until they run it.\n**1% a day is a different human in a year.**",
+   "RUN THE MATH"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "SHOW UP BEFORE\nYOU FEEL\nLIKE *IT.*",
+   "The feeling comes after. Always after.\n**Stack the day first, collect the feeling later.**",
+   "SHOW UP"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "MOTIVATION IS\nA FEELING.\n*SYSTEMS* HOLD.",
+   "Feelings change. Architecture doesn't.\n**Build the architecture.**",
+   "BUILD IT"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "BECOME\nUNDENIABLE,\nONE DAY AT\nA *TIME.*",
+   "They can't argue with a year of stacked days.\n**Neither can the doubt in your head.**",
+   "BECOME IT"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "THE 5AM VERSION\nOF YOU IS\n*WAITING.*",
+   "They've been ready this whole time.\n**Set the alarm. Meet them.**",
+   "MEET THEM"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "BORED IS WHERE\nRESULTS\n*LIVE.*",
+   "The unsexy reps nobody films — that's the program.\n**Fall in love with boring.**",
+   "EMBRACE IT"
+  ],
+  [
+   "BBF • STACKING DAYS",
+   "MISSED A DAY?\nDON'T MISS\n*TWO.*",
+   "One skip is life. Two is a pattern.\n**Protect the restart.**",
+   "RESTART NOW"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "YOU DON'T FIND\nTIME. YOU\n*TAKE* IT.",
+   "Discipline is theft from your distractions.\n**Steal the hour back.**",
+   "TAKE IT"
+  ],
+  [
+   "BBF • STACKING DAYS",
+   "TODAY'S REP IS\nTOMORROW'S\n*REFLEX.*",
+   "What feels forced now becomes automatic later.\n**Force it today.**",
+   "FORCE IT"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "NO ONE'S\nCHEERING AT 5AM.\n*PERFECT.*",
+   "The work that counts is the work unseen.\n**Win in the dark.**",
+   "WIN QUIET"
+  ],
+  [
+   "BBF • STACKING DAYS",
+   "CONSISTENCY\nOVER\n*INTENSITY.*",
+   "A savage week means nothing next to a steady year.\n**Play the long game.**",
+   "GO LONG"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "FEELINGS ARE\nWEATHER.\nSTANDARDS ARE\n*CLIMATE.*",
+   "Train by your standards, not your forecast.\n**Hold the standard.**",
+   "HOLD IT"
+  ],
+  [
+   "BBF • STACKING DAYS",
+   "THE STREAK\nIS THE\n*PRIZE.*",
+   "Not the mirror. Not the number. The unbroken chain of kept promises.\n**Guard it.**",
+   "GUARD IT"
+  ],
+  [
+   "BBF • DISCIPLINE",
+   "DO IT TIRED.\nDO IT BUSY.\nDO IT\n*ANYWAY.*",
+   "The conditions will never cooperate.\n**Stop waiting for them to.**",
+   "DO IT ANYWAY"
+  ]
+ ],
+ "time": [
+  [
+   "BBF • RECLAIM YOUR TIME",
+   "THEY RENT YOUR\nHOURS. YOU OWN\nYOUR *BODY.*",
+   "They can have the clock. They don't get the temple.\n**Reclaim the one thing that's yours.**",
+   "RECLAIM"
+  ],
+  [
+   "BBF • RECLAIM YOUR TIME",
+   "STOLEN TIME\nNEVER COMES\n*BACK.*",
+   "Except the hour you take back for yourself.\n**That one is yours forever.**",
+   "TAKE IT BACK"
+  ],
+  [
+   "BBF • THE BOX",
+   "YOU ARE\nNOT A\n*COG.*",
+   "They need you to forget that. Your body remembers.\n**Train it back to the truth.**",
+   "REMEMBER"
+  ],
+  [
+   "BBF • THE BOX",
+   "THE SYSTEM\nLOVES YOU\n*TIRED.*",
+   "Tired people don't dream. They don't build. They comply.\n**Train your way out.**",
+   "WAKE UP"
+  ],
+  [
+   "BBF • RECLAIM YOUR TIME",
+   "FREEDOM STARTS\nWITH ONE OWNED\n*HOUR.*",
+   "Not the whole life at once. One hour. Today. Yours.\n**Then you stack from there.**",
+   "OWN THE HOUR"
+  ],
+  [
+   "BBF • NO TIME",
+   "YOU HAVE\n35 MINUTES.\n*THAT'S ENOUGH.*",
+   "You don't need more time.\n**You need a system built for the time you have.**",
+   "START NOW"
+  ],
+  [
+   "BBF • NO TIME",
+   "TIME DOESN'T\nAPPEAR. IT GETS\n*PROTECTED.*",
+   "The busiest people you know still train.\n**They just guard the hour.**",
+   "GUARD IT"
+  ],
+  [
+   "BBF • NO TIME",
+   "2 HOURS\nSCROLLING.\nGIVE 35 TO\n*YOU.*",
+   "The time exists. It always did.\n**It's a matter of where it goes.**",
+   "REDIRECT IT"
+  ],
+  [
+   "BBF • THE BOX",
+   "YOUR DREAM ISN'T\nON THEIR\n*SPREADSHEET.*",
+   "It's in the hour you protect.\n**Defend it like it's everything. Because it is.**",
+   "DEFEND IT"
+  ],
+  [
+   "BBF • RECLAIM YOUR TIME",
+   "PUNCH THE CLOCK.\nTHEN PUNCH\n*BACK.*",
+   "Give them the shift. Keep the sovereignty.\n**The hour after is where you rebuild.**",
+   "REBUILD"
+  ],
+  [
+   "BBF • NO TIME",
+   "BUSY IS A\nBUDGET. NOT A\n*VERDICT.*",
+   "You fund what you value.\n**Put yourself back in the budget.**",
+   "FUND YOU"
+  ],
+  [
+   "BBF • RECLAIM YOUR TIME",
+   "YOUR CALENDAR\nIS A\n*CONFESSION.*",
+   "It tells the truth about what you value.\n**Make it confess something better.**",
+   "REWRITE IT"
+  ],
+  [
+   "BBF • NO TIME",
+   "NO TIME TO TRAIN?\nCHECK YOUR\nSCREEN *TIME.*",
+   "The hours aren't missing. They're misfiled.\n**Refile one.**",
+   "REFILE IT"
+  ],
+  [
+   "BBF • THE BOX",
+   "THE BOX PAYS IN\nDOLLARS. TRAINING\nPAYS IN\n*DECADES.*",
+   "One buys your week. The other buys your future.\n**Invest in both.**",
+   "INVEST"
+  ],
+  [
+   "BBF • RECLAIM YOUR TIME",
+   "LUNCH BREAK\nOR BREAK-\n*THROUGH?*",
+   "35 minutes is a full session in the right system.\n**Use the gap.**",
+   "USE IT"
+  ],
+  [
+   "BBF • NO TIME",
+   "YOU DON'T NEED A\nPERFECT WEEK.\nYOU NEED\n*TUESDAY.*",
+   "One protected day becomes two. Two becomes a life.\n**Claim Tuesday.**",
+   "CLAIM IT"
+  ],
+  [
+   "BBF • THE BOX",
+   "CLOCK IN FOR\nTHEM. CLOCK IN\nFOR *YOU.*",
+   "Two shifts. Only one builds your future body.\n**Don't skip yours.**",
+   "CLOCK IN"
+  ],
+  [
+   "BBF • RECLAIM YOUR TIME",
+   "TIRED IS REAL.\nSO IS\n*REGRET.*",
+   "One fades after a warm-up. The other compounds.\n**Choose your discomfort.**",
+   "CHOOSE"
+  ],
+  [
+   "BBF • NO TIME",
+   "SCHEDULE IT LIKE\nA MEETING YOU\nCAN'T *SKIP.*",
+   "You'd never ghost your boss.\n**Stop ghosting yourself.**",
+   "BOOK IT"
+  ],
+  [
+   "BBF • THE BOX",
+   "YOUR HOURS BUILD\nSOMEONE'S DREAM.\nMAKE SOME BUILD\n*YOURS.*",
+   "Even one hour a day compounds into a different life.\n**Start the build.**",
+   "START BUILDING"
+  ]
+ ],
+ "comeback": [
+  [
+   "BBF • THE COMEBACK",
+   "STARTING OVER\nIS STILL\n*STARTING.*",
+   "Everyone who built something durable restarted. More than once.\n**Keep the starting line close.**",
+   "START AGAIN"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "THE COMEBACK IS\nSTRONGER THAN\nTHE *SETBACK.*",
+   "Falling off isn't the end of your story.\n**It's the part right before the best chapter.**",
+   "BEGIN YOURS"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "YOU REMEMBER\nWHO YOU\n*WERE.*",
+   "You can be them again — stronger, wiser,\n**and built to last this time.**",
+   "COME BACK"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "YOU'RE NOT\nSTARTING FROM\nZERO. FROM\n*EXPERIENCE.*",
+   "Every past attempt taught you something.\n**This time, you start smarter.**",
+   "USE IT"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "YOU SURVIVED\n100% OF YOUR\nHARDEST\n*DAYS.*",
+   "You're more resilient than the story in your head says.\n**Build on it.**",
+   "BUILD ON IT"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "YOUR POTENTIAL\nDIDN'T GO\n*ANYWHERE.*",
+   "It's been waiting this whole time.\n**For you to decide it's worth chasing again.**",
+   "CHASE IT"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "A YEAR FROM NOW\nYOU'LL WISH YOU\nSTARTED\n*TODAY.*",
+   "The time passes either way.\n**Spend it becoming who you want to be.**",
+   "START TODAY"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "THE HARDEST DAY\nIS DAY\n*ONE.*",
+   "It only gets lighter from here.\n**You just have to get past the first step.**",
+   "TAKE DAY ONE"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "YOU'RE NOT\nBEHIND. YOU'RE\nABOUT TO\n*BEGIN.*",
+   "Forget the time you think you lost.\n**The only moment that matters is this one.**",
+   "BEGIN"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "IT'S NEVER\nTOO\n*LATE.*",
+   "Not at 30. Not at 50. Not after kids. Not after the injury.\n**Never.**",
+   "PROVE IT"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "RUST ISN'T\n*RUIN.*",
+   "The strength remembers. The discipline remembers.\n**Knock the dust off.**",
+   "DUST OFF"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "THE GYM DIDN'T\nGO ANYWHERE.\nNEITHER DID\n*YOU.*",
+   "The door's been unlocked the whole time.\n**Walk back through it.**",
+   "WALK IN"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "CHAPTER ONE WAS\nPRACTICE. WRITE\nCHAPTER\n*TWO.*",
+   "This time you know where the traps are.\n**Write it smarter.**",
+   "WRITE IT"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "MUSCLE HAS\n*MEMORY.*\nSO DOES PRIDE.",
+   "Both come back faster than you think.\n**Trigger the recall.**",
+   "COME BACK"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "THE LAYOFF TAUGHT\nYOU WHAT THE\nGRIND\n*COULDN'T.*",
+   "What life looks like without it.\n**Now you know why you train.**",
+   "RETURN"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "DON'T COUNT THE\nMONTHS LOST.\nCOUNT THE ONES\n*LEFT.*",
+   "There are more in front of you than behind.\n**Spend them building.**",
+   "COUNT FORWARD"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "FALLING OFF IS\nDATA. NOT\n*DESTINY.*",
+   "Now you know exactly what broke the streak.\n**Build around it.**",
+   "REBUILD SMART"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "ROUND TWO\nHITS\n*DIFFERENT.*",
+   "Wiser. Hungrier. Zero illusions.\n**Ring the bell.**",
+   "RING IT"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "YOUR BEST SHAPE\nISN'T BEHIND YOU.\nIT'S\n*UNBUILT.*",
+   "The peak is still in front of you.\n**Start climbing.**",
+   "CLIMB"
+  ],
+  [
+   "BBF • THE COMEBACK",
+   "SHAME OFF.\nSHOES\n*ON.*",
+   "Guilt never finished a single workout.\n**Lace up and let it go.**",
+   "LACE UP"
+  ]
+ ],
+ "fence": [
+  [
+   "BBF • FOR THE HESITANT",
+   "YOU'VE BEEN\nTHINKING ABOUT IT\nFOR *MONTHS.*",
+   "The thought keeps coming back for a reason.\n**Maybe it's time to listen to it.**",
+   "LISTEN"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "THE PERFECT\nMONDAY ISN'T\n*COMING.*",
+   "There is no perfect week to begin. There never was.\n**The best day is the one you stop waiting on.**",
+   "STOP WAITING"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "NOBODY'S JUDGING\nYOU HARDER THAN\n*YOU* ARE.",
+   "Everyone in that gym started somewhere.\n**Walk in like you belong. Because you do.**",
+   "WALK IN"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "YOU ARE NOT\nTOO FAR GONE.\nONE DECISION\n*AWAY.*",
+   "Wherever you're starting from is exactly the right place.\n**Make the decision.**",
+   "DECIDE"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "THE HARDEST REP\nIS THE DECISION\nTO *BEGIN.*",
+   "After that first yes, everything gets easier.\n**Take the rep.**",
+   "TAKE THE REP"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "STOP WAITING\nFOR A SIGN.\n*THIS IS IT.*",
+   "No pressure. No judgment. Just a conversation.\n**DM \"PATHFINDER\" and let's talk.**",
+   "DM PATHFINDER"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "YOU DON'T NEED\nMOTIVATION.\nYOU NEED TO\n*START.*",
+   "Motivation shows up after the work begins. Never before.\n**Move first.**",
+   "MOVE FIRST"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "FEAR IS LOUD.\nREGRET IS\n*LOUDER.*",
+   "The discomfort of starting fades in a week.\n**The weight of never starting doesn't.**",
+   "CHOOSE"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "YOU DON'T HAVE\nTO OVERHAUL YOUR\nLIFE. JUST\n*START.*",
+   "All-or-nothing is why you quit last time.\n**Three sessions a week. That's the beginning.**",
+   "START SMALL"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "DON'T KNOW WHERE\nTO START? THAT'S\nWHAT *I'M* FOR.",
+   "You don't need it figured out. You need a guide.\n**That's literally the job.**",
+   "ASK ME"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "LURKING ON\nFITNESS PAGES IS\nA *SIGNAL.*",
+   "You're not browsing. You're circling the decision.\n**Land the plane.**",
+   "LAND IT"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "'SOMEDAY' IS\nWHERE DREAMS GO\nTO *WAIT.*",
+   "And waiting rooms don't build anything.\n**Today has openings.**",
+   "BOOK TODAY"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "YOU DON'T NEED\nTO BE READY.\nJUST\n*WILLING.*",
+   "Ready is a myth. Willing is a choice.\n**Choose willing.**",
+   "I'M WILLING"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "THE FIRST SESSION\nIS 90% SHOWING\n*UP.*",
+   "Nobody's grading you. The bar is on the floor.\n**Step over it.**",
+   "STEP OVER"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "SCARED MONEY\nDON'T MAKE\n*GAINS.*",
+   "Bet on yourself for once.\n**The house always pays.**",
+   "PLACE THE BET"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "YOUR EXCUSE IS\nVALID. SO IS YOUR\n*POTENTIAL.*",
+   "Both are true. Only one deserves your loyalty.\n**Pick a side.**",
+   "PICK A SIDE"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "ASK THE QUESTION\nYOU'VE BEEN\nSITTING *ON.*",
+   "Worst case: you learn something. Best case: everything changes.\n**Send the DM.**",
+   "SEND IT"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "START UGLY.\nFINISH\n*STRONG.*",
+   "Every polished athlete began as an awkward first day.\n**Embrace day one.**",
+   "START UGLY"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "THE FENCE IS THE\nMOST EXPENSIVE\nSEAT IN THE\n*HOUSE.*",
+   "Sitting on it costs you months.\n**Hop down.**",
+   "HOP DOWN"
+  ],
+  [
+   "BBF • FOR THE HESITANT",
+   "ONE CONVERSATION.\nZERO\n*COMMITMENT.*",
+   "A DM isn't a contract. It's a door.\n**Open it.**",
+   "OPEN THE DOOR"
+  ]
+ ],
+ "identity": [
+  [
+   "BBF • IDENTITY",
+   "YOU DON'T WANT\nYOUR OLD BODY.\nYOUR OLD\n*CONFIDENCE.*",
+   "It was never about a number.\n**It's about feeling like yourself again.**",
+   "RECLAIM IT"
+  ],
+  [
+   "BBF • IDENTITY",
+   "BECOME THE\nPERSON WHO\n*TRAINS.*",
+   "You're not chasing a look.\n**You're building an identity.**",
+   "BECOME IT"
+  ],
+  [
+   "BBF • IDENTITY",
+   "EVERY SESSION IS\nA VOTE FOR WHO\nYOU'RE\n*BECOMING.*",
+   "Cast enough votes in one direction\n**and the identity becomes undeniable.**",
+   "CAST ONE"
+  ],
+  [
+   "BBF • IDENTITY",
+   "YOUR POTENTIAL\nDOESN'T\n*EXPIRE.*",
+   "Not because life got busy. Not because years passed.\n**There's still a version of you being built.**",
+   "BUILD IT"
+  ],
+  [
+   "BBF • LEGACY",
+   "BREAK THE LOOP.\nBE THE\n*LINE.*",
+   "The cycle ends or continues with you.\n**Discipline is how you become the one who broke it.**",
+   "BREAK IT"
+  ],
+  [
+   "BBF • LEGACY",
+   "YOUR KIDS INHERIT\nYOUR *HABITS.*\nNOT YOUR WORDS.",
+   "They become what they watch you do.\n**Break the loop and you free a generation.**",
+   "REWRITE IT"
+  ],
+  [
+   "BBF • LEGACY",
+   "THE MOST\nREBELLIOUS ACT?\n*DISCIPLINE.*",
+   "In a world that profits from your comfort,\n**choosing the hard thing is revolution.**",
+   "REBEL"
+  ],
+  [
+   "BBF • IDENTITY",
+   "STRONG IS A\nFEELING BEFORE\nIT'S A *LOOK.*",
+   "You'll feel capable, energized, and proud\n**long before the mirror catches up.**",
+   "FEEL IT"
+  ],
+  [
+   "BBF • LEGACY",
+   "BECOME THE\nANCESTOR THEY\n*THANK.*",
+   "A hundred years out, someone carries your strength.\n**Start the legacy now.**",
+   "BEGIN THE LEGACY"
+  ],
+  [
+   "BBF • IDENTITY",
+   "OWN YOUR BODY.\nOWN YOUR\n*LIFE.*",
+   "The body is the first territory you take back.\n**Everything else follows.**",
+   "TAKE IT BACK"
+  ],
+  [
+   "BBF • IDENTITY",
+   "THE MIRROR LAGS.\nTHE IDENTITY\n*LEADS.*",
+   "Become the person first. The reflection catches up.\n**Lead with who you are.**",
+   "LEAD"
+  ],
+  [
+   "BBF • LEGACY",
+   "SOMEONE'S\nWATCHING HOW\nYOU *FIGHT.*",
+   "Kids. Siblings. The crew. Your fight teaches them theirs.\n**Make it a masterclass.**",
+   "TEACH THEM"
+  ],
+  [
+   "BBF • IDENTITY",
+   "'I'M JUST NOT A\nGYM PERSON' IS\nA *STORY.*",
+   "And stories can be rewritten by their author.\n**Pick up the pen.**",
+   "REWRITE"
+  ],
+  [
+   "BBF • LEGACY",
+   "YOUR NAME MEANS\nSOMETHING.\n*ACT LIKE IT.*",
+   "Every standard you hold adds weight to it.\n**Build the name.**",
+   "BUILD THE NAME"
+  ],
+  [
+   "BBF • IDENTITY",
+   "DRESS THE PART.\nTRAIN THE PART.\n*BE* THE PART.",
+   "Identity is rehearsed until it's real.\n**Rehearse daily.**",
+   "REHEARSE"
+  ],
+  [
+   "BBF • LEGACY",
+   "BE THE PLOT TWIST\nIN YOUR FAMILY'S\n*STORY.*",
+   "The one where everything changed.\n**Twist it.**",
+   "BE THE TWIST"
+  ],
+  [
+   "BBF • IDENTITY",
+   "CONFIDENCE IS\nEVIDENCE,\n*COLLECTED.*",
+   "Every session is an exhibit in your favor.\n**Keep collecting.**",
+   "COLLECT"
+  ],
+  [
+   "BBF • LEGACY",
+   "THEY'LL REMEMBER\nWHAT YOU\n*OVERCAME.*",
+   "Not your easiest season. Your hardest one.\n**Give them the story.**",
+   "OVERCOME"
+  ],
+  [
+   "BBF • IDENTITY",
+   "STOP SAYING\n'TRYING TO GET\nFIT.' SAY\n*'TRAINING.'*",
+   "Words assign identity. Identity assigns behavior.\n**Speak it into routine.**",
+   "SAY IT"
+  ],
+  [
+   "BBF • LEGACY",
+   "LEAVE THE LINE\nSTRONGER THAN\nYOU *FOUND* IT.",
+   "Your bloodline. Your team. Your circle.\n**That's the assignment.**",
+   "ACCEPT IT"
+  ]
+ ],
+ "parent": [
+  [
+   "BBF • WORKING PARENT",
+   "RUNNING ON EMPTY\nISN'T A\nPERSONALITY.\nIT'S A *SIGNAL.*",
+   "You can't pour from a drained tank.\n**Refill yours first.**",
+   "REFILL"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "THE KIDS DON'T\nNEED PERFECT.\nTHEY NEED\n*PRESENT.*",
+   "Energy is presence. Training builds energy.\n**Train for them too.**",
+   "BE PRESENT"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "NAPTIME IS A\nTRAINING\n*WINDOW.*",
+   "35 minutes. Living room floor. Full session.\n**The system fits your chaos.**",
+   "USE THE WINDOW"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "SELF-CARE ISN'T\nSELFISH. IT'S\n*STAFFING.*",
+   "You're the whole infrastructure of that household.\n**Maintain the infrastructure.**",
+   "MAINTAIN IT"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "THEY LEARN\nHEALTH BY\n*WATCHING* YOU.",
+   "Not from lectures. From your lunchbox and your lifts.\n**Show them how.**",
+   "SHOW THEM"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "TIRED PARENT.\nTRAINED PARENT.\nSAME HOURS.\nDIFFERENT *FUEL.*",
+   "Training gives back more energy than it takes.\n**Run the experiment.**",
+   "TEST IT"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "YOU SCHEDULE\nTHEIR PRACTICES.\nSCHEDULE\n*YOURS.*",
+   "Your name deserves a slot on that family calendar.\n**Pencil it in. In pen.**",
+   "PEN IT IN"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "STRONG ENOUGH\nTO CARRY THEM.\nALL OF\n*THEM.*",
+   "The groceries. The toddler. The weight of the week.\n**Build carrying capacity.**",
+   "GET STRONG"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "THE MINIVAN CAN\nPARK AT THE\n*GYM* TOO.",
+   "Same vehicle. Different destination. New chapter.\n**Reroute.**",
+   "REROUTE"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "'AFTER THE KIDS\nARE GROWN' IS\n*TOO LATE.*",
+   "Your health is the gift they unwrap for decades.\n**Wrap it now.**",
+   "START NOW"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "BE THE PARENT\nWHO PLAYS. NOT\nTHE ONE WHO\n*WATCHES.*",
+   "Floor games. Backyard sprints. Pool days.\n**Train to participate.**",
+   "GET IN THE GAME"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "THEIR BEDTIME\nROUTINE IS DIALED.\nWHERE'S\n*YOURS?*",
+   "You built theirs with love and structure.\n**Steal a page from your own playbook.**",
+   "BUILD YOURS"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "SUPERHERO IS A\nJOB TITLE WITH\nNO *SICK DAYS.*",
+   "So durability isn't optional. It's the uniform.\n**Suit up.**",
+   "SUIT UP"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "DATE NIGHT\nENERGY STARTS\nIN THE *GYM.*",
+   "Confidence and stamina don't come from the couch.\n**Invest in the spark.**",
+   "INVEST"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "THE CHAOS ISN'T\nGOING AWAY.\nGET STRONG\n*INSIDE* IT.",
+   "Stop waiting for a calm season that isn't coming.\n**Train in the storm.**",
+   "TRAIN ANYWAY"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "SCHOOL RUN.\nWORK GRIND.\nONE HOUR IS\nSTILL *YOURS.*",
+   "Even on the fullest days, there's a seam.\n**Find it. Own it.**",
+   "FIND THE SEAM"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "MODEL THE HABIT\nYOU WANT THEM\nTO *INHERIT.*",
+   "Your discipline becomes their default.\n**Set the default high.**",
+   "SET IT HIGH"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "YOU'RE NOT TOO\nBUSY. YOU'RE\n*UNSUPPORTED.*",
+   "The right system carries half the load.\n**Get the system.**",
+   "GET SUPPORT"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "LITTLE EYES.\nBIG\n*LESSONS.*",
+   "They won't remember the workout. They'll remember you never quit.\n**Teach persistence.**",
+   "NEVER QUIT"
+  ],
+  [
+   "BBF • WORKING PARENT",
+   "PARENT TIRED IS\nREAL. SO IS\nPARENT\n*STRONG.*",
+   "You get to be both. Strong wins more days.\n**Stack strong days.**",
+   "STACK THEM"
+  ]
+ ],
+ "responder": [
+  [
+   "BBF • FIRST RESPONDER",
+   "YOU ANSWER\nEVERY CALL BUT\nYOUR *OWN.*",
+   "The body that saves others needs saving too.\n**Respond to yourself.**",
+   "RESPOND"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "SHIFT WORK\nBREAKS BODIES.\nTRAINING\n*REBUILDS* THEM.",
+   "Built for rotating schedules, night shifts, and chaos.\n**Train around the badge.**",
+   "REBUILD"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "THE JOB TAKES.\nTHE GYM\n*GIVES BACK.*",
+   "Stress out. Strength in. Every session is recovery.\n**Make the trade.**",
+   "TRADE UP"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "FIT FOR DUTY IS\nTHE *MINIMUM.*",
+   "You deserve more than passing the test.\n**Train past the standard.**",
+   "EXCEED IT"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "CARRY THE GEAR.\nCARRY THE CALL.\nCARRY *ON.*",
+   "Durability is the job requirement nobody trains for.\n**Train for it.**",
+   "CARRY ON"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "12-HOUR SHIFTS.\n35-MINUTE\n*SESSIONS.*",
+   "The protocol fits between the chaos.\n**No excuses left.**",
+   "RUN IT"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "ADRENALINE ISN'T\nA FITNESS\n*PLAN.*",
+   "The job spikes you. Training stabilizes you.\n**Build the baseline.**",
+   "STABILIZE"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "YOUR PARTNER'S\nLIFE RIDES ON\nYOUR *ENGINE.*",
+   "Conditioning isn't vanity in this line of work.\n**Build the motor.**",
+   "BUILD IT"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "DECOMPRESS WITH\nIRON. NOT\n*VICES.*",
+   "The barbell processes what the shift leaves behind.\n**Lift it off.**",
+   "LIFT IT OFF"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "SLEEP'S A MESS.\nSCHEDULE'S WORSE.\nTRAIN\n*ANYWAY.*",
+   "Readiness-aware programming meets you where the shift left you.\n**Adapt and train.**",
+   "ADAPT"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "RETIRE *STRONG.*\nNOT BROKEN.",
+   "Twenty years of service shouldn't cost your spine.\n**Protect the long game.**",
+   "PROTECT IT"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "THE UNIFORM COMES\nOFF. THE BODY\nSTAYS\n*ON DUTY.*",
+   "Invest in the equipment you can't requisition.\n**Maintain it daily.**",
+   "MAINTAIN"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "STATION WORKOUTS\nBETWEEN\n*CALLS.*",
+   "Short sessions built for interruptions.\n**Pause-proof your training.**",
+   "PAUSE-PROOF"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "STRONG BACK.\nSTEADY HANDS.\nCLEAR *HEAD.*",
+   "Training delivers all three to the scene.\n**Arrive ready.**",
+   "ARRIVE READY"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "YOU LIFT PEOPLE\nFOR A LIVING.\nLIFT FOR\n*YOURSELF.*",
+   "Patient transfers shouldn't be your only training.\n**Train it on purpose.**",
+   "ON PURPOSE"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "BURNOUT ISN'T\nBEAT BY REST\n*ALONE.*",
+   "Strength is armor for the nervous system.\n**Armor up.**",
+   "ARMOR UP"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "FIRST ON SCENE.\nLAST ON THE\n*PRIORITY LIST.*",
+   "Flip the order once a day. 35 minutes.\n**You're the call now.**",
+   "TAKE THE CALL"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "THE ACADEMY\nBODY ISN'T\n*GONE.*",
+   "It's archived. Training restores the file.\n**Restore it.**",
+   "RESTORE"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "HEROES NEED\nMAINTENANCE\n*SCHEDULES.*",
+   "Trucks get serviced. Engines get checked. So should you.\n**Book the service.**",
+   "BOOK IT"
+  ],
+  [
+   "BBF • FIRST RESPONDER",
+   "SERVE OTHERS.\n*SUSTAIN*\nYOURSELF.",
+   "The career is a marathon of sprints.\n**Train for both.**",
+   "SUSTAIN"
+  ]
+ ],
+ "vision": [
+  [
+   "BBF • VISION",
+   "SEE IT BEFORE\nYOU *LIFT* IT.",
+   "Every PR happens twice — first in the mind.\n**Rehearse the win.**",
+   "VISUALIZE"
+  ],
+  [
+   "BBF • VISION",
+   "MANIFESTATION\nHAS A GYM\n*MEMBERSHIP.*",
+   "The vision board needs a training log next to it.\n**Pair them.**",
+   "PAIR THEM"
+  ],
+  [
+   "BBF • VISION",
+   "WRITE THE GOAL.\nTRAIN THE GOAL.\n*BECOME* THE GOAL.",
+   "That's the whole formula. In that order.\n**Run the formula.**",
+   "RUN IT"
+  ],
+  [
+   "BBF • VISION",
+   "YOUR FUTURE SELF\nIS A *BLUEPRINT.*\nNOT A FANTASY.",
+   "Blueprints get built. Fantasies get scrolled past.\n**Start construction.**",
+   "BUILD IT"
+  ],
+  [
+   "BBF • VISION",
+   "SPEAK IT.\nTHEN *SWEAT* IT.",
+   "Affirmations without action are just wishes.\n**Back the words.**",
+   "BACK IT UP"
+  ],
+  [
+   "BBF • VISION",
+   "THE UNIVERSE\nREWARDS\n*MOVEMENT.*",
+   "Momentum attracts momentum. Stillness attracts nothing.\n**Get moving.**",
+   "MOVE FIRST"
+  ],
+  [
+   "BBF • VISION",
+   "PICTURE THE\nFINISH. TRAIN\nTHE *DISTANCE.*",
+   "Vision sets the destination. Reps cover the miles.\n**Cover them.**",
+   "COVER MILES"
+  ],
+  [
+   "BBF • VISION",
+   "ENERGY FLOWS\nWHERE THE BODY\n*GOES.*",
+   "Move toward the life you keep imagining.\n**Walk that way.**",
+   "WALK TOWARD IT"
+  ],
+  [
+   "BBF • VISION",
+   "DREAM IN\nDECADES. TRAIN\nIN *DAYS.*",
+   "Hold the long vision. Execute the short one.\n**Both, daily.**",
+   "EXECUTE"
+  ],
+  [
+   "BBF • VISION",
+   "THE VERSION YOU\nVISUALIZE IS\nTAKING\n*NOTES.*",
+   "Every session you skip, they wait longer.\n**Don't keep them waiting.**",
+   "SHOW UP"
+  ],
+  [
+   "BBF • VISION",
+   "FAITH, WORKS,\nAND *WORKING*\nSETS.",
+   "Belief moves mountains faster with a barbell.\n**Add the works.**",
+   "ADD WORKS"
+  ],
+  [
+   "BBF • VISION",
+   "INTENTION IS THE\nSPARK. ROUTINE\nIS THE *ENGINE.*",
+   "One starts the fire. The other drives the distance.\n**Build the engine.**",
+   "BUILD ENGINE"
+  ],
+  [
+   "BBF • VISION",
+   "GRATEFUL FOR THIS\nBODY. WORKING\nFOR THE ONE\n*COMING.*",
+   "Both can be true at once.\n**Hold both.**",
+   "HOLD BOTH"
+  ],
+  [
+   "BBF • VISION",
+   "SCRIPT THE DAY.\nTHE DAY OBEYS\nTHE *SCRIPT.*",
+   "Morning visualization. Evening reflection. Training in between.\n**Write tomorrow tonight.**",
+   "SCRIPT IT"
+  ],
+  [
+   "BBF • VISION",
+   "ALIGNED ISN'T A\nFEELING. IT'S A\n*SCHEDULE.*",
+   "When actions match the vision, that's alignment.\n**Match them.**",
+   "ALIGN"
+  ],
+  [
+   "BBF • VISION",
+   "WHAT YOU REPEAT,\nYOU\n*BECOME.*",
+   "Thoughts, words, reps — all of it compounds.\n**Repeat wisely.**",
+   "REPEAT WISELY"
+  ],
+  [
+   "BBF • VISION",
+   "THE 5-YEAR VISION\nIS BUILT IN 5AM\n*DECISIONS.*",
+   "Grand futures are assembled from small mornings.\n**Assemble yours.**",
+   "ASSEMBLE"
+  ],
+  [
+   "BBF • VISION",
+   "CLAIM THE BODY.\nCLAIM THE LIFE.\nDO THE *CLAIMING*\nDAILY.",
+   "Manifestation is a verb in this house.\n**Verb it.**",
+   "CLAIM DAILY"
+  ],
+  [
+   "BBF • VISION",
+   "YOUR IMAGINATION\nIS A *PREVIEW.*",
+   "Coming attractions of a life available to you.\n**Buy the ticket.**",
+   "BUY THE TICKET"
+  ],
+  [
+   "BBF • VISION",
+   "BELIEVE IS THE\nMIDDLE OF OUR\n*NAME.*",
+   "Build. Believe. Fit. The order matters.\n**Live the sequence.**",
+   "LIVE IT"
+  ]
+ ],
+ "youthparent": [
+  [
+   "BBF • ATHLETE'S PARENT",
+   "TALENT GETS\nNOTICED.\nPREPARATION GETS\n*RECRUITED.*",
+   "Give your athlete the structure scouts can see.\n**Prepare them.**",
+   "PREPARE THEM"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "PRACTICE ISN'T\n*DEVELOPMENT.*",
+   "Team reps maintain. Individual training advances.\n**Add the advancement.**",
+   "ADD IT"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "THE OFF-SEASON\nIS THE\n*ON-RAMP.*",
+   "Starters are built in the months nobody watches.\n**Use the quiet months.**",
+   "USE THEM"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "PROTECT THE\nKNEES. PROTECT\nTHE *DREAM.*",
+   "Injury prevention is career insurance for young athletes.\n**Insure the dream.**",
+   "PROTECT IT"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "$14.99 A MONTH.\nA LIFETIME OF\n*HABITS.*",
+   "Cheaper than one private lesson. Compounds forever.\n**Make the investment.**",
+   "INVEST"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "COACH SEES THE\nTEAM. WHO SEES\nYOUR *KID?*",
+   "Position-specific AI development sees just them.\n**Get them seen.**",
+   "GET THEM SEEN"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "TRAIN THE\nLINEMAN LIKE A\n*LINEMAN.*",
+   "Not like a wideout. Not like a generic teen workout.\n**Position-specific or nothing.**",
+   "TRAIN RIGHT"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "CONFIDENCE ON\nTHE FIELD STARTS\nOFF *IT.*",
+   "Structured training builds the swagger coaches notice.\n**Build it off-field.**",
+   "BUILD SWAGGER"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "DON'T BUY HYPE.\nBUY\n*HABITS.*",
+   "Gear and camps fade. Discipline transfers to everything.\n**Buy what lasts.**",
+   "BUY HABITS"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "THE GROWTH SPURT\nNEEDS A\n*PLAN.*",
+   "New height, new limbs, new coordination demands.\n**Train the transition.**",
+   "PLAN IT"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "SCREEN TIME VS.\n*GREEN* TIME.",
+   "The portal turns their phone into a development tool.\n**Flip the script.**",
+   "FLIP IT"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "COLLEGE COACHES\nCHECK WORK\n*ETHIC.*",
+   "A real training history speaks louder than highlight reels.\n**Build the record.**",
+   "BUILD RECORD"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "SPEED CAMPS END.\nSPEED *SYSTEMS*\nDON'T.",
+   "One weekend vs. year-round development.\n**Choose the system.**",
+   "GO SYSTEM"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "YOUR ATHLETE'S\nCEILING IS SET BY\nTHEIR\n*ROUTINE.*",
+   "Raise the routine, raise the ceiling.\n**Raise both.**",
+   "RAISE IT"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "SECOND STRING\nTODAY. A SYSTEM\nAWAY FROM\n*STARTING.*",
+   "The depth chart rewards the prepared.\n**Prepare to climb.**",
+   "CLIMB IT"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "BURNOUT BENCHES\nMORE KIDS THAN\n*INJURY.*",
+   "Smart load management keeps the love of the game alive.\n**Manage the fire.**",
+   "KEEP THE FIRE"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "THEY DREAM OF\nTHE LEAGUE.\nBUILD THE\n*LADDER.*",
+   "Dreams need rungs: strength, speed, durability, discipline.\n**Install the rungs.**",
+   "BUILD LADDER"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "MULTI-SPORT KID?\nONE\n*ENGINE.*",
+   "Athletic development transfers across every season.\n**Build the engine once.**",
+   "ONE ENGINE"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "BE THEIR BIGGEST\nFAN AND THEIR\nBEST\n*DECISION.*",
+   "Cheering is free. Development is $14.99.\n**Make the decision.**",
+   "DECIDE"
+  ],
+  [
+   "BBF • ATHLETE'S PARENT",
+   "RAISE AN ATHLETE.\nRAISE AN\n*ADULT.*",
+   "The discipline outlives the sport.\n**Train for life.**",
+   "TRAIN FOR LIFE"
+  ]
+ ]
+};
+let customCards = [];
+
+const SERIES = {
+  formfix:{tag:'FORM FIX', color:'#f5c800', watch:'▶  WATCH THE FIX', hooks:[
+    ["STOP PRESSING\nSTRAIGHT UP","The 2-inch fix your shoulders will thank you for."],
+    ["YOUR SQUAT ISN'T\nDEEP. IT'S BROKEN.","Fix the hinge before you load the bar."],
+    ["WHY YOUR ROWS\nAREN'T GROWING\nYOUR BACK","Stop pulling with your arms. Start here."],
+    ["LOCK YOUR WRISTS.\nSAVE YOUR ELBOWS.","The grip cue nobody taught you."],
+    ["THE DEADLIFT CUE\nNOBODY TAUGHT YOU","Push the floor away. Watch what happens."],
+    ["YOUR KNEES AREN'T\nTHE PROBLEM.\nYOUR HIPS ARE.","The mobility fix that changes your squat forever."]]},
+  sovereign:{tag:'SOVEREIGN SUNDAY', color:'#8b1abf', watch:'▶  TAKE THIS WITH YOU', hooks:[
+    ["THE DOUBT\nISN'T YOURS","You inherited it. You can return it."],
+    ["STACK THE DAY.\nSTACK ANOTHER.","That's the whole secret. No magic."],
+    ["THEY RENT YOUR\nHOURS. YOU OWN\nYOUR BODY.","Reclaim the one thing that's yours."],
+    ["THE HARDEST DAY\nIS DAY ONE","It only gets lighter from here."],
+    ["BECOME THE\nANCESTOR THEY\nTHANK","Start the legacy now."],
+    ["DISCIPLINE IS\nSELF-RESPECT\nIN MOTION","Every kept promise rebuilds the trust."]]},
+  fuel:{tag:'FUEL FILES', color:'#4ade80', watch:'▶  WATCH THE BREAKDOWN', hooks:[
+    ["EAT MORE.\nWEIGH LESS.","Here's the math nobody shows you."],
+    ["THE 10-MINUTE MEAL\nTHAT HITS YOUR\nMACROS","Smart Kitchen protocol, episode one."],
+    ["YOUR 'HEALTHY'\nBREAKFAST IS\nSTALLING YOU","Three swaps that change everything."],
+    ["FASTING WINDOWS,\nEXPLAINED IN\n60 SECONDS","Which one actually fits your schedule?"],
+    ["PROTEIN MYTHS\nTHAT WON'T DIE","What the science actually says."],
+    ["THE GROCERY LIST\nTHAT RUNS MY\nWHOLE WEEK","Screenshot this one."]]},
+  lab:{tag:'THE LAB', color:'#00e5ff', watch:'▶  SEE IT LIVE', hooks:[
+    ["WATCH THE APP\nBUILD MY WORKOUT\nIN 30 SECONDS","AI programming, in real time."],
+    ["THIS IS WHAT YOUR\nMUSCLE BALANCE\nLOOKS LIKE","The Hypertrophy Heatmap, live."],
+    ["POV: YOUR COACH\nKNOWS YOU NEED\nREST BEFORE YOU DO","Readiness tracking in action."],
+    ["YOUR CARDIO,\nPRESCRIBED","Smart Cardio dials it in. Watch."],
+    ["AUDIT YOUR OWN\nPROGRAM IN\n10 SECONDS","The Routine Interrogator. Free. No email."],
+    ["SIX FASTING\nPROTOCOLS.\nONE TAP.","Fuel on your clock."]]},
+  athlete:{tag:'RISING ATHLETE', color:'#38bdf8', watch:'▶  BUILD THE EDGE', hooks:[
+    ["WHAT YOUR LINEMAN\nSHOULD DO IN THE\nOFF-SEASON","Starters are made in the dark months."],
+    ["SPEED IS TAUGHT.\nNOT BORN.","The drills that actually build it."],
+    ["THE WARM-UP THAT\nPREVENTS THE INJURY\nTHAT ENDS SEASONS","Five minutes. Every practice."],
+    ["TRAIN THE POSITION.\nNOT JUST THE\nSPORT.","Position-specific work changes everything."],
+    ["YOUNG ATHLETES\nDON'T NEED ADULT\nPROGRAMS","Age-calibrated development, explained."],
+    ["THE EDGE THEIR\nCOMPETITION\nDOESN'T HAVE","AI-driven development for $14.99."]]},
+  protocol:{tag:'35-MIN PROTOCOL', color:'#fb923c', watch:'▶  RUN THE PROTOCOL', hooks:[
+    ["A COMPLETE PUSH DAY\nIN 35 MINUTES","No wasted sets. No wasted time."],
+    ["HOTEL ROOM.\nZERO EQUIPMENT.\nFULL SESSION.","Travel doesn't break the streak."],
+    ["LUNCH-BREAK\nLEGS","In and out before the hour's up."],
+    ["THE 35-MINUTE\nPULL DAY","Back and biceps, compressed."],
+    ["NO GYM? NO\nPROBLEM.","The garage protocol."],
+    ["EARLY SHIFT?\nTRAIN AT 5AM\nIN 35.","The before-work blueprint."]]}
+};
+
+const PH_PRESETS = {
+ "fasting": {
+  "eye": "NUTRITION  •  ADAPTIVE FASTING",
+  "color": "#f5c800",
+  "hl": "FUEL ON\nYOUR CLOCK",
+  "ben": "Six fasting protocols, a live eating window, and your macros tracked in real time."
+ },
+ "hyper": {
+  "eye": "HYPERTROPHY HEATMAP",
+  "color": "#8b1abf",
+  "hl": "SEE EVERY\nMUSCLE YOU\nTRAIN",
+  "ben": "Weekly training volume mapped across every muscle group, so nothing is overtrained or left behind."
+ },
+ "cardio": {
+  "eye": "SMART CARDIO  •  METABOLIC PACER",
+  "color": "#4ade80",
+  "hl": "CARDIO,\nPRESCRIBED",
+  "ben": "Dial in duration, zone, and modality. Conditioning that builds your engine without burning your gains."
+ },
+ "splits": {
+  "eye": "VAULT ROSTER ENGINE",
+  "color": "#f5c800",
+  "hl": "SIGNATURE\nCHAMBER SPLITS",
+  "ben": "Legendary training splits with 8-parameter control. Every lift ships with a form demo."
+ },
+ "interro": {
+  "eye": "FREE AUDIT  •  NO EMAIL  •  NO FRICTION",
+  "color": "#38bdf8",
+  "hl": "EXPOSE YOUR\nPROGRAM'S GAPS",
+  "ben": "Paste your current split. The audit engine surfaces what your program is hiding — and prescribes the fix in seconds."
+ },
+ "prehab": {
+  "eye": "DYNAMIC PREHAB MATRIX",
+  "color": "#00e5ff",
+  "hl": "TRAIN HARD.\nSTAY HEALTHY.",
+  "ben": "Injury prevention built into every session — push your limits without the breakdowns that sideline everyone else."
+ },
+ "biomech": {
+  "eye": "BIOMECHANICAL HEALTH MATRIX",
+  "color": "#00e5ff",
+  "hl": "MOVE BETTER.\nLAST LONGER.",
+  "ben": "Your movement quality and joint health, mapped — building a body that performs for decades, not just seasons."
+ },
+ "locker": {
+  "eye": "NUTRITION LOCKER",
+  "color": "#fb923c",
+  "hl": "YOUR NUTRITION,\nLOCKED IN",
+  "ben": "Macros, meal plan, and targets organized in your pocket — fueling right is never a guessing game."
+ },
+ "haiku": {
+  "eye": "MIDNIGHT HAIKU ENGINE",
+  "color": "#8b1abf",
+  "hl": "FUEL FOR\nTHE MIND",
+  "ben": "The signature BBF touch — a moment of reflection and motivation delivered as your day winds down."
+ },
+ "sports": {
+  "eye": "SPORTS HUB  •  YOUTH PORTAL",
+  "color": "#38bdf8",
+  "hl": "TRAIN THE\nPOSITION\nYOU PLAY",
+  "ben": "Position-aware development built for their actual game — not generic teen workouts."
+ },
+ "readiness": {
+  "eye": "READINESS TRACKING",
+  "color": "#00e5ff",
+  "hl": "KNOW WHEN\nTO PUSH.\nWHEN TO REST.",
+  "ben": "Log your readiness and train with intention — no more guessing how hard to go today."
+ },
+ "pricing": {
+  "eye": "AI COACHING FROM $9.99/MO",
+  "color": "#f5c800",
+  "hl": "YOUR AI COACH,\nUNLOCKED",
+  "ben": "Catalyst, Momentum, Autonomous — every tier a full coaching system for less than a takeout order."
+ },
+ "lab": {
+  "eye": "THE FULL SUITE",
+  "color": "#8b1abf",
+  "hl": "THIS ISN'T AN APP.\nIT'S A LAB.",
+  "ben": "Prehab, hypertrophy mapping, smart cardio, peaking, nutrition — a complete performance system in your pocket."
+ },
+ "pathfinder": {
+  "eye": "PATHFINDER ASSESSMENT",
+  "color": "#4ade80",
+  "hl": "3 MINUTES TO\nYOUR PERFECT\nPLAN",
+  "ben": "It reads your goals, schedule, and body — then builds the right plan automatically. No cookie-cutter programs."
+ }
+};
+
+const HASHTAGS = {
+  mindset:'#BuildBelieveFit #MindsetMatters #DisciplineEqualsFreedom #StackingDays #FitnessJourney #WestValleyAZ',
+  app:'#BuildBelieveFit #AICoach #FitnessApp #SmartTraining #PerformanceLab #TrainSmarter',
+  transform:'#BuildBelieveFit #TransformationTuesday #ClientResults #FitnessTransformation #WestValleyAZ #TrustTheProcess',
+  reel:'#BuildBelieveFit #FitnessReels #FormCheck #TrainSmarter #GymTips #WestValleyAZ'
+};
+
+/* ===== MODE SWITCHING ===== */
+let mode='cta';
+const DIMS={cta:()=>({w:1080,h:ctaFmt==='story'?1920:1350}), phone:()=>({w:1080,h:1350}), spot:()=>({w:1080,h:1350}), reel:()=>({w:1080,h:1920})};
+document.querySelectorAll('.mode-tab').forEach(t=>{
+  t.onclick=()=>{
+    mode=t.dataset.m;
+    document.querySelectorAll('.mode-tab').forEach(x=>x.classList.toggle('active',x===t));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+mode));
+    document.querySelectorAll('.stage-host').forEach(h=>h.classList.toggle('active', h.id==='host-'+mode));
+    fitPreview();
+  };
+});
+function fitPreview(){
+  const wrap=document.querySelector('.preview-wrap');
+  const sc=$('scaler-'+mode);
+  if(!wrap||!sc) return;
+  const d=DIMS[mode]();
+  const cs=getComputedStyle(wrap);
+  const padX=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight);
+  const padY=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);
+  const availW=Math.max(120, wrap.clientWidth-padX);
+  // Fit to the VISIBLE height of the preview pane (its top → viewport bottom) so the
+  // card never spills past the screen on phone or desktop.
+  const visibleH=window.innerHeight-wrap.getBoundingClientRect().top;
+  const availH=Math.max(160, Math.min(wrap.clientHeight, visibleH)-padY-8);
+  // Desktop comfort cap (unchanged 460/640 ceilings) so the card doesn't balloon on
+  // a large monitor; on mobile we fill the available pane.
+  const wide=window.innerWidth>980;
+  const capS=wide?(d.h>1500?460:640)/d.w:Infinity;
+  const s=Math.min(availW/d.w, availH/d.h, capS);
+  sc.style.transform='scale('+s+')'; sc.style.width=(d.w*s)+'px'; sc.style.height=(d.h*s)+'px';
+}
+['resize','orientationchange','load'].forEach(ev=>window.addEventListener(ev,fitPreview));
+if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(fitPreview); }
+
+/* ===== FILE HELPER ===== */
+function bindFile(inputId, lblId, cb){
+  $(inputId).addEventListener('change', e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>{ cb(ev.target.result); $(lblId).textContent='✓ LOADED'; $(lblId).classList.add('done'); };
+    r.readAsDataURL(f);
+  });
+}
+
+/* ===== EXPORT + HISTORY ===== */
+let history=[];
+async function exportStage(stageId, name, w, h, btn, settings){
+  btn.disabled=true; const orig=btn.textContent; btn.textContent='RENDERING…';
+  try{
+    // UPGRADE 1: await webfonts (else html2canvas falls back to a system font →
+    // the garbled mobile export), and render from a clean, unscaled, full-size CLONE
+    // at scale:2 so the preview's .stage-scaler transform can't corrupt the capture.
+    if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+    const canvas=await html2canvas($(stageId),{
+      backgroundColor:'#08060a', scale:2, useCORS:true,
+      width:w, height:h, windowWidth:w, windowHeight:h,
+      onclone:(doc)=>{
+        doc.querySelectorAll('.stage-scaler').forEach(el=>{ el.style.transform='none'; el.style.width='auto'; el.style.height='auto'; });
+        const st=doc.getElementById(stageId);
+        if(st){ st.style.width=w+'px'; st.style.height=h+'px'; }
+      }
+    });
+    const a=document.createElement('a');
+    a.download=name+'-'+Date.now()+'.png'; a.href=canvas.toDataURL('image/png'); a.click();
+    // history thumb
+    const tc=document.createElement('canvas'); tc.width=74; tc.height=92;
+    tc.getContext('2d').drawImage(canvas,0,0,74,92);
+    history.unshift({mode, thumb:tc.toDataURL('image/jpeg',0.6), settings});
+    if(history.length>12) history.pop();
+    renderHistory();
+    store.set('bbf-studio:history', history.map(h=>({mode:h.mode, settings:h.settings})));
+  }catch(err){ alert('Export failed: '+err.message); }
+  btn.disabled=false; btn.textContent=orig;
+}
+function renderHistory(){
+  $('hist-strip').innerHTML=history.map((h,i)=>
+    '<div class="hist-item" data-i="'+i+'"><img src="'+(h.thumb||'')+'"><div class="hm">'+h.mode.toUpperCase()+'</div></div>').join('');
+  document.querySelectorAll('.hist-item').forEach(el=>{
+    el.onclick=()=>{ const h=history[+el.dataset.i]; restoreSettings(h.mode, h.settings); };
+  });
+}
+function restoreSettings(m, s){
+  if(!s) return;
+  document.querySelector('.mode-tab[data-m="'+m+'"]').click();
+  Object.keys(s).forEach(id=>{ const el=$(id); if(el && (el.tagName==='INPUT'||el.tagName==='TEXTAREA'||el.tagName==='SELECT') && el.type!=='file'){ el.value=s[id]; el.dispatchEvent(new Event('input')); }});
+  if(m==='cta' && s._pal) setCtaPal(s._pal);
+}
+function grabSettings(ids, extra){
+  const o={}; ids.forEach(id=>o[id]=$(id).value); return Object.assign(o, extra||{});
+}
+function copyText(txt, btn){
+  navigator.clipboard.writeText(txt).then(()=>{ const o=btn.textContent; btn.textContent='✓ COPIED'; setTimeout(()=>btn.textContent=o,1800); });
+}
+
+/* ============ CTA MODE ============ */
+let ctaPal='purDeep', ctaFmt='feed', ctaLastIdx=-1;
+const palGrid=$('cta-palettes');
+Object.keys(PALETTES).forEach(key=>{
+  const p=PALETTES[key]; const div=document.createElement('div');
+  div.className='pal'+(key===ctaPal?' active':''); div.dataset.p=key; div.style.background=p.bg;
+  div.innerHTML='<span>'+p.label+'</span>';
+  div.onclick=()=>setCtaPal(key);
+  palGrid.appendChild(div);
+});
+function setCtaPal(key){ ctaPal=key;
+  document.querySelectorAll('#cta-palettes .pal').forEach(x=>x.classList.toggle('active',x.dataset.p===key));
+  renderCta();
+}
+document.querySelectorAll('#cta-format button').forEach(b=>{
+  b.onclick=()=>{ document.querySelectorAll('#cta-format button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); ctaFmt=b.dataset.f; renderCta(); fitPreview(); };
+});
+function renderCta(){
+  const p=PALETTES[ctaPal]; const stage=$('stage-cta');
+  stage.className=(ctaFmt==='story'?'story':'')+(p.yl?' ylbg':'');
+  stage.style.background=p.bg;
+  $('cta-el-tbar').style.background=p.tbar; $('cta-el-tbar').style.display=p.tbar==='none'?'none':'block';
+  $('cta-el-glow').style.background=p.glow; $('cta-el-glow').style.display=p.glow==='none'?'none':'block';
+  $('cta-el-border').style.display=p.border?'block':'none';
+  $('cta-el-rule').style.background=p.rule;
+  $('cta-out-eye').style.color=p.eye; $('cta-out-eye').textContent=$('cta-eye').value;
+  $('cta-out-hl').innerHTML=esc($('cta-hl').value).replace(/\*([^*]+)\*/g,'<span style="color:'+p.hi+';">$1</span>');
+  $('cta-out-body').innerHTML=esc($('cta-body').value).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  $('cta-out-btn').textContent=$('cta-btn').value;
+  $('cta-caption').textContent=buildCtaCaption();
+}
+function buildCtaCaption(){
+  const hl=$('cta-hl').value.replace(/\*/g,'').replace(/\n/g,' ');
+  const body=$('cta-body').value.replace(/\*\*/g,'');
+  return hl+'\n\n'+body+'\n\n👉 '+$('cta-btn').value+'\n🌐 buildbelievefit.fitness\n\n'+HASHTAGS.mindset;
+}
+['cta-eye','cta-hl','cta-body','cta-btn'].forEach(id=> $(id).addEventListener('input',renderCta));
+$('cta-spin').onclick=()=>{
+  const lane=$('cta-lane').value;
+  let pool=[];
+  if(lane==='all'){ Object.values(CATALOG).forEach(a=>pool=pool.concat(a)); pool=pool.concat(customCards.map(c=>c.card)); }
+  else if(lane==='custom'){ pool=customCards.map(c=>c.card); if(!pool.length){ alert('No custom cards saved yet — fill the fields and hit SAVE TO CATALOG.'); return; } }
+  else pool=CATALOG[lane];
+  let idx; do{ idx=Math.floor(Math.random()*pool.length); }while(pool.length>1 && idx===ctaLastIdx);
+  ctaLastIdx=idx;
+  const [eye,hl,body,btn]=pool[idx];
+  $('cta-eye').value=eye; $('cta-hl').value=hl; $('cta-body').value=body; $('cta-btn').value=btn;
+  const keys=Object.keys(PALETTES); setCtaPal(keys[Math.floor(Math.random()*keys.length)]);
+};
+$('cta-shuffle-pal').onclick=()=>{ const keys=Object.keys(PALETTES); setCtaPal(keys[Math.floor(Math.random()*keys.length)]); };
+$('cta-save').onclick=async ()=>{
+  customCards.push({card:[$('cta-eye').value,$('cta-hl').value,$('cta-body').value,$('cta-btn').value]});
+  await store.set('bbf-studio:custom-cards', customCards);
+  const b=$('cta-save'); const o=b.textContent; b.textContent='✓ SAVED ('+customCards.length+')'; setTimeout(()=>b.textContent=o,1800);
+};
+$('cta-export').onclick=()=> exportStage('stage-cta','bbf-cta-'+ctaFmt,1080,ctaFmt==='story'?1920:1350,$('cta-export'),
+  grabSettings(['cta-eye','cta-hl','cta-body','cta-btn'],{_pal:ctaPal}));
+$('cta-copycap').onclick=()=> copyText(buildCtaCaption(), $('cta-copycap'));
+
+/* ============ PHONE MODE ============ */
+let phTilt=-5, phSize=100, phLift=0, phLayout='single';
+function buildSwatches(holder, cb){
+  ACCENTS.forEach((c,i)=>{
+    const d=document.createElement('div'); d.className='sw'+(i===0?' active':''); d.style.background=c; d.dataset.c=c;
+    d.onclick=()=>{ holder.querySelectorAll('.sw').forEach(x=>x.classList.remove('active')); d.classList.add('active'); cb(c); };
+    holder.appendChild(d);
+  });
+}
+buildSwatches($('ph-swatches'), c=> $('ph-out-eye').style.color=c);
+$('ph-preset').addEventListener('change', e=>{
+  const p=PH_PRESETS[e.target.value]; if(!p) return;
+  $('ph-eye').value=p.eye; $('ph-hl').value=p.hl; $('ph-benefit').value=p.ben;
+  $('ph-out-eye').style.color=p.color;
+  $('ph-swatches').querySelectorAll('.sw').forEach(x=>x.classList.toggle('active', x.dataset.c===p.color));
+  renderPhoneText();
+});
+function renderPhoneText(){
+  $('ph-out-eye').textContent=$('ph-eye').value;
+  $('ph-out-hl').textContent=$('ph-hl').value;
+  $('ph-out-benefit').textContent=$('ph-benefit').value;
+  $('ph-caption').textContent=buildPhCaption();
+}
+function buildPhCaption(){
+  return $('ph-hl').value.replace(/\n/g,' ')+' 📱\n\n'+$('ph-benefit').value+'\n\n📲 Link in bio.\n🌐 buildbelievefit.fitness\n\n'+HASHTAGS.app;
+}
+['ph-eye','ph-hl','ph-benefit'].forEach(id=> $(id).addEventListener('input',renderPhoneText));
+function applyPhone(){
+  $('ph-anchor1').style.bottom=(-160+phLift)+'px';
+  var t1='translateX(-50%)';
+  if(phLayout==='dual') t1='translateX(-32%)';
+  if(phLayout==='lean') t1='translateX(8%)';
+  $('ph-anchor1').style.transform=t1;
+  $('ph-phone1').style.transform='rotate('+phTilt+'deg) scale('+(phSize/100)+')';
+  var showBack=(phLayout==='dual'||phLayout==='trio');
+  $('ph-anchor2').style.display=showBack?'block':'none';
+  $('ph-anchor2').style.bottom=(-220+phLift)+'px';
+  $('ph-anchor2').style.transform=(phLayout==='trio')?'translateX(-112%)':'translateX(-78%)';
+  $('ph-phone2').style.transform='rotate('+(-phTilt-3)+'deg) scale('+(phSize/100*0.9)+')';
+  $('ph-anchor3').style.display=(phLayout==='trio')?'block':'none';
+  $('ph-anchor3').style.bottom=(-220+phLift)+'px';
+  $('ph-anchor3').style.transform='translateX(12%)';
+  $('ph-phone3').style.transform='rotate('+(-phTilt+6)+'deg) scale('+(phSize/100*0.88)+')';
+}
+applyPhone();
+document.querySelectorAll('#ph-layout button').forEach(b=>{
+  b.onclick=()=>{ document.querySelectorAll('#ph-layout button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); phLayout=b.dataset.l;
+    $('ph-file2-group').style.display=(phLayout==='dual'||phLayout==='trio')?'block':'none';
+    $('ph-file3-group').style.display=(phLayout==='trio')?'block':'none'; applyPhone(); };
+});
+bindFile('ph-file1','ph-lbl1', src=>{ $('ph-screen1').innerHTML='<img src="'+src+'">'; });
+bindFile('ph-file2','ph-lbl2', src=>{ $('ph-screen2').innerHTML='<img src="'+src+'">'; });
+bindFile('ph-file3','ph-lbl3', src=>{ $('ph-screen3').innerHTML='<img src="'+src+'">'; });
+$('ph-tilt').addEventListener('input',e=>{ phTilt=+e.target.value; $('ph-tilt-val').textContent=phTilt+'°'; applyPhone(); });
+$('ph-size').addEventListener('input',e=>{ phSize=+e.target.value; $('ph-size-val').textContent=phSize+'%'; applyPhone(); });
+$('ph-lift').addEventListener('input',e=>{ phLift=+e.target.value; $('ph-lift-val').textContent=phLift; applyPhone(); });
+$('ph-export').onclick=()=> exportStage('stage-phone','bbf-feature',1080,1350,$('ph-export'),
+  grabSettings(['ph-eye','ph-hl','ph-benefit']));
+$('ph-copycap').onclick=()=> copyText(buildPhCaption(), $('ph-copycap'));
+renderPhoneText();
+
+/* ============ SPOTLIGHT MODE ============ */
+bindFile('sp-file-b','sp-lbl-b', src=>{
+  $('sp-ph-b').querySelector('.placeholder').style.display='none';
+  let img=$('sp-ph-b').querySelector('img.photo');
+  if(!img){ img=document.createElement('img'); img.className='photo'; $('sp-ph-b').prepend(img); }
+  img.src=src;
+});
+bindFile('sp-file-a','sp-lbl-a', src=>{
+  $('sp-ph-a').querySelector('.placeholder').style.display='none';
+  let img=$('sp-ph-a').querySelector('img.photo');
+  if(!img){ img=document.createElement('img'); img.className='photo'; $('sp-ph-a').prepend(img); }
+  img.src=src;
+});
+bindFile('sp-file-l','sp-lbl-l', src=>{
+  $('sp-logoimg1').src=src; $('sp-logoimg2').src=src;
+  $('sp-logo1').style.display='block'; $('sp-wm').style.display='block';
+});
+const QUOTES1=["This is what showing up — week after week — looks like.", "No shortcuts. No gimmicks. Just stacked days.", "Same person. Different decisions.", "The plan only works if you do — and you did.", "Every single session, logged. Every single week, earned.", "From day one to this — pure consistency.", "Proof that the process works when you work it.", "Built in the early mornings nobody saw.", "Trusting the process looks exactly like this.", "Discipline you can see from across the room.", "The before was the beginning. The after is just a checkpoint.", "Real food, real training, real life — no extremes.", "They kept the promise to themselves. Every week.", "What happens when excuses lose their seat at the table.", "Strength built around a full-time life.", "This transformation was decided months before it was visible."];
+const QUOTES2=["Proud to be part of your journey.", "The Lab draws the map. You walked every mile.", "Honored to coach this kind of commitment.", "This is your win — I just held the clipboard.", "Can't wait to see the next chapter.", "Your consistency raised the standard for all of us.", "Coaching you has been the easy part.", "The work was yours. The applause is too.", "And we're just getting started.", "Champions are built like this — quietly, weekly.", "Thank you for trusting the process.", "Your future self is grateful. So am I.", "This is what believing looks like in the mirror.", "More proud than words can carry.", "The blueprint works because you did.", "Forever part of the BBF story now."];
+function fillQuoteSelect(selId, arr){ const s=$(selId); arr.forEach(q=>{ const o=document.createElement('option'); o.value=q; o.textContent=q.length>54?q.slice(0,54)+'…':q; s.appendChild(o); }); }
+fillQuoteSelect('sp-l1-pick',QUOTES1); fillQuoteSelect('sp-l2-pick',QUOTES2);
+$('sp-l1-pick').addEventListener('change',e=>{ if(e.target.value){ $('sp-l1').value=e.target.value; $('sp-l1').dispatchEvent(new Event('input')); }});
+$('sp-l2-pick').addEventListener('change',e=>{ if(e.target.value){ $('sp-l2').value=e.target.value; $('sp-l2').dispatchEvent(new Event('input')); }});
+$('sp-spinq').onclick=()=>{ $('sp-l1').value=QUOTES1[Math.floor(Math.random()*QUOTES1.length)]; $('sp-l2').value=QUOTES2[Math.floor(Math.random()*QUOTES2.length)]; $('sp-l1').dispatchEvent(new Event('input')); $('sp-l2').dispatchEvent(new Event('input')); };
+const spBinds=[['sp-name','sp-out-name'],['sp-sub','sp-out-sub'],['sp-fhead','sp-out-fhead'],['sp-l1','sp-out-l1'],['sp-l2','sp-out-l2'],['sp-cta','sp-out-cta']];
+spBinds.forEach(([i,o])=> $(i).addEventListener('input', e=>{ $(o).textContent=e.target.value; $('sp-caption').textContent=buildSpCaption(); }));
+function buildSpCaption(){
+  return $('sp-fhead').value+' 🏆\n\n'+$('sp-l1').value+'\n'+$('sp-l2').value+'\n\n'+$('sp-cta').value+'\n\n'+HASHTAGS.transform;
+}
+$('sp-caption').textContent=buildSpCaption();
+$('sp-export').onclick=()=> exportStage('stage-spot','bbf-spotlight',1080,1350,$('sp-export'),
+  grabSettings(['sp-name','sp-sub','sp-fhead','sp-l1','sp-l2','sp-cta']));
+$('sp-copycap').onclick=()=> copyText(buildSpCaption(), $('sp-copycap'));
+
+/* ============ REEL MODE ============ */
+let reelLastIdx=-1;
+buildSwatches($('reel-swatches'), c=>{ $('reel-out-eye').style.color=c; $('reel-out-eye').style.borderColor=c; });
+$('reel-series').addEventListener('change', e=>{
+  const s=SERIES[e.target.value]; if(!s) return;
+  $('reel-eye').value=s.tag+' • EP. 1'; $('reel-watch').value=s.watch;
+  $('reel-out-eye').style.color=s.color; $('reel-out-eye').style.borderColor=s.color;
+  $('reel-swatches').querySelectorAll('.sw').forEach(x=>x.classList.toggle('active', x.dataset.c===s.color));
+  renderReel();
+});
+$('reel-spin').onclick=()=>{
+  const key=$('reel-series').value;
+  if(!key){ alert('Pick a series first — the spin pulls from that series\' hook bank.'); return; }
+  const s=SERIES[key];
+  let idx; do{ idx=Math.floor(Math.random()*s.hooks.length); }while(s.hooks.length>1 && idx===reelLastIdx);
+  reelLastIdx=idx;
+  const [hl,sub]=s.hooks[idx];
+  $('reel-hl').value=hl; $('reel-sub').value=sub;
+  renderReel();
+};
+bindFile('reel-file-bg','reel-lbl-bg', src=>{ $('reel-bg').src=src; $('reel-bg').style.display='block'; $('reel-bgph').style.display='none'; });
+bindFile('reel-file-l','reel-lbl-l', src=>{ $('reel-logoimg').src=src; $('reel-logo').style.display='block'; });
+$('reel-dark').addEventListener('input', e=>{ $('reel-dark-val').textContent=e.target.value+'%'; $('reel-ov').style.opacity=(+e.target.value)/100; });
+function renderReel(){
+  $('reel-out-eye').textContent=$('reel-eye').value;
+  $('reel-out-hl').textContent=$('reel-hl').value;
+  $('reel-out-sub').textContent=$('reel-sub').value;
+  $('reel-out-watch').textContent=$('reel-watch').value;
+  $('reel-caption').textContent=buildReelCaption();
+}
+function buildReelCaption(){
+  return $('reel-hl').value.replace(/\n/g,' ')+' 🎬\n\n'+$('reel-sub').value+'\n\n['+$('reel-eye').value+']\n🌐 buildbelievefit.fitness\n\n'+HASHTAGS.reel;
+}
+['reel-eye','reel-hl','reel-sub','reel-watch'].forEach(id=> $(id).addEventListener('input',renderReel));
+/* ===== REEL VIDEO EXPORT (Upgrade 2) ===== */
+let reelHasVideo=false, reelRecording=false;
+const reelVid=$('reel-vid');
+
+// Upload footage → hidden muted <video>; preview shows live motion behind the overlay.
+$('reel-file-vid').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  if(reelVid.src) URL.revokeObjectURL(reelVid.src);
+  reelVid.src=URL.createObjectURL(f);   // object URL, not dataURL → no base64 blowup on big files
+  reelVid.muted=true; reelVid.playsInline=true; reelVid.loop=true;
+  reelVid.onloadeddata=()=>{
+    reelHasVideo=true;
+    $('reel-lbl-vid').textContent='✓ VIDEO LOADED'; $('reel-lbl-vid').classList.add('done');
+    reelVid.style.display='block';                 // video wins over image in the preview
+    $('reel-bg').style.display='none'; $('reel-bgph').style.display='none';
+    reelVid.play().catch(()=>{});                  // muted+inline autoplays; if blocked, first frame shows
+  };
+  reelVid.onerror=()=>{ const n=$('reel-vid-note'); n.className='vid-note active warn'; n.textContent='Couldn’t read this video — try an MP4 (H.264).'; };
+});
+
+// PNG export of the reel: if footage is loaded, capture the CURRENT frame as a poster
+// (html2canvas can't rasterize a <video>), then restore the live preview after.
+$('reel-export').onclick=async ()=>{
+  let restore=false;
+  if(reelHasVideo && reelVid.readyState>=2){
+    const c=document.createElement('canvas'); c.width=1080; c.height=1920;
+    drawVideoCover(c.getContext('2d'), reelVid, 1080, 1920);
+    $('reel-bg').src=c.toDataURL('image/png'); $('reel-bg').style.display='block'; reelVid.style.display='none';
+    restore=true;
+  }
+  await exportStage('stage-reel','bbf-reel',1080,1920,$('reel-export'),
+    grabSettings(['reel-eye','reel-hl','reel-sub','reel-watch','reel-series']));
+  if(restore){ $('reel-bg').style.display='none'; reelVid.style.display='block'; reelVid.play().catch(()=>{}); }
+};
+$('reel-copycap').onclick=()=> copyText(buildReelCaption(), $('reel-copycap'));
+
+// Ensure both webfonts (every weight/size the overlay draws) are decoded before any
+// canvas text — same root-cause fix as the PNG export.
+async function ensureReelFonts(){
+  if(!document.fonts) return;
+  try{ await Promise.all([
+    document.fonts.load("148px 'Bebas Neue'"), document.fonts.load("36px 'Bebas Neue'"),
+    document.fonts.load("34px 'Bebas Neue'"), document.fonts.load("700 38px 'Barlow Condensed'"),
+    document.fonts.load("800 30px 'Barlow Condensed'")
+  ]); }catch(e){}
+  try{ await document.fonts.ready; }catch(e){}
+}
+
+// Prefer MP4 (Instagram-friendly); fall back to webm.
+function pickRecorderMime(){
+  const tries=['video/mp4;codecs=h264','video/mp4;codecs=avc1.42E01E','video/mp4',
+               'video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
+  for(const m of tries){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; }
+  return '';
+}
+
+/* ---- Canvas2D helpers for the baked overlay ---- */
+function roundRectPath(ctx,x,y,w,h,r){ r=Math.min(r,w/2,h/2); ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function drawVideoCover(ctx,v,W,H){ ctx.fillStyle='#08060a'; ctx.fillRect(0,0,W,H);
+  const vw=v.videoWidth, vh=v.videoHeight; if(!vw||!vh) return;
+  const s=Math.max(W/vw,H/vh), dw=vw*s, dh=vh*s; ctx.drawImage(v,(W-dw)/2,(H-dh)/2,dw,dh); }
+function drawCover(ctx,img,dx,dy,dw,dh){ const iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
+  if(!iw||!ih) return; const s=Math.max(dw/iw,dh/ih), w=iw*s, h=ih*s; ctx.drawImage(img,dx+(dw-w)/2,dy+(dh-h)/2,w,h); }
+function measureTracked(ctx,str,ls){ let w=0; for(const ch of str){ w+=ctx.measureText(ch).width+ls; } return Math.max(0,w-ls); }
+function drawTrackedStr(ctx,str,x,y,font,ls,vAlign){ ctx.save(); ctx.font=font; ctx.textAlign='left';
+  ctx.textBaseline=(vAlign==='middle')?'middle':'alphabetic'; let cx=x;
+  for(const ch of str){ ctx.fillText(ch,cx,y); cx+=ctx.measureText(ch).width+ls; } ctx.restore(); }
+function drawTracked(ctx,segs,x,y,font,ls){ ctx.save(); ctx.font=font; ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+  let cx=x; for(const seg of segs){ ctx.fillStyle=seg.c; for(const ch of seg.t){ ctx.fillText(ch,cx,y); cx+=ctx.measureText(ch).width+ls; } } ctx.restore(); }
+function wrapText(ctx,text,maxW){ const words=String(text).split(/\s+/), lines=[]; let line='';
+  for(const w of words){ const test=line?line+' '+w:w;
+    if(ctx.measureText(test).width>maxW && line){ lines.push(line); line=w; } else line=test; }
+  if(line) lines.push(line); return lines; }
+
+// Redraw the full branded reel overlay onto a 1080x1920 ctx, mirroring the CSS z-order.
+// NOTE: the cap-height baseline constants (148*0.80 etc.) approximate where Bebas/Barlow
+// caps sit in the CSS line box (canvas baselines != CSS line boxes) — tune ±a few px if needed.
+function drawReelOverlay(ctx,o){
+  const W=o.W, H=o.H, a=o.reveal, rise=(1-o.reveal)*40;
+  ctx.save(); ctx.globalAlpha=a; ctx.translate(0,rise);
+  // 1. darkening gradient (.reel-ov) — element opacity = dark/100, CSS-clamped to 1
+  const ov=Math.min(1, o.dark/100);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,`rgba(8,6,10,${0.55*ov})`); g.addColorStop(0.35,`rgba(8,6,10,${0.15*ov})`);
+  g.addColorStop(0.55,`rgba(8,6,10,${0.25*ov})`); g.addColorStop(1,`rgba(8,6,10,${0.92*ov})`);
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  // 2. gold top strip (.reel-strip)
+  const strip=ctx.createLinearGradient(0,0,W,0); strip.addColorStop(0,'#6a0dad'); strip.addColorStop(1,'#f5c800');
+  ctx.fillStyle=strip; ctx.fillRect(0,0,W,12);
+  // 3. top block — brand + eyebrow pill (x=70, top=70)
+  drawTracked(ctx,[{t:'BUILD ',c:'#f9f5ff'},{t:'BELIEVE',c:'#f5c800'},{t:' FIT',c:'#f9f5ff'}],70,98,"34px 'Bebas Neue'",7);
+  const eyeFont="800 30px 'Barlow Condensed'", eyeStr=(o.eyeText||'').toUpperCase();
+  ctx.font=eyeFont; const eyeW=measureTracked(ctx,eyeStr,6);
+  const pillTop=128, pillH=54, pillW=eyeW+56;
+  roundRectPath(ctx,70,pillTop,pillW,pillH,pillH/2);
+  ctx.fillStyle='rgba(8,6,10,0.55)'; ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle=o.eyeColor; ctx.stroke();
+  ctx.fillStyle=o.eyeColor; drawTrackedStr(ctx,eyeStr,98,pillTop+pillH/2,eyeFont,6,'middle');
+  // 4. optional logo circle (top:58 right:64 128x128)
+  if(o.logoImg){ const ls=128, lx=W-64-ls, ly=58;
+    ctx.save(); ctx.beginPath(); ctx.arc(lx+ls/2,ly+ls/2,ls/2,0,Math.PI*2); ctx.clip(); drawCover(ctx,o.logoImg,lx,ly,ls,ls); ctx.restore();
+    ctx.beginPath(); ctx.arc(lx+ls/2,ly+ls/2,ls/2,0,Math.PI*2); ctx.lineWidth=3; ctx.strokeStyle='rgba(245,200,0,0.35)'; ctx.stroke(); }
+  // 5. bottom block (anchored bottom:90), built bottom-up
+  const cx=70, cw=940;
+  const hlFont="148px 'Bebas Neue'", hlLines=String(o.hlText).split('\n'), hlLH=148*0.94, hlH=hlLines.length*hlLH;
+  const subFont="700 38px 'Barlow Condensed'"; ctx.font=subFont;
+  const subLines=wrapText(ctx,o.subText,cw), subLH=38*1.2, subH=subLines.length*subLH;
+  const watchFont="36px 'Bebas Neue'", watchH=76; ctx.font=watchFont;
+  const watchW=measureTracked(ctx,o.watchText,3)+92;
+  const blockH=hlH+22+subH+34+watchH; let y=H-90-blockH;
+  ctx.save(); ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=30; ctx.shadowOffsetY=6;
+  ctx.fillStyle='#f9f5ff'; ctx.font=hlFont; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  hlLines.forEach((ln,i)=> ctx.fillText(ln, cx, y+i*hlLH+148*0.80)); ctx.restore();
+  y+=hlH+22;
+  ctx.save(); ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=14; ctx.shadowOffsetY=3;
+  ctx.fillStyle='rgba(255,255,255,0.78)'; ctx.font=subFont; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  subLines.forEach((ln,i)=> ctx.fillText(ln, cx, y+i*subLH+38*0.82)); ctx.restore();
+  y+=subH+34;
+  roundRectPath(ctx,cx,y,watchW,watchH,watchH/2); ctx.fillStyle='#f5c800'; ctx.fill();
+  ctx.fillStyle='#060606'; drawTrackedStr(ctx,o.watchText,cx+46,y+watchH/2,watchFont,3,'middle');
+  ctx.restore();
+}
+
+// EXPORT VIDEO: footage as moving bg + baked overlay → MediaRecorder → download (silent).
+$('reel-export-vid').onclick=async ()=>{
+  const btn=$('reel-export-vid'), note=$('reel-vid-note'), prog=$('reel-vid-progress'), bar=$('reel-vid-bar');
+  if(!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream){
+    note.className='vid-note active warn'; note.textContent='This browser can’t record canvas video. Use EXPORT IMAGE, or try Chrome/Safari on a recent device.'; return; }
+  if(!reelHasVideo){ note.className='vid-note active warn'; note.textContent='Upload reel footage first (EXPORT IMAGE still works for stills).'; return; }
+  if(reelRecording) return;
+  await ensureReelFonts();
+  const W=1080, H=1920;
+  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H; const ctx=canvas.getContext('2d');
+  const logoImg=($('reel-logo').style.display!=='none' && $('reel-logoimg').src)?$('reel-logoimg'):null;
+  const baseOpts={W,H, dark:+$('reel-dark').value, eyeColor:$('reel-out-eye').style.color||'#f5c800',
+    eyeText:$('reel-eye').value, hlText:$('reel-hl').value, subText:$('reel-sub').value, watchText:$('reel-watch').value, logoImg};
+  const mime=pickRecorderMime(), stream=canvas.captureStream(30);
+  let rec; try{ rec=mime?new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000}):new MediaRecorder(stream); }
+  catch(err){ note.className='vid-note active warn'; note.textContent='Recorder init failed: '+err.message; return; }
+  const chunks=[]; rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+  const fps=30, dur=Math.min(reelVid.duration||0,60), totalFrames=Math.max(1,Math.ceil(dur*fps)), introFrames=30; let drawn=0, stopped=false;
+  reelRecording=true; btn.disabled=true; const orig=btn.textContent; btn.textContent='RECORDING…';
+  prog.classList.add('active'); bar.style.width='0%'; note.className='vid-note active'; note.textContent='Rendering frames…';
+  reelVid.pause(); reelVid.loop=false; reelVid.currentTime=0;
+  const finish=()=>{ if(stopped) return; stopped=true; try{ rec.stop(); }catch(e){} };
+  reelVid.onended=finish; const killTimer=setTimeout(finish,(dur+1.5)*1000);
+  rec.onstop=()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop());
+    const ext=(mime&&mime.indexOf('mp4')>=0)?'mp4':'webm'; const blob=new Blob(chunks,{type:mime||('video/'+ext)});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.download='bbf-reel-'+Date.now()+'.'+ext; a.href=url; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    if(ext==='webm'){ note.className='vid-note active warn'; note.textContent='Exported as .webm — your browser can’t record MP4 directly; convert before posting to IG.'; }
+    else{ note.className='vid-note active'; note.textContent='Saved MP4 ✓ — ready to post.'; }
+    reelRecording=false; btn.disabled=false; btn.textContent=orig; prog.classList.remove('active');
+    reelVid.loop=true; reelVid.play().catch(()=>{}); };
+  rec.start();
+  try{ await reelVid.play(); }catch(err){ note.className='vid-note active warn'; note.textContent='Could not start playback: '+err.message; finish(); return; }
+  (function frame(){ if(stopped) return;
+    drawVideoCover(ctx,reelVid,W,H);
+    drawReelOverlay(ctx,Object.assign({},baseOpts,{reveal:Math.min(1,drawn/introFrames)}));
+    drawn++; bar.style.width=Math.min(100,Math.round(drawn/totalFrames*100))+'%';
+    if(reelVid.ended || drawn>=totalFrames){ finish(); return; } requestAnimationFrame(frame); })();
+};
+
+/* ===== INIT ===== */
+(async ()=>{
+  const cc=await store.get('bbf-studio:custom-cards'); if(cc) customCards=cc;
+})();
+renderCta(); renderReel(); fitPreview();
+</script>
+</body>
+</html>

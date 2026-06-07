@@ -67,10 +67,10 @@ export default function MasterLayout({ children }) {
           {/* Content Studio — a standalone, full-screen HTML content tool (NOT a
               React route), so it opens in a NEW TAB via a real browser navigation.
               Router navigate() would hit the SPA '*' fallback and bounce to '/';
-              the physical file at /bbf-studio.html (served from frontend/public →
-              dist) is what actually loads. Admin-only — the shell is AdminGuard-gated. */}
+              the physical file at /bbf-sovereign-studio-v3.html (served from
+              frontend/public → dist) is what actually loads. Admin-only — AdminGuard-gated. */}
           <a
-            href="/bbf-studio.html"
+            href="/bbf-sovereign-studio-v3.html"
             target="_blank"
             rel="noopener noreferrer"
             style={{ ...styles.navItem, ...styles.navLaunch }}
