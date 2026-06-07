@@ -772,32 +772,78 @@ serve(async (req) => {
       return jsonResponse({ ok: true, persisted: true, plans_generated_at: stamp, days: safePlan.length });
     }
 
-    // ── leads_list / concierge_log (Comlink, relayed server-side) ─────────────────
-    // Unifies Comlink behind this session-authed gate: the browser no longer hits
-    // Render directly (and no longer needs a separate Render token in the client).
-    // We forward to Render with the server-held BBF_RENDER_ADMIN_TOKEN — the exact
-    // relay pattern `compile` already uses — and return Render's body verbatim.
-    if (action === 'leads_list' || action === 'concierge_log') {
-      if (!RENDER_ADMIN_TOKEN) return jsonResponse({ error: 'backend_unconfigured', detail: 'render_token' }, 503);
-      const path = action === 'leads_list' ? '/api/leads-list' : '/api/concierge-log';
-      const limit = Number(body?.limit) || (action === 'leads_list' ? 100 : 80);
-      let r: Response;
-      try {
-        r = await fetch(`${RENDER_BASE}${path}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': RENDER_ADMIN_TOKEN },
-          body: JSON.stringify({ limit }),
-        });
-      } catch (_) {
-        return jsonResponse({ error: 'orchestrator_unreachable' }, 502);
+    // ── leads_list / concierge_log (Comlink) — read DIRECTLY via the service role ──
+    // Previously this RELAYED to Render with the server-held BBF_RENDER_ADMIN_TOKEN.
+    // That second server-to-server token drifted from Render's BBF_ADMIN_TOKEN, so
+    // Render rejected the relay (admin_token_invalid) and we surfaced it as a 500/502
+    // — the Comlink crash. The data lives in Supabase (bbf_leads / bbf_lead_actions)
+    // and THIS function already holds the service role AND has authorized the admin,
+    // so we read it here directly: no Render hop, no second token to juggle (§7).
+    // Response shapes are byte-for-byte what Render returned, so the frontend is
+    // unchanged. (Logic ported verbatim from index.js /api/leads-list + /concierge-log.)
+    if (action === 'leads_list') {
+      const limit = Math.max(1, Math.min(200, Number(body?.limit) || 100));
+      const leads = await pgGet(
+        `bbf_leads?select=id,source,email,full_name,phone,tier,payload,created_at` +
+        `&order=created_at.desc&limit=${limit}`,
+      );
+      const list = Array.isArray(leads) ? leads : [];
+      // Cross-reference bbf_users by email → PROVISIONED vs PENDING (hash-join in JS).
+      const emails = [...new Set(list.map((l) => String(l.email || '').toLowerCase()).filter(Boolean))];
+      const provisioned = new Set<string>();
+      if (emails.length) {
+        const inList = emails.map((e) => `"${encodeURIComponent(e)}"`).join(',');
+        try {
+          const users = await pgGet(`bbf_users?select=email&email=in.(${inList})`);
+          for (const u of (Array.isArray(users) ? users : [])) {
+            if (u.email) provisioned.add(String(u.email).toLowerCase());
+          }
+        } catch (_) { /* cross-ref non-fatal — rows read as pending */ }
       }
-      const txt = await r.text();
-      let j: any = null;
-      try { j = txt ? JSON.parse(txt) : null; } catch { /* non-JSON passthrough */ }
-      if (!r.ok || !j?.ok) {
-        return jsonResponse({ error: 'orchestrator_failed', detail: j?.error ?? `status_${r.status}` }, 502);
+      const decorated = list.map((l) => {
+        const p = (l.payload && typeof l.payload === 'object') ? l.payload : {};
+        return {
+          id: l.id, source: l.source, email: l.email, full_name: l.full_name, phone: l.phone,
+          tier: l.tier || p.tier || null, created_at: l.created_at,
+          provisioned: provisioned.has(String(l.email || '').toLowerCase()),
+          dietary_profile: p.dietary_profile || null,
+          allergens: Array.isArray(p.allergens) ? p.allergens : [],
+          age: p.age || null, sex: p.sex || null, height: p.height || null, weight: p.weight || null,
+          primary_goal: p.primary_goal || null, program: p.program || null,
+          health_notes: p.health_notes || null, full_payload: p,
+        };
+      });
+      return jsonResponse({
+        ok: true,
+        total: decorated.length,
+        provisioned: decorated.filter((l) => l.provisioned).length,
+        pending: decorated.filter((l) => !l.provisioned).length,
+        leads: decorated,
+      });
+    }
+
+    if (action === 'concierge_log') {
+      const limit = Math.max(1, Math.min(200, Number(body?.limit) || 80));
+      const rows = await pgGet(
+        `bbf_lead_actions?select=id,run_id,lead_id,lead_email,action_type,score,priority,` +
+        `template_id,email_subject,email_body_preview,brevo_message_id,error,created_at` +
+        `&order=created_at.desc&limit=${limit}`,
+      );
+      const acts = Array.isArray(rows) ? rows : [];
+      // Group by run_id → run cards (sent / failed / skipped counts), newest first.
+      const runs: Record<string, any> = {};
+      for (const a of acts) {
+        const rid = String(a.run_id ?? 'unknown');
+        if (!runs[rid]) runs[rid] = { run_id: a.run_id, started_at: a.created_at, actions: [], sent: 0, failed: 0, skipped: 0 };
+        const run = runs[rid];
+        run.actions.push(a);
+        if (a.action_type === 'email_sent') run.sent++;
+        if (a.action_type === 'email_failed') run.failed++;
+        if (typeof a.action_type === 'string' && a.action_type.indexOf('skipped_') === 0) run.skipped++;
+        if (a.created_at && a.created_at < run.started_at) run.started_at = a.created_at;
       }
-      return jsonResponse(j);
+      const runList = Object.values(runs).sort((a: any, b: any) => (b.started_at > a.started_at ? 1 : -1));
+      return jsonResponse({ ok: true, total: acts.length, runs: runList });
     }
 
     // ── tiers (pricing matrix → tier-reassignment dropdown) ──────────────────────

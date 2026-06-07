@@ -2,15 +2,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Sovereign Comlink data layer.
 //
-// REWIRED (Advanced Auth Elevation): Comlink no longer calls the Render Express
-// backend directly from the browser. It now rides the SAME session-authed gate as
-// the rest of the Command Center — bbf-admin-roster relays `leads_list` /
-// `concierge_log` to Render server-side using the server-held BBF_RENDER_ADMIN_TOKEN
-// (the exact relay the `compile` action already uses). Benefits:
+// REWIRED: Comlink rides the SAME session-authed gate as the rest of the Command
+// Center — it calls bbf-admin-roster (with the admin's X-BBF-Session-Token), which
+// reads the leads / concierge data DIRECTLY via the service role (bbf_leads /
+// bbf_lead_actions). No browser→Render call, no separate Render token. Benefits:
 //   • a logged-in admin auto-unlocks Comlink via their session token — no manual
-//     paste, no separate Render token in the browser (§7), and
-//   • the browser→Render CORS allowlist fragility disappears (the call is now
-//     same-origin to Supabase, then server-to-server to Render).
+//     paste, no second token to juggle (§7), and
+//   • the prior server→Render relay (and its BBF_RENDER_ADMIN_TOKEN mismatch, which
+//     threw the Comlink "admin_token_invalid" crash) is gone entirely.
 //
 // Response shapes are unchanged (Render's bodies are returned verbatim):
 //   leads_list     → { ok, total, provisioned, pending, leads:[…] }
