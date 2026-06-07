@@ -24,6 +24,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { logLlmCall } from '../_shared/llm-telemetry.ts';
 import { routeAndLog } from '../_shared/model-router.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
+import { requireEntitlement } from '../_shared/entitlement-gate.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -351,7 +352,7 @@ serve(async (req: Request) => {
 
   let payload: any;
   try { payload = await req.json(); } catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
-  const { uid, available_minutes, admin_override } = payload || {};
+  const { available_minutes, admin_override } = payload || {};
   // Trilingual cloud generation — athlete's locale (EN/ES/PT), normalized.
   const locale = localeCode(payload?.locale ?? payload?.lang);
 
@@ -365,7 +366,6 @@ serve(async (req: Request) => {
     }), 200);
   }
 
-  if (typeof uid !== 'string' || !uid) return jsonResponse({ error: 'missing_uid' }, 400);
   let minutes = Number(available_minutes);
   if (!isFinite(minutes) || minutes <= 0) return jsonResponse({ error: 'invalid_minutes' }, 400);
   minutes = Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, Math.round(minutes)));
@@ -373,6 +373,22 @@ serve(async (req: Request) => {
   // Shared Supabase client (rate limiter + CNS read).
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  // ─── ENTITLEMENT GATE (FAIL-CLOSED) ────────────────────────────────────
+  // Cardio routes to Opus 4.8 (cardiac_intercept). It must NEVER be triggerable
+  // by an unentitled / anonymous caller bypassing the cosmetic UI lock. Identity
+  // is resolved SERVER-SIDE from the vault bearer token (the body `uid` is not
+  // trusted for auth). Cardio is a FITNESS feature (BASE/PRO) + God Mode; a
+  // none/nutrition/youth/unmapped/locked tier → 403 tier_not_entitled.
+  const gate = await requireEntitlement({
+    supabaseUrl: SUPABASE_URL,
+    serviceKey:  SERVICE_KEY,
+    vaultToken:  payload?.vault_token ?? req.headers.get('x-bbf-vault-token'),
+    feature:     'cardio',
+  });
+  if (!gate.ok) return jsonResponse({ error: gate.denial.error, detail: gate.denial.detail }, gate.denial.status);
+  const uid = gate.ctx.uid || gate.ctx.user_id;   // server-authoritative identity
+
   const supa = (SUPABASE_URL && SERVICE_KEY)
     ? createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
     : null;

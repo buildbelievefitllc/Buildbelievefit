@@ -21,6 +21,7 @@
 // the anon key automatically via supabase.functions.invoke — so no manual headers.
 
 import { supabase } from './supabaseClient.js';
+import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 // Generate a protocol for a time budget. Returns the verified envelope or throws a
 // display-ready Error.
@@ -30,15 +31,20 @@ export async function generateCardio(uid, availableMinutes) {
   if (!mins || mins <= 0) throw new Error('Enter how many minutes you have.');
 
   const { data, error } = await supabase.functions.invoke('bbf-agentic-cardio', {
-    body: { uid, available_minutes: mins },
+    // vault_token binds the call to the athlete's server-revocable session so the
+    // edge fn resolves identity + enforces the tier gate (server entitlement-gate).
+    body: { uid, available_minutes: mins, vault_token: getStoredVaultToken() },
   });
 
   if (error) {
     // functions.invoke surfaces non-2xx as a FunctionsHttpError carrying the
-    // Response on `.context`. Intercept 429 from the new rate-limited backend and
-    // surface it as a coded error the UI maps to a clean toast (not a raw failure).
-    if (error?.context?.status === 429) {
-      throw rateLimited();
+    // Response on `.context`. Map the coded limit/gate statuses to clean messages.
+    const status = error?.context?.status;
+    if (status === 429) throw rateLimited();
+    if (status === 401 || status === 403) {
+      let slug = '';
+      try { slug = (await error.context.clone().json())?.error || ''; } catch { /* non-JSON body */ }
+      throw new Error(gateMessage(slug, status));
     }
     throw new Error(`Cardio engine unavailable — ${error.message || 'request failed'}.`);
   }
@@ -48,6 +54,10 @@ export async function generateCardio(uid, availableMinutes) {
     if (slug === 'rate_limited' || slug === 'too_many_requests') throw rateLimited();
     const map = {
       unauthorized: 'Not authorized to generate a protocol.',
+      tier_not_entitled: 'Smart Cardio isn’t included in your current plan — upgrade to unlock it.',
+      missing_session: 'Your session expired — sign in again to generate a protocol.',
+      invalid_session: 'Your session expired — sign in again to generate a protocol.',
+      account_locked: 'This account is locked. Contact your coach.',
       missing_uid: 'No athlete on the request.',
       invalid_minutes: 'Enter a valid number of minutes.',
       invalid_json: 'The engine rejected the request.',
@@ -62,4 +72,18 @@ function rateLimited() {
   const e = new Error('Daily limit reached. Resets at midnight UTC.');
   e.code = 'rate_limited';
   return e;
+}
+
+// Map a server entitlement-gate slug (401/403) to a clean, on-brand message.
+function gateMessage(slug, status) {
+  const map = {
+    tier_not_entitled: 'Smart Cardio isn’t included in your current plan — upgrade to unlock it.',
+    missing_session: 'Your session expired — sign in again to generate a protocol.',
+    invalid_session: 'Your session expired — sign in again to generate a protocol.',
+    account_locked: 'This account is locked. Contact your coach.',
+    unauthorized: 'Not authorized to generate a protocol.',
+  };
+  return map[slug] || (status === 403
+    ? 'This feature isn’t included in your current plan.'
+    : 'Your session expired — sign in again.');
 }

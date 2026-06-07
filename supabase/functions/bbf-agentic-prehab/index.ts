@@ -89,6 +89,7 @@ async function prehabRateCheck(
 // reasoning for the 3-movement matrix without Opus-tier overspend.
 import { routeAndLog } from '../_shared/model-router.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
+import { requireEntitlement } from '../_shared/entitlement-gate.ts';
 
 const MODEL             = routeAndLog('bbf-agentic-prehab', 'prehab_assignment');
 const MAX_TOKENS        = 2048;
@@ -352,7 +353,7 @@ serve(async (req: Request) => {
   try { payload = await req.json(); }
   catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const { uid, actual_uuid, reported_friction, client_context, admin_override } = payload || {};
+  const { reported_friction, client_context, admin_override } = payload || {};
   const locale = localeCode(payload?.locale ?? payload?.lang);
 
   // ─── 1. OMNISCIENCE PROTOCOL — ABSOLUTE FIRST GATE ─────────────
@@ -360,9 +361,6 @@ serve(async (req: Request) => {
     return jsonResponse(adminOverrideMock(), 200);
   }
 
-  if (typeof uid !== 'string' || !uid) {
-    return jsonResponse({ error: 'missing_uid' }, 400);
-  }
   const friction = typeof reported_friction === 'string' ? reported_friction : '';
   const ctx      = (client_context && typeof client_context === 'object') ? client_context : {};
   const todayDate = (typeof ctx.today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ctx.today)) ? ctx.today : utcToday();
@@ -374,6 +372,21 @@ serve(async (req: Request) => {
     console.error('[bbf-agentic-prehab v2] missing Supabase config — returning baseline fallback');
     return jsonResponse(defaultBaselineMatrix(), 200);
   }
+
+  // ─── ENTITLEMENT GATE (FAIL-CLOSED) ────────────────────────────
+  // Prehab routes to Sonnet — protect the paid call from unentitled / anon
+  // bypass of the cosmetic UI lock. Identity is resolved SERVER-SIDE from the
+  // vault bearer token (the body `uid` is not trusted). FITNESS_PRO + God Mode
+  // unlock prehab (mirrors entitlements.js TAB_ACCESS.prehab); everyone else → 403.
+  const gate = await requireEntitlement({
+    supabaseUrl: SUPABASE_URL,
+    serviceKey:  SUPABASE_SERVICE_KEY,
+    vaultToken:  payload?.vault_token ?? req.headers.get('x-bbf-vault-token'),
+    feature:     'prehab',
+  });
+  if (!gate.ok) return jsonResponse({ error: gate.denial.error, detail: gate.denial.detail }, gate.denial.status);
+  const uid  = gate.ctx.uid || gate.ctx.user_id;   // server-authoritative identity
+  const uuid = gate.ctx.user_id;                    // bbf_users.id — from the token
 
   // ─── Per-IP daily rate limit (DB-backed · mirrors bbf_cardio_rate_check) ──
   // Caps Sonnet spend per source IP per UTC day. Generous for genuine athletes,
@@ -395,18 +408,9 @@ serve(async (req: Request) => {
     }
   }
 
-  // ─── 2. Resolve uuid + pull demographics & today's workload ────
-
-  let uuid: string | null = null;
-  if (typeof actual_uuid === 'string' && isUuid(actual_uuid)) {
-    uuid = actual_uuid;
-  } else {
-    uuid = await resolveUuid(uid, SUPABASE_URL, SUPABASE_SERVICE_KEY);
-  }
-  if (!uuid) {
-    console.warn(`[bbf-agentic-prehab v2] uid not resolvable: ${uid} — returning baseline fallback`);
-    return jsonResponse(defaultBaselineMatrix(), 200);
-  }
+  // ─── 2. Pull demographics & today's workload (uuid from the gate) ──
+  // The vault token already resolved uuid (bbf_users.id) + uid server-side, so
+  // the legacy uid→uuid lookup and the spoofable actual_uuid input are gone.
 
   // Pull profile + today's sets in parallel for latency.
   const [userRow, todaySets] = await Promise.all([

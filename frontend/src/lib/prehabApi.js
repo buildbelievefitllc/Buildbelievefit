@@ -14,6 +14,7 @@
 // the gateway/auth itself rejects the call (non-2xx).
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
+import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 // Client-local YYYY-MM-DD so day_key prefix matching uses the athlete's timezone.
 export function localDateKey(d = new Date()) {
@@ -49,6 +50,9 @@ export async function requestPrehabMatrix({ uid, friction = '', today, adminOver
 
   const body = {
     uid,
+    // vault_token binds the call to the athlete's session so the edge fn resolves
+    // identity + enforces the tier gate (server entitlement-gate, fail-closed).
+    vault_token: getStoredVaultToken(),
     reported_friction: typeof friction === 'string' ? friction : '',
     client_context: { today: today || localDateKey() },
   };
@@ -74,8 +78,18 @@ export async function requestPrehabMatrix({ uid, friction = '', today, adminOver
 
   if (!res.ok) {
     const slug = parsed?.error || parsed?.detail || raw || 'unknown error';
-    const e = new Error(`Recovery Matrix engine returned ${res.status} (${slug}).`);
+    // Server entitlement-gate (fail-closed) → clean, on-brand messages.
+    const friendly =
+      slug === 'tier_not_entitled'
+        ? 'The Recovery Matrix isn’t included in your current plan — upgrade to unlock it.'
+        : (slug === 'invalid_session' || slug === 'missing_session')
+          ? 'Your session expired — sign in again to run the Friction Scanner.'
+          : slug === 'account_locked'
+            ? 'This account is locked. Contact your coach.'
+            : `Recovery Matrix engine returned ${res.status} (${slug}).`;
+    const e = new Error(friendly);
     e.code = res.status;
+    e.slug = slug;
     throw e;
   }
 
