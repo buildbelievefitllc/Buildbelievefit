@@ -60,10 +60,17 @@ Trilingual (EN / ES / PT) is **structural, not optional**.
 
 | Surface | File / location | Deploys via | Notes |
 |---|---|---|---|
-| PWA frontend | `bbf-app.html`, `admin.html`, `index.html`, `sw.js` | Merge to `main` → **GitHub Pages** (~1–2 min) | Live: `buildbelievefit.fitness` |
+| PWA frontend | `bbf-app.html`, `admin.html`, `sw.js` | Merge to `main` → **GitHub Pages** (~1–2 min) | `index.html` is **decommissioned** (redirect-only — see note); React app (Render `bbf-command-center`) is the canonical marketing surface |
 | Express/WS proxy | `index.js`, `api/` | Merge to `main` → **Render** auto-deploy (~1–2 min) | Health: `https://buildbelievefit.onrender.com/health` |
 | AI agents | `supabase/functions/*` (Deno edge functions) | `mcp__<supabase>__deploy_edge_function` | Project `ihclbceghxpuawymlvgi`, Postgres 17.6 |
 | Data | Supabase Postgres + RLS | `apply_migration` (never ad-hoc prod SQL) | Canonical schema: `api/supabase-schema-actual.sql` |
+
+> **Legacy `index.html` decommissioned (CEO order, 2026-06):** the root monolithic
+> homepage shipped a retired `gateway / architect / sovereign` ladder (`$67 / $697 / $1,197`)
+> plus old Stripe links — all dead. It is now a **hard redirect** to the React deployment
+> (Render `bbf-command-center`), which is the **sole source of truth** for marketing pricing,
+> routing, and checkout. Never reintroduce pricing into root HTML — pricing lives in
+> `frontend/src/lib/pricingMatrix.js` (see §1 · Pricing).
 
 > **`sw.js` cache bump:** any change to frontend files **must** bump the `CACHE`
 > version in `sw.js`, or users won't receive the update.
