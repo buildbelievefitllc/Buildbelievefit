@@ -39,6 +39,7 @@ import Prehab from '../components/vault/Prehab.jsx';
 import ChampionMindset from '../components/vault/ChampionMindset.jsx';
 import TierGate from '../components/TierGate.jsx';
 import ComlinkFAB from '../components/vault/ComlinkFAB.jsx';
+import Concierge from '../components/vault/Concierge.jsx';
 import { TAB_FEATURE } from '../lib/entitlements.js';
 import '../components/vault/vault.css';
 
@@ -181,6 +182,9 @@ export default function ClientVault() {
       </div>
       {/* Phase 2: Sovereign Comlink FAB — granularly gated (sovereign_comlink → God Tier). */}
       <ComlinkFAB />
+      {/* Self-Serve Concierge — first-login welcome that lists EXACTLY the band's
+          unlocked tools (server-enforced, no mirages). Self-gates + fires once. */}
+      <Concierge />
     </div>
   );
 }
