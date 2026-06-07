@@ -9,6 +9,8 @@
     "test:funnel": "playwright test sales-funnel",
     "test:vault": "playwright test --config playwright.vault.config.ts",
     "test:vault:list": "playwright test --config playwright.vault.config.ts --list",
+    "test:studio": "playwright test --config playwright.studio.config.ts",
+    "test:studio:list": "playwright test --config playwright.studio.config.ts --list",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:list": "playwright test --list",
