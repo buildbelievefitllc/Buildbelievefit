@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#060606" />
+<title>Build Believe Fit — Performance Laboratory</title>
+<meta name="description" content="Engineered for the high-demand human. A training system that adapts to the life you actually live. Your schedule is the context. Your potential is the focus." />
+
+<!-- ============================================================= -->
+<!--  Build Believe Fit LLC — Autonomous Conversion Engine         -->
+<!--  Single-file, zero-build, GitHub-Pages-ready landing page.    -->
+<!--  Personalizes hero by traffic source via ?src= URL param.    -->
+<!--                                                               -->
+<!--  EVERYTHING YOU EDIT LIVES IN THE <script id="config"> BLOCK  -->
+<!--  NEAR THE BOTTOM OF THIS FILE. Paste Stripe links, change     -->
+<!--  copy, prices, keywords, and emails there — never in markup.  -->
+<!-- ============================================================= -->
+
+<!-- Brand fonts: Bebas Neue (headlines) + Barlow Condensed (body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    /* === BBF LOCKED BRAND TOKENS === */
+    --purple:#6a0dad;
+    --gold:#f5c800;
+    --black:#060606;
+
+    /* Near-black backgrounds with purple as a GLOW, never flat bright purple */
+    --bg:#060606;
+    --bg-panel:#0c0910;
+    --bg-card:#100b16;
+    --bg-card-hi:#160d22;
+    --line:rgba(106,13,173,.28);
+    --line-soft:rgba(255,255,255,.07);
+
+    --text:#f3eef8;
+    --text-dim:#b9aecb;
+    --text-faint:#7d7390;
+
+    --glow:0 0 80px rgba(106,13,173,.55);
+    --glow-soft:0 0 40px rgba(106,13,173,.30);
+    --gold-glow:0 0 30px rgba(245,200,0,.35);
+
+    --maxw:1180px;
+    --radius:16px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Barlow Condensed",system-ui,sans-serif;
+    font-weight:400;
+    font-size:18px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    /* ambient purple glow field behind everything */
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(900px 600px at 50% -10%, rgba(106,13,173,.30), transparent 60%),
+      radial-gradient(700px 500px at 100% 10%, rgba(106,13,173,.14), transparent 55%),
+      radial-gradient(700px 500px at 0% 30%, rgba(245,200,0,.05), transparent 55%);
+  }
+
+  h1,h2,h3,.bebas{font-family:"Bebas Neue",Impact,sans-serif;font-weight:400;letter-spacing:.5px;line-height:.95}
+
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:.5ch;
+    font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:18px;
+    letter-spacing:1.4px;text-transform:uppercase;
+    padding:15px 30px;border-radius:12px;border:1px solid transparent;
+    cursor:pointer;transition:transform .15s ease, box-shadow .25s ease, background .2s ease;
+    line-height:1;white-space:nowrap;
+  }
+  .btn-gold{background:var(--gold);color:#1a1300;box-shadow:var(--gold-glow)}
+  .btn-gold:hover{transform:translateY(-2px);box-shadow:0 0 44px rgba(245,200,0,.55)}
+  .btn-ghost{background:transparent;color:var(--text);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--purple);box-shadow:var(--glow-soft);transform:translateY(-2px)}
+  .btn-purple{background:linear-gradient(180deg,#7d1bc4,#52089a);color:#fff;box-shadow:var(--glow-soft)}
+  .btn-purple:hover{transform:translateY(-2px);box-shadow:var(--glow)}
+  .btn-block{width:100%}
+
+  /* ---------- top bar ---------- */
+  .topbar{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);
+    background:rgba(6,6,6,.72);border-bottom:1px solid var(--line-soft)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .mark{
+    width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+    background:linear-gradient(150deg,var(--purple),#2a0444);
+    box-shadow:var(--glow-soft);font-family:"Bebas Neue";font-size:20px;color:var(--gold);
+    border:1px solid rgba(245,200,0,.35);
+  }
+  .brand b{font-family:"Bebas Neue";font-size:23px;letter-spacing:1px;font-weight:400}
+  .brand b span{color:var(--gold)}
+  .brand small{display:block;font-size:10.5px;letter-spacing:3px;color:var(--text-faint);text-transform:uppercase;margin-top:-3px}
+  .topbar .est{font-size:12px;letter-spacing:2px;color:var(--text-faint);text-transform:uppercase}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:74px 0 64px}
+  .hero .wrap{max-width:980px;text-align:center}
+  .eyebrow{
+    display:inline-block;font-size:13px;letter-spacing:3.5px;text-transform:uppercase;
+    color:var(--gold);font-weight:600;margin-bottom:22px;
+    padding:7px 16px;border:1px solid rgba(245,200,0,.3);border-radius:999px;
+    background:rgba(245,200,0,.05);
+  }
+  .hero h1{
+    font-size:clamp(46px,8.5vw,104px);
+    margin:0 auto 20px;max-width:14ch;
+    text-shadow:0 0 60px rgba(106,13,173,.5);
+  }
+  .hero h1 .gold{color:var(--gold)}
+  .hero .subline{font-size:clamp(18px,2.5vw,24px);color:var(--text-dim);max-width:56ch;margin:0 auto 26px;font-weight:300}
+  .proof{
+    display:inline-flex;align-items:flex-start;gap:11px;text-align:left;
+    max-width:60ch;margin:0 auto 34px;color:var(--text);
+    background:var(--bg-card);border:1px solid var(--line);border-radius:14px;
+    padding:16px 20px;box-shadow:var(--glow-soft);
+  }
+  .proof .tick{color:var(--gold);font-size:22px;line-height:1;flex:0 0 auto;margin-top:1px}
+  .proof span{font-size:17px;color:var(--text-dim)}
+  .proof span b{color:var(--text);font-weight:600}
+  .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .tagline{margin-top:30px;font-size:14px;letter-spacing:2px;color:var(--text-faint);text-transform:uppercase}
+  .tagline b{color:var(--text-dim);font-weight:500}
+
+  /* ---------- section scaffolding ---------- */
+  section.block{padding:64px 0}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 42px}
+  .sec-head .kicker{font-size:13px;letter-spacing:3.5px;text-transform:uppercase;color:var(--purple);font-weight:700;filter:brightness(1.7)}
+  .sec-head h2{font-size:clamp(34px,5vw,56px);margin:8px 0 12px}
+  .sec-head p{color:var(--text-dim);font-size:18px;font-weight:300}
+  #audit-banner{
+    display:none;max-width:760px;margin:0 auto 30px;text-align:center;
+    border:1px solid rgba(245,200,0,.45);border-radius:14px;padding:16px 22px;
+    background:linear-gradient(180deg,rgba(245,200,0,.08),rgba(106,13,173,.06));
+    color:var(--text);font-size:18px;
+  }
+  #audit-banner b{color:var(--gold)}
+
+  /* ---------- pricing cards ---------- */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:stretch}
+  .card{
+    position:relative;display:flex;flex-direction:column;
+    background:var(--bg-card);border:1px solid var(--line-soft);
+    border-radius:var(--radius);padding:30px 26px;transition:transform .2s ease,box-shadow .25s ease,border-color .2s ease;
+  }
+  .card:hover{transform:translateY(-4px);border-color:var(--line)}
+  .card.featured{
+    background:linear-gradient(180deg,var(--bg-card-hi),var(--bg-card));
+    border-color:rgba(245,200,0,.4);box-shadow:var(--glow);
+  }
+  .badge{
+    position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+    background:var(--gold);color:#1a1300;font-weight:700;font-size:12px;letter-spacing:2px;
+    text-transform:uppercase;padding:5px 16px;border-radius:999px;box-shadow:var(--gold-glow);white-space:nowrap;
+  }
+  .card h3{font-size:34px;letter-spacing:1px}
+  .card .price{display:flex;align-items:baseline;gap:4px;margin:6px 0 4px}
+  .card .price .amt{font-family:"Bebas Neue";font-size:52px;color:var(--gold);line-height:1}
+  .card .price .per{font-size:15px;color:var(--text-faint);font-weight:500}
+  .card .tag{font-size:15px;color:var(--text-dim);min-height:44px;font-weight:300;margin-bottom:8px}
+  .card ul{list-style:none;margin:14px 0 22px;display:flex;flex-direction:column;gap:11px;flex:1}
+  .card li{display:flex;gap:10px;align-items:flex-start;font-size:16px;color:var(--text-dim);line-height:1.35}
+  .card li .ic{color:var(--gold);flex:0 0 auto;font-size:15px;margin-top:2px}
+  .card li.soon{color:var(--text-faint)}
+  .card li.soon .ic{color:var(--purple);filter:brightness(1.7)}
+  .card li .soon-tag{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--purple);filter:brightness(1.7);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:4px}
+
+  /* ---------- horizontal strips ---------- */
+  .strip{background:var(--bg-panel);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .mini .m{background:var(--bg-card);border:1px solid var(--line-soft);border-radius:14px;padding:22px 22px;display:flex;flex-direction:column}
+  .mini .m h4{font-family:"Bebas Neue";font-size:27px;letter-spacing:.6px}
+  .mini .m .mp{margin:4px 0 8px}
+  .mini .m .mp .amt{font-family:"Bebas Neue";font-size:34px;color:var(--gold)}
+  .mini .m .mp .per{font-size:13px;color:var(--text-faint)}
+  .mini .m p{font-size:15px;color:var(--text-dim);font-weight:300;flex:1}
+  .mini .m .intensity{margin-top:10px;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint)}
+  .mini .m .intensity b{color:var(--gold);font-weight:600}
+  .hyb-opt{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 0;border-top:1px solid var(--line-soft)}
+  .hyb-opt .mp{margin:0}
+  .hyb-btn{padding:10px 16px;font-size:14px;letter-spacing:1px}
+
+  .youth-card{display:grid;grid-template-columns:1.2fr 1fr;gap:26px;align-items:center;
+    background:linear-gradient(120deg,var(--bg-card-hi),var(--bg-card));border:1px solid var(--line);
+    border-radius:var(--radius);padding:34px;box-shadow:var(--glow-soft)}
+  .youth-card .yp .amt{font-family:"Bebas Neue";font-size:46px;color:var(--gold)}
+  .youth-card .yp .per{font-size:14px;color:var(--text-faint)}
+  .youth-card .ycta{text-align:right}
+  .kw{display:inline-block;background:rgba(106,13,173,.18);border:1px solid var(--line);
+    color:var(--gold);font-weight:700;letter-spacing:2px;border-radius:8px;padding:4px 12px;font-size:14px}
+
+  .note{text-align:center;color:var(--text-faint);font-size:14px;margin-top:24px;font-weight:300}
+  .note a{color:var(--gold);border-bottom:1px solid rgba(245,200,0,.4)}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line-soft);padding:46px 0 120px;text-align:center;color:var(--text-faint)}
+  footer .ft-tag{font-family:"Bebas Neue";font-size:26px;color:var(--text-dim);letter-spacing:1px;margin-bottom:10px}
+  footer .ft-tag span{color:var(--gold)}
+  footer small{font-size:13px;line-height:1.7;display:block}
+  footer a{color:var(--text-dim);border-bottom:1px solid var(--line-soft)}
+  .honesty{max-width:680px;margin:20px auto 0;font-size:12.5px;color:var(--text-faint);font-weight:300;line-height:1.6}
+
+  /* ---------- sticky mobile CTA ---------- */
+  .sticky{
+    display:none;position:fixed;left:0;right:0;bottom:0;z-index:50;
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    background:rgba(6,6,6,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    box-shadow:0 -10px 40px rgba(106,13,173,.25);
+  }
+  .sticky .row{display:flex;align-items:center;gap:12px;max-width:560px;margin:0 auto}
+  .sticky .lbl{flex:1;min-width:0}
+  .sticky .lbl b{display:block;font-family:"Bebas Neue";font-size:18px;letter-spacing:.5px;line-height:1}
+  .sticky .lbl small{font-size:12px;color:var(--text-faint)}
+  .sticky .btn{padding:13px 20px;font-size:15px}
+
+  /* ---------- responsive ---------- */
+  @media(max-width:860px){
+    .tiers{grid-template-columns:1fr;max-width:440px;margin:0 auto}
+    .card.featured{order:-1}
+    .mini{grid-template-columns:1fr}
+    .youth-card{grid-template-columns:1fr;text-align:center}
+    .youth-card .ycta{text-align:center}
+    .topbar .est{display:none}
+  }
+  @media(max-width:760px){
+    .sticky{display:block}
+    footer{padding-bottom:130px}
+  }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<!-- ===================== TOP BAR ===================== -->
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Build Believe Fit home">
+      <span class="mark">BBF</span>
+      <span>
+        <b>BUILD BELIEVE <span>FIT</span></b>
+        <small>Performance Laboratory</small>
+      </span>
+    </a>
+    <span class="est">Est. 2021</span>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ===================== HERO (personalized) ===================== -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow" id="hero-eyebrow">Performance Laboratory</span>
+      <h1 id="hero-headline"></h1>
+      <p class="subline" id="hero-subline"></p>
+      <div class="proof">
+        <span class="tick">✦</span>
+        <span id="hero-proof"></span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn btn-gold" id="hero-cta" data-cta="primary"></a>
+        <a class="btn btn-ghost" href="#tiers">View All Plans</a>
+      </div>
+      <p class="tagline">Your schedule is the <b>context.</b> Your potential is the <b>focus.</b></p>
+    </div>
+  </section>
+
+  <!-- ===================== ONLINE FITNESS TIERS ===================== -->
+  <section class="block" id="tiers">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Online Coaching</div>
+        <h2>Choose Your Protocol</h2>
+        <p>Adaptive programming built in the Performance Laboratory — engineered around the week you actually live.</p>
+      </div>
+      <div id="audit-banner"></div>
+      <div class="tiers" id="tier-grid"></div>
+      <p class="note">Cancel anytime. All plans use live, manual readiness check-ins. Device sync (Whoop · Apple · Oura) is coming soon.</p>
+    </div>
+  </section>
+
+  <!-- ===================== NUTRITION STRIP ===================== -->
+  <section class="block strip" id="nutrition">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Fuel — Online Nutrition</div>
+        <h2>Fuel The System</h2>
+        <p>Same framework at every tier. You're choosing coaching intensity and personalization — not features.</p>
+      </div>
+      <div class="mini" id="fuel-grid"></div>
+      <p class="note">DM <span class="kw" id="kw-kitchen">KITCHEN</span> for help choosing your fuel tier.</p>
+    </div>
+  </section>
+
+  <!-- ===================== YOUTH STRIP ===================== -->
+  <section class="block" id="youth">
+    <div class="wrap">
+      <div class="youth-card">
+        <div>
+          <div class="kicker" style="color:var(--purple);filter:brightness(1.7);font-size:13px;letter-spacing:3.5px;text-transform:uppercase;font-weight:700">Youth Development</div>
+          <h2 style="font-size:clamp(30px,4vw,44px);margin:6px 0 8px">Rising Athlete</h2>
+          <p style="color:var(--text-dim);font-weight:300;max-width:46ch">Movement-science-led training for young athletes. Build the foundation early — coordination, strength, and confidence, coached with the same standards as everyone else.</p>
+          <div class="yp" style="margin-top:14px"><span class="amt" id="youth-price"></span> <span class="per">/ month</span></div>
+        </div>
+        <div class="ycta">
+          <a class="btn btn-gold" id="youth-buy" data-cta="checkout" data-product="rising_athlete" style="margin-bottom:14px">Start Rising Athlete</a>
+          <p style="color:var(--text-dim);margin-bottom:10px">Prefer to talk first? Send us the keyword:</p>
+          <p style="margin-bottom:14px"><span class="kw" id="kw-athlete" style="font-size:18px">ATHLETE</span></p>
+          <a class="btn btn-ghost" id="youth-cta" data-cta="youth">Message Us — ATHLETE</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== HYBRID PROTOCOLS STRIP ===================== -->
+  <section class="block strip" id="hybrid">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Hybrid Protocols — One-Time</div>
+        <h2>The Transformation Protocols</h2>
+        <p>Fixed-length, high-commitment protocols. Choose your training frequency; we build the rest around your week.</p>
+      </div>
+      <div class="mini" id="hybrid-grid"></div>
+      <p class="note">
+        DM <span class="kw" id="kw-sovereign">SOVEREIGN</span> or email
+        <a id="hybrid-email-link" href="#">our team</a> to lock in your protocol.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== LOCAL (in-person) — shown for ?src=local ===================== -->
+  <section class="block" id="local" style="display:none">
+    <div class="wrap">
+      <div class="youth-card" style="background:linear-gradient(120deg,#160d22,#0c0910)">
+        <div>
+          <div class="kicker" style="color:var(--gold);font-size:13px;letter-spacing:3.5px;text-transform:uppercase;font-weight:700">West Valley · In Person</div>
+          <h2 style="font-size:clamp(30px,4vw,44px);margin:6px 0 8px">Train In The Room</h2>
+          <p style="color:var(--text-dim);font-weight:300;max-width:48ch">Buckeye · Goodyear · Avondale. Hands-on coaching with the full Performance Laboratory system. Local weekly training is custom-built around your schedule and quoted individually.</p>
+        </div>
+        <div class="ycta">
+          <p style="color:var(--text-dim);margin-bottom:18px">Tell us your goals and availability — we'll send a custom weekly quote.</p>
+          <a class="btn btn-gold" id="local-cta" data-cta="local">Request Your Custom Quote</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="wrap">
+    <div class="ft-tag">BUILD BELIEVE <span>FIT</span></div>
+    <small>Performance Laboratory · Est. 2021 · West Valley, Arizona</small>
+    <small style="margin-top:8px">Questions? <a id="footer-email" href="#">buildbelievefitllc@buildbelievefit.fitness</a></small>
+    <p class="honesty">
+      Manual readiness check-ins are live today. Wearable device sync (Whoop, Apple, Oura) is in development and listed as coming soon — it is not yet active. Fuel nutrition tiers share the same framework and differ by coaching intensity and personalization.
+    </p>
+    <small style="margin-top:14px;color:var(--text-faint)">© <span id="year"></span> Build Believe Fit LLC · buildbelievefit.fitness</small>
+  </div>
+</footer>
+
+<!-- ===================== STICKY MOBILE CTA ===================== -->
+<div class="sticky" id="sticky">
+  <div class="row">
+    <div class="lbl">
+      <b id="sticky-title">Find Your Protocol</b>
+      <small>From $9.99/mo · cancel anytime</small>
+    </div>
+    <a class="btn btn-gold" id="sticky-cta" data-cta="primary">Get Started</a>
+  </div>
+</div>
+
+<noscript>
+  <div style="padding:30px;text-align:center;color:#b9aecb">
+    This page personalizes itself with JavaScript. Visit
+    <a href="https://buildbelievefit.fitness" style="color:#f5c800">buildbelievefit.fitness</a> for the full experience.
+  </div>
+</noscript>
+
+<!-- ============================================================= -->
+<!--  CONFIG — EDIT EVERYTHING HERE. No need to touch markup above. -->
+<!-- ============================================================= -->
+<script id="config">
+const CONFIG = {
+
+  /* ---- 1. STRIPE PAYMENT LINKS ----
+     Paste your real Stripe Payment Link URLs here, one per product.
+     Leave as "PLACEHOLDER_STRIPE_URL" until you have them — buttons will
+     warn instead of sending the customer to a dead link.            */
+  STRIPE: {
+    // -- Online Fitness (subscriptions) --
+    catalyst:           "https://buy.stripe.com/fZu00lb71fMfcjE0sxaZi0k",   // $9.99/mo
+    momentum:           "https://buy.stripe.com/3cIcN7b719nR6ZkcbfZi0l",   // $19.99/mo
+    autonomous:         "https://buy.stripe.com/9B67sN8YT1Vpnia37aZi0m",   // $49.99/mo
+    // -- Fuel Nutrition (subscriptions) --
+    fuel_foundation:    "https://buy.stripe.com/9B69AV8YTgQjabw6QVaZi0n",   // $7.99/mo
+    fuel_performance:   "https://buy.stripe.com/9B64gB2AvcA397s4INaZi0o",   // $14.99/mo
+    fuel_sovereign:     "https://buy.stripe.com/6oUbJ36QL2Ztabw4INaZi0p",   // $29.99/mo
+    // -- Youth --
+    rising_athlete:     "https://buy.stripe.com/aFa3cx5MH1Vp97sejnaZi0q",   // $14.99/mo
+    // -- Hybrid protocols (one-time) --
+    kickstart_3x:       "https://buy.stripe.com/5kQaEzejdbvZabwcbfZi0r",   // Kickstart 6wk · 3×/wk · $399
+    kickstart_4x:       "https://buy.stripe.com/dRmaEZb710R15Vg2AFaZi0s",   // Kickstart 6wk · 4×/wk · $499
+    transformation_3x:  "https://buy.stripe.com/4gM7sN3EzfMf1F0a37aZi0t",   // Transformation 8wk · 3×/wk · $499
+    transformation_4x:  "https://buy.stripe.com/6oUeVf4ID8jN6Zk6QVaZi0u",   // Transformation 8wk · 4×/wk · $649
+    sovereign_3x:       "https://buy.stripe.com/3cI6oJ8YTeIbcjEgrvaZi0v",   // Sovereign 12wk · 3×/wk · $699
+    sovereign_4x:       "https://buy.stripe.com/4gMeVffnh7fJ83o0sxaZi0w"    // Sovereign 12wk · 4×/wk · $899
+  },
+
+  /* ---- 2. CONTACT / LOGGING ---- */
+  FORMSPREE_ID:  "mwvwjokw",                                  // hidden source/UTM logging
+  QUOTE_EMAIL:   "buildbelievefitllc@buildbelievefit.fitness",// local + hybrid + footer
+  INSTAGRAM_URL: "https://instagram.com/buildbelievefitllc",  // @buildbelievefitllc — where DM buttons point
+
+  /* ---- 3. DM KEYWORDS (locked) ---- */
+  KEYWORDS: { general:"PATHFINDER", youth:"ATHLETE", hybrid:"SOVEREIGN", nutrition:"KITCHEN" },
+
+  /* ---- 4. PERSONALIZED HEROES (by ?src=) ----
+     {score} in an audit headline is replaced by the ?score= param.   */
+  SOURCES: {
+    default: {
+      eyebrow:  "For The High-Demand Human",
+      headline: "ENGINEERED FOR THE <span class='gold'>HIGH-DEMAND</span> HUMAN",
+      subline:  "A training system that adapts to the life you actually live — not a fantasy schedule with infinite free time.",
+      proof:    "<b>Built in the Performance Laboratory:</b> adaptive programming that recalibrates around your real week.",
+      cta:      "Find Your Protocol",
+      action:   "tiers"
+    },
+    ig: {
+      eyebrow:  "You Stopped Scrolling For A Reason",
+      headline: "STOP TRAINING LIKE YOUR LIFE IS <span class='gold'>SIMPLE.</span>",
+      subline:  "It isn't. Your potential doesn't need more hours — it needs a system that bends around the ones you have.",
+      proof:    "<b>Adaptive programming, in-app:</b> log it, adjust it, keep moving — even on the chaos weeks.",
+      cta:      "See How It Works",
+      action:   "tiers"
+    },
+    tt: {
+      eyebrow:  "You Stopped Scrolling For A Reason",
+      headline: "YOUR EXCUSE IS ALSO YOUR <span class='gold'>STARTING LINE.</span>",
+      subline:  "No time, no plan, no consistency — that's exactly what this system was engineered to absorb.",
+      proof:    "<b>Adaptive programming, in-app:</b> built to survive the missed days and keep your momentum.",
+      cta:      "See How It Works",
+      action:   "tiers"
+    },
+    fb: {
+      eyebrow:  "For The Person Who Does Everything",
+      headline: "FOR THE PERSON WHO ALREADY <span class='gold'>DOES EVERYTHING.</span>",
+      subline:  "Work, family, the never-ending list. Training shouldn't be one more thing you fail at — it should be the one that holds.",
+      proof:    "<b>Designed for real schedules:</b> short windows, missed days, and the comeback already built in.",
+      cta:      "Start Where You Are",
+      action:   "tiers"
+    },
+    yt: {
+      eyebrow:  "You Watched The Breakdown",
+      headline: "YOU GET THE THEORY. NOW <span class='gold'>RUN THE PROTOCOL.</span>",
+      subline:  "Knowledge only counts when it's applied to your week. Here's the system behind what you just watched.",
+      proof:    "<b>From concept to calendar:</b> everything explained, structured into programming you actually follow.",
+      cta:      "Run The Protocol",
+      action:   "tiers"
+    },
+    email: {
+      eyebrow:  "Welcome Back",
+      headline: "YOU'VE BEEN <span class='gold'>THINKING</span> ABOUT THIS.",
+      subline:  "The timing was never going to be perfect — but this system was built for imperfect, and you already know where to start.",
+      proof:    "<b>Pick up exactly where you left off.</b> Your potential didn't expire.",
+      cta:      "Pick Up Where You Left Off",
+      action:   "tiers"
+    },
+    audit: {
+      eyebrow:  "Your Assessment Results",
+      headline: "YOUR AUDIT: <span class='gold'>{score}</span> — HERE'S THE FIX.",
+      subline:  "Your assessment flagged the gaps. The three protocols below are the prescription — matched to where you actually are.",
+      proof:    "<b>No guesswork.</b> The audit found the bottleneck; these tiers are how you close it.",
+      cta:      "See Your Prescription",
+      action:   "tiers"
+    },
+    local: {
+      eyebrow:  "West Valley · In Person",
+      headline: "WEST VALLEY: <span class='gold'>TRAIN IN PERSON.</span>",
+      subline:  "Buckeye, Goodyear, Avondale. Hands-on coaching with the full Performance Laboratory system, built around your week.",
+      proof:    "<b>In-person hybrid training:</b> custom weekly programming, coached in the room — quoted to your goals.",
+      cta:      "Request Your Custom Quote",
+      action:   "local"
+    }
+  },
+
+  /* Audit headline when no ?score= is supplied */
+  AUDIT_DEFAULT_SCORE: "the gaps are clear",
+
+  /* ---- 5. ONLINE FITNESS TIERS (LOCKED pricing) ----
+     Mark a feature {soon:true} to render it greyed with a COMING SOON tag. */
+  TIERS: [
+    {
+      key:"catalyst", name:"Catalyst", price:"$9.99", per:"/mo",
+      tag:"The entry point. Structure, on day one.",
+      features:[
+        "Adaptive workout programming",
+        "In-app workout logging & history",
+        "Manual readiness check-ins",
+        "Technique & movement library",
+        {t:"Wearable device sync", soon:true}
+      ]
+    },
+    {
+      key:"momentum", name:"Momentum", price:"$19.99", per:"/mo",
+      tag:"For when consistency needs a coach behind it.",
+      features:[
+        "Everything in Catalyst",
+        "Personalized program adjustments",
+        "Direct coach messaging & check-ins",
+        "Readiness-based auto-regulation",
+        {t:"Wearable device sync", soon:true}
+      ]
+    },
+    {
+      key:"autonomous", name:"Autonomous", price:"$49.99", per:"/mo",
+      tag:"Fully built around you. The complete system.",
+      featured:true, badge:"Most Chosen",
+      features:[
+        "Everything in Momentum",
+        "Fully personalized programming",
+        "1:1 coaching & accountability",
+        "Priority coach access",
+        "Habit & lifestyle architecture"
+      ]
+    }
+  ],
+
+  /* ---- 6. FUEL NUTRITION TIERS (LOCKED) ----
+     Feature-identical by design — differentiate ONLY on coaching intensity. */
+  FUEL: [
+    { key:"fuel_foundation",  name:"Fuel Foundation",  price:"$7.99",  per:"/mo",
+      blurb:"Your nutrition framework, self-guided. Learn the system and run it.",
+      intensity:"Self-guided" },
+    { key:"fuel_performance", name:"Fuel Performance", price:"$14.99", per:"/mo",
+      blurb:"The same framework with regular coach calibration to keep you dialed in.",
+      intensity:"Guided + regular calibration" },
+    { key:"fuel_sovereign",   name:"Fuel Sovereign",   price:"$29.99", per:"/mo",
+      blurb:"The same framework, fully personalized with high-touch coaching.",
+      intensity:"High-touch · fully personalized" }
+  ],
+
+  /* ---- 7. YOUTH (LOCKED) ---- */
+  YOUTH: { price:"$14.99" },
+
+  /* ---- 8. HYBRID PROTOCOLS (LOCKED, one-time) ---- */
+  HYBRID: [
+    { name:"Kickstart",      weeks:"6 weeks",  p3:"$399", k3:"kickstart_3x",      p4:"$499", k4:"kickstart_4x" },
+    { name:"Transformation", weeks:"8 weeks",  p3:"$499", k3:"transformation_3x", p4:"$649", k4:"transformation_4x" },
+    { name:"Sovereign",      weeks:"12 weeks", p3:"$699", k3:"sovereign_3x",      p4:"$899", k4:"sovereign_4x" }
+  ]
+};
+</script>
+
+<!-- ============================================================= -->
+<!--  ENGINE — renders config, personalizes, logs. No edits needed.-->
+<!-- ============================================================= -->
+<script>
+(function(){
+  "use strict";
+  const $  = (s,r=document)=>r.querySelector(s);
+  const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+  const params = new URLSearchParams(location.search);
+
+  /* ---- normalize ?src= (accept friendly aliases) ---- */
+  const ALIASES = {
+    instagram:"ig", insta:"ig", ig:"ig",
+    tiktok:"tt", tik:"tt", tt:"tt",
+    facebook:"fb", fb:"fb", meta:"fb",
+    youtube:"yt", yt:"yt",
+    email:"email", mail:"email", newsletter:"email",
+    audit:"audit", assessment:"audit", scorer:"audit",
+    local:"local", inperson:"local", "in-person":"local"
+  };
+  const rawSrc = (params.get("src")||"").toLowerCase().trim();
+  const src = ALIASES[rawSrc] || "default";
+  const S = CONFIG.SOURCES[src] || CONFIG.SOURCES.default;
+
+  /* ---- audit score handling ---- */
+  let scoreText = CONFIG.AUDIT_DEFAULT_SCORE;
+  const rawScore = (params.get("score")||"").trim();
+  if(rawScore){
+    scoreText = /^\d+$/.test(rawScore) ? rawScore + "%" : rawScore;
+  }
+
+  /* ============ HERO ============ */
+  $("#hero-eyebrow").textContent = S.eyebrow;
+  $("#hero-headline").innerHTML  = S.headline.replace("{score}", scoreText);
+  $("#hero-subline").textContent = S.subline;
+  $("#hero-proof").innerHTML     = S.proof;
+  $("#hero-cta").textContent     = S.cta;
+  $("#hero-cta").dataset.action  = S.action;
+  $("#sticky-title").textContent = S.cta;
+
+  /* audit banner above tiers */
+  if(src === "audit"){
+    const b = $("#audit-banner");
+    b.style.display = "block";
+    b.innerHTML = "Your assessment result: <b>" + scoreText + "</b>. The prescription is below — start with the tier that matches your gap.";
+  }
+
+  /* ============ FITNESS TIERS ============ */
+  function tierCard(t){
+    const featured = t.featured ? " featured" : "";
+    const badge = t.badge ? '<span class="badge">'+t.badge+'</span>' : '';
+    const lis = t.features.map(f=>{
+      if(typeof f === "object" && f.soon){
+        return '<li class="soon"><span class="ic">◷</span><span>'+f.t+
+               '<span class="soon-tag">Coming soon</span></span></li>';
+      }
+      return '<li><span class="ic">✓</span><span>'+f+'</span></li>';
+    }).join("");
+    const btnClass = t.featured ? "btn-gold" : "btn-purple";
+    return '<div class="card'+featured+'">'+badge+
+      '<h3>'+t.name+'</h3>'+
+      '<div class="price"><span class="amt">'+t.price+'</span><span class="per">'+t.per+'</span></div>'+
+      '<div class="tag">'+t.tag+'</div>'+
+      '<ul>'+lis+'</ul>'+
+      '<a class="btn '+btnClass+' btn-block" data-cta="checkout" data-product="'+t.key+'">Start '+t.name+'</a>'+
+    '</div>';
+  }
+  $("#tier-grid").innerHTML = CONFIG.TIERS.map(tierCard).join("");
+
+  /* ============ FUEL STRIP ============ */
+  $("#fuel-grid").innerHTML = CONFIG.FUEL.map(f=>
+    '<div class="m">'+
+      '<h4>'+f.name+'</h4>'+
+      '<div class="mp"><span class="amt">'+f.price+'</span> <span class="per">'+f.per+'</span></div>'+
+      '<p>'+f.blurb+'</p>'+
+      '<div class="intensity">Coaching: <b>'+f.intensity+'</b></div>'+
+      '<a class="btn btn-purple btn-block" style="margin-top:16px" data-cta="checkout" data-product="'+f.key+'">Choose '+f.name+'</a>'+
+    '</div>'
+  ).join("");
+
+  /* ============ YOUTH ============ */
+  $("#youth-price").textContent = CONFIG.YOUTH.price;
+
+  /* ============ HYBRID STRIP ============ */
+  $("#hybrid-grid").innerHTML = CONFIG.HYBRID.map(h=>
+    '<div class="m">'+
+      '<h4>'+h.name+'</h4>'+
+      '<div class="intensity" style="margin:2px 0 14px">'+h.weeks+'</div>'+
+      '<p style="flex:0;margin-bottom:6px">Choose your training frequency:</p>'+
+      '<div class="hyb-opt">'+
+        '<div class="mp"><span class="amt" style="font-size:30px">'+h.p3+'</span> <span class="per">/ 3× per week</span></div>'+
+        '<a class="btn btn-ghost hyb-btn" data-cta="checkout" data-product="'+h.k3+'">Choose 3×</a>'+
+      '</div>'+
+      '<div class="hyb-opt">'+
+        '<div class="mp"><span class="amt" style="font-size:30px">'+h.p4+'</span> <span class="per">/ 4× per week</span></div>'+
+        '<a class="btn btn-purple hyb-btn" data-cta="checkout" data-product="'+h.k4+'">Choose 4×</a>'+
+      '</div>'+
+    '</div>'
+  ).join("");
+
+  /* ============ KEYWORDS + EMAILS ============ */
+  $("#kw-kitchen").textContent   = CONFIG.KEYWORDS.nutrition;
+  $("#kw-athlete").textContent   = CONFIG.KEYWORDS.youth;
+  $("#kw-sovereign").textContent = CONFIG.KEYWORDS.hybrid;
+  $("#youth-cta").textContent    = "Message Us — " + CONFIG.KEYWORDS.youth;
+
+  const mailto = (subject)=>"mailto:"+CONFIG.QUOTE_EMAIL+"?subject="+encodeURIComponent(subject);
+  $("#footer-email").href = mailto("Build Believe Fit — Inquiry");
+  $("#footer-email").textContent = CONFIG.QUOTE_EMAIL;
+  $("#hybrid-email-link").href = mailto("Hybrid Protocol — "+CONFIG.KEYWORDS.hybrid);
+  $("#local-cta").href = mailto("West Valley Custom Quote — Local Training");
+  $("#local-cta").setAttribute("href", mailto("West Valley Custom Quote — Local Training"));
+
+  /* show local section + tweak sticky for local traffic */
+  if(src === "local"){
+    $("#local").style.display = "block";
+    $("#sticky-title").textContent = "West Valley In-Person";
+    $("#sticky-cta").textContent = "Get A Quote";
+  }
+
+  $("#year").textContent = (new Date()).getFullYear();
+
+  /* ============ FORMSPREE LOGGING (fire-and-forget) ============ */
+  function logEvent(detail){
+    try{
+      const payload = {
+        event: detail.event || "cta_click",
+        action: detail.action || "",
+        product: detail.product || "",
+        source: src,
+        src_raw: rawSrc || "(none)",
+        score: rawScore || "",
+        utm_source:   params.get("utm_source")   || "",
+        utm_medium:   params.get("utm_medium")   || "",
+        utm_campaign: params.get("utm_campaign") || "",
+        utm_term:     params.get("utm_term")     || "",
+        utm_content:  params.get("utm_content")  || "",
+        page: location.href,
+        ts: (new Date()).toISOString()
+      };
+      fetch("https://formspree.io/f/"+CONFIG.FORMSPREE_ID, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "Accept":"application/json" },
+        body: JSON.stringify(payload),
+        keepalive:true,
+        mode:"cors"
+      }).catch(function(){});
+    }catch(e){/* never block the user */}
+  }
+  /* log the landing itself once */
+  logEvent({event:"page_view", action:src});
+
+  /* ============ CTA ROUTING ============ */
+  function go(action, product, el){
+    if(action === "checkout"){
+      const url = CONFIG.STRIPE[product];
+      if(!url || url === "PLACEHOLDER_STRIPE_URL"){
+        alert("Checkout link coming online shortly. Paste your Stripe link for \""+product+"\" in the CONFIG block.");
+        return;
+      }
+      window.location.href = url;
+      return;
+    }
+    if(action === "local"){
+      window.location.href = mailto("West Valley Custom Quote — Local Training");
+      return;
+    }
+    if(action === "youth"){
+      window.open(CONFIG.INSTAGRAM_URL, "_blank", "noopener");
+      return;
+    }
+    if(action === "hybrid"){
+      window.location.href = mailto("Hybrid Protocol "+(product||"")+" — "+CONFIG.KEYWORDS.hybrid);
+      return;
+    }
+    /* primary / tiers */
+    const tiers = document.getElementById("tiers");
+    if(tiers) tiers.scrollIntoView({behavior:"smooth"});
+  }
+
+  /* one delegated listener for every CTA on the page */
+  document.addEventListener("click", function(e){
+    const el = e.target.closest("[data-cta]");
+    if(!el) return;
+    let action = el.dataset.cta;
+    const product = el.dataset.product || "";
+    if(action === "primary") action = el.dataset.action || S.action || "tiers";
+
+    logEvent({event:"cta_click", action:action, product:product});
+
+    /* let real mailto/instagram anchors with href behave natively where set */
+    if(action === "tiers" || action === "checkout" || action === "youth" || action === "local" || action === "hybrid"){
+      // local-cta and footer/email are real anchors; only intercept the JS-routed ones
+      if(el.id === "local-cta" || el.id === "footer-email" || el.id === "hybrid-email-link") return;
+      e.preventDefault();
+      go(action, product, el);
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
