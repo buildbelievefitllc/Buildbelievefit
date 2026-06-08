@@ -18,6 +18,7 @@
 import { useState } from 'react';
 import { submitLead } from '../lib/leadApi.js';
 import { generateProgram, toAssignedPlan } from './vault/generatorEngine.js';
+import { CUISINE_PLANS } from './vault/cuisineMeals.js';
 import { useTurnstile } from '../lib/useTurnstile.js';
 import { useLang } from '../context/LangContext.jsx';
 
@@ -40,15 +41,16 @@ const EXP_OPTIONS = [
 // Standard PAR-Q items (7). Stored as a flags map keyed by these ids.
 const PARQ_KEYS = ['f-parq1', 'f-parq2', 'f-parq3', 'f-parq4', 'f-parq5', 'f-parq6', 'f-parq7'];
 
-// ── Intake-time workout generation (Zero-Friction onboarding) ────────────────────
-// Map the intake's goal/experience onto the RULE-BASED Vault generator
-// (generatorEngine — client-side, deterministic, NO AI spend) and build a starter
-// workout_plan the instant the prospect submits. It rides in the lead payload and
-// bbf-lead-capture stages it into bbf_active_clients (by vault_email), so it hydrates
-// on first login post-payment. MEAL plans are deliberately NOT generated here — those
-// stay post-payment hydration only, to protect Anthropic/Gemini margins on
-// un-provisioned leads (CEO directive). Best-effort: any generator hiccup returns
-// null so the lead submission is never blocked.
+// ── Intake-time plan generation (Zero-Friction onboarding · NATIVE-FIRST) ─────────
+// On submit we seed BOTH a starter workout_plan and a starter meal_plan + TDEE/macro
+// targets, entirely from our OWN rule-based engines + catalogs — ZERO AI spend. They
+// ride in the lead payload; bbf-lead-capture stages them into bbf_active_clients (by
+// vault_email) so they hydrate on first login post-payment. AI generation
+// (rotate-nutrition / the Anthropic agents) stays a POST-PAYMENT refinement step,
+// never burned on un-provisioned leads. Every step is best-effort: a hiccup returns
+// null and never blocks the submission.
+
+// 1 · WORKOUT — map goal/experience onto the rule-based Vault generator (generatorEngine).
 const GOAL_TO_ENGINE = { 'fat-loss': 'fatloss', muscle: 'hypertrophy', performance: 'strength', health: 'general', recovery: 'general' };
 const EXP_TO_LEVEL = { beginner: '1', intermediate: '2', advanced: '3' };
 
@@ -63,6 +65,65 @@ function buildIntakeWorkoutPlan(form) {
     return Array.isArray(plan) && plan.length ? plan : null;
   } catch {
     return null; // never let a generation hiccup block the intake
+  }
+}
+
+// 2 · TDEE / MACROS — rule-based estimate from the intake's goal + experience.
+// The intake doesn't collect body metrics (age/sex/weight/height), so this is a
+// deliberately COARSE starting band (experience as an activity/lean-mass proxy),
+// refined post-payment by the coach's Nutrition console. Deterministic, no AI.
+const TDEE_BASELINE = { beginner: 2000, intermediate: 2200, advanced: 2500 };
+const GOAL_KCAL_ADJ = { 'fat-loss': -400, muscle: 300, performance: 200, health: 0, recovery: -100 };
+const GOAL_MACRO_SPLIT = { // P/C/F as a fraction of total kcal
+  'fat-loss': { p: 0.40, c: 0.30, f: 0.30 }, muscle: { p: 0.30, c: 0.45, f: 0.25 },
+  performance: { p: 0.30, c: 0.50, f: 0.20 }, health: { p: 0.30, c: 0.40, f: 0.30 },
+  recovery: { p: 0.35, c: 0.40, f: 0.25 },
+};
+const GOAL_LABEL = { 'fat-loss': 'Fat Loss', muscle: 'Lean Muscle', performance: 'Performance', health: 'General Health', recovery: 'Recovery' };
+
+function estimateNutrition(goal, experience) {
+  const base = TDEE_BASELINE[experience] || 2200;
+  const tdee = Math.max(1400, Math.min(3600, Math.round((base + (GOAL_KCAL_ADJ[goal] ?? 0)) / 10) * 10));
+  const split = GOAL_MACRO_SPLIT[goal] || GOAL_MACRO_SPLIT.health;
+  return {
+    tdee_target: tdee,
+    macro_p: Math.round((tdee * split.p) / 4),
+    macro_c: Math.round((tdee * split.c) / 4),
+    macro_f: Math.round((tdee * split.f) / 9),
+  };
+}
+
+// 3 · MEAL — NATIVE pull from our established catalog (cuisineMeals · the same static
+// catalog the Vault Nutrition Locker ships). NO AI: select a cuisine template (American
+// default; cuisine is a post-login preference) and normalize it into the canonical
+// meal_plan shape the Vault renders + the DB stores. We append each meal's macros to
+// the ingredient line because the Vault derives the macro wheel from the i-line TEXT
+// (parseMealPlan → sumDayMacros). `cal` is the template's HONEST daily total; the
+// personalized tdee_target rides as its own staged field (the coach/rotate-nutrition
+// reconciles portions to it post-payment). Best-effort: null on any failure → the
+// staged TDEE/macros still seed the athlete for first-login pickup.
+function pullNativeMealPlan(goal, nutrition) {
+  try {
+    const plan = CUISINE_PLANS.american;
+    if (!plan || !Array.isArray(plan.days) || !plan.days.length) return null;
+    const annotate = (m) => (Number.isFinite(m.kcal)
+      ? `${m.i} (~${m.kcal} cal / ${m.p}g P / ${m.c}g C / ${m.f}g F)` : m.i);
+    const day1Kcal = (plan.days[0].meals || []).reduce((s, m) => s + (Number(m.kcal) || 0), 0);
+    return {
+      name: `BBF Starter — ${GOAL_LABEL[goal] || 'Foundation'}`,
+      cal: day1Kcal ? `~${day1Kcal.toLocaleString()} cal/day` : '',
+      goal: `${GOAL_LABEL[goal] || 'Foundation'} · target ~${nutrition.tdee_target.toLocaleString()} kcal`,
+      days: plan.days.map((d) => ({
+        day: d.day,
+        meals: (Array.isArray(d.meals) ? d.meals : []).map((m) => ({
+          m: m.m,
+          i: annotate(m),
+          ...(m.instructions != null ? { instructions: m.instructions } : {}),
+        })),
+      })),
+    };
+  } catch {
+    return null; // catalog miss → TDEE/macros alone still seed first-login
   }
 }
 
@@ -111,10 +172,13 @@ export default function PathfinderForm() {
         setError('Security check could not complete — please retry.');
         return;
       }
-      // Zero-Friction onboarding: generate the starter workout plan now (rule-based,
-      // client-side — no AI spend) so it stages with the intake and hydrates on first
-      // login. Meal plans stay post-payment only.
+      // Zero-Friction onboarding (NATIVE-FIRST): seed the starter workout + meal plan
+      // and TDEE/macro targets now — all from our own rule-based engines/catalogs, no
+      // AI spend — so they stage with the intake and hydrate on first login. AI
+      // (rotate-nutrition) stays a post-payment refinement, never burned on a lead.
       const workout_plan = buildIntakeWorkoutPlan(form);
+      const nutrition = estimateNutrition(form.goal, form.experience);
+      const meal_plan = pullNativeMealPlan(form.goal, nutrition);
       // Data contract preserved — all shield fields ride in the lead payload.
       await submitLead(
         {
@@ -131,8 +195,13 @@ export default function PathfinderForm() {
           parq_flags: PARQ_KEYS.filter((k) => form.parq[k]),
           parq_any: PARQ_KEYS.some((k) => form.parq[k]),
           marketing_consent: form.marketingConsent,
-          // Intake-time generated workout plan → staged into bbf_active_clients.
+          // Intake-time NATIVE plans + targets → staged into bbf_active_clients.
+          tdee_target: nutrition.tdee_target,
+          macro_p: nutrition.macro_p,
+          macro_c: nutrition.macro_c,
+          macro_f: nutrition.macro_f,
           ...(workout_plan ? { workout_plan } : {}),
+          ...(meal_plan ? { meal_plan } : {}),
         },
         token,
         lang,
