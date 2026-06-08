@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { submitLead } from '../lib/leadApi.js';
 import { generateProgram, toAssignedPlan } from './vault/generatorEngine.js';
 import { CUISINE_PLANS } from './vault/cuisineMeals.js';
+import { calcTDEE, calcMacros, scaleMealPlan } from './vault/nutritionEngine.js';
 import { useTurnstile } from '../lib/useTurnstile.js';
 import { useLang } from '../context/LangContext.jsx';
 
@@ -68,62 +69,38 @@ function buildIntakeWorkoutPlan(form) {
   }
 }
 
-// 2 · TDEE / MACROS — rule-based estimate from the intake's goal + experience.
-// The intake doesn't collect body metrics (age/sex/weight/height), so this is a
-// deliberately COARSE starting band (experience as an activity/lean-mass proxy),
-// refined post-payment by the coach's Nutrition console. Deterministic, no AI.
-const TDEE_BASELINE = { beginner: 2000, intermediate: 2200, advanced: 2500 };
-const GOAL_KCAL_ADJ = { 'fat-loss': -400, muscle: 300, performance: 200, health: 0, recovery: -100 };
-const GOAL_MACRO_SPLIT = { // P/C/F as a fraction of total kcal
-  'fat-loss': { p: 0.40, c: 0.30, f: 0.30 }, muscle: { p: 0.30, c: 0.45, f: 0.25 },
-  performance: { p: 0.30, c: 0.50, f: 0.20 }, health: { p: 0.30, c: 0.40, f: 0.30 },
-  recovery: { p: 0.35, c: 0.40, f: 0.25 },
-};
+// 2 · TDEE / MACROS — TRUE Mifflin-St Jeor from the intake's biometrics (age, sex,
+// weight, height) × an activity factor derived from experience, then a goal-based
+// calorie adjustment. Macros via calcMacros (protein from bodyweight). Same engine
+// the public TDEE calculator renders — single source of truth, deterministic, no AI.
 const GOAL_LABEL = { 'fat-loss': 'Fat Loss', muscle: 'Lean Muscle', performance: 'Performance', health: 'General Health', recovery: 'Recovery' };
+const ACT_BY_EXP = { beginner: 1.375, intermediate: 1.55, advanced: 1.725 };
+const ADJ_BY_GOAL = { 'fat-loss': -500, muscle: 300, performance: 200, health: 0, recovery: 0 };
 
-function estimateNutrition(goal, experience) {
-  const base = TDEE_BASELINE[experience] || 2200;
-  const tdee = Math.max(1400, Math.min(3600, Math.round((base + (GOAL_KCAL_ADJ[goal] ?? 0)) / 10) * 10));
-  const split = GOAL_MACRO_SPLIT[goal] || GOAL_MACRO_SPLIT.health;
-  return {
-    tdee_target: tdee,
-    macro_p: Math.round((tdee * split.p) / 4),
-    macro_c: Math.round((tdee * split.c) / 4),
-    macro_f: Math.round((tdee * split.f) / 9),
-  };
+function computeNutrition(form) {
+  const age = parseInt(form.age, 10) || 0;
+  const wt = parseFloat(form.weight) || 0;
+  const ft = parseInt(form.heightFt, 10) || 0;
+  const ins = parseInt(form.heightIn, 10) || 0;
+  const act = ACT_BY_EXP[form.experience] || 1.55;
+  const adj = ADJ_BY_GOAL[form.goal] ?? 0;
+  const target = calcTDEE(age, form.sex, wt, ft, ins, act) + adj;
+  const { p, c, f } = calcMacros(target, wt, adj);
+  return { tdee_target: target, macro_p: p, macro_c: c, macro_f: f };
 }
 
-// 3 · MEAL — NATIVE pull from our established catalog (cuisineMeals · the same static
-// catalog the Vault Nutrition Locker ships). NO AI: select a cuisine template (American
-// default; cuisine is a post-login preference) and normalize it into the canonical
-// meal_plan shape the Vault renders + the DB stores. We append each meal's macros to
-// the ingredient line because the Vault derives the macro wheel from the i-line TEXT
-// (parseMealPlan → sumDayMacros). `cal` is the template's HONEST daily total; the
-// personalized tdee_target rides as its own staged field (the coach/rotate-nutrition
-// reconciles portions to it post-payment). Best-effort: null on any failure → the
-// staged TDEE/macros still seed the athlete for first-login pickup.
-function pullNativeMealPlan(goal, nutrition) {
+// 3 · MEAL — NATIVE portion-scaled plan. Take the established catalog template
+// (cuisineMeals · American default; cuisine is a post-login preference) and run the
+// Native Nutrition Engine's portion scaler so every day's ingredients + macros are
+// mathematically rescaled to the prospect's EXACT tdee_target. NO fixed-calorie
+// templates, NO AI. Best-effort: null on any failure → staged TDEE/macros still seed
+// first-login (we never fall back to an unscaled fixed plan).
+function buildScaledMealPlan(form, target) {
   try {
-    const plan = CUISINE_PLANS.american;
-    if (!plan || !Array.isArray(plan.days) || !plan.days.length) return null;
-    const annotate = (m) => (Number.isFinite(m.kcal)
-      ? `${m.i} (~${m.kcal} cal / ${m.p}g P / ${m.c}g C / ${m.f}g F)` : m.i);
-    const day1Kcal = (plan.days[0].meals || []).reduce((s, m) => s + (Number(m.kcal) || 0), 0);
-    return {
-      name: `BBF Starter — ${GOAL_LABEL[goal] || 'Foundation'}`,
-      cal: day1Kcal ? `~${day1Kcal.toLocaleString()} cal/day` : '',
-      goal: `${GOAL_LABEL[goal] || 'Foundation'} · target ~${nutrition.tdee_target.toLocaleString()} kcal`,
-      days: plan.days.map((d) => ({
-        day: d.day,
-        meals: (Array.isArray(d.meals) ? d.meals : []).map((m) => ({
-          m: m.m,
-          i: annotate(m),
-          ...(m.instructions != null ? { instructions: m.instructions } : {}),
-        })),
-      })),
-    };
+    const label = GOAL_LABEL[form.goal] || 'Foundation';
+    return scaleMealPlan(CUISINE_PLANS.american, target, { name: `BBF Native Plan — ${label}`, goal: label });
   } catch {
-    return null; // catalog miss → TDEE/macros alone still seed first-login
+    return null;
   }
 }
 
@@ -133,6 +110,7 @@ export default function PathfinderForm() {
 
   const [form, setForm] = useState({
     fullName: '', email: '', phone: '', goal: '', experience: '',
+    age: '', sex: 'male', weight: '', heightFt: '', heightIn: '', // biometrics → native TDEE
     injuries: '', medicalConditions: '', medications: '',
     parq: {}, // { 'f-parq1': true, ... } — standard PAR-Q flags
     marketingConsent: false,
@@ -151,6 +129,13 @@ export default function PathfinderForm() {
     if (!form.email.trim()) e.email = t('f-required');
     else if (!EMAIL_RE.test(form.email.trim())) e.email = 'Enter a valid email';
     if (!form.goal) e.goal = t('f-required');
+    // Biometrics — REQUIRED for the native Mifflin-St Jeor TDEE + portion scaler.
+    const age = parseInt(form.age, 10);
+    const wt = parseFloat(form.weight);
+    const ft = parseInt(form.heightFt, 10);
+    if (!age || age < 13 || age > 100) e.age = t('f-required');
+    if (!wt || wt <= 0) e.weight = t('f-required');
+    if (!ft || ft <= 0) e.height = t('f-required');
     // Waiver checkbox removed per CEO funnel-friction directive — no consent gate.
     return Object.keys(e).length ? e : null;
   }
@@ -172,13 +157,15 @@ export default function PathfinderForm() {
         setError('Security check could not complete — please retry.');
         return;
       }
-      // Zero-Friction onboarding (NATIVE-FIRST): seed the starter workout + meal plan
-      // and TDEE/macro targets now — all from our own rule-based engines/catalogs, no
-      // AI spend — so they stage with the intake and hydrate on first login. AI
-      // (rotate-nutrition) stays a post-payment refinement, never burned on a lead.
+      // Zero-Friction onboarding (NATIVE-FIRST): seed the starter workout + a TRUE
+      // Mifflin-St Jeor TDEE/macros and a portion-SCALED meal plan now — all from our
+      // own rule-based engines/catalogs, no AI spend — so they stage with the intake
+      // and hydrate on first login. AI (rotate-nutrition) stays a post-payment
+      // refinement, never burned on a lead.
       const workout_plan = buildIntakeWorkoutPlan(form);
-      const nutrition = estimateNutrition(form.goal, form.experience);
-      const meal_plan = pullNativeMealPlan(form.goal, nutrition);
+      const nutrition = computeNutrition(form);
+      const meal_plan = buildScaledMealPlan(form, nutrition.tdee_target);
+      const height_weight = `${parseInt(form.heightFt, 10) || 0}'${parseInt(form.heightIn, 10) || 0}" / ${parseFloat(form.weight) || 0} lbs`;
       // Data contract preserved — all shield fields ride in the lead payload.
       await submitLead(
         {
@@ -187,6 +174,11 @@ export default function PathfinderForm() {
           phone: form.phone.trim() || undefined,
           primary_goal: form.goal,
           experience: form.experience || undefined,
+          // Biometrics → bbf_active_clients (age + height_weight columns); sex rides
+          // in the payload (baked into tdee_target — no dedicated column).
+          age: parseInt(form.age, 10) || undefined,
+          sex: form.sex,
+          height_weight,
           injuries: form.injuries.trim() || undefined,
           medical_conditions: form.medicalConditions.trim() || undefined,
           medications: form.medications.trim() || undefined,
@@ -256,6 +248,39 @@ export default function PathfinderForm() {
         </select>
       </Field>
 
+      {/* ── BIOMETRICS — power the native Mifflin-St Jeor TDEE + portion scaler ── */}
+      <div style={styles.bioRow}>
+        <Field id="pf-age" label={t('tdee-age')} error={fieldErrors.age}>
+          <input id="pf-age" className="bbf-input" type="number" inputMode="numeric" min="13" max="100"
+            placeholder={t('tdee-age')} value={form.age} disabled={submitting}
+            onChange={(e) => set('age', e.target.value)} />
+        </Field>
+        <Field id="pf-sex" label={t('tdee-sex')} error={null}>
+          <select id="pf-sex" className="bbf-input" value={form.sex} disabled={submitting}
+            onChange={(e) => set('sex', e.target.value)}>
+            <option value="male">{t('tdee-male')}</option>
+            <option value="female">{t('tdee-female')}</option>
+          </select>
+        </Field>
+      </div>
+      <div style={styles.bioRow}>
+        <Field id="pf-weight" label={t('tdee-weight')} error={fieldErrors.weight}>
+          <input id="pf-weight" className="bbf-input" type="number" inputMode="decimal" min="50" max="600"
+            placeholder="lbs" value={form.weight} disabled={submitting}
+            onChange={(e) => set('weight', e.target.value)} />
+        </Field>
+        <Field id="pf-height" label="Height (ft / in)" error={fieldErrors.height}>
+          <div style={styles.heightRow}>
+            <input id="pf-height" className="bbf-input" type="number" inputMode="numeric" min="3" max="8"
+              placeholder="ft" value={form.heightFt} disabled={submitting}
+              onChange={(e) => set('heightFt', e.target.value)} />
+            <input className="bbf-input" type="number" inputMode="numeric" min="0" max="11"
+              placeholder="in" value={form.heightIn} disabled={submitting}
+              aria-label="Height (inches)" onChange={(e) => set('heightIn', e.target.value)} />
+          </div>
+        </Field>
+      </div>
+
       {/* ── LIABILITY SHIELD — health / injury / medical disclosure ── */}
       <Field id="pf-injuries" label={t('f-injuries')} error={null}>
         <textarea id="pf-injuries" className="bbf-input" rows={2} placeholder={t('f-injuries-ph')}
@@ -322,6 +347,8 @@ function CheckRow({ id, label, checked, onChange, disabled, required }) {
 const styles = {
   card: { background: 'rgba(20,12,32,.92)', border: '1px solid rgba(157,39,201,.3)', borderRadius: 16, padding: '1.8rem 1.6rem', maxWidth: 480, width: '100%', margin: '0 auto' },
   field: { marginBottom: '1rem' },
+  bioRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' },
+  heightRow: { display: 'flex', gap: 8 },
   fieldErr: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.78rem', fontWeight: 700, color: '#ef4444', marginTop: '.3rem', letterSpacing: '.3px' },
   parqHeader: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '.9rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#f5c800', margin: '1.2rem 0 .3rem', paddingTop: '.6rem', borderTop: '1px solid rgba(157,39,201,.25)' },
   parqNote: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.82rem', fontWeight: 600, color: 'rgba(255,255,255,.55)', marginBottom: '.7rem' },

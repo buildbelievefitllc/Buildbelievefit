@@ -12,22 +12,9 @@
 
 import { useState } from 'react';
 import { useLang } from '../context/LangContext.jsx';
-
-// ── Legacy formulas (verbatim) ──────────────────────────────────────────────
-function calcTDEE(age, sex, wt, ft, ins, act) {
-  const kg = wt * 0.453592;
-  const cm = ((ft * 12) + ins) * 2.54;
-  const bmr = sex === 'male'
-    ? (10 * kg) + (6.25 * cm) - (5 * age) + 5
-    : (10 * kg) + (6.25 * cm) - (5 * age) - 161;
-  return Math.round(bmr * act);
-}
-function calcMacros(cal, wt, adj) {
-  const p = Math.round(wt * (adj > 0 ? 1.0 : 0.9));
-  const f = Math.round((cal * 0.25) / 9);
-  const c = Math.max(0, Math.round((cal - (p * 4) - (f * 9)) / 4));
-  return { p, c, f };
-}
+// TDEE + macro math lives in the shared Native Nutrition Engine (single source of
+// truth) so the calculator and the Pathfinder intake stage identical numbers.
+import { calcTDEE, calcMacros } from './vault/nutritionEngine.js';
 
 const GOLD = '#F5C800';
 const GOLD_SOFT = '#F5CF60';
