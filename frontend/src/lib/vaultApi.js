@@ -99,6 +99,7 @@ export function selectPlans(session) {
   return {
     workoutPlan: (plans?.workout_plan || '').trim(),
     mealPlan: (plans?.meal_plan || '').trim(),
+    sportsProtocol: plans?.sports_protocol ?? null,
     generatedAt: plans?.plans_generated_at || null,
   };
 }

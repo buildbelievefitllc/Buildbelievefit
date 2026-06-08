@@ -125,10 +125,14 @@ export function AuthProvider({ children }) {
       // workout/meal plan with a null generated-at stamp (legacy backfills), and
       // suppressing it would blank the Program/Nutrition surfaces with data that
       // actually exists. `plans_available` is kept as an additional signal.
-      plans: (data.plans_available || (data.workout_plan || '').trim() || (data.meal_plan || '').trim())
+      plans: (data.plans_available || (data.workout_plan || '').trim() || (data.meal_plan || '').trim() || data.sports_protocol)
         ? {
             workout_plan: data.workout_plan ?? '',
             meal_plan: data.meal_plan ?? '',
+            // Native Sport Engine payload (coach-staged in bbf_active_clients via the
+            // Pathfinder intake). Carried through verbatim; SportsHub normalizes +
+            // renders it (null → the General Physical Preparedness fallback).
+            sports_protocol: data.sports_protocol ?? null,
             plans_generated_at: data.plans_generated_at ?? null,
           }
         : null,

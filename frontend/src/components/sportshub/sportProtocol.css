@@ -1,0 +1,107 @@
+/* src/components/sportshub/sportProtocol.css
+   Native Sport Engine renderer — modular cards for the sports_protocol payload.
+   On the LOCKED brand palette (purple #6a0dad / gold #f5c800, matte canvas) and
+   reusing the Sports Hub design tokens (--sh-card, --sh-line, --pur, --yel, …).
+   Single-column deck — never a horizontal split. */
+
+.sh-proto {
+  margin: 14px 0 18px;
+  background: var(--sh-card);
+  border: 1px solid var(--sh-line);
+  border-radius: 14px;
+  padding: 16px 16px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.sh-proto::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--pur), var(--yel) 60%, var(--gold-soft));
+}
+.sh-proto-head { margin-bottom: 12px; }
+.sh-proto-kicker {
+  display: inline-block;
+  font-family: var(--hb);
+  font-size: .58rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  margin-bottom: 4px;
+}
+.sh-proto-title {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: 1px;
+  color: var(--wht);
+  margin: 0;
+}
+.sh-proto-sub {
+  margin: 6px 0 0;
+  font-family: var(--bd);
+  font-size: .85rem;
+  line-height: 1.4;
+  color: #cbb3e6;
+}
+
+/* Vertical deck of category cards — no horizontal splitting. */
+.sh-proto-deck { display: flex; flex-direction: column; gap: 12px; }
+.sh-proto-card {
+  background: var(--sh-card2);
+  border: 1px solid var(--sh-line-soft);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.sh-proto-card-title {
+  font-family: var(--hb);
+  font-size: .82rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--yel);
+  margin: 0 0 8px;
+}
+.sh-proto-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.sh-proto-item {
+  padding: 8px 10px;
+  background: rgba(106, 13, 173, .12);
+  border: 1px solid var(--sh-line);
+  border-radius: 9px;
+}
+.sh-proto-item-name {
+  display: block;
+  font-family: var(--bd);
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--wht);
+}
+.sh-proto-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.sh-proto-chip {
+  font-family: var(--bd);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+  color: #d9c6f2;
+  background: rgba(106, 13, 173, .3);
+  border: 1px solid var(--purl);
+  border-radius: 999px;
+  padding: .12rem .5rem;
+}
+.sh-proto-item-detail {
+  margin: 6px 0 0;
+  font-family: var(--bd);
+  font-size: .8rem;
+  line-height: 1.4;
+  color: #b9a8d6;
+}
+
+/* General Physical Preparedness fallback. */
+.sh-proto--gpp .sh-proto-title { color: var(--gold-soft); font-size: 1.25rem; }
+.sh-proto-gpp {
+  margin: 4px 0 0;
+  font-family: var(--bd);
+  font-size: .88rem;
+  line-height: 1.45;
+  color: #cbb3e6;
+}

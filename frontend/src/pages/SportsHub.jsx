@@ -30,6 +30,8 @@ import {
   SizeMass,
   DayProtocol,
 } from '../components/sportshub/sections.jsx';
+import SportProtocol from '../components/sportshub/SportProtocol.jsx';
+import { selectPlans } from '../lib/vaultApi.js';
 import '../components/sportshub/sportsHub.css';
 
 // First non-rest day, so the Hub never opens on a blank recovery card.
@@ -43,7 +45,7 @@ function firstTrainingDay(week) {
 // passed down by YouthIntakeGate. The gate keys this component on the selection, so
 // a sport change cleanly re-seeds the week + editable model.
 export default function SportsHub({ selection = null, progress = null }) {
-  const { user, signOut } = useAuth();
+  const { user, session, signOut } = useAuth();
   const { t } = useLang();
   const uid = user?.username || user?.id || '';
 
@@ -59,6 +61,11 @@ export default function SportsHub({ selection = null, progress = null }) {
     const sport = cfg ? t(cfg.labelKey) : (profile.sport || 'Multi-Sport');
     return { ...profile, sportId, positionCode, sport, position: positionLabel(sportId, positionCode) };
   }, [selection, profile, t]);
+
+  // Native Sport Engine payload — coach-staged into bbf_active_clients, delivered in
+  // the login envelope (session.plans.sports_protocol). Null for a non-specialized
+  // athlete → SportProtocol renders the General Physical Preparedness fallback.
+  const sportsProtocol = useMemo(() => selectPlans(session).sportsProtocol, [session]);
 
   // Lifted state — seeded once from the sport-aware model. `model` powers the
   // Combine/Power/Size calculators; `week` is the 7-day protocol with checkoff
@@ -168,6 +175,9 @@ export default function SportsHub({ selection = null, progress = null }) {
           ) : null}
           {profile.team ? <div className="sh-team">{profile.team}</div> : null}
         </section>
+
+        {/* ── Native Sport Protocol — the coach-staged engine prescription ─────── */}
+        <SportProtocol protocol={sportsProtocol} />
 
         {/* ── Training block (off/in-season workload selector) ────────────────── */}
         <div className="sh-phase" role="group" aria-label="Training block">
