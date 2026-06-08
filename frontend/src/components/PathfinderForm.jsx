@@ -17,6 +17,7 @@
 
 import { useState } from 'react';
 import { submitLead } from '../lib/leadApi.js';
+import { generateProgram, toAssignedPlan } from './vault/generatorEngine.js';
 import { useTurnstile } from '../lib/useTurnstile.js';
 import { useLang } from '../context/LangContext.jsx';
 
@@ -38,6 +39,32 @@ const EXP_OPTIONS = [
 ];
 // Standard PAR-Q items (7). Stored as a flags map keyed by these ids.
 const PARQ_KEYS = ['f-parq1', 'f-parq2', 'f-parq3', 'f-parq4', 'f-parq5', 'f-parq6', 'f-parq7'];
+
+// ── Intake-time workout generation (Zero-Friction onboarding) ────────────────────
+// Map the intake's goal/experience onto the RULE-BASED Vault generator
+// (generatorEngine — client-side, deterministic, NO AI spend) and build a starter
+// workout_plan the instant the prospect submits. It rides in the lead payload and
+// bbf-lead-capture stages it into bbf_active_clients (by vault_email), so it hydrates
+// on first login post-payment. MEAL plans are deliberately NOT generated here — those
+// stay post-payment hydration only, to protect Anthropic/Gemini margins on
+// un-provisioned leads (CEO directive). Best-effort: any generator hiccup returns
+// null so the lead submission is never blocked.
+const GOAL_TO_ENGINE = { 'fat-loss': 'fatloss', muscle: 'hypertrophy', performance: 'strength', health: 'general', recovery: 'general' };
+const EXP_TO_LEVEL = { beginner: '1', intermediate: '2', advanced: '3' };
+
+function buildIntakeWorkoutPlan(form) {
+  try {
+    const result = generateProgram({
+      goal: GOAL_TO_ENGINE[form.goal] || 'general',
+      level: EXP_TO_LEVEL[form.experience] || '2',
+      days: '4', loc: 'any-home', arch: 'full', dur: '60', intensifier: 'none',
+    });
+    const plan = toAssignedPlan(result);
+    return Array.isArray(plan) && plan.length ? plan : null;
+  } catch {
+    return null; // never let a generation hiccup block the intake
+  }
+}
 
 export default function PathfinderForm() {
   const { t, lang } = useLang();
@@ -84,6 +111,10 @@ export default function PathfinderForm() {
         setError('Security check could not complete — please retry.');
         return;
       }
+      // Zero-Friction onboarding: generate the starter workout plan now (rule-based,
+      // client-side — no AI spend) so it stages with the intake and hydrates on first
+      // login. Meal plans stay post-payment only.
+      const workout_plan = buildIntakeWorkoutPlan(form);
       // Data contract preserved — all shield fields ride in the lead payload.
       await submitLead(
         {
@@ -100,6 +131,8 @@ export default function PathfinderForm() {
           parq_flags: PARQ_KEYS.filter((k) => form.parq[k]),
           parq_any: PARQ_KEYS.some((k) => form.parq[k]),
           marketing_consent: form.marketingConsent,
+          // Intake-time generated workout plan → staged into bbf_active_clients.
+          ...(workout_plan ? { workout_plan } : {}),
         },
         token,
         lang,
