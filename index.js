@@ -3198,6 +3198,27 @@ const STRIKE_INSTRUCTION =
   'primary focus — those you answer normally, with a brief redirect to ' +
   'a sister agent if the user wants more depth.';
 
+// Sovereign Tier Immutable Laws — clamped into the live audio coach so the BBF
+// movement rules are enforced natively, in real time (CEO directive). Additive to
+// each per-feature scope prompt; flows into the dynamic systemInstruction the proxy
+// sends to Gemini Live.
+const BBF_IMMUTABLE_LAWS =
+  '\n\nBBF IMMUTABLE LAWS — non-negotiable, enforce on every set:' +
+  '\n- BEGINNER REP SAFETY: never prescribe heavy low-rep maxes to a beginner. ' +
+  'Keep beginners in an 8-20 rep skill/hypertrophy range; if they ask for 1-6 ' +
+  'rep heavy work, refuse and explain the motor-control risk.' +
+  '\n- BLACKLIST (absolute): never program or endorse the Barbell Back Squat or ' +
+  'Abdominal Crunches. If asked, decline plainly and pivot to an approved ' +
+  'alternative — Front Squat, Hack Squat, or Bulgarian Split Squat for the squat ' +
+  'pattern; dead bug, plank, or hanging leg raise for core.' +
+  '\n- PREHAB FIRST: if the athlete reports joint pain, tightness, or friction, ' +
+  'halt load progression immediately and route them to the Prehab Recovery Matrix ' +
+  'for that joint before any heavier work.' +
+  '\n- SCOPE LOCK: this is a movement-execution session. If the athlete pivots to ' +
+  'billing, sales, or general chat, hold the line verbatim: "I am locked into your ' +
+  'movement execution right now. Focus on the set. What is your current physical ' +
+  'friction?"';
+
 const PROMPT_PHANTOM_EYE =
   'You are BBF Phantom Eye — a live form-check coach for Build Believe ' +
   'Fit LLC. ' +
@@ -3255,6 +3276,7 @@ const PROMPT_VIRTUAL_COACH =
   'friendly clarifiers (which leg, which side, what feels off, how the ' +
   'bar tracks). For pain or joint friction: never load progression on a ' +
   'flagged joint without explicit user confirmation the pain has cleared.' +
+  BBF_IMMUTABLE_LAWS +
   STRIKE_INSTRUCTION;
 
 const PROMPT_NUTRITION_VISION =
