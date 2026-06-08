@@ -222,26 +222,34 @@ function levelRank(ex, level) {
   return 0;
 }
 
-// B1 (Advanced) isolation/accessory scheme. The day rx carries the heavy primary
-// scheme; isolation work is re-prescribed per-exercise (in the day-fill loop) to this.
-const ADV_ISO_RX = { sets: '3-5', reps: '8-12', rest: '60-90s' };
-
-// Set / rep / rest prescription. INTERMEDIATE (level 2) stays goal-driven — the
-// historical baseline. BEGINNER (1) and ADVANCED (3) are LEVEL-driven physiological
-// profiles that OVERRIDE the goal scheme (Lever B): a beginner standardizes on a
-// skill-acquisition hypertrophy scheme; an advanced lifter gets the heavy primary
-// scheme here, with isolation re-prescribed (ADV_ISO_RX) per exercise downstream.
+// Set / rep / rest prescription — a TWO-AXIS model. GOAL owns the physiological target
+// (rep range + rest band) and keeps that authority at EVERY experience level; LEVEL
+// modulates only training VOLUME — the set count steps up with experience. So an
+// Advanced lifter who picks Endurance gets 3-4 × 15-20 @ 45-60s, never a forced heavy
+// low-rep scheme; a Beginner on the same goal gets the same rep/rest target at trimmed
+// volume. Unknown goals fall back to hypertrophy. `sets` is indexed [L1, L2, L3].
+const GOAL_RX = {
+  strength:    { reps: '3-6',   rest: '2-3 min', sets: ['3', '4-5', '4-5'] },
+  power:       { reps: '2-5',   rest: '2-3 min', sets: ['3', '4-5', '4-5'] },
+  hypertrophy: { reps: '8-12',  rest: '60-90s',  sets: ['2-3', '3-4', '4-5'] },
+  general:     { reps: '8-12',  rest: '60-90s',  sets: ['2-3', '3', '3-4'] },
+  fatloss:     { reps: '12-20', rest: '30-45s',  sets: ['2-3', '3', '3-4'] },
+  endurance:   { reps: '15-20', rest: '45-60s',  sets: ['2-3', '3', '3-4'] },
+};
 function prescribe(goal, level) {
-  if (level === 1) return { sets: '2-3', reps: '12-15', rest: '90s' };
-  if (level === 3) return { sets: '3-5', reps: '5-8', rest: '120s' };
-  switch (goal) {
-    case 'strength': return { sets: '4-5', reps: '3-6', rest: '2-3 min' };
-    case 'endurance': return { sets: '2-3', reps: '15-25', rest: '30-45s' };
-    case 'power': return { sets: '4-5', reps: '2-5', rest: '2-3 min' };
-    case 'fatloss': return { sets: '3', reps: '12-20', rest: '30-45s' };
-    case 'general': return { sets: '3', reps: '8-12', rest: '60-90s' };
-    default: return { sets: '3-4', reps: '8-12', rest: '60-90s' };
-  }
+  const g = GOAL_RX[goal] || GOAL_RX.hypertrophy;
+  const lvl = level === 1 ? 0 : level === 3 ? 2 : 1; // L1→0 · L2→1 · L3→2
+  return { sets: g.sets[lvl], reps: g.reps, rest: g.rest };
+}
+
+// Advanced accessory scheme. Isolation work is rarely trained at a heavy low-rep
+// target, so ONLY when the GOAL is a low-rep strength/power scheme do we float the
+// isolation lifts up to a hypertrophy accessory band (at the goal's set volume). For
+// every other goal, isolation tracks the day scheme — endurance isolation stays
+// high-rep, hypertrophy isolation stays 8-12, etc. Returns null ⇒ no override.
+function advIsolationRx(goal, dayRx) {
+  if (goal === 'strength' || goal === 'power') return { sets: dayRx.sets, reps: '8-12', rest: '60-90s' };
+  return null;
 }
 function countFor(dur) { const d = parseInt(dur, 10) || 60; return d <= 40 ? 4 : d <= 50 ? 5 : d <= 65 ? 6 : d <= 95 ? 7 : 8; }
 function rng(seed) { let s = (seed || 1) % 2147483647; if (s <= 0) s += 2147483646; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
@@ -364,11 +372,12 @@ export function generateProgram(params = {}) {
     }
     // Final guard — defense in depth even though pool was pre-filtered.
     let safe = picks.filter((x) => !isBlacklisted(x.n) && resolveVideoId(x.n));
-    // B1 (Advanced) — the day rx carries the heavy primary scheme; isolation/accessory
-    // work gets its own moderate-rep, shorter-rest scheme. NEW objects only: LIB entries
-    // are shared references and must never be mutated (immutable-laws guard).
+    // B1 (Advanced) — isolation diverges from the day (compound) scheme ONLY for low-rep
+    // strength/power goals (see advIsolationRx); otherwise it tracks the goal-modulated
+    // day rx. NEW objects only: LIB entries are shared references and must never mutate.
     if (level === 3) {
-      safe = safe.map((x) => (isIsolation(x) ? { ...x, rx: ADV_ISO_RX } : x));
+      const isoRx = advIsolationRx(goal, rx);
+      if (isoRx) safe = safe.map((x) => (isIsolation(x) ? { ...x, rx: isoRx } : x));
     }
     // FST-7: append a real 7-set fascia finisher (its own rep scheme) to each day.
     if (effIntensifier === 'fst7') {
