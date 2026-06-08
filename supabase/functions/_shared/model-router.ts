@@ -50,7 +50,7 @@ export type UseCase =
   | 'parq_assessment'         // PAR-Q+ classification + cardiac routing
   | 'wellbeing_escalation'    // ED triage / wellbeing halt
   | 'cardiac_intercept'       // Cardio routing engine
-  | 'tier_upgrade_offer'      // Phase 8 · Sales Router · consistency→conversion analysis (CEO directive: Opus)
+  | 'tier_upgrade_offer'      // Phase 8 · Sales Router · consistency→conversion analysis (CEO override 2026-06: Sonnet — margin protection)
   ;
 
 // Authoritative routing table. Tunable in one place.
@@ -72,7 +72,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   parq_assessment:       MODELS.OPUS,
   wellbeing_escalation:  MODELS.OPUS,
   cardiac_intercept:     MODELS.OPUS,
-  tier_upgrade_offer:    MODELS.OPUS,
+  tier_upgrade_offer:    MODELS.SONNET, // downgraded from Opus — margin (CEO override 2026-06)
 };
 
 // Selection options · `vision` upgrades a Haiku target to Sonnet since
