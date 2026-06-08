@@ -150,6 +150,67 @@ async function fireBrevoEmail(apiKey, fromName, fromEmail, toEmail, toName, subj
   return { ok: true, status: r.status };
 }
 
+// ── Stage the prospect into bbf_active_clients (pre-checkout) ──────────────────
+// Closes the Stage-2 staging gap: the Pathfinder intake now writes the prospect's
+// profile + macros + any generated plan JSON into public.bbf_active_clients (keyed
+// by vault_email), so the post-payment fulfillment RPC (which skips its own insert
+// when a row already exists for the email) links to a row that ALREADY carries the
+// plans — and login hydration (bbf_verify_user_pin) returns them. Upsert by
+// vault_email via select → update | insert (no unique constraint needed, mirroring
+// bbf_stripe_fulfillment_transaction's existence check). Emails are pre-lowercased
+// by the caller (bbf_active_clients enforces a lowercase CHECK). Only keys we
+// actually have are set, so we never null out a column a later admin write filled.
+async function stageActiveClient(supabase, { email, fullName, phone, tier, payload }) {
+  const p = payload || {};
+  const toInt = (v) => { if (v === null || v === undefined || v === '') return null; const n = Number(v); return Number.isFinite(n) ? Math.round(n) : null; };
+  const toJsonText = (v) => { if (v === null || v === undefined) return null; if (typeof v === 'string') return v.trim() ? v : null; try { return JSON.stringify(v); } catch { return null; } };
+
+  const workoutPlan = toJsonText(p.workout_plan ?? p.workoutPlan ?? null);
+  const mealPlan    = toJsonText(p.meal_plan ?? p.mealPlan ?? null);
+  const plansStaged = !!(workoutPlan || mealPlan);
+
+  const clinicalBits = [
+    p.injuries ? `Injuries: ${p.injuries}` : null,
+    p.medical_conditions ? `Conditions: ${p.medical_conditions}` : null,
+    p.medications ? `Medications: ${p.medications}` : null,
+    Array.isArray(p.parq_flags) && p.parq_flags.length ? `PAR-Q: ${p.parq_flags.join(', ')}` : null,
+  ].filter(Boolean);
+  const trainingBits = [
+    p.primary_goal ? `Goal: ${p.primary_goal}` : null,
+    p.experience ? `Experience: ${p.experience}` : null,
+  ].filter(Boolean);
+
+  const patch = { client_name: fullName || email, client_email: email, vault_email: email, onboarding_status: 'Pending' };
+  if (phone) patch.client_phone = String(phone);
+  if (clinicalBits.length) patch.clinical_history = clinicalBits.join(' · ');
+  if (trainingBits.length) patch.training_protocol = trainingBits.join(' · ');
+  if (toInt(p.age) !== null) patch.age = toInt(p.age);
+  if (p.height_weight) patch.height_weight = String(p.height_weight);
+  if (p.dietary_profile) patch.dietary_profile = String(p.dietary_profile);
+  if (p.allergens !== undefined) patch.allergens = p.allergens;
+  if (p.food_likes !== undefined) patch.food_likes = p.food_likes;
+  if (p.food_dislikes !== undefined) patch.food_dislikes = p.food_dislikes;
+  if (toInt(p.tdee_target) !== null) patch.tdee_target = toInt(p.tdee_target);
+  if (toInt(p.macro_p) !== null) patch.macro_p = toInt(p.macro_p);
+  if (toInt(p.macro_c) !== null) patch.macro_c = toInt(p.macro_c);
+  if (toInt(p.macro_f) !== null) patch.macro_f = toInt(p.macro_f);
+  if (workoutPlan) patch.workout_plan = workoutPlan;
+  if (mealPlan) patch.meal_plan = mealPlan;
+  if (plansStaged) patch.plans_generated_at = new Date().toISOString();
+
+  const { data: existing, error: selErr } = await supabase
+    .from('bbf_active_clients').select('id').eq('vault_email', email).maybeSingle();
+  if (selErr) return { ok: false, mode: 'noop', plans_staged: plansStaged, error: selErr.message };
+  if (existing?.id) {
+    const { error } = await supabase.from('bbf_active_clients').update(patch).eq('id', existing.id);
+    if (error) return { ok: false, mode: 'update', plans_staged: plansStaged, error: error.message };
+    return { ok: true, mode: 'update', plans_staged: plansStaged };
+  }
+  const { error } = await supabase.from('bbf_active_clients').insert({ spectrum_tier: tier || 'prospect', liability_cleared: true, ...patch });
+  if (error) return { ok: false, mode: 'insert', plans_staged: plansStaged, error: error.message };
+  return { ok: true, mode: 'insert', plans_staged: plansStaged };
+}
+
 serve(async (req) => {
   const origin = req.headers.get('origin');
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(origin) });
@@ -233,6 +294,19 @@ serve(async (req) => {
   }
   console.log(`[bbf-lead-capture] lead stored id=${leadRow.id} source=${source} email=${email}`);
 
+  // 1.5 Stage the prospect into bbf_active_clients (pre-checkout). Best-effort:
+  // a staging miss must NEVER drop the captured lead (already persisted above).
+  let staged = { ok: false, mode: 'noop', plans_staged: false };
+  if (source === 'pathfinder') {
+    try {
+      staged = await stageActiveClient(supabase, { email, fullName, phone, tier, payload: persistPayload });
+      if (staged.ok) console.log(`[bbf-lead-capture] staged active_client email=${email} mode=${staged.mode} plans=${staged.plans_staged}`);
+      else console.error(`[bbf-lead-capture] active_clients staging failed:`, staged.error);
+    } catch (e) {
+      console.error(`[bbf-lead-capture] active_clients staging threw:`, e instanceof Error ? e.message : String(e));
+    }
+  }
+
   // 2. Fire Brevo admin notification (always)
   let adminEmailOk = false;
   if (BREVO_API_KEY) {
@@ -264,6 +338,9 @@ serve(async (req) => {
     ok: true,
     lead_id: leadRow.id,
     source,
+    staged: staged.ok,
+    staged_mode: staged.mode,
+    plans_staged: staged.plans_staged,
     admin_notified: adminEmailOk,
     lite_welcome_sent: liteWelcomeOk,
   }, 200, origin);
