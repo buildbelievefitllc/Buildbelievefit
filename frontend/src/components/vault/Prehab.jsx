@@ -21,9 +21,11 @@
 // panel — both render <Prehab /> (no props).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { getPrehabCatalog, compileReport, REGION_ICONS, EX_VIDEO } from './prehabProtocol.js';
 import { resolveVideoId, thumbURL } from './exerciseVideos.js';
+import { requestPrehabMatrix } from '../../lib/prehabApi.js';
 import './prehab.css';
 
 const PRESETS = [30, 45, 60];
@@ -79,6 +81,14 @@ const STR = {
       playDemo: 'Play demonstration',
       ringL1: 'Protocol',
       ringL2: 'Done',
+      scan: '◎ Run Friction Scanner',
+      scanning: 'Scanning your training load…',
+      rescan: '↻ Re-run Scanner',
+      scanHint: 'Generate a personalized 3-movement recovery matrix from your profile and today’s training load.',
+      liveSub: 'Live matrix — built from your profile and today’s load. Switch friction areas to return to the library.',
+      live: '◆ Live',
+      liveTitle: 'Live Recovery Matrix',
+      scanEmpty: 'No live protocol came back — showing your library matrix.',
     },
   },
   es: {
@@ -127,6 +137,14 @@ const STR = {
       playDemo: 'Reproducir demostración',
       ringL1: 'Protocolo',
       ringL2: 'Hecho',
+      scan: '◎ Ejecutar Escáner de Fricción',
+      scanning: 'Escaneando tu carga de entrenamiento…',
+      rescan: '↻ Re-ejecutar Escáner',
+      scanHint: 'Genera una matriz de recuperación personalizada de 3 movimientos a partir de tu perfil y la carga de entrenamiento de hoy.',
+      liveSub: 'Matriz en vivo — creada desde tu perfil y la carga de hoy. Cambia de área de fricción para volver a la biblioteca.',
+      live: '◆ En Vivo',
+      liveTitle: 'Matriz de Recuperación en Vivo',
+      scanEmpty: 'No se recibió protocolo en vivo — mostrando tu matriz de biblioteca.',
     },
   },
   pt: {
@@ -175,6 +193,14 @@ const STR = {
       playDemo: 'Reproduzir demonstração',
       ringL1: 'Protocolo',
       ringL2: 'Feito',
+      scan: '◎ Executar Scanner de Fricção',
+      scanning: 'Analisando sua carga de treino…',
+      rescan: '↻ Reexecutar Scanner',
+      scanHint: 'Gere uma matriz de recuperação personalizada de 3 movimentos a partir do seu perfil e da carga de treino de hoje.',
+      liveSub: 'Matriz ao vivo — criada a partir do seu perfil e da carga de hoje. Troque a área de fricção para voltar à biblioteca.',
+      live: '◆ Ao Vivo',
+      liveTitle: 'Matriz de Recuperação ao Vivo',
+      scanEmpty: 'Nenhum protocolo ao vivo retornou — mostrando sua matriz da biblioteca.',
     },
   },
 };
@@ -398,26 +424,107 @@ function VideoSlot({ ex, s }) {
   );
 }
 
+// Inline styles for the live-scanner affordances — kept self-contained in this file (no
+// prehab.css edits) and strictly on-palette: BBF purple #6a0dad, gold #f5c800, matte
+// black #090909. Fallback vars degrade gracefully if a token is undefined.
+const SCAN_STYLES = {
+  wrap: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '.6rem', margin: '4px 0 12px' },
+  hint: { flex: '1 1 12rem', minWidth: '10rem', fontSize: '.8rem', lineHeight: 1.35, color: 'var(--mut, #9aa)' },
+  err: { margin: '0 0 12px', color: 'var(--red, #ff5d5d)', fontSize: '.85rem', fontWeight: 600 },
+  badge: { marginLeft: '.5rem', padding: '.1rem .5rem', borderRadius: '999px', background: '#f5c800', color: '#090909', fontSize: '.68rem', fontWeight: 800, letterSpacing: '.4px', verticalAlign: 'middle' },
+  focusChip: { borderColor: '#6a0dad', color: '#caa6ff' },
+};
+
+// BBF-gold SMIL spinner (self-animating SVG — no CSS keyframes needed). Renders inside
+// the scan button while the Recovery Matrix engine is resolving.
+function ScanSpinner() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" style={{ verticalAlign: '-2px', marginRight: '.35rem' }} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="rgba(245,200,0,.25)" strokeWidth="3" />
+      <path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="#f5c800" strokeWidth="3" strokeLinecap="round">
+        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite" />
+      </path>
+    </svg>
+  );
+}
+
+// Adapt a live Recovery Matrix entry { name, duration, focus, reason } into the deck's
+// exercise render shape. The engine returns no sets/reps/cues, so those are omitted (the
+// deck renders each chip/section conditionally); `focus` becomes a chip and `reason` the
+// description. A stable per-slot key drives the done-set + the React list.
+function liveMatrixToExercises(matrix) {
+  return matrix.map((m, i) => ({
+    key: `live_${i}_${String(m.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`,
+    name: m.name,
+    duration: m.duration,
+    focus: m.focus,
+    desc: m.reason,
+    cues: [],
+    live: true,
+  }));
+}
+
 // ── Module 3 · Friction-Area Selector + Protocol for Selected Region ──────────
 function ProtocolDeck() {
   const s = usePrehabStr().deck;
   const { lang } = useLang();
+  const { user, isAdmin } = useAuth();
+  const uid = user?.username || user?.id || '';
   const { REGIONS, PROTOCOLS } = getPrehabCatalog(lang);
   const [region, setRegion] = useState(REGIONS[0].id);
   const [done, setDone] = useState(() => new Set());
 
-  const protocol = PROTOCOLS[region] || PROTOCOLS[REGIONS[0].id];
+  // Live Recovery Matrix override (bbf-agentic-prehab via prehabApi). null ⇒ render the
+  // static catalog protocol for the selected region; an array ⇒ the personalized,
+  // token-gated 3-movement matrix replaces it. A failed scan leaves the static deck up.
+  const [liveMatrix, setLiveMatrix] = useState(null);
+  const [scan, setScan] = useState({ loading: false, error: null });
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
 
-  // Switching the friction area loads a fresh protocol — clear the done state so
-  // the % tracker reflects the newly selected region, not the previous one.
-  const selectRegion = (id) => { setRegion(id); setDone(new Set()); };
+  const protocol = PROTOCOLS[region] || PROTOCOLS[REGIONS[0].id];
+  const usingLive = Array.isArray(liveMatrix);
+  const exercises = usingLive ? liveMatrix : protocol.exercises;
+
+  // Switching the friction area loads a fresh protocol — clear done AND any live matrix
+  // so the deck reverts to that region's static catalog (and the % tracker resets).
+  const selectRegion = (id) => {
+    setRegion(id);
+    setDone(new Set());
+    setLiveMatrix(null);
+    setScan({ loading: false, error: null });
+  };
   const toggle = (key) => setDone((prev) => {
     const next = new Set(prev);
     if (next.has(key)) next.delete(key); else next.add(key);
     return next;
   });
 
-  const total = protocol.exercises.length;
+  // Run the live Friction Scanner. The selected region label rides along as the free-text
+  // friction signal; identity + the tier gate are resolved SERVER-SIDE from the vault
+  // token (prehabApi attaches it — the client never asserts identity). Admins pass the
+  // Omniscience override. On success the matrix overrides the static deck; on any failure
+  // we surface prehabApi's already-friendly message and keep the static protocol visible.
+  const runScanner = async () => {
+    if (scan.loading) return;
+    setScan({ loading: true, error: null });
+    const friction = (REGIONS.find((r) => r.id === region) || {}).label || '';
+    try {
+      const matrix = await requestPrehabMatrix({ uid, friction, adminOverride: isAdmin });
+      if (!mounted.current) return;
+      if (matrix.length) {
+        setLiveMatrix(liveMatrixToExercises(matrix));
+        setDone(new Set());
+        setScan({ loading: false, error: null });
+      } else {
+        setScan({ loading: false, error: s.scanEmpty });
+      }
+    } catch (e) {
+      if (mounted.current) setScan({ loading: false, error: e?.message || s.scanEmpty });
+    }
+  };
+
+  const total = exercises.length;
   const pct = total ? Math.round((done.size / total) * 100) : 0;
 
   return (
@@ -444,20 +551,41 @@ function ProtocolDeck() {
         })}
       </div>
 
+      {/* ── Live Recovery Matrix · Friction Scanner trigger ─────────────────────── */}
+      <div style={SCAN_STYLES.wrap}>
+        <button
+          type="button"
+          className="pde-run"
+          onClick={runScanner}
+          disabled={scan.loading}
+          aria-busy={scan.loading}
+          data-testid="prehab-scan"
+        >
+          {scan.loading ? <><ScanSpinner />{s.scanning}</> : (usingLive ? s.rescan : s.scan)}
+        </button>
+        <span style={SCAN_STYLES.hint}>{usingLive ? s.liveSub : s.scanHint}</span>
+      </div>
+      {scan.error ? <div style={SCAN_STYLES.err} role="alert">⚠ {scan.error}</div> : null}
+
       <div className="pde-proto-head">
         <div>
           <div className="pde-kicker">{s.kicker}</div>
-          <h3 className="pde-proto-title"><span aria-hidden="true">{REGION_ICONS[region]}</span> {protocol.title}</h3>
+          <h3 className="pde-proto-title">
+            <span aria-hidden="true">{REGION_ICONS[region]}</span> {usingLive ? s.liveTitle : protocol.title}
+            {usingLive ? <span style={SCAN_STYLES.badge}>{s.live}</span> : null}
+          </h3>
         </div>
         <ProtocolRing pct={pct} />
       </div>
 
-      <div className="pde-quote">
-        <span className="pde-quote-ic" aria-hidden="true">ⓘ</span>
-        <p className="pde-quote-txt">{protocol.quote}</p>
-      </div>
+      {!usingLive ? (
+        <div className="pde-quote">
+          <span className="pde-quote-ic" aria-hidden="true">ⓘ</span>
+          <p className="pde-quote-txt">{protocol.quote}</p>
+        </div>
+      ) : null}
 
-      {protocol.exercises.map((ex, i) => {
+      {exercises.map((ex, i) => {
         const isDone = done.has(ex.key);
         return (
           <article
@@ -480,22 +608,25 @@ function ProtocolDeck() {
               </div>
 
               <div className="pde-chips">
-                <span className="pde-chip" data-testid="prehab-routine-sets">{s.sets(ex.sets)}</span>
-                <span className="pde-chip" data-testid="prehab-routine-reps">{ex.reps}</span>
-                <span className="pde-chip">{ex.duration}</span>
+                {ex.sets != null ? <span className="pde-chip" data-testid="prehab-routine-sets">{s.sets(ex.sets)}</span> : null}
+                {ex.reps ? <span className="pde-chip" data-testid="prehab-routine-reps">{ex.reps}</span> : null}
+                {ex.focus ? <span className="pde-chip" style={SCAN_STYLES.focusChip}>{ex.focus}</span> : null}
+                {ex.duration ? <span className="pde-chip">{ex.duration}</span> : null}
               </div>
 
-              <p className="pde-ex-desc" data-testid="prehab-routine-cue">{ex.desc}</p>
+              {ex.desc ? <p className="pde-ex-desc" data-testid="prehab-routine-cue">{ex.desc}</p> : null}
 
-              <div className="pde-cues">
-                <div className="pde-cues-head">{s.cues}</div>
-                {ex.cues.map((c, ci) => (
-                  <div className="pde-cue" key={ci}>
-                    <span className="pde-cue-arrow" aria-hidden="true">›</span>
-                    <span>{c}</span>
-                  </div>
-                ))}
-              </div>
+              {ex.cues?.length ? (
+                <div className="pde-cues">
+                  <div className="pde-cues-head">{s.cues}</div>
+                  {ex.cues.map((c, ci) => (
+                    <div className="pde-cue" key={ci}>
+                      <span className="pde-cue-arrow" aria-hidden="true">›</span>
+                      <span>{c}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             <VideoSlot ex={ex} s={s} />
