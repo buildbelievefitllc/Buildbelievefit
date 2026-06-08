@@ -511,7 +511,9 @@ function derivePrepSteps(meal) {
 // "Prep Instructions" toggle are separate, non-nested interactive elements.
 function MealCard({ meal, done, onToggle }) {
   const { tr } = useNutStr();
-  const [prepOpen, setPrepOpen] = useState(true);
+  // Closed by default — we fight scroll-bloat (CEO UX call). The athlete taps to
+  // reveal steps; derivePrepSteps guarantees real, meal-specific steps on expand.
+  const [prepOpen, setPrepOpen] = useState(false);
   const snack = isSnack(meal.m);
   // Build the macro chip from the parts actually present — the static catalog
   // carries full P/C/F; a live plan may only resolve calories + protein, so we never
