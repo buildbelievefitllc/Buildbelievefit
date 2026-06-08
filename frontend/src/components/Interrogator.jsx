@@ -52,7 +52,7 @@ function placeholderAudit(split) {
     verdict: {
       headline: 'You need the Autonomous Engine.',
       rationale: 'Your split has the effort but not the system. The Autonomous Engine supplies the periodization, tracking, and AI adjustments your program is missing — at the scalable tier.',
-      recommended: { tier: 'The Autonomous Engine', sub: '$47/mo · App + AI' },
+      recommended: { tier: 'The Autonomous Engine', sub: '$49.99/mo · App + AI' },
       alt: { tier: 'The Sovereign Standard', sub: '$897 · Founder-Direct Hybrid' },
     },
   };

@@ -85,6 +85,15 @@ export default function MarketingLanding() {
   };
   const goToPathfinder = () => goToTab('pathfinder');
 
+  // Knowledge deck — Science Hub + Routine Interrogator collapsed into one two-tab
+  // module (was a tall vertical stack below the deck). Default to the Science Hub;
+  // the nav Science/Audit links flip the tab and bring the module into view.
+  const [knowledgeTab, setKnowledgeTab] = useState('science');
+  const goToKnowledge = (key) => {
+    setKnowledgeTab(key);
+    document.getElementById('knowledge')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   // Telemetry-tagged tab manifest. idx = lane number, tag = athletic telemetry chip.
   const TABS = [
     { key: 'legacy',     idx: '01', label: 'Coach Legacy', tag: 'ORIGIN STORY' },
@@ -103,8 +112,8 @@ export default function MarketingLanding() {
           {/* Moved sections now live inside the Brand Engine deck — these jump to a tab. */}
           <button type="button" style={s.navSignIn} onClick={() => goToTab('playbooks')}>{t('nav-services')}</button>
           <button type="button" style={s.navSignIn} onClick={() => goToTab('paths')}>{t('nav-programs')}</button>
-          <a href="#science" style={s.navLink}>Science</a>
-          <a href="#interrogator" style={s.navLink}>{t('nav-audit')}</a>
+          <button type="button" style={s.navSignIn} onClick={() => goToKnowledge('science')}>Science</button>
+          <button type="button" style={s.navSignIn} onClick={() => goToKnowledge('interrogator')}>{t('nav-audit')}</button>
           <button type="button" style={s.navSignIn} onClick={() => goToTab('legacy')}>{t('nav-about')}</button>
           <button type="button" style={s.navSignIn} onClick={enter}>{t('nav-signin')}</button>
           <button type="button" style={s.navCta} onClick={goToPathfinder}>{t('nav-start')}</button>
@@ -301,11 +310,42 @@ export default function MarketingLanding() {
         </div>
       </section>
 
-      {/* ── SCIENCE HUB — clinical-studies library (peer-reviewed authority asset) ── */}
-      <ScienceHub />
+      <Divider />
 
-      {/* ── THE INTERROGATOR (BBF Chatbox) — interactive audit → tier guidance ── */}
-      <Interrogator onChooseTier={goToPathfinder} />
+      {/* ═══ KNOWLEDGE DECK — two-tab module (Science Hub / Routine Interrogator) ══
+          Collapses the two formerly-stacked sections into one switchable surface to
+          kill scroll bloat. The tab bar reuses the Brand Engine deck design system
+          (s.tab/.tabActive/.tabIdx/.tabLabel); "01 Science Hub" is active by default
+          and only the active module mounts. The nav Science/Audit links flip the tab
+          (see goToKnowledge). */}
+      <section id="knowledge" style={s.knowledgeDeck}>
+        <div style={s.knowledgeTabs} role="tablist" aria-label="Knowledge modules">
+          {[
+            { key: 'science', idx: '01', label: 'Science Hub' },
+            { key: 'interrogator', idx: '02', label: 'Routine Interrogator' },
+          ].map((d) => {
+            const on = knowledgeTab === d.key;
+            return (
+              <button
+                key={d.key}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => setKnowledgeTab(d.key)}
+                style={{ ...s.tab, ...(on ? s.tabActive : null) }}
+              >
+                <span style={{ ...s.tabIdx, ...(on ? s.tabIdxActive : null) }}>{d.idx}</span>
+                <span style={s.tabLabel}>{d.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div role="tabpanel">
+          {knowledgeTab === 'science'
+            ? <ScienceHub />
+            : <Interrogator onChooseTier={goToPathfinder} />}
+        </div>
+      </section>
 
       <Divider />
 
@@ -535,6 +575,13 @@ const s = {
   // Active panel surface — inherits the legacy section padding so the moved
   // content keeps its original rhythm inside the deck.
   panel: { padding: 'clamp(28px,5vw,56px) clamp(16px,4vw,40px)' },
+
+  // ── Knowledge deck — standalone two-tab bar (Science Hub / Routine Interrogator).
+  // Reuses the Brand Engine tab styles (s.tab/.tabActive/.tabIdx/.tabLabel) so it
+  // matches the Four Paths / Blueprints deck; the active full-bleed module renders
+  // directly below the bar. Replaces the former vertical stack of the two sections.
+  knowledgeDeck: { maxWidth: 1280, margin: '0 auto', padding: 'clamp(24px,4vw,40px) clamp(12px,3vw,32px) 0', scrollMarginTop: 72 },
+  knowledgeTabs: { display: 'flex', flexWrap: 'wrap', maxWidth: 720, margin: '0 auto', borderRadius: 14, overflow: 'hidden', border: `1px solid rgba(245,200,0,.28)`, background: 'rgba(9,9,9,.6)', boxShadow: `0 0 40px rgba(106,13,173,.25)` },
   // Spacer between stacked groups inside a single panel (Six Pillars / Blueprints,
   // Founder / Origin) — a brand purple→gold→purple sweep, like the legacy Divider.
   panelBreak: { maxWidth: 900, margin: 'clamp(36px,6vw,64px) auto', height: 1, background: `linear-gradient(90deg, transparent, ${PUR} 30%, ${GOLD_LAB} 50%, ${PUR} 70%, transparent)`, opacity: .5 },
