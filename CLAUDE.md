@@ -138,3 +138,27 @@ Be critical — no yes-men. If something breaks the architecture, say so before 
 - `AI_DIRECTIVES.md` — brand + AI command-structure constitution (CEO-owned).
 - `AG_INTEGRATION_NOTES.md` — multi-agent workflow, deploy topology, active backlog.
 - `api/SCHEMA_DRIFT_REPORT.md`, `api/RLS_HARDENING_AUDIT.md` — current DB audits (referenced by `supabase/config.toml`).
+
+## 10 · Landing / marketing UI standard (LOCKED — modular tab decks)
+
+> **✅ LOCKED — CEO order (Akeem):** the **tab-deck is the standard design system** for the
+> public marketing surface, and the **vertical-funnel layout is officially deprecated.** We
+> ruthlessly optimize against **scroll bloat** — modular tab structures are the permanent
+> architectural standard going forward. Do **not** re-introduce long vertical section stacks
+> without an explicit CEO order. (This supersedes the earlier "brand-first vertical funnel"
+> reorder, which was tried and reverted — don't resurrect it.)
+
+- **Pattern:** group related sections into a **tabbed deck** (one panel visible at a time),
+  never a tall vertical scroll. Reference implementation: the **Brand Engine deck** in
+  `frontend/src/pages/MarketingLanding.jsx` (`#deck`) — a numbered tab bar (`01`, `02`, …)
+  over a single active panel.
+- **Reuse the deck tab design system** for any new tabbed module — the `s.tab` / `s.tabActive`
+  / `s.tabIdx` / `s.tabIdxActive` / `s.tabLabel` style set (numbered index, Bebas label,
+  purple→gold active state). The **Knowledge deck** (`#knowledge` — `01 Science Hub` /
+  `02 Routine Interrogator`) is the canonical two-tab example.
+- **Default + a11y:** a sensible default tab is active on load; tabs are real
+  `<button role="tab">` with `aria-selected`; **only the active panel mounts** (kills scroll
+  weight). In-page nav links flip the relevant tab and scroll the deck into view — never rely
+  on anchors pointing at an unmounted panel.
+- **Still honors:** LOCKED brand (§2); the `sw.js` / React-SPA `CACHE` bump on any frontend
+  change (§3); green `lint` + `build` before every push (§6).
