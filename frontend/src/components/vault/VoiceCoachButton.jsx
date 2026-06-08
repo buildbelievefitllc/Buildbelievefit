@@ -63,6 +63,7 @@ export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel
   const remainingRef = useRef(SESSION_SECONDS);
   const terminalRef = useRef(false); // dedupes the terminal transition
   const wentLiveRef = useRef(false);
+  const godModeRef = useRef(false);  // server-authoritative God Mode (admin/coach/akeem/trial)
   const mountedRef = useRef(true);
 
   const clearTimers = useCallback(() => {
@@ -101,6 +102,7 @@ export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel
 
     terminalRef.current = false;
     wentLiveRef.current = false;
+    godModeRef.current = false;
     remainingRef.current = SESSION_SECONDS;
     setErrorMsg(''); setBudget(null); setRemaining(SESSION_SECONDS);
     setStatus('connecting');
@@ -109,6 +111,7 @@ export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel
       payload: { ...(payload || {}), lang, session_brief: String(text ?? '').trim() || undefined },
       onState: (s, meta) => {
         if (!mountedRef.current) return;
+        if (meta && meta.godMode) godModeRef.current = true;
         if (meta && (meta.remaining !== undefined || meta.godMode)) {
           setBudget({ remaining: meta.remaining, ceiling: meta.ceiling, godMode: !!meta.godMode });
         }
@@ -116,17 +119,22 @@ export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel
           wentLiveRef.current = true;
           setStatus('live');
           clearTimers();
-          timerRef.current = setInterval(() => {
-            const next = remainingRef.current - 1;
-            if (next <= 0) {
-              remainingRef.current = 0;
-              setRemaining(0);
-              endSession('time-cap'); // → onState('ended') → toTerminal('complete')
-            } else {
-              remainingRef.current = next;
-              setRemaining(next);
-            }
-          }, 1000);
+          // God Mode (admin / coach / akeem / active trial) is UNMETERED — no
+          // forced 5-minute teardown. The session stays open until the admin
+          // clicks Stop or the connection drops.
+          if (!godModeRef.current) {
+            timerRef.current = setInterval(() => {
+              const next = remainingRef.current - 1;
+              if (next <= 0) {
+                remainingRef.current = 0;
+                setRemaining(0);
+                endSession('time-cap'); // → onState('ended') → toTerminal('complete')
+              } else {
+                remainingRef.current = next;
+                setRemaining(next);
+              }
+            }, 1000);
+          }
         } else if (s === 'ended') {
           toTerminal(wentLiveRef.current ? 'complete' : 'idle');
         }
@@ -139,23 +147,26 @@ export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel
   const live = status === 'live';
   const complete = status === 'complete';
   const errored = status === 'error';
+  const unrestricted = live && !!budget?.godMode; // admin / God Mode — no 5:00 cap
 
   const label = errored ? errorMsg
     : connecting ? 'Connecting…'
-    : live ? `Live · ${fmt(remaining)}`
+    : live ? (unrestricted ? 'Live · Unrestricted' : `Live · ${fmt(remaining)}`)
     : complete ? 'Session Complete — Focus on your Next Set'
     : idleLabel;
 
   const cls = ['bbf-voice'];
   if (connecting) cls.push('is-loading', 'is-connecting');
   if (live) cls.push('is-playing', 'is-live');
+  if (unrestricted) cls.push('is-unrestricted');
   if (complete) cls.push('is-complete');
   if (errored) cls.push('is-error');
 
   const budgetTitle = budget
     ? (budget.godMode ? 'Unmetered (God Mode)' : (budget.remaining != null ? `${budget.remaining.toLocaleString()} tokens left this month` : ''))
     : '';
-  const title = live ? `Stop session — ${fmt(remaining)} left`
+  const title = live
+    ? (unrestricted ? 'Stop session — unrestricted (admin)' : `Stop session — ${fmt(remaining)} left`)
     : connecting ? 'Connecting to the live coach…'
     : complete ? 'Session complete'
     : `Start a live voice coaching session${budgetTitle ? ` · ${budgetTitle}` : ''}`;
