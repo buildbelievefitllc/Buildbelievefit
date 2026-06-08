@@ -199,7 +199,41 @@ export const PRESETS = [
     params: { goal: 'general', gender: 'any', level: '2', loc: 'any-home', days: '4', dur: '60', arch: 'full', intensifier: 'none' } },
 ];
 
-function prescribe(goal) {
+// ─── Lever B · level-aware profiling helpers ─────────────────────────────────
+// Pure classifiers over the LOCKED library — they only READ LIB entries, never
+// mutate them. "Isolation" mirrors the heuristic fst7Finisher already uses, widened
+// to the explicit isolation/core patterns; everything else is a compound/primary lift.
+const ISO_RE = /fly|curl|extension|raise|pushdown|pull-through|lateral|face pull|pull-apart/i;
+function isIsolation(ex) {
+  return ex.p === 'isolation' || ex.p === 'core' || ISO_RE.test(ex.n);
+}
+const FREE_WEIGHT = ['barbell', 'dumbbell', 'kettlebell'];
+const isFreeWeight = (ex) => Array.isArray(ex.eq) && ex.eq.some((e) => FREE_WEIGHT.indexOf(e) !== -1);
+const STABLE_EQ = ['machine', 'cable', 'bodyweight', 'smith', 'bands'];
+const isStable = (ex) => Array.isArray(ex.eq) && ex.eq.some((e) => STABLE_EQ.indexOf(e) !== -1);
+
+// B2 ordering key (lower = nearer the front of the session). Advanced floats
+// free-weight compounds first, heaviest lvl first; Beginner floats stable
+// machine/bodyweight patterns first; Intermediate (rank 0 for all) is left to the
+// seeded shuffle + gender emphasis.
+function levelRank(ex, level) {
+  if (level === 3) return (!isIsolation(ex) && isFreeWeight(ex) ? 0 : 10) + (3 - (ex.lvl || 1));
+  if (level === 1) return isStable(ex) ? 0 : 1;
+  return 0;
+}
+
+// B1 (Advanced) isolation/accessory scheme. The day rx carries the heavy primary
+// scheme; isolation work is re-prescribed per-exercise (in the day-fill loop) to this.
+const ADV_ISO_RX = { sets: '3-5', reps: '8-12', rest: '60-90s' };
+
+// Set / rep / rest prescription. INTERMEDIATE (level 2) stays goal-driven — the
+// historical baseline. BEGINNER (1) and ADVANCED (3) are LEVEL-driven physiological
+// profiles that OVERRIDE the goal scheme (Lever B): a beginner standardizes on a
+// skill-acquisition hypertrophy scheme; an advanced lifter gets the heavy primary
+// scheme here, with isolation re-prescribed (ADV_ISO_RX) per exercise downstream.
+function prescribe(goal, level) {
+  if (level === 1) return { sets: '2-3', reps: '12-15', rest: '90s' };
+  if (level === 3) return { sets: '3-5', reps: '5-8', rest: '120s' };
   switch (goal) {
     case 'strength': return { sets: '4-5', reps: '3-6', rest: '2-3 min' };
     case 'endurance': return { sets: '2-3', reps: '15-25', rest: '30-45s' };
@@ -279,8 +313,13 @@ export function generateProgram(params = {}) {
   const intensifier = params.intensifier || 'straight';
   const withWarmups = !!params.warmups;
   const perDay = countFor(params.dur);
-  const rx = prescribe(goal);
-  const tech = INTENSIFIER_META[intensifier] || INTENSIFIER_META.straight;
+  const rx = prescribe(goal, level);
+  // B3 — Beginner intensifier gate: a Level-1 lifter is NEVER auto-assigned a technique
+  // overlay (negatives / drop-sets / myo-reps / supersets / FST-7), regardless of the
+  // UI dropdown. (Also hardens the fallback: 'none' is a real META key; 'straight' was
+  // not, so the prior `|| INTENSIFIER_META.straight` resolved to undefined.)
+  const effIntensifier = level === 1 ? 'none' : intensifier;
+  const tech = INTENSIFIER_META[effIntensifier] || INTENSIFIER_META.none;
   if (tech.label) { rx.technique = tech.label; rx.techniqueCue = tech.cue; }
   const pool = eligible(locEq, level);
   const split = buildSplit(arch, days);
@@ -304,6 +343,16 @@ export function generateProgram(params = {}) {
         })
         .map((pair) => pair[0]);
     }
+    // B2 — level-aware ordering. Stable-sort (the carried index keeps the gender
+    // emphasis + seeded shuffle as the tiebreak) so the level profile claims the front
+    // of the session: Advanced leads with free-weight compounds (heaviest first),
+    // Beginner with stable machine/bodyweight patterns. Intermediate is unaffected.
+    if (level === 1 || level === 3) {
+      cand = cand
+        .map((x, i) => [x, i])
+        .sort((a, b) => levelRank(a[0], level) - levelRank(b[0], level) || a[1] - b[1])
+        .map((pair) => pair[0]);
+    }
     const picks = [];
     const names = {};
     for (let g = 0; g < groups.length && picks.length < perDay; g++) {
@@ -315,8 +364,14 @@ export function generateProgram(params = {}) {
     }
     // Final guard — defense in depth even though pool was pre-filtered.
     let safe = picks.filter((x) => !isBlacklisted(x.n) && resolveVideoId(x.n));
+    // B1 (Advanced) — the day rx carries the heavy primary scheme; isolation/accessory
+    // work gets its own moderate-rep, shorter-rest scheme. NEW objects only: LIB entries
+    // are shared references and must never be mutated (immutable-laws guard).
+    if (level === 3) {
+      safe = safe.map((x) => (isIsolation(x) ? { ...x, rx: ADV_ISO_RX } : x));
+    }
     // FST-7: append a real 7-set fascia finisher (its own rep scheme) to each day.
-    if (intensifier === 'fst7') {
+    if (effIntensifier === 'fst7') {
       const fin = fst7Finisher(pool, groups[0], names);
       if (fin && !isBlacklisted(fin.n) && resolveVideoId(fin.n)) {
         safe = safe.concat([{ ...fin, fst7: true, rx: { sets: '7', reps: '8-12', rest: '30s' } }]);
@@ -327,7 +382,7 @@ export function generateProgram(params = {}) {
     program.push(day);
   }
 
-  return { days, goal, gender, arch, intensifier, level, warmups: withWarmups, program };
+  return { days, goal, gender, arch, intensifier: effIntensifier, level, warmups: withWarmups, program };
 }
 
 // ─── Push bridge: generated program → assignable workout_plan ─────────────────
