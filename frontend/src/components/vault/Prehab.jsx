@@ -381,13 +381,29 @@ function ProtocolRing({ pct }) {
   );
 }
 
+// Resolve a demonstration video for ANY exercise — the static catalog OR a LIVE
+// Recovery Matrix movement (whose synthetic `live_*` key isn't in EX_VIDEO). Order:
+// exact catalog key → the movement NAME slugged to a catalog key (so "Glute Bridge"
+// → glute_bridge resolves the curated clip) → the authorized lift VIDEO_MAP fuzzy
+// resolver. No match → null (VideoSlot shows the clean caption-only state).
+function slugifyName(name) {
+  return String(name || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+function resolveExerciseVideo(ex) {
+  if (!ex) return null;
+  if (ex.key && EX_VIDEO[ex.key]) return EX_VIDEO[ex.key];
+  const slug = slugifyName(ex.name);
+  if (slug && EX_VIDEO[slug]) return EX_VIDEO[slug];
+  return resolveVideoId(ex.name) || null;
+}
+
 // Form-demo video player — resolves each exercise to a real curated YouTube id
-// (EX_VIDEO by key, falling back to the fuzzy name resolver). Shows the thumbnail
-// with a play overlay; a tap swaps in an autoplay embed so the demo actually plays
-// inside the card. No id → a clean caption-only state (never a dead button).
+// (catalog key · live-name slug · fuzzy lift resolver). Shows the thumbnail with a
+// play overlay; a tap swaps in an autoplay embed so the demo plays inside the card.
+// No id → a clean caption-only state (never a dead button).
 function VideoSlot({ ex, s }) {
   const [playing, setPlaying] = useState(false);
-  const id = EX_VIDEO[ex.key] || resolveVideoId(ex.name);
+  const id = resolveExerciseVideo(ex);
 
   if (!id) {
     return (

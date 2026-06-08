@@ -487,12 +487,31 @@ function buildLivePlan(mealPlanRaw, labels) {
   };
 }
 
+// Failsafe prep steps for a meal that arrived WITHOUT an instructions array
+// (legacy / edge plans). Derives concise, MEAL-SPECIFIC steps from the actual
+// ingredient line + macro target — never a content-free generic placeholder.
+function derivePrepSteps(meal) {
+  const ing = String(meal?.i || '').trim();
+  if (!ing) return [];
+  const parts = ing.split(/,|·|\/|\+|\band\b/i).map((p) => p.trim()).filter(Boolean);
+  const list = parts.length ? parts.join(', ') : ing;
+  const tgt = [];
+  if (meal?.kcal) tgt.push(`${meal.kcal} kcal`);
+  if (meal?.p) tgt.push(`${meal.p}g protein`);
+  const macroTail = tgt.length ? ` to hit ${tgt.join(' · ')}` : '';
+  return [
+    `Portion the ingredients: ${list}.`,
+    'Cook the protein through; steam or roast the vegetables and portion the carbs.',
+    `Combine, season to taste, and plate${macroTail}.`,
+  ];
+}
+
 // ── Meal card — thumbnail · tap-to-log body · Prep Instructions drawer ────────
 // The card is a container (not one big button) so the "mark done" control and the
 // "Prep Instructions" toggle are separate, non-nested interactive elements.
 function MealCard({ meal, done, onToggle }) {
   const { tr } = useNutStr();
-  const [prepOpen, setPrepOpen] = useState(false);
+  const [prepOpen, setPrepOpen] = useState(true);
   const snack = isSnack(meal.m);
   // Build the macro chip from the parts actually present — the static catalog
   // carries full P/C/F; a live plan may only resolve calories + protein, so we never
@@ -506,6 +525,9 @@ function MealCard({ meal, done, onToggle }) {
   if (pcf.length) macroBits.push(pcf.join(' / '));
   const macros = macroBits.join(' · ');
   const steps = normalizeInstructions(meal.instructions);
+  // Real steps when the plan carries them; otherwise meal-specific derived steps
+  // (from the ingredient line + macros) — never a content-free placeholder.
+  const shownSteps = steps.length ? steps : derivePrepSteps(meal);
 
   return (
     <div className={`nl-meal${snack ? ' is-snack' : ''}${done ? ' is-done' : ''}`}>
@@ -536,9 +558,9 @@ function MealCard({ meal, done, onToggle }) {
           <span className="nl-meal-prep-caret" aria-hidden="true">{prepOpen ? '▲' : '▼'}</span>
         </button>
         {prepOpen ? (
-          steps.length ? (
+          shownSteps.length ? (
             <ol className="nl-meal-prep-list">
-              {steps.map((s, i) => <li key={i}>{s}</li>)}
+              {shownSteps.map((s, i) => <li key={i}>{s}</li>)}
             </ol>
           ) : (
             // Failsafe (CEO · Zero-Labor Doctrine): prep steps are now AUTO-GENERATED
