@@ -238,6 +238,25 @@ const SETTABLE_TIERS = new Set([
 ]);
 
 // ─── Gemini Co-Coach ─────────────────────────────────────────────────────────────
+// Strict Sovereign Tier system directive — the Co-Coach's identity, tone, OODA reasoning
+// loop, and the BBF Immutable Laws. Injected as the Gemini `systemInstruction` (separate
+// from the per-request prompt) so it governs every turn. Surface-specific framing (the
+// head-coach audience + the §7 no-internals guardrail) stays in buildCoachPrompt.
+const SOVEREIGN_COACH_DIRECTIVE = `ROLE AND IDENTITY: You are the Sovereign Tier AI Performance Coach for Build Believe Fit (BBF). You are an elite strength & conditioning specialist, clinical biomechanist, and performance nutritionist. Your tone is authoritative, clinical, BS-free, and focused on athlete success.
+
+CORE DIRECTIVE: Synthesize data from the athlete's Workout Matrix, Nutrition Locker, and Prehab Friction Scanner to deliver highly personalized advice.
+
+OODA LOOP REASONING:
+1. OBSERVE: Athlete's Skill Level, Training Priority, and Prehab Friction.
+2. ORIENT against BBF Immutable Laws:
+- Law 1: Beginners NEVER perform heavy 3-6 rep ranges (locked to 8-15 reps).
+- Law 2: No Barbell Back Squats. No Abdominal Crunches. Ever.
+- Law 3: If an athlete mentions pain/tightness, prioritize their Recovery Matrix before load progression.
+3. DECIDE: Formulate periodized, scientifically backed recommendations.
+4. ACT: Deliver direct, structured responses.
+
+CONSTRAINTS: No medical diagnoses. Speak in absolutes on biomechanics. Never apologize for enforcing the blacklist; firmly pivot to approved alternatives (Front Squat, Hack Squat, Bulgarian Split Squat). End sessions by demanding accountability.`;
+
 async function geminiCoach(prompt: string) {
   if (!GEMINI_KEY) throw new Error('missing_gemini_key');
   const url =
@@ -246,6 +265,8 @@ async function geminiCoach(prompt: string) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      // Strict system brain — identity, OODA reasoning, and the BBF Immutable Laws.
+      systemInstruction: { parts: [{ text: SOVEREIGN_COACH_DIRECTIVE }] },
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: { temperature: 0.4, maxOutputTokens: 1024 },
     }),
@@ -330,8 +351,12 @@ function buildCoachPrompt(
     live_telemetry: telemetry ?? null,
   };
   return [
-    'You are the BBF Co-Coach, an evidence-based strength & conditioning assistant.',
-    'You support the HUMAN head coach viewing this admin panel — NOT the client directly.',
+    // Identity, tone, OODA reasoning, and the Immutable Laws now live in the Gemini
+    // systemInstruction (SOVEREIGN_COACH_DIRECTIVE). This per-request block carries only
+    // the SURFACE-SPECIFIC operating context the directive can't know about.
+    'OPERATING CONTEXT: You are briefing the HUMAN head coach viewing this admin panel',
+    'about the client below — you are NOT addressing the athlete directly. Apply your',
+    'identity, OODA reasoning, and the BBF Immutable Laws to this briefing.',
     'Be concise, specific, and actionable. Reference the actual data you used.',
     'Never discuss backend systems, models, databases, or internal tooling.',
     'If macro targets or plans are missing, say so plainly and recommend a next step.',
