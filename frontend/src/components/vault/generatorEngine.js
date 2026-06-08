@@ -236,10 +236,18 @@ const GOAL_RX = {
   fatloss:     { reps: '12-20', rest: '30-45s',  sets: ['2-3', '3', '3-4'] },
   endurance:   { reps: '15-20', rest: '45-60s',  sets: ['2-3', '3', '3-4'] },
 };
+// Lower bound of a "lo-hi" rep range (e.g. '3-6' → 3). Used by the beginner safety clamp.
+const repLow = (reps) => parseInt(String(reps), 10) || 0;
 function prescribe(goal, level) {
   const g = GOAL_RX[goal] || GOAL_RX.hypertrophy;
   const lvl = level === 1 ? 0 : level === 3 ? 2 : 1; // L1→0 · L2→1 · L3→2
-  return { sets: g.sets[lvl], reps: g.reps, rest: g.rest };
+  const rx = { sets: g.sets[lvl], reps: g.reps, rest: g.rest };
+  // SAFETY CLAMP — a true beginner lacks the motor control for heavy low-rep work. If
+  // the goal targets sub-8 reps (Strength/Power), a Level-1 lifter is floored to 8-10
+  // reps @ 90s to prioritize structural adaptation + skill acquisition, regardless of
+  // the (ego-driven) goal selection. The level's set volume from the table is preserved.
+  if (level === 1 && repLow(g.reps) < 8) { rx.reps = '8-10'; rx.rest = '90s'; }
+  return rx;
 }
 
 // Advanced accessory scheme. Isolation work is rarely trained at a heavy low-rep
