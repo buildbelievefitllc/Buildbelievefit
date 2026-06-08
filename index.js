@@ -741,21 +741,59 @@ app.post('/api/auth/ws-ticket', async (req, res) => {
   if (!BBF_WS_TICKET_SECRET) {
     return res.status(503).json({ ok: false, error: 'ticket_secret_missing' });
   }
-  const uid = req.body && typeof req.body.uid === 'string' ? req.body.uid.trim() : '';
-  if (!uid) return res.status(400).json({ ok: false, error: 'missing_uid' });
-  const state = await _ironVaultReadTrialState(uid);
-  if (!state) return res.status(404).json({ ok: false, error: 'user_not_found' });
-  if (!_ironVaultHasAccess(state)) {
-    const reason = (state.trial_expires_at && new Date(state.trial_expires_at).getTime() <= Date.now())
-      ? 'trial_expired'
-      : 'no_access';
-    return res.status(403).json({ ok: false, error: reason });
+  // Billing-grade identity (CEO directive). PREFER the server-revocable
+  // vault_token — resolved to a user_id SERVER-SIDE via _bbf_uid_from_vault_token,
+  // the same authority the edge entitlement-gate uses. A client-supplied uid is
+  // accepted ONLY as the legacy fallback (bbf-app.html never adopted vault_token)
+  // and keeps its pre-existing trust level; it is logged as such.
+  const vaultToken =
+    (req.body && typeof req.body.vault_token === 'string' && req.body.vault_token.trim()) ||
+    (typeof req.headers['x-bbf-vault-token'] === 'string' ? req.headers['x-bbf-vault-token'].trim() : '');
+  const bodyUid = req.body && typeof req.body.uid === 'string' ? req.body.uid.trim() : '';
+
+  let userId = null;
+  let identityPath = 'none';
+  if (vaultToken) {
+    try {
+      const { data, error } = await supabase.rpc('_bbf_uid_from_vault_token', { p_session_token: vaultToken });
+      if (!error && typeof data === 'string' && data) { userId = data; identityPath = 'vault_token'; }
+    } catch (e) { console.warn('[Voice Ticket] vault_token resolve threw:', e && e.message); }
+    if (!userId) return res.status(401).json({ ok: false, error: 'invalid_session' });
+  } else if (bodyUid) {
+    try {
+      const { data, error } = await supabase
+        .from('bbf_users').select('id').eq('uid', bodyUid).is('deleted_at', null).limit(1);
+      if (!error && Array.isArray(data) && data[0] && data[0].id) { userId = data[0].id; identityPath = 'legacy-uid'; }
+    } catch (e) { console.warn('[Voice Ticket] legacy uid resolve threw:', e && e.message); }
+    if (!userId) return res.status(404).json({ ok: false, error: 'user_not_found' });
+  } else {
+    return res.status(401).json({ ok: false, error: 'missing_credential' });
   }
+
+  // Band-aware entitlement + MONTHLY token balance (replaces the stale
+  // sovereign-only gate). Source of truth: bbf_voice_session_precheck.
+  let pre = null;
   try {
-    const { ticket, exp } = mintTicket(uid, BBF_WS_TICKET_SECRET);
-    return res.status(200).json({ ok: true, ticket, exp });
+    const { data, error } = await supabase.rpc('bbf_voice_session_precheck', { p_user_id: userId });
+    if (error) { console.error('[Voice Ticket] precheck error:', error.message || error); return res.status(503).json({ ok: false, error: 'precheck_unavailable' }); }
+    pre = data || null;
   } catch (e) {
-    console.error('[Iron Vault] mintTicket threw:', e && e.message);
+    console.error('[Voice Ticket] precheck threw:', e && e.message);
+    return res.status(503).json({ ok: false, error: 'precheck_unavailable' });
+  }
+  if (!pre || !pre.ok) {
+    const reason = (pre && pre.reason) || 'not_entitled';
+    const status = (reason === 'invalid_session') ? 401 : 403;
+    console.warn('[Voice Ticket] denied · identity=' + identityPath + ' reason=' + reason);
+    return res.status(status).json({ ok: false, error: reason, remaining: pre ? pre.remaining : undefined, ceiling: pre ? pre.ceiling : undefined });
+  }
+
+  try {
+    const { ticket, exp } = mintTicket(pre.uid, BBF_WS_TICKET_SECRET);
+    console.log('[Voice Ticket] minted · identity=' + identityPath + ' uid=' + pre.uid + ' god_mode=' + !!pre.god_mode + ' remaining=' + (pre.remaining == null ? 'inf' : pre.remaining));
+    return res.status(200).json({ ok: true, ticket, exp, remaining: pre.remaining, ceiling: pre.ceiling, god_mode: !!pre.god_mode });
+  } catch (e) {
+    console.error('[Voice Ticket] mintTicket threw:', e && e.message);
     return res.status(500).json({ ok: false, error: 'mint_failed' });
   }
 });
@@ -3458,6 +3496,7 @@ function attachPhantomEyeProxy(server) {
       return;
     }
     console.log('[Phantom Eye] ticket verified · uid=' + v.uid);
+    req._bbfVoiceUid = v.uid; // HMAC-verified identity → ledger commit on teardown
     if (!GEMINI_API_KEY) {
       console.warn('[Phantom Eye] upgrade rejected — GEMINI_API_KEY not set on this instance');
       socket.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
@@ -3479,9 +3518,23 @@ function attachPhantomEyeProxy(server) {
     let geminiWs = null;
     let setupSent = false;
     let firstFrameForwarded = false;
+    const voiceUid = (req && req._bbfVoiceUid) || null; // HMAC-verified ticket uid
+    let usageTotalTokens = 0;   // max cumulative Gemini usageMetadata.totalTokenCount
+    let committed = false;      // guard: commit the ledger delta exactly once
 
     function teardown(reason) {
-      log('teardown:', reason);
+      log('teardown:', reason, '· uid=' + (voiceUid || '(none)') + ' · sessionTokens=' + usageTotalTokens);
+      // Persist the session's token delta to the monthly ledger exactly once
+      // (fire-and-forget). uid is HMAC-verified from the session ticket, so the
+      // charge always lands on the real session owner — never a client claim.
+      if (voiceUid && usageTotalTokens > 0 && !committed) {
+        committed = true;
+        try {
+          supabase.rpc('bbf_voice_session_commit', { p_uid: voiceUid, p_tokens: usageTotalTokens })
+            .then(({ error }) => { if (error) log('ledger commit error:', error.message || error); else log('ledger committed', usageTotalTokens, 'tokens'); })
+            .catch((e) => log('ledger commit threw:', e && e.message));
+        } catch (e) { log('ledger commit dispatch failed:', e && e.message); }
+      }
       try { if (clientWs && clientWs.readyState === WS.OPEN) clientWs.close(1000, reason || 'session-end'); } catch (_) {}
       try { if (geminiWs && geminiWs.readyState === WS.OPEN) geminiWs.close(1000, reason || 'session-end'); } catch (_) {}
     }
@@ -3549,6 +3602,14 @@ function attachPhantomEyeProxy(server) {
               }
               if (sc.turnComplete === true) {
                 try { clientWs.send(JSON.stringify({ type: 'gemini-turn-complete' })); } catch (_) {}
+              }
+            }
+            // Gemini Live reports cumulative session token usage in
+            // usageMetadata.totalTokenCount. Track the max so teardown commits
+            // the true session total exactly once to the monthly ledger.
+            if (parsed && parsed.usageMetadata && typeof parsed.usageMetadata.totalTokenCount === 'number') {
+              if (parsed.usageMetadata.totalTokenCount > usageTotalTokens) {
+                usageTotalTokens = parsed.usageMetadata.totalTokenCount;
               }
             }
           } catch (_) { /* binary frame or non-JSON — no transcript to extract */ }

@@ -1,27 +1,23 @@
 // src/components/vault/VoiceCoachButton.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// AI Voice Coach — the Program tab's audio-coaching trigger (RESTORED to the React
-// engine; the Live Vision camera path stays deprecated). A sleek, brutalist mic
-// button that speaks the session briefing.
+// AI Voice Coach — the Program tab's LIVE voice-to-voice Sovereign Coach trigger.
+// Replaces the prior one-shot TTS briefing with a real-time conversation on the
+// Gemini 2.5 Flash native-audio bridge (/ws/phantom-eye), scope-locked server-side
+// to workout/prehab (PROMPT_VIRTUAL_COACH + the BBF Immutable Laws).
 //
-// VOICE (fallback chain): premium ElevenLabs "Julius" (bbf-tts-eleven) is tried
-// first; on ANY failure — network, config, or the ElevenLabs 401 billing block —
-// it falls back to the device's built-in "stock" voice via window.speechSynthesis
-// (free, no key, no billing — the mechanism the legacy app used). When ElevenLabs
-// billing is restored, Julius returns automatically with no code change.
+// Session lifecycle: idle → connecting → live (hard 5:00 countdown) → complete.
+// The session terminates GRACEFULLY at 0:00, on quota exhaustion (the ticket mint
+// refuses to start when the monthly balance is spent), on an upstream failure, or
+// on a user stop — tearing down the mic + WS + audio every time (no leaks). The
+// server commits the session's token delta to the monthly ledger on its teardown.
 //
-// State machine: idle → loading → playing → idle; errors flash briefly then fall
-// back to idle. Playback is initiated from the click (a user gesture) and the
-// stock voice is warmed up synchronously so iOS/Safari permit the later fallback.
-// A monotonic token guards stale async callbacks; every backend is fully stopped
-// on toggle / unmount (blob URLs revoked, utterances cancelled) — no leaks.
+// Drop-in for the existing mount (<VoiceCoachButton text={coachCue} lang={lang} />):
+// the `text` cue is forwarded to the coach as the session brief.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { requestCoachVoice, decodeAudio, COACH_FEATURE } from '../../lib/voiceCoachApi.js';
-import { speakWithBrowser, browserSpeechSupported, warmUpSpeech } from '../../lib/speechFallback.js';
+import { startVoiceSession } from '../../lib/voiceSession.js';
 
-// Classic line-art mic (Feather "mic"); inherits currentColor so the brand
-// treatment lives entirely in CSS. aria-hidden — the button carries the label.
+// Classic line-art mic (Feather "mic"); inherits currentColor. aria-hidden.
 function MicIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
@@ -34,147 +30,154 @@ function MicIcon() {
   );
 }
 
-const STATUS_RESET_MS = 3500;
+const SESSION_SECONDS = 300;     // hard 5:00 cap
+const RESET_MS = 6000;           // how long the complete / error state lingers
 
-export default function VoiceCoachButton({ feature = COACH_FEATURE, text, lang = 'en', idleLabel = 'Voice Coach' }) {
-  const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'playing' | 'error'
+// Server denial slug → member-facing copy.
+const DENY_COPY = {
+  quota_exhausted: 'Monthly voice minutes used up — resets next cycle.',
+  not_entitled:    'Voice Coach unlocks on the Autonomous tier.',
+  account_locked:  'Account locked — contact support.',
+  invalid_session: 'Session expired — sign in again.',
+  no_session:      'Sign in to start a voice session.',
+  mic_denied:      'Microphone access is required.',
+  ticket_unreachable: 'Coach service unreachable — try again.',
+  upstream_failure:   'Coach connection dropped — try again.',
+};
+
+function fmt(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel = 'Voice Coach' }) {
+  const [status, setStatus] = useState('idle'); // idle | connecting | live | complete | error
   const [errorMsg, setErrorMsg] = useState('');
+  const [remaining, setRemaining] = useState(SESSION_SECONDS);
+  const [budget, setBudget] = useState(null);    // { remaining, ceiling, godMode }
 
-  const playbackRef = useRef(null);   // { stop } for the ACTIVE backend (audio | speech)
-  const abortRef = useRef(null);      // AbortController for the ElevenLabs fetch
-  const resetTimerRef = useRef(null);
+  const sessionRef = useRef(null);  // { stop } for the active session
+  const timerRef = useRef(null);    // 1s countdown interval
+  const resetRef = useRef(null);    // complete/error → idle timeout
+  const remainingRef = useRef(SESSION_SECONDS);
+  const terminalRef = useRef(false); // dedupes the terminal transition
+  const wentLiveRef = useRef(false);
   const mountedRef = useRef(true);
-  const tokenRef = useRef(0);         // bumped on every start/stop; guards stale callbacks
 
-  const hasText = Boolean(String(text ?? '').trim());
-
-  // Stop whatever is playing and invalidate any pending async callbacks.
-  const stopPlayback = useCallback(() => {
-    tokenRef.current += 1;
-    if (abortRef.current) { abortRef.current.abort(); abortRef.current = null; }
-    if (playbackRef.current) { try { playbackRef.current.stop(); } catch { /* noop */ } playbackRef.current = null; }
+  const clearTimers = useCallback(() => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    if (resetRef.current) { clearTimeout(resetRef.current); resetRef.current = null; }
   }, []);
 
-  // Unmount: stop playback, clear the reset timer.
-  useEffect(() => () => {
-    mountedRef.current = false;
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    stopPlayback();
-  }, [stopPlayback]);
+  // Stop the live session (idempotent). Its onState('ended') drives the terminal UI.
+  const endSession = useCallback((reason) => {
+    if (sessionRef.current) { try { sessionRef.current.stop(reason); } catch { /* noop */ } }
+  }, []);
 
-  const flashError = useCallback((msg) => {
+  // Single terminal transition: 'complete' (ran), 'idle' (cancelled pre-live), 'error'.
+  const toTerminal = useCallback((kind, msg) => {
+    if (terminalRef.current) return;
+    terminalRef.current = true;
+    clearTimers();
+    sessionRef.current = null;
     if (!mountedRef.current) return;
-    setStatus('error');
-    setErrorMsg(msg || 'Voice coach unavailable.');
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    resetTimerRef.current = setTimeout(() => {
-      if (mountedRef.current) { setStatus('idle'); setErrorMsg(''); }
-    }, STATUS_RESET_MS);
-  }, []);
-
-  // Fallback path — the device's built-in stock voice. Returns true if it started.
-  const playStockVoice = useCallback(async (token) => {
-    if (!browserSpeechSupported()) return false;
-    try {
-      const ctrl = await speakWithBrowser({
-        text,
-        lang,
-        onEnd: () => {
-          if (token !== tokenRef.current) return;
-          playbackRef.current = null;
-          if (mountedRef.current) setStatus('idle');
-        },
-        onError: () => {
-          if (token !== tokenRef.current) return;
-          playbackRef.current = null;
-          flashError('Voice unavailable.');
-        },
-      });
-      if (!mountedRef.current || token !== tokenRef.current) { ctrl.stop(); return true; }
-      playbackRef.current = ctrl;
-      setStatus('playing');
-      return true;
-    } catch {
-      return false;
+    if (kind === 'error') { setStatus('error'); setErrorMsg(msg || 'Voice Coach unavailable.'); }
+    else if (kind === 'complete') { setStatus('complete'); }
+    else { setStatus('idle'); setRemaining(SESSION_SECONDS); }
+    if (kind === 'error' || kind === 'complete') {
+      resetRef.current = setTimeout(() => {
+        if (!mountedRef.current) return;
+        setStatus('idle'); setRemaining(SESSION_SECONDS); setErrorMsg('');
+      }, RESET_MS);
     }
-  }, [text, lang, flashError]);
+  }, [clearTimers]);
 
-  const handleClick = useCallback(async () => {
-    if (status === 'playing') { stopPlayback(); setStatus('idle'); return; } // toggle off
-    if (status === 'loading') return;                                        // ignore mid-flight
-    if (!hasText) return;
+  useEffect(() => () => { mountedRef.current = false; endSession('unmount'); clearTimers(); }, [endSession, clearTimers]);
 
-    // Unlock the stock voice within THIS gesture so the fallback can speak after
-    // the (async) ElevenLabs attempt — required by iOS, harmless elsewhere.
-    warmUpSpeech();
+  const handleClick = useCallback(() => {
+    if (status === 'live' || status === 'connecting') { endSession('user-stop'); return; }
+    if (status === 'complete' || status === 'error') return; // wait out the reset
 
-    stopPlayback();
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    setErrorMsg('');
-    setStatus('loading');
+    terminalRef.current = false;
+    wentLiveRef.current = false;
+    remainingRef.current = SESSION_SECONDS;
+    setErrorMsg(''); setBudget(null); setRemaining(SESSION_SECONDS);
+    setStatus('connecting');
 
-    const token = tokenRef.current; // unique to this run (stopPlayback just bumped it)
-    const controller = new AbortController();
-    abortRef.current = controller;
+    sessionRef.current = startVoiceSession({
+      payload: { ...(payload || {}), lang, session_brief: String(text ?? '').trim() || undefined },
+      onState: (s, meta) => {
+        if (!mountedRef.current) return;
+        if (meta && (meta.remaining !== undefined || meta.godMode)) {
+          setBudget({ remaining: meta.remaining, ceiling: meta.ceiling, godMode: !!meta.godMode });
+        }
+        if (s === 'live') {
+          wentLiveRef.current = true;
+          setStatus('live');
+          clearTimers();
+          timerRef.current = setInterval(() => {
+            const next = remainingRef.current - 1;
+            if (next <= 0) {
+              remainingRef.current = 0;
+              setRemaining(0);
+              endSession('time-cap'); // → onState('ended') → toTerminal('complete')
+            } else {
+              remainingRef.current = next;
+              setRemaining(next);
+            }
+          }, 1000);
+        } else if (s === 'ended') {
+          toTerminal(wentLiveRef.current ? 'complete' : 'idle');
+        }
+      },
+      onError: (code) => { toTerminal('error', DENY_COPY[code]); },
+    });
+  }, [status, payload, lang, text, endSession, toTerminal, clearTimers]);
 
-    // 1 — Premium path: ElevenLabs "Julius".
-    try {
-      const { audioBase64, mime } = await requestCoachVoice({ feature, text, signal: controller.signal });
-      if (!mountedRef.current || token !== tokenRef.current) return; // superseded / stopped
-
-      const { url, revoke } = decodeAudio(audioBase64, mime);
-      const audio = new Audio(url);
-      const stop = () => {
-        audio.onended = null; audio.onerror = null;
-        try { audio.pause(); } catch { /* noop */ }
-        audio.src = ''; revoke();
-      };
-      audio.onended = () => { if (token !== tokenRef.current) return; stop(); playbackRef.current = null; if (mountedRef.current) setStatus('idle'); };
-      audio.onerror = () => { if (token !== tokenRef.current) return; stop(); playbackRef.current = null; flashError('Audio playback failed.'); };
-
-      await audio.play();
-      if (!mountedRef.current || token !== tokenRef.current) { stop(); return; }
-      playbackRef.current = { stop };
-      setStatus('playing');
-      return;
-    } catch (err) {
-      if (err?.name === 'AbortError') return;
-      // ElevenLabs unavailable (401 billing / network / config) → fall through to stock voice.
-    }
-
-    // 2 — Fallback: device stock voice (free, no billing).
-    if (!mountedRef.current || token !== tokenRef.current) return;
-    const spoke = await playStockVoice(token);
-    if (!spoke && mountedRef.current && token === tokenRef.current) {
-      flashError('No voice available on this device.');
-    }
-  }, [status, hasText, feature, text, stopPlayback, flashError, playStockVoice]);
-
-  const loading = status === 'loading';
-  const playing = status === 'playing';
+  const connecting = status === 'connecting';
+  const live = status === 'live';
+  const complete = status === 'complete';
   const errored = status === 'error';
 
-  const label = errored ? errorMsg : loading ? 'Synthesizing…' : playing ? 'Stop' : idleLabel;
+  const label = errored ? errorMsg
+    : connecting ? 'Connecting…'
+    : live ? `Live · ${fmt(remaining)}`
+    : complete ? 'Session Complete — Focus on your Next Set'
+    : idleLabel;
 
   const cls = ['bbf-voice'];
-  if (loading) cls.push('is-loading');
-  if (playing) cls.push('is-playing');
+  if (connecting) cls.push('is-loading', 'is-connecting');
+  if (live) cls.push('is-playing', 'is-live');
+  if (complete) cls.push('is-complete');
   if (errored) cls.push('is-error');
+
+  const budgetTitle = budget
+    ? (budget.godMode ? 'Unmetered (God Mode)' : (budget.remaining != null ? `${budget.remaining.toLocaleString()} tokens left this month` : ''))
+    : '';
+  const title = live ? `Stop session — ${fmt(remaining)} left`
+    : connecting ? 'Connecting to the live coach…'
+    : complete ? 'Session complete'
+    : `Start a live voice coaching session${budgetTitle ? ` · ${budgetTitle}` : ''}`;
 
   return (
     <button
       type="button"
       className={cls.join(' ')}
       onClick={handleClick}
-      disabled={!hasText && !playing}
-      aria-busy={loading}
-      title={hasText ? 'AI Voice Coach — audio session briefing' : 'No briefing available yet'}
-      aria-label={playing ? 'Stop voice coach' : 'Play AI voice coach briefing'}
+      disabled={complete || errored}
+      aria-busy={connecting}
+      title={title}
+      aria-label={
+        live || connecting ? 'Stop live voice coaching session'
+          : complete ? 'Session complete'
+          : 'Start live voice coaching session'
+      }
     >
       <span className="bbf-voice-icon" aria-hidden="true">
-        {loading ? (
+        {connecting ? (
           <span className="bbf-voice-dot" />
-        ) : playing ? (
+        ) : live ? (
           <span className="bbf-voice-eq"><span /><span /><span /><span /></span>
         ) : (
           <MicIcon />
