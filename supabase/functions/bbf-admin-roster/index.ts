@@ -413,16 +413,23 @@ serve(async (req) => {
       const urows = await pgGet(
         `bbf_users?select=id,uid,name,email,role,metabolic_tier,subscription_tier,` +
         `dietary_profile,allergens,food_likes,food_dislikes,tdee_target,macro_p,macro_c,macro_f,` +
-        `block_priority,baseline_status,cardiac_clearance,nutrition_plan,nutrition_plan_updated_at,` +
+        `block_priority,baseline_status,cardiac_clearance,workout_plan,plans_generated_at,` +
+        `nutrition_plan,nutrition_plan_updated_at,` +
         `current_streak,updated_at&id=eq.${encodeURIComponent(id)}&limit=1`,
       );
       const u = Array.isArray(urows) && urows.length ? urows[0] : null;
       if (!u) return jsonResponse({ error: 'not_found' }, 404);
 
-      // Workout plan + meal plan live in bbf_active_clients, matched by email.
-      let workout_plan: unknown = null;
+      // Workout plan is sourced PRIMARILY from bbf_users — the login plan source of
+      // truth that assign_workout / compile write to (see assign_workout: "PRIMARY
+      // write — bbf_users"). bbf_active_clients (matched by email) is a best-effort
+      // MIRROR and the source for meal_plan; we fall back to it ONLY when the user row
+      // carries no plan. This fixes the Client Hub showing "No active training plan on
+      // file" for clients with no email (the active_clients join could never match
+      // them, so an email-less roster's assigned plan was invisible to the coach).
+      let workout_plan: unknown = u.workout_plan ?? null;
       let meal_plan: unknown = null;
-      let plans_generated_at: unknown = null;
+      let plans_generated_at: unknown = u.plans_generated_at ?? null;
       if (u.email) {
         const e = encEmail(u.email);
         const ac = await pgGet(
@@ -430,9 +437,9 @@ serve(async (req) => {
           `or=(vault_email.eq.${e},client_email.eq.${e})&limit=1`,
         );
         if (Array.isArray(ac) && ac.length) {
-          workout_plan = ac[0].workout_plan ?? null;
+          if (workout_plan == null) workout_plan = ac[0].workout_plan ?? null;
           meal_plan = ac[0].meal_plan ?? null;
-          plans_generated_at = ac[0].plans_generated_at ?? null;
+          if (plans_generated_at == null) plans_generated_at = ac[0].plans_generated_at ?? null;
         }
       }
 
