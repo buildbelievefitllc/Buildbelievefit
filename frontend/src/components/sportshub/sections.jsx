@@ -11,6 +11,7 @@
 import { progressToward } from './hubData.js';
 import { resolveAthleticVideo } from './sportsVideos.js';
 import VideoSlot from '../common/VideoSlot.jsx';
+import TelemetryLog from './TelemetryLog.jsx';
 
 // Educational video per measurable. Each id/title/caption is a localized
 // { en, es, pt } map (Priority Delta); VideoSlot reads the global language and
@@ -234,6 +235,11 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
                   <span className="sh-ex-scheme" data-testid={`sh-ex-scheme-${i}`}>{phase === 'inseason' ? e.in : e.off}</span>
                 </button>
                 {vid ? <VideoSlot videoId={vid} title={e.name} caption={phase === 'inseason' ? e.in : e.off} /> : null}
+                {/* Telemetry logbook — logging a set also marks the row done (existing persistence). */}
+                <TelemetryLog
+                  logKey={`ex:${day.label}:${e.name}`}
+                  onLogged={() => { if (!e.done) onToggleExercise(i); }}
+                />
               </div>
             );
           })}
@@ -265,6 +271,11 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
                     </div>
                     <div className="sh-drill-desc">{d.detail}</div>
                     {vid ? <VideoSlot videoId={vid} title={d.name} caption={d.detail} /> : null}
+                    {/* Telemetry logbook — weight optional for drills (blank = BW). */}
+                    <TelemetryLog
+                      logKey={`dr:${day.label}:${d.name}`}
+                      onLogged={() => { if (!d.done) onToggleDrill(i); }}
+                    />
                   </div>
                 </div>
               );

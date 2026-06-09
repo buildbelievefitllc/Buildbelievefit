@@ -1,0 +1,61 @@
+/* src/components/sportshub/telemetryLog.css
+   Athlete telemetry logbook strip — weight / RPE / Log Set under each movement.
+   LOCKED palette (BBF Purple #6a0dad, BBF Gold #f5c800, matte-black canvas) using
+   the GLOBAL :root tokens (index.css) so it renders identically anywhere in the hub. */
+
+.sh-tlog {
+  display: flex; align-items: flex-end; gap: .8rem; flex-wrap: wrap;
+  margin-top: .55rem; padding: .55rem .75rem;
+  background: rgba(9, 9, 9, .55);
+  border: 1px solid rgba(106, 13, 173, .4);
+  border-radius: 10px;
+}
+.sh-tlog.is-logged {
+  align-items: center;
+  border-color: rgba(34, 197, 94, .4);
+  background: rgba(34, 197, 94, .07);
+}
+
+.sh-tlog-cell { display: flex; flex-direction: column; gap: .3rem; }
+.sh-tlog-rpe { flex: 1 1 150px; min-width: 130px; }
+
+.sh-tlog-l {
+  font-family: var(--hb); font-size: .56rem; letter-spacing: 1.8px;
+  text-transform: uppercase; color: var(--gold-deep);
+}
+.sh-tlog-l b { font-family: var(--display); font-size: .95rem; letter-spacing: .5px; margin-left: .3rem; }
+.sh-tlog-l b.is-ok { color: var(--grn); }
+.sh-tlog-l b.is-hot { color: var(--gold-soft); }
+.sh-tlog-l b.is-max { color: #ef4444; }
+.sh-tlog-cap { font-family: var(--bd); font-weight: 700; color: var(--mut); }
+
+.sh-tlog-wbox { display: flex; align-items: baseline; gap: .35rem; }
+.sh-tlog-win {
+  width: 76px; background: #050505; border: 1px solid rgba(106, 13, 173, .5);
+  border-radius: 8px; color: var(--wht); font-family: var(--display);
+  font-size: 1.05rem; padding: .3rem .5rem; outline: none;
+}
+.sh-tlog-win:focus-visible { border-color: var(--yel); }
+.sh-tlog-unit { font-family: var(--bd); font-size: .7rem; font-weight: 700; color: var(--mut); }
+
+.sh-tlog-range { width: 100%; accent-color: var(--yel); margin: .4rem 0 .2rem; }
+
+.sh-tlog-btn {
+  font-family: var(--hb); font-size: .7rem; letter-spacing: 2px; text-transform: uppercase;
+  color: #090909; background: var(--yel); border: 1px solid var(--yel); border-radius: 8px;
+  padding: .5rem .95rem; cursor: pointer; white-space: nowrap;
+}
+.sh-tlog-btn:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
+.sh-tlog-check {
+  width: 22px; height: 22px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 7px; background: var(--grn); color: #04130a; font-size: .8rem;
+}
+.sh-tlog-summary { flex: 1 1 auto; font-family: var(--bd); font-size: .85rem; font-weight: 600; color: var(--wht); }
+.sh-tlog-summary b { color: var(--gold-soft); font-weight: 700; }
+.sh-tlog-edit {
+  font-family: var(--hb); font-size: .6rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold-soft); background: none; border: 1px solid rgba(245, 200, 0, .4);
+  border-radius: 7px; padding: .3rem .6rem; cursor: pointer; white-space: nowrap;
+}

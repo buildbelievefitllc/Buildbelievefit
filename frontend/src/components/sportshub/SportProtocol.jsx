@@ -15,6 +15,7 @@
 import './sportProtocol.css';
 import VideoSlot from '../common/VideoSlot.jsx';
 import { resolveAthleticVideo } from './sportsVideos.js';
+import TelemetryLog from './TelemetryLog.jsx';
 
 // Per-item prescription fields → chip label. Only present fields render.
 const META_KEYS = [
@@ -155,6 +156,8 @@ export default function SportProtocol({ protocol }) {
                     ) : null}
                     {item.detail ? <p className="sh-proto-item-detail">{item.detail}</p> : null}
                     {vid ? <VideoSlot videoId={vid} title={item.name} caption={item.meta[0]} /> : null}
+                    {/* Telemetry logbook on real movements only (meta-gated — skips prose rows). */}
+                    {item.meta.length ? <TelemetryLog logKey={`sp:${block.title}:${item.name}`} /> : null}
                   </li>
                 );
               })}
