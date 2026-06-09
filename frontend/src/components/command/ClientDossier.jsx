@@ -32,6 +32,7 @@ import { numOrNull, GOLD, GRN, PURL, GOLD_SOFT } from './chartUtils.js';
 import { buildSportsProtocol, normalizeSportKey } from '../../lib/sportsEngine.js';
 import { buildMealPlan } from '../../lib/nutritionEngine.js';
 import { getSportsProtocol, setSportsProtocol, setMealPlan } from '../../lib/protocolOverrideApi.js';
+import SovereignAthlete from './SovereignAthlete.jsx';
 import './analytics.css';
 
 export default function ClientDossier({ client, onBack }) {
@@ -138,8 +139,8 @@ export default function ClientDossier({ client, onBack }) {
     <div>
       <button type="button" style={styles.back} onClick={onBack}>← Back to Roster</button>
 
-      {/* ── Athlete card — identity strip + macros; gains a Sport/Phase deck for athletes ── */}
-      <AthleteCard c={c} proto={proto} />
+      {/* Athlete → Sovereign Tier dossier (prototype layout); else the standard identity card. */}
+      {isAthlete ? <SovereignAthlete c={c} proto={proto} /> : <AthleteCard c={c} proto={proto} />}
 
       {isLoading && !data ? <Loading label="Loading dossier…" /> : null}
 
@@ -155,18 +156,26 @@ export default function ClientDossier({ client, onBack }) {
       ) : null}
 
       {data ? (
-        <DossierBody
-          c={data}
-          clientId={client.id}
-          clientUid={data.uid || client.uid}
-          onPatched={applyTargetPatch}
-          analytics={{ data: analytics, loading: anLoading, error: anError, onRetry: fetchAnalyticsData }}
-          isAthlete={isAthlete}
-          proto={proto}
-          protoLoading={protoLoading}
-          protoError={protoError}
-          onProtoReload={reloadProto}
-        />
+        <>
+          {isAthlete ? (
+            <div style={styles.opsDivider}>
+              <span style={styles.opsKicker}>Operational Decks · Live Controls</span>
+              <span style={styles.opsHint}>Manual Override (Referee) · plans · analytics · feed</span>
+            </div>
+          ) : null}
+          <DossierBody
+            c={data}
+            clientId={client.id}
+            clientUid={data.uid || client.uid}
+            onPatched={applyTargetPatch}
+            analytics={{ data: analytics, loading: anLoading, error: anError, onRetry: fetchAnalyticsData }}
+            isAthlete={isAthlete}
+            proto={proto}
+            protoLoading={protoLoading}
+            protoError={protoError}
+            onProtoReload={reloadProto}
+          />
+        </>
       ) : null}
     </div>
   );
@@ -1155,6 +1164,11 @@ const styles = {
   tabActive: { color: 'var(--wht)', borderBottomColor: 'var(--yel)' },
   tabAthlete: { color: 'var(--gold-soft)' }, // leads the athlete deck — gold even when inactive
   tabIcon: { fontSize: '.9rem' },
+
+  // Divider before the operational decks on the Sovereign athlete view.
+  opsDivider: { display: 'flex', flexDirection: 'column', gap: '.15rem', borderTop: '1px solid var(--line)', paddingTop: '1rem', marginBottom: '.4rem' },
+  opsKicker: { fontFamily: 'var(--hb)', fontSize: '.7rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: 'var(--gold-soft)' },
+  opsHint: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 600, color: 'var(--mut)' },
 
   section: { borderTop: '1px solid var(--line)', paddingTop: '1.1rem' },
   sectionHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.9rem', gap: '1rem' },
