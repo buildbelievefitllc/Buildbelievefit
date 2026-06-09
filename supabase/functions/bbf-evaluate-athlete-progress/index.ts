@@ -20,7 +20,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
-import { buildSportsProtocol } from '../_shared/sports-engine.ts';
+import { buildSportsProtocol } from './sports-engine.ts';
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -56,11 +56,16 @@ serve(async (req) => {
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const SECRET = Deno.env.get('EVALUATOR_WEBHOOK_SECRET');
   if (!SUPABASE_URL || !SERVICE_KEY) return jsonResponse({ ok: false, error: 'config_missing' }, 503);
-  if (!SECRET) return jsonResponse({ ok: false, error: 'config_missing_secret' }, 503);
 
-  // Auth: the DB tripwire is the only legitimate caller.
+  // SUPABASE_URL / SERVICE_ROLE_KEY are auto-injected into every edge function. The
+  // shared secret lives in a locked DB config table (bbf_app_config) — the deploy
+  // toolset cannot set function env vars, so BOTH this function and the DB tripwire
+  // read the secret from the DB. The trigger sends it as X-BBF-Evaluator-Secret.
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data: cfg } = await supabase.from('bbf_app_config').select('value').eq('key', 'evaluator_secret').maybeSingle();
+  const SECRET = (cfg?.value as string) || '';
+  if (!SECRET) return jsonResponse({ ok: false, error: 'config_missing_secret' }, 503);
   if (req.headers.get('x-bbf-evaluator-secret') !== SECRET) return jsonResponse({ ok: false, error: 'unauthorized' }, 401);
 
   let payload: Record<string, unknown>;
@@ -76,8 +81,6 @@ serve(async (req) => {
     friction_avg_last_3: num(payload.friction_avg_last_3),
     guardian_consent: payload.guardian_consent === true,
   };
-
-  const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 
   // Resolve the athlete: progression.user_id → bbf_users.email → bbf_active_clients.vault_email.
   const { data: userRow, error: userErr } = await supabase
