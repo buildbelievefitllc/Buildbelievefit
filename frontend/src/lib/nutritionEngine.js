@@ -34,7 +34,7 @@ function pickMeal(pool, type) {
   return pool.find((m) => String(m.meal_type || '').toLowerCase() === type) || null;
 }
 
-export function buildMealPlan({ tdee, dietary_profile = 'Omnivore', is_fasting = false } = {}) {
+export function buildMealPlan({ tdee, dietary_profile = 'Omnivore', fasting_window = 'none' } = {}) {
   const target = num(tdee);
   if (target <= 0 || !Array.isArray(MEALS) || !MEALS.length) return null;
 
@@ -48,9 +48,11 @@ export function buildMealPlan({ tdee, dietary_profile = 'Omnivore', is_fasting =
   let dinner = clone(pickMeal(pool, 'dinner'));
   if (!lunch || !dinner) return null; // need at least Lunch + Dinner to build a plan
 
-  // ── 16/8 Fasting Protocol — drop Breakfast, distribute its calories + macros
-  //    EVENLY into Lunch and Dinner before scaling. ──────────────────────────────
-  if (is_fasting && breakfast) {
+  // ── Fasting protocol. 16/8 → DROP Breakfast and distribute its calories + macros
+  //    EVENLY into Lunch + Dinner. 12/12 & 14/10 are time-restricted feeding windows
+  //    that KEEP all three meals (only the eating window narrows) — no meal dropped.
+  //    'none' → all three meals, scaled. (Youth are locked to 'none' upstream.) ─────
+  if (fasting_window === '16/8' && breakfast) {
     const half = (v) => num(v) / 2;
     [lunch, dinner].forEach((m) => {
       m.calories = num(m.calories) + half(breakfast.calories);
@@ -96,11 +98,11 @@ export function buildMealPlan({ tdee, dietary_profile = 'Omnivore', is_fasting =
   return {
     engine: 'bbf-native-nutrition-engine',
     generated_at: new Date().toISOString(),
-    goal: `Native ${dietary_profile} Plan${is_fasting ? ' · 16:8 Fast' : ''}`,
+    goal: `Native ${dietary_profile} Plan${fasting_window && fasting_window !== 'none' ? ` · ${fasting_window} Window` : ''}`,
     cal: target,
     calorie_target: target,
     dietary_profile,
-    fasting_window: is_fasting ? '16:8' : null,
+    fasting_window: fasting_window || 'none',
     scaling_multiplier: Math.round(multiplier * 1000) / 1000,
     days,
   };

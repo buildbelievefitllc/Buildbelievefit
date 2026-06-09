@@ -57,6 +57,15 @@ const DIET_OPTIONS = [
   ['Vegetarian', 'Vegetarian'],
   ['Vegan', 'Vegan'],
 ];
+// Fasting window — replaces the binary 16/8 toggle. 16/8 drops breakfast; 12/12 &
+// 14/10 are time-restricted windows that KEEP all three meals. Locked to 'none' for youth.
+const FASTING_OPTIONS = [
+  ['none', 'None'],
+  ['12/12', '12 / 12'],
+  ['14/10', '14 / 10'],
+  ['16/8', '16 / 8 (skip breakfast)'],
+];
+const YOUTH_MAX_AGE = 18; // minors → fasting locked off (continuous nutrient delivery · CNS)
 // Standard PAR-Q items (7). Stored as a flags map keyed by these ids.
 const PARQ_KEYS = ['f-parq1', 'f-parq2', 'f-parq3', 'f-parq4', 'f-parq5', 'f-parq6', 'f-parq7'];
 
@@ -143,7 +152,7 @@ export default function PathfinderForm() {
   const [form, setForm] = useState({
     fullName: '', email: '', phone: '', goal: '', experience: '',
     age: '', sex: 'male', weight: '', heightFt: '', heightIn: '', // biometrics → native TDEE
-    sport: 'none', dietaryProfile: 'Omnivore', isFasting: false, // athlete + nutrition engines
+    sport: 'none', dietaryProfile: 'Omnivore', fastingWindow: 'none', // athlete + nutrition engines
     injuries: '', medicalConditions: '', medications: '',
     parq: {}, // { 'f-parq1': true, ... } — standard PAR-Q flags
     marketingConsent: false,
@@ -155,6 +164,19 @@ export default function PathfinderForm() {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const toggleParq = (key, on) => setForm((f) => ({ ...f, parq: { ...f.parq, [key]: on } }));
+
+  // Youth lockout — a minor is NEVER placed on a fasting protocol (continuous nutrient
+  // delivery for CNS development). `isYouth` drives the disabled selector + the submit
+  // override; setting age to a minor value also forces the window off in the SAME state
+  // update (event-driven — avoids the set-state-in-effect anti-pattern).
+  const ageNum = parseInt(form.age, 10) || 0;
+  const isYouth = ageNum >= 13 && ageNum < YOUTH_MAX_AGE;
+  const onAgeChange = (v) => setForm((f) => {
+    const a = parseInt(v, 10) || 0;
+    const next = { ...f, age: v };
+    if (a >= 13 && a < YOUTH_MAX_AGE) next.fastingWindow = 'none';
+    return next;
+  });
 
   function validate() {
     const e = {};
@@ -199,7 +221,9 @@ export default function PathfinderForm() {
       const nutrition = computeNutrition(form);
       // Native Nutrition Engine (DB-driven · dietary-filtered · 16/8-aware) is the
       // PRIMARY meal_plan source; the cuisine-catalog scaler is the fallback.
-      const meal_plan = buildMealPlan({ tdee: nutrition.tdee_target, dietary_profile: form.dietaryProfile, is_fasting: form.isFasting })
+      // Youth lock re-enforced at submit (belt + suspenders), regardless of UI state.
+      const fasting_window = isYouth ? 'none' : form.fastingWindow;
+      const meal_plan = buildMealPlan({ tdee: nutrition.tdee_target, dietary_profile: form.dietaryProfile, fasting_window })
         || buildScaledMealPlan(form, nutrition.tdee_target);
       const sports_protocol = buildIntakeSportsProtocol(form);
       const height_weight = `${parseInt(form.heightFt, 10) || 0}'${parseInt(form.heightIn, 10) || 0}" / ${parseFloat(form.weight) || 0} lbs`;
@@ -230,7 +254,8 @@ export default function PathfinderForm() {
           macro_c: nutrition.macro_c,
           macro_f: nutrition.macro_f,
           dietary_profile: form.dietaryProfile,
-          is_fasting: form.isFasting,
+          fasting_window,
+          is_fasting: fasting_window === '16/8',
           ...(workout_plan ? { workout_plan } : {}),
           ...(meal_plan ? { meal_plan } : {}),
           // Native sports protocol for youth/collegiate performance athletes →
@@ -305,16 +330,24 @@ export default function PathfinderForm() {
           </select>
         </Field>
       </div>
-      <CheckRow id="pf-fasting" checked={form.isFasting} disabled={submitting}
-        onChange={(v) => set('isFasting', v)}
-        label="Intermittent fasting (16/8) — skip breakfast; redistribute its macros into lunch & dinner" />
+      <Field id="pf-fasting" label="Fasting Window" error={null}>
+        <select id="pf-fasting" className="bbf-input"
+          value={isYouth ? 'none' : form.fastingWindow}
+          disabled={submitting || isYouth}
+          onChange={(e) => set('fastingWindow', e.target.value)}>
+          {FASTING_OPTIONS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+        </select>
+        {isYouth ? (
+          <div style={styles.parqNote}>Youth athletes train on continuous nutrient delivery — fasting is disabled for healthy CNS development.</div>
+        ) : null}
+      </Field>
 
       {/* ── BIOMETRICS — power the native Mifflin-St Jeor TDEE + portion scaler ── */}
       <div style={styles.bioRow}>
         <Field id="pf-age" label={t('tdee-age')} error={fieldErrors.age}>
           <input id="pf-age" className="bbf-input" type="number" inputMode="numeric" min="13" max="100"
             placeholder={t('tdee-age')} value={form.age} disabled={submitting}
-            onChange={(e) => set('age', e.target.value)} />
+            onChange={(e) => onAgeChange(e.target.value)} />
         </Field>
         <Field id="pf-sex" label={t('tdee-sex')} error={null}>
           <select id="pf-sex" className="bbf-input" value={form.sex} disabled={submitting}
