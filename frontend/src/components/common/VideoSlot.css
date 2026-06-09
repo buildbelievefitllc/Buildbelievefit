@@ -1,0 +1,76 @@
+/* src/components/common/VideoSlot.css
+   Shared video-embed slot — 16:9, brand-framed, tap-to-play. On the LOCKED palette
+   (purple #6a0dad / gold #f5c800). Self-contained so any tab can drop one in. */
+
+.bbf-vslot {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(106, 13, 173, 0.4);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0d0716;
+  padding: 0;
+}
+.bbf-vslot--thumb { cursor: pointer; }
+.bbf-vslot--thumb:focus-visible { outline: 2px solid #f5c800; outline-offset: 2px; }
+
+.bbf-vslot-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.82;
+  transition: opacity 0.18s ease;
+}
+.bbf-vslot--thumb:hover .bbf-vslot-thumb { opacity: 1; }
+
+.bbf-vslot-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(106, 13, 173, 0.85);
+  border: 2px solid #f5c800;
+  color: #fff;
+  font-size: 1.1rem;
+  padding-left: 3px;
+  box-shadow: 0 0 18px rgba(106, 13, 173, 0.6);
+}
+
+.bbf-vslot-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 10px;
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: 0.66rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #f5c800;
+  background: linear-gradient(0deg, rgba(9, 9, 9, 0.9), transparent);
+  text-align: left;
+}
+
+.bbf-vslot.is-empty {
+  display: flex;
+  align-items: flex-end;
+  background: repeating-linear-gradient(45deg, #0d0716, #0d0716 10px, #120a1f 10px, #120a1f 20px);
+}
+
+.bbf-vslot-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}

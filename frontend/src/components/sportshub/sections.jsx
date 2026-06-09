@@ -9,6 +9,16 @@
 // click. Styling stays in the `.sh-*` namespace (LOCKED-brand varsity register).
 
 import { progressToward } from './hubData.js';
+import VideoSlot from '../common/VideoSlot.jsx';
+
+// Educational video per measurable. Interim ids are verified clips reused from the
+// authorized exercise VIDEO_MAP (so embeds always render) — swap for dedicated
+// educational footage when filmed. A null id → VideoSlot shows a clean empty slot.
+const METRIC_VIDEOS = {
+  velocity: { id: '_DLIS8SySzs', caption: 'Max Velocity · acceleration mechanics' },
+  power:    { id: 'S_uZP4UH6J0', caption: 'Explosive Power · triple extension' },
+  force:    { id: 'GxsLrTzyGUU', caption: 'Max Force · maximal strength' },
+};
 
 const STATUS_META = {
   assigned: { label: 'Assigned', cls: 'is-assigned' },
@@ -75,6 +85,7 @@ export function CombineMetrics({ combine, onMetricChange }) {
         ))}
       </div>
       <p className="sh-hint">Edit a mark to recompute attainment against the collegiate OL threshold in real time.</p>
+      <VideoSlot videoId={METRIC_VIDEOS.velocity.id} title="Max Velocity" caption={METRIC_VIDEOS.velocity.caption} />
     </SectionCard>
   );
 }
@@ -115,6 +126,7 @@ export function ExplosivePower({ power, onPowerChange }) {
         ))}
       </div>
       <p className="sh-hint">Power Index = mean attainment of peak &amp; CMJ power vs target — recomputed as you log force-plate numbers.</p>
+      <VideoSlot videoId={METRIC_VIDEOS.power.id} title="Explosive Power" caption={METRIC_VIDEOS.power.caption} />
     </SectionCard>
   );
 }
@@ -160,6 +172,7 @@ export function SizeMass({ size, onSizeChange }) {
           <span className="sh-combine-target">Collegiate OL ≈ {size.weightTarget} lbs</span>
         </div>
       </div>
+      <VideoSlot videoId={METRIC_VIDEOS.force.id} title="Max Force" caption={METRIC_VIDEOS.force.caption} />
     </SectionCard>
   );
 }

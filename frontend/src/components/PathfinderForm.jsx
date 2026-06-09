@@ -20,6 +20,7 @@ import { submitLead } from '../lib/leadApi.js';
 import { generateProgram, toAssignedPlan } from './vault/generatorEngine.js';
 import { CUISINE_PLANS } from './vault/cuisineMeals.js';
 import { calcTDEE, calcMacros, scaleMealPlan } from './vault/nutritionEngine.js';
+import { buildSportsProtocol } from '../lib/sportsEngine.js';
 import { useTurnstile } from '../lib/useTurnstile.js';
 import { useLang } from '../context/LangContext.jsx';
 
@@ -104,6 +105,21 @@ function buildScaledMealPlan(form, target) {
   }
 }
 
+// 4 · SPORTS — NATIVE general athletic-development protocol, generated only for
+// youth/collegiate PERFORMANCE athletes. The public intake has no sport field, so
+// this stages a sport-agnostic base (speed/agility/power/strength/conditioning)
+// the athlete refines in the Athlete Portal; a coach can later override it. ZERO AI.
+const YOUTH_COLLEGIATE_MAX_AGE = 25;
+function buildIntakeSportsProtocol(form) {
+  const age = parseInt(form.age, 10) || 0;
+  if (form.goal !== 'performance' || age < 13 || age > YOUTH_COLLEGIATE_MAX_AGE) return null;
+  try {
+    return buildSportsProtocol({ age, experience: form.experience, goal: form.goal });
+  } catch {
+    return null; // a generation hiccup must never block the intake
+  }
+}
+
 export default function PathfinderForm() {
   const { t, lang } = useLang();
   const { containerRef, obtainToken, error: tsError } = useTurnstile(TURNSTILE_SITE_KEY);
@@ -165,6 +181,7 @@ export default function PathfinderForm() {
       const workout_plan = buildIntakeWorkoutPlan(form);
       const nutrition = computeNutrition(form);
       const meal_plan = buildScaledMealPlan(form, nutrition.tdee_target);
+      const sports_protocol = buildIntakeSportsProtocol(form);
       const height_weight = `${parseInt(form.heightFt, 10) || 0}'${parseInt(form.heightIn, 10) || 0}" / ${parseFloat(form.weight) || 0} lbs`;
       // Data contract preserved — all shield fields ride in the lead payload.
       await submitLead(
@@ -194,6 +211,9 @@ export default function PathfinderForm() {
           macro_f: nutrition.macro_f,
           ...(workout_plan ? { workout_plan } : {}),
           ...(meal_plan ? { meal_plan } : {}),
+          // Native sports protocol for youth/collegiate performance athletes →
+          // staged into bbf_active_clients.sports_protocol by bbf-lead-capture.
+          ...(sports_protocol ? { sports_protocol } : {}),
         },
         token,
         lang,

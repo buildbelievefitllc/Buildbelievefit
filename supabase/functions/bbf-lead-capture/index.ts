@@ -167,6 +167,7 @@ async function stageActiveClient(supabase, { email, fullName, phone, tier, paylo
 
   const workoutPlan = toJsonText(p.workout_plan ?? p.workoutPlan ?? null);
   const mealPlan    = toJsonText(p.meal_plan ?? p.mealPlan ?? null);
+  const sportsProtocol = toJsonText(p.sports_protocol ?? p.sportsProtocol ?? null);
   const plansStaged = !!(workoutPlan || mealPlan);
 
   const clinicalBits = [
@@ -196,6 +197,7 @@ async function stageActiveClient(supabase, { email, fullName, phone, tier, paylo
   if (toInt(p.macro_f) !== null) patch.macro_f = toInt(p.macro_f);
   if (workoutPlan) patch.workout_plan = workoutPlan;
   if (mealPlan) patch.meal_plan = mealPlan;
+  if (sportsProtocol) patch.sports_protocol = sportsProtocol;
   if (plansStaged) patch.plans_generated_at = new Date().toISOString();
 
   const { data: existing, error: selErr } = await supabase
