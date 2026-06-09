@@ -1,0 +1,11 @@
+[
+  { "id": 1, "name": "SAMPLE — Egg & Turkey Scramble", "meal_type": "Breakfast", "dietary_profile": "Omnivore", "serving_g": 320, "calories": 480, "protein_g": 42, "carbs_g": 28, "fat_g": 22, "verified": false },
+  { "id": 2, "name": "SAMPLE — Grilled Chicken, Rice & Greens", "meal_type": "Lunch", "dietary_profile": "Omnivore", "serving_g": 450, "calories": 620, "protein_g": 52, "carbs_g": 58, "fat_g": 18, "verified": false },
+  { "id": 3, "name": "SAMPLE — Salmon, Sweet Potato & Asparagus", "meal_type": "Dinner", "dietary_profile": "Omnivore", "serving_g": 430, "calories": 640, "protein_g": 46, "carbs_g": 52, "fat_g": 26, "verified": false },
+  { "id": 4, "name": "SAMPLE — Greek Yogurt, Oats & Berries", "meal_type": "Breakfast", "dietary_profile": "Vegetarian", "serving_g": 340, "calories": 440, "protein_g": 30, "carbs_g": 56, "fat_g": 10, "verified": false },
+  { "id": 5, "name": "SAMPLE — Halloumi, Quinoa & Roasted Veg Bowl", "meal_type": "Lunch", "dietary_profile": "Vegetarian", "serving_g": 440, "calories": 590, "protein_g": 28, "carbs_g": 62, "fat_g": 24, "verified": false },
+  { "id": 6, "name": "SAMPLE — Paneer Curry with Brown Rice", "meal_type": "Dinner", "dietary_profile": "Vegetarian", "serving_g": 460, "calories": 610, "protein_g": 27, "carbs_g": 68, "fat_g": 22, "verified": false },
+  { "id": 7, "name": "SAMPLE — Tofu Scramble & Avocado Toast", "meal_type": "Breakfast", "dietary_profile": "Vegan", "serving_g": 330, "calories": 450, "protein_g": 24, "carbs_g": 48, "fat_g": 18, "verified": false },
+  { "id": 8, "name": "SAMPLE — Tempeh, Lentil & Kale Power Bowl", "meal_type": "Lunch", "dietary_profile": "Vegan", "serving_g": 450, "calories": 580, "protein_g": 32, "carbs_g": 64, "fat_g": 18, "verified": false },
+  { "id": 9, "name": "SAMPLE — Black Bean, Quinoa & Roasted Veg Plate", "meal_type": "Dinner", "dietary_profile": "Vegan", "serving_g": 470, "calories": 600, "protein_g": 26, "carbs_g": 82, "fat_g": 14, "verified": false }
+]
