@@ -143,20 +143,21 @@ export default function SportProtocol({ protocol }) {
           <article className="sh-proto-card" key={`${block.title}-${bi}`}>
             <h3 className="sh-proto-card-title">{block.title}</h3>
             <ul className="sh-proto-items">
-              {block.items.map((item, ii) => (
-                <li className="sh-proto-item" key={ii}>
-                  <span className="sh-proto-item-name">{item.name}</span>
-                  {item.meta.length ? (
-                    <span className="sh-proto-chips">
-                      {item.meta.map((m, mi) => <span className="sh-proto-chip" key={mi}>{m}</span>)}
-                    </span>
-                  ) : null}
-                  {item.detail ? <p className="sh-proto-item-detail">{item.detail}</p> : null}
-                  {item.meta.length ? (
-                    <VideoSlot videoId={resolveAthleticVideo(item.name)} title={item.name} caption={item.meta[0]} />
-                  ) : null}
-                </li>
-              ))}
+              {block.items.map((item, ii) => {
+                const vid = item.meta.length ? resolveAthleticVideo(item.name) : null; // exact clip or null
+                return (
+                  <li className="sh-proto-item" key={ii}>
+                    <span className="sh-proto-item-name">{item.name}</span>
+                    {item.meta.length ? (
+                      <span className="sh-proto-chips">
+                        {item.meta.map((m, mi) => <span className="sh-proto-chip" key={mi}>{m}</span>)}
+                      </span>
+                    ) : null}
+                    {item.detail ? <p className="sh-proto-item-detail">{item.detail}</p> : null}
+                    {vid ? <VideoSlot videoId={vid} title={item.name} caption={item.meta[0]} /> : null}
+                  </li>
+                );
+              })}
             </ul>
           </article>
         ))}

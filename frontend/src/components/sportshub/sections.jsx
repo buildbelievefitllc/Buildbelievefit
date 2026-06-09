@@ -217,23 +217,26 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
       {/* Workout — the day's off/in-season workload, tap an exercise to mark it done. */}
       <SectionCard tag={`${phaseLabel} · Workload`} title={day.focus} meta={`${exDone} / ${day.exercises.length} done`} testId="sh-day-workout">
         <div className="sh-exlist">
-          {day.exercises.map((e, i) => (
-            <div className="sh-ex-row" key={e.name}>
-              <button
-                type="button"
-                className={`sh-ex${e.done ? ' is-done' : ''}`}
-                aria-pressed={e.done}
-                aria-label={`Mark ${e.name} ${e.done ? 'incomplete' : 'complete'}`}
-                data-testid={`sh-ex-${i}`}
-                onClick={() => onToggleExercise(i)}
-              >
-                <span className={`sh-ex-check${e.done ? ' is-on' : ''}`} aria-hidden="true">{e.done ? '✓' : ''}</span>
-                <span className="sh-ex-name">{e.name}</span>
-                <span className="sh-ex-scheme" data-testid={`sh-ex-scheme-${i}`}>{phase === 'inseason' ? e.in : e.off}</span>
-              </button>
-              <VideoSlot videoId={resolveAthleticVideo(e.name)} title={e.name} caption={phase === 'inseason' ? e.in : e.off} />
-            </div>
-          ))}
+          {day.exercises.map((e, i) => {
+            const vid = resolveAthleticVideo(e.name); // exact verified clip or null (no fallback)
+            return (
+              <div className="sh-ex-row" key={e.name}>
+                <button
+                  type="button"
+                  className={`sh-ex${e.done ? ' is-done' : ''}`}
+                  aria-pressed={e.done}
+                  aria-label={`Mark ${e.name} ${e.done ? 'incomplete' : 'complete'}`}
+                  data-testid={`sh-ex-${i}`}
+                  onClick={() => onToggleExercise(i)}
+                >
+                  <span className={`sh-ex-check${e.done ? ' is-on' : ''}`} aria-hidden="true">{e.done ? '✓' : ''}</span>
+                  <span className="sh-ex-name">{e.name}</span>
+                  <span className="sh-ex-scheme" data-testid={`sh-ex-scheme-${i}`}>{phase === 'inseason' ? e.in : e.off}</span>
+                </button>
+                {vid ? <VideoSlot videoId={vid} title={e.name} caption={phase === 'inseason' ? e.in : e.off} /> : null}
+              </div>
+            );
+          })}
         </div>
       </SectionCard>
 
@@ -241,28 +244,31 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
       {day.drills.length ? (
         <SectionCard tag="Position-Specific" title="Today’s Drills" meta={`${drillDone} / ${day.drills.length}`} testId="sh-day-drills">
           <div className="sh-drills">
-            {day.drills.map((d, i) => (
-              <div key={d.name} className={`sh-drill${d.done ? ' is-hot is-done' : ''}`}>
-                <button
-                  type="button"
-                  className={`sh-drill-check${d.done ? ' is-on' : ''}`}
-                  aria-pressed={d.done}
-                  aria-label={`Mark ${d.name} ${d.done ? 'incomplete' : 'complete'}`}
-                  data-testid={`sh-drill-toggle-${i}`}
-                  onClick={() => onToggleDrill(i)}
-                >
-                  {d.done ? '✓' : ''}
-                </button>
-                <div className="sh-drill-body">
-                  <div className="sh-drill-top">
-                    <span className="sh-drill-name">{d.name}</span>
-                    <span className="sh-drill-pct">{d.done ? 'MET' : d.reps}</span>
+            {day.drills.map((d, i) => {
+              const vid = resolveAthleticVideo(d.name); // exact verified clip or null (no fallback)
+              return (
+                <div key={d.name} className={`sh-drill${d.done ? ' is-hot is-done' : ''}`}>
+                  <button
+                    type="button"
+                    className={`sh-drill-check${d.done ? ' is-on' : ''}`}
+                    aria-pressed={d.done}
+                    aria-label={`Mark ${d.name} ${d.done ? 'incomplete' : 'complete'}`}
+                    data-testid={`sh-drill-toggle-${i}`}
+                    onClick={() => onToggleDrill(i)}
+                  >
+                    {d.done ? '✓' : ''}
+                  </button>
+                  <div className="sh-drill-body">
+                    <div className="sh-drill-top">
+                      <span className="sh-drill-name">{d.name}</span>
+                      <span className="sh-drill-pct">{d.done ? 'MET' : d.reps}</span>
+                    </div>
+                    <div className="sh-drill-desc">{d.detail}</div>
+                    {vid ? <VideoSlot videoId={vid} title={d.name} caption={d.detail} /> : null}
                   </div>
-                  <div className="sh-drill-desc">{d.detail}</div>
-                  <VideoSlot videoId={resolveAthleticVideo(d.name)} title={d.name} caption={d.detail} />
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </SectionCard>
       ) : null}
