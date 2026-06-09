@@ -46,6 +46,17 @@ export default function ClientDossier({ client, onBack }) {
   const [anLoading, setAnLoading] = useState(false);
   const [anError, setAnError] = useState(null);
 
+  // Staged Native Sports Engine protocol — lifted to the top level so BOTH the Athlete
+  // Profile header and the Manual Override deck read ONE source (no double-fetch), and a
+  // phase override refreshes the header in lockstep. A populated protocol ⇒ this client is
+  // an athlete and the dossier renders the Athlete Profile variant. Its own state machine:
+  // a slow/failed protocol read just falls back to the standard (general-fitness) layout.
+  const [proto, setProto] = useState(null);
+  const [protoLoading, setProtoLoading] = useState(false);
+  const [protoError, setProtoError] = useState(null);
+  const [protoKey, setProtoKey] = useState(0);
+  const reloadProto = useCallback(() => setProtoKey((k) => k + 1), []);
+
   const fetchDetail = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -74,6 +85,22 @@ export default function ClientDossier({ client, onBack }) {
     }
   }, [client.id]);
 
+  // Read the staged sports_protocol (admin-gated RPC). Non-fatal: a read failure (or no
+  // admin session) just leaves proto null → the dossier renders the standard layout.
+  const fetchProto = useCallback(async () => {
+    setProtoLoading(true);
+    setProtoError(null);
+    try {
+      const d = await getSportsProtocol(client.id);
+      setProto(d || null);
+    } catch (e) {
+      setProtoError(toErrorMessage(e));
+      setProto(null);
+    } finally {
+      setProtoLoading(false);
+    }
+  }, [client.id]);
+
   // Fire detail + analytics CONCURRENTLY on mount. Deferred via microtask so the
   // initial setState lands outside the synchronous effect body; cancel-guarded.
   useEffect(() => {
@@ -86,6 +113,15 @@ export default function ClientDossier({ client, onBack }) {
     return () => { cancelled = true; };
   }, [fetchDetail, fetchAnalyticsData]);
 
+  // Protocol read on its own effect so reloadProto() (after a phase override) refetches it
+  // WITHOUT re-pulling detail/analytics. protoKey is the reload trigger (mirrors the
+  // reloadKey pattern in BodyCompositionCard / the former OverrideDeck fetch).
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) fetchProto(); });
+    return () => { cancelled = true; };
+  }, [fetchProto, protoKey]);
+
   // Merge a partial update_target row into detail state — instant UI, no refetch.
   const applyTargetPatch = useCallback((patch) => {
     setData((prev) => (prev ? { ...prev, ...patch } : prev));
@@ -95,12 +131,15 @@ export default function ClientDossier({ client, onBack }) {
   // immediately instead of a contextless spinner.
   const c = data ?? client;
 
+  // A populated sports_protocol ⇒ youth/athlete client → render the Athlete Profile variant.
+  const isAthlete = !!proto;
+
   return (
     <div>
       <button type="button" style={styles.back} onClick={onBack}>← Back to Roster</button>
 
-      {/* ── Athlete card — avatar · name · division · macro summary · intake log ── */}
-      <AthleteCard c={c} />
+      {/* ── Athlete card — identity strip + macros; gains a Sport/Phase deck for athletes ── */}
+      <AthleteCard c={c} proto={proto} />
 
       {isLoading && !data ? <Loading label="Loading dossier…" /> : null}
 
@@ -122,30 +161,42 @@ export default function ClientDossier({ client, onBack }) {
           clientUid={data.uid || client.uid}
           onPatched={applyTargetPatch}
           analytics={{ data: analytics, loading: anLoading, error: anError, onRetry: fetchAnalyticsData }}
+          isAthlete={isAthlete}
+          proto={proto}
+          protoLoading={protoLoading}
+          protoError={protoError}
+          onProtoReload={reloadProto}
         />
       ) : null}
     </div>
   );
 }
 
-// ── Athlete card header — the prototype's identity strip + inline macro tiles. ──
-function AthleteCard({ c }) {
+// ── Athlete card header — identity strip + inline macro tiles. For an athlete (a staged
+//    sports_protocol) it shifts to the Athlete Profile variant: a gold "Athlete Portal"
+//    division badge, the sport on the focus line, and a prominent Sport/Phase deck. ──────
+function AthleteCard({ c, proto }) {
+  const isAthlete = !!proto;
   const name = c.name || c.uid || 'Unnamed';
-  const div = c.metabolic_tier || c.subscription_tier || c.role || 'Sovereign Client';
+  const div = isAthlete
+    ? 'Athlete Portal'
+    : (c.metabolic_tier || c.subscription_tier || c.role || 'Sovereign Client');
   const focusBits = [
     c.age ? `Age ${c.age}` : null,
-    c.block_priority || c.baseline_status || 'Sovereign Protocol',
+    isAthlete
+      ? (proto.sport || 'Native Sports Engine')
+      : (c.block_priority || c.baseline_status || 'Sovereign Protocol'),
   ].filter(Boolean);
   const intake = c.coach_note || c.health_notes || c.notes || 'No coach intake notes on file yet — log directives from the Athlete Feed Chat.';
   const streak = Number(c.current_streak) || 0;
 
   return (
-    <div style={styles.card}>
+    <div style={{ ...styles.card, ...(isAthlete ? styles.cardAthlete : null) }}>
       <div style={styles.cardTop}>
         <span style={styles.cardAvatar}>{initials(name)}</span>
         <div style={styles.cardId}>
           <div style={styles.cardName}>{name}</div>
-          <span style={styles.cardDiv}>{div}</span>
+          <span style={{ ...styles.cardDiv, ...(isAthlete ? styles.cardDivAthlete : null) }}>{div}</span>
           <div style={styles.cardFocus}>{focusBits.join(' · ')}</div>
         </div>
         <div style={styles.cardMacros}>
@@ -155,12 +206,38 @@ function AthleteCard({ c }) {
           <MacroPill label="Fats" value={c.macro_f} unit="g" accent="var(--mut)" valueColor="var(--wht)" />
         </div>
       </div>
+
+      {isAthlete ? <AthleteProtocolStrip proto={proto} /> : null}
+
       <div style={styles.intakeRow}>
         <div style={styles.intakeBox}>
           <span style={styles.intakeKicker}>Coach Intake Log Checklist</span>
           <span style={styles.intakeText}>{intake}</span>
         </div>
         <span style={styles.streak}>⚡ {streak} Day{streak === 1 ? '' : 's'}</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Athlete Profile deck — surfaces the staged sport + current phase up front, the
+//    headline distinction from a standard general-fitness dossier. ────────────────────
+function AthleteProtocolStrip({ proto }) {
+  const phaseNum = parseInt(proto.phase_number, 10);
+  const hasPhase = phaseNum >= 1 && phaseNum <= 3;
+  return (
+    <div style={styles.athleteStrip}>
+      <span style={styles.athleteKicker}>⚡ Native Sports Engine · Athlete Profile</span>
+      <div style={styles.athleteTiles}>
+        <div style={styles.athleteTile}>
+          <span style={styles.athleteTileLabel}>Sport</span>
+          <span style={styles.athleteTileVal}>{proto.sport || '—'}</span>
+        </div>
+        <div style={styles.athleteTile}>
+          <span style={styles.athleteTileLabel}>Current Phase</span>
+          <span style={styles.athleteTileVal}>{proto.current_phase || (hasPhase ? `Phase ${phaseNum}` : '—')}</span>
+          {hasPhase ? <span style={styles.athleteTileMeta}>Phase {phaseNum} of 3 · adjust in Manual Override</span> : null}
+        </div>
       </div>
     </div>
   );
@@ -177,7 +254,7 @@ function MacroPill({ label, value, unit, accent, valueColor }) {
   );
 }
 
-// ── The 5-deck nested nav (the prototype's right-panel navigation row). ─────────
+// ── The 6-deck nested nav (the prototype's right-panel navigation row). ─────────
 const DECKS = [
   { id: 'nutrition', label: '7-Day Nutrition', icon: '🍽' },
   { id: 'workouts', label: '7-Day Workouts', icon: '🏋' },
@@ -186,23 +263,33 @@ const DECKS = [
   { id: 'target', label: 'Update Target', icon: '⬆' },
   { id: 'override', label: 'Manual Override', icon: '⚡' },
 ];
+// Athlete Profile: same six decks, but Manual Override (the Sport/Phase control) leads and
+// is the default — the headline surface for an athlete instead of the standard nutrition view.
+const ATHLETE_DECK_ORDER = ['override', 'workouts', 'nutrition', 'analytics', 'feed', 'target'];
+const ATHLETE_DECKS = ATHLETE_DECK_ORDER.map((id) => DECKS.find((d) => d.id === id));
 
-function DossierBody({ c, clientId, clientUid, onPatched, analytics }) {
-  const [deck, setDeck] = useState('nutrition');
+function DossierBody({ c, clientId, clientUid, onPatched, analytics, isAthlete, proto, protoLoading, protoError, onProtoReload }) {
+  // `picked` = the user's explicit choice; until they pick, the active deck tracks the
+  // layout default (Override for athletes, Nutrition otherwise) so resolving athlete-ness
+  // after mount upgrades the default without yanking a tab out from under the user.
+  const [picked, setPicked] = useState(null);
+  const decks = isAthlete ? ATHLETE_DECKS : DECKS;
+  const deck = picked ?? (isAthlete ? 'override' : 'nutrition');
 
   return (
     <div style={styles.body}>
       <nav style={styles.tabs} role="tablist" aria-label="Athlete dossier decks">
-        {DECKS.map((d) => {
+        {decks.map((d) => {
           const active = d.id === deck;
+          const flagged = isAthlete && d.id === 'override'; // highlight the headline athlete deck
           return (
             <button
               key={d.id}
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => setDeck(d.id)}
-              style={{ ...styles.tab, ...(active ? styles.tabActive : null) }}
+              onClick={() => setPicked(d.id)}
+              style={{ ...styles.tab, ...(flagged ? styles.tabAthlete : null), ...(active ? styles.tabActive : null) }}
             >
               <span aria-hidden="true" style={styles.tabIcon}>{d.icon}</span>{d.label}
             </button>
@@ -216,7 +303,9 @@ function DossierBody({ c, clientId, clientUid, onPatched, analytics }) {
         {deck === 'analytics' && <AnalyticsDeck {...analytics} uid={clientUid} />}
         {deck === 'feed' && <FeedChat clientId={clientId} clientName={c.name || c.uid || 'this athlete'} />}
         {deck === 'target' && <ReconfiguratorDeck c={c} clientId={clientId} onPatched={onPatched} />}
-        {deck === 'override' && <OverrideDeck c={c} clientId={clientId} />}
+        {deck === 'override' && (
+          <OverrideDeck c={c} clientId={clientId} proto={proto} protoLoading={protoLoading} protoError={protoError} onReload={onProtoReload} />
+        )}
       </div>
 
       <div style={styles.footer}>Last updated {fmtDate(c.updated_at) || '—'}</div>
@@ -723,12 +812,7 @@ const OVR_DIETS = [['Omnivore', 'Omnivore'], ['Vegetarian', 'Vegetarian'], ['Veg
 const OVR_FASTS = [['none', 'None'], ['12/12', '12 / 12'], ['14/10', '14 / 10'], ['16/8', '16 / 8']];
 const OVR_SELECT = { width: '100%', boxSizing: 'border-box', background: '#050505', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--wht)', fontFamily: 'var(--bd)', fontSize: '.95rem', fontWeight: 700, padding: '.5rem .7rem', outline: 'none', marginTop: '.25rem' };
 
-function OverrideDeck({ c, clientId }) {
-  const [proto, setProto] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [loadErr, setLoadErr] = useState(null);
-  const [reloadKey, setReloadKey] = useState(0);
-
+function OverrideDeck({ c, clientId, proto, protoLoading, protoError, onReload }) {
   const [sport, setSport] = useState('general');
   const [phase, setPhase] = useState(2);
   const [phaseState, setPhaseState] = useState({ busy: false, ok: null, err: null });
@@ -738,25 +822,20 @@ function OverrideDeck({ c, clientId }) {
   const [fasting, setFasting] = useState('none');
   const [nutState, setNutState] = useState({ busy: false, ok: null, err: null });
 
-  // Read the staged protocol (set-state only in the promise callbacks / a microtask —
-  // never synchronously in the effect body; mirrors BodyCompositionCard).
+  // Seed the dropdowns from the staged protocol (lifted into ClientDossier; shared with the
+  // Athlete Profile header) — default the phase selector to the NEXT phase. setState is
+  // deferred to a microtask (never synchronous in the effect body), mirroring this file.
   useEffect(() => {
+    if (!proto) return undefined;
     let cancelled = false;
-    queueMicrotask(() => { if (!cancelled) setLoading(true); });
-    getSportsProtocol(clientId)
-      .then((d) => {
-        if (cancelled) return;
-        setProto(d || null); setLoadErr(null);
-        if (d) {
-          if (d.sport) setSport(normalizeSportKey(d.sport));
-          const n = parseInt(d.phase_number, 10);
-          if (n >= 1 && n <= 3) setPhase(Math.min(n + 1, 3)); // default the dropdown to the NEXT phase
-        }
-      })
-      .catch((e) => { if (!cancelled) setLoadErr(e.message || 'Failed to read protocol.'); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+    queueMicrotask(() => {
+      if (cancelled) return;
+      if (proto.sport) setSport(normalizeSportKey(proto.sport));
+      const n = parseInt(proto.phase_number, 10);
+      if (n >= 1 && n <= 3) setPhase(Math.min(n + 1, 3));
+    });
     return () => { cancelled = true; };
-  }, [clientId, reloadKey]);
+  }, [proto]);
 
   async function applyPhase() {
     setPhaseState({ busy: true, ok: null, err: null });
@@ -766,7 +845,7 @@ function OverrideDeck({ c, clientId }) {
       const protocol = buildSportsProtocol({ sport, age, experience, targetPhase: phase });
       await setSportsProtocol(clientId, protocol);
       setPhaseState({ busy: false, ok: `Forced ${protocol.current_phase}.`, err: null });
-      setReloadKey((k) => k + 1);
+      onReload?.(); // refetch the lifted protocol → header + this deck update in lockstep
     } catch (e) { setPhaseState({ busy: false, ok: null, err: e.message }); }
   }
 
@@ -785,10 +864,10 @@ function OverrideDeck({ c, clientId }) {
   return (
     <>
       <Section title="⚡ Autonomous Referee — Current Protocol" meta={proto ? `Phase ${proto.phase_number || '—'} / 3` : null}>
-        {loading ? <Loading label="Reading staged protocol…" /> : loadErr ? (
+        {protoLoading ? <Loading label="Reading staged protocol…" /> : protoError ? (
           <div style={styles.inlineError} role="alert">
-            <span style={styles.errorMsg}>{loadErr}</span>
-            <button type="button" style={styles.retry} onClick={() => setReloadKey((k) => k + 1)}>Retry</button>
+            <span style={styles.errorMsg}>{protoError}</span>
+            <button type="button" style={styles.retry} onClick={() => onReload?.()}>Retry</button>
           </div>
         ) : proto ? (
           <div style={styles.kv}>
@@ -1042,6 +1121,26 @@ const styles = {
     color: '#090909', background: 'var(--yel)', borderRadius: 8, padding: '.5rem .8rem', whiteSpace: 'nowrap',
   },
 
+  // ── Athlete Profile variant ──
+  cardAthlete: { background: 'rgba(106,13,173,.16)', borderColor: 'rgba(245,200,0,.4)' },
+  cardDivAthlete: { color: '#090909', background: 'var(--yel)', borderColor: 'var(--yel)' },
+  athleteStrip: {
+    marginTop: '1rem', border: '1px solid rgba(245,200,0,.3)', borderRadius: 12,
+    padding: '.8rem .9rem', background: 'rgba(106,13,173,.22)',
+  },
+  athleteKicker: {
+    display: 'block', fontFamily: 'var(--hb)', fontSize: '.6rem', letterSpacing: '2px',
+    textTransform: 'uppercase', color: 'var(--gold-soft)', marginBottom: '.6rem',
+  },
+  athleteTiles: { display: 'flex', flexWrap: 'wrap', gap: '.6rem' },
+  athleteTile: {
+    flex: '1 1 150px', minWidth: 0, background: 'rgba(0,0,0,.28)', border: '1px solid var(--line)',
+    borderRadius: 10, padding: '.6rem .8rem', display: 'flex', flexDirection: 'column', gap: '.15rem',
+  },
+  athleteTileLabel: { fontFamily: 'var(--hb)', fontSize: '.58rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--gold-deep)' },
+  athleteTileVal: { fontFamily: 'var(--display)', fontSize: '1.45rem', letterSpacing: '.5px', lineHeight: 1.1, color: 'var(--wht)', textTransform: 'capitalize' },
+  athleteTileMeta: { fontFamily: 'var(--bd)', fontSize: '.72rem', fontWeight: 700, color: 'var(--mut)' },
+
   body: { display: 'flex', flexDirection: 'column', gap: '1.6rem' },
   tabs: {
     display: 'flex', gap: '.3rem', borderBottom: '1px solid var(--line)',
@@ -1054,6 +1153,7 @@ const styles = {
     padding: '.6rem .85rem', marginBottom: '-1px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '.4rem',
   },
   tabActive: { color: 'var(--wht)', borderBottomColor: 'var(--yel)' },
+  tabAthlete: { color: 'var(--gold-soft)' }, // leads the athlete deck — gold even when inactive
   tabIcon: { fontSize: '.9rem' },
 
   section: { borderTop: '1px solid var(--line)', paddingTop: '1.1rem' },
