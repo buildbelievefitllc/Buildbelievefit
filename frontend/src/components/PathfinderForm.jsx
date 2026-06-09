@@ -17,6 +17,7 @@
 
 import { useState } from 'react';
 import { submitLead } from '../lib/leadApi.js';
+import { createCheckoutSession } from '../lib/checkoutApi.js';
 import { generateProgram, toAssignedPlan } from './vault/generatorEngine.js';
 import { CUISINE_PLANS } from './vault/cuisineMeals.js';
 import { calcTDEE, calcMacros, scaleMealPlan } from './vault/nutritionEngine.js';
@@ -161,6 +162,8 @@ export default function PathfinderForm({ checkout = null }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
+  const [checkingOut, setCheckingOut] = useState(false); // gated-checkout in flight
+  const [checkoutErr, setCheckoutErr] = useState(null);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const toggleParq = (key, on) => setForm((f) => ({ ...f, parq: { ...f.parq, [key]: on } }));
@@ -280,18 +283,38 @@ export default function PathfinderForm({ checkout = null }) {
     return (
       <div style={styles.successCard} role="status" aria-live="polite">
         <div style={styles.successMark}>✓</div>
-        <div style={styles.successTitle}>{checkout?.href ? t('pf-checkout-title') : t('f-success-title')}</div>
-        <p style={styles.successBody}>{checkout?.href ? t('pf-checkout-body') : t('f-success-body')}</p>
-        {checkout?.href ? (
+        <div style={styles.successTitle}>{checkout?.priceId ? t('pf-checkout-title') : t('f-success-title')}</div>
+        <p style={styles.successBody}>{checkout?.priceId ? t('pf-checkout-body') : t('f-success-body')}</p>
+        {checkout?.priceId ? (
           <>
             <div style={styles.enrollTier}>
               {t('pf-checkout-enrolling')} <strong style={{ color: '#f5c800' }}>{checkout.tierName}</strong>
               {checkout.price ? ` · ${checkout.price}` : ''}
             </div>
-            <a className="bbf-btn" href={checkout.href} target="_blank" rel="noopener noreferrer" style={styles.checkoutBtn}>
-              {t('pf-checkout-cta')}
-            </a>
+            <button
+              type="button"
+              className="bbf-btn"
+              style={styles.checkoutBtn}
+              disabled={checkingOut}
+              onClick={async () => {
+                // GATED: bbf-create-checkout refuses unless a screening is on file for
+                // this email. We just submitted the Pathfinder, so it is — but the
+                // server, not the client, is the authority that lets payment proceed.
+                setCheckoutErr(null);
+                setCheckingOut(true);
+                try {
+                  const url = await createCheckoutSession(form.email.trim().toLowerCase(), checkout.priceId);
+                  window.location.href = url;
+                } catch (err) {
+                  setCheckoutErr(err?.message || 'Could not open checkout. Please try again.');
+                  setCheckingOut(false);
+                }
+              }}
+            >
+              {checkingOut ? t('pf-checkout-loading') : t('pf-checkout-cta')}
+            </button>
             <div style={styles.checkoutSecured}>{t('pf-checkout-secured')}</div>
+            {checkoutErr ? <div style={styles.checkoutErr} role="alert">{checkoutErr}</div> : null}
           </>
         ) : null}
       </div>
@@ -302,7 +325,7 @@ export default function PathfinderForm({ checkout = null }) {
     <form style={styles.card} onSubmit={handleSubmit} noValidate>
       {/* Selected-plan banner — shown only when the prospect arrived via a price CTA.
           Signals WHY they're screening first: complete the PAR-Q to reach checkout. */}
-      {checkout?.href ? (
+      {checkout?.priceId ? (
         <div style={styles.enrollBanner}>
           <div style={styles.enrollKicker}>{t('pf-enroll-kicker')}</div>
           <div style={styles.enrollTierName}>{checkout.tierName}{checkout.price ? ` · ${checkout.price}` : ''}</div>
@@ -487,6 +510,7 @@ const styles = {
   enrollTierName: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.3rem', letterSpacing: '1px', color: '#f5c800', margin: '.15rem 0 .35rem' },
   enrollNote: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.85rem', fontWeight: 600, lineHeight: 1.4, color: 'rgba(255,255,255,.7)' },
   enrollTier: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '1.05rem', fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '1rem 0 1.2rem' },
-  checkoutBtn: { display: 'block', textDecoration: 'none', textAlign: 'center', marginTop: '.4rem' },
+  checkoutBtn: { width: '100%', cursor: 'pointer', marginTop: '.4rem' },
   checkoutSecured: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.8rem', fontWeight: 600, color: 'rgba(255,255,255,.5)', marginTop: '.8rem' },
+  checkoutErr: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.85rem', fontWeight: 700, color: '#ef4444', marginTop: '.7rem' },
 };

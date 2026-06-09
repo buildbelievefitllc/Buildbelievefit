@@ -217,6 +217,7 @@ const DICT = {
   'pf-checkout-enrolling': { en: 'Enrolling in', es: 'Inscribiéndote en', pt: 'Inscrevendo-se em' },
   'pf-checkout-cta': { en: 'Proceed to Secure Checkout →', es: 'Continuar al Pago Seguro →', pt: 'Ir para o Pagamento Seguro →' },
   'pf-checkout-secured': { en: 'Secured by Stripe · cancel anytime', es: 'Asegurado por Stripe · cancela cuando quieras', pt: 'Protegido pela Stripe · cancele quando quiser' },
+  'pf-checkout-loading': { en: 'Opening secure checkout…', es: 'Abriendo el pago seguro…', pt: 'Abrindo o pagamento seguro…' },
 
   // ── The Sports Hub — youth first-run intake gate (PAR-Q+ + guardian auth). ──
   'yi-title': { en: 'Athlete Intake — Required', es: 'Registro del Atleta — Obligatorio', pt: 'Cadastro do Atleta — Obrigatório' },

@@ -467,7 +467,7 @@ function PricingMatrix({ onSelectTier }) {
                   <button
                     key={o.label}
                     type="button"
-                    onClick={() => onSelectTier({ tierName: `${tier.name} · ${o.label}`, price: o.price, href: o.link })}
+                    onClick={() => onSelectTier({ tierName: `${tier.name} · ${o.label}`, price: o.price, priceId: o.priceId })}
                     style={{ ...s.matrixOptBtn, cursor: 'pointer', border: 'none', width: '100%' }}
                   >
                     <span style={s.matrixOptLbl}>{o.label}</span>
@@ -478,7 +478,7 @@ function PricingMatrix({ onSelectTier }) {
             ) : (
               <button
                 type="button"
-                onClick={() => onSelectTier({ tierName: tier.name, price: `${tier.price}${tier.per || ''}`, href: tier.link })}
+                onClick={() => onSelectTier({ tierName: tier.name, price: `${tier.price}${tier.per || ''}`, priceId: tier.priceId })}
                 style={{ ...s.matrixBuy, cursor: 'pointer', width: '100%' }}
               >
                 Get Started →
