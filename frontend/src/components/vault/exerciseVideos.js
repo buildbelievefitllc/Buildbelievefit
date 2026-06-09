@@ -14,6 +14,11 @@
 // can never resolve to a video — the map is the allow-list, not just media.
 
 // ─── Hardwired exercise → YouTube id map (verbatim from BBF_VIDEO_MAP) ───────
+// Each value is the en/base YouTube id (a string) OR a language-keyed object
+// { en, es, pt } once localized cuts exist. resolveVideoId() runs every value
+// through localizedVideoId() with an en fallback, so a plain string is simply the
+// en baseline and ANY entry can be upgraded in place to { en, es, pt } — no caller
+// changes, and a missing es/pt never renders a broken iframe.
 export const VIDEO_MAP = {
   // CORE 37
   'Barbell Bench Press': 'vthMCtgVtFw', 'Incline Dumbbell Press': 'awEEyL5zGvU', 'Machine Chest Press': 'pLofEAcfsO8', 'Push-Up': 'uXC_3Gs9Yr0', 'Cable Chest Fly': 'ovFc-5YdcXw',
@@ -80,31 +85,53 @@ function normalize(name) {
 // Precomputed token-sets for the map keys (built once).
 const KEY_INDEX = Object.keys(VIDEO_MAP).map((key) => ({ key, toks: normalize(key) }));
 
-// Resolve a plan exercise name to a hardwired YouTube id, or null. Mirrors
-// BBF_RESOLVE_VIDEO_ID: exact key → exact normalized → safe token-subset.
-export function resolveVideoId(exName) {
-  if (VIDEO_MAP[exName]) return VIDEO_MAP[exName];
-  const nt = normalize(exName);
-  if (!nt.length) return null;
-  const nk = nt.join(' ');
-
-  for (let i = 0; i < KEY_INDEX.length; i++) {
-    if (KEY_INDEX[i].toks.join(' ') === nk) return VIDEO_MAP[KEY_INDEX[i].key];
+// ─── Language picker — the multi-lingual video safety layer ──────────────────
+// A VIDEO_MAP / METRIC_VIDEOS / prehab entry may be a plain string (the en/legacy
+// id) OR a language-keyed object { en, es, pt }. Resolve to the active language,
+// falling back to en (then any present id) so the UI NEVER renders a broken iframe
+// when an es/pt cut hasn't been filmed yet.
+export function localizedVideoId(entry, lang) {
+  if (entry == null) return null;
+  if (typeof entry === 'string') return entry || null;
+  if (typeof entry === 'object') {
+    return entry[lang] || entry.en || Object.values(entry).find((v) => typeof v === 'string' && v) || null;
   }
+  return null;
+}
 
-  let best = null;
-  let bestScore = 0;
-  for (let i = 0; i < KEY_INDEX.length; i++) {
-    const kt = KEY_INDEX[i].toks;
-    const inter = nt.filter((t) => kt.indexOf(t) > -1).length;
-    const ratio = inter / Math.min(nt.length, kt.length);
-    const cov = inter / Math.max(nt.length, kt.length);
-    if (ratio === 1 && cov >= 0.5 && ratio + cov > bestScore) {
-      bestScore = ratio + cov;
-      best = VIDEO_MAP[KEY_INDEX[i].key];
+// Resolve a plan exercise name to its hardwired video ENTRY (a string en-id or a
+// { en, es, pt } object), then localize to `lang` with an en fallback. Mirrors
+// BBF_RESOLVE_VIDEO_ID: exact key → exact normalized → safe token-subset. `lang` is
+// OPTIONAL — omitted (or an unlocalized entry) yields the en/base id, so every
+// legacy caller and the Titanium existence-check keep working unchanged.
+export function resolveVideoId(exName, lang) {
+  let entry = null;
+  if (VIDEO_MAP[exName]) {
+    entry = VIDEO_MAP[exName];
+  } else {
+    const nt = normalize(exName);
+    if (!nt.length) return null;
+    const nk = nt.join(' ');
+
+    for (let i = 0; i < KEY_INDEX.length; i++) {
+      if (KEY_INDEX[i].toks.join(' ') === nk) { entry = VIDEO_MAP[KEY_INDEX[i].key]; break; }
+    }
+
+    if (!entry) {
+      let bestScore = 0;
+      for (let i = 0; i < KEY_INDEX.length; i++) {
+        const kt = KEY_INDEX[i].toks;
+        const inter = nt.filter((t) => kt.indexOf(t) > -1).length;
+        const ratio = inter / Math.min(nt.length, kt.length);
+        const cov = inter / Math.max(nt.length, kt.length);
+        if (ratio === 1 && cov >= 0.5 && ratio + cov > bestScore) {
+          bestScore = ratio + cov;
+          entry = VIDEO_MAP[KEY_INDEX[i].key];
+        }
+      }
     }
   }
-  return best;
+  return localizedVideoId(entry, lang);
 }
 
 export const watchURL = (id) => `https://www.youtube.com/watch?v=${id}`;

@@ -181,6 +181,7 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
   const [open, setOpen] = useState(index === 0); // first card open, like the legacy default
   // Server last-working-weights for this day (cross-device autoregulation target).
   const { weights } = useLastWeights(uid, dayIdx);
+  const { lang } = useLang(); // active language → localized form-demo video
   // Local per-set entries for today, seeded once from localStorage.
   const [entries, setEntries] = useState(() => readDayEntries(uid, dayIdx)[exKey(index)] || []);
 
@@ -209,7 +210,7 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
   const wPlaceholder = lastWeight != null ? `${lastWeight}` : (weightPlaceholder(target) || 'lbs');
   // Hardwired form-demo video for this movement (fuzzy-resolved against the
   // authorized video map). null for the few cardio/circuit entries with no demo.
-  const videoId = resolveVideoId(ex.name);
+  const videoId = resolveVideoId(ex.name, lang);
 
   const onField = (setIdx, field, value) => {
     writeDayEntry(uid, dayIdx, exKey(index), setIdx, field, value);

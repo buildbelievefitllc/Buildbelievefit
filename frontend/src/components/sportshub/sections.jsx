@@ -11,13 +11,15 @@
 import { progressToward } from './hubData.js';
 import VideoSlot from '../common/VideoSlot.jsx';
 
-// Educational video per measurable. Interim ids are verified clips reused from the
-// authorized exercise VIDEO_MAP (so embeds always render) — swap for dedicated
-// educational footage when filmed. A null id → VideoSlot shows a clean empty slot.
+// Educational video per measurable. Each `id` is a language-keyed { en, es, pt }
+// object — VideoSlot localizes it against the global language with an en fallback, so
+// add es/pt cuts in place when filmed and until then all three languages safely play
+// the en clip. Interim en ids are verified clips reused from the authorized exercise
+// VIDEO_MAP so embeds always render. A null/empty id → VideoSlot shows an empty slot.
 const METRIC_VIDEOS = {
-  velocity: { id: '_DLIS8SySzs', caption: 'Max Velocity · acceleration mechanics' },
-  power:    { id: 'S_uZP4UH6J0', caption: 'Explosive Power · triple extension' },
-  force:    { id: 'GxsLrTzyGUU', caption: 'Max Force · maximal strength' },
+  velocity: { id: { en: '_DLIS8SySzs' }, caption: 'Max Velocity · acceleration mechanics' },
+  power:    { id: { en: 'S_uZP4UH6J0' }, caption: 'Explosive Power · triple extension' },
+  force:    { id: { en: 'GxsLrTzyGUU' }, caption: 'Max Force · maximal strength' },
 };
 
 const STATUS_META = {

@@ -24,7 +24,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { getPrehabCatalog, compileReport, REGION_ICONS, EX_VIDEO } from './prehabProtocol.js';
-import { resolveVideoId, thumbURL } from './exerciseVideos.js';
+import { resolveVideoId, thumbURL, localizedVideoId } from './exerciseVideos.js';
 import { requestPrehabMatrix } from '../../lib/prehabApi.js';
 import './prehab.css';
 
@@ -389,12 +389,14 @@ function ProtocolRing({ pct }) {
 function slugifyName(name) {
   return String(name || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
-function resolveExerciseVideo(ex) {
+function resolveExerciseVideo(ex, lang) {
   if (!ex) return null;
-  if (ex.key && EX_VIDEO[ex.key]) return EX_VIDEO[ex.key];
+  // Each lookup may be a string (en) or a { en, es, pt } object — localize with an
+  // en fallback so an unfilmed es/pt prehab cut never breaks the slot.
+  if (ex.key && EX_VIDEO[ex.key]) return localizedVideoId(EX_VIDEO[ex.key], lang);
   const slug = slugifyName(ex.name);
-  if (slug && EX_VIDEO[slug]) return EX_VIDEO[slug];
-  return resolveVideoId(ex.name) || null;
+  if (slug && EX_VIDEO[slug]) return localizedVideoId(EX_VIDEO[slug], lang);
+  return resolveVideoId(ex.name, lang) || null;
 }
 
 // Form-demo video player — resolves each exercise to a real curated YouTube id
@@ -403,7 +405,8 @@ function resolveExerciseVideo(ex) {
 // No id → a clean caption-only state (never a dead button).
 function VideoSlot({ ex, s }) {
   const [playing, setPlaying] = useState(false);
-  const id = resolveExerciseVideo(ex);
+  const { lang } = useLang();
+  const id = resolveExerciseVideo(ex, lang);
 
   if (!id) {
     return (
