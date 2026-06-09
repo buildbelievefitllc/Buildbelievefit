@@ -37,3 +37,8 @@ export function setSportsProtocol(id, protocol) {
 export function setMealPlan(id, plan) {
   return adminRpc('bbf_admin_set_meal_plan', { p_id: id, p_plan: plan });
 }
+
+// List athletes with a staged sports_protocol — the Command Center Sports Portal roster.
+export function listSportsAthletes() {
+  return adminRpc('bbf_admin_list_sports_athletes', {});
+}

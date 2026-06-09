@@ -14,7 +14,9 @@ import { useLang } from '../../context/LangContext.jsx';
 import { toErrorMessage } from '../../lib/rosterApi.js';
 import AdminOverridePanel from './AdminOverridePanel.jsx';
 import AthleteDossier from './AthleteDossier.jsx';
+import ClientDossier from '../command/ClientDossier.jsx';
 import { fetchSportsRoster, insertAthlete, injectErrorMessage, setAthleteSport } from './sportsApi.js';
+import { listSportsAthletes } from '../../lib/protocolOverrideApi.js';
 import { PORTAL_SPORTS, GOAL_DIRECTIVES, getPositions, getPosition, getPortalSport } from './sportsData.js';
 import './sports.css';
 
@@ -31,6 +33,51 @@ const initOverride = (a) => {
   const sportId = toSportId(a?.sport);
   return { sportId, position: getPositions(sportId)[0].label, age: 16, goal: GOAL_DIRECTIVES[0] };
 };
+
+// ── Protocol Roster — athletes with a staged sports_protocol (bbf_active_clients).
+//    Selecting one drills into the command ClientDossier where the manual overrides
+//    (Phase / Nutrition) live. Pure renderer; the parent owns fetch + selection. ────
+const PR = {
+  wrap: { background: 'rgba(106,13,173,.10)', border: '1px solid rgba(245,200,0,.3)', borderRadius: 14, padding: '1.1rem 1.2rem', margin: '0 0 1.4rem' },
+  head: { display: 'flex', flexDirection: 'column', gap: '.2rem', marginBottom: '.9rem' },
+  kicker: { fontFamily: 'var(--hb)', fontSize: '.8rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--gold-soft)' },
+  sub: { fontFamily: 'var(--bd)', fontSize: '.8rem', fontWeight: 600, color: 'var(--mut)' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '.6rem' },
+  card: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '.25rem', textAlign: 'left', cursor: 'pointer', background: 'var(--gry, #141018)', border: '1px solid var(--line, #2a1d45)', borderRadius: 10, padding: '.7rem .85rem' },
+  name: { fontFamily: 'var(--display, "Bebas Neue", sans-serif)', fontSize: '1.05rem', letterSpacing: '.5px', color: 'var(--wht, #fff)' },
+  meta: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 700, color: 'var(--mut)' },
+  cta: { fontFamily: 'var(--hb)', fontSize: '.62rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--gold-soft)', marginTop: '.2rem' },
+  note: { fontFamily: 'var(--bd)', fontSize: '.85rem', fontWeight: 600, color: 'var(--mut)' },
+  err: { fontFamily: 'var(--bd)', fontSize: '.85rem', fontWeight: 700, color: 'var(--red, #ff5d5d)', display: 'flex', alignItems: 'center', gap: '.6rem' },
+  retry: { fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--red, #ff5d5d)', background: 'none', border: '1px solid var(--red, #ff5d5d)', borderRadius: 6, padding: '.3rem .6rem', cursor: 'pointer' },
+};
+function ProtocolRoster({ athletes, loading, error, onRetry, onSelect }) {
+  return (
+    <section style={PR.wrap}>
+      <div style={PR.head}>
+        <span style={PR.kicker}>⚡ Autonomous Referee · Protocol Roster</span>
+        <span style={PR.sub}>Athletes with a staged sports_protocol — select to open the dossier &amp; manual overrides.</span>
+      </div>
+      {loading ? (
+        <div style={PR.note}>Loading protocol athletes…</div>
+      ) : error ? (
+        <div style={PR.err}><span>⚠ {error}</span><button type="button" style={PR.retry} onClick={onRetry}>Retry</button></div>
+      ) : !athletes.length ? (
+        <div style={PR.note}>No athletes with a staged sports_protocol yet — they appear here once intake stages one (or the Referee promotes).</div>
+      ) : (
+        <div style={PR.grid}>
+          {athletes.map((a) => (
+            <button key={a.id} type="button" style={PR.card} onClick={() => onSelect(a)}>
+              <span style={PR.name}>{a.name}</span>
+              <span style={PR.meta}>{a.sport || 'General'} · Phase {a.phase_number || '—'}</span>
+              <span style={PR.cta}>Open Dossier →</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 export default function SportsPortal() {
   const { isAdmin } = useAuth();
@@ -51,6 +98,25 @@ export default function SportsPortal() {
   const [injBusy, setInjBusy] = useState(false);
   const [injError, setInjError] = useState(null);
   const [injOk, setInjOk] = useState(false);
+
+  // ── Protocol Athletes (bbf_active_clients with a staged sports_protocol) → drill
+  //    into the command ClientDossier where the Phase / Nutrition overrides live. ───
+  const [protoAthletes, setProtoAthletes] = useState([]);
+  const [protoLoading, setProtoLoading] = useState(isAdmin);
+  const [protoErr, setProtoErr] = useState(null);
+  const [dossierClient, setDossierClient] = useState(null);
+
+  const loadProtocolAthletes = useCallback(async () => {
+    setProtoLoading(true); setProtoErr(null);
+    try {
+      const rows = await listSportsAthletes();
+      setProtoAthletes(Array.isArray(rows) ? rows : []);
+    } catch (e) {
+      setProtoErr(toErrorMessage(e)); setProtoAthletes([]);
+    } finally {
+      setProtoLoading(false);
+    }
+  }, []);
 
   const selectAthlete = useCallback((a) => {
     if (!a) return;
@@ -86,6 +152,13 @@ export default function SportsPortal() {
     queueMicrotask(() => { if (!cancelled) load(false); });
     return () => { cancelled = true; };
   }, [isAdmin, load]);
+
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) loadProtocolAthletes(); });
+    return () => { cancelled = true; };
+  }, [isAdmin, loadProtocolAthletes]);
 
   const patch = (next) => { setOverride((o) => ({ ...o, ...next })); setApplied(false); setApplyError(null); };
   const onSport = (sportId) => patch({ sportId, position: getPositions(sportId)[0].label });
@@ -145,6 +218,16 @@ export default function SportsPortal() {
     sportId: override.sportId, positionLabel: override.position, age: override.age, goal: override.goal,
   };
 
+  // Drill-in: a selected protocol athlete opens the command ClientDossier (manual
+  // overrides). Back returns to the portal and refreshes the protocol roster.
+  if (dossierClient) {
+    return (
+      <div className="sp">
+        <ClientDossier client={dossierClient} onBack={() => { setDossierClient(null); loadProtocolAthletes(); }} />
+      </div>
+    );
+  }
+
   return (
     <div className="sp">
       <header className="sp-head">
@@ -177,6 +260,16 @@ export default function SportsPortal() {
           </div>
         ) : null}
       </header>
+
+      {isAdmin ? (
+        <ProtocolRoster
+          athletes={protoAthletes}
+          loading={protoLoading}
+          error={protoErr}
+          onRetry={loadProtocolAthletes}
+          onSelect={(a) => setDossierClient(a)}
+        />
+      ) : null}
 
       {!isAdmin ? (
         <div className="sp-clientnote">
