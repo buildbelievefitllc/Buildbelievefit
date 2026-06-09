@@ -1,28 +1,26 @@
-// src/lib/sportsEngine.js
-// ─────────────────────────────────────────────────────────────────────────────
-// NATIVE SPORTS ENGINE — deterministic, rule-based, ZERO AI. Compiles a periodized
-// `sports_protocol` JSON the Athlete Portal renders and the Autonomous Referee
-// (bbf-evaluate-athlete-progress) regenerates at the next phase on promotion.
+// supabase/functions/_shared/sports-engine.ts
+// ═══════════════════════════════════════════════════════════════════════════
+// NATIVE SPORTS ENGINE — Deno/edge twin of frontend/src/lib/sportsEngine.js.
+// The edge runtime cannot import the Vite/JS frontend module, so this is the
+// server-side port the Autonomous Referee (bbf-evaluate-athlete-progress) executes
+// to regenerate a protocol at the next phase. Zero imports → inlines cleanly into
+// the edge bundle.
 //
-// PHASING: every sport carries Phase 1 → 2 → 3 with escalating SKILL + PLYOMETRIC
-// difficulty (speed/agility/strength/conditioning stay experience-scaled). Each phase
-// ships machine-checkable `progression_thresholds` the Referee evaluates against the
-// athlete's telemetry (bbf_athlete_progression) to decide promotion.
+// ⚠ LOCKSTEP: keep this in EXACT sync with frontend/src/lib/sportsEngine.js — same
+// matrices, same thresholds, same logic (mirrors the entitlements.js ↔
+// entitlement-gate.ts convention). Deterministic, ZERO AI.
 //
-// ⚠ LOCKSTEP: this file has a Deno twin at supabase/functions/_shared/sports-engine.ts
-// (the edge runtime can't import this Vite module). Keep the two in sync — same
-// matrices, same logic — exactly like entitlements.js ↔ entitlement-gate.ts.
-//
-// IMMUTABLE LAWS (enforced in every block/phase): NO Barbell Back Squat, NO Abdominal
-// Crunches — Front/Hack/Split/Trap-Bar squats + anti-extension/rotation trunk work only.
+// IMMUTABLE LAWS: NO Barbell Back Squat, NO Abdominal Crunches — anywhere.
+// ═══════════════════════════════════════════════════════════════════════════
 
-const LABELS = {
+type Item = Record<string, unknown>;
+
+const LABELS: Record<string, string> = {
   basketball: 'Basketball', football: 'Football', soccer: 'Soccer',
   track: 'Track & Field', baseball: 'Baseball / Softball', general: 'General Athletic Development',
 };
 
-// Experience-scaled base (speed · agility · strength · conditioning). Power is phase-driven below.
-const ATHLETIC_BASE = {
+const ATHLETIC_BASE: Record<string, { speed: Item; agility: Item[]; strength: Item[]; conditioning: Item }> = {
   beginner: {
     speed: { name: 'Acceleration Sprints', sets: 6, distance: '20 yd', rest: '60s', intensity: '80%', detail: 'Tall posture, full foot recovery.' },
     agility: [
@@ -72,8 +70,7 @@ const ATHLETIC_BASE = {
   },
 };
 
-// Phase-escalating plyometrics (shared across sports).
-const PHASE_PLYO = {
+const PHASE_PLYO: Record<number, Item[]> = {
   1: [
     { name: 'Box Jump (low box)', sets: 3, reps: 5, rest: '60s', detail: 'Land soft and stick.' },
     { name: 'Med-Ball Chest Pass', sets: 3, reps: 8, detail: 'Explode through the legs.' },
@@ -90,10 +87,7 @@ const PHASE_PLYO = {
   ],
 };
 
-// Phase metadata — display label + prose + MACHINE-CHECKABLE thresholds (evaluated by
-// the Referee against bbf_athlete_progression telemetry). Phase 3 thresholds=null →
-// terminal/coach-gated (no auto-promotion past peak).
-const PHASE_META = {
+const PHASE_META: Record<number, { label: string; prose: string; thresholds: Record<string, unknown> | null }> = {
   1: { label: 'Phase 1 — Foundation', prose: 'Advance to Phase 2 after ≥4 weeks once the protocol is completed with manageable RPE and no joint-friction flags.',
        thresholds: { min_mesocycle_weeks: 4, require_protocol_completed: true, max_rpe_avg: 8.5, max_friction_avg: 4 } },
   2: { label: 'Phase 2 — Development', prose: 'Advance to Phase 3 after ≥4 weeks once the protocol is completed, RPE stays controlled, and friction stays low.',
@@ -101,8 +95,7 @@ const PHASE_META = {
   3: { label: 'Phase 3 — Peak Performance', prose: 'Peak phase — hold and refine. Further promotion is coach-gated.', thresholds: null },
 };
 
-// Sport-specific skill work, escalating per phase (2 movements per phase).
-const SPORT_SKILL = {
+const SPORT_SKILL: Record<string, Record<number, Item[]>> = {
   basketball: {
     1: [{ name: 'Defensive Slide Series', sets: 3, reps: '20s', detail: 'Low hips, no heel click.' }, { name: 'Form Shooting Footwork', sets: 3, reps: 10, detail: 'Balanced, repeatable base.' }],
     2: [{ name: 'Closeout & Live Mirror', sets: 4, reps: 8, detail: 'Break down, react to the first step.' }, { name: 'Finishing Off Two Feet', sets: 4, reps: '6/side', detail: 'Absorb and explode, both hands.' }],
@@ -135,7 +128,7 @@ const SPORT_SKILL = {
   },
 };
 
-export function normalizeSportKey(sport) {
+export function normalizeSportKey(sport: unknown): string {
   const s = String(sport || '').trim().toLowerCase();
   if (!s || s === 'none' || s === 'other') return 'general';
   if (s.includes('basket')) return 'basketball';
@@ -146,15 +139,17 @@ export function normalizeSportKey(sport) {
   return SPORT_SKILL[s] ? s : 'general';
 }
 
-export function clampPhase(p) {
-  const n = parseInt(p, 10) || 1;
+export function clampPhase(p: unknown): number {
+  const n = parseInt(String(p), 10) || 1;
   return n < 1 ? 1 : n > 3 ? 3 : n;
 }
 
-// Build the periodized, sport-specific protocol for a target phase (1–3).
-export function buildSportsProtocol({ sport, age, experience, goal, targetPhase = 1 } = {}) {
+export function buildSportsProtocol(
+  { sport, age, experience, goal, targetPhase = 1 }:
+  { sport?: unknown; age?: number | null; experience?: string; goal?: string | null; targetPhase?: number } = {},
+): Record<string, unknown> {
   const phase = clampPhase(targetPhase);
-  const base = ATHLETIC_BASE[experience] || ATHLETIC_BASE.intermediate;
+  const base = ATHLETIC_BASE[experience as string] || ATHLETIC_BASE.intermediate;
   const key = normalizeSportKey(sport);
   const skill = (SPORT_SKILL[key] || SPORT_SKILL.general)[phase];
   const meta = PHASE_META[phase];
@@ -176,12 +171,12 @@ export function buildSportsProtocol({ sport, age, experience, goal, targetPhase 
     phase_number: phase,
     current_phase: meta.label,
     progression_criteria: meta.prose,
-    progression_thresholds: meta.thresholds, // machine-checkable; null at Phase 3 (terminal)
-    experience: experience || 'intermediate',
+    progression_thresholds: meta.thresholds,
+    experience: (experience as string) || 'intermediate',
     focus: `${LABELS[key]} · ${meta.label}`,
     summary: `Periodized ${LABELS[key].toLowerCase()} protocol (Phase ${phase}/3) — sport skill + phase-escalated plyometrics on a level-scaled athletic base. Excludes barbell back squats and crunches per BBF Immutable Laws.`,
     source_goal: goal || null,
-    source_age: Number.isFinite(age) ? age : null,
+    source_age: (typeof age === 'number' && Number.isFinite(age)) ? age : null,
     blocks,
   };
 }
