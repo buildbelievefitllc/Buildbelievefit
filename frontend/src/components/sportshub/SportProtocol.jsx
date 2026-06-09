@@ -13,6 +13,8 @@
 // null / empty / unusable payload → the General Physical Preparedness fallback.
 
 import './sportProtocol.css';
+import VideoSlot from '../common/VideoSlot.jsx';
+import { resolveAthleticVideo } from './sportsVideos.js';
 
 // Per-item prescription fields → chip label. Only present fields render.
 const META_KEYS = [
@@ -150,6 +152,9 @@ export default function SportProtocol({ protocol }) {
                     </span>
                   ) : null}
                   {item.detail ? <p className="sh-proto-item-detail">{item.detail}</p> : null}
+                  {item.meta.length ? (
+                    <VideoSlot videoId={resolveAthleticVideo(item.name)} title={item.name} caption={item.meta[0]} />
+                  ) : null}
                 </li>
               ))}
             </ul>

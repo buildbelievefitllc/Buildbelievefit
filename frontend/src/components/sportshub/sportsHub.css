@@ -275,6 +275,12 @@
 .sh-ex.is-done .sh-ex-name { color: #bfe9cd; }
 .sh-ex-scheme { flex: 0 0 auto; font-family: var(--mono); font-size: .8rem; color: var(--gold-soft); }
 
+/* Per-exercise / per-drill demonstration video — compact thumbnail, tap to play. */
+.sh-ex-row { display: flex; flex-direction: column; gap: .5rem; }
+.sh-ex-row .bbf-vslot,
+.sh-drill-body .bbf-vslot { max-width: 280px; }
+.sh-drill-body .bbf-vslot { margin-top: .55rem; }
+
 /* Combine & Measurables disclosure */
 .sh-measurables { margin-top: 1.3rem; border: 1px solid var(--sh-line); border-radius: 14px; background: var(--sh-card); overflow: hidden; }
 .sh-measurables-toggle {

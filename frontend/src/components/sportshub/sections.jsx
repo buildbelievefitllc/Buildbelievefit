@@ -9,6 +9,7 @@
 // click. Styling stays in the `.sh-*` namespace (LOCKED-brand varsity register).
 
 import { progressToward } from './hubData.js';
+import { resolveAthleticVideo } from './sportsVideos.js';
 import VideoSlot from '../common/VideoSlot.jsx';
 
 // Educational video per measurable. Each id/title/caption is a localized
@@ -217,19 +218,21 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
       <SectionCard tag={`${phaseLabel} · Workload`} title={day.focus} meta={`${exDone} / ${day.exercises.length} done`} testId="sh-day-workout">
         <div className="sh-exlist">
           {day.exercises.map((e, i) => (
-            <button
-              key={e.name}
-              type="button"
-              className={`sh-ex${e.done ? ' is-done' : ''}`}
-              aria-pressed={e.done}
-              aria-label={`Mark ${e.name} ${e.done ? 'incomplete' : 'complete'}`}
-              data-testid={`sh-ex-${i}`}
-              onClick={() => onToggleExercise(i)}
-            >
-              <span className={`sh-ex-check${e.done ? ' is-on' : ''}`} aria-hidden="true">{e.done ? '✓' : ''}</span>
-              <span className="sh-ex-name">{e.name}</span>
-              <span className="sh-ex-scheme" data-testid={`sh-ex-scheme-${i}`}>{phase === 'inseason' ? e.in : e.off}</span>
-            </button>
+            <div className="sh-ex-row" key={e.name}>
+              <button
+                type="button"
+                className={`sh-ex${e.done ? ' is-done' : ''}`}
+                aria-pressed={e.done}
+                aria-label={`Mark ${e.name} ${e.done ? 'incomplete' : 'complete'}`}
+                data-testid={`sh-ex-${i}`}
+                onClick={() => onToggleExercise(i)}
+              >
+                <span className={`sh-ex-check${e.done ? ' is-on' : ''}`} aria-hidden="true">{e.done ? '✓' : ''}</span>
+                <span className="sh-ex-name">{e.name}</span>
+                <span className="sh-ex-scheme" data-testid={`sh-ex-scheme-${i}`}>{phase === 'inseason' ? e.in : e.off}</span>
+              </button>
+              <VideoSlot videoId={resolveAthleticVideo(e.name)} title={e.name} caption={phase === 'inseason' ? e.in : e.off} />
+            </div>
           ))}
         </div>
       </SectionCard>
@@ -256,6 +259,7 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
                     <span className="sh-drill-pct">{d.done ? 'MET' : d.reps}</span>
                   </div>
                   <div className="sh-drill-desc">{d.detail}</div>
+                  <VideoSlot videoId={resolveAthleticVideo(d.name)} title={d.name} caption={d.detail} />
                 </div>
               </div>
             ))}

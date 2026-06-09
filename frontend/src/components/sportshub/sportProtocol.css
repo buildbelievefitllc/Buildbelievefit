@@ -95,6 +95,8 @@
   line-height: 1.4;
   color: #b9a8d6;
 }
+/* Per-movement demo video — compact thumbnail under the prescription chips. */
+.sh-proto-item .bbf-vslot { max-width: 280px; margin-top: 8px; }
 
 /* General Physical Preparedness fallback. */
 .sh-proto--gpp .sh-proto-title { color: var(--gold-soft); font-size: 1.25rem; }
