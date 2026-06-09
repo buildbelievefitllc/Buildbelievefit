@@ -3652,8 +3652,16 @@ function attachPhantomEyeProxy(server) {
 const httpServer = http.createServer(app);
 attachPhantomEyeProxy(httpServer);
 
-httpServer.listen(PORT, () => {
-  console.log(`[BBF VAULT] Engine server listening on port ${PORT}`);
+// Render Network Standard: bind the dynamic PORT on 0.0.0.0 (all IPv4 interfaces).
+// Without the explicit host, Node may bind IPv6-only (::) and Render's port scan
+// misses it → "Port scan timeout reached, no open ports detected". Stays on
+// httpServer (NOT app.listen) so the Phantom Eye voice WebSocket upgrade survives.
+httpServer.on('error', (err) => {
+  console.error('[BBF VAULT] HTTP server failed to bind:', err && err.message);
+  process.exit(1);
+});
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`[BBF VAULT] Engine server listening on 0.0.0.0:${PORT}`);
   console.log(`[BBF VAULT] Process endpoint: POST /process`);
   console.log(`[BBF VAULT] Phantom Eye proxy: ws ${PHANTOM_EYE_PROXY_PATH}`);
 });
