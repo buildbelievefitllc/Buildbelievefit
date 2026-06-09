@@ -24,7 +24,7 @@
 // Composition card (admin-PIN secured), so all of an athlete's analytics live here,
 // in the Client Database Hub, instead of on a separate top-level surface.
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
 import { hasAdminPin, setAdminPin, fetchBodyComposition } from '../../lib/coachAnalyticsApi.js';
 import { BarChart, LineChart, BodyComp } from './charts.jsx';
@@ -57,6 +57,17 @@ export default function ClientDossier({ client, onBack }) {
   const [protoError, setProtoError] = useState(null);
   const [protoKey, setProtoKey] = useState(0);
   const reloadProto = useCallback(() => setProtoKey((k) => k + 1), []);
+
+  // Active operational deck — LIFTED out of DossierBody so the Sovereign header's
+  // quick-action menu can flip straight to a deck (e.g. Manual Override) from above.
+  // null = layout default (Override for athletes, Nutrition otherwise).
+  const [pickedDeck, setPickedDeck] = useState(null);
+  const opsRef = useRef(null);
+  const quickAction = useCallback((deckId) => {
+    setPickedDeck(deckId);
+    // Scroll after the deck switch paints so the target rect is final.
+    requestAnimationFrame(() => opsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }, []);
 
   const fetchDetail = useCallback(async () => {
     setIsLoading(true);
@@ -140,7 +151,7 @@ export default function ClientDossier({ client, onBack }) {
       <button type="button" style={styles.back} onClick={onBack}>← Back to Roster</button>
 
       {/* Athlete → Sovereign Tier dossier (prototype layout); else the standard identity card. */}
-      {isAthlete ? <SovereignAthlete c={c} proto={proto} /> : <AthleteCard c={c} proto={proto} />}
+      {isAthlete ? <SovereignAthlete c={c} proto={proto} onQuickAction={quickAction} /> : <AthleteCard c={c} proto={proto} />}
 
       {isLoading && !data ? <Loading label="Loading dossier…" /> : null}
 
@@ -156,7 +167,7 @@ export default function ClientDossier({ client, onBack }) {
       ) : null}
 
       {data ? (
-        <>
+        <div ref={opsRef}>
           {isAthlete ? (
             <div style={styles.opsDivider}>
               <span style={styles.opsKicker}>Operational Decks · Live Controls</span>
@@ -174,8 +185,10 @@ export default function ClientDossier({ client, onBack }) {
             protoLoading={protoLoading}
             protoError={protoError}
             onProtoReload={reloadProto}
+            picked={pickedDeck}
+            onPick={setPickedDeck}
           />
-        </>
+        </div>
       ) : null}
     </div>
   );
@@ -277,11 +290,11 @@ const DECKS = [
 const ATHLETE_DECK_ORDER = ['override', 'workouts', 'nutrition', 'analytics', 'feed', 'target'];
 const ATHLETE_DECKS = ATHLETE_DECK_ORDER.map((id) => DECKS.find((d) => d.id === id));
 
-function DossierBody({ c, clientId, clientUid, onPatched, analytics, isAthlete, proto, protoLoading, protoError, onProtoReload }) {
-  // `picked` = the user's explicit choice; until they pick, the active deck tracks the
-  // layout default (Override for athletes, Nutrition otherwise) so resolving athlete-ness
-  // after mount upgrades the default without yanking a tab out from under the user.
-  const [picked, setPicked] = useState(null);
+function DossierBody({ c, clientId, clientUid, onPatched, analytics, isAthlete, proto, protoLoading, protoError, onProtoReload, picked, onPick }) {
+  // `picked` (lifted to ClientDossier — the Sovereign header's quick-action menu writes
+  // it too) = the explicit choice; until one is made, the active deck tracks the layout
+  // default (Override for athletes, Nutrition otherwise) so resolving athlete-ness after
+  // mount upgrades the default without yanking a tab out from under the user.
   const decks = isAthlete ? ATHLETE_DECKS : DECKS;
   const deck = picked ?? (isAthlete ? 'override' : 'nutrition');
 
@@ -297,7 +310,7 @@ function DossierBody({ c, clientId, clientUid, onPatched, analytics, isAthlete, 
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => setPicked(d.id)}
+              onClick={() => onPick(d.id)}
               style={{ ...styles.tab, ...(flagged ? styles.tabAthlete : null), ...(active ? styles.tabActive : null) }}
             >
               <span aria-hidden="true" style={styles.tabIcon}>{d.icon}</span>{d.label}

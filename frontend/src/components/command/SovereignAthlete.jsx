@@ -11,7 +11,7 @@
 // remain in ClientDossier's DossierBody beneath this — these sections are the
 // read/architecture surface, not a replacement for the working decks.
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // ── MOCK telemetry — LAYOUT ONLY. Replace each with a real column when wired. ─────
 const MOCK = {
@@ -53,14 +53,14 @@ const LIFELINE = [
   { tier: 'Collegiate & Pro', ages: 'Ages 18+', lo: 18, hi: 99, note: 'Medical-grade ANS diagnostics, central fatigue metrics, predictive musculoskeletal decay models.' },
 ];
 
-export default function SovereignAthlete({ c, proto }) {
+export default function SovereignAthlete({ c, proto, onQuickAction }) {
   const sport = proto?.sport || 'Athlete';
   const age = Number(c?.age) || Number(proto?.source_age) || 17;
   const phase = parseInt(proto?.phase_number, 10) || 1;
 
   return (
     <div style={s.wrap}>
-      <BiometricDossier c={c} sport={sport} age={age} phase={phase} />
+      <BiometricDossier c={c} sport={sport} age={age} phase={phase} onQuickAction={onQuickAction} />
       <SovereignRoadmap c={c} />
       <AntiLockoutNode />
       <LifelineRoadmap age={age} />
@@ -70,7 +70,7 @@ export default function SovereignAthlete({ c, proto }) {
 }
 
 // ── 1 · Active Biometric Dossier ─────────────────────────────────────────────────
-function BiometricDossier({ c, sport, age, phase }) {
+function BiometricDossier({ c, sport, age, phase, onQuickAction }) {
   const name = c?.name || c?.uid || 'Unnamed Athlete';
   const pos = c?.position || SPORT_POS[sport] || 'Athlete';
   const chips = [`Age ${age}`, `POS · ${pos}`, 'Highschool Bracket', `Era Phase ${phase}`];
@@ -93,8 +93,75 @@ function BiometricDossier({ c, sport, age, phase }) {
           <BioStat label="Central Fatigue Drift" value={`${MOCK.cnsDrift}%`} unit="CNS" tone="var(--gold-soft)" />
           <BioStat label="Injury Risk Index" value={MOCK.injuryRisk} unit="" tone="var(--grn)" pill />
         </div>
+        <HeaderActions onAction={onQuickAction} />
       </div>
     </section>
+  );
+}
+
+// ── Header quick-actions — secondary, immediate path into the operational decks.
+//    Ids match ClientDossier's DECKS; Manual Override leads (the headline control).
+const QUICK_ACTIONS = [
+  ['override', '⚡ Manual Override', true],
+  ['workouts', '🏋 7-Day Workouts'],
+  ['nutrition', '🍽 7-Day Nutrition'],
+  ['analytics', '📊 Analytics'],
+  ['feed', '💬 Athlete Feed Chat'],
+  ['target', '⬆ Update Target'],
+];
+
+function HeaderActions({ onAction }) {
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef(null);
+
+  // Close on outside click / Escape — listeners only while open. setState fires in
+  // the subscription callbacks, never the effect body (repo lint rule).
+  useEffect(() => {
+    if (!open) return undefined;
+    function onDocDown(e) { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); }
+    function onKey(e) { if (e.key === 'Escape') setOpen(false); }
+    document.addEventListener('mousedown', onDocDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  function pick(id) {
+    setOpen(false);
+    onAction?.(id);
+  }
+
+  return (
+    <div ref={boxRef} style={s.actionsWrap}>
+      <button
+        type="button"
+        style={s.actionsBtn}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Athlete quick actions"
+        onClick={() => setOpen((o) => !o)}
+      >
+        ⋯
+      </button>
+      {open ? (
+        <div role="menu" aria-label="Athlete quick actions" style={s.menu}>
+          <span style={s.menuHead}>Quick Actions</span>
+          {QUICK_ACTIONS.map(([id, label, hot]) => (
+            <button
+              key={id}
+              type="button"
+              role="menuitem"
+              style={{ ...s.menuItem, ...(hot ? s.menuItemHot : null) }}
+              onClick={() => pick(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -410,6 +477,28 @@ const s = {
   bioVal: { fontFamily: 'var(--display)', fontSize: '1.35rem', lineHeight: 1, color: 'var(--wht)' },
   bioUnit: { fontFamily: 'var(--bd)', fontSize: '.7rem', fontWeight: 700, color: 'var(--mut)' },
   riskPill: { alignSelf: 'flex-start', fontFamily: 'var(--hb)', fontSize: '.7rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#04130a', background: 'var(--grn)', borderRadius: 6, padding: '.15rem .55rem' },
+
+  // Header quick-actions dropdown
+  actionsWrap: { position: 'relative', alignSelf: 'flex-start', flexShrink: 0 },
+  actionsBtn: {
+    width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+    borderRadius: 9, border: '1px solid rgba(245,200,0,.45)', background: 'rgba(0,0,0,.35)',
+    color: 'var(--gold-soft)', fontSize: '1.15rem', lineHeight: 1, cursor: 'pointer',
+  },
+  menu: {
+    position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 40, minWidth: 230,
+    display: 'flex', flexDirection: 'column', gap: '.25rem', background: '#0d0716',
+    border: '1px solid rgba(245,200,0,.4)', borderRadius: 12, padding: '.45rem',
+    boxShadow: '0 14px 40px rgba(0,0,0,.55)',
+  },
+  menuHead: { fontFamily: 'var(--hb)', fontSize: '.56rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--gold-deep)', padding: '.25rem .5rem .35rem' },
+  menuItem: {
+    display: 'flex', alignItems: 'center', gap: '.5rem', width: '100%', textAlign: 'left',
+    fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase',
+    color: 'var(--gold-soft)', background: 'rgba(106,13,173,.18)', border: '1px solid var(--line)',
+    borderRadius: 8, padding: '.5rem .6rem', cursor: 'pointer',
+  },
+  menuItemHot: { color: '#090909', background: 'var(--yel)', borderColor: 'var(--yel)' },
 
   // Pill tabs
   pillTabs: { display: 'flex', gap: '.35rem', flexWrap: 'wrap' },
