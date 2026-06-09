@@ -25,6 +25,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { getPrehabCatalog, compileReport, REGION_ICONS, EX_VIDEO } from './prehabProtocol.js';
 import { resolveVideoId, thumbURL } from './exerciseVideos.js';
+import { pickLang } from '../../lib/pickLang.js';
 import { requestPrehabMatrix } from '../../lib/prehabApi.js';
 import './prehab.css';
 
@@ -389,12 +390,15 @@ function ProtocolRing({ pct }) {
 function slugifyName(name) {
   return String(name || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
-function resolveExerciseVideo(ex) {
+// `lang` resolves each catalog entry (a flat id OR a localized { en, es, pt }
+// object) to the active language via pickLang, with EN fallback — so a missing
+// es/pt clip safely shows the EN demo instead of an empty slot.
+function resolveExerciseVideo(ex, lang) {
   if (!ex) return null;
-  if (ex.key && EX_VIDEO[ex.key]) return EX_VIDEO[ex.key];
+  if (ex.key && EX_VIDEO[ex.key]) return pickLang(EX_VIDEO[ex.key], lang);
   const slug = slugifyName(ex.name);
-  if (slug && EX_VIDEO[slug]) return EX_VIDEO[slug];
-  return resolveVideoId(ex.name) || null;
+  if (slug && EX_VIDEO[slug]) return pickLang(EX_VIDEO[slug], lang);
+  return resolveVideoId(ex.name, lang) || null;
 }
 
 // Form-demo video player — resolves each exercise to a real curated YouTube id
@@ -402,8 +406,9 @@ function resolveExerciseVideo(ex) {
 // play overlay; a tap swaps in an autoplay embed so the demo plays inside the card.
 // No id → a clean caption-only state (never a dead button).
 function VideoSlot({ ex, s }) {
+  const { lang } = useLang();
   const [playing, setPlaying] = useState(false);
-  const id = resolveExerciseVideo(ex);
+  const id = resolveExerciseVideo(ex, lang);
 
   if (!id) {
     return (
@@ -416,6 +421,7 @@ function VideoSlot({ ex, s }) {
     return (
       <div className="pde-video is-playing">
         <iframe
+          key={id}
           className="pde-video-frame"
           src={`https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`}
           title={s.demoVideo(ex.name)}

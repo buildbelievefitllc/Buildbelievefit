@@ -13,16 +13,23 @@
 // IMMUTABLE LAW (carried over): a blacklisted lift simply isn't in the map, so it
 // can never resolve to a video — the map is the allow-list, not just media.
 
-// ─── Hardwired exercise → YouTube id map (verbatim from BBF_VIDEO_MAP) ───────
+import { pickLang } from '../../lib/pickLang.js';
+
+// ─── Hardwired exercise → YouTube id map ─────────────────────────────────────
+// Each value is EITHER a flat YouTube id string (legacy / EN-for-all — the
+// structural fallback) OR a localized { en, es, pt } object. resolveVideoId()
+// resolves whichever shape to the active language via pickLang(), so a bare
+// string keeps working untouched and an entry is promoted to the object form the
+// moment a localized clip is sourced (a missing es/pt safely falls back to en).
 export const VIDEO_MAP = {
   // CORE 37
-  'Barbell Bench Press': 'vthMCtgVtFw', 'Incline Dumbbell Press': 'awEEyL5zGvU', 'Machine Chest Press': 'pLofEAcfsO8', 'Push-Up': 'uXC_3Gs9Yr0', 'Cable Chest Fly': 'ovFc-5YdcXw',
-  'Lat Pulldown': 'CAwf7n6Luuc', 'Seated Cable Row': 'EU7bOadUsNI', 'One-Arm Dumbbell Row': 'pYcpY20QaE8', 'Pull-Up': 'rmdn5X_KLkY', 'Barbell Bent-Over Row': 'rqTOAM8WoeM',
+  'Barbell Bench Press': { en: 'vthMCtgVtFw', es: 'fqsTgdTPRQU', pt: 'vIGvt-vgrvY' }, 'Incline Dumbbell Press': 'awEEyL5zGvU', 'Machine Chest Press': 'pLofEAcfsO8', 'Push-Up': 'uXC_3Gs9Yr0', 'Cable Chest Fly': 'ovFc-5YdcXw',
+  'Lat Pulldown': { en: 'CAwf7n6Luuc', es: 'WW6E1zRdYoQ', pt: 'V-Z_RntYhZg' }, 'Seated Cable Row': 'EU7bOadUsNI', 'One-Arm Dumbbell Row': 'pYcpY20QaE8', 'Pull-Up': 'rmdn5X_KLkY', 'Barbell Bent-Over Row': 'rqTOAM8WoeM',
   'Dumbbell Shoulder Press': 'E9ShwbwZ1zw', 'Dumbbell Lateral Raise': '4hTUCDUQaNA', 'Cable Face Pull': 'ljgqer1ZpXg', 'Band Pull-Apart': 'smSSXITNpCI',
   'Dumbbell Biceps Curl': 'ykJmrZ5v0Oo', 'Cable Biceps Curl': '2MUEL4nL6hA', 'Hammer Curl': 'TwD-YGVP4Bk',
   'Cable Triceps Pushdown': '_w-HpW70nSQ', 'Bench Dip': '0326dy_-CzM',
-  'Leg Press': 'K5n2vg3oZa4', 'Goblet Squat': 'BR4tlEE_A98', 'Bulgarian Split Squat': 'hiLF_pF3EJM', 'Walking Lunge': '_DLIS8SySzs', 'Leg Extension': 'tTbJBUKnWU8', 'Front Squat': 'wyDbagKS7Rg',
-  'Dumbbell Romanian Deadlift': 'aa57T45iFSE', 'Seated Leg Curl': 'S367qaHeYWU',
+  'Leg Press': 'K5n2vg3oZa4', 'Goblet Squat': { en: 'BR4tlEE_A98', es: 'XANUniwN1Jg', pt: '6cSmqSho_Ks' }, 'Bulgarian Split Squat': 'hiLF_pF3EJM', 'Walking Lunge': '_DLIS8SySzs', 'Leg Extension': 'tTbJBUKnWU8', 'Front Squat': 'wyDbagKS7Rg',
+  'Dumbbell Romanian Deadlift': { en: 'aa57T45iFSE', es: 'UgqrPwoTick', pt: 'jSomWOwLiGE' }, 'Seated Leg Curl': 'S367qaHeYWU',
   'Barbell Hip Thrust': 'S_uZP4UH6J0', 'Dumbbell Hip Thrust': '29OfN4ztW_g', 'Glute Bridge': '8bbE64NuDTU', 'Cable Pull-Through': 'yXopOhzEoeo',
   'Standing Calf Raise': 'SVtg-1loH4c',
   'Front Plank': 'mwlp75MS6Rg', 'Side Plank': 'Ujf5ELfqI7o', 'Hanging Leg Raise': 'Pr1ieGZ5atk', 'Cable Woodchop': 'Gwcf4TOj1hc', 'Dead Bug': 'bxn9FBrt4-A',
@@ -80,9 +87,10 @@ function normalize(name) {
 // Precomputed token-sets for the map keys (built once).
 const KEY_INDEX = Object.keys(VIDEO_MAP).map((key) => ({ key, toks: normalize(key) }));
 
-// Resolve a plan exercise name to a hardwired YouTube id, or null. Mirrors
-// BBF_RESOLVE_VIDEO_ID: exact key → exact normalized → safe token-subset.
-export function resolveVideoId(exName) {
+// Resolve a plan exercise name to its raw VIDEO_MAP entry (a flat id string OR a
+// { en, es, pt } object), or null. Mirrors BBF_RESOLVE_VIDEO_ID:
+// exact key → exact normalized → safe token-subset.
+export function resolveVideoEntry(exName) {
   if (VIDEO_MAP[exName]) return VIDEO_MAP[exName];
   const nt = normalize(exName);
   if (!nt.length) return null;
@@ -105,6 +113,15 @@ export function resolveVideoId(exName) {
     }
   }
   return best;
+}
+
+// Resolve a plan exercise name to a hardwired YouTube id for the active language,
+// or null. `lang` is OPTIONAL: omitted (or with no localized variant) it returns
+// the EN/flat id — so legacy callers AND the generatorEngine "no video → never
+// programmed" gate keep their exact behavior, while lang-aware callers get the
+// localized clip with automatic EN fallback.
+export function resolveVideoId(exName, lang) {
+  return pickLang(resolveVideoEntry(exName), lang);
 }
 
 export const watchURL = (id) => `https://www.youtube.com/watch?v=${id}`;

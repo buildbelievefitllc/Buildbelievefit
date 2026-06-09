@@ -2235,20 +2235,20 @@ export const REGION_ICONS = {
   wrist_hand: '✋',
 };
 
-// Per-exercise form-demo video ids (language-invariant) — one curated YouTube
-// tutorial per movement, so every card plays a working demonstration in any
-// language. Most are dedicated prehab/rehab tutorials from physical-therapy
-// channels; a couple reuse a clip from the authorized exerciseVideos.VIDEO_MAP
-// where the prehab movement IS the same lift (noted inline). Prehab.jsx falls
-// back to resolveVideoId(name) for any key absent here, and renders a clean
-// caption-only state if nothing resolves.
+// Per-exercise form-demo video ids. Each value is EITHER a flat YouTube id
+// string (EN-for-all — the structural fallback) OR a localized { en, es, pt }
+// object; Prehab's VideoSlot resolves it to the active language via pickLang,
+// falling back es/pt → en so a card never goes blank. EN ids are curated
+// physical-therapy tutorials (a couple reuse the authorized VIDEO_MAP where the
+// prehab movement IS the same lift); ES/PT carry native-language clips where
+// sourced. Prehab.jsx falls back to resolveVideoId(name) for any key absent here.
 export const EX_VIDEO = {
   // ── Lower Back ──────────────────────────────────────────────────────────
   mckenzie_press_up: 'gLT-WLH84B4',         // prone spinal extension (Back Extension)
   bird_dog: 'ZdAHe9_HeEw',
-  dead_bug: 'bxn9FBrt4-A',
-  cat_cow: '1Y0YjXS9sKI',                    // Cat-Cow stretch (Hinge Health)
-  childs_pose: '-dZXkwzSzF4',                // Child's Pose tutorial
+  dead_bug: { en: 'bxn9FBrt4-A', es: 'OUVY99ez0k0', pt: 'uQfzuKBMJeE' }, // Dead Bug (EN/ES/PT)
+  cat_cow: { en: '1Y0YjXS9sKI', es: '8DN9X_KDrrY', pt: 'awP2E7wpSxk' },  // Cat-Cow (EN/ES/PT)
+  childs_pose: { en: '-dZXkwzSzF4', es: 'wzQqaCiYCqs', pt: 'M3U9NCaEcJ0' }, // Child's Pose (EN/ES/PT)
   pelvic_tilt: 'Q59R9p4rzxw',               // Supine Posterior Pelvic Tilt (MedBridge)
   knee_to_chest: 'Yd9wY25koVk',             // Single Knee to Chest (AskDoctorJo)
   supine_lumbar_rotation: 'fHRXXGxUxX8',    // Supine Lower Trunk Rotation (MedBridge)
@@ -2257,19 +2257,19 @@ export const EX_VIDEO = {
   // ── Knee ────────────────────────────────────────────────────────────────
   tempo_goblet_squat: 'BR4tlEE_A98',
   terminal_knee_ext: 'tTbJBUKnWU8',         // Leg Extension (VMO bias)
-  glute_bridge: '8bbE64NuDTU',
-  spanish_squat: 'hgFxm5KIF7M',             // Spanish Squat setup (E3 Rehab)
-  wall_sit: 'JQ2JBphtUk8',                  // Wall Sit form tutorial
+  glute_bridge: { en: '8bbE64NuDTU', es: 'bcuxKS2qRGY', pt: '6jS6aH-78w4' }, // Glute Bridge (EN/ES/PT)
+  spanish_squat: { en: 'hgFxm5KIF7M', es: 'mu61P4cs_lc', pt: '9tY-oSNRY50' }, // Spanish Squat (EN E3 Rehab · ES · PT)
+  wall_sit: { en: 'JQ2JBphtUk8', es: 'mGTJtgmYgRw', pt: 'NBaJzEt63XI' }, // Wall Sit (EN/ES/PT)
   eccentric_step_down: 'Ig_Qo-GKjRc',       // Eccentric Step-Down for knee pain
   lateral_band_walk: 'y_bqFDQZSHQ',         // Lateral Band Walk tutorial
   clamshell: 'O2KPabIoPPk',                 // Clamshell in side-lying (AskDoctorJo)
   standing_calf_raise: 'SVtg-1loH4c',       // Standing Calf Raise (VIDEO_MAP)
   single_leg_rdl: 'J1ojvq3ftqM',            // Single-Leg RDL tutorial
   // ── Shoulder ────────────────────────────────────────────────────────────
-  cable_face_pull: 'ljgqer1ZpXg',
+  cable_face_pull: { en: 'ljgqer1ZpXg', es: 'UaZPhyztYNU', pt: 'kYMTJAx_dTM' }, // Face Pull (EN/ES/PT)
   band_pull_apart: 'smSSXITNpCI',
   scap_lateral_raise: '4hTUCDUQaNA',        // Dumbbell Lateral Raise
-  sleeper_stretch: '9BN8bRVq3Xo',           // Sleeper Stretch (AskDoctorJo)
+  sleeper_stretch: { en: '9BN8bRVq3Xo', es: 'J2eJzztUSrQ', pt: 'b3dYmaRVSus' }, // Sleeper Stretch (EN AskDoctorJo · ES · PT)
   side_lying_external_rotation: '3XLT7kpMzcM', // DB Side-Lying External Rotation
   wall_slide: 'UB_n4DxOTCo',                // Scapular Wall Slides
   prone_ytw: 'CFt3WjCBbpc',                 // Prone W/T/Y Scapular Retraction
@@ -2292,7 +2292,7 @@ export const EX_VIDEO = {
   wrist_extension_load: 'mwlp75MS6Rg',      // weight-bearing through the wrists (Front Plank)
   dead_hang: 'rmdn5X_KLkY',                 // bar hang / grip (Pull-Up)
   wrist_flexor_curl: 'dA9_h9r8YBw',         // Palms-Up Dumbbell Wrist Curl
-  wrist_circles: 'IJvS9bYl_cs',             // Wrist Circles mobility
+  wrist_circles: { en: 'IJvS9bYl_cs', es: 'CQ71AY1w8Ls', pt: 'S1BqYYaZz3Y' }, // Wrist Circles (EN/ES/PT)
   prayer_stretch: 'XnJu70SLsJk',            // Prayer Stretch (AskDoctorJo)
   finger_extension_band: 'jbs0-Z8FpDw',     // Rubber-band Finger Extension
   grip_squeeze: '8h0tSMxLNG4',              // Hand/Wrist Ball Squeeze (AskDoctorJo)

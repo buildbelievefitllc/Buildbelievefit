@@ -11,13 +11,27 @@
 import { progressToward } from './hubData.js';
 import VideoSlot from '../common/VideoSlot.jsx';
 
-// Educational video per measurable. Interim ids are verified clips reused from the
-// authorized exercise VIDEO_MAP (so embeds always render) — swap for dedicated
-// educational footage when filmed. A null id → VideoSlot shows a clean empty slot.
+// Educational video per measurable. Each id/title/caption is a localized
+// { en, es, pt } map (Priority Delta); VideoSlot reads the global language and
+// resolves with EN fallback, so a missing localized clip never drops the embed.
+// EN ids are verified clips reused from the authorized exercise VIDEO_MAP; ES/PT
+// carry native-language coaching clips where sourced (else fall back to EN).
 const METRIC_VIDEOS = {
-  velocity: { id: '_DLIS8SySzs', caption: 'Max Velocity · acceleration mechanics' },
-  power:    { id: 'S_uZP4UH6J0', caption: 'Explosive Power · triple extension' },
-  force:    { id: 'GxsLrTzyGUU', caption: 'Max Force · maximal strength' },
+  velocity: {
+    id:      { en: '_DLIS8SySzs', es: 'BCWwSLLILqc', pt: 'eVZqiH0JzY4' },
+    title:   { en: 'Max Velocity', es: 'Velocidad Máxima', pt: 'Velocidade Máxima' },
+    caption: { en: 'Max Velocity · acceleration mechanics', es: 'Velocidad Máxima · mecánica de aceleración', pt: 'Velocidade Máxima · mecânica de aceleração' },
+  },
+  power: {
+    id:      { en: 'S_uZP4UH6J0', es: '3NY1W_Frnhg', pt: 'HuR_YoPhJ4c' },
+    title:   { en: 'Explosive Power', es: 'Potencia Explosiva', pt: 'Potência Explosiva' },
+    caption: { en: 'Explosive Power · triple extension', es: 'Potencia Explosiva · triple extensión', pt: 'Potência Explosiva · tripla extensão' },
+  },
+  force: {
+    id:      { en: 'GxsLrTzyGUU', es: 'WwHuwfuK2qM', pt: '6IgdSQzI5_I' },
+    title:   { en: 'Max Force', es: 'Fuerza Máxima', pt: 'Força Máxima' },
+    caption: { en: 'Max Force · maximal strength', es: 'Fuerza Máxima · fuerza absoluta', pt: 'Força Máxima · força absoluta' },
+  },
 };
 
 const STATUS_META = {
@@ -85,7 +99,7 @@ export function CombineMetrics({ combine, onMetricChange }) {
         ))}
       </div>
       <p className="sh-hint">Edit a mark to recompute attainment against the collegiate OL threshold in real time.</p>
-      <VideoSlot videoId={METRIC_VIDEOS.velocity.id} title="Max Velocity" caption={METRIC_VIDEOS.velocity.caption} />
+      <VideoSlot videoId={METRIC_VIDEOS.velocity.id} title={METRIC_VIDEOS.velocity.title} caption={METRIC_VIDEOS.velocity.caption} />
     </SectionCard>
   );
 }
@@ -126,7 +140,7 @@ export function ExplosivePower({ power, onPowerChange }) {
         ))}
       </div>
       <p className="sh-hint">Power Index = mean attainment of peak &amp; CMJ power vs target — recomputed as you log force-plate numbers.</p>
-      <VideoSlot videoId={METRIC_VIDEOS.power.id} title="Explosive Power" caption={METRIC_VIDEOS.power.caption} />
+      <VideoSlot videoId={METRIC_VIDEOS.power.id} title={METRIC_VIDEOS.power.title} caption={METRIC_VIDEOS.power.caption} />
     </SectionCard>
   );
 }
@@ -172,7 +186,7 @@ export function SizeMass({ size, onSizeChange }) {
           <span className="sh-combine-target">Collegiate OL ≈ {size.weightTarget} lbs</span>
         </div>
       </div>
-      <VideoSlot videoId={METRIC_VIDEOS.force.id} title="Max Force" caption={METRIC_VIDEOS.force.caption} />
+      <VideoSlot videoId={METRIC_VIDEOS.force.id} title={METRIC_VIDEOS.force.title} caption={METRIC_VIDEOS.force.caption} />
     </SectionCard>
   );
 }

@@ -493,7 +493,7 @@ function GeneratorOutput({ result }) {
           {day.exercises.length === 0 ? (
             <div className="gen-ex"><div className="gen-exname">{tr.rest}</div></div>
           ) : day.exercises.map((ex, ei) => {
-            const vid = resolveVideoId(ex.n);
+            const vid = resolveVideoId(ex.n, lang);
             const exRx = ex.rx || day.rx;
             return (
               <div className="gen-ex" key={ex.n + ei}>

@@ -178,6 +178,7 @@ function DayView({ uid, day, dayIdx }) {
 }
 
 function ExerciseCard({ uid, dayIdx, index, ex }) {
+  const { lang } = useLang();
   const [open, setOpen] = useState(index === 0); // first card open, like the legacy default
   // Server last-working-weights for this day (cross-device autoregulation target).
   const { weights } = useLastWeights(uid, dayIdx);
@@ -208,8 +209,9 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
   // "135 lb" → "135" so a non-numeric load like "Bodyweight" keeps "lbs".
   const wPlaceholder = lastWeight != null ? `${lastWeight}` : (weightPlaceholder(target) || 'lbs');
   // Hardwired form-demo video for this movement (fuzzy-resolved against the
-  // authorized video map). null for the few cardio/circuit entries with no demo.
-  const videoId = resolveVideoId(ex.name);
+  // authorized video map), localized to the active language with EN fallback.
+  // null for the few cardio/circuit entries with no demo.
+  const videoId = resolveVideoId(ex.name, lang);
 
   const onField = (setIdx, field, value) => {
     writeDayEntry(uid, dayIdx, exKey(index), setIdx, field, value);
