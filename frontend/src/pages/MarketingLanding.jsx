@@ -13,7 +13,7 @@
 // are restored.
 
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import PathfinderForm from '../components/PathfinderForm.jsx';
 import Interrogator from '../components/Interrogator.jsx';
@@ -68,6 +68,12 @@ export default function MarketingLanding() {
   // "way in" is offered, so the manual path is consistent.
   const enter = () => navigate(user ? '/vault' : '/login');
 
+  // Post-checkout return banner. Stripe (bbf-create-checkout success_url) redirects
+  // to /?checkout=success after payment — close the loop on-screen so a paying
+  // client isn't dumped on the bare homepage (their username + PIN arrive by email).
+  const [searchParams] = useSearchParams();
+  const checkoutStatus = searchParams.get('checkout');
+
   // ── Brand Engine Interface — the 5-tab state machine ──────────────────────────
   // The former vertical stack (Pricing, Six Pillars, Calculator, Pathfinder, Coach
   // bio) is now one horizontal tabbed deck. DEFAULT = 'paths' (subscriptions first,
@@ -114,6 +120,20 @@ export default function MarketingLanding() {
 
   return (
     <div style={s.page}>
+      {/* ── POST-CHECKOUT RETURN BANNER (Stripe success_url / cancel_url) ── */}
+      {checkoutStatus === 'success' ? (
+        <div role="status" style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', background: `linear-gradient(90deg, ${PUR}, ${PURL})`, borderBottom: `2px solid ${GOLD}`, padding: '0.9rem 1.2rem' }}>
+          <span aria-hidden="true" style={{ fontFamily: HEAD, fontSize: '1.5rem', color: GOLD }}>✓</span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontFamily: HEAD, fontSize: '1.1rem', letterSpacing: '1px', color: '#fff' }}>{t('co-success-title')}</div>
+            <div style={{ fontFamily: BODY, fontSize: '.92rem', fontWeight: 600, color: 'rgba(255,255,255,.88)' }}>{t('co-success-body')}</div>
+          </div>
+          <button type="button" onClick={enter} style={{ fontFamily: HEAD, fontSize: '.95rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#1B1106', background: GOLD, border: 'none', borderRadius: 8, padding: '.6rem 1.3rem', cursor: 'pointer' }}>{t('co-success-cta')}</button>
+        </div>
+      ) : checkoutStatus === 'cancelled' ? (
+        <div role="status" style={{ textAlign: 'center', background: 'rgba(157,39,201,.15)', borderBottom: `1px solid rgba(157,39,201,.4)`, padding: '0.7rem 1rem', fontFamily: BODY, fontSize: '.92rem', fontWeight: 600, color: 'rgba(255,255,255,.82)' }}>{t('co-cancel-body')}</div>
+      ) : null}
+
       {/* ── NAV ── */}
       <nav style={s.nav}>
         <a href="#hero" style={s.navLogo}>BUILD BELIEVE <span style={{ color: GOLD }}>FIT</span></a>

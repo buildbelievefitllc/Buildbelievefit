@@ -218,6 +218,11 @@ const DICT = {
   'pf-checkout-cta': { en: 'Proceed to Secure Checkout →', es: 'Continuar al Pago Seguro →', pt: 'Ir para o Pagamento Seguro →' },
   'pf-checkout-secured': { en: 'Secured by Stripe · cancel anytime', es: 'Asegurado por Stripe · cancela cuando quieras', pt: 'Protegido pela Stripe · cancele quando quiser' },
   'pf-checkout-loading': { en: 'Opening secure checkout…', es: 'Abriendo el pago seguro…', pt: 'Abrindo o pagamento seguro…' },
+  // Post-checkout return banner (Stripe success_url / cancel_url).
+  'co-success-title': { en: 'Payment Received — Welcome to the Standard', es: 'Pago Recibido — Bienvenido al Estándar', pt: 'Pagamento Recebido — Bem-vindo ao Padrão' },
+  'co-success-body': { en: 'Check your email for your username + PIN, then sign in to unlock your vault.', es: 'Revisa tu correo para tu usuario + PIN, luego inicia sesión para desbloquear tu bóveda.', pt: 'Verifique seu e-mail para seu usuário + PIN, depois entre para desbloquear seu cofre.' },
+  'co-success-cta': { en: 'Sign In', es: 'Iniciar Sesión', pt: 'Entrar' },
+  'co-cancel-body': { en: 'Checkout cancelled — your selected plan is still waiting whenever you’re ready.', es: 'Pago cancelado — tu plan seleccionado sigue esperando cuando estés listo.', pt: 'Pagamento cancelado — seu plano selecionado continua esperando quando você quiser.' },
 
   // ── The Sports Hub — youth first-run intake gate (PAR-Q+ + guardian auth). ──
   'yi-title': { en: 'Athlete Intake — Required', es: 'Registro del Atleta — Obligatorio', pt: 'Cadastro do Atleta — Obrigatório' },
