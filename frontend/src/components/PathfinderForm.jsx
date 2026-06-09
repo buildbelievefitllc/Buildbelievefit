@@ -145,7 +145,7 @@ function buildIntakeSportsProtocol(form) {
   }
 }
 
-export default function PathfinderForm() {
+export default function PathfinderForm({ checkout = null }) {
   const { t, lang } = useLang();
   const { containerRef, obtainToken, error: tsError } = useTurnstile(TURNSTILE_SITE_KEY);
 
@@ -274,17 +274,41 @@ export default function PathfinderForm() {
   }
 
   if (submitted) {
+    // Two success states: a plain "application received" mirror, OR — when the
+    // prospect arrived via a price CTA — the gated Stripe handoff. The PAR-Q /
+    // medical screening is already captured at this point, so checkout is safe.
     return (
       <div style={styles.successCard} role="status" aria-live="polite">
         <div style={styles.successMark}>✓</div>
-        <div style={styles.successTitle}>{t('f-success-title')}</div>
-        <p style={styles.successBody}>{t('f-success-body')}</p>
+        <div style={styles.successTitle}>{checkout?.href ? t('pf-checkout-title') : t('f-success-title')}</div>
+        <p style={styles.successBody}>{checkout?.href ? t('pf-checkout-body') : t('f-success-body')}</p>
+        {checkout?.href ? (
+          <>
+            <div style={styles.enrollTier}>
+              {t('pf-checkout-enrolling')} <strong style={{ color: '#f5c800' }}>{checkout.tierName}</strong>
+              {checkout.price ? ` · ${checkout.price}` : ''}
+            </div>
+            <a className="bbf-btn" href={checkout.href} target="_blank" rel="noopener noreferrer" style={styles.checkoutBtn}>
+              {t('pf-checkout-cta')}
+            </a>
+            <div style={styles.checkoutSecured}>{t('pf-checkout-secured')}</div>
+          </>
+        ) : null}
       </div>
     );
   }
 
   return (
     <form style={styles.card} onSubmit={handleSubmit} noValidate>
+      {/* Selected-plan banner — shown only when the prospect arrived via a price CTA.
+          Signals WHY they're screening first: complete the PAR-Q to reach checkout. */}
+      {checkout?.href ? (
+        <div style={styles.enrollBanner}>
+          <div style={styles.enrollKicker}>{t('pf-enroll-kicker')}</div>
+          <div style={styles.enrollTierName}>{checkout.tierName}{checkout.price ? ` · ${checkout.price}` : ''}</div>
+          <div style={styles.enrollNote}>{t('pf-enroll-note')}</div>
+        </div>
+      ) : null}
       <Field id="pf-name" label={t('f-name')} error={fieldErrors.fullName}>
         <input id="pf-name" className="bbf-input" type="text" autoComplete="name"
           placeholder={t('f-name')} value={form.fullName} disabled={submitting}
@@ -457,4 +481,12 @@ const styles = {
   successMark: { width: 56, height: 56, margin: '0 auto 1.1rem', borderRadius: '50%', border: '2px solid #22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.6rem', color: '#22c55e' },
   successTitle: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.7rem', letterSpacing: '1px', margin: '0 0 .7rem', color: '#fff' },
   successBody: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '1rem', fontWeight: 600, lineHeight: 1.5, color: 'rgba(255,255,255,.7)', margin: 0 },
+  // Pricing → Pathfinder → Pay gate (selected-plan banner + post-screening checkout).
+  enrollBanner: { background: 'rgba(106,13,173,.18)', border: '1px solid rgba(245,200,0,.4)', borderRadius: 12, padding: '0.9rem 1rem', marginBottom: '1.3rem', textAlign: 'center' },
+  enrollKicker: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.7rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#9D27C9' },
+  enrollTierName: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.3rem', letterSpacing: '1px', color: '#f5c800', margin: '.15rem 0 .35rem' },
+  enrollNote: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.85rem', fontWeight: 600, lineHeight: 1.4, color: 'rgba(255,255,255,.7)' },
+  enrollTier: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '1.05rem', fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '1rem 0 1.2rem' },
+  checkoutBtn: { display: 'block', textDecoration: 'none', textAlign: 'center', marginTop: '.4rem' },
+  checkoutSecured: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.8rem', fontWeight: 600, color: 'rgba(255,255,255,.5)', marginTop: '.8rem' },
 };

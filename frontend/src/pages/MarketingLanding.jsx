@@ -85,6 +85,15 @@ export default function MarketingLanding() {
   };
   const goToPathfinder = () => goToTab('pathfinder');
 
+  // ── Pricing → Pathfinder → Pay gate (CEO liability directive) ─────────────────
+  // A price CTA NO LONGER jumps straight to Stripe. It records the chosen plan +
+  // its checkout link and routes the prospect INTO the Pathfinder first, so the
+  // PAR-Q / medical-readiness screening is captured BEFORE any payment. The Stripe
+  // handoff is surfaced only on the Pathfinder success card (see PathfinderForm) —
+  // no one can reach checkout without first completing the health screening.
+  const [checkout, setCheckout] = useState(null); // { tierName, price, href } | null
+  const startCheckout = (sel) => { setCheckout(sel); goToTab('pathfinder'); };
+
   // Knowledge deck — Science Hub + Routine Interrogator collapsed into one two-tab
   // module (was a tall vertical stack below the deck). Default to the Science Hub;
   // the nav Science/Audit links flip the tab and bring the module into view.
@@ -191,7 +200,7 @@ export default function MarketingLanding() {
                   <div style={s.secLbl}>{t('prog-lbl')}</div>
                   <h2 style={s.secH}>{t('prog-h')}</h2>
                   <p style={s.secSub}>{t('prog-sub')}</p>
-                  <PricingMatrix />
+                  <PricingMatrix onSelectTier={startCheckout} />
 
                   {/* Local Weekly Ongoing Training — custom-quote call-out (mailto) */}
                   <div style={s.localCallout}>
@@ -249,7 +258,7 @@ export default function MarketingLanding() {
                   <div style={s.secLbl}>{t('pf-lbl')}</div>
                   <h2 style={s.secH}>{t('pf-h')}</h2>
                   <p style={s.secSub}>{t('pf-sub')}</p>
-                  <div style={{ marginTop: '2rem' }}><PathfinderForm /></div>
+                  <div style={{ marginTop: '2rem' }}><PathfinderForm checkout={checkout} /></div>
                 </div>
               )}
 
@@ -414,11 +423,13 @@ export default function MarketingLanding() {
   );
 }
 
-// ── PRICING MATRIX — four category tabs → live Stripe Payment Links ──────────────
-// Each card's purchase button is an <a> to a real buy.stripe.com link (opens in a new
-// tab → Stripe-hosted checkout). Recurring tiers (Cat 1–3) carry one button; the
-// one-time Hybrid protocols carry two (3×/4× per week), each its own price/link.
-function PricingMatrix() {
+// ── PRICING MATRIX — four category tabs → Pathfinder-gated checkout ──────────────
+// A purchase button no longer links straight to Stripe. It calls onSelectTier with
+// the chosen plan + its live buy.stripe.com link; the parent records it and routes
+// the prospect through the Pathfinder PAR-Q screening first, then surfaces the Stripe
+// handoff on the success card. Recurring tiers carry one button; the one-time Hybrid
+// protocols carry two (3×/4× per week), each its own price/link.
+function PricingMatrix({ onSelectTier }) {
   const [tab, setTab] = useState('fitness');
   const active = PRICING[tab];
   return (
@@ -453,16 +464,25 @@ function PricingMatrix() {
             {tier.options ? (
               <div style={s.matrixOpts}>
                 {tier.options.map((o) => (
-                  <a key={o.label} href={o.link} target="_blank" rel="noopener noreferrer" style={s.matrixOptBtn}>
+                  <button
+                    key={o.label}
+                    type="button"
+                    onClick={() => onSelectTier({ tierName: `${tier.name} · ${o.label}`, price: o.price, href: o.link })}
+                    style={{ ...s.matrixOptBtn, cursor: 'pointer', border: 'none', width: '100%' }}
+                  >
                     <span style={s.matrixOptLbl}>{o.label}</span>
                     <span style={s.matrixOptPrice}>{o.price}</span>
-                  </a>
+                  </button>
                 ))}
               </div>
             ) : (
-              <a href={tier.link} target="_blank" rel="noopener noreferrer" style={s.matrixBuy}>
-                Subscribe →
-              </a>
+              <button
+                type="button"
+                onClick={() => onSelectTier({ tierName: tier.name, price: `${tier.price}${tier.per || ''}`, href: tier.link })}
+                style={{ ...s.matrixBuy, cursor: 'pointer', width: '100%' }}
+              >
+                Get Started →
+              </button>
             )}
           </article>
         ))}

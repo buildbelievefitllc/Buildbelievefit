@@ -209,6 +209,14 @@ const DICT = {
   'f-must-agree': { en: 'You must confirm the liability waiver and Terms to apply.', es: 'Debes confirmar la exención de responsabilidad y los Términos para aplicar.', pt: 'Você deve confirmar a isenção de responsabilidade e os Termos para se candidatar.' },
   'f-success-title': { en: 'Application Received', es: 'Solicitud Recibida', pt: 'Candidatura Recebida' },
   'f-success-body': { en: 'Your intake is in and securely logged. The Build Believe Fit team will reach out shortly with your next steps. Welcome to the standard.', es: 'Tu solicitud está registrada de forma segura. El equipo de Build Believe Fit te contactará pronto con los próximos pasos. Bienvenido al estándar.', pt: 'Sua candidatura está registrada com segurança. A equipe Build Believe Fit entrará em contato em breve com os próximos passos. Bem-vindo ao padrão.' },
+  // Pricing → Pathfinder → Pay gate (screen-before-checkout flow).
+  'pf-enroll-kicker': { en: 'Selected Plan', es: 'Plan Seleccionado', pt: 'Plano Selecionado' },
+  'pf-enroll-note': { en: 'Complete your readiness screening below to continue to secure checkout.', es: 'Completa tu evaluación de preparación a continuación para continuar al pago seguro.', pt: 'Conclua sua triagem de prontidão abaixo para continuar ao pagamento seguro.' },
+  'pf-checkout-title': { en: 'Screening Complete', es: 'Evaluación Completa', pt: 'Triagem Concluída' },
+  'pf-checkout-body': { en: 'Your readiness screening is on file. Complete your enrollment to unlock your plan.', es: 'Tu evaluación de preparación está registrada. Completa tu inscripción para desbloquear tu plan.', pt: 'Sua triagem de prontidão está registrada. Conclua sua inscrição para desbloquear seu plano.' },
+  'pf-checkout-enrolling': { en: 'Enrolling in', es: 'Inscribiéndote en', pt: 'Inscrevendo-se em' },
+  'pf-checkout-cta': { en: 'Proceed to Secure Checkout →', es: 'Continuar al Pago Seguro →', pt: 'Ir para o Pagamento Seguro →' },
+  'pf-checkout-secured': { en: 'Secured by Stripe · cancel anytime', es: 'Asegurado por Stripe · cancela cuando quieras', pt: 'Protegido pela Stripe · cancele quando quiser' },
 
   // ── The Sports Hub — youth first-run intake gate (PAR-Q+ + guardian auth). ──
   'yi-title': { en: 'Athlete Intake — Required', es: 'Registro del Atleta — Obligatorio', pt: 'Cadastro do Atleta — Obrigatório' },
