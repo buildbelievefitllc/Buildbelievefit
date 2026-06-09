@@ -176,22 +176,24 @@ function featuredTier(category) {
 }
 
 // Resolve the upgrade CTA target for a pricing path (fitness / nutrition / youth /
-// hybrid). Single-SKU paths return a direct buy.stripe.com link (external, opens a
-// new tab → Stripe-hosted checkout). The Hybrid path's protocols carry per-frequency
-// options (no single Payment Link), so it returns the in-app pricing-matrix anchor
-// ('/#programs') where the athlete picks a frequency that carries its own link.
+// hybrid). Single-SKU paths return the tier's `priceId` — the in-Vault UpgradeOverlay
+// mints a SCREENING-GATED Stripe Checkout Session server-side (bbf-create-checkout),
+// so no raw buy.stripe.com link is ever exposed. The Hybrid path's protocols carry
+// per-frequency options (no single price), so it returns the in-app pricing-matrix
+// anchor ('/#programs') — which itself funnels through the Pathfinder before checkout.
 //
-//   → { path, tierName, price, href, external }  |  null (unknown path)
+//   → { path, tierName, price, priceId }  (single-SKU)
+//   → { path, tierName, price, href, external }  (Hybrid matrix anchor)  |  null
 export function upgradeTargetForPath(path) {
   const category = PRICING[path];
   if (!category) return null;
   const tier = featuredTier(category);
 
-  if (tier.link) {
-    return { path, tierName: tier.name, price: tier.price || '', href: tier.link, external: true };
+  if (tier.priceId) {
+    return { path, tierName: tier.name, price: tier.price || '', priceId: tier.priceId };
   }
 
-  // Multi-option (Hybrid) — no single Payment Link; route to the pricing matrix.
+  // Multi-option (Hybrid) — no single price; route to the pricing matrix.
   const lowest = Array.isArray(tier.options) && tier.options.length ? tier.options[0] : null;
   return {
     path,

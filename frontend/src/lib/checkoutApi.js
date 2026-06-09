@@ -18,6 +18,7 @@ import { FUNCTIONS_BASE } from './supabaseClient.js';
 
 function checkoutErrorMessage(status, slug) {
   if (slug === 'screening_required') return 'Complete your readiness screening before checkout.';
+  if (slug === 'invalid_session') return 'Your session expired — please sign in again to upgrade.';
   if (slug === 'invalid_email') return 'That email looks invalid — please check it.';
   if (slug === 'origin_not_allowed') return 'This site is not yet authorized for checkout (CORS).';
   if (status === 429 || slug === 'rate_limited') return 'Too many attempts — wait a minute and retry.';
@@ -25,26 +26,36 @@ function checkoutErrorMessage(status, slug) {
   return `Could not open secure checkout (${slug || `status ${status}`}). Please try again.`;
 }
 
-// Mint a gated Stripe Checkout Session for `email` + `priceId`. Returns the hosted
-// checkout URL on success; throws an Error with a user-facing message otherwise.
-export async function createCheckoutSession(email, priceId) {
+// Shared POST → the gated edge function. `payload` carries price_id + an identity:
+// `email` for the public funnel (post-screening prospect) or `vault_token` for an
+// authenticated in-vault upgrade. Returns the hosted Stripe checkout URL, or throws.
+async function mintCheckout(payload) {
   let res;
   try {
     res = await fetch(`${FUNCTIONS_BASE}/bbf-create-checkout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }, // content-type only (CORS allowlist)
-      body: JSON.stringify({ email, price_id: priceId }),
+      body: JSON.stringify(payload),
     });
   } catch {
     throw new Error('Network error — could not reach secure checkout. Check your connection and retry.');
   }
-
   const raw = await res.text();
   let body = null;
   try { body = raw ? JSON.parse(raw) : null; } catch { /* non-JSON */ }
-
   if (!res.ok || !body?.ok || !body?.url) {
     throw new Error(checkoutErrorMessage(res.status, body?.error));
   }
   return body.url;
+}
+
+// PUBLIC FUNNEL — post-screening prospect (identity = email).
+export async function createCheckoutSession(email, priceId) {
+  return mintCheckout({ email, price_id: priceId });
+}
+
+// IN-VAULT UPGRADE — authenticated existing client (identity = server-revocable
+// vault_token; a provisioned account is itself proof of original screening).
+export async function createUpgradeCheckout(vaultToken, priceId) {
+  return mintCheckout({ vault_token: vaultToken, price_id: priceId });
 }

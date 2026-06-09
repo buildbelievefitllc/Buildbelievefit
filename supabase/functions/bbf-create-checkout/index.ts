@@ -2,18 +2,20 @@
 // bbf-create-checkout — SCREENING-GATED Stripe Checkout Session minting
 // ═══════════════════════════════════════════════════════════════
 // The CEO liability mandate: "make sure EVERYONE is getting screened." This is the
-// server-authoritative guarantee. The public marketing surface no longer links to
-// raw buy.stripe.com Payment Links; instead the Pathfinder success card calls THIS
-// function to mint a one-time Stripe Checkout Session — and it refuses (403
-// screening_required) unless a completed Pathfinder PAR-Q / medical screening
-// already exists for the email (bbf_active_clients row staged by bbf-lead-capture).
-// No screening on file → no checkout URL can be produced. Payment-before-screening
-// is therefore impossible through the product.
+// server-authoritative guarantee + the SINGLE way to reach Stripe. The site no
+// longer exposes raw buy.stripe.com Payment Links anywhere.
 //
-// Gates (defense in depth): origin allowlist · per-IP rate limit · the screening
-// check itself (which transitively required a Cloudflare Turnstile token at intake).
-// Tier is resolved SERVER-SIDE from an allowlisted price → the webhook then maps the
-// purchased price back to the canonical SKU exactly as it does for legacy links.
+// Two authenticated callers:
+//   • PUBLIC FUNNEL (prospect) — body { email, price_id }. Refused (403
+//     screening_required) unless a completed Pathfinder PAR-Q / medical screening
+//     exists in bbf_active_clients for the email (staged by bbf-lead-capture).
+//   • IN-VAULT UPGRADE (existing client) — body { vault_token, price_id }. The token
+//     resolves SERVER-SIDE to a provisioned bbf_users row (which is itself proof the
+//     client was screened at original onboarding); we mint with that account's email.
+//
+// Either way the SERVER, not the client, authorizes payment. Gates: origin allowlist
+// · per-IP rate limit · the identity/screening check. Tier is resolved server-side
+// from an allowlisted price; the webhook maps the purchased price back to the SKU.
 //
 // Env: STRIPE_API_KEY, SUPABASE_URL*, SUPABASE_SERVICE_ROLE_KEY* (* auto-injected).
 // Deploy with verify_jwt = false (public funnel endpoint; auth is custom, above).
@@ -32,8 +34,8 @@ const DEFAULT_ORIGIN = 'https://buildbelievefit.fitness';
 
 // Allowlisted price → { canonical tier slug, checkout mode }. Mirrors the
 // stripe-webhook PRICE_TO_TIER map + frontend/src/lib/pricingMatrix.js. Recurring
-// tiers (Fitness / Nutrition / Youth) are 'subscription'; one-time Hybrid protocols
-// are 'payment'. A price NOT in this map is rejected (no arbitrary line items).
+// tiers are 'subscription'; one-time Hybrid protocols are 'payment'. A price NOT in
+// this map is rejected (no arbitrary line items).
 const PRICE_INFO: Record<string, { tier: string; mode: 'subscription' | 'payment' }> = {
   'price_1TdtVCQ4j3uHTi7PEjvMihnk': { tier: 'catalyst', mode: 'subscription' },
   'price_1TdtVDQ4j3uHTi7Pb2hGyXBi': { tier: 'momentum', mode: 'subscription' },
@@ -104,30 +106,51 @@ serve(async (req) => {
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return jsonResponse({ ok: false, error: 'invalid_json' }, 400, origin); }
 
-  const email = String(body?.email ?? '').trim().toLowerCase();
   const priceId = String(body?.price_id ?? body?.priceId ?? '').trim();
-  if (!email || !EMAIL_RE.test(email)) return jsonResponse({ ok: false, error: 'invalid_email' }, 400, origin);
   const info = PRICE_INFO[priceId];
   if (!info) return jsonResponse({ ok: false, error: 'invalid_price' }, 400, origin);
+
+  const vaultToken = String(body?.vault_token ?? body?.vaultToken ?? '').trim();
+  let email = String(body?.email ?? '').trim().toLowerCase();
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // ── THE GATE ── A completed Pathfinder screening MUST be on file for this email.
-  // bbf-lead-capture stages every Pathfinder submission into bbf_active_clients
-  // (keyed by lowercase vault_email) with the PAR-Q + medical disclosure. No row →
-  // the prospect never screened → no checkout session is minted.
-  const { data: screened, error: selErr } = await supabase
-    .from('bbf_active_clients').select('id').eq('vault_email', email).limit(1);
-  if (selErr) {
-    console.error('[bbf-create-checkout] screening lookup failed:', selErr.message);
-    return jsonResponse({ ok: false, error: 'screening_lookup_failed' }, 503, origin);
+  // ── IDENTITY + SCREENING GATE ──
+  if (vaultToken) {
+    // IN-VAULT UPGRADE: resolve the server-revocable token → a provisioned account.
+    // A real bbf_users row is itself proof the client was screened at onboarding,
+    // so no active_clients re-check is needed; mint with that account's email.
+    const { data: uid, error: uidErr } = await supabase.rpc('_bbf_uid_from_vault_token', { p_session_token: vaultToken });
+    if (uidErr || typeof uid !== 'string' || !uid) {
+      return jsonResponse({ ok: false, error: 'invalid_session' }, 401, origin);
+    }
+    const { data: urows, error: uErr } = await supabase
+      .from('bbf_users').select('email').eq('id', uid).is('deleted_at', null).limit(1);
+    const found = Array.isArray(urows) ? urows[0] : null;
+    if (uErr || !found?.email) {
+      return jsonResponse({ ok: false, error: 'invalid_session' }, 401, origin);
+    }
+    email = String(found.email).trim().toLowerCase();
+  } else {
+    // PUBLIC FUNNEL: a completed Pathfinder screening MUST be on file for the email.
+    // bbf-lead-capture stages every submission into bbf_active_clients (lowercase
+    // vault_email). No row → never screened → no checkout session is minted.
+    if (!email || !EMAIL_RE.test(email)) return jsonResponse({ ok: false, error: 'invalid_email' }, 400, origin);
+    const { data: screened, error: selErr } = await supabase
+      .from('bbf_active_clients').select('id').eq('vault_email', email).limit(1);
+    if (selErr) {
+      console.error('[bbf-create-checkout] screening lookup failed:', selErr.message);
+      return jsonResponse({ ok: false, error: 'screening_lookup_failed' }, 503, origin);
+    }
+    if (!Array.isArray(screened) || screened.length === 0) {
+      console.warn(`[bbf-create-checkout] BLOCKED — no screening on file for ${email}`);
+      return jsonResponse({ ok: false, error: 'screening_required' }, 403, origin);
+    }
   }
-  if (!Array.isArray(screened) || screened.length === 0) {
-    console.warn(`[bbf-create-checkout] BLOCKED — no screening on file for ${email}`);
-    return jsonResponse({ ok: false, error: 'screening_required' }, 403, origin);
-  }
+
+  if (!email || !EMAIL_RE.test(email)) return jsonResponse({ ok: false, error: 'invalid_email' }, 400, origin);
 
   // ── Mint the gated Checkout Session ──
   const stripe = new Stripe(STRIPE_API_KEY, { apiVersion: '2024-11-20.acacia' });
@@ -138,13 +161,11 @@ serve(async (req) => {
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: email,
       allow_promotion_codes: true,
-      // metadata.tier lets the webhook classify directly; it also falls back to the
-      // purchased price. `screened` marks this as a gated, post-screening checkout.
-      metadata: { tier: info.tier, screened: 'true', bbf_checkout: 'gated' },
+      metadata: { tier: info.tier, screened: 'true', bbf_checkout: vaultToken ? 'gated_vault' : 'gated_funnel' },
       success_url: `${base}/?checkout=success`,
       cancel_url: `${base}/?checkout=cancelled`,
     });
-    console.log(`[bbf-create-checkout] session minted · ${info.tier} · ${email}`);
+    console.log(`[bbf-create-checkout] session minted · ${info.tier} · ${email} · ${vaultToken ? 'vault' : 'funnel'}`);
     return jsonResponse({ ok: true, url: session.url }, 200, origin);
   } catch (e) {
     console.error('[bbf-create-checkout] stripe session create failed:', e instanceof Error ? e.message : String(e));
