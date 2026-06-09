@@ -21,6 +21,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
 import { logYouthProgress } from '../lib/youthIntakeApi.js';
+import { useAthleteTelemetry } from '../lib/athleteTelemetryApi.js';
 import LangToggle from '../components/LangToggle.jsx';
 import { buildHubModel, buildWeek, applyProgress, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
 import { YOUTH_SPORTS, positionLabel } from '../components/sportshub/youthSports.js';
@@ -48,6 +49,11 @@ export default function SportsHub({ selection = null, progress = null }) {
   const { user, session, signOut } = useAuth();
   const { t } = useLang();
   const uid = user?.username || user?.id || '';
+
+  // Per-set telemetry (weight / RPE / completed_at) — lifted here so the logbook map
+  // is fetched once on mount (rehydrates logged sets across refresh / day-switch) and
+  // shared by the Day Protocol + the Native Sport Engine cards.
+  const telemetry = useAthleteTelemetry(uid);
 
   // The profile is attached to the user by AuthContext; fall back to the resolver
   // (and its default) so the Hub can never crash on a missing profile.
@@ -177,7 +183,7 @@ export default function SportsHub({ selection = null, progress = null }) {
         </section>
 
         {/* ── Native Sport Protocol — the coach-staged engine prescription ─────── */}
-        <SportProtocol protocol={sportsProtocol} />
+        <SportProtocol protocol={sportsProtocol} telemetry={telemetry} />
 
         {/* ── Training block (off/in-season workload selector) ────────────────── */}
         <div className="sh-phase" role="group" aria-label="Training block">
@@ -225,6 +231,7 @@ export default function SportsHub({ selection = null, progress = null }) {
           <DayProtocol
             day={week[activeDay]}
             phase={phase}
+            telemetry={telemetry}
             onToggleExercise={onToggleExercise}
             onToggleDrill={onToggleDrill}
             onCycleStatus={onCycleStatus}

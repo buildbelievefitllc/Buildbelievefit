@@ -196,7 +196,8 @@ export function SizeMass({ size, onSizeChange }) {
 // ── Day Protocol — the active day's workload + that day's drills + film. The
 //    actionable items (drills / film) are distributed across the 7-day week
 //    (hubData.buildWeek); every item is a tap-to-track checkoff. ──────────────────
-export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCycleStatus }) {
+export function DayProtocol({ day, phase, telemetry, onToggleExercise, onToggleDrill, onCycleStatus }) {
+  const logs = telemetry?.logs || {};
   if (day.rest) {
     return (
       <section className="sh-card sh-restcard" data-testid="sh-day-rest">
@@ -220,6 +221,7 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
         <div className="sh-exlist">
           {day.exercises.map((e, i) => {
             const vid = resolveAthleticVideo(e.name); // exact verified clip or null (no fallback)
+            const logKey = `ex:${day.label}:${e.name}`;
             return (
               <div className="sh-ex-row" key={e.name}>
                 <button
@@ -235,10 +237,13 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
                   <span className="sh-ex-scheme" data-testid={`sh-ex-scheme-${i}`}>{phase === 'inseason' ? e.in : e.off}</span>
                 </button>
                 {vid ? <VideoSlot videoId={vid} title={e.name} caption={phase === 'inseason' ? e.in : e.off} /> : null}
-                {/* Telemetry logbook — logging a set also marks the row done (existing persistence). */}
+                {/* Telemetry logbook — persists weight/RPE; logging also marks the row done. */}
                 <TelemetryLog
-                  logKey={`ex:${day.label}:${e.name}`}
-                  onLogged={() => { if (!e.done) onToggleExercise(i); }}
+                  saved={logs[logKey] || null}
+                  onLog={(entry) => {
+                    telemetry?.logSet(logKey, entry, { exerciseName: e.name, source: 'ex', day: day.label });
+                    if (!e.done) onToggleExercise(i);
+                  }}
                 />
               </div>
             );
@@ -252,6 +257,7 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
           <div className="sh-drills">
             {day.drills.map((d, i) => {
               const vid = resolveAthleticVideo(d.name); // exact verified clip or null (no fallback)
+              const logKey = `dr:${day.label}:${d.name}`;
               return (
                 <div key={d.name} className={`sh-drill${d.done ? ' is-hot is-done' : ''}`}>
                   <button
@@ -273,8 +279,11 @@ export function DayProtocol({ day, phase, onToggleExercise, onToggleDrill, onCyc
                     {vid ? <VideoSlot videoId={vid} title={d.name} caption={d.detail} /> : null}
                     {/* Telemetry logbook — weight optional for drills (blank = BW). */}
                     <TelemetryLog
-                      logKey={`dr:${day.label}:${d.name}`}
-                      onLogged={() => { if (!d.done) onToggleDrill(i); }}
+                      saved={logs[logKey] || null}
+                      onLog={(entry) => {
+                        telemetry?.logSet(logKey, entry, { exerciseName: d.name, source: 'dr', day: day.label });
+                        if (!d.done) onToggleDrill(i);
+                      }}
                     />
                   </div>
                 </div>

@@ -113,8 +113,9 @@ function normalizeSportsProtocol(raw) {
   return { headline, blocks };
 }
 
-export default function SportProtocol({ protocol }) {
+export default function SportProtocol({ protocol, telemetry }) {
   const model = normalizeSportsProtocol(protocol);
+  const logs = telemetry?.logs || {};
 
   // ── Non-athlete fallback — never empty boxes, never a crash ───────────────
   if (!model || !model.blocks.length) {
@@ -146,6 +147,7 @@ export default function SportProtocol({ protocol }) {
             <ul className="sh-proto-items">
               {block.items.map((item, ii) => {
                 const vid = item.meta.length ? resolveAthleticVideo(item.name) : null; // exact clip or null
+                const logKey = `sp:${block.title}:${item.name}`;
                 return (
                   <li className="sh-proto-item" key={ii}>
                     <span className="sh-proto-item-name">{item.name}</span>
@@ -157,7 +159,12 @@ export default function SportProtocol({ protocol }) {
                     {item.detail ? <p className="sh-proto-item-detail">{item.detail}</p> : null}
                     {vid ? <VideoSlot videoId={vid} title={item.name} caption={item.meta[0]} /> : null}
                     {/* Telemetry logbook on real movements only (meta-gated — skips prose rows). */}
-                    {item.meta.length ? <TelemetryLog logKey={`sp:${block.title}:${item.name}`} /> : null}
+                    {item.meta.length ? (
+                      <TelemetryLog
+                        saved={logs[logKey] || null}
+                        onLog={(entry) => telemetry?.logSet(logKey, entry, { exerciseName: item.name, source: 'sp', day: block.title })}
+                      />
+                    ) : null}
                   </li>
                 );
               })}

@@ -9,21 +9,15 @@
 //   · Log Set → records the entry (and the caller marks the movement complete
 //     via the existing done-toggle persistence where one exists)
 //
-// UI-FIRST (CEO order): entries land in a session-local ledger keyed per
-// movement, so they survive the per-day panel remounts (SportsHub keys the
-// panel by activeDay). The next hop wires this ledger into
-// bbf_athlete_progression — the telemetry table the Autonomous Referee
-// (bbf-evaluate-athlete-progress) reads (protocol_completed, rpe_avg_last_3).
+// CONTROLLED: `saved` (the persisted entry, or null) + `onLog(entry)` are supplied
+// by the parent, which lifts the whole set-log map (useAthleteTelemetry) so a logged
+// set stays collapsed across the per-day panel remount AND across refresh — the map
+// is rehydrated from bbf_athlete_set_log on mount. `onLog` upserts to Supabase.
 
 import { useState } from 'react';
 import './telemetryLog.css';
 
-// Session-local telemetry ledger (cleared on reload — DB wiring lands next).
-const LEDGER = new Map();
-
-export default function TelemetryLog({ logKey, onLogged }) {
-  const saved = LEDGER.get(logKey) || null;
-  const [rec, setRec] = useState(saved);
+export default function TelemetryLog({ saved = null, onLog }) {
   const [editing, setEditing] = useState(false);
   const [weight, setWeight] = useState(saved?.weight ?? '');
   const [rpe, setRpe] = useState(saved?.rpe ?? 7);
@@ -32,23 +26,21 @@ export default function TelemetryLog({ logKey, onLogged }) {
     e.preventDefault();
     const w = String(weight).trim();
     const entry = { weight: w === '' ? null : Number(w), rpe: Number(rpe), at: new Date().toISOString() };
-    LEDGER.set(logKey, entry);
-    setRec(entry);
+    onLog?.(entry);
     setEditing(false);
-    onLogged?.(entry);
   }
 
-  if (rec && !editing) {
+  if (saved && !editing) {
     return (
       <div className="sh-tlog is-logged">
         <span className="sh-tlog-check" aria-hidden="true">✓</span>
         <span className="sh-tlog-summary">
-          Logged · <b>{rec.weight == null ? 'BW' : `${rec.weight} lbs`}</b> · RPE <b>{fmtRpe(rec.rpe)}</b>
+          Logged · <b>{saved.weight == null ? 'BW' : `${saved.weight} lbs`}</b> · RPE <b>{fmtRpe(saved.rpe)}</b>
         </span>
         <button
           type="button"
           className="sh-tlog-edit"
-          onClick={() => { setWeight(rec.weight ?? ''); setRpe(rec.rpe); setEditing(true); }}
+          onClick={() => { setWeight(saved.weight ?? ''); setRpe(saved.rpe); setEditing(true); }}
         >
           Edit
         </button>
@@ -82,7 +74,7 @@ export default function TelemetryLog({ logKey, onLogged }) {
           onChange={(e) => setRpe(Number(e.target.value))}
         />
       </label>
-      <button type="submit" className="sh-tlog-btn">{rec ? 'Update' : 'Log Set'}</button>
+      <button type="submit" className="sh-tlog-btn">{saved ? 'Update' : 'Log Set'}</button>
     </form>
   );
 }
