@@ -2244,60 +2244,60 @@ export const REGION_ICONS = {
 // sourced. Prehab.jsx falls back to resolveVideoId(name) for any key absent here.
 export const EX_VIDEO = {
   // ── Lower Back ──────────────────────────────────────────────────────────
-  mckenzie_press_up: 'gLT-WLH84B4',         // prone spinal extension (Back Extension)
-  bird_dog: 'ZdAHe9_HeEw',
+  mckenzie_press_up: { en: 'gLT-WLH84B4', es: 'gLT-WLH84B4', pt: 'gLT-WLH84B4' },         // prone spinal extension (Back Extension)
+  bird_dog: { en: 'ZdAHe9_HeEw', es: 'ZdAHe9_HeEw', pt: 'ZdAHe9_HeEw' },
   dead_bug: { en: 'bxn9FBrt4-A', es: 'OUVY99ez0k0', pt: 'uQfzuKBMJeE' }, // Dead Bug (EN/ES/PT)
   cat_cow: { en: '1Y0YjXS9sKI', es: '8DN9X_KDrrY', pt: 'awP2E7wpSxk' },  // Cat-Cow (EN/ES/PT)
   childs_pose: { en: '-dZXkwzSzF4', es: 'wzQqaCiYCqs', pt: 'M3U9NCaEcJ0' }, // Child's Pose (EN/ES/PT)
-  pelvic_tilt: 'Q59R9p4rzxw',               // Supine Posterior Pelvic Tilt (MedBridge)
-  knee_to_chest: 'Yd9wY25koVk',             // Single Knee to Chest (AskDoctorJo)
-  supine_lumbar_rotation: 'fHRXXGxUxX8',    // Supine Lower Trunk Rotation (MedBridge)
-  half_kneeling_hip_flexor: 'mzPvzMivukw',  // Half-Kneeling Hip Flexor Stretch (HSS)
-  side_plank: 'Ujf5ELfqI7o',                // Side Plank (VIDEO_MAP)
+  pelvic_tilt: { en: 'Q59R9p4rzxw', es: 'Q59R9p4rzxw', pt: 'Q59R9p4rzxw' },               // Supine Posterior Pelvic Tilt (MedBridge)
+  knee_to_chest: { en: 'Yd9wY25koVk', es: 'Yd9wY25koVk', pt: 'Yd9wY25koVk' },             // Single Knee to Chest (AskDoctorJo)
+  supine_lumbar_rotation: { en: 'fHRXXGxUxX8', es: 'fHRXXGxUxX8', pt: 'fHRXXGxUxX8' },    // Supine Lower Trunk Rotation (MedBridge)
+  half_kneeling_hip_flexor: { en: 'mzPvzMivukw', es: 'mzPvzMivukw', pt: 'mzPvzMivukw' },  // Half-Kneeling Hip Flexor Stretch (HSS)
+  side_plank: { en: 'Ujf5ELfqI7o', es: 'Ujf5ELfqI7o', pt: 'Ujf5ELfqI7o' },                // Side Plank (VIDEO_MAP)
   // ── Knee ────────────────────────────────────────────────────────────────
-  tempo_goblet_squat: 'BR4tlEE_A98',
-  terminal_knee_ext: 'tTbJBUKnWU8',         // Leg Extension (VMO bias)
+  tempo_goblet_squat: { en: 'BR4tlEE_A98', es: 'BR4tlEE_A98', pt: 'BR4tlEE_A98' },
+  terminal_knee_ext: { en: 'tTbJBUKnWU8', es: 'tTbJBUKnWU8', pt: 'tTbJBUKnWU8' },         // Leg Extension (VMO bias)
   glute_bridge: { en: '8bbE64NuDTU', es: 'bcuxKS2qRGY', pt: '6jS6aH-78w4' }, // Glute Bridge (EN/ES/PT)
   spanish_squat: { en: 'hgFxm5KIF7M', es: 'mu61P4cs_lc', pt: '9tY-oSNRY50' }, // Spanish Squat (EN E3 Rehab · ES · PT)
   wall_sit: { en: 'JQ2JBphtUk8', es: 'mGTJtgmYgRw', pt: 'NBaJzEt63XI' }, // Wall Sit (EN/ES/PT)
-  eccentric_step_down: 'Ig_Qo-GKjRc',       // Eccentric Step-Down for knee pain
-  lateral_band_walk: 'y_bqFDQZSHQ',         // Lateral Band Walk tutorial
-  clamshell: 'O2KPabIoPPk',                 // Clamshell in side-lying (AskDoctorJo)
-  standing_calf_raise: 'SVtg-1loH4c',       // Standing Calf Raise (VIDEO_MAP)
-  single_leg_rdl: 'J1ojvq3ftqM',            // Single-Leg RDL tutorial
+  eccentric_step_down: { en: 'Ig_Qo-GKjRc', es: 'Ig_Qo-GKjRc', pt: 'Ig_Qo-GKjRc' },       // Eccentric Step-Down for knee pain
+  lateral_band_walk: { en: 'y_bqFDQZSHQ', es: 'y_bqFDQZSHQ', pt: 'y_bqFDQZSHQ' },         // Lateral Band Walk tutorial
+  clamshell: { en: 'O2KPabIoPPk', es: 'O2KPabIoPPk', pt: 'O2KPabIoPPk' },                 // Clamshell in side-lying (AskDoctorJo)
+  standing_calf_raise: { en: 'SVtg-1loH4c', es: 'SVtg-1loH4c', pt: 'SVtg-1loH4c' },       // Standing Calf Raise (VIDEO_MAP)
+  single_leg_rdl: { en: 'J1ojvq3ftqM', es: 'J1ojvq3ftqM', pt: 'J1ojvq3ftqM' },            // Single-Leg RDL tutorial
   // ── Shoulder ────────────────────────────────────────────────────────────
   cable_face_pull: { en: 'ljgqer1ZpXg', es: 'UaZPhyztYNU', pt: 'kYMTJAx_dTM' }, // Face Pull (EN/ES/PT)
-  band_pull_apart: 'smSSXITNpCI',
-  scap_lateral_raise: '4hTUCDUQaNA',        // Dumbbell Lateral Raise
+  band_pull_apart: { en: 'smSSXITNpCI', es: 'smSSXITNpCI', pt: 'smSSXITNpCI' },
+  scap_lateral_raise: { en: '4hTUCDUQaNA', es: '4hTUCDUQaNA', pt: '4hTUCDUQaNA' },        // Dumbbell Lateral Raise
   sleeper_stretch: { en: '9BN8bRVq3Xo', es: 'J2eJzztUSrQ', pt: 'b3dYmaRVSus' }, // Sleeper Stretch (EN AskDoctorJo · ES · PT)
-  side_lying_external_rotation: '3XLT7kpMzcM', // DB Side-Lying External Rotation
-  wall_slide: 'UB_n4DxOTCo',                // Scapular Wall Slides
-  prone_ytw: 'CFt3WjCBbpc',                 // Prone W/T/Y Scapular Retraction
-  scapular_pushup: 'LeMk15TN0No',           // Scapular Push-Ups
-  doorway_pec_stretch: 'M850sCj9LHQ',       // Doorway Pec Stretch (MedBridge)
-  band_shoulder_dislocate: '7p-Ma0eksaY',   // Band Shoulder Dislocates / pass-through
+  side_lying_external_rotation: { en: '3XLT7kpMzcM', es: '3XLT7kpMzcM', pt: '3XLT7kpMzcM' }, // DB Side-Lying External Rotation
+  wall_slide: { en: 'UB_n4DxOTCo', es: 'UB_n4DxOTCo', pt: 'UB_n4DxOTCo' },                // Scapular Wall Slides
+  prone_ytw: { en: 'CFt3WjCBbpc', es: 'CFt3WjCBbpc', pt: 'CFt3WjCBbpc' },                 // Prone W/T/Y Scapular Retraction
+  scapular_pushup: { en: 'LeMk15TN0No', es: 'LeMk15TN0No', pt: 'LeMk15TN0No' },           // Scapular Push-Ups
+  doorway_pec_stretch: { en: 'M850sCj9LHQ', es: 'M850sCj9LHQ', pt: 'M850sCj9LHQ' },       // Doorway Pec Stretch (MedBridge)
+  band_shoulder_dislocate: { en: '7p-Ma0eksaY', es: '7p-Ma0eksaY', pt: '7p-Ma0eksaY' },   // Band Shoulder Dislocates / pass-through
   // ── Elbow ───────────────────────────────────────────────────────────────
   eccentric_hammer_curl: { en: 'TwD-YGVP4Bk', es: 'RHdacbwKbTo', pt: '1-xCKLVxqqg' }, // Hammer Curl (EN/ES/PT)
-  triceps_pushdown_ecc: '_w-HpW70nSQ',      // Cable Triceps Pushdown
-  bench_dip_controlled: '0326dy_-CzM',      // Bench Dip
-  flexbar_tyler_twist: 'DUfLc4n3ygg',       // Tyler Twist (tennis elbow)
-  flexbar_reverse_twist: 'STHalShxKMw',     // Reverse Tyler Twist (golfer's elbow)
-  reverse_barbell_curl: 'pXx38ZWRYjo',      // Reverse Curl (extensor bias)
-  db_supination_pronation: 'nZHS1gWMc6I',   // Forearm Supination/Pronation
-  wrist_extensor_stretch: 'Ayhu7TzNGSQ',    // Forearm Extensor Stretch
-  wrist_flexor_stretch: 'i-JV2PsFzWA',      // Wrist Flexor Stretch (AskDoctorJo)
-  eccentric_wrist_extension: '0-VJoF6Y4dU', // Eccentric Wrist Extension (tennis elbow)
+  triceps_pushdown_ecc: { en: '_w-HpW70nSQ', es: '_w-HpW70nSQ', pt: '_w-HpW70nSQ' },      // Cable Triceps Pushdown
+  bench_dip_controlled: { en: '0326dy_-CzM', es: '0326dy_-CzM', pt: '0326dy_-CzM' },      // Bench Dip
+  flexbar_tyler_twist: { en: 'DUfLc4n3ygg', es: 'DUfLc4n3ygg', pt: 'DUfLc4n3ygg' },       // Tyler Twist (tennis elbow)
+  flexbar_reverse_twist: { en: 'STHalShxKMw', es: 'STHalShxKMw', pt: 'STHalShxKMw' },     // Reverse Tyler Twist (golfer's elbow)
+  reverse_barbell_curl: { en: 'pXx38ZWRYjo', es: 'pXx38ZWRYjo', pt: 'pXx38ZWRYjo' },      // Reverse Curl (extensor bias)
+  db_supination_pronation: { en: 'nZHS1gWMc6I', es: 'nZHS1gWMc6I', pt: 'nZHS1gWMc6I' },   // Forearm Supination/Pronation
+  wrist_extensor_stretch: { en: 'Ayhu7TzNGSQ', es: 'Ayhu7TzNGSQ', pt: 'Ayhu7TzNGSQ' },    // Forearm Extensor Stretch
+  wrist_flexor_stretch: { en: 'i-JV2PsFzWA', es: 'i-JV2PsFzWA', pt: 'i-JV2PsFzWA' },      // Wrist Flexor Stretch (AskDoctorJo)
+  eccentric_wrist_extension: { en: '0-VJoF6Y4dU', es: '0-VJoF6Y4dU', pt: '0-VJoF6Y4dU' }, // Eccentric Wrist Extension (tennis elbow)
   // ── Wrist & Hand ────────────────────────────────────────────────────────
-  reverse_wrist_curl: 'SfENsl5klVA',        // Reverse Wrist Curl (extensors)
-  wrist_extension_load: 'mwlp75MS6Rg',      // weight-bearing through the wrists (Front Plank)
-  dead_hang: 'rmdn5X_KLkY',                 // bar hang / grip (Pull-Up)
-  wrist_flexor_curl: 'dA9_h9r8YBw',         // Palms-Up Dumbbell Wrist Curl
+  reverse_wrist_curl: { en: 'SfENsl5klVA', es: 'SfENsl5klVA', pt: 'SfENsl5klVA' },        // Reverse Wrist Curl (extensors)
+  wrist_extension_load: { en: 'mwlp75MS6Rg', es: 'mwlp75MS6Rg', pt: 'mwlp75MS6Rg' },      // weight-bearing through the wrists (Front Plank)
+  dead_hang: { en: 'rmdn5X_KLkY', es: 'rmdn5X_KLkY', pt: 'rmdn5X_KLkY' },                 // bar hang / grip (Pull-Up)
+  wrist_flexor_curl: { en: 'dA9_h9r8YBw', es: 'dA9_h9r8YBw', pt: 'dA9_h9r8YBw' },         // Palms-Up Dumbbell Wrist Curl
   wrist_circles: { en: 'IJvS9bYl_cs', es: 'CQ71AY1w8Ls', pt: 'S1BqYYaZz3Y' }, // Wrist Circles (EN/ES/PT)
-  prayer_stretch: 'XnJu70SLsJk',            // Prayer Stretch (AskDoctorJo)
-  finger_extension_band: 'jbs0-Z8FpDw',     // Rubber-band Finger Extension
-  grip_squeeze: '8h0tSMxLNG4',              // Hand/Wrist Ball Squeeze (AskDoctorJo)
-  radial_ulnar_deviation: 'pwodoGsoIpM',    // Radial/Ulnar Deviation (AskDoctorJo)
-  finger_tendon_glides: 'grbacaaEwjg',      // Finger Tendon Glides (AskDoctorJo)
+  prayer_stretch: { en: 'XnJu70SLsJk', es: 'XnJu70SLsJk', pt: 'XnJu70SLsJk' },            // Prayer Stretch (AskDoctorJo)
+  finger_extension_band: { en: 'jbs0-Z8FpDw', es: 'jbs0-Z8FpDw', pt: 'jbs0-Z8FpDw' },     // Rubber-band Finger Extension
+  grip_squeeze: { en: '8h0tSMxLNG4', es: '8h0tSMxLNG4', pt: '8h0tSMxLNG4' },              // Hand/Wrist Ball Squeeze (AskDoctorJo)
+  radial_ulnar_deviation: { en: 'pwodoGsoIpM', es: 'pwodoGsoIpM', pt: 'pwodoGsoIpM' },    // Radial/Ulnar Deviation (AskDoctorJo)
+  finger_tendon_glides: { en: 'grbacaaEwjg', es: 'grbacaaEwjg', pt: 'grbacaaEwjg' },      // Finger Tendon Glides (AskDoctorJo)
 };
 
 // Compile the diagnostic report lines from the three selections, in `lang`. The

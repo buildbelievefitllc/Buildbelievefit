@@ -23,30 +23,30 @@ import { pickLang } from '../../lib/pickLang.js';
 // moment a localized clip is sourced (a missing es/pt safely falls back to en).
 export const VIDEO_MAP = {
   // CORE 37
-  'Barbell Bench Press': { en: 'vthMCtgVtFw', es: 'fqsTgdTPRQU', pt: 'vIGvt-vgrvY' }, 'Incline Dumbbell Press': 'awEEyL5zGvU', 'Machine Chest Press': 'pLofEAcfsO8', 'Push-Up': 'uXC_3Gs9Yr0', 'Cable Chest Fly': 'ovFc-5YdcXw',
-  'Lat Pulldown': { en: 'CAwf7n6Luuc', es: 'WW6E1zRdYoQ', pt: 'V-Z_RntYhZg' }, 'Seated Cable Row': 'EU7bOadUsNI', 'One-Arm Dumbbell Row': 'pYcpY20QaE8', 'Pull-Up': 'rmdn5X_KLkY', 'Barbell Bent-Over Row': 'rqTOAM8WoeM',
-  'Dumbbell Shoulder Press': 'E9ShwbwZ1zw', 'Dumbbell Lateral Raise': '4hTUCDUQaNA', 'Cable Face Pull': 'ljgqer1ZpXg', 'Band Pull-Apart': 'smSSXITNpCI',
-  'Dumbbell Biceps Curl': 'ykJmrZ5v0Oo', 'Cable Biceps Curl': '2MUEL4nL6hA', 'Hammer Curl': 'TwD-YGVP4Bk',
-  'Cable Triceps Pushdown': '_w-HpW70nSQ', 'Bench Dip': '0326dy_-CzM',
-  'Leg Press': 'K5n2vg3oZa4', 'Goblet Squat': { en: 'BR4tlEE_A98', es: 'XANUniwN1Jg', pt: '6cSmqSho_Ks' }, 'Bulgarian Split Squat': 'hiLF_pF3EJM', 'Walking Lunge': '_DLIS8SySzs', 'Leg Extension': 'tTbJBUKnWU8', 'Front Squat': 'wyDbagKS7Rg',
-  'Dumbbell Romanian Deadlift': { en: 'aa57T45iFSE', es: 'UgqrPwoTick', pt: 'jSomWOwLiGE' }, 'Seated Leg Curl': 'S367qaHeYWU',
-  'Barbell Hip Thrust': 'S_uZP4UH6J0', 'Dumbbell Hip Thrust': '29OfN4ztW_g', 'Glute Bridge': '8bbE64NuDTU', 'Cable Pull-Through': 'yXopOhzEoeo',
-  'Standing Calf Raise': 'SVtg-1loH4c',
-  'Front Plank': 'mwlp75MS6Rg', 'Side Plank': 'Ujf5ELfqI7o', 'Hanging Leg Raise': 'Pr1ieGZ5atk', 'Cable Woodchop': 'Gwcf4TOj1hc', 'Dead Bug': 'bxn9FBrt4-A',
+  'Barbell Bench Press': { en: 'vthMCtgVtFw', es: 'fqsTgdTPRQU', pt: 'vIGvt-vgrvY' }, 'Incline Dumbbell Press': { en: 'awEEyL5zGvU', es: 'awEEyL5zGvU', pt: 'awEEyL5zGvU' }, 'Machine Chest Press': { en: 'pLofEAcfsO8', es: 'pLofEAcfsO8', pt: 'pLofEAcfsO8' }, 'Push-Up': { en: 'uXC_3Gs9Yr0', es: 'uXC_3Gs9Yr0', pt: 'uXC_3Gs9Yr0' }, 'Cable Chest Fly': { en: 'ovFc-5YdcXw', es: 'ovFc-5YdcXw', pt: 'ovFc-5YdcXw' },
+  'Lat Pulldown': { en: 'CAwf7n6Luuc', es: 'WW6E1zRdYoQ', pt: 'V-Z_RntYhZg' }, 'Seated Cable Row': { en: 'EU7bOadUsNI', es: 'EU7bOadUsNI', pt: 'EU7bOadUsNI' }, 'One-Arm Dumbbell Row': { en: 'pYcpY20QaE8', es: 'pYcpY20QaE8', pt: 'pYcpY20QaE8' }, 'Pull-Up': { en: 'rmdn5X_KLkY', es: 'rmdn5X_KLkY', pt: 'rmdn5X_KLkY' }, 'Barbell Bent-Over Row': { en: 'rqTOAM8WoeM', es: 'rqTOAM8WoeM', pt: 'rqTOAM8WoeM' },
+  'Dumbbell Shoulder Press': { en: 'E9ShwbwZ1zw', es: 'E9ShwbwZ1zw', pt: 'E9ShwbwZ1zw' }, 'Dumbbell Lateral Raise': { en: '4hTUCDUQaNA', es: '4hTUCDUQaNA', pt: '4hTUCDUQaNA' }, 'Cable Face Pull': { en: 'ljgqer1ZpXg', es: 'ljgqer1ZpXg', pt: 'ljgqer1ZpXg' }, 'Band Pull-Apart': { en: 'smSSXITNpCI', es: 'smSSXITNpCI', pt: 'smSSXITNpCI' },
+  'Dumbbell Biceps Curl': { en: 'ykJmrZ5v0Oo', es: 'ykJmrZ5v0Oo', pt: 'ykJmrZ5v0Oo' }, 'Cable Biceps Curl': { en: '2MUEL4nL6hA', es: '2MUEL4nL6hA', pt: '2MUEL4nL6hA' }, 'Hammer Curl': { en: 'TwD-YGVP4Bk', es: 'TwD-YGVP4Bk', pt: 'TwD-YGVP4Bk' },
+  'Cable Triceps Pushdown': { en: '_w-HpW70nSQ', es: '_w-HpW70nSQ', pt: '_w-HpW70nSQ' }, 'Bench Dip': { en: '0326dy_-CzM', es: '0326dy_-CzM', pt: '0326dy_-CzM' },
+  'Leg Press': { en: 'K5n2vg3oZa4', es: 'K5n2vg3oZa4', pt: 'K5n2vg3oZa4' }, 'Goblet Squat': { en: 'BR4tlEE_A98', es: 'XANUniwN1Jg', pt: '6cSmqSho_Ks' }, 'Bulgarian Split Squat': { en: 'hiLF_pF3EJM', es: 'hiLF_pF3EJM', pt: 'hiLF_pF3EJM' }, 'Walking Lunge': { en: '_DLIS8SySzs', es: '_DLIS8SySzs', pt: '_DLIS8SySzs' }, 'Leg Extension': { en: 'tTbJBUKnWU8', es: 'tTbJBUKnWU8', pt: 'tTbJBUKnWU8' }, 'Front Squat': { en: 'wyDbagKS7Rg', es: 'wyDbagKS7Rg', pt: 'wyDbagKS7Rg' },
+  'Dumbbell Romanian Deadlift': { en: 'aa57T45iFSE', es: 'UgqrPwoTick', pt: 'jSomWOwLiGE' }, 'Seated Leg Curl': { en: 'S367qaHeYWU', es: 'S367qaHeYWU', pt: 'S367qaHeYWU' },
+  'Barbell Hip Thrust': { en: 'S_uZP4UH6J0', es: 'S_uZP4UH6J0', pt: 'S_uZP4UH6J0' }, 'Dumbbell Hip Thrust': { en: '29OfN4ztW_g', es: '29OfN4ztW_g', pt: '29OfN4ztW_g' }, 'Glute Bridge': { en: '8bbE64NuDTU', es: '8bbE64NuDTU', pt: '8bbE64NuDTU' }, 'Cable Pull-Through': { en: 'yXopOhzEoeo', es: 'yXopOhzEoeo', pt: 'yXopOhzEoeo' },
+  'Standing Calf Raise': { en: 'SVtg-1loH4c', es: 'SVtg-1loH4c', pt: 'SVtg-1loH4c' },
+  'Front Plank': { en: 'mwlp75MS6Rg', es: 'mwlp75MS6Rg', pt: 'mwlp75MS6Rg' }, 'Side Plank': { en: 'Ujf5ELfqI7o', es: 'Ujf5ELfqI7o', pt: 'Ujf5ELfqI7o' }, 'Hanging Leg Raise': { en: 'Pr1ieGZ5atk', es: 'Pr1ieGZ5atk', pt: 'Pr1ieGZ5atk' }, 'Cable Woodchop': { en: 'Gwcf4TOj1hc', es: 'Gwcf4TOj1hc', pt: 'Gwcf4TOj1hc' }, 'Dead Bug': { en: 'bxn9FBrt4-A', es: 'bxn9FBrt4-A', pt: 'bxn9FBrt4-A' },
   // EXPANSION · chest/press
-  'Cable Crossover': 'JUDTGZh4rhg', 'Dumbbell Fly': 'eozdVDA78K0', 'Machine Chest Fly': 'hZ0CGRaKwbQ', 'Incline Barbell Bench Press': 'jPLdzuHckI8', 'Close-Grip Bench Press': 'cXbSJHtjrQQ', 'Dumbbell Chest Press': 'jRUC6IVav30', 'DB Flat Bench Press': 'jRUC6IVav30',
+  'Cable Crossover': { en: 'JUDTGZh4rhg', es: 'JUDTGZh4rhg', pt: 'JUDTGZh4rhg' }, 'Dumbbell Fly': { en: 'eozdVDA78K0', es: 'eozdVDA78K0', pt: 'eozdVDA78K0' }, 'Machine Chest Fly': { en: 'hZ0CGRaKwbQ', es: 'hZ0CGRaKwbQ', pt: 'hZ0CGRaKwbQ' }, 'Incline Barbell Bench Press': { en: 'jPLdzuHckI8', es: 'jPLdzuHckI8', pt: 'jPLdzuHckI8' }, 'Close-Grip Bench Press': { en: 'cXbSJHtjrQQ', es: 'cXbSJHtjrQQ', pt: 'cXbSJHtjrQQ' }, 'Dumbbell Chest Press': { en: 'jRUC6IVav30', es: 'jRUC6IVav30', pt: 'jRUC6IVav30' }, 'DB Flat Bench Press': { en: 'jRUC6IVav30', es: 'jRUC6IVav30', pt: 'jRUC6IVav30' },
   // shoulders
-  'Overhead Press': 'a81SaIpjGlA', 'Dumbbell Overhead Press': '1jYq9QQEWqE', 'Dumbbell Front Raise': '-t7fuZ0KhDA',
+  'Overhead Press': { en: 'a81SaIpjGlA', es: 'a81SaIpjGlA', pt: 'a81SaIpjGlA' }, 'Dumbbell Overhead Press': { en: '1jYq9QQEWqE', es: '1jYq9QQEWqE', pt: '1jYq9QQEWqE' }, 'Dumbbell Front Raise': { en: '-t7fuZ0KhDA', es: '-t7fuZ0KhDA', pt: '-t7fuZ0KhDA' },
   // biceps
-  'Barbell Curl': 'JJB8XgKltA8', 'Preacher Curl': 'fIWP-FRFNU0', 'Concentration Curl': 'Jvj2wV0vOYU',
+  'Barbell Curl': { en: 'JJB8XgKltA8', es: 'JJB8XgKltA8', pt: 'JJB8XgKltA8' }, 'Preacher Curl': { en: 'fIWP-FRFNU0', es: 'fIWP-FRFNU0', pt: 'fIWP-FRFNU0' }, 'Concentration Curl': { en: 'Jvj2wV0vOYU', es: 'Jvj2wV0vOYU', pt: 'Jvj2wV0vOYU' },
   // triceps
-  'Overhead Triceps Extension': 'DZgpCf5alfI', 'Triceps Dip': 'U7HeutDqS_w',
+  'Overhead Triceps Extension': { en: 'DZgpCf5alfI', es: 'DZgpCf5alfI', pt: 'DZgpCf5alfI' }, 'Triceps Dip': { en: 'U7HeutDqS_w', es: 'U7HeutDqS_w', pt: 'U7HeutDqS_w' },
   // legs / posterior
-  'Hack Squat': 'hglQExHCM9Q', 'Barbell Deadlift': 'GxsLrTzyGUU', 'Lying Leg Curl': 'vl5nUdE9mWM', 'Hamstring Curls': 'vl5nUdE9mWM', 'Seated Calf Raise': 'ORY-ke6vcgk',
+  'Hack Squat': { en: 'hglQExHCM9Q', es: 'hglQExHCM9Q', pt: 'hglQExHCM9Q' }, 'Barbell Deadlift': { en: 'GxsLrTzyGUU', es: 'GxsLrTzyGUU', pt: 'GxsLrTzyGUU' }, 'Lying Leg Curl': { en: 'vl5nUdE9mWM', es: 'vl5nUdE9mWM', pt: 'vl5nUdE9mWM' }, 'Hamstring Curls': { en: 'vl5nUdE9mWM', es: 'vl5nUdE9mWM', pt: 'vl5nUdE9mWM' }, 'Seated Calf Raise': { en: 'ORY-ke6vcgk', es: 'ORY-ke6vcgk', pt: 'ORY-ke6vcgk' },
   // glutes / posterior chain
-  'Hip Abduction Machine': 'OjI5OpV6IWA', 'Hip Abductors': 'OjI5OpV6IWA', 'Abductor Machine': 'OjI5OpV6IWA', 'Back Extension': 'gLT-WLH84B4', 'Cable Hip Extension': 'yXopOhzEoeo', 'Cable Glute Kickback': 'bVrmtCI00Ys', 'Reverse Kickbacks': 'bVrmtCI00Ys',
+  'Hip Abduction Machine': { en: 'OjI5OpV6IWA', es: 'OjI5OpV6IWA', pt: 'OjI5OpV6IWA' }, 'Hip Abductors': { en: 'OjI5OpV6IWA', es: 'OjI5OpV6IWA', pt: 'OjI5OpV6IWA' }, 'Abductor Machine': { en: 'OjI5OpV6IWA', es: 'OjI5OpV6IWA', pt: 'OjI5OpV6IWA' }, 'Back Extension': { en: 'gLT-WLH84B4', es: 'gLT-WLH84B4', pt: 'gLT-WLH84B4' }, 'Cable Hip Extension': { en: 'yXopOhzEoeo', es: 'yXopOhzEoeo', pt: 'yXopOhzEoeo' }, 'Cable Glute Kickback': { en: 'bVrmtCI00Ys', es: 'bVrmtCI00Ys', pt: 'bVrmtCI00Ys' }, 'Reverse Kickbacks': { en: 'bVrmtCI00Ys', es: 'bVrmtCI00Ys', pt: 'bVrmtCI00Ys' },
   // core / misc
-  'Bird Dog': 'ZdAHe9_HeEw', 'Russian Twist': 'wkD8rjkodUI', 'Heel Tap': 'jfXcyLTuKP4', 'MTS Pulldown': 'CAwf7n6Luuc',
+  'Bird Dog': { en: 'ZdAHe9_HeEw', es: 'ZdAHe9_HeEw', pt: 'ZdAHe9_HeEw' }, 'Russian Twist': { en: 'wkD8rjkodUI', es: 'wkD8rjkodUI', pt: 'wkD8rjkodUI' }, 'Heel Tap': { en: 'jfXcyLTuKP4', es: 'jfXcyLTuKP4', pt: 'jfXcyLTuKP4' }, 'MTS Pulldown': { en: 'CAwf7n6Luuc', es: 'CAwf7n6Luuc', pt: 'CAwf7n6Luuc' },
 };
 
 // ─── Fuzzy normalizer (port of _normalizeExerciseName) ───────────────────────
