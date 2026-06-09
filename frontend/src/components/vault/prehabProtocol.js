@@ -2277,7 +2277,7 @@ export const EX_VIDEO = {
   doorway_pec_stretch: 'M850sCj9LHQ',       // Doorway Pec Stretch (MedBridge)
   band_shoulder_dislocate: '7p-Ma0eksaY',   // Band Shoulder Dislocates / pass-through
   // ── Elbow ───────────────────────────────────────────────────────────────
-  eccentric_hammer_curl: 'TwD-YGVP4Bk',     // Hammer Curl
+  eccentric_hammer_curl: { en: 'TwD-YGVP4Bk', es: 'RHdacbwKbTo', pt: '1-xCKLVxqqg' }, // Hammer Curl (EN/ES/PT)
   triceps_pushdown_ecc: '_w-HpW70nSQ',      // Cable Triceps Pushdown
   bench_dip_controlled: '0326dy_-CzM',      // Bench Dip
   flexbar_tyler_twist: 'DUfLc4n3ygg',       // Tyler Twist (tennis elbow)
