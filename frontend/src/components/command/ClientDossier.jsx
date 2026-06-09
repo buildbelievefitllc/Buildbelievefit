@@ -29,6 +29,9 @@ import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, 
 import { hasAdminPin, setAdminPin, fetchBodyComposition } from '../../lib/coachAnalyticsApi.js';
 import { BarChart, LineChart, BodyComp } from './charts.jsx';
 import { numOrNull, GOLD, GRN, PURL, GOLD_SOFT } from './chartUtils.js';
+import { buildSportsProtocol, normalizeSportKey } from '../../lib/sportsEngine.js';
+import { buildMealPlan } from '../../lib/nutritionEngine.js';
+import { getSportsProtocol, setSportsProtocol, setMealPlan } from '../../lib/protocolOverrideApi.js';
 import './analytics.css';
 
 export default function ClientDossier({ client, onBack }) {
@@ -181,6 +184,7 @@ const DECKS = [
   { id: 'analytics', label: '30/60/90 Analytics', icon: '📊' },
   { id: 'feed', label: 'Athlete Feed Chat', icon: '💬' },
   { id: 'target', label: 'Update Target', icon: '⬆' },
+  { id: 'override', label: 'Manual Override', icon: '⚡' },
 ];
 
 function DossierBody({ c, clientId, clientUid, onPatched, analytics }) {
@@ -212,6 +216,7 @@ function DossierBody({ c, clientId, clientUid, onPatched, analytics }) {
         {deck === 'analytics' && <AnalyticsDeck {...analytics} uid={clientUid} />}
         {deck === 'feed' && <FeedChat clientId={clientId} clientName={c.name || c.uid || 'this athlete'} />}
         {deck === 'target' && <ReconfiguratorDeck c={c} clientId={clientId} onPatched={onPatched} />}
+        {deck === 'override' && <OverrideDeck c={c} clientId={clientId} />}
       </div>
 
       <div style={styles.footer}>Last updated {fmtDate(c.updated_at) || '—'}</div>
@@ -260,10 +265,16 @@ function NutritionTab({ c }) {
   const mealDays = asMealDays(c.meal_plan);
   const mealText = !mealDays && typeof c.meal_plan === 'string' ? c.meal_plan.trim() : '';
   const nutritionText = typeof c.nutrition_plan === 'string' ? c.nutrition_plan.trim() : '';
+  const fastingWindow = mealPlanFastingWindow(c.meal_plan);
 
   return (
     <>
       <Section title="7-Day Meal Plan" meta={fmtDate(c.nutrition_plan_updated_at)}>
+        {fastingWindow ? (
+          <div style={styles.kv}>
+            <Field label="Fasting Window" value={fastingWindow === 'none' ? 'None (continuous feeding)' : fastingWindow} color="var(--gold-soft)" />
+          </div>
+        ) : null}
         {nutritionText ? <pre style={styles.pre}>{nutritionText}</pre> : null}
         {mealDays ? (
           <div style={styles.plan}>
@@ -702,6 +713,148 @@ function MacroInput({ label, unit, accent, value, onChange, disabled }) {
   );
 }
 
+// ── Manual Override — the Commander's hand on the Autonomous Referee. Reads the
+//    staged sports_protocol and force-writes a new phase (buildSportsProtocol) or a
+//    recalculated diet (buildMealPlan) — the SAME deterministic engines the frontend
+//    + the Referee run — via the admin-gated override RPCs. ────────────────────────
+const OVR_SPORTS = [['general', 'General'], ['basketball', 'Basketball'], ['football', 'Football'], ['soccer', 'Soccer'], ['track', 'Track & Field'], ['baseball', 'Baseball / Softball']];
+const OVR_PHASES = [[1, 'Phase 1 — Foundation'], [2, 'Phase 2 — Development'], [3, 'Phase 3 — Peak']];
+const OVR_DIETS = [['Omnivore', 'Omnivore'], ['Vegetarian', 'Vegetarian'], ['Vegan', 'Vegan']];
+const OVR_FASTS = [['none', 'None'], ['12/12', '12 / 12'], ['14/10', '14 / 10'], ['16/8', '16 / 8']];
+const OVR_SELECT = { width: '100%', boxSizing: 'border-box', background: '#050505', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--wht)', fontFamily: 'var(--bd)', fontSize: '.95rem', fontWeight: 700, padding: '.5rem .7rem', outline: 'none', marginTop: '.25rem' };
+
+function OverrideDeck({ c, clientId }) {
+  const [proto, setProto] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadErr, setLoadErr] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const [sport, setSport] = useState('general');
+  const [phase, setPhase] = useState(2);
+  const [phaseState, setPhaseState] = useState({ busy: false, ok: null, err: null });
+
+  const [tdee, setTdee] = useState(c.tdee_target ?? '');
+  const [diet, setDiet] = useState(c.dietary_profile || 'Omnivore');
+  const [fasting, setFasting] = useState('none');
+  const [nutState, setNutState] = useState({ busy: false, ok: null, err: null });
+
+  // Read the staged protocol (set-state only in the promise callbacks / a microtask —
+  // never synchronously in the effect body; mirrors BodyCompositionCard).
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) setLoading(true); });
+    getSportsProtocol(clientId)
+      .then((d) => {
+        if (cancelled) return;
+        setProto(d || null); setLoadErr(null);
+        if (d) {
+          if (d.sport) setSport(normalizeSportKey(d.sport));
+          const n = parseInt(d.phase_number, 10);
+          if (n >= 1 && n <= 3) setPhase(Math.min(n + 1, 3)); // default the dropdown to the NEXT phase
+        }
+      })
+      .catch((e) => { if (!cancelled) setLoadErr(e.message || 'Failed to read protocol.'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [clientId, reloadKey]);
+
+  async function applyPhase() {
+    setPhaseState({ busy: true, ok: null, err: null });
+    try {
+      const age = Number(proto?.source_age ?? c.age) || undefined;
+      const experience = proto?.experience || 'intermediate';
+      const protocol = buildSportsProtocol({ sport, age, experience, targetPhase: phase });
+      await setSportsProtocol(clientId, protocol);
+      setPhaseState({ busy: false, ok: `Forced ${protocol.current_phase}.`, err: null });
+      setReloadKey((k) => k + 1);
+    } catch (e) { setPhaseState({ busy: false, ok: null, err: e.message }); }
+  }
+
+  async function recalcDiet() {
+    setNutState({ busy: true, ok: null, err: null });
+    try {
+      const t = Number(tdee) || 0;
+      if (t <= 0 || t > TARGET_MAX) { setNutState({ busy: false, ok: null, err: `Enter a TDEE between 1 and ${TARGET_MAX.toLocaleString()}.` }); return; }
+      const plan = buildMealPlan({ tdee: t, dietary_profile: diet, fasting_window: fasting });
+      if (!plan) { setNutState({ busy: false, ok: null, err: 'No plan could be built (meal database empty?).' }); return; }
+      await setMealPlan(clientId, plan);
+      setNutState({ busy: false, ok: `Recalculated — ${diet}${fasting !== 'none' ? ` · ${fasting}` : ''} @ ${t.toLocaleString()} kcal pushed.`, err: null });
+    } catch (e) { setNutState({ busy: false, ok: null, err: e.message }); }
+  }
+
+  return (
+    <>
+      <Section title="⚡ Autonomous Referee — Current Protocol" meta={proto ? `Phase ${proto.phase_number || '—'} / 3` : null}>
+        {loading ? <Loading label="Reading staged protocol…" /> : loadErr ? (
+          <div style={styles.inlineError} role="alert">
+            <span style={styles.errorMsg}>{loadErr}</span>
+            <button type="button" style={styles.retry} onClick={() => setReloadKey((k) => k + 1)}>Retry</button>
+          </div>
+        ) : proto ? (
+          <div style={styles.kv}>
+            <Field label="Sport" value={proto.sport} />
+            <Field label="Current Phase" value={proto.current_phase} color="var(--gold-soft)" />
+            <Field label="Progression Criteria" value={proto.progression_criteria} />
+          </div>
+        ) : <Empty>No sports protocol staged for this athlete yet — set one below.</Empty>}
+      </Section>
+
+      <Section title="Phase Override">
+        <div style={styles.macroGrid}>
+          <label style={styles.field}>
+            <span style={styles.fieldLabel}>Sport</span>
+            <select style={OVR_SELECT} value={sport} disabled={phaseState.busy} onChange={(e) => setSport(e.target.value)}>
+              {OVR_SPORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+          <label style={styles.field}>
+            <span style={styles.fieldLabel}>Target Phase</span>
+            <select style={OVR_SELECT} value={phase} disabled={phaseState.busy} onChange={(e) => setPhase(Number(e.target.value))}>
+              {OVR_PHASES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+        </div>
+        <div style={styles.saveRow}>
+          <button type="button" style={{ ...styles.saveBtn, opacity: phaseState.busy ? 0.6 : 1 }} disabled={phaseState.busy} onClick={applyPhase}>
+            {phaseState.busy ? 'Forcing Phase…' : 'Force Phase'}
+          </button>
+          {phaseState.ok ? <span style={styles.savedFlag}>✓ {phaseState.ok}</span> : null}
+        </div>
+        {phaseState.err ? <div style={styles.saveError} role="alert">{phaseState.err}</div> : null}
+      </Section>
+
+      <Section title="Nutrition Override">
+        <div style={styles.macroGrid}>
+          <label style={styles.field}>
+            <span style={styles.fieldLabel}>TDEE (kcal)</span>
+            <input style={OVR_SELECT} type="number" min="0" max={TARGET_MAX} step="1" inputMode="numeric"
+              value={tdee} disabled={nutState.busy} onChange={(e) => setTdee(e.target.value)} />
+          </label>
+          <label style={styles.field}>
+            <span style={styles.fieldLabel}>Dietary Profile</span>
+            <select style={OVR_SELECT} value={diet} disabled={nutState.busy} onChange={(e) => setDiet(e.target.value)}>
+              {OVR_DIETS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+          <label style={styles.field}>
+            <span style={styles.fieldLabel}>Fasting Window</span>
+            <select style={OVR_SELECT} value={fasting} disabled={nutState.busy} onChange={(e) => setFasting(e.target.value)}>
+              {OVR_FASTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+        </div>
+        <div style={styles.saveRow}>
+          <button type="button" style={{ ...styles.saveBtn, opacity: nutState.busy ? 0.6 : 1 }} disabled={nutState.busy} onClick={recalcDiet}>
+            {nutState.busy ? 'Recalculating…' : 'Recalculate Diet'}
+          </button>
+          {nutState.ok ? <span style={styles.savedFlag}>✓ {nutState.ok}</span> : null}
+        </div>
+        {nutState.err ? <div style={styles.saveError} role="alert">{nutState.err}</div> : null}
+      </Section>
+    </>
+  );
+}
+
 // ── One workout day from the structured plan. ─────────────────────────────────
 function WorkoutDay({ day, index }) {
   const exercises = Array.isArray(day?.exercises) ? day.exercises : [];
@@ -805,6 +958,12 @@ function asMealDays(v) {
   if (typeof v === 'string' && v.trim()) { try { o = JSON.parse(v); } catch { return null; } }
   if (o && Array.isArray(o.days) && o.days.length) return o.days;
   return null;
+}
+// Pull the fasting_window from a meal_plan payload (the native nutritionEngine stamps it).
+function mealPlanFastingWindow(v) {
+  let o = v;
+  if (typeof v === 'string' && v.trim()) { try { o = JSON.parse(v); } catch { return null; } }
+  return (o && typeof o === 'object' && o.fasting_window) ? String(o.fasting_window) : null;
 }
 function hasItems(v) { return Array.isArray(v) && v.length > 0; }
 function dayLabel(day, i) {
