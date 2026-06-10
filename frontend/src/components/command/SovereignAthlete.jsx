@@ -12,13 +12,13 @@
 // read/architecture surface, not a replacement for the working decks.
 
 import { useEffect, useRef, useState } from 'react';
+import { HRV_BREACH_MS, SLEEP_BREACH_MIN } from '../../lib/wearableApi.js';
 
 // ── MOCK telemetry — LAYOUT ONLY. Replace each with a real column when wired. ─────
 const MOCK = {
   focusDirective: 'Increase Acceleration & Route Break Fluidity',
-  hrvRecovery: 82,          // ms  · avg HRV recovery
-  cnsDrift: 12,             // %   · central fatigue drift
-  injuryRisk: 'Low',        //     · injury risk index
+  // HRV / Central Fatigue Drift / Injury Risk are NO LONGER mocked — they come live
+  // from bbf_wearable_readings via useAthleteWearable (see BiometricDossier).
   hydration: '4.6 Liters/Day',
   macroStrategy: 'CNS-Restorative Power Loading',
   ratios: { c: 45, p: 32, f: 23 },
@@ -53,14 +53,23 @@ const LIFELINE = [
   { tier: 'Collegiate & Pro', ages: 'Ages 18+', lo: 18, hi: 99, note: 'Medical-grade ANS diagnostics, central fatigue metrics, predictive musculoskeletal decay models.' },
 ];
 
-export default function SovereignAthlete({ c, proto, onQuickAction }) {
+// Injury Risk Index tiers (derived from live wearable readiness).
+const RISK = {
+  critical: { label: 'Critical', bg: '#ef4444', fg: '#fff' },
+  elevated: { label: 'Elevated', bg: 'var(--orn)', fg: '#090909' },
+  low: { label: 'Low', bg: 'var(--grn)', fg: '#04130a' },
+  unknown: { label: 'No Sync', bg: 'var(--mut)', fg: '#090909' },
+};
+const fmtInt = (v) => (v == null ? '—' : String(v));
+
+export default function SovereignAthlete({ c, proto, onQuickAction, wearable }) {
   const sport = proto?.sport || 'Athlete';
   const age = Number(c?.age) || Number(proto?.source_age) || 17;
   const phase = parseInt(proto?.phase_number, 10) || 1;
 
   return (
     <div style={s.wrap}>
-      <BiometricDossier c={c} sport={sport} age={age} phase={phase} onQuickAction={onQuickAction} />
+      <BiometricDossier c={c} sport={sport} age={age} phase={phase} onQuickAction={onQuickAction} wearable={wearable} />
       <SovereignRoadmap c={c} />
       <AntiLockoutNode />
       <LifelineRoadmap age={age} />
@@ -70,13 +79,21 @@ export default function SovereignAthlete({ c, proto, onQuickAction }) {
 }
 
 // ── 1 · Active Biometric Dossier ─────────────────────────────────────────────────
-function BiometricDossier({ c, sport, age, phase, onQuickAction }) {
+function BiometricDossier({ c, sport, age, phase, onQuickAction, wearable }) {
   const name = c?.name || c?.uid || 'Unnamed Athlete';
   const pos = c?.position || SPORT_POS[sport] || 'Athlete';
   const chips = [`Age ${age}`, `POS · ${pos}`, 'Highschool Bracket', `Era Phase ${phase}`];
 
+  // LIVE wearable readiness (bbf_wearable_readings) — no mock. null while loading.
+  const w = wearable || null;
+  const breach = !!w?.breach;
+  const risk = RISK[w?.risk] || RISK.unknown;
+  const hrvBad = w?.hrv != null && w.hrv < HRV_BREACH_MS;
+  const sleepBad = w?.sleep != null && w.sleep < SLEEP_BREACH_MIN;
+  const RED = '#ef4444';
+
   return (
-    <section style={{ ...s.card, ...s.dossier }}>
+    <section style={{ ...s.card, ...s.dossier, ...(breach ? s.dossierBreach : null) }}>
       <div style={s.dossierTop}>
         <span style={s.avatar}>{initials(name)}</span>
         <div style={s.idCol}>
@@ -89,12 +106,21 @@ function BiometricDossier({ c, sport, age, phase, onQuickAction }) {
           <div style={s.directive}><span style={s.directiveLabel}>Focus Directive:</span> <em>{MOCK.focusDirective}</em></div>
         </div>
         <div style={s.bioStats}>
-          <BioStat label="Avg HRV Recovery" value={`${MOCK.hrvRecovery}`} unit="ms" tone="var(--wht)" />
-          <BioStat label="Central Fatigue Drift" value={`${MOCK.cnsDrift}%`} unit="CNS" tone="var(--gold-soft)" />
-          <BioStat label="Injury Risk Index" value={MOCK.injuryRisk} unit="" tone="var(--grn)" pill />
+          <BioStat label="Avg HRV Recovery" value={fmtInt(w?.hrv)} unit="ms" tone={hrvBad ? RED : 'var(--wht)'} />
+          <BioStat label="Sleep" value={fmtInt(w?.sleep)} unit="min" tone={sleepBad ? RED : 'var(--wht)'} />
+          <BioStat label="Central Fatigue Drift" value={w?.cnsDrift != null ? `${w.cnsDrift}%` : '—'} unit="CNS" tone={w?.cnsDrift != null && w.cnsDrift >= 50 ? RED : 'var(--gold-soft)'} />
+          <BioStat label="Injury Risk Index" value={risk.label} pill pillBg={risk.bg} pillFg={risk.fg} />
         </div>
         <HeaderActions onAction={onQuickAction} />
       </div>
+
+      {breach ? (
+        <div style={s.breachBanner} role="alert">
+          ⚠ CNS Breach Detected — HRV <b>{w.hrv}ms</b> (&lt;{HRV_BREACH_MS}) · Sleep <b>{w.sleep}m</b> (&lt;{SLEEP_BREACH_MIN}) · Recovery <b>{w.recovery}</b> · Strain <b>{w.strain}</b>
+        </div>
+      ) : w && !w.hasData ? (
+        <div style={s.noSync}>◌ No wearable sync on file — telemetry populates on the next Health Connect sync.</div>
+      ) : null}
     </section>
   );
 }
@@ -165,12 +191,12 @@ function HeaderActions({ onAction }) {
   );
 }
 
-function BioStat({ label, value, unit, tone, pill }) {
+function BioStat({ label, value, unit, tone, pill, pillBg, pillFg }) {
   return (
     <div style={s.bioStat}>
       <span style={s.bioLabel}>{label}</span>
       {pill
-        ? <span style={s.riskPill}>{value}</span>
+        ? <span style={{ ...s.riskPill, background: pillBg || 'var(--grn)', color: pillFg || '#04130a' }}>{value}</span>
         : <span style={{ ...s.bioVal, color: tone }}>{value}{unit ? <small style={s.bioUnit}> {unit}</small> : null}</span>}
     </div>
   );
@@ -458,6 +484,9 @@ const s = {
 
   // Biometric dossier
   dossier: { background: 'rgba(106,13,173,.16)', borderColor: 'rgba(245,200,0,.4)' },
+  dossierBreach: { borderColor: '#ef4444', background: 'rgba(239,68,68,.12)', boxShadow: '0 0 0 1px rgba(239,68,68,.55), 0 0 30px -6px rgba(239,68,68,.5)' },
+  breachBanner: { marginTop: '.9rem', fontFamily: 'var(--bd)', fontSize: '.86rem', fontWeight: 700, color: '#fff', background: 'rgba(239,68,68,.92)', border: '1px solid #ef4444', borderRadius: 10, padding: '.6rem .85rem', letterSpacing: '.2px', lineHeight: 1.5 },
+  noSync: { marginTop: '.9rem', fontFamily: 'var(--bd)', fontSize: '.8rem', fontWeight: 600, fontStyle: 'italic', color: 'var(--mut)', border: '1px solid var(--line)', borderRadius: 10, padding: '.55rem .8rem' },
   dossierTop: { display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' },
   avatar: {
     width: 64, height: 64, flexShrink: 0, borderRadius: 14, border: '2px solid var(--gold-soft)',

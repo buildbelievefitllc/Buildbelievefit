@@ -33,6 +33,7 @@ import { buildSportsProtocol, normalizeSportKey } from '../../lib/sportsEngine.j
 import { buildMealPlan } from '../../lib/nutritionEngine.js';
 import { getSportsProtocol, setSportsProtocol, setMealPlan } from '../../lib/protocolOverrideApi.js';
 import SovereignAthlete from './SovereignAthlete.jsx';
+import { useAthleteWearable } from '../../lib/wearableApi.js';
 import './analytics.css';
 
 export default function ClientDossier({ client, onBack }) {
@@ -146,12 +147,16 @@ export default function ClientDossier({ client, onBack }) {
   // A populated sports_protocol ⇒ youth/athlete client → render the Athlete Profile variant.
   const isAthlete = !!proto;
 
+  // Live wearable readiness for the athlete dossier — refetches on the
+  // bbf:wearable-updated event the Dev Tools "Simulate CNS Breach" dispatches.
+  const wearable = useAthleteWearable(isAthlete ? (data?.uid || client.uid) : '');
+
   return (
     <div>
       <button type="button" style={styles.back} onClick={onBack}>← Back to Roster</button>
 
       {/* Athlete → Sovereign Tier dossier (prototype layout); else the standard identity card. */}
-      {isAthlete ? <SovereignAthlete c={c} proto={proto} onQuickAction={quickAction} /> : <AthleteCard c={c} proto={proto} />}
+      {isAthlete ? <SovereignAthlete c={c} proto={proto} onQuickAction={quickAction} wearable={wearable.data} /> : <AthleteCard c={c} proto={proto} />}
 
       {isLoading && !data ? <Loading label="Loading dossier…" /> : null}
 

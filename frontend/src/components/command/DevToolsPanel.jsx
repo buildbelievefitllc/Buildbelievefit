@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { simulateCnsBreach, buildCnsBreachReading } from '../../lib/devToolsApi.js';
+import { WEARABLE_UPDATED_EVENT } from '../../lib/wearableApi.js';
 
 const ERR = {
   not_authorized: 'Not authorized — an admin session is required.',
@@ -30,7 +31,6 @@ export default function DevToolsPanel() {
   const [open, setOpen] = useState(false);
   const [uid, setUid] = useState('marcus_bbf');
   const [busy, setBusy] = useState(false);
-  const [reloading, setReloading] = useState(false);
   const [result, setResult] = useState(null);
 
   if (!isAdmin) return null; // hard gate — never renders for a non-admin
@@ -38,24 +38,18 @@ export default function DevToolsPanel() {
   const preview = buildCnsBreachReading();
 
   async function fireBreach() {
-    if (busy || reloading) return;
+    if (busy) return;
     setBusy(true);
     setResult(null);
-    // Capture the exact payload sent so the panel can immediately reflect the
-    // compromised state from the server-confirmed write (instant visual update).
+    // Capture the exact payload sent so the panel reflects the server-confirmed write.
     const reading = buildCnsBreachReading();
     const res = await simulateCnsBreach(uid, { reading });
     setBusy(false);
+    setResult(res.ok ? { ...res, reading } : res);
     if (res.ok) {
-      setResult({ ...res, reading });
-      // STATE INVALIDATION: this app has no global query cache (no React Query/SWR)
-      // wired to the data surfaces — they each refetch on mount. So force the
-      // sanctioned full re-pull: every surface (Risk Telemetry, dossiers, SportsPortal)
-      // re-fetches from the backend on reload. Brief delay so the ✓ result is seen.
-      setReloading(true);
-      window.setTimeout(() => window.location.reload(), 1800);
-    } else {
-      setResult(res);
+      // LIVE state invalidation — NO reload. Signal the open dossier to refetch the
+      // athlete's wearable readiness; it re-pulls the real data and bleeds red.
+      window.dispatchEvent(new CustomEvent(WEARABLE_UPDATED_EVENT, { detail: { uid: String(uid).trim().toLowerCase() } }));
     }
   }
 
@@ -88,9 +82,9 @@ export default function DevToolsPanel() {
 
             <button
               type="button"
-              style={{ ...s.fire, ...(busy || reloading ? s.fireBusy : null) }}
+              style={{ ...s.fire, ...(busy ? s.fireBusy : null) }}
               onClick={fireBreach}
-              disabled={busy || reloading}
+              disabled={busy}
             >
               {busy ? 'Transmitting…' : '⚡ Simulate CNS Breach (Health Connect)'}
             </button>
@@ -102,7 +96,7 @@ export default function DevToolsPanel() {
                   <span style={s.okLine}>
                     HRV <b style={s.bad}>{result.reading?.hrv_ms}ms</b> · Sleep <b style={s.bad}>{result.reading?.sleep_minutes}m</b> · Recovery {result.reading?.readiness_score} · ACWR <b>{result.acwr?.flag || '—'}</b>
                   </span>
-                  {reloading ? <span style={s.reload}>↻ Refreshing console to pull fresh telemetry…</span> : null}
+                  <span style={s.reload}>↻ Live — the open dossier just re-pulled this.</span>
                 </div>
               ) : (
                 <div style={s.err} role="alert">✕ {errText(result.error)}</div>
