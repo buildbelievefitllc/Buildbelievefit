@@ -185,9 +185,10 @@ test.describe('BBF Vault — workout set logging', () => {
     await expect(card).toHaveClass(/is-open/);
     await expect(card.locator('.pg-ex-head')).toHaveAttribute('aria-expanded', 'true');
 
-    // 4) Log a valid set: 12 reps @ 160 lbs.
+    // 4) Log a valid set: 12 reps @ 160 lbs. The weight field now defaults to "BW"
+    //    (bodyweight) when the plan prescribes no load and there's no autoreg history.
     const reps = card.getByPlaceholder('reps').first();
-    const weight = card.getByPlaceholder('lbs').first();
+    const weight = card.getByPlaceholder('BW').first();
     await reps.fill(SET_TO_LOG.reps);
     await weight.fill(SET_TO_LOG.weight);
 

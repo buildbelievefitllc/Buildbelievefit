@@ -39,6 +39,16 @@ function initialDayIndex(plan) {
   return i === -1 ? 0 : i;
 }
 
+// "Today's Protocol" default. When the plan uses weekday names ("Monday"…) we snap
+// to the real current weekday; otherwise (sequenced "Day N" plans, which carry no
+// calendar weekday) we open on the first trainable day. Either way the grid lands on
+// the day the athlete should execute now — no horizontal hunting.
+function todayDayIndex(plan) {
+  const weekday = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const i = plan.findIndex((d) => String(d.day || '').trim().toLowerCase() === weekday);
+  return i !== -1 ? i : initialDayIndex(plan);
+}
+
 // Prescribed working-load target for a dynamic-plan exercise. The AI engine
 // emits this as "weight" (~85% 1RM for primary lifts); tolerate the other field
 // names a plan could carry. Returns a trimmed display string ("135 lb",
@@ -65,29 +75,55 @@ export default function ProgramGrid({ uid, programKey, dynamicPlan }) {
     () => (Array.isArray(dynamicPlan) && dynamicPlan.length ? dynamicPlan : getProgram(programKey)),
     [dynamicPlan, programKey],
   );
-  const [dayIdx, setDayIdx] = useState(() => initialDayIndex(plan));
+  const todayIdx = useMemo(() => todayDayIndex(plan), [plan]);
+  const [dayIdx, setDayIdx] = useState(todayIdx);
   const day = plan[dayIdx] || plan[0];
 
   return (
     <div className="pg">
-      {/* ── Day selector pills ───────────────────────────────────────────── */}
-      <nav className="pg-daynav" role="tablist" aria-label="Program days">
-        {plan.map((d, i) => {
-          const on = i === dayIdx;
-          return (
-            <button
-              key={d.day + i}
-              type="button"
-              role="tab"
-              aria-selected={on}
-              onClick={() => setDayIdx(i)}
-              className={`pg-day-pill${on ? ' is-on' : ''}`}
+      {/* ── Compact day navigator (Today-default · ‹ Prev | dropdown | Next ›) ──
+          Replaces the horizontal Mon–Sun pill slider: opens on Today's Protocol,
+          stays compact, and never forces a sideways scroll. */}
+      <div className="pg-daynav2">
+        <button
+          type="button"
+          className="pg-daynav-arrow"
+          disabled={dayIdx <= 0}
+          aria-label="Previous day"
+          onClick={() => setDayIdx((i) => Math.max(0, i - 1))}
+        >
+          ‹
+        </button>
+        <div className="pg-daynav-center">
+          <span className="pg-daynav-kicker">{dayIdx === todayIdx ? 'Today’s Protocol' : 'Protocol Day'}</span>
+          <div className="pg-daynav-pickrow">
+            <select
+              className="pg-dayselect"
+              value={dayIdx}
+              aria-label="Select training day"
+              onChange={(e) => setDayIdx(Number(e.target.value))}
             >
-              {localizeDay(d.day, lang)}
-            </button>
-          );
-        })}
-      </nav>
+              {plan.map((d, i) => (
+                <option key={d.day + i} value={i}>
+                  {localizeDay(d.day, lang)}{d.isRest ? ' · Rest' : d.focus ? ` · ${d.focus}` : ''}
+                </option>
+              ))}
+            </select>
+            {dayIdx === todayIdx
+              ? <span className="pg-todaytag" aria-hidden="true">● Today</span>
+              : <button type="button" className="pg-todaybtn" onClick={() => setDayIdx(todayIdx)}>Today</button>}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="pg-daynav-arrow"
+          disabled={dayIdx >= plan.length - 1}
+          aria-label="Next day"
+          onClick={() => setDayIdx((i) => Math.min(plan.length - 1, i + 1))}
+        >
+          ›
+        </button>
+      </div>
 
       {/* ── Day body — rest card or exercise list ────────────────────────── */}
       {day.isRest ? <RestCard day={day} /> : <DayView key={dayIdx} uid={uid} day={day} dayIdx={dayIdx} />}
@@ -207,7 +243,7 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
   // back to the coach-prescribed load for a lift with no history yet, then the
   // generic prompt. weightPlaceholder() (from the prescribed-weight UI) strips
   // "135 lb" → "135" so a non-numeric load like "Bodyweight" keeps "lbs".
-  const wPlaceholder = lastWeight != null ? `${lastWeight}` : (weightPlaceholder(target) || 'lbs');
+  const wPlaceholder = lastWeight != null ? `${lastWeight}` : (weightPlaceholder(target) || 'BW');
   // Hardwired form-demo video for this movement (fuzzy-resolved against the
   // authorized video map), localized to the active language with EN fallback.
   // null for the few cardio/circuit entries with no demo.
@@ -217,9 +253,21 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
     writeDayEntry(uid, dayIdx, exKey(index), setIdx, field, value);
     setEntries((prev) => {
       const next = prev.slice();
-      next[setIdx] = { ...(next[setIdx] || {}), [field]: value };
+      const row = { ...(next[setIdx] || {}) };
+      if (value === '' || value == null) delete row[field];
+      else row[field] = value;
+      next[setIdx] = row;
       return next;
     });
+  };
+
+  // Log Set → mark the set complete (collapses to a green summary). Defaults an
+  // untouched RPE slider to 7 so a logged set always carries a perceived-exertion
+  // value (the metric the Referee/coach reads). Edit (clearing `done`) re-expands it.
+  const logSet = (setIdx) => {
+    const cur = entries[setIdx] || {};
+    if (cur.rpe == null || cur.rpe === '') onField(setIdx, 'rpe', '7');
+    onField(setIdx, 'done', 'true');
   };
 
   return (
@@ -276,50 +324,86 @@ function ExerciseCard({ uid, dayIdx, index, ex }) {
 
           {ex.notes ? <div className="pg-note">💡 {ex.notes}</div> : null}
 
-          <div className="pg-setgrid pg-sethead">
-            <div className="pg-setlabel">Set</div>
-            <div className="pg-setlabel">Target</div>
-            <div className="pg-setlabel">Reps Done</div>
-            <div className="pg-setlabel">Weight (lbs)</div>
-          </div>
+          {/* ── Per-set logbook — Weight (BW default) · RPE · Log Set. A logged set
+              collapses to a green summary; Edit re-opens it. Reps + weight keep the
+              .pg-input / is-done contract (green-on-fill) the autoreg sync reads. ── */}
+          <div className="pg-logsets">
+            {Array.from({ length: setCount }).map((_, s) => {
+              const row = entries[s] || {};
+              const rVal = row.r ?? '';
+              const wVal = row.w ?? '';
+              const rpeVal = row.rpe ?? '';
+              const done = row.done === true || row.done === 'true';
 
-          {Array.from({ length: setCount }).map((_, s) => {
-            const rVal = entries[s]?.r ?? '';
-            const wVal = entries[s]?.w ?? '';
-            return (
-              <div className="pg-setgrid" key={s}>
-                <div className="pg-setnum">{s + 1}</div>
-                <div className="pg-settgt">
-                  <span className="pg-settgt-reps">{ex.reps}</span>
-                  {target ? <span className="pg-settgt-wt">{target}</span> : null}
+              if (done) {
+                return (
+                  <div className="pg-logset is-done" key={s}>
+                    <span className="pg-logset-check" aria-hidden="true">✓</span>
+                    <span className="pg-logset-summary">
+                      <strong>Set {s + 1}</strong> — {wVal !== '' ? `${wVal} lb` : 'BW'}
+                      {rVal !== '' ? ` · ${rVal} reps` : ''}
+                      {rpeVal !== '' ? ` · RPE ${rpeVal}` : ''}
+                    </span>
+                    <button type="button" className="pg-logset-edit" onClick={() => onField(s, 'done', '')}>
+                      Edit
+                    </button>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="pg-logset" key={s}>
+                  <span className="pg-logset-num">{s + 1}</span>
+                  <label className="pg-logfield">
+                    <span className="pg-logfield-l">Reps</span>
+                    <input
+                      className={`pg-input${rVal !== '' ? ' is-done' : ''}`}
+                      type="number" inputMode="numeric" min="0" step="1"
+                      placeholder={repPlaceholder}
+                      value={rVal}
+                      onChange={(e) => onField(s, 'r', e.target.value)}
+                      aria-label={`${ex.name} set ${s + 1} reps`}
+                    />
+                  </label>
+                  <label className="pg-logfield">
+                    <span className="pg-logfield-l">Weight</span>
+                    <input
+                      className={`pg-input${wVal !== '' ? ' is-done' : ''}`}
+                      type="number" inputMode="decimal" min="0" step="0.5"
+                      placeholder={wPlaceholder}
+                      value={wVal}
+                      onChange={(e) => onField(s, 'w', e.target.value)}
+                      aria-label={`${ex.name} set ${s + 1} weight in pounds`}
+                    />
+                  </label>
+                  <label className="pg-logfield pg-logfield-rpe">
+                    <span className="pg-logfield-l">RPE <b className={rpeToneClass(rpeVal)}>{rpeVal === '' ? '—' : rpeVal}</b><small className="pg-logfield-cap"> / 10</small></span>
+                    <input
+                      className="pg-rpe-range"
+                      type="range" min="1" max="10" step="0.5"
+                      value={rpeVal === '' ? 7 : rpeVal}
+                      onChange={(e) => onField(s, 'rpe', e.target.value)}
+                      aria-label={`${ex.name} set ${s + 1} RPE`}
+                    />
+                  </label>
+                  <button type="button" className="pg-logbtn" onClick={() => logSet(s)} aria-label={`Log set ${s + 1}`}>
+                    ✓ Log Set
+                  </button>
                 </div>
-                <input
-                  className={`pg-input${rVal !== '' ? ' is-done' : ''}`}
-                  type="number"
-                  inputMode="numeric"
-                  min="0"
-                  step="1"
-                  placeholder={repPlaceholder}
-                  value={rVal}
-                  onChange={(e) => onField(s, 'r', e.target.value)}
-                  aria-label={`${ex.name} set ${s + 1} reps`}
-                />
-                <input
-                  className={`pg-input${wVal !== '' ? ' is-done' : ''}`}
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.5"
-                  placeholder={wPlaceholder}
-                  value={wVal}
-                  onChange={(e) => onField(s, 'w', e.target.value)}
-                  aria-label={`${ex.name} set ${s + 1} weight in pounds`}
-                />
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       ) : null}
     </div>
   );
+}
+
+// RPE tone — green comfortable · gold working · red at/over the Referee's 8.5 gate.
+function rpeToneClass(v) {
+  const n = Number(v);
+  if (!v || Number.isNaN(n)) return '';
+  if (n >= 9) return 'is-max';
+  if (n >= 7) return 'is-hot';
+  return 'is-ok';
 }

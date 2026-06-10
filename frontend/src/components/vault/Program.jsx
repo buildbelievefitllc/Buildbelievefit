@@ -11,7 +11,7 @@
 // Phase 18 data wiring) is preserved below the grid as a collapsible reference so
 // nothing from the auth payload is lost.
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { Badge } from '../command/primitives.jsx';
@@ -27,10 +27,37 @@ import { buildCoachCue } from './coachCue.js';
 // language keeps the vault-logging E2E selectors green). Module-local dictionary
 // keyed by lang — the same convention MindsetEngine.jsx uses for vault content.
 const STR = {
-  en: { head: 'Training Protocol', streak: (n) => `${n}-day streak`, written: 'Coach’s written protocol' },
-  es: { head: 'Protocolo de Entrenamiento', streak: (n) => `racha de ${n} días`, written: 'Protocolo escrito del coach' },
-  pt: { head: 'Protocolo de Treino', streak: (n) => `sequência de ${n} dias`, written: 'Protocolo escrito do coach' },
+  en: { head: 'Training Protocol', streak: (n) => `${n}-day streak`, written: 'Coach’s written protocol', anShow: 'View Weekly Analytics', anHide: 'Hide Weekly Analytics', anSub: 'Dossier · volume & balance' },
+  es: { head: 'Protocolo de Entrenamiento', streak: (n) => `racha de ${n} días`, written: 'Protocolo escrito del coach', anShow: 'Ver Análisis Semanal', anHide: 'Ocultar Análisis Semanal', anSub: 'Expediente · volumen y balance' },
+  pt: { head: 'Protocolo de Treino', streak: (n) => `sequência de ${n} dias`, written: 'Protocolo escrito do coach', anShow: 'Ver Análise Semanal', anHide: 'Ocultar Análise Semanal', anSub: 'Dossiê · volume e equilíbrio' },
 };
+
+// Weekly-analytics dossier — COLLAPSED by default. One sleek toggle reveals the
+// master visual dashboard (Analyzer for admin / Sentinel blueprint for client), so
+// the Program tab opens action-first instead of leading with charts.
+function AnalyticsDossier({ isAdmin, tr }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="pg-analytics">
+      <button
+        type="button"
+        className={`pg-analytics-toggle${open ? ' is-open' : ''}`}
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className="pg-analytics-ic" aria-hidden="true">📊</span>
+        <span className="pg-analytics-label">{open ? tr.anHide : tr.anShow}</span>
+        <span className="pg-analytics-sub">{tr.anSub}</span>
+        <span className="pg-analytics-chev" aria-hidden="true">▾</span>
+      </button>
+      {open ? (
+        <div className="pg-analytics-body">
+          {isAdmin ? <HypertrophyBalanceAnalyzer /> : <SovereignSentinel />}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function formatStamp(iso) {
   if (!iso) return null;
@@ -83,10 +110,11 @@ export default function Program({ plans, profile }) {
         </div>
       </div>
 
-      {/* Master visual dashboard above the grid. From the Command Center (admin/
-          coach) this is the Hypertrophy Balance Analyzer (volume-ratio read-out);
-          the client Vault keeps the Sovereign Sentinel kinetic blueprint. */}
-      {isAdmin ? <HypertrophyBalanceAnalyzer /> : <SovereignSentinel />}
+      {/* Master visual dashboard — COLLAPSED BY DEFAULT so the Program tab opens
+          straight onto the day's protocol (action over analysis). The toggle reveals
+          the Hypertrophy Balance Analyzer (admin) or the Sovereign Sentinel blueprint
+          (client). Athletes execute first; the weekly dossier is one tap away. */}
+      <AnalyticsDossier isAdmin={isAdmin} tr={tr} />
 
       <ProgramGrid uid={uid} programKey={user?.programKey} dynamicPlan={dynamicPlan} />
 
