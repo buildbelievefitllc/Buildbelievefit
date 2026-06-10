@@ -1,0 +1,2002 @@
+[
+  {
+    "id": "bbf_prehab_lumbar_001",
+    "joint_complex": "Lumbar Spine / LPHC",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Pinching",
+      "trigger_mechanic": "Under axial load — squat or deadlift descent, especially approaching depth"
+    },
+    "diagnosis_hypothesis": "Flexion-intolerant lumbar segment under compression. Loss of pelvic-lumbar dissociation at depth ('butt wink') posteriorly tilts the pelvis, flexing the lumbar spine under axial load; intradiscal pressure drives the nucleus pulposus against the posterior annulus and shear concentrates at L4-S1. The usual driver is restricted hip flexion — capsular stiffness or socket anatomy — forcing the lumbar spine to donate the range the hips cannot supply.",
+    "prescription": {
+      "protocol_name": "Hinge Integrity Restoration",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Quadruped Rockback Hip Mobilization",
+              "description": "On all fours with a neutral spine, push the hips back toward the heels only as far as the pelvis stays level, grooving pure hip flexion without lumbar flexion.",
+              "cues": ["Brace lightly before you rock", "Stop the instant the pelvis tucks", "Exhale and own the end range"]
+            },
+            "es": {
+              "name": "Movilización de cadera en cuadrupedia (Rockback)",
+              "description": "En cuatro apoyos con columna neutra, lleva la cadera hacia los talones solo hasta donde la pelvis se mantenga nivelada, entrenando flexión pura de cadera sin flexión lumbar.",
+              "cues": ["Activa el core antes de moverte", "Detente en cuanto la pelvis se meta", "Exhala y domina el rango final"]
+            },
+            "pt": {
+              "name": "Mobilização de quadril em quatro apoios (Rockback)",
+              "description": "Em quatro apoios com a coluna neutra, leve o quadril em direção aos calcanhares apenas até onde a pelve permaneça nivelada, treinando flexão pura de quadril sem flexão lombar.",
+              "cues": ["Contraia o core antes de iniciar", "Pare assim que a pelve retrair", "Expire e domine a amplitude final"]
+            }
+          },
+          "volume": "2 sets x 10 reps (3s hold at end range)"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Bird Dog (McGill)",
+              "description": "From all fours, extend the opposite arm and leg while the torso stays rigid as a tabletop; the spine must not rotate, arch or sag as the limbs move.",
+              "cues": ["Reach long, do not lift high", "Squeeze the down-side glute", "Imagine a water glass balanced on your low back"]
+            },
+            "es": {
+              "name": "Bird Dog (Perro de Caza)",
+              "description": "Desde cuatro apoyos, extiende el brazo y la pierna opuestos mientras el torso permanece rígido como una mesa; la columna no debe rotar, arquearse ni colapsar mientras las extremidades se mueven.",
+              "cues": ["Alárgate, no subas alto", "Aprieta el glúteo del lado de apoyo", "Imagina un vaso de agua sobre tu zona lumbar"]
+            },
+            "pt": {
+              "name": "Bird Dog (Cão de Caça)",
+              "description": "Em quatro apoios, estenda o braço e a perna opostos mantendo o tronco rígido como uma mesa; a coluna não pode girar, arquear nem ceder enquanto os membros se movem.",
+              "cues": ["Alongue-se, não levante alto", "Contraia o glúteo do lado de apoio", "Imagine um copo de água equilibrado na lombar"]
+            }
+          },
+          "volume": "3 sets x 6 reps per side (10s holds)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Dowel-Tracked Romanian Deadlift",
+              "description": "Hinge at the hips with a dowel held against head, upper back and sacrum; push the hips rearward keeping all three contact points until the hamstrings load, then drive through to stand tall.",
+              "cues": ["Hips back, shins vertical", "Keep all three dowel contacts", "Finish with glutes, not lower back"]
+            },
+            "es": {
+              "name": "Peso muerto rumano con bastón guía",
+              "description": "Realiza la bisagra de cadera con un bastón en contacto con cabeza, espalda alta y sacro; empuja la cadera hacia atrás manteniendo los tres puntos de contacto hasta cargar los isquiotibiales y vuelve a la posición erguida.",
+              "cues": ["Cadera atrás, tibias verticales", "Mantén los tres contactos del bastón", "Termina con glúteos, no con la zona lumbar"]
+            },
+            "pt": {
+              "name": "Levantamento terra romeno com bastão guia",
+              "description": "Faça a dobradiça de quadril com um bastão em contato com a cabeça, o dorso e o sacro; empurre o quadril para trás mantendo os três pontos de contato até carregar os isquiotibiais e retorne à posição ereta.",
+              "cues": ["Quadril para trás, canelas verticais", "Mantenha os três contatos do bastão", "Finalize com os glúteos, não com a lombar"]
+            }
+          },
+          "volume": "3 sets x 8 reps (tempo 3-1-1)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_lumbar_002",
+    "joint_complex": "Lumbar Spine / LPHC",
+    "diagnostic_inputs": {
+      "pain_profile": "Dull / Aching with morning stiffness",
+      "trigger_mechanic": "Waking up, or rising after prolonged sitting"
+    },
+    "diagnosis_hypothesis": "Viscoelastic creep plus overnight disc superhydration. Discs imbibe fluid overnight, raising intradiscal pressure and flexion stiffness for the first 60-90 minutes after waking; sustained sitting creep-deforms the posterior ligaments and switches off the segmental multifidus, leaving the segments unsupported on rising. Adaptively shortened hip flexors then drag the pelvis into anterior tilt when standing, parking the lumbar extensors in a shortened, under-perfused state that registers as a dull ache.",
+    "prescription": {
+      "protocol_name": "Morning Decompression Sequence",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Half-Kneeling Hip Flexor Release with Pelvic Lock",
+              "description": "In a half-kneeling lunge, posteriorly tilt the pelvis and squeeze the rear-side glute before shifting forward an inch; the stretch must appear in the front of the hip, never in the lower back.",
+              "cues": ["Tuck the tailbone first", "Squeeze the trail-leg glute", "Shift forward an inch, no lumbar arch"]
+            },
+            "es": {
+              "name": "Liberación del flexor de cadera en media rodilla con bloqueo pélvico",
+              "description": "En zancada con una rodilla al piso, bascula la pelvis hacia atrás y aprieta el glúteo de la pierna trasera antes de desplazarte apenas hacia adelante; el estiramiento debe aparecer al frente de la cadera, nunca en la zona lumbar.",
+              "cues": ["Mete el coxis primero", "Aprieta el glúteo de la pierna trasera", "Avanza apenas, sin arquear la lumbar"]
+            },
+            "pt": {
+              "name": "Liberação do flexor do quadril em meio-ajoelhado com trava pélvica",
+              "description": "Em afundo com um joelho no chão, retroverta a pelve e contraia o glúteo da perna de trás antes de deslocar levemente o corpo à frente; o alongamento deve aparecer na frente do quadril, nunca na lombar.",
+              "cues": ["Encaixe o cóccix primeiro", "Contraia o glúteo da perna de trás", "Avance pouco, sem arquear a lombar"]
+            }
+          },
+          "volume": "2 sets x 45s per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Dead Bug with Rib Lock",
+              "description": "Lying on your back with arms and knees stacked over the hips, lower the opposite arm and leg while the ribs stay pinned down and the lumbar spine stays glued to the floor.",
+              "cues": ["Exhale as the limbs lower", "Ribs down, back flat", "Move slow enough to feel the brace"]
+            },
+            "es": {
+              "name": "Dead Bug con costillas bloqueadas",
+              "description": "Acostado boca arriba con brazos y rodillas alineados sobre la cadera, baja el brazo y la pierna opuestos mientras las costillas permanecen abajo y la zona lumbar pegada al piso.",
+              "cues": ["Exhala mientras bajas las extremidades", "Costillas abajo, espalda plana", "Muévete lento para sentir la activación"]
+            },
+            "pt": {
+              "name": "Dead Bug com costelas travadas",
+              "description": "Deitado de costas com braços e joelhos alinhados sobre o quadril, desça o braço e a perna opostos enquanto as costelas permanecem baixas e a lombar colada no chão.",
+              "cues": ["Expire enquanto desce os membros", "Costelas baixas, costas planas", "Vá devagar para sentir a ativação"]
+            }
+          },
+          "volume": "3 sets x 8 reps per side (slow tempo)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Suitcase Carry",
+              "description": "Carry a single heavy weight at one side and walk tall; the load tries to bend you sideways while the lateral core and opposite glute fight to keep the pelvis and ribs stacked.",
+              "cues": ["Walk as if both hands were loaded", "Ribs stacked over the pelvis", "Crush the handle, breathe through the nose"]
+            },
+            "es": {
+              "name": "Caminata unilateral (Suitcase Carry)",
+              "description": "Carga un peso pesado en un solo lado y camina erguido; la carga intenta doblarte lateralmente mientras el core lateral y el glúteo opuesto luchan por mantener pelvis y costillas alineadas.",
+              "cues": ["Camina como si ambas manos cargaran", "Costillas alineadas sobre la pelvis", "Aprieta el agarre y respira por la nariz"]
+            },
+            "pt": {
+              "name": "Caminhada unilateral (Suitcase Carry)",
+              "description": "Carregue um peso pesado em um único lado e caminhe ereto; a carga tenta dobrá-lo lateralmente enquanto o core lateral e o glúteo oposto lutam para manter pelve e costelas empilhadas.",
+              "cues": ["Caminhe como se as duas mãos carregassem", "Costelas empilhadas sobre a pelve", "Esmague a pegada e respire pelo nariz"]
+            }
+          },
+          "volume": "3 sets x 30s per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_lumbar_003",
+    "joint_complex": "Lumbar Spine / LPHC",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Localized (unilateral)",
+      "trigger_mechanic": "Extension plus rotation — arching under an overhead press, throwing, back-arch positions"
+    },
+    "diagnosis_hypothesis": "Facet (zygapophyseal) joint compression. Extension with ipsilateral rotation closes the facet joints; when thoracic extension and overhead shoulder flexion are capped, the athlete borrows the missing range from a single lumbar hinge point — typically L3-L4 — focally compressing the facet capsule and pars region. In youth athletes, repetitive extension loading of this kind warrants screening toward a spondylolysis-type stress reaction before aggressive loading resumes.",
+    "prescription": {
+      "protocol_name": "Extension Redistribution Protocol",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Foam Roller Thoracic Extension (rib-locked)",
+              "description": "With the roller across the mid-back and hands cradling the head, extend the upper back over the roller while the ribs stay down and the lower back stays quiet — the motion lives strictly above the roller.",
+              "cues": ["Exhale before you extend", "Ribs down — no lumbar arch", "Move segment by segment up the spine"]
+            },
+            "es": {
+              "name": "Extensión torácica sobre rodillo (costillas bloqueadas)",
+              "description": "Con el rodillo cruzado en la espalda media y las manos sosteniendo la cabeza, extiende la espalda alta sobre el rodillo mientras las costillas permanecen abajo y la zona lumbar quieta: el movimiento vive estrictamente sobre el rodillo.",
+              "cues": ["Exhala antes de extender", "Costillas abajo: sin arco lumbar", "Avanza segmento por segmento"]
+            },
+            "pt": {
+              "name": "Extensão torácica sobre o rolo (costelas travadas)",
+              "description": "Com o rolo na metade das costas e as mãos apoiando a cabeça, estenda o dorso sobre o rolo enquanto as costelas ficam baixas e a lombar quieta — o movimento acontece estritamente acima do rolo.",
+              "cues": ["Expire antes de estender", "Costelas baixas: sem arco lombar", "Avance segmento por segmento"]
+            }
+          },
+          "volume": "2 sets x 8 extensions (T5-T10)"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Hollow Body Rib-Lock Hold",
+              "description": "Lying supine, press the lower back into the floor, lift the shoulders and legs slightly and hold the dish shape; the anterior core learns to deny the extension the spine keeps defaulting to.",
+              "cues": ["Lower back welded to the floor", "Reach long through fingers and toes", "Shaking is fine, losing shape is not"]
+            },
+            "es": {
+              "name": "Posición hueca (Hollow Body) con costillas bloqueadas",
+              "description": "Acostado boca arriba, presiona la zona lumbar contra el piso, eleva levemente hombros y piernas y sostén la forma de plato; el core anterior aprende a negar la extensión a la que la columna recurre por defecto.",
+              "cues": ["Lumbar soldada al piso", "Alárgate desde dedos de manos y pies", "Temblar está bien, perder la forma no"]
+            },
+            "pt": {
+              "name": "Posição de barquinho (Hollow Body) com costelas travadas",
+              "description": "Deitado de costas, pressione a lombar contra o chão, eleve levemente ombros e pernas e sustente o formato de barco; o core anterior aprende a negar a extensão à qual a coluna recorre por padrão.",
+              "cues": ["Lombar soldada no chão", "Alongue-se pelos dedos das mãos e dos pés", "Tremer é aceitável, perder a forma não"]
+            }
+          },
+          "volume": "3 sets x 20s holds"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Tall-Kneeling Landmine Press",
+              "description": "Kneeling tall with glutes squeezed and ribs down, press the landmine (or band) up and slightly forward; the angled bar path lets the shoulder work overhead without the lumbar spine arching to fake the range.",
+              "cues": ["Glutes locked, ribs caged", "Press along the angle, not straight up", "Finish with the biceps by the ear, low back silent"]
+            },
+            "es": {
+              "name": "Press landmine en rodillas altas",
+              "description": "Arrodillado erguido con glúteos apretados y costillas abajo, empuja la barra angulada (o banda) hacia arriba y levemente adelante; la trayectoria inclinada permite trabajar sobre la cabeza sin que la lumbar se arquee para fingir el rango.",
+              "cues": ["Glúteos firmes, costillas encajadas", "Empuja siguiendo el ángulo, no en vertical", "Termina con el bíceps junto a la oreja, lumbar en silencio"]
+            },
+            "pt": {
+              "name": "Press landmine ajoelhado",
+              "description": "Ajoelhado e ereto com glúteos contraídos e costelas baixas, empurre a barra angulada (ou elástico) para cima e levemente à frente; a trajetória inclinada permite o trabalho acima da cabeça sem a lombar arquear para simular amplitude.",
+              "cues": ["Glúteos firmes, costelas encaixadas", "Empurre seguindo o ângulo, não na vertical", "Finalize com o bíceps junto à orelha, lombar em silêncio"]
+            }
+          },
+          "volume": "3 sets x 8 reps per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_lumbar_004",
+    "joint_complex": "Lumbar Spine / LPHC",
+    "diagnostic_inputs": {
+      "pain_profile": "Stiffness / Restricted ROM",
+      "trigger_mechanic": "Hip hinge or forward fold — persistent hamstring 'tightness' that stretching never fixes"
+    },
+    "diagnosis_hypothesis": "Protective neuromuscular guarding misread as short hamstrings. When the anterior core and glutes under-deliver pelvic control, the CNS raises hamstring and erector resting tone as an emergency stability strategy, and adverse sciatic or dural neural tension can further cap straight-leg range. The tissue is rarely short — it is held. Static stretching alone buys twenty minutes of relief and zero adaptation; the range has to be re-earned with control.",
+    "prescription": {
+      "protocol_name": "Neural Glide & Pelvic Control Reset",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Supine Sciatic Nerve Floss",
+              "description": "On your back with the hip at 90 degrees, alternately extend the knee while lifting the head, then bend the knee while resting the head back — sliding the nerve through its track rather than yanking it.",
+              "cues": ["Glide, never stretch into pain", "Pair the head lift with knee extension", "Stop at tension, not at pain"]
+            },
+            "es": {
+              "name": "Deslizamiento del nervio ciático boca arriba",
+              "description": "Boca arriba con la cadera a 90 grados, alterna extender la rodilla mientras levantas la cabeza y flexionar la rodilla mientras apoyas la cabeza, deslizando el nervio por su recorrido en lugar de tironearlo.",
+              "cues": ["Desliza, nunca estires con dolor", "Sincroniza cabeza arriba con rodilla extendida", "Detente en la tensión, no en el dolor"]
+            },
+            "pt": {
+              "name": "Deslizamento neural do ciático deitado",
+              "description": "De costas com o quadril a 90 graus, alterne estender o joelho enquanto eleva a cabeça e dobrar o joelho enquanto apoia a cabeça, deslizando o nervo pelo trajeto em vez de tracioná-lo.",
+              "cues": ["Deslize, nunca alongue com dor", "Sincronize cabeça elevada com joelho estendido", "Pare na tensão, não na dor"]
+            }
+          },
+          "volume": "2 sets x 10 glides per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Posterior Pelvic Tilt Glute Bridge",
+              "description": "Tilt the pelvis posteriorly first, then lift the hips by squeezing the glutes only as high as the tilt survives; hamstring cramping means the glutes have surrendered the pattern.",
+              "cues": ["Tuck before you lift", "Push through the heels", "Squeeze the glutes three full seconds at the top"]
+            },
+            "es": {
+              "name": "Puente de glúteos con retroversión pélvica",
+              "description": "Bascula primero la pelvis hacia atrás y eleva la cadera apretando los glúteos solo hasta donde la báscula se mantenga; si el isquiotibial acalambra, el glúteo abandonó el patrón.",
+              "cues": ["Bascula antes de subir", "Empuja con los talones", "Aprieta los glúteos tres segundos arriba"]
+            },
+            "pt": {
+              "name": "Ponte de glúteos com retroversão pélvica",
+              "description": "Retroverta a pelve primeiro e eleve o quadril contraindo os glúteos apenas até onde a retroversão se mantém; cãibra nos isquiotibiais significa que o glúteo abandonou o padrão.",
+              "cues": ["Encaixe antes de subir", "Empurre pelos calcanhares", "Contraia os glúteos por três segundos no topo"]
+            }
+          },
+          "volume": "3 sets x 10 reps (3s top squeeze)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Single-Leg Romanian Deadlift with Reach",
+              "description": "Hinge on one leg reaching toward the floor while the back leg extends as a counterweight; the pelvis stays square and the spine long, teaching the posterior chain to lengthen while it stabilizes.",
+              "cues": ["Hips square to the floor", "Long line from crown to heel", "Push the floor away to stand"]
+            },
+            "es": {
+              "name": "Peso muerto rumano a una pierna con alcance",
+              "description": "Haz la bisagra sobre una pierna alcanzando hacia el piso mientras la pierna trasera se extiende como contrapeso; la pelvis queda cuadrada y la columna larga, enseñando a la cadena posterior a alargarse mientras estabiliza.",
+              "cues": ["Cadera cuadrada al piso", "Línea larga de coronilla a talón", "Empuja el piso para volver de pie"]
+            },
+            "pt": {
+              "name": "Levantamento terra romeno unilateral com alcance",
+              "description": "Faça a dobradiça sobre uma perna alcançando o chão enquanto a perna de trás se estende como contrapeso; a pelve fica quadrada e a coluna longa, ensinando a cadeia posterior a alongar enquanto estabiliza.",
+              "cues": ["Quadril quadrado com o chão", "Linha longa da cabeça ao calcanhar", "Empurre o chão para voltar a ficar de pé"]
+            }
+          },
+          "volume": "3 sets x 6 reps per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_lumbar_005",
+    "joint_complex": "Lumbar Spine / LPHC",
+    "diagnostic_inputs": {
+      "pain_profile": "Deep / Aching (unilateral, posterior pelvis or SI region)",
+      "trigger_mechanic": "Single-leg loading — running stance, lunges, stair climbing"
+    },
+    "diagnosis_hypothesis": "Sacroiliac force-closure deficit. The SI joint depends on active muscular compression — gluteus maximus working with the contralateral latissimus through the thoracolumbar fascia, plus gluteus medius pelvic control. Weak abductors allow contralateral pelvic drop each stance phase, shearing the joint, while the piriformis and deep rotators clamp down as substitute stabilizers and become the deep, cranky ache the athlete actually reports.",
+    "prescription": {
+      "protocol_name": "Force Closure Restoration",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Figure-4 Deep Rotator Ball Release",
+              "description": "Sitting on a ball placed in the deep gluteal pocket with the ankle crossed over the opposite knee, roll slowly through the rotators, pausing on hot spots and breathing them down.",
+              "cues": ["Sink, do not smash", "Pause and exhale on tender points", "Two slow minutes beat ten fast ones"]
+            },
+            "es": {
+              "name": "Liberación de rotadores profundos en figura 4 con pelota",
+              "description": "Sentado sobre una pelota en el bolsillo glúteo profundo, con el tobillo cruzado sobre la rodilla opuesta, rueda lento por los rotadores, pausando en los puntos sensibles y bajándolos con la respiración.",
+              "cues": ["Húndete, no aplastes", "Pausa y exhala en los puntos sensibles", "Dos minutos lentos valen más que diez rápidos"]
+            },
+            "pt": {
+              "name": "Liberação dos rotadores profundos em figura 4 com bola",
+              "description": "Sentado sobre uma bola no bolsão glúteo profundo, com o tornozelo cruzado sobre o joelho oposto, role devagar pelos rotadores, pausando nos pontos sensíveis e dissolvendo-os com a respiração.",
+              "cues": ["Afunde, não esmague", "Pause e expire nos pontos sensíveis", "Dois minutos lentos valem mais que dez rápidos"]
+            }
+          },
+          "volume": "2 sets x 60s per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Banded Clamshell with Neutral Pelvis",
+              "description": "Side-lying with a band above the knees and heels in line with the spine, open the top knee without the pelvis rolling backward; the work must stay in the side of the hip, not the low back.",
+              "cues": ["Pelvis stacked and still", "Open from the side of the hip", "Lower with the same control you lifted"]
+            },
+            "es": {
+              "name": "Almeja (Clamshell) con banda y pelvis neutra",
+              "description": "De lado con la banda sobre las rodillas y los talones alineados con la columna, abre la rodilla superior sin que la pelvis ruede hacia atrás; el trabajo debe quedarse al costado de la cadera, no en la lumbar.",
+              "cues": ["Pelvis apilada y quieta", "Abre desde el costado de la cadera", "Baja con el mismo control con que subiste"]
+            },
+            "pt": {
+              "name": "Concha (Clamshell) com elástico e pelve neutra",
+              "description": "De lado com o elástico acima dos joelhos e calcanhares alinhados à coluna, abra o joelho de cima sem a pelve rolar para trás; o trabalho deve ficar na lateral do quadril, não na lombar.",
+              "cues": ["Pelve empilhada e parada", "Abra a partir da lateral do quadril", "Desça com o mesmo controle da subida"]
+            }
+          },
+          "volume": "3 sets x 15 reps per side (2s hold)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Hip-Lock Step-Up",
+              "description": "Step onto a box and drive the trailing knee up while the stance-side pelvis stays level and tall, finishing in the hip-lock running posture that force-closes the SI joint under single-leg load.",
+              "cues": ["Grow tall on the stance hip", "Belt line stays level", "Drive the free knee to hip height"]
+            },
+            "es": {
+              "name": "Subida al cajón con bloqueo de cadera (Hip-Lock Step-Up)",
+              "description": "Sube al cajón y eleva la rodilla libre mientras la pelvis del lado de apoyo se mantiene nivelada y alta, terminando en la postura de carrera con bloqueo de cadera que cierra la articulación sacroilíaca bajo carga unilateral.",
+              "cues": ["Crece alto sobre la cadera de apoyo", "La línea del cinturón queda nivelada", "Lleva la rodilla libre a la altura de la cadera"]
+            },
+            "pt": {
+              "name": "Subida no caixote com trava de quadril (Hip-Lock Step-Up)",
+              "description": "Suba no caixote e eleve o joelho livre enquanto a pelve do lado de apoio permanece nivelada e alta, finalizando na postura de corrida com trava de quadril que fecha a articulação sacroilíaca sob carga unilateral.",
+              "cues": ["Cresça alto sobre o quadril de apoio", "A linha do cinto permanece nivelada", "Conduza o joelho livre à altura do quadril"]
+            }
+          },
+          "volume": "3 sets x 8 reps per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_knee_001",
+    "joint_complex": "Patellofemoral / Tibiofemoral",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Pinching (anterior, around or behind the kneecap)",
+      "trigger_mechanic": "Loaded knee flexion — squat descent, descending stairs or hills"
+    },
+    "diagnosis_hypothesis": "Patellofemoral compression overload. Retropatellar joint stress peaks between 60-90 degrees of flexion; a quad-dominant strategy with a forward-travelling knee and minimal posterior hip shift multiplies patellofemoral joint reaction force. Stiff lateral structures — the vastus lateralis-ITB complex and lateral retinaculum — bias the patella laterally so one facet absorbs the load, while underactive glutes let the femur internally rotate beneath the patella and worsen tracking.",
+    "prescription": {
+      "protocol_name": "Patellar Tracking Decompression",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Quadriceps & Lateral Thigh Foam Roll",
+              "description": "Roll the full quadriceps, then bias the lateral seam between vastus lateralis and the ITB, pausing on dense spots and slowly flexing and extending the knee to comb the tissue through its layers.",
+              "cues": ["Pause on the hot spot and bend the knee", "Slow passes — speed hides tension", "Spend extra time on the outer seam"]
+            },
+            "es": {
+              "name": "Rodillo en cuádriceps y cara lateral del muslo",
+              "description": "Rueda todo el cuádriceps y enfatiza la costura lateral entre el vasto lateral y la cintilla iliotibial, pausando en los puntos densos y flexionando y extendiendo la rodilla lentamente para peinar el tejido por capas.",
+              "cues": ["Pausa en el punto sensible y flexiona la rodilla", "Pasadas lentas: la velocidad esconde la tensión", "Dedica tiempo extra a la costura externa"]
+            },
+            "pt": {
+              "name": "Rolo no quadríceps e na face lateral da coxa",
+              "description": "Role todo o quadríceps e enfatize a costura lateral entre o vasto lateral e o trato iliotibial, pausando nos pontos densos e flexionando e estendendo o joelho devagar para pentear o tecido em camadas.",
+              "cues": ["Pause no ponto sensível e dobre o joelho", "Passadas lentas: a velocidade esconde a tensão", "Dedique tempo extra à costura externa"]
+            }
+          },
+          "volume": "2 sets x 60s per leg"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Banded Terminal Knee Extension (TKE)",
+              "description": "With a band behind the knee pulling it into flexion, stand and straighten the knee by firing the quad, finishing each rep with a locked knee and a squeezed same-side glute.",
+              "cues": ["Dominate the last 10 degrees", "Kneecap pulls up, glute fires", "Return slow, lock out with intent"]
+            },
+            "es": {
+              "name": "Extensión terminal de rodilla con banda (TKE)",
+              "description": "Con una banda detrás de la rodilla tirándola a flexión, de pie, estira la rodilla activando el cuádriceps y termina cada repetición con la rodilla bloqueada y el glúteo del mismo lado apretado.",
+              "cues": ["Domina los últimos 10 grados", "La rótula sube, el glúteo dispara", "Regresa lento, bloquea con intención"]
+            },
+            "pt": {
+              "name": "Extensão terminal de joelho com elástico (TKE)",
+              "description": "Com o elástico atrás do joelho puxando-o em flexão, em pé, estenda o joelho ativando o quadríceps e finalize cada repetição com o joelho travado e o glúteo do mesmo lado contraído.",
+              "cues": ["Domine os últimos 10 graus", "A patela sobe, o glúteo dispara", "Volte devagar, trave com intenção"]
+            }
+          },
+          "volume": "3 sets x 12 reps per leg"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Box Squat to Vertical Shin",
+              "description": "Squat back to a box keeping the shins near vertical so the hips, not the patellofemoral joint, accept the load; tap the box without relaxing and stand by driving the hips forward.",
+              "cues": ["Reach the hips back first", "Shins near vertical the whole way", "Tap the box without sitting — stay loaded"]
+            },
+            "es": {
+              "name": "Sentadilla al cajón con tibia vertical",
+              "description": "Baja en sentadilla hacia atrás hasta un cajón manteniendo las tibias casi verticales para que la cadera, y no la articulación patelofemoral, acepte la carga; toca el cajón sin relajarte y sube empujando la cadera adelante.",
+              "cues": ["Lleva la cadera atrás primero", "Tibias casi verticales todo el camino", "Toca el cajón sin sentarte: mantén la tensión"]
+            },
+            "pt": {
+              "name": "Agachamento no caixote com canela vertical",
+              "description": "Agache para trás até um caixote mantendo as canelas quase verticais para que o quadril, e não a articulação patelofemoral, receba a carga; toque o caixote sem relaxar e suba projetando o quadril à frente.",
+              "cues": ["Leve o quadril para trás primeiro", "Canelas quase verticais o tempo todo", "Toque o caixote sem sentar: mantenha a tensão"]
+            }
+          },
+          "volume": "3 sets x 8 reps (tempo 3-1-1)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_knee_002",
+    "joint_complex": "Patellofemoral / Tibiofemoral",
+    "diagnostic_inputs": {
+      "pain_profile": "Dull / Aching under or around the kneecap",
+      "trigger_mechanic": "Prolonged sitting with bent knees (the 'moviegoer sign'); eases once moving"
+    },
+    "diagnosis_hypothesis": "Patellofemoral pain syndrome with sustained-compression intolerance. Static flexion parks the patella against the trochlea for minutes at a time; articular cartilage is avascular and feeds through movement-driven synovial fluid exchange, so sustained compression plus fluid stasis produces the signature ache that motion relieves. The driver is usually a quadriceps and hip capacity deficit rather than structural damage — the joint is under-prepared, not worn out.",
+    "prescription": {
+      "protocol_name": "Cartilage Nutrition Cycle",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Four-Way Patellar Glide with Extension Pumps",
+              "description": "With the leg long and the quad relaxed, glide the kneecap gently up, down, in and out, then pump through pain-free knee extension to circulate synovial fluid across the joint surface.",
+              "cues": ["Quad fully relaxed for the glides", "Gentle — move the bone, not the pain", "Finish with 20 smooth pumps"]
+            },
+            "es": {
+              "name": "Movilización rotuliana en cuatro direcciones con bombeos de extensión",
+              "description": "Con la pierna extendida y el cuádriceps relajado, desliza suavemente la rótula arriba, abajo, adentro y afuera, y luego bombea la extensión de rodilla sin dolor para circular líquido sinovial por la superficie articular.",
+              "cues": ["Cuádriceps totalmente relajado en los deslizamientos", "Suave: mueve el hueso, no el dolor", "Termina con 20 bombeos fluidos"]
+            },
+            "pt": {
+              "name": "Mobilização patelar em quatro direções com bombeios de extensão",
+              "description": "Com a perna estendida e o quadríceps relaxado, deslize suavemente a patela para cima, para baixo, para dentro e para fora, depois bombeie a extensão do joelho sem dor para circular líquido sinovial pela superfície articular.",
+              "cues": ["Quadríceps totalmente relaxado nos deslizamentos", "Suave: mova o osso, não a dor", "Finalize com 20 bombeios fluidos"]
+            }
+          },
+          "volume": "2 sets x 8 glides per direction + 20 pumps"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Spanish Squat Isometric",
+              "description": "With a heavy band looped behind the knees and anchored in front, sit back against its pull to a half-squat and hold; the band lets the quads load hard while the kneecap stays decompressed.",
+              "cues": ["Torso vertical, trust the band", "Hold at a 6-of-10 effort", "Breathe — do not hold the air with the position"]
+            },
+            "es": {
+              "name": "Isométrico de sentadilla española",
+              "description": "Con una banda gruesa detrás de las rodillas y anclada al frente, siéntate contra su tracción hasta media sentadilla y sostén; la banda permite cargar fuerte el cuádriceps mientras la rótula queda descomprimida.",
+              "cues": ["Torso vertical, confía en la banda", "Sostén con esfuerzo 6 de 10", "Respira: no retengas el aire con la posición"]
+            },
+            "pt": {
+              "name": "Isometria de agachamento espanhol",
+              "description": "Com uma fita pesada atrás dos joelhos e ancorada à frente, sente-se contra a tração até meio agachamento e sustente; a fita permite carregar forte o quadríceps enquanto a patela fica descomprimida.",
+              "cues": ["Tronco vertical, confie na fita", "Sustente com esforço 6 de 10", "Respire: não prenda o ar junto com a posição"]
+            }
+          },
+          "volume": "4 sets x 35s hold"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Controlled Lateral Step-Down",
+              "description": "From a low step, lower the free heel to a floor tap over three slow seconds with the pelvis level and the knee tracking over the second toe, then press back up without a hip shift.",
+              "cues": ["Three seconds down, every rep", "Knee over the second toe", "Pelvis level like a tabletop"]
+            },
+            "es": {
+              "name": "Descenso lateral controlado del escalón",
+              "description": "Desde un escalón bajo, baja el talón libre hasta tocar el piso en tres segundos lentos con la pelvis nivelada y la rodilla siguiendo el segundo dedo del pie, y sube sin desplazar la cadera.",
+              "cues": ["Tres segundos de bajada en cada repetición", "Rodilla sobre el segundo dedo", "Pelvis nivelada como una mesa"]
+            },
+            "pt": {
+              "name": "Descida lateral controlada do degrau",
+              "description": "De um degrau baixo, desça o calcanhar livre até tocar o chão em três segundos lentos com a pelve nivelada e o joelho alinhado ao segundo dedo do pé, e suba sem deslocar o quadril.",
+              "cues": ["Três segundos de descida em cada repetição", "Joelho sobre o segundo dedo", "Pelve nivelada como uma mesa"]
+            }
+          },
+          "volume": "3 sets x 8 reps per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_knee_003",
+    "joint_complex": "Patellofemoral / Tibiofemoral",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Burning (lateral knee, outside edge)",
+      "trigger_mechanic": "Running at a predictable distance or time; worse downhill or on cambered roads"
+    },
+    "diagnosis_hypothesis": "Iliotibial band compression syndrome. The ITB does not 'rub' — it compresses a richly innervated fat pad against the lateral femoral epicondyle in the impingement zone near 30 degrees of knee flexion at footstrike. The proximal driver is hip abductor fatigue: as gluteus medius tires, stance-phase hip adduction and contralateral pelvic drop increase, ratcheting ITB tension every stride; a narrow crossover gait and sudden mileage spikes accelerate onset.",
+    "prescription": {
+      "protocol_name": "Lateral Chain Offload",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "TFL & Lateral Quad Release (spare the epicondyle)",
+              "description": "Work a ball into the tensor fasciae latae below the pelvic crest and roll the lateral quadriceps, deliberately avoiding direct pressure on the painful lateral epicondyle — compress the muscles that tension the band, not the inflamed insertion.",
+              "cues": ["Find the TFL below the hip crest", "Never roll the painful bony point", "Breathe slow on each dense spot"]
+            },
+            "es": {
+              "name": "Liberación del TFL y cuádriceps lateral (sin tocar el epicóndilo)",
+              "description": "Trabaja una pelota en el tensor de la fascia lata bajo la cresta de la pelvis y rueda el cuádriceps lateral, evitando deliberadamente la presión directa sobre el epicóndilo lateral doloroso: comprime los músculos que tensan la cintilla, no la inserción inflamada.",
+              "cues": ["Busca el TFL debajo de la cresta de la cadera", "Nunca ruedes el punto óseo doloroso", "Respira lento en cada punto denso"]
+            },
+            "pt": {
+              "name": "Liberação do TFL e quadríceps lateral (poupando o epicôndilo)",
+              "description": "Trabalhe uma bola no tensor da fáscia lata abaixo da crista da pelve e role o quadríceps lateral, evitando deliberadamente pressão direta sobre o epicôndilo lateral doloroso: comprima os músculos que tensionam o trato, não a inserção inflamada.",
+              "cues": ["Encontre o TFL abaixo da crista do quadril", "Nunca role o ponto ósseo doloroso", "Respire devagar em cada ponto denso"]
+            }
+          },
+          "volume": "2 sets x 45s per area"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Side-Lying Hip Abduction (extension and external-rotation bias)",
+              "description": "Side-lying in one straight line, float the top leg up and slightly backward with the heel leading, isolating the posterior gluteus medius fibers that control pelvic drop at footstrike.",
+              "cues": ["Heel leads, toes stay forward", "Leg slightly behind the body line", "Lower slower than you lift"]
+            },
+            "es": {
+              "name": "Abducción de cadera acostado de lado (sesgo de extensión y rotación externa)",
+              "description": "De lado, en una sola línea, eleva la pierna superior hacia arriba y apenas atrás guiando con el talón, aislando las fibras posteriores del glúteo medio que controlan la caída pélvica al apoyar el pie.",
+              "cues": ["El talón guía, los dedos miran al frente", "Pierna apenas detrás de la línea del cuerpo", "Baja más lento de lo que subes"]
+            },
+            "pt": {
+              "name": "Abdução de quadril deitado de lado (viés de extensão e rotação externa)",
+              "description": "Deitado de lado, em uma única linha, eleve a perna de cima para cima e levemente para trás guiando pelo calcanhar, isolando as fibras posteriores do glúteo médio que controlam a queda pélvica na pisada.",
+              "cues": ["O calcanhar guia, os dedos apontam à frente", "Perna levemente atrás da linha do corpo", "Desça mais devagar do que sobe"]
+            }
+          },
+          "volume": "3 sets x 12 reps per side (2s hold)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Wall-Press Hip Lock March",
+              "description": "Stand side-on to a wall, raise the near knee to hip height and press it hard into the wall; the standing-leg hip must hold the pelvis tall and level, replicating the midstance demands of running.",
+              "cues": ["Push the wall, feel the stance hip", "Belt line level — no lean", "Grow tall through the crown of the head"]
+            },
+            "es": {
+              "name": "Marcha isométrica contra la pared (Hip Lock)",
+              "description": "De pie con la pared a un costado, eleva la rodilla cercana a la altura de la cadera y presiónala fuerte contra la pared; la cadera de la pierna de apoyo debe mantener la pelvis alta y nivelada, replicando la fase de apoyo de la carrera.",
+              "cues": ["Empuja la pared y siente la cadera de apoyo", "Línea del cinturón nivelada: sin inclinarte", "Crece alto desde la coronilla"]
+            },
+            "pt": {
+              "name": "Marcha isométrica contra a parede (Hip Lock)",
+              "description": "Em pé com a parede ao lado, eleve o joelho próximo à altura do quadril e pressione-o com força contra a parede; o quadril da perna de apoio deve manter a pelve alta e nivelada, replicando a fase de apoio da corrida.",
+              "cues": ["Empurre a parede e sinta o quadril de apoio", "Linha do cinto nivelada: sem inclinar", "Cresça alto a partir do topo da cabeça"]
+            }
+          },
+          "volume": "3 sets x 5 presses x 10s per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_knee_004",
+    "joint_complex": "Patellofemoral / Tibiofemoral",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Localized at the inferior pole of the patella (patellar tendon)",
+      "trigger_mechanic": "Jumping, landing and decelerating; worst on first efforts, may warm up then ache after"
+    },
+    "diagnosis_hypothesis": "Patellar tendinopathy (jumper's knee). Energy-storage loading — jumps, bounds, hard decelerations — has outpaced the tendon's capacity, disorganizing collagen at the proximal attachment on the inferior patellar pole. The warm-up phenomenon is classic, and restricted ankle dorsiflexion is a frequent accomplice because it shifts landing demand up to the knee extensor mechanism. Tendons respond to load, not rest: the fix is recalibrated loading, opening with heavy isometrics.",
+    "prescription": {
+      "protocol_name": "Tendon Load Recalibration",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Half-Kneeling Knee-to-Wall Ankle Mobilization",
+              "description": "From half-kneeling with the front foot a hand-width from the wall, drive the knee over the toes to touch the wall with the heel nailed down, re-opening the dorsiflexion that protects the patellar tendon on landings.",
+              "cues": ["Heel welded to the floor", "Knee drives straight over the toes", "Hold three seconds at the wall"]
+            },
+            "es": {
+              "name": "Movilización de tobillo rodilla-a-pared en media rodilla",
+              "description": "En media rodilla con el pie delantero a un palmo de la pared, lleva la rodilla sobre los dedos hasta tocar la pared con el talón clavado al piso, recuperando la dorsiflexión que protege el tendón rotuliano en los aterrizajes.",
+              "cues": ["Talón clavado al piso", "La rodilla avanza recta sobre los dedos", "Sostén tres segundos en la pared"]
+            },
+            "pt": {
+              "name": "Mobilização de tornozelo joelho-na-parede em meio-ajoelhado",
+              "description": "Em meio-ajoelhado com o pé da frente a um palmo da parede, leve o joelho sobre os dedos até tocar a parede com o calcanhar pregado no chão, recuperando a dorsiflexão que protege o tendão patelar nas aterrissagens.",
+              "cues": ["Calcanhar pregado no chão", "O joelho avança reto sobre os dedos", "Sustente três segundos na parede"]
+            }
+          },
+          "volume": "2 sets x 10 reps per side (3s holds)"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Heavy Knee-Extension Isometric Hold",
+              "description": "On a leg-extension machine or against a heavy band, hold the knee at roughly 60 degrees of flexion at a hard but steady effort; heavy isometrics load the tendon matrix and reliably turn tendon pain down for hours.",
+              "cues": ["Effort around 7 of 10", "Dead still — no oscillation", "Rest fully between holds"]
+            },
+            "es": {
+              "name": "Isométrico pesado de extensión de rodilla",
+              "description": "En máquina de extensión o contra una banda pesada, sostén la rodilla a unos 60 grados de flexión con un esfuerzo alto pero estable; los isométricos pesados cargan la matriz del tendón y reducen el dolor por horas de forma confiable.",
+              "cues": ["Esfuerzo alrededor de 7 de 10", "Totalmente quieto: sin rebotes", "Descansa completo entre sostenes"]
+            },
+            "pt": {
+              "name": "Isometria pesada de extensão de joelho",
+              "description": "Na máquina extensora ou contra um elástico pesado, sustente o joelho a cerca de 60 graus de flexão com esforço alto porém estável; isometrias pesadas carregam a matriz do tendão e reduzem a dor por horas de forma confiável.",
+              "cues": ["Esforço por volta de 7 de 10", "Totalmente parado: sem oscilar", "Descanse por completo entre as sustentações"]
+            }
+          },
+          "volume": "5 sets x 45s hold (2min rest)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Heavy Slow Tempo Squat (HSR)",
+              "description": "Squat with a deliberate three-second descent and three-second rise at a load that feels heavy by the final rep; slow heavy resistance rebuilds the tendon stiffness and collagen alignment that plyometrics will later demand.",
+              "cues": ["Three down, three up, every rep", "Load heavy, never jerky", "Pain above 3 of 10 means reduce the load"]
+            },
+            "es": {
+              "name": "Sentadilla pesada con tempo lento (HSR)",
+              "description": "Haz sentadillas con tres segundos de bajada y tres de subida con una carga que se sienta pesada en la última repetición; la resistencia pesada y lenta reconstruye la rigidez del tendón y el alineamiento del colágeno que la pliometría exigirá después.",
+              "cues": ["Tres segundos abajo, tres arriba, cada repetición", "Carga pesada, nunca brusca", "Dolor mayor a 3 de 10: reduce la carga"]
+            },
+            "pt": {
+              "name": "Agachamento pesado em tempo lento (HSR)",
+              "description": "Agache com três segundos de descida e três de subida com uma carga que pareça pesada na última repetição; a resistência pesada e lenta reconstrói a rigidez do tendão e o alinhamento do colágeno que a pliometria exigirá depois.",
+              "cues": ["Três para descer, três para subir, em todas as repetições", "Carga pesada, nunca brusca", "Dor acima de 3 de 10: reduza a carga"]
+            }
+          },
+          "volume": "3 sets x 8 reps (tempo 3-0-3)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_knee_005",
+    "joint_complex": "Patellofemoral / Tibiofemoral",
+    "diagnostic_inputs": {
+      "pain_profile": "Dull / Aching (medial knee) with episodes of instability",
+      "trigger_mechanic": "Cutting, change of direction and landings where the knee dives inward (dynamic valgus)"
+    },
+    "diagnosis_hypothesis": "Dynamic valgus collapse. Insufficient hip abductor and external-rotator control — often paired with a collapsing foot arch — lets the femur adduct and internally rotate over a planted tibia. Each collapse strains the MCL, the pes anserine complex and the medial meniscus interface, and this exact mechanic is the dominant non-contact ACL injury pattern. The deficit is neuromuscular (a landing strategy), not structural, which is why it responds to control work rather than rest.",
+    "prescription": {
+      "protocol_name": "Valgus Control Rebuild",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Adductor Foam Roll with Open Half-Kneeling Rock",
+              "description": "Roll the inner thigh from knee toward groin, then in a wide half-kneeling position rock sideways over the lengthened adductor, restoring frontal-plane range so the knee no longer has to steal it.",
+              "cues": ["Roll slow from knee toward groin", "Rock only as far as the pelvis stays tall", "Exhale into each end range"]
+            },
+            "es": {
+              "name": "Rodillo en aductores con balanceo lateral en media rodilla abierta",
+              "description": "Rueda la cara interna del muslo desde la rodilla hacia la ingle y luego, en media rodilla con la pierna abierta, balancéate lateralmente sobre el aductor alargado, restaurando el rango en el plano frontal para que la rodilla deje de robarlo.",
+              "cues": ["Rueda lento de la rodilla hacia la ingle", "Balancéate solo hasta donde la pelvis siga erguida", "Exhala en cada rango final"]
+            },
+            "pt": {
+              "name": "Rolo nos adutores com balanço lateral em meio-ajoelhado aberto",
+              "description": "Role a face interna da coxa do joelho em direção à virilha e depois, em meio-ajoelhado com a perna aberta, balance lateralmente sobre o adutor alongado, restaurando a amplitude no plano frontal para que o joelho pare de roubá-la.",
+              "cues": ["Role devagar do joelho em direção à virilha", "Balance apenas até onde a pelve continue ereta", "Expire em cada amplitude final"]
+            }
+          },
+          "volume": "2 sets x 45s roll + 8 rocks per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Banded Lateral Walk (low athletic stance)",
+              "description": "In a quarter-squat with a band above the knees, step sideways keeping constant outward tension so the knees track over the toes; the glutes must own the frontal plane before sport does.",
+              "cues": ["Knees pushed out the entire set", "Steps short, tension constant", "Stay low — do not bob"]
+            },
+            "es": {
+              "name": "Caminata lateral con banda (postura atlética baja)",
+              "description": "En cuarto de sentadilla con una banda sobre las rodillas, da pasos laterales manteniendo tensión constante hacia afuera para que las rodillas sigan la línea de los dedos; los glúteos deben dominar el plano frontal antes de que el deporte lo haga.",
+              "cues": ["Rodillas empujando afuera toda la serie", "Pasos cortos, tensión constante", "Mantente bajo: sin rebotar"]
+            },
+            "pt": {
+              "name": "Caminhada lateral com elástico (postura atlética baixa)",
+              "description": "Em quarto de agachamento com o elástico acima dos joelhos, dê passos laterais mantendo tensão constante para fora para que os joelhos sigam a linha dos dedos; os glúteos precisam dominar o plano frontal antes que o esporte o faça.",
+              "cues": ["Joelhos empurrando para fora a série inteira", "Passos curtos, tensão constante", "Permaneça baixo: sem quicar"]
+            }
+          },
+          "volume": "3 sets x 12 steps each direction"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Drop Landing to Stick (knee-window control)",
+              "description": "Step off a low box, land softly in an athletic quarter-squat and freeze for two seconds with each knee stacked over its second toe; mirror-check or film that the kneecaps never dive toward each other, then progress to single-leg.",
+              "cues": ["Land soft — absorb through the hips", "Freeze two full seconds", "Knees out, stacked over the toes"]
+            },
+            "es": {
+              "name": "Aterrizaje desde cajón con fijación (control de ventana de rodilla)",
+              "description": "Baja de un cajón bajo, aterriza suave en cuarto de sentadilla atlética y congélate dos segundos con cada rodilla alineada sobre su segundo dedo; verifica en espejo o en video que las rótulas nunca se hundan hacia adentro y progresa a una pierna.",
+              "cues": ["Aterriza suave: absorbe con la cadera", "Congélate dos segundos completos", "Rodillas afuera, alineadas sobre los dedos"]
+            },
+            "pt": {
+              "name": "Aterrissagem do caixote com fixação (controle da janela do joelho)",
+              "description": "Desça de um caixote baixo, aterrisse suave em quarto de agachamento atlético e congele por dois segundos com cada joelho alinhado sobre o segundo dedo; confira no espelho ou em vídeo que as patelas nunca mergulhem para dentro e progrida para uma perna.",
+              "cues": ["Aterrisse suave: absorva com o quadril", "Congele por dois segundos completos", "Joelhos para fora, alinhados sobre os dedos"]
+            }
+          },
+          "volume": "3 sets x 5 landings (quality over quantity)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_shoulder_001",
+    "joint_complex": "Glenohumeral / Scapulothoracic",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Pinching",
+      "trigger_mechanic": "Reaching overhead — painful arc between roughly 70 and 120 degrees of elevation"
+    },
+    "diagnosis_hypothesis": "Subacromial pain with scapular dyskinesis. During elevation the scapula must upwardly rotate and posteriorly tilt to clear the acromion away from the supraspinatus tendon and bursa; when serratus anterior and lower trapezius under-fire — typically alongside a stiff, anteriorly tilting pec minor — the subacromial interval narrows mid-arc and the cuff gets pinched in exactly the 70-120 degree window. The tendon is the victim; the scapular engine is the culprit.",
+    "prescription": {
+      "protocol_name": "Scapular Upward Rotation Restoration",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Pec Minor Ball Release with Doorway Opener",
+              "description": "Pin a ball just below the outer third of the collarbone against a wall and slowly shrug and reach to strip the pec minor, then open the chest in a doorway with the elbow at shoulder height.",
+              "cues": ["Find the tender pocket below the collarbone", "Small slow arm reaches on the ball", "Open the chest without flaring the ribs"]
+            },
+            "es": {
+              "name": "Liberación del pectoral menor con pelota y apertura en puerta",
+              "description": "Fija una pelota bajo el tercio externo de la clavícula contra una pared y encoge y alcanza lentamente para barrer el pectoral menor; luego abre el pecho en el marco de una puerta con el codo a la altura del hombro.",
+              "cues": ["Encuentra el punto sensible bajo la clavícula", "Alcances de brazo pequeños y lentos sobre la pelota", "Abre el pecho sin abrir las costillas"]
+            },
+            "pt": {
+              "name": "Liberação do peitoral menor com bola e abertura na porta",
+              "description": "Fixe uma bola logo abaixo do terço externo da clavícula contra a parede e encolha e alcance lentamente para varrer o peitoral menor; depois abra o peito no batente da porta com o cotovelo na altura do ombro.",
+              "cues": ["Encontre o ponto sensível abaixo da clavícula", "Alcances de braço pequenos e lentos sobre a bola", "Abra o peito sem abrir as costelas"]
+            }
+          },
+          "volume": "2 sets x 45s per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Foam Roller Serratus Wall Slide",
+              "description": "With the forearms on a foam roller against the wall, slide it overhead while pushing the wall away so the shoulder blades wrap around the rib cage; the serratus drives the scapular upward rotation that clears the pinch.",
+              "cues": ["Push the wall away the entire slide", "Let the blades rotate up and around", "Ribs down — no lower-back arch"]
+            },
+            "es": {
+              "name": "Deslizamiento de serrato en pared con rodillo",
+              "description": "Con los antebrazos sobre un rodillo contra la pared, deslízalo hacia arriba mientras empujas la pared lejos para que las escápulas envuelvan la caja torácica; el serrato produce la rotación ascendente que elimina el pellizco.",
+              "cues": ["Empuja la pared lejos durante todo el deslizamiento", "Deja que las escápulas roten hacia arriba", "Costillas abajo: sin arco lumbar"]
+            },
+            "pt": {
+              "name": "Deslizamento de serrátil na parede com rolo",
+              "description": "Com os antebraços sobre um rolo contra a parede, deslize-o para cima enquanto empurra a parede para longe para que as escápulas envolvam a caixa torácica; o serrátil produz a rotação ascendente que elimina o pinçamento.",
+              "cues": ["Empurre a parede para longe durante todo o deslizamento", "Deixe as escápulas girarem para cima", "Costelas baixas: sem arco lombar"]
+            }
+          },
+          "volume": "3 sets x 10 slides"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Half-Kneeling Landmine Press",
+              "description": "From half-kneeling, press the landmine up and forward in the scapular plane; the angled path trains loaded overhead mechanics inside the range the shoulder can currently organize, grooving rhythm before vertical pressing returns.",
+              "cues": ["Press along the bar's angle, not straight up", "Let the shoulder blade follow the press", "Rear glute squeezed, ribs stacked"]
+            },
+            "es": {
+              "name": "Press landmine en media rodilla",
+              "description": "Desde media rodilla, empuja la barra angulada hacia arriba y adelante en el plano escapular; la trayectoria inclinada entrena la mecánica de empuje con carga dentro del rango que el hombro puede organizar hoy, puliendo el ritmo antes de volver al press vertical.",
+              "cues": ["Empuja siguiendo el ángulo de la barra, no en vertical", "Deja que la escápula acompañe el empuje", "Glúteo trasero apretado, costillas alineadas"]
+            },
+            "pt": {
+              "name": "Press landmine em meio-ajoelhado",
+              "description": "Em meio-ajoelhado, empurre a barra angulada para cima e à frente no plano escapular; a trajetória inclinada treina a mecânica de empurrar com carga dentro da amplitude que o ombro consegue organizar hoje, lapidando o ritmo antes de voltar ao press vertical.",
+              "cues": ["Empurre seguindo o ângulo da barra, não na vertical", "Deixe a escápula acompanhar o empurrão", "Glúteo de trás contraído, costelas empilhadas"]
+            }
+          },
+          "volume": "3 sets x 8 reps per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_shoulder_002",
+    "joint_complex": "Glenohumeral / Scapulothoracic",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Stabbing (front of the shoulder)",
+      "trigger_mechanic": "Bottom range of the bench press and dips; deep horizontal extension under load"
+    },
+    "diagnosis_hypothesis": "Anterior glenohumeral overload from obligate translation. A stiff posterior capsule and cuff push the humeral head forward and up as the arm travels into deep horizontal extension, stressing the long head of the biceps tendon and anterior capsule at the bottom of presses and dips. Wide flared-elbow setups and a lost scapular retraction position amplify the anterior shear — the front of the shoulder hurts because the back of it is stiff.",
+    "prescription": {
+      "protocol_name": "Anterior Offload & Posterior Balance",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Cross-Body Posterior Capsule Stretch (scapula pinned)",
+              "description": "Side-lying or standing, pin the shoulder blade against the floor or wall and pull the arm across the chest; pinning the scapula forces the stretch into the posterior capsule and cuff instead of letting the blade cheat outward.",
+              "cues": ["Pin the blade before you pull", "Drag the arm across the chest line", "Mild stretch, zero front-side pain"]
+            },
+            "es": {
+              "name": "Estiramiento cruzado de cápsula posterior (escápula fija)",
+              "description": "Acostado de lado o de pie, fija la escápula contra el piso o la pared y cruza el brazo sobre el pecho; fijar la escápula dirige el estiramiento a la cápsula y al manguito posteriores en lugar de dejar que la escápula haga trampa hacia afuera.",
+              "cues": ["Fija la escápula antes de cruzar", "Cruza el brazo a la línea del pecho", "Estiramiento suave, cero dolor anterior"]
+            },
+            "pt": {
+              "name": "Alongamento cruzado da cápsula posterior (escápula fixa)",
+              "description": "Deitado de lado ou em pé, fixe a escápula contra o chão ou a parede e cruze o braço sobre o peito; fixar a escápula direciona o alongamento à cápsula e ao manguito posteriores em vez de deixar a escápula trapacear para fora.",
+              "cues": ["Fixe a escápula antes de cruzar", "Cruze o braço na linha do peito", "Alongamento leve, zero dor anterior"]
+            }
+          },
+          "volume": "2 sets x 45s per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Prone T with External Rotation Hold",
+              "description": "Face down with the arms out in a T and thumbs to the ceiling, lift the arms by squeezing the mid and lower shoulder blades down and together, hold, and lower without dumping the chest into the floor.",
+              "cues": ["Thumbs up, neck long", "Squeeze the blades down and together", "Two-second hold at the top"]
+            },
+            "es": {
+              "name": "T en pronación con rotación externa sostenida",
+              "description": "Boca abajo con los brazos en T y los pulgares al techo, eleva los brazos juntando las escápulas hacia abajo y al centro, sostén y baja sin colapsar el pecho contra el piso.",
+              "cues": ["Pulgares arriba, cuello largo", "Junta las escápulas abajo y al centro", "Sostén dos segundos arriba"]
+            },
+            "pt": {
+              "name": "T em pronação com rotação externa sustentada",
+              "description": "De bruços com os braços em T e os polegares para o teto, eleve os braços aproximando as escápulas para baixo e para o centro, sustente e desça sem desabar o peito no chão.",
+              "cues": ["Polegares para cima, pescoço longo", "Aproxime as escápulas para baixo e para o centro", "Sustente dois segundos no topo"]
+            }
+          },
+          "volume": "3 sets x 10 reps (2s hold)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Scapular-Rhythm Push-Up (push-up plus)",
+              "description": "Push up with the trunk rigid, letting the shoulder blades retract fully on the descent and protract fully at the top ('plus'); the shoulder relearns to share pressing load through a moving, controlled scapula.",
+              "cues": ["Blades squeeze together going down", "Push the floor away at the top", "Body one rigid plank throughout"]
+            },
+            "es": {
+              "name": "Flexión con ritmo escapular (push-up plus)",
+              "description": "Haz la flexión con el tronco rígido dejando que las escápulas se retraigan por completo al bajar y se protraigan por completo arriba ('plus'); el hombro reaprende a compartir la carga de empuje con una escápula móvil y controlada.",
+              "cues": ["Las escápulas se juntan al bajar", "Empuja el piso lejos al final", "Cuerpo como una tabla rígida todo el tiempo"]
+            },
+            "pt": {
+              "name": "Flexão com ritmo escapular (push-up plus)",
+              "description": "Faça a flexão com o tronco rígido deixando as escápulas retraírem por completo na descida e protraírem por completo no topo ('plus'); o ombro reaprende a dividir a carga de empurrar com uma escápula móvel e controlada.",
+              "cues": ["As escápulas se aproximam na descida", "Empurre o chão para longe no topo", "Corpo como uma prancha rígida o tempo todo"]
+            }
+          },
+          "volume": "3 sets x 10 reps (controlled tempo)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_shoulder_003",
+    "joint_complex": "Glenohumeral / Scapulothoracic",
+    "diagnostic_inputs": {
+      "pain_profile": "Dull / Aching at night; lying on the affected side wakes you",
+      "trigger_mechanic": "Sleeping on the shoulder, reaching behind the back, sustained arm-down positions"
+    },
+    "diagnosis_hypothesis": "Rotator cuff tendinopathy on the reactive-degenerative continuum. Side-lying compresses the cuff tendons between the humeral head and acromion through the night, and reaching behind the back (adduction plus internal rotation) wrings the supraspinatus across the humeral head — both classic irritants of a tendon whose load capacity has fallen below daily demand. Tendinopathic cuffs need graded tension, not rest: unloaded tendons keep weakening while loaded ones rebuild.",
+    "prescription": {
+      "protocol_name": "Cuff Capacity Builder",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Open-Book Thoracic Rotation",
+              "description": "Side-lying with the knees stacked at 90 degrees, sweep the top arm open like a book page following the hand with the eyes, freeing thoracic rotation so the cuff stops compensating for a stiff mid-back.",
+              "cues": ["Knees glued — rotation lives above the waist", "Follow the hand with your eyes", "Exhale at the open position"]
+            },
+            "es": {
+              "name": "Rotación torácica en libro abierto",
+              "description": "De lado con las rodillas apiladas a 90 grados, abre el brazo superior como la página de un libro siguiendo la mano con la mirada, liberando la rotación torácica para que el manguito deje de compensar una espalda media rígida.",
+              "cues": ["Rodillas pegadas: la rotación vive arriba de la cintura", "Sigue la mano con la mirada", "Exhala en la posición abierta"]
+            },
+            "pt": {
+              "name": "Rotação torácica em livro aberto",
+              "description": "De lado com os joelhos empilhados a 90 graus, abra o braço de cima como a página de um livro acompanhando a mão com o olhar, liberando a rotação torácica para que o manguito pare de compensar um dorso rígido.",
+              "cues": ["Joelhos colados: a rotação vive acima da cintura", "Acompanhe a mão com o olhar", "Expire na posição aberta"]
+            }
+          },
+          "volume": "2 sets x 8 reps per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Side-Lying External Rotation with Towel Roll",
+              "description": "Lying on the opposite side with a towel roll pinned at the elbow, rotate the forearm toward the ceiling and lower on a slow three-count; the towel sets the cuff in its strongest line and the slow lower is where the tendon adapts.",
+              "cues": ["Pin the towel — elbow stays glued", "Rotate up smooth, lower in three", "Light enough to stay strict"]
+            },
+            "es": {
+              "name": "Rotación externa acostado de lado (con toalla)",
+              "description": "Acostado sobre el lado contrario con una toalla enrollada fija en el codo, rota el antebrazo hacia el techo y baja contando tres segundos; la toalla coloca el manguito en su mejor línea de fuerza y la bajada lenta es donde el tendón se adapta.",
+              "cues": ["Fija la toalla: el codo queda pegado", "Sube fluido, baja en tres", "Carga liviana para mantener la técnica estricta"]
+            },
+            "pt": {
+              "name": "Rotação externa deitado de lado (com toalha)",
+              "description": "Deitado sobre o lado oposto com uma toalha enrolada fixa no cotovelo, gire o antebraço em direção ao teto e desça contando três segundos; a toalha posiciona o manguito na sua melhor linha de força e a descida lenta é onde o tendão se adapta.",
+              "cues": ["Fixe a toalha: o cotovelo fica colado", "Suba fluido, desça em três", "Carga leve para manter a técnica estrita"]
+            }
+          },
+          "volume": "3 sets x 12 reps per side (3s eccentric)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Bottoms-Up Kettlebell Carry",
+              "description": "Walk with a light kettlebell held upside-down at chin height with the elbow bent to 90 degrees; the unstable bell forces the entire cuff to co-contract reflexively, training the stabilizer role it actually plays in sport.",
+              "cues": ["Crush the handle", "Forearm vertical, wrist flat", "Slow steps — the wobble is the work"]
+            },
+            "es": {
+              "name": "Caminata con kettlebell invertida (Bottoms-Up)",
+              "description": "Camina con una kettlebell liviana sostenida boca abajo a la altura del mentón con el codo a 90 grados; la pesa inestable obliga a todo el manguito a co-contraerse de forma refleja, entrenando el rol estabilizador que realmente cumple en el deporte.",
+              "cues": ["Aprieta fuerte el mango", "Antebrazo vertical, muñeca plana", "Pasos lentos: el tambaleo es el trabajo"]
+            },
+            "pt": {
+              "name": "Caminhada com kettlebell invertido (Bottoms-Up)",
+              "description": "Caminhe com um kettlebell leve de cabeça para baixo na altura do queixo com o cotovelo a 90 graus; o peso instável obriga todo o manguito a co-contrair de forma reflexa, treinando o papel estabilizador que ele realmente cumpre no esporte.",
+              "cues": ["Esmague a pegada", "Antebraço vertical, punho firme", "Passos lentos: a oscilação é o trabalho"]
+            }
+          },
+          "volume": "3 sets x 20m per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_shoulder_004",
+    "joint_complex": "Glenohumeral / Scapulothoracic",
+    "diagnostic_inputs": {
+      "pain_profile": "Stiffness / Restricted ROM",
+      "trigger_mechanic": "Reaching fully overhead — range tops out, then the low back arches and the ribs flare to compensate"
+    },
+    "diagnosis_hypothesis": "Overhead ceiling from a thoracic extension deficit plus lat stiffness. Full 180-degree elevation requires roughly 15-20 degrees of thoracic extension and full scapular upward rotation; a kyphotic, extension-poor mid-back and a stiff latissimus — which internally rotates and extends the humerus — cap the shoulder's true range, so the athlete arches the lumbar spine and flares the ribs to fake the rest. The shoulder is not unstable; it is renting range from the lower back.",
+    "prescription": {
+      "protocol_name": "Overhead Ceiling Raise",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Bench Thoracic Extension with Dowel (rib-locked)",
+              "description": "Kneeling with the elbows on a bench holding a dowel, let the chest sink toward the floor while the ribs stay knitted down; the stretch targets thoracic extension and lat length without lumbar spillover.",
+              "cues": ["Ribs down before you sink", "Sink the chest, not the waist", "Hold and breathe into the upper back"]
+            },
+            "es": {
+              "name": "Extensión torácica en banco con bastón (costillas bloqueadas)",
+              "description": "Arrodillado con los codos sobre un banco sosteniendo un bastón, deja caer el pecho hacia el piso mientras las costillas permanecen abajo; el estiramiento apunta a la extensión torácica y al largo del dorsal sin derramarse a la lumbar.",
+              "cues": ["Costillas abajo antes de hundirte", "Hunde el pecho, no la cintura", "Sostén y respira hacia la espalda alta"]
+            },
+            "pt": {
+              "name": "Extensão torácica no banco com bastão (costelas travadas)",
+              "description": "Ajoelhado com os cotovelos sobre um banco segurando um bastão, deixe o peito afundar em direção ao chão enquanto as costelas permanecem baixas; o alongamento mira a extensão torácica e o comprimento do dorsal sem vazar para a lombar.",
+              "cues": ["Costelas baixas antes de afundar", "Afunde o peito, não a cintura", "Sustente e respire para o dorso"]
+            }
+          },
+          "volume": "2 sets x 8 reps (5s exhale holds)"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Wall Angel with Rib Lock",
+              "description": "Standing with the sacrum, upper back and head on the wall, slide the forearms from a goalpost position toward overhead keeping wrists and elbows brushing the wall and ribs knitted down; every centimeter gained is range the shoulder owns, not borrows.",
+              "cues": ["Lower back stays near the wall", "Wrists and elbows brush the wall", "Stop where contact breaks — that is the edge"]
+            },
+            "es": {
+              "name": "Ángel de pared con costillas bloqueadas",
+              "description": "De pie con sacro, espalda alta y cabeza en la pared, desliza los antebrazos desde la posición de arquero hacia arriba manteniendo muñecas y codos rozando la pared y las costillas abajo; cada centímetro ganado es rango que el hombro posee, no que pide prestado.",
+              "cues": ["La zona lumbar se mantiene cerca de la pared", "Muñecas y codos rozan la pared", "Detente donde se pierde el contacto: ese es el límite"]
+            },
+            "pt": {
+              "name": "Anjo na parede com costelas travadas",
+              "description": "Em pé com o sacro, o dorso e a cabeça na parede, deslize os antebraços da posição de goleiro para cima mantendo punhos e cotovelos roçando a parede e as costelas baixas; cada centímetro ganho é amplitude que o ombro possui, não que toma emprestada.",
+              "cues": ["A lombar permanece perto da parede", "Punhos e cotovelos roçam a parede", "Pare onde o contato se perde: esse é o limite"]
+            }
+          },
+          "volume": "3 sets x 8 slow slides"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Tall-Kneeling Overhead Waiter Hold",
+              "description": "Kneeling tall, lock a light kettlebell straight overhead with the biceps by the ear, ribs down and glutes on; the shoulder learns to own its new vertical range under load and time.",
+              "cues": ["Biceps to the ear, elbow locked", "Ribs caged — no lumbar arch", "Reach the bell to the ceiling every second"]
+            },
+            "es": {
+              "name": "Sostén de mesero sobre la cabeza en rodillas altas",
+              "description": "Arrodillado erguido, bloquea una kettlebell liviana vertical sobre la cabeza con el bíceps junto a la oreja, costillas abajo y glúteos activos; el hombro aprende a poseer su nuevo rango vertical bajo carga y tiempo.",
+              "cues": ["Bíceps junto a la oreja, codo bloqueado", "Costillas encajadas: sin arco lumbar", "Empuja la pesa al techo cada segundo"]
+            },
+            "pt": {
+              "name": "Sustentação overhead ajoelhado (Waiter Hold)",
+              "description": "Ajoelhado e ereto, trave um kettlebell leve na vertical acima da cabeça com o bíceps junto à orelha, costelas baixas e glúteos ativos; o ombro aprende a possuir sua nova amplitude vertical sob carga e tempo.",
+              "cues": ["Bíceps junto à orelha, cotovelo travado", "Costelas encaixadas: sem arco lombar", "Empurre o peso para o teto a cada segundo"]
+            }
+          },
+          "volume": "3 sets x 30s per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_shoulder_005",
+    "joint_complex": "Glenohumeral / Scapulothoracic",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Deep posterior shoulder pain",
+      "trigger_mechanic": "Throwing follow-through and deceleration; late-cocking discomfort in overhead athletes"
+    },
+    "diagnosis_hypothesis": "Posterior cuff eccentric overload with GIRD. Deceleration is the most violent phase of throwing — infraspinatus and teres minor contract eccentrically at extreme angular velocities to brake the arm. Repetitive throwers stiffen the posterior capsule (glenohumeral internal-rotation deficit), which shifts the humeral contact point and concentrates load on posterior structures precisely when they brake hardest. The brake pads are wearing because the suspension is stiff.",
+    "prescription": {
+      "protocol_name": "Deceleration Armor",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Sleeper-Position Posterior Capsule Stretch",
+              "description": "Lying on the throwing side with the shoulder and elbow at 90 degrees, gently guide the forearm toward the floor until a stretch builds deep in the back of the shoulder — soft pressure, never forcing through a pinch.",
+              "cues": ["Body weight pins the blade", "Guide, do not crank", "Back off at any front-side pinch"]
+            },
+            "es": {
+              "name": "Estiramiento del durmiente (Sleeper) para cápsula posterior",
+              "description": "Acostado sobre el lado del hombro afectado con hombro y codo a 90 grados, guía suavemente el antebrazo hacia el piso hasta sentir el estiramiento profundo detrás del hombro: presión suave, nunca forzando contra un pellizco.",
+              "cues": ["El peso del cuerpo fija la escápula", "Guía, no fuerces", "Retrocede ante cualquier pellizco anterior"]
+            },
+            "pt": {
+              "name": "Alongamento do dorminhoco (Sleeper) para cápsula posterior",
+              "description": "Deitado sobre o lado do ombro afetado com ombro e cotovelo a 90 graus, guie suavemente o antebraço em direção ao chão até sentir o alongamento profundo atrás do ombro: pressão suave, nunca forçando contra um pinçamento.",
+              "cues": ["O peso do corpo fixa a escápula", "Guie, não force", "Recue diante de qualquer pinçamento anterior"]
+            }
+          },
+          "volume": "2 sets x 45s per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Prone 90/90 External Rotation with Slow Eccentric",
+              "description": "Face down with the upper arm supported on the bench at 90 degrees of abduction, rotate the forearm to the ceiling, then lower through a deliberate four-count; the slow lower builds exactly the eccentric braking strength throwing demands.",
+              "cues": ["Upper arm dead still on the bench", "Up in one, down in four", "End the set when the lower speeds up"]
+            },
+            "es": {
+              "name": "Rotación externa 90/90 en pronación con excéntrico lento",
+              "description": "Boca abajo con el brazo apoyado en el banco a 90 grados de abducción, rota el antebrazo hacia el techo y baja contando cuatro tiempos; la bajada lenta construye exactamente la fuerza de frenado excéntrica que el lanzamiento exige.",
+              "cues": ["El brazo de apoyo inmóvil sobre el banco", "Sube en uno, baja en cuatro", "Corta la serie cuando la bajada se acelere"]
+            },
+            "pt": {
+              "name": "Rotação externa 90/90 em pronação com excêntrico lento",
+              "description": "De bruços com o braço apoiado no banco a 90 graus de abdução, gire o antebraço para o teto e desça contando quatro tempos; a descida lenta constrói exatamente a força de frenagem excêntrica que o arremesso exige.",
+              "cues": ["O braço de apoio imóvel sobre o banco", "Suba em um, desça em quatro", "Encerre a série quando a descida acelerar"]
+            }
+          },
+          "volume": "3 sets x 10 reps per side (4s eccentric)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Band Deceleration Catches (90/90 snap-and-brake)",
+              "description": "In the 90/90 position with a band tensioned behind you, let the band yank the forearm forward and brake it smoothly before end range, then rewind; this rehearses follow-through deceleration at progressive speeds.",
+              "cues": ["Brake smooth, never jarring", "Control the catch before adding speed", "Stay tall — no trunk-lean rescue"]
+            },
+            "es": {
+              "name": "Frenadas de desaceleración con banda (90/90)",
+              "description": "En posición 90/90 con una banda tensada por detrás, deja que la banda lance el antebrazo hacia adelante y frénalo con suavidad antes del rango final, luego regresa; esto ensaya la desaceleración del follow-through a velocidades progresivas.",
+              "cues": ["Frena suave, nunca brusco", "Controla la frenada antes de sumar velocidad", "Mantente erguido: el tronco no rescata"]
+            },
+            "pt": {
+              "name": "Frenagens de desaceleração com elástico (90/90)",
+              "description": "Na posição 90/90 com o elástico tensionado por trás, deixe o elástico lançar o antebraço à frente e freie-o com suavidade antes da amplitude final, depois retorne; isso ensaia a desaceleração do follow-through em velocidades progressivas.",
+              "cues": ["Freie suave, nunca brusco", "Controle a frenagem antes de somar velocidade", "Permaneça ereto: o tronco não socorre"]
+            }
+          },
+          "volume": "3 sets x 8 reps per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_ankle_001",
+    "joint_complex": "Talocrural / Achilles",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Pinching (front of the ankle crease)",
+      "trigger_mechanic": "End-range dorsiflexion — bottom of a deep squat, forward lunge, downhill braking"
+    },
+    "diagnosis_hypothesis": "Anterior ankle impingement from a posterior talar glide deficit. In clean dorsiflexion the talus must glide posteriorly within the mortise; after old sprains or chronic stiffness the talus rides forward and the anterior joint structures get pinched between tibia and talus at depth. This is an arthrokinematic (joint-glide) problem — calf stretching alone pulls the foot deeper into the pinch without ever restoring the glide.",
+    "prescription": {
+      "protocol_name": "Talar Glide Restoration",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Banded Distraction Dorsiflexion Mobilization",
+              "description": "With a heavy band anchored behind you and looped across the ankle crease pulling rearward, drive the knee over the toes while the heel stays planted; the band re-seats the talus posteriorly so depth stops pinching.",
+              "cues": ["Band low — across the ankle bones", "Heel nailed, knee over the toes", "Three-second hold at end range"]
+            },
+            "es": {
+              "name": "Movilización de dorsiflexión con banda de distracción",
+              "description": "Con una banda pesada anclada atrás y enlazada en el pliegue del tobillo tirando hacia atrás, lleva la rodilla sobre los dedos con el talón plantado; la banda reasienta el astrágalo hacia posterior para que la profundidad deje de pellizcar.",
+              "cues": ["Banda baja, cruzando los huesos del tobillo", "Talón clavado, rodilla sobre los dedos", "Sostén tres segundos en el rango final"]
+            },
+            "pt": {
+              "name": "Mobilização de dorsiflexão com banda de distração",
+              "description": "Com uma banda pesada ancorada atrás e laçada na dobra do tornozelo puxando para trás, leve o joelho sobre os dedos com o calcanhar plantado; a banda reposiciona o tálus posteriormente para que a profundidade pare de pinçar.",
+              "cues": ["Banda baixa, cruzando os ossos do tornozelo", "Calcanhar pregado, joelho sobre os dedos", "Sustente três segundos na amplitude final"]
+            }
+          },
+          "volume": "2 sets x 12 reps per side (3s holds)"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Wall-Lean Tibialis Raise",
+              "description": "Leaning back against a wall with the feet out front, lift both forefeet toward the shins and lower slowly; a strong tibialis anterior actively pulls the ankle into its new dorsiflexion instead of leaving the range to passive luck.",
+              "cues": ["Heels stay planted", "Lift the forefoot as high as it goes", "Lower in three seconds"]
+            },
+            "es": {
+              "name": "Elevación de tibial anterior apoyado en pared",
+              "description": "Recostado contra una pared con los pies adelante, sube los antepiés hacia las tibias y baja despacio; un tibial anterior fuerte tira activamente del tobillo hacia su nueva dorsiflexión en lugar de dejar el rango a la suerte pasiva.",
+              "cues": ["Talones plantados", "Sube el antepié lo más alto posible", "Baja en tres segundos"]
+            },
+            "pt": {
+              "name": "Elevação de tibial anterior apoiado na parede",
+              "description": "Recostado em uma parede com os pés à frente, eleve os antepés em direção às canelas e desça devagar; um tibial anterior forte puxa ativamente o tornozelo para a nova dorsiflexão em vez de deixar a amplitude à sorte passiva.",
+              "cues": ["Calcanhares plantados", "Eleve o antepé o mais alto possível", "Desça em três segundos"]
+            }
+          },
+          "volume": "3 sets x 15 reps"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Goblet Cossack Squat",
+              "description": "Holding a light counterweight at the chest, shift side to side into a deep single-side squat with the loaded heel glued down; the new dorsiflexion gets cemented under bodyweight in a sport-relevant frontal-plane pattern.",
+              "cues": ["Loaded heel never lifts", "Chest tall, counterweight forward", "Sink only as deep as the heel allows"]
+            },
+            "es": {
+              "name": "Sentadilla Cossack con contrapeso (Goblet)",
+              "description": "Sosteniendo un contrapeso liviano al pecho, desplázate de lado a lado hacia una sentadilla profunda unilateral con el talón cargado pegado al piso; la nueva dorsiflexión se cementa bajo el peso corporal en un patrón de plano frontal relevante al deporte.",
+              "cues": ["El talón cargado nunca se levanta", "Pecho erguido, contrapeso al frente", "Baja solo hasta donde el talón lo permita"]
+            },
+            "pt": {
+              "name": "Agachamento Cossack com contrapeso (Goblet)",
+              "description": "Segurando um contrapeso leve junto ao peito, desloque-se de lado a lado até um agachamento profundo unilateral com o calcanhar carregado colado no chão; a nova dorsiflexão é cimentada sob o peso corporal em um padrão de plano frontal relevante ao esporte.",
+              "cues": ["O calcanhar carregado nunca levanta", "Peito ereto, contrapeso à frente", "Desça apenas até onde o calcanhar permitir"]
+            }
+          },
+          "volume": "3 sets x 6 reps per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_ankle_002",
+    "joint_complex": "Talocrural / Achilles",
+    "diagnostic_inputs": {
+      "pain_profile": "Dull / Stiff (Achilles, 2-6cm above the heel bone)",
+      "trigger_mechanic": "First steps in the morning and the first minutes of a run; eases as it warms, aches after"
+    },
+    "diagnosis_hypothesis": "Mid-portion Achilles tendinopathy. The classic warm-up phenomenon — stiff and sore cold, better warm, sore again after — signals matrix disorganization in the tendon's mid-portion, almost always following a load spike: sudden mileage, hills, speed work or a footwear change. Calf strength-endurance has fallen below running's spring demands; the tendon needs a progressive loading ladder, not rest, because unloaded tendons lose stiffness exactly when they need more of it.",
+    "prescription": {
+      "protocol_name": "Achilles Load Ladder",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Gastroc-Soleus Soft-Tissue Release (spare the tendon)",
+              "description": "Roll the calf from above the Achilles to below the knee with slow passes and ankle pumps on dense spots, reaching the deeper soleus with a bent knee — work the muscle bellies and leave the painful tendon itself alone.",
+              "cues": ["Muscle, not tendon", "Bend the knee to reach the soleus", "Pump the ankle on each knot"]
+            },
+            "es": {
+              "name": "Liberación de gastrocnemio-sóleo (sin tocar el tendón)",
+              "description": "Rueda la pantorrilla desde arriba del Aquiles hasta bajo la rodilla con pasadas lentas y bombeos de tobillo en los puntos densos, llegando al sóleo profundo con la rodilla flexionada: trabaja los vientres musculares y deja en paz el tendón doloroso.",
+              "cues": ["Músculo, no tendón", "Flexiona la rodilla para llegar al sóleo", "Bombea el tobillo en cada nudo"]
+            },
+            "pt": {
+              "name": "Liberação de gastrocnêmio-sóleo (poupando o tendão)",
+              "description": "Role a panturrilha de acima do Aquiles até abaixo do joelho com passadas lentas e bombeios de tornozelo nos pontos densos, alcançando o sóleo profundo com o joelho dobrado: trabalhe os ventres musculares e deixe o tendão dolorido em paz.",
+              "cues": ["Músculo, não tendão", "Dobre o joelho para alcançar o sóleo", "Bombeie o tornozelo em cada nó"]
+            }
+          },
+          "volume": "2 sets x 60s per leg"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Isometric Heel Raise Hold (straight and bent knee)",
+              "description": "Rise to mid-height on the forefeet and hold rock-still, once with the knees straight (gastrocnemius) and once bent (soleus); loaded stillness feeds the tendon matrix and turns its pain volume down for hours.",
+              "cues": ["Mid-range hold, dead still", "One set straight-knee, one bent-knee", "Load until effort hits 7 of 10"]
+            },
+            "es": {
+              "name": "Sostén isométrico de elevación de talones (rodilla recta y flexionada)",
+              "description": "Sube a media altura sobre los antepiés y sostén inmóvil, una vez con rodillas rectas (gastrocnemio) y otra con rodillas flexionadas (sóleo); la quietud con carga alimenta la matriz del tendón y baja el volumen del dolor por horas.",
+              "cues": ["Sostén a media altura, totalmente quieto", "Una serie con rodilla recta y una flexionada", "Carga hasta un esfuerzo de 7 de 10"]
+            },
+            "pt": {
+              "name": "Sustentação isométrica de elevação de calcanhares (joelho reto e dobrado)",
+              "description": "Suba até a meia altura sobre os antepés e sustente imóvel, uma vez com os joelhos retos (gastrocnêmio) e outra com os joelhos dobrados (sóleo); a quietude com carga alimenta a matriz do tendão e abaixa o volume da dor por horas.",
+              "cues": ["Sustentação na meia altura, totalmente parado", "Uma série com joelho reto e uma com joelho dobrado", "Carregue até um esforço de 7 de 10"]
+            }
+          },
+          "volume": "4 sets x 40s (2 straight-knee, 2 bent-knee)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Slow Heavy Heel Raise (full range, loaded)",
+              "description": "With added load, rise over three seconds, pause, and lower over three through full range from a flat floor; progressing weight on this slow tempo rebuilds the tendon's spring stiffness for running's storage-and-release cycle.",
+              "cues": ["Three up, pause, three down", "Finish tall over the big toe", "Add load weekly, never speed"]
+            },
+            "es": {
+              "name": "Elevación de talones pesada y lenta (rango completo)",
+              "description": "Con carga añadida, sube en tres segundos, pausa y baja en tres en rango completo desde piso plano; progresar el peso con este tempo lento reconstruye la rigidez elástica del tendón para el ciclo de almacenar y devolver energía de la carrera.",
+              "cues": ["Tres arriba, pausa, tres abajo", "Termina alto sobre el dedo gordo", "Suma carga cada semana, nunca velocidad"]
+            },
+            "pt": {
+              "name": "Elevação de calcanhares pesada e lenta (amplitude completa)",
+              "description": "Com carga adicional, suba em três segundos, pause e desça em três na amplitude completa a partir do chão plano; progredir o peso nesse tempo lento reconstrói a rigidez elástica do tendão para o ciclo de armazenar e devolver energia da corrida.",
+              "cues": ["Três para subir, pausa, três para descer", "Termine alto sobre o dedão", "Aumente a carga semanalmente, nunca a velocidade"]
+            }
+          },
+          "volume": "3 sets x 12 reps (tempo 3-1-3)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_ankle_003",
+    "joint_complex": "Talocrural / Achilles",
+    "diagnostic_inputs": {
+      "pain_profile": "Diffuse / Unstable — recurrent 'giving way' with lateral ache",
+      "trigger_mechanic": "Uneven ground, cutting and landings; history of one or more lateral ankle sprains"
+    },
+    "diagnosis_hypothesis": "Chronic ankle instability. Lateral sprains damage the mechanoreceptors inside the ATFL and CFL, degrading the CNS's positional map of the ankle and slowing peroneal reaction time — the foot rolls before the muscles can answer. Each re-sprain deepens the deficit, so the rebuild is sensory as much as structural: restore eversion strength, then retrain balance reactions until protection is reflexive again.",
+    "prescription": {
+      "protocol_name": "Proprioceptive Rewiring",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Peroneal Release with Ankle Alphabet",
+              "description": "Work a ball along the peroneals on the outside of the shin, then trace the full alphabet in the air with the big toe, moving only the ankle through every available angle.",
+              "cues": ["Slow passes down the outer shin", "Trace every letter full size", "Knee still — the ankle does the writing"]
+            },
+            "es": {
+              "name": "Liberación de peroneos con abecedario de tobillo",
+              "description": "Trabaja una pelota a lo largo de los peroneos en la cara externa de la pierna y luego dibuja el abecedario completo en el aire con el dedo gordo, moviendo solo el tobillo por todos los ángulos disponibles.",
+              "cues": ["Pasadas lentas por la cara externa de la pierna", "Dibuja cada letra a tamaño completo", "Rodilla quieta: el tobillo escribe"]
+            },
+            "pt": {
+              "name": "Liberação dos fibulares com alfabeto de tornozelo",
+              "description": "Trabalhe uma bola ao longo dos fibulares na face externa da perna e depois desenhe o alfabeto completo no ar com o dedão, movendo apenas o tornozelo por todos os ângulos disponíveis.",
+              "cues": ["Passadas lentas pela face externa da perna", "Desenhe cada letra em tamanho completo", "Joelho parado: o tornozelo escreve"]
+            }
+          },
+          "volume": "2 sets x 45s release + 1 full alphabet per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Banded Eversion (peroneal isolation)",
+              "description": "Seated with a band looped around the forefoot and anchored medially, rotate the sole outward against the band and return over three slow seconds; the peroneals are the muscles that catch a rolling ankle — train them like it matters.",
+              "cues": ["Turn the sole out, shin stays still", "Three slow seconds back in", "Full range every rep"]
+            },
+            "es": {
+              "name": "Eversión con banda (aislamiento de peroneos)",
+              "description": "Sentado con una banda en el antepié anclada hacia adentro, gira la planta hacia afuera contra la banda y regresa en tres segundos lentos; los peroneos son los músculos que atrapan un tobillo que se dobla: entrénalos como si importara.",
+              "cues": ["Gira la planta hacia afuera con la tibia quieta", "Tres segundos lentos de regreso", "Rango completo en cada repetición"]
+            },
+            "pt": {
+              "name": "Eversão com elástico (isolamento dos fibulares)",
+              "description": "Sentado com o elástico no antepé ancorado para dentro, gire a sola para fora contra o elástico e retorne em três segundos lentos; os fibulares são os músculos que seguram um tornozelo virando: treine-os como se importasse.",
+              "cues": ["Gire a sola para fora com a canela parada", "Três segundos lentos no retorno", "Amplitude completa em cada repetição"]
+            }
+          },
+          "volume": "3 sets x 15 reps per side"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Single-Leg Balance Matrix (eyes-closed and Y-reach progression)",
+              "description": "Balance on the affected leg through three stages — firm ground, eyes closed, then Y-direction toe reaches with the free leg — restoring the reflexive ankle corrections that prevent the next sprain.",
+              "cues": ["Soft knee, tall posture", "Quiet foot — kill the wobble early", "Progress only when 30 seconds is boring"]
+            },
+            "es": {
+              "name": "Matriz de equilibrio a una pierna (ojos cerrados y alcances en Y)",
+              "description": "Equilíbrate sobre la pierna afectada en tres etapas —piso firme, ojos cerrados y luego alcances en Y con la pierna libre—, restaurando las correcciones reflejas del tobillo que previenen el próximo esguince.",
+              "cues": ["Rodilla suave, postura alta", "Pie silencioso: apaga el tambaleo temprano", "Progresa solo cuando 30 segundos resulten aburridos"]
+            },
+            "pt": {
+              "name": "Matriz de equilíbrio unipodal (olhos fechados e alcances em Y)",
+              "description": "Equilibre-se na perna afetada em três etapas — chão firme, olhos fechados e depois alcances em Y com a perna livre —, restaurando as correções reflexas do tornozelo que previnem a próxima entorse.",
+              "cues": ["Joelho macio, postura alta", "Pé silencioso: apague a oscilação cedo", "Progrida apenas quando 30 segundos ficarem entediantes"]
+            }
+          },
+          "volume": "3 sets x 30s per stage per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_ankle_004",
+    "joint_complex": "Talocrural / Achilles",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Localized at the back of the heel bone (Achilles insertion)",
+      "trigger_mechanic": "Uphill running, calf stretches and dorsiflexed positions; stiff shoe heel counters digging in"
+    },
+    "diagnosis_hypothesis": "Insertional Achilles tendinopathy. Within roughly 2cm of the calcaneus, dorsiflexion wraps and compresses the tendon against the posterosuperior heel bone — which is why stretching and hills make this variant worse, the key differential from mid-portion disease. Management inverts the usual advice: eliminate compressive end-range dorsiflexion for now, allow a small heel lift, and load the tendon hard in plantar-to-neutral ranges where compression is minimal.",
+    "prescription": {
+      "protocol_name": "Insertion Decompression Loading",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Bent-Knee Soleus Massage (no stretching)",
+              "description": "With the knee bent and the calf relaxed, hand-knead or roll the deep soleus from mid-calf downward, stopping well above the insertion — the soft tissue gets attention while compressive stretching stays banned.",
+              "cues": ["Knee bent to reach the soleus", "Never massage the heel attachment itself", "This phase: zero calf stretches"]
+            },
+            "es": {
+              "name": "Masaje de sóleo con rodilla flexionada (sin estiramientos)",
+              "description": "Con la rodilla flexionada y la pantorrilla relajada, amasa con las manos o rueda el sóleo profundo desde media pantorrilla hacia abajo, deteniéndote bien arriba de la inserción: el tejido blando recibe atención mientras el estiramiento compresivo queda prohibido.",
+              "cues": ["Rodilla flexionada para llegar al sóleo", "Nunca masajees la inserción en el talón", "En esta fase: cero estiramientos de pantorrilla"]
+            },
+            "pt": {
+              "name": "Massagem do sóleo com joelho dobrado (sem alongamentos)",
+              "description": "Com o joelho dobrado e a panturrilha relaxada, amasse com as mãos ou role o sóleo profundo da metade da panturrilha para baixo, parando bem acima da inserção: o tecido mole recebe atenção enquanto o alongamento compressivo fica proibido.",
+              "cues": ["Joelho dobrado para alcançar o sóleo", "Nunca massageie a inserção no calcanhar", "Nesta fase: zero alongamentos de panturrilha"]
+            }
+          },
+          "volume": "2 sets x 60s per leg"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Floor-Level Isometric Heel Raise (no deficit)",
+              "description": "From flat ground — never off a step — rise to mid-height and hold absolutely still with load; the insertion receives the tension it needs to adapt with none of the compression that inflames it.",
+              "cues": ["Flat floor only, no edge drops", "Hold at mid-height, dead still", "Heavy enough to feel by second 20"]
+            },
+            "es": {
+              "name": "Isométrico de elevación de talones a nivel del piso (sin déficit)",
+              "description": "Desde piso plano —nunca desde un escalón—, sube a media altura y sostén totalmente quieto con carga; la inserción recibe la tensión que necesita para adaptarse sin nada de la compresión que la inflama.",
+              "cues": ["Solo piso plano, sin descender de bordes", "Sostén a media altura, totalmente quieto", "Carga suficiente para sentirla al segundo 20"]
+            },
+            "pt": {
+              "name": "Isometria de elevação de calcanhares no nível do chão (sem déficit)",
+              "description": "Do chão plano — nunca de um degrau —, suba até a meia altura e sustente totalmente parado com carga; a inserção recebe a tensão de que precisa para se adaptar sem nada da compressão que a inflama.",
+              "cues": ["Apenas chão plano, sem descer de bordas", "Sustente na meia altura, totalmente parado", "Carga suficiente para sentir aos 20 segundos"]
+            }
+          },
+          "volume": "4 sets x 30s hold"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Loaded Heel Raise, Floor Range Only (progressive)",
+              "description": "Perform full heel raises from flat ground with progressive load, rising high onto the big toe and lowering only back to flat; range below neutral returns weeks later, once mornings have been pain-free for two straight weeks.",
+              "cues": ["Floor to tall, never below flat", "Slow lowers — three seconds", "Earn range back: pain-free mornings first"]
+            },
+            "es": {
+              "name": "Elevación de talones con carga, solo rango sobre el piso (progresiva)",
+              "description": "Haz elevaciones de talones completas desde piso plano con carga progresiva, subiendo alto sobre el dedo gordo y bajando solo hasta el piso; el rango por debajo de neutro regresa semanas después, cuando las mañanas lleven dos semanas seguidas sin dolor.",
+              "cues": ["Del piso a lo alto, nunca debajo del plano", "Bajadas lentas: tres segundos", "Recupera el rango ganándotelo: primero mañanas sin dolor"]
+            },
+            "pt": {
+              "name": "Elevação de calcanhares com carga, apenas amplitude acima do chão (progressiva)",
+              "description": "Faça elevações completas a partir do chão plano com carga progressiva, subindo alto sobre o dedão e descendo apenas até o chão; a amplitude abaixo do neutro volta semanas depois, quando as manhãs completarem duas semanas seguidas sem dor.",
+              "cues": ["Do chão ao topo, nunca abaixo do plano", "Descidas lentas: três segundos", "Reconquiste a amplitude: primeiro manhãs sem dor"]
+            }
+          },
+          "volume": "3 sets x 12 reps (3s eccentric)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_ankle_005",
+    "joint_complex": "Talocrural / Achilles",
+    "diagnostic_inputs": {
+      "pain_profile": "Stiffness / Restricted ROM (no sharp pain), usually both ankles",
+      "trigger_mechanic": "Deep squat attempts — heels lift, the torso pitches forward, knees cave to find depth"
+    },
+    "diagnosis_hypothesis": "Global dorsiflexion capacity deficit. Years of elevated-heel footwear and minimal deep-flexion exposure shorten the gastroc-soleus complex and stiffen the talocrural capsule; the squat then borrows the missing range from somewhere — heels rise, the lumbar spine rounds, or the knees dive inward where pronation fakes dorsiflexion. Upstream knee and low-back complaints frequently trace back to this floor-level restriction.",
+    "prescription": {
+      "protocol_name": "Dorsiflexion Capacity Build",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Deep Lunge Ankle Rock (knee-out bias)",
+              "description": "In a deep lunge with the front foot flat, rock the knee forward and slightly outward over the little toe, oscillating at the end of range; the outward line targets the stiffest capsular corner without collapsing the arch.",
+              "cues": ["Heel heavy, arch tall", "Track the knee over the little toe", "Oscillate — twelve smooth pulses"]
+            },
+            "es": {
+              "name": "Balanceo de tobillo en zancada profunda (sesgo hacia afuera)",
+              "description": "En zancada profunda con el pie delantero plano, balancea la rodilla adelante y apenas afuera sobre el dedo pequeño, oscilando al final del rango; la línea hacia afuera apunta al rincón capsular más rígido sin colapsar el arco.",
+              "cues": ["Talón pesado, arco alto", "Guía la rodilla sobre el dedo pequeño", "Oscila: doce pulsos suaves"]
+            },
+            "pt": {
+              "name": "Balanço de tornozelo em afundo profundo (viés para fora)",
+              "description": "Em afundo profundo com o pé da frente plano, balance o joelho à frente e levemente para fora sobre o dedo mínimo, oscilando no fim da amplitude; a linha para fora mira o canto capsular mais rígido sem desabar o arco.",
+              "cues": ["Calcanhar pesado, arco alto", "Guie o joelho sobre o dedo mínimo", "Oscile: doze pulsos suaves"]
+            }
+          },
+          "volume": "2 sets x 12 pulses per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "End-Range Dorsiflexion PAILs/RAILs",
+              "description": "At the deepest pain-free lunge position, ramp a push of the forefoot down into the floor for ten seconds (PAIL), then immediately try to lift the forefoot without leaving the position (RAIL); contracting at end range teaches the nervous system the new range is safe and usable.",
+              "cues": ["Build the push gradually, no jerks", "Switch instantly from push to pull", "Stay glued to end range throughout"]
+            },
+            "es": {
+              "name": "PAILs/RAILs de dorsiflexión en rango final",
+              "description": "En la zancada más profunda sin dolor, aumenta gradualmente un empuje del antepié contra el piso por diez segundos (PAIL) y de inmediato intenta levantar el antepié sin salir de la posición (RAIL); contraer en rango final le enseña al sistema nervioso que el nuevo rango es seguro y utilizable.",
+              "cues": ["Sube el empuje gradual, sin tirones", "Cambia al instante de empujar a jalar", "Quédate pegado al rango final todo el tiempo"]
+            },
+            "pt": {
+              "name": "PAILs/RAILs de dorsiflexão na amplitude final",
+              "description": "No afundo mais profundo sem dor, aumente gradualmente uma pressão do antepé contra o chão por dez segundos (PAIL) e em seguida tente levantar o antepé sem sair da posição (RAIL); contrair na amplitude final ensina ao sistema nervoso que a nova amplitude é segura e utilizável.",
+              "cues": ["Aumente a pressão gradualmente, sem trancos", "Troque na hora de empurrar para puxar", "Fique colado na amplitude final o tempo todo"]
+            }
+          },
+          "volume": "3 cycles x 10s push + 10s pull per side"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Tempo Heels-Down Goblet Squat",
+              "description": "Goblet squat to your honest heels-down depth with a three-second descent and a two-second pause in the hole; the counterweight lets the ankles load into their new range while the heels prove they can stay down.",
+              "cues": ["Heels rooted the entire rep", "Three down, two in the hole", "Depth only counts if the heels stay honest"]
+            },
+            "es": {
+              "name": "Sentadilla Goblet con talones abajo y tempo",
+              "description": "Haz sentadilla goblet hasta tu profundidad honesta con talones abajo, con tres segundos de bajada y dos de pausa al fondo; el contrapeso permite cargar los tobillos en su nuevo rango mientras los talones demuestran que pueden quedarse abajo.",
+              "cues": ["Talones enraizados toda la repetición", "Tres de bajada, dos de pausa al fondo", "La profundidad vale solo si los talones no mienten"]
+            },
+            "pt": {
+              "name": "Agachamento Goblet com calcanhares no chão e tempo",
+              "description": "Agache no estilo goblet até a sua profundidade honesta com os calcanhares no chão, com três segundos de descida e dois de pausa embaixo; o contrapeso permite carregar os tornozelos na nova amplitude enquanto os calcanhares provam que podem ficar no chão.",
+              "cues": ["Calcanhares enraizados a repetição inteira", "Três na descida, dois de pausa embaixo", "A profundidade só vale se os calcanhares não mentirem"]
+            }
+          },
+          "volume": "3 sets x 8 reps (tempo 3-2-1)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_cervical_001",
+    "joint_complex": "Cervical / Thoracic Spine",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Blocked (one-sided)",
+      "trigger_mechanic": "Turning the head — checking a blind spot, grappling positions; often appears on waking"
+    },
+    "diagnosis_hypothesis": "Acute cervical facet irritation with protective guarding. A sustained awkward position — usually sleep — irritates a facet joint capsule, and the segmental muscles (levator scapulae, scalenes) spasm to splint the segment, blocking rotation toward the painful side. Pain blocks motion and motion-starvation feeds stiffness; the loop is broken with gentle, de-threatening movement — not by forcing through the block or cracking at it.",
+    "prescription": {
+      "protocol_name": "Rotation Unlock Sequence",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Suboccipital & Levator Ball Release with Gentle ROM",
+              "description": "Lying with a ball under the skull base, then at the upper inner corner of the shoulder blade, breathe while gently nodding and rotating within comfort — easing the guarding tone down rather than attacking the block.",
+              "cues": ["Pressure that relaxes, never bruises", "Tiny nods and turns on the ball", "Stay inside the comfortable range"]
+            },
+            "es": {
+              "name": "Liberación suboccipital y del elevador con pelota y movilidad suave",
+              "description": "Acostado con una pelota bajo la base del cráneo y luego en el ángulo superior interno de la escápula, respira mientras asientes y rotas suavemente dentro de lo cómodo, bajando el tono de defensa en lugar de atacar el bloqueo.",
+              "cues": ["Presión que relaja, nunca que magulla", "Asentimientos y giros pequeños sobre la pelota", "Permanece dentro del rango cómodo"]
+            },
+            "pt": {
+              "name": "Liberação suboccipital e do levantador com bola e mobilidade suave",
+              "description": "Deitado com uma bola sob a base do crânio e depois no ângulo superior interno da escápula, respire enquanto faz acenos e rotações suaves dentro do confortável, baixando o tônus de defesa em vez de atacar o bloqueio.",
+              "cues": ["Pressão que relaxa, nunca que machuca", "Acenos e giros pequenos sobre a bola", "Permaneça dentro da amplitude confortável"]
+            }
+          },
+          "volume": "2 sets x 45s per spot"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Craniocervical Chin Nod",
+              "description": "Lying on your back, nod the chin softly as if beginning to say yes, feeling the deep front-of-neck muscles engage while the surface muscles stay soft; the deep flexors are the neck's true stabilizers and they go offline with pain.",
+              "cues": ["Gentle nod, no neck press", "Surface muscles stay soft — touch to check", "Five-second holds, effortless breathing"]
+            },
+            "es": {
+              "name": "Asentimiento craneocervical (Chin Nod)",
+              "description": "Boca arriba, asiente suavemente con el mentón como si empezaras a decir que sí, sintiendo activarse los músculos profundos del frente del cuello mientras los superficiales quedan blandos; los flexores profundos son los verdaderos estabilizadores del cuello y se apagan con el dolor.",
+              "cues": ["Asentimiento suave, sin presionar el cuello", "Músculos superficiales blandos: tócalos para verificar", "Sostén de cinco segundos respirando sin esfuerzo"]
+            },
+            "pt": {
+              "name": "Aceno craniocervical (Chin Nod)",
+              "description": "De costas, acene suavemente com o queixo como se começasse a dizer sim, sentindo os músculos profundos da frente do pescoço ativarem enquanto os superficiais ficam macios; os flexores profundos são os verdadeiros estabilizadores do pescoço e desligam com a dor.",
+              "cues": ["Aceno suave, sem pressionar o pescoço", "Músculos superficiais macios: toque para conferir", "Sustente cinco segundos respirando sem esforço"]
+            }
+          },
+          "volume": "3 sets x 10 reps (5s holds)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Quadruped Gaze-Led Rotation",
+              "description": "On all fours with one hand behind the head, rotate the elbow toward the ceiling letting the eyes lead the turn and the thoracic spine share the work; rotation is rebuilt as a distributed pattern instead of a cervical-only grind.",
+              "cues": ["Eyes lead, neck follows", "Open from the mid-back", "Stop shy of the block — repeat, never force"]
+            },
+            "es": {
+              "name": "Rotación guiada por la mirada en cuadrupedia",
+              "description": "En cuatro apoyos con una mano detrás de la cabeza, rota el codo hacia el techo dejando que los ojos guíen el giro y la columna torácica comparta el trabajo; la rotación se reconstruye como patrón distribuido y no como un desgaste exclusivo del cuello.",
+              "cues": ["Los ojos guían, el cuello sigue", "Abre desde la espalda media", "Detente antes del bloqueo: repite, no fuerces"]
+            },
+            "pt": {
+              "name": "Rotação guiada pelo olhar em quatro apoios",
+              "description": "Em quatro apoios com uma mão atrás da cabeça, gire o cotovelo para o teto deixando os olhos guiarem o giro e a coluna torácica dividir o trabalho; a rotação é reconstruída como padrão distribuído e não como desgaste exclusivo do pescoço.",
+              "cues": ["Os olhos guiam, o pescoço segue", "Abra a partir do meio das costas", "Pare antes do bloqueio: repita, não force"]
+            }
+          },
+          "volume": "3 sets x 8 reps per side"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_cervical_002",
+    "joint_complex": "Cervical / Thoracic Spine",
+    "diagnostic_inputs": {
+      "pain_profile": "Dull / Burning ache between the shoulder blades",
+      "trigger_mechanic": "Prolonged desk, phone or driving posture; builds through the day"
+    },
+    "diagnosis_hypothesis": "Upper-crossed postural endurance failure. At 30-45 degrees of forward head tilt, the effective load on the cervicothoracic extensors multiplies several-fold — a 5kg head loads the neck like 15-20kg. The mid and lower trapezius and deep neck flexors lose the endurance contest against gravity, and the rhomboid and mid-trap region burns from sustained isometric work in a lengthened position while the pec minor and upper traps shorten on the winning side of the cross.",
+    "prescription": {
+      "protocol_name": "Postural Endurance Rebuild",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Doorway Pec Opener with T-Spine Roller Extension",
+              "description": "Open the anterior chain in a doorway with the elbow at shoulder height, then extend the upper back over a foam roller — the shortened front of the cross must lengthen before the overworked back half can stop overworking.",
+              "cues": ["Elbow at shoulder height in the doorway", "Step through until a front-chest stretch builds", "Extend over the roller on a long exhale"]
+            },
+            "es": {
+              "name": "Apertura de pectoral en puerta con extensión torácica en rodillo",
+              "description": "Abre la cadena anterior en el marco de una puerta con el codo a la altura del hombro y luego extiende la espalda alta sobre un rodillo: el frente acortado de la cruz debe alargarse antes de que la mitad posterior sobrecargada pueda dejar de sobretrabajar.",
+              "cues": ["Codo a la altura del hombro en la puerta", "Avanza hasta sentir el estiramiento en el pecho", "Extiende sobre el rodillo con una exhalación larga"]
+            },
+            "pt": {
+              "name": "Abertura de peitoral na porta com extensão torácica no rolo",
+              "description": "Abra a cadeia anterior no batente da porta com o cotovelo na altura do ombro e depois estenda o dorso sobre um rolo: a frente encurtada da cruz precisa alongar antes que a metade posterior sobrecarregada possa parar de trabalhar demais.",
+              "cues": ["Cotovelo na altura do ombro na porta", "Avance até sentir o alongamento no peito", "Estenda sobre o rolo em uma expiração longa"]
+            }
+          },
+          "volume": "2 sets x 45s each"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Prone Y-T-W Series (thumbs up)",
+              "description": "Face down, lift the arms through Y, T and W shapes with the thumbs to the ceiling and a hold at each top; the lower and middle trapezius get direct strength work in exactly the positions where they lose the postural battle.",
+              "cues": ["Lift from the shoulder blades, not the hands", "Thumbs up, shoulders away from the ears", "Three-second hold on every letter"]
+            },
+            "es": {
+              "name": "Serie Y-T-W en pronación (pulgares arriba)",
+              "description": "Boca abajo, eleva los brazos formando las letras Y, T y W con los pulgares al techo y sostén en cada tope; el trapecio inferior y medio reciben trabajo de fuerza directo exactamente en las posiciones donde pierden la batalla postural.",
+              "cues": ["Eleva desde las escápulas, no desde las manos", "Pulgares arriba, hombros lejos de las orejas", "Sostén tres segundos en cada letra"]
+            },
+            "pt": {
+              "name": "Série Y-T-W em pronação (polegares para cima)",
+              "description": "De bruços, eleve os braços formando as letras Y, T e W com os polegares para o teto e sustente em cada topo; o trapézio inferior e o médio recebem trabalho de força direto exatamente nas posições em que perdem a batalha postural.",
+              "cues": ["Eleve a partir das escápulas, não das mãos", "Polegares para cima, ombros longe das orelhas", "Sustente três segundos em cada letra"]
+            }
+          },
+          "volume": "2 sets x 8 reps per letter (3s holds)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Wall Chin Tuck with Band Pull-Apart Superset",
+              "description": "With the back of the head lightly pressed to a wall in a gentle chin tuck, pull a band apart at shoulder height and control it back; head position and scapular strength get welded together — the exact pairing a workday demands for hours.",
+              "cues": ["Head tall against the wall, chin gentle", "Pull to a full blade squeeze", "Control the band's return — no snapback"]
+            },
+            "es": {
+              "name": "Mentón retraído en pared con apertura de banda (superserie)",
+              "description": "Con la nuca apoyada suavemente en la pared y el mentón retraído sin forzar, abre una banda a la altura de los hombros y contrólala de regreso; la posición de la cabeza y la fuerza escapular se sueldan juntas, el binomio exacto que una jornada laboral exige por horas.",
+              "cues": ["Cabeza alta contra la pared, mentón suave", "Abre hasta apretar por completo las escápulas", "Controla el regreso de la banda: sin rebote"]
+            },
+            "pt": {
+              "name": "Queixo retraído na parede com abertura de elástico (supersérie)",
+              "description": "Com a nuca apoiada de leve na parede e o queixo retraído sem forçar, abra um elástico na altura dos ombros e controle a volta; a posição da cabeça e a força escapular são soldadas juntas, o par exato que um dia de trabalho exige por horas.",
+              "cues": ["Cabeça alta contra a parede, queixo suave", "Abra até apertar por completo as escápulas", "Controle a volta do elástico: sem rebote"]
+            }
+          },
+          "volume": "3 sets x 12 reps each"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_cervical_003",
+    "joint_complex": "Cervical / Thoracic Spine",
+    "diagnostic_inputs": {
+      "pain_profile": "Stiffness / Restricted ROM (the upper back will not extend)",
+      "trigger_mechanic": "Overhead pressing and front-rack positions — the neck juts and the ribs flare to find range"
+    },
+    "diagnosis_hypothesis": "Thoracic extension deficit with compensatory cervical hyperextension. When the T-spine cannot contribute its share of extension during overhead work, the athlete hyperextends the neck to keep the eyes level and the bar path vertical, compressing cervical facets under load; restricted posterior rib mechanics usually travel with it. Restore the thoracic engine and the neck stops paying the tax.",
+    "prescription": {
+      "protocol_name": "Thoracic Engine Restore",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Segmented Foam Roller Extensions (T5-T10, exhale-driven)",
+              "description": "Extend over a roller placed at successive levels from the mid to lower thoracic spine, exhaling fully as each segment drapes; the exhale drops rib resistance so the extension comes from the targeted level rather than the lumbar spine.",
+              "cues": ["Move the roller one segment at a time", "Full exhale before each extension", "Hips stay heavy on the floor"]
+            },
+            "es": {
+              "name": "Extensiones segmentadas en rodillo (T5-T10, guiadas por la exhalación)",
+              "description": "Extiéndete sobre un rodillo colocado en niveles sucesivos de la torácica media a la baja, exhalando por completo mientras cada segmento se acomoda sobre el rodillo; la exhalación reduce la resistencia costal para que la extensión salga del nivel objetivo y no de la lumbar.",
+              "cues": ["Mueve el rodillo un segmento a la vez", "Exhalación completa antes de cada extensión", "La cadera permanece pesada en el piso"]
+            },
+            "pt": {
+              "name": "Extensões segmentadas no rolo (T5-T10, guiadas pela expiração)",
+              "description": "Estenda-se sobre um rolo posicionado em níveis sucessivos da torácica média à baixa, expirando por completo enquanto cada segmento se acomoda sobre o rolo; a expiração reduz a resistência das costelas para que a extensão venha do nível alvo e não da lombar.",
+              "cues": ["Mova o rolo um segmento por vez", "Expiração completa antes de cada extensão", "O quadril permanece pesado no chão"]
+            }
+          },
+          "volume": "2 sets x 8 extensions across T5-T10"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Prone Thoracic Lift-Off",
+              "description": "Face down with the hands behind the head and the nose hovering, lift the chest a few centimeters by extending the mid-back only — the lumbar stays quiet and the gaze stays down so the neck cannot cheat.",
+              "cues": ["Lift from between the shoulder blades", "Gaze down — chin stays tucked", "A few centimeters of lift, three-second hold"]
+            },
+            "es": {
+              "name": "Despegue torácico en pronación",
+              "description": "Boca abajo con las manos detrás de la cabeza y la nariz suspendida, eleva el pecho unos centímetros extendiendo solo la espalda media: la lumbar permanece quieta y la mirada abajo para que el cuello no haga trampa.",
+              "cues": ["Eleva desde el espacio entre las escápulas", "Mirada abajo: mentón retraído", "Pocos centímetros de elevación, tres segundos de sostén"]
+            },
+            "pt": {
+              "name": "Decolagem torácica em pronação",
+              "description": "De bruços com as mãos atrás da cabeça e o nariz suspenso, eleve o peito alguns centímetros estendendo apenas o meio das costas: a lombar permanece quieta e o olhar para baixo para que o pescoço não trapaceie.",
+              "cues": ["Eleve a partir do espaço entre as escápulas", "Olhar para baixo: queixo retraído", "Poucos centímetros de elevação, três segundos de sustentação"]
+            }
+          },
+          "volume": "3 sets x 10 reps (3s holds)"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Wall-Facing Overhead Press (dowel)",
+              "description": "Stand facing a wall a hand-width away and press a dowel overhead without letting it or your nose touch; the wall deletes every cheat — rib flare, forward lean, neck jut — leaving only true thoracic extension to find the range.",
+              "cues": ["Nose and dowel never touch the wall", "Ribs down as the arms rise", "Finish with the biceps by the ears"]
+            },
+            "es": {
+              "name": "Press sobre la cabeza de cara a la pared (con bastón)",
+              "description": "De pie frente a una pared a un palmo de distancia, empuja un bastón sobre la cabeza sin que el bastón ni tu nariz la toquen; la pared elimina cada trampa —costillas abiertas, inclinación, cuello adelantado— dejando solo la verdadera extensión torácica para encontrar el rango.",
+              "cues": ["Ni la nariz ni el bastón tocan la pared", "Costillas abajo mientras los brazos suben", "Termina con los bíceps junto a las orejas"]
+            },
+            "pt": {
+              "name": "Press acima da cabeça de frente para a parede (com bastão)",
+              "description": "Em pé, de frente para uma parede a um palmo de distância, empurre um bastão acima da cabeça sem que ele nem o seu nariz a toquem; a parede elimina cada trapaça — costelas abertas, inclinação, pescoço projetado — deixando apenas a verdadeira extensão torácica para encontrar a amplitude.",
+              "cues": ["Nem o nariz nem o bastão tocam a parede", "Costelas baixas enquanto os braços sobem", "Finalize com os bíceps junto às orelhas"]
+            }
+          },
+          "volume": "3 sets x 8 reps"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_cervical_004",
+    "joint_complex": "Cervical / Thoracic Spine",
+    "diagnostic_inputs": {
+      "pain_profile": "Dull / Pressure headache rising from the skull base",
+      "trigger_mechanic": "After heavy lifting sessions, high stress or jaw clenching; worse with breath-holding under load"
+    },
+    "diagnosis_hypothesis": "Cervicogenic headache from suboccipital overdrive. Heavy lifts performed with a jutted, hyperextended neck and a hard Valsalva keep the suboccipitals, upper traps and levator in sustained co-contraction, and jaw clenching recruits the same chain. The C1-C3 segments converge with trigeminal pathways at the trigeminocervical nucleus, so tension at the skull base is felt as a skull-base-to-temple headache. Downshift the suboccipitals, rebuild deep-flexor endurance, then repattern neck position under load.",
+    "prescription": {
+      "protocol_name": "Suboccipital Downshift",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Peanut-Ball Suboccipital Release with Chin Nods",
+              "description": "Lying with a double ball nestled at the skull base, let the head's weight sink for ninety seconds while adding tiny chin nods; the suboccipitals release best under patient, boring pressure with slow nasal breathing.",
+              "cues": ["Let the head be heavy", "Tiny nods, nothing forced", "Long nasal exhales the whole time"]
+            },
+            "es": {
+              "name": "Liberación suboccipital con pelota doble (peanut) y asentimientos",
+              "description": "Acostado con una pelota doble encajada en la base del cráneo, deja que el peso de la cabeza se hunda durante noventa segundos sumando asentimientos pequeños; los suboccipitales se liberan mejor bajo presión paciente y aburrida con respiración nasal lenta.",
+              "cues": ["Deja la cabeza pesada", "Asentimientos diminutos, nada forzado", "Exhalaciones nasales largas todo el tiempo"]
+            },
+            "pt": {
+              "name": "Liberação suboccipital com bola dupla (peanut) e acenos",
+              "description": "Deitado com uma bola dupla encaixada na base do crânio, deixe o peso da cabeça afundar por noventa segundos somando acenos pequenos; os suboccipitais soltam melhor sob pressão paciente e entediante com respiração nasal lenta.",
+              "cues": ["Deixe a cabeça pesada", "Acenos minúsculos, nada forçado", "Expirações nasais longas o tempo todo"]
+            }
+          },
+          "volume": "2 sets x 90s"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Supine Deep Neck Flexor Endurance Holds",
+              "description": "Nod the chin gently, then float the head one centimeter off the floor and hold while the nod survives; the deep flexors build the endurance that keeps the suboccipitals from doing their job all day.",
+              "cues": ["Nod first, lift second", "One centimeter — no higher", "The set ends the moment the chin juts"]
+            },
+            "es": {
+              "name": "Resistencia de flexores profundos del cuello boca arriba",
+              "description": "Asiente suavemente con el mentón, luego flota la cabeza un centímetro del piso y sostén mientras el asentimiento sobrevive; los flexores profundos construyen la resistencia que evita que los suboccipitales hagan su trabajo todo el día.",
+              "cues": ["Primero asiente, después eleva", "Un centímetro: no más alto", "La serie termina en cuanto el mentón se proyecta"]
+            },
+            "pt": {
+              "name": "Resistência dos flexores profundos do pescoço deitado",
+              "description": "Acene suavemente com o queixo, depois flutue a cabeça um centímetro do chão e sustente enquanto o aceno sobrevive; os flexores profundos constroem a resistência que evita que os suboccipitais façam o trabalho deles o dia inteiro.",
+              "cues": ["Primeiro acene, depois eleve", "Um centímetro: não mais alto", "A série termina assim que o queixo se projeta"]
+            }
+          },
+          "volume": "3 sets x 5 holds x 10s"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Front-Rack Carry with Packed Neck and Nasal Breathing",
+              "description": "Carry a kettlebell in the front-rack with the chin gently packed, the jaw unclenched and the breath flowing through the nose; the neck learns to stay neutral while real load passes through the system — the exact context where the headache pattern is born.",
+              "cues": ["Chin packed, jaw soft", "Nasal breathing even under load", "Ribs over pelvis the whole walk"]
+            },
+            "es": {
+              "name": "Caminata en posición front-rack con cuello empacado y respiración nasal",
+              "description": "Carga una kettlebell en posición front-rack con el mentón suavemente retraído, la mandíbula suelta y el aire fluyendo por la nariz; el cuello aprende a quedarse neutro mientras una carga real atraviesa el sistema, el contexto exacto donde nace el patrón de dolor de cabeza.",
+              "cues": ["Mentón retraído, mandíbula suelta", "Respiración nasal incluso bajo carga", "Costillas sobre la pelvis durante toda la caminata"]
+            },
+            "pt": {
+              "name": "Caminhada em front-rack com pescoço encaixado e respiração nasal",
+              "description": "Carregue um kettlebell na posição front-rack com o queixo suavemente retraído, a mandíbula solta e o ar fluindo pelo nariz; o pescoço aprende a permanecer neutro enquanto uma carga real atravessa o sistema, o contexto exato onde o padrão de dor de cabeça nasce.",
+              "cues": ["Queixo retraído, mandíbula solta", "Respiração nasal mesmo sob carga", "Costelas sobre a pelve durante toda a caminhada"]
+            }
+          },
+          "volume": "3 sets x 30s carry"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bbf_prehab_cervical_005",
+    "joint_complex": "Cervical / Thoracic Spine",
+    "diagnostic_inputs": {
+      "pain_profile": "Sharp / Pulling along the upper inner shoulder-blade border, radiating toward the neck",
+      "trigger_mechanic": "Heavy carries, deadlift lockouts and shrugs — anything dragging the shoulder girdle down"
+    },
+    "diagnosis_hypothesis": "Scapular suspension overload at the levator scapulae. Under heavy axial drag the scapula gets pulled into depression and downward rotation; the levator scapulae — spanning C1-C4 to the scapula's superior angle — strains eccentrically as the last suspension cable holding the blade up. The upward-rotation force couple (upper trapezius timing with serratus anterior) is under-delivering, so passive tissue and one overworked muscle absorb what a coordinated system should share.",
+    "prescription": {
+      "protocol_name": "Scapular Suspension Armor",
+      "drills": [
+        {
+          "step": 1,
+          "type": "Mobilize / Release",
+          "localization": {
+            "en": {
+              "name": "Levator Pin-and-Stretch",
+              "description": "Pin a ball at the scapula's upper inner corner against a wall, then slowly turn and tip the nose toward the opposite armpit and return; the pin holds the tissue while the head movement strips it through its full length.",
+              "cues": ["Pin first, then move the head", "Nose toward the opposite armpit", "Slow strips — five per spot"]
+            },
+            "es": {
+              "name": "Pin y estiramiento del elevador de la escápula",
+              "description": "Fija una pelota en el ángulo superior interno de la escápula contra una pared y gira e inclina lentamente la nariz hacia la axila opuesta y regresa; la pelota sostiene el tejido mientras el movimiento de la cabeza lo barre en todo su largo.",
+              "cues": ["Primero fija, después mueve la cabeza", "Nariz hacia la axila opuesta", "Barridos lentos: cinco por punto"]
+            },
+            "pt": {
+              "name": "Pin e alongamento do levantador da escápula",
+              "description": "Fixe uma bola no ângulo superior interno da escápula contra a parede e gire e incline lentamente o nariz em direção à axila oposta e volte; a bola segura o tecido enquanto o movimento da cabeça o varre em todo o comprimento.",
+              "cues": ["Primeiro fixe, depois mova a cabeça", "Nariz em direção à axila oposta", "Varreduras lentas: cinco por ponto"]
+            }
+          },
+          "volume": "2 sets x 5 strips per side"
+        },
+        {
+          "step": 2,
+          "type": "Activate / Isolate",
+          "localization": {
+            "en": {
+              "name": "Scapular Upward-Rotation Shrug (Y-angle)",
+              "description": "With the arms raised about 30 degrees above horizontal in a Y, shrug the shoulder blades upward along the line of the arms; this re-times the upper trapezius and serratus as upward rotators — the role that takes the load off the levator.",
+              "cues": ["Shrug along the Y line, not straight up", "Long arms — reach as you shrug", "Lower with the same patience"]
+            },
+            "es": {
+              "name": "Encogimiento en rotación ascendente escapular (ángulo en Y)",
+              "description": "Con los brazos elevados unos 30 grados sobre la horizontal en forma de Y, encoge las escápulas hacia arriba siguiendo la línea de los brazos; esto re-sincroniza el trapecio superior y el serrato como rotadores ascendentes, el rol que le quita la carga al elevador.",
+              "cues": ["Encoge siguiendo la línea de la Y, no en vertical", "Brazos largos: alcanza mientras encoges", "Baja con la misma paciencia"]
+            },
+            "pt": {
+              "name": "Encolhimento em rotação ascendente da escápula (ângulo em Y)",
+              "description": "Com os braços elevados cerca de 30 graus acima da horizontal em forma de Y, encolha as escápulas para cima seguindo a linha dos braços; isso ressincroniza o trapézio superior e o serrátil como rotadores ascendentes, o papel que tira a carga do levantador.",
+              "cues": ["Encolha seguindo a linha do Y, não na vertical", "Braços longos: alcance enquanto encolhe", "Desça com a mesma paciência"]
+            }
+          },
+          "volume": "3 sets x 12 reps"
+        },
+        {
+          "step": 3,
+          "type": "Integrate / Stabilize",
+          "localization": {
+            "en": {
+              "name": "Suspension-Set Farmer Carry",
+              "description": "Walk with heavy weights while actively suspending the shoulder girdle: a ten-percent shrug holds the blades supported so the load routes through muscle instead of hanging off the levator and the neck.",
+              "cues": ["Ten-percent shrug, hold it", "Load in the hands, not the neck", "Tall posture — ears over shoulders"]
+            },
+            "es": {
+              "name": "Caminata de granjero con suspensión activa",
+              "description": "Camina con pesos pesados suspendiendo activamente la cintura escapular: un encogimiento del diez por ciento mantiene las escápulas sostenidas para que la carga viaje por el músculo en lugar de colgar del elevador y del cuello.",
+              "cues": ["Encogimiento del diez por ciento, sostenido", "La carga en las manos, no en el cuello", "Postura alta: orejas sobre los hombros"]
+            },
+            "pt": {
+              "name": "Caminhada de fazendeiro com suspensão ativa",
+              "description": "Caminhe com pesos pesados suspendendo ativamente a cintura escapular: um encolhimento de dez por cento mantém as escápulas sustentadas para que a carga viaje pelo músculo em vez de pendurar no levantador e no pescoço.",
+              "cues": ["Encolhimento de dez por cento, sustentado", "A carga nas mãos, não no pescoço", "Postura alta: orelhas sobre os ombros"]
+            }
+          },
+          "volume": "3 sets x 30m"
+        }
+      ]
+    }
+  }
+]
