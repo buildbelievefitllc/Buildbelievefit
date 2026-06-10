@@ -28,6 +28,7 @@ import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import SportsPortal from '../components/sports/SportsPortal.jsx';
+import DevToolsPanel from '../components/command/DevToolsPanel.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
@@ -119,6 +120,10 @@ export default function CommandCenter() {
       <div style={styles.panel} key={activeTab}>
         <ActivePanel plans={plans} profile={profile} />
       </div>
+
+      {/* Admin-only floating Dev Tools (self-gates on isAdmin) — zero-friction
+          testing surface, e.g. "Simulate CNS Breach (Health Connect)". */}
+      <DevToolsPanel />
     </div>
   );
 }
