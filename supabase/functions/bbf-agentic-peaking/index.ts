@@ -1,10 +1,25 @@
-// bbf-agentic-peaking v2 — Game-Day Peaking + Mesocycle Restructure (Phase 2 + Phase 4)
+// bbf-agentic-peaking v3 — Game-Day Peaking + Mesocycle Restructure + CNS Auto-Regulator
 // ─────────────────────────────────────────────────────────────────────
 // DEFAULT INTENT (legacy Phase 2):
 //   Intercepts the athlete's scheduled heavy workout when CNS readiness
 //   is compromised (sleep < 6 OR soreness > 7) and asks Claude Opus 4.7
 //   to generate 2 CNS-friendly replacement lifts. Frontend renders the
 //   override on top of the static program.
+//
+// V3 · HEALTH CONNECT CNS AUTO-REGULATOR:
+//   bbf-health-sync lands native Google Health Connect telemetry
+//   (hrv_ms / resting_hr / sleep_minutes) on the same bbf_readiness row.
+//   This engine now reads that wearable telemetry and autonomously
+//   triggers the Agent Override when the CNS is fried:
+//     • hrv_ms < 35          → biometric trigger
+//     • sleep_minutes < 240  → biometric trigger
+//   Wearable trigger → mode 'machine_swap': heavy spinal-loaded compounds
+//   (e.g. Barbell Back Squat) are swapped for lower-taxing machine
+//   isolations, with a deterministic 1RM downgrade (`load_directive`):
+//     one biometric trigger  → cap working sets at 70% 1RM
+//     both biometric triggers → cap working sets at 60% 1RM
+//   Subjective trigger (legacy sleep_quality/soreness) → mode 'recovery'
+//   (mobility / parasympathetic, unchanged behavior).
 //
 // PHASE 4 INTENT · `intent: 'restructure'`:
 //   Fired by bbf-agentic-forecasting when systemic-overtraining is
@@ -34,7 +49,8 @@
 //       "override_active": true,
 //       "warning_banner": "Sharp coach voice · 1 sentence",
 //       "replacement_lifts": [{ name, reps, notes }, ...],
-//       "readiness_snapshot": { sleep, stress },
+//       "load_directive": { mode, one_rm_cap_pct, triggers },
+//       "readiness_snapshot": { sleep, stress, hrv_ms, resting_hr, sleep_minutes },
 //       "model": "claude-opus-4-7",
 //       "duration_ms": 5230
 //     }
@@ -71,6 +87,14 @@ const EFFORT_DEFAULT = 'high';
 // Trigger thresholds (CEO scaffold).
 const SLEEP_FLOOR     = 6;   // sleep_quality < 6 → CNS compromised
 const SORENESS_CEILING = 7;  // soreness_level > 7 → CNS compromised
+// V3 · wearable telemetry thresholds (Health Connect via bbf-health-sync).
+// MUST stay aligned with _shared/health-connect-core.mjs (single source of
+// truth for the Android app's instant feedback).
+const HRV_FLOOR_MS        = 35;  // hrv_ms < 35 → CNS compromised
+const SLEEP_MINUTES_FLOOR = 240; // sleep_minutes < 240 → CNS compromised
+// Deterministic 1RM downgrade for the machine_swap override mode.
+const ONE_RM_CAP_SINGLE_TRIGGER = 70; // one biometric breach  → ≤70% 1RM
+const ONE_RM_CAP_DOUBLE_TRIGGER = 60; // both biometric breaches → ≤60% 1RM
 // Defaults when no readiness data exists yet — bias toward "fine" so
 // the engine doesn't intercept a brand-new client's first session on
 // missing data.
@@ -79,25 +103,36 @@ const SORENESS_DEFAULT  = 5;
 
 // Stable system prompt — cacheable via cache_control: ephemeral.
 const SYSTEM_PROMPT = [
-  'You are the BBF Game-Day Peaking Engine. The athlete\'s CNS readiness has fallen below the safe threshold for heavy compound lifting today. Your job: replace their scheduled heavy session with 2 CNS-friendly recovery / mobility exercises that protect tomorrow\'s training capacity.',
+  'You are the BBF Game-Day Peaking Engine. The athlete\'s CNS readiness has fallen below the safe threshold for heavy compound lifting today. Your job: replace their scheduled heavy session per the override_mode you receive, protecting tomorrow\'s training capacity.',
   '',
   '# WHAT YOU RECEIVE',
-  '- sleep_quality (1-10) — last night\'s recovery',
-  '- soreness_level (1-10) — accumulated stress / soreness',
+  '- override_mode — "recovery" or "machine_swap" (semantics below)',
+  '- sleep_quality (1-10) — last night\'s recovery (subjective check-in)',
+  '- soreness_level (1-10) — accumulated stress / soreness (subjective check-in)',
+  '- wearable telemetry (Google Health Connect, may be partial): hrv_ms, resting_hr (bpm), sleep_minutes',
+  '- one_rm_cap_pct — hard intensity ceiling for machine_swap mode (deterministic, already computed)',
   '- scheduled_focus — what was originally planned (e.g. "Push Day", "Legs", "Pull")',
   '- scheduled_lifts — array of the day\'s heavy lift names',
   '',
-  '# WHAT YOU RETURN',
-  '- warning_banner — one short, direct sentence telling the athlete WHY their session is intercepted. Sharp coach voice. No platitudes. Example: "CNS readiness compromised. Today is recovery. Tomorrow we lift."',
-  '- replacement_lifts — exactly 2 exercises, each with:',
-  '    name:  specific movement (e.g. "Cat-Cow Spinal Mobilization")',
-  '    reps:  prescription string (e.g. "3 x 10 slow tempo")',
-  '    notes: 1-sentence cue or focus',
-  '',
-  '# CONSTRAINTS',
+  '# OVERRIDE MODES',
+  '## recovery (subjective CNS trip)',
   '- Replacement movements must be LOW intensity, mobility / parasympathetic-focused.',
   '- Avoid heavy weight, plyometric, max-effort, eccentric overload, sprinting.',
   '- Target the same body region as the scheduled focus (e.g. Push Day → upper-back + thoracic mobility; Legs → hip mobility + light glute activation; Pull → lat / rear-delt mobility).',
+  '## machine_swap (wearable telemetry trip — HRV and/or sleep duration below floor)',
+  '- The athlete still trains, but axial/spinal loading is OFF the table today.',
+  '- Swap each heavy spinal-loaded compound (Barbell Back Squat, Deadlift variants, Barbell Row, Standing Overhead Press) for a lower-taxing MACHINE or supported isolation hitting the same musculature (e.g. Back Squat → Leg Press or Leg Extension; RDL → Seated Hamstring Curl; Barbell Row → Chest-Supported Machine Row; OHP → Machine Shoulder Press).',
+  '- Every reps prescription MUST respect the one_rm_cap_pct ceiling and state it (e.g. "3 x 10 @ ≤70% 1RM").',
+  '- No free-bar axial loading, no max-effort sets, no plyometrics.',
+  '',
+  '# WHAT YOU RETURN',
+  '- warning_banner — one short, direct sentence telling the athlete WHY their session is intercepted. Sharp coach voice. No platitudes. Example: "HRV is in the gutter. Spinal loaders are benched — machines today, bar tomorrow."',
+  '- replacement_lifts — exactly 2 exercises, each with:',
+  '    name:  specific movement (e.g. "Leg Press" / "Cat-Cow Spinal Mobilization")',
+  '    reps:  prescription string (e.g. "3 x 10 @ ≤70% 1RM" / "3 x 10 slow tempo")',
+  '    notes: 1-sentence cue or focus',
+  '',
+  '# CONSTRAINTS',
   '- Direct voice. No "consider", "perhaps", "may want to". Imperatives only.',
   '- The banner is read aloud by the athlete in their head — keep it tight, no preamble.',
   '',
@@ -166,13 +201,22 @@ async function resolveUuid(uid: string, supabaseUrl: string, supabaseKey: string
   }
 }
 
-// ─── Readiness fetch (Phase C schema) ─────────────────────────────────
+// ─── Readiness fetch (Phase C schema + V3 wearable telemetry) ─────────
+interface ReadinessRow {
+  sleep_quality: number | null;
+  soreness_level: number | null;
+  hrv_ms: number | null;
+  resting_hr: number | null;
+  sleep_minutes: number | null;
+  source: string | null;
+}
+
 async function fetchLatestReadiness(
   uuid: string,
   supabaseUrl: string,
   supabaseKey: string,
-): Promise<{ sleep_quality: number | null; soreness_level: number | null } | null> {
-  const qs = `user_id=eq.${encodeURIComponent(uuid)}&select=sleep_quality,soreness_level,timestamp&order=timestamp.desc&limit=1`;
+): Promise<ReadinessRow | null> {
+  const qs = `user_id=eq.${encodeURIComponent(uuid)}&select=sleep_quality,soreness_level,hrv_ms,resting_hr,sleep_minutes,source,timestamp&order=timestamp.desc&limit=1`;
   const url = `${supabaseUrl}/rest/v1/bbf_readiness?${qs}`;
   try {
     const res = await fetch(url, {
@@ -187,9 +231,14 @@ async function fetchLatestReadiness(
     }
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) {
+      const r = data[0];
       return {
-        sleep_quality:   typeof data[0].sleep_quality === 'number' ? data[0].sleep_quality : null,
-        soreness_level:  typeof data[0].soreness_level === 'number' ? data[0].soreness_level : null,
+        sleep_quality:  typeof r.sleep_quality  === 'number' ? r.sleep_quality  : null,
+        soreness_level: typeof r.soreness_level === 'number' ? r.soreness_level : null,
+        hrv_ms:         typeof r.hrv_ms         === 'number' ? r.hrv_ms         : null,
+        resting_hr:     typeof r.resting_hr     === 'number' ? r.resting_hr     : null,
+        sleep_minutes:  typeof r.sleep_minutes  === 'number' ? r.sleep_minutes  : null,
+        source:         typeof r.source         === 'string' ? r.source         : null,
       };
     }
     return null;
@@ -197,6 +246,40 @@ async function fetchLatestReadiness(
     console.error(`[bbf-agentic-peaking] readiness fetch error: ${(e as Error).message}`);
     return null;
   }
+}
+
+// ─── V3 · CNS Auto-Regulator gate (deterministic) ─────────────────────
+// Wearable trip → 'machine_swap' (train, but no spinal loaders + 1RM cap).
+// Subjective trip with no wearable trip → 'recovery' (legacy behavior).
+function computeCnsGate(readiness: ReadinessRow | null, sleep: number, stress: number): {
+  compromised: boolean;
+  mode: 'recovery' | 'machine_swap' | null;
+  one_rm_cap_pct: number | null;
+  triggers: string[];
+} {
+  const triggers: string[] = [];
+  const hrv = readiness?.hrv_ms ?? null;
+  const sleepMin = readiness?.sleep_minutes ?? null;
+  if (hrv !== null && hrv < HRV_FLOOR_MS) triggers.push(`hrv_ms ${hrv} < ${HRV_FLOOR_MS}`);
+  if (sleepMin !== null && sleepMin < SLEEP_MINUTES_FLOOR) triggers.push(`sleep_minutes ${sleepMin} < ${SLEEP_MINUTES_FLOOR}`);
+  const wearableTrips = triggers.length;
+
+  const subjectiveTrip = (sleep < SLEEP_FLOOR) || (stress > SORENESS_CEILING);
+  if (sleep < SLEEP_FLOOR)        triggers.push(`sleep_quality ${sleep} < ${SLEEP_FLOOR}`);
+  if (stress > SORENESS_CEILING)  triggers.push(`soreness_level ${stress} > ${SORENESS_CEILING}`);
+
+  if (wearableTrips > 0) {
+    return {
+      compromised: true,
+      mode: 'machine_swap',
+      one_rm_cap_pct: wearableTrips >= 2 ? ONE_RM_CAP_DOUBLE_TRIGGER : ONE_RM_CAP_SINGLE_TRIGGER,
+      triggers,
+    };
+  }
+  if (subjectiveTrip) {
+    return { compromised: true, mode: 'recovery', one_rm_cap_pct: null, triggers };
+  }
+  return { compromised: false, mode: null, one_rm_cap_pct: null, triggers: [] };
 }
 
 // ─── Anthropic call ────────────────────────────────────────────────────
@@ -458,14 +541,26 @@ serve(async (req: Request) => {
   const sleep  = (readiness && readiness.sleep_quality  != null) ? readiness.sleep_quality  : SLEEP_DEFAULT;
   const stress = (readiness && readiness.soreness_level != null) ? readiness.soreness_level : SORENESS_DEFAULT;
   const hasReadiness = !!readiness;
+  const readinessSnapshot = {
+    sleep,
+    stress,
+    hrv_ms:        readiness?.hrv_ms ?? null,
+    resting_hr:    readiness?.resting_hr ?? null,
+    sleep_minutes: readiness?.sleep_minutes ?? null,
+    source:        readiness?.source ?? null,
+    has_data:      hasReadiness,
+  };
 
-  // ─── 3. Trigger Condition ──────────────────────────────────────
-  const isCnsCompromised = (sleep < SLEEP_FLOOR) || (stress > SORENESS_CEILING);
+  // ─── 3. Trigger Condition (V3 CNS Auto-Regulator) ──────────────
+  // Wearable telemetry (Health Connect via bbf-health-sync) takes
+  // precedence when present: fried HRV / short sleep → machine_swap.
+  // Subjective-only trips keep the legacy recovery intercept.
+  const gate = computeCnsGate(readiness, sleep, stress);
 
-  if (!isCnsCompromised) {
+  if (!gate.compromised) {
     return jsonResponse({
       override_active:    false,
-      readiness_snapshot: { sleep, stress, has_data: hasReadiness },
+      readiness_snapshot: readinessSnapshot,
     });
   }
 
@@ -485,11 +580,17 @@ serve(async (req: Request) => {
 
   const userMessage =
     'Athlete state today:\n' +
+    '- override_mode: ' + gate.mode + '\n' +
+    '- cns_triggers: ' + gate.triggers.join(' · ') + '\n' +
     '- sleep_quality: ' + sleep + '/10\n' +
     '- soreness_level: ' + stress + '/10\n' +
+    '- hrv_ms: ' + (readiness?.hrv_ms ?? 'n/a') + '\n' +
+    '- resting_hr: ' + (readiness?.resting_hr ?? 'n/a') + ' bpm\n' +
+    '- sleep_minutes: ' + (readiness?.sleep_minutes ?? 'n/a') + '\n' +
+    (gate.one_rm_cap_pct != null ? '- one_rm_cap_pct: ' + gate.one_rm_cap_pct + '\n' : '') +
     '- scheduled_focus: ' + focus + '\n' +
     '- scheduled_lifts: ' + (lifts.length ? lifts.join(', ') : '(none provided)') + '\n\n' +
-    'Generate the warning banner + 2 CNS-friendly replacement lifts per the schema.';
+    'Generate the warning banner + 2 replacement lifts per the override_mode rules and the schema.';
 
   const t0 = Date.now();
   const result = await callClaude(userMessage, ANTHROPIC_API_KEY, locale);
@@ -518,14 +619,19 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'parse_failed', detail: (e as Error).message, raw_text: text }, 502);
   }
 
-  console.log(`[bbf-agentic-peaking] intercept · uid=${uidRaw} · sleep=${sleep} stress=${stress} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  console.log(`[bbf-agentic-peaking] intercept · uid=${uidRaw} · mode=${gate.mode} · triggers=[${gate.triggers.join(' | ')}] · sleep=${sleep} stress=${stress} hrv=${readiness?.hrv_ms ?? 'n/a'} sleep_min=${readiness?.sleep_minutes ?? 'n/a'} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
 
   return jsonResponse({
     override_active:    true,
     locale,
     warning_banner:     parsed.warning_banner,
     replacement_lifts:  parsed.replacement_lifts,
-    readiness_snapshot: { sleep, stress, has_data: hasReadiness },
+    load_directive: {
+      mode:           gate.mode,
+      one_rm_cap_pct: gate.one_rm_cap_pct,
+      triggers:       gate.triggers,
+    },
+    readiness_snapshot: readinessSnapshot,
     model:              respBody.model,
     usage:              respBody.usage,
     duration_ms:        dur,
