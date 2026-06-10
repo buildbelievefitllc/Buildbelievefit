@@ -498,9 +498,81 @@
 .pde-video.is-playing { display: block; padding: 0; min-height: 0; aspect-ratio: 16 / 9; border-color: rgba(245, 200, 0, .4); }
 .pde-video-frame { width: 100%; height: 100%; border: 0; display: block; }
 
+/* ── Module 2 · Joint Symptom Diagnostic flow (.pdx-*) ───────────────────────── */
+.pdx-flow { display: flex; flex-direction: column; gap: .8rem; margin-top: 1.1rem; }
+.pdx-step {
+  border: 1px solid #1d1828; border-left: 3px solid var(--purl);
+  border-radius: 14px; padding: .85rem .95rem; background: rgba(106, 13, 173, .06);
+}
+.pdx-step.is-done { border-left-color: var(--yel); background: rgba(245, 200, 0, .04); }
+.pdx-step-head { display: flex; align-items: center; gap: .65rem; margin-bottom: .7rem; }
+.pdx-step-n {
+  flex: 0 0 auto; width: 28px; height: 28px; border-radius: 9px; display: flex;
+  align-items: center; justify-content: center; font-family: var(--display, var(--hb));
+  font-size: 1rem; color: #fff; background: var(--purl); border: 1px solid rgba(245, 200, 0, .35);
+}
+.pdx-step.is-done .pdx-step-n { background: linear-gradient(135deg, var(--yel), var(--gold-soft)); color: #090909; }
+.pdx-step-id { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.pdx-step-kicker { font-family: var(--hb); font-size: .64rem; letter-spacing: 1.8px; text-transform: uppercase; color: var(--gold-soft, #f5c800); }
+.pdx-step-hint { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: var(--mut); }
+
+.pdx-opts { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pdx-opts.is-stack { flex-direction: column; }
+.pdx-opt {
+  cursor: pointer; text-align: left; font-family: var(--bd); font-size: .9rem; font-weight: 700;
+  color: var(--wht); background: #070509; border: 1px solid #221c30; border-radius: 11px;
+  padding: .6rem .85rem; line-height: 1.4; transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.pdx-opts.is-stack .pdx-opt { width: 100%; box-sizing: border-box; }
+.pdx-opt:hover { border-color: rgba(245, 200, 0, .45); }
+.pdx-opt:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.pdx-opt.is-on {
+  color: #090909; background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border-color: var(--yel); box-shadow: 0 8px 22px -10px rgba(245, 200, 0, .6);
+}
+
+/* ── Diagnosis + corrective protocol ── */
+.pdx-result { margin-top: 1.2rem; border-top: 1px solid #1d1828; padding-top: 1.2rem; animation: pdx-rise .22s ease; }
+@keyframes pdx-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.pdx-dx {
+  border: 1px solid rgba(106, 13, 173, .5); border-radius: 14px;
+  background: linear-gradient(180deg, rgba(106, 13, 173, .18), rgba(106, 13, 173, .06)); padding: 1rem 1.1rem;
+}
+.pdx-dx-head { font-family: var(--hb); font-size: .68rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft, #f5c800); margin-bottom: .5rem; }
+.pdx-dx-body { margin: 0; font-family: var(--bd); font-size: .92rem; line-height: 1.6; color: #e8def7; }
+
+.pdx-rx-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; margin: 1.2rem 0 .7rem; }
+.pdx-rx-kicker { font-family: var(--hb); font-size: .64rem; letter-spacing: 2px; text-transform: uppercase; color: var(--purl); }
+.pdx-rx-name { font-family: var(--display, var(--hb)); font-style: italic; font-size: 1.25rem; letter-spacing: .5px; color: var(--wht); }
+
+.pdx-drills { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .7rem; }
+.pdx-drill { border: 1px solid #1d1828; border-radius: 14px; background: linear-gradient(180deg, #0d0a14, #08060c); padding: .9rem 1rem; }
+.pdx-drill-top { display: flex; align-items: flex-start; gap: .7rem; }
+.pdx-drill-step {
+  flex: 0 0 auto; width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--display, var(--hb)); font-size: 1.05rem; color: #04130a; background: linear-gradient(135deg, var(--grn), #16a34a);
+}
+.pdx-drill-id { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .12rem; }
+.pdx-drill-type { font-family: var(--hb); font-size: .58rem; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold-deep, #d4af37); }
+.pdx-drill-name { font-family: var(--bd); font-size: 1.02rem; font-weight: 800; color: var(--wht); line-height: 1.2; }
+.pdx-drill-vol { flex: 0 0 auto; font-family: var(--mono, ui-monospace), monospace; font-size: .72rem; font-weight: 700; color: var(--gold-soft, #f5c800); text-align: right; max-width: 38%; }
+.pdx-drill-desc { margin: .65rem 0 0; font-family: var(--bd); font-size: .86rem; line-height: 1.55; color: var(--mut); }
+.pdx-cues { list-style: none; margin: .65rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.pdx-cue {
+  font-family: var(--bd); font-size: .76rem; font-weight: 700; color: #cdbef0;
+  background: rgba(106, 13, 173, .22); border: 1px solid var(--purl); border-radius: 999px; padding: .22rem .6rem;
+}
+
+.pdx-reset {
+  margin-top: 1.1rem; cursor: pointer; font-family: var(--hb); font-size: .72rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-soft, #f5c800); background: none; border: 1px solid rgba(245, 200, 0, .4); border-radius: 10px; padding: .55rem 1rem;
+}
+.pdx-reset:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 720px) {
   .pde-grid3 { grid-template-columns: 1fr; }
   .pde-ex { grid-template-columns: 1fr; }
   .pde-transport { grid-template-columns: 1fr; }
+  .pdx-drill-vol { max-width: none; text-align: left; }
 }

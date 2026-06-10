@@ -23,10 +23,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
-import { getPrehabCatalog, compileReport, REGION_ICONS, EX_VIDEO } from './prehabProtocol.js';
+import { getPrehabCatalog, REGION_ICONS, EX_VIDEO } from './prehabProtocol.js';
 import { resolveVideoId, thumbURL } from './exerciseVideos.js';
 import { pickLang } from '../../lib/pickLang.js';
 import { requestPrehabMatrix } from '../../lib/prehabApi.js';
+import PREHAB_MATRIX from '../../data/prehabDiagnosticMatrix.json';
 import './prehab.css';
 
 const PRESETS = [30, 45, 60];
@@ -293,65 +294,146 @@ function RespiratoryCoach() {
   );
 }
 
-// ── Module 2 · Dynamic Joint Symptom Mobility Planner + Diagnostic Report ─────
+// ── Module 2 · Dynamic Joint Symptom Diagnostic — the Autonomous Physical Therapist ──
+// A live 3-step diagnostic flow over prehabDiagnosticMatrix.json (Fable 5's 25-node
+// clinical database): joint complex → pain profile → trigger mechanic → the matched
+// node's diagnosis_hypothesis + its localized 3-drill corrective protocol. No static
+// accordion — every option is derived from the matrix, narrowing to one diagnosis.
+const uniq = (arr) => [...new Set(arr)];
+
+// UI-chrome localization (the matrix DRILLS carry their own en/es/pt; the clinical
+// diagnosis_hypothesis is English in the data and rendered verbatim).
+const DX_STR = {
+  en: { kicker: 'Autonomous Physical Therapist', title: 'Joint Symptom Diagnostic', desc: 'Three inputs compile a clinical hypothesis and your corrective protocol. Isolate the joint, the pain signature, then the mechanic that provokes it.', step: 'Step', s1: 'Joint Complex', s2: 'Pain Profile', s3: 'Trigger Mechanic', h1: 'Where is the dysfunction?', h2: 'What does it feel like?', h3: 'What provokes it?', dx: 'Diagnosis Hypothesis', rx: 'Corrective Protocol', reset: '↻ New Diagnosis' },
+  es: { kicker: 'Fisioterapeuta Autónomo', title: 'Diagnóstico por Síntoma Articular', desc: 'Tres entradas compilan una hipótesis clínica y tu protocolo correctivo. Aísla la articulación, el tipo de dolor y la mecánica que lo provoca.', step: 'Paso', s1: 'Complejo Articular', s2: 'Perfil del Dolor', s3: 'Mecánica Desencadenante', h1: '¿Dónde está la disfunción?', h2: '¿Qué sensación produce?', h3: '¿Qué lo provoca?', dx: 'Hipótesis Diagnóstica', rx: 'Protocolo Correctivo', reset: '↻ Nuevo Diagnóstico' },
+  pt: { kicker: 'Fisioterapeuta Autônomo', title: 'Diagnóstico por Sintoma Articular', desc: 'Três entradas compilam uma hipótese clínica e o seu protocolo corretivo. Isole a articulação, o tipo de dor e a mecânica que o provoca.', step: 'Passo', s1: 'Complexo Articular', s2: 'Perfil da Dor', s3: 'Mecânica Desencadeante', h1: 'Onde está a disfunção?', h2: 'O que você sente?', h3: 'O que provoca?', dx: 'Hipótese Diagnóstica', rx: 'Protocolo Corretivo', reset: '↻ Novo Diagnóstico' },
+};
+
 function MobilityPlanner() {
   const s = usePrehabStr().mob;
   const { lang } = useLang();
-  const { PLANNER } = getPrehabCatalog(lang);
-  const [selections, setSelections] = useState(
-    () => Object.fromEntries(PLANNER.map((q) => [q.id, q.default])),
-  );
-  const [compiled, setCompiled] = useState(false);
+  const d = DX_STR[lang] || DX_STR.en;
 
-  // Report resolves off the language-invariant ids/values, then renders localized.
-  const report = useMemo(() => compileReport(selections, lang), [selections, lang]);
-  const setSel = (id, value) => { setSelections((p) => ({ ...p, [id]: value })); setCompiled(false); };
+  const [joint, setJoint] = useState(null);
+  const [pain, setPain] = useState(null);
+  const [trigger, setTrigger] = useState(null);
+
+  // Options derived live from the matrix, narrowing at each step.
+  const joints = useMemo(() => uniq(PREHAB_MATRIX.map((n) => n.joint_complex)), []);
+  const pains = useMemo(
+    () => (joint ? uniq(PREHAB_MATRIX.filter((n) => n.joint_complex === joint).map((n) => n.diagnostic_inputs.pain_profile)) : []),
+    [joint],
+  );
+  const triggers = useMemo(
+    () => (joint && pain
+      ? uniq(PREHAB_MATRIX
+        .filter((n) => n.joint_complex === joint && n.diagnostic_inputs.pain_profile === pain)
+        .map((n) => n.diagnostic_inputs.trigger_mechanic))
+      : []),
+    [joint, pain],
+  );
+  const node = useMemo(
+    () => (joint && pain && trigger
+      ? PREHAB_MATRIX.find((n) => n.joint_complex === joint
+        && n.diagnostic_inputs.pain_profile === pain
+        && n.diagnostic_inputs.trigger_mechanic === trigger)
+      : null),
+    [joint, pain, trigger],
+  );
+
+  const pickJoint = (j) => { setJoint(j); setPain(null); setTrigger(null); };
+  const pickPain = (p) => { setPain(p); setTrigger(null); };
+  const reset = () => { setJoint(null); setPain(null); setTrigger(null); };
 
   return (
-    <section className="pde-card" aria-label={s.ariaPlanner}>
-      <div className="pde-kicker">{s.kicker}</div>
-      <h3 className="pde-title"><span className="pde-spark">〽</span> {s.title}</h3>
-      <p className="pde-desc">{s.desc}</p>
+    <section className="pde-card" aria-label={s.ariaPlanner} data-testid="prehab-diagnostic">
+      <div className="pde-kicker">{d.kicker}</div>
+      <h3 className="pde-title"><span className="pde-spark">⚕</span> {d.title}</h3>
+      <p className="pde-desc">{d.desc}</p>
 
-      <div className="pde-grid3">
-        {PLANNER.map((q) => (
-          <label key={q.id} className="pde-field">
-            <span className="pde-field-lbl">{q.label}</span>
-            <select
-              className="pde-select"
-              value={selections[q.id]}
-              onChange={(e) => setSel(q.id, e.target.value)}
-            >
-              {q.options.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </label>
-        ))}
+      <div className="pdx-flow">
+        <DiagStep n={1} stepWord={d.step} label={d.s1} hint={d.h1} options={joints} selected={joint} onPick={pickJoint} />
+        {joint ? <DiagStep n={2} stepWord={d.step} label={d.s2} hint={d.h2} options={pains} selected={pain} onPick={pickPain} /> : null}
+        {joint && pain ? <DiagStep n={3} stepWord={d.step} label={d.s3} hint={d.h3} options={triggers} selected={trigger} onPick={setTrigger} stack /> : null}
       </div>
 
-      <button type="button" className="pde-run" onClick={() => setCompiled(true)}>
-        {s.run}
-      </button>
-
-      {compiled ? (
-        <div className="pde-report" role="status">
-          <div className="pde-report-head">{s.reportHead}</div>
-          <pre className="pde-report-body">
-            <span className="h">{s.compiled}</span>
-            {report.map((r, i) => (
-              <span key={i}>
-                {'\n\n'}
-                <span className={r.status === 'ok' ? 'ok' : 'warn'}>{r.status === 'ok' ? '✅' : '⚠'} {r.title}:</span>
-                {' '}{r.body}
-              </span>
-            ))}
-            {'\n\n'}
-            <span className="act">{s.actionable}</span>
-          </pre>
-        </div>
-      ) : null}
+      {node ? <DiagnosisResult node={node} lang={lang} d={d} onReset={reset} /> : null}
     </section>
+  );
+}
+
+// One diagnostic step — numbered, with its matrix-derived options as selectable chips.
+function DiagStep({ n, stepWord, label, hint, options, selected, onPick, stack }) {
+  const done = selected != null;
+  return (
+    <div className={`pdx-step${done ? ' is-done' : ''}`}>
+      <div className="pdx-step-head">
+        <span className="pdx-step-n" aria-hidden="true">{done ? '✓' : n}</span>
+        <div className="pdx-step-id">
+          <span className="pdx-step-kicker">{stepWord} {n} · {label}</span>
+          <span className="pdx-step-hint">{hint}</span>
+        </div>
+      </div>
+      <div className={`pdx-opts${stack ? ' is-stack' : ''}`} role="radiogroup" aria-label={label}>
+        {options.map((o) => (
+          <button
+            key={o}
+            type="button"
+            role="radio"
+            aria-checked={o === selected}
+            className={`pdx-opt${o === selected ? ' is-on' : ''}`}
+            onClick={() => onPick(o)}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Matched node → the clinical hypothesis + the localized 3-drill corrective protocol.
+function DiagnosisResult({ node, lang, d, onReset }) {
+  const rx = node.prescription;
+  return (
+    <div className="pdx-result" role="status" data-testid="prehab-diagnosis">
+      <div className="pdx-dx">
+        <div className="pdx-dx-head">⚕ {d.dx}</div>
+        <p className="pdx-dx-body">{node.diagnosis_hypothesis}</p>
+      </div>
+
+      <div className="pdx-rx-head">
+        <span className="pdx-rx-kicker">{d.rx}</span>
+        <span className="pdx-rx-name">{rx.protocol_name}</span>
+      </div>
+
+      <ol className="pdx-drills">
+        {rx.drills.map((drill) => {
+          const L = (drill.localization && (drill.localization[lang] || drill.localization.en)) || {};
+          const cues = Array.isArray(L.cues) ? L.cues : [];
+          return (
+            <li key={drill.step} className="pdx-drill">
+              <div className="pdx-drill-top">
+                <span className="pdx-drill-step" aria-hidden="true">{drill.step}</span>
+                <div className="pdx-drill-id">
+                  <span className="pdx-drill-type">{drill.type}</span>
+                  <div className="pdx-drill-name">{L.name}</div>
+                </div>
+                <span className="pdx-drill-vol">{drill.volume}</span>
+              </div>
+              {L.description ? <p className="pdx-drill-desc">{L.description}</p> : null}
+              {cues.length ? (
+                <ul className="pdx-cues">
+                  {cues.map((c, i) => <li key={i} className="pdx-cue">{c}</li>)}
+                </ul>
+              ) : null}
+            </li>
+          );
+        })}
+      </ol>
+
+      <button type="button" className="pdx-reset" onClick={onReset}>{d.reset}</button>
+    </div>
   );
 }
 
