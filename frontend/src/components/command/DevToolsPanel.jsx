@@ -30,6 +30,7 @@ export default function DevToolsPanel() {
   const [open, setOpen] = useState(false);
   const [uid, setUid] = useState('marcus_bbf');
   const [busy, setBusy] = useState(false);
+  const [reloading, setReloading] = useState(false);
   const [result, setResult] = useState(null);
 
   if (!isAdmin) return null; // hard gate — never renders for a non-admin
@@ -37,12 +38,25 @@ export default function DevToolsPanel() {
   const preview = buildCnsBreachReading();
 
   async function fireBreach() {
-    if (busy) return;
+    if (busy || reloading) return;
     setBusy(true);
     setResult(null);
-    const res = await simulateCnsBreach(uid);
-    setResult(res);
+    // Capture the exact payload sent so the panel can immediately reflect the
+    // compromised state from the server-confirmed write (instant visual update).
+    const reading = buildCnsBreachReading();
+    const res = await simulateCnsBreach(uid, { reading });
     setBusy(false);
+    if (res.ok) {
+      setResult({ ...res, reading });
+      // STATE INVALIDATION: this app has no global query cache (no React Query/SWR)
+      // wired to the data surfaces — they each refetch on mount. So force the
+      // sanctioned full re-pull: every surface (Risk Telemetry, dossiers, SportsPortal)
+      // re-fetches from the backend on reload. Brief delay so the ✓ result is seen.
+      setReloading(true);
+      window.setTimeout(() => window.location.reload(), 1800);
+    } else {
+      setResult(res);
+    }
   }
 
   return (
@@ -74,9 +88,9 @@ export default function DevToolsPanel() {
 
             <button
               type="button"
-              style={{ ...s.fire, ...(busy ? s.fireBusy : null) }}
+              style={{ ...s.fire, ...(busy || reloading ? s.fireBusy : null) }}
               onClick={fireBreach}
-              disabled={busy}
+              disabled={busy || reloading}
             >
               {busy ? 'Transmitting…' : '⚡ Simulate CNS Breach (Health Connect)'}
             </button>
@@ -84,7 +98,11 @@ export default function DevToolsPanel() {
             {result ? (
               result.ok ? (
                 <div style={s.ok} role="status">
-                  ✓ Ingested · reading <code style={s.code}>{shortId(result.reading_id)}</code> · ACWR <b>{result.acwr?.flag || '—'}</b>
+                  <span>✓ Ingested for <b>{result.uid || uid}</b> · reading <code style={s.code}>{shortId(result.reading_id)}</code></span>
+                  <span style={s.okLine}>
+                    HRV <b style={s.bad}>{result.reading?.hrv_ms}ms</b> · Sleep <b style={s.bad}>{result.reading?.sleep_minutes}m</b> · Recovery {result.reading?.readiness_score} · ACWR <b>{result.acwr?.flag || '—'}</b>
+                  </span>
+                  {reloading ? <span style={s.reload}>↻ Refreshing console to pull fresh telemetry…</span> : null}
                 </div>
               ) : (
                 <div style={s.err} role="alert">✕ {errText(result.error)}</div>
@@ -139,7 +157,9 @@ const s = {
     padding: '.7rem .6rem', lineHeight: 1.2,
   },
   fireBusy: { opacity: 0.6, cursor: 'progress' },
-  ok: { fontFamily: 'var(--bd)', fontSize: '.82rem', fontWeight: 600, color: 'var(--grn)', border: '1px solid rgba(34,197,94,.4)', background: 'rgba(34,197,94,.08)', borderRadius: 8, padding: '.5rem .6rem' },
+  ok: { display: 'flex', flexDirection: 'column', gap: '.25rem', fontFamily: 'var(--bd)', fontSize: '.8rem', fontWeight: 600, color: 'var(--grn)', border: '1px solid rgba(34,197,94,.4)', background: 'rgba(34,197,94,.08)', borderRadius: 8, padding: '.5rem .6rem' },
+  okLine: { color: 'var(--wht)', fontWeight: 700 },
+  reload: { fontFamily: 'var(--bd)', fontSize: '.74rem', fontWeight: 700, fontStyle: 'italic', color: 'var(--gold-soft, #f5c800)' },
   err: { fontFamily: 'var(--bd)', fontSize: '.82rem', fontWeight: 600, color: 'var(--red, #ef4444)', border: '1px solid var(--red, #ef4444)', borderRadius: 8, padding: '.5rem .6rem' },
   code: { fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '.78rem', color: 'var(--gold-soft, #f5c800)' },
   secNote: { fontFamily: 'var(--bd)', fontSize: '.68rem', fontWeight: 600, fontStyle: 'italic', color: 'var(--mut)', lineHeight: 1.4 },
