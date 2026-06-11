@@ -1,0 +1,22 @@
+// Merge into android/app/build.gradle (the app module Gradle script).
+// ─────────────────────────────────────────────────────────────────────────────
+
+android {
+    defaultConfig {
+        // Health Connect client requires API 26+. (Devices on API 26–27 also need the
+        // standalone Health Connect APK; API 28+ ship it / support it natively.)
+        // Capacitor's generated default is lower — raise it.
+        minSdkVersion 26
+    }
+}
+
+dependencies {
+    // Health Connect Jetpack client (real androidx.health.connect API used by the Kotlin).
+    implementation "androidx.health.connect:connect-client:1.1.0-rc02"
+
+    // Coroutines — the plugin bridges Capacitor's callback model to HC's suspend API.
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+
+    // AndroidX Activity (ActivityResult contract used for the HC permission sheet).
+    implementation "androidx.activity:activity-ktx:1.8.2"
+}
