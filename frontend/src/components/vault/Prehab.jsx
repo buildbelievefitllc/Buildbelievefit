@@ -301,6 +301,17 @@ function RespiratoryCoach() {
 // accordion — every option is derived from the matrix, narrowing to one diagnosis.
 const uniq = (arr) => [...new Set(arr)];
 
+// Extract the 11-char YouTube id from a standard watch / youtu.be / embed URL.
+function youtubeId(url) {
+  const m = String(url || '').match(/(?:v=|\/embed\/|youtu\.be\/|\/v\/|\/shorts\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+// Privacy-enhanced (no-cookie) embed src for a watch url, or null when there's no id.
+function ytEmbed(url) {
+  const id = youtubeId(url);
+  return id ? `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1` : null;
+}
+
 // UI-chrome localization (the matrix DRILLS carry their own en/es/pt; the clinical
 // diagnosis_hypothesis is English in the data and rendered verbatim).
 const DX_STR = {
@@ -411,6 +422,7 @@ function DiagnosisResult({ node, lang, d, onReset }) {
         {rx.drills.map((drill) => {
           const L = (drill.localization && (drill.localization[lang] || drill.localization.en)) || {};
           const cues = Array.isArray(L.cues) ? L.cues : [];
+          const videoSrc = ytEmbed(drill.youtube_url);
           return (
             <li key={drill.step} className="pdx-drill">
               <div className="pdx-drill-top">
@@ -422,6 +434,19 @@ function DiagnosisResult({ node, lang, d, onReset }) {
                 <span className="pdx-drill-vol">{drill.volume}</span>
               </div>
               {L.description ? <p className="pdx-drill-desc">{L.description}</p> : null}
+              {videoSrc ? (
+                <div className="pdx-video">
+                  <iframe
+                    className="pdx-video-frame"
+                    src={videoSrc}
+                    title={L.name || drill.type}
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
+                </div>
+              ) : null}
               {cues.length ? (
                 <ul className="pdx-cues">
                   {cues.map((c, i) => <li key={i} className="pdx-cue">{c}</li>)}
