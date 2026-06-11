@@ -35,13 +35,13 @@ jobs:
         ./gradlew bundleRelease
     - name: Sign Android App Bundle
       id: sign_app
-      uses: rchalns/android-sign-release-action@v1.3
+      uses: r0adkll/sign-android-release@v1
       with:
+        releaseDirectory: android/app/build/outputs/bundle/release
         signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         alias: ${{ secrets.ANDROID_KEY_ALIAS }}
         keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        appSigningFilePath: android/app/build/outputs/bundle/release/app-release-unsigned.aab
     - name: Upload to Google Play Internal Testing
       uses: r0adkll/upload-google-play@v1
       with:
