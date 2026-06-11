@@ -9,6 +9,7 @@
 <uses-permission android:name="android.permission.health.READ_HEART_RATE_VARIABILITY" />
 <uses-permission android:name="android.permission.health.READ_SLEEP" />
 <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />
+<uses-permission android:name="android.permission.health.READ_STEPS" />
 
 <!-- (2) Package visibility — sibling of <application> (Android 11+ requires this to
          see / talk to the Health Connect provider and its rationale intent). -->

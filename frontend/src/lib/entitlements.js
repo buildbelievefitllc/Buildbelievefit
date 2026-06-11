@@ -97,6 +97,8 @@ export const FEATURE_ACCESS = {
 export const TAB_FEATURE = {
   hub: null,
   settings: null,
+  checkin: 'readiness', // Sovereign Auto-Regulation check-in — Baseline band+
+
   program: 'grid',
   generator: 'grid',
   cardio: 'smart_cardio',

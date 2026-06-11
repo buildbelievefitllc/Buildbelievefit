@@ -82,7 +82,7 @@ npx cap open android     # build / run from Android Studio
 
 ```
 Health Connect ──(Kotlin: HealthConnectManager.readRecovery)──► JSON
-  { reading_date, hrv_ms, sleep_minutes, active_kcal, recorded_at, ... }
+  { reading_date, hrv_ms, sleep_minutes, active_kcal, daily_steps, recorded_at, ... }
         │  Capacitor bridge (window.Capacitor.Plugins.HealthConnectBridge)
         ▼
 React  healthConnectSync.js  ─ maps → `manual` canonical reading
@@ -94,6 +94,13 @@ supabase.functions.invoke('bbf-wearable-ingest',
 bbf_ingest_wearable_reading() → bbf_wearable_readings (+ ACWR)
         ▼
 window 'bbf:wearable-updated' → open athlete dossier refetches live
+
+  …and in parallel (Sovereign Auto-Regulation, Vault “Check-In” tab):
+SovereignClientHub ─ raw recovery → bbf_upsert_daily_biometrics (ledger + series)
+        ▼
+bbf-readiness-engine.ts (deterministic readiness + protocol)
+        ▼
+bbf_log_daily_protocol → bbf_daily_protocols
 ```
 
 ## 5 · Naming / contract notes (read before wiring a button)

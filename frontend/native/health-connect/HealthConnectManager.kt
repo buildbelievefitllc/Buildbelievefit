@@ -6,6 +6,7 @@ import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
 import androidx.health.connect.client.records.SleepSessionRecord
+import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import kotlinx.coroutines.Dispatchers
@@ -29,11 +30,13 @@ class HealthConnectManager(private val context: Context) {
     companion object {
         // READ scopes. HRV + SLEEP are the ordered scopes; ACTIVE_CALORIES_BURNED
         // supplies the daily load `strain` is derived from (bbf_wearable_readings.strain
-        // is NOT NULL — see _shared/wearable-core.mjs + the ACWR migration).
+        // is NOT NULL — see _shared/wearable-core.mjs + the ACWR migration); STEPS
+        // feeds bbf_daily_biometrics.daily_steps on the Sovereign biometric ledger.
         val PERMISSIONS: Set<String> = setOf(
             HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class),
             HealthPermission.getReadPermission(SleepSessionRecord::class),
             HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
+            HealthPermission.getReadPermission(StepsRecord::class),
         )
 
         private const val RECOVERY_WINDOW_HOURS = 48L // HRV + sleep look-back (the order)
@@ -93,6 +96,15 @@ class HealthConnectManager(private val context: Context) {
         ).records
         val activeKcal: Double = calRecords.sumOf { it.energy.inKilocalories }
 
+        // ── Steps — last 24h summed → daily_steps on the biometric ledger ──
+        val stepRecords = hc.readRecords(
+            ReadRecordsRequest(
+                StepsRecord::class,
+                timeRangeFilter = loadWindow,
+            ),
+        ).records
+        val dailySteps: Long? = if (stepRecords.isEmpty()) null else stepRecords.sumOf { it.count }
+
         // reading_date = local day of the HRV sample (fallback: sleep end, then now).
         val zone = ZoneId.systemDefault()
         val anchor = latestHrv?.time ?: latestSleep?.endTime ?: now
@@ -105,6 +117,7 @@ class HealthConnectManager(private val context: Context) {
             put("hrv_ms", hrvMs ?: JSONObject.NULL)
             put("sleep_minutes", sleepMinutes ?: JSONObject.NULL)
             put("active_kcal", activeKcal)
+            put("daily_steps", dailySteps ?: JSONObject.NULL)
             put("resting_hr", JSONObject.NULL) // out of scope — left null (allowed downstream)
             put(
                 "samples",
@@ -112,6 +125,7 @@ class HealthConnectManager(private val context: Context) {
                     put("hrv_count", hrvRecords.size)
                     put("sleep_sessions", sleepRecords.size)
                     put("active_calorie_records", calRecords.size)
+                    put("step_records", stepRecords.size)
                     put("hrv_recorded_at", latestHrv?.time?.toString() ?: JSONObject.NULL)
                     put("sleep_start", latestSleep?.startTime?.toString() ?: JSONObject.NULL)
                     put("sleep_end", latestSleep?.endTime?.toString() ?: JSONObject.NULL)

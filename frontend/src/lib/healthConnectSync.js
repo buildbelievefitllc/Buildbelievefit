@@ -58,7 +58,10 @@ export function mapRecoveryToManualPayload(recovery) {
 }
 
 // Read Health Connect and POST to the live ingest webhook. Returns the ingest
-// envelope { ok, reading_id, source, normalized, acwr } or throws a display Error.
+// envelope { ok, reading_id, source, normalized, acwr } — plus `recovery`, the RAW
+// native payload (hrv_ms / sleep_minutes / active_kcal / daily_steps), so the
+// Sovereign Client Hub can feed the readiness engine + biometric ledger from the
+// same single native read. Throws a display Error on any failure.
 export async function syncHealthConnect() {
   const token = getStoredVaultToken();
   if (!token) throw new Error('Sign in to sync your wearable.');
@@ -95,7 +98,9 @@ export async function syncHealthConnect() {
   } catch {
     /* no window (SSR) — non-fatal */
   }
-  return data;
+  // Attach the raw native payload so downstream consumers (Sovereign Client Hub →
+  // readiness engine + biometric ledger) reuse this read instead of re-querying HC.
+  return { ...data, recovery };
 }
 
 // Hook: drives a "Sync Health Connect" button. `available` reflects whether the

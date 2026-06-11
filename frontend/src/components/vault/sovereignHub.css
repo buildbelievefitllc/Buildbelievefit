@@ -1,0 +1,206 @@
+/* src/components/vault/sovereignHub.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Sovereign Client Hub — daily auto-regulation check-in. Scoped under `.sch` so
+   nothing leaks beyond the Vault tab. LOCKED brand tokens only: purple/gold via
+   the vault CSS variables, Bebas (--display) / Barlow (--bd/--hb); matte black is
+   an approved surface, never a CTA. Mode chips use semantic status color (like
+   the dossier risk verdicts), not brand identity. */
+
+.sch { display: grid; gap: 1rem; }
+
+/* ── Header ── */
+.sch-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.sch-kicker {
+  font-family: var(--hb); font-size: .72rem; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--mut);
+}
+.sch-title {
+  font-family: var(--display); font-size: 2rem; letter-spacing: 1px;
+  line-height: 1.05; color: var(--wht); margin: .2rem 0 0;
+}
+.sch-stamp {
+  font-family: var(--bd); font-size: .74rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--mut);
+  border: 1px solid var(--line); border-radius: 999px; padding: .32rem .8rem;
+}
+.sch-stamp.is-live { color: var(--yel); border-color: rgba(245, 200, 0, .5); }
+
+/* ── Card chassis ── */
+.sch-card {
+  background: linear-gradient(180deg, #121212, #0d0d0d);
+  border: 1px solid var(--line); border-radius: 18px; padding: 1.1rem 1.2rem;
+}
+.sch-label {
+  font-family: var(--hb); font-size: .7rem; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--mut); margin-bottom: .7rem;
+}
+.sch-body {
+  font-family: var(--bd); font-size: .95rem; font-weight: 600; line-height: 1.55;
+  color: rgba(255, 255, 255, .72); margin: 0; max-width: 60ch;
+}
+.sch-note {
+  font-family: var(--bd); font-size: .8rem; font-weight: 600;
+  color: var(--mut); margin-top: .6rem; letter-spacing: .4px;
+}
+.sch-error {
+  font-family: var(--bd); font-size: .86rem; font-weight: 700;
+  color: #ff6b6b; border: 1px solid rgba(255, 107, 107, .4); border-radius: 10px;
+  padding: .55rem .8rem; margin-top: .7rem; background: rgba(255, 107, 107, .07);
+}
+
+/* ── Taco Switch (master input governor) ── */
+.sch-switch { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.sch-seg {
+  cursor: pointer; padding: .7rem 1rem; border-radius: 12px;
+  border: 1px solid var(--line); background: transparent; color: var(--mut);
+  font-family: var(--bd); font-size: .84rem; font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase;
+  transition: color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.sch-seg:hover { color: var(--wht); border-color: rgba(245, 200, 0, .45); }
+.sch-seg:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.sch-seg.is-on {
+  color: #0c0a02; border-color: var(--yel);
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  box-shadow: 0 4px 16px -4px rgba(245, 200, 0, .5);
+}
+
+/* ── Manual baseline panel ── */
+.sch-manual { border-color: rgba(106, 13, 173, .55); }
+.sch-manual-title {
+  font-family: var(--display); font-size: 1.4rem; letter-spacing: 1px;
+  color: var(--wht); margin-bottom: .4rem;
+}
+
+/* ── Platform gate ── */
+.sch-platforms { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.sch-plat {
+  cursor: pointer; display: grid; gap: .3rem; text-align: left;
+  padding: .9rem 1rem; border-radius: 14px;
+  border: 1px solid var(--line); background: transparent;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.sch-plat:hover { border-color: rgba(245, 200, 0, .45); }
+.sch-plat:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.sch-plat.is-on {
+  border-color: rgba(245, 200, 0, .6);
+  background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 78%);
+  box-shadow: 0 14px 32px -18px rgba(106, 13, 173, .9);
+}
+.sch-plat-name {
+  font-family: var(--display); font-size: 1.12rem; letter-spacing: 1px; color: var(--wht);
+}
+.sch-plat-sub {
+  font-family: var(--bd); font-size: .72rem; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut);
+}
+.sch-plat-sub.is-live { color: var(--yel); }
+
+/* ── iOS — premium locked "Deployment Pending" ── */
+.sch-ios {
+  text-align: center; padding: 1.8rem 1.2rem;
+  border-color: rgba(245, 200, 0, .35);
+  background:
+    radial-gradient(circle at 50% -30%, rgba(245, 200, 0, .12), transparent 62%),
+    linear-gradient(180deg, #121212, #0d0d0d);
+}
+.sch-ios-glyph { font-size: 2rem; line-height: 1; color: var(--yel); }
+.sch-ios-title {
+  font-family: var(--display); font-size: 1.7rem; letter-spacing: 2px;
+  color: var(--yel); margin: .45rem 0 .35rem;
+}
+.sch-ios .sch-body { margin: 0 auto; }
+
+/* ── Android — Synchronize Vitals trigger ── */
+.sch-android { text-align: center; }
+.sch-sync {
+  cursor: pointer; width: 100%; max-width: 420px; padding: 1rem 1.4rem;
+  border-radius: 14px; border: 1px solid rgba(245, 200, 0, .55);
+  background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 72%);
+  color: var(--yel);
+  font-family: var(--display); font-size: 1.35rem; letter-spacing: 2.4px;
+  text-transform: uppercase;
+  box-shadow: 0 18px 40px -20px rgba(106, 13, 173, .9);
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.sch-sync:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
+.sch-sync:focus-visible { outline: 2px solid var(--yel); outline-offset: 3px; }
+.sch-sync:disabled { cursor: progress; }
+.sch-sync.is-working { animation: sch-pulse 1.1s ease-in-out infinite; }
+@keyframes sch-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+
+/* ── Verdict ── */
+.sch-results { display: grid; gap: 1rem; }
+.sch-score-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.sch-score {
+  font-family: var(--display); font-size: 4.4rem; line-height: .9;
+  letter-spacing: 1px; color: var(--yel);
+  text-shadow: 0 2px 22px rgba(245, 200, 0, .25);
+}
+.sch-mode {
+  font-family: var(--bd); font-size: .78rem; font-weight: 800; letter-spacing: 2px;
+  text-transform: uppercase; border-radius: 999px; padding: .42rem 1rem;
+  border: 1px solid var(--line); color: var(--mut);
+}
+.sch-mode--prime    { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: var(--yel); }
+.sch-mode--standard { color: var(--wht); border-color: rgba(106, 13, 173, .8); background: rgba(106, 13, 173, .25); }
+.sch-mode--strain   { color: #ffb14d; border-color: rgba(255, 177, 77, .55); background: rgba(255, 177, 77, .08); }
+.sch-mode--breach   { color: #ff6b6b; border-color: rgba(255, 107, 107, .55); background: rgba(255, 107, 107, .08); }
+.sch-mode--none     { color: var(--mut); }
+
+/* Vitals grid */
+.sch-vitals { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; }
+.sch-vital {
+  display: grid; gap: .25rem; text-align: center; padding: .8rem .4rem;
+  border: 1px solid var(--line); border-radius: 12px; background: #101010;
+}
+.sch-vital-v { font-family: var(--display); font-size: 1.5rem; letter-spacing: 1px; color: var(--wht); }
+.sch-vital-k {
+  font-family: var(--hb); font-size: .62rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--mut);
+}
+
+/* Directives */
+.sch-volume { display: flex; align-items: baseline; gap: .7rem; margin-bottom: .9rem; }
+.sch-volume-k {
+  font-family: var(--bd); font-size: .8rem; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut);
+}
+.sch-volume-v { font-family: var(--display); font-size: 2rem; letter-spacing: 1px; color: var(--yel); }
+
+.sch-macro-bar {
+  display: flex; height: 12px; border-radius: 999px; overflow: hidden;
+  border: 1px solid var(--line); background: #101010;
+}
+.sch-macro-seg { display: block; height: 100%; }
+.sch-macro-seg.is-carb    { background: linear-gradient(135deg, var(--yel), var(--gold-soft)); }
+.sch-macro-seg.is-fat     { background: linear-gradient(135deg, var(--purd), var(--purp)); }
+.sch-macro-seg.is-protein { background: rgba(255, 255, 255, .82); }
+.sch-macro-legend {
+  display: flex; gap: 1.1rem; flex-wrap: wrap; margin-top: .5rem;
+  font-family: var(--bd); font-size: .78rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--mut);
+}
+
+.sch-cardio { display: grid; gap: .25rem; margin-top: .9rem; }
+.sch-cardio-k {
+  font-family: var(--bd); font-size: .8rem; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut);
+}
+.sch-cardio-v { font-family: var(--bd); font-size: .98rem; font-weight: 700; color: var(--wht); line-height: 1.45; }
+
+.sch-log { margin: 1rem 0 0; padding: 0; list-style: none; display: grid; gap: .35rem; }
+.sch-log li {
+  font-family: var(--bd); font-size: .84rem; font-weight: 600;
+  color: rgba(255, 255, 255, .6); line-height: 1.45; padding-left: 1rem; position: relative;
+}
+.sch-log li::before { content: '▸'; position: absolute; left: 0; color: var(--yel); }
+
+@media (max-width: 640px) {
+  .sch-vitals { grid-template-columns: repeat(2, 1fr); }
+  .sch-platforms, .sch-switch { grid-template-columns: 1fr; }
+  .sch-score { font-size: 3.4rem; }
+}

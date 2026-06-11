@@ -37,6 +37,7 @@ import SmartCardio from '../components/vault/SmartCardio.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
 import ChampionMindset from '../components/vault/ChampionMindset.jsx';
+import SovereignClientHub from '../components/vault/SovereignClientHub.jsx';
 import TierGate from '../components/TierGate.jsx';
 import ComlinkFAB from '../components/vault/ComlinkFAB.jsx';
 import Concierge from '../components/vault/Concierge.jsx';
@@ -45,6 +46,9 @@ import '../components/vault/vault.css';
 
 const TABS = [
   { id: 'hub', labelKey: 'vault-tab-hub', icon: '▦' },
+  // Sovereign Auto-Regulation check-in (wearable sync → readiness protocol).
+  // Gated on the Baseline 'readiness' feature (see TAB_FEATURE).
+  { id: 'checkin', labelKey: 'vault-tab-checkin', icon: '◉', testid: 'vault-tab-checkin' },
   { id: 'program', labelKey: 'vault-tab-program', icon: '▤' },
   { id: 'generator', labelKey: 'vault-tab-generator', icon: '✦' },
   { id: 'cardio', labelKey: 'vault-tab-cardio', icon: '♥', testid: 'vault-tab-cardio' },
@@ -170,6 +174,7 @@ export default function ClientVault() {
                 error={profileError}
               />
             )}
+            {activeTab === 'checkin' && <SovereignClientHub />}
             {activeTab === 'program' && <Program plans={plans} profile={profile} />}
             {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
             {activeTab === 'cardio' && <SmartCardio />}
