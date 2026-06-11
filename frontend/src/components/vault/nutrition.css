@@ -673,3 +673,53 @@
   padding: .5rem 0 .2rem;
 }
 .nl-fast-offmsg b { color: var(--wht); }
+
+/* ── Readiness Fuel Profile (Performance ⇄ Recovery macro pivot) ───────────── */
+.nl-fp {
+  display: flex; gap: 1rem; align-items: stretch;
+  border: 1px solid var(--line, #1c1c1c);
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  margin: 0 0 14px;
+  background: linear-gradient(180deg, #121212, #0d0d0d);
+}
+.nl-fp.is-recovery { border-color: rgba(255, 107, 107, .55); }
+.nl-fp.is-adaptive { border-color: rgba(255, 177, 77, .5); }
+.nl-fp.is-performance { border-color: rgba(245, 200, 0, .45); }
+.nl-fp-art {
+  flex: 0 0 116px; align-self: center;
+  border-radius: 12px; overflow: hidden; border: 1px solid var(--line, #1c1c1c);
+}
+.nl-fp-art img { display: block; width: 116px; height: 87px; object-fit: cover; }
+.nl-fp-body { flex: 1 1 auto; min-width: 0; }
+.nl-fp-top { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+.nl-fp-kicker {
+  font-family: var(--hb); font-size: .66rem; font-weight: 700;
+  letter-spacing: 2.4px; text-transform: uppercase; color: var(--yel, #f5c800);
+}
+.nl-fp-score { font-family: var(--bd); font-size: .76rem; font-weight: 800; color: var(--wht, #fff); }
+.nl-fp-stamp { font-family: var(--bd); font-size: .7rem; font-weight: 600; color: var(--mut, #9aa); }
+.nl-fp-title {
+  font-family: var(--display); font-size: 1.45rem; letter-spacing: 1px;
+  color: var(--wht, #fff); margin-top: .25rem;
+}
+.nl-fp.is-recovery .nl-fp-title { color: #ff8585; }
+.nl-fp.is-performance .nl-fp-title { color: var(--yel, #f5c800); }
+.nl-fp.is-adaptive .nl-fp-title { color: #ffb14d; }
+.nl-fp-sub {
+  font-family: var(--bd); font-size: .86rem; font-weight: 600; line-height: 1.5;
+  color: rgba(255, 255, 255, .72); margin: .3rem 0 .6rem; max-width: 64ch;
+}
+.nl-fp-split-lbl {
+  display: block;
+  font-family: var(--hb); font-size: .62rem; font-weight: 700;
+  letter-spacing: 1.8px; text-transform: uppercase; color: var(--mut, #9aa);
+  margin-bottom: .35rem;
+}
+.nl-meal-thumb--art { background: #0d0d0d; }
+.nl-meal-thumb--art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 560px) {
+  .nl-fp { flex-direction: column; }
+  .nl-fp-art { flex-basis: auto; width: 100%; }
+  .nl-fp-art img { width: 100%; height: 120px; }
+}

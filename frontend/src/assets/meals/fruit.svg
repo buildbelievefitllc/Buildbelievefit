@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Fruit and nuts">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="18%" r="75%">
+      <stop offset="0%" stop-color="#6a0dad" stop-opacity=".34"/>
+      <stop offset="100%" stop-color="#6a0dad" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="plate" cx="50%" cy="46%" r="62%">
+      <stop offset="0%" stop-color="#1b1b1b"/>
+      <stop offset="100%" stop-color="#101010"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="300" fill="#0d0d0d"/>
+  <rect width="400" height="300" fill="url(#glow)"/>
+  <ellipse cx="200" cy="176" rx="146" ry="82" fill="url(#plate)" stroke="#f5c800" stroke-opacity=".55" stroke-width="2"/>
+  <circle cx="162" cy="166" r="34" fill="#b93a3a"/>
+  <path d="M162 132 q2-12 12-14" stroke="#2c7a3f" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <ellipse cx="186" cy="128" rx="10" ry="5" fill="#3fa45a" transform="rotate(-24 186 128)"/>
+  <path d="M236 150 q26-8 40 10 q12 18-6 30 q-22 12-40-4 q-14-16 6-36z" fill="#f5c800"/>
+  <path d="M244 160 q12 8 18 22" stroke="#b08e00" stroke-width="3" fill="none"/>
+  <ellipse cx="232" cy="206" rx="9" ry="6" fill="#9a6b3f"/><ellipse cx="254" cy="212" rx="9" ry="6" fill="#85572e"/><ellipse cx="276" cy="204" rx="9" ry="6" fill="#9a6b3f"/>
+  <circle cx="142" cy="212" r="7" fill="#5d1730"/><circle cx="160" cy="220" r="6" fill="#7a1f3d"/>
+</svg>

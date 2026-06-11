@@ -23,6 +23,8 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { useCardio, logCardio, CARDIO_ZONES } from '../../lib/cardioApi.js';
 import { generateCardio } from '../../lib/agenticCardioApi.js';
+import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
+import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
 import './cardio.css';
 
 // ── Trilingual UI chrome for Smart Cardio (Metabolic Pacer) ──────────────────
@@ -70,6 +72,21 @@ const CARDIO_STR = {
     phNotes: 'How it felt, splits, terrain…', logBtn: 'Log Session →', logging: 'Logging…',
     errDur: 'Enter a duration between 1 and 600 minutes.', logged: 'Session logged. Conditioning stays honest. 🔥',
     errLog: 'Could not log session. Please try again.',
+    // CNS telemetry — the daily auto-regulation payload driving the cardio lockout.
+    rdyKicker: 'CNS Telemetry · Daily Auto-Regulation',
+    rdyScore: 'Sovereign Readiness',
+    rdyHrv: 'HRV vs Baseline', rdySleep: 'Sleep vs 8h Target',
+    rdyBaseline: (b) => `baseline ${b} ms`, rdyMs: ' ms',
+    rdySleepVal: (h, m) => `${h}h ${String(m).padStart(2, '0')}m`,
+    rdyLocked: '🔒 Locked · CNS protection',
+    rdyBreach: (s) => `System breach — readiness ${s == null ? '—' : s}/100. High-intensity and threshold tracks are locked: today defaults to Zone 2 aerobic capacity or active recovery. Rebuild the engine before you redline it.`,
+    rdyStrain: (s) => `System strain — readiness ${s == null ? '—' : s}/100. Max-effort intervals are locked: cap today at tempo or below and bank recovery for tomorrow's output.`,
+    rdyRedirect: (z) => `Pacing target redirected to ${z} by the morning check-in.`,
+    modes: {
+      PRIME_EXECUTION: 'Prime Execution', STANDARD_OPERATIONS: 'Standard Operations',
+      SYSTEM_STRAIN: 'System Strain', SYSTEM_BREACH: 'System Breach',
+      INSUFFICIENT_TELEMETRY: 'Insufficient Telemetry',
+    },
   },
   es: {
     title: 'Cardio Inteligente', kicker: 'Marcapasos Metabólico',
@@ -110,6 +127,20 @@ const CARDIO_STR = {
     phNotes: 'Cómo se sintió, parciales, terreno…', logBtn: 'Registrar Sesión →', logging: 'Registrando…',
     errDur: 'Ingresa una duración entre 1 y 600 minutos.', logged: 'Sesión registrada. El acondicionamiento sigue honesto. 🔥',
     errLog: 'No se pudo registrar la sesión. Inténtalo de nuevo.',
+    rdyKicker: 'Telemetría del SNC · Autorregulación Diaria',
+    rdyScore: 'Preparación Soberana',
+    rdyHrv: 'HRV vs Línea Base', rdySleep: 'Sueño vs Objetivo de 8h',
+    rdyBaseline: (b) => `línea base ${b} ms`, rdyMs: ' ms',
+    rdySleepVal: (h, m) => `${h}h ${String(m).padStart(2, '0')}m`,
+    rdyLocked: '🔒 Bloqueado · Protección del SNC',
+    rdyBreach: (s) => `Brecha del sistema — preparación ${s == null ? '—' : s}/100. Las pistas de alta intensidad y umbral están bloqueadas: hoy se trabaja en Zona 2 aeróbica o recuperación activa. Reconstruye el motor antes de exigirlo al máximo.`,
+    rdyStrain: (s) => `Sistema en tensión — preparación ${s == null ? '—' : s}/100. Los intervalos de esfuerzo máximo están bloqueados: limita el día a tempo o menos y acumula recuperación para el rendimiento de mañana.`,
+    rdyRedirect: (z) => `Objetivo de ritmo redirigido a ${z} por el registro matutino.`,
+    modes: {
+      PRIME_EXECUTION: 'Ejecución Óptima', STANDARD_OPERATIONS: 'Operación Estándar',
+      SYSTEM_STRAIN: 'Sistema en Tensión', SYSTEM_BREACH: 'Brecha del Sistema',
+      INSUFFICIENT_TELEMETRY: 'Telemetría Insuficiente',
+    },
   },
   pt: {
     title: 'Cardio Inteligente', kicker: 'Marca-passo Metabólico',
@@ -150,6 +181,20 @@ const CARDIO_STR = {
     phNotes: 'Como se sentiu, parciais, terreno…', logBtn: 'Registrar Sessão →', logging: 'Registrando…',
     errDur: 'Informe uma duração entre 1 e 600 minutos.', logged: 'Sessão registrada. O condicionamento segue honesto. 🔥',
     errLog: 'Não foi possível registrar a sessão. Tente novamente.',
+    rdyKicker: 'Telemetria do SNC · Autorregulação Diária',
+    rdyScore: 'Prontidão Soberana',
+    rdyHrv: 'HRV vs Linha de Base', rdySleep: 'Sono vs Alvo de 8h',
+    rdyBaseline: (b) => `linha de base ${b} ms`, rdyMs: ' ms',
+    rdySleepVal: (h, m) => `${h}h ${String(m).padStart(2, '0')}m`,
+    rdyLocked: '🔒 Bloqueado · Proteção do SNC',
+    rdyBreach: (s) => `Violação do sistema — prontidão ${s == null ? '—' : s}/100. As faixas de alta intensidade e limiar estão bloqueadas: hoje o trabalho é Zona 2 aeróbica ou recuperação ativa. Reconstrua o motor antes de levá-lo ao limite.`,
+    rdyStrain: (s) => `Sistema em tensão — prontidão ${s == null ? '—' : s}/100. Os intervalos de esforço máximo estão bloqueados: limite o dia a tempo ou menos e acumule recuperação para o desempenho de amanhã.`,
+    rdyRedirect: (z) => `Alvo de ritmo redirecionado para ${z} pelo check-in matinal.`,
+    modes: {
+      PRIME_EXECUTION: 'Execução Máxima', STANDARD_OPERATIONS: 'Operação Padrão',
+      SYSTEM_STRAIN: 'Sistema em Tensão', SYSTEM_BREACH: 'Violação do Sistema',
+      INSUFFICIENT_TELEMETRY: 'Telemetria Insuficiente',
+    },
   },
 };
 
@@ -326,6 +371,23 @@ function CardioConfigurator() {
   const ZS = ZONE_SHORT[lang] || ZONE_SHORT.en;
   const uid = user?.username || user?.id || '';
 
+  // ── CNS-driven lockout — the daily auto-regulation payload (biometric ledger).
+  // BREACH locks HIIT + Tempo (Zone 2 / aerobic / recovery only); STRAIN locks
+  // HIIT. With no / stale telemetry every track stays open (never punish missing
+  // data). The lock is enforced on the DERIVED pacing, not by mutating state in
+  // an effect — a locked selection simply resolves to Zone 2 (no setState loops).
+  const { data: readiness } = useDailyReadiness();
+  const directive = deriveVolumeDirective({
+    score: readiness?.score ?? null,
+    mode: readiness?.mode ?? null,
+    isSuppressed: readiness?.isSuppressed ?? false,
+    hasData: readiness?.hasData ?? false,
+  });
+  const lockedPacing = new Set([
+    ...(directive.lockHiit ? ['hiit'] : []),
+    ...(directive.lockTempo ? ['tempo'] : []),
+  ]);
+
   // Athlete time budget — string so the editable readout (cardio-gen-minutes)
   // accepts free entry; the slider mirrors the same value.
   const [minutes, setMinutes] = useState('30');
@@ -340,9 +402,12 @@ function CardioConfigurator() {
   const [plan, setPlan] = useState(null);
   const [revealed, setRevealed] = useState(false);
 
+  // Effective pacing: a CNS-locked selection redirects to Zone 2 (pure derivation).
+  const effectivePacing = lockedPacing.has(pacing) ? 'zone2' : pacing;
+  const redirected = effectivePacing !== pacing;
   const duration = Math.round(Number(minutes) || 0);
-  const pacingMeta = PACING_OPTS[pacing];
-  const crp = computeCRP({ duration: duration || DURATION_MIN, pacing, apparatus, modality });
+  const pacingMeta = PACING_OPTS[effectivePacing];
+  const crp = computeCRP({ duration: duration || DURATION_MIN, pacing: effectivePacing, apparatus, modality });
 
   async function reconstruct(e) {
     e?.preventDefault?.();
@@ -371,6 +436,9 @@ function CardioConfigurator() {
         <h3 className="bbf-cardio__title" style={{ fontSize: '1.35rem' }}>{tr.cfgTitle}</h3>
         <p className="bbf-cfg__sub">{tr.cfgSub}</p>
       </div>
+
+      {/* ── CNS Telemetry dashboard — the morning check-in's verdict + gauges ── */}
+      <CnsTelemetry readiness={readiness} directive={directive} redirected={redirected} zoneLabel={ZS.zone2} />
 
       {/* ── Dynamic caloric hero — reacts to the time slider + apparatus ── */}
       <div className="bbf-burn" data-testid="cardio-burn-hero">
@@ -426,9 +494,24 @@ function CardioConfigurator() {
         <div className="bbf-cfg__selectors">
           <div className="bbf-cardio__field">
             <label htmlFor="cfg-pace">{tr.pacingTarget}</label>
-            <select id="cfg-pace" className="bbf-input" value={pacing} disabled={busy} onChange={(e) => setPacing(e.target.value)}>
-              {Object.keys(PACING_OPTS).map((id) => <option key={id} value={id}>{PL[id]}</option>)}
+            <select
+              id="cfg-pace"
+              className="bbf-input"
+              value={effectivePacing}
+              disabled={busy}
+              onChange={(e) => { if (!lockedPacing.has(e.target.value)) setPacing(e.target.value); }}
+            >
+              {Object.keys(PACING_OPTS).map((id) => (
+                <option key={id} value={id} disabled={lockedPacing.has(id)}>
+                  {lockedPacing.has(id) ? `🔒 ${PL[id]}` : PL[id]}
+                </option>
+              ))}
             </select>
+            {redirected ? (
+              <div className="bbf-rdy__redirect" role="status" data-testid="cardio-cns-redirect">
+                {tr.rdyRedirect(ZS.zone2)}
+              </div>
+            ) : null}
           </div>
           <div className="bbf-cardio__field">
             <label htmlFor="cfg-mod">{tr.kineticModality}</label>
@@ -439,7 +522,7 @@ function CardioConfigurator() {
         </div>
       </div>
 
-      <CRPFormulaCard crp={crp} duration={duration || DURATION_MIN} apparatusLabel={AL[apparatus].label} zoneLabel={ZS[pacing]} />
+      <CRPFormulaCard crp={crp} duration={duration || DURATION_MIN} apparatusLabel={AL[apparatus].label} zoneLabel={ZS[effectivePacing]} />
 
       {/* ── Select Active Kinetic Apparatus — selectable card grid ── */}
       <div className="bbf-app">
@@ -488,10 +571,10 @@ function CardioConfigurator() {
       {revealed ? (
         <div className="bbf-session" data-testid="cardio-session-panel">
           <div className="bbf-session__kicker">{tr.liveSync}</div>
-          <PacerTimer duration={duration || DURATION_MIN} crp={crp} pacing={pacingMeta} accent={pacingMeta.accent} zoneLabel={ZS[pacing]} />
-          {/* key={pacing} remounts the breath pacer with fresh state when the
-              pattern changes — avoids a synchronous setState-in-effect reset. */}
-          <RespiratorySync key={pacing} breath={pacingMeta.breath} accent={pacingMeta.accent} />
+          <PacerTimer duration={duration || DURATION_MIN} crp={crp} pacing={pacingMeta} accent={pacingMeta.accent} zoneLabel={ZS[effectivePacing]} />
+          {/* key={effectivePacing} remounts the breath pacer with fresh state when
+              the pattern changes — avoids a synchronous setState-in-effect reset. */}
+          <RespiratorySync key={effectivePacing} breath={pacingMeta.breath} accent={pacingMeta.accent} />
 
           {error ? <div className="bbf-cardio__error" role="alert" style={{ marginTop: '.9rem' }}>{error}</div> : null}
           {plan ? <LiveProtocol plan={plan} /> : null}
@@ -499,6 +582,86 @@ function CardioConfigurator() {
         </div>
       ) : null}
     </section>
+  );
+}
+
+// ── CNS Telemetry dashboard — readiness verdict + biometric target gauges ─────
+// Renders ONLY when the ledger holds a fresh verdict (hasData). Gauges are pure
+// derivations of the stored vitals: readiness 0–100, HRV as % of the athlete's
+// own rolling baseline (capped at 130 for display), sleep as % of the 8h target.
+// When the directive locks tracks, the authoritative clinical summary states
+// exactly why the prescription was altered.
+function CnsTelemetry({ readiness, directive, redirected, zoneLabel }) {
+  const { lang } = useLang();
+  const tr = CARDIO_STR[lang] || CARDIO_STR.en;
+  if (!readiness?.hasData) return null;
+
+  const score = readiness.score;
+  const hrv = readiness.vitals ? Number(readiness.vitals.hrv_ms) : NaN;
+  const sleep = readiness.vitals ? Number(readiness.vitals.sleep_minutes) : NaN;
+  const base = Number(readiness.baselineHrv);
+  const scorePct = Number.isFinite(Number(score)) ? Math.max(0, Math.min(100, Math.round(Number(score)))) : null;
+  const hrvPct = Number.isFinite(hrv) && Number.isFinite(base) && base > 0
+    ? Math.min(130, Math.round((hrv / base) * 100))
+    : null;
+  const sleepPct = Number.isFinite(sleep) ? Math.min(100, Math.round((sleep / 480) * 100)) : null;
+  const modeLabel = readiness.mode ? (tr.modes[readiness.mode] || readiness.mode) : null;
+  const state = directive.state;
+  const summary = directive.lockTempo ? tr.rdyBreach(scorePct) : directive.lockHiit ? tr.rdyStrain(scorePct) : null;
+
+  return (
+    <div className={`bbf-rdy is-${state}`} data-testid="cardio-cns-telemetry">
+      <div className="bbf-rdy__top">
+        <span className="bbf-rdy__kicker">{tr.rdyKicker}</span>
+        {modeLabel ? <span className={`bbf-rdy__mode is-${state}`}>{modeLabel}</span> : null}
+        {directive.lockHiit || directive.lockTempo ? <span className="bbf-rdy__lock">{tr.rdyLocked}</span> : null}
+      </div>
+
+      <div className="bbf-rdy__gauges">
+        <div className="bbf-rdy__gauge">
+          <div className="bbf-rdy__gauge-top">
+            <span className="bbf-rdy__gauge-lbl">{tr.rdyScore}</span>
+            <span className="bbf-rdy__gauge-val">{scorePct === null ? '—' : `${scorePct}/100`}</span>
+          </div>
+          <div className="bbf-rdy__track">
+            <div className="bbf-rdy__fill is-score" style={{ width: `${scorePct ?? 0}%` }} />
+          </div>
+        </div>
+        <div className="bbf-rdy__gauge">
+          <div className="bbf-rdy__gauge-top">
+            <span className="bbf-rdy__gauge-lbl">{tr.rdyHrv}</span>
+            <span className="bbf-rdy__gauge-val">
+              {hrvPct === null ? '—' : `${hrvPct}%`}
+              {Number.isFinite(base) && base > 0 ? <small> · {tr.rdyBaseline(Math.round(base))}</small> : null}
+            </span>
+          </div>
+          <div className="bbf-rdy__track">
+            <div className="bbf-rdy__fill is-hrv" style={{ width: `${Math.min(100, ((hrvPct ?? 0) / 130) * 100)}%` }} />
+            <span className="bbf-rdy__tick" style={{ left: `${(100 / 130) * 100}%` }} aria-hidden="true" />
+          </div>
+        </div>
+        <div className="bbf-rdy__gauge">
+          <div className="bbf-rdy__gauge-top">
+            <span className="bbf-rdy__gauge-lbl">{tr.rdySleep}</span>
+            <span className="bbf-rdy__gauge-val">
+              {Number.isFinite(sleep)
+                ? tr.rdySleepVal(Math.floor(sleep / 60), Math.round(sleep % 60))
+                : '—'}
+            </span>
+          </div>
+          <div className="bbf-rdy__track">
+            <div className="bbf-rdy__fill is-sleep" style={{ width: `${sleepPct ?? 0}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {summary ? (
+        <div className="bbf-rdy__summary" role="status" data-testid="cardio-cns-summary">
+          {summary}
+          {redirected ? <> {tr.rdyRedirect(zoneLabel)}</> : null}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -609,8 +772,8 @@ function LiveProtocol({ plan }) {
           data-base-tier={cns.base_tier} data-effective-tier={cns.effective_tier}>
           <div className="bbf-gps__cns-top">
             <span className="bbf-gps__cns-icon" aria-hidden="true">🛡</span>
-            <span className="bbf-gps__cns-title">CNS Protection Engaged</span>
-            {Number.isFinite(Number(cns.score)) ? <span className="bbf-gps__cns-score">fatigue {cns.score}/100</span> : null}
+            <span className="bbf-gps__cns-title">{tr.cnsTitle}</span>
+            {Number.isFinite(Number(cns.score)) ? <span className="bbf-gps__cns-score">{tr.cnsFatigue(cns.score)}</span> : null}
           </div>
           <div className="bbf-gps__cns-body">
             {tr.cnsBody(cns.base_tier, cns.effective_tier)}

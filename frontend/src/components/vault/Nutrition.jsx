@@ -31,6 +31,8 @@ import { hasAdminToken } from '../../lib/adminAuth.js';
 import AdminTokenGate from '../command/AdminTokenGate.jsx';
 import TierGate from '../TierGate.jsx';
 import { CUISINES, CUISINE_PLANS, dayTotals, todayIndex } from './cuisineMeals.js';
+import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
+import { resolveMealArt, MEAL_ART } from './mealArt.js';
 import './vault.css';
 import './nutrition.css';
 
@@ -73,6 +75,14 @@ const NUT_STR = {
     calPerDay: 'kcal / day', planDayAria: 'Plan day', dayOfWeekAria: 'Day of week',
     mealHint: 'Tap a meal to log it — your fuel wheel fills as you go.',
     liveLabel: 'Your Coach’s Plan', liveGoalFallback: 'Personalized fueling protocol',
+    // Readiness Fuel Profile — the engine's daily macro pivot (biometric ledger).
+    fpKicker: 'Readiness Fuel Profile',
+    fpPerf: 'Performance Macros', fpRec: 'Recovery Macros', fpAdapt: 'Adaptive Macros',
+    fpPerfSub: 'Cleared for output — high-carbohydrate fueling drives today’s training volume.',
+    fpRecSub: 'CNS breach — fuel pivots high-fat, high-protein and anti-inflammatory to rebuild the system. Carbohydrates are pulled back until readiness recovers.',
+    fpAdaptSub: 'System under strain — carbohydrates taper toward recovery fueling while protein holds the floor.',
+    fpScore: (s) => `Readiness ${s == null ? '—' : s}/100`,
+    fpSplit: 'Target split', fpStale: 'Synced',
   },
   es: {
     prepFallback: 'Preparación estándar de macros.',
@@ -103,6 +113,13 @@ const NUT_STR = {
     calPerDay: 'kcal / día', planDayAria: 'Día del plan', dayOfWeekAria: 'Día de la semana',
     mealHint: 'Toca una comida para registrarla — tu rueda de combustible se llena a medida que avanzas.',
     liveLabel: 'El Plan de Tu Coach', liveGoalFallback: 'Protocolo de combustible personalizado',
+    fpKicker: 'Perfil de Combustible por Preparación',
+    fpPerf: 'Macros de Rendimiento', fpRec: 'Macros de Recuperación', fpAdapt: 'Macros Adaptativos',
+    fpPerfSub: 'Autorizado para rendir — la carga alta de carbohidratos impulsa el volumen de entrenamiento de hoy.',
+    fpRecSub: 'Brecha del SNC — la nutrición pivota a alta grasa, alta proteína y antiinflamatoria para reconstruir el sistema. Los carbohidratos se reducen hasta que la preparación se recupere.',
+    fpAdaptSub: 'Sistema en tensión — los carbohidratos bajan hacia una nutrición de recuperación mientras la proteína sostiene la base.',
+    fpScore: (s) => `Preparación ${s == null ? '—' : s}/100`,
+    fpSplit: 'Distribución objetivo', fpStale: 'Sincronizado',
   },
   pt: {
     prepFallback: 'Preparação padrão de macros.',
@@ -133,6 +150,13 @@ const NUT_STR = {
     calPerDay: 'kcal / dia', planDayAria: 'Dia do plano', dayOfWeekAria: 'Dia da semana',
     mealHint: 'Toque em uma refeição para registrá-la — sua roda de combustível enche conforme você avança.',
     liveLabel: 'O Plano do Seu Coach', liveGoalFallback: 'Protocolo de combustível personalizado',
+    fpKicker: 'Perfil de Combustível por Prontidão',
+    fpPerf: 'Macros de Performance', fpRec: 'Macros de Recuperação', fpAdapt: 'Macros Adaptativos',
+    fpPerfSub: 'Liberado para render — a carga alta de carboidratos impulsiona o volume de treino de hoje.',
+    fpRecSub: 'Violação do SNC — a nutrição pivota para alta gordura, alta proteína e anti-inflamatória para reconstruir o sistema. Os carboidratos recuam até a prontidão se recuperar.',
+    fpAdaptSub: 'Sistema em tensão — os carboidratos descem rumo à nutrição de recuperação enquanto a proteína segura a base.',
+    fpScore: (s) => `Prontidão ${s == null ? '—' : s}/100`,
+    fpSplit: 'Divisão alvo', fpStale: 'Sincronizado',
   },
 };
 
@@ -401,17 +425,82 @@ function DailyFuel({ consumed, totals, doneCount, mealCount }) {
   );
 }
 
-// ── Meal thumbnail — real image_url, else a brutalist BBF wireframe skeleton ──
-// The plan data MAY carry an `image_url` per meal; until the backend maps one (and
-// if a mapped URL 404s) we fall back to an intentional dark-mode placeholder so the
-// card never shows a broken-image glyph.
-function MealThumb({ src }) {
+// ── Readiness Fuel Profile — the engine's daily macro pivot, rendered ─────────
+// Reads the SAME stored verdict the workout grid regulates from (bbf_daily_
+// protocols via useDailyReadiness): a CNS breach pivots the athlete from high-
+// carbohydrate Performance Macros to high-fat / high-protein anti-inflammatory
+// Recovery Macros, and this card renders the pivot — state hero art, the ACCURATE
+// target distribution bar straight from the protocol's carb/fat/protein columns,
+// and the clinical why. Hidden entirely without fresh telemetry (no mock state).
+function FuelProfile({ readiness }) {
+  const { tr } = useNutStr();
+  if (!readiness?.hasData) return null;
+
+  const breach = readiness.isBreach || readiness.mode === 'SYSTEM_BREACH';
+  const strained = readiness.mode === 'SYSTEM_STRAIN';
+  const state = breach ? 'recovery' : strained ? 'adaptive' : 'performance';
+  const title = breach ? tr.fpRec : strained ? tr.fpAdapt : tr.fpPerf;
+  const sub = breach ? tr.fpRecSub : strained ? tr.fpAdaptSub : tr.fpPerfSub;
+  // State hero — premium art keyed to the fuel emphasis: carbohydrate bowl for
+  // performance, lean chicken plate for adaptive, omega-rich fish for recovery.
+  const hero = breach ? MEAL_ART.fish : strained ? MEAL_ART.chicken : MEAL_ART.bowl;
+
+  const carb = Number(readiness.carb);
+  const fat = Number(readiness.fat);
+  const protein = Number(readiness.protein);
+  const hasSplit = Number.isFinite(carb) && Number.isFinite(fat) && Number.isFinite(protein);
+
+  return (
+    <div className={`nl-fp is-${state}`} data-testid="nutrition-fuel-profile">
+      <span className="nl-fp-art" aria-hidden="true"><img src={hero} alt="" loading="lazy" /></span>
+      <div className="nl-fp-body">
+        <div className="nl-fp-top">
+          <span className="nl-fp-kicker">{tr.fpKicker}</span>
+          <span className="nl-fp-score">{tr.fpScore(readiness.score)}</span>
+          {readiness.date ? <span className="nl-fp-stamp">{tr.fpStale} · {readiness.date}</span> : null}
+        </div>
+        <div className="nl-fp-title">{title}</div>
+        <p className="nl-fp-sub">{sub}</p>
+        {hasSplit ? (
+          <div className="nl-fp-split">
+            <span className="nl-fp-split-lbl">{tr.fpSplit}</span>
+            <div className="nl-ratio-track">
+              <div className="nl-ratio-seg" style={{ width: `${protein}%`, background: MACRO_COLORS.p }} />
+              <div className="nl-ratio-seg" style={{ width: `${carb}%`, background: MACRO_COLORS.c }} />
+              <div className="nl-ratio-seg" style={{ width: `${fat}%`, background: MACRO_COLORS.f }} />
+            </div>
+            <div className="nl-ratio-legend">
+              <span className="nl-ratio-key"><span className="nl-ratio-dot" style={{ background: MACRO_COLORS.p }} />{tr.rProtein(protein)}</span>
+              <span className="nl-ratio-key"><span className="nl-ratio-dot" style={{ background: MACRO_COLORS.c }} />{tr.rCarbs(carb)}</span>
+              <span className="nl-ratio-key"><span className="nl-ratio-dot" style={{ background: MACRO_COLORS.f }} />{tr.rFat(fat)}</span>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+// ── Meal thumbnail — explicit, build-verified asset routing ───────────────────
+// Resolution order: (1) a real per-meal image_url from a live coach plan,
+// (2) the archetype-matched premium artwork (resolveMealArt — a statically
+// imported, Vite-fingerprinted SVG that cannot 404), (3) the BBF wireframe as
+// the terminal guard. With layer (2) in place every catalog meal renders real
+// art — the unmapped-asset placeholder state is retired from the happy path.
+function MealThumb({ src, art }) {
   const [broken, setBroken] = useState(false);
   const url = (src || '').trim();
   if (url && !broken) {
     return (
       <span className="nl-meal-thumb">
         <img src={url} alt="" loading="lazy" onError={() => setBroken(true)} />
+      </span>
+    );
+  }
+  if (art) {
+    return (
+      <span className="nl-meal-thumb nl-meal-thumb--art">
+        <img src={art} alt="" loading="lazy" />
       </span>
     );
   }
@@ -541,7 +630,7 @@ function MealCard({ meal, done, onToggle }) {
         aria-label={tr.mealAria(meal.m, meal.i, macros, done)}
       >
         <span className="nl-meal-check" aria-hidden="true">✓</span>
-        <MealThumb src={meal.image_url} />
+        <MealThumb src={meal.image_url} art={resolveMealArt(meal)} />
         <span className="nl-meal-body">
           <span className="nl-meal-slot">{meal.m}</span>
           <div className="nl-meal-ing">{meal.i}</div>
@@ -830,6 +919,10 @@ export default function Nutrition({ plans, profile }) {
   // do the admin controls mount.
   const onCommandSurface = useLocation().pathname.startsWith('/command');
 
+  // CNS telemetry — the same stored daily verdict the workout grid regulates
+  // from. Drives the Readiness Fuel Profile card (Performance ⇄ Recovery pivot).
+  const { data: readiness } = useDailyReadiness();
+
   // ── Plan source · prioritize the athlete's LIVE coach-generated plan ──────────
   // The persisted meal_plan (auth envelope → plans.mealPlan) is the real, per-athlete
   // protocol and carries the auto-generated prep instructions. When present we render
@@ -941,6 +1034,9 @@ export default function Nutrition({ plans, profile }) {
           </label>
         )}
       </div>
+
+      {/* Readiness Fuel Profile — the macro pivot from the morning check-in. */}
+      <FuelProfile readiness={readiness} />
 
       {/* Phase 2: advanced_nutrition (Meal Scanner) — Fuel Series + God Tier only. */}
       <TierGate feature="advanced_nutrition" render="hide">

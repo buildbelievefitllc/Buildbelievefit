@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Protein shake">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="18%" r="75%">
+      <stop offset="0%" stop-color="#6a0dad" stop-opacity=".4"/>
+      <stop offset="100%" stop-color="#6a0dad" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cup" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a2360"/>
+      <stop offset="100%" stop-color="#1c1030"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#0d0d0d"/>
+  <rect width="400" height="300" fill="url(#glow)"/>
+  <ellipse cx="200" cy="252" rx="120" ry="16" fill="#101010" stroke="#f5c800" stroke-opacity=".3"/>
+  <path d="M158 84 h84 l-10 158 a10 10 0 0 1-10 9 h-44 a10 10 0 0 1-10-9z" fill="url(#cup)" stroke="#f5c800" stroke-opacity=".55" stroke-width="2"/>
+  <path d="M162 120 h76 l-7 104 h-62z" fill="#7a4ddb" fill-opacity=".85"/>
+  <path d="M166 132 q34 12 68 0" stroke="#f5c800" stroke-opacity=".5" stroke-width="3" fill="none"/>
+  <rect x="150" y="70" width="100" height="18" rx="9" fill="#0d0d0d" stroke="#f5c800" stroke-opacity=".7" stroke-width="2"/>
+  <rect x="226" y="38" width="12" height="44" rx="6" fill="#f5c800"/>
+  <circle cx="186" cy="170" r="6" fill="#cdb3ff"/><circle cx="208" cy="192" r="5" fill="#cdb3ff"/><circle cx="194" cy="214" r="4" fill="#cdb3ff"/>
+  <path d="M200 18 l6 12 12 2-9 9 2 13-11-6-11 6 2-13-9-9 12-2z" fill="#f5c800" fill-opacity=".8"/>
+</svg>

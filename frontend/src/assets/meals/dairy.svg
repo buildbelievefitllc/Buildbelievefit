@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Yogurt bowl">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="18%" r="75%">
+      <stop offset="0%" stop-color="#6a0dad" stop-opacity=".34"/>
+      <stop offset="100%" stop-color="#6a0dad" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bowl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#23153a"/>
+      <stop offset="100%" stop-color="#120a1f"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#0d0d0d"/>
+  <rect width="400" height="300" fill="url(#glow)"/>
+  <path d="M104 148 h192 a8 8 0 0 1 8 9 c-7 50-46 80-104 80 s-97-30-104-80 a8 8 0 0 1 8-9z" fill="url(#bowl)" stroke="#f5c800" stroke-opacity=".55" stroke-width="2"/>
+  <ellipse cx="200" cy="148" rx="104" ry="20" fill="#f3eee6"/>
+  <path d="M150 142 q12-10 22 0 q12-10 22 0" stroke="#e2d8c8" stroke-width="3" fill="none"/>
+  <circle cx="244" cy="142" r="8" fill="#7a1f3d"/>
+  <circle cx="262" cy="150" r="7" fill="#922448"/>
+  <circle cx="228" cy="152" r="6" fill="#5d1730"/>
+  <path d="M150 150 q16 8 36 6" stroke="#f5c800" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M186 96 q-7 14 0 28 M214 92 q-7 14 0 28" stroke="#f5c800" stroke-opacity=".4" stroke-width="3" stroke-linecap="round" fill="none"/>
+</svg>

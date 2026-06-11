@@ -22,6 +22,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useHealthConnectSync } from '../../lib/healthConnectSync.js';
+import { PROTOCOL_UPDATED_EVENT } from '../../lib/useDailyReadiness.js';
 import { runSovereignEngine } from '../../lib/bbf-readiness-engine';
 import {
   mapRecoveryToBiometricDay,
@@ -115,6 +116,11 @@ export default function SovereignClientHub() {
       const logged = await logDailyProtocol(toProtocolRow(protocol));
       if (!logged || !logged.ok) throw new Error(logged && logged.error ? `Protocol log failed — ${logged.error}.` : 'Protocol log failed.');
       setLive({ day, protocol });
+      // Broadcast the fresh verdict — Cardio / Nutrition / Program re-regulate
+      // live off the shared useDailyReadiness channel, no reload.
+      try {
+        window.dispatchEvent(new CustomEvent(PROTOCOL_UPDATED_EVENT, { detail: { date: protocol.date } }));
+      } catch { /* non-fatal */ }
     } catch (e) {
       setErr((e && e.message) || 'Synchronization failed.');
     } finally {

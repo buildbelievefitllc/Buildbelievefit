@@ -293,3 +293,63 @@
 @keyframes bbf-toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .bbf-toast { animation: none; } }
 @media (max-width: 480px) { .bbf-toast { left: 1rem; right: 1rem; max-width: none; } }
+
+/* ── CNS Telemetry dashboard (Sovereign readiness → cardio lockout) ────────── */
+.bbf-rdy {
+  border: 1px solid var(--line, #1c1c1c);
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  margin: 0 0 1.1rem;
+  background: linear-gradient(180deg, #121212, #0d0d0d);
+}
+.bbf-rdy.is-adaptive { border-color: rgba(255, 177, 77, .5); }
+.bbf-rdy.is-breach { border-color: rgba(255, 107, 107, .55); }
+.bbf-rdy__top { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.bbf-rdy__kicker {
+  font-family: var(--hb); font-size: .68rem; font-weight: 700;
+  letter-spacing: 2.6px; text-transform: uppercase; color: var(--yel, #f5c800);
+}
+.bbf-rdy__mode {
+  font-family: var(--bd); font-size: .72rem; font-weight: 800; letter-spacing: 1.6px;
+  text-transform: uppercase; border-radius: 999px; padding: .2rem .65rem;
+  border: 1px solid var(--line, #1c1c1c); color: var(--mut, #9aa);
+}
+.bbf-rdy__mode.is-full { color: #0c0a02; background: linear-gradient(135deg, var(--yel, #f5c800), #ffe27a); border-color: var(--yel, #f5c800); }
+.bbf-rdy__mode.is-adaptive { color: #ffb14d; border-color: rgba(255, 177, 77, .55); }
+.bbf-rdy__mode.is-breach { color: #ff6b6b; border-color: rgba(255, 107, 107, .55); }
+.bbf-rdy__lock {
+  font-family: var(--bd); font-size: .72rem; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #ff6b6b;
+}
+.bbf-rdy__gauges { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; }
+.bbf-rdy__gauge-top { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; margin-bottom: .35rem; }
+.bbf-rdy__gauge-lbl {
+  font-family: var(--hb); font-size: .62rem; font-weight: 700;
+  letter-spacing: 1.8px; text-transform: uppercase; color: var(--mut, #9aa);
+}
+.bbf-rdy__gauge-val { font-family: var(--display); font-size: 1.05rem; letter-spacing: .5px; color: var(--wht, #fff); }
+.bbf-rdy__gauge-val small { font-family: var(--bd); font-size: .68rem; font-weight: 600; color: var(--mut, #9aa); letter-spacing: .4px; }
+.bbf-rdy__track {
+  position: relative; height: 9px; border-radius: 999px; overflow: hidden;
+  background: #181818; border: 1px solid var(--line, #1c1c1c);
+}
+.bbf-rdy__fill { display: block; height: 100%; border-radius: 999px; transition: width .5s ease; }
+.bbf-rdy__fill.is-score { background: linear-gradient(90deg, #6a0dad, var(--yel, #f5c800)); }
+.bbf-rdy__fill.is-hrv { background: linear-gradient(90deg, #3a2360, #9d5cff); }
+.bbf-rdy__fill.is-sleep { background: linear-gradient(90deg, #1f4d35, #3fa45a); }
+.bbf-rdy__tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--yel, #f5c800); opacity: .8; }
+.bbf-rdy__summary {
+  margin-top: .9rem;
+  font-family: var(--bd); font-size: .88rem; font-weight: 600; line-height: 1.55;
+  color: rgba(255, 255, 255, .82);
+  border-left: 3px solid #ff6b6b; padding: .45rem 0 .45rem .8rem;
+}
+.bbf-rdy.is-adaptive .bbf-rdy__summary { border-left-color: #ffb14d; }
+.bbf-rdy__redirect {
+  margin-top: .45rem;
+  font-family: var(--bd); font-size: .76rem; font-weight: 700; letter-spacing: .6px;
+  color: #22c55e;
+}
+@media (max-width: 640px) {
+  .bbf-rdy__gauges { grid-template-columns: 1fr; }
+}

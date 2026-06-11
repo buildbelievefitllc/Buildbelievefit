@@ -1364,3 +1364,88 @@
   .bbf-voice-dot, .bbf-voice-eq span { animation: none; }
   .bbf-voice-eq span { height: 70%; }
 }
+
+/* ── Phase 23 · Sovereign Auto-Regulation (Program grid) ─────────────────────
+   The clinical banner explaining the day's regulation + the prehab injection
+   blocks. Distinct from .pg-ex on purpose: the vault-logging E2E counts
+   exercise cards by that class, and injected drills are NOT loggable sets. */
+.pg-autoreg {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: .95rem 1.1rem;
+  margin-bottom: 1.1rem;
+  background: linear-gradient(180deg, #121212, #0d0d0d);
+  animation: pg-rise .22s ease both;
+}
+.pg-autoreg.is-adaptive { border-color: rgba(255, 177, 77, .5); }
+.pg-autoreg.is-breach { border-color: rgba(255, 107, 107, .55); }
+.pg-autoreg-top { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .45rem; }
+.pg-autoreg-kicker {
+  font-family: var(--hb); font-size: .68rem; font-weight: 700;
+  letter-spacing: 2.6px; text-transform: uppercase; color: var(--yel);
+}
+.pg-autoreg-score {
+  font-family: var(--bd); font-size: .76rem; font-weight: 800; letter-spacing: 1px;
+  color: var(--wht); border: 1px solid var(--line); border-radius: 999px; padding: .2rem .65rem;
+}
+.pg-autoreg-mode {
+  font-family: var(--bd); font-size: .72rem; font-weight: 800; letter-spacing: 1.6px;
+  text-transform: uppercase; color: var(--mut);
+}
+.pg-autoreg.is-breach .pg-autoreg-mode { color: #ff6b6b; }
+.pg-autoreg.is-adaptive .pg-autoreg-mode { color: #ffb14d; }
+.pg-autoreg-body {
+  font-family: var(--bd); font-size: .92rem; font-weight: 600;
+  color: rgba(255, 255, 255, .78); line-height: 1.5;
+}
+.pg-autoreg-chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .6rem; }
+.pg-autoreg-chip {
+  font-family: var(--bd); font-size: .74rem; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--yel);
+  border: 1px solid rgba(245, 200, 0, .45); border-radius: 999px; padding: .25rem .7rem;
+}
+.pg-autoreg-swaps { margin-top: .7rem; }
+.pg-autoreg-swaps-title {
+  font-family: var(--hb); font-size: .66rem; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; color: var(--mut); margin-bottom: .35rem;
+}
+.pg-autoreg-swaps ul { margin: 0; padding: 0 0 0 1rem; }
+.pg-autoreg-swaps li {
+  font-family: var(--bd); font-size: .86rem; font-weight: 600;
+  color: rgba(255, 255, 255, .7); line-height: 1.5;
+}
+.pg-autoreg-swaps li strong { color: var(--yel); }
+.pg-autoreg-suspend {
+  font-family: var(--bd); font-size: .8rem; font-weight: 600; font-style: italic;
+  color: rgba(255, 107, 107, .85); margin-top: .45rem; line-height: 1.45;
+}
+
+.pg-inject {
+  border: 1px dashed rgba(106, 13, 173, .65);
+  border-radius: 14px;
+  padding: .85rem 1rem;
+  margin-bottom: 1.1rem;
+  background: rgba(106, 13, 173, .07);
+}
+.pg-inject-head { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; margin-bottom: .55rem; }
+.pg-inject-title {
+  font-family: var(--hb); font-size: .68rem; font-weight: 700;
+  letter-spacing: 2.6px; text-transform: uppercase; color: #c08cff;
+}
+.pg-inject-why { font-family: var(--bd); font-size: .76rem; font-weight: 600; color: var(--mut); }
+.pg-inject-card { padding: .5rem 0; border-top: 1px solid rgba(106, 13, 173, .25); }
+.pg-inject-card:first-of-type { border-top: 0; }
+.pg-inject-name { font-family: var(--bd); font-size: .92rem; font-weight: 800; color: var(--wht); }
+.pg-inject-meta {
+  font-family: var(--bd); font-size: .76rem; font-weight: 700; letter-spacing: .8px;
+  color: var(--yel); margin-top: .15rem;
+}
+.pg-inject-cue { font-family: var(--bd); font-size: .8rem; font-weight: 600; color: rgba(255,255,255,.6); margin-top: .25rem; line-height: 1.45; }
+
+.pg-ex-autoreg { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .3rem; }
+.pg-swap-chip, .pg-sets-chip {
+  font-family: var(--bd); font-size: .68rem; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; border-radius: 999px; padding: .14rem .55rem;
+}
+.pg-swap-chip { color: #c08cff; border: 1px solid rgba(106, 13, 173, .6); }
+.pg-sets-chip { color: #ffb14d; border: 1px solid rgba(255, 177, 77, .5); }
