@@ -14,7 +14,15 @@
 import { supabase } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
-function num(x) { const n = Number(x); return Number.isFinite(n) ? n : null; }
+// Null/undefined/'' guard FIRST — Number(null) is 0, not NaN. Without it a
+// no-watch night ("not measured" → null hrv/sleep) lands as 0 on the ledger and
+// the engine reads a zero-sleep athlete (SYSTEM_BREACH) instead of emitting
+// INSUFFICIENT_TELEMETRY. Mirrors the engine's own num() in bbf-readiness-engine.ts.
+function num(x) {
+  if (x === null || x === undefined || x === '') return null;
+  const n = Number(x);
+  return Number.isFinite(n) ? n : null;
+}
 
 // Native HealthConnectBridge recovery JSON → a bbf_daily_biometrics day row.
 export function mapRecoveryToBiometricDay(recovery) {
