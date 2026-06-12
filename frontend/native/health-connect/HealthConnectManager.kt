@@ -4,9 +4,12 @@ import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
+import androidx.health.connect.client.records.BasalMetabolicRateRecord
 import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
+import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +19,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.reflect.KClass
 
 /**
  * Pure Health Connect logic — no Capacitor types here so it stays unit-testable and
@@ -32,11 +36,20 @@ class HealthConnectManager(private val context: Context) {
         // supplies the daily load `strain` is derived from (bbf_wearable_readings.strain
         // is NOT NULL — see _shared/wearable-core.mjs + the ACWR migration); STEPS
         // feeds bbf_daily_biometrics.daily_steps on the Sovereign biometric ledger.
+        //
+        // TOTAL_CALORIES_BURNED + BASAL_METABOLIC_RATE back the calorie FALLBACK:
+        // Samsung Health (and some others) write TotalCaloriesBurnedRecord and leave
+        // ActiveCaloriesBurnedRecord empty, so active burn read 0 despite a logged
+        // burn. With these scopes we derive active = total − BMR. They are part of
+        // the required set so the consent sheet always offers them; a denial surfaces
+        // as `permissions_required` (visible in the Check-In diagnostic), never silent.
         val PERMISSIONS: Set<String> = setOf(
             HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class),
             HealthPermission.getReadPermission(SleepSessionRecord::class),
             HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
             HealthPermission.getReadPermission(StepsRecord::class),
+            HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
+            HealthPermission.getReadPermission(BasalMetabolicRateRecord::class),
         )
 
         private const val RECOVERY_WINDOW_HOURS = 48L // HRV + sleep look-back (the order)
@@ -87,14 +100,10 @@ class HealthConnectManager(private val context: Context) {
         val latestSleep = sleepRecords.maxByOrNull { it.endTime }
         val sleepMinutes: Long? = latestSleep?.let { asleepMinutes(it) }
 
-        // ── Active energy (kcal) — last 24h summed → strain (ULU) on the web side ──
-        val calRecords = hc.readRecords(
-            ReadRecordsRequest(
-                ActiveCaloriesBurnedRecord::class,
-                timeRangeFilter = loadWindow,
-            ),
-        ).records
-        val activeKcal: Double = calRecords.sumOf { it.energy.inKilocalories }
+        // ── Active energy (kcal) — 24h. ActiveCaloriesBurnedRecord first; on devices
+        //    that only write TotalCaloriesBurnedRecord (Samsung Health), fall back to
+        //    total − BMR, then total direct. `kcal` is null ONLY when nothing logged. ──
+        val cal = resolveActiveKcal(hc, loadWindow)
 
         // ── Steps — last 24h summed → daily_steps on the biometric ledger ──
         val stepRecords = hc.readRecords(
@@ -116,7 +125,7 @@ class HealthConnectManager(private val context: Context) {
             put("recorded_at", now.toString())
             put("hrv_ms", hrvMs ?: JSONObject.NULL)
             put("sleep_minutes", sleepMinutes ?: JSONObject.NULL)
-            put("active_kcal", activeKcal)
+            put("active_kcal", cal.kcal ?: JSONObject.NULL)
             put("daily_steps", dailySteps ?: JSONObject.NULL)
             put("resting_hr", JSONObject.NULL) // out of scope — left null (allowed downstream)
             put(
@@ -124,7 +133,8 @@ class HealthConnectManager(private val context: Context) {
                 JSONObject().apply {
                     put("hrv_count", hrvRecords.size)
                     put("sleep_sessions", sleepRecords.size)
-                    put("active_calorie_records", calRecords.size)
+                    put("active_calorie_records", cal.records)
+                    put("active_calorie_source", cal.source)
                     put("step_records", stepRecords.size)
                     put("hrv_recorded_at", latestHrv?.time?.toString() ?: JSONObject.NULL)
                     put("sleep_start", latestSleep?.startTime?.toString() ?: JSONObject.NULL)
@@ -132,6 +142,57 @@ class HealthConnectManager(private val context: Context) {
                 },
             )
         }
+    }
+
+    /** Active-calorie resolution result + provenance (surfaced in samples for diagnostics). */
+    private data class KcalResult(val kcal: Double?, val source: String, val records: Int)
+
+    /**
+     * Resolve active kilocalories over `window`, manufacturer-tolerant:
+     *   1) ActiveCaloriesBurnedRecord summed (Whoop / Fitbit / Google Fit / Garmin).
+     *   2) Samsung Health fallback — it writes TotalCaloriesBurnedRecord, so derive
+     *      active = total − BMR (BMR scaled to the window from kcal/day); if BMR is
+     *      unavailable, report total directly.
+     *   3) Nothing logged anywhere → null (null-integrity; never a fabricated 0).
+     *      Active records that genuinely sum to 0 (sedentary day) report 0, not null.
+     * Every read is wrapped so a missing optional grant degrades gracefully.
+     */
+    private suspend fun resolveActiveKcal(hc: HealthConnectClient, window: TimeRangeFilter): KcalResult {
+        val active = readSafe(ActiveCaloriesBurnedRecord::class, hc, window)
+        val activeSum = active.sumOf { it.energy.inKilocalories }
+        if (activeSum > 0.0) return KcalResult(activeSum, "active", active.size)
+
+        val total = readSafe(TotalCaloriesBurnedRecord::class, hc, window)
+        val totalSum = total.sumOf { it.energy.inKilocalories }
+        if (totalSum > 0.0) {
+            val bmrDay = readSafe(BasalMetabolicRateRecord::class, hc, window)
+                .maxByOrNull { it.time }
+                ?.basalMetabolicRate
+                ?.inKilocaloriesPerDay
+            if (bmrDay != null && bmrDay > 0.0) {
+                val bmrWindow = bmrDay * (LOAD_WINDOW_HOURS.toDouble() / 24.0)
+                val derived = (totalSum - bmrWindow).coerceAtLeast(0.0)
+                return KcalResult(derived, "total_minus_bmr", total.size)
+            }
+            return KcalResult(totalSum, "total_direct", total.size)
+        }
+
+        // No active AND no total records → honest null. An empty active sum WITH
+        // records present is a real sedentary 0.
+        val anyRecords = active.isNotEmpty() || total.isNotEmpty()
+        return KcalResult(if (anyRecords) 0.0 else null, "none", active.size)
+    }
+
+    /** Read records of `type`, returning an empty list on any failure (e.g. an
+     *  ungranted optional scope) so the fallback chain degrades instead of throwing. */
+    private suspend fun <T : Record> readSafe(
+        type: KClass<T>,
+        hc: HealthConnectClient,
+        window: TimeRangeFilter,
+    ): List<T> = try {
+        hc.readRecords(ReadRecordsRequest(type, timeRangeFilter = window)).records
+    } catch (e: Exception) {
+        emptyList()
     }
 
     // Minutes actually asleep: sum non-awake stages when present, else in-bed duration.

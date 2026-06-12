@@ -24,6 +24,15 @@ function num(x) {
   return Number.isFinite(n) ? n : null;
 }
 
+// Safe integer cast preserving null. The calorie metric arrives from the native
+// bridge as a kcal Double (e.g. the Samsung total−BMR fallback = 264.6) and the
+// ledger column is an integer kcal count — round it, but keep null as null so a
+// genuinely absent burn never becomes a fabricated 0 (null-integrity).
+function intOrNull(x) {
+  const n = num(x);
+  return n === null ? null : Math.round(n);
+}
+
 // Native HealthConnectBridge recovery JSON → a bbf_daily_biometrics day row.
 export function mapRecoveryToBiometricDay(recovery) {
   const r = recovery || {};
@@ -31,7 +40,7 @@ export function mapRecoveryToBiometricDay(recovery) {
     date: r.reading_date || null,
     hrv_ms: num(r.hrv_ms),
     sleep_minutes: num(r.sleep_minutes),
-    active_calories_burned: num(r.active_kcal),
+    active_calories_burned: intOrNull(r.active_kcal),
     daily_steps: num(r.daily_steps),
   };
 }

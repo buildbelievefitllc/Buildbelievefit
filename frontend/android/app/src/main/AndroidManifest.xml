@@ -64,4 +64,8 @@
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />
     <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <!-- Calorie fallback (Samsung Health writes TOTAL, not ACTIVE): read total +
+         BMR so active burn can be derived as total − BMR when active is absent. -->
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
+    <uses-permission android:name="android.permission.health.READ_BASAL_METABOLIC_RATE" />
 </manifest>
