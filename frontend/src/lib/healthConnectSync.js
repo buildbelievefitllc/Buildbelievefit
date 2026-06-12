@@ -32,6 +32,10 @@ import {
 const ACTIVE_KCAL_FULL = 1000;
 
 function num(x) {
+  // Guard null/undefined/'' FIRST — Number(null) is 0, not NaN, so without this a
+  // "not measured" vital (e.g. Health Connect has no resting HR → null) would be
+  // sent as 0 and rejected by the column CHECK (resting_hr must be NULL or 20–220).
+  if (x === null || x === undefined || x === '') return null;
   const n = Number(x);
   return Number.isFinite(n) ? n : null;
 }
