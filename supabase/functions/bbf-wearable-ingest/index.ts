@@ -33,7 +33,12 @@ import { normalizeReading, computeAcwr, SOURCES } from '../_shared/wearable-core
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token',
+  // Must list EVERY non-safelisted header the caller sends, or the browser/WebView
+  // preflight fails before the request is sent (FunctionsFetchError). supabase-js
+  // stamps `x-client-info` (+ `x-retry-count` on postgrest retries) on every call —
+  // the native app's functions.invoke() is the first real browser caller, which is
+  // why this surfaced now. `x-bbf-admin-token` stays for the server/webhook path.
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-retry-count, x-bbf-admin-token',
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
