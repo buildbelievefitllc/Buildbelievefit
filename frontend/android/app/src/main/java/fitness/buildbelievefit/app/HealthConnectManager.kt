@@ -1,4 +1,4 @@
-package fitness.buildbelievefit.app
+package fitness.buildbelievefit.twa
 
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient

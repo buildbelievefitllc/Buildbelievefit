@@ -1,4 +1,4 @@
-package fitness.buildbelievefit.app
+package fitness.buildbelievefit.twa
 
 import android.os.Bundle
 import com.getcapacitor.BridgeActivity

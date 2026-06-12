@@ -5,7 +5,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // the Capacitor CLI — it is NOT part of the Vite/ESLint web build graph, so it adds
 // no runtime dependency to the shipped bundle.
 const config: CapacitorConfig = {
-  appId: 'fitness.buildbelievefit.app',
+  appId: 'fitness.buildbelievefit.twa',
   appName: 'Build Believe Fit',
   webDir: 'dist',
   server: {
