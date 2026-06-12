@@ -319,6 +319,15 @@ const DICT = {
   'sch-mode-strain': { en: 'System Strain', es: 'Sistema en Tensión', pt: 'Sistema em Tensão' },
   'sch-mode-breach': { en: 'System Breach', es: 'Brecha del Sistema', pt: 'Violação do Sistema' },
   'sch-mode-insufficient': { en: 'Insufficient Telemetry', es: 'Telemetría Insuficiente', pt: 'Telemetria Insuficiente' },
+  // Sovereign Dossier (Material Upgrade) — null-integrity ghost slots + the
+  // premium awaiting-telemetry state (the pane is never blank).
+  'sch-no-signal': { en: 'No Signal', es: 'Sin Señal', pt: 'Sem Sinal' },
+  'sch-awaiting-title': { en: 'Awaiting First Telemetry', es: 'Esperando la Primera Telemetría', pt: 'Aguardando a Primeira Telemetria' },
+  'sch-awaiting-body': {
+    en: 'No vitals on the ledger yet. Wear your device overnight, then run Synchronize Vitals — the Sovereign engine renders its first verdict from real telemetry only.',
+    es: 'Aún no hay signos vitales en el registro. Usa tu dispositivo durante la noche y luego ejecuta Sincronizar Signos Vitales — el motor Soberano emite su primer veredicto solo con telemetría real.',
+    pt: 'Ainda não há sinais vitais no registro. Use seu dispositivo durante a noite e depois execute Sincronizar Sinais Vitais — o motor Soberano emite seu primeiro veredito apenas com telemetria real.',
+  },
   // Vault Upsell Funnel — the UpgradeOverlay padlock chrome (tier name + price are
   // interpolated from the live pricing matrix, so they stay out of the dictionary).
   'uplock-kicker': { en: 'Locked', es: 'Bloqueado', pt: 'Bloqueado' },

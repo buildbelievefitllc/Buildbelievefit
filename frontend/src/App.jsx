@@ -18,17 +18,25 @@
 //   /login     → public Login gate (username + PIN); on success → home (Routing Fork)
 //   *          → bounce to '/'
 
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
 import AdminGuard from './components/AdminGuard.jsx';
 import Login from './pages/Login.jsx';
-import CommandCenter from './pages/CommandCenter.jsx';
-import ClientVault from './pages/ClientVault.jsx';
-import YouthIntakeGate from './components/sportshub/YouthIntakeGate.jsx';
-import MarketingLanding from './pages/MarketingLanding.jsx';
-import SportsPortal from './components/sports/SportsPortal.jsx';
 import TierGate from './components/TierGate.jsx';
 import { isSportsAthlete, SPORTS_HUB_PATH } from './lib/sportsRoster.js';
+
+// Route-level code splitting (Material Upgrade): each top surface ships as its
+// own chunk, so the public landing no longer pays for the entire Vault + admin
+// console, and the BBF Lab WebView boots on a fraction of the parse cost. The
+// Login gate stays static — it's tiny and it IS the boot path. Vite hashes the
+// chunks; the SW's stale-while-revalidate asset policy serves them after first
+// load, and the Capacitor build reads them from local disk.
+const MarketingLanding = lazy(() => import('./pages/MarketingLanding.jsx'));
+const ClientVault = lazy(() => import('./pages/ClientVault.jsx'));
+const CommandCenter = lazy(() => import('./pages/CommandCenter.jsx'));
+const YouthIntakeGate = lazy(() => import('./components/sportshub/YouthIntakeGate.jsx'));
+const SportsPortal = lazy(() => import('./components/sports/SportsPortal.jsx'));
 
 // The Sovereign Vault — the authenticated athlete home. Guarded: an unauthenticated
 // visitor is bounced to the login gate rather than shown an empty shell. NOTE: the
@@ -102,6 +110,7 @@ function SportsRoute() {
 
 export default function App() {
   return (
+    <Suspense fallback={<div style={bootStyle}>Loading…</div>}>
     <Routes>
       <Route path="/login" element={<Login />} />
       {/* Apex root — ALWAYS the public marketing landing, even when authenticated.
@@ -125,5 +134,6 @@ export default function App() {
           falls back to the public root — never a 404. */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }

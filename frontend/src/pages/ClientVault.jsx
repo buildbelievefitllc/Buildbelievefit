@@ -28,6 +28,7 @@ import LangToggle from '../components/LangToggle.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 import { useVaultSessionGuard } from '../lib/sessionGuard.js';
 import { useEntitlement } from '../lib/useEntitlement.js';
+import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
 import VaultHeader from '../components/vault/VaultHeader.jsx';
 import VaultHub from '../components/vault/VaultHub.jsx';
 import Program from '../components/vault/Program.jsx';
@@ -44,15 +45,19 @@ import Concierge from '../components/vault/Concierge.jsx';
 import { TAB_FEATURE } from '../lib/entitlements.js';
 import '../components/vault/vault.css';
 
+// Agentic Handshake impact classes: under SYSTEM_STRAIN / SYSTEM_BREACH the
+// shell visually recedes the high-output surfaces and pulses the recovery
+// protocols (pure CSS via [data-bbf-mode] — tabs stay fully clickable; the hard
+// regulation already lives inside each surface via useDailyReadiness).
 const TABS = [
   { id: 'hub', labelKey: 'vault-tab-hub', icon: '▦' },
   // Sovereign Auto-Regulation check-in (wearable sync → readiness protocol).
   // Gated on the Baseline 'readiness' feature (see TAB_FEATURE).
-  { id: 'checkin', labelKey: 'vault-tab-checkin', icon: '◉', testid: 'vault-tab-checkin' },
-  { id: 'program', labelKey: 'vault-tab-program', icon: '▤' },
-  { id: 'generator', labelKey: 'vault-tab-generator', icon: '✦' },
-  { id: 'cardio', labelKey: 'vault-tab-cardio', icon: '♥', testid: 'vault-tab-cardio' },
-  { id: 'prehab', labelKey: 'vault-tab-prehab', icon: '✚', testid: 'vault-tab-prehab' },
+  { id: 'checkin', labelKey: 'vault-tab-checkin', icon: '◉', testid: 'vault-tab-checkin', impact: 'recovery' },
+  { id: 'program', labelKey: 'vault-tab-program', icon: '▤', impact: 'high' },
+  { id: 'generator', labelKey: 'vault-tab-generator', icon: '✦', impact: 'high' },
+  { id: 'cardio', labelKey: 'vault-tab-cardio', icon: '♥', testid: 'vault-tab-cardio', impact: 'high' },
+  { id: 'prehab', labelKey: 'vault-tab-prehab', icon: '✚', testid: 'vault-tab-prehab', impact: 'recovery' },
   { id: 'nutrition', labelKey: 'vault-tab-nutrition', icon: '◆' },
   // Champion Mindset is tier-gated by the Upsell Funnel: every Online Fitness tier,
   // Fuel Sovereign (top Online Nutrition), + God Mode unlock it; lower Nutrition +
@@ -60,6 +65,15 @@ const TABS = [
   { id: 'mindset', labelKey: 'vault-tab-mindset', icon: '🧠', testid: 'vault-tab-mindset' },
   { id: 'settings', labelKey: 'vault-tab-settings', icon: '⚙' },
 ];
+
+// Mode → trilingual chip label (shares the Check-In hub's dictionary keys).
+const MODE_TKEY = {
+  PRIME_EXECUTION: 'sch-mode-prime',
+  STANDARD_OPERATIONS: 'sch-mode-standard',
+  SYSTEM_STRAIN: 'sch-mode-strain',
+  SYSTEM_BREACH: 'sch-mode-breach',
+  INSUFFICIENT_TELEMETRY: 'sch-mode-insufficient',
+};
 
 export default function ClientVault() {
   const { user, session, signOut, isAdmin } = useAuth();
@@ -87,14 +101,35 @@ export default function ClientVault() {
   const { data: profile, isLoading: profileLoading, error: profileError } = useVaultProfile(uid);
   const plans = useMemo(() => selectPlans(session), [session]);
 
+  // Agentic Handshake — the day's verdict (off the shared biometric store, same
+  // payload the Check-In / Cardio / Nutrition / Program surfaces consume) drives
+  // the [data-bbf-mode] channel: the screen's ambient glow, the topbar edge, the
+  // readiness beacon, and the tab-rail emphasis all morph with the athlete's
+  // computed mode. No usable telemetry → 'none' → the neutral interface.
+  const { data: readiness } = useDailyReadiness();
+  const handshake = handshakeChannel(readiness);
+
   return (
-    <div className="cv-screen">
+    <div className="cv-screen" data-bbf-mode={handshake}>
       <header className="cv-topbar">
         <div className="cv-brand">
           <span className="cv-logo">BUILD BELIEVE <b>FIT</b></span>
           <span className="cv-kicker">{t('vault-kicker')}</span>
         </div>
         <div className="cv-who">
+          {/* Readiness beacon — the living pulse of the Agentic Handshake. Renders
+              only on a real same-window verdict; never invents a score. */}
+          {readiness?.hasData && readiness.mode ? (
+            <span
+              className="cv-beacon"
+              title={t('sch-readiness')}
+              data-testid="cv-readiness-beacon"
+            >
+              <span className="cv-beacon-dot" aria-hidden="true" />
+              <span className="cv-beacon-score">{readiness.score ?? '—'}</span>
+              <span className="cv-beacon-mode">{t(MODE_TKEY[readiness.mode] || 'sch-mode-insufficient')}</span>
+            </span>
+          ) : null}
           {/* Technical identity (slug) lives in the top bar; the friendly
               "Welcome, <Name>" greeting is owned by the Hub blueprint hero. */}
           <span className="cv-greet">@{user?.username || 'athlete'}</span>
@@ -138,6 +173,7 @@ export default function ClientVault() {
             // pane for the UpgradeOverlay). The lock glyph is aria-hidden so the
             // tab's accessible name stays the plain label (keeps E2E role selectors green).
             const locked = !ent.canAccessTab(tab.id);
+            const impact = tab.impact ? ` is-impact-${tab.impact}` : '';
             return (
               <button
                 key={tab.id}
@@ -145,7 +181,7 @@ export default function ClientVault() {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setActiveTab(tab.id)}
-                className={`cv-tab${active ? ' is-active' : ''}${locked ? ' is-locked' : ''}`}
+                className={`cv-tab${active ? ' is-active' : ''}${locked ? ' is-locked' : ''}${impact}`}
                 data-testid={tab.testid}
               >
                 {tab.icon ? <span className="cv-tab-icon" aria-hidden="true">{tab.icon}</span> : null}

@@ -1,10 +1,12 @@
 /* src/components/vault/sovereignHub.css
    ─────────────────────────────────────────────────────────────────────────────
-   Sovereign Client Hub — daily auto-regulation check-in. Scoped under `.sch` so
-   nothing leaks beyond the Vault tab. LOCKED brand tokens only: purple/gold via
-   the vault CSS variables, Bebas (--display) / Barlow (--bd/--hb); matte black is
-   an approved surface, never a CTA. Mode chips use semantic status color (like
-   the dossier risk verdicts), not brand identity. */
+   Sovereign Client Hub — daily auto-regulation check-in, Sovereign Dossier
+   treatment (Material Upgrade). Scoped under `.sch` so nothing leaks beyond the
+   Vault tab. LOCKED brand tokens only: purple/gold via vault CSS variables,
+   Bebas (--display) / Barlow (--bd/--hb); the void palette is SURFACE only.
+   Mode tinting rides the global [data-bbf-mode] Agentic Handshake channel
+   (--mode-flag / --mode-glow / --mode-edge from index.css) — semantic dashboard
+   state, never brand identity. */
 
 .sch { display: grid; gap: 1rem; }
 
@@ -25,10 +27,20 @@
 }
 .sch-stamp.is-live { color: var(--yel); border-color: rgba(245, 200, 0, .5); }
 
-/* ── Card chassis ── */
+/* ── Dossier panel chassis (shared --panel tokens; gold corner tick = brief tab) ── */
 .sch-card {
-  background: linear-gradient(180deg, #121212, #0d0d0d);
-  border: 1px solid var(--line); border-radius: 18px; padding: 1.1rem 1.2rem;
+  position: relative;
+  background: var(--panel-grad);
+  border: 1px solid var(--panel-edge);
+  border-radius: 16px;
+  padding: 1.15rem 1.25rem;
+}
+.sch-card::before {
+  content: '';
+  position: absolute; top: -1px; left: 18px;
+  width: 46px; height: 2px;
+  background: linear-gradient(90deg, var(--yel), transparent);
+  opacity: .75; pointer-events: none;
 }
 .sch-label {
   font-family: var(--hb); font-size: .7rem; font-weight: 700; letter-spacing: 3px;
@@ -84,8 +96,8 @@
 .sch-plat:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 .sch-plat.is-on {
   border-color: rgba(245, 200, 0, .6);
-  background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 78%);
-  box-shadow: 0 14px 32px -18px rgba(106, 13, 173, .9);
+  background: linear-gradient(135deg, var(--void-2) 0%, var(--void-1) 78%);
+  box-shadow: var(--glow-purple);
 }
 .sch-plat-name {
   font-family: var(--display); font-size: 1.12rem; letter-spacing: 1px; color: var(--wht);
@@ -102,7 +114,7 @@
   border-color: rgba(245, 200, 0, .35);
   background:
     radial-gradient(circle at 50% -30%, rgba(245, 200, 0, .12), transparent 62%),
-    linear-gradient(180deg, #121212, #0d0d0d);
+    var(--panel-grad);
 }
 .sch-ios-glyph { font-size: 2rem; line-height: 1; color: var(--yel); }
 .sch-ios-title {
@@ -111,7 +123,7 @@
 }
 .sch-ios .sch-body { margin: 0 auto; }
 
-/* ── Android — Synchronize Vitals trigger ── */
+/* ── Android — Synchronize Vitals trigger (LOCKED purple/gold CTA treatment) ── */
 .sch-android { text-align: center; }
 .sch-sync {
   cursor: pointer; width: 100%; max-width: 420px; padding: 1rem 1.4rem;
@@ -132,14 +144,56 @@
   50% { opacity: .55; }
 }
 
-/* ── Verdict ── */
-.sch-results { display: grid; gap: 1rem; }
-.sch-score-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.sch-score {
-  font-family: var(--display); font-size: 4.4rem; line-height: .9;
-  letter-spacing: 1px; color: var(--yel);
-  text-shadow: 0 2px 22px rgba(245, 200, 0, .25);
+/* ═══ THE SOVEREIGN DOSSIER — asymmetric verdict brief ═══════════════════════
+   Column A (verdict): readiness dial + mode flag + volume order.
+   Column B (intel): telemetry strip + directive log. Stacks on mobile. The
+   dossier root re-keys [data-bbf-mode], so its chrome morphs with the verdict
+   even while the shell still carries an older (or no) channel. */
+.sch-dossier {
+  display: grid;
+  grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+  gap: 1rem;
+  align-items: start;
+  transition: --mode-flag .9s ease, --mode-glow .9s ease, --mode-edge .9s ease;
 }
+.sch-intel { display: grid; gap: 1rem; align-content: start; }
+
+/* Verdict column — mode-tinted ambient halo */
+.sch-verdict {
+  display: flex; flex-direction: column; align-items: center; gap: .9rem;
+  text-align: center; padding: 1.4rem 1.25rem 1.5rem;
+  background:
+    radial-gradient(420px 300px at 50% -18%, var(--mode-glow), transparent 70%),
+    var(--panel-grad);
+  border-color: var(--mode-edge);
+}
+.sch-verdict .sch-label { margin-bottom: 0; align-self: flex-start; }
+
+/* Readiness dial — SVG arc; ring + glow ride the handshake flag */
+.sch-dial { position: relative; width: 198px; height: 198px; }
+.sch-dial-svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.sch-dial-track { fill: none; stroke: rgba(249, 245, 255, .08); stroke-width: 7; }
+.sch-dial-fill {
+  fill: none; stroke: var(--mode-flag); stroke-width: 7; stroke-linecap: round;
+  filter: drop-shadow(0 0 9px var(--mode-glow));
+  transition: stroke-dasharray .9s ease, stroke .9s ease;
+}
+.sch-dial.is-void .sch-dial-fill { stroke: transparent; filter: none; }
+.sch-dial-core {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .15rem;
+}
+.sch-score {
+  font-family: var(--display); font-size: 3.7rem; line-height: .9;
+  letter-spacing: 1px; color: var(--wht);
+  text-shadow: 0 2px 26px var(--mode-glow);
+}
+.sch-dial-cap {
+  font-family: var(--hb); font-size: .64rem; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase; color: var(--mut);
+}
+
+/* Mode flag chip */
 .sch-mode {
   font-family: var(--bd); font-size: .78rem; font-weight: 800; letter-spacing: 2px;
   text-transform: uppercase; border-radius: 999px; padding: .42rem 1rem;
@@ -151,29 +205,45 @@
 .sch-mode--breach   { color: #ff6b6b; border-color: rgba(255, 107, 107, .55); background: rgba(255, 107, 107, .08); }
 .sch-mode--none     { color: var(--mut); }
 
-/* Vitals grid */
-.sch-vitals { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; }
-.sch-vital {
-  display: grid; gap: .25rem; text-align: center; padding: .8rem .4rem;
-  border: 1px solid var(--line); border-radius: 12px; background: #101010;
-}
-.sch-vital-v { font-family: var(--display); font-size: 1.5rem; letter-spacing: 1px; color: var(--wht); }
-.sch-vital-k {
-  font-family: var(--hb); font-size: .62rem; font-weight: 700;
-  letter-spacing: 2px; text-transform: uppercase; color: var(--mut);
-}
-
-/* Directives */
-.sch-volume { display: flex; align-items: baseline; gap: .7rem; margin-bottom: .9rem; }
+/* Volume order */
+.sch-volume { display: flex; align-items: baseline; gap: .7rem; }
 .sch-volume-k {
   font-family: var(--bd); font-size: .8rem; font-weight: 700;
   letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut);
 }
 .sch-volume-v { font-family: var(--display); font-size: 2rem; letter-spacing: 1px; color: var(--yel); }
 
+/* ── Telemetry strip — editorial columns, hairline rules (no boxy cells).
+   Four slots ALWAYS present; a void slot ghosts instead of collapsing. ── */
+.sch-vitals { display: grid; grid-template-columns: repeat(4, 1fr); }
+.sch-vital {
+  display: grid; gap: .3rem; align-content: start; min-width: 0;
+  padding: .35rem 0 .35rem .95rem;
+  border-left: 1px solid rgba(249, 245, 255, .08);
+}
+.sch-vital:first-child { border-left: none; padding-left: 0; }
+.sch-vital-v {
+  font-family: var(--display); font-size: 1.55rem; letter-spacing: 1px;
+  line-height: 1; color: var(--wht); white-space: nowrap;
+}
+.sch-vital-k {
+  font-family: var(--hb); font-size: .6rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--mut);
+}
+.sch-vital.is-void .sch-vital-v { color: rgba(249, 245, 255, .28); }
+.sch-vital-void {
+  justify-self: start;
+  font-family: var(--hb); font-size: .52rem; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase;
+  color: rgba(249, 245, 255, .3);
+  border: 1px solid rgba(249, 245, 255, .14); border-radius: 999px;
+  padding: .12rem .45rem;
+}
+
+/* ── Directive intel ── */
 .sch-macro-bar {
   display: flex; height: 12px; border-radius: 999px; overflow: hidden;
-  border: 1px solid var(--line); background: #101010;
+  border: 1px solid var(--line); background: var(--void-0);
 }
 .sch-macro-seg { display: block; height: 100%; }
 .sch-macro-seg.is-carb    { background: linear-gradient(135deg, var(--yel), var(--gold-soft)); }
@@ -192,15 +262,56 @@
 }
 .sch-cardio-v { font-family: var(--bd); font-size: .98rem; font-weight: 700; color: var(--wht); line-height: 1.45; }
 
-.sch-log { margin: 1rem 0 0; padding: 0; list-style: none; display: grid; gap: .35rem; }
+/* Directive log — numbered intel lines */
+.sch-log { margin: 1rem 0 0; padding: 0; list-style: none; display: grid; gap: .45rem; }
 .sch-log li {
+  display: flex; gap: .6rem; align-items: baseline;
   font-family: var(--bd); font-size: .84rem; font-weight: 600;
-  color: rgba(255, 255, 255, .6); line-height: 1.45; padding-left: 1rem; position: relative;
+  color: rgba(255, 255, 255, .62); line-height: 1.45;
 }
-.sch-log li::before { content: '▸'; position: absolute; left: 0; color: var(--yel); }
+.sch-log-idx {
+  flex-shrink: 0;
+  font-family: var(--mono); font-size: .66rem; font-weight: 600;
+  color: var(--gold-deep); letter-spacing: .5px;
+  border-bottom: 1px solid rgba(212, 175, 55, .35);
+  padding-bottom: .1rem;
+}
 
+/* ── Awaiting telemetry — premium empty dossier (layout never goes blank) ── */
+.sch-await {
+  text-align: center; padding: 2.2rem 1.4rem 2rem;
+  background:
+    radial-gradient(circle at 50% -40%, var(--mode-glow), transparent 64%),
+    var(--panel-grad);
+}
+.sch-await-ring {
+  display: inline-block; width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid rgba(249, 245, 255, .1);
+  border-top-color: var(--yel);
+  animation: sch-scan 2.4s linear infinite;
+}
+@keyframes sch-scan { to { transform: rotate(360deg); } }
+.sch-await-title {
+  font-family: var(--display); font-size: 1.6rem; letter-spacing: 2px;
+  color: var(--wht); margin: .8rem 0 .35rem;
+}
+.sch-await .sch-body { margin: 0 auto; }
+
+@media (max-width: 760px) {
+  .sch-dossier { grid-template-columns: 1fr; }
+}
 @media (max-width: 640px) {
-  .sch-vitals { grid-template-columns: repeat(2, 1fr); }
+  .sch-vitals { grid-template-columns: repeat(2, 1fr); row-gap: 1rem; }
+  .sch-vital:nth-child(odd) { border-left: none; padding-left: 0; }
+  .sch-vital:nth-child(even) { padding-left: .95rem; }
   .sch-platforms, .sch-switch { grid-template-columns: 1fr; }
-  .sch-score { font-size: 3.4rem; }
+  .sch-score { font-size: 3.1rem; }
+  .sch-dial { width: 170px; height: 170px; }
+}
+
+/* Motion discipline — the dossier respects reduced-motion athletes. */
+@media (prefers-reduced-motion: reduce) {
+  .sch-await-ring { animation: none; }
+  .sch-sync.is-working { animation: none; opacity: .7; }
+  .sch-dial-fill, .sch-dossier { transition: none; }
 }

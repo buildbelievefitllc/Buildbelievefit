@@ -1,14 +1,18 @@
 // src/lib/useDailyReadiness.js
 // ─────────────────────────────────────────────────────────────────────────────
-// Shared CNS telemetry hook — ONE read path from the Sovereign biometric ledger
-// (bbf_get_biometric_ledger) consumed by Smart Cardio, the Nutrition Locker, and
-// the Program grid, so all three surfaces regulate off the SAME morning check-in
-// the Client Hub logged. Deterministic; no LLM (CLAUDE.md §4 untouched).
+// Shared CNS telemetry channel — ONE read path from the Sovereign biometric
+// ledger (bbf_get_biometric_ledger) consumed by the Check-In hub, Smart Cardio,
+// the Nutrition Locker, the Program grid AND the Vault shell (Agentic Handshake),
+// so every surface regulates off the SAME morning check-in. Deterministic; no
+// LLM (CLAUDE.md §4 untouched).
 //
-// Exposes the day's stored verdict: readiness_score + execution mode (from
-// bbf_daily_protocols.directive_log), the macro targets, the raw vitals row, and
-// severity flags (isBreach / isSuppressed — HRV < 35 ms mirrors wearableApi's
-// clinical floor).
+// MATERIAL UPGRADE (store, not per-hook fetch): the ledger envelope lives in a
+// module-level store behind useSyncExternalStore. All consumers share one cached
+// payload + one in-flight RPC — a tab swap that used to re-fire the ledger read
+// now paints instantly from the warm cache and revalidates only when the soft
+// TTL lapses or the calendar day rolls. The derived view-model is computed ONCE
+// per commit and shared by reference, so downstream useMemo/React.memo guards
+// hold across consumers.
 //
 // FRESHNESS GATE: a protocol older than 48 h must not keep locking HIIT tracks or
 // slicing volume — stale telemetry reads as "no telemetry" (hasData=false), which
@@ -16,10 +20,10 @@
 // punishes the athlete (same stance as the readiness engine itself).
 //
 // LIVE RELAY: the Client Hub dispatches PROTOCOL_UPDATED_EVENT after a successful
-// sync→engine→log pipeline; any mounted consumer refetches, so a fresh morning
-// check-in re-regulates an open tab without a reload (the wearableApi pattern).
+// sync→engine→log pipeline; the store force-refetches once and every mounted
+// consumer re-renders from the same fresh commit — no reload, no fan-out.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { fetchBiometricLedger } from './biometricsApi.js';
 import { HRV_BREACH_MS } from './wearableApi.js';
 
@@ -28,6 +32,11 @@ export const PROTOCOL_UPDATED_EVENT = 'bbf:protocol-updated';
 
 // Honor a stored protocol for this many days back (0 = today, 1 = yesterday).
 const MAX_PROTOCOL_AGE_DAYS = 1;
+
+// Warm-cache window: serve the stored envelope and skip the RPC inside this
+// window (the live relay event always busts it). A daily verdict does not move
+// minute-to-minute; tab churn must not re-buy the same payload.
+const SOFT_TTL_MS = 5 * 60 * 1000;
 
 function num(x) { const n = Number(x); return Number.isFinite(n) ? n : null; }
 
@@ -93,25 +102,85 @@ export function deriveDailyReadiness(res) {
   };
 }
 
-// Hook: the day's readiness verdict. Fetches on mount + on PROTOCOL_UPDATED_EVENT.
+// Agentic Handshake channel — maps the day's verdict onto the UI morph state the
+// shell + hub paint through the [data-bbf-mode] CSS channel. 'none' (no usable
+// telemetry) always reads as the neutral, unrestricted interface.
+export function handshakeChannel(vm) {
+  if (!vm || !vm.hasData) return 'none';
+  if (vm.isBreach) return 'breach';
+  switch (vm.mode) {
+    case 'PRIME_EXECUTION': return 'prime';
+    case 'STANDARD_OPERATIONS': return 'standard';
+    case 'SYSTEM_STRAIN': return 'strain';
+    case 'SYSTEM_BREACH': return 'breach';
+    default: return 'none';
+  }
+}
+
+// ── Module store ─────────────────────────────────────────────────────────────
+let ledgerRes;          // undefined until first commit; then envelope | null
+let readinessVM = null; // derived once per commit — shared by reference
+let fetchedAt = 0;
+let fetchedDay = '';
+let inflight = null;
+let wired = false;
+const subscribers = new Set();
+
+function emit() { subscribers.forEach((fn) => fn()); }
+function subscribe(fn) { subscribers.add(fn); return () => subscribers.delete(fn); }
+function getReadinessSnapshot() { return readinessVM; }
+function getLedgerSnapshot() { return ledgerRes; }
+
+function commit(res) {
+  ledgerRes = res;
+  readinessVM = deriveDailyReadiness(res);
+  fetchedAt = Date.now();
+  fetchedDay = localToday();
+  emit();
+  return res;
+}
+
+function isWarm() {
+  return ledgerRes !== undefined &&
+    fetchedDay === localToday() &&
+    Date.now() - fetchedAt < SOFT_TTL_MS;
+}
+
+// Single-flight loader: concurrent mounts share one RPC; warm cache short-circuits.
+function load(force = false) {
+  if (!force && isWarm()) return Promise.resolve(ledgerRes);
+  if (inflight) return inflight;
+  inflight = fetchBiometricLedger()
+    .then((res) => commit(res || null))
+    .catch(() => commit(null))
+    .finally(() => { inflight = null; });
+  return inflight;
+}
+
+// One window listener for the whole store (not one per consumer): the live relay
+// busts the cache exactly once however many surfaces are mounted.
+function ensureWired() {
+  if (wired || typeof window === 'undefined') return;
+  wired = true;
+  window.addEventListener(PROTOCOL_UPDATED_EVENT, () => { load(true); });
+}
+
+// Hook: the day's readiness verdict. Warm-cache read; revalidates on TTL lapse,
+// day roll, or PROTOCOL_UPDATED_EVENT. Same { data, loading, refetch } contract
+// the consumers have always held.
 export function useDailyReadiness() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const data = useSyncExternalStore(subscribe, getReadinessSnapshot);
+  useEffect(() => { ensureWired(); load(); }, []);
+  const refetch = useCallback(() => { load(true); }, []);
+  return { data, loading: data === null, refetch };
+}
 
-  const refetch = useCallback(() => {
-    fetchBiometricLedger()
-      .then((res) => { setData(deriveDailyReadiness(res)); setLoading(false); })
-      .catch(() => { setData(deriveDailyReadiness(null)); setLoading(false); });
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    // Defer the initial fetch to a microtask (async-only setState in effects).
-    queueMicrotask(() => { if (!cancelled) refetch(); });
-    const onUpdated = () => refetch();
-    window.addEventListener(PROTOCOL_UPDATED_EVENT, onUpdated);
-    return () => { cancelled = true; window.removeEventListener(PROTOCOL_UPDATED_EVENT, onUpdated); };
-  }, [refetch]);
-
-  return { data, loading, refetch };
+// Hook: the RAW ledger envelope (series + latest_protocol) off the same store —
+// the Check-In hub's mount read shares the exact payload the regulated surfaces
+// consume instead of issuing its own duplicate RPC.
+export function useBiometricLedger() {
+  const res = useSyncExternalStore(subscribe, getLedgerSnapshot);
+  useEffect(() => { ensureWired(); load(); }, []);
+  const refetch = useCallback(() => load(true), []);
+  return { ledger: res === undefined ? null : res, loading: res === undefined, refetch };
 }

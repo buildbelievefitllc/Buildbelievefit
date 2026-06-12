@@ -40,7 +40,61 @@
   --st: env(safe-area-inset-top, 0px);
   --sb: env(safe-area-inset-bottom, 0px);
 
+  /* — Sovereign Dossier · Material Upgrade (CEO order) —
+     Void ambient SURFACE system: pitch-black canvas + deep void purples. These
+     are surfaces/ambience ONLY — BBF Purple #6a0dad and BBF Gold #f5c800 remain
+     the LOCKED identity accents (§2) for CTAs, flags, and brand marks. */
+  --void-0: #050505;  /* dominant pitch-black canvas */
+  --void-1: #1a0b2e;  /* deep ambient void purple */
+  --void-2: #3b1c61;  /* void purple, lifted register */
+
+  /* Shared dossier panel chassis — single definition consolidates the repeated
+     near-black card gradients/borders previously duplicated across vault,
+     sovereignHub, and hub-stat style blocks. */
+  --panel-grad: linear-gradient(168deg, rgba(26, 11, 46, .52) 0%, rgba(9, 6, 14, .94) 52%, rgba(5, 5, 5, .97) 100%);
+  --panel-edge: rgba(106, 13, 173, .26);
+  --panel-edge-hot: rgba(245, 200, 0, .4);
+  --glow-gold: 0 0 36px -12px rgba(245, 200, 0, .5);
+  --glow-purple: 0 26px 64px -34px rgba(106, 13, 173, .9);
+
   color-scheme: dark;
+}
+
+/* ── Agentic Handshake channel ────────────────────────────────────────────────
+   The interface morphs off the athlete's computed Sovereign Readiness mode.
+   Any subtree carrying [data-bbf-mode] re-keys these custom properties; the
+   Vault shell sets it at the screen root, the Check-In dossier re-keys it
+   locally. Registered via @property so supporting engines (Chromium WebView —
+   the BBF Lab internal track — and modern Safari) interpolate the morph
+   cinematically; older engines snap, losing nothing functional. */
+@property --mode-flag { syntax: '<color>'; inherits: true; initial-value: #8b1abf; }
+@property --mode-glow { syntax: '<color>'; inherits: true; initial-value: rgba(106, 13, 173, 0.16); }
+@property --mode-edge { syntax: '<color>'; inherits: true; initial-value: rgba(106, 13, 173, 0.32); }
+
+:root {
+  --mode-flag: #8b1abf;                 /* neutral: purple-light */
+  --mode-glow: rgba(106, 13, 173, .16);
+  --mode-edge: rgba(106, 13, 173, .32);
+}
+[data-bbf-mode='prime'] {
+  --mode-flag: #f5c800;                 /* LOCKED BBF Gold — elite readiness flag */
+  --mode-glow: rgba(245, 200, 0, .14);
+  --mode-edge: rgba(245, 200, 0, .5);
+}
+[data-bbf-mode='standard'] {
+  --mode-flag: #8b1abf;
+  --mode-glow: rgba(106, 13, 173, .3);
+  --mode-edge: rgba(139, 26, 191, .55);
+}
+[data-bbf-mode='strain'] {
+  --mode-flag: #ffb14d;                 /* semantic caution (matches mode chips) */
+  --mode-glow: rgba(255, 177, 77, .12);
+  --mode-edge: rgba(255, 177, 77, .45);
+}
+[data-bbf-mode='breach'] {
+  --mode-flag: #ff6b6b;                 /* semantic critical (matches mode chips) */
+  --mode-glow: rgba(255, 107, 107, .13);
+  --mode-edge: rgba(255, 107, 107, .5);
 }
 
 /* ── reset / base ─────────────────────────────────────────────────────────── */
@@ -52,7 +106,7 @@ html, body, #root {
 }
 
 body {
-  background: var(--blk);
+  background: var(--void-0);
   color: var(--wht);
   font-family: var(--bd);
   font-weight: 600;

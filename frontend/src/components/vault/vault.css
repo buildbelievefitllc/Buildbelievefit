@@ -116,8 +116,8 @@
 
 /* ── Exercise cards (collapsible) ────────────────────────────────────────── */
 .pg-ex {
-  background: linear-gradient(180deg, #141414, #0e0e0e);
-  border: 1px solid #1c1c1c;
+  background: var(--panel-grad);
+  border: 1px solid var(--panel-edge);
   border-radius: 16px;
   margin-bottom: .85rem;
   overflow: hidden;
@@ -551,13 +551,21 @@
    Vault shell (ClientVault) + Hub dashboard (Phase 20.2)
    Premium top-bar + tab navigation and stat-card/heatmap dashboard.
    ═════════════════════════════════════════════════════════════════════════ */
+/* Sovereign Dossier canvas — pitch-black void with ambient purple depth. The
+   first radial layer rides the Agentic Handshake (--mode-glow), so the whole
+   screen's atmosphere morphs with the athlete's computed readiness mode. */
 .cv-screen {
   min-height: 100%;
-  background: linear-gradient(180deg, var(--purp) 0%, var(--blk) 42%);
+  background:
+    radial-gradient(1200px 540px at 85% -10%, var(--mode-glow), transparent 62%),
+    radial-gradient(880px 640px at -15% 18%, rgba(26, 11, 46, .9), transparent 58%),
+    radial-gradient(720px 520px at 110% 64%, rgba(59, 28, 97, .2), transparent 60%),
+    linear-gradient(178deg, var(--void-1) 0%, var(--void-0) 34%, var(--void-0) 100%);
   padding-bottom: calc(2rem + var(--sb));
+  transition: --mode-flag .9s ease, --mode-glow .9s ease, --mode-edge .9s ease;
 }
 
-/* sticky, blurred command top bar */
+/* sticky, blurred command top bar — bottom edge carries the handshake tint */
 .cv-topbar {
   position: sticky;
   top: 0;
@@ -568,10 +576,39 @@
   gap: 1rem;
   flex-wrap: wrap;
   padding: calc(.9rem + var(--st)) 1.2rem .9rem;
-  background: linear-gradient(180deg, rgba(30, 3, 56, .92), rgba(8, 8, 8, .8));
+  background: linear-gradient(180deg, rgba(26, 11, 46, .94), rgba(5, 5, 5, .82));
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(245, 200, 0, .14);
+  border-bottom: 1px solid var(--mode-edge);
+  transition: border-color .9s ease;
+}
+
+/* ── Readiness beacon — the Agentic Handshake's living pulse in the top bar ── */
+.cv-beacon {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-family: var(--hb); font-size: .68rem; letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--mode-flag);
+  border: 1px solid var(--mode-edge); border-radius: 999px;
+  padding: .3rem .75rem;
+  background: rgba(5, 5, 5, .5);
+  white-space: nowrap;
+}
+.cv-beacon-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--mode-flag);
+  box-shadow: 0 0 10px var(--mode-flag);
+  animation: cv-beacon-pulse 2.6s ease-in-out infinite;
+}
+@keyframes cv-beacon-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+.cv-beacon-score { font-family: var(--display); font-size: .98rem; letter-spacing: 1px; color: var(--wht); }
+@media (max-width: 640px) {
+  .cv-beacon-mode { display: none; } /* phone: dot + score only */
+}
+@media (prefers-reduced-motion: reduce) {
+  .cv-beacon-dot { animation: none; }
 }
 .cv-brand { display: flex; flex-direction: column; gap: .15rem; }
 .cv-logo { font-family: var(--hb); font-size: 1.35rem; font-weight: 900; letter-spacing: 3px; color: var(--wht); }
@@ -625,6 +662,24 @@
 .cv-tab.is-locked.is-active { color: var(--wht); border-bottom-color: var(--pur); text-shadow: none; }
 .cv-tab-lock { font-size: .72em; margin-left: .32rem; opacity: .85; vertical-align: baseline; }
 
+/* ── Agentic Handshake — tab-rail morph ─────────────────────────────────────
+   STRAIN / BREACH: high-output surfaces recede; recovery protocols light up in
+   the mode tint (tabs stay clickable — each surface enforces its own hard
+   regulation). PRIME: high-output surfaces lift into execution emphasis. */
+[data-bbf-mode='strain'] .cv-tab.is-impact-high:not(.is-active):not(:hover),
+[data-bbf-mode='breach'] .cv-tab.is-impact-high:not(.is-active):not(:hover) {
+  color: rgba(249, 245, 255, .26);
+}
+[data-bbf-mode='strain'] .cv-tab.is-impact-recovery:not(.is-active),
+[data-bbf-mode='breach'] .cv-tab.is-impact-recovery:not(.is-active) {
+  color: var(--mode-flag);
+  text-shadow: 0 0 14px var(--mode-glow);
+}
+[data-bbf-mode='prime'] .cv-tab.is-impact-high:not(.is-active) {
+  color: rgba(249, 245, 255, .8);
+  text-shadow: 0 0 12px rgba(245, 200, 0, .22);
+}
+
 /* ════════════════════════════════════════════════════════════════════════════
    VAULT PROTOTYPE HEADER (Phase 25) — persistent client-profile header that sits
    above the nested nav (AI Studio prototype parity). Deep-purple / near-black
@@ -633,12 +688,23 @@
    ════════════════════════════════════════════════════════════════════════════ */
 .cv-head { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.4rem; }
 
-/* shared clinical card surface */
+/* shared dossier panel surface (consolidated --panel chassis tokens) */
 .cv-portal, .cv-identity, .cv-blueprint {
-  background: linear-gradient(180deg, #0f0a18, #0a0710);
-  border: 1px solid #241a33;
-  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  background: var(--panel-grad);
+  border: 1px solid var(--panel-edge);
+  border-radius: 16px;
   padding: 1.3rem 1.4rem;
+}
+
+/* ambient handshake sheen on the lead portal card */
+.cv-portal::after {
+  content: '';
+  position: absolute; top: -55%; right: -6%;
+  width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, var(--mode-glow), transparent 68%);
+  pointer-events: none;
 }
 
 /* outlined gold pill */
@@ -722,8 +788,8 @@
 /* ── Admin · Personal Threshold Settings dashboard ───────────────────────── */
 .cv-adm {
   display: flex; flex-direction: column; gap: 1.1rem;
-  background: linear-gradient(180deg, #0f0a18, #0a0710);
-  border: 1px solid #241a33; border-radius: 14px; padding: 1.4rem 1.45rem;
+  background: var(--panel-grad);
+  border: 1px solid var(--panel-edge); border-radius: 16px; padding: 1.4rem 1.45rem;
 }
 .cv-adm-head { display: flex; flex-direction: column; gap: .25rem; }
 .cv-adm-kicker { font-family: var(--hb); font-size: .62rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold-soft); }
@@ -765,8 +831,8 @@
 /* ── Hub dashboard — Performance Index + 30-day heatmap (prototype cards) ─── */
 .pg-hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .7rem; margin-bottom: 1.8rem; }
 .pg-stat {
-  background: linear-gradient(180deg, #0f0a18, #0a0710);
-  border: 1px solid #241a33; border-top: 3px solid var(--mut); border-radius: 12px; padding: 1rem 1.05rem;
+  background: var(--panel-grad);
+  border: 1px solid var(--panel-edge); border-top: 3px solid var(--mut); border-radius: 12px; padding: 1rem 1.05rem;
   transition: border-color .15s ease;
 }
 .pg-stat:hover { border-color: rgba(139, 26, 191, .5); }

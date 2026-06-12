@@ -12,31 +12,38 @@
 //                   runSovereignEngine (deterministic, client-side) →
 //                   bbf_log_daily_protocol → render score / vitals / directives.
 //
-// NO placeholder data: every rendered figure is the live native payload, the
-// engine's computed protocol, or the athlete's stored ledger (mount fetch).
-// Hook discipline: mount fetch sets state only from async callbacks (guarded by a
-// cancelled flag); the sync pipeline runs in a useCallback handler — no effect
-// loops. Aesthetic: LOCKED brand tokens (Bebas/Barlow, purple/gold) via vault CSS
-// variables; matte-black is surface only.
+// MATERIAL UPGRADE (Sovereign Dossier): the verdict renders as an asymmetric
+// intelligence brief — readiness dial (SVG arc, mode-tinted) on the verdict
+// column, telemetry strip + directive log on the intel column. The whole dossier
+// carries the [data-bbf-mode] Agentic Handshake channel, so its ambient chrome
+// morphs with the computed mode. Null-integrity: the four vital slots ALWAYS
+// render — a missed sync window ghosts the slot ("No Signal") instead of
+// collapsing the layout. No placeholder data: every figure is the live native
+// payload, the engine's protocol, or the stored ledger.
+//
+// Hook discipline: the mount ledger read comes off the SHARED biometric store
+// (useBiometricLedger — same payload Smart Cardio / Nutrition / Program consume,
+// zero duplicate RPCs); the sync pipeline runs in a useCallback handler — no
+// effect loops. Aesthetic: LOCKED brand tokens (Bebas/Barlow, purple/gold) via
+// vault CSS variables; the void palette is surface only.
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useHealthConnectSync } from '../../lib/healthConnectSync.js';
-import { PROTOCOL_UPDATED_EVENT } from '../../lib/useDailyReadiness.js';
+import { PROTOCOL_UPDATED_EVENT, useBiometricLedger } from '../../lib/useDailyReadiness.js';
 import { runSovereignEngine } from '../../lib/bbf-readiness-engine';
 import {
   mapRecoveryToBiometricDay,
   toProtocolRow,
   syncBiometricDay,
   logDailyProtocol,
-  fetchBiometricLedger,
 } from '../../lib/biometricsApi.js';
 import './sovereignHub.css';
 
 const GOVERNOR_KEY = 'bbf-sch-governor'; // 'manual' | 'auto'
 const PLATFORM_KEY = 'bbf-sch-platform'; // 'android' | 'ios' | ''
 
-// Execution-mode chrome: dictionary key + status class. Status colors are
+// Execution-mode chrome: dictionary key + handshake channel. Channel colors are
 // semantic dashboard state (like the dossier's risk verdicts), not brand marks.
 const MODE_META = {
   PRIME_EXECUTION: { tKey: 'sch-mode-prime', cls: 'prime' },
@@ -56,6 +63,9 @@ function writePref(key, value) {
   try { localStorage.setItem(key, value); } catch { /* private mode — non-fatal */ }
 }
 
+function hasVal(x) {
+  return x !== null && x !== undefined && x !== '' && Number.isFinite(Number(x));
+}
 function fmt(n, dp = 0) {
   const v = Number(n);
   if (!Number.isFinite(v)) return '—';
@@ -65,6 +75,32 @@ function fmtSleep(min) {
   const v = Number(min);
   if (!Number.isFinite(v)) return '—';
   return `${Math.floor(v / 60)}h ${String(Math.round(v % 60)).padStart(2, '0')}m`;
+}
+
+// ── Readiness dial — the dossier centerpiece. Pure SVG arc; stroke rides the
+// Agentic Handshake --mode-flag channel so the ring tints with the verdict. ──
+const DIAL_R = 56;
+const DIAL_C = 2 * Math.PI * DIAL_R;
+
+function ReadinessDial({ score }) {
+  const has = hasVal(score);
+  const pct = has ? Math.min(100, Math.max(0, Number(score))) : 0;
+  return (
+    <div className={`sch-dial${has ? '' : ' is-void'}`}>
+      <svg className="sch-dial-svg" viewBox="0 0 128 128" aria-hidden="true">
+        <circle className="sch-dial-track" cx="64" cy="64" r={DIAL_R} />
+        <circle
+          className="sch-dial-fill"
+          cx="64" cy="64" r={DIAL_R}
+          strokeDasharray={`${((pct / 100) * DIAL_C).toFixed(2)} ${DIAL_C.toFixed(2)}`}
+        />
+      </svg>
+      <div className="sch-dial-core">
+        <span className="sch-score" data-testid="sch-score">{has ? fmt(score) : '—'}</span>
+        <span className="sch-dial-cap">/ 100</span>
+      </div>
+    </div>
+  );
 }
 
 export default function SovereignClientHub() {
@@ -84,15 +120,9 @@ export default function SovereignClientHub() {
     writePref(PLATFORM_KEY, p);
   }, []);
 
-  // ── Ledger continuity: last stored state on mount (async-only setState) ──
-  const [ledger, setLedger] = useState(null);
-  useEffect(() => {
-    let cancelled = false;
-    fetchBiometricLedger()
-      .then((res) => { if (!cancelled && res && res.ok) setLedger(res); })
-      .catch(() => { /* ledger optional on mount — sync still works */ });
-    return () => { cancelled = true; };
-  }, []);
+  // ── Ledger continuity off the SHARED biometric store (no duplicate RPC) ──
+  const { ledger: ledgerRes } = useBiometricLedger();
+  const ledger = ledgerRes && ledgerRes.ok ? ledgerRes : null;
 
   // ── The sync pipeline (Android path) ──
   const [busy, setBusy] = useState(false);
@@ -116,8 +146,8 @@ export default function SovereignClientHub() {
       const logged = await logDailyProtocol(toProtocolRow(protocol));
       if (!logged || !logged.ok) throw new Error(logged && logged.error ? `Protocol log failed — ${logged.error}.` : 'Protocol log failed.');
       setLive({ day, protocol });
-      // Broadcast the fresh verdict — Cardio / Nutrition / Program re-regulate
-      // live off the shared useDailyReadiness channel, no reload.
+      // Broadcast the fresh verdict — the shared store force-refetches once and
+      // Cardio / Nutrition / Program / the Vault shell re-regulate live, no reload.
       try {
         window.dispatchEvent(new CustomEvent(PROTOCOL_UPDATED_EVENT, { detail: { date: protocol.date } }));
       } catch { /* non-fatal */ }
@@ -172,6 +202,15 @@ export default function SovereignClientHub() {
 
   const modeMeta = (view && view.mode && MODE_META[view.mode]) || null;
   const working = busy || syncing;
+
+  // Telemetry strip — the four slots ALWAYS render once a verdict exists; a
+  // missing vital ghosts its slot instead of collapsing the grid (null-integrity).
+  const vitalSlots = view ? [
+    { id: 'hrv', label: `${t('sch-hrv')} (ms)`, raw: view.vitals ? view.vitals.hrv_ms : null, render: (x) => fmt(x, 1) },
+    { id: 'sleep', label: t('sch-sleep'), raw: view.vitals ? view.vitals.sleep_minutes : null, render: fmtSleep },
+    { id: 'burn', label: `${t('sch-burn')} (kcal)`, raw: view.vitals ? view.vitals.active_calories_burned : null, render: (x) => fmt(x) },
+    { id: 'steps', label: t('sch-steps'), raw: view.vitals ? view.vitals.daily_steps : null, render: (x) => fmt(x) },
+  ] : [];
 
   return (
     <section className="sch" data-testid="sovereign-client-hub">
@@ -274,85 +313,86 @@ export default function SovereignClientHub() {
             </div>
           ) : null}
 
-          {/* ── VERDICT — readiness, vitals, directives (real data only) ── */}
+          {/* ── VERDICT — the Sovereign Dossier (real data only) ── */}
           {view ? (
-            <div className="sch-results">
-              <div className="sch-card sch-score-card">
+            <div className="sch-dossier" data-bbf-mode={modeMeta ? modeMeta.cls : 'none'}>
+              {/* Column A — the verdict */}
+              <div className="sch-card sch-verdict">
                 <div className="sch-label">{t('sch-readiness')}</div>
-                <div className="sch-score-row">
-                  <div className="sch-score" data-testid="sch-score">
-                    {view.score === null || view.score === undefined ? '—' : fmt(view.score)}
-                  </div>
-                  {modeMeta ? (
-                    <span className={`sch-mode sch-mode--${modeMeta.cls}`}>{t(modeMeta.tKey)}</span>
-                  ) : null}
-                </div>
-              </div>
-
-              {view.vitals ? (
-                <div className="sch-card">
-                  <div className="sch-label">{t('sch-vitals')}</div>
-                  <div className="sch-vitals">
-                    <div className="sch-vital">
-                      <span className="sch-vital-v">{fmt(view.vitals.hrv_ms, 1)}</span>
-                      <span className="sch-vital-k">{t('sch-hrv')} (ms)</span>
-                    </div>
-                    <div className="sch-vital">
-                      <span className="sch-vital-v">{fmtSleep(view.vitals.sleep_minutes)}</span>
-                      <span className="sch-vital-k">{t('sch-sleep')}</span>
-                    </div>
-                    <div className="sch-vital">
-                      <span className="sch-vital-v">{fmt(view.vitals.active_calories_burned)}</span>
-                      <span className="sch-vital-k">{t('sch-burn')} (kcal)</span>
-                    </div>
-                    <div className="sch-vital">
-                      <span className="sch-vital-v">{fmt(view.vitals.daily_steps)}</span>
-                      <span className="sch-vital-k">{t('sch-steps')}</span>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="sch-card">
-                <div className="sch-label">{t('sch-directives')}</div>
-
+                <ReadinessDial score={view.score} />
+                {modeMeta ? (
+                  <span className={`sch-mode sch-mode--${modeMeta.cls}`}>{t(modeMeta.tKey)}</span>
+                ) : null}
                 <div className="sch-volume">
                   <span className="sch-volume-k">{t('sch-volume')}</span>
                   <span className="sch-volume-v">
                     {view.volume === null || view.volume === undefined ? '—' : `×${Number(view.volume).toFixed(2)}`}
                   </span>
                 </div>
-
-                {view.carb !== null && view.fat !== null && view.protein !== null ? (
-                  <div className="sch-macros">
-                    <div className="sch-macro-bar" aria-hidden="true">
-                      <span className="sch-macro-seg is-carb" style={{ width: `${view.carb}%` }} />
-                      <span className="sch-macro-seg is-fat" style={{ width: `${view.fat}%` }} />
-                      <span className="sch-macro-seg is-protein" style={{ width: `${view.protein}%` }} />
-                    </div>
-                    <div className="sch-macro-legend">
-                      <span>{t('sch-carbs')} {fmt(view.carb)}%</span>
-                      <span>{t('sch-fat')} {fmt(view.fat)}%</span>
-                      <span>{t('sch-protein')} {fmt(view.protein)}%</span>
-                    </div>
-                  </div>
-                ) : null}
-
-                {view.cardio ? (
-                  <div className="sch-cardio">
-                    <span className="sch-cardio-k">{t('sch-cardio')}</span>
-                    <span className="sch-cardio-v">{view.cardio}</span>
-                  </div>
-                ) : null}
-
-                {view.directives && view.directives.length ? (
-                  <ul className="sch-log">
-                    {view.directives.map((d, i) => (
-                      <li key={i}>{d}</li>
-                    ))}
-                  </ul>
-                ) : null}
               </div>
+
+              {/* Column B — telemetry + directives intel */}
+              <div className="sch-intel">
+                <div className="sch-card">
+                  <div className="sch-label">{t('sch-vitals')}</div>
+                  <div className="sch-vitals">
+                    {vitalSlots.map((s) => {
+                      const has = hasVal(s.raw);
+                      return (
+                        <div key={s.id} className={`sch-vital${has ? '' : ' is-void'}`}>
+                          <span className="sch-vital-v">{has ? s.render(s.raw) : '—'}</span>
+                          <span className="sch-vital-k">{s.label}</span>
+                          {!has ? <span className="sch-vital-void">{t('sch-no-signal')}</span> : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="sch-card">
+                  <div className="sch-label">{t('sch-directives')}</div>
+
+                  {view.carb !== null && view.fat !== null && view.protein !== null ? (
+                    <div className="sch-macros">
+                      <div className="sch-macro-bar" aria-hidden="true">
+                        <span className="sch-macro-seg is-carb" style={{ width: `${view.carb}%` }} />
+                        <span className="sch-macro-seg is-fat" style={{ width: `${view.fat}%` }} />
+                        <span className="sch-macro-seg is-protein" style={{ width: `${view.protein}%` }} />
+                      </div>
+                      <div className="sch-macro-legend">
+                        <span>{t('sch-carbs')} {fmt(view.carb)}%</span>
+                        <span>{t('sch-fat')} {fmt(view.fat)}%</span>
+                        <span>{t('sch-protein')} {fmt(view.protein)}%</span>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {view.cardio ? (
+                    <div className="sch-cardio">
+                      <span className="sch-cardio-k">{t('sch-cardio')}</span>
+                      <span className="sch-cardio-v">{view.cardio}</span>
+                    </div>
+                  ) : null}
+
+                  {view.directives && view.directives.length ? (
+                    <ol className="sch-log">
+                      {view.directives.map((d, i) => (
+                        <li key={i}>
+                          <span className="sch-log-idx" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                          {d}
+                        </li>
+                      ))}
+                    </ol>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : platform !== 'ios' ? (
+            /* ── AWAITING TELEMETRY — premium empty dossier, never a blank pane ── */
+            <div className="sch-card sch-await" data-testid="sch-awaiting">
+              <span className="sch-await-ring" aria-hidden="true" />
+              <div className="sch-await-title">{t('sch-awaiting-title')}</div>
+              <p className="sch-body">{t('sch-awaiting-body')}</p>
             </div>
           ) : null}
         </>

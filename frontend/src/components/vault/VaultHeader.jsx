@@ -14,7 +14,7 @@
 // Pure presentational: it receives the already-fetched profile + plan envelope
 // from the Vault shell; no fetching of its own.
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { parseWorkoutPlan, parseMealPlan } from '../../lib/vaultApi.js';
 import { getProgram } from './programData.js';
 import './vault.css';
@@ -60,7 +60,7 @@ function initials(name) {
   return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
 }
 
-export default function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = '', programKey = '', isAdmin = false }) {
+function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = '', programKey = '', isAdmin = false }) {
   const today = useMemo(() => {
     const assigned = parseWorkoutPlan(plans?.workoutPlan || '');
     const plan = Array.isArray(assigned) && assigned.length ? assigned : getProgram(programKey);
@@ -147,3 +147,7 @@ export default function VaultHeader({ profile, plans = null, displayName = 'Athl
     </section>
   );
 }
+
+// memo: the header is pure presentation off shell-owned props — tab swaps and
+// readiness commits in the shell must not re-paint these three cards.
+export default memo(VaultHeader);
