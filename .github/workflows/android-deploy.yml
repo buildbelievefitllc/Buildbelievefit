@@ -1,9 +1,33 @@
 name: Sovereign Android Cloud Build & Deploy
 
+# Zero-touch internal-track deployment (Material Upgrade, DevOps wave):
+#   merge to main → web build (Vite, env baked from frontend/.env.production)
+#   → Capacitor sync → Gradle bundleRelease with a MONOTONIC versionCode
+#   (offset + run number; Play never rejects a reused code) → sign with the
+#   release keystore from repo secrets → upload straight to the Play Console
+#   INTERNAL track. The signed .aab is also kept as a run artifact (manual
+#   escape hatch / audit trail).
+#
+# The Play upload self-gates on GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: while that
+# one-time secret is absent the run stays green, keeps producing the signed
+# artifact, and prints the exact setup commands as a warning — it can never
+# silently half-deploy.
+
 on:
   push:
     branches:
       - main
+  workflow_dispatch: {}
+
+# A newer merge supersedes an in-flight build — never ship stale code behind it.
+concurrency:
+  group: android-deploy
+  cancel-in-progress: true
+
+env:
+  # versionCode = OFFSET + run number. OFFSET clears the highest manually
+  # uploaded code (9). Run numbers only ever increase, so codes stay monotonic.
+  BBF_VERSION_OFFSET: "9"
 
 jobs:
   build-and-deploy:
@@ -17,11 +41,13 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '22'
+        cache: npm
+        cache-dependency-path: frontend/package-lock.json
 
     - name: Install Web Dependencies & Build Assets
       run: |
         cd frontend
-        npm install
+        npm ci
         npm run build
 
     - name: Set up JDK 17
@@ -38,7 +64,17 @@ jobs:
         cd frontend
         npx cap sync android
 
+    - name: Compute Release Version
+      run: |
+        VERSION_CODE=$(( BBF_VERSION_OFFSET + GITHUB_RUN_NUMBER ))
+        echo "BBF_VERSION_CODE=${VERSION_CODE}" >> "$GITHUB_ENV"
+        echo "BBF_VERSION_NAME=1.0.${VERSION_CODE}" >> "$GITHUB_ENV"
+        echo "Release version: 1.0.${VERSION_CODE} (code ${VERSION_CODE})"
+
     - name: Build Release App Bundle
+      env:
+        BBF_VERSION_CODE: ${{ env.BBF_VERSION_CODE }}
+        BBF_VERSION_NAME: ${{ env.BBF_VERSION_NAME }}
       run: |
         cd frontend/android
         chmod +x gradlew
@@ -60,15 +96,32 @@ jobs:
         name: build-believe-fit-aab
         path: ${{ steps.sign_app.outputs.signedReleaseFile }}
 
-    # ── TEMPORARILY DISABLED — Play "First-Blood" Catch-22 ──────────────────
-    # The Play Developer API cannot upload the first-ever bundle for a package
-    # ("Package not found"). Seed the Play Console manually with the artifact
-    # above (Internal Testing → Create new release), then uncomment this step.
-    # - name: Upload to Google Play Internal Testing
-    #   uses: r0adkll/upload-google-play@v1
-    #   with:
-    #     serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-    #     packageName: fitness.buildbelievefit.twa
-    #     releaseFiles: ${{ steps.sign_app.outputs.signedReleaseFile }}
-    #     track: internal
-    #     status: completed
+    # ── Play Store bridge ────────────────────────────────────────────────────
+    # The original "first-blood" catch-22 is history: the package exists on the
+    # internal track (manual seeds up to versionCode 9), so the Play Developer
+    # API accepts uploads. The step gates on the service-account secret.
+    - name: Detect Play Credentials
+      id: play
+      env:
+        SA_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+      run: |
+        if [ -n "$SA_JSON" ]; then
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "configured=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Upload to Google Play Internal Track
+      if: steps.play.outputs.configured == 'true'
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        packageName: fitness.buildbelievefit.twa
+        releaseFiles: ${{ steps.sign_app.outputs.signedReleaseFile }}
+        track: internal
+        status: completed
+
+    - name: Play Upload Pending One-Time Setup
+      if: steps.play.outputs.configured != 'true'
+      run: |
+        echo "::warning title=Play upload skipped::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON secret is not set. One-time setup: (1) create a GCP service account + JSON key, (2) enable androidpublisher.googleapis.com, (3) Play Console → Users & permissions → invite the service-account email with 'Release to testing tracks' on BBF Lab, (4) gh secret set GOOGLE_PLAY_SERVICE_ACCOUNT_JSON < key.json. The signed .aab from this run is attached as the build-believe-fit-aab artifact meanwhile."
