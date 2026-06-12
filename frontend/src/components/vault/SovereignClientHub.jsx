@@ -31,7 +31,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useHealthConnectSync } from '../../lib/healthConnectSync.js';
 import { useBiometricLedger } from '../../lib/useDailyReadiness.js';
-import { runVitalsPipeline } from '../../lib/vitalsPipeline.js';
+import { runVitalsPipeline, useVitalsSyncStatus } from '../../lib/vitalsPipeline.js';
 import './sovereignHub.css';
 
 const GOVERNOR_KEY = 'bbf-sch-governor'; // 'manual' | 'auto'
@@ -117,6 +117,11 @@ export default function SovereignClientHub() {
   // ── Ledger continuity off the SHARED biometric store (no duplicate RPC) ──
   const { ledger: ledgerRes } = useBiometricLedger();
   const ledger = ledgerRes && ledgerRes.ok ? ledgerRes : null;
+
+  // ── Launch-pull diagnostic: the auto force-pull's raw outcome (no longer
+  // swallowed). Renders the EXACT native error so a permissions lock vs a plugin
+  // desync vs a timeout is visible, not a silent fallback to the stale row. ──
+  const syncStatus = useVitalsSyncStatus();
 
   // ── The sync pipeline (Android path) ──
   const [busy, setBusy] = useState(false);
@@ -207,6 +212,21 @@ export default function SovereignClientHub() {
           </span>
         ) : null}
       </header>
+
+      {/* ── LAUNCH SYNC DIAGNOSTIC — surfaces the auto force-pull's raw failure ── */}
+      {syncStatus.state === 'error' && syncStatus.error ? (
+        <div className="sch-diag" role="alert" data-testid="sch-sync-diag">
+          <div className="sch-diag-top">
+            <span className="sch-diag-glyph" aria-hidden="true">⚠</span>
+            <span className="sch-diag-title">
+              {t('sch-diag-title')}
+              {syncStatus.source === 'launch' ? ` · ${t('sch-diag-launch')}` : ''}
+            </span>
+          </div>
+          <code className="sch-diag-raw">{syncStatus.error}</code>
+          <p className="sch-diag-hint">{t('sch-diag-hint')}</p>
+        </div>
+      ) : null}
 
       {/* ── TACO SWITCH — master input governor ── */}
       <div className="sch-card">

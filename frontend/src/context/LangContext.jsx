@@ -328,6 +328,40 @@ const DICT = {
     es: 'Aún no hay signos vitales en el registro. Usa tu dispositivo durante la noche y luego ejecuta Sincronizar Signos Vitales — el motor Soberano emite su primer veredicto solo con telemetría real.',
     pt: 'Ainda não há sinais vitais no registro. Use seu dispositivo durante a noite e depois execute Sincronizar Sinais Vitais — o motor Soberano emite seu primeiro veredito apenas com telemetria real.',
   },
+  // Launch-sync diagnostic banner (aggressive native error surfacing). The raw
+  // native error string is shown verbatim (untranslated — it's a diagnostic);
+  // only the chrome is trilingual.
+  'sch-diag-title': { en: 'Live Sync Diagnostic', es: 'Diagnóstico de Sincronización', pt: 'Diagnóstico de Sincronização' },
+  'sch-diag-launch': { en: 'Launch Auto-Pull', es: 'Extracción Automática al Iniciar', pt: 'Extração Automática ao Iniciar' },
+  'sch-diag-hint': {
+    en: 'The automatic launch sync failed, so the dashboard is showing the last stored reading. Tap Synchronize Vitals to retry, and check Health Connect permissions if this persists.',
+    es: 'La sincronización automática al iniciar falló, por lo que el panel muestra la última lectura guardada. Toca Sincronizar Signos Vitales para reintentar y revisa los permisos de Health Connect si persiste.',
+    pt: 'A sincronização automática ao iniciar falhou, então o painel mostra a última leitura salva. Toque em Sincronizar Sinais Vitais para tentar novamente e verifique as permissões do Health Connect se persistir.',
+  },
+  // Sports Hub readiness banner (wired to the SAME useDailyReadiness pipeline —
+  // one source of truth for athlete biometrics). Mode chips reuse sch-mode-* keys.
+  'sh-rdy-kicker': { en: 'Sovereign Readiness · Live Telemetry', es: 'Prontitud Soberana · Telemetría en Vivo', pt: 'Prontidão Soberana · Telemetria ao Vivo' },
+  'sh-rdy-score': { en: 'Readiness', es: 'Prontitud', pt: 'Prontidão' },
+  'sh-rdy-prime': {
+    en: 'Cleared for full output — attack the session, then recover hard.',
+    es: 'Listo para rendimiento total — ataca la sesión y luego recupérate bien.',
+    pt: 'Liberado para desempenho total — ataque a sessão e depois recupere bem.',
+  },
+  'sh-rdy-standard': {
+    en: 'Green to train as prescribed — hit your targets with clean technique.',
+    es: 'Luz verde para entrenar según lo prescrito — cumple tus objetivos con técnica limpia.',
+    pt: 'Sinal verde para treinar conforme prescrito — cumpra suas metas com técnica limpa.',
+  },
+  'sh-rdy-strain': {
+    en: 'System strain — scale intensity back today and prioritize movement quality over load.',
+    es: 'Sistema en tensión — reduce la intensidad hoy y prioriza la calidad del movimiento sobre la carga.',
+    pt: 'Sistema em tensão — reduza a intensidade hoje e priorize a qualidade do movimento sobre a carga.',
+  },
+  'sh-rdy-breach': {
+    en: 'System breach — recovery only. No max-effort work today; protect the long-term athlete.',
+    es: 'Brecha del sistema — solo recuperación. Nada de esfuerzo máximo hoy; protege al atleta a largo plazo.',
+    pt: 'Violação do sistema — apenas recuperação. Nada de esforço máximo hoje; proteja o atleta a longo prazo.',
+  },
   // ── Vault header + Hub dossier chrome (Material Upgrade i18n enforcement) —
   // every shell string resolves here; the day-focus headline itself localizes
   // through trainingI18n.localizeFocus. ──

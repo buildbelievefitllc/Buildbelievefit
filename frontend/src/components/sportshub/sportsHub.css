@@ -15,11 +15,15 @@
   --sh-line: #2a1d45;
   --sh-line-soft: #1f1638;
   min-height: 100%;
+  /* Top layer rides the Agentic Handshake (--mode-glow) — the youth surface
+     morphs with the athlete's readiness mode, same channel as the adult Vault. */
   background:
-    radial-gradient(120% 90% at 50% -10%, rgba(106, 13, 173, .32), transparent 55%),
-    var(--blk);
+    radial-gradient(120% 70% at 50% -10%, var(--mode-glow, rgba(106, 13, 173, .32)), transparent 55%),
+    radial-gradient(120% 90% at 50% -10%, rgba(106, 13, 173, .22), transparent 55%),
+    var(--void-0, #050505);
   color: var(--wht);
   font-family: var(--bd);
+  transition: --mode-glow .9s ease;
 }
 .sh-screen *, .sh-screen *::before, .sh-screen *::after { box-sizing: border-box; }
 
@@ -48,6 +52,38 @@
 .sh-signout:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 
 .sh-container { max-width: 1080px; margin: 0 auto; padding: 1.4rem 1.2rem 2.4rem; }
+
+/* ── Sovereign Readiness banner — mode-tinted via the handshake channel. Only
+   mounts on a real verdict (ReadinessBanner gates on hasData). ── */
+.sh-rdy {
+  display: flex; flex-direction: column; gap: .7rem;
+  border: 1px solid var(--mode-edge, var(--sh-line));
+  border-left: 4px solid var(--mode-flag, var(--purl));
+  border-radius: 16px; padding: 1rem 1.2rem; margin-bottom: 1.2rem;
+  background:
+    radial-gradient(420px 220px at 0% -30%, var(--mode-glow), transparent 70%),
+    var(--sh-card);
+  transition: border-color .9s ease;
+}
+.sh-rdy-top { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
+.sh-rdy-kicker {
+  font-family: var(--hb); font-size: .64rem; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--gold-soft);
+}
+.sh-rdy-chip {
+  font-family: var(--bd); font-size: .72rem; font-weight: 800; letter-spacing: 1.6px;
+  text-transform: uppercase; border-radius: 999px; padding: .24rem .7rem;
+  border: 1px solid var(--mode-edge); color: var(--mode-flag);
+}
+.sh-rdy-chip.is-prime { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: var(--yel); }
+.sh-rdy-chip.is-strain { color: #ffb14d; border-color: rgba(255, 177, 77, .55); background: rgba(255, 177, 77, .08); }
+.sh-rdy-chip.is-breach { color: #ff6b6b; border-color: rgba(255, 107, 107, .55); background: rgba(255, 107, 107, .08); }
+.sh-rdy-body { display: flex; align-items: center; gap: 1.1rem; }
+.sh-rdy-score { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.sh-rdy-score-v { font-family: var(--display); font-size: 2.6rem; line-height: .9; color: var(--mode-flag, var(--yel)); text-shadow: 0 2px 20px var(--mode-glow); }
+.sh-rdy-score-k { font-family: var(--hb); font-size: .56rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); margin-top: .2rem; }
+.sh-rdy-dir { font-family: var(--bd); font-size: .95rem; font-weight: 600; line-height: 1.5; color: rgba(249, 245, 255, .82); margin: 0; }
+@media (max-width: 480px) { .sh-rdy-body { flex-direction: column; align-items: flex-start; gap: .6rem; } }
 
 /* ── Athlete identity hero ────────────────────────────────────────────────────
    A jersey-number plate + oversized Anton name = unmistakably the youth/varsity

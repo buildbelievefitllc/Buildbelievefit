@@ -5,36 +5,45 @@
    border, monospace). Scoped under .bbf-cardio so it never bleeds into T2's
    Program grid or the rest of the Vault. */
 
-.bbf-cardio { color: var(--wht); }
+/* Sovereign Dossier surface — void canvas + the Agentic Handshake channel. The
+   module re-keys [data-bbf-mode] at the root (SmartCardio), so its ambient halo
+   and panel edges morph with the athlete's readiness mode. Zone accents stay as
+   SEMANTIC intensity signal (green→red), like the readiness mode chips — they are
+   not brand marks. */
+.bbf-cardio {
+  position: relative;
+  color: var(--wht);
+  transition: --mode-flag .9s ease, --mode-glow .9s ease, --mode-edge .9s ease;
+}
 
 .bbf-cardio__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .3rem; }
 .bbf-cardio__title { font-family: var(--display); font-size: 1.5rem; letter-spacing: .5px; margin: 0; }
-.bbf-cardio__kicker { font-family: var(--bd); font-size: .72rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #FF4500; }
+.bbf-cardio__kicker { font-family: var(--bd); font-size: .72rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); }
 .bbf-cardio__sub { font-family: var(--bd); font-size: .92rem; color: var(--mut); line-height: 1.5; margin: .2rem 0 1.4rem; max-width: 60ch; }
 
-/* Zone legend — the three legacy modes */
+/* Zone legend — the three modes; zone-accent stays as the semantic intensity cue */
 .bbf-cardio__zones { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .7rem; margin-bottom: 1.6rem; }
-.bbf-cardio__zone { border: 1px solid var(--line); border-top: 3px solid var(--zone-accent, #FF4500); border-radius: 10px; padding: .8rem .9rem; background: var(--gry); }
-.bbf-cardio__zone-name { font-family: var(--hb); font-size: 1.05rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--zone-accent, #FF4500); }
+.bbf-cardio__zone { border: 1px solid var(--panel-edge); border-top: 3px solid var(--zone-accent, var(--yel)); border-radius: 12px; padding: .8rem .9rem; background: var(--panel-grad); }
+.bbf-cardio__zone-name { font-family: var(--hb); font-size: 1.05rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--zone-accent, var(--yel)); }
 .bbf-cardio__zone-blurb { font-family: var(--bd); font-size: .78rem; font-weight: 600; color: var(--mut); margin-top: .2rem; }
 
 .bbf-cardio__section-h { font-family: var(--hb); font-size: .95rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); margin: 1.6rem 0 .8rem; }
 
 /* Active protocol cards — the prescription, monospace + treadmill-readable */
 .bbf-cardio__protocols { display: flex; flex-direction: column; gap: .8rem; }
-.bbf-cardio__protocol { background: #0a0405; border: 2px solid #FF4500; border-radius: 10px; padding: 1.1rem 1.2rem; }
+.bbf-cardio__protocol { background: var(--panel-grad); border: 1px solid var(--panel-edge); border-left: 3px solid var(--zone-accent, var(--yel)); border-radius: 14px; padding: 1.1rem 1.2rem; }
 .bbf-cardio__protocol-top { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-bottom: .5rem; }
 .bbf-cardio__protocol-title { font-family: var(--hb); font-size: 1.1rem; letter-spacing: 1px; color: #fff; }
 .bbf-cardio__pill { font-family: var(--hb); font-size: .66rem; letter-spacing: 1.5px; text-transform: uppercase; padding: .25rem .55rem; border-radius: 6px; border: 1px solid currentColor; white-space: nowrap; }
 .bbf-cardio__targets { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-bottom: .6rem; }
 .bbf-cardio__target { display: flex; flex-direction: column; }
-.bbf-cardio__target-val { font-family: var(--display); font-size: 1.6rem; line-height: 1; color: #FF6A33; }
+.bbf-cardio__target-val { font-family: var(--display); font-size: 1.6rem; line-height: 1; color: var(--yel); }
 .bbf-cardio__target-lbl { font-family: var(--bd); font-size: .64rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); margin-top: .15rem; }
 .bbf-cardio__detail { font-family: ui-monospace, SFMono-Regular, Menlo, 'Courier New', monospace; font-size: .92rem; line-height: 1.65; color: #fff; white-space: pre-wrap; word-break: break-word; letter-spacing: .3px; }
 
 /* History table of logged sessions */
 .bbf-cardio__logs { display: flex; flex-direction: column; gap: .5rem; }
-.bbf-cardio__log { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .8rem; background: var(--gry); border: 1px solid var(--line); border-left: 3px solid var(--zone-accent, #FF4500); border-radius: 8px; padding: .7rem .9rem; }
+.bbf-cardio__log { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .8rem; background: var(--panel-grad); border: 1px solid var(--panel-edge); border-left: 3px solid var(--zone-accent, var(--yel)); border-radius: 10px; padding: .7rem .9rem; }
 .bbf-cardio__log-date { font-family: var(--bd); font-size: .8rem; font-weight: 700; color: var(--mut); }
 .bbf-cardio__log-main { display: flex; flex-direction: column; min-width: 0; }
 .bbf-cardio__log-zone { font-family: var(--hb); font-size: .95rem; letter-spacing: 1px; text-transform: uppercase; color: var(--zone-accent, #FF4500); }
@@ -43,12 +52,14 @@
 .bbf-cardio__log-dur span { font-family: var(--bd); font-size: .6rem; font-weight: 700; letter-spacing: 1.5px; color: var(--mut); }
 
 /* Logger form */
-.bbf-cardio__logger { background: var(--gry); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; margin-top: .4rem; }
+.bbf-cardio__logger { background: var(--panel-grad); border: 1px solid var(--panel-edge); border-radius: 14px; padding: 1.1rem 1.2rem; margin-top: .4rem; }
 .bbf-cardio__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .7rem; margin-bottom: .8rem; }
 .bbf-cardio__field { display: flex; flex-direction: column; gap: .3rem; }
 .bbf-cardio__field label { font-family: var(--bd); font-size: .68rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
 .bbf-cardio__actions { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
-.bbf-cardio__btn { font-family: var(--hb); font-size: .9rem; letter-spacing: 2px; text-transform: uppercase; color: #fff; background: #FF4500; border: 1px solid #FF4500; border-radius: 8px; padding: .7rem 1.4rem; cursor: pointer; }
+.bbf-cardio__btn { font-family: var(--hb); font-size: .9rem; letter-spacing: 2px; text-transform: uppercase; color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border: none; border-radius: 10px; padding: .7rem 1.4rem; cursor: pointer; transition: filter .15s ease, transform .1s ease; }
+.bbf-cardio__btn:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.bbf-cardio__btn:focus-visible { outline: 2px solid var(--wht); outline-offset: 2px; }
 .bbf-cardio__btn:disabled { opacity: .55; cursor: not-allowed; }
 .bbf-cardio__msg { font-family: var(--bd); font-size: .88rem; font-weight: 700; }
 .bbf-cardio__msg--err { color: var(--red); }
@@ -87,7 +98,7 @@
 
 .bbf-gps__grid-h { font-family: var(--hb); font-size: .9rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); margin: 1.2rem 0 .7rem; }
 .bbf-gps__grid { display: flex; flex-direction: column; gap: .45rem; }
-.bbf-gps__step { display: grid; grid-template-columns: 72px 1fr; gap: .9rem; align-items: stretch; background: #0a0405; border: 1px solid var(--line); border-left: 3px solid var(--phase-accent, #FF4500); border-radius: 8px; padding: .65rem .85rem; }
+.bbf-gps__step { display: grid; grid-template-columns: 72px 1fr; gap: .9rem; align-items: stretch; background: var(--void-0); border: 1px solid var(--panel-edge); border-left: 3px solid var(--phase-accent, var(--yel)); border-radius: 10px; padding: .65rem .85rem; }
 .bbf-gps__step-time { display: flex; flex-direction: column; justify-content: center; }
 .bbf-gps__step-range { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .95rem; font-weight: 700; color: #fff; letter-spacing: .5px; }
 .bbf-gps__step-dur { font-family: var(--bd); font-size: .64rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
@@ -109,8 +120,23 @@
 
 .bbf-gps__fallback { font-family: var(--bd); font-size: .76rem; font-weight: 600; font-style: italic; color: var(--mut); margin-top: .8rem; }
 
-/* ── Cardio Configurator (Phase 22.y) — client-side prescription preview ────── */
-.bbf-cfg { margin-bottom: 2rem; border: 1px solid var(--line); border-top: 3px solid var(--cfg-accent, #FF4500); border-radius: 14px; padding: 1.3rem 1.3rem 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,.015), transparent 40%); }
+/* ── Cardio Configurator — the living-coach prescription panel. Edge + ambient
+   halo ride the Agentic Handshake (--mode-edge / --mode-glow), so the whole
+   configurator visibly shifts register with the athlete's readiness mode. ── */
+.bbf-cfg {
+  position: relative; margin-bottom: 2rem;
+  border: 1px solid var(--mode-edge); border-radius: 16px;
+  padding: 1.3rem 1.3rem 1.5rem;
+  background:
+    radial-gradient(560px 320px at 50% -18%, var(--mode-glow), transparent 70%),
+    var(--panel-grad);
+  transition: border-color .9s ease;
+}
+.bbf-cfg::before {
+  content: ''; position: absolute; top: -1px; left: 20px;
+  width: 48px; height: 2px; background: linear-gradient(90deg, var(--yel), transparent);
+  opacity: .75; pointer-events: none;
+}
 .bbf-cfg__head { margin-bottom: 1.1rem; }
 .bbf-cfg__sub { font-family: var(--bd); font-size: .9rem; color: var(--mut); line-height: 1.5; margin: .3rem 0 0; max-width: 62ch; }
 .bbf-cfg__selectors { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .8rem; margin-bottom: 1.3rem; }
@@ -154,7 +180,7 @@
 .bbf-metab__kicker { font-family: var(--hb); font-size: .85rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); }
 .bbf-metab__total { font-family: var(--bd); font-size: .82rem; font-weight: 700; color: var(--gold-soft); }
 .bbf-metab__grid { display: flex; flex-direction: column; gap: .55rem; }
-.bbf-metab__row { border: 1px solid var(--line); border-left: 3px solid var(--metab-accent, #FF4500); border-radius: 8px; padding: .7rem .85rem; background: #0a0405; }
+.bbf-metab__row { border: 1px solid var(--panel-edge); border-left: 3px solid var(--metab-accent, var(--yel)); border-radius: 10px; padding: .7rem .85rem; background: var(--void-0); }
 .bbf-metab__row-top { display: flex; align-items: baseline; justify-content: space-between; gap: .7rem; }
 .bbf-metab__phase { font-family: var(--hb); font-size: .95rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--metab-accent, #FF4500); }
 .bbf-metab__mins { font-family: var(--bd); font-size: .78rem; font-weight: 700; color: var(--mut); white-space: nowrap; }
@@ -296,11 +322,14 @@
 
 /* ── CNS Telemetry dashboard (Sovereign readiness → cardio lockout) ────────── */
 .bbf-rdy {
-  border: 1px solid var(--line, #1c1c1c);
+  border: 1px solid var(--mode-edge, #1c1c1c);
   border-radius: 16px;
   padding: 1rem 1.1rem;
   margin: 0 0 1.1rem;
-  background: linear-gradient(180deg, #121212, #0d0d0d);
+  background:
+    radial-gradient(400px 220px at 0% -40%, var(--mode-glow), transparent 70%),
+    var(--panel-grad);
+  transition: border-color .9s ease;
 }
 .bbf-rdy.is-adaptive { border-color: rgba(255, 177, 77, .5); }
 .bbf-rdy.is-breach { border-color: rgba(255, 107, 107, .55); }

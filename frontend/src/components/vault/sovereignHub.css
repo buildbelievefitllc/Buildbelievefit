@@ -60,6 +60,33 @@
   padding: .55rem .8rem; margin-top: .7rem; background: rgba(255, 107, 107, .07);
 }
 
+/* ── Launch-sync diagnostic — surfaces the auto force-pull's RAW native error ── */
+.sch-diag {
+  border: 1px solid rgba(255, 177, 77, .5);
+  border-left: 4px solid #ffb14d;
+  border-radius: 14px;
+  padding: .9rem 1.05rem;
+  background:
+    radial-gradient(360px 200px at 0% -40%, rgba(255, 177, 77, .12), transparent 70%),
+    var(--panel-grad);
+}
+.sch-diag-top { display: flex; align-items: center; gap: .55rem; margin-bottom: .55rem; }
+.sch-diag-glyph { font-size: 1.05rem; line-height: 1; }
+.sch-diag-title {
+  font-family: var(--hb); font-size: .82rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: #ffb14d;
+}
+.sch-diag-raw {
+  display: block; font-family: var(--mono); font-size: .82rem; line-height: 1.5;
+  color: #ffd9a8; background: rgba(0, 0, 0, .4);
+  border: 1px solid rgba(255, 177, 77, .25); border-radius: 8px;
+  padding: .55rem .7rem; white-space: pre-wrap; word-break: break-word;
+}
+.sch-diag-hint {
+  font-family: var(--bd); font-size: .82rem; font-weight: 600; line-height: 1.5;
+  color: rgba(255, 255, 255, .68); margin: .6rem 0 0;
+}
+
 /* ── Taco Switch (master input governor) ── */
 .sch-switch { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
 .sch-seg {

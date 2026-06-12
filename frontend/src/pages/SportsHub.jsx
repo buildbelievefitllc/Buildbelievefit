@@ -22,6 +22,7 @@ import { useLang } from '../context/LangContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
 import { logYouthProgress } from '../lib/youthIntakeApi.js';
 import { useAthleteTelemetry } from '../lib/athleteTelemetryApi.js';
+import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
 import LangToggle from '../components/LangToggle.jsx';
 import { buildHubModel, buildWeek, applyProgress, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
 import { YOUTH_SPORTS, positionLabel } from '../components/sportshub/youthSports.js';
@@ -41,6 +42,42 @@ function firstTrainingDay(week) {
   return i === -1 ? 0 : i;
 }
 
+// Readiness mode → trilingual chip key + youth directive key. ONE source of truth:
+// this reads the SAME useDailyReadiness store the adult Vault regulates off.
+const SH_MODE = {
+  PRIME_EXECUTION: { chip: 'sch-mode-prime', dir: 'sh-rdy-prime' },
+  STANDARD_OPERATIONS: { chip: 'sch-mode-standard', dir: 'sh-rdy-standard' },
+  SYSTEM_STRAIN: { chip: 'sch-mode-strain', dir: 'sh-rdy-strain' },
+  SYSTEM_BREACH: { chip: 'sch-mode-breach', dir: 'sh-rdy-breach' },
+};
+
+// Honest readiness banner — renders ONLY on a real same-window verdict (hasData).
+// A youth athlete with no telemetry source shows nothing (no ghost UI); the moment
+// real biometrics flow through the shared pipeline, the banner + handshake light up.
+function ReadinessBanner({ readiness, t }) {
+  if (!readiness?.hasData || !readiness.mode) return null;
+  const meta = SH_MODE[readiness.mode];
+  if (!meta) return null;
+  const cls = readiness.isBreach ? 'breach'
+    : readiness.mode === 'SYSTEM_STRAIN' ? 'strain'
+    : readiness.mode === 'PRIME_EXECUTION' ? 'prime' : 'standard';
+  return (
+    <section className={`sh-rdy is-${cls}`} data-testid="sh-readiness-banner">
+      <div className="sh-rdy-top">
+        <span className="sh-rdy-kicker">{t('sh-rdy-kicker')}</span>
+        <span className={`sh-rdy-chip is-${cls}`}>{t(meta.chip)}</span>
+      </div>
+      <div className="sh-rdy-body">
+        <div className="sh-rdy-score">
+          <span className="sh-rdy-score-v">{readiness.score ?? '—'}</span>
+          <span className="sh-rdy-score-k">{t('sh-rdy-score')}</span>
+        </div>
+        <p className="sh-rdy-dir">{t(meta.dir)}</p>
+      </div>
+    </section>
+  );
+}
+
 // `selection` ({ sportId, positionCode }) is the athlete's intake choice and
 // `progress` the persisted per-day check-off map (bbf_users.youth_progress) — both
 // passed down by YouthIntakeGate. The gate keys this component on the selection, so
@@ -54,6 +91,13 @@ export default function SportsHub({ selection = null, progress = null }) {
   // is fetched once on mount (rehydrates logged sets across refresh / day-switch) and
   // shared by the Day Protocol + the Native Sport Engine cards.
   const telemetry = useAthleteTelemetry(uid);
+
+  // Sovereign Readiness off the SHARED biometric store — the SAME pipeline the
+  // adult Vault regulates off (one source of truth for athlete biometrics). Drives
+  // the [data-bbf-mode] handshake on the Sports Hub screen + the readiness banner.
+  // No telemetry → handshake 'none' (neutral) and the banner self-hides.
+  const { data: readiness } = useDailyReadiness();
+  const handshake = handshakeChannel(readiness);
 
   // The profile is attached to the user by AuthContext; fall back to the resolver
   // (and its default) so the Hub can never crash on a missing profile.
@@ -137,7 +181,7 @@ export default function SportsHub({ selection = null, progress = null }) {
   const initials = name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
   return (
-    <div className="sh-screen" data-testid="sports-hub">
+    <div className="sh-screen" data-testid="sports-hub" data-bbf-mode={handshake}>
       <header className="sh-topbar">
         <div className="sh-brand">
           <span className="sh-logo">BUILD BELIEVE <b>FIT</b></span>
@@ -181,6 +225,10 @@ export default function SportsHub({ selection = null, progress = null }) {
           ) : null}
           {profile.team ? <div className="sh-team">{profile.team}</div> : null}
         </section>
+
+        {/* ── Sovereign Readiness — same useDailyReadiness pipeline as the Vault
+            (one source of truth). Self-hides with no telemetry; never ghost UI. ── */}
+        <ReadinessBanner readiness={readiness} t={t} />
 
         {/* ── Native Sport Protocol — the coach-staged engine prescription ─────── */}
         <SportProtocol protocol={sportsProtocol} telemetry={telemetry} />

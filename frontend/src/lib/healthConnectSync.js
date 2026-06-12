@@ -31,6 +31,20 @@ import {
 // (APPLE_ACTIVE_KCAL_FULL = 1000): 1000 kcal of active burn ≙ a maximal day.
 const ACTIVE_KCAL_FULL = 1000;
 
+// Native calls can WEDGE (a stuck Health Connect SDK, a permission sheet the user
+// never answers) and leave the launch force-pull hanging forever — which is the
+// silent path that let the STALE ledger row stand (the 34-vs-674 desync). Bound
+// every native read so a hang surfaces as a clean, raw timeout error instead.
+const NATIVE_READ_TIMEOUT_MS = 20000;
+
+function withTimeout(promise, ms, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out after ${Math.round(ms / 1000)}s — the native bridge did not respond.`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 function num(x) {
   // Guard null/undefined/'' FIRST — Number(null) is 0, not NaN, so without this a
   // "not measured" vital (e.g. Health Connect has no resting HR → null) would be
@@ -70,9 +84,11 @@ export async function syncHealthConnect() {
   const token = getStoredVaultToken();
   if (!token) throw new Error('Sign in to sync your wearable.');
 
-  const recovery = await readHealthRecovery();
+  // Raw native read, time-bounded. A rejection here propagates the EXACT native
+  // error string (permission lock / plugin desync) — never flattened to a generic.
+  const recovery = await withTimeout(readHealthRecovery(), NATIVE_READ_TIMEOUT_MS, 'Health Connect read');
   if (!recovery || recovery.ok === false) {
-    throw new Error((recovery && recovery.detail) || 'Health Connect returned no recovery data.');
+    throw new Error((recovery && (recovery.detail || recovery.error)) || 'Health Connect returned a null recovery payload (no HRV/sleep/activity records in range).');
   }
 
   const payload = mapRecoveryToManualPayload(recovery);
@@ -131,8 +147,20 @@ export function useHealthConnectSync() {
     setError(null);
     try {
       if (hasHealthBridge()) {
-        // Ensure HRV / Sleep / Active-calorie scopes are granted (no-op if already).
-        await requestHealthPermissions().catch(() => { /* surfaced by the read below */ });
+        // Ensure HRV / Sleep / Active-calorie scopes are granted. A denial is
+        // surfaced EXPLICITLY here (raw) rather than waiting for the downstream
+        // read to fail with an opaque message — this is the permissions-lock case
+        // the CEO needs to distinguish from a plugin desync.
+        const perm = await withTimeout(
+          requestHealthPermissions(),
+          NATIVE_READ_TIMEOUT_MS,
+          'Health Connect permission request',
+        ).catch((e) => ({ granted: false, error: String((e && e.message) || e) }));
+        if (perm && perm.granted === false) {
+          throw new Error(
+            `Health Connect permission denied${perm.error ? ` — ${perm.error}` : ''}. Open Health Connect → App permissions → BBF Lab and grant HRV, Sleep & Active Calories (read).`,
+          );
+        }
       }
       const data = await syncHealthConnect();
       setResult(data);

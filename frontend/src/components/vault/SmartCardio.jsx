@@ -23,7 +23,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { useCardio, logCardio, CARDIO_ZONES } from '../../lib/cardioApi.js';
 import { generateCardio } from '../../lib/agenticCardioApi.js';
-import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
+import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
 import './cardio.css';
 
@@ -257,10 +257,16 @@ function zoneMeta(z) {
 export default function SmartCardio() {
   const { data, isLoading, error, refetch } = useCardio();
   const { lang } = useLang();
+  // Agentic Handshake — the module's ambient chrome morphs with the athlete's
+  // computed readiness mode (same [data-bbf-mode] channel as the Vault shell /
+  // Check-In dossier). The CNS lockout logic lives in CardioConfigurator off the
+  // SAME shared store; this only drives the visual morph at the root.
+  const { data: readiness } = useDailyReadiness();
+  const mode = handshakeChannel(readiness);
   const tr = CARDIO_STR[lang] || CARDIO_STR.en;
 
   return (
-    <div className="bbf-cardio" data-testid="smart-cardio-module">
+    <div className="bbf-cardio" data-testid="smart-cardio-module" data-bbf-mode={mode}>
       <div className="bbf-cardio__head">
         <h2 className="bbf-cardio__title">{tr.title}</h2>
         <span className="bbf-cardio__kicker">{tr.kicker}</span>
