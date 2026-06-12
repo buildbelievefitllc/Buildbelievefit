@@ -13,8 +13,8 @@ android {
         // never rejects an upload for a reused versionCode and no human ever
         // hand-bumps these again. The static fallbacks keep local Android
         // Studio / gradlew builds working unchanged.
-        versionCode (System.getenv("BBF_VERSION_CODE") ?: "9").toInteger()
-        versionName (System.getenv("BBF_VERSION_NAME") ?: "1.0.9")
+        versionCode = ((System.getenv("BBF_VERSION_CODE") ?: "9") as Integer)
+        versionName = (System.getenv("BBF_VERSION_NAME") ?: "1.0.9")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
