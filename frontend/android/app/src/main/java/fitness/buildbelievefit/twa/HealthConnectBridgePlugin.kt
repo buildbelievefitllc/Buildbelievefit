@@ -46,7 +46,7 @@ class HealthConnectBridgePlugin : Plugin() {
     }
 
     @PluginMethod
-    fun requestPermissions(call: PluginCall) {
+    override fun requestPermissions(call: PluginCall) {
         if (!manager.isAvailable()) {
             call.reject("health_connect_unavailable")
             return
