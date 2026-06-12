@@ -13,10 +13,9 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '22'
-        cache: 'npm'
     - name: Install Web Dependencies & Build Assets
       run: |
-        npm ci
+        npm install
         npm run build
     - name: Set up JDK 17
       uses: actions/setup-java@v4
