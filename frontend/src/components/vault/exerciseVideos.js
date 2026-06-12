@@ -126,3 +126,8 @@ export function resolveVideoId(exName, lang) {
 
 export const watchURL = (id) => `https://www.youtube.com/watch?v=${id}`;
 export const thumbURL = (id) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+// In-app embed (Material Upgrade): the athlete plays the demo INSIDE the
+// execution card — never routed out of the app. playsinline keeps the BBF Lab
+// WebView from hijacking into the system fullscreen player on tap.
+export const embedURL = (id) =>
+  `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;

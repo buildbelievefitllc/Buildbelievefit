@@ -24,7 +24,8 @@ import {
   generateProgram, toAssignedPlan,
   GOALS, GENDERS, LEVELS, LOCATIONS, DAY_OPTIONS, PACES, SPLITS, INTENSIFIERS, PRESETS,
 } from './generatorEngine.js';
-import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
+import { resolveVideoId } from './exerciseVideos.js';
+import FormDemoPlayer from './FormDemoPlayer.jsx';
 import { localizeMuscle } from '../../lib/trainingI18n.js';
 import { fetchRoster, assignWorkout, toErrorMessage } from '../../lib/rosterApi.js';
 import './vault.css';
@@ -498,10 +499,9 @@ function GeneratorOutput({ result }) {
             return (
               <div className="gen-ex" key={ex.n + ei}>
                 {vid ? (
-                  <a className="gen-vid" href={watchURL(vid)} target="_blank" rel="noopener noreferrer" aria-label={tr.formDemo(ex.n)}>
-                    <img src={thumbURL(vid)} alt="" loading="lazy" referrerPolicy="no-referrer" />
-                    <span className="gen-vid-play" aria-hidden="true">▶</span>
-                  </a>
+                  /* Inline tap-to-play embed — same player skin as the Program
+                     grid; .is-playing spans the roster row (session retention). */
+                  <FormDemoPlayer videoId={vid} title={tr.formDemo(ex.n)} />
                 ) : null}
                 <div className="gen-exmain">
                   <div className="gen-exname">{ex.n}{ex.fst7 ? <span className="gen-fst7">FST-7</span> : null}</div>

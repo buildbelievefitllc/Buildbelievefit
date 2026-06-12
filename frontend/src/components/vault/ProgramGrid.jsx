@@ -43,9 +43,10 @@ import { useNavigate } from 'react-router-dom';
 import { getProgram } from './programData.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
-import { localizeDay } from '../../lib/trainingI18n.js';
+import { localizeDay, localizeFocus } from '../../lib/trainingI18n.js';
 import { exKey, useLastWeights, readDayEntries, writeDayEntry, syncSessionToCloud } from './programApi.js';
-import { resolveVideoId, watchURL, thumbURL } from './exerciseVideos.js';
+import { resolveVideoId } from './exerciseVideos.js';
+import FormDemoPlayer from './FormDemoPlayer.jsx';
 import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective, applyAutoRegulation, selectPrehabInjects } from '../../lib/autoRegulation.js';
 import { getPrehabCatalog } from './prehabProtocol.js';
@@ -428,7 +429,7 @@ function DayView({ uid, day, dayIdx, regulated, directive, readiness, injects, t
     <div>
       <header className="pg-dayhead">
         <div className="pg-day-kicker">{localizeDay(day.day, lang)}</div>
-        <div className="pg-day-focus">{day.focus}</div>
+        <div className="pg-day-focus">{localizeFocus(day.focus, lang)}</div>
         <div className="pg-day-meta">
           {tr.exCount(exercises.length)}
           {day.focus_cue ? ` · 🎯 ${day.focus_cue}` : ''}
@@ -541,21 +542,11 @@ function ExerciseCard({ uid, dayIdx, index, ex, rpeCap, tr }) {
 
       {open ? (
         <div className="pg-ex-body">
-          {/* Form-demo video — clickable thumbnail opening the hardwired YouTube
-              demo in a new tab. Only rendered when the movement resolves to a
-              mapped video (cardio/circuit blocks have none). */}
+          {/* Form-demo video — tap-to-play INLINE embed inside the execution
+              card (session retention: the athlete never leaves the app). Only
+              rendered when the movement resolves to a mapped video. */}
           {videoId ? (
-            <a
-              className="pg-video"
-              href={watchURL(videoId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={tr.watchDemo(ex.name)}
-            >
-              <img className="pg-video-thumb" src={thumbURL(videoId)} alt="" loading="lazy" />
-              <span className="pg-video-play" aria-hidden="true">▶</span>
-              <span className="pg-video-label">{tr.formDemo}</span>
-            </a>
+            <FormDemoPlayer videoId={videoId} title={tr.watchDemo(ex.name)} label={tr.formDemo} />
           ) : null}
 
           {/* Coach-prescribed target — reps × prescribed load from the assigned

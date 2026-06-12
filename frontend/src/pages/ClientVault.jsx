@@ -29,6 +29,7 @@ import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 import { useVaultSessionGuard } from '../lib/sessionGuard.js';
 import { useEntitlement } from '../lib/useEntitlement.js';
 import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
+import { useAutoVitalsSync } from '../lib/vitalsPipeline.js';
 import VaultHeader from '../components/vault/VaultHeader.jsx';
 import VaultHub from '../components/vault/VaultHub.jsx';
 import Program from '../components/vault/Program.jsx';
@@ -108,6 +109,12 @@ export default function ClientVault() {
   // computed mode. No usable telemetry → 'none' → the neutral interface.
   const { data: readiness } = useDailyReadiness();
   const handshake = handshakeChannel(readiness);
+
+  // Launch force-pull (desync kill): inside the BBF Lab app, read LIVE Health
+  // Connect data on Vault open and land it on the ledger — the watch, not a
+  // stale morning row, is the source of truth the handshake reacts to. No-op on
+  // web; silent on failure; once per app session.
+  useAutoVitalsSync();
 
   return (
     <div className="cv-screen" data-bbf-mode={handshake}>

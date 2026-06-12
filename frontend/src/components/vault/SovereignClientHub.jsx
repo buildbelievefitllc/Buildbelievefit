@@ -30,14 +30,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useHealthConnectSync } from '../../lib/healthConnectSync.js';
-import { PROTOCOL_UPDATED_EVENT, useBiometricLedger } from '../../lib/useDailyReadiness.js';
-import { runSovereignEngine } from '../../lib/bbf-readiness-engine';
-import {
-  mapRecoveryToBiometricDay,
-  toProtocolRow,
-  syncBiometricDay,
-  logDailyProtocol,
-} from '../../lib/biometricsApi.js';
+import { useBiometricLedger } from '../../lib/useDailyReadiness.js';
+import { runVitalsPipeline } from '../../lib/vitalsPipeline.js';
 import './sovereignHub.css';
 
 const GOVERNOR_KEY = 'bbf-sch-governor'; // 'manual' | 'auto'
@@ -134,23 +128,10 @@ export default function SovereignClientHub() {
     setBusy(true);
     setErr(null);
     try {
-      // 1 · Native read (+ legacy ACWR ingest dual-write inside the hook).
-      const envelope = await sync();
-      // 2 · Land the day on the biometric ledger → trailing 28-day series back.
-      const day = mapRecoveryToBiometricDay(envelope.recovery);
-      const up = await syncBiometricDay(day);
-      if (!up || !up.ok) throw new Error(up && up.error ? `Ledger write failed — ${up.error}.` : 'Ledger write failed.');
-      // 3 · Deterministic readiness verdict from REAL history.
-      const protocol = runSovereignEngine(day, up.series || []);
-      // 4 · Persist the protocol, then render.
-      const logged = await logDailyProtocol(toProtocolRow(protocol));
-      if (!logged || !logged.ok) throw new Error(logged && logged.error ? `Protocol log failed — ${logged.error}.` : 'Protocol log failed.');
-      setLive({ day, protocol });
-      // Broadcast the fresh verdict — the shared store force-refetches once and
-      // Cardio / Nutrition / Program / the Vault shell re-regulate live, no reload.
-      try {
-        window.dispatchEvent(new CustomEvent(PROTOCOL_UPDATED_EVENT, { detail: { date: protocol.date } }));
-      } catch { /* non-fatal */ }
+      // Shared Sovereign pipeline (native read → ledger → engine → protocol →
+      // broadcast). Same orchestration the launch auto-pull runs — one source.
+      const result = await runVitalsPipeline(sync);
+      setLive(result);
     } catch (e) {
       setErr((e && e.message) || 'Synchronization failed.');
     } finally {

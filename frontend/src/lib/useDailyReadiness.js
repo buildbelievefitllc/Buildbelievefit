@@ -157,12 +157,20 @@ function load(force = false) {
   return inflight;
 }
 
-// One window listener for the whole store (not one per consumer): the live relay
-// busts the cache exactly once however many surfaces are mounted.
+// One set of listeners for the whole store (not one per consumer):
+//  • live relay — busts the cache exactly once however many surfaces are mounted
+//  • foreground return — the BBF Lab WebView survives backgrounding for hours;
+//    when the app surfaces again, a lapsed TTL / rolled day re-pulls the ledger
+//    so the athlete never reads this morning's numbers tonight (desync guard).
 function ensureWired() {
   if (wired || typeof window === 'undefined') return;
   wired = true;
   window.addEventListener(PROTOCOL_UPDATED_EVENT, () => { load(true); });
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) load(); // warm-cache check inside — refetches only when stale
+    });
+  }
 }
 
 // Hook: the day's readiness verdict. Warm-cache read; revalidates on TTL lapse,
