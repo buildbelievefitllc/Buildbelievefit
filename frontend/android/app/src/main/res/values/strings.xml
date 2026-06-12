@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Build Believe Fit</string>
-    <string name="title_activity_main">Build Believe Fit</string>
+    <string name="app_name">BBF Lab</string>
+    <string name="title_activity_main">BBF Lab</string>
     <string name="package_name">fitness.buildbelievefit.twa</string>
     <string name="custom_url_scheme">fitness.buildbelievefit.twa</string>
 </resources>

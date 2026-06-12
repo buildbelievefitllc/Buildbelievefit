@@ -6,7 +6,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // no runtime dependency to the shipped bundle.
 const config: CapacitorConfig = {
   appId: 'fitness.buildbelievefit.twa',
-  appName: 'Build Believe Fit',
+  appName: 'BBF Lab',
   webDir: 'dist',
   server: {
     androidScheme: 'https',
