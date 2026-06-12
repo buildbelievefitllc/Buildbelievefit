@@ -75,11 +75,14 @@ export function mapRecoveryToManualPayload(recovery) {
   };
 }
 
-// Read Health Connect and POST to the live ingest webhook. Returns the ingest
-// envelope { ok, reading_id, source, normalized, acwr } — plus `recovery`, the RAW
-// native payload (hrv_ms / sleep_minutes / active_kcal / daily_steps), so the
-// Sovereign Client Hub can feed the readiness engine + biometric ledger from the
-// same single native read. Throws a display Error on any failure.
+// Read Health Connect and (best-effort) POST to the live ingest webhook. Returns
+// the ingest envelope { ok, reading_id, source, normalized, acwr } — or a minimal
+// { ok:true } stand-in with `ingest_error` when the legacy dual-write rejected —
+// plus `recovery`, the RAW native payload (hrv_ms / sleep_minutes / active_kcal /
+// daily_steps), so the Sovereign Client Hub can feed the readiness engine +
+// biometric ledger from the same single native read. Throws a display Error only
+// on REAL failures: no session, a wedged/denied native read, or a fully empty
+// payload. Partial payloads (steps-only days) flow through by design.
 export async function syncHealthConnect() {
   const token = getStoredVaultToken();
   if (!token) throw new Error('Sign in to sync your wearable.');
@@ -93,34 +96,63 @@ export async function syncHealthConnect() {
 
   const payload = mapRecoveryToManualPayload(recovery);
   if (!payload.reading_date) throw new Error('Health Connect reading is missing a date.');
-  if (payload.hrv_ms === null && payload.sleep_minutes === null) {
-    throw new Error('No HRV or sleep data found in the last 48 hours.');
+
+  // PARTIAL PAYLOADS ARE VALID (CEO order — the all-or-nothing HRV/sleep gate is
+  // dead). A watchless day still produces steps + active kcal; those MUST land on
+  // the ledger so the dashboard tracks the live day instead of a stale row. The
+  // readiness engine handles null vitals deterministically (INSUFFICIENT_TELEMETRY,
+  // never an invented verdict) and the UI ghosts the missing slots ("No Signal").
+  // Only a FULLY empty read — no HRV, no sleep, no activity, no steps — aborts,
+  // because there is literally nothing to write.
+  const hasAnySignal =
+    payload.hrv_ms !== null ||
+    payload.sleep_minutes !== null ||
+    num(recovery.active_kcal) !== null ||
+    num(recovery.daily_steps) !== null;
+  if (!hasAnySignal) {
+    throw new Error('Health Connect returned an empty payload — no HRV, sleep, activity, or step records in the 48h window.');
   }
 
-  const { data, error } = await supabase.functions.invoke('bbf-wearable-ingest', {
-    // Athlete-sync path: the vault session token binds the reading to the signed-in
-    // athlete server-side. The webhook's admin/Vault-secret path is NEVER used from
-    // the client (CLAUDE.md §7).
-    body: { source: 'manual', session_token: token, payload },
-  });
-
-  if (error) {
-    const status = error && error.context && error.context.status;
-    throw new Error(`Wearable sync failed${status ? ` (${status})` : ''} — ${(error && error.message) || 'request failed'}.`);
-  }
-  if (!data || !data.ok) {
-    throw new Error(`Wearable sync rejected — ${(data && data.error) || 'unknown'}.`);
-  }
-
-  // Live-refresh any open dossier listening on the shared wearable-updated channel.
+  // Legacy ACWR ingest dual-write — BEST-EFFORT. The biometric ledger (written by
+  // the caller via bbf_upsert_daily_biometrics) is the authoritative readiness
+  // substrate; the legacy bbf-wearable-ingest row feeds the admin dossier's ACWR
+  // strain view. A partial payload must never be blocked here, so an ingest
+  // rejection is carried on the envelope (ingest_error) + warned, not thrown.
+  // The webhook contract itself is untouched — same body, same endpoint.
+  let ingest = null;
+  let ingestError = null;
   try {
-    window.dispatchEvent(new CustomEvent(WEARABLE_UPDATED_EVENT, { detail: { source: 'health_connect' } }));
-  } catch {
-    /* no window (SSR) — non-fatal */
+    const { data, error } = await supabase.functions.invoke('bbf-wearable-ingest', {
+      // Athlete-sync path: the vault session token binds the reading to the signed-in
+      // athlete server-side. The webhook's admin/Vault-secret path is NEVER used from
+      // the client (CLAUDE.md §7).
+      body: { source: 'manual', session_token: token, payload },
+    });
+    if (error) {
+      const status = error && error.context && error.context.status;
+      throw new Error(`Wearable sync failed${status ? ` (${status})` : ''} — ${(error && error.message) || 'request failed'}.`);
+    }
+    if (!data || !data.ok) {
+      throw new Error(`Wearable sync rejected — ${(data && data.error) || 'unknown'}.`);
+    }
+    ingest = data;
+    // Live-refresh any open dossier listening on the shared wearable-updated channel
+    // (only on a real ingest success — never a phantom refresh).
+    try {
+      window.dispatchEvent(new CustomEvent(WEARABLE_UPDATED_EVENT, { detail: { source: 'health_connect' } }));
+    } catch {
+      /* no window (SSR) — non-fatal */
+    }
+  } catch (e) {
+    ingestError = String((e && e.message) || e);
+    if (typeof console !== 'undefined') {
+      console.warn('[vitals] legacy wearable ingest failed (non-fatal — ledger write proceeds):', ingestError);
+    }
   }
+
   // Attach the raw native payload so downstream consumers (Sovereign Client Hub →
   // readiness engine + biometric ledger) reuse this read instead of re-querying HC.
-  return { ...data, recovery };
+  return { ...(ingest || { ok: true, source: 'manual' }), ingest_error: ingestError, recovery };
 }
 
 // Hook: drives a "Sync Health Connect" button. `available` reflects whether the
