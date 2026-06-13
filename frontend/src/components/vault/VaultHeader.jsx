@@ -1,25 +1,24 @@
 // src/components/vault/VaultHeader.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 25 — Vault Prototype Sync. The persistent client-profile header that
-// sits ABOVE the nested tab navigation and stays fixed while the athlete moves
-// between Hub / Program / Cardio / … (faithful to the AI Studio prototype).
+// The persistent client-profile header above the nested tab nav (stays fixed as
+// the athlete moves between Hub / Program / Cardio / …).
 //
-// Three stacked clinical cards — deep void / near-black surfaces, gold used
-// only as an accent (no loud yellow fills):
-//   1) Portal     — profile hub banner + sessions / hydration read-outs.
-//   2) Identity   — "WELCOME, <NAME>" + access tier + today's focus + macros.
-//   3) Blueprint  — Smart Day Sync: today's training focus pulled live from the
-//                   assigned workout_plan (static-catalog fallback), + streak.
+// Three stacked clinical cards — deep void / near-black surfaces, gold as accent:
+//   1) Portal          — profile hub banner + sessions / hydration read-outs.
+//   2) Identity        — "WELCOME, <NAME>" + access tier + active focus + macros.
+//   3) ACTIVE DIRECTIVE — the asynchronous routine QUEUE (CEO order): renders the
+//      active queue item, NOT a calendar day. No `new Date()`, no weekday match,
+//      no "missed session" friction — the backend owns the local-midnight
+//      rotation; the frontend renders whatever the head of the queue is. Built
+//      for shift workers who train at erratic hours. Carries a READINESS GATE on
+//      the execute button (advisory, never disabling — the athlete keeps the
+//      ultimate override).
 //
-// I18N ENFORCEMENT (Material Upgrade): every string in this chrome resolves
-// through the LangContext dictionary (vh-* keys, EN/ES/PT) and the day-focus
-// headline runs through localizeFocus — no hardcoded English leaks past the
-// toggles. The component stays memoized; useLang is a context subscription, so
-// a language flip re-renders straight through the memo (memo blocks prop churn
-// from the shell only — tab swaps, readiness commits).
+// I18N: every string resolves through the LangContext dictionary (vh-* keys,
+// EN/ES/PT); the focus headline runs through localizeFocus.
 //
-// Pure presentational: it receives the already-fetched profile + plan envelope
-// from the Vault shell; no fetching of its own.
+// Pure presentational: receives the already-fetched profile + plan envelope +
+// the readiness verdict + a tab-navigate callback from the Vault shell.
 
 import { memo, useMemo } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
@@ -30,24 +29,29 @@ import './vault.css';
 
 const HYDRATION_TARGET_L = 3.5; // prototype read-out; live hydration tracking is a later phase
 
-// Smart Day Sync — resolve TODAY's day object from the plan.
-//   1) exact weekday-name match ("Monday" → the plan's Monday object),
-//   2) positional fallback for "Day 1…7" plans (Mon=0 … Sun=6),
-//   3) first day as a last resort, so the panel is never blank.
-function resolveToday(plan) {
+// Active Directive = the HEAD of the assigned queue. No date logic: the backend
+// rotates the queue at local midnight; the frontend renders index 0 as-is (rest
+// or training — a recovery block is a valid directive). Null only on an empty plan.
+function resolveActiveDirective(plan) {
   if (!Array.isArray(plan) || !plan.length) return null;
-  const now = new Date();
-  const longName = now.toLocaleDateString('en-US', { weekday: 'long' });
-  const idxMon = (now.getDay() + 6) % 7;
-  const byName = plan.find((d) => String(d?.day || '').trim().toLowerCase() === longName.toLowerCase());
-  if (byName) return { ...byName, source: 'weekday' };
-  if (plan[idxMon]) return { ...plan[idxMon], source: 'position' };
-  return { ...plan[0], source: 'fallback' };
+  return plan[0];
 }
 
-// Macro VALUES from the assigned meal plan; labels are applied in render via
-// the dictionary so they follow the language toggle. '—' placeholders keep the
-// row clean when a structured plan hasn't been generated yet.
+// Readiness → execute-gate state (advisory only):
+//   'optimal'   PRIME / STANDARD          → standard Sovereign Gold, no warning.
+//   'caution'   STRAIN / BREACH           → amber recovery-pivot sub-text; button stays live.
+//   'calibrate' INSUFFICIENT / no verdict → normal button + a Check-In prompt.
+function readinessGate(readiness) {
+  if (!readiness || !readiness.hasData) return 'calibrate';
+  const mode = readiness.mode;
+  if (readiness.isBreach || mode === 'SYSTEM_BREACH' || mode === 'SYSTEM_STRAIN') return 'caution';
+  if (mode === 'INSUFFICIENT_TELEMETRY') return 'calibrate';
+  return 'optimal';
+}
+
+// Macro VALUES from the assigned meal plan; labels applied in render via the
+// dictionary so they follow the language toggle. '—' keeps the row clean when no
+// structured plan exists yet.
 function resolveMacros(mealPlanRaw) {
   const parsed = parseMealPlan(mealPlanRaw);
   const m = parsed.macros || {};
@@ -70,27 +74,32 @@ function initials(name) {
   return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
 }
 
-function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = '', programKey = '', isAdmin = false }) {
+function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = '', programKey = '', isAdmin = false, readiness = null, onNavigate = null }) {
   const { t, lang } = useLang();
-  const today = useMemo(() => {
+  // The active queue item (head). Pure — no date input — so the same directive
+  // renders whenever the athlete opens the app, until the backend rotates it.
+  const directive = useMemo(() => {
     const assigned = parseWorkoutPlan(plans?.workoutPlan || '');
     const plan = Array.isArray(assigned) && assigned.length ? assigned : getProgram(programKey);
-    return resolveToday(plan);
+    return resolveActiveDirective(plan);
   }, [plans?.workoutPlan, programKey]);
   const macros = useMemo(() => resolveMacros(plans?.mealPlan || ''), [plans?.mealPlan]);
 
-  const isRest = today?.isRest;
+  const isRest = directive?.isRest;
   const focus = isRest
     ? t('vh-rest-day')
-    : (localizeFocus(today?.focus, lang) || t('vh-training-day'));
+    : (localizeFocus(directive?.focus, lang) || t('vh-training-day'));
   const sessions = fmtInt(profile?.totalSessions);
   const streak = fmtInt(profile?.currentStreak);
   const accessLabel = isAdmin ? t('vh-access-admin') : t('vh-access-client');
 
-  const exCount = Array.isArray(today?.exercises) ? today.exercises.length : 0;
-  const blueprintSub = isRest
-    ? (today?.restNote || t('vh-rest-note'))
-    : (today?.focus_cue ? today.focus_cue : `${exCount} ${t('vh-ex-count')}`);
+  const exCount = Array.isArray(directive?.exercises) ? directive.exercises.length : 0;
+  const directiveSub = isRest
+    ? (directive?.restNote || t('vh-rest-note'))
+    : (directive?.focus_cue ? directive.focus_cue : `${exCount} ${t('vh-ex-count')}`);
+
+  const gate = readinessGate(readiness);
+  const go = (tab) => { if (typeof onNavigate === 'function') onNavigate(tab); };
 
   return (
     <section className="cv-head" aria-label={t('vh-head-aria')}>
@@ -141,12 +150,41 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
         </div>
       </div>
 
-      {/* ── 3 · Daily Blueprint (Smart Day Sync) ── */}
-      <div className={`cv-blueprint${isRest ? ' is-rest' : ''}`}>
+      {/* ── 3 · ACTIVE DIRECTIVE (asynchronous queue — no calendar friction) ── */}
+      <div className={`cv-blueprint cv-directive is-gate-${gate}${isRest ? ' is-rest' : ''}`} data-testid="vault-active-directive">
         <div className="cv-blueprint-l">
           <span className="cv-blueprint-k">{t('vh-blueprint-k')}</span>
           <div className="cv-blueprint-focus">{focus}</div>
-          <p className="cv-blueprint-sub">{blueprintSub}</p>
+          <p className="cv-blueprint-sub">{directiveSub}</p>
+
+          {/* Readiness gate — advisory; never disables. The athlete always overrides. */}
+          {gate === 'caution' ? (
+            <p className="cv-directive-warn" role="status" data-testid="vh-gate-caution">{t('vh-gate-caution')}</p>
+          ) : null}
+          {gate === 'calibrate' ? (
+            <p className="cv-directive-calibrate" role="status" data-testid="vh-gate-calibrate">{t('vh-gate-calibrate')}</p>
+          ) : null}
+
+          <div className="cv-directive-actions">
+            <button
+              type="button"
+              className={`cv-directive-exec is-${gate}`}
+              onClick={() => go('program')}
+              data-testid="vh-directive-exec"
+            >
+              {t('vh-exec')}
+            </button>
+            {gate === 'caution' ? (
+              <button type="button" className="cv-directive-alt" onClick={() => go('prehab')} data-testid="vh-directive-pivot">
+                {t('vh-gate-pivot')}
+              </button>
+            ) : null}
+            {gate === 'calibrate' ? (
+              <button type="button" className="cv-directive-alt" onClick={() => go('checkin')} data-testid="vh-directive-checkin">
+                {t('vh-gate-checkin')}
+              </button>
+            ) : null}
+          </div>
         </div>
         <div className="cv-blueprint-streak">
           <span className="cv-blueprint-streak-k">{t('vh-streak')}</span>
@@ -157,7 +195,8 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
   );
 }
 
-// memo: the header is pure presentation off shell-owned props — tab swaps and
-// readiness commits in the shell must not re-paint these three cards. Language
-// flips pass through (useLang is a context subscription, not a prop).
+// memo: pure presentation off shell-owned props. readiness drives the gate (it
+// SHOULD re-render on a fresh verdict); onNavigate is stable (useCallback in the
+// shell), so tab swaps alone never re-paint these cards. Language flips pass
+// through (useLang is a context subscription, not a prop).
 export default memo(VaultHeader);

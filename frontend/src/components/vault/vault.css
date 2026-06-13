@@ -784,6 +784,41 @@
 }
 .cv-blueprint.is-rest .cv-blueprint-focus { color: var(--wht); }
 .cv-blueprint-sub { font-family: var(--bd); font-size: .92rem; font-weight: 500; line-height: 1.45; color: rgba(249, 245, 255, .58); margin: 0; max-width: 62ch; }
+
+/* ── ACTIVE DIRECTIVE — async queue execute + readiness gate (advisory only) ──
+   Gold = Sovereign execute (always live); amber = caution sub-text + ring; the
+   button is NEVER disabled — the athlete keeps the override. Custom tokens only
+   (--yel/--gold-soft/--panel-edge), no Tailwind. */
+.cv-directive { align-items: flex-start; } /* taller left column — top-align the streak */
+.cv-directive.is-gate-caution { border-left-color: #ffb14d; }
+.cv-directive-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: .95rem; }
+.cv-directive-exec {
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 2px; text-transform: uppercase;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: 1px solid var(--yel); border-radius: 10px; padding: .7rem 1.3rem; cursor: pointer;
+  transition: filter .15s ease, transform .1s ease, box-shadow .15s ease;
+}
+.cv-directive-exec:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.cv-directive-exec:active { transform: translateY(0); }
+.cv-directive-exec:focus-visible { outline: 2px solid var(--wht); outline-offset: 2px; }
+/* Caution keeps the gold execute affordance but rings it amber — live, flagged. */
+.cv-directive-exec.is-caution { box-shadow: 0 0 0 1px rgba(255, 177, 77, .65), 0 12px 28px -14px rgba(255, 177, 77, .55); }
+.cv-directive-alt {
+  font-family: var(--hb); font-size: .76rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold-soft); background: transparent; border: 1px solid var(--panel-edge);
+  border-radius: 10px; padding: .65rem 1.05rem; cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.cv-directive-alt:hover { border-color: rgba(245, 200, 0, .5); color: var(--wht); background: rgba(245, 200, 0, .05); }
+.cv-directive-alt:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.cv-directive-warn {
+  margin: .75rem 0 0; font-family: var(--bd); font-size: .85rem; font-weight: 600; line-height: 1.45;
+  color: #ffb14d; border-left: 3px solid rgba(255, 177, 77, .55); padding-left: .7rem;
+}
+.cv-directive-calibrate {
+  margin: .75rem 0 0; font-family: var(--bd); font-size: .85rem; font-weight: 600; line-height: 1.45;
+  color: var(--gold-soft); border-left: 3px solid rgba(245, 200, 0, .45); padding-left: .7rem;
+}
 .cv-blueprint-streak { flex-shrink: 0; text-align: right; }
 .cv-blueprint-streak-k { display: block; font-family: var(--hb); font-size: .58rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
 .cv-blueprint-streak-v {

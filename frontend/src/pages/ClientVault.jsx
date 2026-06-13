@@ -20,7 +20,7 @@
 // imports only shared, read-only primitives. It never touches the public
 // MarketingLanding route or the admin Command Center.
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
@@ -110,6 +110,10 @@ export default function ClientVault() {
   const { data: readiness } = useDailyReadiness();
   const handshake = handshakeChannel(readiness);
 
+  // Stable navigate handler for the Active Directive's gate buttons — stable
+  // identity keeps the memoized VaultHeader from re-painting on tab swaps.
+  const onNavigate = useCallback((id) => setActiveTab(id), []);
+
   // Launch force-pull (desync kill): inside the BBF Lab app, read LIVE Health
   // Connect data on Vault open and land it on the ledger — the watch, not a
   // stale morning row, is the source of truth the handshake reacts to. No-op on
@@ -171,6 +175,8 @@ export default function ClientVault() {
           slug={user?.username || ''}
           programKey={user?.programKey}
           isAdmin={isAdmin}
+          readiness={readiness}
+          onNavigate={onNavigate}
         />
 
         <nav className="cv-tabs" role="tablist" aria-label="Vault surfaces">
