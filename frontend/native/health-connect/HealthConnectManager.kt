@@ -2,6 +2,8 @@ package fitness.buildbelievefit.app
 
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.aggregate.AggregateMetric
+import androidx.health.connect.client.aggregate.AggregationResult
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.BasalMetabolicRateRecord
@@ -10,6 +12,7 @@ import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
+import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +20,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.reflect.KClass
@@ -24,8 +28,15 @@ import kotlin.reflect.KClass
 /**
  * Pure Health Connect logic — no Capacitor types here so it stays unit-testable and
  * framework-agnostic. Reads the most recent HRV (RMSSD), the last sleep session, and
- * the trailing active-calorie load, then builds the canonical recovery JSON the React
- * trigger maps onto the `manual` bbf-wearable-ingest payload.
+ * the day's activity load, then builds the canonical recovery JSON the React trigger
+ * maps onto the `manual` bbf-wearable-ingest payload.
+ *
+ * ACTIVITY METRICS USE THE AGGREGATE API (solidified fix): steps and calories come
+ * from hc.aggregate(...), which DEDUPLICATES overlapping data origins (watch + phone
+ * both writing StepsRecord) — raw readRecords + sumOf double-counted and inflated
+ * the step total. Activity is anchored to the LOCAL DAY (midnight → now), so the
+ * figures match what the athlete sees in Samsung Health's "today" view, never a
+ * rolling-24h hybrid of yesterday evening + today.
  *
  * Uses the real androidx.health.connect.client API — nothing is mocked.
  */
@@ -40,7 +51,7 @@ class HealthConnectManager(private val context: Context) {
         // TOTAL_CALORIES_BURNED + BASAL_METABOLIC_RATE back the calorie FALLBACK:
         // Samsung Health (and some others) write TotalCaloriesBurnedRecord and leave
         // ActiveCaloriesBurnedRecord empty, so active burn read 0 despite a logged
-        // burn. With these scopes we derive active = total − BMR. They are part of
+        // burn. With these scopes we derive active = total − basal. They are part of
         // the required set so the consent sheet always offers them; a denial surfaces
         // as `permissions_required` (visible in the Check-In diagnostic), never silent.
         val PERMISSIONS: Set<String> = setOf(
@@ -53,7 +64,6 @@ class HealthConnectManager(private val context: Context) {
         )
 
         private const val RECOVERY_WINDOW_HOURS = 48L // HRV + sleep look-back (the order)
-        private const val LOAD_WINDOW_HOURS = 24L     // active-calorie load → daily strain
     }
 
     fun sdkStatus(): Int = HealthConnectClient.getSdkStatus(context)
@@ -69,16 +79,21 @@ class HealthConnectManager(private val context: Context) {
     }
 
     /**
-     * Reads the latest HRV (48h), the most recent sleep session (48h) and the active
-     * calories burned (24h), and returns the canonical recovery payload. Real data.
+     * Reads the latest HRV (48h) + the most recent sleep session (48h) via record
+     * reads, and the LOCAL DAY's steps + active calories via deduplicating
+     * aggregates, then returns the canonical recovery payload. Real data only.
      */
     suspend fun readRecovery(): JSONObject = withContext(Dispatchers.IO) {
         val hc = client()
         val now = Instant.now()
+        val zone = ZoneId.systemDefault()
         val recoveryWindow =
             TimeRangeFilter.between(now.minus(Duration.ofHours(RECOVERY_WINDOW_HOURS)), now)
-        val loadWindow =
-            TimeRangeFilter.between(now.minus(Duration.ofHours(LOAD_WINDOW_HOURS)), now)
+        // Activity is DAY-ANCHORED: local midnight → now. This is the same boundary
+        // Samsung Health renders, so the dashboard and the watch app agree.
+        val dayStart = LocalDate.now(zone).atStartOfDay(zone).toInstant()
+        val dayWindow = TimeRangeFilter.between(dayStart, now)
+        val dayHours = Duration.between(dayStart, now).toMillis() / 3_600_000.0
 
         // ── HRV (RMSSD, ms) — most recent sample in the 48h window ──
         val hrvRecords = hc.readRecords(
@@ -100,24 +115,19 @@ class HealthConnectManager(private val context: Context) {
         val latestSleep = sleepRecords.maxByOrNull { it.endTime }
         val sleepMinutes: Long? = latestSleep?.let { asleepMinutes(it) }
 
-        // ── Active energy (kcal) — 24h. ActiveCaloriesBurnedRecord first; on devices
-        //    that only write TotalCaloriesBurnedRecord (Samsung Health), fall back to
-        //    total − BMR, then total direct. `kcal` is null ONLY when nothing logged. ──
-        val cal = resolveActiveKcal(hc, loadWindow)
+        // ── Active energy (kcal) — today, deduplicated aggregate + Samsung fallback ──
+        val cal = resolveActiveKcal(hc, dayWindow, dayHours)
 
-        // ── Steps — last 24h summed → daily_steps on the biometric ledger ──
-        val stepRecords = hc.readRecords(
-            ReadRecordsRequest(
-                StepsRecord::class,
-                timeRangeFilter = loadWindow,
-            ),
-        ).records
-        val dailySteps: Long? = if (stepRecords.isEmpty()) null else stepRecords.sumOf { it.count }
+        // ── Steps — today's deduplicated aggregate total (null = nothing recorded;
+        //    the COUNT_TOTAL aggregate merges overlapping watch+phone origins) ──
+        val dailySteps: Long? = aggregateSafe(hc, setOf(StepsRecord.COUNT_TOTAL), dayWindow)
+            ?.get(StepsRecord.COUNT_TOTAL)
 
-        // reading_date = local day of the HRV sample (fallback: sleep end, then now).
-        val zone = ZoneId.systemDefault()
-        val anchor = latestHrv?.time ?: latestSleep?.endTime ?: now
-        val readingDate = DateTimeFormatter.ISO_LOCAL_DATE.format(anchor.atZone(zone).toLocalDate())
+        // reading_date = the LOCAL TODAY. Activity is day-anchored, so the row must
+        // be too — anchoring to the HRV sample's day (the old behavior) wrote
+        // TODAY's steps onto YESTERDAY's ledger row whenever the freshest HRV in
+        // the 48h window came from a prior night.
+        val readingDate = DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDate.now(zone))
 
         JSONObject().apply {
             put("ok", true)
@@ -133,9 +143,8 @@ class HealthConnectManager(private val context: Context) {
                 JSONObject().apply {
                     put("hrv_count", hrvRecords.size)
                     put("sleep_sessions", sleepRecords.size)
-                    put("active_calorie_records", cal.records)
                     put("active_calorie_source", cal.source)
-                    put("step_records", stepRecords.size)
+                    put("activity_window_start", dayStart.toString())
                     put("hrv_recorded_at", latestHrv?.time?.toString() ?: JSONObject.NULL)
                     put("sleep_start", latestSleep?.startTime?.toString() ?: JSONObject.NULL)
                     put("sleep_end", latestSleep?.endTime?.toString() ?: JSONObject.NULL)
@@ -145,42 +154,68 @@ class HealthConnectManager(private val context: Context) {
     }
 
     /** Active-calorie resolution result + provenance (surfaced in samples for diagnostics). */
-    private data class KcalResult(val kcal: Double?, val source: String, val records: Int)
+    private data class KcalResult(val kcal: Double?, val source: String)
 
     /**
-     * Resolve active kilocalories over `window`, manufacturer-tolerant:
-     *   1) ActiveCaloriesBurnedRecord summed (Whoop / Fitbit / Google Fit / Garmin).
-     *   2) Samsung Health fallback — it writes TotalCaloriesBurnedRecord, so derive
-     *      active = total − BMR (BMR scaled to the window from kcal/day); if BMR is
-     *      unavailable, report total directly.
-     *   3) Nothing logged anywhere → null (null-integrity; never a fabricated 0).
-     *      Active records that genuinely sum to 0 (sedentary day) report 0, not null.
-     * Every read is wrapped so a missing optional grant degrades gracefully.
+     * Resolve today's active kilocalories, manufacturer-tolerant, via aggregates:
+     *   1) ACTIVE_CALORIES_TOTAL (Whoop / Fitbit / Google Fit / Garmin write active).
+     *   2) Samsung fallback — ENERGY_TOTAL (total burn) minus BASAL_CALORIES_TOTAL
+     *      (basal energy integrated over the SAME window by Health Connect itself);
+     *      if the basal aggregate is absent, scale the latest BMR record (kcal/day)
+     *      to the window; if that is absent too, report total directly.
+     *   3) Nothing recorded anywhere → null (null-integrity; never a fabricated 0).
+     * Aggregates deduplicate overlapping origins; every call degrades to null on
+     * failure instead of throwing the whole sync.
      */
-    private suspend fun resolveActiveKcal(hc: HealthConnectClient, window: TimeRangeFilter): KcalResult {
-        val active = readSafe(ActiveCaloriesBurnedRecord::class, hc, window)
-        val activeSum = active.sumOf { it.energy.inKilocalories }
-        if (activeSum > 0.0) return KcalResult(activeSum, "active", active.size)
+    private suspend fun resolveActiveKcal(
+        hc: HealthConnectClient,
+        window: TimeRangeFilter,
+        windowHours: Double,
+    ): KcalResult {
+        val agg = aggregateSafe(
+            hc,
+            setOf(
+                ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL,
+                TotalCaloriesBurnedRecord.ENERGY_TOTAL,
+                BasalMetabolicRateRecord.BASAL_CALORIES_TOTAL,
+            ),
+            window,
+        )
+        val active = agg?.get(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)?.inKilocalories
+        if (active != null && active > 0.0) return KcalResult(active, "active_aggregate")
 
-        val total = readSafe(TotalCaloriesBurnedRecord::class, hc, window)
-        val totalSum = total.sumOf { it.energy.inKilocalories }
-        if (totalSum > 0.0) {
+        val total = agg?.get(TotalCaloriesBurnedRecord.ENERGY_TOTAL)?.inKilocalories
+        if (total != null && total > 0.0) {
+            val basal = agg.get(BasalMetabolicRateRecord.BASAL_CALORIES_TOTAL)?.inKilocalories
+            if (basal != null && basal > 0.0) {
+                return KcalResult((total - basal).coerceAtLeast(0.0), "total_minus_basal_aggregate")
+            }
             val bmrDay = readSafe(BasalMetabolicRateRecord::class, hc, window)
                 .maxByOrNull { it.time }
                 ?.basalMetabolicRate
                 ?.inKilocaloriesPerDay
             if (bmrDay != null && bmrDay > 0.0) {
-                val bmrWindow = bmrDay * (LOAD_WINDOW_HOURS.toDouble() / 24.0)
-                val derived = (totalSum - bmrWindow).coerceAtLeast(0.0)
-                return KcalResult(derived, "total_minus_bmr", total.size)
+                val derived = (total - bmrDay * (windowHours / 24.0)).coerceAtLeast(0.0)
+                return KcalResult(derived, "total_minus_bmr_record")
             }
-            return KcalResult(totalSum, "total_direct", total.size)
+            return KcalResult(total, "total_direct")
         }
 
-        // No active AND no total records → honest null. An empty active sum WITH
-        // records present is a real sedentary 0.
-        val anyRecords = active.isNotEmpty() || total.isNotEmpty()
-        return KcalResult(if (anyRecords) 0.0 else null, "none", active.size)
+        // active was 0-with-data → honest 0; both aggregates absent → honest null.
+        return if (active != null) KcalResult(0.0, "active_aggregate_zero")
+        else KcalResult(null, "none")
+    }
+
+    /** Aggregate `metrics` over `window`, returning null on any failure so the
+     *  fallback chain degrades instead of aborting the whole sync. */
+    private suspend fun aggregateSafe(
+        hc: HealthConnectClient,
+        metrics: Set<AggregateMetric<*>>,
+        window: TimeRangeFilter,
+    ): AggregationResult? = try {
+        hc.aggregate(AggregateRequest(metrics, timeRangeFilter = window))
+    } catch (e: Exception) {
+        null
     }
 
     /** Read records of `type`, returning an empty list on any failure (e.g. an
