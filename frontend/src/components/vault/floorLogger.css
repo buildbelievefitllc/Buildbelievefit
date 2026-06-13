@@ -1,0 +1,163 @@
+/* src/components/vault/floorLogger.css
+   ─────────────────────────────────────────────────────────────────────────────
+   FLOOR MODE — the Blackout Active Workout Logger. Full-screen void canvas, gold
+   current-set highlight, muted completed rows. Custom token layer only (no
+   Tailwind). Massive touch targets for sweaty mid-set taps. */
+
+.fl-screen {
+  position: fixed; inset: 0; z-index: 95;
+  display: flex; flex-direction: column;
+  background: var(--void-0);
+  color: var(--wht);
+  padding: calc(.7rem + var(--st, 0px)) 0 calc(1rem + var(--sb, 0px));
+  overscroll-behavior: contain;
+}
+
+/* ── Top bar ── */
+.fl-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .6rem 1.1rem .8rem;
+  border-bottom: 1px solid var(--panel-edge);
+}
+.fl-kicker {
+  font-family: var(--hb); font-size: .62rem; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--gold-soft);
+}
+.fl-title {
+  font-family: var(--display); font-size: 1.5rem; letter-spacing: .5px;
+  line-height: 1.05; color: var(--wht); margin: .15rem 0 0;
+}
+.fl-top-r { display: flex; align-items: center; gap: .7rem; flex-shrink: 0; }
+.fl-net {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-family: var(--hb); font-size: .6rem; letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--void-text-muted);
+  border: 1px solid var(--panel-edge); border-radius: 999px; padding: .3rem .6rem;
+}
+.fl-net-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.fl-net.is-online { color: #3fa45a; }
+.fl-net.is-offline { color: #ffb14d; }
+.fl-close {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; flex-shrink: 0;
+  color: var(--gold-soft); background: transparent;
+  border: 1px solid var(--panel-edge); border-radius: 12px; cursor: pointer;
+  transition: border-color .15s ease, color .15s ease;
+}
+.fl-close:hover { border-color: rgba(245, 200, 0, .5); color: var(--yel); }
+.fl-close:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
+/* ── Progress ── */
+.fl-progress {
+  height: 4px; margin: .9rem 1.1rem 0; border-radius: 999px;
+  background: rgba(249, 245, 255, .08); overflow: hidden;
+}
+.fl-progress-fill {
+  display: block; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--purd), var(--yel));
+  transition: width .35s ease;
+}
+.fl-progress-label {
+  font-family: var(--hb); font-size: .6rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--void-text-muted); margin: .4rem 1.1rem 0;
+}
+
+/* ── Scroll body ── */
+.fl-body {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 1rem 1.1rem 2rem; display: grid; gap: 1.4rem;
+}
+.fl-empty {
+  font-family: var(--bd); font-size: .95rem; font-weight: 600; color: var(--void-text-muted);
+  padding: 2rem 0; text-align: center;
+}
+
+/* ── Exercise block ── */
+.fl-ex-head { margin-bottom: .7rem; }
+.fl-ex-name {
+  font-family: var(--display); font-size: 1.25rem; letter-spacing: .5px;
+  color: var(--wht); margin: 0;
+}
+.fl-ex-meta { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: .25rem; }
+.fl-ex-equip {
+  font-family: var(--bd); font-size: .76rem; font-weight: 700; letter-spacing: .5px;
+  text-transform: uppercase; color: var(--void-text-muted);
+}
+.fl-ex-target {
+  font-family: var(--bd); font-size: .82rem; font-weight: 700; color: var(--gold-soft);
+}
+.fl-ex-target em { font-style: normal; color: var(--void-text-muted); font-weight: 600; }
+
+/* ── Set rows — MASSIVE touch targets ── */
+.fl-sets { display: grid; gap: .55rem; }
+.fl-row {
+  display: grid; grid-template-columns: 52px 1fr 1fr auto; align-items: center; gap: .7rem;
+  width: 100%; min-height: 66px; padding: .7rem .9rem;
+  background: var(--panel-grad);
+  border: 1px solid var(--panel-edge); border-radius: 14px;
+  cursor: pointer; text-align: left; color: var(--wht);
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease, opacity .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.fl-row:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
+/* CURRENT set — ringed in gold (the next thing to execute). */
+.fl-row.is-current {
+  border-color: var(--yel);
+  box-shadow: 0 0 0 1px var(--yel), 0 12px 30px -16px rgba(245, 200, 0, .55);
+  background:
+    radial-gradient(420px 120px at 0% 0%, rgba(245, 200, 0, .07), transparent 70%),
+    var(--panel-grad);
+}
+
+/* COMPLETED set — demoted to muted void ink. */
+.fl-row.is-done {
+  border-color: rgba(107, 100, 120, .35);
+  background: rgba(5, 5, 5, .6);
+  color: var(--void-text-muted);
+}
+.fl-row.is-done .fl-input { color: var(--void-text-muted); border-color: transparent; background: transparent; }
+
+.fl-row-no {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; flex-shrink: 0;
+  font-family: var(--display); font-size: 1.3rem; color: var(--gold-soft);
+  border: 1px solid var(--panel-edge); border-radius: 10px;
+}
+.fl-row.is-current .fl-row-no { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: var(--yel); }
+.fl-row.is-done .fl-row-no { color: #3fa45a; border-color: rgba(63, 164, 90, .4); }
+
+.fl-field { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: .25rem; min-width: 0; }
+.fl-field-k {
+  grid-column: 1 / -1;
+  font-family: var(--hb); font-size: .54rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--void-text-muted);
+}
+.fl-input {
+  width: 100%; min-width: 0;
+  font-family: var(--display); font-size: 1.5rem; line-height: 1; color: var(--wht);
+  background: var(--void-0); border: 1px solid var(--panel-edge); border-radius: 8px;
+  padding: .35rem .45rem; text-align: center; outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.fl-input::-webkit-outer-spin-button, .fl-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.fl-input::placeholder { color: rgba(107, 100, 120, .7); }
+.fl-input:focus { border-color: rgba(245, 200, 0, .55); box-shadow: 0 0 0 3px rgba(245, 200, 0, .12); }
+.fl-input:disabled { cursor: default; }
+.fl-field-u { font-family: var(--bd); font-size: .72rem; font-weight: 700; color: var(--void-text-muted); }
+
+.fl-row-cta {
+  font-family: var(--hb); font-size: .58rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--void-text-muted); white-space: nowrap; justify-self: end;
+}
+.fl-row.is-current .fl-row-cta { color: var(--yel); }
+
+@media (max-width: 460px) {
+  .fl-row { grid-template-columns: 44px 1fr 1fr; }
+  .fl-row-cta { display: none; }
+  .fl-input { font-size: 1.3rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-progress-fill, .fl-row { transition: none; }
+}

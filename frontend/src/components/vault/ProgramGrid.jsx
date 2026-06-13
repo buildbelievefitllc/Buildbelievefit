@@ -38,7 +38,7 @@
 // E2E selectors (placeholders 'reps'/'BW', 'Complete & Sync Day', '.pg-*'
 // classes) stay green.
 
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProgram } from './programData.js';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -47,6 +47,9 @@ import { localizeDay, localizeFocus } from '../../lib/trainingI18n.js';
 import { exKey, useLastWeights, readDayEntries, writeDayEntry, syncSessionToCloud } from './programApi.js';
 import { resolveVideoId } from './exerciseVideos.js';
 import FormDemoPlayer from './FormDemoPlayer.jsx';
+// Floor Mode is lazy — Dexie/IndexedDB (+ the Blackout logger) only loads the
+// moment an athlete enters it, keeping the initial Vault bundle lean.
+const FloorLogger = lazy(() => import('./FloorLogger.jsx'));
 import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective, applyAutoRegulation, selectPrehabInjects } from '../../lib/autoRegulation.js';
 import { getPrehabCatalog } from './prehabProtocol.js';
@@ -399,6 +402,8 @@ function DayView({ uid, day, dayIdx, regulated, directive, readiness, injects, t
   // Cloud-sync status for this day's session. Local buffer persists on every
   // keystroke regardless; this drives the explicit "push session" action.
   const [sync, setSync] = useState({ status: 'idle', msg: '' });
+  // Floor Mode — the local-first Blackout logger for this day (network dead zone).
+  const [floorOpen, setFloorOpen] = useState(false);
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
@@ -438,6 +443,25 @@ function DayView({ uid, day, dayIdx, regulated, directive, readiness, injects, t
 
       {/* The clinical banner — renders ONLY when telemetry actually regulates. */}
       <AutoRegBanner regulated={regulated} directive={directive} readiness={readiness} tr={tr} />
+
+      {/* FLOOR MODE — local-first Blackout logger (offline-safe). Training days only. */}
+      {exercises.length ? (
+        <button
+          type="button"
+          className="pg-floor-cta"
+          onClick={() => setFloorOpen(true)}
+          data-testid="pg-floor-mode"
+        >
+          Enter Floor Mode
+          <span className="pg-floor-cta-sub">Offline-safe · tap-to-log</span>
+        </button>
+      ) : null}
+
+      {floorOpen ? (
+        <Suspense fallback={null}>
+          <FloorLogger uid={uid} dayIdx={dayIdx} day={day} onClose={() => setFloorOpen(false)} />
+        </Suspense>
+      ) : null}
 
       {/* Prehab matrix → warm-up injection (2 drills, localized catalog). */}
       {injects ? <InjectBlock title={tr.injWarm} drills={injects.warmup} why={tr.injWhy} tr={tr} /> : null}

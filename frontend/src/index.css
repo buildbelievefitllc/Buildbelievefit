@@ -47,6 +47,7 @@
   --void-0: #050505;  /* dominant pitch-black canvas */
   --void-1: #1a0b2e;  /* deep ambient void purple */
   --void-2: #3b1c61;  /* void purple, lifted register */
+  --void-text-muted: #6b6478; /* muted void-grey ink — demoted/completed text */
 
   /* Shared dossier panel chassis — single definition consolidates the repeated
      near-black card gradients/borders previously duplicated across vault,

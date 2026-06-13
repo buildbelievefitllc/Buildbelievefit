@@ -141,6 +141,25 @@ export function UsersIcon({ className = '', size = 16 }) {
   );
 }
 
+// Check (logged set). Sharp two-segment tick.
+export function CheckIcon({ className = '', size = 16 }) {
+  return (
+    <svg className={className} {...svgProps(size)}>
+      <path d="M4 12.5 9.5 18 20 6.5" />
+    </svg>
+  );
+}
+
+// Close (dismiss blackout). Square-cut X.
+export function CloseIcon({ className = '', size = 18 }) {
+  return (
+    <svg className={className} {...svgProps(size)}>
+      <path d="M5 5l14 14" />
+      <path d="M19 5 5 19" />
+    </svg>
+  );
+}
+
 // Crosshair (Kinematic Form HUD / target) — ringed sight with axis ticks.
 export function CrosshairIcon({ className = '', size = 16 }) {
   return (

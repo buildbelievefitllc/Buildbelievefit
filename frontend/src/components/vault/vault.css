@@ -390,6 +390,25 @@
 }
 
 /* ── Complete & Sync ─────────────────────────────────────────────────────── */
+/* Floor Mode launcher — opens the local-first Blackout logger for the day. */
+.pg-floor-cta {
+  display: flex; flex-direction: column; align-items: center; gap: .15rem;
+  width: 100%; margin: 0 0 1.1rem; padding: .9rem 1rem; min-height: 56px;
+  cursor: pointer; border-radius: 14px;
+  border: 1px solid var(--yel);
+  background: radial-gradient(420px 120px at 50% 0%, rgba(245, 200, 0, .1), transparent 70%), var(--panel-grad);
+  color: var(--yel);
+  font-family: var(--display); font-size: 1.15rem; letter-spacing: 2px; text-transform: uppercase;
+  transition: filter .15s ease, transform .1s ease, box-shadow .15s ease;
+}
+.pg-floor-cta:hover { transform: translateY(-1px); box-shadow: 0 14px 30px -16px rgba(245, 200, 0, .55); }
+.pg-floor-cta:active { transform: translateY(0); }
+.pg-floor-cta:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.pg-floor-cta-sub {
+  font-family: var(--bd); font-size: .68rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--void-text-muted);
+}
+
 .pg-syncbar { margin-top: 1.2rem; display: flex; flex-direction: column; gap: .55rem; }
 .pg-syncbtn {
   width: 100%;
