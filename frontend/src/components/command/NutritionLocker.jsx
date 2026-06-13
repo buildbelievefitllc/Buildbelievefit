@@ -21,11 +21,15 @@
 //                                 assigned blueprint + AMPLIFY override inputs +
 //                                 PUSH OVERSIGHT DIRECT PROTOCOL.
 //
-// Data path: lib/rosterApi — rosterCall('roster') for the live scholar list, and
-// assignNutrition() for the assign_nutrition push (Terminal H owns the server side).
+// Data path: lib/rosterApi — rosterCall('roster') for the live scholar list; the
+// compiled plan persists via lib/protocolOverrideApi setMealPlan() →
+// bbf_admin_set_meal_plan RPC (writes bbf_users.meal_plan + the active-clients
+// mirror — the SAME write path the Client Dossier uses). The earlier
+// assign_nutrition edge action was never built; it 400'd and the plan was lost.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { rosterCall, assignNutrition, toErrorMessage } from '../../lib/rosterApi.js';
+import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
+import { setMealPlan } from '../../lib/protocolOverrideApi.js';
 import {
   DIET_STYLES, ALLERGY_OPTIONS, PHASE_OPTIONS, ENERGY_PRESETS, DEFAULT_ENERGY,
   ENERGY_MIN, ENERGY_MAX, DAYS, MEAL_SLOTS, VOLUME_MULTIPLIERS, ADAPT_BANDS,
@@ -124,16 +128,23 @@ export default function NutritionLocker() {
       return;
     }
     setCompileState({ busy: true, ok: null, err: null });
-    const plan = buildPlanPayload({ dietStyleId: dietStyle, energy, band, fastingPaceId: pace.id });
+    // bbf_admin_set_meal_plan persists ONE jsonb plan to bbf_users.meal_plan (+ the
+    // bbf_active_clients mirror) — the exact envelope the athlete's Nutrition tab
+    // parses. The console's dials ride INSIDE the plan as `meta` (parseMealPlan
+    // ignores unknown keys), so nothing the coach compiled is dropped.
+    // (Replaces the old rosterCall('assign_nutrition') — an edge action that was
+    // never built: it 400'd, the locker showed "queued", and the athlete never
+    // received the plan. This RPC is the same write path the Client Dossier uses.)
+    const plan = {
+      ...buildPlanPayload({ dietStyleId: dietStyle, energy, band, fastingPaceId: pace.id }),
+      meta: { tdee_target: energy, diet_style: dietStyle, allergens: allergy, fasting_window: pace.id, source: 'scheduler' },
+    };
     try {
-      const res = await assignNutrition(scholarId, {
-        plan, tdee_target: energy, diet_style: dietStyle, allergens: allergy,
-        fasting_window: pace.id, source: 'scheduler',
-      });
+      await setMealPlan(scholarId, plan);
       if (!mounted.current) return;
       setCompileState({
         busy: false,
-        ok: `Protocol compiled and pushed — ${scholar?.name || 'the athlete'} now holds the ${dietStyleLabel(dietStyle)} regime${res?.persisted === false ? ' (queued)' : ''}.`,
+        ok: `Protocol compiled and persisted — ${scholar?.name || 'the athlete'} now holds the ${dietStyleLabel(dietStyle)} regime.`,
         err: null,
       });
     } catch (e) {
@@ -147,12 +158,17 @@ export default function NutritionLocker() {
       return;
     }
     setPushState({ busy: true, ok: null, err: null });
-    const plan = buildPlanPayload({ dietStyleId: dietStyle, energy: calorieOverride, band, fastingPaceId: pace.id });
-    try {
-      await assignNutrition(scholarId, {
-        plan, tdee_target: calorieOverride, diet_style: dietStyle, allergens: allergy,
+    // Oversight push rides the same persisted jsonb plan (see compileProtocol) —
+    // the phase + coach directive travel in `meta` on the athlete's row.
+    const plan = {
+      ...buildPlanPayload({ dietStyleId: dietStyle, energy: calorieOverride, band, fastingPaceId: pace.id }),
+      meta: {
+        tdee_target: calorieOverride, diet_style: dietStyle, allergens: allergy,
         fasting_window: pace.id, phase, directive, source: 'oversight',
-      });
+      },
+    };
+    try {
+      await setMealPlan(scholarId, plan);
       if (!mounted.current) return;
       setPushState({ busy: false, ok: `Locker state updated. Direct nutrition overrides deployed to the database — ${scholar?.name || 'the athlete'} has received your mandate.`, err: null });
     } catch (e) {

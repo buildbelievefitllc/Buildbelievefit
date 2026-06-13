@@ -68,12 +68,17 @@ function flagSaysSports(value) {
 // division/type flag (→ default profile) → null. Pure; safe on null/partial input.
 export function resolveSportsProfile(user) {
   if (!user || typeof user !== 'object') return null;
-  const { username, id, sportsProfile, division, type } = user;
+  const { username, id, sportsProfile, division, type, role } = user;
   // Future RPC payload wins outright (explicit > seed, same precedence as personaResolver).
   if (sportsProfile && typeof sportsProfile === 'object') return sportsProfile;
   const slug = String(username || id || '').trim().toLowerCase();
   if (slug && Object.prototype.hasOwnProperty.call(SPORTS_ROSTER, slug)) return SPORTS_ROSTER[slug];
-  if (flagSaysSports(division) || flagSaysSports(type)) return DEFAULT_SPORTS_PROFILE;
+  // SERVER FLAG (the documented retirement path, now live): the Sports Portal's
+  // hardwire RPC (sports_insert) provisions athletes as bbf_users.role='athlete',
+  // and bbf_verify_user_pin returns role in the login envelope — so role IS the
+  // explicit server flag. Without this check a hardwired athlete kept routing to
+  // the adult Vault (the admin wrote a flag the fork never read).
+  if (flagSaysSports(division) || flagSaysSports(type) || flagSaysSports(role)) return DEFAULT_SPORTS_PROFILE;
   return null;
 }
 

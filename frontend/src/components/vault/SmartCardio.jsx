@@ -70,7 +70,7 @@ const CARDIO_STR = {
     sessionHistory: 'Session History', noSessions: 'No sessions logged yet. Log your first cardio session below.',
     logSession: 'Log a Session', zone: 'Zone', durationMin: 'Duration (min)', avgHr: 'Avg HR (bpm)', notes: 'Notes',
     phNotes: 'How it felt, splits, terrain…', logBtn: 'Log Session →', logging: 'Logging…',
-    errDur: 'Enter a duration between 1 and 600 minutes.', logged: 'Session logged. Conditioning stays honest. 🔥',
+    errDur: 'Enter a duration between 1 and 600 minutes.', logged: 'Session logged. Conditioning stays honest.',
     errLog: 'Could not log session. Please try again.',
     // CNS telemetry — the daily auto-regulation payload driving the cardio lockout.
     rdyKicker: 'CNS Telemetry · Daily Auto-Regulation',
@@ -125,7 +125,7 @@ const CARDIO_STR = {
     sessionHistory: 'Historial de Sesiones', noSessions: 'Aún no hay sesiones registradas. Registra tu primera sesión de cardio abajo.',
     logSession: 'Registrar una Sesión', zone: 'Zona', durationMin: 'Duración (min)', avgHr: 'FC Prom (lpm)', notes: 'Notas',
     phNotes: 'Cómo se sintió, parciales, terreno…', logBtn: 'Registrar Sesión →', logging: 'Registrando…',
-    errDur: 'Ingresa una duración entre 1 y 600 minutos.', logged: 'Sesión registrada. El acondicionamiento sigue honesto. 🔥',
+    errDur: 'Ingresa una duración entre 1 y 600 minutos.', logged: 'Sesión registrada. El acondicionamiento sigue honesto.',
     errLog: 'No se pudo registrar la sesión. Inténtalo de nuevo.',
     rdyKicker: 'Telemetría del SNC · Autorregulación Diaria',
     rdyScore: 'Preparación Soberana',
@@ -179,7 +179,7 @@ const CARDIO_STR = {
     sessionHistory: 'Histórico de Sessões', noSessions: 'Ainda não há sessões registradas. Registre sua primeira sessão de cardio abaixo.',
     logSession: 'Registrar uma Sessão', zone: 'Zona', durationMin: 'Duração (min)', avgHr: 'FC Méd (bpm)', notes: 'Notas',
     phNotes: 'Como se sentiu, parciais, terreno…', logBtn: 'Registrar Sessão →', logging: 'Registrando…',
-    errDur: 'Informe uma duração entre 1 e 600 minutos.', logged: 'Sessão registrada. O condicionamento segue honesto. 🔥',
+    errDur: 'Informe uma duração entre 1 e 600 minutos.', logged: 'Sessão registrada. O condicionamento segue honesto.',
     errLog: 'Não foi possível registrar a sessão. Tente novamente.',
     rdyKicker: 'Telemetria do SNC · Autorregulação Diária',
     rdyScore: 'Prontidão Soberana',
@@ -320,13 +320,15 @@ const PACING_OPTS = {
 
 // Active Kinetic Apparatus — the selectable card grid (replaces the equipment
 // dropdown). `efficiency` is the mechanical-efficiency term the CRP formula reads.
+// Glyphs are GEOMETRIC MARKS (Sovereign Dossier register), not emoji: flat drive,
+// incline wedge, stair treads, pull cycle, flywheel.
 const APPARATUS_ORDER = ['flat-treadmill', 'incline-treadmill', 'stairmaster', 'concept2-rower', 'assault-bike'];
 const APPARATUS = {
-  'flat-treadmill': { label: 'Flat Treadmill', sub: 'Speed-Play', glyph: '🏃', efficiency: 1.0 },
-  'incline-treadmill': { label: 'Incline Treadmill', sub: 'Glute / Core', glyph: '⛰', efficiency: 1.1 },
-  'stairmaster': { label: 'Standard Stairmaster', sub: 'Vertical Drive', glyph: '🪜', efficiency: 1.1 },
-  'concept2-rower': { label: 'Concept2 Rower', sub: 'Full-Body Pull', glyph: '🚣', efficiency: 1.15 },
-  'assault-bike': { label: 'Assault Bike', sub: 'Max EPOC', glyph: '🚲', efficiency: 1.2 },
+  'flat-treadmill': { label: 'Flat Treadmill', sub: 'Speed-Play', glyph: '━', efficiency: 1.0 },
+  'incline-treadmill': { label: 'Incline Treadmill', sub: 'Glute / Core', glyph: '◢', efficiency: 1.1 },
+  'stairmaster': { label: 'Standard Stairmaster', sub: 'Vertical Drive', glyph: '☰', efficiency: 1.1 },
+  'concept2-rower': { label: 'Concept2 Rower', sub: 'Full-Body Pull', glyph: '⇆', efficiency: 1.15 },
+  'assault-bike': { label: 'Assault Bike', sub: 'Max EPOC', glyph: '◎', efficiency: 1.2 },
 };
 
 const MODALITY_OPTS = {
@@ -448,7 +450,12 @@ function CardioConfigurator() {
 
       {/* ── Dynamic caloric hero — reacts to the time slider + apparatus ── */}
       <div className="bbf-burn" data-testid="cardio-burn-hero">
-        <span className="bbf-burn__icon" aria-hidden="true">🔥</span>
+        <span className="bbf-burn__icon" aria-hidden="true">
+          {/* Geometric ignition mark (SVG, currentColor) — no emoji in the dossier */}
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+            <path d="M12 2c.6 3.6-1.4 5.5-3.2 7.4C7 11.3 6 13 6 15a6 6 0 0 0 12 0c0-1.6-.6-3-1.5-4.3-.4 1-1 1.8-2 2.3.3-3.4-.8-7.6-2.5-11zm0 18.4A3.4 3.4 0 0 1 8.6 17c0-1.2.6-2.1 1.4-3 .5 1.1 1.4 1.8 2.5 2.1.9.3 1.9 1 1.9 2.3a3.4 3.4 0 0 1-2.4 2z" />
+          </svg>
+        </span>
         <div className="bbf-burn__body">
           <span className="bbf-burn__label">{tr.burnTotal}</span>
           <span className="bbf-burn__val">~{crp.kcal}<span className="bbf-burn__unit">{tr.kcal}</span></span>
@@ -702,10 +709,25 @@ function PacerTimer({ duration, crp, pacing, zoneLabel }) {
 
   function reset() { setRunning(false); setElapsed(0); }
 
+  // Animated session ring: a depleting SVG arc swept smoothly by a 1s linear
+  // transition between ticks, so the dial visibly "runs" with the block clock.
+  const RING_R = 92;
+  const RING_C = 2 * Math.PI * RING_R;
+  const ringProgress = total > 0 ? remaining / total : 0;
+
   return (
     <div className="bbf-pacer" style={{ '--pacer-accent': pacing.accent }}>
-      <div className="bbf-pacer__dial">
-        <div className="bbf-pacer__ring" aria-hidden="true" />
+      <div className={`bbf-pacer__dial${running ? ' is-running' : ''}`}>
+        <svg className="bbf-pacer__ring-svg" viewBox="0 0 200 200" aria-hidden="true">
+          <circle className="bbf-pacer__ring-track" cx="100" cy="100" r={RING_R} />
+          <circle
+            className="bbf-pacer__ring-fill"
+            cx="100" cy="100" r={RING_R}
+            strokeDasharray={RING_C.toFixed(2)}
+            strokeDashoffset={(RING_C * (1 - ringProgress)).toFixed(2)}
+          />
+        </svg>
+        <span className="bbf-pacer__sweep" aria-hidden="true" />
         <div className="bbf-pacer__time">
           <span className="bbf-pacer__time-kicker">{tr.timeBlock}</span>
           <span className="bbf-pacer__clock" role="timer" aria-label={tr.timeRemaining}>{pad(mm)}:{pad(ss)}</span>
@@ -715,7 +737,7 @@ function PacerTimer({ duration, crp, pacing, zoneLabel }) {
 
       <div className="bbf-pacer__stats">
         <div className="bbf-pacer__stat">
-          <span className="bbf-pacer__stat-val">🔥 {crp.bpm}<span className="bbf-pacer__stat-unit">{tr.bpm}</span></span>
+          <span className="bbf-pacer__stat-val">{crp.bpm}<span className="bbf-pacer__stat-unit">{tr.bpm}</span></span>
           <span className="bbf-pacer__stat-lbl">{tr.targetPulse}</span>
         </div>
         <div className="bbf-pacer__stat">
@@ -777,7 +799,7 @@ function LiveProtocol({ plan }) {
           data-testid="cardio-gen-softened"
           data-base-tier={cns.base_tier} data-effective-tier={cns.effective_tier}>
           <div className="bbf-gps__cns-top">
-            <span className="bbf-gps__cns-icon" aria-hidden="true">🛡</span>
+            <span className="bbf-gps__cns-icon" aria-hidden="true">◈</span>
             <span className="bbf-gps__cns-title">{tr.cnsTitle}</span>
             {Number.isFinite(Number(cns.score)) ? <span className="bbf-gps__cns-score">{tr.cnsFatigue(cns.score)}</span> : null}
           </div>
@@ -844,7 +866,7 @@ function RateLimitToast({ message, onClose }) {
   }, [onClose]);
   return (
     <div className="bbf-toast" role="status" aria-live="polite" data-testid="cardio-rate-toast">
-      <span className="bbf-toast__icon" aria-hidden="true">⏳</span>
+      <span className="bbf-toast__icon" aria-hidden="true">◔</span>
       <div className="bbf-toast__body">
         <span className="bbf-toast__title">{tr.title}</span>
         <span className="bbf-toast__msg">{message}</span>

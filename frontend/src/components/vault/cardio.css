@@ -201,7 +201,11 @@
   border: 1px solid rgba(245, 200, 0, .28); border-radius: 14px;
   padding: 1rem 1.2rem; margin-bottom: 1.3rem;
 }
-.bbf-burn__icon { font-size: 1.7rem; line-height: 1; filter: drop-shadow(0 0 8px rgba(245, 200, 0, .55)); }
+.bbf-burn__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--yel); line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(245, 200, 0, .55));
+}
 .bbf-burn__body { display: flex; flex-direction: column; }
 .bbf-burn__label { font-family: var(--hb); font-size: .66rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--mut); }
 .bbf-burn__val { font-family: var(--display); font-size: 2.1rem; line-height: 1; color: var(--yel); text-shadow: 0 2px 20px rgba(245, 200, 0, .25); }
@@ -251,7 +255,20 @@
   border-color: var(--yel); background: rgba(245, 200, 0, .07);
   box-shadow: 0 0 0 1px var(--yel), 0 8px 26px -14px rgba(245, 200, 0, .7);
 }
-.bbf-app__glyph { font-size: 1.35rem; line-height: 1; margin-bottom: .15rem; }
+/* Geometric apparatus mark — a hairline tile, not an emoji. Gold-keys on the
+   active card so the mark reads as the dossier's selection flag. */
+.bbf-app__glyph {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; margin-bottom: .3rem;
+  font-size: 1rem; line-height: 1; color: var(--gold-soft);
+  border: 1px solid var(--panel-edge); border-radius: 8px;
+  background: rgba(5, 5, 5, .55);
+}
+.bbf-app__card.is-active .bbf-app__glyph {
+  color: #0c0a02;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border-color: var(--yel);
+}
 .bbf-app__name { font-family: var(--hb); font-size: .92rem; letter-spacing: 1px; text-transform: uppercase; color: var(--wht); line-height: 1.05; }
 .bbf-app__card.is-active .bbf-app__name { color: var(--yel); }
 .bbf-app__sub { font-family: var(--bd); font-size: .68rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--mut); }
@@ -274,10 +291,45 @@
 
 /* Pacer countdown dial + controls */
 .bbf-pacer { border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(180deg, #0a0410, #050505 60%); padding: 1.4rem 1.2rem; margin-bottom: 1.2rem; }
-.bbf-pacer__dial { position: relative; display: flex; align-items: center; justify-content: center; min-height: 190px; margin-bottom: 1.2rem; }
-.bbf-pacer__ring {
-  position: absolute; width: 190px; height: 190px; border-radius: 50%;
-  border: 1px solid rgba(245, 200, 0, .18); box-shadow: 0 0 40px -10px var(--pacer-accent, #6a0dad) inset;
+/* ── Animated session ring — a depleting SVG arc + an orbiting sweep spark.
+   The arc tracks the block clock (1s linear transition between ticks = a
+   continuous sweep); the spark orbits only while the pacer runs. ── */
+.bbf-pacer__dial { position: relative; display: flex; align-items: center; justify-content: center; min-height: 210px; margin-bottom: 1.2rem; }
+.bbf-pacer__ring-svg {
+  position: absolute; width: 200px; height: 200px;
+  transform: rotate(-90deg);
+}
+.bbf-pacer__ring-track { fill: none; stroke: rgba(249, 245, 255, .08); stroke-width: 6; }
+.bbf-pacer__ring-fill {
+  fill: none; stroke: var(--pacer-accent, var(--yel)); stroke-width: 6; stroke-linecap: round;
+  filter: drop-shadow(0 0 10px var(--pacer-accent, rgba(245, 200, 0, .5)));
+  transition: stroke-dashoffset 1s linear, stroke .4s ease;
+}
+.bbf-pacer__dial.is-running .bbf-pacer__ring-fill {
+  animation: bbf-ring-breathe 2.4s ease-in-out infinite;
+}
+@keyframes bbf-ring-breathe {
+  0%, 100% { filter: drop-shadow(0 0 8px var(--pacer-accent, rgba(245, 200, 0, .4))); }
+  50% { filter: drop-shadow(0 0 18px var(--pacer-accent, rgba(245, 200, 0, .75))); }
+}
+.bbf-pacer__sweep {
+  position: absolute; width: 200px; height: 200px; border-radius: 50%;
+  pointer-events: none; opacity: 0;
+}
+.bbf-pacer__sweep::before {
+  content: ''; position: absolute; top: -3px; left: 50%; margin-left: -4px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--pacer-accent, var(--yel));
+  box-shadow: 0 0 12px 2px var(--pacer-accent, rgba(245, 200, 0, .8));
+}
+.bbf-pacer__dial.is-running .bbf-pacer__sweep {
+  opacity: 1;
+  animation: bbf-sweep-orbit 4s linear infinite;
+}
+@keyframes bbf-sweep-orbit { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .bbf-pacer__ring-fill, .bbf-pacer__dial.is-running .bbf-pacer__ring-fill { transition: none; animation: none; }
+  .bbf-pacer__dial.is-running .bbf-pacer__sweep { animation: none; opacity: 0; }
 }
 .bbf-pacer__time { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
 .bbf-pacer__time-kicker { font-family: var(--hb); font-size: .68rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold-soft); }
