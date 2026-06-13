@@ -19,6 +19,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { fetchConciergeGreeting } from '../../lib/conciergeApi.js';
+import { MicIcon, CameraIcon, SignalIcon, FlagIcon, UsersIcon, CrosshairIcon } from './icons.jsx';
 
 const SEEN_PREFIX = 'bbf.concierge.seen.';
 function seenKey(uid) { return SEEN_PREFIX + String(uid || '').trim().toLowerCase(); }
@@ -29,12 +30,16 @@ function markSeen(uid) {
   try { localStorage.setItem(seenKey(uid), String(Date.now())); } catch { /* storage blocked */ }
 }
 
-// Cosmetic glyph per canonical feature key (mirrors the Vault tab iconography).
+// Glyph per canonical feature key (mirrors the Vault tab iconography). Values are
+// EITHER a geometric dingbat (clinical line glyph) OR an inline SVG component
+// (Glyph Purge — the former native emojis for mindset / voice / camera / comlink /
+// sports / roster / kinematics are now stroke-only SVGs that inherit the icon
+// token via currentColor).
 const FEATURE_ICON = {
-  grid: '▤', form_videos: '▶', base_nutrition: '◆', readiness: '✓', mindset: '🧠',
-  voice_coach: '🎙', smart_cardio: '♥', prehab: '✚', advanced_nutrition: '📷',
-  sovereign_comlink: '📡', coach_orchestration: '⚙', sports_hub: '🏈', roster: '👥',
-  kinematics: '🎯',
+  grid: '▤', form_videos: '▶', base_nutrition: '◆', readiness: '✓', mindset: '❖',
+  voice_coach: MicIcon, smart_cardio: '♥', prehab: '✚', advanced_nutrition: CameraIcon,
+  sovereign_comlink: SignalIcon, coach_orchestration: '⚙', sports_hub: FlagIcon, roster: UsersIcon,
+  kinematics: CrosshairIcon,
 };
 
 const S = {
@@ -62,7 +67,10 @@ const S = {
     display: 'flex', gap: '11px', alignItems: 'flex-start',
     background: '#161616', border: '1px solid #262626', borderRadius: '10px', padding: '10px 12px',
   },
-  icon: { fontSize: '1.1rem', lineHeight: 1.4, color: '#f5c800', flex: '0 0 auto', width: '20px', textAlign: 'center' },
+  icon: {
+    fontSize: '1.1rem', lineHeight: 1, color: 'var(--gold-soft)', flex: '0 0 auto', width: '20px',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  },
   cardTitle: { fontWeight: 700, fontSize: '.92rem', color: '#fff' },
   cardBlurb: { fontSize: '.82rem', color: '#bdbdbd', lineHeight: 1.35, marginTop: '1px' },
   firstMove: {
@@ -137,15 +145,20 @@ export default function Concierge() {
 
         <div style={S.sectionH}>{t('concierge-unlocked-h')}</div>
         <div style={S.list}>
-          {card.unlocked.map((f) => (
-            <div key={f.feature} style={S.card}>
-              <span style={S.icon} aria-hidden="true">{FEATURE_ICON[f.feature] || '◆'}</span>
-              <div>
-                <div style={S.cardTitle}>{f.title}</div>
-                {f.blurb ? <div style={S.cardBlurb}>{f.blurb}</div> : null}
+          {card.unlocked.map((f) => {
+            const Glyph = FEATURE_ICON[f.feature] || '◆';
+            return (
+              <div key={f.feature} style={S.card}>
+                <span style={S.icon} aria-hidden="true">
+                  {typeof Glyph === 'function' ? <Glyph size={16} /> : Glyph}
+                </span>
+                <div>
+                  <div style={S.cardTitle}>{f.title}</div>
+                  {f.blurb ? <div style={S.cardBlurb}>{f.blurb}</div> : null}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {card.firstMove ? (
