@@ -671,7 +671,8 @@
 .cv-tab.is-locked { color: rgba(249, 245, 255, .4); }
 .cv-tab.is-locked:hover { color: rgba(249, 245, 255, .62); }
 .cv-tab.is-locked.is-active { color: var(--wht); border-bottom-color: var(--pur); text-shadow: none; }
-.cv-tab-lock { font-size: .72em; margin-left: .32rem; opacity: .85; vertical-align: baseline; }
+/* Locked-tab padlock — inline SVG (LockIcon), inherits the muted tab ink. */
+.cv-tab-lock { margin-left: .34rem; opacity: .85; vertical-align: -1px; }
 
 /* ── Agentic Handshake — tab-rail morph ─────────────────────────────────────
    STRAIN / BREACH: high-output surfaces recede; recovery protocols light up in
@@ -735,7 +736,8 @@
   letter-spacing: .5px; color: var(--yel); margin: .75rem 0 .55rem; line-height: 1;
   display: flex; align-items: center; gap: .55rem;
 }
-.cv-portal-mark { font-style: normal; }
+/* Sovereign crest (CrestIcon) — gold-soft stroke, seated on the flex title row. */
+.cv-portal-mark { color: var(--gold-soft); flex-shrink: 0; }
 .cv-portal-sub {
   font-family: var(--bd); font-size: .95rem; font-weight: 500; line-height: 1.5;
   color: rgba(249, 245, 255, .58); margin: 0; max-width: 54ch;
@@ -822,10 +824,12 @@
 .cv-blueprint-streak { flex-shrink: 0; text-align: right; }
 .cv-blueprint-streak-k { display: block; font-family: var(--hb); font-size: .58rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
 .cv-blueprint-streak-v {
-  display: inline-block; margin-top: .35rem; font-family: var(--display); font-size: 1.05rem;
+  display: inline-flex; align-items: center; margin-top: .35rem; font-family: var(--display); font-size: 1.05rem;
   color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft));
   border-radius: 8px; padding: .28rem .65rem; white-space: nowrap;
 }
+/* Streak bolt (BoltIcon) — inherits the dark ink that sits on the gold pill. */
+.cv-streak-bolt { margin-right: .32rem; }
 
 /* nested-nav tab icon */
 .cv-tab-icon { font-size: .92em; opacity: .75; margin-right: .12rem; }
@@ -916,8 +920,9 @@
   font-family: var(--hb); font-size: .64rem; font-weight: 700;
   letter-spacing: 2.2px; text-transform: uppercase; color: var(--gold-soft);
 }
-.vh-streak { display: flex; align-items: baseline; gap: .5rem; }
-.vh-streak-flag { font-size: 1rem; }
+.vh-streak { display: flex; align-items: center; gap: .5rem; }
+/* Hub streak bolt (BoltIcon) — gold, paired with the gold count. */
+.vh-streak-flag { color: var(--yel); flex-shrink: 0; }
 .vh-streak-v { font-family: var(--display); font-size: 1.7rem; line-height: 1; color: var(--yel); }
 .vh-streak-k {
   font-family: var(--hb); font-size: .6rem; font-weight: 700;

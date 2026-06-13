@@ -18,6 +18,7 @@
 
 import { useLang } from '../../context/LangContext.jsx';
 import { Loading, Empty } from '../command/primitives.jsx';
+import { BoltIcon } from './icons.jsx';
 import './vault.css';
 
 // Intel-rail indices (labels + units resolve through the dictionary in render).
@@ -59,7 +60,7 @@ function HubDossier({ profile, t }) {
             <span className="vh-hero-k">{t('vh-stat-total')} · {t('vh-u-logged')}</span>
           </div>
           <div className="vh-streak">
-            <span className="vh-streak-flag" aria-hidden="true">⚡</span>
+            <BoltIcon className="vh-streak-flag" size={15} />
             <span className="vh-streak-v">{streak}</span>
             <span className="vh-streak-k">{t('vh-stat-streak')} · {t('vh-u-days')}</span>
           </div>

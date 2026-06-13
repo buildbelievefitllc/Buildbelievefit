@@ -44,6 +44,7 @@ import TierGate from '../components/TierGate.jsx';
 import ComlinkFAB from '../components/vault/ComlinkFAB.jsx';
 import Concierge from '../components/vault/Concierge.jsx';
 import { TAB_FEATURE } from '../lib/entitlements.js';
+import { LockIcon } from '../components/vault/icons.jsx';
 import '../components/vault/vault.css';
 
 // Agentic Handshake impact classes: under SYSTEM_STRAIN / SYSTEM_BREACH the
@@ -63,7 +64,7 @@ const TABS = [
   // Champion Mindset is tier-gated by the Upsell Funnel: every Online Fitness tier,
   // Fuel Sovereign (top Online Nutrition), + God Mode unlock it; lower Nutrition +
   // Youth see the UpgradeOverlay. See lib/entitlements.js.
-  { id: 'mindset', labelKey: 'vault-tab-mindset', icon: '🧠', testid: 'vault-tab-mindset' },
+  { id: 'mindset', labelKey: 'vault-tab-mindset', icon: '❖', testid: 'vault-tab-mindset' },
   { id: 'settings', labelKey: 'vault-tab-settings', icon: '⚙' },
 ];
 
@@ -199,7 +200,7 @@ export default function ClientVault() {
               >
                 {tab.icon ? <span className="cv-tab-icon" aria-hidden="true">{tab.icon}</span> : null}
                 {t(tab.labelKey)}
-                {locked ? <span className="cv-tab-lock" aria-hidden="true">🔒</span> : null}
+                {locked ? <LockIcon className="cv-tab-lock" /> : null}
               </button>
             );
           })}

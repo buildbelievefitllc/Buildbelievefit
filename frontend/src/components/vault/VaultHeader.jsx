@@ -25,6 +25,7 @@ import { useLang } from '../../context/LangContext.jsx';
 import { parseWorkoutPlan, parseMealPlan } from '../../lib/vaultApi.js';
 import { localizeFocus } from '../../lib/trainingI18n.js';
 import { getProgram } from './programData.js';
+import { BoltIcon, CrestIcon } from './icons.jsx';
 import './vault.css';
 
 const HYDRATION_TARGET_L = 3.5; // prototype read-out; live hydration tracking is a later phase
@@ -107,7 +108,7 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
       <div className="cv-portal">
         <div className="cv-portal-main">
           <span className="cv-pill">◇ {accessLabel}</span>
-          <h1 className="cv-portal-title"><span className="cv-portal-mark" aria-hidden="true">🏆</span> {t('vh-portal-title').toUpperCase()}</h1>
+          <h1 className="cv-portal-title"><CrestIcon className="cv-portal-mark" size={20} /> {t('vh-portal-title').toUpperCase()}</h1>
           <p className="cv-portal-sub">{t('vh-portal-sub')}</p>
         </div>
         <div className="cv-portal-stats">
@@ -188,7 +189,7 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
         </div>
         <div className="cv-blueprint-streak">
           <span className="cv-blueprint-streak-k">{t('vh-streak')}</span>
-          <span className="cv-blueprint-streak-v">⚡ {streak} {streak === '1' ? t('vh-day') : t('vh-days')}</span>
+          <span className="cv-blueprint-streak-v"><BoltIcon className="cv-streak-bolt" /> {streak} {streak === '1' ? t('vh-day') : t('vh-days')}</span>
         </div>
       </div>
     </section>

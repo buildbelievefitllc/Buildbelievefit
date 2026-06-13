@@ -15,7 +15,7 @@
 //   • Dynamic hosts (Supabase REST/functions, Render proxy /api/*, PostgREST,
 //     direct AI/mail) → NEVER cached. Always network. Prevents clients getting
 //     pinned to stale workout sets / meal plans / dietary fields.
-var CACHE = 'bbf-react-v65';
+var CACHE = 'bbf-react-v66';
 var SHELL = '/';
 var CORE = [
   '/',
