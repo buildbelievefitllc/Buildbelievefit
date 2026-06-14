@@ -94,16 +94,41 @@ export default function Concierge() {
   const [card, setCard] = useState(null);
   const dismissedRef = useRef(false);
 
-  // Fetch-once-on-land: only for a member who hasn't seen the concierge yet.
-  // State is mutated exclusively inside the promise callback (never synchronously
-  // in the effect body) so it stays clear of react-hooks/set-state-in-effect.
+  // ── Auto-fire path: ONCE per member, on their ABSOLUTE first login ──
+  // Two layers stop repeats: (1) a same-device localStorage fast-path that skips
+  // the network entirely, and (2) the server's DURABLE has_seen_welcome flag,
+  // enforced by the edge fn (returns { alreadySeen } across every device, even
+  // after localStorage is cleared / on a new device / incognito). We cache the
+  // server's "already seen" verdict back into localStorage so the next load on
+  // this device short-circuits without a round-trip. State is mutated only inside
+  // the promise callback (never synchronously) — clear of set-state-in-effect.
   useEffect(() => {
     if (!uid || hasSeen(uid)) return undefined;
     let cancelled = false;
     fetchConciergeGreeting({ displayName, lang })
-      .then((res) => { if (!cancelled && res && !dismissedRef.current) setCard(res); })
+      .then((res) => {
+        if (cancelled || dismissedRef.current || !res) return;
+        if (res.alreadySeen) { markSeen(uid); return; } // durable server verdict → cache, no modal
+        setCard(res);
+      })
       .catch(() => { /* delight, never a blocker — swallow */ });
     return () => { cancelled = true; };
+  }, [uid, displayName, lang]);
+
+  // ── Summon path: the member explicitly re-opens the welcome (Settings → Replay).
+  // Bypasses BOTH guards (localStorage + the server flag) via summon:true, so it
+  // works even long after the first-login welcome. A decoupled window event lets
+  // any surface trigger it with no prop-drilling.
+  useEffect(() => {
+    function onSummon() {
+      if (!uid) return;
+      dismissedRef.current = false;
+      fetchConciergeGreeting({ displayName, lang, summon: true })
+        .then((res) => { if (res && !res.alreadySeen) setCard(res); })
+        .catch(() => { /* swallow — summon is best-effort */ });
+    }
+    window.addEventListener('bbf:concierge:summon', onSummon);
+    return () => window.removeEventListener('bbf:concierge:summon', onSummon);
   }, [uid, displayName, lang]);
 
   const close = () => {

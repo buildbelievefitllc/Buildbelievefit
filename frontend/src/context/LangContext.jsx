@@ -520,6 +520,9 @@ const DICT = {
   'concierge-unlocked-h': { en: 'Unlocked for you', es: 'Desbloqueado para ti', pt: 'Desbloqueado para você' },
   'concierge-firstmove-h': { en: 'Your first move', es: 'Tu primer paso', pt: 'Seu primeiro passo' },
   'concierge-dismiss': { en: "Let's get to work →", es: 'Manos a la obra →', pt: 'Vamos ao trabalho →' },
+  // Concierge summon (Settings → replay the first-login welcome on demand).
+  'concierge-replay-h': { en: 'Onboarding', es: 'Bienvenida', pt: 'Integração' },
+  'concierge-replay': { en: 'Replay welcome tour', es: 'Repetir el recorrido de bienvenida', pt: 'Repetir o tour de boas-vindas' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });

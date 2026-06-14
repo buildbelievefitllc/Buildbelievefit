@@ -13,10 +13,12 @@
 // The server resolves identity + band SERVER-SIDE from the vault token (the body
 // is never trusted for auth), so the only thing we MUST send is that token.
 //
-// CONTRACT: this returns the greeting payload on success, or `null` on ANY
-// non-success (auth denial, network blip, malformed body). The concierge is a
-// delight, never a blocker — the caller simply doesn't surface the modal when it
-// returns null. We never throw, so onboarding can never crash the Vault.
+// CONTRACT: returns the greeting payload (`{ alreadySeen:false, … }`) on success;
+// `{ alreadySeen:true }` when the member was already welcomed (durable server-side
+// has_seen_welcome — no modal); or `null` on ANY non-success (auth denial, network
+// blip, malformed body). The concierge is a delight, never a blocker — the caller
+// simply doesn't surface the modal unless it gets a card. We never throw, so
+// onboarding can never crash the Vault.
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
@@ -38,7 +40,7 @@ function normalizeCard(c) {
 
 // Fetch the tier-aware welcome for the authenticated member. Resolves to the
 // greeting payload, or null when there is nothing to show.
-export async function fetchConciergeGreeting({ displayName = '', lang = 'en' } = {}) {
+export async function fetchConciergeGreeting({ displayName = '', lang = 'en', summon = false } = {}) {
   const token = getStoredVaultToken();
   if (!token) return null; // no session → nothing to onboard into
 
@@ -60,6 +62,10 @@ export async function fetchConciergeGreeting({ displayName = '', lang = 'en' } =
         vault_token: token,
         display_name: typeof displayName === 'string' ? displayName.slice(0, 60) : '',
         locale: toLocale(lang),
+        // First-login persistence is server-authoritative (bbf_users.has_seen_welcome).
+        // summon:true forces the welcome open even for an already-welcomed member
+        // (the explicit "replay" action) — the server then skips the seen-gate.
+        summon: !!summon,
       }),
     });
   } catch {
@@ -72,6 +78,12 @@ export async function fetchConciergeGreeting({ displayName = '', lang = 'en' } =
 
   let data;
   try { data = await res.json(); } catch { return null; }
+
+  // Server says this member was already welcomed (durable has_seen_welcome) — no
+  // modal. Surface it distinctly (not null) so the caller can cache the verdict
+  // locally and skip the network round-trip on the next load on this device.
+  if (data && data.already_seen === true) return { alreadySeen: true };
+
   if (!data || typeof data.greeting !== 'string' || !data.greeting.trim()) return null;
 
   const unlocked = Array.isArray(data.unlocked)
@@ -80,6 +92,7 @@ export async function fetchConciergeGreeting({ displayName = '', lang = 'en' } =
   if (!unlocked.length) return null; // a tour with no tools is not worth showing
 
   return {
+    alreadySeen: false,
     locale: data.locale || toLocale(lang),
     band: data.band || '',
     bandLabel: data.band_label || '',

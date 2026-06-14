@@ -67,6 +67,41 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+// ─── Durable first-login flag (bbf_users.has_seen_welcome) ──────────────────
+// The Concierge is a FIRST-LOGIN-ONLY welcome; localStorage alone is device-local
+// and re-fires on every new device / cleared storage, so the AUTHORITATIVE gate is
+// this server-side boolean. claimFirstWelcome ATOMICALLY flips false→true and tells
+// us whether THIS call won the flip (race-safe: two concurrent first-logins → only
+// one gets 'first', the other 'already'). Zero imports (global fetch) so the module
+// still inlines cleanly into the single-file edge bundle — mirrors entitlement-gate.
+function svcHeaders(serviceKey: string): HeadersInit {
+  return { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' };
+}
+
+async function claimFirstWelcome(
+  url: string, serviceKey: string, userId: string,
+): Promise<'first' | 'already' | 'unknown'> {
+  try {
+    // PATCH the row ONLY while has_seen_welcome is still false, returning the
+    // representation: a non-empty result means WE flipped it (the member's first
+    // welcome); an empty result means it was already true (already welcomed).
+    const r = await fetch(
+      `${url}/rest/v1/bbf_users?id=eq.${encodeURIComponent(userId)}&has_seen_welcome=is.false&select=id`,
+      {
+        method: 'PATCH',
+        headers: { ...svcHeaders(serviceKey), Prefer: 'return=representation' },
+        body: JSON.stringify({ has_seen_welcome: true }),
+      },
+    );
+    if (!r.ok) return 'unknown'; // column or permission missing → caller composes (degraded)
+    const rows = await r.json().catch(() => null);
+    if (Array.isArray(rows)) return rows.length ? 'first' : 'already';
+    return 'unknown';
+  } catch {
+    return 'unknown'; // network blip → compose (never block the welcome on this)
+  }
+}
+
 // Onboarding greeting — mid-complexity copy generation. Sonnet per CEO
 // routing rules; routed (never inlined) so cost decisions stay in one file.
 const MODEL             = routeAndLog('bbf-agentic-concierge', 'concierge_greeting');
@@ -288,6 +323,23 @@ serve(async (req: Request) => {
   const bandLabel = BAND_LABEL[group] || 'Member';
   const surface   = SURFACE_LABEL[group] || 'BBF lab';
   const unlocked  = unlockedForGroup(group);
+
+  // ─── DURABLE FIRST-LOGIN GATE (bbf_users.has_seen_welcome) ─────────────────
+  // The concierge auto-fires only on the member's ABSOLUTE first login. An explicit
+  // summon (body.summon) always bypasses this. We ATOMICALLY claim the first welcome
+  // (flip false→true): a member already welcomed gets { already_seen } — no LLM
+  // spend, no modal — durably across every device, even when the client's
+  // localStorage was cleared / it's a new device / incognito. Degrades to "compose"
+  // when the column or service-role key is unavailable (the client localStorage
+  // fast-path then still suppresses same-device repeats), so it never errors.
+  const summon = payload?.summon === true || payload?.force === true;
+  const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!summon && SUPABASE_URL && SERVICE_ROLE_KEY) {
+    const claim = await claimFirstWelcome(SUPABASE_URL, SERVICE_ROLE_KEY, gate.user_id);
+    if (claim === 'already') {
+      return jsonResponse({ ok: true, already_seen: true, locale, band: group, band_label: bandLabel }, 200);
+    }
+  }
 
   // Cosmetic salutation only — identity/band are already server-authoritative.
   const rawName = (typeof payload?.display_name === 'string' && payload.display_name.trim())

@@ -1054,6 +1054,16 @@
 }
 .pg-set-signout:hover { background: rgba(220, 60, 60, .12); border-color: rgba(220, 60, 60, .8); }
 
+/* Replay-welcome (summon the Concierge) — brand PURPLE primary CTA (CLAUDE.md §2). */
+.pg-set-replay {
+  width: 100%;
+  font-family: var(--hb); font-size: .85rem; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: .75rem 1rem; border-radius: 10px; cursor: pointer;
+  color: var(--wht); background: #6a0dad; border: 1px solid #6a0dad;
+  transition: background .15s ease, border-color .15s ease;
+}
+.pg-set-replay:hover { background: #7d1bc4; border-color: #7d1bc4; }
+
 /* ── Caloric Spin Wheel (radial intake gauge) ───────────────────────────── */
 .pg-wheel {
   position: relative;

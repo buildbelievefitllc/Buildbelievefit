@@ -173,6 +173,22 @@ export default function Settings() {
       </div>
 
       <div className="pg-card">
+        <div className="pg-set-title">{t('concierge-replay-h')}</div>
+        <button
+          type="button"
+          className="pg-set-replay"
+          data-testid="vault-concierge-summon"
+          onClick={() => {
+            // Decoupled summon — the Concierge (mounted at the ClientVault root)
+            // listens for this and re-opens the welcome, bypassing the first-login gate.
+            try { window.dispatchEvent(new CustomEvent('bbf:concierge:summon')); } catch { /* no-op */ }
+          }}
+        >
+          {t('concierge-replay')}
+        </button>
+      </div>
+
+      <div className="pg-card">
         <div className="pg-set-title">{t('set-session')}</div>
         <button type="button" className="pg-set-signout" onClick={signOut}>{t('shell-signout')}</button>
       </div>
