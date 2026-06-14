@@ -38,7 +38,16 @@ const MAX_PROTOCOL_AGE_DAYS = 1;
 // minute-to-minute; tab churn must not re-buy the same payload.
 const SOFT_TTL_MS = 5 * 60 * 1000;
 
-function num(x) { const n = Number(x); return Number.isFinite(n) ? n : null; }
+// Null/undefined/'' guard FIRST — Number(null) is 0, not NaN. Without it a manual
+// entry (or a steps-only wearable day) whose hrv_ms is null reads as hrv=0, which
+// trips isSuppressed (0 < 35) and forces a PHANTOM breach onto every consumer
+// (Program slices sets, Prehab/Cardio lock) even at 100% readiness. Mirrors the
+// engine's own num() in bbf-readiness-engine.ts and biometricsApi.js.
+function num(x) {
+  if (x === null || x === undefined || x === '') return null;
+  const n = Number(x);
+  return Number.isFinite(n) ? n : null;
+}
 
 // Local calendar date as 'YYYY-MM-DD' (en-CA renders ISO order in local time).
 function localToday() {

@@ -35,7 +35,13 @@ export const READINESS_FULL_MIN = 85;
 export const READINESS_BREACH_MAX = 40; // exclusive lower bound of ADAPTIVE
 
 export function deriveVolumeDirective({ score, mode, isSuppressed = false, hasData = true } = {}) {
-  const s = Number.isFinite(Number(score)) ? Number(score) : null;
+  // Guard null/undefined/'' BEFORE Number() — Number(null) is 0, not NaN, so a
+  // missing score (INSUFFICIENT_TELEMETRY / steps-only wearable day) would read as
+  // 0 and trip the <40 breach band, punishing the athlete for absent data. A null
+  // score must resolve to 'none' (full volume) per the doctrine above.
+  const s = (score === null || score === undefined || score === '')
+    ? null
+    : (Number.isFinite(Number(score)) ? Number(score) : null);
   const breach = mode === 'SYSTEM_BREACH' || isSuppressed === true || (s !== null && s < READINESS_BREACH_MAX);
 
   if (!hasData || (s === null && !breach)) {
