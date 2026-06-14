@@ -198,11 +198,32 @@ async function postInstagram(cfg: Config, imageUrl: string, caption: string): Pr
   return { ok: true, status: 200, ref: String(pj.id) };
 }
 
+// Facebook Page publishing requires a PAGE access token. A USER/system token —
+// even with pages_manage_posts granted — returns "(#200) publish_actions ...
+// deprecated" on POST /{page}/photos. Exchange META_TOKEN → Page token once
+// (module-cached), falling back to META_TOKEN so a token that can already post
+// directly (e.g. a properly-scoped system-user token) keeps working unchanged.
+// Instagram is unaffected — it still publishes with META_TOKEN directly.
+let _fbPageToken: string | null = null;
+async function facebookPageToken(cfg: Config): Promise<string> {
+  if (_fbPageToken) return _fbPageToken;
+  try {
+    const r = await fetch(`${cfg.graph}/${cfg.fbPage}?fields=access_token&access_token=${encodeURIComponent(cfg.metaToken)}`);
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 200 && j?.access_token) {
+      _fbPageToken = String(j.access_token);
+      return _fbPageToken;
+    }
+  } catch (_) { /* fall back to the user token below */ }
+  return cfg.metaToken;
+}
+
 async function postFacebook(cfg: Config, imageUrl: string, caption: string): Promise<PostResult> {
+  const pageToken = await facebookPageToken(cfg);
   const r = await fetch(`${cfg.graph}/${cfg.fbPage}/photos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url: imageUrl, caption, access_token: cfg.metaToken }),
+    body: JSON.stringify({ url: imageUrl, caption, access_token: pageToken }),
   });
   const j = await r.json().catch(() => ({}));
   if (r.status !== 200 || !(j?.id || j?.post_id)) {
