@@ -27,6 +27,8 @@ import { getPrehabCatalog, REGION_ICONS, EX_VIDEO } from './prehabProtocol.js';
 import { resolveVideoId, thumbURL } from './exerciseVideos.js';
 import { pickLang } from '../../lib/pickLang.js';
 import { requestPrehabMatrix } from '../../lib/prehabApi.js';
+import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness.js';
+import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
 import PREHAB_MATRIX from '../../data/prehabDiagnosticMatrix.json';
 import './prehab.css';
 
@@ -766,9 +768,88 @@ function ProtocolDeck() {
   );
 }
 
-export default function Prehab() {
+// ── Sovereign Readiness banner ───────────────────────────────────────────────
+// The morning check-in's verdict (wearable sync OR Manual Health Input — same
+// shared store, useDailyReadiness) surfaced on the Prehab tab, so a low-readiness
+// day visibly prioritizes recovery here too. Reuses the SAME directive transform
+// (deriveVolumeDirective) that ProgramGrid / Smart Cardio regulate on, so all
+// surfaces speak one verdict. No telemetry → renders nothing (never punishes).
+const RDY_STR = {
+  en: {
+    kicker: 'Sovereign Readiness',
+    score: (s) => (s == null ? 'No readiness score' : `Readiness ${s}/100`),
+    breach: 'System breach — recovery is the priority today. Run the corrective protocol below and keep heavy axial load off the CNS.',
+    adaptive: 'Adaptive state — bank recovery. The targeted mobility work below is recommended before you train.',
+    full: 'Prime clearance — prehab is maintenance today. Keep the joints honest and proceed.',
+    inject: 'Low readiness — targeted prehab drills are recommended before loading.',
+  },
+  es: {
+    kicker: 'Preparación Soberana',
+    score: (s) => (s == null ? 'Sin puntaje de preparación' : `Preparación ${s}/100`),
+    breach: 'Brecha del sistema — hoy la recuperación es la prioridad. Ejecuta el protocolo correctivo de abajo y mantén la carga axial pesada fuera del SNC.',
+    adaptive: 'Estado adaptativo — acumula recuperación. Se recomienda el trabajo de movilidad de abajo antes de entrenar.',
+    full: 'Autorización óptima — hoy el prehab es mantenimiento. Mantén las articulaciones sanas y continúa.',
+    inject: 'Baja preparación — se recomiendan drills de prehab específicos antes de cargar.',
+  },
+  pt: {
+    kicker: 'Prontidão Soberana',
+    score: (s) => (s == null ? 'Sem pontuação de prontidão' : `Prontidão ${s}/100`),
+    breach: 'Violação do sistema — hoje a recuperação é a prioridade. Execute o protocolo corretivo abaixo e mantenha a carga axial pesada longe do SNC.',
+    adaptive: 'Estado adaptativo — acumule recuperação. O trabalho de mobilidade abaixo é recomendado antes de treinar.',
+    full: 'Liberação máxima — hoje o prehab é manutenção. Mantenha as articulações saudáveis e prossiga.',
+    inject: 'Baixa prontidão — drills de prehab específicos são recomendados antes de carregar.',
+  },
+};
+// Reuse the Check-In hub's trilingual mode chips — one source for the mode label.
+const RDY_MODE_TKEY = {
+  PRIME_EXECUTION: 'sch-mode-prime',
+  STANDARD_OPERATIONS: 'sch-mode-standard',
+  SYSTEM_STRAIN: 'sch-mode-strain',
+  SYSTEM_BREACH: 'sch-mode-breach',
+  INSUFFICIENT_TELEMETRY: 'sch-mode-insufficient',
+};
+
+function PrehabReadinessBanner({ readiness }) {
+  const { lang, t } = useLang();
+  const tr = RDY_STR[lang] || RDY_STR.en;
+  const directive = deriveVolumeDirective({
+    score: readiness?.score ?? null,
+    mode: readiness?.mode ?? null,
+    isSuppressed: readiness?.isSuppressed ?? false,
+    hasData: readiness?.hasData ?? false,
+  });
+  // No usable telemetry → say nothing (same stance as the engine + the grid).
+  if (!readiness?.hasData || directive.state === 'none') return null;
+
+  const msg = directive.state === 'breach' ? tr.breach : directive.state === 'adaptive' ? tr.adaptive : tr.full;
+  const modeLabel = readiness?.mode ? t(RDY_MODE_TKEY[readiness.mode] || 'sch-mode-insufficient') : null;
+
   return (
-    <div className="pde" data-testid="prehab-module">
+    <section
+      className={`pde-card pde-rdy pde-rdy--${directive.state}`}
+      role="status"
+      data-testid="prehab-readiness"
+      data-bbf-mode={handshakeChannel(readiness)}
+    >
+      <div className="pde-rdy-top">
+        <span className="pde-rdy-kicker">{tr.kicker}</span>
+        <span className="pde-rdy-score">{tr.score(readiness?.score ?? null)}</span>
+        {modeLabel ? <span className="pde-rdy-mode">{modeLabel}</span> : null}
+      </div>
+      <p className="pde-rdy-msg">{msg}</p>
+      {directive.injectPrehab ? <p className="pde-rdy-inject">↳ {tr.inject}</p> : null}
+    </section>
+  );
+}
+
+export default function Prehab() {
+  // The shared CNS telemetry channel — the EXACT store ProgramGrid / Smart Cardio
+  // read, so a manual baseline (or a wearable sync) lights up this tab the moment
+  // it lands, live, via PROTOCOL_UPDATED_EVENT (no reload).
+  const { data: readiness } = useDailyReadiness();
+  return (
+    <div className="pde" data-testid="prehab-module" data-bbf-mode={handshakeChannel(readiness)}>
+      <PrehabReadinessBanner readiness={readiness} />
       <RespiratoryCoach />
       <MobilityPlanner />
       <ProtocolDeck />

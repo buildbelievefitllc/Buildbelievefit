@@ -17,6 +17,39 @@
   padding: 1.35rem 1.4rem;
 }
 
+/* ── Sovereign Readiness banner — the morning check-in's verdict surfaced on the
+   Prehab tab. Tints with the global [data-bbf-mode] Agentic Handshake channel
+   (--mode-flag / --mode-glow / --mode-edge from index.css), so it morphs with the
+   athlete's mode exactly like the Check-In dossier and the Program banner. */
+.pde-rdy {
+  border-color: var(--mode-edge);
+  background:
+    radial-gradient(420px 200px at 0% -40%, var(--mode-glow), transparent 70%),
+    linear-gradient(180deg, #0d0a14, #08060c);
+}
+.pde-rdy-top { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; }
+.pde-rdy-kicker {
+  font-family: var(--hb); font-size: .66rem; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--purl);
+}
+.pde-rdy-score {
+  font-family: var(--display, var(--hb)); font-size: 1.15rem; letter-spacing: .5px; color: var(--wht);
+}
+.pde-rdy-mode {
+  margin-left: auto;
+  font-family: var(--bd); font-size: .72rem; font-weight: 800; letter-spacing: 1.6px;
+  text-transform: uppercase; color: var(--mode-flag);
+  border: 1px solid var(--mode-edge); border-radius: 999px; padding: .2rem .65rem;
+}
+.pde-rdy-msg {
+  font-family: var(--bd); font-size: .95rem; font-weight: 600; line-height: 1.5;
+  color: rgba(255, 255, 255, .82); margin: .55rem 0 0;
+}
+.pde-rdy-inject {
+  font-family: var(--bd); font-size: .85rem; font-weight: 700;
+  color: var(--mode-flag); margin: .5rem 0 0;
+}
+
 .pde-kicker {
   font-family: var(--hb);
   font-size: .66rem;
