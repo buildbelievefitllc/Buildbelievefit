@@ -27,12 +27,17 @@
 // effect loops. Aesthetic: LOCKED brand tokens (Bebas/Barlow, purple/gold) via
 // vault CSS variables; the void palette is surface only.
 
-import { useCallback, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { useHealthConnectSync } from '../../lib/healthConnectSync.js';
 import { useBiometricLedger } from '../../lib/useDailyReadiness.js';
-import { runVitalsPipeline, useVitalsSyncStatus } from '../../lib/vitalsPipeline.js';
+import { runVitalsPipeline, runManualVitalsPipeline, useVitalsSyncStatus } from '../../lib/vitalsPipeline.js';
+import { saveManualBaseline, manualSubjective, useManualBaselineToday } from '../../lib/manualBaseline.js';
 import './sovereignHub.css';
+
+// Handshake diagnostic — its own chunk; only the Check-In tab ever pulls it in.
+const HealthConnectStatus = lazy(() => import('./HealthConnectStatus.jsx'));
 
 const GOVERNOR_KEY = 'bbf-sch-governor'; // 'manual' | 'auto'
 const PLATFORM_KEY = 'bbf-sch-platform'; // 'android' | 'ios' | ''
@@ -99,6 +104,8 @@ function ReadinessDial({ score }) {
 
 export default function SovereignClientHub() {
   const { t } = useLang();
+  const { user } = useAuth();
+  const uid = user?.username || user?.id || '';
   const { available: bridgeUp, syncing, sync } = useHealthConnectSync();
 
   // ── Governor + platform (persisted; lazy init keeps reads out of render churn) ──
@@ -143,6 +150,53 @@ export default function SovereignClientHub() {
       setBusy(false);
     }
   }, [busy, sync]);
+
+  // ── Manual Health Input (governor = manual) ──────────────────────────────────
+  // A subjective baseline the athlete types in: it writes to Dexie (bbf_floor_v1)
+  // AND runs the SAME pipeline a wearable read uses, so the engine scores it with
+  // equal validity and the dossier paints a live verdict immediately.
+  const savedBaseline = useManualBaselineToday(uid);
+  const [form, setForm] = useState({ sleep_hours: '', sleep_quality: 7, stress_level: 4, active_kcal: '' });
+  const [savingBaseline, setSavingBaseline] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
+  const [manualErr, setManualErr] = useState(null);
+  const hydrated = useRef(false);
+
+  // Re-populate the form ONCE from today's stored baseline — never clobber typing.
+  useEffect(() => {
+    if (hydrated.current || !savedBaseline) return;
+    hydrated.current = true;
+    setForm({
+      sleep_hours: savedBaseline.sleep_hours ?? '',
+      sleep_quality: savedBaseline.sleep_quality ?? 7,
+      stress_level: savedBaseline.stress_level ?? 4,
+      active_kcal: savedBaseline.active_kcal ?? '',
+    });
+  }, [savedBaseline]);
+
+  const setField = useCallback((key, value) => {
+    setForm((f) => ({ ...f, [key]: value }));
+    setSavedOk(false);
+  }, []);
+
+  const handleSaveBaseline = useCallback(async () => {
+    if (savingBaseline) return;
+    setSavingBaseline(true);
+    setManualErr(null);
+    try {
+      // 1 · Local-first write to Dexie (bbf_floor_v1) — the row carries a recovery
+      //     snapshot in the EXACT shape the Health Connect bridge emits.
+      const record = await saveManualBaseline(uid, form);
+      // 2 · Same pipeline as a wearable sync → ledger → engine → protocol → broadcast.
+      const result = await runManualVitalsPipeline(record.recovery, manualSubjective(form));
+      setLive(result);
+      setSavedOk(true);
+    } catch (e) {
+      setManualErr((e && e.message) || 'Could not save your baseline.');
+    } finally {
+      setSavingBaseline(false);
+    }
+  }, [savingBaseline, uid, form]);
 
   // ── View-model: live result wins; else the stored ledger (real data only) ──
   const view = useMemo(() => {
@@ -254,10 +308,77 @@ export default function SovereignClientHub() {
       </div>
 
       {governor === 'manual' ? (
-        /* ── MANUAL BASELINE — autonomous modulation offline ── */
-        <div className="sch-card sch-manual">
-          <div className="sch-manual-title">{t('sch-manual-title')}</div>
-          <p className="sch-body">{t('sch-manual-body')}</p>
+        /* ── MANUAL HEALTH INPUT — subjective baseline override ── */
+        <div className="sch-card sch-manual" data-testid="sch-manual-input">
+          <div className="sch-manual-title">{t('sch-mi-title')}</div>
+          <p className="sch-body">{t('sch-mi-intro')}</p>
+
+          <div className="sch-mi-grid">
+            {/* Sleep duration (hours) */}
+            <label className="sch-field">
+              <span className="sch-field-k">{t('sch-mi-sleep-h')}</span>
+              <input
+                type="number" min="0" max="24" step="0.5" inputMode="decimal"
+                className="sch-num" placeholder="7.5"
+                value={form.sleep_hours}
+                onChange={(e) => setField('sleep_hours', e.target.value)}
+                data-testid="sch-mi-sleep-h"
+              />
+            </label>
+
+            {/* Active calorie burn (kcal) */}
+            <label className="sch-field">
+              <span className="sch-field-k">{t('sch-mi-burn')}</span>
+              <input
+                type="number" min="0" max="20000" step="10" inputMode="numeric"
+                className="sch-num" placeholder="350"
+                value={form.active_kcal}
+                onChange={(e) => setField('active_kcal', e.target.value)}
+                data-testid="sch-mi-burn"
+              />
+            </label>
+
+            {/* Sleep quality 1–10 */}
+            <label className="sch-field sch-field--range">
+              <span className="sch-field-k">
+                {t('sch-mi-sleep-q')} <span className="sch-field-val">{form.sleep_quality}/10</span>
+              </span>
+              <input
+                type="range" min="1" max="10" step="1" className="sch-range"
+                value={form.sleep_quality}
+                onChange={(e) => setField('sleep_quality', Number(e.target.value))}
+                aria-valuetext={`${form.sleep_quality} / 10`}
+                data-testid="sch-mi-sleep-q"
+              />
+            </label>
+
+            {/* Subjective stress 1–10 */}
+            <label className="sch-field sch-field--range">
+              <span className="sch-field-k">
+                {t('sch-mi-stress')} <span className="sch-field-val">{form.stress_level}/10</span>
+              </span>
+              <input
+                type="range" min="1" max="10" step="1" className="sch-range"
+                value={form.stress_level}
+                onChange={(e) => setField('stress_level', Number(e.target.value))}
+                aria-valuetext={`${form.stress_level} / 10`}
+                data-testid="sch-mi-stress"
+              />
+            </label>
+          </div>
+
+          <button
+            type="button"
+            className={`sch-save${savingBaseline ? ' is-working' : ''}`}
+            onClick={handleSaveBaseline}
+            disabled={savingBaseline}
+            data-testid="sch-mi-save"
+          >
+            {savingBaseline ? t('sch-mi-saving') : t('sch-mi-save')}
+          </button>
+          {savedOk ? <div className="sch-mi-ok" role="status" data-testid="sch-mi-ok">{t('sch-mi-saved')}</div> : null}
+          {manualErr ? <div className="sch-error" role="alert">{manualErr}</div> : null}
+          <p className="sch-mi-hint">{t('sch-mi-hint')}</p>
         </div>
       ) : (
         <>
@@ -314,90 +435,97 @@ export default function SovereignClientHub() {
             </div>
           ) : null}
 
-          {/* ── VERDICT — the Sovereign Dossier (real data only) ── */}
-          {view ? (
-            <div className="sch-dossier" data-bbf-mode={modeMeta ? modeMeta.cls : 'none'}>
-              {/* Column A — the verdict */}
-              <div className="sch-card sch-verdict">
-                <div className="sch-label">{t('sch-readiness')}</div>
-                <ReadinessDial score={view.score} />
-                {modeMeta ? (
-                  <span className={`sch-mode sch-mode--${modeMeta.cls}`}>{t(modeMeta.tKey)}</span>
-                ) : null}
-                <div className="sch-volume">
-                  <span className="sch-volume-k">{t('sch-volume')}</span>
-                  <span className="sch-volume-v">
-                    {view.volume === null || view.volume === undefined ? '—' : `×${Number(view.volume).toFixed(2)}`}
-                  </span>
-                </div>
-              </div>
-
-              {/* Column B — telemetry + directives intel */}
-              <div className="sch-intel">
-                <div className="sch-card">
-                  <div className="sch-label">{t('sch-vitals')}</div>
-                  <div className="sch-vitals">
-                    {vitalSlots.map((s) => {
-                      const has = hasVal(s.raw);
-                      return (
-                        <div key={s.id} className={`sch-vital${has ? '' : ' is-void'}`}>
-                          <span className="sch-vital-v">{has ? s.render(s.raw) : '—'}</span>
-                          <span className="sch-vital-k">{s.label}</span>
-                          {!has ? <span className="sch-vital-void">{t('sch-no-signal')}</span> : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="sch-card">
-                  <div className="sch-label">{t('sch-directives')}</div>
-
-                  {view.carb !== null && view.fat !== null && view.protein !== null ? (
-                    <div className="sch-macros">
-                      <div className="sch-macro-bar" aria-hidden="true">
-                        <span className="sch-macro-seg is-carb" style={{ width: `${view.carb}%` }} />
-                        <span className="sch-macro-seg is-fat" style={{ width: `${view.fat}%` }} />
-                        <span className="sch-macro-seg is-protein" style={{ width: `${view.protein}%` }} />
-                      </div>
-                      <div className="sch-macro-legend">
-                        <span>{t('sch-carbs')} {fmt(view.carb)}%</span>
-                        <span>{t('sch-fat')} {fmt(view.fat)}%</span>
-                        <span>{t('sch-protein')} {fmt(view.protein)}%</span>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {view.cardio ? (
-                    <div className="sch-cardio">
-                      <span className="sch-cardio-k">{t('sch-cardio')}</span>
-                      <span className="sch-cardio-v">{view.cardio}</span>
-                    </div>
-                  ) : null}
-
-                  {view.directives && view.directives.length ? (
-                    <ol className="sch-log">
-                      {view.directives.map((d, i) => (
-                        <li key={i}>
-                          <span className="sch-log-idx" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-                          {d}
-                        </li>
-                      ))}
-                    </ol>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          ) : platform !== 'ios' ? (
-            /* ── AWAITING TELEMETRY — premium empty dossier, never a blank pane ── */
-            <div className="sch-card sch-await" data-testid="sch-awaiting">
-              <span className="sch-await-ring" aria-hidden="true" />
-              <div className="sch-await-title">{t('sch-awaiting-title')}</div>
-              <p className="sch-body">{t('sch-awaiting-body')}</p>
-            </div>
-          ) : null}
         </>
       )}
+
+      {/* ── VERDICT — the Sovereign Dossier (shared by both governors: a manual
+          baseline paints the SAME brief as a wearable sync) ── */}
+      {view ? (
+        <div className="sch-dossier" data-bbf-mode={modeMeta ? modeMeta.cls : 'none'}>
+          {/* Column A — the verdict */}
+          <div className="sch-card sch-verdict">
+            <div className="sch-label">{t('sch-readiness')}</div>
+            <ReadinessDial score={view.score} />
+            {modeMeta ? (
+              <span className={`sch-mode sch-mode--${modeMeta.cls}`}>{t(modeMeta.tKey)}</span>
+            ) : null}
+            <div className="sch-volume">
+              <span className="sch-volume-k">{t('sch-volume')}</span>
+              <span className="sch-volume-v">
+                {view.volume === null || view.volume === undefined ? '—' : `×${Number(view.volume).toFixed(2)}`}
+              </span>
+            </div>
+          </div>
+
+          {/* Column B — telemetry + directives intel */}
+          <div className="sch-intel">
+            <div className="sch-card">
+              <div className="sch-label">{t('sch-vitals')}</div>
+              <div className="sch-vitals">
+                {vitalSlots.map((s) => {
+                  const has = hasVal(s.raw);
+                  return (
+                    <div key={s.id} className={`sch-vital${has ? '' : ' is-void'}`}>
+                      <span className="sch-vital-v">{has ? s.render(s.raw) : '—'}</span>
+                      <span className="sch-vital-k">{s.label}</span>
+                      {!has ? <span className="sch-vital-void">{t('sch-no-signal')}</span> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="sch-card">
+              <div className="sch-label">{t('sch-directives')}</div>
+
+              {view.carb !== null && view.fat !== null && view.protein !== null ? (
+                <div className="sch-macros">
+                  <div className="sch-macro-bar" aria-hidden="true">
+                    <span className="sch-macro-seg is-carb" style={{ width: `${view.carb}%` }} />
+                    <span className="sch-macro-seg is-fat" style={{ width: `${view.fat}%` }} />
+                    <span className="sch-macro-seg is-protein" style={{ width: `${view.protein}%` }} />
+                  </div>
+                  <div className="sch-macro-legend">
+                    <span>{t('sch-carbs')} {fmt(view.carb)}%</span>
+                    <span>{t('sch-fat')} {fmt(view.fat)}%</span>
+                    <span>{t('sch-protein')} {fmt(view.protein)}%</span>
+                  </div>
+                </div>
+              ) : null}
+
+              {view.cardio ? (
+                <div className="sch-cardio">
+                  <span className="sch-cardio-k">{t('sch-cardio')}</span>
+                  <span className="sch-cardio-v">{view.cardio}</span>
+                </div>
+              ) : null}
+
+              {view.directives && view.directives.length ? (
+                <ol className="sch-log">
+                  {view.directives.map((d, i) => (
+                    <li key={i}>
+                      <span className="sch-log-idx" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                      {d}
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : governor === 'auto' && platform !== 'ios' ? (
+        /* ── AWAITING TELEMETRY — premium empty dossier, never a blank pane ── */
+        <div className="sch-card sch-await" data-testid="sch-awaiting">
+          <span className="sch-await-ring" aria-hidden="true" />
+          <div className="sch-await-title">{t('sch-awaiting-title')}</div>
+          <p className="sch-body">{t('sch-awaiting-body')}</p>
+        </div>
+      ) : null}
+
+      {/* ── HEALTH CONNECT STATUS — the zero-guess handshake diagnostic ── */}
+      <Suspense fallback={null}>
+        <HealthConnectStatus />
+      </Suspense>
     </section>
   );
 }

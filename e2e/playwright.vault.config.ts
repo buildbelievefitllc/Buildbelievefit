@@ -18,7 +18,7 @@ export default defineConfig({
   testDir: './tests',
   // React Vault suites. Acceptance specs (prehab, smart-cardio) are HELD —
   // every test self-skips unless its BBF_*_READY flag is set (see each spec).
-  testMatch: ['**/vault-logging.spec.ts', '**/prehab.spec.ts', '**/smart-cardio.spec.ts', '**/smart-cardio-generator.spec.ts', '**/sports-hub.spec.ts'],
+  testMatch: ['**/vault-logging.spec.ts', '**/vault-checkin-manual.spec.ts', '**/prehab.spec.ts', '**/smart-cardio.spec.ts', '**/smart-cardio-generator.spec.ts', '**/sports-hub.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

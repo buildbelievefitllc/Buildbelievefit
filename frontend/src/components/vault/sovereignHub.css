@@ -111,6 +111,131 @@
   color: var(--wht); margin-bottom: .4rem;
 }
 
+/* ── Manual Health Input — typed subjective baseline (token-layer only) ── */
+.sch-mi-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.1rem;
+  margin: 1.15rem 0 .2rem;
+}
+.sch-field { display: grid; gap: .4rem; align-content: start; min-width: 0; }
+.sch-field--range { align-content: end; }
+.sch-field-k {
+  font-family: var(--hb); font-size: .66rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold-deep);
+  display: flex; align-items: baseline; justify-content: space-between; gap: .5rem;
+}
+.sch-field-val { font-family: var(--display); font-size: 1.05rem; letter-spacing: 1px; color: var(--yel); }
+
+/* Numeric input — brutalist stark field expressed in local tokens */
+.sch-num {
+  width: 100%; font-family: var(--bd); font-size: 1.05rem; font-weight: 700;
+  letter-spacing: 1px; color: var(--wht); background: #050505;
+  border: 1px solid var(--line); border-radius: 10px; padding: .7rem .8rem; outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.sch-num::placeholder { color: var(--mut); letter-spacing: 1px; }
+.sch-num:focus { border-color: rgba(245, 200, 0, .55); box-shadow: 0 0 0 3px rgba(245, 200, 0, .12); }
+
+/* Range slider — gold thumb riding a purple track */
+.sch-range {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+  border-radius: 999px; background: linear-gradient(90deg, var(--purd), var(--purl));
+  outline: none; margin: .5rem 0 .15rem; cursor: pointer;
+}
+.sch-range:focus-visible { box-shadow: 0 0 0 3px rgba(245, 200, 0, .25); }
+.sch-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: 2px solid #0c0a02; cursor: pointer; box-shadow: 0 2px 10px -2px rgba(245, 200, 0, .7);
+}
+.sch-range::-moz-range-thumb {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: 2px solid #0c0a02; cursor: pointer;
+}
+
+/* Save Baseline CTA — purple/gold, same weight as the Android sync trigger */
+.sch-save {
+  cursor: pointer; width: 100%; max-width: 420px; margin-top: .5rem; padding: .85rem 1.4rem;
+  border-radius: 12px; border: 1px solid rgba(245, 200, 0, .55);
+  background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 72%); color: var(--yel);
+  font-family: var(--display); font-size: 1.2rem; letter-spacing: 2.2px; text-transform: uppercase;
+  box-shadow: 0 14px 32px -18px rgba(106, 13, 173, .9);
+  transition: transform .15s ease, filter .15s ease;
+}
+.sch-save:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
+.sch-save:focus-visible { outline: 2px solid var(--yel); outline-offset: 3px; }
+.sch-save:disabled { cursor: progress; }
+.sch-save.is-working { animation: sch-pulse 1.1s ease-in-out infinite; }
+.sch-mi-ok {
+  font-family: var(--bd); font-size: .88rem; font-weight: 700; color: var(--yel);
+  margin-top: .7rem; letter-spacing: .6px;
+}
+.sch-mi-hint {
+  font-family: var(--bd); font-size: .82rem; font-weight: 600; line-height: 1.5;
+  color: var(--mut); margin: .85rem 0 0; max-width: 62ch;
+}
+
+/* ── Health Connect Status — low-profile collapsible handshake diagnostic ── */
+.sch-hc {
+  border: 1px solid var(--panel-edge); border-radius: 14px;
+  background: var(--panel-grad); padding: .15rem .2rem;
+}
+.sch-hc-summary {
+  display: flex; align-items: center; gap: .6rem; cursor: pointer; list-style: none;
+  padding: .75rem .95rem; border-radius: 12px;
+}
+.sch-hc-summary::-webkit-details-marker { display: none; }
+.sch-hc-summary:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.sch-hc-dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+  background: #ff6b6b; box-shadow: 0 0 8px rgba(255, 107, 107, .6);
+}
+.sch-hc-dot.is-on { background: var(--grn); box-shadow: 0 0 8px rgba(34, 197, 94, .6); }
+.sch-hc-title {
+  flex: 1; font-family: var(--hb); font-size: .74rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--wht);
+}
+.sch-hc-state {
+  font-family: var(--bd); font-size: .72rem; font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, .45); border-radius: 999px; padding: .2rem .6rem;
+}
+.sch-hc-state.is-on { color: var(--grn); border-color: rgba(34, 197, 94, .45); }
+.sch-hc-body {
+  display: grid; gap: .75rem; padding: .8rem .95rem 1rem;
+  border-top: 1px solid var(--line); margin-top: .1rem;
+}
+.sch-hc-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.sch-hc-row--col { flex-direction: column; align-items: stretch; gap: .5rem; }
+.sch-hc-k {
+  font-family: var(--hb); font-size: .62rem; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--mut);
+}
+.sch-hc-v { font-family: var(--mono); font-size: .82rem; color: var(--wht); text-align: right; }
+.sch-hc-payload { display: flex; flex-wrap: wrap; gap: .5rem; }
+.sch-hc-chip {
+  display: inline-flex; align-items: baseline; gap: .4rem;
+  border: 1px solid var(--line); border-radius: 8px; padding: .35rem .6rem;
+  background: rgba(0, 0, 0, .35);
+}
+.sch-hc-chip-k {
+  font-family: var(--hb); font-size: .58rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gold-deep);
+}
+.sch-hc-chip-v { font-family: var(--mono); font-size: .82rem; color: var(--wht); }
+.sch-hc-chip.is-null .sch-hc-chip-v { color: rgba(249, 245, 255, .35); }
+.sch-hc-err {
+  display: block; font-family: var(--mono); font-size: .76rem; line-height: 1.5;
+  color: #ffd9a8; background: rgba(0, 0, 0, .4);
+  border: 1px solid rgba(255, 177, 77, .25); border-radius: 8px;
+  padding: .5rem .65rem; white-space: pre-wrap; word-break: break-word;
+}
+.sch-hc-hint, .sch-hc-purpose {
+  font-family: var(--bd); font-size: .78rem; font-weight: 600; line-height: 1.5;
+  color: var(--mut); margin: 0;
+}
+
 /* ── Platform gate ── */
 .sch-platforms { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
 .sch-plat {
@@ -332,6 +457,7 @@
   .sch-vital:nth-child(odd) { border-left: none; padding-left: 0; }
   .sch-vital:nth-child(even) { padding-left: .95rem; }
   .sch-platforms, .sch-switch { grid-template-columns: 1fr; }
+  .sch-mi-grid { grid-template-columns: 1fr; }
   .sch-score { font-size: 3.1rem; }
   .sch-dial { width: 170px; height: 170px; }
 }
@@ -339,6 +465,6 @@
 /* Motion discipline — the dossier respects reduced-motion athletes. */
 @media (prefers-reduced-motion: reduce) {
   .sch-await-ring { animation: none; }
-  .sch-sync.is-working { animation: none; opacity: .7; }
+  .sch-sync.is-working, .sch-save.is-working { animation: none; opacity: .7; }
   .sch-dial-fill, .sch-dossier { transition: none; }
 }

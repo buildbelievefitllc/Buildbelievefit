@@ -338,6 +338,47 @@ const DICT = {
     es: 'La sincronización automática al iniciar falló, por lo que el panel muestra la última lectura guardada. Toca Sincronizar Signos Vitales para reintentar y revisa los permisos de Health Connect si persiste.',
     pt: 'A sincronização automática ao iniciar falhou, então o painel mostra a última leitura salva. Toque em Sincronizar Sinais Vitais para tentar novamente e verifique as permissões do Health Connect se persistir.',
   },
+  // ── Manual Health Input (governor = manual). Subjective baseline the athlete
+  // types in; scored with equal validity to a wearable read. ──
+  'sch-mi-title': { en: 'Manual Health Input', es: 'Entrada Manual de Salud', pt: 'Entrada Manual de Saúde' },
+  'sch-mi-intro': {
+    en: "No wearable today? Log your recovery by hand. The Sovereign engine scores a manual baseline with the same weight as a synced device — no missing data, no zeroed-out score.",
+    es: '¿Sin wearable hoy? Registra tu recuperación a mano. El motor Soberano puntúa una línea base manual con el mismo peso que un dispositivo sincronizado — sin datos faltantes ni puntuación en cero.',
+    pt: 'Sem wearable hoje? Registre sua recuperação manualmente. O motor Soberano pontua uma linha de base manual com o mesmo peso que um dispositivo sincronizado — sem dados faltando nem pontuação zerada.',
+  },
+  'sch-mi-sleep-h': { en: 'Sleep Duration · Hours', es: 'Duración del Sueño · Horas', pt: 'Duração do Sono · Horas' },
+  'sch-mi-sleep-q': { en: 'Sleep Quality', es: 'Calidad del Sueño', pt: 'Qualidade do Sono' },
+  'sch-mi-stress': { en: 'Stress Level', es: 'Nivel de Estrés', pt: 'Nível de Estresse' },
+  'sch-mi-burn': { en: 'Active Burn · kcal', es: 'Gasto Activo · kcal', pt: 'Queima Ativa · kcal' },
+  'sch-mi-save': { en: 'Save Baseline', es: 'Guardar Línea Base', pt: 'Salvar Linha de Base' },
+  'sch-mi-saving': { en: 'Saving…', es: 'Guardando…', pt: 'Salvando…' },
+  'sch-mi-saved': { en: 'Baseline saved · readiness updated', es: 'Línea base guardada · prontitud actualizada', pt: 'Linha de base salva · prontidão atualizada' },
+  'sch-mi-hint': {
+    en: 'Sliders run 1 (low) → 10 (high). Stress is inverted — lower stress lifts your score. Leave a field blank and the engine simply drops its weight.',
+    es: 'Los controles van de 1 (bajo) → 10 (alto). El estrés está invertido — menos estrés sube tu puntuación. Deja un campo en blanco y el motor simplemente descarta su peso.',
+    pt: 'Os controles vão de 1 (baixo) → 10 (alto). O estresse é invertido — menos estresse eleva sua pontuação. Deixe um campo em branco e o motor simplesmente descarta o peso dele.',
+  },
+  // ── Health Connect Status — the zero-guess handshake diagnostic. ──
+  'sch-hc-title': { en: 'Health Connect Status', es: 'Estado de Health Connect', pt: 'Status do Health Connect' },
+  'sch-hc-connected': { en: 'Connected', es: 'Conectado', pt: 'Conectado' },
+  'sch-hc-disconnected': { en: 'Disconnected', es: 'Desconectado', pt: 'Desconectado' },
+  'sch-hc-lastsync': { en: 'Last Sync Attempt', es: 'Último Intento de Sincronización', pt: 'Última Tentativa de Sincronização' },
+  'sch-hc-never': { en: 'Never', es: 'Nunca', pt: 'Nunca' },
+  'sch-hc-payload': { en: 'Payload Snapshot', es: 'Instantánea de Datos', pt: 'Instantâneo de Dados' },
+  'sch-hc-hrv': { en: 'HRV', es: 'HRV', pt: 'HRV' },
+  'sch-hc-cal': { en: 'Calories', es: 'Calorías', pt: 'Calorias' },
+  'sch-hc-sleep': { en: 'Sleep', es: 'Sueño', pt: 'Sono' },
+  'sch-hc-null': { en: 'Null', es: 'Nulo', pt: 'Nulo' },
+  'sch-hc-bridge-off': {
+    en: 'Health Connect needs the BBF Android app — on the web this native bridge stays disconnected by design.',
+    es: 'Health Connect requiere la app BBF para Android — en la web este puente nativo permanece desconectado por diseño.',
+    pt: 'O Health Connect precisa do app BBF para Android — na web esta ponte nativa permanece desconectada por design.',
+  },
+  'sch-hc-purpose': {
+    en: 'If a metric is missing, this tells you whether the bridge handshake failed or the wearable simply logged nothing for the day.',
+    es: 'Si falta una métrica, esto indica si falló el enlace del puente o si el wearable simplemente no registró nada en el día.',
+    pt: 'Se uma métrica estiver faltando, isto indica se o handshake da ponte falhou ou se o wearable simplesmente não registrou nada no dia.',
+  },
   // Sports Hub readiness banner (wired to the SAME useDailyReadiness pipeline —
   // one source of truth for athlete biometrics). Mode chips reuse sch-mode-* keys.
   'sh-rdy-kicker': { en: 'Sovereign Readiness · Live Telemetry', es: 'Prontitud Soberana · Telemetría en Vivo', pt: 'Prontidão Soberana · Telemetria ao Vivo' },
