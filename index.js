@@ -610,6 +610,16 @@ const ALLOWED_ORIGINS = new Set([
   // CEO-confirmed live origin. If the static site moves to a custom domain,
   // update this entry.
   'https://bbf-command-center-d1br.onrender.com',
+  // Native BBF Lab app (Capacitor WebView). With androidScheme:'https' the app
+  // is served from https://localhost, so its fetch()/WebSocket Origin header is
+  // "https://localhost" (iOS Capacitor uses capacitor://localhost). Without
+  // these the Live Voice Coach's POST /api/auth/ws-ticket AND the
+  // /ws/phantom-eye upgrade are origin-blocked → the app's fetch throws →
+  // "Coach service unreachable — try again." (the reported failure). The ticket
+  // itself stays HMAC-gated, so allowlisting the origin grants no extra trust.
+  'https://localhost',
+  'capacitor://localhost',
+  'http://localhost',
 ]);
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -3186,7 +3196,12 @@ app.use((err, req, res, next) => {
 // upgrades. If the key is missing, upgrades are rejected with 503.
 // ───────────────────────────────────────────────────────────────
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_LIVE_MODEL = 'models/gemini-2.5-flash-native-audio-latest';
+// ENV-ROTATABLE (CEO ops): Google has renamed the Live native-audio model
+// repeatedly (see the slice notes below), and each rename silently breaks the
+// upstream with no code change to blame. Reading it from env means the model can
+// be swapped from the Render dashboard in seconds — no redeploy — the next time
+// Google rotates the string. Default stays the last confirmed-working target.
+const GEMINI_LIVE_MODEL = process.env.GEMINI_LIVE_MODEL || 'models/gemini-2.5-flash-native-audio-latest';
 // Phase 15 Slice 15 — Gemini Live endpoint reverted to v1alpha and
 // the model swapped to the stable 2.5 native-audio string. CEO live-
 // fire confirmed Google's routing layer for the 3.1-flash-live-preview

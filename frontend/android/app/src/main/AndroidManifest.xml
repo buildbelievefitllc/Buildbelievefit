@@ -60,6 +60,12 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Live Voice Coach (Gemini native-audio bridge) — the WebView's
+         getUserMedia({audio}) needs the mic permission, or the session fails at
+         capture (mic_denied) right after connecting. Capacitor's WebChromeClient
+         requests this at the first mic use. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.health.READ_HEART_RATE_VARIABILITY" />
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />
