@@ -61,6 +61,54 @@
   color-scheme: dark;
 }
 
+/* ── Premium video wrapper (V8.7) — shared branded preview cover. A tap-to-play
+   thumbnail under a brand gradient with a centered gold play button; the live
+   iframe only mounts on tap (autoplay), so nothing streams on initial load and
+   playback stays inside the app box. Used by Program (FormDemoPlayer) + Prehab.
+   The host class (.pg-video / .pde-video / .pdx-video) owns the box sizing; this
+   only guarantees the positioning context + a clean button reset. */
+.bbf-video-cover {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  border: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.bbf-video-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(20, 10, 35, .85) 0%, rgba(10, 10, 14, .95) 100%);
+  transition: background .2s ease;
+  pointer-events: none;
+}
+.bbf-video-cover:hover .bbf-video-overlay,
+.bbf-video-overlay:hover {
+  background: linear-gradient(135deg, rgba(43, 19, 84, .55) 0%, rgba(10, 10, 14, .82) 100%);
+}
+.bbf-video-play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: var(--yel);
+  background: rgba(9, 9, 9, .55);
+  border: 1.5px solid rgba(245, 200, 0, .55);
+  box-shadow: 0 8px 26px -10px rgba(245, 200, 0, .45);
+  padding-left: 3px; /* optically center the triangle */
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.bbf-video-cover:hover .bbf-video-play {
+  transform: scale(1.06);
+  background: rgba(9, 9, 9, .7);
+  box-shadow: 0 10px 30px -8px rgba(245, 200, 0, .6);
+}
+
 /* ── Agentic Handshake channel ────────────────────────────────────────────────
    The interface morphs off the athlete's computed Sovereign Readiness mode.
    Any subtree carrying [data-bbf-mode] re-keys these custom properties; the

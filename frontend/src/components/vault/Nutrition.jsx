@@ -52,8 +52,7 @@ const NUT_STR = {
     offMsg: <>Time-restricted feeding is <b>off</b> — pick a Fasting Pace above to map your eating window.</>,
     fastingWindow: (r) => `${r} Fasting Window`, eating: '🍽 Eating', fastingTag: '🌙 Fasting',
     windowAria: (s, e, inside) => `Eating window ${s} to ${e}. Currently ${inside ? 'inside' : 'outside'} the window.`,
-    eatOpen: (t) => <>Eating window open — <b>{t}</b> left to fuel.</>,
-    fastingUntil: (t) => <>Fasting — <b>{t}</b> until your window opens.</>,
+    clockEat: 'left to fuel', clockFast: 'until your window opens',
     paceKicker: 'Fasting Pace', paceNote: 'Time-restricted feeding · optional', paceAria: 'Fasting pace', off: 'Off',
     wheelAria: (c, t) => `${c} of ${t} kcal logged`,
     todaysFuel: 'Today’s Fuel', protein: 'PROTEIN', carbs: 'CARBS', fat: 'FAT', kcal: 'KCAL',
@@ -90,8 +89,7 @@ const NUT_STR = {
     offMsg: <>La alimentación con restricción horaria está <b>desactivada</b> — elige un Ritmo de Ayuno arriba para mapear tu ventana de alimentación.</>,
     fastingWindow: (r) => `Ventana de Ayuno ${r}`, eating: '🍽 Comiendo', fastingTag: '🌙 Ayunando',
     windowAria: (s, e, inside) => `Ventana de alimentación de ${s} a ${e}. Actualmente ${inside ? 'dentro' : 'fuera'} de la ventana.`,
-    eatOpen: (t) => <>Ventana de alimentación abierta — <b>{t}</b> para alimentarte.</>,
-    fastingUntil: (t) => <>Ayunando — <b>{t}</b> hasta que se abra tu ventana.</>,
+    clockEat: 'para alimentarte', clockFast: 'hasta que se abra tu ventana',
     paceKicker: 'Ritmo de Ayuno', paceNote: 'Alimentación con restricción horaria · opcional', paceAria: 'Ritmo de ayuno', off: 'Off',
     wheelAria: (c, t) => `${c} de ${t} kcal registradas`,
     todaysFuel: 'Combustible de Hoy', protein: 'PROTEÍNA', carbs: 'CARBOS', fat: 'GRASA', kcal: 'KCAL',
@@ -127,8 +125,7 @@ const NUT_STR = {
     offMsg: <>A alimentação com restrição de horário está <b>desativada</b> — escolha um Ritmo de Jejum acima para mapear sua janela de alimentação.</>,
     fastingWindow: (r) => `Janela de Jejum ${r}`, eating: '🍽 Comendo', fastingTag: '🌙 Jejuando',
     windowAria: (s, e, inside) => `Janela de alimentação de ${s} a ${e}. Atualmente ${inside ? 'dentro' : 'fora'} da janela.`,
-    eatOpen: (t) => <>Janela de alimentação aberta — <b>{t}</b> para se alimentar.</>,
-    fastingUntil: (t) => <>Jejuando — <b>{t}</b> até sua janela abrir.</>,
+    clockEat: 'para se alimentar', clockFast: 'até sua janela abrir',
     paceKicker: 'Ritmo de Jejum', paceNote: 'Alimentação com restrição de horário · opcional', paceAria: 'Ritmo de jejum', off: 'Off',
     wheelAria: (c, t) => `${c} de ${t} kcal registradas`,
     todaysFuel: 'Combustível de Hoje', protein: 'PROTEÍNA', carbs: 'CARBOS', fat: 'GORDURA', kcal: 'KCAL',
@@ -269,12 +266,15 @@ function FastingWindow({ now, fasting, tier }) {
   const winWidth = (fasting.eat / 24) * 100;
   const ratioLabel = `${fasting.fast} / ${fasting.eat}`;
 
-  let sub;
+  // Phase 4 — isolate the live countdown from the prose so it reads as a clock.
+  let clock; let clockLbl;
   if (eating) {
-    sub = tr.eatOpen(fmtHM(eatEnd - h));
+    clock = fmtHM(eatEnd - h);
+    clockLbl = tr.clockEat;
   } else {
     const until = h < eatStart ? eatStart - h : (24 - h) + eatStart;
-    sub = tr.fastingUntil(fmtHM(until));
+    clock = fmtHM(until);
+    clockLbl = tr.clockFast;
   }
 
   return (
@@ -292,9 +292,12 @@ function FastingWindow({ now, fasting, tier }) {
       <div className="pg-fast-axis">
         <span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>12a</span>
       </div>
-      <div className="pg-fast-sub">
-        {sub}
-        {tier ? <span className="pg-fast-tier"> · {tier}</span> : null}
+      <div className="nl-fast-clockrow">
+        <div className="nl-fast-clock" data-testid="fasting-clock">
+          <span className="nl-fast-clock-time">{clock}</span>
+          <span className="nl-fast-clock-lbl">{clockLbl}</span>
+        </div>
+        {tier ? <span className="pg-fast-tier">{tier}</span> : null}
       </div>
     </div>
   );

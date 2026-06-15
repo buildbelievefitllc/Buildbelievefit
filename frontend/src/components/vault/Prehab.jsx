@@ -25,6 +25,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { getPrehabCatalog, REGION_ICONS, EX_VIDEO } from './prehabProtocol.js';
 import { resolveVideoId, thumbURL } from './exerciseVideos.js';
+import { PlayIcon, ChevronIcon } from './icons.jsx';
 import { pickLang } from '../../lib/pickLang.js';
 import { requestPrehabMatrix } from '../../lib/prehabApi.js';
 import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness.js';
@@ -308,18 +309,51 @@ function youtubeId(url) {
   const m = String(url || '').match(/(?:v=|\/embed\/|youtu\.be\/|\/v\/|\/shorts\/)([A-Za-z0-9_-]{11})/);
   return m ? m[1] : null;
 }
-// Privacy-enhanced (no-cookie) embed src for a watch url, or null when there's no id.
-function ytEmbed(url) {
+// Privacy-enhanced (no-cookie) AUTOPLAY embed src — only built once the athlete
+// taps the branded cover (DrillVideo), so nothing streams on initial render.
+function ytEmbedAutoplay(id) {
+  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
+}
+
+// Premium video wrapper (V8.7) — a branded preview cover (thumbnail + gold play
+// button) that swaps to the autoplay iframe ONLY on tap. Replaces the raw iframe
+// the corrective-protocol drills used to mount on load. No id → nothing.
+function DrillVideo({ url, title }) {
+  const [playing, setPlaying] = useState(false);
   const id = youtubeId(url);
-  return id ? `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1` : null;
+  if (!id) return null;
+  if (playing) {
+    return (
+      <div className="pdx-video is-playing">
+        <iframe
+          key={id}
+          className="pdx-video-frame"
+          src={ytEmbedAutoplay(id)}
+          title={title}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+  return (
+    <button type="button" className="pdx-video bbf-video-cover" onClick={() => setPlaying(true)} aria-label={title}>
+      <img className="pdx-video-thumb" src={thumbURL(id)} alt="" loading="lazy" referrerPolicy="no-referrer" />
+      <span className="bbf-video-overlay" aria-hidden="true">
+        <span className="bbf-video-play"><PlayIcon size={24} /></span>
+      </span>
+    </button>
+  );
 }
 
 // UI-chrome localization (the matrix DRILLS carry their own en/es/pt; the clinical
 // diagnosis_hypothesis is English in the data and rendered verbatim).
 const DX_STR = {
-  en: { kicker: 'Autonomous Physical Therapist', title: 'Joint Symptom Diagnostic', desc: 'Three inputs compile a clinical hypothesis and your corrective protocol. Isolate the joint, the pain signature, then the mechanic that provokes it.', step: 'Step', s1: 'Joint Complex', s2: 'Pain Profile', s3: 'Trigger Mechanic', h1: 'Where is the dysfunction?', h2: 'What does it feel like?', h3: 'What provokes it?', dx: 'Diagnosis Hypothesis', rx: 'Corrective Protocol', reset: '↻ New Diagnosis' },
-  es: { kicker: 'Fisioterapeuta Autónomo', title: 'Diagnóstico por Síntoma Articular', desc: 'Tres entradas compilan una hipótesis clínica y tu protocolo correctivo. Aísla la articulación, el tipo de dolor y la mecánica que lo provoca.', step: 'Paso', s1: 'Complejo Articular', s2: 'Perfil del Dolor', s3: 'Mecánica Desencadenante', h1: '¿Dónde está la disfunción?', h2: '¿Qué sensación produce?', h3: '¿Qué lo provoca?', dx: 'Hipótesis Diagnóstica', rx: 'Protocolo Correctivo', reset: '↻ Nuevo Diagnóstico' },
-  pt: { kicker: 'Fisioterapeuta Autônomo', title: 'Diagnóstico por Sintoma Articular', desc: 'Três entradas compilam uma hipótese clínica e o seu protocolo corretivo. Isole a articulação, o tipo de dor e a mecânica que o provoca.', step: 'Passo', s1: 'Complexo Articular', s2: 'Perfil da Dor', s3: 'Mecânica Desencadeante', h1: 'Onde está a disfunção?', h2: 'O que você sente?', h3: 'O que provoca?', dx: 'Hipótese Diagnóstica', rx: 'Protocolo Corretivo', reset: '↻ Novo Diagnóstico' },
+  en: { kicker: 'Autonomous Physical Therapist', title: 'Joint Symptom Diagnostic', desc: 'Three inputs compile a clinical hypothesis and your corrective protocol. Isolate the joint, the pain signature, then the mechanic that provokes it.', step: 'Step', s1: 'Joint Complex', s2: 'Pain Profile', s3: 'Trigger Mechanic', h1: 'Where is the dysfunction?', h2: 'What does it feel like?', h3: 'What provokes it?', dx: 'Diagnosis Hypothesis', dxToggle: 'View Clinical Hypothesis', rx: 'Corrective Protocol', reset: '↻ New Diagnosis' },
+  es: { kicker: 'Fisioterapeuta Autónomo', title: 'Diagnóstico por Síntoma Articular', desc: 'Tres entradas compilan una hipótesis clínica y tu protocolo correctivo. Aísla la articulación, el tipo de dolor y la mecánica que lo provoca.', step: 'Paso', s1: 'Complejo Articular', s2: 'Perfil del Dolor', s3: 'Mecánica Desencadenante', h1: '¿Dónde está la disfunción?', h2: '¿Qué sensación produce?', h3: '¿Qué lo provoca?', dx: 'Hipótesis Diagnóstica', dxToggle: 'Ver Hipótesis Clínica', rx: 'Protocolo Correctivo', reset: '↻ Nuevo Diagnóstico' },
+  pt: { kicker: 'Fisioterapeuta Autônomo', title: 'Diagnóstico por Sintoma Articular', desc: 'Três entradas compilam uma hipótese clínica e o seu protocolo corretivo. Isole a articulação, o tipo de dor e a mecânica que o provoca.', step: 'Passo', s1: 'Complexo Articular', s2: 'Perfil da Dor', s3: 'Mecânica Desencadeante', h1: 'Onde está a disfunção?', h2: 'O que você sente?', h3: 'O que provoca?', dx: 'Hipótese Diagnóstica', dxToggle: 'Ver Hipótese Clínica', rx: 'Protocolo Corretivo', reset: '↻ Novo Diagnóstico' },
 };
 
 function MobilityPlanner() {
@@ -408,11 +442,23 @@ function DiagStep({ n, stepWord, label, hint, options, selected, onPick, stack }
 // Matched node → the clinical hypothesis + the localized 3-drill corrective protocol.
 function DiagnosisResult({ node, lang, d, onReset }) {
   const rx = node.prescription;
+  // Phase 3 — the deep diagnostic theory is collapsed by DEFAULT so the corrective
+  // protocol videos sit above the fold; the hypothesis is one tap away.
+  const [dxOpen, setDxOpen] = useState(false);
   return (
     <div className="pdx-result" role="status" data-testid="prehab-diagnosis">
-      <div className="pdx-dx">
-        <div className="pdx-dx-head">⚕ {d.dx}</div>
-        <p className="pdx-dx-body">{node.diagnosis_hypothesis}</p>
+      <div className={`pdx-dx${dxOpen ? ' is-open' : ''}`}>
+        <button
+          type="button"
+          className="pdx-dx-toggle"
+          onClick={() => setDxOpen((o) => !o)}
+          aria-expanded={dxOpen}
+          data-testid="prehab-dx-toggle"
+        >
+          <span className="pdx-dx-head">⚕ {d.dxToggle}</span>
+          <ChevronIcon className="pdx-dx-chev" size={16} />
+        </button>
+        {dxOpen ? <p className="pdx-dx-body">{node.diagnosis_hypothesis}</p> : null}
       </div>
 
       <div className="pdx-rx-head">
@@ -424,7 +470,6 @@ function DiagnosisResult({ node, lang, d, onReset }) {
         {rx.drills.map((drill) => {
           const L = (drill.localization && (drill.localization[lang] || drill.localization.en)) || {};
           const cues = Array.isArray(L.cues) ? L.cues : [];
-          const videoSrc = ytEmbed(drill.youtube_url);
           return (
             <li key={drill.step} className="pdx-drill">
               <div className="pdx-drill-top">
@@ -436,19 +481,7 @@ function DiagnosisResult({ node, lang, d, onReset }) {
                 <span className="pdx-drill-vol">{drill.volume}</span>
               </div>
               {L.description ? <p className="pdx-drill-desc">{L.description}</p> : null}
-              {videoSrc ? (
-                <div className="pdx-video">
-                  <iframe
-                    className="pdx-video-frame"
-                    src={videoSrc}
-                    title={L.name || drill.type}
-                    loading="lazy"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  />
-                </div>
-              ) : null}
+              <DrillVideo url={drill.youtube_url} title={L.name || drill.type} />
               {cues.length ? (
                 <ul className="pdx-cues">
                   {cues.map((c, i) => <li key={i} className="pdx-cue">{c}</li>)}
@@ -544,12 +577,14 @@ function VideoSlot({ ex, s }) {
   return (
     <button
       type="button"
-      className="pde-video pde-video--thumb"
+      className="pde-video pde-video--thumb bbf-video-cover"
       onClick={() => setPlaying(true)}
       aria-label={`${s.demoVideo(ex.name)} — ${s.playDemo}`}
     >
       <img className="pde-video-thumb" src={thumbURL(id)} alt="" loading="lazy" />
-      <span className="pde-video-btn" aria-hidden="true">▶</span>
+      <span className="bbf-video-overlay" aria-hidden="true">
+        <span className="bbf-video-play"><PlayIcon size={22} /></span>
+      </span>
       <span className="pde-video-cap">{s.videoCap}</span>
     </button>
   );

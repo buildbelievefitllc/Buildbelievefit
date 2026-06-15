@@ -188,18 +188,23 @@
 .nl-wheel-pct.is-over { color: var(--orn, #ff9f43); }
 
 /* ── P / C / F / KCAL legend (4-box) ─────────────────────────────────────── */
+/* Phase 2 — overflow-resilient macro readouts. The grid wraps to 2-up on narrow
+   viewports; values scale with clamp() and break-anchor inside their own track so
+   a high-volume log (e.g. 3860 / 1800g) never collides with a neighbour. */
 .nl-legend {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: .5rem;
   margin-top: 1.2rem;
 }
 .nl-legend-box {
+  min-width: 0;
   border-top: 2px solid;
   border-radius: 0 0 9px 9px;
   background: #111016;
   padding: .55rem .3rem;
   text-align: center;
+  overflow: hidden;
 }
 .nl-legend-lbl {
   font-family: var(--hb);
@@ -209,16 +214,40 @@
 }
 .nl-legend-val {
   font-family: var(--hb);
-  font-size: 1.1rem;
+  font-size: clamp(.82rem, 3.4vw, 1.1rem);
+  line-height: 1.05;
   color: var(--wht);
   margin-top: .15rem;
+  overflow-wrap: anywhere;
 }
 .nl-legend-tgt {
   font-family: var(--bd);
-  font-size: .58rem;
+  font-size: clamp(.5rem, 2vw, .58rem);
   font-weight: 600;
   color: #666;
   margin-top: .05rem;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 380px) {
+  .nl-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Phase 4 — Fasting countdown promoted to a high-contrast digital clock. */
+.nl-fast-clockrow {
+  display: flex; align-items: baseline; justify-content: space-between; gap: .6rem;
+  flex-wrap: wrap; margin-top: .7rem;
+}
+.nl-fast-clock { display: flex; align-items: baseline; gap: .5rem; min-width: 0; flex-wrap: wrap; }
+.nl-fast-clock-time {
+  font-family: var(--display, var(--hb)); font-weight: 900;
+  font-size: clamp(1.7rem, 7vw, 2.4rem); line-height: 1;
+  letter-spacing: 1px; color: var(--yel);
+  text-shadow: 0 2px 18px rgba(245, 200, 0, .28);
+  font-variant-numeric: tabular-nums;
+}
+.nl-fast-clock-lbl {
+  font-family: var(--hb); font-size: .66rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--mut); white-space: nowrap;
 }
 
 /* ── Macro volume-ratio bar (P/C/F share of calories) ────────────────────── */

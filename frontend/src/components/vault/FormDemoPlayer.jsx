@@ -15,6 +15,7 @@
 
 import { useState } from 'react';
 import { embedURL, thumbURL } from './exerciseVideos.js';
+import { PlayIcon } from './icons.jsx';
 
 export default function FormDemoPlayer({ videoId, title, label = null }) {
   const [playing, setPlaying] = useState(false);
@@ -39,12 +40,14 @@ export default function FormDemoPlayer({ videoId, title, label = null }) {
   return (
     <button
       type="button"
-      className="pg-video"
+      className="pg-video bbf-video-cover"
       onClick={() => setPlaying(true)}
       aria-label={title}
     >
       <img className="pg-video-thumb" src={thumbURL(videoId)} alt="" loading="lazy" referrerPolicy="no-referrer" />
-      <span className="pg-video-play" aria-hidden="true">▶</span>
+      <span className="bbf-video-overlay" aria-hidden="true">
+        <span className="bbf-video-play"><PlayIcon size={24} /></span>
+      </span>
       {label ? <span className="pg-video-label">{label}</span> : null}
     </button>
   );

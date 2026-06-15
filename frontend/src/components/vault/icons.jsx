@@ -160,6 +160,25 @@ export function CloseIcon({ className = '', size = 18 }) {
   );
 }
 
+// Play — solid brand-gold triangle (filled, not stroked, so it reads as a button).
+export function PlayIcon({ className = '', size = 22 }) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24"
+      fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M7 4.5v15l13-7.5z" />
+    </svg>
+  );
+}
+
+// Chevron — sharp disclosure caret (accordions). Rotated via CSS when open.
+export function ChevronIcon({ className = '', size = 16 }) {
+  return (
+    <svg className={className} {...svgProps(size)}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
 // Crosshair (Kinematic Form HUD / target) — ringed sight with axis ticks.
 export function CrosshairIcon({ className = '', size = 16 }) {
   return (
