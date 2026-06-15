@@ -240,6 +240,12 @@ h1 .ol{-webkit-text-stroke:2px var(--yel);color:transparent}
 #pathfinder{background:var(--blk);padding:6rem 2rem;position:relative;overflow:hidden}
 #pathfinder::before{content:"BBF";position:absolute;font-family:var(--hb);font-size:clamp(10rem,24vw,22rem);color:rgba(106,13,173,.045);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
 .path-in{max-width:780px;margin:0 auto;position:relative;z-index:2}
+/* Pathfinder intro — metabolism hook lead-in. Matches section flow: matte-black
+   canvas, Bebas head (--hb), Barlow body (--bd), purple (--pur) accent rule. */
+.pathfinder-intro{background:var(--blk);padding:5rem 2rem 0;text-align:center}
+.pathfinder-intro h2{font-family:var(--hb);font-size:clamp(2rem,4vw,3rem);letter-spacing:3px;line-height:1.05;color:var(--wht);max-width:680px;margin:0 auto .9rem}
+.pathfinder-intro h2::after{content:"";display:block;width:60px;height:3px;background:var(--pur);margin:1rem auto 0}
+.pathfinder-intro p{font-family:var(--bd);font-size:1.05rem;line-height:1.7;color:var(--mut2);max-width:600px;margin:0 auto}
 .path-card{background:rgba(14,14,14,.85);border:1px solid rgba(106,13,173,.22);border-radius:22px;padding:2.5rem;backdrop-filter:blur(8px)}
 .steps-ind{display:flex;gap:.5rem;justify-content:center;margin-bottom:2rem}
 .si{width:8px;height:8px;border-radius:50%;background:var(--gry3);transition:all .3s}
@@ -2497,6 +2503,12 @@ body.bbf-kairos .hero-badge {
 
   </div>
 </section>
+
+<!-- Pathfinder intro — metabolism hook lead-in (CEO directive 2026-06-15) -->
+<div class="pathfinder-intro">
+  <h2>Your Metabolism is Unique</h2>
+  <p>Most coaches use generic formulas. We measure what actually fuels your body—age, activity, genetics, all of it. Answer five quick questions and we'll show you exactly what your calorie needs are.</p>
+</div>
 
 <section id="pathfinder">
   <div class="path-in">
