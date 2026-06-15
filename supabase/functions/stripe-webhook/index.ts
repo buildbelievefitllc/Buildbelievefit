@@ -82,6 +82,52 @@ function normLocale(input) {
   return 'en';
 }
 
+// ── Phase 2 safety net — durable record of a FAILED welcome dispatch ──────────
+// The PIN is generated in-memory and stored only hashed, so a lost welcome email
+// strands a PAID customer with no way to learn their credentials (Stripe already
+// got its 200; we never retry the email). We persist a recoverable row in
+// bbf_email_events (event_type='welcome_send_failed', payload.status='failed' + a
+// SECURE single-use resend token, stored ONLY as a SHA-256 hash) so the
+// bbf-resend-welcome admin/cron worker can reissue a fresh PIN and resend. Purely
+// additive + best-effort: it never throws and runs AFTER the committed fulfillment,
+// so it can never affect tiering/provisioning.
+async function sha256Hex(input) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+async function recordWelcomeFailure(supabase, { email, username, tier, locale, sessionId, newUser, reason }) {
+  try {
+    const raw = new Uint8Array(24);
+    crypto.getRandomValues(raw);
+    const resendToken = Array.from(raw).map((b) => b.toString(16).padStart(2, '0')).join('');
+    const resendTokenSha256 = await sha256Hex(resendToken);
+    const { error } = await supabase.from('bbf_email_events').insert({
+      event_type: 'welcome_send_failed',
+      email,
+      message_id: sessionId,
+      payload: {
+        status: 'failed',
+        kind: 'welcome',
+        username: username ?? null,
+        tier: tier ?? null,
+        locale: locale ?? null,
+        new_user: !!newUser,
+        reason: reason ?? 'brevo_send_failed',
+        attempts: 1,
+        failed_at: new Date().toISOString(),
+        // Secure single-use resend token — only the HASH is persisted (never the
+        // raw value). Enables an idempotent, audit-safe recovery handle.
+        resend_token_sha256: resendTokenSha256,
+        resend_token_ref: resendToken.slice(0, 8),
+      },
+    });
+    if (error) console.error('[stripe-webhook] recordWelcomeFailure insert failed:', error.message);
+    else console.warn(`[stripe-webhook] WELCOME FAILURE recorded (recoverable) · user=${username} session=${sessionId} reason=${reason}`);
+  } catch (e) {
+    console.error('[stripe-webhook] recordWelcomeFailure threw:', e.message);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return jsonResponse({ ok: false, error: 'method_not_allowed' }, 405);
@@ -210,6 +256,12 @@ serve(async (req) => {
   const BREVO_FROM_EMAIL = Deno.env.get('BREVO_FROM_EMAIL') || 'buildbelievefitllc@buildbelievefit.fitness';
   const BREVO_FROM_NAME = Deno.env.get('BREVO_FROM_NAME') || 'Build Believe Fit';
 
+  // Did the welcome actually go out? A silent Brevo failure (or a missing key)
+  // would strand a paid customer without credentials — tracked so the safety net
+  // below can persist a recoverable failure row.
+  let welcomeEmailOk = false;
+  let emailLocale = 'en';
+
   if (BREVO_API_KEY) {
     try {
       // ── Trilingual template selection ──
@@ -231,6 +283,7 @@ serve(async (req) => {
         || session.metadata?.locale
         || session.metadata?.language,
       );
+      emailLocale = lang;
 
       const TEMPLATE_BY_LANG = {
         en: Deno.env.get('BREVO_WELCOME_TEMPLATE_EN'),
@@ -278,6 +331,7 @@ serve(async (req) => {
         const txt = await r.text().catch(() => '');
         console.error(`[stripe-webhook] Brevo send failed: status=${r.status} body=${txt.slice(0, 300)}`);
       } else {
+        welcomeEmailOk = true;
         console.log(`[stripe-webhook] welcome email sent · mode=${payload.templateId ? 'template:' + payload.templateId : 'inline'} · locale=${lang} · new_user=${newlyProvisioned}`);
       }
     } catch (err) { console.error('[stripe-webhook] Brevo fetch threw:', err.message); }
@@ -285,5 +339,18 @@ serve(async (req) => {
     console.warn('[stripe-webhook] BREVO_API_KEY not set; welcome email skipped');
   }
 
-  return jsonResponse({ ok: true, event_id: event.id, session_id: session.id, username, tier, new_user: newlyProvisioned }, 200);
+  // SAFETY NET (Phase 2 · flight-recorder + recovery) — if a brand-new buyer's
+  // welcome did NOT go out (Brevo non-2xx / threw / key missing), persist a
+  // recoverable failure so bbf-resend-welcome can reissue a fresh PIN and resend.
+  // Best-effort, AFTER the atomic fulfillment commit → it can never affect
+  // tiering/provisioning. We only guard NEW users (an existing-user "updated"
+  // email carries no credentials, so a miss there is non-critical).
+  if (!welcomeEmailOk && newlyProvisioned) {
+    await recordWelcomeFailure(supabase, {
+      email, username, tier, locale: emailLocale, sessionId: session.id, newUser: newlyProvisioned,
+      reason: BREVO_API_KEY ? 'brevo_send_failed' : 'brevo_key_missing',
+    });
+  }
+
+  return jsonResponse({ ok: true, event_id: event.id, session_id: session.id, username, tier, new_user: newlyProvisioned, welcome_email: welcomeEmailOk }, 200);
 });
