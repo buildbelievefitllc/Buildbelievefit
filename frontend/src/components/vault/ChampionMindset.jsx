@@ -34,8 +34,10 @@
 // MindsetEngine). Public to every authenticated client — mounted in ClientVault
 // with no admin gate.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
+import { embedURL, thumbURL } from './exerciseVideos.js';
+import { PlayIcon, CloseIcon } from './icons.jsx';
 import './championMindset.css';
 
 // ── Trilingual content + chrome ──────────────────────────────────────────────
@@ -44,6 +46,29 @@ import './championMindset.css';
 // cognitive-protocol decks, and every piece of surface chrome. EN content is the
 // LOCKED ground-truth (kobe / goggins / et kept byte-for-byte); ES / PT carry
 // region-appropriate icons and native-language copy.
+//
+// ── DROP-IN SCHEMA (trilingual scaling) ──────────────────────────────────────
+// The roster is ALREADY cleanly separated by language key — each `L10N[lang]`
+// owns its own `champions: []` array, so the incoming localized films (Canelo /
+// Senna / Oliveira …) drop straight into the matching language array with zero
+// structural friction. One champion record:
+//
+//   {
+//     id:        'oliveira',              // unique within its language array;
+//                                         //   reference it from a bucket's `ids`
+//                                         //   to file it under a category filter.
+//     category:  'Faixa-Preta Mental',    // localized badge string
+//     title:     'Charles Oliveira: …',   // localized card title
+//     youtubeId: 'XXXXXXXXXXX',           // 11-char native-language motivational cut
+//     objective: '…',                     // localized Focus-Objective paragraph
+//     dictums:   ['…', '…', '…'],          // localized cognitive dictums (any count)
+//   }
+//
+// To extend a category filter, add the new `id` to the relevant bucket's `ids`
+// for that same language (buckets share KEYS across languages, so an active
+// filter survives a language toggle). Nothing else needs to change — the cinema
+// grid, search, accordion player and Focus-Objective panel all read these arrays
+// generically.
 const L10N = {
   en: {
     pill: 'Cognitive Fortitude',
@@ -63,6 +88,7 @@ const L10N = {
     clearFilters: 'Clear filters',
     streamNow: 'Stream Now',
     locked: 'Locked',
+    collapse: 'Collapse video',
     playerNote: 'Note: Ensure audio/earphones are configured. Let the message echo in your subconsciousness.',
     focusObjective: 'Focus Objective',
     dictumsLabel: 'Cognitive Dictums for Internalization',
@@ -257,6 +283,7 @@ const L10N = {
     clearFilters: 'Limpiar filtros',
     streamNow: 'Reproducir Ahora',
     locked: 'Fijado',
+    collapse: 'Cerrar video',
     playerNote: 'Nota: Asegura el audio/auriculares. Deja que el mensaje resuene en tu subconsciente.',
     focusObjective: 'Objetivo de Enfoque',
     dictumsLabel: 'Dictados Cognitivos para Internalizar',
@@ -402,6 +429,7 @@ const L10N = {
     clearFilters: 'Limpar filtros',
     streamNow: 'Assistir Agora',
     locked: 'Fixado',
+    collapse: 'Fechar vídeo',
     playerNote: 'Nota: Configure o áudio/fones de ouvido. Deixe a mensagem ecoar no seu subconsciente.',
     focusObjective: 'Objetivo de Foco',
     dictumsLabel: 'Ditames Cognitivos para Internalizar',
@@ -555,10 +583,15 @@ export default function ChampionMindset() {
   const L = L10N[lang] || L10N.en;
   const { champions, buckets } = L;
 
-  // Restore today's locked-in champion (if any). Validation against the active
-  // roster happens at render via `activeId`, so a stored id from another language
-  // simply falls back to the roster head rather than throwing.
-  const [selectedId, setSelectedId] = useState(() => readLocked());
+  // Inline-expansion accordion state: the id of the currently EXPANDED champion
+  // card — the only one streaming an in-card iframe — or null when the grid is at
+  // rest. Nothing autoplays on load (mirrors the V8.7 tap-to-play covers). This
+  // replaces the old detached-player "selectedId": the video now lives INSIDE the
+  // tapped card, so there is no separate top-level player to scroll-hunt for.
+  const [activeVideoId, setActiveVideoId] = useState(null);
+
+  // Today's "locked-in" mindset (persisted, per-day, BY champion id — survives a
+  // language toggle, so its badge re-appears whenever that roster is back in view).
   const [lockedToday, setLockedToday] = useState(() => readLocked());
 
   // Search + category-tag filter state for the cinema grid. The bucket KEYS are
@@ -566,11 +599,10 @@ export default function ChampionMindset() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
 
-  // The effective selection is the stored pick when it exists in the active
-  // roster; otherwise the roster head. Keeps the player + highlight coherent the
-  // instant the language (and therefore the roster) changes — no effect needed.
-  const activeId = champions.some((c) => c.id === selectedId) ? selectedId : champions[0].id;
-  const active = champions.find((c) => c.id === activeId) ?? champions[0];
+  // Per-card DOM handles → smooth-scroll the freshly expanded card to viewport
+  // center (this is what kills the mobile "scroll-hunting" the detached top-level
+  // player used to cause).
+  const cardRefs = useRef(new Map());
 
   // Films currently in view, after applying the active tag filter + search.
   const visible = useMemo(() => {
@@ -581,18 +613,40 @@ export default function ChampionMindset() {
     });
   }, [champions, buckets, filter, query]);
 
-  // "Engage Obsession Cycle" — advance through the films currently in view.
+  // A language switch swaps the entire roster wholesale, so a previously-open id
+  // may not exist in the new one. Rather than reset state inside an effect, derive
+  // the EFFECTIVE open id — honored only while it lives in the current roster; a
+  // stale id simply renders nothing as open (and the scroll effect no-ops). This
+  // is the idiomatic "you might not need an effect" path.
+  const openId = champions.some((c) => c.id === activeVideoId) ? activeVideoId : null;
+
+  // Center the active inline video on expansion. Deferred one frame so the
+  // accordion panel is mounted/measured before we scroll; honors reduced-motion.
+  useEffect(() => {
+    if (!openId) return undefined;
+    const el = cardRefs.current.get(openId);
+    if (!el) return undefined;
+    const reduce = typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+    const raf = requestAnimationFrame(() => {
+      try { el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }); }
+      catch { el.scrollIntoView(); }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [openId]);
+
+  // "Engage Obsession Cycle" — walk the expansion through the films in view
+  // (opens the first when none is open), so the inline player advances the roster.
   const cycle = () => {
     const pool = visible.length ? visible : champions;
-    const i = pool.findIndex((c) => c.id === activeId);
-    setSelectedId(pool[(i + 1) % pool.length].id);
+    const i = pool.findIndex((c) => c.id === openId);
+    setActiveVideoId(pool[(i + 1) % pool.length].id);
   };
 
   const clearFilters = () => { setQuery(''); setFilter('all'); };
 
-  // "Lock In This Mindset Today" — persist the active pick as the day's mindset.
-  const lockIn = () => { writeLocked(active.id); setLockedToday(active.id); };
-  const isLockedIn = lockedToday === active.id;
+  // "Lock In This Mindset Today" — persist a champion as the day's mindset.
+  const lockIn = (id) => { writeLocked(id); setLockedToday(id); };
 
   return (
     <div className="cm" data-testid="champion-mindset-module">
@@ -664,28 +718,114 @@ export default function ChampionMindset() {
           {L.showing(visible.length, champions.length)}
         </div>
 
-        {/* Responsive film grid */}
+        {/* Cinema grid — INLINE-EXPANSION accordion. Each film is a branded V8.7
+            cover (purple/gold gradient + gold play SVG, identical to the Program
+            & Prehab tabs); tapping swaps it IN PLACE for the native YouTube
+            iframe + that champion's Focus Objective, spanning the full row and
+            pushing the rest of the roster down. No detached top-level player. */}
         {visible.length > 0 ? (
-          <div className="cm-grid" role="tablist" aria-label={L.searchAria}>
+          <div className="cm-grid">
             {visible.map((c) => {
-              const on = c.id === activeId;
+              const open = c.id === openId;
+              const locked = lockedToday === c.id;
               return (
-                <button
+                <article
                   key={c.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={on}
-                  className={`cm-vcard${on ? ' is-active' : ''}`}
+                  ref={(el) => { if (el) cardRefs.current.set(c.id, el); else cardRefs.current.delete(c.id); }}
+                  className={`cm-vcard${open ? ' is-open' : ''}`}
                   data-testid={`cm-film-${c.id}`}
-                  onClick={() => setSelectedId(c.id)}
                 >
-                  <span className="cm-vcard-cat">{c.category}</span>
-                  <span className="cm-vcard-title">{c.title}</span>
-                  <span className="cm-vcard-foot">
-                    <span className="cm-vcard-stream"><span aria-hidden="true">▷</span> {L.streamNow}</span>
-                    {on ? <span className="cm-vcard-locked"><span aria-hidden="true">✓</span> {L.locked}</span> : null}
-                  </span>
-                </button>
+                  {open ? (
+                    <div className="cm-vcard-open">
+                      {/* Inline native YouTube player — only mounts on tap */}
+                      <div className="cm-player-frame">
+                        <iframe
+                          key={c.youtubeId}
+                          className="cm-player-iframe"
+                          src={embedURL(c.youtubeId)}
+                          title={c.title}
+                          loading="lazy"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+
+                      {/* Focus Objective — folded into the card so the message,
+                          dictums and lock-in travel WITH the video (no hunting). */}
+                      <div className="cm-vcard-obj">
+                        <div className="cm-obj-lbl">
+                          <span className="cm-obj-ic" aria-hidden="true">▶</span> {L.focusObjective}
+                          <button
+                            type="button"
+                            className="cm-vcard-collapse"
+                            onClick={() => setActiveVideoId(null)}
+                            aria-label={L.collapse}
+                          >
+                            <CloseIcon size={15} />
+                          </button>
+                        </div>
+                        <h4 className="cm-obj-title">{c.title}</h4>
+                        <p className="cm-obj-desc">{c.objective}</p>
+
+                        <div className="cm-obj-dictums-lbl">{L.dictumsLabel}</div>
+                        <ul className="cm-dictums">
+                          {c.dictums.map((d, i) => (
+                            <li className="cm-dictum" key={i}>
+                              <span className="cm-dictum-arrow" aria-hidden="true">›</span>
+                              <span className="cm-dictum-txt">&ldquo;{d}&rdquo;</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <button
+                          type="button"
+                          className={`cm-lockin${locked ? ' is-locked' : ''}`}
+                          aria-pressed={locked}
+                          onClick={() => lockIn(c.id)}
+                        >
+                          <span aria-hidden="true">{locked ? '✓' : '⚡'}</span>{' '}
+                          {locked ? L.lockedBtn : L.lockInBtn}
+                        </button>
+
+                        <p className="cm-player-note">
+                          <span aria-hidden="true">ⓘ</span> {L.playerNote}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="cm-vfilm"
+                      data-testid={`cm-film-cover-${c.id}`}
+                      onClick={() => setActiveVideoId(c.id)}
+                      aria-label={`${c.title} — ${L.streamNow}`}
+                    >
+                      {/* Pure V8.7 branded cover — gradient + centered gold play
+                          SVG, byte-identical to the Program & Prehab tabs. */}
+                      <span className="cm-vfilm-cover bbf-video-cover">
+                        <img
+                          className="cm-vfilm-thumb"
+                          src={thumbURL(c.youtubeId)}
+                          alt=""
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                        <span className="bbf-video-overlay" aria-hidden="true">
+                          <span className="bbf-video-play"><PlayIcon size={26} /></span>
+                        </span>
+                      </span>
+                      {/* Champion identity strip below the cover */}
+                      <span className="cm-vfilm-meta">
+                        <span className="cm-vcard-cat">{c.category}</span>
+                        <span className="cm-vcard-title">{c.title}</span>
+                        <span className="cm-vcard-foot">
+                          <span className="cm-vcard-stream"><span aria-hidden="true">▷</span> {L.streamNow}</span>
+                          {locked ? <span className="cm-vcard-locked"><span aria-hidden="true">✓</span> {L.locked}</span> : null}
+                        </span>
+                      </span>
+                    </button>
+                  )}
+                </article>
               );
             })}
           </div>
@@ -698,51 +838,6 @@ export default function ChampionMindset() {
             </button>
           </div>
         )}
-
-        {/* Video player — tracks the selected champion */}
-        <div className="cm-player">
-          <div className="cm-player-frame">
-            <iframe
-              key={active.youtubeId}
-              className="cm-player-iframe"
-              src={`https://www.youtube.com/embed/${active.youtubeId}`}
-              title={active.title}
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-          <p className="cm-player-note">
-            <span aria-hidden="true">ⓘ</span> {L.playerNote}
-          </p>
-        </div>
-
-        {/* Focus Objective — tracks the selected champion */}
-        <div className="cm-objective">
-          <div className="cm-obj-lbl"><span className="cm-obj-ic" aria-hidden="true">▶</span> {L.focusObjective}</div>
-          <h4 className="cm-obj-title">{active.title}</h4>
-          <p className="cm-obj-desc">{active.objective}</p>
-
-          <div className="cm-obj-dictums-lbl">{L.dictumsLabel}</div>
-          <ul className="cm-dictums">
-            {active.dictums.map((d, i) => (
-              <li className="cm-dictum" key={i}>
-                <span className="cm-dictum-arrow" aria-hidden="true">›</span>
-                <span className="cm-dictum-txt">&ldquo;{d}&rdquo;</span>
-              </li>
-            ))}
-          </ul>
-
-          <button
-            type="button"
-            className={`cm-lockin${isLockedIn ? ' is-locked' : ''}`}
-            aria-pressed={isLockedIn}
-            onClick={lockIn}
-          >
-            <span aria-hidden="true">{isLockedIn ? '✓' : '⚡'}</span>{' '}
-            {isLockedIn ? L.lockedBtn : L.lockInBtn}
-          </button>
-        </div>
       </section>
 
       {/* ── 4 · Cognitive Action Protocols (split-pane) ───────────────────── */}

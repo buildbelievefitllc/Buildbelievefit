@@ -264,39 +264,64 @@
   color: var(--mut);
 }
 
-/* roster grid — responsive auto-fill, collapses to a single column on phones */
+/* ── Cinema roster — inline-expansion accordion ──────────────────────────────
+   Responsive auto-fill grid of branded film covers; the tapped card expands in
+   place (breaking out to the full grid width) to stream the inline video + that
+   champion's Focus Objective, pushing the rest of the roster down. */
 .cm-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: .8rem;
+  align-items: start;
 }
 .cm-vcard {
-  display: flex;
-  flex-direction: column;
-  gap: .45rem;
-  text-align: left;
-  cursor: pointer;
+  position: relative;
   background: linear-gradient(180deg, #100c1a, #0a0710);
   border: 1px solid #211b30;
   border-radius: 14px;
-  padding: .95rem 1.05rem 1rem;
-  transition: border-color .18s ease, background .18s ease, transform .12s ease, box-shadow .18s ease;
+  overflow: hidden;
+  transition: border-color .18s ease, box-shadow .18s ease;
 }
-.cm-vcard:hover { border-color: rgba(139, 26, 191, .7); transform: translateY(-1px); }
-.cm-vcard:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
-.cm-vcard.is-active {
+.cm-vcard:hover { border-color: rgba(139, 26, 191, .7); }
+/* Expanded card — span the full row so the 16:9 player + objective read at full
+   width (mirrors the Generator's .pg-video.is-playing roster-row break-out). */
+.cm-vcard.is-open {
+  grid-column: 1 / -1;
   border-color: var(--yel);
-  background: linear-gradient(180deg, rgba(74, 8, 128, .35), rgba(30, 3, 56, .35));
-  box-shadow: 0 0 0 1px rgba(245, 200, 0, .35), 0 14px 34px -20px rgba(106, 13, 173, .9);
+  box-shadow: 0 0 0 1px rgba(245, 200, 0, .3), 0 18px 42px -24px rgba(106, 13, 173, .9);
+}
+
+/* Idle card — a branded 16:9 cover stacked over a champion-identity strip. The
+   button itself is a bare column; .cm-vfilm-cover carries the LOCKED V8.7 cover
+   (.bbf-video-cover in index.css supplies position / overflow / button reset, so
+   the gradient + centered gold play SVG match the Program & Prehab tabs). */
+.cm-vfilm {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+.cm-vfilm:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
+.cm-vfilm-cover { display: block; width: 100%; aspect-ratio: 16 / 9; }
+.cm-vfilm-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cm-vfilm-meta {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding: .8rem .95rem .9rem;
 }
 .cm-vcard-cat {
   font-family: var(--hb);
   font-size: .6rem;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--mut);
+  color: var(--gold-soft);
 }
-.cm-vcard.is-active .cm-vcard-cat { color: var(--gold-soft); }
 .cm-vcard-title {
   font-family: var(--bd);
   font-size: 1.02rem;
@@ -309,7 +334,7 @@
   align-items: center;
   justify-content: space-between;
   gap: .5rem;
-  margin-top: .1rem;
+  margin-top: .15rem;
 }
 .cm-vcard-stream {
   font-family: var(--hb);
@@ -325,6 +350,26 @@
   text-transform: uppercase;
   color: var(--grn);
 }
+
+/* Expanded card interior — flush 16:9 player above a padded objective block */
+.cm-vcard-open { display: flex; flex-direction: column; }
+.cm-vcard-open .cm-player-frame { border: 0; border-radius: 0; border-bottom: 1px solid #211b30; }
+.cm-vcard-obj { padding: 1.2rem 1.3rem 1.35rem; }
+.cm-vcard-collapse {
+  margin-left: auto;
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--mut);
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid #2a2238;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.cm-vcard-collapse:hover { color: var(--wht); border-color: rgba(139, 26, 191, .7); background: rgba(139, 26, 191, .12); }
+.cm-vcard-collapse:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
 
 /* empty state — when search/filter clears the grid */
 .cm-empty {
@@ -372,15 +417,12 @@
 }
 .cm-empty-clear:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 
-/* video player — 16:9 */
-.cm-player { display: flex; flex-direction: column; gap: .55rem; }
+/* inline 16:9 player — mounts INSIDE the expanded card (.cm-vcard-open) */
 .cm-player-frame {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #000;
-  border: 1px solid #211b30;
-  border-radius: 14px;
   overflow: hidden;
 }
 .cm-player-iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
@@ -390,16 +432,11 @@
   font-style: italic;
   color: var(--mut);
   text-align: center;
-  margin: 0;
+  margin: .85rem 0 0;
 }
 
-/* Focus Objective panel */
-.cm-objective {
-  background: linear-gradient(180deg, #100c1a, #0a0710);
-  border: 1px solid #211b30;
-  border-radius: 14px;
-  padding: 1.25rem 1.35rem 1.35rem;
-}
+/* Focus Objective — folded inline into the expanded card (.cm-vcard-obj). The
+   inner type/dictum/lock-in styles below are shared by that in-card block. */
 .cm-obj-lbl {
   display: flex;
   align-items: center;
@@ -558,6 +595,7 @@
   .cm-affirm-quote { font-size: 1.4rem; }
   .cm-cinema-head { align-items: flex-start; }
   .cm-grid { grid-template-columns: 1fr; }
+  .cm-vcard-obj { padding: 1.05rem 1.05rem 1.15rem; }
   .cm-protocols { grid-template-columns: 1fr; }
 
   /* Toolbar stacks: full-width search, then a horizontally scrollable chip rail
