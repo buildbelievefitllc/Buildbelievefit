@@ -137,6 +137,8 @@ var D = {
 'trans-cta':            { en:'Start Your Transformation \u2192', es:'Inicia Tu Transformaci\u00f3n \u2192', pt:'Inicie Sua Transforma\u00e7\u00e3o \u2192' },
 
 // ═══ PATHFINDER ═══
+'pf-intro-h':      { en:'Your Metabolism is Unique', es:'Tu Metabolismo es Único', pt:'Seu Metabolismo é Único' },
+'pf-intro-p':      { en:'Most coaches use generic formulas. We measure what actually fuels your body—age, activity, genetics, all of it. Answer four quick questions and we’ll show you exactly what your calorie needs are.', es:'La mayoría de los entrenadores usan fórmulas genéricas. Nosotros medimos lo que realmente alimenta tu cuerpo—edad, actividad, genética, todo. Responde cuatro preguntas rápidas y te mostraremos exactamente cuáles son tus necesidades calóricas.', pt:'A maioria dos treinadores usa fórmulas genéricas. Nós medimos o que realmente alimenta o seu corpo—idade, atividade, genética, tudo. Responda quatro perguntas rápidas e mostraremos exatamente quais são as suas necessidades calóricas.' },
 'path-lbl':        { en:'Start Your Journey', es:'Inicia Tu Camino', pt:'Inicie Sua Jornada' },
 'path-h':          { en:'The <span class="y">Pathfinder</span>', es:'El <span class="y">Pathfinder</span>', pt:'O <span class="y">Pathfinder</span>' },
 'path-sub':        { en:'4 quick steps. We\u2019ll calculate your personalized targets and Akeem will reach out within 24 hours.', es:'4 pasos r\u00e1pidos. Calcularemos tus metas personalizadas y Akeem te contactar\u00e1 en 24 horas.', pt:'4 passos r\u00e1pidos. Calcularemos suas metas personalizadas e Akeem entrar\u00e1 em contato em 24 horas.' },
