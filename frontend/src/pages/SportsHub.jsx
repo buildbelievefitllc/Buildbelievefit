@@ -34,6 +34,7 @@ import {
 } from '../components/sportshub/sections.jsx';
 import SportProtocol from '../components/sportshub/SportProtocol.jsx';
 import { selectPlans } from '../lib/vaultApi.js';
+import Concierge from '../components/vault/Concierge.jsx';
 import '../components/sportshub/sportsHub.css';
 
 // First non-rest day, so the Hub never opens on a blank recovery card.
@@ -299,10 +300,29 @@ export default function SportsHub({ selection = null, progress = null }) {
           </div>
         </details>
 
+        {/* Replay the Sports Hub welcome tour — mirrors the Vault Settings button,
+            but summons the SPORTS concierge (detail.hub:'sports'). */}
+        <div className="sh-replay-row">
+          <button
+            type="button"
+            className="sh-replay"
+            data-testid="sports-concierge-summon"
+            onClick={() => {
+              try { window.dispatchEvent(new CustomEvent('bbf:concierge:summon', { detail: { hub: 'sports' } })); } catch { /* no-op */ }
+            }}
+          >
+            {t('concierge-replay')}
+          </button>
+        </div>
+
         <p className="sh-foot">
           BBF Athlete Portal — youth training is coach-supervised and periodized for safe long-term development.
         </p>
       </div>
+
+      {/* Self-Serve Sports Concierge — the BBF Athlete Portal first-open welcome.
+          Hub-forked: distinct greeting + its own durable gate (has_seen_sports_welcome). */}
+      <Concierge hub="sports" />
     </div>
   );
 }

@@ -344,6 +344,17 @@
 .sh-hint { font-size: .72rem; color: var(--mut); line-height: 1.4; margin: 1rem 0 0; font-style: italic; }
 
 /* ── Footer note ─────────────────────────────────────────────────────────────── */
+/* Replay welcome tour — subtle, centered, mirrors the Vault Settings affordance. */
+.sh-replay-row { display: flex; justify-content: center; margin-top: 1.6rem; }
+.sh-replay {
+  font-family: var(--hb); font-size: .72rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold-soft); background: rgba(106, 13, 173, .18);
+  border: 1px solid var(--sh-line); border-radius: 999px; padding: .55rem 1.1rem; cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.sh-replay:hover { border-color: var(--yel); color: var(--yel); background: rgba(106, 13, 173, .3); }
+.sh-replay:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
 .sh-foot { margin: 1.4rem 0 0; text-align: center; font-size: .74rem; color: var(--mut); line-height: 1.5; }
 
 /* ── First-run intake gate (PAR-Q+ + guardian authorization) ─────────────────── */

@@ -22,12 +22,17 @@ import { fetchConciergeGreeting } from '../../lib/conciergeApi.js';
 import { MicIcon, CameraIcon, SignalIcon, FlagIcon, UsersIcon, CrosshairIcon } from './icons.jsx';
 
 const SEEN_PREFIX = 'bbf.concierge.seen.';
-function seenKey(uid) { return SEEN_PREFIX + String(uid || '').trim().toLowerCase(); }
-function hasSeen(uid) {
-  try { return !!localStorage.getItem(seenKey(uid)); } catch { return false; }
+// Per-hub device-local fast-path key. The Vault keeps the original (un-namespaced)
+// key for backward compatibility; the Sports Hub gets its own 'sports.' segment,
+// so a member who already saw the Vault welcome STILL gets the Sports Hub welcome.
+function seenKey(uid, hub) {
+  return SEEN_PREFIX + (hub === 'sports' ? 'sports.' : '') + String(uid || '').trim().toLowerCase();
 }
-function markSeen(uid) {
-  try { localStorage.setItem(seenKey(uid), String(Date.now())); } catch { /* storage blocked */ }
+function hasSeen(uid, hub) {
+  try { return !!localStorage.getItem(seenKey(uid, hub)); } catch { return false; }
+}
+function markSeen(uid, hub) {
+  try { localStorage.setItem(seenKey(uid, hub), String(Date.now())); } catch { /* storage blocked */ }
 }
 
 // Glyph per canonical feature key (mirrors the Vault tab iconography). Values are
@@ -85,7 +90,7 @@ const S = {
   },
 };
 
-export default function Concierge() {
+export default function Concierge({ hub = 'vault' }) {
   const { user } = useAuth();
   const { lang, t } = useLang();
   const uid = user?.username || user?.id || '';
@@ -103,37 +108,41 @@ export default function Concierge() {
   // this device short-circuits without a round-trip. State is mutated only inside
   // the promise callback (never synchronously) — clear of set-state-in-effect.
   useEffect(() => {
-    if (!uid || hasSeen(uid)) return undefined;
+    if (!uid || hasSeen(uid, hub)) return undefined;
     let cancelled = false;
-    fetchConciergeGreeting({ displayName, lang })
+    fetchConciergeGreeting({ displayName, lang, hub })
       .then((res) => {
         if (cancelled || dismissedRef.current || !res) return;
-        if (res.alreadySeen) { markSeen(uid); return; } // durable server verdict → cache, no modal
+        if (res.alreadySeen) { markSeen(uid, hub); return; } // durable server verdict → cache, no modal
         setCard(res);
       })
       .catch(() => { /* delight, never a blocker — swallow */ });
     return () => { cancelled = true; };
-  }, [uid, displayName, lang]);
+  }, [uid, displayName, lang, hub]);
 
   // ── Summon path: the member explicitly re-opens the welcome (Settings → Replay).
   // Bypasses BOTH guards (localStorage + the server flag) via summon:true, so it
   // works even long after the first-login welcome. A decoupled window event lets
   // any surface trigger it with no prop-drilling.
   useEffect(() => {
-    function onSummon() {
+    function onSummon(e) {
       if (!uid) return;
+      // A summon targets ONE hub (detail.hub); no detail → 'vault' (back-compat),
+      // so the Vault and Sports Hub replay buttons never cross-fire each other.
+      const reqHub = (e && e.detail && e.detail.hub) || 'vault';
+      if (reqHub !== hub) return;
       dismissedRef.current = false;
-      fetchConciergeGreeting({ displayName, lang, summon: true })
+      fetchConciergeGreeting({ displayName, lang, summon: true, hub })
         .then((res) => { if (res && !res.alreadySeen) setCard(res); })
         .catch(() => { /* swallow — summon is best-effort */ });
     }
     window.addEventListener('bbf:concierge:summon', onSummon);
     return () => window.removeEventListener('bbf:concierge:summon', onSummon);
-  }, [uid, displayName, lang]);
+  }, [uid, displayName, lang, hub]);
 
   const close = () => {
     dismissedRef.current = true;
-    markSeen(uid);
+    markSeen(uid, hub);
     setCard(null);
   };
 

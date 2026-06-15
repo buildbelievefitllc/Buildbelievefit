@@ -40,7 +40,7 @@ function normalizeCard(c) {
 
 // Fetch the tier-aware welcome for the authenticated member. Resolves to the
 // greeting payload, or null when there is nothing to show.
-export async function fetchConciergeGreeting({ displayName = '', lang = 'en', summon = false } = {}) {
+export async function fetchConciergeGreeting({ displayName = '', lang = 'en', summon = false, hub = 'vault' } = {}) {
   const token = getStoredVaultToken();
   if (!token) return null; // no session → nothing to onboard into
 
@@ -62,7 +62,10 @@ export async function fetchConciergeGreeting({ displayName = '', lang = 'en', su
         vault_token: token,
         display_name: typeof displayName === 'string' ? displayName.slice(0, 60) : '',
         locale: toLocale(lang),
-        // First-login persistence is server-authoritative (bbf_users.has_seen_welcome).
+        // HUB FORK — 'sports' triggers the BBF Athlete Portal welcome, gated by a
+        // SEPARATE durable flag (has_seen_sports_welcome). Default 'vault'.
+        hub: hub === 'sports' ? 'sports' : 'vault',
+        // First-open persistence is server-authoritative (per-hub seen column).
         // summon:true forces the welcome open even for an already-welcomed member
         // (the explicit "replay" action) — the server then skips the seen-gate.
         summon: !!summon,

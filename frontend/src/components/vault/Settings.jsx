@@ -181,7 +181,7 @@ export default function Settings() {
           onClick={() => {
             // Decoupled summon — the Concierge (mounted at the ClientVault root)
             // listens for this and re-opens the welcome, bypassing the first-login gate.
-            try { window.dispatchEvent(new CustomEvent('bbf:concierge:summon')); } catch { /* no-op */ }
+            try { window.dispatchEvent(new CustomEvent('bbf:concierge:summon', { detail: { hub: 'vault' } })); } catch { /* no-op */ }
           }}
         >
           {t('concierge-replay')}
