@@ -276,6 +276,8 @@ const DICT = {
   // are product proper nouns; surrounding copy is fully trilingual. ──
   'sch-kicker': { en: 'Sovereign Auto-Regulation', es: 'Autorregulación Soberana', pt: 'Autorregulação Soberana' },
   'sch-title': { en: 'Client Hub Check-In', es: 'Registro del Atleta', pt: 'Check-In do Atleta' },
+  'sch-fc-expand': { en: 'Expand Biokinetic Forecast', es: 'Expandir Pronóstico Biocinético', pt: 'Expandir Previsão Biocinética' },
+  'sch-fc-collapse': { en: 'Collapse Biokinetic Forecast', es: 'Contraer Pronóstico Biocinético', pt: 'Recolher Previsão Biocinética' },
   'sch-governor': { en: 'Taco Switch · Input Governor', es: 'Taco Switch · Gobernador de Entrada', pt: 'Taco Switch · Governador de Entrada' },
   'sch-gov-manual': { en: 'Manual Baseline', es: 'Línea Base Manual', pt: 'Linha de Base Manual' },
   'sch-gov-auto': { en: 'Autonomous Wearable Sync', es: 'Sincronización Autónoma', pt: 'Sincronização Autônoma' },

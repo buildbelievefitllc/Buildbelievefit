@@ -16,12 +16,17 @@ import { useCallback, useEffect, useState } from 'react';
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
-function fnHeaders() {
-  return {
+function fnHeaders(vaultToken) {
+  const h = {
     'Content-Type': 'application/json',
     apikey: SUPABASE_ANON_KEY,
     Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
   };
+  // The server entitlement gate reads the vault token from the x-bbf-vault-token
+  // HEADER (or the body). Sending it on BOTH guarantees the gate authenticates the
+  // request — a missing token here is what was 401-ing and tripping the fallback.
+  if (vaultToken) h['x-bbf-vault-token'] = vaultToken;
+  return h;
 }
 
 // JSON diagnostic forecast (projected_1rm · confidence_score · agent_insight ·
@@ -29,12 +34,13 @@ function fnHeaders() {
 export async function fetchForecast(uid, liftName, locale) {
   if (!uid) throw new Error('no_athlete');
   if (!liftName) throw new Error('missing_lift_name');
+  const token = getStoredVaultToken();
   const res = await fetch(`${FUNCTIONS_BASE}/bbf-agentic-forecasting`, {
     method: 'POST',
-    headers: fnHeaders(),
-    // vault_token binds the call to the athlete's server-revocable session so the
-    // edge fn enforces the biokinetic_forecast entitlement (server fail-closed gate).
-    body: JSON.stringify({ uid, lift_name: liftName, locale, vault_token: getStoredVaultToken() }),
+    headers: fnHeaders(token),
+    // vault_token (header + body) binds the call to the athlete's server-revocable
+    // session so the edge fn enforces the biokinetic_forecast entitlement gate.
+    body: JSON.stringify({ uid, lift_name: liftName, locale, vault_token: token }),
   });
   if (!res.ok) {
     let slug = `forecast_failed_${res.status}`;
@@ -65,10 +71,11 @@ export async function fetchCoachAudio({ exerciseName, targetReps, targetSets, fo
 // Shared audio POST → object URL. Both briefing + coach hit bbf-biokinetic-briefing
 // (ElevenLabs) and expect an audio/mpeg blob, NOT a JSON string.
 async function postForAudio(body, slug) {
+  const token = getStoredVaultToken();
   const res = await fetch(`${FUNCTIONS_BASE}/bbf-biokinetic-briefing`, {
     method: 'POST',
-    headers: fnHeaders(),
-    body: JSON.stringify({ ...body, vault_token: getStoredVaultToken() }),
+    headers: fnHeaders(token),
+    body: JSON.stringify({ ...body, vault_token: token }),
   });
   if (!res.ok) {
     let detail = `${slug}_failed_${res.status}`;

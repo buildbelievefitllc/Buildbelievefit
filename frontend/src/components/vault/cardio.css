@@ -21,10 +21,21 @@
 .bbf-cardio__kicker { font-family: var(--bd); font-size: .72rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); }
 .bbf-cardio__sub { font-family: var(--bd); font-size: .92rem; color: var(--mut); line-height: 1.5; margin: .2rem 0 1.4rem; max-width: 60ch; }
 
-/* Zone legend — the three modes; zone-accent stays as the semantic intensity cue */
+/* Zone legend — HIIT / Tempo / Zone 2 cards. SOVEREIGN AESTHETIC (CEO overhaul):
+   the per-zone neon red/orange/green is STRIPPED. All three render as uniform
+   premium data modules — dark matte canvas, a subtle --pur purple glow, and a
+   muted --gold-soft accent. No traffic-light colors (zone-accent is ignored). */
 .bbf-cardio__zones { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .7rem; margin-bottom: 1.6rem; }
-.bbf-cardio__zone { border: 1px solid var(--panel-edge); border-top: 3px solid var(--zone-accent, var(--yel)); border-radius: 12px; padding: .8rem .9rem; background: var(--panel-grad); }
-.bbf-cardio__zone-name { font-family: var(--hb); font-size: 1.05rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--zone-accent, var(--yel)); }
+.bbf-cardio__zone {
+  border: 1px solid rgba(106, 13, 173, .28);
+  border-top: 2px solid rgba(245, 200, 0, .45);
+  border-radius: 12px; padding: .8rem .9rem;
+  background:
+    radial-gradient(130% 110% at 0% 0%, rgba(106, 13, 173, .20), transparent 62%),
+    linear-gradient(180deg, #0a0410, #050505 78%);
+  box-shadow: inset 0 0 0 1px rgba(106, 13, 173, .10), 0 14px 30px -22px rgba(106, 13, 173, .8);
+}
+.bbf-cardio__zone-name { font-family: var(--hb); font-size: 1.05rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-soft); }
 .bbf-cardio__zone-blurb { font-family: var(--bd); font-size: .78rem; font-weight: 600; color: var(--mut); margin-top: .2rem; }
 
 .bbf-cardio__section-h { font-family: var(--hb); font-size: .95rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); margin: 1.6rem 0 .8rem; }

@@ -132,6 +132,9 @@ export default function SovereignClientHub() {
   // desync vs a timeout is visible, not a silent fallback to the stale row. ──
   const syncStatus = useVitalsSyncStatus();
 
+  // Biokinetic Forecast drawer — default COLLAPSED so the Hub stays clean.
+  const [fcOpen, setFcOpen] = useState(false);
+
   // ── The sync pipeline (Android path) ──
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
@@ -269,9 +272,22 @@ export default function SovereignClientHub() {
         ) : null}
       </header>
 
-      {/* ── BIOKINETIC FORECAST — consolidated onto the Hub (no standalone tab) so
-          the audio-first diagnostic renders immediately on the Check-In surface. ── */}
-      <BiokineticForecast />
+      {/* ── BIOKINETIC FORECAST — collapsible drawer (default collapsed) so the
+          Hub stays clean until the athlete opts into their telemetry. ── */}
+      <div className={`sch-fc${fcOpen ? ' is-open' : ''}`}>
+        <button
+          type="button"
+          className="sch-fc-toggle"
+          aria-expanded={fcOpen}
+          onClick={() => setFcOpen((o) => !o)}
+          data-testid="hub-forecast-toggle"
+        >
+          <span className="sch-fc-ic" aria-hidden="true">📈</span>
+          <span className="sch-fc-label">{fcOpen ? t('sch-fc-collapse') : t('sch-fc-expand')}</span>
+          <span className="sch-fc-chev" aria-hidden="true">{fcOpen ? '▴' : '▾'}</span>
+        </button>
+        {fcOpen ? <div className="sch-fc-body"><BiokineticForecast /></div> : null}
+      </div>
 
       {/* ── LAUNCH SYNC DIAGNOSTIC — surfaces the auto force-pull's raw failure ── */}
       {syncStatus.state === 'error' && syncStatus.error ? (
