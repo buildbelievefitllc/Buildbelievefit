@@ -105,6 +105,10 @@ export const TAB_FEATURE = {
   prehab: 'prehab',
   nutrition: 'base_nutrition',
   mindset: 'mindset',
+  // Biokinetic Forecast — audio-first 1RM/overtraining dashboard. Ungated for now
+  // (mirrors hub/settings) while the surface is staged; tighten to a paid feature
+  // once the briefing TTS pipeline is live.
+  forecast: null,
 };
 
 // For a locked feature, which pricing PATH the upgrade CTA steers toward. The

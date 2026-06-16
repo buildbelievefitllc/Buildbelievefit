@@ -34,6 +34,7 @@ import { useHealthConnectSync } from '../../lib/healthConnectSync.js';
 import { useBiometricLedger } from '../../lib/useDailyReadiness.js';
 import { runVitalsPipeline, runManualVitalsPipeline, useVitalsSyncStatus } from '../../lib/vitalsPipeline.js';
 import { saveManualBaseline, manualSubjective, useManualBaselineToday } from '../../lib/manualBaseline.js';
+import MindsetIntercept from './MindsetIntercept.jsx';
 import './sovereignHub.css';
 
 // Handshake diagnostic — its own chunk; only the Check-In tab ever pulls it in.
@@ -306,6 +307,10 @@ export default function SovereignClientHub() {
           </button>
         </div>
       </div>
+
+      {/* ── DYNAMIC MINDSET INTERCEPT — self-gates on readiness; auto-mounts the
+          Champion Mindset player when the day's verdict is below optimal. ── */}
+      <MindsetIntercept />
 
       {governor === 'manual' ? (
         /* ── MANUAL HEALTH INPUT — subjective baseline override ── */

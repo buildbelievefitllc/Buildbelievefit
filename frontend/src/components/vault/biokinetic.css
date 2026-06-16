@@ -1,0 +1,119 @@
+/* src/components/vault/biokinetic.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Biokinetic Forecast — audio-first scannable dashboard. Matte Vault canvas,
+   #6a0dad purple glow, #f5c800 gold accents. Reuses the global :root tokens
+   (--yel, --pur, --purl, --gold-soft, --display, --hb, --bd, --mut, --grn, --red). */
+
+.bf { color: var(--wht); }
+.bf-head { margin-bottom: 1.1rem; }
+.bf-kicker { font-family: var(--bd); font-size: .72rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); }
+.bf-title { font-family: var(--display); font-size: 1.6rem; letter-spacing: .5px; margin: .15rem 0 0; }
+.bf-sub { font-family: var(--bd); font-size: .92rem; color: var(--mut); line-height: 1.5; margin: .25rem 0 0; max-width: 60ch; }
+
+/* Lift selector — segmented pills */
+.bf-lifts { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 1.2rem; }
+.bf-lift {
+  font-family: var(--hb); font-size: .9rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--wht);
+  background: rgba(106, 13, 173, .12); border: 1px solid var(--panel-edge); border-radius: 9px;
+  padding: .55rem 1rem; cursor: pointer; transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.bf-lift:hover { border-color: rgba(245, 200, 0, .4); }
+.bf-lift.is-active { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: transparent; }
+.bf-lift:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
+/* ── 1 · Audio briefing hero — an embedded clinical player ── */
+.bf-audio {
+  display: flex; align-items: center; gap: 1rem;
+  border: 1px solid rgba(245, 200, 0, .30); border-radius: 16px;
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(106, 13, 173, .30), transparent 60%),
+    linear-gradient(180deg, #0a0410, #050505 72%);
+  box-shadow: inset 0 0 0 1px rgba(106, 13, 173, .12), 0 20px 46px -26px rgba(106, 13, 173, .9);
+  padding: 1.1rem 1.2rem; margin-bottom: 1.4rem;
+}
+.bf-audio-btn {
+  flex: none; width: 60px; height: 60px; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: #0c0a02;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border: none;
+  box-shadow: 0 0 0 6px rgba(245, 200, 0, .10), 0 12px 28px -10px rgba(245, 200, 0, .8);
+  transition: filter .16s ease, transform .12s ease;
+}
+.bf-audio-btn:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-1px); }
+.bf-audio-btn:focus-visible { outline: 2px solid var(--wht); outline-offset: 3px; }
+.bf-audio-btn:disabled { opacity: .7; cursor: progress; }
+.bf-audio-btn.is-playing { background: linear-gradient(135deg, var(--purl), var(--pur)); color: var(--wht); box-shadow: 0 0 0 6px rgba(106, 13, 173, .18); }
+.bf-audio-ic { font-size: 1.2rem; line-height: 1; }
+.bf-audio-meta { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.bf-audio-kicker { font-family: var(--hb); font-size: .9rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-soft); }
+.bf-audio-label { font-family: var(--bd); font-size: .9rem; font-weight: 700; color: var(--wht); }
+.bf-audio-err { font-family: var(--bd); font-size: .8rem; font-weight: 600; color: var(--gold-deep); }
+
+/* slim waveform — idle bars, animate only while playing */
+.bf-wave { display: inline-flex; align-items: flex-end; gap: 3px; height: 16px; margin-top: .15rem; }
+.bf-wave-bar { width: 3px; height: 30%; background: rgba(245, 200, 0, .45); border-radius: 2px; }
+.bf-wave.is-live .bf-wave-bar { background: var(--yel); animation: bf-eq .9s ease-in-out infinite; }
+@keyframes bf-eq { 0%, 100% { height: 25%; } 50% { height: 100%; } }
+@media (prefers-reduced-motion: reduce) { .bf-wave.is-live .bf-wave-bar { animation: none; height: 60%; } }
+
+/* ── Section header ── */
+.bf-section-h { font-family: var(--hb); font-size: .95rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--wht); margin: 0 0 .9rem; }
+.bf-state { font-family: var(--bd); font-size: .92rem; font-weight: 600; color: var(--mut); padding: .6rem 0; }
+
+/* ── 2 · Diagnostic readout — gauges + chips ── */
+.bf-diag { margin-bottom: 1.5rem; }
+.bf-gauges { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .7rem; margin-bottom: 1rem; }
+.bf-gauge { border: 1px solid var(--panel-edge); border-radius: 13px; padding: .85rem .95rem; background: var(--panel-grad); }
+.bf-gauge-val { font-family: var(--display); font-size: 1.7rem; line-height: 1; color: var(--yel); }
+.bf-gauge-unit { font-family: var(--bd); font-size: .85rem; color: var(--mut); margin-left: .15rem; }
+.bf-gauge-lbl { font-family: var(--bd); font-size: .76rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); margin-top: .25rem; }
+.bf-gauge-track { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .08); margin-top: .55rem; overflow: hidden; }
+.bf-gauge-fill { height: 100%; border-radius: 3px; background: var(--yel); }
+.bf-gauge--purple .bf-gauge-val { color: var(--purl); }
+.bf-gauge--purple .bf-gauge-fill { background: var(--purl); }
+.bf-gauge--green .bf-gauge-val { color: var(--grn); }
+.bf-gauge--green .bf-gauge-fill { background: var(--grn); }
+.bf-gauge--red .bf-gauge-val { color: var(--red); }
+.bf-gauge--red .bf-gauge-fill { background: var(--red); }
+
+.bf-chips { display: flex; flex-wrap: wrap; gap: .55rem; }
+.bf-chip {
+  display: inline-flex; align-items: center; gap: .5rem;
+  border: 1px solid currentColor; border-radius: 999px; padding: .4rem .8rem .4rem .6rem;
+  font-family: var(--hb); letter-spacing: 1px; text-transform: uppercase;
+}
+.bf-chip-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+.bf-chip-body { display: inline-flex; flex-direction: column; line-height: 1.05; }
+.bf-chip-label { font-size: .82rem; }
+.bf-chip-sub { font-family: var(--bd); font-size: .64rem; letter-spacing: .5px; opacity: .8; }
+.bf-chip--gold { color: var(--gold-soft); background: rgba(245, 200, 0, .08); }
+.bf-chip--green { color: var(--grn); background: rgba(34, 197, 94, .08); }
+.bf-chip--red { color: var(--red); background: rgba(239, 68, 68, .09); }
+.bf-chip--purple { color: var(--purl); background: rgba(106, 13, 173, .12); }
+
+/* Coach directive — ONE scannable line, never a paragraph block */
+.bf-directive { display: flex; align-items: baseline; gap: .6rem; margin-top: 1rem; padding: .7rem .9rem; border-left: 3px solid var(--yel); border-radius: 8px; background: rgba(245, 200, 0, .06); }
+.bf-directive-lbl { font-family: var(--hb); font-size: .72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-soft); white-space: nowrap; }
+.bf-directive-txt { font-family: var(--bd); font-size: .9rem; font-weight: 600; color: var(--wht); }
+
+/* ── 3 · Progression curve — custom SVG ── */
+.bf-chart { border: 1px solid var(--panel-edge); border-radius: 14px; background: var(--panel-grad); padding: .9rem 1rem 1rem; }
+.bf-chart-head { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.bf-chart-title { font-family: var(--hb); font-size: .9rem; letter-spacing: 2px; text-transform: uppercase; color: var(--wht); }
+.bf-chart-legend { display: flex; gap: .9rem; }
+.bf-leg { display: inline-flex; align-items: center; gap: .35rem; font-family: var(--bd); font-size: .76rem; font-weight: 700; letter-spacing: .5px; color: var(--mut); }
+.bf-leg-swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
+.bf-leg--w .bf-leg-swatch { background: var(--yel); }
+.bf-leg--i .bf-leg-swatch { background: var(--purl); }
+.bf-chart-svg { width: 100%; height: 150px; display: block; }
+.bf-grid { stroke: rgba(255, 255, 255, .06); stroke-width: 1; }
+.bf-line { stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.bf-line--w { stroke: var(--yel); }
+.bf-line--i { stroke: var(--purl); }
+.bf-dot--w { fill: var(--yel); }
+.bf-dot--i { fill: var(--purl); }
+.bf-axis { fill: var(--mut); font-family: var(--bd); font-size: 9px; letter-spacing: .5px; }
+
+@media (max-width: 420px) {
+  .bf-audio { flex-wrap: wrap; }
+  .bf-gauges { grid-template-columns: 1fr 1fr; }
+}

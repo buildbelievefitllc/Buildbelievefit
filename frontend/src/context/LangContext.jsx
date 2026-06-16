@@ -269,6 +269,7 @@ const DICT = {
   'vault-tab-prehab': { en: 'Prehab', es: 'Pre-Hab', pt: 'Pré-Hab' },
   'vault-tab-nutrition': { en: 'Nutrition', es: 'Nutrición', pt: 'Nutrição' },
   'vault-tab-mindset': { en: 'Champion Mindset', es: 'Mentalidad de Campeón', pt: 'Mentalidade de Campeão' },
+  'vault-tab-forecast': { en: 'Forecast', es: 'Pronóstico', pt: 'Previsão' },
   'vault-tab-settings': { en: 'Settings', es: 'Ajustes', pt: 'Configurações' },
   'vault-tab-checkin': { en: 'Check-In', es: 'Registro', pt: 'Check-In' },
   // ── Sovereign Client Hub (auto-regulation check-in). Mode names + 'Taco Switch'

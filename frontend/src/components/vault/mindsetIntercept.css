@@ -1,0 +1,35 @@
+/* src/components/vault/mindsetIntercept.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Dynamic Mindset Intercept — a high-priority recovery banner that auto-mounts the
+   Champion Mindset player on the Hub when readiness is below optimal. Purple/gold
+   Vault tokens; the banner carries an urgency edge without alarm-red bloat. */
+
+.mi { margin: 1.1rem 0 1.4rem; border-radius: 16px; overflow: hidden; border: 1px solid rgba(245, 200, 0, .35); background: linear-gradient(180deg, rgba(30, 3, 56, .55), rgba(5, 5, 5, .65)); box-shadow: 0 18px 44px -26px rgba(106, 13, 173, .9); animation: mi-rise .24s ease both; }
+@keyframes mi-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .mi { animation: none; } }
+
+.mi-banner {
+  display: flex; align-items: center; gap: .85rem; padding: .95rem 1.1rem;
+  background:
+    radial-gradient(120% 130% at 0% 0%, rgba(106, 13, 173, .38), transparent 60%),
+    linear-gradient(90deg, rgba(245, 200, 0, .10), transparent 70%);
+  border-bottom: 1px solid rgba(245, 200, 0, .22);
+}
+.mi-glyph {
+  flex: none; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  color: var(--yel); font-size: 1.2rem; background: rgba(245, 200, 0, .12); border: 1px solid rgba(245, 200, 0, .4);
+}
+.mi-copy { display: flex; flex-direction: column; gap: .12rem; min-width: 0; flex: 1 1 auto; }
+.mi-kicker { font-family: var(--hb); font-size: .8rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-soft); }
+.mi-title { font-family: var(--hb); font-size: 1.12rem; letter-spacing: .5px; color: var(--wht); margin: 0; }
+.mi-sub { font-family: var(--bd); font-size: .86rem; font-weight: 600; color: var(--mut); margin: 0; line-height: 1.4; }
+.mi-dismiss {
+  flex: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; line-height: 1;
+  color: var(--mut); background: transparent; border: 1px solid var(--panel-edge); transition: color .15s ease, border-color .15s ease;
+}
+.mi-dismiss:hover { color: var(--wht); border-color: rgba(245, 200, 0, .45); }
+.mi-dismiss:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
+/* The inline Champion Mindset module sits in a recessed well below the banner. */
+.mi-player { padding: 1rem 1.1rem 1.2rem; }
+@media (max-width: 420px) { .mi-banner { flex-wrap: wrap; } }
