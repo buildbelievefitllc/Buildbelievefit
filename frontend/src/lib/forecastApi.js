@@ -32,7 +32,9 @@ export async function fetchForecast(uid, liftName, locale) {
   const res = await fetch(`${FUNCTIONS_BASE}/bbf-agentic-forecasting`, {
     method: 'POST',
     headers: fnHeaders(),
-    body: JSON.stringify({ uid, lift_name: liftName, locale }),
+    // vault_token binds the call to the athlete's server-revocable session so the
+    // edge fn enforces the biokinetic_forecast entitlement (server fail-closed gate).
+    body: JSON.stringify({ uid, lift_name: liftName, locale, vault_token: getStoredVaultToken() }),
   });
   if (!res.ok) {
     let slug = `forecast_failed_${res.status}`;

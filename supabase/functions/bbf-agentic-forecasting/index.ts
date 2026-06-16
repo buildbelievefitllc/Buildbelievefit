@@ -67,6 +67,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 // 4.5 is the right tier per CEO routing.
 import { routeAndLog } from '../_shared/model-router.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
+import { requireEntitlement } from '../_shared/entitlement-gate.ts';
 
 const MODEL          = routeAndLog('bbf-agentic-forecasting', 'forecast_1rm');
 const MAX_TOKENS     = 2048;
@@ -396,6 +397,20 @@ serve(async (req: Request) => {
   if (intent !== 'systemic_ot_scan' && (typeof liftName !== 'string' || !liftName)) {
     return jsonResponse({ error: 'missing_lift_name' }, 400);
   }
+
+  // ─── HARD ENTITLEMENT GATE (FAIL-CLOSED) — before ANY core logic ───────────────
+  // Protects the JSON forecast engine from direct scraping. Identity is resolved
+  // SERVER-SIDE from the vault bearer token (the body `uid` is never trusted for
+  // auth); requires biokinetic_forecast (Autonomous+). God Mode passes. Missing
+  // token → 401, invalid/expired → 401, unentitled/locked → 403 — before any DB
+  // read or Claude call. (Runs before admin_override so the bypass can't be forged.)
+  const gate = await requireEntitlement({
+    supabaseUrl: Deno.env.get('SUPABASE_URL'),
+    serviceKey:  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+    vaultToken:  payload?.vault_token ?? req.headers.get('x-bbf-vault-token'),
+    feature:     'biokinetic_forecast',
+  });
+  if (!gate.ok) return jsonResponse({ error: gate.denial.error, detail: gate.denial.detail }, gate.denial.status);
 
   // ─── 1. ENFORCE OMNISCIENCE PROTOCOL ───────────────────────────
   if (adminOverride) {
