@@ -375,6 +375,10 @@ function clampDuration(n) { return Math.min(DURATION_MAX, Math.max(DURATION_MIN,
 // one-tap "Complete & Sync" log the generated protocol with zero manual input.
 const TIER_TO_ZONE = { 'HIIT': 'hiit', 'Tempo': 'tempo', 'Zone 2': 'zone2' };
 
+// Live configurator pacing → CARDIO_ZONES log key (fasted has no zone → zone2).
+// Used by Complete & Sync as the fallback when no AI plan is present.
+const PACING_TO_ZONE = { zone2: 'zone2', tempo: 'tempo', hiit: 'hiit', fasted: 'zone2' };
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CardioConfigurator — the grafted Metabolic Pacer. Owns the configuration state
 // AND the live engine call (lifted from the old CardioEngine), so the slider +
@@ -459,17 +463,21 @@ function CardioConfigurator({ onLogged }) {
   // the cardio log (zero manual input), then clears the protocol and refreshes
   // the History queue. Reuses the same logCardio writer the old form called.
   async function completeProtocol() {
-    if (logging || !plan) return;
+    if (logging) return;
     setLogging(true);
     setLogMsg(null);
     try {
-      const tier = plan.modality?.tier;
-      const zone = TIER_TO_ZONE[tier] || 'zone2';
-      const dur = Math.round(Number(plan.available_minutes) || Number(plan.total_minutes) || duration || 0);
-      const machine = plan.modality?.machine || plan.modality?.label || '';
-      const metric = plan.roi?.primary_metric || '';
+      // Prefer the AI plan's EFFECTIVE tier; fall back to the live configurator
+      // state so Complete & Sync works the moment a session is on screen — even
+      // when no AI plan has loaded (the button is no longer gated behind `plan`).
+      const tier = plan?.modality?.tier || null;
+      const zone = (tier && TIER_TO_ZONE[tier]) || PACING_TO_ZONE[effectivePacing] || 'zone2';
+      const dur = Math.round(Number(plan?.available_minutes) || Number(plan?.total_minutes) || duration || DURATION_MIN);
+      const machine = plan?.modality?.machine || plan?.modality?.label || AL[apparatus]?.label || '';
+      const metric = plan?.roi?.primary_metric || '';
+      const intensity = tier || ZS[effectivePacing] || undefined;
       const notes = [machine, metric].filter(Boolean).join(' · ') || undefined;
-      await logCardio({ zone, duration_min: dur, intensity: tier || undefined, notes });
+      await logCardio({ zone, duration_min: dur, intensity, notes });
       setLogMsg({ kind: 'ok', text: tr.synced });
       setPlan(null);   // clear the active protocol (Phase 3)
       onLogged?.();    // reflect the completed session in the History queue
@@ -633,25 +641,29 @@ function CardioConfigurator({ onLogged }) {
           <RespiratorySync key={effectivePacing} breath={pacingMeta.breath} accent={pacingMeta.accent} />
 
           {error ? <div className="bbf-cardio__error" role="alert" style={{ marginTop: '.9rem' }}>{error}</div> : null}
-          {plan ? (
-            <>
-              <LiveProtocol plan={plan} />
-              {/* Protocol soundtrack — cue music right before starting the protocol. */}
-              <SpotifyEmbed />
-              {/* One-tap completion CTA — directly beneath the generated protocol. */}
-              <div className="bbf-complete-wrap">
-                <button
-                  type="button"
-                  className="bbf-complete"
-                  onClick={completeProtocol}
-                  disabled={logging}
-                  data-testid="cardio-complete-sync"
-                >
-                  {logging ? tr.syncing : tr.completeSync}
-                </button>
-              </div>
-            </>
-          ) : null}
+
+          {/* The AI-written timeline shows only when a plan is generated. */}
+          {plan ? <LiveProtocol plan={plan} /> : null}
+
+          {/* ── CORE FEATURES — un-nested from the `plan` gate so they are
+              UNCONDITIONALLY visible the moment the cardio session is live on
+              screen (regression fix: previously trapped inside {plan ? …}). ── */}
+          {/* Protocol soundtrack — cue music right before starting the protocol. */}
+          <SpotifyEmbed />
+          {/* One-tap completion CTA — logs from the AI plan when present, else
+              from the live configurator state (zone/duration/apparatus). */}
+          <div className="bbf-complete-wrap">
+            <button
+              type="button"
+              className="bbf-complete"
+              onClick={completeProtocol}
+              disabled={logging}
+              data-testid="cardio-complete-sync"
+            >
+              {logging ? tr.syncing : tr.completeSync}
+            </button>
+          </div>
+
           {logMsg ? (
             <div
               className={`bbf-cardio__msg bbf-cardio__msg--${logMsg.kind}`}
