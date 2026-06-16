@@ -35,7 +35,6 @@ import { useBiometricLedger } from '../../lib/useDailyReadiness.js';
 import { runVitalsPipeline, runManualVitalsPipeline, useVitalsSyncStatus } from '../../lib/vitalsPipeline.js';
 import { saveManualBaseline, manualSubjective, useManualBaselineToday } from '../../lib/manualBaseline.js';
 import MindsetIntercept from './MindsetIntercept.jsx';
-import BiokineticForecast from './BiokineticForecast.jsx';
 import './sovereignHub.css';
 
 // Handshake diagnostic — its own chunk; only the Check-In tab ever pulls it in.
@@ -131,9 +130,6 @@ export default function SovereignClientHub() {
   // swallowed). Renders the EXACT native error so a permissions lock vs a plugin
   // desync vs a timeout is visible, not a silent fallback to the stale row. ──
   const syncStatus = useVitalsSyncStatus();
-
-  // Biokinetic Forecast drawer — default COLLAPSED so the Hub stays clean.
-  const [fcOpen, setFcOpen] = useState(false);
 
   // ── The sync pipeline (Android path) ──
   const [busy, setBusy] = useState(false);
@@ -271,23 +267,6 @@ export default function SovereignClientHub() {
           </span>
         ) : null}
       </header>
-
-      {/* ── BIOKINETIC FORECAST — collapsible drawer (default collapsed) so the
-          Hub stays clean until the athlete opts into their telemetry. ── */}
-      <div className={`sch-fc${fcOpen ? ' is-open' : ''}`}>
-        <button
-          type="button"
-          className="sch-fc-toggle"
-          aria-expanded={fcOpen}
-          onClick={() => setFcOpen((o) => !o)}
-          data-testid="hub-forecast-toggle"
-        >
-          <span className="sch-fc-ic" aria-hidden="true">📈</span>
-          <span className="sch-fc-label">{fcOpen ? t('sch-fc-collapse') : t('sch-fc-expand')}</span>
-          <span className="sch-fc-chev" aria-hidden="true">{fcOpen ? '▴' : '▾'}</span>
-        </button>
-        {fcOpen ? <div className="sch-fc-body"><BiokineticForecast /></div> : null}
-      </div>
 
       {/* ── LAUNCH SYNC DIAGNOSTIC — surfaces the auto force-pull's raw failure ── */}
       {syncStatus.state === 'error' && syncStatus.error ? (

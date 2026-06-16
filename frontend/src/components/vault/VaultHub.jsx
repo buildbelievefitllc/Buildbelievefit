@@ -16,9 +16,11 @@
 // Data contract { isLoading, error, profile } is owned by the Vault shell —
 // this component only paints it.
 
+import { useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { Loading, Empty } from '../command/primitives.jsx';
 import { BoltIcon } from './icons.jsx';
+import BiokineticForecast from './BiokineticForecast.jsx';
 import './vault.css';
 
 // Intel-rail indices (labels + units resolve through the dictionary in render).
@@ -35,8 +37,26 @@ function fmtStat(v) {
 
 export default function VaultHub({ profile, isLoading, error }) {
   const { t } = useLang();
+  // Biokinetic Forecast — collapsible drawer on the LANDING Client Hub (the tab the
+  // athlete sees on login). Default COLLAPSED so the Hub stays clean until opened.
+  const [fcOpen, setFcOpen] = useState(false);
   return (
     <div className="pg">
+      <div className={`vh-fc${fcOpen ? ' is-open' : ''}`}>
+        <button
+          type="button"
+          className="vh-fc-toggle"
+          aria-expanded={fcOpen}
+          onClick={() => setFcOpen((o) => !o)}
+          data-testid="hub-forecast-toggle"
+        >
+          <span className="vh-fc-ic" aria-hidden="true">📈</span>
+          <span className="vh-fc-label">{fcOpen ? t('sch-fc-collapse') : t('sch-fc-expand')}</span>
+          <span className="vh-fc-chev" aria-hidden="true">{fcOpen ? '▴' : '▾'}</span>
+        </button>
+        {fcOpen ? <div className="vh-fc-body"><BiokineticForecast /></div> : null}
+      </div>
+
       {isLoading ? <Loading label={t('vh-loading')} /> : null}
       {!isLoading && error ? <div className="pg-hub-error">{error}</div> : null}
       {!isLoading && !error && !profile ? <Empty>{t('vh-noprofile')}</Empty> : null}
