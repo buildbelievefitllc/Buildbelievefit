@@ -285,6 +285,19 @@
 .bbf-reconstruct:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 .bbf-reconstruct:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
+/* Complete & Sync — one-tap protocol completion (replaces the manual log form).
+   High-visibility gold confirm CTA, sits directly beneath the generated protocol. */
+.bbf-complete-wrap { margin-top: 1.2rem; }
+.bbf-complete {
+  width: 100%; font-family: var(--hb); font-size: 1rem; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 800;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: none; border-radius: 12px; padding: 1rem 1.2rem; cursor: pointer;
+  box-shadow: 0 12px 32px -16px rgba(245, 200, 0, .85); transition: filter .16s ease, transform .16s ease;
+}
+.bbf-complete:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+.bbf-complete:focus-visible { outline: 2px solid var(--wht); outline-offset: 2px; }
+.bbf-complete:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
 /* Revealed active-session panel — Live Respiratory Sync */
 .bbf-session { margin-top: 1.6rem; border-top: 1px solid var(--line); padding-top: 1.4rem; animation: pg-rise .22s ease both; }
 .bbf-session__kicker { font-family: var(--hb); font-size: .95rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-soft); margin-bottom: 1rem; }

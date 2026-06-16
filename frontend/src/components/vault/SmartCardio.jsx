@@ -47,6 +47,8 @@ const CARDIO_STR = {
     selectApparatus: 'Select Active Kinetic Apparatus', curatedSuite: '● Curated suite for any / home / general gym',
     apparatusAria: 'Active kinetic apparatus',
     reconstruct: 'Reconstruct Protocol', routing: 'Routing…',
+    completeSync: 'Complete & Sync Protocol', syncing: 'Syncing…',
+    synced: 'Protocol logged — synced to your history.',
     errMinutes: 'Enter how many minutes you have.', errGenerate: 'Could not generate a protocol.',
     liveSync: 'Live Respiratory Sync',
     timeBlock: 'Time · Block', timeRemaining: 'Time remaining', elapsed: 'Elapsed', targetPulse: 'Target Pulse',
@@ -102,6 +104,8 @@ const CARDIO_STR = {
     selectApparatus: 'Selecciona el Aparato Cinético Activo', curatedSuite: '● Suite curada para gimnasio en casa / general / cualquiera',
     apparatusAria: 'Aparato cinético activo',
     reconstruct: 'Reconstruir Protocolo', routing: 'Enrutando…',
+    completeSync: 'Completar y Sincronizar Protocolo', syncing: 'Sincronizando…',
+    synced: 'Protocolo registrado — sincronizado con tu historial.',
     errMinutes: 'Ingresa cuántos minutos tienes.', errGenerate: 'No se pudo generar un protocolo.',
     liveSync: 'Sincronización Respiratoria en Vivo',
     timeBlock: 'Tiempo · Bloque', timeRemaining: 'Tiempo restante', elapsed: 'Transcurrido', targetPulse: 'Pulso Objetivo',
@@ -156,6 +160,8 @@ const CARDIO_STR = {
     selectApparatus: 'Selecione o Aparelho Cinético Ativo', curatedSuite: '● Suíte curada para academia em casa / geral / qualquer',
     apparatusAria: 'Aparelho cinético ativo',
     reconstruct: 'Reconstruir Protocolo', routing: 'Roteando…',
+    completeSync: 'Concluir e Sincronizar Protocolo', syncing: 'Sincronizando…',
+    synced: 'Protocolo registrado — sincronizado com seu histórico.',
     errMinutes: 'Informe quantos minutos você tem.', errGenerate: 'Não foi possível gerar um protocolo.',
     liveSync: 'Sincronização Respiratória ao Vivo',
     timeBlock: 'Tempo · Bloco', timeRemaining: 'Tempo restante', elapsed: 'Decorrido', targetPulse: 'Pulso Alvo',
@@ -274,8 +280,9 @@ export default function SmartCardio() {
       <p className="bbf-cardio__sub">{tr.sub}</p>
 
       {/* Metabolic Pacer — the rebuilt configuration layer (kcal hero · slider ·
-          apparatus grid) wired straight into the live bbf-agentic-cardio engine. */}
-      <CardioConfigurator />
+          apparatus grid) wired straight into the live bbf-agentic-cardio engine.
+          onLogged refreshes the History queue after a one-tap "Complete & Sync". */}
+      <CardioConfigurator onLogged={refetch} />
 
       {/* Zone legend */}
       <div className="bbf-cardio__zones">
@@ -293,7 +300,6 @@ export default function SmartCardio() {
       {!isLoading && !error && data ? (
         <>
           <ActiveProtocols protocols={data.protocols} />
-          <LogSession onLogged={refetch} />
           <History logs={data.logs} />
         </>
       ) : null}
@@ -363,13 +369,18 @@ function computeCRP({ duration, pacing, apparatus, modality }) {
 function pad(n) { return String(Number(n) || 0).padStart(2, '0'); }
 function clampDuration(n) { return Math.min(DURATION_MAX, Math.max(DURATION_MIN, n || DURATION_MIN)); }
 
+// Map the engine's effective modality tier (plan.modality.tier) → the CARDIO_ZONES
+// log key used by bbf_log_cardio (zone enum: hiit | tempo | zone2). This lets the
+// one-tap "Complete & Sync" log the generated protocol with zero manual input.
+const TIER_TO_ZONE = { 'HIIT': 'hiit', 'Tempo': 'tempo', 'Zone 2': 'zone2' };
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CardioConfigurator — the grafted Metabolic Pacer. Owns the configuration state
 // AND the live engine call (lifted from the old CardioEngine), so the slider +
 // apparatus cards feed bbf-agentic-cardio directly and RECONSTRUCT PROTOCOL is the
 // single generation trigger. Maps 429 → a clean rate-limit toast.
 // ─────────────────────────────────────────────────────────────────────────────
-function CardioConfigurator() {
+function CardioConfigurator({ onLogged }) {
   const { user } = useAuth();
   const { lang } = useLang();
   const tr = CARDIO_STR[lang] || CARDIO_STR.en;
@@ -410,6 +421,10 @@ function CardioConfigurator() {
   const [plan, setPlan] = useState(null);
   const [revealed, setRevealed] = useState(false);
 
+  // One-tap "Complete & Sync" state — replaces the manual Log-a-Session form.
+  const [logging, setLogging] = useState(false);
+  const [logMsg, setLogMsg] = useState(null); // { kind:'ok'|'err', text } | null
+
   // Effective pacing: a CNS-locked selection redirects to Zone 2 (pure derivation).
   const effectivePacing = lockedPacing.has(pacing) ? 'zone2' : pacing;
   const redirected = effectivePacing !== pacing;
@@ -424,6 +439,7 @@ function CardioConfigurator() {
     if (!m || m <= 0) { setError(tr.errMinutes); setRevealed(true); return; }
     setBusy(true);
     setError(null);
+    setLogMsg(null); // a fresh protocol clears any prior "synced" confirmation
     setRevealed(true);
     try {
       setPlan(await generateCardio(uid, m));
@@ -434,6 +450,32 @@ function CardioConfigurator() {
       setPlan(null);
     } finally {
       setBusy(false);
+    }
+  }
+
+  // ── One-tap completion — the manual Log-a-Session form is gone. Tapping
+  // "Complete & Sync Protocol" maps the ACTIVE generated protocol straight into
+  // the cardio log (zero manual input), then clears the protocol and refreshes
+  // the History queue. Reuses the same logCardio writer the old form called.
+  async function completeProtocol() {
+    if (logging || !plan) return;
+    setLogging(true);
+    setLogMsg(null);
+    try {
+      const tier = plan.modality?.tier;
+      const zone = TIER_TO_ZONE[tier] || 'zone2';
+      const dur = Math.round(Number(plan.available_minutes) || Number(plan.total_minutes) || duration || 0);
+      const machine = plan.modality?.machine || plan.modality?.label || '';
+      const metric = plan.roi?.primary_metric || '';
+      const notes = [machine, metric].filter(Boolean).join(' · ') || undefined;
+      await logCardio({ zone, duration_min: dur, intensity: tier || undefined, notes });
+      setLogMsg({ kind: 'ok', text: tr.synced });
+      setPlan(null);   // clear the active protocol (Phase 3)
+      onLogged?.();    // reflect the completed session in the History queue
+    } catch (err) {
+      setLogMsg({ kind: 'err', text: err?.message || tr.errLog });
+    } finally {
+      setLogging(false);
     }
   }
 
@@ -590,7 +632,33 @@ function CardioConfigurator() {
           <RespiratorySync key={effectivePacing} breath={pacingMeta.breath} accent={pacingMeta.accent} />
 
           {error ? <div className="bbf-cardio__error" role="alert" style={{ marginTop: '.9rem' }}>{error}</div> : null}
-          {plan ? <LiveProtocol plan={plan} /> : null}
+          {plan ? (
+            <>
+              <LiveProtocol plan={plan} />
+              {/* One-tap completion CTA — directly beneath the generated protocol. */}
+              <div className="bbf-complete-wrap">
+                <button
+                  type="button"
+                  className="bbf-complete"
+                  onClick={completeProtocol}
+                  disabled={logging}
+                  data-testid="cardio-complete-sync"
+                >
+                  {logging ? tr.syncing : tr.completeSync}
+                </button>
+              </div>
+            </>
+          ) : null}
+          {logMsg ? (
+            <div
+              className={`bbf-cardio__msg bbf-cardio__msg--${logMsg.kind}`}
+              role="status"
+              data-testid="cardio-sync-msg"
+              style={{ display: 'block', marginTop: '.9rem' }}
+            >
+              {logMsg.text}
+            </div>
+          ) : null}
           {toast ? <RateLimitToast message={toast} onClose={() => setToast(null)} /> : null}
         </div>
       ) : null}
@@ -1076,82 +1144,7 @@ function History({ logs }) {
   );
 }
 
-function LogSession({ onLogged }) {
-  const { lang } = useLang();
-  const tr = CARDIO_STR[lang] || CARDIO_STR.en;
-  const [zone, setZone] = useState('zone2');
-  const [duration, setDuration] = useState('');
-  const [intensity, setIntensity] = useState('');
-  const [avgHr, setAvgHr] = useState('');
-  const [notes, setNotes] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState(null); // { kind:'ok'|'err', text }
-
-  async function submit(e) {
-    e.preventDefault();
-    if (busy) return;
-    const dur = parseInt(duration, 10);
-    if (!dur || dur <= 0 || dur > 600) {
-      setMsg({ kind: 'err', text: tr.errDur });
-      return;
-    }
-    setBusy(true);
-    setMsg(null);
-    try {
-      await logCardio({
-        zone,
-        duration_min: dur,
-        intensity: intensity.trim() || undefined,
-        avg_hr: avgHr.trim() || undefined,
-        notes: notes.trim() || undefined,
-      });
-      setMsg({ kind: 'ok', text: tr.logged });
-      setDuration(''); setIntensity(''); setAvgHr(''); setNotes('');
-      onLogged?.();
-    } catch (err) {
-      setMsg({ kind: 'err', text: err?.message || tr.errLog });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <section>
-      <h3 className="bbf-cardio__section-h">{tr.logSession}</h3>
-      <form className="bbf-cardio__logger" onSubmit={submit}>
-        <div className="bbf-cardio__row">
-          <div className="bbf-cardio__field">
-            <label htmlFor="bc-zone">{tr.zone}</label>
-            <select id="bc-zone" className="bbf-input" value={zone} disabled={busy} onChange={(e) => setZone(e.target.value)}>
-              {Object.entries(CARDIO_ZONES).map(([id, z]) => <option key={id} value={id}>{z.label}</option>)}
-            </select>
-          </div>
-          <div className="bbf-cardio__field">
-            <label htmlFor="bc-dur">{tr.durationMin}</label>
-            <input id="bc-dur" className="bbf-input" type="number" inputMode="numeric" min="1" max="600"
-              value={duration} disabled={busy} onChange={(e) => setDuration(e.target.value)} placeholder="40" />
-          </div>
-          <div className="bbf-cardio__field">
-            <label htmlFor="bc-int">{tr.intensity}</label>
-            <input id="bc-int" className="bbf-input" type="text" value={intensity} disabled={busy}
-              onChange={(e) => setIntensity(e.target.value)} placeholder="RPE 7 / 65-75% HRmax" />
-          </div>
-          <div className="bbf-cardio__field">
-            <label htmlFor="bc-hr">{tr.avgHr}</label>
-            <input id="bc-hr" className="bbf-input" type="number" inputMode="numeric" min="40" max="230"
-              value={avgHr} disabled={busy} onChange={(e) => setAvgHr(e.target.value)} placeholder="142" />
-          </div>
-        </div>
-        <div className="bbf-cardio__field" style={{ marginBottom: '.8rem' }}>
-          <label htmlFor="bc-notes">{tr.notes}</label>
-          <input id="bc-notes" className="bbf-input" type="text" value={notes} disabled={busy}
-            onChange={(e) => setNotes(e.target.value)} placeholder={tr.phNotes} />
-        </div>
-        <div className="bbf-cardio__actions">
-          <button type="submit" className="bbf-cardio__btn" disabled={busy}>{busy ? tr.logging : tr.logBtn}</button>
-          {msg ? <span className={`bbf-cardio__msg bbf-cardio__msg--${msg.kind}`} role="status">{msg.text}</span> : null}
-        </div>
-      </form>
-    </section>
-  );
-}
+// NOTE: the manual "Log a Session" form (LogSession) was removed in the zero-friction
+// refactor. Completed sessions are now logged via the one-tap "Complete & Sync
+// Protocol" CTA in CardioConfigurator, which feeds the SAME logCardio() writer with
+// the active generated protocol's data — no manual Zone/Duration/Intensity/Notes entry.
