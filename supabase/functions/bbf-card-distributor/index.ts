@@ -61,6 +61,18 @@ const ADMIN_TOKEN  = Deno.env.get('BBF_COACH_AGENT_TOKEN') ?? '';
 
 const TABLE = 'bbf_calling_cards_batch_v1';
 
+// ─── LOCAL HASHTAG BLOCK ─────────────────────────────────────────────────────────
+// Appended to every caption at POST time (after the existing caption, separated by
+// two newlines) so all already-queued rows pick it up automatically — no row rewrite.
+// Tune this ONE line freely; stay under IG's 2,200-char / 30-hashtag caps.
+const LOCAL_TAGS =
+  '#BuckeyeAZ #GoodyearAZ #AvondaleAZ #SurpriseAZ #MaricopaCounty #WestValleyAZ #PhoenixFitness #ArizonaFitness';
+
+// Compose the final caption: original first, two newlines, then the local tag block.
+function withLocalTags(caption: string): string {
+  return caption ? `${caption}\n\n${LOCAL_TAGS}` : LOCAL_TAGS;
+}
+
 // ─── PostgREST helpers (service-role; bypasses RLS) — house pattern ──────────────
 async function pgGet(path: string): Promise<any> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -343,7 +355,7 @@ serve(async (req) => {
         // ---- DRY RUN: preview only, no posting, no DB writes ----
         if (!live) {
           previewed++;
-          report.push({ id, would_post_to: onlyChannels, asset_present: haveAsset, image_url: imageUrl, caption_preview: caption.slice(0, 80) });
+          report.push({ id, would_post_to: onlyChannels, asset_present: haveAsset, image_url: imageUrl, caption_preview: caption.slice(0, 80), composed_preview: withLocalTags(caption).slice(0, 240) });
           continue;
         }
 
@@ -368,7 +380,7 @@ serve(async (req) => {
         let allOk = true;
         for (const ch of onlyChannels) {
           try {
-            const r = await postToChannel(cfg, ch, imageUrl, caption);
+            const r = await postToChannel(cfg, ch, imageUrl, (ch === 'instagram' || ch === 'facebook') ? withLocalTags(caption) : caption);
             channelResults[ch] = r;
             if (!r.ok) allOk = false;
           } catch (e) {
