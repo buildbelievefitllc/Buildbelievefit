@@ -397,7 +397,7 @@ const L10N = {
     buckets: [
       { key: 'championship-drive', label: 'Impulso de Campeón', ids: ['canelo', 'messi', 'pau', 'moreno'] },
       { key: 'stoic-grit', label: 'Temple Estoico', ids: ['topuria', 'nadal', 'hernandez', 'rubengonzalez', 'cala', 'victorantonio', 'najera'] },
-      { key: 'female-strength', label: 'Fuerza y Gracia Femenina', ids: ['carolina', 'mariamarin'] },
+      { key: 'female-strength', label: 'Fuerza y Gracia Femenina', ids: ['carolina', 'mariamarin', 'guevara', 'longoria'] },
     ],
     champions: [
       {
@@ -608,6 +608,40 @@ const L10N = {
           'Tu obstáculo es tu mensaje.',
         ],
         lockIn: 'Rompe Tus Límites',
+      },
+      // ── Reemplazos atléticos aprobados por el CEO (Inés Sainz → Guevara,
+      //    Karla Souza → Longoria), 2026-06 ──────────────────────────────────
+      {
+        id: 'guevara',
+        category: 'La Inmortal del Atletismo',
+        title: 'Ana Guevara: La Fuerza de Nunca Rendirse',
+        youtubeId: 'wNarmTLVhGQ',
+        objective:
+          'Campeona mundial de los 400 metros y plata olímpica, Ana volvió de un tendón ' +
+          'roto con apenas 100 días de entrenamiento para subir al podio. La lesión no ' +
+          'define al atleta; lo define lo que hace cuando todos lo dan por vencido.',
+        dictums: [
+          'La disciplina me llevó más lejos que el talento.',
+          'Volví de la lesión porque me negué a rendirme.',
+          'Corro por México en cada metro de la pista.',
+        ],
+        lockIn: 'Corre Tu Propia Carrera',
+      },
+      {
+        id: 'longoria',
+        category: 'La Reina del Raquetbol',
+        title: 'Paola Longoria: La Mentalidad de una Campeona',
+        youtubeId: 'aNJb76dV1Ow',
+        objective:
+          'La raquetbolista más dominante de la historia encadenó rachas invictas que ' +
+          'parecían imposibles, número uno del mundo temporada tras temporada. La campeona ' +
+          'no nace del talento, sino de la obsesión por entrenar cuando nadie la mira.',
+        dictums: [
+          'Cada entrenamiento es la final del mundo.',
+          'La constancia construye lo que el talento solo empieza.',
+          'Rompo barreras para que otras mexicanas las crucen.',
+        ],
+        lockIn: 'Entrena Como Campeona',
       },
     ],
     focusStrategies: [
