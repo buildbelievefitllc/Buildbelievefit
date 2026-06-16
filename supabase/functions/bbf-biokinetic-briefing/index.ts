@@ -48,6 +48,75 @@ function localeCode(input?: string | null): 'en' | 'es' | 'pt' {
 }
 const LOCALE_NAME: Record<string, string> = { en: 'English', es: 'Spanish (neutral Latin-American)', pt: 'Brazilian Portuguese' };
 
+// ─── HARD ENTITLEMENT GATE (inlined from _shared/entitlement-gate.ts · FAIL-CLOSED) ─
+// Identity is resolved SERVER-SIDE from the 24h vault bearer token; the body uid is
+// never trusted. program → voice_coach, forecast → biokinetic_forecast (Autonomous+).
+// God Mode (admin/trainer/coach/akeem/active-trial) always passes. Any failure to
+// POSITIVELY establish identity + a mapped, unlocked entitlement → DENY (no compute).
+const GROUP = { BASELINE: 'baseline', AUTONOMOUS: 'autonomous', APEX: 'apex', YOUTH: 'youth', ALL: 'allaccess' } as const;
+type Group = typeof GROUP[keyof typeof GROUP];
+const TIER_TO_GROUP: Record<string, Group> = {
+  catalyst: GROUP.BASELINE, momentum: GROUP.BASELINE, fuel_foundation: GROUP.BASELINE,
+  autonomous: GROUP.AUTONOMOUS, fuel_performance: GROUP.AUTONOMOUS,
+  fuel_sovereign: GROUP.APEX, kickstart_6wk_3x: GROUP.APEX, kickstart_6wk_4x: GROUP.APEX, transformation_8wk_3x: GROUP.APEX,
+  transformation_8wk_4x: GROUP.APEX, sovereign_12wk_3x: GROUP.APEX, sovereign_12wk_4x: GROUP.APEX,
+  rising_athlete: GROUP.YOUTH,
+  lite: GROUP.BASELINE, gateway: GROUP.AUTONOMOUS, architect: GROUP.AUTONOMOUS, sovereign: GROUP.APEX,
+  youth_athlete: GROUP.YOUTH, nutrition_essentials: GROUP.BASELINE, nutrition_platinum: GROUP.APEX,
+};
+const AUTO_BAND: Group[] = [GROUP.AUTONOMOUS, GROUP.APEX, GROUP.ALL];
+const FEATURE_ACCESS: Record<string, Group[]> = { voice_coach: AUTO_BAND, biokinetic_forecast: AUTO_BAND };
+
+function pgHeaders(serviceKey: string): HeadersInit {
+  return { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' };
+}
+async function uidFromVaultToken(url: string, key: string, token: string): Promise<string | null> {
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/_bbf_uid_from_vault_token`, { method: 'POST', headers: pgHeaders(key), body: JSON.stringify({ p_session_token: token }) });
+    if (!r.ok) return null;
+    const v = await r.json().catch(() => null);
+    return (typeof v === 'string' && v) ? v : null;
+  } catch { return null; }
+}
+async function readUserRow(url: string, key: string, userId: string): Promise<Record<string, unknown> | null> {
+  try {
+    const r = await fetch(`${url}/rest/v1/bbf_users?id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&select=uid,subscription_tier,trial_expires_at,access_status,role&limit=1`, { headers: pgHeaders(key) });
+    if (!r.ok) return null;
+    const rows = await r.json().catch(() => null);
+    return Array.isArray(rows) && rows.length ? rows[0] : null;
+  } catch { return null; }
+}
+function isGodMode(role: string | null, uid: string | null): boolean {
+  const r = String(role || '').toLowerCase();
+  if (r === 'admin' || r === 'trainer' || r === 'coach') return true;
+  return String(uid || '').toLowerCase() === 'akeem';
+}
+function trialActive(t: unknown): boolean {
+  if (typeof t !== 'string' || !t) return false;
+  const ms = Date.parse(t);
+  return Number.isFinite(ms) && ms > Date.now();
+}
+type GateResult = { ok: true } | { ok: false; status: number; error: string; detail: string };
+async function requireEntitlement(url: string | undefined, key: string | undefined, token: string | null | undefined, feature: string): Promise<GateResult> {
+  const tok = String(token || '').trim();
+  if (!url || !key) return { ok: false, status: 503, error: 'entitlement_check_unavailable', detail: 'Gate cannot reach the identity store.' };
+  if (!tok) return { ok: false, status: 401, error: 'missing_session', detail: 'A vault session token is required.' };
+  const userId = await uidFromVaultToken(url, key, tok);
+  if (!userId) return { ok: false, status: 401, error: 'invalid_session', detail: 'Vault session is invalid or expired.' };
+  const row = await readUserRow(url, key, userId);
+  if (!row) return { ok: false, status: 401, error: 'invalid_session', detail: 'No active account for this session.' };
+  if (String(row.access_status || '') === 'locked') return { ok: false, status: 403, error: 'account_locked', detail: 'This account is locked.' };
+  const uid = (row.uid ?? null) as string | null;
+  const role = (row.role ?? null) as string | null;
+  const tier = (row.subscription_tier ?? null) as string | null;
+  if (isGodMode(role, uid) || trialActive(row.trial_expires_at)) return { ok: true };
+  const slug = String(tier || '').trim().toLowerCase();
+  const group = slug ? TIER_TO_GROUP[slug] : undefined;
+  if (!group) return { ok: false, status: 403, error: 'tier_not_entitled', detail: `No entitlement mapping for tier "${slug || '(none)'}".` };
+  if ((FEATURE_ACCESS[feature] || []).includes(group)) return { ok: true };
+  return { ok: false, status: 403, error: 'tier_not_entitled', detail: `Tier "${tier || '(none)'}" does not unlock "${feature}".` };
+}
+
 // ─── ElevenLabs voice resolution (locale → CEO account voice_id) ─────────────────
 const LOCALE_VOICE_NAME: Record<string, string> = { en: 'Uyi', es: 'Ana María', pt: 'Ana Alice' };
 const FORBIDDEN_VOICE = 'jamal'; // ⛔ never select "Young Jamal" under any circumstances
@@ -216,6 +285,16 @@ serve(async (req: Request) => {
 
   const context = payload?.context === 'program' ? 'program' : 'forecast';
   const locale = localeCode(payload?.locale ?? payload?.lang);
+
+  // ─── HARD ENTITLEMENT GATE (FAIL-CLOSED) — BEFORE any paid compute ──────────────
+  // Identity resolved server-side from the vault token. program → voice_coach,
+  // forecast → biokinetic_forecast (both Autonomous+). A Baseline/Youth/anon caller
+  // is rejected here, so NO Claude Haiku synthesis and NO ElevenLabs call is burned.
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const feature = context === 'program' ? 'voice_coach' : 'biokinetic_forecast';
+  const gate = await requireEntitlement(SUPABASE_URL, SERVICE_KEY, payload?.vault_token ?? req.headers.get('x-bbf-vault-token'), feature);
+  if (!gate.ok) return jsonResponse({ error: gate.error, detail: gate.detail }, gate.status);
 
   if (!ELEVENLABS_API_KEY) {
     return jsonResponse({ error: 'tts_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
