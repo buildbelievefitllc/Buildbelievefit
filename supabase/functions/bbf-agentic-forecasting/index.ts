@@ -314,14 +314,12 @@ async function fetchRecentSets(
 
 // ─── Anthropic call ────────────────────────────────────────────────────
 async function callClaude(userMessage: string, apiKey: string, localeInput: string) {
+  // forecast_1rm routes to Haiku 4.5, which does NOT support adaptive thinking or
+  // output_config.effort (those are Opus-4.8 features) — sending them 400s the call.
+  // We instruct strict-JSON output in the prompt and parse the text block instead.
   const requestBody = {
     model:      MODEL,
     max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
-    },
     system: [
       {
         type: 'text',
@@ -364,6 +362,43 @@ function extractTextBlock(content: any[]): string | null {
   }
   return null;
 }
+
+// ─── Real 6-week progression series (deterministic, from bbf_sets) ──────
+// Buckets the athlete's ACTUAL logged sets into the last 6 rolling weeks. Per week:
+//   weight    = the top working-set load (max weight_lbs) that week
+//   intensity = avg RPE → % when logged, else relative load (% of the 6-wk top set)
+// Empty weeks carry forward so the line stays continuous. This is what makes the
+// chart LIVE — it reflects the athlete's real training history, not a synthetic ramp.
+function computeProgression(setsData: Array<any>): { weight: number[]; intensity: number[]; weeks: string[]; has_data: boolean } {
+  const WEEKS = 6;
+  const nowMs = Date.now();
+  const topW: (number | null)[] = Array(WEEKS).fill(null);
+  const rpeSum: number[] = Array(WEEKS).fill(0);
+  const rpeCnt: number[] = Array(WEEKS).fill(0);
+  let any = false;
+  for (const s of (setsData || [])) {
+    const ts = _dayKeyToTs(s && s.day_key);
+    if (ts == null) continue;
+    const ageDays = Math.floor((nowMs - ts) / 86400000);
+    if (ageDays < 0 || ageDays >= WEEKS * 7) continue;
+    const bucket = (WEEKS - 1) - Math.floor(ageDays / 7); // current week → last index
+    const w = Number(s.weight_lbs) || 0;
+    if (w > 0) { topW[bucket] = Math.max(topW[bucket] ?? 0, w); any = true; }
+    const rpe = Number(s.rpe);
+    if (isFinite(rpe) && rpe > 0) { rpeSum[bucket] += rpe; rpeCnt[bucket] += 1; }
+  }
+  // Carry-forward to fill empty weeks; back-fill any leading gaps with the first known.
+  let last: number | null = null;
+  for (let i = 0; i < WEEKS; i++) { if (topW[i] == null) topW[i] = last; else last = topW[i]; }
+  const firstKnown = topW.find((v) => v != null) ?? 0;
+  const weight = topW.map((v) => (v == null ? firstKnown : v) as number);
+  const maxW = Math.max(1, ...weight);
+  const intensity = weight.map((w, i) =>
+    rpeCnt[i] > 0 ? Math.round((rpeSum[i] / rpeCnt[i]) / 10 * 100) : Math.round((w / maxW) * 100));
+  const weeks = Array.from({ length: WEEKS }, (_, i) => `W${i + 1}`);
+  return { weight, intensity, weeks, has_data: any };
+}
+
 
 // ─── Handler ───────────────────────────────────────────────────────────
 serve(async (req: Request) => {
@@ -451,6 +486,9 @@ serve(async (req: Request) => {
     peaking_error:      peakingStaging && peakingStaging.error || null,
   });
 
+  // Real 6-week progression from the athlete's logged sets (drives the live chart).
+  const progression = computeProgression(setsData || []);
+
   // ─── Phase 4 · systemic_ot_scan early exit · skip 1RM Claude ─────
   // BBF_PROGRAM_INTEL dashboard widget hits this path when it just
   // wants the OT signal · no need to burn tokens on the 1RM forecast.
@@ -470,6 +508,7 @@ serve(async (req: Request) => {
       confidence_score: 'Low',
       agent_insight:    'Insufficient data velocity. Complete 3 more sessions to unlock forecasting.',
       ot_signal:        otSignalForResponse,
+      progression,
     });
   }
 
@@ -496,6 +535,8 @@ serve(async (req: Request) => {
       detail: result.error,
       status: result.status,
       raw:    result.raw,
+      ot_signal: otSignalForResponse,
+      progression,
     }, 502);
   }
 
@@ -507,7 +548,9 @@ serve(async (req: Request) => {
   }
 
   let parsed: any;
-  try { parsed = JSON.parse(text); }
+  // Strip any markdown code-fence the model may wrap the JSON in before parsing.
+  const cleanText = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+  try { parsed = JSON.parse(cleanText); }
   catch (e) {
     console.error(`[bbf-agentic-forecasting] parse failed: ${(e as Error).message}. text=${text.slice(0, 400)}`);
     return jsonResponse({ error: 'parse_failed', detail: (e as Error).message, raw_text: text }, 502);
@@ -524,5 +567,6 @@ serve(async (req: Request) => {
     confidence_score: parsed.confidence_score,
     agent_insight:    parsed.agent_insight,
     ot_signal:        otSignalForResponse,
+    progression,
   }, 200);
 });

@@ -201,7 +201,12 @@ function ForecastPanel({ uid, lift, lang, tr }) {
   const ac = ot && Number.isFinite(Number(ot.ac_ratio)) ? Number(ot.ac_ratio) : null;
   const acTone = ac == null ? 'gold' : ac > 1.5 ? 'red' : ac < 0.8 ? 'gold' : 'green';
   const rpe = ot && Number.isFinite(Number(ot.rpe_recent_avg)) ? Number(ot.rpe_recent_avg) : null;
-  const series = buildSeries(data?.projected_1rm);
+  // LIVE: the athlete's real 6-week logged progression from the engine. Falls back
+  // to the projected ramp only when there's no logged history yet.
+  const prog = data?.progression;
+  const series = (prog && prog.has_data && Array.isArray(prog.weight) && Array.isArray(prog.intensity))
+    ? { weight: prog.weight, intensity: prog.intensity }
+    : buildSeries(data?.projected_1rm);
 
   const briefingLabel = audioBusy ? tr.preparing
     : audioUrl ? (playing ? tr.pause : tr.replay)
