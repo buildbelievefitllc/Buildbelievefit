@@ -106,9 +106,6 @@ export const TAB_FEATURE = {
   prehab: 'prehab',
   nutrition: 'base_nutrition',
   mindset: 'mindset',
-  // Biokinetic Forecast — audio-first 1RM/overtraining dashboard. Gated to the
-  // Autonomous band and up (CEO V8.16 paywall).
-  forecast: 'biokinetic_forecast',
 };
 
 // For a locked feature, which pricing PATH the upgrade CTA steers toward. The

@@ -69,12 +69,9 @@ const FORECAST_STR = {
   },
 };
 
-// Core lifts — English canonical key (what the engine reads) + localized label.
-const LIFTS = [
-  { key: 'Back Squat', en: 'Back Squat', es: 'Sentadilla', pt: 'Agachamento' },
-  { key: 'Bench Press', en: 'Bench Press', es: 'Press de Banca', pt: 'Supino' },
-  { key: 'Deadlift', en: 'Deadlift', es: 'Peso Muerto', pt: 'Levantamento Terra' },
-];
+// The forecast runs on the athlete's primary compound lift. No in-UI lift picker
+// (the CEO removed the rogue Squat/Bench/Deadlift buttons) — one default lift.
+const DEFAULT_LIFT = 'Back Squat';
 
 // ── Scannable building blocks ────────────────────────────────────────────────
 function Chip({ tone = 'purple', children, sub }) {
@@ -296,9 +293,6 @@ export default function BiokineticForecast() {
   const tr = FORECAST_STR[lang] || FORECAST_STR.en;
   const uid = user?.username || user?.id || '';
 
-  const [lift, setLift] = useState(LIFTS[0].key);
-  const liftLabel = (l) => l[lang] || l.en;
-
   return (
     <div className="bf" data-testid="biokinetic-forecast">
       <div className="bf-head">
@@ -307,24 +301,8 @@ export default function BiokineticForecast() {
         <p className="bf-sub">{tr.sub}</p>
       </div>
 
-      <div className="bf-lifts" role="radiogroup" aria-label={tr.lift}>
-        {LIFTS.map((l) => (
-          <button
-            key={l.key}
-            type="button"
-            role="radio"
-            aria-checked={lift === l.key}
-            className={`bf-lift${lift === l.key ? ' is-active' : ''}`}
-            onClick={() => setLift(l.key)}
-            data-testid={`forecast-lift-${l.key.replace(/\s+/g, '-').toLowerCase()}`}
-          >
-            {liftLabel(l)}
-          </button>
-        ))}
-      </div>
-
-      {/* key={lift} → fresh loading + audio transport per lift (no setState-in-effect). */}
-      <ForecastPanel key={lift} uid={uid} lift={lift} lang={lang} tr={tr} />
+      {/* Chips + gauges, progression chart, and Play Audio Briefing only — no lift picker. */}
+      <ForecastPanel uid={uid} lift={DEFAULT_LIFT} lang={lang} tr={tr} />
     </div>
   );
 }

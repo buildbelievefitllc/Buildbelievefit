@@ -631,6 +631,33 @@ function CardioConfigurator({ onLogged }) {
         </button>
       </div>
 
+      {/* ── CORE FEATURES · FORCE-MOUNTED ──────────────────────────────────────
+          Rendered UNCONDITIONALLY — outside every {plan ? …} / {revealed ? …}
+          fragment — so generation state can never hide them. An apparatus is
+          always selected, so per the CEO directive these are always on screen. */}
+      <SpotifyEmbed />
+      <div className="bbf-complete-wrap">
+        <button
+          type="button"
+          className="bbf-complete"
+          onClick={completeProtocol}
+          disabled={logging}
+          data-testid="cardio-complete-sync"
+        >
+          {logging ? tr.syncing : tr.completeSync}
+        </button>
+      </div>
+      {logMsg ? (
+        <div
+          className={`bbf-cardio__msg bbf-cardio__msg--${logMsg.kind}`}
+          role="status"
+          data-testid="cardio-sync-msg"
+          style={{ display: 'block', marginTop: '.9rem' }}
+        >
+          {logMsg.text}
+        </div>
+      ) : null}
+
       {/* ── Revealed active-session panel — Live Respiratory Sync ── */}
       {revealed ? (
         <div className="bbf-session" data-testid="cardio-session-panel">
@@ -645,35 +672,6 @@ function CardioConfigurator({ onLogged }) {
           {/* The AI-written timeline shows only when a plan is generated. */}
           {plan ? <LiveProtocol plan={plan} /> : null}
 
-          {/* ── CORE FEATURES — un-nested from the `plan` gate so they are
-              UNCONDITIONALLY visible the moment the cardio session is live on
-              screen (regression fix: previously trapped inside {plan ? …}). ── */}
-          {/* Protocol soundtrack — cue music right before starting the protocol. */}
-          <SpotifyEmbed />
-          {/* One-tap completion CTA — logs from the AI plan when present, else
-              from the live configurator state (zone/duration/apparatus). */}
-          <div className="bbf-complete-wrap">
-            <button
-              type="button"
-              className="bbf-complete"
-              onClick={completeProtocol}
-              disabled={logging}
-              data-testid="cardio-complete-sync"
-            >
-              {logging ? tr.syncing : tr.completeSync}
-            </button>
-          </div>
-
-          {logMsg ? (
-            <div
-              className={`bbf-cardio__msg bbf-cardio__msg--${logMsg.kind}`}
-              role="status"
-              data-testid="cardio-sync-msg"
-              style={{ display: 'block', marginTop: '.9rem' }}
-            >
-              {logMsg.text}
-            </div>
-          ) : null}
           {toast ? <RateLimitToast message={toast} onClose={() => setToast(null)} /> : null}
         </div>
       ) : null}

@@ -40,7 +40,6 @@ import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
 import ChampionMindset from '../components/vault/ChampionMindset.jsx';
 import SovereignClientHub from '../components/vault/SovereignClientHub.jsx';
-import BiokineticForecast from '../components/vault/BiokineticForecast.jsx';
 import TierGate from '../components/TierGate.jsx';
 import ComlinkFAB from '../components/vault/ComlinkFAB.jsx';
 import Concierge from '../components/vault/Concierge.jsx';
@@ -60,8 +59,6 @@ const TABS = [
   { id: 'program', labelKey: 'vault-tab-program', icon: '▤', impact: 'high' },
   { id: 'generator', labelKey: 'vault-tab-generator', icon: '✦', impact: 'high' },
   { id: 'cardio', labelKey: 'vault-tab-cardio', icon: '♥', testid: 'vault-tab-cardio', impact: 'high' },
-  // Biokinetic Forecast — audio-first 1RM projection + overtraining diagnostics.
-  { id: 'forecast', labelKey: 'vault-tab-forecast', icon: '📈', testid: 'vault-tab-forecast', impact: 'high' },
   { id: 'prehab', labelKey: 'vault-tab-prehab', icon: '✚', testid: 'vault-tab-prehab', impact: 'recovery' },
   { id: 'nutrition', labelKey: 'vault-tab-nutrition', icon: '◆' },
   // Champion Mindset is tier-gated by the Upsell Funnel: every Online Fitness tier,
@@ -231,7 +228,6 @@ export default function ClientVault() {
             {activeTab === 'program' && <Program plans={plans} profile={profile} />}
             {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
             {activeTab === 'cardio' && <SmartCardio />}
-            {activeTab === 'forecast' && <BiokineticForecast />}
             {activeTab === 'prehab' && <Prehab />}
             {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
             {activeTab === 'mindset' && <ChampionMindset />}

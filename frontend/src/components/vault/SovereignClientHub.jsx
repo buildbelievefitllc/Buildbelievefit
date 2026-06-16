@@ -35,6 +35,7 @@ import { useBiometricLedger } from '../../lib/useDailyReadiness.js';
 import { runVitalsPipeline, runManualVitalsPipeline, useVitalsSyncStatus } from '../../lib/vitalsPipeline.js';
 import { saveManualBaseline, manualSubjective, useManualBaselineToday } from '../../lib/manualBaseline.js';
 import MindsetIntercept from './MindsetIntercept.jsx';
+import BiokineticForecast from './BiokineticForecast.jsx';
 import './sovereignHub.css';
 
 // Handshake diagnostic — its own chunk; only the Check-In tab ever pulls it in.
@@ -267,6 +268,10 @@ export default function SovereignClientHub() {
           </span>
         ) : null}
       </header>
+
+      {/* ── BIOKINETIC FORECAST — consolidated onto the Hub (no standalone tab) so
+          the audio-first diagnostic renders immediately on the Check-In surface. ── */}
+      <BiokineticForecast />
 
       {/* ── LAUNCH SYNC DIAGNOSTIC — surfaces the auto force-pull's raw failure ── */}
       {syncStatus.state === 'error' && syncStatus.error ? (
