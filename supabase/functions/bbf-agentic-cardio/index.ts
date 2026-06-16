@@ -29,7 +29,14 @@ import { requireEntitlement } from '../_shared/entitlement-gate.ts';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token',
+  // NOTE: this endpoint is called via supabase.functions.invoke() (agenticCardioApi.js),
+  // which attaches an `x-client-info` header to the POST. That header MUST be in this
+  // allow-list or the browser's CORS preflight blocks the POST — surfacing as
+  // supabase-js "Failed to send a request to the Edge Function". (Raw-fetch siblings
+  // like bbf-agentic-prehab don't send it; the invoke-based bbf-wearable-ingest does
+  // and already allows it.) `x-bbf-vault-token` is also allowed for the header-based
+  // vault-token path this function reads below.
+  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token, x-bbf-vault-token, x-client-info',
 };
 
 function jsonResponse(body: unknown, status = 200): Response {
