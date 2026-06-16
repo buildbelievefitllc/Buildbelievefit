@@ -62,6 +62,8 @@ import './championMindset.css';
 //     youtubeId: 'XXXXXXXXXXX',           // 11-char native-language motivational cut
 //     objective: '…',                     // localized Focus-Objective paragraph
 //     dictums:   ['…', '…', '…'],          // localized cognitive dictums (any count)
+//     lockIn:    'Forge This Mindset',     // OPTIONAL — persona-specific lock-in CTA;
+//                                          //   omit to fall back to L.lockInBtn.
 //   }
 //
 // To extend a category filter, add the new `id` to the relevant bucket's `ids`
@@ -101,8 +103,8 @@ const L10N = {
     affirmation:
       'I possess the strength to overcome every challenge and the discipline to master my craft today.',
     buckets: [
-      { key: 'championship-drive', label: 'Championship Drive', ids: ['kobe', 'jordan', 'arnold'] },
-      { key: 'stoic-grit', label: 'Stoic Heavy Grit', ids: ['goggins', 'et', 'jocko'] },
+      { key: 'championship-drive', label: 'Championship Drive', ids: ['kobe', 'jordan', 'arnold', 'ali', 'raylewis'] },
+      { key: 'stoic-grit', label: 'Stoic Heavy Grit', ids: ['goggins', 'et', 'jocko', 'ctfletcher', 'inky', 'lesbrown', 'denzel'] },
       { key: 'female-strength', label: 'Female Strength Grace', ids: ['serena', 'courtney'] },
       { key: 'neuro-synapse', label: 'Neurological Synapse', ids: ['huberman'] },
     ],
@@ -251,6 +253,103 @@ const L10N = {
           'Tenacity is a muscle of the mind; progressive overload applies.',
         ],
       },
+      // ── Drop-in cohort · EN (CEO sourcing queue, 2026-06) ──────────────────
+      {
+        id: 'ctfletcher',
+        category: 'Iron Willpower',
+        title: 'CT Fletcher: Effort Is Everything',
+        youtubeId: 'AJcarwO0BzE',
+        objective:
+          'Effort is the one currency nobody can ever take from you — and the iron never ' +
+          'lies about how much you spent. A heart-transplant survivor, CT proves willpower ' +
+          'outlasts anatomy: command your body to give one more when it begs to stop.',
+        dictums: [
+          'It’s still your set — I command you to grow.',
+          'Effort is the one thing no one can take from you.',
+          'Excuses move nothing; only the work moves the iron.',
+        ],
+        lockIn: 'Command One More Rep',
+      },
+      {
+        id: 'ali',
+        category: 'Supreme Self-Belief',
+        title: 'Muhammad Ali: I Am the Greatest',
+        youtubeId: '9kzMWUNbqGQ',
+        objective:
+          'You become great the moment you dare to declare it, then spend every day ' +
+          'backing the claim. Speak the victory before the world believes it, and let ' +
+          'relentless work turn the boast into the record.',
+        dictums: [
+          'I am the greatest — I said it before I knew I was.',
+          'Don’t count the days; make the days count.',
+          'Impossible is just a word small men hide behind.',
+        ],
+        lockIn: 'Declare Your Greatness',
+      },
+      {
+        id: 'lesbrown',
+        category: 'It’s Possible',
+        title: 'Les Brown: It’s Possible',
+        youtubeId: 'D4GXqPIYLNQ',
+        objective:
+          'Where you start is not who you are — no label gets the final word on your ' +
+          'destiny. Stay hungry and aim for the moon, because even a miss lands you among ' +
+          'the stars.',
+        dictums: [
+          'You have greatness in you — it’s possible.',
+          'Shoot for the moon; a miss still lands among stars.',
+          'Your story isn’t over because the start was hard.',
+        ],
+        lockIn: 'Claim What’s Possible',
+      },
+      {
+        id: 'inky',
+        category: 'Adversity Into Purpose',
+        title: 'Inky Johnson: The Injury Became the Assignment',
+        youtubeId: 'hW1Ie1q4e-8',
+        objective:
+          'One play ended the dream and revealed the assignment — adversity is not the ' +
+          'detour, it is the path. Stay committed to the process long after the feeling ' +
+          'that first sparked it is gone.',
+        dictums: [
+          'Stay committed long after the mood that made the promise fades.',
+          'A closed door is often just a redirection.',
+          'Pour into something bigger than yourself.',
+        ],
+        lockIn: 'Accept the Assignment',
+      },
+      {
+        id: 'raylewis',
+        category: 'Pre-Game Fire',
+        title: 'Ray Lewis: Passion Over Everything',
+        youtubeId: 'noKXhQsB6u8',
+        objective:
+          'Passion and effort are the edge talent alone can never manufacture. Empty ' +
+          'everything you carry today — leave nothing in reserve, because tomorrow is ' +
+          'promised to no one.',
+        dictums: [
+          'If you’ve got nothing left, give it anyway.',
+          'Passion is the edge talent can’t fake.',
+          'Greatness is a lot of small things done right every day.',
+        ],
+        lockIn: 'Unleash the Fire',
+      },
+      {
+        id: 'denzel',
+        category: 'Fall Forward',
+        title: 'Denzel Washington: Fall Forward',
+        youtubeId: 'K66EQqjFXvc',
+        objective:
+          'If you are going to fall, fall forward — failure is the road to greatness, not ' +
+          'the end of it. Take the risk, dream big, and do the work, because a dream ' +
+          'without effort stays a dream.',
+        dictums: [
+          'Fall forward — every setback points you toward the goal.',
+          'Dreams without goals and work are just dreams.',
+          'If you don’t fail, you’re not even trying.',
+        ],
+        lockIn: 'Fall Forward Today',
+      },
     ],
     focusStrategies: [
       'Practice Box Breathing for four counts each to center your nervous system before starting your session.',
@@ -296,9 +395,9 @@ const L10N = {
     affirmation:
       'Poseo la fuerza para superar cada desafío y la disciplina para dominar mi oficio hoy.',
     buckets: [
-      { key: 'championship-drive', label: 'Impulso de Campeón', ids: ['canelo', 'messi', 'pau'] },
-      { key: 'stoic-grit', label: 'Temple Estoico', ids: ['topuria', 'nadal'] },
-      { key: 'female-strength', label: 'Fuerza y Gracia Femenina', ids: ['carolina'] },
+      { key: 'championship-drive', label: 'Impulso de Campeón', ids: ['canelo', 'messi', 'pau', 'moreno'] },
+      { key: 'stoic-grit', label: 'Temple Estoico', ids: ['topuria', 'nadal', 'hernandez', 'rubengonzalez', 'cala', 'victorantonio', 'najera'] },
+      { key: 'female-strength', label: 'Fuerza y Gracia Femenina', ids: ['carolina', 'mariamarin'] },
     ],
     champions: [
       {
@@ -397,6 +496,119 @@ const L10N = {
           'La constancia profesional supera al talento aislado.',
         ],
       },
+      // ── Cohorte de incorporación · ES (cola del CEO, 2026-06) ──────────────
+      {
+        id: 'moreno',
+        category: 'El Asesino Sonriente',
+        title: 'Brandon Moreno: El Sueño del Underdog',
+        youtubeId: '230g_GWbD5g',
+        objective:
+          'De vender productos en la calle a primer campeón mexicano de la UFC, Brandon ' +
+          'jamás dejó de creer cuando lo cortaron. Cae siete veces y levántate ocho, ' +
+          'siempre con una sonrisa y el doble de trabajo.',
+        dictums: [
+          'Nunca dejé de creer, ni cuando nadie creyó en mí.',
+          'El que persevera alcanza — todo es posible.',
+          'Cargo a México en cada golpe que tiro.',
+        ],
+        lockIn: 'Cree en el Sueño',
+      },
+      {
+        id: 'hernandez',
+        category: 'De los Campos a las Estrellas',
+        title: 'José Hernández: El Astronauta que Nunca se Rindió',
+        youtubeId: 'D_Y7N91W1QQ',
+        objective:
+          'Hijo de migrantes que pizcaba en los campos, aplicó once veces a la NASA antes ' +
+          'de tocar las estrellas. El rechazo no es un final: es una instrucción para ' +
+          'volver mejor preparado.',
+        dictums: [
+          'Me rechazaron once veces; lo intenté una doceava.',
+          'El esfuerzo de hoy es la órbita de mañana.',
+          'De dónde vienes no decide hasta dónde llegas.',
+        ],
+        lockIn: 'Apunta a las Estrellas',
+      },
+      {
+        id: 'rubengonzalez',
+        category: 'Garra Olímpica',
+        title: 'Rubén González: Cuatro Veces Olímpico',
+        youtubeId: 'uXoVm3vnq3E',
+        objective:
+          'Empezó el luge a los 21 años, sin experiencia en el hielo, y llegó a cuatro ' +
+          'Juegos Olímpicos a pura terquedad. No necesitas ser grande para empezar, pero ' +
+          'tienes que empezar para llegar a ser grande.',
+        dictums: [
+          'No hay que ser grande para empezar; hay que empezar para ser grande.',
+          'Caí mil veces y me levanté mil una.',
+          'La persistencia vence al talento que se rinde.',
+        ],
+        lockIn: 'Persiste Sin Rendirte',
+      },
+      {
+        id: 'cala',
+        category: 'Resiliencia Inquebrantable',
+        title: 'Ismael Cala: De Frágil a Inquebrantable',
+        youtubeId: 'fsfipPUZaMI',
+        objective:
+          'La resiliencia se entrena como un músculo: pasos concretos para ir de frágil a ' +
+          'inquebrantable. Convierte el duelo y la presión en combustible, y reinvéntate ' +
+          'cada vez que la vida te derribe.',
+        dictums: [
+          'No controlas la tormenta, pero sí cómo la navegas.',
+          'Reinventarse es sobrevivir con propósito.',
+          'El dolor es inevitable; el sufrimiento es opcional.',
+        ],
+        lockIn: 'Vuélvete Inquebrantable',
+      },
+      {
+        id: 'mariamarin',
+        category: 'Voz Latina Imparable',
+        title: 'María Marín: El Poder de Empoderarte',
+        youtubeId: 'UyDpS3oxIBM',
+        objective:
+          'El empujoncito que esperas no viene de afuera: nace cuando decides que mereces ' +
+          'más. Suelta el miedo y la tristeza, y atrévete a pedir lo que vales sin pedir ' +
+          'perdón por ello.',
+        dictums: [
+          'Si lo puedes soñar, lo puedes lograr.',
+          'El miedo toca la puerta; déjalo afuera.',
+          'Tu valor no se negocia ni se disculpa.',
+        ],
+        lockIn: 'Date el Empujoncito',
+      },
+      {
+        id: 'victorantonio',
+        category: 'Mentalidad Multiplicadora',
+        title: 'Víctor Antonio: La Mentalidad lo Multiplica Todo',
+        youtubeId: 'H1IR0nvTJcw',
+        objective:
+          'El talento sin la mentalidad correcta no llega lejos: tu marco mental es el ' +
+          'multiplicador. De ejecutivo a motivador, demostró que el hambre y el enfoque ' +
+          'son habilidades que se entrenan a diario.',
+        dictums: [
+          'Tu mentalidad es el multiplicador de tu talento.',
+          'El hambre se entrena como cualquier músculo.',
+          'Cambia tu mente y cambiarás tu resultado.',
+        ],
+        lockIn: 'Activa la Mentalidad',
+      },
+      {
+        id: 'najera',
+        category: 'Si Yo Puedo, Tú Puedes',
+        title: 'Gabriel Najera: Sin Brazos, Sin Límites',
+        youtubeId: 'ouwdF4VGerY',
+        objective:
+          'Nació sin brazos y convirtió su mayor barrera en su mensaje más poderoso: si yo ' +
+          'puedo, tú puedes. El límite no vive en el cuerpo, vive en la mente que decide ' +
+          'rendirse o seguir.',
+        dictums: [
+          'Si yo puedo, tú puedes — sin excusas.',
+          'Los límites son mentales antes que físicos.',
+          'Tu obstáculo es tu mensaje.',
+        ],
+        lockIn: 'Rompe Tus Límites',
+      },
     ],
     focusStrategies: [
       'Practica la Respiración en Caja, cuatro tiempos en cada fase, para centrar tu sistema nervioso antes de empezar la sesión.',
@@ -442,8 +654,8 @@ const L10N = {
     affirmation:
       'Possuo a força para superar cada desafio e a disciplina para dominar meu ofício hoje.',
     buckets: [
-      { key: 'championship-drive', label: 'Garra de Campeão', ids: ['senna', 'pele', 'ronaldo'] },
-      { key: 'stoic-grit', label: 'Disciplina Estoica', ids: ['anderson'] },
+      { key: 'championship-drive', label: 'Garra de Campeão', ids: ['senna', 'pele', 'ronaldo', 'oliveira', 'aldo', 'medina'] },
+      { key: 'stoic-grit', label: 'Disciplina Estoica', ids: ['anderson', 'cariani', 'franco', 'stronda', 'bottura'] },
       { key: 'female-strength', label: 'Força e Graça Feminina', ids: ['rebeca'] },
     ],
     champions: [
@@ -526,6 +738,119 @@ const L10N = {
           'Abdiquei de tudo que tirasse o meu foco.',
           'A superação começa na cabeça, muito antes do salto.',
         ],
+      },
+      // ── Lote de incorporação · PT (fila do CEO, 2026-06) ───────────────────
+      {
+        id: 'oliveira',
+        category: 'A Favela Venceu',
+        title: 'Charles do Bronx: A Favela Venceu',
+        youtubeId: 'RoupcwdamkA',
+        objective:
+          'Da favela ao cinturão do UFC, o Do Bronx provou que fé e trabalho silencioso ' +
+          'vencem qualquer placar. Acredite quando ninguém acredita, porque a virada mora ' +
+          'exatamente onde os outros desistem.',
+        dictums: [
+          'A favela venceu — e vai vencer de novo.',
+          'Nunca desisti, mesmo quando me deram como morto.',
+          'A fé me sustenta quando a força acaba.',
+        ],
+        lockIn: 'Faça a Favela Vencer',
+      },
+      {
+        id: 'aldo',
+        category: 'Rei de Manaus',
+        title: 'José Aldo: Da Favela ao Octógono',
+        youtubeId: 'YmxPmbPo1CQ',
+        objective:
+          'Das ruas de Manaus à imortalidade no UFC, Aldo carregou a fome de quem não ' +
+          'tinha nada a perder. Trate cada treino como o combate da sua vida e deixe a ' +
+          'constância falar mais alto que o talento.',
+        dictums: [
+          'Quem vem de baixo não tem medo de cair.',
+          'Cada treino é o combate decisivo.',
+          'A fome me trouxe aqui; a disciplina me mantém.',
+        ],
+        lockIn: 'Lute Como um Rei',
+      },
+      {
+        id: 'medina',
+        category: 'Tricampeão Mundial',
+        title: 'Gabriel Medina: Mentalidade de Tricampeão',
+        youtubeId: 'N4YdvV1SmbQ',
+        objective:
+          'O primeiro brasileiro campeão mundial de surfe transformou pressão em poder e ' +
+          'dúvida em troféu. Domine o jogo mental antes da onda, porque o campeão se decide ' +
+          'na cabeça antes de se decidir na água.',
+        dictums: [
+          'Eu treino para vencer, não para participar.',
+          'Pressão é privilégio de quem chegou ao topo.',
+          'O jogo se ganha primeiro na mente.',
+        ],
+        lockIn: 'Dome a Sua Onda',
+      },
+      {
+        id: 'cariani',
+        category: 'Eu Quero, Eu Posso',
+        title: 'Renato Cariani: Eu Quero, Eu Posso',
+        youtubeId: 'EkPP6XVzWkE',
+        objective:
+          'O lema que move a cultura fitness brasileira é simples e implacável: eu quero, ' +
+          'eu posso. Quando a vontade vira decisão e a decisão vira hábito, nenhuma desculpa ' +
+          'sobrevive ao próximo treino.',
+        dictums: [
+          'Eu quero, eu posso — o resto é desculpa.',
+          'Disciplina é treinar mesmo sem vontade.',
+          'O treino não negocia; ele cobra.',
+        ],
+        lockIn: 'Eu Quero, Eu Posso',
+      },
+      {
+        id: 'franco',
+        category: 'The Chosen One',
+        title: 'Felipe Franco: A Volta do Escolhido',
+        youtubeId: 'x5eAWrsHXFM',
+        objective:
+          'Do fundo da depressão de volta ao palco dos campeões, Felipe provou que ' +
+          'recomeçar é um ato de coragem. O fundo do poço não é o fim — é o lugar onde você ' +
+          'decide subir.',
+        dictums: [
+          'Recomeçar é coragem, não fraqueza.',
+          'O fundo do poço tem saída — para cima.',
+          'Transformei a dor em combustível.',
+        ],
+        lockIn: 'Renasça Mais Forte',
+      },
+      {
+        id: 'stronda',
+        category: 'A História do Monstro',
+        title: 'Leo Stronda: Do Fundo ao Topo',
+        youtubeId: 'MigSghUkB-M',
+        objective:
+          'Venceu a obesidade e a depressão para construir, do zero, a versão mais forte de ' +
+          'si mesmo. A transformação começa na decisão de não aceitar mais a vida que te ' +
+          'adoecia.',
+        dictums: [
+          'Eu não nasci monstro; eu me construí.',
+          'A mudança começa quando você para de aceitar menos.',
+          'O corpo segue a mente que decide vencer.',
+        ],
+        lockIn: 'Construa o Monstro',
+      },
+      {
+        id: 'bottura',
+        category: 'Excelência Técnica',
+        title: 'Caio Bottura: Mestria nos Detalhes',
+        youtubeId: 'zTIOK1SBXpY',
+        objective:
+          'A grandeza mora no detalhe que ninguém vê: a técnica perfeita, repetida com ' +
+          'paixão até virar arte. Ame o processo a ponto de chorar por ele, e o resultado ' +
+          'vira consequência inevitável.',
+        dictums: [
+          'O detalhe invisível constrói o resultado visível.',
+          'Treine com técnica, não só com vontade.',
+          'Paixão pelo processo vence pressa pelo resultado.',
+        ],
+        lockIn: 'Domine Cada Detalhe',
       },
     ],
     focusStrategies: [
@@ -784,7 +1109,7 @@ export default function ChampionMindset() {
                           onClick={() => lockIn(c.id)}
                         >
                           <span aria-hidden="true">{locked ? '✓' : '⚡'}</span>{' '}
-                          {locked ? L.lockedBtn : L.lockInBtn}
+                          {locked ? L.lockedBtn : (c.lockIn || L.lockInBtn)}
                         </button>
 
                         <p className="cm-player-note">
