@@ -25,6 +25,7 @@ import { useCardio, logCardio, CARDIO_ZONES } from '../../lib/cardioApi.js';
 import { generateCardio } from '../../lib/agenticCardioApi.js';
 import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
+import SpotifyEmbed from './SpotifyEmbed.jsx';
 import './cardio.css';
 
 // ── Trilingual UI chrome for Smart Cardio (Metabolic Pacer) ──────────────────
@@ -635,6 +636,8 @@ function CardioConfigurator({ onLogged }) {
           {plan ? (
             <>
               <LiveProtocol plan={plan} />
+              {/* Protocol soundtrack — cue music right before starting the protocol. */}
+              <SpotifyEmbed />
               {/* One-tap completion CTA — directly beneath the generated protocol. */}
               <div className="bbf-complete-wrap">
                 <button

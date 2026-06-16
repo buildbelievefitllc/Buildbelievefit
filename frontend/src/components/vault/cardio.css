@@ -298,6 +298,28 @@
 .bbf-complete:focus-visible { outline: 2px solid var(--wht); outline-offset: 2px; }
 .bbf-complete:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
+/* ── Sovereign Audio Link — branded Spotify embed wrapper (Option A) ──────────
+   Matte Vault canvas · subtle #6a0dad purple glow · #f5c800 gold accent border. */
+.bbf-spotify {
+  margin-top: 1.4rem; border: 1px solid rgba(245, 200, 0, .30); border-radius: 14px;
+  background:
+    radial-gradient(130% 110% at 0% 0%, rgba(106, 13, 173, .26), transparent 62%),
+    linear-gradient(180deg, #0a0410, #050505 72%);
+  box-shadow: inset 0 0 0 1px rgba(106, 13, 173, .12), 0 18px 42px -26px rgba(106, 13, 173, .85);
+  padding: 1rem 1rem 1.05rem; overflow: hidden;
+}
+.bbf-spotify__head { display: flex; align-items: center; gap: .7rem; margin-bottom: .85rem; }
+.bbf-spotify__glyph {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 9px; color: var(--yel);
+  background: rgba(245, 200, 0, .10); border: 1px solid rgba(245, 200, 0, .35);
+}
+.bbf-spotify__titles { display: flex; flex-direction: column; gap: .14rem; min-width: 0; }
+.bbf-spotify__kicker { font-family: var(--hb); font-size: .95rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-soft); }
+.bbf-spotify__sub { font-family: var(--bd); font-size: .8rem; font-weight: 600; color: var(--mut); letter-spacing: .3px; }
+.bbf-spotify__frame { border-radius: 12px; overflow: hidden; border: 1px solid rgba(245, 200, 0, .20); background: #050505; }
+.bbf-spotify__frame iframe { display: block; width: 100%; border: 0; }
+
 /* Revealed active-session panel — Live Respiratory Sync */
 .bbf-session { margin-top: 1.6rem; border-top: 1px solid var(--line); padding-top: 1.4rem; animation: pg-rise .22s ease both; }
 .bbf-session__kicker { font-family: var(--hb); font-size: .95rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-soft); margin-bottom: 1rem; }
