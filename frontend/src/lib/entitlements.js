@@ -81,6 +81,7 @@ export const FEATURE_ACCESS = {
   smart_cardio:       AUTO_BAND,
   cardio:             AUTO_BAND, // legacy alias for smart_cardio
   prehab:             AUTO_BAND,
+  biokinetic_forecast: AUTO_BAND, // Biokinetic Forecast (audio-first 1RM/OT engine)
   // Apex band only (+ God) — the premium adult unlocks.
   advanced_nutrition: APEX_BAND, // Meal Scanner
   nutrition_macros:   APEX_BAND,
@@ -105,10 +106,9 @@ export const TAB_FEATURE = {
   prehab: 'prehab',
   nutrition: 'base_nutrition',
   mindset: 'mindset',
-  // Biokinetic Forecast — audio-first 1RM/overtraining dashboard. Ungated for now
-  // (mirrors hub/settings) while the surface is staged; tighten to a paid feature
-  // once the briefing TTS pipeline is live.
-  forecast: null,
+  // Biokinetic Forecast — audio-first 1RM/overtraining dashboard. Gated to the
+  // Autonomous band and up (CEO V8.16 paywall).
+  forecast: 'biokinetic_forecast',
 };
 
 // For a locked feature, which pricing PATH the upgrade CTA steers toward. The
@@ -122,6 +122,7 @@ export const FEATURE_UPGRADE_PATH = {
   voice_coach: 'fitness',   // Autonomous unlocks it (featured fitness tier)
   smart_cardio: 'fitness',
   prehab: 'fitness',
+  biokinetic_forecast: 'fitness', // Autonomous unlocks it (featured fitness tier)
   advanced_nutrition: 'nutrition', // Fuel Series
   sports_hub: 'youth',
   roster: 'youth',

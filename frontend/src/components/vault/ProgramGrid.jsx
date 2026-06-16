@@ -47,6 +47,7 @@ import { localizeDay, localizeFocus } from '../../lib/trainingI18n.js';
 import { exKey, useLastWeights, readDayEntries, writeDayEntry, syncSessionToCloud } from './programApi.js';
 import { resolveVideoId } from './exerciseVideos.js';
 import FormDemoPlayer from './FormDemoPlayer.jsx';
+import CoachAudioButton from './CoachAudioButton.jsx';
 // Floor Mode is lazy — Dexie/IndexedDB (+ the Blackout logger) only loads the
 // moment an athlete enters it, keeping the initial Vault bundle lean.
 const FloorLogger = lazy(() => import('./FloorLogger.jsx'));
@@ -566,6 +567,16 @@ function ExerciseCard({ uid, dayIdx, index, ex, rpeCap, tr }) {
 
       {open ? (
         <div className="pg-ex-body">
+          {/* Live in-ear voice coach — ElevenLabs cue for THIS movement (locale-mapped
+              voice), fired with the active exercise details. Native play/pause. */}
+          <CoachAudioButton
+            exerciseName={ex.name}
+            targetReps={ex.reps}
+            targetSets={setCount}
+            formCues={[ex.notes, ...(Array.isArray(ex.cues) ? ex.cues : [])].filter(Boolean)}
+            equipment={ex.equipment}
+          />
+
           {/* Form-demo video — tap-to-play INLINE embed inside the execution
               card (session retention: the athlete never leaves the app). Only
               rendered when the movement resolves to a mapped video. */}

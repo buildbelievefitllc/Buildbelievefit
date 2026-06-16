@@ -46,20 +46,35 @@ export async function fetchForecast(uid, liftName, locale) {
 // summary and runs it through OpenAI TTS (tts-1 · onyx), returning audio/mpeg.
 // We hand the caller a playable object URL. Throws a display-ready Error otherwise.
 export async function fetchBriefingAudio({ uid, liftName, forecast, locale }) {
+  return postForAudio({ context: 'forecast', uid, lift_name: liftName, forecast, locale }, 'briefing');
+}
+
+// LIVE COACH (context='program'): a short, intense in-ear cue for the active
+// movement, voiced by the SAME locale-mapped ElevenLabs voice. Returns an mp3
+// object URL. `{ exerciseName, targetReps, targetSets, formCues, equipment }`.
+export async function fetchCoachAudio({ exerciseName, targetReps, targetSets, formCues, equipment, locale }) {
+  return postForAudio({
+    context: 'program',
+    locale,
+    exercise: { exercise_name: exerciseName, target_reps: targetReps, target_sets: targetSets, form_cues: formCues, equipment },
+  }, 'coach');
+}
+
+// Shared audio POST → object URL. Both briefing + coach hit bbf-biokinetic-briefing
+// (ElevenLabs) and expect an audio/mpeg blob, NOT a JSON string.
+async function postForAudio(body, slug) {
   const res = await fetch(`${FUNCTIONS_BASE}/bbf-biokinetic-briefing`, {
     method: 'POST',
     headers: fnHeaders(),
-    body: JSON.stringify({ uid, lift_name: liftName, forecast, locale, vault_token: getStoredVaultToken() }),
+    body: JSON.stringify({ ...body, vault_token: getStoredVaultToken() }),
   });
   if (!res.ok) {
-    let detail = `briefing_failed_${res.status}`;
+    let detail = `${slug}_failed_${res.status}`;
     try { detail = (await res.json())?.error || detail; } catch { /* non-JSON */ }
     throw new Error(detail);
   }
-  // Defensive: a misconfigured backend that returns JSON/text instead of an audio
-  // stream must not be fed to <audio> as if it were sound.
   const ct = res.headers.get('content-type') || '';
-  if (!ct.includes('audio')) throw new Error('briefing_no_audio');
+  if (!ct.includes('audio')) throw new Error(`${slug}_no_audio`);
   const blob = await res.blob();
   return URL.createObjectURL(blob);
 }

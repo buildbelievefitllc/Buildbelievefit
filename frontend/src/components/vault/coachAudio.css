@@ -1,0 +1,27 @@
+/* src/components/vault/coachAudio.css
+   PLAY COACH AUDIO — sleek in-ear voice transport on the Program active movement.
+   Purple→gold Vault tokens; compact so it sits cleanly atop the set logger. */
+
+.ca { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin: 0 0 .8rem; }
+.ca-btn {
+  display: inline-flex; align-items: center; gap: .55rem; cursor: pointer;
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 800;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: none; border-radius: 999px; padding: .5rem .95rem;
+  box-shadow: 0 8px 22px -12px rgba(245, 200, 0, .8); transition: filter .15s ease, transform .12s ease;
+}
+.ca-btn:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-1px); }
+.ca-btn:focus-visible { outline: 2px solid var(--wht); outline-offset: 2px; }
+.ca-btn:disabled { opacity: .7; cursor: progress; }
+.ca-btn.is-playing { color: var(--wht); background: linear-gradient(135deg, var(--purl), var(--pur)); box-shadow: 0 8px 22px -12px rgba(106, 13, 173, .85); }
+.ca-ic { font-size: .95rem; line-height: 1; }
+.ca-label { line-height: 1; }
+
+/* tiny inline equalizer — animates only while playing */
+.ca-wave { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+.ca-bar { width: 2px; height: 30%; background: currentColor; border-radius: 1px; opacity: .55; }
+.ca-wave.is-live .ca-bar { opacity: 1; animation: ca-eq .85s ease-in-out infinite; }
+@keyframes ca-eq { 0%, 100% { height: 25%; } 50% { height: 100%; } }
+@media (prefers-reduced-motion: reduce) { .ca-wave.is-live .ca-bar { animation: none; height: 60%; } }
+
+.ca-err { font-family: var(--bd); font-size: .78rem; font-weight: 600; color: var(--gold-deep); }

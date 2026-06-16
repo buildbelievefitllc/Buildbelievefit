@@ -1,37 +1,33 @@
-// bbf-biokinetic-briefing — "Sovereign Audio Briefing" (audio-first forecast).
+// bbf-biokinetic-briefing — Universal Voice Coach (ElevenLabs, trilingual).
 // ─────────────────────────────────────────────────────────────────────────────
-// Accepts the Biokinetic Forecast telemetry, writes a SHORT (~100-word) spoken
-// summary, runs it through OpenAI TTS (tts-1 · onyx), and returns the rendered
-// audio as `audio/mpeg` — NOT JSON. The frontend (forecastApi.fetchBriefingAudio)
-// plays the blob directly. This replaces the rejected markdown "wall of text".
+// CEO V8.16 upgrade: OpenAI TTS is REMOVED. This is now the premium, culturally
+// resonant ElevenLabs voice engine, serving TWO contexts off one mapped voice set:
 //
-// PIPELINE
-//   1. Compose the briefing text. If ANTHROPIC_API_KEY is present we route through
-//      the model-router (Haiku tier — narration/snapshot, low-stakes per CLAUDE.md
-//      §4) to write a punchy ~100-word coach briefing in the athlete's locale.
-//      With no key we fall back to a deterministic, telemetry-grounded summary so
-//      the audio pipeline still works.
-//   2. OpenAI TTS: POST /v1/audio/speech { model:'tts-1', voice:'onyx', input,
-//      response_format:'mp3' } → audio bytes.
-//   3. Return audio/mpeg (cache-private).
+//   context='forecast' → a ~100-word clinical diagnostic from forecast telemetry
+//                         (Biokinetic Forecast / Hub behavior).
+//   context='program'  → a short, intense in-ear coaching cue from the active
+//                         movement (Exercise · Target · Form cues) for live training.
 //
-// SECRETS (env / Vault): OPENAI_API_KEY (required for TTS) · ANTHROPIC_API_KEY
-// (optional — better prose). Auto-injected: SUPABASE_URL, SERVICE_ROLE (unused for
-// now; reserved for a future entitlement gate on vault_token).
+// VOICE MAP (resolved at runtime from the CEO's ElevenLabs account — exact voice_id
+// hashes are queried from /v1/voices and cached per isolate, so a rename/swap in
+// the account self-heals):
+//   en → Uyi       (Nigerian American Male)
+//   es → Ana María (Mexican)
+//   pt → Ana Alice (Brazilian)
+//   ⛔ "Young Jamal" is NEVER selected (hard exclusion).
 //
-// NOTE: deploy is gated on OPENAI_API_KEY being injected into the project secrets.
-// Without it the function returns a clean 503 { error:'tts_unconfigured' }.
+// Returns audio/mpeg (NOT JSON) so the client streams the blob directly.
+// SECRETS: ELEVENLABS_API_KEY (required) · ANTHROPIC_API_KEY (optional — better
+// prose; deterministic fallback otherwise).
+//   GET ?voices=1 → diagnostic: the resolved locale→{name,voice_id} map.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  // x-client-info is attached by supabase-js functions.invoke; allow it so a
-  // browser preflight never blocks the POST (lesson from bbf-agentic-cardio).
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token, x-bbf-vault-token, x-client-info',
 };
-
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 }
@@ -39,13 +35,11 @@ function jsonResponse(body: unknown, status = 200): Response {
 // ─── Central model router (inlined — single-file edge bundle; CLAUDE.md §4) ──────
 const MODELS = { HAIKU: 'claude-haiku-4-5', SONNET: 'claude-sonnet-4-6', OPUS: 'claude-opus-4-8' } as const;
 function routeAndLog(fn: string, useCase: string): string {
-  // Briefing narration is low-stakes snapshot synthesis → Haiku tier.
-  const model = MODELS.HAIKU;
+  const model = MODELS.HAIKU; // narration / snapshot / coaching cue → low-stakes Haiku tier
   console.log(`[model-router] fn=${fn} use_case=${useCase} model=${model}`);
   return model;
 }
 
-// ─── Locale ──────────────────────────────────────────────────────────────────
 function localeCode(input?: string | null): 'en' | 'es' | 'pt' {
   const t = String(input ?? '').trim().toLowerCase();
   if (t.startsWith('es')) return 'es';
@@ -54,108 +48,206 @@ function localeCode(input?: string | null): 'en' | 'es' | 'pt' {
 }
 const LOCALE_NAME: Record<string, string> = { en: 'English', es: 'Spanish (neutral Latin-American)', pt: 'Brazilian Portuguese' };
 
-// ─── Deterministic fallback briefing (telemetry-grounded, ~100 words) ───────────
-function fallbackBriefing(lift: string, f: any, locale: string): string {
-  const proj = f?.projected_1rm ?? 'N/A';
-  const conf = f?.confidence_score ?? 'Moderate';
-  const ot = f?.ot_signal || {};
-  const detected = ot?.detected === true;
-  if (locale === 'es') {
-    return `Informe biocinético para ${lift}. Tu proyección a 30 días es ${proj}, con confianza ${conf}. ` +
-      (detected
-        ? `El radar marca señales de sobreentrenamiento: la carga aguda supera a la crónica. Baja el volumen, prioriza el sueño y vuelve más fuerte.`
-        : `La ventana anabólica está abierta y tu carga está equilibrada. Mantén la progresión y ataca tus series principales con intención.`);
-  }
-  if (locale === 'pt') {
-    return `Briefing biocinético para ${lift}. Sua projeção de 30 dias é ${proj}, com confiança ${conf}. ` +
-      (detected
-        ? `O radar aponta sinais de overtraining: a carga aguda passou da crônica. Reduza o volume, priorize o sono e volte mais forte.`
-        : `A janela anabólica está aberta e sua carga está equilibrada. Mantenha a progressão e ataque as séries principais com intenção.`);
-  }
-  return `Biokinetic briefing for the ${lift}. Your 30-day projection is ${proj}, at ${conf} confidence. ` +
-    (detected
-      ? `The radar flags an overtraining signal — acute load has outrun your chronic base. Pull volume back, prioritize sleep, and come back sharper.`
-      : `Your anabolic window is open and load is balanced. Hold the progression and attack your top sets with intent — you're trending up.`);
+// ─── ElevenLabs voice resolution (locale → CEO account voice_id) ─────────────────
+const LOCALE_VOICE_NAME: Record<string, string> = { en: 'Uyi', es: 'Ana María', pt: 'Ana Alice' };
+const FORBIDDEN_VOICE = 'jamal'; // ⛔ never select "Young Jamal" under any circumstances
+const DEFAULT_VOICE_SETTINGS = { stability: 0.40, similarity_boost: 0.85, style: 0.0, use_speaker_boost: true };
+
+const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
+function deburr(s: unknown): string {
+  return String(s ?? '').normalize('NFD').replace(COMBINING_MARKS, '').trim().toLowerCase();
 }
 
-// ─── Anthropic: write the ~100-word spoken briefing (best-effort) ────────────────
-async function writeBriefing(apiKey: string, model: string, lift: string, f: any, locale: string): Promise<string | null> {
-  const sys = [
-    `You are the BBF Smart Coach recording a SPOKEN audio briefing (~100 words, max 120) in ${LOCALE_NAME[locale]}.`,
-    'Direct, motivational, second person. NO markdown, NO lists, NO headings — flowing speech only, 3-5 short sentences.',
-    'Ground every claim in the telemetry provided. End with one concrete directive.',
-  ].join(' ');
-  const user = `Lift: ${lift}\nTelemetry JSON:\n${JSON.stringify(f ?? {}).slice(0, 1500)}\n\nWrite the spoken briefing now.`;
+let _voiceCache: Record<string, { voice_id: string; name: string }> | null = null;
+async function resolveVoices(apiKey: string): Promise<Record<string, { voice_id: string; name: string }> | null> {
+  if (_voiceCache) return _voiceCache;
+  let voices: any[] = [];
+  try {
+    const res = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': apiKey } });
+    if (!res.ok) { console.error(`[bbf-biokinetic-briefing] /v1/voices ${res.status}`); return null; }
+    const j = await res.json().catch(() => null);
+    voices = Array.isArray(j?.voices) ? j.voices : [];
+  } catch (e) {
+    console.error('[bbf-biokinetic-briefing] voices fetch failed:', (e as Error).message);
+    return null;
+  }
+  // Candidates exclude the forbidden voice entirely.
+  const candidates = voices.filter((v) => !deburr(v?.name).includes(FORBIDDEN_VOICE));
+  const pick = (want: string) => {
+    const wn = deburr(want);
+    return candidates.find((v) => deburr(v?.name) === wn)
+        || candidates.find((v) => deburr(v?.name).startsWith(wn))
+        || candidates.find((v) => deburr(v?.name).includes(wn))
+        || null;
+  };
+  const map: Record<string, { voice_id: string; name: string }> = {};
+  for (const [loc, name] of Object.entries(LOCALE_VOICE_NAME)) {
+    const v = pick(name);
+    if (v?.voice_id) map[loc] = { voice_id: String(v.voice_id), name: String(v.name) };
+  }
+  _voiceCache = map;
+  return map;
+}
+
+// ─── ElevenLabs synthesis → mp3 bytes ───────────────────────────────────────────
+async function synthesize(apiKey: string, voiceId: string, text: string, modelId: string): Promise<{ ok: true; buf: ArrayBuffer } | { ok: false; status: number; detail: string }> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
+      {
+        method: 'POST',
+        headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+        body: JSON.stringify({ text: text.slice(0, 2500), model_id: modelId, voice_settings: DEFAULT_VOICE_SETTINGS }),
+        signal: controller.signal,
+      },
+    );
+    if (!res.ok) {
+      const detail = (await res.text().catch(() => '')).slice(0, 200);
+      return { ok: false, status: res.status, detail };
+    }
+    return { ok: true, buf: await res.arrayBuffer() };
+  } catch (e) {
+    const err = e as Error;
+    return { ok: false, status: 0, detail: err.name === 'AbortError' ? 'timeout_20000ms' : err.message };
+  } finally { clearTimeout(timeout); }
+}
+
+// ─── Briefing / cue copy (Claude Haiku, deterministic fallback) ──────────────────
+async function writeWithClaude(apiKey: string, model: string, system: string, user: string): Promise<string | null> {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model, max_tokens: 400, system: sys, messages: [{ role: 'user', content: user }] }),
+      body: JSON.stringify({ model, max_tokens: 400, system, messages: [{ role: 'user', content: user }] }),
     });
     if (!res.ok) { console.error(`[bbf-biokinetic-briefing] anthropic ${res.status}`); return null; }
     const j = await res.json().catch(() => null);
     const block = Array.isArray(j?.content) ? j.content.find((b: any) => b?.type === 'text') : null;
-    const text = block?.text?.trim();
-    return text || null;
+    return block?.text?.trim() || null;
   } catch (e) {
-    console.error('[bbf-biokinetic-briefing] anthropic call failed:', (e as Error).message);
+    console.error('[bbf-biokinetic-briefing] anthropic failed:', (e as Error).message);
     return null;
   }
 }
 
-// ─── OpenAI TTS (tts-1 · onyx) → mp3 bytes ──────────────────────────────────────
-async function synthesize(openaiKey: string, input: string): Promise<{ ok: true; buf: ArrayBuffer } | { ok: false; status: number; detail: string }> {
-  const res = await fetch('https://api.openai.com/v1/audio/speech', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'tts-1', voice: 'onyx', input: input.slice(0, 4000), response_format: 'mp3' }),
-  });
-  if (!res.ok) {
-    const detail = (await res.text().catch(() => '')).slice(0, 200);
-    return { ok: false, status: res.status, detail };
+function forecastFallback(lift: string, f: any, locale: string): string {
+  const proj = f?.projected_1rm ?? 'N/A';
+  const conf = f?.confidence_score ?? 'Moderate';
+  const detected = f?.ot_signal?.detected === true;
+  if (locale === 'es') {
+    return `Informe biocinético para ${lift}. Tu proyección a 30 días es ${proj}, con confianza ${conf}. ` +
+      (detected ? `El radar marca sobreentrenamiento: baja el volumen, prioriza el sueño y vuelve más fuerte.`
+                : `La ventana anabólica está abierta y tu carga está equilibrada. Mantén la progresión y ataca tus series con intención.`);
   }
-  return { ok: true, buf: await res.arrayBuffer() };
+  if (locale === 'pt') {
+    return `Briefing biocinético para ${lift}. Sua projeção de 30 dias é ${proj}, com confiança ${conf}. ` +
+      (detected ? `O radar aponta overtraining: reduza o volume, priorize o sono e volte mais forte.`
+                : `A janela anabólica está aberta e sua carga está equilibrada. Mantenha a progressão e ataque as séries com intenção.`);
+  }
+  return `Biokinetic briefing for the ${lift}. Your 30-day projection is ${proj}, at ${conf} confidence. ` +
+    (detected ? `The radar flags overtraining — pull volume back, prioritize sleep, and come back sharper.`
+              : `Your anabolic window is open and load is balanced. Hold the progression and attack your top sets with intent.`);
+}
+
+function programFallback(ex: any, locale: string): string {
+  const name = ex?.exercise_name || ex?.name || 'this movement';
+  const reps = ex?.target_reps ?? '';
+  const cue = (Array.isArray(ex?.form_cues) && ex.form_cues[0]) ? ex.form_cues[0] : '';
+  if (locale === 'es') return `${name}. ${reps ? `Apunta a ${reps} repeticiones limpias. ` : ''}Aprieta el core, controla la bajada y explota en cada repetición. ${cue}`.trim();
+  if (locale === 'pt') return `${name}. ${reps ? `Mire ${reps} repetições limpas. ` : ''}Trave o core, controle a descida e exploda em cada repetição. ${cue}`.trim();
+  return `${name}. ${reps ? `Hit ${reps} clean reps. ` : ''}Brace the core, control the eccentric, and drive through every rep. ${cue}`.trim();
+}
+
+async function composeText(context: string, payload: any, locale: string): Promise<string> {
+  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+  const model = routeAndLog('bbf-biokinetic-briefing', context === 'program' ? 'coach_cue' : 'snapshot_synthesis');
+
+  if (context === 'program') {
+    const ex = payload?.exercise || payload || {};
+    const name = String(ex?.exercise_name || ex?.name || 'this movement').slice(0, 80);
+    const reps = String(ex?.target_reps ?? '').slice(0, 24);
+    const sets = String(ex?.target_sets ?? '').slice(0, 8);
+    const cues = Array.isArray(ex?.form_cues) ? ex.form_cues.filter(Boolean).slice(0, 4) : [];
+    const equip = String(ex?.equipment ?? '').slice(0, 48);
+    if (ANTHROPIC_API_KEY) {
+      const sys = `You are an elite strength coach giving a SHORT, intense IN-EAR cue (1-2 sentences, max 35 words) in ${LOCALE_NAME[locale]}. Second person, imperative, urgent but technically precise. Reference the movement and ONE form cue. No markdown, no preamble, no quotes.`;
+      const user = `Exercise: ${name}\nTarget: ${sets ? sets + ' x ' : ''}${reps}\nForm cues: ${cues.join('; ') || '(standard execution)'}\nEquipment: ${equip || '(n/a)'}\nGive the cue now.`;
+      const t = await writeWithClaude(ANTHROPIC_API_KEY, model, sys, user);
+      if (t) return t;
+    }
+    return programFallback({ exercise_name: name, target_reps: reps, form_cues: cues }, locale);
+  }
+
+  // forecast
+  const lift = String(payload?.lift_name || 'your main lift').slice(0, 60);
+  const forecast = payload?.forecast ?? null;
+  if (ANTHROPIC_API_KEY) {
+    const sys = `You are the BBF Smart Coach recording a SPOKEN audio briefing (~100 words, max 120) in ${LOCALE_NAME[locale]}. Direct, motivational, second person. NO markdown, NO lists — flowing speech, 3-5 short sentences. Ground every claim in the telemetry. End with one concrete directive.`;
+    const user = `Lift: ${lift}\nTelemetry JSON:\n${JSON.stringify(forecast ?? {}).slice(0, 1500)}\n\nWrite the spoken briefing now.`;
+    const t = await writeWithClaude(ANTHROPIC_API_KEY, model, sys, user);
+    if (t) return t;
+  }
+  return forecastFallback(lift, forecast, locale);
 }
 
 // ─── handler ─────────────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+
+  const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+
+  // GET ?voices=1 → resolved locale→voice diagnostic (no audio, no secrets).
+  if (req.method === 'GET') {
+    const url = new URL(req.url);
+    if (url.searchParams.get('voices') === '1') {
+      if (!ELEVENLABS_API_KEY) return jsonResponse({ ok: false, reason: 'config_missing_elevenlabs_key' });
+      const map = await resolveVoices(ELEVENLABS_API_KEY);
+      return jsonResponse({ ok: Boolean(map), resolved: map, forbidden_excluded: FORBIDDEN_VOICE, targets: LOCALE_VOICE_NAME });
+    }
+    return jsonResponse({ error: 'method_not_allowed' }, 405);
+  }
+
   if (req.method !== 'POST') return jsonResponse({ error: 'method_not_allowed' }, 405);
 
   let payload: any;
   try { payload = await req.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const lift = String(payload?.lift_name || 'your main lift').slice(0, 60);
+  const context = payload?.context === 'program' ? 'program' : 'forecast';
   const locale = localeCode(payload?.locale ?? payload?.lang);
-  const forecast = payload?.forecast ?? null;
 
-  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-  if (!OPENAI_API_KEY) {
-    return jsonResponse({ error: 'tts_unconfigured', detail: 'OPENAI_API_KEY is not set — inject it to enable the audio briefing.' }, 503);
+  if (!ELEVENLABS_API_KEY) {
+    return jsonResponse({ error: 'tts_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
   }
 
-  // 1 — briefing text (Claude Haiku if available, else deterministic fallback).
-  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-  const model = routeAndLog('bbf-biokinetic-briefing', 'snapshot_synthesis');
-  let text: string | null = null;
-  if (ANTHROPIC_API_KEY) text = await writeBriefing(ANTHROPIC_API_KEY, model, lift, forecast, locale);
-  if (!text) text = fallbackBriefing(lift, forecast, locale);
+  // 1 — resolve the locale voice (fall back en → any non-forbidden voice).
+  const voices = await resolveVoices(ELEVENLABS_API_KEY);
+  const voice = voices?.[locale] || voices?.en || (voices ? Object.values(voices)[0] : null);
+  if (!voice?.voice_id) {
+    return jsonResponse({ error: 'voice_unresolved', detail: 'No ElevenLabs voice could be resolved for this locale.' }, 502);
+  }
 
-  // 2 — OpenAI TTS → mp3.
-  const tts = await synthesize(OPENAI_API_KEY, text);
+  // 2 — compose the text (Claude Haiku, deterministic fallback).
+  const text = await composeText(context, payload, locale);
+
+  // 3 — synthesize. Program cues favor low latency (flash); briefings favor prosody.
+  const modelId = context === 'program' ? 'eleven_flash_v2_5' : 'eleven_multilingual_v2';
+  const tts = await synthesize(ELEVENLABS_API_KEY, voice.voice_id, text, modelId);
   if (!tts.ok) {
-    console.error(`[bbf-biokinetic-briefing] tts failed ${tts.status}: ${tts.detail}`);
-    return jsonResponse({ error: 'tts_failed', detail: `OpenAI TTS returned ${tts.status}.` }, 502);
+    console.error(`[bbf-biokinetic-briefing] tts ${tts.status}: ${tts.detail}`);
+    return jsonResponse({ error: 'tts_failed', detail: `ElevenLabs returned ${tts.status}.` }, 502);
   }
 
-  // 3 — return the audio stream.
   return new Response(tts.buf, {
     status: 200,
     headers: {
       ...CORS,
       'Content-Type': 'audio/mpeg',
       'Cache-Control': 'private, max-age=0, no-store',
-      'X-BBF-Briefing-Source': ANTHROPIC_API_KEY && text ? 'claude+tts' : 'deterministic+tts',
+      'X-BBF-Voice': voice.name,
+      'X-BBF-Voice-Id': voice.voice_id,
+      'X-BBF-Context': context,
     },
   });
 });

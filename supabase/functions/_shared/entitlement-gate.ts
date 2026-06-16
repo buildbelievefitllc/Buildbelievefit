@@ -87,6 +87,7 @@ export const FEATURE_ACCESS: Record<string, Group[]> = {
   smart_cardio:       AUTO_BAND,
   cardio:             AUTO_BAND, // legacy alias for smart_cardio
   prehab:             AUTO_BAND,
+  biokinetic_forecast: AUTO_BAND, // Biokinetic Forecast (audio-first 1RM/OT engine)
   // Apex band only (+ God) — the premium adult unlocks.
   advanced_nutrition: APEX_BAND, // Meal Scanner
   nutrition_macros:   APEX_BAND,
