@@ -87,6 +87,16 @@
     color:#000; font-family:var(--hb); font-size:0.95rem; letter-spacing:2px; padding:15px; cursor:pointer; }
   .export-btn:hover { filter:brightness(1.1); }
   .export-btn:disabled { opacity:.4; cursor:not-allowed; }
+  /* Queue-to-auto-post button (purple glow, gold edge — never a flat fill) */
+  .queue-btn { display:block; width:100%; text-align:center; border-radius:8px; margin-top:8px;
+    background:linear-gradient(135deg,var(--pur),var(--purl)); color:var(--wht);
+    border:1px solid rgba(245,200,0,0.45); font-family:var(--hb); font-size:0.9rem; letter-spacing:2px;
+    padding:13px; cursor:pointer; transition:all .15s; }
+  .queue-btn:hover { filter:brightness(1.2); box-shadow:0 0 18px rgba(106,13,173,0.55); }
+  .queue-btn:disabled { opacity:.4; cursor:not-allowed; filter:none; box-shadow:none; }
+  .queue-note { font-size:0.72rem; line-height:1.4; margin-top:7px; }
+  .queue-note.ok { color:#4ade80; }
+  .queue-note.warn { color:#fb923c; }
   .hint { font-size:0.7rem; color:var(--mut); line-height:1.45; margin-top:7px; }
   .hint b { color:var(--yel); }
   .divider { border-top:1px solid var(--gry3); margin:20px 0; }
@@ -294,6 +304,8 @@ FOR A SIGN.
     <div class="ctl-group"><label class="ctl-label">CTA Button</label><input type="text" id="cta-btn" value="DM PATHFINDER"></div>
     <div class="ctl-group">
       <button class="export-btn" id="cta-export">⬇ EXPORT PNG</button>
+      <button class="queue-btn" id="cta-queue">📡 QUEUE THIS POST → IG/FB</button>
+      <div class="queue-note" id="cta-queue-note"></div>
     </div>
     <div class="divider"></div>
     <div class="ctl-group">
@@ -374,7 +386,9 @@ YOUR CLOCK</textarea></div>
       <input type="range" id="ph-size" min="80" max="120" value="100"></div>
     <div class="ctl-group"><label class="ctl-label">Reveal <span class="range-val" id="ph-lift-val">0</span></label>
       <input type="range" id="ph-lift" min="-100" max="300" value="0"></div>
-    <div class="ctl-group"><button class="export-btn" id="ph-export">⬇ EXPORT 1080×1350</button></div>
+    <div class="ctl-group"><button class="export-btn" id="ph-export">⬇ EXPORT 1080×1350</button>
+      <button class="queue-btn" id="ph-queue">📡 QUEUE THIS POST → IG/FB</button>
+      <div class="queue-note" id="ph-queue-note"></div></div>
     <div class="divider"></div>
     <div class="ctl-group">
       <label class="ctl-label">📝 Auto-Caption</label>
@@ -402,7 +416,9 @@ YOUR CLOCK</textarea></div>
       <input type="text" id="sp-l2" style="margin-top:6px;" value="Proud to be part of your journey."></div>
     <div class="ctl-group"><button class="spin-btn" id="sp-spinq">🎰 SPIN QUOTE PAIR</button></div>
     <div class="ctl-group"><label class="ctl-label">CTA Line</label><input type="text" id="sp-cta" value='READY FOR YOURS?  DM "PATHFINDER"  •  buildbelievefit.fitness'></div>
-    <div class="ctl-group"><button class="export-btn" id="sp-export">⬇ EXPORT 1080×1350</button></div>
+    <div class="ctl-group"><button class="export-btn" id="sp-export">⬇ EXPORT 1080×1350</button>
+      <button class="queue-btn" id="sp-queue">📡 QUEUE THIS POST → IG/FB</button>
+      <div class="queue-note" id="sp-queue-note"></div></div>
     <div class="divider"></div>
     <div class="ctl-group">
       <label class="ctl-label">📝 Auto-Caption</label>
@@ -441,11 +457,15 @@ YOUR CLOCK</textarea></div>
 STRAIGHT UP</textarea></div>
     <div class="ctl-group"><label class="ctl-label">Sub-line</label><input type="text" id="reel-sub" value="The 2-inch fix your shoulders will thank you for."></div>
     <div class="ctl-group"><label class="ctl-label">Button</label><input type="text" id="reel-watch" value="▶  WATCH THE FIX"></div>
-    <div class="ctl-group"><button class="export-btn" id="reel-export">⬇ EXPORT IMAGE 1080×1920</button></div>
+    <div class="ctl-group"><button class="export-btn" id="reel-export">⬇ EXPORT IMAGE 1080×1920</button>
+      <button class="queue-btn" id="reel-queue">📡 QUEUE COVER → IG/FB</button>
+      <div class="queue-note" id="reel-queue-note"></div></div>
     <div class="ctl-group"><button class="export-btn" id="reel-export-vid">🎬 EXPORT VIDEO</button>
       <div class="vid-progress" id="reel-vid-progress"><div class="vid-progress-bar" id="reel-vid-bar"></div></div>
       <div class="vid-note" id="reel-vid-note"></div>
-      <div class="hint">Bakes the overlay onto your footage. Records up to 60s.</div></div>
+      <div class="hint">Bakes the overlay onto your footage. Records up to 60s.</div>
+      <button class="queue-btn" id="reel-queue-vid">📡 QUEUE REEL VIDEO → IG/FB</button>
+      <div class="queue-note" id="reel-queue-vid-note"></div></div>
     <div class="divider"></div>
     <div class="ctl-group">
       <label class="ctl-label">📝 Auto-Caption</label>
@@ -572,6 +592,67 @@ const store = {
   async get(k){ try{ if(window.storage){ const r=await window.storage.get(k); return r?JSON.parse(r.value):null; } }catch(e){} return mem[k]||null; },
   async set(k,v){ mem[k]=v; try{ if(window.storage){ await window.storage.set(k, JSON.stringify(v)); } }catch(e){} }
 };
+
+/* ===== QUEUE TO AUTO-POST (server-signed upload — NO secret lives in this page) =====
+   Sovereign Studio is served publicly, so it holds ONLY public values (the anon key
+   below is RLS-protected — the same one in every client bundle) and the admin's own
+   24h vault session from localStorage. The service role stays server-side in the
+   bbf-studio-queue edge function. Flow per "Queue this post": sign → PUT the baked
+   asset to a one-shot signed URL → confirm (server HEADs the asset, then writes the
+   queued row). Export/Download is never touched. */
+const BBF_SB_URL   = 'https://ihclbceghxpuawymlvgi.supabase.co';
+const BBF_SB_ANON  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloY2xiY2VnaHhwdWF3eW1sdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTk1MDIsImV4cCI6MjA5MTg3NTUwMn0.0f7d1aqtygMR__QiyYYUB87yrFLaSRihVQdiFaIhsP0';
+const BBF_QUEUE_FN = BBF_SB_URL + '/functions/v1/bbf-studio-queue';
+// The admin's server-revocable session token (set by the React app at PIN login).
+function bbfVaultToken(){ try{ return (JSON.parse(localStorage.getItem('bbf.session.v1')||'null')||{}).vaultToken || ''; }catch(_){ return ''; } }
+function bbfQHeaders(token){ return { 'Content-Type':'application/json', apikey:BBF_SB_ANON, Authorization:'Bearer '+BBF_SB_ANON, 'X-BBF-Session-Token':token }; }
+
+// Shared html2canvas bake → the rendered canvas. Used by BOTH Export (download) and
+// Queue (upload), so the queued asset is byte-for-byte what export produces.
+async function renderStageCanvas(stageId, w, h){
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+  return await html2canvas($(stageId), {
+    backgroundColor:'#08060a', scale:2, useCORS:true,
+    width:w, height:h, windowWidth:w, windowHeight:h,
+    onclone:(doc)=>{
+      doc.querySelectorAll('.stage-scaler').forEach(el=>{ el.style.transform='none'; el.style.transformOrigin='top center'; el.style.width='auto'; el.style.height='auto'; });
+      const st=doc.getElementById(stageId); if(st){ st.style.width=w+'px'; st.style.height=h+'px'; }
+    }
+  });
+}
+function canvasToBlob(canvas, type){ return new Promise((res)=>{
+  if(canvas.toBlob){ canvas.toBlob(b=>res(b), type); return; }
+  const d=canvas.toDataURL(type), bin=atob(d.split(',')[1]), u=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); res(new Blob([u],{type}));
+}); }
+async function bakeStageBlob(stageId, w, h){ return await canvasToBlob(await renderStageCanvas(stageId, w, h), 'image/png'); }
+
+// kind:'image'|'video' · getBlob: async ()=>Blob · fields:{headline,body,eye_label,cta,caption,color_palette}
+async function queuePost(kind, fields, getBlob, btn, note){
+  const setNote=(cls,msg)=>{ if(note){ note.className='queue-note '+cls; note.textContent=msg; } };
+  const token=bbfVaultToken();
+  if(!token){ setNote('warn','No admin session in THIS browser. Open the BBF Command Center on this site, sign in, then come back and try again.'); return; }
+  const orig=btn.textContent; btn.disabled=true; btn.textContent='QUEUING…'; setNote('','');
+  try{
+    const blob = await getBlob();
+    if(!blob || !blob.size){ setNote('warn','Nothing to queue — render the post first.'); return; }
+    // 1) mint a one-shot signed upload URL (server generates the id + path)
+    const sr = await fetch(BBF_QUEUE_FN, { method:'POST', headers:bbfQHeaders(token), body:JSON.stringify({ action:'sign', kind }) });
+    const sj = await sr.json().catch(()=>null);
+    if(sr.status===401 || sr.status===403){ setNote('warn','This browser’s session isn’t an authorized admin. Sign in as the owner first.'); return; }
+    if(!sr.ok || !sj || !sj.ok || !sj.uploadUrl){ setNote('warn','Could not start upload ('+((sj&&sj.error)||sr.status)+').'); return; }
+    // 2) upload the baked asset directly to Storage via the signed URL
+    const ur = await fetch(sj.uploadUrl, { method:'PUT', headers:{ 'Content-Type': sj.contentType||blob.type||'application/octet-stream', 'x-upsert':'true', apikey:BBF_SB_ANON, Authorization:'Bearer '+BBF_SB_ANON }, body:blob });
+    if(!ur.ok){ setNote('warn','Asset upload failed ('+ur.status+').'); return; }
+    // 3) confirm → server verifies the asset landed, then writes the queued row
+    const cr = await fetch(BBF_QUEUE_FN, { method:'POST', headers:bbfQHeaders(token), body:JSON.stringify(Object.assign({ action:'confirm', id:sj.id, kind }, fields)) });
+    const cj = await cr.json().catch(()=>null);
+    if(!cr.ok || !cj || !cj.ok){ setNote('warn','Queue failed ('+((cj&&cj.error)||cr.status)+').'); return; }
+    setNote('ok','✓ Queued for IG/FB — posts on the next daily drip.');
+    btn.textContent='✓ QUEUED'; setTimeout(()=>{ btn.textContent=orig; }, 2400);
+  }catch(e){ setNote('warn','Queue error: '+((e&&e.message)||e)); }
+  finally{ btn.disabled=false; if(btn.textContent==='QUEUING…') btn.textContent=orig; }
+}
 
 /* ===== SHARED DATA ===== */
 const PALETTES = {
@@ -2138,19 +2219,10 @@ let history=[];
 async function exportStage(stageId, name, w, h, btn, settings){
   btn.disabled=true; const orig=btn.textContent; btn.textContent='RENDERING…';
   try{
-    // UPGRADE 1: await webfonts (else html2canvas falls back to a system font →
-    // the garbled mobile export), and render from a clean, unscaled, full-size CLONE
-    // at scale:2 so the preview's .stage-scaler transform can't corrupt the capture.
-    if(document.fonts&&document.fonts.ready) await document.fonts.ready;
-    const canvas=await html2canvas($(stageId),{
-      backgroundColor:'#08060a', scale:2, useCORS:true,
-      width:w, height:h, windowWidth:w, windowHeight:h,
-      onclone:(doc)=>{
-        doc.querySelectorAll('.stage-scaler').forEach(el=>{ el.style.transform='none'; el.style.transformOrigin='top center'; el.style.width='auto'; el.style.height='auto'; });
-        const st=doc.getElementById(stageId);
-        if(st){ st.style.width=w+'px'; st.style.height=h+'px'; }
-      }
-    });
+    // UPGRADE 1: render from a clean, unscaled, full-size CLONE at scale:2 (with
+    // webfonts decoded) so the preview's .stage-scaler transform can't corrupt the
+    // capture. Shared with the Queue path via renderStageCanvas().
+    const canvas=await renderStageCanvas(stageId, w, h);
     const a=document.createElement('a');
     a.download=name+'-'+Date.now()+'.png'; a.href=canvas.toDataURL('image/png'); a.click();
     // history thumb
@@ -2241,6 +2313,10 @@ $('cta-save').onclick=async ()=>{
 };
 $('cta-export').onclick=()=> exportStage('stage-cta','bbf-cta-'+ctaFmt,1080,ctaFmt==='story'?1920:1350,$('cta-export'),
   grabSettings(['cta-eye','cta-hl','cta-body','cta-btn'],{_pal:ctaPal}));
+$('cta-queue').onclick=()=> queuePost('image',
+  { headline:$('cta-hl').value.replace(/\*/g,''), body:$('cta-body').value.replace(/\*\*/g,''),
+    cta:$('cta-btn').value, eye_label:$('cta-eye').value, caption:buildCtaCaption(), color_palette:ctaPal },
+  ()=> bakeStageBlob('stage-cta',1080,ctaFmt==='story'?1920:1350), $('cta-queue'), $('cta-queue-note'));
 $('cta-copycap').onclick=()=> copyText(buildCtaCaption(), $('cta-copycap'));
 
 /* ============ PHONE MODE ============ */
@@ -2341,6 +2417,9 @@ $('ph-size').addEventListener('input',e=>{ phSize=+e.target.value; $('ph-size-va
 $('ph-lift').addEventListener('input',e=>{ phLift=+e.target.value; $('ph-lift-val').textContent=phLift; applyPhone(); });
 $('ph-export').onclick=()=> exportStage('stage-phone','bbf-feature',1080,1350,$('ph-export'),
   grabSettings(['ph-eye','ph-hl','ph-benefit']));
+$('ph-queue').onclick=()=> queuePost('image',
+  { headline:$('ph-hl').value, body:$('ph-benefit').value, eye_label:$('ph-eye').value, caption:buildPhCaption() },
+  ()=> bakeStageBlob('stage-phone',1080,1350), $('ph-queue'), $('ph-queue-note'));
 $('ph-copycap').onclick=()=> copyText(buildPhCaption(), $('ph-copycap'));
 renderPhoneText();
 
@@ -2376,6 +2455,10 @@ function buildSpCaption(){
 $('sp-caption').textContent=buildSpCaption();
 $('sp-export').onclick=()=> exportStage('stage-spot','bbf-spotlight',1080,1350,$('sp-export'),
   grabSettings(['sp-name','sp-sub','sp-fhead','sp-l1','sp-l2','sp-cta']));
+$('sp-queue').onclick=()=> queuePost('image',
+  { headline:$('sp-fhead').value, body:($('sp-l1').value+' '+$('sp-l2').value).trim(),
+    eye_label:$('sp-name').value, cta:$('sp-cta').value, caption:buildSpCaption() },
+  ()=> bakeStageBlob('stage-spot',1080,1350), $('sp-queue'), $('sp-queue-note'));
 $('sp-copycap').onclick=()=> copyText(buildSpCaption(), $('sp-copycap'));
 
 /* ============ REEL MODE ============ */
@@ -2455,6 +2538,24 @@ $('reel-export').onclick=async ()=>{
   if(restore){ $('reel-bg').style.display='none'; reelVid.style.display='block'; reelVid.play().catch(()=>{}); }
 };
 $('reel-copycap').onclick=()=> copyText(buildReelCaption(), $('reel-copycap'));
+
+// Reel fields shared by the cover-image queue and the video queue.
+function reelQueueFields(){ return {
+  headline:$('reel-hl').value, body:$('reel-sub').value, eye_label:$('reel-eye').value,
+  cta:$('reel-watch').value, caption:buildReelCaption() }; }
+// Bake the reel COVER (still PNG → calling-cards queue). Mirrors the PNG-export poster
+// trick so a loaded video frame is captured rather than a blank <video>.
+async function reelCoverBlob(){
+  let restore=false;
+  if(reelHasVideo && reelVid.readyState>=2){
+    const c=document.createElement('canvas'); c.width=1080; c.height=1920;
+    drawVideoCover(c.getContext('2d'), reelVid, 1080, 1920);
+    $('reel-bg').src=c.toDataURL('image/png'); $('reel-bg').style.display='block'; reelVid.style.display='none'; restore=true;
+  }
+  try{ return await bakeStageBlob('stage-reel',1080,1920); }
+  finally{ if(restore){ $('reel-bg').style.display='none'; reelVid.style.display='block'; reelVid.play().catch(()=>{}); } }
+}
+$('reel-queue').onclick=()=> queuePost('image', reelQueueFields(), reelCoverBlob, $('reel-queue'), $('reel-queue-note'));
 
 // Ensure both webfonts (every weight/size the overlay draws) are decoded before any
 // canvas text — same root-cause fix as the PNG export.
@@ -2548,13 +2649,17 @@ function drawReelOverlay(ctx,o){
   ctx.restore();
 }
 
-// EXPORT VIDEO: footage as moving bg + baked overlay → MediaRecorder → download (silent).
-$('reel-export-vid').onclick=async ()=>{
+// RECORD the reel: footage as moving bg + baked overlay → MediaRecorder. Shared by
+// EXPORT VIDEO (download=true) and QUEUE REEL VIDEO (download=false → resolves the
+// Blob for upload). Resolves {blob,ext,mime} on success, or null on any failure
+// (with the reason shown in the vid-note). Export behavior is unchanged.
+function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
   const btn=$('reel-export-vid'), note=$('reel-vid-note'), prog=$('reel-vid-progress'), bar=$('reel-vid-bar');
+  const fail=(m)=>{ note.className='vid-note active warn'; note.textContent=m; };
   if(!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream){
-    note.className='vid-note active warn'; note.textContent='This browser can’t record canvas video. Use EXPORT IMAGE, or try Chrome/Safari on a recent device.'; return; }
-  if(!reelHasVideo){ note.className='vid-note active warn'; note.textContent='Upload reel footage first (EXPORT IMAGE still works for stills).'; return; }
-  if(reelRecording) return;
+    fail('This browser can’t record canvas video. Use EXPORT IMAGE, or try Chrome/Safari on a recent device.'); resolve(null); return; }
+  if(!reelHasVideo){ fail('Upload reel footage first (EXPORT IMAGE still works for stills).'); resolve(null); return; }
+  if(reelRecording){ resolve(null); return; }
   await ensureReelFonts();
   // ensure metadata/duration is known before we compute the frame budget
   if(reelVid.readyState<1){ await new Promise(r=>{ reelVid.addEventListener('loadedmetadata', r, {once:true}); setTimeout(r,3000); }); }
@@ -2566,7 +2671,7 @@ $('reel-export-vid').onclick=async ()=>{
     eyeText:$('reel-eye').value, hlText:$('reel-hl').value, subText:$('reel-sub').value, watchText:$('reel-watch').value, logoImg};
   const mime=pickRecorderMime(), stream=canvas.captureStream(30);
   let rec; try{ rec=mime?new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000}):new MediaRecorder(stream); }
-  catch(err){ note.className='vid-note active warn'; note.textContent='Recorder init failed: '+err.message; return; }
+  catch(err){ fail('Recorder init failed: '+err.message); resolve(null); return; }
   const chunks=[]; rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
   // finite-duration guard: a NaN/0 duration must not yield a 1-frame clip; an
   // Infinity-duration webm caps at 60s via onended/killTimer.
@@ -2580,29 +2685,50 @@ $('reel-export-vid').onclick=async ()=>{
   const finish=()=>{ if(stopped) return; stopped=true; try{ rec.stop(); }catch(e){} };
   reelVid.onended=finish;
   rec.onstop=()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop());
+    let out=null;
     try{
       const ext=(mime&&mime.indexOf('mp4')>=0)?'mp4':'webm'; const blob=new Blob(chunks,{type:mime||('video/'+ext)});
-      if(!blob.size){ note.className='vid-note active warn'; note.textContent='Recording produced no data — this browser couldn’t encode '+(mime||'video')+'. Try EXPORT IMAGE, or update your browser.'; restorePreview(); return; }
-      const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.download='bbf-reel-'+Date.now()+'.'+ext; a.href=url; a.click();
-      setTimeout(()=>URL.revokeObjectURL(url),60000);   // give large saves time to flush
-      if(ext==='webm'){ note.className='vid-note active warn'; note.textContent='Exported as .webm — your browser can’t record MP4 directly; convert before posting to IG.'; }
-      else{ note.className='vid-note active'; note.textContent='Saved MP4 ✓ — ready to post.'; }
-    }catch(err){ note.className='vid-note active warn'; note.textContent='Final processing failed: '+err.message; }
-    restorePreview(); };
-  try{ await reelVid.play(); }catch(err){ note.className='vid-note active warn'; note.textContent='Could not start playback: '+err.message; restorePreview(); return; }
+      if(!blob.size){ fail('Recording produced no data — this browser couldn’t encode '+(mime||'video')+'. Try EXPORT IMAGE, or update your browser.'); restorePreview(); resolve(null); return; }
+      out={blob, ext, mime};
+      if(download){
+        const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.download='bbf-reel-'+Date.now()+'.'+ext; a.href=url; a.click();
+        setTimeout(()=>URL.revokeObjectURL(url),60000);   // give large saves time to flush
+        if(ext==='webm'){ note.className='vid-note active warn'; note.textContent='Exported as .webm — your browser can’t record MP4 directly; convert before posting to IG.'; }
+        else{ note.className='vid-note active'; note.textContent='Saved MP4 ✓ — ready to post.'; }
+      } else {
+        note.className='vid-note active'; note.textContent='Recorded ✓ — uploading to the queue…';
+      }
+    }catch(err){ fail('Final processing failed: '+err.message); restorePreview(); resolve(null); return; }
+    restorePreview(); resolve(out); };
+  try{ await reelVid.play(); }catch(err){ fail('Could not start playback: '+err.message); restorePreview(); resolve(null); return; }
   // wait for the first decoded frame so the recording never opens on the dark placeholder
   await new Promise(res=>{ let d=false; const go=()=>{ if(!d){ d=true; res(); } };
     if(reelVid.requestVideoFrameCallback){ reelVid.requestVideoFrameCallback(()=>go()); }
     else { const t=setInterval(()=>{ if(reelVid.videoWidth>0 && reelVid.currentTime>0){ clearInterval(t); go(); } },16); }
     setTimeout(go,600); });
-  if(stopped) return;
+  if(stopped){ resolve(null); return; }
   rec.start(); killTimer=setTimeout(finish,(dur+1.5)*1000);
   (function frame(){ if(stopped) return;
     drawVideoCover(ctx,reelVid,W,H);
     drawReelOverlay(ctx,Object.assign({},baseOpts,{reveal:Math.min(1,drawn/introFrames)}));
     drawn++; bar.style.width=Math.min(100,Math.round(drawn/totalFrames*100))+'%';
     if(reelVid.ended || drawn>=totalFrames){ finish(); return; } requestAnimationFrame(frame); })();
+})(); }); }
+$('reel-export-vid').onclick=()=> recordReel(true);
+
+// QUEUE the reel VIDEO → reels queue. Only possible when the browser records real MP4
+// (Safari / HW-h264); IG/FB reject WebM, so on WebM browsers we disable with a reason
+// rather than queue an unpostable clip. No transcoder.
+function reelMp4Capable(){ const m=pickRecorderMime(); return !!m && m.indexOf('mp4')>=0; }
+$('reel-queue-vid').onclick=()=>{
+  const note=$('reel-queue-vid-note');
+  if(!reelHasVideo){ note.className='queue-note warn'; note.textContent='Upload reel footage first, then queue the video.'; return; }
+  if(!reelMp4Capable()){ note.className='queue-note warn'; note.textContent='This browser records WebM, which IG/FB reject. Queue the reel from Safari / a recent iPhone (records MP4), or queue the cover image instead.'; return; }
+  queuePost('video', reelQueueFields(), async ()=>{ const r=await recordReel(false); return r ? r.blob : null; }, $('reel-queue-vid'), note);
 };
+(function gateReelVideoQueue(){ const b=$('reel-queue-vid'), n=$('reel-queue-vid-note');
+  if(b && !reelMp4Capable()){ b.disabled=true; n.className='queue-note warn';
+    n.textContent='Video-queue needs MP4 recording (Safari / recent iPhone). This browser only makes WebM, which IG/FB reject — queue the cover image here, or record the reel on Safari.'; } })();
 
 /* ===== INIT ===== */
 (async ()=>{

@@ -1,0 +1,244 @@
+// bbf-studio-queue — secure "Queue this post" write-path for Sovereign Studio.
+// ─────────────────────────────────────────────────────────────────────────────
+// Sovereign Studio (bbf-sovereign-studio-v3.html) is served PUBLICLY, so it must
+// NEVER hold a service-role or admin secret. This function is the trusted bridge
+// between the public manual-design tool and the Supabase auto-post queue:
+//
+//   • The browser bakes a post (PNG card/reel-cover/phone/spotlight, or an MP4
+//     reel) entirely client-side, then asks THIS function for a one-shot signed
+//     upload URL, uploads the asset directly to Storage, and confirms.
+//   • Only the SERVICE ROLE (held here, never shipped) mints the signed URL and
+//     writes the queued row. The browser holds nothing but its 24h vault session.
+//
+// SECURITY MODEL (CLAUDE.md §7 · mirrors bbf-admin-roster):
+//   • verify_jwt:false — the admin SESSION token is the security boundary, not
+//     the gateway JWT (parity with bbf-admin-roster / bbf-co-coach).
+//   • Authorized iff EITHER a valid admin X-BBF-Session-Token (resolves via the
+//     canonical _bbf_uid_from_vault_token to a bbf_users row whose role is
+//     admin/trainer, or the `akeem` CEO fallback) OR the legacy shared secret
+//     X-BBF-Admin-Token === BBF_COACH_AGENT_TOKEN (server-to-server only; the
+//     browser never sends it). A valid NON-admin session is rejected.
+//   • The upload path is server-GENERATED ({uuid}.{ext}) so a caller can never
+//     choose a path and clobber an existing card/reel id.
+//
+// ACTIONS (POST JSON { action, ... }):
+//   sign     { kind:'image'|'video' }
+//            → { ok, id, kind, bucket, path, ext, contentType, uploadUrl, token }
+//   confirm  { id, kind, headline?, body?, eye_label?, cta?, caption?, color_palette? }
+//            → HEAD the just-uploaded object exists, then INSERT a status:'queued'
+//              row into the matching batch table → { ok, id, table, status }
+//
+// ROUTING (kind → bucket / ext / table) — kept in lockstep with the distributors:
+//   image → calling-cards-v1 / png / bbf_calling_cards_batch_v1  (bbf-card-distributor)
+//   video → reels-v1         / mp4 / bbf_reels_batch_v1          (bbf-reel-distributor)
+// A plain queued row (no scheduled_for — that column does not exist) posts on the
+// next daily distributor drip, which is the intended behavior.
+//
+// Secrets (auto-injected): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
+// Optional (kept aligned with the distributors): BBF_COACH_AGENT_TOKEN (admin
+// gate), BBF_CARDS_BUCKET/BBF_CARDS_EXT, REELS_BUCKET/REELS_EXT.
+
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token, x-bbf-session-token',
+};
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
+}
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const ADMIN_TOKEN  = Deno.env.get('BBF_COACH_AGENT_TOKEN') ?? '';
+
+// kind → storage bucket / extension / batch table. Buckets+exts resolved from the
+// SAME env (with the same defaults) the distributors read, so the asset the browser
+// uploads lands exactly where the distributor later looks for it.
+type Kind = 'image' | 'video';
+const ROUTING: Record<Kind, { bucket: string; ext: string; table: string; contentType: string }> = {
+  image: {
+    bucket: Deno.env.get('BBF_CARDS_BUCKET') || 'calling-cards-v1',
+    ext: (Deno.env.get('BBF_CARDS_EXT') || 'png').replace(/^\./, ''),
+    table: 'bbf_calling_cards_batch_v1',
+    contentType: 'image/png',
+  },
+  video: {
+    bucket: Deno.env.get('REELS_BUCKET') || 'reels-v1',
+    ext: (Deno.env.get('REELS_EXT') || 'mp4').replace(/^\./, ''),
+    table: 'bbf_reels_batch_v1',
+    contentType: 'video/mp4',
+  },
+};
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function normKind(v: unknown): Kind { return v === 'video' ? 'video' : 'image'; }
+// Trim → cap length → null when empty (so blank optional fields stay NULL, not '').
+function clip(v: unknown, max: number): string | null {
+  const s = (v == null ? '' : String(v)).trim();
+  return s ? s.slice(0, max) : null;
+}
+
+function pgHeaders(): HeadersInit {
+  return { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}`, 'Content-Type': 'application/json' };
+}
+
+// ─── Admin authorization (ported from bbf-admin-roster) ──────────────────────────
+async function pgRpc(fn: string, args: Record<string, unknown>): Promise<unknown> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST', headers: pgHeaders(), body: JSON.stringify(args),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`rpc_${res.status}:${text.slice(0, 200)}`);
+  try { return text ? JSON.parse(text) : null; } catch { return text; }
+}
+async function pgGet(path: string): Promise<unknown> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: pgHeaders() });
+  if (!res.ok) throw new Error(`pg_get_${res.status}:${(await res.text()).slice(0, 200)}`);
+  return res.json();
+}
+
+// Resolve user_id from a vault session token (canonical SECURITY DEFINER resolver,
+// with a service-role fallback if it isn't PostgREST-exposed). Mirrors admin-roster.
+async function uidFromSession(session: string): Promise<string | null> {
+  try {
+    const r = await pgRpc('_bbf_uid_from_vault_token', { p_session_token: session });
+    const id = typeof r === 'string' ? r : (Array.isArray(r) && r.length ? r[0] : null);
+    if (id) return String(id);
+  } catch (_) { /* fall through */ }
+  try {
+    const nowISO = new Date().toISOString();
+    const rows = await pgGet(
+      `bbf_vault_sessions?select=user_id&token=eq.${encodeURIComponent(session)}` +
+      `&expires_at=gt.${encodeURIComponent(nowISO)}&limit=1`,
+    );
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null;
+    return row?.user_id ? String(row.user_id) : null;
+  } catch (_) { return null; }
+}
+
+async function isAuthorized(req: Request): Promise<boolean> {
+  // 1) Legacy shared-secret path — server-to-server only (browser never sends it).
+  const token = req.headers.get('x-bbf-admin-token') ?? '';
+  if (ADMIN_TOKEN && token.length > 0 && token === ADMIN_TOKEN) return true;
+
+  // 2) Admin-session path — the boundary for the public Studio browser.
+  const session = req.headers.get('x-bbf-session-token') ?? '';
+  if (!session) return false;
+  const userId = await uidFromSession(session);
+  if (!userId) return false;
+  try {
+    const rows = await pgGet(
+      `bbf_users?select=uid,role&id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&limit=1`,
+    );
+    const u = Array.isArray(rows) && rows.length ? rows[0] : null;
+    if (!u) return false;
+    const role = String(u.role ?? '').toLowerCase();
+    const uname = String(u.uid ?? '').toLowerCase();
+    return role === 'admin' || role === 'trainer' || uname === 'akeem';
+  } catch (_) { return false; }
+}
+
+// ─── Storage helpers (service role) ──────────────────────────────────────────────
+// Mint a one-shot signed upload URL for bucket/{path}. Returns an absolute URL the
+// browser PUTs the baked asset to (no service role needed client-side; the signed
+// token authorizes that single object write only).
+async function mintSignedUpload(bucket: string, path: string): Promise<{ uploadUrl: string; token: string }> {
+  // Auth-only headers (NO Content-Type) — the storage create-signed-upload route
+  // is a bodyless POST and rejects an empty application/json body (Fastify 400).
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/upload/sign/${bucket}/${path}`, {
+    method: 'POST', headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` },
+  });
+  if (!r.ok) throw new Error(`sign_${r.status}:${(await r.text()).slice(0, 200)}`);
+  const j = await r.json().catch(() => null) as { url?: string } | null;
+  const raw = String(j?.url ?? '');
+  if (!raw) throw new Error('sign_no_url');
+  const uploadUrl = /^https?:\/\//.test(raw)
+    ? raw
+    : raw.startsWith('/storage/v1')
+      ? `${SUPABASE_URL}${raw}`
+      : `${SUPABASE_URL}/storage/v1${raw.startsWith('/') ? raw : '/' + raw}`;
+  let token = '';
+  try { token = new URL(uploadUrl).searchParams.get('token') ?? ''; } catch (_) { /* token optional in response */ }
+  return { uploadUrl, token };
+}
+
+// Existence gate — HEAD the public object (identical to the distributors' assetExists).
+async function assetExists(bucket: string, path: string): Promise<boolean> {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`, { method: 'HEAD' });
+    return r.ok;
+  } catch (_) { return false; }
+}
+
+async function insertQueuedRow(table: string, row: Record<string, unknown>): Promise<unknown> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { ...pgHeaders(), Prefer: 'return=representation' },
+    body: JSON.stringify([row]),
+  });
+  if (!res.ok) throw new Error(`insert_${res.status}:${(await res.text()).slice(0, 240)}`);
+  const j = await res.json().catch(() => null);
+  return Array.isArray(j) && j.length ? j[0] : null;
+}
+
+// ─── handler ─────────────────────────────────────────────────────────────────────
+serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (req.method !== 'POST') return jsonResponse({ error: 'method_not_allowed' }, 405);
+  if (!SUPABASE_URL || !SERVICE_ROLE) return jsonResponse({ error: 'backend_unconfigured' }, 503);
+
+  if (!(await isAuthorized(req))) return jsonResponse({ error: 'unauthorized' }, 401);
+
+  let body: Record<string, unknown>;
+  try { body = await req.json(); } catch { return jsonResponse({ error: 'bad_json' }, 400); }
+  const action = String(body?.action ?? '');
+
+  try {
+    // ── sign: mint a one-shot signed upload URL for a server-generated path ──────
+    if (action === 'sign') {
+      const kind = normKind(body?.kind);
+      const cfg = ROUTING[kind];
+      const id = crypto.randomUUID();
+      const path = `${id}.${cfg.ext}`;
+      const { uploadUrl, token } = await mintSignedUpload(cfg.bucket, path);
+      return jsonResponse({
+        ok: true, id, kind, bucket: cfg.bucket, path, ext: cfg.ext,
+        contentType: cfg.contentType, uploadUrl, token,
+      });
+    }
+
+    // ── confirm: verify the asset landed, then queue the row (service role) ──────
+    if (action === 'confirm') {
+      const kind = normKind(body?.kind);
+      const cfg = ROUTING[kind];
+      const id = String(body?.id ?? '');
+      if (!UUID_RE.test(id)) return jsonResponse({ error: 'bad_id' }, 400);
+      const path = `${id}.${cfg.ext}`;
+
+      if (!(await assetExists(cfg.bucket, path))) {
+        return jsonResponse({ error: 'asset_not_found', detail: `${cfg.bucket}/${path} is not in storage` }, 409);
+      }
+
+      const row: Record<string, unknown> = {
+        id,                                   // MUST equal the uploaded object stem
+        status: 'queued',                     // posts on the next daily drip
+        platform_target: 'online',           // metadata only (distributor routes by enabled channels)
+        headline: clip(body?.headline, 300),
+        body: clip(body?.body, 2000),
+        eye_label: clip(body?.eye_label, 200),
+        cta: clip(body?.cta, 200),
+        caption: clip(body?.caption, 2200),
+        color_palette: clip(body?.color_palette, 40),
+      };
+      const inserted = await insertQueuedRow(cfg.table, row);
+      return jsonResponse({ ok: true, id, kind, table: cfg.table, status: 'queued', row: inserted });
+    }
+
+    return jsonResponse({ error: 'unknown_action', detail: action }, 400);
+  } catch (e) {
+    return jsonResponse({ error: 'server_error', detail: String((e as Error)?.message ?? e) }, 500);
+  }
+});
