@@ -74,7 +74,7 @@ export const L10N = {
     buckets: [
       { key: 'championship-drive', label: 'Championship Drive', ids: ['kobe', 'jordan', 'arnold', 'ali', 'raylewis'] },
       { key: 'stoic-grit', label: 'Stoic Heavy Grit', ids: ['goggins', 'et', 'jocko', 'ctfletcher', 'inky', 'lesbrown', 'denzel'] },
-      { key: 'female-strength', label: 'Female Strength Grace', ids: ['serena', 'courtney', 'serenabelieve', 'rousey', 'shields', 'biles', 'shevchenko'] },
+      { key: 'female-strength', label: 'Female Strength Grace', ids: ['courtney', 'serenabelieve', 'rousey', 'shields', 'biles', 'shevchenko'] },
       { key: 'neuro-synapse', label: 'Neurological Synapse', ids: ['huberman'] },
     ],
     champions: [
@@ -169,23 +169,6 @@ export const L10N = {
           'The last three reps are the ones that build the muscle.',
           'Ignore the naysayers; they cannot see what you can.',
           'There is no self-made success — give something back.',
-        ],
-      },
-      {
-        id: 'serena',
-        category: 'Unbreakable Grace',
-        title: 'Serena Williams: Still I Rise',
-        youtubeId: '3sAckI5Ldyw',
-        objective:
-          'Greatness is a choice you defend every day, against every doubt and every ' +
-          'count-out. Carry pressure as proof that you belong, answer adversity with ' +
-          'poise, and rise — again and again — no matter who is watching or how steep ' +
-          'the deficit on the board.',
-        dictums: [
-          'I am not lucky; I have earned every inch of this.',
-          'Pressure is a privilege — it means you are in the arena.',
-          'Believe in yourself when no one else will.',
-          'Still I rise — the deficit is only the start of the comeback.',
         ],
       },
       {
@@ -972,16 +955,16 @@ export const L10N = {
       },
       {
         id: 'nunes',
-        category: 'Domínio e Soberania',
-        title: 'Amanda Nunes: A Leoa Reina',
-        youtubeId: 'oNviJVP1CO4',
+        category: 'Fome de Leoa',
+        title: 'Amanda Nunes: A Leoa Faminta',
+        youtubeId: 'trMWycXbymA',
         objective:
-          'A única mulher a reinar como dupla campeã na história do UFC não pediu ' +
-          'espaço — tomou. Domine o que é seu com preparo e coragem, e saia sempre pela ' +
-          'porta da frente, no topo, sem dever nada a ninguém.',
+          'A única mulher a reinar como dupla campeã na história do UFC entra sempre ' +
+          'faminta — a fome de quem nunca se acha pronta. Domine o que é seu com preparo ' +
+          'e coragem, e saia pela porta da frente, no topo, sem dever nada a ninguém.',
         dictums: [
+          'Podem esperar a Leoa faminta — sempre.',
           'Eu não espero a chance; eu tomo o que é meu.',
-          'A Leoa entra para dominar, não para participar.',
           'Disciplina e coragem constroem o reinado.',
         ],
         lockIn: 'Reine Como a Leoa',
