@@ -646,6 +646,26 @@ function canvasToBlob(canvas, type){ return new Promise((res)=>{
 }); }
 async function bakeStageBlob(stageId, w, h){ return await canvasToBlob(await renderStageCanvas(stageId, w, h), 'image/png'); }
 
+// Coarse mobile/touch detection (incl. iPadOS, which reports as "Mac").
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile|Silk/i.test(navigator.userAgent||'') || (navigator.maxTouchPoints>1 && /Mac/i.test(navigator.platform||''));
+// Deliver an exported asset. On mobile the <a download> trick is unreliable
+// (iOS Safari ignores it), so we open the NATIVE SHARE SHEET — Save to Photos,
+// or share straight into IG/FB. Desktop keeps the direct download. Falls back to
+// download if share is unavailable or the file type can't be shared.
+async function deliverBlob(blob, filename){
+  if(!blob || !blob.size) return 'empty';
+  const file = window.File ? new File([blob], filename, { type: blob.type || 'application/octet-stream' }) : null;
+  if(IS_MOBILE && file && navigator.canShare && navigator.canShare({ files:[file] })){
+    try{ await navigator.share({ files:[file], title: filename }); return 'shared'; }
+    catch(e){ if(e && e.name==='AbortError') return 'canceled'; /* else fall through to download */ }
+  }
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 60000);   // give large saves time to flush
+  return 'downloaded';
+}
+
 // kind:'image'|'video' · getBlob: async ()=>Blob · fields:{headline,body,eye_label,cta,caption,color_palette}
 async function queuePost(kind, fields, getBlob, btn, note){
   const setNote=(cls,msg)=>{ if(note){ note.className='queue-note '+cls; note.textContent=msg; } };
@@ -2242,15 +2262,15 @@ async function exportStage(stageId, name, w, h, btn, settings){
     // webfonts decoded) so the preview's .stage-scaler transform can't corrupt the
     // capture. Shared with the Queue path via renderStageCanvas().
     const canvas=await renderStageCanvas(stageId, w, h);
-    const a=document.createElement('a');
-    a.download=name+'-'+Date.now()+'.png'; a.href=canvas.toDataURL('image/png'); a.click();
-    // history thumb
+    // history thumb (captured before delivery so it persists even if a share is canceled)
     const tc=document.createElement('canvas'); tc.width=74; tc.height=92;
     tc.getContext('2d').drawImage(canvas,0,0,74,92);
     history.unshift({mode, thumb:tc.toDataURL('image/jpeg',0.6), settings});
     if(history.length>12) history.pop();
     renderHistory();
     store.set('bbf-studio:history', history.map(h=>({mode:h.mode, settings:h.settings})));
+    // deliver: native share sheet on mobile (Save to Photos / share to IG), download on desktop
+    await deliverBlob(await canvasToBlob(canvas,'image/png'), name+'-'+Date.now()+'.png');
   }catch(err){ alert('Export failed: '+err.message); }
   btn.disabled=false; btn.textContent=orig;
 }
@@ -2710,8 +2730,7 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
       if(!blob.size){ fail('Recording produced no data — this browser couldn’t encode '+(mime||'video')+'. Try EXPORT IMAGE, or update your browser.'); restorePreview(); resolve(null); return; }
       out={blob, ext, mime};
       if(download){
-        const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.download='bbf-reel-'+Date.now()+'.'+ext; a.href=url; a.click();
-        setTimeout(()=>URL.revokeObjectURL(url),60000);   // give large saves time to flush
+        deliverBlob(blob, 'bbf-reel-'+Date.now()+'.'+ext);   // share sheet on mobile, download on desktop
         if(ext==='webm'){ note.className='vid-note active warn'; note.textContent='Exported as .webm — your browser can’t record MP4 directly; convert before posting to IG.'; }
         else{ note.className='vid-note active'; note.textContent='Saved MP4 ✓ — ready to post.'; }
       } else {
