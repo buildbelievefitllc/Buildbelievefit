@@ -382,6 +382,7 @@ const DICT = {
     es: 'Si falta una métrica, esto indica si falló el enlace del puente o si el wearable simplemente no registró nada en el día.',
     pt: 'Se uma métrica estiver faltando, isto indica se o handshake da ponte falhou ou se o wearable simplesmente não registrou nada no dia.',
   },
+  'sch-hc-rawprobe': { en: 'Raw OS Probe', es: 'Sonda del SO', pt: 'Sonda do SO' },
   // Sports Hub readiness banner (wired to the SAME useDailyReadiness pipeline —
   // one source of truth for athlete biometrics). Mode chips reuse sch-mode-* keys.
   'sh-rdy-kicker': { en: 'Sovereign Readiness · Live Telemetry', es: 'Prontitud Soberana · Telemetría en Vivo', pt: 'Prontidão Soberana · Telemetria ao Vivo' },

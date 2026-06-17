@@ -1,6 +1,7 @@
 package fitness.buildbelievefit.twa
 
 import android.content.Context
+import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.aggregate.AggregateMetric
 import androidx.health.connect.client.aggregate.AggregationResult
@@ -129,6 +130,27 @@ class HealthConnectManager(private val context: Context) {
         // the 48h window came from a prior night.
         val readingDate = DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDate.now(zone))
 
+        // ── RAW OS PROBE (BBF_HEALTH_SYNC) — CEO diagnostic ──────────────────────
+        // The HUD reads null HRV/active-cal on a verified build, so log the EXACT
+        // record counts straight off the OS boundary AND fold them into `samples`
+        // (visible on-device, no Android Studio logcat needed).
+        //
+        // TIME ANCHORS: HRV already uses the 48h recovery window — overnight HRV is
+        // written BEFORE midnight, so a "today only" window would miss it; this one
+        // does not (narrowing to 24h would be a regression). Active-cal is probed over
+        // BOTH today (its value window, the same one steps uses) and 48h, so a
+        // "window too narrow" cause is distinguishable from "nothing logged at all".
+        Log.e("BBF_HEALTH_SYNC", "HRV Records found: ${hrvRecords.size} (window=${RECOVERY_WINDOW_HOURS}h)")
+        val activeToday = probeCount(ActiveCaloriesBurnedRecord::class, hc, dayWindow)
+        val active48h = probeCount(ActiveCaloriesBurnedRecord::class, hc, recoveryWindow)
+        val total48h = probeCount(TotalCaloriesBurnedRecord::class, hc, recoveryWindow)
+        Log.e("BBF_HEALTH_SYNC", "ActiveCalories found — today=$activeToday, 48h=$active48h, total48h=$total48h, resolved=${cal.source}/${cal.kcal}")
+
+        val hrvRawDump = if (hrvRecords.isEmpty()) "EMPTY_FROM_OS"
+            else "count=${hrvRecords.size}; latestMs=${hrvMs}; at=${latestHrv?.time}"
+        val activeCalRawDump =
+            "today=$activeToday; 48h=$active48h; total48h=$total48h; resolved=${cal.source}/${cal.kcal}"
+
         JSONObject().apply {
             put("ok", true)
             put("reading_date", readingDate)
@@ -142,6 +164,8 @@ class HealthConnectManager(private val context: Context) {
                 "samples",
                 JSONObject().apply {
                     put("hrv_count", hrvRecords.size)
+                    put("hrv_raw_dump", hrvRawDump)
+                    put("active_cal_raw_dump", activeCalRawDump)
                     put("sleep_sessions", sleepRecords.size)
                     put("active_calorie_source", cal.source)
                     put("activity_window_start", dayStart.toString())
@@ -228,6 +252,20 @@ class HealthConnectManager(private val context: Context) {
         hc.readRecords(ReadRecordsRequest(type, timeRangeFilter = window)).records
     } catch (e: Exception) {
         emptyList()
+    }
+
+    /** Diagnostic probe (BBF_HEALTH_SYNC) — raw record count for `type` over `window`,
+     *  the exact OS error string, or "EMPTY_FROM_OS" when the list is empty. Folded
+     *  into `samples` so the CEO reads the raw Health Connect response on-device. */
+    private suspend fun <T : Record> probeCount(
+        type: KClass<T>,
+        hc: HealthConnectClient,
+        window: TimeRangeFilter,
+    ): String = try {
+        val n = hc.readRecords(ReadRecordsRequest(type, timeRangeFilter = window)).records.size
+        if (n == 0) "EMPTY_FROM_OS" else "count=$n"
+    } catch (e: Exception) {
+        "ERR:${e.javaClass.simpleName}:${e.message}"
     }
 
     // Minutes actually asleep: sum non-awake stages when present, else in-bed duration.

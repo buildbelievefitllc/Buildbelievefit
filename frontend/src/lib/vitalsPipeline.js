@@ -89,6 +89,7 @@ function getHandshake() {
 function recordHandshake({ source, ok, recovery, error }) {
   if (!isNativeSource(source)) return;
   const r = recovery || {};
+  const s = (r && typeof r.samples === 'object' && r.samples) || {};
   handshake = {
     at: Date.now(),
     source,
@@ -96,6 +97,10 @@ function recordHandshake({ source, ok, recovery, error }) {
     hrv_ms: numOrNull(r.hrv_ms),
     sleep_minutes: numOrNull(r.sleep_minutes),
     active_kcal: numOrNull(r.active_kcal),
+    // Raw OS probe dumps (BBF_HEALTH_SYNC) — surfaced in the Health Connect Status
+    // panel so the exact Health Connect record counts are visible on-device.
+    hrv_raw_dump: typeof s.hrv_raw_dump === 'string' ? s.hrv_raw_dump : null,
+    active_cal_raw_dump: typeof s.active_cal_raw_dump === 'string' ? s.active_cal_raw_dump : null,
     error: error || null,
   };
   try { localStorage.setItem(HANDSHAKE_KEY, JSON.stringify(handshake)); } catch { /* private mode — non-fatal */ }

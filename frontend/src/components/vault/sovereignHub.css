@@ -249,6 +249,13 @@
   border: 1px solid rgba(255, 177, 77, .25); border-radius: 8px;
   padding: .5rem .65rem; white-space: pre-wrap; word-break: break-word;
 }
+/* Raw OS probe dumps (BBF_HEALTH_SYNC) — neutral monospace, distinct from the error. */
+.sch-hc-dump {
+  display: block; font-family: var(--mono); font-size: .72rem; line-height: 1.45;
+  color: var(--gold-soft); background: rgba(0, 0, 0, .4);
+  border: 1px solid var(--panel-edge); border-radius: 8px;
+  padding: .45rem .6rem; margin-top: .3rem; white-space: pre-wrap; word-break: break-word;
+}
 .sch-hc-hint, .sch-hc-purpose {
   font-family: var(--bd); font-size: .78rem; font-weight: 600; line-height: 1.5;
   color: var(--mut); margin: 0;

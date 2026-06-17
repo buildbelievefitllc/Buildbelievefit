@@ -98,6 +98,14 @@ export default function HealthConnectStatus() {
           </div>
         </div>
 
+        {handshake && (handshake.hrv_raw_dump || handshake.active_cal_raw_dump) ? (
+          <div className="sch-hc-row sch-hc-row--col">
+            <span className="sch-hc-k">{t('sch-hc-rawprobe')}</span>
+            <code className="sch-hc-dump" data-testid="sch-hc-hrv-dump">HRV → {handshake.hrv_raw_dump || '—'}</code>
+            <code className="sch-hc-dump" data-testid="sch-hc-cal-dump">CAL → {handshake.active_cal_raw_dump || '—'}</code>
+          </div>
+        ) : null}
+
         {handshake && handshake.error ? (
           <code className="sch-hc-err" data-testid="sch-hc-err">{handshake.error}</code>
         ) : null}
