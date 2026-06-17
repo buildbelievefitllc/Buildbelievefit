@@ -44,7 +44,8 @@ export type UseCase =
   | 'kinematic_form_score'    // Single-image biomechanics scoring (vision)
   | 'novel_form_correction'   // Comlink · novel deviation correction (vision-adjacent)
   | 'onboarding_interview'    // Pathfinder/Interrogator dialog
-  | 'prehab_assignment'       // Prehab · ACWR + cold-start assignment
+  // prehab_assignment — MIGRATED off the LLM to the deterministic lookup
+  //   matrix (_shared/prehab-matrix.mjs · DYNAMIC PREHAB MATRIX). No LLM route.
   | 'sales_chat'              // AI Hub · BBF Chatbox sales-closer dialog
   | 'concierge_greeting'      // Self-serve onboarding · tier-aware BBF Lab Concierge welcome
   // ── OPUS tier · peak reasoning · safety-critical only ─────────────
@@ -67,7 +68,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   kinematic_form_score:  MODELS.SONNET,
   novel_form_correction: MODELS.SONNET,
   onboarding_interview:  MODELS.SONNET,
-  prehab_assignment:     MODELS.SONNET,
+  // prehab_assignment removed — now deterministic (see _shared/prehab-matrix.mjs).
   sales_chat:            MODELS.SONNET,
   concierge_greeting:    MODELS.SONNET,
   parq_assessment:       MODELS.OPUS,
