@@ -49,7 +49,10 @@ export type UseCase =
   | 'sales_chat'              // AI Hub · BBF Chatbox sales-closer dialog
   | 'concierge_greeting'      // Self-serve onboarding · tier-aware BBF Lab Concierge welcome
   // ── OPUS tier · peak reasoning · safety-critical only ─────────────
-  | 'parq_assessment'         // PAR-Q+ classification + cardiac routing
+  // parq_assessment — MIGRATED off the LLM to the deterministic SQL engine
+  //   (public.bbf_parq_assess · standardized PAR-Q+ 2014). No LLM route; was
+  //   never AI-classified (client-side self-attest) — this is the authoritative
+  //   server-side classifier.
   | 'wellbeing_escalation'    // ED triage / wellbeing halt
   | 'cardiac_intercept'       // Cardio routing engine
   | 'tier_upgrade_offer'      // Phase 8 · Sales Router · consistency→conversion analysis (CEO override 2026-06: Sonnet — margin protection)
@@ -71,7 +74,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   // prehab_assignment removed — now deterministic (see _shared/prehab-matrix.mjs).
   sales_chat:            MODELS.SONNET,
   concierge_greeting:    MODELS.SONNET,
-  parq_assessment:       MODELS.OPUS,
+  // parq_assessment removed — now deterministic (see public.bbf_parq_assess).
   wellbeing_escalation:  MODELS.OPUS,
   cardiac_intercept:     MODELS.OPUS,
   tier_upgrade_offer:    MODELS.SONNET, // downgraded from Opus — margin (CEO override 2026-06)
