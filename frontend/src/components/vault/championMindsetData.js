@@ -74,7 +74,7 @@ export const L10N = {
     buckets: [
       { key: 'championship-drive', label: 'Championship Drive', ids: ['kobe', 'jordan', 'arnold', 'ali', 'raylewis'] },
       { key: 'stoic-grit', label: 'Stoic Heavy Grit', ids: ['goggins', 'et', 'jocko', 'ctfletcher', 'inky', 'lesbrown', 'denzel'] },
-      { key: 'female-strength', label: 'Female Strength Grace', ids: ['serena', 'courtney'] },
+      { key: 'female-strength', label: 'Female Strength Grace', ids: ['serena', 'courtney', 'serenabelieve', 'rousey', 'shields', 'biles', 'shevchenko'] },
       { key: 'neuro-synapse', label: 'Neurological Synapse', ids: ['huberman'] },
     ],
     champions: [
@@ -319,6 +319,87 @@ export const L10N = {
         ],
         lockIn: 'Fall Forward Today',
       },
+      // ── Female Sovereign expansion · EN (CEO roster-balance, 2026-06) ──────
+      {
+        id: 'serenabelieve',
+        category: 'Unshakeable Self-Belief',
+        title: 'Serena Williams: Believe When No One Else Does',
+        youtubeId: 'J-ierLb7mWw',
+        objective:
+          'Belief is never handed to you by the scoreboard or the crowd — you decide ' +
+          'you belong, then back it every single day. When no one else sees it, see it ' +
+          'harder, and let the work make the doubters irrelevant.',
+        dictums: [
+          'You have to believe in yourself when no one else does.',
+          'Every setback is just the setup for a bigger comeback.',
+          'I earned this — luck never lifted a single trophy.',
+        ],
+        lockIn: 'Believe First',
+      },
+      {
+        id: 'rousey',
+        category: 'Earn Everything',
+        title: 'Ronda Rousey: The DNB Speech',
+        youtubeId: 'R21QgcLuBqw',
+        objective:
+          'A "do-nothing" mindset wants the result without ever paying for it — Ronda ' +
+          'built her life on the opposite. Be a do-something woman: train for a purpose, ' +
+          'earn every ounce of what your body becomes, and let nothing about you be given.',
+        dictums: [
+          'I am a do-something — every result is one I earned.',
+          'Train for a purpose, not for someone else’s approval.',
+          'The work I hide from is the work that would have built me.',
+        ],
+        lockIn: 'Be a Do-Something',
+      },
+      {
+        id: 'shields',
+        category: 'Built by Pain',
+        title: 'Claressa Shields: Built by Pain, Fueled by Fire',
+        youtubeId: 'sEk-W09lUV4',
+        objective:
+          'From the hardest streets of Flint to two Olympic golds and undisputed world ' +
+          'titles, Claressa turned every wound into fuel. The pain is not the obstacle — ' +
+          'it is the forge; refuse to be broken by what was built to break you.',
+        dictums: [
+          'I was built by pain and fueled by fire.',
+          'Nobody is coming to save you — become your own way out.',
+          'The GWOAT is made on the days no one is watching.',
+        ],
+        lockIn: 'Forge It in Fire',
+      },
+      {
+        id: 'biles',
+        category: 'Pressure & Resilience',
+        title: 'Simone Biles: The GOAT Mindset',
+        youtubeId: 'I3QXlunVNBE',
+        objective:
+          'The strongest move Simone ever made was protecting her mind under the ' +
+          'brightest lights. Real resilience knows when to push and when to step back, ' +
+          'guards mental health like a title, and returns sharper than the pressure.',
+        dictums: [
+          'Protecting your mind is strength, not surrender.',
+          'I am more than my medals — and that is why I win them.',
+          'Pressure is real; so is the courage to answer it on my terms.',
+        ],
+        lockIn: 'Protect the Mind',
+      },
+      {
+        id: 'shevchenko',
+        category: 'Proving Doubters Wrong',
+        title: 'Valentina Shevchenko: Most Dangerous Woman',
+        youtubeId: '_Viip11bSis',
+        objective:
+          'They called women weak; Valentina answered with surgical precision and ' +
+          'ice-cold composure. Master your craft so completely that doubt has nowhere to ' +
+          'stand — let discipline, not noise, write the verdict.',
+        dictums: [
+          'I answer doubt with technique, not with words.',
+          'Precision is built in the hours no one applauds.',
+          'Stay calm, stay exact — chaos belongs to the unprepared.',
+        ],
+        lockIn: 'Answer With Work',
+      },
     ],
     focusStrategies: [
       'Practice Box Breathing for four counts each to center your nervous system before starting your session.',
@@ -366,7 +447,7 @@ export const L10N = {
     buckets: [
       { key: 'championship-drive', label: 'Impulso de Campeón', ids: ['canelo', 'messi', 'pau', 'moreno'] },
       { key: 'stoic-grit', label: 'Temple Estoico', ids: ['topuria', 'nadal', 'hernandez', 'rubengonzalez', 'cala', 'victorantonio', 'najera'] },
-      { key: 'female-strength', label: 'Fuerza y Gracia Femenina', ids: ['carolina', 'mariamarin', 'guevara', 'longoria'] },
+      { key: 'female-strength', label: 'Fuerza y Gracia Femenina', ids: ['carolina', 'mariamarin', 'guevara', 'longoria', 'pajon'] },
     ],
     champions: [
       {
@@ -612,6 +693,23 @@ export const L10N = {
         ],
         lockIn: 'Entrena Como Campeona',
       },
+      // ── Expansión Sovereign femenina · ES (equilibrio de roster del CEO, 2026-06) ─
+      {
+        id: 'pajon',
+        category: 'La Reina del BMX',
+        title: 'Mariana Pajón: La Disciplina Vence a la Motivación',
+        youtubeId: 'ODml6R4XZdQ',
+        objective:
+          'Doble campeona olímpica y guerrera del BMX, Mariana volvió de una fractura ' +
+          'que habría retirado a cualquiera. La motivación va y viene; la disciplina se ' +
+          'presenta todos los días — y es ella la que te sube al podio.',
+        dictums: [
+          'La disciplina siempre le gana a la motivación.',
+          'Volví de la caída más dura porque me negué a rendirme.',
+          'Entreno cada día por Colombia y por la niña que soñó esto.',
+        ],
+        lockIn: 'Entrena Como Guerrera',
+      },
     ],
     focusStrategies: [
       'Practica la Respiración en Caja, cuatro tiempos en cada fase, para centrar tu sistema nervioso antes de empezar la sesión.',
@@ -659,7 +757,7 @@ export const L10N = {
     buckets: [
       { key: 'championship-drive', label: 'Garra de Campeão', ids: ['senna', 'pele', 'ronaldo', 'oliveira', 'aldo', 'medina'] },
       { key: 'stoic-grit', label: 'Disciplina Estoica', ids: ['anderson', 'cariani', 'franco', 'stronda', 'bottura'] },
-      { key: 'female-strength', label: 'Força e Graça Feminina', ids: ['rebeca'] },
+      { key: 'female-strength', label: 'Força e Graça Feminina', ids: ['rebeca', 'marta', 'nunes'] },
     ],
     champions: [
       {
@@ -854,6 +952,39 @@ export const L10N = {
           'Paixão pelo processo vence pressa pelo resultado.',
         ],
         lockIn: 'Domine Cada Detalhe',
+      },
+      // ── Expansão Sovereign feminina · PT (equilíbrio de roster do CEO, 2026-06) ──
+      {
+        id: 'marta',
+        category: 'Legado e Sacrifício',
+        title: 'Marta: Chorem Agora, Sorriam no Final',
+        youtubeId: 'nZm4JrKD3yI',
+        objective:
+          'Não vai existir uma Marta para sempre — o futuro do esporte depende de quem ' +
+          'vem agora. Queira mais, treine mais, cuide-se mais: o sacrifício de hoje é o ' +
+          'legado que sobrevive muito depois de você sair de campo.',
+        dictums: [
+          'Não vai ter Marta para sempre; o legado depende de vocês.',
+          'É querer mais, é treinar mais, é se cuidar mais.',
+          'Chorem no início, mas sorriam no final.',
+        ],
+        lockIn: 'Queira Mais',
+      },
+      {
+        id: 'nunes',
+        category: 'Domínio e Soberania',
+        title: 'Amanda Nunes: A Leoa Reina',
+        youtubeId: 'oNviJVP1CO4',
+        objective:
+          'A única mulher a reinar como dupla campeã na história do UFC não pediu ' +
+          'espaço — tomou. Domine o que é seu com preparo e coragem, e saia sempre pela ' +
+          'porta da frente, no topo, sem dever nada a ninguém.',
+        dictums: [
+          'Eu não espero a chance; eu tomo o que é meu.',
+          'A Leoa entra para dominar, não para participar.',
+          'Disciplina e coragem constroem o reinado.',
+        ],
+        lockIn: 'Reine Como a Leoa',
       },
     ],
     focusStrategies: [
