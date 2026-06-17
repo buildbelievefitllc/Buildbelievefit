@@ -37,7 +37,8 @@ export type UseCase =
   | 'snapshot_synthesis'      // Athlete snapshot 2-4 sentence digest
   | 'sovereign_brief'         // Founder cockpit nightly synthesis
   | 'i18n_translation'        // Linguist · language pack rotation
-  | 'forecast_1rm'            // Forecasting · linear-regression narration
+  // forecast_1rm — MIGRATED off the LLM to the deterministic engine
+  //   (_shared/forecast-engine.mjs · Epley + Brzycki + OLS regression). No LLM route.
   | 'sport_immersion_seed'    // Immersion · static sport-immersion seed
   // ── SONNET tier · vision + mid-complexity reasoning ───────────────
   | 'kinematic_form_score'    // Single-image biomechanics scoring (vision)
@@ -61,7 +62,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   snapshot_synthesis:    MODELS.HAIKU,
   sovereign_brief:       MODELS.HAIKU,
   i18n_translation:      MODELS.HAIKU,
-  forecast_1rm:          MODELS.HAIKU,
+  // forecast_1rm removed — now deterministic (see _shared/forecast-engine.mjs).
   sport_immersion_seed:  MODELS.HAIKU,
   kinematic_form_score:  MODELS.SONNET,
   novel_form_correction: MODELS.SONNET,
