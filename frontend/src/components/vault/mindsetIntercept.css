@@ -30,6 +30,19 @@
 .mi-dismiss:hover { color: var(--wht); border-color: rgba(245, 200, 0, .45); }
 .mi-dismiss:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 
-/* The inline Champion Mindset module sits in a recessed well below the banner. */
+/* The single prescribed champion card sits in a recessed well below the banner. */
 .mi-player { padding: 1rem 1.1rem 1.2rem; }
+
+/* Localized "prescription" sub-header above the lone card — a kicker that frames
+   the single pick as a targeted directive, not a browsable library. */
+.mi-rx-head { display: flex; align-items: center; gap: .6rem; margin-bottom: .85rem; }
+.mi-rx-glyph { flex: none; color: var(--yel); font-size: 1rem; line-height: 1; }
+.mi-rx-copy { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.mi-rx-label { font-family: var(--hb); font-size: .74rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold-soft); }
+.mi-rx-note { font-family: var(--bd); font-size: .82rem; font-weight: 600; color: var(--mut); line-height: 1.35; }
+
+/* Keep the lone card in a focused, centered column — not the full cinema grid —
+   so the single cover/player never balloons across a wide Hub. */
+.mi-player .cm-vcard { max-width: 560px; margin-inline: auto; }
+
 @media (max-width: 420px) { .mi-banner { flex-wrap: wrap; } }
