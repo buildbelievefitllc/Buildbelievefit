@@ -42,6 +42,10 @@ export function mapRecoveryToBiometricDay(recovery) {
     sleep_minutes: num(r.sleep_minutes),
     active_calories_burned: intOrNull(r.active_kcal),
     daily_steps: num(r.daily_steps),
+    // Subjective CNS stress (1–10) rides onto the ledger as the recovery axis (HRV
+    // pivot). Health Connect never carries it (→ null); the RPC COALESCE-preserves
+    // it so an autonomous Sleep/Steps sync can't wipe a manual stress entry.
+    stress_level: num(r.stress_level),
   };
 }
 
@@ -91,4 +95,11 @@ export function logDailyProtocol(protocolRow) {
 // Mount fetch: trailing series + the most recent stored protocol.
 export function fetchBiometricLedger(days = 28) {
   return rpc('bbf_get_biometric_ledger', { p_days: days });
+}
+
+// Smart Cardio "Complete & Sync" → ADD a session's estimated active burn to the
+// day's running total. Additive RPC (bbf_add_active_calories) — never clobbers the
+// day's sleep / steps / stress, and survives a later null-bearing autonomous sync.
+export function addActiveCalories(date, kcal) {
+  return rpc('bbf_add_active_calories', { p_date: date, p_kcal: kcal });
 }

@@ -244,10 +244,11 @@ export default function SovereignClientHub() {
   const modeMeta = (view && view.mode && MODE_META[view.mode]) || null;
   const working = busy || syncing;
 
-  // Telemetry strip — the four slots ALWAYS render once a verdict exists; a
-  // missing vital ghosts its slot instead of collapsing the grid (null-integrity).
+  // Telemetry strip — the slots ALWAYS render once a verdict exists; a missing
+  // vital ghosts its slot instead of collapsing the grid (null-integrity). CNS
+  // pivot: the HRV slot is removed (the device never writes HRV to Health Connect);
+  // Active Calories now pulls from the ledger, populated by Smart Cardio sync.
   const vitalSlots = view ? [
-    { id: 'hrv', label: `${t('sch-hrv')} (ms)`, raw: view.vitals ? view.vitals.hrv_ms : null, render: (x) => fmt(x, 1) },
     { id: 'sleep', label: t('sch-sleep'), raw: view.vitals ? view.vitals.sleep_minutes : null, render: fmtSleep },
     { id: 'burn', label: `${t('sch-burn')} (kcal)`, raw: view.vitals ? view.vitals.active_calories_burned : null, render: (x) => fmt(x) },
     { id: 'steps', label: t('sch-steps'), raw: view.vitals ? view.vitals.daily_steps : null, render: (x) => fmt(x) },

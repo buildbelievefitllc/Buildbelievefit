@@ -58,6 +58,7 @@ export type BiometricDay = {
   sleep_minutes: number | null;
   active_calories_burned: number | null;
   daily_steps: number | null;
+  stress_level?: number | null; // subjective CNS stress 1–10 (persisted recovery axis)
 };
 
 // Subjective, athlete-entered telemetry (Manual Health Input). 1–10 sliders.
@@ -366,6 +367,11 @@ export function runSovereignEngine(
   const { baseline, samples } = computeHrvBaseline(series, today.date);
   const priorDate = addDays(today.date, -1);
   const priorRow = (series || []).find((r) => r && r.date === priorDate) || null;
+  // CNS pivot: subjective stress is the recovery axis (autonomous HRV is gone — the
+  // device never writes it). Read stress from the manual arg, else the persisted
+  // ledger row for today (the post-upsert series carries the COALESCE-preserved
+  // stress, so an autonomous Sleep/Steps sync still scores off the day's last stress).
+  const todayRow = (series || []).find((r) => r && r.date === today.date) || today;
   return computeReadinessProtocol({
     date: today.date,
     hrv_ms: num(today.hrv_ms),
@@ -374,7 +380,7 @@ export function runSovereignEngine(
     baseline_hrv_ms: baseline,
     baseline_samples: samples,
     sleep_quality: manual?.sleep_quality ?? null,
-    stress_level: manual?.stress_level ?? null,
-    input_source: manual?.input_source ?? null,
+    stress_level: manual?.stress_level ?? num(todayRow.stress_level),
+    input_source: manual?.input_source ?? (num(todayRow.stress_level) !== null ? 'manual' : null),
   });
 }

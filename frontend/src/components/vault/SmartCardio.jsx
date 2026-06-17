@@ -23,8 +23,10 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { useCardio, logCardio, CARDIO_ZONES } from '../../lib/cardioApi.js';
 import { generateCardio } from '../../lib/agenticCardioApi.js';
-import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness.js';
+import { useDailyReadiness, handshakeChannel, PROTOCOL_UPDATED_EVENT } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
+import { addActiveCalories } from '../../lib/biometricsApi.js';
+import { manualToday } from '../../lib/manualBaseline.js';
 import SpotifyEmbed from './SpotifyEmbed.jsx';
 import './cardio.css';
 
@@ -478,6 +480,19 @@ function CardioConfigurator({ onLogged }) {
       const intensity = tier || ZS[effectivePacing] || undefined;
       const notes = [machine, metric].filter(Boolean).join(' · ') || undefined;
       await logCardio({ zone, duration_min: dur, intensity, notes });
+      // CNS pivot — push the session's estimated active burn to the biometric
+      // ledger so the Client Hub's Active Calories reflects a real number (the watch
+      // doesn't report active calories). Additive + best-effort: a failure here must
+      // not fail the already-logged cardio session.
+      try {
+        const kcal = Math.round(Number(crp?.kcal) || 0);
+        if (kcal > 0) {
+          await addActiveCalories(manualToday(), kcal);
+          try {
+            window.dispatchEvent(new CustomEvent(PROTOCOL_UPDATED_EVENT, { detail: { date: manualToday() } }));
+          } catch { /* no window (SSR) — non-fatal */ }
+        }
+      } catch { /* non-fatal — the cardio session is already logged */ }
       setLogMsg({ kind: 'ok', text: tr.synced });
       setPlan(null);   // clear the active protocol (Phase 3)
       onLogged?.();    // reflect the completed session in the History queue

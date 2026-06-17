@@ -55,6 +55,7 @@ export function manualToRecovery(form, dateStr = manualToday()) {
     sleep_minutes: hours === null ? null : Math.round(hours * 60),
     active_kcal: intOrNull(f.active_kcal),
     daily_steps: null,
+    stress_level: scale1to10(f.stress_level),
     recorded_at: new Date().toISOString(),
     source: 'manual_input',
   };

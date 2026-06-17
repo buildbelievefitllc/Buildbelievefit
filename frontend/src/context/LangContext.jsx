@@ -351,7 +351,7 @@ const DICT = {
   },
   'sch-mi-sleep-h': { en: 'Sleep Duration · Hours', es: 'Duración del Sueño · Horas', pt: 'Duração do Sono · Horas' },
   'sch-mi-sleep-q': { en: 'Sleep Quality', es: 'Calidad del Sueño', pt: 'Qualidade do Sono' },
-  'sch-mi-stress': { en: 'Stress Level', es: 'Nivel de Estrés', pt: 'Nível de Estresse' },
+  'sch-mi-stress': { en: 'Subjective CNS Stress', es: 'Estrés Subjetivo del SNC', pt: 'Estresse Subjetivo do SNC' },
   'sch-mi-burn': { en: 'Active Burn · kcal', es: 'Gasto Activo · kcal', pt: 'Queima Ativa · kcal' },
   'sch-mi-save': { en: 'Save Baseline', es: 'Guardar Línea Base', pt: 'Salvar Linha de Base' },
   'sch-mi-saving': { en: 'Saving…', es: 'Guardando…', pt: 'Salvando…' },
