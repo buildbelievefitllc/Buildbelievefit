@@ -226,6 +226,10 @@
   .vid-note { font-size:0.72rem; line-height:1.4; margin-top:8px; color:var(--yel); display:none; }
   .vid-note.active { display:block; }
   .vid-note.warn { color:#fb923c; }
+  /* V4 — built-in background pickers (reel + phone) */
+  .bg-swatches { flex-wrap:wrap; gap:8px; }
+  .bg-swatches .sw { width:54px; height:34px; border-radius:7px; border:2px solid rgba(255,255,255,0.14); cursor:pointer; }
+  .bg-swatches .sw.active { outline:2px solid #f5c800; outline-offset:1px; border-color:transparent; }
 </style>
 </head>
 <body>
@@ -319,6 +323,14 @@ FOR A SIGN.
         <option value="pricing">YOUR AI COACH, $9.99 (pricing)</option>
         <option value="lab">IT'S A LABORATORY (full suite)</option>
         <option value="pathfinder">3 MINUTES TO YOUR PLAN (pathfinder)</option>
+        <option value="kinematic">SEE YOUR FORM (kinematic HUD)</option>
+        <option value="voice">A COACH IN YOUR EAR (voice coach)</option>
+        <option value="peaking">PEAK ON THE RIGHT DAY (peaking)</option>
+        <option value="wearable">WEARABLE SYNC (recovery)</option>
+        <option value="comeback">THE COMEBACK (re-entry)</option>
+        <option value="trilingual">TU COACH, EN TU IDIOMA (trilingual)</option>
+        <option value="streak">THE STREAK (accountability)</option>
+        <option value="comlink">DIRECT LINE TO COACH (comlink)</option>
       </select>
     </div>
     <div class="ctl-group">
@@ -348,6 +360,9 @@ FOR A SIGN.
     </div>
     <div class="ctl-group"><label class="ctl-label">Eyebrow</label><input type="text" id="ph-eye" value="NUTRITION  •  ADAPTIVE FASTING"></div>
     <div class="ctl-group"><label class="ctl-label">Eyebrow Color</label><div class="swatches" id="ph-swatches"></div></div>
+    <div class="ctl-group"><label class="ctl-label">🎨 Background</label>
+      <div class="swatches bg-swatches" id="ph-bg-swatches"></div>
+      <div class="hint">On-brand backdrop options. "Studio Violet" is the default.</div></div>
     <div class="ctl-group"><label class="ctl-label">Headline</label>
       <textarea id="ph-hl">FUEL ON
 YOUR CLOCK</textarea></div>
@@ -402,17 +417,14 @@ YOUR CLOCK</textarea></div>
       <label class="ctl-label">🎬 Series Preset</label>
       <select id="reel-series">
         <option value="">— pick a series —</option>
-        <option value="formfix">FORM FIX (gold)</option>
-        <option value="sovereign">SOVEREIGN SUNDAY (purple)</option>
-        <option value="fuel">FUEL FILES (green)</option>
-        <option value="lab">THE LAB (cyan)</option>
-        <option value="athlete">RISING ATHLETE (blue)</option>
-        <option value="protocol">35-MIN PROTOCOL (orange)</option>
       </select>
       <div class="hint">Locks the series color + tag, loads the hook bank.</div>
     </div>
     <div class="ctl-group"><button class="spin-btn" id="reel-spin">🎰 SPIN A HOOK</button></div>
     <div class="divider"></div>
+    <div class="ctl-group"><label class="ctl-label">🎨 Built-in Background — pick one, no upload needed</label>
+      <div class="swatches bg-swatches" id="reel-bg-swatches"></div>
+      <div class="hint">On-brand cover backgrounds (applies to EXPORT IMAGE). Upload / footage still overrides.</div></div>
     <div class="ctl-group"><label class="ctl-label">Background (video frame)</label>
       <label class="upload-btn" id="reel-lbl-bg" for="reel-file-bg">UPLOAD BACKGROUND</label><input type="file" id="reel-file-bg" accept="image/*"></div>
     <div class="ctl-group"><label class="ctl-label">Logo (optional corner badge)</label>
@@ -1806,42 +1818,132 @@ const SERIES = {
     ["WHY YOUR ROWS\nAREN'T GROWING\nYOUR BACK","Stop pulling with your arms. Start here."],
     ["LOCK YOUR WRISTS.\nSAVE YOUR ELBOWS.","The grip cue nobody taught you."],
     ["THE DEADLIFT CUE\nNOBODY TAUGHT YOU","Push the floor away. Watch what happens."],
-    ["YOUR KNEES AREN'T\nTHE PROBLEM.\nYOUR HIPS ARE.","The mobility fix that changes your squat forever."]]},
+    ["YOUR KNEES AREN'T\nTHE PROBLEM.\nYOUR HIPS ARE.","The mobility fix that changes your squat forever."],
+    ["YOUR BENCH DIES\nAT THE CHEST","Tuck the elbows, find leg drive, and the bar moves."],
+    ["STOP SHRUGGING\nYOUR LATERAL\nRAISES","Lead with the elbow, cap it at shoulder line."],
+    ["YOUR PULL-UP IS\nALL ARMS","Set the scapula first — then the back finally works."],
+    ["OVERHEAD PRESS\nWRECKING YOUR\nLOWER BACK?","Brace the ribs down. Stop arching to fake the range."]]},
   sovereign:{tag:'SOVEREIGN SUNDAY', color:'#8b1abf', watch:'▶  TAKE THIS WITH YOU', hooks:[
     ["THE DOUBT\nISN'T YOURS","You inherited it. You can return it."],
     ["STACK THE DAY.\nSTACK ANOTHER.","That's the whole secret. No magic."],
     ["THEY RENT YOUR\nHOURS. YOU OWN\nYOUR BODY.","Reclaim the one thing that's yours."],
     ["THE HARDEST DAY\nIS DAY ONE","It only gets lighter from here."],
     ["BECOME THE\nANCESTOR THEY\nTHANK","Start the legacy now."],
-    ["DISCIPLINE IS\nSELF-RESPECT\nIN MOTION","Every kept promise rebuilds the trust."]]},
+    ["DISCIPLINE IS\nSELF-RESPECT\nIN MOTION","Every kept promise rebuilds the trust."],
+    ["MOTIVATION IS A\nTOURIST. DISCIPLINE\nLIVES HERE.","Build the system that runs without the mood."],
+    ["NOBODY IS\nCOMING. GOOD.","That means it was always yours to build."],
+    ["YOU DON'T FIND\nTIME. YOU\nDEFEND IT.","Put the session where it can't be moved."],
+    ["THE BODY KEEPS\nTHE PROMISES\nYOU MAKE IT","Show up enough and it starts to believe you."]]},
   fuel:{tag:'FUEL FILES', color:'#4ade80', watch:'▶  WATCH THE BREAKDOWN', hooks:[
     ["EAT MORE.\nWEIGH LESS.","Here's the math nobody shows you."],
     ["THE 10-MINUTE MEAL\nTHAT HITS YOUR\nMACROS","Smart Kitchen protocol, episode one."],
     ["YOUR 'HEALTHY'\nBREAKFAST IS\nSTALLING YOU","Three swaps that change everything."],
     ["FASTING WINDOWS,\nEXPLAINED IN\n60 SECONDS","Which one actually fits your schedule?"],
     ["PROTEIN MYTHS\nTHAT WON'T DIE","What the science actually says."],
-    ["THE GROCERY LIST\nTHAT RUNS MY\nWHOLE WEEK","Screenshot this one."]]},
+    ["THE GROCERY LIST\nTHAT RUNS MY\nWHOLE WEEK","Screenshot this one."],
+    ["HIGH PROTEIN\nON A BUDGET","Five cuts under three dollars a serving."],
+    ["THE SNACK THAT\nKILLS THE 3PM\nCRASH","Steady energy, zero sugar spike."],
+    ["MEAL PREP WITHOUT\nEATING THE SAME\nTHING TWICE","One base, five dinners. Here's how."],
+    ["YOU'RE DRINKING\nYOUR WATER\nWRONG","The hydration math your training needs."]]},
   lab:{tag:'THE LAB', color:'#00e5ff', watch:'▶  SEE IT LIVE', hooks:[
     ["WATCH THE APP\nBUILD MY WORKOUT\nIN 30 SECONDS","AI programming, in real time."],
     ["THIS IS WHAT YOUR\nMUSCLE BALANCE\nLOOKS LIKE","The Hypertrophy Heatmap, live."],
     ["POV: YOUR COACH\nKNOWS YOU NEED\nREST BEFORE YOU DO","Readiness tracking in action."],
     ["YOUR CARDIO,\nPRESCRIBED","Smart Cardio dials it in. Watch."],
     ["AUDIT YOUR OWN\nPROGRAM IN\n10 SECONDS","The Routine Interrogator. Free. No email."],
-    ["SIX FASTING\nPROTOCOLS.\nONE TAP.","Fuel on your clock."]]},
+    ["SIX FASTING\nPROTOCOLS.\nONE TAP.","Fuel on your clock."],
+    ["YOUR FORM,\nGRADED BY AI","Upload a set. Get the breakdown."],
+    ["THE APP CAUGHT MY\nWEAK POINT\nBEFORE I DID","Watch it flag the lagging muscle group."],
+    ["VOICE COACHING\nMID-SET","It talks you through the rep. Listen."],
+    ["EVERY LIFT SHIPS\nWITH A FORM\nDEMO","Tap any exercise. See it done right."]]},
   athlete:{tag:'RISING ATHLETE', color:'#38bdf8', watch:'▶  BUILD THE EDGE', hooks:[
     ["WHAT YOUR LINEMAN\nSHOULD DO IN THE\nOFF-SEASON","Starters are made in the dark months."],
     ["SPEED IS TAUGHT.\nNOT BORN.","The drills that actually build it."],
     ["THE WARM-UP THAT\nPREVENTS THE INJURY\nTHAT ENDS SEASONS","Five minutes. Every practice."],
     ["TRAIN THE POSITION.\nNOT JUST THE\nSPORT.","Position-specific work changes everything."],
     ["YOUNG ATHLETES\nDON'T NEED ADULT\nPROGRAMS","Age-calibrated development, explained."],
-    ["THE EDGE THEIR\nCOMPETITION\nDOESN'T HAVE","AI-driven development for $14.99."]]},
+    ["THE EDGE THEIR\nCOMPETITION\nDOESN'T HAVE","AI-driven development for $14.99."],
+    ["GROWTH SPURT?\nTRAIN AROUND IT,\nNOT THROUGH IT","Protect the joints while they're changing."],
+    ["JUMP HIGHER BY\nFRIDAY'S GAME","The plyometric primer that actually works."],
+    ["THE OFF-SEASON IS\nWHERE STARTERS\nARE BUILT","Do the work nobody's watching you do."],
+    ["RECRUITERS NOTICE\nTHE KID WHO\nMOVES CLEAN","Train the movement, not just the highlight."]]},
   protocol:{tag:'35-MIN PROTOCOL', color:'#fb923c', watch:'▶  RUN THE PROTOCOL', hooks:[
     ["A COMPLETE PUSH DAY\nIN 35 MINUTES","No wasted sets. No wasted time."],
     ["HOTEL ROOM.\nZERO EQUIPMENT.\nFULL SESSION.","Travel doesn't break the streak."],
     ["LUNCH-BREAK\nLEGS","In and out before the hour's up."],
     ["THE 35-MINUTE\nPULL DAY","Back and biceps, compressed."],
     ["NO GYM? NO\nPROBLEM.","The garage protocol."],
-    ["EARLY SHIFT?\nTRAIN AT 5AM\nIN 35.","The before-work blueprint."]]}
+    ["EARLY SHIFT?\nTRAIN AT 5AM\nIN 35.","The before-work blueprint."],
+    ["ONE DUMBBELL.\nFULL BODY.\n35 MINUTES.","Minimal kit, maximal return."],
+    ["THE SUNDAY\nRESET SESSION","Thirty-five minutes to start the week ahead."],
+    ["KIDS ASLEEP?\nTHAT'S YOUR\nWINDOW.","A full session in the quiet hour."],
+    ["NO TIME IS A\nPLANNING\nPROBLEM","The 35-minute template that fixes it."]]},
+  recovery:{tag:'RECOVERY MODE', color:'#2dd4bf', watch:'▶  RECOVER SMARTER', hooks:[
+    ["SORE ISN'T THE\nSAME AS\nPROGRESS","What soreness actually tells you — and doesn't."],
+    ["YOU'RE NOT\nOVERTRAINED.\nYOU'RE UNDER-\nRECOVERED.","Fix sleep and food before you cut volume."],
+    ["THE DELOAD THAT\nUNLOCKS YOUR\nNEXT PR","Back off on purpose. Come back stronger."],
+    ["SLEEP IS THE\nSUPPLEMENT\nNOBODY TAKES","Eight hours beats every powder on the shelf."],
+    ["ACTIVE RECOVERY\nISN'T DOING\nNOTHING","Low-amplitude blood flow that speeds repair."],
+    ["YOUR NERVOUS\nSYSTEM NEEDS A\nREST DAY TOO","Why heavy weeks demand light ones."],
+    ["TWO BAD NIGHTS =\nWEAKER LIFTS","The readiness drop you can actually measure."],
+    ["STOP CHASING\nTHE PUMP EVERY\nSINGLE DAY","Recovery is where the muscle is built."],
+    ["THE 10-MINUTE\nWIND-DOWN\nBEFORE BED","Park the nervous system. Sleep deeper."],
+    ["REST HARDER SO\nYOU CAN TRAIN\nHARDER","The recovery habits elite lifters protect."]]},
+  mobility:{tag:'MOBILITY MINUTE', color:'#a78bfa', watch:'▶  OPEN IT UP', hooks:[
+    ["THE 60-SECOND\nHIP OPENER\nBEFORE YOU SQUAT","Find depth without forcing it."],
+    ["TIGHT SHOULDERS\nKILL YOUR\nOVERHEAD PRESS","The wall drill that restores the range."],
+    ["YOUR ANKLES ARE\nWHY YOU CAN'T\nSQUAT DEEP","Two minutes of dorsiflexion changes it."],
+    ["FIX THE DESK\nNECK IN ONE\nMINUTE","Undo eight hours of hunching."],
+    ["T-SPINE STIFF?\nYOUR WHOLE\nPRESS SUFFERS","Open the mid-back, free the shoulders."],
+    ["MOBILITY ISN'T\nSTRETCHING","It's control through a range you can own."],
+    ["THE HIP 90/90\nEVERYONE GETS\nWRONG","Rotate from the joint, not the lower back."],
+    ["WRIST PREP THAT\nSAVES YOUR\nFRONT RACK","Thirty seconds before you clean."],
+    ["WARM THE JOINT\nBEFORE YOU\nLOAD IT","The flow that primes every session."],
+    ["STIFF HAMSTRINGS\nAREN'T SHORT —\nTHEY'RE GUARDED","Why control beats yanking on the stretch."]]},
+  mindset:{tag:'MINDSET ENGINE', color:'#c084fc', watch:'▶  RESET THE MIND', hooks:[
+    ["YOU DON'T NEED\nMORE MOTIVATION","You need a smaller first step."],
+    ["THE GOAL ISN'T\nMOTIVATION.\nIT'S MOMENTUM.","Stack two days and the third gets easier."],
+    ["MISS ONE DAY.\nNEVER MISS\nTWO.","The only consistency rule that matters."],
+    ["YOUR IDENTITY\nDRIVES YOUR\nHABITS","Stop trying to do it. Be someone who does."],
+    ["DON'T BREAK\nTHE CHAIN","Why the streak itself becomes the reward."],
+    ["MAKE IT SO SMALL\nYOU CAN'T\nSAY NO","Two minutes counts. Start there."],
+    ["DISCIPLINE IS A\nDECISION YOU\nSTOPPED RE-MAKING","Automate the choice. Remove the debate."],
+    ["YOU ARE ONE\nWORKOUT FROM A\nBETTER MOOD","The fastest mental reset you own."],
+    ["COMPARE TO WHO\nYOU WERE. NOT\nTO THEM.","The only scoreboard that helps."],
+    ["THE WORK YOU\nDODGE IS THE\nWORK YOU NEED","Lean into the lift you keep avoiding."]]},
+  nutrition:{tag:'MACRO MATH', color:'#84cc16', watch:'▶  RUN THE NUMBERS', hooks:[
+    ["PROTEIN IS THE\nMACRO YOU'RE\nUNDEREATING","Hit the number first. The rest follows."],
+    ["YOU CAN'T\nOUT-TRAIN A\nMACRO PROBLEM","Why the kitchen owns most of your results."],
+    ["CALORIES COUNT.\nSO DOES WHERE\nTHEY COME FROM.","Same number, different body. Here's why."],
+    ["THE MAINTENANCE\nNUMBER EVERYONE\nGUESSES WRONG","Find your real TDEE in two minutes."],
+    ["CARBS AREN'T THE\nENEMY OF\nYOUR ABS","Time them right and they fuel the work."],
+    ["A SURPLUS ISN'T\nA LICENSE\nTO BINGE","Lean gaining is a number, not a free-for-all."],
+    ["WEIGH IT ONCE.\nLEARN IT\nFOREVER.","Two weeks of tracking rewires your eye."],
+    ["FAT LOSS STALLED?\nIT'S NOT YOUR\nMETABOLISM","The intake creep nobody notices."],
+    ["FIBER IS THE\nMACRO YOU\nFORGOT","Why it makes the cut feel effortless."],
+    ["HIT PROTEIN\nBEFORE YOU TOUCH\nDESSERT","One rule that fixes most diets."]]},
+  prehab:{tag:'PREHAB ARCHITECT', color:'#e879f9', watch:'▶  BULLETPROOF IT', hooks:[
+    ["PREHAB ISN'T\nFOR THE INJURED","It's why the strong stay in the game."],
+    ["YOUR ROTATOR\nCUFF IS BEGGING\nFOR THIS","Two band drills before every press day."],
+    ["BULLETPROOF YOUR\nKNEES BEFORE\nTHEY GIVE OUT","The tendon work that outlasts everyone."],
+    ["THE LOWER-BACK\nINSURANCE\nPOLICY","Five minutes that saves you months."],
+    ["STRONG GLUTES FIX\nPROBLEMS YOU DIDN'T\nKNOW YOU HAD","Knees, back, hips — start at the source."],
+    ["WARM THE JOINT\nYOU'RE ABOUT\nTO PUNISH","The targeted prep most lifters skip."],
+    ["THE SEASON-ENDING\nINJURY IS\nPREVENTABLE","Train the antagonist. Balance the joint."],
+    ["TRAIN HARD.\nDON'T BREAK\nDOWN.","Build durability into every session."],
+    ["YOUR ANKLES ARE\nTHE FIRST\nDOMINO","Stabilize the base, protect the chain."],
+    ["THE FINISHER THAT\nKEEPS YOU LIFTING\nAT 50","Joint-health work that compounds for decades."]]},
+  longevity:{tag:'LONGEVITY LAB', color:'#fbbf24', watch:'▶  PLAY THE LONG GAME', hooks:[
+    ["TRAIN FOR THE\nBODY YOU WANT\nAT 70","The decisions that compound for decades."],
+    ["STRENGTH IS THE\nRETIREMENT PLAN\nNOBODY FUNDS","Muscle now is independence later."],
+    ["GRIP STRENGTH\nPREDICTS HOW\nLONG YOU LIVE","Yes, really. Here's how to build it."],
+    ["VO2 MAX IS THE\nNUMBER THAT\nMATTERS MOST","The single best marker for a long life."],
+    ["MUSCLE IS THE\nORGAN OF\nLONGEVITY","Why protein and lifting are non-negotiable."],
+    ["BALANCE TRAINING\nISN'T JUST FOR\nTHE OLD","Build it now so you never lose it."],
+    ["THE GOAL ISN'T\nA LIFESPAN.\nIT'S A HEALTHSPAN.","Add life to your years, not just years."],
+    ["BONE DENSITY IS\nBUILT UNDER\nA LOADED BAR","Lift heavy now. Stand tall forever."],
+    ["SIT LESS. CARRY\nMORE. LIVE\nLONGER.","The simplest longevity prescription there is."],
+    ["YOUR FUTURE SELF\nIS LIFTING WHAT\nYOU BUILD TODAY","Train like you intend to need it."]]}
 };
 
 const PH_PRESETS = {
@@ -1928,6 +2030,54 @@ const PH_PRESETS = {
   "color": "#4ade80",
   "hl": "3 MINUTES TO\nYOUR PERFECT\nPLAN",
   "ben": "It reads your goals, schedule, and body — then builds the right plan automatically. No cookie-cutter programs."
+ },
+ "kinematic": {
+  "eye": "KINEMATIC FORM HUD",
+  "color": "#00e5ff",
+  "hl": "SEE YOUR\nFORM IN\nREAL TIME",
+  "ben": "Your phone camera becomes a biomechanics lab — joint angles, bar path, and injury risk scored rep by rep."
+ },
+ "voice": {
+  "eye": "LIVE VOICE COACHING",
+  "color": "#f5c800",
+  "hl": "A COACH IN\nYOUR EAR,\nEVERY REP",
+  "ben": "Real-time cues, counts, and corrections spoken to you mid-set — like a trainer standing right beside the bar."
+ },
+ "peaking": {
+  "eye": "PEAKING ENGINE",
+  "color": "#fb923c",
+  "hl": "PEAK ON\nTHE RIGHT\nDAY",
+  "ben": "Taper, deload, and prime your body so your best performance lands exactly when it counts — not the week before."
+ },
+ "wearable": {
+  "eye": "WEARABLE SYNC  •  RECOVERY",
+  "color": "#2dd4bf",
+  "hl": "YOUR RECOVERY,\nIN SYNC",
+  "ben": "HRV, sleep, and strain from your wearable feed straight into your plan — training that adapts to how you actually recovered."
+ },
+ "comeback": {
+  "eye": "THE COMEBACK PROTOCOL",
+  "color": "#8b1abf",
+  "hl": "BACK FROM\nWHATEVER\nKNOCKED YOU DOWN",
+  "ben": "Injury, burnout, or life — a graded re-entry plan that rebuilds you safely instead of throwing you back to where you got hurt."
+ },
+ "trilingual": {
+  "eye": "EN  •  ES  •  PT",
+  "color": "#38bdf8",
+  "hl": "TU COACH,\nEN TU\nIDIOMA",
+  "ben": "Full coaching in English, Spanish, and Portuguese — every plan, cue, and check-in in the language you live in."
+ },
+ "streak": {
+  "eye": "ACCOUNTABILITY ENGINE",
+  "color": "#f5c800",
+  "hl": "STACK\nANOTHER\nDAY",
+  "ben": "Streaks, check-ins, and momentum tracking that keep you showing up — discipline made visible, day after day."
+ },
+ "comlink": {
+  "eye": "BBF COMLINK",
+  "color": "#c084fc",
+  "hl": "A DIRECT\nLINE TO\nYOUR COACH",
+  "ben": "Message your coach, get answers, and stay connected between sessions — real human support inside the app."
  }
 };
 
@@ -2102,7 +2252,46 @@ function buildSwatches(holder, cb){
     holder.appendChild(d);
   });
 }
+
+/* ===== Built-in on-brand backgrounds (V4 manual picker) =====
+   Purple #6a0dad is ALWAYS a soft radial GLOW, never a flat fill; gold #f5c800
+   stays an accent; base is near-black #060606. */
+const BRAND_BGS = [
+  { key:'darkstripe', label:'Dark Stripe',
+    css:'radial-gradient(circle at 50% 18%, rgba(106,13,173,0.35), transparent 60%), repeating-linear-gradient(45deg,#0a0610,#0a0610 36px,#0d0914 36px,#0d0914 72px)' },
+  { key:'purpleglow', label:'Purple Glow',
+    css:'radial-gradient(circle at 50% 38%, rgba(106,13,173,0.55), rgba(106,13,173,0.12) 45%, #060606 75%)' },
+  { key:'mesh', label:'Mesh Gradient',
+    css:'radial-gradient(circle at 18% 22%, rgba(106,13,173,0.50), transparent 45%), radial-gradient(circle at 82% 70%, rgba(245,200,0,0.18), transparent 45%), radial-gradient(circle at 60% 30%, rgba(139,26,191,0.30), transparent 50%), #070509' },
+  { key:'blueprint', label:'Blueprint Grid',
+    css:'linear-gradient(rgba(106,13,173,0.18) 1px, transparent 1px) 0 0/64px 64px, linear-gradient(90deg, rgba(106,13,173,0.18) 1px, transparent 1px) 0 0/64px 64px, radial-gradient(circle at 50% 30%, rgba(106,13,173,0.30), transparent 62%), #070509' },
+  { key:'sweep', label:'Light Sweep',
+    css:'linear-gradient(115deg, transparent 30%, rgba(245,200,0,0.10) 48%, rgba(255,255,255,0.06) 52%, transparent 70%), radial-gradient(circle at 30% 40%, rgba(106,13,173,0.40), transparent 60%), #070509' },
+  { key:'topo', label:'Topographic',
+    css:'repeating-radial-gradient(circle at 50% 45%, rgba(106,13,173,0.16) 0 2px, transparent 2px 38px), radial-gradient(circle at 50% 45%, rgba(106,13,173,0.30), transparent 70%), #070509' },
+  { key:'particle', label:'Particle Drift',
+    css:'radial-gradient(circle at 20% 30%, rgba(245,200,0,0.50) 0 2px, transparent 3px), radial-gradient(circle at 70% 60%, rgba(255,255,255,0.35) 0 2px, transparent 3px), radial-gradient(circle at 85% 25%, rgba(106,13,173,0.60) 0 3px, transparent 4px), radial-gradient(circle at 40% 80%, rgba(245,200,0,0.30) 0 2px, transparent 3px), radial-gradient(circle at 55% 35%, rgba(106,13,173,0.45), transparent 65%), #060606' },
+  { key:'nearblack', label:'Near Black',
+    css:'radial-gradient(circle at 50% 40%, rgba(106,13,173,0.18), transparent 70%), #060606' }
+];
+const PHONE_BGS = [
+  { key:'violet', label:'Studio Violet', css:'linear-gradient(180deg,#0d0118 0%, #08060a 100%)' }
+].concat(BRAND_BGS);
+function buildBgSwatches(holder, list, apply, defKey){
+  holder.innerHTML='';
+  list.forEach(b=>{
+    const d=document.createElement('div');
+    d.className='sw'+(b.key===defKey?' active':'');
+    d.style.background=b.css; d.title=b.label; d.dataset.k=b.key;
+    d.onclick=()=>{ holder.querySelectorAll('.sw').forEach(x=>x.classList.remove('active')); d.classList.add('active'); apply(b); };
+    holder.appendChild(d);
+  });
+}
+function applyReelBg(b){ $('stage-reel').style.background=b.css; $('reel-bgph').style.display='none'; $('reel-bg').style.display='none'; }
+function applyPhoneBg(b){ $('stage-phone').style.background=b.css; }
+
 buildSwatches($('ph-swatches'), c=> $('ph-out-eye').style.color=c);
+buildBgSwatches($('ph-bg-swatches'), PHONE_BGS, applyPhoneBg, 'violet');
 $('ph-preset').addEventListener('change', e=>{
   const p=PH_PRESETS[e.target.value]; if(!p) return;
   $('ph-eye').value=p.eye; $('ph-hl').value=p.hl; $('ph-benefit').value=p.ben;
@@ -2192,6 +2381,14 @@ $('sp-copycap').onclick=()=> copyText(buildSpCaption(), $('sp-copycap'));
 /* ============ REEL MODE ============ */
 let reelLastIdx=-1;
 buildSwatches($('reel-swatches'), c=>{ $('reel-out-eye').style.color=c; $('reel-out-eye').style.borderColor=c; });
+buildBgSwatches($('reel-bg-swatches'), BRAND_BGS, applyReelBg, 'darkstripe');
+applyReelBg(BRAND_BGS[0]);
+(function fillReelSeries(){
+  const sel=$('reel-series');
+  Object.keys(SERIES).forEach(k=>{
+    const o=document.createElement('option'); o.value=k; o.textContent=SERIES[k].tag; sel.appendChild(o);
+  });
+})();
 $('reel-series').addEventListener('change', e=>{
   const s=SERIES[e.target.value]; if(!s) return;
   $('reel-eye').value=s.tag+' • EP. 1'; $('reel-watch').value=s.watch;
