@@ -17,6 +17,10 @@
 //     averages drift > 8 % from current targets AND ≥ 3 logged days
 //     exist in the window, a nutrition_target_recalc proposal is STAGED
 //     to bbf_pending_review via /api/proposal-submit.
+//   · The recalc DECISION (drift threshold / min logged days) is delegated
+//     to the deterministic SQL engine public.bbf_reconcile_macro_targets
+//     (calculator-off-LLM wave 1) — this function still does the DB reads
+//     + 7-day aggregation; the engine owns the rule + proposed targets.
 //   · PRECEDENCE RULE: a wellbeing halt SUPERSEDES the recalc. If an
 //     unresolved cns_intervention proposal with metadata.wellbeing_halt
 //     exists for the user in the last 30 days, NO restrictive numeric
@@ -319,12 +323,13 @@ function extractTextBlock(content: unknown): string | null {
 //      cns_intervention proposal with metadata.wellbeing_halt exists
 //      for this user within the last 30 days.
 //   2. Pull 7-day rolling bbf_meal_logs averages.
-//   3. If ≥ 3 logged days AND drift > 8 % from current targets,
-//      stage a nutrition_target_recalc proposal via the Render proxy.
+//   3. Ask the deterministic engine (public.bbf_reconcile_macro_targets)
+//      whether to recalc (≥ 3 logged days AND drift > 8 % from current
+//      targets) and, if so, what the proposed targets are.
 // ═══════════════════════════════════════════════════════════════════════
 
 const NUTRITION_RECALC_DRIFT_THRESHOLD_PCT = 0.08;
-const NUTRITION_RECALC_MIN_LOGGED_DAYS     = 3;
+const NUTRITION_RECALC_MIN_LOGGED_DAYS     = 3;  // now enforced by bbf_reconcile_macro_targets (kept for reference)
 const NUTRITION_RECALC_WINDOW_DAYS         = 7;
 const WELLBEING_HALT_LOOKBACK_DAYS         = 30;
 
@@ -515,6 +520,54 @@ type SundayReconResult = {
   drift_pct?:   number | null;
 };
 
+// ─── Reconcile decision via the deterministic SQL engine ──────────────
+// PostgREST RPC → public.bbf_reconcile_macro_targets (8% drift / 3-day min /
+// 7-day window). The edge function still does the DB reads + 7-day aggregation
+// (the engine is pure math); the engine owns the recalc DECISION + proposed
+// targets. Returns ok:false on any transport/shape failure → caller fails closed.
+type ReconcileDecision = {
+  ok: boolean;
+  recalc: boolean;
+  reason: string;
+  drift_pct: number | null;
+  proposed: { tdee_target: number | null; macro_p: number | null; macro_c: number | null; macro_f: number | null } | null;
+  error?: string;
+};
+
+async function callReconcileEngine(
+  currentTdee: number | null, avgKcal: number, loggedDays: number,
+  avgP: number, avgC: number, avgF: number,
+  supabaseUrl: string, supabaseKey: string,
+): Promise<ReconcileDecision> {
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/bbf_reconcile_macro_targets`, {
+      method: 'POST',
+      headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        p_current_tdee: currentTdee, p_avg7_kcal: avgKcal, p_logged_days: loggedDays,
+        p_avg7_p: avgP, p_avg7_c: avgC, p_avg7_f: avgF,
+      }),
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      return { ok: false, recalc: false, reason: 'engine_http', drift_pct: null, proposed: null, error: `http_${res.status}:${txt.slice(0, 160)}` };
+    }
+    const j = await res.json().catch(() => null) as any;
+    if (!j || typeof j !== 'object' || j.ok !== true) {
+      return { ok: false, recalc: false, reason: 'engine_bad_response', drift_pct: null, proposed: null, error: 'bad_response' };
+    }
+    return {
+      ok:        true,
+      recalc:    !!j.recalc,
+      reason:    String(j.reason || ''),
+      drift_pct: (j.drift_pct === null || j.drift_pct === undefined) ? null : Number(j.drift_pct),
+      proposed:  j.proposed || null,
+    };
+  } catch (e) {
+    return { ok: false, recalc: false, reason: 'engine_threw', drift_pct: null, proposed: null, error: (e as Error).message };
+  }
+}
+
 async function runSundayReconciliationForUser(
   user: SovereignUser, supabaseUrl: string, supabaseKey: string,
   renderOrigin: string, adminToken: string,
@@ -540,9 +593,6 @@ async function runSundayReconciliationForUser(
       totalKcal += b.kcal; totalP += b.p; totalC += b.c; totalF += b.f; count++;
     }
   }
-  if (count < NUTRITION_RECALC_MIN_LOGGED_DAYS) {
-    return { uid: user.id, skipped: true, reason: `insufficient_logged_days_${count}` };
-  }
   const avg = {
     kcal:  Math.round(totalKcal / count),
     p:     Math.round(totalP / count),
@@ -550,22 +600,33 @@ async function runSundayReconciliationForUser(
     f:     Math.round(totalF / count),
     count,
   };
-  // 3. Drift check vs current target (only fire when drift exceeds threshold)
-  let driftPct: number | null = null;
-  if (state.tdee_target && state.tdee_target > 0) {
-    driftPct = Math.abs((avg.kcal - state.tdee_target) / state.tdee_target);
-    if (driftPct < NUTRITION_RECALC_DRIFT_THRESHOLD_PCT) {
-      return { uid: user.id, skipped: true, reason: 'drift_below_threshold', drift_pct: driftPct };
-    }
+  // 3. Recalc DECISION via the deterministic engine (public.bbf_reconcile_macro_targets).
+  //    Replaces the former inline count/drift logic — SAME 8% / 3-day / 7-day rule.
+  //    FAIL-CLOSED: if the RPC errors, log + skip (never stage off a failed decision).
+  const decision = await callReconcileEngine(
+    state.tdee_target, avg.kcal, count, avg.p, avg.c, avg.f, supabaseUrl, supabaseKey,
+  );
+  if (!decision.ok) {
+    console.error(`[bbf-midnight-haiku:sunday] uid=${user.id} reconcile-engine error (${decision.error}) · fail-closed skip`);
+    return { uid: user.id, skipped: true, reason: 'reconcile_engine_error' };
   }
-  // 4. Stage proposal · founder approves before any target write
+  const driftPct: number | null = decision.drift_pct;
+  if (!decision.recalc) {
+    // Preserve prior shape: drift_below_threshold carries drift_pct; insufficient does not.
+    return decision.reason === 'drift_below_threshold'
+      ? { uid: user.id, skipped: true, reason: decision.reason, drift_pct: driftPct }
+      : { uid: user.id, skipped: true, reason: decision.reason };
+  }
+  // 4. Stage proposal · founder approves before any target write. The engine's
+  //    `proposed` ≡ the 7-day averages, so `avg` (with count) drives the existing
+  //    before/after + rationale + metadata UNCHANGED.
   const staging = await stageNutritionTargetRecalcProposal(
     user.id, state, avg, renderOrigin, adminToken,
   );
   if (!staging.staged) {
     return { uid: user.id, skipped: true, reason: staging.error || 'stage_failed', drift_pct: driftPct };
   }
-  console.log(`[bbf-midnight-haiku:sunday] STAGED · uid=${user.id} · proposal_id=${staging.proposal_id} · drift=${driftPct?.toFixed(2)}`);
+  console.log(`[bbf-midnight-haiku:sunday] STAGED · uid=${user.id} · proposal_id=${staging.proposal_id} · drift=${driftPct != null ? driftPct.toFixed(2) : 'n/a'} · engine=bbf_reconcile_macro_targets`);
   return { uid: user.id, skipped: false, proposal_id: staging.proposal_id, drift_pct: driftPct };
 }
 
