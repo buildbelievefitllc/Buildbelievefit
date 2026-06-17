@@ -9,7 +9,9 @@
 // same code lights up inside the Capacitor WebView, where the native plugin is
 // auto-exposed on `window.Capacitor.Plugins.HealthConnectBridge`.
 //
-// Native side: frontend/native/health-connect/ (Kotlin + Health Connect client).
+// Native side (single compiled source of truth):
+//   frontend/android/app/src/main/java/fitness/buildbelievefit/twa/
+//   — HealthConnectManager.kt + HealthConnectBridgePlugin.kt (Health Connect client).
 
 function capacitor() {
   return (typeof window !== 'undefined' && window.Capacitor) || null;

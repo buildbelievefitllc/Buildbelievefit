@@ -68,6 +68,12 @@ export function mapRecoveryToManualPayload(recovery) {
     reading_date: r.reading_date || null,
     readiness_score: null, // Health Connect exposes no readiness score (like HealthKit)
     strain: kcalToStrain(r.active_kcal),
+    // Forward the RAW active burn too (not only the derived strain ULU) so the
+    // server persists bbf_wearable_readings.active_kcal (added in the active-energy
+    // migration) — keeping the admin analytics + ACWR dossier's active-calorie
+    // column in sync with the Client Hub biometric ledger. normalizeReading('manual')
+    // reads p.active_kcal; absent/0 stays null downstream (null-integrity).
+    active_kcal: num(r.active_kcal),
     resting_hr: num(r.resting_hr),
     hrv_ms: num(r.hrv_ms),
     sleep_minutes: num(r.sleep_minutes),
