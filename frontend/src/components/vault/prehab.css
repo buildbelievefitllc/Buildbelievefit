@@ -615,6 +615,24 @@
   .pdx-dx-chev { transition: none; }
   .pdx-dx.is-open .pdx-dx-body { animation: none; }
 }
+
+/* Respiratory coach — collapsible, parked at the bottom (secondary to the diagnostic) */
+.pde-resp-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: .7rem;
+  background: transparent; border: none; cursor: pointer; padding: 0; text-align: left; color: inherit;
+}
+.pde-resp-toggle:focus-visible { outline: 2px solid var(--yel); outline-offset: 3px; border-radius: 8px; }
+.pde-resp-head { display: flex; flex-direction: column; gap: .2rem; }
+.pde-resp-head .pde-kicker { margin: 0; }
+.pde-resp-head .pde-title { margin: 0; }
+.pde-resp-chev { color: var(--gold-soft, #f5c800); flex-shrink: 0; transition: transform .2s ease; }
+.pde-resp.is-open .pde-resp-chev { transform: rotate(180deg); }
+.pde-resp-body { margin-top: 1.1rem; animation: pdx-dx-reveal .2s ease both; }
+@media (prefers-reduced-motion: reduce) {
+  .pde-resp-chev { transition: none; }
+  .pde-resp-body { animation: none; }
+}
+
 .pdx-cues { list-style: none; margin: .9rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
 .pdx-cue {
   font-family: var(--bd); font-size: .76rem; font-weight: 700; color: #cdbef0;

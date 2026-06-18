@@ -218,6 +218,7 @@ function usePrehabStr() {
 // ── Module 1 · Respiratory Infrastructure Coach ──────────────────────────────
 function RespiratoryCoach() {
   const s = usePrehabStr().resp;
+  const [open, setOpen] = useState(false); // collapsed by default — secondary to the diagnostic, parked at the bottom
   const [duration, setDuration] = useState(30); // mission default: 30s
   const [remaining, setRemaining] = useState(30);
   const [running, setRunning] = useState(false);
@@ -252,47 +253,55 @@ function RespiratoryCoach() {
   const sub = !running ? s.subIdle : (inhaling ? s.subInhale : s.subExhale);
 
   return (
-    <section className="pde-card" aria-label={s.ariaCoach}>
-      <div className="pde-kicker">{s.kicker}</div>
-      <div className="pde-titlerow">
-        <h3 className="pde-title"><span className="pde-spark">✦</span> {s.title}</h3>
-        <span className="pde-badge">{inhaling ? s.badgeInhale : running ? s.badgeExhale : s.badgeInhale}</span>
-      </div>
-      <p className="pde-desc">{s.desc}</p>
+    <section className={`pde-card pde-resp${open ? ' is-open' : ''}`} aria-label={s.ariaCoach}>
+      {/* Collapsible header — collapsed by default so it stays out of the diagnostic's way */}
+      <button type="button" className="pde-resp-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <span className="pde-resp-head">
+          <span className="pde-kicker">{s.kicker}</span>
+          <span className="pde-title"><span className="pde-spark">✦</span> {s.title}</span>
+        </span>
+        <ChevronIcon className="pde-resp-chev" size={18} />
+      </button>
 
-      <div className="pde-orb-wrap">
-        <div className={`pde-orb ${orbState}`} role="timer" aria-label={s.secsRemaining(remaining)}>
-          <div className="pde-orb-core"><span className="pde-orb-count">{remaining}s</span></div>
-        </div>
-        <div className="pde-orb-cue"><span aria-hidden="true">🫁</span> {cue}</div>
-        <div className="pde-orb-sub">{sub}</div>
-      </div>
+      {open ? (
+        <div className="pde-resp-body">
+          <p className="pde-desc">{s.desc}</p>
 
-      <div className="pde-timer">
-        <div className="pde-timer-top">
-          <span className="pde-timer-lbl">{s.timerLabel}</span>
-          <div className="pde-presets" role="group" aria-label={s.holdDuration}>
-            {PRESETS.map((sec) => (
-              <button
-                key={sec}
-                type="button"
-                className={`pde-preset${duration === sec ? ' is-active' : ''}`}
-                aria-pressed={duration === sec}
-                onClick={() => selectPreset(sec)}
-              >
-                {s.seconds(sec)}
+          <div className="pde-orb-wrap">
+            <div className={`pde-orb ${orbState}`} role="timer" aria-label={s.secsRemaining(remaining)}>
+              <div className="pde-orb-core"><span className="pde-orb-count">{remaining}s</span></div>
+            </div>
+            <div className="pde-orb-cue"><span aria-hidden="true">🫁</span> {cue}</div>
+            <div className="pde-orb-sub">{sub}</div>
+          </div>
+
+          <div className="pde-timer">
+            <div className="pde-timer-top">
+              <span className="pde-timer-lbl">{s.timerLabel}</span>
+              <div className="pde-presets" role="group" aria-label={s.holdDuration}>
+                {PRESETS.map((sec) => (
+                  <button
+                    key={sec}
+                    type="button"
+                    className={`pde-preset${duration === sec ? ' is-active' : ''}`}
+                    aria-pressed={duration === sec}
+                    onClick={() => selectPreset(sec)}
+                  >
+                    {s.seconds(sec)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="pde-transport">
+              <button type="button" className="pde-btn pde-btn--primary" onClick={start} disabled={running || remaining === 0}>
+                {s.start}
               </button>
-            ))}
+              <button type="button" className="pde-btn" onClick={pause} disabled={!running}>{s.pause}</button>
+              <button type="button" className="pde-btn" onClick={reset}>{s.reset}</button>
+            </div>
           </div>
         </div>
-        <div className="pde-transport">
-          <button type="button" className="pde-btn pde-btn--primary" onClick={start} disabled={running || remaining === 0}>
-            {s.start}
-          </button>
-          <button type="button" className="pde-btn" onClick={pause} disabled={!running}>{s.pause}</button>
-          <button type="button" className="pde-btn" onClick={reset}>{s.reset}</button>
-        </div>
-      </div>
+      ) : null}
     </section>
   );
 }
@@ -885,9 +894,11 @@ export default function Prehab() {
   return (
     <div className="pde" data-testid="prehab-module" data-bbf-mode={handshakeChannel(readiness)}>
       <PrehabReadinessBanner readiness={readiness} />
-      <RespiratoryCoach />
       <MobilityPlanner />
       <ProtocolDeck />
+      {/* Respiratory coach parked at the bottom (collapsed) so the symptom
+          diagnostic + protocol path lead — it no longer hijacks the top. */}
+      <RespiratoryCoach />
     </div>
   );
 }
