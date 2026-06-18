@@ -14,7 +14,7 @@
 // The prior version cached ALL successful GETs, including PostgREST
 // rows. That left clients pinned to stale workout sets / dietary
 // fields / meal plans for the lifetime of the cache entry. Closed.
-var CACHE = 'bbf-v236';
+var CACHE = 'bbf-v237';
 var CORE  = ['/bbf-app.html', '/manifest.json', '/bbf-icon-192.png', '/bbf-icon-512.png', '/bbf-apple-touch-180.jpg', '/bbf-photo.jpg'];
 
 // Hosts that serve dynamic data — NEVER cache anything from these.
@@ -104,6 +104,24 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;       // POSTs bypass · writes go direct
   if (isDynamic(e.request.url)) return;         // dynamic GETs bypass · always fresh
+
+  // Studio content-creation tools are not offline-critical — serve them NETWORK-FIRST
+  // so a deploy lands on the next load instead of being pinned to a stale cached copy
+  // (the "the export fix never reached my phone" failure). Falls back to cache offline.
+  var _isStudio = false;
+  try { _isStudio = /-studio(-v\d+)?\.html$/i.test(new URL(e.request.url).pathname); } catch (_) {}
+  if (_isStudio) {
+    e.respondWith(
+      fetch(e.request).then(function(response) {
+        if (response && response.status === 200) {
+          var copy = response.clone();
+          caches.open(CACHE).then(function(c) { c.put(e.request, copy); });
+        }
+        return response;
+      }).catch(function() { return caches.match(e.request); })
+    );
+    return;
+  }
 
   e.respondWith(
     caches.match(e.request).then(function(cached) {

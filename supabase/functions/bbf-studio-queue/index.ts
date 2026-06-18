@@ -24,9 +24,12 @@
 // ACTIONS (POST JSON { action, ... }):
 //   sign     { kind:'image'|'video' }
 //            → { ok, id, kind, bucket, path, ext, contentType, uploadUrl, token }
-//   confirm  { id, kind, headline?, body?, eye_label?, cta?, caption?, color_palette? }
+//   confirm  { id, kind, now?, headline?, body?, eye_label?, cta?, caption?, color_palette? }
 //            → HEAD the just-uploaded object exists, then INSERT a status:'queued'
-//              row into the matching batch table → { ok, id, table, status }
+//              row into the matching batch table → { ok, id, table, status }.
+//            → If now:true, immediately fire the matching distributor for THIS id
+//              (image→bbf-card-distributor, video→bbf-reel-distributor) and return
+//              { ok, status:'posted'|'failed', posted_now:true, distribute }
 //
 // ROUTING (kind → bucket / ext / table) — kept in lockstep with the distributors:
 //   image → calling-cards-v1 / png / bbf_calling_cards_batch_v1  (bbf-card-distributor)
@@ -58,18 +61,20 @@ const ADMIN_TOKEN  = Deno.env.get('BBF_COACH_AGENT_TOKEN') ?? '';
 // SAME env (with the same defaults) the distributors read, so the asset the browser
 // uploads lands exactly where the distributor later looks for it.
 type Kind = 'image' | 'video';
-const ROUTING: Record<Kind, { bucket: string; ext: string; table: string; contentType: string }> = {
+const ROUTING: Record<Kind, { bucket: string; ext: string; table: string; contentType: string; distributor: string }> = {
   image: {
     bucket: Deno.env.get('BBF_CARDS_BUCKET') || 'calling-cards-v1',
     ext: (Deno.env.get('BBF_CARDS_EXT') || 'png').replace(/^\./, ''),
     table: 'bbf_calling_cards_batch_v1',
     contentType: 'image/png',
+    distributor: 'bbf-card-distributor',
   },
   video: {
     bucket: Deno.env.get('REELS_BUCKET') || 'reels-v1',
     ext: (Deno.env.get('REELS_EXT') || 'mp4').replace(/^\./, ''),
     table: 'bbf_reels_batch_v1',
     contentType: 'video/mp4',
+    distributor: 'bbf-reel-distributor',
   },
 };
 
@@ -184,6 +189,20 @@ async function insertQueuedRow(table: string, row: Record<string, unknown>): Pro
   return Array.isArray(j) && j.length ? j[0] : null;
 }
 
+// Post NOW: fire the matching distributor for this single id (server-to-server). The
+// distributor's gate is X-BBF-Admin-Token === BBF_COACH_AGENT_TOKEN, which we hold in
+// env — so the public Studio browser never needs it. Returns the distributor JSON.
+async function distributeNow(distributor: string, id: string): Promise<{ ok: boolean; status: number; result: any }> {
+  if (!ADMIN_TOKEN) return { ok: false, status: 0, result: { error: 'admin_token_unset' } };
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/${distributor}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'distribute', live: true, limit: 1, ids: [id] }),
+  });
+  const result = await r.json().catch(() => null);
+  return { ok: r.ok, status: r.status, result };
+}
+
 // ─── handler ─────────────────────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -234,6 +253,26 @@ serve(async (req) => {
         color_palette: clip(body?.color_palette, 40),
       };
       const inserted = await insertQueuedRow(cfg.table, row);
+
+      // POST NOW (optional): immediately distribute this one row via the matching
+      // distributor. The row was written 'queued' first, so the distributor's atomic
+      // claim (queued→posting→posted/failed) and flip rule apply unchanged. A reel
+      // blocks here on Meta's transcode (~60–90s) before reporting back.
+      if (body?.now === true) {
+        const dist = await distributeNow(cfg.distributor, id);
+        const summary = (dist.result && dist.result.summary) ? dist.result.summary : null;
+        const posted = !!summary && Number(summary.posted) > 0;
+        const failed = !!summary && Number(summary.failed) > 0;
+        return jsonResponse({
+          ok: dist.ok && posted,
+          id, kind, table: cfg.table,
+          status: posted ? 'posted' : (failed ? 'failed' : 'queued'),
+          posted_now: true,
+          distribute: dist.result,
+          row: inserted,
+        }, dist.ok ? 200 : 502);
+      }
+
       return jsonResponse({ ok: true, id, kind, table: cfg.table, status: 'queued', row: inserted });
     }
 

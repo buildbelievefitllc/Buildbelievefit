@@ -110,6 +110,13 @@
   .queue-note { font-size:0.72rem; line-height:1.4; margin-top:7px; }
   .queue-note.ok { color:#4ade80; }
   .queue-note.warn { color:#fb923c; }
+  /* Post-NOW button (immediate distribute) — gold fill, purple edge so it reads as the live action, distinct from the purple QUEUE */
+  .postnow-btn { display:block; width:100%; text-align:center; border-radius:8px; margin-top:8px;
+    background:linear-gradient(135deg,var(--yel),#e6b800); color:#0a0a0a;
+    border:1px solid rgba(106,13,173,0.55); font-family:var(--hb); font-size:0.9rem; letter-spacing:2px;
+    padding:13px; cursor:pointer; transition:all .15s; }
+  .postnow-btn:hover { filter:brightness(1.08); box-shadow:0 0 18px rgba(245,200,0,0.5); }
+  .postnow-btn:disabled { opacity:.4; cursor:not-allowed; filter:none; box-shadow:none; }
   .hint { font-size:0.7rem; color:var(--mut); line-height:1.45; margin-top:7px; }
   .hint b { color:var(--yel); }
   .divider { border-top:1px solid var(--gry3); margin:20px 0; }
@@ -325,6 +332,8 @@ FOR A SIGN.
       <button class="export-btn" id="cta-export">⬇ EXPORT PNG</button>
       <button class="queue-btn" id="cta-queue">📡 QUEUE THIS POST → IG/FB</button>
       <div class="queue-note" id="cta-queue-note"></div>
+      <button class="postnow-btn" id="cta-postnow">🚀 POST NOW → IG/FB</button>
+      <div class="queue-note" id="cta-postnow-note"></div>
     </div>
     <div class="divider"></div>
     <div class="ctl-group">
@@ -407,7 +416,9 @@ YOUR CLOCK</textarea></div>
       <input type="range" id="ph-lift" min="-100" max="300" value="0"></div>
     <div class="ctl-group"><button class="export-btn" id="ph-export">⬇ EXPORT 1080×1350</button>
       <button class="queue-btn" id="ph-queue">📡 QUEUE THIS POST → IG/FB</button>
-      <div class="queue-note" id="ph-queue-note"></div></div>
+      <div class="queue-note" id="ph-queue-note"></div>
+      <button class="postnow-btn" id="ph-postnow">🚀 POST NOW → IG/FB</button>
+      <div class="queue-note" id="ph-postnow-note"></div></div>
     <div class="divider"></div>
     <div class="ctl-group">
       <label class="ctl-label">📝 Auto-Caption</label>
@@ -437,7 +448,9 @@ YOUR CLOCK</textarea></div>
     <div class="ctl-group"><label class="ctl-label">CTA Line</label><input type="text" id="sp-cta" value='READY FOR YOURS?  DM "PATHFINDER"  •  buildbelievefit.fitness'></div>
     <div class="ctl-group"><button class="export-btn" id="sp-export">⬇ EXPORT 1080×1350</button>
       <button class="queue-btn" id="sp-queue">📡 QUEUE THIS POST → IG/FB</button>
-      <div class="queue-note" id="sp-queue-note"></div></div>
+      <div class="queue-note" id="sp-queue-note"></div>
+      <button class="postnow-btn" id="sp-postnow">🚀 POST NOW → IG/FB</button>
+      <div class="queue-note" id="sp-postnow-note"></div></div>
     <div class="divider"></div>
     <div class="ctl-group">
       <label class="ctl-label">📝 Auto-Caption</label>
@@ -478,13 +491,17 @@ STRAIGHT UP</textarea></div>
     <div class="ctl-group"><label class="ctl-label">Button</label><input type="text" id="reel-watch" value="▶  WATCH THE FIX"></div>
     <div class="ctl-group"><button class="export-btn" id="reel-export">⬇ EXPORT IMAGE 1080×1920</button>
       <button class="queue-btn" id="reel-queue">📡 QUEUE COVER → IG/FB</button>
-      <div class="queue-note" id="reel-queue-note"></div></div>
+      <div class="queue-note" id="reel-queue-note"></div>
+      <button class="postnow-btn" id="reel-postnow">🚀 POST COVER NOW → IG/FB</button>
+      <div class="queue-note" id="reel-postnow-note"></div></div>
     <div class="ctl-group"><button class="export-btn" id="reel-export-vid">🎬 EXPORT VIDEO</button>
       <div class="vid-progress" id="reel-vid-progress"><div class="vid-progress-bar" id="reel-vid-bar"></div></div>
       <div class="vid-note" id="reel-vid-note"></div>
       <div class="hint">Bakes the overlay onto your footage. Records up to 60s.</div>
       <button class="queue-btn" id="reel-queue-vid">📡 QUEUE REEL VIDEO → IG/FB</button>
-      <div class="queue-note" id="reel-queue-vid-note"></div></div>
+      <div class="queue-note" id="reel-queue-vid-note"></div>
+      <button class="postnow-btn" id="reel-postnow-vid">🚀 POST REEL NOW → IG/FB</button>
+      <div class="queue-note" id="reel-postnow-vid-note"></div></div>
     <div class="divider"></div>
     <div class="ctl-group">
       <label class="ctl-label">📝 Auto-Caption</label>
@@ -667,14 +684,18 @@ async function deliverBlob(blob, filename){
 }
 
 // kind:'image'|'video' · getBlob: async ()=>Blob · fields:{headline,body,eye_label,cta,caption,color_palette}
-async function queuePost(kind, fields, getBlob, btn, note){
+// now=true → POST NOW: confirm carries now:true and the server distributes this id
+// immediately (image→cards, video→reel). Default (now falsy) = QUEUE for the daily drip.
+async function queuePost(kind, fields, getBlob, btn, note, now){
+  const verb = now ? 'post' : 'queue';
   const setNote=(cls,msg)=>{ if(note){ note.className='queue-note '+cls; note.textContent=msg; } };
   const token=bbfVaultToken();
   if(!token){ setNote('warn','No admin session in THIS browser. Open the BBF Command Center on this site, sign in, then come back and try again.'); return; }
-  const orig=btn.textContent; btn.disabled=true; btn.textContent='QUEUING…'; setNote('','');
+  const orig=btn.textContent; btn.disabled=true; btn.textContent= now ? 'POSTING…' : 'QUEUING…';
+  setNote('', now ? 'Posting to IG/FB now… a reel can take ~60–90s (Meta transcode) — keep this open.' : '');
   try{
     const blob = await getBlob();
-    if(!blob || !blob.size){ setNote('warn','Nothing to queue — render the post first.'); return; }
+    if(!blob || !blob.size){ setNote('warn','Nothing to '+verb+' — render the post first.'); return; }
     // 1) mint a one-shot signed upload URL (server generates the id + path)
     const sr = await fetch(BBF_QUEUE_FN, { method:'POST', headers:bbfQHeaders(token), body:JSON.stringify({ action:'sign', kind }) });
     const sj = await sr.json().catch(()=>null);
@@ -683,14 +704,22 @@ async function queuePost(kind, fields, getBlob, btn, note){
     // 2) upload the baked asset directly to Storage via the signed URL
     const ur = await fetch(sj.uploadUrl, { method:'PUT', headers:{ 'Content-Type': sj.contentType||blob.type||'application/octet-stream', 'x-upsert':'true', apikey:BBF_SB_ANON, Authorization:'Bearer '+BBF_SB_ANON }, body:blob });
     if(!ur.ok){ setNote('warn','Asset upload failed ('+ur.status+').'); return; }
-    // 3) confirm → server verifies the asset landed, then writes the queued row
-    const cr = await fetch(BBF_QUEUE_FN, { method:'POST', headers:bbfQHeaders(token), body:JSON.stringify(Object.assign({ action:'confirm', id:sj.id, kind }, fields)) });
+    // 3) confirm → server verifies the asset landed, writes the row, and (now) distributes it
+    const cr = await fetch(BBF_QUEUE_FN, { method:'POST', headers:bbfQHeaders(token), body:JSON.stringify(Object.assign({ action:'confirm', id:sj.id, kind, now:!!now }, fields)) });
     const cj = await cr.json().catch(()=>null);
-    if(!cr.ok || !cj || !cj.ok){ setNote('warn','Queue failed ('+((cj&&cj.error)||cr.status)+').'); return; }
-    setNote('ok','✓ Queued for IG/FB — posts on the next daily drip.');
-    btn.textContent='✓ QUEUED'; setTimeout(()=>{ btn.textContent=orig; }, 2400);
-  }catch(e){ setNote('warn','Queue error: '+((e&&e.message)||e)); }
-  finally{ btn.disabled=false; if(btn.textContent==='QUEUING…') btn.textContent=orig; }
+    if(now){
+      if(cj && cj.status==='posted'){ setNote('ok','✓ Posted to IG/FB now.'); btn.textContent='✓ POSTED'; setTimeout(()=>{ btn.textContent=orig; }, 2600); }
+      else {
+        const why = (cj && (cj.error || (cj.distribute && JSON.stringify(cj.distribute).slice(0,160)))) || cr.status;
+        setNote('warn','Post failed ('+why+'). The asset is saved — try QUEUE, or retry from Safari if the clip recorded as WebM.');
+      }
+    } else {
+      if(!cr.ok || !cj || !cj.ok){ setNote('warn','Queue failed ('+((cj&&cj.error)||cr.status)+').'); return; }
+      setNote('ok','✓ Queued for IG/FB — posts on the next daily drip.');
+      btn.textContent='✓ QUEUED'; setTimeout(()=>{ btn.textContent=orig; }, 2400);
+    }
+  }catch(e){ setNote('warn',(now?'Post':'Queue')+' error: '+((e&&e.message)||e)); }
+  finally{ btn.disabled=false; if(btn.textContent==='QUEUING…'||btn.textContent==='POSTING…') btn.textContent=orig; }
 }
 
 /* ===== SHARED DATA ===== */
@@ -2767,6 +2796,32 @@ $('reel-queue-vid').onclick=()=>{
 (function gateReelVideoQueue(){ const b=$('reel-queue-vid'), n=$('reel-queue-vid-note');
   if(b && !reelMp4Capable()){ b.disabled=true; n.className='queue-note warn';
     n.textContent='Video-queue needs MP4 recording (Safari / recent iPhone). This browser only makes WebM, which IG/FB reject — queue the cover image here, or record the reel on Safari.'; } })();
+
+/* ===== POST NOW (immediate distribute — reuses the queue pipeline with now=true) =====
+   Same sign→upload→confirm flow as QUEUE; confirm carries now:true so the server fires
+   the matching distributor for this one id right away (image→cards, video→reel). A reel
+   waits on Meta's transcode (~60–90s) before it reports posted/failed. */
+$('cta-postnow').onclick=()=> queuePost('image',
+  { headline:$('cta-hl').value.replace(/\*/g,''), body:$('cta-body').value.replace(/\*\*/g,''),
+    cta:$('cta-btn').value, eye_label:$('cta-eye').value, caption:buildCtaCaption(), color_palette:ctaPal },
+  ()=> bakeStageBlob('stage-cta',1080,ctaFmt==='story'?1920:1350), $('cta-postnow'), $('cta-postnow-note'), true);
+$('ph-postnow').onclick=()=> queuePost('image',
+  { headline:$('ph-hl').value, body:$('ph-benefit').value, eye_label:$('ph-eye').value, caption:buildPhCaption() },
+  ()=> bakeStageBlob('stage-phone',1080,1350), $('ph-postnow'), $('ph-postnow-note'), true);
+$('sp-postnow').onclick=()=> queuePost('image',
+  { headline:$('sp-fhead').value, body:($('sp-l1').value+' '+$('sp-l2').value).trim(),
+    eye_label:$('sp-name').value, cta:$('sp-cta').value, caption:buildSpCaption() },
+  ()=> bakeStageBlob('stage-spot',1080,1350), $('sp-postnow'), $('sp-postnow-note'), true);
+$('reel-postnow').onclick=()=> queuePost('image', reelQueueFields(), reelCoverBlob, $('reel-postnow'), $('reel-postnow-note'), true);
+$('reel-postnow-vid').onclick=()=>{
+  const note=$('reel-postnow-vid-note');
+  if(!reelHasVideo){ note.className='queue-note warn'; note.textContent='Upload reel footage first, then post the video.'; return; }
+  if(!reelMp4Capable()){ note.className='queue-note warn'; note.textContent='This browser records WebM, which IG/FB reject. Post the reel from Safari / a recent iPhone (records MP4).'; return; }
+  queuePost('video', reelQueueFields(), async ()=>{ const r=await recordReel(false); return r ? r.blob : null; }, $('reel-postnow-vid'), note, true);
+};
+(function gateReelVideoPostNow(){ const b=$('reel-postnow-vid'), n=$('reel-postnow-vid-note');
+  if(b && !reelMp4Capable()){ b.disabled=true; n.className='queue-note warn';
+    n.textContent='Video post-now needs MP4 recording (Safari / recent iPhone). This browser only makes WebM, which IG/FB reject.'; } })();
 
 /* ===== INIT ===== */
 (async ()=>{
