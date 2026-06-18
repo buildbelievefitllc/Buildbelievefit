@@ -21,7 +21,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
-import { useCardio, logCardio, CARDIO_ZONES } from '../../lib/cardioApi.js';
+import { useCardio, logCardio, CARDIO_ZONES, fetchCardioLibrary, setActiveCardioProtocol } from '../../lib/cardioApi.js';
 import { generateCardio } from '../../lib/agenticCardioApi.js';
 import { useDailyReadiness, handshakeChannel, PROTOCOL_UPDATED_EVENT } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
@@ -77,6 +77,15 @@ const CARDIO_STR = {
     phNotes: 'How it felt, splits, terrain…', logBtn: 'Log Session →', logging: 'Logging…',
     errDur: 'Enter a duration between 1 and 600 minutes.', logged: 'Session logged. Conditioning stays honest.',
     errLog: 'Could not log session. Please try again.',
+    // Cardio preset library (machine protocols — coach-prescribed)
+    presetsKicker: 'Coach-Prescribed · Akeem',
+    presetsTitle: 'Cardio Preset Library',
+    presetsSub: 'Machine-by-machine protocols, named and dialed in by Coach Akeem. Pick one to set it as your active protocol — your session, calories, and check-in flow take over from there.',
+    presetMachine: 'Machine',
+    presetSetActive: 'Set as Active Protocol',
+    presetSetting: 'Setting…',
+    presetSet: (title) => `“${title}” is now your active protocol.`,
+    presetErr: 'Could not set this protocol.',
     // CNS telemetry — the daily auto-regulation payload driving the cardio lockout.
     rdyKicker: 'CNS Telemetry · Daily Auto-Regulation',
     rdyScore: 'Sovereign Readiness',
@@ -133,6 +142,14 @@ const CARDIO_STR = {
     logSession: 'Registrar una Sesión', zone: 'Zona', durationMin: 'Duración (min)', avgHr: 'FC Prom (lpm)', notes: 'Notas',
     phNotes: 'Cómo se sintió, parciales, terreno…', logBtn: 'Registrar Sesión →', logging: 'Registrando…',
     errDur: 'Ingresa una duración entre 1 y 600 minutos.', logged: 'Sesión registrada. El acondicionamiento sigue honesto.',
+    presetsKicker: 'Prescrito por el Coach · Akeem',
+    presetsTitle: 'Biblioteca de Presets de Cardio',
+    presetsSub: 'Protocolos máquina por máquina, nombrados y afinados por el Coach Akeem. Elige uno para fijarlo como tu protocolo activo — la sesión, las calorías y el registro toman el control desde ahí.',
+    presetMachine: 'Máquina',
+    presetSetActive: 'Fijar como Protocolo Activo',
+    presetSetting: 'Fijando…',
+    presetSet: (title) => `“${title}” es ahora tu protocolo activo.`,
+    presetErr: 'No se pudo fijar este protocolo.',
     errLog: 'No se pudo registrar la sesión. Inténtalo de nuevo.',
     rdyKicker: 'Telemetría del SNC · Autorregulación Diaria',
     rdyScore: 'Preparación Soberana',
@@ -189,6 +206,14 @@ const CARDIO_STR = {
     logSession: 'Registrar uma Sessão', zone: 'Zona', durationMin: 'Duração (min)', avgHr: 'FC Méd (bpm)', notes: 'Notas',
     phNotes: 'Como se sentiu, parciais, terreno…', logBtn: 'Registrar Sessão →', logging: 'Registrando…',
     errDur: 'Informe uma duração entre 1 e 600 minutos.', logged: 'Sessão registrada. O condicionamento segue honesto.',
+    presetsKicker: 'Prescrito pelo Coach · Akeem',
+    presetsTitle: 'Biblioteca de Presets de Cardio',
+    presetsSub: 'Protocolos máquina a máquina, nomeados e ajustados pelo Coach Akeem. Escolha um para defini-lo como seu protocolo ativo — a sessão, as calorias e o check-in assumem a partir daí.',
+    presetMachine: 'Máquina',
+    presetSetActive: 'Definir como Protocolo Ativo',
+    presetSetting: 'Definindo…',
+    presetSet: (title) => `“${title}” agora é seu protocolo ativo.`,
+    presetErr: 'Não foi possível definir este protocolo.',
     errLog: 'Não foi possível registrar a sessão. Tente novamente.',
     rdyKicker: 'Telemetria do SNC · Autorregulação Diária',
     rdyScore: 'Prontidão Soberana',
@@ -286,6 +311,11 @@ export default function SmartCardio() {
           apparatus grid) wired straight into the live bbf-agentic-cardio engine.
           onLogged refreshes the History queue after a one-tap "Complete & Sync". */}
       <CardioConfigurator onLogged={refetch} />
+
+      {/* Machine cardio PRESET LIBRARY — pick a coach-prescribed protocol → sets it
+          as the athlete's active protocol via the existing token-gated write. The
+          configurator + bbf-agentic-cardio auto-gen above are untouched. */}
+      <CardioPresets onAssigned={refetch} />
 
       {/* Zone legend */}
       <div className="bbf-cardio__zones">
@@ -1097,6 +1127,127 @@ function RespiratorySync({ breath, accent }) {
         {running ? tr.pausePacer2 : tr.startPacer}
       </button>
     </div>
+  );
+}
+
+// ── Cardio Preset Library — machine selector → coach-prescribed protocol list →
+// "Set as active protocol." Reads the PUBLIC bbf_cardio_protocol_library (anon RLS)
+// and, on pick, writes via the athlete self-serve token-gated RPC (own rows only).
+// The existing session → calorie → check-in flow is unchanged; this only sets the
+// active protocol (is_active). Empty/no-catalog → renders nothing.
+function CardioPresets({ onAssigned }) {
+  const { lang } = useLang();
+  const tr = CARDIO_STR[lang] || CARDIO_STR.en;
+  const [library, setLibrary] = useState([]);
+  const [machine, setMachine] = useState('');
+  const [busyId, setBusyId] = useState(null);
+  const [msg, setMsg] = useState(null); // { kind:'ok'|'err', text } | null
+
+  // Load the public catalog once. State is set only inside the promise callback
+  // (never synchronously in the effect body) — clear of react-hooks/set-state-in-effect.
+  useEffect(() => {
+    let cancelled = false;
+    fetchCardioLibrary()
+      .then((rows) => {
+        if (cancelled) return;
+        setLibrary(rows);
+        if (rows.length) setMachine((m) => m || rows[0].machine);
+      })
+      .catch(() => { if (!cancelled) setLibrary([]); });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (!library.length) return null; // nothing until the catalog loads
+
+  const machines = [...new Set(library.map((r) => r.machine))];
+  const activeMachine = machine || machines[0];
+  const list = library.filter((r) => r.machine === activeMachine);
+
+  async function pick(p) {
+    if (busyId) return;
+    setBusyId(p.id);
+    setMsg(null);
+    try {
+      // Copy title/zone/duration/intensity/detail into the EXISTING active-protocol write.
+      await setActiveCardioProtocol({
+        title: p.title,
+        zone: p.zone,
+        target_duration_min: p.target_duration_min,
+        intensity: p.intensity,
+        protocol_detail: p.protocol_detail,
+      });
+      setMsg({ kind: 'ok', text: tr.presetSet(p.title) });
+      onAssigned?.(); // refetch → the picked Rx appears in Active Protocols
+    } catch (e) {
+      setMsg({ kind: 'err', text: (e && e.message) || tr.presetErr });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <section className="bbf-presets" data-testid="cardio-presets">
+      <div className="bbf-presets__head">
+        <span className="bbf-presets__kicker">{tr.presetsKicker}</span>
+        <h3 className="bbf-presets__title">{tr.presetsTitle}</h3>
+        <p className="bbf-presets__sub">{tr.presetsSub}</p>
+      </div>
+
+      <div className="bbf-presets__machines" role="tablist" aria-label={tr.presetMachine}>
+        {machines.map((m) => (
+          <button
+            key={m}
+            type="button"
+            role="tab"
+            aria-selected={m === activeMachine}
+            className={`bbf-presets__machine${m === activeMachine ? ' is-active' : ''}`}
+            onClick={() => setMachine(m)}
+            data-testid="cardio-preset-machine"
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      <div className="bbf-presets__list">
+        {list.map((p) => {
+          const z = zoneMeta(p.zone);
+          return (
+            <article key={p.id} className="bbf-presets__card" data-zone={p.zone} data-testid="cardio-preset-card">
+              <div className="bbf-presets__card-top">
+                <span className="bbf-presets__card-title">{p.title}</span>
+                <span className="bbf-cardio__pill" style={{ color: z.accent }}>{z.label}</span>
+              </div>
+              <div className="bbf-presets__card-meta">
+                <span>{p.target_duration_min} {tr.min}</span>
+                {p.intensity ? <span> · {p.intensity}</span> : null}
+              </div>
+              {p.protocol_detail ? <p className="bbf-presets__card-detail">{p.protocol_detail}</p> : null}
+              <button
+                type="button"
+                className="bbf-presets__set"
+                onClick={() => pick(p)}
+                disabled={busyId === p.id}
+                data-testid="cardio-preset-set"
+              >
+                {busyId === p.id ? tr.presetSetting : tr.presetSetActive}
+              </button>
+            </article>
+          );
+        })}
+      </div>
+
+      {msg ? (
+        <div
+          className={`bbf-cardio__msg bbf-cardio__msg--${msg.kind}`}
+          role="status"
+          data-testid="cardio-preset-msg"
+          style={{ display: 'block', marginTop: '.7rem' }}
+        >
+          {msg.text}
+        </div>
+      ) : null}
+    </section>
   );
 }
 

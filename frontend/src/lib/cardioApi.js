@@ -92,3 +92,42 @@ export function useCardio() {
 
   return { data, isLoading, error, refetch };
 }
+
+// ── Machine preset library (additive — plugs into the existing flow) ─────────
+// PUBLIC, read-only catalog (bbf_cardio_protocol_library). RLS allows anon SELECT
+// of active rows, so this reads the table directly (no RPC). Grouped by machine →
+// sort in the picker.
+export async function fetchCardioLibrary() {
+  const { data, error } = await supabase
+    .from('bbf_cardio_protocol_library')
+    .select('id, machine, title, zone, target_duration_min, intensity, protocol_detail, sort')
+    .eq('active', true)
+    .order('machine', { ascending: true })
+    .order('sort', { ascending: true });
+  if (error) throw new Error(`Could not load cardio presets — ${error.message || 'library error'}.`);
+  return Array.isArray(data) ? data : [];
+}
+
+// Pick a preset → set it as the athlete's OWN active protocol. Same vault-token gate
+// as logCardio (token → caller's uid; own rows only): bbf_set_active_cardio_protocol
+// supersedes the prior active same-zone Rx and inserts the picked protocol. The
+// existing session → calorie → check-in flow then takes over unchanged.
+export async function setActiveCardioProtocol(protocol) {
+  const token = getStoredVaultToken();
+  if (!token) throw new Error('Your session has expired — sign in again to set a protocol.');
+
+  const { data, error } = await supabase.rpc('bbf_set_active_cardio_protocol', {
+    p_session_token: token,
+    p_protocol: protocol,
+  });
+  if (error) throw new Error(`Could not set the protocol — ${error.message || 'cardio RPC error'}.`);
+  if (!data?.ok) {
+    const map = {
+      invalid_session: 'Your session has expired — sign in again to set a protocol.',
+      invalid_zone: 'This preset has an invalid training zone.',
+      invalid_duration: 'This preset has an invalid duration.',
+    };
+    throw new Error(map[data?.error] || 'Could not set this protocol. Please try again.');
+  }
+  return { protocolId: data.protocol_id };
+}
