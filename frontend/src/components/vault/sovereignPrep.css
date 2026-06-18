@@ -1,0 +1,109 @@
+/* src/components/vault/sovereignPrep.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Sovereign Prep overlay — LOCKED brand (Bebas/Barlow, purple/gold; matte black
+   is surface only). Tab-deck layout (§10), never a tall vertical funnel. */
+
+.sp-scrim {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(.75rem, 3vw, 2rem);
+  background: rgba(9, 6, 14, .82); backdrop-filter: blur(6px);
+  animation: sp-fade .18s ease;
+}
+@keyframes sp-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.sp-shell {
+  width: min(880px, 100%); max-height: 92vh; display: flex; flex-direction: column;
+  background: var(--panel-grad, linear-gradient(168deg, rgba(26, 11, 46, .96), rgba(9, 6, 14, .98)));
+  border: 1px solid var(--panel-edge, rgba(106, 13, 173, .26));
+  border-radius: 18px; box-shadow: 0 40px 90px -30px rgba(0, 0, 0, .8);
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.sp-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+  padding: 1.2rem 1.4rem 1rem; border-bottom: 1px solid var(--panel-edge, rgba(106, 13, 173, .26));
+}
+.sp-kicker { font-family: var(--hb); font-size: .72rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+.sp-title { font-family: var(--hb); font-size: clamp(1.6rem, 4vw, 2.2rem); letter-spacing: 1.5px; margin: .15rem 0 0; color: var(--wht, #f9f5ff); }
+.sp-x {
+  flex: none; width: 38px; height: 38px; border-radius: 10px; cursor: pointer;
+  font-size: 1.5rem; line-height: 1; color: var(--wht, #f9f5ff);
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--panel-edge, rgba(106, 13, 173, .26));
+  transition: background .15s ease, border-color .15s ease;
+}
+.sp-x:hover { background: rgba(245, 200, 0, .08); border-color: rgba(245, 200, 0, .5); }
+.sp-x:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
+
+/* ── Loading / error states ── */
+.sp-state { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 3.5rem 1.5rem; text-align: center; color: var(--wht, #f9f5ff); }
+.sp-state p { font-family: var(--bd, 'Barlow Condensed'); font-size: 1.05rem; margin: 0; }
+.sp-state--error p { color: #ff9a6e; }
+.sp-spinner {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 3px solid rgba(139, 26, 191, .25); border-top-color: var(--yel, #f5c800);
+  animation: sp-spin .8s linear infinite;
+}
+@keyframes sp-spin { to { transform: rotate(360deg); } }
+.sp-retry {
+  font-family: var(--hb); font-size: .8rem; letter-spacing: 2px; text-transform: uppercase;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60));
+  border: 1px solid var(--yel, #f5c800); border-radius: 10px; padding: .65rem 1.4rem; cursor: pointer;
+}
+.sp-retry:hover { filter: brightness(1.06); }
+
+/* ── Tab deck ── */
+.sp-tabs { display: flex; gap: .5rem; padding: 1rem 1.4rem 0; flex-wrap: wrap; }
+.sp-tab {
+  flex: 1 1 0; min-width: 150px; display: flex; align-items: center; gap: .6rem; text-align: left;
+  padding: .7rem .85rem; cursor: pointer; border-radius: 12px;
+  background: rgba(255, 255, 255, .03); border: 1px solid var(--panel-edge, rgba(106, 13, 173, .26));
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.sp-tab:hover { border-color: rgba(245, 200, 0, .4); transform: translateY(-1px); }
+.sp-tab:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
+.sp-tab.is-active { background: linear-gradient(135deg, rgba(74, 8, 128, .55), rgba(139, 26, 191, .35)); border-color: var(--purl, #8b1abf); }
+.sp-tab-idx { font-family: var(--display, 'Anton'); font-size: 1.15rem; color: var(--gold-soft, #f5cf60); opacity: .8; }
+.sp-tab.is-active .sp-tab-idx { color: var(--yel, #f5c800); opacity: 1; }
+.sp-tab-text { display: flex; flex-direction: column; line-height: 1.1; }
+.sp-tab-label { font-family: var(--hb); font-size: .95rem; letter-spacing: 1px; text-transform: uppercase; color: var(--wht, #f9f5ff); }
+.sp-tab-sub { font-family: var(--bd, 'Barlow Condensed'); font-size: .72rem; letter-spacing: .5px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); opacity: .75; }
+
+/* ── Panel + cards ── */
+.sp-panel { padding: 1.1rem 1.4rem 1.5rem; overflow-y: auto; }
+.sp-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .85rem; }
+.sp-empty { font-family: var(--bd, 'Barlow Condensed'); color: var(--wht, #f9f5ff); opacity: .7; text-align: center; padding: 2rem 0; }
+
+.sp-card {
+  padding: 1rem 1.1rem; border-radius: 14px;
+  background: rgba(9, 6, 14, .55); border: 1px solid var(--panel-edge, rgba(106, 13, 173, .26));
+}
+.sp-card.is-essential {
+  border-color: var(--yel, #f5c800);
+  background: linear-gradient(135deg, rgba(74, 8, 128, .35), rgba(9, 6, 14, .6));
+  box-shadow: inset 0 0 0 1px rgba(245, 200, 0, .25), 0 10px 26px -16px rgba(245, 200, 0, .4);
+}
+.sp-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.sp-card-titles { display: flex; flex-direction: column; gap: .15rem; }
+.sp-card-name { font-family: var(--hb); font-size: 1.1rem; letter-spacing: .5px; color: var(--wht, #f9f5ff); }
+.sp-card-meta { font-family: var(--bd, 'Barlow Condensed'); font-size: .78rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); opacity: .8; }
+.sp-tag {
+  flex: none; font-family: var(--hb); font-size: .68rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60));
+  border-radius: 999px; padding: .25rem .6rem;
+}
+
+.sp-rx { display: flex; flex-wrap: wrap; gap: .4rem .85rem; margin: .65rem 0 .15rem; }
+.sp-rx-seg { font-family: var(--bd, 'Barlow Condensed'); font-size: .85rem; color: var(--wht, #f9f5ff); }
+.sp-rx-seg em { font-style: normal; font-family: var(--hb); font-size: .72rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); margin-right: .25rem; }
+
+.sp-cues { margin: .6rem 0 0; display: grid; gap: .4rem; }
+.sp-cue { display: grid; grid-template-columns: 92px 1fr; gap: .6rem; align-items: baseline; }
+.sp-cue dt { font-family: var(--hb); font-size: .7rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--purl, #8b1abf); filter: brightness(1.5); }
+.sp-cue dd { margin: 0; font-family: var(--bd, 'Barlow Condensed'); font-size: .92rem; line-height: 1.4; color: var(--wht, #f9f5ff); opacity: .92; }
+
+@media (max-width: 540px) {
+  .sp-cue { grid-template-columns: 1fr; gap: .1rem; }
+  .sp-tab { min-width: 0; flex-basis: 100%; }
+}

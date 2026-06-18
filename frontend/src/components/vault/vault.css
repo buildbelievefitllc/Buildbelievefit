@@ -850,6 +850,16 @@
 }
 .cv-directive-alt:hover { border-color: rgba(245, 200, 0, .5); color: var(--wht); background: rgba(245, 200, 0, .05); }
 .cv-directive-alt:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+/* Sovereign Prep — brand-purple sibling of the gold execute affordance. */
+.cv-directive-prep {
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--yel); background: linear-gradient(135deg, var(--purd) 0%, var(--purl) 100%);
+  border: 1px solid var(--purl); border-radius: 10px; padding: .7rem 1.3rem; cursor: pointer;
+  transition: filter .15s ease, transform .1s ease, box-shadow .15s ease;
+}
+.cv-directive-prep:hover { filter: brightness(1.12); transform: translateY(-1px); box-shadow: 0 12px 28px -14px rgba(139, 26, 191, .6); }
+.cv-directive-prep:active { transform: translateY(0); }
+.cv-directive-prep:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 .cv-directive-warn {
   margin: .75rem 0 0; font-family: var(--bd); font-size: .85rem; font-weight: 600; line-height: 1.45;
   color: #ffb14d; border-left: 3px solid rgba(255, 177, 77, .55); padding-left: .7rem;

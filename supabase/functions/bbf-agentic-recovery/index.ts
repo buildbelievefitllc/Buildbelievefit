@@ -8,10 +8,16 @@
 //   • prep_drills        ← dynamic mobility, emphasis on TODAY's focus groups
 //   • foam_rolling       ← full soft-tissue protocol (no filter, no emphasis)
 //
-// AUTH: deploy with verify_jwt = true (`auth: 'user'`). The platform rejects a
-// missing/expired JWT before we run; we additionally resolve the bearer token to
-// a verified user (GET /auth/v1/user) so a malformed token returns a clean 401
-// and so the response is tied to the real caller.
+// AUTH: BBF standard — deploy with verify_jwt = false. The Supabase gateway
+// routes the call on the public anon key (attached automatically by
+// supabase.functions.invoke); the REAL identity boundary is the 24h vault session
+// bearer (`vault_token`, body or X-BBF-Vault-Token header) resolved SERVER-SIDE
+// through the shared entitlement gate (_bbf_uid_from_vault_token). The
+// caller-supplied user_id is NEVER trusted for identity — we mirror it back from
+// the resolved session. (BBF does not use Supabase GoTrue user JWTs; auth is a
+// custom username+PIN → vault_token, same as bbf-agentic-cardio / -prehab.)
+// Recovery is foundational maintenance, so we resolve identity only (any valid
+// vault session) rather than tier-gate it.
 //
 // LIBRARY SOURCE: the full 53-entry library is EMBEDDED below as
 // BBF_RECOVERY_LIBRARY (build brief: "embed this into the edge function as a
@@ -23,10 +29,11 @@
 //   { recovery_stretches[], prep_drills[], foam_rolling[],
 //     meta: { user_id, generated_at, context: 'pre_workout' } }
 //
-// FAILURE POSTURE: 400 malformed input · 401 invalid JWT · 405 wrong method ·
-// 500 unexpected. Telemetry (bbf_agent_runs) is best-effort and never blocks.
+// FAILURE POSTURE: 400 malformed input · 401 no/invalid session · 403 locked ·
+// 405 wrong method · 500 unexpected. Telemetry (bbf_agent_runs) is best-effort.
 
 import { serve } from 'https://deno.land/std@0.208.0/http/server.ts';
+import { resolveEntitlement } from '../_shared/entitlement-gate.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -763,28 +770,6 @@ function mapFoam(entries: FoamEntry[]) {
   }));
 }
 
-// Resolve the bearer token to a verified Supabase user. Returns the user id, or
-// null when the token is missing/invalid (→ caller responds 401). Best-effort on
-// config/network errors: returns undefined so we don't hard-fail an authed call
-// the platform's verify_jwt already vetted.
-async function resolveUser(req: Request, supabaseUrl: string, anonKey: string): Promise<string | null | undefined> {
-  const authz = req.headers.get('authorization') || '';
-  const token = authz.toLowerCase().startsWith('bearer ') ? authz.slice(7).trim() : '';
-  if (!token) return null;
-  try {
-    const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: { apikey: anonKey, Authorization: `Bearer ${token}` },
-    });
-    if (res.status === 401 || res.status === 403) return null;
-    if (!res.ok) return undefined; // unexpected upstream — don't block
-    const user = await res.json();
-    return (user && typeof user.id === 'string') ? user.id : null;
-  } catch (e) {
-    console.warn(`[bbf-agentic-recovery] auth resolve threw (non-fatal): ${(e as Error).message}`);
-    return undefined;
-  }
-}
-
 // Best-effort run log to bbf_agent_runs. NEVER throws, NEVER blocks. We log the
 // request *shape* (counts + group lists) but NOT the full library (size).
 async function logRun(
@@ -838,9 +823,10 @@ serve(async (req: Request) => {
 
   const { user_id, yesterday_muscle_groups, today_muscle_groups, recovery_library } = payload;
 
-  // ── Validate input shape (400) ──
-  if (typeof user_id !== 'string' || !user_id.trim()) {
-    return jsonResponse({ error: 'invalid_input', detail: 'user_id (string) is required.' }, 400);
+  // ── Validate input shape (400) ── (user_id is optional/advisory — identity is
+  // resolved from the vault session below, never trusted from the body.)
+  if (user_id !== undefined && typeof user_id !== 'string') {
+    return jsonResponse({ error: 'invalid_input', detail: 'user_id, when present, must be a string.' }, 400);
   }
   if (yesterday_muscle_groups !== undefined && !Array.isArray(yesterday_muscle_groups)) {
     return jsonResponse({ error: 'invalid_input', detail: 'yesterday_muscle_groups must be an array.' }, 400);
@@ -849,19 +835,18 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'invalid_input', detail: 'today_muscle_groups must be an array.' }, 400);
   }
 
-  // ── Authenticate the caller (401) ──
-  // verify_jwt=true means the platform already vetted the JWT; we additionally
-  // resolve it to a verified user id for the response + audit. null → invalid.
-  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-    const resolved = await resolveUser(req, SUPABASE_URL, SUPABASE_ANON_KEY);
-    if (resolved === null) {
-      return jsonResponse({ error: 'unauthorized', detail: 'A valid user JWT is required.' }, 401);
-    }
-    if (resolved && resolved !== user_id) {
-      // Caller's token doesn't match the user_id they claim — reject the spoof.
-      return jsonResponse({ error: 'unauthorized', detail: 'user_id does not match the authenticated user.' }, 401);
-    }
+  // ── Authenticate the caller via the vault session (401 / 403) ──
+  // Identity is server-authoritative: resolved from the vault bearer token, never
+  // from the body. Recovery is foundational, so identity-only — no feature gate.
+  const vaultToken = payload?.vault_token ?? req.headers.get('x-bbf-vault-token');
+  const gate = await resolveEntitlement({
+    supabaseUrl: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY, vaultToken,
+  });
+  if ('status' in gate) {
+    return jsonResponse({ error: gate.error, detail: gate.detail }, gate.status);
   }
+  // Server-authoritative identity for the response meta + audit.
+  const resolvedUser = gate.uid || gate.user_id;
 
   try {
     // ── Select the library: request override (build prompt) or embedded (brief) ──
@@ -881,7 +866,7 @@ serve(async (req: Request) => {
       prep_drills,
       foam_rolling,
       meta: {
-        user_id,
+        user_id: resolvedUser,
         generated_at: new Date().toISOString(),
         context: 'pre_workout',
       },
@@ -892,7 +877,7 @@ serve(async (req: Request) => {
       ok: true,
       durationMs: Date.now() - t0,
       summary: {
-        user_id,
+        user_id: resolvedUser,
         yesterday_muscle_groups: Array.from(yesterdaySet),
         today_muscle_groups: Array.from(todaySet),
         library_source: isUsableLibrary(recovery_library) ? 'request' : 'embedded',
@@ -908,7 +893,7 @@ serve(async (req: Request) => {
     });
 
     console.log(
-      `[bbf-agentic-recovery] uid=${user_id} y=[${Array.from(yesterdaySet).join(',')}] ` +
+      `[bbf-agentic-recovery] uid=${resolvedUser} y=[${Array.from(yesterdaySet).join(',')}] ` +
       `t=[${Array.from(todaySet).join(',')}] src=${isUsableLibrary(recovery_library) ? 'request' : 'embedded'} ` +
       `stretches=${recovery_stretches.length} drills=${prep_drills.length} foam=${foam_rolling.length}`,
     );
@@ -918,7 +903,7 @@ serve(async (req: Request) => {
     const msg = (e as Error).message;
     console.error(`[bbf-agentic-recovery] unexpected: ${msg}`);
     await logRun(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-      ok: false, durationMs: Date.now() - t0, error: msg, summary: { user_id, context: 'pre_workout' },
+      ok: false, durationMs: Date.now() - t0, error: msg, summary: { user_id: resolvedUser, context: 'pre_workout' },
     });
     return jsonResponse({ error: 'internal_error', detail: 'Recovery matrix could not be generated.' }, 500);
   }

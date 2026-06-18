@@ -26,6 +26,7 @@ import { parseWorkoutPlan, parseMealPlan } from '../../lib/vaultApi.js';
 import { localizeFocus } from '../../lib/trainingI18n.js';
 import { getProgram } from './programData.js';
 import { BoltIcon, CrestIcon } from './icons.jsx';
+import SovereignPrepButton from './SovereignPrepButton.jsx';
 import './vault.css';
 
 const HYDRATION_TARGET_L = 3.5; // prototype read-out; live hydration tracking is a later phase
@@ -175,6 +176,9 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
             >
               {t('vh-exec')}
             </button>
+            {/* Sovereign Prep — the 3-phase pre-session protocol, adjacent to Open
+                Program. Self-contained: resolves T-0/T-1 loads, fetches, renders. */}
+            <SovereignPrepButton plans={plans} programKey={programKey} uid={slug} />
             {gate === 'caution' ? (
               <button type="button" className="cv-directive-alt" onClick={() => go('prehab')} data-testid="vh-directive-pivot">
                 {t('vh-gate-pivot')}
