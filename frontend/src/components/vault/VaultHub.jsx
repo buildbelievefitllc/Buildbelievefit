@@ -21,6 +21,8 @@ import { useLang } from '../../context/LangContext.jsx';
 import { Loading, Empty } from '../command/primitives.jsx';
 import { BoltIcon } from './icons.jsx';
 import BiokineticForecast from './BiokineticForecast.jsx';
+import WeeklyBriefCard from './WeeklyBriefCard.jsx';
+import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import './vault.css';
 
 // Intel-rail indices (labels + units resolve through the dictionary in render).
@@ -40,8 +42,15 @@ export default function VaultHub({ profile, isLoading, error }) {
   // Biokinetic Forecast — collapsible drawer on the LANDING Client Hub (the tab the
   // athlete sees on login). Default COLLAPSED so the Hub stays clean until opened.
   const [fcOpen, setFcOpen] = useState(false);
+  // Weekly Brief — the coach's Monday voice memo, fetched independently of the
+  // profile read so it can paint top-of-fold the moment it resolves (identity is
+  // bound server-side via the vault token; profile.uid is an optional hint).
+  const { data: brief, loading: briefLoading, error: briefError } = useWeeklyBrief(profile?.uid);
   return (
     <div className="pg">
+      {/* TOP OF FOLD — the first thing the athlete sees Monday morning. */}
+      <WeeklyBriefCard brief={brief} loading={briefLoading} error={briefError} />
+
       <div className={`vh-fc${fcOpen ? ' is-open' : ''}`}>
         <button
           type="button"

@@ -513,6 +513,25 @@ const DICT = {
     es: 'Tu primera sesión registrada se iluminará aquí.',
     pt: 'Sua primeira sessão registrada vai acender aqui.',
   },
+  // Weekly Brief — top-of-fold Hub card (bbf-weekly-brief-scenario-engine). The
+  // coach's Monday voice memo: scenario verdict + audio + transcript. Trilingual.
+  'wb-title': { en: 'Your Weekly Brief', es: 'Tu Resumen Semanal', pt: 'Seu Resumo Semanal' },
+  'wb-new': { en: 'New', es: 'Nuevo', pt: 'Novo' },
+  'wb-play': { en: 'Play Weekly Brief', es: 'Reproducir Resumen', pt: 'Reproduzir Resumo' },
+  'wb-pause': { en: 'Pause', es: 'Pausar', pt: 'Pausar' },
+  'wb-replay': { en: 'Replay Brief', es: 'Repetir Resumen', pt: 'Repetir Resumo' },
+  'wb-loading': { en: 'Cueing your brief…', es: 'Preparando tu resumen…', pt: 'Preparando seu resumo…' },
+  'wb-transcript': { en: 'Transcript', es: 'Transcripción', pt: 'Transcrição' },
+  'wb-transcript-title': { en: 'Weekly Brief Transcript', es: 'Transcripción del Resumen Semanal', pt: 'Transcrição do Resumo Semanal' },
+  'wb-close': { en: 'Close', es: 'Cerrar', pt: 'Fechar' },
+  'wb-locked-in': { en: 'Locked In', es: 'En Marcha', pt: 'Comprometido' },
+  'wb-generated': { en: 'Generated', es: 'Generado', pt: 'Gerado' },
+  'wb-unavailable': { en: 'Your weekly brief isn’t ready yet — check back soon.', es: 'Tu resumen semanal aún no está listo — vuelve pronto.', pt: 'Seu resumo semanal ainda não está pronto — volte em breve.' },
+  // Scenario verdict chips (server scenario/substatus → spoken status line).
+  'wb-sc-progression': { en: 'Progression', es: 'Progresión', pt: 'Progressão' },
+  'wb-sc-compliance': { en: 'Lock In Your Logs', es: 'Registra Tus Datos', pt: 'Registre Seus Dados' },
+  'wb-sc-plateau': { en: 'Strategic Deload', es: 'Descarga Estratégica', pt: 'Descarga Estratégica' },
+  'wb-sc-neutral': { en: 'Stay Consistent', es: 'Mantén La Constancia', pt: 'Mantenha A Constância' },
   // Vault Upsell Funnel — the UpgradeOverlay padlock chrome (tier name + price are
   // interpolated from the live pricing matrix, so they stay out of the dictionary).
   'uplock-kicker': { en: 'Locked', es: 'Bloqueado', pt: 'Bloqueado' },
