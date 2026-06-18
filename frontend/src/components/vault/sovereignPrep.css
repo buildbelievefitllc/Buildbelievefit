@@ -53,6 +53,17 @@
 }
 .sp-retry:hover { filter: brightness(1.06); }
 
+/* ── Dedicated Recovery tab (inline section, not modal) ── */
+.sp-section { display: flex; flex-direction: column; }
+.sp-section-head { padding: 0 0 .4rem; }
+.sp-section-sub {
+  margin: .5rem 0 0; max-width: 60ch;
+  font-family: var(--bd, 'Barlow Condensed'); font-size: 1rem; line-height: 1.5;
+  color: var(--wht, #f9f5ff); opacity: .82;
+}
+.sp-section .sp-tabs { padding-left: 0; padding-right: 0; }
+.sp-section .sp-panel { padding-left: 0; padding-right: 0; }
+
 /* ── Tab deck ── */
 .sp-tabs { display: flex; gap: .5rem; padding: 1rem 1.4rem 0; flex-wrap: wrap; }
 .sp-tab {

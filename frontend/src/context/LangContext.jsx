@@ -267,6 +267,7 @@ const DICT = {
   'vault-tab-generator': { en: 'Generator', es: 'Generador', pt: 'Gerador' },
   'vault-tab-cardio': { en: 'Smart Cardio', es: 'Cardio Inteligente', pt: 'Cardio Inteligente' },
   'vault-tab-prehab': { en: 'Prehab', es: 'Pre-Hab', pt: 'Pré-Hab' },
+  'vault-tab-recovery': { en: 'Recovery', es: 'Recuperación', pt: 'Recuperação' },
   'vault-tab-nutrition': { en: 'Nutrition', es: 'Nutrición', pt: 'Nutrição' },
   'vault-tab-mindset': { en: 'Champion Mindset', es: 'Mentalidad de Campeón', pt: 'Mentalidade de Campeão' },
   'vault-tab-forecast': { en: 'Forecast', es: 'Pronóstico', pt: 'Previsão' },
@@ -429,6 +430,7 @@ const DICT = {
   // ── Sovereign Prep — 3-phase pre-session protocol (bbf-agentic-recovery) ──
   'sp-cta': { en: 'Sovereign Prep', es: 'Preparación Soberana', pt: 'Preparação Soberana' },
   'sp-kicker': { en: '3-Phase Pre-Session Protocol', es: 'Protocolo Pre-Sesión de 3 Fases', pt: 'Protocolo Pré-Sessão de 3 Fases' },
+  'sp-section-sub': { en: 'Yesterday’s soreness, prepped. Today’s session, primed. Soft-tissue, static stretch, and dynamic mobility — weighted to your load.', es: 'El dolor de ayer, preparado. La sesión de hoy, lista. Tejido blando, estiramiento estático y movilidad dinámica — según tu carga.', pt: 'A dor de ontem, preparada. A sessão de hoje, pronta. Tecido mole, alongamento estático e mobilidade dinâmica — conforme sua carga.' },
   'sp-title': { en: 'Sovereign Prep', es: 'Preparación Soberana', pt: 'Preparação Soberana' },
   'sp-loading': { en: 'Building your prep sequence…', es: 'Construyendo tu secuencia…', pt: 'Construindo sua sequência…' },
   'sp-retry': { en: 'Retry', es: 'Reintentar', pt: 'Tentar de Novo' },
