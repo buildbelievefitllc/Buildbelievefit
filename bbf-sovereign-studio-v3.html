@@ -691,6 +691,12 @@ async function queuePost(kind, fields, getBlob, btn, note, now){
   const setNote=(cls,msg)=>{ if(note){ note.className='queue-note '+cls; note.textContent=msg; } };
   const token=bbfVaultToken();
   if(!token){ setNote('warn','No admin session in THIS browser. Open the BBF Command Center on this site, sign in, then come back and try again.'); return; }
+  // POST NOW publishes immediately and can't be undone — show the EXACT caption and confirm first.
+  if(now){
+    const cap=(fields && fields.caption!=null) ? String(fields.caption).trim() : '';
+    const shown=cap ? (cap.length>700 ? cap.slice(0,700)+'…' : cap) : '(no caption set)';
+    if(!window.confirm('POST NOW to Instagram + Facebook?\n\nThis publishes immediately and cannot be undone.\n\n— CAPTION —\n'+shown)){ setNote('','Cancelled — nothing was posted.'); return; }
+  }
   const orig=btn.textContent; btn.disabled=true; btn.textContent= now ? 'POSTING…' : 'QUEUING…';
   setNote('', now ? 'Posting to IG/FB now… a reel can take ~60–90s (Meta transcode) — keep this open.' : '');
   try{
