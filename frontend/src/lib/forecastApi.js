@@ -68,6 +68,14 @@ export async function fetchCoachAudio({ exerciseName, targetReps, targetSets, fo
   }, 'coach');
 }
 
+// SECTION COACH (context='recovery'|'prehab'|'cardio'): voices a pre-authored cue
+// (breathing/form/intensity, drill or zone guidance) via the SAME locale-mapped
+// ElevenLabs voice, CACHED server-side by `cueRef`. `cueText` is the spoken source;
+// the server renders it naturally in-locale. Returns an mp3 object URL.
+export async function fetchSectionCoachAudio({ context, cueRef, cueText, locale }) {
+  return postForAudio({ context, locale, cue_ref: cueRef, cue_text: cueText }, context || 'coach');
+}
+
 // Shared audio POST → object URL. Both briefing + coach hit bbf-biokinetic-briefing
 // (ElevenLabs) and expect an audio/mpeg blob, NOT a JSON string.
 async function postForAudio(body, slug) {

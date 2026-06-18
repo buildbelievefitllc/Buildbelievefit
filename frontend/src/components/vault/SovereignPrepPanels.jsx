@@ -17,6 +17,9 @@ import { useLang } from '../../context/LangContext.jsx';
 import { recoveryVideosFor } from '../../data/recoveryVideos.js';
 import { thumbURL } from './exerciseVideos.js';
 import { PlayIcon } from './icons.jsx';
+import CoachAudioButton from './CoachAudioButton.jsx';
+import { cueToText } from './coachNarrative.js';
+import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
 
 // Privacy-enhanced (no-cookie) autoplay embed — built ONLY after the athlete taps
 // the branded cover, so nothing streams on initial render (same as Prehab/Program).
@@ -102,6 +105,7 @@ function PrepVideo({ id, lang, t }) {
 function PrepCard({ item, phaseId, lang, t }) {
   const emphasis = item.emphasis_flag === true;
   const cues = item.cues || {};
+  const cueText = cueToText(cues);
   return (
     <li className={`sp-card${emphasis ? ' is-essential' : ''}`} data-testid="sp-card">
       <div className="sp-card-head">
@@ -117,6 +121,12 @@ function PrepCard({ item, phaseId, lang, t }) {
         {cues.form ? <div className="sp-cue"><dt>{t('sp-cue-form')}</dt><dd>{cues.form}</dd></div> : null}
         {cues.intensity ? <div className="sp-cue"><dt>{t('sp-cue-intensity')}</dt><dd>{cues.intensity}</dd></div> : null}
       </dl>
+      {cueText ? (
+        <CoachAudioButton
+          audioRequest={() => fetchSectionCoachAudio({ context: 'recovery', cueRef: `recovery:${item.id}`, cueText, locale: lang })}
+          fallbackText={cueText}
+        />
+      ) : null}
       <PrepVideo id={item.id} lang={lang} t={t} />
     </li>
   );

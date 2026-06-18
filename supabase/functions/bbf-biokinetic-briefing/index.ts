@@ -229,9 +229,32 @@ function programFallback(ex: any, locale: string): string {
   return `${name}. ${reps ? `Hit ${reps} clean reps. ` : ''}Brace the core, control the eccentric, and drive through every rep. ${cue}`.trim();
 }
 
+// Section coaches (recovery/prehab/cardio): the client sends pre-authored cue
+// notes (breathing/form/intensity, or drill/zone guidance) in `cue_text`. Claude
+// renders them as a natural spoken cue IN THE LOCALE (translating EN-only library
+// cues to ES/PT as needed) and verbalizes ratings like "6/10" → "six out of ten".
+const SECTION_LABEL: Record<string, Record<string, string>> = {
+  recovery: { en: 'mobility and recovery', es: 'movilidad y recuperación', pt: 'mobilidade e recuperação' },
+  prehab:   { en: 'prehab and injury-prevention', es: 'prehabilitación y prevención de lesiones', pt: 'prehabilitação e prevenção de lesões' },
+  cardio:   { en: 'conditioning and cardio', es: 'acondicionamiento y cardio', pt: 'condicionamento e cardio' },
+};
+
 async function composeText(context: string, payload: any, locale: string): Promise<string> {
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-  const model = routeAndLog('bbf-biokinetic-briefing', context === 'program' ? 'coach_cue' : 'snapshot_synthesis');
+  const model = routeAndLog('bbf-biokinetic-briefing', context === 'forecast' ? 'snapshot_synthesis' : 'coach_cue');
+
+  if (context === 'recovery' || context === 'prehab' || context === 'cardio') {
+    const cueText = String(payload?.cue_text ?? '').replace(/\s+/g, ' ').trim().slice(0, 1400);
+    if (!cueText) return '';
+    const label = (SECTION_LABEL[context] || SECTION_LABEL.recovery)[locale] || SECTION_LABEL[context].en;
+    if (ANTHROPIC_API_KEY) {
+      const sys = `You are an elite ${label} coach recording a SHORT, calm, in-ear spoken cue (2-4 sentences, max 65 words) in ${LOCALE_NAME[locale]}. Second person, precise and encouraging. Preserve the breathing, form, and intensity guidance from the notes. Convert numeric ratings like "6/10" into spoken words ("six out of ten"). Natural flowing speech — NO markdown, NO lists, NO preamble, NO quotes, NO emojis.`;
+      const user = `Coaching notes (may be in English — speak them in ${LOCALE_NAME[locale]}):\n${cueText}\n\nSpeak the cue now.`;
+      const t = await writeWithClaude(ANTHROPIC_API_KEY, model, sys, user);
+      if (t) return t;
+    }
+    return cueText; // deterministic fallback (source language)
+  }
 
   if (context === 'program') {
     const ex = payload?.exercise || payload || {};
@@ -261,6 +284,41 @@ async function composeText(context: string, payload: any, locale: string): Promi
   return forecastFallback(lift, forecast, locale);
 }
 
+// ─── TTS cache (bbf_coach_audio) — recovery/prehab/cardio cues keyed by a stable
+// hash of (context|locale|cue_ref), so an identical cue never re-bills ElevenLabs
+// + Claude. Best-effort: any cache failure degrades to a live synth. ───────────────
+function bytesToB64(bytes: Uint8Array): string {
+  const CHUNK = 0x8000; let bin = '';
+  for (let i = 0; i < bytes.length; i += CHUNK) bin += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)) as any);
+  return btoa(bin);
+}
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64); const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function sha256hex(s: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+async function readCoachCache(url: string, key: string, hash: string): Promise<any | null> {
+  try {
+    const r = await fetch(`${url}/rest/v1/bbf_coach_audio?cue_hash=eq.${encodeURIComponent(hash)}&select=audio_b64,mime,voice_id,voice_name&limit=1`, { headers: pgHeaders(key) });
+    if (!r.ok) return null;
+    const rows = await r.json().catch(() => null);
+    return Array.isArray(rows) && rows.length ? rows[0] : null;
+  } catch { return null; }
+}
+async function writeCoachCache(url: string, key: string, row: Record<string, unknown>): Promise<void> {
+  try {
+    await fetch(`${url}/rest/v1/bbf_coach_audio`, {
+      method: 'POST',
+      headers: { ...pgHeaders(key), Prefer: 'resolution=ignore-duplicates,return=minimal' },
+      body: JSON.stringify(row),
+    });
+  } catch (e) { console.warn('[bbf-biokinetic-briefing] cache write failed:', (e as Error).message); }
+}
+
 // ─── handler ─────────────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -283,8 +341,12 @@ serve(async (req: Request) => {
   let payload: any;
   try { payload = await req.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const context = payload?.context === 'program' ? 'program' : 'forecast';
+  const VALID_CONTEXTS = ['program', 'forecast', 'recovery', 'prehab', 'cardio'];
+  const context = VALID_CONTEXTS.includes(payload?.context) ? payload.context : 'forecast';
   const locale = localeCode(payload?.locale ?? payload?.lang);
+  // A stable per-cue identity (e.g. "recovery:stat_calf_001") enables caching that
+  // survives Claude's non-deterministic phrasing — we hash the INPUT, not the prose.
+  const cueRef = typeof payload?.cue_ref === 'string' ? payload.cue_ref.slice(0, 160) : '';
 
   // ─── HARD ENTITLEMENT GATE (FAIL-CLOSED) — BEFORE any paid compute ──────────────
   // Identity resolved server-side from the vault token. program → voice_coach,
@@ -292,9 +354,34 @@ serve(async (req: Request) => {
   // is rejected here, so NO Claude Haiku synthesis and NO ElevenLabs call is burned.
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const feature = context === 'program' ? 'voice_coach' : 'biokinetic_forecast';
+  // program + the section coaches (recovery/prehab/cardio) all gate on the paid
+  // Voice Coach feature (Autonomous+); only the forecast briefing uses its own key.
+  const feature = context === 'forecast' ? 'biokinetic_forecast' : 'voice_coach';
   const gate = await requireEntitlement(SUPABASE_URL, SERVICE_KEY, payload?.vault_token ?? req.headers.get('x-bbf-vault-token'), feature);
   if (!gate.ok) return jsonResponse({ error: gate.error, detail: gate.detail }, gate.status);
+
+  // ─── CACHE HIT — serve a stored cue before burning any Claude/ElevenLabs spend ──
+  let cueHash = '';
+  const cacheable = Boolean(cueRef) && Boolean(SUPABASE_URL) && Boolean(SERVICE_KEY);
+  if (cacheable) {
+    cueHash = await sha256hex(`${context}|${locale}|${cueRef}`);
+    const hit = await readCoachCache(SUPABASE_URL as string, SERVICE_KEY as string, cueHash);
+    if (hit?.audio_b64) {
+      console.log(`[bbf-biokinetic-briefing] cache HIT ctx=${context} locale=${locale} ref=${cueRef}`);
+      return new Response(b64ToBytes(hit.audio_b64), {
+        status: 200,
+        headers: {
+          ...CORS,
+          'Content-Type': hit.mime || 'audio/mpeg',
+          'Cache-Control': 'private, max-age=0, no-store',
+          'X-BBF-Voice': hit.voice_name || '',
+          'X-BBF-Voice-Id': hit.voice_id || '',
+          'X-BBF-Context': context,
+          'X-BBF-Cache': 'hit',
+        },
+      });
+    }
+  }
 
   if (!ELEVENLABS_API_KEY) {
     return jsonResponse({ error: 'tts_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
@@ -318,6 +405,16 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'tts_failed', detail: `ElevenLabs returned ${tts.status}.` }, 502);
   }
 
+  // Persist to the cache (best-effort) so the next identical cue skips Claude + ElevenLabs.
+  if (cacheable && cueHash) {
+    const bytes = new Uint8Array(tts.buf);
+    await writeCoachCache(SUPABASE_URL as string, SERVICE_KEY as string, {
+      cue_hash: cueHash, context, locale, cue_ref: cueRef,
+      voice_id: voice.voice_id, voice_name: voice.name, narrative: text,
+      audio_b64: bytesToB64(bytes), mime: 'audio/mpeg', bytes: bytes.length, model_id: modelId,
+    });
+  }
+
   return new Response(tts.buf, {
     status: 200,
     headers: {
@@ -327,6 +424,7 @@ serve(async (req: Request) => {
       'X-BBF-Voice': voice.name,
       'X-BBF-Voice-Id': voice.voice_id,
       'X-BBF-Context': context,
+      'X-BBF-Cache': cacheable ? 'miss' : 'off',
     },
   });
 });

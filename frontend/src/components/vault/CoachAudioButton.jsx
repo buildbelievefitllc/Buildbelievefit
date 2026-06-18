@@ -32,7 +32,11 @@ const STR = {
   },
 };
 
-export default function CoachAudioButton({ exerciseName, targetReps, formCues, equipment }) {
+// Props:
+//   • Program path (default): { exerciseName, targetReps, formCues, equipment }.
+//   • Section path (Recovery/Prehab/Cardio): pass `audioRequest` (async () => objectURL,
+//     e.g. fetchSectionCoachAudio) + `fallbackText` (spoken on stock-voice fallback).
+export default function CoachAudioButton({ exerciseName, targetReps, formCues, equipment, audioRequest = null, fallbackText = '' }) {
   const { lang } = useLang();
   const tr = STR[lang] || STR.en;
   const audioRef = useRef(null);
@@ -48,6 +52,7 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
 
   // Locally-composed cue spoken ONLY when the premium ElevenLabs path fails.
   function composeCue() {
+    if (fallbackText) return String(fallbackText);
     return [exerciseName, targetReps ? tr.repsCue(targetReps) : '', (Array.isArray(formCues) && formCues[0]) || tr.defaultCue]
       .filter(Boolean).join('. ');
   }
@@ -67,8 +72,11 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
     setErr(false);
     setStock(false);
     try {
-      // PRIMARY: ElevenLabs via bbf-biokinetic-briefing (context='program').
-      const u = await fetchCoachAudio({ exerciseName, targetReps, formCues, equipment, locale: lang });
+      // PRIMARY: ElevenLabs via bbf-biokinetic-briefing. Section callers supply
+      // their own cached request; Program uses the default context='program' path.
+      const u = audioRequest
+        ? await audioRequest()
+        : await fetchCoachAudio({ exerciseName, targetReps, formCues, equipment, locale: lang });
       setUrl(u);
       requestAnimationFrame(() => { audioRef.current?.play().catch(() => setErr(true)); });
     } catch {
