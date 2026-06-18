@@ -15,6 +15,14 @@
 import { useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { recoveryVideosFor } from '../../data/recoveryVideos.js';
+import { thumbURL } from './exerciseVideos.js';
+import { PlayIcon } from './icons.jsx';
+
+// Privacy-enhanced (no-cookie) autoplay embed — built ONLY after the athlete taps
+// the branded cover, so nothing streams on initial render (same as Prehab/Program).
+function ytEmbedAutoplay(id) {
+  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
+}
 
 const PREP_PHASES = [
   { id: 'release', idx: '01', key: 'foam_rolling',       labelKey: 'sp-phase1', subKey: 'sp-phase1-sub' },
@@ -50,51 +58,44 @@ function groupLabel(g) {
   return String(g || '').split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-// Demo videos for a card — current language with EN fallback. The iframe is
-// LAZY: it only mounts when the athlete opens it (a phase can hold 26 cards, so we
-// never ship 26 players up front). Privacy-enhanced youtube-nocookie host.
-function PrepVideos({ id, lang, t }) {
-  const [open, setOpen] = useState(false);
+// In-app mini-player — same branded pattern as Program / Prehab: a thumbnail
+// cover with a purple/gold press-play button that swaps to an autoplay embed ON
+// TAP (nothing streams on render; a phase can hold 26 cards). Stays in-app — never
+// sends the athlete out to YouTube. Current language, EN fallback.
+function PrepVideo({ id, lang, t }) {
+  const [playing, setPlaying] = useState(false);
   const vids = recoveryVideosFor(id, lang);
   if (!vids.length) return null;
-  const primary = vids[0];
-  const alts = vids.slice(1, 4);
+  const v = vids[0];
+  if (playing) {
+    return (
+      <div className="sp-player is-playing">
+        <iframe
+          key={v.id}
+          className="sp-player-frame"
+          src={ytEmbedAutoplay(v.id)}
+          title={v.t}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
   return (
-    <div className="sp-video">
-      <button
-        type="button"
-        className={`sp-watch${open ? ' is-open' : ''}`}
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        data-testid="sp-watch"
-      >
-        <span className="sp-watch-glyph" aria-hidden="true">{open ? '▾' : '▸'}</span>
-        {open ? t('sp-watch-hide') : t('sp-watch')}
-      </button>
-      {open ? (
-        <div className="sp-video-body">
-          <div className="sp-embed">
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${primary.id}`}
-              title={primary.t}
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-          {alts.length ? (
-            <div className="sp-alts">
-              <span className="sp-alts-k">{t('sp-more')}</span>
-              {alts.map((v, i) => (
-                <a key={v.id} className="sp-alt" href={`https://www.youtube.com/watch?v=${v.id}`} target="_blank" rel="noopener noreferrer">
-                  {`#${i + 2}`}
-                </a>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
+    <button
+      type="button"
+      className="sp-player bbf-video-cover"
+      onClick={() => setPlaying(true)}
+      aria-label={t('sp-watch')}
+      data-testid="sp-watch"
+    >
+      <img className="sp-player-thumb" src={thumbURL(v.id)} alt="" loading="lazy" referrerPolicy="no-referrer" />
+      <span className="bbf-video-overlay" aria-hidden="true">
+        <span className="bbf-video-play"><PlayIcon size={24} /></span>
+      </span>
+    </button>
   );
 }
 
@@ -116,7 +117,7 @@ function PrepCard({ item, phaseId, lang, t }) {
         {cues.form ? <div className="sp-cue"><dt>{t('sp-cue-form')}</dt><dd>{cues.form}</dd></div> : null}
         {cues.intensity ? <div className="sp-cue"><dt>{t('sp-cue-intensity')}</dt><dd>{cues.intensity}</dd></div> : null}
       </dl>
-      <PrepVideos id={item.id} lang={lang} t={t} />
+      <PrepVideo id={item.id} lang={lang} t={t} />
     </li>
   );
 }
