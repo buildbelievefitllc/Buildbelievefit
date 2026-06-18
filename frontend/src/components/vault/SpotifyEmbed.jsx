@@ -19,9 +19,12 @@ const SPOTIFY_STR = {
   pt: { kicker: 'Link de Áudio Soberano', sub: 'Prepare a trilha sonora — depois inicie seu protocolo.', title: 'Trilha Sonora do Protocolo BBF' },
 };
 
-// Spotify "Beast Mode" — a high-energy workout playlist; a sane default for cardio.
+// CEO-selected BBF cardio playlist (injected) — the default soundtrack for the
+// Smart Cardio protocol player. Still prop-driven, so any mount can override it
+// without code surgery. (Only the playlist ID is used; the share `si=` token is
+// a referrer tag the embed neither needs nor honors.)
 const DEFAULT_EMBED_TYPE = 'playlist';
-const DEFAULT_EMBED_ID = '37i9dQZF1DX76Wlfdnj7AP';
+const DEFAULT_EMBED_ID = '37FaZUuzyvDjT2RCKCZT41';
 
 export default function SpotifyEmbed({
   embedType = DEFAULT_EMBED_TYPE,
