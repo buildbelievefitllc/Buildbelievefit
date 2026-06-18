@@ -14,6 +14,7 @@
 
 import { useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
+import { recoveryVideosFor } from '../../data/recoveryVideos.js';
 
 const PREP_PHASES = [
   { id: 'release', idx: '01', key: 'foam_rolling',       labelKey: 'sp-phase1', subKey: 'sp-phase1-sub' },
@@ -49,7 +50,55 @@ function groupLabel(g) {
   return String(g || '').split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-function PrepCard({ item, phaseId, t }) {
+// Demo videos for a card — current language with EN fallback. The iframe is
+// LAZY: it only mounts when the athlete opens it (a phase can hold 26 cards, so we
+// never ship 26 players up front). Privacy-enhanced youtube-nocookie host.
+function PrepVideos({ id, lang, t }) {
+  const [open, setOpen] = useState(false);
+  const vids = recoveryVideosFor(id, lang);
+  if (!vids.length) return null;
+  const primary = vids[0];
+  const alts = vids.slice(1, 4);
+  return (
+    <div className="sp-video">
+      <button
+        type="button"
+        className={`sp-watch${open ? ' is-open' : ''}`}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        data-testid="sp-watch"
+      >
+        <span className="sp-watch-glyph" aria-hidden="true">{open ? '▾' : '▸'}</span>
+        {open ? t('sp-watch-hide') : t('sp-watch')}
+      </button>
+      {open ? (
+        <div className="sp-video-body">
+          <div className="sp-embed">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${primary.id}`}
+              title={primary.t}
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          {alts.length ? (
+            <div className="sp-alts">
+              <span className="sp-alts-k">{t('sp-more')}</span>
+              {alts.map((v, i) => (
+                <a key={v.id} className="sp-alt" href={`https://www.youtube.com/watch?v=${v.id}`} target="_blank" rel="noopener noreferrer">
+                  {`#${i + 2}`}
+                </a>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function PrepCard({ item, phaseId, lang, t }) {
   const emphasis = item.emphasis_flag === true;
   const cues = item.cues || {};
   return (
@@ -67,12 +116,13 @@ function PrepCard({ item, phaseId, t }) {
         {cues.form ? <div className="sp-cue"><dt>{t('sp-cue-form')}</dt><dd>{cues.form}</dd></div> : null}
         {cues.intensity ? <div className="sp-cue"><dt>{t('sp-cue-intensity')}</dt><dd>{cues.intensity}</dd></div> : null}
       </dl>
+      <PrepVideos id={item.id} lang={lang} t={t} />
     </li>
   );
 }
 
 export default function SovereignPrepPanels({ data }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [active, setActive] = useState('release');
 
   const activePhase = PREP_PHASES.find((p) => p.id === active) || PREP_PHASES[0];
@@ -105,7 +155,7 @@ export default function SovereignPrepPanels({ data }) {
       <div className="sp-panel" role="tabpanel">
         {items.length ? (
           <ul className="sp-list">
-            {items.map((it) => <PrepCard key={it.id} item={it} phaseId={activePhase.id} t={t} />)}
+            {items.map((it) => <PrepCard key={it.id} item={it} phaseId={activePhase.id} lang={lang} t={t} />)}
           </ul>
         ) : (
           <p className="sp-empty">{t('sp-empty')}</p>
