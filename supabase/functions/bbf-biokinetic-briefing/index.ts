@@ -11,7 +11,7 @@
 // VOICE MAP (resolved at runtime from the CEO's ElevenLabs account — exact voice_id
 // hashes are queried from /v1/voices and cached per isolate, so a rename/swap in
 // the account self-heals):
-//   en → Uyi       (Nigerian American Male)
+//   en → BBF Coach (CEO custom voice · BBF account)
 //   es → Ana María (Mexican)
 //   pt → Ana Alice (Brazilian)
 //   ⛔ "Young Jamal" is NEVER selected (hard exclusion).
@@ -118,7 +118,7 @@ async function requireEntitlement(url: string | undefined, key: string | undefin
 }
 
 // ─── ElevenLabs voice resolution (locale → CEO account voice_id) ─────────────────
-const LOCALE_VOICE_NAME: Record<string, string> = { en: 'Uyi', es: 'Ana María', pt: 'Ana Alice' };
+const LOCALE_VOICE_NAME: Record<string, string> = { en: 'BBF Coach', es: 'Ana María', pt: 'Ana Alice' };
 const FORBIDDEN_VOICE = 'jamal'; // ⛔ never select "Young Jamal" under any circumstances
 const DEFAULT_VOICE_SETTINGS = { stability: 0.40, similarity_boost: 0.85, style: 0.0, use_speaker_boost: true };
 
