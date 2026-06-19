@@ -437,6 +437,17 @@ YOUR CLOCK</textarea></div>
       <label class="upload-btn" id="sp-lbl-l" for="sp-file-l">UPLOAD LOGO</label><input type="file" id="sp-file-l" accept="image/*"></div>
     <div class="ctl-group"><label class="ctl-label">Client Name</label><input type="text" id="sp-name" value="JACKY"></div>
     <div class="ctl-group"><label class="ctl-label">Sub-line</label><input type="text" id="sp-sub" value="Performance Laboratory • West Valley AZ"></div>
+    <div class="ctl-group"><label class="ctl-label">🎰 Client Shout-Out Hook</label>
+      <select id="sp-shout-theme">
+        <option value="any">— any theme —</option>
+        <option value="consistency">Consistency</option>
+        <option value="process">Trust the Process</option>
+        <option value="transformation">Transformation</option>
+        <option value="discipline">Discipline</option>
+        <option value="mindset">Mindset</option>
+      </select>
+      <button class="spin-btn" id="sp-spin-shout" style="margin-top:8px;">🎰 SPIN A SHOUT-OUT</button>
+      <div class="hint">Fills the gold shout-out + both lines with a themed client celebration (uses the Client Name above). Works as a pure shout-out — no before/after required.</div></div>
     <div class="ctl-group"><label class="ctl-label">Gold Shoutout</label><input type="text" id="sp-fhead" value="INCREDIBLE WORK, JACKY."></div>
     <div class="ctl-group"><label class="ctl-label">Quote Line 1 — pick from the bank or write your own</label>
       <select id="sp-l1-pick"><option value="">— quote bank (16) —</option></select>
@@ -2524,6 +2535,45 @@ fillQuoteSelect('sp-l1-pick',QUOTES1); fillQuoteSelect('sp-l2-pick',QUOTES2);
 $('sp-l1-pick').addEventListener('change',e=>{ if(e.target.value){ $('sp-l1').value=e.target.value; $('sp-l1').dispatchEvent(new Event('input')); }});
 $('sp-l2-pick').addEventListener('change',e=>{ if(e.target.value){ $('sp-l2').value=e.target.value; $('sp-l2').dispatchEvent(new Event('input')); }});
 $('sp-spinq').onclick=()=>{ $('sp-l1').value=QUOTES1[Math.floor(Math.random()*QUOTES1.length)]; $('sp-l2').value=QUOTES2[Math.floor(Math.random()*QUOTES2.length)]; $('sp-l1').dispatchEvent(new Event('input')); $('sp-l2').dispatchEvent(new Event('input')); };
+// Client Shout-Out Hook — themed celebrations (head = gold shout-out, l1/l2 = the two
+// lines), so a Spotlight post can stand as a pure shout-out, not just a before/after.
+// {name} is swapped for the current Client Name at spin time. Spinning fills all three.
+const SHOUTOUTS={
+  consistency:[
+    {head:'CONSISTENCY LOOKS GOOD ON YOU, {name}.',l1:'Week after week, you kept showing up — and it shows.',l2:'This is what earned progress looks like.'},
+    {head:'{name}, YOU NEVER MISSED.',l1:"The work didn't happen overnight — it happened on the days nobody saw.",l2:'Relentless. Proud of you.'},
+    {head:'STILL SHOWING UP, {name}.',l1:'Same energy in week twelve as week one.',l2:'That consistency is the whole secret.'},
+  ],
+  process:[
+    {head:'{name} TRUSTED THE PROCESS.',l1:'No shortcuts. No quitting. Just the plan, executed.',l2:'The results are the receipt.'},
+    {head:'PROCESS OVER EVERYTHING, {name}.',l1:'You believed it before you could see it.',l2:'Now everybody can.'},
+    {head:'{name} STAYED THE COURSE.',l1:'You trusted the plan on the days it was hard to.',l2:'This is the payoff.'},
+  ],
+  transformation:[
+    {head:'LOOK WHAT YOU BUILT, {name}.',l1:'Same person. Brand-new standard.',l2:'Built. Believed. Became.'},
+    {head:'INCREDIBLE WORK, {name}.',l1:'This is what showing up — week after week — looks like.',l2:'Proud to be part of your journey.'},
+  ],
+  discipline:[
+    {head:"{name}, THAT'S DISCIPLINE.",l1:'Motivation got you started. Discipline got you here.',l2:'You did the reps no one saw.'},
+    {head:'SHOWING UP PAID OFF, {name}.',l1:'Every session was a deposit. This is the return.',l2:'Keep building.'},
+  ],
+  mindset:[
+    {head:'{name} BET ON THEMSELVES.',l1:'You decided you were worth the work.',l2:'Never doubted it for a second.'},
+    {head:'BELIEF IN MOTION, {name}.',l1:'You stopped waiting and started becoming.',l2:'And this is just the beginning.'},
+  ],
+};
+let spShoutLast=-1;
+$('sp-spin-shout').onclick=()=>{
+  const theme=$('sp-shout-theme').value;
+  const pool = theme==='any' ? Object.values(SHOUTOUTS).flat() : (SHOUTOUTS[theme] || Object.values(SHOUTOUTS).flat());
+  let idx; do{ idx=Math.floor(Math.random()*pool.length); }while(pool.length>1 && idx===spShoutLast);
+  spShoutLast=idx;
+  const pick=pool[idx];
+  const nm=(($('sp-name').value||'').trim().toUpperCase())||'CHAMPION';
+  const fill=(s)=> String(s).replace(/\{name\}/g, nm);
+  $('sp-fhead').value=fill(pick.head); $('sp-l1').value=fill(pick.l1); $('sp-l2').value=fill(pick.l2);
+  ['sp-fhead','sp-l1','sp-l2'].forEach(id=> $(id).dispatchEvent(new Event('input')));
+};
 const spBinds=[['sp-name','sp-out-name'],['sp-sub','sp-out-sub'],['sp-fhead','sp-out-fhead'],['sp-l1','sp-out-l1'],['sp-l2','sp-out-l2'],['sp-cta','sp-out-cta']];
 spBinds.forEach(([i,o])=> $(i).addEventListener('input', e=>{ $(o).textContent=e.target.value; $('sp-caption').textContent=buildSpCaption(); }));
 function buildSpCaption(){
