@@ -74,10 +74,10 @@ export default function CheckInVideoCard({ sleepHours, stressLevel, onVideoLoade
   // Fetch video on mount
   useEffect(() => {
     if (!user?.id || sleepHours == null || stressLevel == null) {
-      setError(S.error);
-      setLoading(false);
       return;
     }
+
+    let mounted = true;
 
     (async () => {
       try {
@@ -101,6 +101,8 @@ export default function CheckInVideoCard({ sleepHours, stressLevel, onVideoLoade
         }
 
         const data = await response.json();
+        if (!mounted) return;
+
         if (data.ok) {
           setVideo(data);
           onVideoLoaded?.(data);
@@ -109,12 +111,18 @@ export default function CheckInVideoCard({ sleepHours, stressLevel, onVideoLoade
         }
       } catch (err) {
         console.error('[CheckInVideoCard]', err);
-        setError(S.error);
+        if (mounted) {
+          setError(S.error);
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     })();
-  }, [user?.id, sleepHours, stressLevel, lang]);
+
+    return () => { mounted = false; };
+  }, [user?.id, sleepHours, stressLevel, lang, S.error, onVideoLoaded]);
 
   if (loading) {
     return (
