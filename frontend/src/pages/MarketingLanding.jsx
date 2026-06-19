@@ -90,6 +90,12 @@ export default function MarketingLanding() {
     });
   };
   const goToPathfinder = () => goToTab('pathfinder');
+  // Primary conversion CTAs (nav "Start" + hero) route organic traffic into the
+  // SAME upsell→intake pipeline the /burn calculator funnel uses: the tier-
+  // selection bridge, then the screening-gated Pathfinder. (The in-page Four Paths
+  // deck + PricingMatrix stay as the multi-category browse path — nutrition / youth
+  // / hybrid — and keep their own startCheckout→pathfinder flow.)
+  const goToSelectTier = () => navigate('/select-tier');
 
   // ── Pricing → Pathfinder → Pay gate (CEO liability directive) ─────────────────
   // A price CTA NO LONGER jumps straight to Stripe. It records the chosen plan +
@@ -145,7 +151,7 @@ export default function MarketingLanding() {
           <button type="button" style={s.navSignIn} onClick={() => goToKnowledge('interrogator')}>{t('nav-audit')}</button>
           <button type="button" style={s.navSignIn} onClick={() => goToTab('legacy')}>{t('nav-about')}</button>
           <button type="button" style={s.navSignIn} onClick={enter}>{t('nav-signin')}</button>
-          <button type="button" style={s.navCta} onClick={goToPathfinder}>{t('nav-start')}</button>
+          <button type="button" style={s.navCta} onClick={goToSelectTier}>{t('nav-start')}</button>
           <LangToggle />
         </div>
       </nav>
@@ -160,7 +166,7 @@ export default function MarketingLanding() {
             <span style={s.hsFit}>FIT</span>
           </h1>
           <p style={s.heroSub}>{t('hero-sub')}</p>
-          <button type="button" style={s.heroCta} onClick={goToPathfinder}>{t('hero-cta')}</button>
+          <button type="button" style={s.heroCta} onClick={goToSelectTier}>{t('hero-cta')}</button>
           <div style={s.doors}>
             <button type="button" style={s.door} onClick={enter}>
               <span style={s.doorKicker}>{t('door-adults')}</span>
