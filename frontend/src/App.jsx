@@ -33,6 +33,10 @@ import { isSportsAthlete, SPORTS_HUB_PATH } from './lib/sportsRoster.js';
 // chunks; the SW's stale-while-revalidate asset policy serves them after first
 // load, and the Capacitor build reads them from local disk.
 const MarketingLanding = lazy(() => import('./pages/MarketingLanding.jsx'));
+// Top-of-funnel lead magnet (/burn) + its standalone Pathfinder handoff target
+// (/pathfinder). Both public, both their own chunk so they don't drag in the Vault.
+const DailyBurnCalculator = lazy(() => import('./pages/DailyBurnCalculator.jsx'));
+const PathfinderPage = lazy(() => import('./pages/PathfinderPage.jsx'));
 const ClientVault = lazy(() => import('./pages/ClientVault.jsx'));
 const CommandCenter = lazy(() => import('./pages/CommandCenter.jsx'));
 const YouthIntakeGate = lazy(() => import('./components/sportshub/YouthIntakeGate.jsx'));
@@ -116,6 +120,11 @@ export default function App() {
       {/* Apex root — ALWAYS the public marketing landing, even when authenticated.
           Authed users enter the Vault via the navbar/doors, never an auto-redirect. */}
       <Route path="/" element={<MarketingLanding />} />
+      {/* The Metabolic Gateway — standalone, nav-free lead magnet; its CTA hands
+          off to /pathfinder with the entered biometrics in router state. */}
+      <Route path="/burn" element={<DailyBurnCalculator />} />
+      {/* Standalone Pathfinder intake — pre-fills from /burn's handoff state. */}
+      <Route path="/pathfinder" element={<PathfinderPage />} />
       {/* The authenticated Vault now lives at its own guarded route (was at "/"). */}
       <Route path="/vault" element={<VaultRoute />} />
       {/* The Sports Hub — youth/sports division home; the post-login Routing Fork

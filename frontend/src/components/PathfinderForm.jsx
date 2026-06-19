@@ -148,18 +148,29 @@ function buildIntakeSportsProtocol(form) {
   }
 }
 
-export default function PathfinderForm({ checkout = null }) {
+export default function PathfinderForm({ checkout = null, prefill = null }) {
   const { t, lang, setLang } = useLang();
   const { containerRef, obtainToken, error: tsError } = useTurnstile(TURNSTILE_SITE_KEY);
 
-  const [form, setForm] = useState({
-    fullName: '', email: '', phone: '', goal: '', experience: '',
-    age: '', sex: 'male', weight: '', heightFt: '', heightIn: '', // biometrics → native TDEE
-    sport: 'none', dietaryProfile: 'Omnivore', fastingWindow: 'none', // athlete + nutrition engines
-    injuries: '', medicalConditions: '', medications: '',
-    parq: {}, // { 'f-parq1': true, ... } — standard PAR-Q flags
-    liabilityCleared: false, // Phase C — REQUIRED waiver + Terms consent gate
-    marketingConsent: false,
+  // Biometrics may arrive pre-filled from the /burn Metabolic Gateway handoff
+  // (location state → PathfinderPage → here). Only the known biometric keys are
+  // honored; everything else starts blank. Lazy initializer so it seeds once.
+  const [form, setForm] = useState(() => {
+    const base = {
+      fullName: '', email: '', phone: '', goal: '', experience: '',
+      age: '', sex: 'male', weight: '', heightFt: '', heightIn: '', // biometrics → native TDEE
+      sport: 'none', dietaryProfile: 'Omnivore', fastingWindow: 'none', // athlete + nutrition engines
+      injuries: '', medicalConditions: '', medications: '',
+      parq: {}, // { 'f-parq1': true, ... } — standard PAR-Q flags
+      liabilityCleared: false, // Phase C — REQUIRED waiver + Terms consent gate
+      marketingConsent: false,
+    };
+    if (prefill && typeof prefill === 'object') {
+      for (const k of ['age', 'sex', 'weight', 'heightFt', 'heightIn']) {
+        if (prefill[k] !== undefined && prefill[k] !== null && prefill[k] !== '') base[k] = String(prefill[k]);
+      }
+    }
+    return base;
   });
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
