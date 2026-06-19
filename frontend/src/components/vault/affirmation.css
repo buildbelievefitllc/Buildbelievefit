@@ -1,0 +1,64 @@
+/* src/components/vault/affirmation.css
+   ──────────────────────────────────────────────────────────────────────────
+   Daily Affirmation Coach — matte surface canvas (CLAUDE.md §2: black is an
+   approved surface) with BBF Gold + Purple accents, so the gold CoachAudioButton
+   pops and the card sits cleanly inside the Champion Mindset cinema aesthetic.
+   Bebas header / Barlow body. Mobile-friendly. */
+
+.aff-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--pur);
+  background: linear-gradient(135deg, #0e0a14 0%, #090909 100%);
+  box-shadow: 0 10px 30px rgba(106, 13, 173, .14);
+}
+
+.aff-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.aff-mic { font-size: 1.25rem; line-height: 1; }
+.aff-title {
+  margin: 0;
+  font-family: var(--hb);
+  font-size: 1.3rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+.aff-lang {
+  font-family: var(--bd);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--pur);
+}
+.aff-badge {
+  font-family: var(--hb);
+  font-size: .72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #0c0a02;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+}
+
+.aff-text {
+  margin: 0;
+  font-family: var(--bd);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--wht);
+}
+
+@media (max-width: 640px) {
+  .aff-card { padding: 16px; }
+  .aff-lang { margin-left: 0; }
+}

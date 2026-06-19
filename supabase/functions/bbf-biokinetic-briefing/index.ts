@@ -65,7 +65,10 @@ const TIER_TO_GROUP: Record<string, Group> = {
   youth_athlete: GROUP.YOUTH, nutrition_essentials: GROUP.BASELINE, nutrition_platinum: GROUP.APEX,
 };
 const AUTO_BAND: Group[] = [GROUP.AUTONOMOUS, GROUP.APEX, GROUP.ALL];
-const FEATURE_ACCESS: Record<string, Group[]> = { voice_coach: AUTO_BAND, biokinetic_forecast: AUTO_BAND };
+const BASE_BAND: Group[] = [GROUP.BASELINE, GROUP.AUTONOMOUS, GROUP.APEX, GROUP.YOUTH, GROUP.ALL];
+// affirmation rides the Champion Mindset feature (every paying band), NOT voice_coach,
+// so a Baseline athlete who can open Mindset still gets the premium BBF Coach voice.
+const FEATURE_ACCESS: Record<string, Group[]> = { voice_coach: AUTO_BAND, biokinetic_forecast: AUTO_BAND, mindset: BASE_BAND };
 
 function pgHeaders(serviceKey: string): HeadersInit {
   return { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' };
@@ -247,6 +250,12 @@ async function composeText(context: string, payload: any, locale: string): Promi
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   const model = routeAndLog('bbf-biokinetic-briefing', context === 'forecast' ? 'snapshot_synthesis' : 'coach_cue');
 
+  // Affirmations are spoken VERBATIM — the client sends the exact, pre-authored,
+  // already-localized line; NO Claude rephrase (the words must land exactly as written).
+  if (context === 'affirmation') {
+    return String(payload?.cue_text ?? '').replace(/\s+/g, ' ').trim().slice(0, 600);
+  }
+
   if (context === 'recovery' || context === 'prehab' || context === 'cardio') {
     const cueText = String(payload?.cue_text ?? '').replace(/\s+/g, ' ').trim().slice(0, 1400);
     if (!cueText) return '';
@@ -345,7 +354,7 @@ serve(async (req: Request) => {
   let payload: any;
   try { payload = await req.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const VALID_CONTEXTS = ['program', 'forecast', 'recovery', 'prehab', 'cardio'];
+  const VALID_CONTEXTS = ['program', 'forecast', 'recovery', 'prehab', 'cardio', 'affirmation'];
   const context = VALID_CONTEXTS.includes(payload?.context) ? payload.context : 'forecast';
   const locale = localeCode(payload?.locale ?? payload?.lang);
   // A stable per-cue identity (e.g. "recovery:stat_calf_001") enables caching that
@@ -360,7 +369,7 @@ serve(async (req: Request) => {
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   // program + the section coaches (recovery/prehab/cardio) all gate on the paid
   // Voice Coach feature (Autonomous+); only the forecast briefing uses its own key.
-  const feature = context === 'forecast' ? 'biokinetic_forecast' : 'voice_coach';
+  const feature = context === 'forecast' ? 'biokinetic_forecast' : context === 'affirmation' ? 'mindset' : 'voice_coach';
   const gate = await requireEntitlement(SUPABASE_URL, SERVICE_KEY, payload?.vault_token ?? req.headers.get('x-bbf-vault-token'), feature);
   if (!gate.ok) return jsonResponse({ error: gate.error, detail: gate.detail }, gate.status);
 

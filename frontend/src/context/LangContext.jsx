@@ -532,6 +532,9 @@ const DICT = {
   'wb-sc-compliance': { en: 'Lock In Your Logs', es: 'Registra Tus Datos', pt: 'Registre Seus Dados' },
   'wb-sc-plateau': { en: 'Strategic Deload', es: 'Descarga Estratégica', pt: 'Descarga Estratégica' },
   'wb-sc-neutral': { en: 'Stay Consistent', es: 'Mantén La Constancia', pt: 'Mantenha A Constância' },
+  // Daily Affirmation Coach (Champion Mindset) — voice-coached trilingual affirmation.
+  'aff-header': { en: "Today's Affirmation", es: 'Afirmación de Hoy', pt: 'Afirmação de Hoje' },
+  'aff-new': { en: 'New', es: 'Nuevo', pt: 'Novo' },
   // Vault Upsell Funnel — the UpgradeOverlay padlock chrome (tier name + price are
   // interpolated from the live pricing matrix, so they stay out of the dictionary).
   'uplock-kicker': { en: 'Locked', es: 'Bloqueado', pt: 'Bloqueado' },
