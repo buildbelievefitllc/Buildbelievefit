@@ -155,7 +155,10 @@ function detectScenario(data: UserWeekData): ScenarioResult {
 // ═══════════════════════════════════════════════════════════════════════════
 const FORBIDDEN_VOICE = 'jamal';
 const BRIEF_VOICE_NAME = 'BBF Coach';
-const VOICE_SETTINGS = { stability: 0.45, similarity_boost: 0.85, style: 0.0, use_speaker_boost: true };
+// Warm, human, unhurried delivery (matches bbf-biokinetic-briefing): lower
+// similarity backs off clone "sharpness", a touch of style adds expressive warmth,
+// speed 0.92 slows it ~8% so the brief never sounds robotic or clipped.
+const VOICE_SETTINGS = { stability: 0.50, similarity_boost: 0.80, style: 0.25, use_speaker_boost: true, speed: 0.92 };
 const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
 function deburr(s: unknown): string { return String(s ?? '').normalize('NFD').replace(COMBINING_MARKS, '').trim().toLowerCase(); }
 

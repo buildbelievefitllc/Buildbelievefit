@@ -120,7 +120,11 @@ async function requireEntitlement(url: string | undefined, key: string | undefin
 // ─── ElevenLabs voice resolution (locale → CEO account voice_id) ─────────────────
 const LOCALE_VOICE_NAME: Record<string, string> = { en: 'BBF Coach', es: 'Ana María', pt: 'Ana Alice' };
 const FORBIDDEN_VOICE = 'jamal'; // ⛔ never select "Young Jamal" under any circumstances
-const DEFAULT_VOICE_SETTINGS = { stability: 0.40, similarity_boost: 0.85, style: 0.0, use_speaker_boost: true };
+// Tuned for a WARM, human, unhurried delivery (CEO note: the BBF Coach voice was
+// coming out too sharp / robotic). Lower similarity_boost backs off clone-artifact
+// "sharpness"; a touch of style adds expressive warmth (kills the flat-robot tone);
+// speed 0.92 slows it ~8% so cues land smooth instead of clipped.
+const DEFAULT_VOICE_SETTINGS = { stability: 0.50, similarity_boost: 0.80, style: 0.25, use_speaker_boost: true, speed: 0.92 };
 
 const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
 function deburr(s: unknown): string {
@@ -248,7 +252,7 @@ async function composeText(context: string, payload: any, locale: string): Promi
     if (!cueText) return '';
     const label = (SECTION_LABEL[context] || SECTION_LABEL.recovery)[locale] || SECTION_LABEL[context].en;
     if (ANTHROPIC_API_KEY) {
-      const sys = `You are an elite ${label} coach recording a SHORT, calm, in-ear spoken cue (2-4 sentences, max 65 words) in ${LOCALE_NAME[locale]}. Second person, precise and encouraging. Preserve the breathing, form, and intensity guidance from the notes. Convert numeric ratings like "6/10" into spoken words ("six out of ten"). Natural flowing speech — NO markdown, NO lists, NO preamble, NO quotes, NO emojis.`;
+      const sys = `You are an elite ${label} coach speaking directly into the athlete's ear — warm, calm, and unhurried, like a real person standing right beside them. Record a spoken cue (3-5 flowing sentences, ~80 words) in ${LOCALE_NAME[locale]}. Second person, encouraging, conversational. Use natural commas and gentle pauses so it breathes and never sounds rushed or clipped, and add a little human connective tissue ("nice and easy", "stay with me here", "good") so it feels alive, not read aloud. Preserve the breathing, form, and intensity guidance from the notes. Convert numeric ratings like "6/10" into spoken words ("six out of ten"). Natural human speech only — NO markdown, NO lists, NO preamble, NO quotes, NO emojis.`;
       const user = `Coaching notes (may be in English — speak them in ${LOCALE_NAME[locale]}):\n${cueText}\n\nSpeak the cue now.`;
       const t = await writeWithClaude(ANTHROPIC_API_KEY, model, sys, user);
       if (t) return t;
@@ -264,7 +268,7 @@ async function composeText(context: string, payload: any, locale: string): Promi
     const cues = Array.isArray(ex?.form_cues) ? ex.form_cues.filter(Boolean).slice(0, 4) : [];
     const equip = String(ex?.equipment ?? '').slice(0, 48);
     if (ANTHROPIC_API_KEY) {
-      const sys = `You are an elite strength coach giving a SHORT, intense IN-EAR cue (1-2 sentences, max 35 words) in ${LOCALE_NAME[locale]}. Second person, imperative, urgent but technically precise. Reference the movement and ONE form cue. No markdown, no preamble, no quotes.`;
+      const sys = `You are an elite strength coach giving a short in-ear cue (2-3 sentences, ~45 words) in ${LOCALE_NAME[locale]}. Second person, confident and motivating but HUMAN — a real coach talking, not a robot barking orders. Reference the movement and ONE form cue, and let it land with natural commas and rhythm so it sounds smooth, not clipped. No markdown, no preamble, no quotes.`;
       const user = `Exercise: ${name}\nTarget: ${sets ? sets + ' x ' : ''}${reps}\nForm cues: ${cues.join('; ') || '(standard execution)'}\nEquipment: ${equip || '(n/a)'}\nGive the cue now.`;
       const t = await writeWithClaude(ANTHROPIC_API_KEY, model, sys, user);
       if (t) return t;
@@ -397,8 +401,10 @@ serve(async (req: Request) => {
   // 2 — compose the text (Claude Haiku, deterministic fallback).
   const text = await composeText(context, payload, locale);
 
-  // 3 — synthesize. Program cues favor low latency (flash); briefings favor prosody.
-  const modelId = context === 'program' ? 'eleven_flash_v2_5' : 'eleven_multilingual_v2';
+  // 3 — synthesize. Program cues use turbo (low latency but FAR more natural than
+  // flash, which was the robotic/clipped culprit); everything else uses the richest
+  // prosody model. Both honor the warm voice settings + 0.92 speed above.
+  const modelId = context === 'program' ? 'eleven_turbo_v2_5' : 'eleven_multilingual_v2';
   const tts = await synthesize(ELEVENLABS_API_KEY, voice.voice_id, text, modelId);
   if (!tts.ok) {
     console.error(`[bbf-biokinetic-briefing] tts ${tts.status}: ${tts.detail}`);
