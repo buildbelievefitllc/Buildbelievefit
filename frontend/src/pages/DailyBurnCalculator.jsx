@@ -63,9 +63,10 @@ export default function DailyBurnCalculator() {
     setBurn(calcTDEE(a, sex, w, f, i, parseFloat(act)));
   }
 
-  // The Handoff — carry the raw inputs forward so the Pathfinder pre-fills.
+  // The Handoff — carry the raw inputs forward into the upsell bridge
+  // (/select-tier), which forwards them again to the Pathfinder after a tier pick.
   function enterPathfinder() {
-    navigate('/pathfinder', {
+    navigate('/select-tier', {
       state: {
         prefill: {
           age: String(age || ''),

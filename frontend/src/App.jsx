@@ -36,6 +36,7 @@ const MarketingLanding = lazy(() => import('./pages/MarketingLanding.jsx'));
 // Top-of-funnel lead magnet (/burn) + its standalone Pathfinder handoff target
 // (/pathfinder). Both public, both their own chunk so they don't drag in the Vault.
 const DailyBurnCalculator = lazy(() => import('./pages/DailyBurnCalculator.jsx'));
+const TierSelectionPitch = lazy(() => import('./pages/TierSelectionPitch.jsx'));
 const PathfinderPage = lazy(() => import('./pages/PathfinderPage.jsx'));
 const ClientVault = lazy(() => import('./pages/ClientVault.jsx'));
 const CommandCenter = lazy(() => import('./pages/CommandCenter.jsx'));
@@ -123,7 +124,11 @@ export default function App() {
       {/* The Metabolic Gateway — standalone, nav-free lead magnet; its CTA hands
           off to /pathfinder with the entered biometrics in router state. */}
       <Route path="/burn" element={<DailyBurnCalculator />} />
-      {/* Standalone Pathfinder intake — pre-fills from /burn's handoff state. */}
+      {/* Upsell bridge — three Online Fitness tiers in the LOCKED tab-deck; a
+          Select Plan choice forwards the chosen priceId + biometrics on. */}
+      <Route path="/select-tier" element={<TierSelectionPitch />} />
+      {/* Standalone Pathfinder intake — pre-fills from the handoff state and, when
+          a tier was chosen, carries the checkout object into the screening flow. */}
       <Route path="/pathfinder" element={<PathfinderPage />} />
       {/* The authenticated Vault now lives at its own guarded route (was at "/"). */}
       <Route path="/vault" element={<VaultRoute />} />

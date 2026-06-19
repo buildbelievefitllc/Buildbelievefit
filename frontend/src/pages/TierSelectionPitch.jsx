@@ -1,0 +1,175 @@
+// src/pages/TierSelectionPitch.jsx
+// ─────────────────────────────────────────────────────────────────────────────
+// The Upsell Bridge — sits between the /burn Metabolic Gateway and the Pathfinder
+// intake. A standalone /select-tier surface that presents three Online Fitness
+// tiers using the LOCKED tab-deck design system (CLAUDE.md §10): a numbered tab
+// bar (01/02/03) over a single active panel — never a vertical price stack.
+//
+// Price anchor: the tabs are ordered Autonomous → Momentum → Catalyst and the
+// deck loads on AUTONOMOUS ($49.99, badged "Vanguard"), so the premium price is
+// the first thing seen and frames the cheaper tiers beneath it. Every tab tag
+// carries its price, so all three anchors ($49.99 / $19.99 / $9.99) are visible
+// at once in the rail.
+//
+// Data: tiers come straight from pricingMatrix.js (single source of truth) — no
+// duplicated price/priceId here. The biometrics handed in from /burn ride through
+// in location state and are forwarded UNTOUCHED to /pathfinder, alongside the
+// `checkout` object ({ priceId, tierName, price }) the Pathfinder needs to surface
+// its screening-gated Stripe handoff on submit.
+
+import { useState } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { PRICING } from '../lib/pricingMatrix.js';
+
+const GOLD = '#F5C800';
+const GOLD_LAB = '#D4AF37';
+const GOLD_SOFT = '#F5CF60';
+const PUR = '#6A0DAD';
+const PURL = '#9D27C9';
+const PURX = '#1E0340';
+const HEAD = "'Bebas Neue',sans-serif";
+const BODY = "'Barlow Condensed',sans-serif";
+const DISPLAY = "'Anton',sans-serif";
+
+// The three Online Fitness SKUs, ordered for the price anchor (premium first).
+const byName = (name) => PRICING.fitness.tiers.find((tx) => tx.name === name);
+const TIERS = [
+  { ...byName('BBF Autonomous'), idx: '01', vanguard: true },
+  { ...byName('BBF Momentum'), idx: '02' },
+  { ...byName('BBF Catalyst'), idx: '03' },
+].filter((tx) => tx.priceId); // defensive: drop any that failed to resolve
+
+export default function TierSelectionPitch() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Biometrics inherited from the /burn handoff (may be absent on a direct visit).
+  const prefill = location.state?.prefill || null;
+
+  // Default-active = the premium Vanguard tier (price anchor loads first).
+  const [active, setActive] = useState(TIERS[0]?.priceId || '');
+  const tier = TIERS.find((tx) => tx.priceId === active) || TIERS[0];
+
+  // Select Plan → carry the chosen tier (as the Pathfinder `checkout` object) +
+  // the inherited biometrics into the screening intake.
+  function selectPlan(tx) {
+    navigate('/pathfinder', {
+      state: {
+        prefill,
+        checkout: {
+          priceId: tx.priceId,
+          tierName: tx.name,
+          price: tx.per ? `${tx.price}${tx.per}` : tx.price,
+        },
+      },
+    });
+  }
+
+  return (
+    <div style={st.screen}>
+      <div style={st.shell}>
+        <Link to="/burn" style={st.back}>← Back to your numbers</Link>
+
+        <div style={st.head}>
+          <div style={st.kicker}>Choose Your Access</div>
+          <h1 style={st.h1}>Pick the Engine That Fits</h1>
+          <p style={st.sub}>
+            Every tier runs on the same Sovereign Gold Standard — the price reflects
+            depth of access. Choose your plan, then complete a 60-second readiness
+            screen before secure checkout.
+          </p>
+        </div>
+
+        {/* ── LOCKED tab-deck: numbered rail + single active panel ── */}
+        <div style={st.deckFrame}>
+          <div style={st.deckInner}>
+            <div style={st.tabBar} role="tablist" aria-label="Select a plan">
+              {TIERS.map((tx) => {
+                const on = tx.priceId === active;
+                return (
+                  <button
+                    key={tx.priceId}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => setActive(tx.priceId)}
+                    style={{ ...st.tab, ...(on ? st.tabActive : null) }}
+                  >
+                    <span style={{ ...st.tabIdx, ...(on ? st.tabIdxActive : null) }}>{tx.idx}</span>
+                    <span style={st.tabLabel}>{tx.name.replace(/^BBF /, '')}</span>
+                    <span style={{ ...st.tabTag, ...(on ? st.tabTagActive : null) }}>
+                      {tx.price}{tx.per || ''}{tx.vanguard ? ' · Vanguard' : ''}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active panel — the selected tier's card. */}
+            <div style={st.panel} role="tabpanel">
+              <div style={{ ...st.card, ...(tier.vanguard ? st.cardVanguard : null) }}>
+                {tier.vanguard ? <div style={st.vanguardBadge}>Vanguard · Most Complete</div> : null}
+                <div style={st.cardName}>{tier.name}</div>
+                <div style={st.priceRow}>
+                  <span style={st.price}>{tier.price}</span>
+                  <span style={st.per}>{tier.per}</span>
+                </div>
+                <ul style={st.feats}>
+                  {(tier.feats || []).map((f) => (
+                    <li key={f} style={st.feat}><span style={st.tick}>▹</span>{f}</li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  style={{ ...st.selectBtn, ...(tier.vanguard ? st.selectBtnGold : st.selectBtnPurple) }}
+                  onClick={() => selectPlan(tier)}
+                >
+                  Select Plan →
+                </button>
+                <div style={st.cardNote}>Cancel anytime · readiness screening required before payment</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const st = {
+  screen: { minHeight: '100vh', width: '100%', boxSizing: 'border-box', background: 'radial-gradient(120% 80% at 50% 0%, rgba(30,3,64,.6), #090909 70%)', padding: 'clamp(18px,4vw,48px) clamp(14px,4vw,24px)', display: 'flex', justifyContent: 'center' },
+  shell: { width: '100%', maxWidth: 720 },
+  back: { display: 'inline-block', fontFamily: BODY, fontSize: '.85rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,.55)', textDecoration: 'none', marginBottom: 'clamp(16px,3vw,26px)' },
+  head: { textAlign: 'center', marginBottom: 24 },
+  kicker: { fontFamily: BODY, fontSize: '.72rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL },
+  h1: { fontFamily: HEAD, fontSize: 'clamp(2rem,7vw,2.9rem)', letterSpacing: '1.5px', color: '#fff', margin: '.35rem 0 .55rem', lineHeight: 1 },
+  sub: { fontFamily: BODY, fontSize: '.98rem', color: 'rgba(255,255,255,.62)', lineHeight: 1.5, margin: '0 auto', maxWidth: 480 },
+
+  // Deck frame — gradient hairline border + inner eggplant gradient (matches the
+  // Brand Engine deck in MarketingLanding).
+  deckFrame: { padding: 2, borderRadius: 20, background: `linear-gradient(135deg, ${PUR} 0%, ${GOLD_LAB} 28%, ${PURL} 52%, ${GOLD} 74%, ${PUR} 100%)`, boxShadow: `0 0 60px rgba(106,13,173,.35), 0 0 0 1px rgba(245,200,0,.12)` },
+  deckInner: { borderRadius: 18, background: `linear-gradient(180deg, ${PURX} 0%, #060507 100%)`, overflow: 'hidden' },
+  tabBar: { display: 'flex', flexWrap: 'wrap', borderBottom: `1px solid rgba(245,200,0,.22)`, background: 'rgba(9,9,9,.55)' },
+  tab: { flex: '1 1 120px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3, padding: 'clamp(12px,1.6vw,18px) clamp(12px,1.8vw,22px)', cursor: 'pointer', background: 'transparent', border: 'none', borderRight: `1px solid rgba(157,39,201,.22)`, borderBottom: '3px solid transparent', textAlign: 'left', transition: 'background .18s ease, border-color .18s ease' },
+  tabActive: { background: `linear-gradient(180deg, rgba(106,13,173,.32), rgba(9,9,9,.1))`, borderBottom: `3px solid ${GOLD}` },
+  tabIdx: { fontFamily: DISPLAY, fontSize: '.78rem', letterSpacing: '1px', color: 'rgba(255,255,255,.35)', lineHeight: 1 },
+  tabIdxActive: { color: GOLD },
+  tabLabel: { fontFamily: HEAD, fontSize: 'clamp(1rem,1.9vw,1.3rem)', letterSpacing: '1px', textTransform: 'uppercase', color: '#fff', lineHeight: 1 },
+  tabTag: { fontFamily: BODY, fontSize: '.6rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: PURL, border: `1px solid rgba(157,39,201,.45)`, borderRadius: 4, padding: '2px 6px', marginTop: 2 },
+  tabTagActive: { color: GOLD, borderColor: 'rgba(245,200,0,.5)' },
+
+  panel: { padding: 'clamp(22px,4vw,40px) clamp(16px,4vw,36px)' },
+  card: { position: 'relative', background: 'rgba(8,2,18,.55)', border: `1px solid rgba(157,39,201,.3)`, borderRadius: 16, padding: 'clamp(22px,4vw,32px)', textAlign: 'center' },
+  cardVanguard: { border: `1px solid rgba(245,200,0,.45)`, boxShadow: `0 0 40px rgba(245,200,0,.12)` },
+  vanguardBadge: { position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: `linear-gradient(180deg, ${GOLD} 0%, ${GOLD_LAB} 100%)`, color: '#1B1106', fontFamily: HEAD, fontSize: '.72rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 16px', borderRadius: 99, whiteSpace: 'nowrap', boxShadow: `0 6px 18px rgba(245,200,0,.4)` },
+  cardName: { fontFamily: HEAD, fontSize: 'clamp(1.6rem,5vw,2.2rem)', letterSpacing: '1px', color: '#fff', marginTop: 6 },
+  priceRow: { display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4, margin: '.3rem 0 1.1rem' },
+  price: { fontFamily: DISPLAY, fontSize: 'clamp(2.4rem,9vw,3.4rem)', color: GOLD_SOFT, lineHeight: 1 },
+  per: { fontFamily: BODY, fontSize: '1rem', fontWeight: 700, color: 'rgba(255,255,255,.5)', letterSpacing: '1px' },
+  feats: { listStyle: 'none', padding: 0, margin: '0 auto 1.4rem', maxWidth: 380, textAlign: 'left' },
+  feat: { display: 'flex', gap: 10, alignItems: 'flex-start', fontFamily: BODY, fontSize: '.96rem', fontWeight: 600, color: 'rgba(255,255,255,.78)', lineHeight: 1.4, padding: '.4rem 0' },
+  tick: { color: GOLD, flexShrink: 0 },
+  selectBtn: { width: '100%', maxWidth: 340, fontFamily: HEAD, fontSize: '1.15rem', letterSpacing: '2px', textTransform: 'uppercase', borderRadius: 10, padding: '1rem 1.6rem', cursor: 'pointer' },
+  selectBtnGold: { color: '#1B1106', background: `linear-gradient(180deg, ${GOLD} 0%, ${GOLD_LAB} 100%)`, border: 'none', boxShadow: `0 10px 28px rgba(245,200,0,.35)` },
+  selectBtnPurple: { color: '#fff', background: `linear-gradient(180deg, ${PURL}, ${PUR})`, border: `1px solid rgba(157,39,201,.6)` },
+  cardNote: { fontFamily: BODY, fontSize: '.78rem', fontWeight: 600, color: 'rgba(255,255,255,.45)', marginTop: 14, letterSpacing: '.3px' },
+};

@@ -9,6 +9,12 @@
 // Direct visits to /pathfinder (no state) simply render an empty intake. The
 // in-page Pathfinder inside MarketingLanding (#pathfinder deck tab) is unchanged;
 // this is an additive, deep-linkable surface — not a replacement.
+//
+// When the prospect arrives via the /select-tier upsell bridge, location state
+// also carries a `checkout` object ({ priceId, tierName, price }); we forward it
+// to PathfinderForm so the post-submit success card surfaces the screening-gated
+// Stripe handoff for the chosen tier. Absent (direct visit / top-of-funnel) →
+// the form just collects the application with no checkout step.
 
 import { Link, useLocation } from 'react-router-dom';
 import PathfinderForm from '../components/PathfinderForm.jsx';
@@ -18,6 +24,7 @@ export default function PathfinderPage() {
   const { t } = useLang();
   const location = useLocation();
   const prefill = location.state?.prefill || null;
+  const checkout = location.state?.checkout || null;
 
   return (
     <div style={st.screen}>
@@ -28,7 +35,7 @@ export default function PathfinderPage() {
           <h1 style={st.h1}>{t('pf-h')}</h1>
           <p style={st.sub}>{t('pf-sub')}</p>
         </div>
-        <PathfinderForm prefill={prefill} />
+        <PathfinderForm prefill={prefill} checkout={checkout} />
       </div>
     </div>
   );
