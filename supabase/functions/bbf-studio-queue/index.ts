@@ -259,6 +259,18 @@ serve(async (req) => {
       // claim (queued→posting→posted/failed) and flip rule apply unchanged. A reel
       // blocks here on Meta's transcode (~60–90s) before reporting back.
       if (body?.now === true) {
+        // VIDEO reels block on Meta's transcode (~60–90s). Awaiting that inside the
+        // request makes the browser/gateway time out and surface a FALSE error even
+        // when the reel posts. So fire the distributor in the BACKGROUND (survives the
+        // response via waitUntil) and return immediately as 'posting'; the browser
+        // polls action:'poststatus' for the verdict.
+        if (kind === 'video') {
+          const bg = distributeNow(cfg.distributor, id)
+            .catch((e) => { console.error('[bbf-studio-queue] bg distribute failed:', String((e as Error)?.message ?? e)); });
+          try { (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime?.waitUntil?.(bg); } catch (_) { /* best effort */ }
+          return jsonResponse({ ok: true, id, kind, table: cfg.table, status: 'posting', posted_now: true, async: true, row: inserted });
+        }
+        // IMAGE cards post fast — keep the synchronous verdict.
         const dist = await distributeNow(cfg.distributor, id);
         const summary = (dist.result && dist.result.summary) ? dist.result.summary : null;
         const posted = !!summary && Number(summary.posted) > 0;
@@ -274,6 +286,19 @@ serve(async (req) => {
       }
 
       return jsonResponse({ ok: true, id, kind, table: cfg.table, status: 'queued', row: inserted });
+    }
+
+    // ── poststatus: lightweight read of a row's distribution verdict (for the
+    //    browser to poll a backgrounded POST NOW reel until posted/failed) ─────────
+    if (action === 'poststatus') {
+      const kind = normKind(body?.kind);
+      const cfg = ROUTING[kind];
+      const id = String(body?.id ?? '');
+      if (!UUID_RE.test(id)) return jsonResponse({ error: 'bad_id' }, 400);
+      const rows = await pgGet(`${cfg.table}?select=status,last_error,post_refs&id=eq.${encodeURIComponent(id)}&limit=1`) as Array<Record<string, unknown>>;
+      const row = Array.isArray(rows) && rows.length ? rows[0] : null;
+      if (!row) return jsonResponse({ ok: false, error: 'not_found' }, 404);
+      return jsonResponse({ ok: true, id, kind, status: row.status ?? null, last_error: row.last_error ?? null, post_refs: row.post_refs ?? null });
     }
 
     return jsonResponse({ error: 'unknown_action', detail: action }, 400);

@@ -511,6 +511,7 @@ STRAIGHT UP</textarea></div>
     <div class="ctl-group"><button class="export-btn" id="reel-export-vid">🎬 EXPORT VIDEO</button>
       <div class="vid-progress" id="reel-vid-progress"><div class="vid-progress-bar" id="reel-vid-bar"></div></div>
       <div class="vid-note" id="reel-vid-note"></div>
+      <button class="export-btn" id="reel-vid-save" style="display:none;margin-top:8px;">💾 SAVE VIDEO TO PHONE</button>
       <div class="hint">Bakes the overlay onto your footage. Records up to 60s.</div>
       <button class="queue-btn" id="reel-queue-vid">📡 QUEUE REEL VIDEO → IG/FB</button>
       <div class="queue-note" id="reel-queue-vid-note"></div>
@@ -728,7 +729,16 @@ async function queuePost(kind, fields, getBlob, btn, note, now){
     const cr = await fetch(BBF_QUEUE_FN, { method:'POST', headers:bbfQHeaders(token), body:JSON.stringify(Object.assign({ action:'confirm', id:sj.id, kind, now:!!now }, fields)) });
     const cj = await cr.json().catch(()=>null);
     if(now){
-      if(cj && cj.status==='posted'){ setNote('ok','✓ Posted to IG/FB now.'); btn.textContent='✓ POSTED'; setTimeout(()=>{ btn.textContent=orig; }, 2600); }
+      if(cj && cj.status==='posting' && cj.async){
+        // Reel: Meta is transcoding in the background — poll the row for the verdict
+        // instead of blocking the request (which used to time out and false-error).
+        setNote('','Posting reel… Meta is transcoding (~60–90s). Keep this open.');
+        const verdict = await pollPostStatus(kind, sj.id, token);
+        if(verdict==='posted'){ setNote('ok','✓ Posted to IG/FB now.'); btn.textContent='✓ POSTED'; setTimeout(()=>{ btn.textContent=orig; }, 2600); }
+        else if(verdict==='failed'){ setNote('warn','Meta rejected the reel — asset is saved. Save the video and post manually, or retry.'); }
+        else { setNote('','Still finishing at Meta — reels often land a minute or two later. Check IG/FB; if it’s not there, retry.'); }
+      }
+      else if(cj && cj.status==='posted'){ setNote('ok','✓ Posted to IG/FB now.'); btn.textContent='✓ POSTED'; setTimeout(()=>{ btn.textContent=orig; }, 2600); }
       else {
         const why = (cj && (cj.error || (cj.distribute && JSON.stringify(cj.distribute).slice(0,160)))) || cr.status;
         setNote('warn','Post failed ('+why+'). The asset is saved — try QUEUE, or retry from Safari if the clip recorded as WebM.');
@@ -740,6 +750,20 @@ async function queuePost(kind, fields, getBlob, btn, note, now){
     }
   }catch(e){ setNote('warn',(now?'Post':'Queue')+' error: '+((e&&e.message)||e)); }
   finally{ btn.disabled=false; if(btn.textContent==='QUEUING…'||btn.textContent==='POSTING…') btn.textContent=orig; }
+}
+// Poll a backgrounded POST NOW (reel transcode) until the server flips the row to
+// posted/failed. Returns 'posted' | 'failed' | 'timeout'. ~3.5 min budget @ 5s.
+async function pollPostStatus(kind, id, token){
+  const deadline=Date.now()+210000;
+  while(Date.now()<deadline){
+    await new Promise(r=>setTimeout(r,5000));
+    try{
+      const r=await fetch(BBF_QUEUE_FN,{ method:'POST', headers:bbfQHeaders(token), body:JSON.stringify({ action:'poststatus', id, kind }) });
+      const j=await r.json().catch(()=>null);
+      if(j && j.ok){ if(j.status==='posted') return 'posted'; if(j.status==='failed') return 'failed'; }
+    }catch(_){ /* transient — keep polling */ }
+  }
+  return 'timeout';
 }
 
 /* ===== SHARED DATA ===== */
@@ -2637,8 +2661,17 @@ function buildReelCaption(){
 }
 ['reel-eye','reel-hl','reel-sub','reel-watch'].forEach(id=> $(id).addEventListener('input',renderReel));
 /* ===== REEL VIDEO EXPORT (Upgrade 2) ===== */
-let reelHasVideo=false, reelRecording=false;
+let reelHasVideo=false, reelRecording=false, reelLastVideo=null;
 const reelVid=$('reel-vid');
+// SAVE VIDEO TO PHONE — fired by a fresh tap so navigator.share is allowed (mobile).
+$('reel-vid-save').onclick=async()=>{
+  if(!reelLastVideo) return;
+  const r=await deliverBlob(reelLastVideo.blob, reelLastVideo.name);
+  const n=$('reel-vid-note');
+  if(r==='shared'){ n.className='vid-note active'; n.textContent='Shared ✓'; }
+  else if(r==='downloaded'){ n.className='vid-note active'; n.textContent='Saved ✓'; }
+  else if(r==='canceled'){ n.className='vid-note active'; n.textContent='Save canceled — tap SAVE VIDEO to try again.'; }
+};
 
 // Upload footage → hidden muted <video>; preview shows live motion behind the overlay.
 $('reel-file-vid').addEventListener('change', e=>{
@@ -2826,9 +2859,22 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
       if(!blob.size){ fail('Recording produced no data — this browser couldn’t encode '+(mime||'video')+'. Try EXPORT IMAGE, or update your browser.'); restorePreview(); resolve(null); return; }
       out={blob, ext, mime};
       if(download){
-        deliverBlob(blob, 'bbf-reel-'+Date.now()+'.'+ext);   // share sheet on mobile, download on desktop
-        if(ext==='webm'){ note.className='vid-note active warn'; note.textContent='Exported as .webm — your browser can’t record MP4 directly; convert before posting to IG.'; }
-        else{ note.className='vid-note active'; note.textContent='Saved MP4 ✓ — ready to post.'; }
+        const fname='bbf-reel-'+Date.now()+'.'+ext;
+        reelLastVideo={blob,name:fname};
+        // MOBILE: navigator.share needs a FRESH user gesture, which is long gone after
+        // a multi-second recording — so auto-share silently fails. Surface a SAVE button
+        // the user taps; that tap re-arms the share sheet (Save to Photos / share to IG).
+        if(IS_MOBILE){
+          $('reel-vid-save').style.display='block';
+          note.className='vid-note active'+(ext==='webm'?' warn':'');
+          note.textContent = ext==='webm'
+            ? 'Recorded .webm — tap SAVE VIDEO (this browser can’t record MP4 for IG).'
+            : 'Recorded ✓ — tap SAVE VIDEO to open the share sheet (Save to Photos / share to IG).';
+        } else {
+          deliverBlob(blob, fname);   // desktop: direct download works without a gesture
+          if(ext==='webm'){ note.className='vid-note active warn'; note.textContent='Exported as .webm — your browser can’t record MP4 directly; convert before posting to IG.'; }
+          else{ note.className='vid-note active'; note.textContent='Saved MP4 ✓ — ready to post.'; }
+        }
       } else {
         note.className='vid-note active'; note.textContent='Recorded ✓ — uploading to the queue…';
       }
