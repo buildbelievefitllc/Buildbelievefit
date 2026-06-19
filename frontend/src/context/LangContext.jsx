@@ -577,6 +577,42 @@ const DICT = {
   // Concierge summon (Settings → replay the first-login welcome on demand).
   'concierge-replay-h': { en: 'Onboarding', es: 'Bienvenida', pt: 'Integração' },
   'concierge-replay': { en: 'Replay welcome tour', es: 'Repetir el recorrido de bienvenida', pt: 'Repetir o tour de boas-vindas' },
+
+  // ── Pathfinder funnel hardening — explicit language selector (Phase A),
+  // trilingual completion of the athlete/nutrition inputs (Phase B), and the
+  // physician-clearance notice (Phase C). All previously hardcoded English. ──
+  'pf-lang-label': { en: 'Preferred Language', es: 'Idioma Preferido', pt: 'Idioma Preferido' },
+  'pf-lang-note': { en: 'Your portal and plans open in this language.', es: 'Tu portal y tus planes se abren en este idioma.', pt: 'Seu portal e seus planos abrem neste idioma.' },
+  'pf-lang-en': { en: 'English', es: 'Inglés', pt: 'Inglês' },
+  'pf-lang-es': { en: 'Spanish', es: 'Español', pt: 'Espanhol' },
+  'pf-lang-pt': { en: 'Portuguese', es: 'Portugués', pt: 'Português' },
+  // Sport — label + options (values: none/basketball/football/soccer/track/baseball/general).
+  'pf-sport-label': { en: 'Sport (optional)', es: 'Deporte (opcional)', pt: 'Esporte (opcional)' },
+  'pf-sport-none': { en: 'Not a sport athlete', es: 'No soy atleta de deporte', pt: 'Não sou atleta de esporte' },
+  'pf-sport-basketball': { en: 'Basketball', es: 'Baloncesto', pt: 'Basquete' },
+  'pf-sport-football': { en: 'Football', es: 'Fútbol Americano', pt: 'Futebol Americano' },
+  'pf-sport-soccer': { en: 'Soccer', es: 'Fútbol', pt: 'Futebol' },
+  'pf-sport-track': { en: 'Track & Field', es: 'Atletismo', pt: 'Atletismo' },
+  'pf-sport-baseball': { en: 'Baseball / Softball', es: 'Béisbol / Sóftbol', pt: 'Beisebol / Softbol' },
+  'pf-sport-general': { en: 'General Athletic', es: 'Atlético General', pt: 'Atlético Geral' },
+  // Dietary profile — label + options.
+  'pf-diet-label': { en: 'Dietary Profile', es: 'Perfil Dietético', pt: 'Perfil Alimentar' },
+  'pf-diet-omnivore': { en: 'Omnivore', es: 'Omnívoro', pt: 'Onívoro' },
+  'pf-diet-vegetarian': { en: 'Vegetarian', es: 'Vegetariano', pt: 'Vegetariano' },
+  'pf-diet-vegan': { en: 'Vegan', es: 'Vegano', pt: 'Vegano' },
+  // Fasting window — label + options + youth-lock note.
+  'pf-fasting-label': { en: 'Fasting Window', es: 'Ventana de Ayuno', pt: 'Janela de Jejum' },
+  'pf-fasting-none': { en: 'None', es: 'Ninguna', pt: 'Nenhuma' },
+  'pf-fasting-1212': { en: '12 / 12', es: '12 / 12', pt: '12 / 12' },
+  'pf-fasting-1410': { en: '14 / 10', es: '14 / 10', pt: '14 / 10' },
+  'pf-fasting-168': { en: '16 / 8 (skip breakfast)', es: '16 / 8 (sin desayuno)', pt: '16 / 8 (sem café da manhã)' },
+  'pf-fasting-youth-note': { en: 'Youth athletes train on continuous nutrient delivery — fasting is disabled for healthy CNS development.', es: 'Los atletas jóvenes entrenan con aporte continuo de nutrientes — el ayuno está desactivado para un desarrollo saludable del SNC.', pt: 'Atletas jovens treinam com fornecimento contínuo de nutrientes — o jejum está desativado para o desenvolvimento saudável do SNC.' },
+  // Height — label + unit placeholders.
+  'pf-height-label': { en: 'Height (ft / in)', es: 'Altura (pies / pulg)', pt: 'Altura (pés / pol)' },
+  'pf-height-ft': { en: 'ft', es: 'pies', pt: 'pés' },
+  'pf-height-in': { en: 'in', es: 'pulg', pt: 'pol' },
+  // Phase C — physician-clearance notice (adult Pathfinder · matches Youth standard).
+  'pf-clearance-flag': { en: "Based on your health answers, a physician's clearance is required before we generate your training program. Your coach will review your intake and follow up before any training begins.", es: 'Según tus respuestas de salud, se requiere autorización médica antes de generar tu programa de entrenamiento. Tu entrenador revisará tu registro y dará seguimiento antes de comenzar cualquier entrenamiento.', pt: 'Com base nas suas respostas de saúde, é necessária liberação médica antes de gerarmos seu programa de treino. Seu treinador revisará seu cadastro e entrará em contato antes de iniciar qualquer treino.' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });
