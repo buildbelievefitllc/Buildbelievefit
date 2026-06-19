@@ -487,6 +487,9 @@ YOUR CLOCK</textarea></div>
     <div class="ctl-group"><label class="ctl-label">Hook Headline</label>
       <textarea id="reel-hl">STOP PRESSING
 STRAIGHT UP</textarea></div>
+    <div class="ctl-group"><label class="ctl-label">Headline Size <span class="range-val" id="reel-hl-size-val">100%</span></label>
+      <input type="range" id="reel-hl-size" min="45" max="160" value="100">
+      <div class="hint">Shrink the hook so it never overshadows the movement — ideal for lower-framed shots.</div></div>
     <div class="ctl-group"><label class="ctl-label">Sub-line</label><input type="text" id="reel-sub" value="The 2-inch fix your shoulders will thank you for."></div>
     <div class="ctl-group"><label class="ctl-label">Button</label><input type="text" id="reel-watch" value="▶  WATCH THE FIX"></div>
     <div class="ctl-group"><button class="export-btn" id="reel-export">⬇ EXPORT IMAGE 1080×1920</button>
@@ -2566,13 +2569,19 @@ $('reel-spin').onclick=()=>{
 bindFile('reel-file-bg','reel-lbl-bg', src=>{ $('reel-bg').src=src; $('reel-bg').style.display='block'; $('reel-bgph').style.display='none'; });
 bindFile('reel-file-l','reel-lbl-l', src=>{ $('reel-logoimg').src=src; $('reel-logo').style.display='block'; });
 $('reel-dark').addEventListener('input', e=>{ $('reel-dark-val').textContent=e.target.value+'%'; $('reel-ov').style.opacity=(+e.target.value)/100; });
+// Headline size: scales the live preview + image export (baked from the DOM). The
+// 148px base mirrors the .reel-hl CSS; line-height is unitless so it scales too.
+function reelHlScale(){ return ((+$('reel-hl-size').value)||100)/100; }
+function applyReelHlSize(){ $('reel-out-hl').style.fontSize=(148*reelHlScale()).toFixed(1)+'px'; }
 function renderReel(){
   $('reel-out-eye').textContent=$('reel-eye').value;
   $('reel-out-hl').textContent=$('reel-hl').value;
   $('reel-out-sub').textContent=$('reel-sub').value;
   $('reel-out-watch').textContent=$('reel-watch').value;
   $('reel-caption').textContent=buildReelCaption();
+  applyReelHlSize();
 }
+$('reel-hl-size').addEventListener('input', e=>{ $('reel-hl-size-val').textContent=e.target.value+'%'; applyReelHlSize(); });
 function buildReelCaption(){
   return $('reel-hl').value.replace(/\n/g,' ')+' 🎬\n\n'+$('reel-sub').value+'\n\n['+$('reel-eye').value+']\n🌐 buildbelievefit.fitness\n\n'+HASHTAGS.reel;
 }
@@ -2704,7 +2713,8 @@ function drawReelOverlay(ctx,o){
     ctx.beginPath(); ctx.arc(lx+ls/2,ly+ls/2,ls/2,0,Math.PI*2); ctx.lineWidth=3; ctx.strokeStyle='rgba(245,200,0,0.35)'; ctx.stroke(); }
   // 5. bottom block (anchored bottom:90), built bottom-up
   const cx=70, cw=940;
-  const hlFont="148px 'Bebas Neue'", hlLines=String(o.hlText).split('\n'), hlLH=148*0.94, hlH=hlLines.length*hlLH;
+  const hlPx=Math.round(148*(o.hlScale||1));
+  const hlFont=hlPx+"px 'Bebas Neue'", hlLines=String(o.hlText).split('\n'), hlLH=hlPx*0.94, hlH=hlLines.length*hlLH;
   const subFont="700 38px 'Barlow Condensed'"; ctx.font=subFont;
   const subLines=wrapText(ctx,o.subText,cw), subLH=38*1.2, subH=subLines.length*subLH;
   const watchFont="36px 'Bebas Neue'", watchH=76; ctx.font=watchFont;
@@ -2712,7 +2722,7 @@ function drawReelOverlay(ctx,o){
   const blockH=hlH+22+subH+34+watchH; let y=H-90-blockH;
   ctx.save(); ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=30; ctx.shadowOffsetY=6;
   ctx.fillStyle='#f9f5ff'; ctx.font=hlFont; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  hlLines.forEach((ln,i)=> ctx.fillText(ln, cx, y+i*hlLH+148*0.80)); ctx.restore();
+  hlLines.forEach((ln,i)=> ctx.fillText(ln, cx, y+i*hlLH+hlPx*0.80)); ctx.restore();
   y+=hlH+22;
   ctx.save(); ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=14; ctx.shadowOffsetY=3;
   ctx.fillStyle='rgba(255,255,255,0.78)'; ctx.font=subFont; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
@@ -2742,7 +2752,8 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
   const logoImg=($('reel-logo').style.display!=='none' && $('reel-logoimg').src)?$('reel-logoimg'):null;
   if(logoImg && logoImg.decode){ try{ await logoImg.decode(); }catch(e){} }   // so the badge isn't silently dropped
   const baseOpts={W,H, dark:+$('reel-dark').value, eyeColor:$('reel-out-eye').style.color||'#f5c800',
-    eyeText:$('reel-eye').value, hlText:$('reel-hl').value, subText:$('reel-sub').value, watchText:$('reel-watch').value, logoImg};
+    eyeText:$('reel-eye').value, hlText:$('reel-hl').value, subText:$('reel-sub').value, watchText:$('reel-watch').value,
+    hlScale:reelHlScale(), logoImg};
   const mime=pickRecorderMime(), stream=canvas.captureStream(30);
   let rec; try{ rec=mime?new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000}):new MediaRecorder(stream); }
   catch(err){ fail('Recorder init failed: '+err.message); resolve(null); return; }
