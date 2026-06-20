@@ -29,6 +29,7 @@ import { useDailyReadiness, handshakeChannel, PROTOCOL_UPDATED_EVENT } from '../
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
 import { addActiveCalories } from '../../lib/biometricsApi.js';
 import { manualToday } from '../../lib/manualBaseline.js';
+import { SESSION_COMPLETE_EVENT } from '../../lib/sessionFeedbackApi.js';
 import SpotifyEmbed from './SpotifyEmbed.jsx';
 import './cardio.css';
 
@@ -528,6 +529,9 @@ function CardioConfigurator({ onLogged }) {
       setLogMsg({ kind: 'ok', text: tr.synced });
       setPlan(null);   // clear the active protocol (Phase 3)
       onLogged?.();    // reflect the completed session in the History queue
+      // Post-workout check-in trigger — a completed cardio session feeds the
+      // prescription engine (the Vault shell listens for this and opens the modal).
+      try { window.dispatchEvent(new CustomEvent(SESSION_COMPLETE_EVENT, { detail: { source: 'cardio' } })); } catch { /* SSR — non-fatal */ }
     } catch (err) {
       setLogMsg({ kind: 'err', text: err?.message || tr.errLog });
     } finally {

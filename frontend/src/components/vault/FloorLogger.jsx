@@ -21,6 +21,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useFloorSession } from '../../lib/useFloorSession.js';
 import { hydrateFloor, logSet, ensureFloorSyncWired } from '../../lib/floorSync.js';
 import { CheckIcon, CloseIcon } from './icons.jsx';
+import { SESSION_COMPLETE_EVENT } from '../../lib/sessionFeedbackApi.js';
 import './floorLogger.css';
 
 function fmtWeight(n) {
@@ -155,6 +156,9 @@ function FloorSetRow({ uid, dayIdx, rx, setNumber, saved, isCurrent }) {
 export default function FloorLogger({ uid, dayIdx, day, onClose }) {
   const { prescription, setMap } = useFloorSession(uid, dayIdx);
   const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
+  // Holds the latest exit handler so the mount-once Escape listener always calls
+  // current logic without re-subscribing each render.
+  const exitRef = useRef(() => {});
 
   // Hydrate the cache for this session on open (idempotent) + wire the reconnect
   // flush. The component itself never touches the network beyond this kickoff.
@@ -172,17 +176,32 @@ export default function FloorLogger({ uid, dayIdx, day, onClose }) {
     return () => { window.removeEventListener('online', up); window.removeEventListener('offline', down); };
   }, []);
 
-  // Escape closes the blackout.
+  // Escape closes the blackout (routed through the exit handler so a completed
+  // session still fires the post-workout check-in).
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
+    const onKey = (e) => { if (e.key === 'Escape') exitRef.current(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
 
   const doneCount = Object.values(setMap).reduce(
     (acc, byNo) => acc + Object.values(byNo).filter((s) => s.done).length, 0,
   );
   const totalSets = prescription.reduce((acc, rx) => acc + rx.setCount, 0);
+
+  // Exit Floor Mode → if real work was logged, fire the post-workout check-in
+  // (feeds the prescription engine) before closing. The Vault shell opens the modal.
+  const exitFloor = () => {
+    if (doneCount > 0) {
+      try {
+        window.dispatchEvent(new CustomEvent(SESSION_COMPLETE_EVENT, { detail: { source: 'floor', sets: doneCount } }));
+      } catch { /* SSR / no window — non-fatal */ }
+    }
+    onClose?.();
+  };
+  // Refs must be mutated outside render — keep the Escape listener pointed at the
+  // latest exit handler via an effect, not the render body.
+  useEffect(() => { exitRef.current = exitFloor; });
 
   return (
     <div className="fl-screen" data-testid="floor-logger">
@@ -196,7 +215,7 @@ export default function FloorLogger({ uid, dayIdx, day, onClose }) {
             <span className="fl-net-dot" aria-hidden="true" />
             {online ? 'Online' : 'Offline'}
           </span>
-          <button type="button" className="fl-close" onClick={onClose} aria-label="Exit Floor Mode" data-testid="fl-close">
+          <button type="button" className="fl-close" onClick={exitFloor} aria-label="Exit Floor Mode" data-testid="fl-close">
             <CloseIcon size={18} />
           </button>
         </div>

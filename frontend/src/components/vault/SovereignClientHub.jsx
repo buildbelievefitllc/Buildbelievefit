@@ -35,6 +35,7 @@ import { useBiometricLedger } from '../../lib/useDailyReadiness.js';
 import { runVitalsPipeline, runManualVitalsPipeline, useVitalsSyncStatus } from '../../lib/vitalsPipeline.js';
 import { saveManualBaseline, manualSubjective, useManualBaselineToday } from '../../lib/manualBaseline.js';
 import MindsetIntercept from './MindsetIntercept.jsx';
+import RecoveryPrescriptionCard from './RecoveryPrescriptionCard.jsx';
 import './sovereignHub.css';
 
 // Handshake diagnostic — its own chunk; only the Check-In tab ever pulls it in.
@@ -103,7 +104,7 @@ function ReadinessDial({ score }) {
   );
 }
 
-export default function SovereignClientHub() {
+export default function SovereignClientHub({ refreshKey = 0 }) {
   const { t } = useLang();
   const { user } = useAuth();
   const uid = user?.username || user?.id || '';
@@ -527,6 +528,11 @@ export default function SovereignClientHub() {
           <p className="sch-body">{t('sch-awaiting-body')}</p>
         </div>
       ) : null}
+
+      {/* ── TODAY'S PRESCRIPTION — the actionable recovery protocol, sitting directly
+          below the readiness / live-telemetry dossier. Self-fetches the latest
+          engine-generated playlist; refreshKey bumps after a post-workout check-in. ── */}
+      <RecoveryPrescriptionCard refreshKey={refreshKey} />
 
       {/* ── HEALTH CONNECT STATUS — the zero-guess handshake diagnostic ── */}
       <Suspense fallback={null}>

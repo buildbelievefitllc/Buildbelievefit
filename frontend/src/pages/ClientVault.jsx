@@ -20,7 +20,7 @@
 // imports only shared, read-only primitives. It never touches the public
 // MarketingLanding route or the admin Command Center.
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
@@ -41,10 +41,12 @@ import Prehab from '../components/vault/Prehab.jsx';
 import Recovery from '../components/vault/Recovery.jsx';
 import ChampionMindset from '../components/vault/ChampionMindset.jsx';
 import SovereignClientHub from '../components/vault/SovereignClientHub.jsx';
+import PostWorkoutCheckInModal from '../components/vault/PostWorkoutCheckInModal.jsx';
 import TierGate from '../components/TierGate.jsx';
 import ComlinkFAB from '../components/vault/ComlinkFAB.jsx';
 import Concierge from '../components/vault/Concierge.jsx';
 import { TAB_FEATURE } from '../lib/entitlements.js';
+import { SESSION_COMPLETE_EVENT } from '../lib/sessionFeedbackApi.js';
 import { LockIcon } from '../components/vault/icons.jsx';
 import '../components/vault/vault.css';
 
@@ -84,6 +86,18 @@ export default function ClientVault() {
   const { t } = useLang();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(TABS[0].id);
+
+  // Post-Workout Check-In — opened by a SESSION_COMPLETE_EVENT dispatched from the
+  // workout loggers (FloorLogger exit-with-work / SmartCardio "Complete & Sync").
+  // On success it bumps checkInRefresh, which the Check-In hub's
+  // RecoveryPrescriptionCard reads to refetch the freshly generated playlist.
+  const [checkInOpen, setCheckInOpen] = useState(false);
+  const [checkInRefresh, setCheckInRefresh] = useState(0);
+  useEffect(() => {
+    const onSessionComplete = () => setCheckInOpen(true);
+    window.addEventListener(SESSION_COMPLETE_EVENT, onSessionComplete);
+    return () => window.removeEventListener(SESSION_COMPLETE_EVENT, onSessionComplete);
+  }, []);
 
   // Kill-switch enforcement: if the CEO locks this account from the Command Center,
   // the athlete's vault_token is revoked server-side; this heartbeat detects it and
@@ -226,7 +240,7 @@ export default function ClientVault() {
                 error={profileError}
               />
             )}
-            {activeTab === 'checkin' && <SovereignClientHub />}
+            {activeTab === 'checkin' && <SovereignClientHub refreshKey={checkInRefresh} />}
             {activeTab === 'program' && <Program plans={plans} profile={profile} />}
             {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
             {activeTab === 'cardio' && <SmartCardio />}
@@ -243,6 +257,13 @@ export default function ClientVault() {
       {/* Self-Serve Concierge — first-login welcome that lists EXACTLY the band's
           unlocked tools (server-enforced, no mirages). Self-gates + fires once. */}
       <Concierge />
+      {/* Post-Workout Check-In — shell-level so it overlays any tab the instant a
+          session completes; feeds the Dynamic Prescription engine. */}
+      <PostWorkoutCheckInModal
+        open={checkInOpen}
+        onClose={() => setCheckInOpen(false)}
+        onSuccess={() => { setCheckInOpen(false); setCheckInRefresh((n) => n + 1); }}
+      />
     </div>
   );
 }

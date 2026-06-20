@@ -20,6 +20,11 @@ import { getStoredVaultToken } from '../context/AuthContext.jsx';
 // Canonical body_part values (must match clinical_exercises.body_part / the engine).
 export const TARGET_AREAS = ['shoulder', 'lower_body', 'knee', 'neck', 'upper_body', 'full_body'];
 
+// Window CustomEvent the workout loggers (FloorLogger / SmartCardio) fire the
+// moment a session is completed; the Vault shell listens and opens the check-in
+// modal. Decoupled cross-tree signal (same pattern as PROTOCOL_UPDATED_EVENT).
+export const SESSION_COMPLETE_EVENT = 'bbf:session-complete';
+
 export async function submitSessionFeedback({ uid, painScore, rpeScore, targetArea } = {}) {
   const vaultToken = getStoredVaultToken();
   if (!vaultToken) {
