@@ -22,6 +22,7 @@ import { Loading, Empty } from '../command/primitives.jsx';
 import { BoltIcon } from './icons.jsx';
 import BiokineticForecast from './BiokineticForecast.jsx';
 import WeeklyBriefCard from './WeeklyBriefCard.jsx';
+import SovereignReadinessDashboard from './SovereignReadinessDashboard.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import './vault.css';
 
@@ -48,7 +49,11 @@ export default function VaultHub({ profile, isLoading, error }) {
   const { data: brief, loading: briefLoading, error: briefError } = useWeeklyBrief(profile?.uid);
   return (
     <div className="pg">
-      {/* TOP OF FOLD — the first thing the athlete sees Monday morning. */}
+      {/* MORNING CHECK-IN — the daily CNS readiness scan. First thing on land; its
+          volMultiplier governs the day's training volume across the workout tabs. */}
+      <SovereignReadinessDashboard />
+
+      {/* TOP OF FOLD — the coach's Monday voice memo. */}
       <WeeklyBriefCard brief={brief} loading={briefLoading} error={briefError} />
 
       <div className={`vh-fc${fcOpen ? ' is-open' : ''}`}>

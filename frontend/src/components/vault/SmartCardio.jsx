@@ -26,6 +26,7 @@ import { generateCardio } from '../../lib/agenticCardioApi.js';
 import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
 import CoachAudioButton from './CoachAudioButton.jsx';
 import { useDailyReadiness, handshakeChannel, PROTOCOL_UPDATED_EVENT } from '../../lib/useDailyReadiness.js';
+import { useReadiness } from '../../context/ReadinessContext.jsx';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
 import { addActiveCalories } from '../../lib/biometricsApi.js';
 import { manualToday } from '../../lib/manualBaseline.js';
@@ -291,6 +292,16 @@ function zoneMeta(z) {
   return CARDIO_ZONES[z] || { label: z, blurb: '', accent: '#FF4500' };
 }
 
+// Morning check-in volume strip (trilingual). Non-invasive: it surfaces the
+// Sovereign Readiness Dashboard's volMultiplier without touching this module's own
+// HRV-ledger CNS auto-regulation (CardioConfigurator / deriveVolumeDirective).
+const MV_STR = {
+  en: { kicker: 'Morning Check-In · CNS Volume', full: 'Full Volume', reduced: 'Reduced Volume', recovery: 'Prehab / Recovery' },
+  es: { kicker: 'Registro Matutino · Volumen SNC', full: 'Volumen Completo', reduced: 'Volumen Reducido', recovery: 'Prehab / Recuperación' },
+  pt: { kicker: 'Check-In Matinal · Volume SNC', full: 'Volume Total', reduced: 'Volume Reduzido', recovery: 'Prehab / Recuperação' },
+};
+const MV_COLOR = { full: '#c9ff7a', reduced: '#ffd24d', recovery: '#ff5d5d' };
+
 export default function SmartCardio() {
   const { data, isLoading, error, refetch } = useCardio();
   const { lang } = useLang();
@@ -302,6 +313,10 @@ export default function SmartCardio() {
   const mode = handshakeChannel(readiness);
   const tr = CARDIO_STR[lang] || CARDIO_STR.en;
 
+  // Morning readiness scan → today's CNS volume (separate from the HRV ledger above).
+  const { volMultiplier, hasCheckedIn, band } = useReadiness();
+  const mv = MV_STR[lang] || MV_STR.en;
+
   return (
     <div className="bbf-cardio" data-testid="smart-cardio-module" data-bbf-mode={mode}>
       <div className="bbf-cardio__head">
@@ -309,6 +324,22 @@ export default function SmartCardio() {
         <span className="bbf-cardio__kicker">{tr.kicker}</span>
       </div>
       <p className="bbf-cardio__sub">{tr.sub}</p>
+
+      {hasCheckedIn && volMultiplier !== 1 ? (
+        <div
+          data-testid="cardio-morning-vol"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '.5rem', margin: '0 0 1rem',
+            padding: '.6rem .85rem', borderRadius: 10,
+            border: `1px solid ${MV_COLOR[band] || MV_COLOR.reduced}`,
+            background: 'rgba(255,255,255,.04)', color: MV_COLOR[band] || MV_COLOR.reduced,
+            fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase',
+          }}
+        >
+          <span aria-hidden="true">⚡</span>
+          {mv.kicker} {Math.round(volMultiplier * 100)}% · {mv[band] || mv.reduced}
+        </div>
+      ) : null}
 
       {/* Metabolic Pacer — the rebuilt configuration layer (kcal hero · slider ·
           apparatus grid) wired straight into the live bbf-agentic-cardio engine.

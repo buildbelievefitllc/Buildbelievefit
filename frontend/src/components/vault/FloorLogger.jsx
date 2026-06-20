@@ -20,6 +20,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFloorSession } from '../../lib/useFloorSession.js';
 import { hydrateFloor, logSet, ensureFloorSyncWired } from '../../lib/floorSync.js';
+import { useReadiness } from '../../context/ReadinessContext.jsx';
 import { CheckIcon, CloseIcon } from './icons.jsx';
 import { SESSION_COMPLETE_EVENT } from '../../lib/sessionFeedbackApi.js';
 import './floorLogger.css';
@@ -28,8 +29,24 @@ function fmtWeight(n) {
   return n === null || n === undefined || n === '' ? '' : String(n);
 }
 
+// Scale a numeric rep target by the morning check-in's CNS volume multiplier.
+// Only pure-integer targets are scaled (ranges like "8-10" / AMRAP pass through);
+// at the default multiplier of 1.0 this is a strict no-op.
+function scaleReps(targetReps, vol) {
+  if (vol == null || Number(vol) === 1) return targetReps;
+  const s = String(targetReps ?? '').trim();
+  if (!/^\d+$/.test(s)) return targetReps;
+  return String(Math.max(1, Math.round(Number(s) * Number(vol))));
+}
+
+const VOL_BAND = {
+  full: { label: 'Full Volume', color: '#c9ff7a' },
+  reduced: { label: 'Reduced Volume', color: '#ffd24d' },
+  recovery: { label: 'Prehab / Recovery', color: '#ff5d5d' },
+};
+
 // One exercise block: target line + its set rows.
-function FloorExercise({ uid, dayIdx, rx, setMap }) {
+function FloorExercise({ uid, dayIdx, rx, setMap, volMultiplier }) {
   const logged = setMap[rx.exKey] || {};
   // Current set = the lowest set number not yet done.
   const total = rx.setCount;
@@ -38,6 +55,10 @@ function FloorExercise({ uid, dayIdx, rx, setMap }) {
     if (!(logged[n] && logged[n].done)) { currentSet = n; break; }
   }
 
+  // Today's CNS-scaled rep target (no-op at multiplier 1.0).
+  const adjReps = scaleReps(rx.targetReps, volMultiplier);
+  const scaled = adjReps !== rx.targetReps;
+
   return (
     <section className="fl-ex" data-testid="fl-exercise">
       <header className="fl-ex-head">
@@ -45,7 +66,8 @@ function FloorExercise({ uid, dayIdx, rx, setMap }) {
         <div className="fl-ex-meta">
           {rx.equipment ? <span className="fl-ex-equip">{rx.equipment}</span> : null}
           <span className="fl-ex-target">
-            {total} × {rx.targetReps || '—'}
+            {total} × {adjReps || '—'}
+            {scaled ? <em style={{ color: '#ffd24d', fontStyle: 'normal' }}> · scaled (was {rx.targetReps})</em> : null}
             {rx.lastWeight != null ? <em> · last {rx.lastWeight} lb</em> : (rx.targetWeight != null ? <em> · {rx.targetWeight} lb</em> : null)}
           </span>
         </div>
@@ -58,6 +80,7 @@ function FloorExercise({ uid, dayIdx, rx, setMap }) {
             uid={uid}
             dayIdx={dayIdx}
             rx={rx}
+            targetReps={adjReps}
             setNumber={setNumber}
             saved={logged[setNumber] || null}
             isCurrent={setNumber === currentSet}
@@ -72,13 +95,16 @@ function FloorExercise({ uid, dayIdx, rx, setMap }) {
 // log/unlog. The number fields are UNCONTROLLED (refs + a seed `key`), so tap-to-
 // log reads the live DOM values and a fresh cache seed re-mounts the field with a
 // new default — no setState-in-effect, no per-keystroke IndexedDB churn.
-function FloorSetRow({ uid, dayIdx, rx, setNumber, saved, isCurrent }) {
+function FloorSetRow({ uid, dayIdx, rx, targetReps, setNumber, saved, isCurrent }) {
   const done = !!(saved && saved.done);
   const weightRef = useRef(null);
   const repsRef = useRef(null);
 
+  // targetReps is the CNS-scaled target passed from the exercise block (falls back
+  // to the raw prescription target); seed/placeholder track it.
+  const tgtReps = targetReps ?? rx.targetReps;
   const seedWeight = fmtWeight(saved?.weightLbs ?? rx.lastWeight ?? rx.targetWeight ?? '');
-  const seedReps = fmtWeight(saved?.reps ?? (rx.targetReps && /^\d+$/.test(rx.targetReps) ? Number(rx.targetReps) : ''));
+  const seedReps = fmtWeight(saved?.reps ?? (tgtReps && /^\d+$/.test(String(tgtReps)) ? Number(tgtReps) : ''));
   // Remount the inputs (fresh defaultValue) only when the SEED changes — i.e. a
   // hydrate folded in a new last-weight, or the set's done-state flipped.
   const seedKey = `${done}|${seedWeight}|${seedReps}`;
@@ -140,7 +166,7 @@ function FloorSetRow({ uid, dayIdx, rx, setNumber, saved, isCurrent }) {
           min="0"
           step="1"
           defaultValue={seedReps}
-          placeholder={rx.targetReps || '—'}
+          placeholder={tgtReps || '—'}
           disabled={done}
           onClick={(e) => e.stopPropagation()}
           aria-label={`Set ${setNumber} reps`}
@@ -155,6 +181,8 @@ function FloorSetRow({ uid, dayIdx, rx, setNumber, saved, isCurrent }) {
 
 export default function FloorLogger({ uid, dayIdx, day, onClose }) {
   const { prescription, setMap } = useFloorSession(uid, dayIdx);
+  // Morning check-in CNS volume — scales today's rep targets (no-op at 1.0).
+  const { volMultiplier, hasCheckedIn, band } = useReadiness();
   const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
   // Holds the latest exit handler so the mount-once Escape listener always calls
   // current logic without re-subscribing each render.
@@ -226,12 +254,30 @@ export default function FloorLogger({ uid, dayIdx, day, onClose }) {
       </div>
       <div className="fl-progress-label">{doneCount} / {totalSets} sets logged</div>
 
+      {/* CNS volume governor — surfaced when the morning scan trimmed today's load. */}
+      {hasCheckedIn && volMultiplier !== 1 ? (
+        <div
+          className="fl-vol-banner"
+          data-testid="fl-vol-banner"
+          style={{
+            margin: '0 1rem .4rem', padding: '.55rem .8rem', borderRadius: 10,
+            border: `1px solid ${(VOL_BAND[band] || VOL_BAND.reduced).color}`,
+            background: 'rgba(255,255,255,.04)', color: (VOL_BAND[band] || VOL_BAND.reduced).color,
+            fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase',
+            display: 'flex', alignItems: 'center', gap: '.5rem',
+          }}
+        >
+          <span aria-hidden="true">⚡</span>
+          CNS Volume {Math.round(volMultiplier * 100)}% · {(VOL_BAND[band] || VOL_BAND.reduced).label} — rep targets scaled for today
+        </div>
+      ) : null}
+
       <div className="fl-body">
         {prescription.length === 0 ? (
           <div className="fl-empty" data-testid="fl-empty">Loading today’s protocol into the local cache…</div>
         ) : (
           prescription.map((rx) => (
-            <FloorExercise key={rx.id} uid={uid} dayIdx={dayIdx} rx={rx} setMap={setMap} />
+            <FloorExercise key={rx.id} uid={uid} dayIdx={dayIdx} rx={rx} setMap={setMap} volMultiplier={volMultiplier} />
           ))
         )}
       </div>
