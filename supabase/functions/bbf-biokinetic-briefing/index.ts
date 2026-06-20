@@ -3,8 +3,8 @@
 // VOICE MAP (resolved live from the CEO account, self-heals on rename):
 //   en -> BBF Coach Akeem   es -> Ana Maria   pt -> Ana Alice   (Young Jamal NEVER selected)
 // Routes through the BBF Lab Voice Engine: exact API payload + the 4 Dynamic Vocal
-// States (Floor Coach / Lounge Talk / Sanctuary / Architect). Returns audio/mpeg.
-// GET ?voices=1 -> resolved locale->voice diagnostic.
+// States (Floor Coach / Lounge Talk / Sanctuary / Architect) + heavy-lift override.
+// Returns audio/mpeg. GET ?voices=1 -> resolved locale->voice diagnostic.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -116,17 +116,22 @@ function vocalStateForContext(ctx: string): VocalState {
   return 'architect'; // forecast / affirmation / onboarding / philosophy
 }
 function modelForState(s: VocalState): string { return s === 'floor_coach' ? 'eleven_turbo_v2_5' : 'eleven_multilingual_v2'; }
+// Heavy-lift override: the retired barbell back squat's commanding profile maps onto the
+// lateral pull-down + upper-body pulling/pressing mechanics.
+function isHeavyLift(name: string): boolean { return /(pull[\s-]?down|lat\s*pull|pull[\s-]?up|chin[\s-]?up|seated\s*row|bent[\s-]?over\s*row|overhead\s*press|shoulder\s*press|bench\s*press)/i.test(String(name || '')); }
+function heavyLiftDirective(): string { return '# HEAVY-LIFT OVERRIDE\nThis movement inherits the commanding, authoritative HEAVY-LIFT vocal profile (originally trained on the retired barbell back squat). Deliver with maximum grounded intensity and command — like a heavy, decisive top-set call.'; }
 function vocalStateDirective(s: VocalState): string {
   if (s === 'floor_coach') return '# VOCAL STATE: THE FLOOR COACH\nEnergized, sharp, technical. Short, punchy sentences. Hit the consonants hard. Drive the rep. No exclamation marks (they spike volume) — land the energy with short declaratives and hard stops.';
-  if (s === 'sanctuary') return '# VOCAL STATE: THE SANCTUARY\nDeepest pitch, extremely slow, therapeutic — you are lowering cortisol. You MUST inject heavy pauses between major thoughts using SSML: <break time="1.5s"/> for a normal pause, <break time="2.5s"/> for the biggest transitions. Use 3 to 6 breaks total. Short, calm sentences between them. No exclamation marks.';
-  return '# VOCAL STATE: THE ARCHITECT\nResonant, building in intensity, passionate. Do NOT use exclamation marks — they spike volume. Create emphasis by isolating critical words with commas or ellipses to slow the tempo, for example: "You have to bring that... Mamba mentality." Let the cadence build; end on a grounded, deliberate line.';
+  if (s === 'lounge_talk') return '# VOCAL STATE: THE LOUNGE TALK\nRelaxed, conversational, real talk. Use natural contractions (you are -> you\'re, it is -> it\'s). Speak like you are sitting across the table, unhurried and warm. No exclamation marks; let the warmth come from the conversational rhythm.';
+  if (s === 'sanctuary') return '# VOCAL STATE: THE SANCTUARY\nDeepest pitch, extremely slow, therapeutic — you are lowering cortisol. You MUST inject heavy pauses between major thoughts using SSML: <break time="2.0s"/> for a normal pause, up to <break time="3.0s"/> for the biggest transitions. Use 3 to 6 breaks total. Short, calm sentences between them. No exclamation marks.';
+  return '# VOCAL STATE: THE ARCHITECT\nResonant storytelling cadence, building in intensity, passionate. STRICTLY enforce the exclamation-guard: NO exclamation marks — they spike volume. Achieve emphasis EXCLUSIVELY by isolating power words with ellipses (...) and commas to slow the tempo, for example: "You have to bring that... Mamba mentality." Let the cadence build; end on a grounded, deliberate line.';
 }
 // Enforce the state's hard rules on the finished script before synthesis.
 function formatForState(text: string, s: VocalState): string {
   let out = String(text ?? '').trim();
   if (!out) return out;
   if (s === 'sanctuary') {
-    if (!/<break/i.test(out)) out = out.replace(/([.?]) /g, '$1 <break time="1.5s"/> ');
+    if (!/<break/i.test(out)) out = out.replace(/([.?]) /g, '$1 <break time="2.0s"/> ');
     return out.replace(/  +/g, ' ');
   }
   return out.replace(/!+/g, '.').replace(/  +/g, ' ');
@@ -274,7 +279,8 @@ async function composeText(context: string, payload: any, locale: string): Promi
     const cues = Array.isArray(ex?.form_cues) ? ex.form_cues.filter(Boolean).slice(0, 4) : [];
     const equip = String(ex?.equipment ?? '').slice(0, 48);
     if (ANTHROPIC_API_KEY) {
-      const sys = sysFor(`You are an elite strength coach giving a short in-ear cue (2-3 sentences, ~45 words) in ${LOCALE_NAME[locale]}. Reference the movement and ONE form cue. No markdown, no preamble, no quotes.`);
+      const base = `You are an elite strength coach giving a short in-ear cue (2-3 sentences, ~45 words) in ${LOCALE_NAME[locale]}. Reference the movement and ONE form cue. No markdown, no preamble, no quotes.`;
+      const sys = sysFor(base) + (isHeavyLift(name) ? `\n\n${heavyLiftDirective()}` : '');
       const user = `Exercise: ${name}\nTarget: ${sets ? sets + ' x ' : ''}${reps}\nForm cues: ${cues.join('; ') || '(standard execution)'}\nEquipment: ${equip || '(n/a)'}\nGive the cue now.`;
       const t = await writeWithClaude(ANTHROPIC_API_KEY, model, sys, user);
       if (t) return t;

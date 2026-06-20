@@ -85,6 +85,24 @@ export function modelForState(state: VocalState): string {
   return state === 'floor_coach' ? BBF_VOICE_MODEL_LOWLATENCY : BBF_VOICE_MODEL;
 }
 
+// ── Exercise override (Audio Matrix · Part 1) ────────────────────────────────────
+// The 30-min training matrix recorded its most commanding "heavy-lift" cues on barbell
+// back squat — a movement now RETIRED from the active library. Map that high-intensity
+// vocal profile onto the LATERAL PULL-DOWN + corresponding upper-body pulling/pressing
+// mechanics so the clone still delivers those cues with full heavy-lift authority.
+const HEAVY_LIFT_RE = /(pull[\s-]?down|lat\s*pull|pull[\s-]?up|chin[\s-]?up|seated\s*row|bent[\s-]?over\s*row|overhead\s*press|shoulder\s*press|bench\s*press)/i;
+export function isHeavyLiftMovement(exerciseName: string): boolean {
+  return HEAVY_LIFT_RE.test(String(exerciseName || ''));
+}
+export function heavyLiftDirective(): string {
+  return [
+    '# HEAVY-LIFT OVERRIDE',
+    'This movement inherits the commanding, authoritative HEAVY-LIFT vocal profile (the one',
+    'originally trained on the retired barbell back squat). Deliver the cue with maximum',
+    'grounded intensity and command — treat it like a heavy, decisive top-set call.',
+  ].join('\n');
+}
+
 // System-prompt block telling the Claude script-writer how to FORMAT the text for the
 // state (so stability 0.35 reacts to the punctuation/SSML the way we want).
 export function vocalStateDirective(state: VocalState): string {
@@ -108,19 +126,20 @@ export function vocalStateDirective(state: VocalState): string {
       return [
         '# VOCAL STATE: THE SANCTUARY (recovery / mobility)',
         'Deepest pitch, extremely slow, therapeutic — you are lowering their cortisol.',
-        'You MUST inject heavy pauses so the delivery lingers. Place an SSML break tag',
-        'between major thoughts: `<break time="1.5s"/>` for a normal pause, `<break time="2.5s"/>`',
-        'for the biggest transitions. Use 3–6 breaks total across the cue. Short, calm',
-        'sentences between the breaks. No exclamation marks.',
+        'You MUST inject heavy explicit pauses so the delivery lingers and drives down',
+        'cortisol. Place an SSML break tag between major thoughts: `<break time="2.0s"/>` for',
+        'a normal pause, up to `<break time="3.0s"/>` for the biggest transitions. Use 3–6',
+        'breaks total across the cue. Short, calm sentences between the breaks. No exclamation marks.',
       ].join('\n');
     case 'architect':
     default:
       return [
-        '# VOCAL STATE: THE ARCHITECT (briefs / onboarding / philosophy)',
-        'Resonant, building in intensity, passionate. Do NOT use exclamation marks — they',
-        'spike volume artificially. Create emphasis by ISOLATING critical words with commas',
-        'or ellipses to force the tempo to slow down. Example: "You have to bring that...',
-        'Mamba mentality." Let the cadence build; end on a grounded, deliberate line.',
+        '# VOCAL STATE: THE ARCHITECT (weekly briefs / onboarding / philosophy)',
+        'Resonant storytelling cadence, building in intensity, passionate. STRICTLY enforce the',
+        'exclamation-guard: NO exclamation marks — they spike volume artificially. Achieve emphasis',
+        'EXCLUSIVELY by isolating power words with ellipses (...) and commas to slow the tempo.',
+        'Example: "You have to bring that... Mamba mentality." Let the cadence build; end on a',
+        'grounded, deliberate line.',
       ].join('\n');
   }
 }
@@ -137,15 +156,15 @@ export function formatForState(text: string, state: VocalState): string {
   if (!out) return out;
 
   if (state === 'sanctuary') {
-    // Clamp any oversized break the writer invented (>2.5s → 2.5s).
+    // Clamp any oversized break the writer invented (>3.0s → 3.0s; ElevenLabs caps ~3s).
     out = out.replace(/<break\s+time="(\d+(?:\.\d+)?)s"\s*\/>/gi, (_m, s) => {
-      const t = Math.min(2.5, Math.max(0.3, Number(s) || 1.5));
+      const t = Math.min(3.0, Math.max(0.3, Number(s) || 2.0));
       return `<break time="${t}s"/>`;
     });
-    // If the writer produced NO breaks, inject a gentle 1.5s pause after each
-    // sentence-ending punctuation so the cue still breathes.
+    // If the writer produced NO breaks, inject a 2.0s pause after each sentence-ending
+    // punctuation so the cue still breathes and lingers.
     if (!/<break\s/i.test(out)) {
-      out = out.replace(/([.?])\s+(?=[A-Z0-9"'¿¡])/g, '$1 <break time="1.5s"/> ');
+      out = out.replace(/([.?])\s+(?=[A-Z0-9"'¿¡])/g, '$1 <break time="2.0s"/> ');
     }
     out = out.replace(/[ \t]{2,}/g, ' ');
     return out;

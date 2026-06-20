@@ -3,29 +3,20 @@
 // Accepts a feature key + text, resolves the voice_id from the public
 // `voices` table (data-driven; swap voices later via SQL only), forwards
 // to ElevenLabs /v1/text-to-speech/{voice_id}, returns the audio as
-// base64-encoded MP3 inside JSON so the client can decode + play without
-// any extra plumbing.
+// base64-encoded MP3 inside JSON so the client can decode + play.
 //
-// Feature → voice mapping (live in public.voices):
-//   phantom_eye      → BBF Coach Akeem (fitness · live vision check)
-//   virtual_coach    → BBF Coach Akeem (fitness · live coach active)
-//   nutrition_vision → Kelli LaShae    (nutrition · food frame)
-//   virtual_chef     → Kelli LaShae    (nutrition · chef on call)
+// Feature → voice mapping (live in public.voices) — ALL on BBF Coach Akeem now:
+//   phantom_eye      → BBF Coach Akeem (fitness  · Floor Coach · turbo)
+//   virtual_coach    → BBF Coach Akeem (fitness  · Floor Coach · turbo)
+//   nutrition_vision → BBF Coach Akeem (nutrition · Lounge Talk · multilingual_v2)
+//   virtual_chef     → BBF Coach Akeem (nutrition · Lounge Talk · multilingual_v2)
 //
 // Request:
 //   POST /functions/v1/bbf-tts-eleven
 //   { "feature": "phantom_eye", "text": "...", "model_id"?: string,
 //     "voice_settings"?: { stability, similarity_boost, style, use_speaker_boost } }
 //
-// Response (200 OK · success):
-//   { ok: true, voice_id, voice_name, category, audio_base64,
-//     mime: "audio/mpeg", duration_ms_estimate, bytes }
-//
-// Response (200 OK · soft failure):
-//   { ok: false, reason: "...", voice_id?, voice_name? }
-//
 // FAILURE POSTURE: every code path returns HTTP 200 with { ok: bool }.
-// The frontend treats ok:false as "fall back to silent transcript".
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -44,25 +35,17 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 const MAX_TEXT_LEN          = 2500;   // ElevenLabs hard caps at ~2500 chars per request
 const ELEVEN_TIMEOUT_MS     = 20000;
-// eleven_turbo_v2_5 → low latency AND markedly more natural prosody than flash.
-// Flash's ~75ms first-byte came at the cost of a flat, robotic delivery — wrong for
-// the BBF Coach Akeem Professional Voice Clone, whose whole value is human nuance.
-// Turbo keeps it fast (~150-250ms first-byte) while sounding far less robotic.
-// To override per-request: POST { model_id: 'eleven_multilingual_v2' } (richest
-// prosody, higher latency) or { model_id: 'eleven_flash_v2_5' } (fastest).
 const DEFAULT_MODEL_ID      = 'eleven_turbo_v2_5';
+// Per-category model (BBF Lab Voice Engine): fitness = Floor Coach (turbo, low latency);
+// nutrition = Lounge Talk (multilingual_v2, richest conversational prosody).
+const MODEL_BY_CATEGORY: Record<string, string> = {
+  fitness:   'eleven_turbo_v2_5',
+  nutrition: 'eleven_multilingual_v2',
+};
 const DEFAULT_VOICE_SETTINGS = {
-  stability:         0.40,   // RESTORED from a brief 0.55 excursion on 2026-05-22.
-                             // The 0.55 bump was an attempt to kill pitch wobble
-                             // but stripped voice personality — Julius and Kelli
-                             // LaShae sounded "factory generic" per CEO smoke test.
-                             // 0.40 is the tuned-for-character default. The wobble
-                             // (if it persists) is likely server-side timing drift
-                             // in gemini-2.5-flash-native-audio-latest, NOT a
-                             // voice_settings issue — that path needs a different
-                             // investigation, not a stability bump.
+  stability:         0.40,
   similarity_boost:  0.85,
-  style:             0.00,   // Style transfer adds latency; off for snappier first-byte.
+  style:             0.00,
   use_speaker_boost: true,
 };
 
@@ -106,8 +89,6 @@ async function callElevenLabs(
   };
 
   try {
-    // output_format=mp3_44100_128 → 128 kbps MP3 @ 44.1 kHz · best balance
-    // of file size + quality for browser playback through Web Audio.
     const res = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
       {
@@ -143,7 +124,6 @@ async function callElevenLabs(
 
 // ─── Base64 encoder for binary audio payload ─────────────────────────
 function toBase64(bytes: Uint8Array): string {
-  // Chunked to avoid call-stack blow-up on long buffers.
   const CHUNK = 0x8000;
   let binary = '';
   for (let i = 0; i < bytes.length; i += CHUNK) {
@@ -152,9 +132,7 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-// Estimate playback duration from MP3 byte length @ 128 kbps. Conservative.
 function estimateDurationMs(bytes: number): number {
-  // 128 kbps = 16000 bytes/sec
   return Math.round((bytes / 16000) * 1000);
 }
 
@@ -162,9 +140,6 @@ function estimateDurationMs(bytes: number): number {
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
 
-  // GET /functions/v1/bbf-tts-eleven?diag=1  ·  one-shot health probe.
-  // Surfaces which env vars are present (boolean only, no values) so we
-  // can confirm ELEVENLABS_API_KEY landed without exposing the secret.
   if (req.method === 'GET') {
     const url = new URL(req.url);
     if (url.searchParams.get('diag') === '1') {
@@ -198,7 +173,7 @@ serve(async (req: Request) => {
 
   const safeFeature = feature.slice(0, 64).toLowerCase();
   const safeText    = text.slice(0, MAX_TEXT_LEN);
-  const safeModel   = (typeof model_id === 'string' && model_id) ? model_id.slice(0, 64) : DEFAULT_MODEL_ID;
+  const modelOverride = (typeof model_id === 'string' && model_id) ? model_id.slice(0, 64) : null;
 
   // ─── 1. Resolve voice_id from data-driven Supabase table ───────
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -214,18 +189,20 @@ serve(async (req: Request) => {
     return jsonResponse({ ok: false, reason: 'voice_not_found', feature: safeFeature }, 200);
   }
 
-  // Per-voice-character settings. The fitness persona is the BBF Coach Akeem Professional
-  // Voice Clone — BBF Lab Voice Engine EXACT payload (Part 2): stability 0.35, similarity
-  // 0.85, style 0.15, speaker_boost. The nutrition persona (Kelli LaShae) keeps her prior
-  // tuned default. Unknown categories fall back to DEFAULT_VOICE_SETTINGS.
+  // BBF Lab Voice Engine — the whole roster is now the BBF Coach Akeem PVC. Both categories
+  // use the EXACT payload (Part 2): stability 0.35 / similarity 0.85 / style 0.15 / speaker_boost.
+  // (fitness = Floor Coach, nutrition = Lounge Talk — the state shapes the TEXT, the payload is
+  // constant.) Per-category MODEL: fitness -> turbo (latency), nutrition -> multilingual (richness).
   const VOICE_SETTINGS_BY_CATEGORY: Record<string, Record<string, unknown>> = {
     fitness:   { stability: 0.35, similarity_boost: 0.85, style: 0.15, use_speaker_boost: true },
-    nutrition: { stability: 0.40, similarity_boost: 0.85, style: 0.00, use_speaker_boost: true },
+    nutrition: { stability: 0.35, similarity_boost: 0.85, style: 0.15, use_speaker_boost: true },
   };
-  const baseSettings = VOICE_SETTINGS_BY_CATEGORY[String(voice.category || '')] || DEFAULT_VOICE_SETTINGS;
+  const cat = String(voice.category || '');
+  const baseSettings = VOICE_SETTINGS_BY_CATEGORY[cat] || DEFAULT_VOICE_SETTINGS;
   const safeSettings = (voice_settings && typeof voice_settings === 'object')
     ? { ...baseSettings, ...voice_settings }
     : baseSettings;
+  const safeModel = modelOverride || MODEL_BY_CATEGORY[cat] || DEFAULT_MODEL_ID;
 
   // ─── 2. Synthesize ──────────────────────────────────────────────
   const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
@@ -258,7 +235,7 @@ serve(async (req: Request) => {
   const bytes       = result.audio.length;
   const durEstMs    = estimateDurationMs(bytes);
 
-  console.log(`[bbf-tts-eleven] feature=${safeFeature} · voice=${voice.voice_name} (${voice.voice_id}) · text_len=${safeText.length} · audio_bytes=${bytes} · gen_ms=${dur} · play_est_ms=${durEstMs}`);
+  console.log(`[bbf-tts-eleven] feature=${safeFeature} · voice=${voice.voice_name} (${voice.voice_id}) · model=${safeModel} · text_len=${safeText.length} · audio_bytes=${bytes} · gen_ms=${dur} · play_est_ms=${durEstMs}`);
 
   return jsonResponse({
     ok:                   true,
