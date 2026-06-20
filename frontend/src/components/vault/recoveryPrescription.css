@@ -1,0 +1,100 @@
+/* src/components/vault/recoveryPrescription.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Recovery Prescription card — the visible output of the Dynamic Prescription
+   engine. Sovereign dossier chassis (void canvas + purple edge), BBF Purple→Gold
+   accents (§2 LOCKED), Bebas headers / Barlow body. Verdict badge is semantically
+   tinted (regress=caution, maintain=purple, progress=green) without alarm bloat. */
+
+.rxp {
+  border-radius: 16px;
+  padding: 1.15rem 1.2rem 1.25rem;
+  background: var(--panel-grad, linear-gradient(168deg, rgba(26, 11, 46, .52) 0%, rgba(9, 6, 14, .94) 52%, rgba(5, 5, 5, .97) 100%));
+  border: 1px solid var(--panel-edge, rgba(106, 13, 173, .26));
+  box-shadow: var(--glow-purple, 0 26px 64px -34px rgba(106, 13, 173, .9));
+  color: var(--wht, #f9f5ff);
+}
+
+/* ── Header ── */
+.rxp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; margin-bottom: .9rem; }
+.rxp-head-copy { display: flex; flex-direction: column; gap: .12rem; min-width: 0; }
+.rxp-kicker {
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: 1.05rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft, #f5cf60);
+}
+.rxp-day {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: .82rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut, #666);
+}
+
+/* Verdict badge */
+.rxp-badge {
+  flex: none;
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: .82rem; letter-spacing: 2px; text-transform: uppercase;
+  padding: .3rem .7rem; border-radius: 999px; border: 1px solid currentColor;
+}
+.rxp-badge--regress { color: var(--orn, #f59e0b); background: rgba(245, 158, 11, .1); }
+.rxp-badge--maintain { color: var(--purl, #8b1abf); background: rgba(139, 26, 191, .14); }
+.rxp-badge--progress { color: var(--grn, #22c55e); background: rgba(34, 197, 94, .12); }
+
+/* ── States ── */
+.rxp-state {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .92rem; font-weight: 600;
+  line-height: 1.45; color: var(--mut, #666); margin: .35rem 0 0;
+}
+.rxp-state--error { color: var(--red, #ef4444); }
+.rxp-empty { color: var(--void-text-muted, #6b6478); }
+.rxp-retry {
+  margin-top: .7rem;
+  font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: .82rem; letter-spacing: 2px; text-transform: uppercase;
+  color: #0a0a0a; background: var(--yel, #f5c800); border: none; border-radius: 8px; padding: .5rem .9rem; cursor: pointer;
+}
+
+/* ── Meta ── */
+.rxp-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: 1rem; }
+.rxp-note { font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .9rem; font-weight: 600; color: var(--wht, #f9f5ff); opacity: .85; }
+.rxp-pills { display: inline-flex; gap: .4rem; flex-wrap: wrap; }
+.rxp-chip {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .76rem; font-weight: 700; letter-spacing: .6px;
+  text-transform: uppercase; padding: .28rem .6rem; border-radius: 999px;
+  border: 1px solid var(--line, #1e1e1e); color: var(--wht, #f9f5ff); background: #0c0910;
+}
+.rxp-chip--vol { color: var(--gold-soft, #f5cf60); border-color: rgba(245, 200, 0, .35); }
+
+/* ── Movement list ── */
+.rxp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.rxp-item {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .6rem .7rem; border-radius: 11px;
+  background: rgba(255, 255, 255, .02); border: 1px solid var(--line, #1e1e1e);
+}
+.rxp-slot {
+  flex: none; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: .9rem; color: var(--yel, #f5c800);
+  background: rgba(245, 200, 0, .08); border: 1px solid rgba(245, 200, 0, .3);
+}
+.rxp-item-body { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; flex: 1 1 auto; min-width: 0; }
+.rxp-name { font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: 1rem; font-weight: 700; color: var(--wht, #f9f5ff); }
+.rxp-type {
+  flex: none; font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .72rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--mut, #666);
+}
+
+/* ── Champion's Mindset finisher ── */
+.rxp-finisher {
+  margin-top: .7rem; padding: .7rem .8rem; border-radius: 11px;
+  display: flex; flex-direction: column; gap: .15rem;
+  background: radial-gradient(120% 130% at 0% 0%, rgba(106, 13, 173, .35), transparent 65%), rgba(245, 200, 0, .05);
+  border: 1px solid rgba(245, 200, 0, .3);
+}
+.rxp-finisher-label { font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: .76rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+.rxp-finisher-name { font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: 1rem; font-weight: 700; color: var(--wht, #f9f5ff); }
+
+/* ── Refresh ── */
+.rxp-refresh {
+  margin-top: .9rem; width: 100%;
+  font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .8rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--mut, #666); background: transparent; border: 1px solid var(--line, #1e1e1e); border-radius: 9px; padding: .55rem; cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+}
+.rxp-refresh:hover { color: var(--wht, #f9f5ff); border-color: rgba(245, 200, 0, .4); }
