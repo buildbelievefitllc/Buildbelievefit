@@ -1,22 +1,27 @@
 // src/context/AthleteProfileContext.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// ATHLETE PROFILE — the athlete's progression identity (current_tier + sport),
-// the channel the Sports Hub reads to filter tier-appropriate drills.
+// ATHLETE PROFILE — the UNIFIED single source of truth for the Athlete Blueprint.
 //
-// current_tier is the spine of the Progression Engine (athlete_profiles.current_tier,
-// promoted youth → middle_school → high_school → collegiate by bbf-progression-
-// calculator). The persisted row is service-role-only under RLS, so the client can't
-// read it directly yet; until a vault-token GET path exists, we DERIVE the tier from
-// the athlete's age (the blueprint's §2 age bands) off the authenticated profile.
-// `setCurrentTier` lets a future profile fetch — or a live promotion — override it.
+// Collected ONCE and held globally: sport, position, age, sex, level, body metrics
+// (for TDEE) and dietary profile, plus the derived progression tier. Seeded from the
+// authenticated sportsProfile + the sport/position pre-sets (athleteBlueprint.js),
+// overridable by the athlete, and persisted per-uid to localStorage so the intake is
+// never re-collected. The three engines all read from this object.
+//
+// current_tier is the Progression Engine's spine (athlete_profiles.current_tier,
+// promoted by bbf-progression-calculator). The persisted row is service-role-only
+// under RLS, so until a vault-token GET path exists it derives from age (Blueprint §2
+// bands); `setCurrentTier` lets a future fetch / live promotion override it.
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext.jsx';
+import { presetsForAthlete, levelForTier } from '../lib/athleteBlueprint.js';
 
+const STORAGE_KEY = 'bbf.athlete.profile.v1';
 const TIER_ORDER = ['youth', 'middle_school', 'high_school', 'collegiate'];
 
 // Age → tier (Blueprint §2: Youth 6–11 · Middle School 12–14 · High School 15–18 ·
-// Collegiate 18+). Unknown age falls back to high_school (the modal youth-athlete).
+// Collegiate 18+). Unknown age → high_school (the modal youth athlete).
 function tierForAge(age) {
   const a = Number(age);
   if (!Number.isFinite(a)) return 'high_school';
@@ -26,37 +31,88 @@ function tierForAge(age) {
   return 'collegiate';
 }
 
+function readStored(uid) {
+  try {
+    const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    return (uid && all[uid]) ? all[uid] : {};
+  } catch { return {}; }
+}
+function writeStored(uid, overrides) {
+  if (!uid) return;
+  try {
+    const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    all[uid] = overrides;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  } catch { /* private mode / quota — in-memory only */ }
+}
+
 const AthleteProfileContext = createContext({
-  currentTier: 'high_school',
-  derivedTier: 'high_school',
-  sport: null,
-  position: null,
-  age: null,
-  setCurrentTier: () => {},
+  profile: {}, currentTier: 'high_school', setProfileField: () => {}, setCurrentTier: () => {}, resetProfile: () => {},
 });
 
 export function AthleteProfileProvider({ children }) {
   const { user } = useAuth();
   const sp = user?.sportsProfile || {};
-  // Explicit override (future: hydrate from the persisted athlete_profiles row, or
-  // bump live after a promotion). null → use the age-derived tier.
-  const [override, setOverride] = useState(null);
+  const uid = user?.username || user?.id || '';
+
+  // Editable overrides (the athlete's calibrations + any tier override), persisted.
+  const [overrides, setOverrides] = useState(() => readStored(uid));
+
+  const setProfileField = useCallback((key, value) => {
+    setOverrides((o) => {
+      const next = { ...o, [key]: value };
+      writeStored(uid, next);
+      return next;
+    });
+  }, [uid]);
 
   const setCurrentTier = useCallback((tier) => {
-    setOverride(TIER_ORDER.includes(tier) ? tier : null);
-  }, []);
+    if (!TIER_ORDER.includes(tier)) return;
+    setProfileField('currentTier', tier);
+  }, [setProfileField]);
 
-  const value = useMemo(() => {
-    const derived = tierForAge(sp.age);
+  const resetProfile = useCallback(() => {
+    writeStored(uid, {});
+    setOverrides({});
+  }, [uid]);
+
+  const currentTier = (overrides.currentTier && TIER_ORDER.includes(overrides.currentTier))
+    ? overrides.currentTier
+    : tierForAge(sp.age);
+
+  // Base profile — auth-derived identity + sport/position pre-set defaults.
+  const base = useMemo(() => {
+    const sportId = sp.sportId || 'football';
+    const positionCode = sp.positionCode || 'OL';
+    const preset = presetsForAthlete({ sportId, positionCode });
     return {
-      currentTier: override && TIER_ORDER.includes(override) ? override : derived,
-      derivedTier: derived,
-      sport: sp.sportId || null,
-      position: sp.positionCode || null,
-      age: sp.age ?? null,
-      setCurrentTier,
+      sportId,
+      positionCode,
+      age: sp.age ?? 15,
+      sex: 'male',
+      heightFt: 5,
+      heightIn: 9,
+      weightLb: 150,
+      level: levelForTier(currentTier),
+      goal: preset.goal,
+      arch: preset.arch,
+      dietary: 'Omnivore',
     };
-  }, [sp.age, sp.sportId, sp.positionCode, override, setCurrentTier]);
+  }, [sp.sportId, sp.positionCode, sp.age, currentTier]);
+
+  // The merged, single-source-of-truth profile (overrides win over pre-set defaults).
+  const profile = useMemo(() => ({ ...base, ...overrides, currentTier }), [base, overrides, currentTier]);
+
+  const value = useMemo(() => ({
+    profile,
+    currentTier,
+    sport: profile.sportId,
+    position: profile.positionCode,
+    age: profile.age,
+    setProfileField,
+    setCurrentTier,
+    resetProfile,
+  }), [profile, currentTier, setProfileField, setCurrentTier, resetProfile]);
 
   return <AthleteProfileContext.Provider value={value}>{children}</AthleteProfileContext.Provider>;
 }
