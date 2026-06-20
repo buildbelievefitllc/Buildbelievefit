@@ -33,6 +33,7 @@ import {
   DayProtocol,
 } from '../components/sportshub/sections.jsx';
 import SportProtocol from '../components/sportshub/SportProtocol.jsx';
+import TierProtocol from '../components/sportshub/TierProtocol.jsx';
 import YouthChampionMindset from '../components/sportshub/YouthChampionMindset.jsx';
 import { selectPlans } from '../lib/vaultApi.js';
 import Concierge from '../components/vault/Concierge.jsx';
@@ -234,6 +235,11 @@ export default function SportsHub({ selection = null, progress = null }) {
 
         {/* ── Native Sport Protocol — the coach-staged engine prescription ─────── */}
         <SportProtocol protocol={sportsProtocol} telemetry={telemetry} />
+
+        {/* ── Tier Protocol — dynamic, tier-filtered drill deck from the BBF catalog;
+            sets scale with the morning CNS scan. Sport/position from the resolved
+            effProfile; current_tier from AthleteProfileContext. ─────────────────── */}
+        <TierProtocol sportId={effProfile.sportId} position={effProfile.positionCode} />
 
         {/* ── Training block (off/in-season workload selector) ────────────────── */}
         <div className="sh-phase" role="group" aria-label="Training block">
