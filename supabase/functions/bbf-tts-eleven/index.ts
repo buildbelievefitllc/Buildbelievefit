@@ -7,10 +7,10 @@
 // any extra plumbing.
 //
 // Feature → voice mapping (live in public.voices):
-//   phantom_eye      → Julius        (fitness · live vision check)
-//   virtual_coach    → Julius        (fitness · live coach active)
-//   nutrition_vision → Kelli LaShae  (nutrition · food frame)
-//   virtual_chef     → Kelli LaShae  (nutrition · chef on call)
+//   phantom_eye      → BBF Coach Akeem (fitness · live vision check)
+//   virtual_coach    → BBF Coach Akeem (fitness · live coach active)
+//   nutrition_vision → Kelli LaShae    (nutrition · food frame)
+//   virtual_chef     → Kelli LaShae    (nutrition · chef on call)
 //
 // Request:
 //   POST /functions/v1/bbf-tts-eleven
@@ -44,12 +44,23 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 const MAX_TEXT_LEN          = 2500;   // ElevenLabs hard caps at ~2500 chars per request
 const ELEVEN_TIMEOUT_MS     = 20000;
-// eleven_flash_v2_5 → ~75ms first-byte latency (vs ~250-400ms on turbo).
-// Same voices, slightly less expressive prosody — the latency win wins.
-// To override per-request: POST with { model_id: 'eleven_turbo_v2_5' }.
-const DEFAULT_MODEL_ID      = 'eleven_flash_v2_5';
+// eleven_turbo_v2_5 → low latency AND markedly more natural prosody than flash.
+// Flash's ~75ms first-byte came at the cost of a flat, robotic delivery — wrong for
+// the BBF Coach Akeem Professional Voice Clone, whose whole value is human nuance.
+// Turbo keeps it fast (~150-250ms first-byte) while sounding far less robotic.
+// To override per-request: POST { model_id: 'eleven_multilingual_v2' } (richest
+// prosody, higher latency) or { model_id: 'eleven_flash_v2_5' } (fastest).
+const DEFAULT_MODEL_ID      = 'eleven_turbo_v2_5';
 const DEFAULT_VOICE_SETTINGS = {
-  stability:         0.40,
+  stability:         0.40,   // RESTORED from a brief 0.55 excursion on 2026-05-22.
+                             // The 0.55 bump was an attempt to kill pitch wobble
+                             // but stripped voice personality — Julius and Kelli
+                             // LaShae sounded "factory generic" per CEO smoke test.
+                             // 0.40 is the tuned-for-character default. The wobble
+                             // (if it persists) is likely server-side timing drift
+                             // in gemini-2.5-flash-native-audio-latest, NOT a
+                             // voice_settings issue — that path needs a different
+                             // investigation, not a stability bump.
   similarity_boost:  0.85,
   style:             0.00,   // Style transfer adds latency; off for snappier first-byte.
   use_speaker_boost: true,
@@ -188,9 +199,6 @@ serve(async (req: Request) => {
   const safeFeature = feature.slice(0, 64).toLowerCase();
   const safeText    = text.slice(0, MAX_TEXT_LEN);
   const safeModel   = (typeof model_id === 'string' && model_id) ? model_id.slice(0, 64) : DEFAULT_MODEL_ID;
-  const safeSettings = (voice_settings && typeof voice_settings === 'object')
-    ? { ...DEFAULT_VOICE_SETTINGS, ...voice_settings }
-    : DEFAULT_VOICE_SETTINGS;
 
   // ─── 1. Resolve voice_id from data-driven Supabase table ───────
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -205,6 +213,19 @@ serve(async (req: Request) => {
     console.warn(`[bbf-tts-eleven] no active voice for feature=${safeFeature}`);
     return jsonResponse({ ok: false, reason: 'voice_not_found', feature: safeFeature }, 200);
   }
+
+  // Per-voice-character settings. The fitness persona is the BBF Coach Akeem
+  // Professional Voice Clone — warmed up (style + speed, expressive stability) so it
+  // lands human, never robotic. The nutrition persona (Kelli LaShae) keeps her prior
+  // tuned default untouched. Unknown categories fall back to DEFAULT_VOICE_SETTINGS.
+  const VOICE_SETTINGS_BY_CATEGORY: Record<string, Record<string, unknown>> = {
+    fitness:   { stability: 0.40, similarity_boost: 0.80, style: 0.35, use_speaker_boost: true, speed: 0.96 },
+    nutrition: { stability: 0.40, similarity_boost: 0.85, style: 0.00, use_speaker_boost: true },
+  };
+  const baseSettings = VOICE_SETTINGS_BY_CATEGORY[String(voice.category || '')] || DEFAULT_VOICE_SETTINGS;
+  const safeSettings = (voice_settings && typeof voice_settings === 'object')
+    ? { ...baseSettings, ...voice_settings }
+    : baseSettings;
 
   // ─── 2. Synthesize ──────────────────────────────────────────────
   const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
