@@ -99,13 +99,13 @@ async function requireEntitlement(url: string | undefined, key: string | undefin
 
 const LOCALE_VOICE_NAME: Record<string, string> = { en: 'BBF Coach Akeem', es: 'Ana Maria', pt: 'Ana Alice' };
 const FORBIDDEN_VOICE = 'jamal';
-// Tuned for the BBF Coach Akeem Professional Voice Clone — warm, human, expressive,
-// never robotic. Lower stability (0.42) frees natural prosody variation so it doesn't
-// go monotone; similarity 0.75 is the PVC sweet spot (high enough to keep Akeem's
-// captured essence, low enough to avoid clone-artifact sharpness); style 0.38 adds
-// human warmth + personality; speed 0.96 is a natural, unhurried-but-not-dragging pace.
+// Tuned for the BBF Coach Akeem Professional Voice Clone (R2 — "let the clone breathe").
+// CEO note: R1 came out stiff / no rhythm / uncanny pitch. A high-grade PVC needs LESS
+// processing, not more: style 0.0 (style exaggeration is the #1 cause of uncanny pitch on
+// a clone), speed 1.0 (no time-stretch artifact), stability 0.35 (lower → natural prosodic
+// rhythm, not monotone), similarity 0.75 (PVC sweet spot, keeps Akeem's essence).
 // NOTE: this engine shares one dial across en/es/pt — Ana María / Ana Alice ride it too.
-const DEFAULT_VOICE_SETTINGS = { stability: 0.42, similarity_boost: 0.75, style: 0.38, use_speaker_boost: true, speed: 0.96 };
+const DEFAULT_VOICE_SETTINGS = { stability: 0.35, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true, speed: 1.0 };
 
 const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
 function deburr(s: unknown): string {
