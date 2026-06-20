@@ -1,0 +1,143 @@
+{
+  "metadata": {
+    "project": "Build Believe Fit (BBF Lab)",
+    "module": "Rehab & Recovery Assessment",
+    "version": "1.0.0",
+    "total_exercises_mapped": 80
+  },
+  "phase_two_assessment_logic": {
+    "trigger": "weekly_check_in",
+    "metric": "pain_tolerance",
+    "scale": {
+      "min": 1,
+      "max": 10,
+      "description": "1 = No pain/discomfort, 10 = Severe pain"
+    },
+    "diagnosis_routing": {
+      "high_pain": {
+        "range": [7, 10],
+        "action": "regress",
+        "prescription_focus": [
+          "prehab",
+          "recovery",
+          "breathing_and_meditation"
+        ],
+        "intensity_modifier": 0.5
+      },
+      "moderate_pain": {
+        "range": [4, 6],
+        "action": "maintain",
+        "prescription_focus": [
+          "mobility",
+          "prehab"
+        ],
+        "intensity_modifier": 0.8
+      },
+      "low_pain": {
+        "range": [1, 3],
+        "action": "progress",
+        "prescription_focus": [
+          "strengthening",
+          "mobility"
+        ],
+        "intensity_modifier": 1.1
+      }
+    }
+  },
+  "exercise_library": {
+    "breathing_and_meditation": [
+      { "id": "bm_001", "name": "Lift up a low mood", "type": "mental_wellness" },
+      { "id": "bm_002", "name": "Messages for a safer, calmer day", "type": "mental_wellness" },
+      { "id": "bm_003", "name": "Box breathing", "type": "breathing" },
+      { "id": "bm_004", "name": "Find hope in the struggle", "type": "mental_wellness" },
+      { "id": "bm_005", "name": "SOS meditation: breathing for calm", "type": "breathing" },
+      { "id": "bm_006", "name": "Body scan for physical tension", "type": "mental_wellness" },
+      { "id": "bm_007", "name": "Diaphragmatic breathing foundation", "type": "breathing" },
+      { "id": "bm_008", "name": "Guided visualization for recovery", "type": "mental_wellness" }
+    ],
+    "shoulder": [
+      { "id": "sh_001", "name": "Resistance band shoulder strength", "type": "strengthening" },
+      { "id": "sh_002", "name": "Strength exercises for shoulder pain", "type": "prehab" },
+      { "id": "sh_003", "name": "Wall slides for scapular mobility", "type": "mobility" },
+      { "id": "sh_004", "name": "Isometric shoulder external rotation", "type": "prehab" },
+      { "id": "sh_005", "name": "Isometric shoulder internal rotation", "type": "prehab" },
+      { "id": "sh_006", "name": "Doorway pectoral stretch", "type": "recovery" },
+      { "id": "sh_007", "name": "Sleeper stretch", "type": "mobility" },
+      { "id": "sh_008", "name": "Cross-body shoulder stretch", "type": "recovery" },
+      { "id": "sh_009", "name": "Prone I-Y-T raises", "type": "strengthening" },
+      { "id": "sh_010", "name": "Pendulum arm swings", "type": "prehab" },
+      { "id": "sh_011", "name": "Scapular retractions (seated)", "type": "mobility" },
+      { "id": "sh_012", "name": "Resistance band pull-aparts", "type": "strengthening" }
+    ],
+    "lower_body": [
+      { "id": "lb_001", "name": "Quick lower body reset", "type": "recovery" },
+      { "id": "lb_002", "name": "Seated lower body stretch", "type": "mobility" },
+      { "id": "lb_003", "name": "Low back and hip pain relief", "type": "prehab" },
+      { "id": "lb_004", "name": "Supine piriformis stretch", "type": "recovery" },
+      { "id": "lb_005", "name": "Kneeling hip flexor stretch", "type": "mobility" },
+      { "id": "lb_006", "name": "Cat-cow spinal mobility", "type": "mobility" },
+      { "id": "lb_007", "name": "Child's pose lumbar stretch", "type": "recovery" },
+      { "id": "lb_008", "name": "Supine pelvic tilts", "type": "prehab" },
+      { "id": "lb_009", "name": "Bird-dog core stability", "type": "strengthening" },
+      { "id": "lb_010", "name": "Dead bug progression", "type": "strengthening" },
+      { "id": "lb_011", "name": "Prone press-up (Cobra)", "type": "mobility" },
+      { "id": "lb_012", "name": "Side-lying hip abduction", "type": "strengthening" },
+      { "id": "lb_013", "name": "Side-lying hip adduction", "type": "strengthening" },
+      { "id": "lb_014", "name": "Quadruped fire hydrants", "type": "mobility" },
+      { "id": "lb_015", "name": "Seated lumbar rotation", "type": "recovery" },
+      { "id": "lb_016", "name": "Standing hamstring stretch", "type": "recovery" }
+    ],
+    "knee": [
+      { "id": "kn_001", "name": "Supine straight leg raise", "type": "strengthening" },
+      { "id": "kn_002", "name": "Short arc quadriceps extension", "type": "prehab" },
+      { "id": "kn_003", "name": "Isometric wall sit holds", "type": "strengthening" },
+      { "id": "kn_004", "name": "Standing hamstring curl", "type": "mobility" },
+      { "id": "kn_005", "name": "Side-lying clamshells", "type": "strengthening" },
+      { "id": "kn_006", "name": "Low impact step-ups", "type": "strengthening" },
+      { "id": "kn_007", "name": "Standing calf raises", "type": "strengthening" },
+      { "id": "kn_008", "name": "Supine heel slides", "type": "mobility" },
+      { "id": "kn_009", "name": "Standing quad stretch", "type": "recovery" },
+      { "id": "kn_010", "name": "Seated hamstring stretch", "type": "recovery" },
+      { "id": "kn_011", "name": "Standing IT band stretch", "type": "recovery" },
+      { "id": "kn_012", "name": "Supine glute bridge", "type": "strengthening" },
+      { "id": "kn_013", "name": "Lateral band walks", "type": "strengthening" },
+      { "id": "kn_014", "name": "Terminal knee extension (banded)", "type": "strengthening" },
+      { "id": "kn_015", "name": "Seated patellar mobilization", "type": "prehab" }
+    ],
+    "neck": [
+      { "id": "nk_001", "name": "Seated cervical retraction (chin tucks)", "type": "prehab" },
+      { "id": "nk_002", "name": "Upper trapezius stretch", "type": "recovery" },
+      { "id": "nk_003", "name": "Levator scapulae stretch", "type": "recovery" },
+      { "id": "nk_004", "name": "Slow neck rotations", "type": "mobility" },
+      { "id": "nk_005", "name": "Neck lateral flexion", "type": "mobility" },
+      { "id": "nk_006", "name": "Isometric neck flexion (hand resistance)", "type": "strengthening" },
+      { "id": "nk_007", "name": "Isometric neck extension", "type": "strengthening" },
+      { "id": "nk_008", "name": "Supine chin tucks", "type": "prehab" },
+      { "id": "nk_009", "name": "Seated scalene stretch", "type": "recovery" },
+      { "id": "nk_010", "name": "Gentle half neck rolls", "type": "mobility" }
+    ],
+    "upper_body": [
+      { "id": "ub_001", "name": "Thoracic extension on foam roller", "type": "mobility" },
+      { "id": "ub_002", "name": "Thread the needle stretch", "type": "mobility" },
+      { "id": "ub_003", "name": "Seated resistance band rows", "type": "strengthening" },
+      { "id": "ub_004", "name": "Standing wall push-ups", "type": "strengthening" },
+      { "id": "ub_005", "name": "Resistance band biceps curl", "type": "strengthening" },
+      { "id": "ub_006", "name": "Resistance band triceps extension", "type": "strengthening" },
+      { "id": "ub_007", "name": "Wrist flexor stretch", "type": "recovery" },
+      { "id": "ub_008", "name": "Wrist extensor stretch", "type": "recovery" },
+      { "id": "ub_009", "name": "Forearm pronation and supination", "type": "mobility" },
+      { "id": "ub_010", "name": "Side-lying open book stretch", "type": "mobility" }
+    ],
+    "full_body": [
+      { "id": "fb_001", "name": "Standing toe touch progression", "type": "mobility" },
+      { "id": "fb_002", "name": "Walkouts (inchworms)", "type": "strengthening" },
+      { "id": "fb_003", "name": "Low impact jumping jacks", "type": "mobility" },
+      { "id": "fb_004", "name": "Bodyweight squat to stand", "type": "mobility" },
+      { "id": "fb_005", "name": "Forward lunge with torso twist", "type": "strengthening" },
+      { "id": "fb_006", "name": "High knees marching in place", "type": "mobility" },
+      { "id": "fb_007", "name": "Standing torso twists", "type": "recovery" },
+      { "id": "fb_008", "name": "Standing side bend reach", "type": "recovery" },
+      { "id": "fb_009", "name": "Modified bear crawl hold", "type": "strengthening" }
+    ]
+  }
+}

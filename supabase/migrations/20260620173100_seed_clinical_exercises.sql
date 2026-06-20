@@ -1,0 +1,101 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- SEED · public.clinical_exercises · Dynamic Prescription Engine library
+-- ───────────────────────────────────────────────────────────────────────────
+-- AUTO-GENERATED from supabase/seeds/hingelick.json by
+-- supabase/seeds/generate_clinical_exercises_seed.mjs — do not hand-edit; rerun
+-- the generator if the source library changes.
+--
+-- 80 movements across 7 regions.
+-- breathing_and_meditation rows are tagged type='mental_wellness' (PHASE 2).
+-- Idempotent: ON CONFLICT (id) re-syncs name/body_part/type and re-activates.
+--
+-- Counts by type:      mental_wellness=8, strengthening=24, prehab=10, mobility=21, recovery=17
+-- Counts by body_part: breathing_and_meditation=8, shoulder=12, lower_body=16, knee=15, neck=10, upper_body=10, full_body=9
+-- ═══════════════════════════════════════════════════════════════════════════
+
+insert into public.clinical_exercises (id, name, body_part, type) values
+  ('bm_001', 'Lift up a low mood', 'breathing_and_meditation', 'mental_wellness'),
+  ('bm_002', 'Messages for a safer, calmer day', 'breathing_and_meditation', 'mental_wellness'),
+  ('bm_003', 'Box breathing', 'breathing_and_meditation', 'mental_wellness'),
+  ('bm_004', 'Find hope in the struggle', 'breathing_and_meditation', 'mental_wellness'),
+  ('bm_005', 'SOS meditation: breathing for calm', 'breathing_and_meditation', 'mental_wellness'),
+  ('bm_006', 'Body scan for physical tension', 'breathing_and_meditation', 'mental_wellness'),
+  ('bm_007', 'Diaphragmatic breathing foundation', 'breathing_and_meditation', 'mental_wellness'),
+  ('bm_008', 'Guided visualization for recovery', 'breathing_and_meditation', 'mental_wellness'),
+  ('sh_001', 'Resistance band shoulder strength', 'shoulder', 'strengthening'),
+  ('sh_002', 'Strength exercises for shoulder pain', 'shoulder', 'prehab'),
+  ('sh_003', 'Wall slides for scapular mobility', 'shoulder', 'mobility'),
+  ('sh_004', 'Isometric shoulder external rotation', 'shoulder', 'prehab'),
+  ('sh_005', 'Isometric shoulder internal rotation', 'shoulder', 'prehab'),
+  ('sh_006', 'Doorway pectoral stretch', 'shoulder', 'recovery'),
+  ('sh_007', 'Sleeper stretch', 'shoulder', 'mobility'),
+  ('sh_008', 'Cross-body shoulder stretch', 'shoulder', 'recovery'),
+  ('sh_009', 'Prone I-Y-T raises', 'shoulder', 'strengthening'),
+  ('sh_010', 'Pendulum arm swings', 'shoulder', 'prehab'),
+  ('sh_011', 'Scapular retractions (seated)', 'shoulder', 'mobility'),
+  ('sh_012', 'Resistance band pull-aparts', 'shoulder', 'strengthening'),
+  ('lb_001', 'Quick lower body reset', 'lower_body', 'recovery'),
+  ('lb_002', 'Seated lower body stretch', 'lower_body', 'mobility'),
+  ('lb_003', 'Low back and hip pain relief', 'lower_body', 'prehab'),
+  ('lb_004', 'Supine piriformis stretch', 'lower_body', 'recovery'),
+  ('lb_005', 'Kneeling hip flexor stretch', 'lower_body', 'mobility'),
+  ('lb_006', 'Cat-cow spinal mobility', 'lower_body', 'mobility'),
+  ('lb_007', 'Child''s pose lumbar stretch', 'lower_body', 'recovery'),
+  ('lb_008', 'Supine pelvic tilts', 'lower_body', 'prehab'),
+  ('lb_009', 'Bird-dog core stability', 'lower_body', 'strengthening'),
+  ('lb_010', 'Dead bug progression', 'lower_body', 'strengthening'),
+  ('lb_011', 'Prone press-up (Cobra)', 'lower_body', 'mobility'),
+  ('lb_012', 'Side-lying hip abduction', 'lower_body', 'strengthening'),
+  ('lb_013', 'Side-lying hip adduction', 'lower_body', 'strengthening'),
+  ('lb_014', 'Quadruped fire hydrants', 'lower_body', 'mobility'),
+  ('lb_015', 'Seated lumbar rotation', 'lower_body', 'recovery'),
+  ('lb_016', 'Standing hamstring stretch', 'lower_body', 'recovery'),
+  ('kn_001', 'Supine straight leg raise', 'knee', 'strengthening'),
+  ('kn_002', 'Short arc quadriceps extension', 'knee', 'prehab'),
+  ('kn_003', 'Isometric wall sit holds', 'knee', 'strengthening'),
+  ('kn_004', 'Standing hamstring curl', 'knee', 'mobility'),
+  ('kn_005', 'Side-lying clamshells', 'knee', 'strengthening'),
+  ('kn_006', 'Low impact step-ups', 'knee', 'strengthening'),
+  ('kn_007', 'Standing calf raises', 'knee', 'strengthening'),
+  ('kn_008', 'Supine heel slides', 'knee', 'mobility'),
+  ('kn_009', 'Standing quad stretch', 'knee', 'recovery'),
+  ('kn_010', 'Seated hamstring stretch', 'knee', 'recovery'),
+  ('kn_011', 'Standing IT band stretch', 'knee', 'recovery'),
+  ('kn_012', 'Supine glute bridge', 'knee', 'strengthening'),
+  ('kn_013', 'Lateral band walks', 'knee', 'strengthening'),
+  ('kn_014', 'Terminal knee extension (banded)', 'knee', 'strengthening'),
+  ('kn_015', 'Seated patellar mobilization', 'knee', 'prehab'),
+  ('nk_001', 'Seated cervical retraction (chin tucks)', 'neck', 'prehab'),
+  ('nk_002', 'Upper trapezius stretch', 'neck', 'recovery'),
+  ('nk_003', 'Levator scapulae stretch', 'neck', 'recovery'),
+  ('nk_004', 'Slow neck rotations', 'neck', 'mobility'),
+  ('nk_005', 'Neck lateral flexion', 'neck', 'mobility'),
+  ('nk_006', 'Isometric neck flexion (hand resistance)', 'neck', 'strengthening'),
+  ('nk_007', 'Isometric neck extension', 'neck', 'strengthening'),
+  ('nk_008', 'Supine chin tucks', 'neck', 'prehab'),
+  ('nk_009', 'Seated scalene stretch', 'neck', 'recovery'),
+  ('nk_010', 'Gentle half neck rolls', 'neck', 'mobility'),
+  ('ub_001', 'Thoracic extension on foam roller', 'upper_body', 'mobility'),
+  ('ub_002', 'Thread the needle stretch', 'upper_body', 'mobility'),
+  ('ub_003', 'Seated resistance band rows', 'upper_body', 'strengthening'),
+  ('ub_004', 'Standing wall push-ups', 'upper_body', 'strengthening'),
+  ('ub_005', 'Resistance band biceps curl', 'upper_body', 'strengthening'),
+  ('ub_006', 'Resistance band triceps extension', 'upper_body', 'strengthening'),
+  ('ub_007', 'Wrist flexor stretch', 'upper_body', 'recovery'),
+  ('ub_008', 'Wrist extensor stretch', 'upper_body', 'recovery'),
+  ('ub_009', 'Forearm pronation and supination', 'upper_body', 'mobility'),
+  ('ub_010', 'Side-lying open book stretch', 'upper_body', 'mobility'),
+  ('fb_001', 'Standing toe touch progression', 'full_body', 'mobility'),
+  ('fb_002', 'Walkouts (inchworms)', 'full_body', 'strengthening'),
+  ('fb_003', 'Low impact jumping jacks', 'full_body', 'mobility'),
+  ('fb_004', 'Bodyweight squat to stand', 'full_body', 'mobility'),
+  ('fb_005', 'Forward lunge with torso twist', 'full_body', 'strengthening'),
+  ('fb_006', 'High knees marching in place', 'full_body', 'mobility'),
+  ('fb_007', 'Standing torso twists', 'full_body', 'recovery'),
+  ('fb_008', 'Standing side bend reach', 'full_body', 'recovery'),
+  ('fb_009', 'Modified bear crawl hold', 'full_body', 'strengthening')
+on conflict (id) do update
+  set name      = excluded.name,
+      body_part = excluded.body_part,
+      type      = excluded.type,
+      active    = true;
