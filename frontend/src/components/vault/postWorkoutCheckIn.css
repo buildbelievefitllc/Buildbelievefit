@@ -1,0 +1,201 @@
+/* src/components/vault/postWorkoutCheckIn.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Post-Workout Check-In bottom-sheet. Sovereign Vault premium system: void canvas,
+   BBF Purple→Gold accents (§2 LOCKED), Bebas headers / Barlow body. Gold CTA →
+   status-green "Locked In" on success. Safe-area aware for the Capacitor shell. */
+
+.pwc-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;          /* sheet anchors to the bottom edge */
+  justify-content: center;
+  background: rgba(3, 2, 6, .68);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: pwc-fade .18s ease both;
+}
+
+.pwc-sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: .6rem 1.25rem calc(1.5rem + var(--sb, 0px));
+  background: var(--panel-grad, linear-gradient(168deg, rgba(26, 11, 46, .96) 0%, rgba(9, 6, 14, .98) 60%, rgba(5, 5, 5, .99) 100%));
+  border: 1px solid var(--panel-edge, rgba(106, 13, 173, .26));
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  box-shadow: var(--glow-purple, 0 26px 64px -34px rgba(106, 13, 173, .9));
+  animation: pwc-rise .26s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes pwc-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pwc-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .pwc-scrim, .pwc-sheet { animation: none; }
+}
+
+.pwc-handle {
+  width: 44px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--mut, #666);
+  opacity: .6;
+  margin: .35rem auto 1rem;
+}
+
+/* ── Header ── */
+.pwc-head { margin-bottom: 1.35rem; }
+.pwc-title {
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: 1.85rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--wht, #f9f5ff);
+  margin: 0 0 .25rem;
+}
+.pwc-sub {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: .95rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--mut, #666);
+  margin: 0;
+}
+
+/* ── Section + label ── */
+.pwc-section { margin-bottom: 1.5rem; }
+.pwc-label {
+  display: block;
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: .72rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-deep, #d4af37);
+  margin-bottom: .6rem;
+}
+
+/* ── Target-area pills ── */
+.pwc-pills { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pwc-pill {
+  flex: 1 1 auto;
+  min-width: 30%;
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: .92rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--wht, #f9f5ff);
+  background: #0c0910;
+  border: 1px solid var(--line, #1e1e1e);
+  border-radius: 999px;
+  padding: .7rem .5rem;
+  cursor: pointer;
+  transition: transform .12s ease, border-color .15s ease, background .15s ease, color .15s ease;
+}
+.pwc-pill:hover:not(:disabled):not(.pwc-pill--active) { border-color: rgba(245, 200, 0, .4); }
+.pwc-pill--active {
+  /* LOCKED purple→gold active treatment (matches the deck-tab system, §10). */
+  background: linear-gradient(135deg, var(--pur, #6a0dad) 0%, var(--yel, #f5c800) 140%);
+  border-color: var(--yel, #f5c800);
+  color: #0a0a0a;
+  box-shadow: 0 0 26px -10px rgba(245, 200, 0, .6);
+}
+.pwc-pill:active:not(:disabled) { transform: scale(.97); }
+.pwc-pill:disabled { opacity: .55; cursor: default; }
+.pwc-pill:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
+
+/* ── Slider head (label + live value) ── */
+.pwc-slider-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: .55rem; }
+.pwc-slider-head .pwc-label { margin-bottom: 0; }
+.pwc-value {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--yel, #f5c800);
+}
+.pwc-value-max { font-size: .8rem; color: var(--mut, #666); margin-left: 1px; }
+
+/* ── Range sliders — gradient tracks, gold thumb ── */
+.pwc-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+  margin: .15rem 0;
+}
+.pwc-range--pain { --pwc-track: linear-gradient(90deg, var(--grn, #22c55e) 0%, var(--yel, #f5c800) 50%, var(--red, #ef4444) 100%); }
+.pwc-range--rpe  { --pwc-track: linear-gradient(90deg, var(--purl, #8b1abf) 0%, var(--yel, #f5c800) 100%); }
+
+.pwc-range::-webkit-slider-runnable-track {
+  height: 10px; border-radius: 999px; background: var(--pwc-track);
+  border: 1px solid rgba(0, 0, 0, .35);
+}
+.pwc-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  height: 26px; width: 26px; margin-top: -9px;
+  border-radius: 50%; background: var(--yel, #f5c800);
+  border: 3px solid #0a0a0a; box-shadow: 0 2px 12px rgba(0, 0, 0, .55);
+}
+.pwc-range::-moz-range-track { height: 10px; border-radius: 999px; background: var(--pwc-track); border: 1px solid rgba(0, 0, 0, .35); }
+.pwc-range::-moz-range-thumb { height: 26px; width: 26px; border-radius: 50%; background: var(--yel, #f5c800); border: 3px solid #0a0a0a; box-shadow: 0 2px 12px rgba(0, 0, 0, .55); }
+.pwc-range:disabled { opacity: .6; cursor: default; }
+.pwc-range:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--wht, #f9f5ff); outline-offset: 1px; }
+.pwc-range:focus-visible::-moz-range-thumb { outline: 2px solid var(--wht, #f9f5ff); outline-offset: 1px; }
+
+.pwc-scale {
+  display: flex; justify-content: space-between; margin-top: .4rem;
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: .74rem; font-weight: 600; letter-spacing: .5px; color: var(--mut, #666);
+}
+
+/* ── Inline error ── */
+.pwc-error {
+  color: var(--red, #ef4444);
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: .86rem; font-weight: 700; letter-spacing: .3px;
+  margin: 0 0 .9rem;
+}
+
+/* ── The massive primary action ── */
+.pwc-save {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  width: 100%;
+  margin-top: .35rem;
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #0a0a0a;
+  background: var(--yel, #f5c800);            /* LOCKED gold/black CTA (§2) */
+  border: none;
+  border-radius: 14px;
+  padding: 1.15rem 1.5rem;
+  cursor: pointer;
+  box-shadow: var(--glow-gold, 0 0 36px -12px rgba(245, 200, 0, .5));
+  transition: transform .12s ease, filter .15s ease, background .25s ease, color .25s ease, opacity .15s ease;
+}
+.pwc-save:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.pwc-save:active:not(:disabled) { transform: translateY(0); }
+.pwc-save:disabled { cursor: default; opacity: .85; }
+.pwc-save:focus-visible { outline: 2px solid var(--wht, #f9f5ff); outline-offset: 3px; }
+
+/* Success — flip to status-green "Locked In". */
+.pwc-save--done {
+  background: var(--grn, #22c55e);
+  color: #04140a;
+  box-shadow: 0 0 40px -10px rgba(34, 197, 94, .6);
+  opacity: 1;
+}
+.pwc-check { font-size: 1.2rem; line-height: 1; }
+
+@media (max-width: 380px) {
+  .pwc-pill { min-width: 46%; }
+  .pwc-save { font-size: 1.25rem; letter-spacing: 3px; }
+}
