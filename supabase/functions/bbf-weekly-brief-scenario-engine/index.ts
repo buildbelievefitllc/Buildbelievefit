@@ -1,15 +1,12 @@
 // supabase/functions/bbf-weekly-brief-scenario-engine/index.ts
 // WEEKLY BRIEF — the coach's Monday voice memo. Deterministic scenario engine
 // (SAFETY -> COMPLIANCE -> PROGRESSION -> NEUTRAL) renders a spoken script from
-// the athlete's week telemetry, voices it through the locale-mapped ElevenLabs
-// voice (en -> 'BBF Coach Akeem'), and returns it audio-first to the Hub card.
+// the athlete's week telemetry, voices it through the BBF Lab Voice Engine
+// (en -> 'BBF Coach Akeem') in the ARCHITECT vocal state, and returns it audio-first.
 //
 // Audio is uploaded to the PRIVATE bbf-coach-audio bucket; the response carries a
-// freshly SIGNED url (re-signed on every read, so the weekly cache never serves an
-// expired link). FAIL-CLOSED gate: identity resolved server-side from the vault
-// token (x-bbf-vault-token header OR ?vault_token query); raw ?user_id is NEVER
-// trusted. Gates on the paid voice_coach feature. Persists to bbf_weekly_briefs
-// (one row per user . ISO year+week). Returns rendered_script for the transcript.
+// freshly SIGNED url. FAIL-CLOSED gate on the paid voice_coach feature. Persists to
+// bbf_weekly_briefs (one row per user . ISO year+week). Returns rendered_script.
 //
 // Returns JSON: { user_id, scenario, substatus, audio_url, rendered_script,
 // locked_in, timestamp }. GET only (+ OPTIONS preflight).
@@ -92,10 +89,14 @@ const scripts: Record<string, { main: string }> = {
   NEUTRAL: { main: `You logged solid this week, sessions in, readiness data coming in. This week, same plan. Stay consistent. You're building the habit, and the numbers follow. Keep showing up.` },
 };
 
+// ARCHITECT vocal-state guard (BBF Lab Voice Engine): exclamation marks spike volume
+// artificially on the clone — strip them so emphasis comes from the comma/ellipsis cadence.
+function architectFormat(s: string): string { return s.replace(/!+/g, '.').replace(/  +/g, ' ').trim(); }
+
 function renderScript(substatus: string, data: UserWeekData): string {
   const template = scripts[substatus] || scripts.NEUTRAL;
   const deloadWeight = Math.round((data.plateau_weight || 0) * 0.9);
-  return template.main
+  const filled = template.main
     .replace(/{plateau_lift}/g, data.plateau_lift || 'your main lift')
     .replace(/{plateau_weight}/g, String(data.plateau_weight || ''))
     .replace(/{deload_weight}/g, String(deloadWeight))
@@ -103,6 +104,7 @@ function renderScript(substatus: string, data: UserWeekData): string {
     .replace(/{progression_weight}/g, String(data.progression_weight || ''))
     .replace(/{pr_amount}/g, String(data.pr_amount || ''))
     .replace(/{rep_delta}/g, String(data.rep_delta || ''));
+  return architectFormat(filled);
 }
 
 function detectScenario(data: UserWeekData): ScenarioResult {
@@ -128,11 +130,10 @@ function detectScenario(data: UserWeekData): ScenarioResult {
 
 const FORBIDDEN_VOICE = 'jamal';
 const BRIEF_VOICE_NAME = 'BBF Coach Akeem';
-// BBF Coach Akeem PVC (R2 "let the clone breathe" - matches bbf-biokinetic-briefing):
-// minimal processing (style 0, speed 1.0) + lower stability (0.35) for natural prosodic
-// rhythm, similarity 0.75 (PVC sweet spot). Style exaggeration and speed-stretch were the
-// cause of the stiff, uncanny pitch on the clone - both off now.
-const VOICE_SETTINGS = { stability: 0.35, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true, speed: 1.0 };
+// BBF Lab Voice Engine — EXACT payload (Part 2). stability 0.35 frees the soulful
+// fluctuations; similarity 0.85 locks Akeem's cords; style 0.15 amplifies emotion;
+// speaker_boost on. No speed — Architect tempo comes from comma/ellipsis cadence.
+const VOICE_SETTINGS = { stability: 0.35, similarity_boost: 0.85, style: 0.15, use_speaker_boost: true };
 const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
 function deburr(s: unknown): string { return String(s ?? '').normalize('NFD').replace(COMBINING_MARKS, '').trim().toLowerCase(); }
 
@@ -264,5 +265,5 @@ serve(async (req: Request) => {
     user_id: userId, scenario: scenario.scenario, substatus: scenario.substatus,
     audio_url: audioUrl, rendered_script: scenario.rendered_script,
     locked_in: scenario.locked_in, timestamp: new Date().toISOString(),
-  }, 200, { 'X-BBF-Cache': 'miss', 'X-BBF-Voice': voiceMeta?.name || '' });
+  }, 200, { 'X-BBF-Cache': 'miss', 'X-BBF-Voice': voiceMeta?.name || '', 'X-BBF-State': 'architect' });
 });

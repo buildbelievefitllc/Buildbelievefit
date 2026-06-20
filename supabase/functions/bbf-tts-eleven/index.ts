@@ -214,12 +214,12 @@ serve(async (req: Request) => {
     return jsonResponse({ ok: false, reason: 'voice_not_found', feature: safeFeature }, 200);
   }
 
-  // Per-voice-character settings. The fitness persona is the BBF Coach Akeem
-  // Professional Voice Clone — warmed up (style + speed, expressive stability) so it
-  // lands human, never robotic. The nutrition persona (Kelli LaShae) keeps her prior
-  // tuned default untouched. Unknown categories fall back to DEFAULT_VOICE_SETTINGS.
+  // Per-voice-character settings. The fitness persona is the BBF Coach Akeem Professional
+  // Voice Clone — BBF Lab Voice Engine EXACT payload (Part 2): stability 0.35, similarity
+  // 0.85, style 0.15, speaker_boost. The nutrition persona (Kelli LaShae) keeps her prior
+  // tuned default. Unknown categories fall back to DEFAULT_VOICE_SETTINGS.
   const VOICE_SETTINGS_BY_CATEGORY: Record<string, Record<string, unknown>> = {
-    fitness:   { stability: 0.35, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true, speed: 1.0 },  // Akeem PVC — R2 "let the clone breathe" (style/stretch off, lower stability for rhythm)
+    fitness:   { stability: 0.35, similarity_boost: 0.85, style: 0.15, use_speaker_boost: true },
     nutrition: { stability: 0.40, similarity_boost: 0.85, style: 0.00, use_speaker_boost: true },
   };
   const baseSettings = VOICE_SETTINGS_BY_CATEGORY[String(voice.category || '')] || DEFAULT_VOICE_SETTINGS;

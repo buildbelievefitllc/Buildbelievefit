@@ -2,7 +2,9 @@
 // CEO V8.16: ElevenLabs voice engine serving forecast/program/recovery/prehab/cardio/affirmation.
 // VOICE MAP (resolved live from the CEO account, self-heals on rename):
 //   en -> BBF Coach Akeem   es -> Ana Maria   pt -> Ana Alice   (Young Jamal NEVER selected)
-// Returns audio/mpeg (NOT JSON). GET ?voices=1 -> resolved locale->voice diagnostic.
+// Routes through the BBF Lab Voice Engine: exact API payload + the 4 Dynamic Vocal
+// States (Floor Coach / Lounge Talk / Sanctuary / Architect). Returns audio/mpeg.
+// GET ?voices=1 -> resolved locale->voice diagnostic.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -43,8 +45,6 @@ const TIER_TO_GROUP: Record<string, Group> = {
 };
 const AUTO_BAND: Group[] = [GROUP.AUTONOMOUS, GROUP.APEX, GROUP.ALL];
 const BASE_BAND: Group[] = [GROUP.BASELINE, GROUP.AUTONOMOUS, GROUP.APEX, GROUP.YOUTH, GROUP.ALL];
-// affirmation rides the Champion Mindset feature (every paying band), NOT voice_coach,
-// so a Baseline athlete who can open Mindset still gets the premium BBF Coach voice.
 const FEATURE_ACCESS: Record<string, Group[]> = { voice_coach: AUTO_BAND, biokinetic_forecast: AUTO_BAND, mindset: BASE_BAND };
 
 function pgHeaders(serviceKey: string): HeadersInit {
@@ -99,13 +99,38 @@ async function requireEntitlement(url: string | undefined, key: string | undefin
 
 const LOCALE_VOICE_NAME: Record<string, string> = { en: 'BBF Coach Akeem', es: 'Ana Maria', pt: 'Ana Alice' };
 const FORBIDDEN_VOICE = 'jamal';
-// Tuned for the BBF Coach Akeem Professional Voice Clone (R2 — "let the clone breathe").
-// CEO note: R1 came out stiff / no rhythm / uncanny pitch. A high-grade PVC needs LESS
-// processing, not more: style 0.0 (style exaggeration is the #1 cause of uncanny pitch on
-// a clone), speed 1.0 (no time-stretch artifact), stability 0.35 (lower → natural prosodic
-// rhythm, not monotone), similarity 0.75 (PVC sweet spot, keeps Akeem's essence).
-// NOTE: this engine shares one dial across en/es/pt — Ana María / Ana Alice ride it too.
-const DEFAULT_VOICE_SETTINGS = { stability: 0.35, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true, speed: 1.0 };
+
+// ══ BBF LAB VOICE ENGINE (inlined — canonical: _shared/bbf-voice-engine.ts · CLAUDE.md §4) ══
+// PART 1 · Vocal DNA — prepended to every script-writer prompt so the WORDS carry Akeem's cadence.
+const VOICE_DNA = 'You are scripting for the BBF Coach Akeem voice — an African, soulful, naturally rhythmic delivery. A seasoned professional trainer; a father who understands chaotic schedules; a mentor dedicated to shattering the "box mentality." Pitch is mid-to-deep with chest resonance, grounded and warm. Tempo is deliberate, unhurried, with a rhythmic pocket. The vibe is authentic, raw, empathetic — real aura, never corporate. Write the way this man actually talks, so the words carry that cadence on their own.';
+// PART 2 · API physics — EXACT payload on every call. stability 0.35 removes the robotic
+// governor; similarity 0.85 locks Akeem's cords; style 0.15 amplifies emotion; speaker_boost on.
+// NO speed — tempo is shaped by SSML <break> + punctuation (Part 3), not time-stretch.
+const BBF_VOICE_SETTINGS = { stability: 0.35, similarity_boost: 0.85, style: 0.15, use_speaker_boost: true };
+// PART 3 · Dynamic Vocal States.
+type VocalState = 'floor_coach' | 'lounge_talk' | 'sanctuary' | 'architect';
+function vocalStateForContext(ctx: string): VocalState {
+  const c = String(ctx || '').toLowerCase();
+  if (c === 'program' || c === 'cardio') return 'floor_coach';
+  if (c === 'recovery' || c === 'prehab') return 'sanctuary';
+  return 'architect'; // forecast / affirmation / onboarding / philosophy
+}
+function modelForState(s: VocalState): string { return s === 'floor_coach' ? 'eleven_turbo_v2_5' : 'eleven_multilingual_v2'; }
+function vocalStateDirective(s: VocalState): string {
+  if (s === 'floor_coach') return '# VOCAL STATE: THE FLOOR COACH\nEnergized, sharp, technical. Short, punchy sentences. Hit the consonants hard. Drive the rep. No exclamation marks (they spike volume) — land the energy with short declaratives and hard stops.';
+  if (s === 'sanctuary') return '# VOCAL STATE: THE SANCTUARY\nDeepest pitch, extremely slow, therapeutic — you are lowering cortisol. You MUST inject heavy pauses between major thoughts using SSML: <break time="1.5s"/> for a normal pause, <break time="2.5s"/> for the biggest transitions. Use 3 to 6 breaks total. Short, calm sentences between them. No exclamation marks.';
+  return '# VOCAL STATE: THE ARCHITECT\nResonant, building in intensity, passionate. Do NOT use exclamation marks — they spike volume. Create emphasis by isolating critical words with commas or ellipses to slow the tempo, for example: "You have to bring that... Mamba mentality." Let the cadence build; end on a grounded, deliberate line.';
+}
+// Enforce the state's hard rules on the finished script before synthesis.
+function formatForState(text: string, s: VocalState): string {
+  let out = String(text ?? '').trim();
+  if (!out) return out;
+  if (s === 'sanctuary') {
+    if (!/<break/i.test(out)) out = out.replace(/([.?]) /g, '$1 <break time="1.5s"/> ');
+    return out.replace(/  +/g, ' ');
+  }
+  return out.replace(/!+/g, '.').replace(/  +/g, ' ');
+}
 
 const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
 function deburr(s: unknown): string {
@@ -151,7 +176,7 @@ async function synthesize(apiKey: string, voiceId: string, text: string, modelId
       {
         method: 'POST',
         headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-        body: JSON.stringify({ text: text.slice(0, 2500), model_id: modelId, voice_settings: DEFAULT_VOICE_SETTINGS }),
+        body: JSON.stringify({ text: text.slice(0, 2500), model_id: modelId, voice_settings: BBF_VOICE_SETTINGS }),
         signal: controller.signal,
       },
     );
@@ -220,9 +245,10 @@ const SECTION_LABEL: Record<string, Record<string, string>> = {
 async function composeText(context: string, payload: any, locale: string): Promise<string> {
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   const model = routeAndLog('bbf-biokinetic-briefing', context === 'forecast' ? 'snapshot_synthesis' : 'coach_cue');
+  const state = vocalStateForContext(context);
+  const sysFor = (base: string) => `${VOICE_DNA}\n\n${base}\n\n${vocalStateDirective(state)}`;
 
-  // Affirmations are spoken VERBATIM, the client sends the exact, pre-authored,
-  // already-localized line; NO Claude rephrase (the words must land exactly as written).
+  // Affirmations are spoken VERBATIM (the words must land exactly as authored) — no rewrite, no reformat.
   if (context === 'affirmation') {
     return String(payload?.cue_text ?? '').replace(/\s+/g, ' ').trim().slice(0, 600);
   }
@@ -232,7 +258,7 @@ async function composeText(context: string, payload: any, locale: string): Promi
     if (!cueText) return '';
     const label = (SECTION_LABEL[context] || SECTION_LABEL.recovery)[locale] || SECTION_LABEL[context].en;
     if (ANTHROPIC_API_KEY) {
-      const sys = `You are an elite ${label} coach speaking directly into the athlete's ear, warm, calm, and unhurried, like a real person standing right beside them. Record a spoken cue (3-5 flowing sentences, ~80 words) in ${LOCALE_NAME[locale]}. Second person, encouraging, conversational. Use natural commas and gentle pauses so it breathes and never sounds rushed or clipped, and add a little human connective tissue ("nice and easy", "stay with me here", "good") so it feels alive, not read aloud. Preserve the breathing, form, and intensity guidance from the notes. Convert numeric ratings like "6/10" into spoken words ("six out of ten"). Natural human speech only, NO markdown, NO lists, NO preamble, NO quotes, NO emojis.`;
+      const sys = sysFor(`You are an elite ${label} coach speaking directly into the athlete's ear in ${LOCALE_NAME[locale]}. Record a spoken cue (3-5 flowing sentences, ~80 words). Second person, encouraging, conversational. Preserve the breathing, form, and intensity guidance from the notes. Convert numeric ratings like "6/10" into spoken words ("six out of ten"). Natural human speech only, NO markdown, NO lists, NO preamble, NO quotes, NO emojis.`);
       const user = `Coaching notes (may be in English, speak them in ${LOCALE_NAME[locale]}):\n${cueText}\n\nSpeak the cue now.`;
       const t = await writeWithClaude(ANTHROPIC_API_KEY, model, sys, user);
       if (t) return t;
@@ -248,7 +274,7 @@ async function composeText(context: string, payload: any, locale: string): Promi
     const cues = Array.isArray(ex?.form_cues) ? ex.form_cues.filter(Boolean).slice(0, 4) : [];
     const equip = String(ex?.equipment ?? '').slice(0, 48);
     if (ANTHROPIC_API_KEY) {
-      const sys = `You are an elite strength coach giving a short in-ear cue (2-3 sentences, ~45 words) in ${LOCALE_NAME[locale]}. Second person, confident and motivating but HUMAN, a real coach talking, not a robot barking orders. Reference the movement and ONE form cue, and let it land with natural commas and rhythm so it sounds smooth, not clipped. No markdown, no preamble, no quotes.`;
+      const sys = sysFor(`You are an elite strength coach giving a short in-ear cue (2-3 sentences, ~45 words) in ${LOCALE_NAME[locale]}. Reference the movement and ONE form cue. No markdown, no preamble, no quotes.`);
       const user = `Exercise: ${name}\nTarget: ${sets ? sets + ' x ' : ''}${reps}\nForm cues: ${cues.join('; ') || '(standard execution)'}\nEquipment: ${equip || '(n/a)'}\nGive the cue now.`;
       const t = await writeWithClaude(ANTHROPIC_API_KEY, model, sys, user);
       if (t) return t;
@@ -259,7 +285,7 @@ async function composeText(context: string, payload: any, locale: string): Promi
   const lift = String(payload?.lift_name || 'your main lift').slice(0, 60);
   const forecast = payload?.forecast ?? null;
   if (ANTHROPIC_API_KEY) {
-    const sys = `You are the BBF Smart Coach recording a SPOKEN audio briefing (~100 words, max 120) in ${LOCALE_NAME[locale]}. Direct, motivational, second person. NO markdown, NO lists, flowing speech, 3-5 short sentences. Ground every claim in the telemetry. End with one concrete directive.`;
+    const sys = sysFor(`You are the BBF Smart Coach recording a SPOKEN audio briefing (~100 words, max 120) in ${LOCALE_NAME[locale]}. Direct, motivational, second person. NO markdown, NO lists, flowing speech, 3-5 short sentences. Ground every claim in the telemetry. End with one concrete directive.`);
     const user = `Lift: ${lift}\nTelemetry JSON:\n${JSON.stringify(forecast ?? {}).slice(0, 1500)}\n\nWrite the spoken briefing now.`;
     const t = await writeWithClaude(ANTHROPIC_API_KEY, model, sys, user);
     if (t) return t;
@@ -362,12 +388,11 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'voice_unresolved', detail: 'No ElevenLabs voice could be resolved for this locale.' }, 502);
   }
 
-  const text = await composeText(context, payload, locale);
-
-  // Program cues use turbo (low latency, FAR more natural than flash); everything
-  // else (forecast/recovery/prehab/cardio/affirmation) uses the richest prosody
-  // model. Both honor the warm voice settings + 0.92 speed.
-  const modelId = context === 'program' ? 'eleven_turbo_v2_5' : 'eleven_multilingual_v2';
+  // Dynamic Vocal State: shape the script per state, then enforce the state's hard rules.
+  const state = vocalStateForContext(context);
+  const raw = await composeText(context, payload, locale);
+  const text = context === 'affirmation' ? raw : formatForState(raw, state);
+  const modelId = modelForState(state);
   const tts = await synthesize(ELEVENLABS_API_KEY, voice.voice_id, text, modelId);
   if (!tts.ok) {
     console.error(`[bbf-biokinetic-briefing] tts ${tts.status}: ${tts.detail}`);
@@ -392,6 +417,7 @@ serve(async (req: Request) => {
       'X-BBF-Voice': voice.name,
       'X-BBF-Voice-Id': voice.voice_id,
       'X-BBF-Context': context,
+      'X-BBF-State': state,
       'X-BBF-Cache': cacheable ? 'miss' : 'off',
     },
   });

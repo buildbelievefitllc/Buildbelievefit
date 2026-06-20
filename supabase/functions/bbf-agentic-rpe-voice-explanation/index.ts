@@ -93,6 +93,9 @@ A cada série, quero que você registre o peso, as repetições e o RPE. São tr
 Então, a partir de hoje, quando registrar uma série, pergunte-se: Quão difícil isso realmente se sentiu? Não quanto peso. Quão difícil. Entendido?`,
 };
 
+// Architect vocal-state guard: exclamation marks spike volume on the clone — strip them.
+function architectFormat(s: string): string { return String(s ?? '').replace(/!+/g, '.').replace(/  +/g, ' ').trim(); }
+
 // BBF Coach Akeem (Professional Voice Clone) — the trilingual clone speaks every locale.
 const VOICE_ID_EN = 'ZbKDEqxkr8Ub4psNm5XD';
 const VOICE_ID_ES = 'ZbKDEqxkr8Ub4psNm5XD';
@@ -106,14 +109,14 @@ const VOICE_IDS: Record<string, string> = {
 
 // Long-form education monologue (cached daily, not latency-critical) -> richest model.
 const DEFAULT_MODEL_ID = 'eleven_multilingual_v2';
-// R2 "let the clone breathe": minimal processing (style 0, speed 1.0), lower stability
-// for natural prosodic rhythm, similarity 0.75 (PVC sweet spot).
+// BBF Lab Voice Engine EXACT payload (Part 2): stability 0.35 frees the soulful
+// fluctuations; similarity 0.85 locks Akeem's cords; style 0.15 amplifies emotion;
+// speaker_boost on. No speed — Architect tempo comes from comma/ellipsis cadence.
 const DEFAULT_VOICE_SETTINGS = {
   stability: 0.35,
-  similarity_boost: 0.75,
-  style: 0.0,
+  similarity_boost: 0.85,
+  style: 0.15,
   use_speaker_boost: true,
-  speed: 1.0,
 };
 const ELEVEN_TIMEOUT_MS = 30000;
 
@@ -345,7 +348,7 @@ serve(async (req: Request) => {
     return jsonResponse({ ok: false, error: 'config_missing_elevenlabs' }, 500);
   }
 
-  const text = RPE_TEXT[language as keyof typeof RPE_TEXT];
+  const text = architectFormat(RPE_TEXT[language as keyof typeof RPE_TEXT]);
   const voiceId = VOICE_IDS[language];
 
   console.log(`[bbf-agentic-rpe-voice-explanation] synthesizing language=${language}`);
