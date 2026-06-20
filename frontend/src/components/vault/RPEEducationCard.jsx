@@ -91,7 +91,7 @@ const VIDEO_LABELS = {
   },
 };
 
-function VideoModal({ videoUrl, headline, subline, onClose, lang }) {
+function VideoModal({ videoUrl, headline, subline, onClose }) {
   return (
     <div className="rpe-video-modal-overlay" onClick={onClose}>
       <div className="rpe-video-modal" onClick={(e) => e.stopPropagation()}>
@@ -235,7 +235,6 @@ export default function RPEEducationCard({ preferred_locale = 'en' }) {
           headline={vidLabels.rpe5.headline}
           subline={vidLabels.rpe5.subline}
           onClose={() => setVideoOpen(null)}
-          lang={lang}
         />
       )}
 
@@ -245,7 +244,6 @@ export default function RPEEducationCard({ preferred_locale = 'en' }) {
           headline={vidLabels.rpe9.headline}
           subline={vidLabels.rpe9.subline}
           onClose={() => setVideoOpen(null)}
-          lang={lang}
         />
       )}
     </>
