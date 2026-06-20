@@ -169,9 +169,6 @@ Big Jim v2's vision: customers fill Pathfinder *in the app* for re-assessment, n
 
 Scope: ~150 lines new HTML/JS in bbf-app.html, no schema changes (Render `/process` already accepts the payload).
 
-### P1 — Vapi voice integration (Big Jim directive #4)
-Outbound accountability calls based on logged activity. Webhook from Supabase row events to Vapi. Scope: needs design — Vapi setup, webhook payload spec, trigger conditions (missed log streak, etc.). Not a single PR — likely a 3-4 PR sequence.
-
 ### P2 — ACWR / wearable sync (Big Jim directive #3)
 Schema for wearable data import (Whoop, Apple Health, Oura). ACWR computation as a Postgres function. RED-LOCKOUT state machine that flags overtraining. **Big new schema area** — design doc first, then implement.
 

@@ -178,7 +178,7 @@
       "youth_sports_kinematics": ["bbf-agentic-kinematics", "bbf_vision_scout", "bbf-agentic-comlink", "bbf-agentic-peaking", "bbf-agentic-forecasting", "bbf-admin-roster"],
       "i18n_comms_voice": ["bbf-agentic-linguist", "bbf-agentic-immersion", "bbf-agentic-interrogator", "bbf-tts-eleven"],
       "science": ["bbf-science-digest"],
-      "lead_sales_prepurchase": ["bbf-lead-capture", "bbf-lead-concierge", "bbf-agentic-sales-router", "vapi-sms-closer", "vapi-outbound-trigger"],
+      "lead_sales_prepurchase": ["bbf-lead-capture", "bbf-lead-concierge", "bbf-agentic-sales-router"],
       "billing": ["stripe-webhook"],
       "ops_system": ["bbf-sentinel", "bbf-command-feed", "bbf-user-profile", "bbf-wearable-ingest"]
     }

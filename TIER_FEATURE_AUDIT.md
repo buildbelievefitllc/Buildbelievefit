@@ -64,7 +64,7 @@ All 13 rows are seeded and live. **Every row's `stripe_price_id` and `stripe_pay
 | Youth / Sports / Kinematic HUD | bbf-agentic-kinematics · bbf_vision_scout · bbf-agentic-comlink · bbf-agentic-peaking · bbf-agentic-forecasting · bbf-admin-roster |
 | i18n / comms / voice | bbf-agentic-linguist · bbf-agentic-immersion · bbf-agentic-interrogator · bbf-tts-eleven |
 | Science Hub | bbf-science-digest |
-| Lead/sales (pre-purchase, ungated) | bbf-lead-capture · bbf-lead-concierge · bbf-agentic-sales-router · vapi-sms-closer · vapi-outbound-trigger |
+| Lead/sales (pre-purchase, ungated) | bbf-lead-capture · bbf-lead-concierge · bbf-agentic-sales-router |
 | Billing | stripe-webhook |
 | Ops/system | bbf-sentinel · bbf-command-feed · bbf-user-profile · bbf-wearable-ingest |
 
