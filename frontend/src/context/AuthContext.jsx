@@ -119,6 +119,14 @@ export function AuthProvider({ children }) {
         // resolves from the slug map; `data.workout_plan_key` future-proofs it
         // for when the payload carries an explicit key.
         programKey: resolveProgramKey(username, data.workout_plan_key),
+        // Phase A — the language the client applied in, read straight from
+        // bbf_active_clients by the PIN RPC. This is the AUTHORITATIVE source the
+        // Vault hydrates from (Login.jsx calls setLang with it), so the experience
+        // opens in-language on ANY device, never just where they once toggled.
+        preferredLanguage: (() => {
+          const code = String(data.preferred_language || '').trim().toLowerCase().slice(0, 2);
+          return (code === 'es' || code === 'pt') ? code : 'en';
+        })(),
       },
       // Inject the plan envelope whenever the RPC returns ANY plan text — do not
       // gate solely on plans_generated_at. A client can have a coach-written
@@ -148,7 +156,7 @@ export function AuthProvider({ children }) {
     // session (NOT the async context `user`, which hasn't re-rendered yet): a
     // flagged sports athlete → The Sports Hub, everyone else → the Sovereign Vault.
     // Login.jsx navigates to this so it never races the setState above.
-    return { ok: true, home: homePathForUser(nextSession.user) };
+    return { ok: true, home: homePathForUser(nextSession.user), lang: nextSession.user.preferredLanguage };
   }, []);
 
   const signOut = useCallback(() => {

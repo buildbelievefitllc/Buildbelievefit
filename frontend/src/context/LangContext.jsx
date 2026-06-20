@@ -267,6 +267,7 @@ const DICT = {
   'vault-tab-generator': { en: 'Generator', es: 'Generador', pt: 'Gerador' },
   'vault-tab-cardio': { en: 'Smart Cardio', es: 'Cardio Inteligente', pt: 'Cardio Inteligente' },
   'vault-tab-prehab': { en: 'Prehab', es: 'Pre-Hab', pt: 'Pré-Hab' },
+  'vault-tab-recovery': { en: 'Recovery', es: 'Recuperación', pt: 'Recuperação' },
   'vault-tab-nutrition': { en: 'Nutrition', es: 'Nutrición', pt: 'Nutrição' },
   'vault-tab-mindset': { en: 'Champion Mindset', es: 'Mentalidad de Campeón', pt: 'Mentalidade de Campeão' },
   'vault-tab-forecast': { en: 'Forecast', es: 'Pronóstico', pt: 'Previsão' },
@@ -426,6 +427,36 @@ const DICT = {
   'vh-blueprint-k': { en: 'Active Directive', es: 'Directiva Activa', pt: 'Diretiva Ativa' },
   // Active Directive execute button + the readiness gate (advisory; never disabling).
   'vh-exec': { en: 'Open Program →', es: 'Abrir Programa →', pt: 'Abrir Programa →' },
+  // ── Sovereign Prep — 3-phase pre-session protocol (bbf-agentic-recovery) ──
+  'sp-cta': { en: 'Sovereign Prep', es: 'Preparación Soberana', pt: 'Preparação Soberana' },
+  'sp-kicker': { en: '3-Phase Pre-Session Protocol', es: 'Protocolo Pre-Sesión de 3 Fases', pt: 'Protocolo Pré-Sessão de 3 Fases' },
+  'sp-section-sub': { en: 'Yesterday’s soreness, prepped. Today’s session, primed. Soft-tissue, static stretch, and dynamic mobility — weighted to your load.', es: 'El dolor de ayer, preparado. La sesión de hoy, lista. Tejido blando, estiramiento estático y movilidad dinámica — según tu carga.', pt: 'A dor de ontem, preparada. A sessão de hoje, pronta. Tecido mole, alongamento estático e mobilidade dinâmica — conforme sua carga.' },
+  'sp-title': { en: 'Sovereign Prep', es: 'Preparación Soberana', pt: 'Preparação Soberana' },
+  'sp-loading': { en: 'Building your prep sequence…', es: 'Construyendo tu secuencia…', pt: 'Construindo sua sequência…' },
+  'sp-retry': { en: 'Retry', es: 'Reintentar', pt: 'Tentar de Novo' },
+  'sp-close': { en: 'Close', es: 'Cerrar', pt: 'Fechar' },
+  'sp-empty': { en: 'No items for this phase.', es: 'Sin elementos para esta fase.', pt: 'Nenhum item para esta fase.' },
+  'sp-essential': { en: 'Essential', es: 'Esencial', pt: 'Essencial' },
+  'sp-watch': { en: 'Watch demo', es: 'Ver demo', pt: 'Ver demo' },
+  'sp-watch-hide': { en: 'Hide demo', es: 'Ocultar demo', pt: 'Ocultar demo' },
+  'sp-more': { en: 'More:', es: 'Más:', pt: 'Mais:' },
+  'sp-phase1': { en: 'Tissue Release', es: 'Liberación de Tejido', pt: 'Liberação de Tecido' },
+  'sp-phase1-sub': { en: 'Foam rolling & soft-tissue', es: 'Rodillo y tejido blando', pt: 'Rolo e tecido mole' },
+  'sp-phase2': { en: 'Static Elongation', es: 'Elongación Estática', pt: 'Alongamento Estático' },
+  'sp-phase2-sub': { en: "Yesterday's load", es: 'Carga de ayer', pt: 'Carga de ontem' },
+  'sp-phase3': { en: 'Dynamic Potentiation', es: 'Potenciación Dinámica', pt: 'Potenciação Dinâmica' },
+  'sp-phase3-sub': { en: "Today's focus", es: 'Enfoque de hoy', pt: 'Foco de hoje' },
+  'sp-cue-breathing': { en: 'Breathing', es: 'Respiración', pt: 'Respiração' },
+  'sp-cue-form': { en: 'Form', es: 'Técnica', pt: 'Forma' },
+  'sp-cue-intensity': { en: 'Intensity', es: 'Intensidad', pt: 'Intensidade' },
+  'sp-reps': { en: 'Reps', es: 'Reps', pt: 'Reps' },
+  'sp-tempo': { en: 'Tempo', es: 'Tempo', pt: 'Tempo' },
+  'sp-passes': { en: 'Passes', es: 'Pasadas', pt: 'Passagens' },
+  'sp-dwell': { en: 'Dwell', es: 'Pausa', pt: 'Pausa' },
+  'sp-timing': { en: 'Timing', es: 'Momento', pt: 'Momento' },
+  'sp-hold-light': { en: 'Light', es: 'Suave', pt: 'Leve' },
+  'sp-hold-standard': { en: 'Standard', es: 'Estándar', pt: 'Padrão' },
+  'sp-hold-deep': { en: 'Deep', es: 'Profundo', pt: 'Profundo' },
   'vh-gate-caution': {
     en: 'Readiness is low — a recovery pivot is advised before max effort. You keep the override.',
     es: 'Preparación baja — se aconseja un giro a recuperación antes del esfuerzo máximo. Mantienes el control.',
@@ -482,6 +513,28 @@ const DICT = {
     es: 'Tu primera sesión registrada se iluminará aquí.',
     pt: 'Sua primeira sessão registrada vai acender aqui.',
   },
+  // Weekly Brief — top-of-fold Hub card (bbf-weekly-brief-scenario-engine). The
+  // coach's Monday voice memo: scenario verdict + audio + transcript. Trilingual.
+  'wb-title': { en: 'Your Weekly Brief', es: 'Tu Resumen Semanal', pt: 'Seu Resumo Semanal' },
+  'wb-new': { en: 'New', es: 'Nuevo', pt: 'Novo' },
+  'wb-play': { en: 'Play Weekly Brief', es: 'Reproducir Resumen', pt: 'Reproduzir Resumo' },
+  'wb-pause': { en: 'Pause', es: 'Pausar', pt: 'Pausar' },
+  'wb-replay': { en: 'Replay Brief', es: 'Repetir Resumen', pt: 'Repetir Resumo' },
+  'wb-loading': { en: 'Cueing your brief…', es: 'Preparando tu resumen…', pt: 'Preparando seu resumo…' },
+  'wb-transcript': { en: 'Transcript', es: 'Transcripción', pt: 'Transcrição' },
+  'wb-transcript-title': { en: 'Weekly Brief Transcript', es: 'Transcripción del Resumen Semanal', pt: 'Transcrição do Resumo Semanal' },
+  'wb-close': { en: 'Close', es: 'Cerrar', pt: 'Fechar' },
+  'wb-locked-in': { en: 'Locked In', es: 'En Marcha', pt: 'Comprometido' },
+  'wb-generated': { en: 'Generated', es: 'Generado', pt: 'Gerado' },
+  'wb-unavailable': { en: 'Your weekly brief isn’t ready yet — check back soon.', es: 'Tu resumen semanal aún no está listo — vuelve pronto.', pt: 'Seu resumo semanal ainda não está pronto — volte em breve.' },
+  // Scenario verdict chips (server scenario/substatus → spoken status line).
+  'wb-sc-progression': { en: 'Progression', es: 'Progresión', pt: 'Progressão' },
+  'wb-sc-compliance': { en: 'Lock In Your Logs', es: 'Registra Tus Datos', pt: 'Registre Seus Dados' },
+  'wb-sc-plateau': { en: 'Strategic Deload', es: 'Descarga Estratégica', pt: 'Descarga Estratégica' },
+  'wb-sc-neutral': { en: 'Stay Consistent', es: 'Mantén La Constancia', pt: 'Mantenha A Constância' },
+  // Daily Affirmation Coach (Champion Mindset) — voice-coached trilingual affirmation.
+  'aff-header': { en: "Today's Affirmation", es: 'Afirmación de Hoy', pt: 'Afirmação de Hoje' },
+  'aff-new': { en: 'New', es: 'Nuevo', pt: 'Novo' },
   // Vault Upsell Funnel — the UpgradeOverlay padlock chrome (tier name + price are
   // interpolated from the live pricing matrix, so they stay out of the dictionary).
   'uplock-kicker': { en: 'Locked', es: 'Bloqueado', pt: 'Bloqueado' },
@@ -527,6 +580,42 @@ const DICT = {
   // Concierge summon (Settings → replay the first-login welcome on demand).
   'concierge-replay-h': { en: 'Onboarding', es: 'Bienvenida', pt: 'Integração' },
   'concierge-replay': { en: 'Replay welcome tour', es: 'Repetir el recorrido de bienvenida', pt: 'Repetir o tour de boas-vindas' },
+
+  // ── Pathfinder funnel hardening — explicit language selector (Phase A),
+  // trilingual completion of the athlete/nutrition inputs (Phase B), and the
+  // physician-clearance notice (Phase C). All previously hardcoded English. ──
+  'pf-lang-label': { en: 'Preferred Language', es: 'Idioma Preferido', pt: 'Idioma Preferido' },
+  'pf-lang-note': { en: 'Your portal and plans open in this language.', es: 'Tu portal y tus planes se abren en este idioma.', pt: 'Seu portal e seus planos abrem neste idioma.' },
+  'pf-lang-en': { en: 'English', es: 'Inglés', pt: 'Inglês' },
+  'pf-lang-es': { en: 'Spanish', es: 'Español', pt: 'Espanhol' },
+  'pf-lang-pt': { en: 'Portuguese', es: 'Portugués', pt: 'Português' },
+  // Sport — label + options (values: none/basketball/football/soccer/track/baseball/general).
+  'pf-sport-label': { en: 'Sport (optional)', es: 'Deporte (opcional)', pt: 'Esporte (opcional)' },
+  'pf-sport-none': { en: 'Not a sport athlete', es: 'No soy atleta de deporte', pt: 'Não sou atleta de esporte' },
+  'pf-sport-basketball': { en: 'Basketball', es: 'Baloncesto', pt: 'Basquete' },
+  'pf-sport-football': { en: 'Football', es: 'Fútbol Americano', pt: 'Futebol Americano' },
+  'pf-sport-soccer': { en: 'Soccer', es: 'Fútbol', pt: 'Futebol' },
+  'pf-sport-track': { en: 'Track & Field', es: 'Atletismo', pt: 'Atletismo' },
+  'pf-sport-baseball': { en: 'Baseball / Softball', es: 'Béisbol / Sóftbol', pt: 'Beisebol / Softbol' },
+  'pf-sport-general': { en: 'General Athletic', es: 'Atlético General', pt: 'Atlético Geral' },
+  // Dietary profile — label + options.
+  'pf-diet-label': { en: 'Dietary Profile', es: 'Perfil Dietético', pt: 'Perfil Alimentar' },
+  'pf-diet-omnivore': { en: 'Omnivore', es: 'Omnívoro', pt: 'Onívoro' },
+  'pf-diet-vegetarian': { en: 'Vegetarian', es: 'Vegetariano', pt: 'Vegetariano' },
+  'pf-diet-vegan': { en: 'Vegan', es: 'Vegano', pt: 'Vegano' },
+  // Fasting window — label + options + youth-lock note.
+  'pf-fasting-label': { en: 'Fasting Window', es: 'Ventana de Ayuno', pt: 'Janela de Jejum' },
+  'pf-fasting-none': { en: 'None', es: 'Ninguna', pt: 'Nenhuma' },
+  'pf-fasting-1212': { en: '12 / 12', es: '12 / 12', pt: '12 / 12' },
+  'pf-fasting-1410': { en: '14 / 10', es: '14 / 10', pt: '14 / 10' },
+  'pf-fasting-168': { en: '16 / 8 (skip breakfast)', es: '16 / 8 (sin desayuno)', pt: '16 / 8 (sem café da manhã)' },
+  'pf-fasting-youth-note': { en: 'Youth athletes train on continuous nutrient delivery — fasting is disabled for healthy CNS development.', es: 'Los atletas jóvenes entrenan con aporte continuo de nutrientes — el ayuno está desactivado para un desarrollo saludable del SNC.', pt: 'Atletas jovens treinam com fornecimento contínuo de nutrientes — o jejum está desativado para o desenvolvimento saudável do SNC.' },
+  // Height — label + unit placeholders.
+  'pf-height-label': { en: 'Height (ft / in)', es: 'Altura (pies / pulg)', pt: 'Altura (pés / pol)' },
+  'pf-height-ft': { en: 'ft', es: 'pies', pt: 'pés' },
+  'pf-height-in': { en: 'in', es: 'pulg', pt: 'pol' },
+  // Phase C — physician-clearance notice (adult Pathfinder · matches Youth standard).
+  'pf-clearance-flag': { en: "Based on your health answers, a physician's clearance is required before we generate your training program. Your coach will review your intake and follow up before any training begins.", es: 'Según tus respuestas de salud, se requiere autorización médica antes de generar tu programa de entrenamiento. Tu entrenador revisará tu registro y dará seguimiento antes de comenzar cualquier entrenamiento.', pt: 'Com base nas suas respostas de saúde, é necessária liberação médica antes de gerarmos seu programa de treino. Seu treinador revisará seu cadastro e entrará em contato antes de iniciar qualquer treino.' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });

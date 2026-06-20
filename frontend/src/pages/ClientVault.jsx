@@ -38,6 +38,7 @@ import Settings from '../components/vault/Settings.jsx';
 import SmartCardio from '../components/vault/SmartCardio.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import Prehab from '../components/vault/Prehab.jsx';
+import Recovery from '../components/vault/Recovery.jsx';
 import ChampionMindset from '../components/vault/ChampionMindset.jsx';
 import SovereignClientHub from '../components/vault/SovereignClientHub.jsx';
 import TierGate from '../components/TierGate.jsx';
@@ -60,6 +61,7 @@ const TABS = [
   { id: 'generator', labelKey: 'vault-tab-generator', icon: '✦', impact: 'high' },
   { id: 'cardio', labelKey: 'vault-tab-cardio', icon: '♥', testid: 'vault-tab-cardio', impact: 'high' },
   { id: 'prehab', labelKey: 'vault-tab-prehab', icon: '✚', testid: 'vault-tab-prehab', impact: 'recovery' },
+  { id: 'recovery', labelKey: 'vault-tab-recovery', icon: '❂', testid: 'vault-tab-recovery', impact: 'recovery' },
   { id: 'nutrition', labelKey: 'vault-tab-nutrition', icon: '◆' },
   // Champion Mindset is tier-gated by the Upsell Funnel: every Online Fitness tier,
   // Fuel Sovereign (top Online Nutrition), + God Mode unlock it; lower Nutrition +
@@ -229,6 +231,7 @@ export default function ClientVault() {
             {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
             {activeTab === 'cardio' && <SmartCardio />}
             {activeTab === 'prehab' && <Prehab />}
+            {activeTab === 'recovery' && <Recovery plans={plans} />}
             {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
             {activeTab === 'mindset' && <ChampionMindset />}
             {activeTab === 'settings' && <Settings />}

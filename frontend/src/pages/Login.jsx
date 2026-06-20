@@ -14,11 +14,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLang } from '../context/LangContext.jsx';
 import { homePathForUser } from '../lib/sportsRoster.js';
 import './login.css';
 
 export default function Login() {
   const { signInWithPin, user, loading } = useAuth();
+  const { setLang } = useLang();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
@@ -66,6 +68,11 @@ export default function Login() {
     const result = await signInWithPin(username, pin);
 
     if (result.ok) {
+      // Phase A — hydrate the UI language from the DB record (returned by the PIN
+      // RPC), so the Vault opens in the language the client applied in regardless
+      // of this device's prior toggle / cleared cache. setLang also re-persists it
+      // to localStorage for the rest of the session.
+      if (result.lang) setLang(result.lang);
       // The Routing Fork: signInWithPin resolves the home path from the freshly
       // built session (sports athlete → The Sports Hub, else the Vault), so we
       // navigate deterministically without waiting on the context to re-render.

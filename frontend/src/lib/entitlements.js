@@ -104,6 +104,7 @@ export const TAB_FEATURE = {
   generator: 'grid',
   cardio: 'smart_cardio',
   prehab: 'prehab',
+  recovery: 'readiness', // Sovereign Prep — foundational, Baseline band+ (like checkin)
   nutrition: 'base_nutrition',
   mindset: 'mindset',
 };

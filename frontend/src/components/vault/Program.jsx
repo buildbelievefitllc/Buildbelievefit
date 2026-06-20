@@ -20,6 +20,7 @@ import ProgramGrid from './ProgramGrid.jsx';
 import SovereignSentinel from './SovereignSentinel.jsx';
 import HypertrophyBalanceAnalyzer from './HypertrophyBalanceAnalyzer.jsx';
 import VoiceCoachButton from './VoiceCoachButton.jsx';
+import RPEEducationCard from './RPEEducationCard.jsx';
 import TierGate from '../TierGate.jsx';
 import { buildCoachCue } from './coachCue.js';
 
@@ -109,6 +110,10 @@ export default function Program({ plans, profile }) {
           ) : null}
         </div>
       </div>
+
+      {/* RPE Education Card — collapsible, text-first education on RPE.
+          Mounted at top of program tab, always visible above analytics and grid. */}
+      <RPEEducationCard preferred_locale={lang} />
 
       {/* Master visual dashboard — COLLAPSED BY DEFAULT so the Program tab opens
           straight onto the day's protocol (action over analysis). The toggle reveals

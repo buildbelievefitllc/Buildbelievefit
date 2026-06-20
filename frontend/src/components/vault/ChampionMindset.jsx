@@ -37,6 +37,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import ChampionFilmCard from './ChampionFilmCard.jsx';
+import DailyAffirmationCoach from './DailyAffirmationCoach.jsx';
 import { L10N, readLocked, writeLocked } from './championMindsetData.js';
 import './championMindset.css';
 
@@ -140,7 +141,10 @@ export default function ChampionMindset() {
         <p className="cm-sub">{L.sub}</p>
       </section>
 
-      {/* ── 2 · Daily Vault Affirmation ───────────────────────────────────── */}
+      {/* ── 2 · Daily Affirmation Coach (voice-coached, trilingual) ───────── */}
+      <DailyAffirmationCoach />
+
+      {/* ── 2b · Daily Vault Affirmation (static quote block) ─────────────── */}
       <section className="cm-affirm" aria-label={L.affirmLabel}>
         <div className="cm-affirm-orb" aria-hidden="true">✦</div>
         <div className="cm-affirm-lbl">{L.affirmLabel}</div>

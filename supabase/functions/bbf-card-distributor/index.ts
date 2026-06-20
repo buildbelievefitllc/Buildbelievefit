@@ -197,11 +197,29 @@ async function postInstagram(cfg: Config, imageUrl: string, caption: string): Pr
   if (create.status !== 200 || !cj?.id) {
     return { ok: false, status: create.status, detail: `ig_create:${JSON.stringify(cj).slice(0, 200)}` };
   }
-  // Step 2 — publish the container.
+  const containerId = String(cj.id);
+
+  // Step 1b — POLL until the container finishes processing. Publishing a container
+  // before IG has finished ingesting the image is the #1 cause of intermittent
+  // publish 400s ("Media ID is not available"). Up to ~20s (10 × 2s); normally 1-2.
+  let ready = false;
+  for (let i = 0; i < 10; i += 1) {
+    const s = await fetch(`${cfg.graph}/${containerId}?fields=status_code&access_token=${encodeURIComponent(cfg.metaToken)}`);
+    const sj = await s.json().catch(() => ({}));
+    const code = sj?.status_code;
+    if (code === 'FINISHED') { ready = true; break; }
+    if (code === 'ERROR' || code === 'EXPIRED') {
+      return { ok: false, status: 400, detail: `ig_container_${String(code).toLowerCase()}:${JSON.stringify(sj).slice(0, 160)}` };
+    }
+    await new Promise((r) => setTimeout(r, 2000)); // IN_PROGRESS — wait and re-poll
+  }
+  if (!ready) return { ok: false, status: 408, detail: `ig_container_not_ready:${containerId}` };
+
+  // Step 2 — publish the (now-FINISHED) container.
   const publish = await fetch(`${cfg.graph}/${cfg.igUser}/media_publish`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ creation_id: cj.id, access_token: cfg.metaToken }),
+    body: JSON.stringify({ creation_id: containerId, access_token: cfg.metaToken }),
   });
   const pj = await publish.json().catch(() => ({}));
   if (publish.status !== 200 || !pj?.id) {
@@ -340,7 +358,7 @@ serve(async (req) => {
       const idFilter = Array.isArray(body?.ids) && body.ids.length
         ? `&id=in.(${(body.ids as string[]).map((x) => `"${x}"`).join(',')})`
         : '';
-      const rows = await pgGet(`${TABLE}?select=id,caption,headline,platform_target,status&status=eq.queued${idFilter}&order=created_at.asc&limit=${limit}`);
+      const rows = await pgGet(`${TABLE}?select=id,caption,headline,platform_target,status,post_refs&status=eq.queued${idFilter}&order=created_at.asc&limit=${limit}`);
       const queued = Array.isArray(rows) ? rows : [];
 
       const report: any[] = [];
@@ -375,10 +393,23 @@ serve(async (req) => {
         catch (_) { claimed = []; }
         if (!Array.isArray(claimed) || !claimed.length) { skipped++; report.push({ id, result: 'skipped_already_claimed' }); continue; }
 
+        // Prior per-channel successes (from an earlier partial run). A channel that
+        // already returned a confirmed 200 + ref is NEVER re-posted — this makes a
+        // 'failed' row (e.g. FB posted but IG errored) safely retryable: only the
+        // missing channel(s) fire, so Facebook is never double-posted. Closes the
+        // partial-post "leak" where one channel's transient error stranded the row.
+        const prior: Record<string, { status?: number; ref?: string | null }> =
+          (row.post_refs && typeof row.post_refs === 'object') ? row.post_refs : {};
+
         // Post to every targeted channel; collect per-channel results.
         const channelResults: Record<string, PostResult> = {};
         let allOk = true;
         for (const ch of onlyChannels) {
+          const had = prior[ch];
+          if (had && had.status === 200 && had.ref) {
+            channelResults[ch] = { ok: true, status: 200, ref: String(had.ref), detail: 'already_posted' };
+            continue; // idempotent skip — already live on this channel
+          }
           try {
             const r = await postToChannel(cfg, ch, imageUrl, (ch === 'instagram' || ch === 'facebook') ? withLocalTags(caption) : caption);
             channelResults[ch] = r;
@@ -389,7 +420,8 @@ serve(async (req) => {
           }
         }
 
-        const refs = Object.fromEntries(Object.entries(channelResults).map(([k, v]) => [k, { status: v.status, ref: v.ref ?? null }]));
+        // Merge prior refs with this run's results so the audit trail stays cumulative.
+        const refs = { ...prior, ...Object.fromEntries(Object.entries(channelResults).map(([k, v]) => [k, { status: v.status, ref: v.ref ?? null }])) };
         if (allOk) {
           // FLIP RULE — 'posted' only when every channel returned HTTP 200.
           await pgPatch(`${TABLE}?id=eq.${encodeURIComponent(id)}`, { status: 'posted' });

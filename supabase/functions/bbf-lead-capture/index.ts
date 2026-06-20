@@ -170,7 +170,13 @@ async function stageActiveClient(supabase, { email, fullName, phone, tier, paylo
   const sportsProtocol = toJsonText(p.sports_protocol ?? p.sportsProtocol ?? null);
   const plansStaged = !!(workoutPlan || mealPlan);
 
+  // Phase C — physician-clearance gate. A PAR-Q "yes" (parq_any) means the
+  // automated physical program was intentionally withheld client-side; mark the
+  // record so the coach surfaces it for review before any training begins.
+  const needsClearance = p.requires_clearance === true || p.parq_any === true;
+
   const clinicalBits = [
+    needsClearance ? '⚠ PHYSICIAN CLEARANCE REQUIRED (PAR-Q flag)' : null,
     p.injuries ? `Injuries: ${p.injuries}` : null,
     p.medical_conditions ? `Conditions: ${p.medical_conditions}` : null,
     p.medications ? `Medications: ${p.medications}` : null,
@@ -181,8 +187,22 @@ async function stageActiveClient(supabase, { email, fullName, phone, tier, paylo
     p.experience ? `Experience: ${p.experience}` : null,
   ].filter(Boolean);
 
-  const patch = { client_name: fullName || email, client_email: email, vault_email: email, onboarding_status: 'Pending' };
+  const patch = {
+    client_name: fullName || email,
+    client_email: email,
+    vault_email: email,
+    // Clearance-gated leads land in a distinct review state; the coach must clear
+    // them before the physical program is generated (mirrors the Youth standard).
+    onboarding_status: needsClearance ? 'Clearance Required' : 'Pending',
+  };
   if (phone) patch.client_phone = String(phone);
+  // Phase A — persist the intake language so the Vault opens in-language on ANY
+  // device (DB is the source of truth, not browser localStorage). Normalize to
+  // the 2-char code; default to 'en' when absent/unknown.
+  {
+    const rawLang = String(p.language_preference ?? p.lang ?? '').trim().toLowerCase().slice(0, 2);
+    patch.preferred_language = (rawLang === 'es' || rawLang === 'pt') ? rawLang : 'en';
+  }
   if (clinicalBits.length) patch.clinical_history = clinicalBits.join(' · ');
   if (trainingBits.length) patch.training_protocol = trainingBits.join(' · ');
   if (toInt(p.age) !== null) patch.age = toInt(p.age);

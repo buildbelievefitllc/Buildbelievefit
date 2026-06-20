@@ -28,6 +28,8 @@ import { resolveVideoId, thumbURL } from './exerciseVideos.js';
 import { PlayIcon, ChevronIcon } from './icons.jsx';
 import { pickLang } from '../../lib/pickLang.js';
 import { requestPrehabMatrix } from '../../lib/prehabApi.js';
+import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
+import CoachAudioButton from './CoachAudioButton.jsx';
 import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
 import PREHAB_MATRIX from '../../data/prehabDiagnosticMatrix.json';
@@ -490,6 +492,16 @@ function DiagnosisResult({ node, lang, d, onReset }) {
                 <span className="pdx-drill-vol">{drill.volume}</span>
               </div>
               {L.description ? <p className="pdx-drill-desc">{L.description}</p> : null}
+              {(() => {
+                const enName = (drill.localization && drill.localization.en && drill.localization.en.name) || drill.type || `step-${drill.step}`;
+                const cueText = [L.name, L.description, ...cues].map((x) => String(x || '').trim()).filter(Boolean).join('. ');
+                return cueText ? (
+                  <CoachAudioButton
+                    audioRequest={() => fetchSectionCoachAudio({ context: 'prehab', cueRef: `prehab:${enName}`, cueText, locale: lang })}
+                    fallbackText={cueText}
+                  />
+                ) : null;
+              })()}
               <DrillVideo url={drill.youtube_url} title={L.name || drill.type} />
               {cues.length ? (
                 <ul className="pdx-cues">

@@ -23,6 +23,8 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { useCardio, logCardio, CARDIO_ZONES, fetchCardioLibrary, setActiveCardioProtocol } from '../../lib/cardioApi.js';
 import { generateCardio } from '../../lib/agenticCardioApi.js';
+import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
+import CoachAudioButton from './CoachAudioButton.jsx';
 import { useDailyReadiness, handshakeChannel, PROTOCOL_UPDATED_EVENT } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
 import { addActiveCalories } from '../../lib/biometricsApi.js';
@@ -919,6 +921,21 @@ function LiveProtocol({ plan }) {
         {plan.available_minutes ? <span className="bbf-gps__modality-mins">{plan.available_minutes} min</span> : null}
       </div>
       {modality.strategy ? <div className="bbf-gps__strategy">{modality.strategy}</div> : null}
+
+      {(() => {
+        const cueText = [
+          modality.label || modality.machine || tier,
+          modality.strategy,
+          ...steps.map((s) => `${PHL[s.phase] || s.phase}: ${s.label}${s.target ? `, ${s.target}` : ''}`),
+          roi.detail,
+        ].map((x) => String(x || '').trim()).filter(Boolean).join('. ');
+        return cueText ? (
+          <CoachAudioButton
+            audioRequest={() => fetchSectionCoachAudio({ context: 'cardio', cueRef: `cardio:${tier}:${plan.available_minutes || ''}`, cueText, locale: lang })}
+            fallbackText={cueText}
+          />
+        ) : null;
+      })()}
 
       {cns.down_regulated ? (
         <div className="bbf-gps__cns" role="status"

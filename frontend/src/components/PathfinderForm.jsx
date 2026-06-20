@@ -43,28 +43,30 @@ const EXP_OPTIONS = [
   ['advanced', 'f-exp-adv'],
 ];
 // Athlete sport — drives the native Sports Engine matrices. 'none' → no sports_protocol.
+// [value, i18n-key] — labels are trilingual via the dictionary (pf-sport-*).
 const SPORT_OPTIONS = [
-  ['none', 'Not a sport athlete'],
-  ['basketball', 'Basketball'],
-  ['football', 'Football'],
-  ['soccer', 'Soccer'],
-  ['track', 'Track & Field'],
-  ['baseball', 'Baseball / Softball'],
-  ['general', 'General Athletic'],
+  ['none', 'pf-sport-none'],
+  ['basketball', 'pf-sport-basketball'],
+  ['football', 'pf-sport-football'],
+  ['soccer', 'pf-sport-soccer'],
+  ['track', 'pf-sport-track'],
+  ['baseball', 'pf-sport-baseball'],
+  ['general', 'pf-sport-general'],
 ];
-// Dietary profile — drives the native Nutrition Engine database filter.
+// Dietary profile — drives the native Nutrition Engine database filter. The VALUE
+// stays the canonical English token the engine filters on; the label is i18n.
 const DIET_OPTIONS = [
-  ['Omnivore', 'Omnivore'],
-  ['Vegetarian', 'Vegetarian'],
-  ['Vegan', 'Vegan'],
+  ['Omnivore', 'pf-diet-omnivore'],
+  ['Vegetarian', 'pf-diet-vegetarian'],
+  ['Vegan', 'pf-diet-vegan'],
 ];
 // Fasting window — replaces the binary 16/8 toggle. 16/8 drops breakfast; 12/12 &
 // 14/10 are time-restricted windows that KEEP all three meals. Locked to 'none' for youth.
 const FASTING_OPTIONS = [
-  ['none', 'None'],
-  ['12/12', '12 / 12'],
-  ['14/10', '14 / 10'],
-  ['16/8', '16 / 8 (skip breakfast)'],
+  ['none', 'pf-fasting-none'],
+  ['12/12', 'pf-fasting-1212'],
+  ['14/10', 'pf-fasting-1410'],
+  ['16/8', 'pf-fasting-168'],
 ];
 const YOUTH_MAX_AGE = 18; // minors → fasting locked off (continuous nutrient delivery · CNS)
 // Standard PAR-Q items (7). Stored as a flags map keyed by these ids.
@@ -146,17 +148,29 @@ function buildIntakeSportsProtocol(form) {
   }
 }
 
-export default function PathfinderForm({ checkout = null }) {
-  const { t, lang } = useLang();
+export default function PathfinderForm({ checkout = null, prefill = null }) {
+  const { t, lang, setLang } = useLang();
   const { containerRef, obtainToken, error: tsError } = useTurnstile(TURNSTILE_SITE_KEY);
 
-  const [form, setForm] = useState({
-    fullName: '', email: '', phone: '', goal: '', experience: '',
-    age: '', sex: 'male', weight: '', heightFt: '', heightIn: '', // biometrics → native TDEE
-    sport: 'none', dietaryProfile: 'Omnivore', fastingWindow: 'none', // athlete + nutrition engines
-    injuries: '', medicalConditions: '', medications: '',
-    parq: {}, // { 'f-parq1': true, ... } — standard PAR-Q flags
-    marketingConsent: false,
+  // Biometrics may arrive pre-filled from the /burn Metabolic Gateway handoff
+  // (location state → PathfinderPage → here). Only the known biometric keys are
+  // honored; everything else starts blank. Lazy initializer so it seeds once.
+  const [form, setForm] = useState(() => {
+    const base = {
+      fullName: '', email: '', phone: '', goal: '', experience: '',
+      age: '', sex: 'male', weight: '', heightFt: '', heightIn: '', // biometrics → native TDEE
+      sport: 'none', dietaryProfile: 'Omnivore', fastingWindow: 'none', // athlete + nutrition engines
+      injuries: '', medicalConditions: '', medications: '',
+      parq: {}, // { 'f-parq1': true, ... } — standard PAR-Q flags
+      liabilityCleared: false, // Phase C — REQUIRED waiver + Terms consent gate
+      marketingConsent: false,
+    };
+    if (prefill && typeof prefill === 'object') {
+      for (const k of ['age', 'sex', 'weight', 'heightFt', 'heightIn']) {
+        if (prefill[k] !== undefined && prefill[k] !== null && prefill[k] !== '') base[k] = String(prefill[k]);
+      }
+    }
+    return base;
   });
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -174,6 +188,10 @@ export default function PathfinderForm({ checkout = null }) {
   // update (event-driven — avoids the set-state-in-effect anti-pattern).
   const ageNum = parseInt(form.age, 10) || 0;
   const isYouth = ageNum >= 13 && ageNum < YOUTH_MAX_AGE;
+  // Phase C — medical gate. Any PAR-Q "yes" flips the clearance state: the UI
+  // surfaces a physician-clearance notice and the automated physical program
+  // (workout + sports protocol) is withheld at submit until coach review.
+  const requiresClearance = PARQ_KEYS.some((k) => form.parq[k]);
   const onAgeChange = (v) => setForm((f) => {
     const a = parseInt(v, 10) || 0;
     const next = { ...f, age: v };
@@ -194,7 +212,9 @@ export default function PathfinderForm({ checkout = null }) {
     if (!age || age < 13 || age > 100) e.age = t('f-required');
     if (!wt || wt <= 0) e.weight = t('f-required');
     if (!ft || ft <= 0) e.height = t('f-required');
-    // Waiver checkbox removed per CEO funnel-friction directive — no consent gate.
+    // Phase C — RESTORED consent gate: the liability waiver + Terms checkbox is a
+    // required boolean; submission is blocked until it is checked.
+    if (!form.liabilityCleared) e.liability = t('f-must-agree');
     return Object.keys(e).length ? e : null;
   }
 
@@ -220,7 +240,11 @@ export default function PathfinderForm({ checkout = null }) {
       // own rule-based engines/catalogs, no AI spend — so they stage with the intake
       // and hydrate on first login. AI (rotate-nutrition) stays a post-payment
       // refinement, never burned on a lead.
-      const workout_plan = buildIntakeWorkoutPlan(form);
+      // Phase C medical gate: when a PAR-Q item is flagged, WITHHOLD the automated
+      // physical program (workout + sports protocol) — a physician's clearance is
+      // required first, and the coach reviews before any training is generated.
+      // Nutrition (TDEE/macros/meal plan) is non-exertional and still seeds.
+      const workout_plan = requiresClearance ? null : buildIntakeWorkoutPlan(form);
       const nutrition = computeNutrition(form);
       // Native Nutrition Engine (DB-driven · dietary-filtered · 16/8-aware) is the
       // PRIMARY meal_plan source; the cuisine-catalog scaler is the fallback.
@@ -228,7 +252,7 @@ export default function PathfinderForm({ checkout = null }) {
       const fasting_window = isYouth ? 'none' : form.fastingWindow;
       const meal_plan = buildMealPlan({ tdee: nutrition.tdee_target, dietary_profile: form.dietaryProfile, fasting_window })
         || buildScaledMealPlan(form, nutrition.tdee_target);
-      const sports_protocol = buildIntakeSportsProtocol(form);
+      const sports_protocol = requiresClearance ? null : buildIntakeSportsProtocol(form);
       const height_weight = `${parseInt(form.heightFt, 10) || 0}'${parseInt(form.heightIn, 10) || 0}" / ${parseFloat(form.weight) || 0} lbs`;
       // Data contract preserved — all shield fields ride in the lead payload.
       await submitLead(
@@ -249,7 +273,11 @@ export default function PathfinderForm({ checkout = null }) {
           // Standard PAR-Q: list the ids the applicant flagged "yes" + a quick
           // boolean so the backend can route anyone who flagged any item.
           parq_flags: PARQ_KEYS.filter((k) => form.parq[k]),
-          parq_any: PARQ_KEYS.some((k) => form.parq[k]),
+          parq_any: requiresClearance,
+          // Phase C — explicit clearance flag + restored consent, both persisted by
+          // bbf-lead-capture (clearance routes the record to coach review).
+          requires_clearance: requiresClearance,
+          liability_cleared: form.liabilityCleared,
           marketing_consent: form.marketingConsent,
           // Intake-time NATIVE plans + targets → staged into bbf_active_clients.
           tdee_target: nutrition.tdee_target,
@@ -332,6 +360,19 @@ export default function PathfinderForm({ checkout = null }) {
           <div style={styles.enrollNote}>{t('pf-enroll-note')}</div>
         </div>
       ) : null}
+      {/* ── PREFERRED LANGUAGE (Phase A) — defaults to the active site toggle, but
+          a hard override here is persisted (bbf_active_clients.preferred_language)
+          so the portal + plans open in THIS language on any device. Changing it
+          flips the live UI immediately so the rest of intake is in-language. ── */}
+      <Field id="pf-lang" label={t('pf-lang-label')} error={null}>
+        <select id="pf-lang" className="bbf-input" value={lang} disabled={submitting}
+          onChange={(e) => setLang(e.target.value)}>
+          <option value="en">{t('pf-lang-en')}</option>
+          <option value="es">{t('pf-lang-es')}</option>
+          <option value="pt">{t('pf-lang-pt')}</option>
+        </select>
+        <div style={styles.parqNote}>{t('pf-lang-note')}</div>
+      </Field>
       <Field id="pf-name" label={t('f-name')} error={fieldErrors.fullName}>
         <input id="pf-name" className="bbf-input" type="text" autoComplete="name"
           placeholder={t('f-name')} value={form.fullName} disabled={submitting}
@@ -364,28 +405,28 @@ export default function PathfinderForm({ checkout = null }) {
 
       {/* ── ATHLETE + NUTRITION ENGINE INPUTS — drive the native sports + meal engines ── */}
       <div style={styles.bioRow}>
-        <Field id="pf-sport" label="Sport (optional)" error={null}>
+        <Field id="pf-sport" label={t('pf-sport-label')} error={null}>
           <select id="pf-sport" className="bbf-input" value={form.sport} disabled={submitting}
             onChange={(e) => set('sport', e.target.value)}>
-            {SPORT_OPTIONS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+            {SPORT_OPTIONS.map(([v, k]) => <option key={v} value={v}>{t(k)}</option>)}
           </select>
         </Field>
-        <Field id="pf-diet" label="Dietary Profile" error={null}>
+        <Field id="pf-diet" label={t('pf-diet-label')} error={null}>
           <select id="pf-diet" className="bbf-input" value={form.dietaryProfile} disabled={submitting}
             onChange={(e) => set('dietaryProfile', e.target.value)}>
-            {DIET_OPTIONS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+            {DIET_OPTIONS.map(([v, k]) => <option key={v} value={v}>{t(k)}</option>)}
           </select>
         </Field>
       </div>
-      <Field id="pf-fasting" label="Fasting Window" error={null}>
+      <Field id="pf-fasting" label={t('pf-fasting-label')} error={null}>
         <select id="pf-fasting" className="bbf-input"
           value={isYouth ? 'none' : form.fastingWindow}
           disabled={submitting || isYouth}
           onChange={(e) => set('fastingWindow', e.target.value)}>
-          {FASTING_OPTIONS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+          {FASTING_OPTIONS.map(([v, k]) => <option key={v} value={v}>{t(k)}</option>)}
         </select>
         {isYouth ? (
-          <div style={styles.parqNote}>Youth athletes train on continuous nutrient delivery — fasting is disabled for healthy CNS development.</div>
+          <div style={styles.parqNote}>{t('pf-fasting-youth-note')}</div>
         ) : null}
       </Field>
 
@@ -410,14 +451,14 @@ export default function PathfinderForm({ checkout = null }) {
             placeholder="lbs" value={form.weight} disabled={submitting}
             onChange={(e) => set('weight', e.target.value)} />
         </Field>
-        <Field id="pf-height" label="Height (ft / in)" error={fieldErrors.height}>
+        <Field id="pf-height" label={t('pf-height-label')} error={fieldErrors.height}>
           <div style={styles.heightRow}>
             <input id="pf-height" className="bbf-input" type="number" inputMode="numeric" min="3" max="8"
-              placeholder="ft" value={form.heightFt} disabled={submitting}
+              placeholder={t('pf-height-ft')} value={form.heightFt} disabled={submitting}
               onChange={(e) => set('heightFt', e.target.value)} />
             <input className="bbf-input" type="number" inputMode="numeric" min="0" max="11"
-              placeholder="in" value={form.heightIn} disabled={submitting}
-              aria-label="Height (inches)" onChange={(e) => set('heightIn', e.target.value)} />
+              placeholder={t('pf-height-in')} value={form.heightIn} disabled={submitting}
+              aria-label={t('pf-height-in')} onChange={(e) => set('heightIn', e.target.value)} />
           </div>
         </Field>
       </div>
@@ -444,7 +485,17 @@ export default function PathfinderForm({ checkout = null }) {
           onChange={(v) => toggleParq(k, v)} label={t(k)} />
       ))}
 
-      {/* Liability waiver checkbox removed per CEO funnel-friction directive. */}
+      {/* ── PHYSICIAN-CLEARANCE NOTICE (Phase C) — surfaces live the moment any
+          PAR-Q item is flagged; mirrors the Youth intake standard. The automated
+          physical program is withheld at submit until coach review. ── */}
+      {requiresClearance ? (
+        <div style={styles.clearanceFlag} role="status" aria-live="polite">{t('pf-clearance-flag')}</div>
+      ) : null}
+
+      {/* ── LIABILITY SHIELD (Phase C · RESTORED) — required waiver + Terms consent ── */}
+      <CheckRow id="pf-liability" checked={form.liabilityCleared} disabled={submitting}
+        onChange={(v) => set('liabilityCleared', v)} label={t('f-liability')} required />
+      {fieldErrors.liability ? <div style={styles.fieldErr}>{fieldErrors.liability}</div> : null}
       <CheckRow id="pf-marketing" checked={form.marketingConsent} disabled={submitting}
         onChange={(v) => set('marketingConsent', v)} label={t('f-marketing')} />
 
@@ -497,6 +548,7 @@ const styles = {
   checkbox: { width: 18, height: 18, marginTop: 2, flexShrink: 0, accentColor: '#6a0dad', cursor: 'pointer' },
   checkLabel: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.9rem', fontWeight: 600, lineHeight: 1.45, color: 'rgba(255,255,255,.8)' },
   req: { color: '#f5c800', fontWeight: 900 },
+  clearanceFlag: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.9rem', fontWeight: 700, lineHeight: 1.45, color: '#f5c800', background: 'rgba(245,200,0,.1)', border: '1px solid rgba(245,200,0,.45)', borderRadius: 10, padding: '.7rem .85rem', margin: '0 0 1rem' },
   submit: { marginTop: '.6rem' },
   formError: { fontWeight: 700 },
   tsNote: { color: 'rgba(255,255,255,.5)' },
