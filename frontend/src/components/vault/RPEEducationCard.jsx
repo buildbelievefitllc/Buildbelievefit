@@ -4,6 +4,7 @@
 // text-first with audio + video fallback. Mount at top of program page.
 
 import { useRef, useState } from 'react';
+import { FUNCTIONS_BASE } from '../../lib/supabaseClient.js';
 
 const RPE_TEXT = {
   en: {
@@ -122,7 +123,7 @@ export default function RPEEducationCard({ preferred_locale = 'en' }) {
   const handleListenClick = async () => {
     setLoadingAudio(true);
     try {
-      const res = await fetch('/functions/v1/bbf-agentic-rpe-voice-explanation', {
+      const res = await fetch(`${FUNCTIONS_BASE}/bbf-agentic-rpe-voice-explanation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ language: lang }),
