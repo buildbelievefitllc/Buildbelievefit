@@ -33,6 +33,7 @@ import {
   DayProtocol,
 } from '../components/sportshub/sections.jsx';
 import SportProtocol from '../components/sportshub/SportProtocol.jsx';
+import YouthChampionMindset from '../components/sportshub/YouthChampionMindset.jsx';
 import { selectPlans } from '../lib/vaultApi.js';
 import Concierge from '../components/vault/Concierge.jsx';
 import '../components/sportshub/sportsHub.css';
@@ -286,6 +287,11 @@ export default function SportsHub({ selection = null, progress = null }) {
             onCycleStatus={onCycleStatus}
           />
         </div>
+
+        {/* ── Champion Mindset — sport/language-aware mindset film deck + the
+            Architect's spoken welcome (State D). Sport flows from the resolved
+            effProfile so the roster matches the athlete's discipline. ───────── */}
+        <YouthChampionMindset sportId={effProfile.sportId} />
 
         {/* ── Combine & Measurables — the live calculators, one tap away ──────── */}
         <details className="sh-measurables">

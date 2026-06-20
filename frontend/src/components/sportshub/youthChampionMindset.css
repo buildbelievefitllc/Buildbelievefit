@@ -1,0 +1,200 @@
+/* src/components/sportshub/youthChampionMindset.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Youth Champion Mindset — Sovereign Vault dark-mode surface for the BBF Athlete
+   Portal. Honors the LOCKED brand (CLAUDE.md §2: BBF Purple #6a0dad / BBF Gold
+   #f5c800, matte #090909 as canvas only) and the LOCKED modular tab-deck design
+   system (§10: numbered 01/02 tab bar over a single active panel, purple→gold
+   active state, Bebas labels). Tokens come from src/index.css (--pur/--yel/etc.). */
+
+.ycm { margin: 1.6rem 0 0; }
+
+/* ── Deck shell — purple→gold gradient hairline frame over a matte inner ─────── */
+.ycm-frame {
+  padding: 2px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--pur) 0%, var(--gold-soft) 28%, var(--purl) 52%, var(--yel) 74%, var(--pur) 100%);
+  box-shadow: 0 0 50px rgba(106, 13, 173, .32), 0 0 0 1px rgba(245, 200, 0, .12);
+}
+.ycm-inner {
+  border-radius: 18px;
+  background: linear-gradient(180deg, #150a22 0%, #090909 100%);
+  overflow: hidden;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────────── */
+.ycm-head { padding: clamp(18px, 3.5vw, 30px) clamp(16px, 4vw, 34px) 0; }
+.ycm-kicker {
+  font-family: var(--hb); font-size: .62rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold-soft); display: flex; align-items: center; gap: .4rem;
+}
+.ycm-title {
+  font-family: var(--display); font-size: clamp(1.6rem, 4.4vw, 2.4rem); line-height: 1;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--wht); margin: .35rem 0 .3rem;
+}
+.ycm-title span { color: var(--yel); }
+.ycm-sub {
+  font-family: var(--bd); font-size: .92rem; font-weight: 600; line-height: 1.5;
+  color: rgba(249, 245, 255, .72); margin: 0 0 1.1rem; max-width: 60ch;
+}
+
+/* ── Architect's Welcome — State D voice cue (plays on mount) ─────────────────── */
+.ycm-arch {
+  margin: 0 clamp(16px, 4vw, 34px) 1.2rem;
+  border: 1px solid rgba(245, 200, 0, .28);
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(106, 13, 173, .35), transparent 60%),
+    rgba(9, 9, 9, .6);
+  padding: 1rem 1.1rem;
+}
+.ycm-arch-top { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+.ycm-arch-mic {
+  width: 34px; height: 34px; flex: 0 0 auto; display: grid; place-items: center;
+  border-radius: 50%; font-size: 1rem;
+  background: linear-gradient(135deg, var(--pur), var(--purl)); color: var(--yel);
+  box-shadow: 0 0 0 1px rgba(245, 200, 0, .35);
+}
+.ycm-arch-kicker {
+  font-family: var(--hb); font-size: .6rem; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--gold-soft);
+}
+.ycm-arch-state {
+  font-family: var(--mono); font-size: .58rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--yel);
+  border: 1px solid rgba(245, 200, 0, .4); border-radius: 4px; padding: 2px 6px; margin-left: auto;
+}
+.ycm-arch-body { display: flex; align-items: center; gap: .8rem; margin-top: .8rem; flex-wrap: wrap; }
+.ycm-arch-btn {
+  display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: none; border-radius: 9px; padding: .6rem 1rem; transition: filter .15s ease, transform .15s ease;
+}
+.ycm-arch-btn:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.ycm-arch-btn:disabled { opacity: .65; cursor: progress; }
+.ycm-arch-eq { display: inline-flex; align-items: flex-end; gap: 3px; height: 16px; }
+.ycm-arch-eq span {
+  width: 3px; height: 5px; background: var(--pur); border-radius: 2px;
+}
+.ycm-arch-btn.is-playing .ycm-arch-eq span { animation: ycmEq .9s ease-in-out infinite; }
+.ycm-arch-btn.is-playing .ycm-arch-eq span:nth-child(2) { animation-delay: .12s; }
+.ycm-arch-btn.is-playing .ycm-arch-eq span:nth-child(3) { animation-delay: .24s; }
+.ycm-arch-btn.is-playing .ycm-arch-eq span:nth-child(4) { animation-delay: .36s; }
+@keyframes ycmEq { 0%, 100% { height: 4px; } 50% { height: 15px; } }
+.ycm-arch-quote {
+  flex: 1 1 280px; margin: 0; font-family: var(--bd); font-size: .9rem; font-style: italic;
+  line-height: 1.5; color: rgba(249, 245, 255, .8);
+}
+.ycm-arch-err { font-family: var(--bd); font-size: .8rem; font-weight: 700; color: var(--gold-soft); }
+@media (prefers-reduced-motion: reduce) {
+  .ycm-arch-btn.is-playing .ycm-arch-eq span { animation: none; }
+}
+
+/* ── Tab bar (§10 deck design system) ────────────────────────────────────────── */
+.ycm-tabbar {
+  display: flex; flex-wrap: wrap;
+  border-top: 1px solid rgba(245, 200, 0, .22);
+  border-bottom: 1px solid rgba(245, 200, 0, .22);
+  background: rgba(9, 9, 9, .55);
+}
+.ycm-tab {
+  flex: 1 1 150px; display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  padding: clamp(11px, 1.6vw, 16px) clamp(12px, 1.8vw, 20px); cursor: pointer;
+  background: transparent; border: none; border-right: 1px solid rgba(157, 39, 201, .22);
+  border-bottom: 3px solid transparent; text-align: left;
+  transition: background .18s ease, border-color .18s ease;
+}
+.ycm-tab:last-child { border-right: none; }
+.ycm-tab.is-active {
+  background: linear-gradient(180deg, rgba(106, 13, 173, .32), rgba(9, 9, 9, .1));
+  border-bottom: 3px solid var(--yel);
+}
+.ycm-tabidx { font-family: var(--display); font-size: .78rem; letter-spacing: 1px; color: rgba(255, 255, 255, .35); line-height: 1; }
+.ycm-tab.is-active .ycm-tabidx { color: var(--yel); }
+.ycm-tablabel {
+  font-family: var(--hb); font-size: clamp(.95rem, 1.9vw, 1.2rem); letter-spacing: 1px;
+  text-transform: uppercase; color: #fff; line-height: 1;
+}
+.ycm-tabtag {
+  font-family: var(--bd); font-size: .58rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--purl); border: 1px solid rgba(157, 39, 201, .45); border-radius: 4px; padding: 2px 6px; margin-top: 2px;
+}
+.ycm-tab.is-active .ycm-tabtag { color: var(--yel); border-color: rgba(245, 200, 0, .5); }
+
+/* ── Active panel + grid ─────────────────────────────────────────────────────── */
+.ycm-panel { padding: clamp(16px, 3.5vw, 26px) clamp(14px, 4vw, 30px) clamp(20px, 4vw, 32px); }
+.ycm-count {
+  font-family: var(--hb); font-size: .64rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--mut); margin: 0 0 1rem;
+}
+.ycm-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .9rem;
+}
+.ycm-card {
+  display: flex; flex-direction: column; text-align: left; cursor: pointer; padding: 0;
+  background: #0e0a16; border: 1px solid rgba(157, 39, 201, .28); border-radius: 12px;
+  overflow: hidden; transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.ycm-card:hover, .ycm-card:focus-visible {
+  border-color: var(--yel); transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .45), 0 0 0 1px rgba(245, 200, 0, .2);
+  outline: none;
+}
+.ycm-thumb { position: relative; aspect-ratio: 16 / 9; background: #060507; overflow: hidden; }
+.ycm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ycm-thumb-ov {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: linear-gradient(180deg, rgba(106, 13, 173, .1), rgba(9, 9, 9, .35));
+  transition: background .16s ease;
+}
+.ycm-card:hover .ycm-thumb-ov { background: linear-gradient(180deg, rgba(106, 13, 173, .25), rgba(9, 9, 9, .25)); }
+.ycm-thumb-play {
+  width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft)); color: #0c0a02;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .5); font-size: 1.05rem; padding-left: 3px;
+}
+.ycm-cardmeta { padding: .6rem .7rem .75rem; }
+.ycm-cardtitle {
+  font-family: var(--bd); font-size: .86rem; font-weight: 700; line-height: 1.32; color: var(--wht);
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ycm-cardcta {
+  display: block; margin-top: .45rem; font-family: var(--hb); font-size: .58rem; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gold-soft);
+}
+
+.ycm-empty {
+  font-family: var(--bd); font-size: .92rem; font-weight: 600; color: var(--mut);
+  padding: 1.4rem; text-align: center;
+}
+
+/* ── Embedded video modal (lightbox) ─────────────────────────────────────────── */
+.ycm-modal {
+  position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center;
+  background: rgba(5, 4, 7, .86); padding: clamp(12px, 4vw, 40px);
+  animation: ycmFade .18s ease;
+}
+@keyframes ycmFade { from { opacity: 0; } to { opacity: 1; } }
+.ycm-modal-box { width: min(960px, 100%); }
+.ycm-modal-bar { display: flex; align-items: center; gap: .8rem; margin-bottom: .55rem; }
+.ycm-modal-title {
+  flex: 1 1 auto; font-family: var(--bd); font-size: .92rem; font-weight: 700; color: var(--wht);
+  line-height: 1.3; margin: 0;
+}
+.ycm-modal-close {
+  flex: 0 0 auto; cursor: pointer; width: 34px; height: 34px; display: grid; place-items: center;
+  border-radius: 8px; background: rgba(245, 200, 0, .12); border: 1px solid rgba(245, 200, 0, .4);
+  color: var(--yel); font-size: 1.1rem; line-height: 1;
+}
+.ycm-modal-close:hover { background: rgba(245, 200, 0, .22); }
+.ycm-modal-frame {
+  position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 12px; overflow: hidden;
+  background: #000; box-shadow: 0 18px 50px rgba(0, 0, 0, .6);
+}
+.ycm-modal-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.ycm-modal-foot { margin-top: .6rem; text-align: right; }
+.ycm-modal-yt {
+  font-family: var(--hb); font-size: .66rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold-soft); text-decoration: none; border-bottom: 1px solid transparent;
+}
+.ycm-modal-yt:hover { border-bottom-color: var(--gold-soft); }
