@@ -16,10 +16,13 @@
 //
 // Isolation: lives entirely within pages/SportsHub.jsx + components/sportshub/*.
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
+import { useAthleteProfile } from '../context/AthleteProfileContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
+import { buildSportsProtocol } from '../lib/sportsEngine.js';
+import { levelToExperience, tierToPhase, levelForTier } from '../lib/athleteBlueprint.js';
 import { logYouthProgress } from '../lib/youthIntakeApi.js';
 import { useAthleteTelemetry } from '../lib/athleteTelemetryApi.js';
 import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
@@ -35,7 +38,6 @@ import {
 import SportProtocol from '../components/sportshub/SportProtocol.jsx';
 import AthleteBlueprint from '../components/sportshub/AthleteBlueprint.jsx';
 import YouthChampionMindset from '../components/sportshub/YouthChampionMindset.jsx';
-import { selectPlans } from '../lib/vaultApi.js';
 import Concierge from '../components/vault/Concierge.jsx';
 import '../components/sportshub/sportsHub.css';
 
@@ -86,9 +88,14 @@ function ReadinessBanner({ readiness, t }) {
 // passed down by YouthIntakeGate. The gate keys this component on the selection, so
 // a sport change cleanly re-seeds the week + editable model.
 export default function SportsHub({ selection = null, progress = null }) {
-  const { user, session, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { t } = useLang();
   const uid = user?.username || user?.id || '';
+
+  // The UNIFIED athlete profile — the single source of truth the Sport Protocol +
+  // Athlete Blueprint both read. `setIntakeSport` lets us push the resolved intake
+  // selection in (below), so the context follows the athlete's CURRENT discipline.
+  const { profile: athleteProfile, currentTier, setIntakeSport } = useAthleteProfile();
 
   // Per-set telemetry (weight / RPE / completed_at) — lifted here so the logbook map
   // is fetched once on mount (rehydrates logged sets across refresh / day-switch) and
@@ -115,10 +122,27 @@ export default function SportsHub({ selection = null, progress = null }) {
     return { ...profile, sportId, positionCode, sport, position: positionLabel(sportId, positionCode) };
   }, [selection, profile, t]);
 
-  // Native Sport Engine payload — coach-staged into bbf_active_clients, delivered in
-  // the login envelope (session.plans.sports_protocol). Null for a non-specialized
-  // athlete → SportProtocol renders the General Physical Preparedness fallback.
-  const sportsProtocol = useMemo(() => selectPlans(session).sportsProtocol, [session]);
+  // SPORT SOURCE OF TRUTH — push the resolved intake selection into the unified
+  // AthleteProfileContext so the Sport Protocol + Blueprint follow the athlete's
+  // CURRENT discipline. This severs the "sport bleed": Champion Mindset + Today's
+  // Drills already track the selection, and now the engine-built protocol does too.
+  // The context setter is no-op-guarded, so this can't loop.
+  useEffect(() => {
+    setIntakeSport(effProfile.sportId, effProfile.positionCode);
+  }, [effProfile.sportId, effProfile.positionCode, setIntakeSport]);
+
+  // Native Sport Engine prescription — built DETERMINISTICALLY from the unified
+  // athlete profile (AthleteProfileContext), NOT the stale coach-staged login blob
+  // (selectPlans(session).sports_protocol, which froze at the old sport). Sport,
+  // experience, goal and phase all flow from the single source of truth, so an
+  // intake sport change immediately re-forges this protocol — no bleed.
+  const sportsProtocol = useMemo(() => buildSportsProtocol({
+    sport: athleteProfile.sportId,
+    age: Number(athleteProfile.age) || null,
+    experience: levelToExperience(athleteProfile.level || levelForTier(currentTier)),
+    goal: athleteProfile.goal,
+    targetPhase: tierToPhase(currentTier),
+  }), [athleteProfile.sportId, athleteProfile.age, athleteProfile.level, athleteProfile.goal, currentTier]);
 
   // Lifted state — seeded once from the sport-aware model. `model` powers the
   // Combine/Power/Size calculators; `week` is the 7-day protocol with checkoff

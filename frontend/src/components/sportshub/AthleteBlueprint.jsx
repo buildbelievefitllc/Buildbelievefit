@@ -115,7 +115,10 @@ export default function AthleteBlueprint({ sportLabel, positionLabel }) {
   const [blueprint, setBlueprint] = useState(() => loadBlueprint(uid));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
-  const [tab, setTab] = useState(0);
+  // Strict state-driven tab-deck (§10): ONE active panel mounts at a time — the other
+  // data domains (field / weight / fuel) unmount entirely. String-keyed so intent is
+  // explicit and the active panel is never index-fragile.
+  const [activeTab, setActiveTab] = useState('field');
 
   // Server hydrate: pull the authoritative current_tier (computed server-side from
   // birth_date) + the last saved blueprint. State is only set inside the async
@@ -156,7 +159,7 @@ export default function AthleteBlueprint({ sportLabel, positionLabel }) {
 
   const macros = blueprint?.macros || null;
   const nutrition = blueprint?.nutrition || null;
-  const activeKey = TAB_KEYS[tab];
+  const activeKey = activeTab;
 
   return (
     <section className="ab" data-testid="athlete-blueprint">
@@ -239,7 +242,7 @@ export default function AthleteBlueprint({ sportLabel, positionLabel }) {
           <>
             <div className="ab-tabbar" role="tablist" aria-label={L.kicker}>
               {TAB_KEYS.map((k, i) => (
-                <button key={k} type="button" role="tab" aria-selected={i === tab} className={`ab-tab${i === tab ? ' is-active' : ''}`} onClick={() => setTab(i)} data-testid={`ab-tab-${k}`}>
+                <button key={k} type="button" role="tab" aria-selected={k === activeTab} className={`ab-tab${k === activeTab ? ' is-active' : ''}`} onClick={() => setActiveTab(k)} data-testid={`ab-tab-${k}`}>
                   <span className="ab-tabidx">0{i + 1}</span>
                   <span className="ab-tablabel">{L.tabs[k]}</span>
                   <span className="ab-tabtag">{L.tabtags[k]}</span>

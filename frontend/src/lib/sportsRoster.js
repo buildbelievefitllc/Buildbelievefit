@@ -56,6 +56,37 @@ export const SPORTS_ROSTER = Object.freeze({
     focusAreas: Object.freeze(['Positional Growth', 'Explosive Power', 'Size & Mass']),
     team: 'BBF Athlete Portal · Trench Unit',
   }),
+  // ── QA PROVISIONING (CEO sprint) ──────────────────────────────────────────────
+  // Two blank-slate athletes for verifying the intake → blueprint pipeline end-to-end.
+  // The slug flag routes them into the Sports Hub; with no PAR-Q screen and no
+  // athlete_profiles row (DB-provisioned bare), the YouthIntakeGate intercepts them on
+  // first entry and forces a full intake — they pick their OWN sport/position, birth
+  // date and gender. The sportId/positionCode below are only the platform-default
+  // render fallback (the gate runs before the Hub ever paints).
+  jahara_bbf: Object.freeze({
+    division: 'sports',
+    athleteName: 'Jahara',
+    age: null,
+    gradeLevel: null,
+    sport: 'Multi-Sport',
+    sportId: 'football',
+    position: '—',
+    positionCode: 'OL',
+    focusAreas: Object.freeze([]),
+    team: 'BBF Athlete Portal · QA',
+  }),
+  bbf_jr: Object.freeze({
+    division: 'sports',
+    athleteName: 'BBF Jr',
+    age: null,
+    gradeLevel: null,
+    sport: 'Multi-Sport',
+    sportId: 'football',
+    position: '—',
+    positionCode: 'OL',
+    focusAreas: Object.freeze([]),
+    team: 'BBF Athlete Portal · QA',
+  }),
 });
 
 function flagSaysSports(value) {

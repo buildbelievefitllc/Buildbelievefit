@@ -47,7 +47,7 @@ function writeStored(uid, overrides) {
 }
 
 const AthleteProfileContext = createContext({
-  profile: {}, currentTier: 'high_school', setProfileField: () => {}, setCurrentTier: () => {}, resetProfile: () => {},
+  profile: {}, currentTier: 'high_school', setProfileField: () => {}, setIntakeSport: () => {}, setCurrentTier: () => {}, resetProfile: () => {},
 });
 
 export function AthleteProfileProvider({ children }) {
@@ -61,6 +61,22 @@ export function AthleteProfileProvider({ children }) {
   const setProfileField = useCallback((key, value) => {
     setOverrides((o) => {
       const next = { ...o, [key]: value };
+      writeStored(uid, next);
+      return next;
+    });
+  }, [uid]);
+
+  // The intake selection is the AUTHORITATIVE sport/position (chosen in YouthIntake,
+  // persisted to bbf_users + athlete_profiles). SportsHub syncs it here so the unified
+  // profile — and every engine that reads it — reflects the athlete's CURRENT sport,
+  // never a stale login sports_protocol blob or the hardcoded roster seed. Guarded:
+  // returns the SAME overrides object when unchanged, so the sync effect can't loop.
+  const setIntakeSport = useCallback((sportId, positionCode) => {
+    if (!sportId) return;
+    setOverrides((o) => {
+      const nextPos = positionCode ?? o.positionCode ?? null;
+      if (o.sportId === sportId && o.positionCode === nextPos) return o; // no-op
+      const next = { ...o, sportId, positionCode: nextPos };
       writeStored(uid, next);
       return next;
     });
@@ -80,14 +96,19 @@ export function AthleteProfileProvider({ children }) {
     ? overrides.currentTier
     : tierForAge(sp.age);
 
+  // Authoritative sport/position: a synced intake selection (overrides) wins over the
+  // auth seed, so the unified profile follows the athlete's CURRENT discipline rather
+  // than the login seed. The weight-room/nutrition pre-sets (goal/arch) follow THIS
+  // sport, so switching sport in intake cleanly re-presets the engines.
+  const effSportId = overrides.sportId || sp.sportId || 'football';
+  const effPositionCode = overrides.positionCode || sp.positionCode || 'OL';
+
   // Base profile — auth-derived identity + sport/position pre-set defaults.
   const base = useMemo(() => {
-    const sportId = sp.sportId || 'football';
-    const positionCode = sp.positionCode || 'OL';
-    const preset = presetsForAthlete({ sportId, positionCode });
+    const preset = presetsForAthlete({ sportId: effSportId, positionCode: effPositionCode });
     return {
-      sportId,
-      positionCode,
+      sportId: effSportId,
+      positionCode: effPositionCode,
       age: sp.age ?? 15,
       sex: 'male',
       heightFt: 5,
@@ -98,7 +119,7 @@ export function AthleteProfileProvider({ children }) {
       arch: preset.arch,
       dietary: 'Omnivore',
     };
-  }, [sp.sportId, sp.positionCode, sp.age, currentTier]);
+  }, [effSportId, effPositionCode, sp.age, currentTier]);
 
   // The merged, single-source-of-truth profile (overrides win over pre-set defaults).
   const profile = useMemo(() => ({ ...base, ...overrides, currentTier }), [base, overrides, currentTier]);
@@ -110,9 +131,10 @@ export function AthleteProfileProvider({ children }) {
     position: profile.positionCode,
     age: profile.age,
     setProfileField,
+    setIntakeSport,
     setCurrentTier,
     resetProfile,
-  }), [profile, currentTier, setProfileField, setCurrentTier, resetProfile]);
+  }), [profile, currentTier, setProfileField, setIntakeSport, setCurrentTier, resetProfile]);
 
   return <AthleteProfileContext.Provider value={value}>{children}</AthleteProfileContext.Provider>;
 }

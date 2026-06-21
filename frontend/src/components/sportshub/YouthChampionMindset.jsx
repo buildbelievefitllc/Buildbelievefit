@@ -77,7 +77,10 @@ function ytId(url) {
 }
 const ytThumb = (id) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
 const ytWatch = (id) => `https://www.youtube.com/watch?v=${id}`;
-const ytEmbed = (id) => `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+// Stripped chrome: no related videos (rel=0), minimal branding, no title/uploader
+// overlay (showinfo=0), fullscreen allowed (fs=1). autoplay/playsinline keep the
+// modal's tap-to-open behavior on mobile.
+const ytEmbed = (id) => `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&showinfo=0&fs=1&playsinline=1`;
 
 // ── Trilingual chrome (component-local; trilingual is structural, CLAUDE.md) ──
 const L10N = {
@@ -296,9 +299,12 @@ export default function YouthChampionMindset({ sportId = null }) {
     return [{ key: 'sport', category: sportCategory, label: sportLabel, tag: L.tagSport }, general];
   }, [resolvedSportId, sportCategory, t, L]);
 
-  const [active, setActive] = useState(0);
-  const safeActive = Math.min(active, tabs.length - 1);
-  const activeCategory = tabs[safeActive].category;
+  // Strict state-driven tab-deck (§10): ONE panel mounts at a time. String-keyed
+  // ('sport' | 'general'); resolve to an index, falling back to the first tab when the
+  // keyed tab isn't present (an unmapped sport collapses the deck to a single tab).
+  const [activeTab, setActiveTab] = useState('sport');
+  const activeIdx = Math.max(0, tabs.findIndex((tb) => tb.key === activeTab));
+  const activeCategory = tabs[activeIdx].category;
 
   const films = useMemo(
     () => videosFor(activeCategory, langKey)
@@ -330,9 +336,9 @@ export default function YouthChampionMindset({ sportId = null }) {
                 key={tab.key}
                 type="button"
                 role="tab"
-                aria-selected={i === safeActive}
-                className={`ycm-tab${i === safeActive ? ' is-active' : ''}`}
-                onClick={() => setActive(i)}
+                aria-selected={i === activeIdx}
+                className={`ycm-tab${i === activeIdx ? ' is-active' : ''}`}
+                onClick={() => setActiveTab(tab.key)}
                 data-testid={`ycm-tab-${tab.key}`}
               >
                 <span className="ycm-tabidx">0{i + 1}</span>
