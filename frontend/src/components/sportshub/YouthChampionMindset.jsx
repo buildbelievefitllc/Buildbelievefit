@@ -312,15 +312,21 @@ export default function YouthChampionMindset({ sportId = null }) {
   const activeCategory = tabs[activeIdx].category;
 
   const films = useMemo(() => {
+    // De-dupe the roster by YouTube id (first-wins) so no duplicate cards ever
+    // render, independent of any repetition in the source payload.
+    const seen = new Set();
     const base = videosFor(activeCategory, langKey)
       .map((f) => ({ ...f, id: ytId(f.url) }))
-      .filter((f) => f.id);
+      .filter((f) => {
+        if (!f.id || seen.has(f.id)) return false;
+        seen.add(f.id);
+        return true;
+      });
     // Expanded Logic (production): append the athlete's sport championship-mindset
     // films to the "Your Sport" tab. These are real, distinct YouTube ids — they
     // render immediately. De-duped against the base roster by id.
     if (activeCategory !== GENERAL_CATEGORY && resolvedSportId) {
-      const have = new Set(base.map((f) => f.id));
-      const extra = expandedMindsetVideos(resolvedSportId, lang).filter((f) => f.id && !have.has(f.id));
+      const extra = expandedMindsetVideos(resolvedSportId, lang).filter((f) => f.id && !seen.has(f.id));
       if (extra.length) return [...base, ...extra];
     }
     return base;

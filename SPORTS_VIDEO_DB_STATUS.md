@@ -96,4 +96,39 @@ discipline label.
 
 ---
 
-_SW cache bumped (React SPA v121). `npm run lint` + `npm run build` green._
+## 5 · Champion Mindset video DB upgrade (V5) — ✅ COMPLETE (Sports Portal)
+
+Source: **`BBS_Sports_Champion_Mindset_Videos_V5.json`** (CEO-supplied "Final"). The
+Sports Portal mindset deck (`YouthChampionMindset.jsx`) was already wired to
+`src/data/mindset_videos.json` (sport → language → `[{title,url}]`); this swaps that
+payload for the richer V5 content, so trilingual routing (active-language array) and
+sport-filtering (sport → category, → General fallback) keep working untouched.
+
+**Padding finding (audited, be-critical):** V5 declares 1350 entries (50 / lang / sport
+× 9 sports × 3 langs) but they collapse to **176 distinct YouTube ids** — every
+50-entry list repeats ~17–38 real clips. V3 (810) and the 540-file carry the **identical**
+176 videos, just padded less; so dedup yields the same genuine set regardless of file.
+Storing the padding would render duplicate cards.
+
+**Decision:** ingest V5 **deduped per sport × language by YouTube id** (order-preserving,
+first-wins) → **686 genuine entries**, every card distinct. Per category the distinct
+roster jumps from the old **10/10/10** to ~**30 / 22 / 20** (EN/ES/PT). Localization is
+**real** — Spanish/Portuguese lists carry native-language titles (e.g. CR7
+_"La MENTALIDAD"_ / _"EU SOU O MELHOR"_), near-zero cross-language id overlap. A defensive
+first-wins dedup was also added to the component's `films` memo, so duplicate cards can
+never render regardless of payload.
+
+### ⚠ Outstanding — Task 1 (general client-side psychology DB) BLOCKED on data
+
+The CEO directive also describes a **general client-side psychology DB**
+(`bbf_champions_mindset_videos.json` — Self-Determination Theory / Mind-Muscle·Flow /
+Cognitive Resilience, 90 videos). **No uploaded file contains that structure** — all
+three uploads (incl. the similarly-named `bbf_sports_champion_mindset_videos.json`) are
+the **9-sport** schema, not the 3-topic psychology schema. The adult Vault already ships
+a richer hand-curated `ChampionMindset` (named champions + objective/dictums/lock-in),
+which is a different surface. Not fabricating psychology videos — that file needs to be
+supplied (or confirm the existing Vault deck is the intended general-side coverage).
+
+---
+
+_SW cache bumped (React SPA v122). `npm run lint` + `npm run build` green._
