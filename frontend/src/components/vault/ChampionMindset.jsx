@@ -37,6 +37,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import ChampionFilmCard from './ChampionFilmCard.jsx';
+import SovereignPsychologyDeck from './SovereignPsychologyDeck.jsx';
 import DailyAffirmationCoach from './DailyAffirmationCoach.jsx';
 import { L10N, readLocked, writeLocked } from './championMindsetData.js';
 import './championMindset.css';
@@ -234,6 +235,9 @@ export default function ChampionMindset() {
           </div>
         )}
       </section>
+
+      {/* ── 3b · Sport Psychology Lab — evidence-based adherence film deck ──── */}
+      <SovereignPsychologyDeck />
 
       {/* ── 4 · Cognitive Action Protocols (split-pane) ───────────────────── */}
       <section className="cm-protocols">

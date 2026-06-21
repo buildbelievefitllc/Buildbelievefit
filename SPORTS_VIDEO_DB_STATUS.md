@@ -118,17 +118,32 @@ _"La MENTALIDAD"_ / _"EU SOU O MELHOR"_), near-zero cross-language id overlap. A
 first-wins dedup was also added to the component's `films` memo, so duplicate cards can
 never render regardless of payload.
 
-### ⚠ Outstanding — Task 1 (general client-side psychology DB) BLOCKED on data
+## 6 · General client-side psychology DB (Task 1) — ✅ COMPLETE (Vault)
 
-The CEO directive also describes a **general client-side psychology DB**
-(`bbf_champions_mindset_videos.json` — Self-Determination Theory / Mind-Muscle·Flow /
-Cognitive Resilience, 90 videos). **No uploaded file contains that structure** — all
-three uploads (incl. the similarly-named `bbf_sports_champion_mindset_videos.json`) are
-the **9-sport** schema, not the 3-topic psychology schema. The adult Vault already ships
-a richer hand-curated `ChampionMindset` (named champions + objective/dictums/lock-in),
-which is a different surface. Not fabricating psychology videos — that file needs to be
-supplied (or confirm the existing Vault deck is the intended general-side coverage).
+The CEO then supplied the real **`bbf_champions_mindset_videos.json`** — the
+**3-topic** psychology schema (distinct from the 9-sport files): **90 verified,
+distinct trilingual videos** (10 / lang / topic, 90/90 distinct, 0 unparseable,
+genuine native ES/PT titles):
+
+- Self-Determination & Intrinsic Motivation
+- Mind-Muscle Connection & Flow State
+- Overcoming Subconscious Resistance & Mental Fatigue
+
+Tracked in-repo at `frontend/src/data/championsPsychology.json` (normalized to canonical
+`https` watch URLs, deduped defensively). Mounted on the **general client-side Vault**,
+inside the **Champion's Mindset** tab (`ClientVault` → `ChampionMindset`, ungated for
+every authenticated client), as a new section **`SovereignPsychologyDeck`** placed
+between the champion Cinema and the Cognitive Protocols.
+
+- **UI:** the LOCKED §10 modular tab-deck — numbered 01/02/03 topic tabs over a SINGLE
+  active panel (only the active topic's grid mounts → no scroll bloat), purple→gold
+  active state, Bebas labels. Distinct from the curated champion Cinema (which is a
+  rich named-champion roster); this deck is the science layer.
+- **Trilingual routing (Task 2 parity):** active `LanguageContext` drives both the topic
+  labels and the video list (`en/es/pt` → English/Spanish/Portuguese, English fallback).
+- A YouTube lightbox (embedded iframe + deep-link fallback) mirrors the proven
+  `YouthChampionMindset` modal. Defensive first-wins dedup in the films memo.
 
 ---
 
-_SW cache bumped (React SPA v122). `npm run lint` + `npm run build` green._
+_SW cache bumped (React SPA v123). `npm run lint` + `npm run build` green._
