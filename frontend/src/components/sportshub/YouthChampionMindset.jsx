@@ -38,7 +38,7 @@ import { useLang } from '../../context/LangContext.jsx';
 import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
 import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
 import MINDSET_VIDEOS from '../../data/mindset_videos.json';
-import { championshipMindsetVideos } from '../../data/sportsHubVideoDB.js';
+import { expandedMindsetVideos } from '../../data/sportsExpandedLogic.js';
 import './youthChampionMindset.css';
 
 // ── Filtering taxonomy ───────────────────────────────────────────────────────
@@ -315,14 +315,12 @@ export default function YouthChampionMindset({ sportId = null }) {
     const base = videosFor(activeCategory, langKey)
       .map((f) => ({ ...f, id: ytId(f.url) }))
       .filter((f) => f.id);
-    // Infinite Video DB (bbf_sports_hub_unlimited): append the athlete's sport
-    // championship_mindset records to the "Your Sport" tab. Mapped to YouTube ids
-    // and filtered — placeholder/non-YouTube samples drop out, so nothing breaks
-    // today; real production URLs surface here automatically when loaded.
+    // Expanded Logic (production): append the athlete's sport championship-mindset
+    // films to the "Your Sport" tab. These are real, distinct YouTube ids — they
+    // render immediately. De-duped against the base roster by id.
     if (activeCategory !== GENERAL_CATEGORY && resolvedSportId) {
-      const extra = championshipMindsetVideos(resolvedSportId, lang)
-        .map((r) => ({ title: r.title, url: r.video_url, id: ytId(r.video_url) }))
-        .filter((f) => f.id);
+      const have = new Set(base.map((f) => f.id));
+      const extra = expandedMindsetVideos(resolvedSportId, lang).filter((f) => f.id && !have.has(f.id));
       if (extra.length) return [...base, ...extra];
     }
     return base;

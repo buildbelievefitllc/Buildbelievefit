@@ -1,0 +1,639 @@
+{
+  "system_metadata": {
+    "schema_version": "4.1",
+    "release": "Sovereign Sports Hub Core Expansion v4.1",
+    "supported_languages": [
+      "en",
+      "es",
+      "pt"
+    ],
+    "target_sports": [
+      "volleyball",
+      "softball",
+      "track_and_field",
+      "boxing",
+      "mma"
+    ]
+  },
+  "sports": {
+    "volleyball": {
+      "milestones": [
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "category": "technical",
+          "title_en": "Underhand Serve Mechanics",
+          "title_es": "Mecánica del Saque por Abajo",
+          "title_pt": "Mecânica do Saque por Baixo",
+          "description_en": "Master the direct arm swing, clean ball-toss contact height, and follow-through path.",
+          "description_es": "Dominar el golpeo directo con el brazo, la altura de contacto limpia y la dirección de seguimiento.",
+          "description_pt": "Dominar o golpe direto do braço, a altura de contato limpa e a direção de seguimento.",
+          "required_reps": 15
+        },
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "category": "physical",
+          "title_en": "Base Ready Footwork",
+          "title_es": "Juego de Pies Base de Alerta",
+          "title_pt": "Trabalho de Pés de Alerta Base",
+          "description_en": "Establish a low, dynamic shoulder-width defensive stance and rapid step-close movements.",
+          "description_en_es": "Establecer una postura defensiva baja y dinámica al ancho de los hombros y desplazamientos rápidos.",
+          "description_pt": "Estabelecer uma postura defensiva baixa e dinâmica na largura dos ombros e deslocamentos rápidos.",
+          "required_reps": 20
+        },
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "category": "mental",
+          "title_en": "Championship Mindset: The Next-Play Focus",
+          "title_es": "Mentalidad de Campeón: Enfoque en la Siguiente Jugada",
+          "title_pt": "Mentalidade de Campeão: Foco na Próxima Jogada",
+          "description_en": "Demonstrate cognitive resetting immediately after a lost point or passing error.",
+          "description_es": "Demostrar reseteo cognitivo inmediatamente después de un punto perdido o error de pase.",
+          "description_pt": "Demonstrar reinício cognitivo imediatamente após um ponto perdido ou erro de passe.",
+          "required_reps": 5
+        },
+        {
+          "tier": "middle_school",
+          "gender": "female",
+          "category": "technical",
+          "title_en": "Overhand Serve Drop-Zone (Girls Net 7' 4-1/8\")",
+          "title_es": "Saque de Tenis de Precisión (Red Femenina)",
+          "title_pt": "Saque por Cima de Precisão (Rede Feminina)",
+          "description_en": "Execute deep zone float serves clearing the standard girls net height.",
+          "description_es": "Ejecutar saques flotantes de zona profunda superando la altura de red femenina estándar.",
+          "description_pt": "Executar saques flutuantes de zona profunda superando a altura da rede feminina padrão.",
+          "required_reps": 12
+        },
+        {
+          "tier": "middle_school",
+          "gender": "male",
+          "category": "technical",
+          "title_en": "Overhand Serve Drop-Zone (Boys Net 7' 11-5/8\")",
+          "title_es": "Saque de Tenis de Precisión (Red Masculina)",
+          "title_pt": "Saque por Cima de Precisão (Rede Masculina)",
+          "description_en": "Execute deep zone serves clearing the standard boys net height.",
+          "description_es": "Ejecutar saques de zona profunda superando la altura de red masculina estándar.",
+          "description_pt": "Executar saques de zona profunda superando a altura da rede masculina padrão.",
+          "required_reps": 12
+        },
+        {
+          "tier": "middle_school",
+          "gender": "coed",
+          "category": "physical",
+          "title_en": "Three-Step Attack Approach",
+          "title_es": "Aproximación de Ataque de Tres Pasos",
+          "title_pt": "Aproximação de Ataque de Três Passos",
+          "description_en": "Execute Left-Right-Left footwork cadence to convert horizontal velocity to vertical lift.",
+          "description_es": "Ejecutar la cadencia de pasos Izquierda-Derecha-Izquierda para convertir velocidad horizontal en salto vertical.",
+          "description_pt": "Executar a cadência de passos Esquerda-Direita-Esquerda para converter velocidade horizontal em salto vertical.",
+          "required_reps": 15
+        },
+        {
+          "tier": "high_school",
+          "gender": "female",
+          "category": "technical",
+          "title_en": "Perimeter Digging & Slide Coverage",
+          "title_es": "Defensa de Perímetro y Cobertura Lateral",
+          "title_pt": "Defesa de Perímetro e Cobertura Lateral",
+          "description_en": "Read hitter shoulder line and dynamically cover slide and cross-court attacks.",
+          "description_es": "Leer la línea de hombro del rematador y cubrir defensivamente remates cruzados.",
+          "description_pt": "Ler a linha de ombro do atacante e cobrir defensivamente ataques cruzados.",
+          "required_reps": 20
+        },
+        {
+          "tier": "high_school",
+          "gender": "male",
+          "category": "technical",
+          "title_en": "Tempo Spike Execution (5-1 Rotations)",
+          "title_es": "Ejecución de Remate Rápido",
+          "title_pt": "Execução de Ataque Rápido",
+          "description_en": "Execute fast-tempo hits based on precise setter cues in standard 5-1 rotations.",
+          "description_es": "Ejecutar remates de tempo rápido basados en señas del colocador en sistemas 5-1.",
+          "description_pt": "Executar ataques de tempo rápido baseados em sinais do levantador em rotações 5-1.",
+          "required_reps": 15
+        }
+      ],
+      "drills": [
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "title_en": "Continuous Wall Setting Warm-up",
+          "title_es": "Calentamiento Continuo de Voleo contra Pared",
+          "title_pt": "Aquecimento Contínuo de Toque na Parede",
+          "description_en": "Build hand-eye finger dexterity by touching the ball repeatedly against a flat wall.",
+          "description_es": "Desarrollar destreza con toques rápidos de dedos repetidos contra una pared.",
+          "description_pt": "Desenvolver destreza com toques rápidos de dedos repetidos contra uma parede.",
+          "reps_sets_or_duration": "3 Sets x 60 Seconds"
+        },
+        {
+          "tier": "high_school",
+          "gender": "female",
+          "title_en": "Target Box Float Serve",
+          "title_es": "Saque Flotante a Caja Objetivo",
+          "title_pt": "Saque Flutuante na Caixa Alvo",
+          "description_en": "Aim dynamic float serves at a targeted 3x3 foot square zone in the deep corners.",
+          "description_es": "Dirigir saques flotantes a un cuadrante objetivo de 3x3 pies en las esquinas profundas.",
+          "description_pt": "Direcionar saques flutuantes para um quadrante de 3x3 pés nos cantos profundos.",
+          "reps_sets_or_duration": "5 Sets x 10 Serves"
+        }
+      ],
+      "exercise_regimens": {
+        "in_season": [
+          {
+            "exercise": "Vertical Approach Jump Squats",
+            "sets": 3,
+            "reps": 8,
+            "tempo": "1-0-X-1",
+            "focus": "Rate of force development (RFD) and landing shock absorption."
+          },
+          {
+            "exercise": "Scapular Wall Slides",
+            "sets": 3,
+            "reps": 12,
+            "tempo": "3-1-3-0",
+            "focus": "Shoulder joint health and posture control under game volume."
+          }
+        ],
+        "off_season": [
+          {
+            "exercise": "Barbell Back Squats",
+            "sets": 4,
+            "reps": 6,
+            "tempo": "3-1-1-0",
+            "focus": "Maximum lower body power, leg drive, and structural density."
+          },
+          {
+            "exercise": "Rotational Medicine Ball Wall Throws",
+            "sets": 3,
+            "reps": 10,
+            "tempo": "Explosive",
+            "focus": "Core rotational speed and shoulder velocity development."
+          }
+        ]
+      },
+      "youtube_videos": [
+        {
+          "title_en": "Burn Drill: Dynamic Volleyball Defensive Cover",
+          "title_es": "Burn Drill: Ejercicio Dinámico de Defensa y Movimiento",
+          "title_pt": "Burn Drill: Exercício Dinâmico de Defesa e Movimentação",
+          "url": "https://www.youtube.com/watch?v=LCg0ASv3fQg"
+        },
+        {
+          "title_en": "10 Intermediate Volleyball Digging Techniques",
+          "title_es": "10 Ejercicios de Recepción en Voleibol Nivel Intermedio",
+          "title_pt": "10 Exercícios de Recepção no Voleibol Nível Intermédio",
+          "url": "https://www.youtube.com/watch?v=4Diq7HgjjQw"
+        }
+      ],
+      "championship_mindset": [
+        {
+          "title_en": "Championship Mindset: Unlocking Cortical Calm Under Match Pressure",
+          "title_es": "Mentalidad de Campeón: Calma Mental Bajo Presión de Partido",
+          "title_pt": "Mentalidade de Campeão: Calma Mental Sob Pressão do Jogo",
+          "url": "https://www.youtube.com/watch?v=gDT8QlfyfAw",
+          "description_en": "Dynamic sports neuroscience techniques to access flow state and confidence on the court.",
+          "description_es": "Técnicas de neurociencia deportiva para acceder al estado de flow en la cancha.",
+          "description_pt": "Técnicas de neurociência esportiva para entrar em estado de flow na quadra."
+        }
+      ]
+    },
+    "softball": {
+      "milestones": [
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "category": "technical",
+          "title_en": "4-Seam Grip and Overhand Throwing Arc",
+          "title_es": "Agarre de 4 Costuras y Postura de Lanzamiento",
+          "title_pt": "Empunhadura de 4 Costuras e Postura de Arremesso",
+          "description_en": "Execute accurate throwing motion using consistent 4-seam softball grip.",
+          "description_es": "Ejecutar lanzamientos precisos utilizando el agarre constante de 4 costuras.",
+          "description_pt": "Executar arremessos precisos usando a empunhadura consistente de 4 costuras.",
+          "required_reps": 15
+        },
+        {
+          "tier": "middle_school",
+          "gender": "female",
+          "category": "technical",
+          "title_en": "Windmill Pitching Hip Snap & Contact",
+          "title_es": "Mecanismo de Lanzamiento de Molinete",
+          "title_pt": "Mecanismo de Arremesso de Moinho de Vento",
+          "description_en": "Perform structured fastpitch windmill motion maintaining hip alignment.",
+          "description_es": "Realizar movimiento de molinete manteniendo alineación corporal y golpe de cadera.",
+          "description_pt": "Realizar movimento de moinho de vento mantendo o alinhamento corporal e encaixe de quadril.",
+          "required_reps": 10
+        },
+        {
+          "tier": "high_school",
+          "gender": "female",
+          "category": "technical",
+          "title_en": "Advanced Slap-Hitting & Placement Bunts",
+          "title_es": "Precisión de Bateo de Contacto (Slap Hitting)",
+          "title_pt": "Precisão de Rebatida de Contato (Slap Hitting)",
+          "description_en": "Execute precise directional slap-hits down the baseline during movement.",
+          "description_es": "Ejecutar bateos direccionales de contacto precisos sobre la carrera.",
+          "description_pt": "Executar rebatidas direcionais de contato precisas em movimento.",
+          "required_reps": 12
+        }
+      ],
+      "drills": [
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "title_en": "10 Best Drills for Fielding Mechanics",
+          "title_es": "10 Ejercicios de Fildeo y Mecánica Básica",
+          "title_pt": "10 Exercícios de Defesa e Mecânica Básica",
+          "description_en": "Field ground balls cleanly using triangle foot alignment and hands out front.",
+          "description_es": "Fildear roletas limpiamente usando la alineación de triángulo y manos al frente.",
+          "description_pt": "Defender bolas rasteiras usando o alinhamento de triângulo e mãos à frente.",
+          "reps_sets_or_duration": "4 Sets x 10 Reps"
+        }
+      ],
+      "exercise_regimens": {
+        "in_season": [
+          {
+            "exercise": "Band External Rotator Cuff Matrix",
+            "sets": 3,
+            "reps": 15,
+            "tempo": "2-0-2-0",
+            "focus": "Shoulder joint deceleration stability and labrum health."
+          },
+          {
+            "exercise": "Lateral Goblet Cossack Squats",
+            "sets": 3,
+            "reps": 8,
+            "tempo": "2-1-1-0",
+            "focus": "Frontal plane groin flexibility and dynamic power."
+          }
+        ],
+        "off_season": [
+          {
+            "exercise": "Trap Bar Maximal Deadlifts",
+            "sets": 4,
+            "reps": 5,
+            "tempo": "2-1-X-1",
+            "focus": "Posterior chain maximal strength and power output."
+          },
+          {
+            "exercise": "Medicine Ball Rotational Side Slams",
+            "sets": 3,
+            "reps": 12,
+            "tempo": "Explosive",
+            "focus": "Oblique power and bat speed rotation."
+          }
+        ]
+      },
+      "youtube_videos": [
+        {
+          "title_en": "10 Best Youth Softball Fielding Drills",
+          "title_es": "10 Ejercicios de Sófbol Infantil y Juvenil",
+          "title_pt": "10 Exercícios de Softbol Infantil e Juvenil",
+          "url": "https://www.youtube.com/watch?v=jddeGmeVtHY"
+        }
+      ],
+      "championship_mindset": [
+        {
+          "title_en": "Softball Mental Game: Resetting After Strikeouts",
+          "title_es": "Psicología del Sófbol: Reseteo Mental Después de un Ponche",
+          "title_pt": "Psicologia do Softbol: Redefinição Mental Após Strikeout",
+          "url": "https://www.youtube.com/watch?v=tI71jfg5q2A",
+          "description_en": "How top fastpitch players clear the mind and lock focus down on the next pitch.",
+          "description_es": "Cómo las bateadoras de élite limpian la mente para enfocarse en el siguiente lanzamiento.",
+          "description_pt": "Como as rebatedoras de elite limpam a mente para se concentrar no próximo arremesso."
+        }
+      ]
+    },
+    "track_and_field": {
+      "milestones": [
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "category": "technical",
+          "title_en": "Dynamic A-Skip and B-Skip Rhythm",
+          "title_es": "Ritmica de Saltos A-Skip y B-Skip",
+          "title_pt": "Rítmica de Educativos A-Skip e B-Skip",
+          "description_en": "Perform clean dynamic posture skips showcasing proper ankle coordination and posture.",
+          "description_es": "Ejecutar saltos dinámicos mostrando postura recta y coordinación tobillo-pie.",
+          "description_pt": "Executar educativos dinâmicos mostrando postura ereta e coordenação tornozelo-pé.",
+          "required_reps": 30
+        },
+        {
+          "tier": "middle_school",
+          "gender": "coed",
+          "category": "physical",
+          "title_en": "Block Start Angle & Force Vector Setup",
+          "title_es": "Alineación de Tacos de Salida y Fase de Impulso",
+          "title_pt": "Alinhamento de Blocos de Partida e Fase de Impulso",
+          "description_en": "Establish correct leg extension and shin angles out of blocks for maximum drive.",
+          "description_es": "Establecer la extensión de piernas y ángulos de espinilla correctos para el impulso inicial.",
+          "description_pt": "Estabelecer a extensão de pernas e ângulos de canela corretos para o impulso inicial.",
+          "required_reps": 8
+        },
+        {
+          "tier": "high_school",
+          "gender": "male",
+          "category": "physical",
+          "title_en": "Sub-11.5s 100m Velocity (Male)",
+          "title_es": "Velocidad Sub-11.5s en 100m (Varones)",
+          "title_pt": "Velocidade Sub-11.5s em 100m (Masculino)",
+          "description_en": "Achieve high rates of neuromuscular force to finish 100m in under 11.5 seconds.",
+          "description_es": "Lograr alta tasa de fuerza neuromuscular para finalizar 100m en menos de 11.5s.",
+          "description_pt": "Alcançar alta taxa de força neuromuscular para finalizar 100m abaixo de 11.5s.",
+          "required_reps": 1
+        },
+        {
+          "tier": "high_school",
+          "gender": "female",
+          "category": "physical",
+          "title_en": "Sub-12.8s 100m Velocity (Female)",
+          "title_es": "Velocidad Sub-12.8s en 100m (Damas)",
+          "title_pt": "Velocidade Sub-12.8s em 100m (Feminino)",
+          "description_en": "Achieve high acceleration capacity to finish 100m in under 12.8 seconds.",
+          "description_es": "Lograr alta capacidad de aceleración para finalizar 100m en menos de 12.8s.",
+          "description_pt": "Alcançar alta capacidade de aceleração para finalizar 100m abaixo de 12.8s.",
+          "required_reps": 1
+        }
+      ],
+      "drills": [
+        {
+          "tier": "high_school",
+          "gender": "coed",
+          "title_en": "Drive Phase Transition Runs",
+          "title_es": "Carreras de Transición de Fase de Impulso",
+          "title_pt": "Corridas de Transição de Fase de Impulso",
+          "description_en": "Sprint out of starting blocks, maintaining a low drive phase and gradual rise through 30m.",
+          "description_es": "Salir de los tacos de salida, manteniendo una fase de impulso baja y elevación gradual hasta los 30m.",
+          "description_pt": "Sair dos blocos de partida, mantendo uma fase de impulso baixa e elevação gradual até os 30m.",
+          "reps_sets_or_duration": "6 Reps x 30 Meters (Full CNS Recovery)"
+        }
+      ],
+      "exercise_regimens": {
+        "in_season": [
+          {
+            "exercise": "Ankle Stiffness Hops",
+            "sets": 3,
+            "reps": 20,
+            "tempo": "Rapid",
+            "focus": "Maximum elastic recoil and tendon stiffness on ground strike."
+          },
+          {
+            "exercise": "Single-Leg Dumbbell Romanian Deadlifts",
+            "sets": 3,
+            "reps": 10,
+            "tempo": "3-0-1-0",
+            "focus": "Hamstring eccentric control and pelvic stability."
+          }
+        ],
+        "off_season": [
+          {
+            "exercise": "Barbell Power Cleans",
+            "sets": 4,
+            "reps": 4,
+            "tempo": "Explosive",
+            "focus": "Maximum kinetic triple extension power."
+          },
+          {
+            "exercise": "Eccentric Nordic Hamstring Curls",
+            "sets": 3,
+            "reps": 6,
+            "tempo": "4-0-1-0",
+            "focus": "Hamstring muscle fiber strengthening to prevent strains."
+          }
+        ]
+      },
+      "youtube_videos": [
+        {
+          "title_en": "Sovereign Sprint Starts and acceleration Mechanics",
+          "title_es": "Mecánica de Tacos de Salida y Aceleración",
+          "title_pt": "Mecânica de Saída de Bloco e Aceleração",
+          "url": "https://www.youtube.com/watch?v=kEopBuUhClk"
+        }
+      ],
+      "championship_mindset": [
+        {
+          "title_en": "Championship Mindset: The Calm Before the Gun",
+          "title_es": "Mentalidad de Campeón: Calma Antes del Disparo",
+          "title_pt": "Mentalidade de Campeão: Calma Antes do Tiro de Partida",
+          "url": "https://www.youtube.com/watch?v=qmXjA_Prsr0",
+          "description_en": "Neurological strategies to clear cognitive interference and trigger action from blocks.",
+          "description_es": "Estrategias neurológicas para eliminar la interferencia mental y reaccionar al disparo de salida.",
+          "description_pt": "Estratégias neurológicas para eliminar interferência mental e reagir ao tiro de partida."
+        }
+      ]
+    },
+    "boxing": {
+      "milestones": [
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "category": "technical",
+          "title_en": "Stance Distribution & Balance Pivot",
+          "title_es": "Distribución de Postura y Giro Pivotante",
+          "title_pt": "Distribuição de Postura e Giro Pivô",
+          "description_en": "Demonstrate dynamic weight balance and pivot defense while protecting the chin.",
+          "description_es": "Demostrar equilibrio dinámico de peso y giro de pivote protegiendo la mandíbula.",
+          "description_pt": "Demonstrar equilíbrio dinâmico de peso e giro de pivô protegendo o queixo.",
+          "required_reps": 10
+        },
+        {
+          "tier": "middle_school",
+          "gender": "coed",
+          "category": "technical",
+          "title_en": "Slipping Patterns and Head Movement",
+          "title_es": "Esquivas de Cabeza y Contragolpe de Gancho",
+          "title_pt": "Esquivas de Cabeça e Contra-ataque de Cruzado",
+          "description_en": "Perform clean slippings and counter-striking combinations with high hip rotation.",
+          "description_es": "Realizar esquivas limpias y combinaciones de contragolpe con alta rotación de cadera.",
+          "description_pt": "Realizar esquivas limpas e combinações de contra-ataque com alta rotação de quadril.",
+          "required_reps": 12
+        },
+        {
+          "tier": "high_school",
+          "gender": "coed",
+          "category": "physical",
+          "title_en": "CNS Conditioning Heavy Bag Rounds",
+          "title_es": "Acondicionamiento CNS en Saco de Boxeo",
+          "title_pt": "Resistência de Round com Saco Pesado (CNS)",
+          "description_en": "Maintain 85+ explosive punch combinations per minute for 3 continuous rounds.",
+          "description_es": "Mantener combinaciones explosivas de más de 85 golpes por minuto por 3 asaltos continuos.",
+          "description_pt": "Manter combinações explosivas acima de 85 golpes por minuto por 3 rounds contínuos.",
+          "required_reps": 3
+        }
+      ],
+      "drills": [
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "title_en": "Straight Punch Combinations with Defense",
+          "title_es": "Combinaciones de Golpes Rectos con Defensa",
+          "title_pt": "Combinações de Golpes Retos com Defesa",
+          "description_en": "Perform clean straight jab-cross punches while keeping the opposite hand locked on guard.",
+          "description_es": "Realizar golpes rectos limpios (jab-cruzado) manteniendo la mano opuesta firme en la guardia.",
+          "description_pt": "Realizar golpes retos limpos (jab-direto) mantendo a mão oposta firme na guarda.",
+          "reps_sets_or_duration": "3 Rounds x 2 Minutes"
+        }
+      ],
+      "exercise_regimens": {
+        "in_season": [
+          {
+            "exercise": "Resistance Band Punching Intervals",
+            "sets": 3,
+            "reps": 100,
+            "tempo": "Rapid",
+            "focus": "Fast-twitch shoulder stamina and snapping speed."
+          },
+          {
+            "exercise": "Rotational Medicine Ball Core Slams",
+            "sets": 3,
+            "reps": 15,
+            "tempo": "Explosive",
+            "focus": "Core kinetic energy and rotational punch velocity."
+          }
+        ],
+        "off_season": [
+          {
+            "exercise": "Weighted Dips / Pushups",
+            "sets": 4,
+            "reps": 8,
+            "tempo": "2-1-X-0",
+            "focus": "Upper body tricep and chest push power density."
+          },
+          {
+            "exercise": "Alternating Renegade Rows",
+            "sets": 3,
+            "reps": 12,
+            "tempo": "2-0-1-0",
+            "focus": "Scapular posterior pull power and anti-rotation stability."
+          }
+        ]
+      },
+      "youtube_videos": [
+        {
+          "title_en": "Sovereign Boxing Footwork & Stance Matrix",
+          "title_es": "Técnica de Boxeo: Guardia y Desplazamientos",
+          "title_pt": "Técnica de Boxe: Guarda e Deslocamentos",
+          "url": "https://www.youtube.com/watch?v=xDoik0qjdLE"
+        }
+      ],
+      "championship_mindset": [
+        {
+          "title_en": "The Quiet Ring: Sports Psychology of Combat Athletes",
+          "title_es": "La Mente en Silencio: Psicología Deportiva de Deportes de Combate",
+          "title_pt": "A Mente Silenciosa: Psicologia do Atleta de Combate",
+          "url": "https://www.youtube.com/watch?v=qmXjA_Prsr0",
+          "description_en": "How fighters reset fear metrics and enter sovereign clinical flow state under stress.",
+          "description_es": "Cómo los peleadores eliminan el miedo y entran en un estado de calma absoluta en combate.",
+          "description_pt": "Como os lutadores eliminam o medo e entram em um estado de calma absoluta no combate."
+        }
+      ]
+    },
+    "mma": {
+      "milestones": [
+        {
+          "tier": "youth",
+          "gender": "coed",
+          "category": "technical",
+          "title_en": "Level Change & Sprawl Posture",
+          "title_es": "Cambio de Nivel y Postura de Sprawl",
+          "title_pt": "Mudança de Nível e Postura de Sprawl",
+          "description_en": "Perform reactively low level changes and hip-sprawls to counter takedowns.",
+          "description_es": "Bajar las caderas reactivamente y proyectarlas hacia atrás para defender un derribo.",
+          "description_pt": "Abaixar os quadris de forma reativa e projetá-los para trás para defender quedas.",
+          "required_reps": 10
+        },
+        {
+          "tier": "middle_school",
+          "gender": "coed",
+          "category": "technical",
+          "title_en": "Double-Leg Shot Integration",
+          "title_es": "Derribo de Doble Pierna Integrado",
+          "title_pt": "Entrada de Queda Double-Leg Integrada",
+          "description_en": "Set up a clean double-leg shot with punches and execute dynamic leg driving.",
+          "description_es": "Preparar la entrada de doble pierna con golpes y ejecutar la proyección.",
+          "description_pt": "Preparar a entrada de double-leg com golpes e executar a projeção.",
+          "required_reps": 12
+        },
+        {
+          "tier": "high_school",
+          "gender": "coed",
+          "category": "physical",
+          "title_en": "Cage Underhook Control & Scapular Framing",
+          "title_es": "Control de Esgrima contra la Reja",
+          "title_pt": "Controle de Esgrima na Grade",
+          "description_en": "Secure double underhooks against cage resistance and execute frame exits.",
+          "description_es": "Asegurar esgrima doble contra la reja y realizar salidas técnicas creando espacio.",
+          "description_pt": "Assegurar esgrima dupla na grade e realizar saídas técnicas criando espaço.",
+          "required_reps": 15
+        }
+      ],
+      "drills": [
+        {
+          "tier": "middle_school",
+          "gender": "coed",
+          "title_en": "Sprawl-to-Clinch Cage Pressure Repeat",
+          "title_es": "Transición de Sprawl a Control en Reja",
+          "title_pt": "Transição de Sprawl para Controle na Grade",
+          "description_en": "Execute defensive sprawl on whistle and immediately transition to wall clinch control.",
+          "description_es": "Ejecutar sprawl defensivo al silbato y transicionar al control de clinch contra la reja.",
+          "description_pt": "Executar sprawl defensivo ao sinal e transicionar ao controle de clinch na grade.",
+          "reps_sets_or_duration": "4 Rounds x 3 Minutes"
+        }
+      ],
+      "exercise_regimens": {
+        "in_season": [
+          {
+            "exercise": "Explosive Kettlebell Swings",
+            "sets": 3,
+            "reps": 15,
+            "tempo": "Explosive",
+            "focus": "Hip extension velocity and power output for takedowns."
+          },
+          {
+            "exercise": "Isometric Cage Wall Sit Holds",
+            "sets": 3,
+            "reps": 5,
+            "tempo": "30-Sec Hold",
+            "focus": "Dynamic isometric lower body endurance under resistance."
+          }
+        ],
+        "off_season": [
+          {
+            "exercise": "Zercher Squats (Front Carrying)",
+            "sets": 4,
+            "reps": 6,
+            "tempo": "3-1-1-0",
+            "focus": "Isometric core, upper back, and grip strength for wrestling."
+          },
+          {
+            "exercise": "Weighted Pull-ups / Chin-ups",
+            "sets": 4,
+            "reps": 6,
+            "tempo": "2-0-1-1",
+            "focus": "Pulling strength needed for grappling and clinch control."
+          }
+        ]
+      },
+      "youtube_videos": [
+        {
+          "title_en": "MMA Takedown & Clinch Mechanics",
+          "title_es": "Técnicas de Derribo y Control MMA",
+          "title_pt": "Técnicas de Quedas e Clinch de MMA",
+          "url": "https://www.youtube.com/watch?v=xDoik0qjdLE"
+        }
+      ],
+      "championship_mindset": [
+        {
+          "title_en": "Champions Mindset: Combat Cognitive Resistance",
+          "title_es": "Mentalidad de Campeón: Superar la Fatiga Mental en Combate",
+          "title_pt": "Mentalidade de Campeão: Superar Fadiga Mental no Combate",
+          "url": "https://www.youtube.com/watch?v=qmXjA_Prsr0",
+          "description_en": "Overriding subconscious self-sabotage signals during maximum high-intensity matches.",
+          "description_es": "Cómo superar las señales de fatiga que el cerebro envía durante combates de alta intensidad.",
+          "description_pt": "Como superar os sinais de fadiga que o cérebro envia durante lutas de alta intensidade."
+        }
+      ]
+    }
+  }
+}

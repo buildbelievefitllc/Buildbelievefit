@@ -262,7 +262,9 @@ export function DayProtocol({ day, phase, telemetry, onToggleExercise, onToggleD
         <SectionCard tag="Position-Specific" title="Today’s Drills" meta={`${drillDone} / ${day.drills.length}`} testId="sh-day-drills">
           <div className="sh-drills">
             {day.drills.map((d, i) => {
-              const vid = resolveAthleticVideo(d.name); // exact verified clip or null (no fallback)
+              // Ingested drills can carry their own real tutorial clip; otherwise
+              // fall back to the exact verified movement map (or null → text-only).
+              const vid = d.videoId || resolveAthleticVideo(d.name);
               const logKey = `dr:${day.label}:${d.name}`;
               return (
                 <div key={d.name} className={`sh-drill${d.done ? ' is-hot is-done' : ''}`}>

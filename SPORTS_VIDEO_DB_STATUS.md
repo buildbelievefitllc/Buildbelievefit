@@ -21,74 +21,67 @@ the **one outstanding data dependency** needed to light the engine to 100%.
   cache, **DB is source of truth → cross-device**). Verified end-to-end via a
   temporary session smoke test (set → get round-trip), test data cleaned up.
 
-## 2 · Expanded Logic ingestion (Phase 2) — ✅ COMPLETE
+## 2 · Expanded Logic ingestion (Phase 2) — ✅ COMPLETE (production data)
 
-Source: **"BBF Sports Hub Expanded Logic"** (delivered as a `.docx`). Fully ingested
-into `frontend/src/data/sportsExpandedLogic.js`, schematized to the requested taxonomy:
+Source: **`bbf_sports_hub_production.json`** (schema 4.1) — the real, raw JSON, tracked
+in-repo at `frontend/src/data/bbfSportsHubProduction.json` and ingested by
+`frontend/src/data/sportsExpandedLogic.js` (raw stays pristine; normalization +
+law-substitution happen in code, auditable):
 
-- **Tiers:** `youth` / `middle` / `high` (source gender split preserved in `tierLabel`).
+- **Tiers:** `youth` / `middle` / `high` (source gender split kept in `tierLabel`).
 - **Categories:** Technical / Physical / Mental.
 - **Seasonal focus:** `regimens.inSeason` / `regimens.offSeason` per sport.
-- **Trilingual:** title/detail are `{ en, es?, pt? }`. Volleyball milestones carry the
-  native ES/PT from source; the other four are EN-authored pending the trilingual
-  scrape the CEO's agents are sourcing (consumers fall back to EN — no blank UI).
+- **Trilingual:** title/detail are `{ en, es, pt }` — **fully populated for all five
+  sports** from source (the production file carries native ES + PT). The loader also
+  tolerates the source's one `description_en_es` typo (treated as ES).
 - **Target sports:** Volleyball, Softball, Track and Field, Boxing, MMA.
 
-Wired into the **locked** Drills tab (no layout change): each discipline now renders
-its REAL Training Drills + skill milestones via `hubData.buildHubModel` /
-`expandedDrillCards`. `buildWeek` hardened to skip empty drill/film slots so a sport
-with fewer drills never paints a blank card. Softball / Boxing / MMA gained
-`SPORT_CONTENT` entries (were falling back to the generic default).
+Wired into the **locked** Drills tab (no layout change): each discipline renders its
+REAL Training Drills + skill milestones via `hubData.buildHubModel` /
+`expandedDrillCards`, and the drills now carry their **real demonstration tutorial
+video** (DayProtocol prefers an ingested `videoId`, else the verified movement map).
+`buildWeek` skips empty drill/film slots so a sport with fewer drills never paints a
+blank card. Softball / Boxing / MMA gained `SPORT_CONTENT` entries.
 
 ### ⚠ Immutable-Law substitution (audited)
 
-The source **Volleyball → Off-Season** block listed **"Barbell Back Squats: 4×6"** —
-a **banned** movement under the BBF Immutable Laws. It was substituted at ingestion:
+The source **Volleyball → Off-Season** block still lists **"Barbell Back Squats: 4×6"**
+— a **banned** movement. `normalizeRegimen` substitutes it at ingestion:
 
 | Source (banned) | Shipped (compliant) | Rationale |
 |---|---|---|
 | Barbell Back Squats 4×6 (3-1-1-0) | **Trap-Bar Squats** 4×6 (3-1-1-0) | Same stimulus (max lower-body power + structural density) on a spine-safe load path. |
 
-Flagged in data as `substituted: true` with `original` + `reason` so the swap is
-auditable. **No barbell back squat ships to any athlete.** (All other sports' regimens
-were already compliant — power cleans, trap-bar deadlifts, Zercher squats, etc.)
+Flagged in data as `substituted: true` with `original` + `reason`. **No barbell back
+squat ships to any athlete.** All other sports' regimens were already compliant.
 
-## 3 · Infinite Video Database (Phase 3) — 🟡 PIPELINE READY, DATA PENDING
+## 3 · Video wiring (Phase 3) — ✅ COMPLETE (real videos live)
 
-Source: **"BBF Sports Hub V5 Infinite Video Database Load"** (delivered as a `.docx`).
+Production source (`bbf_sports_hub_production.json`) carries **real, distinct YouTube
+URLs** per sport — tutorials + championship-mindset films. These are wired live:
 
-**What the document actually contains:** the production **schema/metadata** (540
-records: en/es/pt × volleyball/combat_sports/tennis × tutorial/match_highlights/
-championship_mindset) **+ exactly 6 structural sample records.** The document states
-verbatim: _"The full 195KB production file iterates through all 540 specific IDs …
-following the exact mapping specified in the requirements."_ — i.e. **the 540 real
-records are not in this file.**
+- **Champion Mindset tab** → `expandedMindsetVideos(sport, lang)` appends each sport's
+  real mindset film to the "Your Sport" deck (de-duped by id). Volleyball
+  `gDT8QlfyfAw`, Softball `tI71jfg5q2A`, Track/Boxing/MMA `qmXjA_Prsr0` — they render
+  now, in-language.
+- **Drills tab** → each sport's tutorial (Volleyball `LCg0ASv3fQg` + `4Diq7HgjjQw`,
+  Softball `jddeGmeVtHY`, Track `kEopBuUhClk`, Boxing/MMA `xDoik0qjdLE`) attaches to
+  its drill cards as the demonstration clip.
 
-**Critical:** all 6 samples use **placeholder URLs** (`stream.bbfsports.com` /
-`assets.bbfsports.com`) that do **not** resolve to a playable video. They are **not**
-YouTube links.
+### ⚠ On `bbf_sports_hub_unlimited_db.json` (the "540-record" file) — NOT wired, by design
 
-**Engineering decision (honest, non-breaking):** I built the full ingestion +
-mapping pipeline in `frontend/src/data/sportsHubVideoDB.js` — metadata, the 6 real
-samples, an `isPlayable()` guard, and the mapping API (`queryVideos`,
-`championshipMindsetVideos`, `tutorialVideos`, `videoSportKey`, `videoDbStatus`). The
-Champion Mindset tab now pulls `championship_mindset` records for the athlete's
-sport, **filtered to real, playable YouTube embeds**. Because the samples are
-placeholders, **nothing changes in the live UI today** (the existing verified-YouTube
-mindset clips keep rendering, zero broken players). The moment the production file
-with real URLs replaces `VIDEO_DB_RECORDS`, every mapped surface lights up — **no
-code change required.**
+I analyzed it in full. It declares 540 video records but they collapse to **only 4
+distinct YouTube videos**: `LCg0ASv3fQg` ×150, `4Diq7HgjjQw` ×150, `xDoik0qjdLE` ×150,
+`qmXjA_Prsr0` ×90. Every "EN volleyball tutorial" points to the *same* clip (a cosmetic
+`&index=N` is appended, which YouTube ignores outside a playlist), and some titles leak
+the raw key (e.g. _"Boxing_multi Cognitive Resilience Part 1"_). Wiring it would show an
+athlete 50 identical-playing cards — a worse, misleading experience.
 
-I deliberately did **not** fabricate 540 records or wire non-playable placeholder
-URLs into the locked Drills/Exercises tabs — that would have shown broken players and
-violated the strict 1:1 "exact movement-specific clip" order (`sportsVideos.js`).
-
-### ✅ To complete Phase 3 — one input needed
-
-Drop the **real production `bbf_sports_hub_unlimited_db.json`** (540 records with real,
-playable URLs — YouTube ids preferred to match the existing player) into the repo and
-point `VIDEO_DB_RECORDS` at it. The mindset deck + tutorial cards populate
-automatically. `videoDbStatus()` reports loaded-vs-expected and playable counts for QA.
+**Per the "be critical, no yes-men" directive, I did not wire it.** To make it real, the
+file needs **distinct `v=` YouTube ids per record** (the `&index=` trick doesn't create
+distinct videos). Once each record carries a unique real URL, the same ingestion shape
+drops straight in. The 50 distinct *titles* per sport are a fine content roadmap — they
+just need matching real videos.
 
 ## 4 · Intake dropdown (Phase 4) — ✅ COMPLETE
 
@@ -101,4 +94,4 @@ discipline label.
 
 ---
 
-_SW cache bumped (React SPA v119). `npm run lint` + `npm run build` green._
+_SW cache bumped (React SPA v120). `npm run lint` + `npm run build` green._
