@@ -105,6 +105,34 @@ const L10N = {
 
 const TAB_KEYS = ['field', 'weight', 'fuel'];
 
+// ── Dietary safety badge — visible confirmation on the Nutrition tab that the meal
+// engine's allergen exclusions are active (Phase 4 transparency). Trilingual. ──
+const DIET_BADGE = {
+  none: { en: 'No Restrictions', es: 'Sin Restricciones', pt: 'Sem Restrições' },
+  peanut: { en: 'Peanut-Free', es: 'Sin Maní', pt: 'Sem Amendoim' },
+  dairy_free: { en: 'Dairy-Free', es: 'Sin Lácteos', pt: 'Sem Laticínios' },
+  gluten_free: { en: 'Gluten-Free', es: 'Sin Gluten', pt: 'Sem Glúten' },
+  vegan: { en: 'Vegan', es: 'Vegano', pt: 'Vegano' },
+  vegetarian: { en: 'Vegetarian', es: 'Vegetariano', pt: 'Vegetariano' },
+};
+const DIET_BADGE_TITLE = { en: 'Active Profile', es: 'Perfil Activo', pt: 'Perfil Ativo' };
+function DietaryBadge({ restrictions, lang }) {
+  const list = Array.isArray(restrictions) ? restrictions.filter((r) => r && r !== 'none') : [];
+  const labels = list.length
+    ? list.map((r) => DIET_BADGE[r]?.[lang] || DIET_BADGE[r]?.en || r)
+    : [DIET_BADGE.none[lang] || DIET_BADGE.none.en];
+  const title = DIET_BADGE_TITLE[lang] || DIET_BADGE_TITLE.en;
+  return (
+    <div className="ab-diet-badge" data-testid="ab-diet-badge" role="status">
+      <span className="ab-diet-badge-ic" aria-hidden="true">🛡️</span>
+      <span className="ab-diet-badge-k">{title}:</span>
+      <span className="ab-diet-badge-tags">
+        {labels.map((l) => <span className="ab-diet-badge-tag" key={l}>{l}</span>)}
+      </span>
+    </div>
+  );
+}
+
 // `room` ('weight' | 'fuel' | 'field') pins the deck to a SINGLE pillar so the Sports
 // Hub can host the weight room and fuel as separate top-level tabs. `readOnly` strips
 // the Calibrate + Forge controls so a tab can purely READ/display its room (the Fuel
@@ -352,9 +380,11 @@ export default function AthleteBlueprint({ sportLabel, positionLabel, room = nul
                 </>
               ) : null}
 
-              {/* 03 · FUEL — server-computed TDEE + macros, then meal scaling */}
+              {/* 03 · FUEL — dietary safety badge + server-computed TDEE + macros + meals */}
               {activeKey === 'fuel' ? (
-                nutrition && macros ? (
+                <>
+                  <DietaryBadge restrictions={profile.dietaryRestrictions} lang={lang} />
+                  {nutrition && macros ? (
                   <>
                     <div className="ab-macros">
                       <div className="ab-macro is-cal"><span className="ab-macro-v">{macros.tdee_target}<small> {L.kcal}</small></span><span className="ab-macro-k">{L.cal}</span></div>
@@ -378,9 +408,10 @@ export default function AthleteBlueprint({ sportLabel, positionLabel, room = nul
                     </div>
                     <p className="ab-fuel-note">{L.fuelNote}</p>
                   </>
-                ) : (
-                  <div className="ab-empty">{L.needMetrics}</div>
-                )
+                  ) : (
+                    <div className="ab-empty">{busy ? L.forging : L.needMetrics}</div>
+                  )}
+                </>
               ) : null}
             </div>
           </>

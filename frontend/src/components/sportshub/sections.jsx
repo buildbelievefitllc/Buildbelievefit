@@ -195,9 +195,13 @@ export function SizeMass({ size, onSizeChange }) {
 
 // ── Day Protocol — the active day's workload + that day's drills + film. The
 //    actionable items (drills / film) are distributed across the 7-day week
-//    (hubData.buildWeek); every item is a tap-to-track checkoff. ──────────────────
-export function DayProtocol({ day, phase, telemetry, onToggleExercise, onToggleDrill, onCycleStatus }) {
+//    (hubData.buildWeek); every item is a tap-to-track checkoff. `view` pins the
+//    render to ONE domain so the Sports Hub can host Exercises (weight room) and
+//    Drills (field work + film) as SEPARATE tabs: 'exercises' | 'drills' | 'all'. ──
+export function DayProtocol({ day, phase, telemetry, onToggleExercise, onToggleDrill, onCycleStatus, view = 'all' }) {
   const logs = telemetry?.logs || {};
+  const showExercises = view === 'all' || view === 'exercises';
+  const showDrills = view === 'all' || view === 'drills';
   if (day.rest) {
     return (
       <section className="sh-card sh-restcard" data-testid="sh-day-rest">
@@ -217,6 +221,7 @@ export function DayProtocol({ day, phase, telemetry, onToggleExercise, onToggleD
   return (
     <>
       {/* Workout — the day's off/in-season workload, tap an exercise to mark it done. */}
+      {showExercises ? (
       <SectionCard tag={`${phaseLabel} · Workload`} title={day.focus} meta={`${exDone} / ${day.exercises.length} done`} testId="sh-day-workout">
         <div className="sh-exlist">
           {day.exercises.map((e, i) => {
@@ -250,9 +255,10 @@ export function DayProtocol({ day, phase, telemetry, onToggleExercise, onToggleD
           })}
         </div>
       </SectionCard>
+      ) : null}
 
       {/* Today's drills (position-specific, distributed across the week). */}
-      {day.drills.length ? (
+      {showDrills && day.drills.length ? (
         <SectionCard tag="Position-Specific" title="Today’s Drills" meta={`${drillDone} / ${day.drills.length}`} testId="sh-day-drills">
           <div className="sh-drills">
             {day.drills.map((d, i) => {
@@ -294,7 +300,7 @@ export function DayProtocol({ day, phase, telemetry, onToggleExercise, onToggleD
       ) : null}
 
       {/* Today's film study (tap a card to advance assigned → in-review → reviewed). */}
-      {day.film.length ? (
+      {showDrills && day.film.length ? (
         <SectionCard tag="Film Room · Tap to Update" title="Film Study" meta={`${watched} / ${day.film.length} reviewed`} testId="sh-day-film">
           <div className="sh-film">
             {day.film.map((c, i) => {

@@ -110,6 +110,16 @@
 }
 .sh-jersey-no { font-family: var(--display); font-size: 2.4rem; line-height: .9; color: var(--yel); }
 .sh-jersey-init { font-family: var(--hb); font-size: .6rem; letter-spacing: 2px; color: #cbb3e6; margin-top: .15rem; }
+.sh-jersey-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 14px; }
+.sh-avatar-edit {
+  position: absolute; right: -7px; bottom: -7px; width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer; font-size: .8rem; line-height: 1;
+  background: var(--yel); color: #0c0a02; border: 2px solid var(--purd); box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
+  transition: filter .15s ease;
+}
+.sh-avatar-edit:hover { filter: brightness(1.08); }
+.sh-avatar-edit:focus-within { outline: 2px solid var(--wht); outline-offset: 2px; }
+.sh-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .sh-hero-meta { min-width: 0; }
 .sh-hero-kicker { font-family: var(--hb); font-size: .6rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-deep); }
 .sh-hero-name { font-family: var(--display); font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1; letter-spacing: 1px; text-transform: uppercase; margin: .15rem 0 .55rem; color: var(--wht); }

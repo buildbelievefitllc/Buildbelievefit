@@ -25,8 +25,6 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { useAthleteProfile } from '../context/AthleteProfileContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
-import { buildSportsProtocol } from '../lib/sportsEngine.js';
-import { levelToExperience, tierToPhase, levelForTier } from '../lib/athleteBlueprint.js';
 import { logYouthProgress } from '../lib/youthIntakeApi.js';
 import { useAthleteTelemetry } from '../lib/athleteTelemetryApi.js';
 import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
@@ -39,7 +37,6 @@ import {
   SizeMass,
   DayProtocol,
 } from '../components/sportshub/sections.jsx';
-import SportProtocol from '../components/sportshub/SportProtocol.jsx';
 import AthleteBlueprint from '../components/sportshub/AthleteBlueprint.jsx';
 import YouthChampionMindset from '../components/sportshub/YouthChampionMindset.jsx';
 import RecoveryPrescriptionCard from '../components/vault/RecoveryPrescriptionCard.jsx';
@@ -105,6 +102,67 @@ const DECK_TABS = [
   { id: 'mindset', icon: '❖', en: 'Mindset', es: 'Mentalidad', pt: 'Mentalidade' },
 ];
 
+// Shared Day-deck — the Off-Season / In-Season toggle + a Day 1–7 pill nav over a
+// SINGLE mounted day. Rendered by BOTH the Drills (view='drills') and Exercises
+// (view='exercises') tabs so a day's drills / weight-room work are never stacked
+// vertically — clicking a day shows ONLY that day's items.
+function DayDeck({ view, phase, setPhase, week, activeDay, setActiveDay, telemetry, onToggleExercise, onToggleDrill, onCycleStatus }) {
+  return (
+    <>
+      <div className="sh-phase" role="group" aria-label="Training block">
+        <span className="sh-phase-l">Block</span>
+        <button type="button" className={`sh-phase-btn${phase === 'offseason' ? ' is-on' : ''}`} aria-pressed={phase === 'offseason'} data-testid="sh-phase-off" onClick={() => setPhase('offseason')}>Off-Season</button>
+        <button type="button" className={`sh-phase-btn${phase === 'inseason' ? ' is-on' : ''}`} aria-pressed={phase === 'inseason'} data-testid="sh-phase-in" onClick={() => setPhase('inseason')}>In-Season</button>
+      </div>
+      <nav className="sh-daynav" role="tablist" aria-label="Protocol days">
+        {week.map((d, i) => (
+          <button key={d.label} type="button" role="tab" aria-selected={i === activeDay}
+            className={`sh-day-pill${i === activeDay ? ' is-on' : ''}`} data-testid={`sh-day-pill-${i}`}
+            onClick={() => setActiveDay(i)}>{d.label}</button>
+        ))}
+      </nav>
+      {/* key remounts the panel per day/view → the transition fires; lifted week state survives. */}
+      <div className="sh-panel" key={`${view}-${activeDay}`}>
+        <DayProtocol view={view} day={week[activeDay]} phase={phase} telemetry={telemetry}
+          onToggleExercise={onToggleExercise} onToggleDrill={onToggleDrill} onCycleStatus={onCycleStatus} />
+      </div>
+    </>
+  );
+}
+
+// ── Avatar (profile picture) — client-side upload, compressed to a small square data
+// URL and persisted per-uid to localStorage so it survives reloads on the device. ──
+const AVATAR_KEY = 'bbf.avatar.v1';
+function loadAvatar(uid) {
+  try { const all = JSON.parse(localStorage.getItem(AVATAR_KEY) || '{}'); return (uid && all[uid]) || ''; } catch { return ''; }
+}
+function saveAvatar(uid, dataUrl) {
+  if (!uid) return;
+  try { const all = JSON.parse(localStorage.getItem(AVATAR_KEY) || '{}'); all[uid] = dataUrl; localStorage.setItem(AVATAR_KEY, JSON.stringify(all)); } catch { /* quota */ }
+}
+// Resize/center-crop an uploaded image to a square ≤256px JPEG data URL (tiny storage).
+function compressImage(file, size = 256) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read_failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode_failed'));
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale; const h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // `selection` ({ sportId, positionCode }) is the athlete's intake choice and
 // `progress` the persisted per-day check-off map (bbf_users.youth_progress) — both
 // passed down by YouthIntakeGate. The gate keys this component on the selection, so
@@ -114,10 +172,10 @@ export default function SportsHub({ selection = null, progress = null }) {
   const { t, lang } = useLang();
   const uid = user?.username || user?.id || '';
 
-  // The UNIFIED athlete profile — the single source of truth the Sport Protocol +
-  // Athlete Blueprint both read. `setIntakeSport` lets us push the resolved intake
-  // selection in (below), so the context follows the athlete's CURRENT discipline.
-  const { profile: athleteProfile, currentTier, setIntakeSport } = useAthleteProfile();
+  // The UNIFIED athlete profile — `setIntakeSport` pushes the resolved intake
+  // selection into the context so the Blueprint engines (Nutrition tab auto-forge)
+  // follow the athlete's CURRENT discipline.
+  const { setIntakeSport } = useAthleteProfile();
 
   // Per-set telemetry (weight / RPE / completed_at) — lifted here so the logbook map
   // is fetched once on mount (rehydrates logged sets across refresh / day-switch) and
@@ -145,26 +203,11 @@ export default function SportsHub({ selection = null, progress = null }) {
   }, [selection, profile, t]);
 
   // SPORT SOURCE OF TRUTH — push the resolved intake selection into the unified
-  // AthleteProfileContext so the Sport Protocol + Blueprint follow the athlete's
-  // CURRENT discipline. This severs the "sport bleed": Champion Mindset + Today's
-  // Drills already track the selection, and now the engine-built protocol does too.
-  // The context setter is no-op-guarded, so this can't loop.
+  // AthleteProfileContext so the Blueprint engines (Nutrition auto-forge) follow the
+  // athlete's CURRENT discipline. The context setter is no-op-guarded, so this can't loop.
   useEffect(() => {
     setIntakeSport(effProfile.sportId, effProfile.positionCode);
   }, [effProfile.sportId, effProfile.positionCode, setIntakeSport]);
-
-  // Native Sport Engine prescription — built DETERMINISTICALLY from the unified
-  // athlete profile (AthleteProfileContext), NOT the stale coach-staged login blob
-  // (selectPlans(session).sports_protocol, which froze at the old sport). Sport,
-  // experience, goal and phase all flow from the single source of truth, so an
-  // intake sport change immediately re-forges this protocol — no bleed.
-  const sportsProtocol = useMemo(() => buildSportsProtocol({
-    sport: athleteProfile.sportId,
-    age: Number(athleteProfile.age) || null,
-    experience: levelToExperience(athleteProfile.level || levelForTier(currentTier)),
-    goal: athleteProfile.goal,
-    targetPhase: tierToPhase(currentTier),
-  }), [athleteProfile.sportId, athleteProfile.age, athleteProfile.level, athleteProfile.goal, currentTier]);
 
   // Lifted state — seeded once from the sport-aware model. `model` powers the
   // Combine/Power/Size calculators; `week` is the 7-day protocol with checkoff
@@ -229,6 +272,20 @@ export default function SportsHub({ selection = null, progress = null }) {
     setModel((m) => ({ ...m, size: { ...m.size, [field]: raw } }));
   }, []);
 
+  // Profile avatar — uploaded, compressed, persisted per-uid (state set only in the
+  // change handler, never in an effect). Falls back to jersey initials when unset.
+  const [avatar, setAvatar] = useState(() => loadAvatar(uid));
+  const onAvatarChange = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (!file) return;
+    try {
+      const dataUrl = await compressImage(file);
+      setAvatar(dataUrl);
+      saveAvatar(uid, dataUrl);
+    } catch { /* unreadable image — keep the current avatar */ }
+  }, [uid]);
+
   const name = profile.athleteName || user?.displayName || 'Athlete';
   const initials = name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
@@ -250,9 +307,20 @@ export default function SportsHub({ selection = null, progress = null }) {
         {/* ── Athlete identity hero — persistent varsity scoreboard register ───── */}
         <section className="sh-hero">
           <div className="sh-hero-id">
-            <div className="sh-jersey" aria-hidden="true">
-              <span className="sh-jersey-no">{profile.jerseyNo ?? '00'}</span>
-              <span className="sh-jersey-init">{initials || 'AB'}</span>
+            <div className="sh-jersey">
+              {avatar ? (
+                <img className="sh-jersey-img" src={avatar} alt={`${name} profile`} data-testid="sh-avatar-img" />
+              ) : (
+                <>
+                  <span className="sh-jersey-no" aria-hidden="true">{profile.jerseyNo ?? '00'}</span>
+                  <span className="sh-jersey-init" aria-hidden="true">{initials || 'AB'}</span>
+                </>
+              )}
+              <label className="sh-avatar-edit" title="Upload profile photo">
+                <input type="file" accept="image/*" hidden data-testid="sh-avatar-input" onChange={onAvatarChange} />
+                <span aria-hidden="true">📷</span>
+                <span className="sh-sr-only">Upload profile photo</span>
+              </label>
             </div>
             <div className="sh-hero-meta">
               <div className="sh-hero-kicker">Youth Division · Active Athlete</div>
@@ -314,61 +382,19 @@ export default function SportsHub({ selection = null, progress = null }) {
             <SovereignReadinessDashboard />
           ) : null}
 
-          {/* ── PROTOCOL — field work + the Day 1–7 execution protocol + combine ── */}
+          {/* ── DRILLS — sport drills distributed across Off/In × Day 1–7, ONE day at
+              a time (no vertical protocol dump). Combine calculators one tap away. ── */}
           {activeTab === 'protocol' ? (
             <>
-              <SportProtocol protocol={sportsProtocol} telemetry={telemetry} />
-
-              {/* Training block (off/in-season workload selector) */}
-              <div className="sh-phase" role="group" aria-label="Training block">
-                <span className="sh-phase-l">Block</span>
-                <button
-                  type="button"
-                  className={`sh-phase-btn${phase === 'offseason' ? ' is-on' : ''}`}
-                  aria-pressed={phase === 'offseason'}
-                  data-testid="sh-phase-off"
-                  onClick={() => setPhase('offseason')}
-                >
-                  Off-Season
-                </button>
-                <button
-                  type="button"
-                  className={`sh-phase-btn${phase === 'inseason' ? ' is-on' : ''}`}
-                  aria-pressed={phase === 'inseason'}
-                  data-testid="sh-phase-in"
-                  onClick={() => setPhase('inseason')}
-                >
-                  In-Season
-                </button>
-              </div>
-
-              {/* Day 1–7 scrolling pill-navigation */}
-              <nav className="sh-daynav" role="tablist" aria-label="Protocol days">
-                {week.map((d, i) => (
-                  <button
-                    key={d.label}
-                    type="button"
-                    role="tab"
-                    aria-selected={i === activeDay}
-                    className={`sh-day-pill${i === activeDay ? ' is-on' : ''}`}
-                    data-testid={`sh-day-pill-${i}`}
-                    onClick={() => setActiveDay(i)}
-                  >
-                    {d.label}
-                  </button>
-                ))}
-              </nav>
-
-              <div className="sh-panel" key={activeDay}>
-                <DayProtocol
-                  day={week[activeDay]}
-                  phase={phase}
-                  telemetry={telemetry}
-                  onToggleExercise={onToggleExercise}
-                  onToggleDrill={onToggleDrill}
-                  onCycleStatus={onCycleStatus}
-                />
-              </div>
+              <DayDeck
+                view="drills"
+                phase={phase} setPhase={setPhase}
+                week={week} activeDay={activeDay} setActiveDay={setActiveDay}
+                telemetry={telemetry}
+                onToggleExercise={onToggleExercise}
+                onToggleDrill={onToggleDrill}
+                onCycleStatus={onCycleStatus}
+              />
 
               {/* Combine & Measurables — the live calculators, one tap away */}
               <details className="sh-measurables">
@@ -385,9 +411,18 @@ export default function SportsHub({ selection = null, progress = null }) {
             </>
           ) : null}
 
-          {/* ── EXERCISES — the weight room, auto-forged (no manual calibrate) ─── */}
+          {/* ── EXERCISES — the weight room as per-day interactive video cards
+              (Off/In × Day 1–7), matching the adult side's card layout. ─────────── */}
           {activeTab === 'program' ? (
-            <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="weight" readOnly />
+            <DayDeck
+              view="exercises"
+              phase={phase} setPhase={setPhase}
+              week={week} activeDay={activeDay} setActiveDay={setActiveDay}
+              telemetry={telemetry}
+              onToggleExercise={onToggleExercise}
+              onToggleDrill={onToggleDrill}
+              onCycleStatus={onCycleStatus}
+            />
           ) : null}
 
           {/* ── FUEL — nutrition / macros (buildMealPlan output). READ-ONLY: the
@@ -401,7 +436,9 @@ export default function SportsHub({ selection = null, progress = null }) {
               adult ClientHub via SovereignPrepPanels. ─────────────────────────── */}
           {activeTab === 'recovery' ? (
             <>
-              <RecoveryPrescriptionCard />
+              {/* The interactive 3-phase prep deck FIRST (Tissue Release · Static
+                  Elongation · Dynamic Potentiation) — the same component the adult
+                  ClientHub uses. The engine-generated prescription sits below it. */}
               <section className="sp-section" data-testid="youth-recovery-prep">
                 <header className="sp-section-head">
                   <div className="sp-kicker">{t('sp-kicker')}</div>
@@ -410,6 +447,7 @@ export default function SportsHub({ selection = null, progress = null }) {
                 </header>
                 <SovereignPrepPanels data={YOUTH_BASELINE_PREP} />
               </section>
+              <RecoveryPrescriptionCard />
             </>
           ) : null}
 

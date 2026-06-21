@@ -74,6 +74,20 @@
 .ab-day-rest { padding: 1rem .85rem; font-family: var(--bd); font-size: .85rem; font-weight: 600; color: var(--mut); }
 
 /* ── Fuel ─────────────────────────────────────────────────────────────────── */
+/* Dietary safety badge — the visible "allergen net is active" confirmation. */
+.ab-diet-badge {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem;
+  padding: .6rem .85rem; border-radius: 12px;
+  background: rgba(109, 209, 63, .08); border: 1px solid rgba(109, 209, 63, .35);
+}
+.ab-diet-badge-ic { font-size: 1rem; line-height: 1; }
+.ab-diet-badge-k { font-family: var(--hb, 'Bebas Neue'), sans-serif; font-size: .74rem; letter-spacing: 1.5px; text-transform: uppercase; color: #9fe870; }
+.ab-diet-badge-tags { display: inline-flex; flex-wrap: wrap; gap: .4rem; }
+.ab-diet-badge-tag {
+  font-family: var(--bd, 'Barlow Condensed'), sans-serif; font-size: .82rem; font-weight: 700; color: #eafbe0;
+  background: rgba(109, 209, 63, .16); border: 1px solid rgba(109, 209, 63, .4); border-radius: 999px; padding: .15rem .6rem;
+}
+
 .ab-macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; margin-bottom: 1.1rem; }
 @media (max-width: 520px) { .ab-macros { grid-template-columns: repeat(2, 1fr); } }
 .ab-macro { background: #0e0a16; border: 1px solid rgba(157, 39, 201, .28); border-radius: 12px; padding: .7rem .6rem; text-align: center; }

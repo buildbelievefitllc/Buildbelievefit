@@ -278,7 +278,7 @@ const WEEK_TEMPLATE = [
   {
     label: 'Day 1', focus: 'Lower-Body Power',
     exercises: [
-      { name: 'Back Squat', off: '4 × 5', in: '3 × 3' },
+      { name: 'Front Squat', off: '4 × 5', in: '3 × 3' },
       { name: 'Romanian Deadlift', off: '3 × 8', in: '3 × 5' },
       { name: 'Box Jump', off: '4 × 4', in: '3 × 3' },
       { name: 'Walking Lunge', off: '3 × 10', in: '2 × 8' },
