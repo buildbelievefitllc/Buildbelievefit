@@ -286,6 +286,18 @@
 .sh-mob-idx { font-family: var(--display); font-size: 1rem; color: var(--yel); flex: 0 0 auto; min-width: 1.4rem; }
 .sh-mob-name { font-family: var(--bd); font-size: .92rem; font-weight: 600; color: rgba(249, 245, 255, .9); }
 
+/* ── Dietary & allergy multi-select (YouthIntake) ─────────────────────────────── */
+.yi-diet { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+.yi-diet-pill {
+  cursor: pointer; padding: .5rem .95rem; border-radius: 999px; border: 1px solid var(--sh-line);
+  background: transparent; color: var(--mut); font-family: var(--bd); font-size: .85rem; font-weight: 600;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.yi-diet-pill:hover { color: var(--wht); border-color: rgba(245, 200, 0, .45); }
+.yi-diet-pill:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.yi-diet-pill.is-on { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: var(--yel); }
+.yi-diet-pill:disabled { opacity: .55; cursor: default; }
+
 /* ── Daily Execution Protocol ─────────────────────────────────────────────────── */
 /* Training-block (off/in-season) selector */
 .sh-phase { display: flex; align-items: center; gap: .5rem; margin-bottom: .9rem; }

@@ -111,13 +111,17 @@ export function AthleteProfileProvider({ children }) {
       positionCode: effPositionCode,
       age: sp.age ?? 15,
       sex: 'male',
+      // Safe, age-appropriate youth baseline anthropometrics — injected behind the
+      // scenes so the macro engine (Mifflin-St Jeor) always runs without asking the
+      // athlete to self-measure. Overridden by real intake data when present.
       heightFt: 5,
-      heightIn: 9,
-      weightLb: 150,
+      heightIn: 5,
+      weightLb: 130,
       level: levelForTier(currentTier),
       goal: preset.goal,
       arch: preset.arch,
       dietary: 'Omnivore',
+      dietaryRestrictions: [],
     };
   }, [effSportId, effPositionCode, sp.age, currentTier]);
 

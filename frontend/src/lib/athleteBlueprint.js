@@ -96,6 +96,38 @@ function nutritionGoal(goal) {
   return goal === 'strength' || goal === 'hypertrophy' ? 'gain' : 'maintain';
 }
 
+// Intake dietary_restrictions multi-select → engine inputs. Vegan/Vegetarian set the
+// meal DB profile; Peanut/Dairy/Gluten become the allergen exclusion list the
+// nutrition engine STRICTLY filters on. Anything else (incl. 'none') → Omnivore, none.
+export function deriveDietary(restrictions = []) {
+  const r = (Array.isArray(restrictions) ? restrictions : []).map((x) => String(x).toLowerCase());
+  const dietary_profile = r.includes('vegan') ? 'Vegan'
+    : r.includes('vegetarian') ? 'Vegetarian' : 'Omnivore';
+  const allergens = [];
+  if (r.some((x) => x.includes('peanut'))) allergens.push('peanut');
+  if (r.some((x) => x.includes('dairy'))) allergens.push('dairy');
+  if (r.some((x) => x.includes('gluten'))) allergens.push('gluten');
+  return { dietary_profile, allergens };
+}
+
+// athlete_profiles.gender (male|female|coed) → macro-engine sex (male|female). 'coed'
+// / unknown default to 'male' for the Mifflin-St Jeor baseline (neutral, safe).
+export function genderToSex(gender) {
+  return String(gender || '').toLowerCase() === 'female' ? 'female' : 'male';
+}
+
+// Whole-year age from an ISO birth_date string, or null when unparseable / absurd.
+export function ageFromBirthDate(birth) {
+  if (!birth) return null;
+  const d = new Date(birth);
+  if (Number.isNaN(d.getTime())) return null;
+  const now = new Date();
+  let a = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a -= 1;
+  return a >= 0 && a < 120 ? a : null;
+}
+
 // Strip the sports protocol's strength block — the weight room owns barbell strength
 // (IMMUTABLE LAW: no duplicate strength work).
 function fieldWorkOnly(protocol) {
@@ -154,8 +186,10 @@ export async function buildAthleteBlueprint(profile = {}) {
       nutritionError = error.message || 'macro_rpc_failed';
     } else if (data && data.ok) {
       macros = data;
-      // Youth division is locked to 'none' (no 16/8 fasting for minors).
-      nutrition = buildMealPlan({ tdee: data.tdee_target, dietary_profile: profile.dietary || 'Omnivore', fasting_window: 'none' });
+      // Dietary safety net: derive the meal profile + allergen exclusions from the
+      // intake's dietary_restrictions. Youth division is locked to 'none' fasting.
+      const { dietary_profile, allergens } = deriveDietary(profile.dietaryRestrictions);
+      nutrition = buildMealPlan({ tdee: data.tdee_target, dietary_profile, allergens, fasting_window: 'none' });
     } else {
       nutritionError = (data && data.error) || 'missing_anthropometrics';
     }

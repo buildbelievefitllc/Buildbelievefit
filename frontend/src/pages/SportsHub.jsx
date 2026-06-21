@@ -44,6 +44,8 @@ import AthleteBlueprint from '../components/sportshub/AthleteBlueprint.jsx';
 import YouthChampionMindset from '../components/sportshub/YouthChampionMindset.jsx';
 import RecoveryPrescriptionCard from '../components/vault/RecoveryPrescriptionCard.jsx';
 import SovereignReadinessDashboard from '../components/vault/SovereignReadinessDashboard.jsx';
+import SovereignPrepPanels from '../components/vault/SovereignPrepPanels.jsx';
+import { YOUTH_BASELINE_PREP } from '../components/sportshub/youthRecoveryPrep.js';
 import Concierge from '../components/vault/Concierge.jsx';
 import '../components/sportshub/sportsHub.css';
 
@@ -92,45 +94,16 @@ function ReadinessBanner({ readiness, t }) {
 // ── Deck tabs — the strict single-domain navigation (mirrors the adult Vault's
 // cv-tabs): exactly one panel mounts at a time, never a vertical stack. Trilingual
 // labels are component-local (parity with the rest of the youth surface). ──
+// Athlete-language deck (CEO terminology): Check-In · Drills (field work) · Exercises
+// (weight room) · Nutrition · Recovery · Mindset. One domain mounts at a time.
 const DECK_TABS = [
   { id: 'checkin', icon: '◉', en: 'Check-In', es: 'Chequeo', pt: 'Check-In' },
-  { id: 'protocol', icon: '◎', en: 'Protocol', es: 'Protocolo', pt: 'Protocolo' },
-  { id: 'program', icon: '▤', en: 'Program', es: 'Programa', pt: 'Programa' },
-  { id: 'fuel', icon: '◆', en: 'Fuel', es: 'Nutrición', pt: 'Nutrição' },
+  { id: 'protocol', icon: '◎', en: 'Drills', es: 'Práctica', pt: 'Treino' },
+  { id: 'program', icon: '▤', en: 'Exercises', es: 'Ejercicios', pt: 'Exercícios' },
+  { id: 'fuel', icon: '◆', en: 'Nutrition', es: 'Nutrición', pt: 'Nutrição' },
   { id: 'recovery', icon: '❂', en: 'Recovery', es: 'Recuperación', pt: 'Recuperação' },
   { id: 'mindset', icon: '❖', en: 'Mindset', es: 'Mentalidad', pt: 'Mentalidade' },
 ];
-
-// Baseline mobility — the sports-engine recovery floor (universal youth joint-prep),
-// shown in the Recovery tab beside the engine-generated RecoveryPrescriptionCard.
-const MOBILITY = {
-  en: { kicker: 'Baseline Mobility', sub: 'Daily joint-prep — flow through before and after every session.',
-    items: ["World's Greatest Stretch · 4/side", 'Cat–Cow · 8 slow reps', '90/90 Hip Switch · 6/side', 'Ankle Rock-Throughs · 10/side', 'Thoracic Rotations · 8/side'] },
-  es: { kicker: 'Movilidad Base', sub: 'Preparación articular diaria — antes y después de cada sesión.',
-    items: ['El Mejor Estiramiento · 4/lado', 'Gato–Camello · 8 reps lentas', 'Cambio de Cadera 90/90 · 6/lado', 'Movilidad de Tobillo · 10/lado', 'Rotaciones Torácicas · 8/lado'] },
-  pt: { kicker: 'Mobilidade Base', sub: 'Preparo articular diário — antes e depois de cada sessão.',
-    items: ['Maior Alongamento do Mundo · 4/lado', 'Gato–Camelo · 8 reps lentas', 'Troca de Quadril 90/90 · 6/lado', 'Mobilidade de Tornozelo · 10/lado', 'Rotações Torácicas · 8/lado'] },
-};
-
-function BaselineMobility({ lang }) {
-  const M = MOBILITY[lang] || MOBILITY.en;
-  return (
-    <section className="sh-mob" data-testid="sh-baseline-mobility">
-      <div className="sh-mob-head">
-        <span className="sh-mob-kicker">✦ {M.kicker}</span>
-        <p className="sh-mob-sub">{M.sub}</p>
-      </div>
-      <ol className="sh-mob-list">
-        {M.items.map((it, i) => (
-          <li className="sh-mob-item" key={i}>
-            <span className="sh-mob-idx">{String(i + 1).padStart(2, '0')}</span>
-            <span className="sh-mob-name">{it}</span>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
 
 // `selection` ({ sportId, positionCode }) is the athlete's intake choice and
 // `progress` the persisted per-day check-off map (bbf_users.youth_progress) — both
@@ -412,9 +385,9 @@ export default function SportsHub({ selection = null, progress = null }) {
             </>
           ) : null}
 
-          {/* ── PROGRAM — the weight room (one shared, persisted blueprint) ────── */}
+          {/* ── EXERCISES — the weight room, auto-forged (no manual calibrate) ─── */}
           {activeTab === 'program' ? (
-            <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="weight" />
+            <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="weight" readOnly />
           ) : null}
 
           {/* ── FUEL — nutrition / macros (buildMealPlan output). READ-ONLY: the
@@ -423,11 +396,20 @@ export default function SportsHub({ selection = null, progress = null }) {
             <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="fuel" readOnly />
           ) : null}
 
-          {/* ── RECOVERY — engine-generated prescription + baseline mobility ───── */}
+          {/* ── RECOVERY — engine prescription + the transplanted media-rich prep
+              (foam rolling → static stretching → dynamic drills), same UI as the
+              adult ClientHub via SovereignPrepPanels. ─────────────────────────── */}
           {activeTab === 'recovery' ? (
             <>
               <RecoveryPrescriptionCard />
-              <BaselineMobility lang={lang} />
+              <section className="sp-section" data-testid="youth-recovery-prep">
+                <header className="sp-section-head">
+                  <div className="sp-kicker">{t('sp-kicker')}</div>
+                  <h2 className="sp-title">{t('sp-title')}</h2>
+                  <p className="sp-section-sub">{t('sp-section-sub')}</p>
+                </header>
+                <SovereignPrepPanels data={YOUTH_BASELINE_PREP} />
+              </section>
             </>
           ) : null}
 

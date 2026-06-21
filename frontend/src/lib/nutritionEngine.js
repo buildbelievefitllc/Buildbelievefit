@@ -26,6 +26,22 @@ const DIET_ALLOWED = {
   Vegan: new Set(['Vegan']),
 };
 
+// Allergen SAFETY NET. The meal DB carries names, not allergen tags, so we infer
+// allergens from the meal name by keyword and STRICTLY exclude any match (youth
+// dietary safety — when in doubt, drop the meal). `allergens` is the canonical key
+// list ('peanut'|'dairy'|'gluten') the Athlete Blueprint derives from the intake's
+// dietary_restrictions multi-select.
+const ALLERGEN_KEYWORDS = {
+  peanut: ['peanut'],
+  dairy: ['yogurt', 'cheese', 'feta', 'paneer', 'halloumi', 'mozzarella', 'cottage', 'whey', 'milk', 'cream', 'butter'],
+  gluten: ['wheat', 'rye', 'bread', 'toast', 'pita', 'pasta', 'couscous', 'farro', 'barley', 'soba', 'oat'],
+};
+function mealHasAllergen(meal, allergens) {
+  if (!Array.isArray(allergens) || !allergens.length) return false;
+  const name = String(meal?.name || '').toLowerCase();
+  return allergens.some((a) => (ALLERGEN_KEYWORDS[a] || []).some((kw) => name.includes(kw)));
+}
+
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const round = (v) => Math.round(num(v));
 
@@ -34,12 +50,13 @@ function pickMeal(pool, type) {
   return pool.find((m) => String(m.meal_type || '').toLowerCase() === type) || null;
 }
 
-export function buildMealPlan({ tdee, dietary_profile = 'Omnivore', fasting_window = 'none' } = {}) {
+export function buildMealPlan({ tdee, dietary_profile = 'Omnivore', fasting_window = 'none', allergens = [] } = {}) {
   const target = num(tdee);
   if (target <= 0 || !Array.isArray(MEALS) || !MEALS.length) return null;
 
   const allow = DIET_ALLOWED[dietary_profile] || DIET_ALLOWED.Omnivore;
-  const pool = MEALS.filter((m) => m && allow.has(m.dietary_profile));
+  // Diet profile AND the allergen safety net — a flagged allergen meal never enters the pool.
+  const pool = MEALS.filter((m) => m && allow.has(m.dietary_profile) && !mealHasAllergen(m, allergens));
 
   // Clone selections so the imported DB is never mutated.
   const clone = (m) => (m ? { ...m } : null);
@@ -103,6 +120,7 @@ export function buildMealPlan({ tdee, dietary_profile = 'Omnivore', fasting_wind
     calorie_target: target,
     dietary_profile,
     fasting_window: fasting_window || 'none',
+    allergens_excluded: Array.isArray(allergens) ? allergens : [],
     scaling_multiplier: Math.round(multiplier * 1000) / 1000,
     days,
   };

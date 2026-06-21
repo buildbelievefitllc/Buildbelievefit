@@ -20,6 +20,18 @@ import { PARQ_ITEMS, classifyParq, submitYouthIntake } from '../../lib/youthInta
 import { YOUTH_SPORTS, getSport } from './youthSports.js';
 import './sportsHub.css';
 
+// Dietary & allergy multi-select (CRITICAL safety). Vegan/Vegetarian set the meal
+// profile; Peanut/Dairy/Gluten become hard allergen exclusions the meal engine
+// strictly honors. 'None' is mutually exclusive with the rest.
+const DIETARY_OPTIONS = [
+  { v: 'none', k: 'yi-diet-none' },
+  { v: 'peanut', k: 'yi-diet-peanut' },
+  { v: 'dairy_free', k: 'yi-diet-dairy' },
+  { v: 'gluten_free', k: 'yi-diet-gluten' },
+  { v: 'vegetarian', k: 'yi-diet-veg' },
+  { v: 'vegan', k: 'yi-diet-vegan' },
+];
+
 export default function YouthIntake({ uid, onComplete, selection = null, prefill = null }) {
   const { user } = useAuth();
   const { t, lang } = useLang();
@@ -46,10 +58,19 @@ export default function YouthIntake({ uid, onComplete, selection = null, prefill
   const [birthDate, setBirthDate] = useState(() => prefill?.birthDate || '');
   const [gender, setGender] = useState(() =>
     (['male', 'female', 'coed'].includes(prefill?.gender) ? prefill.gender : ''));
+  // Dietary restrictions / allergies (REQUIRED) — feeds the meal engine's allergen
+  // safety net. Pre-fills from anything already on the profile.
+  const [dietary, setDietary] = useState(() =>
+    (Array.isArray(prefill?.dietaryRestrictions) ? prefill.dietaryRestrictions : []));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
   const toggleParq = (k, on) => setParq((p) => ({ ...p, [k]: on }));
+  // 'None' is mutually exclusive; any allergen/diet pick clears it (and vice versa).
+  const toggleDietary = (v) => setDietary((cur) => {
+    if (v === 'none') return cur.includes('none') ? [] : ['none'];
+    return cur.includes(v) ? cur.filter((x) => x !== v) : [...cur.filter((x) => x !== 'none'), v];
+  });
   const classification = classifyParq(parq);
   const flagged = classification !== 'self_attested';
 
@@ -59,7 +80,7 @@ export default function YouthIntake({ uid, onComplete, selection = null, prefill
   // Forced completion: sport + position/event, birth date + gender (athlete_profiles),
   // a guardian authorization, AND the waiver/terms acknowledgment. PAR-Q answers
   // default to "no" (a valid attestation).
-  const canSubmit = sportId && posCode && birthDate && gender
+  const canSubmit = sportId && posCode && birthDate && gender && dietary.length > 0
     && guardianName.trim() && guardianConsent && liability && !busy;
 
   function onSportChange(next) {
@@ -89,6 +110,9 @@ export default function YouthIntake({ uid, onComplete, selection = null, prefill
       // male|female|coed). The RPC re-validates/derives server-side.
       birth_date: birthDate,
       gender,
+      // Dietary restrictions / allergies → athlete_profiles.dietary_restrictions →
+      // the meal engine's strict allergen exclusion.
+      dietary_restrictions: dietary,
       answers,
       flagged_items: PARQ_ITEMS.filter((k) => parq[k]),
       classified: classification, // advisory; server is authoritative
@@ -180,6 +204,28 @@ export default function YouthIntake({ uid, onComplete, selection = null, prefill
               <option value="female">{t('yi-gender-female')}</option>
               <option value="coed">{t('yi-gender-coed')}</option>
             </select>
+
+            {/* ── Dietary & allergies (REQUIRED) — meal-engine allergen safety net ── */}
+            <div className="sh-intake-sec-title sh-intake-gap">{t('yi-diet-head')} <span className="sh-intake-req">*</span></div>
+            <div className="sh-intake-note">{t('yi-diet-note')}</div>
+            <div className="yi-diet" role="group" aria-label={t('yi-diet-head')}>
+              {DIETARY_OPTIONS.map((o) => {
+                const on = dietary.includes(o.v);
+                return (
+                  <button
+                    key={o.v}
+                    type="button"
+                    className={`yi-diet-pill${on ? ' is-on' : ''}`}
+                    aria-pressed={on}
+                    disabled={busy}
+                    data-testid={`yi-diet-${o.v}`}
+                    onClick={() => toggleDietary(o.v)}
+                  >
+                    {t(o.k)}
+                  </button>
+                );
+              })}
+            </div>
 
             {/* ── Health disclosure (optional) ── */}
             <div className="sh-intake-sec-title">{t('f-injuries')}</div>

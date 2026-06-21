@@ -18,7 +18,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { useReadiness } from '../../context/ReadinessContext.jsx';
 import { useAthleteProfile } from '../../context/AthleteProfileContext.jsx';
-import { buildAthleteBlueprint, GOAL_LABEL } from '../../lib/athleteBlueprint.js';
+import { buildAthleteBlueprint, GOAL_LABEL, ageFromBirthDate, genderToSex } from '../../lib/athleteBlueprint.js';
 import { getAthleteSync, saveAthleteBlueprint } from '../../lib/athleteSyncApi.js';
 import { GOALS, LEVELS, SPLITS } from '../vault/generatorEngine.js';
 import SportProtocol from './SportProtocol.jsx';
@@ -59,7 +59,7 @@ const L10N = {
     fuelNote: 'TDEE computed server-side (Mifflin-St Jeor) · youth lock: no fasting window.',
     needMetrics: 'Add your height, weight, age and sex above, then re-forge to compute your fuel.',
     placeholder: 'Calibrate your profile, then forge your blueprint — field work, weight room and fuel in one tap.',
-    fuelLocked: 'Forge your blueprint in the Program tab to see your fuel plan.',
+    fuelLocked: 'Preparing your nutrition plan…',
   },
   es: {
     kicker: 'El Plan del Atleta · Motor Unificado',
@@ -79,7 +79,7 @@ const L10N = {
     fuelNote: 'TDEE calculado en el servidor (Mifflin-St Jeor) · bloqueo juvenil: sin ayuno.',
     needMetrics: 'Agrega tu estatura, peso, edad y sexo arriba, luego re-forja para calcular tu nutrición.',
     placeholder: 'Calibra tu perfil y forja tu plan — trabajo de campo, pesas y nutrición en un toque.',
-    fuelLocked: 'Forja tu plan en la pestaña Programa para ver tu nutrición.',
+    fuelLocked: 'Preparando tu plan de nutrición…',
   },
   pt: {
     kicker: 'O Plano do Atleta · Motor Unificado',
@@ -99,7 +99,7 @@ const L10N = {
     fuelNote: 'TDEE calculado no servidor (Mifflin-St Jeor) · trava juvenil: sem jejum.',
     needMetrics: 'Adicione sua altura, peso, idade e sexo acima, depois re-forje para calcular sua nutrição.',
     placeholder: 'Calibre seu perfil e forje seu plano — trabalho de campo, musculação e nutrição num toque.',
-    fuelLocked: 'Forje seu plano na aba Programa para ver sua nutrição.',
+    fuelLocked: 'Preparando seu plano de nutrição…',
   },
 };
 
@@ -127,20 +127,57 @@ export default function AthleteBlueprint({ sportLabel, positionLabel, room = nul
   // explicit and the active panel is never index-fragile.
   const [activeTab, setActiveTab] = useState('field');
 
-  // Server hydrate: pull the authoritative current_tier (computed server-side from
-  // birth_date) + the last saved blueprint. State is only set inside the async
-  // callback (house rule). A failure keeps the localStorage-seeded cache.
+  // AUTO-FORGE — no manual calibrate. On mount, hydrate the athlete's identity
+  // (tier, age, gender, dietary restrictions) from the server, then run the engines
+  // automatically. The merged profile is passed STRAIGHT to the engine (no stale-state
+  // race), so the Nutrition + Exercises panels populate on the fly with real engine
+  // output. A cached / server blueprint short-circuits the forge (still engine output,
+  // never a static placeholder). State is set only inside async callbacks (house rule).
   useEffect(() => {
     let cancelled = false;
-    getAthleteSync()
-      .then((d) => {
-        if (cancelled || !d?.ok) return;
-        if (d.current_tier) setCurrentTier(d.current_tier);
-        if (d.blueprint) setBlueprint(d.blueprint);
-      })
-      .catch(() => { /* offline / pre-intake — keep the offline cache */ });
+    (async () => {
+      let merged = { ...profile, currentTier };
+      let serverBp = null;
+      try {
+        const d = await getAthleteSync();
+        if (d?.ok) {
+          const age = ageFromBirthDate(d.profile?.birth_date);
+          const sex = d.profile?.gender ? genderToSex(d.profile.gender) : null;
+          const dr = Array.isArray(d.profile?.dietary_restrictions) ? d.profile.dietary_restrictions : null;
+          if (d.current_tier) setCurrentTier(d.current_tier);
+          if (age != null) setProfileField('age', age);
+          if (sex) setProfileField('sex', sex);
+          if (dr) setProfileField('dietaryRestrictions', dr);
+          merged = {
+            ...merged,
+            currentTier: d.current_tier || currentTier,
+            age: age ?? merged.age,
+            sex: sex || merged.sex,
+            dietaryRestrictions: dr ?? merged.dietaryRestrictions,
+          };
+          serverBp = d.blueprint || null;
+        }
+      } catch { /* offline / pre-intake — forge with the local profile */ }
+      if (cancelled) return;
+      if (serverBp) { setBlueprint(serverBp); return; }  // engine output already on file
+      if (blueprint) return;                             // localStorage cache already painted
+      setBusy(true);
+      try {
+        const bp = await buildAthleteBlueprint(merged);
+        if (cancelled) return;
+        setBlueprint(bp);
+        saveBlueprint(uid, bp);                  // offline cache (instant, survives reload)
+        try { await saveAthleteBlueprint(bp); }  // durable server record (source of truth)
+        catch { /* server unreachable / pre-intake — the offline cache stands */ }
+      } catch {
+        if (!cancelled) setError(L.err);
+      } finally {
+        if (!cancelled) setBusy(false);
+      }
+    })();
     return () => { cancelled = true; };
-  }, [setCurrentTier]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const diet = DIETARY[lang] || DIETARY.en;
   const goalLabel = (GOAL_LABEL[profile.goal] || GOAL_LABEL.general)[lang] || (GOAL_LABEL[profile.goal] || GOAL_LABEL.general).en;
@@ -348,7 +385,7 @@ export default function AthleteBlueprint({ sportLabel, positionLabel, room = nul
             </div>
           </>
         ) : (
-          <div className="ab-panel"><div className="ab-empty">{readOnly ? L.fuelLocked : L.placeholder}</div></div>
+          <div className="ab-panel"><div className="ab-empty">{busy ? L.forging : (readOnly ? L.fuelLocked : L.placeholder)}</div></div>
         )}
       </div>
     </section>

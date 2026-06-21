@@ -4,7 +4,7 @@
 //
 //   GET  → read the athlete's progression identity from athlete_profiles:
 //          { ok, current_tier, blueprint, profile{ sport, position, full_name,
-//            gender, birth_date }, blueprint_updated_at }.
+//            gender, birth_date, dietary_restrictions }, blueprint_updated_at }.
 //   POST → persist the forged blueprint to the athlete's athlete_profiles record:
 //          body { blueprint } → updates blueprint + blueprint_updated_at.
 //
@@ -62,7 +62,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'GET') {
     const { data, error } = await supa
       .from('athlete_profiles')
-      .select('current_tier, blueprint, blueprint_updated_at, sport, position, full_name, gender, birth_date')
+      .select('current_tier, blueprint, blueprint_updated_at, sport, position, full_name, gender, birth_date, dietary_restrictions')
       .eq('user_id', userId)
       .maybeSingle();
     if (error) return jsonResponse({ error: 'profile_read_failed', detail: error.message }, 502);
@@ -78,6 +78,7 @@ Deno.serve(async (req: Request) => {
         full_name: data.full_name ?? null,
         gender: data.gender ?? null,
         birth_date: data.birth_date ?? null,
+        dietary_restrictions: Array.isArray(data.dietary_restrictions) ? data.dietary_restrictions : [],
       },
     });
   }
