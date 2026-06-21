@@ -59,6 +59,7 @@ const L10N = {
     fuelNote: 'TDEE computed server-side (Mifflin-St Jeor) · youth lock: no fasting window.',
     needMetrics: 'Add your height, weight, age and sex above, then re-forge to compute your fuel.',
     placeholder: 'Calibrate your profile, then forge your blueprint — field work, weight room and fuel in one tap.',
+    fuelLocked: 'Forge your blueprint in the Program tab to see your fuel plan.',
   },
   es: {
     kicker: 'El Plan del Atleta · Motor Unificado',
@@ -78,6 +79,7 @@ const L10N = {
     fuelNote: 'TDEE calculado en el servidor (Mifflin-St Jeor) · bloqueo juvenil: sin ayuno.',
     needMetrics: 'Agrega tu estatura, peso, edad y sexo arriba, luego re-forja para calcular tu nutrición.',
     placeholder: 'Calibra tu perfil y forja tu plan — trabajo de campo, pesas y nutrición en un toque.',
+    fuelLocked: 'Forja tu plan en la pestaña Programa para ver tu nutrición.',
   },
   pt: {
     kicker: 'O Plano do Atleta · Motor Unificado',
@@ -97,16 +99,17 @@ const L10N = {
     fuelNote: 'TDEE calculado no servidor (Mifflin-St Jeor) · trava juvenil: sem jejum.',
     needMetrics: 'Adicione sua altura, peso, idade e sexo acima, depois re-forje para calcular sua nutrição.',
     placeholder: 'Calibre seu perfil e forje seu plano — trabalho de campo, musculação e nutrição num toque.',
+    fuelLocked: 'Forje seu plano na aba Programa para ver sua nutrição.',
   },
 };
 
 const TAB_KEYS = ['field', 'weight', 'fuel'];
 
 // `room` ('weight' | 'fuel' | 'field') pins the deck to a SINGLE pillar so the Sports
-// Hub can host the weight room and fuel as separate top-level tabs. When pinned, the
-// internal tab bar + masthead are suppressed (the page tab already names the domain);
-// the shared calibrate + forge drive the one persisted blueprint across both tabs.
-export default function AthleteBlueprint({ sportLabel, positionLabel, room = null }) {
+// Hub can host the weight room and fuel as separate top-level tabs. `readOnly` strips
+// the Calibrate + Forge controls so a tab can purely READ/display its room (the Fuel
+// tab) — the Program tab remains the single master control that forges the blueprint.
+export default function AthleteBlueprint({ sportLabel, positionLabel, room = null, readOnly = false }) {
   const { lang } = useLang();
   const L = L10N[lang] || L10N.en;
   const { user } = useAuth();
@@ -176,7 +179,9 @@ export default function AthleteBlueprint({ sportLabel, positionLabel, room = nul
           </div>
         ) : null}
 
-        {/* ── Calibrate (the unified profile — pre-set, overridable) ─────────── */}
+        {/* ── Calibrate (the unified profile — pre-set, overridable). Suppressed in
+            readOnly mode so the Program tab is the SINGLE master forge control. ─── */}
+        {!readOnly ? (
         <div className="ab-cal">
           <div className="ab-cal-top">
             <span className="ab-cal-kicker">{L.calibrate}</span>
@@ -237,11 +242,16 @@ export default function AthleteBlueprint({ sportLabel, positionLabel, room = nul
           </div>
           <p className="ab-preset-note">{L.presetNote(positionLabel || profile.positionCode, goalLabel)}</p>
         </div>
+        ) : null}
 
-        <button type="button" className="ab-forge" onClick={forge} disabled={busy} data-testid="ab-forge">
-          {busy ? L.forging : (blueprint ? L.reforge : L.forge)}
-        </button>
-        {error ? <p className="ab-err" role="alert">{error}</p> : null}
+        {!readOnly ? (
+          <>
+            <button type="button" className="ab-forge" onClick={forge} disabled={busy} data-testid="ab-forge">
+              {busy ? L.forging : (blueprint ? L.reforge : L.forge)}
+            </button>
+            {error ? <p className="ab-err" role="alert">{error}</p> : null}
+          </>
+        ) : null}
 
         {/* ── The three rooms ───────────────────────────────────────────────── */}
         {blueprint ? (
@@ -338,7 +348,7 @@ export default function AthleteBlueprint({ sportLabel, positionLabel, room = nul
             </div>
           </>
         ) : (
-          <div className="ab-panel"><div className="ab-empty">{L.placeholder}</div></div>
+          <div className="ab-panel"><div className="ab-empty">{readOnly ? L.fuelLocked : L.placeholder}</div></div>
         )}
       </div>
     </section>

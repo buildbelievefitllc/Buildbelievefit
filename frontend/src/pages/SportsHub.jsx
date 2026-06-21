@@ -43,6 +43,7 @@ import SportProtocol from '../components/sportshub/SportProtocol.jsx';
 import AthleteBlueprint from '../components/sportshub/AthleteBlueprint.jsx';
 import YouthChampionMindset from '../components/sportshub/YouthChampionMindset.jsx';
 import RecoveryPrescriptionCard from '../components/vault/RecoveryPrescriptionCard.jsx';
+import SovereignReadinessDashboard from '../components/vault/SovereignReadinessDashboard.jsx';
 import Concierge from '../components/vault/Concierge.jsx';
 import '../components/sportshub/sportsHub.css';
 
@@ -92,6 +93,7 @@ function ReadinessBanner({ readiness, t }) {
 // cv-tabs): exactly one panel mounts at a time, never a vertical stack. Trilingual
 // labels are component-local (parity with the rest of the youth surface). ──
 const DECK_TABS = [
+  { id: 'checkin', icon: '◉', en: 'Check-In', es: 'Chequeo', pt: 'Check-In' },
   { id: 'protocol', icon: '◎', en: 'Protocol', es: 'Protocolo', pt: 'Protocolo' },
   { id: 'program', icon: '▤', en: 'Program', es: 'Programa', pt: 'Programa' },
   { id: 'fuel', icon: '◆', en: 'Fuel', es: 'Nutrición', pt: 'Nutrição' },
@@ -198,8 +200,9 @@ export default function SportsHub({ selection = null, progress = null }) {
   const [week, setWeek] = useState(() => applyProgress(buildWeek(model), progress));
   const [activeDay, setActiveDay] = useState(() => firstTrainingDay(week));
   const [phase, setPhase] = useState('offseason'); // 'offseason' | 'inseason'
-  // Strict tab-deck — the active data domain. One panel mounts at a time.
-  const [activeTab, setActiveTab] = useState('protocol');
+  // Strict tab-deck — the active data domain. One panel mounts at a time. The athlete
+  // LANDS on Check-In (the morning readiness scan) before any daily work.
+  const [activeTab, setActiveTab] = useState('checkin');
 
   // ── Daily checkoffs — mutate the ACTIVE day optimistically, then persist the
   //    single check-off to the athlete's row (bbf_log_youth_progress). The server
@@ -332,6 +335,12 @@ export default function SportsHub({ selection = null, progress = null }) {
             into another. The lifted week/model state lives on the component (not the
             panel), so day check-offs survive a tab switch. */}
         <div className="sh-deck-panel" role="tabpanel" key={activeTab}>
+          {/* ── CHECK-IN — the morning CNS readiness scan; the athlete lands here
+              first and sets today's training volume before any daily work. ─────── */}
+          {activeTab === 'checkin' ? (
+            <SovereignReadinessDashboard />
+          ) : null}
+
           {/* ── PROTOCOL — field work + the Day 1–7 execution protocol + combine ── */}
           {activeTab === 'protocol' ? (
             <>
@@ -408,9 +417,10 @@ export default function SportsHub({ selection = null, progress = null }) {
             <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="weight" />
           ) : null}
 
-          {/* ── FUEL — nutrition / macros (buildMealPlan output, now rendered) ─── */}
+          {/* ── FUEL — nutrition / macros (buildMealPlan output). READ-ONLY: the
+              Program tab is the single forge control; Fuel purely displays. ────── */}
           {activeTab === 'fuel' ? (
-            <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="fuel" />
+            <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="fuel" readOnly />
           ) : null}
 
           {/* ── RECOVERY — engine-generated prescription + baseline mobility ───── */}
