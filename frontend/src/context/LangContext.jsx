@@ -241,6 +241,12 @@ const DICT = {
   'yi-field-position': { en: 'Position', es: 'Posición', pt: 'Posição' },
   'yi-field-event': { en: 'Event', es: 'Prueba', pt: 'Prova' },
   'yi-choose': { en: 'Select…', es: 'Selecciona…', pt: 'Selecione…' },
+  // Youth intake — athlete details (feed athlete_profiles + tier calculation).
+  'yi-field-birth': { en: 'Date of Birth', es: 'Fecha de Nacimiento', pt: 'Data de Nascimento' },
+  'yi-field-gender': { en: 'Gender', es: 'Género', pt: 'Gênero' },
+  'yi-gender-male': { en: 'Male', es: 'Masculino', pt: 'Masculino' },
+  'yi-gender-female': { en: 'Female', es: 'Femenino', pt: 'Feminino' },
+  'yi-gender-coed': { en: 'Coed', es: 'Mixto', pt: 'Misto' },
   'yi-sport-football': { en: 'American Football', es: 'Fútbol Americano', pt: 'Futebol Americano' },
   'yi-sport-basketball': { en: 'Basketball', es: 'Baloncesto', pt: 'Basquete' },
   'yi-sport-soccer': { en: 'Soccer', es: 'Fútbol', pt: 'Futebol' },

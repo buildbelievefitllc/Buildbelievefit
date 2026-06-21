@@ -36,6 +36,10 @@ export default function YouthIntake({ uid, onComplete }) {
   const [guardianRel, setGuardianRel] = useState('');
   const [guardianConsent, setGuardianConsent] = useState(false);
   const [liability, setLiability] = useState(false);
+  // Athlete details — feed athlete_profiles (birth_date drives the tier calc; gender
+  // is Male / Female / Coed, matching the athlete_profiles CHECK constraint).
+  const [birthDate, setBirthDate] = useState('');
+  const [gender, setGender] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -46,9 +50,11 @@ export default function YouthIntake({ uid, onComplete }) {
   const sportCfg = getSport(sportId);
   const secondaryLabel = sportCfg?.field === 'event' ? t('yi-field-event') : t('yi-field-position');
 
-  // Forced completion: sport + position/event, a guardian authorization, AND the
-  // waiver/terms acknowledgment. PAR-Q answers default to "no" (a valid attestation).
-  const canSubmit = sportId && posCode && guardianName.trim() && guardianConsent && liability && !busy;
+  // Forced completion: sport + position/event, birth date + gender (athlete_profiles),
+  // a guardian authorization, AND the waiver/terms acknowledgment. PAR-Q answers
+  // default to "no" (a valid attestation).
+  const canSubmit = sportId && posCode && birthDate && gender
+    && guardianName.trim() && guardianConsent && liability && !busy;
 
   function onSportChange(next) {
     setSportId(next);
@@ -73,6 +79,10 @@ export default function YouthIntake({ uid, onComplete }) {
       // Top-level sport/position (canonical ids) → persisted to the profile columns.
       sport: sportId,
       position: posCode,
+      // Athlete details → athlete_profiles (birth_date drives current_tier; gender ∈
+      // male|female|coed). The RPC re-validates/derives server-side.
+      birth_date: birthDate,
+      gender,
       answers,
       flagged_items: PARQ_ITEMS.filter((k) => parq[k]),
       classified: classification, // advisory; server is authoritative
@@ -150,6 +160,20 @@ export default function YouthIntake({ uid, onComplete }) {
                 </select>
               </>
             ) : null}
+
+            {/* ── Athlete details (REQUIRED) — birth date drives the tier calc ── */}
+            <label className="bbf-label sh-intake-gap" htmlFor="yi-birth">{t('yi-field-birth')} <span className="sh-intake-req">*</span></label>
+            <input id="yi-birth" className="bbf-input" type="date" value={birthDate} disabled={busy}
+              max={new Date().toISOString().slice(0, 10)}
+              data-testid="yi-birth" onChange={(e) => setBirthDate(e.target.value)} />
+            <label className="bbf-label sh-intake-gap" htmlFor="yi-gender">{t('yi-field-gender')} <span className="sh-intake-req">*</span></label>
+            <select id="yi-gender" className="bbf-input" value={gender} disabled={busy}
+              data-testid="yi-gender" onChange={(e) => setGender(e.target.value)}>
+              <option value="">{t('yi-choose')}</option>
+              <option value="male">{t('yi-gender-male')}</option>
+              <option value="female">{t('yi-gender-female')}</option>
+              <option value="coed">{t('yi-gender-coed')}</option>
+            </select>
 
             {/* ── Health disclosure (optional) ── */}
             <div className="sh-intake-sec-title">{t('f-injuries')}</div>

@@ -13,12 +13,13 @@
 // The intake is collected ONCE into the global profile (pre-set by sport/position,
 // overridable here) and the forged blueprint is persisted per-uid to localStorage.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { useReadiness } from '../../context/ReadinessContext.jsx';
 import { useAthleteProfile } from '../../context/AthleteProfileContext.jsx';
 import { buildAthleteBlueprint, GOAL_LABEL } from '../../lib/athleteBlueprint.js';
+import { getAthleteSync, saveAthleteBlueprint } from '../../lib/athleteSyncApi.js';
 import { GOALS, LEVELS, SPLITS } from '../vault/generatorEngine.js';
 import SportProtocol from './SportProtocol.jsx';
 import './athleteBlueprint.css';
@@ -106,13 +107,30 @@ export default function AthleteBlueprint({ sportLabel, positionLabel }) {
   const L = L10N[lang] || L10N.en;
   const { user } = useAuth();
   const uid = user?.username || user?.id || '';
-  const { profile, currentTier, setProfileField } = useAthleteProfile();
+  const { profile, currentTier, setProfileField, setCurrentTier } = useAthleteProfile();
   const { volMultiplier, hasCheckedIn, band } = useReadiness();
 
+  // localStorage seeds an INSTANT paint (offline cache); the server is the source of
+  // truth and overrides it on mount via the bbf-athlete-sync bridge.
   const [blueprint, setBlueprint] = useState(() => loadBlueprint(uid));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [tab, setTab] = useState(0);
+
+  // Server hydrate: pull the authoritative current_tier (computed server-side from
+  // birth_date) + the last saved blueprint. State is only set inside the async
+  // callback (house rule). A failure keeps the localStorage-seeded cache.
+  useEffect(() => {
+    let cancelled = false;
+    getAthleteSync()
+      .then((d) => {
+        if (cancelled || !d?.ok) return;
+        if (d.current_tier) setCurrentTier(d.current_tier);
+        if (d.blueprint) setBlueprint(d.blueprint);
+      })
+      .catch(() => { /* offline / pre-intake — keep the offline cache */ });
+    return () => { cancelled = true; };
+  }, [setCurrentTier]);
 
   const diet = DIETARY[lang] || DIETARY.en;
   const goalLabel = (GOAL_LABEL[profile.goal] || GOAL_LABEL.general)[lang] || (GOAL_LABEL[profile.goal] || GOAL_LABEL.general).en;
@@ -126,7 +144,9 @@ export default function AthleteBlueprint({ sportLabel, positionLabel }) {
     try {
       const bp = await buildAthleteBlueprint({ ...profile, currentTier });
       setBlueprint(bp);
-      saveBlueprint(uid, bp);
+      saveBlueprint(uid, bp);                 // offline cache (instant, survives reload)
+      try { await saveAthleteBlueprint(bp); } // durable server record (source of truth)
+      catch { /* server unreachable / pre-intake — the offline cache stands */ }
     } catch {
       setError(L.err);
     } finally {
