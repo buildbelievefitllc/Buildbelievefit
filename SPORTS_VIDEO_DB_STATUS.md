@@ -68,20 +68,22 @@ URLs** per sport — tutorials + championship-mindset films. These are wired liv
   Softball `jddeGmeVtHY`, Track `kEopBuUhClk`, Boxing/MMA `xDoik0qjdLE`) attaches to
   its drill cards as the demonstration clip.
 
-### ⚠ On `bbf_sports_hub_unlimited_db.json` (the "540-record" file) — NOT wired, by design
+### Genuine video library (`bbf_sports_hub_unlimited_db_genuine.json`, schema 5.1) — ✅ WIRED
 
-I analyzed it in full. It declares 540 video records but they collapse to **only 4
-distinct YouTube videos**: `LCg0ASv3fQg` ×150, `4Diq7HgjjQw` ×150, `xDoik0qjdLE` ×150,
-`qmXjA_Prsr0` ×90. Every "EN volleyball tutorial" points to the *same* clip (a cosmetic
-`&index=N` is appended, which YouTube ignores outside a playlist), and some titles leak
-the raw key (e.g. _"Boxing_multi Cognitive Resilience Part 1"_). Wiring it would show an
-athlete 50 identical-playing cards — a worse, misleading experience.
+The earlier `bbf_sports_hub_unlimited_db.json` was templated padding (540 entries → 4
+distinct clips via `&index=N`), so it was **not** wired. The CEO then supplied the
+**genuine** file: **35 distinct, verified YouTube tutorials**, no padding, unique within
+each language list — covering Volleyball, Tennis, and Boxing/MMA (`boxing_multi`) across
+EN/ES/PT. It is tracked in-repo at `bbfSportsHubVideoLibrary.json` and ingested by
+`sportsVideoLibrary.js`.
 
-**Per the "be critical, no yes-men" directive, I did not wire it.** To make it real, the
-file needs **distinct `v=` YouTube ids per record** (the `&index=` trick doesn't create
-distinct videos). Once each record carries a unique real URL, the same ingestion shape
-drops straight in. The 50 distinct *titles* per sport are a fine content roadmap — they
-just need matching real videos.
+Wired into the **locked** Drills tab: `buildHubModel` attaches one library clip per
+drill card as a trilingual `{ en, es, pt }` id map; `VideoSlot` resolves it to the
+athlete's active language at render (EN fallback). Each language cycles its own list, so
+every card gets a distinct, real, language-correct demonstration video. Card order stays
+index-stable, so drill check-off persistence is unaffected. Coverage:
+`boxing_multi` → both `boxing` and `mma`; `tennis` (no Logic milestones) overlays its
+clips onto the default drill cards. Softball / Track keep their production tutorials.
 
 ## 4 · Intake dropdown (Phase 4) — ✅ COMPLETE
 
@@ -94,4 +96,4 @@ discipline label.
 
 ---
 
-_SW cache bumped (React SPA v120). `npm run lint` + `npm run build` green._
+_SW cache bumped (React SPA v121). `npm run lint` + `npm run build` green._

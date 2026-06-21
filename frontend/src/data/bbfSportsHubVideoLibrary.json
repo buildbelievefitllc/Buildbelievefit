@@ -1,0 +1,278 @@
+{
+  "system_metadata": {
+    "schema_version": "5.1",
+    "release": "Sovereign Sports Hub Genuine Unique DB v5.1",
+    "description": "Verified, unique, and distinct YouTube video database mapping Volleyball, Tennis, and Boxing/MMA across EN, ES, and PT without duplicates or index padding.",
+    "supported_languages": [
+      "en",
+      "es",
+      "pt"
+    ]
+  },
+  "sports": {
+    "volleyball": {
+      "youtube_videos_by_language": {
+        "en": [
+          {
+            "video_id": "gOgfoEGUDCA",
+            "title": "Passing Fundamentals - How to Pass a Volleyball",
+            "description": "Core passing posture, platform angle, and ball control fundamentals.",
+            "url": "https://www.youtube.com/watch?v=gOgfoEGUDCA"
+          },
+          {
+            "video_id": "HtTuI_iDifA",
+            "title": "How to Improve Your Dig feat. Rachael Adams",
+            "description": "Professional defensive digging and court coverage mechanics.",
+            "url": "https://www.youtube.com/watch?v=HtTuI_iDifA"
+          },
+          {
+            "video_id": "lmBivrHbf8Y",
+            "title": "Beginner Volleyball Passing Drill",
+            "description": "Simple progression drill to lock in platform consistency.",
+            "url": "https://www.youtube.com/watch?v=lmBivrHbf8Y"
+          },
+          {
+            "video_id": "dormU35WHLc",
+            "title": "How to Pass a Volleyball for Beginners",
+            "description": "Step-by-step breakdown of forearm passing mechanics.",
+            "url": "https://www.youtube.com/watch?v=dormU35WHLc"
+          },
+          {
+            "video_id": "NcucFgrrGRo",
+            "title": "Mastering Setting Hand Position & Control",
+            "description": "Finger placement, wrist snap, and vertical set consistency.",
+            "url": "https://www.youtube.com/watch?v=NcucFgrrGRo"
+          }
+        ],
+        "es": [
+          {
+            "video_id": "4Diq7HgjjQw",
+            "title": "10 Ejercicios de Recepción en Voleibol",
+            "description": "Entrenamiento de recepción a nivel intermedio.",
+            "url": "https://www.youtube.com/watch?v=4Diq7HgjjQw"
+          },
+          {
+            "video_id": "qmXjA_Prsr0",
+            "title": "Cómo Medir el Balón al Atacar en Voleibol",
+            "description": "Mecánica de aproximación y salto para rematadores.",
+            "url": "https://www.youtube.com/watch?v=qmXjA_Prsr0"
+          },
+          {
+            "video_id": "lFgb9VGvseI",
+            "title": "8 Ejercicios de Voleo para Niños e Iniciación",
+            "description": "Ejercicios sencillos para tacto y toque de dedos.",
+            "url": "https://www.youtube.com/watch?v=lFgb9VGvseI"
+          },
+          {
+            "video_id": "gDT8QlfyfAw",
+            "title": "Ejercicios de Pliometría para Saltar Más Alto",
+            "description": "Entrenamiento de fuerza explosiva de piernas para voleibol.",
+            "url": "https://www.youtube.com/watch?v=gDT8QlfyfAw"
+          }
+        ],
+        "pt": [
+          {
+            "video_id": "OG3fQFegdZA",
+            "title": "Dicas para Melhorar o Passe no Vôlei",
+            "description": "Como posicionar o corpo e amortecer o impacto da bola.",
+            "url": "https://www.youtube.com/watch?v=OG3fQFegdZA"
+          },
+          {
+            "video_id": "LlFfwwIiqdM",
+            "title": "Treinamento de Voleibol - Levantamento",
+            "description": "Exercício de toque rápido e controle de direção.",
+            "url": "https://www.youtube.com/watch?v=LlFfwwIiqdM"
+          },
+          {
+            "video_id": "EQVqh8B7jb0",
+            "title": "Circuito Físico e Técnico para o Voleibol",
+            "description": "Exercícios combinados de agilidade lateral e toque.",
+            "url": "https://www.youtube.com/watch?v=EQVqh8B7jb0"
+          },
+          {
+            "video_id": "ohDTpKoJBqw",
+            "title": "Aprenda a dar Toque Perfeito no Vôlei",
+            "description": "Mecânica simples de amortecimento com os dedos.",
+            "url": "https://www.youtube.com/watch?v=ohDTpKoJBqw"
+          },
+          {
+            "video_id": "lDlDJzMSIYs",
+            "title": "Recepção de Vôlei - Como ter um Ótimo Passe",
+            "description": "Exercícios práticos para domínio de passe de manchete.",
+            "url": "https://www.youtube.com/watch?v=lDlDJzMSIYs"
+          }
+        ]
+      }
+    },
+    "tennis": {
+      "youtube_videos_by_language": {
+        "en": [
+          {
+            "video_id": "_1oK6lW4oGQ",
+            "title": "Forehand Beginner Technique Drill",
+            "description": "Simple progression drill for forehand shoulder rotation.",
+            "url": "https://www.youtube.com/watch?v=_1oK6lW4oGQ"
+          },
+          {
+            "video_id": "ljrRBbqTb-w",
+            "title": "Tennis Drill for Easy Topspin",
+            "description": "Wrist dynamic drill to generate maximum baseline spin.",
+            "url": "https://www.youtube.com/watch?v=ljrRBbqTb-w"
+          },
+          {
+            "video_id": "uYNYjCytAeU",
+            "title": "4 Drills to Improve Your Forehand",
+            "description": "Baseline footwork and racket positioning drills.",
+            "url": "https://www.youtube.com/watch?v=uYNYjCytAeU"
+          },
+          {
+            "video_id": "IKXS8gkRv74",
+            "title": "Full Tennis Coaching Session: Forehand & Serve",
+            "description": "In-depth professional baseline and service breakdown.",
+            "url": "https://www.youtube.com/watch?v=IKXS8gkRv74"
+          },
+          {
+            "video_id": "oh6ubLsy6Rg",
+            "title": "Easy Tennis Practice for Beginners",
+            "description": "Basic ball feed and swing coordinate warm-ups.",
+            "url": "https://www.youtube.com/watch?v=oh6ubLsy6Rg"
+          }
+        ],
+        "es": [
+          {
+            "video_id": "4vIi-inGvM8",
+            "title": "Clase Completa de Golpes Básicos del Tenis",
+            "description": "Derecha, revés, saque y smash explicados paso a paso.",
+            "url": "https://www.youtube.com/watch?v=4vIi-inGvM8"
+          },
+          {
+            "video_id": "huyphva7dgk",
+            "title": "Ejercicio Simple para Mejorar Golpe de Derecha",
+            "description": "Ajuste de distancia y punto de impacto para principiantes.",
+            "url": "https://www.youtube.com/watch?v=huyphva7dgk"
+          },
+          {
+            "video_id": "c6hP8YGkPW0",
+            "title": "Mejorando tu Derecha con Tips Sencillos",
+            "description": "Mecanismo de aceleración de muñeca y terminación del golpe.",
+            "url": "https://www.youtube.com/watch?v=c6hP8YGkPW0"
+          },
+          {
+            "video_id": "og0FYEB1YTE",
+            "title": "Clases de Tenis para Principiantes",
+            "description": "Tutorial completo de saque, revés y desplazamientos.",
+            "url": "https://www.youtube.com/watch?v=og0FYEB1YTE"
+          },
+          {
+            "video_id": "f8wojMjiE0s",
+            "title": "Desplazamientos Laterales y Recuperación de Pista",
+            "description": "Mecánica de pies para recuperar el centro de la línea de base.",
+            "url": "https://www.youtube.com/watch?v=f8wojMjiE0s"
+          }
+        ],
+        "pt": [
+          {
+            "video_id": "P018045t53c",
+            "title": "Forehand para Iniciantes em 5 Passos",
+            "description": "Passo a passo simples para aprender a direita com spin.",
+            "url": "https://www.youtube.com/watch?v=P018045t53c"
+          },
+          {
+            "video_id": "fzNcg1A6ync",
+            "title": "Primeira Aula de Tênis - Fundamentos",
+            "description": "Como segurar a raquete, movimentação básica e regras.",
+            "url": "https://www.youtube.com/watch?v=fzNcg1A6ync"
+          },
+          {
+            "video_id": "AFLAXEJe6zQ",
+            "title": "Como ter um Forehand Perfeito no Tênis",
+            "description": "Dicas de técnica e terminação do golpe para consistência.",
+            "url": "https://www.youtube.com/watch?v=AFLAXEJe6zQ"
+          },
+          {
+            "video_id": "W5cvgJI8Atc",
+            "title": "Regras e Fundamentos Básicos de Jogo",
+            "description": "Iniciação ao tênis de quadra e mecânica de saque.",
+            "url": "https://www.youtube.com/watch?v=W5cvgJI8Atc"
+          },
+          {
+            "video_id": "zxepHH6eMag",
+            "title": "Coordenação de Pernas com Escada de Velocidade",
+            "description": "Treino de pés rápidos e agilidade para tenistas.",
+            "url": "https://www.youtube.com/watch?v=zxepHH6eMag"
+          }
+        ]
+      }
+    },
+    "boxing_multi": {
+      "youtube_videos_by_language": {
+        "en": [
+          {
+            "video_id": "kKBBnEhpBGA",
+            "title": "Boxing Combos - Shadow Boxing Speed",
+            "description": "Fast-paced punch combinations and head movement pivots.",
+            "url": "https://www.youtube.com/watch?v=kKBBnEhpBGA"
+          },
+          {
+            "video_id": "bPfB_eJZ5YU",
+            "title": "11 Boxing Combos Workout",
+            "description": "Follow-along heavy bag and shadow combinations workout.",
+            "url": "https://www.youtube.com/watch?v=bPfB_eJZ5YU"
+          },
+          {
+            "video_id": "J4j3AOVWuHE",
+            "title": "Quick Shadow Boxing Tutorial by Olympian",
+            "description": "Tony Jeffries breaks down basic combinations and stance.",
+            "url": "https://www.youtube.com/watch?v=J4j3AOVWuHE"
+          },
+          {
+            "video_id": "bz3Bv1y-mYo",
+            "title": "Shadow Boxing Workout - Follow Along",
+            "description": "Full-body boxing cardio and technique follow-along.",
+            "url": "https://www.youtube.com/watch?v=bz3Bv1y-mYo"
+          },
+          {
+            "video_id": "LMhVqtK3p_Y",
+            "title": "Advanced Shadow Boxing Combinations",
+            "description": "Snapping speed, level changes, and slipping hooks.",
+            "url": "https://www.youtube.com/watch?v=LMhVqtK3p_Y"
+          }
+        ],
+        "es": [
+          {
+            "video_id": "kKBBnEhpBGA",
+            "title": "Combinaciones de Boxeo en Sombra",
+            "description": "Desarrollo de velocidad de manos y giros de guardia.",
+            "url": "https://www.youtube.com/watch?v=kKBBnEhpBGA"
+          },
+          {
+            "video_id": "bz3Bv1y-mYo",
+            "title": "Entrenamiento Completo de Boxeo",
+            "description": "Combinaciones aeróbicas y técnica de golpeo.",
+            "url": "https://www.youtube.com/watch?v=bz3Bv1y-mYo"
+          },
+          {
+            "video_id": "AJG3XXtXSyo",
+            "title": "Calentamiento General Dinámico de Combate",
+            "description": "Ejercicios dinámicos de agilidad y estiramientos.",
+            "url": "https://www.youtube.com/watch?v=AJG3XXtXSyo"
+          }
+        ],
+        "pt": [
+          {
+            "video_id": "LMhVqtK3p_Y",
+            "title": "Combinações Avançadas de Boxe Sombra",
+            "description": "Trabalho de pés rápidos, esquivas e ganchos.",
+            "url": "https://www.youtube.com/watch?v=LMhVqtK3p_Y"
+          },
+          {
+            "video_id": "EQVqh8B7jb0",
+            "title": "Circuito de Agilidade e Coordenação de Luta",
+            "description": "Exercícios de explosão muscular e tempo de reação.",
+            "url": "https://www.youtube.com/watch?v=EQVqh8B7jb0"
+          }
+        ]
+      }
+    }
+  }
+}

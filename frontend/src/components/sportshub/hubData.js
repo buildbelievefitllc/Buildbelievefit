@@ -13,6 +13,7 @@
 
 import { COMBINE_BENCHMARKS } from '../sports/sportsData.js';
 import { EXPANDED_SPORT_IDS, expandedDrillCards } from '../../data/sportsExpandedLogic.js';
+import { hasVideoLibrary, videoLibraryIdMap } from '../../data/sportsVideoLibrary.js';
 
 // 40-yard / shuttle style metrics are faster-is-better; everything else is higher.
 export const LOWER_IS_BETTER = new Set(['forty']);
@@ -304,9 +305,14 @@ export function buildHubModel(profile) {
       title: content.drillTitle, tag: content.drillTag,
       // Expansion v4.1 disciplines pull REAL drill cards (Training Drills + skill
       // milestones) from the ingested logic; everything else uses SPORT_CONTENT.
+      // Then overlay the genuine video library (schema 5.1) as a trilingual clip
+      // per card — VideoSlot localizes at render; card order stays index-stable.
       items: ((EXPANDED_SPORT_IDS.includes(sportId) && expandedDrillCards(sportId).length
         ? expandedDrillCards(sportId)
-        : content.drills) || []).map((d) => ({ ...d, done: false })),
+        : content.drills) || []).map((d, i) => {
+        const libMap = hasVideoLibrary(sportId) ? videoLibraryIdMap(sportId, i) : null;
+        return { ...d, videoId: libMap || d.videoId, done: false };
+      }),
     },
     film: {
       title: 'Positional Film Study', tag: 'Film Room · Tap to Update',
