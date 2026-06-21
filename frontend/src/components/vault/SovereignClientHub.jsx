@@ -529,10 +529,10 @@ export default function SovereignClientHub({ refreshKey = 0 }) {
         </div>
       ) : null}
 
-      {/* ── TODAY'S PRESCRIPTION — the actionable recovery protocol, sitting directly
-          below the readiness / live-telemetry dossier. Self-fetches the latest
-          engine-generated playlist; refreshKey bumps after a post-workout check-in. ── */}
-      <RecoveryPrescriptionCard refreshKey={refreshKey} />
+      {/* ── TODAY'S PRESCRIPTION — clinical sports-science playlist; youth athletes
+          only (user.sportsProfile non-null). Adult lifestyle clients use the
+          manual volume directives above; the prescription engine is sport-specific. ── */}
+      {user?.sportsProfile ? <RecoveryPrescriptionCard refreshKey={refreshKey} /> : null}
 
       {/* ── HEALTH CONNECT STATUS — the zero-guess handshake diagnostic ── */}
       <Suspense fallback={null}>
