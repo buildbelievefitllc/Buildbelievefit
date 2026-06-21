@@ -38,6 +38,7 @@ import { useLang } from '../../context/LangContext.jsx';
 import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
 import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
 import MINDSET_VIDEOS from '../../data/mindset_videos.json';
+import { championshipMindsetVideos } from '../../data/sportsHubVideoDB.js';
 import './youthChampionMindset.css';
 
 // ── Filtering taxonomy ───────────────────────────────────────────────────────
@@ -52,13 +53,15 @@ const SPORT_TO_CATEGORY = {
   softball: 'Softball',
   track: 'Track & Field',
   tennis: 'Tennis',
+  boxing: 'Combat Sports',
   mma: 'Combat Sports',
   multi: 'Combat Sports', // the Combat/Multi node maps to the combat-sports roster
 };
 const SPORT_LABEL_KEY = {
   football: 'yi-sport-football', basketball: 'yi-sport-basketball', soccer: 'yi-sport-soccer',
   baseball: 'yi-sport-baseball', volleyball: 'yi-sport-volleyball', track: 'yi-sport-track',
-  softball: 'yi-sport-softball', tennis: 'yi-sport-tennis', mma: 'yi-sport-mma', multi: 'yi-sport-multi',
+  softball: 'yi-sport-softball', tennis: 'yi-sport-tennis', boxing: 'yi-sport-boxing',
+  mma: 'yi-sport-mma', multi: 'yi-sport-multi',
 };
 const LANG_TO_KEY = { en: 'English', es: 'Spanish', pt: 'Portuguese' };
 
@@ -308,12 +311,22 @@ export default function YouthChampionMindset({ sportId = null }) {
   const activeIdx = Math.max(0, tabs.findIndex((tb) => tb.key === activeTab));
   const activeCategory = tabs[activeIdx].category;
 
-  const films = useMemo(
-    () => videosFor(activeCategory, langKey)
+  const films = useMemo(() => {
+    const base = videosFor(activeCategory, langKey)
       .map((f) => ({ ...f, id: ytId(f.url) }))
-      .filter((f) => f.id),
-    [activeCategory, langKey],
-  );
+      .filter((f) => f.id);
+    // Infinite Video DB (bbf_sports_hub_unlimited): append the athlete's sport
+    // championship_mindset records to the "Your Sport" tab. Mapped to YouTube ids
+    // and filtered — placeholder/non-YouTube samples drop out, so nothing breaks
+    // today; real production URLs surface here automatically when loaded.
+    if (activeCategory !== GENERAL_CATEGORY && resolvedSportId) {
+      const extra = championshipMindsetVideos(resolvedSportId, lang)
+        .map((r) => ({ title: r.title, url: r.video_url, id: ytId(r.video_url) }))
+        .filter((f) => f.id);
+      if (extra.length) return [...base, ...extra];
+    }
+    return base;
+  }, [activeCategory, langKey, resolvedSportId, lang]);
 
   const [openVideo, setOpenVideo] = useState(null);
 

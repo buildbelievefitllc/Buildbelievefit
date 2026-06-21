@@ -24,6 +24,7 @@ export const YOUTH_SPORTS = [
   { id: 'track', labelKey: 'yi-sport-track', field: 'event', options: POSITION_GROUPS.track },
   { id: 'softball', labelKey: 'yi-sport-softball', field: 'position', options: POSITION_GROUPS.softball },
   { id: 'tennis', labelKey: 'yi-sport-tennis', field: 'position', options: POSITION_GROUPS.tennis },
+  { id: 'boxing', labelKey: 'yi-sport-boxing', field: 'position', options: POSITION_GROUPS.boxing },
   { id: 'mma', labelKey: 'yi-sport-mma', field: 'position', options: POSITION_GROUPS.mma },
 ];
 

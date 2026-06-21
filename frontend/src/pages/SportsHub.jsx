@@ -26,6 +26,7 @@ import { useLang } from '../context/LangContext.jsx';
 import { useAthleteProfile } from '../context/AthleteProfileContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
 import { logYouthProgress } from '../lib/youthIntakeApi.js';
+import { fetchAvatar, pushAvatar } from '../lib/avatarApi.js';
 import { useAthleteTelemetry } from '../lib/athleteTelemetryApi.js';
 import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
 import LangToggle from '../components/LangToggle.jsx';
@@ -272,9 +273,21 @@ export default function SportsHub({ selection = null, progress = null }) {
     setModel((m) => ({ ...m, size: { ...m.size, [field]: raw } }));
   }, []);
 
-  // Profile avatar — uploaded, compressed, persisted per-uid (state set only in the
-  // change handler, never in an effect). Falls back to jersey initials when unset.
+  // Profile avatar — uploaded, compressed, persisted to bbf_users.avatar (server
+  // = source of truth, cross-device) with localStorage as the instant on-device
+  // cache. Local state seeds from cache for a flash-free first paint; an on-mount
+  // hydrate reconciles against the server. Falls back to jersey initials when unset.
   const [avatar, setAvatar] = useState(() => loadAvatar(uid));
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const remote = await fetchAvatar();
+      if (!alive || !remote) return;       // no server copy → keep local cache as-is
+      setAvatar((cur) => (remote === cur ? cur : remote));
+      saveAvatar(uid, remote);             // refresh the on-device cache
+    })();
+    return () => { alive = false; };
+  }, [uid]);
   const onAvatarChange = useCallback(async (e) => {
     const file = e.target.files?.[0];
     e.target.value = ''; // allow re-selecting the same file later
@@ -282,7 +295,8 @@ export default function SportsHub({ selection = null, progress = null }) {
     try {
       const dataUrl = await compressImage(file);
       setAvatar(dataUrl);
-      saveAvatar(uid, dataUrl);
+      saveAvatar(uid, dataUrl);            // instant local-first update
+      pushAvatar(dataUrl);                 // best-effort server sync (cross-device + CRM)
     } catch { /* unreadable image — keep the current avatar */ }
   }, [uid]);
 

@@ -139,6 +139,14 @@ export const POSITION_GROUPS = {
     { label: 'Wrestler', legacy: 'wrestler' },
     { label: 'All-Rounder', legacy: 'all_rounder' },
   ],
+  // Boxing — stance/style archetypes (no field positions). Codes are style ids;
+  // the Sports Hub engine treats Boxing as a combat discipline (no combine KPIs).
+  boxing: [
+    { label: 'Orthodox', legacy: 'orthodox' },
+    { label: 'Southpaw', legacy: 'southpaw' },
+    { label: 'Pressure Fighter', legacy: 'pressure' },
+    { label: 'Out-Boxer (Counter)', legacy: 'out_boxer' },
+  ],
   volleyball: [
     { label: 'Outside Hitter', legacy: 'OH' },
     { label: 'Middle Blocker', legacy: 'MB' },

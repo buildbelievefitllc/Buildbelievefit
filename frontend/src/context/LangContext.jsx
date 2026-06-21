@@ -264,6 +264,7 @@ const DICT = {
   // Admin Sports Portal extras (kept beyond Echo's canonical 6 — additive).
   'yi-sport-softball': { en: 'Softball', es: 'Sóftbol', pt: 'Softbol' },
   'yi-sport-tennis': { en: 'Tennis', es: 'Tenis', pt: 'Tênis' },
+  'yi-sport-boxing': { en: 'Boxing', es: 'Boxeo', pt: 'Boxe' },
   'yi-sport-mma': { en: 'Mixed Martial Arts (MMA)', es: 'Artes Marciales Mixtas (MMA)', pt: 'Artes Marciais Mistas (MMA)' },
   'yi-sport-multi': { en: 'Combat/Multi', es: 'Combate/Multi', pt: 'Combate/Multi' },
 

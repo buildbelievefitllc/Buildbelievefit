@@ -44,6 +44,9 @@ const PR = {
   sub: { fontFamily: 'var(--bd)', fontSize: '.8rem', fontWeight: 600, color: 'var(--mut)' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '.6rem' },
   card: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '.25rem', textAlign: 'left', cursor: 'pointer', background: 'var(--gry, #141018)', border: '1px solid var(--line, #2a1d45)', borderRadius: 10, padding: '.7rem .85rem' },
+  idRow: { display: 'flex', alignItems: 'center', gap: '.55rem', width: '100%' },
+  avatar: { width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(245,200,0,.45)', flex: '0 0 auto' },
+  avatarFallback: { width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(106,13,173,.35)', border: '1px solid rgba(245,200,0,.3)', fontFamily: 'var(--display, "Bebas Neue", sans-serif)', fontSize: '.85rem', letterSpacing: '.5px', color: 'var(--gold-soft)', flex: '0 0 auto' },
   name: { fontFamily: 'var(--display, "Bebas Neue", sans-serif)', fontSize: '1.05rem', letterSpacing: '.5px', color: 'var(--wht, #fff)' },
   meta: { fontFamily: 'var(--bd)', fontSize: '.78rem', fontWeight: 700, color: 'var(--mut)' },
   cta: { fontFamily: 'var(--hb)', fontSize: '.62rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--gold-soft)', marginTop: '.2rem' },
@@ -66,13 +69,21 @@ function ProtocolRoster({ athletes, loading, error, onRetry, onSelect }) {
         <div style={PR.note}>No athletes with a staged sports_protocol yet — they appear here once intake stages one (or the Referee promotes).</div>
       ) : (
         <div style={PR.grid}>
-          {athletes.map((a) => (
-            <button key={a.id} type="button" style={PR.card} onClick={() => onSelect(a)}>
-              <span style={PR.name}>{a.name}</span>
-              <span style={PR.meta}>{a.sport || 'General'} · Phase {a.phase_number || '—'}</span>
-              <span style={PR.cta}>Open Dossier →</span>
-            </button>
-          ))}
+          {athletes.map((a) => {
+            const initials = String(a.name || '').split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase() || 'AB';
+            return (
+              <button key={a.id} type="button" style={PR.card} onClick={() => onSelect(a)}>
+                <span style={PR.idRow}>
+                  {a.avatar
+                    ? <img src={a.avatar} alt="" style={PR.avatar} />
+                    : <span style={PR.avatarFallback} aria-hidden="true">{initials}</span>}
+                  <span style={PR.name}>{a.name}</span>
+                </span>
+                <span style={PR.meta}>{a.sport || 'General'} · Phase {a.phase_number || '—'}</span>
+                <span style={PR.cta}>Open Dossier →</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </section>

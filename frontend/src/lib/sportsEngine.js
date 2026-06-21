@@ -193,7 +193,7 @@ export function buildSportsProtocol({ sport, age, experience, goal, targetPhase 
 const YOUTH_SPORT_LABEL = {
   football: 'American Football', basketball: 'Basketball', soccer: 'Soccer',
   baseball: 'Baseball', softball: 'Softball', volleyball: 'Volleyball',
-  track: 'Track & Field', tennis: 'Tennis', mma: 'Mixed Martial Arts',
+  track: 'Track & Field', tennis: 'Tennis', boxing: 'Boxing', mma: 'Mixed Martial Arts',
 };
 
 // Age → { phase, experience } via the Blueprint progression bands (youth/middle → P1

@@ -12,6 +12,7 @@
 // exported pure fns so the editable tabs recompute % against target in real time.
 
 import { COMBINE_BENCHMARKS } from '../sports/sportsData.js';
+import { EXPANDED_SPORT_IDS, expandedDrillCards } from '../../data/sportsExpandedLogic.js';
 
 // 40-yard / shuttle style metrics are faster-is-better; everything else is higher.
 export const LOWER_IS_BETTER = new Set(['forty']);
@@ -187,6 +188,48 @@ const SPORT_CONTENT = {
       { title: 'Race Model', concept: 'Phase splits', duration: '7 min' },
     ],
   },
+  softball: {
+    combineReference: 'Collegiate Fastpitch Benchmark',
+    sizeReference: 'Collegiate Fastpitch Frame', sizeTarget: 165, weightCurrent: 150,
+    drillTitle: 'Skill Drill Progress', drillTag: 'Skill Work · Position-Specific',
+    drills: [
+      { name: 'Fielding Mechanics — Triangle Footwork', detail: 'Field ground balls cleanly using triangle foot alignment and hands out front.', progress: 60, reps: '4 Sets x 10 Reps' },
+    ],
+    film: [
+      { title: 'Windmill Mechanics Breakdown', concept: 'Pitching', duration: '10 min' },
+      { title: 'Slap & Contact Hitting', concept: 'Hitting', duration: '9 min' },
+      { title: 'Infield Footwork Reads', concept: 'Fielding', duration: '8 min' },
+      { title: 'Mental Reset Routine', concept: 'Sports psychology', duration: '6 min' },
+    ],
+  },
+  boxing: {
+    combineReference: 'Amateur Combat Benchmark',
+    sizeReference: 'Combat Power-to-Weight', sizeTarget: 165, weightCurrent: 155,
+    drillTitle: 'Combat Drill Progress', drillTag: 'Ring Work · Discipline-Specific',
+    drills: [
+      { name: 'Straight Punch Combinations with Defense', detail: 'Perform clean straight jab-cross punches while keeping the opposite hand locked on guard.', progress: 60, reps: '3 Rounds x 2 Minutes' },
+    ],
+    film: [
+      { title: 'Stance & Pivot Defense', concept: 'Footwork', duration: '9 min' },
+      { title: 'Slip & Counter Patterns', concept: 'Head movement', duration: '8 min' },
+      { title: 'Heavy Bag CNS Rounds', concept: 'Conditioning', duration: '10 min' },
+      { title: 'Ring Composure Under Pressure', concept: 'Sports psychology', duration: '6 min' },
+    ],
+  },
+  mma: {
+    combineReference: 'Amateur Combat Benchmark',
+    sizeReference: 'Combat Power-to-Weight', sizeTarget: 170, weightCurrent: 158,
+    drillTitle: 'Combat Drill Progress', drillTag: 'Cage Work · Discipline-Specific',
+    drills: [
+      { name: 'Sprawl-to-Clinch Cage Pressure Repeat', detail: 'Execute defensive sprawl on whistle and immediately transition to wall clinch control.', progress: 60, reps: '4 Rounds x 3 Minutes' },
+    ],
+    film: [
+      { title: 'Level Change & Sprawl', concept: 'Takedown defense', duration: '9 min' },
+      { title: 'Double-Leg Entries', concept: 'Wrestling', duration: '10 min' },
+      { title: 'Cage Underhook Framing', concept: 'Clinch control', duration: '8 min' },
+      { title: 'Combat Cognitive Resistance', concept: 'Sports psychology', duration: '6 min' },
+    ],
+  },
   default: {
     combineReference: 'Collegiate Athletic Benchmark',
     sizeReference: 'Collegiate Athletic Frame', sizeTarget: 190, weightCurrent: 175,
@@ -259,7 +302,11 @@ export function buildHubModel(profile) {
     },
     drills: {
       title: content.drillTitle, tag: content.drillTag,
-      items: content.drills.map((d) => ({ ...d, done: false })),
+      // Expansion v4.1 disciplines pull REAL drill cards (Training Drills + skill
+      // milestones) from the ingested logic; everything else uses SPORT_CONTENT.
+      items: ((EXPANDED_SPORT_IDS.includes(sportId) && expandedDrillCards(sportId).length
+        ? expandedDrillCards(sportId)
+        : content.drills) || []).map((d) => ({ ...d, done: false })),
     },
     film: {
       title: 'Positional Film Study', tag: 'Film Room · Tap to Update',
@@ -344,8 +391,10 @@ export function buildWeek(model) {
       focus: d.focus,
       rest: false,
       exercises: d.exercises.map((e) => ({ name: e.name, off: e.off, in: e.in, done: false })),
-      drills: d.drillIdx.map((i) => ({ ...model.drills.items[i], done: false })),
-      film: d.filmIdx.map((i) => ({ ...model.film.clips[i] })),
+      // Skip undefined indices so a sport with fewer than 5 drills / 4 clips never
+      // renders a blank card (drill counts vary by discipline in the ingested logic).
+      drills: d.drillIdx.map((i) => model.drills.items[i]).filter(Boolean).map((dr) => ({ ...dr, done: false })),
+      film: d.filmIdx.map((i) => model.film.clips[i]).filter(Boolean).map((c) => ({ ...c })),
     };
   });
 }
