@@ -253,6 +253,39 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Strict tab-deck rail (primary single-domain nav — mirrors the Vault cv-tabs) ── */
+.sh-deck {
+  display: flex; gap: .4rem; margin: 0 0 1.3rem; overflow-x: auto; padding-bottom: .55rem;
+  border-bottom: 1px solid var(--sh-line); -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.sh-deck::-webkit-scrollbar { display: none; }
+.sh-deck-tab {
+  flex: 0 0 auto; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; gap: .45rem;
+  padding: .6rem 1.1rem; border-radius: 999px; border: 1px solid var(--sh-line); background: transparent;
+  color: var(--mut); font-family: var(--hb); font-size: .82rem; letter-spacing: 1.5px; text-transform: uppercase;
+  transition: color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.sh-deck-ic { font-size: .9rem; line-height: 1; opacity: .85; }
+.sh-deck-tab:hover { color: var(--wht); border-color: rgba(245, 200, 0, .45); }
+.sh-deck-tab:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.sh-deck-tab.is-active {
+  color: #0c0a02; border-color: var(--yel); background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  box-shadow: 0 6px 20px -6px rgba(245, 200, 0, .55);
+}
+.sh-deck-tab.is-active .sh-deck-ic { opacity: 1; }
+/* Active domain panel — fade/slide in on each tab swap (keyed remount). */
+.sh-deck-panel { animation: sh-panel-in .26s ease both; }
+
+/* ── Baseline mobility (Recovery tab — engine recovery floor) ─────────────────── */
+.sh-mob { margin-top: 1.1rem; background: var(--sh-card2); border: 1px solid var(--sh-line); border-radius: 16px; padding: 1.1rem 1.2rem; }
+.sh-mob-head { margin-bottom: .8rem; }
+.sh-mob-kicker { font-family: var(--hb); font-size: .68rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-deep); }
+.sh-mob-sub { font-size: .9rem; color: var(--mut); line-height: 1.5; margin: .35rem 0 0; }
+.sh-mob-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.sh-mob-item { display: flex; align-items: center; gap: .7rem; padding: .55rem .7rem; background: rgba(255, 255, 255, .02); border: 1px solid var(--sh-line); border-radius: 10px; }
+.sh-mob-idx { font-family: var(--display); font-size: 1rem; color: var(--yel); flex: 0 0 auto; min-width: 1.4rem; }
+.sh-mob-name { font-family: var(--bd); font-size: .92rem; font-weight: 600; color: rgba(249, 245, 255, .9); }
+
 /* ── Daily Execution Protocol ─────────────────────────────────────────────────── */
 /* Training-block (off/in-season) selector */
 .sh-phase { display: flex; align-items: center; gap: .5rem; margin-bottom: .9rem; }

@@ -22,6 +22,9 @@ export const YOUTH_SPORTS = [
   { id: 'baseball', labelKey: 'yi-sport-baseball', field: 'position', options: POSITION_GROUPS.baseball },
   { id: 'volleyball', labelKey: 'yi-sport-volleyball', field: 'position', options: POSITION_GROUPS.volleyball },
   { id: 'track', labelKey: 'yi-sport-track', field: 'event', options: POSITION_GROUPS.track },
+  { id: 'softball', labelKey: 'yi-sport-softball', field: 'position', options: POSITION_GROUPS.softball },
+  { id: 'tennis', labelKey: 'yi-sport-tennis', field: 'position', options: POSITION_GROUPS.tennis },
+  { id: 'mma', labelKey: 'yi-sport-mma', field: 'position', options: POSITION_GROUPS.mma },
 ];
 
 export function getSport(id) {

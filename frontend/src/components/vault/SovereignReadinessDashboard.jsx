@@ -11,6 +11,8 @@
 
 import { useEffect, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { isSportsAthlete } from '../../lib/sportsRoster.js';
 import { useReadiness, bandForScore } from '../../context/ReadinessContext.jsx';
 import { postReadiness } from '../../lib/readinessApi.js';
 import './sovereignReadiness.css';
@@ -82,7 +84,17 @@ function useCountUp(target, reduced) {
   return val;
 }
 
-export default function SovereignReadinessDashboard({ athleteId = null }) {
+// Phase 4 — strict surface gate. The Sovereign Readiness scan (sleep + vibe → CNS
+// score) is a YOUTH/sports surface; it had bled into the adult Vault Hub. Gate it so
+// it renders ONLY for a youth athlete and returns null for an adult lifestyle client.
+// Thin wrapper keeps the Rules of Hooks clean (the inner component owns all the hooks).
+export default function SovereignReadinessDashboard(props) {
+  const { user } = useAuth();
+  if (!isSportsAthlete(user)) return null;
+  return <SovereignReadinessDashboardInner {...props} />;
+}
+
+function SovereignReadinessDashboardInner({ athleteId = null }) {
   const { lang } = useLang();
   const L = L10N[lang] || L10N.en;
   const ctx = useReadiness();

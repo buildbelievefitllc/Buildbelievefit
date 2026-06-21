@@ -102,7 +102,11 @@ const L10N = {
 
 const TAB_KEYS = ['field', 'weight', 'fuel'];
 
-export default function AthleteBlueprint({ sportLabel, positionLabel }) {
+// `room` ('weight' | 'fuel' | 'field') pins the deck to a SINGLE pillar so the Sports
+// Hub can host the weight room and fuel as separate top-level tabs. When pinned, the
+// internal tab bar + masthead are suppressed (the page tab already names the domain);
+// the shared calibrate + forge drive the one persisted blueprint across both tabs.
+export default function AthleteBlueprint({ sportLabel, positionLabel, room = null }) {
   const { lang } = useLang();
   const L = L10N[lang] || L10N.en;
   const { user } = useAuth();
@@ -159,16 +163,18 @@ export default function AthleteBlueprint({ sportLabel, positionLabel }) {
 
   const macros = blueprint?.macros || null;
   const nutrition = blueprint?.nutrition || null;
-  const activeKey = activeTab;
+  const activeKey = room || activeTab; // a pinned room overrides the internal tabs
 
   return (
     <section className="ab" data-testid="athlete-blueprint">
       <div className="ab-inner">
-        <div className="ab-head">
-          <div className="ab-kicker"><span aria-hidden="true">🧬</span> {L.kicker}</div>
-          <h2 className="ab-title">{L.titleA} <span>{L.titleB}</span></h2>
-          <p className="ab-sub">{L.sub}</p>
-        </div>
+        {!room ? (
+          <div className="ab-head">
+            <div className="ab-kicker"><span aria-hidden="true">🧬</span> {L.kicker}</div>
+            <h2 className="ab-title">{L.titleA} <span>{L.titleB}</span></h2>
+            <p className="ab-sub">{L.sub}</p>
+          </div>
+        ) : null}
 
         {/* ── Calibrate (the unified profile — pre-set, overridable) ─────────── */}
         <div className="ab-cal">
@@ -240,15 +246,17 @@ export default function AthleteBlueprint({ sportLabel, positionLabel }) {
         {/* ── The three rooms ───────────────────────────────────────────────── */}
         {blueprint ? (
           <>
-            <div className="ab-tabbar" role="tablist" aria-label={L.kicker}>
-              {TAB_KEYS.map((k, i) => (
-                <button key={k} type="button" role="tab" aria-selected={k === activeTab} className={`ab-tab${k === activeTab ? ' is-active' : ''}`} onClick={() => setActiveTab(k)} data-testid={`ab-tab-${k}`}>
-                  <span className="ab-tabidx">0{i + 1}</span>
-                  <span className="ab-tablabel">{L.tabs[k]}</span>
-                  <span className="ab-tabtag">{L.tabtags[k]}</span>
-                </button>
-              ))}
-            </div>
+            {!room ? (
+              <div className="ab-tabbar" role="tablist" aria-label={L.kicker}>
+                {TAB_KEYS.map((k, i) => (
+                  <button key={k} type="button" role="tab" aria-selected={k === activeTab} className={`ab-tab${k === activeTab ? ' is-active' : ''}`} onClick={() => setActiveTab(k)} data-testid={`ab-tab-${k}`}>
+                    <span className="ab-tabidx">0{i + 1}</span>
+                    <span className="ab-tablabel">{L.tabs[k]}</span>
+                    <span className="ab-tabtag">{L.tabtags[k]}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
 
             <div className="ab-panel" role="tabpanel" key={activeKey}>
               {/* 01 · FIELD WORK — reuse the canonical SportProtocol renderer */}

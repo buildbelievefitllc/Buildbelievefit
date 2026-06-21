@@ -6,13 +6,17 @@
 // sports athlete lands here straight from the login gate (after the first-run
 // PAR-Q+ intake gate), bypassing the adult Sovereign Vault entirely.
 //
-// DAILY EXECUTION PROTOCOL (CEO paradigm shift): the macro-dashboard is restructured
-// into a chronological Day 1–7 view, mirroring the adult Vault's scrolling
-// pill-navigation (Program.jsx / Nutrition.jsx). The active day shows the athlete's
-// off/in-season workload plus that day's drills + film — each a tap-to-track
-// checkoff (hubData.buildWeek distributes the sport's actionable items across the
-// week). The Combine/Power/Size calculators are preserved in a collapsible
-// "Combine & Measurables" panel so the daily view stays simple for youth execution.
+// STRICT TAB-DECK (CEO order — kill the scroll fest): the hub mirrors the adult
+// Vault's navigation — a horizontal tab rail over a SINGLE mounted domain. Exactly
+// one data domain is on screen at a time; switching tabs unmounts the rest (no
+// vertical stacking). Five domains:
+//   Protocol  — field work (Native Sport Engine) + the Day 1–7 drill/film execution
+//               protocol + the Combine & Measurables calculators.
+//   Program   — the weight room (AthleteBlueprint, room="weight").
+//   Fuel      — nutrition / macros (AthleteBlueprint, room="fuel").
+//   Recovery  — the engine-generated RecoveryPrescriptionCard + baseline mobility.
+//   Mindset   — the Champion Mindset film deck.
+// The athlete identity hero + readiness banner stay persistent above the rail.
 //
 // Isolation: lives entirely within pages/SportsHub.jsx + components/sportshub/*.
 
@@ -38,6 +42,7 @@ import {
 import SportProtocol from '../components/sportshub/SportProtocol.jsx';
 import AthleteBlueprint from '../components/sportshub/AthleteBlueprint.jsx';
 import YouthChampionMindset from '../components/sportshub/YouthChampionMindset.jsx';
+import RecoveryPrescriptionCard from '../components/vault/RecoveryPrescriptionCard.jsx';
 import Concierge from '../components/vault/Concierge.jsx';
 import '../components/sportshub/sportsHub.css';
 
@@ -83,13 +88,55 @@ function ReadinessBanner({ readiness, t }) {
   );
 }
 
+// ── Deck tabs — the strict single-domain navigation (mirrors the adult Vault's
+// cv-tabs): exactly one panel mounts at a time, never a vertical stack. Trilingual
+// labels are component-local (parity with the rest of the youth surface). ──
+const DECK_TABS = [
+  { id: 'protocol', icon: '◎', en: 'Protocol', es: 'Protocolo', pt: 'Protocolo' },
+  { id: 'program', icon: '▤', en: 'Program', es: 'Programa', pt: 'Programa' },
+  { id: 'fuel', icon: '◆', en: 'Fuel', es: 'Nutrición', pt: 'Nutrição' },
+  { id: 'recovery', icon: '❂', en: 'Recovery', es: 'Recuperación', pt: 'Recuperação' },
+  { id: 'mindset', icon: '❖', en: 'Mindset', es: 'Mentalidad', pt: 'Mentalidade' },
+];
+
+// Baseline mobility — the sports-engine recovery floor (universal youth joint-prep),
+// shown in the Recovery tab beside the engine-generated RecoveryPrescriptionCard.
+const MOBILITY = {
+  en: { kicker: 'Baseline Mobility', sub: 'Daily joint-prep — flow through before and after every session.',
+    items: ["World's Greatest Stretch · 4/side", 'Cat–Cow · 8 slow reps', '90/90 Hip Switch · 6/side', 'Ankle Rock-Throughs · 10/side', 'Thoracic Rotations · 8/side'] },
+  es: { kicker: 'Movilidad Base', sub: 'Preparación articular diaria — antes y después de cada sesión.',
+    items: ['El Mejor Estiramiento · 4/lado', 'Gato–Camello · 8 reps lentas', 'Cambio de Cadera 90/90 · 6/lado', 'Movilidad de Tobillo · 10/lado', 'Rotaciones Torácicas · 8/lado'] },
+  pt: { kicker: 'Mobilidade Base', sub: 'Preparo articular diário — antes e depois de cada sessão.',
+    items: ['Maior Alongamento do Mundo · 4/lado', 'Gato–Camelo · 8 reps lentas', 'Troca de Quadril 90/90 · 6/lado', 'Mobilidade de Tornozelo · 10/lado', 'Rotações Torácicas · 8/lado'] },
+};
+
+function BaselineMobility({ lang }) {
+  const M = MOBILITY[lang] || MOBILITY.en;
+  return (
+    <section className="sh-mob" data-testid="sh-baseline-mobility">
+      <div className="sh-mob-head">
+        <span className="sh-mob-kicker">✦ {M.kicker}</span>
+        <p className="sh-mob-sub">{M.sub}</p>
+      </div>
+      <ol className="sh-mob-list">
+        {M.items.map((it, i) => (
+          <li className="sh-mob-item" key={i}>
+            <span className="sh-mob-idx">{String(i + 1).padStart(2, '0')}</span>
+            <span className="sh-mob-name">{it}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 // `selection` ({ sportId, positionCode }) is the athlete's intake choice and
 // `progress` the persisted per-day check-off map (bbf_users.youth_progress) — both
 // passed down by YouthIntakeGate. The gate keys this component on the selection, so
 // a sport change cleanly re-seeds the week + editable model.
 export default function SportsHub({ selection = null, progress = null }) {
   const { user, signOut } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const uid = user?.username || user?.id || '';
 
   // The UNIFIED athlete profile — the single source of truth the Sport Protocol +
@@ -151,6 +198,8 @@ export default function SportsHub({ selection = null, progress = null }) {
   const [week, setWeek] = useState(() => applyProgress(buildWeek(model), progress));
   const [activeDay, setActiveDay] = useState(() => firstTrainingDay(week));
   const [phase, setPhase] = useState('offseason'); // 'offseason' | 'inseason'
+  // Strict tab-deck — the active data domain. One panel mounts at a time.
+  const [activeTab, setActiveTab] = useState('protocol');
 
   // ── Daily checkoffs — mutate the ACTIVE day optimistically, then persist the
   //    single check-off to the athlete's row (bbf_log_youth_progress). The server
@@ -222,7 +271,7 @@ export default function SportsHub({ selection = null, progress = null }) {
       </header>
 
       <div className="sh-container">
-        {/* ── Athlete identity hero — varsity scoreboard register ─────────────── */}
+        {/* ── Athlete identity hero — persistent varsity scoreboard register ───── */}
         <section className="sh-hero">
           <div className="sh-hero-id">
             <div className="sh-jersey" aria-hidden="true">
@@ -257,84 +306,126 @@ export default function SportsHub({ selection = null, progress = null }) {
             (one source of truth). Self-hides with no telemetry; never ghost UI. ── */}
         <ReadinessBanner readiness={readiness} t={t} />
 
-        {/* ── Native Sport Protocol — the coach-staged engine prescription ─────── */}
-        <SportProtocol protocol={sportsProtocol} telemetry={telemetry} />
-
-        {/* ── The Athlete Blueprint — unified Field Work / Weight Room / Fuel deck.
-            One profile (AthleteProfileContext) drives all three BBF engines; sets
-            scale with the morning CNS scan. Supersedes the standalone TierProtocol. ─ */}
-        <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} />
-
-        {/* ── Training block (off/in-season workload selector) ────────────────── */}
-        <div className="sh-phase" role="group" aria-label="Training block">
-          <span className="sh-phase-l">Block</span>
-          <button
-            type="button"
-            className={`sh-phase-btn${phase === 'offseason' ? ' is-on' : ''}`}
-            aria-pressed={phase === 'offseason'}
-            data-testid="sh-phase-off"
-            onClick={() => setPhase('offseason')}
-          >
-            Off-Season
-          </button>
-          <button
-            type="button"
-            className={`sh-phase-btn${phase === 'inseason' ? ' is-on' : ''}`}
-            aria-pressed={phase === 'inseason'}
-            data-testid="sh-phase-in"
-            onClick={() => setPhase('inseason')}
-          >
-            In-Season
-          </button>
-        </div>
-
-        {/* ── Day 1–7 scrolling pill-navigation (mirrors the Vault Program/Nutrition) ── */}
-        <nav className="sh-daynav" role="tablist" aria-label="Protocol days">
-          {week.map((d, i) => (
-            <button
-              key={d.label}
-              type="button"
-              role="tab"
-              aria-selected={i === activeDay}
-              className={`sh-day-pill${i === activeDay ? ' is-on' : ''}`}
-              data-testid={`sh-day-pill-${i}`}
-              onClick={() => setActiveDay(i)}
-            >
-              {d.label}
-            </button>
-          ))}
+        {/* ── Strict tab-deck rail — one data domain mounted at a time (no scroll
+            fest). Mirrors the adult Vault's cv-tabs navigation. ──────────────── */}
+        <nav className="sh-deck" role="tablist" aria-label="Athlete Hub">
+          {DECK_TABS.map((tab) => {
+            const active = tab.id === activeTab;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={`sh-deck-tab${active ? ' is-active' : ''}`}
+                data-testid={`sh-deck-tab-${tab.id}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span className="sh-deck-ic" aria-hidden="true">{tab.icon}</span>
+                {tab[lang] || tab.en}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* key={activeDay} remounts the panel per day → the transition fires; the
-            lifted week state survives (only the presentation div remounts). */}
-        <div className="sh-panel" key={activeDay}>
-          <DayProtocol
-            day={week[activeDay]}
-            phase={phase}
-            telemetry={telemetry}
-            onToggleExercise={onToggleExercise}
-            onToggleDrill={onToggleDrill}
-            onCycleStatus={onCycleStatus}
-          />
+        {/* key={activeTab} → clean unmount/remount per swap; no domain ever bleeds
+            into another. The lifted week/model state lives on the component (not the
+            panel), so day check-offs survive a tab switch. */}
+        <div className="sh-deck-panel" role="tabpanel" key={activeTab}>
+          {/* ── PROTOCOL — field work + the Day 1–7 execution protocol + combine ── */}
+          {activeTab === 'protocol' ? (
+            <>
+              <SportProtocol protocol={sportsProtocol} telemetry={telemetry} />
+
+              {/* Training block (off/in-season workload selector) */}
+              <div className="sh-phase" role="group" aria-label="Training block">
+                <span className="sh-phase-l">Block</span>
+                <button
+                  type="button"
+                  className={`sh-phase-btn${phase === 'offseason' ? ' is-on' : ''}`}
+                  aria-pressed={phase === 'offseason'}
+                  data-testid="sh-phase-off"
+                  onClick={() => setPhase('offseason')}
+                >
+                  Off-Season
+                </button>
+                <button
+                  type="button"
+                  className={`sh-phase-btn${phase === 'inseason' ? ' is-on' : ''}`}
+                  aria-pressed={phase === 'inseason'}
+                  data-testid="sh-phase-in"
+                  onClick={() => setPhase('inseason')}
+                >
+                  In-Season
+                </button>
+              </div>
+
+              {/* Day 1–7 scrolling pill-navigation */}
+              <nav className="sh-daynav" role="tablist" aria-label="Protocol days">
+                {week.map((d, i) => (
+                  <button
+                    key={d.label}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === activeDay}
+                    className={`sh-day-pill${i === activeDay ? ' is-on' : ''}`}
+                    data-testid={`sh-day-pill-${i}`}
+                    onClick={() => setActiveDay(i)}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </nav>
+
+              <div className="sh-panel" key={activeDay}>
+                <DayProtocol
+                  day={week[activeDay]}
+                  phase={phase}
+                  telemetry={telemetry}
+                  onToggleExercise={onToggleExercise}
+                  onToggleDrill={onToggleDrill}
+                  onCycleStatus={onCycleStatus}
+                />
+              </div>
+
+              {/* Combine & Measurables — the live calculators, one tap away */}
+              <details className="sh-measurables">
+                <summary className="sh-measurables-toggle" data-testid="sh-measurables-toggle">
+                  <span>Combine &amp; Measurables</span>
+                  <span className="sh-measurables-caret" aria-hidden="true">▾</span>
+                </summary>
+                <div className="sh-measurables-body">
+                  <CombineMetrics combine={model.combine} onMetricChange={onMetricChange} />
+                  <ExplosivePower power={model.power} onPowerChange={onPowerChange} />
+                  <SizeMass size={model.size} onSizeChange={onSizeChange} />
+                </div>
+              </details>
+            </>
+          ) : null}
+
+          {/* ── PROGRAM — the weight room (one shared, persisted blueprint) ────── */}
+          {activeTab === 'program' ? (
+            <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="weight" />
+          ) : null}
+
+          {/* ── FUEL — nutrition / macros (buildMealPlan output, now rendered) ─── */}
+          {activeTab === 'fuel' ? (
+            <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="fuel" />
+          ) : null}
+
+          {/* ── RECOVERY — engine-generated prescription + baseline mobility ───── */}
+          {activeTab === 'recovery' ? (
+            <>
+              <RecoveryPrescriptionCard />
+              <BaselineMobility lang={lang} />
+            </>
+          ) : null}
+
+          {/* ── MINDSET — sport/language-aware Champion Mindset film deck ──────── */}
+          {activeTab === 'mindset' ? (
+            <YouthChampionMindset sportId={effProfile.sportId} />
+          ) : null}
         </div>
-
-        {/* ── Champion Mindset — sport/language-aware mindset film deck + the
-            Architect's spoken welcome (State D). Sport flows from the resolved
-            effProfile so the roster matches the athlete's discipline. ───────── */}
-        <YouthChampionMindset sportId={effProfile.sportId} />
-
-        {/* ── Combine & Measurables — the live calculators, one tap away ──────── */}
-        <details className="sh-measurables">
-          <summary className="sh-measurables-toggle" data-testid="sh-measurables-toggle">
-            <span>Combine &amp; Measurables</span>
-            <span className="sh-measurables-caret" aria-hidden="true">▾</span>
-          </summary>
-          <div className="sh-measurables-body">
-            <CombineMetrics combine={model.combine} onMetricChange={onMetricChange} />
-            <ExplosivePower power={model.power} onPowerChange={onPowerChange} />
-            <SizeMass size={model.size} onSizeChange={onSizeChange} />
-          </div>
-        </details>
 
         {/* Replay the Sports Hub welcome tour — mirrors the Vault Settings button,
             but summons the SPORTS concierge (detail.hub:'sports'). */}

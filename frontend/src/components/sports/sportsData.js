@@ -129,6 +129,16 @@ export const POSITION_GROUPS = {
     { label: 'Outfielder', legacy: 'OF' },
     { label: 'Catcher', legacy: 'C' },
   ],
+  tennis: [
+    { label: 'Singles', legacy: 'singles' },
+    { label: 'Doubles', legacy: 'doubles' },
+  ],
+  mma: [
+    { label: 'Striker', legacy: 'striker' },
+    { label: 'Grappler', legacy: 'grappler' },
+    { label: 'Wrestler', legacy: 'wrestler' },
+    { label: 'All-Rounder', legacy: 'all_rounder' },
+  ],
   volleyball: [
     { label: 'Outside Hitter', legacy: 'OH' },
     { label: 'Middle Blocker', legacy: 'MB' },

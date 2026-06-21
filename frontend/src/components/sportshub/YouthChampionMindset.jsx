@@ -51,12 +51,14 @@ const SPORT_TO_CATEGORY = {
   baseball: 'Baseball',
   softball: 'Softball',
   track: 'Track & Field',
+  tennis: 'Tennis',
+  mma: 'Combat Sports',
   multi: 'Combat Sports', // the Combat/Multi node maps to the combat-sports roster
 };
 const SPORT_LABEL_KEY = {
   football: 'yi-sport-football', basketball: 'yi-sport-basketball', soccer: 'yi-sport-soccer',
   baseball: 'yi-sport-baseball', volleyball: 'yi-sport-volleyball', track: 'yi-sport-track',
-  softball: 'yi-sport-softball', multi: 'yi-sport-multi',
+  softball: 'yi-sport-softball', tennis: 'yi-sport-tennis', mma: 'yi-sport-mma', multi: 'yi-sport-multi',
 };
 const LANG_TO_KEY = { en: 'English', es: 'Spanish', pt: 'Portuguese' };
 
