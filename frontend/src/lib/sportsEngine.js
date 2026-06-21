@@ -185,3 +185,33 @@ export function buildSportsProtocol({ sport, age, experience, goal, targetPhase 
     blocks,
   };
 }
+
+// ── Intake-staged protocol (Command Center oversight) ─────────────────────────────
+// Display label for a youth sport id — accurate even when the engine normalizes an
+// uncovered sport (volleyball / tennis / mma) onto the general matrices, so the
+// Command Center roster always shows the athlete's TRUE discipline.
+const YOUTH_SPORT_LABEL = {
+  football: 'American Football', basketball: 'Basketball', soccer: 'Soccer',
+  baseball: 'Baseball', softball: 'Softball', volleyball: 'Volleyball',
+  track: 'Track & Field', tennis: 'Tennis', mma: 'Mixed Martial Arts',
+};
+
+// Age → { phase, experience } via the Blueprint progression bands (youth/middle → P1
+// beginner, high school → P2 intermediate, collegiate → P3 advanced). Mirrors
+// athleteBlueprint.tierToPhase + levelForTier, kept pure so this module ships clean.
+function phaseAndExperienceForAge(age) {
+  const a = Number(age);
+  if (!Number.isFinite(a) || a < 15) return { phase: 1, experience: 'beginner' };
+  if (a < 18) return { phase: 2, experience: 'intermediate' };
+  return { phase: 3, experience: 'advanced' };
+}
+
+// Build the protocol staged into bbf_active_clients at intake — the SAME engine output
+// the Pathfinder funnel stages, with the athlete's true sport label applied so the
+// Command Center reflects their current discipline the moment intake is submitted.
+export function buildIntakeProtocol({ sportId, age, goal = 'general' } = {}) {
+  const { phase, experience } = phaseAndExperienceForAge(age);
+  const proto = buildSportsProtocol({ sport: sportId, age: Number(age) || null, experience, goal, targetPhase: phase });
+  const label = YOUTH_SPORT_LABEL[sportId] || proto.sport;
+  return { ...proto, sport: label, focus: `${label} · ${proto.current_phase}` };
+}

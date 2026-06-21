@@ -18,6 +18,8 @@ import { useLang } from '../../context/LangContext.jsx';
 import { resolveSportsProfile } from '../../lib/sportsRoster.js';
 import { PARQ_ITEMS, classifyParq, submitYouthIntake } from '../../lib/youthIntakeApi.js';
 import { YOUTH_SPORTS, getSport } from './youthSports.js';
+import { buildIntakeProtocol } from '../../lib/sportsEngine.js';
+import { ageFromBirthDate } from '../../lib/athleteBlueprint.js';
 import './sportsHub.css';
 
 // Dietary & allergy multi-select (CRITICAL safety). Vegan/Vegetarian set the meal
@@ -102,6 +104,11 @@ export default function YouthIntake({ uid, onComplete, selection = null, prefill
     }, {});
     const posLabel = sportCfg?.options.find((o) => o.legacy === posCode)?.label || null;
 
+    // Stage the Native Sport Engine protocol (same builder the Pathfinder funnel uses)
+    // so the Command Center oversight (bbf_active_clients.sports_protocol) reflects the
+    // athlete's CURRENT discipline the moment they submit — live, no delay.
+    const sportsProtocol = buildIntakeProtocol({ sportId, age: ageFromBirthDate(birthDate) });
+
     const payload = {
       // Top-level sport/position (canonical ids) → persisted to the profile columns.
       sport: sportId,
@@ -113,6 +120,9 @@ export default function YouthIntake({ uid, onComplete, selection = null, prefill
       // Dietary restrictions / allergies → athlete_profiles.dietary_restrictions →
       // the meal engine's strict allergen exclusion.
       dietary_restrictions: dietary,
+      // Native Sport Engine protocol → staged into bbf_active_clients by the RPC so the
+      // Command Center reflects the athlete's current sport/phase immediately.
+      sports_protocol: sportsProtocol,
       answers,
       flagged_items: PARQ_ITEMS.filter((k) => parq[k]),
       classified: classification, // advisory; server is authoritative
