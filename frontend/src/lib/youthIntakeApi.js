@@ -41,14 +41,18 @@ export function classifyParq(answers) {
 export function useYouthIntakeStatus(uid, { skip = false } = {}) {
   const key = String(uid || '').trim().toLowerCase();
   // value: 'complete' | 'incomplete'; selection: { sportId, positionCode } | null;
+  // prefill: { birthDate, gender } | null — anything already on the athlete_profiles
+  //   record, used to pre-fill the re-gated intake (legacy back-population);
   // progress: the persisted per-day check-off map (bbf_users.youth_progress) | null.
-  const [result, setResult] = useState({ uid: null, value: null, selection: null, progress: null });
+  const [result, setResult] = useState({ uid: null, value: null, selection: null, prefill: null, progress: null });
 
   // Flip to complete on submit without a refetch round-trip (keyed to this uid),
   // carrying the just-chosen sport/position so the Hub renders it immediately. A
   // just-onboarded athlete has no progress yet (null → a fresh, unchecked week).
   const markComplete = useCallback((selection = null) => {
-    setResult({ uid: key, value: 'complete', selection, progress: null });
+    // A fresh submit guarantees a complete athlete_profiles (birth_date + gender),
+    // so we can open the gate without a refetch (prefill is moot once cleared).
+    setResult({ uid: key, value: 'complete', selection, prefill: null, progress: null });
   }, [key]);
 
   useEffect(() => {
@@ -65,14 +69,24 @@ export function useYouthIntakeStatus(uid, { skip = false } = {}) {
         const selection = (!error && data?.sport)
           ? { sportId: data.sport, positionCode: data.position || null }
           : null;
+        // Anything already on file pre-fills the re-gated intake (minimize friction).
+        const prefill = (!error && (data?.birth_date || data?.gender))
+          ? { birthDate: data.birth_date || '', gender: data.gender || '' }
+          : null;
+        // FAIL-CLOSED: the gate opens ONLY when the PAR-Q is cleared AND the
+        // athlete_profiles record is complete (birth_date + gender present). A
+        // legacy athlete who cleared PAR-Q but never populated the profile is
+        // RE-GATED to backfill the values we can't guess.
+        const cleared = !error && data?.completed && data?.profile_complete;
         setResult({
           uid: key,
-          value: !error && data?.completed ? 'complete' : 'incomplete',
+          value: cleared ? 'complete' : 'incomplete',
           selection,
+          prefill,
           progress: (!error && data?.youth_progress) || null,
         });
       })
-      .catch(() => { if (!cancelled) setResult({ uid: key, value: 'incomplete', selection: null, progress: null }); });
+      .catch(() => { if (!cancelled) setResult({ uid: key, value: 'incomplete', selection: null, prefill: null, progress: null }); });
     return () => { cancelled = true; };
   }, [key, skip]);
 
@@ -83,8 +97,9 @@ export function useYouthIntakeStatus(uid, { skip = false } = {}) {
   else status = result.value;
 
   const selection = result.uid === key ? result.selection : null;
+  const prefill = result.uid === key ? result.prefill : null;
   const progress = result.uid === key ? result.progress : null;
-  return { status, selection, progress, markComplete };
+  return { status, selection, prefill, progress, markComplete };
 }
 
 // Persist the intake. Authorized server-side purely by the bearer token (the

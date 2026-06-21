@@ -3,10 +3,16 @@
 // THE SPORTS HUB — first-run interception point.
 //
 // Gates the Sports Hub: a flagged youth athlete cannot SEE the Hub until the DB
-// confirms a completed PAR-Q+ intake. Three states:
+// confirms BOTH a completed PAR-Q+ intake AND a complete athlete_profiles record
+// (birth_date + gender — the tier-driving values we can't guess). Three states:
 //   loading    → resolving clearance (no Hub flash, no premature intake)
 //   incomplete → render the forced <YouthIntake> gate IN PLACE of the Hub
 //   complete   → render the Hub for the athlete's chosen sport/position
+//
+// LEGACY BACK-POPULATION: an athlete who cleared PAR-Q before athlete_profiles
+// carried birth_date/gender is RE-GATED here (profile_complete:false → incomplete)
+// and routed back through <YouthIntake> — pre-filled with whatever they already
+// gave (sport/position, plus any birth_date/gender on file) to minimize friction.
 //
 // The chosen sport/position (just-submitted via markComplete, or persisted via the
 // status RPC) is passed to the Hub and used as its render key, so a sport change
@@ -23,7 +29,7 @@ import './sportsHub.css';
 export default function YouthIntakeGate() {
   const { user, isAdmin } = useAuth();
   const uid = user?.username || user?.id || '';
-  const { status, selection, progress, markComplete } = useYouthIntakeStatus(uid, { skip: isAdmin });
+  const { status, selection, prefill, progress, markComplete } = useYouthIntakeStatus(uid, { skip: isAdmin });
 
   if (status === 'loading') {
     return (
@@ -33,7 +39,7 @@ export default function YouthIntakeGate() {
     );
   }
   if (status === 'incomplete') {
-    return <YouthIntake uid={uid} onComplete={markComplete} />;
+    return <YouthIntake uid={uid} selection={selection} prefill={prefill} onComplete={markComplete} />;
   }
   const selKey = selection ? `${selection.sportId}:${selection.positionCode}` : 'seed';
   return <SportsHub key={selKey} selection={selection} progress={progress} />;

@@ -20,26 +20,32 @@ import { PARQ_ITEMS, classifyParq, submitYouthIntake } from '../../lib/youthInta
 import { YOUTH_SPORTS, getSport } from './youthSports.js';
 import './sportsHub.css';
 
-export default function YouthIntake({ uid, onComplete }) {
+export default function YouthIntake({ uid, onComplete, selection = null, prefill = null }) {
   const { user } = useAuth();
   const { t, lang } = useLang();
   const profile = useMemo(() => user?.sportsProfile || resolveSportsProfile(user) || {}, [user]);
 
   const [parq, setParq] = useState({}); // { 'f-parq1': true, ... }
   const [health, setHealth] = useState({ injuries: '', conditions: '', medications: '' });
-  // Sport selection — pre-seeded from the athlete's profile when it maps cleanly.
+  // Sport selection — pre-seeded from the persisted selection (legacy back-population:
+  // sport/position the athlete already gave) first, then the athlete's profile, when
+  // either maps cleanly to the current roster.
+  const seedSportId = selection?.sportId || profile.sportId;
+  const seedPosCode = selection?.positionCode || profile.positionCode;
   const [sportId, setSportId] = useState(() =>
-    (YOUTH_SPORTS.some((s) => s.id === profile.sportId) ? profile.sportId : ''));
+    (YOUTH_SPORTS.some((s) => s.id === seedSportId) ? seedSportId : ''));
   const [posCode, setPosCode] = useState(() =>
-    (getSport(profile.sportId)?.options.some((o) => o.legacy === profile.positionCode) ? profile.positionCode : ''));
+    (getSport(seedSportId)?.options.some((o) => o.legacy === seedPosCode) ? seedPosCode : ''));
   const [guardianName, setGuardianName] = useState('');
   const [guardianRel, setGuardianRel] = useState('');
   const [guardianConsent, setGuardianConsent] = useState(false);
   const [liability, setLiability] = useState(false);
   // Athlete details — feed athlete_profiles (birth_date drives the tier calc; gender
-  // is Male / Female / Coed, matching the athlete_profiles CHECK constraint).
-  const [birthDate, setBirthDate] = useState('');
-  const [gender, setGender] = useState('');
+  // is Male / Female / Coed, matching the athlete_profiles CHECK constraint). Both
+  // pre-fill from anything already on the profile (legacy back-population).
+  const [birthDate, setBirthDate] = useState(() => prefill?.birthDate || '');
+  const [gender, setGender] = useState(() =>
+    (['male', 'female', 'coed'].includes(prefill?.gender) ? prefill.gender : ''));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
