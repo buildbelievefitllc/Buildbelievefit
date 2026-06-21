@@ -10,7 +10,12 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   :root { --pur:#6a0dad; --purl:#8b1abf; --purx:#0d0118; --yel:#f5c800; --wht:#f9f5ff;
     --gry:#0e0e0e; --gry2:#141414; --gry3:#1e1e1e; --mut:#888; --green:#4ade80;
-    --hb:'Bebas Neue',sans-serif; --bd:'Barlow Condensed',sans-serif; }
+    --hb:'Bebas Neue',sans-serif; --bd:'Barlow Condensed',sans-serif;
+    /* V4 "Laboratory Gold" canonical design tokens (Blueprint §6). The legacy
+       --pur/--yel/--gry* aliases above stay load-bearing; new V4 cosmetics
+       reference these so the system has one documented palette source. */
+    --bbf-black:#0c0c0c; --bbf-dark-gray:#141414; --bbf-gold:#f5c800; --bbf-purple:#6a0dad;
+    --bbf-glass-bg:rgba(20,20,20,0.7); --bbf-glass-border:rgba(245,200,0,0.15); }
   body { background:#0a0a0a; color:var(--wht); font-family:var(--bd); font-weight:600; min-height:100vh; -webkit-text-size-adjust:100%; }
   html, body { overflow-x:hidden; max-width:100%; }
 
@@ -260,6 +265,58 @@
   .bg-swatches { flex-wrap:wrap; gap:8px; }
   .bg-swatches .sw { width:54px; height:34px; border-radius:7px; border:2px solid rgba(255,255,255,0.14); cursor:pointer; }
   .bg-swatches .sw.active { outline:2px solid #f5c800; outline-offset:1px; border-color:transparent; }
+
+  /* ============ V4 COSMETIC CONTROLS (Blueprint Modules 1–4) ============ */
+  /* Layout-Refinement accordion — frosted-glass <details> drawer in the sidebar. */
+  .v4-acc { border:1px solid var(--bbf-glass-border); border-radius:8px; background:var(--bbf-glass-bg);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); margin-bottom:18px; overflow:hidden; }
+  .v4-acc > summary { list-style:none; cursor:pointer; padding:11px 13px; font-family:var(--hb); font-size:0.82rem;
+    letter-spacing:1.5px; color:var(--bbf-gold); display:flex; align-items:center; justify-content:space-between; }
+  .v4-acc > summary::-webkit-details-marker { display:none; }
+  .v4-acc > summary::after { content:'▾'; color:var(--mut); transition:transform .2s; }
+  .v4-acc[open] > summary::after { transform:rotate(180deg); }
+  .v4-acc .v4-acc-body { padding:4px 13px 14px; border-top:1px solid var(--gry3); }
+  .v4-acc .ctl-group:last-child { margin-bottom:0; }
+
+  /* Dual raw-hex color pickers (Module 1). */
+  .color-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .color-cell { display:flex; align-items:center; gap:9px; background:var(--gry2); border:1px solid var(--gry3);
+    border-radius:8px; padding:8px 10px; }
+  .color-cell input[type=color] { width:38px; height:38px; padding:0; border:none; border-radius:7px; background:none; cursor:pointer; flex-shrink:0; }
+  .color-cell input[type=color]::-webkit-color-swatch-wrapper { padding:0; }
+  .color-cell input[type=color]::-webkit-color-swatch { border:1px solid rgba(255,255,255,0.25); border-radius:7px; }
+  .color-cell .cc-meta { display:flex; flex-direction:column; line-height:1.15; min-width:0; }
+  .color-cell .cc-k { font-size:0.54rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--mut); }
+  .color-cell .cc-v { font-family:var(--hb); font-size:0.78rem; letter-spacing:1px; color:var(--wht); }
+  .reset-link { background:none; border:none; color:var(--mut); font-family:var(--bd); font-weight:700; font-size:0.72rem;
+    letter-spacing:1px; cursor:pointer; text-decoration:underline; padding:0; margin-top:8px; }
+  .reset-link:hover { color:var(--bbf-gold); }
+
+  /* Spotlight V4 — Single Hero "Shoutout" layout + Performance Banner ribbon (Module 3). */
+  #stage-spot.single .sp-photos { grid-template-columns:1fr; padding:34px 90px; }
+  #stage-spot.single .sp-ph { border-radius:18px; border:3px solid rgba(245,200,0,0.55);
+    box-shadow:0 0 0 8px rgba(106,13,173,0.18), 0 30px 80px rgba(0,0,0,0.6); background:var(--bbf-glass-bg);
+    backdrop-filter:blur(2px); }
+  #stage-spot.single .sp-ph.is-after, #stage-spot.single .sp-badge { display:none !important; }
+  #stage-spot.single .sp-ftr .sp-l1, #stage-spot.single .sp-ftr .sp-l2 { max-width:880px; margin-left:auto; margin-right:auto; }
+  .sp-ribbon { position:absolute; top:30px; right:-54px; transform:rotate(45deg); transform-origin:center;
+    width:240px; text-align:center; font-family:var(--hb); font-size:27px; letter-spacing:4px; padding:12px 0;
+    color:#0a0a0a; z-index:6; box-shadow:0 6px 22px rgba(0,0,0,0.55); display:none; }
+  .sp-ribbon.show { display:block; }
+  .sp-ribbon.legacy { background:linear-gradient(135deg,var(--bbf-gold),#e6b800); color:#0a0a0a; border:1px solid rgba(0,0,0,0.3); }
+  .sp-ribbon.metabolic { background:linear-gradient(135deg,var(--bbf-purple),var(--purl)); color:var(--wht); border:1px solid rgba(245,200,0,0.4); }
+  .sp-ribbon.pure { background:linear-gradient(135deg,rgba(106,13,173,0.92),rgba(245,200,0,0.85)); color:#0a0a0a; }
+
+  /* Reel V4 — hook placement/alignment transitions for the cover composition (Module 4). */
+  .reel-top, .reel-bottom { transition:top .18s, bottom .18s, transform .18s; }
+  #panel-reel .seg.seg-wrap { flex-wrap:wrap; }
+
+  /* Phone V4 — Device Frame Styles (Module 2). The 14px bezel band shows the
+     .phone surface; the inset rings (driven from JS) paint the frame edge. */
+  .phone.frame-sleek { background:linear-gradient(160deg,#3a3744 0%,#232029 45%,#17151c 100%); }
+  .phone.frame-gold { background:linear-gradient(160deg,#6a5a16 0%,#4a3e0c 45%,#241d06 100%); }
+  .phone.frame-carbon { background:linear-gradient(160deg,#1c1c20 0%,#101013 45%,#070708 100%);
+    background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.03) 0 2px,transparent 2px 5px),linear-gradient(160deg,#1c1c20 0%,#101013 45%,#070708 100%); }
 </style>
 </head>
 <body>
@@ -268,7 +325,7 @@
   <div class="tb-head">
     <div>
       <div class="tb-brand">Build<span>Believe</span>Fit</div>
-      <div class="tb-sub">Sovereign Studio V3 · 200-Card Arsenal · All-In-One</div>
+      <div class="tb-sub">Sovereign Studio V4 · 250-Card Arsenal · All-In-One</div>
     </div>
     <div class="tb-exit">
       <a class="exit-btn" href="/command" title="Back to Command Center">⌂ Command Center</a>
@@ -302,10 +359,16 @@
         <option value="responder">FIRST RESPONDER</option>
         <option value="vision">VISION & MANIFESTATION</option>
         <option value="youthparent">THE ATHLETE'S PARENT</option>
+        <optgroup label="── V4 · NEW DECKS ──">
+          <option value="hardhitting">HARD-HITTING</option>
+          <option value="philosophical">PHILOSOPHICAL</option>
+          <option value="educational">EDUCATIONAL</option>
+          <option value="urgent">URGENT</option>
+        </optgroup>
         <option value="custom">⭐ MY CUSTOM CARDS</option>
       </select>
     </div>
-    <div class="ctl-group"><button class="spin-btn" id="cta-spin">🎰 SPIN A CARD</button><div class="hint">Pulls from the <b>200-card catalog</b> + a random palette. Everything stays editable.</div></div>
+    <div class="ctl-group"><button class="spin-btn" id="cta-spin">🎰 SPIN A CARD</button><div class="hint">Pulls from the <b>250-card catalog</b> + a random palette. Everything stays editable.</div></div>
     <div class="ctl-group row2">
       <button class="ghost-btn" id="cta-shuffle-pal">🎨 SHUFFLE PALETTE</button>
       <button class="ghost-btn" id="cta-save">⭐ SAVE TO CATALOG</button>
@@ -319,6 +382,32 @@
       </div>
     </div>
     <div class="ctl-group"><label class="ctl-label">Palette</label><div class="pal-grid" id="cta-palettes"></div></div>
+    <div class="ctl-group">
+      <label class="ctl-label">🎨 Raw Accent Override</label>
+      <div class="color-row">
+        <div class="color-cell">
+          <input type="color" id="cta-c1" value="#f5c800">
+          <div class="cc-meta"><span class="cc-k">Primary</span><span class="cc-v" id="cta-c1-val">#f5c800</span></div>
+        </div>
+        <div class="color-cell">
+          <input type="color" id="cta-c2" value="#6a0dad">
+          <div class="cc-meta"><span class="cc-k">Secondary</span><span class="cc-v" id="cta-c2-val">#6a0dad</span></div>
+        </div>
+      </div>
+      <button class="reset-link" id="cta-c-reset" type="button">↺ Reset to palette defaults</button>
+      <div class="hint">Overrides the palette's accent + rule + button. Reset to fall back to the preset.</div>
+    </div>
+    <details class="v4-acc">
+      <summary>⚙ LAYOUT REFINEMENT</summary>
+      <div class="v4-acc-body">
+        <div class="ctl-group"><label class="ctl-label">Border Radius <span class="range-val" id="cta-radius-val">0px</span></label>
+          <input type="range" id="cta-radius" min="0" max="40" value="0"></div>
+        <div class="ctl-group"><label class="ctl-label">Headline Scale <span class="range-val" id="cta-fscale-val">100%</span></label>
+          <input type="range" id="cta-fscale" min="80" max="120" value="100"></div>
+        <div class="ctl-group"><label class="ctl-label">Gradient Angle <span class="range-val" id="cta-gangle-val">155°</span></label>
+          <input type="range" id="cta-gangle" min="0" max="360" value="155"></div>
+      </div>
+    </details>
     <div class="ctl-group"><label class="ctl-label">Eyebrow</label><input type="text" id="cta-eye" value="BUILD BELIEVE FIT • THE WHY"></div>
     <div class="ctl-group"><label class="ctl-label">Headline — *stars* = highlight</label>
       <textarea id="cta-hl">STOP WAITING
@@ -384,6 +473,14 @@ FOR A SIGN.
       <div class="hint">Single = centered hero. Dual = two screens overlapped. Trio = three-screen fan. Lean = phone pushed right, text owns the left.</div>
     </div>
     <div class="ctl-group">
+      <label class="ctl-label">Device Frame Style</label>
+      <select id="ph-frame">
+        <option value="sleek">Sleek Modern (minimal bezels)</option>
+        <option value="gold">Sovereign Gold (brushed gold frame)</option>
+        <option value="carbon">Matte Black Carbon</option>
+      </select>
+    </div>
+    <div class="ctl-group">
       <label class="ctl-label">Main Screenshot</label>
       <label class="upload-btn" id="ph-lbl1" for="ph-file1">UPLOAD SCREENSHOT</label>
       <input type="file" id="ph-file1" accept="image/*">
@@ -408,12 +505,14 @@ FOR A SIGN.
 YOUR CLOCK</textarea></div>
     <div class="ctl-group"><label class="ctl-label">Benefit</label>
       <textarea id="ph-benefit">Six fasting protocols, a live eating window, and your macros tracked in real time.</textarea></div>
-    <div class="ctl-group"><label class="ctl-label">Tilt <span class="range-val" id="ph-tilt-val">-5°</span></label>
-      <input type="range" id="ph-tilt" min="-12" max="12" value="-5"></div>
+    <div class="ctl-group"><label class="ctl-label">Tilt (3D) <span class="range-val" id="ph-tilt-val">-5°</span></label>
+      <input type="range" id="ph-tilt" min="-15" max="15" value="-5"></div>
     <div class="ctl-group"><label class="ctl-label">Size <span class="range-val" id="ph-size-val">100%</span></label>
       <input type="range" id="ph-size" min="80" max="120" value="100"></div>
     <div class="ctl-group"><label class="ctl-label">Reveal <span class="range-val" id="ph-lift-val">0</span></label>
       <input type="range" id="ph-lift" min="-100" max="300" value="0"></div>
+    <div class="ctl-group"><label class="ctl-label">Shadow Depth <span class="range-val" id="ph-shadow-val">100%</span></label>
+      <input type="range" id="ph-shadow" min="0" max="200" value="100"></div>
     <div class="ctl-group"><button class="export-btn" id="ph-export">⬇ EXPORT 1080×1350</button>
       <button class="queue-btn" id="ph-queue">📡 QUEUE THIS POST → IG/FB</button>
       <div class="queue-note" id="ph-queue-note"></div>
@@ -429,9 +528,26 @@ YOUR CLOCK</textarea></div>
 
   <!-- ============ SPOTLIGHT PANEL ============ -->
   <div class="panel" id="panel-spot">
+    <div class="ctl-group">
+      <label class="ctl-label">Layout Engine</label>
+      <div class="seg" id="sp-layout">
+        <button class="active" data-l="split">BEFORE / AFTER</button>
+        <button data-l="single">SINGLE HERO</button>
+      </div>
+      <div class="hint">Split = before/after grid. Single Hero = one centered, gold-framed shoutout frame (the After upload + badges hide).</div>
+    </div>
+    <div class="ctl-group">
+      <label class="ctl-label">🎖 Performance Banner</label>
+      <select id="sp-banner">
+        <option value="">— no banner —</option>
+        <option value="legacy">Legacy Athlete (gold ribbon)</option>
+        <option value="metabolic">Metabolic Master (purple ribbon)</option>
+        <option value="pure">Pure Shoutout (gradient banner)</option>
+      </select>
+    </div>
     <div class="ctl-group"><label class="ctl-label">Before Photo</label>
       <label class="upload-btn" id="sp-lbl-b" for="sp-file-b">UPLOAD BEFORE</label><input type="file" id="sp-file-b" accept="image/*"></div>
-    <div class="ctl-group"><label class="ctl-label">After Photo</label>
+    <div class="ctl-group" id="sp-after-group"><label class="ctl-label">After Photo</label>
       <label class="upload-btn" id="sp-lbl-a" for="sp-file-a">UPLOAD AFTER</label><input type="file" id="sp-file-a" accept="image/*"></div>
     <div class="ctl-group"><label class="ctl-label">Logo (optional)</label>
       <label class="upload-btn" id="sp-lbl-l" for="sp-file-l">UPLOAD LOGO</label><input type="file" id="sp-file-l" accept="image/*"></div>
@@ -479,6 +595,17 @@ YOUR CLOCK</textarea></div>
       </select>
       <div class="hint">Locks the series color + tag, loads the hook bank.</div>
     </div>
+    <div class="ctl-group">
+      <label class="ctl-label">⚡ Hook Spectrum (themed)</label>
+      <select id="reel-spectrum">
+        <option value="">— use series hook bank —</option>
+        <option value="bioenergetics">Bioenergetics &amp; Fasting</option>
+        <option value="solis">Solis-Transit Psychology</option>
+        <option value="prehab">Biomechanical Pre-hab</option>
+        <option value="shift">12-Hour Shift Adherence</option>
+      </select>
+      <div class="hint">When set, <b>SPIN A HOOK</b> pulls from this spectrum instead of the series bank.</div>
+    </div>
     <div class="ctl-group"><button class="spin-btn" id="reel-spin">🎰 SPIN A HOOK</button></div>
     <div class="divider"></div>
     <div class="ctl-group"><label class="ctl-label">🎨 Built-in Background — pick one, no upload needed</label>
@@ -493,7 +620,22 @@ YOUR CLOCK</textarea></div>
       <div class="hint">Loads moving footage behind the overlay. <b>Video wins over image</b> when both are set.</div></div>
     <div class="ctl-group"><label class="ctl-label">Darkness <span class="range-val" id="reel-dark-val">100%</span></label>
       <input type="range" id="reel-dark" min="30" max="150" value="100"></div>
-    <div class="ctl-group"><label class="ctl-label">Series Tag</label><input type="text" id="reel-eye" value="FORM FIX • EP. 1"></div>
+    <div class="ctl-group"><label class="ctl-label">Series Tag — pick from the database or write your own</label>
+      <select id="reel-tag-pick" style="margin-bottom:6px;">
+        <option value="">— series database —</option>
+        <option>FORM FIX</option>
+        <option>MINDSET PROTOCOL</option>
+        <option>METABOLIC WINDOW</option>
+        <option>12-HOUR SURVIVAL</option>
+        <option>SOVEREIGN SUNDAY</option>
+        <option>FUEL FILES</option>
+        <option>THE LAB</option>
+        <option>RISING ATHLETE</option>
+        <option>PREHAB MINUTE</option>
+        <option>35-MIN PROTOCOL</option>
+        <option value="__custom__">＋ Create Custom Series…</option>
+      </select>
+      <input type="text" id="reel-eye" value="FORM FIX • EP. 1"></div>
     <div class="ctl-group"><label class="ctl-label">Accent</label><div class="swatches" id="reel-swatches"></div></div>
     <div class="ctl-group"><label class="ctl-label">Hook Headline</label>
       <textarea id="reel-hl">STOP PRESSING
@@ -503,6 +645,23 @@ STRAIGHT UP</textarea></div>
       <div class="hint">Shrink the hook so it never overshadows the movement — ideal for lower-framed shots.</div></div>
     <div class="ctl-group"><label class="ctl-label">Sub-line</label><input type="text" id="reel-sub" value="The 2-inch fix your shoulders will thank you for."></div>
     <div class="ctl-group"><label class="ctl-label">Button</label><input type="text" id="reel-watch" value="▶  WATCH THE FIX"></div>
+    <div class="ctl-group">
+      <label class="ctl-label">Hook Placement</label>
+      <div class="seg" id="reel-vpos">
+        <button data-v="top">TOP</button>
+        <button data-v="center">CENTER</button>
+        <button class="active" data-v="bottom">BOTTOM</button>
+      </div>
+    </div>
+    <div class="ctl-group">
+      <label class="ctl-label">Text Alignment</label>
+      <div class="seg" id="reel-halign">
+        <button class="active" data-h="left">LEFT</button>
+        <button data-h="center">CENTER</button>
+        <button data-h="right">RIGHT</button>
+      </div>
+      <div class="hint">Placement + alignment apply to the cover image <b>and</b> the exported video overlay.</div>
+    </div>
     <div class="ctl-group"><button class="export-btn" id="reel-export">⬇ EXPORT IMAGE 1080×1920</button>
       <button class="queue-btn" id="reel-queue">📡 QUEUE COVER → IG/FB</button>
       <div class="queue-note" id="reel-queue-note"></div>
@@ -582,6 +741,7 @@ YOUR CLOCK</div>
   <div class="stage-host" id="host-spot"><div class="stage-scaler" id="scaler-spot">
     <div id="stage-spot">
       <div class="sp-strip"></div>
+      <div class="sp-ribbon" id="sp-ribbon"></div>
       <div class="sp-hdr">
         <div class="sp-logo" id="sp-logo1"><img id="sp-logoimg1" alt=""></div>
         <div class="sp-htext">
@@ -593,7 +753,7 @@ YOUR CLOCK</div>
       </div>
       <div class="sp-photos">
         <div class="sp-ph" id="sp-ph-b"><div class="placeholder">UPLOAD<br>BEFORE 📷</div><div class="sp-badge before">BEFORE</div></div>
-        <div class="sp-ph" id="sp-ph-a"><div class="placeholder">UPLOAD<br>AFTER 📷</div><div class="sp-badge after">AFTER</div>
+        <div class="sp-ph is-after" id="sp-ph-a"><div class="placeholder">UPLOAD<br>AFTER 📷</div><div class="sp-badge after">AFTER</div>
           <div class="sp-wm" id="sp-wm"><img id="sp-logoimg2" alt=""></div></div>
       </div>
       <div class="sp-ftr">
@@ -617,7 +777,7 @@ YOUR CLOCK</div>
         <div class="reel-brand">BUILD <span>BELIEVE</span> FIT</div>
         <div class="reel-eye" id="reel-out-eye" style="color:#f5c800;border-color:#f5c800;">FORM FIX • EP. 1</div>
       </div>
-      <div class="reel-bottom">
+      <div class="reel-bottom" id="reel-bottom">
         <div class="reel-hl" id="reel-out-hl">STOP PRESSING
 STRAIGHT UP</div>
         <div class="reel-sub" id="reel-out-sub">The 2-inch fix your shoulders will thank you for.</div>
@@ -2000,6 +2160,66 @@ const CATALOG = {
    "The discipline outlives the sport.\n**Train for life.**",
    "TRAIN FOR LIFE"
   ]
+ ],
+ "hardhitting": [
+  ["BBF • HARD TRUTH","NOBODY IS\nCOMING TO\n*SAVE YOU.*","Good. The rescue was always yours to run.\n**Start the climb.**","START NOW"],
+  ["BBF • HARD TRUTH","YOUR EXCUSES\nHAVE A BODY.\n*IT'S YOURS.*","Every story you tell is wearing your skin.\n**Change the story.**","CHANGE IT"],
+  ["BBF • HARD TRUTH","COMFORT IS A\nSLOW\n*SURRENDER.*","The couch isn't rest. It's a negotiation you're losing.\n**Get up.**","GET UP"],
+  ["BBF • HARD TRUTH","'LATER' IS WHERE\nDREAMS QUIETLY\n*DIE.*","The plan you postpone is the life you decline.\n**Begin today.**","BEGIN"],
+  ["BBF • HARD TRUTH","SOMEDAY IS NOT\nA DAY OF THE\n*WEEK.*","Pick a real one. Put the session on it.\n**Schedule the work.**","SCHEDULE IT"],
+  ["BBF • HARD TRUTH","THE WEIGHT\nWON'T LIFT\n*ITSELF.*","Motivation clocked out. Show up without it.\n**Do the rep.**","DO IT"],
+  ["BBF • HARD TRUTH","YOU'RE NOT\nTIRED. YOU'RE\n*UNTRAINED.*","Capacity is built, not born. Start building.\n**Earn the engine.**","BUILD IT"],
+  ["BBF • HARD TRUTH","STOP NEGOTIATING\nWITH YOUR\n*ALARM.*","The snooze button is a tiny daily quit.\n**Win the morning.**","WIN IT"],
+  ["BBF • HARD TRUTH","THE MIRROR\nISN'T LYING.\nYOU *ARE.*","Tell yourself the truth, then go fix it.\n**Face it.**","FACE IT"],
+  ["BBF • HARD TRUTH","DISCIPLINE OR\n*REGRET.*\nPICK ONE.","One weighs ounces. The other weighs tons.\n**Choose the lighter load.**","CHOOSE"],
+  ["BBF • HARD TRUTH","HALF-EFFORT IS\nJUST A SLOWER\n*NO.*","Run the protocol or admit you won't.\n**Commit fully.**","COMMIT"],
+  ["BBF • HARD TRUTH","NO ONE REMEMBERS\nTHE SETS YOU\n*SKIPPED.* YOU DO.","Your body keeps that ledger forever.\n**Stop skipping.**","SHOW UP"],
+  ["BBF • HARD TRUTH","WANT IT? PROVE\nIT ON A\n*TUESDAY.*","Anyone trains on New Year's. Champions train on nothing days.\n**Train today.**","TRAIN NOW"]
+ ],
+ "philosophical": [
+  ["BBF • THE LONG GAME","YOU ARE THE\nANCESTOR SOMEONE\nWILL *THANK.*","Build the body and discipline they'll inherit.\n**Start the lineage.**","BEGIN THE LEGACY"],
+  ["BBF • THE LONG GAME","DISCIPLINE IS\nSELF-RESPECT IN\n*MOTION.*","Every kept promise rebuilds the trust you owe yourself.\n**Keep one today.**","KEEP IT"],
+  ["BBF • THE LONG GAME","THE BODY KEEPS\nEVERY PROMISE\nYOU *MAKE* IT.","Show up enough and it finally believes you.\n**Make the promise.**","PROMISE IT"],
+  ["BBF • THE LONG GAME","YOU DON'T FIND\nTIME. YOU\n*DEFEND* IT.","Put the session where the world can't move it.\n**Guard the hour.**","DEFEND IT"],
+  ["BBF • THE LONG GAME","MOTIVATION IS A\nTOURIST. DISCIPLINE\n*LIVES* HERE.","Build the system that runs without the mood.\n**Build the system.**","BUILD IT"],
+  ["BBF • THE LONG GAME","HEALTH IS THE\nONE CROWN EVERY\nKING *ENVIES.*","Guard it long before you need to.\n**Train for the throne.**","CLAIM IT"],
+  ["BBF • THE LONG GAME","THE STRONGEST\nROOMS ARE BUILT\nIN *SILENCE.*","No audience. No applause. Just reps.\n**Build in the quiet.**","BEGIN"],
+  ["BBF • THE LONG GAME","SUFFER BY CHOICE\nNOW — OR BY\n*CHANCE* LATER.","Training is the suffering you get to schedule.\n**Choose it.**","CHOOSE NOW"],
+  ["BBF • THE LONG GAME","SMALL HINGES\nSWING HUGE\n*DOORS.*","One session, one meal — stacked, they become you.\n**Swing the hinge.**","STACK IT"],
+  ["BBF • THE LONG GAME","BUILD. BELIEVE.\nFIT. THE ORDER\nIS THE *METHOD.*","You build first; belief is the proof that follows.\n**Live the sequence.**","LIVE IT"],
+  ["BBF • THE LONG GAME","REST IS A\nWEAPON, NOT A\n*REWARD.*","Recovery is where the strength actually lands.\n**Honor it.**","RECOVER WELL"],
+  ["BBF • THE LONG GAME","DON'T CHASE THE\nFEELING. BECOME\nTHE *IDENTITY.*","Motivation fades. Who you are doesn't.\n**Be them now.**","BECOME"],
+  ["BBF • THE LONG GAME","YOUR FUTURE\nSELF IS\n*WATCHING.*","Make today a gift, not a grievance.\n**Send it forward.**","INVEST TODAY"]
+ ],
+ "educational": [
+  ["BBF • THE SCIENCE","MUSCLE IS BUILT\nBY *TENSION,*\nNOT EXHAUSTION.","Chase quality reps near failure — not random fatigue.\n**Train with intent.**","LEARN HOW"],
+  ["BBF • THE SCIENCE","PROGRESSIVE\nOVERLOAD IS THE\n*WHOLE* GAME.","A little more, a little better, every week.\n**Track the climb.**","TRACK IT"],
+  ["BBF • THE SCIENCE","FASTING WON'T\nBURN MUSCLE —\n*UNDER-EATING* WILL.","Protect lean mass: hit protein inside your window.\n**Fuel smart.**","SEE THE PLAN"],
+  ["BBF • THE SCIENCE","SORENESS ISN'T\nA SCORE. IT'S\n*NOISE.*","Progress is load and reps — not aches.\n**Measure what matters.**","MEASURE IT"],
+  ["BBF • THE SCIENCE","YOU DON'T GROW\nIN THE GYM. YOU\nGROW *AFTER* IT.","Recovery is where the adaptation lands.\n**Respect the rest.**","RECOVER RIGHT"],
+  ["BBF • THE SCIENCE","ZONE 2 BUILDS\nTHE ENGINE\nLIFTING *CAN'T.*","Easy conversational cardio expands your base.\n**Build the base.**","BUILD ENGINE"],
+  ["BBF • THE SCIENCE","YOUR JOINTS VOTE\nBEFORE YOUR\n*MUSCLES* DO.","Prehab keeps the hinges honest so you keep loading.\n**Protect the hinge.**","START PREHAB"],
+  ["BBF • THE SCIENCE","SLEEP IS THE\nMOST ANABOLIC\nHOUR YOU NEVER\n*TRAIN.*","Under-sleep and you under-build. Simple.\n**Guard the night.**","FIX SLEEP"],
+  ["BBF • THE SCIENCE","MORE ISN'T\nBETTER.\n*RECOVERABLE*\nIS BETTER.","Volume only counts when you adapt to it.\n**Dose it right.**","DIAL IT IN"],
+  ["BBF • THE SCIENCE","SPIKE YOUR LOAD\nAND THE BODY\nSENDS THE\n*BILL.*","The A:C ratio predicts your next injury.\n**Ramp, don't leap.**","SEE YOUR RATIO"],
+  ["BBF • THE SCIENCE","5 TO 30 REPS\nALL BUILD.\n*EFFORT* PICKS\nTHE WINNER.","The rep range is wide; the intent isn't.\n**Bring the effort.**","LEARN MORE"],
+  ["BBF • THE SCIENCE","HYDRATION MOVES\nSTRENGTH MORE\nTHAN ANY\n*SUPPLEMENT.*","Down a glass before you blame the program.\n**Drink first.**","FIX IT"],
+  ["BBF • THE SCIENCE","FORM IS A\nSKILL, NOT A\n*TALENT.*","Grease the groove — don't grind to failure.\n**Practice the pattern.**","DRILL IT"]
+ ],
+ "urgent": [
+  ["BBF • LAST CALL","THE BEST TIME\nWAS YESTERDAY.\nTHE NEXT IS\n*NOW.*","Stop waiting for Monday. Monday is a myth.\n**Start today.**","START NOW"],
+  ["BBF • LAST CALL","ONE DECISION\nSTANDS BETWEEN\nYOU AND\n*DAY ONE.*","Make it before the feeling fades.\n**Make it now.**","BEGIN TODAY"],
+  ["BBF • LAST CALL","YOUR PLAN IS\nWAITING. IT WON'T\nWAIT *FOREVER.*","Three minutes builds it. Zero builds nothing.\n**Run the Pathfinder.**","DM PATHFINDER"],
+  ["BBF • LAST CALL","THE CLOCK DOESN'T\nCARE ABOUT YOUR\n*MOTIVATION.*","Discipline shows up anyway. So can you.\n**Move now.**","MOVE"],
+  ["BBF • LAST CALL","EVERY DAY YOU\nWAIT IS A DAY\nYOU CAN'T\n*REFUND.*","Time is the one rep you can't redo.\n**Spend it building.**","BUILD TODAY"],
+  ["BBF • LAST CALL","$9.99 AND THREE\nMINUTES STAND\nBEFORE YOUR\n*PLAN.*","Cheaper than the excuse you've been renting.\n**Claim it.**","CLAIM IT"],
+  ["BBF • LAST CALL","STOP SCROLLING.\nSTART SETTING\n*PRs.*","The feed will be here. This window won't.\n**Open the plan.**","START NOW"],
+  ["BBF • LAST CALL","YOUR FUTURE\nBODY IS DECIDED\n*TODAY.*","By what you do — or skip — in the next hour.\n**Decide well.**","DECIDE"],
+  ["BBF • LAST CALL","THE WINDOW FOR\n'EASIER LATER'\nIS *CLOSING.*","It only gets simpler the sooner you start.\n**Start while it's hard.**","BEGIN"],
+  ["BBF • LAST CALL","DON'T END THE\nYEAR THE WAY\nYOU *STARTED* IT.","Twelve weeks changes the whole reflection.\n**Begin the twelve.**","START THE CLOCK"],
+  ["BBF • LAST CALL","THE STREAK\nBEGINS WITH\n*ONE.*","Day one is the only day you can't skip.\n**Log it today.**","LOG DAY ONE"],
+  ["BBF • LAST CALL","WAITING IS A\nDECISION. YOU'RE\nMAKING IT\n*NOW.*","Make a better one.\n**DM PATHFINDER and go.**","DM PATHFINDER"],
+  ["BBF • LAST CALL","THIS IS THE\nSIGN YOU SAID\nYOU WERE *WAITING*\nFOR.","Consider it delivered. Now move.\n**This is it.**","THIS IS IT"]
  ]
 };
 let customCards = [];
@@ -2137,6 +2357,39 @@ const SERIES = {
     ["BONE DENSITY IS\nBUILT UNDER\nA LOADED BAR","Lift heavy now. Stand tall forever."],
     ["SIT LESS. CARRY\nMORE. LIVE\nLONGER.","The simplest longevity prescription there is."],
     ["YOUR FUTURE SELF\nIS LIFTING WHAT\nYOU BUILD TODAY","Train like you intend to need it."]]}
+};
+
+/* V4 Module 4 — Hook Spectrums. Four thematic hook banks the "SPIN A HOOK" button
+   pulls from when a spectrum is selected (independent of the Series Preset bank). */
+const HOOK_SPECTRUMS = {
+  bioenergetics:[
+    ["EAT MORE.\nWEIGH LESS.","The metabolic math nobody shows you."],
+    ["YOUR EATING\nWINDOW IS A\nTRAINING TOOL","Six fasting protocols, one that fits your day."],
+    ["FASTED ISN'T\nSTARVED","How to protect muscle while the window's closed."],
+    ["THE 3PM CRASH\nIS A FUEL\nPROBLEM","Steady energy without the sugar spike."],
+    ["PROTEIN FIRST.\nEVERYTHING ELSE\nFOLLOWS","The one rule that quietly fixes most diets."],
+    ["BURN FAT WITHOUT\nBURNING THE\nMUSCLE","Deficit done right keeps the gains."]],
+  solis:[
+    ["THE DOUBT\nISN'T YOURS","You inherited it. You can return it."],
+    ["DISCIPLINE IS\nSELF-RESPECT IN\nMOTION","Every kept promise rebuilds the trust."],
+    ["MOTIVATION IS A\nTOURIST. DISCIPLINE\nLIVES HERE.","Build the system that runs without the mood."],
+    ["YOU DON'T FIND\nTIME. YOU\nDEFEND IT.","Put the session where it can't be moved."],
+    ["BECOME THE\nANCESTOR THEY\nTHANK","Start the legacy in this session."],
+    ["NOBODY IS\nCOMING. GOOD.","That means it was always yours to build."]],
+  prehab:[
+    ["YOUR KNEES AREN'T\nTHE PROBLEM.\nYOUR HIPS ARE.","The mobility fix that changes your squat."],
+    ["STIFF SHOULDERS\nSTEAL YOUR\nPRESS","Two minutes that unlock the overhead."],
+    ["PREHAB IS\nCAREER INSURANCE\nFOR YOUR JOINTS","Five minutes before you load."],
+    ["CONTROL BEATS\nYANKING ON THE\nSTRETCH","Why guarded hamstrings need control, not force."],
+    ["BRACE THE RIBS.\nSAVE THE LOWER\nBACK.","Stop arching to fake the range."],
+    ["THE WARM-UP THAT\nPREVENTS THE\nINJURY","Train hard because you trained smart first."]],
+  shift:[
+    ["TRAIN AT 2AM?\nTHE PLAN\nDOESN'T JUDGE","Built for the hours nobody else trains."],
+    ["NIGHT SHIFT\nWRECKS RECOVERY —\nUNLESS YOU PLAN IT","Sleep, fuel, and load for the overnight life."],
+    ["NO TIME IS A\nPLANNING\nPROBLEM","The 35-minute session that fits the break room."],
+    ["THE STREAK\nSURVIVES THE\nROTATING SCHEDULE","Async programming that never calls you 'behind'."],
+    ["FUEL ON YOUR\nCLOCK, NOT THE\nSUN'S","Adaptive fasting for shift workers."],
+    ["12 HOURS ON.\nSTILL\nUNBREAKABLE.","Strength built around a full-time grind."]]
 };
 
 const PH_PRESETS = {
@@ -2369,6 +2622,13 @@ function copyText(txt, btn){
 
 /* ============ CTA MODE ============ */
 let ctaPal='purDeep', ctaFmt='feed', ctaLastIdx=-1;
+// V4 Module 1 — raw-hex override (null = follow the palette) + layout-refinement state.
+let ctaC1=null, ctaC2=null, ctaRadius=0, ctaFScale=100, ctaGAngle=155;
+// Re-angle a linear-gradient string to `deg` degrees; radial/flat values pass through.
+function reAngleGradient(css, deg){
+  if(typeof css!=='string' || css.indexOf('linear-gradient')<0) return css;
+  return css.replace(/linear-gradient\(\s*-?\d+(?:\.\d+)?deg/g, 'linear-gradient('+deg+'deg');
+}
 const palGrid=$('cta-palettes');
 Object.keys(PALETTES).forEach(key=>{
   const p=PALETTES[key]; const div=document.createElement('div');
@@ -2387,15 +2647,28 @@ document.querySelectorAll('#cta-format button').forEach(b=>{
 });
 function renderCta(){
   const p=PALETTES[ctaPal]; const stage=$('stage-cta');
+  // Effective accents: raw-hex override wins, else palette. c1 = primary (highlight /
+  // rule / eyebrow), c2 = secondary (glow / button / gradient start).
+  const c1 = ctaC1 || p.hi, c2 = ctaC2 || p.eye;
+  const override = !!(ctaC1 || ctaC2);
   stage.className=(ctaFmt==='story'?'story':'')+(p.yl?' ylbg':'');
-  stage.style.background=p.bg;
-  $('cta-el-tbar').style.background=p.tbar; $('cta-el-tbar').style.display=p.tbar==='none'?'none':'block';
-  $('cta-el-glow').style.background=p.glow; $('cta-el-glow').style.display=p.glow==='none'?'none':'block';
+  stage.style.background=reAngleGradient(p.bg, ctaGAngle);
+  stage.style.borderRadius=ctaRadius+'px';
+  // Top bar: palette default, but if accents are overridden paint a c2→c1 sweep.
+  const tbar = override ? 'linear-gradient('+ctaGAngle+'deg,'+c2+','+c1+')' : reAngleGradient(p.tbar, ctaGAngle);
+  $('cta-el-tbar').style.background=tbar; $('cta-el-tbar').style.display=(p.tbar==='none'&&!override)?'none':'block';
+  const glow = override ? 'radial-gradient(circle,'+c2+'66 0%,transparent 70%)' : p.glow;
+  $('cta-el-glow').style.background=glow; $('cta-el-glow').style.display=(p.glow==='none'&&!override)?'none':'block';
   $('cta-el-border').style.display=p.border?'block':'none';
-  $('cta-el-rule').style.background=p.rule;
-  $('cta-out-eye').style.color=p.eye; $('cta-out-eye').textContent=$('cta-eye').value;
-  $('cta-out-hl').innerHTML=esc($('cta-hl').value).replace(/\*([^*]+)\*/g,'<span style="color:'+p.hi+';">$1</span>');
+  if(p.border) $('cta-el-border').style.borderColor=c1;
+  $('cta-el-rule').style.background=c1;
+  $('cta-out-eye').style.color=override?c1:p.eye; $('cta-out-eye').textContent=$('cta-eye').value;
+  $('cta-out-hl').style.fontSize=((ctaFmt==='story'?170:150)*ctaFScale/100).toFixed(1)+'px';
+  $('cta-out-hl').innerHTML=esc($('cta-hl').value).replace(/\*([^*]+)\*/g,'<span style="color:'+c1+';">$1</span>');
   $('cta-out-body').innerHTML=esc($('cta-body').value).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  // Button: keep the palette's styled look unless overridden, then c2→c1.
+  if(override && !p.yl) $('cta-out-btn').style.background='linear-gradient(135deg,'+c2+','+c1+')';
+  else $('cta-out-btn').style.background='';
   $('cta-out-btn').textContent=$('cta-btn').value;
   $('cta-caption').textContent=buildCtaCaption();
 }
@@ -2405,6 +2678,16 @@ function buildCtaCaption(){
   return hl+'\n\n'+body+'\n\n👉 '+$('cta-btn').value+'\n🌐 buildbelievefit.fitness\n\n'+HASHTAGS.mindset;
 }
 ['cta-eye','cta-hl','cta-body','cta-btn'].forEach(id=> $(id).addEventListener('input',renderCta));
+// V4 — raw-hex accent pickers.
+$('cta-c1').addEventListener('input', e=>{ ctaC1=e.target.value; $('cta-c1-val').textContent=e.target.value; renderCta(); });
+$('cta-c2').addEventListener('input', e=>{ ctaC2=e.target.value; $('cta-c2-val').textContent=e.target.value; renderCta(); });
+$('cta-c-reset').onclick=()=>{ ctaC1=null; ctaC2=null;
+  $('cta-c1').value='#f5c800'; $('cta-c1-val').textContent='#f5c800';
+  $('cta-c2').value='#6a0dad'; $('cta-c2-val').textContent='#6a0dad'; renderCta(); };
+// V4 — Layout Refinement sliders.
+$('cta-radius').addEventListener('input', e=>{ ctaRadius=+e.target.value; $('cta-radius-val').textContent=ctaRadius+'px'; renderCta(); });
+$('cta-fscale').addEventListener('input', e=>{ ctaFScale=+e.target.value; $('cta-fscale-val').textContent=ctaFScale+'%'; renderCta(); });
+$('cta-gangle').addEventListener('input', e=>{ ctaGAngle=+e.target.value; $('cta-gangle-val').textContent=ctaGAngle+'°'; renderCta(); });
 $('cta-spin').onclick=()=>{
   const lane=$('cta-lane').value;
   let pool=[];
@@ -2433,6 +2716,25 @@ $('cta-copycap').onclick=()=> copyText(buildCtaCaption(), $('cta-copycap'));
 
 /* ============ PHONE MODE ============ */
 let phTilt=-5, phSize=100, phLift=0, phLayout='single';
+// V4 Module 2 — device-frame style + shadow-depth state.
+let phShadow=100, phFrame='sleek';
+const PH_FRAME_INSET={
+  sleek:'inset 0 0 0 2px rgba(150,150,160,0.5), inset 0 0 0 5px #0a0a0c',
+  gold:'inset 0 0 0 3px rgba(245,200,0,0.85), inset 0 0 0 8px #0c0b10',
+  carbon:'inset 0 0 0 3px rgba(80,80,86,0.6), inset 0 0 0 9px #060606'
+};
+function applyPhoneShadow(){
+  const k=phShadow/100;
+  const drop='0 '+Math.round(60*k)+'px '+Math.round(120*k)+'px rgba(0,0,0,0.75), 0 '+Math.round(24*k)+'px '+Math.round(48*k)+'px rgba(0,0,0,0.6)';
+  const inset=PH_FRAME_INSET[phFrame]||PH_FRAME_INSET.sleek;
+  ['ph-phone1','ph-phone2','ph-phone3'].forEach(id=>{ const el=$(id); if(el) el.style.boxShadow=drop+', '+inset; });
+}
+function setPhoneFrame(f){
+  phFrame=f;
+  ['ph-phone1','ph-phone2','ph-phone3'].forEach(id=>{ const el=$(id); if(!el) return;
+    el.classList.remove('frame-sleek','frame-gold','frame-carbon'); el.classList.add('frame-'+f); });
+  applyPhoneShadow();
+}
 function buildSwatches(holder, cb){
   ACCENTS.forEach((c,i)=>{
     const d=document.createElement('div'); d.className='sw'+(i===0?' active':''); d.style.background=c; d.dataset.c=c;
@@ -2503,7 +2805,9 @@ function applyPhone(){
   if(phLayout==='dual') t1='translateX(-32%)';
   if(phLayout==='lean') t1='translateX(8%)';
   $('ph-anchor1').style.transform=t1;
-  $('ph-phone1').style.transform='rotate('+phTilt+'deg) scale('+(phSize/100)+')';
+  // V4 — true 3D tilt on the hero phone (perspective rotateY/rotateX).
+  $('ph-phone1').style.transform='perspective(1000px) rotateY('+phTilt+'deg) rotateX('+(phTilt*0.18).toFixed(2)+'deg) scale('+(phSize/100)+')';
+  applyPhoneShadow();
   var showBack=(phLayout==='dual'||phLayout==='trio');
   $('ph-anchor2').style.display=showBack?'block':'none';
   $('ph-anchor2').style.bottom=(-220+phLift)+'px';
@@ -2527,6 +2831,10 @@ bindFile('ph-file3','ph-lbl3', src=>{ $('ph-screen3').innerHTML='<img src="'+src
 $('ph-tilt').addEventListener('input',e=>{ phTilt=+e.target.value; $('ph-tilt-val').textContent=phTilt+'°'; applyPhone(); });
 $('ph-size').addEventListener('input',e=>{ phSize=+e.target.value; $('ph-size-val').textContent=phSize+'%'; applyPhone(); });
 $('ph-lift').addEventListener('input',e=>{ phLift=+e.target.value; $('ph-lift-val').textContent=phLift; applyPhone(); });
+// V4 — device frame style + shadow depth.
+$('ph-frame').addEventListener('change', e=> setPhoneFrame(e.target.value));
+$('ph-shadow').addEventListener('input', e=>{ phShadow=+e.target.value; $('ph-shadow-val').textContent=phShadow+'%'; applyPhoneShadow(); });
+setPhoneFrame('sleek');
 $('ph-export').onclick=()=> exportStage('stage-phone','bbf-feature',1080,1350,$('ph-export'),
   grabSettings(['ph-eye','ph-hl','ph-benefit']));
 $('ph-queue').onclick=()=> queuePost('image',
@@ -2604,6 +2912,22 @@ function buildSpCaption(){
   return $('sp-fhead').value+' 🏆\n\n'+$('sp-l1').value+'\n'+$('sp-l2').value+'\n\n'+$('sp-cta').value+'\n\n'+HASHTAGS.transform;
 }
 $('sp-caption').textContent=buildSpCaption();
+// V4 Module 3 — Layout Engine toggle (Before/After split ⇄ Single Hero shoutout).
+let spLayout='split';
+document.querySelectorAll('#sp-layout button').forEach(b=>{
+  b.onclick=()=>{ document.querySelectorAll('#sp-layout button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); spLayout=b.dataset.l;
+    $('stage-spot').classList.toggle('single', spLayout==='single');
+    $('sp-after-group').style.display=(spLayout==='single')?'none':'block'; };
+});
+// V4 — Performance Banner ribbon (gold Legacy / purple Metabolic / gradient Pure).
+const SP_RIBBON={ legacy:'LEGACY ATHLETE', metabolic:'METABOLIC MASTER', pure:'PURE SHOUTOUT' };
+$('sp-banner').addEventListener('change', e=>{
+  const v=e.target.value, r=$('sp-ribbon');
+  r.classList.remove('show','legacy','metabolic','pure');
+  if(v && SP_RIBBON[v]){ r.textContent=SP_RIBBON[v]; r.classList.add('show', v); }
+  else { r.textContent=''; }
+});
 $('sp-export').onclick=()=> exportStage('stage-spot','bbf-spotlight',1080,1350,$('sp-export'),
   grabSettings(['sp-name','sp-sub','sp-fhead','sp-l1','sp-l2','sp-cta']));
 $('sp-queue').onclick=()=> queuePost('image',
@@ -2631,15 +2955,46 @@ $('reel-series').addEventListener('change', e=>{
   renderReel();
 });
 $('reel-spin').onclick=()=>{
-  const key=$('reel-series').value;
-  if(!key){ alert('Pick a series first — the spin pulls from that series\' hook bank.'); return; }
-  const s=SERIES[key];
-  let idx; do{ idx=Math.floor(Math.random()*s.hooks.length); }while(s.hooks.length>1 && idx===reelLastIdx);
+  // V4 — a chosen Hook Spectrum wins over the Series hook bank.
+  const spec=$('reel-spectrum').value;
+  let hooks;
+  if(spec && HOOK_SPECTRUMS[spec]){ hooks=HOOK_SPECTRUMS[spec]; }
+  else {
+    const key=$('reel-series').value;
+    if(!key){ alert('Pick a Series Preset or a Hook Spectrum first — the spin pulls hooks from one of them.'); return; }
+    hooks=SERIES[key].hooks;
+  }
+  let idx; do{ idx=Math.floor(Math.random()*hooks.length); }while(hooks.length>1 && idx===reelLastIdx);
   reelLastIdx=idx;
-  const [hl,sub]=s.hooks[idx];
+  const [hl,sub]=hooks[idx];
   $('reel-hl').value=hl; $('reel-sub').value=sub;
   renderReel();
 };
+// V4 — Series-Tag database dropdown (writes the tag; "Create Custom" frees the field).
+$('reel-tag-pick').addEventListener('change', e=>{
+  const v=e.target.value;
+  if(v==='__custom__'){ $('reel-eye').focus(); $('reel-eye').select(); e.target.value=''; return; }
+  if(v){ $('reel-eye').value=v+' • EP. 1'; $('reel-eye').dispatchEvent(new Event('input')); e.target.value=''; }
+});
+// V4 — hook placement (top/center/bottom) + alignment (left/center/right). Applies to
+// the DOM cover (image export) and threads into drawReelOverlay for the video.
+let reelVPos='bottom', reelHAlign='left';
+function applyReelLayout(){
+  const b=$('reel-bottom');
+  if(reelVPos==='top'){ b.style.top='300px'; b.style.bottom='auto'; b.style.transform='none'; }
+  else if(reelVPos==='center'){ b.style.top='50%'; b.style.bottom='auto'; b.style.transform='translateY(-50%)'; }
+  else { b.style.top='auto'; b.style.bottom='90px'; b.style.transform='none'; }
+  b.style.textAlign=reelHAlign;
+}
+document.querySelectorAll('#reel-vpos button').forEach(btn=>{
+  btn.onclick=()=>{ document.querySelectorAll('#reel-vpos button').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active'); reelVPos=btn.dataset.v; applyReelLayout(); };
+});
+document.querySelectorAll('#reel-halign button').forEach(btn=>{
+  btn.onclick=()=>{ document.querySelectorAll('#reel-halign button').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active'); reelHAlign=btn.dataset.h; applyReelLayout(); };
+});
+applyReelLayout();
 bindFile('reel-file-bg','reel-lbl-bg', src=>{ $('reel-bg').src=src; $('reel-bg').style.display='block'; $('reel-bgph').style.display='none'; });
 bindFile('reel-file-l','reel-lbl-l', src=>{ $('reel-logoimg').src=src; $('reel-logo').style.display='block'; });
 $('reel-dark').addEventListener('input', e=>{ $('reel-dark-val').textContent=e.target.value+'%'; $('reel-ov').style.opacity=(+e.target.value)/100; });
@@ -2794,25 +3149,31 @@ function drawReelOverlay(ctx,o){
   if(o.logoImg){ const ls=128, lx=W-64-ls, ly=58;
     ctx.save(); ctx.beginPath(); ctx.arc(lx+ls/2,ly+ls/2,ls/2,0,Math.PI*2); ctx.clip(); drawCover(ctx,o.logoImg,lx,ly,ls,ls); ctx.restore();
     ctx.beginPath(); ctx.arc(lx+ls/2,ly+ls/2,ls/2,0,Math.PI*2); ctx.lineWidth=3; ctx.strokeStyle='rgba(245,200,0,0.35)'; ctx.stroke(); }
-  // 5. bottom block (anchored bottom:90), built bottom-up
+  // 5. bottom block — built bottom-up. V4: optional placement (vAlign top/center/bottom)
+  //    + alignment (hAlign left/center/right). Defaults (bottom/left) reproduce v3 exactly.
   const cx=70, cw=940;
+  const hAlign=o.hAlign||'left', vAlign=o.vAlign||'bottom';
+  const tAlign = hAlign==='center'?'center':(hAlign==='right'?'right':'left');
+  const hx = hAlign==='center'?(W/2):(hAlign==='right'?(W-cx):cx);
   const hlPx=Math.round(148*(o.hlScale||1));
   const hlFont=hlPx+"px 'Bebas Neue'", hlLines=String(o.hlText).split('\n'), hlLH=hlPx*0.94, hlH=hlLines.length*hlLH;
   const subFont="700 38px 'Barlow Condensed'"; ctx.font=subFont;
   const subLines=wrapText(ctx,o.subText,cw), subLH=38*1.2, subH=subLines.length*subLH;
   const watchFont="36px 'Bebas Neue'", watchH=76; ctx.font=watchFont;
   const watchW=measureTracked(ctx,o.watchText,3)+92;
-  const blockH=hlH+22+subH+34+watchH; let y=H-90-blockH;
+  const blockH=hlH+22+subH+34+watchH;
+  let y = vAlign==='top'?300 : (vAlign==='center'?Math.round((H-blockH)/2) : (H-90-blockH));
+  const watchX = hAlign==='center'?Math.round((W-watchW)/2):(hAlign==='right'?(W-cx-watchW):cx);
   ctx.save(); ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=30; ctx.shadowOffsetY=6;
-  ctx.fillStyle='#f9f5ff'; ctx.font=hlFont; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  hlLines.forEach((ln,i)=> ctx.fillText(ln, cx, y+i*hlLH+hlPx*0.80)); ctx.restore();
+  ctx.fillStyle='#f9f5ff'; ctx.font=hlFont; ctx.textAlign=tAlign; ctx.textBaseline='alphabetic';
+  hlLines.forEach((ln,i)=> ctx.fillText(ln, hx, y+i*hlLH+hlPx*0.80)); ctx.restore();
   y+=hlH+22;
   ctx.save(); ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=14; ctx.shadowOffsetY=3;
-  ctx.fillStyle='rgba(255,255,255,0.78)'; ctx.font=subFont; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  subLines.forEach((ln,i)=> ctx.fillText(ln, cx, y+i*subLH+38*0.82)); ctx.restore();
+  ctx.fillStyle='rgba(255,255,255,0.78)'; ctx.font=subFont; ctx.textAlign=tAlign; ctx.textBaseline='alphabetic';
+  subLines.forEach((ln,i)=> ctx.fillText(ln, hx, y+i*subLH+38*0.82)); ctx.restore();
   y+=subH+34;
-  roundRectPath(ctx,cx,y,watchW,watchH,watchH/2); ctx.fillStyle='#f5c800'; ctx.fill();
-  ctx.fillStyle='#060606'; drawTrackedStr(ctx,o.watchText,cx+46,y+watchH/2,watchFont,3,'middle');
+  roundRectPath(ctx,watchX,y,watchW,watchH,watchH/2); ctx.fillStyle='#f5c800'; ctx.fill();
+  ctx.fillStyle='#060606'; drawTrackedStr(ctx,o.watchText,watchX+46,y+watchH/2,watchFont,3,'middle');
   ctx.restore();
 }
 
@@ -2836,7 +3197,7 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
   if(logoImg && logoImg.decode){ try{ await logoImg.decode(); }catch(e){} }   // so the badge isn't silently dropped
   const baseOpts={W,H, dark:+$('reel-dark').value, eyeColor:$('reel-out-eye').style.color||'#f5c800',
     eyeText:$('reel-eye').value, hlText:$('reel-hl').value, subText:$('reel-sub').value, watchText:$('reel-watch').value,
-    hlScale:reelHlScale(), logoImg};
+    hlScale:reelHlScale(), logoImg, hAlign:reelHAlign, vAlign:reelVPos};
   const mime=pickRecorderMime(), stream=canvas.captureStream(30);
   let rec; try{ rec=mime?new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000}):new MediaRecorder(stream); }
   catch(err){ fail('Recorder init failed: '+err.message); resolve(null); return; }
