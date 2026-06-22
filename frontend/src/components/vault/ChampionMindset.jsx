@@ -42,23 +42,6 @@ import DailyAffirmationCoach from './DailyAffirmationCoach.jsx';
 import { L10N, readLocked, writeLocked } from './championMindsetData.js';
 import './championMindset.css';
 
-// The bucket labels a given champion belongs to (used for the card badge search
-// surface and for tag-aware text matching). Buckets are passed in so the lookup
-// tracks the active language's taxonomy.
-function bucketsFor(id, buckets) {
-  return buckets.filter((b) => b.ids.includes(id)).map((b) => b.label);
-}
-
-// Case-insensitive search across title, category badge, and tag labels.
-function matchesQuery(champion, query, buckets) {
-  const q = query.trim().toLowerCase();
-  if (!q) return true;
-  const haystack = [champion.title, champion.category, ...bucketsFor(champion.id, buckets)]
-    .join(' ')
-    .toLowerCase();
-  return haystack.includes(q);
-}
-
 export default function ChampionMindset() {
   // Active language drives the entire roster + chrome. A toggle re-renders this
   // component with a different L, instantly swapping every champion and string.
@@ -77,24 +60,23 @@ export default function ChampionMindset() {
   // language toggle, so its badge re-appears whenever that roster is back in view).
   const [lockedToday, setLockedToday] = useState(() => readLocked());
 
-  // Search + category-tag filter state for the cinema grid. The bucket KEYS are
-  // shared across languages, so an active filter survives a language toggle.
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState('all');
+  // Active category tab (§10 deck) — tracked by bucket KEY so the selection
+  // survives a language toggle (keys are shared across languages); a key absent
+  // in the active language (neuro-synapse is EN-only) falls back to the first tab.
+  const [filterKey, setFilterKey] = useState(buckets[0]?.key || null);
 
   // Per-card DOM handles → smooth-scroll the freshly expanded card to viewport
   // center (this is what kills the mobile "scroll-hunting" the detached top-level
   // player used to cause).
   const cardRefs = useRef(new Map());
 
-  // Films currently in view, after applying the active tag filter + search.
+  // The active category bucket (resolved by key, first-tab fallback) and the
+  // films inside it. Buckets partition the roster, so a tab is never empty.
+  const activeBucket = buckets.find((b) => b.key === filterKey) || buckets[0];
   const visible = useMemo(() => {
-    const bucket = buckets.find((b) => b.key === filter);
-    return champions.filter((c) => {
-      const inBucket = !bucket || bucket.ids.includes(c.id);
-      return inBucket && matchesQuery(c, query, buckets);
-    });
-  }, [champions, buckets, filter, query]);
+    const ids = new Set(activeBucket.ids);
+    return champions.filter((c) => ids.has(c.id));
+  }, [champions, activeBucket]);
 
   // A language switch swaps the entire roster wholesale, so a previously-open id
   // may not exist in the new one. Rather than reset state inside an effect, derive
@@ -125,8 +107,6 @@ export default function ChampionMindset() {
     const i = pool.findIndex((c) => c.id === openId);
     setActiveVideoId(pool[(i + 1) % pool.length].id);
   };
-
-  const clearFilters = () => { setQuery(''); setFilter('all'); };
 
   // "Lock In This Mindset Today" — persist a champion as the day's mindset.
   const lockIn = (id) => { writeLocked(id); setLockedToday(id); };
@@ -164,76 +144,52 @@ export default function ChampionMindset() {
           </button>
         </div>
 
-        {/* Search + category-tag filter toolbar */}
-        <div className="cm-toolbar">
-          <div className="cm-search">
-            <span className="cm-search-ic" aria-hidden="true">⌕</span>
-            <input
-              type="search"
-              className="cm-search-input"
-              placeholder={L.searchPlaceholder}
-              aria-label={L.searchAria}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-          <div className="cm-filters" role="group" aria-label={L.filterAria}>
+        {/* Category deck tabs — numbered 01/02/03, one active panel (LOCKED §10,
+            mirrors the Mind Lab deck below). The buckets partition the roster. */}
+        <div className="cm-deck-tabbar" role="tablist" aria-label={L.filterAria}>
+          {buckets.map((b, i) => (
             <button
+              key={b.key}
               type="button"
-              className={`cm-chip${filter === 'all' ? ' is-active' : ''}`}
-              aria-pressed={filter === 'all'}
-              onClick={() => setFilter('all')}
+              role="tab"
+              aria-selected={b.key === activeBucket.key}
+              className={`cm-deck-tab${b.key === activeBucket.key ? ' is-active' : ''}`}
+              onClick={() => setFilterKey(b.key)}
+              data-testid={`cm-tab-${b.key}`}
             >
-              {L.allFilms}
+              <span className="cm-deck-tabidx">0{i + 1}</span>
+              <span className="cm-deck-tablabel">{b.label}</span>
             </button>
-            {buckets.map((b) => (
-              <button
-                key={b.key}
-                type="button"
-                className={`cm-chip${filter === b.key ? ' is-active' : ''}`}
-                aria-pressed={filter === b.key}
-                onClick={() => setFilter(b.key)}
-              >
-                {b.label}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
 
-        <div className="cm-count" aria-live="polite">
-          {L.showing(visible.length, champions.length)}
+        {/* Active category panel — only this bucket's grid mounts (remounts per
+            category/language). Each film is a branded cover; tapping expands it IN
+            PLACE for the inline YouTube iframe + that champion's Focus Objective. */}
+        <div className="cm-deck-panel" role="tabpanel" key={`${activeBucket.key}-${lang}`}>
+          <div className="cm-count" aria-live="polite">
+            {L.showing(visible.length, champions.length)}
+          </div>
+          {visible.length > 0 ? (
+            <div className="cm-grid">
+              {visible.map((c) => (
+                <ChampionFilmCard
+                  key={c.id}
+                  champion={c}
+                  L={L}
+                  open={c.id === openId}
+                  locked={lockedToday === c.id}
+                  onOpen={() => setActiveVideoId(c.id)}
+                  onCollapse={() => setActiveVideoId(null)}
+                  onLockIn={() => lockIn(c.id)}
+                  cardRef={(el) => { if (el) cardRefs.current.set(c.id, el); else cardRefs.current.delete(c.id); }}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="cm-deck-empty" role="status">{L.noFilmsTitle}</p>
+          )}
         </div>
-
-        {/* Cinema grid — INLINE-EXPANSION accordion. Each film is a branded V8.7
-            cover (purple/gold gradient + gold play SVG, identical to the Program
-            & Prehab tabs); tapping swaps it IN PLACE for the native YouTube
-            iframe + that champion's Focus Objective, spanning the full row and
-            pushing the rest of the roster down. No detached top-level player. */}
-        {visible.length > 0 ? (
-          <div className="cm-grid">
-            {visible.map((c) => (
-              <ChampionFilmCard
-                key={c.id}
-                champion={c}
-                L={L}
-                open={c.id === openId}
-                locked={lockedToday === c.id}
-                onOpen={() => setActiveVideoId(c.id)}
-                onCollapse={() => setActiveVideoId(null)}
-                onLockIn={() => lockIn(c.id)}
-                cardRef={(el) => { if (el) cardRefs.current.set(c.id, el); else cardRefs.current.delete(c.id); }}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="cm-empty" role="status">
-            <p className="cm-empty-title">{L.noFilmsTitle}</p>
-            <p className="cm-empty-sub">{L.noFilmsSub}</p>
-            <button type="button" className="cm-empty-clear" onClick={clearFilters}>
-              {L.clearFilters}
-            </button>
-          </div>
-        )}
       </section>
 
       {/* ── 3b · Sport Psychology Lab — evidence-based adherence film deck ──── */}

@@ -184,76 +184,71 @@
 }
 .cm-obsession:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 
-/* ── Search + category-tag filter toolbar ──────────────────────────────────── */
-.cm-toolbar {
+/* ── Category deck tabs — LOCKED §10 modular tab-deck (mirrors the Mind Lab) ──
+   Numbered 01/02/03 category tabs over a SINGLE active panel; purple→gold active
+   state. Replaces the old search + filter-chip toolbar — only the active
+   category's grid mounts, so the cinema stays scroll-lean. */
+.cm-deck-tabbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .85rem;
   flex-wrap: wrap;
-}
-.cm-search {
-  position: relative;
-  flex: 1 1 240px;
-  min-width: 0;
-}
-.cm-search-ic {
-  position: absolute;
-  left: .85rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1rem;
-  color: var(--gold-soft);
-  pointer-events: none;
-}
-.cm-search-input {
-  width: 100%;
-  font-family: var(--bd);
-  font-size: .92rem;
-  color: var(--wht);
-  background: linear-gradient(180deg, #100c1a, #0a0710);
-  border: 1px solid #211b30;
+  border-top: 1px solid rgba(245, 200, 0, .22);
+  border-bottom: 1px solid rgba(245, 200, 0, .22);
+  background: rgba(9, 9, 9, .55);
   border-radius: 12px;
-  padding: .7rem .9rem .7rem 2.35rem;
-  transition: border-color .18s ease, box-shadow .18s ease;
+  overflow: hidden;
 }
-.cm-search-input::placeholder { color: var(--mut); }
-.cm-search-input:focus-visible {
-  outline: none;
-  border-color: rgba(245, 200, 0, .55);
-  box-shadow: 0 0 0 1px rgba(245, 200, 0, .35);
-}
-/* drop the native search "clear" affordance — it clashes with the dark chrome */
-.cm-search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
-
-.cm-filters {
+.cm-deck-tab {
+  flex: 1 1 150px;
   display: flex;
-  align-items: center;
-  gap: .5rem;
-  flex-wrap: wrap;
-}
-.cm-chip {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: clamp(11px, 1.6vw, 16px) clamp(12px, 1.8vw, 20px);
   cursor: pointer;
-  font-family: var(--hb);
-  font-size: .64rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--mut);
-  background: rgba(255, 255, 255, .02);
-  border: 1px solid #211b30;
-  border-radius: 999px;
-  padding: .5rem .85rem;
-  transition: color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  background: transparent;
+  border: none;
+  border-right: 1px solid rgba(157, 39, 201, .22);
+  border-bottom: 3px solid transparent;
+  text-align: left;
+  transition: background .18s ease, border-color .18s ease;
 }
-.cm-chip:hover { color: var(--wht); border-color: rgba(139, 26, 191, .7); }
-.cm-chip:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
-.cm-chip.is-active {
-  color: #0c0a02;
-  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
-  border-color: var(--yel);
-  box-shadow: 0 4px 16px -6px rgba(245, 200, 0, .5);
+.cm-deck-tab:last-child { border-right: none; }
+.cm-deck-tab:hover { background: rgba(106, 13, 173, .12); }
+.cm-deck-tab:focus-visible { outline: 2px solid var(--purl); outline-offset: -2px; }
+.cm-deck-tab.is-active {
+  background: linear-gradient(180deg, rgba(106, 13, 173, .32), rgba(9, 9, 9, .1));
+  border-bottom: 3px solid var(--yel);
+}
+.cm-deck-tabidx {
+  font-family: var(--display, var(--hb));
+  font-size: .78rem;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, .35);
+  line-height: 1;
+}
+.cm-deck-tab.is-active .cm-deck-tabidx { color: var(--yel); }
+.cm-deck-tablabel {
+  font-family: var(--hb);
+  font-size: clamp(.82rem, 1.7vw, 1.05rem);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.05;
+}
+
+/* active category panel — only the active bucket's grid mounts */
+.cm-deck-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cm-deck-empty {
+  font-family: var(--bd);
+  font-size: .9rem;
+  color: var(--mut);
+  text-align: center;
+  padding: 1.6rem 1rem;
+  margin: 0;
 }
 
 .cm-count {
@@ -597,17 +592,6 @@
   .cm-grid { grid-template-columns: 1fr; }
   .cm-vcard-obj { padding: 1.05rem 1.05rem 1.15rem; }
   .cm-protocols { grid-template-columns: 1fr; }
-
-  /* Toolbar stacks: full-width search, then a horizontally scrollable chip rail
-     so the category tags never crush into a tall wrapped stack on a phone. */
-  .cm-toolbar { flex-direction: column; align-items: stretch; }
-  .cm-filters {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: .15rem;
-  }
-  .cm-filters::-webkit-scrollbar { display: none; }
-  .cm-chip { flex: 0 0 auto; }
+  /* category deck tabs wrap 2-up on a phone (mirrors the Mind Lab deck) */
+  .cm-deck-tab { flex-basis: 42%; }
 }
