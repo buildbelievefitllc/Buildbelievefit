@@ -387,9 +387,17 @@ const WEEK_TEMPLATE = [
   },
 ];
 
-// Build the 7-day protocol from a sport-aware model: distributes that sport's
-// drills + film across the training days and attaches fresh checkoff state.
+// Build the 7-day protocol from a sport-aware model: surfaces that sport's drills
+// on every training day and distributes its film across the days, attaching fresh
+// checkoff state.
 export function buildWeek(model) {
+  // RENDER FIX (the "one drill per day" bug): every TRAINING day now surfaces the
+  // ENTIRE position-specific drill pool as interactive video cards. The prior
+  // `drillIdx: [n]` mapping handed each day a SINGLE drill index — so the day showed
+  // one card and a rich pool silently dropped every drill past index 4. We map the
+  // full `model.drills.items` onto each training day (DayProtocol already renders the
+  // whole array). Film keeps its per-day clip mapping; rest days stay drill-free.
+  const drillPool = (model.drills && model.drills.items) || [];
   return WEEK_TEMPLATE.map((d) => {
     if (d.rest) return { label: d.label, focus: d.focus, rest: true, restNote: d.restNote };
     return {
@@ -397,9 +405,8 @@ export function buildWeek(model) {
       focus: d.focus,
       rest: false,
       exercises: d.exercises.map((e) => ({ name: e.name, off: e.off, in: e.in, done: false })),
-      // Skip undefined indices so a sport with fewer than 5 drills / 4 clips never
-      // renders a blank card (drill counts vary by discipline in the ingested logic).
-      drills: d.drillIdx.map((i) => model.drills.items[i]).filter(Boolean).map((dr) => ({ ...dr, done: false })),
+      drills: drillPool.map((dr) => ({ ...dr, done: false })),
+      // Skip undefined indices so a sport with fewer than 4 clips never renders a blank card.
       film: d.filmIdx.map((i) => model.film.clips[i]).filter(Boolean).map((c) => ({ ...c })),
     };
   });

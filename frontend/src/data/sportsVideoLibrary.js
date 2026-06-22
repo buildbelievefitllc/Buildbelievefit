@@ -21,6 +21,8 @@ const APP_TO_LIB = {
   tennis: 'tennis',
   boxing: 'boxing_multi',
   mma: 'boxing_multi',
+  soccer: 'soccer',
+  baseball: 'baseball',
 };
 
 // Normalized: { [libKey]: { en:[{id,title,description}], es:[...], pt:[...] } }

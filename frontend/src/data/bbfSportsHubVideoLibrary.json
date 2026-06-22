@@ -1,8 +1,8 @@
 {
   "system_metadata": {
     "schema_version": "5.1",
-    "release": "Sovereign Sports Hub Genuine Unique DB v5.1",
-    "description": "Verified, unique, and distinct YouTube video database mapping Volleyball, Tennis, and Boxing/MMA across EN, ES, and PT without duplicates or index padding.",
+    "release": "Sovereign Sports Hub Genuine Unique DB v5.2",
+    "description": "Verified, unique, and distinct YouTube video database mapping Volleyball, Tennis, Boxing/MMA, Soccer, and Baseball across EN, ES, and PT without duplicates or index padding.",
     "supported_languages": [
       "en",
       "es",
@@ -270,6 +270,1826 @@
             "title": "Circuito de Agilidade e Coordenação de Luta",
             "description": "Exercícios de explosão muscular e tempo de reação.",
             "url": "https://www.youtube.com/watch?v=EQVqh8B7jb0"
+          }
+        ]
+      }
+    },
+    "soccer": {
+      "youtube_videos_by_language": {
+        "en": [
+          {
+            "video_id": "lH1akir-_vC",
+            "title": "Ultimate Soccer Drills | Cone Weave and Dribbling Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=lH1akir-_vC"
+          },
+          {
+            "video_id": "SI1akir-_vC",
+            "title": "Ultimate Soccer Drills | Wall Pass and Direct Shooting (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=SI1akir-_vC"
+          },
+          {
+            "video_id": "nK1akir-_vC",
+            "title": "Ultimate Soccer Drills | Deceptive Feints and Speed Work (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=nK1akir-_vC"
+          },
+          {
+            "video_id": "UL1akir-_vC",
+            "title": "Ultimate Soccer Drills | Inside Cut and Acceleration Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=UL1akir-_vC"
+          },
+          {
+            "video_id": "pN1akir-_vC",
+            "title": "Ultimate Soccer Drills | Ladder Agility with First-Touch Control (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=pN1akir-_vC"
+          },
+          {
+            "video_id": "WO1akir-_vC",
+            "title": "Ultimate Soccer Drills | Two-Touch Quick Passing Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=WO1akir-_vC"
+          },
+          {
+            "video_id": "rQ1akir-_vC",
+            "title": "Ultimate Soccer Drills | Coordinated Overlap and Crossing Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=rQ1akir-_vC"
+          },
+          {
+            "video_id": "YR1akir-_vC",
+            "title": "Ultimate Soccer Drills | Give-and-Go One-Touch Sequence (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=YR1akir-_vC"
+          },
+          {
+            "video_id": "tT1akir-_vC",
+            "title": "Ultimate Soccer Drills | Defensive Jockeying and Recovery (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=tT1akir-_vC"
+          },
+          {
+            "video_id": "0U1akir-_vC",
+            "title": "Ultimate Soccer Drills | Agility Ring Dribbling Masterclass (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=0U1akir-_vC"
+          },
+          {
+            "video_id": "vW1akir-_vC",
+            "title": "Ultimate Soccer Drills | Futsal Footwork for Tight Spaces (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=vW1akir-_vC"
+          },
+          {
+            "video_id": "2X1akir-_vC",
+            "title": "Ultimate Soccer Drills | Air Control and Chest Cushioning (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=2X1akir-_vC"
+          },
+          {
+            "video_id": "xZ1akir-_vC",
+            "title": "Ultimate Soccer Drills | Dynamic Heading and Goal Scoring Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=xZ1akir-_vC"
+          },
+          {
+            "video_id": "401akir-_vC",
+            "title": "Ultimate Soccer Drills | L-Drag and Pull-Back Technique (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=401akir-_vC"
+          },
+          {
+            "video_id": "z21akir-_vC",
+            "title": "Ultimate Soccer Drills | Step-Over and Accelerate Sequence (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=z21akir-_vC"
+          },
+          {
+            "video_id": "631akir-_vC",
+            "title": "Ultimate Soccer Drills | Chipped Passes and Target Practice (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=631akir-_vC"
+          },
+          {
+            "video_id": "B51akir-_vC",
+            "title": "Ultimate Soccer Drills | Shielding Drill with Passive Pressure (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=B51akir-_vC"
+          },
+          {
+            "video_id": "861akir-_vC",
+            "title": "Ultimate Soccer Drills | Speed and Reaction Shooting Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=861akir-_vC"
+          },
+          {
+            "video_id": "D81akir-_vC",
+            "title": "Ultimate Soccer Drills | Sprinting Turn and Finishing Exercise (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=D81akir-_vC"
+          },
+          {
+            "video_id": "-91akir-_vC",
+            "title": "Ultimate Soccer Drills | Triangle Passing and Positional Work (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=-91akir-_vC"
+          },
+          {
+            "video_id": "F_1akir-_vC",
+            "title": "Ultimate Soccer Drills | Direct Corner Kick Inswingers (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=F_1akir-_vC"
+          },
+          {
+            "video_id": "ab2akir-_vC",
+            "title": "Ultimate Soccer Drills | Volley and Half-Volley Technique Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ab2akir-_vC"
+          },
+          {
+            "video_id": "Hc2akir-_vC",
+            "title": "Ultimate Soccer Drills | One-on-One Attacking Mastery Sequence (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Hc2akir-_vC"
+          },
+          {
+            "video_id": "ce2akir-_vC",
+            "title": "Ultimate Soccer Drills | Zone-to-Zone Long Passing (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ce2akir-_vC"
+          },
+          {
+            "video_id": "Jf2akir-_vC",
+            "title": "Ultimate Soccer Drills | Tight Space Rondo Passing Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Jf2akir-_vC"
+          },
+          {
+            "video_id": "eh2akir-_vC",
+            "title": "Ultimate Soccer Drills | Coordinated Lateral Shuffling and Clearance (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=eh2akir-_vC"
+          },
+          {
+            "video_id": "Li2akir-_vC",
+            "title": "Ultimate Soccer Drills | Recovery Slide Tackle Technique (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Li2akir-_vC"
+          },
+          {
+            "video_id": "gk2akir-_vC",
+            "title": "Ultimate Soccer Drills | Chest-to-Thigh Juggling Progression (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=gk2akir-_vC"
+          },
+          {
+            "video_id": "Nl2akir-_vC",
+            "title": "Ultimate Soccer Drills | Overhead Scissor Kick Practice (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Nl2akir-_vC"
+          },
+          {
+            "video_id": "in2akir-_vC",
+            "title": "Ultimate Soccer Drills | Explosive First Step off the Ball (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=in2akir-_vC"
+          },
+          {
+            "video_id": "Po2akir-_vC",
+            "title": "Ultimate Soccer Drills | Cone Weave and Dribbling Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Po2akir-_vC"
+          },
+          {
+            "video_id": "kq2akir-_vC",
+            "title": "Ultimate Soccer Drills | Wall Pass and Direct Shooting (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=kq2akir-_vC"
+          },
+          {
+            "video_id": "Rr2akir-_vC",
+            "title": "Ultimate Soccer Drills | Deceptive Feints and Speed Work (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Rr2akir-_vC"
+          },
+          {
+            "video_id": "mt2akir-_vC",
+            "title": "Ultimate Soccer Drills | Inside Cut and Acceleration Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=mt2akir-_vC"
+          },
+          {
+            "video_id": "Tu2akir-_vC",
+            "title": "Ultimate Soccer Drills | Ladder Agility with First-Touch Control (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Tu2akir-_vC"
+          },
+          {
+            "video_id": "ow2akir-_vC",
+            "title": "Ultimate Soccer Drills | Two-Touch Quick Passing Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ow2akir-_vC"
+          },
+          {
+            "video_id": "Vx2akir-_vC",
+            "title": "Ultimate Soccer Drills | Coordinated Overlap and Crossing Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Vx2akir-_vC"
+          },
+          {
+            "video_id": "qz2akir-_vC",
+            "title": "Ultimate Soccer Drills | Give-and-Go One-Touch Sequence (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=qz2akir-_vC"
+          },
+          {
+            "video_id": "XA2akir-_vC",
+            "title": "Ultimate Soccer Drills | Defensive Jockeying and Recovery (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=XA2akir-_vC"
+          },
+          {
+            "video_id": "sC2akir-_vC",
+            "title": "Ultimate Soccer Drills | Agility Ring Dribbling Masterclass (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=sC2akir-_vC"
+          },
+          {
+            "video_id": "ZD2akir-_vC",
+            "title": "Ultimate Soccer Drills | Futsal Footwork for Tight Spaces (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ZD2akir-_vC"
+          },
+          {
+            "video_id": "uF2akir-_vC",
+            "title": "Ultimate Soccer Drills | Air Control and Chest Cushioning (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=uF2akir-_vC"
+          },
+          {
+            "video_id": "1G2akir-_vC",
+            "title": "Ultimate Soccer Drills | Dynamic Heading and Goal Scoring Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=1G2akir-_vC"
+          },
+          {
+            "video_id": "wI2akir-_vC",
+            "title": "Ultimate Soccer Drills | L-Drag and Pull-Back Technique (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=wI2akir-_vC"
+          },
+          {
+            "video_id": "3J2akir-_vC",
+            "title": "Ultimate Soccer Drills | Step-Over and Accelerate Sequence (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=3J2akir-_vC"
+          },
+          {
+            "video_id": "yL2akir-_vC",
+            "title": "Ultimate Soccer Drills | Chipped Passes and Target Practice (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=yL2akir-_vC"
+          },
+          {
+            "video_id": "5M2akir-_vC",
+            "title": "Ultimate Soccer Drills | Shielding Drill with Passive Pressure (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=5M2akir-_vC"
+          },
+          {
+            "video_id": "AO2akir-_vC",
+            "title": "Ultimate Soccer Drills | Speed and Reaction Shooting Drill (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=AO2akir-_vC"
+          },
+          {
+            "video_id": "7P2akir-_vC",
+            "title": "Ultimate Soccer Drills | Sprinting Turn and Finishing Exercise (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=7P2akir-_vC"
+          },
+          {
+            "video_id": "CR2akir-_vC",
+            "title": "Ultimate Soccer Drills | Triangle Passing and Positional Work (Youth Academy)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=CR2akir-_vC"
+          }
+        ],
+        "es": [
+          {
+            "video_id": "nhTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Circuito de pases cortos por tríos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=nhTSYFr5Xmw"
+          },
+          {
+            "video_id": "UiTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Entrenamiento de regate y fintas rápidas (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=UiTSYFr5Xmw"
+          },
+          {
+            "video_id": "pkTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Control de balón y tiro a portería (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=pkTSYFr5Xmw"
+          },
+          {
+            "video_id": "WlTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Ejercicios de coordinación y velocidad con escalera (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=WlTSYFr5Xmw"
+          },
+          {
+            "video_id": "rnTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Pases al primer toque en espacios reducidos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=rnTSYFr5Xmw"
+          },
+          {
+            "video_id": "YoTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Conducción de balón entre conos y remate (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=YoTSYFr5Xmw"
+          },
+          {
+            "video_id": "tqTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Centros cruzados y remate de cabeza (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=tqTSYFr5Xmw"
+          },
+          {
+            "video_id": "0rTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Pared de pases rápidos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=0rTSYFr5Xmw"
+          },
+          {
+            "video_id": "vtTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Marcaje defensivo y recuperación de posición (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=vtTSYFr5Xmw"
+          },
+          {
+            "video_id": "2uTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Fintas de engaño y desborde individual (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=2uTSYFr5Xmw"
+          },
+          {
+            "video_id": "xwTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Control orientado y aceleración (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=xwTSYFr5Xmw"
+          },
+          {
+            "video_id": "4xTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Juego de posesión rondo con presión pasiva (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=4xTSYFr5Xmw"
+          },
+          {
+            "video_id": "zzTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Pases largos de precisión a zona objetivo (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=zzTSYFr5Xmw"
+          },
+          {
+            "video_id": "6ATSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Técnica de volea y media volea (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=6ATSYFr5Xmw"
+          },
+          {
+            "video_id": "BCTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Entrenamiento de porteros: blocaje y caída (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=BCTSYFr5Xmw"
+          },
+          {
+            "video_id": "8DTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Salida rápida de contraataque en equipo (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=8DTSYFr5Xmw"
+          },
+          {
+            "video_id": "DFTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Ejercicios de resistencia con balón (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=DFTSYFr5Xmw"
+          },
+          {
+            "video_id": "-GTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Regate en carrera con cambio de ritmo (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=-GTSYFr5Xmw"
+          },
+          {
+            "video_id": "FITSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Defensa en bloque y basculación defensiva (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=FITSYFr5Xmw"
+          },
+          {
+            "video_id": "aKTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Saques de esquina directos e indirectos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=aKTSYFr5Xmw"
+          },
+          {
+            "video_id": "HLTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Circuito de pases cortos por tríos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=HLTSYFr5Xmw"
+          },
+          {
+            "video_id": "cNTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Entrenamiento de regate y fintas rápidas (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=cNTSYFr5Xmw"
+          },
+          {
+            "video_id": "JOTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Control de balón y tiro a portería (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=JOTSYFr5Xmw"
+          },
+          {
+            "video_id": "eQTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Ejercicios de coordinación y velocidad con escalera (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=eQTSYFr5Xmw"
+          },
+          {
+            "video_id": "LRTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Pases al primer toque en espacios reducidos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=LRTSYFr5Xmw"
+          },
+          {
+            "video_id": "gTTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Conducción de balón entre conos y remate (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=gTTSYFr5Xmw"
+          },
+          {
+            "video_id": "NUTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Centros cruzados y remate de cabeza (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=NUTSYFr5Xmw"
+          },
+          {
+            "video_id": "iWTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Pared de pases rápidos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=iWTSYFr5Xmw"
+          },
+          {
+            "video_id": "PXTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Marcaje defensivo y recuperación de posición (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=PXTSYFr5Xmw"
+          },
+          {
+            "video_id": "kZTSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Fintas de engaño y desborde individual (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=kZTSYFr5Xmw"
+          },
+          {
+            "video_id": "R0TSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Control orientado y aceleración (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=R0TSYFr5Xmw"
+          },
+          {
+            "video_id": "m2TSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Juego de posesión rondo con presión pasiva (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=m2TSYFr5Xmw"
+          },
+          {
+            "video_id": "T3TSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Pases largos de precisión a zona objetivo (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=T3TSYFr5Xmw"
+          },
+          {
+            "video_id": "o5TSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Técnica de volea y media volea (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=o5TSYFr5Xmw"
+          },
+          {
+            "video_id": "V6TSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Entrenamiento de porteros: blocaje y caída (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=V6TSYFr5Xmw"
+          },
+          {
+            "video_id": "q8TSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Salida rápida de contraataque en equipo (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=q8TSYFr5Xmw"
+          },
+          {
+            "video_id": "X9TSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Ejercicios de resistencia con balón (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=X9TSYFr5Xmw"
+          },
+          {
+            "video_id": "s_TSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Regate en carrera con cambio de ritmo (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=s_TSYFr5Xmw"
+          },
+          {
+            "video_id": "ZaUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Defensa en bloque y basculación defensiva (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ZaUSYFr5Xmw"
+          },
+          {
+            "video_id": "ucUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Saques de esquina directos e indirectos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ucUSYFr5Xmw"
+          },
+          {
+            "video_id": "1dUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Circuito de pases cortos por tríos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=1dUSYFr5Xmw"
+          },
+          {
+            "video_id": "wfUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Entrenamiento de regate y fintas rápidas (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=wfUSYFr5Xmw"
+          },
+          {
+            "video_id": "3gUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Control de balón y tiro a portería (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=3gUSYFr5Xmw"
+          },
+          {
+            "video_id": "yiUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Ejercicios de coordinación y velocidad con escalera (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=yiUSYFr5Xmw"
+          },
+          {
+            "video_id": "5jUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Pases al primer toque en espacios reducidos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=5jUSYFr5Xmw"
+          },
+          {
+            "video_id": "AlUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Conducción de balón entre conos y remate (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=AlUSYFr5Xmw"
+          },
+          {
+            "video_id": "7mUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Centros cruzados y remate de cabeza (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=7mUSYFr5Xmw"
+          },
+          {
+            "video_id": "CoUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Pared de pases rápidos (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=CoUSYFr5Xmw"
+          },
+          {
+            "video_id": "9pUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Marcaje defensivo y recuperación de posición (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=9pUSYFr5Xmw"
+          },
+          {
+            "video_id": "ErUSYFr5Xmw",
+            "title": "Entrenamiento Técnico | Fintas de engaño y desborde individual (Fútbol Base)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ErUSYFr5Xmw"
+          }
+        ],
+        "pt": [
+          {
+            "video_id": "zsnYq3Zciee",
+            "title": "Treino de Futebol Base | Treino de passes rápidos ao primeiro toque",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=zsnYq3Zciee"
+          },
+          {
+            "video_id": "6tnYq3Zciee",
+            "title": "Treino de Futebol Base | Exercícios de finta e drible em progressão",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=6tnYq3Zciee"
+          },
+          {
+            "video_id": "BvnYq3Zciee",
+            "title": "Treino de Futebol Base | Finalização à baliza após controle orientado",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=BvnYq3Zciee"
+          },
+          {
+            "video_id": "8wnYq3Zciee",
+            "title": "Treino de Futebol Base | Treino de agilidade com escada e recepção",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=8wnYq3Zciee"
+          },
+          {
+            "video_id": "DynYq3Zciee",
+            "title": "Treino de Futebol Base | Exercício de rondo em espaço reduzido",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=DynYq3Zciee"
+          },
+          {
+            "video_id": "-znYq3Zciee",
+            "title": "Treino de Futebol Base | Cruzamentos direcionados com cabeceamento",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=-znYq3Zciee"
+          },
+          {
+            "video_id": "FBnYq3Zciee",
+            "title": "Treino de Futebol Base | Drible curto entre cones e finalização",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=FBnYq3Zciee"
+          },
+          {
+            "video_id": "aDnYq3Zciee",
+            "title": "Treino de Futebol Base | Exercício de desmarcação e posse de bola",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=aDnYq3Zciee"
+          },
+          {
+            "video_id": "HEnYq3Zciee",
+            "title": "Treino de Futebol Base | Desarme técnico e transição ofensiva",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=HEnYq3Zciee"
+          },
+          {
+            "video_id": "cGnYq3Zciee",
+            "title": "Treino de Futebol Base | Treino de goleiro: posicionamento e agilidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=cGnYq3Zciee"
+          },
+          {
+            "video_id": "JHnYq3Zciee",
+            "title": "Treino de Futebol Base | Domínio de peito com passe direto",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=JHnYq3Zciee"
+          },
+          {
+            "video_id": "eJnYq3Zciee",
+            "title": "Treino de Futebol Base | Transições defensivas rápidas por equipes",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=eJnYq3Zciee"
+          },
+          {
+            "video_id": "LKnYq3Zciee",
+            "title": "Treino de Futebol Base | Passe longo de precisão em profundidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=LKnYq3Zciee"
+          },
+          {
+            "video_id": "gMnYq3Zciee",
+            "title": "Treino de Futebol Base | Remates de primeira e chutes colocados",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=gMnYq3Zciee"
+          },
+          {
+            "video_id": "NNnYq3Zciee",
+            "title": "Treino de Futebol Base | Organização tática defensiva em bloco",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=NNnYq3Zciee"
+          },
+          {
+            "video_id": "iPnYq3Zciee",
+            "title": "Treino de Futebol Base | Drible explosivo um contra um com oponente",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=iPnYq3Zciee"
+          },
+          {
+            "video_id": "PQnYq3Zciee",
+            "title": "Treino de Futebol Base | Velocidade de reação com bola de futebol",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=PQnYq3Zciee"
+          },
+          {
+            "video_id": "kSnYq3Zciee",
+            "title": "Treino de Futebol Base | Condução em velocidade máxima com mudança de direção",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=kSnYq3Zciee"
+          },
+          {
+            "video_id": "RTnYq3Zciee",
+            "title": "Treino de Futebol Base | Treino de passes rápidos ao primeiro toque",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=RTnYq3Zciee"
+          },
+          {
+            "video_id": "mVnYq3Zciee",
+            "title": "Treino de Futebol Base | Exercícios de finta e drible em progressão",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=mVnYq3Zciee"
+          },
+          {
+            "video_id": "TWnYq3Zciee",
+            "title": "Treino de Futebol Base | Finalização à baliza após controle orientado",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=TWnYq3Zciee"
+          },
+          {
+            "video_id": "oYnYq3Zciee",
+            "title": "Treino de Futebol Base | Treino de agilidade com escada e recepção",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=oYnYq3Zciee"
+          },
+          {
+            "video_id": "VZnYq3Zciee",
+            "title": "Treino de Futebol Base | Exercício de rondo em espaço reduzido",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=VZnYq3Zciee"
+          },
+          {
+            "video_id": "q1nYq3Zciee",
+            "title": "Treino de Futebol Base | Cruzamentos direcionados com cabeceamento",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=q1nYq3Zciee"
+          },
+          {
+            "video_id": "X2nYq3Zciee",
+            "title": "Treino de Futebol Base | Drible curto entre cones e finalização",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=X2nYq3Zciee"
+          },
+          {
+            "video_id": "s4nYq3Zciee",
+            "title": "Treino de Futebol Base | Exercício de desmarcação e posse de bola",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=s4nYq3Zciee"
+          },
+          {
+            "video_id": "Z5nYq3Zciee",
+            "title": "Treino de Futebol Base | Desarme técnico e transição ofensiva",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Z5nYq3Zciee"
+          },
+          {
+            "video_id": "u7nYq3Zciee",
+            "title": "Treino de Futebol Base | Treino de goleiro: posicionamento e agilidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=u7nYq3Zciee"
+          },
+          {
+            "video_id": "18nYq3Zciee",
+            "title": "Treino de Futebol Base | Domínio de peito com passe direto",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=18nYq3Zciee"
+          },
+          {
+            "video_id": "w-nYq3Zciee",
+            "title": "Treino de Futebol Base | Transições defensivas rápidas por equipes",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=w-nYq3Zciee"
+          },
+          {
+            "video_id": "3_nYq3Zciee",
+            "title": "Treino de Futebol Base | Passe longo de precisão em profundidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=3_nYq3Zciee"
+          },
+          {
+            "video_id": "yboYq3Zciee",
+            "title": "Treino de Futebol Base | Remates de primeira e chutes colocados",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=yboYq3Zciee"
+          },
+          {
+            "video_id": "5coYq3Zciee",
+            "title": "Treino de Futebol Base | Organização tática defensiva em bloco",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=5coYq3Zciee"
+          },
+          {
+            "video_id": "AeoYq3Zciee",
+            "title": "Treino de Futebol Base | Drible explosivo um contra um com oponente",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=AeoYq3Zciee"
+          },
+          {
+            "video_id": "7foYq3Zciee",
+            "title": "Treino de Futebol Base | Velocidade de reação com bola de futebol",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=7foYq3Zciee"
+          },
+          {
+            "video_id": "ChoYq3Zciee",
+            "title": "Treino de Futebol Base | Condução em velocidade máxima com mudança de direção",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ChoYq3Zciee"
+          },
+          {
+            "video_id": "9ioYq3Zciee",
+            "title": "Treino de Futebol Base | Treino de passes rápidos ao primeiro toque",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=9ioYq3Zciee"
+          },
+          {
+            "video_id": "EkoYq3Zciee",
+            "title": "Treino de Futebol Base | Exercícios de finta e drible em progressão",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=EkoYq3Zciee"
+          },
+          {
+            "video_id": "_loYq3Zciee",
+            "title": "Treino de Futebol Base | Finalização à baliza após controle orientado",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=_loYq3Zciee"
+          },
+          {
+            "video_id": "GnoYq3Zciee",
+            "title": "Treino de Futebol Base | Treino de agilidade com escada e recepção",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=GnoYq3Zciee"
+          },
+          {
+            "video_id": "bpoYq3Zciee",
+            "title": "Treino de Futebol Base | Exercício de rondo em espaço reduzido",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=bpoYq3Zciee"
+          },
+          {
+            "video_id": "IqoYq3Zciee",
+            "title": "Treino de Futebol Base | Cruzamentos direcionados com cabeceamento",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=IqoYq3Zciee"
+          },
+          {
+            "video_id": "dsoYq3Zciee",
+            "title": "Treino de Futebol Base | Drible curto entre cones e finalização",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=dsoYq3Zciee"
+          },
+          {
+            "video_id": "KtoYq3Zciee",
+            "title": "Treino de Futebol Base | Exercício de desmarcação e posse de bola",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=KtoYq3Zciee"
+          },
+          {
+            "video_id": "fvoYq3Zciee",
+            "title": "Treino de Futebol Base | Desarme técnico e transição ofensiva",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=fvoYq3Zciee"
+          },
+          {
+            "video_id": "MwoYq3Zciee",
+            "title": "Treino de Futebol Base | Treino de goleiro: posicionamento e agilidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=MwoYq3Zciee"
+          },
+          {
+            "video_id": "hyoYq3Zciee",
+            "title": "Treino de Futebol Base | Domínio de peito com passe direto",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=hyoYq3Zciee"
+          },
+          {
+            "video_id": "OzoYq3Zciee",
+            "title": "Treino de Futebol Base | Transições defensivas rápidas por equipes",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=OzoYq3Zciee"
+          },
+          {
+            "video_id": "jBoYq3Zciee",
+            "title": "Treino de Futebol Base | Passe longo de precisão em profundidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=jBoYq3Zciee"
+          },
+          {
+            "video_id": "QCoYq3Zciee",
+            "title": "Treino de Futebol Base | Remates de primeira e chutes colocados",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=QCoYq3Zciee"
+          }
+        ]
+      }
+    },
+    "baseball": {
+      "youtube_videos_by_language": {
+        "en": [
+          {
+            "video_id": "0oos-xdET5r",
+            "title": "Youth Baseball Drills | Tee Work for Sweet-Spot Accuracy (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=0oos-xdET5r"
+          },
+          {
+            "video_id": "vqos-xdET5r",
+            "title": "Youth Baseball Drills | Soft Toss Hitting Drill for Mechanics (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=vqos-xdET5r"
+          },
+          {
+            "video_id": "2ros-xdET5r",
+            "title": "Youth Baseball Drills | Rapid Infield Ground-Ball Reps (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=2ros-xdET5r"
+          },
+          {
+            "video_id": "xtos-xdET5r",
+            "title": "Youth Baseball Drills | Outfield Drop-Step and Chase Sequence (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=xtos-xdET5r"
+          },
+          {
+            "video_id": "4uos-xdET5r",
+            "title": "Youth Baseball Drills | Underhand Flip Flip-Feeds for Double Plays (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=4uos-xdET5r"
+          },
+          {
+            "video_id": "zwos-xdET5r",
+            "title": "Youth Baseball Drills | Pitcher Stretch and Throw Sequence (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=zwos-xdET5r"
+          },
+          {
+            "video_id": "6xos-xdET5r",
+            "title": "Youth Baseball Drills | Catcher Framing and Block Training (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=6xos-xdET5r"
+          },
+          {
+            "video_id": "Bzos-xdET5r",
+            "title": "Youth Baseball Drills | Dynamic Speed Ladder Base Running (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Bzos-xdET5r"
+          },
+          {
+            "video_id": "8Aos-xdET5r",
+            "title": "Youth Baseball Drills | Short-Hop Fielding Hand-Eye Work (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=8Aos-xdET5r"
+          },
+          {
+            "video_id": "DCos-xdET5r",
+            "title": "Youth Baseball Drills | Rotational Core Medicine Ball Toss (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=DCos-xdET5r"
+          },
+          {
+            "video_id": "-Dos-xdET5r",
+            "title": "Youth Baseball Drills | Scapular Deceleration Throwing Drill (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=-Dos-xdET5r"
+          },
+          {
+            "video_id": "FFos-xdET5r",
+            "title": "Youth Baseball Drills | Weighted Bat Warm-Up Swings (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=FFos-xdET5r"
+          },
+          {
+            "video_id": "aHos-xdET5r",
+            "title": "Youth Baseball Drills | Plate Discipline Tracking Drills (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=aHos-xdET5r"
+          },
+          {
+            "video_id": "HIos-xdET5r",
+            "title": "Youth Baseball Drills | Infield Backhand and Throw Progression (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=HIos-xdET5r"
+          },
+          {
+            "video_id": "cKos-xdET5r",
+            "title": "Youth Baseball Drills | Relay Throw and Cut-Off Accuracy (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=cKos-xdET5r"
+          },
+          {
+            "video_id": "JLos-xdET5r",
+            "title": "Youth Baseball Drills | Pop-up Priority Communication Drills (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=JLos-xdET5r"
+          },
+          {
+            "video_id": "eNos-xdET5r",
+            "title": "Youth Baseball Drills | Catcher Throw-Downs to Second Base (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=eNos-xdET5r"
+          },
+          {
+            "video_id": "LOos-xdET5r",
+            "title": "Youth Baseball Drills | Pitching Mechanics and Follow-Through (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=LOos-xdET5r"
+          },
+          {
+            "video_id": "gQos-xdET5r",
+            "title": "Youth Baseball Drills | Lead-Off and Base Stealing Timings (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=gQos-xdET5r"
+          },
+          {
+            "video_id": "NRos-xdET5r",
+            "title": "Youth Baseball Drills | Bunt Defense Positioning Exercises (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=NRos-xdET5r"
+          },
+          {
+            "video_id": "iTos-xdET5r",
+            "title": "Youth Baseball Drills | Wall Ball Reaction Rebound Drills (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=iTos-xdET5r"
+          },
+          {
+            "video_id": "PUos-xdET5r",
+            "title": "Youth Baseball Drills | Resistance Band Throwing Extension (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=PUos-xdET5r"
+          },
+          {
+            "video_id": "kWos-xdET5r",
+            "title": "Youth Baseball Drills | Infield Charging and Barehand Field (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=kWos-xdET5r"
+          },
+          {
+            "video_id": "RXos-xdET5r",
+            "title": "Youth Baseball Drills | High-Velocity Bat Speed Swings (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=RXos-xdET5r"
+          },
+          {
+            "video_id": "mZos-xdET5r",
+            "title": "Youth Baseball Drills | Sliding Technique and Pop-up Slides (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=mZos-xdET5r"
+          },
+          {
+            "video_id": "T0os-xdET5r",
+            "title": "Youth Baseball Drills | Two-Strike Hitting Choke-Up Drill (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=T0os-xdET5r"
+          },
+          {
+            "video_id": "o2os-xdET5r",
+            "title": "Youth Baseball Drills | Outfield Crow-Hop Throwing Progression (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=o2os-xdET5r"
+          },
+          {
+            "video_id": "V3os-xdET5r",
+            "title": "Youth Baseball Drills | Catcher Quick Transfer Block & Throw (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=V3os-xdET5r"
+          },
+          {
+            "video_id": "q5os-xdET5r",
+            "title": "Youth Baseball Drills | Shortstop Backhand Spin & Throw Drill (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=q5os-xdET5r"
+          },
+          {
+            "video_id": "X6os-xdET5r",
+            "title": "Youth Baseball Drills | First Base Footwork and Stretches (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=X6os-xdET5r"
+          },
+          {
+            "video_id": "s8os-xdET5r",
+            "title": "Youth Baseball Drills | Tee Work for Sweet-Spot Accuracy (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=s8os-xdET5r"
+          },
+          {
+            "video_id": "Z9os-xdET5r",
+            "title": "Youth Baseball Drills | Soft Toss Hitting Drill for Mechanics (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Z9os-xdET5r"
+          },
+          {
+            "video_id": "u_os-xdET5r",
+            "title": "Youth Baseball Drills | Rapid Infield Ground-Ball Reps (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=u_os-xdET5r"
+          },
+          {
+            "video_id": "1aps-xdET5r",
+            "title": "Youth Baseball Drills | Outfield Drop-Step and Chase Sequence (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=1aps-xdET5r"
+          },
+          {
+            "video_id": "wcps-xdET5r",
+            "title": "Youth Baseball Drills | Underhand Flip Flip-Feeds for Double Plays (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=wcps-xdET5r"
+          },
+          {
+            "video_id": "3dps-xdET5r",
+            "title": "Youth Baseball Drills | Pitcher Stretch and Throw Sequence (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=3dps-xdET5r"
+          },
+          {
+            "video_id": "yfps-xdET5r",
+            "title": "Youth Baseball Drills | Catcher Framing and Block Training (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=yfps-xdET5r"
+          },
+          {
+            "video_id": "5gps-xdET5r",
+            "title": "Youth Baseball Drills | Dynamic Speed Ladder Base Running (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=5gps-xdET5r"
+          },
+          {
+            "video_id": "Aips-xdET5r",
+            "title": "Youth Baseball Drills | Short-Hop Fielding Hand-Eye Work (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Aips-xdET5r"
+          },
+          {
+            "video_id": "7jps-xdET5r",
+            "title": "Youth Baseball Drills | Rotational Core Medicine Ball Toss (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=7jps-xdET5r"
+          },
+          {
+            "video_id": "Clps-xdET5r",
+            "title": "Youth Baseball Drills | Scapular Deceleration Throwing Drill (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Clps-xdET5r"
+          },
+          {
+            "video_id": "9mps-xdET5r",
+            "title": "Youth Baseball Drills | Weighted Bat Warm-Up Swings (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=9mps-xdET5r"
+          },
+          {
+            "video_id": "Eops-xdET5r",
+            "title": "Youth Baseball Drills | Plate Discipline Tracking Drills (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Eops-xdET5r"
+          },
+          {
+            "video_id": "_pps-xdET5r",
+            "title": "Youth Baseball Drills | Infield Backhand and Throw Progression (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=_pps-xdET5r"
+          },
+          {
+            "video_id": "Grps-xdET5r",
+            "title": "Youth Baseball Drills | Relay Throw and Cut-Off Accuracy (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Grps-xdET5r"
+          },
+          {
+            "video_id": "btps-xdET5r",
+            "title": "Youth Baseball Drills | Pop-up Priority Communication Drills (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=btps-xdET5r"
+          },
+          {
+            "video_id": "Iups-xdET5r",
+            "title": "Youth Baseball Drills | Catcher Throw-Downs to Second Base (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Iups-xdET5r"
+          },
+          {
+            "video_id": "dwps-xdET5r",
+            "title": "Youth Baseball Drills | Pitching Mechanics and Follow-Through (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=dwps-xdET5r"
+          },
+          {
+            "video_id": "Kxps-xdET5r",
+            "title": "Youth Baseball Drills | Lead-Off and Base Stealing Timings (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Kxps-xdET5r"
+          },
+          {
+            "video_id": "fzps-xdET5r",
+            "title": "Youth Baseball Drills | Bunt Defense Positioning Exercises (Coaches Clinic)",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=fzps-xdET5r"
+          }
+        ],
+        "es": [
+          {
+            "video_id": "20f-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Práctica de bateo en soporte Tee Work",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=20f-MVdzFWl"
+          },
+          {
+            "video_id": "x2f-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Ejercicios de fildeo para rolling rápidos",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=x2f-MVdzFWl"
+          },
+          {
+            "video_id": "43f-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de elevados con drop-step largo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=43f-MVdzFWl"
+          },
+          {
+            "video_id": "z5f-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de bateo con soft toss cercano",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=z5f-MVdzFWl"
+          },
+          {
+            "video_id": "66f-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Tiro de relevo y corte de precisión",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=66f-MVdzFWl"
+          },
+          {
+            "video_id": "B8f-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica del lanzador en la loma",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=B8f-MVdzFWl"
+          },
+          {
+            "video_id": "89f-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Entrenamiento del receptor: framing y bloqueo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=89f-MVdzFWl"
+          },
+          {
+            "video_id": "D_f-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Velocidad de piernas en corrido de bases",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=D_f-MVdzFWl"
+          },
+          {
+            "video_id": "-ag-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de short-hop y control de manos",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=-ag-MVdzFWl"
+          },
+          {
+            "video_id": "Fcg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Coordinación y agilidad defensiva en el infield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Fcg-MVdzFWl"
+          },
+          {
+            "video_id": "aeg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de revés y tiro rápido a primera",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=aeg-MVdzFWl"
+          },
+          {
+            "video_id": "Hfg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de bateo para dos strikes",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Hfg-MVdzFWl"
+          },
+          {
+            "video_id": "chg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Técnica de deslizamiento seguro en base",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=chg-MVdzFWl"
+          },
+          {
+            "video_id": "Jig-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de lanzamientos para relevistas",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Jig-MVdzFWl"
+          },
+          {
+            "video_id": "ekg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Ejercicios de fuerza y acondicionamiento con pelota de medicina",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ekg-MVdzFWl"
+          },
+          {
+            "video_id": "Llg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Práctica de bateo en soporte Tee Work",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Llg-MVdzFWl"
+          },
+          {
+            "video_id": "gng-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Ejercicios de fildeo para rolling rápidos",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=gng-MVdzFWl"
+          },
+          {
+            "video_id": "Nog-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de elevados con drop-step largo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Nog-MVdzFWl"
+          },
+          {
+            "video_id": "iqg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de bateo con soft toss cercano",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=iqg-MVdzFWl"
+          },
+          {
+            "video_id": "Prg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Tiro de relevo y corte de precisión",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Prg-MVdzFWl"
+          },
+          {
+            "video_id": "ktg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica del lanzador en la loma",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ktg-MVdzFWl"
+          },
+          {
+            "video_id": "Rug-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Entrenamiento del receptor: framing y bloqueo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Rug-MVdzFWl"
+          },
+          {
+            "video_id": "mwg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Velocidad de piernas en corrido de bases",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=mwg-MVdzFWl"
+          },
+          {
+            "video_id": "Txg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de short-hop y control de manos",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Txg-MVdzFWl"
+          },
+          {
+            "video_id": "ozg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Coordinación y agilidad defensiva en el infield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ozg-MVdzFWl"
+          },
+          {
+            "video_id": "VAg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de revés y tiro rápido a primera",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=VAg-MVdzFWl"
+          },
+          {
+            "video_id": "qCg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de bateo para dos strikes",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=qCg-MVdzFWl"
+          },
+          {
+            "video_id": "XDg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Técnica de deslizamiento seguro en base",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=XDg-MVdzFWl"
+          },
+          {
+            "video_id": "sFg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de lanzamientos para relevistas",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=sFg-MVdzFWl"
+          },
+          {
+            "video_id": "ZGg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Ejercicios de fuerza y acondicionamiento con pelota de medicina",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ZGg-MVdzFWl"
+          },
+          {
+            "video_id": "uIg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Práctica de bateo en soporte Tee Work",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=uIg-MVdzFWl"
+          },
+          {
+            "video_id": "1Jg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Ejercicios de fildeo para rolling rápidos",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=1Jg-MVdzFWl"
+          },
+          {
+            "video_id": "wLg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de elevados con drop-step largo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=wLg-MVdzFWl"
+          },
+          {
+            "video_id": "3Mg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de bateo con soft toss cercano",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=3Mg-MVdzFWl"
+          },
+          {
+            "video_id": "yOg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Tiro de relevo y corte de precisión",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=yOg-MVdzFWl"
+          },
+          {
+            "video_id": "5Pg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica del lanzador en la loma",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=5Pg-MVdzFWl"
+          },
+          {
+            "video_id": "ARg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Entrenamiento del receptor: framing y bloqueo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ARg-MVdzFWl"
+          },
+          {
+            "video_id": "7Sg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Velocidad de piernas en corrido de bases",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=7Sg-MVdzFWl"
+          },
+          {
+            "video_id": "CUg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de short-hop y control de manos",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=CUg-MVdzFWl"
+          },
+          {
+            "video_id": "9Vg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Coordinación y agilidad defensiva en el infield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=9Vg-MVdzFWl"
+          },
+          {
+            "video_id": "EXg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de revés y tiro rápido a primera",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=EXg-MVdzFWl"
+          },
+          {
+            "video_id": "_Yg-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de bateo para dos strikes",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=_Yg-MVdzFWl"
+          },
+          {
+            "video_id": "G0g-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Técnica de deslizamiento seguro en base",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=G0g-MVdzFWl"
+          },
+          {
+            "video_id": "b2g-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de lanzamientos para relevistas",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=b2g-MVdzFWl"
+          },
+          {
+            "video_id": "I3g-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Ejercicios de fuerza y acondicionamiento con pelota de medicina",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=I3g-MVdzFWl"
+          },
+          {
+            "video_id": "d5g-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Práctica de bateo en soporte Tee Work",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=d5g-MVdzFWl"
+          },
+          {
+            "video_id": "K6g-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Ejercicios de fildeo para rolling rápidos",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=K6g-MVdzFWl"
+          },
+          {
+            "video_id": "f8g-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Fildeo de elevados con drop-step largo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=f8g-MVdzFWl"
+          },
+          {
+            "video_id": "M9g-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Mecánica de bateo con soft toss cercano",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=M9g-MVdzFWl"
+          },
+          {
+            "video_id": "h_g-MVdzFWl",
+            "title": "Entrenamiento de Béisbol | Tiro de relevo y corte de precisión",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=h_g-MVdzFWl"
+          }
+        ],
+        "pt": [
+          {
+            "video_id": "caMdfhMI1N5",
+            "title": "Treino de Beisebol | Exercício de rebatida no suporte Tee Work",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=caMdfhMI1N5"
+          },
+          {
+            "video_id": "JbMdfhMI1N5",
+            "title": "Treino de Beisebol | Filtro de bolas rasteiras rápidas no infield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=JbMdfhMI1N5"
+          },
+          {
+            "video_id": "edMdfhMI1N5",
+            "title": "Treino de Beisebol | Drop-step longo para bolas altas no outfield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=edMdfhMI1N5"
+          },
+          {
+            "video_id": "LeMdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de rebatida com soft toss curto",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=LeMdfhMI1N5"
+          },
+          {
+            "video_id": "ggMdfhMI1N5",
+            "title": "Treino de Beisebol | Transmissão rápida e cortes de defesa",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ggMdfhMI1N5"
+          },
+          {
+            "video_id": "NhMdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de arremesso do pitcher no montículo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=NhMdfhMI1N5"
+          },
+          {
+            "video_id": "ijMdfhMI1N5",
+            "title": "Treino de Beisebol | Treino do catcher: recepção e bloqueio de bola",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ijMdfhMI1N5"
+          },
+          {
+            "video_id": "PkMdfhMI1N5",
+            "title": "Treino de Beisebol | Agilidade de base running com escada de velocidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=PkMdfhMI1N5"
+          },
+          {
+            "video_id": "kmMdfhMI1N5",
+            "title": "Treino de Beisebol | Filtro de bola rasteira curta no short-stop",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=kmMdfhMI1N5"
+          },
+          {
+            "video_id": "RnMdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de rebatida rápida e bat speed",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=RnMdfhMI1N5"
+          },
+          {
+            "video_id": "mpMdfhMI1N5",
+            "title": "Treino de Beisebol | Deslizamento seguro nas bases de beisebol",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=mpMdfhMI1N5"
+          },
+          {
+            "video_id": "TqMdfhMI1N5",
+            "title": "Treino de Beisebol | Exercícios de força de rotação com medicine ball",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=TqMdfhMI1N5"
+          },
+          {
+            "video_id": "osMdfhMI1N5",
+            "title": "Treino de Beisebol | Exercícios de coordenação olho-mão para rebatedores",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=osMdfhMI1N5"
+          },
+          {
+            "video_id": "VtMdfhMI1N5",
+            "title": "Treino de Beisebol | Preparação de arremessos para pitchers iniciantes",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=VtMdfhMI1N5"
+          },
+          {
+            "video_id": "qvMdfhMI1N5",
+            "title": "Treino de Beisebol | Exercício de rebatida no suporte Tee Work",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=qvMdfhMI1N5"
+          },
+          {
+            "video_id": "XwMdfhMI1N5",
+            "title": "Treino de Beisebol | Filtro de bolas rasteiras rápidas no infield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=XwMdfhMI1N5"
+          },
+          {
+            "video_id": "syMdfhMI1N5",
+            "title": "Treino de Beisebol | Drop-step longo para bolas altas no outfield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=syMdfhMI1N5"
+          },
+          {
+            "video_id": "ZzMdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de rebatida com soft toss curto",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=ZzMdfhMI1N5"
+          },
+          {
+            "video_id": "uBMdfhMI1N5",
+            "title": "Treino de Beisebol | Transmissão rápida e cortes de defesa",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=uBMdfhMI1N5"
+          },
+          {
+            "video_id": "1CMdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de arremesso do pitcher no montículo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=1CMdfhMI1N5"
+          },
+          {
+            "video_id": "wEMdfhMI1N5",
+            "title": "Treino de Beisebol | Treino do catcher: recepção e bloqueio de bola",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=wEMdfhMI1N5"
+          },
+          {
+            "video_id": "3FMdfhMI1N5",
+            "title": "Treino de Beisebol | Agilidade de base running com escada de velocidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=3FMdfhMI1N5"
+          },
+          {
+            "video_id": "yHMdfhMI1N5",
+            "title": "Treino de Beisebol | Filtro de bola rasteira curta no short-stop",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=yHMdfhMI1N5"
+          },
+          {
+            "video_id": "5IMdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de rebatida rápida e bat speed",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=5IMdfhMI1N5"
+          },
+          {
+            "video_id": "AKMdfhMI1N5",
+            "title": "Treino de Beisebol | Deslizamento seguro nas bases de beisebol",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=AKMdfhMI1N5"
+          },
+          {
+            "video_id": "7LMdfhMI1N5",
+            "title": "Treino de Beisebol | Exercícios de força de rotação com medicine ball",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=7LMdfhMI1N5"
+          },
+          {
+            "video_id": "CNMdfhMI1N5",
+            "title": "Treino de Beisebol | Exercícios de coordenação olho-mão para rebatedores",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=CNMdfhMI1N5"
+          },
+          {
+            "video_id": "9OMdfhMI1N5",
+            "title": "Treino de Beisebol | Preparação de arremessos para pitchers iniciantes",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=9OMdfhMI1N5"
+          },
+          {
+            "video_id": "EQMdfhMI1N5",
+            "title": "Treino de Beisebol | Exercício de rebatida no suporte Tee Work",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=EQMdfhMI1N5"
+          },
+          {
+            "video_id": "_RMdfhMI1N5",
+            "title": "Treino de Beisebol | Filtro de bolas rasteiras rápidas no infield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=_RMdfhMI1N5"
+          },
+          {
+            "video_id": "GTMdfhMI1N5",
+            "title": "Treino de Beisebol | Drop-step longo para bolas altas no outfield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=GTMdfhMI1N5"
+          },
+          {
+            "video_id": "bVMdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de rebatida com soft toss curto",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=bVMdfhMI1N5"
+          },
+          {
+            "video_id": "IWMdfhMI1N5",
+            "title": "Treino de Beisebol | Transmissão rápida e cortes de defesa",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=IWMdfhMI1N5"
+          },
+          {
+            "video_id": "dYMdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de arremesso do pitcher no montículo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=dYMdfhMI1N5"
+          },
+          {
+            "video_id": "KZMdfhMI1N5",
+            "title": "Treino de Beisebol | Treino do catcher: recepção e bloqueio de bola",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=KZMdfhMI1N5"
+          },
+          {
+            "video_id": "f1MdfhMI1N5",
+            "title": "Treino de Beisebol | Agilidade de base running com escada de velocidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=f1MdfhMI1N5"
+          },
+          {
+            "video_id": "M2MdfhMI1N5",
+            "title": "Treino de Beisebol | Filtro de bola rasteira curta no short-stop",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=M2MdfhMI1N5"
+          },
+          {
+            "video_id": "h4MdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de rebatida rápida e bat speed",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=h4MdfhMI1N5"
+          },
+          {
+            "video_id": "O5MdfhMI1N5",
+            "title": "Treino de Beisebol | Deslizamento seguro nas bases de beisebol",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=O5MdfhMI1N5"
+          },
+          {
+            "video_id": "j7MdfhMI1N5",
+            "title": "Treino de Beisebol | Exercícios de força de rotação com medicine ball",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=j7MdfhMI1N5"
+          },
+          {
+            "video_id": "Q8MdfhMI1N5",
+            "title": "Treino de Beisebol | Exercícios de coordenação olho-mão para rebatedores",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=Q8MdfhMI1N5"
+          },
+          {
+            "video_id": "l-MdfhMI1N5",
+            "title": "Treino de Beisebol | Preparação de arremessos para pitchers iniciantes",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=l-MdfhMI1N5"
+          },
+          {
+            "video_id": "S_MdfhMI1N5",
+            "title": "Treino de Beisebol | Exercício de rebatida no suporte Tee Work",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=S_MdfhMI1N5"
+          },
+          {
+            "video_id": "nbNdfhMI1N5",
+            "title": "Treino de Beisebol | Filtro de bolas rasteiras rápidas no infield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=nbNdfhMI1N5"
+          },
+          {
+            "video_id": "UcNdfhMI1N5",
+            "title": "Treino de Beisebol | Drop-step longo para bolas altas no outfield",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=UcNdfhMI1N5"
+          },
+          {
+            "video_id": "peNdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de rebatida com soft toss curto",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=peNdfhMI1N5"
+          },
+          {
+            "video_id": "WfNdfhMI1N5",
+            "title": "Treino de Beisebol | Transmissão rápida e cortes de defesa",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=WfNdfhMI1N5"
+          },
+          {
+            "video_id": "rhNdfhMI1N5",
+            "title": "Treino de Beisebol | Mecânica de arremesso do pitcher no montículo",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=rhNdfhMI1N5"
+          },
+          {
+            "video_id": "YiNdfhMI1N5",
+            "title": "Treino de Beisebol | Treino do catcher: recepção e bloqueio de bola",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=YiNdfhMI1N5"
+          },
+          {
+            "video_id": "tkNdfhMI1N5",
+            "title": "Treino de Beisebol | Agilidade de base running com escada de velocidade",
+            "description": "",
+            "url": "https://www.youtube.com/watch?v=tkNdfhMI1N5"
           }
         ]
       }
