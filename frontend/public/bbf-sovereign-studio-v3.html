@@ -859,21 +859,26 @@ async function bakeStageBlob(stageId, w, h){ return await canvasToBlob(await ren
 
 // Coarse mobile/touch detection (incl. iPadOS, which reports as "Mac").
 const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile|Silk/i.test(navigator.userAgent||'') || (navigator.maxTouchPoints>1 && /Mac/i.test(navigator.platform||''));
-// Deliver an exported asset. On mobile the <a download> trick is unreliable
-// (iOS Safari ignores it), so we open the NATIVE SHARE SHEET — Save to Photos,
-// or share straight into IG/FB. Desktop keeps the direct download. Falls back to
-// download if share is unavailable or the file type can't be shared.
+// iOS ONLY needs the share sheet (Safari ignores the <a download> attribute); iPadOS
+// reports as Mac + touch. Android (Chrome / Samsung Internet) + desktop get a REAL
+// file download instead.
+const IS_IOS = /iPad|iPhone|iPod/i.test(navigator.userAgent||'') || (navigator.maxTouchPoints>1 && /Mac/i.test(navigator.platform||''));
+// Deliver an exported asset. iOS Safari ignores <a download>, so THERE we open the
+// native SHARE SHEET (Save to Photos / Files / share to IG). EVERYWHERE ELSE —
+// Android included — we do a real <a download> blob save, which fires the system
+// download notification and works for large videos. (Android's share sheet saved
+// nothing for many users, so it is no longer the mobile default.)
 async function deliverBlob(blob, filename){
   if(!blob || !blob.size) return 'empty';
   const file = window.File ? new File([blob], filename, { type: blob.type || 'application/octet-stream' }) : null;
-  if(IS_MOBILE && file && navigator.canShare && navigator.canShare({ files:[file] })){
+  if(IS_IOS && file && navigator.canShare && navigator.canShare({ files:[file] })){
     try{ await navigator.share({ files:[file], title: filename }); return 'shared'; }
     catch(e){ if(e && e.name==='AbortError') return 'canceled'; /* else fall through to download */ }
   }
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=filename;
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.rel='noopener';
   document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 60000);   // give large saves time to flush
+  setTimeout(()=>URL.revokeObjectURL(url), 120000);   // give large saves time to flush
   return 'downloaded';
 }
 
