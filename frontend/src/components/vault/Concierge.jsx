@@ -47,6 +47,18 @@ const FEATURE_ICON = {
   kinematics: CrosshairIcon,
 };
 
+// SPORTS-HUB onboarding "first move" — deterministic + trilingual. The athlete's
+// first interaction is the Check-In readiness scan (it reads the CNS and sets the
+// day's training volume), so the Athlete Portal welcome ALWAYS directs them there
+// first — independent of whatever first_move the LLM returns. (The adult Vault keeps
+// the server-composed first_move.) Mirrors the deck tab labels: Check-In / Drills /
+// Exercises.
+const SPORTS_FIRST_MOVE = {
+  en: 'Start on the Check-In tab and run your Morning Readiness scan. It reads your nervous system and sets today’s training volume — always scan before your drills or lifts.',
+  es: 'Empieza en la pestaña Chequeo y realiza tu escaneo de Preparación Matutina. Lee tu sistema nervioso y fija el volumen de entrenamiento de hoy: escanéate siempre antes de tus prácticas o ejercicios.',
+  pt: 'Comece na aba Check-In e faça seu escaneamento de Prontidão Matinal. Ele lê seu sistema nervoso e define o volume de treino de hoje — escaneie sempre antes dos seus treinos ou exercícios.',
+};
+
 const S = {
   backdrop: {
     position: 'fixed', inset: 0, background: 'rgba(0,0,0,.72)', backdropFilter: 'blur(3px)',
@@ -90,7 +102,12 @@ const S = {
   },
 };
 
-export default function Concierge({ hub = 'vault' }) {
+// `armed` gates the AUTO-fire (default true = always armed, the Vault's behavior).
+// The Sports Hub passes `armed={activeTab === 'checkin'}` so the first-login welcome
+// is pinned to the Check-In tab — the athlete's first interaction — and can never
+// pop up mid-fetch over Drills/Exercises if they tab away. The explicit summon
+// (Settings → Replay) ignores `armed` entirely.
+export default function Concierge({ hub = 'vault', armed = true }) {
   const { user } = useAuth();
   const { lang, t } = useLang();
   const uid = user?.username || user?.id || '';
@@ -108,7 +125,9 @@ export default function Concierge({ hub = 'vault' }) {
   // this device short-circuits without a round-trip. State is mutated only inside
   // the promise callback (never synchronously) — clear of set-state-in-effect.
   useEffect(() => {
-    if (!uid || hasSeen(uid, hub)) return undefined;
+    // `armed` pins the auto-fire to the right surface (Sports Hub → Check-In tab).
+    // We don't even touch the network until armed, so an un-armed tab burns no API.
+    if (!uid || !armed || hasSeen(uid, hub)) return undefined;
     let cancelled = false;
     fetchConciergeGreeting({ displayName, lang, hub })
       .then((res) => {
@@ -118,7 +137,7 @@ export default function Concierge({ hub = 'vault' }) {
       })
       .catch(() => { /* delight, never a blocker — swallow */ });
     return () => { cancelled = true; };
-  }, [uid, displayName, lang, hub]);
+  }, [uid, displayName, lang, hub, armed]);
 
   // ── Summon path: the member explicitly re-opens the welcome (Settings → Replay).
   // Bypasses BOTH guards (localStorage + the server flag) via summon:true, so it
@@ -156,6 +175,12 @@ export default function Concierge({ hub = 'vault' }) {
   }, [card]);
 
   if (!card) return null;
+
+  // Sports Hub → ALWAYS lead with the readiness scan (the gating first interaction);
+  // the Vault uses the server-composed first move.
+  const firstMoveText = hub === 'sports'
+    ? (SPORTS_FIRST_MOVE[lang] || SPORTS_FIRST_MOVE.en)
+    : card.firstMove;
 
   return (
     <div
@@ -195,10 +220,10 @@ export default function Concierge({ hub = 'vault' }) {
           })}
         </div>
 
-        {card.firstMove ? (
+        {firstMoveText ? (
           <div style={S.firstMove}>
             <div style={S.firstMoveH}>{t('concierge-firstmove-h')}</div>
-            <div style={S.firstMoveBody}>{card.firstMove}</div>
+            <div style={S.firstMoveBody}>{firstMoveText}</div>
           </div>
         ) : null}
 

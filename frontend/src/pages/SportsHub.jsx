@@ -492,8 +492,11 @@ export default function SportsHub({ selection = null, progress = null }) {
       </div>
 
       {/* Self-Serve Sports Concierge — the BBF Athlete Portal first-open welcome.
-          Hub-forked: distinct greeting + its own durable gate (has_seen_sports_welcome). */}
-      <Concierge hub="sports" />
+          PINNED to the Check-In tab (the athlete's first interaction): `armed` only
+          arms the auto-fire while Check-In is active, so the welcome lands in the
+          readiness-scan context and never pops over Drills/Exercises. The Replay
+          button (summon) still works from any tab. */}
+      <Concierge hub="sports" armed={activeTab === 'checkin'} />
     </div>
   );
 }
