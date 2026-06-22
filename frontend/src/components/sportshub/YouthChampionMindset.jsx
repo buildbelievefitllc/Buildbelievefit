@@ -35,7 +35,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
-import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
+import { fetchCachedSectionCoachAudio } from '../../lib/forecastApi.js';
 import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
 import MINDSET_VIDEOS from '../../data/mindset_videos.json';
 import { expandedMindsetVideos } from '../../data/sportsExpandedLogic.js';
@@ -163,7 +163,7 @@ function ArchitectIntro({ lang }) {
   // fine, the cue stays one tap away. State is mutated ONLY inside async callbacks.
   useEffect(() => {
     let cancelled = false;
-    fetchSectionCoachAudio({ context: 'affirmation', cueRef: `youth-champion-architect-intro-${lang}`, cueText: text, locale: lang })
+    fetchCachedSectionCoachAudio({ context: 'affirmation', cueRef: `youth-champion-architect-intro-${lang}`, cueText: text, locale: lang })
       .then((u) => {
         if (cancelled) { URL.revokeObjectURL(u); return; }
         setUrl(u);
@@ -188,7 +188,7 @@ function ArchitectIntro({ lang }) {
     setBusy(true);
     setErr(false);
     try {
-      const u = await fetchSectionCoachAudio({ context: 'affirmation', cueRef: `youth-champion-architect-intro-${lang}`, cueText: text, locale: lang });
+      const u = await fetchCachedSectionCoachAudio({ context: 'affirmation', cueRef: `youth-champion-architect-intro-${lang}`, cueText: text, locale: lang });
       setUrl(u);
       requestAnimationFrame(() => { audioRef.current?.play().catch(() => setErr(true)); });
     } catch {

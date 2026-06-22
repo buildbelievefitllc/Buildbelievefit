@@ -76,9 +76,9 @@ export async function fetchSectionCoachAudio({ context, cueRef, cueText, locale 
   return postForAudio({ context, locale, cue_ref: cueRef, cue_text: cueText }, context || 'coach');
 }
 
-// Shared audio POST → object URL. Both briefing + coach hit bbf-biokinetic-briefing
+// Shared audio POST → Blob. Both briefing + coach hit bbf-biokinetic-briefing
 // (ElevenLabs) and expect an audio/mpeg blob, NOT a JSON string.
-async function postForAudio(body, slug) {
+async function postForBlob(body, slug) {
   const token = getStoredVaultToken();
   const res = await fetch(`${FUNCTIONS_BASE}/bbf-biokinetic-briefing`, {
     method: 'POST',
@@ -92,7 +92,50 @@ async function postForAudio(body, slug) {
   }
   const ct = res.headers.get('content-type') || '';
   if (!ct.includes('audio')) throw new Error(`${slug}_no_audio`);
-  const blob = await res.blob();
+  return res.blob();
+}
+
+// Shared audio POST → object URL (one-shot; the caller owns + revokes the URL).
+async function postForAudio(body, slug) {
+  return URL.createObjectURL(await postForBlob(body, slug));
+}
+
+// ── Session audio cache (API-BLEED GUARD) ────────────────────────────────────
+// Pre-authored section cues (e.g. the youth Champion Mindset Architect welcome) are
+// IDENTICAL on every play, yet a naive component re-fetches them on every mount and
+// language toggle — each one an edge-function round-trip (and an ElevenLabs synth on
+// a cold server cache). The server already caches the SYNTHESIS (bbf_coach_audio);
+// THIS stops the CLIENT from re-hitting the API at all. We hold the decoded BLOB once
+// per key (context|locale|cueRef) for the session and hand each caller a FRESH object
+// URL — so a component can revoke its own URL on unmount without evicting the shared
+// blob. Net effect: the edge fn is hit at most ONCE per key per session; a language
+// toggle-back or a tab unmount/remount plays straight from memory. Concurrent callers
+// share a single in-flight request. (Session-scoped by design — a full page reload
+// re-primes from the cheap server cache; the bleed we're killing is mount/toggle churn.)
+const _sectionBlobCache = new Map(); // key -> Blob
+const _sectionInflight = new Map();  // key -> Promise<Blob>
+function sectionAudioKey({ context, locale, cueRef }) {
+  return `${context || 'coach'}|${locale || 'en'}|${cueRef || ''}`;
+}
+
+// Cached twin of fetchSectionCoachAudio — same contract (resolves to an object URL),
+// but only touches the network on the FIRST request for a given key. Use for FIXED,
+// repeat-played cues (the Architect welcome); use fetchSectionCoachAudio for one-off
+// dynamic cues that should never be memoized.
+export async function fetchCachedSectionCoachAudio({ context, cueRef, cueText, locale }) {
+  const key = sectionAudioKey({ context, locale, cueRef });
+  let blob = _sectionBlobCache.get(key);
+  if (!blob) {
+    let pending = _sectionInflight.get(key);
+    if (!pending) {
+      pending = postForBlob({ context, locale, cue_ref: cueRef, cue_text: cueText }, context || 'coach')
+        .then((b) => { _sectionBlobCache.set(key, b); _sectionInflight.delete(key); return b; })
+        .catch((e) => { _sectionInflight.delete(key); throw e; });
+      _sectionInflight.set(key, pending);
+    }
+    blob = await pending;
+  }
+  // A fresh URL per call: the caller revokes its own on unmount; the blob lives on.
   return URL.createObjectURL(blob);
 }
 
