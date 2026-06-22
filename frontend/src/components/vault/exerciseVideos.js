@@ -47,6 +47,12 @@ export const VIDEO_MAP = {
   'Hip Abduction Machine': { en: 'OjI5OpV6IWA', es: '2vCRMi-lgJ4', pt: 'ffNjbi2rvTQ' }, 'Hip Abductors': { en: 'OjI5OpV6IWA', es: 'tAnAP9iILlE', pt: '50qHGus1TZk' }, 'Abductor Machine': { en: 'OjI5OpV6IWA', es: '2vCRMi-lgJ4', pt: '50qHGus1TZk' }, 'Back Extension': { en: 'gLT-WLH84B4', es: 'ye-dpRzXaOg', pt: '6Bg5woPBEA8' }, 'Cable Hip Extension': { en: 'yXopOhzEoeo', es: '1mL-NCet4dY', pt: 'qHeY7yDu1fc' }, 'Cable Glute Kickback': { en: 'bVrmtCI00Ys', es: 'cV9ylFjgJtI', pt: 'DHCv6Vjakv0' }, 'Reverse Kickbacks': { en: 'bVrmtCI00Ys', es: 'ryfa2MqJsbk', pt: '-8KpQXHtCEw' },
   // core / misc
   'Bird Dog': { en: 'ZdAHe9_HeEw', es: 'MEKThiUpdyc', pt: 'p6czwaejDY8' }, 'Russian Twist': { en: 'wkD8rjkodUI', es: 'hdSyLWfRJHc', pt: 'GHPI80YS2Ns' }, 'Heel Tap': { en: 'jfXcyLTuKP4', es: 'PmD8OjgsdrY', pt: 'mAdzrPGeFZo' }, 'MTS Pulldown': { en: 'CAwf7n6Luuc', es: 'eSlKErmf5WU', pt: '7cCiQUdIXWw' },
+  // EXPANSION · home-resistance kit (dumbbell / band / kettlebell / medicine-ball)
+  // — form demos for the at-home adult program. Keyed to the exact plan names so
+  // they resolve on the exact-key pass. (Movements already in the map above —
+  // Dumbbell Chest/Shoulder Press, Goblet Squat, DB RDL, DB Biceps Curl, Russian
+  // Twist — reuse those entries; only the genuinely new movements are added here.)
+  'Incline Push-Up': 'hTm9vkhNCec', 'Step-Up': 'EswvBNNHsRg', 'Resistance Band Row': 'hqFwwv6dFGY', 'Dumbbell Pullover': 'gEbpSjFBpCk', 'Dumbbell Lunge': 'EIycwKi4Mfk', 'Plank with Medicine Ball Rollout': '0rNOsQHSe2U', 'Kettlebell Swing': 'zSww9F2ZEW8', 'Medicine Ball Slam': '6vXHh-Lhb2o', 'Medicine Ball Woodchop': 'obff1WMggjc',
 };
 
 // ─── Fuzzy normalizer (port of _normalizeExerciseName) ───────────────────────
