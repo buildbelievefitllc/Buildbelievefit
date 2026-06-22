@@ -551,6 +551,18 @@ YOUR CLOCK</textarea></div>
       <label class="upload-btn" id="sp-lbl-a" for="sp-file-a">UPLOAD AFTER</label><input type="file" id="sp-file-a" accept="image/*"></div>
     <div class="ctl-group"><label class="ctl-label">Logo (optional)</label>
       <label class="upload-btn" id="sp-lbl-l" for="sp-file-l">UPLOAD LOGO</label><input type="file" id="sp-file-l" accept="image/*"></div>
+    <div class="ctl-group" id="sp-video-group">
+      <label class="ctl-label">🎬 Hero Video — show them working out (Single Hero)</label>
+      <label class="upload-btn" id="sp-lbl-vid" for="sp-file-vid">UPLOAD HERO VIDEO</label><input type="file" id="sp-file-vid" accept="video/*">
+      <div class="hint">Plays the client's clip inside the gold single-hero frame. Switches to Single Hero automatically.</div>
+      <button class="export-btn" id="sp-export-vid" style="margin-top:10px;">🎬 EXPORT SPOTLIGHT VIDEO</button>
+      <div class="vid-progress" id="sp-vid-progress"><div class="vid-progress-bar" id="sp-vid-bar"></div></div>
+      <div class="vid-note" id="sp-vid-note"></div>
+      <button class="export-btn" id="sp-vid-save" style="display:none;margin-top:8px;">💾 SAVE VIDEO TO PHONE</button>
+      <button class="export-btn" id="sp-download-orig" style="margin-top:10px;">⬇️ DOWNLOAD ORIGINAL (full length, no overlay)</button>
+      <div class="vid-note" id="sp-orig-note"></div>
+      <div class="hint">Bakes the name, shout-out &amp; CTA onto the moving clip → a branded Spotlight video. Or grab the raw clip, any length.</div>
+    </div>
     <div class="ctl-group"><label class="ctl-label">Client Name</label><input type="text" id="sp-name" value="JACKY"></div>
     <div class="ctl-group"><label class="ctl-label">Sub-line</label><input type="text" id="sp-sub" value="Performance Laboratory • West Valley AZ"></div>
     <div class="ctl-group"><label class="ctl-label">🎰 Client Shout-Out Hook</label>
@@ -759,7 +771,7 @@ YOUR CLOCK</div>
         <div class="sp-logo" style="visibility:hidden;"></div>
       </div>
       <div class="sp-photos">
-        <div class="sp-ph" id="sp-ph-b"><div class="placeholder">UPLOAD<br>BEFORE 📷</div><div class="sp-badge before">BEFORE</div></div>
+        <div class="sp-ph" id="sp-ph-b"><video id="sp-vid" playsinline muted loop preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;"></video><div class="placeholder">UPLOAD<br>BEFORE 📷</div><div class="sp-badge before">BEFORE</div></div>
         <div class="sp-ph is-after" id="sp-ph-a"><div class="placeholder">UPLOAD<br>AFTER 📷</div><div class="sp-badge after">AFTER</div>
           <div class="sp-wm" id="sp-wm"><img id="sp-logoimg2" alt=""></div></div>
       </div>
@@ -2942,6 +2954,126 @@ $('sp-queue').onclick=()=> queuePost('image',
     eye_label:$('sp-name').value, cta:$('sp-cta').value, caption:buildSpCaption() },
   ()=> bakeStageBlob('stage-spot',1080,1350), $('sp-queue'), $('sp-queue-note'));
 $('sp-copycap').onclick=()=> copyText(buildSpCaption(), $('sp-copycap'));
+
+/* ===== SPOTLIGHT HERO VIDEO (V4 — show the client working out, not just a photo) ===== */
+let spHasVideo=false, spRecording=false, spSrcFile=null, spLastVideo=null;
+const spVid=$('sp-vid');
+
+// Upload a hero clip → plays inside the single-hero gold frame (auto-switches to
+// Single Hero). The original File is retained for DOWNLOAD ORIGINAL / re-bake.
+$('sp-file-vid').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  spSrcFile=f;
+  if(spVid.src) URL.revokeObjectURL(spVid.src);
+  spVid.src=URL.createObjectURL(f); spVid.muted=true; spVid.playsInline=true; spVid.loop=true;
+  const single=document.querySelector('#sp-layout button[data-l="single"]'); if(single && spLayout!=='single') single.click();
+  spVid.onloadeddata=()=>{
+    spHasVideo=true;
+    $('sp-lbl-vid').textContent='✓ HERO VIDEO LOADED'; $('sp-lbl-vid').classList.add('done');
+    const ph=$('sp-ph-b'); const plc=ph.querySelector('.placeholder'); if(plc) plc.style.display='none';
+    const im=ph.querySelector('img.photo'); if(im) im.style.display='none';
+    spVid.style.display='block'; spVid.play().catch(()=>{});
+  };
+  spVid.onerror=()=>{ const n=$('sp-vid-note'); n.className='vid-note active warn'; n.textContent='Couldn’t read this video — try an MP4 (H.264).'; };
+});
+
+// Bake the REAL Spotlight overlay (html2canvas) once — hero frame emptied, so the
+// live clip is composited into it per-frame and the baked video matches the on-screen
+// design exactly (no re-implementing the layout in canvas).
+async function renderSpotlightOverlayCanvas(w,h){
+  if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(_){} }
+  return await html2canvas($('stage-spot'), {
+    backgroundColor:'#08060a', scale:2, useCORS:true, width:w, height:h, windowWidth:w, windowHeight:h,
+    onclone:(doc)=>{
+      doc.querySelectorAll('.stage-scaler').forEach(el=>{ el.style.transform='none'; el.style.transformOrigin='top center'; el.style.width='auto'; el.style.height='auto'; });
+      const st=doc.getElementById('stage-spot'); if(st){ st.style.width=w+'px'; st.style.height=h+'px'; }
+      const ph=doc.getElementById('sp-ph-b');
+      if(ph){ const v=doc.getElementById('sp-vid'); if(v) v.style.display='none';
+        const im=ph.querySelector('img.photo'); if(im) im.style.display='none';
+        const pl=ph.querySelector('.placeholder'); if(pl) pl.style.display='none'; }
+    }
+  });
+}
+
+// RECORD the Spotlight video: baked overlay (opaque) + the live hero clip composited
+// into the gold frame → MediaRecorder. Mirrors recordReel (download=save / false=queue).
+function recordSpotlight(download){ return new Promise((resolve)=>{ (async ()=>{
+  const btn=$('sp-export-vid'), note=$('sp-vid-note'), prog=$('sp-vid-progress'), bar=$('sp-vid-bar');
+  const fail=(m)=>{ note.className='vid-note active warn'; note.textContent=m; };
+  if(!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream){ fail('This browser can’t record canvas video. Use DOWNLOAD ORIGINAL, or try Chrome/Safari.'); resolve(null); return; }
+  if(!spHasVideo){ fail('Upload a hero video first.'); resolve(null); return; }
+  if(spRecording){ resolve(null); return; }
+  const singleBtn=document.querySelector('#sp-layout button[data-l="single"]');
+  if(spLayout!=='single' && singleBtn){ singleBtn.click(); await new Promise(r=>setTimeout(r,150)); }
+  if(spVid.readyState<1){ await new Promise(r=>{ spVid.addEventListener('loadedmetadata', r, {once:true}); setTimeout(r,3000); }); }
+  const W=1080, H=1350;
+  note.className='vid-note active'; note.textContent='Baking the Spotlight frame…';
+  let overlay; try{ overlay=await renderSpotlightOverlayCanvas(W,H); }
+  catch(err){ fail('Overlay render failed: '+err.message); resolve(null); return; }
+  const sr=$('stage-spot').getBoundingClientRect(), pr=$('sp-ph-b').getBoundingClientRect();
+  const sx=W/sr.width, sy=H/sr.height, bw=4, rad=16;
+  const hx=(pr.left-sr.left)*sx, hy=(pr.top-sr.top)*sy, hw=pr.width*sx, hh=pr.height*sy;
+  const ix=hx+bw, iy=hy+bw, iw=Math.max(1,hw-2*bw), ih=Math.max(1,hh-2*bw);
+  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H; const ctx=canvas.getContext('2d');
+  const mime=pickRecorderMime(), stream=canvas.captureStream(30);
+  let rec; try{ rec=mime?new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000}):new MediaRecorder(stream); }
+  catch(err){ fail('Recorder init failed: '+err.message); resolve(null); return; }
+  const chunks=[]; rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+  const fps=30, DUR_CAP=download?1200:90; let _d=spVid.duration; _d=(isFinite(_d)&&_d>0)?Math.min(_d,DUR_CAP):DUR_CAP;
+  const dur=_d, totalFrames=Math.max(1,Math.ceil(dur*fps)); let drawn=0, stopped=false;
+  spRecording=true; btn.disabled=true; const orig=btn.textContent; btn.textContent='RECORDING…';
+  prog.classList.add('active'); bar.style.width='0%'; note.textContent='Rendering frames…';
+  spVid.pause(); spVid.loop=false; spVid.currentTime=0; let killTimer=0;
+  const restore=()=>{ spRecording=false; btn.disabled=false; btn.textContent=orig; prog.classList.remove('active'); spVid.loop=true; spVid.play().catch(()=>{}); };
+  const finish=()=>{ if(stopped) return; stopped=true; try{ rec.stop(); }catch(e){} };
+  spVid.onended=finish;
+  rec.onstop=()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop());
+    let out=null;
+    try{
+      const ext=(mime&&mime.indexOf('mp4')>=0)?'mp4':'webm'; const blob=new Blob(chunks,{type:mime||('video/'+ext)});
+      if(!blob.size){ fail('Recording produced no data — try DOWNLOAD ORIGINAL, or update your browser.'); restore(); resolve(null); return; }
+      out={blob,ext,mime};
+      if(download){
+        const fname='bbf-spotlight-'+Date.now()+'.'+ext; spLastVideo={blob,name:fname};
+        if(IS_MOBILE){ $('sp-vid-save').style.display='block'; note.className='vid-note active'+(ext==='webm'?' warn':''); note.textContent= ext==='webm'?'Recorded .webm — tap SAVE VIDEO (this browser can’t record MP4 for IG).':'Recorded ✓ — tap SAVE VIDEO (Save to Photos / share).'; }
+        else { deliverBlob(blob,fname); note.className='vid-note active'+(ext==='webm'?' warn':''); note.textContent= ext==='webm'?'Exported .webm — convert before posting to IG.':'Saved MP4 ✓ — Spotlight video ready.'; }
+      } else { note.className='vid-note active'; note.textContent='Recorded ✓ — uploading…'; }
+    }catch(err){ fail('Final processing failed: '+err.message); restore(); resolve(null); return; }
+    restore(); resolve(out); };
+  try{ await spVid.play(); }catch(err){ fail('Could not start playback: '+err.message); restore(); resolve(null); return; }
+  await new Promise(res=>{ let d=false; const go=()=>{ if(!d){ d=true; res(); } };
+    if(spVid.requestVideoFrameCallback){ spVid.requestVideoFrameCallback(()=>go()); }
+    else { const t=setInterval(()=>{ if(spVid.videoWidth>0 && spVid.currentTime>0){ clearInterval(t); go(); } },16); } setTimeout(go,600); });
+  if(stopped){ resolve(null); return; }
+  rec.start(); killTimer=setTimeout(finish,(dur+1.5)*1000);
+  (function frame(){ if(stopped) return;
+    ctx.drawImage(overlay,0,0,W,H);
+    ctx.save(); roundRectPath(ctx,ix,iy,iw,ih,rad); ctx.clip();
+    const vw=spVid.videoWidth, vh=spVid.videoHeight;
+    if(vw&&vh){ const s=Math.max(iw/vw,ih/vh), dw=vw*s, dh=vh*s; ctx.drawImage(spVid, ix+(iw-dw)/2, iy+(ih-dh)/2, dw, dh); }
+    ctx.restore();
+    drawn++; bar.style.width=Math.min(100,Math.round(drawn/totalFrames*100))+'%';
+    if(spVid.ended || drawn>=totalFrames){ finish(); return; } requestAnimationFrame(frame); })();
+})(); }); }
+$('sp-export-vid').onclick=()=> recordSpotlight(true);
+
+// ⬇️ DOWNLOAD ORIGINAL — the raw hero clip, any length, instant, no overlay.
+$('sp-download-orig').onclick=async()=>{
+  const n=$('sp-orig-note');
+  if(!spSrcFile){ n.className='vid-note active warn'; n.textContent='Upload a hero video first.'; return; }
+  const b=$('sp-download-orig'), o=b.textContent; b.disabled=true; b.textContent='SAVING…';
+  const ext=(spSrcFile.name&&spSrcFile.name.indexOf('.')>=0)?spSrcFile.name.split('.').pop():'mp4';
+  const fname=(spSrcFile.name&&spSrcFile.name.trim())?spSrcFile.name:('bbf-spotlight-footage-'+Date.now()+'.'+ext);
+  const r=await deliverBlob(spSrcFile, fname);
+  n.className='vid-note active'; n.textContent= r==='shared'?'Shared ✓':r==='canceled'?'Save canceled — tap again.':'Saved ✓ — full-length original.';
+  b.disabled=false; b.textContent=o;
+};
+// SAVE VIDEO TO PHONE — fresh-gesture share for the baked Spotlight video (mobile).
+$('sp-vid-save').onclick=async()=>{
+  if(!spLastVideo) return; const n=$('sp-vid-note');
+  const r=await deliverBlob(spLastVideo.blob, spLastVideo.name);
+  n.className='vid-note active'; n.textContent= r==='shared'?'Shared ✓':r==='downloaded'?'Saved ✓':r==='canceled'?'Save canceled — tap again.':'';
+};
 
 /* ============ REEL MODE ============ */
 let reelLastIdx=-1;
