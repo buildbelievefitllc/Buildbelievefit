@@ -146,4 +146,38 @@ between the champion Cinema and the Cognitive Protocols.
 
 ---
 
-_SW cache bumped (React SPA v123). `npm run lint` + `npm run build` green._
+## 7 · Soccer / Baseball drill videos — real-clip swap (V_Real) — ✅ COMPLETE
+
+The earlier Soccer/Baseball ingest (commit `19d22fb`) carried **synthetic** YouTube
+ids — every 50-entry list shared one fixed 8-char suffix (`…akir-_vC`, `…TSYFr5Xmw`,
+etc.); only the first 2–3 chars incremented. Those are not real videos, so each drill
+card rendered a dead thumbnail + "Video unavailable". A re-sent "V5_1" file was
+**byte-identical** to that synthetic set (0 new ids) and was rejected.
+
+The CEO then supplied **`BBS_Sports_Drills_Soccer_Baseball_Real.json`** — genuine,
+distinct YouTube links (real titles, real channels, no shared-suffix padding). Ingested
+into `bbfSportsHubVideoLibrary.json` (replacing the synthetic soccer/baseball blocks),
+with two **be-critical** passes applied at ingestion (auditable, reversible):
+
+1. **Dedup (first-wins):** the source repeats a few urls within a list — Soccer ES ×2,
+   Soccer PT ×1, Baseball ES ×1, Baseball PT ×1 — collapsed so no card repeats a clip.
+2. **Drill-relevance filter:** ~a third of the source entries are **mindset / motivation
+   / sports-psychology** clips (nerves, flow, "mentalidade vencedora", "frases de
+   motivación") — they belong on the **Champion Mindset** tab, not on a squat/drill card.
+   Set aside (by id, with reason) so the **LOCKED Drills tab stays drills**.
+
+**Final genuine drill library** (distinct, real, language-correct):
+
+| | EN | ES | PT |
+|---|---|---|---|
+| Soccer | 10 | 8 | 5 |
+| Baseball | 10 | 5 | 0 → **EN fallback** |
+
+Baseball-PT held only mindset clips + one lone highlight reel in this batch, so it's left
+empty → `videoLibraryIdMap` falls back to the real **EN** baseball drills (distinct per
+card) until native PT baseball drill links are supplied. The ~16 set-aside mindset clips
+are available to route into the Champion Mindset deck on request.
+
+---
+
+_SW cache bumped (React SPA v127). `npm run lint` + `npm run build` green._
