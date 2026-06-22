@@ -20,14 +20,47 @@
 // Pure presentational: receives the already-fetched profile + plan envelope +
 // the readiness verdict + a tab-navigate callback from the Vault shell.
 
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState, useEffect, useCallback } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { parseWorkoutPlan, parseMealPlan } from '../../lib/vaultApi.js';
 import { localizeFocus } from '../../lib/trainingI18n.js';
 import { getProgram } from './programData.js';
 import { BoltIcon, CrestIcon } from './icons.jsx';
 import SovereignPrepButton from './SovereignPrepButton.jsx';
+import { fetchAvatar, pushAvatar } from '../../lib/avatarApi.js';
 import './vault.css';
+
+// ── Avatar helpers — mirrors the Sports Hub pattern (same AVATAR_KEY, same
+// compressImage algo, same server-first / localStorage-cache strategy). ──
+const AVATAR_KEY = 'bbf.avatar.v1';
+function loadAvatar(uid) {
+  try { const all = JSON.parse(localStorage.getItem(AVATAR_KEY) || '{}'); return (uid && all[uid]) || ''; } catch { return ''; }
+}
+function saveAvatar(uid, dataUrl) {
+  if (!uid) return;
+  try { const all = JSON.parse(localStorage.getItem(AVATAR_KEY) || '{}'); all[uid] = dataUrl; localStorage.setItem(AVATAR_KEY, JSON.stringify(all)); } catch { /* quota */ }
+}
+function compressImage(file, size = 256) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read_failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode_failed'));
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale; const h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 const HYDRATION_TARGET_L = 3.5; // prototype read-out; live hydration tracking is a later phase
 
@@ -103,6 +136,33 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
   const gate = readinessGate(readiness);
   const go = (tab) => { if (typeof onNavigate === 'function') onNavigate(tab); };
 
+  // Profile avatar — local-first (localStorage) with server reconciliation on
+  // mount. Same AVATAR_KEY + compressImage pattern as SportsHub so one upload
+  // from either portal is instantly visible in both (shared bbf_users.avatar row).
+  const [avatar, setAvatar] = useState(() => loadAvatar(slug));
+  useEffect(() => {
+    if (!slug) return;
+    let alive = true;
+    (async () => {
+      const remote = await fetchAvatar();
+      if (!alive || !remote) return;
+      setAvatar((cur) => (remote === cur ? cur : remote));
+      saveAvatar(slug, remote);
+    })();
+    return () => { alive = false; };
+  }, [slug]);
+  const onAvatarChange = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const dataUrl = await compressImage(file);
+      setAvatar(dataUrl);
+      saveAvatar(slug, dataUrl);
+      pushAvatar(dataUrl); // best-effort server sync (cross-device + Command Center CRM)
+    } catch { /* unreadable image — keep current */ }
+  }, [slug]);
+
   return (
     <section className="cv-head" aria-label={t('vh-head-aria')}>
       {/* ── 1 · Portal ── */}
@@ -127,9 +187,16 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
       {/* ── 2 · Identity ── */}
       <div className="cv-identity">
         <div className="cv-identity-l">
-          <div className="cv-avatar" aria-hidden="true">
-            {initials(displayName)}
-            {isAdmin ? <span className="cv-avatar-badge">ADMIN</span> : null}
+          <div className="cv-avatar">
+            {avatar
+              ? <img src={avatar} alt="" className="cv-avatar-img" aria-hidden="true" />
+              : <span className="cv-avatar-initials" aria-hidden="true">{initials(displayName)}</span>
+            }
+            <label className="cv-avatar-edit" title="Upload profile photo">
+              <input type="file" accept="image/*" hidden onChange={onAvatarChange} />
+              <span aria-hidden="true">✎</span>
+            </label>
+            {isAdmin ? <span className="cv-avatar-badge" aria-hidden="true">ADMIN</span> : null}
           </div>
           <div className="cv-identity-meta">
             <h2 className="cv-identity-name">{t('vh-welcome').toUpperCase()} {displayName.toUpperCase()}</h2>

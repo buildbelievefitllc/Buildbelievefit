@@ -790,13 +790,23 @@
 .cv-identity-l { display: flex; align-items: center; gap: 1rem; min-width: 0; }
 .cv-avatar {
   position: relative; flex-shrink: 0;
-  width: 60px; height: 60px; border-radius: 12px;
+  width: 60px; height: 60px; border-radius: 12px; overflow: hidden; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--display); font-size: 1.45rem; color: #0c0a02;
   background: linear-gradient(135deg, var(--yel), var(--gold-deep));
 }
+.cv-avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cv-avatar-initials { position: relative; z-index: 1; }
+.cv-avatar-edit {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.55); color: var(--yel); font-size: .95rem;
+  cursor: pointer; opacity: 0; transition: opacity .15s ease;
+}
+.cv-avatar:hover .cv-avatar-edit,
+.cv-avatar:focus-within .cv-avatar-edit { opacity: 1; }
 .cv-avatar-badge {
-  position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); z-index: 3;
   font-family: var(--hb); font-size: .5rem; letter-spacing: 1px;
   background: var(--purl); color: #fff; border-radius: 4px; padding: .1rem .32rem; white-space: nowrap;
 }
