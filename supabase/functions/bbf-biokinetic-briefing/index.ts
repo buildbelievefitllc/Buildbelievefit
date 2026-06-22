@@ -1,8 +1,7 @@
 // bbf-biokinetic-briefing — Universal Voice Coach (ElevenLabs, trilingual).
 // CEO V8.16: ElevenLabs voice engine serving forecast/program/recovery/prehab/cardio/affirmation.
 // VOICE MAP (resolved live from the CEO account, self-heals on rename):
-//   en/es/pt -> BBF Coach Akeem  (trilingual PVC — multilingual_v2 speaks every locale;
-//   matches bbf-tts-eleven + bbf-agentic-rpe-voice-explanation)   (Young Jamal NEVER selected)
+//   en -> BBF Coach Akeem   es -> Ana Maria   pt -> Ana Alice   (Young Jamal NEVER selected)
 // Routes through the BBF Lab Voice Engine: exact API payload + the 4 Dynamic Vocal
 // States (Floor Coach / Lounge Talk / Sanctuary / Architect) + heavy-lift override.
 // Returns audio/mpeg. GET ?voices=1 -> resolved locale->voice diagnostic.
@@ -98,11 +97,7 @@ async function requireEntitlement(url: string | undefined, key: string | undefin
   return { ok: false, status: 403, error: 'tier_not_entitled', detail: `Tier "${tier || '(none)'}" does not unlock "${feature}".` };
 }
 
-// CEO order (Full Fleet voice consolidation): the BBF Coach Akeem trilingual Professional
-// Voice Clone speaks EVERY locale via multilingual_v2 — one coach, one voice, EN/ES/PT.
-// (Aligns this function with bbf-tts-eleven + bbf-agentic-rpe-voice-explanation, which were
-// already all-Akeem; this was the last surface still resolving native ES/PT voices.)
-const LOCALE_VOICE_NAME: Record<string, string> = { en: 'BBF Coach Akeem', es: 'BBF Coach Akeem', pt: 'BBF Coach Akeem' };
+const LOCALE_VOICE_NAME: Record<string, string> = { en: 'BBF Coach Akeem', es: 'Ana Maria', pt: 'Ana Alice' };
 const FORBIDDEN_VOICE = 'jamal';
 
 // ══ BBF LAB VOICE ENGINE (inlined — canonical: _shared/bbf-voice-engine.ts · CLAUDE.md §4) ══
