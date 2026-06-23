@@ -53,6 +53,10 @@ export const VIDEO_MAP = {
   // Dumbbell Chest/Shoulder Press, Goblet Squat, DB RDL, DB Biceps Curl, Russian
   // Twist — reuse those entries; only the genuinely new movements are added here.)
   'Incline Push-Up': 'hTm9vkhNCec', 'Step-Up': 'EswvBNNHsRg', 'Resistance Band Row': 'hqFwwv6dFGY', 'Dumbbell Pullover': 'gEbpSjFBpCk', 'Dumbbell Lunge': 'EIycwKi4Mfk', 'Plank with Medicine Ball Rollout': '0rNOsQHSe2U', 'Kettlebell Swing': 'zSww9F2ZEW8', 'Medicine Ball Slam': '6vXHh-Lhb2o', 'Medicine Ball Woodchop': 'obff1WMggjc',
+  // EXPANSION · Planet Fitness machines (Dad's knee-friendly 4-day split) — the
+  // movements his plan uses that weren't already covered above, so every assigned
+  // lift resolves to a real form demo (distinct from the dumbbell/abduction keys).
+  'Smith Machine Incline Press': 'QUDq7dcBvp4', 'Machine Lateral Raise': 'DSr5-DXPUgA', 'Hip Adduction Machine': '6tJjQFK_Q9U',
 };
 
 // ─── Fuzzy normalizer (port of _normalizeExerciseName) ───────────────────────

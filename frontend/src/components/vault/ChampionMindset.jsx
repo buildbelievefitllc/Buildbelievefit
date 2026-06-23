@@ -36,18 +36,33 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import ChampionFilmCard from './ChampionFilmCard.jsx';
 import SovereignPsychologyDeck from './SovereignPsychologyDeck.jsx';
 import DailyAffirmationCoach from './DailyAffirmationCoach.jsx';
 import { L10N, readLocked, writeLocked } from './championMindsetData.js';
+import { isParent } from '../../lib/personalTouches.js';
+import { PARENTS_WELLBEING, parentsBucket } from './parentsWellbeingData.js';
 import './championMindset.css';
 
 export default function ChampionMindset() {
   // Active language drives the entire roster + chrome. A toggle re-renders this
   // component with a different L, instantly swapping every champion and string.
   const { lang } = useLang();
+  const { user } = useAuth();
   const L = L10N[lang] || L10N.en;
-  const { champions, buckets } = L;
+  // "Parents' Well-Being" — a private educational health module appended ONLY for
+  // the founder's parents (gated by login slug). For every other client the deck
+  // is byte-for-byte unchanged.
+  const parent = isParent(user?.username || user?.id || '');
+  const champions = useMemo(
+    () => (parent ? [...L.champions, ...PARENTS_WELLBEING] : L.champions),
+    [L, parent],
+  );
+  const buckets = useMemo(
+    () => (parent ? [...L.buckets, parentsBucket(lang)] : L.buckets),
+    [L, parent, lang],
+  );
 
   // Inline-expansion accordion state: the id of the currently EXPANDED champion
   // card — the only one streaming an in-card iframe — or null when the grid is at

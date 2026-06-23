@@ -23,6 +23,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { parseFastingWindow, parseMealPlan } from '../../lib/vaultApi.js';
+import { personalFor } from '../../lib/personalTouches.js';
 import {
   rosterCall, updateTargets, compilePlan, toErrorMessage,
   TARGET_MAX, CUISINE_STYLES,
@@ -910,6 +911,8 @@ export default function Nutrition({ plans, profile }) {
   const { lang } = useLang();
   const tr = NUT_STR[lang] || NUT_STR.en;
   const uid = user?.username || user?.id || 'guest';
+  // Account-specific nutrition awareness note (gated by uid; null for everyone else).
+  const personal = personalFor(uid);
 
   // SURFACE GATE (forensic fix · Nutrition Locker logic leak) — the coach console
   // (athlete-selection dropdown + admin-token gate) is a COMMAND CENTER surface
@@ -1006,6 +1009,15 @@ export default function Nutrition({ plans, profile }) {
   return (
     <div className="pg-nut">
       {isAdmin && onCommandSurface ? <NutritionStudioGate /> : null}
+
+      {/* ── PERSONAL NUTRITION NOTE — account-specific (gated); warm "why" over the plan ── */}
+      {personal?.nutrition ? (
+        <div className="pg-card" data-testid="nut-personal-note" style={{ background: 'linear-gradient(180deg, rgba(106,13,173,.30), rgba(9,9,9,.25))', border: '1px solid rgba(245,200,0,.45)', borderRadius: 12, padding: '14px 16px', margin: '0 0 14px' }}>
+          <div style={{ fontFamily: 'var(--hb,"Barlow Condensed")', fontSize: '.66rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: '#f5c800', marginBottom: 6 }}>♥ {personal.nutrition.kicker}</div>
+          <h3 style={{ fontFamily: 'var(--display,"Bebas Neue")', fontStyle: 'italic', fontSize: '1.4rem', lineHeight: 1.05, color: '#f9f5ff', margin: '0 0 8px' }}>{personal.nutrition.title}</h3>
+          <p style={{ fontFamily: 'var(--bd,"Barlow Condensed")', fontSize: '.95rem', lineHeight: 1.5, color: 'rgba(255,255,255,.86)', margin: 0 }}>{personal.nutrition.body}</p>
+        </div>
+      ) : null}
 
       <div className="nl-head-row">
         <div>
