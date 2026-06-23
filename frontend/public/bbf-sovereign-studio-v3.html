@@ -3387,7 +3387,13 @@ function drawReelOverlay(ctx,o){
   const tAlign = hAlign==='center'?'center':(hAlign==='right'?'right':'left');
   const hx = hAlign==='center'?(W/2):(hAlign==='right'?(W-cx):cx);
   const hlPx=Math.round(148*(o.hlScale||1));
-  const hlFont=hlPx+"px 'Bebas Neue'", hlLines=String(o.hlText).split('\n'), hlLH=hlPx*0.94, hlH=hlLines.length*hlLH;
+  const hlFont=hlPx+"px 'Bebas Neue'"; ctx.font=hlFont;
+  // Wrap the headline to the 940px content box, honoring explicit newlines — mirrors the
+  // DOM .reel-hl (white-space:pre-line inside a left:70/right:70 box). Without this the
+  // canvas drew a long headline on ONE 148px line that overflowed the frame ("blown up"),
+  // while the preview + image export wrapped it. The sub already wraps the same way.
+  const hlLines=String(o.hlText).split('\n').flatMap(seg=>{ const s=seg.trim(); return s?wrapText(ctx,s,cw):['']; });
+  const hlLH=hlPx*0.94, hlH=hlLines.length*hlLH;
   const subFont="700 38px 'Barlow Condensed'"; ctx.font=subFont;
   const subLines=wrapText(ctx,o.subText,cw), subLH=38*1.2, subH=subLines.length*subLH;
   const watchFont="36px 'Bebas Neue'", watchH=76; ctx.font=watchFont;
@@ -3437,8 +3443,12 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
   // EXPORT (download) records the FULL clip so multi-minute demos export whole;
   // QUEUE/POST stays reel-length (IG/FB reels reject long). The cap still guards
   // an Infinity-duration (live) webm from running away.
-  const fps=30; const DUR_CAP=download?1200:90; let _d=reelVid.duration; _d=(isFinite(_d)&&_d>0)?Math.min(_d,DUR_CAP):DUR_CAP;
-  const dur=_d, totalFrames=Math.max(1,Math.ceil(dur*fps)), introFrames=30; let drawn=0, stopped=false;
+  const DUR_CAP=download?1200:90; let _d=reelVid.duration; _d=(isFinite(_d)&&_d>0)?Math.min(_d,DUR_CAP):DUR_CAP;
+  // Stop on the video's actual PLAYBACK POSITION, never a frame count: requestAnimationFrame
+  // fires at the display refresh rate (60–120Hz), so the old `drawn>=ceil(dur*30)` guard
+  // tripped in a third of the real time — truncating a 90s export to ~30s. INTRO_SEC is the
+  // overlay fade-in (was 30 frames; now wall-clock so it's refresh-rate independent).
+  const dur=_d, INTRO_SEC=1.0; let stopped=false;
   reelRecording=true; btn.disabled=true; const orig=btn.textContent; btn.textContent='RECORDING…';
   prog.classList.add('active'); bar.style.width='0%'; note.className='vid-note active'; note.textContent='Rendering frames…';
   reelVid.pause(); reelVid.loop=false; reelVid.currentTime=0;
@@ -3485,9 +3495,10 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
   rec.start(); killTimer=setTimeout(finish,(dur+1.5)*1000);
   (function frame(){ if(stopped) return;
     drawVideoCover(ctx,reelVid,W,H);
-    drawReelOverlay(ctx,Object.assign({},baseOpts,{reveal:Math.min(1,drawn/introFrames)}));
-    drawn++; bar.style.width=Math.min(100,Math.round(drawn/totalFrames*100))+'%';
-    if(reelVid.ended || drawn>=totalFrames){ finish(); return; } requestAnimationFrame(frame); })();
+    const t=reelVid.currentTime||0;
+    drawReelOverlay(ctx,Object.assign({},baseOpts,{reveal:Math.min(1,t/INTRO_SEC)}));
+    bar.style.width=Math.min(100,Math.round(t/dur*100))+'%';
+    if(reelVid.ended || t>=dur){ finish(); return; } requestAnimationFrame(frame); })();
 })(); }); }
 $('reel-export-vid').onclick=()=> recordReel(true);
 
