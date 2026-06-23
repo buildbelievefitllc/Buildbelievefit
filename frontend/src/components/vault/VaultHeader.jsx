@@ -28,6 +28,7 @@ import { getProgram } from './programData.js';
 import { BoltIcon, CrestIcon } from './icons.jsx';
 import SovereignPrepButton from './SovereignPrepButton.jsx';
 import { fetchAvatar, pushAvatar } from '../../lib/avatarApi.js';
+import { personalFor } from '../../lib/personalTouches.js';
 import './vault.css';
 
 // ── Avatar helpers — mirrors the Sports Hub pattern (same AVATAR_KEY, same
@@ -111,6 +112,8 @@ function initials(name) {
 
 function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = '', programKey = '', isAdmin = false, readiness = null, onNavigate = null }) {
   const { t, lang } = useLang();
+  // Account-specific warm copy (gated by slug; null for everyone else).
+  const personal = personalFor(slug);
   // The active queue item (head). Pure — no date input — so the same directive
   // renders whenever the athlete opens the app, until the backend rotates it.
   const directive = useMemo(() => {
@@ -200,6 +203,11 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
           </div>
           <div className="cv-identity-meta">
             <h2 className="cv-identity-name">{t('vh-welcome').toUpperCase()} {displayName.toUpperCase()}</h2>
+            {personal ? (
+              <p style={{ fontFamily: 'var(--bd, "Barlow Condensed")', fontSize: '.82rem', fontStyle: 'italic', color: '#f5c800', margin: '5px 0 0', lineHeight: 1.3 }}>
+                {personal.tagline}
+              </p>
+            ) : null}
             <span className="cv-pill cv-pill-sm">{accessLabel}</span>
             <div className="cv-identity-focus">
               <span className="cv-identity-slug">@{slug || 'athlete'}</span>

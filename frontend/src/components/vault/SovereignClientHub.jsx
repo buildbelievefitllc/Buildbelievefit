@@ -30,6 +30,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { personalFor, personalReadiness } from '../../lib/personalTouches.js';
 import { useHealthConnectSync } from '../../lib/healthConnectSync.js';
 import { useBiometricLedger } from '../../lib/useDailyReadiness.js';
 import { runVitalsPipeline, runManualVitalsPipeline, useVitalsSyncStatus } from '../../lib/vitalsPipeline.js';
@@ -108,6 +109,8 @@ export default function SovereignClientHub({ refreshKey = 0 }) {
   const { t } = useLang();
   const { user } = useAuth();
   const uid = user?.username || user?.id || '';
+  // Account-specific warm copy (gated by uid; null for everyone else).
+  const personal = personalFor(uid);
   const { available: bridgeUp, syncing, sync } = useHealthConnectSync();
 
   // ── Governor + platform (persisted; lazy init keeps reads out of render churn) ──
@@ -269,6 +272,18 @@ export default function SovereignClientHub({ refreshKey = 0 }) {
           </span>
         ) : null}
       </header>
+
+      {/* ── PERSONAL DEDICATION — account-specific (gated); warm note over the chrome ── */}
+      {personal && personal.dedication ? (
+        <div className="sch-card" data-testid="sch-dedication" style={{ background: 'linear-gradient(180deg, rgba(106,13,173,.30), rgba(9,9,9,.25))', border: '1px solid rgba(245,200,0,.45)' }}>
+          <div style={{ fontFamily: 'var(--hb,"Barlow Condensed")', fontSize: '.66rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: '#f5c800', marginBottom: 6 }}>♥ {personal.dedication.kicker}</div>
+          <h3 style={{ fontFamily: 'var(--display,"Bebas Neue")', fontStyle: 'italic', fontSize: '1.5rem', lineHeight: 1.05, color: '#f9f5ff', margin: '0 0 10px' }}>{personal.dedication.title}</h3>
+          {personal.dedication.lines.map((l, i) => (
+            <p key={i} style={{ fontFamily: 'var(--bd,"Barlow Condensed")', fontSize: '.95rem', lineHeight: 1.5, color: 'rgba(255,255,255,.86)', margin: '0 0 7px' }}>{l}</p>
+          ))}
+          <p style={{ fontFamily: 'var(--bd,"Barlow Condensed")', fontSize: '.9rem', fontStyle: 'italic', color: '#f5c800', margin: '8px 0 0' }}>{personal.dedication.sign}</p>
+        </div>
+      ) : null}
 
       {/* ── LAUNCH SYNC DIAGNOSTIC — surfaces the auto force-pull's raw failure ── */}
       {syncStatus.state === 'error' && syncStatus.error ? (
@@ -455,6 +470,11 @@ export default function SovereignClientHub({ refreshKey = 0 }) {
             <ReadinessDial score={view.score} />
             {modeMeta ? (
               <span className={`sch-mode sch-mode--${modeMeta.cls}`}>{t(modeMeta.tKey)}</span>
+            ) : null}
+            {personal && view.mode ? (
+              <p data-testid="sch-mom-readiness" style={{ fontFamily: 'var(--bd,"Barlow Condensed")', fontSize: '.92rem', lineHeight: 1.45, color: '#f5c800', margin: '8px 0 0', textAlign: 'center' }}>
+                {personalReadiness(uid, view.mode)}
+              </p>
             ) : null}
             <div className="sch-volume">
               <span className="sch-volume-k">{t('sch-volume')}</span>
