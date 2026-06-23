@@ -3032,11 +3032,12 @@ function recordSpotlight(download){ return new Promise((resolve)=>{ (async ()=>{
   const restore=()=>{ spRecording=false; btn.disabled=false; btn.textContent=orig; prog.classList.remove('active'); spVid.loop=true; spVid.play().catch(()=>{}); };
   const finish=()=>{ if(stopped) return; stopped=true; try{ rec.stop(); }catch(e){} };
   spVid.onended=finish;
-  rec.onstop=()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop());
+  rec.onstop=async()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop());
     let out=null;
     try{
-      const ext=(mime&&mime.indexOf('mp4')>=0)?'mp4':'webm'; const blob=new Blob(chunks,{type:mime||('video/'+ext)});
+      const ext=(mime&&mime.indexOf('mp4')>=0)?'mp4':'webm'; let blob=new Blob(chunks,{type:mime||('video/'+ext)});
       if(!blob.size){ fail('Recording produced no data — try DOWNLOAD ORIGINAL, or update your browser.'); restore(); resolve(null); return; }
+      blob = await fixMp4TrackDuration(blob);   // repair fragmented-MP4 track duration so IG/FB don't truncate to ~5s
       out={blob,ext,mime};
       if(download){
         const fname='bbf-spotlight-'+Date.now()+'.'+ext; spLastVideo={blob,name:fname};
@@ -3300,6 +3301,38 @@ function pickRecorderMime(){
   return '';
 }
 
+// Repair the track duration in a fragmented MP4 from MediaRecorder. Android / Samsung
+// Internet write the video track's mdhd.duration with the WRONG timescale (e.g. 13880
+// @ ts=30000 → 0.46s instead of 13.88s) and sometimes tkhd.duration=0, so IG/FB read
+// the track as ~0s and post a ~5-second clip even though every frame is in the moof
+// fragments. We rewrite tkhd + mdhd durations from the (correct) mvhd total — an
+// IN-PLACE value patch (no box resized), so it can never corrupt the file. Returns a
+// fixed Blob, or the ORIGINAL blob on any parse miss / non-mp4 (zero-risk fallback).
+async function fixMp4TrackDuration(blob){
+  try{
+    if(!blob || !/mp4/i.test(blob.type||'')) return blob;
+    const ab=await blob.arrayBuffer(); const u8=new Uint8Array(ab); const dv=new DataView(ab);
+    const u32=o=>dv.getUint32(o), typ=o=>String.fromCharCode(u8[o],u8[o+1],u8[o+2],u8[o+3]);
+    let mvhdTs=0, realSec=0;
+    (function findMvhd(s,e){ let p=s; while(p+8<=e){ let sz=u32(p); const t=typ(p+4); let hdr=8;
+      if(sz===1){ sz=Number(dv.getBigUint64(p+8)); hdr=16; } else if(sz===0){ sz=e-p; }
+      if(sz<8||p+sz>e) break;
+      if(t==='mvhd'){ const ver=u8[p+hdr], cs=p+hdr+4; if(ver===1){ mvhdTs=u32(cs+16); realSec=Number(dv.getBigUint64(cs+20))/mvhdTs; } else { mvhdTs=u32(cs+8); realSec=u32(cs+12)/mvhdTs; } }
+      if(t==='moov') findMvhd(p+hdr,p+sz); p+=sz; } })(0,u8.length);
+    if(!(realSec>0)||!(mvhdTs>0)) return blob;
+    let changed=false;
+    (function walk(s,e){ let p=s; while(p+8<=e){ let sz=u32(p); const t=typ(p+4); let hdr=8;
+      if(sz===1){ sz=Number(dv.getBigUint64(p+8)); hdr=16; } else if(sz===0){ sz=e-p; }
+      if(sz<8||p+sz>e) break;
+      if(t==='tkhd'){ const ver=u8[p+hdr], cs=p+hdr+4, off=cs+(ver===1?24:16), nd=Math.round(realSec*mvhdTs);
+        const old=ver===1?Number(dv.getBigUint64(off)):u32(off); if(old!==nd){ if(ver===1) dv.setBigUint64(off,BigInt(nd)); else dv.setUint32(off,nd); changed=true; } }
+      if(t==='mdhd'){ const ver=u8[p+hdr], cs=p+hdr+4, ts=u32(cs+(ver===1?16:8)), off=cs+(ver===1?20:12), nd=Math.round(realSec*ts);
+        const old=ver===1?Number(dv.getBigUint64(off)):u32(off); if(ts>0 && old!==nd){ if(ver===1) dv.setBigUint64(off,BigInt(nd)); else dv.setUint32(off,nd); changed=true; } }
+      if(t==='moov'||t==='trak'||t==='mdia') walk(p+hdr,p+sz); p+=sz; } })(0,u8.length);
+    return changed ? new Blob([ab],{type:blob.type}) : blob;
+  }catch(_){ return blob; }
+}
+
 /* ---- Canvas2D helpers for the baked overlay ---- */
 function roundRectPath(ctx,x,y,w,h,r){ r=Math.min(r,w/2,h/2); ctx.beginPath();
   ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
@@ -3413,11 +3446,12 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
   const restorePreview=()=>{ reelRecording=false; btn.disabled=false; btn.textContent=orig; prog.classList.remove('active'); reelVid.loop=true; reelVid.play().catch(()=>{}); };
   const finish=()=>{ if(stopped) return; stopped=true; try{ rec.stop(); }catch(e){} };
   reelVid.onended=finish;
-  rec.onstop=()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop());
+  rec.onstop=async()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop());
     let out=null;
     try{
-      const ext=(mime&&mime.indexOf('mp4')>=0)?'mp4':'webm'; const blob=new Blob(chunks,{type:mime||('video/'+ext)});
+      const ext=(mime&&mime.indexOf('mp4')>=0)?'mp4':'webm'; let blob=new Blob(chunks,{type:mime||('video/'+ext)});
       if(!blob.size){ fail('Recording produced no data — this browser couldn’t encode '+(mime||'video')+'. Try EXPORT IMAGE, or update your browser.'); restorePreview(); resolve(null); return; }
+      blob = await fixMp4TrackDuration(blob);   // repair fragmented-MP4 track duration so IG/FB don't truncate to ~5s
       out={blob, ext, mime};
       if(download){
         const fname='bbf-reel-'+Date.now()+'.'+ext;
