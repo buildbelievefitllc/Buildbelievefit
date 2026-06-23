@@ -23,6 +23,8 @@ import { useLang } from '../context/LangContext.jsx';
 const COACHING_TABS = ['', 'roster', 'command', 'access', 'telemetry', 'analytics', 'comlink', 'generator', 'nutrition-locker'];
 const NAV_ITEMS = [
   { labelKey: 'vault-command', to: '/command', isActive: (tab) => COACHING_TABS.includes(tab) },
+  // The Coach's Cave — admin-only sport-psychology film library (own deep-link).
+  { labelKey: 'cmd-tab-coach-cave', to: '/command/coach-cave', isActive: (tab) => tab === 'coach-cave' },
   { labelKey: 'cmd-tab-sports', to: '/command/sports', isActive: (tab) => tab === 'sports' },
   { labelKey: 'cmd-tab-language', to: '/command/language', isActive: (tab) => tab === 'language' },
   { labelKey: 'vault-tab-settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },

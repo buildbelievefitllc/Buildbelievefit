@@ -24,6 +24,7 @@ import AccessControl from '../components/command/AccessControl.jsx';
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 import NutritionLocker from '../components/command/NutritionLocker.jsx';
+import CoachCave from '../components/command/CoachCave.jsx';
 import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
@@ -63,6 +64,10 @@ const TABS = [
   // CEO-only Language Mastery Protocol. Static content (no token gate); the whole
   // /command route is AdminGuard-gated, so this tab never renders for an athlete.
   { id: 'language', labelKey: 'cmd-tab-language', Panel: AdminLanguageRoadmap },
+  // The Coach's Cave — private, admin-only sport-psychology & motivation film
+  // library (the founder's continuous-knowledge edge). Static client content; the
+  // AdminGuard route is its gate, so it is sealed to the head coach.
+  { id: 'coach-cave', labelKey: 'cmd-tab-coach-cave', Panel: CoachCave },
 ];
 
 const DEFAULT_TAB = TABS[0].id;

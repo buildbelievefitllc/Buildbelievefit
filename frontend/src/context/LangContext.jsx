@@ -576,6 +576,9 @@ const DICT = {
   'cmd-tab-sports': { en: 'Sports Portal', es: 'Portal Deportivo', pt: 'Portal Esportivo' },
   // CEO-only Language Mastery Protocol tab (Command Center + sidebar nav entry).
   'cmd-tab-language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },
+  // The Coach's Cave — admin-only sport-psychology film library (Command Center +
+  // sidebar nav entry). Proper-noun feel kept; ES/PT localize the metaphor.
+  'cmd-tab-coach-cave': { en: "Coach's Cave", es: 'La Cueva del Coach', pt: 'A Caverna do Coach' },
   // Content Studio launcher (admin sidebar) — opens the standalone
   // /bbf-studio.html "Sovereign Studio" content tool in a new tab.
   'cmd-studio': { en: 'Content Studio', es: 'Estudio de Contenido', pt: 'Estúdio de Conteúdo' },
