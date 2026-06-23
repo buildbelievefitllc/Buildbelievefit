@@ -15,7 +15,7 @@ const CHROMIUM_EXE =
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: ['**/coach-cave.spec.ts'],
+  testMatch: ['**/coach-cave.spec.ts', '**/coach-lab.spec.ts'],
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,

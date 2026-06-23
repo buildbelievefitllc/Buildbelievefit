@@ -579,6 +579,9 @@ const DICT = {
   // The Coach's Cave — admin-only sport-psychology film library (Command Center +
   // sidebar nav entry). Proper-noun feel kept; ES/PT localize the metaphor.
   'cmd-tab-coach-cave': { en: "Coach's Cave", es: 'La Cueva del Coach', pt: 'A Caverna do Coach' },
+  // The Coach Lab — admin-only Continuous Knowledge Ecosystem. Proper noun, kept
+  // identical across languages (like 'Founder Five' / 'Comlink').
+  'cmd-tab-coach-lab': { en: 'Coach Lab', es: 'Coach Lab', pt: 'Coach Lab' },
   // Content Studio launcher (admin sidebar) — opens the standalone
   // /bbf-studio.html "Sovereign Studio" content tool in a new tab.
   'cmd-studio': { en: 'Content Studio', es: 'Estudio de Contenido', pt: 'Estúdio de Conteúdo' },

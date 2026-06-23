@@ -25,6 +25,7 @@ import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 import NutritionLocker from '../components/command/NutritionLocker.jsx';
 import CoachCave from '../components/command/CoachCave.jsx';
+import CoachLab from '../components/command/CoachLab.jsx';
 import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
@@ -64,6 +65,9 @@ const TABS = [
   // CEO-only Language Mastery Protocol. Static content (no token gate); the whole
   // /command route is AdminGuard-gated, so this tab never renders for an athlete.
   { id: 'language', labelKey: 'cmd-tab-language', Panel: AdminLanguageRoadmap },
+  // The Coach Lab — BBF Lab Continuous Knowledge Ecosystem (Research Vault live;
+  // Kinesiology Lab · Coach's Arena · Broadcast Hub on the build path). Admin-only.
+  { id: 'coach-lab', labelKey: 'cmd-tab-coach-lab', Panel: CoachLab },
   // The Coach's Cave — private, admin-only sport-psychology & motivation film
   // library (the founder's continuous-knowledge edge). Static client content; the
   // AdminGuard route is its gate, so it is sealed to the head coach.

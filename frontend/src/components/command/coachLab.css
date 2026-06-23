@@ -1,0 +1,501 @@
+/* src/components/command/coachLab.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Coach Lab — BBF Lab Continuous Knowledge Ecosystem (admin-only). Laboratory-Gold:
+   matte-black glass, brushed gold (#f5c800), deep-purple (#6a0dad) glow. Self-
+   contained `cl-` namespace. */
+
+.cl {
+  --cl-purple: #6a0dad;
+  --cl-glass: rgba(14, 12, 20, 0.72);
+  --cl-line: rgba(245, 200, 0, 0.16);
+  max-width: 1080px;
+  color: var(--wht);
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
+.cl-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--cl-line);
+  border-radius: 18px;
+  padding: 1.9rem 1.9rem 1.7rem;
+  margin-bottom: 2rem;
+  background:
+    radial-gradient(120% 140% at 88% -10%, rgba(106, 13, 173, 0.32) 0%, rgba(106, 13, 173, 0) 55%),
+    linear-gradient(157deg, rgba(20, 16, 28, 0.96) 0%, rgba(8, 8, 8, 0.97) 70%);
+  box-shadow: 0 20px 60px -28px rgba(106, 13, 173, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+.cl-hero-glow {
+  position: absolute;
+  top: -42%;
+  right: -12%;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 200, 0, 0.16) 0%, rgba(245, 200, 0, 0) 68%);
+  pointer-events: none;
+}
+.cl-lockchip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-family: var(--hb);
+  font-size: 0.66rem;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  background: rgba(245, 200, 0, 0.07);
+  border: 1px solid rgba(245, 200, 0, 0.28);
+  border-radius: 999px;
+  padding: 0.36rem 0.7rem;
+  margin-bottom: 1.1rem;
+}
+.cl-lockchip svg { color: var(--yel); }
+.cl-kicker {
+  position: relative;
+  font-family: var(--hb);
+  font-size: 0.72rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  margin-bottom: 0.4rem;
+}
+.cl-title {
+  position: relative;
+  font-family: var(--display);
+  font-size: clamp(2.1rem, 5vw, 3rem);
+  line-height: 0.98;
+  letter-spacing: 1px;
+  margin: 0 0 0.7rem;
+  background: linear-gradient(92deg, var(--wht) 0%, var(--gold-soft) 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.cl-sub {
+  position: relative;
+  font-family: var(--bd);
+  font-size: 1.02rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: rgba(249, 245, 255, 0.66);
+  max-width: 64ch;
+  margin: 0 0 1.2rem;
+}
+.cl-status {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--hb);
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.cl-status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--yel);
+  box-shadow: 0 0 10px 1px rgba(245, 200, 0, 0.7);
+}
+
+/* ── Pillar deck ───────────────────────────────────────────────────────────── */
+.cl-decks-kicker {
+  font-family: var(--hb);
+  font-size: 0.68rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin-bottom: 0.7rem;
+}
+.cl-tabbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1.6rem;
+}
+.cl-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-align: left;
+  background: var(--cl-glass);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+.cl-tab:hover { border-color: rgba(245, 200, 0, 0.4); transform: translateY(-1px); }
+.cl-tab-idx {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  color: var(--cl-purple);
+  transition: color 0.18s ease;
+}
+.cl-tab-text { display: flex; flex-direction: column; gap: 0.12rem; min-width: 0; }
+.cl-tab-label {
+  font-family: var(--hb);
+  font-size: 0.92rem;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(249, 245, 255, 0.72);
+  transition: color 0.18s ease;
+}
+.cl-tab-tagline {
+  font-family: var(--bd);
+  font-size: 0.74rem;
+  color: var(--mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cl-tab-soon {
+  margin-left: auto;
+  flex: 0 0 auto;
+  font-family: var(--hb);
+  font-size: 0.56rem;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  background: rgba(245, 200, 0, 0.08);
+  border: 1px solid rgba(245, 200, 0, 0.28);
+  border-radius: 999px;
+  padding: 0.2rem 0.45rem;
+}
+.cl-tab-live {
+  margin-left: auto;
+  flex: 0 0 auto;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #38d39f;
+  box-shadow: 0 0 9px 1px rgba(56, 211, 159, 0.7);
+}
+.cl-tab.is-active {
+  background: linear-gradient(140deg, rgba(106, 13, 173, 0.34) 0%, rgba(14, 12, 20, 0.9) 75%);
+  border-color: rgba(245, 200, 0, 0.55);
+  box-shadow: 0 10px 28px -16px rgba(106, 13, 173, 0.9);
+}
+.cl-tab.is-active .cl-tab-idx { color: var(--yel); }
+.cl-tab.is-active .cl-tab-label { color: var(--wht); }
+
+.cl-panel { animation: cl-fade 0.28s ease both; }
+@keyframes cl-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ── Research Vault · composer ─────────────────────────────────────────────── */
+.cl-composer {
+  background: var(--cl-glass);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.2rem;
+  margin-bottom: 1.8rem;
+}
+.cl-composer-lbl {
+  display: block;
+  font-family: var(--hb);
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  margin-bottom: 0.6rem;
+}
+.cl-composer-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 96px;
+  font-family: var(--bd);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: var(--wht);
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.8rem 0.9rem;
+  transition: border-color 0.18s ease;
+}
+.cl-composer-input:focus { outline: none; border-color: rgba(245, 200, 0, 0.5); }
+.cl-composer-input::placeholder { color: var(--mut); }
+.cl-composer-row {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+  flex-wrap: wrap;
+}
+.cl-select {
+  flex: 1 1 200px;
+  font-family: var(--bd);
+  font-size: 0.92rem;
+  color: var(--wht);
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  cursor: pointer;
+}
+.cl-select:focus { outline: none; border-color: rgba(245, 200, 0, 0.5); }
+.cl-summarize {
+  flex: 0 0 auto;
+  font-family: var(--hb);
+  font-size: 0.82rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #0c0a02;
+  background: linear-gradient(135deg, var(--yel) 0%, var(--gold-deep) 100%);
+  border: none;
+  border-radius: 10px;
+  padding: 0.7rem 1.3rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 6px 18px -8px rgba(245, 200, 0, 0.7);
+}
+.cl-summarize:hover:not(:disabled) { transform: translateY(-1px); }
+.cl-summarize:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.cl-composer-note {
+  font-family: var(--bd);
+  font-size: 0.82rem;
+  color: var(--mut);
+  margin: 0.7rem 0 0;
+}
+.cl-err {
+  font-family: var(--bd);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--red);
+  margin: 0.6rem 0 0;
+}
+.cl-muted { color: var(--mut); font-family: var(--bd); }
+
+/* ── Research card grid + 3D flip ──────────────────────────────────────────── */
+.cl-cardgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.1rem;
+}
+.cl-flip {
+  position: relative;
+  min-height: 248px;
+  perspective: 1400px;
+}
+.cl-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 248px;
+  transition: transform 0.6s cubic-bezier(0.4, 0.1, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.cl-flip.is-flipped .cl-flip-inner { transform: rotateY(180deg); }
+.cl-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  background: var(--cl-glass);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.05rem 1.05rem;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 8px 30px -22px rgba(106, 13, 173, 0.8);
+}
+.cl-face:hover { border-color: rgba(245, 200, 0, 0.4); }
+.cl-face-back { transform: rotateY(180deg); }
+.cl-cat {
+  align-self: flex-start;
+  font-family: var(--hb);
+  font-size: 0.6rem;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--cl-purple);
+  background: rgba(106, 13, 173, 0.16);
+  border: 1px solid rgba(106, 13, 173, 0.4);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  margin-bottom: 0.6rem;
+}
+.cl-card-title {
+  font-family: var(--bd);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--wht);
+  margin: 0 0 0.3rem;
+}
+.cl-cite {
+  font-family: var(--bd);
+  font-size: 0.8rem;
+  color: var(--mut);
+  margin: 0 0 0.7rem;
+}
+.cl-app {
+  border-top: 1px dashed rgba(245, 200, 0, 0.22);
+  padding-top: 0.65rem;
+  margin-top: auto;
+}
+.cl-app-lbl {
+  font-family: var(--hb);
+  font-size: 0.62rem;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+}
+.cl-app-body {
+  font-family: var(--bd);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: rgba(249, 245, 255, 0.86);
+  margin: 0.3rem 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cl-flip-hint {
+  font-family: var(--hb);
+  font-size: 0.6rem;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin-top: 0.6rem;
+}
+.cl-back-sec { margin-bottom: 0.7rem; overflow: hidden; }
+.cl-back-lbl {
+  font-family: var(--hb);
+  font-size: 0.62rem;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+}
+.cl-back-lbl--warn { color: #e8a13a; }
+.cl-takeaways { list-style: none; margin: 0.35rem 0 0; padding: 0; }
+.cl-takeaways li {
+  display: flex;
+  gap: 0.4rem;
+  font-family: var(--bd);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: rgba(249, 245, 255, 0.82);
+  margin-bottom: 0.3rem;
+}
+.cl-take-arrow { color: var(--yel); flex: 0 0 auto; }
+.cl-pitfalls {
+  font-family: var(--bd);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: rgba(249, 245, 255, 0.7);
+  margin: 0.3rem 0 0;
+}
+.cl-card-del {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  color: var(--mut);
+  background: rgba(8, 6, 12, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.cl-card-del:hover { color: var(--red); border-color: rgba(239, 68, 68, 0.5); }
+
+/* ── Empty state ───────────────────────────────────────────────────────────── */
+.cl-empty {
+  text-align: center;
+  padding: 2.6rem 1.2rem;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+}
+.cl-empty-orb {
+  font-size: 2rem;
+  color: var(--gold-deep);
+  margin-bottom: 0.6rem;
+}
+.cl-empty-title {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+  color: var(--wht);
+  margin: 0 0 0.4rem;
+}
+.cl-empty-sub {
+  font-family: var(--bd);
+  font-size: 0.95rem;
+  color: var(--mut);
+  margin: 0;
+}
+
+/* ── Phase-2 pillar teaser ─────────────────────────────────────────────────── */
+.cl-soon {
+  border: 1px solid var(--cl-line);
+  border-radius: 16px;
+  padding: 2rem 1.8rem;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(106, 13, 173, 0.22) 0%, rgba(106, 13, 173, 0) 60%),
+    var(--cl-glass);
+}
+.cl-soon-badge {
+  display: inline-block;
+  font-family: var(--hb);
+  font-size: 0.64rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  background: rgba(245, 200, 0, 0.08);
+  border: 1px solid rgba(245, 200, 0, 0.3);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  margin-bottom: 1rem;
+}
+.cl-soon-title {
+  font-family: var(--display);
+  font-size: 2rem;
+  letter-spacing: 0.5px;
+  color: var(--wht);
+  margin: 0 0 0.3rem;
+}
+.cl-soon-tagline {
+  font-family: var(--hb);
+  font-size: 0.92rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+  margin: 0 0 1.2rem;
+}
+.cl-soon-note {
+  font-family: var(--hb);
+  font-size: 0.68rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin: 0 0 0.5rem;
+}
+.cl-soon-body {
+  font-family: var(--bd);
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: rgba(249, 245, 255, 0.82);
+  max-width: 66ch;
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .cl-hero { padding: 1.5rem 1.2rem 1.4rem; }
+  .cl-tabbar { grid-template-columns: 1fr; }
+  .cl-cardgrid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cl-panel, .cl-tab, .cl-flip-inner, .cl-summarize { animation: none !important; transition: none !important; }
+}

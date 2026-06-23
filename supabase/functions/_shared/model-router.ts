@@ -48,6 +48,7 @@ export type UseCase =
   //   matrix (_shared/prehab-matrix.mjs · DYNAMIC PREHAB MATRIX). No LLM route.
   | 'sales_chat'              // AI Hub · BBF Chatbox sales-closer dialog
   | 'concierge_greeting'      // Self-serve onboarding · tier-aware BBF Lab Concierge welcome
+  | 'coach_research_ingest'   // Coach Lab · Research Vault — structure a study/abstract into a coaching summary
   // ── OPUS tier · peak reasoning · safety-critical only ─────────────
   // parq_assessment — MIGRATED off the LLM to the deterministic SQL engine
   //   (public.bbf_parq_assess · standardized PAR-Q+ 2014). No LLM route; was
@@ -74,6 +75,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   // prehab_assignment removed — now deterministic (see _shared/prehab-matrix.mjs).
   sales_chat:            MODELS.SONNET,
   concierge_greeting:    MODELS.SONNET,
+  coach_research_ingest: MODELS.SONNET, // structured study summarization — mid-complexity, not safety-critical
   // parq_assessment removed — now deterministic (see public.bbf_parq_assess).
   wellbeing_escalation:  MODELS.OPUS,
   cardiac_intercept:     MODELS.OPUS,
