@@ -25,8 +25,11 @@
 // that route guard, so the module renders nothing if it is ever mounted outside
 // the admin perimeter.
 
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
+import { useSpeechEvaluator, comparePhrases } from '../../lib/useSpeechEvaluator.js';
+import languageVideoLibrary from '../../data/languageVideoLibrary.json';
 import './languageRoadmap.css';
 
 // ─── DATA (extracted verbatim from legacy bbf-language-protocol.jsx) ──────────
@@ -360,6 +363,72 @@ function CopyBtn({ text }) {
   );
 }
 
+// Native browser TTS button — speaks ES/PT terms in the device's stock voice
+// (token-free, the same window.speechSynthesis path speechFallback.js owns). The
+// lang prop is a BBF code ('es' | 'pt'); warmUpSpeech() primes the iOS engine
+// inside the click gesture so the first utterance is never swallowed.
+function SpeakBtn({ text, lang = 'es', label = '🔊' }) {
+  const supported = browserSpeechSupported();
+  if (!supported) return null;
+  const speak = () => {
+    warmUpSpeech();
+    speakWithBrowser({ text, lang }).catch(() => { /* stock voice unavailable — silent */ });
+  };
+  return (
+    <button type="button" className="lr-speak" onClick={speak} aria-label={`Listen: ${text}`}>
+      {label}
+    </button>
+  );
+}
+
+// Token-free WebAudio cue — a short oscillator blip for game success/fail tones
+// (no audio asset, no network). Resilient: a missing/locked AudioContext is a
+// silent no-op so a denied audio permission never breaks the game loop.
+let _audioCtx = null;
+function playTone(kind) {
+  try {
+    if (typeof window === 'undefined') return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    _audioCtx = _audioCtx || new Ctx();
+    const ctx = _audioCtx;
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const now = ctx.currentTime;
+    if (kind === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(660, now);
+      osc.frequency.setValueAtTime(880, now + 0.08);
+    } else {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+    }
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+    osc.start(now);
+    osc.stop(now + 0.24);
+  } catch { /* audio blocked — silent */ }
+}
+
+// Deterministic-enough shuffle (Fisher–Yates) for option ordering / deck draws.
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Flatten the category map into a single pool of {es, en, cat} for the games.
+const VOCAB_POOL = Object.entries(vocabData).flatMap(([cat, items]) =>
+  items.map((v) => ({ ...v, cat })),
+);
+
 // ─── TABS ───────────────────────────────────────────────────────────────────
 
 function TabVocab() {
@@ -632,75 +701,465 @@ function TabRoadmap() {
   );
 }
 
-// ─── BBF VIDEO VAULT (Task 6) ────────────────────────────────────────────────
-// Token-free, fully client-side language video library: 5 Spanish + 5 Brazilian
-// Portuguese foundational travel-dialogue / conversational-block lessons, embedded
-// as native YouTube <iframe>s (mirrors the ChampionMindset embed pattern — no
-// backend, no API tokens). IDs were sourced from live search of reputable language
-// channels (SpanishPod101 / PortuguesePod101 et al.); each card also carries a
-// direct "Watch on YouTube" link as a fallback if an embed is ever restricted.
-const videoVault = [
-  // ── 🇪🇸 Spanish basics — practical travel dialogue ──
-  { id: '0zlAehSZyQo', lang: 'ES', title: 'Survive in Spain: Essential Spanish Travel Expressions', focus: 'Travel survival dialogue' },
-  { id: 'k_gF1NegCzs', lang: 'ES', title: '50 Must-Know Survival Phrases for Travel', focus: 'Core travel phrasebook' },
-  { id: '8fKyXKSKabw', lang: 'ES', title: '20 Travel Phrases You Should Know in Spanish', focus: 'Quick-start conversation' },
-  { id: 'wPk5oZapyt4', lang: 'ES', title: 'Essential Spanish Phrases Every Traveler Must Know', focus: 'Traveler essentials' },
-  { id: '0id3_N3tbKU', lang: 'ES', title: 'Survival Spanish for Travel: 25 Key Phrases', focus: 'Foundational conversation' },
-  // ── 🇧🇷 Brazilian Portuguese basics — practical travel dialogue ──
-  { id: 'jY6WqiCKWlA', lang: 'PT', title: 'Survive in Brazil: Essential Portuguese Travel Expressions', focus: 'Travel survival dialogue' },
-  { id: 'ycjn_AiVVdg', lang: 'PT', title: 'Brazilian Portuguese: Getting Directions', focus: 'Directions & navigation' },
-  { id: 'eMsDho6otek', lang: 'PT', title: 'Phrases to Know Before You Travel to Brazil', focus: 'Pre-trip phrasebook' },
-  { id: 'gDoCk5Ozd2k', lang: 'PT', title: 'Key Brazilian Portuguese Travel Phrases', focus: 'Traveler essentials' },
-  { id: 'n2ryCCPLri8', lang: 'PT', title: 'Brazilian Portuguese Conversation Basics', focus: 'Foundational conversation' },
+// ─── VOCAB GYM (Pillar 1 · gamified quizzing) ────────────────────────────────
+// Turns the static Vocabulary Matrix into an active "language gym" with two play
+// styles from the BBF Lab directive: Speed Matrix (multiple-choice time attack
+// with combo streaks + countdown + WebAudio tones) and Flip Drill (flashcard
+// recall with native TTS). All client-side over the existing VOCAB_POOL.
+
+const SPEED_ROUND = 10;       // questions per Speed Matrix round
+const SPEED_SECONDS = 8;      // seconds allotted per question
+
+// Build one Speed Matrix question: an English prompt + 4 ES options (1 correct,
+// 3 distractors drawn from the rest of the pool, de-duplicated on translation).
+function makeQuestion(pool) {
+  const correct = pool[Math.floor(Math.random() * pool.length)];
+  const distractors = shuffle(pool.filter((v) => v.es !== correct.es)).slice(0, 3);
+  const options = shuffle([correct, ...distractors]);
+  return { prompt: correct.en, answer: correct.es, cat: correct.cat, options };
+}
+
+function SpeedMatrix() {
+  const [phase, setPhase] = useState('idle'); // idle | playing | done
+  const [qIndex, setQIndex] = useState(0);
+  const [question, setQuestion] = useState(null);
+  const [picked, setPicked] = useState(null);   // selected es string (locks the row)
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [best, setBest] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(SPEED_SECONDS);
+  const advanceRef = useRef(null);
+
+  const begin = () => {
+    setScore(0); setStreak(0); setBest(0); setCorrectCount(0);
+    setQIndex(0); setPicked(null);
+    setQuestion(makeQuestion(VOCAB_POOL));
+    setTimeLeft(SPEED_SECONDS);
+    setPhase('playing');
+  };
+
+  // Lock the answer, score it, then queue the next question.
+  const lockAnswer = (choice) => {
+    if (picked !== null || !question) return;
+    setPicked(choice ?? '__timeout__');
+    const right = choice === question.answer;
+    if (right) {
+      playTone('success');
+      setStreak((s) => {
+        const ns = s + 1;
+        setBest((b) => Math.max(b, ns));
+        // Combo bonus: +10 base, +2 per prior streak link.
+        setScore((sc) => sc + 10 + s * 2);
+        return ns;
+      });
+      setCorrectCount((c) => c + 1);
+    } else {
+      playTone('fail');
+      setStreak(0);
+    }
+    advanceRef.current = setTimeout(() => {
+      const next = qIndex + 1;
+      if (next >= SPEED_ROUND) { setPhase('done'); return; }
+      setQIndex(next);
+      setQuestion(makeQuestion(VOCAB_POOL));
+      setPicked(null);
+      setTimeLeft(SPEED_SECONDS);
+    }, 900);
+  };
+
+  // Per-question countdown. Re-armed on every new question (keyed by qIndex), and
+  // a timeout auto-locks as a miss. Cleared when an answer is picked.
+  useEffect(() => {
+    if (phase !== 'playing' || picked !== null) return undefined;
+    const t = setTimeout(() => {
+      // Tick down; on the final second auto-lock the question as a miss. Keeping
+      // the setState inside the timeout (never in the effect body) avoids the
+      // cascading-render lint and is the genuine async source here anyway.
+      if (timeLeft <= 1) lockAnswer(null);
+      else setTimeLeft((s) => s - 1);
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [phase, picked, timeLeft, qIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clean up a pending advance on unmount.
+  useEffect(() => () => { if (advanceRef.current) clearTimeout(advanceRef.current); }, []);
+
+  if (phase === 'idle') {
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">⚡ SPEED MATRIX</div>
+        <div className="lr-game-start-desc">
+          {SPEED_ROUND} rapid questions · {SPEED_SECONDS}s each. Match the English term to
+          the correct Spanish. Build a combo streak — every consecutive hit is worth more.
+        </div>
+        <button type="button" className="lr-game-btn" onClick={begin}>START ROUND</button>
+      </div>
+    );
+  }
+
+  if (phase === 'done') {
+    const pct = Math.round((correctCount / SPEED_ROUND) * 100);
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">ROUND COMPLETE</div>
+        <div className="lr-game-score-final">{score}<span> PTS</span></div>
+        <div className="lr-game-summary">
+          <div><strong>{correctCount}/{SPEED_ROUND}</strong> correct ({pct}%)</div>
+          <div>Best combo: <strong>×{best}</strong></div>
+        </div>
+        <button type="button" className="lr-game-btn" onClick={begin}>PLAY AGAIN</button>
+      </div>
+    );
+  }
+
+  const pct = (timeLeft / SPEED_SECONDS) * 100;
+  return (
+    <div className="lr-game">
+      <div className="lr-game-hud">
+        <div className="lr-game-hud-cell"><span>SCORE</span><strong>{score}</strong></div>
+        <div className="lr-game-hud-cell"><span>STREAK</span><strong className={streak >= 3 ? 'lr-hot' : ''}>×{streak}</strong></div>
+        <div className="lr-game-hud-cell"><span>Q</span><strong>{qIndex + 1}/{SPEED_ROUND}</strong></div>
+      </div>
+      <div className="lr-game-timer"><div className="lr-game-timer-bar" style={{ width: `${pct}%` }} /></div>
+      <div className="lr-game-prompt">
+        <div className="lr-game-prompt-cat">{question.cat}</div>
+        <div className="lr-game-prompt-term">{question.prompt}</div>
+      </div>
+      <div className="lr-game-options">
+        {question.options.map((opt) => {
+          let cls = 'lr-game-opt';
+          if (picked !== null) {
+            if (opt.es === question.answer) cls += ' is-correct';
+            else if (opt.es === picked) cls += ' is-wrong';
+          }
+          return (
+            <button
+              key={opt.es}
+              type="button"
+              className={cls}
+              disabled={picked !== null}
+              onClick={() => lockAnswer(opt.es)}
+            >
+              {opt.es}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FlipDrill() {
+  const [deck, setDeck] = useState(() => shuffle(VOCAB_POOL));
+  const [idx, setIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [known, setKnown] = useState(0);
+  const [seen, setSeen] = useState(0);
+  const card = deck[idx];
+
+  const next = (gotIt) => {
+    setSeen((s) => s + 1);
+    if (gotIt) setKnown((k) => k + 1);
+    setFlipped(false);
+    setIdx((i) => (i + 1) % deck.length);
+  };
+  const reshuffle = () => { setDeck(shuffle(VOCAB_POOL)); setIdx(0); setFlipped(false); setKnown(0); setSeen(0); };
+
+  return (
+    <div className="lr-flip">
+      <div className="lr-flip-stats">
+        <span>Known <strong>{known}</strong></span>
+        <span>Seen <strong>{seen}</strong></span>
+        <button type="button" className="lr-flip-shuffle" onClick={reshuffle}>↻ SHUFFLE</button>
+      </div>
+      <div
+        className={`lr-flip-card${flipped ? ' is-flipped' : ''}`}
+        role="button"
+        tabIndex={0}
+        onClick={() => setFlipped((f) => !f)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped((f) => !f); } }}
+      >
+        {!flipped ? (
+          <>
+            <div className="lr-flip-side-label">🇪🇸 ESPAÑOL</div>
+            <div className="lr-flip-term">{card.es}</div>
+            <div className="lr-flip-hint">tap to reveal</div>
+          </>
+        ) : (
+          <>
+            <div className="lr-flip-side-label">🇬🇧 ENGLISH</div>
+            <div className="lr-flip-term lr-flip-term--en">{card.en}</div>
+            <div className="lr-flip-cat">{card.cat}</div>
+          </>
+        )}
+      </div>
+      <div className="lr-flip-actions">
+        <SpeakBtn text={card.es} lang="es" label="🔊 HEAR IT" />
+        <button type="button" className="lr-flip-miss" onClick={() => next(false)}>↻ REVIEW</button>
+        <button type="button" className="lr-flip-got" onClick={() => next(true)}>✓ GOT IT</button>
+      </div>
+    </div>
+  );
+}
+
+function TabVocabGym() {
+  const [mode, setMode] = useState('speed');
+  return (
+    <div>
+      <div className="lr-section-label">TASK 5 · THE VOCABULARY GYM</div>
+      <div className="lr-section-title">VOCAB <span>GYM</span></div>
+      <div className="lr-section-desc">
+        Your daily reps. Train the {VOCAB_POOL.length}-term fitness matrix as an active
+        game — multiple-choice time attack with combo streaks, or flashcard recall with
+        native pronunciation. Zero tokens, fully on-device.
+      </div>
+      <div className="lr-chips">
+        <button type="button" className={`lr-chip${mode === 'speed' ? ' is-active' : ''}`} onClick={() => setMode('speed')}>⚡ SPEED MATRIX</button>
+        <button type="button" className={`lr-chip${mode === 'flip' ? ' is-active' : ''}`} onClick={() => setMode('flip')}>🃏 FLIP DRILL</button>
+      </div>
+      {mode === 'speed' ? <SpeedMatrix /> : <FlipDrill />}
+    </div>
+  );
+}
+
+// ─── VOICE STUDIO (Pillar 2 · pronunciation evaluator) ───────────────────────
+// Real-time speech-to-text scoring via webkitSpeechRecognition (useSpeechEvaluator).
+// The user reads a target phrase aloud; the transcript is diffed word-by-word and
+// color-coded green (matched) / red (missed). Drills draw from the Cardio Intention
+// statements and the coaching cues — recite-out-loud practice that doubles as the
+// manifestation work in the Intentions tab.
+
+const VOICE_DRILLS = [
+  ...intentions.flatMap((it) => ([
+    { lang: 'es', text: it.es, label: `🇪🇸 ${it.theme}`, group: 'Intentions' },
+    { lang: 'pt', text: it.pt, label: `🇧🇷 ${it.theme}`, group: 'Intentions' },
+  ])),
+  ...vocabData['MOTIVATION & CUES'].map((v) => ({ lang: 'es', text: v.es, label: `🇪🇸 ${v.en}`, group: 'Coach Cues' })),
 ];
 
+function VoiceDrill({ drill }) {
+  const { supported, listening, transcript, interim, error, start, stop, reset } = useSpeechEvaluator(drill.lang);
+  const result = useMemo(
+    () => (transcript ? comparePhrases(drill.text, transcript) : null),
+    [transcript, drill.text],
+  );
+
+  // Reset the captured transcript whenever the target drill changes.
+  useEffect(() => { reset(); }, [drill.text]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  let scoreClass = '';
+  if (result) scoreClass = result.score >= 80 ? 'lr-voice-score--green' : result.score >= 50 ? 'lr-voice-score--yellow' : 'lr-voice-score--red';
+
+  return (
+    <div className="lr-voice">
+      <div className="lr-voice-target">
+        <div className="lr-voice-target-label">{drill.label}</div>
+        <div className="lr-voice-target-text">&ldquo;{drill.text}&rdquo;</div>
+        <SpeakBtn text={drill.text} lang={drill.lang} label="🔊 HEAR TARGET" />
+      </div>
+
+      {!supported ? (
+        <div className="lr-voice-unsupported">
+          🎙️ Voice recognition isn’t available in this browser. Use Chrome or Safari to
+          enable the pronunciation evaluator.
+        </div>
+      ) : (
+        <>
+          <div className="lr-voice-controls">
+            {!listening ? (
+              <button type="button" className="lr-voice-mic" onClick={start}>🎙️ SPEAK</button>
+            ) : (
+              <button type="button" className="lr-voice-mic is-live" onClick={stop}>
+                <span className="lr-voice-wave"><i /><i /><i /><i /><i /></span> LISTENING — TAP TO STOP
+              </button>
+            )}
+            {(transcript || interim) && (
+              <button type="button" className="lr-voice-reset" onClick={reset}>↻ CLEAR</button>
+            )}
+          </div>
+
+          {interim && !result && <div className="lr-voice-interim">{interim}…</div>}
+
+          {result && (
+            <div className="lr-voice-result">
+              <div className={`lr-voice-score ${scoreClass}`}>{result.score}<span>%</span></div>
+              <div className="lr-voice-diff">
+                {result.words.map((w, i) => (
+                  <span key={i} className={w.matched ? 'lr-word-hit' : 'lr-word-miss'}>{w.text}</span>
+                ))}
+              </div>
+              <div className="lr-voice-heard">You said: <em>{transcript}</em></div>
+            </div>
+          )}
+
+          {error && error !== 'no-speech' && (
+            <div className="lr-voice-err">Mic error: {error}. Check microphone permissions.</div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function TabVoiceStudio() {
+  const [i, setI] = useState(0);
+  const groups = [...new Set(VOICE_DRILLS.map((d) => d.group))];
+  return (
+    <div>
+      <div className="lr-section-label">TASK 5 · THE VOICE STUDIO</div>
+      <div className="lr-section-title">VOICE <span>STUDIO</span></div>
+      <div className="lr-section-desc">
+        Speak the phrase. The on-device recognizer scores your pronunciation word-by-word —
+        green is locked in, red needs another rep. Drills pull from your Cardio Intentions
+        and coaching cues. Recite out loud — it’s practice and manifestation in one.
+      </div>
+      <div className="lr-chips">
+        {VOICE_DRILLS.map((d, idx) => (
+          <button
+            key={idx}
+            type="button"
+            className={`lr-chip${i === idx ? ' is-active' : ''}${d.lang === 'pt' ? ' lr-chip--pt' : ''}`}
+            onClick={() => setI(idx)}
+          >
+            {d.lang === 'es' ? '🇪🇸' : '🇧🇷'} {d.group === 'Intentions' ? d.label.replace(/^🇪🇸 |^🇧🇷 /, '') : d.label.replace(/^🇪🇸 /, '')}
+          </button>
+        ))}
+      </div>
+      <div className="lr-voice-meta">{groups.join(' · ')} · {VOICE_DRILLS.length} drills</div>
+      <VoiceDrill drill={VOICE_DRILLS[i]} />
+    </div>
+  );
+}
+
+// ─── BBF VIDEO VAULT (Task 6) ────────────────────────────────────────────────
+// Token-free, fully client-side language video library — the CEO's curated
+// 90-Day Mastery curriculum (languageVideoLibrary.json): 100 lessons, 50 Spanish +
+// 50 Brazilian Portuguese, spanning Beginner → Advanced across the four periodized
+// study phases. Embedded as native YouTube <iframe>s (the ChampionMindset embed
+// pattern — no backend, no API tokens). Each card also carries a direct "Watch on
+// YouTube" link as a fallback if an embed is ever restricted.
+
+// Pull the YouTube video id out of a watch URL (?v=…). Resilient to malformed
+// rows — returns '' so a bad entry renders a link-only card instead of throwing.
+function ytId(url) {
+  const m = String(url || '').match(/[?&]v=([^&]+)/);
+  return m ? m[1] : '';
+}
+
+const LEVEL_ORDER = { Beginner: 0, Intermediate: 1, Advanced: 2 };
+const VIDEO_LIB = [...languageVideoLibrary].sort(
+  (a, b) => (a.phase - b.phase) || (LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]),
+);
+
 function TabVideoVault() {
+  const [lang, setLang] = useState('all');   // all | Spanish | Portuguese
+  const [level, setLevel] = useState('all'); // all | Beginner | Intermediate | Advanced
+
+  const filtered = VIDEO_LIB.filter(
+    (v) => (lang === 'all' || v.language === lang) && (level === 'all' || v.level === level),
+  );
+  const esCount = VIDEO_LIB.filter((v) => v.language === 'Spanish').length;
+  const ptCount = VIDEO_LIB.filter((v) => v.language === 'Portuguese').length;
+
   return (
     <div>
       <div className="lr-section-label">TASK 6 · BBF VIDEO VAULT</div>
-      <div className="lr-section-title">🎬 VIDEO <span>LIBRARY</span></div>
+      <div className="lr-section-title">🎬 VIDEO <span>CURRICULUM</span></div>
       <div className="lr-section-desc">
-        A token-free, client-side library of foundational travel dialogue and
-        conversational blocks — 5 Spanish, 5 Brazilian Portuguese. Videos stream
-        natively from YouTube; nothing touches the backend or consumes API tokens.
+        The curated 90-Day curriculum — {VIDEO_LIB.length} hand-picked lessons streaming
+        natively from YouTube, structured by language, level, and study phase. Nothing
+        touches the backend or consumes API tokens.
       </div>
-      <div className="lr-video-grid">
-        {videoVault.map((v) => (
-          <div className="lr-video-card" key={v.id}>
-            <div className="lr-video-frame">
-              <iframe
-                className="lr-video-iframe"
-                src={`https://www.youtube.com/embed/${v.id}`}
-                title={v.title}
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-            <div className="lr-video-meta">
-              <span className={`lr-video-flag lr-video-flag--${v.lang === 'ES' ? 'es' : 'pt'}`}>
-                {v.lang === 'ES' ? '🇪🇸 Español' : '🇧🇷 Português'}
-              </span>
-              <div className="lr-video-title">{v.title}</div>
-              <div className="lr-video-focus">{v.focus}</div>
-              <a
-                className="lr-video-link"
-                href={`https://www.youtube.com/watch?v=${v.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Watch on YouTube ↗
-              </a>
-            </div>
-          </div>
+
+      <div className="lr-stats">
+        <div className="lr-stat"><div className="lr-stat-num">{VIDEO_LIB.length}</div><div className="lr-stat-label">Lessons</div></div>
+        <div className="lr-stat"><div className="lr-stat-num">{esCount}</div><div className="lr-stat-label">🇪🇸 Spanish</div></div>
+        <div className="lr-stat"><div className="lr-stat-num">{ptCount}</div><div className="lr-stat-label">🇧🇷 Portuguese</div></div>
+        <div className="lr-stat"><div className="lr-stat-num">{filtered.length}</div><div className="lr-stat-label">Showing</div></div>
+      </div>
+
+      <div className="lr-chips">
+        {['all', 'Spanish', 'Portuguese'].map((c) => (
+          <button
+            key={c}
+            type="button"
+            className={`lr-chip${c === 'Portuguese' ? ' lr-chip--pt' : ''}${lang === c ? ' is-active' : ''}`}
+            onClick={() => setLang(c)}
+          >
+            {c === 'all' ? 'ALL LANGUAGES' : c === 'Spanish' ? '🇪🇸 SPANISH' : '🇧🇷 PORTUGUÊS'}
+          </button>
         ))}
       </div>
+      <div className="lr-chips">
+        {['all', 'Beginner', 'Intermediate', 'Advanced'].map((c) => (
+          <button
+            key={c}
+            type="button"
+            className={`lr-chip${level === c ? ' is-active' : ''}`}
+            onClick={() => setLevel(c)}
+          >
+            {c === 'all' ? 'ALL LEVELS' : c.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="lr-video-empty">No lessons match this filter. Reset a chip above.</div>
+      ) : (
+        <div className="lr-video-grid">
+          {filtered.map((v) => {
+            const id = ytId(v.url);
+            const es = v.language === 'Spanish';
+            return (
+              <div className="lr-video-card" key={v.id}>
+                <div className="lr-video-frame">
+                  {id ? (
+                    <iframe
+                      className="lr-video-iframe"
+                      src={`https://www.youtube.com/embed/${id}`}
+                      title={v.title}
+                      loading="lazy"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <div className="lr-video-noembed">Open on YouTube ↗</div>
+                  )}
+                </div>
+                <div className="lr-video-meta">
+                  <div className="lr-video-tags">
+                    <span className={`lr-video-flag lr-video-flag--${es ? 'es' : 'pt'}`}>
+                      {es ? '🇪🇸 Español' : '🇧🇷 Português'}
+                    </span>
+                    <span className="lr-video-level">{v.level}</span>
+                    <span className="lr-video-phase">Phase {v.phase}</span>
+                  </div>
+                  <div className="lr-video-title">{v.title}</div>
+                  <div className="lr-video-focus">{v.focus_areas}</div>
+                  <div className="lr-video-channel">▶ {v.channel}</div>
+                  <a
+                    className="lr-video-link"
+                    href={v.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watch on YouTube ↗
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 const TABS = [
   { id: 'vocab', label: '🇪🇸 Vocab Matrix', Panel: TabVocab },
+  { id: 'gym', label: '🏋️ Vocab Gym', Panel: TabVocabGym },
+  { id: 'voice', label: '🎙️ Voice Studio', Panel: TabVoiceStudio },
   { id: 'pt', label: '🇧🇷 Rio Ready', Panel: TabPortuguese },
   { id: 'roleplay', label: '⚡ God-Mode Drills', Panel: TabRoleplay },
   { id: 'intentions', label: '🎯 Intentions', Panel: TabIntentions },

@@ -537,3 +537,220 @@
 }
 .lr-video-link:hover { text-decoration: underline; }
 .lr-video-link:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
+/* Curriculum video card extras — level/phase tags, channel, empty state. */
+.lr-video-tags { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
+.lr-video-level {
+  font-family: var(--hb);
+  font-size: .66rem;
+  letter-spacing: 1.5px;
+  color: var(--yel);
+  background: rgba(245, 200, 0, .1);
+  border: 1px solid rgba(245, 200, 0, .35);
+  border-radius: 999px;
+  padding: .15rem .5rem;
+}
+.lr-video-phase {
+  font-family: var(--hb);
+  font-size: .66rem;
+  letter-spacing: 1.5px;
+  color: #aaa;
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-radius: 999px;
+  padding: .15rem .5rem;
+}
+.lr-video-channel { font-family: var(--bd); font-size: .78rem; color: #888; }
+.lr-video-noembed {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  font-family: var(--hb); font-size: .9rem; letter-spacing: 2px; color: var(--purl);
+}
+.lr-video-empty {
+  font-family: var(--bd);
+  color: var(--mut);
+  background: #161616;
+  border: 1px dashed #2a2a2a;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+/* ── Shared: native TTS speak button ──────────────────────────────────────── */
+.lr-speak {
+  cursor: pointer;
+  align-self: flex-start;
+  font-family: var(--hb);
+  font-size: .78rem;
+  letter-spacing: 2px;
+  color: var(--yel);
+  background: rgba(106, 13, 173, .25);
+  border: 1px solid var(--pur);
+  border-radius: 6px;
+  padding: .35rem .7rem;
+  transition: background .15s ease;
+}
+.lr-speak:hover { background: var(--pur); }
+.lr-speak:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
+/* ── Vocab Gym · Speed Matrix ─────────────────────────────────────────────── */
+.lr-game-start {
+  text-align: center;
+  background: linear-gradient(135deg, #0f0020 0%, #0a0a0a 100%);
+  border: 1px solid var(--pur);
+  border-radius: 12px;
+  padding: 2.4rem 1.5rem;
+}
+.lr-game-start-title { font-family: var(--hb); font-size: 1.8rem; letter-spacing: 2px; color: var(--yel); margin-bottom: .7rem; }
+.lr-game-start-desc { font-family: var(--bd); font-size: .95rem; line-height: 1.6; color: #bbb; max-width: 52ch; margin: 0 auto 1.3rem; }
+.lr-game-btn {
+  cursor: pointer;
+  font-family: var(--hb);
+  font-size: 1.05rem;
+  letter-spacing: 3px;
+  color: #0c0a02;
+  background: var(--yel);
+  border: none;
+  border-radius: 8px;
+  padding: .8rem 2rem;
+  transition: filter .15s ease, transform .1s ease;
+}
+.lr-game-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.lr-game-btn:focus-visible { outline: 2px solid var(--wht); outline-offset: 3px; }
+.lr-game-score-final { font-family: var(--hb); font-size: 4rem; line-height: 1; color: var(--yel); margin: .3rem 0; }
+.lr-game-score-final span { font-size: 1.2rem; color: #888; letter-spacing: 3px; }
+.lr-game-summary { font-family: var(--bd); font-size: 1rem; color: #ddd; margin-bottom: 1.3rem; display: flex; flex-direction: column; gap: .3rem; }
+.lr-game-summary strong { color: var(--yel); }
+
+.lr-game { background: #0d0d0d; border: 1px solid #222; border-radius: 12px; padding: 1.3rem; }
+.lr-game-hud { display: flex; gap: .8rem; margin-bottom: 1rem; }
+.lr-game-hud-cell {
+  flex: 1; text-align: center;
+  background: #161616; border: 1px solid #222; border-radius: 8px; padding: .6rem;
+}
+.lr-game-hud-cell span { display: block; font-family: var(--bd); font-size: .62rem; letter-spacing: 2px; color: #777; text-transform: uppercase; }
+.lr-game-hud-cell strong { font-family: var(--hb); font-size: 1.5rem; color: var(--wht); }
+.lr-game-hud-cell strong.lr-hot { color: var(--yel); text-shadow: 0 0 12px rgba(245, 200, 0, .6); }
+.lr-game-timer { height: 6px; background: #161616; border-radius: 999px; overflow: hidden; margin-bottom: 1.2rem; }
+.lr-game-timer-bar { height: 100%; background: linear-gradient(90deg, var(--yel), var(--orn)); border-radius: 999px; transition: width 1s linear; }
+.lr-game-prompt { text-align: center; margin-bottom: 1.3rem; }
+.lr-game-prompt-cat { font-family: var(--hb); font-size: .7rem; letter-spacing: 3px; color: var(--purl); margin-bottom: .3rem; }
+.lr-game-prompt-term { font-family: var(--bd); font-size: 1.8rem; font-weight: 700; color: var(--wht); }
+.lr-game-options { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.lr-game-opt {
+  cursor: pointer;
+  font-family: var(--bd);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--wht);
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: .9rem .8rem;
+  transition: border-color .15s ease, background .15s ease, transform .1s ease;
+}
+.lr-game-opt:hover:not(:disabled) { border-color: var(--yel); transform: translateY(-1px); }
+.lr-game-opt:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.lr-game-opt:disabled { cursor: default; }
+.lr-game-opt.is-correct { border-color: var(--grn); background: rgba(34, 197, 94, .15); color: var(--grn); }
+.lr-game-opt.is-wrong { border-color: #ef4444; background: rgba(239, 68, 68, .14); color: #ff8b8b; }
+
+/* ── Vocab Gym · Flip Drill ───────────────────────────────────────────────── */
+.lr-flip { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.lr-flip-stats { display: flex; gap: 1rem; align-items: center; font-family: var(--bd); font-size: .85rem; color: #999; }
+.lr-flip-stats strong { color: var(--yel); }
+.lr-flip-shuffle {
+  cursor: pointer; font-family: var(--hb); font-size: .72rem; letter-spacing: 2px;
+  color: var(--purl); background: none; border: 1px solid var(--pur); border-radius: 6px; padding: .3rem .6rem;
+}
+.lr-flip-shuffle:hover { background: rgba(106, 13, 173, .25); }
+.lr-flip-card {
+  cursor: pointer;
+  width: 100%;
+  max-width: 460px;
+  min-height: 200px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem;
+  text-align: center;
+  background: linear-gradient(135deg, #12001f 0%, #0a0a0a 100%);
+  border: 1px solid var(--pur);
+  border-radius: 14px;
+  padding: 2rem 1.5rem;
+  transition: border-color .15s ease, transform .1s ease;
+}
+.lr-flip-card:hover { border-color: var(--yel); }
+.lr-flip-card:focus-visible { outline: 2px solid var(--yel); outline-offset: 3px; }
+.lr-flip-card.is-flipped { background: linear-gradient(135deg, #1a1400 0%, #0a0a0a 100%); border-color: var(--yel); }
+.lr-flip-side-label { font-family: var(--hb); font-size: .72rem; letter-spacing: 3px; color: var(--purl); }
+.lr-flip-term { font-family: var(--bd); font-size: 2rem; font-weight: 700; color: var(--yel); }
+.lr-flip-term--en { color: var(--wht); }
+.lr-flip-hint { font-family: var(--bd); font-size: .78rem; font-style: italic; color: #666; }
+.lr-flip-cat { font-family: var(--hb); font-size: .68rem; letter-spacing: 2px; color: var(--purl); }
+.lr-flip-actions { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; }
+.lr-flip-got, .lr-flip-miss {
+  cursor: pointer; font-family: var(--hb); font-size: .82rem; letter-spacing: 2px;
+  border: none; border-radius: 8px; padding: .6rem 1.2rem;
+}
+.lr-flip-got { color: #0c0a02; background: var(--grn); }
+.lr-flip-miss { color: var(--wht); background: #2a2a2a; }
+.lr-flip-got:hover { filter: brightness(1.1); }
+.lr-flip-miss:hover { background: #3a3a3a; }
+.lr-flip-got:focus-visible, .lr-flip-miss:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+
+/* ── Voice Studio ─────────────────────────────────────────────────────────── */
+.lr-voice-meta { font-family: var(--bd); font-size: .8rem; letter-spacing: 1px; color: #777; margin-bottom: 1rem; }
+.lr-voice { background: #0d0d0d; border: 1px solid #222; border-radius: 12px; padding: 1.4rem; }
+.lr-voice-target {
+  display: flex; flex-direction: column; gap: .6rem;
+  background: linear-gradient(135deg, #0f0020 0%, #0a0a0a 100%);
+  border: 1px solid var(--pur); border-radius: 10px;
+  padding: 1.2rem; margin-bottom: 1.3rem;
+}
+.lr-voice-target-label { font-family: var(--hb); font-size: .8rem; letter-spacing: 2px; color: var(--purl); }
+.lr-voice-target-text { font-family: var(--bd); font-size: 1.3rem; font-weight: 600; font-style: italic; line-height: 1.45; color: var(--wht); }
+.lr-voice-controls { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+.lr-voice-mic {
+  cursor: pointer;
+  font-family: var(--hb); font-size: .95rem; letter-spacing: 2px;
+  color: #0c0a02; background: var(--yel); border: none; border-radius: 10px;
+  padding: .8rem 1.6rem;
+  display: inline-flex; align-items: center; gap: .6rem;
+  transition: filter .15s ease;
+}
+.lr-voice-mic:hover { filter: brightness(1.08); }
+.lr-voice-mic:focus-visible { outline: 2px solid var(--wht); outline-offset: 3px; }
+.lr-voice-mic.is-live { background: #ef4444; color: var(--wht); }
+.lr-voice-wave { display: inline-flex; align-items: center; gap: 2px; height: 18px; }
+.lr-voice-wave i { width: 3px; height: 6px; background: var(--wht); border-radius: 2px; animation: lrwave .9s ease-in-out infinite; }
+.lr-voice-wave i:nth-child(2) { animation-delay: .15s; }
+.lr-voice-wave i:nth-child(3) { animation-delay: .3s; }
+.lr-voice-wave i:nth-child(4) { animation-delay: .45s; }
+.lr-voice-wave i:nth-child(5) { animation-delay: .6s; }
+@keyframes lrwave { 0%, 100% { height: 5px; } 50% { height: 17px; } }
+.lr-voice-reset {
+  cursor: pointer; font-family: var(--hb); font-size: .75rem; letter-spacing: 2px;
+  color: #aaa; background: none; border: 1px solid #2a2a2a; border-radius: 8px; padding: .55rem .9rem;
+}
+.lr-voice-reset:hover { color: var(--wht); border-color: #3a3a3a; }
+.lr-voice-interim { font-family: var(--bd); font-size: 1rem; font-style: italic; color: #888; padding: .5rem 0; }
+.lr-voice-result { margin-top: .5rem; }
+.lr-voice-score { font-family: var(--hb); font-size: 3rem; line-height: 1; }
+.lr-voice-score span { font-size: 1.2rem; }
+.lr-voice-score--green { color: var(--grn); }
+.lr-voice-score--yellow { color: var(--yel); }
+.lr-voice-score--red { color: #ff6b6b; }
+.lr-voice-diff { display: flex; flex-wrap: wrap; gap: .4rem; margin: .8rem 0; }
+.lr-voice-diff span { font-family: var(--bd); font-size: 1.05rem; font-weight: 600; padding: .15rem .5rem; border-radius: 5px; }
+.lr-word-hit { color: var(--grn); background: rgba(34, 197, 94, .14); }
+.lr-word-miss { color: #ff8b8b; background: rgba(239, 68, 68, .12); text-decoration: line-through; text-decoration-color: rgba(239, 68, 68, .5); }
+.lr-voice-heard { font-family: var(--bd); font-size: .85rem; color: #888; }
+.lr-voice-heard em { color: #bbb; }
+.lr-voice-unsupported, .lr-voice-err {
+  font-family: var(--bd); font-size: .9rem; line-height: 1.5; color: #ddd;
+  background: #1a0a00; border: 1px solid var(--orn); border-radius: 8px; padding: .9rem 1rem;
+}
+.lr-voice-err { margin-top: .8rem; }
+
+@media (max-width: 680px) {
+  .lr-game-options { grid-template-columns: 1fr; }
+  .lr-game-prompt-term { font-size: 1.4rem; }
+}
