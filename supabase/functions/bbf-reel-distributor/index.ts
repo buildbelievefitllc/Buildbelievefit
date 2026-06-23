@@ -14,7 +14,8 @@
 // THE FLIP RULE (CEO directive, non-negotiable):
 //   A row flips to status='posted' IFF every targeted, enabled channel returns a
 //   confirmed HTTP 200 (IG: media_publish 200; FB: /videos 200 + id). Any non-200
-//   → 'failed' (audited). A row whose mp4 isn't in Storage is released to 'queued'.
+//   → 'failed' (audited). A row whose mp4 isn't in Storage → 'failed' immediately
+//   (last_error='asset_not_in_storage') so the cron never loops on the same row.
 //
 // FOUR SAFETY GATES:
 //   1. Admin-only — X-BBF-Admin-Token must equal BBF_COACH_AGENT_TOKEN (else 401).
@@ -340,10 +341,12 @@ serve(async (req) => {
 
         // ---- LIVE ----
         if (!haveAsset) {
-          // Asset not in storage — leave queued, do not consume the row.
-          skipped++;
-          report.push({ id, result: 'skipped_no_asset', video_url: videoUrl });
-          await writeAudit(id, { last_error: 'asset_not_in_storage' });
+          // Asset absent — mark failed immediately so the cron is not stuck on
+          // this row forever. Rows with a missing mp4 are unresolvable by the
+          // distributor; failing them lets the queue advance to the next row.
+          await pgPatch(`${TABLE}?id=eq.${encodeURIComponent(id)}`, { status: 'failed', last_error: 'asset_not_in_storage' });
+          failed++;
+          report.push({ id, result: 'failed_no_asset', video_url: videoUrl });
           continue;
         }
 
