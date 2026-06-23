@@ -1,7 +1,7 @@
 // src/components/vault/RPEEducationCard.jsx
 // ─────────────────────────────────────────────────────────────────
 // RPE (Rate of Perceived Exertion) education card · collapsible,
-// text-first with audio + video fallback. Mount at top of program page.
+// text-first with audio explanation. Mount at top of program page.
 
 import { useRef, useState } from 'react';
 import { FUNCTIONS_BASE } from '../../lib/supabaseClient.js';
@@ -25,7 +25,6 @@ const RPE_TEXT = {
       { range: '9–10', desc: 'Max effort (nothing left in tank)' },
     ],
     listenBtn: '🎙️ LISTEN TO EXPLANATION',
-    watchBtn: '👀 WATCH THE DEMO',
     listenLoading: 'Loading...',
   },
   es: {
@@ -46,7 +45,6 @@ const RPE_TEXT = {
       { range: '9–10', desc: 'Máximo esfuerzo (nada restante)' },
     ],
     listenBtn: '🎙️ ESCUCHAR EXPLICACIÓN',
-    watchBtn: '👀 VER DEMOSTRACIÓN',
     listenLoading: 'Cargando...',
   },
   pt: {
@@ -67,58 +65,18 @@ const RPE_TEXT = {
       { range: '9–10', desc: 'Esforço máximo (nada restante)' },
     ],
     listenBtn: '🎙️ OUVIR EXPLICAÇÃO',
-    watchBtn: '👀 VER DEMONSTRAÇÃO',
     listenLoading: 'Carregando...',
   },
 };
 
-const VIDEO_URLs = {
-  rpe5: 'https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/bbf-education/rpe-controlled-movement-5.mp4',
-  rpe9: 'https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/bbf-education/rpe-maximum-effort-9.mp4',
-};
-
-const VIDEO_LABELS = {
-  en: {
-    rpe5: { headline: 'Controlled Movement — RPE 5', subline: 'Smooth and controlled. You have reps left.' },
-    rpe9: { headline: 'Maximum Effort — RPE 9', subline: 'After RPE 9, you\'re pushing beyond exertion.' },
-  },
-  es: {
-    rpe5: { headline: 'Movimiento Controlado — RPE 5', subline: 'Suave y controlado. Te quedan repeticiones.' },
-    rpe9: { headline: 'Máximo Esfuerzo — RPE 9', subline: 'Después de RPE 9, estás empujando más allá del esfuerzo.' },
-  },
-  pt: {
-    rpe5: { headline: 'Movimento Controlado — RPE 5', subline: 'Suave e controlado. Você tem reps restantes.' },
-    rpe9: { headline: 'Esforço Máximo — RPE 9', subline: 'Depois de RPE 9, você está empurrando além do esforço.' },
-  },
-};
-
-function VideoModal({ videoUrl, headline, subline, onClose }) {
-  return (
-    <div className="rpe-video-modal-overlay" onClick={onClose}>
-      <div className="rpe-video-modal" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="rpe-modal-close">×</button>
-        <video controls width="100%" height="auto" autoPlay>
-          <source src={videoUrl} type="video/mp4" />
-        </video>
-        <div className="rpe-video-info">
-          <h4>{headline}</h4>
-          <p>{subline}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function RPEEducationCard({ preferred_locale = 'en' }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [audio, setAudio] = useState(null);
-  const [videoOpen, setVideoOpen] = useState(null);
   const [loadingAudio, setLoadingAudio] = useState(false);
   const audioRef = useRef(null);
 
   const lang = ['es', 'pt'].includes(preferred_locale) ? preferred_locale : 'en';
   const tr = RPE_TEXT[lang];
-  const vidLabels = VIDEO_LABELS[lang];
 
   const handleListenClick = async () => {
     setLoadingAudio(true);
@@ -205,13 +163,6 @@ export default function RPEEducationCard({ preferred_locale = 'en' }) {
               >
                 {loadingAudio ? tr.listenLoading : tr.listenBtn}
               </button>
-
-              <button
-                onClick={() => setVideoOpen('rpe5')}
-                className="rpe-btn-watch"
-              >
-                {tr.watchBtn}
-              </button>
             </div>
 
             {audio && (
@@ -229,24 +180,6 @@ export default function RPEEducationCard({ preferred_locale = 'en' }) {
           </div>
         )}
       </div>
-
-      {videoOpen === 'rpe5' && (
-        <VideoModal
-          videoUrl={VIDEO_URLs.rpe5}
-          headline={vidLabels.rpe5.headline}
-          subline={vidLabels.rpe5.subline}
-          onClose={() => setVideoOpen(null)}
-        />
-      )}
-
-      {videoOpen === 'rpe9' && (
-        <VideoModal
-          videoUrl={VIDEO_URLs.rpe9}
-          headline={vidLabels.rpe9.headline}
-          subline={vidLabels.rpe9.subline}
-          onClose={() => setVideoOpen(null)}
-        />
-      )}
     </>
   );
 }
