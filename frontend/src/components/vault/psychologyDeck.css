@@ -6,10 +6,9 @@
    modular tab-deck design system (§10: numbered 01/02/03 tab bar over a single
    active panel, purple→gold active state, Bebas labels). Tokens from src/index.css. */
 
-.spsy { margin: 1.6rem 0 0; }
-
-/* ── Deck shell — purple→gold gradient hairline frame over a matte inner ──────── */
 .spsy {
+  position: relative;
+  margin: 1.6rem 0 0;
   padding: 2px;
   border-radius: 20px;
   background: linear-gradient(135deg, var(--pur) 0%, var(--gold-soft) 28%, var(--purl) 52%, var(--yel) 74%, var(--pur) 100%);
