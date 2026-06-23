@@ -371,13 +371,14 @@ const DICT = {
   'sch-mi-sleep-q': { en: 'Sleep Quality', es: 'Calidad del Sueño', pt: 'Qualidade do Sono' },
   'sch-mi-stress': { en: 'Subjective CNS Stress', es: 'Estrés Subjetivo del SNC', pt: 'Estresse Subjetivo do SNC' },
   'sch-mi-burn': { en: 'Active Burn · kcal', es: 'Gasto Activo · kcal', pt: 'Queima Ativa · kcal' },
+  'sch-mi-steps': { en: 'Steps · End of Day', es: 'Pasos · Fin del Día', pt: 'Passos · Fim do Dia' },
   'sch-mi-save': { en: 'Save Baseline', es: 'Guardar Línea Base', pt: 'Salvar Linha de Base' },
   'sch-mi-saving': { en: 'Saving…', es: 'Guardando…', pt: 'Salvando…' },
   'sch-mi-saved': { en: 'Baseline saved · readiness updated', es: 'Línea base guardada · prontitud actualizada', pt: 'Linha de base salva · prontidão atualizada' },
   'sch-mi-hint': {
-    en: 'Sliders run 1 (low) → 10 (high). Stress is inverted — lower stress lifts your score. Leave a field blank and the engine simply drops its weight.',
-    es: 'Los controles van de 1 (bajo) → 10 (alto). El estrés está invertido — menos estrés sube tu puntuación. Deja un campo en blanco y el motor simplemente descarta su peso.',
-    pt: 'Os controles vão de 1 (baixo) → 10 (alto). O estresse é invertido — menos estresse eleva sua pontuação. Deixe um campo em branco e o motor simplesmente descarta o peso dele.',
+    en: 'Sliders run 1 (low) → 10 (high). Stress is inverted — lower stress lifts your score. Leave a field blank and the engine simply drops its weight. Your end-of-day step count is the final word — it overrides the wearable’s running estimate, never adds to it.',
+    es: 'Los controles van de 1 (bajo) → 10 (alto). El estrés está invertido — menos estrés sube tu puntuación. Deja un campo en blanco y el motor simplemente descarta su peso. Tu conteo de pasos al final del día es la palabra final — reemplaza la estimación en curso del wearable, nunca la suma.',
+    pt: 'Os controles vão de 1 (baixo) → 10 (alto). O estresse é invertido — menos estresse eleva sua pontuação. Deixe um campo em branco e o motor simplesmente descarta o peso dele. Sua contagem de passos no fim do dia é a palavra final — substitui a estimativa em andamento do wearable, nunca a soma.',
   },
   // ── Health Connect Status — the zero-guess handshake diagnostic. ──
   'sch-hc-title': { en: 'Health Connect Status', es: 'Estado de Health Connect', pt: 'Status do Health Connect' },

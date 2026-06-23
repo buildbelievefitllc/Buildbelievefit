@@ -43,8 +43,11 @@ function scale1to10(x) {
 }
 
 // Form inputs → the canonical recovery payload (the Health Connect bridge shape).
-// hrv_ms / daily_steps are null: a human baseline reports neither. sleep hours →
-// minutes; active kcal passes through. `source: 'manual_input'` tags provenance.
+// hrv_ms is null (a human baseline has no HRV). sleep hours → minutes; active kcal
+// passes through. daily_steps is the athlete's END-OF-DAY total when entered — it
+// becomes the authoritative count for the day (the upsert COALESCEs steps, so a
+// blank value preserves the wearable's autonomous count rather than wiping it).
+// `source: 'manual_input'` tags provenance.
 export function manualToRecovery(form, dateStr = manualToday()) {
   const f = form || {};
   const hours = num(f.sleep_hours);
@@ -54,7 +57,7 @@ export function manualToRecovery(form, dateStr = manualToday()) {
     hrv_ms: null,
     sleep_minutes: hours === null ? null : Math.round(hours * 60),
     active_kcal: intOrNull(f.active_kcal),
-    daily_steps: null,
+    daily_steps: intOrNull(f.daily_steps),
     stress_level: scale1to10(f.stress_level),
     recorded_at: new Date().toISOString(),
     source: 'manual_input',
@@ -86,6 +89,7 @@ export async function saveManualBaseline(uid, form, dateStr = manualToday()) {
     sleep_quality: scale1to10(form?.sleep_quality),
     stress_level: scale1to10(form?.stress_level),
     active_kcal: intOrNull(form?.active_kcal),
+    daily_steps: intOrNull(form?.daily_steps),
     recovery: manualToRecovery(form, dateStr),
     updatedAt: Date.now(),
   };

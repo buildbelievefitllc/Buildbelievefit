@@ -161,7 +161,7 @@ export default function SovereignClientHub({ refreshKey = 0 }) {
   // AND runs the SAME pipeline a wearable read uses, so the engine scores it with
   // equal validity and the dossier paints a live verdict immediately.
   const savedBaseline = useManualBaselineToday(uid);
-  const [form, setForm] = useState({ sleep_hours: '', sleep_quality: 7, stress_level: 4, active_kcal: '' });
+  const [form, setForm] = useState({ sleep_hours: '', sleep_quality: 7, stress_level: 4, active_kcal: '', daily_steps: '' });
   const [savingBaseline, setSavingBaseline] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
   const [manualErr, setManualErr] = useState(null);
@@ -357,6 +357,20 @@ export default function SovereignClientHub({ refreshKey = 0 }) {
                 value={form.active_kcal}
                 onChange={(e) => setField('active_kcal', e.target.value)}
                 data-testid="sch-mi-burn"
+              />
+            </label>
+
+            {/* End-of-day step count — the authoritative daily total. Entered here it
+                OVERRIDES the wearable's running estimate for the day (never adds), and
+                a blank value preserves whatever the autonomous sync already captured. */}
+            <label className="sch-field">
+              <span className="sch-field-k">{t('sch-mi-steps')}</span>
+              <input
+                type="number" min="0" max="200000" step="100" inputMode="numeric"
+                className="sch-num" placeholder="8,000"
+                value={form.daily_steps}
+                onChange={(e) => setField('daily_steps', e.target.value)}
+                data-testid="sch-mi-steps"
               />
             </label>
 
