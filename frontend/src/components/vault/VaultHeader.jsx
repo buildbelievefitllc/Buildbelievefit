@@ -63,7 +63,21 @@ function compressImage(file, size = 256) {
   });
 }
 
-const HYDRATION_TARGET_L = 3.5; // prototype read-out; live hydration tracking is a later phase
+const HYDRATION_STORAGE_KEY = 'bbf.vault.hydration.v1';
+const HYDRATION_TARGETS_OZ = { sedentary: 64, light: 80, moderate: 96, active: 112, athlete: 128 };
+
+function readHydrationState(uid) {
+  try {
+    const all = JSON.parse(localStorage.getItem(HYDRATION_STORAGE_KEY) || '{}');
+    const d = all[uid];
+    const today = new Date().toISOString().slice(0, 10);
+    if (!d || d.date !== today) return { consumedOz: 0, targetOz: 96 };
+    return {
+      consumedOz: d.consumedOz ?? 0,
+      targetOz: HYDRATION_TARGETS_OZ[d.activityId] ?? 96,
+    };
+  } catch { return { consumedOz: 0, targetOz: 96 }; }
+}
 
 // Active Directive = the HEAD of the assigned queue. No date logic: the backend
 // rotates the queue at local midnight; the frontend renders index 0 as-is (rest
@@ -139,6 +153,25 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
   const gate = readinessGate(readiness);
   const go = (tab) => { if (typeof onNavigate === 'function') onNavigate(tab); };
 
+  // Hydration live-readout — sources from the Nutrition tracker (localStorage).
+  // Listens for 'bbf-hydration-update' (same-tab) and 'storage' (cross-tab) events.
+  const [hydration, setHydration] = useState(() => readHydrationState(slug));
+  useEffect(() => {
+    function refresh() { setHydration(readHydrationState(slug)); }
+    window.addEventListener('bbf-hydration-update', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('bbf-hydration-update', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, [slug]);
+  const hydrDisplay = lang === 'en'
+    ? `${Math.round(hydration.consumedOz)} oz`
+    : `${(hydration.consumedOz * 0.029574).toFixed(2)} L`;
+  const hydrTargetDisplay = lang === 'en'
+    ? `${hydration.targetOz} oz`
+    : `${(hydration.targetOz * 0.029574).toFixed(2)} L`;
+
   // Profile avatar — local-first (localStorage) with server reconciliation on
   // mount. Same AVATAR_KEY + compressImage pattern as SportsHub so one upload
   // from either portal is instantly visible in both (shared bbf_users.avatar row).
@@ -182,7 +215,7 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
           </div>
           <div className="cv-readout">
             <span className="cv-readout-k">{t('vh-hydration')}</span>
-            <span className="cv-readout-v">0.00L <em>/ {HYDRATION_TARGET_L}</em></span>
+            <span className="cv-readout-v">{hydrDisplay} <em>/ {hydrTargetDisplay}</em></span>
           </div>
         </div>
       </div>

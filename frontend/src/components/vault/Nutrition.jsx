@@ -39,7 +39,50 @@ import './nutrition.css';
 
 const DONE_KEY = 'bbf.vault.nut.done.v1';
 const PACE_KEY = 'bbf.vault.nut.fastpace.v1';
+const HYDRATION_KEY = 'bbf.vault.hydration.v1';
 const EMPTY = [];
+
+// ── Hydration tracker helpers ─────────────────────────────────────────────────
+const ACTIVITY_LEVELS = [
+  { id: 'sedentary', oz: 64 },
+  { id: 'light',     oz: 80 },
+  { id: 'moderate',  oz: 96 },
+  { id: 'active',    oz: 112 },
+  { id: 'athlete',   oz: 128 },
+];
+
+// EN quick-adds in oz; ES/PT in metric mL (stored oz internally via conversion).
+const QUICK_ADD_EN = [
+  { label: '8 oz',   oz: 8 },
+  { label: '16 oz',  oz: 16 },
+  { label: '24 oz',  oz: 24 },
+];
+const QUICK_ADD_METRIC = [
+  { label: '250 mL', oz: 8.45 },
+  { label: '500 mL', oz: 16.91 },
+  { label: '750 mL', oz: 25.36 },
+];
+
+function hydTodayStr() { return new Date().toISOString().slice(0, 10); }
+function ozToL(oz) { return (oz * 0.029574).toFixed(2); }
+
+function loadHydration(uid) {
+  try {
+    const all = JSON.parse(localStorage.getItem(HYDRATION_KEY) || '{}');
+    const d = all[uid];
+    if (!d || d.date !== hydTodayStr()) return { consumedOz: 0, activityId: 'moderate' };
+    return { consumedOz: d.consumedOz ?? 0, activityId: d.activityId ?? 'moderate' };
+  } catch { return { consumedOz: 0, activityId: 'moderate' }; }
+}
+
+function saveHydration(uid, consumedOz, activityId) {
+  try {
+    const all = JSON.parse(localStorage.getItem(HYDRATION_KEY) || '{}');
+    all[uid] = { date: hydTodayStr(), consumedOz, activityId };
+    localStorage.setItem(HYDRATION_KEY, JSON.stringify(all));
+    window.dispatchEvent(new CustomEvent('bbf-hydration-update'));
+  } catch { /* quota */ }
+}
 
 // ── Trilingual UI chrome for the Nutrition Locker ────────────────────────────
 // The tri-cuisine meal catalog (CUISINES / CUISINE_PLANS) and the coach roster's
@@ -83,6 +126,10 @@ const NUT_STR = {
     fpAdaptSub: 'System under strain — carbohydrates taper toward recovery fueling while protein holds the floor.',
     fpScore: (s) => `Readiness ${s == null ? '—' : s}/100`,
     fpSplit: 'Target split', fpStale: 'Synced',
+    hydKicker: 'Daily Hydration', hydActivity: 'Activity Level',
+    hydLevels: { sedentary: 'Sedentary', light: 'Light', moderate: 'Moderate', active: 'Active', athlete: 'Athlete' },
+    hydReset: 'Reset', hydGoalHit: 'Goal hit!',
+    hydLogged: 'Logged', hydOf: 'of',
   },
   es: {
     prepFallback: 'Preparación estándar de macros.',
@@ -119,6 +166,10 @@ const NUT_STR = {
     fpAdaptSub: 'Sistema en tensión — los carbohidratos bajan hacia una nutrición de recuperación mientras la proteína sostiene la base.',
     fpScore: (s) => `Preparación ${s == null ? '—' : s}/100`,
     fpSplit: 'Distribución objetivo', fpStale: 'Sincronizado',
+    hydKicker: 'Hidratación Diaria', hydActivity: 'Nivel de Actividad',
+    hydLevels: { sedentary: 'Sedentario', light: 'Leve', moderate: 'Moderado', active: 'Activo', athlete: 'Atleta' },
+    hydReset: 'Reiniciar', hydGoalHit: '¡Meta alcanzada!',
+    hydLogged: 'Registrado', hydOf: 'de',
   },
   pt: {
     prepFallback: 'Preparação padrão de macros.',
@@ -155,6 +206,10 @@ const NUT_STR = {
     fpAdaptSub: 'Sistema em tensão — os carboidratos descem rumo à nutrição de recuperação enquanto a proteína segura a base.',
     fpScore: (s) => `Prontidão ${s == null ? '—' : s}/100`,
     fpSplit: 'Divisão alvo', fpStale: 'Sincronizado',
+    hydKicker: 'Hidratação Diária', hydActivity: 'Nível de Atividade',
+    hydLevels: { sedentary: 'Sedentário', light: 'Leve', moderate: 'Moderado', active: 'Ativo', athlete: 'Atleta' },
+    hydReset: 'Reiniciar', hydGoalHit: 'Meta atingida!',
+    hydLogged: 'Registrado', hydOf: 'de',
   },
 };
 
@@ -888,6 +943,98 @@ function NutritionCoachConsole() {
   );
 }
 
+// ── Hydration Tracker — lives inside the Nutrition tab ───────────────────────
+// Activity-level-based daily water target. EN = oz; ES/PT = liters.
+// Persists per-user-per-day in localStorage; dispatches 'bbf-hydration-update'
+// so VaultHeader can reflow without prop drilling.
+function HydrationTracker({ uid }) {
+  const { lang } = useLang();
+  const tr = NUT_STR[lang] || NUT_STR.en;
+  const isMetric = lang !== 'en';
+
+  const [consumedOz, setConsumedOz] = useState(() => loadHydration(uid).consumedOz);
+  const [activityId, setActivityId] = useState(() => loadHydration(uid).activityId);
+
+  const targetOz = ACTIVITY_LEVELS.find((a) => a.id === activityId)?.oz ?? 96;
+  const pct = Math.min(100, Math.round((consumedOz / targetOz) * 100));
+  const goalHit = consumedOz >= targetOz;
+
+  function displayAmt(oz) {
+    return isMetric ? `${ozToL(oz)} L` : `${Math.round(oz)} oz`;
+  }
+
+  function add(oz) {
+    const next = Math.min(targetOz * 2, consumedOz + oz);
+    setConsumedOz(next);
+    saveHydration(uid, next, activityId);
+  }
+
+  function changeActivity(id) {
+    setActivityId(id);
+    saveHydration(uid, consumedOz, id);
+  }
+
+  function reset() {
+    setConsumedOz(0);
+    saveHydration(uid, 0, activityId);
+  }
+
+  const quickAdds = isMetric ? QUICK_ADD_METRIC : QUICK_ADD_EN;
+
+  return (
+    <div className="nl-hyd" data-testid="hydration-tracker">
+      <div className="nl-hyd-head">
+        <span className="nl-hyd-kicker">💧 {tr.hydKicker}</span>
+        {goalHit && <span className="nl-hyd-goal-badge">{tr.hydGoalHit}</span>}
+      </div>
+
+      <div className="nl-hyd-activity-lbl">{tr.hydActivity}</div>
+      <div className="nl-hyd-levels" role="group" aria-label={tr.hydActivity}>
+        {ACTIVITY_LEVELS.map((lvl) => (
+          <button
+            key={lvl.id}
+            type="button"
+            className={`nl-hyd-lvl${activityId === lvl.id ? ' is-active' : ''}`}
+            onClick={() => changeActivity(lvl.id)}
+          >
+            {tr.hydLevels[lvl.id]}
+          </button>
+        ))}
+      </div>
+
+      <div className="nl-hyd-progress-row">
+        <span className="nl-hyd-consumed">{displayAmt(consumedOz)}</span>
+        <span className="nl-hyd-sep">{tr.hydOf} {displayAmt(targetOz)}</span>
+        <span className={`nl-hyd-pct${goalHit ? ' is-done' : ''}`}>{pct}%</span>
+      </div>
+      <div
+        className="nl-hyd-bar-track"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`${tr.hydLogged}: ${displayAmt(consumedOz)} ${tr.hydOf} ${displayAmt(targetOz)}`}
+      >
+        <div className={`nl-hyd-bar-fill${goalHit ? ' is-done' : ''}`} style={{ width: `${pct}%` }} />
+      </div>
+
+      <div className="nl-hyd-quick">
+        {quickAdds.map((q) => (
+          <button
+            key={q.label}
+            type="button"
+            className="nl-hyd-add-btn"
+            onClick={() => add(q.oz)}
+          >
+            + {q.label}
+          </button>
+        ))}
+        <button type="button" className="nl-hyd-reset-btn" onClick={reset}>{tr.hydReset}</button>
+      </div>
+    </div>
+  );
+}
+
 // Phase 2 · advanced_nutrition surface — the Meal Scanner entry (Fuel Series + God
 // Tier only). The TierGate wrapper is the deliverable; full vision/macro wiring
 // (bbf-meal-macros / camera) is a follow-up. Rendered only when entitled.
@@ -1103,6 +1250,8 @@ export default function Nutrition({ plans, profile }) {
           <MealCard key={`${activeKey}-${dayName}-${i}`} meal={m} done={done.includes(i)} onToggle={() => toggleMeal(i)} />
         ))}
       </div>
+
+      <HydrationTracker uid={uid} />
     </div>
   );
 }

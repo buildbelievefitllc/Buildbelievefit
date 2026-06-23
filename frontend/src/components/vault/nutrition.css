@@ -752,3 +752,178 @@
   .nl-fp-art { flex-basis: auto; width: 100%; }
   .nl-fp-art img { width: 100%; height: 120px; }
 }
+
+/* ── Hydration Tracker ───────────────────────────────────────────────────────
+   Lives at the bottom of the Nutrition tab. Sovereign Vault aesthetic:
+   deep-void card, gold accent rail, purple active state. */
+.nl-hyd {
+  margin-top: 1.4rem;
+  padding: 1.1rem 1.1rem 1rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(106, 13, 173, .18), rgba(9, 9, 9, .28));
+  border: 1px solid rgba(245, 200, 0, .28);
+}
+
+.nl-hyd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-bottom: .9rem;
+}
+.nl-hyd-kicker {
+  font-family: var(--hb);
+  font-size: .88rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--gold-soft, #e8b800);
+}
+.nl-hyd-goal-badge {
+  font-family: var(--hb);
+  font-size: .65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #0c0a02;
+  background: var(--yel, #f5c800);
+  border-radius: 999px;
+  padding: .22rem .65rem;
+}
+
+/* Activity level selector */
+.nl-hyd-activity-lbl {
+  font-family: var(--hb);
+  font-size: .62rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--mut, #9aa);
+  margin-bottom: .45rem;
+}
+.nl-hyd-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-bottom: 1rem;
+}
+.nl-hyd-lvl {
+  flex: 1 1 auto;
+  font-family: var(--bd);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--mut, #9aa);
+  background: #0d0d0d;
+  border: 1px solid var(--line, rgba(255, 255, 255, .1));
+  border-radius: 10px;
+  padding: .44rem .5rem;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
+}
+.nl-hyd-lvl:hover { border-color: rgba(245, 200, 0, .4); color: var(--wht, #f9f5ff); }
+.nl-hyd-lvl:focus-visible { outline: 2px solid var(--purp, #6a0dad); outline-offset: 2px; }
+.nl-hyd-lvl.is-active {
+  border-color: var(--yel, #f5c800);
+  background: rgba(245, 200, 0, .08);
+  color: var(--yel, #f5c800);
+  box-shadow: 0 0 0 1px var(--yel, #f5c800);
+}
+
+/* Progress row */
+.nl-hyd-progress-row {
+  display: flex;
+  align-items: baseline;
+  gap: .45rem;
+  margin-bottom: .5rem;
+  flex-wrap: wrap;
+}
+.nl-hyd-consumed {
+  font-family: var(--hb, "Bebas Neue");
+  font-size: 1.55rem;
+  line-height: 1;
+  color: var(--wht, #f9f5ff);
+  letter-spacing: 1px;
+}
+.nl-hyd-sep {
+  font-family: var(--bd);
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--mut, #9aa);
+}
+.nl-hyd-pct {
+  margin-left: auto;
+  font-family: var(--hb);
+  font-size: .9rem;
+  letter-spacing: 1px;
+  color: var(--mut, #9aa);
+}
+.nl-hyd-pct.is-done { color: var(--yel, #f5c800); }
+
+/* Progress bar */
+.nl-hyd-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .06);
+  overflow: hidden;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255, 255, 255, .06);
+}
+.nl-hyd-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--purp, #6a0dad), #9b23e8);
+  transition: width .4s cubic-bezier(.25, .8, .25, 1);
+}
+.nl-hyd-bar-fill.is-done {
+  background: linear-gradient(90deg, #d4a200, var(--yel, #f5c800));
+}
+
+/* Quick-add buttons */
+.nl-hyd-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.nl-hyd-add-btn {
+  flex: 1 1 auto;
+  min-width: 70px;
+  font-family: var(--hb);
+  font-size: .82rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--wht, #f9f5ff);
+  background: linear-gradient(180deg, rgba(106, 13, 173, .35), rgba(106, 13, 173, .2));
+  border: 1px solid rgba(106, 13, 173, .6);
+  border-radius: 10px;
+  padding: .55rem .6rem;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.nl-hyd-add-btn:hover {
+  border-color: var(--yel, #f5c800);
+  background: linear-gradient(180deg, rgba(106, 13, 173, .55), rgba(106, 13, 173, .35));
+}
+.nl-hyd-add-btn:active { transform: translateY(1px); }
+.nl-hyd-add-btn:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
+
+.nl-hyd-reset-btn {
+  font-family: var(--bd);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--mut, #9aa);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 10px;
+  padding: .55rem .8rem;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.nl-hyd-reset-btn:hover { color: #ff8080; border-color: rgba(255, 80, 80, .4); }
+.nl-hyd-reset-btn:focus-visible { outline: 2px solid var(--mut, #9aa); outline-offset: 2px; }
+
+@media (max-width: 480px) {
+  .nl-hyd-levels { gap: .3rem; }
+  .nl-hyd-lvl { font-size: .72rem; padding: .38rem .35rem; }
+}
