@@ -70,6 +70,8 @@ const CARDIO_STR = {
     crpNum: 'Duration × Intensity × Modality', crpDen: 'Mechanical Efficiency',
     crpSummary: (app, dur, zone) => <>Based on your <b>{app}</b> at <b>{dur} min</b> on the <b>{zone}</b> target, we map a multi-stage respiratory protocol.</>,
     crpIndex: 'CRP Index', crpVo2: 'Working VO₂max', crpHr: 'Target HRmax', crpBurn: 'Est. Burn',
+    crpExplainKicker: 'Listen to Explanation',
+    crpExplainText: 'The C-R-P, or Cardio-Respiratory Prescription, is a composite metabolic index. It quantifies the total demand placed on your cardiovascular and respiratory systems for a given session. The formula multiplies your duration by the intensity factor of your pacing target and the modality factor of your apparatus, then divides by that apparatus\'s mechanical efficiency. A higher CRP index means greater mitochondrial stress, more oxygen consumption, and a deeper training stimulus. Your CRP score drives the multi-stage respiratory protocol — matching your breath pattern to your training zone for optimal performance and recovery.',
     breathPacer: 'Breath Pacer', inhale: 'Inhale', hold: 'Hold', exhale: 'Exhale', paused: 'Paused',
     pattern: (i, h, e) => `Pattern · Inhale ${i}s${h > 0 ? ` · Hold ${h}s` : ''} · Exhale ${e}s`,
     cycle: (n) => ` (${n}s cycle)`, pausePacer2: 'Pause Pacer', startPacer: 'Start Breath Pacer →',
@@ -136,6 +138,8 @@ const CARDIO_STR = {
     crpNum: 'Duración × Intensidad × Modalidad', crpDen: 'Eficiencia Mecánica',
     crpSummary: (app, dur, zone) => <>Según tu <b>{app}</b> a <b>{dur} min</b> en el objetivo <b>{zone}</b>, mapeamos un protocolo respiratorio multietapa.</>,
     crpIndex: 'Índice CRP', crpVo2: 'VO₂máx de Trabajo', crpHr: 'FCmáx Objetivo', crpBurn: 'Quema Est.',
+    crpExplainKicker: 'Escuchar Explicación',
+    crpExplainText: 'El C-R-P, o Prescripción Cardio-Respiratoria, es un índice metabólico compuesto. Cuantifica la demanda total sobre tus sistemas cardiovascular y respiratorio en una sesión. La fórmula multiplica tu duración por el factor de intensidad de tu objetivo de ritmo y el factor de modalidad de tu aparato, luego divide por la eficiencia mecánica de ese aparato. Un índice CRP más alto significa mayor estrés mitocondrial, más consumo de oxígeno y un estímulo de entrenamiento más profundo. Tu puntuación CRP impulsa el protocolo respiratorio de múltiples etapas — coordinando tu patrón de respiración con tu zona de entrenamiento para un rendimiento y recuperación óptimos.',
     breathPacer: 'Marcapasos de Respiración', inhale: 'Inhala', hold: 'Mantén', exhale: 'Exhala', paused: 'Pausado',
     pattern: (i, h, e) => `Patrón · Inhala ${i}s${h > 0 ? ` · Mantén ${h}s` : ''} · Exhala ${e}s`,
     cycle: (n) => ` (ciclo de ${n}s)`, pausePacer2: 'Pausar Marcapasos', startPacer: 'Iniciar Marcapasos de Respiración →',
@@ -200,6 +204,8 @@ const CARDIO_STR = {
     crpNum: 'Duração × Intensidade × Modalidade', crpDen: 'Eficiência Mecânica',
     crpSummary: (app, dur, zone) => <>Com base no seu <b>{app}</b> a <b>{dur} min</b> no alvo <b>{zone}</b>, mapeamos um protocolo respiratório de múltiplos estágios.</>,
     crpIndex: 'Índice CRP', crpVo2: 'VO₂máx de Trabalho', crpHr: 'FCmáx Alvo', crpBurn: 'Queima Est.',
+    crpExplainKicker: 'Ouvir Explicação',
+    crpExplainText: 'O C-R-P, ou Prescrição Cardio-Respiratória, é um índice metabólico composto. Ele quantifica a demanda total sobre seus sistemas cardiovascular e respiratório em uma sessão. A fórmula multiplica sua duração pelo fator de intensidade do alvo de ritmo e o fator de modalidade do aparelho, depois divide pela eficiência mecânica desse aparelho. Um índice CRP mais alto significa maior estresse mitocondrial, mais consumo de oxigênio e um estímulo de treino mais profundo. Sua pontuação CRP impulsiona o protocolo respiratório de múltiplos estágios — alinhando seu padrão de respiração com sua zona de treinamento para desempenho e recuperação ideais.',
     breathPacer: 'Marca-passo de Respiração', inhale: 'Inspire', hold: 'Segure', exhale: 'Expire', paused: 'Pausado',
     pattern: (i, h, e) => `Padrão · Inspire ${i}s${h > 0 ? ` · Segure ${h}s` : ''} · Expire ${e}s`,
     cycle: (n) => ` (ciclo de ${n}s)`, pausePacer2: 'Pausar Marca-passo', startPacer: 'Iniciar Marca-passo de Respiração →',
@@ -669,6 +675,14 @@ function CardioConfigurator({ onLogged }) {
       </div>
 
       <CRPFormulaCard crp={crp} duration={duration || DURATION_MIN} apparatusLabel={AL[apparatus].label} zoneLabel={ZS[effectivePacing]} />
+
+      <div className="bbf-crp__explain">
+        <span className="bbf-crp__explain-kicker">{tr.crpExplainKicker}</span>
+        <CoachAudioButton
+          audioRequest={() => fetchSectionCoachAudio({ context: 'cardio', cueRef: 'crp:formula:v1', cueText: tr.crpExplainText, locale: lang })}
+          fallbackText={tr.crpExplainText}
+        />
+      </div>
 
       {/* ── Select Active Kinetic Apparatus — selectable card grid ── */}
       <div className="bbf-app">

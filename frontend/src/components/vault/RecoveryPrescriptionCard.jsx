@@ -12,6 +12,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { fetchTodaysPrescription } from '../../lib/prescriptionApi.js';
+import { resolveVideoId } from './exerciseVideos.js';
+import { EX_VIDEO } from './prehabProtocol.js';
+import { pickLang } from '../../lib/pickLang.js';
 import './recoveryPrescription.css';
 
 const STR = {
@@ -32,6 +35,7 @@ const STR = {
     today: 'Today', tomorrow: 'Tomorrow',
     types: { strengthening: 'Strength', mobility: 'Mobility', prehab: 'Prehab', recovery: 'Recovery', mental_wellness: 'Mindset' },
     areas: { shoulder: 'Shoulder', lower_body: 'Lower Body', knee: 'Knee', neck: 'Neck', upper_body: 'Upper Body', full_body: 'Full Body', breathing_and_meditation: 'Breathwork' },
+    watchTutorial: 'Watch Tutorial', noVideo: 'No tutorial video available for this movement.', collapse: 'Close',
   },
   es: {
     kicker: 'Tu Prescripción de Recuperación',
@@ -50,6 +54,7 @@ const STR = {
     today: 'Hoy', tomorrow: 'Mañana',
     types: { strengthening: 'Fuerza', mobility: 'Movilidad', prehab: 'Prehab', recovery: 'Recuperación', mental_wellness: 'Mente' },
     areas: { shoulder: 'Hombro', lower_body: 'Tren Inferior', knee: 'Rodilla', neck: 'Cuello', upper_body: 'Tren Superior', full_body: 'Cuerpo Completo', breathing_and_meditation: 'Respiración' },
+    watchTutorial: 'Ver Tutorial', noVideo: 'No hay video tutorial disponible para este movimiento.', collapse: 'Cerrar',
   },
   pt: {
     kicker: 'Sua Prescrição de Recuperação',
@@ -68,8 +73,19 @@ const STR = {
     today: 'Hoje', tomorrow: 'Amanhã',
     types: { strengthening: 'Força', mobility: 'Mobilidade', prehab: 'Prehab', recovery: 'Recuperação', mental_wellness: 'Mente' },
     areas: { shoulder: 'Ombro', lower_body: 'Inferiores', knee: 'Joelho', neck: 'Pescoço', upper_body: 'Superiores', full_body: 'Corpo Inteiro', breathing_and_meditation: 'Respiração' },
+    watchTutorial: 'Ver Tutorial', noVideo: 'Nenhum vídeo tutorial disponível para este movimento.', collapse: 'Fechar',
   },
 };
+
+function slugify(s) {
+  return String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+function resolveDemo(name, lang) {
+  const slug = slugify(name);
+  if (EX_VIDEO[slug]) return pickLang(EX_VIDEO[slug], lang);
+  return resolveVideoId(name, lang) || null;
+}
 
 function dayLabel(dateStr, lang, S) {
   if (!dateStr) return '';
@@ -94,11 +110,13 @@ export default function RecoveryPrescriptionCard({ refreshKey = 0 }) {
   const [playlist, setPlaylist] = useState(null);
   const [error, setError] = useState('');
   const [nonce, setNonce] = useState(0); // manual-refresh trigger
+  const [openIdx, setOpenIdx] = useState(null); // index of expanded video dropdown
 
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
 
   useEffect(() => {
     let alive = true;
+    setOpenIdx(null);
     (async () => {
       setStatus('loading');
       setError('');
@@ -153,15 +171,44 @@ export default function RecoveryPrescriptionCard({ refreshKey = 0 }) {
           </div>
 
           <ol className="rxp-list">
-            {movements.map((ex, i) => (
-              <li key={ex.id || i} className="rxp-item">
-                <span className="rxp-slot">{i + 1}</span>
-                <span className="rxp-item-body">
-                  <span className="rxp-name">{ex.name}</span>
-                  <span className="rxp-type">{S.types[ex.type] || ex.type}</span>
-                </span>
-              </li>
-            ))}
+            {movements.map((ex, i) => {
+              const isOpen = openIdx === i;
+              const videoId = resolveDemo(ex.name, lang);
+              return (
+                <li key={ex.id || i} className="rxp-item">
+                  <button
+                    type="button"
+                    className="rxp-item-btn"
+                    onClick={() => setOpenIdx(isOpen ? null : i)}
+                    aria-expanded={isOpen}
+                    aria-label={`${ex.name} — ${isOpen ? S.collapse : S.watchTutorial}`}
+                  >
+                    <span className="rxp-slot">{i + 1}</span>
+                    <span className="rxp-item-body">
+                      <span className="rxp-name">{ex.name}</span>
+                      <span className="rxp-type">{S.types[ex.type] || ex.type}</span>
+                    </span>
+                    <span className="rxp-trig" aria-hidden="true">{isOpen ? '▲' : '▶'}</span>
+                  </button>
+                  {isOpen ? (
+                    <div className="rxp-drop">
+                      {videoId ? (
+                        <iframe
+                          className="rxp-drop__frame"
+                          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+                          title={ex.name}
+                          loading="lazy"
+                          allow="autoplay; encrypted-media; picture-in-picture"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <p className="rxp-drop__empty">{S.noVideo}</p>
+                      )}
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
           </ol>
 
           {finisher ? (

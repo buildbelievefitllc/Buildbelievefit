@@ -64,10 +64,17 @@
 /* ── Movement list ── */
 .rxp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
 .rxp-item {
-  display: flex; align-items: center; gap: .75rem;
-  padding: .6rem .7rem; border-radius: 11px;
+  border-radius: 11px;
   background: rgba(255, 255, 255, .02); border: 1px solid var(--line, #1e1e1e);
+  overflow: hidden;
 }
+.rxp-item-btn {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .6rem .7rem; width: 100%;
+  background: transparent; border: none; cursor: pointer; text-align: left;
+  transition: background .15s ease;
+}
+.rxp-item-btn:hover, .rxp-item-btn:focus-visible { background: rgba(255, 255, 255, .04); outline: none; }
 .rxp-slot {
   flex: none; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
   font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: .9rem; color: var(--yel, #f5c800);
@@ -78,6 +85,15 @@
 .rxp-type {
   flex: none; font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .72rem; font-weight: 700;
   letter-spacing: 1px; text-transform: uppercase; color: var(--mut, #666);
+}
+.rxp-trig { flex: none; margin-left: auto; font-size: .7rem; color: var(--gold-soft, #f5cf60); opacity: .7; }
+
+/* ── Video dropdown ── */
+.rxp-drop { border-top: 1px solid var(--line, #1e1e1e); }
+.rxp-drop__frame { display: block; width: 100%; aspect-ratio: 16 / 9; border: none; }
+.rxp-drop__empty {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .86rem; font-weight: 600;
+  color: var(--mut, #666); padding: .75rem .7rem; margin: 0; text-align: center;
 }
 
 /* ── Champion's Mindset finisher ── */

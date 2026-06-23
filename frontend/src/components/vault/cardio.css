@@ -247,6 +247,10 @@
 .bbf-crp__summary { font-family: var(--bd); font-size: .86rem; font-weight: 600; line-height: 1.5; color: rgba(249, 245, 255, .78); margin: .7rem 0 .1rem; }
 .bbf-crp__summary b { color: var(--gold-soft); font-weight: 800; }
 
+/* CRP Explanation audio button */
+.bbf-crp__explain { display: flex; flex-direction: column; gap: .45rem; margin-bottom: 1rem; }
+.bbf-crp__explain-kicker { font-family: var(--hb); font-size: .68rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--mut); }
+
 /* Active Kinetic Apparatus card grid */
 .bbf-app { margin-bottom: 1.2rem; }
 .bbf-app__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .7rem; }
