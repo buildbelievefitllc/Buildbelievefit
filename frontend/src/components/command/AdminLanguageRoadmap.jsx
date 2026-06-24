@@ -298,45 +298,45 @@ const intentions = [
 const roadmapPhases = [
   {
     num: '01', name: 'FOUNDATION', weeks: 'WEEKS 1–3',
-    es: 'Duolingo 15 min (AM) + Pimsleur 30 min (post-workout cooldown) + Memrise fitness deck 10 min',
-    pt: 'Pimsleur Units 1–7 daily. Add 10 PT phrases/week from Survival Kit.',
-    daily: ['ES Duo', 'ES Pimsleur', 'PT Phrases', 'ES Duo', 'ES Vocab', 'PT Pimsleur', 'Rest / Review'],
+    es: 'Vocab Gym daily — Speed Matrix + Flip Drill to plant the 80-term matrix; tap 🔊 on every new term. Drive each term to SRS Box 3.',
+    pt: 'Rio Ready — 10 phrases/week with the 🔊 soundboard; a Listening Lab round daily to train the ear.',
+    daily: ['Speed Matrix', 'Listening Lab', 'Rio Ready 🔊', 'Flip Drill', 'Match Madness', 'Voice Studio', 'Rest / SRS'],
   },
   {
     num: '02', name: 'ACCELERATION', weeks: 'WEEKS 4–7',
-    es: 'Script rehearsal 3×/week during warm-up. Begin recording short coaching clips in Spanish.',
-    pt: 'Pimsleur Level 2 begins. Add Brazilian YouTube (no subtitles). Start Italki tutor.',
-    daily: ['ES Script', 'PT Pimsleur', 'ES Vocab + PT Phrases', 'ES Script', 'PT Tutor', 'ES+PT Mixed', 'Rest / Audio'],
+    es: 'Chase Speed Matrix combos (target a ×5 streak); rehearse the coach scripts aloud in Voice Studio 3×/week.',
+    pt: 'Sentence Builder on the Rio Ready phrases daily; one Video Vault clip (no subtitles).',
+    daily: ['Speed Combo', 'Sentence Builder', 'Voice Studio', 'Match Madness', 'Sentence (PT)', 'Video Vault', 'Rest / SRS'],
   },
   {
     num: '03', name: 'IMMERSION', weeks: 'WEEKS 8–11',
-    es: 'Full client roleplay in Spanish 2×/week. Translate one BBF social post per day.',
-    pt: 'Full gym convos in PT. Record 2-min PT monologue weekly. PT journal nightly.',
-    daily: ['ES Client RP', 'PT Pimsleur', 'ES Social Post', 'PT Tutor', 'ES Vocab Review', 'PT Monologue', 'Rest / Listen'],
+    es: 'God-Mode Drills 2×/week (Lost in Medellín); recite all 6 Intentions in Voice Studio; hold SRS terms at Box 4+.',
+    pt: 'God-Mode “Gym in São Paulo” weekly; advanced Sentence Builder; PT Intentions in Voice Studio.',
+    daily: ['God-Mode (ES)', 'Voice: Intentions', 'Sentence Builder', 'God-Mode (PT)', 'Speed + Listen', 'Video Vault', 'Rest / SRS'],
   },
   {
     num: '04', name: 'MASTERY SPRINT', weeks: 'WEEK 12',
-    es: 'Record full Spanish coaching session. Post bilingual Instagram Reel.',
-    pt: 'Record full PT Reel for BBF brand. Explain split & fasting in PT without notes.',
-    daily: ['ES Reel Prep', 'PT Reel Prep', 'ES Record', 'PT Record', 'Edit + Post', 'Rest', 'Celebrate'],
+    es: 'Clear Speed Matrix at 90%+; drive every matrix term to SRS Box 5; record a full Spanish coaching clip.',
+    pt: 'Sentence Builder at 100%; God-Mode São Paulo unscripted; record a PT brand Reel.',
+    daily: ['Speed 90%+', 'Sentence 100%', 'God-Mode RP', 'Voice: Record', 'Reel + Post', 'Rest', 'Celebrate 🎉'],
   },
 ];
 
-// Daily integration template + 90-day benchmarks (static ground-truth from the
-// roadmap tab of the prototype).
+// Daily integration template + 90-day benchmarks — built around the BBF Lab's own
+// in-app engine (Vocab Gym games · Voice Studio · soundboards · SRS mastery).
 const INTEGRATION_TEMPLATE = [
-  { time: 'WARM-UP (10 MIN)', act: 'Spanish vocab flashcards (Memrise) or script rehearsal' },
-  { time: 'WORKOUT (75 MIN)', act: 'Pimsleur audio (PT) through ONE earbud during isolation sets' },
-  { time: 'CARDIO / COOLDOWN (20 MIN)', act: 'Recite weekly Intention Statement in both languages. Shadow Pimsleur.' },
+  { time: 'WARM-UP (10 MIN)', act: 'Vocab Gym — a Speed Matrix or Flip Drill round to prime the brain.' },
+  { time: 'WORKOUT (75 MIN)', act: 'Listening Lab + the 🔊 soundboard through ONE earbud between isolation sets.' },
+  { time: 'CARDIO / COOLDOWN (20 MIN)', act: 'Recite the weekly Intention in Voice Studio (both languages); one Sentence Builder round.' },
 ];
 
 const BENCHMARKS = [
   'Hold a 5-minute Spanish coaching session without pausing',
   'Navigate a São Paulo gym entirely in Portuguese',
-  'Recite all 6 intention statements from memory, both languages',
-  'Post 1 bilingual BBF Instagram Reel',
-  'Complete Pimsleur Brazilian Portuguese Level 2',
-  'Land at 175 lbs — cut complete',
+  'All 6 Intention statements at 90%+ in Voice Studio — both languages',
+  'Every Vocab Matrix term at SRS Box 5 — fully Mastered',
+  'Clear a Speed Matrix round at 90%+ with a ×5 combo streak',
+  'Post 1 bilingual BBF Reel — and land at 175 lbs',
 ];
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
@@ -638,16 +638,17 @@ function TabRoadmap() {
       <div className="lr-section-label">90-DAY STRUCTURED ROADMAP</div>
       <div className="lr-section-title">THE <span>PROTOCOL</span></div>
       <div className="lr-section-desc">
-        Four phases. Copy-pasteable weekly focus blocks. Integrate into your 2-hour
-        bodybuilding sessions — warm-up for vocabulary, cooldown for Pimsleur,
-        cardio for intentions.
+        Four phases, each built around the BBF Lab&rsquo;s own engine — the Vocab Gym games,
+        Voice Studio, 🔊 soundboards, and your spaced-repetition mastery. Slot it into your
+        2-hour sessions: warm-up for the Vocab Gym, cooldown for Voice Studio + Sentence
+        Builder, cardio for Intentions.
       </div>
 
       <div className="lr-stats">
         <div className="lr-stat"><div className="lr-stat-num">90</div><div className="lr-stat-label">Days</div></div>
         <div className="lr-stat"><div className="lr-stat-num">2</div><div className="lr-stat-label">Languages</div></div>
         <div className="lr-stat"><div className="lr-stat-num">{roadmapPhases.length}</div><div className="lr-stat-label">Phases</div></div>
-        <div className="lr-stat"><div className="lr-stat-num">3</div><div className="lr-stat-label">Apps Used</div></div>
+        <div className="lr-stat"><div className="lr-stat-num">5</div><div className="lr-stat-label">Game Modes</div></div>
       </div>
 
       <div className="lr-template">
