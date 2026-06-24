@@ -254,6 +254,25 @@
   .reel-watch { display:inline-flex; align-items:center; gap:14px; margin-top:34px; font-family:var(--hb); font-size:36px; letter-spacing:3px;
     padding:20px 46px; border-radius:60px; background:var(--yel); color:#060606; }
 
+  /* V5 — Video Engine overlay styles (skins). Default 'scrim' = the base look (no
+     class rules). Each skin restyles the preview; drawReelOverlay() mirrors it for
+     the exported video. All on-brand purple/gold. */
+  #stage-reel.ovl-cinematic .reel-ov {
+    background:linear-gradient(180deg, rgba(8,6,10,0.96) 0%, rgba(8,6,10,0.96) 13%,
+      rgba(8,6,10,0.12) 13%, rgba(8,6,10,0.12) 80%, rgba(8,6,10,0.96) 80%, rgba(8,6,10,0.96) 100%); }
+  #stage-reel.ovl-minimal .reel-ov {
+    background:linear-gradient(180deg, transparent 50%, rgba(8,6,10,0.85) 100%); }
+  #stage-reel.ovl-minimal .reel-strip { display:none; }
+  #stage-reel.ovl-lowerthird .reel-ov {
+    background:linear-gradient(180deg, rgba(8,6,10,0.35) 0%, rgba(8,6,10,0.05) 35%, rgba(8,6,10,0.05) 62%, rgba(8,6,10,0.55) 100%); }
+  #stage-reel.ovl-lowerthird .reel-bottom {
+    left:50px; right:50px; padding:36px 40px; border-radius:20px;
+    background:var(--bbf-glass-bg); border:2px solid var(--bbf-glass-border); border-left:7px solid var(--yel);
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  #stage-reel.ovl-frame::after {
+    content:''; position:absolute; inset:26px; border:4px solid rgba(245,200,0,0.7);
+    border-radius:10px; z-index:7; pointer-events:none; }
+
   /* video-export progress + codec note (reel only) */
   .vid-progress { height:8px; background:var(--gry3); border-radius:5px; overflow:hidden; margin-top:10px; display:none; }
   .vid-progress.active { display:block; }
@@ -639,6 +658,15 @@ YOUR CLOCK</textarea></div>
       <div class="hint"><b>Blur-Fill</b> shows your whole shot sharp over a blurred backdrop — no crop, no bars. <b>Fit</b> letterboxes on brand dark. <b>Fill</b> crops to fill the frame (old behavior).</div></div>
     <div class="ctl-group"><label class="ctl-label">Darkness <span class="range-val" id="reel-dark-val">100%</span></label>
       <input type="range" id="reel-dark" min="30" max="150" value="100"></div>
+    <div class="ctl-group"><label class="ctl-label">🎨 Overlay Style</label>
+      <select id="reel-overlay">
+        <option value="scrim">Classic Scrim (default)</option>
+        <option value="cinematic">Cinematic Bars</option>
+        <option value="lowerthird">Lower-Third Card</option>
+        <option value="minimal">Minimal</option>
+        <option value="frame">Gold Frame</option>
+      </select>
+      <div class="hint">Branded text/overlay skin — applies to the cover <b>and</b> the exported video.</div></div>
     <div class="ctl-group"><label class="ctl-label">Series Tag — pick from the database or write your own</label>
       <select id="reel-tag-pick" style="margin-bottom:6px;">
         <option value="">— series database —</option>
@@ -3131,7 +3159,7 @@ $('reel-tag-pick').addEventListener('change', e=>{
 });
 // V4 — hook placement (top/center/bottom) + alignment (left/center/right). Applies to
 // the DOM cover (image export) and threads into drawReelOverlay for the video.
-let reelVPos='bottom', reelHAlign='left', reelVidFit='blur';
+let reelVPos='bottom', reelHAlign='left', reelVidFit='blur', reelOverlay='scrim';
 function applyReelLayout(){
   const b=$('reel-bottom');
   if(reelVPos==='top'){ b.style.top='300px'; b.style.bottom='auto'; b.style.transform='none'; }
@@ -3165,6 +3193,15 @@ applyReelLayout();
 bindFile('reel-file-bg','reel-lbl-bg', src=>{ $('reel-bg').src=src; $('reel-bg').style.display='block'; $('reel-bgph').style.display='none'; });
 bindFile('reel-file-l','reel-lbl-l', src=>{ $('reel-logoimg').src=src; $('reel-logo').style.display='block'; });
 $('reel-dark').addEventListener('input', e=>{ $('reel-dark-val').textContent=e.target.value+'%'; $('reel-ov').style.opacity=(+e.target.value)/100; });
+// V5 — overlay style (skin) for the cover + exported video. Preview = a class on
+// #stage-reel; export = threaded into drawReelOverlay via baseOpts.overlay.
+function applyReelOverlay(){
+  const st=$('stage-reel'); if(!st) return;
+  ['scrim','cinematic','lowerthird','minimal','frame'].forEach(s=>st.classList.remove('ovl-'+s));
+  st.classList.add('ovl-'+reelOverlay);
+}
+$('reel-overlay').addEventListener('change', e=>{ reelOverlay=e.target.value; applyReelOverlay(); });
+applyReelOverlay();
 // Headline size: scales the live preview + image export (baked from the DOM). The
 // 148px base mirrors the .reel-hl CSS; line-height is unitless so it scales too.
 function reelHlScale(){ return ((+$('reel-hl-size').value)||100)/100; }
@@ -3393,15 +3430,28 @@ function wrapText(ctx,text,maxW){ const words=String(text).split(/\s+/), lines=[
 function drawReelOverlay(ctx,o){
   const W=o.W, H=o.H, a=o.reveal, rise=(1-o.reveal)*40;
   ctx.save(); ctx.globalAlpha=a; ctx.translate(0,rise);
-  // 1. darkening gradient (.reel-ov) — element opacity = dark/100, CSS-clamped to 1
-  const ov=Math.min(1, o.dark/100);
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,`rgba(8,6,10,${0.55*ov})`); g.addColorStop(0.35,`rgba(8,6,10,${0.15*ov})`);
-  g.addColorStop(0.55,`rgba(8,6,10,${0.25*ov})`); g.addColorStop(1,`rgba(8,6,10,${0.92*ov})`);
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  // 2. gold top strip (.reel-strip)
-  const strip=ctx.createLinearGradient(0,0,W,0); strip.addColorStop(0,'#6a0dad'); strip.addColorStop(1,'#f5c800');
-  ctx.fillStyle=strip; ctx.fillRect(0,0,W,12);
+  // 1. backdrop scrim — V5: overlay style (.reel-ov). 'cinematic' = letterbox bars,
+  //    'minimal' = light bottom-only, 'lowerthird'/'frame'/'scrim' = the v3 gradient.
+  const ov=Math.min(1, o.dark/100), style=o.overlay||'scrim';
+  if(style==='cinematic'){
+    const barH=Math.round(H*0.13);
+    ctx.fillStyle='rgba(8,6,10,0.12)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(8,6,10,0.96)'; ctx.fillRect(0,0,W,barH); ctx.fillRect(0,H-barH,W,barH);
+  } else if(style==='minimal'){
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'rgba(8,6,10,0)'); g.addColorStop(0.5,'rgba(8,6,10,0)'); g.addColorStop(1,`rgba(8,6,10,${0.85*ov})`);
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  } else {
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,`rgba(8,6,10,${0.55*ov})`); g.addColorStop(0.35,`rgba(8,6,10,${0.15*ov})`);
+    g.addColorStop(0.55,`rgba(8,6,10,${0.25*ov})`); g.addColorStop(1,`rgba(8,6,10,${0.92*ov})`);
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  }
+  // 2. gold top strip (.reel-strip) — hidden in the minimal style
+  if(style!=='minimal'){
+    const strip=ctx.createLinearGradient(0,0,W,0); strip.addColorStop(0,'#6a0dad'); strip.addColorStop(1,'#f5c800');
+    ctx.fillStyle=strip; ctx.fillRect(0,0,W,12);
+  }
   // 3. top block — brand + eyebrow pill (x=70, top=70)
   drawTracked(ctx,[{t:'BUILD ',c:'#f9f5ff'},{t:'BELIEVE',c:'#f5c800'},{t:' FIT',c:'#f9f5ff'}],70,98,"34px 'Bebas Neue'",7);
   const eyeFont="800 30px 'Barlow Condensed'", eyeStr=(o.eyeText||'').toUpperCase();
@@ -3435,6 +3485,11 @@ function drawReelOverlay(ctx,o){
   const blockH=hlH+22+subH+34+watchH;
   let y = vAlign==='top'?300 : (vAlign==='center'?Math.round((H-blockH)/2) : (H-90-blockH));
   const watchX = hAlign==='center'?Math.round((W-watchW)/2):(hAlign==='right'?(W-cx-watchW):cx);
+  // V5 lowerthird: frosted gold-edged card behind the bottom block (mirrors the CSS skin).
+  if(style==='lowerthird'){ const pad=34, cardX=cx-pad, cardY=y-pad, cardW=cw+pad*2, cardH=blockH+pad*2;
+    roundRectPath(ctx,cardX,cardY,cardW,cardH,20); ctx.fillStyle='rgba(20,20,20,0.72)'; ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle='rgba(245,200,0,0.18)'; ctx.stroke();
+    ctx.fillStyle='#f5c800'; ctx.fillRect(cardX,cardY,7,cardH); }
   ctx.save(); ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=30; ctx.shadowOffsetY=6;
   ctx.fillStyle='#f9f5ff'; ctx.font=hlFont; ctx.textAlign=tAlign; ctx.textBaseline='alphabetic';
   hlLines.forEach((ln,i)=> ctx.fillText(ln, hx, y+i*hlLH+hlPx*0.80)); ctx.restore();
@@ -3445,6 +3500,8 @@ function drawReelOverlay(ctx,o){
   y+=subH+34;
   roundRectPath(ctx,watchX,y,watchW,watchH,watchH/2); ctx.fillStyle='#f5c800'; ctx.fill();
   ctx.fillStyle='#060606'; drawTrackedStr(ctx,o.watchText,watchX+46,y+watchH/2,watchFont,3,'middle');
+  // V5 frame: gold inset border around the whole 1080x1920 cover.
+  if(style==='frame'){ ctx.lineWidth=4; ctx.strokeStyle='rgba(245,200,0,0.7)'; roundRectPath(ctx,26,26,W-52,H-52,10); ctx.stroke(); }
   ctx.restore();
 }
 
@@ -3468,7 +3525,7 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
   if(logoImg && logoImg.decode){ try{ await logoImg.decode(); }catch(e){} }   // so the badge isn't silently dropped
   const baseOpts={W,H, dark:+$('reel-dark').value, eyeColor:$('reel-out-eye').style.color||'#f5c800',
     eyeText:$('reel-eye').value, hlText:$('reel-hl').value, subText:$('reel-sub').value, watchText:$('reel-watch').value,
-    hlScale:reelHlScale(), logoImg, hAlign:reelHAlign, vAlign:reelVPos};
+    hlScale:reelHlScale(), logoImg, hAlign:reelHAlign, vAlign:reelVPos, overlay:reelOverlay};
   const mime=pickRecorderMime(), stream=canvas.captureStream(30);
   let rec; try{ rec=mime?new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000}):new MediaRecorder(stream); }
   catch(err){ fail('Recorder init failed: '+err.message); resolve(null); return; }
