@@ -336,7 +336,7 @@
     <button class="mode-tab active" data-m="cta">🃏 CTA CARDS</button>
     <button class="mode-tab" data-m="phone">📱 PHONE</button>
     <button class="mode-tab" data-m="spot">🏆 SPOTLIGHT</button>
-    <button class="mode-tab" data-m="reel">🎬 REEL COVER</button>
+    <button class="mode-tab" data-m="reel">🎬 VIDEO ENGINE</button>
   </div>
 </div>
 
@@ -630,6 +630,13 @@ YOUR CLOCK</textarea></div>
     <div class="ctl-group"><label class="ctl-label">🎬 Reel Footage (MP4 / MOV)</label>
       <label class="upload-btn" id="reel-lbl-vid" for="reel-file-vid">UPLOAD VIDEO</label><input type="file" id="reel-file-vid" accept="video/*">
       <div class="hint">Loads moving footage behind the overlay. <b>Video wins over image</b> when both are set.</div></div>
+    <div class="ctl-group"><label class="ctl-label">🖼️ Video Fit — keep your full shot in frame</label>
+      <div class="seg" id="reel-vfit">
+        <button data-fit="fill">FILL</button>
+        <button data-fit="fit">FIT</button>
+        <button class="active" data-fit="blur">BLUR-FILL</button>
+      </div>
+      <div class="hint"><b>Blur-Fill</b> shows your whole shot sharp over a blurred backdrop — no crop, no bars. <b>Fit</b> letterboxes on brand dark. <b>Fill</b> crops to fill the frame (old behavior).</div></div>
     <div class="ctl-group"><label class="ctl-label">Darkness <span class="range-val" id="reel-dark-val">100%</span></label>
       <input type="range" id="reel-dark" min="30" max="150" value="100"></div>
     <div class="ctl-group"><label class="ctl-label">Series Tag — pick from the database or write your own</label>
@@ -787,7 +794,8 @@ YOUR CLOCK</div>
   <div class="stage-host" id="host-reel"><div class="stage-scaler" id="scaler-reel">
     <div id="stage-reel">
       <img id="reel-bg" alt="">
-      <video id="reel-vid" playsinline muted loop preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;"></video>
+      <video id="reel-vid-blur" playsinline muted loop preload="auto" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;filter:blur(34px) brightness(0.5);transform:scale(1.12);"></video>
+      <video id="reel-vid" playsinline muted loop preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:none;"></video>
       <div class="reel-ph" id="reel-bgph">UPLOAD A<br>VIDEO FRAME 🎬</div>
       <div class="reel-ov" id="reel-ov"></div>
       <div class="reel-strip"></div>
@@ -3123,7 +3131,7 @@ $('reel-tag-pick').addEventListener('change', e=>{
 });
 // V4 — hook placement (top/center/bottom) + alignment (left/center/right). Applies to
 // the DOM cover (image export) and threads into drawReelOverlay for the video.
-let reelVPos='bottom', reelHAlign='left';
+let reelVPos='bottom', reelHAlign='left', reelVidFit='blur';
 function applyReelLayout(){
   const b=$('reel-bottom');
   if(reelVPos==='top'){ b.style.top='300px'; b.style.bottom='auto'; b.style.transform='none'; }
@@ -3138,6 +3146,20 @@ document.querySelectorAll('#reel-vpos button').forEach(btn=>{
 document.querySelectorAll('#reel-halign button').forEach(btn=>{
   btn.onclick=()=>{ document.querySelectorAll('#reel-halign button').forEach(x=>x.classList.remove('active'));
     btn.classList.add('active'); reelHAlign=btn.dataset.h; applyReelLayout(); };
+});
+// V5 — video fit (fill / fit / blur-fill). Drives the live preview AND threads into
+// drawVideoFit() for the PNG poster + recorded video, so export always matches preview.
+// Default BLUR-FILL keeps the WHOLE shot in frame (the old object-fit:cover crop cut
+// off full-body footage that wasn't exactly 9:16).
+function applyReelVideoFit(){
+  const sharp=$('reel-vid'), blur=$('reel-vid-blur'); if(!sharp||!blur) return;
+  if(reelVidFit==='fill'){ sharp.style.objectFit='cover'; blur.style.display='none'; }
+  else if(reelVidFit==='fit'){ sharp.style.objectFit='contain'; blur.style.display='none'; }
+  else { sharp.style.objectFit='contain'; blur.style.display = reelHasVideo ? 'block' : 'none'; }
+}
+document.querySelectorAll('#reel-vfit button').forEach(btn=>{
+  btn.onclick=()=>{ document.querySelectorAll('#reel-vfit button').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active'); reelVidFit=btn.dataset.fit; applyReelVideoFit(); };
 });
 applyReelLayout();
 bindFile('reel-file-bg','reel-lbl-bg', src=>{ $('reel-bg').src=src; $('reel-bg').style.display='block'; $('reel-bgph').style.display='none'; });
@@ -3238,6 +3260,8 @@ $('reel-file-vid').addEventListener('change', e=>{
     $('reel-lbl-vid').textContent='✓ VIDEO LOADED'; $('reel-lbl-vid').classList.add('done');
     reelVid.style.display='block';                 // video wins over image in the preview
     $('reel-bg').style.display='none'; $('reel-bgph').style.display='none';
+    const bv=$('reel-vid-blur'); bv.src=reelVid.src; bv.muted=true; bv.loop=true; bv.play().catch(()=>{}); // blurred backdrop mirror (blur-fill)
+    applyReelVideoFit();                            // honor the current fit (default BLUR-FILL → full shot in frame)
     reelVid.play().catch(()=>{});                  // muted+inline autoplays; if blocked, first frame shows
   };
   reelVid.onerror=()=>{ const n=$('reel-vid-note'); n.className='vid-note active warn'; n.textContent='Couldn’t read this video — try an MP4 (H.264).'; };
@@ -3249,13 +3273,13 @@ $('reel-export').onclick=async ()=>{
   let restore=false;
   if(reelHasVideo && reelVid.readyState>=2){
     const c=document.createElement('canvas'); c.width=1080; c.height=1920;
-    drawVideoCover(c.getContext('2d'), reelVid, 1080, 1920);
-    $('reel-bg').src=c.toDataURL('image/png'); $('reel-bg').style.display='block'; reelVid.style.display='none';
+    drawVideoFit(c.getContext('2d'), reelVid, 1080, 1920, reelVidFit);
+    $('reel-bg').src=c.toDataURL('image/png'); $('reel-bg').style.display='block'; reelVid.style.display='none'; $('reel-vid-blur').style.display='none';
     restore=true;
   }
   await exportStage('stage-reel','bbf-reel',1080,1920,$('reel-export'),
     grabSettings(['reel-eye','reel-hl','reel-sub','reel-watch','reel-series']));
-  if(restore){ $('reel-bg').style.display='none'; reelVid.style.display='block'; reelVid.play().catch(()=>{}); }
+  if(restore){ $('reel-bg').style.display='none'; reelVid.style.display='block'; applyReelVideoFit(); reelVid.play().catch(()=>{}); }
 };
 $('reel-copycap').onclick=()=> copyText(buildReelCaption(), $('reel-copycap'));
 
@@ -3269,11 +3293,11 @@ async function reelCoverBlob(){
   let restore=false;
   if(reelHasVideo && reelVid.readyState>=2){
     const c=document.createElement('canvas'); c.width=1080; c.height=1920;
-    drawVideoCover(c.getContext('2d'), reelVid, 1080, 1920);
-    $('reel-bg').src=c.toDataURL('image/png'); $('reel-bg').style.display='block'; reelVid.style.display='none'; restore=true;
+    drawVideoFit(c.getContext('2d'), reelVid, 1080, 1920, reelVidFit);
+    $('reel-bg').src=c.toDataURL('image/png'); $('reel-bg').style.display='block'; reelVid.style.display='none'; $('reel-vid-blur').style.display='none'; restore=true;
   }
   try{ return await bakeStageBlob('stage-reel',1080,1920); }
-  finally{ if(restore){ $('reel-bg').style.display='none'; reelVid.style.display='block'; reelVid.play().catch(()=>{}); } }
+  finally{ if(restore){ $('reel-bg').style.display='none'; reelVid.style.display='block'; applyReelVideoFit(); reelVid.play().catch(()=>{}); } }
 }
 $('reel-queue').onclick=()=> queuePost('image', reelQueueFields(), reelCoverBlob, $('reel-queue'), $('reel-queue-note'));
 
@@ -3340,6 +3364,16 @@ function roundRectPath(ctx,x,y,w,h,r){ r=Math.min(r,w/2,h/2); ctx.beginPath();
 function drawVideoCover(ctx,v,W,H){ ctx.fillStyle='#08060a'; ctx.fillRect(0,0,W,H);
   const vw=v.videoWidth, vh=v.videoHeight; if(!vw||!vh) return;
   const s=Math.max(W/vw,H/vh), dw=vw*s, dh=vh*s; ctx.drawImage(v,(W-dw)/2,(H-dh)/2,dw,dh); }
+// V5 — fit-aware painter for the PNG poster + recorded export, matching the live preview.
+// 'fill' = cover (legacy crop); 'fit' = contain on brand-dark; 'blur' = contain over a
+// blurred, scaled, dimmed copy of the same frame so the WHOLE shot stays visible, no bars.
+function drawVideoFit(ctx,v,W,H,mode){ ctx.fillStyle='#08060a'; ctx.fillRect(0,0,W,H);
+  const vw=v.videoWidth, vh=v.videoHeight; if(!vw||!vh) return;
+  if(mode==='fill'){ const s=Math.max(W/vw,H/vh); ctx.drawImage(v,(W-vw*s)/2,(H-vh*s)/2,vw*s,vh*s); return; }
+  if(mode==='blur'){ const sb=Math.max(W/vw,H/vh)*1.12;
+    ctx.save(); try{ ctx.filter='blur(34px) brightness(0.5)'; }catch(_){ }
+    ctx.drawImage(v,(W-vw*sb)/2,(H-vh*sb)/2,vw*sb,vh*sb); ctx.restore(); }
+  const s=Math.min(W/vw,H/vh), dw=vw*s, dh=vh*s; ctx.drawImage(v,(W-dw)/2,(H-dh)/2,dw,dh); }
 function drawCover(ctx,img,dx,dy,dw,dh){ const iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
   if(!iw||!ih) return; const s=Math.max(dw/iw,dh/ih), w=iw*s, h=ih*s; ctx.drawImage(img,dx+(dw-w)/2,dy+(dh-h)/2,w,h); }
 function measureTracked(ctx,str,ls){ let w=0; for(const ch of str){ w+=ctx.measureText(ch).width+ls; } return Math.max(0,w-ls); }
@@ -3494,7 +3528,7 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
   if(stopped){ resolve(null); return; }
   rec.start(); killTimer=setTimeout(finish,(dur+1.5)*1000);
   (function frame(){ if(stopped) return;
-    drawVideoCover(ctx,reelVid,W,H);
+    drawVideoFit(ctx,reelVid,W,H,reelVidFit);
     const t=reelVid.currentTime||0;
     drawReelOverlay(ctx,Object.assign({},baseOpts,{reveal:Math.min(1,t/INTRO_SEC)}));
     bar.style.width=Math.min(100,Math.round(t/dur*100))+'%';
