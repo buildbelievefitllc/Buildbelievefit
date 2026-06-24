@@ -29,6 +29,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
 import { useSpeechEvaluator, comparePhrases } from '../../lib/useSpeechEvaluator.js';
+import { loadLanguageProgress, saveLanguageScore, recordVocabAttempt } from '../../lib/languageProgressApi.js';
 import languageVideoLibrary from '../../data/languageVideoLibrary.json';
 import './languageRoadmap.css';
 
@@ -748,6 +749,7 @@ function SpeedMatrix() {
     if (picked !== null || !question) return;
     setPicked(choice ?? '__timeout__');
     const right = choice === question.answer;
+    recordVocabAttempt(question.answer, right); // SRS: the ES term tested
     if (right) {
       playTone('success');
       setStreak((s) => {
@@ -786,6 +788,8 @@ function SpeedMatrix() {
     return () => clearTimeout(t);
   }, [phase, picked, timeLeft, qIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Persist the personal best + fire-and-forget cloud sync once the round settles.
+  useEffect(() => { if (phase === 'done') recordGameResult('speed', score, best); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
   // Clean up a pending advance on unmount.
   useEffect(() => () => { if (advanceRef.current) clearTimeout(advanceRef.current); }, []);
 
@@ -797,6 +801,7 @@ function SpeedMatrix() {
           {SPEED_ROUND} rapid questions · {SPEED_SECONDS}s each. Match the English term to
           the correct Spanish. Build a combo streak — every consecutive hit is worth more.
         </div>
+        {readBest('speed') > 0 ? <div className="lr-game-best">🏆 BEST {readBest('speed')}</div> : null}
         <button type="button" className="lr-game-btn" onClick={begin}>START ROUND</button>
       </div>
     );
@@ -907,10 +912,18 @@ function FlipDrill() {
   );
 }
 
-// Personal best per game mode (localStorage; higher = better). A light retention
-// touch so a streak survives a refresh — no backend, device-local, quota-safe.
+// Personal best per game mode. localStorage is the INSTANT layer (best shows with
+// zero latency); Supabase is the cross-device source of truth (loaded on mount,
+// written on completion). Both keep the max, so they converge.
 function readBest(mode) { try { return Number(localStorage.getItem(`bbf.lr.best.${mode}`)) || 0; } catch { return 0; } }
 function saveBest(mode, val) { try { if (val > readBest(mode)) localStorage.setItem(`bbf.lr.best.${mode}`, String(val)); } catch { /* quota */ } }
+// Pull a server best down into localStorage (cross-device sync IN, on login).
+function hydrateBest(mode, val) { try { if (Number(val) > readBest(mode)) localStorage.setItem(`bbf.lr.best.${mode}`, String(Math.round(Number(val)))); } catch { /* quota */ } }
+// A finished round → localStorage best + a fire-and-forget cloud upsert (sync OUT).
+function recordGameResult(mode, score, streak) {
+  saveBest(mode, score);
+  saveLanguageScore(mode, score, streak); // best-effort; resolves {ok:false} off-session
+}
 
 // Speak an ES term in the free on-device voice (the same speechFallback path SpeakBtn
 // owns); warmUpSpeech primes iOS inside the gesture so the first cue isn't swallowed.
@@ -949,12 +962,13 @@ function ListeningLab() {
   // The prompt IS the audio: speak the term on each new question.
   useEffect(() => { if (phase === 'playing' && question) speakEs(question.audio); }, [question, phase]);
   // Persist the personal best once the round settles (score is final by now).
-  useEffect(() => { if (phase === 'done') saveBest('listen', score); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (phase === 'done') recordGameResult('listen', score, best); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => { if (advanceRef.current) clearTimeout(advanceRef.current); }, []);
 
   const lockAnswer = (choice) => {
     if (picked !== null || !question) return;
     setPicked(choice);
+    recordVocabAttempt(question.audio, choice === question.answer); // SRS: the ES term just heard
     if (choice === question.answer) {
       playTone('success');
       setStreak((s) => { const ns = s + 1; setBest((b) => Math.max(b, ns)); setScore((sc) => sc + 10 + s * 2); return ns; });
@@ -1065,6 +1079,7 @@ function MatchMadness() {
   const resolve = (esId, enId) => {
     if (esId === enId) {
       playTone('success');
+      recordVocabAttempt(esCol.find((t) => t.id === esId)?.es, true); // SRS: a clean pair
       const willComplete = matchedIds.length + 1 >= MATCH_PAIRS;
       setMatchedIds((m) => (m.includes(esId) ? m : [...m, esId]));
       setSelEs(null); setSelEn(null);
@@ -1086,7 +1101,7 @@ function MatchMadness() {
     }
   };
 
-  useEffect(() => { if (phase === 'done') saveBest('match', score); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (phase === 'done') recordGameResult('match', score, 0); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => { if (clearRef.current) clearTimeout(clearRef.current); }, []);
 
   if (phase === 'idle') {
@@ -1152,26 +1167,184 @@ function MatchMadness() {
   );
 }
 
+// ─── SENTENCE BUILDER (tap-to-arrange · real sentences, not bare terms) ──────
+// Data source: the Rio Ready / Social Survival Kit (Portuguese) + the Spanish coach
+// scripts — both are complete sentences. Words are scrambled into a bank; the user
+// taps them into the correct order. Filtered to 3–9 words: long enough to scramble
+// meaningfully, short enough to solve.
+function sentencePool() {
+  const fromPt = ptPhrases.map((p) => ({ text: p.pt, en: p.en, lang: 'pt' }));
+  const fromEs = scripts.flatMap((sc) => sc.lines.map((l) => ({ text: l.es, en: l.en, lang: 'es' })));
+  return [...fromPt, ...fromEs].filter((s) => {
+    const w = String(s.text).trim().split(/\s+/).length;
+    return w >= 3 && w <= 9;
+  });
+}
+const SENTENCE_POOL = sentencePool();
+const SENTENCE_ROUND = 8;
+
+function SentenceBuilder() {
+  const [phase, setPhase] = useState('idle');
+  const [pool, setPool] = useState([]);
+  const [rIdx, setRIdx] = useState(0);
+  const [bank, setBank] = useState([]);    // [{ id, word }] — fixed token identities
+  const [built, setBuilt] = useState([]);  // [id...] — the user's arrangement
+  const [checked, setChecked] = useState(null); // null | 'correct' | 'wrong'
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [best, setBest] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const advanceRef = useRef(null);
+  const current = pool[rIdx] || null;
+
+  const load = (sentence) => {
+    const toks = String(sentence.text).trim().split(/\s+/).map((w, i) => ({ id: i, word: w }));
+    setBank(shuffle(toks)); setBuilt([]); setChecked(null);
+  };
+  const begin = () => {
+    const p = shuffle(SENTENCE_POOL).slice(0, SENTENCE_ROUND);
+    setPool(p); setRIdx(0); setScore(0); setStreak(0); setBest(0); setCorrectCount(0);
+    load(p[0]); setPhase('playing');
+  };
+  useEffect(() => { if (phase === 'done') recordGameResult('sentence', score, best); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { if (advanceRef.current) clearTimeout(advanceRef.current); }, []);
+
+  const tapBank = (id) => { if (checked === 'correct' || built.includes(id)) return; setBuilt((b) => [...b, id]); setChecked(null); };
+  const tapBuilt = (id) => { if (checked === 'correct') return; setBuilt((b) => b.filter((x) => x !== id)); setChecked(null); };
+  const clearBuilt = () => { if (checked === 'correct') return; setBuilt([]); setChecked(null); };
+
+  const check = () => {
+    if (!current || checked === 'correct' || built.length === 0) return;
+    const builtText = built.map((id) => bank.find((t) => t.id === id)?.word).join(' ');
+    if (builtText === String(current.text).trim()) {
+      playTone('success'); setChecked('correct');
+      setStreak((s) => { const ns = s + 1; setBest((b) => Math.max(b, ns)); setScore((sc) => sc + 15 + s * 3); return ns; });
+      setCorrectCount((c) => c + 1);
+      advanceRef.current = setTimeout(() => {
+        const next = rIdx + 1;
+        if (next >= pool.length) { setPhase('done'); return; }
+        setRIdx(next); load(pool[next]);
+      }, 1100);
+    } else { playTone('fail'); setChecked('wrong'); setStreak(0); }
+  };
+  const skip = () => {
+    if (checked === 'correct') return;
+    setStreak(0);
+    const next = rIdx + 1;
+    if (next >= pool.length) { setPhase('done'); return; }
+    setRIdx(next); load(pool[next]);
+  };
+
+  if (phase === 'idle') {
+    const pb = readBest('sentence');
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">🧩 SENTENCE BUILDER</div>
+        <div className="lr-game-start-desc">
+          {SENTENCE_ROUND} real sentences from the Rio Ready kit + coach scripts. The words are
+          scrambled — tap them into the correct order. Hear the target in the free voice any time.
+        </div>
+        {pb > 0 ? <div className="lr-game-best">🏆 BEST {pb}</div> : null}
+        <button type="button" className="lr-game-btn" onClick={begin}>START ROUND</button>
+      </div>
+    );
+  }
+  if (phase === 'done') {
+    const pct = Math.round((correctCount / Math.max(1, pool.length)) * 100);
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">ROUND COMPLETE</div>
+        <div className="lr-game-score-final">{score}<span> PTS</span></div>
+        <div className="lr-game-summary">
+          <div><strong>{correctCount}/{pool.length}</strong> built ({pct}%)</div>
+          <div>Best combo: <strong>×{best}</strong></div>
+        </div>
+        <button type="button" className="lr-game-btn" onClick={begin}>PLAY AGAIN</button>
+      </div>
+    );
+  }
+  const flag = current.lang === 'pt' ? '🇧🇷' : '🇪🇸';
+  return (
+    <div className="lr-game">
+      <div className="lr-game-hud">
+        <div className="lr-game-hud-cell"><span>SCORE</span><strong>{score}</strong></div>
+        <div className="lr-game-hud-cell"><span>STREAK</span><strong className={streak >= 3 ? 'lr-hot' : ''}>×{streak}</strong></div>
+        <div className="lr-game-hud-cell"><span>#</span><strong>{rIdx + 1}/{pool.length}</strong></div>
+      </div>
+      <div className="lr-sb-prompt">
+        <span className="lr-sb-flag" aria-hidden="true">{flag}</span>
+        <span className="lr-sb-en">{current.en}</span>
+        <SpeakBtn text={current.text} lang={current.lang} label="🔊" />
+      </div>
+      <div className={`lr-sb-built${checked === 'correct' ? ' is-correct' : ''}${checked === 'wrong' ? ' is-wrong' : ''}`} data-testid="lr-sb-built">
+        {built.length === 0 ? (
+          <span className="lr-sb-placeholder">tap words below to build the sentence…</span>
+        ) : built.map((id) => {
+          const t = bank.find((x) => x.id === id);
+          return <button key={id} type="button" className="lr-sb-word" onClick={() => tapBuilt(id)}>{t?.word}</button>;
+        })}
+      </div>
+      <div className="lr-sb-bank" data-testid="lr-sb-bank">
+        {bank.filter((t) => !built.includes(t.id)).map((t) => (
+          <button key={t.id} type="button" className="lr-sb-word lr-sb-word--bank" onClick={() => tapBank(t.id)}>{t.word}</button>
+        ))}
+      </div>
+      <div className="lr-sb-actions">
+        <button type="button" className="lr-sb-btn lr-sb-btn--ghost" onClick={clearBuilt} disabled={checked === 'correct'}>CLEAR</button>
+        <button type="button" className="lr-sb-btn lr-sb-btn--ghost" onClick={skip} disabled={checked === 'correct'}>SKIP →</button>
+        <button type="button" className="lr-sb-btn lr-sb-btn--go" onClick={check} disabled={checked === 'correct' || built.length === 0}>CHECK</button>
+      </div>
+    </div>
+  );
+}
+
 function TabVocabGym() {
   const [mode, setMode] = useState('speed');
+  const [mastery, setMastery] = useState(null);
+
+  // Cross-device sync: on mount + each mode switch, pull the athlete's bests into
+  // localStorage and refresh the spaced-repetition mastery summary. Best-effort —
+  // a missing session/server just leaves the local-only experience intact.
+  useEffect(() => {
+    let alive = true;
+    loadLanguageProgress().then((res) => {
+      if (!alive || !res || !res.ok) return;
+      Object.entries(res.scores || {}).forEach(([m, s]) => { if (s && s.best_score != null) hydrateBest(m, s.best_score); });
+      setMastery(res.mastery || null);
+    });
+    return () => { alive = false; };
+  }, [mode]);
+
+  const m = mastery;
   return (
     <div>
       <div className="lr-section-label">TASK 5 · THE VOCABULARY GYM</div>
       <div className="lr-section-title">VOCAB <span>GYM</span></div>
       <div className="lr-section-desc">
-        Your daily reps. Train the {VOCAB_POOL.length}-term fitness matrix as an active game —
-        read it, hear it, or race the clock. Four modes, zero tokens, fully on-device.
+        Your daily reps. Train the {VOCAB_POOL.length}-term matrix as an active game — read it,
+        hear it, race the clock, or rebuild the sentence. Five modes, zero tokens; your scores +
+        spaced-repetition mastery sync to your account across every device.
       </div>
+      {m && m.terms > 0 ? (
+        <div className="lr-mastery" data-testid="lr-mastery">
+          <div className="lr-mastery-cell"><strong>{m.terms}</strong><span>SEEN</span></div>
+          <div className="lr-mastery-cell"><strong className="lr-mastery-grn">{m.mastered}</strong><span>MASTERED</span></div>
+          <div className="lr-mastery-cell"><strong className="lr-mastery-yel">{m.reviewing}</strong><span>REVIEWING</span></div>
+          <div className="lr-mastery-cell"><strong>{m.attempts ? Math.round((m.correct / m.attempts) * 100) : 0}%</strong><span>ACCURACY</span></div>
+        </div>
+      ) : null}
       <div className="lr-chips">
         <button type="button" className={`lr-chip${mode === 'speed' ? ' is-active' : ''}`} onClick={() => setMode('speed')}>⚡ SPEED MATRIX</button>
         <button type="button" className={`lr-chip${mode === 'listen' ? ' is-active' : ''}`} onClick={() => setMode('listen')}>🎧 LISTENING LAB</button>
         <button type="button" className={`lr-chip${mode === 'match' ? ' is-active' : ''}`} onClick={() => setMode('match')}>🔗 MATCH MADNESS</button>
+        <button type="button" className={`lr-chip${mode === 'sentence' ? ' is-active' : ''}`} onClick={() => setMode('sentence')}>🧩 SENTENCE BUILDER</button>
         <button type="button" className={`lr-chip${mode === 'flip' ? ' is-active' : ''}`} onClick={() => setMode('flip')}>🃏 FLIP DRILL</button>
       </div>
       {mode === 'speed' ? <SpeedMatrix />
         : mode === 'listen' ? <ListeningLab />
           : mode === 'match' ? <MatchMadness />
-            : <FlipDrill />}
+            : mode === 'sentence' ? <SentenceBuilder />
+              : <FlipDrill />}
     </div>
   );
 }
