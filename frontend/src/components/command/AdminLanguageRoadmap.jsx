@@ -430,6 +430,21 @@ const VOCAB_POOL = Object.entries(vocabData).flatMap(([cat, items]) =>
   items.map((v) => ({ ...v, cat })),
 );
 
+// ── Adaptive SRS selection ───────────────────────────────────────────────────
+// The athlete's per-term Leitner boxes (es term → 1..5), hydrated from Supabase on
+// Gym mount. A weaker/newer term is weighted heavier so the games serve the cards
+// you're worst at FIRST — following the roadmap now feeds a real review engine.
+let VOCAB_BOXES = {};
+function setVocabBoxes(map) { VOCAB_BOXES = (map && typeof map === 'object') ? map : {}; }
+// weight = 6 − box: an unseen term (box 0) is 6× as likely as a mastered one (box 5).
+function weightedPick(pool) {
+  let total = 0;
+  const weights = pool.map((v) => { const w = 6 - (Number(VOCAB_BOXES[v.es]) || 0); total += w; return w; });
+  let r = Math.random() * total;
+  for (let i = 0; i < pool.length; i += 1) { r -= weights[i]; if (r <= 0) return pool[i]; }
+  return pool[pool.length - 1];
+}
+
 // ─── TABS ───────────────────────────────────────────────────────────────────
 
 function TabVocab() {
@@ -719,7 +734,7 @@ const SPEED_SECONDS = 8;      // seconds allotted per question
 // Build one Speed Matrix question: an English prompt + 4 ES options (1 correct,
 // 3 distractors drawn from the rest of the pool, de-duplicated on translation).
 function makeQuestion(pool) {
-  const correct = pool[Math.floor(Math.random() * pool.length)];
+  const correct = weightedPick(pool); // adaptive: weak/unseen terms surface first
   const distractors = shuffle(pool.filter((v) => v.es !== correct.es)).slice(0, 3);
   const options = shuffle([correct, ...distractors]);
   return { prompt: correct.en, answer: correct.es, cat: correct.cat, options };
@@ -938,7 +953,7 @@ function speakEs(text) {
 // Untimed (replay as needed) so it trains the ear, not reading speed.
 const LISTEN_ROUND = 10;
 function makeListenQuestion(pool) {
-  const correct = pool[Math.floor(Math.random() * pool.length)];
+  const correct = weightedPick(pool); // adaptive: weak/unseen terms surface first
   const distractors = shuffle(pool.filter((v) => v.en !== correct.en)).slice(0, 3);
   return { audio: correct.es, answer: correct.en, cat: correct.cat, options: shuffle([correct, ...distractors]) };
 }
@@ -1312,6 +1327,7 @@ function TabVocabGym() {
       if (!alive || !res || !res.ok) return;
       Object.entries(res.scores || {}).forEach(([m, s]) => { if (s && s.best_score != null) hydrateBest(m, s.best_score); });
       setMastery(res.mastery || null);
+      setVocabBoxes(res.boxes || {}); // adaptive SRS weighting for Speed Matrix + Listening Lab
     });
     return () => { alive = false; };
   }, [mode]);
@@ -1583,10 +1599,297 @@ function TabVideoVault() {
   );
 }
 
+// ─── IMMERSION LAB · Cultural Context + Conversation Engine ──────────────────
+// Real-world practice, compute-first + ZERO API cost: device-native TTS
+// (speechFallback) is the partner's voice, the Web Speech API (useSpeechEvaluator)
+// is the athlete's voice input, comparePhrases does the fuzzy scoring, and every
+// line feeds the same Supabase SRS the Vocab Gym uses. No LLM, no ElevenLabs.
+
+const CULTURAL_SCENARIOS = [
+  {
+    id: 'restaurant-es', lang: 'es', title: 'Ordering at a Taquería', setting: '🌮 Mexico City',
+    turns: [
+      { text: 'Buenas tardes, ¿qué desea ordenar?', cue: 'Ask for tacos al pastor and a water', expected: 'Quiero tacos al pastor y un agua, por favor', alts: ['Me trae tacos al pastor y un agua', 'Tacos al pastor y un agua por favor'] },
+      { text: '¿Algo más?', cue: 'Say no thanks, nothing else', expected: 'No, gracias. Nada más.', alts: ['Nada más gracias', 'No, está bien'] },
+      { text: '¿Para comer aquí o para llevar?', cue: 'Say to-go, please', expected: 'Para llevar, por favor', alts: ['Para llevar', 'Para llevar gracias'] },
+      { text: 'Son cien pesos.', cue: 'Ask if they accept card', expected: '¿Aceptan tarjeta?', alts: ['¿Puedo pagar con tarjeta?', '¿Toman tarjeta?'] },
+    ],
+  },
+  {
+    id: 'directions-pt', lang: 'pt', title: 'Asking Directions', setting: '🏖️ Rio de Janeiro',
+    turns: [
+      { text: 'Oi! Posso ajudar?', cue: 'Ask how to get to Copacabana', expected: 'Como eu chego em Copacabana?', alts: ['Como chego à Copacabana?', 'Onde fica Copacabana?'] },
+      { text: 'É longe daqui a pé.', cue: 'Ask if there is a bus', expected: 'Tem ônibus?', alts: ['Tem algum ônibus?', 'Qual ônibus eu pego?'] },
+      { text: 'Pega o 583 ali na esquina.', cue: 'Ask how much the fare costs', expected: 'Quanto custa a passagem?', alts: ['Quanto é a passagem?', 'Quanto custa?'] },
+      { text: 'Cinco reais. Boa viagem!', cue: 'Thank them a lot', expected: 'Muito obrigado!', alts: ['Obrigado!', 'Valeu, obrigado!'] },
+    ],
+  },
+  {
+    id: 'market-es', lang: 'es', title: 'Negotiating at the Market', setting: '🧶 Oaxaca',
+    turns: [
+      { text: '¡Pásele! ¿Le gusta este tapete?', cue: 'Ask how much it costs', expected: '¿Cuánto cuesta?', alts: ['¿Cuánto vale?', '¿Qué precio tiene?'] },
+      { text: 'Quinientos pesos, joven.', cue: 'Say it is a bit expensive', expected: 'Está un poco caro.', alts: ['Es un poco caro', 'Está caro'] },
+      { text: '¿Cuánto me ofrece?', cue: 'Offer three hundred', expected: 'Le doy trescientos.', alts: ['Trescientos', 'Le ofrezco trescientos'] },
+      { text: 'Cuatrocientos y es suyo.', cue: 'Agree and say you will take it', expected: 'Está bien, me lo llevo.', alts: ['Me lo llevo', 'De acuerdo, me lo llevo'] },
+    ],
+  },
+];
+
+const CONVERSATIONS = [
+  {
+    id: 'casual-chat-es', lang: 'es', title: 'Casual Chat', setting: '☕ Coffee shop', opener: 'Hola, ¿cómo estás?', turnLimit: 8,
+    intents: [
+      { name: 'how_are', patterns: /bien|mal|cansad|más o menos|regular|excelente/i, responses: ['Me alegro. ¿De dónde eres?', 'Qué bueno. ¿Y a qué te dedicas?'] },
+      { name: 'origin', patterns: /soy de|vengo de|estados unidos|méxico|de aquí/i, responses: ['Ah, ¡qué bien! ¿Qué te trae por aquí?', 'Genial. ¿Hace cuánto que viajas?'] },
+      { name: 'job', patterns: /entrenador|trabajo|me dedico|soy/i, responses: ['Interesante. ¿Te gusta tu trabajo?', '¡Qué bueno! Suena emocionante.'] },
+      { name: 'greeting', patterns: /hola|buenas|buenos|qué tal/i, responses: ['¡Hola! ¿Qué tal tu día?', 'Buenas. ¿Cómo va todo?'] },
+      { name: 'thanks', patterns: /gracias/i, responses: ['¡De nada! Un placer.', 'Con gusto.'] },
+    ],
+    fallback: ['Mmm, no te entendí bien. ¿Puedes repetir?', 'Perdona, ¿cómo dijiste?'],
+  },
+  {
+    id: 'cafe-pt', lang: 'pt', title: 'Café Order', setting: '🥐 Padaria', opener: 'Bom dia! O que vai querer?', turnLimit: 8,
+    intents: [
+      { name: 'order', patterns: /quero|me vê|um café|pão|vou querer|prefiro/i, responses: ['Saiu! Mais alguma coisa?', 'Pode deixar. Algo mais?'] },
+      { name: 'price', patterns: /quanto|preço|custa/i, responses: ['São oito reais.', 'Fica dez reais no total.'] },
+      { name: 'no_more', patterns: /só isso|nada mais|mais nada|tá bom|é isso/i, responses: ['Beleza! Já trago.', 'Perfeito, um instante.'] },
+      { name: 'thanks', patterns: /obrigad|valeu/i, responses: ['Imagina! Bom apetite.', 'De nada, volte sempre!'] },
+      { name: 'greeting', patterns: /oi|olá|bom dia|boa tarde/i, responses: ['Oi! Tudo bem? O que vai querer?', 'Olá! Pois não?'] },
+    ],
+    fallback: ['Desculpa, não entendi. Pode repetir?', 'Como assim? Fala de novo.'],
+  },
+  {
+    id: 'market-haggle-es', lang: 'es', title: 'Market Haggle', setting: '🧺 Mercado', opener: '¡Pásele! ¿Qué busca hoy?', turnLimit: 8,
+    intents: [
+      { name: 'ask_price', patterns: /cuánto|precio|vale|cuesta/i, responses: ['Le dejo en doscientos.', 'Para usted, ciento ochenta.'] },
+      { name: 'too_much', patterns: /caro|mucho|no tengo tanto/i, responses: ['¿Cuánto me ofrece?', 'Ándele, ¿cuánto le pongo?'] },
+      { name: 'offer', patterns: /le doy|le ofrezco|cien|ciento|\d+/i, responses: ['Mmm... que sean ciento veinte.', 'Está bien, ¡trato hecho!'] },
+      { name: 'deal', patterns: /me lo llevo|trato hecho|de acuerdo|está bien/i, responses: ['¡Excelente elección! Gracias.', '¡Va! Que lo disfrute.'] },
+      { name: 'greeting', patterns: /hola|buenas/i, responses: ['¡Buenas! Pásele, pásele.', '¡Hola! ¿Le muestro algo?'] },
+    ],
+    fallback: ['No le entendí, joven. ¿Mande?', '¿Cómo dice?'],
+  },
+];
+
+// Reusable voice-input button (Web Speech API). Fills the parent input via onText.
+function MicButton({ lang, onText }) {
+  const { supported, listening, transcript, start, stop, reset } = useSpeechEvaluator(lang);
+  useEffect(() => { if (transcript) onText(transcript); }, [transcript]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!supported) return null;
+  return (
+    <button type="button" className={`lr-mic${listening ? ' is-live' : ''}`} onClick={() => { if (listening) stop(); else { reset(); start(); } }} aria-label="Speak your answer">
+      {listening ? '● REC' : '🎙️'}
+    </button>
+  );
+}
+
+function CulturalContext() {
+  const [phase, setPhase] = useState('idle');
+  const [scenario, setScenario] = useState(null);
+  const [turnIdx, setTurnIdx] = useState(0);
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState(null);
+  const [hits, setHits] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [best, setBest] = useState(0);
+  const lang = scenario ? scenario.lang : 'es';
+  const turn = scenario ? scenario.turns[turnIdx] : null;
+
+  // Partner speaks each new line; the personal best persists once the scenario ends.
+  useEffect(() => { if (phase === 'playing' && turn) { warmUpSpeech(); speakWithBrowser({ text: turn.text, lang }).catch(() => {}); } }, [turnIdx, phase, scenario]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (phase === 'done' && scenario) recordGameResult('cultural', Math.round((hits / scenario.turns.length) * 100), best); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const begin = (sc) => { setScenario(sc); setTurnIdx(0); setInput(''); setResult(null); setHits(0); setStreak(0); setBest(0); setPhase('playing'); };
+  const submit = () => {
+    if (!turn || !input.trim() || result) return;
+    const cands = [turn.expected, ...(turn.alts || [])];
+    const score = Math.max(...cands.map((c) => comparePhrases(c, input).score));
+    const ok = score >= 70;
+    playTone(ok ? 'success' : 'fail');
+    recordVocabAttempt(turn.expected, ok);
+    if (ok) { setHits((h) => h + 1); setStreak((s) => { const ns = s + 1; setBest((b) => Math.max(b, ns)); return ns; }); } else setStreak(0);
+    setResult({ ok, score });
+    speakWithBrowser({ text: turn.expected, lang }).catch(() => {}); // native pronunciation
+  };
+  const next = () => {
+    const ni = turnIdx + 1;
+    if (ni >= scenario.turns.length) { setPhase('done'); return; }
+    setTurnIdx(ni); setInput(''); setResult(null);
+  };
+
+  if (phase === 'idle') {
+    return (
+      <div className="lr-cc-pick">
+        {CULTURAL_SCENARIOS.map((sc) => (
+          <button type="button" key={sc.id} className="lr-cc-card" onClick={() => begin(sc)}>
+            <span className="lr-cc-card-emoji" aria-hidden="true">{sc.setting.split(' ')[0]}</span>
+            <span className="lr-cc-card-title">{sc.title}</span>
+            <span className="lr-cc-card-set">{sc.setting.slice(2)} · {sc.lang === 'pt' ? '🇧🇷' : '🇪🇸'} · {sc.turns.length} turns</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+  if (phase === 'done') {
+    const acc = Math.round((hits / scenario.turns.length) * 100);
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">SCENARIO COMPLETE</div>
+        <div className="lr-game-score-final">{acc}<span>% ACCURACY</span></div>
+        <div className="lr-game-summary"><div><strong>{hits}/{scenario.turns.length}</strong> turns nailed</div><div>Best combo: <strong>×{best}</strong></div></div>
+        <button type="button" className="lr-game-btn" onClick={() => begin(scenario)}>RETRY</button>
+        <button type="button" className="lr-sb-btn lr-sb-btn--ghost" style={{ marginLeft: '.6rem' }} onClick={() => setPhase('idle')}>← SCENARIOS</button>
+      </div>
+    );
+  }
+  return (
+    <div className="lr-game">
+      <div className="lr-game-hud">
+        <div className="lr-game-hud-cell"><span>{scenario.setting.split(' ')[0]} SCENE</span><strong style={{ fontSize: '.95rem' }}>{scenario.title}</strong></div>
+        <div className="lr-game-hud-cell"><span>TURN</span><strong>{turnIdx + 1}/{scenario.turns.length}</strong></div>
+        <div className="lr-game-hud-cell"><span>STREAK</span><strong className={streak >= 3 ? 'lr-hot' : ''}>×{streak}</strong></div>
+      </div>
+      <div className="lr-cc-line">
+        <span className="lr-cc-flag" aria-hidden="true">{lang === 'pt' ? '🇧🇷' : '🇪🇸'}</span>
+        <span className="lr-cc-text">{turn.text}</span>
+        <SpeakBtn text={turn.text} lang={lang} label="🔊" />
+      </div>
+      <div className="lr-cc-cue"><span>YOUR TURN ·</span> {turn.cue}</div>
+      {!result ? (
+        <>
+          <div className="lr-cc-input-row">
+            <input className="lr-cc-input" value={input} placeholder={lang === 'pt' ? 'Digite ou fale…' : 'Escribe o habla…'} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} />
+            <MicButton lang={lang} onText={setInput} />
+          </div>
+          <button type="button" className="lr-game-btn" onClick={submit} disabled={!input.trim()}>SUBMIT</button>
+        </>
+      ) : (
+        <div className={`lr-cc-result${result.ok ? ' is-ok' : ' is-bad'}`}>
+          <div className="lr-cc-result-head">{result.ok ? '✅ ¡Bien!' : '❌ Close'} · {result.score}%</div>
+          <div className="lr-cc-result-exp">{turn.expected} <SpeakBtn text={turn.expected} lang={lang} label="🔊" /></div>
+          {!result.ok ? <div className="lr-cc-result-you">You said: &ldquo;{input}&rdquo;</div> : null}
+          <button type="button" className="lr-game-btn" onClick={next}>{turnIdx + 1 >= scenario.turns.length ? 'FINISH' : 'NEXT →'}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function matchIntent(conv, text) {
+  for (let i = 0; i < conv.intents.length; i += 1) { if (conv.intents[i].patterns.test(text)) return conv.intents[i]; }
+  return null;
+}
+
+function ConversationEngine() {
+  const [phase, setPhase] = useState('idle');
+  const [conv, setConv] = useState(null);
+  const [msgs, setMsgs] = useState([]);
+  const [input, setInput] = useState('');
+  const [turns, setTurns] = useState(0);
+  const [matched, setMatched] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [best, setBest] = useState(0);
+  const lang = conv ? conv.lang : 'es';
+  const scrollRef = useRef(null);
+
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [msgs]);
+  useEffect(() => { if (phase === 'done' && conv) recordGameResult('conversation', turns ? Math.round((matched / turns) * 100) : 0, best); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const begin = (c) => {
+    setConv(c); setMsgs([{ who: 'partner', text: c.opener }]); setInput(''); setTurns(0); setMatched(0); setStreak(0); setBest(0); setPhase('playing');
+    warmUpSpeech(); speakWithBrowser({ text: c.opener, lang: c.lang }).catch(() => {});
+  };
+  const send = () => {
+    if (!input.trim() || phase !== 'playing') return;
+    const userText = input.trim();
+    const it = matchIntent(conv, userText);
+    const hit = !!it;
+    playTone(hit ? 'success' : 'fail');
+    recordVocabAttempt(userText, hit);
+    const poolR = it ? it.responses : conv.fallback;
+    const reply = poolR[Math.floor(Math.random() * poolR.length)];
+    const nTurns = turns + 1;
+    setMsgs((mm) => [...mm, { who: 'you', text: userText }, { who: 'partner', text: reply }]);
+    setInput('');
+    setTurns(nTurns);
+    if (hit) { setMatched((x) => x + 1); setStreak((s) => { const ns = s + 1; setBest((b) => Math.max(b, ns)); return ns; }); } else setStreak(0);
+    speakWithBrowser({ text: reply, lang }).catch(() => {});
+    if (nTurns >= conv.turnLimit) setTimeout(() => setPhase('done'), 1000);
+  };
+
+  if (phase === 'idle') {
+    return (
+      <div className="lr-cc-pick">
+        {CONVERSATIONS.map((c) => (
+          <button type="button" key={c.id} className="lr-cc-card" onClick={() => begin(c)}>
+            <span className="lr-cc-card-emoji" aria-hidden="true">{c.setting.split(' ')[0]}</span>
+            <span className="lr-cc-card-title">{c.title}</span>
+            <span className="lr-cc-card-set">{c.setting.slice(2)} · {c.lang === 'pt' ? '🇧🇷' : '🇪🇸'} · {c.turnLimit} turns</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+  if (phase === 'done') {
+    const acc = turns ? Math.round((matched / turns) * 100) : 0;
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">CONVERSATION DONE</div>
+        <div className="lr-game-score-final">{acc}<span>% MATCHED</span></div>
+        <div className="lr-game-summary"><div><strong>{matched}/{turns}</strong> intents understood</div><div>Best combo: <strong>×{best}</strong></div></div>
+        <button type="button" className="lr-game-btn" onClick={() => begin(conv)}>AGAIN</button>
+        <button type="button" className="lr-sb-btn lr-sb-btn--ghost" style={{ marginLeft: '.6rem' }} onClick={() => setPhase('idle')}>← SETS</button>
+      </div>
+    );
+  }
+  const acc = turns ? Math.round((matched / turns) * 100) : 0;
+  return (
+    <div className="lr-game">
+      <div className="lr-chat-top">
+        <span className="lr-chat-title">{conv.setting} · {conv.title}</span>
+        <span className="lr-chat-acc">Accuracy {acc}%{streak >= 2 ? ` · 🔥×${streak}` : ''} · {turns}/{conv.turnLimit}</span>
+      </div>
+      <div className="lr-chat" ref={scrollRef}>
+        {msgs.map((mm, i) => (
+          <div key={i} className={`lr-chat-msg lr-chat-msg--${mm.who}`}>
+            <span className="lr-chat-bubble">{mm.text}{mm.who === 'partner' ? <SpeakBtn text={mm.text} lang={lang} label="🔊" /> : null}</span>
+          </div>
+        ))}
+      </div>
+      <div className="lr-cc-input-row">
+        <input className="lr-cc-input" value={input} placeholder={lang === 'pt' ? 'Responda…' : 'Responde…'} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') send(); }} />
+        <MicButton lang={lang} onText={setInput} />
+        <button type="button" className="lr-game-btn lr-chat-send" onClick={send} disabled={!input.trim()}>SEND</button>
+      </div>
+    </div>
+  );
+}
+
+function TabImmersion() {
+  const [mode, setMode] = useState('cultural');
+  return (
+    <div>
+      <div className="lr-section-label">TASK 6 · REAL-WORLD IMMERSION</div>
+      <div className="lr-section-title">IMMERSION <span>LAB</span></div>
+      <div className="lr-section-desc">
+        Practice the real thing — order, ask directions, haggle, and hold a live chat. The
+        partner speaks in the free on-device voice; you reply by voice or text. Pure compute,
+        zero tokens; every line you produce feeds your spaced-repetition mastery.
+      </div>
+      <div className="lr-chips">
+        <button type="button" className={`lr-chip${mode === 'cultural' ? ' is-active' : ''}`} onClick={() => setMode('cultural')}>🌮 CULTURAL CONTEXT</button>
+        <button type="button" className={`lr-chip${mode === 'convo' ? ' is-active' : ''}`} onClick={() => setMode('convo')}>💬 CONVERSATION</button>
+      </div>
+      {mode === 'cultural' ? <CulturalContext /> : <ConversationEngine />}
+    </div>
+  );
+}
+
 const TABS = [
   { id: 'vocab', label: '🇪🇸 Vocab Matrix', Panel: TabVocab },
   { id: 'gym', label: '🏋️ Vocab Gym', Panel: TabVocabGym },
   { id: 'voice', label: '🎙️ Voice Studio', Panel: TabVoiceStudio },
+  { id: 'immersion', label: '🌎 Immersion', Panel: TabImmersion },
   { id: 'pt', label: '🇧🇷 Rio Ready', Panel: TabPortuguese },
   { id: 'roleplay', label: '⚡ God-Mode Drills', Panel: TabRoleplay },
   { id: 'intentions', label: '🎯 Intentions', Panel: TabIntentions },

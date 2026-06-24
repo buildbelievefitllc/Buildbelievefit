@@ -827,7 +827,101 @@
 }
 .lr-voice-err { margin-top: .8rem; }
 
+/* ── Immersion Lab · shared voice-input mic (Cultural Context + Conversation) ── */
+.lr-mic {
+  flex: none; cursor: pointer;
+  font-family: var(--hb); font-size: .9rem; letter-spacing: 1px;
+  color: #0c0a02; background: var(--yel); border: none; border-radius: 10px;
+  padding: .8rem 1rem; min-width: 52px;
+  transition: filter .15s ease, transform .1s ease;
+}
+.lr-mic:hover { filter: brightness(1.08); }
+.lr-mic:focus-visible { outline: 2px solid var(--wht); outline-offset: 3px; }
+.lr-mic.is-live { background: #ef4444; color: var(--wht); animation: lrpulse 1s ease-in-out infinite; }
+@keyframes lrpulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, .5); }
+  50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+
+/* ── Immersion Lab · Cultural Context (scenario picker + dialog turns) ──────── */
+.lr-cc-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .8rem; }
+.lr-cc-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: .35rem;
+  text-align: left; cursor: pointer;
+  background: linear-gradient(135deg, #12001f 0%, #0a0a0a 100%);
+  border: 1px solid var(--pur); border-radius: 12px;
+  padding: 1.2rem 1.1rem;
+  transition: border-color .15s ease, transform .12s ease;
+}
+.lr-cc-card:hover { border-color: var(--yel); transform: translateY(-2px); }
+.lr-cc-card:focus-visible { outline: 2px solid var(--yel); outline-offset: 3px; }
+.lr-cc-card-emoji { font-size: 2rem; line-height: 1; }
+.lr-cc-card-title { font-family: var(--hb); font-size: 1.3rem; letter-spacing: 1px; color: var(--wht); }
+.lr-cc-card-set { font-family: var(--bd); font-size: .78rem; letter-spacing: .5px; color: var(--purl); }
+
+.lr-cc-line {
+  display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
+  background: linear-gradient(135deg, #0f0020 0%, #0a0a0a 100%);
+  border: 1px solid var(--pur); border-radius: 10px;
+  padding: 1.1rem 1.2rem; margin-bottom: 1rem;
+}
+.lr-cc-flag { font-size: 1.5rem; line-height: 1; }
+.lr-cc-text { flex: 1; min-width: 180px; font-family: var(--bd); font-size: 1.25rem; font-weight: 600; line-height: 1.4; color: var(--wht); }
+.lr-cc-line .lr-speak { align-self: center; }
+
+.lr-cc-cue { font-family: var(--bd); font-size: 1rem; color: #cbb6e8; margin-bottom: 1rem; }
+.lr-cc-cue span { font-family: var(--hb); letter-spacing: 2px; color: var(--yel); margin-right: .3rem; }
+
+.lr-cc-input-row { display: flex; gap: .6rem; align-items: center; margin-bottom: 1rem; }
+.lr-cc-input {
+  flex: 1; min-width: 0;
+  font-family: var(--bd); font-size: 1.05rem; color: var(--wht);
+  background: #161616; border: 1px solid #2a2a2a; border-radius: 10px;
+  padding: .8rem 1rem;
+  transition: border-color .15s ease;
+}
+.lr-cc-input:focus { outline: none; border-color: var(--yel); }
+.lr-cc-input::placeholder { color: #666; font-style: italic; }
+
+.lr-cc-result {
+  display: flex; flex-direction: column; gap: .6rem; align-items: flex-start;
+  border: 1px solid; border-radius: 10px; padding: 1.1rem 1.2rem;
+}
+.lr-cc-result.is-ok { border-color: var(--grn); background: rgba(34, 197, 94, .1); }
+.lr-cc-result.is-bad { border-color: #ef4444; background: rgba(239, 68, 68, .1); }
+.lr-cc-result-head { font-family: var(--hb); font-size: 1.2rem; letter-spacing: 1px; color: var(--wht); }
+.lr-cc-result-exp { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; font-family: var(--bd); font-size: 1.15rem; font-weight: 600; color: var(--yel); }
+.lr-cc-result-exp .lr-speak { align-self: center; }
+.lr-cc-result-you { font-family: var(--bd); font-size: .9rem; font-style: italic; color: #aaa; }
+
+/* ── Immersion Lab · Conversation Engine (turn-by-turn chat) ───────────────── */
+.lr-chat-top { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.lr-chat-title { font-family: var(--hb); font-size: 1.1rem; letter-spacing: 1px; color: var(--wht); }
+.lr-chat-acc { font-family: var(--bd); font-size: .8rem; letter-spacing: 1px; color: var(--purl); }
+.lr-chat {
+  display: flex; flex-direction: column; gap: .6rem;
+  max-height: 340px; overflow-y: auto;
+  background: #0a0a0a; border: 1px solid #1d1828; border-radius: 10px;
+  padding: 1rem; margin-bottom: 1rem;
+}
+.lr-chat-msg { display: flex; }
+.lr-chat-msg--you { justify-content: flex-end; }
+.lr-chat-msg--partner { justify-content: flex-start; }
+.lr-chat-bubble {
+  display: inline-flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  max-width: 82%;
+  font-family: var(--bd); font-size: 1.02rem; line-height: 1.4;
+  border-radius: 12px; padding: .6rem .9rem;
+}
+.lr-chat-msg--you .lr-chat-bubble { background: var(--pur); color: var(--wht); border-bottom-right-radius: 3px; }
+.lr-chat-msg--partner .lr-chat-bubble { background: #161616; border: 1px solid #2a2a2a; color: var(--wht); border-bottom-left-radius: 3px; }
+.lr-chat-bubble .lr-speak { align-self: center; }
+.lr-chat-send { flex: none; padding: .8rem 1.4rem; font-size: .95rem; }
+
 @media (max-width: 680px) {
   .lr-game-options { grid-template-columns: 1fr; }
   .lr-game-prompt-term { font-size: 1.4rem; }
+  .lr-cc-pick { grid-template-columns: 1fr; }
+  .lr-cc-text { font-size: 1.1rem; }
+  .lr-chat-bubble { max-width: 92%; }
 }
