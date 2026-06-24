@@ -468,7 +468,10 @@ function TabVocab() {
               <div className="lr-vocab-es">{v.es}</div>
               <div className="lr-vocab-cat">{activeCat}</div>
             </div>
-            <div className="lr-vocab-en">{v.en}</div>
+            <div className="lr-vocab-rhs">
+              <div className="lr-vocab-en">{v.en}</div>
+              <SpeakBtn text={v.es} lang="es" />
+            </div>
           </div>
         ))}
       </div>
@@ -525,6 +528,7 @@ function TabPortuguese() {
             </div>
             <div className="lr-phrase-en">{p.en}</div>
           </div>
+          <SpeakBtn text={p.pt} lang="pt" />
         </div>
       ))}
       <hr className="lr-divider" />
@@ -903,6 +907,251 @@ function FlipDrill() {
   );
 }
 
+// Personal best per game mode (localStorage; higher = better). A light retention
+// touch so a streak survives a refresh — no backend, device-local, quota-safe.
+function readBest(mode) { try { return Number(localStorage.getItem(`bbf.lr.best.${mode}`)) || 0; } catch { return 0; } }
+function saveBest(mode, val) { try { if (val > readBest(mode)) localStorage.setItem(`bbf.lr.best.${mode}`, String(val)); } catch { /* quota */ } }
+
+// Speak an ES term in the free on-device voice (the same speechFallback path SpeakBtn
+// owns); warmUpSpeech primes iOS inside the gesture so the first cue isn't swallowed.
+function speakEs(text) {
+  warmUpSpeech();
+  speakWithBrowser({ text, lang: 'es' }).catch(() => { /* stock voice unavailable — silent */ });
+}
+
+// ─── LISTENING LAB (ear-training · the soundboard AS a game) ─────────────────
+// The free voice SPEAKS a Spanish term; the athlete taps the English it means.
+// Untimed (replay as needed) so it trains the ear, not reading speed.
+const LISTEN_ROUND = 10;
+function makeListenQuestion(pool) {
+  const correct = pool[Math.floor(Math.random() * pool.length)];
+  const distractors = shuffle(pool.filter((v) => v.en !== correct.en)).slice(0, 3);
+  return { audio: correct.es, answer: correct.en, cat: correct.cat, options: shuffle([correct, ...distractors]) };
+}
+
+function ListeningLab() {
+  const [phase, setPhase] = useState('idle');
+  const [qIndex, setQIndex] = useState(0);
+  const [question, setQuestion] = useState(null);
+  const [picked, setPicked] = useState(null);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [best, setBest] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const advanceRef = useRef(null);
+
+  const begin = () => {
+    setScore(0); setStreak(0); setBest(0); setCorrectCount(0); setQIndex(0); setPicked(null);
+    setQuestion(makeListenQuestion(VOCAB_POOL));
+    setPhase('playing');
+  };
+
+  // The prompt IS the audio: speak the term on each new question.
+  useEffect(() => { if (phase === 'playing' && question) speakEs(question.audio); }, [question, phase]);
+  // Persist the personal best once the round settles (score is final by now).
+  useEffect(() => { if (phase === 'done') saveBest('listen', score); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { if (advanceRef.current) clearTimeout(advanceRef.current); }, []);
+
+  const lockAnswer = (choice) => {
+    if (picked !== null || !question) return;
+    setPicked(choice);
+    if (choice === question.answer) {
+      playTone('success');
+      setStreak((s) => { const ns = s + 1; setBest((b) => Math.max(b, ns)); setScore((sc) => sc + 10 + s * 2); return ns; });
+      setCorrectCount((c) => c + 1);
+    } else { playTone('fail'); setStreak(0); }
+    advanceRef.current = setTimeout(() => {
+      const next = qIndex + 1;
+      if (next >= LISTEN_ROUND) { setPhase('done'); return; }
+      setQIndex(next); setQuestion(makeListenQuestion(VOCAB_POOL)); setPicked(null);
+    }, 1000);
+  };
+
+  if (phase === 'idle') {
+    const pb = readBest('listen');
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">🎧 LISTENING LAB</div>
+        <div className="lr-game-start-desc">
+          {LISTEN_ROUND} rounds. The coach <strong>speaks a Spanish term</strong> in the free
+          on-device voice — tap the English it means. Pure ear-training; replay the audio as
+          often as you need.
+        </div>
+        {pb > 0 ? <div className="lr-game-best">🏆 BEST {pb}</div> : null}
+        <button type="button" className="lr-game-btn" onClick={begin}>START ROUND</button>
+      </div>
+    );
+  }
+  if (phase === 'done') {
+    const pct = Math.round((correctCount / LISTEN_ROUND) * 100);
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">ROUND COMPLETE</div>
+        <div className="lr-game-score-final">{score}<span> PTS</span></div>
+        <div className="lr-game-summary">
+          <div><strong>{correctCount}/{LISTEN_ROUND}</strong> correct ({pct}%)</div>
+          <div>Best combo: <strong>×{best}</strong></div>
+        </div>
+        <button type="button" className="lr-game-btn" onClick={begin}>PLAY AGAIN</button>
+      </div>
+    );
+  }
+  return (
+    <div className="lr-game">
+      <div className="lr-game-hud">
+        <div className="lr-game-hud-cell"><span>SCORE</span><strong>{score}</strong></div>
+        <div className="lr-game-hud-cell"><span>STREAK</span><strong className={streak >= 3 ? 'lr-hot' : ''}>×{streak}</strong></div>
+        <div className="lr-game-hud-cell"><span>Q</span><strong>{qIndex + 1}/{LISTEN_ROUND}</strong></div>
+      </div>
+      <div className="lr-listen-cue">
+        <button type="button" className="lr-listen-play" onClick={() => speakEs(question.audio)} aria-label="Replay the Spanish term">🔊</button>
+        <div className="lr-listen-hint">{question.cat} · tap to replay</div>
+      </div>
+      <div className="lr-game-options">
+        {question.options.map((opt) => {
+          let cls = 'lr-game-opt';
+          if (picked !== null) {
+            if (opt.en === question.answer) cls += ' is-correct';
+            else if (opt.en === picked) cls += ' is-wrong';
+          }
+          return (
+            <button key={opt.en} type="button" className={cls} disabled={picked !== null} onClick={() => lockAnswer(opt.en)}>
+              {opt.en}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── MATCH MADNESS (timed ES↔EN pairing) ─────────────────────────────────────
+const MATCH_PAIRS = 6;
+function dealMatch() {
+  return shuffle(VOCAB_POOL).slice(0, MATCH_PAIRS).map((v, i) => ({ id: i, es: v.es, en: v.en }));
+}
+
+function MatchMadness() {
+  const [phase, setPhase] = useState('idle');
+  const [esCol, setEsCol] = useState([]);
+  const [enCol, setEnCol] = useState([]);
+  const [selEs, setSelEs] = useState(null);
+  const [selEn, setSelEn] = useState(null);
+  const [matchedIds, setMatchedIds] = useState([]);
+  const [wrong, setWrong] = useState(false);
+  const [misses, setMisses] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const clearRef = useRef(null);
+  const score = Math.max(0, MATCH_PAIRS * 100 - misses * 15 - elapsed * 2);
+
+  const begin = () => {
+    const pairs = dealMatch();
+    setEsCol(shuffle(pairs.map((p) => ({ id: p.id, es: p.es }))));
+    setEnCol(shuffle(pairs.map((p) => ({ id: p.id, en: p.en }))));
+    setSelEs(null); setSelEn(null); setMatchedIds([]); setWrong(false); setMisses(0); setElapsed(0);
+    setPhase('playing');
+  };
+
+  // Count-up timer while playing.
+  useEffect(() => {
+    if (phase !== 'playing') return undefined;
+    const t = setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => clearInterval(t);
+  }, [phase]);
+
+  // Resolve a pair in the CLICK handler (never in an effect — synchronous setState
+  // inside an effect cascades renders). pick() reads the other column's current
+  // selection; resolve() scores the pair.
+  const resolve = (esId, enId) => {
+    if (esId === enId) {
+      playTone('success');
+      const willComplete = matchedIds.length + 1 >= MATCH_PAIRS;
+      setMatchedIds((m) => (m.includes(esId) ? m : [...m, esId]));
+      setSelEs(null); setSelEn(null);
+      if (willComplete) setPhase('done');
+    } else {
+      playTone('fail');
+      setSelEs(esId); setSelEn(enId); setWrong(true); setMisses((x) => x + 1);
+      clearRef.current = setTimeout(() => { setSelEs(null); setSelEn(null); setWrong(false); }, 650);
+    }
+  };
+  const pick = (col, id) => {
+    if (wrong || matchedIds.includes(id)) return;
+    if (col === 'es') {
+      if (selEn === null) setSelEs(id); else resolve(id, selEn);
+    } else if (selEs === null) {
+      setSelEn(id);
+    } else {
+      resolve(selEs, id);
+    }
+  };
+
+  useEffect(() => { if (phase === 'done') saveBest('match', score); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { if (clearRef.current) clearTimeout(clearRef.current); }, []);
+
+  if (phase === 'idle') {
+    const pb = readBest('match');
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">🔗 MATCH MADNESS</div>
+        <div className="lr-game-start-desc">
+          Pair all {MATCH_PAIRS} Spanish terms to their English meaning, fast. Tap a Spanish
+          word, then its match. Fewer misses + a quicker clock = a higher score.
+        </div>
+        {pb > 0 ? <div className="lr-game-best">🏆 BEST {pb}</div> : null}
+        <button type="button" className="lr-game-btn" onClick={begin}>START ROUND</button>
+      </div>
+    );
+  }
+  if (phase === 'done') {
+    return (
+      <div className="lr-game-start">
+        <div className="lr-game-start-title">ALL MATCHED</div>
+        <div className="lr-game-score-final">{score}<span> PTS</span></div>
+        <div className="lr-game-summary">
+          <div>Time: <strong>{elapsed}s</strong></div>
+          <div>Misses: <strong>{misses}</strong></div>
+        </div>
+        <button type="button" className="lr-game-btn" onClick={begin}>PLAY AGAIN</button>
+      </div>
+    );
+  }
+  const cellCls = (id, sel) => {
+    let c = 'lr-match-cell';
+    if (matchedIds.includes(id)) c += ' is-matched';
+    else if (sel === id) c += wrong ? ' is-wrong' : ' is-sel';
+    return c;
+  };
+  const frozen = wrong; // brief input freeze during the mismatch flash
+  return (
+    <div className="lr-game">
+      <div className="lr-game-hud">
+        <div className="lr-game-hud-cell"><span>MATCHED</span><strong>{matchedIds.length}/{MATCH_PAIRS}</strong></div>
+        <div className="lr-game-hud-cell"><span>MISSES</span><strong className={misses === 0 ? 'lr-hot' : ''}>{misses}</strong></div>
+        <div className="lr-game-hud-cell"><span>TIME</span><strong>{elapsed}s</strong></div>
+      </div>
+      <div className="lr-match-cols">
+        <div className="lr-match-col">
+          {esCol.map((it) => (
+            <button key={`es-${it.id}`} type="button" className={cellCls(it.id, selEs)}
+              disabled={frozen || matchedIds.includes(it.id)} onClick={() => pick('es', it.id)}>
+              {it.es}
+            </button>
+          ))}
+        </div>
+        <div className="lr-match-col">
+          {enCol.map((it) => (
+            <button key={`en-${it.id}`} type="button" className={cellCls(it.id, selEn)}
+              disabled={frozen || matchedIds.includes(it.id)} onClick={() => pick('en', it.id)}>
+              {it.en}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TabVocabGym() {
   const [mode, setMode] = useState('speed');
   return (
@@ -910,15 +1159,19 @@ function TabVocabGym() {
       <div className="lr-section-label">TASK 5 · THE VOCABULARY GYM</div>
       <div className="lr-section-title">VOCAB <span>GYM</span></div>
       <div className="lr-section-desc">
-        Your daily reps. Train the {VOCAB_POOL.length}-term fitness matrix as an active
-        game — multiple-choice time attack with combo streaks, or flashcard recall with
-        native pronunciation. Zero tokens, fully on-device.
+        Your daily reps. Train the {VOCAB_POOL.length}-term fitness matrix as an active game —
+        read it, hear it, or race the clock. Four modes, zero tokens, fully on-device.
       </div>
       <div className="lr-chips">
         <button type="button" className={`lr-chip${mode === 'speed' ? ' is-active' : ''}`} onClick={() => setMode('speed')}>⚡ SPEED MATRIX</button>
+        <button type="button" className={`lr-chip${mode === 'listen' ? ' is-active' : ''}`} onClick={() => setMode('listen')}>🎧 LISTENING LAB</button>
+        <button type="button" className={`lr-chip${mode === 'match' ? ' is-active' : ''}`} onClick={() => setMode('match')}>🔗 MATCH MADNESS</button>
         <button type="button" className={`lr-chip${mode === 'flip' ? ' is-active' : ''}`} onClick={() => setMode('flip')}>🃏 FLIP DRILL</button>
       </div>
-      {mode === 'speed' ? <SpeedMatrix /> : <FlipDrill />}
+      {mode === 'speed' ? <SpeedMatrix />
+        : mode === 'listen' ? <ListeningLab />
+          : mode === 'match' ? <MatchMadness />
+            : <FlipDrill />}
     </div>
   );
 }

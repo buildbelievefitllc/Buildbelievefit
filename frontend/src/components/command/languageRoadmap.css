@@ -655,6 +655,46 @@
 .lr-game-opt.is-correct { border-color: var(--grn); background: rgba(34, 197, 94, .15); color: var(--grn); }
 .lr-game-opt.is-wrong { border-color: #ef4444; background: rgba(239, 68, 68, .14); color: #ff8b8b; }
 
+/* ── Soundboard right-column on the Vocab Matrix ──────────────────────────── */
+.lr-vocab-rhs { display: flex; flex-direction: column; align-items: flex-end; gap: .4rem; }
+
+/* ── Personal-best chip (Vocab Gym start screens) ─────────────────────────── */
+.lr-game-best {
+  display: inline-block; font-family: var(--hb); font-size: .9rem; letter-spacing: 2px;
+  color: var(--yel); background: rgba(106, 13, 173, .25); border: 1px solid var(--pur);
+  border-radius: 999px; padding: .25rem .9rem; margin-bottom: 1rem;
+}
+
+/* ── Listening Lab · the big tap-to-hear cue ──────────────────────────────── */
+.lr-listen-cue { text-align: center; margin-bottom: 1.4rem; }
+.lr-listen-play {
+  width: 96px; height: 96px; border-radius: 50%; cursor: pointer;
+  font-size: 2.4rem; color: #0c0a02; border: none;
+  background: linear-gradient(135deg, var(--yel), var(--orn));
+  box-shadow: 0 8px 26px rgba(245, 200, 0, .3);
+  transition: transform .12s ease, filter .12s ease;
+}
+.lr-listen-play:hover { filter: brightness(1.08); transform: scale(1.04); }
+.lr-listen-play:active { transform: scale(.96); }
+.lr-listen-play:focus-visible { outline: 2px solid var(--wht); outline-offset: 3px; }
+.lr-listen-hint { font-family: var(--bd); font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--purl); margin-top: .7rem; }
+
+/* ── Match Madness · two-column ES↔EN pairing grid ────────────────────────── */
+.lr-match-cols { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.lr-match-col { display: flex; flex-direction: column; gap: .55rem; }
+.lr-match-cell {
+  font-family: var(--bd); font-size: .98rem; font-weight: 700; color: var(--wht);
+  background: #161616; border: 1px solid #2a2a2a; border-radius: 8px;
+  padding: .7rem .6rem; cursor: pointer; text-align: center; min-height: 48px;
+  transition: border-color .12s ease, background .12s ease, transform .12s ease;
+}
+.lr-match-cell:hover:not(:disabled) { border-color: var(--yel); transform: translateY(-1px); }
+.lr-match-cell:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
+.lr-match-cell.is-sel { border-color: var(--yel); background: rgba(245, 200, 0, .12); color: var(--yel); }
+.lr-match-cell.is-matched { border-color: var(--grn); background: rgba(34, 197, 94, .14); color: var(--grn); opacity: .6; cursor: default; }
+.lr-match-cell.is-wrong { border-color: #ef4444; background: rgba(239, 68, 68, .14); color: #ff8b8b; }
+.lr-match-cell:disabled:not(.is-matched) { cursor: default; }
+
 /* ── Vocab Gym · Flip Drill ───────────────────────────────────────────────── */
 .lr-flip { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
 .lr-flip-stats { display: flex; gap: 1rem; align-items: center; font-family: var(--bd); font-size: .85rem; color: #999; }
