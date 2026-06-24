@@ -1,18 +1,20 @@
 // src/lib/coachLabApi.js
 // ─────────────────────────────────────────────────────────────────────────────
-// Coach Lab data layer — the Research Vault (Pillar 1) backend contract.
+// Coach Lab data layer — the Knowledge Ecosystem backend contracts.
+//
+//   Research Vault / Broadcast  → bbf-coach-vault  (list/ingest/delete/broadcast)
+//   Coach's Arena               → bbf-coach-arena  (generate/critique)
 //
 // House convention (mirrors weeklyBriefApi / programApi): a raw fetch to
 // FUNCTIONS_BASE with the anon key (the Supabase gateway requires it to route)
 // PLUS the signed-in admin's server-revocable vault session token on the
-// `x-bbf-session-token` header. The bbf-coach-vault edge function validates that
-// token → admin/trainer/akeem before touching the RLS-sealed coach_knowledge_base
-// table (service-role). NEVER trust a client-supplied user id.
+// `x-bbf-session-token` header. Each edge function validates that token →
+// admin/trainer/akeem before doing privileged (service-role) work.
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
-async function callVault(action, args = {}) {
+async function callCoachFn(fnName, action, args = {}) {
   const token = getStoredVaultToken();
   if (!token) {
     const e = new Error('No admin session — sign in again.');
@@ -21,7 +23,7 @@ async function callVault(action, args = {}) {
   }
   let res;
   try {
-    res = await fetch(`${FUNCTIONS_BASE}/bbf-coach-vault`, {
+    res = await fetch(`${FUNCTIONS_BASE}/${fnName}`, {
       method: 'POST',
       headers: {
         apikey: SUPABASE_ANON_KEY,
@@ -32,29 +34,33 @@ async function callVault(action, args = {}) {
       body: JSON.stringify({ action, ...args }),
     });
   } catch {
-    const e = new Error('Research Vault unreachable — check your connection.');
+    const e = new Error('Coach Lab service unreachable — check your connection.');
     e.code = 'transport';
     throw e;
   }
   let data = null;
   try { data = await res.json(); } catch { /* non-JSON */ }
   if (!res.ok || !data?.ok) {
-    const e = new Error(data?.detail || data?.error || `vault_${res.status}`);
+    const e = new Error(data?.detail || data?.error || `coachfn_${res.status}`);
     e.code = data?.error || `http_${res.status}`;
     throw e;
   }
   return data;
 }
 
-// List the founder's saved research cards (newest first).
-export const listResearch = () => callVault('list').then((d) => d.cards || []);
-
-// Summarize pasted study text → a structured card, saved + returned.
+// ── Research Vault (Pillar 1) ──
+export const listResearch = () => callCoachFn('bbf-coach-vault', 'list').then((d) => d.cards || []);
 export const ingestResearch = (rawText, category) =>
-  callVault('ingest', { raw_text: rawText, category: category || undefined }).then((d) => d.card);
+  callCoachFn('bbf-coach-vault', 'ingest', { raw_text: rawText, category: category || undefined }).then((d) => d.card);
+export const deleteResearch = (id) => callCoachFn('bbf-coach-vault', 'delete', { id }).then((d) => d.deleted);
 
-// Remove a card by id.
-export const deleteResearch = (id) => callVault('delete', { id }).then((d) => d.deleted);
+// ── Broadcast Hub (Pillar 4) ──
+export const broadcastResearch = (cardIds, format = 'email') =>
+  callCoachFn('bbf-coach-vault', 'broadcast', { card_ids: cardIds, format }).then((d) => ({ newsletter: d.newsletter, format: d.format }));
 
-// The category taxonomy (matches the edge function + table CHECK-by-convention).
+// ── Coach's Arena (Pillar 3) ──
+export const generateCase = () => callCoachFn('bbf-coach-arena', 'generate').then((d) => d.case);
+export const critiqueProtocol = (theCase, protocol) =>
+  callCoachFn('bbf-coach-arena', 'critique', { case: theCase, protocol }).then((d) => d.critique);
+
 export const RESEARCH_CATEGORIES = ['biomechanics', 'bioenergetics', 'nutrition', 'pediatric-athletics'];

@@ -166,6 +166,40 @@ async function summarize(rawText: string, hintCategory: string | null, apiKey: s
   return { ok: true as const, parsed, model: body.model || model, usage: body.usage || null };
 }
 
+// ── Broadcast Hub (Pillar 4) — synthesize vault cards into a client newsletter ─
+async function synthesizeNewsletter(cards: any[], format: string, apiKey: string) {
+  const model = routeAndLog('bbf-coach-vault', 'coach_broadcast_synthesis');
+  const corpus = cards.map((c, i) => {
+    const s = c.claude_summary || {};
+    const takeaways = Array.isArray(s.physiology_takeaways) ? s.physiology_takeaways.join('; ') : '';
+    return `### ${i + 1}. ${c.title} (${c.category})\nCoaching application: ${s.coaching_application || ''}\nTakeaways: ${takeaways}`;
+  }).join('\n\n');
+  const fmt = format === 'markdown'
+    ? 'Return clean Markdown.'
+    : 'Return a ready-to-send email body (plain text with light Markdown headers).';
+  const system = [
+    'You are the BBF Lab content editor for Build Believe Fit (coach: Akeem Brown).',
+    'Turn the coach\'s private research notes into a polished, client-ready newsletter: warm, credible, plain-English (translate the science, do not dump jargon). Structure: a short hook intro, 2-4 themed sections drawn from the notes, and one motivating call-to-action line. Do NOT invent studies or claims beyond the supplied notes.',
+  ].join('\n');
+  const user = `${fmt}\n\nSynthesize these source notes into one cohesive newsletter:\n\n${corpus}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model, max_tokens: 2200, thinking: { type: 'adaptive' },
+      output_config: { effort: 'medium' },
+      system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+      messages: [{ role: 'user', content: user }],
+    }),
+  });
+  let body: any = null; try { body = await res.json(); } catch (_) { /* non-JSON */ }
+  if (!res.ok) { const msg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`; return { ok: false as const, status: res.status, error: msg }; }
+  const text = extractTextBlock(body?.content);
+  if (!text) return { ok: false as const, status: 502, error: 'no_text_block' };
+  return { ok: true as const, text, model: body.model || model, usage: body.usage || null };
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -244,5 +278,27 @@ serve(async (req: Request) => {
     return jsonResponse({ ok: true, card: data, model: result.model, usage: result.usage }, 200);
   }
 
-  return jsonResponse({ error: 'unknown_action', detail: "action must be 'list' | 'ingest' | 'delete'." }, 400);
+  // ── broadcast (Pillar 4) ──
+  if (action === 'broadcast') {
+    const ids = Array.isArray(payload?.card_ids) ? payload.card_ids.map((x: unknown) => String(x)).filter(Boolean) : [];
+    const format = payload?.format === 'markdown' ? 'markdown' : 'email';
+    if (ids.length < 1) return jsonResponse({ error: 'no_cards', detail: 'Select at least one research card.' }, 400);
+    if (ids.length > 5) return jsonResponse({ error: 'too_many_cards', detail: 'Select at most 5 cards.' }, 400);
+
+    const { data: cards, error } = await supa
+      .from('coach_knowledge_base')
+      .select('id, category, title, claude_summary')
+      .in('id', ids);
+    if (error) return jsonResponse({ error: 'fetch_failed', detail: error.message }, 500);
+    if (!cards || !cards.length) return jsonResponse({ error: 'cards_not_found' }, 404);
+
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!ANTHROPIC_API_KEY) return jsonResponse({ error: 'config_missing_anthropic_key' }, 503);
+
+    const r = await synthesizeNewsletter(cards, format, ANTHROPIC_API_KEY);
+    if (!r.ok) return jsonResponse({ error: 'broadcast_failed', detail: r.error, status: r.status }, 502);
+    return jsonResponse({ ok: true, newsletter: r.text, format, count: cards.length, model: r.model, usage: r.usage }, 200);
+  }
+
+  return jsonResponse({ error: 'unknown_action', detail: "action must be 'list' | 'ingest' | 'delete' | 'broadcast'." }, 400);
 });

@@ -49,6 +49,9 @@ export type UseCase =
   | 'sales_chat'              // AI Hub · BBF Chatbox sales-closer dialog
   | 'concierge_greeting'      // Self-serve onboarding · tier-aware BBF Lab Concierge welcome
   | 'coach_research_ingest'   // Coach Lab · Research Vault — structure a study/abstract into a coaching summary
+  | 'coach_case_generate'     // Coach Lab · Arena — generate a randomized client case study
+  | 'coach_protocol_critique' // Coach Lab · Arena — score the coach's protocol vs NASM/NSCA
+  | 'coach_broadcast_synthesis' // Coach Lab · Broadcast — synthesize vault entries into a client newsletter
   // ── OPUS tier · peak reasoning · safety-critical only ─────────────
   // parq_assessment — MIGRATED off the LLM to the deterministic SQL engine
   //   (public.bbf_parq_assess · standardized PAR-Q+ 2014). No LLM route; was
@@ -76,6 +79,9 @@ const MODEL_MAP: Record<UseCase, Model> = {
   sales_chat:            MODELS.SONNET,
   concierge_greeting:    MODELS.SONNET,
   coach_research_ingest: MODELS.SONNET, // structured study summarization — mid-complexity, not safety-critical
+  coach_case_generate:   MODELS.SONNET, // creative client-case generation
+  coach_protocol_critique: MODELS.SONNET, // reasoned scorecard vs NASM/NSCA guidelines
+  coach_broadcast_synthesis: MODELS.HAIKU, // reformatting structured summaries into newsletter prose (low-stakes)
   // parq_assessment removed — now deterministic (see public.bbf_parq_assess).
   wellbeing_escalation:  MODELS.OPUS,
   cardiac_intercept:     MODELS.OPUS,

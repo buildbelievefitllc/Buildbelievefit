@@ -17,13 +17,16 @@ import { useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { LockIcon } from '../vault/icons.jsx';
 import ResearchVault from './ResearchVault.jsx';
+import KinesiologyLab from './KinesiologyLab.jsx';
+import CoachArena from './CoachArena.jsx';
+import BroadcastHub from './BroadcastHub.jsx';
 import './coachLab.css';
 
 const PILLARS = [
   { key: 'research', status: 'live' },
-  { key: 'kinesiology', status: 'soon' },
-  { key: 'arena', status: 'soon' },
-  { key: 'broadcast', status: 'soon' },
+  { key: 'kinesiology', status: 'live' },
+  { key: 'arena', status: 'live' },
+  { key: 'broadcast', status: 'live' },
 ];
 
 // Trilingual chrome. EN is the ground truth; ES/PT are faithful translations.
@@ -195,24 +198,12 @@ export default function CoachLab() {
         </div>
 
         <div className="cl-panel" role="tabpanel" key={active.key}>
-          {active.status === 'live'
-            ? <ResearchVault L={L} />
-            : <PillarSoon L={L} pillarKey={active.key} />}
+          {active.key === 'research' ? <ResearchVault L={L} />
+            : active.key === 'kinesiology' ? <KinesiologyLab />
+              : active.key === 'arena' ? <CoachArena />
+                : <BroadcastHub />}
         </div>
       </section>
-    </div>
-  );
-}
-
-function PillarSoon({ L, pillarKey }) {
-  const P = L.pillars[pillarKey];
-  return (
-    <div className="cl-soon" data-testid={`cl-soon-${pillarKey}`}>
-      <div className="cl-soon-badge">{L.soonBadge}</div>
-      <h3 className="cl-soon-title">{P.label}</h3>
-      <p className="cl-soon-tagline">{P.tagline}</p>
-      <p className="cl-soon-note">{L.soonNote}</p>
-      <p className="cl-soon-body">{P.body}</p>
     </div>
   );
 }
