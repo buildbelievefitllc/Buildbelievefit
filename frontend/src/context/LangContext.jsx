@@ -461,7 +461,7 @@ const DICT = {
   'sp-phase1': { en: 'Tissue Release', es: 'Liberación de Tejido', pt: 'Liberação de Tecido' },
   'sp-phase1-sub': { en: 'Foam rolling & soft-tissue', es: 'Rodillo y tejido blando', pt: 'Rolo e tecido mole' },
   'sp-phase2': { en: 'Static Elongation', es: 'Elongación Estática', pt: 'Alongamento Estático' },
-  'sp-phase2-sub': { en: "Yesterday's load", es: 'Carga de ayer', pt: 'Carga de ontem' },
+  'sp-phase2-sub': { en: "Today's load", es: 'Carga de hoy', pt: 'Carga de hoje' },
   'sp-phase3': { en: 'Dynamic Potentiation', es: 'Potenciación Dinámica', pt: 'Potenciação Dinâmica' },
   'sp-phase3-sub': { en: "Today's focus", es: 'Enfoque de hoy', pt: 'Foco de hoje' },
   'sp-cue-breathing': { en: 'Breathing', es: 'Respiración', pt: 'Respiração' },

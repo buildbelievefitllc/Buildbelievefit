@@ -5,12 +5,14 @@
 //   • SovereignPrepOverlay  — the modal launched from the Active Directive button.
 //   • Recovery (vault tab)  — the dedicated full Recovery section.
 //
-//   Phase 1 · Tissue Release       → foam_rolling      (no emphasis)
-//   Phase 2 · Static Elongation    → recovery_stretches (emphasis = yesterday)
-//   Phase 3 · Dynamic Potentiation → prep_drills        (emphasis = today)
+//   Phase 1 · Tissue Release       → foam_rolling       (capped 2)
+//   Phase 2 · Static Elongation    → recovery_stretches (capped 3)
+//   Phase 3 · Dynamic Potentiation → prep_drills        (capped 4)
 //
-// emphasis_flag === true items get a gold ring + "Essential" tag and arrive sorted
-// to the top of their phase by the edge function.
+// Closed-loop (CEO order): all three phases are now weighted to the SAME focus the
+// edge resolves — the athlete's reported friction zone (targeted) or, with no
+// actionable friction, TODAY's program muscles (maintenance). emphasis_flag === true
+// items get a gold ring + "Essential" tag and arrive sorted to the top by the edge.
 
 import { useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
