@@ -13,10 +13,11 @@
 //   Phase 3 · Sovereign     (day 30+)    → everything UNLOCKED (graduated)
 //
 // ⚠️ FAIL-OPEN (same doctrine as entitlements.js): an absent/invalid anchor resolves
-// to GRADUATED, never to "Day 1". Existing clients (intake 30+ days ago) auto-graduate
-// with zero disruption; an undatable account is never padlocked by this gate. The
-// tier entitlement gate (entitlements.js) is ORTHOGONAL and still resolved FIRST —
-// calibration only ever ADDS a temporal lock on top of a tier the athlete already owns.
+// to GRADUATED, never to "Day 1". Pre-deployment clients auto-graduate via the
+// GRANDFATHER CLAUSE (see CALIBRATION_EPOCH_MS) with zero disruption; an undatable
+// account is never padlocked by this gate. The tier entitlement gate (entitlements.js)
+// is ORTHOGONAL and still resolved FIRST — calibration only ever ADDS a temporal lock
+// on top of a tier the athlete already owns.
 
 export const CALIBRATION_WINDOW_DAYS = 30;
 
@@ -30,6 +31,14 @@ export const CAL_PHASE = {
 // Phase boundary days — the FIRST day of each post-Baseline phase.
 export const IGNITION_DAY = 15;   // Smart Cardio unlocks
 export const SOVEREIGN_DAY = 30;  // Library + dynamic AI audio unlock (graduation)
+
+// GRANDFATHER CLAUSE (CEO mandate · FINAL DEPLOYMENT): the 30-Day Calibration applies
+// ONLY to athletes who onboard on/after the deployment date. ANY account whose intake
+// anchor predates this epoch is auto-graduated (Phase 3, Vault open) and never sees a
+// locked screen or any calibration chrome — the 8 existing active clients (newest intake
+// 2026-06-21) all fall before it. New incoming users from this date forward start at
+// Day 1. Deterministic constant — pure + safe at module load (NOT Date.now()).
+export const CALIBRATION_EPOCH_MS = Date.parse('2026-06-25T00:00:00Z');
 
 // Vault tab id → the calibration day on which it unlocks. A tab absent here is NOT
 // calibration-gated. THIS MAP IS THE ENTIRE POLICY — re-point "the Library" to a
@@ -57,6 +66,9 @@ export function computeCalibration(startedAtMs, nowMs) {
   const start = Number(startedAtMs);
   const now = Number(nowMs);
   if (!Number.isFinite(start) || start <= 0 || !Number.isFinite(now)) return GRADUATED;
+  // GRANDFATHER CLAUSE: an intake anchor predating the deployment epoch → auto-graduated,
+  // so no pre-existing client is ever placed behind the gate (no locks, no calibration UI).
+  if (start < CALIBRATION_EPOCH_MS) return GRADUATED;
   // Day 1 = intake day. Clock skew (now < start) clamps to Day 1, never 0/negative.
   const day = Math.max(1, Math.floor((now - start) / DAY_MS) + 1);
   return {
