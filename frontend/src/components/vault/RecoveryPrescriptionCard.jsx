@@ -12,6 +12,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { fetchTodaysPrescription } from '../../lib/prescriptionApi.js';
+import { resolveDosage } from '../../data/prescriptionDosage.js';
+import PrescriptionMoveModal from './PrescriptionMoveModal.jsx';
 import './recoveryPrescription.css';
 
 const STR = {
@@ -21,6 +23,7 @@ const STR = {
     empty: 'No active prescription yet. Log a post-workout check-in and the engine will build your next session.',
     retry: 'Retry',
     refresh: 'Refresh',
+    watch: 'Watch demo',
     volume: 'Volume',
     finisher: 'Champion’s Mindset',
     forLabel: 'For',
@@ -39,6 +42,7 @@ const STR = {
     empty: 'Aún no hay prescripción activa. Registra un check-in post-entrenamiento y el motor construirá tu próxima sesión.',
     retry: 'Reintentar',
     refresh: 'Actualizar',
+    watch: 'Ver demo',
     volume: 'Volumen',
     finisher: 'Mentalidad de Campeón',
     forLabel: 'Para',
@@ -57,6 +61,7 @@ const STR = {
     empty: 'Ainda não há prescrição ativa. Faça um check-in pós-treino e o motor montará sua próxima sessão.',
     retry: 'Tentar de novo',
     refresh: 'Atualizar',
+    watch: 'Ver demo',
     volume: 'Volume',
     finisher: 'Mentalidade de Campeão',
     forLabel: 'Para',
@@ -94,6 +99,7 @@ export default function RecoveryPrescriptionCard({ refreshKey = 0 }) {
   const [playlist, setPlaylist] = useState(null);
   const [error, setError] = useState('');
   const [nonce, setNonce] = useState(0); // manual-refresh trigger
+  const [activeEx, setActiveEx] = useState(null); // tapped movement → pop-up demo player
 
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
 
@@ -155,11 +161,17 @@ export default function RecoveryPrescriptionCard({ refreshKey = 0 }) {
           <ol className="rxp-list">
             {movements.map((ex, i) => (
               <li key={ex.id || i} className="rxp-item">
-                <span className="rxp-slot">{i + 1}</span>
-                <span className="rxp-item-body">
-                  <span className="rxp-name">{ex.name}</span>
-                  <span className="rxp-type">{S.types[ex.type] || ex.type}</span>
-                </span>
+                <button type="button" className="rxp-item-btn" onClick={() => setActiveEx(ex)} aria-label={`${ex.name} — ${S.watch}`} data-testid="rxp-move">
+                  <span className="rxp-slot">{i + 1}</span>
+                  <span className="rxp-item-body">
+                    <span className="rxp-name">{ex.name}</span>
+                    <span className="rxp-meta-row">
+                      <span className="rxp-type">{S.types[ex.type] || ex.type}</span>
+                      <span className="rxp-dose">{resolveDosage(ex, lang)}</span>
+                    </span>
+                  </span>
+                  <span className="rxp-play" aria-hidden="true">▶</span>
+                </button>
               </li>
             ))}
           </ol>
@@ -174,6 +186,7 @@ export default function RecoveryPrescriptionCard({ refreshKey = 0 }) {
           <button type="button" className="rxp-refresh" onClick={refresh} aria-label={S.refresh}>↻ {S.refresh}</button>
         </>
       )}
+      {activeEx ? <PrescriptionMoveModal ex={activeEx} onClose={() => setActiveEx(null)} /> : null}
     </section>
   );
 }

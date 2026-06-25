@@ -63,21 +63,37 @@
 
 /* ── Movement list ── */
 .rxp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
-.rxp-item {
-  display: flex; align-items: center; gap: .75rem;
+.rxp-item { list-style: none; }
+/* Whole row is a tap target → opens the demo pop-up (video + dosage + coach). */
+.rxp-item-btn {
+  display: flex; align-items: center; gap: .75rem; width: 100%; text-align: left; cursor: pointer;
   padding: .6rem .7rem; border-radius: 11px;
   background: rgba(255, 255, 255, .02); border: 1px solid var(--line, #1e1e1e);
+  transition: border-color .15s ease, background .15s ease, transform .1s ease;
 }
+.rxp-item-btn:hover { border-color: rgba(245, 200, 0, .4); background: rgba(245, 200, 0, .04); }
+.rxp-item-btn:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
+.rxp-item-btn:active { transform: translateY(1px); }
 .rxp-slot {
   flex: none; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
   font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: .9rem; color: var(--yel, #f5c800);
   background: rgba(245, 200, 0, .08); border: 1px solid rgba(245, 200, 0, .3);
 }
-.rxp-item-body { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; flex: 1 1 auto; min-width: 0; }
-.rxp-name { font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: 1rem; font-weight: 700; color: var(--wht, #f9f5ff); }
+.rxp-item-body { display: flex; flex-direction: column; gap: .18rem; flex: 1 1 auto; min-width: 0; }
+.rxp-name { font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: 1rem; font-weight: 700; color: var(--wht, #f9f5ff); line-height: 1.2; }
+.rxp-meta-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
 .rxp-type {
   flex: none; font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .72rem; font-weight: 700;
   letter-spacing: 1px; text-transform: uppercase; color: var(--mut, #666);
+}
+.rxp-dose {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .72rem; font-weight: 700; letter-spacing: .4px;
+  color: var(--gold-soft, #f5cf60); padding: .12rem .5rem; border-radius: 999px;
+  background: rgba(245, 200, 0, .08); border: 1px solid rgba(245, 200, 0, .22);
+}
+.rxp-play {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; color: #0a0a0a; background: var(--yel, #f5c800); box-shadow: 0 0 0 1px rgba(245, 200, 0, .35);
 }
 
 /* ── Champion's Mindset finisher ── */

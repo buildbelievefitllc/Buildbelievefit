@@ -1,0 +1,57 @@
+/* src/components/vault/prescriptionMoveModal.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Pop-up demo player for a prescribed recovery movement. Sovereign dossier chrome
+   (void canvas + purple/gold edge, §2 LOCKED). Overlays the Vault; the athlete
+   never leaves the page. */
+
+.rxpm-backdrop {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center; padding: 1.1rem;
+  background: rgba(5, 4, 8, .78); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  animation: rxpm-fade .15s ease;
+}
+@keyframes rxpm-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.rxpm {
+  width: 100%; max-width: 440px; max-height: 92vh; overflow-y: auto;
+  border-radius: 16px; padding: 1rem 1rem 1.15rem;
+  background: linear-gradient(168deg, rgba(26, 11, 46, .96) 0%, rgba(9, 6, 14, .98) 60%, rgba(5, 5, 5, .99) 100%);
+  border: 1px solid rgba(245, 200, 0, .28);
+  box-shadow: 0 30px 80px -30px rgba(106, 13, 173, .9);
+  animation: rxpm-rise .18s ease;
+}
+@keyframes rxpm-rise { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.rxpm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem; margin-bottom: .8rem; }
+.rxpm-title { font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: 1.25rem; letter-spacing: 1px; line-height: 1.05; color: var(--wht, #f9f5ff); }
+.rxpm-x {
+  flex: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  font-size: .9rem; color: var(--wht, #f9f5ff); background: rgba(255, 255, 255, .06);
+  border: 1px solid var(--line, #1e1e1e); transition: background .15s ease, border-color .15s ease;
+}
+.rxpm-x:hover { background: rgba(239, 68, 68, .18); border-color: rgba(239, 68, 68, .5); }
+.rxpm-x:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
+
+/* Player — fixed 16:9, rounded; iframe fills it. */
+.rxpm-video {
+  position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden;
+  background: #08060a; border: 1px solid var(--line, #1e1e1e);
+}
+.rxpm-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* Graceful state until the clinical-video manifest is filled (never a dead embed). */
+.rxpm-soon {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .35rem; text-align: center; padding: 1rem;
+  background: repeating-linear-gradient(45deg, #0d0b12, #0d0b12 16px, #100d18 16px, #100d18 32px);
+}
+.rxpm-soon-ic { font-size: 1.8rem; opacity: .85; }
+.rxpm-soon-t { font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+.rxpm-soon-s { font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .82rem; font-weight: 600; color: var(--mut, #888); max-width: 30ch; line-height: 1.35; }
+
+/* Dosage */
+.rxpm-dose { display: flex; align-items: baseline; gap: .55rem; margin: .85rem 0 .75rem; }
+.rxpm-dose-k { font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut, #888); }
+.rxpm-dose-v { font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: 1.2rem; letter-spacing: .5px; color: var(--yel, #f5c800); }
+
+.rxpm-coach { margin-top: .2rem; }
