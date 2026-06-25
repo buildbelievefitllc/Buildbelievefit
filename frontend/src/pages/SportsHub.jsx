@@ -45,6 +45,10 @@ import SovereignReadinessDashboard from '../components/vault/SovereignReadinessD
 import SovereignPrepPanels from '../components/vault/SovereignPrepPanels.jsx';
 import { YOUTH_BASELINE_PREP } from '../components/sportshub/youthRecoveryPrep.js';
 import Concierge from '../components/vault/Concierge.jsx';
+import YouthGameplan from '../components/sportshub/YouthGameplan.jsx';
+import YouthPostGameCheck from '../components/sportshub/YouthPostGameCheck.jsx';
+import YouthPrehab from '../components/sportshub/YouthPrehab.jsx';
+import { YouthNext } from '../components/sportshub/youthSequenceParts.jsx';
 import '../components/sportshub/sportsHub.css';
 
 // First non-rest day, so the Hub never opens on a blank recovery card.
@@ -100,8 +104,19 @@ const DECK_TABS = [
   { id: 'program', icon: '▤', en: 'Exercises', es: 'Ejercicios', pt: 'Exercícios' },
   { id: 'fuel', icon: '◆', en: 'Nutrition', es: 'Nutrición', pt: 'Nutrição' },
   { id: 'recovery', icon: '❂', en: 'Recovery', es: 'Recuperación', pt: 'Recuperação' },
+  // Prescription-only Prehab — the Post-Game Check fork lands here with a targeted,
+  // hard-capped fix for the reported zone (no library; CEO "Netflix rule").
+  { id: 'prehab', icon: '✚', en: 'Prehab', es: 'Prehab', pt: 'Prehab' },
   { id: 'mindset', icon: '❖', en: 'Mindset', es: 'Mentalidad', pt: 'Mentalidade' },
 ];
+
+// THE GAMEPLAN inter-tab hand-off labels (the youth guided sequence). Component-local
+// trilingual, parity with the rest of the youth surface (CLAUDE.md §1).
+const SEQ_LABELS = {
+  en: { armor: 'Step 2: Armor Prep ➔', drills: 'Step 3: Hit the Drills ➔' },
+  es: { armor: 'Paso 2: Preparar la Armadura ➔', drills: 'Paso 3: A la Práctica ➔' },
+  pt: { armor: 'Passo 2: Preparar a Armadura ➔', drills: 'Passo 3: Bora pro Treino ➔' },
+};
 
 // Shared Day-deck — the Off-Season / In-Season toggle + a Day 1–7 pill nav over a
 // SINGLE mounted day. Rendered by BOTH the Drills (view='drills') and Exercises
@@ -164,6 +179,33 @@ function compressImage(file, size = 256) {
   });
 }
 
+// ── Post-Game friction (the youth closed loop) — the last zone the athlete flagged
+// in the Post-Game Check, persisted per-uid for the SAME calendar day so the Prehab
+// tab keeps the targeted fix on a refresh. A stale (prior-day) log never drives
+// today's tab; a clean "I feel great" clears it. (The server session_feedback row is
+// the durable source of truth the recovery engine reads — this is just the UI hint.)
+const FRICTION_KEY = 'bbf.youth.friction.v1';
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function loadFriction(uid) {
+  try {
+    const all = JSON.parse(localStorage.getItem(FRICTION_KEY) || '{}');
+    const f = uid && all[uid];
+    return (f && f.date === todayKey() && f.area) ? { area: f.area, pain: f.pain } : null;
+  } catch { return null; }
+}
+function saveFriction(uid, friction) {
+  if (!uid) return;
+  try {
+    const all = JSON.parse(localStorage.getItem(FRICTION_KEY) || '{}');
+    if (friction && friction.area) all[uid] = { area: friction.area, pain: friction.pain, date: todayKey() };
+    else delete all[uid];
+    localStorage.setItem(FRICTION_KEY, JSON.stringify(all));
+  } catch { /* quota — non-fatal */ }
+}
+
 // `selection` ({ sportId, positionCode }) is the athlete's intake choice and
 // `progress` the persisted per-day check-off map (bbf_users.youth_progress) — both
 // passed down by YouthIntakeGate. The gate keys this component on the selection, so
@@ -220,6 +262,13 @@ export default function SportsHub({ selection = null, progress = null }) {
   // Strict tab-deck — the active data domain. One panel mounts at a time. The athlete
   // LANDS on Check-In (the morning readiness scan) before any daily work.
   const [activeTab, setActiveTab] = useState('checkin');
+
+  // THE GAMEPLAN — the guided youth sequence drives tab swaps through one callback
+  // (mirrors the adult Vault's onNavigate). The Post-Game Check lifts the reported
+  // friction zone here so the Prehab tab can prescribe the targeted fix.
+  const onNavigate = useCallback((id) => setActiveTab(id), []);
+  const [lastFriction, setLastFriction] = useState(() => loadFriction(uid));
+  const onLogFriction = useCallback((f) => { setLastFriction(f); saveFriction(uid, f); }, [uid]);
 
   // ── Daily checkoffs — mutate the ACTIVE day optimistically, then persist the
   //    single check-off to the athlete's row (bbf_log_youth_progress). The server
@@ -302,6 +351,7 @@ export default function SportsHub({ selection = null, progress = null }) {
 
   const name = profile.athleteName || user?.displayName || 'Athlete';
   const initials = name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  const seq = SEQ_LABELS[lang] || SEQ_LABELS.en;
 
   return (
     <div className="sh-screen" data-testid="sports-hub" data-bbf-mode={handshake}>
@@ -393,7 +443,14 @@ export default function SportsHub({ selection = null, progress = null }) {
           {/* ── CHECK-IN — the morning CNS readiness scan; the athlete lands here
               first and sets today's training volume before any daily work. ─────── */}
           {activeTab === 'checkin' ? (
-            <SovereignReadinessDashboard />
+            <>
+              {/* PHASE 1 · THE GAMEPLAN — audio pep-talk + the daily-gameplan shield,
+                  the FIRST thing the athlete sees, before they log their sleep. */}
+              <YouthGameplan />
+              <SovereignReadinessDashboard />
+              {/* Step 2 hand-off → Armor Prep (Recovery). */}
+              <YouthNext label={seq.armor} onClick={() => onNavigate('recovery')} testid="youth-step-2" />
+            </>
           ) : null}
 
           {/* ── DRILLS — sport drills distributed across Off/In × Day 1–7, ONE day at
@@ -422,6 +479,11 @@ export default function SportsHub({ selection = null, progress = null }) {
                   <SizeMass size={model.size} onSizeChange={onSizeChange} />
                 </div>
               </details>
+
+              {/* PHASE 3 · POST-GAME CHECK — the youth friction logger (writes the
+                  SAME session_feedback the recovery engine reads) + PHASE 4 fork:
+                  Cool Down → Mindset, and Fix the Pain → Prehab when sore. */}
+              <YouthPostGameCheck onNavigate={onNavigate} onLogged={onLogFriction} />
             </>
           ) : null}
 
@@ -462,7 +524,16 @@ export default function SportsHub({ selection = null, progress = null }) {
                 <SovereignPrepPanels data={YOUTH_BASELINE_PREP} />
               </section>
               <RecoveryPrescriptionCard />
+              {/* Step 3 hand-off → Hit the Drills (Program/Drills). */}
+              <YouthNext label={seq.drills} onClick={() => onNavigate('protocol')} testid="youth-step-3" />
             </>
+          ) : null}
+
+          {/* ── PREHAB — prescription-only fix (CEO "Netflix rule"): the Post-Game
+              fork lands here with a hard-capped, zone-targeted routine. No library,
+              no browse — just the fix for the zone the athlete flagged. ───────── */}
+          {activeTab === 'prehab' ? (
+            <YouthPrehab friction={lastFriction} />
           ) : null}
 
           {/* ── MINDSET — sport/language-aware Champion Mindset film deck ──────── */}
