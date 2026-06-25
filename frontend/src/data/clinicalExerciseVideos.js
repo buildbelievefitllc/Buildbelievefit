@@ -21,6 +21,8 @@
 // NB: bm_* are breathing / mental-wellness cues (the Champion's Mindset finisher),
 // voiced by the coach — they generally need no demo video.
 
+import { RECOVERY_VIDEOS } from './recoveryVideos.js';
+
 export const CLINICAL_EXERCISE_VIDEOS = {
   // ── breathing_and_meditation (voiced finisher — video optional) ─────────────
   bm_001: null, // Lift up a low mood
@@ -117,14 +119,47 @@ export const CLINICAL_EXERCISE_VIDEOS = {
   fb_009: null, // Modified bear crawl hold
 };
 
-// Resolve a clinical exercise id → a single YouTube id for the active language
-// (lang → en → null). Accepts the value as a [ids] array (best-first) or a bare
-// string. null/unknown → null, which the UI renders as "demo coming soon".
+// ── Bridge to the curated 508-video catalog (src/data/recoveryVideos.js) ──────
+// Many clinical movements ARE the same stretch the trilingual recovery catalog
+// already curates (multiple quality-rated clips per language). Rather than
+// re-source them, map the clinical id → its catalog `stat_*` twin. CONSERVATIVE:
+// only clear, same-movement matches — when a clinical movement has no faithful
+// catalog twin it stays unmapped (→ "demo coming soon") rather than show a
+// near-miss clip. (Functional full-body moves like bear-crawl/inchworm/squat-to-
+// stand have no stretch twin here and still need purpose-sourced demos.)
+export const CLINICAL_TO_STAT = {
+  sh_006: 'stat_sho_002',  // Doorway pectoral stretch   → Doorway Pec/Front-Delt Stretch
+  sh_008: 'stat_sho_001',  // Cross-body shoulder stretch → Cross-Body Shoulder Stretch
+  lb_004: 'stat_abd_001',  // Supine piriformis stretch  → Figure-4 Glute/Abductor Stretch
+  lb_005: 'stat_quad_002', // Kneeling hip flexor stretch → Couch Stretch (hip flexor)
+  lb_007: 'stat_uback_001',// Child's pose lumbar stretch → Child's Pose Reach
+  lb_016: 'stat_ham_003',  // Standing hamstring stretch  → Single-Leg Toe-Touch
+  kn_009: 'stat_quad_001', // Standing quad stretch       → Standing Quad Stretch
+  kn_010: 'stat_ham_001',  // Seated hamstring stretch    → Seated Forward Fold
+  kn_011: 'stat_abd_002',  // Standing IT band stretch    → Standing Cross-Body IT/Abductor Stretch
+  nk_002: 'stat_neck_002', // Upper trapezius stretch     → Levator/Upper-Trap Stretch
+  nk_003: 'stat_neck_002', // Levator scapulae stretch    → Levator/Upper-Trap Stretch
+  nk_005: 'stat_neck_001', // Neck lateral flexion        → Lateral Neck Stretch
+  ub_002: 'stat_uback_002',// Thread the needle stretch   → Thread-the-Needle
+  fb_001: 'stat_ham_003',  // Standing toe touch          → Single-Leg Toe-Touch (hamstring)
+};
+
+// Resolve a clinical exercise id → a single YouTube id for the active language.
+// Order: explicit manifest entry (lang→en) → curated catalog twin (lang→en) → null.
+// Accepts the manifest's [ids]/string shape AND the catalog's [{id,t,q}] shape.
+// null/unknown → null, which the UI renders as "demo coming soon".
 export function resolveClinicalVideo(id, lang = 'en') {
-  const entry = id ? CLINICAL_EXERCISE_VIDEOS[id] : null;
-  if (!entry) return null;
-  const pick = entry[lang] || entry.en || null;
-  if (Array.isArray(pick)) return pick.length ? pick[0] : null;
+  if (!id) return null;
+  const entry = CLINICAL_EXERCISE_VIDEOS[id];
+  let pick = entry ? (entry[lang] || entry.en) : null;
+  if (!pick) {
+    const cat = CLINICAL_TO_STAT[id] ? RECOVERY_VIDEOS[CLINICAL_TO_STAT[id]] : null;
+    pick = cat ? (cat[lang] || cat.en) : null;
+  }
+  if (Array.isArray(pick)) {
+    const first = pick[0];
+    return first ? (typeof first === 'string' ? first : (first.id || null)) : null;
+  }
   return typeof pick === 'string' && pick ? pick : null;
 }
 

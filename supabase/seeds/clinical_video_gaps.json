@@ -1,0 +1,668 @@
+{
+  "purpose": "Fill video.en/es/pt for each clinical movement below. These feed RecoveryPrescriptionCard via clinicalExerciseVideos.js, keyed by the BBF clinical id.",
+  "rules": [
+    "Use the BBF clinical id (fb_009, kn_009, …) — do NOT invent a parallel id scheme (no REC-### ).",
+    "One UNIQUE video per movement. Never reuse one clip across exercises (the last payload used 6 clips for 50 — rejected).",
+    "The clip MUST demonstrate THAT exact movement (e.g. inchworm ≠ squat-to-stand).",
+    "Provide the bare 11-char YouTube id (not a full URL). Verify it exists, is public, and is EMBEDDABLE.",
+    "en is required; es/pt optional (fall back to en). Prefer a native-language clip for es/pt when available.",
+    "Return the same JSON shape; I run a validator (dup / coverage / id-format / liveness) before anything ships to clients."
+  ],
+  "already_done_from_catalog": [
+    "sh_006",
+    "sh_008",
+    "lb_004",
+    "lb_005",
+    "lb_007",
+    "lb_016",
+    "kn_009",
+    "kn_010",
+    "kn_011",
+    "nk_002",
+    "nk_003",
+    "nk_005",
+    "ub_002",
+    "fb_001"
+  ],
+  "needed_count": 58,
+  "needed": [
+    {
+      "id": "fb_002",
+      "name": "Walkouts (inchworms)",
+      "body_part": "full_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "fb_003",
+      "name": "Low impact jumping jacks",
+      "body_part": "full_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "fb_004",
+      "name": "Bodyweight squat to stand",
+      "body_part": "full_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "fb_005",
+      "name": "Forward lunge with torso twist",
+      "body_part": "full_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "fb_006",
+      "name": "High knees marching in place",
+      "body_part": "full_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "fb_007",
+      "name": "Standing torso twists",
+      "body_part": "full_body",
+      "type": "recovery",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "fb_008",
+      "name": "Standing side bend reach",
+      "body_part": "full_body",
+      "type": "recovery",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "fb_009",
+      "name": "Modified bear crawl hold",
+      "body_part": "full_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_001",
+      "name": "Supine straight leg raise",
+      "body_part": "knee",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_002",
+      "name": "Short arc quadriceps extension",
+      "body_part": "knee",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_003",
+      "name": "Isometric wall sit holds",
+      "body_part": "knee",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_004",
+      "name": "Standing hamstring curl",
+      "body_part": "knee",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_005",
+      "name": "Side-lying clamshells",
+      "body_part": "knee",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_006",
+      "name": "Low impact step-ups",
+      "body_part": "knee",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_007",
+      "name": "Standing calf raises",
+      "body_part": "knee",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_008",
+      "name": "Supine heel slides",
+      "body_part": "knee",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_012",
+      "name": "Supine glute bridge",
+      "body_part": "knee",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_013",
+      "name": "Lateral band walks",
+      "body_part": "knee",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_014",
+      "name": "Terminal knee extension (banded)",
+      "body_part": "knee",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "kn_015",
+      "name": "Seated patellar mobilization",
+      "body_part": "knee",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_001",
+      "name": "Resistance band shoulder strength",
+      "body_part": "shoulder",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_002",
+      "name": "Strength exercises for shoulder pain",
+      "body_part": "shoulder",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_003",
+      "name": "Wall slides for scapular mobility",
+      "body_part": "shoulder",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_004",
+      "name": "Isometric shoulder external rotation",
+      "body_part": "shoulder",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_005",
+      "name": "Isometric shoulder internal rotation",
+      "body_part": "shoulder",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_007",
+      "name": "Sleeper stretch",
+      "body_part": "shoulder",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_009",
+      "name": "Prone I-Y-T raises",
+      "body_part": "shoulder",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_010",
+      "name": "Pendulum arm swings",
+      "body_part": "shoulder",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_011",
+      "name": "Scapular retractions (seated)",
+      "body_part": "shoulder",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "sh_012",
+      "name": "Resistance band pull-aparts",
+      "body_part": "shoulder",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_001",
+      "name": "Quick lower body reset",
+      "body_part": "lower_body",
+      "type": "recovery",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_002",
+      "name": "Seated lower body stretch",
+      "body_part": "lower_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_003",
+      "name": "Low back and hip pain relief",
+      "body_part": "lower_body",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_006",
+      "name": "Cat-cow spinal mobility",
+      "body_part": "lower_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_008",
+      "name": "Supine pelvic tilts",
+      "body_part": "lower_body",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_009",
+      "name": "Bird-dog core stability",
+      "body_part": "lower_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_010",
+      "name": "Dead bug progression",
+      "body_part": "lower_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_011",
+      "name": "Prone press-up (Cobra)",
+      "body_part": "lower_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_012",
+      "name": "Side-lying hip abduction",
+      "body_part": "lower_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_013",
+      "name": "Side-lying hip adduction",
+      "body_part": "lower_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_014",
+      "name": "Quadruped fire hydrants",
+      "body_part": "lower_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "lb_015",
+      "name": "Seated lumbar rotation",
+      "body_part": "lower_body",
+      "type": "recovery",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "nk_001",
+      "name": "Seated cervical retraction (chin tucks)",
+      "body_part": "neck",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "nk_004",
+      "name": "Slow neck rotations",
+      "body_part": "neck",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "nk_006",
+      "name": "Isometric neck flexion (hand resistance)",
+      "body_part": "neck",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "nk_007",
+      "name": "Isometric neck extension",
+      "body_part": "neck",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "nk_008",
+      "name": "Supine chin tucks",
+      "body_part": "neck",
+      "type": "prehab",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "nk_009",
+      "name": "Seated scalene stretch",
+      "body_part": "neck",
+      "type": "recovery",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "nk_010",
+      "name": "Gentle half neck rolls",
+      "body_part": "neck",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "ub_001",
+      "name": "Thoracic extension on foam roller",
+      "body_part": "upper_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "ub_003",
+      "name": "Seated resistance band rows",
+      "body_part": "upper_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "ub_004",
+      "name": "Standing wall push-ups",
+      "body_part": "upper_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "ub_005",
+      "name": "Resistance band biceps curl",
+      "body_part": "upper_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "ub_006",
+      "name": "Resistance band triceps extension",
+      "body_part": "upper_body",
+      "type": "strengthening",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "ub_007",
+      "name": "Wrist flexor stretch",
+      "body_part": "upper_body",
+      "type": "recovery",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "ub_008",
+      "name": "Wrist extensor stretch",
+      "body_part": "upper_body",
+      "type": "recovery",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "ub_009",
+      "name": "Forearm pronation and supination",
+      "body_part": "upper_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    },
+    {
+      "id": "ub_010",
+      "name": "Side-lying open book stretch",
+      "body_part": "upper_body",
+      "type": "mobility",
+      "video": {
+        "en": null,
+        "es": null,
+        "pt": null
+      }
+    }
+  ]
+}
