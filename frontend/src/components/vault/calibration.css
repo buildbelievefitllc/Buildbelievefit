@@ -1,0 +1,277 @@
+/* src/components/vault/calibration.css
+   ───────────────────────────────────────────────────────────────────────────
+   30-Day Biometric Calibration UI — progress rail, graduated badge, lock pane,
+   milestone toast + celebration overlay. Brand-locked (CLAUDE.md §2): BBF Purple
+   structure, Victory-Gold accents. Matte black is canvas only, never a load-bearing
+   mark. Brand colors carry hardcoded fallbacks so a missing token never breaks brand. */
+
+:root {
+  --cal-pur: var(--pur, #6a0dad);
+  --cal-gold: var(--yel, #f5c800);
+}
+
+/* ── Progress rail (Vault Hub · days 1–30) ─────────────────────────────────── */
+.cal-prog {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem 0.95rem;
+  border: 1px solid rgba(106, 13, 173, 0.34);
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(106, 13, 173, 0.26), transparent 62%),
+    rgba(255, 255, 255, 0.03);
+}
+.cal-prog__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.cal-prog__label {
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  letter-spacing: 0.06em;
+  font-size: 1.05rem;
+  color: var(--cal-gold);
+  text-transform: uppercase;
+}
+.cal-prog__count {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--wht, #f6f6f6);
+  letter-spacing: 0.02em;
+}
+.cal-prog__track {
+  margin: 0.55rem 0 0.5rem;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.cal-prog__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cal-pur), var(--cal-gold));
+  transition: width 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.cal-prog__sub {
+  margin: 0;
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: var(--mut, #b9b3c7);
+}
+
+/* ── Graduated badge (Day 30+) — replaces the bar, permanent ────────────────── */
+.cal-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0 0 1rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(245, 200, 0, 0.5);
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 160% at 0% 0%, rgba(245, 200, 0, 0.16), transparent 60%),
+    rgba(106, 13, 173, 0.16);
+}
+.cal-badge__mark {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--cal-gold);
+  filter: drop-shadow(0 0 6px rgba(245, 200, 0, 0.45));
+}
+.cal-badge__text { display: flex; flex-direction: column; }
+.cal-badge__title {
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: 1.15rem;
+  letter-spacing: 0.05em;
+  color: var(--wht, #f6f6f6);
+  text-transform: uppercase;
+}
+.cal-badge__sub {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  color: var(--cal-gold);
+}
+
+/* ── Lock pane (in place of a calibration-gated tool) ──────────────────────── */
+.cal-lock {
+  display: grid;
+  place-items: center;
+  padding: 2.5rem 1.25rem;
+  min-height: 50vh;
+}
+.cal-lock__card {
+  width: min(440px, 92%);
+  text-align: center;
+  padding: 2rem 1.5rem 2.1rem;
+  border: 1px solid rgba(106, 13, 173, 0.4);
+  border-radius: 20px;
+  background:
+    radial-gradient(130% 120% at 50% 0%, rgba(106, 13, 173, 0.32), transparent 65%),
+    rgba(255, 255, 255, 0.03);
+}
+.cal-lock__icon { font-size: 2.3rem; line-height: 1; }
+.cal-lock__kicker {
+  margin-top: 0.7rem;
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cal-gold);
+}
+.cal-lock__feature {
+  margin: 0.35rem 0 0.6rem;
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: 2.1rem;
+  letter-spacing: 0.03em;
+  color: var(--wht, #f6f6f6);
+}
+.cal-lock__body {
+  margin: 0 auto;
+  max-width: 34ch;
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--mut, #c7c2d3);
+}
+.cal-lock__day {
+  display: inline-block;
+  margin-top: 1.1rem;
+  padding: 0.32rem 0.85rem;
+  border: 1px solid rgba(245, 200, 0, 0.45);
+  border-radius: 999px;
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: var(--cal-gold);
+}
+
+/* ── Day-15 milestone toast ────────────────────────────────────────────────── */
+.cal-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.1rem;
+  transform: translateX(-50%);
+  z-index: 1200;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: min(420px, 92vw);
+  padding: 0.85rem 0.9rem 0.9rem 1rem;
+  border: 1px solid rgba(245, 200, 0, 0.45);
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(106, 13, 173, 0.4), transparent 60%),
+    #160a23;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+  animation: cal-rise 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes cal-rise {
+  from { opacity: 0; transform: translate(-50%, 14px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.cal-toast__body { display: flex; flex-direction: column; gap: 0.15rem; }
+.cal-toast__title {
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  color: var(--cal-gold);
+  text-transform: uppercase;
+}
+.cal-toast__text {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--wht, #f1eef7);
+}
+.cal-toast__x {
+  flex: none;
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--wht, #f1eef7);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.cal-toast__x:hover { background: rgba(255, 255, 255, 0.16); }
+
+/* ── Day-30 celebration overlay ────────────────────────────────────────────── */
+.cal-cele {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+.cal-cele__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 9, 9, 0.78);
+  backdrop-filter: blur(3px);
+}
+.cal-cele__card {
+  position: relative;
+  width: min(460px, 94%);
+  text-align: center;
+  padding: 2.4rem 1.6rem 2.2rem;
+  border: 1px solid rgba(245, 200, 0, 0.55);
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(106, 13, 173, 0.55), transparent 70%),
+    #140a20;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+  animation: cal-pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes cal-pop {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+.cal-cele__mark {
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--cal-gold);
+  filter: drop-shadow(0 0 14px rgba(245, 200, 0, 0.6));
+}
+.cal-cele__title {
+  margin: 0.6rem 0 0.5rem;
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: 2.5rem;
+  letter-spacing: 0.04em;
+  color: var(--wht, #f6f6f6);
+}
+.cal-cele__body {
+  margin: 0 auto 1.4rem;
+  max-width: 32ch;
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: 1.1rem;
+  line-height: 1.4;
+  color: var(--mut, #d3cee0);
+}
+.cal-cele__cta {
+  border: none;
+  cursor: pointer;
+  padding: 0.7rem 1.5rem;
+  border-radius: 12px;
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+  color: #160a23;
+  background: linear-gradient(90deg, var(--cal-gold), #ffd83a);
+  box-shadow: 0 8px 24px rgba(245, 200, 0, 0.3);
+}
+.cal-cele__cta:hover { filter: brightness(1.05); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cal-prog__fill,
+  .cal-toast,
+  .cal-cele__card { animation: none; transition: none; }
+}

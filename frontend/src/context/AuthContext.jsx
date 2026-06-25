@@ -127,6 +127,13 @@ export function AuthProvider({ children }) {
           const code = String(data.preferred_language || '').trim().toLowerCase().slice(0, 2);
           return (code === 'es' || code === 'pt') ? code : 'en';
         })(),
+        // 30-Day Biometric Calibration anchor — the intake timestamp
+        // (bbf_active_clients.created_at) the PIN RPC broadcasts as
+        // `calibration_started_at`. Stored as epoch ms; null when the account has no
+        // intake row → useCalibration fails open to "graduated" (never padlocked).
+        calibrationStartedAt: data.calibration_started_at
+          ? new Date(data.calibration_started_at).getTime()
+          : null,
       },
       // Inject the plan envelope whenever the RPC returns ANY plan text — do not
       // gate solely on plans_generated_at. A client can have a coach-written

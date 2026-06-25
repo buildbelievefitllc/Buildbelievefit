@@ -290,6 +290,28 @@ const DICT = {
   'vault-tab-forecast': { en: 'Forecast', es: 'Pronóstico', pt: 'Previsão' },
   'vault-tab-settings': { en: 'Settings', es: 'Ajustes', pt: 'Configurações' },
   'vault-tab-checkin': { en: 'Check-In', es: 'Registro', pt: 'Check-In' },
+  // ── 30-Day Biometric Calibration — staged unlock (calibration.js / useCalibration).
+  // Dynamic values ({feature}/{day}) are token-replaced in the component (t() has no
+  // interpolation), so word order stays natural per language. ──
+  'cal-kicker': { en: 'Biometric Calibration', es: 'Calibración Biométrica', pt: 'Calibração Biométrica' },
+  'cal-phase': { en: 'Phase', es: 'Fase', pt: 'Fase' },
+  'cal-day': { en: 'Day', es: 'Día', pt: 'Dia' },
+  // Locked-tab pane (shown in place of a calibration-gated tool — a TIME gate, no paywall).
+  'cal-lock-mapping': { en: 'Engine is mapping your baseline.', es: 'El motor está mapeando tu línea base.', pt: 'O motor está mapeando sua linha de base.' },
+  'cal-lock-ignition': { en: 'Ignition phase is live — recovery routing online.', es: 'La fase de ignición está activa — enrutamiento de recuperación en línea.', pt: 'A fase de ignição está ativa — roteamento de recuperação on-line.' },
+  'cal-lock-unlock': { en: '{feature} unlocks on Day {day}.', es: '{feature} se desbloquea el Día {day}.', pt: '{feature} desbloqueia no Dia {day}.' },
+  // Progress rail (days 1–30) + graduated badge.
+  'cal-prog-label': { en: 'Calibration', es: 'Calibración', pt: 'Calibração' },
+  'cal-prog-sub-1': { en: 'Building Central Nervous System Baseline.', es: 'Construyendo la Línea Base del Sistema Nervioso Central.', pt: 'Construindo a Linha de Base do Sistema Nervoso Central.' },
+  'cal-prog-sub-2': { en: 'Ignition live — Smart Cardio online. The Library unlocks on Day 30.', es: 'Ignición activa — Cardio Inteligente en línea. La Biblioteca se desbloquea el Día 30.', pt: 'Ignição ativa — Cardio Inteligente on-line. A Biblioteca desbloqueia no Dia 30.' },
+  'cal-badge': { en: 'Sovereign Athlete', es: 'Atleta Soberano', pt: 'Atleta Soberano' },
+  'cal-badge-sub': { en: 'Calibration Complete · Full Access', es: 'Calibración Completa · Acceso Total', pt: 'Calibração Completa · Acesso Total' },
+  // One-time milestone alerts (Day 15 toast, Day 30 overlay). CEO copy verbatim (EN).
+  'cal-m15-title': { en: 'Calibration Update', es: 'Actualización de Calibración', pt: 'Atualização de Calibração' },
+  'cal-m15-body': { en: 'Phase 10 Smart Cardio unlocked. The engine is now dynamically routing your recovery.', es: 'Cardio Inteligente de la Fase 10 desbloqueado. El motor ahora enruta dinámicamente tu recuperación.', pt: 'Cardio Inteligente da Fase 10 desbloqueado. O motor agora roteia dinamicamente sua recuperação.' },
+  'cal-m30-title': { en: 'Calibration Complete', es: 'Calibración Completa', pt: 'Calibração Completa' },
+  'cal-m30-body': { en: 'The Vault is open. You have earned full access.', es: 'La Bóveda está abierta. Has ganado acceso total.', pt: 'O Cofre está aberto. Você conquistou acesso total.' },
+  'cal-dismiss': { en: 'Continue →', es: 'Continuar →', pt: 'Continuar →' },
   // ── Sovereign Client Hub (auto-regulation check-in). Mode names + 'Taco Switch'
   // are product proper nouns; surrounding copy is fully trilingual. ──
   'sch-kicker': { en: 'Sovereign Auto-Regulation', es: 'Autorregulación Soberana', pt: 'Autorregulação Soberana' },

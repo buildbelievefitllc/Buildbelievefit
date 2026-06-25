@@ -28,6 +28,7 @@ import LangToggle from '../components/LangToggle.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 import { useVaultSessionGuard } from '../lib/sessionGuard.js';
 import { useEntitlement } from '../lib/useEntitlement.js';
+import { useCalibration } from '../lib/useCalibration.js';
 import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
 import { useAutoVitalsSync } from '../lib/vitalsPipeline.js';
 import VaultHeader from '../components/vault/VaultHeader.jsx';
@@ -45,6 +46,8 @@ import PostWorkoutCheckInModal from '../components/vault/PostWorkoutCheckInModal
 import TierGate from '../components/TierGate.jsx';
 import ComlinkFAB from '../components/vault/ComlinkFAB.jsx';
 import Concierge from '../components/vault/Concierge.jsx';
+import CalibrationGate from '../components/vault/CalibrationGate.jsx';
+import CalibrationMilestones from '../components/vault/CalibrationMilestones.jsx';
 import { TAB_FEATURE } from '../lib/entitlements.js';
 import { SESSION_COMPLETE_EVENT } from '../lib/sessionFeedbackApi.js';
 import { LockIcon } from '../components/vault/icons.jsx';
@@ -109,6 +112,9 @@ export default function ClientVault() {
   // UpgradeOverlay (visibility as a sales tool). Fail-open: admins / active trial /
   // any unresolved tier read as full access, so a payer is never falsely padlocked.
   const ent = useEntitlement();
+  // 30-Day Biometric Calibration — the orthogonal TIME gate layered over the tier
+  // funnel. Same fail-open doctrine: graduated / undatable athletes read as full access.
+  const cal = useCalibration();
   const activeMeta = TABS.find((tab) => tab.id === activeTab);
 
   // The login slug IS the profile key (bbf_get_profile_metrics resolves uid).
@@ -202,7 +208,7 @@ export default function ClientVault() {
             // Padlocked tabs stay clickable — the click IS the upsell (it swaps the
             // pane for the UpgradeOverlay). The lock glyph is aria-hidden so the
             // tab's accessible name stays the plain label (keeps E2E role selectors green).
-            const locked = !ent.canAccessTab(tab.id);
+            const locked = !ent.canAccessTab(tab.id) || cal.isTabCalibrationLocked(tab.id);
             const impact = tab.impact ? ` is-impact-${tab.impact}` : '';
             return (
               <button
@@ -233,23 +239,28 @@ export default function ClientVault() {
             featureLabelKey={activeMeta?.labelKey}
             testId="vault-upgrade-overlay"
           >
-            {activeTab === 'hub' && (
-              <VaultHub
-                profile={profile}
-                isLoading={profileLoading}
-                error={profileError}
-                onSequence={onNavigate}
-              />
-            )}
-            {activeTab === 'checkin' && <SovereignClientHub refreshKey={checkInRefresh} onSequence={onNavigate} />}
-            {activeTab === 'program' && <Program plans={plans} profile={profile} onSequence={onNavigate} />}
-            {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
-            {activeTab === 'cardio' && <SmartCardio />}
-            {activeTab === 'prehab' && <Prehab onSequence={onNavigate} />}
-            {activeTab === 'recovery' && <Recovery plans={plans} onSequence={onNavigate} />}
-            {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
-            {activeTab === 'mindset' && <ChampionMindset />}
-            {activeTab === 'settings' && <Settings />}
+            {/* 30-Day Calibration TIME gate — nested INSIDE TierGate so a tier paywall
+                always wins; a tier-owned-but-still-calibrating surface (Smart Cardio →
+                Day 15, the Library/Generator → Day 30) shows the CalibrationLock pane. */}
+            <CalibrationGate tabId={activeTab} featureLabelKey={activeMeta?.labelKey}>
+              {activeTab === 'hub' && (
+                <VaultHub
+                  profile={profile}
+                  isLoading={profileLoading}
+                  error={profileError}
+                  onSequence={onNavigate}
+                />
+              )}
+              {activeTab === 'checkin' && <SovereignClientHub refreshKey={checkInRefresh} onSequence={onNavigate} />}
+              {activeTab === 'program' && <Program plans={plans} profile={profile} onSequence={onNavigate} />}
+              {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
+              {activeTab === 'cardio' && <SmartCardio />}
+              {activeTab === 'prehab' && <Prehab onSequence={onNavigate} />}
+              {activeTab === 'recovery' && <Recovery plans={plans} onSequence={onNavigate} />}
+              {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
+              {activeTab === 'mindset' && <ChampionMindset />}
+              {activeTab === 'settings' && <Settings />}
+            </CalibrationGate>
           </TierGate>
         </div>
       </div>
@@ -258,6 +269,9 @@ export default function ClientVault() {
       {/* Self-Serve Concierge — first-login welcome that lists EXACTLY the band's
           unlocked tools (server-enforced, no mirages). Self-gates + fires once. */}
       <Concierge />
+      {/* 30-Day Calibration — one-time Day-15 toast + Day-30 graduation overlay.
+          Shell-level so it overlays any tab; self-gates + fires once per athlete. */}
+      <CalibrationMilestones />
       {/* Post-Workout Check-In — shell-level so it overlays any tab the instant a
           session completes; feeds the Dynamic Prescription engine. */}
       <PostWorkoutCheckInModal

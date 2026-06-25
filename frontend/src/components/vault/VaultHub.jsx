@@ -24,6 +24,7 @@ import BiokineticForecast from './BiokineticForecast.jsx';
 import WeeklyBriefCard from './WeeklyBriefCard.jsx';
 import SovereignReadinessDashboard from './SovereignReadinessDashboard.jsx';
 import { SovereignSequenceAnchor } from './SovereignSequence.jsx';
+import CalibrationProgress from './CalibrationProgress.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import './vault.css';
 
@@ -50,6 +51,10 @@ export default function VaultHub({ profile, isLoading, error, onSequence }) {
   const { data: brief, loading: briefLoading, error: briefError } = useWeeklyBrief(profile?.uid);
   return (
     <div className="pg">
+      {/* 30-Day Biometric Calibration HUD — the Day-X/30 progress rail (or the
+          permanent Sovereign Athlete badge at graduation). Renders nothing for an
+          undatable / no-anchor session. Top of fold on the landing Hub. */}
+      <CalibrationProgress />
       {/* THE SOVEREIGN SEQUENCE — adult-only guided hand-off anchor, above the
           fold. Renders ONLY when the Vault shell passes onSequence (so it never
           appears on the Youth Sports Hub or the admin Command Center). */}
