@@ -111,7 +111,7 @@ const BBF_VOICE_SETTINGS = { stability: 0.35, similarity_boost: 0.85, style: 0.1
 type VocalState = 'floor_coach' | 'lounge_talk' | 'sanctuary' | 'architect';
 function vocalStateForContext(ctx: string): VocalState {
   const c = String(ctx || '').toLowerCase();
-  if (c === 'program' || c === 'cardio') return 'floor_coach';
+  if (c === 'program' || c === 'cardio' || c === 'sequence') return 'floor_coach';
   if (c === 'recovery' || c === 'prehab') return 'sanctuary';
   return 'architect'; // forecast / affirmation / onboarding / philosophy
 }
@@ -258,6 +258,12 @@ async function composeText(context: string, payload: any, locale: string): Promi
     return String(payload?.cue_text ?? '').replace(/\s+/g, ' ').trim().slice(0, 600);
   }
 
+  // The Sovereign Sequence anthem (adult Hub onboarding) — the CEO's EXACT words,
+  // spoken VERBATIM at full length, never rewritten. Higher cap than an affirmation.
+  if (context === 'sequence') {
+    return String(payload?.cue_text ?? '').replace(/\s+/g, ' ').trim().slice(0, 1500);
+  }
+
   if (context === 'recovery' || context === 'prehab' || context === 'cardio') {
     const cueText = String(payload?.cue_text ?? '').replace(/\s+/g, ' ').trim().slice(0, 1400);
     if (!cueText) return '';
@@ -351,14 +357,14 @@ serve(async (req: Request) => {
   let payload: any;
   try { payload = await req.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const VALID_CONTEXTS = ['program', 'forecast', 'recovery', 'prehab', 'cardio', 'affirmation'];
+  const VALID_CONTEXTS = ['program', 'forecast', 'recovery', 'prehab', 'cardio', 'affirmation', 'sequence'];
   const context = VALID_CONTEXTS.includes(payload?.context) ? payload.context : 'forecast';
   const locale = localeCode(payload?.locale ?? payload?.lang);
   const cueRef = typeof payload?.cue_ref === 'string' ? payload.cue_ref.slice(0, 160) : '';
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const feature = context === 'forecast' ? 'biokinetic_forecast' : context === 'affirmation' ? 'mindset' : 'voice_coach';
+  const feature = context === 'forecast' ? 'biokinetic_forecast' : (context === 'affirmation' || context === 'sequence') ? 'mindset' : 'voice_coach';
   const gate = await requireEntitlement(SUPABASE_URL, SERVICE_KEY, payload?.vault_token ?? req.headers.get('x-bbf-vault-token'), feature);
   if (!gate.ok) return jsonResponse({ error: gate.error, detail: gate.detail }, gate.status);
 
@@ -397,7 +403,7 @@ serve(async (req: Request) => {
   // Dynamic Vocal State: shape the script per state, then enforce the state's hard rules.
   const state = vocalStateForContext(context);
   const raw = await composeText(context, payload, locale);
-  const text = context === 'affirmation' ? raw : formatForState(raw, state);
+  const text = (context === 'affirmation' || context === 'sequence') ? raw : formatForState(raw, state);
   const modelId = modelForState(state);
   const tts = await synthesize(ELEVENLABS_API_KEY, voice.voice_id, text, modelId);
   if (!tts.ok) {

@@ -30,6 +30,7 @@ import { pickLang } from '../../lib/pickLang.js';
 import { requestPrehabMatrix } from '../../lib/prehabApi.js';
 import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
 import CoachAudioButton from './CoachAudioButton.jsx';
+import { SequenceNext } from './SovereignSequence.jsx';
 import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
 import PREHAB_MATRIX from '../../data/prehabDiagnosticMatrix.json';
@@ -898,7 +899,7 @@ function PrehabReadinessBanner({ readiness }) {
   );
 }
 
-export default function Prehab() {
+export default function Prehab({ onSequence }) {
   // The shared CNS telemetry channel — the EXACT store ProgramGrid / Smart Cardio
   // read, so a manual baseline (or a wearable sync) lights up this tab the moment
   // it lands, live, via PROTOCOL_UPDATED_EVENT (no reload).
@@ -911,6 +912,11 @@ export default function Prehab() {
       {/* Respiratory coach parked at the bottom (collapsed) so the symptom
           diagnostic + protocol path lead — it no longer hijacks the top. */}
       <RespiratoryCoach />
+      {/* Sovereign Sequence · Step 3 — adult-only (gated on onSequence; never
+          rendered in the Command Center mount, which passes no prop). */}
+      {onSequence ? (
+        <SequenceNext label="Step 3: Enter the Floor (Program) ➔" onClick={() => onSequence('program')} testid="sovereign-step-3" />
+      ) : null}
     </div>
   );
 }

@@ -37,6 +37,7 @@ import { runVitalsPipeline, runManualVitalsPipeline, useVitalsSyncStatus } from 
 import { saveManualBaseline, manualSubjective, useManualBaselineToday } from '../../lib/manualBaseline.js';
 import MindsetIntercept from './MindsetIntercept.jsx';
 import RecoveryPrescriptionCard from './RecoveryPrescriptionCard.jsx';
+import { SequenceNext } from './SovereignSequence.jsx';
 import './sovereignHub.css';
 
 // Handshake diagnostic — its own chunk; only the Check-In tab ever pulls it in.
@@ -105,7 +106,7 @@ function ReadinessDial({ score }) {
   );
 }
 
-export default function SovereignClientHub({ refreshKey = 0 }) {
+export default function SovereignClientHub({ refreshKey = 0, onSequence }) {
   const { t } = useLang();
   const { user } = useAuth();
   const uid = user?.username || user?.id || '';
@@ -567,6 +568,12 @@ export default function SovereignClientHub({ refreshKey = 0 }) {
           below the readiness / live-telemetry dossier. Self-fetches the latest
           engine-generated playlist; refreshKey bumps after a post-workout check-in. ── */}
       <RecoveryPrescriptionCard refreshKey={refreshKey} />
+
+      {/* ── SOVEREIGN SEQUENCE · STEP 2 — surfaces once the baseline verdict exists
+          (a fresh save OR today's stored ledger). Adult-only (gated on onSequence). ── */}
+      {view && onSequence ? (
+        <SequenceNext label="Step 2: Prime the Engine (Prep) ➔" onClick={() => onSequence('prehab')} testid="sovereign-step-2" />
+      ) : null}
 
       {/* ── HEALTH CONNECT STATUS — the zero-guess handshake diagnostic ── */}
       <Suspense fallback={null}>

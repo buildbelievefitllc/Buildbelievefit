@@ -1,0 +1,127 @@
+/* src/components/vault/sovereignSequence.css
+ * ──────────────────────────────────────────────────────────────────────────
+ * The Sovereign Sequence — adult Client Hub guided hand-off. LOCKED brand (§2):
+ * matte-black surface canvas (#090909), BBF purple #6a0dad + gold #f5c800,
+ * Bebas (display) headers / Barlow (body). Scoped under .svs-* so no other
+ * surface is touched. Tokens carry brand-hex fallbacks for safety.
+ */
+
+.svs {
+  position: relative;
+  background: linear-gradient(165deg, rgba(106, 13, 173, .24) 0%, #0b0a0e 55%, #090909 100%);
+  border: 1px solid rgba(245, 200, 0, .30);
+  border-radius: 16px;
+  padding: 1.5rem 1.3rem;
+  margin: 0 0 1.2rem;
+  overflow: hidden;
+}
+.svs::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pur, #6a0dad), var(--yel, #f5c800));
+}
+.svs-kicker {
+  font-family: var(--hb, 'Barlow Condensed'), sans-serif;
+  font-size: .7rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--yel, #f5c800);
+  margin-bottom: .25rem;
+}
+.svs-head {
+  font-family: var(--display, 'Bebas Neue'), sans-serif;
+  font-size: clamp(1.9rem, 5.5vw, 2.6rem);
+  line-height: 1;
+  letter-spacing: 1px;
+  color: var(--wht, #f9f5ff);
+  margin: 0 0 1rem;
+}
+
+/* The CoachAudioButton (.ca, styled by coachAudio.css) sits between the head and
+   the shield — give it breathing room and let it stretch full width here. */
+.svs .ca { margin-bottom: 1.1rem; }
+.svs .ca-btn { width: 100%; justify-content: center; }
+
+/* ── API-shield clinical card ─────────────────────────────────────────────── */
+.svs-card {
+  background: #090909;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-left: 3px solid var(--pur, #6a0dad);
+  border-radius: 12px;
+  padding: 1.15rem 1.2rem;
+  margin-bottom: 1.2rem;
+}
+.svs-card-title {
+  font-family: var(--hb, 'Barlow Condensed'), sans-serif;
+  font-weight: 800;
+  font-size: .82rem;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--yel, #f5c800);
+  margin-bottom: .95rem;
+}
+.svs-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+.svs-step {
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+}
+.svs-step-n {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--display, 'Bebas Neue'), sans-serif;
+  font-size: 1rem;
+  line-height: 1;
+  color: #090909;
+  background: var(--yel, #f5c800);
+}
+.svs-step-body {
+  font-family: var(--bd, 'Barlow Condensed'), sans-serif;
+  font-size: .96rem;
+  line-height: 1.42;
+}
+.svs-step-h { font-weight: 700; color: var(--wht, #f9f5ff); }
+.svs-step-d { color: rgba(249, 245, 255, .72); }
+
+/* ── Step transport (Phases 1–4) ──────────────────────────────────────────── */
+.svs-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-family: var(--display, 'Bebas Neue'), sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 1.5px;
+  color: #090909;
+  background: linear-gradient(90deg, var(--yel, #f5c800), #ffd92e);
+  border: none;
+  border-radius: 12px;
+  padding: .95rem 1.4rem;
+  cursor: pointer;
+  transition: filter .15s ease, transform .1s ease;
+  box-shadow: 0 6px 20px rgba(245, 200, 0, .18);
+}
+.svs-cta:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.svs-cta:active { transform: translateY(0); }
+.svs-cta:focus-visible { outline: 2px solid var(--wht, #f9f5ff); outline-offset: 3px; }
+
+/* Bottom-of-tab next step (Phases 2–4): a hairline divider sets it apart as a
+   deliberate hand-off at the foot of the surface. */
+.svs-next {
+  margin-top: 1.6rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid rgba(245, 200, 0, .18);
+}

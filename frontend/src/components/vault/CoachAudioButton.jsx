@@ -36,7 +36,7 @@ const STR = {
 //   • Program path (default): { exerciseName, targetReps, formCues, equipment }.
 //   • Section path (Recovery/Prehab/Cardio): pass `audioRequest` (async () => objectURL,
 //     e.g. fetchSectionCoachAudio) + `fallbackText` (spoken on stock-voice fallback).
-export default function CoachAudioButton({ exerciseName, targetReps, formCues, equipment, audioRequest = null, fallbackText = '' }) {
+export default function CoachAudioButton({ exerciseName, targetReps, formCues, equipment, audioRequest = null, fallbackText = '', idleLabel = '' }) {
   const { lang } = useLang();
   const tr = STR[lang] || STR.en;
   const audioRef = useRef(null);
@@ -104,7 +104,7 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
   const label = busy ? tr.cueing
     : stock && playing ? tr.stock
     : url ? (playing ? tr.pause : tr.replay)
-    : tr.play;
+    : (idleLabel || tr.play);
 
   return (
     <div className="ca">

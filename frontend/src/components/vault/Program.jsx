@@ -23,6 +23,7 @@ import VoiceCoachButton from './VoiceCoachButton.jsx';
 import RPEEducationCard from './RPEEducationCard.jsx';
 import TierGate from '../TierGate.jsx';
 import { buildCoachCue } from './coachCue.js';
+import { SequenceNext } from './SovereignSequence.jsx';
 
 // Trilingual UI chrome (EN verbatim to the prior hardcoded copy so the default
 // language keeps the vault-logging E2E selectors green). Module-local dictionary
@@ -67,7 +68,7 @@ function formatStamp(iso) {
   return new Date(t).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-export default function Program({ plans, profile }) {
+export default function Program({ plans, profile, onSequence }) {
   const { user, isAdmin } = useAuth();
   const { lang } = useLang();
   const tr = STR[lang] || STR.en;
@@ -133,6 +134,11 @@ export default function Program({ plans, profile }) {
           </summary>
           <pre style={styles.protocol}>{textPlan}</pre>
         </details>
+      ) : null}
+
+      {/* Sovereign Sequence · Step 4 — adult-only (gated on onSequence). */}
+      {onSequence ? (
+        <SequenceNext label="Step 4: Dial in Cardio ➔" onClick={() => onSequence('cardio')} testid="sovereign-step-4" />
       ) : null}
     </div>
   );

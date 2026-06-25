@@ -23,6 +23,7 @@ import { BoltIcon } from './icons.jsx';
 import BiokineticForecast from './BiokineticForecast.jsx';
 import WeeklyBriefCard from './WeeklyBriefCard.jsx';
 import SovereignReadinessDashboard from './SovereignReadinessDashboard.jsx';
+import { SovereignSequenceAnchor } from './SovereignSequence.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import './vault.css';
 
@@ -38,7 +39,7 @@ function fmtStat(v) {
   return v !== null && v !== undefined && v !== '' ? Number(v).toLocaleString() : '—';
 }
 
-export default function VaultHub({ profile, isLoading, error }) {
+export default function VaultHub({ profile, isLoading, error, onSequence }) {
   const { t } = useLang();
   // Biokinetic Forecast — collapsible drawer on the LANDING Client Hub (the tab the
   // athlete sees on login). Default COLLAPSED so the Hub stays clean until opened.
@@ -49,6 +50,11 @@ export default function VaultHub({ profile, isLoading, error }) {
   const { data: brief, loading: briefLoading, error: briefError } = useWeeklyBrief(profile?.uid);
   return (
     <div className="pg">
+      {/* THE SOVEREIGN SEQUENCE — adult-only guided hand-off anchor, above the
+          fold. Renders ONLY when the Vault shell passes onSequence (so it never
+          appears on the Youth Sports Hub or the admin Command Center). */}
+      {onSequence ? <SovereignSequenceAnchor onStep={onSequence} /> : null}
+
       {/* MORNING CHECK-IN — the daily CNS readiness scan. First thing on land; its
           volMultiplier governs the day's training volume across the workout tabs. */}
       <SovereignReadinessDashboard />
