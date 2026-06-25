@@ -246,7 +246,7 @@ export default function ClientVault() {
             {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
             {activeTab === 'cardio' && <SmartCardio />}
             {activeTab === 'prehab' && <Prehab onSequence={onNavigate} />}
-            {activeTab === 'recovery' && <Recovery plans={plans} />}
+            {activeTab === 'recovery' && <Recovery plans={plans} onSequence={onNavigate} />}
             {activeTab === 'nutrition' && <Nutrition plans={plans} profile={profile} />}
             {activeTab === 'mindset' && <ChampionMindset />}
             {activeTab === 'settings' && <Settings />}

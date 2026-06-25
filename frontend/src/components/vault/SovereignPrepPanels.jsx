@@ -27,11 +27,18 @@ function ytEmbedAutoplay(id) {
   return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
 }
 
+// CEO accessibility reorder: equipment-free movements LEAD; foam rolling (needs a
+// roller) is last and flagged Optional, so a user without equipment is never blocked
+// at Step 01. Display order + idx only — the edge data keys are unchanged.
 const PREP_PHASES = [
-  { id: 'release', idx: '01', key: 'foam_rolling',       labelKey: 'sp-phase1', subKey: 'sp-phase1-sub' },
+  { id: 'dynamic', idx: '01', key: 'prep_drills',        labelKey: 'sp-phase3', subKey: 'sp-phase3-sub' },
   { id: 'static',  idx: '02', key: 'recovery_stretches', labelKey: 'sp-phase2', subKey: 'sp-phase2-sub' },
-  { id: 'dynamic', idx: '03', key: 'prep_drills',        labelKey: 'sp-phase3', subKey: 'sp-phase3-sub' },
+  { id: 'release', idx: '03', key: 'foam_rolling',       labelKey: 'sp-phase1', subKey: 'sp-phase1-sub', optional: true },
 ];
+
+// "Optional" badge on the equipment-dependent phase (trilingual; the rest of the
+// deck chrome resolves through the dictionary).
+const OPTIONAL_LABEL = { en: 'Optional', es: 'Opcional', pt: 'Opcional' };
 
 // Phase-specific prescription line — each library family carries a different shape.
 function Prescription({ phaseId, prescription, t }) {
@@ -134,7 +141,7 @@ function PrepCard({ item, phaseId, lang, t }) {
 
 export default function SovereignPrepPanels({ data }) {
   const { t, lang } = useLang();
-  const [active, setActive] = useState('release');
+  const [active, setActive] = useState('dynamic');
 
   const activePhase = PREP_PHASES.find((p) => p.id === active) || PREP_PHASES[0];
   const items = data && Array.isArray(data[activePhase.key]) ? data[activePhase.key] : [];
@@ -156,7 +163,10 @@ export default function SovereignPrepPanels({ data }) {
             >
               <span className="sp-tab-idx">{p.idx}</span>
               <span className="sp-tab-text">
-                <span className="sp-tab-label">{t(p.labelKey)}</span>
+                <span className="sp-tab-label">
+                  {t(p.labelKey)}
+                  {p.optional ? <span className="sp-tab-opt">{OPTIONAL_LABEL[lang] || OPTIONAL_LABEL.en}</span> : null}
+                </span>
                 <span className="sp-tab-sub">{t(p.subKey)}</span>
               </span>
             </button>

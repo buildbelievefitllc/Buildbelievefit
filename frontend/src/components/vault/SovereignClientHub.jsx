@@ -570,9 +570,10 @@ export default function SovereignClientHub({ refreshKey = 0, onSequence }) {
       <RecoveryPrescriptionCard refreshKey={refreshKey} />
 
       {/* ── SOVEREIGN SEQUENCE · STEP 2 — surfaces once the baseline verdict exists
-          (a fresh save OR today's stored ledger). Adult-only (gated on onSequence). ── */}
+          (a fresh save OR today's stored ledger). Routes to RECOVERY (equipment-free
+          prep), NOT the diagnostic Prehab. Adult-only (gated on onSequence). ── */}
       {view && onSequence ? (
-        <SequenceNext label="Step 2: Prime the Engine (Prep) ➔" onClick={() => onSequence('prehab')} testid="sovereign-step-2" />
+        <SequenceNext label="Step 2: Prime the Engine (Prep) ➔" onClick={() => onSequence('recovery')} testid="sovereign-step-2" />
       ) : null}
 
       {/* ── HEALTH CONNECT STATUS — the zero-guess handshake diagnostic ── */}

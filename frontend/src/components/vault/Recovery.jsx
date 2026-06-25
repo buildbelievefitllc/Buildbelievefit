@@ -17,9 +17,10 @@ import { parseWorkoutPlan } from '../../lib/vaultApi.js';
 import { getProgram } from './programData.js';
 import { resolvePrepLoads, generateSovereignPrep } from '../../lib/sovereignPrep.js';
 import SovereignPrepPanels from './SovereignPrepPanels.jsx';
+import { SequenceNext } from './SovereignSequence.jsx';
 import './sovereignPrep.css';
 
-export default function Recovery({ plans = null }) {
+export default function Recovery({ plans = null, onSequence }) {
   const { user } = useAuth();
   const { t } = useLang();
   const uid = user?.username || user?.id || '';
@@ -69,6 +70,12 @@ export default function Recovery({ plans = null }) {
       ) : (
         <SovereignPrepPanels data={data} />
       )}
+
+      {/* Sovereign Sequence · Step 3 — bottom of Recovery → the Program floor.
+          Adult-only (gated on onSequence; the Command Center / prep overlay pass none). */}
+      {onSequence ? (
+        <SequenceNext label="Step 3: Enter the Floor (Program) ➔" onClick={() => onSequence('program')} testid="sovereign-step-3" />
+      ) : null}
     </section>
   );
 }

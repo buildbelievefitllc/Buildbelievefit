@@ -912,10 +912,11 @@ export default function Prehab({ onSequence }) {
       {/* Respiratory coach parked at the bottom (collapsed) so the symptom
           diagnostic + protocol path lead — it no longer hijacks the top. */}
       <RespiratoryCoach />
-      {/* Sovereign Sequence · Step 3 — adult-only (gated on onSequence; never
-          rendered in the Command Center mount, which passes no prop). */}
+      {/* Sovereign Sequence · Prehab is the OPTIONAL fork (reached from Program's
+          "Report Joint Friction / Pain" button); from here, flush the system with
+          cardio. Adult-only (gated on onSequence; never in the Command Center mount). */}
       {onSequence ? (
-        <SequenceNext label="Step 3: Enter the Floor (Program) ➔" onClick={() => onSequence('program')} testid="sovereign-step-3" />
+        <SequenceNext label="Next: Flush the System (Cardio) ➔" onClick={() => onSequence('cardio')} testid="sovereign-prehab-cardio" />
       ) : null}
     </div>
   );

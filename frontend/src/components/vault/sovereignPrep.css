@@ -80,6 +80,14 @@
 .sp-tab-text { display: flex; flex-direction: column; line-height: 1.1; }
 .sp-tab-label { font-family: var(--hb); font-size: .95rem; letter-spacing: 1px; text-transform: uppercase; color: var(--wht, #f9f5ff); }
 .sp-tab-sub { font-family: var(--bd, 'Barlow Condensed'); font-size: .72rem; letter-spacing: .5px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); opacity: .75; }
+.sp-tab-opt {
+  display: inline-block; margin-left: .45rem; vertical-align: 1px;
+  font-family: var(--bd, 'Barlow Condensed'); font-size: .58rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--gold-soft, #f5cf60);
+  border: 1px solid rgba(245, 200, 0, .4); border-radius: 999px;
+  padding: .05rem .4rem; opacity: .85;
+}
 
 /* ── Panel + cards ── */
 .sp-panel { padding: 1.1rem 1.4rem 1.5rem; overflow-y: auto; }

@@ -23,16 +23,16 @@ export const SEQUENCE_SCRIPT = `Transformation isn't an accident. It is an engin
 
 // The API-shield card — exact CEO copy, formatted as a dark clinical breakdown.
 const STEPS = [
-  ['1', 'Data Capture (Check-In)', 'Nervous system scanning dictates training volume to prevent load failure.'],
-  ['2', 'Tissue Priming (Prehab)', 'Joint mobilization engineered to prevent injury.'],
-  ['3', 'Execution (Program)', 'Adaptive load protocols mapped to your daily readiness.'],
-  ['4', 'System Flush (Cardio)', 'Targeted work to accelerate recovery and break old patterns.'],
+  ['1', 'Data Capture (Check-In)', 'Nervous system scanning dictates training volume.'],
+  ['2', 'Tissue Priming (Recovery)', 'Equipment-free mobilization to prevent injury.'],
+  ['3', 'Execution (Program)', 'Adaptive load protocols mapped to daily readiness.'],
+  ['4', 'System Flush (Cardio)', 'Targeted work to accelerate recovery.'],
 ];
 
 // Reusable large step CTA (Phases 1–4) — the locked gold transport with an arrow.
-export function SequenceCTA({ label, onClick, testid }) {
+export function SequenceCTA({ label, onClick, testid, variant = 'primary' }) {
   return (
-    <button type="button" className="svs-cta" onClick={onClick} data-testid={testid}>
+    <button type="button" className={`svs-cta${variant === 'secondary' ? ' svs-cta--secondary' : ''}`} onClick={onClick} data-testid={testid}>
       <span className="svs-cta-label">{label}</span>
     </button>
   );

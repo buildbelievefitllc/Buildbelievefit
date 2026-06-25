@@ -23,7 +23,7 @@ import VoiceCoachButton from './VoiceCoachButton.jsx';
 import RPEEducationCard from './RPEEducationCard.jsx';
 import TierGate from '../TierGate.jsx';
 import { buildCoachCue } from './coachCue.js';
-import { SequenceNext } from './SovereignSequence.jsx';
+import { SequenceCTA } from './SovereignSequence.jsx';
 
 // Trilingual UI chrome (EN verbatim to the prior hardcoded copy so the default
 // language keeps the vault-logging E2E selectors green). Module-local dictionary
@@ -136,9 +136,14 @@ export default function Program({ plans, profile, onSequence }) {
         </details>
       ) : null}
 
-      {/* Sovereign Sequence · Step 4 — adult-only (gated on onSequence). */}
+      {/* Sovereign Sequence · Step 4 + the FORK — adult-only (gated on onSequence).
+          PRIMARY continues to Cardio; SECONDARY (outlined) detours to the Prehab
+          diagnostic for anyone reporting joint friction / pain. */}
       {onSequence ? (
-        <SequenceNext label="Step 4: Dial in Cardio ➔" onClick={() => onSequence('cardio')} testid="sovereign-step-4" />
+        <div className="svs-next">
+          <SequenceCTA label="Step 4: Dial in Cardio ➔" onClick={() => onSequence('cardio')} testid="sovereign-step-4" />
+          <SequenceCTA label="Report Joint Friction / Pain ➔" onClick={() => onSequence('prehab')} testid="sovereign-fork-prehab" variant="secondary" />
+        </div>
       ) : null}
     </div>
   );
