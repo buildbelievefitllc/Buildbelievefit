@@ -30,10 +30,13 @@ function ytEmbedAutoplay(id) {
 // CEO accessibility reorder: equipment-free movements LEAD; foam rolling (needs a
 // roller) is last and flagged Optional, so a user without equipment is never blocked
 // at Step 01. Display order + idx only — the edge data keys are unchanged.
+// `cap` mirrors the edge function's strict clinical limits (CEO order): the UI
+// NEVER renders more than 4 dynamic / 3 static / 2 release, even if an override
+// library or a stale cached envelope slips through more.
 const PREP_PHASES = [
-  { id: 'dynamic', idx: '01', key: 'prep_drills',        labelKey: 'sp-phase3', subKey: 'sp-phase3-sub' },
-  { id: 'static',  idx: '02', key: 'recovery_stretches', labelKey: 'sp-phase2', subKey: 'sp-phase2-sub' },
-  { id: 'release', idx: '03', key: 'foam_rolling',       labelKey: 'sp-phase1', subKey: 'sp-phase1-sub', optional: true },
+  { id: 'dynamic', idx: '01', key: 'prep_drills',        cap: 4, labelKey: 'sp-phase3', subKey: 'sp-phase3-sub' },
+  { id: 'static',  idx: '02', key: 'recovery_stretches', cap: 3, labelKey: 'sp-phase2', subKey: 'sp-phase2-sub' },
+  { id: 'release', idx: '03', key: 'foam_rolling',       cap: 2, labelKey: 'sp-phase1', subKey: 'sp-phase1-sub', optional: true },
 ];
 
 // "Optional" badge on the equipment-dependent phase (trilingual; the rest of the
@@ -144,7 +147,10 @@ export default function SovereignPrepPanels({ data }) {
   const [active, setActive] = useState('dynamic');
 
   const activePhase = PREP_PHASES.find((p) => p.id === active) || PREP_PHASES[0];
-  const items = data && Array.isArray(data[activePhase.key]) ? data[activePhase.key] : [];
+  // Defensive UI cap — the edge already enforces the clinical limits; this guarantees
+  // the UI can never render past them regardless of payload source.
+  const all = data && Array.isArray(data[activePhase.key]) ? data[activePhase.key] : [];
+  const items = all.slice(0, activePhase.cap);
 
   return (
     <>

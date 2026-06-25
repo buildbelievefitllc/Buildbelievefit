@@ -717,6 +717,59 @@ function toGroupSet(arr: unknown): Set<string> {
   return set;
 }
 
+// ── Closed-loop config (CEO order: closed-loop diagnostic + strict cap) ───────
+// Post-workout pain at/above this on a SPECIFIC zone drives a TARGETED prep.
+const PAIN_THRESHOLD = 4;
+// Strict clinical caps — enforced before the arrays ever reach the UI.
+const CAPS = { prep_drills: 4, recovery_stretches: 3, foam_rolling: 2 } as const;
+// session_feedback.target_area (clinical body_part) → recovery-library muscle_groups.
+// 'full_body' / unknown deliberately absent → treated as "no specific zone".
+const AREA_TO_GROUPS: Record<string, string[]> = {
+  shoulder:   ['shoulders', 'chest', 'upper_back'],
+  upper_body: ['shoulders', 'chest', 'upper_back', 'neck'],
+  neck:       ['neck', 'upper_back'],
+  knee:       ['quads', 'hamstrings', 'calves'],
+  lower_body: ['quads', 'hamstrings', 'calves', 'hip_abductors', 'hip_adductors', 'groin', 'lower_back'],
+};
+
+// PHASE 1 — the athlete's MOST RECENT post-workout friction report (the closed
+// loop). Returns { pain, area } or null. Best-effort: any failure → null, so the
+// prep degrades to the general maintenance path and never errors. Service-role
+// read of session_feedback (per-client, RLS-locked — service key only).
+async function readLastFriction(
+  url: string | undefined, key: string | undefined, userId: string | null | undefined,
+): Promise<{ pain: number; area: string } | null> {
+  if (!url || !key || !userId) return null;
+  try {
+    const r = await fetch(
+      `${url}/rest/v1/session_feedback?user_id=eq.${encodeURIComponent(userId)}` +
+      `&order=created_at.desc&limit=1&select=pain_score,target_area`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    );
+    if (!r.ok) return null;
+    const rows = await r.json().catch(() => null);
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null;
+    if (!row) return null;
+    return { pain: Number(row.pain_score) || 0, area: norm(row.target_area) };
+  } catch { return null; }
+}
+
+// PHASE 2 — pick up to `cap` rows. PRIMARY = entries whose primary muscle_group is
+// in `groups`. targeted=true → STRICT (only zone matches; NEVER topped up, so a
+// pain report can never pull in unrelated movements). targeted=false → fill the
+// remaining slots with the best general entries so the maintenance prep is complete.
+function selectCapped<T extends { muscle_group: string }>(
+  rows: T[], groups: Set<string>, cap: number, targeted: boolean,
+): T[] {
+  if (cap <= 0) return [];
+  const inZone = rows.filter((r) => groups.has(norm(r.muscle_group)));
+  if (targeted) return inZone.slice(0, cap);
+  if (!groups.size) return rows.slice(0, cap);
+  if (inZone.length >= cap) return inZone.slice(0, cap);
+  const fill = rows.filter((r) => !groups.has(norm(r.muscle_group)));
+  return inZone.concat(fill).slice(0, cap);
+}
+
 // Validate a candidate library has the three required, well-shaped arrays.
 function isUsableLibrary(lib: unknown): lib is RecoveryLibrary {
   if (!lib || typeof lib !== 'object') return false;
@@ -758,16 +811,17 @@ function mapDynamic(entries: DynamicEntry[], emphasisGroups: Set<string>) {
   return emphasisFirst(rows);
 }
 
-function mapFoam(entries: FoamEntry[]) {
-  // No filter, no emphasis — full soft-tissue protocol, original order.
-  return entries.map((e) => ({
+function mapFoam(entries: FoamEntry[], emphasisGroups: Set<string>) {
+  const rows = entries.map((e) => ({
     id: e.id,
     name: e.name,
     muscle_group: e.muscle_group,
     tool: e.tool,
     prescription: e.prescription,
     cues: e.cues,
+    emphasis_flag: emphasisGroups.has(norm(e.muscle_group)),
   }));
+  return emphasisFirst(rows);
 }
 
 // Best-effort run log to bbf_agent_runs. NEVER throws, NEVER blocks. We log the
@@ -854,12 +908,29 @@ serve(async (req: Request) => {
       ? (recovery_library as RecoveryLibrary)
       : (BBF_RECOVERY_LIBRARY as unknown as RecoveryLibrary);
 
-    const yesterdaySet = toGroupSet(yesterday_muscle_groups);
-    const todaySet = toGroupSet(today_muscle_groups);
+    // ── PHASE 1 · LEDGER INGESTION (the closed loop) ──
+    // Read the athlete's most recent post-workout friction report BEFORE the
+    // library. A specific zone reported at/above the pain threshold → TARGETED
+    // diagnostic prep (filter to that zone ONLY). Otherwise → general MAINTENANCE
+    // prep mapped to TODAY's program focus (PHASE 3). Read failure → maintenance.
+    const friction = await readLastFriction(SUPABASE_URL, SUPABASE_SERVICE_KEY, gate.user_id);
+    const zone = friction && friction.pain >= PAIN_THRESHOLD ? AREA_TO_GROUPS[friction.area] : null;
+    const targeted = Array.isArray(zone) && zone.length > 0;
 
-    const recovery_stretches = mapStatic(lib.static, yesterdaySet);   // emphasis: yesterday
-    const prep_drills = mapDynamic(lib.dynamic, todaySet);            // emphasis: today
-    const foam_rolling = mapFoam(lib.foam_rolling);                   // full protocol
+    // Focus groups drive BOTH the emphasis flag AND the capped selection. Targeted
+    // → the painful zone's muscles. Maintenance → today's program muscles (PHASE 3);
+    // a rest day (empty today) falls back to a general top-N inside the caps.
+    const todaySet = toGroupSet(today_muscle_groups);
+    const focusGroups = targeted ? toGroupSet(zone as string[]) : todaySet;
+
+    const allStretches = mapStatic(lib.static, focusGroups);
+    const allDrills = mapDynamic(lib.dynamic, focusGroups);
+    const allFoam = mapFoam(lib.foam_rolling, focusGroups);
+
+    // ── PHASE 2 · THE STRICT CLINICAL CAP — enforced before the data reaches the UI ──
+    const recovery_stretches = selectCapped(allStretches, focusGroups, CAPS.recovery_stretches, targeted);
+    const prep_drills = selectCapped(allDrills, focusGroups, CAPS.prep_drills, targeted);
+    const foam_rolling = selectCapped(allFoam, focusGroups, CAPS.foam_rolling, targeted);
 
     const body = {
       recovery_stretches,
@@ -869,6 +940,10 @@ serve(async (req: Request) => {
         user_id: resolvedUser,
         generated_at: new Date().toISOString(),
         context: 'pre_workout',
+        mode: targeted ? 'targeted' : 'maintenance',
+        friction: friction ? { area: friction.area, pain: friction.pain } : null,
+        focus_groups: Array.from(focusGroups),
+        caps: CAPS,
       },
     };
 
@@ -878,23 +953,24 @@ serve(async (req: Request) => {
       durationMs: Date.now() - t0,
       summary: {
         user_id: resolvedUser,
-        yesterday_muscle_groups: Array.from(yesterdaySet),
+        mode: targeted ? 'targeted' : 'maintenance',
+        friction_area: friction?.area ?? null,
+        friction_pain: friction?.pain ?? null,
         today_muscle_groups: Array.from(todaySet),
+        focus_groups: Array.from(focusGroups),
         library_source: isUsableLibrary(recovery_library) ? 'request' : 'embedded',
         counts: {
           recovery_stretches: recovery_stretches.length,
           prep_drills: prep_drills.length,
           foam_rolling: foam_rolling.length,
-          stretch_emphasis: recovery_stretches.filter((r) => r.emphasis_flag).length,
-          drill_emphasis: prep_drills.filter((r) => r.emphasis_flag).length,
         },
         context: 'pre_workout',
       },
     });
 
     console.log(
-      `[bbf-agentic-recovery] uid=${resolvedUser} y=[${Array.from(yesterdaySet).join(',')}] ` +
-      `t=[${Array.from(todaySet).join(',')}] src=${isUsableLibrary(recovery_library) ? 'request' : 'embedded'} ` +
+      `[bbf-agentic-recovery] uid=${resolvedUser} mode=${targeted ? 'targeted' : 'maintenance'} ` +
+      `friction=${friction ? friction.area + ':' + friction.pain : 'none'} focus=[${Array.from(focusGroups).join(',')}] ` +
       `stretches=${recovery_stretches.length} drills=${prep_drills.length} foam=${foam_rolling.length}`,
     );
 
