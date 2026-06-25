@@ -35,88 +35,88 @@ export const CLINICAL_EXERCISE_VIDEOS = {
   bm_008: null, // Guided visualization for recovery
 
   // ── shoulder ────────────────────────────────────────────────────────────────
-  sh_001: null, // Resistance band shoulder strength
-  sh_002: null, // Strength exercises for shoulder pain
-  sh_003: null, // Wall slides for scapular mobility
-  sh_004: null, // Isometric shoulder external rotation
-  sh_005: null, // Isometric shoulder internal rotation
+  sh_001: { en: 'IzTFCZv0--E' }, // Resistance band shoulder strength
+  sh_002: { en: 'AMqT-3l0I6k' }, // Strength exercises for shoulder pain
+  sh_003: { en: 'Eaj_NG5_hIo' }, // Wall slides for scapular mobility
+  sh_004: { en: 'ozhHe-u6uMM' }, // Isometric shoulder external rotation
+  sh_005: { en: '0d8OPH6aeo8' }, // Isometric shoulder internal rotation
   sh_006: null, // Doorway pectoral stretch
-  sh_007: null, // Sleeper stretch
+  sh_007: { en: 'FODQxJh5PeI' }, // Sleeper stretch
   sh_008: null, // Cross-body shoulder stretch
-  sh_009: null, // Prone I-Y-T raises
-  sh_010: null, // Pendulum arm swings
-  sh_011: null, // Scapular retractions (seated)
-  sh_012: null, // Resistance band pull-aparts
+  sh_009: { en: 'egcK49J5Q-Y' }, // Prone I-Y-T raises
+  sh_010: { en: 'zY5nq68IxwA' }, // Pendulum arm swings
+  sh_011: { en: 'iCZbtG0WosA' }, // Scapular retractions (seated)
+  sh_012: { en: '3OYSIWaJJk4' }, // Resistance band pull-aparts
 
   // ── lower_body ───────────────────────────────────────────────────────────────
-  lb_001: null, // Quick lower body reset
-  lb_002: null, // Seated lower body stretch
-  lb_003: null, // Low back and hip pain relief
+  lb_001: { en: 'RsNsIiNa6rY' }, // Quick lower body reset
+  lb_002: { en: 'x0-FNTVWbzA' }, // Seated lower body stretch
+  lb_003: { en: 'Bft9Brda3TY' }, // Low back and hip pain relief
   lb_004: null, // Supine piriformis stretch
   lb_005: null, // Kneeling hip flexor stretch
-  lb_006: null, // Cat-cow spinal mobility
+  lb_006: { en: '9uY-vvV4Lgc' }, // Cat-cow spinal mobility
   lb_007: null, // Child's pose lumbar stretch
-  lb_008: null, // Supine pelvic tilts
-  lb_009: null, // Bird-dog core stability
-  lb_010: null, // Dead bug progression
-  lb_011: null, // Prone press-up (Cobra)
-  lb_012: null, // Side-lying hip abduction
-  lb_013: null, // Side-lying hip adduction
-  lb_014: null, // Quadruped fire hydrants
-  lb_015: null, // Seated lumbar rotation
+  lb_008: { en: 'TWuR_U9ddcc' }, // Supine pelvic tilts
+  lb_009: { en: 'ww-6lRXvI9Y' }, // Bird-dog core stability
+  lb_010: { en: 'r_5ApR5BHV0' }, // Dead bug progression
+  lb_011: { en: 'Sws_GwrlYO0' }, // Prone press-up (Cobra)
+  lb_012: { en: 'g9FtnmsIYgI' }, // Side-lying hip abduction
+  lb_013: { en: 'lhwT35sshrI' }, // Side-lying hip adduction
+  lb_014: { en: 'grvBNoxUrp0' }, // Quadruped fire hydrants
+  lb_015: { en: 'dNKI3bBLV3Q' }, // Seated lumbar rotation
   lb_016: null, // Standing hamstring stretch
 
   // ── knee ──────────────────────────────────────────────────────────────────────
-  kn_001: null, // Supine straight leg raise
-  kn_002: null, // Short arc quadriceps extension
-  kn_003: null, // Isometric wall sit holds
-  kn_004: null, // Standing hamstring curl
-  kn_005: null, // Side-lying clamshells
-  kn_006: null, // Low impact step-ups
-  kn_007: null, // Standing calf raises
-  kn_008: null, // Supine heel slides
+  kn_001: { en: 'Ka19yzAlIGY' }, // Supine straight leg raise
+  kn_002: { en: 'Wqky4QQQ23c' }, // Short arc quadriceps extension
+  kn_003: { en: 'JaZNYM3zAP0' }, // Isometric wall sit holds
+  kn_004: { en: '5FL_RBkDw2I' }, // Standing hamstring curl
+  kn_005: { en: 'EG5_gXcfozw' }, // Side-lying clamshells
+  kn_006: { en: 'T7PT5nVHE6s' }, // Low impact step-ups
+  kn_007: { en: 'k8ipHzKeAkQ' }, // Standing calf raises
+  kn_008: { en: 'A7fcobCVppc' }, // Supine heel slides
   kn_009: null, // Standing quad stretch
   kn_010: null, // Seated hamstring stretch
   kn_011: null, // Standing IT band stretch
-  kn_012: null, // Supine glute bridge
-  kn_013: null, // Lateral band walks
-  kn_014: null, // Terminal knee extension (banded)
-  kn_015: null, // Seated patellar mobilization
+  kn_012: { en: 'vOvRFsGMMqo' }, // Supine glute bridge
+  kn_013: { en: 'IOCaL1JTxLo' }, // Lateral band walks
+  kn_014: { en: 'fw4C3nGq4LI' }, // Terminal knee extension (banded)
+  kn_015: { en: 'xAM2zBblDXk' }, // Seated patellar mobilization
 
   // ── neck ──────────────────────────────────────────────────────────────────────
-  nk_001: null, // Seated cervical retraction (chin tucks)
+  nk_001: { en: 'QQMfNNHcf8w' }, // Seated cervical retraction (chin tucks)
   nk_002: null, // Upper trapezius stretch
   nk_003: null, // Levator scapulae stretch
-  nk_004: null, // Slow neck rotations
+  nk_004: { en: 'To_0Yn8_Yks' }, // Slow neck rotations
   nk_005: null, // Neck lateral flexion
-  nk_006: null, // Isometric neck flexion (hand resistance)
-  nk_007: null, // Isometric neck extension
-  nk_008: null, // Supine chin tucks
-  nk_009: null, // Seated scalene stretch
-  nk_010: null, // Gentle half neck rolls
+  nk_006: { en: 'GXbKeZtTfFY' }, // Isometric neck flexion (hand resistance)
+  nk_007: { en: 'ydbMq0wPirw' }, // Isometric neck extension
+  nk_008: { en: 'qFEBNu4vwSg' }, // Supine chin tucks
+  nk_009: { en: '0mShVs1BoU0' }, // Seated scalene stretch
+  nk_010: { en: 'e9SF1e7B8h4' }, // Gentle half neck rolls
 
   // ── upper_body ─────────────────────────────────────────────────────────────────
-  ub_001: null, // Thoracic extension on foam roller
+  ub_001: { en: 'gCNmsijJdFY' }, // Thoracic extension on foam roller
   ub_002: null, // Thread the needle stretch
-  ub_003: null, // Seated resistance band rows
-  ub_004: null, // Standing wall push-ups
-  ub_005: null, // Resistance band biceps curl
-  ub_006: null, // Resistance band triceps extension
-  ub_007: null, // Wrist flexor stretch
-  ub_008: null, // Wrist extensor stretch
-  ub_009: null, // Forearm pronation and supination
-  ub_010: null, // Side-lying open book stretch
+  ub_003: { en: 'whSXi-EXbqI' }, // Seated resistance band rows
+  ub_004: { en: '5NPvv40gd3Q' }, // Standing wall push-ups
+  ub_005: { en: '3g-1J2KkX_8' }, // Resistance band biceps curl
+  ub_006: { en: 'a5rUdCeTtSE' }, // Resistance band triceps extension
+  ub_007: { en: 'i-JV2PsFzWA' }, // Wrist flexor stretch
+  ub_008: { en: '80Y3HHMgo6w' }, // Wrist extensor stretch
+  ub_009: { en: 'PuDhgEDhGCs' }, // Forearm pronation and supination
+  ub_010: { en: 'OW6YHlxY6JI' }, // Side-lying open book stretch
 
   // ── full_body ──────────────────────────────────────────────────────────────────
   fb_001: null, // Standing toe touch progression
-  fb_002: null, // Walkouts (inchworms)
-  fb_003: null, // Low impact jumping jacks
-  fb_004: null, // Bodyweight squat to stand
-  fb_005: null, // Forward lunge with torso twist
-  fb_006: null, // High knees marching in place
-  fb_007: null, // Standing torso twists
-  fb_008: null, // Standing side bend reach
-  fb_009: null, // Modified bear crawl hold
+  fb_002: { en: '7pev2AW-MZ0' }, // Walkouts (inchworms)
+  fb_003: { en: '88By_8Rd7mM' }, // Low impact jumping jacks
+  fb_004: { en: 'G5iP1-kE4-4' }, // Bodyweight squat to stand
+  fb_005: { en: 'opWGPRq8rs0' }, // Forward lunge with torso twist
+  fb_006: { en: 'zDMUQ63YdbE' }, // High knees marching in place
+  fb_007: { en: 'nsgbjeugPr0' }, // Standing torso twists
+  fb_008: { en: 'wY9nQ-yfRwo' }, // Standing side bend reach
+  fb_009: { en: 'CILKLy84EDk' }, // Modified bear crawl hold
 };
 
 // ── Bridge to the curated 508-video catalog (src/data/recoveryVideos.js) ──────
