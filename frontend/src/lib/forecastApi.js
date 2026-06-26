@@ -80,9 +80,10 @@ export async function fetchSovereignBriefing({ locale }) {
 
 // AUTO-DAILY (FRONT 3.5): read TODAY'S PRE-CACHED Sovereign Briefing — the one the
 // morning check-in tripwire generated in the background — via the token-gated
-// bbf_get_sovereign_briefing RPC. Returns a playable object URL for instant play, or
-// NULL when it hasn't been pre-generated yet (e.g. no check-in today) so the caller
-// can fall back to on-demand fetchSovereignBriefing. No Claude/ElevenLabs round-trip.
+// bbf_get_sovereign_briefing RPC. Returns { url, createdAt } for instant play (the
+// generation timestamp drives the tile's "freshly generated" stamp), or NULL when it
+// hasn't been pre-generated yet (no check-in today) so the caller can fall back to
+// on-demand fetchSovereignBriefing. No Claude/ElevenLabs round-trip.
 export async function fetchCachedSovereignBriefing({ locale }) {
   const token = getStoredVaultToken();
   if (!token) return null;
@@ -93,7 +94,10 @@ export async function fetchCachedSovereignBriefing({ locale }) {
   const bin = atob(data.audio_b64);
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
-  return URL.createObjectURL(new Blob([bytes], { type: data.mime || 'audio/mpeg' }));
+  return {
+    url: URL.createObjectURL(new Blob([bytes], { type: data.mime || 'audio/mpeg' })),
+    createdAt: data.created_at || null,
+  };
 }
 
 // LIVE COACH (context='program'): a short, intense in-ear cue for the active

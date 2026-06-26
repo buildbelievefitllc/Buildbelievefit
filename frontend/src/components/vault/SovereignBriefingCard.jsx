@@ -20,6 +20,13 @@ import { fetchSovereignBriefing, fetchCachedSovereignBriefing } from '../../lib/
 // re-download today's ~1MB briefing. Session-lived; one URL per locale/day.
 const _sovCache = new Map();
 function utcDay() { return new Date().toISOString().slice(0, 10); }
+// Generation timestamp (UTC ISO) → the athlete's LOCAL clock time, e.g. "2:13 PM".
+function fmtTime(iso, lang) {
+  if (!iso) return '';
+  const loc = lang === 'es' ? 'es' : lang === 'pt' ? 'pt-BR' : 'en-US';
+  try { return new Date(iso).toLocaleTimeString(loc, { hour: 'numeric', minute: '2-digit' }); }
+  catch { return ''; }
+}
 
 const SB_STR = {
   en: {
@@ -28,6 +35,7 @@ const SB_STR = {
     sub: 'Composed fresh from this morning’s check-in — in Coach Akeem’s voice.',
     playToday: '▶ Play Today’s Briefing', generate: '▶ Generate Briefing',
     loadingToday: 'Loading today’s briefing…', generating: 'Composing your briefing…', replay: '↻ Replay',
+    freshAt: (t) => `Freshly generated today at ${t}`,
     upsell: 'Upgrade to unlock your Sovereign Briefing in Akeem’s voice.',
     quota: 'Monthly voice limit reached — resets next month.',
     session: 'Your session expired — sign in again.',
@@ -39,6 +47,7 @@ const SB_STR = {
     sub: 'Compuesto al instante desde tu registro de esta mañana — en la voz del Coach Akeem.',
     playToday: '▶ Reproducir el de Hoy', generate: '▶ Generar Informe',
     loadingToday: 'Cargando el informe de hoy…', generating: 'Componiendo tu informe…', replay: '↻ Repetir',
+    freshAt: (t) => `Generado hoy a las ${t}`,
     upsell: 'Mejora tu plan para desbloquear tu Informe Soberano en la voz de Akeem.',
     quota: 'Límite de voz mensual alcanzado — se reinicia el próximo mes.',
     session: 'Tu sesión expiró — inicia sesión de nuevo.',
@@ -50,6 +59,7 @@ const SB_STR = {
     sub: 'Composto na hora a partir do seu check-in desta manhã — na voz do Coach Akeem.',
     playToday: '▶ Tocar o de Hoje', generate: '▶ Gerar Briefing',
     loadingToday: 'Carregando o briefing de hoje…', generating: 'Compondo seu briefing…', replay: '↻ Repetir',
+    freshAt: (t) => `Gerado hoje às ${t}`,
     upsell: 'Faça upgrade para desbloquear seu Briefing Soberano na voz do Akeem.',
     quota: 'Limite mensal de voz atingido — reinicia no próximo mês.',
     session: 'Sua sessão expirou — entre novamente.',
@@ -69,6 +79,7 @@ export default function SovereignBriefingCard() {
   const { isGraduated } = useCalibration();
   const tr = SB_STR[lang] || SB_STR.en;
   const [url, setUrl] = useState(null);
+  const [createdAt, setCreatedAt] = useState(null); // generation timestamp (UTC ISO)
   const [phase, setPhase] = useState('loading'); // loading | ready | idle | generating | error
   const [err, setErr] = useState(null);
   const audioRef = useRef(null);
@@ -84,16 +95,16 @@ export default function SovereignBriefingCard() {
     const hit = _sovCache.get(key);
     if (hit) {
       // Defer to a microtask so the first paint isn't a synchronous setState.
-      queueMicrotask(() => { if (!cancelled) { setUrl(hit); setPhase('ready'); } });
+      queueMicrotask(() => { if (!cancelled) { setUrl(hit.url); setCreatedAt(hit.createdAt); setPhase('ready'); } });
       return () => { cancelled = true; };
     }
     fetchCachedSovereignBriefing({ locale: lang })
-      .then((blobUrl) => {
+      .then((res) => {
         if (cancelled) return;
-        if (blobUrl) { _sovCache.set(key, blobUrl); setUrl(blobUrl); setPhase('ready'); }
-        else { setUrl(null); setPhase('idle'); }
+        if (res?.url) { _sovCache.set(key, res); setUrl(res.url); setCreatedAt(res.createdAt); setPhase('ready'); }
+        else { setUrl(null); setCreatedAt(null); setPhase('idle'); }
       })
-      .catch(() => { if (!cancelled) { setUrl(null); setPhase('idle'); } });
+      .catch(() => { if (!cancelled) { setUrl(null); setCreatedAt(null); setPhase('idle'); } });
     return () => { cancelled = true; };
   }, [isGraduated, lang]);
 
@@ -109,8 +120,10 @@ export default function SovereignBriefingCard() {
     setErr(null);
     try {
       const next = await fetchSovereignBriefing({ locale: lang }); // on-demand live (cache-miss path)
-      _sovCache.set(`${lang}|${utcDay()}`, next);
+      const entry = { url: next, createdAt: new Date().toISOString() }; // generated just now
+      _sovCache.set(`${lang}|${utcDay()}`, entry);
       setUrl(next);
+      setCreatedAt(entry.createdAt);
       setPhase('ready');
       play();
     } catch (e) {
@@ -140,6 +153,13 @@ export default function SovereignBriefingCard() {
         <span style={KICKER}>★ {tr.kicker}</span>
         <h3 style={TITLE}>{tr.title}</h3>
         <p style={SUB}>{tr.sub}</p>
+        {/* Premium "freshly generated" stamp — reads created_at off the cached blob.
+            Purple pill + gold border/text; only when a briefing is ready. */}
+        {createdAt && phase === 'ready' ? (
+          <div style={STAMP} data-testid="sovereign-briefing-stamp">
+            <span aria-hidden="true">◷</span> {tr.freshAt(fmtTime(createdAt, lang))}
+          </div>
+        ) : null}
         <div style={{ display: 'flex', alignItems: 'center', gap: '.7rem', flexWrap: 'wrap', marginTop: '.7rem' }}>
           <button type="button" onClick={onPrimary} disabled={disabled} style={{ ...BTN, opacity: disabled ? 0.7 : 1 }} data-testid="sovereign-briefing-play">
             {label}
@@ -161,3 +181,6 @@ const TITLE = { fontFamily: 'var(--hb)', fontSize: '1.5rem', margin: '.25rem 0 .
 const SUB = { margin: 0, color: 'rgba(244,238,251,.82)', fontSize: '.9rem', lineHeight: 1.45 };
 const BTN = { fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700, color: '#0e0a16', background: 'linear-gradient(90deg,#f5c800,#ffd83a)', border: 'none', borderRadius: 999, padding: '.6rem 1.25rem', cursor: 'pointer' };
 const ERR = { marginTop: '.6rem', color: '#ffd24d', fontSize: '.8rem' };
+// Brand-token timestamp pill: BBF Purple fill, BBF Gold border + text. Subtle,
+// premium, sits between the sub and the play action without competing with it.
+const STAMP = { display: 'inline-flex', alignItems: 'center', gap: '.4rem', marginTop: '.55rem', padding: '.22rem .65rem', borderRadius: 999, background: 'rgba(106,13,173,.32)', border: '1px solid rgba(245,200,0,.38)', color: '#f5cf60', fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '.7px', fontWeight: 700, textTransform: 'uppercase' };
