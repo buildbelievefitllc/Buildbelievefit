@@ -12,7 +12,7 @@
 // checkout (tier CTAs route to the application form). The brand surface + funnel
 // are restored.
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import PathfinderForm from '../components/PathfinderForm.jsx';
@@ -26,6 +26,7 @@ import LangToggle from '../components/LangToggle.jsx';
 // Live Stripe pricing (the Revenue Matrix) — single source of truth shared with
 // the in-Vault UpgradeOverlay so the checkout URLs can't drift between surfaces.
 import { PRICING, MATRIX_TABS } from '../lib/pricingMatrix.js';
+import { useMarketingCards } from '../lib/useMarketingCards.js';
 
 // ── True legacy palette (verbatim from styles/bbf-tokens.css) ───────────────────
 // Victory Gold is RESERVED for primary CTAs only (scarcity = value). Purple is the
@@ -67,7 +68,7 @@ const CALIBRATION_CARDS = [
 
 export default function MarketingLanding() {
   const navigate = useNavigate();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { user } = useAuth();
 
   // Authed visitors are NEVER auto-redirected here — App routes "/" to this page
@@ -81,6 +82,34 @@ export default function MarketingLanding() {
   // client isn't dumped on the bare homepage (their username + PIN arrive by email).
   const [searchParams] = useSearchParams();
   const checkoutStatus = searchParams.get('checkout');
+
+  // Campaign deep-link: ads tagged ?campaign=calibration (or utm_campaign) land the
+  // visitor straight on the Earn-The-Vault band — the ad's promise, fulfilled on arrival.
+  const campaign = (searchParams.get('campaign') || searchParams.get('utm_campaign') || '').toLowerCase();
+  useEffect(() => {
+    if (!/calib|vault|earn|30/.test(campaign)) return undefined;
+    const el = document.getElementById('calibration');
+    if (el) requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    return undefined;
+  }, [campaign]);
+
+  // Content Engine — the calibration CTA deck is operator-editable from the DB (Command
+  // Center -> Content); fall back to the hardcoded CALIBRATION_CARDS when the read is
+  // empty/unavailable (fail-open, so the band never blanks on a DB hiccup).
+  const dbCards = useMarketingCards('calibration');
+  const calibCards = useMemo(() => {
+    if (Array.isArray(dbCards) && dbCards.length) {
+      const pick = (c, f) => c[`${f}_${lang}`] || c[`${f}_en`] || '';
+      return dbCards.map((c) => ({
+        id: c.id, idx: c.idx, tone: c.tone,
+        state: pick(c, 'state'), lead: pick(c, 'lead'), body: pick(c, 'body'),
+      }));
+    }
+    return CALIBRATION_CARDS.map((c) => ({
+      id: c.id, idx: c.idx, tone: c.tone,
+      state: t(c.stateKey), lead: t(c.leadKey), body: t(c.bodyKey),
+    }));
+  }, [dbCards, lang, t]);
 
   // ── Brand Engine Interface — the 5-tab state machine ──────────────────────────
   // The former vertical stack (Pricing, Six Pillars, Calculator, Pathfinder, Coach
@@ -221,14 +250,14 @@ export default function MarketingLanding() {
           })()}
           <div style={s.calibSub}>{t('cal-land-sub')}</div>
           <div style={s.calibCards}>
-            {CALIBRATION_CARDS.map((c) => (
+            {calibCards.map((c) => (
               <article key={c.id} style={{ ...s.calibCard, ...(s[`calibCard_${c.tone}`] || null) }}>
                 <div style={s.calibCardTop}>
                   <span style={s.calibCardIdx} aria-hidden="true">{c.idx}</span>
-                  <span style={{ ...s.calibCardChip, ...(s[`calibChip_${c.tone}`] || null) }}>{t(c.stateKey)}</span>
+                  <span style={{ ...s.calibCardChip, ...(s[`calibChip_${c.tone}`] || null) }}>{c.state}</span>
                 </div>
-                <h3 style={s.calibCardH}>{t(c.leadKey)}</h3>
-                <p style={s.calibCardBody}>{t(c.bodyKey)}</p>
+                <h3 style={s.calibCardH}>{c.lead}</h3>
+                <p style={s.calibCardBody}>{c.body}</p>
               </article>
             ))}
           </div>

@@ -46,6 +46,7 @@ const DICT = {
   'cal-card-state-locked': { en: 'Locked', es: 'Bloqueado', pt: 'Bloqueado' },
   'cal-card-state-ignite': { en: 'Unlocking', es: 'Desbloqueando', pt: 'Desbloqueando' },
   'cal-card-state-open': { en: 'Open', es: 'Abierto', pt: 'Aberto' },
+  'cmd-tab-content': { en: 'Content', es: 'Contenido', pt: 'Conteúdo' },
   'stat-founded': { en: 'Est. · Founded', es: 'Est. · Fundado', pt: 'Est. · Fundado em' },
   'stat-standard': { en: 'Sovereign Standard', es: 'Estándar Soberano', pt: 'Padrão Soberano' },
   'stat-plans': { en: 'Custom Plans', es: 'Planes Personalizados', pt: 'Planos Personalizados' },

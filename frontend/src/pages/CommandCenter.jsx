@@ -27,6 +27,7 @@ import NutritionLocker from '../components/command/NutritionLocker.jsx';
 import CoachCave from '../components/command/CoachCave.jsx';
 import CoachLab from '../components/command/CoachLab.jsx';
 import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
+import ContentEngine from '../components/command/ContentEngine.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import SportsPortal from '../components/sports/SportsPortal.jsx';
@@ -65,6 +66,9 @@ const TABS = [
   // CEO-only Language Mastery Protocol. Static content (no token gate); the whole
   // /command route is AdminGuard-gated, so this tab never renders for an athlete.
   { id: 'language', labelKey: 'cmd-tab-language', Panel: AdminLanguageRoadmap },
+  // Content Engine — operator-editable marketing CTA cards (the calibration deck); the
+  // public landing reads these live. Admin-only via the AdminGuard /command route.
+  { id: 'content', labelKey: 'cmd-tab-content', Panel: ContentEngine },
   // The Coach Lab — BBF Lab Continuous Knowledge Ecosystem (Research Vault live;
   // Kinesiology Lab · Coach's Arena · Broadcast Hub on the build path). Admin-only.
   { id: 'coach-lab', labelKey: 'cmd-tab-coach-lab', Panel: CoachLab },
