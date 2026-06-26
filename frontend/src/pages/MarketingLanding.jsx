@@ -190,6 +190,44 @@ export default function MarketingLanding() {
         </div>
       </section>
 
+      {/* ═══ EARN THE VAULT — 30-Day Biometric Calibration manifesto ════════════════
+          The lead narrative directly under the hero (CEO order). ONE focused band (not
+          a vertical funnel — honors §10): headline, the calibration thesis, the three
+          earned phases, and the registration CTA. Bebas headers / Barlow body, purple
+          structure + Victory-Gold accents. {phase} token-split keeps the bold brand
+          phrase correctly placed across EN / ES / PT. */}
+      <section id="calibration" style={s.calib}>
+        <div style={s.calibWrap}>
+          <div style={s.calibKicker}>{t('cal-land-lbl')}</div>
+          <h2 style={s.calibH}>{t('cal-land-h')}</h2>
+          <p style={s.calibBody}>{t('cal-land-p1')}</p>
+          {(() => {
+            const parts = String(t('cal-land-p2')).split('{phase}');
+            return (
+              <p style={s.calibBody}>
+                {parts[0]}
+                <strong style={s.calibStrong}>{t('cal-land-phase')}</strong>
+                {parts[1] || ''}
+              </p>
+            );
+          })()}
+          <div style={s.calibSub}>{t('cal-land-sub')}</div>
+          <ul style={s.calibList}>
+            {[
+              ['cal-land-b1-lead', 'cal-land-b1-body'],
+              ['cal-land-b2-lead', 'cal-land-b2-body'],
+              ['cal-land-b3-lead', 'cal-land-b3-body'],
+            ].map(([lead, body], i) => (
+              <li key={lead} style={s.calibItem}>
+                <span style={s.calibPhase} aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                <span style={s.calibItemText}><strong style={s.calibLead}>{t(lead)}:</strong> {t(body)}</span>
+              </li>
+            ))}
+          </ul>
+          <button type="button" style={s.calibCta} onClick={goToSelectTier}>{t('hero-cta')}</button>
+        </div>
+      </section>
+
       {/* ═══ BRAND ENGINE INTERFACE — the 5-tab telemetry deck ═══════════════════
           Replaces the former vertical stack. Deep-purple + gold metallic border;
           each tab carries an athletic telemetry chip. The underlying engines are
@@ -640,6 +678,20 @@ const s = {
   secLbl: { textAlign: 'center', fontFamily: BODY, fontSize: '.78rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL, marginBottom: 10 },
   secH: { fontFamily: HEAD, fontSize: 'clamp(2rem,5vw,3.4rem)', letterSpacing: '1px', color: '#fff', textAlign: 'center', margin: '0 0 12px' },
   secSub: { textAlign: 'center', color: 'rgba(255,255,255,.6)', fontFamily: BODY, fontSize: '1.02rem', lineHeight: 1.5, margin: '0 auto 40px', maxWidth: '64ch' },
+  // ── "Earn The Vault" calibration manifesto band (directly under the hero) ──
+  calib: { position: 'relative', background: `linear-gradient(160deg, rgba(30,3,56,.55) 0%, rgba(9,9,9,.86) 72%)`, borderTop: `1px solid rgba(157,39,201,.28)`, borderBottom: `1px solid rgba(157,39,201,.28)`, padding: 'clamp(44px,7vw,84px) clamp(16px,4vw,40px)' },
+  calibWrap: { maxWidth: 880, margin: '0 auto', textAlign: 'center' },
+  calibKicker: { fontFamily: BODY, fontSize: '.8rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL, marginBottom: 12 },
+  calibH: { fontFamily: HEAD, fontSize: 'clamp(2.2rem,6vw,4rem)', lineHeight: 1.02, letterSpacing: '1px', color: '#fff', margin: '0 0 22px' },
+  calibBody: { fontFamily: BODY, fontSize: 'clamp(1.05rem,2.1vw,1.28rem)', lineHeight: 1.6, color: 'rgba(255,255,255,.78)', margin: '0 auto 18px', maxWidth: '64ch' },
+  calibStrong: { color: GOLD, fontWeight: 700 },
+  calibSub: { fontFamily: HEAD, fontSize: 'clamp(1.4rem,3vw,2rem)', letterSpacing: '2px', color: GOLD, textTransform: 'uppercase', margin: '30px 0 18px' },
+  calibList: { listStyle: 'none', padding: 0, margin: '0 auto', maxWidth: 720, textAlign: 'left', display: 'grid', gap: 12 },
+  calibItem: { display: 'flex', gap: 14, alignItems: 'flex-start', background: `linear-gradient(135deg, rgba(106,13,173,.18), rgba(9,9,9,.4))`, border: `1px solid rgba(157,39,201,.34)`, borderLeft: `3px solid ${GOLD}`, borderRadius: 12, padding: '16px 18px' },
+  calibPhase: { fontFamily: HEAD, fontSize: '1.5rem', lineHeight: 1, color: PURL, flex: 'none', minWidth: 34 },
+  calibItemText: { fontFamily: BODY, fontSize: '1.05rem', lineHeight: 1.5, color: 'rgba(255,255,255,.82)' },
+  calibLead: { color: '#fff', fontWeight: 700 },
+  calibCta: { display: 'inline-block', fontFamily: HEAD, fontSize: '1.3rem', letterSpacing: '2px', padding: '16px 46px', marginTop: 34, background: GOLD, color: '#090909', border: 'none', borderRadius: 8, cursor: 'pointer', boxShadow: `0 8px 28px rgba(245,200,0,.3)` },
   // Divider is purple→gold→purple (the brand sweep), not flat gold.
   divider: { maxWidth: 900, margin: '0 auto', height: 1, background: `linear-gradient(90deg, transparent, ${PUR} 30%, ${GOLD_LAB} 50%, ${PUR} 70%, transparent)`, opacity: .5 },
 
