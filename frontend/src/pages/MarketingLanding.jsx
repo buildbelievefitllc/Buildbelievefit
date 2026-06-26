@@ -52,6 +52,14 @@ const CRED_KEYS = [
 ];
 const ORIGIN_KEYS = ['origin-n1', 'origin-n2', 'origin-n3'];
 
+// 30-Day Calibration CTA cards — the earn-it ladder, data-driven so the deck lives in
+// ONE array (copy resolves through i18n). `tone` drives the locked→open accent + chip.
+const CALIBRATION_CARDS = [
+  { id: 'baseline', idx: '01', tone: 'locked', leadKey: 'cal-land-b1-lead', bodyKey: 'cal-land-b1-body', stateKey: 'cal-card-state-locked' },
+  { id: 'ignition', idx: '02', tone: 'ignite', leadKey: 'cal-land-b2-lead', bodyKey: 'cal-land-b2-body', stateKey: 'cal-card-state-ignite' },
+  { id: 'vault',    idx: '03', tone: 'open',   leadKey: 'cal-land-b3-lead', bodyKey: 'cal-land-b3-body', stateKey: 'cal-card-state-open' },
+];
+
 // Phase 15 — Revenue Matrix. PRICING + MATRIX_TABS were hoisted to
 // lib/pricingMatrix.js (single source of truth, shared with the in-Vault
 // UpgradeOverlay so the live Stripe Payment Links can never drift). Imported above.
@@ -212,18 +220,18 @@ export default function MarketingLanding() {
             );
           })()}
           <div style={s.calibSub}>{t('cal-land-sub')}</div>
-          <ul style={s.calibList}>
-            {[
-              ['cal-land-b1-lead', 'cal-land-b1-body'],
-              ['cal-land-b2-lead', 'cal-land-b2-body'],
-              ['cal-land-b3-lead', 'cal-land-b3-body'],
-            ].map(([lead, body], i) => (
-              <li key={lead} style={s.calibItem}>
-                <span style={s.calibPhase} aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-                <span style={s.calibItemText}><strong style={s.calibLead}>{t(lead)}:</strong> {t(body)}</span>
-              </li>
+          <div style={s.calibCards}>
+            {CALIBRATION_CARDS.map((c) => (
+              <article key={c.id} style={{ ...s.calibCard, ...(s[`calibCard_${c.tone}`] || null) }}>
+                <div style={s.calibCardTop}>
+                  <span style={s.calibCardIdx} aria-hidden="true">{c.idx}</span>
+                  <span style={{ ...s.calibCardChip, ...(s[`calibChip_${c.tone}`] || null) }}>{t(c.stateKey)}</span>
+                </div>
+                <h3 style={s.calibCardH}>{t(c.leadKey)}</h3>
+                <p style={s.calibCardBody}>{t(c.bodyKey)}</p>
+              </article>
             ))}
-          </ul>
+          </div>
           <button type="button" style={s.calibCta} onClick={goToSelectTier}>{t('hero-cta')}</button>
         </div>
       </section>
@@ -686,11 +694,16 @@ const s = {
   calibBody: { fontFamily: BODY, fontSize: 'clamp(1.05rem,2.1vw,1.28rem)', lineHeight: 1.6, color: 'rgba(255,255,255,.78)', margin: '0 auto 18px', maxWidth: '64ch' },
   calibStrong: { color: GOLD, fontWeight: 700 },
   calibSub: { fontFamily: HEAD, fontSize: 'clamp(1.4rem,3vw,2rem)', letterSpacing: '2px', color: GOLD, textTransform: 'uppercase', margin: '30px 0 18px' },
-  calibList: { listStyle: 'none', padding: 0, margin: '0 auto', maxWidth: 720, textAlign: 'left', display: 'grid', gap: 12 },
-  calibItem: { display: 'flex', gap: 14, alignItems: 'flex-start', background: `linear-gradient(135deg, rgba(106,13,173,.18), rgba(9,9,9,.4))`, border: `1px solid rgba(157,39,201,.34)`, borderLeft: `3px solid ${GOLD}`, borderRadius: 12, padding: '16px 18px' },
-  calibPhase: { fontFamily: HEAD, fontSize: '1.5rem', lineHeight: 1, color: PURL, flex: 'none', minWidth: 34 },
-  calibItemText: { fontFamily: BODY, fontSize: '1.05rem', lineHeight: 1.5, color: 'rgba(255,255,255,.82)' },
-  calibLead: { color: '#fff', fontWeight: 700 },
+  calibCards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 14, margin: '0 auto', maxWidth: 860, textAlign: 'left' },
+  calibCard: { display: 'flex', flexDirection: 'column', gap: 6, background: `linear-gradient(150deg, rgba(106,13,173,.2), rgba(9,9,9,.5))`, border: `1px solid rgba(157,39,201,.34)`, borderTop: `3px solid ${PURL}`, borderRadius: 14, padding: '18px' },
+  calibCard_open: { borderTop: `3px solid ${GOLD}`, background: `linear-gradient(150deg, rgba(106,13,173,.26), rgba(245,200,0,.06))` },
+  calibCardTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 4 },
+  calibCardIdx: { fontFamily: HEAD, fontSize: '1.7rem', lineHeight: 1, color: PURL },
+  calibCardChip: { fontFamily: BODY, fontSize: '.66rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '4px 9px', borderRadius: 999, border: `1px solid rgba(157,39,201,.5)`, color: 'rgba(255,255,255,.72)', whiteSpace: 'nowrap' },
+  calibChip_ignite: { borderColor: 'rgba(245,200,0,.5)', color: GOLD_SOFT },
+  calibChip_open: { border: 'none', background: GOLD, color: '#090909' },
+  calibCardH: { fontFamily: HEAD, fontSize: '1.3rem', letterSpacing: '.5px', color: '#fff', margin: '4px 0 0' },
+  calibCardBody: { fontFamily: BODY, fontSize: '.96rem', lineHeight: 1.45, color: 'rgba(255,255,255,.74)', margin: 0 },
   calibCta: { display: 'inline-block', fontFamily: HEAD, fontSize: '1.3rem', letterSpacing: '2px', padding: '16px 46px', marginTop: 34, background: GOLD, color: '#090909', border: 'none', borderRadius: 8, cursor: 'pointer', boxShadow: `0 8px 28px rgba(245,200,0,.3)` },
   // Divider is purple→gold→purple (the brand sweep), not flat gold.
   divider: { maxWidth: 900, margin: '0 auto', height: 1, background: `linear-gradient(90deg, transparent, ${PUR} 30%, ${GOLD_LAB} 50%, ${PUR} 70%, transparent)`, opacity: .5 },

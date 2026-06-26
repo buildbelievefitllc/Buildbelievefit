@@ -42,6 +42,10 @@ const DICT = {
   'cal-land-b2-body': { en: 'Your custom Phase 10 Smart Cardio unlocks. The engine dynamically routes your recovery.', es: 'Tu Cardio Inteligente Fase 10 personalizado se desbloquea. El motor enruta dinámicamente tu recuperación.', pt: 'Seu Cardio Inteligente Fase 10 personalizado é desbloqueado. O motor roteia dinamicamente sua recuperação.' },
   'cal-land-b3-lead': { en: 'Day 30 (The Vault Opens)', es: 'Día 30 (El Cofre se Abre)', pt: 'Dia 30 (O Cofre se Abre)' },
   'cal-land-b3-body': { en: 'You graduate. The full Library and dynamic AI audio coaching unlock. You earn your permanent badge as a Sovereign Athlete.', es: 'Te gradúas. La Biblioteca completa y el coaching de audio con IA se desbloquean. Ganas tu insignia permanente como Atleta Soberano.', pt: 'Você se forma. A Biblioteca completa e o coaching de áudio com IA são desbloqueados. Você conquista seu selo permanente como Atleta Soberano.' },
+  // CTA-card state chips (the earn-it ladder: Locked → Unlocking → Open).
+  'cal-card-state-locked': { en: 'Locked', es: 'Bloqueado', pt: 'Bloqueado' },
+  'cal-card-state-ignite': { en: 'Unlocking', es: 'Desbloqueando', pt: 'Desbloqueando' },
+  'cal-card-state-open': { en: 'Open', es: 'Abierto', pt: 'Aberto' },
   'stat-founded': { en: 'Est. · Founded', es: 'Est. · Fundado', pt: 'Est. · Fundado em' },
   'stat-standard': { en: 'Sovereign Standard', es: 'Estándar Soberano', pt: 'Padrão Soberano' },
   'stat-plans': { en: 'Custom Plans', es: 'Planes Personalizados', pt: 'Planos Personalizados' },
