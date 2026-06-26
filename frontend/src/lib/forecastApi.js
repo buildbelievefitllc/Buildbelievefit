@@ -57,6 +57,27 @@ export async function fetchBriefingAudio({ uid, liftName, forecast, locale }) {
   return postForAudio({ context: 'forecast', uid, lift_name: liftName, forecast, locale }, 'briefing');
 }
 
+// SOVEREIGN AUDIO — the Day-30 graduation briefing. Akeem's cloned voice delivers a
+// personalized, trilingual spoken address from the dedicated bbf-sovereign-briefing
+// edge fn (gated server-side: voice_coach + Day-30 graduation + metering). Returns a
+// playable mp3 object URL; throws a slug-bearing Error on any gate/synth failure.
+export async function fetchSovereignBriefing({ locale }) {
+  const token = getStoredVaultToken();
+  const res = await fetch(`${FUNCTIONS_BASE}/bbf-sovereign-briefing`, {
+    method: 'POST',
+    headers: fnHeaders(token),
+    body: JSON.stringify({ locale, vault_token: token }),
+  });
+  if (!res.ok) {
+    let slug = `sovereign_briefing_failed_${res.status}`;
+    try { slug = (await res.json())?.error || slug; } catch { /* non-JSON body */ }
+    throw new Error(slug);
+  }
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('audio')) throw new Error('sovereign_briefing_no_audio');
+  return URL.createObjectURL(await res.blob());
+}
+
 // LIVE COACH (context='program'): a short, intense in-ear cue for the active
 // movement, voiced by the SAME locale-mapped ElevenLabs voice. Returns an mp3
 // object URL. `{ exerciseName, targetReps, targetSets, formCues, equipment }`.

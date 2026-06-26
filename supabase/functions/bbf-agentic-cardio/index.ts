@@ -25,6 +25,7 @@ import { logLlmCall } from '../_shared/llm-telemetry.ts';
 import { routeAndLog } from '../_shared/model-router.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
 import { requireEntitlement } from '../_shared/entitlement-gate.ts';
+import { deriveReadinessBand, applyTierCeiling, type RecoveryBand } from '../_shared/cardio-readiness.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -203,6 +204,7 @@ const SYSTEM_PROMPT = [
   '- available_minutes — exact time budget (integer).',
   '- strategy_tier — the mandated approach (full description). Honor it exactly.',
   '- cns_note — the athlete\'s CNS-fatigue context. If the CNS is taxed, keep targets honest and recovery generous.',
+  '- recovery_context — (optional) today\'s recovery band from the morning readiness scan: a HARD ceiling on tier, RPE, and interval structure. When present, NEVER exceed it — clamp every target to the band and keep recovery generous.',
   '',
   '# OUTPUT (structured JSON only)',
   '- machine — ONE real gym machine appropriate to the tier (no tier label, no options list).',
@@ -313,11 +315,12 @@ function extractTextBlock(content: any[]): string | null {
 }
 
 function buildContract(opts: {
-  uid: string; minutes: number; baseTier: Tier; effTier: Tier; cns: Cns;
+  uid: string; minutes: number; baseTier: Tier; cnsTier: Tier; effTier: Tier; cns: Cns;
+  band?: RecoveryBand | null;
   machine: string; steps: any[]; roi: any; source: 'claude' | 'fallback'; model: string | null;
   locale?: string;
 }) {
-  const { uid, minutes, baseTier, effTier, cns, machine, steps, roi, source, model, locale } = opts;
+  const { uid, minutes, baseTier, cnsTier, effTier, cns, band, machine, steps, roi, source, model, locale } = opts;
   return {
     ok: true,
     uid,
@@ -332,12 +335,27 @@ function buildContract(opts: {
     protocol_steps: steps,
     protocol_text: buildProtocolText(steps),
     total_minutes: totalMinutes(steps, minutes),
+    // CNS clamp ONLY (base_tier → cnsTier) — keeps the UI's "CNS Protection" panel
+    // honest; the recovery-band clamp is reported separately below.
     cns_downregulation: {
       ...cns,
       base_tier: baseTier,
-      effective_tier: effTier,
-      down_regulated: baseTier !== effTier,
+      effective_tier: cnsTier,
+      down_regulated: baseTier !== cnsTier,
     },
+    // PHASE 10 — today's recovery band + the tier clamp it applied ON TOP of CNS
+    // (cnsTier → effTier). null when no morning readiness rode in (fail-open).
+    recovery_band: band ? {
+      recovery_state: band.recovery_state,
+      tier_ceiling: band.tier_ceiling,
+      rpe_ceiling: band.rpe_ceiling,
+      work_rest_ratio: band.work_rest_ratio,
+      note: band.recovery_note,
+      tier_before: cnsTier,
+      tier_after: effTier,
+      clamped: cnsTier !== effTier,
+      inputs: band.inputs,
+    } : null,
     roi: { toast: roi.roi_toast, detail: roi.roi_detail, primary_metric: roi.roi_primary_metric },
     meta: { source, model, generated_at: new Date().toISOString() },
   };
@@ -367,7 +385,7 @@ serve(async (req: Request) => {
     const minutes = 10, tier: Tier = 'HIIT';
     const fb = fallbackSteps(tier, minutes);
     return jsonResponse(buildContract({
-      uid: 'admin', minutes, baseTier: tier, effTier: tier,
+      uid: 'admin', minutes, baseTier: tier, cnsTier: tier, effTier: tier, band: null,
       cns: { ...freshCns('unavailable', 'Admin bypass — CNS check skipped.') },
       machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: 'admin_override',
     }), 200);
@@ -422,7 +440,7 @@ serve(async (req: Request) => {
     }
   }
 
-  // 1. Deterministic tier
+  // 1. Deterministic tier (time only)
   const baseTier = routeTier(minutes);
 
   // 2. CNS fatigue from bbf_sets → optional down-regulation
@@ -430,21 +448,42 @@ serve(async (req: Request) => {
   if (supa) {
     cns = await evaluateCns(supa, uid);
   }
-  const effTier = cns.down_regulate ? stepDown(baseTier) : baseTier;
+  const cnsTier = cns.down_regulate ? stepDown(baseTier) : baseTier;
 
-  // 3. Claude writes machine + protocol_steps + ROI for the EFFECTIVE tier
+  // 3. PHASE 10 — today's RECOVERY BAND from the morning readiness scan (sent in
+  //    the payload by SmartCardio). Deterministic, fail-open: absent telemetry →
+  //    'unknown' → no ceiling. The band's tier_ceiling clamps the EFFECTIVE tier
+  //    on top of the CNS clamp (two independent recovery brakes, both honored).
+  const band = deriveReadinessBand({
+    score:           payload?.readiness_score,
+    mode:            payload?.readiness_mode,
+    hrv_ms:          payload?.hrv_ms,
+    hrv_baseline_ms: payload?.hrv_baseline_ms,
+    sleep_hours:     payload?.sleep_hours,
+  });
+  const effTier = applyTierCeiling(cnsTier, band.tier_ceiling);
+
+  // 4. Claude writes machine + protocol_steps + ROI for the EFFECTIVE tier
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   if (!ANTHROPIC_API_KEY) {
     const fb = fallbackSteps(effTier, minutes);
-    return jsonResponse(buildContract({ uid, locale, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: null }), 200);
+    return jsonResponse(buildContract({ uid, locale, minutes, baseTier, cnsTier, effTier, cns, band, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: null }), 200);
   }
 
+  // Recovery band → an explicit, hard-ceiling block in the user message (only when
+  // there's a real verdict; an 'unknown' band adds nothing so the prompt stays lean).
+  const recoveryBlock = band.recovery_state === 'unknown' ? '' :
+    `recovery_context (mandated band — HARD ceiling, NEVER exceed):\n` +
+    `  - ${band.recovery_note}\n` +
+    `  - ceiling: ${band.tier_ceiling ? `tier ${band.tier_ceiling}; ` : ''}${band.rpe_ceiling != null ? `RPE ${band.rpe_ceiling}; ` : ''}${band.work_rest_ratio ? `work:rest ${band.work_rest_ratio}` : 'structure per directive'}\n` +
+    `  - structure: ${band.interval_directive}\n`;
   const userMessage =
     `available_minutes: ${minutes}\n` +
     `strategy_tier (mandated — DO NOT OVERRIDE): "${TIER_STRATEGY[effTier]}"\n` +
     `tier_short_label: "${effTier}"\n` +
-    `cns_note: ${cns.guidance}\n\n` +
-    `Write the machine, the full protocol_steps (ending exactly at ${minutes} min), and the ROI fields. Return ONLY the JSON schema response.`;
+    `cns_note: ${cns.guidance}\n` +
+    recoveryBlock +
+    `\nWrite the machine, the full protocol_steps (ending exactly at ${minutes} min), and the ROI fields. Return ONLY the JSON schema response.`;
 
   const result = await callClaude(userMessage, ANTHROPIC_API_KEY, locale);
 
@@ -457,7 +496,7 @@ serve(async (req: Request) => {
       latencyMs: result.latencyMs, error: result.error, promptName: 'cardiac_intercept',
     });
     const fb = fallbackSteps(effTier, minutes);
-    return jsonResponse(buildContract({ uid, locale, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
+    return jsonResponse(buildContract({ uid, locale, minutes, baseTier, cnsTier, effTier, cns, band, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
   }
 
   const text = extractTextBlock(result.body?.content);
@@ -476,7 +515,7 @@ serve(async (req: Request) => {
       finishReason: result.body?.stop_reason ?? null, promptName: 'cardiac_intercept',
     });
     const fb = fallbackSteps(effTier, minutes);
-    return jsonResponse(buildContract({ uid, locale, minutes, baseTier, effTier, cns, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
+    return jsonResponse(buildContract({ uid, locale, minutes, baseTier, cnsTier, effTier, cns, band, machine: fb.machine, steps: fb.steps, roi: fb.roi, source: 'fallback', model: MODEL }), 200);
   }
 
   await logLlmCall(supa, {
@@ -486,10 +525,10 @@ serve(async (req: Request) => {
     finishReason: result.body?.stop_reason ?? null, promptName: 'cardiac_intercept',
   });
 
-  console.log(`[bbf-agentic-cardio] uid=${uid} min=${minutes} base=${baseTier} eff=${effTier} cns=${cns.fatigue_level}(${cns.score}) model=${result.body?.model} latency_ms=${result.latencyMs}`);
+  console.log(`[bbf-agentic-cardio] uid=${uid} min=${minutes} base=${baseTier} cns=${cnsTier} eff=${effTier} recovery=${band.recovery_state} cnsLvl=${cns.fatigue_level}(${cns.score}) model=${result.body?.model} latency_ms=${result.latencyMs}`);
 
   return jsonResponse(buildContract({
-    uid, locale, minutes, baseTier, effTier, cns,
+    uid, locale, minutes, baseTier, cnsTier, effTier, cns, band,
     machine: parsed.machine, steps: parsed.protocol_steps,
     roi: { roi_toast: parsed.roi_toast, roi_detail: parsed.roi_detail, roi_primary_metric: parsed.roi_primary_metric },
     source: 'claude', model: result.body?.model ?? MODEL,
@@ -529,6 +568,16 @@ serve(async (req: Request) => {
 //     "down_regulated": false,         // base_tier !== effective_tier
 //     "source": "bbf_sets" | "unavailable",
 //     "guidance": "6 high-RPE sets in 3d — CNS has headroom..."
+//   },
+//   "recovery_band": {                 // PHASE 10 · today's morning-readiness band (null if no telemetry)
+//     "recovery_state": "breach" | "strain" | "standard" | "prime" | "unknown",
+//     "tier_ceiling": "Zone 2" | "Tempo" | null,   // hard ceiling on the tier
+//     "rpe_ceiling": 5 | 7 | 8 | 10 | null,
+//     "work_rest_ratio": "1:2" | "1:1" | "2:1" | null,
+//     "note": "System strained (readiness 58/100 · HRV 41ms (74% of baseline)). Capped at Tempo, RPE 7…",
+//     "tier_before": "HIIT", "tier_after": "Tempo",  // the recovery clamp (cnsTier → effTier)
+//     "clamped": true,                               // tier_before !== tier_after
+//     "inputs": { "score": 58, "mode": "SYSTEM_STRAIN", "hrv_ms": 41, "hrv_baseline_ms": 55, "hrv_pct_of_baseline": 74, "sleep_hours": 5.2 }
 //   },
 //   "roi": { "toast": "...", "detail": "...", "primary_metric": "12-18h elevated EPOC" },
 //   "meta": { "source": "claude" | "fallback", "model": "claude-opus-4-8", "generated_at": "...Z" }

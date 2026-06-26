@@ -52,6 +52,7 @@ export type UseCase =
   | 'coach_case_generate'     // Coach Lab · Arena — generate a randomized client case study
   | 'coach_protocol_critique' // Coach Lab · Arena — score the coach's protocol vs NASM/NSCA
   | 'coach_broadcast_synthesis' // Coach Lab · Broadcast — synthesize vault entries into a client newsletter
+  | 'sovereign_audio_briefing'  // Sovereign Audio — Day-30 graduation voice briefing (premium narration, mid-complexity → Sonnet)
   // ── OPUS tier · peak reasoning · safety-critical only ─────────────
   // parq_assessment — MIGRATED off the LLM to the deterministic SQL engine
   //   (public.bbf_parq_assess · standardized PAR-Q+ 2014). No LLM route; was
@@ -82,6 +83,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   coach_case_generate:   MODELS.SONNET, // creative client-case generation
   coach_protocol_critique: MODELS.SONNET, // reasoned scorecard vs NASM/NSCA guidelines
   coach_broadcast_synthesis: MODELS.HAIKU, // reformatting structured summaries into newsletter prose (low-stakes)
+  sovereign_audio_briefing: MODELS.SONNET, // Sovereign Audio graduation briefing — premium narration, NOT safety-critical → Sonnet (§4)
   // parq_assessment removed — now deterministic (see public.bbf_parq_assess).
   wellbeing_escalation:  MODELS.OPUS,
   cardiac_intercept:     MODELS.OPUS,

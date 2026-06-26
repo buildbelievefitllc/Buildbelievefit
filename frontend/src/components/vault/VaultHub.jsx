@@ -25,6 +25,7 @@ import WeeklyBriefCard from './WeeklyBriefCard.jsx';
 import SovereignReadinessDashboard from './SovereignReadinessDashboard.jsx';
 import { SovereignSequenceAnchor } from './SovereignSequence.jsx';
 import CalibrationProgress from './CalibrationProgress.jsx';
+import SovereignBriefingCard from './SovereignBriefingCard.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import './vault.css';
 
@@ -55,6 +56,10 @@ export default function VaultHub({ profile, isLoading, error, onSequence }) {
           permanent Sovereign Athlete badge at graduation). Renders nothing for an
           undatable / no-anchor session. Top of fold on the landing Hub. */}
       <CalibrationProgress />
+      {/* SOVEREIGN AUDIO — the Day-30 graduation briefing in Akeem's cloned voice.
+          Renders only for a graduated athlete (useCalibration().isGraduated); the
+          edge fn enforces voice_coach + Day-30 + metering server-side. */}
+      <SovereignBriefingCard />
       {/* THE SOVEREIGN SEQUENCE — adult-only guided hand-off anchor, above the
           fold. Renders ONLY when the Vault shell passes onSequence (so it never
           appears on the Youth Sports Hub or the admin Command Center). */}

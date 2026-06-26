@@ -24,16 +24,30 @@ import { supabase } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 // Generate a protocol for a time budget. Returns the verified envelope or throws a
-// display-ready Error.
-export async function generateCardio(uid, availableMinutes) {
+// display-ready Error. `readiness` is the in-scope useDailyReadiness view-model;
+// when present its telemetry shapes the prescription (Phase 10 recovery band).
+export async function generateCardio(uid, availableMinutes, readiness) {
   const mins = Math.round(Number(availableMinutes) || 0);
   if (!uid) throw new Error('No athlete — sign in to generate a protocol.');
   if (!mins || mins <= 0) throw new Error('Enter how many minutes you have.');
 
+  // PHASE 10 — thread today's morning readiness (score · mode · HRV vs baseline ·
+  // sleep) into the engine so an allowed session is shaped by recovery, not just
+  // time. All fields optional + additive; absent telemetry fails open server-side.
+  const v = readiness?.vitals || null;
+  const sleepMin = v && v.sleep_minutes != null ? Number(v.sleep_minutes) : null;
+  const readinessBody = readiness ? {
+    readiness_score: readiness.score ?? null,
+    readiness_mode: readiness.mode ?? null,
+    hrv_ms: v && v.hrv_ms != null ? Number(v.hrv_ms) : null,
+    hrv_baseline_ms: readiness.baselineHrv ?? null,
+    sleep_hours: sleepMin != null && Number.isFinite(sleepMin) ? Math.round((sleepMin / 60) * 10) / 10 : null,
+  } : {};
+
   const { data, error } = await supabase.functions.invoke('bbf-agentic-cardio', {
     // vault_token binds the call to the athlete's server-revocable session so the
     // edge fn resolves identity + enforces the tier gate (server entitlement-gate).
-    body: { uid, available_minutes: mins, vault_token: getStoredVaultToken() },
+    body: { uid, available_minutes: mins, vault_token: getStoredVaultToken(), ...readinessBody },
   });
 
   if (error) {

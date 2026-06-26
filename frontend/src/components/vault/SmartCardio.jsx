@@ -513,7 +513,9 @@ function CardioConfigurator({ onLogged }) {
     setLogMsg(null); // a fresh protocol clears any prior "synced" confirmation
     setRevealed(true);
     try {
-      setPlan(await generateCardio(uid, m));
+      // PHASE 10 — pass the in-scope morning readiness so the engine shapes the
+      // prescription to today's recovery (intensity band), not just the time budget.
+      setPlan(await generateCardio(uid, m, readiness));
     } catch (err) {
       // 429 → clean toast (resets at midnight UTC); everything else → inline error.
       if (err?.code === 'rate_limited') { setToast(err.message); setError(null); }
@@ -936,6 +938,90 @@ const LIVE_PHASE = {
 };
 function livePhase(p) { return LIVE_PHASE[p] || { accent: '#FF4500', label: p, o2: 70 }; }
 
+// PHASE 10 — Recovery Band card. The morning-readiness verdict that SHAPED today's
+// prescription (the intensity ceiling). Trilingual; renders only when a real band
+// rode in (recovery_band present and not 'unknown') — absent telemetry shows nothing
+// (fail-open, same stance as the CNS panel).
+const RB_STR = {
+  en: {
+    kicker: 'Recovery Band · Today',
+    states: { breach: 'System Breach', strain: 'System Strain', standard: 'Standard Ops', prime: 'Primed' },
+    capped: (tier, rpe) => `Capped at ${tier}${rpe != null ? ` · RPE ${rpe}` : ''}`,
+    cleared: (rpe) => `Cleared${rpe != null ? ` to RPE ${rpe}` : ''} — attack it`,
+    standard: (rpe) => `Standard prescription${rpe != null ? ` · RPE ${rpe}` : ''}`,
+    ratio: (r) => `Work:Rest ${r}`, clamp: (a, b) => `Softened ${a} → ${b}`,
+    score: 'Readiness', hrv: 'HRV', sleep: 'Sleep', hrs: 'h',
+  },
+  es: {
+    kicker: 'Banda de Recuperación · Hoy',
+    states: { breach: 'Brecha del Sistema', strain: 'Tensión del Sistema', standard: 'Operación Estándar', prime: 'Óptimo' },
+    capped: (tier, rpe) => `Limitado a ${tier}${rpe != null ? ` · RPE ${rpe}` : ''}`,
+    cleared: (rpe) => `Habilitado${rpe != null ? ` a RPE ${rpe}` : ''} — atácalo`,
+    standard: (rpe) => `Prescripción estándar${rpe != null ? ` · RPE ${rpe}` : ''}`,
+    ratio: (r) => `Trabajo:Descanso ${r}`, clamp: (a, b) => `Suavizado ${a} → ${b}`,
+    score: 'Preparación', hrv: 'HRV', sleep: 'Sueño', hrs: 'h',
+  },
+  pt: {
+    kicker: 'Faixa de Recuperação · Hoje',
+    states: { breach: 'Violação do Sistema', strain: 'Tensão do Sistema', standard: 'Operação Padrão', prime: 'No Auge' },
+    capped: (tier, rpe) => `Limitado a ${tier}${rpe != null ? ` · RPE ${rpe}` : ''}`,
+    cleared: (rpe) => `Liberado${rpe != null ? ` até RPE ${rpe}` : ''} — ataque`,
+    standard: (rpe) => `Prescrição padrão${rpe != null ? ` · RPE ${rpe}` : ''}`,
+    ratio: (r) => `Trabalho:Descanso ${r}`, clamp: (a, b) => `Suavizado ${a} → ${b}`,
+    score: 'Prontidão', hrv: 'HRV', sleep: 'Sono', hrs: 'h',
+  },
+};
+const RB_TONE = {
+  breach:   { color: '#ff5d5d', border: 'rgba(255,93,93,.5)',  bg: 'rgba(255,93,93,.08)' },
+  strain:   { color: '#ffd24d', border: 'rgba(255,210,77,.5)', bg: 'rgba(255,210,77,.07)' },
+  standard: { color: '#c9a3ff', border: 'rgba(157,39,201,.5)', bg: 'rgba(106,13,173,.14)' },
+  prime:    { color: '#7af0a0', border: 'rgba(34,197,94,.5)',  bg: 'rgba(34,197,94,.08)' },
+};
+function RecoveryBandCard({ band }) {
+  const { lang } = useLang();
+  const rb = RB_STR[lang] || RB_STR.en;
+  if (!band || !band.recovery_state || band.recovery_state === 'unknown') return null;
+  const tone = RB_TONE[band.recovery_state] || RB_TONE.standard;
+  const inp = band.inputs || {};
+  const ceiling = band.tier_ceiling
+    ? rb.capped(band.tier_ceiling, band.rpe_ceiling)
+    : band.recovery_state === 'prime'
+      ? rb.cleared(band.rpe_ceiling)
+      : rb.standard(band.rpe_ceiling);
+  return (
+    <div
+      data-testid="cardio-recovery-band"
+      data-state={band.recovery_state}
+      style={{ margin: '0 0 1rem', padding: '.7rem .9rem', borderRadius: 12, border: `1px solid ${tone.border}`, background: tone.bg }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem', flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: tone.color }}>
+          ◧ {rb.kicker}
+        </span>
+        <span style={{ fontFamily: 'var(--hb)', fontSize: '.64rem', letterSpacing: '1px', textTransform: 'uppercase', color: '#0e0a16', background: tone.color, padding: '2px 9px', borderRadius: 999, fontWeight: 700 }}>
+          {rb.states[band.recovery_state] || band.recovery_state}
+        </span>
+      </div>
+      <div style={{ marginTop: '.4rem', color: '#f4eefb', fontSize: '.95rem', fontWeight: 600 }}>
+        {ceiling}
+        {band.work_rest_ratio ? <span style={{ color: tone.color, marginLeft: '.5rem', fontSize: '.8rem' }}>· {rb.ratio(band.work_rest_ratio)}</span> : null}
+      </div>
+      {band.clamped && band.tier_before && band.tier_after ? (
+        <div style={{ marginTop: '.2rem', color: tone.color, fontSize: '.74rem', letterSpacing: '.3px' }}>
+          ↓ {rb.clamp(band.tier_before, band.tier_after)}
+        </div>
+      ) : null}
+      {(inp.score != null || inp.hrv_pct_of_baseline != null || inp.sleep_hours != null) ? (
+        <div style={{ marginTop: '.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', color: 'rgba(244,238,251,.7)', fontSize: '.72rem' }}>
+          {inp.score != null ? <span>{rb.score} <b style={{ color: '#fff' }}>{inp.score}/100</b></span> : null}
+          {inp.hrv_pct_of_baseline != null ? <span>{rb.hrv} <b style={{ color: '#fff' }}>{inp.hrv_pct_of_baseline}%</b></span> : null}
+          {inp.sleep_hours != null ? <span>{rb.sleep} <b style={{ color: '#fff' }}>{inp.sleep_hours}{rb.hrs}</b></span> : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function LiveProtocol({ plan }) {
   const { lang } = useLang();
   const tr = CARDIO_STR[lang] || CARDIO_STR.en;
@@ -956,6 +1042,9 @@ function LiveProtocol({ plan }) {
         {plan.available_minutes ? <span className="bbf-gps__modality-mins">{plan.available_minutes} min</span> : null}
       </div>
       {modality.strategy ? <div className="bbf-gps__strategy">{modality.strategy}</div> : null}
+
+      {/* PHASE 10 — today's recovery band that shaped this prescription. */}
+      <RecoveryBandCard band={plan.recovery_band} />
 
       {(() => {
         const cueText = [
