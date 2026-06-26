@@ -1,36 +1,35 @@
 // supabase/functions/bbf-sovereign-briefing/index.ts
 // ═══════════════════════════════════════════════════════════════════════════
 // bbf-sovereign-briefing — SOVEREIGN AUDIO · the Day-30 graduation voice briefing.
-// The CEO's cloned voice (Professional Voice Clone) delivers a personalized,
-// trilingual spoken address marking the athlete's graduation from the 30-Day
-// Biometric Calibration into full Sovereign access — grounded in their real
-// calibration journey + recovery trend.
+// FRONT 3.5: auto-daily pre-computed premium podcast. TWO entry modes:
 //
-// THREE GATES (all fail-closed, server-authoritative — the body is never trusted):
-//   1. Entitlement — voice_coach (Autonomous+), resolved from the vault bearer token.
-//   2. Day-30 graduation — re-derived server-side via bbf_calibration_status (the
-//      grandfather epoch + day>=30 rule); not graduated → 403 not_graduated.
-//   3. Metering — bbf_voice_session_precheck before compose; bbf_voice_session_commit
-//      after synthesis (150k Autonomous / 750k Apex / unmetered God per tier).
+//   1. TRIPWIRE MODE (X-BBF-Sovereign-Secret) — fired by the bbf_daily_protocols
+//      morning check-in trigger with { athlete_id, locale }. Re-checks graduation +
+//      voice_coach + an IDEMPOTENCY skip (1/athlete/day/locale) + metering, then
+//      composes + synthesizes + CACHES the briefing in bbf_sovereign_audio. Returns
+//      a small JSON status (no blob). This is the background pre-compute.
 //
-// COMPOSE: calibration day + readiness trend → Claude (SONNET · sovereign_audio_briefing)
-// with VOICE_DNA + the ARCHITECT vocal state + a COLLOQUIAL trilingual directive →
-// ElevenLabs (Akeem's clone, eleven_multilingual_v2 → his voice in EN/ES/PT) → audio/mpeg.
+//   2. ON-DEMAND MODE (vault token) — the Vault Hub tile. CACHE-READ FIRST: if the
+//      tripwire already generated today's briefing, return the cached blob instantly
+//      (no Claude/ElevenLabs, no metering). On a cache miss (e.g. no check-in yet),
+//      compose live, cache it, meter, and return the blob (graceful fallback).
 //
-// Mirrors bbf-biokinetic-briefing's compose→speak stack; routes the model through the
-// shared router (§4) and the voice physics through the shared voice engine.
+// THREE GATES throughout (fail-closed, server-authoritative): voice_coach entitlement,
+// Day-30 graduation (re-derived server-side), voice metering (150k/750k/unmetered).
+// COMPOSE: calibration day + readiness trend → Claude (SONNET) + VOICE_DNA + ARCHITECT
+// state + COLLOQUIAL trilingual directive → ElevenLabs (Akeem's clone, multilingual_v2).
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { routeAndLog } from '../_shared/model-router.ts';
-import { requireEntitlement } from '../_shared/entitlement-gate.ts';
+import { requireEntitlement, TIER_TO_GROUP, FEATURE_ACCESS } from '../_shared/entitlement-gate.ts';
 import { localeCode } from '../_shared/locale.ts';
 import { VOICE_DNA, BBF_VOICE_SETTINGS, BBF_VOICE_MODEL, vocalStateDirective, formatForState } from '../_shared/bbf-voice-engine.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token, x-bbf-vault-token, x-client-info',
+  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-admin-token, x-bbf-vault-token, x-bbf-sovereign-secret, x-client-info',
 };
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
@@ -39,12 +38,29 @@ function jsonResponse(body: unknown, status = 200): Response {
 // Akeem's Professional Voice Clone — used for ALL locales (CEO directive), spoken
 // natively per-language by eleven_multilingual_v2. ONE voice, three languages.
 const AKEEM_VOICE_ID = 'ZbKDEqxkr8Ub4psNm5XD';
+const GRANDFATHER_EPOCH_MS = Date.parse('2026-06-25T00:00:00Z');
 const LOCALE_NAME: Record<string, string> = { en: 'English', es: 'Spanish (neutral Latin-American)', pt: 'Brazilian Portuguese' };
 const NATIVE_SPEAKER: Record<string, string> = { es: 'Latin American', pt: 'Brazilian' };
 
 function pgHeaders(key: string): HeadersInit {
   return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
 }
+function utcToday(): string { return new Date().toISOString().slice(0, 10); }
+const num = (v: unknown): number | null => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+
+function bytesToB64(bytes: Uint8Array): string {
+  const CHUNK = 0x8000; let bin = '';
+  for (let i = 0; i < bytes.length; i += CHUNK) bin += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)) as any);
+  return btoa(bin);
+}
+function b64ToArrayBuffer(b64: string): ArrayBuffer {
+  const bin = atob(b64);
+  const buf = new ArrayBuffer(bin.length);
+  const view = new Uint8Array(buf);
+  for (let i = 0; i < bin.length; i += 1) view[i] = bin.charCodeAt(i);
+  return buf;
+}
+
 async function callRpc(url: string, key: string, fn: string, args: Record<string, unknown>): Promise<any> {
   try {
     const r = await fetch(`${url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: pgHeaders(key), body: JSON.stringify(args) });
@@ -52,16 +68,83 @@ async function callRpc(url: string, key: string, fn: string, args: Record<string
     return await r.json().catch(() => null);
   } catch { return null; }
 }
+async function readConfigSecret(url: string, key: string, name: string): Promise<string | null> {
+  try {
+    const r = await fetch(`${url}/rest/v1/bbf_app_config?key=eq.${encodeURIComponent(name)}&select=value&limit=1`, { headers: pgHeaders(key) });
+    if (!r.ok) return null;
+    const rows = await r.json().catch(() => null);
+    return Array.isArray(rows) && rows.length ? String(rows[0].value || '') : null;
+  } catch { return null; }
+}
 
-const num = (v: unknown): number | null => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+// ── Identity + gates by athlete_id (the tripwire path has no vault token) ─────────
+async function resolveByAthleteId(url: string, key: string, athleteId: string): Promise<Record<string, any> | null> {
+  try {
+    const r = await fetch(
+      `${url}/rest/v1/bbf_users?id=eq.${encodeURIComponent(athleteId)}&deleted_at=is.null&select=uid,email,subscription_tier,role,access_status,trial_expires_at&limit=1`,
+      { headers: pgHeaders(key) },
+    );
+    if (!r.ok) return null;
+    const rows = await r.json().catch(() => null);
+    return Array.isArray(rows) && rows.length ? rows[0] : null;
+  } catch { return null; }
+}
+async function deriveGraduation(url: string, key: string, email: string | null): Promise<{ graduated: boolean; day: number | null }> {
+  if (!email) return { graduated: true, day: null };  // undatable → graduated (fail-open)
+  try {
+    const r = await fetch(`${url}/rest/v1/bbf_active_clients?vault_email=eq.${encodeURIComponent(email)}&select=created_at&limit=1`, { headers: pgHeaders(key) });
+    if (!r.ok) return { graduated: true, day: null };
+    const rows = await r.json().catch(() => null);
+    const created = (Array.isArray(rows) && rows.length) ? Date.parse(rows[0].created_at) : NaN;
+    if (!Number.isFinite(created)) return { graduated: true, day: null };
+    if (created < GRANDFATHER_EPOCH_MS) return { graduated: true, day: null };  // grandfathered
+    const day = Math.max(1, Math.floor((Date.now() - created) / 86400000) + 1);
+    return { graduated: day >= 30, day };
+  } catch { return { graduated: true, day: null }; }
+}
+function tierEntitled(tier: unknown, role: unknown, uid: unknown, trial: unknown, feature: string): boolean {
+  const r = String(role || '').toLowerCase();
+  if (r === 'admin' || r === 'trainer' || r === 'coach') return true;
+  if (String(uid || '').toLowerCase() === 'akeem') return true;
+  if (typeof trial === 'string' && Date.parse(trial) > Date.now()) return true;
+  const group = TIER_TO_GROUP[String(tier || '').trim().toLowerCase()];
+  if (!group) return false;
+  return (FEATURE_ACCESS[feature] || []).includes(group);
+}
 
-// Gather the athlete's calibration + recovery telemetry for the briefing (service-role reads).
-async function gatherContext(url: string, key: string, userId: string, uid: string | null, calDay: number | null) {
+// ── Cache (bbf_sovereign_audio · one row per athlete/day/locale) ─────────────────
+async function readCache(url: string, key: string, userId: string, date: string, locale: string): Promise<{ audio_b64: string; mime: string } | null> {
+  try {
+    const r = await fetch(
+      `${url}/rest/v1/bbf_sovereign_audio?user_id=eq.${encodeURIComponent(userId)}&briefing_date=eq.${date}&locale=eq.${locale}&status=eq.ready&select=audio_b64,mime&limit=1`,
+      { headers: pgHeaders(key) },
+    );
+    if (!r.ok) return null;
+    const rows = await r.json().catch(() => null);
+    return (Array.isArray(rows) && rows.length && rows[0].audio_b64) ? rows[0] : null;
+  } catch { return null; }
+}
+async function writeCache(url: string, key: string, row: Record<string, unknown>): Promise<void> {
+  try {
+    await fetch(`${url}/rest/v1/bbf_sovereign_audio?on_conflict=user_id,briefing_date,locale`, {
+      method: 'POST',
+      headers: { ...pgHeaders(key), Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(row),
+    });
+    // Bound growth — drop this athlete's briefings older than 7 days (best-effort).
+    const cutoff = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+    await fetch(`${url}/rest/v1/bbf_sovereign_audio?user_id=eq.${encodeURIComponent(String(row.user_id))}&briefing_date=lt.${cutoff}`, {
+      method: 'DELETE', headers: { ...pgHeaders(key), Prefer: 'return=minimal' },
+    });
+  } catch (e) { console.warn('[bbf-sovereign-briefing] cache write failed:', (e as Error).message); }
+}
+
+// ── Gather the athlete's calibration + recovery telemetry for the briefing ───────
+async function gatherContext(url: string, key: string, userId: string, calDay: number | null) {
   const ctx: Record<string, unknown> = {
     calibration_day: calDay,
     milestone: 'Graduated — 30-Day Biometric Calibration complete, full Sovereign access unlocked.',
   };
-  // Readiness trend — last 14 daily protocol verdicts → avg + recent-vs-prior week delta.
   try {
     const r = await fetch(
       `${url}/rest/v1/bbf_daily_protocols?athlete_id=eq.${encodeURIComponent(userId)}&select=date,readiness_score&order=date.desc&limit=14`,
@@ -82,7 +165,6 @@ async function gatherContext(url: string, key: string, userId: string, uid: stri
       };
     }
   } catch { /* readiness trend is best-effort */ }
-  // Sleep + HRV from the latest vitals row (for a concrete recovery touchpoint).
   try {
     const r = await fetch(
       `${url}/rest/v1/bbf_daily_biometrics?athlete_id=eq.${encodeURIComponent(userId)}&select=hrv_ms,sleep_minutes&order=date.desc&limit=1`,
@@ -113,11 +195,8 @@ async function writeWithClaude(apiKey: string, model: string, system: string, us
     return null;
   }
 }
-
 async function composeBriefing(apiKey: string, locale: string, ctx: Record<string, unknown>): Promise<string | null> {
   const model = routeAndLog('bbf-sovereign-briefing', 'sovereign_audio_briefing'); // → SONNET
-  // CEO CRITICAL LOCALIZATION DIRECTIVE: native, colloquial, culturally-accurate ES/PT —
-  // never rigid word-for-word translations of English idioms.
   const colloquial = locale === 'en' ? '' :
     `\n\n# CRITICAL LOCALIZATION (NON-NEGOTIABLE)\n` +
     `Compose DIRECTLY in natural, colloquial, culturally-accurate ${LOCALE_NAME[locale]} — the way a real ` +
@@ -137,7 +216,6 @@ async function composeBriefing(apiKey: string, locale: string, ctx: Record<strin
   const user = `Athlete telemetry (speak it naturally in ${LOCALE_NAME[locale]}):\n${JSON.stringify(ctx).slice(0, 1400)}\n\nRecord the Sovereign Briefing now.`;
   return writeWithClaude(apiKey, model, system, user);
 }
-
 function fallbackBriefing(locale: string, calDay: number | null): string {
   const day = Number.isFinite(Number(calDay)) ? Number(calDay) : 30;
   if (locale === 'es') {
@@ -148,10 +226,9 @@ function fallbackBriefing(locale: string, calDay: number | null): string {
   }
   return `You did it. Thirty days of calibration... and today the Vault opens all the way. Every morning you checked in, every honest session, brought you here. You are not the person you were a month ago. Your body learned, your system tuned, and now you hold full Sovereign access. This was not given to you... you earned it. Day ${day}. Now keep building.`;
 }
-
 async function synthesize(apiKey: string, voiceId: string, text: string): Promise<{ ok: true; buf: ArrayBuffer } | { ok: false; status: number; detail: string }> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
+  const timeout = setTimeout(() => controller.abort(), 25000);
   try {
     const res = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
@@ -169,68 +246,40 @@ async function synthesize(apiKey: string, voiceId: string, text: string): Promis
     return { ok: true, buf: await res.arrayBuffer() };
   } catch (e) {
     const err = e as Error;
-    return { ok: false, status: 0, detail: err.name === 'AbortError' ? 'timeout_20000ms' : err.message };
+    return { ok: false, status: 0, detail: err.name === 'AbortError' ? 'timeout_25000ms' : err.message };
   } finally { clearTimeout(timeout); }
 }
 
-serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
-  if (req.method !== 'POST') return jsonResponse({ error: 'method_not_allowed' }, 405);
+// Generate → synthesize → cache → meter. Shared by the tripwire (background) and the
+// on-demand cache-miss fallback. Returns the audio buffer so the caller can also stream it.
+async function generateAndCache(opts: {
+  url: string; key: string; anthropic?: string; eleven?: string;
+  userId: string; uid: string | null; locale: string; calDay: number | null;
+}): Promise<{ ok: boolean; buf?: ArrayBuffer; chars?: number; skipped?: string }> {
+  const { url, key, anthropic, eleven, userId, uid, locale, calDay } = opts;
+  // Metering — respect the monthly ceiling BEFORE any paid API work.
+  const pre = await callRpc(url, key, 'bbf_voice_session_precheck', { p_user_id: userId });
+  if (!pre || pre.ok !== true) return { ok: false, skipped: String(pre?.reason || 'not_entitled') };
 
-  let payload: any;
-  try { payload = await req.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
-  const locale = localeCode(payload?.locale ?? payload?.lang);
-  const vaultToken = payload?.vault_token ?? req.headers.get('x-bbf-vault-token');
-
-  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-  const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
-
-  // ── GATE 1 · entitlement (voice_coach, fail-closed; resolves identity server-side) ──
-  const gate = await requireEntitlement({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, vaultToken, feature: 'voice_coach' });
-  if (!gate.ok) return jsonResponse({ error: gate.denial.error, detail: gate.denial.detail }, gate.denial.status);
-  const uid = gate.ctx.uid;
-  const userId = gate.ctx.user_id;
-
-  if (!SUPABASE_URL || !SERVICE_KEY) return jsonResponse({ error: 'config_missing' }, 503);
-
-  // ── GATE 2 · Day-30 graduation (re-derived server-side; never trusted from client) ──
-  const cal = await callRpc(SUPABASE_URL, SERVICE_KEY, 'bbf_calibration_status', { p_session_token: vaultToken });
-  if (!cal || cal.ok !== true) return jsonResponse({ error: 'calibration_check_failed', detail: 'Could not verify graduation status.' }, 503);
-  if (cal.graduated !== true) {
-    return jsonResponse({ error: 'not_graduated', detail: 'The Sovereign Briefing unlocks at Day 30 — finish your calibration first.', day: cal.day ?? null }, 403);
-  }
-  const calDay = num(cal.day);
-
-  // ── GATE 3 · metering precheck (tier ceiling + quota) ──
-  const pre = await callRpc(SUPABASE_URL, SERVICE_KEY, 'bbf_voice_session_precheck', { p_user_id: userId });
-  if (!pre || pre.ok !== true) {
-    const reason = String(pre?.reason || 'not_entitled');
-    const status = reason === 'quota_exhausted' ? 429 : 403;
-    return jsonResponse({ error: reason, detail: reason === 'quota_exhausted' ? 'Monthly voice quota reached.' : 'Voice coaching is not included in your current plan.' }, status);
-  }
-
-  // ── COMPOSE ──
-  const ctx = await gatherContext(SUPABASE_URL, SERVICE_KEY, userId, uid, calDay);
-  let text = ANTHROPIC_API_KEY ? (await composeBriefing(ANTHROPIC_API_KEY, locale, ctx)) : null;
+  const ctx = await gatherContext(url, key, userId, calDay);
+  let text = anthropic ? (await composeBriefing(anthropic, locale, ctx)) : null;
   if (!text) text = fallbackBriefing(locale, calDay);
   const spoken = formatForState(text, 'architect');
 
-  // ── SYNTHESIZE (Akeem's clone, all locales) ──
-  if (!ELEVENLABS_API_KEY) return jsonResponse({ error: 'tts_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
-  const tts = await synthesize(ELEVENLABS_API_KEY, AKEEM_VOICE_ID, spoken);
-  if (!tts.ok) {
-    console.error(`[bbf-sovereign-briefing] tts ${tts.status}: ${tts.detail}`);
-    return jsonResponse({ error: 'tts_failed', detail: `ElevenLabs returned ${tts.status}.` }, 502);
-  }
+  if (!eleven) return { ok: false, skipped: 'tts_unconfigured' };
+  const tts = await synthesize(eleven, AKEEM_VOICE_ID, spoken);
+  if (!tts.ok) return { ok: false, skipped: `tts_failed_${tts.status}` };
 
-  // ── METER · commit the spoken character count to the monthly ledger ──
-  if (uid) await callRpc(SUPABASE_URL, SERVICE_KEY, 'bbf_voice_session_commit', { p_uid: uid, p_tokens: spoken.length });
+  await writeCache(url, key, {
+    user_id: userId, briefing_date: utcToday(), locale, audio_b64: bytesToB64(new Uint8Array(tts.buf)),
+    mime: 'audio/mpeg', chars: spoken.length, voice_id: AKEEM_VOICE_ID, status: 'ready',
+  });
+  if (uid) await callRpc(url, key, 'bbf_voice_session_commit', { p_uid: uid, p_tokens: spoken.length });
+  return { ok: true, buf: tts.buf, chars: spoken.length };
+}
 
-  console.log(`[bbf-sovereign-briefing] uid=${uid} locale=${locale} day=${calDay ?? 'grad'} chars=${spoken.length} voice=akeem_clone`);
-
-  return new Response(tts.buf, {
+function audioResponse(buf: ArrayBuffer, locale: string, cache: string): Response {
+  return new Response(buf, {
     status: 200,
     headers: {
       ...CORS,
@@ -240,6 +289,87 @@ serve(async (req: Request) => {
       'X-BBF-Voice-Id': AKEEM_VOICE_ID,
       'X-BBF-Context': 'sovereign_briefing',
       'X-BBF-Locale': locale,
+      'X-BBF-Cache': cache,
     },
   });
+}
+
+serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+  if (req.method !== 'POST') return jsonResponse({ error: 'method_not_allowed' }, 405);
+
+  let payload: any;
+  try { payload = await req.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
+
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+  const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+  if (!SUPABASE_URL || !SERVICE_KEY) return jsonResponse({ error: 'config_missing' }, 503);
+
+  const locale = localeCode(payload?.locale ?? payload?.lang);
+  const today = utcToday();
+  const sentSecret = req.headers.get('x-bbf-sovereign-secret');
+
+  // ═══ MODE 1 · TRIPWIRE (background pre-compute) ═══════════════════════════════
+  if (sentSecret) {
+    const cfgSecret = await readConfigSecret(SUPABASE_URL, SERVICE_KEY, 'sovereign_briefing_secret');
+    if (!cfgSecret || sentSecret !== cfgSecret) return jsonResponse({ error: 'unauthorized' }, 401);
+
+    const athleteId = String(payload?.athlete_id || '').trim();
+    if (!athleteId) return jsonResponse({ error: 'missing_athlete_id' }, 400);
+
+    const row = await resolveByAthleteId(SUPABASE_URL, SERVICE_KEY, athleteId);
+    if (!row || String(row.access_status || '') === 'locked') return jsonResponse({ ok: true, skipped: 'ineligible' });
+    const grad = await deriveGraduation(SUPABASE_URL, SERVICE_KEY, row.email ?? null);
+    if (!grad.graduated) return jsonResponse({ ok: true, skipped: 'not_graduated' });
+    if (!tierEntitled(row.subscription_tier, row.role, row.uid, row.trial_expires_at, 'voice_coach')) {
+      return jsonResponse({ ok: true, skipped: 'not_entitled' });
+    }
+    // IDEMPOTENCY — at most one generation per athlete/day/locale (unit economics).
+    if (await readCache(SUPABASE_URL, SERVICE_KEY, athleteId, today, locale)) {
+      return jsonResponse({ ok: true, skipped: 'already_cached', locale });
+    }
+    const res = await generateAndCache({
+      url: SUPABASE_URL, key: SERVICE_KEY, anthropic: ANTHROPIC_API_KEY, eleven: ELEVENLABS_API_KEY,
+      userId: athleteId, uid: row.uid ?? null, locale, calDay: grad.day,
+    });
+    console.log(`[bbf-sovereign-briefing] tripwire athlete=${athleteId} locale=${locale} ${res.ok ? `cached chars=${res.chars}` : `skipped=${res.skipped}`}`);
+    return jsonResponse({ ok: res.ok, mode: 'tripwire', locale, ...(res.ok ? { cached: true, chars: res.chars } : { skipped: res.skipped }) });
+  }
+
+  // ═══ MODE 2 · ON-DEMAND (vault token · the Vault Hub tile) ════════════════════
+  const vaultToken = payload?.vault_token ?? req.headers.get('x-bbf-vault-token');
+  const gate = await requireEntitlement({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, vaultToken, feature: 'voice_coach' });
+  if (!gate.ok) return jsonResponse({ error: gate.denial.error, detail: gate.denial.detail }, gate.denial.status);
+  const uid = gate.ctx.uid;
+  const userId = gate.ctx.user_id;
+
+  const cal = await callRpc(SUPABASE_URL, SERVICE_KEY, 'bbf_calibration_status', { p_session_token: vaultToken });
+  if (!cal || cal.ok !== true) return jsonResponse({ error: 'calibration_check_failed', detail: 'Could not verify graduation status.' }, 503);
+  if (cal.graduated !== true) {
+    return jsonResponse({ error: 'not_graduated', detail: 'The Sovereign Briefing unlocks at Day 30 — finish your calibration first.', day: cal.day ?? null }, 403);
+  }
+
+  // CACHE-READ FIRST — the pre-computed blob from the morning check-in → instant, free.
+  const cached = await readCache(SUPABASE_URL, SERVICE_KEY, userId, today, locale);
+  if (cached) {
+    console.log(`[bbf-sovereign-briefing] on-demand HIT uid=${uid} locale=${locale}`);
+    return audioResponse(b64ToArrayBuffer(cached.audio_b64), locale, 'hit');
+  }
+
+  // Cache miss (no check-in yet today, or a locale the tripwire didn't pre-generate)
+  // → compose live, cache it, meter it, and stream it back (graceful fallback).
+  if (!ELEVENLABS_API_KEY) return jsonResponse({ error: 'tts_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
+  const res = await generateAndCache({
+    url: SUPABASE_URL, key: SERVICE_KEY, anthropic: ANTHROPIC_API_KEY, eleven: ELEVENLABS_API_KEY,
+    userId, uid, locale, calDay: num(cal.day),
+  });
+  if (!res.ok || !res.buf) {
+    const reason = res.skipped || 'tts_failed';
+    const status = reason === 'quota_exhausted' ? 429 : (reason === 'not_entitled' ? 403 : 502);
+    return jsonResponse({ error: reason, detail: reason === 'quota_exhausted' ? 'Monthly voice quota reached.' : 'Briefing could not be generated.' }, status);
+  }
+  console.log(`[bbf-sovereign-briefing] on-demand MISS→gen uid=${uid} locale=${locale} chars=${res.chars}`);
+  return audioResponse(res.buf, locale, 'miss');
 });

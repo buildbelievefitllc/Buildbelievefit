@@ -1,48 +1,55 @@
 // src/components/vault/SovereignBriefingCard.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 // SOVEREIGN AUDIO — the Day-30 graduation briefing tile (Client Vault Hub).
+// FRONT 3.5 · AUTO-DAILY: the morning check-in tripwire pre-computes + caches each
+// graduated premium athlete's briefing in the background. This tile READS that
+// pre-cached blob on mount (bbf_get_sovereign_briefing RPC) so playback is INSTANT —
+// no "Generate" wait. If today's briefing hasn't been pre-generated yet (e.g. no
+// check-in today), it gracefully falls back to an on-demand live generation.
 //
-// Renders ONLY for a GRADUATED athlete (useCalibration().isGraduated) — the reward
-// for completing the 30-Day Biometric Calibration. Tapping Play streams a
-// personalized spoken address in Coach Akeem's cloned voice (trilingual) from the
-// bbf-sovereign-briefing edge fn, which enforces the voice_coach tier + the Day-30
-// graduation (re-derived server-side) + voice metering. A graduated NON-premium
-// athlete sees the tile and gets an upgrade nudge on play (intentional upsell).
-//
-// Layered orthogonally on the calibration brain (useCalibration) + the audio-first
-// data layer (forecastApi.fetchSovereignBriefing). Self-contained trilingual chrome.
+// Renders ONLY for a GRADUATED athlete (useCalibration().isGraduated); the edge fn
+// enforces voice_coach + Day-30 + metering server-side (a non-premium graduate gets
+// an upgrade nudge). Self-contained trilingual chrome.
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useCalibration } from '../../lib/useCalibration.js';
-import { fetchSovereignBriefing } from '../../lib/forecastApi.js';
+import { fetchSovereignBriefing, fetchCachedSovereignBriefing } from '../../lib/forecastApi.js';
+
+// Session blob cache (locale|UTC-day → object URL) so re-mounting the Hub doesn't
+// re-download today's ~1MB briefing. Session-lived; one URL per locale/day.
+const _sovCache = new Map();
+function utcDay() { return new Date().toISOString().slice(0, 10); }
 
 const SB_STR = {
   en: {
-    kicker: 'Sovereign Audio · Earned',
+    kicker: 'Sovereign Audio · Daily',
     title: 'Your Sovereign Briefing',
-    sub: 'Calibration complete — the Vault is open. Hear it from Coach Akeem.',
-    play: '▶ Play Briefing', loading: 'Composing your briefing…', replay: '↻ Replay',
+    sub: 'Composed fresh from this morning’s check-in — in Coach Akeem’s voice.',
+    playToday: '▶ Play Today’s Briefing', generate: '▶ Generate Briefing',
+    loadingToday: 'Loading today’s briefing…', generating: 'Composing your briefing…', replay: '↻ Replay',
     upsell: 'Upgrade to unlock your Sovereign Briefing in Akeem’s voice.',
     quota: 'Monthly voice limit reached — resets next month.',
     session: 'Your session expired — sign in again.',
     err: 'Briefing unavailable right now. Try again in a moment.',
   },
   es: {
-    kicker: 'Audio Soberano · Ganado',
+    kicker: 'Audio Soberano · Diario',
     title: 'Tu Informe Soberano',
-    sub: 'Calibración completa — el Vault está abierto. Escúchalo del Coach Akeem.',
-    play: '▶ Reproducir', loading: 'Componiendo tu informe…', replay: '↻ Repetir',
+    sub: 'Compuesto al instante desde tu registro de esta mañana — en la voz del Coach Akeem.',
+    playToday: '▶ Reproducir el de Hoy', generate: '▶ Generar Informe',
+    loadingToday: 'Cargando el informe de hoy…', generating: 'Componiendo tu informe…', replay: '↻ Repetir',
     upsell: 'Mejora tu plan para desbloquear tu Informe Soberano en la voz de Akeem.',
     quota: 'Límite de voz mensual alcanzado — se reinicia el próximo mes.',
     session: 'Tu sesión expiró — inicia sesión de nuevo.',
     err: 'Informe no disponible ahora. Inténtalo de nuevo en un momento.',
   },
   pt: {
-    kicker: 'Áudio Soberano · Conquistado',
+    kicker: 'Áudio Soberano · Diário',
     title: 'Seu Briefing Soberano',
-    sub: 'Calibração completa — o Vault está aberto. Ouça do Coach Akeem.',
-    play: '▶ Reproduzir', loading: 'Compondo seu briefing…', replay: '↻ Repetir',
+    sub: 'Composto na hora a partir do seu check-in desta manhã — na voz do Coach Akeem.',
+    playToday: '▶ Tocar o de Hoje', generate: '▶ Gerar Briefing',
+    loadingToday: 'Carregando o briefing de hoje…', generating: 'Compondo seu briefing…', replay: '↻ Repetir',
     upsell: 'Faça upgrade para desbloquear seu Briefing Soberano na voz do Akeem.',
     quota: 'Limite mensal de voz atingido — reinicia no próximo mês.',
     session: 'Sua sessão expirou — entre novamente.',
@@ -61,41 +68,81 @@ export default function SovereignBriefingCard() {
   const { lang } = useLang();
   const { isGraduated } = useCalibration();
   const tr = SB_STR[lang] || SB_STR.en;
-  const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState(null);
+  const [phase, setPhase] = useState('loading'); // loading | ready | idle | generating | error
   const [err, setErr] = useState(null);
   const audioRef = useRef(null);
 
-  // Graduation gate (defense-in-depth — the server re-derives Day-30 too). Only the
-  // graduated athlete ever sees the tile; mid-calibration sessions render nothing.
+  // On mount (graduated): pull TODAY'S pre-cached briefing (fast RPC). Present →
+  // ready for instant play. Absent (no check-in yet) → 'idle' for on-tap generation.
+  // State is set ONLY inside the promise callbacks (never synchronously in the effect
+  // body) — clear of react-hooks/set-state-in-effect, StrictMode-safe.
+  useEffect(() => {
+    if (!isGraduated) return undefined;
+    const key = `${lang}|${utcDay()}`;
+    let cancelled = false;
+    const hit = _sovCache.get(key);
+    if (hit) {
+      // Defer to a microtask so the first paint isn't a synchronous setState.
+      queueMicrotask(() => { if (!cancelled) { setUrl(hit); setPhase('ready'); } });
+      return () => { cancelled = true; };
+    }
+    fetchCachedSovereignBriefing({ locale: lang })
+      .then((blobUrl) => {
+        if (cancelled) return;
+        if (blobUrl) { _sovCache.set(key, blobUrl); setUrl(blobUrl); setPhase('ready'); }
+        else { setUrl(null); setPhase('idle'); }
+      })
+      .catch(() => { if (!cancelled) { setUrl(null); setPhase('idle'); } });
+    return () => { cancelled = true; };
+  }, [isGraduated, lang]);
+
   if (!isGraduated) return null;
 
-  async function play() {
-    if (busy) return;
-    setBusy(true);
+  function play() {
+    queueMicrotask(() => { try { audioRef.current?.play?.(); } catch { /* user can press the native control */ } });
+  }
+
+  async function generate() {
+    if (phase === 'generating') return;
+    setPhase('generating');
     setErr(null);
     try {
-      const next = await fetchSovereignBriefing({ locale: lang });
-      setUrl((old) => { if (old) { try { URL.revokeObjectURL(old); } catch { /* noop */ } } return next; });
-      // Autoplay once the <audio> element mounts with the fresh src (next paint).
-      queueMicrotask(() => { try { audioRef.current?.play?.(); } catch { /* user can press play */ } });
+      const next = await fetchSovereignBriefing({ locale: lang }); // on-demand live (cache-miss path)
+      _sovCache.set(`${lang}|${utcDay()}`, next);
+      setUrl(next);
+      setPhase('ready');
+      play();
     } catch (e) {
       setErr(mapErr(e?.message, tr));
-    } finally {
-      setBusy(false);
+      setPhase('error');
     }
   }
 
+  // Plain render values (no ref access) + one event-handler that branches on phase
+  // — ref reads happen only inside play()/generate(), called on click.
+  function onPrimary() {
+    if (phase === 'ready') play();
+    else if (phase === 'idle' || phase === 'error') generate();
+    // loading / generating → button is disabled (no-op)
+  }
+  const disabled = phase === 'loading' || phase === 'generating';
+  const label =
+    phase === 'ready'      ? (url ? tr.playToday : tr.generate) :
+    phase === 'loading'    ? tr.loadingToday :
+    phase === 'generating' ? tr.generating :
+                             tr.generate; // idle | error
+
   return (
-    <section className="vh-sov-brief" data-testid="sovereign-briefing" style={WRAP}>
+    <section className="vh-sov-brief" data-testid="sovereign-briefing" data-phase={phase} style={WRAP}>
       <div style={GLOW} aria-hidden="true" />
       <div style={{ position: 'relative' }}>
         <span style={KICKER}>★ {tr.kicker}</span>
         <h3 style={TITLE}>{tr.title}</h3>
         <p style={SUB}>{tr.sub}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '.7rem', flexWrap: 'wrap', marginTop: '.7rem' }}>
-          <button type="button" onClick={play} disabled={busy} style={{ ...BTN, opacity: busy ? 0.7 : 1 }} data-testid="sovereign-briefing-play">
-            {busy ? tr.loading : (url ? tr.replay : tr.play)}
+          <button type="button" onClick={onPrimary} disabled={disabled} style={{ ...BTN, opacity: disabled ? 0.7 : 1 }} data-testid="sovereign-briefing-play">
+            {label}
           </button>
         </div>
         {url ? (

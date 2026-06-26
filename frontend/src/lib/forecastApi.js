@@ -13,7 +13,7 @@
 // requires it to route) — mirrors prehabApi / conciergeApi (NOT functions.invoke).
 
 import { useCallback, useEffect, useState } from 'react';
-import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
+import { FUNCTIONS_BASE, SUPABASE_ANON_KEY, supabase } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 function fnHeaders(vaultToken) {
@@ -76,6 +76,24 @@ export async function fetchSovereignBriefing({ locale }) {
   const ct = res.headers.get('content-type') || '';
   if (!ct.includes('audio')) throw new Error('sovereign_briefing_no_audio');
   return URL.createObjectURL(await res.blob());
+}
+
+// AUTO-DAILY (FRONT 3.5): read TODAY'S PRE-CACHED Sovereign Briefing — the one the
+// morning check-in tripwire generated in the background — via the token-gated
+// bbf_get_sovereign_briefing RPC. Returns a playable object URL for instant play, or
+// NULL when it hasn't been pre-generated yet (e.g. no check-in today) so the caller
+// can fall back to on-demand fetchSovereignBriefing. No Claude/ElevenLabs round-trip.
+export async function fetchCachedSovereignBriefing({ locale }) {
+  const token = getStoredVaultToken();
+  if (!token) return null;
+  const { data, error } = await supabase.rpc('bbf_get_sovereign_briefing', { p_session_token: token, p_locale: locale });
+  if (error) throw new Error(error.message || 'sovereign_cache_failed');
+  if (!data?.ok) throw new Error(data?.error || 'sovereign_cache_failed');
+  if (!data.found || !data.audio_b64) return null; // not pre-generated yet → caller falls back
+  const bin = atob(data.audio_b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+  return URL.createObjectURL(new Blob([bytes], { type: data.mime || 'audio/mpeg' }));
 }
 
 // LIVE COACH (context='program'): a short, intense in-ear cue for the active
