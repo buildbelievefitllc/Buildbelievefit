@@ -34,6 +34,7 @@ import TierGate from '../TierGate.jsx';
 import { CUISINES, CUISINE_PLANS, dayTotals, todayIndex } from './cuisineMeals.js';
 import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
 import { resolveMealArt, MEAL_ART } from './mealArt.js';
+import CoachVoiceNote from './CoachVoiceNote.jsx';
 import './vault.css';
 import './nutrition.css';
 
@@ -448,6 +449,9 @@ function DailyFuel({ consumed, totals, doneCount, mealCount }) {
   return (
     <div className="pg-card">
       <div className="nl-fuel-title">{tr.todaysFuel}</div>
+
+      {/* FRONT 4 · "Breaking the Loop" — Fuel Science: TDEE/macro framing, beside the wheel. */}
+      <CoachVoiceNote module="fuel" />
 
       <MacroWheel consumed={consumed.kcal} target={totals.kcal} />
 

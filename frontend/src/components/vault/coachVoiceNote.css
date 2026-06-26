@@ -1,0 +1,116 @@
+/* CoachVoiceNote — FRONT 4 "Breaking the Loop" educational audio note.
+   LOCKED brand tokens: BBF Purple #6a0dad, BBF Gold #f5c800, Bebas via var(--hb).
+   Compact inline transport: round gold play control + eyebrow/title/topic + a
+   thin purple→gold progress track + a gold equalizer that wakes on play. */
+
+.cvn {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  margin: 0 0 1rem;
+  padding: .8rem .9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 200, 0, .34);
+  background: linear-gradient(135deg, rgba(106, 13, 173, .34), rgba(9, 9, 9, .6));
+  position: relative;
+  overflow: hidden;
+}
+
+/* 'gate' framing — the pre-cardio "flush" transition gets a stronger presence. */
+.cvn--gate {
+  border-color: rgba(245, 200, 0, .55);
+  box-shadow: 0 0 0 1px rgba(106, 13, 173, .25), 0 6px 22px rgba(106, 13, 173, .2);
+}
+
+.cvn-btn {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f5c800, #ffd83a);
+  color: #1a1020;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  box-shadow: 0 4px 14px rgba(245, 200, 0, .3);
+  transition: transform .15s ease;
+}
+.cvn-btn:hover { transform: scale(1.06); }
+.cvn-btn:active { transform: scale(.96); }
+.cvn-ic { line-height: 1; transform: translateX(1px); }
+.cvn[data-playing="1"] .cvn-ic { transform: none; }
+
+.cvn-body { flex: 1 1 auto; min-width: 0; }
+
+.cvn-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-family: var(--hb), 'Bebas Neue', sans-serif;
+  font-size: .64rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f5c800;
+}
+.cvn-mic { font-size: .8rem; }
+
+.cvn-title {
+  font-family: var(--hb), 'Bebas Neue', sans-serif;
+  font-size: 1.18rem;
+  line-height: 1.05;
+  letter-spacing: .5px;
+  color: #fff;
+  margin-top: .05rem;
+}
+
+.cvn-topic {
+  font-size: .76rem;
+  line-height: 1.35;
+  color: rgba(244, 238, 251, .78);
+  margin-top: .1rem;
+}
+
+.cvn-track {
+  margin-top: .5rem;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(106, 13, 173, .4);
+  overflow: hidden;
+}
+.cvn-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6a0dad, #f5c800);
+  transition: width .2s linear;
+}
+
+.cvn-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+  flex: 0 0 auto;
+  opacity: .45;
+}
+.cvn-bar {
+  width: 3px;
+  height: 6px;
+  border-radius: 2px;
+  background: #f5c800;
+}
+.cvn-eq.is-live { opacity: 1; }
+.cvn-eq.is-live .cvn-bar { animation: cvn-eq .9s ease-in-out infinite; }
+
+@keyframes cvn-eq {
+  0%, 100% { height: 5px; }
+  50% { height: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cvn-eq.is-live .cvn-bar { animation: none; }
+  .cvn-fill { transition: none; }
+  .cvn-btn { transition: none; }
+}

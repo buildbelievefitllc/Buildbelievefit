@@ -25,6 +25,7 @@ import { useCardio, logCardio, CARDIO_ZONES, fetchCardioLibrary, setActiveCardio
 import { generateCardio } from '../../lib/agenticCardioApi.js';
 import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
 import CoachAudioButton from './CoachAudioButton.jsx';
+import CoachVoiceNote from './CoachVoiceNote.jsx';
 import { useDailyReadiness, handshakeChannel, PROTOCOL_UPDATED_EVENT } from '../../lib/useDailyReadiness.js';
 import { useReadiness } from '../../context/ReadinessContext.jsx';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
@@ -324,6 +325,10 @@ export default function SmartCardio() {
         <span className="bbf-cardio__kicker">{tr.kicker}</span>
       </div>
       <p className="bbf-cardio__sub">{tr.sub}</p>
+
+      {/* FRONT 4 · "Breaking the Loop" — The Flush: post-lifting cardio science,
+          framed before the configurator/library. 'gate' = stronger transition. */}
+      <CoachVoiceNote module="flush" variant="gate" />
 
       {hasCheckedIn && volMultiplier !== 1 ? (
         <div

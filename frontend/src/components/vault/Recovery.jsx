@@ -18,6 +18,7 @@ import { getProgram } from './programData.js';
 import { resolvePrepLoads, generateSovereignPrep } from '../../lib/sovereignPrep.js';
 import SovereignPrepPanels from './SovereignPrepPanels.jsx';
 import { SequenceNext } from './SovereignSequence.jsx';
+import CoachVoiceNote from './CoachVoiceNote.jsx';
 import './sovereignPrep.css';
 
 export default function Recovery({ plans = null, onSequence }) {
@@ -56,6 +57,9 @@ export default function Recovery({ plans = null, onSequence }) {
         <h2 className="sp-title">{t('sp-title')}</h2>
         <p className="sp-section-sub">{t('sp-section-sub')}</p>
       </header>
+
+      {/* FRONT 4 · "Breaking the Loop" — The Primer: CNS wake-up framing, top of Recovery. */}
+      <CoachVoiceNote module="primer" />
 
       {loading ? (
         <div className="sp-state" data-testid="sp-loading">
