@@ -1,8 +1,9 @@
 // src/data/affirmations.js
 // ─────────────────────────────────────────────────────────────────────────────
 // Daily Vault Affirmation library — pre-written, trilingual (EN/ES/PT). Spoken
-// VERBATIM by the BBF Coach voice (en) / Ana María (es) / Ana Alice (pt) via the
-// Universal Voice Coach (bbf-biokinetic-briefing · context='affirmation').
+// VERBATIM by the BBF Coach Akeem voice — ONE cloned voice for ALL locales (en/es/pt;
+// multilingual_v2 voices ES/PT natively) — via the Universal Voice Coach
+// (bbf-biokinetic-briefing · context='affirmation').
 //
 // Rotation: OPTION A (weekly) — one affirmation per ISO-style week, cycling
 // through the library. Keeps it fresh without overwhelming, and keeps the TTS

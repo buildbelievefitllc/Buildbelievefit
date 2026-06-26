@@ -3581,7 +3581,8 @@ function attachPhantomEyeProxy(server) {
           // Dual-modality setup. Gemini still emits its native PCM audio
           // (so existing playback works as a fallback) AND we ask it for
           // a synchronized output_audio_transcription so the BBF TTS
-          // layer can pipe text to ElevenLabs (Julius / Kelli LaShae)
+          // layer can pipe text to ElevenLabs (BBF Coach Akeem clone — the
+          // SAME voice for every feature + locale, resolved from public.voices)
           // for the actual voice the user hears.
           const setup = {
             setup: {
@@ -3606,7 +3607,8 @@ function attachPhantomEyeProxy(server) {
           // ALSO sniff for outputAudioTranscription text deltas and forward
           // them as a tagged side-channel so the BBF TTS gateway can route
           // them through the public.voices table → ElevenLabs API → the
-          // configured voice (Julius for fitness · Kelli LaShae for nutrition).
+          // BBF Coach Akeem clone (public.voices maps every feature to Akeem,
+          // all locales — multilingual_v2 voices ES/PT natively).
           try {
             const text = (typeof msg === 'string') ? msg : msg.toString('utf8');
             const parsed = JSON.parse(text);

@@ -1,7 +1,8 @@
 // bbf-biokinetic-briefing — Universal Voice Coach (ElevenLabs, trilingual).
 // CEO V8.16: ElevenLabs voice engine serving forecast/program/recovery/prehab/cardio/affirmation.
-// VOICE MAP (resolved live from the CEO account, self-heals on rename):
-//   en -> BBF Coach Akeem   es -> Ana Maria   pt -> Ana Alice   (Young Jamal NEVER selected)
+// VOICE (CEO hotfix — ONE voice, three languages): BBF Coach Akeem clone
+//   en / es / pt  ALL -> BBF Coach Akeem (ZbKDEqxkr8Ub4psNm5XD). multilingual_v2 voices
+//   ES/PT natively. No per-locale stock voices (Ana Maria/Ana Alice retired); Jamal NEVER selected.
 // Routes through the BBF Lab Voice Engine: exact API payload + the 4 Dynamic Vocal
 // States (Floor Coach / Lounge Talk / Sanctuary / Architect) + heavy-lift override.
 // Returns audio/mpeg. GET ?voices=1 -> resolved locale->voice diagnostic.
@@ -97,7 +98,13 @@ async function requireEntitlement(url: string | undefined, key: string | undefin
   return { ok: false, status: 403, error: 'tier_not_entitled', detail: `Tier "${tier || '(none)'}" does not unlock "${feature}".` };
 }
 
-const LOCALE_VOICE_NAME: Record<string, string> = { en: 'BBF Coach Akeem', es: 'Ana Maria', pt: 'Ana Alice' };
+// BBF Coach Akeem — the trilingual Professional Voice Clone speaks EVERY locale
+// (CEO directive: ONE voice, three languages; eleven_multilingual_v2 renders ES/PT
+// natively). Previously ES/PT resolved to stock voices (Ana Maria / Ana Alice); now
+// LOCKED to the Akeem clone ID for all locales — the SAME voice everywhere.
+const AKEEM_VOICE_ID = 'ZbKDEqxkr8Ub4psNm5XD';
+const AKEEM_VOICE_NAME = 'BBF Coach Akeem';
+const LOCALE_VOICE_NAME: Record<string, string> = { en: AKEEM_VOICE_NAME, es: AKEEM_VOICE_NAME, pt: AKEEM_VOICE_NAME };
 const FORBIDDEN_VOICE = 'jamal';
 
 // ══ BBF LAB VOICE ENGINE (inlined — canonical: _shared/bbf-voice-engine.ts · CLAUDE.md §4) ══
@@ -137,39 +144,17 @@ function formatForState(text: string, s: VocalState): string {
   return out.replace(/!+/g, '.').replace(/  +/g, ' ');
 }
 
-const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
-function deburr(s: unknown): string {
-  return String(s ?? '').normalize('NFD').replace(COMBINING_MARKS, '').trim().toLowerCase();
-}
-
 let _voiceCache: Record<string, { voice_id: string; name: string }> | null = null;
-async function resolveVoices(apiKey: string): Promise<Record<string, { voice_id: string; name: string }> | null> {
+// LOCKED to the BBF Coach Akeem clone for ALL locales — no ElevenLabs /v1/voices
+// lookup, no per-locale name matching (which previously routed ES/PT to stock voices).
+// eleven_multilingual_v2 voices ES/PT natively, so the SAME Akeem voice the user hears
+// in English carries straight into Spanish and Portuguese. (_apiKey kept for signature
+// parity with the prior resolver; intentionally unused now.)
+async function resolveVoices(_apiKey: string): Promise<Record<string, { voice_id: string; name: string }> | null> {
   if (_voiceCache) return _voiceCache;
-  let voices: any[] = [];
-  try {
-    const res = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': apiKey } });
-    if (!res.ok) { console.error(`[bbf-biokinetic-briefing] /v1/voices ${res.status}`); return null; }
-    const j = await res.json().catch(() => null);
-    voices = Array.isArray(j?.voices) ? j.voices : [];
-  } catch (e) {
-    console.error('[bbf-biokinetic-briefing] voices fetch failed:', (e as Error).message);
-    return null;
-  }
-  const candidates = voices.filter((v) => !deburr(v?.name).includes(FORBIDDEN_VOICE));
-  const pick = (want: string) => {
-    const wn = deburr(want);
-    return candidates.find((v) => deburr(v?.name) === wn)
-        || candidates.find((v) => deburr(v?.name).startsWith(wn))
-        || candidates.find((v) => deburr(v?.name).includes(wn))
-        || null;
-  };
-  const map: Record<string, { voice_id: string; name: string }> = {};
-  for (const [loc, name] of Object.entries(LOCALE_VOICE_NAME)) {
-    const v = pick(name);
-    if (v?.voice_id) map[loc] = { voice_id: String(v.voice_id), name: String(v.name) };
-  }
-  _voiceCache = map;
-  return map;
+  const akeem = { voice_id: AKEEM_VOICE_ID, name: AKEEM_VOICE_NAME };
+  _voiceCache = { en: akeem, es: akeem, pt: akeem };
+  return _voiceCache;
 }
 
 async function synthesize(apiKey: string, voiceId: string, text: string, modelId: string): Promise<{ ok: true; buf: ArrayBuffer } | { ok: false; status: number; detail: string }> {

@@ -130,6 +130,9 @@ function detectScenario(data: UserWeekData): ScenarioResult {
 
 const FORBIDDEN_VOICE = 'jamal';
 const BRIEF_VOICE_NAME = 'BBF Coach Akeem';
+// CEO hotfix — LOCKED to the BBF Coach Akeem clone (ONE voice, all locales; multilingual_v2
+// voices ES/PT natively). No /v1/voices lookup, no candidates[0] fallback to a stray voice.
+const AKEEM_VOICE_ID = 'ZbKDEqxkr8Ub4psNm5XD';
 // BBF Lab Voice Engine — EXACT payload (Part 2). stability 0.35 frees the soulful
 // fluctuations; similarity 0.85 locks Akeem's cords; style 0.15 amplifies emotion;
 // speaker_boost on. No speed — Architect tempo comes from comma/ellipsis cadence.
@@ -138,23 +141,12 @@ const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
 function deburr(s: unknown): string { return String(s ?? '').normalize('NFD').replace(COMBINING_MARKS, '').trim().toLowerCase(); }
 
 let _voice: { voice_id: string; name: string } | null = null;
-async function resolveBriefVoice(apiKey: string): Promise<{ voice_id: string; name: string } | null> {
+// LOCKED to the BBF Coach Akeem clone for every brief, every locale — no ElevenLabs
+// /v1/voices lookup, no name matching, no candidates[0] fallback. (_apiKey kept for
+// call-site signature parity; intentionally unused now.)
+async function resolveBriefVoice(_apiKey: string): Promise<{ voice_id: string; name: string } | null> {
   if (_voice) return _voice;
-  let voices: any[] = [];
-  try {
-    const res = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': apiKey } });
-    if (!res.ok) { console.error(`[weekly-brief] /v1/voices ${res.status}`); return null; }
-    const j = await res.json().catch(() => null);
-    voices = Array.isArray(j?.voices) ? j.voices : [];
-  } catch (e) { console.error('[weekly-brief] voices fetch failed:', (e as Error).message); return null; }
-  const candidates = voices.filter((v) => !deburr(v?.name).includes(FORBIDDEN_VOICE));
-  const wn = deburr(BRIEF_VOICE_NAME);
-  const v = candidates.find((x) => deburr(x?.name) === wn)
-    || candidates.find((x) => deburr(x?.name).startsWith(wn))
-    || candidates.find((x) => deburr(x?.name).includes(wn))
-    || candidates[0] || null;
-  if (!v?.voice_id) return null;
-  _voice = { voice_id: String(v.voice_id), name: String(v.name) };
+  _voice = { voice_id: AKEEM_VOICE_ID, name: BRIEF_VOICE_NAME };
   return _voice;
 }
 

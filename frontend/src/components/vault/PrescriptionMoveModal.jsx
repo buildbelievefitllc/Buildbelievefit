@@ -5,7 +5,7 @@
 //   • an in-app YouTube mini-player, OR a clean "demo coming soon" chip until the
 //     clinical-video manifest is filled (never a broken embed);
 //   • the recovery dosage (holds/reps/minutes), inferred per movement;
-//   • the trilingual ElevenLabs coach button — Coach Akeem (EN) / Anna (ES/PT) —
+//   • the trilingual ElevenLabs coach button — Coach Akeem for ALL locales (EN/ES/PT) —
 //     voicing a short cue for THIS movement, with a device-voice fallback.
 // Brand-locked (§2), trilingual EN/ES/PT (§1).
 
