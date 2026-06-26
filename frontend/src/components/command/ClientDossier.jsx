@@ -25,7 +25,7 @@
 // in the Client Database Hub, instead of on a separate top-level surface.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
+import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, fetchTiers, reassignTier, setAccessStatus, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
 import { hasAdminPin, setAdminPin, fetchBodyComposition } from '../../lib/coachAnalyticsApi.js';
 import { BarChart, LineChart, BodyComp } from './charts.jsx';
 import { numOrNull, GOLD, GRN, PURL, GOLD_SOFT } from './chartUtils.js';
@@ -36,7 +36,7 @@ import SovereignAthlete from './SovereignAthlete.jsx';
 import { useAthleteWearable } from '../../lib/wearableApi.js';
 import './analytics.css';
 
-export default function ClientDossier({ client, onBack }) {
+export default function ClientDossier({ client, onBack, onRosterRefresh }) {
   // Detail (full client row).
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -183,6 +183,8 @@ export default function ClientDossier({ client, onBack }) {
             c={data}
             clientId={client.id}
             clientUid={data.uid || client.uid}
+            accountStatus={client.account_status}
+            onRosterRefresh={onRosterRefresh}
             onPatched={applyTargetPatch}
             analytics={{ data: analytics, loading: anLoading, error: anError, onRetry: fetchAnalyticsData }}
             isAthlete={isAthlete}
@@ -289,13 +291,14 @@ const DECKS = [
   { id: 'feed', label: 'Athlete Feed Chat', icon: '💬' },
   { id: 'target', label: 'Update Target', icon: '⬆' },
   { id: 'override', label: 'Manual Override', icon: '⚡' },
+  { id: 'access', label: 'Account Access', icon: '🔐' },
 ];
 // Athlete Profile: same six decks, but Manual Override (the Sport/Phase control) leads and
 // is the default — the headline surface for an athlete instead of the standard nutrition view.
-const ATHLETE_DECK_ORDER = ['override', 'workouts', 'nutrition', 'analytics', 'feed', 'target'];
+const ATHLETE_DECK_ORDER = ['override', 'workouts', 'nutrition', 'analytics', 'feed', 'target', 'access'];
 const ATHLETE_DECKS = ATHLETE_DECK_ORDER.map((id) => DECKS.find((d) => d.id === id));
 
-function DossierBody({ c, clientId, clientUid, onPatched, analytics, isAthlete, proto, protoLoading, protoError, onProtoReload, picked, onPick }) {
+function DossierBody({ c, clientId, clientUid, accountStatus, onRosterRefresh, onPatched, analytics, isAthlete, proto, protoLoading, protoError, onProtoReload, picked, onPick }) {
   // `picked` (lifted to ClientDossier — the Sovereign header's quick-action menu writes
   // it too) = the explicit choice; until one is made, the active deck tracks the layout
   // default (Override for athletes, Nutrition otherwise) so resolving athlete-ness after
@@ -332,6 +335,9 @@ function DossierBody({ c, clientId, clientUid, onPatched, analytics, isAthlete, 
         {deck === 'target' && <ReconfiguratorDeck c={c} clientId={clientId} onPatched={onPatched} />}
         {deck === 'override' && (
           <OverrideDeck c={c} clientId={clientId} proto={proto} protoLoading={protoLoading} protoError={protoError} onReload={onProtoReload} />
+        )}
+        {deck === 'access' && (
+          <AccountAccessDeck c={c} clientUid={clientUid} accountStatus={accountStatus} onChanged={onRosterRefresh} />
         )}
       </div>
 
@@ -956,6 +962,160 @@ function OverrideDeck({ c, clientId, proto, protoLoading, protoError, onReload }
           {nutState.ok ? <span style={styles.savedFlag}>✓ {nutState.ok}</span> : null}
         </div>
         {nutState.err ? <div style={styles.saveError} role="alert">{nutState.err}</div> : null}
+      </Section>
+    </>
+  );
+}
+
+// ── Account Access — the relocated God-Mode controls (tier override + the account
+//    kill switch), moved out of the now-hidden Access Control panel into the per-athlete
+//    dossier. SAME wiring (bbf-admin-roster set_tier / set_status via rosterApi), self-
+//    contained state, and a master-roster refresh on change so the row badge stays live. ──
+const AA_CATEGORY_LABEL = {
+  fitness: 'Fitness', nutrition: 'Fuel · Nutrition', youth: 'Youth Athlete',
+  hybrid_6wk: 'Hybrid · 6-Week', hybrid_8wk: 'Hybrid · 8-Week', hybrid_12wk: 'Hybrid · 12-Week',
+};
+function aaFormatPrice(t) {
+  const dollars = (Number(t?.price_cents) || 0) / 100;
+  const amount = `$${dollars.toFixed(dollars % 1 === 0 ? 0 : 2)}`;
+  return t?.billing_type === 'recurring' ? `${amount}/mo` : amount;
+}
+const AA_NOTE = { fontFamily: 'var(--bd)', fontSize: '.9rem', color: 'var(--mut)', lineHeight: 1.5, margin: '0 0 .8rem' };
+
+function AccountAccessDeck({ c, clientUid, accountStatus, onChanged }) {
+  const uid = String(clientUid || '').toLowerCase();
+  const isAkeem = uid === 'akeem';
+
+  const [tiers, setTiers] = useState([]);
+  const [tier, setTier] = useState(c.subscription_tier || '');
+  const [tierBusy, setTierBusy] = useState(false);
+  const [tierMsg, setTierMsg] = useState(null); // { kind:'ok'|'err', text }
+
+  const [status, setStatus] = useState(accountStatus || 'active');
+  const [confirm, setConfirm] = useState('');
+  const [lockBusy, setLockBusy] = useState(false);
+  const [lockMsg, setLockMsg] = useState(null); // { kind:'lock'|'ok'|'err', text }
+
+  // Tier matrix for the dropdown — non-fatal; deferred out of the sync effect body
+  // (mirrors this file's set-state-in-effect-clean pattern).
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      fetchTiers()
+        .then((body) => { if (!cancelled) setTiers(Array.isArray(body.tiers) ? body.tiers : []); })
+        .catch(() => { /* dropdown degrades to the current tier only */ });
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const grouped = useMemo(() => {
+    const g = {};
+    for (const t of tiers) { (g[t.category] = g[t.category] || []).push(t); }
+    return g;
+  }, [tiers]);
+  const tierLabel = useMemo(() => {
+    const m = new Map(tiers.map((t) => [t.slug, t.display_name]));
+    return (slug) => m.get(slug) || (slug ? String(slug).replace(/_/g, ' ').toUpperCase() : '—');
+  }, [tiers]);
+  const currentKnown = tiers.some((t) => t.slug === c.subscription_tier);
+  const tierUnchanged = tier === (c.subscription_tier || '');
+  const isLocked = status === 'locked';
+  const confirmMatches = confirm.trim().toLowerCase() === uid;
+  const canLock = !isAkeem && !lockBusy && (isLocked || confirmMatches);
+
+  async function onReassign() {
+    if (tierBusy || isAkeem || tierUnchanged) return;
+    setTierBusy(true); setTierMsg(null);
+    try {
+      await reassignTier(uid, tier);
+      setTierMsg({ kind: 'ok', text: `Tier set to ${tierLabel(tier)}.` });
+      onChanged?.();
+    } catch (e) {
+      setTierMsg({ kind: 'err', text: toErrorMessage(e) });
+    } finally { setTierBusy(false); }
+  }
+
+  async function onToggleLock() {
+    if (!canLock) return;
+    const next = isLocked ? 'unlocked' : 'locked';
+    setLockBusy(true); setLockMsg(null);
+    try {
+      const res = await setAccessStatus(uid, next);
+      setStatus(next === 'locked' ? 'locked' : 'active');
+      setConfirm('');
+      setLockMsg(next === 'locked'
+        ? { kind: 'lock', text: `Account LOCKED. ${res.sessions_revoked || 0} live session(s) revoked — the athlete is ejected to the login screen.` }
+        : { kind: 'ok', text: 'Account unlocked. The athlete can sign in again.' });
+      onChanged?.();
+    } catch (e) {
+      setLockMsg({ kind: 'err', text: toErrorMessage(e) });
+    } finally { setLockBusy(false); }
+  }
+
+  return (
+    <>
+      <Section title="◆ Tier Override" meta={isAkeem ? 'Founder · locked to Sovereign' : null}>
+        <p style={AA_NOTE}>Manual comp, upgrade, or downgrade — applied directly, bypassing Stripe.</p>
+        <div style={styles.macroGrid}>
+          <label style={styles.field}>
+            <span style={styles.fieldLabel}>Subscription Tier</span>
+            <select style={OVR_SELECT} value={tier} disabled={isAkeem || tierBusy} onChange={(e) => setTier(e.target.value)}>
+              {!currentKnown && c.subscription_tier ? <option value={c.subscription_tier}>{tierLabel(c.subscription_tier)} (current)</option> : null}
+              {!c.subscription_tier ? <option value="">— unassigned —</option> : null}
+              {Object.keys(grouped).map((cat) => (
+                <optgroup key={cat} label={AA_CATEGORY_LABEL[cat] || cat}>
+                  {grouped[cat].map((t) => <option key={t.slug} value={t.slug}>{t.display_name} — {aaFormatPrice(t)}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div style={styles.saveRow}>
+          <button type="button" style={{ ...styles.saveBtn, opacity: (isAkeem || tierBusy || tierUnchanged) ? 0.55 : 1 }} disabled={isAkeem || tierBusy || tierUnchanged} onClick={onReassign}>
+            {tierBusy ? 'Saving…' : 'Reassign Tier'}
+          </button>
+          {tierMsg?.kind === 'ok' ? <span style={styles.savedFlag}>✓ {tierMsg.text}</span> : null}
+        </div>
+        {tierMsg?.kind === 'err' ? <div style={styles.saveError} role="alert">{tierMsg.text}</div> : null}
+      </Section>
+
+      <Section title="⚠ Account Kill Switch">
+        {isAkeem ? (
+          <p style={AA_NOTE}>The founder account cannot be locked — the kill switch is disabled for this user.</p>
+        ) : isLocked ? (
+          <>
+            <p style={AA_NOTE}>This account is <strong style={{ color: 'var(--red)' }}>LOCKED</strong>. The athlete cannot sign in or reach the Vault. Unlocking restores access immediately.</p>
+            <div style={styles.saveRow}>
+              <button type="button" style={{ ...styles.saveBtn, background: 'var(--grn)', color: '#06140b', opacity: lockBusy ? 0.6 : 1 }} disabled={lockBusy} onClick={onToggleLock}>
+                {lockBusy ? 'Unlocking…' : '⊞ Unlock Account'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p style={AA_NOTE}>
+              Locking <strong>instantly revokes this athlete’s live session</strong>, throws them to the public login, and blocks re-entry until you unlock. To arm, type their handle{' '}
+              <code style={{ color: 'var(--yel)', fontWeight: 700 }}>@{uid}</code>.
+            </p>
+            <div style={styles.macroGrid}>
+              <label style={styles.field}>
+                <span style={styles.fieldLabel}>Confirm handle to arm</span>
+                <input style={OVR_SELECT} type="text" autoCapitalize="none" spellCheck={false} placeholder={`type @${uid}`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+              </label>
+            </div>
+            <div style={styles.saveRow}>
+              <button type="button" style={{ ...styles.saveBtn, background: 'var(--red)', color: '#fff', opacity: canLock ? 1 : 0.5 }} disabled={!canLock} onClick={onToggleLock}>
+                {lockBusy ? 'Locking…' : '⛔ Lock Account'}
+              </button>
+            </div>
+          </>
+        )}
+        {lockMsg ? (
+          <div role="alert" style={{ marginTop: '.6rem', fontFamily: 'var(--bd)', fontWeight: 700, fontSize: '.9rem', color: lockMsg.kind === 'ok' ? 'var(--grn)' : 'var(--red)' }}>
+            {lockMsg.text}
+          </div>
+        ) : null}
       </Section>
     </>
   );

@@ -181,7 +181,7 @@ export default function ClientHub() {
         {/* ── DETAIL: drill-in dossier for the selected athlete ── */}
         <section className={`ff-detail${activeClient ? ' is-open' : ''}`} aria-label="Athlete dossier">
           {activeClient ? (
-            <ClientDossier client={activeClient} onBack={() => setActiveId(null)} />
+            <ClientDossier client={activeClient} onBack={() => setActiveId(null)} onRosterRefresh={fetchRoster} />
           ) : (
             <div className="ff-placeholder">
               <span className="ff-placeholder-mark" aria-hidden="true">◎</span>
