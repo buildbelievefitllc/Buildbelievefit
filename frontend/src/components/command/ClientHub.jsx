@@ -22,7 +22,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
-import { useAuth } from '../../context/AuthContext.jsx';
+import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
+import { supabase } from '../../lib/supabaseClient.js';
 import ClientDossier from './ClientDossier.jsx';
 import './founderfive.css';
 
@@ -39,7 +40,22 @@ export default function ClientHub() {
     setError(null);
     try {
       const body = await rosterCall('roster');
-      setData(Array.isArray(body.clients) ? body.clients : []);
+      let clients = Array.isArray(body.clients) ? body.clients : [];
+      // Overlay each athlete's 30-Day Calibration day/phase (admin-gated RPC), merged by
+      // id. Non-fatal: if it fails, the roster still loads — the badge just hides.
+      try {
+        const { data: cal } = await supabase.rpc('bbf_admin_roster_calibration', {
+          p_session_token: getStoredVaultToken(),
+        });
+        if (Array.isArray(cal) && cal.length) {
+          const byId = new Map(cal.map((r) => [r.id, r]));
+          clients = clients.map((c) => {
+            const m = byId.get(c.id);
+            return m ? { ...c, calibration_day: m.calibration_day, calibration_phase: m.calibration_phase } : c;
+          });
+        }
+      } catch { /* calibration overlay is non-fatal */ }
+      setData(clients);
     } catch (e) {
       setError(toErrorMessage(e));
       setData([]);
@@ -188,6 +204,7 @@ function ClientRow({ client, active, onSelect }) {
   const div = division(client);
   const tier = client.subscription_tier || client.role || null;
   const color = tierColor(client.subscription_tier);
+  const cal = calBadge(client);
   return (
     <li>
       <button
@@ -201,6 +218,7 @@ function ClientRow({ client, active, onSelect }) {
         <span className="ff-row-main">
           <span className="ff-row-name">{name}</span>
           <span className="ff-row-sub">{div}</span>
+          {cal ? <span className="ff-cal" style={{ ...CAL_BASE, ...CAL_TONE[cal.tone] }}>{cal.text}</span> : null}
         </span>
         <span className="ff-row-meta">
           <span className="ff-badge" style={{ color, borderColor: color }}>{tier || '—'}</span>
@@ -231,4 +249,27 @@ function tierColor(tier) {
     sovereign: 'var(--purl)',
   };
   return map[String(tier || '').toLowerCase()] || 'var(--mut)';
+}
+
+// ── 30-Day Calibration roster badge — the server sends calibration_day +
+// calibration_phase (grandfathered/undatable → phase 'sovereign', day null → just
+// "Sovereign"). Brand purple→gold: Baseline (locked) → Ignition → Sovereign (gold). ──
+const CAL_BASE = {
+  alignSelf: 'flex-start', marginTop: 4, fontFamily: "'Barlow Condensed', sans-serif",
+  fontWeight: 700, fontSize: '.66rem', letterSpacing: '.5px', textTransform: 'uppercase',
+  padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap', lineHeight: 1.5,
+};
+const CAL_TONE = {
+  baseline:  { color: '#c9a3ff', border: '1px solid rgba(157,39,201,.55)', background: 'rgba(106,13,173,.22)' },
+  ignition:  { color: '#f5cf60', border: '1px solid rgba(245,200,0,.5)', background: 'rgba(106,13,173,.20)' },
+  sovereign: { color: '#0e0a16', border: '1px solid #f5c800', background: 'linear-gradient(90deg,#f5c800,#ffd83a)' },
+};
+function calBadge(client) {
+  const phase = String(client.calibration_phase || '').toLowerCase();
+  if (!CAL_TONE[phase]) return null;
+  const day = Number(client.calibration_day);
+  const text = phase === 'sovereign'
+    ? (Number.isFinite(day) && day >= 30 ? `Day ${day} · Sovereign` : 'Sovereign')
+    : `Day ${Number.isFinite(day) ? day : '—'} · ${phase[0].toUpperCase()}${phase.slice(1)}`;
+  return { text, tone: phase };
 }

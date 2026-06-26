@@ -18,9 +18,9 @@
 
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import CommandRoster from '../components/command/CommandRoster.jsx';
+// import CommandRoster from '../components/command/CommandRoster.jsx'; // hidden (declutter) — restore with its TABS entry
 import ClientHub from '../components/command/ClientHub.jsx';
-import AccessControl from '../components/command/AccessControl.jsx';
+// import AccessControl from '../components/command/AccessControl.jsx'; // hidden (declutter) — restore with its TABS entry
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 import NutritionLocker from '../components/command/NutritionLocker.jsx';
@@ -48,9 +48,13 @@ import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
 const TABS = [
   // "Founder Five" master-detail roster is the Command Center centerpiece (default).
   { id: 'roster', labelKey: 'cmd-tab-roster', Panel: ClientHub },
-  { id: 'command', labelKey: 'cmd-tab-command', Panel: CommandRoster },
+  // ── DECLUTTER (CEO order · Front 2): "Sovereign Command" + "Revenue Roster" are
+  // redundant with the Founder Five roster — hidden from the active nav. Panels/code kept
+  // fully intact (incl. Access Control's kill-switch + tier comp); restore by uncommenting
+  // the line here AND its import above. ──
+  // { id: 'command', labelKey: 'cmd-tab-command', Panel: CommandRoster },
   // Executive Access Control — tier visibility + reassignment + the account kill switch.
-  { id: 'access', labelKey: 'cmd-tab-access', Panel: AccessControl },
+  // { id: 'access', labelKey: 'cmd-tab-access', Panel: AccessControl },
   { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry },
   // Client Analytics no longer lives as a standalone surface — the 30/60/90-day
   // analytics + body composition now render INSIDE the Client Database Hub dossier,
