@@ -174,7 +174,6 @@ function detectScenario(data: UserWeekData, locale: Locale): ScenarioResult {
   return { scenario: 'NEUTRAL', substatus: 'NEUTRAL', locked_in: true, rendered_script: renderScript('NEUTRAL', data, locale) };
 }
 
-const FORBIDDEN_VOICE = 'jamal';
 const BRIEF_VOICE_NAME = 'BBF Coach Akeem';
 // CEO hotfix — LOCKED to the BBF Coach Akeem clone (ONE voice, all locales; multilingual_v2
 // voices ES/PT natively). No /v1/voices lookup, no candidates[0] fallback to a stray voice.
@@ -183,8 +182,6 @@ const AKEEM_VOICE_ID = 'ZbKDEqxkr8Ub4psNm5XD';
 // fluctuations; similarity 0.85 locks Akeem's cords; style 0.15 amplifies emotion;
 // speaker_boost on. No speed — Architect tempo comes from comma/ellipsis cadence.
 const VOICE_SETTINGS = { stability: 0.35, similarity_boost: 0.85, style: 0.15, use_speaker_boost: true };
-const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
-function deburr(s: unknown): string { return String(s ?? '').normalize('NFD').replace(COMBINING_MARKS, '').trim().toLowerCase(); }
 
 let _voice: { voice_id: string; name: string } | null = null;
 // LOCKED to the BBF Coach Akeem clone for every brief, every locale — no ElevenLabs
