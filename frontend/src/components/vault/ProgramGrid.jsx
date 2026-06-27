@@ -570,21 +570,19 @@ function ExerciseCard({ uid, dayIdx, index, ex, rpeCap, tr }) {
 
       {open ? (
         <div className="pg-ex-body">
-          {/* Live in-ear voice coach — ElevenLabs cue for THIS movement (locale-mapped
-              voice), fired with the active exercise details. Native play/pause.
-              COST-CONTROL: gated to voice_coach (Autonomous+); hidden for Baseline /
-              Youth so free users can never trigger a paid ElevenLabs call. */}
-          <TierGate feature="voice_coach" render="hide">
-            {(() => {
-              // MARGIN GUARD: the authorized catalog's form cues now play from the
-              // repo-static library (zero ElevenLabs spend per play). The dynamic
-              // in-ear coach remains only as a fallback for a movement outside the
-              // static library (e.g. a bespoke AI-generated plan movement).
-              const slug = programSlug(ex.name);
-              if (slug) {
-                return <CoachVoiceNote slug={slug} title={ex.name} topic={staticTopic(slug, lang)} />;
-              }
-              return (
+          {/* In-ear voice coach for THIS movement. The authorized catalog's form
+              cues play from the repo-static library — UNGATED, free for EVERY tier
+              (Baseline / Youth included), because a static file costs nothing per
+              play. Only the dynamic ElevenLabs fallback (a movement outside the
+              static library, e.g. a bespoke AI plan) stays gated to voice_coach so
+              free users can never trigger a paid synth. */}
+          {(() => {
+            const slug = programSlug(ex.name);
+            if (slug) {
+              return <CoachVoiceNote slug={slug} title={ex.name} topic={staticTopic(slug, lang)} />;
+            }
+            return (
+              <TierGate feature="voice_coach" render="hide">
                 <CoachAudioButton
                   exerciseName={ex.name}
                   targetReps={ex.reps}
@@ -592,9 +590,9 @@ function ExerciseCard({ uid, dayIdx, index, ex, rpeCap, tr }) {
                   formCues={[ex.notes, ...(Array.isArray(ex.cues) ? ex.cues : [])].filter(Boolean)}
                   equipment={ex.equipment}
                 />
-              );
-            })()}
-          </TierGate>
+              </TierGate>
+            );
+          })()}
 
           {/* Form-demo video — tap-to-play INLINE embed inside the execution
               card (session retention: the athlete never leaves the app). Only

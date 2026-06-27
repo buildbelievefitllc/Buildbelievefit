@@ -32,6 +32,7 @@ import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
 import CoachAudioButton from './CoachAudioButton.jsx';
 import CoachVoiceNote from './CoachVoiceNote.jsx';
 import { prehabSlug, staticTopic } from './coachStaticManifest.js';
+import TierGate from '../TierGate.jsx';
 import { SequenceNext } from './SovereignSequence.jsx';
 import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
@@ -498,18 +499,21 @@ function DiagnosisResult({ node, lang, d, onReset }) {
               {(() => {
                 const enName = (drill.localization && drill.localization.en && drill.localization.en.name) || drill.type || `step-${drill.step}`;
                 // MARGIN GUARD: standardized prehab cues play from the repo-static
-                // library (zero ElevenLabs spend). The dynamic backend remains only
-                // as a fallback for a drill not yet in the static manifest.
+                // library — UNGATED, free for every tier (zero ElevenLabs spend). Only
+                // the dynamic fallback (a drill not yet in the static manifest) is a
+                // paid synth, so it stays gated to voice_coach (premium tiers only).
                 const slug = prehabSlug(enName);
                 if (slug) {
                   return <CoachVoiceNote slug={slug} title={L.name || drill.type} topic={staticTopic(slug, lang)} />;
                 }
                 const cueText = [L.name, L.description, ...cues].map((x) => String(x || '').trim()).filter(Boolean).join('. ');
                 return cueText ? (
-                  <CoachAudioButton
-                    audioRequest={() => fetchSectionCoachAudio({ context: 'prehab', cueRef: `prehab:${enName}`, cueText, locale: lang })}
-                    fallbackText={cueText}
-                  />
+                  <TierGate feature="voice_coach" render="hide">
+                    <CoachAudioButton
+                      audioRequest={() => fetchSectionCoachAudio({ context: 'prehab', cueRef: `prehab:${enName}`, cueText, locale: lang })}
+                      fallbackText={cueText}
+                    />
+                  </TierGate>
                 ) : null;
               })()}
               <DrillVideo url={drill.youtube_url} title={L.name || drill.type} />
