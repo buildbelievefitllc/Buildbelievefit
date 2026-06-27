@@ -133,4 +133,36 @@ test.describe('BBF Vault — trilingual coach voice + copy', () => {
     // Nothing ever touched production.
     expect(realDbHits).toHaveLength(0);
   });
+
+  test('Spanish: Breaking the Loop + Weekly Brief render and voice in ES', async ({ page }) => {
+    await seedClientSession(page, SESSION);
+    await seedLang(page, 'es');
+    const { realDbHits } = await installSupabaseBaseline(page);
+    const caps = await stubVoiceSurfaces(page);
+
+    await page.goto('/vault');
+    await expect(page.locator('.cv-greet')).toContainText('@jacque_bbf');
+
+    // Sequence copy in Spanish.
+    const seq = page.getByTestId('sovereign-sequence');
+    await expect(seq.locator('.svs-head')).toHaveText('Rompiendo el Ciclo');
+    await expect(seq.getByTestId('sovereign-sequence-shield')).toContainText('TU TAREA DIARIA');
+    await expect(seq.getByTestId('sovereign-sequence-shield')).toContainText('Captura de Datos');
+    await expect(seq.getByTestId('sovereign-step-1')).toContainText('Paso 1: Ejecuta el Check-In');
+
+    // Weekly Brief fetched + rendered in Spanish.
+    const wb = page.getByTestId('weekly-brief-card');
+    await expect(wb.locator('.wb-title')).toHaveText('Tu Resumen Semanal');
+    await wb.getByTestId('wb-transcript-toggle').click();
+    await expect(wb.getByTestId('wb-transcript')).toContainText('Mantén la constancia');
+    expect(caps.briefLocales).toContain('es');
+
+    // "Listen" sends the ES locale + ES anthem to the voice engine.
+    await seq.getByTestId('program-coach-audio').click();
+    await expect.poll(() => caps.audioBodies.some((b) => b.locale === 'es')).toBeTruthy();
+    const esAudio = caps.audioBodies.filter((b) => b.locale === 'es').pop();
+    expect(String(esAudio?.cue_text)).toContain('La transformación no es un accidente');
+
+    expect(realDbHits).toHaveLength(0);
+  });
 });
