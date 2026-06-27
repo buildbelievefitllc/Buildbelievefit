@@ -48,6 +48,8 @@ import { exKey, useLastWeights, readDayEntries, writeDayEntry, syncSessionToClou
 import { resolveVideoId } from './exerciseVideos.js';
 import FormDemoPlayer from './FormDemoPlayer.jsx';
 import CoachAudioButton from './CoachAudioButton.jsx';
+import CoachVoiceNote from './CoachVoiceNote.jsx';
+import { programSlug, staticTopic } from './coachStaticManifest.js';
 import TierGate from '../TierGate.jsx';
 // Floor Mode is lazy — Dexie/IndexedDB (+ the Blackout logger) only loads the
 // moment an athlete enters it, keeping the initial Vault bundle lean.
@@ -573,13 +575,25 @@ function ExerciseCard({ uid, dayIdx, index, ex, rpeCap, tr }) {
               COST-CONTROL: gated to voice_coach (Autonomous+); hidden for Baseline /
               Youth so free users can never trigger a paid ElevenLabs call. */}
           <TierGate feature="voice_coach" render="hide">
-            <CoachAudioButton
-              exerciseName={ex.name}
-              targetReps={ex.reps}
-              targetSets={setCount}
-              formCues={[ex.notes, ...(Array.isArray(ex.cues) ? ex.cues : [])].filter(Boolean)}
-              equipment={ex.equipment}
-            />
+            {(() => {
+              // MARGIN GUARD: the authorized catalog's form cues now play from the
+              // repo-static library (zero ElevenLabs spend per play). The dynamic
+              // in-ear coach remains only as a fallback for a movement outside the
+              // static library (e.g. a bespoke AI-generated plan movement).
+              const slug = programSlug(ex.name);
+              if (slug) {
+                return <CoachVoiceNote slug={slug} title={ex.name} topic={staticTopic(slug, lang)} />;
+              }
+              return (
+                <CoachAudioButton
+                  exerciseName={ex.name}
+                  targetReps={ex.reps}
+                  targetSets={setCount}
+                  formCues={[ex.notes, ...(Array.isArray(ex.cues) ? ex.cues : [])].filter(Boolean)}
+                  equipment={ex.equipment}
+                />
+              );
+            })()}
           </TierGate>
 
           {/* Form-demo video — tap-to-play INLINE embed inside the execution

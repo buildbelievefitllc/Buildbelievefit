@@ -1,0 +1,177 @@
+{
+  "biceps-curl": {
+    "en": "Biceps curls. Control that eccentric, slow on the way down. No swinging, strict and clean, every single rep.",
+    "es": "Curl de bíceps. Controla la bajada, lento al descender. Nada de balanceo, forma estricta y limpia en cada repetición.",
+    "pt": "Rosca direta. Controla a descida, devagar na volta. Sem balanço, firme e limpo em cada repetição."
+  },
+  "triceps-pushdown": {
+    "en": "Triceps pushdowns. Pin those elbows to your ribs and extend all the way at the bottom. Lock it out, control the return.",
+    "es": "Extensiones de tríceps en polea. Pega los codos a las costillas y extiende del todo abajo. Bloquea y controla la vuelta.",
+    "pt": "Tríceps na polia. Cola os cotovelos nas costelas e estende tudo lá embaixo. Trava e controla a volta."
+  },
+  "shoulder-press": {
+    "en": "Shoulder press. Keep that core tight, torso vertical, no arching the lower back. Drive it straight up, own the top.",
+    "es": "Press de hombros. Mantén el core firme, torso vertical, sin arquear la espalda baja. Empuja recto hacia arriba y domina arriba.",
+    "pt": "Desenvolvimento de ombro. Mantém o core firme, tronco reto, sem arquear a lombar. Empurra reto pra cima e domina lá em cima."
+  },
+  "lat-pulldown": {
+    "en": "Lat pulldown. Drive those elbows down, lean back just slightly. No momentum, you pull with your back, not your arms.",
+    "es": "Jalón al pecho. Lleva los codos hacia abajo, inclínate un poco atrás. Sin impulso, jalas con la espalda, no con los brazos.",
+    "pt": "Puxada alta. Leva os cotovelos pra baixo, inclina um pouco pra trás. Sem impulso, puxa com as costas, não com os braços."
+  },
+  "seated-cable-row": {
+    "en": "Seated cable row. Squeeze those shoulder blades together at the top, full retraction. Hold that squeeze, then control it back.",
+    "es": "Remo sentado en polea. Junta los omóplatos arriba, retracción completa. Sostén el apretón y controla la vuelta.",
+    "pt": "Remada sentada na polia. Junta as escápulas lá em cima, retração total. Segura o aperto e controla a volta."
+  },
+  "abs-crunch": {
+    "en": "Abs crunch. Stay controlled, exhale hard as you contract at the top. No yanking the neck, the abs do the work.",
+    "es": "Crunch abdominal. Mantente controlado, exhala fuerte al contraer arriba. Sin tirar del cuello, el abdomen hace el trabajo.",
+    "pt": "Abdominal crunch. Fica controlado, expira forte ao contrair lá em cima. Sem puxar o pescoço, o abdômen faz o trabalho."
+  },
+  "hip-thrust": {
+    "en": "Hip thrust. Heels close to your hips, ribs down, drive the glutes through that bar. Two-second squeeze at the top.",
+    "es": "Empuje de cadera. Talones cerca de la cadera, costillas abajo, empuja los glúteos contra la barra. Aprieta dos segundos arriba.",
+    "pt": "Elevação de quadril. Calcanhares perto do quadril, costelas pra baixo, empurra os glúteos contra a barra. Aperta dois segundos lá em cima."
+  },
+  "hip-abduction": {
+    "en": "Hip abduction. Slight forward lean to hit that glute medius. Slow on the way in, one-second hold at full open.",
+    "es": "Abducción de cadera. Leve inclinación al frente para trabajar el glúteo medio. Lento al cerrar, sostén un segundo en máxima apertura.",
+    "pt": "Abdução de quadril. Leve inclinação pra frente pra pegar o glúteo médio. Devagar ao fechar, segura um segundo na abertura total."
+  },
+  "back-extension": {
+    "en": "Back extension. Keep the focus on your glutes and erectors, not the lower back. Stay controlled, rise and squeeze.",
+    "es": "Extensión de espalda. Enfócate en los glúteos y erectores, no en la espalda baja. Mantente controlado, sube y aprieta.",
+    "pt": "Extensão lombar. Foca nos glúteos e eretores, não na lombar. Fica controlado, sobe e aperta."
+  },
+  "romanian-deadlift": {
+    "en": "Romanian deadlifts. Hinge at the hips, push your butt back, slight knee bend, neutral spine. Feel that hamstring stretch.",
+    "es": "Peso muerto rumano. Bisagra de cadera, empuja el trasero atrás, rodilla apenas flexionada, columna neutra. Siente el estiramiento del femoral.",
+    "pt": "Levantamento terra romeno. Dobra no quadril, joga o bumbum pra trás, joelho levemente flexionado, coluna neutra. Sente o alongamento do posterior."
+  },
+  "incline-press": {
+    "en": "Incline dumbbell press. Bench at thirty to forty-five degrees, controlled descent, drive through the chest. Load it to an R-P-E of seven to eight.",
+    "es": "Press inclinado con mancuernas. Banco entre treinta y cuarenta y cinco grados, baja controlado, empuja con el pecho. Carga a un R-P-E de siete a ocho.",
+    "pt": "Supino inclinado com halteres. Banco entre trinta e quarenta e cinco graus, descida controlada, empurra com o peito. Carrega num R-P-E de sete a oito."
+  },
+  "chest-fly": {
+    "en": "Chest fly. Open into that wide arc, feel the chest stretch deep. One-second squeeze at the peak, then control it back.",
+    "es": "Aperturas de pecho. Abre en ese arco amplio, siente el estiramiento profundo del pecho. Aprieta un segundo arriba y controla la vuelta.",
+    "pt": "Crucifixo. Abre nesse arco amplo, sente o peito alongar fundo. Aperta um segundo lá em cima e controla a volta."
+  },
+  "overhead-triceps-extension": {
+    "en": "Overhead triceps extension. Keep those elbows forward and fixed, don't let them flare. Extend full, stretch the long head.",
+    "es": "Extensión de tríceps sobre la cabeza. Mantén los codos al frente y fijos, no los abras. Extiende completo, estira la cabeza larga.",
+    "pt": "Tríceps testa por cima da cabeça. Mantém os cotovelos pra frente e fixos, não abre. Estende completo, alonga a cabeça longa."
+  },
+  "hammer-curl": {
+    "en": "Hammer curls. Neutral grip, thumbs up the whole way. No swinging, you keep it strict and control that negative.",
+    "es": "Curl martillo. Agarre neutro, pulgares arriba todo el recorrido. Nada de balanceo, mantente estricto y controla el negativo.",
+    "pt": "Rosca martelo. Pegada neutra, polegares pra cima o trajeto todo. Sem balanço, mantém firme e controla o negativo."
+  },
+  "leg-press": {
+    "en": "Leg press. Feet around mid-foot, shoulder-width, knees tracking in line with your toes. Controlled descent and no locked knees.",
+    "es": "Prensa de piernas. Pies a media planta, ancho de hombros, rodillas alineadas con los dedos. Baja controlado y no bloquees las rodillas.",
+    "pt": "Leg press. Pés no meio do apoio, largura dos ombros, joelhos alinhados com os dedos. Descida controlada e sem travar os joelhos."
+  },
+  "hack-squat": {
+    "en": "Hack squats. Feet shoulder-width on that platform, planted solid. Sit down controlled, drive through the floor on the way up.",
+    "es": "Sentadilla hack. Pies al ancho de hombros en la plataforma, bien plantados. Baja controlado y empuja contra el suelo al subir.",
+    "pt": "Agachamento hack. Pés na largura dos ombros na plataforma, bem firmes. Desce controlado e empurra o chão na subida."
+  },
+  "leg-curl": {
+    "en": "Leg curls. Drive your heels down and back, two-second hold at full curl. Feel the hamstrings working, never the lower back.",
+    "es": "Curl femoral. Lleva los talones abajo y atrás, sostén dos segundos en la curva completa. Siente los femorales, nunca la espalda baja.",
+    "pt": "Flexora. Leva os calcanhares pra baixo e pra trás, segura dois segundos na flexão total. Sente o posterior, nunca a lombar."
+  },
+  "cable-hip-extension": {
+    "en": "Cable hip extension. Drive the leg back, full glute squeeze at the top. No arching the back, all glute, controlled return.",
+    "es": "Extensión de cadera en polea. Lleva la pierna atrás, aprieta el glúteo al máximo arriba. Sin arquear la espalda, todo glúteo, vuelta controlada.",
+    "pt": "Extensão de quadril na polia. Leva a perna pra trás, aperta o glúteo total lá em cima. Sem arquear as costas, só glúteo, volta controlada."
+  },
+  "bulgarian-split-squat": {
+    "en": "Bulgarian split squats. Chest up tall, front knee tracks right over those toes. Sink down controlled, drive up through the heel.",
+    "es": "Sentadilla búlgara. Pecho arriba y erguido, la rodilla de adelante sobre los dedos. Baja controlado y empuja desde el talón.",
+    "pt": "Agachamento búlgaro. Peito erguido, joelho da frente alinhado com os dedos. Desce controlado e sobe empurrando pelo calcanhar."
+  },
+  "chest-press": {
+    "en": "Chest press. Full range, elbows around forty-five degrees, pause at the bottom and feel that stretch. Three-second eccentric on the way down.",
+    "es": "Press de pecho. Rango completo, codos a unos cuarenta y cinco grados, pausa abajo y siente el estiramiento. Excéntrico de tres segundos al bajar.",
+    "pt": "Supino reto. Amplitude total, cotovelos a uns quarenta e cinco graus, pausa embaixo e sente o alongamento. Excêntrico de três segundos na descida."
+  },
+  "squat-variation": {
+    "en": "Squat variations. Brace that core hard and sit down below parallel, full depth. Knees track over your toes, drive up strong.",
+    "es": "Variaciones de sentadilla. Aprieta el core fuerte y baja por debajo del paralelo, profundidad completa. Rodillas sobre los dedos, sube con fuerza.",
+    "pt": "Variações de agachamento. Trava o core firme e desce abaixo do paralelo, profundidade total. Joelhos sobre os dedos, sobe com força."
+  },
+  "leg-extension": {
+    "en": "Leg extensions. Full extension, one-second squeeze at the top, then slow eccentric. Control that negative all the way down.",
+    "es": "Extensiones de cuádriceps. Extensión completa, aprieta un segundo arriba, luego excéntrico lento. Controla el negativo hasta abajo.",
+    "pt": "Cadeira extensora. Extensão completa, aperta um segundo lá em cima, depois excêntrico lento. Controla o negativo até embaixo."
+  },
+  "calf-raise": {
+    "en": "Calf raises. Full range, sink into that deep stretch at the bottom. Two-second hold at the peak, squeeze those calves hard.",
+    "es": "Elevación de pantorrillas. Rango completo, hunde en ese estiramiento profundo abajo. Sostén dos segundos arriba y aprieta fuerte las pantorrillas.",
+    "pt": "Panturrilha sentado. Amplitude total, afunda nesse alongamento profundo embaixo. Segura dois segundos no topo e aperta a panturrilha forte."
+  },
+  "preacher-curl": {
+    "en": "Preacher curls. No swinging, no cheating, the bench keeps you honest. Strict up, control the negative all the way down.",
+    "es": "Curl predicador. Nada de balanceo, nada de trampa, el banco te mantiene honesto. Estricto arriba y controla el negativo hasta abajo.",
+    "pt": "Rosca scott. Sem balanço, sem roubar, o banco te mantém honesto. Firme na subida e controla o negativo até embaixo."
+  },
+  "plank": {
+    "en": "Plank. Ribcage down, glutes squeezed, hollow body locked. Breathe through the brace, three-sixty degrees of core tension.",
+    "es": "Plancha. Caja torácica abajo, glúteos apretados, cuerpo hueco firme. Respira a través de la tensión, tensión del core en trescientos sesenta grados.",
+    "pt": "Prancha. Costelas pra baixo, glúteos apertados, corpo oco travado. Respira através da contração, tensão do core em trezentos e sessenta graus."
+  },
+  "supported-knee-raise": {
+    "en": "Supported knee raises. Pelvic tilt before every rep, let the lower abs lift those legs. No swinging, controlled all the way.",
+    "es": "Elevación de rodillas con apoyo. Inclina la pelvis antes de cada repetición, deja que el abdomen bajo suba las piernas. Sin balanceo, todo controlado.",
+    "pt": "Elevação de joelhos apoiado. Inclina a pelve antes de cada repetição, deixa o baixo abdômen subir as pernas. Sem balanço, tudo controlado."
+  },
+  "face-pull": {
+    "en": "Face pulls. Pull toward your forehead, elbows riding high, that is rear-delt focus. External rotation at the end, control it back.",
+    "es": "Jalones a la cara. Jala hacia la frente, codos bien altos, enfoque en el deltoide posterior. Rotación externa al final, controla la vuelta.",
+    "pt": "Puxada pra face. Puxa em direção à testa, cotovelos bem altos, foco no deltoide posterior. Rotação externa no fim, controla a volta."
+  },
+  "bird-dog": {
+    "en": "Bird-dogs. Reach opposite arm and leg long, ribs locked down, no twisting. Pause at full extension, then control it back.",
+    "es": "Bird-dog. Extiende brazo y pierna opuestos, costillas bien fijas, sin rotar. Pausa en máxima extensión y controla la vuelta.",
+    "pt": "Bird-dog. Estende braço e perna opostos, costelas travadas, sem girar. Pausa na extensão total e controla a volta."
+  },
+  "russian-twist": {
+    "en": "Russian twists. Rotate from the obliques, not the arms, the arms just follow. Keep your feet grounded and stay controlled.",
+    "es": "Giros rusos. Gira desde los oblicuos, no desde los brazos, los brazos solo siguen. Mantén los pies en el suelo y controlado.",
+    "pt": "Rotação russa. Gira pelos oblíquos, não pelos braços, os braços só acompanham. Mantém os pés no chão e fica controlado."
+  },
+  "cable-pull-through": {
+    "en": "Cable pull-throughs. Same hinge as your RDLs, stand about two feet from the stack. Drive through your heels at lockout.",
+    "es": "Pull-through en polea. La misma bisagra que el peso muerto rumano, párate a medio metro de la estación. Empuja desde los talones al bloquear.",
+    "pt": "Pull-through na polia. Mesma dobradiça do terra romeno, fica a uns sessenta centímetros da estação. Empurra pelos calcanhares ao travar."
+  },
+  "heel-tap": {
+    "en": "Heel taps. Press your lower back flat to the floor, alternate tapping each heel down. The lower abs do all the work.",
+    "es": "Toques de talón. Aprieta la espalda baja contra el suelo, alterna tocando cada talón abajo. El abdomen bajo hace todo el trabajo.",
+    "pt": "Toque de calcanhar. Pressiona a lombar no chão, alterna tocando cada calcanhar embaixo. O baixo abdômen faz todo o trabalho."
+  },
+  "goblet-squat": {
+    "en": "Goblet squats. Chest up, knees tracking over your toes, sit down between the hips. Find full depth without losing that posture.",
+    "es": "Sentadilla goblet. Pecho arriba, rodillas sobre los dedos, siéntate entre las caderas. Encuentra la profundidad completa sin perder la postura.",
+    "pt": "Agachamento goblet. Peito erguido, joelhos sobre os dedos, senta entre os quadris. Acha a profundidade total sem perder a postura."
+  },
+  "lateral-raise": {
+    "en": "Lateral raises. Lead with your elbows, not your hands, up to shoulder height. Controlled tempo, no swinging, feel those side delts.",
+    "es": "Elevaciones laterales. Guía con los codos, no con las manos, hasta la altura de los hombros. Ritmo controlado, sin balanceo, siente el deltoide lateral.",
+    "pt": "Elevação lateral. Conduz pelos cotovelos, não pelas mãos, até a altura dos ombros. Ritmo controlado, sem balanço, sente o deltoide lateral."
+  },
+  "single-arm-db-row": {
+    "en": "Single arm dumbbell row. Keep your hips square, this is anti-rotation, don't let that torso twist. Pull the elbow to your hip.",
+    "es": "Remo a una mano con mancuerna. Mantén las caderas cuadradas, esto es anti-rotación, no dejes girar el torso. Lleva el codo a la cadera.",
+    "pt": "Remada unilateral com halter. Mantém os quadris alinhados, isso é anti-rotação, não deixa o tronco girar. Puxa o cotovelo até o quadril."
+  },
+  "walking-lunge": {
+    "en": "Walking lunges. Step long and stay tall, control that front knee for stability. Balance through each step, drive up strong.",
+    "es": "Zancadas caminando. Da un paso largo y mantente erguido, controla la rodilla de adelante para estabilidad. Equilibra cada paso y empuja con fuerza.",
+    "pt": "Avanço caminhando. Passo longo e tronco ereto, controla o joelho da frente pra estabilidade. Equilibra cada passo e sobe com força."
+  }
+}

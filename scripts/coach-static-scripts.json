@@ -1,0 +1,552 @@
+{
+  "biceps-curl": {
+    "en": "Biceps curls. Control that eccentric, slow on the way down. No swinging, strict and clean, every single rep.",
+    "es": "Curl de bíceps. Controla la bajada, lento al descender. Nada de balanceo, forma estricta y limpia en cada repetición.",
+    "pt": "Rosca direta. Controla a descida, devagar na volta. Sem balanço, firme e limpo em cada repetição."
+  },
+  "hammer-curl": {
+    "en": "Hammer curls. Neutral grip, thumbs up the whole way. No swinging, you keep it strict and control that negative.",
+    "es": "Curl martillo. Agarre neutro, pulgares arriba todo el recorrido. Nada de balanceo, mantente estricto y controla el negativo.",
+    "pt": "Rosca martelo. Pegada neutra, polegares pra cima o trajeto todo. Sem balanço, mantém firme e controla o negativo."
+  },
+  "preacher-curl": {
+    "en": "Preacher curls. No swinging, no cheating, the bench keeps you honest. Strict up, control the negative all the way down.",
+    "es": "Curl predicador. Nada de balanceo, nada de trampa, el banco te mantiene honesto. Estricto arriba y controla el negativo hasta abajo.",
+    "pt": "Rosca scott. Sem balanço, sem roubar, o banco te mantém honesto. Firme na subida e controla o negativo até embaixo."
+  },
+  "triceps-pushdown": {
+    "en": "Triceps pushdowns. Pin those elbows to your ribs and extend all the way at the bottom. Lock it out, control the return.",
+    "es": "Extensiones de tríceps en polea. Pega los codos a las costillas y extiende del todo abajo. Bloquea y controla la vuelta.",
+    "pt": "Tríceps na polia. Cola os cotovelos nas costelas e estende tudo lá embaixo. Trava e controla a volta."
+  },
+  "overhead-triceps-extension": {
+    "en": "Overhead triceps extension. Keep those elbows forward and fixed, don't let them flare. Extend full, stretch the long head.",
+    "es": "Extensión de tríceps sobre la cabeza. Mantén los codos al frente y fijos, no los abras. Extiende completo, estira la cabeza larga.",
+    "pt": "Tríceps testa por cima da cabeça. Mantém os cotovelos pra frente e fixos, não abre. Estende completo, alonga a cabeça longa."
+  },
+  "shoulder-press": {
+    "en": "Shoulder press. Keep that core tight, torso vertical, no arching the lower back. Drive it straight up, own the top.",
+    "es": "Press de hombros. Mantén el core firme, torso vertical, sin arquear la espalda baja. Empuja recto hacia arriba y domina arriba.",
+    "pt": "Desenvolvimento de ombro. Mantém o core firme, tronco reto, sem arquear a lombar. Empurra reto pra cima e domina lá em cima."
+  },
+  "lateral-raise": {
+    "en": "Lateral raises. Lead with your elbows, not your hands, up to shoulder height. Controlled tempo, no swinging, feel those side delts.",
+    "es": "Elevaciones laterales. Guía con los codos, no con las manos, hasta la altura de los hombros. Ritmo controlado, sin balanceo, siente el deltoide lateral.",
+    "pt": "Elevação lateral. Conduz pelos cotovelos, não pelas mãos, até a altura dos ombros. Ritmo controlado, sem balanço, sente o deltoide lateral."
+  },
+  "face-pull": {
+    "en": "Face pulls. Pull toward your forehead, elbows riding high, that is rear-delt focus. External rotation at the end, control it back.",
+    "es": "Jalones a la cara. Jala hacia la frente, codos bien altos, enfoque en el deltoide posterior. Rotación externa al final, controla la vuelta.",
+    "pt": "Puxada pra face. Puxa em direção à testa, cotovelos bem altos, foco no deltoide posterior. Rotação externa no fim, controla a volta."
+  },
+  "lat-pulldown": {
+    "en": "Lat pulldown. Drive those elbows down, lean back just slightly. No momentum, you pull with your back, not your arms.",
+    "es": "Jalón al pecho. Lleva los codos hacia abajo, inclínate un poco atrás. Sin impulso, jalas con la espalda, no con los brazos.",
+    "pt": "Puxada alta. Leva os cotovelos pra baixo, inclina um pouco pra trás. Sem impulso, puxa com as costas, não com os braços."
+  },
+  "seated-cable-row": {
+    "en": "Seated cable row. Squeeze those shoulder blades together at the top, full retraction. Hold that squeeze, then control it back.",
+    "es": "Remo sentado en polea. Junta los omóplatos arriba, retracción completa. Sostén el apretón y controla la vuelta.",
+    "pt": "Remada sentada na polia. Junta as escápulas lá em cima, retração total. Segura o aperto e controla a volta."
+  },
+  "single-arm-db-row": {
+    "en": "Single arm dumbbell row. Keep your hips square, this is anti-rotation, don't let that torso twist. Pull the elbow to your hip.",
+    "es": "Remo a una mano con mancuerna. Mantén las caderas cuadradas, esto es anti-rotación, no dejes girar el torso. Lleva el codo a la cadera.",
+    "pt": "Remada unilateral com halter. Mantém os quadris alinhados, isso é anti-rotação, não deixa o tronco girar. Puxa o cotovelo até o quadril."
+  },
+  "back-extension": {
+    "en": "Back extension. Keep the focus on your glutes and erectors, not the lower back. Stay controlled, rise and squeeze.",
+    "es": "Extensión de espalda. Enfócate en los glúteos y erectores, no en la espalda baja. Mantente controlado, sube y aprieta.",
+    "pt": "Extensão lombar. Foca nos glúteos e eretores, não na lombar. Fica controlado, sobe e aperta."
+  },
+  "chest-press": {
+    "en": "Chest press. Full range, elbows around forty-five degrees, pause at the bottom and feel that stretch. Three-second eccentric on the way down.",
+    "es": "Press de pecho. Rango completo, codos a unos cuarenta y cinco grados, pausa abajo y siente el estiramiento. Excéntrico de tres segundos al bajar.",
+    "pt": "Supino reto. Amplitude total, cotovelos a uns quarenta e cinco graus, pausa embaixo e sente o alongamento. Excêntrico de três segundos na descida."
+  },
+  "incline-press": {
+    "en": "Incline dumbbell press. Bench at thirty to forty-five degrees, controlled descent, drive through the chest. Load it to an R-P-E of seven to eight.",
+    "es": "Press inclinado con mancuernas. Banco entre treinta y cuarenta y cinco grados, baja controlado, empuja con el pecho. Carga a un R-P-E de siete a ocho.",
+    "pt": "Supino inclinado com halteres. Banco entre trinta e quarenta e cinco graus, descida controlada, empurra com o peito. Carrega num R-P-E de sete a oito."
+  },
+  "chest-fly": {
+    "en": "Chest fly. Open into that wide arc, feel the chest stretch deep. One-second squeeze at the peak, then control it back.",
+    "es": "Aperturas de pecho. Abre en ese arco amplio, siente el estiramiento profundo del pecho. Aprieta un segundo arriba y controla la vuelta.",
+    "pt": "Crucifixo. Abre nesse arco amplo, sente o peito alongar fundo. Aperta um segundo lá em cima e controla a volta."
+  },
+  "hip-thrust": {
+    "en": "Hip thrust. Heels close to your hips, ribs down, drive the glutes through that bar. Two-second squeeze at the top.",
+    "es": "Empuje de cadera. Talones cerca de la cadera, costillas abajo, empuja los glúteos contra la barra. Aprieta dos segundos arriba.",
+    "pt": "Elevação de quadril. Calcanhares perto do quadril, costelas pra baixo, empurra os glúteos contra a barra. Aperta dois segundos lá em cima."
+  },
+  "romanian-deadlift": {
+    "en": "Romanian deadlifts. Hinge at the hips, push your butt back, slight knee bend, neutral spine. Feel that hamstring stretch.",
+    "es": "Peso muerto rumano. Bisagra de cadera, empuja el trasero atrás, rodilla apenas flexionada, columna neutra. Siente el estiramiento del femoral.",
+    "pt": "Levantamento terra romeno. Dobra no quadril, joga o bumbum pra trás, joelho levemente flexionado, coluna neutra. Sente o alongamento do posterior."
+  },
+  "cable-pull-through": {
+    "en": "Cable pull-throughs. Same hinge as your RDLs, stand about two feet from the stack. Drive through your heels at lockout.",
+    "es": "Pull-through en polea. La misma bisagra que el peso muerto rumano, párate a medio metro de la estación. Empuja desde los talones al bloquear.",
+    "pt": "Pull-through na polia. Mesma dobradiça do terra romeno, fica a uns sessenta centímetros da estação. Empurra pelos calcanhares ao travar."
+  },
+  "hip-abduction": {
+    "en": "Hip abduction. Slight forward lean to hit that glute medius. Slow on the way in, one-second hold at full open.",
+    "es": "Abducción de cadera. Leve inclinación al frente para trabajar el glúteo medio. Lento al cerrar, sostén un segundo en máxima apertura.",
+    "pt": "Abdução de quadril. Leve inclinação pra frente pra pegar o glúteo médio. Devagar ao fechar, segura um segundo na abertura total."
+  },
+  "cable-hip-extension": {
+    "en": "Cable hip extension. Drive the leg back, full glute squeeze at the top. No arching the back, all glute, controlled return.",
+    "es": "Extensión de cadera en polea. Lleva la pierna atrás, aprieta el glúteo al máximo arriba. Sin arquear la espalda, todo glúteo, vuelta controlada.",
+    "pt": "Extensão de quadril na polia. Leva a perna pra trás, aperta o glúteo total lá em cima. Sem arquear as costas, só glúteo, volta controlada."
+  },
+  "bulgarian-split-squat": {
+    "en": "Bulgarian split squats. Chest up tall, front knee tracks right over those toes. Sink down controlled, drive up through the heel.",
+    "es": "Sentadilla búlgara. Pecho arriba y erguido, la rodilla de adelante sobre los dedos. Baja controlado y empuja desde el talón.",
+    "pt": "Agachamento búlgaro. Peito erguido, joelho da frente alinhado com os dedos. Desce controlado e sobe empurrando pelo calcanhar."
+  },
+  "goblet-squat": {
+    "en": "Goblet squats. Chest up, knees tracking over your toes, sit down between the hips. Find full depth without losing that posture.",
+    "es": "Sentadilla goblet. Pecho arriba, rodillas sobre los dedos, siéntate entre las caderas. Encuentra la profundidad completa sin perder la postura.",
+    "pt": "Agachamento goblet. Peito erguido, joelhos sobre os dedos, senta entre os quadris. Acha a profundidade total sem perder a postura."
+  },
+  "squat-variation": {
+    "en": "Squat variations. Brace that core hard and sit down below parallel, full depth. Knees track over your toes, drive up strong.",
+    "es": "Variaciones de sentadilla. Aprieta el core fuerte y baja por debajo del paralelo, profundidad completa. Rodillas sobre los dedos, sube con fuerza.",
+    "pt": "Variações de agachamento. Trava o core firme e desce abaixo do paralelo, profundidade total. Joelhos sobre os dedos, sobe com força."
+  },
+  "hack-squat": {
+    "en": "Hack squats. Feet shoulder-width on that platform, planted solid. Sit down controlled, drive through the floor on the way up.",
+    "es": "Sentadilla hack. Pies al ancho de hombros en la plataforma, bien plantados. Baja controlado y empuja contra el suelo al subir.",
+    "pt": "Agachamento hack. Pés na largura dos ombros na plataforma, bem firmes. Desce controlado e empurra o chão na subida."
+  },
+  "leg-press": {
+    "en": "Leg press. Feet around mid-foot, shoulder-width, knees tracking in line with your toes. Controlled descent and no locked knees.",
+    "es": "Prensa de piernas. Pies a media planta, ancho de hombros, rodillas alineadas con los dedos. Baja controlado y no bloquees las rodillas.",
+    "pt": "Leg press. Pés no meio do apoio, largura dos ombros, joelhos alinhados com os dedos. Descida controlada e sem travar os joelhos."
+  },
+  "leg-extension": {
+    "en": "Leg extensions. Full extension, one-second squeeze at the top, then slow eccentric. Control that negative all the way down.",
+    "es": "Extensiones de cuádriceps. Extensión completa, aprieta un segundo arriba, luego excéntrico lento. Controla el negativo hasta abajo.",
+    "pt": "Cadeira extensora. Extensão completa, aperta um segundo lá em cima, depois excêntrico lento. Controla o negativo até embaixo."
+  },
+  "leg-curl": {
+    "en": "Leg curls. Drive your heels down and back, two-second hold at full curl. Feel the hamstrings working, never the lower back.",
+    "es": "Curl femoral. Lleva los talones abajo y atrás, sostén dos segundos en la curva completa. Siente los femorales, nunca la espalda baja.",
+    "pt": "Flexora. Leva os calcanhares pra baixo e pra trás, segura dois segundos na flexão total. Sente o posterior, nunca a lombar."
+  },
+  "calf-raise": {
+    "en": "Calf raises. Full range, sink into that deep stretch at the bottom. Two-second hold at the peak, squeeze those calves hard.",
+    "es": "Elevación de pantorrillas. Rango completo, hunde en ese estiramiento profundo abajo. Sostén dos segundos arriba y aprieta fuerte las pantorrillas.",
+    "pt": "Panturrilha sentado. Amplitude total, afunda nesse alongamento profundo embaixo. Segura dois segundos no topo e aperta a panturrilha forte."
+  },
+  "walking-lunge": {
+    "en": "Walking lunges. Step long and stay tall, control that front knee for stability. Balance through each step, drive up strong.",
+    "es": "Zancadas caminando. Da un paso largo y mantente erguido, controla la rodilla de adelante para estabilidad. Equilibra cada paso y empuja con fuerza.",
+    "pt": "Avanço caminhando. Passo longo e tronco ereto, controla o joelho da frente pra estabilidade. Equilibra cada passo e sobe com força."
+  },
+  "plank": {
+    "en": "Plank. Ribcage down, glutes squeezed, hollow body locked. Breathe through the brace, three-sixty degrees of core tension.",
+    "es": "Plancha. Caja torácica abajo, glúteos apretados, cuerpo hueco firme. Respira a través de la tensión, tensión del core en trescientos sesenta grados.",
+    "pt": "Prancha. Costelas pra baixo, glúteos apertados, corpo oco travado. Respira através da contração, tensão do core em trezentos e sessenta graus."
+  },
+  "russian-twist": {
+    "en": "Russian twists. Rotate from the obliques, not the arms, the arms just follow. Keep your feet grounded and stay controlled.",
+    "es": "Giros rusos. Gira desde los oblicuos, no desde los brazos, los brazos solo siguen. Mantén los pies en el suelo y controlado.",
+    "pt": "Rotação russa. Gira pelos oblíquos, não pelos braços, os braços só acompanham. Mantém os pés no chão e fica controlado."
+  },
+  "bird-dog": {
+    "en": "Bird-dogs. Reach opposite arm and leg long, ribs locked down, no twisting. Pause at full extension, then control it back.",
+    "es": "Bird-dog. Extiende brazo y pierna opuestos, costillas bien fijas, sin rotar. Pausa en máxima extensión y controla la vuelta.",
+    "pt": "Bird-dog. Estende braço e perna opostos, costelas travadas, sem girar. Pausa na extensão total e controla a volta."
+  },
+  "supported-knee-raise": {
+    "en": "Supported knee raises. Pelvic tilt before every rep, let the lower abs lift those legs. No swinging, controlled all the way.",
+    "es": "Elevación de rodillas con apoyo. Inclina la pelvis antes de cada repetición, deja que el abdomen bajo suba las piernas. Sin balanceo, todo controlado.",
+    "pt": "Elevação de joelhos apoiado. Inclina a pelve antes de cada repetição, deixa o baixo abdômen subir as pernas. Sem balanço, tudo controlado."
+  },
+  "heel-tap": {
+    "en": "Heel taps. Press your lower back flat to the floor, alternate tapping each heel down. The lower abs do all the work.",
+    "es": "Toques de talón. Aprieta la espalda baja contra el suelo, alterna tocando cada talón abajo. El abdomen bajo hace todo el trabajo.",
+    "pt": "Toque de calcanhar. Pressiona a lombar no chão, alterna tocando cada calcanhar embaixo. O baixo abdômen faz todo o trabalho."
+  },
+  "abs-crunch": {
+    "en": "Abs crunch. Stay controlled, exhale hard as you contract at the top. No yanking the neck, the abs do the work.",
+    "es": "Crunch abdominal. Mantente controlado, exhala fuerte al contraer arriba. Sin tirar del cuello, el abdomen hace el trabajo.",
+    "pt": "Abdominal crunch. Fica controlado, expira forte ao contrair lá em cima. Sem puxar o pescoço, o abdômen faz o trabalho."
+  },
+  "prehab-quadruped-rockback-hip-mobilization": {
+    "en": "Quadruped Rockback Hip Mobilization. Brace lightly before you rock. Stop the instant the pelvis tucks.",
+    "es": "Movilización de cadera en cuadrupedia (Rockback). Activa el core antes de moverte. Detente en cuanto la pelvis se meta.",
+    "pt": "Mobilização de quadril em quatro apoios (Rockback). Contraia o core antes de iniciar. Pare assim que a pelve retrair."
+  },
+  "prehab-bird-dog-mcgill": {
+    "en": "Bird Dog (McGill). Reach long, do not lift high. Squeeze the down-side glute.",
+    "es": "Bird Dog (Perro de Caza). Alárgate, no subas alto. Aprieta el glúteo del lado de apoyo.",
+    "pt": "Bird Dog (Cão de Caça). Alongue-se, não levante alto. Contraia o glúteo do lado de apoio."
+  },
+  "prehab-dowel-tracked-romanian-deadlift": {
+    "en": "Dowel-Tracked Romanian Deadlift. Hips back, shins vertical. Keep all three dowel contacts.",
+    "es": "Peso muerto rumano con bastón guía. Cadera atrás, tibias verticales. Mantén los tres contactos del bastón.",
+    "pt": "Levantamento terra romeno com bastão guia. Quadril para trás, canelas verticais. Mantenha os três contatos do bastão."
+  },
+  "prehab-half-kneeling-hip-flexor-release-with-pelvic-lock": {
+    "en": "Half-Kneeling Hip Flexor Release with Pelvic Lock. Tuck the tailbone first. Squeeze the trail-leg glute.",
+    "es": "Liberación del flexor de cadera en media rodilla con bloqueo pélvico. Mete el coxis primero. Aprieta el glúteo de la pierna trasera.",
+    "pt": "Liberação do flexor do quadril em meio-ajoelhado com trava pélvica. Encaixe o cóccix primeiro. Contraia o glúteo da perna de trás."
+  },
+  "prehab-dead-bug-with-rib-lock": {
+    "en": "Dead Bug with Rib Lock. Exhale as the limbs lower. Ribs down, back flat.",
+    "es": "Dead Bug con costillas bloqueadas. Exhala mientras bajas las extremidades. Costillas abajo, espalda plana.",
+    "pt": "Dead Bug com costelas travadas. Expire enquanto desce os membros. Costelas baixas, costas planas."
+  },
+  "prehab-suitcase-carry": {
+    "en": "Suitcase Carry. Walk as if both hands were loaded. Ribs stacked over the pelvis.",
+    "es": "Caminata unilateral (Suitcase Carry). Camina como si ambas manos cargaran. Costillas alineadas sobre la pelvis.",
+    "pt": "Caminhada unilateral (Suitcase Carry). Caminhe como se as duas mãos carregassem. Costelas empilhadas sobre a pelve."
+  },
+  "prehab-foam-roller-thoracic-extension-rib-locked": {
+    "en": "Foam Roller Thoracic Extension (rib-locked). Exhale before you extend. Ribs down — no lumbar arch.",
+    "es": "Extensión torácica sobre rodillo (costillas bloqueadas). Exhala antes de extender. Costillas abajo: sin arco lumbar.",
+    "pt": "Extensão torácica sobre o rolo (costelas travadas). Expire antes de estender. Costelas baixas: sem arco lombar."
+  },
+  "prehab-hollow-body-rib-lock-hold": {
+    "en": "Hollow Body Rib-Lock Hold. Lower back welded to the floor. Reach long through fingers and toes.",
+    "es": "Posición hueca (Hollow Body) con costillas bloqueadas. Lumbar soldada al piso. Alárgate desde dedos de manos y pies.",
+    "pt": "Posição de barquinho (Hollow Body) com costelas travadas. Lombar soldada no chão. Alongue-se pelos dedos das mãos e dos pés."
+  },
+  "prehab-tall-kneeling-landmine-press": {
+    "en": "Tall-Kneeling Landmine Press. Glutes locked, ribs caged. Press along the angle, not straight up.",
+    "es": "Press landmine en rodillas altas. Glúteos firmes, costillas encajadas. Empuja siguiendo el ángulo, no en vertical.",
+    "pt": "Press landmine ajoelhado. Glúteos firmes, costelas encaixadas. Empurre seguindo o ângulo, não na vertical."
+  },
+  "prehab-supine-sciatic-nerve-floss": {
+    "en": "Supine Sciatic Nerve Floss. Glide, never stretch into pain. Pair the head lift with knee extension.",
+    "es": "Deslizamiento del nervio ciático boca arriba. Desliza, nunca estires con dolor. Sincroniza cabeza arriba con rodilla extendida.",
+    "pt": "Deslizamento neural do ciático deitado. Deslize, nunca alongue com dor. Sincronize cabeça elevada com joelho estendido."
+  },
+  "prehab-posterior-pelvic-tilt-glute-bridge": {
+    "en": "Posterior Pelvic Tilt Glute Bridge. Tuck before you lift. Push through the heels.",
+    "es": "Puente de glúteos con retroversión pélvica. Bascula antes de subir. Empuja con los talones.",
+    "pt": "Ponte de glúteos com retroversão pélvica. Encaixe antes de subir. Empurre pelos calcanhares."
+  },
+  "prehab-single-leg-romanian-deadlift-with-reach": {
+    "en": "Single-Leg Romanian Deadlift with Reach. Hips square to the floor. Long line from crown to heel.",
+    "es": "Peso muerto rumano a una pierna con alcance. Cadera cuadrada al piso. Línea larga de coronilla a talón.",
+    "pt": "Levantamento terra romeno unilateral com alcance. Quadril quadrado com o chão. Linha longa da cabeça ao calcanhar."
+  },
+  "prehab-figure-4-deep-rotator-ball-release": {
+    "en": "Figure-4 Deep Rotator Ball Release. Sink, do not smash. Pause and exhale on tender points.",
+    "es": "Liberación de rotadores profundos en figura 4 con pelota. Húndete, no aplastes. Pausa y exhala en los puntos sensibles.",
+    "pt": "Liberação dos rotadores profundos em figura 4 com bola. Afunde, não esmague. Pause e expire nos pontos sensíveis."
+  },
+  "prehab-banded-clamshell-with-neutral-pelvis": {
+    "en": "Banded Clamshell with Neutral Pelvis. Pelvis stacked and still. Open from the side of the hip.",
+    "es": "Almeja (Clamshell) con banda y pelvis neutra. Pelvis apilada y quieta. Abre desde el costado de la cadera.",
+    "pt": "Concha (Clamshell) com elástico e pelve neutra. Pelve empilhada e parada. Abra a partir da lateral do quadril."
+  },
+  "prehab-hip-lock-step-up": {
+    "en": "Hip-Lock Step-Up. Grow tall on the stance hip. Belt line stays level.",
+    "es": "Subida al cajón con bloqueo de cadera (Hip-Lock Step-Up). Crece alto sobre la cadera de apoyo. La línea del cinturón queda nivelada.",
+    "pt": "Subida no caixote com trava de quadril (Hip-Lock Step-Up). Cresça alto sobre o quadril de apoio. A linha do cinto permanece nivelada."
+  },
+  "prehab-quadriceps-lateral-thigh-foam-roll": {
+    "en": "Quadriceps & Lateral Thigh Foam Roll. Pause on the hot spot and bend the knee. Slow passes — speed hides tension.",
+    "es": "Rodillo en cuádriceps y cara lateral del muslo. Pausa en el punto sensible y flexiona la rodilla. Pasadas lentas: la velocidad esconde la tensión.",
+    "pt": "Rolo no quadríceps e na face lateral da coxa. Pause no ponto sensível e dobre o joelho. Passadas lentas: a velocidade esconde a tensão."
+  },
+  "prehab-banded-terminal-knee-extension-tke": {
+    "en": "Banded Terminal Knee Extension (TKE). Dominate the last 10 degrees. Kneecap pulls up, glute fires.",
+    "es": "Extensión terminal de rodilla con banda (TKE). Domina los últimos 10 grados. La rótula sube, el glúteo dispara.",
+    "pt": "Extensão terminal de joelho com elástico (TKE). Domine os últimos 10 graus. A patela sobe, o glúteo dispara."
+  },
+  "prehab-box-squat-to-vertical-shin": {
+    "en": "Box Squat to Vertical Shin. Reach the hips back first. Shins near vertical the whole way.",
+    "es": "Sentadilla al cajón con tibia vertical. Lleva la cadera atrás primero. Tibias casi verticales todo el camino.",
+    "pt": "Agachamento no caixote com canela vertical. Leve o quadril para trás primeiro. Canelas quase verticais o tempo todo."
+  },
+  "prehab-four-way-patellar-glide-with-extension-pumps": {
+    "en": "Four-Way Patellar Glide with Extension Pumps. Quad fully relaxed for the glides. Gentle — move the bone, not the pain.",
+    "es": "Movilización rotuliana en cuatro direcciones con bombeos de extensión. Cuádriceps totalmente relajado en los deslizamientos. Suave: mueve el hueso, no el dolor.",
+    "pt": "Mobilização patelar em quatro direções com bombeios de extensão. Quadríceps totalmente relaxado nos deslizamentos. Suave: mova o osso, não a dor."
+  },
+  "prehab-spanish-squat-isometric": {
+    "en": "Spanish Squat Isometric. Torso vertical, trust the band. Hold at a 6-of-10 effort.",
+    "es": "Isométrico de sentadilla española. Torso vertical, confía en la banda. Sostén con esfuerzo 6 de 10.",
+    "pt": "Isometria de agachamento espanhol. Tronco vertical, confie na fita. Sustente com esforço 6 de 10."
+  },
+  "prehab-controlled-lateral-step-down": {
+    "en": "Controlled Lateral Step-Down. Three seconds down, every rep. Knee over the second toe.",
+    "es": "Descenso lateral controlado del escalón. Tres segundos de bajada en cada repetición. Rodilla sobre el segundo dedo.",
+    "pt": "Descida lateral controlada do degrau. Três segundos de descida em cada repetição. Joelho sobre o segundo dedo."
+  },
+  "prehab-tfl-lateral-quad-release-spare-the-epicondyle": {
+    "en": "TFL & Lateral Quad Release (spare the epicondyle). Find the TFL below the hip crest. Never roll the painful bony point.",
+    "es": "Liberación del TFL y cuádriceps lateral (sin tocar el epicóndilo). Busca el TFL debajo de la cresta de la cadera. Nunca ruedes el punto óseo doloroso.",
+    "pt": "Liberação do TFL e quadríceps lateral (poupando o epicôndilo). Encontre o TFL abaixo da crista do quadril. Nunca role o ponto ósseo doloroso."
+  },
+  "prehab-side-lying-hip-abduction-extension-and-external-rotation-bias": {
+    "en": "Side-Lying Hip Abduction (extension and external-rotation bias). Heel leads, toes stay forward. Leg slightly behind the body line.",
+    "es": "Abducción de cadera acostado de lado (sesgo de extensión y rotación externa). El talón guía, los dedos miran al frente. Pierna apenas detrás de la línea del cuerpo.",
+    "pt": "Abdução de quadril deitado de lado (viés de extensão e rotação externa). O calcanhar guia, os dedos apontam à frente. Perna levemente atrás da linha do corpo."
+  },
+  "prehab-wall-press-hip-lock-march": {
+    "en": "Wall-Press Hip Lock March. Push the wall, feel the stance hip. Belt line level — no lean.",
+    "es": "Marcha isométrica contra la pared (Hip Lock). Empuja la pared y siente la cadera de apoyo. Línea del cinturón nivelada: sin inclinarte.",
+    "pt": "Marcha isométrica contra a parede (Hip Lock). Empurre a parede e sinta o quadril de apoio. Linha do cinto nivelada: sem inclinar."
+  },
+  "prehab-half-kneeling-knee-to-wall-ankle-mobilization": {
+    "en": "Half-Kneeling Knee-to-Wall Ankle Mobilization. Heel welded to the floor. Knee drives straight over the toes.",
+    "es": "Movilización de tobillo rodilla-a-pared en media rodilla. Talón clavado al piso. La rodilla avanza recta sobre los dedos.",
+    "pt": "Mobilização de tornozelo joelho-na-parede em meio-ajoelhado. Calcanhar pregado no chão. O joelho avança reto sobre os dedos."
+  },
+  "prehab-heavy-knee-extension-isometric-hold": {
+    "en": "Heavy Knee-Extension Isometric Hold. Effort around 7 of 10. Dead still — no oscillation.",
+    "es": "Isométrico pesado de extensión de rodilla. Esfuerzo alrededor de 7 de 10. Totalmente quieto: sin rebotes.",
+    "pt": "Isometria pesada de extensão de joelho. Esforço por volta de 7 de 10. Totalmente parado: sem oscilar."
+  },
+  "prehab-heavy-slow-tempo-squat-hsr": {
+    "en": "Heavy Slow Tempo Squat (HSR). Three down, three up, every rep. Load heavy, never jerky.",
+    "es": "Sentadilla pesada con tempo lento (HSR). Tres segundos abajo, tres arriba, cada repetición. Carga pesada, nunca brusca.",
+    "pt": "Agachamento pesado em tempo lento (HSR). Três para descer, três para subir, em todas as repetições. Carga pesada, nunca brusca."
+  },
+  "prehab-adductor-foam-roll-with-open-half-kneeling-rock": {
+    "en": "Adductor Foam Roll with Open Half-Kneeling Rock. Roll slow from knee toward groin. Rock only as far as the pelvis stays tall.",
+    "es": "Rodillo en aductores con balanceo lateral en media rodilla abierta. Rueda lento de la rodilla hacia la ingle. Balancéate solo hasta donde la pelvis siga erguida.",
+    "pt": "Rolo nos adutores com balanço lateral em meio-ajoelhado aberto. Role devagar do joelho em direção à virilha. Balance apenas até onde a pelve continue ereta."
+  },
+  "prehab-banded-lateral-walk-low-athletic-stance": {
+    "en": "Banded Lateral Walk (low athletic stance). Knees pushed out the entire set. Steps short, tension constant.",
+    "es": "Caminata lateral con banda (postura atlética baja). Rodillas empujando afuera toda la serie. Pasos cortos, tensión constante.",
+    "pt": "Caminhada lateral com elástico (postura atlética baixa). Joelhos empurrando para fora a série inteira. Passos curtos, tensão constante."
+  },
+  "prehab-drop-landing-to-stick-knee-window-control": {
+    "en": "Drop Landing to Stick (knee-window control). Land soft — absorb through the hips. Freeze two full seconds.",
+    "es": "Aterrizaje desde cajón con fijación (control de ventana de rodilla). Aterriza suave: absorbe con la cadera. Congélate dos segundos completos.",
+    "pt": "Aterrissagem do caixote com fixação (controle da janela do joelho). Aterrisse suave: absorva com o quadril. Congele por dois segundos completos."
+  },
+  "prehab-pec-minor-ball-release-with-doorway-opener": {
+    "en": "Pec Minor Ball Release with Doorway Opener. Find the tender pocket below the collarbone. Small slow arm reaches on the ball.",
+    "es": "Liberación del pectoral menor con pelota y apertura en puerta. Encuentra el punto sensible bajo la clavícula. Alcances de brazo pequeños y lentos sobre la pelota.",
+    "pt": "Liberação do peitoral menor com bola e abertura na porta. Encontre o ponto sensível abaixo da clavícula. Alcances de braço pequenos e lentos sobre a bola."
+  },
+  "prehab-foam-roller-serratus-wall-slide": {
+    "en": "Foam Roller Serratus Wall Slide. Push the wall away the entire slide. Let the blades rotate up and around.",
+    "es": "Deslizamiento de serrato en pared con rodillo. Empuja la pared lejos durante todo el deslizamiento. Deja que las escápulas roten hacia arriba.",
+    "pt": "Deslizamento de serrátil na parede com rolo. Empurre a parede para longe durante todo o deslizamento. Deixe as escápulas girarem para cima."
+  },
+  "prehab-half-kneeling-landmine-press": {
+    "en": "Half-Kneeling Landmine Press. Press along the bar's angle, not straight up. Let the shoulder blade follow the press.",
+    "es": "Press landmine en media rodilla. Empuja siguiendo el ángulo de la barra, no en vertical. Deja que la escápula acompañe el empuje.",
+    "pt": "Press landmine em meio-ajoelhado. Empurre seguindo o ângulo da barra, não na vertical. Deixe a escápula acompanhar o empurrão."
+  },
+  "prehab-cross-body-posterior-capsule-stretch-scapula-pinned": {
+    "en": "Cross-Body Posterior Capsule Stretch (scapula pinned). Pin the blade before you pull. Drag the arm across the chest line.",
+    "es": "Estiramiento cruzado de cápsula posterior (escápula fija). Fija la escápula antes de cruzar. Cruza el brazo a la línea del pecho.",
+    "pt": "Alongamento cruzado da cápsula posterior (escápula fixa). Fixe a escápula antes de cruzar. Cruze o braço na linha do peito."
+  },
+  "prehab-prone-t-with-external-rotation-hold": {
+    "en": "Prone T with External Rotation Hold. Thumbs up, neck long. Squeeze the blades down and together.",
+    "es": "T en pronación con rotación externa sostenida. Pulgares arriba, cuello largo. Junta las escápulas abajo y al centro.",
+    "pt": "T em pronação com rotação externa sustentada. Polegares para cima, pescoço longo. Aproxime as escápulas para baixo e para o centro."
+  },
+  "prehab-scapular-rhythm-push-up-push-up-plus": {
+    "en": "Scapular-Rhythm Push-Up (push-up plus). Blades squeeze together going down. Push the floor away at the top.",
+    "es": "Flexión con ritmo escapular (push-up plus). Las escápulas se juntan al bajar. Empuja el piso lejos al final.",
+    "pt": "Flexão com ritmo escapular (push-up plus). As escápulas se aproximam na descida. Empurre o chão para longe no topo."
+  },
+  "prehab-open-book-thoracic-rotation": {
+    "en": "Open-Book Thoracic Rotation. Knees glued — rotation lives above the waist. Follow the hand with your eyes.",
+    "es": "Rotación torácica en libro abierto. Rodillas pegadas: la rotación vive arriba de la cintura. Sigue la mano con la mirada.",
+    "pt": "Rotação torácica em livro aberto. Joelhos colados: a rotação vive acima da cintura. Acompanhe a mão com o olhar."
+  },
+  "prehab-side-lying-external-rotation-with-towel-roll": {
+    "en": "Side-Lying External Rotation with Towel Roll. Pin the towel — elbow stays glued. Rotate up smooth, lower in three.",
+    "es": "Rotación externa acostado de lado (con toalla). Fija la toalla: el codo queda pegado. Sube fluido, baja en tres.",
+    "pt": "Rotação externa deitado de lado (com toalha). Fixe a toalha: o cotovelo fica colado. Suba fluido, desça em três."
+  },
+  "prehab-bottoms-up-kettlebell-carry": {
+    "en": "Bottoms-Up Kettlebell Carry. Crush the handle. Forearm vertical, wrist flat.",
+    "es": "Caminata con kettlebell invertida (Bottoms-Up). Aprieta fuerte el mango. Antebrazo vertical, muñeca plana.",
+    "pt": "Caminhada com kettlebell invertido (Bottoms-Up). Esmague a pegada. Antebraço vertical, punho firme."
+  },
+  "prehab-bench-thoracic-extension-with-dowel-rib-locked": {
+    "en": "Bench Thoracic Extension with Dowel (rib-locked). Ribs down before you sink. Sink the chest, not the waist.",
+    "es": "Extensión torácica en banco con bastón (costillas bloqueadas). Costillas abajo antes de hundirte. Hunde el pecho, no la cintura.",
+    "pt": "Extensão torácica no banco com bastão (costelas travadas). Costelas baixas antes de afundar. Afunde o peito, não a cintura."
+  },
+  "prehab-wall-angel-with-rib-lock": {
+    "en": "Wall Angel with Rib Lock. Lower back stays near the wall. Wrists and elbows brush the wall.",
+    "es": "Ángel de pared con costillas bloqueadas. La zona lumbar se mantiene cerca de la pared. Muñecas y codos rozan la pared.",
+    "pt": "Anjo na parede com costelas travadas. A lombar permanece perto da parede. Punhos e cotovelos roçam a parede."
+  },
+  "prehab-tall-kneeling-overhead-waiter-hold": {
+    "en": "Tall-Kneeling Overhead Waiter Hold. Biceps to the ear, elbow locked. Ribs caged — no lumbar arch.",
+    "es": "Sostén de mesero sobre la cabeza en rodillas altas. Bíceps junto a la oreja, codo bloqueado. Costillas encajadas: sin arco lumbar.",
+    "pt": "Sustentação overhead ajoelhado (Waiter Hold). Bíceps junto à orelha, cotovelo travado. Costelas encaixadas: sem arco lombar."
+  },
+  "prehab-sleeper-position-posterior-capsule-stretch": {
+    "en": "Sleeper-Position Posterior Capsule Stretch. Body weight pins the blade. Guide, do not crank.",
+    "es": "Estiramiento del durmiente (Sleeper) para cápsula posterior. El peso del cuerpo fija la escápula. Guía, no fuerces.",
+    "pt": "Alongamento do dorminhoco (Sleeper) para cápsula posterior. O peso do corpo fixa a escápula. Guie, não force."
+  },
+  "prehab-prone-90-90-external-rotation-with-slow-eccentric": {
+    "en": "Prone 90/90 External Rotation with Slow Eccentric. Upper arm dead still on the bench. Up in one, down in four.",
+    "es": "Rotación externa 90/90 en pronación con excéntrico lento. El brazo de apoyo inmóvil sobre el banco. Sube en uno, baja en cuatro.",
+    "pt": "Rotação externa 90/90 em pronação com excêntrico lento. O braço de apoio imóvel sobre o banco. Suba em um, desça em quatro."
+  },
+  "prehab-band-deceleration-catches-90-90-snap-and-brake": {
+    "en": "Band Deceleration Catches (90/90 snap-and-brake). Brake smooth, never jarring. Control the catch before adding speed.",
+    "es": "Frenadas de desaceleración con banda (90/90). Frena suave, nunca brusco. Controla la frenada antes de sumar velocidad.",
+    "pt": "Frenagens de desaceleração com elástico (90/90). Freie suave, nunca brusco. Controle a frenagem antes de somar velocidade."
+  },
+  "prehab-banded-distraction-dorsiflexion-mobilization": {
+    "en": "Banded Distraction Dorsiflexion Mobilization. Band low — across the ankle bones. Heel nailed, knee over the toes.",
+    "es": "Movilización de dorsiflexión con banda de distracción. Banda baja, cruzando los huesos del tobillo. Talón clavado, rodilla sobre los dedos.",
+    "pt": "Mobilização de dorsiflexão com banda de distração. Banda baixa, cruzando os ossos do tornozelo. Calcanhar pregado, joelho sobre os dedos."
+  },
+  "prehab-wall-lean-tibialis-raise": {
+    "en": "Wall-Lean Tibialis Raise. Heels stay planted. Lift the forefoot as high as it goes.",
+    "es": "Elevación de tibial anterior apoyado en pared. Talones plantados. Sube el antepié lo más alto posible.",
+    "pt": "Elevação de tibial anterior apoiado na parede. Calcanhares plantados. Eleve o antepé o mais alto possível."
+  },
+  "prehab-goblet-cossack-squat": {
+    "en": "Goblet Cossack Squat. Loaded heel never lifts. Chest tall, counterweight forward.",
+    "es": "Sentadilla Cossack con contrapeso (Goblet). El talón cargado nunca se levanta. Pecho erguido, contrapeso al frente.",
+    "pt": "Agachamento Cossack com contrapeso (Goblet). O calcanhar carregado nunca levanta. Peito ereto, contrapeso à frente."
+  },
+  "prehab-gastroc-soleus-soft-tissue-release-spare-the-tendon": {
+    "en": "Gastroc-Soleus Soft-Tissue Release (spare the tendon). Muscle, not tendon. Bend the knee to reach the soleus.",
+    "es": "Liberación de gastrocnemio-sóleo (sin tocar el tendón). Músculo, no tendón. Flexiona la rodilla para llegar al sóleo.",
+    "pt": "Liberação de gastrocnêmio-sóleo (poupando o tendão). Músculo, não tendão. Dobre o joelho para alcançar o sóleo."
+  },
+  "prehab-isometric-heel-raise-hold-straight-and-bent-knee": {
+    "en": "Isometric Heel Raise Hold (straight and bent knee). Mid-range hold, dead still. One set straight-knee, one bent-knee.",
+    "es": "Sostén isométrico de elevación de talones (rodilla recta y flexionada). Sostén a media altura, totalmente quieto. Una serie con rodilla recta y una flexionada.",
+    "pt": "Sustentação isométrica de elevação de calcanhares (joelho reto e dobrado). Sustentação na meia altura, totalmente parado. Uma série com joelho reto e uma com joelho dobrado."
+  },
+  "prehab-slow-heavy-heel-raise-full-range-loaded": {
+    "en": "Slow Heavy Heel Raise (full range, loaded). Three up, pause, three down. Finish tall over the big toe.",
+    "es": "Elevación de talones pesada y lenta (rango completo). Tres arriba, pausa, tres abajo. Termina alto sobre el dedo gordo.",
+    "pt": "Elevação de calcanhares pesada e lenta (amplitude completa). Três para subir, pausa, três para descer. Termine alto sobre o dedão."
+  },
+  "prehab-peroneal-release-with-ankle-alphabet": {
+    "en": "Peroneal Release with Ankle Alphabet. Slow passes down the outer shin. Trace every letter full size.",
+    "es": "Liberación de peroneos con abecedario de tobillo. Pasadas lentas por la cara externa de la pierna. Dibuja cada letra a tamaño completo.",
+    "pt": "Liberação dos fibulares com alfabeto de tornozelo. Passadas lentas pela face externa da perna. Desenhe cada letra em tamanho completo."
+  },
+  "prehab-banded-eversion-peroneal-isolation": {
+    "en": "Banded Eversion (peroneal isolation). Turn the sole out, shin stays still. Three slow seconds back in.",
+    "es": "Eversión con banda (aislamiento de peroneos). Gira la planta hacia afuera con la tibia quieta. Tres segundos lentos de regreso.",
+    "pt": "Eversão com elástico (isolamento dos fibulares). Gire a sola para fora com a canela parada. Três segundos lentos no retorno."
+  },
+  "prehab-single-leg-balance-matrix-eyes-closed-and-y-reach-progression": {
+    "en": "Single-Leg Balance Matrix (eyes-closed and Y-reach progression). Soft knee, tall posture. Quiet foot — kill the wobble early.",
+    "es": "Matriz de equilibrio a una pierna (ojos cerrados y alcances en Y). Rodilla suave, postura alta. Pie silencioso: apaga el tambaleo temprano.",
+    "pt": "Matriz de equilíbrio unipodal (olhos fechados e alcances em Y). Joelho macio, postura alta. Pé silencioso: apague a oscilação cedo."
+  },
+  "prehab-bent-knee-soleus-massage-no-stretching": {
+    "en": "Bent-Knee Soleus Massage (no stretching). Knee bent to reach the soleus. Never massage the heel attachment itself.",
+    "es": "Masaje de sóleo con rodilla flexionada (sin estiramientos). Rodilla flexionada para llegar al sóleo. Nunca masajees la inserción en el talón.",
+    "pt": "Massagem do sóleo com joelho dobrado (sem alongamentos). Joelho dobrado para alcançar o sóleo. Nunca massageie a inserção no calcanhar."
+  },
+  "prehab-floor-level-isometric-heel-raise-no-deficit": {
+    "en": "Floor-Level Isometric Heel Raise (no deficit). Flat floor only, no edge drops. Hold at mid-height, dead still.",
+    "es": "Isométrico de elevación de talones a nivel del piso (sin déficit). Solo piso plano, sin descender de bordes. Sostén a media altura, totalmente quieto.",
+    "pt": "Isometria de elevação de calcanhares no nível do chão (sem déficit). Apenas chão plano, sem descer de bordas. Sustente na meia altura, totalmente parado."
+  },
+  "prehab-loaded-heel-raise-floor-range-only-progressive": {
+    "en": "Loaded Heel Raise, Floor Range Only (progressive). Floor to tall, never below flat. Slow lowers — three seconds.",
+    "es": "Elevación de talones con carga, solo rango sobre el piso (progresiva). Del piso a lo alto, nunca debajo del plano. Bajadas lentas: tres segundos.",
+    "pt": "Elevação de calcanhares com carga, apenas amplitude acima do chão (progressiva). Do chão ao topo, nunca abaixo do plano. Descidas lentas: três segundos."
+  },
+  "prehab-deep-lunge-ankle-rock-knee-out-bias": {
+    "en": "Deep Lunge Ankle Rock (knee-out bias). Heel heavy, arch tall. Track the knee over the little toe.",
+    "es": "Balanceo de tobillo en zancada profunda (sesgo hacia afuera). Talón pesado, arco alto. Guía la rodilla sobre el dedo pequeño.",
+    "pt": "Balanço de tornozelo em afundo profundo (viés para fora). Calcanhar pesado, arco alto. Guie o joelho sobre o dedo mínimo."
+  },
+  "prehab-end-range-dorsiflexion-pails-rails": {
+    "en": "End-Range Dorsiflexion PAILs/RAILs. Build the push gradually, no jerks. Switch instantly from push to pull.",
+    "es": "PAILs/RAILs de dorsiflexión en rango final. Sube el empuje gradual, sin tirones. Cambia al instante de empujar a jalar.",
+    "pt": "PAILs/RAILs de dorsiflexão na amplitude final. Aumente a pressão gradualmente, sem trancos. Troque na hora de empurrar para puxar."
+  },
+  "prehab-tempo-heels-down-goblet-squat": {
+    "en": "Tempo Heels-Down Goblet Squat. Heels rooted the entire rep. Three down, two in the hole.",
+    "es": "Sentadilla Goblet con talones abajo y tempo. Talones enraizados toda la repetición. Tres de bajada, dos de pausa al fondo.",
+    "pt": "Agachamento Goblet com calcanhares no chão e tempo. Calcanhares enraizados a repetição inteira. Três na descida, dois de pausa embaixo."
+  },
+  "prehab-suboccipital-levator-ball-release-with-gentle-rom": {
+    "en": "Suboccipital & Levator Ball Release with Gentle ROM. Pressure that relaxes, never bruises. Tiny nods and turns on the ball.",
+    "es": "Liberación suboccipital y del elevador con pelota y movilidad suave. Presión que relaja, nunca que magulla. Asentimientos y giros pequeños sobre la pelota.",
+    "pt": "Liberação suboccipital e do levantador com bola e mobilidade suave. Pressão que relaxa, nunca que machuca. Acenos e giros pequenos sobre a bola."
+  },
+  "prehab-craniocervical-chin-nod": {
+    "en": "Craniocervical Chin Nod. Gentle nod, no neck press. Surface muscles stay soft — touch to check.",
+    "es": "Asentimiento craneocervical (Chin Nod). Asentimiento suave, sin presionar el cuello. Músculos superficiales blandos: tócalos para verificar.",
+    "pt": "Aceno craniocervical (Chin Nod). Aceno suave, sem pressionar o pescoço. Músculos superficiais macios: toque para conferir."
+  },
+  "prehab-quadruped-gaze-led-rotation": {
+    "en": "Quadruped Gaze-Led Rotation. Eyes lead, neck follows. Open from the mid-back.",
+    "es": "Rotación guiada por la mirada en cuadrupedia. Los ojos guían, el cuello sigue. Abre desde la espalda media.",
+    "pt": "Rotação guiada pelo olhar em quatro apoios. Os olhos guiam, o pescoço segue. Abra a partir do meio das costas."
+  },
+  "prehab-doorway-pec-opener-with-t-spine-roller-extension": {
+    "en": "Doorway Pec Opener with T-Spine Roller Extension. Elbow at shoulder height in the doorway. Step through until a front-chest stretch builds.",
+    "es": "Apertura de pectoral en puerta con extensión torácica en rodillo. Codo a la altura del hombro en la puerta. Avanza hasta sentir el estiramiento en el pecho.",
+    "pt": "Abertura de peitoral na porta com extensão torácica no rolo. Cotovelo na altura do ombro na porta. Avance até sentir o alongamento no peito."
+  },
+  "prehab-prone-y-t-w-series-thumbs-up": {
+    "en": "Prone Y-T-W Series (thumbs up). Lift from the shoulder blades, not the hands. Thumbs up, shoulders away from the ears.",
+    "es": "Serie Y-T-W en pronación (pulgares arriba). Eleva desde las escápulas, no desde las manos. Pulgares arriba, hombros lejos de las orejas.",
+    "pt": "Série Y-T-W em pronação (polegares para cima). Eleve a partir das escápulas, não das mãos. Polegares para cima, ombros longe das orelhas."
+  },
+  "prehab-wall-chin-tuck-with-band-pull-apart-superset": {
+    "en": "Wall Chin Tuck with Band Pull-Apart Superset. Head tall against the wall, chin gentle. Pull to a full blade squeeze.",
+    "es": "Mentón retraído en pared con apertura de banda (superserie). Cabeza alta contra la pared, mentón suave. Abre hasta apretar por completo las escápulas.",
+    "pt": "Queixo retraído na parede com abertura de elástico (supersérie). Cabeça alta contra a parede, queixo suave. Abra até apertar por completo as escápulas."
+  },
+  "prehab-segmented-foam-roller-extensions-t5-t10-exhale-driven": {
+    "en": "Segmented Foam Roller Extensions (T5-T10, exhale-driven). Move the roller one segment at a time. Full exhale before each extension.",
+    "es": "Extensiones segmentadas en rodillo (T5-T10, guiadas por la exhalación). Mueve el rodillo un segmento a la vez. Exhalación completa antes de cada extensión.",
+    "pt": "Extensões segmentadas no rolo (T5-T10, guiadas pela expiração). Mova o rolo um segmento por vez. Expiração completa antes de cada extensão."
+  },
+  "prehab-prone-thoracic-lift-off": {
+    "en": "Prone Thoracic Lift-Off. Lift from between the shoulder blades. Gaze down — chin stays tucked.",
+    "es": "Despegue torácico en pronación. Eleva desde el espacio entre las escápulas. Mirada abajo: mentón retraído.",
+    "pt": "Decolagem torácica em pronação. Eleve a partir do espaço entre as escápulas. Olhar para baixo: queixo retraído."
+  },
+  "prehab-wall-facing-overhead-press-dowel": {
+    "en": "Wall-Facing Overhead Press (dowel). Nose and dowel never touch the wall. Ribs down as the arms rise.",
+    "es": "Press sobre la cabeza de cara a la pared (con bastón). Ni la nariz ni el bastón tocan la pared. Costillas abajo mientras los brazos suben.",
+    "pt": "Press acima da cabeça de frente para a parede (com bastão). Nem o nariz nem o bastão tocam a parede. Costelas baixas enquanto os braços sobem."
+  },
+  "prehab-peanut-ball-suboccipital-release-with-chin-nods": {
+    "en": "Peanut-Ball Suboccipital Release with Chin Nods. Let the head be heavy. Tiny nods, nothing forced.",
+    "es": "Liberación suboccipital con pelota doble (peanut) y asentimientos. Deja la cabeza pesada. Asentimientos diminutos, nada forzado.",
+    "pt": "Liberação suboccipital com bola dupla (peanut) e acenos. Deixe a cabeça pesada. Acenos minúsculos, nada forçado."
+  },
+  "prehab-supine-deep-neck-flexor-endurance-holds": {
+    "en": "Supine Deep Neck Flexor Endurance Holds. Nod first, lift second. One centimeter — no higher.",
+    "es": "Resistencia de flexores profundos del cuello boca arriba. Primero asiente, después eleva. Un centímetro: no más alto.",
+    "pt": "Resistência dos flexores profundos do pescoço deitado. Primeiro acene, depois eleve. Um centímetro: não mais alto."
+  },
+  "prehab-front-rack-carry-with-packed-neck-and-nasal-breathing": {
+    "en": "Front-Rack Carry with Packed Neck and Nasal Breathing. Chin packed, jaw soft. Nasal breathing even under load.",
+    "es": "Caminata en posición front-rack con cuello empacado y respiración nasal. Mentón retraído, mandíbula suelta. Respiración nasal incluso bajo carga.",
+    "pt": "Caminhada em front-rack com pescoço encaixado e respiração nasal. Queixo retraído, mandíbula solta. Respiração nasal mesmo sob carga."
+  },
+  "prehab-levator-pin-and-stretch": {
+    "en": "Levator Pin-and-Stretch. Pin first, then move the head. Nose toward the opposite armpit.",
+    "es": "Pin y estiramiento del elevador de la escápula. Primero fija, después mueve la cabeza. Nariz hacia la axila opuesta.",
+    "pt": "Pin e alongamento do levantador da escápula. Primeiro fixe, depois mova a cabeça. Nariz em direção à axila oposta."
+  },
+  "prehab-scapular-upward-rotation-shrug-y-angle": {
+    "en": "Scapular Upward-Rotation Shrug (Y-angle). Shrug along the Y line, not straight up. Long arms — reach as you shrug.",
+    "es": "Encogimiento en rotación ascendente escapular (ángulo en Y). Encoge siguiendo la línea de la Y, no en vertical. Brazos largos: alcanza mientras encoges.",
+    "pt": "Encolhimento em rotação ascendente da escápula (ângulo em Y). Encolha seguindo a linha do Y, não na vertical. Braços longos: alcance enquanto encolhe."
+  },
+  "prehab-suspension-set-farmer-carry": {
+    "en": "Suspension-Set Farmer Carry. Ten-percent shrug, hold it. Load in the hands, not the neck.",
+    "es": "Caminata de granjero con suspensión activa. Encogimiento del diez por ciento, sostenido. La carga en las manos, no en el cuello.",
+    "pt": "Caminhada de fazendeiro com suspensão ativa. Encolhimento de dez por cento, sustentado. A carga nas mãos, não no pescoço."
+  }
+}
